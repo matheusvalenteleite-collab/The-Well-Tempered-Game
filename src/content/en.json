@@ -1,0 +1,32 @@
+{
+  "ui": {
+    "title": "The Well-Tempered Game",
+    "mode.fux": "Fux mode",
+    "species.first": "First species: note against note",
+    "exercise.figure": "Fig. {figure}",
+    "exercise.mode": "Final: {final}",
+    "exercise.cantusBelow": "Cantus firmus below",
+    "exercise.cantusAbove": "Cantus firmus above",
+    "clefs.modern": "Modern clefs",
+    "clefs.original": "Original clefs",
+    "play": "Play",
+    "stop": "Stop",
+    "tempo": "Tempo (half note = {bpm})",
+    "accidental.flat": "♭",
+    "accidental.natural": "♮",
+    "accidental.sharp": "♯",
+    "clear": "Clear note",
+    "credits": "Credits",
+    "close": "Close",
+    "audio.loading": "Loading organ samples…",
+    "audio.failed": "Audio unavailable: the organ samples could not be loaded.",
+    "keyboard.help": "Keys: ← → column · ↑ ↓ step · A–G note · # (sharp) - (flat) n (natural) · Delete clear · Space hear column · P play all",
+    "source.exercise": "J. J. Fux, Gradus ad Parnassum (Vienna, 1725), {figure}, p. {page}. Encoding: Four Score and More / Open Music Theory (Mark Gotham), {license}.",
+    "source.cantusOnly": "J. J. Fux, Gradus ad Parnassum (Vienna, 1725): cantus firmus in {final}, assigned on p. 55 without a worked example."
+  },
+  "tutor": {
+    "speaker.aloysius": "Aloysius",
+    "speaker.josephus": "Josephus",
+    "step.fux-mode.s1.01.intro": "[Placeholder] Aloysius sets the first cantus firmus and asks Josephus to write a counterpoint above it, note against note."
+  }
+}
