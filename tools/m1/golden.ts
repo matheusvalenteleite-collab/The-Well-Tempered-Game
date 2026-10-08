@@ -8,7 +8,7 @@ import { applicableRules, evaluate, presetRules } from "../../src/counterpoint/e
 import { harmonic, interval } from "../../src/counterpoint/interval.ts";
 import type { CounterpointInput, Violation } from "../../src/counterpoint/rules/types.ts";
 import { profileCantus } from "../../src/counterpoint/analysis/cantus-profile.ts";
-import { MELODIC_FORBIDDEN, melodicAugmentedDiminished, melodicBeyondOctave, melodicSeventh, melodicSixth } from "../../src/counterpoint/rules/first-species.ts";
+import { MELODIC_FORBIDDEN, melodicMajorSixth, melodicTritone } from "../../src/counterpoint/rules/first-species.ts";
 
 export function inputFor(ex: Exercise, sol: OriginalSolution, counterpoint?: string[]): CounterpointInput {
   return {
@@ -121,10 +121,8 @@ function melodicPairs(notes: Note[]) {
 /** 4. Every melodic leap in every Fux solution (all species) against the melodic rules. */
 export function melodicLeapAudit(repo: FuxRepository) {
   const tests = [
-    { rule: melodicSixth.id, bad: MELODIC_FORBIDDEN.sixth },
-    { rule: melodicSeventh.id, bad: MELODIC_FORBIDDEN.seventh },
-    { rule: melodicBeyondOctave.id, bad: MELODIC_FORBIDDEN.beyondOctave },
-    { rule: melodicAugmentedDiminished.id, bad: MELODIC_FORBIDDEN.augmentedDiminished },
+    { rule: melodicTritone.id, bad: MELODIC_FORBIDDEN.tritone },
+    { rule: melodicMajorSixth.id, bad: MELODIC_FORBIDDEN.majorSixth },
   ];
   const inventory: Record<string, number> = {};
   const offending: { exercise_id: string; species: string; voice: string; measure: number; beat: string; from: string; to: string; interval: string; direction: string; rule: string; acrossRest: boolean }[] = [];

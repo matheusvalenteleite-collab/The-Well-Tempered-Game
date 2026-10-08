@@ -4,14 +4,14 @@
  * Page references are to the 1725 print, Exercitii I, Lectio I (pp. 45-55), read from the
  * page scans in the upstream dataset repository (source_pdf/gap_p053.pdf ... gap_p063.pdf).
  * Printed p. 46 is not among those scans, and Liber I (where Fux states the rules of motion
- * he refers back to) is not either; claims that could only rest on them are "unverified".
+ * he refers back to) is not either. Rules not found in this text are not part of Fux mode
+ * (owner decision); see docs/DECISIONS.md.
  */
 import {
   harmonic,
   interval,
   isAbove,
   isConsonant,
-  isImperfectConsonance,
   isLeap,
   isOctaveClass,
   isPerfectConsonance,
@@ -168,43 +168,71 @@ function melodicRule(id: string, attribution: Rule["attribution"], forbidden: (i
 
 /** Forbidden-melodic-interval predicates, shared with the golden audits. */
 export const MELODIC_FORBIDDEN = {
-  augmentedDiminished: (i: Interval) => i.quality === "A" || i.quality === "d" || i.quality === "AA" || i.quality === "dd",
-  sixth: (i: Interval) => i.number === 6 && (i.quality === "M" || (i.quality === "m" && i.direction === "down")),
-  seventh: (i: Interval) => i.number === 7,
-  beyondOctave: (i: Interval) => i.number > 8,
+  /** "saltum Quartae majoris, sive Tritoni" (p. 51-52). The diminished fifth is not named there. */
+  tritone: (i: Interval) => i.quality === "A" && i.simple === 4,
+  /** "saltum Sextae majoris ... prohibitus est" (p. 53); no direction is specified. */
+  majorSixth: (i: Interval) => i.quality === "M" && i.number === 6,
 };
 
-export const melodicAugmentedDiminished = melodicRule(
-  "fs.melodic-augmented-diminished",
-  {
+export const melodicTritone = melodicRule(
+  "fs.melodic-tritone",
+  { status: "verified", ref: `${P}, pp. 51-52`, note: "Introduced at Fig. 12 ('mi contra fa, est diabolus in Musica'). Only the augmented fourth is named; the diminished fifth is not checked." },
+  MELODIC_FORBIDDEN.tritone,
+);
+
+export const melodicMajorSixth = melodicRule(
+  "fs.melodic-major-sixth",
+  { status: "verified", ref: `${P}, p. 53`, note: "Introduced at Fig. 15 (first version, notes 9-10)." },
+  MELODIC_FORBIDDEN.majorSixth,
+);
+
+export const convergingLeapIntoOctave: Rule = {
+  id: "fs.converging-leap-into-octave",
+  source: "fux",
+  severity: "error",
+  species: ["first"],
+  voicing: "any",
+  messageKey: "rule.fs.converging-leap-into-octave",
+  attribution: {
     status: "verified",
-    ref: `${P}, pp. 51-52`,
-    note: "Only the tritone leap is explicitly forbidden there ('mi contra fa'); other augmented and diminished intervals are covered by the general ban only by inference.",
+    ref: `${P}, p. 54`,
+    note: "'Quòd si autem de remotiore quadam Consonantiâ per saltum lapsus conjunctim in Octavam fiat, nec in Compositione plurium vocum tolerandum puto'; and a fortiori into the unison. The examples ('malè') show the voices converging by contrary motion, one of them leaping. The octava battuta (both voices by step) is left free (pp. 53-54).",
   },
-  MELODIC_FORBIDDEN.augmentedDiminished,
-);
-
-export const melodicSixth = melodicRule(
-  "fs.melodic-sixth",
-  {
-    status: "unverified",
-    ref: `${P}, p. 53`,
-    note: "The major-sixth leap is verified as forbidden (p. 53). The ban on the descending minor sixth, and the permission of the ascending one, are not stated on pp. 45, 47-55; p. 46 and Liber I are not available.",
+  check(a) {
+    const out: Violation[] = [];
+    for (let k = 1; k < a.length; k++) {
+      const now = vertical(a, k);
+      if (!isOctaveClass(now)) continue;
+      const before = vertical(a, k - 1);
+      const m = motion(a.cantus[k - 1], a.counterpoint[k - 1], a.cantus[k], a.counterpoint[k]);
+      const leap = isLeap(interval(a.cantus[k - 1], a.cantus[k])) || isLeap(interval(a.counterpoint[k - 1], a.counterpoint[k]));
+      if (m === "contrary" && before.semitones > now.semitones && leap) out.push(v(this, [k - 1, k], { from: before.name, to: now.name }));
+    }
+    return out;
   },
-  MELODIC_FORBIDDEN.sixth,
-);
+};
 
-export const melodicSeventh = melodicRule(
-  "fs.melodic-seventh",
-  { status: "unverified", note: "Not stated on pp. 45, 47-55 (p. 46 and Liber I not available)." },
-  MELODIC_FORBIDDEN.seventh,
-);
-
-export const melodicBeyondOctave = melodicRule(
-  "fs.melodic-beyond-octave",
-  { status: "unverified", note: "Not stated on pp. 45, 47-55 (p. 46 and Liber I not available)." },
-  MELODIC_FORBIDDEN.beyondOctave,
-);
+export const unisonLeap: Rule = {
+  id: "fs.unison-leap",
+  source: "fux",
+  severity: "error",
+  species: ["first"],
+  voicing: "any",
+  messageKey: "rule.fs.unison-leap",
+  attribution: {
+    status: "verified",
+    ref: `${P}, pp. 54-55`,
+    note: "Introduced at Fig. 21 (NB on the first note): moving from the unison to another consonance by leap, or into the unison by leap, is bad; tolerated there only because the leap is in the cantus, which cannot be changed. Hence only counterpoint leaps are checked.",
+  },
+  check(a) {
+    const out: Violation[] = [];
+    for (let k = 1; k < a.length; k++) {
+      const leap = isLeap(interval(a.counterpoint[k - 1], a.counterpoint[k]));
+      if (leap && (isUnison(vertical(a, k - 1)) || isUnison(vertical(a, k)))) out.push(v(this, [k - 1, k]));
+    }
+    return out;
+  },
+};
 
 export const noVoiceCrossing: Rule = {
   id: "fs.no-voice-crossing",
@@ -253,47 +281,6 @@ export const preferContraryMotion: Rule = {
   },
 };
 
-export const preferImperfectConsonances: Rule = {
-  id: "fs.prefer-imperfect-consonances",
-  source: "fux",
-  severity: "warning",
-  species: ["first"],
-  voicing: "any",
-  messageKey: "rule.fs.prefer-imperfect-consonances",
-  attribution: { status: "unverified", note: "Not found on pp. 45, 47-55; possibly on p. 46 (not available)." },
-  pending: "Operationalization: warn when interior perfect consonances outnumber imperfect ones. Provisional.",
-  check(a) {
-    const perfect: number[] = [];
-    let imperfect = 0;
-    for (let k = 1; k < a.length - 1; k++) {
-      const i = vertical(a, k);
-      if (isPerfectConsonance(i)) perfect.push(k);
-      else if (isImperfectConsonance(i)) imperfect++;
-    }
-    return perfect.length > imperfect ? [v(this, perfect, { perfect: perfect.length, imperfect })] : [];
-  },
-};
-
-export const avoidSuccessiveLeaps: Rule = {
-  id: "fs.avoid-successive-leaps",
-  source: "fux",
-  severity: "warning",
-  species: ["first"],
-  voicing: "any",
-  messageKey: "rule.fs.avoid-successive-leaps",
-  attribution: { status: "unverified", note: "Not found on pp. 45, 47-55." },
-  pending: "Operationalization: warn at every pair of consecutive leaps (> second) in the counterpoint, either direction. Provisional.",
-  check(a) {
-    const out: Violation[] = [];
-    for (let k = 2; k < a.length; k++) {
-      const i1 = interval(a.counterpoint[k - 2], a.counterpoint[k - 1]);
-      const i2 = interval(a.counterpoint[k - 1], a.counterpoint[k]);
-      if (isLeap(i1) && isLeap(i2)) out.push(v(this, [k - 2, k - 1, k], { first: `${i1.name} ${i1.direction}`, second: `${i2.name} ${i2.direction}` }));
-    }
-    return out;
-  },
-};
-
 export const FIRST_SPECIES_FUX_STRICT: readonly Rule[] = [
   verticalConsonance,
   openingPerfect,
@@ -301,12 +288,10 @@ export const FIRST_SPECIES_FUX_STRICT: readonly Rule[] = [
   cadence,
   perfectApproach,
   unisonOnlyAtEnds,
-  melodicAugmentedDiminished,
-  melodicSixth,
-  melodicSeventh,
-  melodicBeyondOctave,
+  melodicTritone,
+  melodicMajorSixth,
+  convergingLeapIntoOctave,
+  unisonLeap,
   noVoiceCrossing,
   preferContraryMotion,
-  preferImperfectConsonances,
-  avoidSuccessiveLeaps,
 ];

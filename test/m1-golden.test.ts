@@ -22,29 +22,14 @@ test("fux-strict hard rules on Fux's 10 first-species solutions: none fails", ()
   for (const r of results) assert.ok(r.rules_applied.includes("fs.cadence") && r.rules_applied.includes("fs.opening-perfect"), r.figure);
 });
 
-test("warnings on Fux's solutions (calibration evidence; provisional operationalizations)", () => {
+test("warnings on Fux's solutions: only the Fig. 14 crossing (decision D2; Fux approves it, p. 52)", () => {
   const w = goldenFirstSpecies(repo).flatMap((r) => r.warnings.map((x) => `${r.figure}:${x.ruleId}:${x.positions.join(",")}`));
-  assert.deepEqual(w, [
-    "6:fs.avoid-successive-leaps:1,2,3",
-    "6:fs.avoid-successive-leaps:5,6,7",
-    "12:fs.avoid-successive-leaps:0,1,2",
-    "13:fs.avoid-successive-leaps:1,2,3",
-    "13:fs.avoid-successive-leaps:7,8,9",
-    // Decision D2: crossing is a warning; Fux approves this one (1725, p. 52).
-    "14:fs.no-voice-crossing:3,4,5,6",
-    "15:fs.avoid-successive-leaps:7,8,9",
-    "15:fs.avoid-successive-leaps:8,9,10",
-    "21:fs.avoid-successive-leaps:4,5,6",
-    "21:fs.avoid-successive-leaps:5,6,7",
-    "21:fs.avoid-successive-leaps:8,9,10",
-    "22:fs.avoid-successive-leaps:0,1,2",
-    "22:fs.avoid-successive-leaps:4,5,6",
-  ]);
+  assert.deepEqual(w, ["14:fs.no-voice-crossing:3,4,5,6"]);
 });
 
 test("the superseded published reading of Fig. 22 fails fux-strict (supports the kern reading)", () => {
   const ids = goldenFig22PublishedReading(repo).evaluation.errors.map((e) => e.ruleId);
-  assert.deepEqual(ids, ["fs.vertical-consonance", "fs.melodic-seventh"]);
+  assert.deepEqual(ids, ["fs.vertical-consonance"]);
 });
 
 test("engine intervals agree with all 1,111 source annotations", () => {
@@ -58,12 +43,6 @@ test("widest vertical distance in Fux's first species is a major tenth", () => {
   assert.deepEqual(w.maximum.map((r) => `${r.figure}:${r.interval}:m${r.measure}`), ["6:M10:m7", "12:M10:m6", "13:M10:m7", "21:M10:m6", "23:M10:m8"]);
 });
 
-test("melodic audit of all 46 solutions: only descending minor sixths contradict the stated rules", () => {
-  const off = melodicLeapAudit(repo).offending.map((o) => `${o.exercise_id}:m${o.measure}:${o.from}-${o.to}:${o.rule}`);
-  assert.deepEqual(off, [
-    "fux_2v_fig_041:m12:G3-B2:fs.melodic-sixth",
-    "fux_2v_fig_042:m9:C5-E4:fs.melodic-sixth",
-    "fux_2v_fig_057:m4:C5-E4:fs.melodic-sixth",
-    "fux_2v_fig_075:m4:C5-E4:fs.melodic-sixth",
-  ]);
+test("melodic audit of all 46 solutions: no leap breaks the tritone or major-sixth rules", () => {
+  assert.deepEqual(melodicLeapAudit(repo).offending, []);
 });

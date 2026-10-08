@@ -62,7 +62,10 @@ test("each hard rule fires on a targeted defect", () => {
   assert.ok(ids(with_(10, "F4")).includes("fs.cadence"));
   assert.ok(ids(["G4", "B4", "C5", "D5", "B4", "C5", "B4", "C5", "A4", "G4", "B4", "C5"]).includes("fs.perfect-approach")); // E4-B4 -> F4-C5 parallel fifths
   assert.ok(ids(with_(4, "E4")).includes("fs.unison-only-at-ends"));
-  assert.ok(ids(["G4", "G4", "A4", "B4", "G4", "E5", "B4", "C5", "A4", "G4", "B4", "C5"]).includes("fs.melodic-sixth")); // G4-E5 = M6 up
+  assert.ok(ids(["G4", "G4", "A4", "B4", "G4", "E5", "B4", "C5", "A4", "G4", "B4", "C5"]).includes("fs.melodic-major-sixth")); // G4-E5 = M6 up
+  // F4/C6 (P12) -> G4/G5 (P8): converging, the counterpoint leaping a fourth
+  assert.ok(ids(["G4", "G4", "C6", "G5", "C5", "C5", "B4", "C5", "A4", "G4", "B4", "C5"]).includes("fs.converging-leap-into-octave"));
+  assert.ok(ids(["C4", "G4", "A4", "B4", "C5", "C5", "B4", "C5", "A4", "G4", "B4", "C5"]).includes("fs.unison-leap")); // C4 unison, leap to G4
   assert.ok(evaluate(input(with_(6, "F4"))).warnings.some((w) => w.ruleId === "fs.no-voice-crossing")); // G4 cantus, F4 counterpoint
 });
 
@@ -74,21 +77,17 @@ test("cantus above: opening only P1/P8, cadence m3 -> P8/P1 (1725, pp. 48-49)", 
   assert.ok(evaluate(above([...CP.slice(0, 10), "G3", "C4"])).errors.some((e) => e.ruleId === "fs.cadence")); // M6 below instead of m3
 });
 
-test("melodic interval rule boundaries", () => {
+test("melodic interval rules as Fux states them (tritone, major sixth); others are unchecked", () => {
   const melodic = (a: string, b: string) => {
     const cp = [...GOOD];
     cp[4] = a;
     cp[5] = b;
     return evaluate(input(cp)).violations.filter((v) => v.ruleId.startsWith("fs.melodic") && v.positions[0] === 4).map((v) => v.ruleId);
   };
-  assert.deepEqual(melodic("C5", "A5"), ["fs.melodic-sixth"]); // M6 up
-  assert.deepEqual(melodic("C6", "E5"), ["fs.melodic-sixth"]); // m6 down
-  assert.deepEqual(melodic("E4", "C5"), []); // m6 up permitted
-  assert.deepEqual(melodic("C5", "B5"), ["fs.melodic-seventh"]);
-  assert.deepEqual(melodic("C5", "D6"), ["fs.melodic-beyond-octave"]);
-  assert.deepEqual(melodic("C5", "C6"), []); // octave permitted
-  assert.deepEqual(melodic("B4", "F5"), ["fs.melodic-augmented-diminished"]); // d5
-  assert.deepEqual(melodic("F4", "B4"), ["fs.melodic-augmented-diminished"]); // tritone
+  assert.deepEqual(melodic("C5", "A5"), ["fs.melodic-major-sixth"]);
+  assert.deepEqual(melodic("A5", "C5"), ["fs.melodic-major-sixth"]);
+  assert.deepEqual(melodic("F4", "B4"), ["fs.melodic-tritone"]);
+  for (const [a, b] of [["C6", "E5"], ["E4", "C5"], ["C5", "B5"], ["C5", "D6"], ["B4", "F5"]]) assert.deepEqual(melodic(a, b), [], `${a}-${b}`);
 });
 
 test("malformed input fails loudly", () => {
