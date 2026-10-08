@@ -8,6 +8,7 @@ import { exerciseView } from "../game/exercise-view.ts";
 import { applyAccidental, clear, initialState, letterNote, moveNote, place, repeatPrevious, select, setRest, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
 import { AudioEngine, renderLevel, SYNTH_PRESETS, type AudioStatus } from "../audio/engine.ts";
 import { restoreSound, type SoundState } from "../audio/sound.ts";
+import { download, encode, EXPORT_FORMATS, type ExportFormat } from "../audio/export.ts";
 import { loadSamples } from "../audio/voice.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
 import { SoundDesk } from "./SoundDesk.tsx";
@@ -511,6 +512,65 @@ export function App() {
     if (k < 0) setPlaying(false);
   }
 
+  // Export (D74): one pass of what is playing, as set up now, captured from the speakers' feed and
+  // saved as MP3 or WAV. With the loop on, exactly one cycle (it loops seamlessly in a player);
+  // with it off, the piece and its ending, with the reverb's tail.
+  const [exportPhase, setExportPhase] = useState<null | "choose" | "recording" | "encoding">(null);
+  const exportTimer = useRef<number | null>(null);
+  const cancelExport = async () => {
+    if (exportTimer.current !== null) window.clearInterval(exportTimer.current);
+    exportTimer.current = null;
+    audio.stop();
+    setPlaying(false);
+    setCursor(-1);
+    await audio.stopCapture();
+    setExportPhase(null);
+  };
+  const startExport = async (format: ExportFormat) => {
+    stopSaved();
+    setDemoPlaying(null);
+    audio.stop();
+    setPlaying(false);
+    try {
+      await audio.startCapture();
+    } catch {
+      setToast(t("ui.export.failed"));
+      setExportPhase(null);
+      return;
+    }
+    setExportPhase("recording");
+    const mode = playMode !== "player" && !fuxOpen ? "player" : playMode;
+    setPlayMode(mode);
+    setPlaying(true);
+    startPlayback(audio, VIEW, { notes: session.notes, versions, mode, continuo: continuoAvailable, continuoSettings, tuning }, onLiveSlot);
+    const TAIL = 2.5;
+    exportTimer.current = window.setInterval(() => {
+      const c = audio.cycleStarts;
+      let span: [number, number] | null = null;
+      if (c.length >= 2 && audio.now >= c[1] + 0.05) span = [c[0], c[1]];
+      else if (audio.playEnd !== null && c.length >= 1 && audio.now >= audio.playEnd + TAIL) span = [c[0], audio.playEnd + TAIL];
+      if (!span) return;
+      window.clearInterval(exportTimer.current!);
+      exportTimer.current = null;
+      audio.stop();
+      setPlaying(false);
+      setCursor(-1);
+      setExportPhase("encoding");
+      const [from, to] = span;
+      void audio.stopCapture(from, to).then((data) => {
+        // Let the "encoding" notice paint before the (synchronous) encoder runs.
+        window.setTimeout(() => {
+          if (data && data.channels[0].length > 0) {
+            const base = `${stepStudy(STEP.id).name} ${VIEW.modalFinal}`.replace(/[^\p{L}\p{N} -]+/gu, "").trim() || "counterpoint";
+            download(encode(format, data.channels, data.sampleRate), `${base}.${format}`);
+            setToast(t("ui.export.done", { format: format.toUpperCase() }));
+          } else setToast(t("ui.export.failed"));
+          setExportPhase(null);
+        }, 30);
+      });
+    }, 100);
+  };
+
   // Live changes (D57): what is heard follows the score while it plays. A change of the line, of the
   // versions or of the continuo restarts the playback at once, from the bar under the cursor.
   const liveKey = JSON.stringify([versions, session.notes, continuoAvailable, continuoSettings, tuning, humanise]);
@@ -548,7 +608,7 @@ export function App() {
         return;
       }
     }
-    if (showCredits || showHelp || showSaved || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    if (showCredits || showHelp || showSaved || exportPhase !== null || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
     const k = e.key;
     const s = session;
     // Only the written line is editable; while it is hidden (D47) the keys only browse and play.
@@ -812,6 +872,7 @@ export function App() {
                 {playing && playMode === "player" ? "■" : "▶"}
               </button>
               <button className="loop" aria-pressed={loop} onClick={() => setLoop(!loop)} aria-label={t("ui.loop")} title={t(loop ? "ui.loop.on" : "ui.loop.off")}>⟲</button>
+              <button className="export" aria-pressed={exportPhase !== null} onClick={() => (exportPhase === null ? setExportPhase("choose") : exportPhase === "recording" ? void cancelExport() : undefined)} aria-label={t("ui.export")} title={t("ui.export.help")}>⤓</button>
               <div className="play-small">
                 <button onClick={() => play("fux")} disabled={!fuxOpen} aria-label={t("ui.play.fux")} title={t(fuxOpen ? "ui.play.fux" : "ui.play.locked")}>
                   {playing && playMode === "fux" ? "■" : t("ui.play.fuxShort")}
@@ -932,6 +993,33 @@ export function App() {
             setShowSaved(false);
           }}
         />
+      )}
+      {exportPhase !== null && (
+        <div className="dialog-backdrop" role="dialog" aria-modal="true" aria-label={t("ui.export")} onClick={() => exportPhase === "choose" && setExportPhase(null)}>
+          <div className="dialog export-card" onClick={(e) => e.stopPropagation()}>
+            <h2>{t("ui.export")}</h2>
+            {exportPhase === "choose" && (
+              <>
+                <p>{t(loop ? "ui.export.introLoop" : "ui.export.introOnce")}</p>
+                <div className="export-formats">
+                  {EXPORT_FORMATS.map((f) => (
+                    <button key={f} className={f === "mp3" ? "primary" : undefined} onClick={() => void startExport(f)}>
+                      <strong>{f.toUpperCase()}</strong> <span className="help">{t(`ui.export.${f}`)}</span>
+                    </button>
+                  ))}
+                </div>
+                <button onClick={() => setExportPhase(null)}>{t("ui.close")}</button>
+              </>
+            )}
+            {exportPhase === "recording" && (
+              <>
+                <p>{t("ui.export.recording")}</p>
+                <button onClick={() => void cancelExport()}>{t("ui.export.cancel")}</button>
+              </>
+            )}
+            {exportPhase === "encoding" && <p>{t("ui.export.encoding")}</p>}
+          </div>
+        </div>
       )}
       {showHelp && <HelpCard rest={VIEW.layout.some((sl) => sl.restAllowed)} onClose={() => setShowHelp(false)} />}
     </div>

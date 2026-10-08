@@ -43,9 +43,42 @@ class SampledPiano implements Instrument {
   }
 }
 
+/** The capture processor (D74): batches the input and posts it with the frame it started at. */
+const RECORDER_WORKLET = `
+class WtgRecorder extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this.l = []; this.r = []; this.n = 0; this.frame = -1;
+    this.port.onmessage = () => { this.send(); this.port.postMessage("flushed"); };
+  }
+  send() {
+    if (!this.n) return;
+    const cat = (parts) => { const o = new Float32Array(this.n); let k = 0; for (const p of parts) { o.set(p, k); k += p.length; } return o; };
+    this.port.postMessage({ frame: this.frame, l: cat(this.l), r: cat(this.r) });
+    this.l = []; this.r = []; this.n = 0; this.frame = -1;
+  }
+  process(inputs) {
+    const i = inputs[0];
+    const n = i && i[0] ? i[0].length : 128;
+    if (this.frame < 0) this.frame = currentFrame;
+    const l = i && i[0] ? i[0].slice() : new Float32Array(n);
+    const r = i && i[1] ? i[1].slice() : l;
+    this.l.push(l); this.r.push(r); this.n += n;
+    if (this.n >= 16384) this.send();
+    return true;
+  }
+}
+registerProcessor("wtg-recorder", WtgRecorder);
+`;
+
 export class AudioEngine {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
+  /** The last node before the speakers: what an export captures (D74). */
+  private limiter: DynamicsCompressorNode | null = null;
+  /** AudioContext times at which the passes of the current "play all" start, and where it ends. */
+  cycleStarts: number[] = [];
+  playEnd: number | null = null;
   private volume = 0.7;
   private instruments = new Map<SoundId, Promise<Voices | null>>();
   private current: Voices | null = null;
@@ -159,6 +192,7 @@ export class AudioEngine {
       limiter.attack.value = 0.002;
       limiter.release.value = 0.2;
       this.master.connect(limiter).connect(this.ctx.destination);
+      this.limiter = limiter;
       this.drumMachine = new DrumMachine(this.ctx, this.channel("drums"));
       this.setDrums(this.drumSettings, this.final);
     }
@@ -202,6 +236,11 @@ export class AudioEngine {
   }
 
   /** Length of one bar (a whole note) at the current tempo, in seconds. */
+  /** The audio clock (seconds), or 0 before the first gesture. */
+  get now(): number {
+    return this.ctx?.currentTime ?? 0;
+  }
+
   get barSeconds(): number {
     return 120 / this.tempo;
   }
@@ -296,6 +335,8 @@ export class AudioEngine {
       return;
     }
     const bars = Math.ceil(Math.max(...events.map((e) => e.at + e.length)));
+    this.cycleStarts = [];
+    this.playEnd = null;
     let k = Math.max(0, Math.min(events.length - 1, from));
     let next = ctx.currentTime + 0.1;
     const LOOKAHEAD = 0.15;
@@ -304,6 +345,7 @@ export class AudioEngine {
     const tick = () => {
       if (k === 0 && !announced) {
         announced = true;
+        this.cycleStarts.push(next);
         onCycle?.(next, k === 0 ? 0 : (events[k].at - events[0].at) * 2);
       }
       while (k < events.length && next < ctx.currentTime + LOOKAHEAD) {
@@ -326,6 +368,7 @@ export class AudioEngine {
           next += 0.5 * this.barSeconds;
           this.timers = this.timers.slice(-64);
         } else {
+          this.playEnd = next;
           this.timers.push(window.setTimeout(() => onSlot(-1), Math.max(0, (next - ctx.currentTime) * 1000)));
           return;
         }
@@ -333,6 +376,91 @@ export class AudioEngine {
       this.timers.push(window.setTimeout(tick, 40));
     };
     tick();
+  }
+
+  // ---- Export (D74): capture the output while it plays.
+
+  private capture: { node: AudioNode; sink: GainNode; left: Float32Array[]; right: Float32Array[]; firstFrame: number | null; flush(): Promise<void> } | null = null;
+  private workletReady: Promise<boolean> | null = null;
+
+  /** Start capturing everything that reaches the speakers (needs a user gesture, like playing). */
+  async startCapture(): Promise<void> {
+    await this.instrument();
+    const ctx = this.ctx;
+    if (!ctx || !this.limiter) throw new Error("audio is not available");
+    this.capture?.node.disconnect();
+    const left: Float32Array[] = [];
+    const right: Float32Array[] = [];
+    const sink = ctx.createGain();
+    sink.gain.value = 0;
+    sink.connect(ctx.destination);
+    this.workletReady ??= (async () => {
+      try {
+        const url = URL.createObjectURL(new Blob([RECORDER_WORKLET], { type: "application/javascript" }));
+        await ctx.audioWorklet.addModule(url);
+        return true;
+      } catch {
+        return false; // e.g. a page that forbids blob: modules: fall back on a script processor
+      }
+    })();
+    const state = { firstFrame: null as number | null };
+    let node: AudioNode;
+    let flush: () => Promise<void>;
+    if (await this.workletReady) {
+      const w = new AudioWorkletNode(ctx, "wtg-recorder", { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2], channelCount: 2, channelCountMode: "explicit" });
+      let flushed: () => void = () => {};
+      w.port.onmessage = (e) => {
+        if (e.data === "flushed") return flushed();
+        const { frame, l, r } = e.data as { frame: number; l: Float32Array; r: Float32Array };
+        state.firstFrame ??= frame;
+        left.push(l);
+        right.push(r);
+      };
+      flush = () => new Promise<void>((resolve) => {
+        flushed = resolve;
+        w.port.postMessage("flush");
+      });
+      node = w;
+    } else {
+      const sp = ctx.createScriptProcessor(4096, 2, 2);
+      sp.onaudioprocess = (e) => {
+        state.firstFrame ??= Math.round(e.playbackTime * ctx.sampleRate);
+        left.push(e.inputBuffer.getChannelData(0).slice());
+        right.push(e.inputBuffer.getChannelData(1).slice());
+      };
+      flush = async () => {};
+      node = sp;
+    }
+    this.limiter.connect(node);
+    node.connect(sink);
+    this.capture = { node, sink, left, right, get firstFrame() { return state.firstFrame; }, flush };
+  }
+
+  /**
+   * Stop capturing and return the audio between two AudioContext times (or all of it).
+   * The samples are stereo, at the context's rate.
+   */
+  async stopCapture(from?: number, to?: number): Promise<{ channels: Float32Array[]; sampleRate: number } | null> {
+    const c = this.capture;
+    const ctx = this.ctx;
+    if (!c || !ctx) return null;
+    await c.flush();
+    this.limiter?.disconnect(c.node);
+    c.node.disconnect();
+    c.sink.disconnect();
+    this.capture = null;
+    const join = (parts: Float32Array[]) => {
+      const out = new Float32Array(parts.reduce((n, p) => n + p.length, 0));
+      let at = 0;
+      for (const p of parts) (out.set(p, at), (at += p.length));
+      return out;
+    };
+    const sr = ctx.sampleRate;
+    const first = c.firstFrame ?? 0;
+    const a = Math.max(0, from === undefined ? 0 : Math.round(from * sr) - first);
+    const l = join(c.left);
+    const b = Math.min(l.length, to === undefined ? l.length : Math.round(to * sr) - first);
+    return { channels: [l.slice(a, b), join(c.right).slice(a, b)], sampleRate: sr };
   }
 
   /** A voice per derived version of the player's line, on its own strip, with its own settings (D69). */

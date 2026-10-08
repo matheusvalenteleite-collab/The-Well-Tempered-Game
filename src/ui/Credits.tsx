@@ -17,7 +17,7 @@ export function Credits({ onClose }: { onClose(): void }) {
           Dataset: <a href={prov.repository}>{prov.repository}</a> @ <code>{prov.commit.slice(0, 7)}</code>
         </p>
         <h3>Software and sounds</h3>
-        <p>VexFlow (MIT), React (MIT), smplr (MIT). Other sounds are synthesized in the browser.</p>
+        <p>VexFlow (MIT), React (MIT), smplr (MIT). MP3 export: lamejs (@breezystack/lamejs, LGPL-3.0; source at github.com/breezystack/lamejs), a JavaScript port of LAME. Other sounds are synthesized in the browser.</p>
         <p>
           Grand piano: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), CC BY 3.0, via the sfzinstruments edition
           (github.com/sfzinstruments/SalamanderGrandPiano); two velocity layers, re-encoded.
