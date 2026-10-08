@@ -3,6 +3,7 @@
   --ink: #1d1b18;
   --muted: #6b665e;
   --ink-player: #8a2c1b;
+  --ink-fux: #1d6b66;
   --selection: rgba(60, 100, 160, 0.10);
   --cursor: rgba(200, 140, 30, 0.25);
   --line: #d9d4ca;
@@ -192,3 +193,22 @@ svg.ghost line { stroke: var(--ink-player); stroke-width: 1.2; opacity: 0.45; }
 .drum-family h4 { margin: 0 0 3px; font-size: 0.72rem; font-weight: 600; color: var(--muted); font-variant: small-caps; letter-spacing: 0.04em; }
 .drumbox .presets { border-left: none; padding-left: 0; grid-template-columns: repeat(2, auto); }
 @media (max-width: 600px) { .drumbox .presets { grid-template-columns: repeat(3, 1fr); } }
+
+/* Play: your counterpoint (large), Fux's and the trio (small, stacked) */
+.play-split { display: inline-flex; gap: 2px; align-items: stretch; }
+.play-split .play { min-width: 44px; min-height: 52px; font-size: 1.1rem; }
+.play-small { display: flex; flex-direction: column; gap: 2px; }
+.play-small button { min-height: 25px; min-width: 44px; padding: 0 6px; font-size: 0.72rem; }
+
+/* Synth: voice menu, steppers, confirmation */
+.target-menu { position: relative; display: inline-block; }
+.target-menu .menu { position: absolute; z-index: 5; top: 100%; left: 0; margin: 2px 0 0; padding: 3px; list-style: none; background: #fff; border: 1px solid var(--line); border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.12); min-width: 9.5em; }
+.target-menu .menu button { width: 100%; text-align: left; min-height: 26px; font-size: 0.8rem; border: none; }
+.target-menu .menu button[aria-checked="true"] { font-weight: 600; background: var(--selection); color: var(--ink); }
+.stepper { display: inline-flex; gap: 2px; align-items: center; }
+.stepper .chipbtn { min-width: 24px; padding: 0 4px; }
+.preset-col { display: flex; flex-direction: column; gap: 4px; padding-left: 10px; border-left: 1px solid var(--line); }
+.preset-col .presets { border-left: none; padding-left: 0; }
+.preset-name { min-width: 8em; text-align: center; font-size: 0.8rem; }
+.confirm { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 0.8rem; padding: 4px 6px; background: #fff7e6; border: 1px solid #e8cf98; border-radius: 4px; }
+@media (max-width: 600px) { .preset-col { border-left: none; padding-left: 0; flex-basis: 100%; } }

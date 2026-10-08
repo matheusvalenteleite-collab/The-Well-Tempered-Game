@@ -42,6 +42,8 @@ export interface ScoreProps {
   onDragEnd?(): void;
   /** Show a translucent "shadow" note where a click would write. */
   showGhost?: boolean;
+  /** Fux's counterpoint (one entry per slot), drawn on the player's staff with diamond noteheads. */
+  fux?: (string | null)[];
 }
 
 interface Ghost {
@@ -141,15 +143,18 @@ export function ScoreView(props: ScoreProps) {
     const upperIsCantus = props.cantusVoice === "upper";
     const cpIndex = upperIsCantus ? 1 : 0;
     /** A note (or rest) placed with its notehead's left edge at logical x. */
-    const placed = (staffIndex: number, pitch: string, dur: "w" | "h", x: number, player: boolean) => {
+    type Look = "cantus" | "player" | "fux";
+    const placed = (staffIndex: number, pitch: string, dur: "w" | "h", x: number, look: Look, stem?: 1 | -1) => {
       const clef = VEXFLOW_CLEF[props.clefs[staffIndex]].clef;
       let n: StaveNote;
       if (pitch === REST) n = new StaveNote({ keys: [clef === "bass" ? "d/3" : "b/4"], duration: `${dur}r`, clef });
       else {
         const { key, acc } = vexKey(pitch);
-        n = new StaveNote({ keys: [key], duration: dur, clef });
+        // Fux's notes in diamonds, as in the 1725 print, so they never read as the player's.
+        n = new StaveNote({ keys: [look === "fux" ? `${key}/D` : key], duration: dur, clef, ...(stem ? { stem_direction: stem } : {}) });
         if (acc) n.addModifier(new Accidental(acc));
-        if (player) n.setStyle({ fillStyle: "var(--ink-player)", strokeStyle: "var(--ink-player)" });
+        const ink = look === "player" ? "var(--ink-player)" : look === "fux" ? "var(--ink-fux)" : null;
+        if (ink) n.setStyle({ fillStyle: ink, strokeStyle: ink });
       }
       n.setStave(staves[staffIndex]);
       const mc = new ModifierContext();
@@ -162,7 +167,7 @@ export function ScoreView(props: ScoreProps) {
       tc.setX(x - n.getAbsoluteX());
       return n;
     };
-    const cfNotes = props.cantus.map((p, b) => placed(1 - cpIndex, p, "w", xOfBar(b) + NOTE_PAD, false));
+    const cfNotes = props.cantus.map((p, b) => placed(1 - cpIndex, p, "w", xOfBar(b) + NOTE_PAD, "cantus"));
     // Slot geometry: each slot owns its share of the bar; x is the notehead centre.
     const columns = layout.map((sl) => {
       const b = sl.bar - firstSlotBar;
@@ -172,7 +177,15 @@ export function ScoreView(props: ScoreProps) {
     });
     const cpNotes = layout.map((sl, k) => {
       const p = props.counterpoint[k];
-      return p === null || p === undefined ? null : placed(cpIndex, p, sl.duration === "1/1" ? "w" : "h", columns[k].left + NOTE_PAD, true);
+      return p === null || p === undefined ? null : placed(cpIndex, p, sl.duration === "1/1" ? "w" : "h", columns[k].left + NOTE_PAD, "player", props.fux ? 1 : undefined);
+    });
+    // Fux's line: stems down (the player's go up), nudged right where the two notes would collide.
+    const fuxNotes = (props.fux ?? []).map((p, k) => {
+      const sl = layout[k];
+      if (!sl || p === null || p === REST) return null;
+      const mine = props.counterpoint[k];
+      const near = mine && mine !== REST && Math.abs(parsePitch(mine).diatonic - parsePitch(p).diatonic) <= 1;
+      return placed(cpIndex, p, sl.duration === "1/1" ? "w" : "h", columns[k].left + NOTE_PAD + (near ? 11 : 0), "fux", -1);
     });
 
     // Column highlights under the music.
@@ -202,7 +215,21 @@ export function ScoreView(props: ScoreProps) {
     ctx.setFillStyle("currentColor");
     for (let b = 1; b < bars; b++) staves.forEach((s) => ctx.fillRect(xOfBar(b) - 2, s.getYForLine(0), 1, s.getYForLine(4) - s.getYForLine(0)));
     ctx.restore();
-    for (const n of [...cfNotes, ...cpNotes]) n?.setContext(ctx).draw();
+    for (const n of [...cfNotes, ...fuxNotes, ...cpNotes]) n?.setContext(ctx).draw();
+    if (props.fux) {
+      // Legend, top right of the counterpoint staff.
+      ctx.save();
+      ctx.setFont("Georgia, serif", 10, "normal");
+      const y = 11;
+      const xr = staves[0].getNoteEndX() - 4;
+      ctx.setFillStyle("var(--ink-fux)");
+      const fuxLabel = "◇ Fux";
+      ctx.fillText(fuxLabel, xr - ctx.measureText(fuxLabel).width, y);
+      ctx.setFillStyle("var(--ink-player)");
+      const meLabel = "● you   ";
+      ctx.fillText(meLabel, xr - ctx.measureText(fuxLabel).width - ctx.measureText(meLabel).width, y);
+      ctx.restore();
+    }
 
     // Discreet bar numbers above the upper staff.
     ctx.save();
@@ -275,7 +302,7 @@ export function ScoreView(props: ScoreProps) {
     };
     geo.current = g;
     el.dataset.geometry = JSON.stringify(g); // read by the browser tests
-  }, [width, props.cantus, props.counterpoint, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay]);
+  }, [width, props.cantus, props.counterpoint, props.fux, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay]);
 
   const press = useRef<{ x: number; y: number; dragging: boolean; from: number } | null>(null);
 

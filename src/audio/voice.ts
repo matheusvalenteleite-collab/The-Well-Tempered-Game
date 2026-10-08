@@ -129,10 +129,60 @@ export class Synth implements Instrument {
     return c;
   }
 
+  /**
+   * Hammered strings: inharmonic partials (string stiffness), each dying away faster the higher it
+   * is; two slightly mistuned strings for the lower partials (their beating gives the piano's
+   * two-stage decay); a felt "thump" whose weight follows the hammer hardness.
+   */
+  private piano(freq: number, time: number, end: number, out: AudioNode) {
+    const st = this.settings;
+    const ctx = this.ctx;
+    const hard = st.pianoHammer;
+    const B = 0.0004 * Math.min(1.5, Math.max(0.5, freq / 260)); // inharmonicity grows up the keyboard
+    const count = Math.max(4, Math.min(16, Math.floor(10000 / freq)));
+    const sustainTime = 7 * Math.min(2, Math.sqrt(260 / freq)); // low notes ring longer
+    const parts: { f: number; a: number; tau: number }[] = [];
+    let total = 0;
+    for (let k = 1; k <= count; k++) {
+      const strike = Math.abs(Math.sin((Math.PI * k) / 8.3)) * 0.7 + 0.3; // struck near 1/8 of the string
+      const a = (strike / k ** (1.9 - 1.1 * hard)) * (freq * k > 6000 ? 0.4 : 1);
+      parts.push({ f: k * freq * Math.sqrt(1 + B * k * k), a, tau: sustainTime / (1 + 0.6 * (k - 1) * (0.6 + hard)) });
+      total += a;
+    }
+    const level = 1.6 / total;
+    parts.forEach(({ f, a, tau }, i) => {
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, time);
+      g.gain.linearRampToValueAtTime(a * level, time + 0.002);
+      g.gain.setTargetAtTime(0, time + 0.002, tau / 3);
+      g.connect(out);
+      const strings = i < 6 ? [-0.6, 0.6] : [0];
+      for (const cents of strings) {
+        const o = this.osc("sine", f, time, end, null);
+        o.detune.value = cents * (0.5 + hard);
+        if (strings.length > 1) {
+          const half = ctx.createGain();
+          half.gain.value = 0.5;
+          o.connect(half).connect(g);
+        } else o.connect(g);
+      }
+    });
+    // The hammer's felt: a short low-passed noise burst.
+    const thump = ctx.createGain();
+    thump.gain.setValueAtTime(0.12 + 0.25 * hard, time);
+    thump.gain.setTargetAtTime(0, time, 0.008);
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = Math.min(6000, freq * (2 + 4 * hard));
+    this.noiseSource(time, time + 0.08).connect(lp).connect(thump).connect(out);
+  }
+
   start(note: string, time: number, duration: number) {
     const st = this.settings;
     const ctx = this.ctx;
     const freq = frequency(note, this.tuning());
+    // A detached touch lets the key up before the written length (Gould's articulation).
+    if (st.model === "piano") duration *= 1 - 0.5 * st.pianoDetach;
     const filter = ctx.createBiquadFilter();
     const env = ctx.createGain();
     filter.type = "lowpass";
@@ -161,6 +211,9 @@ export class Synth implements Instrument {
     }
 
     switch (st.model) {
+      case "piano":
+        this.piano(freq, time, end, filter);
+        return;
       case "pluck": {
         const src = this.track(ctx.createBufferSource());
         src.buffer = this.pluckBuffer(freq, end - time, st.pluckDamping, st.pluckBrightness);

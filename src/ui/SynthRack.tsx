@@ -1,14 +1,16 @@
+import { useState } from "react";
 import {
   applyEdit,
   DEFAULT_SYNTH,
   DELAY_MODES,
+  firstPreset,
+  joinVoices,
   RANGES,
   REVERB_MODES,
-  sharedChoice,
+  sameSettings,
   SYNTH_MODELS,
   SYNTH_PRESETS,
   WAVEFORMS,
-  type ChoiceKey,
   type NumericKey,
   type SynthModel,
   type SynthSettings,
@@ -19,7 +21,7 @@ import { Knob } from "./Knob.tsx";
 import { t } from "./i18n.ts";
 
 export type { SynthTarget };
-const TARGETS: SynthTarget[] = ["all", "counterpoint", "cantus"];
+const TARGETS: SynthTarget[] = ["all", "cantus", "counterpoint"];
 
 interface Props {
   value: VoiceSynths;
@@ -42,6 +44,7 @@ const fmt = (k: NumericKey) => FORMAT[k] ?? pct;
 
 const SHARED: NumericKey[] = ["attack", "decay", "sustain", "release", "tone", "vibrato"];
 const BY_MODEL: Record<SynthModel, NumericKey[]> = {
+  piano: ["pianoHammer", "pianoDetach"],
   subtractive: ["detune"],
   pluck: ["pluckDamping", "pluckBrightness"],
   fm: ["fmRatio", "fmIndex"],
@@ -53,54 +56,96 @@ const BY_MODEL: Record<SynthModel, NumericKey[]> = {
   wavefold: ["foldDrive", "foldSymmetry"],
 };
 
-/** The synthesizer rack: voice, model and effects on the left; the model's presets on the right. */
+const same = (a: SynthSettings, b: SynthSettings) =>
+  (Object.keys(a) as (keyof SynthSettings)[]).every((k) => (typeof a[k] === "number" ? Math.abs((a[k] as number) - (b[k] as number)) < 1e-6 : a[k] === b[k]));
+
+/**
+ * The synthesizer rack. A voice menu (Both voices / Cantus firmus / Contrapunctus), the model with
+ * arrows, the knobs and effects on the left; the model's presets (with arrows) on the right.
+ */
 export function SynthRack({ value, target, onTarget, onChange }: Props) {
+  const [menu, setMenu] = useState(false);
+  const [confirm, setConfirm] = useState(false);
   const shown = target === "cantus" ? value.cantus : value.counterpoint;
-  const set = (next: SynthSettings) => onChange(applyEdit(value, target, shown, next));
-  const cycle = <T,>(list: T[], cur: T) => list[(list.indexOf(cur) + 1) % list.length];
-  const locked = (k: ChoiceKey) => target === "all" && !sharedChoice(value, k);
-  const differ = target === "all" && (Object.keys(shown) as (keyof SynthSettings)[]).some((k) => value.cantus[k] !== value.counterpoint[k]);
+  const set = (next: SynthSettings) => onChange(applyEdit(value, target, next));
+  const cycle = <T,>(list: T[], cur: T, step = 1) => list[(list.indexOf(cur) + step + list.length) % list.length];
   const knob = (k: NumericKey) => (
     <Knob key={k} id={`synth-${k}`} label={t(`ui.synth.${k}`)} value={shown[k]} min={RANGES[k].min} max={RANGES[k].max} log={RANGES[k].log}
-      defaultValue={DEFAULT_SYNTH[k]} format={fmt(k)} onChange={(v) => set({ ...shown, [k]: v })} />
+      defaultValue={firstPreset(shown.model).settings[k] ?? DEFAULT_SYNTH[k]} format={fmt(k)} onChange={(v) => set({ ...shown, [k]: v })} />
   );
-  const choice = (k: ChoiceKey, label: React.ReactNode, onClick: () => void) => (
-    <button className="chipbtn" tabIndex={-1} disabled={locked(k)} onClick={onClick} title={locked(k) ? t("ui.synth.locked") : undefined}>
+  const choice = (label: React.ReactNode, onClick: () => void) => (
+    <button className="chipbtn" tabIndex={-1} onClick={onClick}>
       {label}
     </button>
   );
   const presets = SYNTH_PRESETS.filter((p) => p.settings.model === shown.model);
-  const applyPreset = (s: SynthSettings) =>
-    onChange({ cantus: target === "counterpoint" ? value.cantus : { ...s }, counterpoint: target === "cantus" ? value.counterpoint : { ...s } });
-  const isActive = (s: SynthSettings) =>
-    (target === "cantus" ? [value.cantus] : target === "counterpoint" ? [value.counterpoint] : [value.cantus, value.counterpoint]).every((v) =>
-      (Object.keys(s) as (keyof SynthSettings)[]).every((k) => (typeof s[k] === "number" ? Math.abs((s[k] as number) - (v[k] as number)) < 1e-6 : s[k] === v[k])),
-    );
+  const active = presets.findIndex((p) => same(p.settings, shown));
+  /** Choosing a model loads its first preset, which is always clean (no reverb, no delay). */
+  const setModel = (m: SynthModel) => set({ ...firstPreset(m).settings });
+  const stepPreset = (d: number) => {
+    const from = active < 0 ? (d > 0 ? -1 : 0) : active;
+    set({ ...presets[(from + d + presets.length) % presets.length].settings });
+  };
+
+  const chooseTarget = (x: SynthTarget) => {
+    setMenu(false);
+    if (x === target) return;
+    if (x === "all" && !sameSettings(value)) {
+      setConfirm(true);
+      return;
+    }
+    onTarget(x);
+  };
 
   return (
     <section className="rack" aria-label={t("ui.synth.title")}>
       <div className="rack-main">
         <div className="rack-head">
           <span className="rack-title">{t("ui.synth.title")}</span>
-          <button className="chipbtn target" tabIndex={-1} onClick={() => onTarget(cycle(TARGETS, target))} title={t("ui.synth.targetHelp")}>
-            {t(`ui.synth.target.${target}`)}
-            {differ ? " *" : ""}
-          </button>
-          <select
-            className="model"
-            aria-label={t("ui.synth.modelHelp")}
-            value={shown.model}
-            disabled={locked("model")}
-            title={locked("model") ? t("ui.synth.locked") : t("ui.synth.modelHelp")}
-            onChange={(e) => set({ ...shown, model: e.target.value as SynthModel })}
-          >
-            {SYNTH_MODELS.map((m) => (
-              <option key={m} value={m}>{t(`ui.synth.model.${m}`)}</option>
-            ))}
-          </select>
-          {shown.model === "subtractive" &&
-            choice("waveform", <><WaveIcon wave={shown.waveform} /> {t(`ui.synth.wave.${shown.waveform}`)}</>, () => set({ ...shown, waveform: cycle(WAVEFORMS, shown.waveform) }))}
+          <span className="target-menu">
+            <button className="chipbtn target" tabIndex={-1} aria-haspopup="menu" aria-expanded={menu} onClick={() => setMenu(!menu)} title={t("ui.synth.targetHelp")}>
+              {t(`ui.synth.target.${target}`)} ▾
+            </button>
+            {menu && (
+              <ul className="menu" role="menu">
+                {TARGETS.map((x) => (
+                  <li key={x}>
+                    <button role="menuitemradio" aria-checked={x === target} tabIndex={-1} onClick={() => chooseTarget(x)}>
+                      {t(`ui.synth.target.${x}`)}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </span>
+          <span className="stepper">
+            <button className="chipbtn" tabIndex={-1} onClick={() => setModel(cycle(SYNTH_MODELS, shown.model, -1))} aria-label={t("ui.synth.prevModel")}>‹</button>
+            <select className="model" aria-label={t("ui.synth.modelHelp")} value={shown.model} title={t("ui.synth.modelHelp")} onChange={(e) => setModel(e.target.value as SynthModel)}>
+              {SYNTH_MODELS.map((m) => (
+                <option key={m} value={m}>{t(`ui.synth.model.${m}`)}</option>
+              ))}
+            </select>
+            <button className="chipbtn" tabIndex={-1} onClick={() => setModel(cycle(SYNTH_MODELS, shown.model, 1))} aria-label={t("ui.synth.nextModel")}>›</button>
+          </span>
+          {shown.model === "subtractive" && choice(<><WaveIcon wave={shown.waveform} /> {t(`ui.synth.wave.${shown.waveform}`)}</>, () => set({ ...shown, waveform: cycle(WAVEFORMS, shown.waveform) }))}
         </div>
+        {confirm && (
+          <div className="confirm" role="alertdialog" aria-label={t("ui.synth.joinTitle")}>
+            <span>{t("ui.synth.joinQuestion")}</span>
+            <button
+              className="chipbtn"
+              tabIndex={-1}
+              onClick={() => {
+                setConfirm(false);
+                onChange(joinVoices(value));
+                onTarget("all");
+              }}
+            >
+              {t("ui.synth.yes")}
+            </button>
+            <button className="chipbtn" tabIndex={-1} onClick={() => setConfirm(false)}>{t("ui.synth.no")}</button>
+          </div>
+        )}
         <div className="rack-knobs">
           {SHARED.map(knob)}
           <span className="knob-sep" aria-hidden="true" />
@@ -108,11 +153,11 @@ export function SynthRack({ value, target, onTarget, onChange }: Props) {
         </div>
         <div className="rack-fx">
           <div className="fx">
-            {choice("reverbMode", <>{t("ui.synth.reverb")}: <strong>{t(`ui.synth.reverbMode.${shown.reverbMode}`)}</strong></>, () => set({ ...shown, reverbMode: cycle(REVERB_MODES, shown.reverbMode) }))}
+            {choice(<>{t("ui.synth.reverb")}: <strong>{t(`ui.synth.reverbMode.${shown.reverbMode}`)}</strong></>, () => set({ ...shown, reverbMode: cycle(REVERB_MODES, shown.reverbMode) }))}
             {shown.reverbMode !== "off" && knob("reverbMix")}
           </div>
           <div className="fx">
-            {choice("delayMode", <>{t("ui.synth.delay")}: <strong>{t(`ui.synth.delayMode.${shown.delayMode}`)}</strong></>, () => set({ ...shown, delayMode: cycle(DELAY_MODES, shown.delayMode) }))}
+            {choice(<>{t("ui.synth.delay")}: <strong>{t(`ui.synth.delayMode.${shown.delayMode}`)}</strong></>, () => set({ ...shown, delayMode: cycle(DELAY_MODES, shown.delayMode) }))}
             {shown.delayMode !== "off" && (
               <>
                 {knob("delayTime")}
@@ -122,15 +167,22 @@ export function SynthRack({ value, target, onTarget, onChange }: Props) {
             )}
           </div>
         </div>
-        <p className="rack-help">{t(differ ? "ui.synth.differ" : "ui.synth.help")}</p>
+        <p className="rack-help">{t("ui.synth.help")}</p>
       </div>
-      <ul className="presets" aria-label={t("ui.synth.presets")}>
-        {presets.map((p) => (
-          <li key={p.id}>
-            <button tabIndex={-1} aria-pressed={isActive(p.settings)} onClick={() => applyPreset(p.settings)}>{t(`ui.synth.preset.${p.id}`)}</button>
-          </li>
-        ))}
-      </ul>
+      <div className="preset-col">
+        <div className="stepper">
+          <button className="chipbtn" tabIndex={-1} onClick={() => stepPreset(-1)} aria-label={t("ui.synth.prevPreset")}>‹</button>
+          <span className="preset-name">{active >= 0 ? t(`ui.synth.preset.${presets[active].id}`) : t("ui.synth.custom")}</span>
+          <button className="chipbtn" tabIndex={-1} onClick={() => stepPreset(1)} aria-label={t("ui.synth.nextPreset")}>›</button>
+        </div>
+        <ul className="presets" aria-label={t("ui.synth.presets")}>
+          {presets.map((p, i) => (
+            <li key={p.id}>
+              <button tabIndex={-1} aria-pressed={i === active} onClick={() => set({ ...p.settings })}>{t(`ui.synth.preset.${p.id}`)}</button>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }

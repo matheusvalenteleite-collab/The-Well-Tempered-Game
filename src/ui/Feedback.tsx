@@ -49,12 +49,11 @@ function Item({ v, ...p }: { v: Violation } & Omit<Props, "result">) {
     setBusy(true);
     setPhase("player");
     await p.audio.playSequence(cols(p.counterpoint));
-    await p.audio.cue(v.severity === "error" ? "wrong" : "meh");
     if (correction) {
+      await sleep(400);
       setPhase("fixed");
       await sleep(450);
       await p.audio.playSequence(cols(correction));
-      await p.audio.cue("correct");
       await sleep(1600);
       setPhase("player");
     }

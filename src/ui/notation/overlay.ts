@@ -34,7 +34,7 @@ export interface Overlay {
 /** Rules about the vertical interval of a bar (colour the label). */
 const VERTICAL = new Set([
   "fs.prefer-imperfect-consonances", "fs.vertical-consonance", "fs.opening-perfect", "fs.final-octave-or-unison", "fs.unison-only-at-ends", "fs.cadence", "fs.no-voice-crossing",
-  "ss.downbeat-consonance", "ss.passing-dissonance", "ss.opening-perfect", "ss.final-octave-or-unison", "ss.cadence", "ss.no-voice-crossing",
+  "ss.downbeat-consonance", "ss.passing-dissonance", "ss.opening-perfect", "ss.final-octave-or-unison", "ss.cadence", "ss.no-voice-crossing", "ss.unison-only-at-ends", "ss.prefer-imperfect-consonances",
 ]);
 /** Rules about the motion from one note to another (connect the labels). */
 const MOTION = new Set([

@@ -6,7 +6,7 @@ import { evaluate, type Evaluation } from "../counterpoint/engine.ts";
 import { compareWithOriginal } from "../music/fux/player.ts";
 import { exerciseView } from "../game/exercise-view.ts";
 import { applyAccidental, clear, initialState, letterNote, moveNote, place, select, setRest, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
-import { AudioEngine, DEFAULT_SYNTH, renderLevel, SYNTH_PRESETS, type AudioStatus, type VoiceSynths } from "../audio/engine.ts";
+import { AudioEngine, DEFAULT_SYNTH, renderLevel, sameSettings, SYNTH_PRESETS, type AudioStatus, type VoiceSynths } from "../audio/engine.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
 import { SynthRack, type SynthTarget } from "./SynthRack.tsx";
 import { DrumBox } from "./DrumBox.tsx";
@@ -83,10 +83,11 @@ export function App() {
   const [tempo, setTempo] = useState(() => stored("wtg.tempo", 60, (v) => typeof v === "number" && v >= 30 && v <= 120));
   const [volume, setVolume] = useState(() => stored("wtg.volume", 70, (v) => typeof v === "number" && v >= 0 && v <= 100));
   const [synth, setSynth] = useState<VoiceSynths>(() => {
-    const v = stored<Partial<VoiceSynths>>("wtg.synth2", {}, (x) => typeof x === "object" && x !== null);
+    const v = stored<Partial<VoiceSynths>>("wtg.synth3", {}, (x) => typeof x === "object" && x !== null);
     return { cantus: { ...DEFAULT_SYNTH, ...v.cantus }, counterpoint: { ...DEFAULT_SYNTH, ...v.counterpoint } };
   });
-  const [synthTarget, setSynthTarget] = useState<SynthTarget>("all");
+  // "Both voices" by default; a stored pair of different settings opens on the Contrapunctus.
+  const [synthTarget, setSynthTarget] = useState<SynthTarget>(() => (sameSettings(synth) ? "all" : "counterpoint"));
   const [drums, setDrums] = useState(() => stored("wtg.drums", false, (v) => typeof v === "boolean"));
   const [drumKit, setDrumKit] = useState<DrumSettings>(() => {
     const v = stored<DrumSettings>("wtg.drumkit", DEFAULT_DRUMS, (x) => typeof x === "object" && x !== null);
@@ -120,7 +121,7 @@ export function App() {
   }, [volume]);
   useEffect(() => {
     audio.setSynth(synth);
-    store("wtg.synth2", synth);
+    store("wtg.synth3", synth);
   }, [synth]);
   useEffect(() => store("wtg.stepId", STEP.id), [stepIndex]);
   useEffect(() => {
@@ -175,6 +176,9 @@ export function App() {
   }, [session]);
 
   // An empty slot where a rest is allowed counts as the rest.
+  // Test hook: write a whole counterpoint at once (browser tests only).
+  (window as unknown as { wtgSetNotes: (n: (string | null)[]) => void }).wtgSetNotes = (n) => update({ ...session, notes: n }, false);
+
   const missing = session.notes.filter((n, k) => n === null && !VIEW.layout[k].restAllowed).length;
   const toggleEvaluation = () => {
     if (result) {
@@ -201,15 +205,26 @@ export function App() {
   const marks = result ? result.violations.flatMap((v) => v.positions.map((c) => ({ column: c, severity: v.severity }))) : undefined;
   const overlay = useMemo(() => (result ? buildOverlay(result.violations, VIEW.cantus, session.notes, VIEW.layout) : undefined), [result, session.notes, VIEW]);
 
-  const play = () => {
+  // Fux's solution (overlay, comparison, playback) opens only once the exercise is cleared.
+  const fuxOpen = Boolean(result?.passed && VIEW.fux);
+  const [playMode, setPlayMode] = useState<"player" | "fux" | "trio">("player");
+  const play = (mode: "player" | "fux" | "trio" = "player") => {
     if (playing) {
       audio.stop();
       setPlaying(false);
       setCursor(-1);
-      return;
+      if (mode === playMode) return;
     }
+    if (mode !== "player" && !fuxOpen) return;
+    setPlayMode(mode);
     setPlaying(true);
-    void audio.playAll(timeline(VIEW.cantus, VIEW.layout, session.notes), (k) => {
+    const events =
+      mode === "player"
+        ? timeline(VIEW.cantus, VIEW.layout, session.notes)
+        : mode === "fux"
+          ? timeline(VIEW.cantus, VIEW.layout, VIEW.fux!)
+          : timeline(VIEW.cantus, VIEW.layout, session.notes, undefined, undefined, VIEW.fux!);
+    void audio.playAll(events, (k) => {
       setCursor(k);
       if (k < 0) setPlaying(false);
     });
@@ -242,7 +257,7 @@ export function App() {
     else if (k === "n") update(applyAccidental(s, 0));
     else if (k === "Delete" || k === "Backspace") update(VIEW.layout[s.selected].restAllowed ? setRest(s, VIEW.layout) : clear(s), false);
     else if (k === " ") audition(s.selected);
-    else if (k === "p" || k === "P") play();
+    else if (k === "p" || k === "P") play("player");
     else return;
     e.preventDefault();
     setActive(true);
@@ -352,6 +367,7 @@ export function App() {
             label={label}
             marks={marks}
             overlay={overlay}
+            fux={showFux && fuxOpen ? VIEW.fux! : undefined}
             showGhost={active}
             onPlace={(col, natural) => {
               // An inactive score only takes a bar-selecting click.
@@ -405,9 +421,19 @@ export function App() {
             {t("ui.evaluate")}
           </button>
           <div className="group transport">
-            <button className="icon play" onClick={play} aria-label={playing ? t("ui.stop") : t("ui.play")} title={playing ? t("ui.stop") : t("ui.play")}>
-              {playing ? "■" : "▶"}
-            </button>
+            <div className="play-split">
+              <button className="icon play" onClick={() => play("player")} aria-label={t("ui.play.player")} title={t("ui.play.player")}>
+                {playing && playMode === "player" ? "■" : "▶"}
+              </button>
+              <div className="play-small">
+                <button onClick={() => play("fux")} disabled={!fuxOpen} aria-label={t("ui.play.fux")} title={t(fuxOpen ? "ui.play.fux" : "ui.play.locked")}>
+                  {playing && playMode === "fux" ? "■" : t("ui.play.fuxShort")}
+                </button>
+                <button onClick={() => play("trio")} disabled={!fuxOpen} aria-label={t("ui.play.trio")} title={t(fuxOpen ? "ui.play.trio" : "ui.play.locked")}>
+                  {playing && playMode === "trio" ? "■" : t("ui.play.trioShort")}
+                </button>
+              </div>
+            </div>
             <Knob id="tempo" label={t("ui.tempo")} value={tempo} min={30} max={120} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
             <Knob id="volume" label={t("ui.volume")} value={volume} min={0} max={100} defaultValue={70} format={(v) => `${Math.round(v)}%`} onChange={(v) => setVolume(Math.round(v))} />
             <button aria-pressed={drums} aria-expanded={showDrums} onClick={() => setShowDrums(!showDrums)} title={t("ui.drums.help")}>
@@ -429,25 +455,13 @@ export function App() {
         {result && (
           <section className="feedback" aria-live="polite">
             <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} layout={VIEW.layout} audio={audio} />
-            {fuxSolution && VIEW.fux && (
+            {fuxSolution && VIEW.fux && !fuxOpen && <p className="help">{t("ui.fux.locked")}</p>}
+            {fuxSolution && VIEW.fux && fuxOpen && (
               <div>
-                <button onClick={() => setShowFux(!showFux)}>{showFux ? t("ui.fux.hide") : t("ui.fux.show")}</button>
+                <button aria-pressed={showFux} onClick={() => setShowFux(!showFux)}>{showFux ? t("ui.fux.hide") : t("ui.fux.show")}</button>
                 {showFux && (
                   <div className="fux">
-                    <h3>{t("ui.fux.title", { figure: VIEW.figure ?? "" })}</h3>
-                    <ScoreView
-                      cantus={VIEW.cantus}
-                      counterpoint={VIEW.fux}
-                      layout={VIEW.layout}
-                      cantusVoice={VIEW.cantusVoice}
-                      clefs={clefs}
-                      selected={-1}
-                      cursor={-1}
-                      label={t("ui.fux.title", { figure: VIEW.figure ?? "" })}
-                      onPlace={() => {}}
-                      onSelect={() => {}}
-                      readOnly
-                    />
+                    <p className="help">{t("ui.fux.overlayHelp")}</p>
                     <p className="help">
                       {(() => {
                         const filled = { ...session, notes: session.notes.map((n, k) => (n === null && VIEW.layout[k].restAllowed ? REST : n)) };

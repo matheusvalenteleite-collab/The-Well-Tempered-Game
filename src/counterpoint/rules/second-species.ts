@@ -8,14 +8,16 @@
  * (upbeat) note may be dissonant only when it moves by step from the preceding note into the
  * following one, filling a third (p. 56); the precepts of first species on motion and progression
  * still hold ("Vel maximè", p. 56); a new penultimate bar (p. 56-57); and the skip-of-a-third
- * argument about successive downbeats (pp. 57-59). First-species precepts that Fux states for that
- * species only (the unison only at the ends, "in hac specie", p. 54; more imperfect than perfect
- * consonances, p. 46) are not carried over: Fux's own second-species examples use upbeat unisons.
- * Nor is the first-species objection to leaping into or out of the unison (p. 54-55, stated at
- * Fig. 21): Figs. 36, 39, 41 and 42 leap from or to an upbeat unison, so in Fux's practice it does
- * not govern this species.
+ * argument about successive downbeats (pp. 57-59).
+ *
+ * Owner rule (D35): a first-species precept stays in force unless Fux's own examples break it.
+ * - The unison only at the ends (p. 54): Fux's examples have upbeat unisons (Figs. 36, 39, 42)
+ *   but never an interior downbeat unison, so it is checked on downbeats.
+ * - More imperfect than perfect consonances (p. 46): Fig. 36 has six perfect against two
+ *   imperfect downbeats, so it becomes a recommendation (warning), counted on downbeats.
+ * - No leap into or out of the unison (pp. 54-55): broken in Figs. 36, 39, 41 and 42; dropped.
  */
-import { harmonic, interval, isAbove, isConsonant, isLeap, isOctaveClass, isPerfectConsonance, motion, type Interval } from "../interval.ts";
+import { harmonic, interval, isAbove, isConsonant, isLeap, isOctaveClass, isPerfectConsonance, isUnison, motion, type Interval } from "../interval.ts";
 import { MELODIC_FORBIDDEN } from "./first-species.ts";
 import type { Analysis, NoteEvent, Rule, Violation } from "./types.ts";
 
@@ -205,6 +207,37 @@ export const convergingLeapIntoOctave: Rule = {
   },
 };
 
+export const unisonOnlyAtEnds: Rule = {
+  ...base(
+    "ss.unison-only-at-ends",
+    "error",
+    { status: "verified", ref: "Gradus (1725), Exercitii I, Lectio I, pp. 53-54", note: "Checked on interior downbeats only: Fux's second-species examples place unisons on upbeats, never on an interior downbeat (D35)." },
+    "rule.fs.unison-only-at-ends",
+  ),
+  check(a) {
+    return a.events.filter((e) => e.beat === 0 && e.bar > 0 && e.bar < a.bars - 1 && isUnison(vert(e))).map((e) => v(this, [e.slot]));
+  },
+};
+
+export const preferImperfectConsonances: Rule = {
+  ...base(
+    "ss.prefer-imperfect-consonances",
+    "warning",
+    { status: "verified", ref: "Gradus (1725), Exercitii I, Lectio I, p. 46", note: "A recommendation in this species (D35): Fux's Fig. 36 has more perfect than imperfect downbeats. Counted on interior downbeats." },
+    "rule.fs.prefer-imperfect-consonances",
+  ),
+  check(a) {
+    const perfect: number[] = [];
+    let imperfect = 0;
+    for (const e of a.events) {
+      if (e.beat !== 0 || e.bar === 0 || e.bar === a.bars - 1) continue;
+      if (isPerfectConsonance(vert(e))) perfect.push(e.slot);
+      else imperfect++;
+    }
+    return perfect.length > imperfect ? [v(this, perfect, { perfect: perfect.length, imperfect })] : [];
+  },
+};
+
 export const noVoiceCrossing: Rule = {
   ...base(
     "ss.no-voice-crossing",
@@ -249,6 +282,8 @@ export const SECOND_SPECIES_FUX_STRICT: readonly Rule[] = [
   melodicTritone,
   melodicMajorSixth,
   convergingLeapIntoOctave,
+  unisonOnlyAtEnds,
   noVoiceCrossing,
+  preferImperfectConsonances,
   preferContraryMotion,
 ];

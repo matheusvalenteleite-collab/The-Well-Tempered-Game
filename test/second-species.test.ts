@@ -48,7 +48,7 @@ test("every Fux second-species solution clears the rules of its step; warnings o
     assert.deepEqual(ev.errors, [], ex.figure);
     warnings.push(...ev.warnings.map((w) => `${ex.figure}:${w.ruleId}`));
   }
-  assert.deepEqual(warnings, ["37:ss.no-voice-crossing", "39:ss.no-voice-crossing"]);
+  assert.deepEqual(warnings, ["36:ss.prefer-imperfect-consonances", "37:ss.no-voice-crossing", "39:ss.no-voice-crossing"]);
 });
 
 test("Josephus's first attempt (Fig. 26, 1725 p. 57): exactly the two faults Aloysius marks", () => {

@@ -63,10 +63,15 @@ export interface PlayEvent {
   /** Cantus note starting here (bar starts only), or null. */
   cantus: string | null;
   counterpoint: string | null;
+  /** A second counterpoint (Fux's), sounding with the player's in "trio" playback. */
+  fux?: string | null;
 }
 
-/** Playback events for bars lo..hi (inclusive). Rests and empty slots sound only the cantus. */
-export function timeline(cantus: string[], layout: Slot[], notes: (string | null)[], lo = 0, hi = cantus.length - 1): PlayEvent[] {
+/**
+ * Playback events for bars lo..hi (inclusive). Rests and empty slots sound only the cantus.
+ * `fux`, when given, adds Fux's line as a second counterpoint on the same layout.
+ */
+export function timeline(cantus: string[], layout: Slot[], notes: (string | null)[], lo = 0, hi = cantus.length - 1, fux?: (string | null)[]): PlayEvent[] {
   return slotsOfBars(layout, lo, hi).map((k) => {
     const s = layout[k];
     return {
@@ -75,6 +80,7 @@ export function timeline(cantus: string[], layout: Slot[], notes: (string | null
       length: slotLength(s),
       cantus: s.beat === 0 ? cantus[s.bar] : null,
       counterpoint: sounding(notes[k]) ? notes[k] : null,
+      ...(fux ? { fux: sounding(fux[k]) ? fux[k] : null } : {}),
     };
   });
 }

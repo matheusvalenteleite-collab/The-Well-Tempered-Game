@@ -25,7 +25,7 @@ export interface PlaybackColumn {
 
 export type { PlayEvent };
 
-type Voices = Record<VoiceId, Instrument>;
+type Voices = Record<VoiceId | "fux", Instrument>;
 
 class SampledPiano implements Instrument {
   private sf: Soundfont;
@@ -73,7 +73,7 @@ export class AudioEngine {
   setSynth(settings: VoiceSynths) {
     Object.assign(this.synth.cantus, settings.cantus);
     Object.assign(this.synth.counterpoint, settings.counterpoint);
-    for (const v of [this.current?.cantus, this.current?.counterpoint]) if (v instanceof Synth) v.update();
+    for (const v of [this.current?.cantus, this.current?.counterpoint, this.current?.fux]) if (v instanceof Synth) v.update();
   }
 
   /** Pattern, loop length and level of the drum track; read live by the scheduler. */
@@ -107,6 +107,25 @@ export class AudioEngine {
     if (this.ctx) void this.instrument();
   }
 
+  private panners = new Map<string, StereoPannerNode>();
+  /** A stereo position for a voice, centred until trio playback spreads the two counterpoints. */
+  private panner(voice: "counterpoint" | "fux"): AudioNode {
+    let p = this.panners.get(voice);
+    if (!p) {
+      p = this.ctx!.createStereoPanner();
+      p.connect(this.master!);
+      this.panners.set(voice, p);
+    }
+    return p;
+  }
+
+  /** Trio playback: the player's line to the left, Fux's to the right; otherwise both centred. */
+  private spread(on: boolean) {
+    const t = this.ctx?.currentTime ?? 0;
+    this.panners.get("counterpoint")?.pan.setTargetAtTime(on ? -0.6 : 0, t, 0.02);
+    this.panners.get("fux")?.pan.setTargetAtTime(on ? 0.6 : 0, t, 0.02);
+  }
+
   /** Resolve the selected instruments; must first be called from a user gesture. */
   private async instrument(): Promise<Voices | null> {
     if (!this.ctx) {
@@ -125,11 +144,16 @@ export class AudioEngine {
       const tuning = () => this.temperament;
       p =
         this.sound === "chip"
-          ? Promise.resolve({ cantus: new Synth(ctx, master, this.synth.cantus, tuning), counterpoint: new Synth(ctx, master, this.synth.counterpoint, tuning) })
+          ? Promise.resolve({
+              cantus: new Synth(ctx, master, this.synth.cantus, tuning),
+              counterpoint: new Synth(ctx, this.panner("counterpoint"), this.synth.counterpoint, tuning),
+              // Fux's line shares the counterpoint's settings; in trio playback the two are panned apart.
+              fux: new Synth(ctx, this.panner("fux"), this.synth.counterpoint, tuning),
+            })
           : new Soundfont(ctx, { instrument: "acoustic_grand_piano", kit: "MusyngKite", destination: master }).load.then(
               (sf) => {
                 const piano = new SampledPiano(sf);
-                return { cantus: piano, counterpoint: piano };
+                return { cantus: piano, counterpoint: piano, fux: piano };
               },
               () => null,
             );
@@ -174,6 +198,10 @@ export class AudioEngine {
       voices.counterpoint.start(e.counterpoint, time, e.length * whole * 0.95);
       this.notesStarted++;
     }
+    if (e.fux) {
+      voices.fux.start(e.fux, time, e.length * whole * 0.95);
+      this.notesStarted++;
+    }
   }
 
   /** Play a short excerpt, then resolve. `wholeSeconds` defaults to half the bar length at the current tempo. */
@@ -192,39 +220,6 @@ export class AudioEngine {
     });
   }
 
-  /** Short feedback cues, independent of the synth settings. */
-  cue(kind: "wrong" | "correct" | "meh"): Promise<void> {
-    const ctx = this.ctx;
-    if (!ctx || !this.master) return Promise.resolve();
-    const t0 = ctx.currentTime + 0.02;
-    const tone = (f0: number, f1: number, start: number, dur: number, type: OscillatorType, level: number) => {
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
-      osc.type = type;
-      osc.frequency.setValueAtTime(f0, t0 + start);
-      osc.frequency.exponentialRampToValueAtTime(f1, t0 + start + dur);
-      g.gain.setValueAtTime(0, t0 + start);
-      g.gain.linearRampToValueAtTime(level, t0 + start + 0.01);
-      g.gain.setTargetAtTime(0, t0 + start + dur * 0.6, dur / 6);
-      osc.connect(g).connect(this.master!);
-      osc.start(t0 + start);
-      osc.stop(t0 + start + dur + 0.2);
-    };
-    let length = 0.4;
-    if (kind === "wrong") {
-      tone(220, 140, 0, 0.18, "sawtooth", 0.18);
-      tone(165, 100, 0.16, 0.28, "sawtooth", 0.18);
-      length = 0.5;
-    } else if (kind === "correct") {
-      tone(880, 880, 0, 0.12, "triangle", 0.25);
-      tone(1320, 1320, 0.11, 0.25, "triangle", 0.25);
-    } else {
-      tone(330, 290, 0, 0.45, "triangle", 0.2);
-      length = 0.5;
-    }
-    return new Promise((r) => this.timers.push(window.setTimeout(r, length * 1000)));
-  }
-
   /**
    * Play the whole exercise, with the drum track if it is on. Events are scheduled just ahead of
    * time, so tempo and drum changes take effect from the next note.
@@ -238,6 +233,7 @@ export class AudioEngine {
       onSlot(-1);
       return;
     }
+    this.spread(events.some((e) => e.counterpoint) && events.some((e) => e.fux));
     const bars = Math.ceil(Math.max(...events.map((e) => e.at + e.length)));
     let k = 0;
     let next = ctx.currentTime + 0.1;
@@ -267,6 +263,7 @@ export class AudioEngine {
     this.timers = [];
     this.current?.cantus.stop();
     this.current?.counterpoint.stop();
+    this.current?.fux.stop();
     this.drumMachine?.stop();
   }
 }

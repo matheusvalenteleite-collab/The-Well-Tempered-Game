@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { applyEdit, DEFAULT_SYNTH, SYNTH_PRESETS, SYNTH_MODELS, type VoiceSynths } from "../src/audio/synth-settings.ts";
+import { applyEdit, DEFAULT_SYNTH, firstPreset, joinVoices, sameSettings, SYNTH_MODELS, SYNTH_PRESETS, type VoiceSynths } from "../src/audio/synth-settings.ts";
 
 const pair = (): VoiceSynths => ({
   cantus: { ...DEFAULT_SYNTH, model: "additive", attack: 0.1, sustain: 0.9, tone: 2000 },
@@ -9,31 +9,30 @@ const pair = (): VoiceSynths => ({
 
 test("editing one voice leaves the other untouched", () => {
   const v = pair();
-  const out = applyEdit(v, "cantus", v.cantus, { ...v.cantus, sustain: 0.4 });
+  const out = applyEdit(v, "cantus", { ...v.cantus, sustain: 0.4 });
   assert.equal(out.cantus.sustain, 0.4);
   assert.deepEqual(out.counterpoint, v.counterpoint);
 });
 
-test("'Both voices' keeps the voices distinct: knobs move both relatively", () => {
+test("'Both voices' is one shared configuration; joining takes the Contrapunctus settings", () => {
   const v = pair();
-  // the rack shows the counterpoint's settings in "all" mode
-  const out = applyEdit(v, "all", v.counterpoint, { ...v.counterpoint, attack: 0.02, sustain: 0.6, tone: 3000 });
-  assert.ok(Math.abs(out.counterpoint.attack - 0.02) < 1e-9);
-  assert.ok(Math.abs(out.cantus.attack - 0.2) < 1e-9); // same ratio (x2)
-  assert.ok(Math.abs(out.cantus.sustain - 1) < 1e-9); // same offset (+0.1), clamped at 1
-  assert.ok(Math.abs(out.cantus.tone - 1000) < 1e-9); // ratio 0.5
-  assert.equal(out.cantus.model, "additive"); // models untouched
-  assert.equal(out.counterpoint.model, "pluck");
+  const joined = joinVoices(v);
+  assert.ok(sameSettings(joined));
+  assert.equal(joined.cantus.model, "pluck");
+  const out = applyEdit(joined, "all", { ...joined.counterpoint, tone: 3000 });
+  assert.equal(out.cantus.tone, 3000);
+  assert.ok(sameSettings(out));
 });
 
-test("'Both voices' never overwrites a choice on which the voices differ", () => {
-  const v = pair();
-  const out = applyEdit(v, "all", v.counterpoint, { ...v.counterpoint, model: "fm" });
-  assert.equal(out.counterpoint.model, "pluck");
-  assert.equal(out.cantus.model, "additive");
-  const same = applyEdit(v, "all", v.counterpoint, { ...v.counterpoint, reverbMode: "cathedral" });
-  assert.equal(same.cantus.reverbMode, "cathedral"); // both were "room"
-  assert.equal(same.counterpoint.reverbMode, "cathedral");
+test("the default sound is the Gould piano, clean; every model's first preset is clean", () => {
+  assert.equal(SYNTH_MODELS[0], "piano");
+  assert.equal(DEFAULT_SYNTH.model, "piano");
+  assert.equal(SYNTH_PRESETS[0].id, "gould");
+  for (const m of SYNTH_MODELS) {
+    const f = firstPreset(m).settings;
+    assert.equal(f.reverbMode, "off", m);
+    assert.equal(f.delayMode, "off", m);
+  }
 });
 
 test("every model has at least two presets", () => {
