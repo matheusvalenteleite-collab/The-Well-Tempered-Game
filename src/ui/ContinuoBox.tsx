@@ -1,5 +1,5 @@
 import type { PresetId } from "../continuo/types.ts";
-import { CONTINUO_DISPLAYS, CONTINUO_PRESETS, FINALS_MODES, type ContinuoSettings } from "../game/continuo-settings.ts";
+import { CONTINUO_DISPLAYS, CONTINUO_PRESET_FAMILIES, FINALS_MODES, type ContinuoSettings } from "../game/continuo-settings.ts";
 import { t } from "./i18n.ts";
 
 interface Props {
@@ -37,18 +37,20 @@ export function ContinuoBox({ on, onToggle, value, onChange }: Props) {
         </div>
       </div>
       <div className="drum-families">
-        <div className="drum-family">
-          <h4>{t("ui.continuo.instruments")}</h4>
-          <ul className="presets">
-            {CONTINUO_PRESETS.map((p: PresetId) => (
-              <li key={p}>
-                <button tabIndex={-1} aria-pressed={value.preset === p} title={t(`ui.continuo.preset.${p}.help`)} onClick={() => set({ preset: p }, true)}>
-                  {t(`ui.continuo.preset.${p}`)}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {CONTINUO_PRESET_FAMILIES.map((fam) => (
+          <div key={fam.id} className="drum-family">
+            <h4>{t(`ui.continuo.family.${fam.id}`)}</h4>
+            <ul className="presets">
+              {fam.presets.map((p: PresetId) => (
+                <li key={p}>
+                  <button tabIndex={-1} aria-pressed={value.preset === p} title={t(`ui.continuo.preset.${p}.help`)} onClick={() => set({ preset: p }, true)}>
+                    {t(`ui.continuo.preset.${p}`)}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
         <div className="drum-family">
           <h4>{t("ui.continuo.finals")}</h4>
           <ul className="presets">

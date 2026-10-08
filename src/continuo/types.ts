@@ -11,7 +11,12 @@ import type { CounterpointInput, VoiceNote } from "../counterpoint/rules/types.t
 import type { Costs } from "./costs.ts";
 
 export type FinalsMode = "organist" | "strict";
-export type PresetId = "stileAntico" | "cembalo" | "hofkapelle";
+/**
+ * The continuo's instruments (the realization is the same for every one; only the sound differs).
+ * Baroque: stileAntico, cembalo, hofkapelle, theorbo. Orchestral (D73): pizzicato, sostenuto, brass.
+ * Modern (D73): analogPads, electricPiano, rockBand.
+ */
+export type PresetId = "stileAntico" | "cembalo" | "hofkapelle" | "theorbo" | "pizzicato" | "sostenuto" | "brass" | "analogPads" | "electricPiano" | "rockBand";
 /**
  * "realized": a figured-bass realization (A1-A5). "doubling": no harmony added; the left hand
  * doubles the lowest sung voice, the right hand doubles every upper sung voice colla parte,

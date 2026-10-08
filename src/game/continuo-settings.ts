@@ -3,7 +3,12 @@ import type { FinalsMode, PresetId } from "../continuo/types.ts";
 
 export type ContinuoDisplay = "none" | "figured" | "realization" | "both";
 export const CONTINUO_DISPLAYS: ContinuoDisplay[] = ["none", "figured", "realization", "both"];
-export const CONTINUO_PRESETS: PresetId[] = ["stileAntico", "cembalo", "hofkapelle"];
+export const CONTINUO_PRESET_FAMILIES: { id: "baroque" | "orchestral" | "modern"; presets: PresetId[] }[] = [
+  { id: "baroque", presets: ["stileAntico", "cembalo", "hofkapelle", "theorbo"] },
+  { id: "orchestral", presets: ["pizzicato", "sostenuto", "brass"] },
+  { id: "modern", presets: ["analogPads", "electricPiano", "rockBand"] },
+];
+export const CONTINUO_PRESETS: PresetId[] = CONTINUO_PRESET_FAMILIES.flatMap((f) => f.presets);
 export const FINALS_MODES: FinalsMode[] = ["organist", "strict"];
 
 export interface ContinuoSettings {
