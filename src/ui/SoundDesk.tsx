@@ -66,6 +66,14 @@ export function SoundDesk(p: Props) {
       <button className="chipbtn" tabIndex={-1} disabled={!p.versions.canon || p.versions.canonShift >= p.slots - 1} onClick={() => p.onVersions({ ...p.versions, canonShift: p.versions.canonShift + 1 })} aria-label={t("ui.mixer.canonLater")}>›</button>
     </div>
   );
+  /** Octave transposition of a line in playback, -3..3 (Fux's, and each version's: D66). */
+  const octaveStepper = (n: number, set: (n: number) => void) => (
+    <div className="octave" title={t("ui.mixer.octaveHelp")}>
+      <button className="chipbtn" tabIndex={-1} disabled={n <= -3} onClick={() => set(n - 1)} aria-label={t("ui.mixer.octaveDown")}>‹</button>
+      <span>{t("ui.mixer.octave", { n: n > 0 ? `+${n}` : String(n) })}</span>
+      <button className="chipbtn" tabIndex={-1} disabled={n >= 3} onClick={() => set(n + 1)} aria-label={t("ui.mixer.octaveUp")}>›</button>
+    </div>
+  );
   const strip = (x: Strip) => {
     const m = s.mix[x];
     const isVoice = VOICES.includes(x as Channel);
@@ -105,13 +113,7 @@ export function SoundDesk(p: Props) {
           <button className="chipbtn" tabIndex={-1} aria-pressed={m.mute} title={t("ui.mixer.mute")} onClick={() => p.onChange(setMix(s, x, { mute: !m.mute }))}>M</button>
           <button className="chipbtn" tabIndex={-1} aria-pressed={m.solo} title={t("ui.mixer.solo")} onClick={() => p.onChange(setMix(s, x, { solo: !m.solo }))}>S</button>
         </div>
-        {x === "fux" && (
-          <div className="octave" title={t("ui.mixer.octaveHelp")}>
-            <button className="chipbtn" tabIndex={-1} disabled={s.fuxOctave <= -3} onClick={() => p.onChange({ ...s, fuxOctave: s.fuxOctave - 1 })} aria-label={t("ui.mixer.octaveDown")}>‹</button>
-            <span>{t("ui.mixer.octave", { n: s.fuxOctave > 0 ? `+${s.fuxOctave}` : String(s.fuxOctave) })}</span>
-            <button className="chipbtn" tabIndex={-1} disabled={s.fuxOctave >= 3} onClick={() => p.onChange({ ...s, fuxOctave: s.fuxOctave + 1 })} aria-label={t("ui.mixer.octaveUp")}>›</button>
-          </div>
-        )}
+        {(x === "fux" || isVersion) && octaveStepper(x === "fux" ? s.fuxOctave : s.versionOctave[x as VersionId], (n) => p.onChange(x === "fux" ? { ...s, fuxOctave: n } : { ...s, versionOctave: { ...s.versionOctave, [x]: n } }))}
         {x === "counterpoint" && (
           <div className="versions" role="group" aria-label={t("ui.mixer.versionsHelp")} title={t("ui.mixer.versionsHelp")}>
             {(["original", ...VERSION_IDS] as const).map((k) => (

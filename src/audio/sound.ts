@@ -33,6 +33,8 @@ export interface SoundState {
   mix: Record<Strip, Mix>;
   /** Octave transposition of Fux's line in playback, -3..3 (the score is unchanged). */
   fuxOctave: number;
+  /** The same for each version of the player's line (D66): listening only, the score is unchanged. */
+  versionOctave: Record<VersionId, number>;
 }
 
 const FUX_SOUND = SYNTH_PRESETS.find((p) => p.id === "fluteOrgan")!.settings;
@@ -45,6 +47,7 @@ export const DEFAULT_SOUND: SoundState = {
   links: { cantusCounterpoint: true, counterpointFux: false },
   mix: { cantus: mix(0), counterpoint: mix(-0.3), fux: mix(0.3), inversion: mix(0.3), retrograde: mix(0.3), retroInversion: mix(0.3), canon: mix(0.3), drums: mix(0, 0.8), continuo: mix(0, 0.6) },
   fuxOctave: 0,
+  versionOctave: { inversion: 0, retrograde: 0, retroInversion: 0, canon: 0 },
 };
 
 /** The voices that share a configuration with `ch` (always including `ch`). */
@@ -111,5 +114,9 @@ export function restoreSound(raw: unknown): SoundState {
   for (const l of Object.keys(out.links) as Link[]) if (typeof r.links?.[l] === "boolean") out.links[l] = r.links[l];
   for (const x of STRIPS) if (r.mix?.[x]) out.mix[x] = { ...out.mix[x], ...r.mix[x] };
   if (typeof r.fuxOctave === "number") out.fuxOctave = Math.max(-3, Math.min(3, Math.round(r.fuxOctave)));
+  for (const id of VERSION_IDS) {
+    const o = r.versionOctave?.[id];
+    if (typeof o === "number") out.versionOctave[id] = Math.max(-3, Math.min(3, Math.round(o)));
+  }
   return out;
 }

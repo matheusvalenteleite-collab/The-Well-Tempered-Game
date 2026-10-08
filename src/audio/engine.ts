@@ -229,7 +229,8 @@ export class AudioEngine {
     }
     for (const [id, pitch] of Object.entries(e.versions ?? {})) {
       if (!pitch) continue;
-      this.versionVoice(id as VersionId)?.start(pitch, time, (e.lengths?.[id] ?? e.length) * whole * 0.95 * len(id), v(id));
+      // Each version may sound in another octave too (D66).
+      this.versionVoice(id as VersionId)?.start(shiftOctave(pitch, this.mix.versionOctave?.[id as VersionId] ?? 0), time, (e.lengths?.[id] ?? e.length) * whole * 0.95 * len(id), v(id));
       this.notesStarted++;
     }
     if (e.fux) {

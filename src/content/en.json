@@ -402,7 +402,7 @@
     "mixer.solo": "Solo",
     "mixer.editHelp": "Edit this sound",
     "mixer.octave": "oct {n}",
-    "mixer.octaveHelp": "Transpose Fux's line by octaves when it plays (the score does not change)",
+    "mixer.octaveHelp": "Transpose this line by octaves when it plays (the score does not change)",
     "mixer.octaveDown": "An octave lower",
     "mixer.octaveUp": "An octave higher",
     "mixer.link": "Link these two voices: they will share one sound",

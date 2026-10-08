@@ -39,3 +39,9 @@ test("octave shift and restore", () => {
   assert.equal(restoreSound({ fuxOctave: 9 }).fuxOctave, 3);
   assert.equal(restoreSound(null).synth.cantus.sampleSet, "grand");
 });
+
+test("each version has its own playback octave, clamped, defaulting to 0 (D66)", () => {
+  const r = restoreSound({ versionOctave: { inversion: -1, canon: 7 } });
+  assert.deepEqual(r.versionOctave, { inversion: -1, retrograde: 0, retroInversion: 0, canon: 3 });
+  assert.deepEqual(restoreSound({}).versionOctave, { inversion: 0, retrograde: 0, retroInversion: 0, canon: 0 });
+});
