@@ -10,5 +10,5 @@ const css = files.filter((f) => f.endsWith(".css"));
 if (js.length !== 1 || css.length !== 1) throw new Error(`expected one js and one css asset, got ${files.join(", ")}`);
 const script = readFileSync(`${dir}/${js[0]}`, "utf8").replaceAll("</script", "<\\/script");
 const style = readFileSync(`${dir}/${css[0]}`, "utf8").replaceAll("</style", "<\\/style");
-writeFileSync(out, `<title>The Well-Tempered Game</title>\n<style>${style}</style>\n<div id="root"></div>\n<script type="module">${script}</script>\n`);
+writeFileSync(out, `<meta charset="utf-8">\n<title>The Well-Tempered Game</title>\n<style>${style}</style>\n<div id="root"></div>\n<script type="module">${script}</script>\n`);
 console.log(`wrote ${out}`);

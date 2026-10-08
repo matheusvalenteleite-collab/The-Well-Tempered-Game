@@ -24,10 +24,10 @@ test("'Both voices' is one shared configuration; joining takes the Contrapunctus
   assert.ok(sameSettings(out));
 });
 
-test("the default sound is the Gould piano, clean; every model's first preset is clean", () => {
-  assert.equal(SYNTH_MODELS[0], "piano");
-  assert.equal(DEFAULT_SYNTH.model, "piano");
-  assert.equal(SYNTH_PRESETS[0].id, "gould");
+test("the default sound is the sampled grand piano, clean; every model's first preset is clean", () => {
+  assert.equal(SYNTH_MODELS[0], "sampled");
+  assert.equal(DEFAULT_SYNTH.model, "sampled");
+  assert.equal(SYNTH_PRESETS[0].id, "grand");
   for (const m of SYNTH_MODELS) {
     const f = firstPreset(m).settings;
     assert.equal(f.reverbMode, "off", m);

@@ -17,3 +17,12 @@ test("comparison with Fux: criteria are reported for whichever side they favour"
   const bar4 = diff.find((d) => d.column === 3)!; // player F5 = m3 (m10) over D4; Fux A4 = P5
   assert.ok(bar4.playerBetter.includes("imperfect"));
 });
+
+test("repeated notes are not credited: no motion or singability bonus, and variety goes to the other side", () => {
+  const cf = ["D4", "F4", "E4", "D4", "G4", "F4", "A4", "G4", "F4", "E4", "D4"];
+  const fux = ["A4", "A4", "G4", "A4", "B4", "C5", "C5", "B4", "D5", "C#5", "D5"];
+  const lazy = ["A4", "A4", "A4", "A4", "B4", "C5", "C5", "B4", "D5", "C#5", "D5"];
+  const bar3 = compareWithFux(cf, lazy, fux).find((d) => d.column === 2)!;
+  assert.ok(bar3.fuxBetter.includes("variety"));
+  assert.ok(!bar3.playerBetter.includes("motion") && !bar3.playerBetter.includes("singable"));
+});

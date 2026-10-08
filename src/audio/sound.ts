@@ -33,7 +33,7 @@ export interface SoundState {
   fuxOctave: number;
 }
 
-const FUX_SOUND = SYNTH_PRESETS.find((p) => p.id === "fuxHarpsichord")!.settings;
+const FUX_SOUND = SYNTH_PRESETS.find((p) => p.id === "pipeOrgan")!.settings;
 const mix = (pan = 0, volume = 1): Mix => ({ volume, pan, mute: false, solo: false });
 
 export const DEFAULT_SOUND: SoundState = {

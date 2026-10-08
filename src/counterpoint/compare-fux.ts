@@ -8,7 +8,7 @@ import { harmonic, interval, isImperfectConsonance, isPerfectConsonance, motion,
 import { parsePitch } from "../music/pitch.ts";
 import { REST, slotLayout, sounding, type Slot } from "./layout.ts";
 
-export type Criterion = "imperfect" | "motion" | "singable";
+export type Criterion = "imperfect" | "motion" | "singable" | "variety";
 
 export interface BarDifference {
   /** 0-based slot. */
@@ -37,11 +37,26 @@ const leapAround = (line: (string | null)[], k: number) => {
   return total;
 };
 
-/** Motion into slot k from the previous sounding slot, judged good (contrary/oblique) or not; null when not applicable. */
-const goodMotion = (cf: (k: number) => string, line: (string | null)[], k: number) => {
+const previous = (line: (string | null)[], k: number) => {
   let j = k - 1;
   while (j >= 0 && !sounding(line[j])) j--;
-  if (j < 0) return null;
+  return j;
+};
+
+/** Does the line merely repeat its previous note at slot k? */
+const repeats = (line: (string | null)[], k: number) => {
+  const j = previous(line, k);
+  return j >= 0 && line[j] === line[k];
+};
+
+/**
+ * Motion into slot k from the previous sounding slot, judged good (contrary/oblique) or not; null when
+ * not applicable. Oblique motion obtained by repeating a note is not credited: it is the cheapest way
+ * to avoid a bad motion, and Fux treats needless repetition as a fault (variety, below).
+ */
+const goodMotion = (cf: (k: number) => string, line: (string | null)[], k: number) => {
+  const j = previous(line, k);
+  if (j < 0 || line[j] === line[k]) return null;
   const m = motion(cf(j), line[j]!, cf(k), line[k]!);
   return m === "contrary" || m === "oblique";
 };
@@ -75,10 +90,18 @@ export function compareWithFux(cantus: string[], player: (string | null)[], fux:
       if (fm === true && pm === false) fuxBetter.push("motion");
       if (pm === true && fm === false) playerBetter.push("motion");
     }
-    const pl = leapAround(player, k);
-    const fl = leapAround(fux, k);
-    if (fl + 2 < pl) fuxBetter.push("singable"); // a margin of more than a whole tone in total
-    if (pl + 2 < fl) playerBetter.push("singable");
+    // Variety: Aloysius approves avoiding "hateful repetition" (1725 p. 74) and asks for variety in
+    // the use of notes (Exercitium II; Mann p. 75). A repeated note is never credited as "singable".
+    const pr = repeats(player, k);
+    const fr = repeats(fux, k);
+    if (pr && !fr) fuxBetter.push("variety");
+    if (fr && !pr) playerBetter.push("variety");
+    if (!pr && !fr) {
+      const pl = leapAround(player, k);
+      const fl = leapAround(fux, k);
+      if (fl + 2 < pl) fuxBetter.push("singable"); // a margin of more than a whole tone in total
+      if (pl + 2 < fl) playerBetter.push("singable");
+    }
     out.push({ ...base, playerInterval: simpleName(pi), fuxInterval: simpleName(fi), fuxBetter, playerBetter });
   });
   return out;

@@ -60,6 +60,8 @@ export class AudioEngine {
   private drumSettings: DrumSettings = { ...DEFAULT_DRUMS };
   /** The final of the exercise's mode (tunes the timpani). */
   private final = "D";
+  /** Repeat "play all" indefinitely; read live by the scheduler. */
+  loop = true;
   /** Alla-breve pulse (half notes per minute); read live by the scheduler. */
   tempo = 60;
   status: AudioStatus = "idle";
@@ -261,8 +263,15 @@ export class AudioEngine {
         k++;
       }
       if (k >= events.length) {
-        this.timers.push(window.setTimeout(() => onSlot(-1), Math.max(0, (next - ctx.currentTime) * 1000)));
-        return;
+        if (this.loop) {
+          // Loop: start again after half a bar's breath (read live, so the toggle works mid-play).
+          k = 0;
+          next += 0.5 * this.barSeconds;
+          this.timers = this.timers.slice(-64);
+        } else {
+          this.timers.push(window.setTimeout(() => onSlot(-1), Math.max(0, (next - ctx.currentTime) * 1000)));
+          return;
+        }
       }
       this.timers.push(window.setTimeout(tick, 40));
     };

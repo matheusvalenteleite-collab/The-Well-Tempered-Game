@@ -42,6 +42,8 @@ export interface ScoreProps {
   onDragEnd?(): void;
   /** Show a translucent "shadow" note where a click would write. */
   showGhost?: boolean;
+  /** Print each note's name beside it, in small type (for readers new to notation). */
+  showNames?: boolean;
   /** Fux's counterpoint (one entry per slot), drawn on the player's staff with diamond noteheads. */
   fux?: (string | null)[];
 }
@@ -70,7 +72,7 @@ const HALF_BAR_W = 92;
 const NOTE_PAD = 12;
 /** Drawing scale on wide screens. */
 const BASE_SCALE = 1;
-const COLOR: Record<Status, string> = { ok: "var(--ok)", error: "var(--bad)", warning: "var(--warn)" };
+const COLOR: Record<Status, string> = { ok: "var(--ok)", neutral: "var(--ink-muted)", error: "var(--bad)", warning: "var(--warn)" };
 const ACC: Record<number, string> = { [-2]: "bb", [-1]: "b", 1: "#", 2: "##" };
 
 function vexKey(pitch: string): { key: string; acc: string | null } {
@@ -216,6 +218,24 @@ export function ScoreView(props: ScoreProps) {
     for (let b = 1; b < bars; b++) staves.forEach((s) => ctx.fillRect(xOfBar(b) - 2, s.getYForLine(0), 1, s.getYForLine(4) - s.getYForLine(0)));
     ctx.restore();
     for (const n of [...cfNotes, ...fuxNotes, ...cpNotes]) n?.setContext(ctx).draw();
+    if (props.showNames) {
+      // Note names beside the noteheads: cantus, the player's notes and (if shown) Fux's.
+      const label = (pitch: string, n: StaveNote | null, x: number, ink: string) => {
+        if (!n || pitch === REST) return;
+        const p = parsePitch(pitch);
+        const name = p.step + (p.alter > 0 ? "♯".repeat(p.alter) : p.alter < 0 ? "♭".repeat(-p.alter) : "");
+        ctx.save();
+        ctx.setFont("Georgia, serif", 8, "normal");
+        ctx.setFillStyle(ink);
+        ctx.fillText(name, x, n.getYs()[0] + 3);
+        ctx.restore();
+      };
+      props.cantus.forEach((p, b) => label(p, cfNotes[b], xOfBar(b) + NOTE_PAD + 17, "var(--ink-muted)"));
+      layout.forEach((sl, k) => {
+        const p = props.counterpoint[k];
+        if (p) label(p, cpNotes[k], columns[k].left + NOTE_PAD + (sl.duration === "1/1" ? 17 : 13), "var(--ink-player)");
+      });
+    }
     if (props.fux) {
       // Legend, top right of the counterpoint staff.
       ctx.save();
@@ -302,7 +322,7 @@ export function ScoreView(props: ScoreProps) {
     };
     geo.current = g;
     el.dataset.geometry = JSON.stringify(g); // read by the browser tests
-  }, [width, props.cantus, props.counterpoint, props.fux, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay]);
+  }, [width, props.showNames, props.cantus, props.counterpoint, props.fux, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay]);
 
   const press = useRef<{ x: number; y: number; dragging: boolean; from: number } | null>(null);
 

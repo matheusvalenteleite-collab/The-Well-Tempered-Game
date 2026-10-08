@@ -6,7 +6,7 @@ import { harmonic, interval, motion, simpleName } from "../../counterpoint/inter
 import type { Severity, Violation } from "../../counterpoint/rules/types.ts";
 import { slotLayout, slotsOfBars, sounding, type Slot } from "../../counterpoint/layout.ts";
 
-export type Status = "ok" | Severity;
+export type Status = "ok" | "neutral" | Severity;
 
 export interface IntervalLabel {
   /** Slot index relative to the first slot drawn. */
@@ -112,4 +112,14 @@ export function buildOverlay(
     intervals.push({ column: k - first, text: simpleName(harmonic(cf(k), cp(k))), status: status.get(k) ?? "ok" });
   }
   return { intervals, links };
+}
+
+/** Intervals of the written notes only, with no judgement (the "intervals" view before evaluation). */
+export function neutralOverlay(cantus: string[], counterpoint: (string | null)[], layout: Slot[]): Overlay {
+  const intervals: IntervalLabel[] = [];
+  layout.forEach((sl, k) => {
+    const cp = counterpoint[k];
+    if (sounding(cp)) intervals.push({ column: k, text: simpleName(harmonic(cantus[sl.bar], cp)), status: "neutral" });
+  });
+  return { intervals, links: [] };
 }

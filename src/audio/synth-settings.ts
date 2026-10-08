@@ -8,8 +8,8 @@ export const WAVEFORMS: Waveform[] = ["sine", "triangle", "square", "sawtooth"];
  * seven suit counterpoint (sustained, vocal or keyboard-like tones); ring modulation and
  * wavefolding are there for fun.
  */
-export type SynthModel = "piano" | "subtractive" | "pluck" | "fm" | "additive" | "formant" | "bowed" | "wavetable" | "ringmod" | "wavefold";
-export const SYNTH_MODELS: SynthModel[] = ["piano", "subtractive", "pluck", "fm", "additive", "formant", "bowed", "wavetable", "ringmod", "wavefold"];
+export type SynthModel = "sampled" | "piano" | "subtractive" | "pluck" | "fm" | "additive" | "formant" | "bowed" | "wavetable" | "ringmod" | "wavefold";
+export const SYNTH_MODELS: SynthModel[] = ["sampled", "piano", "subtractive", "pluck", "fm", "additive", "formant", "bowed", "wavetable", "ringmod", "wavefold"];
 
 export type ReverbMode = "off" | "room" | "hall" | "cathedral" | "plate" | "spring";
 export const REVERB_MODES: ReverbMode[] = ["off", "room", "hall", "cathedral", "plate", "spring"];
@@ -22,8 +22,14 @@ export const DELAY_MODES: DelayMode[] = ["off", "digital", "analog", "tape", "sl
  * FM ratio (x), index; additive brightness, even harmonics; formant vowel (0..4 = a e i o u), breath;
  * bowed pressure, body; wavetable position, scan (Hz); ring ratio (x), mix; wavefold drive, symmetry.
  */
+/** Recorded instruments (files in public/samples, see sample-manifest.ts). */
+export type SampleSet = "grand" | "organ" | "sackbut" | "cello";
+export const SAMPLE_SETS: SampleSet[] = ["grand", "organ", "sackbut", "cello"];
+
 export interface SynthSettings {
   model: SynthModel;
+  /** Sampled model: which recorded instrument. */
+  sampleSet: SampleSet;
   /** Piano: hammer hardness (brightness of the attack and spectrum), 0..1. */
   pianoHammer: number;
   /** Piano: detachment, 0 = legato, 1 = very detached (the key is released early). */
@@ -62,7 +68,7 @@ export interface SynthSettings {
 
 /** Neutral values of every parameter (an 8-bit-like triangle, no effects). */
 const BASE: SynthSettings = {
-  model: "subtractive", pianoHammer: 0.6, pianoDetach: 0.3, waveform: "triangle", attack: 0.02, decay: 0.15, sustain: 0.6, release: 0.25, tone: 2500, vibrato: 0, detune: 0,
+  model: "subtractive", sampleSet: "grand", pianoHammer: 0.6, pianoDetach: 0.3, waveform: "triangle", attack: 0.02, decay: 0.15, sustain: 0.6, release: 0.25, tone: 2500, vibrato: 0, detune: 0,
   pluckDamping: 0.6, pluckBrightness: 0.6, fmRatio: 2, fmIndex: 2, addBrightness: 0.5, addEven: 0.7,
   formantVowel: 0, formantBreath: 0.15, bowPressure: 0.5, bowBody: 0.6, wtPosition: 0.3, wtScan: 0.3,
   ringRatio: 1.5, ringMix: 0.7, foldDrive: 0.4, foldSymmetry: 0.5,
@@ -79,14 +85,21 @@ const p = (o: Partial<SynthSettings>): SynthSettings => ({ ...BASE, ...o });
  * almost no pedal, detached touch, no added room. The default sound of the game.
  */
 const GOULD = p({ model: "piano", pianoHammer: 0.62, pianoDetach: 0.45, attack: 0.003, decay: 0.05, sustain: 1, release: 0.07, tone: 9000 });
-export const DEFAULT_SYNTH: SynthSettings = GOULD;
+/** Salamander Grand Piano (Yamaha C5, recorded by Alexander Holm): the default sound. */
+const GRAND = p({ model: "sampled", sampleSet: "grand", attack: 0.002, decay: 0.05, sustain: 1, release: 0.25, tone: 12000 });
+export const DEFAULT_SYNTH: SynthSettings = GRAND;
 
 /**
  * Presets, each belonging to one model (the rack shows the presets of the current model).
  * The first preset of every model is clean (no reverb, no delay): choosing a model loads it.
  */
 export const SYNTH_PRESETS: { id: string; settings: SynthSettings }[] = [
-  // Piano
+  // Sampled instruments
+  { id: "grand", settings: GRAND },
+  { id: "pipeOrgan", settings: p({ model: "sampled", sampleSet: "organ", attack: 0.01, decay: 0.05, sustain: 1, release: 0.18, tone: 12000 }) },
+  { id: "sackbut", settings: p({ model: "sampled", sampleSet: "sackbut", attack: 0.02, decay: 0.05, sustain: 1, release: 0.15, tone: 12000 }) },
+  { id: "celloSampled", settings: p({ model: "sampled", sampleSet: "cello", attack: 0.03, decay: 0.05, sustain: 1, release: 0.2, tone: 12000 }) },
+  // Piano (modelled)
   { id: "gould", settings: GOULD },
   { id: "concertGrand", settings: p({ model: "piano", pianoHammer: 0.45, pianoDetach: 0, attack: 0.003, decay: 0.05, sustain: 1, release: 0.6, tone: 7000, reverbMode: "hall", reverbMix: 0.25 }) },
   { id: "fortepiano", settings: p({ model: "piano", pianoHammer: 0.8, pianoDetach: 0.25, attack: 0.002, decay: 0.05, sustain: 1, release: 0.25, tone: 5000, reverbMode: "room", reverbMix: 0.15 }) },

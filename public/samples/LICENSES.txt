@@ -1,0 +1,6 @@
+grand/   Salamander Grand Piano V3, Alexander Holm. CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/).
+         Source: https://github.com/sfzinstruments/SalamanderGrandPiano (velocity layers 7 and 12), trimmed to 7 s, MP3.
+organ/   Versilian Studios Orchestra 2 Community Edition, via https://github.com/nbrosowsky/tonejs-instruments (CC BY 3.0).
+sackbut/ Trombone, same source as organ/.
+cello/   Freesound 12408 (flcellogrl, real cello notes), via tonejs-instruments (CC BY 3.0).
+All: leading silence removed, trimmed to 5 s with a fade, mono 96 kbit/s MP3 (grand: stereo 128 kbit/s).

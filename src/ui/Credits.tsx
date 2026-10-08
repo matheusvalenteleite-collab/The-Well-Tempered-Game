@@ -17,7 +17,15 @@ export function Credits({ onClose }: { onClose(): void }) {
           Dataset: <a href={prov.repository}>{prov.repository}</a> @ <code>{prov.commit.slice(0, 7)}</code>
         </p>
         <h3>Software and sounds</h3>
-        <p>VexFlow (MIT), React (MIT), smplr (MIT). Piano samples: MusyngKite soundfont from gleitz/midi-js-soundfonts (licence as stated by that project). 8-bit sound: synthesized in the browser.</p>
+        <p>VexFlow (MIT), React (MIT), smplr (MIT). Other sounds are synthesized in the browser.</p>
+        <p>
+          Grand piano: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), CC BY 3.0, via the sfzinstruments edition
+          (github.com/sfzinstruments/SalamanderGrandPiano); two velocity layers, re-encoded.
+        </p>
+        <p>
+          Pipe organ, sackbut (trombone) and cello: from nbrosowsky/tonejs-instruments (samples CC BY 3.0); organ and trombone from the
+          Versilian Studios Orchestra 2 Community Edition, cello from Freesound (12408, flcellogrl); trimmed and re-encoded.
+        </p>
         <button onClick={onClose}>{t("ui.close")}</button>
       </div>
     </div>

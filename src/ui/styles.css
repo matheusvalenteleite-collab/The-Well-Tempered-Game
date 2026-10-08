@@ -249,7 +249,7 @@ svg.ghost line { stroke: var(--ink-player); stroke-width: 1.2; opacity: 0.45; }
   color-scheme: dark;
 }
 /* The engraved score keeps its light colours and is inverted as a whole in the dark theme. */
-.score svg { --ink-player: #2c4f9e; --ink-fux: #1d6b66; --ok: #2d6a3e; --bad: #a0281a; --warn: #b07a0c; --selection: rgba(60, 100, 160, 0.10); --cursor: rgba(200, 140, 30, 0.25); --mark-error: rgba(190, 40, 30, 0.16); --mark-warning: rgba(220, 160, 20, 0.20); --bar-number: #9a948a; }
+.score svg { --ink-muted: #6b665e; --ink-player: #2c4f9e; --ink-fux: #1d6b66; --ok: #2d6a3e; --bad: #a0281a; --warn: #b07a0c; --selection: rgba(60, 100, 160, 0.10); --cursor: rgba(200, 140, 30, 0.25); --mark-error: rgba(190, 40, 30, 0.16); --mark-warning: rgba(220, 160, 20, 0.20); --bar-number: #9a948a; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .score svg { filter: invert(0.92) hue-rotate(180deg); } }
 :root[data-theme="dark"] .score svg { filter: invert(0.92) hue-rotate(180deg); }
 button.primary { background: var(--ink); color: var(--bg); }
@@ -302,3 +302,30 @@ kbd { font-family: ui-monospace, Menlo, monospace; font-size: 0.8rem; padding: 1
 .desk-gap { width: 12px; }
 .sound .rack, .sound .drumbox { margin-top: 0; }
 @media (max-width: 600px) { .strip { width: calc(50% - 30px); } .chain { display: none; } }
+
+/* View toggles beside the exercise name; loop toggle beside play */
+.title-row { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+.view-toggles { display: flex; gap: 4px; }
+.view-toggles .chipbtn { font-size: 0.75rem; min-height: 24px; padding: 1px 8px; }
+.play-split .loop { min-width: 26px; padding: 0 4px; min-height: 52px; font-size: 1rem; }
+
+/* Compact mixer: narrow strips, one-line names, the desk and the synth share one width */
+.sound { width: fit-content; max-width: 100%; display: grid; gap: 8px; padding: 8px; }
+.sound .rack, .sound .drumbox { width: auto; }
+.desk { flex-wrap: nowrap; gap: 4px; justify-content: space-between; }
+.strip { width: 86px; gap: 3px; padding: 4px; }
+.strip-name { font-size: 0.68rem; white-space: nowrap; letter-spacing: 0.01em; line-height: 1.2; }
+.strip .instrument { font-size: 0.7rem; min-height: 22px; }
+.strip .fader { height: 64px; }
+.strip .knob { width: 52px; }
+.strip .knob svg { width: 24px; height: 24px; }
+.strip .knob-label { display: none; }
+.strip .ms .chipbtn, .strip .octave .chipbtn { min-height: 22px; }
+.strip.master .tuning { font-size: 0.66rem; padding: 1px 3px; }
+.chain { min-width: 26px; }
+.chain svg { width: 22px; }
+@media (max-width: 600px) { .desk { flex-wrap: wrap; } }
+/* The strips share the synth's width evenly: one block, no loose gaps. */
+.desk { justify-content: stretch; }
+.desk .strip { flex: 1 1 0; width: auto; min-width: 72px; }
+.desk-gap { width: 6px; flex: 0 0 auto; }

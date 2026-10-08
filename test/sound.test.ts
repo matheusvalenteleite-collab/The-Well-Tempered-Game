@@ -2,9 +2,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { audibleGain, DEFAULT_SOUND, editSynth, linkedGroup, linkNeedsConfirm, restoreSound, setLink, setMix, shiftOctave } from "../src/audio/sound.ts";
 
-test("defaults: cantus and contrapunctus share the Gould piano; Fux has his own harpsichord", () => {
-  assert.equal(DEFAULT_SOUND.synth.counterpoint.model, "piano");
-  assert.equal(DEFAULT_SOUND.synth.fux.model, "pluck");
+test("defaults: cantus and contrapunctus share the sampled grand; Fux has his own pipe organ", () => {
+  assert.equal(DEFAULT_SOUND.synth.counterpoint.sampleSet, "grand");
+  assert.equal(DEFAULT_SOUND.synth.fux.sampleSet, "organ");
   assert.deepEqual(linkedGroup(DEFAULT_SOUND, "cantus"), ["cantus", "counterpoint"]);
   assert.deepEqual(linkedGroup(DEFAULT_SOUND, "fux"), ["fux"]);
 });
@@ -21,7 +21,7 @@ test("editing a linked voice edits its group; unlinked voices stay", () => {
 test("linking voices that differ asks first, then takes the Contrapunctus settings", () => {
   assert.equal(linkNeedsConfirm(DEFAULT_SOUND, "counterpointFux"), true);
   const s = setLink(DEFAULT_SOUND, "counterpointFux", true);
-  assert.equal(s.synth.fux.model, "piano");
+  assert.equal(s.synth.fux.sampleSet, "grand");
   assert.deepEqual(linkedGroup(s, "fux"), ["cantus", "counterpoint", "fux"]);
 });
 
@@ -37,5 +37,5 @@ test("octave shift and restore", () => {
   assert.equal(shiftOctave("C#4", 2), "C#6");
   assert.equal(shiftOctave("Bb2", -3), "Bb-1");
   assert.equal(restoreSound({ fuxOctave: 9 }).fuxOctave, 3);
-  assert.equal(restoreSound(null).synth.cantus.model, "piano");
+  assert.equal(restoreSound(null).synth.cantus.sampleSet, "grand");
 });

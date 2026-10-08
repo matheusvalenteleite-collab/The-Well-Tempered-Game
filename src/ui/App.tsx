@@ -8,6 +8,7 @@ import { exerciseView } from "../game/exercise-view.ts";
 import { applyAccidental, clear, initialState, letterNote, moveNote, place, select, setRest, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
 import { AudioEngine, renderLevel, SYNTH_PRESETS, type AudioStatus } from "../audio/engine.ts";
 import { restoreSound, type SoundState } from "../audio/sound.ts";
+import { loadSamples } from "../audio/voice.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
 import { SoundDesk } from "./SoundDesk.tsx";
 import { HelpCard } from "./HelpCard.tsx";
@@ -18,7 +19,7 @@ import { stepStudy } from "./study.ts";
 import { Feedback } from "./Feedback.tsx";
 import { Knob } from "./Knob.tsx";
 import { ScoreView } from "./notation/ScoreView.tsx";
-import { buildOverlay } from "./notation/overlay.ts";
+import { buildOverlay, neutralOverlay } from "./notation/overlay.ts";
 import { Credits } from "./Credits.tsx";
 import { FuxComparison } from "./FuxComparison.tsx";
 import { t } from "./i18n.ts";
@@ -38,7 +39,7 @@ const audio = new AudioEngine();
 // Owner decision D15: synthesized sound only for now (the sampled piano stays in the engine, unused).
 audio.sound = "chip";
 // Read by the browser tests.
-Object.assign(window as object, { wtgAudio: audio, wtgRenderLevel: renderLevel, wtgPresets: SYNTH_PRESETS, wtgDrumMachine: DrumMachine });
+Object.assign(window as object, { wtgAudio: audio, wtgRenderLevel: renderLevel, wtgPresets: SYNTH_PRESETS, wtgDrumMachine: DrumMachine, wtgLoadSamples: loadSamples });
 
 /** Milliseconds a bar must stay selected while browsing before it sounds. */
 const DWELL_MS = 1000;
@@ -84,7 +85,7 @@ export function App() {
   const [stars, setStars] = useState<string[]>(() => stored<string[]>("wtg.stars", [], (v) => Array.isArray(v)));
   const [tempo, setTempo] = useState(() => stored("wtg.tempo", 60, (v) => typeof v === "number" && v >= 30 && v <= 120));
   const [volume, setVolume] = useState(() => stored("wtg.volume", 70, (v) => typeof v === "number" && v >= 0 && v <= 100));
-  const [sound, setSound] = useState<SoundState>(() => restoreSound(stored<unknown>("wtg.sound1", null)));
+  const [sound, setSound] = useState<SoundState>(() => restoreSound(stored<unknown>("wtg.sound2", null)));
   const [theme, setTheme] = useState<"auto" | "light" | "dark">(() => stored("wtg.theme", "auto", (v) => v === "auto" || v === "light" || v === "dark"));
   const [drums, setDrums] = useState(() => stored("wtg.drums", false, (v) => typeof v === "boolean"));
   const [drumKit, setDrumKit] = useState<DrumSettings>(() => {
@@ -93,6 +94,9 @@ export function App() {
     return ok ? v : { ...DEFAULT_DRUMS };
   });
   const [showSound, setShowSound] = useState(false);
+  const [loop, setLoop] = useState(() => stored("wtg.loop", true, (v) => typeof v === "boolean"));
+  const [showNames, setShowNames] = useState(() => stored("wtg.names", false, (v) => typeof v === "boolean"));
+  const [showIntervals, setShowIntervals] = useState(() => stored("wtg.intervals", false, (v) => typeof v === "boolean"));
   const [showHelp, setShowHelp] = useState(false);
   const [tuning, setTuning] = useState<TemperamentId>(() => stored<TemperamentId>("wtg.tuning", "equal", (v) => TEMPERAMENTS.includes(v as TemperamentId)));
   const [cursor, setCursor] = useState(-1);
@@ -118,7 +122,7 @@ export function App() {
   }, [volume]);
   useEffect(() => {
     audio.setSoundState(sound);
-    store("wtg.sound1", sound);
+    store("wtg.sound2", sound);
   }, [sound]);
   useEffect(() => {
     if (theme === "auto") delete document.documentElement.dataset.theme;
@@ -126,6 +130,12 @@ export function App() {
     store("wtg.theme", theme);
   }, [theme]);
   useEffect(() => store("wtg.stepId", STEP.id), [stepIndex]);
+  useEffect(() => {
+    audio.loop = loop;
+    store("wtg.loop", loop);
+  }, [loop]);
+  useEffect(() => store("wtg.names", showNames), [showNames]);
+  useEffect(() => store("wtg.intervals", showIntervals), [showIntervals]);
   useEffect(() => {
     audio.drums = drums;
     store("wtg.drums", drums);
@@ -205,7 +215,11 @@ export function App() {
   };
   const fuxSolution = VIEW.exerciseId ? repository.getSolution(VIEW.exerciseId) : undefined;
   const marks = result ? result.violations.flatMap((v) => v.positions.map((c) => ({ column: c, severity: v.severity }))) : undefined;
-  const overlay = useMemo(() => (result ? buildOverlay(result.violations, VIEW.cantus, session.notes, VIEW.layout) : undefined), [result, session.notes, VIEW]);
+  // After Evaluate: judged intervals and links; before, optionally the bare intervals (no colours).
+  const overlay = useMemo(
+    () => (result ? buildOverlay(result.violations, VIEW.cantus, session.notes, VIEW.layout) : showIntervals ? neutralOverlay(VIEW.cantus, session.notes, VIEW.layout) : undefined),
+    [result, showIntervals, session.notes, VIEW],
+  );
 
   // Fux's solution (overlay, comparison, playback) opens only once the exercise is cleared.
   const fuxOpen = Boolean(result?.passed && VIEW.fux);
@@ -346,7 +360,13 @@ export function App() {
           {t("ui.mode.fux")} · {t("ui.nav.voicesN", { n: COURSE.voices })} · {t(`ui.species.${VIEW.species}`)} · {t("ui.exercise.mode", { final: VIEW.modalFinal })} ·{" "}
           {VIEW.cantusVoice === "lower" ? t("ui.exercise.cantusBelow") : t("ui.exercise.cantusAbove")}
         </p>
-        <h2 className="exercise-name">{name}</h2>
+        <div className="title-row">
+          <h2 className="exercise-name">{name}</h2>
+          <div className="view-toggles" role="group" aria-label={t("ui.view.label")}>
+            <button className="chipbtn" aria-pressed={showNames} onClick={() => setShowNames(!showNames)} title={t("ui.view.namesHelp")}>{t("ui.view.names")}</button>
+            <button className="chipbtn" aria-pressed={showIntervals} onClick={() => setShowIntervals(!showIntervals)} title={t("ui.view.intervalsHelp")}>{t("ui.view.intervals")}</button>
+          </div>
+        </div>
         <blockquote className="tutor">
           <span className="speaker">{t("tutor.speaker.aloysius")}.</span> {t(`tutor.step.${STEP.id}.intro`)}
         </blockquote>
@@ -366,6 +386,7 @@ export function App() {
             marks={marks}
             overlay={overlay}
             fux={showFux && fuxOpen ? VIEW.fux! : undefined}
+            showNames={showNames}
             showGhost
             onPlace={(col, natural) => update(place(session, col, natural))}
             onSelect={(col) => browse(col)}
@@ -409,6 +430,7 @@ export function App() {
               <button className="icon play" onClick={() => play("player")} aria-label={t("ui.play.player")} title={t("ui.play.player")}>
                 {playing && playMode === "player" ? "■" : "▶"}
               </button>
+              <button className="loop" aria-pressed={loop} onClick={() => setLoop(!loop)} aria-label={t("ui.loop")} title={t(loop ? "ui.loop.on" : "ui.loop.off")}>⟲</button>
               <div className="play-small">
                 <button onClick={() => play("fux")} disabled={!fuxOpen} aria-label={t("ui.play.fux")} title={t(fuxOpen ? "ui.play.fux" : "ui.play.locked")}>
                   {playing && playMode === "fux" ? "■" : t("ui.play.fuxShort")}

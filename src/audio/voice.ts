@@ -4,7 +4,44 @@
  */
 import { FxChain } from "./effects.ts";
 import { frequency, type TemperamentId } from "./temperament.ts";
-import type { SynthSettings } from "./synth-settings.ts";
+import type { SampleSet, SynthSettings } from "./synth-settings.ts";
+import { SAMPLE_MANIFEST } from "./sample-manifest.ts";
+import { parsePitch } from "../music/pitch.ts";
+
+/** A recorded note: its MIDI pitch, velocity layer (0 if one layer) and audio. */
+interface Sample {
+  midi: number;
+  layer: number;
+  buffer: AudioBuffer;
+}
+const banks = new Map<SampleSet, Sample[]>();
+const loading = new Map<SampleSet, Promise<void>>();
+/** Relative loudness correction per instrument (measured), so the sets sit at similar levels. */
+const SET_GAIN: Record<SampleSet, number> = { grand: 2.6, organ: 1.7, sackbut: 1.9, cello: 1.6 };
+
+/** Fetch and decode an instrument's samples (once); notes before it arrives are skipped. */
+export function loadSamples(ctx: BaseAudioContext, set: SampleSet): Promise<void> {
+  let p = loading.get(set);
+  if (!p) {
+    const m = SAMPLE_MANIFEST[set];
+    const files = m.layers.length ? m.notes.flatMap((n) => m.layers.map((l) => ({ n, l, f: `${n}-v${l}.mp3` }))) : m.notes.map((n) => ({ n, l: 0, f: `${n}.mp3` }));
+    p = Promise.all(
+      files.map(async ({ n, l, f }) => {
+        const res = await fetch(new URL(`samples/${set}/${f}`, document.baseURI));
+        if (!res.ok) throw new Error(`sample ${set}/${f}: ${res.status}`);
+        const buffer = await ctx.decodeAudioData(await res.arrayBuffer());
+        return { midi: parsePitch(n.replace("s", "#")).midi, layer: l, buffer };
+      }),
+    ).then((list) => {
+      banks.set(set, list);
+    });
+    p.catch(() => loading.delete(set)); // a failed load is retried at the next note
+    loading.set(set, p);
+  }
+  return p;
+}
+
+export const samplesReady = (set: SampleSet) => banks.has(set);
 
 /** Vowel formants (F1, F2, F3 in Hz) for a, e, i, o, u. */
 const VOWELS: [number, number, number][] = [
@@ -16,7 +53,8 @@ const VOWELS: [number, number, number][] = [
 ];
 
 export interface Instrument {
-  start(note: string, time: number, duration: number): void;
+  /** `velocity` 0..1 (0.75 is the neutral loudness). */
+  start(note: string, time: number, duration: number, velocity?: number): void;
   stop(): void;
 }
 
@@ -39,10 +77,12 @@ export class Synth implements Instrument {
     this.out = ctx.createGain();
     this.out.gain.value = 0.18; // headroom for two voices
     this.out.connect(this.fx.input);
+    this.preload();
   }
 
   /** Apply changed settings to the effects (sound parameters are read at each note start). */
   update() {
+    this.preload();
     this.fx.update(this.settings);
   }
 
@@ -177,7 +217,36 @@ export class Synth implements Instrument {
     this.noiseSource(time, time + 0.08).connect(lp).connect(thump).connect(out);
   }
 
-  start(note: string, time: number, duration: number) {
+  /** Begin loading the recorded instrument if the settings use one. */
+  preload() {
+    if (this.settings.model === "sampled") void loadSamples(this.ctx, this.settings.sampleSet);
+  }
+
+  /** A recorded note: the nearest sample (in the layer for this velocity), retuned by playback rate. */
+  private sampled(freq: number, time: number, end: number, velocity: number, out: AudioNode) {
+    const set = this.settings.sampleSet;
+    const bank = banks.get(set);
+    if (!bank) {
+      this.preload();
+      return;
+    }
+    const layers = [...new Set(bank.map((x) => x.layer))].sort((a, b) => a - b);
+    const layer = layers.length > 1 ? (velocity < 0.62 ? layers[0] : layers[layers.length - 1]) : layers[0];
+    const midi = 69 + 12 * Math.log2(freq / 440);
+    let best = bank[0];
+    for (const x of bank) if (x.layer === layer && (best.layer !== layer || Math.abs(x.midi - midi) < Math.abs(best.midi - midi))) best = x;
+    const src = this.track(this.ctx.createBufferSource());
+    src.buffer = best.buffer;
+    src.playbackRate.value = freq / (440 * 2 ** ((best.midi - 69) / 12));
+    const g = this.ctx.createGain();
+    // Within a layer, velocity still shades the level (about ±6 dB around the neutral 0.75).
+    g.gain.value = SET_GAIN[set] * (0.5 + 0.67 * velocity) * (layers.length > 1 && layer === layers[0] ? 1.35 : 1);
+    src.connect(g).connect(out);
+    src.start(time);
+    src.stop(Math.min(end, time + best.buffer.duration / src.playbackRate.value));
+  }
+
+  start(note: string, time: number, duration: number, velocity = 0.75) {
     const st = this.settings;
     const ctx = this.ctx;
     const freq = frequency(note, this.tuning());
@@ -211,6 +280,9 @@ export class Synth implements Instrument {
     }
 
     switch (st.model) {
+      case "sampled":
+        this.sampled(freq, time, end, velocity, filter);
+        return;
       case "piano":
         this.piano(freq, time, end, filter);
         return;

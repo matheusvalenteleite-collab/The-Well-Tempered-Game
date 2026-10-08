@@ -7,6 +7,7 @@ import {
   SYNTH_MODELS,
   SYNTH_PRESETS,
   WAVEFORMS,
+  SAMPLE_SETS,
   type NumericKey,
   type SynthModel,
   type SynthSettings,
@@ -35,6 +36,7 @@ const fmt = (k: NumericKey) => FORMAT[k] ?? pct;
 
 const SHARED: NumericKey[] = ["attack", "decay", "sustain", "release", "tone", "vibrato"];
 const BY_MODEL: Record<SynthModel, NumericKey[]> = {
+  sampled: [],
   piano: ["pianoHammer", "pianoDetach"],
   subtractive: ["detune"],
   pluck: ["pluckDamping", "pluckBrightness"],
@@ -93,6 +95,7 @@ export function SynthRack({ title, value, onChange }: Props) {
             </select>
             <button className="chipbtn" tabIndex={-1} onClick={() => setModel(cycle(SYNTH_MODELS, shown.model, 1))} aria-label={t("ui.synth.nextModel")}>›</button>
           </span>
+          {shown.model === "sampled" && choice(<>{t(`ui.synth.sampleSet.${shown.sampleSet}`)}</>, () => set({ ...SYNTH_PRESETS.find((x) => x.settings.model === "sampled" && x.settings.sampleSet === cycle(SAMPLE_SETS, shown.sampleSet))!.settings }))}
           {shown.model === "subtractive" && choice(<><WaveIcon wave={shown.waveform} /> {t(`ui.synth.wave.${shown.waveform}`)}</>, () => set({ ...shown, waveform: cycle(WAVEFORMS, shown.waveform) }))}
         </div>
         <div className="rack-knobs">
