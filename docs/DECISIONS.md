@@ -27,3 +27,6 @@ Note: the page supplied as "p. 46" is p. 46 of Mann's English translation (secon
 | D18 | One star per exercise, earned by clearing it (all rules), shown at the top left of the score. | `wtg.stars` |
 | D19 | Exercise navigation in book order (12 steps) beside the title. | `App.tsx` |
 | D20 | Original-clefs mode removed from the UI (data kept). | — |
+| D21 | "More imperfect than perfect consonances, beginning and end excepted" is Fux's (1725 p. 46, read via Mann p. 28): restored as a recommendation from Fig. 5, checked as "perfect must not outnumber imperfect" because Fux's own Fig. 11 ties 4–4. Mann's footnote rules (leaps > 5th, successive leaps, repeated notes) are Mann's, not Fux's, and stay out. | `fs.prefer-imperfect-consonances` |
+| D22 | Synth models: subtractive, plucked string (Karplus–Strong), FM, additive; 12 presets. | `src/audio/engine.ts` |
+| D23 | Cantus firmus and counterpoint have independent synth settings; the rack edits Both / Counterpoint / Cantus firmus. | `SynthRack.tsx` |

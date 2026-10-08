@@ -5,8 +5,8 @@ import { evaluate, type Evaluation } from "../counterpoint/engine.ts";
 import { compareWithOriginal } from "../music/fux/player.ts";
 import { exerciseView } from "../game/exercise-view.ts";
 import { applyAccidental, clear, initialState, letterNote, moveNote, place, select, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
-import { AudioEngine, DEFAULT_SYNTH, type AudioStatus, type SynthSettings } from "../audio/engine.ts";
-import { SynthRack } from "./SynthRack.tsx";
+import { AudioEngine, DEFAULT_SYNTH, renderLevel, SYNTH_PRESETS, type AudioStatus, type VoiceSynths } from "../audio/engine.ts";
+import { SynthRack, type SynthTarget } from "./SynthRack.tsx";
 import { Hints } from "./Hints.tsx";
 import { Feedback } from "./Feedback.tsx";
 import { Knob } from "./Knob.tsx";
@@ -22,7 +22,8 @@ const VIEWS = STEPS.map((s) => exerciseView(repository, s));
 const audio = new AudioEngine();
 // Owner decision D15: synthesized sound only for now (the sampled piano stays in the engine, unused).
 audio.sound = "chip";
-(window as unknown as { wtgAudio: AudioEngine }).wtgAudio = audio; // read by the browser tests
+// Read by the browser tests.
+Object.assign(window as object, { wtgAudio: audio, wtgRenderLevel: renderLevel, wtgPresets: SYNTH_PRESETS });
 
 /** Milliseconds a bar must stay selected while browsing before it sounds. */
 const DWELL_MS = 1000;
@@ -64,7 +65,11 @@ export function App() {
   const [stars, setStars] = useState<string[]>(() => stored<string[]>("wtg.stars", [], (v) => Array.isArray(v)));
   const [tempo, setTempo] = useState(() => stored("wtg.tempo", 60, (v) => typeof v === "number" && v >= 30 && v <= 120));
   const [volume, setVolume] = useState(() => stored("wtg.volume", 70, (v) => typeof v === "number" && v >= 0 && v <= 100));
-  const [synth, setSynth] = useState<SynthSettings>(() => stored("wtg.synth", { ...DEFAULT_SYNTH }, (v) => typeof v === "object" && v !== null));
+  const [synth, setSynth] = useState<VoiceSynths>(() => {
+    const v = stored<Partial<VoiceSynths>>("wtg.synth2", {}, (x) => typeof x === "object" && x !== null);
+    return { cantus: { ...DEFAULT_SYNTH, ...v.cantus }, counterpoint: { ...DEFAULT_SYNTH, ...v.counterpoint } };
+  });
+  const [synthTarget, setSynthTarget] = useState<SynthTarget>("all");
   const [cursor, setCursor] = useState(-1);
   const [playing, setPlaying] = useState(false);
   const [audioStatus, setAudioStatus] = useState<AudioStatus>("idle");
@@ -90,7 +95,7 @@ export function App() {
   }, [volume]);
   useEffect(() => {
     audio.setSynth(synth);
-    store("wtg.synth", synth);
+    store("wtg.synth2", synth);
   }, [synth]);
   useEffect(() => store("wtg.step", stepIndex), [stepIndex]);
   useEffect(() => store("wtg.stars", stars), [stars]);
@@ -319,7 +324,7 @@ export function App() {
           </div>
         </div>
         {missing > 0 && !result && <p className="help">{t("ui.evaluate.incomplete", { missing })}</p>}
-        {showSynth && <SynthRack value={synth} onChange={setSynth} />}
+        {showSynth && <SynthRack value={synth} target={synthTarget} onTarget={setSynthTarget} onChange={setSynth} />}
         {result && (
           <section className="feedback" aria-live="polite">
             <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} audio={audio} />

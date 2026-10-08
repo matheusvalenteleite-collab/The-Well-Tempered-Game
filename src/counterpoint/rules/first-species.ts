@@ -12,6 +12,7 @@ import {
   interval,
   isAbove,
   isConsonant,
+  isImperfectConsonance,
   isLeap,
   isOctaveClass,
   isPerfectConsonance,
@@ -281,6 +282,31 @@ export const preferContraryMotion: Rule = {
   },
 };
 
+export const preferImperfectConsonances: Rule = {
+  id: "fs.prefer-imperfect-consonances",
+  source: "fux",
+  severity: "warning",
+  species: ["first"],
+  voicing: "any",
+  messageKey: "rule.fs.prefer-imperfect-consonances",
+  attribution: {
+    status: "verified",
+    ref: `${P}, p. 46`,
+    note:
+      "Aloysius: perfect and imperfect consonances may be used freely save for the motions and for the rule that more imperfect than perfect consonances be employed, the beginning and end excepted (they must be perfect); a composition of this species full of perfect consonances would lack harmony. Read in Mann's translation (Norton 1965, p. 28), since the 1725 page is not among the scans. Checked as 'perfect must not outnumber imperfect' in the interior, because Fux's own Fig. 11, which Aloysius approves (p. 51), has 4 of each.",
+  },
+  check(a) {
+    const perfect: number[] = [];
+    let imperfect = 0;
+    for (let k = 1; k < a.length - 1; k++) {
+      const i = vertical(a, k);
+      if (isPerfectConsonance(i)) perfect.push(k);
+      else if (isImperfectConsonance(i)) imperfect++;
+    }
+    return perfect.length > imperfect ? [v(this, perfect, { perfect: perfect.length, imperfect })] : [];
+  },
+};
+
 export const FIRST_SPECIES_FUX_STRICT: readonly Rule[] = [
   verticalConsonance,
   openingPerfect,
@@ -294,4 +320,5 @@ export const FIRST_SPECIES_FUX_STRICT: readonly Rule[] = [
   unisonLeap,
   noVoiceCrossing,
   preferContraryMotion,
+  preferImperfectConsonances,
 ];

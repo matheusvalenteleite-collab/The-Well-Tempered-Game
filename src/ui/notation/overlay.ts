@@ -30,7 +30,7 @@ export interface Overlay {
 }
 
 /** Rules about the vertical interval of a bar (colour the label). */
-const VERTICAL = new Set(["fs.vertical-consonance", "fs.opening-perfect", "fs.final-octave-or-unison", "fs.unison-only-at-ends", "fs.cadence", "fs.no-voice-crossing"]);
+const VERTICAL = new Set(["fs.prefer-imperfect-consonances", "fs.vertical-consonance", "fs.opening-perfect", "fs.final-octave-or-unison", "fs.unison-only-at-ends", "fs.cadence", "fs.no-voice-crossing"]);
 /** Rules about the motion from one bar to the next (connect the labels). */
 const MOTION = new Set(["fs.perfect-approach", "fs.converging-leap-into-octave", "fs.prefer-contrary-motion"]);
 /** Rules about a leap in the counterpoint (connect the notes). */

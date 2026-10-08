@@ -55,7 +55,6 @@
     "synth.vibrato": "Vibrato",
     "synth.help": "Drag a knob up or down (or scroll); double-click resets it.",
     "synth.preset.soft": "Soft",
-    "synth.preset.piano": "Piano",
     "synth.preset.harpsichord": "Harpsichord",
     "synth.preset.organ": "Organ",
     "synth.preset.orchestra": "Orchestra",
@@ -73,7 +72,28 @@
     "nav.cfBelow": "cantus below",
     "nav.cfAbove": "cantus above",
     "star.earned": "Exercise cleared",
-    "star.none": "Not yet cleared"
+    "star.none": "Not yet cleared",
+    "synth.targetHelp": "Choose which voice the synth edits: both, the counterpoint (your voice) or the cantus firmus.",
+    "synth.target.all": "Both voices",
+    "synth.target.counterpoint": "Counterpoint",
+    "synth.target.cantus": "Cantus firmus",
+    "synth.differ": "* The two voices currently differ; changes here apply to both.",
+    "synth.modelHelp": "Synthesis model: subtractive, plucked string, FM or additive.",
+    "synth.model.subtractive": "Subtractive",
+    "synth.model.pluck": "Plucked string",
+    "synth.model.fm": "FM",
+    "synth.model.additive": "Additive",
+    "synth.pluckDamping": "Ring",
+    "synth.pluckBrightness": "Pluck",
+    "synth.fmRatio": "Ratio",
+    "synth.fmIndex": "Depth",
+    "synth.addBrightness": "Bright",
+    "synth.addEven": "Even",
+    "synth.preset.lute": "Lute",
+    "synth.preset.clarinet": "Clarinet",
+    "synth.preset.epiano": "E. piano",
+    "synth.preset.bells": "Bells",
+    "synth.preset.brass": "Brass"
   },
   "tutor": {
     "speaker.aloysius": "Aloysius",
@@ -104,7 +124,8 @@
     "step.fux-mode.s1.09.intro": "[Placeholder] Aloysius sets the cantus firmus of Fig. 22.",
     "step.fux-mode.s1.10.intro": "[Placeholder] Aloysius sets the cantus firmus of Fig. 23.",
     "step.fux-mode.s1.11.intro": "[Placeholder] Aloysius tells Josephus to go on to the remaining mode, C, on his own.",
-    "step.fux-mode.s1.12.intro": "[Placeholder] Aloysius tells Josephus to go on to the remaining mode, C, on his own."
+    "step.fux-mode.s1.12.intro": "[Placeholder] Aloysius tells Josephus to go on to the remaining mode, C, on his own.",
+    "rule.fs.prefer-imperfect-consonances": "[Placeholder] Too many perfect consonances: use more thirds and sixths than unisons, fifths and octaves between the first and last bar."
   },
   "hints": {
     "rules": "Rules (breaking one means the exercise is not cleared)",
@@ -161,6 +182,7 @@
     "def.parallel": "Parallel motion: both voices move in the same direction and keep the same interval (e.g. fifth to fifth). Into a perfect consonance it is forbidden.",
     "def.similar": "Similar motion: both voices move in the same direction but by different amounts, so the interval changes. Into a perfect consonance it is forbidden.",
     "def.oblique": "Oblique motion: one voice holds its note while the other moves.",
-    "def.contrary": "Contrary motion: the voices move in opposite directions. Fux recommends it as much as possible."
+    "def.contrary": "Contrary motion: the voices move in opposite directions. Fux recommends it as much as possible.",
+    "rule.fs.prefer-imperfect-consonances": "Use more imperfect consonances (thirds, sixths) than perfect ones (unisons, fifths, octaves) between the first and the last bar."
   }
 }

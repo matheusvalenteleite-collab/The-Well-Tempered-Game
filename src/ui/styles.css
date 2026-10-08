@@ -155,3 +155,8 @@ table.motion td.no.dramatic .cross { display: inline-flex; align-items: center; 
 .violations .excerpt .score { cursor: pointer; }
 button.hear { margin-top: 6px; min-height: 26px; font-size: 0.8rem; padding: 2px 8px; }
 .violations .excerpt:disabled { opacity: 1; cursor: progress; }
+
+.chipbtn { min-height: 24px; padding: 1px 8px; font-size: 0.78rem; }
+.chipbtn.target { font-weight: 600; color: var(--accent); }
+.knob-sep { width: 1px; align-self: stretch; background: var(--line); margin: 4px 4px; }
+.presets { grid-template-columns: repeat(3, auto); }

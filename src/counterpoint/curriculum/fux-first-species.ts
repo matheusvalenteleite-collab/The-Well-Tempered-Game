@@ -61,6 +61,7 @@ export const FUX_FIRST_SPECIES_CURRICULUM: readonly CurriculumStep[] = [
     { ruleId: "fs.vertical-consonance", page: "45", occasion: "First species is made of consonances only." },
     { ruleId: "fs.prefer-contrary-motion", page: "45", occasion: "Use contrary or oblique motion as much as possible." },
     { ruleId: "fs.perfect-approach", page: "45", occasion: "The rules of motion stated at the end of Liber I." },
+    { ruleId: "fs.prefer-imperfect-consonances", page: "46", occasion: "More imperfect than perfect consonances, the beginning and end excepted." },
     { ruleId: "fs.opening-perfect", page: "47", occasion: "Begin with a perfect consonance (precept recalled by Josephus)." },
     { ruleId: "fs.final-octave-or-unison", page: "47", occasion: "End with a perfect consonance (precept recalled by Josephus)." },
     { ruleId: "fs.cadence", page: "47", occasion: "Penultimate major sixth, the cantus being below." },
