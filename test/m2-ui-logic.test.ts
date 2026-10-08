@@ -90,3 +90,26 @@ test("overlay: every fux-strict rule has a drawing; parallel fifths become a lin
   const ex = buildOverlay(ev.violations, cf, cp, 3, 4);
   assert.deepEqual(ex.links.map((l) => [l.from, l.to]), [[0, 1]]);
 });
+
+test("session: dragging a note to another bar and pitch", async () => {
+  const { moveNote } = await import("../src/game/session.ts");
+  let s = initialState(5);
+  s = place(s, 1, "C5");
+  s = applyAccidental(s, 1); // C#5
+  const sideways = moveNote(s, 1, 3, "C5");
+  assert.deepEqual(sideways.notes, [null, null, null, "C#5", null]);
+  const moved = moveNote(s, 1, 2, "E5");
+  assert.deepEqual(moved.notes, [null, null, "E5", null, null]);
+  assert.equal(moved.lastWritten, "E5");
+});
+
+test("cadence correction: the player's register is kept, only the faulty note changes", async () => {
+  const { correctionFor } = await import("../src/counterpoint/cadence.ts");
+  const cf = ["D4", "F4", "E4", "D4", "G4", "F4", "A4", "G4", "F4", "E4", "D4"];
+  const cp = ["D5", "D5", "C5", "F5", "E5", "D5", "C5", "D5", "F5", "C5", "D5"];
+  const v = { ruleId: "fs.cadence", positions: [9, 10], severity: "error" as const, messageKey: "rule.fs.cadence" };
+  assert.deepEqual(correctionFor(v, cf, cp, "lower"), [...cp.slice(0, 9), "C#5", "D5"]);
+  const high = [...cp.slice(0, 9), "C6", "D6"];
+  assert.deepEqual(correctionFor(v, cf, high, "lower")!.slice(9), ["C#6", "D6"]);
+  assert.equal(correctionFor({ ...v, ruleId: "fs.vertical-consonance" }, cf, cp, "lower"), null);
+});

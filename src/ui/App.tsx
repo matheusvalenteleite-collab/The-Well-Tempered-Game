@@ -4,7 +4,7 @@ import { FUX_FIRST_SPECIES_CURRICULUM, rulesForStep, validateCurriculum } from "
 import { evaluate, type Evaluation } from "../counterpoint/engine.ts";
 import { compareWithOriginal } from "../music/fux/player.ts";
 import { exerciseView } from "../game/exercise-view.ts";
-import { applyAccidental, clear, initialState, letterNote, place, select, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
+import { applyAccidental, clear, initialState, letterNote, moveNote, place, select, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
 import { AudioEngine, DEFAULT_SYNTH, type AudioStatus, type SynthSettings } from "../audio/engine.ts";
 import { SynthRack } from "./SynthRack.tsx";
 import { Hints } from "./Hints.tsx";
@@ -17,15 +17,14 @@ import { t } from "./i18n.ts";
 import type { Step } from "../music/pitch.ts";
 
 validateCurriculum(repository);
-// One canonical exercise so far: the first of the book (Fig. 5).
-const STEP = FUX_FIRST_SPECIES_CURRICULUM[0];
-const VIEW = exerciseView(repository, STEP);
+const STEPS = FUX_FIRST_SPECIES_CURRICULUM;
+const VIEWS = STEPS.map((s) => exerciseView(repository, s));
 const audio = new AudioEngine();
 // Owner decision D15: synthesized sound only for now (the sampled piano stays in the engine, unused).
 audio.sound = "chip";
 (window as unknown as { wtgAudio: AudioEngine }).wtgAudio = audio; // read by the browser tests
 
-/** Seconds a bar must stay selected while browsing before it sounds. */
+/** Milliseconds a bar must stay selected while browsing before it sounds. */
 const DWELL_MS = 1000;
 
 /** Per-viewer conveniences in localStorage; the game works the same without them. */
@@ -34,7 +33,8 @@ function stored<T>(key: string, fallback: T, valid: (v: unknown) => boolean = ()
     const raw = localStorage.getItem(key);
     if (raw === null) return fallback;
     const v = JSON.parse(raw) as unknown;
-    return valid(v) ? (typeof fallback === "object" ? { ...fallback, ...(v as object) } : (v as T)) : fallback;
+    if (!valid(v)) return fallback;
+    return typeof fallback === "object" && !Array.isArray(fallback) ? { ...fallback, ...(v as object) } : (v as T);
   } catch {
     return fallback;
   }
@@ -47,9 +47,21 @@ function store(key: string, value: unknown) {
   }
 }
 
+const stepLabel = (k: number) => {
+  const s = STEPS[k];
+  const v = VIEWS[k];
+  const where = v.figure ? t("ui.exercise.figure", { figure: v.figure }) : t("ui.nav.fuxCantus");
+  return `${s.ordinal}. ${where} · ${v.modalFinal} · ${t(s.cantus_voice === "lower" ? "ui.nav.cfBelow" : "ui.nav.cfAbove")}`;
+};
+
 export function App() {
-  const [session, setSession] = useState<SessionState>(() => initialState(VIEW.cantus.length));
-  const [clefMode, setClefMode] = useState<"modern" | "original">("modern");
+  const [stepIndex, setStepIndex] = useState(() => stored("wtg.step", 0, (v) => typeof v === "number" && v >= 0 && v < STEPS.length));
+  const STEP = STEPS[stepIndex];
+  const VIEW = VIEWS[stepIndex];
+  const [sessions, setSessions] = useState<SessionState[]>(() => VIEWS.map((v) => initialState(v.cantus.length)));
+  const session = sessions[stepIndex];
+  const setSession = (s: SessionState) => setSessions((all) => all.map((x, i) => (i === stepIndex ? s : x)));
+  const [stars, setStars] = useState<string[]>(() => stored<string[]>("wtg.stars", [], (v) => Array.isArray(v)));
   const [tempo, setTempo] = useState(() => stored("wtg.tempo", 60, (v) => typeof v === "number" && v >= 30 && v <= 120));
   const [volume, setVolume] = useState(() => stored("wtg.volume", 70, (v) => typeof v === "number" && v >= 0 && v <= 100));
   const [synth, setSynth] = useState<SynthSettings>(() => stored("wtg.synth", { ...DEFAULT_SYNTH }, (v) => typeof v === "object" && v !== null));
@@ -65,6 +77,7 @@ export function App() {
   const [active, setActive] = useState(true);
   const scoreRef = useRef<HTMLDivElement>(null);
   const browsing = useRef(false);
+  const dragBase = useRef<SessionState | null>(null);
   audio.onStatus = setAudioStatus;
 
   useEffect(() => {
@@ -79,6 +92,18 @@ export function App() {
     audio.setSynth(synth);
     store("wtg.synth", synth);
   }, [synth]);
+  useEffect(() => store("wtg.step", stepIndex), [stepIndex]);
+  useEffect(() => store("wtg.stars", stars), [stars]);
+
+  const goTo = (k: number) => {
+    if (k < 0 || k >= STEPS.length || k === stepIndex) return;
+    audio.stop();
+    setPlaying(false);
+    setCursor(-1);
+    setResult(null);
+    setShowFux(false);
+    setStepIndex(k);
+  };
 
   const column = (k: number, notes = session.notes) => ({ cantus: VIEW.cantus[k], counterpoint: notes[k] });
 
@@ -93,9 +118,9 @@ export function App() {
   };
 
   /** Selecting a bar without writing: it sounds if the player stays on it for DWELL_MS. */
-  const browse = (column: number) => {
+  const browse = (col: number) => {
     browsing.current = true;
-    update(select(session, column), false);
+    update(select(session, col), false);
   };
   useEffect(() => {
     if (!browsing.current) return;
@@ -103,27 +128,32 @@ export function App() {
     const k = session.selected;
     const timer = window.setTimeout(() => void audio.playColumn(column(k)), DWELL_MS);
     return () => window.clearTimeout(timer);
-  }, [session.selected, session]);
+  }, [session]);
 
   const missing = session.notes.filter((n) => n === null).length;
-  const runEvaluation = () => {
+  const toggleEvaluation = () => {
+    if (result) {
+      setResult(null);
+      setShowFux(false);
+      return;
+    }
     if (missing > 0) return;
-    setResult(
-      evaluate(
-        {
-          species: "first",
-          modalFinal: VIEW.modalFinal,
-          cantusVoice: VIEW.cantusVoice,
-          cantus: VIEW.cantus.map((p) => ({ pitch: p, duration: "1/1" })),
-          counterpoint: session.notes.map((p) => ({ pitch: p, duration: "1/1" })),
-        },
-        rulesForStep(STEP.id),
-      ),
+    const ev = evaluate(
+      {
+        species: "first",
+        modalFinal: VIEW.modalFinal,
+        cantusVoice: VIEW.cantusVoice,
+        cantus: VIEW.cantus.map((p) => ({ pitch: p, duration: "1/1" })),
+        counterpoint: session.notes.map((p) => ({ pitch: p, duration: "1/1" })),
+      },
+      rulesForStep(STEP.id),
     );
+    setResult(ev);
+    if (ev.passed && !stars.includes(STEP.id)) setStars([...stars, STEP.id]);
   };
   const fuxSolution = VIEW.exerciseId ? repository.getSolution(VIEW.exerciseId) : undefined;
   const marks = result ? result.violations.flatMap((v) => v.positions.map((c) => ({ column: c, severity: v.severity }))) : undefined;
-  const overlay = useMemo(() => (result ? buildOverlay(result.violations, VIEW.cantus, session.notes) : undefined), [result, session.notes]);
+  const overlay = useMemo(() => (result ? buildOverlay(result.violations, VIEW.cantus, session.notes) : undefined), [result, session.notes, VIEW]);
 
   const play = () => {
     if (playing) {
@@ -146,11 +176,11 @@ export function App() {
     return cf.slice(0, -1) + oct;
   };
 
-  /** Keys drive the score wherever focus is (buttons, knobs), except in text fields and dialogs. */
+  /** Keys drive the score wherever focus is (buttons, knobs), except in form fields and dialogs. */
   const onKey = (e: KeyboardEvent) => {
     if (showCredits || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
     const target = e.target as HTMLElement | null;
-    if (target && (target.tagName === "TEXTAREA" || target.tagName === "SELECT" || (target.tagName === "INPUT" && (target as HTMLInputElement).type !== "range"))) return;
+    if (target && ["TEXTAREA", "SELECT", "INPUT"].includes(target.tagName)) return;
     const k = e.key;
     const s = session;
     if (k === "ArrowRight") browse(s.selected + 1);
@@ -183,15 +213,28 @@ export function App() {
     };
   }, []);
 
-  const clefs = clefMode === "modern" ? VIEW.clefs.modern : VIEW.clefs.original;
-  const figure = VIEW.figure ? t("ui.exercise.figure", { figure: VIEW.figure }) : "";
+  const clefs = VIEW.clefs.modern;
+  const figure = VIEW.figure ? t("ui.exercise.figure", { figure: VIEW.figure }) : t("ui.nav.fuxCantus");
   const label = `${figure} ${t("ui.exercise.mode", { final: VIEW.modalFinal })}`;
+  const starred = stars.includes(STEP.id);
 
   return (
     <div className="app">
       <header>
         <h1>{t("ui.title")}</h1>
-        <button className="link" onClick={() => setShowCredits(true)}>{t("ui.credits")}</button>
+        <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
+          <button className="icon" onClick={() => goTo(stepIndex - 1)} disabled={stepIndex === 0} aria-label={t("ui.nav.prev")}>‹</button>
+          <select id="exercise" value={stepIndex} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("ui.nav.choose")}>
+            {STEPS.map((s, k) => (
+              <option key={s.id} value={k}>
+                {stars.includes(s.id) ? "★ " : ""}
+                {stepLabel(k)}
+              </option>
+            ))}
+          </select>
+          <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1} aria-label={t("ui.nav.next")}>›</button>
+          <button className="link" onClick={() => setShowCredits(true)}>{t("ui.credits")}</button>
+        </nav>
       </header>
       <main>
         <p className="meta">
@@ -209,6 +252,9 @@ export function App() {
           aria-label={t("ui.keyboard.help")}
           title={active ? undefined : t("ui.score.inactive")}
         >
+          <span className={starred ? "star earned" : "star"} aria-label={t(starred ? "ui.star.earned" : "ui.star.none")} title={t(starred ? "ui.star.earned" : "ui.star.none")}>
+            {starred ? "★" : "☆"}
+          </span>
           <ScoreView
             cantus={VIEW.cantus}
             counterpoint={session.notes}
@@ -232,6 +278,20 @@ export function App() {
               setActive(true);
               browse(col);
             }}
+            onDrag={(from, to, natural) => {
+              setActive(true);
+              dragBase.current ??= session;
+              const next = moveNote(dragBase.current, from, to, natural);
+              setSession(next);
+              setResult(null);
+              setShowFux(false);
+            }}
+            onDragEnd={() => {
+              if (!dragBase.current) return;
+              dragBase.current = null;
+              const k = session.selected;
+              if (session.notes[k]) void audio.playColumn(column(k));
+            }}
           />
         </div>
         <div className="controls">
@@ -241,33 +301,28 @@ export function App() {
                 {t(key)}
               </button>
             ))}
-            <button onClick={() => update(clear(session), false)}>{t("ui.clear")}</button>
             <button onClick={() => update({ ...initialState(VIEW.cantus.length) }, false)}>{t("ui.clearAll")}</button>
           </div>
-          <div className="group">
-            <button className="primary" onClick={runEvaluation} disabled={missing > 0} title={missing > 0 ? t("ui.evaluate.incomplete", { missing }) : undefined}>
-              {t("ui.evaluate")}
-            </button>
-          </div>
+          <button className="primary" aria-pressed={result !== null} onClick={toggleEvaluation} disabled={missing > 0 && !result} title={missing > 0 ? t("ui.evaluate.incomplete", { missing }) : undefined}>
+            {t("ui.evaluate")}
+          </button>
           <div className="group transport">
-            <button onClick={play}>{playing ? t("ui.stop") : t("ui.play")}</button>
-            <Knob id="tempo" label={t("ui.tempo")} value={tempo} min={30} max={120} defaultValue={60} format={(v) => t("ui.tempo.value", { bpm: Math.round(v) })} onChange={(v) => setTempo(Math.round(v))} />
+            <button className="icon play" onClick={play} aria-label={playing ? t("ui.stop") : t("ui.play")} title={playing ? t("ui.stop") : t("ui.play")}>
+              {playing ? "■" : "▶"}
+            </button>
+            <Knob id="tempo" label={t("ui.tempo")} value={tempo} min={30} max={120} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
             <Knob id="volume" label={t("ui.volume")} value={volume} min={0} max={100} defaultValue={70} format={(v) => `${Math.round(v)}%`} onChange={(v) => setVolume(Math.round(v))} />
           </div>
           <div className="group">
             <button aria-pressed={showSynth} onClick={() => setShowSynth(!showSynth)}>{t("ui.synth")}</button>
             <button aria-pressed={showHints} onClick={() => setShowHints(!showHints)}>{t("ui.hints")}</button>
           </div>
-          <div className="group">
-            <button aria-pressed={clefMode === "modern"} onClick={() => setClefMode("modern")}>{t("ui.clefs.modern")}</button>
-            <button aria-pressed={clefMode === "original"} onClick={() => setClefMode("original")}>{t("ui.clefs.original")}</button>
-          </div>
         </div>
-        {missing > 0 && <p className="help">{t("ui.evaluate.incomplete", { missing })}</p>}
+        {missing > 0 && !result && <p className="help">{t("ui.evaluate.incomplete", { missing })}</p>}
         {showSynth && <SynthRack value={synth} onChange={setSynth} />}
         {result && (
           <section className="feedback" aria-live="polite">
-            <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} />
+            <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} audio={audio} />
             {fuxSolution && (
               <div>
                 <button onClick={() => setShowFux(!showFux)}>{showFux ? t("ui.fux.hide") : t("ui.fux.show")}</button>

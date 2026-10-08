@@ -19,6 +19,12 @@ test("interval quality comes from diatonic size + semitones", () => {
   assert.notEqual(harmonic("C4", "F#4").name, harmonic("C4", "Gb4").name);
 });
 
+test("simple-form display names", async () => {
+  const { simpleName } = await import("../src/counterpoint/interval.ts");
+  const cases: [string, string, string][] = [["C4", "Eb5", "m3"], ["C4", "G5", "P5"], ["C4", "C6", "P8"], ["C4", "C5", "P8"], ["C4", "C4", "P1"], ["C4", "D5", "M2"], ["C4", "F5", "P4"], ["C3", "A5", "M6"], ["C4", "E4", "M3"]];
+  for (const [a, b, n] of cases) assert.equal(simpleName(interval(a, b)), n, `${a}-${b}`);
+});
+
 test("consonance classification (P4 dissonant; compounds follow their simple forms)", () => {
   const ok = ["P1", "m3", "M3", "P5", "m6", "M6", "P8", "m10", "P12", "M13", "P15"];
   const bad = ["P4", "A4", "d5", "m2", "M2", "m7", "M7", "P11", "M9"];

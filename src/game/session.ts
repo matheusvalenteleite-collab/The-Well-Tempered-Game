@@ -108,3 +108,16 @@ export function toPlayerSolution(s: SessionState, exercise: Exercise, now = new 
   sol.notes = s.notes.flatMap((p, k) => (p === null ? [] : [playerNote(p, `${k}/1`, "1/1")]));
   return sol;
 }
+
+/**
+ * Move the note of column `from` to column `to` at `natural` (computed from the drag start state).
+ * A note dragged only sideways keeps its accidental; a change of staff position drops it.
+ */
+export function moveNote(base: SessionState, from: number, to: number, natural: string): SessionState {
+  const orig = base.notes[from];
+  if (orig === null) throw new Error(`no note to move in column ${from}`);
+  const notes = [...base.notes];
+  notes[from] = null;
+  notes[to] = naturalOf(orig) === natural ? orig : natural;
+  return { ...base, notes, selected: to, accidental: 0, lastWritten: notes[to] };
+}

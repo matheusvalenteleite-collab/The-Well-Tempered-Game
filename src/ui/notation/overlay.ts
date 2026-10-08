@@ -2,7 +2,7 @@
  * Evaluation overlay: the interval of every bar (drawn between the staves) and the lines that
  * connect the bars involved in a motion or melodic problem. Pure; the score only draws it.
  */
-import { harmonic, interval, motion } from "../../counterpoint/interval.ts";
+import { harmonic, interval, motion, simpleName } from "../../counterpoint/interval.ts";
 import type { Severity, Violation } from "../../counterpoint/rules/types.ts";
 
 export type Status = "ok" | Severity;
@@ -60,8 +60,8 @@ export function buildOverlay(violations: Violation[], cantus: string[], counterp
         if (!inRange(k - 1) || !inRange(k)) continue;
         mark(k); // the interval arrived at by the faulty motion
         const m = motion(cantus[k - 1], counterpoint[k - 1]!, cantus[k], counterpoint[k]!);
-        const from = harmonic(cantus[k - 1], counterpoint[k - 1]!).name;
-        const to = harmonic(cantus[k], counterpoint[k]!).name;
+        const from = simpleName(harmonic(cantus[k - 1], counterpoint[k - 1]!));
+        const to = simpleName(harmonic(cantus[k], counterpoint[k]!));
         const text = v.ruleId === "fs.converging-leap-into-octave" ? `leap ${from}→${to}` : `${m} ${from}→${to}`;
         links.push({ from: k - 1 - lo, to: k - lo, row: 0, severity: v.severity, kind: "motion", text });
       }
@@ -69,7 +69,7 @@ export function buildOverlay(violations: Violation[], cantus: string[], counterp
       const [a, b] = [Math.min(...v.positions), Math.max(...v.positions)];
       if (!inRange(a) || !inRange(b)) continue;
       const i = interval(counterpoint[a]!, counterpoint[b]!);
-      links.push({ from: a - lo, to: b - lo, row: 0, severity: v.severity, kind: "melodic", text: `${i.name}${ARROW[i.direction]}` });
+      links.push({ from: a - lo, to: b - lo, row: 0, severity: v.severity, kind: "melodic", text: `${simpleName(i)}${ARROW[i.direction]}` });
     } else {
       throw new Error(`no overlay drawing defined for rule ${v.ruleId}`);
     }
@@ -84,7 +84,7 @@ export function buildOverlay(violations: Violation[], cantus: string[], counterp
   for (let k = lo; k <= hi; k++) {
     const cp = counterpoint[k];
     if (cp === null) continue;
-    intervals.push({ column: k - lo, text: harmonic(cantus[k], cp).name, status: status.get(k) ?? "ok" });
+    intervals.push({ column: k - lo, text: simpleName(harmonic(cantus[k], cp)), status: status.get(k) ?? "ok" });
   }
   return { intervals, links };
 }

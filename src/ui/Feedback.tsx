@@ -1,10 +1,13 @@
+import { useState } from "react";
 import type { Evaluation } from "../counterpoint/engine.ts";
 import type { Violation } from "../counterpoint/rules/types.ts";
 import type { Staff } from "../music/fux/types.ts";
+import type { AudioEngine } from "../audio/engine.ts";
+import { correctionFor } from "../counterpoint/cadence.ts";
 import { ScoreView } from "./notation/ScoreView.tsx";
 import type { ClefId } from "./notation/clefs.ts";
-import { t } from "./i18n.ts";
 import { buildOverlay } from "./notation/overlay.ts";
+import { t } from "./i18n.ts";
 
 interface Props {
   result: Evaluation;
@@ -12,9 +15,10 @@ interface Props {
   counterpoint: (string | null)[];
   cantusVoice: Staff;
   clefs: [ClefId, ClefId];
+  audio: AudioEngine;
 }
 
-/** Excerpts are shown only for local problems (at most this many bars). */
+/** Excerpts are drawn only for local problems (at most this many bars). */
 const MAX_EXCERPT_BARS = 4;
 
 const barsText = (positions: number[]) => {
@@ -22,23 +26,50 @@ const barsText = (positions: number[]) => {
   return t(bars.length > 1 ? "ui.result.bars" : "ui.result.bar", { bars: bars.join(", ") });
 };
 
-function Excerpt({ v, ...p }: { v: Violation } & Omit<Props, "result">) {
+/** Interval names in details are shown in simple form (m10 -> m3), like the overlay. */
+const simplifyDetail = (x: string | number) =>
+  typeof x === "string" ? x.replace(/\b(AA|dd|[PMmAd])(\d+)\b/g, (_, q: string, n: string) => (Number(n) > 8 ? `${q}${((Number(n) - 1) % 7) + 1 === 1 ? 8 : ((Number(n) - 1) % 7) + 1}` : `${q}${n}`)) : String(x);
+
+const sleep = (ms: number) => new Promise((r) => window.setTimeout(r, ms));
+
+function Item({ v, ...p }: { v: Violation } & Omit<Props, "result">) {
+  const [phase, setPhase] = useState<"player" | "fixed">("player");
+  const [busy, setBusy] = useState(false);
   const lo = Math.min(...v.positions);
   const hi = Math.max(...v.positions);
-  if (hi - lo + 1 > MAX_EXCERPT_BARS) return null;
-  return (
-    <div className="excerpt" style={{ width: `${140 + 80 * (hi - lo + 1)}px` }}>
+  const excerpt = hi - lo + 1 <= MAX_EXCERPT_BARS;
+  const correction = correctionFor(v, p.cantus, p.counterpoint, p.cantusVoice);
+  const cols = (notes: (string | null)[]) => p.cantus.slice(lo, hi + 1).map((c, i) => ({ cantus: c, counterpoint: notes[lo + i] }));
+
+  const hear = async () => {
+    if (busy) return;
+    setBusy(true);
+    setPhase("player");
+    await p.audio.playSequence(cols(p.counterpoint));
+    await p.audio.cue(v.severity === "error" ? "wrong" : "meh");
+    if (correction) {
+      setPhase("fixed");
+      await sleep(450);
+      await p.audio.playSequence(cols(correction));
+      await p.audio.cue("correct");
+      await sleep(1600);
+      setPhase("player");
+    }
+    setBusy(false);
+  };
+
+  const view = (notes: (string | null)[], overlayViolations: Violation[], layer: string) => (
+    <div className={`layer ${layer}`}>
       <ScoreView
         cantus={p.cantus.slice(lo, hi + 1)}
-        counterpoint={p.counterpoint.slice(lo, hi + 1)}
+        counterpoint={notes.slice(lo, hi + 1)}
         cantusVoice={p.cantusVoice}
         clefs={p.clefs}
         selected={-1}
         cursor={-1}
-        marks={v.positions.map((c) => ({ column: c - lo, severity: v.severity }))}
         firstBar={lo + 1}
-        overlay={buildOverlay([v], p.cantus, p.counterpoint, lo, hi)}
-        fixedScale={0.6}
+        fixedScale={0.62}
+        overlay={buildOverlay(overlayViolations, p.cantus, notes, lo, hi)}
         label={barsText(v.positions)}
         onPlace={() => {}}
         onSelect={() => {}}
@@ -46,10 +77,33 @@ function Excerpt({ v, ...p }: { v: Violation } & Omit<Props, "result">) {
       />
     </div>
   );
+
+  return (
+    <li className={v.severity}>
+      <div className="text">
+        <div className="where">
+          {barsText(v.positions)} · {t(v.severity === "error" ? "ui.result.error" : "ui.result.warning")}
+        </div>
+        <div>{t(`tutor.${v.messageKey}`)}</div>
+        {v.detail && <div className="detail">{Object.entries(v.detail).map(([k, x]) => `${k}: ${simplifyDetail(x)}`).join(" · ")}</div>}
+        {!excerpt && (
+          <button className="hear" onClick={hear} disabled={busy}>
+            ▶ {t("ui.result.hear")}
+          </button>
+        )}
+      </div>
+      {excerpt && (
+        <button className={`excerpt ${phase}`} onClick={hear} disabled={busy} title={t(correction ? "ui.result.hearFix" : "ui.result.hear")}>
+          {view(p.counterpoint, [v], "player")}
+          {correction && view(correction, [], "fixed")}
+        </button>
+      )}
+    </li>
+  );
 }
 
 export function Feedback(props: Props) {
-  const { result } = props;
+  const { result, ...rest } = props;
   return (
     <>
       <div className={result.passed ? "verdict ok" : "verdict bad"}>{result.passed ? t("ui.result.cleared") : t("ui.result.notCleared")}</div>
@@ -60,16 +114,7 @@ export function Feedback(props: Props) {
       {result.violations.length > 0 && (
         <ul className="violations">
           {[...result.errors, ...result.warnings].map((v, i) => (
-            <li key={i} className={v.severity}>
-              <div className="text">
-                <div className="where">
-                  {barsText(v.positions)} · {t(v.severity === "error" ? "ui.result.error" : "ui.result.warning")}
-                </div>
-                <div>{t(`tutor.${v.messageKey}`)}</div>
-                {v.detail && <div className="detail">{Object.entries(v.detail).map(([k, x]) => `${k}: ${x}`).join(" · ")}</div>}
-              </div>
-              <Excerpt v={v} {...props} />
-            </li>
+            <Item key={i} v={v} {...rest} />
           ))}
         </ul>
       )}

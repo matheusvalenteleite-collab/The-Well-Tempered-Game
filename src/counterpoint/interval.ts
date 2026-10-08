@@ -109,3 +109,13 @@ export function motion(a0: string, b0: string, a1: string, b1: string): Motion {
 export function isLeap(i: Interval): boolean {
   return i.number >= 3;
 }
+
+/**
+ * Display name with compound intervals reduced to their simple forms (m10 -> m3, P12 -> P5),
+ * keeping the octave as P8 (P15 -> P8) and the unison as P1.
+ */
+export function simpleName(i: Interval): string {
+  if (i.number <= 8) return i.name;
+  const reduced = ((i.number - 1) % 7) + 1;
+  return `${i.quality}${reduced === 1 ? 8 : reduced}`;
+}

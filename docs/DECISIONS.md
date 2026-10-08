@@ -22,3 +22,8 @@ Note: the page supplied as "p. 46" is p. 46 of Mann's English translation (secon
 | D13 | Default ("modern") clefs are the per-exercise modern clefs given in the dataset (e.g. treble over treble for Fig. 5), not a fixed treble over bass. | `exerciseView().clefs.modern` |
 | D14 | Two switchable sounds: sampled piano and an 8-bit square-wave synthesizer (organ dropped). | `src/audio/engine.ts`, Piano / 8-bit buttons |
 | D15 | 8-bit sound only for now; the piano option is hidden (code kept). | `PIANO_ENABLED = false` in `src/ui/App.tsx` |
+| D16 | Evaluation shows compound intervals in simple form (m10 → m3, P12 → P5, P15 → P8). | `simpleName()` in overlay and feedback |
+| D17 | Hints name only that an accidental is needed at the cadence, not the note. | `Hints.tsx` |
+| D18 | One star per exercise, earned by clearing it (all rules), shown at the top left of the score. | `wtg.stars` |
+| D19 | Exercise navigation in book order (12 steps) beside the title. | `App.tsx` |
+| D20 | Original-clefs mode removed from the UI (data kept). | — |

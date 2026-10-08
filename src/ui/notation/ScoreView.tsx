@@ -30,13 +30,23 @@ export interface ScoreProps {
   fixedScale?: number;
   /** Evaluation overlay: intervals between the staves and problem connectors. */
   overlay?: Overlay;
+  /** Live drag of a counterpoint note to another bar and/or pitch; onDragEnd commits. */
+  onDrag?(from: number, to: number, naturalPitch: string): void;
+  onDragEnd?(): void;
 }
 
-const STAFF_Y = [30, 190];
-const HEIGHT = 315;
+/** Staff positions: close together normally, apart when the evaluation overlay needs the space. */
+const LAYOUT = {
+  plain: { staffY: [20, 120], height: 240 },
+  overlay: { staffY: [20, 175], height: 300 },
+};
 /** Vertical positions (logical) of the overlay between the staves. */
-const LABEL_Y = 166;
-const LINK_Y = 178;
+const LABEL_Y = 152;
+const LINK_Y = 164;
+/** Horizontal space per bar (logical units): compact, so the melodic shape reads at a glance. */
+const BAR_W = 58;
+/** Drawing scale on wide screens. */
+const BASE_SCALE = 0.85;
 const COLOR: Record<Status, string> = { ok: "var(--ok)", error: "var(--bad)", warning: "var(--warn)" };
 const ACC: Record<number, string> = { [-2]: "bb", [-1]: "b", 1: "#", 2: "##" };
 
@@ -68,10 +78,15 @@ export function ScoreView(props: ScoreProps) {
     const el = host.current;
     if (!el || width === 0) return;
     el.innerHTML = "";
-    const scale = props.fixedScale ?? (width < 640 ? Math.max(0.55, width / 640) : 1);
-    const logicalWidth = width / scale;
+    const { staffY: STAFF_Y, height: HEIGHT } = props.overlay ? LAYOUT.overlay : LAYOUT.plain;
+    // Probe the clef/time-signature width, then size the score to its bars instead of the container.
+    const probe = new Stave(8, 0, 400);
+    probe.addClef(VEXFLOW_CLEF[props.clefs[0]].clef).addTimeSignature("C|");
+    const noteStart0 = probe.getNoteStartX();
+    const logicalWidth = noteStart0 + props.cantus.length * BAR_W + 24;
+    const scale = props.fixedScale ?? Math.max(0.45, Math.min(BASE_SCALE, width / logicalWidth));
     const renderer = new Renderer(el, Renderer.Backends.SVG);
-    renderer.resize(width, HEIGHT * scale);
+    renderer.resize(Math.ceil(logicalWidth * scale), Math.ceil(HEIGHT * scale));
     const ctx = renderer.getContext();
     ctx.scale(scale, scale);
     const svg = el.querySelector("svg")!;
@@ -109,7 +124,7 @@ export function ScoreView(props: ScoreProps) {
     };
     const upper = staffNotes(0);
     const lower = staffNotes(1);
-    new Formatter().joinVoices([upper.voice]).joinVoices([lower.voice]).format([upper.voice, lower.voice], staves[0].getNoteEndX() - start - 24);
+    new Formatter().joinVoices([upper.voice]).joinVoices([lower.voice]).format([upper.voice, lower.voice], staves[0].getNoteEndX() - start - 16);
 
     // Column geometry from the cantus notes (always real notes).
     const cfNotes = upperIsCantus ? upper.notes : lower.notes;
@@ -220,24 +235,66 @@ export function ScoreView(props: ScoreProps) {
     el.dataset.geometry = JSON.stringify(g); // read by the browser tests
   }, [width, props.cantus, props.counterpoint, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay]);
 
-  const onPointer = (e: React.PointerEvent<HTMLDivElement>) => {
+  const press = useRef<{ x: number; y: number; dragging: boolean; from: number } | null>(null);
+
+  /** Logical coordinates, bar and staff position under the pointer. */
+  const locate = (e: React.PointerEvent<HTMLDivElement>) => {
     const g = geo.current;
-    if (!g || props.readOnly) return;
-    const r = e.currentTarget.getBoundingClientRect();
+    if (!g) return null;
+    const svg = e.currentTarget.querySelector("svg");
+    if (!svg) return null;
+    const r = svg.getBoundingClientRect();
     const x = (e.clientX - r.left) / g.scale;
     const y = (e.clientY - r.top) / g.scale;
-    const column = g.columns.findIndex((c) => x >= c.left && x < c.right);
-    if (column < 0) return;
+    let column = g.columns.findIndex((c) => x >= c.left && x < c.right);
+    if (column < 0) column = x < g.columns[0].left ? 0 : g.columns.length - 1;
     const cpStaff = props.cantusVoice === "upper" ? 1 : 0;
     const s = g.staves[cpStaff];
     const margin = 5 * s.spacing; // ledger-line zone above and below the staff
-    if (y < s.top - margin || y > s.bottom + margin) {
-      props.onSelect(column);
-      return;
-    }
+    const onStaff = y >= s.top - margin && y <= s.bottom + margin;
     const position = Math.round((s.bottom - y) / (s.spacing / 2));
-    props.onPlace(column, pitchAtPosition(props.clefs[cpStaff], position));
+    return { column, onStaff, natural: pitchAtPosition(props.clefs[cpStaff], position), inside: x >= g.columns[0].left && x < g.columns[g.columns.length - 1].right };
   };
 
-  return <div ref={host} className={props.readOnly ? "score read-only" : "score"} onPointerDown={onPointer} />;
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (props.readOnly) return;
+    const at = locate(e);
+    if (!at || !at.inside) return;
+    press.current = { x: e.clientX, y: e.clientY, dragging: false, from: at.column };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const p = press.current;
+    if (!p || props.readOnly || !props.onDrag) return;
+    if (!p.dragging) {
+      if (Math.hypot(e.clientX - p.x, e.clientY - p.y) < 6 || props.counterpoint[p.from] === null) return;
+      p.dragging = true;
+    }
+    const at = locate(e);
+    if (at) props.onDrag(p.from, at.column, at.natural);
+  };
+  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const p = press.current;
+    press.current = null;
+    if (!p) return;
+    if (p.dragging) {
+      props.onDragEnd?.();
+      return;
+    }
+    const at = locate(e);
+    if (!at) return;
+    if (at.onStaff) props.onPlace(at.column, at.natural);
+    else props.onSelect(at.column);
+  };
+
+  return (
+    <div
+      ref={host}
+      className={props.readOnly ? "score read-only" : "score"}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={() => (press.current = null)}
+    />
+  );
 }

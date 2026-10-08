@@ -199,12 +199,70 @@ export class AudioEngine {
     this.notesStarted++;
   }
 
-  /** Sound one vertical sonority briefly (used when a note is placed or a bar is auditioned). */
-  async playColumn(col: PlaybackColumn, seconds = 0.45): Promise<void> {
+  /** Length of one bar (a whole note) at the current tempo, in seconds. */
+  get barSeconds(): number {
+    return 120 / this.tempo;
+  }
+
+  /** Sound one vertical sonority for a full bar (used when a note is placed or a bar is auditioned). */
+  async playColumn(col: PlaybackColumn, seconds = this.barSeconds): Promise<void> {
     const inst = await this.instrument();
     if (!inst || !this.ctx) return;
     const t = this.ctx.currentTime + 0.01;
     for (const note of [col.cantus, col.counterpoint]) if (note) this.play(inst, note, t, seconds);
+  }
+
+  /** Play a short run of columns, then resolve. `barSeconds` defaults to half a bar at the current tempo. */
+  playSequence(cols: PlaybackColumn[], barSeconds = this.barSeconds / 2): Promise<void> {
+    return new Promise((resolve) => {
+      void (async () => {
+        this.stop();
+        const inst = await this.instrument();
+        const ctx = this.ctx;
+        if (!inst || !ctx) return resolve();
+        const t0 = ctx.currentTime + 0.05;
+        cols.forEach((c, k) => {
+          for (const note of [c.cantus, c.counterpoint]) if (note) this.play(inst, note, t0 + k * barSeconds, barSeconds * 0.95);
+        });
+        this.timers.push(window.setTimeout(resolve, (0.05 + cols.length * barSeconds) * 1000));
+      })();
+    });
+  }
+
+  /**
+   * Short feedback cues, independent of the synth settings:
+   * "wrong" (a low falling buzz), "correct" (a bright rising pair), "meh" (a flat, sagging tone).
+   */
+  cue(kind: "wrong" | "correct" | "meh"): Promise<void> {
+    const ctx = this.ctx;
+    if (!ctx || !this.master) return Promise.resolve();
+    const t0 = ctx.currentTime + 0.02;
+    const tone = (f0: number, f1: number, start: number, dur: number, type: OscillatorType, level: number) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(f0, t0 + start);
+      osc.frequency.exponentialRampToValueAtTime(f1, t0 + start + dur);
+      g.gain.setValueAtTime(0, t0 + start);
+      g.gain.linearRampToValueAtTime(level, t0 + start + 0.01);
+      g.gain.setTargetAtTime(0, t0 + start + dur * 0.6, dur / 6);
+      osc.connect(g).connect(this.master!);
+      osc.start(t0 + start);
+      osc.stop(t0 + start + dur + 0.2);
+    };
+    let length = 0.4;
+    if (kind === "wrong") {
+      tone(220, 140, 0, 0.18, "sawtooth", 0.18);
+      tone(165, 100, 0.16, 0.28, "sawtooth", 0.18);
+      length = 0.5;
+    } else if (kind === "correct") {
+      tone(880, 880, 0, 0.12, "triangle", 0.25);
+      tone(1320, 1320, 0.11, 0.25, "triangle", 0.25);
+    } else {
+      tone(330, 290, 0, 0.45, "triangle", 0.2);
+      length = 0.5;
+    }
+    return new Promise((r) => this.timers.push(window.setTimeout(r, length * 1000)));
   }
 
   /** Alla-breve pulse (half notes per minute); read live by the scheduler, so changes affect playback in progress. */
