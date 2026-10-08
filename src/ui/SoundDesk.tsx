@@ -113,7 +113,10 @@ export function SoundDesk(p: Props) {
           <button className="chipbtn" tabIndex={-1} aria-pressed={m.mute} title={t("ui.mixer.mute")} onClick={() => p.onChange(setMix(s, x, { mute: !m.mute }))}>M</button>
           <button className="chipbtn" tabIndex={-1} aria-pressed={m.solo} title={t("ui.mixer.solo")} onClick={() => p.onChange(setMix(s, x, { solo: !m.solo }))}>S</button>
         </div>
-        {(x === "fux" || isVersion) && octaveStepper(x === "fux" ? s.fuxOctave : s.versionOctave[x as VersionId], (n) => p.onChange(x === "fux" ? { ...s, fuxOctave: n } : { ...s, versionOctave: { ...s.versionOctave, [x]: n } }))}
+        {x === "fux" && octaveStepper(s.fuxOctave, (n) => p.onChange({ ...s, fuxOctave: n }))}
+        {x === "cantus" && octaveStepper(s.cantusOctave, (n) => p.onChange({ ...s, cantusOctave: n }))}
+        {x === "counterpoint" && octaveStepper(s.counterpointOctave, (n) => p.onChange({ ...s, counterpointOctave: n }))}
+        {isVersion && octaveStepper(s.versionOctave[x as VersionId], (n) => p.onChange({ ...s, versionOctave: { ...s.versionOctave, [x]: n } }))}
         {x === "counterpoint" && (
           <div className="versions" role="group" aria-label={t("ui.mixer.versionsHelp")} title={t("ui.mixer.versionsHelp")}>
             {(["original", ...VERSION_IDS] as const).map((k) => (

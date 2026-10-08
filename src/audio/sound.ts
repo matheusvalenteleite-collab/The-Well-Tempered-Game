@@ -33,8 +33,11 @@ export interface SoundState {
   mix: Record<Strip, Mix>;
   /** Octave transposition of Fux's line in playback, -3..3 (the score is unchanged). */
   fuxOctave: number;
-  /** The same for each version of the player's line (D66): listening only, the score is unchanged. */
+  /** The same for each version of the player's line (D66); since D79 the score shows them moved too. */
   versionOctave: Record<VersionId, number>;
+  /** The cantus and the written line moved by octaves (D79): heard and drawn so; the evaluation keeps the written pitches. */
+  cantusOctave: number;
+  counterpointOctave: number;
   /**
    * Each version's own sound (D69). While `versionFollows[id]` is true the version sounds like the
    * Contrapunctus; editing the version's sound gives it its own copy, and the Contrapunctus is untouched.
@@ -54,6 +57,8 @@ export const DEFAULT_SOUND: SoundState = {
   mix: { cantus: mix(0), counterpoint: mix(-0.3), fux: mix(0.3), inversion: mix(0.3), retrograde: mix(0.3), retroInversion: mix(0.3), canon: mix(0.3), drums: mix(0, 0.8), continuo: mix(0, 0.6) },
   fuxOctave: 0,
   versionOctave: { inversion: 0, retrograde: 0, retroInversion: 0, canon: 0 },
+  cantusOctave: 0,
+  counterpointOctave: 0,
   versionSynth: { inversion: { ...DEFAULT_SYNTH }, retrograde: { ...DEFAULT_SYNTH }, retroInversion: { ...DEFAULT_SYNTH }, canon: { ...DEFAULT_SYNTH } },
   versionFollows: { inversion: true, retrograde: true, retroInversion: true, canon: true },
 };
@@ -136,6 +141,8 @@ export function restoreSound(raw: unknown): SoundState {
   for (const l of Object.keys(out.links) as Link[]) if (typeof r.links?.[l] === "boolean") out.links[l] = r.links[l];
   for (const x of STRIPS) if (r.mix?.[x]) out.mix[x] = { ...out.mix[x], ...r.mix[x] };
   if (typeof r.fuxOctave === "number") out.fuxOctave = Math.max(-3, Math.min(3, Math.round(r.fuxOctave)));
+  if (typeof r.cantusOctave === "number") out.cantusOctave = Math.max(-3, Math.min(3, Math.round(r.cantusOctave)));
+  if (typeof r.counterpointOctave === "number") out.counterpointOctave = Math.max(-3, Math.min(3, Math.round(r.counterpointOctave)));
   for (const id of VERSION_IDS) {
     if (r.versionSynth?.[id]) out.versionSynth[id] = { ...DEFAULT_SYNTH, ...r.versionSynth[id] };
     if (typeof r.versionFollows?.[id] === "boolean") out.versionFollows[id] = r.versionFollows[id];

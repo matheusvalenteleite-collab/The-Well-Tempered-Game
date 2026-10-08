@@ -243,10 +243,10 @@ export class AudioEngine {
   }
 
   private both(voices: Voices, col: PlaybackColumn, time: number, duration: number) {
-    voices.cantus.start(col.cantus, time, duration);
+    voices.cantus.start(shiftOctave(col.cantus, this.mix.cantusOctave ?? 0), time, duration);
     this.notesStarted++;
     if (col.counterpoint) {
-      voices.counterpoint.start(col.counterpoint, time, duration);
+      voices.counterpoint.start(shiftOctave(col.counterpoint, this.mix.counterpointOctave ?? 0), time, duration);
       this.notesStarted++;
     }
   }
@@ -278,11 +278,11 @@ export class AudioEngine {
     const v = (id: string) => shape?.notes[id]?.velocity;
     const len = (id: string) => shape?.notes[id]?.length ?? 1;
     if (e.cantus) {
-      voices.cantus.start(e.cantus, time, whole * 0.97 * len("cantus"), v("cantus"));
+      voices.cantus.start(shiftOctave(e.cantus, this.mix.cantusOctave ?? 0), time, whole * 0.97 * len("cantus"), v("cantus"));
       this.notesStarted++;
     }
     if (e.counterpoint) {
-      voices.counterpoint.start(e.counterpoint, time, (e.lengths?.counterpoint ?? e.length) * whole * 0.95 * len("counterpoint"), v("counterpoint"));
+      voices.counterpoint.start(shiftOctave(e.counterpoint, this.mix.counterpointOctave ?? 0), time, (e.lengths?.counterpoint ?? e.length) * whole * 0.95 * len("counterpoint"), v("counterpoint"));
       this.notesStarted++;
     }
     for (const [id, pitch] of Object.entries(e.versions ?? {})) {

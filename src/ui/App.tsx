@@ -7,7 +7,7 @@ import { compareWithOriginal } from "../music/fux/player.ts";
 import { exerciseView } from "../game/exercise-view.ts";
 import { applyAccidental, clear, initialState, letterNote, moveNote, place, repeatPrevious, select, setRest, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
 import { AudioEngine, renderLevel, SYNTH_PRESETS, type AudioStatus } from "../audio/engine.ts";
-import { restoreSound, type SoundState } from "../audio/sound.ts";
+import { restoreSound, shiftOctave, type SoundState } from "../audio/sound.ts";
 import { encode, EXPORT_FORMATS, saveFile, type ExportFormat } from "../audio/export.ts";
 import { loadSamples } from "../audio/voice.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
@@ -384,6 +384,11 @@ export function App() {
   const heard = useMemo(() => lines.map((l) => l.notes), [lines]);
   const derived = (ln: typeof lines) => Object.fromEntries(ln.filter((l) => l.id !== "original").map((l) => [l.id, l.notes]));
   const shownLines = lines;
+  // Octave moves (D79): the lines are drawn where they sound; what is written (and judged) is not moved.
+  const octaveOf = (id: "original" | VersionId) => (id === "original" ? sound.counterpointOctave : sound.versionOctave[id]);
+  /** A pitch clicked on the drawn (moved) line, back to where it is written. */
+  const unmove = (natural: string) => (sound.counterpointOctave ? shiftOctave(natural, -sound.counterpointOctave) : natural);
+  const moved = <T extends string | null>(notes: T[], n: number): T[] => (n ? notes.map((q) => (sounding(q) ? (shiftOctave(q, n) as T) : q)) : notes);
   const originalHeard = versions.original ? session.notes : session.notes.map(() => null);
   const continuoAllowed = CONTINUO_DEMO_MODE || Boolean(result?.passed);
   const continuoAvailable = continuo && continuoAllowed;
@@ -925,12 +930,12 @@ export function App() {
             {starred ? "★" : "☆"}
           </span>
           <ScoreView
-            cantus={VIEW.cantus}
-            counterpoint={shownLines[0].notes}
+            cantus={moved(VIEW.cantus, sound.cantusOctave)}
+            counterpoint={moved(shownLines[0].notes, octaveOf(shownLines[0].id))}
             readOnly={!versions.original}
             playerInk={versions.original ? undefined : VERSION_INK[shownLines[0].id as VersionId]}
             playerLabel={versions.original ? (shownLines.length > 1 ? t("ui.versions.original") : undefined) : t(`ui.versions.${shownLines[0].id}`, { n: versions.canonShift })}
-            extraLines={shownLines.slice(1).map((l) => ({ label: t(`ui.versions.${l.id}`, { n: versions.canonShift }), notes: l.notes, ink: VERSION_INK[l.id as VersionId] }))}
+            extraLines={shownLines.slice(1).map((l) => ({ label: t(`ui.versions.${l.id}`, { n: versions.canonShift }), notes: moved(l.notes, octaveOf(l.id)), ink: VERSION_INK[l.id as VersionId] }))}
             extraIntervals={showIntervals}
             layout={VIEW.layout}
             cantusVoice={VIEW.cantusVoice}
@@ -941,18 +946,18 @@ export function App() {
             label={label}
             marks={versions.original ? marks : undefined}
             overlay={versions.original ? overlay : undefined}
-            fux={(showFux || fuxPlaying) && fuxOpen ? VIEW.fux! : undefined}
+            fux={(showFux || fuxPlaying) && fuxOpen ? moved(VIEW.fux!, sound.fuxOctave) : undefined}
             fadePlayer={fuxPlaying}
             ties={VIEW.species === "fourth"}
             continuo={continuoPlan && continuoSettings.display !== "none" ? { realization: continuoPlan.realization, display: continuoSettings.display } : undefined}
             showNames={showNames}
             showGhost
-            onPlace={(col, natural) => update(place(session, col, natural))}
+            onPlace={(col, natural) => update(place(session, col, unmove(natural)))}
             onSelect={(col) => browse(col)}
             onDrag={(from, to, natural) => {
               if (!dragBase.current) remember(session.notes);
               dragBase.current ??= session;
-              const next = moveNote(dragBase.current, from, to, natural);
+              const next = moveNote(dragBase.current, from, to, unmove(natural));
               setSession(next);
               setResult(null);
             }}
