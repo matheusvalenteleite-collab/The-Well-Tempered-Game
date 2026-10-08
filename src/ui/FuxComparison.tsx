@@ -8,7 +8,7 @@ const pretty = (p: string) => (p === REST ? t("ui.compare.rest") : p.replace("#"
 export function FuxComparison({ cantus, player, fux, layout }: { cantus: string[]; player: (string | null)[]; fux: string[]; layout: Slot[] }) {
   const all = compareWithFux(cantus, player, fux, layout);
   // Differences that no stated criterion separates are a matter of taste: not listed.
-  const diffs = all.filter((d) => d.fuxBetter.length + d.playerBetter.length > 0);
+  const diffs = all.filter((d) => d.fuxBetter.length + d.playerBetter.length + d.mannFuxBetter.length + d.mannPlayerBetter.length > 0);
   const half = layout.length > cantus.length;
   if (all.length === 0) return <p className="help">{t("ui.compare.none")}</p>;
   if (diffs.length === 0) return <p className="help">{t("ui.compare.taste")}</p>;
@@ -16,7 +16,7 @@ export function FuxComparison({ cantus, player, fux, layout }: { cantus: string[
   return (
     <section className="compare">
       <h4>{t("ui.compare.title")}</h4>
-      <p className="help">{t("ui.compare.intro")}</p>
+      <p className="help">{t("ui.compare.intro")} {t("ui.compare.mannNote")}</p>
       <ul>
         {diffs.map((d) => (
           <li key={d.column}>
@@ -26,6 +26,16 @@ export function FuxComparison({ cantus, player, fux, layout }: { cantus: string[
             <ul className="reasons">
               {d.fuxBetter.map((c) => reason("fuxBetter", c))}
               {d.playerBetter.map((c) => reason("playerBetter", c))}
+              {d.mannPlayerBetter.length > 0 && (
+                <li className="mann playerBetter">
+                  <strong>{t("ui.compare.mann.player")}</strong> {d.mannPlayerBetter.map((c) => t(`ui.compare.mann.${c}`)).join("; ")}
+                </li>
+              )}
+              {d.mannFuxBetter.length > 0 && (
+                <li className="mann fuxBetter">
+                  <strong>{t("ui.compare.mann.fux")}</strong> {d.mannFuxBetter.map((c) => t(`ui.compare.mann.${c}`)).join("; ")}
+                </li>
+              )}
             </ul>
           </li>
         ))}

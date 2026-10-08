@@ -408,3 +408,4 @@ button, select, .chipbtn { font-size: 0.8rem; }
 .demo-all li { display: flex; align-items: center; gap: 6px; }
 .demo-all .chipbtn { min-width: 28px; min-height: 24px; padding: 0; }
 .demo-all .help { margin: 0 0 0 auto; font-size: 0.72rem; }
+.reasons li.mann { font-style: italic; }

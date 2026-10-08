@@ -26,3 +26,16 @@ test("repeated notes are not credited: no motion or singability bonus, and varie
   assert.ok(bar3.fuxBetter.includes("variety"));
   assert.ok(!bar3.playerBetter.includes("motion") && !bar3.playerBetter.includes("singable"));
 });
+
+test("Mann's layer: large leaps, same-direction leaps, uncompensated leaps, a tone thrice", async () => {
+  const { mannFaults } = await import("../src/counterpoint/compare-fux.ts");
+  assert.ok(mannFaults(["C4", "A4", "G4"], 1).has("largeLeap")); // major sixth
+  assert.ok(!mannFaults(["C4", "Ab4", "G4"], 1).has("largeLeap")); // rising minor sixth allowed
+  assert.ok(!mannFaults(["C4", "C5", "B4"], 1).has("largeLeap")); // octave allowed
+  assert.ok(mannFaults(["C4", "E4", "G4"], 1).has("leapsSameWay"));
+  assert.ok(mannFaults(["C4", "G4", "A4"], 1).has("uncompensated"));
+  assert.ok(!mannFaults(["C4", "G4", "F4"], 1).has("uncompensated"));
+  assert.ok(mannFaults(["D4", "D4", "D4"], 1).has("repeatedTwice"));
+  assert.ok(!mannFaults(["D4", "D4", "E4"], 1).has("repeatedTwice"));
+  assert.deepEqual([...mannFaults(["C4", null, "E4"], 1)], []);
+});
