@@ -28,6 +28,9 @@ import { continuoInput, continuoKey, continuoOptions, type PlayMode } from "../g
 import { activeVersions, deriveVersion, heardLines, validVersions, type VersionId, type Versions } from "../game/versions.ts";
 import { trioReading } from "../game/trio-eval.ts";
 import { TrioReading } from "./TrioReading.tsx";
+import { startPlayback } from "./playback.ts";
+import { SavedPieces } from "./SavedPieces.tsx";
+import { makePiece, restorePieces, snapshotMode, type Piece } from "../game/saved.ts";
 import { DEFAULT_CONTINUO_SETTINGS, validContinuoSettings, type ContinuoSettings } from "../game/continuo-settings.ts";
 import { CONTINUO_DEMO_MODE } from "../config.ts";
 import { t } from "./i18n.ts";
@@ -84,6 +87,11 @@ const VERSION_INK: Record<VersionId, string> = {
   retroInversion: "var(--ink-retro-inversion)",
   canon: "var(--ink-canon)",
 };
+function validDrumKit(raw: unknown): DrumSettings {
+  const v = { ...DEFAULT_DRUMS, ...(typeof raw === "object" && raw !== null ? (raw as Partial<DrumSettings>) : {}) };
+  const ok = DRUM_PATTERNS.some((p) => p.id === v.pattern) && LOOP_LENGTHS.includes(v.length) && typeof v.level === "number";
+  return ok ? v : { ...DEFAULT_DRUMS };
+}
 const stepIndexOf = (id: string) => STEPS.findIndex((s) => s.id === id);
 
 export function App() {
@@ -103,11 +111,11 @@ export function App() {
   const [sound, setSound] = useState<SoundState>(() => restoreSound(stored<unknown>("wtg.sound2", null)));
   const [theme, setTheme] = useState<"auto" | "light" | "dark">(() => stored("wtg.theme", "auto", (v) => v === "auto" || v === "light" || v === "dark"));
   const [drums, setDrums] = useState(() => stored("wtg.drums", false, (v) => typeof v === "boolean"));
-  const [drumKit, setDrumKit] = useState<DrumSettings>(() => {
-    const v = stored<DrumSettings>("wtg.drumkit", DEFAULT_DRUMS, (x) => typeof x === "object" && x !== null);
-    const ok = DRUM_PATTERNS.some((p) => p.id === v.pattern) && LOOP_LENGTHS.includes(v.length) && typeof v.level === "number";
-    return ok ? v : { ...DEFAULT_DRUMS };
-  });
+  const [drumKit, setDrumKit] = useState<DrumSettings>(() => validDrumKit(stored<unknown>("wtg.drumkit", DEFAULT_DRUMS)));
+  const [pieces, setPieces] = useState<Piece[]>(() => restorePieces(stored<unknown>("wtg.saved", []), validDrumKit));
+  const [showSaved, setShowSaved] = useState(false);
+  const [savedPlaying, setSavedPlaying] = useState<{ id: string; slot: number } | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
   const [versions, setVersions] = useState<Versions>(() => validVersions(stored<unknown>("wtg.versions", null)));
   const [deskOpen, setDeskOpen] = useState(() => stored("wtg.deskOpen", true, (v) => typeof v === "boolean"));
   const [continuo, setContinuo] = useState(() => stored("wtg.continuo", false, (v) => typeof v === "boolean"));
@@ -165,6 +173,12 @@ export function App() {
   useEffect(() => store("wtg.continuo", continuo), [continuo]);
   useEffect(() => store("wtg.deskOpen", deskOpen), [deskOpen]);
   useEffect(() => store("wtg.versions", versions), [versions]);
+  useEffect(() => store("wtg.saved", pieces), [pieces]);
+  useEffect(() => {
+    if (!toast) return;
+    const id = window.setTimeout(() => setToast(null), 2600);
+    return () => window.clearTimeout(id);
+  }, [toast]);
   useEffect(() => store("wtg.continuoSettings", continuoSettings), [continuoSettings]);
   useEffect(() => {
     audio.temperament = tuning;
@@ -291,7 +305,85 @@ export function App() {
     return { input, realization: realizeContinuo(input, continuoOptions(mode, continuoSettings)) };
   };
 
+  // Saved pieces (D49). A saved piece plays with its own sound set on the engine; the live
+  // setup is put back when it stops.
+  const applyAudio = (x: Pick<Piece, "sound" | "drums" | "drumKit" | "tuning" | "tempo" | "volume">, final: string) => {
+    audio.setSoundState(x.sound);
+    audio.drums = x.drums;
+    audio.setDrums(x.drumKit, final);
+    audio.temperament = x.tuning;
+    audio.tempo = x.tempo;
+    audio.setVolume(x.volume / 100);
+  };
+  const restoreAudio = () => {
+    applyAudio({ sound, drums, drumKit, tuning, tempo, volume }, VIEW.modalFinal);
+    audio.loop = loop;
+  };
+  const stopSaved = () => {
+    if (!savedPlaying) return;
+    audio.stop();
+    setSavedPlaying(null);
+    restoreAudio();
+  };
+  const savePiece = () => {
+    const mode = snapshotMode(playing ? playMode : null, showFux && fuxOpen);
+    const when = new Date().toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    const piece = makePiece(
+      { stepId: STEP.id, notes: session.notes, versions, mode: mode !== "player" && !fuxOpen ? "player" : mode, sound, drums, drumKit, continuo: continuoAvailable, continuoSettings, tuning, tempo, volume },
+      `${name} · ${when}`,
+    );
+    setPieces([piece, ...pieces]);
+    setToast(t("ui.saved.done", { name: piece.name }));
+  };
+  const playPiece = (p: Piece) => {
+    const same = savedPlaying?.id === p.id;
+    audio.stop();
+    setPlaying(false);
+    setCursor(-1);
+    if (same) {
+      setSavedPlaying(null);
+      restoreAudio();
+      return;
+    }
+    const k = stepIndexOf(p.stepId);
+    if (k < 0) return;
+    const view = VIEWS[k];
+    applyAudio(p, view.modalFinal);
+    audio.loop = false;
+    setSavedPlaying({ id: p.id, slot: -1 });
+    const mode = p.mode !== "player" && !view.fux ? "player" : p.mode;
+    startPlayback(audio, view, { notes: p.notes, versions: p.versions, mode, continuo: p.continuo, continuoSettings: p.continuoSettings, tuning: p.tuning }, (slot) => {
+      if (slot < 0) {
+        setSavedPlaying(null);
+        restoreAudio();
+      } else setSavedPlaying({ id: p.id, slot });
+    });
+  };
+  /** Load a saved piece into the game: its exercise, line, versions and every setting. */
+  const openPiece = (p: Piece) => {
+    stopSaved();
+    const k = stepIndexOf(p.stepId);
+    if (k < 0) return;
+    if (k !== stepIndex) goTo(k);
+    setSessions((all) => all.map((x, i) => (i === k ? { ...x, notes: [...p.notes] } : x)));
+    setResult(null);
+    setShowFux(false);
+    setVersions(p.versions);
+    setSound(structuredClone(p.sound));
+    setDrums(p.drums);
+    setDrumKit(p.drumKit);
+    setContinuo(p.continuo);
+    setContinuoSettings(p.continuoSettings);
+    setTuning(p.tuning);
+    setTempo(p.tempo);
+    setVolume(p.volume);
+    setPlayMode(p.mode);
+    setShowSaved(false);
+    setToast(t("ui.saved.opened", { name: p.name }));
+  };
+
   const play = (mode: PlayMode = "player") => {
+    if (savedPlaying) stopSaved();
     if (playing) {
       audio.stop();
       setPlaying(false);
@@ -301,38 +393,10 @@ export function App() {
     if (mode !== "player" && !fuxOpen) return;
     setPlayMode(mode);
     setPlaying(true);
-    const events =
-      mode === "player"
-        ? timeline(VIEW.cantus, VIEW.layout, originalHeard, undefined, undefined, undefined, derived(lines))
-        : mode === "fux"
-          ? timeline(VIEW.cantus, VIEW.layout, VIEW.fux!)
-          : timeline(VIEW.cantus, VIEW.layout, originalHeard, undefined, undefined, VIEW.fux!, derived(lines));
-    const plan = continuoAvailable ? realizationFor(mode) : null;
-    const startContinuo = (startTime: number) => {
-      const graph = audio.graph;
-      const destination = audio.continuoInput();
-      if (!plan || !graph || !destination) return;
-      const s = continuoSettings;
-      audio.attach(
-        playContinuo(plan.input, plan.realization, {
-          preset: s.preset,
-          audio: { ctx: graph.ctx, destination },
-          includeSungVoices: false,
-          startTime,
-          getTempo: () => audio.tempo,
-          temperament: tuning,
-          inegal: s.inegal && s.preset !== "stileAntico",
-        }),
-      );
-    };
-    void audio.playAll(
-      events,
-      (k) => {
-        setCursor(k);
-        if (k < 0) setPlaying(false);
-      },
-      plan ? startContinuo : undefined,
-    );
+    startPlayback(audio, VIEW, { notes: session.notes, versions, mode, continuo: continuoAvailable, continuoSettings, tuning }, (k) => {
+      setCursor(k);
+      if (k < 0) setPlaying(false);
+    });
   };
 
   // Starting pitch for keyboard entry before anything is written: the cantus note an octave away.
@@ -344,7 +408,7 @@ export function App() {
 
   /** Keys drive the score wherever focus is (buttons, knobs), except in form fields and dialogs. */
   const onKey = (e: KeyboardEvent) => {
-    if (showCredits || showHelp || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    if (showCredits || showHelp || showSaved || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
     const target = e.target as HTMLElement | null;
     if (target && ["TEXTAREA", "SELECT", "INPUT"].includes(target.tagName)) return;
     const k = e.key;
@@ -439,6 +503,17 @@ export function App() {
           <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1} aria-label={t("ui.nav.next")}>›</button>
         </nav>
         <div className="header-tools">
+          <button className="icon quiet save" onClick={savePiece} aria-label={t("ui.saved.save")} title={t("ui.saved.saveHelp")}>
+            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+              <path d="M2 1.5h9.5L14.5 4.5v10h-12.5z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+              <rect x="4.5" y="1.5" width="6" height="4" fill="none" stroke="currentColor" strokeWidth="1.2" />
+              <rect x="8.3" y="2.3" width="1.3" height="2.4" fill="currentColor" />
+              <rect x="4" y="9" width="8" height="5" rx="0.5" fill="none" stroke="currentColor" strokeWidth="1.2" />
+            </svg>
+          </button>
+          <button className="icon quiet" onClick={() => setShowSaved(true)} aria-label={t("ui.saved.title")} title={t("ui.saved.title")}>
+            ♫{pieces.length > 0 && <span className="count">{pieces.length}</span>}
+          </button>
           <button className="icon quiet" onClick={() => setShowHelp(true)} aria-label={t("ui.help.title")} title={t("ui.help.title")}>?</button>
           <button className="icon quiet" onClick={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} aria-label={t("ui.theme.label")} title={t(`ui.theme.${theme}`)}>
             {theme === "dark" ? "☾" : theme === "light" ? "☀" : "◐"}
@@ -617,6 +692,30 @@ export function App() {
         </p>
       </footer>
       {showCredits && <Credits onClose={() => setShowCredits(false)} />}
+      {toast && (
+        <div className="toast" role="status">
+          {toast}
+        </div>
+      )}
+      {showSaved && (
+        <SavedPieces
+          pieces={pieces}
+          playing={savedPlaying}
+          viewOf={(id) => VIEWS[stepIndexOf(id)] ?? null}
+          stepName={(id) => (stepIndexOf(id) >= 0 ? stepStudy(id).name : id)}
+          onPlay={playPiece}
+          onOpen={openPiece}
+          onRename={(id, n) => setPieces(pieces.map((x) => (x.id === id ? { ...x, name: n } : x)))}
+          onDelete={(id) => {
+            if (savedPlaying?.id === id) stopSaved();
+            setPieces(pieces.filter((x) => x.id !== id));
+          }}
+          onClose={() => {
+            stopSaved();
+            setShowSaved(false);
+          }}
+        />
+      )}
       {showHelp && <HelpCard rest={VIEW.layout.some((sl) => sl.restAllowed)} onClose={() => setShowHelp(false)} />}
     </div>
   );

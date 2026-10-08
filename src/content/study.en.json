@@ -350,6 +350,7 @@
   "fux-mode.s1.05": {
    "name": "Neighbouring clefs",
    "specific": [
+    "B and F are a tritone apart (mi contra fa). B♮ belongs to the mode and is allowed, but never leap between F and B, and never set a B against an F. Where your line would bring them together, write B♭ instead, as Fux does here (the ♭ button, or the - key); he calls such flats accidental, not part of the mode (1725 pp. 68-69).",
     "No new precept. The cantus lies low here (tenor clef in the original): keep your line within reach of it."
    ],
    "study": [
@@ -390,6 +391,7 @@
   "fux-mode.s1.06": {
    "name": "Crossing over",
    "specific": [
+    "B and F are a tritone apart (mi contra fa). B♮ belongs to the mode and is allowed, but never leap between F and B, and never set a B against an F. Where your line would bring them together, write B♭ instead, as Fux does here (the ♭ button, or the - key); he calls such flats accidental, not part of the mode (1725 pp. 68-69).",
     "Crossing above the cantus is allowed where it avoids direct motion (p. 52): Aloysius approves it."
    ],
    "study": [
@@ -829,7 +831,7 @@
   "fux-mode.s2.05": {
    "name": "F, with the soft B",
    "specific": [
-    "No new precept. Fux's own counterpoint here uses B♭ to keep clear of the tritone with F."
+    "B and F are a tritone apart (mi contra fa). B♮ belongs to the mode and is allowed, but never leap between F and B, and never set a B against an F. Where your line would bring them together, write B♭ instead, as Fux does here (the ♭ button, or the - key); he calls such flats accidental, not part of the mode (1725 pp. 68-69)."
    ],
    "study": [
     {
@@ -850,7 +852,7 @@
   "fux-mode.s2.06": {
    "name": "F, from below",
    "specific": [
-    "No new precept."
+    "B and F are a tritone apart (mi contra fa). B♮ belongs to the mode and is allowed, but never leap between F and B, and never set a B against an F. Where your line would bring them together, write B♭ instead, as Fux does here (the ♭ button, or the - key); he calls such flats accidental, not part of the mode (1725 pp. 68-69)."
    ],
    "study": [
     {
