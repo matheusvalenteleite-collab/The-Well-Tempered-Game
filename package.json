@@ -4,14 +4,17 @@
   "private": true,
   "type": "module",
   "description": "A game for learning and practising species counterpoint.",
-  "engines": { "node": ">=22.18" },
+  "engines": {
+    "node": ">=22.18"
+  },
   "scripts": {
     "data:fetch": "tools/fux_import/fetch_source.sh",
     "data:build": "python3 tools/fux_import/build_dataset.py",
     "data:validate": "python3 tools/fux_import/validate.py",
     "data": "npm run data:build && npm run data:validate",
     "typecheck": "tsc --noEmit",
-    "test": "node --test test/*.test.ts"
+    "test": "node --test test/*.test.ts",
+    "report:m1": "node tools/m1/report.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

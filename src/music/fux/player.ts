@@ -5,6 +5,7 @@
  * never required. `compareWithOriginal` exists only for informational feedback ("Fux chose
  * a different note here"), not for grading.
  */
+import { parsePitch } from "../pitch.ts";
 import type { Exercise, Note, OriginalSolution, Rational, Species, Staff, TieState } from "./types.ts";
 
 export interface PlayerNote {
@@ -49,15 +50,7 @@ export interface OriginalComparison {
   identical: boolean;
 }
 
-const STEP_PC: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
-
-export function parsePitch(name: string): { step: string; alter: number; octave: number; midi: number } {
-  const m = /^([A-G])(#{1,2}|b{1,2})?(-?\d+)$/.exec(name);
-  if (!m) throw new Error(`invalid pitch ${name}`);
-  const alter = m[2] ? (m[2][0] === "#" ? m[2].length : -m[2].length) : 0;
-  const octave = Number(m[3]);
-  return { step: m[1], alter, octave, midi: 12 * (octave + 1) + STEP_PC[m[1]] + alter };
-}
+export { parsePitch } from "../pitch.ts";
 
 export function parseRational(r: Rational): [number, number] {
   const [n, d] = r.split("/").map(Number);
