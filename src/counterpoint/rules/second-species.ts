@@ -127,7 +127,7 @@ export const cadence: Rule = {
       const i = vert(down);
       const sixthAllowed = fifthIsDiminished(down.cantus, a.input.cantusVoice);
       const ok = (i.quality === "P" && i.simple === 5) || (sixthAllowed && i.simple === 6 && (i.quality === "M" || i.quality === "m"));
-      if (!ok) out.push(v(this, [down.slot], { interval: i.name, expected: sixthAllowed ? "P5 or 6" : "P5" }));
+      if (!ok) out.push(v(this, [down.slot], { interval: i.name, expected: sixthAllowed ? "5 or 6" : "5" }));
     }
     if (up) {
       const i = vert(up);

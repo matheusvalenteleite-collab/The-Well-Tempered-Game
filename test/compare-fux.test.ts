@@ -9,7 +9,7 @@ test("comparison with Fux: criteria are reported for whichever side they favour"
   const diff = compareWithFux(cf, player, fux);
   assert.deepEqual(diff.map((d) => d.column), [0, 1, 2, 3, 4, 5, 7, 8]);
   const bar8 = diff.find((d) => d.column === 7)!; // player P5 vs Fux M3
-  assert.equal(bar8.playerInterval, "P5");
+  assert.equal(bar8.playerInterval, "5");
   assert.equal(bar8.fuxInterval, "M3");
   assert.ok(bar8.fuxBetter.includes("imperfect"));
   const bar9 = diff.find((d) => d.column === 8)!; // player F5 = P8 over F4; Fux D5 = M6

@@ -35,7 +35,9 @@ export interface SoundState {
   fuxOctave: number;
 }
 
-const FUX_SOUND = SYNTH_PRESETS.find((p) => p.id === "pipeOrgan")!.settings;
+const FUX_SOUND = SYNTH_PRESETS.find((p) => p.id === "fluteOrgan")!.settings;
+/** The previous default for Fux (D42); a stored state still on it moves to the new default. */
+const OLD_FUX_SOUND = SYNTH_PRESETS.find((p) => p.id === "pipeOrgan")!.settings;
 const mix = (pan = 0, volume = 1): Mix => ({ volume, pan, mute: false, solo: false });
 
 export const DEFAULT_SOUND: SoundState = {
@@ -105,6 +107,7 @@ export function restoreSound(raw: unknown): SoundState {
   const r = raw as Partial<SoundState>;
   const out = structuredClone(DEFAULT_SOUND);
   for (const c of CHANNELS) if (r.synth?.[c]) out.synth[c] = { ...DEFAULT_SYNTH, ...r.synth[c] };
+  if (sameSettings(out.synth.fux, OLD_FUX_SOUND)) out.synth.fux = { ...FUX_SOUND };
   for (const l of Object.keys(out.links) as Link[]) if (typeof r.links?.[l] === "boolean") out.links[l] = r.links[l];
   for (const x of STRIPS) if (r.mix?.[x]) out.mix[x] = { ...out.mix[x], ...r.mix[x] };
   if (typeof r.fuxOctave === "number") out.fuxOctave = Math.max(-3, Math.min(3, Math.round(r.fuxOctave)));

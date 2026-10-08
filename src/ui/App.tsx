@@ -28,6 +28,7 @@ import { continuoInput, continuoKey, continuoOptions, type PlayMode } from "../g
 import { activeVersions, deriveVersion, heardLines, validVersions, type VersionId, type Versions } from "../game/versions.ts";
 import { trioReading } from "../game/trio-eval.ts";
 import { TrioReading } from "./TrioReading.tsx";
+import { Fold } from "./Fold.tsx";
 import { startPlayback } from "./playback.ts";
 import { SavedPieces } from "./SavedPieces.tsx";
 import { DEMO_ENTRIES, type DemoEntry } from "../game/demo.ts";
@@ -54,7 +55,7 @@ audio.sound = "chip";
 Object.assign(window as object, { wtgAudio: audio, wtgRenderLevel: renderLevel, wtgPresets: SYNTH_PRESETS, wtgDrumMachine: DrumMachine, wtgLoadSamples: loadSamples });
 
 /** Milliseconds a bar must stay selected while browsing before it sounds. */
-const DWELL_MS = 1000;
+const DWELL_MS = 500;
 
 /** Per-viewer conveniences in localStorage; the game works the same without them. */
 function stored<T>(key: string, fallback: T, valid: (v: unknown) => boolean = () => true): T {
@@ -118,7 +119,13 @@ export function App() {
   const [savedPlaying, setSavedPlaying] = useState<{ id: string; slot: number } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [showDemo, setShowDemo] = useState(false);
+  /** Boxes folded to one line (D52), remembered per box. */
+  const [folded, setFolded] = useState<Record<string, boolean>>(() => stored<Record<string, boolean>>("wtg.folds", {}, (v) => typeof v === "object" && v !== null && !Array.isArray(v)));
+  const foldProps = (id: string) => ({ open: !folded[id], onToggle: (open: boolean) => setFolded({ ...folded, [id]: !open }) });
   const [demoLoaded, setDemoLoaded] = useState<string | null>(null);
+  const [humanise, setHumanise] = useState(() => stored("wtg.humanise", false, (v) => typeof v === "boolean"));
+  /** The exercise whose Fux solution plays from the demo list. */
+  const [demoPlaying, setDemoPlaying] = useState<string | null>(null);
   const [versions, setVersions] = useState<Versions>(() => validVersions(stored<unknown>("wtg.versions", null)));
   const [deskOpen, setDeskOpen] = useState(() => stored("wtg.deskOpen", true, (v) => typeof v === "boolean"));
   const [continuo, setContinuo] = useState(() => stored("wtg.continuo", false, (v) => typeof v === "boolean"));
@@ -177,6 +184,11 @@ export function App() {
   useEffect(() => store("wtg.deskOpen", deskOpen), [deskOpen]);
   useEffect(() => store("wtg.versions", versions), [versions]);
   useEffect(() => store("wtg.saved", pieces), [pieces]);
+  useEffect(() => store("wtg.folds", folded), [folded]);
+  useEffect(() => {
+    audio.humanise = humanise;
+    store("wtg.humanise", humanise);
+  }, [humanise]);
   useEffect(() => {
     if (!toast) return;
     const id = window.setTimeout(() => setToast(null), 2600);
@@ -422,8 +434,27 @@ export function App() {
     setToast(t("ui.saved.opened", { name: p.name }));
   };
 
+  /** Demo list: Fux's solution of any exercise, with the cantus, on the current sound. */
+  const playFuxOf = (stepId: string) => {
+    const same = demoPlaying === stepId;
+    stopSaved();
+    audio.stop();
+    setPlaying(false);
+    setCursor(-1);
+    setDemoPlaying(null);
+    if (same) return;
+    const view = VIEWS[stepIndexOf(stepId)];
+    if (!view?.fux) return;
+    setDemoPlaying(stepId);
+    startPlayback(audio, view, { notes: view.fux, versions: { ...versions, original: true, inversion: false, retrograde: false, retroInversion: false, canon: false }, mode: "fux", continuo: continuo, continuoSettings, tuning }, (k) => {
+      if (stepId === STEP.id) setCursor(k);
+      if (k < 0) setDemoPlaying(null);
+    });
+  };
+
   const play = (mode: PlayMode = "player") => {
     if (savedPlaying) stopSaved();
+    setDemoPlaying(null);
     if (playing) {
       audio.stop();
       setPlaying(false);
@@ -566,11 +597,7 @@ export function App() {
       </header>
       <main>
         {showDemo && (
-          <section className="demo-area" aria-label={t("ui.demo.title")}>
-            <div className="demo-head">
-              <h3>{t("ui.demo.title")}</h3>
-              <button className="icon quiet" onClick={() => setShowDemo(false)} aria-label={t("ui.saved.close")}>×</button>
-            </div>
+          <Fold className="demo-area" title={t("ui.demo.title")} {...foldProps("demo")} extra={<button className="icon quiet demo-close" onClick={() => setShowDemo(false)} aria-label={t("ui.saved.close")}>×</button>}>
             <p className="help">{t("ui.demo.intro")}</p>
             <ol className="demo-list">
               {DEMO_ENTRIES.map((d) => {
@@ -593,7 +620,27 @@ export function App() {
                 );
               })}
             </ol>
-          </section>
+            <div className="demo-humanise">
+              <button className="chipbtn" aria-pressed={humanise} onClick={() => setHumanise(!humanise)} title={t("ui.demo.humaniseHelp")}>
+                {t("ui.demo.humanise")}: {t(humanise ? "ui.continuo.on" : "ui.continuo.off")}
+              </button>
+              <span className="help">{t("ui.demo.humaniseTry")}</span>
+            </div>
+            <h4>{t("ui.demo.allTitle")}</h4>
+            <ul className="demo-all">
+              {STEPS.map((st, k) =>
+                VIEWS[k].fux ? (
+                  <li key={st.id}>
+                    <button className="chipbtn" aria-pressed={demoPlaying === st.id} onClick={() => playFuxOf(st.id)} aria-label={t(demoPlaying === st.id ? "ui.saved.stop" : "ui.saved.play")}>
+                      {demoPlaying === st.id ? "■" : "▶"}
+                    </button>
+                    <span>{stepLabel(k)}</span>
+                    <span className="help">{t("ui.nav.speciesN", { n: ORDINAL[VIEWS[k].species === "first" ? 1 : 2] })}</span>
+                  </li>
+                ) : null,
+              )}
+            </ul>
+          </Fold>
         )}
         <p className="meta">
           {t("ui.mode.fux")} · {t("ui.nav.voicesN", { n: COURSE.voices })} · {t(`ui.species.${VIEW.species}`)} · {t("ui.exercise.mode", { final: VIEW.modalFinal })} ·{" "}
@@ -715,12 +762,13 @@ export function App() {
           />
         {result && (
           <section className="feedback" aria-live="polite">
-            <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} audio={audio} />
+            <Fold title={t("ui.fold.evaluation")} {...foldProps("evaluation")}>
+              <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} audio={audio} />
+            </Fold>
             {versionResults.map((v) => (
-              <section key={v.id} className="version-eval" style={{ borderLeftColor: VERSION_INK[v.id] }}>
-                <h4 style={{ color: VERSION_INK[v.id] }}>{t(`ui.versions.${v.id}`, { n: versions.canonShift })}</h4>
+              <Fold key={v.id} className="version-eval" title={<span style={{ color: VERSION_INK[v.id] }}>{t(`ui.versions.${v.id}`, { n: versions.canonShift })}</span>} {...foldProps(`version-${v.id}`)}>
                 <Feedback result={v.ev} cantus={VIEW.cantus} counterpoint={v.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} audio={audio} />
-              </section>
+              </Fold>
             ))}
             <div className="after">
               {fuxSolution && VIEW.fux && !fuxOpen && <p className="help">{t("ui.fux.locked")}</p>}
@@ -732,6 +780,7 @@ export function App() {
               )}
             </div>
             {fuxOpen && showFux && fuxSolution && VIEW.fux && (
+              <Fold title={t("ui.fold.fux")} {...foldProps("fux")}>
               <div className="fux">
                 <p className="help">{t("ui.fux.overlayHelp")}</p>
                 <p className="help">
@@ -743,8 +792,13 @@ export function App() {
                   })()}
                 </p>
                 {missing === 0 && <FuxComparison cantus={VIEW.cantus} player={session.notes} fux={VIEW.fux} layout={VIEW.layout} />}
-                {missing === 0 && COURSE.voices === 2 && <TrioReading findings={trioReading(VIEW.cantus, session.notes, VIEW.fux, VIEW.layout)} layout={VIEW.layout} />}
               </div>
+              </Fold>
+            )}
+            {fuxOpen && showFux && VIEW.fux && missing === 0 && COURSE.voices === 2 && (
+              <Fold title={t("ui.trio.title")} {...foldProps("trio")}>
+                <TrioReading findings={trioReading(VIEW.cantus, session.notes, VIEW.fux, VIEW.layout)} layout={VIEW.layout} />
+              </Fold>
             )}
           </section>
         )}

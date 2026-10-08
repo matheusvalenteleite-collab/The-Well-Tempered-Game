@@ -96,6 +96,8 @@ export const DEFAULT_SYNTH: SynthSettings = GRAND;
 export const SYNTH_PRESETS: { id: string; settings: SynthSettings }[] = [
   // Sampled instruments
   { id: "grand", settings: GRAND },
+  // Fux's default (D52): the organ samples darkened to a stopped-flute colour, a softer speech, a church's air.
+  { id: "fluteOrgan", settings: p({ model: "sampled", sampleSet: "organ", attack: 0.045, decay: 0.05, sustain: 1, release: 0.35, tone: 2400, reverbMode: "hall", reverbMix: 0.22 }) },
   { id: "pipeOrgan", settings: p({ model: "sampled", sampleSet: "organ", attack: 0.01, decay: 0.05, sustain: 1, release: 0.18, tone: 12000 }) },
   { id: "sackbut", settings: p({ model: "sampled", sampleSet: "sackbut", attack: 0.02, decay: 0.05, sustain: 1, release: 0.15, tone: 12000 }) },
   { id: "celloSampled", settings: p({ model: "sampled", sampleSet: "cello", attack: 0.03, decay: 0.05, sustain: 1, release: 0.2, tone: 12000 }) },

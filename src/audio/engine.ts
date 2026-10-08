@@ -14,6 +14,7 @@ import type { TemperamentId } from "./temperament.ts";
 import type { PlayEvent } from "../counterpoint/layout.ts";
 import type { VersionId } from "../game/versions.ts";
 import { Synth, type Instrument } from "./voice.ts";
+import { humanisePlan, type EventShape } from "./humanise.ts";
 
 export * from "./synth-settings.ts";
 
@@ -209,24 +210,31 @@ export class AudioEngine {
     this.both(inst, col, this.ctx.currentTime + 0.01, seconds);
   }
 
-  /** Start the notes of one event; a cantus note always lasts the whole bar. */
-  private soundEvent(voices: Voices, e: PlayEvent, time: number, whole: number) {
+  /** Humanised playback (D53): read when "play all" starts. */
+  humanise = false;
+  /** The ritardando factor of the event being scheduled (1 = none); the continuo's clock follows it. */
+  stretch = 1;
+
+  /** Start the notes of one event; a cantus note always lasts the whole bar. `shape` humanises it. */
+  private soundEvent(voices: Voices, e: PlayEvent, time: number, whole: number, shape?: EventShape) {
+    const v = (id: string) => shape?.notes[id]?.velocity;
+    const len = (id: string) => shape?.notes[id]?.length ?? 1;
     if (e.cantus) {
-      voices.cantus.start(e.cantus, time, whole * 0.97);
+      voices.cantus.start(e.cantus, time, whole * 0.97 * len("cantus"), v("cantus"));
       this.notesStarted++;
     }
     if (e.counterpoint) {
-      voices.counterpoint.start(e.counterpoint, time, e.length * whole * 0.95);
+      voices.counterpoint.start(e.counterpoint, time, e.length * whole * 0.95 * len("counterpoint"), v("counterpoint"));
       this.notesStarted++;
     }
     for (const [id, pitch] of Object.entries(e.versions ?? {})) {
       if (!pitch) continue;
-      this.versionVoice(id as VersionId)?.start(pitch, time, e.length * whole * 0.95);
+      this.versionVoice(id as VersionId)?.start(pitch, time, e.length * whole * 0.95 * len(id), v(id));
       this.notesStarted++;
     }
     if (e.fux) {
       // Fux's line may sound in another octave (listening only; the score is unchanged).
-      voices.fux.start(shiftOctave(e.fux, this.mix.fuxOctave), time, e.length * whole * 0.95);
+      voices.fux.start(shiftOctave(e.fux, this.mix.fuxOctave), time, e.length * whole * 0.95 * len("fux"), v("fux"));
       this.notesStarted++;
     }
   }
@@ -286,6 +294,7 @@ export class AudioEngine {
     let next = ctx.currentTime + 0.1;
     const LOOKAHEAD = 0.15;
     let announced = false;
+    const shapes = this.humanise ? humanisePlan(events) : null;
     const tick = () => {
       if (k === 0 && !announced) {
         announced = true;
@@ -294,11 +303,13 @@ export class AudioEngine {
       while (k < events.length && next < ctx.currentTime + LOOKAHEAD) {
         const whole = this.barSeconds;
         const e = events[k];
-        this.soundEvent(inst, e, next, whole);
+        const shape = shapes?.[k];
+        this.stretch = shape?.stretch ?? 1;
+        this.soundEvent(inst, e, next + (shape?.delay ?? 0), whole, shape);
         if (this.drums && e.cantus) this.drumMachine?.scheduleBar(next, whole, Math.floor(e.at), bars);
         const slot = e.slot;
         this.timers.push(window.setTimeout(() => onSlot(slot), Math.max(0, (next - ctx.currentTime) * 1000)));
-        next += ((events[k + 1]?.at ?? e.at + e.length) - e.at) * whole;
+        next += ((events[k + 1]?.at ?? e.at + e.length) - e.at) * whole * (shape?.stretch ?? 1);
         k++;
       }
       if (k >= events.length) {
@@ -334,6 +345,7 @@ export class AudioEngine {
     for (const t of this.timers) window.clearTimeout(t);
     this.timers = [];
     for (const v of this.versionVoices.values()) v.stop();
+    this.stretch = 1;
     this.current?.cantus.stop();
     this.current?.counterpoint.stop();
     this.current?.fux.stop();

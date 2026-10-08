@@ -49,7 +49,7 @@ export function startPlayback(audio: AudioEngine, view: ExerciseView, s: PlaySet
         audio: { ctx: graph.ctx, destination },
         includeSungVoices: false,
         startTime,
-        getTempo: () => audio.tempo,
+        getTempo: () => audio.tempo / audio.stretch,
         temperament: s.tuning,
         inegal: c.inegal && c.preset !== "stileAntico",
       }),

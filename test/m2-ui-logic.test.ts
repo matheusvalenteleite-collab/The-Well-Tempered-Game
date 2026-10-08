@@ -95,9 +95,9 @@ test("overlay: every fux-strict rule has a drawing; parallel fifths become a lin
   const ev = evaluate({ species: "first", modalFinal: "D", cantusVoice: "lower", cantus: cf.map((p) => ({ pitch: p, duration: "1/1" })), counterpoint: cp.map((p) => ({ pitch: p, duration: "1/1" })) });
   const o = buildOverlay(ev.violations, cf, cp);
   assert.equal(o.intervals.length, 11);
-  assert.deepEqual(o.intervals.map((i) => i.text), ["P8", "M6", "m6", "P5", "P5", "M6", "m3", "P5", "P8", "m6", "P8"]);
-  assert.ok(o.links.some((l) => l.from === 3 && l.to === 4 && l.text === "parallel P5→P5" && l.severity === "error"));
-  assert.ok(o.links.some((l) => l.from === 2 && l.to === 3 && l.text === "similar m6→P5"));
+  assert.deepEqual(o.intervals.map((i) => i.text), ["8", "M6", "m6", "5", "5", "M6", "m3", "5", "8", "m6", "8"]);
+  assert.ok(o.links.some((l) => l.from === 3 && l.to === 4 && l.text === "parallel 5→5" && l.severity === "error"));
+  assert.ok(o.links.some((l) => l.from === 2 && l.to === 3 && l.text === "similar m6→5"));
   assert.equal(o.intervals[9].status, "error"); // cadence m6
   assert.equal(o.intervals[10].status, "ok"); // the final octave itself is right
   assert.equal(o.intervals[3].status, "error"); // fifth reached by similar motion
@@ -122,7 +122,7 @@ test("overlay, second species: every rule has a drawing; downbeat fifths linked 
   const ev = evaluate({ species: "second", modalFinal: "D", cantusVoice: "lower", cantus: cf.map((p) => ({ pitch: p, duration: "1/1" })), counterpoint: cp.map((p, k) => ({ pitch: p, duration: layout[k].duration })) });
   const o = buildOverlay(ev.violations, cf, cp, layout);
   assert.equal(o.intervals.length, 21);
-  assert.ok(o.links.some((l) => l.from === 14 && l.to === 16 && l.text === "parallel P5→P5"));
+  assert.ok(o.links.some((l) => l.from === 14 && l.to === 16 && l.text === "parallel 5→5"));
   const ex = buildOverlay(ev.violations, cf, cp, layout, 7, 8); // bars 8-9: slots 14..17
   assert.deepEqual(ex.links.map((l) => [l.from, l.to]), [[0, 2]]);
 });

@@ -261,9 +261,12 @@ export class Synth implements Instrument {
     const off = time + Math.max(duration, a);
     const end = off + st.release + 0.1;
     // ADSR: attack to 1, decay to the sustain level, hold until the note ends, then release.
+    // Velocity shades the loudness of the synthesized models (about ±6 dB around 0.75); the
+    // recorded ones choose a layer and shade it themselves.
+    const peak = st.model === "sampled" ? 1 : 0.5 + 0.67 * velocity;
     env.gain.setValueAtTime(0, time);
-    env.gain.linearRampToValueAtTime(1, time + a);
-    env.gain.setTargetAtTime(st.sustain, time + a, Math.max(0.001, st.decay) / 3);
+    env.gain.linearRampToValueAtTime(peak, time + a);
+    env.gain.setTargetAtTime(st.sustain * peak, time + a, Math.max(0.001, st.decay) / 3);
     env.gain.cancelScheduledValues(off);
     env.gain.setTargetAtTime(0, off, Math.max(0.005, st.release) / 3);
 

@@ -81,7 +81,7 @@ export function Hints({ step, cantus }: { step: CurriculumStep; cantus: string[]
   const n = cantus.length;
   const below = step.cantus_voice === "lower";
   const sixth = second && fifthIsDiminished(cantus[n - 2], step.cantus_voice);
-  const cadenceText = second ? `${sixth ? "6" : "P5"} → ${below ? "M6" : "m3"}` : below ? "M6" : "m3";
+  const cadenceText = second ? `${sixth ? "6" : "5"} → ${below ? "M6" : "m3"}` : below ? "M6" : "m3";
   const item = (x: (typeof intro)[number]) => (
     <li key={x.ruleId}>
       {t(`hints.rule.${x.ruleId}`)} <span className="ref">{t("hints.ref", { page: x.page })}</span>

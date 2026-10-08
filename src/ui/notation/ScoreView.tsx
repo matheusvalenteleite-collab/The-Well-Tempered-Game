@@ -90,6 +90,9 @@ const NOTE_PAD = 12;
 /** Drawing scale on wide screens. */
 const BASE_SCALE = 1;
 const COLOR: Record<Status, string> = { ok: "var(--ok)", neutral: "var(--ink-muted)", error: "var(--bad)", warning: "var(--warn)" };
+/** Type: a clean sans for labels and numbers; an old-style serif, in italic, for figures and voice labels. */
+const UI_FONT = "Inter, system-ui, sans-serif";
+const SERIF = "'EB Garamond', Garamond, Georgia, serif";
 /** Size of the continuo staves relative to the main staves. */
 const CUE = 0.75;
 /** Height (logical) of each extra staff for a derived line. */
@@ -283,7 +286,7 @@ export function ScoreView(props: ScoreProps) {
       ctx.setFillStyle("currentColor");
       for (let b = 1; b < bars; b++) ctx.fillRect(xOfBar(b) - 2, st.getYForLine(0), 1, st.getYForLine(4) - st.getYForLine(0));
       ctx.setFillStyle(line.ink);
-      ctx.setFont("Georgia, serif", 10, "italic");
+      ctx.setFont(SERIF, 10, "italic");
       ctx.fillText(line.label, st.getNoteEndX() - 4 - ctx.measureText(line.label).width, st.getYForLine(0) - 6);
       ctx.restore();
       layout.forEach((sl, k) => {
@@ -313,7 +316,7 @@ export function ScoreView(props: ScoreProps) {
     if (props.playerLabel) {
       ctx.save();
       ctx.setFillStyle(props.playerInk ?? "var(--ink-player)");
-      ctx.setFont("Georgia, serif", 10, "italic");
+      ctx.setFont(SERIF, 10, "italic");
       const st = staves[cpIndex];
       ctx.fillText(props.playerLabel, st.getNoteEndX() - 4 - ctx.measureText(props.playerLabel).width, st.getYForLine(0) - 6);
       ctx.restore();
@@ -332,7 +335,7 @@ export function ScoreView(props: ScoreProps) {
         const p = parsePitch(pitch);
         const name = p.step + (p.alter > 0 ? "♯".repeat(p.alter) : p.alter < 0 ? "♭".repeat(-p.alter) : "");
         ctx.save();
-        ctx.setFont("Georgia, serif", 8, "normal");
+        ctx.setFont(UI_FONT, 8, "500");
         ctx.setFillStyle(ink);
         ctx.fillText(name, x, n.getYs()[0] + 3);
         ctx.restore();
@@ -346,7 +349,7 @@ export function ScoreView(props: ScoreProps) {
     if (props.fux) {
       // Legend, top right of the counterpoint staff.
       ctx.save();
-      ctx.setFont("Georgia, serif", 10, "normal");
+      ctx.setFont(UI_FONT, 9, "500");
       const y = 11;
       const xr = staves[0].getNoteEndX() - 4;
       ctx.setFillStyle("var(--ink-fux)");
@@ -360,7 +363,7 @@ export function ScoreView(props: ScoreProps) {
 
     // Discreet bar numbers above the upper staff.
     ctx.save();
-    ctx.setFont("Georgia, serif", 9, "normal");
+    ctx.setFont(UI_FONT, 8, "normal");
     ctx.setFillStyle("var(--bar-number)");
     const numberY = STAFF_Y[0] + 22;
     columns.forEach((c, k) => {
@@ -372,7 +375,7 @@ export function ScoreView(props: ScoreProps) {
 
     if (props.overlay) {
       const centerText = (text: string, x: number, y: number, size: number, bold = false) => {
-        ctx.setFont("Georgia, serif", size, bold ? "bold" : "normal");
+        ctx.setFont(UI_FONT, size - 1, bold ? "600" : "normal");
         ctx.fillText(text, x - ctx.measureText(text).width / 2, y);
       };
       for (const lab of props.overlay.intervals) {
@@ -632,7 +635,7 @@ function layoutContinuo(
       // Bar lines, aligned with the main staves'.
       for (let b = 1; b < r.bars.length; b++)
         for (const s of staves) ctx.fillRect((xOfBar(b) - 2) / CUE, s.getYForLine(0), 1 / CUE, s.getYForLine(4) - s.getYForLine(0));
-      ctx.setFont("Georgia, serif", 11, "italic");
+      ctx.setFont(SERIF, 11, "italic");
       const top = staves[0].getYForLine(0);
       ctx.fillText("B.c.", 2, top - (grand ? 4 : 6));
       ctx.restore();
@@ -652,7 +655,7 @@ function layoutContinuo(
       if (figs.length) {
         ctx.save();
         ctx.setFillStyle(CONTINUO_INK);
-        ctx.setFont("Georgia, serif", 12, "italic");
+        ctx.setFont(SERIF, 12, "italic");
         for (const f of figs) {
           const x = xOf({ bar: f.bar, half: f.half, duration: barW[f.bar] > 60 || f.half ? "h" : "w", tones: [], tiedFrom: [] }) + 6;
           f.stack.forEach((t, i) => ctx.fillText(t, x - ctx.measureText(t).width / 2, figY + 11 * i));

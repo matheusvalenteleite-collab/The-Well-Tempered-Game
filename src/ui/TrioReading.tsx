@@ -24,7 +24,6 @@ export function TrioReading({ findings, layout }: { findings: TrioFinding[]; lay
   );
   return (
     <section className="compare trio-reading">
-      <h4>{t("ui.trio.title")}</h4>
       <p className="help">{t(half ? "ui.trio.introHalf" : "ui.trio.intro")}</p>
       {faults.length === 0 && <p className="help">{t("ui.trio.noFaults")}</p>}
       {faults.length > 0 && (
