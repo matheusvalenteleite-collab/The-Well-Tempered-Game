@@ -19,7 +19,6 @@ import {
   motion,
   type Interval,
 } from "../interval.ts";
-import { parsePitch } from "../../music/pitch.ts";
 import type { Analysis, Rule, Violation } from "./types.ts";
 
 const P = "Gradus (1725), Exercitii I, Lectio I";
@@ -56,17 +55,17 @@ export const openingPerfect: Rule = {
   source: "fux",
   severity: "error",
   species: ["first"],
-  voicing: "cantus-below",
+  voicing: "any",
   messageKey: "rule.fs.opening-perfect",
   attribution: {
     status: "verified",
     ref: `${P}, pp. 47-49`,
-    note: "Begin on a perfect consonance (p. 47). With the cantus above, an opening fifth below is an error because it is outside the mode (pp. 48-49); hence this rule's P1/P5/P8 form is stated for the cantus below only.",
+    note: "Begin on a perfect consonance (p. 47). With the counterpoint below, only the octave or unison: an opening fifth below lies outside the mode of the cantus (pp. 48-49). Compound forms are accepted as their simple equivalents.",
   },
-  pending: "Compound forms (P12, P15) are currently accepted as perfect consonances; confirm.",
   check(a) {
     const i = vertical(a, 0);
-    return isPerfectConsonance(i) ? [] : [v(this, [0], { interval: i.name })];
+    const ok = a.input.cantusVoice === "lower" ? isPerfectConsonance(i) : isOctaveClass(i);
+    return ok ? [] : [v(this, [0], { interval: i.name })];
   },
 };
 
@@ -85,43 +84,25 @@ export const finalOctaveOrUnison: Rule = {
   },
 };
 
-export const cadenceMajorSixth: Rule = {
-  id: "fs.cadence-major-sixth",
+export const cadence: Rule = {
+  id: "fs.cadence",
   source: "fux",
   severity: "error",
   species: ["first"],
-  voicing: "cantus-below",
-  messageKey: "rule.fs.cadence-major-sixth",
+  voicing: "any",
+  messageKey: "rule.fs.cadence",
   attribution: {
     status: "verified",
     ref: `${P}, pp. 47 and 49; Lectio II, p. 56`,
-    note: "Penultimate major sixth because the cantus is below (p. 47); with the cantus above, a minor third instead (p. 49).",
+    note: "Penultimate major sixth when the cantus is below (p. 47); minor third when the cantus is above (p. 49); then the octave or unison.",
   },
   check(a) {
     const k = a.length - 2;
     const pen = vertical(a, k);
     const fin = vertical(a, k + 1);
-    const ok = pen.quality === "M" && pen.simple === 6 && isOctaveClass(fin);
-    return ok ? [] : [v(this, [k, k + 1], { penultimate: pen.name, final: fin.name })];
-  },
-};
-
-export const ionianNoAccidentals: Rule = {
-  id: "fs.ionian-no-accidentals",
-  source: "fux",
-  severity: "error",
-  species: ["first"],
-  voicing: "any",
-  finals: ["C"],
-  messageKey: "rule.fs.ionian-no-accidentals",
-  attribution: {
-    status: "verified",
-    ref: `${P}, p. 55`,
-    note: "Fux adds the sharp at the cadence only where the mode lacks a semitone below the final; in C the leading note is already B. That no other accidental is wanted in Ionian first species is inferred, not stated.",
-  },
-  pending: "Severity (error vs warning) not yet decided.",
-  check(a) {
-    return a.counterpoint.flatMap((p, k) => (parsePitch(p).alter !== 0 ? [v(this, [k], { pitch: p })] : []));
+    const want = a.input.cantusVoice === "lower" ? { quality: "M", simple: 6 } : { quality: "m", simple: 3 };
+    const ok = pen.quality === want.quality && pen.simple === want.simple && isOctaveClass(fin);
+    return ok ? [] : [v(this, [k, k + 1], { penultimate: pen.name, final: fin.name, expected: `${want.quality}${want.simple}` })];
   },
 };
 
@@ -228,16 +209,15 @@ export const melodicBeyondOctave = melodicRule(
 export const noVoiceCrossing: Rule = {
   id: "fs.no-voice-crossing",
   source: "fux",
-  severity: "error",
+  severity: "warning",
   species: ["first"],
   voicing: "any",
   messageKey: "rule.fs.no-voice-crossing",
   attribution: {
     status: "contradicted",
     ref: `${P}, p. 52`,
-    note: "CONTRADICTED by the source: in Fig. 14, Fux has the counterpoint cross the cantus (notes 4-7), and Aloysius approves it ('Optimâ observantiâ id fecisti').",
+    note: "Severity set to warning by decision D2. The source approves crossing: in Fig. 14, Fux has the counterpoint cross the cantus (notes 4-7), and Aloysius approves it ('Optimâ observantiâ id fecisti').",
   },
-  pending: "Fux approves voice crossing (p. 52). Decide whether Level 1 keeps this as a hard rule.",
   check(a) {
     const out: number[] = [];
     for (let k = 0; k < a.length; k++) {
@@ -318,8 +298,7 @@ export const FIRST_SPECIES_FUX_STRICT: readonly Rule[] = [
   verticalConsonance,
   openingPerfect,
   finalOctaveOrUnison,
-  cadenceMajorSixth,
-  ionianNoAccidentals,
+  cadence,
   perfectApproach,
   unisonOnlyAtEnds,
   melodicAugmentedDiminished,

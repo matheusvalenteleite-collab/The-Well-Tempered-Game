@@ -14,19 +14,12 @@ test("Level 1 filter (first species, final C, cantus below) matches no Fux exerc
   assert.deepEqual(repo.listExercises({ species: "first", modal_final: "C", cantus_voice: "lower" }), []);
 });
 
-test("fux-strict hard rules on Fux's 10 first-species solutions: only the Fig. 14 voice crossing fails", () => {
+test("fux-strict hard rules on Fux's 10 first-species solutions: none fails", () => {
   const results = goldenFirstSpecies(repo);
   assert.equal(results.length, 10);
-  const errors = results.flatMap((r) => r.errors.map((e) => `${r.figure}:${e.ruleId}:${e.positions.join(",")}`));
-  // Fig. 14 crosses the cantus in notes 4-7; Fux approves it explicitly (1725, p. 52). Open question to the user.
-  assert.deepEqual(errors, ["14:fs.no-voice-crossing:3,4,5,6"]);
-});
-
-test("cadence rule is cantus-below only: with the cantus above Fux cadences m3 -> P1 (1725, p. 49)", () => {
-  for (const r of goldenFirstSpecies(repo).filter((x) => x.cantus_voice === "upper")) {
-    const cad = r.not_applied_cantus_below_rules.find((x) => x.ruleId === "fs.cadence-major-sixth")!;
-    assert.equal(cad.would_report[0].detail!.penultimate, "m3", r.figure);
-  }
+  assert.deepEqual(results.flatMap((r) => r.errors.map((e) => `${r.figure}:${e.ruleId}`)), []);
+  // Opening and cadence are now applied to both voicings, as Fux states them (pp. 47-49).
+  for (const r of results) assert.ok(r.rules_applied.includes("fs.cadence") && r.rules_applied.includes("fs.opening-perfect"), r.figure);
 });
 
 test("warnings on Fux's solutions (calibration evidence; provisional operationalizations)", () => {
@@ -37,6 +30,8 @@ test("warnings on Fux's solutions (calibration evidence; provisional operational
     "12:fs.avoid-successive-leaps:0,1,2",
     "13:fs.avoid-successive-leaps:1,2,3",
     "13:fs.avoid-successive-leaps:7,8,9",
+    // Decision D2: crossing is a warning; Fux approves this one (1725, p. 52).
+    "14:fs.no-voice-crossing:3,4,5,6",
     "15:fs.avoid-successive-leaps:7,8,9",
     "15:fs.avoid-successive-leaps:8,9,10",
     "21:fs.avoid-successive-leaps:4,5,6",
@@ -49,7 +44,7 @@ test("warnings on Fux's solutions (calibration evidence; provisional operational
 
 test("the superseded published reading of Fig. 22 fails fux-strict (supports the kern reading)", () => {
   const ids = goldenFig22PublishedReading(repo).evaluation.errors.map((e) => e.ruleId);
-  assert.deepEqual(ids, ["fs.vertical-consonance", "fs.melodic-seventh", "fs.no-voice-crossing"]);
+  assert.deepEqual(ids, ["fs.vertical-consonance", "fs.melodic-seventh"]);
 });
 
 test("engine intervals agree with all 1,111 source annotations", () => {

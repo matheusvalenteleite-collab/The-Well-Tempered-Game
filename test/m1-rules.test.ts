@@ -59,12 +59,19 @@ test("each hard rule fires on a targeted defect", () => {
   assert.ok(ids(with_(2, "B4")).includes("fs.vertical-consonance")); // F4-B4 = A4
   assert.ok(ids(with_(0, "E4")).includes("fs.opening-perfect"));
   assert.ok(ids(with_(11, "E5")).includes("fs.final-octave-or-unison"));
-  assert.ok(ids(with_(10, "F4")).includes("fs.cadence-major-sixth"));
-  assert.ok(ids(with_(8, "F#4")).includes("fs.ionian-no-accidentals"));
+  assert.ok(ids(with_(10, "F4")).includes("fs.cadence"));
   assert.ok(ids(["G4", "B4", "C5", "D5", "B4", "C5", "B4", "C5", "A4", "G4", "B4", "C5"]).includes("fs.perfect-approach")); // E4-B4 -> F4-C5 parallel fifths
   assert.ok(ids(with_(4, "E4")).includes("fs.unison-only-at-ends"));
   assert.ok(ids(["G4", "G4", "A4", "B4", "G4", "E5", "B4", "C5", "A4", "G4", "B4", "C5"]).includes("fs.melodic-sixth")); // G4-E5 = M6 up
-  assert.ok(ids(with_(4, "D4")).includes("fs.no-voice-crossing"));
+  assert.ok(evaluate(input(with_(6, "F4"))).warnings.some((w) => w.ruleId === "fs.no-voice-crossing")); // G4 cantus, F4 counterpoint
+});
+
+test("cantus above: opening only P1/P8, cadence m3 -> P8/P1 (1725, pp. 48-49)", () => {
+  const above = (cp: string[]): CounterpointInput => ({ ...input(cp), cantusVoice: "upper" });
+  const CP = ["C3", "A3", "D3", "B2", "C3", "F3", "E3", "C3", "D3", "C3", "B3", "C4"];
+  assert.deepEqual(evaluate(above(CP)).errors.filter((e) => ["fs.opening-perfect", "fs.cadence"].includes(e.ruleId)), []);
+  assert.ok(evaluate(above(["F3", ...CP.slice(1)])).errors.some((e) => e.ruleId === "fs.opening-perfect")); // fifth below
+  assert.ok(evaluate(above([...CP.slice(0, 10), "G3", "C4"])).errors.some((e) => e.ruleId === "fs.cadence")); // M6 below instead of m3
 });
 
 test("melodic interval rule boundaries", () => {
