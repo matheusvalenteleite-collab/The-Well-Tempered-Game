@@ -5,6 +5,7 @@
 import type { FuxRepository } from "../music/fux/repository.ts";
 import type { ModalFinal, Staff } from "../music/fux/types.ts";
 import type { CurriculumStep } from "../counterpoint/curriculum/fux-first-species.ts";
+import { parsePitch } from "../music/pitch.ts";
 import { isClefId, type ClefId } from "../ui/notation/clefs.ts";
 
 export interface ExerciseView {
@@ -24,6 +25,20 @@ const clef = (name: string): ClefId => {
   if (!isClefId(name)) throw new Error(`unsupported clef ${name}`);
   return name;
 };
+
+/**
+ * Display clef per staff: G clef when the voice lies on average at or above middle C,
+ * F clef otherwise (owner decision D30; no octave-transposing treble). The counterpoint's
+ * register is estimated as the cantus an octave away on the counterpoint's side, so the
+ * clef never depends on Fux's solution.
+ */
+export function displayClefs(cantus: string[], cantusVoice: Staff): [ClefId, ClefId] {
+  const mean = cantus.reduce((a, p) => a + parsePitch(p).midi, 0) / cantus.length;
+  const pick = (m: number): ClefId => (m >= 60 ? "treble" : "bass");
+  const cf = pick(mean);
+  const cp = pick(cantusVoice === "upper" ? mean - 12 : mean + 12);
+  return cantusVoice === "upper" ? [cf, cp] : [cp, cf];
+}
 
 export function exerciseView(repo: FuxRepository, step: CurriculumStep): ExerciseView {
   const cf = repo.getCantusFirmus(step.cf_id);
@@ -45,9 +60,8 @@ export function exerciseView(repo: FuxRepository, step: CurriculumStep): Exercis
       ...base,
       exerciseId: ex.id,
       figure: ex.figure,
-      // Modern clefs as given per exercise in the dataset (owner decision: replaces a fixed treble-over-bass).
       clefs: {
-        modern: [clef(byStaff("upper").modern.name), clef(byStaff("lower").modern.name)],
+        modern: displayClefs(cf.pitch_sequence, ex.cantus_voice),
         original: [clef(byStaff("upper").original.name), clef(byStaff("lower").original.name)],
       },
       attribution: { ...base.attribution, urls: ex.source.urls },
@@ -59,14 +73,12 @@ export function exerciseView(repo: FuxRepository, step: CurriculumStep): Exercis
   if (!cfClef) throw new Error(`${step.id}: cantus firmus ${cf.cf_id} has no source exercise for its clef`);
   const cfOriginal = clef(cfClef.cantus_firmus.clef.original.name);
   const cpOriginal = clef(cfClef.counterpoint.clef.original.name);
-  const cfModern = clef(cfClef.cantus_firmus.clef.modern.name);
-  const cpModern = clef(cfClef.counterpoint.clef.modern.name);
   return {
     ...base,
     exerciseId: null,
     figure: null,
     clefs: {
-      modern: step.cantus_voice === "upper" ? [cfModern, cpModern] : [cpModern, cfModern],
+      modern: displayClefs(cf.pitch_sequence, step.cantus_voice),
       original: step.cantus_voice === "upper" ? [cfOriginal, cpOriginal] : [cpOriginal, cfOriginal],
     },
   };

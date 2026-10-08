@@ -113,3 +113,13 @@ test("cadence correction: the player's register is kept, only the faulty note ch
   assert.deepEqual(correctionFor(v, cf, high, "lower")!.slice(9), ["C#6", "D6"]);
   assert.equal(correctionFor({ ...v, ruleId: "fs.vertical-consonance" }, cf, cp, "lower"), null);
 });
+
+test("display clefs are G or F only, chosen by register (D30)", async () => {
+  const { displayClefs } = await import("../src/game/exercise-view.ts");
+  // Fig. 6: cantus D4–A4 above, counterpoint below → treble over bass.
+  assert.deepEqual(displayClefs(["D4", "F4", "E4", "D4", "G4", "F4", "A4", "G4", "F4", "E4", "D4"], "upper"), ["treble", "bass"]);
+  // Fig. 14: low cantus F3–C4 above, counterpoint below it → two F clefs.
+  assert.deepEqual(displayClefs(["F3", "G3", "A3", "F3", "D3", "E3", "F3", "C4", "A3", "F3", "G3", "F3"], "upper"), ["bass", "bass"]);
+  // Fig. 5: cantus below, counterpoint above → two G clefs.
+  assert.deepEqual(displayClefs(["D4", "F4", "E4", "D4", "G4", "F4", "A4", "G4", "F4", "E4", "D4"], "lower"), ["treble", "treble"]);
+});
