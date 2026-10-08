@@ -12,6 +12,8 @@ import { SynthRack, type SynthTarget } from "./SynthRack.tsx";
 import { DrumBox } from "./DrumBox.tsx";
 import { DEFAULT_DRUMS, DRUM_PATTERNS, DrumMachine, LOOP_LENGTHS, type DrumSettings } from "../audio/drums.ts";
 import { Hints } from "./Hints.tsx";
+import { Study } from "./Study.tsx";
+import { stepStudy } from "./study.ts";
 import { Feedback } from "./Feedback.tsx";
 import { Knob } from "./Knob.tsx";
 import { ScoreView } from "./notation/ScoreView.tsx";
@@ -63,8 +65,7 @@ function store(key: string, value: unknown) {
 const stepLabel = (k: number) => {
   const s = STEPS[k];
   const v = VIEWS[k];
-  const where = v.figure ? t("ui.exercise.figure", { figure: v.figure }) : t("ui.nav.fuxCantus");
-  return `${s.ordinal}. ${where} · ${v.modalFinal} · ${t(s.cantus_voice === "lower" ? "ui.nav.cfBelow" : "ui.nav.cfAbove")}`;
+  return `${s.ordinal}. ${stepStudy(s.id).name} · ${v.modalFinal} · ${t(s.cantus_voice === "lower" ? "ui.nav.cfBelow" : "ui.nav.cfAbove")}`;
 };
 const stepIndexOf = (id: string) => STEPS.findIndex((s) => s.id === id);
 
@@ -103,6 +104,7 @@ export function App() {
   const [result, setResult] = useState<Evaluation | null>(null);
   const [showFux, setShowFux] = useState(false);
   const [showHints, setShowHints] = useState(false);
+  const [showStudy, setShowStudy] = useState(false);
   const [showSynth, setShowSynth] = useState(false);
   /** The score is "active" after it was clicked or played from the keyboard; a click elsewhere deactivates it. */
   const [active, setActive] = useState(true);
@@ -278,8 +280,10 @@ export function App() {
   }, []);
 
   const clefs = VIEW.clefs.modern;
+  // Exercises are named, not numbered by figure; the figure stays in the source line below.
+  const name = stepStudy(STEP.id).name;
   const figure = VIEW.figure ? t("ui.exercise.figure", { figure: VIEW.figure }) : t("ui.nav.fuxCantus");
-  const label = `${figure} ${t("ui.exercise.mode", { final: VIEW.modalFinal })}`;
+  const label = `${name} ${t("ui.exercise.mode", { final: VIEW.modalFinal })}`;
   const starred = stars.includes(STEP.id);
 
   return (
@@ -339,7 +343,7 @@ export function App() {
       </header>
       <main>
         <p className="meta">
-          {t("ui.mode.fux")} · {t("ui.nav.voicesN", { n: COURSE.voices })} · {t(`ui.species.${VIEW.species}`)} · {figure} · {t("ui.exercise.mode", { final: VIEW.modalFinal })} ·{" "}
+          {t("ui.mode.fux")} · {t("ui.nav.voicesN", { n: COURSE.voices })} · {t(`ui.species.${VIEW.species}`)} · {name} · {t("ui.exercise.mode", { final: VIEW.modalFinal })} ·{" "}
           {VIEW.cantusVoice === "lower" ? t("ui.exercise.cantusBelow") : t("ui.exercise.cantusAbove")}
         </p>
         <blockquote className="tutor">
@@ -447,6 +451,7 @@ export function App() {
           <div className="group">
             <button aria-pressed={showSynth} onClick={() => setShowSynth(!showSynth)}>{t("ui.synth")}</button>
             <button aria-pressed={showHints} onClick={() => setShowHints(!showHints)}>{t("ui.hints")}</button>
+            <button aria-pressed={showStudy} onClick={() => setShowStudy(!showStudy)} title={t("ui.study.help")}>{t("ui.study")}</button>
           </div>
         </div>
         {missing > 0 && !result && <p className="help">{t("ui.evaluate.incomplete", { missing })}</p>}
@@ -484,6 +489,7 @@ export function App() {
       </main>
       <footer>
         {showHints && <Hints step={STEP} cantus={VIEW.cantus} />}
+        {showStudy && <Study step={STEP} />}
         <p className="source">
           {VIEW.exerciseId
             ? t("ui.source.exercise", { figure, page: VIEW.page, license: VIEW.attribution.license })

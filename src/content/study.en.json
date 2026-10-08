@@ -1,0 +1,912 @@
+{
+ "modes": {
+  "D": {
+   "name": "The mode on D",
+   "body": [
+    {
+     "type": "text",
+     "text": "Final D, fifth A. Mann calls it Dorian. Between D and A lie the semitone E–F; above A, B♮ and the semitone B–C."
+    },
+    {
+     "type": "text",
+     "text": "At the cadence the counterpoint's next-to-last note is the seventh degree, C, raised to C♯: the major sixth over E (cantus below) or the minor third under E (cantus above)."
+    },
+    {
+     "type": "mann",
+     "text": "Thus, the seventh degree has to be raised in the Dorian (D), Mixolydian (G), and Aeolian (A) modes. (The second degree of a mode occurs always as the next to the last tone in the cantus firmus, the seventh degree always as the next to the last tone in the counterpoint.)",
+     "page": "28",
+     "note": "2"
+    },
+    {
+     "type": "text",
+     "text": "Watch the line F … B: the two notes of mi contra fa are both in the mode, and a careless leap between them is a tritone."
+    }
+   ]
+  },
+  "E": {
+   "name": "The mode on E",
+   "body": [
+    {
+     "type": "text",
+     "text": "Final E, fifth B. Mann calls it Phrygian. Its peculiarity is the semitone directly above the final, E–F: the cantus ends F → E, falling by a semitone, so the cadence needs no accidental (the counterpoint's D is already a whole tone from E)."
+    },
+    {
+     "type": "text",
+     "text": "B and F, mi and fa, sit a tritone apart inside this mode, and the cantus moves around them. This is where Josephus first leaps a tritone (first species, cantus above), and where in second species the fifth before the final is impossible (F against B below)."
+    },
+    {
+     "type": "text",
+     "text": "In four voices Aloysius calls E the most difficult mode, because it lacks the perfect fifth where the others have one (Mann p. 124)."
+    }
+   ]
+  },
+  "F": {
+   "name": "The mode on F",
+   "body": [
+    {
+     "type": "text",
+     "text": "Final F, fifth C. Mann calls it Lydian. With B♮ the fourth above the final is a tritone, F–B; Fux's cantus avoids B altogether."
+    },
+    {
+     "type": "text",
+     "text": "In his counterpoints Fux often writes B♭ to avoid that tritone (Figs. 38-39); in third species Josephus explains such flats as accidental, not a change of the diatonic genus (1725 pp. 68-69). The cadence (E before F) needs no accidental."
+    },
+    {
+     "type": "text",
+     "text": "The cantus lies low (F3–C4): with the counterpoint below, voices crowd and crossing becomes tempting (Fig. 14)."
+    }
+   ]
+  },
+  "G": {
+   "name": "The mode on G",
+   "body": [
+    {
+     "type": "text",
+     "text": "Final G, fifth D. Mann calls it Mixolydian. The seventh degree F is raised to F♯ at the cadence."
+    },
+    {
+     "type": "mann",
+     "text": "Thus, the seventh degree has to be raised in the Dorian (D), Mixolydian (G), and Aeolian (A) modes. (The second degree of a mode occurs always as the next to the last tone in the cantus firmus, the seventh degree always as the next to the last tone in the counterpoint.)",
+     "page": "28",
+     "note": "2"
+    },
+    {
+     "type": "text",
+     "text": "Raising F creates a risk elsewhere: an F♮ near an F♯ in the other voice is a false relation, which is why Josephus sharpens F a bar early in Fig. 21 (1725 p. 55)."
+    }
+   ]
+  },
+  "A": {
+   "name": "The mode on A",
+   "body": [
+    {
+     "type": "text",
+     "text": "Final A, fifth E. Mann calls it Aeolian. The seventh degree G is raised to G♯ at the cadence."
+    },
+    {
+     "type": "mann",
+     "text": "Thus, the seventh degree has to be raised in the Dorian (D), Mixolydian (G), and Aeolian (A) modes. (The second degree of a mode occurs always as the next to the last tone in the cantus firmus, the seventh degree always as the next to the last tone in the counterpoint.)",
+     "page": "28",
+     "note": "2"
+    },
+    {
+     "type": "text",
+     "text": "As in D, F and B both belong to the mode: a leap between them is a tritone."
+    }
+   ]
+  },
+  "C": {
+   "name": "The mode on C",
+   "body": [
+    {
+     "type": "text",
+     "text": "Final C, fifth G. Mann calls it Ionian. B is already a semitone below the final, so the cadence needs no accidental."
+    },
+    {
+     "type": "text",
+     "text": "Fux leaves C to the pupil in first species (no worked example); in second species he works it out (Figs. 44-45)."
+    }
+   ]
+  }
+ },
+ "steps": {
+  "fux-mode.s1.01": {
+   "name": "First steps",
+   "specific": [
+    "Every vertical interval a consonance; reach perfect consonances only by contrary or oblique motion.",
+    "More thirds and sixths than fifths and octaves (1725 p. 46).",
+    "Begin and end on a perfect consonance; major sixth in the next-to-last bar."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "text",
+     "text": "Aloysius defines the species: notes of equal length, consonances only. Whole notes are used because they show the matter most clearly. He recalls the four rules of motion from the first book and adds two precepts: contrary and oblique motion as much as possible, and more imperfect than perfect consonances, with the beginning and the end excepted."
+    },
+    {
+     "type": "fux",
+     "latin": "adhibendo ut plurimum, motum contrarium, vel obliquum",
+     "english": "using contrary or oblique motion as much as possible",
+     "page": "45"
+    },
+    {
+     "type": "fux",
+     "latin": "meris Consonantiis constans",
+     "english": "consisting of consonances only",
+     "page": "45"
+    },
+    {
+     "type": "text",
+     "text": "Why more imperfect consonances? Because they are more harmonious; a composition of perfect consonances would lack harmony. Why perfect ones at the ends? Because the beginning should express perfection and the end repose, which imperfect consonances cannot give (paraphrase of p. 46)."
+    },
+    {
+     "type": "heading",
+     "text": "The dialogue"
+    },
+    {
+     "type": "dialogue",
+     "lines": [
+      {
+       "who": "Josephus",
+       "text": "writes a counterpoint above the cantus and puts the bar numbers over his part, and over the alto the consonances he means to use."
+      },
+      {
+       "who": "Josephus",
+       "text": "then justifies each move by the rule it obeys: a fifth to a third by oblique motion; third to third by parallel motion; third to fifth by contrary motion; and so on to the major sixth and the octave."
+      },
+      {
+       "who": "Aloysius",
+       "text": "approves: if he masters the motions and the rules, slight slips will soon disappear."
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "text": "Mann's notes"
+    },
+    {
+     "type": "mann",
+     "text": "Principles for the forming of melodies are discussed later in the course of the work. The basic rule, however, from which all others are derived, might be mentioned beforehand: the possibility of vocal performance should always be taken into consideration. Therefore, no augmented, diminished, or chromatic intervals are to be used, nor intervals larger than the fifth (except for the octave and the minor sixth, which latter, however, should be employed only in an upward direction). Registers too high or too low (see p. 79), skips following each other in the same direction, and skips which are not compensated for subsequently should also be avoided.",
+     "page": "27",
+     "note": "1"
+    },
+    {
+     "type": "mann",
+     "text": "Thus, the seventh degree has to be raised in the Dorian (D), Mixolydian (G), and Aeolian (A) modes. (The second degree of a mode occurs always as the next to the last tone in the cantus firmus, the seventh degree always as the next to the last tone in the counterpoint.)",
+     "page": "28",
+     "note": "2"
+    },
+    {
+     "type": "mann",
+     "text": "For Fig. 5, second and seventh bars: The repetition of a tone—the only way of using oblique motion in the first species—may occur occasionally in the counterpoint; however, the same tone should not be repeated more than once.",
+     "page": "29",
+     "note": "3"
+    },
+    {
+     "type": "text",
+     "text": "Note: Mann's melodic advice (no leaps larger than a fifth, compensate leaps, and so on) is his own, not Fux's; the game does not check it."
+    }
+   ]
+  },
+  "fux-mode.s1.02": {
+   "name": "Below the cantus",
+   "specific": [
+    "With the counterpoint below: begin on the octave or unison, not the fifth (p. 48).",
+    "From an imperfect to a perfect consonance only by contrary motion: direct motion hides fifths and octaves (pp. 49-50)."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "text",
+     "text": "Josephus now writes below the cantus, reckoning the intervals downwards. Aloysius marks two faults he could not have known about."
+    },
+    {
+     "type": "dialogue",
+     "lines": [
+      {
+       "who": "Josephus",
+       "text": "Why did you mark the first and second bars? I began on a fifth, a perfect consonance."
+      },
+      {
+       "who": "Aloysius",
+       "text": "The counterpoint must be in the mode of the cantus. The cantus is in D (la sol re); beginning on G (sol re ut) forces the opening out of the mode. I changed the fifth to an octave."
+      },
+      {
+       "who": "Aloysius",
+       "text": "The second fault is from bar 2 to 3: from a third to a fifth by direct motion. Let the lower voice stay on D: a tenth, then the fifth by contrary motion."
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": "Why is direct motion into a perfect consonance forbidden? Because a good singer, filling the leap with passing notes (diminution), would make the hidden fifths or octaves audible (Figs. 7-8)."
+    },
+    {
+     "type": "text",
+     "text": "Aloysius then sets the plan for the rest of the lesson: all the modes in their natural order, E, F, G, A, C. B is left out because its fifth is diminished; altering it would move into a transposed mode, discussed elsewhere."
+    },
+    {
+     "type": "heading",
+     "text": "Mann's notes"
+    },
+    {
+     "type": "mann",
+     "text": "This quadruple denomination of the same tone derives from the old distribution of the tones into three hexachords (six-tone scales) … The degrees of each hexachord were called in turn, ut, re, mi, fa, sol, and la, and it was customary to indicate the position of a tone in all three hexachords.",
+     "page": "31",
+     "note": "4"
+    },
+    {
+     "type": "mann",
+     "text": "This refers to the old practice of improvised ornamentation, especially in the so-called diminution (filling out of intervals, and breaking up of large note values into smaller ones). Cf. pp. 41 and 51.",
+     "page": "33",
+     "note": "5"
+    }
+   ]
+  },
+  "fux-mode.s1.03": {
+   "name": "Into E",
+   "specific": [
+    "No new precept. The cadence in E needs no accidental: the cantus falls a semitone F → E.",
+    "Beware F and B: mi contra fa."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "text",
+     "text": "Aloysius writes a cantus in E and Josephus sets a counterpoint above it. He is told he did very well. The modes differ, Aloysius says, because the semitones fall in different places, which changes the melody of each."
+    },
+    {
+     "type": "fux",
+     "latin": "mi contra fa est diabolus in Musica",
+     "english": "mi against fa is the devil in music",
+     "page": "52"
+    },
+    {
+     "type": "text",
+     "text": "That warning comes in the next exercise; here it is already latent, since the cantus moves around F and B."
+    }
+   ]
+  },
+  "fux-mode.s1.04": {
+   "name": "The devil in music",
+   "specific": [
+    "No leap of a tritone (augmented fourth) in the counterpoint (pp. 51-52)."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "dialogue",
+     "lines": [
+      {
+       "who": "Josephus",
+       "text": "So I made a mistake again: what is the bow from bar 6 to 7, with the cross over it?"
+      },
+      {
+       "who": "Aloysius",
+       "text": "Do not worry: you could not avoid it, since your attention had not been called to it. You know the verse: mi contra fa est diabolus in musica. Your leap is an augmented fourth, a tritone: hard to sing and ugly to hear, and therefore forbidden in strict counterpoint."
+      }
+     ]
+    },
+    {
+     "type": "fux",
+     "latin": "saltum Quartae majoris, sive Tritoni",
+     "english": "the leap of a major [augmented] fourth, or tritone",
+     "page": "51-52"
+    },
+    {
+     "type": "heading",
+     "text": "Mann's notes"
+    },
+    {
+     "type": "mann",
+     "text": "Mi (the third tone of a hexachord) and fa (the fourth tone of a hexachord) occur in most combinations of the different hexachords in the interval of a tritone or of a chromatic step, which makes their use in strict counterpoint impossible in these cases.",
+     "page": "35",
+     "note": "7"
+    },
+    {
+     "type": "mann",
+     "text": "The tritone is to be avoided even when reached stepwise if the line is not continued stepwise and in the same direction. The rule is less strict, however, when the tritone is brought about by the progressions of two voices … See Jeppesen, Counterpoint, p. 100.",
+     "page": "35",
+     "note": "9"
+    },
+    {
+     "type": "text",
+     "text": "The game checks only the leap Fux names (the augmented fourth); Mann's extension to stepwise tritones is his, not Fux's."
+    }
+   ]
+  },
+  "fux-mode.s1.05": {
+   "name": "Neighbouring clefs",
+   "specific": [
+    "No new precept. The cantus lies low here (tenor clef in the original): keep your line within reach of it."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "dialogue",
+     "lines": [
+      {
+       "who": "Josephus",
+       "text": "Here you put the cantus in the tenor clef. Is there a reason?"
+      },
+      {
+       "who": "Aloysius",
+       "text": "Only that you should become familiar with the clefs. Two voices should always be written in neighbouring clefs, so that simple intervals can be told from compound ones."
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "text": "Mann's notes"
+    },
+    {
+     "type": "mann",
+     "text": "A compound interval: the combination of a simple interval and the octave. The use of close position is essential for a balanced sound (cf. p. 112).",
+     "page": "36",
+     "note": "10"
+    }
+   ]
+  },
+  "fux-mode.s1.06": {
+   "name": "Crossing over",
+   "specific": [
+    "Crossing above the cantus is allowed when it avoids direct motion (p. 52); the game notes it as a recommendation only."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "dialogue",
+     "lines": [
+      {
+       "who": "Aloysius",
+       "text": "Right. But why did you let the counterpoint move above the cantus from the fourth to the seventh bar?"
+      },
+      {
+       "who": "Josephus",
+       "text": "Otherwise I would have had to use direct motion, and the voice leading would have been worse."
+      },
+      {
+       "who": "Aloysius",
+       "text": "You did very well, the more so since here you treated the cantus as a lower voice, as if it were a bass, and reckoned the consonances from it."
+      }
+     ]
+    },
+    {
+     "type": "fux",
+     "latin": "Optimâ observantiâ id fecisti",
+     "english": "you did that with the best attention",
+     "page": "52"
+    },
+    {
+     "type": "heading",
+     "text": "Mann's notes"
+    },
+    {
+     "type": "mann",
+     "text": "Voice crossing will prove to be a very important expedient, especially in three and four part writing (see p. 100). Cf. Jeppesen, Counterpoint, p. 113.",
+     "page": "36",
+     "note": "11"
+    }
+   ]
+  },
+  "fux-mode.s1.07": {
+   "name": "Singable lines",
+   "specific": [
+    "No leap of a major sixth: in strict counterpoint everything should be as singable as possible (p. 53).",
+    "The unison only in the first and last bars (pp. 53-54).",
+    "No leap into an octave or unison from a more distant consonance (p. 54)."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "dialogue",
+     "lines": [
+      {
+       "who": "Josephus",
+       "text": "I wrote with the closest attention and still there are two marks, from bar 9 to 10 and from 10 to 11."
+      },
+      {
+       "who": "Aloysius",
+       "text": "Do not be impatient. From 9 to 10 you used a leap of a major sixth, which is forbidden in strict counterpoint, where everything should be as singable as possible. From 10 to 11 you brought the voices from a tenth into an octave by step, the upper voice down and the lower up. This octave, called battuta by the Italians, is forbidden by some; I have never found the reason, and I leave it to your discretion."
+      }
+     ]
+    },
+    {
+     "type": "fux",
+     "latin": "omnia cantu facillima esse debent",
+     "english": "everything should be very easy to sing",
+     "page": "53"
+    },
+    {
+     "type": "text",
+     "text": "Aloysius adds two precepts: the unison may stand only at the beginning and the end (the voices would not be heard clearly enough), and a leap into the octave from a more distant consonance is not to be tolerated, even in more voices."
+    },
+    {
+     "type": "fux",
+     "latin": "excepto principio, & fine nunquam ponendus est",
+     "english": "except at the beginning and the end, it must never be used",
+     "page": "53-54"
+    },
+    {
+     "type": "heading",
+     "text": "Mann's notes"
+    },
+    {
+     "type": "mann",
+     "text": "Literally: \"beaten.\"",
+     "page": "37",
+     "note": "12"
+    },
+    {
+     "type": "mann",
+     "text": "Cf. Roth, Elemente der Stimmfuehrung, p. 72, where ottava and quinta battuta mean only such progressions and are therefore definitely forbidden.",
+     "page": "38",
+     "note": "14"
+    },
+    {
+     "type": "text",
+     "text": "The game does not check the battuta: Fux leaves it to discretion."
+    }
+   ]
+  },
+  "fux-mode.s1.08": {
+   "name": "Leaving the unison",
+   "specific": [
+    "No leap out of or into a unison (pp. 54-55).",
+    "Fa tends down, mi up: a sharp may mark an ascent and avoid a false relation (p. 55)."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "dialogue",
+     "lines": [
+      {
+       "who": "Josephus",
+       "text": "What does the N.B. on the first note mean?"
+      },
+      {
+       "who": "Aloysius",
+       "text": "That the progression from the unison into another consonance by a leap is bad in itself, just as the leap into a unison. Here it is in the cantus, which may not be changed, so it is tolerated."
+      },
+      {
+       "who": "Aloysius",
+       "text": "But why did you put a sharp in the eleventh bar? It is not usual in the diatonic system."
+      },
+      {
+       "who": "Josephus",
+       "text": "I wanted a sixth there; and I learned that fa leads down and mi leads up. Since the line rises, I used a sharp to stress the ascent. Besides, an F in bar 11 would make a harsh relation with the F♯ of bar 13."
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": "Aloysius: every stumbling block is now removed."
+    }
+   ]
+  },
+  "fux-mode.s1.09": {
+   "name": "In A",
+   "specific": [
+    "No new precept: everything so far applies."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "text",
+     "text": "Aloysius sends Josephus on to the remaining modes, A and C. Fux gives two examples in A (cantus below and above); C is left to the pupil."
+    },
+    {
+     "type": "mann",
+     "text": "Thus, the seventh degree has to be raised in the Dorian (D), Mixolydian (G), and Aeolian (A) modes. (The second degree of a mode occurs always as the next to the last tone in the cantus firmus, the seventh degree always as the next to the last tone in the counterpoint.)",
+     "page": "28",
+     "note": "2"
+    }
+   ]
+  },
+  "fux-mode.s1.10": {
+   "name": "The species mastered",
+   "specific": [
+    "No new precept."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "text",
+     "text": "After the two A exercises Aloysius declares that Josephus knows everything necessary in this species, and they move on to the second."
+    }
+   ]
+  },
+  "fux-mode.s1.11": {
+   "name": "C on your own",
+   "specific": [
+    "Fux writes no counterpoint for this cantus: you are on your own."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "text",
+     "text": "Aloysius assigns C with A (\"the remaining modes, A and C\") but the book prints no C exercise in first species. There is no original solution to compare with."
+    }
+   ]
+  },
+  "fux-mode.s1.12": {
+   "name": "C on your own, below",
+   "specific": [
+    "No original solution.",
+    "Below the cantus: begin on the octave or unison."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "text",
+     "text": "As the previous exercise, with the counterpoint below."
+    }
+   ]
+  },
+  "fux-mode.s2.01": {
+   "name": "Thesis and arsis",
+   "specific": [
+    "Two half notes against each whole note; the first (thesis) always consonant (p. 56).",
+    "The second (arsis) may be dissonant only as a passing note by step, filling a third (p. 56).",
+    "Read the downbeats as if the upbeat were absent when it is reached by a step or a third: no fifths or octaves in a row (pp. 57-59)."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "text",
+     "text": "Binary time: each bar has two equal parts, the lowering of the hand (thesis) and its raising (arsis). Two minims stand against one semibreve."
+    },
+    {
+     "type": "fux",
+     "latin": "quarum una in Thesi veniens, semper consonans sit, necesse est, altera verò in Arsi, si de Nota praecedenti in sequentem gradatim moveatur, etiam dissonans esse poterit; si autem per saltum labatur, necessariò Consonans esse debet",
+     "english": "the one on the thesis must always be consonant; the one on the arsis may also be dissonant if it moves by step from the preceding note to the following one; but if it moves by leap it must be consonant",
+     "page": "56"
+    },
+    {
+     "type": "text",
+     "text": "Joseph asks whether the precepts of first species on motion and progression still hold. Aloysius: by all means (vel maximè), except for the next-to-last bar, which now has a fifth and then a major sixth (cantus below) or a fifth and then a minor third (cantus above)."
+    },
+    {
+     "type": "fux",
+     "latin": "Pro majori facilitate juvabit habere rationem finis, antequam scribere incipias",
+     "english": "to make it easier, it will help to think of the end before you begin to write",
+     "page": "57"
+    },
+    {
+     "type": "heading",
+     "text": "Josephus's first attempt"
+    },
+    {
+     "type": "dialogue",
+     "lines": [
+      {
+       "who": "Josephus",
+       "text": "I see two marks, on the first note of bar 9 and of bar 10, and I do not understand either: both times I went from an imperfect to a perfect consonance by contrary motion."
+      },
+      {
+       "who": "Aloysius",
+       "text": "You reason correctly; the two mistakes are of one kind, which you could not have known. A skip of a third cannot save two fifths or two octaves: the note in between, on the arsis, is so short and so close that it is as if it were not there."
+      }
+     ]
+    },
+    {
+     "type": "fux",
+     "latin": "saltus Tertiae neque duas Quintas, neque duas Octavas salvare possit",
+     "english": "a skip of a third can save neither two fifths nor two octaves",
+     "page": "57"
+    },
+    {
+     "type": "text",
+     "text": "A larger skip, of a fourth, fifth or sixth, is different: the distance makes the ear forget the first downbeat note before the next one comes. For the same reason Aloysius did not mark bars 3-4, where a skip of a fourth saves a sixth-to-fifth progression that would otherwise break the rule of motion (pp. 58-59). The corrected lesson is printed as Fig. 33."
+    },
+    {
+     "type": "fux",
+     "latin": "distantia de prima Nota ad secundam quasi oblivionem auribus afferre videtur soni Notae primae in Thesi",
+     "english": "the distance from the first note to the second seems to make the ears forget the sound of the first note on the thesis",
+     "page": "58"
+    },
+    {
+     "type": "heading",
+     "text": "Mann's notes"
+    },
+    {
+     "type": "mann",
+     "text": "I have used \"downbeat\" and \"upbeat,\" since these words have acquired currency as musical terms in English. Generally, the two Greek terms are used in the reverse, (thesis for upbeat, and arsis for downbeat (even in Bellermann and Jeppesen). This can be explained by the fact that Fux derives his terms from the raising and lowering of the arm whereas usually they are derived from the raising or lowering of the voice.",
+     "page": "41",
+     "note": "1"
+    }
+   ]
+  },
+  "fux-mode.s2.02": {
+   "name": "The half rest",
+   "specific": [
+    "A half rest may replace the first note (p. 59).",
+    "If the voices are so close that contrary motion is impossible, leap a minor sixth (upward) or an octave (pp. 59-60)."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "text",
+     "text": "Before Josephus writes below the cantus, Aloysius shows two devices."
+    },
+    {
+     "type": "fux",
+     "latin": "loco primae Notae pausa medii tactûs valoris poni possit",
+     "english": "in place of the first note a rest of half a bar may be put",
+     "page": "59"
+    },
+    {
+     "type": "fux",
+     "latin": "per saltum Sextae minoris, (qui licitus est) vel Octavae",
+     "english": "by a leap of a minor sixth (which is allowed) or of an octave",
+     "page": "60"
+    },
+    {
+     "type": "text",
+     "text": "From here on every one of Fux's second-species examples opens with the half rest. The game puts it in place for you; write over it if you prefer to begin on the downbeat, as Fux does in the first exercise."
+    },
+    {
+     "type": "text",
+     "text": "Counterpoint below the cantus: begin on the octave or the unison, never the fifth below (it would put your line in another mode), and reckon the intervals downwards from the cantus."
+    }
+   ]
+  },
+  "fux-mode.s2.03": {
+   "name": "Half notes in E",
+   "specific": [
+    "No new precept."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "text",
+     "text": "Aloysius now has Josephus take all the cantus firmi of the first species through the five remaining modes, once above and once below. The E exercises come first."
+    }
+   ]
+  },
+  "fux-mode.s2.04": {
+   "name": "No fifth in E",
+   "specific": [
+    "Here the fifth before the final would be mi contra fa (B under F): use a sixth instead (pp. 60-61)."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "dialogue",
+     "lines": [
+      {
+       "who": "Josephus",
+       "text": "I remember you said that in the next-to-last bar there should first be a fifth when the counterpoint is below. But in this mode the fifth is dissonant, because of mi against fa; so I wrote a sixth instead."
+      },
+      {
+       "who": "Aloysius",
+       "text": "I am very pleased with this observation of yours. Go on now with the four remaining modes."
+      }
+     ]
+    },
+    {
+     "type": "fux",
+     "latin": "ob rationem mi contra fa; quapropter locò Quintae Sextam adhibendam esse judicavi",
+     "english": "because of mi against fa; so I judged that a sixth should be used instead of the fifth",
+     "page": "61"
+    },
+    {
+     "type": "fux",
+     "latin": "Summopere mihi placet haec tua observatio",
+     "english": "this observation of yours pleases me very much",
+     "page": "61"
+    }
+   ]
+  },
+  "fux-mode.s2.05": {
+   "name": "F, with the soft B",
+   "specific": [
+    "No new precept. Fux's own counterpoint here uses B♭ to keep clear of the tritone with F."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "text",
+     "text": "Nothing new is said. Look at Fux's solution afterwards for the B♭s: he explains such flats only in the next species (1725 pp. 68-69)."
+    }
+   ]
+  },
+  "fux-mode.s2.06": {
+   "name": "F, from below",
+   "specific": [
+    "No new precept."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "text",
+     "text": "Fux's own counterpoint crosses above the cantus for a few bars here; the game notes crossing as a recommendation only."
+    },
+    {
+     "type": "text",
+     "text": "Counterpoint below the cantus: begin on the octave or the unison, never the fifth below (it would put your line in another mode), and reckon the intervals downwards from the cantus."
+    }
+   ]
+  },
+  "fux-mode.s2.07": {
+   "name": "G, the raised seventh",
+   "specific": [
+    "No new precept."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "text",
+     "text": "Nothing new is said."
+    },
+    {
+     "type": "mann",
+     "text": "Thus, the seventh degree has to be raised in the Dorian (D), Mixolydian (G), and Aeolian (A) modes. (The second degree of a mode occurs always as the next to the last tone in the cantus firmus, the seventh degree always as the next to the last tone in the counterpoint.)",
+     "page": "28",
+     "note": "2"
+    }
+   ]
+  },
+  "fux-mode.s2.08": {
+   "name": "G, from below",
+   "specific": [
+    "No new precept."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "text",
+     "text": "Nothing new is said."
+    },
+    {
+     "type": "text",
+     "text": "Counterpoint below the cantus: begin on the octave or the unison, never the fifth below (it would put your line in another mode), and reckon the intervals downwards from the cantus."
+    }
+   ]
+  },
+  "fux-mode.s2.09": {
+   "name": "A, a new cantus",
+   "specific": [
+    "No new precept."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "text",
+     "text": "Nothing new is said. In the dataset this exercise uses a slightly different A cantus from the first species (one note shorter); the encoding follows the 1725 print, to be double-checked."
+    }
+   ]
+  },
+  "fux-mode.s2.10": {
+   "name": "A, from below",
+   "specific": [
+    "No new precept."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "text",
+     "text": "Nothing new is said."
+    },
+    {
+     "type": "text",
+     "text": "Counterpoint below the cantus: begin on the octave or the unison, never the fifth below (it would put your line in another mode), and reckon the intervals downwards from the cantus."
+    }
+   ]
+  },
+  "fux-mode.s2.11": {
+   "name": "C, worked out",
+   "specific": [
+    "No new precept."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "text",
+     "text": "Unlike first species, Fux works C out in this species."
+    }
+   ]
+  },
+  "fux-mode.s2.12": {
+   "name": "Looking ahead",
+   "specific": [
+    "Look ahead: weigh not only the bar you are writing but the following ones (pp. 62-63)."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "fux",
+     "latin": "Gutta cavat lapidem, non vi, sed saepè cadendo",
+     "english": "the drop hollows the stone not by force but by falling often",
+     "page": "62"
+    },
+    {
+     "type": "text",
+     "text": "Aloysius exhorts Josephus to let no day pass without a line, and to consider not only the bar in hand but the following ones. Josephus admits he could hardly have written the last exercises without weighing a bar or two ahead."
+    },
+    {
+     "type": "fux",
+     "latin": "ut non solùm illius tactûs, in quo laboras, rationem habeas, verùm etiam & sequentium",
+     "english": "that you take account not only of the bar you are working on but also of the following ones",
+     "page": "62-63"
+    },
+    {
+     "type": "text",
+     "text": "The lesson ends with ternary time: three notes against one, where the middle note may be dissonant if all three move by step (p. 63). Fux thinks it too easy to deserve its own lesson."
+    }
+   ]
+  }
+ }
+}

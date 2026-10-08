@@ -1,5 +1,7 @@
 import { introductionsUpTo, ruleById, type CurriculumStep } from "../counterpoint/curriculum/index.ts";
-import { cadenceNote } from "../counterpoint/cadence.ts";
+import { cadenceFifth, cadenceNote } from "../counterpoint/cadence.ts";
+import { harmonic, simpleName } from "../counterpoint/interval.ts";
+import { stepStudy } from "./study.ts";
 import { fifthIsDiminished } from "../counterpoint/rules/second-species.ts";
 import { parsePitch } from "../music/pitch.ts";
 import { t } from "./i18n.ts";
@@ -180,9 +182,16 @@ export function Hints({ step, cantus }: { step: CurriculumStep; cantus: string[]
           )}
           <h3>{t("hints.thisExercise")}</h3>
           <ul>
+            {stepStudy(step.id).specific.map((x, i) => (
+              <li key={i}>{x}</li>
+            ))}
             <li>{t(altered ? "hints.cadenceAltered" : "hints.cadencePlain", { bar: n - 1 })}</li>
-            {sixth && <li>{t("hints.cadenceSixth", { bar: n - 1 })} <span className="ref">{t("hints.ref", { page: "60-61" })}</span></li>}
-            {second && <li>{t("hints.lookAhead")}</li>}
+            {second && (() => {
+              const pen = cantus[n - 2];
+              const f = cadenceFifth(pen, step.cantus_voice);
+              const name = (x: string) => x.replace(/\d+$/, "").replace("#", "♯").replace(/^([A-G])b$/, "$1♭");
+              return <li>{t("hints.cadence2", { bar: n - 1, fifth: simpleName(harmonic(pen, f)), fifthNote: name(f), sixth: below ? "M6" : "m3", sixthNote: name(cad) })}</li>;
+            })()}
           </ul>
         </div>
       </div>

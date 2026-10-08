@@ -44,3 +44,17 @@ test("content: every step has a tutor intro; every introduced rule has a hint an
     }
   }
 });
+
+test("study content: every step has a name, specific precepts and study text; every mode is described", async () => {
+  const { stepStudy, modeStudy } = await import("../src/ui/study.ts");
+  const { ALL_STEPS } = await import("../src/counterpoint/curriculum/index.ts");
+  const names = new Set<string>();
+  for (const s of ALL_STEPS) {
+    const x = stepStudy(s.id);
+    assert.ok(x.name && x.specific.length > 0 && x.study.length > 0, s.id);
+    assert.ok(!/Fig\./.test(x.name), s.id);
+    names.add(`${s.species}:${x.name}`);
+    modeStudy(s.modal_final);
+  }
+  assert.equal(names.size, ALL_STEPS.length); // names are unique within a species
+});
