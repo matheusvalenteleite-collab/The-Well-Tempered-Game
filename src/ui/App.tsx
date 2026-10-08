@@ -112,6 +112,12 @@ export function App() {
   const [tempo, setTempo] = useState(() => stored("wtg.tempo", 60, (v) => typeof v === "number" && v >= 30 && v <= 240));
   const [volume, setVolume] = useState(() => stored("wtg.volume", 70, (v) => typeof v === "number" && v >= 0 && v <= 100));
   const [sound, setSound] = useState<SoundState>(() => restoreSound(stored<unknown>("wtg.sound2", null)));
+  // The look (D81): the 1990s look by default, the classic one a click away.
+  const [look, setLook] = useState<"retro" | "classic">(() => stored("wtg.look", "retro", (v) => v === "retro" || v === "classic"));
+  useEffect(() => {
+    document.documentElement.dataset.look = look;
+    store("wtg.look", look);
+  }, [look]);
   const [theme, setTheme] = useState<"auto" | "light" | "dark">(() => stored("wtg.theme", "auto", (v) => v === "auto" || v === "light" || v === "dark"));
   const [drums, setDrums] = useState(() => stored("wtg.drums", false, (v) => typeof v === "boolean"));
   const [drumKit, setDrumKit] = useState<DrumSettings>(() => validDrumKit(stored<unknown>("wtg.drumkit", DEFAULT_DRUMS)));
@@ -124,6 +130,8 @@ export function App() {
   const [folded, setFolded] = useState<Record<string, boolean>>(() => stored<Record<string, boolean>>("wtg.folds", {}, (v) => typeof v === "object" && v !== null && !Array.isArray(v)));
   const foldProps = (id: string) => ({ open: !folded[id], onToggle: (open: boolean) => setFolded({ ...folded, [id]: !open }) });
   const [demoLoaded, setDemoLoaded] = useState<string | null>(null);
+  const [fuxHeard, setFuxHeard] = useState(() => stored("wtg.fuxHeard", false, (v) => typeof v === "boolean"));
+  useEffect(() => store("wtg.fuxHeard", fuxHeard), [fuxHeard]);
   const [humanise, setHumanise] = useState(() => stored("wtg.humanise", false, (v) => typeof v === "boolean"));
   /** The exercise whose Fux solution plays from the demo list. */
   const [demoPlaying, setDemoPlaying] = useState<string | null>(null);
@@ -419,7 +427,7 @@ export function App() {
   };
   const restoreAudio = () => {
     applyAudio({ sound, drums, drumKit, tuning, tempo, volume }, VIEW.modalFinal);
-    audio.setGates(gatesOf({ versions, continuoOn: continuo }));
+    audio.setGates(gatesOf({ versions, continuoOn: continuo, fuxHeard: fuxHeard && fuxOpen, mode: playMode }));
     audio.loop = loop;
   };
   const stopSaved = () => {
@@ -514,7 +522,7 @@ export function App() {
     if (mode !== "player" && !fuxOpen) return;
     setPlayMode(mode);
     setPlaying(true);
-    startPlayback(audio, VIEW, { notes: session.notes, versions, mode, continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning }, onLiveSlot, 0, liveSetup);
+    startPlayback(audio, VIEW, { notes: session.notes, versions, mode, continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning, fuxAlong: fuxOpen, fuxHeard }, onLiveSlot, 0, liveSetup);
   };
   function onLiveSlot(k: number) {
     setCursor(k);
@@ -649,7 +657,7 @@ export function App() {
         },
         onLiveSlot,
       );
-    } else startPlayback(audio, VIEW, { notes: session.notes, versions, mode, continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning }, onLiveSlot, 0, liveSetup);
+    } else startPlayback(audio, VIEW, { notes: session.notes, versions, mode, continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning, fuxAlong: fuxOpen, fuxHeard }, onLiveSlot, 0, liveSetup);
     const TAIL = 2.5;
     const finish = (span: [number, number] | null) => {
       endExportTimer();
@@ -695,14 +703,15 @@ export function App() {
   // Switching lines on and off (the versions, the original, the continuo) restarts nothing: it opens
   // or closes their channels (D78). Only what changes the notes themselves restarts.
   const liveSetupRef = useRef<PlaySetup | null>(null);
-  liveSetupRef.current = { notes: session.notes, versions, mode: playMode, continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning };
+  liveSetupRef.current = { notes: session.notes, versions, mode: playMode, continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning, fuxAlong: fuxOpen, fuxHeard };
   const liveSetup = () => liveSetupRef.current!;
+  const levels = useMemo(() => () => audio.levels(), [audio]);
   useEffect(() => {
     if (savedPlaying || demoPlaying || exportPhase === "recording") return;
-    audio.setGates(gatesOf({ versions, continuoOn: continuo }));
+    audio.setGates(gatesOf({ versions, continuoOn: continuo, fuxHeard: fuxHeard && fuxOpen, mode: playing ? playMode : "player" }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [versions, continuo]);
-  const liveKey = JSON.stringify([versions.canonShift, session.notes, continuoAllowed, continuoSettings, tuning, humanise]);
+  }, [versions, continuo, fuxHeard, fuxOpen]);
+  const liveKey = JSON.stringify([versions.canonShift, session.notes, continuoAllowed, continuoSettings, tuning, humanise, fuxOpen]);
   const lastLiveKey = useRef(liveKey);
   useEffect(() => {
     if (lastLiveKey.current === liveKey) return;
@@ -714,7 +723,7 @@ export function App() {
       setCursor(-1);
       return;
     }
-    startPlayback(audio, VIEW, { notes: session.notes, versions, mode: playMode, continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning }, onLiveSlot, Math.max(0, cursor), liveSetup);
+    startPlayback(audio, VIEW, { notes: session.notes, versions, mode: playMode, continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning, fuxAlong: fuxOpen, fuxHeard }, onLiveSlot, Math.max(0, cursor), liveSetup);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liveKey]);
 
@@ -841,6 +850,9 @@ export function App() {
           <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1} aria-label={t("ui.nav.next")}>›</button>
         </nav>
         <div className="header-tools">
+          <button className="chipbtn look" onClick={() => setLook(look === "retro" ? "classic" : "retro")} title={t("ui.look.help")}>
+            {t("ui.look")}: {t(`ui.look.${look}`)}
+          </button>
           <button className="chipbtn demo" aria-pressed={showDemo} aria-expanded={showDemo} onClick={() => setShowDemo(!showDemo)} title={t("ui.demo.help")}>
             {t("ui.demo")}
           </button>
@@ -1034,6 +1046,9 @@ export function App() {
             slots={VIEW.layout.length}
             showFux={showFux && fuxOpen}
             onShowFux={setShowFux}
+            fuxHeard={fuxHeard}
+            onFuxHeard={setFuxHeard}
+            levels={levels}
             value={sound}
             onChange={setSound}
             fuxOpen={fuxOpen}

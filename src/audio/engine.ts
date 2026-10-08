@@ -130,6 +130,26 @@ export class AudioEngine {
     this.applyMix();
   }
 
+  private meters = new Map<Strip | "master", AnalyserNode>();
+  private meterBuf = new Float32Array(512);
+  /** Peak level of each strip (and the master) now, in dB (-inf when silent); for the meters (D80). */
+  levels(): Partial<Record<Strip | "master", number>> {
+    const out: Partial<Record<Strip | "master", number>> = {};
+    if (this.limiter && !this.meters.has("master") && this.ctx) {
+      const m = this.ctx.createAnalyser();
+      m.fftSize = 512;
+      this.limiter.connect(m);
+      this.meters.set("master", m);
+    }
+    for (const [x, a] of this.meters) {
+      a.getFloatTimeDomainData(this.meterBuf);
+      let peak = 0;
+      for (let i = 0; i < this.meterBuf.length; i++) peak = Math.max(peak, Math.abs(this.meterBuf[i]));
+      out[x] = peak > 1e-5 ? 20 * Math.log10(peak) : -Infinity;
+    }
+    return out;
+  }
+
   /** Channel gates (D78): a line switched off is silenced by its channel, never by a restart. */
   private gates: Partial<Record<Strip, boolean>> = {};
   setGates(g: Partial<Record<Strip, boolean>>) {
@@ -157,6 +177,11 @@ export class AudioEngine {
       const pan = this.ctx!.createStereoPanner();
       gain.gain.value = this.gates[x] === false ? 0 : audibleGain(this.mix, x); // no blip on creation
       gain.connect(pan).connect(this.master!);
+      // A tap for the strip's level meter (D80).
+      const meter = this.ctx!.createAnalyser();
+      meter.fftSize = 512;
+      pan.connect(meter);
+      this.meters.set(x, meter);
       ch = { gain, pan };
       this.channels.set(x, ch);
       this.applyMix();

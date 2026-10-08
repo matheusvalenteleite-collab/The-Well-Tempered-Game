@@ -20,6 +20,9 @@ export interface PlaySetup {
   continuo: boolean;
   /** The continuo is switched on (its channel gate, D78); default on. */
   continuoOn?: boolean;
+  /** Player mode: Fux's line is scheduled alongside (it may be heard), and whether it is heard (D80). */
+  fuxAlong?: boolean;
+  fuxHeard?: boolean;
   continuoSettings: ContinuoSettings;
   tuning: TemperamentId;
 }
@@ -28,8 +31,13 @@ export interface PlaySetup {
  * The on/off state of each line as channel gates (D78): every line is always scheduled and a
  * switch only opens or closes its channel, so toggling never restarts the playback.
  */
-export function gatesOf(s: Pick<PlaySetup, "versions" | "continuoOn">): Partial<Record<"counterpoint" | VersionId | "continuo", boolean>> {
-  const g: Partial<Record<"counterpoint" | VersionId | "continuo", boolean>> = { counterpoint: s.versions.original || !VERSION_IDS.some((id) => s.versions[id]), continuo: s.continuoOn !== false };
+export function gatesOf(s: Pick<PlaySetup, "versions" | "continuoOn" | "fuxHeard"> & { mode?: PlaySetup["mode"] }): Partial<Record<"counterpoint" | VersionId | "continuo" | "fux", boolean>> {
+  const g: Partial<Record<"counterpoint" | VersionId | "continuo" | "fux", boolean>> = {
+    counterpoint: s.versions.original || !VERSION_IDS.some((id) => s.versions[id]),
+    continuo: s.continuoOn !== false,
+    // In the player's playback Fux sounds only when his strip is switched on; in his own and the trio, always.
+    fux: s.mode === undefined || s.mode === "player" ? s.fuxHeard === true : true,
+  };
   for (const id of VERSION_IDS) g[id] = s.versions[id];
   return g;
 }
@@ -42,7 +50,7 @@ export function buildPlayback(audio: AudioEngine, view: ExerciseView, s: PlaySet
   const ties = { ties: view.species === "fourth" };
   const events =
     s.mode === "player"
-      ? timeline(view.cantus, view.layout, s.notes, undefined, undefined, undefined, derived, ties)
+      ? timeline(view.cantus, view.layout, s.notes, undefined, undefined, s.fuxAlong && view.fux ? view.fux : undefined, derived, ties)
       : s.mode === "fux"
         ? timeline(view.cantus, view.layout, view.fux!, undefined, undefined, undefined, undefined, ties)
         : timeline(view.cantus, view.layout, s.notes, undefined, undefined, view.fux!, derived, ties);
@@ -81,7 +89,7 @@ export function buildPlayback(audio: AudioEngine, view: ExerciseView, s: PlaySet
 
 /** `fromSlot`: start at that slot (a live restart after a change); later loops start at the top. */
 export function startPlayback(audio: AudioEngine, view: ExerciseView, s: PlaySetup, onSlot: (k: number) => void, fromSlot = 0, live?: () => PlaySetup): void {
-  audio.setGates(gatesOf(s));
+  audio.setGates(gatesOf({ ...s, mode: s.mode }));
   const b = buildPlayback(audio, view, s, live);
   if (!b) return onSlot(-1);
   const from = Math.max(0, b.events.findIndex((e) => e.slot >= fromSlot));

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Fader, formatDb, posOfDb } from "./Fader.tsx";
 import { linkedGroup, linkEnds, linkNeedsConfirm, setLink, setMix, editSynth, editVersionSynth, setVersionFollows, versionSettings, type Channel, type Link, type SoundState, type Strip } from "../audio/sound.ts";
 import { patternById, type DrumSettings } from "../audio/drums.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
@@ -36,6 +37,11 @@ interface Props {
   /** Fux's solution on the score (only once the exercise is cleared). */
   showFux: boolean;
   onShowFux(show: boolean): void;
+  /** Fux heard along with the player's lines (his strip's activator, D80). */
+  fuxHeard: boolean;
+  onFuxHeard(on: boolean): void;
+  /** Peak levels for the meters (D80). */
+  levels?: () => Partial<Record<Strip | "master", number>>;
   /** Folded to a single line. */
   open: boolean;
   onOpen(open: boolean): void;
@@ -52,6 +58,26 @@ export function SoundDesk(p: Props) {
   const [selected, setSelected] = useState<Strip>("counterpoint");
   const [ask, setAsk] = useState<Link | null>(null);
   const s = p.value;
+  // The meters (D80), drawn at animation-frame rate straight into the DOM, with a gentle fall.
+  const meterEls = useRef<Partial<Record<Strip | "master", HTMLDivElement | null>>>({});
+  const held = useRef<Partial<Record<string, number>>>({});
+  useEffect(() => {
+    if (!p.open || !p.levels) return;
+    let id = 0;
+    const frame = () => {
+      const lv = p.levels!();
+      for (const [x, el] of Object.entries(meterEls.current)) {
+        if (!el) continue;
+        const now = posOfDb(lv[x as Strip] ?? -Infinity);
+        const shown = Math.max(now, (held.current[x] ?? 0) - 0.02);
+        held.current[x] = shown;
+        el.style.height = `${(1 - shown) * 100}%`;
+      }
+      id = requestAnimationFrame(frame);
+    };
+    id = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(id);
+  }, [p.open, p.levels]);
 
   const toggleVersion = (k: "original" | VersionId) => {
     const next = { ...p.versions, [k]: !p.versions[k] };
@@ -74,6 +100,29 @@ export function SoundDesk(p: Props) {
       <button className="chipbtn" tabIndex={-1} disabled={n >= 3} onClick={() => set(n + 1)} aria-label={t("ui.mixer.octaveUp")}>›</button>
     </div>
   );
+  // Track colours (D80): one per strip, as in Ableton's mixer; the voices' match their inks.
+  const COLOR: Record<Strip | "master", string> = {
+    cantus: "var(--trk-cantus)", counterpoint: "var(--trk-counterpoint)", fux: "var(--trk-fux)",
+    inversion: "var(--trk-inversion)", retrograde: "var(--trk-retrograde)", retroInversion: "var(--trk-retro-inversion)", canon: "var(--trk-canon)",
+    drums: "var(--trk-drums)", continuo: "var(--trk-continuo)", master: "var(--trk-master)",
+  };
+  const ORDER: Strip[] = ["cantus", "counterpoint", "fux", ...VERSION_IDS, "drums", "continuo"];
+  /** The track activator (D80): every track switches on and off with one press. */
+  const active = (x: Strip): boolean =>
+    x === "cantus" ? !s.mix.cantus.mute
+    : x === "counterpoint" ? p.versions.original
+    : x === "fux" ? p.fuxOpen && p.fuxHeard
+    : x === "drums" ? p.drums
+    : x === "continuo" ? p.continuo
+    : p.versions[x as VersionId];
+  const activate = (x: Strip) => {
+    if (x === "cantus") p.onChange(setMix(s, "cantus", { mute: !s.mix.cantus.mute }));
+    else if (x === "counterpoint") toggleVersion("original");
+    else if (x === "fux") p.onFuxHeard(!p.fuxHeard);
+    else if (x === "drums") p.onDrums(!p.drums);
+    else if (x === "continuo") p.onContinuo(!p.continuo);
+    else toggleVersion(x as VersionId);
+  };
   const strip = (x: Strip) => {
     const m = s.mix[x];
     const isVoice = VOICES.includes(x as Channel);
@@ -83,83 +132,48 @@ export function SoundDesk(p: Props) {
       : x === "drums"
         ? t(`ui.drums.pattern.${patternById(p.drumKit.pattern).id}`)
         : t(`ui.continuo.preset.${p.continuoSettings.preset}`);
-    const dim = (x === "counterpoint" && !p.versions.original) || (isVersion && !p.versions[x as VersionId]) || (x === "fux" && !p.fuxOpen) || (x === "drums" && !p.drums) || (x === "continuo" && !p.continuo);
+    const on = active(x);
     // Clicking anywhere on a strip that is not one of its controls selects it.
     const pick = (e: React.MouseEvent) => {
-      if (!(e.target as HTMLElement).closest("button, input, select, .knob")) setSelected(x);
+      if (!(e.target as HTMLElement).closest("button, input, select, .knob, .fader2")) setSelected(x);
     };
     const cd = p.continuoSettings.display;
     return (
-      <div key={x} className={`strip ${selected === x ? "selected" : ""} ${dim ? "dim" : ""}`} role="group" aria-label={t(`ui.mixer.${x}`)} onClick={pick}>
-        <div className="strip-name">{t(`ui.mixer.${x}`)}</div>
+      <div key={x} className={`strip ${selected === x ? "selected" : ""} ${on ? "" : "dim"}`} style={{ ["--track" as string]: COLOR[x] }} role="group" aria-label={t(`ui.mixer.${x}`)} onClick={pick}>
+        <div className="strip-name" title={t(`ui.mixer.${x}`)}>{t(`ui.mixer.short.${x}`)}</div>
         <button className="instrument" aria-pressed={selected === x} onClick={() => setSelected(x)} title={t("ui.mixer.editHelp")}>
           {instrument}
         </button>
-        <input
-          className="fader"
-          type="range"
-          min={0}
-          max={1.5}
-          step={0.01}
-          value={m.volume}
-          aria-label={t("ui.mixer.volume")}
-          title={`${t("ui.mixer.volume")}: ${Math.round(m.volume * 100)}%`}
-          onChange={(e) => p.onChange(setMix(s, x, { volume: Number(e.target.value) }))}
-          onDoubleClick={() => p.onChange(setMix(s, x, { volume: 1 }))}
-        />
         <Knob id={`pan-${x}`} label={t("ui.mixer.pan")} value={m.pan} min={-1} max={1} defaultValue={0}
           format={(v) => (Math.abs(v) < 0.02 ? "C" : `${v < 0 ? "L" : "R"}${Math.round(Math.abs(v) * 100)}`)} onChange={(v) => p.onChange(setMix(s, x, { pan: v }))} />
-        <div className="ms">
-          <button className="chipbtn" tabIndex={-1} aria-pressed={m.mute} title={t("ui.mixer.mute")} onClick={() => p.onChange(setMix(s, x, { mute: !m.mute }))}>M</button>
-          <button className="chipbtn" tabIndex={-1} aria-pressed={m.solo} title={t("ui.mixer.solo")} onClick={() => p.onChange(setMix(s, x, { solo: !m.solo }))}>S</button>
+        <Fader value={m.volume} label={t("ui.mixer.volume")} color={COLOR[x]} disabled={!on} meterRef={(el) => (meterEls.current[x] = el)} onChange={(v) => p.onChange(setMix(s, x, { volume: v }))} />
+        <div className="db-readout">{formatDb(m.volume)}</div>
+        <div className="act-row">
+          <button className="activator" tabIndex={-1} aria-pressed={on} disabled={x === "fux" && !p.fuxOpen} title={t(x === "fux" && !p.fuxOpen ? "ui.play.locked" : "ui.mixer.activatorHelp")} onClick={() => activate(x)}>
+            {ORDER.indexOf(x) + 1}
+          </button>
+          <button className="solo" tabIndex={-1} aria-pressed={m.solo} title={t("ui.mixer.solo")} onClick={() => p.onChange(setMix(s, x, { solo: !m.solo }))}>S</button>
         </div>
         {x === "fux" && octaveStepper(s.fuxOctave, (n) => p.onChange({ ...s, fuxOctave: n }))}
         {x === "cantus" && octaveStepper(s.cantusOctave, (n) => p.onChange({ ...s, cantusOctave: n }))}
         {x === "counterpoint" && octaveStepper(s.counterpointOctave, (n) => p.onChange({ ...s, counterpointOctave: n }))}
         {isVersion && octaveStepper(s.versionOctave[x as VersionId], (n) => p.onChange({ ...s, versionOctave: { ...s.versionOctave, [x]: n } }))}
-        {x === "counterpoint" && (
-          <div className="versions" role="group" aria-label={t("ui.mixer.versionsHelp")} title={t("ui.mixer.versionsHelp")}>
-            {(["original", ...VERSION_IDS] as const).map((k) => (
-              <button
-                key={k}
-                className="chipbtn"
-                tabIndex={-1}
-                aria-pressed={p.versions[k]}
-                title={t(`ui.versions.help.${k}`)}
-                onClick={() => toggleVersion(k)}
-              >
-                {t(`ui.versions.short.${k}`)}
-              </button>
-            ))}
-          </div>
-        )}
-        {(x === "canon" || x === "counterpoint") && canonStepper}
-        {isVersion && (
-          <button className="chipbtn" tabIndex={-1} aria-pressed={p.versions[x as VersionId]} onClick={() => toggleVersion(x as VersionId)}>
-            {p.versions[x as VersionId] ? t("ui.continuo.on") : t("ui.continuo.off")}
-          </button>
-        )}
+        {x === "canon" && canonStepper}
         {x === "fux" && (
           <button className="chipbtn" tabIndex={-1} aria-pressed={p.showFux} disabled={!p.fuxOpen} title={t(p.fuxOpen ? "ui.mixer.fuxScoreHelp" : "ui.play.locked")} onClick={() => p.onShowFux(!p.showFux)}>
             {p.showFux ? t("ui.mixer.fuxHide") : t("ui.mixer.fuxShow")}
           </button>
         )}
-        {x === "drums" && (
-          <button className="chipbtn" tabIndex={-1} aria-pressed={p.drums} onClick={() => p.onDrums(!p.drums)}>{p.drums ? t("ui.drums.on") : t("ui.drums.off")}</button>
-        )}
         {x === "continuo" && (
-          <>
-            <button className="chipbtn" tabIndex={-1} aria-pressed={p.continuo} onClick={() => p.onContinuo(!p.continuo)}>{p.continuo ? t("ui.continuo.on") : t("ui.continuo.off")}</button>
-            <button
-              className="chipbtn bc"
-              tabIndex={-1}
-              disabled={!p.continuo}
-              title={`${t("ui.continuo.display")}: ${t(`ui.continuo.display.${cd}.help`)}`}
-              onClick={() => p.onContinuoSettings({ ...p.continuoSettings, display: CONTINUO_DISPLAYS[(CONTINUO_DISPLAYS.indexOf(cd) + 1) % CONTINUO_DISPLAYS.length] })}
-            >
-              {t(`ui.continuo.display.${cd}.short`)}
-            </button>
-          </>
+          <button
+            className="chipbtn bc"
+            tabIndex={-1}
+            disabled={!p.continuo}
+            title={`${t("ui.continuo.display")}: ${t(`ui.continuo.display.${cd}.help`)}`}
+            onClick={() => p.onContinuoSettings({ ...p.continuoSettings, display: CONTINUO_DISPLAYS[(CONTINUO_DISPLAYS.indexOf(cd) + 1) % CONTINUO_DISPLAYS.length] })}
+          >
+            {t(`ui.continuo.display.${cd}.short`)}
+          </button>
         )}
       </div>
     );
@@ -222,12 +236,13 @@ export function SoundDesk(p: Props) {
         <span className="desk-gap" />
         {strip("drums")}
         {strip("continuo")}
-        <div className="strip master" role="group" aria-label={t("ui.mixer.master")}>
+        <div className="strip master" role="group" aria-label={t("ui.mixer.master")} style={{ ["--track" as string]: COLOR.master }}>
           <div className="strip-name">{t("ui.mixer.master")}</div>
-          <input className="fader" type="range" min={0} max={100} step={1} value={p.master} aria-label={t("ui.volume")} title={`${t("ui.volume")}: ${p.master}%`} onChange={(e) => p.onMaster(Number(e.target.value))} />
           <button className="chipbtn tuning" tabIndex={-1} onClick={() => p.onTuning(TEMPERAMENTS[(TEMPERAMENTS.indexOf(p.tuning) + 1) % TEMPERAMENTS.length])} title={t("ui.tuning.help")}>
             {t("ui.tuning.label", { name: t(`ui.tuning.${p.tuning}`) })}
           </button>
+          <Fader value={p.master / 100} label={t("ui.volume")} color={COLOR.master} meterRef={(el) => (meterEls.current.master = el)} onChange={(v) => p.onMaster(Math.round(Math.min(1, v) * 100))} />
+          <div className="db-readout">{formatDb(p.master / 100)}</div>
         </div>
       </div>
       {ask && (
