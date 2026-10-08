@@ -97,7 +97,9 @@ export const SYNTH_PRESETS: { id: string; settings: SynthSettings }[] = [
   { id: "spaceEcho", settings: p({ waveform: "square", attack: 0.01, decay: 0.3, sustain: 0.5, release: 0.3, tone: 2200, detune: 6, reverbMode: "spring", reverbMix: 0.3, delayMode: "tape", delayTime: 0.33, delayFeedback: 0.55, delayMix: 0.32 }) },
   { id: "slapback", settings: p({ waveform: "sawtooth", attack: 0.005, decay: 0.25, sustain: 0.55, release: 0.15, tone: 3200, detune: 8, reverbMode: "room", reverbMix: 0.15, delayMode: "slapback", delayTime: 0.11, delayFeedback: 0, delayMix: 0.4 }) },
   { id: "pingPong", settings: p({ waveform: "triangle", attack: 0.005, decay: 0.35, sustain: 0.3, release: 0.25, tone: 4000, reverbMode: "plate", reverbMix: 0.25, delayMode: "pingpong", delayTime: 0.25, delayFeedback: 0.5, delayMix: 0.4 }) },
-  // Plucked string
+  // Plucked string. "Fux's harpsichord": the default sound of Fux's voice, an instrument of his
+  // time, bright and quick to speak, so it stands apart from the player's piano in trio playback.
+  { id: "fuxHarpsichord", settings: p({ model: "pluck", attack: 0.002, decay: 0.05, sustain: 1, release: 0.12, tone: 6500, pluckDamping: 0.5, pluckBrightness: 0.9 }) },
   { id: "harpsichord", settings: p({ model: "pluck", attack: 0.003, decay: 0.05, sustain: 1, release: 0.15, tone: 7000, pluckDamping: 0.55, pluckBrightness: 0.95 }) },
   { id: "lute", settings: p({ model: "pluck", attack: 0.003, decay: 0.05, sustain: 1, release: 0.3, tone: 3000, pluckDamping: 0.75, pluckBrightness: 0.45, reverbMode: "hall", reverbMix: 0.25 }) },
   { id: "dubPluck", settings: p({ model: "pluck", attack: 0.003, decay: 0.05, sustain: 1, release: 0.2, tone: 2500, pluckDamping: 0.65, pluckBrightness: 0.7, reverbMode: "spring", reverbMix: 0.25, delayMode: "analog", delayTime: 0.375, delayFeedback: 0.6, delayMix: 0.45 }) },

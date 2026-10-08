@@ -38,3 +38,9 @@ test("the default sound is the Gould piano, clean; every model's first preset is
 test("every model has at least two presets", () => {
   for (const m of SYNTH_MODELS) assert.ok(SYNTH_PRESETS.filter((p) => p.settings.model === m).length >= 2, m);
 });
+
+test("every preset and model has a display name", async () => {
+  const { t } = await import("../src/ui/i18n.ts");
+  for (const p of SYNTH_PRESETS) assert.doesNotThrow(() => t(`ui.synth.preset.${p.id}`), p.id);
+  for (const m of SYNTH_MODELS) assert.doesNotThrow(() => t(`ui.synth.model.${m}`), m);
+});

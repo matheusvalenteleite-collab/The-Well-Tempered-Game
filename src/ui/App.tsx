@@ -6,10 +6,11 @@ import { evaluate, type Evaluation } from "../counterpoint/engine.ts";
 import { compareWithOriginal } from "../music/fux/player.ts";
 import { exerciseView } from "../game/exercise-view.ts";
 import { applyAccidental, clear, initialState, letterNote, moveNote, place, select, setRest, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
-import { AudioEngine, DEFAULT_SYNTH, renderLevel, sameSettings, SYNTH_PRESETS, type AudioStatus, type VoiceSynths } from "../audio/engine.ts";
+import { AudioEngine, renderLevel, SYNTH_PRESETS, type AudioStatus } from "../audio/engine.ts";
+import { restoreSound, type SoundState } from "../audio/sound.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
-import { SynthRack, type SynthTarget } from "./SynthRack.tsx";
-import { DrumBox } from "./DrumBox.tsx";
+import { SoundDesk } from "./SoundDesk.tsx";
+import { HelpCard } from "./HelpCard.tsx";
 import { DEFAULT_DRUMS, DRUM_PATTERNS, DrumMachine, LOOP_LENGTHS, type DrumSettings } from "../audio/drums.ts";
 import { Hints } from "./Hints.tsx";
 import { Study } from "./Study.tsx";
@@ -83,19 +84,16 @@ export function App() {
   const [stars, setStars] = useState<string[]>(() => stored<string[]>("wtg.stars", [], (v) => Array.isArray(v)));
   const [tempo, setTempo] = useState(() => stored("wtg.tempo", 60, (v) => typeof v === "number" && v >= 30 && v <= 120));
   const [volume, setVolume] = useState(() => stored("wtg.volume", 70, (v) => typeof v === "number" && v >= 0 && v <= 100));
-  const [synth, setSynth] = useState<VoiceSynths>(() => {
-    const v = stored<Partial<VoiceSynths>>("wtg.synth3", {}, (x) => typeof x === "object" && x !== null);
-    return { cantus: { ...DEFAULT_SYNTH, ...v.cantus }, counterpoint: { ...DEFAULT_SYNTH, ...v.counterpoint } };
-  });
-  // "Both voices" by default; a stored pair of different settings opens on the Contrapunctus.
-  const [synthTarget, setSynthTarget] = useState<SynthTarget>(() => (sameSettings(synth) ? "all" : "counterpoint"));
+  const [sound, setSound] = useState<SoundState>(() => restoreSound(stored<unknown>("wtg.sound1", null)));
+  const [theme, setTheme] = useState<"auto" | "light" | "dark">(() => stored("wtg.theme", "auto", (v) => v === "auto" || v === "light" || v === "dark"));
   const [drums, setDrums] = useState(() => stored("wtg.drums", false, (v) => typeof v === "boolean"));
   const [drumKit, setDrumKit] = useState<DrumSettings>(() => {
     const v = stored<DrumSettings>("wtg.drumkit", DEFAULT_DRUMS, (x) => typeof x === "object" && x !== null);
     const ok = DRUM_PATTERNS.some((p) => p.id === v.pattern) && LOOP_LENGTHS.includes(v.length) && typeof v.level === "number";
     return ok ? v : { ...DEFAULT_DRUMS };
   });
-  const [showDrums, setShowDrums] = useState(false);
+  const [showSound, setShowSound] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [tuning, setTuning] = useState<TemperamentId>(() => stored<TemperamentId>("wtg.tuning", "equal", (v) => TEMPERAMENTS.includes(v as TemperamentId)));
   const [cursor, setCursor] = useState(-1);
   const [playing, setPlaying] = useState(false);
@@ -103,11 +101,8 @@ export function App() {
   const [showCredits, setShowCredits] = useState(false);
   const [result, setResult] = useState<Evaluation | null>(null);
   const [showFux, setShowFux] = useState(false);
-  const [showHints, setShowHints] = useState(false);
-  const [showStudy, setShowStudy] = useState(false);
-  const [showSynth, setShowSynth] = useState(false);
-  /** The score is "active" after it was clicked or played from the keyboard; a click elsewhere deactivates it. */
-  const [active, setActive] = useState(true);
+  /** The study area below: the rules of this exercise, or the Lectio (Fux's text and commentary). */
+  const [tab, setTab] = useState<"rules" | "lectio" | null>(null);
   const scoreRef = useRef<HTMLDivElement>(null);
   const browsing = useRef(false);
   const dragBase = useRef<SessionState | null>(null);
@@ -122,9 +117,14 @@ export function App() {
     store("wtg.volume", volume);
   }, [volume]);
   useEffect(() => {
-    audio.setSynth(synth);
-    store("wtg.synth3", synth);
-  }, [synth]);
+    audio.setSoundState(sound);
+    store("wtg.sound1", sound);
+  }, [sound]);
+  useEffect(() => {
+    if (theme === "auto") delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = theme;
+    store("wtg.theme", theme);
+  }, [theme]);
   useEffect(() => store("wtg.stepId", STEP.id), [stepIndex]);
   useEffect(() => {
     audio.drums = drums;
@@ -241,7 +241,7 @@ export function App() {
 
   /** Keys drive the score wherever focus is (buttons, knobs), except in form fields and dialogs. */
   const onKey = (e: KeyboardEvent) => {
-    if (showCredits || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    if (showCredits || showHelp || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
     const target = e.target as HTMLElement | null;
     if (target && ["TEXTAREA", "SELECT", "INPUT"].includes(target.tagName)) return;
     const k = e.key;
@@ -260,23 +260,16 @@ export function App() {
     else if (k === "Delete" || k === "Backspace") update(VIEW.layout[s.selected].restAllowed ? setRest(s, VIEW.layout) : clear(s), false);
     else if (k === " ") audition(s.selected);
     else if (k === "p" || k === "P") play("player");
+    else if (k === "?") setShowHelp(true);
     else return;
     e.preventDefault();
-    setActive(true);
   };
   const keyRef = useRef(onKey);
   keyRef.current = onKey;
   useEffect(() => {
     const handler = (e: KeyboardEvent) => keyRef.current(e);
-    const outside = (e: PointerEvent) => {
-      if (!scoreRef.current?.contains(e.target as Node)) setActive(false);
-    };
     window.addEventListener("keydown", handler);
-    window.addEventListener("pointerdown", outside, true);
-    return () => {
-      window.removeEventListener("keydown", handler);
-      window.removeEventListener("pointerdown", outside, true);
-    };
+    return () => window.removeEventListener("keydown", handler);
   }, []);
 
   const clefs = VIEW.clefs.modern;
@@ -322,6 +315,7 @@ export function App() {
                 <option key={c.species} value={c.species} disabled={c.steps.length === 0}>
                   {done ? "★ " : ""}
                   {t("ui.nav.speciesN", { n: ORDINAL[c.species] })}
+                  {c.steps.length > 0 ? ` · ${c.steps.filter((x) => stars.includes(x.id)).length}/${c.steps.length}` : ""}
                 </option>
               );
             })}
@@ -338,25 +332,25 @@ export function App() {
             })}
           </select>
           <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1} aria-label={t("ui.nav.next")}>›</button>
-          <button className="link" onClick={() => setShowCredits(true)}>{t("ui.credits")}</button>
         </nav>
+        <div className="header-tools">
+          <button className="icon quiet" onClick={() => setShowHelp(true)} aria-label={t("ui.help.title")} title={t("ui.help.title")}>?</button>
+          <button className="icon quiet" onClick={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} aria-label={t("ui.theme.label")} title={t(`ui.theme.${theme}`)}>
+            {theme === "dark" ? "☾" : theme === "light" ? "☀" : "◐"}
+          </button>
+          <button className="link" onClick={() => setShowCredits(true)}>{t("ui.credits")}</button>
+        </div>
       </header>
       <main>
         <p className="meta">
-          {t("ui.mode.fux")} · {t("ui.nav.voicesN", { n: COURSE.voices })} · {t(`ui.species.${VIEW.species}`)} · {name} · {t("ui.exercise.mode", { final: VIEW.modalFinal })} ·{" "}
+          {t("ui.mode.fux")} · {t("ui.nav.voicesN", { n: COURSE.voices })} · {t(`ui.species.${VIEW.species}`)} · {t("ui.exercise.mode", { final: VIEW.modalFinal })} ·{" "}
           {VIEW.cantusVoice === "lower" ? t("ui.exercise.cantusBelow") : t("ui.exercise.cantusAbove")}
         </p>
+        <h2 className="exercise-name">{name}</h2>
         <blockquote className="tutor">
           <span className="speaker">{t("tutor.speaker.aloysius")}.</span> {t(`tutor.step.${STEP.id}.intro`)}
         </blockquote>
-        <div
-          className={active ? "score-wrap active" : "score-wrap"}
-          ref={scoreRef}
-          data-notes={JSON.stringify(session.notes)}
-          data-active={active}
-          aria-label={t("ui.keyboard.help")}
-          title={active ? undefined : t("ui.score.inactive")}
-        >
+        <div className="score-wrap" ref={scoreRef} data-notes={JSON.stringify(session.notes)} aria-label={t("ui.help.short")}>
           <span className={starred ? "star earned" : "star"} aria-label={t(starred ? "ui.star.earned" : "ui.star.none")} title={t(starred ? "ui.star.earned" : "ui.star.none")}>
             {starred ? "★" : "☆"}
           </span>
@@ -372,22 +366,10 @@ export function App() {
             marks={marks}
             overlay={overlay}
             fux={showFux && fuxOpen ? VIEW.fux! : undefined}
-            showGhost={active}
-            onPlace={(col, natural) => {
-              // An inactive score only takes a bar-selecting click.
-              if (!active) {
-                setActive(true);
-                browse(col);
-                return;
-              }
-              update(place(session, col, natural));
-            }}
-            onSelect={(col) => {
-              setActive(true);
-              browse(col);
-            }}
+            showGhost
+            onPlace={(col, natural) => update(place(session, col, natural))}
+            onSelect={(col) => browse(col)}
             onDrag={(from, to, natural) => {
-              setActive(true);
               dragBase.current ??= session;
               const next = moveNote(dragBase.current, from, to, natural);
               setSession(next);
@@ -403,28 +385,26 @@ export function App() {
           />
         </div>
         <div className="controls">
-          <div className="group" role="group" aria-label="accidental">
+          <div className="group write" role="group" aria-label={t("ui.group.write")}>
             {([[-1, "ui.accidental.flat"], [0, "ui.accidental.natural"], [1, "ui.accidental.sharp"]] as const).map(([a, key]) => (
               <button key={a} aria-pressed={session.accidental === a && !sounding(session.notes[session.selected])} onClick={() => update(applyAccidental(session, a))}>
                 {t(key)}
               </button>
             ))}
             {VIEW.layout.some((sl) => sl.restAllowed) && (
-              <button
-                aria-pressed={session.notes[session.selected] === REST}
-                disabled={!VIEW.layout[session.selected]?.restAllowed}
-                onClick={() => update(setRest(session, VIEW.layout), false)}
-                title={t("ui.rest.help")}
-              >
+              <button aria-pressed={session.notes[session.selected] === REST} disabled={!VIEW.layout[session.selected]?.restAllowed} onClick={() => update(setRest(session, VIEW.layout), false)} title={t("ui.rest.help")}>
                 {t("ui.rest")}
               </button>
             )}
             <button onClick={() => update(freshSession(stepIndex), false)}>{t("ui.clearAll")}</button>
           </div>
-          <button className="primary" aria-pressed={result !== null} onClick={toggleEvaluation} disabled={missing > 0 && !result} title={missing > 0 ? t("ui.evaluate.incomplete", { missing }) : undefined}>
-            {t("ui.evaluate")}
-          </button>
-          <div className="group transport">
+          <div className="group judge">
+            <button className="primary" aria-pressed={result !== null} onClick={toggleEvaluation} disabled={missing > 0 && !result} title={missing > 0 ? t("ui.evaluate.incomplete", { missing }) : undefined}>
+              {t("ui.evaluate")}
+              {missing > 0 && !result && <span className="badge" aria-label={t("ui.evaluate.incomplete", { missing })}>{missing}</span>}
+            </button>
+          </div>
+          <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
             <div className="play-split">
               <button className="icon play" onClick={() => play("player")} aria-label={t("ui.play.player")} title={t("ui.play.player")}>
                 {playing && playMode === "player" ? "■" : "▶"}
@@ -440,56 +420,65 @@ export function App() {
             </div>
             <Knob id="tempo" label={t("ui.tempo")} value={tempo} min={30} max={120} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
             <Knob id="volume" label={t("ui.volume")} value={volume} min={0} max={100} defaultValue={70} format={(v) => `${Math.round(v)}%`} onChange={(v) => setVolume(Math.round(v))} />
-            <button aria-pressed={drums} aria-expanded={showDrums} onClick={() => setShowDrums(!showDrums)} title={t("ui.drums.help")}>
-              {t("ui.drums")}
+            <button aria-pressed={showSound} aria-expanded={showSound} onClick={() => setShowSound(!showSound)} title={t("ui.sound.help")}>
+              {t("ui.sound")}
               {drums ? " ●" : ""}
             </button>
-            <button className="tuning" onClick={() => setTuning(TEMPERAMENTS[(TEMPERAMENTS.indexOf(tuning) + 1) % TEMPERAMENTS.length])} title={t("ui.tuning.help")}>
-              {t(`ui.tuning.${tuning}`)}
-            </button>
-          </div>
-          <div className="group">
-            <button aria-pressed={showSynth} onClick={() => setShowSynth(!showSynth)}>{t("ui.synth")}</button>
-            <button aria-pressed={showHints} onClick={() => setShowHints(!showHints)}>{t("ui.hints")}</button>
-            <button aria-pressed={showStudy} onClick={() => setShowStudy(!showStudy)} title={t("ui.study.help")}>{t("ui.study")}</button>
           </div>
         </div>
-        {missing > 0 && !result && <p className="help">{t("ui.evaluate.incomplete", { missing })}</p>}
-        {showDrums && <DrumBox on={drums} onToggle={setDrums} value={drumKit} onChange={setDrumKit} onPreview={() => !playing && void audio.previewDrums()} />}
-        {showSynth && <SynthRack value={synth} target={synthTarget} onTarget={setSynthTarget} onChange={setSynth} />}
+        {showSound && (
+          <SoundDesk
+            value={sound}
+            onChange={setSound}
+            fuxOpen={fuxOpen}
+            drums={drums}
+            onDrums={setDrums}
+            drumKit={drumKit}
+            onDrumKit={setDrumKit}
+            onPreviewDrums={() => !playing && void audio.previewDrums()}
+            master={volume}
+            onMaster={setVolume}
+            tuning={tuning}
+            onTuning={setTuning}
+          />
+        )}
         {result && (
           <section className="feedback" aria-live="polite">
             <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} layout={VIEW.layout} audio={audio} />
-            {fuxSolution && VIEW.fux && !fuxOpen && <p className="help">{t("ui.fux.locked")}</p>}
-            {fuxSolution && VIEW.fux && fuxOpen && (
-              <div>
+            <div className="after">
+              {fuxSolution && VIEW.fux && !fuxOpen && <p className="help">{t("ui.fux.locked")}</p>}
+              {fuxSolution && VIEW.fux && fuxOpen && (
                 <button aria-pressed={showFux} onClick={() => setShowFux(!showFux)}>{showFux ? t("ui.fux.hide") : t("ui.fux.show")}</button>
-                {showFux && (
-                  <div className="fux">
-                    <p className="help">{t("ui.fux.overlayHelp")}</p>
-                    <p className="help">
-                      {(() => {
-                        const filled = { ...session, notes: session.notes.map((n, k) => (n === null && VIEW.layout[k].restAllowed ? REST : n)) };
-                        const cmp = compareWithOriginal(toPlayerSolution(filled, repository.getExercise(VIEW.exerciseId!)!, VIEW.layout), fuxSolution);
-                        const key = VIEW.species === "first" ? "ui.fux.agreement" : "ui.fux.agreementNotes";
-                        return t(key, { same: cmp.points.filter((p) => p.same_pitch).length, total: cmp.points.length });
-                      })()}
-                    </p>
-                    {missing === 0 && (
-                      <FuxComparison cantus={VIEW.cantus} player={session.notes} fux={VIEW.fux} layout={VIEW.layout} />
-                    )}
-                  </div>
-                )}
+              )}
+              {result.passed && stepIndex < STEPS.length - 1 && (
+                <button className="next" onClick={() => goTo(stepIndex + 1)}>{t("ui.nav.nextExercise")} ›</button>
+              )}
+            </div>
+            {fuxOpen && showFux && fuxSolution && VIEW.fux && (
+              <div className="fux">
+                <p className="help">{t("ui.fux.overlayHelp")}</p>
+                <p className="help">
+                  {(() => {
+                    const filled = { ...session, notes: session.notes.map((n, k) => (n === null && VIEW.layout[k].restAllowed ? REST : n)) };
+                    const cmp = compareWithOriginal(toPlayerSolution(filled, repository.getExercise(VIEW.exerciseId!)!, VIEW.layout), fuxSolution);
+                    const key = VIEW.species === "first" ? "ui.fux.agreement" : "ui.fux.agreementNotes";
+                    return t(key, { same: cmp.points.filter((p) => p.same_pitch).length, total: cmp.points.length });
+                  })()}
+                </p>
+                {missing === 0 && <FuxComparison cantus={VIEW.cantus} player={session.notes} fux={VIEW.fux} layout={VIEW.layout} />}
               </div>
             )}
           </section>
         )}
         {audioStatus === "failed" && <p className="status error">{t("ui.audio.failed")}</p>}
-        <p className="help">{t("ui.keyboard.help")}{VIEW.layout.some((sl) => sl.restAllowed) ? ` · ${t("ui.keyboard.rest")}` : ""}</p>
+        <nav className="tabs" aria-label={t("ui.study.tabs")}>
+          <button role="tab" aria-selected={tab === "rules"} onClick={() => setTab(tab === "rules" ? null : "rules")}>{t("ui.hints")}</button>
+          <button role="tab" aria-selected={tab === "lectio"} onClick={() => setTab(tab === "lectio" ? null : "lectio")} title={t("ui.study.help")}>{t("ui.study")}</button>
+        </nav>
+        {tab === "rules" && <Hints step={STEP} cantus={VIEW.cantus} />}
+        {tab === "lectio" && <Study step={STEP} />}
       </main>
       <footer>
-        {showHints && <Hints step={STEP} cantus={VIEW.cantus} />}
-        {showStudy && <Study step={STEP} />}
         <p className="source">
           {VIEW.exerciseId
             ? t("ui.source.exercise", { figure, page: VIEW.page, license: VIEW.attribution.license })
@@ -498,6 +487,7 @@ export function App() {
         </p>
       </footer>
       {showCredits && <Credits onClose={() => setShowCredits(false)} />}
+      {showHelp && <HelpCard rest={VIEW.layout.some((sl) => sl.restAllowed)} onClose={() => setShowHelp(false)} />}
     </div>
   );
 }

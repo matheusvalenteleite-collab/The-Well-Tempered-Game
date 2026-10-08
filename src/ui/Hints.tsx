@@ -89,7 +89,6 @@ export function Hints({ step, cantus }: { step: CurriculumStep; cantus: string[]
   );
   return (
     <section className="hints" aria-label={t("ui.hints")}>
-      <h2>{t("ui.hints")}</h2>
       <div className="hints-grid">
         <div className="glance">
           <h3>{t("hints.glance.intervals")}</h3>

@@ -8,7 +8,8 @@
  */
 import { Soundfont } from "smplr";
 import { DEFAULT_DRUMS, DrumMachine, type DrumSettings } from "./drums.ts";
-import { DEFAULT_SYNTH, type SynthSettings, type VoiceId, type VoiceSynths } from "./synth-settings.ts";
+import type { SynthSettings } from "./synth-settings.ts";
+import { audibleGain, CHANNELS, DEFAULT_SOUND, shiftOctave, STRIPS, type Channel, type SoundState, type Strip } from "./sound.ts";
 import type { TemperamentId } from "./temperament.ts";
 import type { PlayEvent } from "../counterpoint/layout.ts";
 import { Synth, type Instrument } from "./voice.ts";
@@ -25,7 +26,7 @@ export interface PlaybackColumn {
 
 export type { PlayEvent };
 
-type Voices = Record<VoiceId | "fux", Instrument>;
+type Voices = Record<Channel, Instrument>;
 
 class SampledPiano implements Instrument {
   private sf: Soundfont;
@@ -49,8 +50,10 @@ export class AudioEngine {
   private drumMachine: DrumMachine | null = null;
   private timers: number[] = [];
   sound: SoundId = "piano";
-  /** Independent settings for the cantus firmus and the counterpoint. */
-  synth: VoiceSynths = { cantus: { ...DEFAULT_SYNTH }, counterpoint: { ...DEFAULT_SYNTH } };
+  /** Synth settings of the three voices (stable objects: the synths read them at each note). */
+  private synth: Record<Channel, SynthSettings> = structuredClone(DEFAULT_SOUND.synth);
+  private mix: SoundState = structuredClone(DEFAULT_SOUND);
+  private channels = new Map<Strip, { gain: GainNode; pan: StereoPannerNode }>();
   temperament: TemperamentId = "equal";
   /** Drum track during "play all"; read live, so toggling takes effect from the next bar. */
   drums = false;
@@ -69,11 +72,40 @@ export class AudioEngine {
     this.onStatus(s);
   }
 
-  /** Change synth settings. Sound parameters apply to the next notes; effects change at once. */
-  setSynth(settings: VoiceSynths) {
-    Object.assign(this.synth.cantus, settings.cantus);
-    Object.assign(this.synth.counterpoint, settings.counterpoint);
+  /**
+   * Apply the mixing desk: synth settings (sound parameters apply to the next notes, effects at
+   * once), channel volume and balance after mute/solo, and Fux's octave.
+   */
+  setSoundState(state: SoundState) {
+    for (const c of CHANNELS) Object.assign(this.synth[c], state.synth[c]);
     for (const v of [this.current?.cantus, this.current?.counterpoint, this.current?.fux]) if (v instanceof Synth) v.update();
+    this.mix = structuredClone(state);
+    this.applyMix();
+  }
+
+  private applyMix() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    for (const x of STRIPS) {
+      const ch = this.channels.get(x);
+      if (!ch) continue;
+      ch.gain.gain.setTargetAtTime(audibleGain(this.mix, x), t, 0.02);
+      ch.pan.pan.setTargetAtTime(this.mix.mix[x].pan, t, 0.02);
+    }
+  }
+
+  /** The input node of a channel strip (gain, then balance, then the master). */
+  private channel(x: Strip): AudioNode {
+    let ch = this.channels.get(x);
+    if (!ch) {
+      const gain = this.ctx!.createGain();
+      const pan = this.ctx!.createStereoPanner();
+      gain.connect(pan).connect(this.master!);
+      ch = { gain, pan };
+      this.channels.set(x, ch);
+      this.applyMix();
+    }
+    return ch.gain;
   }
 
   /** Pattern, loop length and level of the drum track; read live by the scheduler. */
@@ -83,7 +115,6 @@ export class AudioEngine {
     if (this.drumMachine) {
       this.drumMachine.settings = this.drumSettings;
       this.drumMachine.final = final;
-      this.drumMachine.setLevel(settings.level);
     }
   }
 
@@ -101,29 +132,10 @@ export class AudioEngine {
     if (this.master && this.ctx) this.master.gain.setTargetAtTime(this.volume, this.ctx.currentTime, 0.02);
   }
 
-  setSound(sound: SoundId) {
+  setSource(sound: SoundId) {
     this.stop();
     this.sound = sound;
     if (this.ctx) void this.instrument();
-  }
-
-  private panners = new Map<string, StereoPannerNode>();
-  /** A stereo position for a voice, centred until trio playback spreads the two counterpoints. */
-  private panner(voice: "counterpoint" | "fux"): AudioNode {
-    let p = this.panners.get(voice);
-    if (!p) {
-      p = this.ctx!.createStereoPanner();
-      p.connect(this.master!);
-      this.panners.set(voice, p);
-    }
-    return p;
-  }
-
-  /** Trio playback: the player's line to the left, Fux's to the right; otherwise both centred. */
-  private spread(on: boolean) {
-    const t = this.ctx?.currentTime ?? 0;
-    this.panners.get("counterpoint")?.pan.setTargetAtTime(on ? -0.6 : 0, t, 0.02);
-    this.panners.get("fux")?.pan.setTargetAtTime(on ? 0.6 : 0, t, 0.02);
   }
 
   /** Resolve the selected instruments; must first be called from a user gesture. */
@@ -133,7 +145,7 @@ export class AudioEngine {
       this.master = this.ctx.createGain();
       this.master.gain.value = this.volume;
       this.master.connect(this.ctx.destination);
-      this.drumMachine = new DrumMachine(this.ctx, this.master);
+      this.drumMachine = new DrumMachine(this.ctx, this.channel("drums"));
       this.setDrums(this.drumSettings, this.final);
     }
     if (this.ctx.state === "suspended") await this.ctx.resume();
@@ -145,10 +157,9 @@ export class AudioEngine {
       p =
         this.sound === "chip"
           ? Promise.resolve({
-              cantus: new Synth(ctx, master, this.synth.cantus, tuning),
-              counterpoint: new Synth(ctx, this.panner("counterpoint"), this.synth.counterpoint, tuning),
-              // Fux's line shares the counterpoint's settings; in trio playback the two are panned apart.
-              fux: new Synth(ctx, this.panner("fux"), this.synth.counterpoint, tuning),
+              cantus: new Synth(ctx, this.channel("cantus"), this.synth.cantus, tuning),
+              counterpoint: new Synth(ctx, this.channel("counterpoint"), this.synth.counterpoint, tuning),
+              fux: new Synth(ctx, this.channel("fux"), this.synth.fux, tuning),
             })
           : new Soundfont(ctx, { instrument: "acoustic_grand_piano", kit: "MusyngKite", destination: master }).load.then(
               (sf) => {
@@ -199,7 +210,8 @@ export class AudioEngine {
       this.notesStarted++;
     }
     if (e.fux) {
-      voices.fux.start(e.fux, time, e.length * whole * 0.95);
+      // Fux's line may sound in another octave (listening only; the score is unchanged).
+      voices.fux.start(shiftOctave(e.fux, this.mix.fuxOctave), time, e.length * whole * 0.95);
       this.notesStarted++;
     }
   }
@@ -233,7 +245,6 @@ export class AudioEngine {
       onSlot(-1);
       return;
     }
-    this.spread(events.some((e) => e.counterpoint) && events.some((e) => e.fux));
     const bars = Math.ceil(Math.max(...events.map((e) => e.at + e.length)));
     let k = 0;
     let next = ctx.currentTime + 0.1;

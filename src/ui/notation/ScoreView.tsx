@@ -69,7 +69,7 @@ const HALF_BAR_W = 92;
 /** Notehead offset from the left edge of its slot. */
 const NOTE_PAD = 12;
 /** Drawing scale on wide screens. */
-const BASE_SCALE = 0.85;
+const BASE_SCALE = 1;
 const COLOR: Record<Status, string> = { ok: "var(--ok)", error: "var(--bad)", warning: "var(--warn)" };
 const ACC: Record<number, string> = { [-2]: "bb", [-1]: "b", 1: "#", 2: "##" };
 
@@ -226,7 +226,7 @@ export function ScoreView(props: ScoreProps) {
       const fuxLabel = "◇ Fux";
       ctx.fillText(fuxLabel, xr - ctx.measureText(fuxLabel).width, y);
       ctx.setFillStyle("var(--ink-player)");
-      const meLabel = "● you   ";
+      const meLabel = "● you    ";
       ctx.fillText(meLabel, xr - ctx.measureText(fuxLabel).width - ctx.measureText(meLabel).width, y);
       ctx.restore();
     }

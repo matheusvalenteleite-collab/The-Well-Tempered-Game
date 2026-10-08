@@ -1,5 +1,4 @@
 import { DRUM_FAMILIES, DRUM_PATTERNS, LOOP_LENGTHS, type DrumSettings } from "../audio/drums.ts";
-import { Knob } from "./Knob.tsx";
 import { t } from "./i18n.ts";
 
 interface Props {
@@ -13,7 +12,7 @@ interface Props {
 
 const lengthText = (l: number) => (l >= 1 ? t(l === 1 ? "ui.drums.bar" : "ui.drums.bars", { n: l }) : t("ui.drums.fraction", { n: `1/${1 / l}` }));
 
-/** Options for the drum track: on/off, loop length (×2, ÷2), level, and the pattern. */
+/** Options for the drum track: on/off, loop length (×2, ÷2) and the pattern (its level is on the mixer). */
 export function DrumBox({ on, onToggle, value, onChange, onPreview }: Props) {
   const k = LOOP_LENGTHS.indexOf(value.length);
   const setLength = (i: number) => onChange({ ...value, length: LOOP_LENGTHS[Math.max(0, Math.min(LOOP_LENGTHS.length - 1, i))] });
@@ -29,7 +28,6 @@ export function DrumBox({ on, onToggle, value, onChange, onPreview }: Props) {
           <span className="loop-len">{lengthText(value.length)}</span>
           <button className="chipbtn" tabIndex={-1} disabled={k >= LOOP_LENGTHS.length - 1} onClick={() => setLength(k + 1)} aria-label={t("ui.drums.double")}>×2</button>
         </span>
-        <Knob id="drum-level" label={t("ui.drums.level")} value={value.level} min={0} max={1} defaultValue={0.55} format={(v) => `${Math.round(v * 100)}%`} onChange={(v) => onChange({ ...value, level: v })} />
       </div>
       <div className="drum-families">
         {DRUM_FAMILIES.map((f) => (

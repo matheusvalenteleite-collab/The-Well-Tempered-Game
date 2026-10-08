@@ -1,33 +1,24 @@
-import { useState } from "react";
 import {
-  applyEdit,
   DEFAULT_SYNTH,
   DELAY_MODES,
   firstPreset,
-  joinVoices,
   RANGES,
   REVERB_MODES,
-  sameSettings,
   SYNTH_MODELS,
   SYNTH_PRESETS,
   WAVEFORMS,
   type NumericKey,
   type SynthModel,
   type SynthSettings,
-  type SynthTarget,
-  type VoiceSynths,
 } from "../audio/synth-settings.ts";
 import { Knob } from "./Knob.tsx";
 import { t } from "./i18n.ts";
 
-export type { SynthTarget };
-const TARGETS: SynthTarget[] = ["all", "cantus", "counterpoint"];
-
 interface Props {
-  value: VoiceSynths;
-  target: SynthTarget;
-  onTarget(t: SynthTarget): void;
-  onChange(v: VoiceSynths): void;
+  /** Heading: which voice (or linked voices) this edits. */
+  title: string;
+  value: SynthSettings;
+  onChange(v: SynthSettings): void;
 }
 
 const ms = (v: number) => (v < 1 ? `${Math.round(v * 1000)} ms` : `${v.toFixed(2)} s`);
@@ -56,18 +47,19 @@ const BY_MODEL: Record<SynthModel, NumericKey[]> = {
   wavefold: ["foldDrive", "foldSymmetry"],
 };
 
-const same = (a: SynthSettings, b: SynthSettings) =>
+export const same = (a: SynthSettings, b: SynthSettings) =>
   (Object.keys(a) as (keyof SynthSettings)[]).every((k) => (typeof a[k] === "number" ? Math.abs((a[k] as number) - (b[k] as number)) < 1e-6 : a[k] === b[k]));
 
-/**
- * The synthesizer rack. A voice menu (Both voices / Cantus firmus / Contrapunctus), the model with
- * arrows, the knobs and effects on the left; the model's presets (with arrows) on the right.
- */
-export function SynthRack({ value, target, onTarget, onChange }: Props) {
-  const [menu, setMenu] = useState(false);
-  const [confirm, setConfirm] = useState(false);
-  const shown = target === "cantus" ? value.cantus : value.counterpoint;
-  const set = (next: SynthSettings) => onChange(applyEdit(value, target, next));
+/** The name of the preset these settings match, or null (custom). */
+export function presetName(v: SynthSettings): string | null {
+  const p = SYNTH_PRESETS.find((x) => same(x.settings, v));
+  return p ? t(`ui.synth.preset.${p.id}`) : null;
+}
+
+/** The synth editor for one voice (or one group of linked voices): model and preset with arrows, knobs, effects. */
+export function SynthRack({ title, value, onChange }: Props) {
+  const shown = value;
+  const set = (next: SynthSettings) => onChange(next);
   const cycle = <T,>(list: T[], cur: T, step = 1) => list[(list.indexOf(cur) + step + list.length) % list.length];
   const knob = (k: NumericKey) => (
     <Knob key={k} id={`synth-${k}`} label={t(`ui.synth.${k}`)} value={shown[k]} min={RANGES[k].min} max={RANGES[k].max} log={RANGES[k].log}
@@ -87,37 +79,11 @@ export function SynthRack({ value, target, onTarget, onChange }: Props) {
     set({ ...presets[(from + d + presets.length) % presets.length].settings });
   };
 
-  const chooseTarget = (x: SynthTarget) => {
-    setMenu(false);
-    if (x === target) return;
-    if (x === "all" && !sameSettings(value)) {
-      setConfirm(true);
-      return;
-    }
-    onTarget(x);
-  };
-
   return (
     <section className="rack" aria-label={t("ui.synth.title")}>
       <div className="rack-main">
         <div className="rack-head">
-          <span className="rack-title">{t("ui.synth.title")}</span>
-          <span className="target-menu">
-            <button className="chipbtn target" tabIndex={-1} aria-haspopup="menu" aria-expanded={menu} onClick={() => setMenu(!menu)} title={t("ui.synth.targetHelp")}>
-              {t(`ui.synth.target.${target}`)} ▾
-            </button>
-            {menu && (
-              <ul className="menu" role="menu">
-                {TARGETS.map((x) => (
-                  <li key={x}>
-                    <button role="menuitemradio" aria-checked={x === target} tabIndex={-1} onClick={() => chooseTarget(x)}>
-                      {t(`ui.synth.target.${x}`)}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </span>
+          <span className="rack-title">{title}</span>
           <span className="stepper">
             <button className="chipbtn" tabIndex={-1} onClick={() => setModel(cycle(SYNTH_MODELS, shown.model, -1))} aria-label={t("ui.synth.prevModel")}>‹</button>
             <select className="model" aria-label={t("ui.synth.modelHelp")} value={shown.model} title={t("ui.synth.modelHelp")} onChange={(e) => setModel(e.target.value as SynthModel)}>
@@ -129,23 +95,6 @@ export function SynthRack({ value, target, onTarget, onChange }: Props) {
           </span>
           {shown.model === "subtractive" && choice(<><WaveIcon wave={shown.waveform} /> {t(`ui.synth.wave.${shown.waveform}`)}</>, () => set({ ...shown, waveform: cycle(WAVEFORMS, shown.waveform) }))}
         </div>
-        {confirm && (
-          <div className="confirm" role="alertdialog" aria-label={t("ui.synth.joinTitle")}>
-            <span>{t("ui.synth.joinQuestion")}</span>
-            <button
-              className="chipbtn"
-              tabIndex={-1}
-              onClick={() => {
-                setConfirm(false);
-                onChange(joinVoices(value));
-                onTarget("all");
-              }}
-            >
-              {t("ui.synth.yes")}
-            </button>
-            <button className="chipbtn" tabIndex={-1} onClick={() => setConfirm(false)}>{t("ui.synth.no")}</button>
-          </div>
-        )}
         <div className="rack-knobs">
           {SHARED.map(knob)}
           <span className="knob-sep" aria-hidden="true" />
