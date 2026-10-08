@@ -10,6 +10,8 @@ export type Block =
 
 export interface StepStudy {
   name: string;
+  /** Aloysius's line that opens the exercise: Fux's Latin and our translation. */
+  intro: { la: string; en: string; page: string };
   specific: string[];
   study: Block[];
 }

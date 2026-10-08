@@ -189,7 +189,12 @@
      "type": "text",
      "text": "Note: Mann's melodic advice (no leaps larger than a fifth, compensate leaps, and so on) is his own, not Fux's; the game does not check it."
     }
-   ]
+   ],
+   "intro": {
+    "la": "Fiat ergo principium, Auspice Deo, à Compositione duarum vocum, ponendo quendam Cantum firmum, vel à proprio judicio inventum, vel ex aliquo Libro Chorali assumptum pro fundamento.",
+    "en": "Let us begin, then, with God's help, with composition in two voices, taking as our foundation a cantus firmus, either of our own invention or taken from some book of chant.",
+    "page": "45"
+   }
   },
   "fux-mode.s1.02": {
    "name": "Below the cantus",
@@ -247,7 +252,12 @@
      "page": "33",
      "note": "5"
     }
-   ]
+   ],
+   "intro": {
+    "la": "Jam perge, relicto Cantu firmo, ut est in Alto, infra pone Tenorem pro parte Contrapuncti.",
+    "en": "Now go on: leave the cantus firmus in the alto as it is, and put the tenor below it to carry the counterpoint.",
+    "page": "48"
+   }
   },
   "fux-mode.s1.03": {
    "name": "Into E",
@@ -274,7 +284,12 @@
      "type": "text",
      "text": "That warning comes in the next exercise; here it is already latent, since the cantus moves around F and B."
     }
-   ]
+   ],
+   "intro": {
+    "la": "Age ergo, tuumque exercitium resumendo, construito Contrapunctum super Cantum firmum, quem tibi modò in E. praescripturus sum.",
+    "en": "Come then, take up your exercise again, and build a counterpoint above the cantus firmus I am about to set you in E.",
+    "page": "51"
+   }
   },
   "fux-mode.s1.04": {
    "name": "The devil in music",
@@ -325,7 +340,12 @@
      "type": "text",
      "text": "The game checks only the leap Fux names (the augmented fourth); Mann's extension to stepwise tritones is his, not Fux's."
     }
-   ]
+   ],
+   "intro": {
+    "la": "Ad amussim fecisti. Nunc posito Cantu firmo in parte superiori, infrà in Tenore confice Contrapunctum.",
+    "en": "Done to a nicety. Now put the cantus firmus above, and make the counterpoint below it, in the tenor.",
+    "page": "51"
+   }
   },
   "fux-mode.s1.05": {
    "name": "Neighbouring clefs",
@@ -360,7 +380,12 @@
      "page": "36",
      "note": "10"
     }
-   ]
+   ],
+   "intro": {
+    "la": "Fac bono animo sis, & de tono E. procede ad tonum F.",
+    "en": "Take heart, and go on from the mode of E to the mode of F.",
+    "page": "52"
+   }
   },
   "fux-mode.s1.06": {
    "name": "Crossing over",
@@ -405,7 +430,12 @@
      "page": "36",
      "note": "11"
     }
-   ]
+   ],
+   "intro": {
+    "la": "Nunc posito Basso infrà Cantum firmum, in eo formetur Contrapunctum.",
+    "en": "Now put a bass below the cantus firmus, and let the counterpoint be formed in it.",
+    "page": "52"
+   }
   },
   "fux-mode.s1.07": {
    "name": "Singable lines",
@@ -468,7 +498,12 @@
      "type": "text",
      "text": "The game does not check the battuta: Fux leaves it to discretion."
     }
-   ]
+   ],
+   "intro": {
+    "la": "Pergamus ad tonum G.",
+    "en": "Let us go on to the mode of G.",
+    "page": "52"
+   }
   },
   "fux-mode.s1.08": {
    "name": "Leaving the unison",
@@ -506,7 +541,12 @@
      "type": "text",
      "text": "Aloysius: every stumbling block is now removed."
     }
-   ]
+   ],
+   "intro": {
+    "la": "Restat adhuc ultimi exempli Contrapunctum in parte inferiori ponendum.",
+    "en": "There still remains the counterpoint to the last example, to be set in the lower part.",
+    "page": "54"
+   }
   },
   "fux-mode.s1.09": {
    "name": "In A",
@@ -528,7 +568,12 @@
      "page": "28",
      "note": "2"
     }
-   ]
+   ],
+   "intro": {
+    "la": "Nunc omnem offensionis lapidem sublatum esse arbitror. Perge ergo ad A. & C. duos superstites Tonos.",
+    "en": "Now I think every stumbling block has been cleared away. Go on, then, to A and C, the two remaining modes.",
+    "page": "55"
+   }
   },
   "fux-mode.s1.10": {
    "name": "The species mastered",
@@ -544,7 +589,12 @@
      "type": "text",
      "text": "After the two A exercises Aloysius declares that Josephus knows everything necessary in this species, and they move on to the second."
     }
-   ]
+   ],
+   "intro": {
+    "la": "… in Contrapuncto, in quo Compositionis genere omnia cantu facillima esse debent …",
+    "en": "… in counterpoint, a kind of composition in which everything ought to be as easy as possible to sing …",
+    "page": "53"
+   }
   },
   "fux-mode.s1.11": {
    "name": "C on your own",
@@ -560,7 +610,12 @@
      "type": "text",
      "text": "Aloysius assigns C with A (\"the remaining modes, A and C\") but the book prints no C exercise in first species. There is no original solution to compare with."
     }
-   ]
+   ],
+   "intro": {
+    "la": "Ex duobus ultimis exemplis apparet, omnia scitu ad hanc speciem necessaria tibi jam nota esse.",
+    "en": "It is plain from the last two examples that you now know everything this species requires.",
+    "page": "55"
+   }
   },
   "fux-mode.s1.12": {
    "name": "C on your own, below",
@@ -577,7 +632,12 @@
      "type": "text",
      "text": "As the previous exercise, with the counterpoint below."
     }
-   ]
+   ],
+   "intro": {
+    "la": "Nunc perge, & eandem lectionem faciendo, percurre omnes tonos intrà hanc Octavam contentos, & naturali ordine gradatim sequentes.",
+    "en": "Now go on with the same lesson, and run through all the modes contained in this octave, one after another in their natural order.",
+    "page": "50"
+   }
   },
   "fux-mode.s2.01": {
    "name": "Thesis and arsis",
@@ -654,7 +714,12 @@
      "page": "41",
      "note": "1"
     }
-   ]
+   ],
+   "intro": {
+    "la": "Pro majori facilitate juvabit habere rationem finis, antequam scribere incipias.",
+    "en": "To make it easier, it will help to think of the end before you begin to write.",
+    "page": "57"
+   }
   },
   "fux-mode.s2.02": {
    "name": "The half rest",
@@ -691,7 +756,12 @@
      "type": "text",
      "text": "Counterpoint below the cantus: begin on the octave or the unison, never the fifth below (it would put your line in another mode), and reckon the intervals downwards from the cantus."
     }
-   ]
+   ],
+   "intro": {
+    "la": "Primum est, quòd locò primae Notae pausa medii tactûs valoris poni possit.",
+    "en": "The first is that in place of the first note a rest of half a bar may be put.",
+    "page": "59"
+   }
   },
   "fux-mode.s2.03": {
    "name": "Half notes in E",
@@ -707,7 +777,12 @@
      "type": "text",
      "text": "Aloysius now has Josephus take all the cantus firmi of the first species through the five remaining modes, once above and once below. The E exercises come first."
     }
-   ]
+   ],
+   "intro": {
+    "la": "Nunc resumendo omnes Cantus firmos in prima Contrapuncti Specie praescriptos, percurre reliquos quinque tonos, superiùs, inferiùsque Contrapunctum fabricando.",
+    "en": "Now take up again all the cantus firmi set for the first species and run through the remaining five modes, building the counterpoint above and below.",
+    "page": "60"
+   }
   },
   "fux-mode.s2.04": {
    "name": "No fifth in E",
@@ -744,7 +819,12 @@
      "english": "this observation of yours pleases me very much",
      "page": "61"
     }
-   ]
+   ],
+   "intro": {
+    "la": "mi contra fa, est diabolus in Musica",
+    "en": "mi against fa is the devil in music",
+    "page": "51"
+   }
   },
   "fux-mode.s2.05": {
    "name": "F, with the soft B",
@@ -760,7 +840,12 @@
      "type": "text",
      "text": "Nothing new is said. Look at Fux's solution afterwards for the B♭s: he explains such flats only in the next species (1725 pp. 68-69)."
     }
-   ]
+   ],
+   "intro": {
+    "la": "Perge nunc, reliquosque quatuor tonos pari exercitio prosequere.",
+    "en": "Go on now, and pursue the four remaining modes with the same exercise.",
+    "page": "61"
+   }
   },
   "fux-mode.s2.06": {
    "name": "F, from below",
@@ -780,7 +865,12 @@
      "type": "text",
      "text": "Counterpoint below the cantus: begin on the octave or the unison, never the fifth below (it would put your line in another mode), and reckon the intervals downwards from the cantus."
     }
-   ]
+   ],
+   "intro": {
+    "la": "Fac ut poteris; nihil molestè feram; correctio obscuritatis tenebras facilè dissipabit.",
+    "en": "Do as well as you can; I shall not mind; correction will easily scatter the darkness.",
+    "page": "57"
+   }
   },
   "fux-mode.s2.07": {
    "name": "G, the raised seventh",
@@ -802,7 +892,12 @@
      "page": "28",
      "note": "2"
     }
-   ]
+   ],
+   "intro": {
+    "la": "… à Legislatoribus cujuscunque Facultatis nihil frustrà, nihil, quod ratione non fundatum sit, institutum fuisse.",
+    "en": "… the lawgivers of every art have laid down nothing in vain, nothing that is not founded on reason.",
+    "page": "50"
+   }
   },
   "fux-mode.s2.08": {
    "name": "G, from below",
@@ -822,7 +917,12 @@
      "type": "text",
      "text": "Counterpoint below the cantus: begin on the octave or the unison, never the fifth below (it would put your line in another mode), and reckon the intervals downwards from the cantus."
     }
-   ]
+   ],
+   "intro": {
+    "la": "Secundum, si ambas partes ita vicinè, itaque conjunctim reperiri contingat, ut vix sciatur, quorsum eundum …",
+    "en": "The second: if the two parts happen to lie so close together that one hardly knows where to go …",
+    "page": "59"
+   }
   },
   "fux-mode.s2.09": {
    "name": "A, a new cantus",
@@ -838,7 +938,12 @@
      "type": "text",
      "text": "Nothing new is said. In the dataset this exercise uses a slightly different A cantus from the first species (one note shorter); the encoding follows the 1725 print, to be double-checked."
     }
-   ]
+   ],
+   "intro": {
+    "la": "Gutta cavat lapidem, non vi, sed saepè cadendo.",
+    "en": "The drop hollows the stone, not by force but by falling often.",
+    "page": "62"
+   }
   },
   "fux-mode.s2.10": {
    "name": "A, from below",
@@ -858,7 +963,12 @@
      "type": "text",
      "text": "Counterpoint below the cantus: begin on the octave or the unison, never the fifth below (it would put your line in another mode), and reckon the intervals downwards from the cantus."
     }
-   ]
+   ],
+   "intro": {
+    "la": "… ita ut nullum diem sinè linea (ùt dicitur) praeterlabi sinamus.",
+    "en": "… so that we let no day slip by without a line, as the saying goes.",
+    "page": "62"
+   }
   },
   "fux-mode.s2.11": {
    "name": "C, worked out",
@@ -874,7 +984,12 @@
      "type": "text",
      "text": "Unlike first species, Fux works C out in this species."
     }
-   ]
+   ],
+   "intro": {
+    "la": "Satis commodè rem instituisti. Sic Dii laboribus omnia vendunt.",
+    "en": "You have gone about it well enough. So the gods sell everything for toil.",
+    "page": "62"
+   }
   },
   "fux-mode.s2.12": {
    "name": "Looking ahead",
@@ -906,7 +1021,12 @@
      "type": "text",
      "text": "The lesson ends with ternary time: three notes against one, where the middle note may be dissonant if all three move by step (p. 63). Fux thinks it too easy to deserve its own lesson."
     }
-   ]
+   ],
+   "intro": {
+    "la": "… ut non solùm illius tactûs, in quo laboras, rationem habeas, verùm etiam & sequentium.",
+    "en": "… that you take account not only of the bar you are working on, but also of those that follow.",
+    "page": "62-63"
+   }
   }
  }
 }

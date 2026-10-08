@@ -33,11 +33,12 @@ test("each Fux solution clears the rules active at its own step", () => {
   }
 });
 
-test("content: every step has a tutor intro; every introduced rule has a hint and a tutor message", async () => {
+test("content: every step opens with a line from Fux; every introduced rule has a hint and a tutor message", async () => {
   const { t } = await import("../src/ui/i18n.ts");
   const { ALL_STEPS, ruleById } = await import("../src/counterpoint/curriculum/index.ts");
   for (const s of ALL_STEPS) {
-    assert.doesNotThrow(() => t(`tutor.step.${s.id}.intro`), s.id);
+    const { stepStudy } = await import("../src/ui/study.ts");
+    assert.ok(stepStudy(s.id).intro.en && stepStudy(s.id).intro.la, s.id);
     for (const x of s.introduces) {
       assert.doesNotThrow(() => t(`hints.rule.${x.ruleId}`), x.ruleId);
       assert.doesNotThrow(() => t(`tutor.${ruleById(x.ruleId)!.messageKey}`), x.ruleId);

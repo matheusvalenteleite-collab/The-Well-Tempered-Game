@@ -329,3 +329,4 @@ kbd { font-family: ui-monospace, Menlo, monospace; font-size: 0.8rem; padding: 1
 .desk { justify-content: stretch; }
 .desk .strip { flex: 1 1 0; width: auto; min-width: 72px; }
 .desk-gap { width: 6px; flex: 0 0 auto; }
+.tutor cite { display: block; margin-top: 2px; font-size: 0.72rem; font-style: normal; color: var(--muted); cursor: help; }
