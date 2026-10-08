@@ -3,7 +3,7 @@ import { repository } from "../music/fux/load-browser.ts";
 import { FUX_FIRST_SPECIES_CURRICULUM, validateCurriculum } from "../counterpoint/curriculum/fux-first-species.ts";
 import { exerciseView } from "../game/exercise-view.ts";
 import { applyAccidental, clear, initialState, letterNote, place, select, stepNote, type SessionState } from "../game/session.ts";
-import { AudioEngine, type AudioStatus } from "../audio/engine.ts";
+import { AudioEngine, type AudioStatus, type SoundId } from "../audio/engine.ts";
 import { ScoreView } from "./notation/ScoreView.tsx";
 import { Credits } from "./Credits.tsx";
 import { t } from "./i18n.ts";
@@ -15,6 +15,16 @@ const STEP = FUX_FIRST_SPECIES_CURRICULUM[0];
 const VIEW = exerciseView(repository, STEP);
 const audio = new AudioEngine();
 
+const SOUND_KEY = "wtg.sound";
+function storedSound(): SoundId {
+  try {
+    return localStorage.getItem(SOUND_KEY) === "chip" ? "chip" : "piano";
+  } catch {
+    return "piano";
+  }
+}
+audio.sound = storedSound();
+
 export function App() {
   const [session, setSession] = useState<SessionState>(() => initialState(VIEW.cantus.length));
   const [clefMode, setClefMode] = useState<"modern" | "original">("modern");
@@ -23,6 +33,7 @@ export function App() {
   const [playing, setPlaying] = useState(false);
   const [audioStatus, setAudioStatus] = useState<AudioStatus>("idle");
   const [showCredits, setShowCredits] = useState(false);
+  const [sound, setSound] = useState<SoundId>(audio.sound);
   const scoreRef = useRef<HTMLDivElement>(null);
   audio.onStatus = setAudioStatus;
 
@@ -36,6 +47,18 @@ export function App() {
     },
     [session],
   );
+
+  const chooseSound = (s: SoundId) => {
+    setSound(s);
+    audio.setSound(s);
+    setPlaying(false);
+    setCursor(-1);
+    try {
+      localStorage.setItem(SOUND_KEY, s);
+    } catch {
+      /* preference not persisted */
+    }
+  };
 
   const play = () => {
     if (playing) {
@@ -96,7 +119,7 @@ export function App() {
         <blockquote className="tutor">
           <span className="speaker">{t("tutor.speaker.aloysius")}.</span> {t(`tutor.step.${STEP.id}.intro`)}
         </blockquote>
-        <div className="score-wrap" ref={scoreRef} tabIndex={0} onKeyDown={onKey} data-notes={JSON.stringify(session.notes)} aria-label={t("ui.keyboard.help")}>
+        <div className="score-wrap" ref={scoreRef} tabIndex={0} onKeyDown={onKey} data-notes={JSON.stringify(session.notes)} data-audio-notes={audio.notesStarted} aria-label={t("ui.keyboard.help")}>
           <ScoreView
             cantus={VIEW.cantus}
             counterpoint={session.notes}
@@ -124,6 +147,10 @@ export function App() {
               {t("ui.tempo", { bpm: tempo })}
               <input type="range" min={30} max={120} value={tempo} onChange={(e) => setTempo(Number(e.target.value))} />
             </label>
+          </div>
+          <div className="group" role="group" aria-label="sound">
+            <button aria-pressed={sound === "piano"} onClick={() => chooseSound("piano")}>{t("ui.sound.piano")}</button>
+            <button aria-pressed={sound === "chip"} onClick={() => chooseSound("chip")}>{t("ui.sound.chip")}</button>
           </div>
           <div className="group">
             <button aria-pressed={clefMode === "modern"} onClick={() => setClefMode("modern")}>{t("ui.clefs.modern")}</button>

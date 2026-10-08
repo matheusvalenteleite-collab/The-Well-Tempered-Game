@@ -19,3 +19,5 @@ Decisions taken by the project owner; code must follow them.
 | D12 | The player is Josephus and writes every counterpoint; Josephus's faulty first versions are not staged. | — |
 
 Note: the page supplied as "p. 46" is p. 46 of Mann's English translation (second species, Figs. 36-38), not the 1725 p. 46; per the owner's instruction, Mann's text is not used.
+| D13 | Default ("modern") clefs are the per-exercise modern clefs given in the dataset (e.g. treble over treble for Fig. 5), not a fixed treble over bass. | `exerciseView().clefs.modern` |
+| D14 | Two switchable sounds: sampled piano and an 8-bit square-wave synthesizer (organ dropped). | `src/audio/engine.ts`, Piano / 8-bit buttons |

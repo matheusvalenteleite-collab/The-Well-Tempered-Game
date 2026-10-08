@@ -17,7 +17,7 @@ export function Credits({ onClose }: { onClose(): void }) {
           Dataset: <a href={prov.repository}>{prov.repository}</a> @ <code>{prov.commit.slice(0, 7)}</code>
         </p>
         <h3>Software and sounds</h3>
-        <p>VexFlow (MIT), React (MIT), smplr (MIT). Organ samples: MusyngKite soundfont from gleitz/midi-js-soundfonts (licence as stated by that project).</p>
+        <p>VexFlow (MIT), React (MIT), smplr (MIT). Piano samples: MusyngKite soundfont from gleitz/midi-js-soundfonts (licence as stated by that project). 8-bit sound: synthesized in the browser.</p>
         <button onClick={onClose}>{t("ui.close")}</button>
       </div>
     </div>

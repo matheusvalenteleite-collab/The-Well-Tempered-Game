@@ -18,11 +18,13 @@
     "clear": "Clear note",
     "credits": "Credits",
     "close": "Close",
-    "audio.loading": "Loading organ samples…",
-    "audio.failed": "Audio unavailable: the organ samples could not be loaded.",
+    "audio.loading": "Loading piano samples…",
+    "audio.failed": "Piano unavailable: the samples could not be loaded. Try the 8-bit sound.",
     "keyboard.help": "Keys: ← → column · ↑ ↓ step · A–G note · # (sharp) - (flat) n (natural) · Delete clear · Space hear column · P play all",
     "source.exercise": "J. J. Fux, Gradus ad Parnassum (Vienna, 1725), {figure}, p. {page}. Encoding: Four Score and More / Open Music Theory (Mark Gotham), {license}.",
-    "source.cantusOnly": "J. J. Fux, Gradus ad Parnassum (Vienna, 1725): cantus firmus in {final}, assigned on p. 55 without a worked example."
+    "source.cantusOnly": "J. J. Fux, Gradus ad Parnassum (Vienna, 1725): cantus firmus in {final}, assigned on p. 55 without a worked example.",
+    "sound.piano": "Piano",
+    "sound.chip": "8-bit"
   },
   "tutor": {
     "speaker.aloysius": "Aloysius",

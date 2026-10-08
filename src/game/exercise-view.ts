@@ -35,7 +35,6 @@ export function exerciseView(repo: FuxRepository, step: CurriculumStep): Exercis
     cantusVoice: step.cantus_voice,
     cantus: cf.pitch_sequence,
     page: step.page,
-    // Default display (owner spec): treble over bass.
     attribution: { license, repository: repo.dataset.provenance.repository, commit: repo.dataset.provenance.commit, urls: {} as Record<string, string> },
   };
   if (step.exercise_id) {
@@ -46,7 +45,11 @@ export function exerciseView(repo: FuxRepository, step: CurriculumStep): Exercis
       ...base,
       exerciseId: ex.id,
       figure: ex.figure,
-      clefs: { modern: ["treble", "bass"], original: [clef(byStaff("upper").original.name), clef(byStaff("lower").original.name)] },
+      // Modern clefs as given per exercise in the dataset (owner decision: replaces a fixed treble-over-bass).
+      clefs: {
+        modern: [clef(byStaff("upper").modern.name), clef(byStaff("lower").modern.name)],
+        original: [clef(byStaff("upper").original.name), clef(byStaff("lower").original.name)],
+      },
       attribution: { ...base.attribution, urls: ex.source.urls },
     };
   }
@@ -56,12 +59,14 @@ export function exerciseView(repo: FuxRepository, step: CurriculumStep): Exercis
   if (!cfClef) throw new Error(`${step.id}: cantus firmus ${cf.cf_id} has no source exercise for its clef`);
   const cfOriginal = clef(cfClef.cantus_firmus.clef.original.name);
   const cpOriginal = clef(cfClef.counterpoint.clef.original.name);
+  const cfModern = clef(cfClef.cantus_firmus.clef.modern.name);
+  const cpModern = clef(cfClef.counterpoint.clef.modern.name);
   return {
     ...base,
     exerciseId: null,
     figure: null,
     clefs: {
-      modern: ["treble", "bass"],
+      modern: step.cantus_voice === "upper" ? [cfModern, cpModern] : [cpModern, cfModern],
       original: step.cantus_voice === "upper" ? [cfOriginal, cpOriginal] : [cpOriginal, cfOriginal],
     },
   };
