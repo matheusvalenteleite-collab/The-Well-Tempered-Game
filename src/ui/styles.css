@@ -7,6 +7,8 @@
   --ink-fux: #1d6b66;
   /* Basso continuo: a warm grey, secondary to every sung line; never an evaluation colour. */
   --ink-continuo: #8f877b;
+  /* Derived versions of the player's line (D47). */
+  --ink-inversion: #7a3e9d; --ink-retrograde: #9a5a1e; --ink-retro-inversion: #a33d6e; --ink-canon: #4f6070;
   --selection: rgba(60, 100, 160, 0.10);
   --cursor: rgba(200, 140, 30, 0.25);
   --line: #d9d4ca;
@@ -234,7 +236,7 @@ svg.ghost line { stroke: var(--ink-player); stroke-width: 1.2; opacity: 0.45; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
   --bg: #1b1a18; --paper: #252320; --ink: #ece7de; --muted: #a8a196; --line: #3e3a34; --accent: #8da3d4;
-  --ink-player: #92b1ff; --ink-fux: #5cc3b8; --ink-continuo: #8a8378; --selection: rgba(140, 170, 230, 0.16); --cursor: rgba(230, 180, 60, 0.22);
+  --ink-player: #92b1ff; --ink-fux: #5cc3b8; --ink-continuo: #8a8378; --ink-inversion: #c39be0; --ink-retrograde: #e0a46a; --ink-retro-inversion: #e88fb8; --ink-canon: #a9b8c6; --selection: rgba(140, 170, 230, 0.16); --cursor: rgba(230, 180, 60, 0.22);
   --ok: #78c48f; --bad: #f08376; --warn: #e2b14d; --mark-error: rgba(240, 110, 95, 0.18); --mark-warning: rgba(230, 180, 60, 0.18);
   --mark-error-solid: #e0675a; --mark-warning-solid: #d9a63c; --knob-track: #3e3a34; --bar-number: #857f74;
   color-scheme: dark;
@@ -242,13 +244,13 @@ svg.ghost line { stroke: var(--ink-player); stroke-width: 1.2; opacity: 0.45; }
 }
 :root[data-theme="dark"] {
   --bg: #1b1a18; --paper: #252320; --ink: #ece7de; --muted: #a8a196; --line: #3e3a34; --accent: #8da3d4;
-  --ink-player: #92b1ff; --ink-fux: #5cc3b8; --ink-continuo: #8a8378; --selection: rgba(140, 170, 230, 0.16); --cursor: rgba(230, 180, 60, 0.22);
+  --ink-player: #92b1ff; --ink-fux: #5cc3b8; --ink-continuo: #8a8378; --ink-inversion: #c39be0; --ink-retrograde: #e0a46a; --ink-retro-inversion: #e88fb8; --ink-canon: #a9b8c6; --selection: rgba(140, 170, 230, 0.16); --cursor: rgba(230, 180, 60, 0.22);
   --ok: #78c48f; --bad: #f08376; --warn: #e2b14d; --mark-error: rgba(240, 110, 95, 0.18); --mark-warning: rgba(230, 180, 60, 0.18);
   --mark-error-solid: #e0675a; --mark-warning-solid: #d9a63c; --knob-track: #3e3a34; --bar-number: #857f74;
   color-scheme: dark;
 }
 /* The engraved score keeps its light colours and is inverted as a whole in the dark theme. */
-.score svg { --ink-muted: #6b665e; --ink-player: #2c4f9e; --ink-fux: #1d6b66; --ok: #2d6a3e; --bad: #a0281a; --warn: #b07a0c; --selection: rgba(60, 100, 160, 0.10); --cursor: rgba(200, 140, 30, 0.25); --mark-error: rgba(190, 40, 30, 0.16); --mark-warning: rgba(220, 160, 20, 0.20); --bar-number: #9a948a; --ink-continuo: #938a7d; }
+.score svg { --ink-muted: #6b665e; --ink-player: #2c4f9e; --ink-fux: #1d6b66; --ok: #2d6a3e; --bad: #a0281a; --warn: #b07a0c; --selection: rgba(60, 100, 160, 0.10); --cursor: rgba(200, 140, 30, 0.25); --mark-error: rgba(190, 40, 30, 0.16); --mark-warning: rgba(220, 160, 20, 0.20); --bar-number: #9a948a; --ink-continuo: #938a7d; --ink-inversion: #7a3e9d; --ink-retrograde: #9a5a1e; --ink-retro-inversion: #a33d6e; --ink-canon: #4f6070; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .score svg { filter: invert(0.92) hue-rotate(180deg); } }
 :root[data-theme="dark"] .score svg { filter: invert(0.92) hue-rotate(180deg); }
 button.primary { background: var(--ink); color: var(--bg); }
@@ -343,3 +345,12 @@ kbd { font-family: ui-monospace, Menlo, monospace; font-size: 0.8rem; padding: 1
 .sound .editor > section { width: 100%; height: 100%; box-sizing: border-box; }
 .strip .bc { font-size: 0.7rem; white-space: nowrap; }
 .sound:not(.folded) { width: min(100%, 760px); }
+.strip .versions { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; }
+.strip .versions .chipbtn { min-width: 22px; min-height: 20px; padding: 0 3px; font-size: 0.68rem; }
+.desk { flex-wrap: wrap; }
+.version-eval { border-left: 3px solid var(--line); padding-left: 10px; margin-top: 10px; }
+.version-eval h4 { margin: 4px 0; font-variant: small-caps; letter-spacing: 0.03em; }
+.trio-reading h5 { margin: 8px 0 2px; font-size: 0.85rem; }
+.trio-reading li.fault { color: var(--bad); }
+.trio-reading li.good { color: var(--ok); }
+.strip .octave span { white-space: nowrap; }

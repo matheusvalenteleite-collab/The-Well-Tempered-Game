@@ -65,13 +65,15 @@ export interface PlayEvent {
   counterpoint: string | null;
   /** A second counterpoint (Fux's), sounding with the player's in "trio" playback. */
   fux?: string | null;
+  /** Derived versions of the player's line (inversion, retrograde, canon...), by id. */
+  versions?: Record<string, string | null>;
 }
 
 /**
  * Playback events for bars lo..hi (inclusive). Rests and empty slots sound only the cantus.
  * `fux`, when given, adds Fux's line as a second counterpoint on the same layout.
  */
-export function timeline(cantus: string[], layout: Slot[], notes: (string | null)[], lo = 0, hi = cantus.length - 1, fux?: (string | null)[]): PlayEvent[] {
+export function timeline(cantus: string[], layout: Slot[], notes: (string | null)[], lo = 0, hi = cantus.length - 1, fux?: (string | null)[], versions?: Record<string, (string | null)[]>): PlayEvent[] {
   return slotsOfBars(layout, lo, hi).map((k) => {
     const s = layout[k];
     return {
@@ -81,6 +83,7 @@ export function timeline(cantus: string[], layout: Slot[], notes: (string | null
       cantus: s.beat === 0 ? cantus[s.bar] : null,
       counterpoint: sounding(notes[k]) ? notes[k] : null,
       ...(fux ? { fux: sounding(fux[k]) ? fux[k] : null } : {}),
+      ...(versions && Object.keys(versions).length ? { versions: Object.fromEntries(Object.entries(versions).map(([id, v]) => [id, sounding(v[k] ?? null) ? v[k] : null])) } : {}),
     };
   });
 }

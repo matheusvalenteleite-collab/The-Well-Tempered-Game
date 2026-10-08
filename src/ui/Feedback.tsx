@@ -16,6 +16,7 @@ interface Props {
   counterpoint: (string | null)[];
   cantusVoice: Staff;
   clefs: [ClefId, ClefId];
+  signature?: { B?: -1 };
   layout: Slot[];
   audio: AudioEngine;
 }
@@ -68,6 +69,7 @@ function Item({ v, ...p }: { v: Violation } & Omit<Props, "result">) {
         layout={slots.map((k) => p.layout[k])}
         cantusVoice={p.cantusVoice}
         clefs={p.clefs}
+        signature={p.signature}
         selected={-1}
         cursor={-1}
         firstBar={lo + 1}

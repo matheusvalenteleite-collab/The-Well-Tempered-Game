@@ -12,6 +12,7 @@ import type { SynthSettings } from "./synth-settings.ts";
 import { audibleGain, CHANNELS, DEFAULT_SOUND, shiftOctave, STRIPS, type Channel, type SoundState, type Strip } from "./sound.ts";
 import type { TemperamentId } from "./temperament.ts";
 import type { PlayEvent } from "../counterpoint/layout.ts";
+import type { VersionId } from "../game/versions.ts";
 import { Synth, type Instrument } from "./voice.ts";
 
 export * from "./synth-settings.ts";
@@ -80,7 +81,7 @@ export class AudioEngine {
    */
   setSoundState(state: SoundState) {
     for (const c of CHANNELS) Object.assign(this.synth[c], state.synth[c]);
-    for (const v of [this.current?.cantus, this.current?.counterpoint, this.current?.fux]) if (v instanceof Synth) v.update();
+    for (const v of [this.current?.cantus, this.current?.counterpoint, this.current?.fux, ...this.versionVoices.values()]) if (v instanceof Synth) v.update();
     this.mix = structuredClone(state);
     this.applyMix();
   }
@@ -218,6 +219,11 @@ export class AudioEngine {
       voices.counterpoint.start(e.counterpoint, time, e.length * whole * 0.95);
       this.notesStarted++;
     }
+    for (const [id, pitch] of Object.entries(e.versions ?? {})) {
+      if (!pitch) continue;
+      this.versionVoice(id as VersionId)?.start(pitch, time, e.length * whole * 0.95);
+      this.notesStarted++;
+    }
     if (e.fux) {
       // Fux's line may sound in another octave (listening only; the score is unchanged).
       voices.fux.start(shiftOctave(e.fux, this.mix.fuxOctave), time, e.length * whole * 0.95);
@@ -312,9 +318,22 @@ export class AudioEngine {
     tick();
   }
 
+  /** A voice per derived version of the player's line: the Contrapunctus sound, on its own strip. */
+  private versionVoices = new Map<VersionId, Synth>();
+  private versionVoice(id: VersionId): Synth | null {
+    if (!this.ctx) return null;
+    let v = this.versionVoices.get(id);
+    if (!v) {
+      v = new Synth(this.ctx, this.channel(id), this.synth.counterpoint, () => this.temperament);
+      this.versionVoices.set(id, v);
+    }
+    return v;
+  }
+
   stop(): void {
     for (const t of this.timers) window.clearTimeout(t);
     this.timers = [];
+    for (const v of this.versionVoices.values()) v.stop();
     this.current?.cantus.stop();
     this.current?.counterpoint.stop();
     this.current?.fux.stop();

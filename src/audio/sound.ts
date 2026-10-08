@@ -8,12 +8,13 @@
  * the UI (decision D40). Fux's line may also be transposed by octaves, for listening only.
  */
 import { DEFAULT_SYNTH, SYNTH_PRESETS, type SynthSettings } from "./synth-settings.ts";
-import { NO_TRANSFORM, type LineTransform } from "../game/transform.ts";
+import { VERSION_IDS, type VersionId } from "../game/versions.ts";
 
 export type Channel = "cantus" | "counterpoint" | "fux";
-export type Strip = Channel | "drums" | "continuo";
+/** Strips: the three voices, the derived versions of the player's line (D47), drums, continuo. */
+export type Strip = Channel | VersionId | "drums" | "continuo";
 export const CHANNELS: Channel[] = ["cantus", "counterpoint", "fux"];
-export const STRIPS: Strip[] = ["cantus", "counterpoint", "fux", "drums", "continuo"];
+export const STRIPS: Strip[] = ["cantus", "counterpoint", "fux", ...VERSION_IDS, "drums", "continuo"];
 
 export interface Mix {
   /** 0..1.5 (1 = unity). */
@@ -32,8 +33,6 @@ export interface SoundState {
   mix: Record<Strip, Mix>;
   /** Octave transposition of Fux's line in playback, -3..3 (the score is unchanged). */
   fuxOctave: number;
-  /** Inversion / retrograde of the player's line, for listening only (the score does not change). */
-  cpTransform: LineTransform;
 }
 
 const FUX_SOUND = SYNTH_PRESETS.find((p) => p.id === "pipeOrgan")!.settings;
@@ -42,9 +41,8 @@ const mix = (pan = 0, volume = 1): Mix => ({ volume, pan, mute: false, solo: fal
 export const DEFAULT_SOUND: SoundState = {
   synth: { cantus: { ...DEFAULT_SYNTH }, counterpoint: { ...DEFAULT_SYNTH }, fux: { ...FUX_SOUND } },
   links: { cantusCounterpoint: true, counterpointFux: false },
-  mix: { cantus: mix(0), counterpoint: mix(-0.3), fux: mix(0.3), drums: mix(0, 0.8), continuo: mix(0, 0.6) },
+  mix: { cantus: mix(0), counterpoint: mix(-0.3), fux: mix(0.3), inversion: mix(0.3), retrograde: mix(0.3), retroInversion: mix(0.3), canon: mix(0.3), drums: mix(0, 0.8), continuo: mix(0, 0.6) },
   fuxOctave: 0,
-  cpTransform: { ...NO_TRANSFORM },
 };
 
 /** The voices that share a configuration with `ch` (always including `ch`). */
@@ -109,7 +107,6 @@ export function restoreSound(raw: unknown): SoundState {
   for (const c of CHANNELS) if (r.synth?.[c]) out.synth[c] = { ...DEFAULT_SYNTH, ...r.synth[c] };
   for (const l of Object.keys(out.links) as Link[]) if (typeof r.links?.[l] === "boolean") out.links[l] = r.links[l];
   for (const x of STRIPS) if (r.mix?.[x]) out.mix[x] = { ...out.mix[x], ...r.mix[x] };
-  for (const k of ["inversion", "retrograde"] as const) if (typeof r.cpTransform?.[k] === "boolean") out.cpTransform[k] = r.cpTransform[k];
   if (typeof r.fuxOctave === "number") out.fuxOctave = Math.max(-3, Math.min(3, Math.round(r.fuxOctave)));
   return out;
 }

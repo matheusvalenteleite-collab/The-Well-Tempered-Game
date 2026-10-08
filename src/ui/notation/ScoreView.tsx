@@ -53,6 +53,16 @@ export interface ScoreProps {
    * selection or the overlay, and never moves the two staves: the score grows by its height.
    */
   continuo?: { realization: ContinuoRealization; display: "figured" | "realization" | "both" };
+  /**
+   * Further lines derived from the player's (inversion, retrograde, canon...), each on its own
+   * read-only staff below the score, in the counterpoint's clef and in its own ink (D47).
+   */
+  extraLines?: { label: string; notes: (string | null)[]; ink: string }[];
+  /** Ink and label of the line on the player's staff when it is a derived version, not the written line. */
+  playerInk?: string;
+  playerLabel?: string;
+  /** Key signature (F mode: one flat, decision D48). */
+  signature?: Signature;
 }
 
 interface Ghost {
@@ -82,14 +92,20 @@ const BASE_SCALE = 1;
 const COLOR: Record<Status, string> = { ok: "var(--ok)", neutral: "var(--ink-muted)", error: "var(--bad)", warning: "var(--warn)" };
 /** Size of the continuo staves relative to the main staves. */
 const CUE = 0.75;
+/** Height (logical) of each extra staff for a derived line. */
+const EXTRA_H = 100;
 /** Gap (logical) between the score proper and the continuo block. */
 const CUE_GAP = -12;
 const CONTINUO_INK = "var(--ink-continuo)";
 const ACC: Record<number, string> = { [-2]: "bb", [-1]: "b", 1: "#", 2: "##" };
 
-function vexKey(pitch: string): { key: string; acc: string | null } {
+type Signature = { B?: -1 };
+/** VexFlow key and the accidental to print, relative to the key signature (a natural where it cancels one). */
+function vexKey(pitch: string, sig: Signature = {}): { key: string; acc: string | null } {
   const p = parsePitch(pitch);
-  return { key: `${p.step.toLowerCase()}${ACC[p.alter] ?? ""}/${p.octave}`, acc: ACC[p.alter] ?? null };
+  const expected = (sig as Record<string, number>)[p.step] ?? 0;
+  const acc = p.alter === expected ? null : (ACC[p.alter] ?? "n");
+  return { key: `${p.step.toLowerCase()}${ACC[p.alter] ?? ""}/${p.octave}`, acc };
 }
 
 interface Geometry {
@@ -121,7 +137,11 @@ export function ScoreView(props: ScoreProps) {
     const { staffY: STAFF_Y, height: HEIGHT } = props.overlay ? LAYOUT.overlay : LAYOUT.plain;
     // Probe the clef/time-signature width, then size the score to its bars instead of the container.
     const probe = new Stave(8, 0, 400);
-    probe.addClef(VEXFLOW_CLEF[props.clefs[0]].clef).addTimeSignature("C|");
+    const sig = props.signature ?? {};
+    const keySpec = sig.B === -1 ? "F" : null;
+    probe.addClef(VEXFLOW_CLEF[props.clefs[0]].clef);
+    if (keySpec) probe.addKeySignature(keySpec);
+    probe.addTimeSignature("C|");
     const noteStart0 = probe.getNoteStartX();
     const layout = props.layout ?? slotLayout("first", props.cantus.length);
     const bars = props.cantus.length;
@@ -140,6 +160,7 @@ export function ScoreView(props: ScoreProps) {
       const s = new Stave(8, STAFF_Y[i], logicalWidth - 16);
       const vc = VEXFLOW_CLEF[c];
       s.addClef(vc.clef, "default", vc.annotation);
+      if (keySpec) s.addKeySignature(keySpec);
       s.addTimeSignature("C|");
       s.setEndBarType(3); // final double bar
       return s;
@@ -148,10 +169,24 @@ export function ScoreView(props: ScoreProps) {
     staves.forEach((s) => s.setNoteStartX(start));
     const xOfBar = (b: number) => start + barX[b];
 
-    // The continuo is laid out first (in its own, cue-scaled coordinates) to know its height.
-    const cue = props.continuo && props.continuo.realization.bars.length === bars ? layoutContinuo(props.continuo, logicalWidth, start, xOfBar, barW) : null;
-    const continuoTop = HEIGHT + CUE_GAP;
-    const totalHeight = cue ? continuoTop + cue.height * CUE : HEIGHT;
+    // Extra staves for the derived lines, then the continuo (laid out first, in its own cue-scaled
+    // coordinates, to know its height). Neither takes part in input.
+    const extras = props.extraLines ?? [];
+    const cpClef = VEXFLOW_CLEF[props.clefs[props.cantusVoice === "upper" ? 1 : 0]];
+    const extraStaves = extras.map((_, i) => {
+      const st = new Stave(8, HEIGHT - 30 + i * EXTRA_H, logicalWidth - 16);
+      st.addClef(cpClef.clef, "default", cpClef.annotation);
+      if (keySpec) st.addKeySignature(keySpec);
+      st.addTimeSignature("C|");
+      st.setEndBarType(3);
+      st.setNoteStartX(start);
+      return st;
+    });
+    const scoreBottom = HEIGHT + extras.length * EXTRA_H;
+    const cue = props.continuo && props.continuo.realization.bars.length === bars ? layoutContinuo(props.continuo, logicalWidth, start, xOfBar, barW, sig) : null;
+    const continuoTop = scoreBottom + CUE_GAP;
+    const totalHeight = cue ? continuoTop + cue.height * CUE : scoreBottom;
+    const inertTop = extras.length ? HEIGHT - 4 : cue ? continuoTop : undefined;
 
     const renderer = new Renderer(el, Renderer.Backends.SVG);
     renderer.resize(Math.ceil(logicalWidth * scale), Math.ceil(totalHeight * scale));
@@ -171,11 +206,11 @@ export function ScoreView(props: ScoreProps) {
       let n: StaveNote;
       if (pitch === REST) n = new StaveNote({ keys: [clef === "bass" ? "d/3" : "b/4"], duration: `${dur}r`, clef });
       else {
-        const { key, acc } = vexKey(pitch);
+        const { key, acc } = vexKey(pitch, sig);
         // Fux's notes in diamonds, as in the 1725 print, so they never read as the player's.
         n = new StaveNote({ keys: [look === "fux" ? `${key}/D` : key], duration: dur, clef, ...(stem ? { stem_direction: stem } : {}) });
         if (acc) n.addModifier(new Accidental(acc));
-        const ink = look === "player" ? "var(--ink-player)" : look === "fux" ? "var(--ink-fux)" : null;
+        const ink = look === "player" ? (props.playerInk ?? "var(--ink-player)") : look === "fux" ? "var(--ink-fux)" : null;
         if (ink) n.setStyle({ fillStyle: ink, strokeStyle: ink });
       }
       n.setStave(staves[staffIndex]);
@@ -214,7 +249,7 @@ export function ScoreView(props: ScoreProps) {
     const top = STAFF_Y[0] - 10;
     // The playback cursor runs down through the continuo; marks and selection stay on the score.
     const bottom = STAFF_Y[1] + 100;
-    const cursorBottom = cue ? totalHeight - 4 : bottom;
+    const cursorBottom = cue || extras.length ? totalHeight - 4 : bottom;
     const rect = (k: number, cls: string) => {
       const c = columns[k];
       ctx.save();
@@ -240,6 +275,49 @@ export function ScoreView(props: ScoreProps) {
     for (let b = 1; b < bars; b++) staves.forEach((s) => ctx.fillRect(xOfBar(b) - 2, s.getYForLine(0), 1, s.getYForLine(4) - s.getYForLine(0)));
     ctx.restore();
     for (const n of [...cfNotes, ...fuxNotes, ...cpNotes]) n?.setContext(ctx).draw();
+    // Derived lines: one read-only staff each, labelled, in its ink.
+    extraStaves.forEach((st, i) => {
+      const line = extras[i];
+      st.setContext(ctx).draw();
+      ctx.save();
+      ctx.setFillStyle("currentColor");
+      for (let b = 1; b < bars; b++) ctx.fillRect(xOfBar(b) - 2, st.getYForLine(0), 1, st.getYForLine(4) - st.getYForLine(0));
+      ctx.setFillStyle(line.ink);
+      ctx.setFont("Georgia, serif", 10, "italic");
+      ctx.fillText(line.label, st.getNoteEndX() - 4 - ctx.measureText(line.label).width, st.getYForLine(0) - 6);
+      ctx.restore();
+      layout.forEach((sl, k) => {
+        const p = line.notes[k];
+        if (p === null || p === undefined) return;
+        const dur = sl.duration === "1/1" ? "w" : "h";
+        let n: StaveNote;
+        if (p === REST) n = new StaveNote({ keys: [cpClef.clef === "bass" ? "d/3" : "b/4"], duration: `${dur}r`, clef: cpClef.clef });
+        else {
+          const { key, acc } = vexKey(p, sig);
+          n = new StaveNote({ keys: [key], duration: dur, clef: cpClef.clef });
+          if (acc) n.addModifier(new Accidental(acc));
+          n.setStyle({ fillStyle: line.ink, strokeStyle: line.ink });
+        }
+        n.setStave(st);
+        const mc = new ModifierContext();
+        n.addToModifierContext(mc);
+        mc.preFormat();
+        const tc = new TickContext();
+        tc.addTickable(n);
+        tc.preFormat();
+        tc.setX(0);
+        tc.setX(columns[k].left + NOTE_PAD - n.getAbsoluteX());
+        n.setContext(ctx).draw();
+      });
+    });
+    if (props.playerLabel) {
+      ctx.save();
+      ctx.setFillStyle(props.playerInk ?? "var(--ink-player)");
+      ctx.setFont("Georgia, serif", 10, "italic");
+      const st = staves[cpIndex];
+      ctx.fillText(props.playerLabel, st.getNoteEndX() - 4 - ctx.measureText(props.playerLabel).width, st.getYForLine(0) - 6);
+      ctx.restore();
+    }
     if (cue) {
       const g = ctx.openGroup("continuo") as SVGGElement;
       g.setAttribute("transform", `translate(0 ${continuoTop}) scale(${CUE})`);
@@ -348,11 +426,11 @@ export function ScoreView(props: ScoreProps) {
       scale,
       columns,
       staves: staves.map((s) => ({ top: s.getYForLine(0), bottom: s.getYForLine(4), spacing: s.getSpacingBetweenLines() })),
-      ...(cue ? { continuoTop } : {}),
+      ...(inertTop !== undefined ? { continuoTop: inertTop } : {}),
     };
     geo.current = g;
     el.dataset.geometry = JSON.stringify(g); // read by the browser tests
-  }, [width, props.showNames, props.cantus, props.counterpoint, props.fux, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay, props.continuo]);
+  }, [width, props.showNames, props.cantus, props.counterpoint, props.fux, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay, props.continuo, props.extraLines, props.playerInk, props.playerLabel, props.signature]);
 
   const press = useRef<{ x: number; y: number; dragging: boolean; from: number } | null>(null);
 
@@ -477,7 +555,9 @@ function layoutContinuo(
   start: number,
   xOfBar: (b: number) => number,
   barW: number[],
+  sig: Signature = {},
 ): { height: number; draw(ctx: Ctx): void } {
+  const keySpec = sig.B === -1 ? "F" : null;
   const r = c.realization;
   const grand = c.display !== "figured";
   const figures = c.display !== "realization";
@@ -486,11 +566,13 @@ function layoutContinuo(
   const mk = (y: number, clef: "treble" | "bass") => {
     const s = new Stave(left, y, width, { space_above_staff_ln: 2 });
     s.addClef(clef, "default");
+    if (keySpec) s.addKeySignature(keySpec);
     s.addTimeSignature("C|");
     if (s.getNoteStartX() > start / CUE) {
       // Too narrow beside the main staves' signature: drop the cue time signature.
       const t = new Stave(left, y, width, { space_above_staff_ln: 2 });
       t.addClef(clef, "default");
+      if (keySpec) t.addKeySignature(keySpec);
       t.setEndBarType(3);
       t.setNoteStartX(start / CUE);
       return t;
@@ -510,7 +592,7 @@ function layoutContinuo(
       let n: StaveNote;
       if (!ch.tones.length) n = new StaveNote({ keys: [clef === "bass" ? "d/3" : "b/4"], duration: `${ch.duration}r`, clef });
       else {
-        const keys = ch.tones.map((t) => vexKey(t.pitch));
+        const keys = ch.tones.map((t) => vexKey(t.pitch, sig));
         n = new StaveNote({ keys: keys.map((k) => k.key), duration: ch.duration, clef, auto_stem: true });
         keys.forEach((k, i) => k.acc && n.addModifier(new Accidental(k.acc), i));
       }

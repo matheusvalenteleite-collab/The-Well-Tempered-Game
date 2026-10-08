@@ -31,7 +31,7 @@ test("session: place, replace, accidentals, keyboard stepping", () => {
   s = applyAccidental(s, 1); // arms the next placement
   s = place(s, 9, "C5");
   assert.equal(s.notes[9], "C#5");
-  assert.equal(s.accidental, 0);
+  assert.equal(s.accidental, null);
   s = stepNote(s, 1, "D4");
   assert.equal(s.notes[9], "D5");
   s = { ...s, selected: 3 };
@@ -158,4 +158,23 @@ test("display clefs are G or F only, chosen by register (D30)", async () => {
   assert.deepEqual(displayClefs(["F3", "G3", "A3", "F3", "D3", "E3", "F3", "C4", "A3", "F3", "G3", "F3"], "upper"), ["bass", "bass"]);
   // Fig. 5: cantus below, counterpoint above → two G clefs.
   assert.deepEqual(displayClefs(["D4", "F4", "E4", "D4", "G4", "F4", "A4", "G4", "F4", "E4", "D4"], "lower"), ["treble", "treble"]);
+});
+
+test("key signature (F mode, D48): a plain B is B-flat; the natural sign gives B-natural", async () => {
+  const { initialState, place, applyAccidental, letterNote, moveNote } = await import("../src/game/session.ts");
+  let s = initialState(4, { B: -1 });
+  s = place(s, 0, "B4");
+  assert.equal(s.notes[0], "Bb4");
+  s = applyAccidental(s, 0);
+  assert.equal(s.notes[0], "B4");
+  s = applyAccidental(s, 0);
+  assert.equal(s.notes[0], "Bb4"); // pressing the natural again returns to the key
+  s = applyAccidental({ ...s, selected: 1 }, 0); // armed natural
+  s = place(s, 1, "B4");
+  assert.equal(s.notes[1], "B4");
+  s = letterNote({ ...s, selected: 2 }, "B", "A4");
+  assert.equal(s.notes[2], "Bb4");
+  s = moveNote(s, 2, 3, "B3");
+  assert.equal(s.notes[3], "Bb3");
+  assert.equal(place(initialState(2), 0, "B4").notes[0], "B4"); // no signature elsewhere
 });

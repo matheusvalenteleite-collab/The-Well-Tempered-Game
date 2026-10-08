@@ -7,6 +7,7 @@ import { SynthRack, presetName } from "./SynthRack.tsx";
 import { DrumBox } from "./DrumBox.tsx";
 import { ContinuoBox } from "./ContinuoBox.tsx";
 import { CONTINUO_DISPLAYS, type ContinuoSettings } from "../game/continuo-settings.ts";
+import { activeVersions, VERSION_IDS, type VersionId, type Versions } from "../game/versions.ts";
 import { t } from "./i18n.ts";
 
 interface Props {
@@ -27,6 +28,11 @@ interface Props {
   onContinuo(on: boolean): void;
   continuoSettings: ContinuoSettings;
   onContinuoSettings(v: ContinuoSettings): void;
+  /** Versions of the player's line (D47): toggles on the Contrapunctus strip, one strip each. */
+  versions: Versions;
+  onVersions(v: Versions): void;
+  /** Slots in the exercise (the canon's displacement wraps round them). */
+  slots: number;
   /** Folded to a single line. */
   open: boolean;
   onOpen(open: boolean): void;
@@ -47,12 +53,13 @@ export function SoundDesk(p: Props) {
   const strip = (x: Strip) => {
     const m = s.mix[x];
     const isVoice = VOICES.includes(x as Channel);
-    const instrument = isVoice
-      ? (presetName(s.synth[x as Channel]) ?? t("ui.synth.custom"))
+    const isVersion = VERSION_IDS.includes(x as VersionId);
+    const instrument = isVoice || isVersion
+      ? (presetName(s.synth[isVersion ? "counterpoint" : (x as Channel)]) ?? t("ui.synth.custom"))
       : x === "drums"
         ? t(`ui.drums.pattern.${patternById(p.drumKit.pattern).id}`)
         : t(`ui.continuo.preset.${p.continuoSettings.preset}`);
-    const dim = (x === "fux" && !p.fuxOpen) || (x === "drums" && !p.drums) || (x === "continuo" && !p.continuo);
+    const dim = (x === "counterpoint" && !p.versions.original) || (x === "fux" && !p.fuxOpen) || (x === "drums" && !p.drums) || (x === "continuo" && !p.continuo);
     // Clicking anywhere on a strip that is not one of its controls selects it.
     const pick = (e: React.MouseEvent) => {
       if (!(e.target as HTMLElement).closest("button, input, select, .knob")) setSelected(x);
@@ -90,12 +97,31 @@ export function SoundDesk(p: Props) {
           </div>
         )}
         {x === "counterpoint" && (
-          <div className="ms transform" title={t("ui.mixer.transformHelp")}>
-            {(["inversion", "retrograde"] as const).map((k) => (
-              <button key={k} className="chipbtn" tabIndex={-1} aria-pressed={s.cpTransform[k]} title={t(`ui.mixer.${k}.help`)} onClick={() => p.onChange({ ...s, cpTransform: { ...s.cpTransform, [k]: !s.cpTransform[k] } })}>
-                {t(`ui.mixer.${k}`)}
+          <div className="versions" role="group" aria-label={t("ui.mixer.versionsHelp")} title={t("ui.mixer.versionsHelp")}>
+            {(["original", ...VERSION_IDS] as const).map((k) => (
+              <button
+                key={k}
+                className="chipbtn"
+                tabIndex={-1}
+                aria-pressed={p.versions[k]}
+                title={t(`ui.versions.help.${k}`)}
+                onClick={() => {
+                  const next = { ...p.versions, [k]: !p.versions[k] };
+                  // Something is always heard: switching the last line off brings the original back.
+                  if (!next.original && !VERSION_IDS.some((id) => next[id])) next.original = true;
+                  p.onVersions(next);
+                }}
+              >
+                {t(`ui.versions.short.${k}`)}
               </button>
             ))}
+          </div>
+        )}
+        {x === "canon" && (
+          <div className="octave" title={t("ui.mixer.canonShift", { n: p.versions.canonShift })}>
+            <button className="chipbtn" tabIndex={-1} disabled={p.versions.canonShift <= 0} onClick={() => p.onVersions({ ...p.versions, canonShift: p.versions.canonShift - 1 })} aria-label={t("ui.mixer.canonEarlier")}>‹</button>
+            <span>+{p.versions.canonShift}</span>
+            <button className="chipbtn" tabIndex={-1} disabled={p.versions.canonShift >= p.slots - 1} onClick={() => p.onVersions({ ...p.versions, canonShift: p.versions.canonShift + 1 })} aria-label={t("ui.mixer.canonLater")}>›</button>
           </div>
         )}
         {x === "drums" && (
@@ -147,7 +173,8 @@ export function SoundDesk(p: Props) {
     </button>
   );
 
-  const voice = VOICES.includes(selected as Channel) ? (selected as Channel) : null;
+  // A version strip shares the Contrapunctus sound: selecting it edits that synth.
+  const voice = VOICES.includes(selected as Channel) ? (selected as Channel) : VERSION_IDS.includes(selected as VersionId) ? "counterpoint" : null;
   const group = voice ? linkedGroup(s, voice) : [];
   const title = voice ? `${t("ui.synth.title")} · ${group.map((c) => t(`ui.mixer.${c}`)).join(" + ")}` : "";
 
@@ -169,6 +196,8 @@ export function SoundDesk(p: Props) {
         {strip("counterpoint")}
         {chain("counterpointFux")}
         {strip("fux")}
+        {activeVersions(p.versions).length > 0 && <span className="desk-gap" />}
+        {activeVersions(p.versions).map((id) => strip(id))}
         <span className="desk-gap" />
         {strip("drums")}
         {strip("continuo")}

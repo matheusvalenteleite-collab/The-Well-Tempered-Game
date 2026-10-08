@@ -6,9 +6,12 @@ const pretty = (p: string) => (p === REST ? t("ui.compare.rest") : p.replace("#"
 
 /** Bar-by-bar differences from Fux's solution, judged by criteria Fux states (never by "Fux said so"). */
 export function FuxComparison({ cantus, player, fux, layout }: { cantus: string[]; player: (string | null)[]; fux: string[]; layout: Slot[] }) {
-  const diffs = compareWithFux(cantus, player, fux, layout);
+  const all = compareWithFux(cantus, player, fux, layout);
+  // Differences that no stated criterion separates are a matter of taste: not listed.
+  const diffs = all.filter((d) => d.fuxBetter.length + d.playerBetter.length > 0);
   const half = layout.length > cantus.length;
-  if (diffs.length === 0) return <p className="help">{t("ui.compare.none")}</p>;
+  if (all.length === 0) return <p className="help">{t("ui.compare.none")}</p>;
+  if (diffs.length === 0) return <p className="help">{t("ui.compare.taste")}</p>;
   const reason = (side: "fuxBetter" | "playerBetter", c: Criterion) => <li key={`${side}-${c}`} className={side}>{t(`ui.compare.${side}.${c}`)}</li>;
   return (
     <section className="compare">
@@ -23,7 +26,6 @@ export function FuxComparison({ cantus, player, fux, layout }: { cantus: string[
             <ul className="reasons">
               {d.fuxBetter.map((c) => reason("fuxBetter", c))}
               {d.playerBetter.map((c) => reason("playerBetter", c))}
-              {d.fuxBetter.length + d.playerBetter.length === 0 && <li className="equal">{t("ui.compare.equal")}</li>}
             </ul>
           </li>
         ))}

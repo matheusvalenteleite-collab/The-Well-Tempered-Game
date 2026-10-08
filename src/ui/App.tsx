@@ -25,7 +25,9 @@ import { FuxComparison } from "./FuxComparison.tsx";
 import { realizeContinuo } from "../continuo/realize.ts";
 import { playContinuo } from "../continuo/audio.ts";
 import { continuoInput, continuoKey, continuoOptions, type PlayMode } from "../game/continuo-input.ts";
-import { transformLine } from "../game/transform.ts";
+import { activeVersions, deriveVersion, heardLines, validVersions, type VersionId, type Versions } from "../game/versions.ts";
+import { trioReading } from "../game/trio-eval.ts";
+import { TrioReading } from "./TrioReading.tsx";
 import { DEFAULT_CONTINUO_SETTINGS, validContinuoSettings, type ContinuoSettings } from "../game/continuo-settings.ts";
 import { CONTINUO_DEMO_MODE } from "../config.ts";
 import { t } from "./i18n.ts";
@@ -38,7 +40,7 @@ const ORDINAL = ["", "1st", "2nd", "3rd", "4th", "5th"];
 /** A fresh session: empty slots, except that a rest stands where the layout allows one (Fux's usual opening). */
 const freshSession = (k: number) => {
   const v = VIEWS[k];
-  const s = initialState(v.layout.length);
+  const s = initialState(v.layout.length, v.signature);
   return { ...s, notes: v.layout.map((sl) => (sl.restAllowed ? REST : null)) };
 };
 const audio = new AudioEngine();
@@ -75,6 +77,13 @@ const stepLabel = (k: number) => {
   const v = VIEWS[k];
   return `${s.ordinal}. ${stepStudy(s.id).name} · ${v.modalFinal} · ${t(s.cantus_voice === "lower" ? "ui.nav.cfBelow" : "ui.nav.cfAbove")}`;
 };
+/** Ink of each derived version of the player's line (score and mixer). */
+const VERSION_INK: Record<VersionId, string> = {
+  inversion: "var(--ink-inversion)",
+  retrograde: "var(--ink-retrograde)",
+  retroInversion: "var(--ink-retro-inversion)",
+  canon: "var(--ink-canon)",
+};
 const stepIndexOf = (id: string) => STEPS.findIndex((s) => s.id === id);
 
 export function App() {
@@ -99,6 +108,7 @@ export function App() {
     const ok = DRUM_PATTERNS.some((p) => p.id === v.pattern) && LOOP_LENGTHS.includes(v.length) && typeof v.level === "number";
     return ok ? v : { ...DEFAULT_DRUMS };
   });
+  const [versions, setVersions] = useState<Versions>(() => validVersions(stored<unknown>("wtg.versions", null)));
   const [deskOpen, setDeskOpen] = useState(() => stored("wtg.deskOpen", true, (v) => typeof v === "boolean"));
   const [continuo, setContinuo] = useState(() => stored("wtg.continuo", false, (v) => typeof v === "boolean"));
   const [continuoSettings, setContinuoSettings] = useState<ContinuoSettings>(() => validContinuoSettings(stored<unknown>("wtg.continuoSettings", DEFAULT_CONTINUO_SETTINGS)));
@@ -154,6 +164,7 @@ export function App() {
   }, [drumKit, VIEW.modalFinal]);
   useEffect(() => store("wtg.continuo", continuo), [continuo]);
   useEffect(() => store("wtg.deskOpen", deskOpen), [deskOpen]);
+  useEffect(() => store("wtg.versions", versions), [versions]);
   useEffect(() => store("wtg.continuoSettings", continuoSettings), [continuoSettings]);
   useEffect(() => {
     audio.temperament = tuning;
@@ -225,6 +236,25 @@ export function App() {
     // A star needs a clean result: no rule and no recommendation broken (owner decision D25).
     if (ev.violations.length === 0 && !stars.includes(STEP.id)) setStars([...stars, STEP.id]);
   };
+  // Evaluate also judges each active version of the line against the cantus (D47).
+  const versionResults = useMemo(() => {
+    if (!result) return [];
+    return activeVersions(versions).map((id) => {
+      const notes = deriveVersion(id, session.notes, VIEW.modalFinal, versions.canonShift);
+      const ev = evaluate(
+        {
+          species: VIEW.species,
+          modalFinal: VIEW.modalFinal,
+          cantusVoice: VIEW.cantusVoice,
+          cantus: VIEW.cantus.map((p) => ({ pitch: p, duration: "1/1" })),
+          counterpoint: notes.map((p, k) => ({ pitch: sounding(p) ? p : null, duration: VIEW.layout[k].duration })),
+        },
+        rulesForStep(STEP.id),
+      );
+      return { id, notes, ev };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result, versions, session.notes, STEP.id]);
   const fuxSolution = VIEW.exerciseId ? repository.getSolution(VIEW.exerciseId) : undefined;
   const marks = result ? result.violations.flatMap((v) => v.positions.map((c) => ({ column: c, severity: v.severity }))) : undefined;
   // After Evaluate: judged intervals and links; before, optionally the bare intervals (no colours).
@@ -239,8 +269,12 @@ export function App() {
 
   // Basso continuo (decision D44): generated for pleasure from whatever is written (demo mode),
   // realized for the player's line or Fux's, doubled colla parte for the trio. No part in grading.
-  // The line as heard: the written one, or its inversion / retrograde from the mixer (listening only).
-  const heard = useMemo(() => transformLine(session.notes, sound.cpTransform), [session.notes, sound.cpTransform]);
+  // The lines heard and shown: the written one (if on) and its active versions (D47).
+  const lines = useMemo(() => heardLines(versions, session.notes, VIEW.modalFinal), [versions, session.notes, VIEW.modalFinal]);
+  const heard = useMemo(() => lines.map((l) => l.notes), [lines]);
+  const derived = (ln: typeof lines) => Object.fromEntries(ln.filter((l) => l.id !== "original").map((l) => [l.id, l.notes]));
+  const shownLines = lines;
+  const originalHeard = versions.original ? session.notes : session.notes.map(() => null);
   const continuoAvailable = continuo && (CONTINUO_DEMO_MODE || Boolean(result?.passed));
   const continuoMode: PlayMode = playMode !== "player" && fuxOpen ? playMode : "player";
   const cOpts = continuoOptions(continuoMode, continuoSettings);
@@ -269,10 +303,10 @@ export function App() {
     setPlaying(true);
     const events =
       mode === "player"
-        ? timeline(VIEW.cantus, VIEW.layout, heard)
+        ? timeline(VIEW.cantus, VIEW.layout, originalHeard, undefined, undefined, undefined, derived(lines))
         : mode === "fux"
           ? timeline(VIEW.cantus, VIEW.layout, VIEW.fux!)
-          : timeline(VIEW.cantus, VIEW.layout, heard, undefined, undefined, VIEW.fux!);
+          : timeline(VIEW.cantus, VIEW.layout, originalHeard, undefined, undefined, VIEW.fux!, derived(lines));
     const plan = continuoAvailable ? realizationFor(mode) : null;
     const startContinuo = (startTime: number) => {
       const graph = audio.graph;
@@ -315,6 +349,8 @@ export function App() {
     if (target && ["TEXTAREA", "SELECT", "INPUT"].includes(target.tagName)) return;
     const k = e.key;
     const s = session;
+    // Only the written line is editable; while it is hidden (D47) the keys only browse and play.
+    if (!versions.original && !["ArrowRight", "ArrowLeft", " ", "p", "P", "?"].includes(k)) return;
     if (k === "ArrowRight") browse(s.selected + 1);
     else if (k === "ArrowLeft") browse(s.selected - 1);
     else if (k === "ArrowUp") update(stepNote(s, 1, startPitch(s.selected)));
@@ -432,15 +468,20 @@ export function App() {
           </span>
           <ScoreView
             cantus={VIEW.cantus}
-            counterpoint={session.notes}
+            counterpoint={shownLines[0].notes}
+            readOnly={!versions.original}
+            playerInk={versions.original ? undefined : VERSION_INK[shownLines[0].id as VersionId]}
+            playerLabel={versions.original ? (shownLines.length > 1 ? t("ui.versions.original") : undefined) : t(`ui.versions.${shownLines[0].id}`, { n: versions.canonShift })}
+            extraLines={shownLines.slice(1).map((l) => ({ label: t(`ui.versions.${l.id}`, { n: versions.canonShift }), notes: l.notes, ink: VERSION_INK[l.id as VersionId] }))}
             layout={VIEW.layout}
             cantusVoice={VIEW.cantusVoice}
             clefs={clefs}
+            signature={VIEW.signature}
             selected={session.selected}
             cursor={cursor}
             label={label}
-            marks={marks}
-            overlay={overlay}
+            marks={versions.original ? marks : undefined}
+            overlay={versions.original ? overlay : undefined}
             fux={showFux && fuxOpen ? VIEW.fux! : undefined}
             continuo={continuoPlan && continuoSettings.display !== "none" ? { realization: continuoPlan.realization, display: continuoSettings.display } : undefined}
             showNames={showNames}
@@ -508,6 +549,9 @@ export function App() {
             onContinuo={setContinuo}
             continuoSettings={continuoSettings}
             onContinuoSettings={setContinuoSettings}
+            versions={versions}
+            onVersions={setVersions}
+            slots={VIEW.layout.length}
             value={sound}
             onChange={setSound}
             fuxOpen={fuxOpen}
@@ -523,7 +567,13 @@ export function App() {
           />
         {result && (
           <section className="feedback" aria-live="polite">
-            <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} layout={VIEW.layout} audio={audio} />
+            <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} audio={audio} />
+            {versionResults.map((v) => (
+              <section key={v.id} className="version-eval" style={{ borderLeftColor: VERSION_INK[v.id] }}>
+                <h4 style={{ color: VERSION_INK[v.id] }}>{t(`ui.versions.${v.id}`, { n: versions.canonShift })}</h4>
+                <Feedback result={v.ev} cantus={VIEW.cantus} counterpoint={v.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} audio={audio} />
+              </section>
+            ))}
             <div className="after">
               {fuxSolution && VIEW.fux && !fuxOpen && <p className="help">{t("ui.fux.locked")}</p>}
               {fuxSolution && VIEW.fux && fuxOpen && (
@@ -545,6 +595,7 @@ export function App() {
                   })()}
                 </p>
                 {missing === 0 && <FuxComparison cantus={VIEW.cantus} player={session.notes} fux={VIEW.fux} layout={VIEW.layout} />}
+                {missing === 0 && COURSE.voices === 2 && <TrioReading findings={trioReading(VIEW.cantus, session.notes, VIEW.fux, VIEW.layout)} layout={VIEW.layout} />}
               </div>
             )}
           </section>

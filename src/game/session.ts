@@ -14,8 +14,10 @@ export interface SessionState {
   /** Spelled pitch (or REST) per slot, or null when empty. */
   notes: (string | null)[];
   selected: number;
-  /** Accidental applied to the next placement (the accidental control). */
-  accidental: Accidental;
+  /** Accidental applied to the next placement (the accidental control); null = as the key signature has it. */
+  accidental: Accidental | null;
+  /** Key signature: the alteration a plain letter takes (F-mode exercises: B♭, decision D48). */
+  signature: Partial<Record<Step, Accidental>>;
   /** The note the player wrote most recently (any bar), or null. */
   lastWritten: string | null;
 }
@@ -23,14 +25,15 @@ export interface SessionState {
 const STEPS: Step[] = ["C", "D", "E", "F", "G", "A", "B"];
 const SUFFIX: Record<Accidental, string> = { [-1]: "b", 0: "", 1: "#" };
 
-export function initialState(columns: number): SessionState {
+export function initialState(columns: number, signature: Partial<Record<Step, Accidental>> = {}): SessionState {
   if (columns < 2) throw new Error("exercise needs at least two slots");
-  return { notes: Array(columns).fill(null), selected: 0, accidental: 0, lastWritten: null };
+  return { notes: Array(columns).fill(null), selected: 0, accidental: null, lastWritten: null, signature };
 }
 
-const withAlter = (natural: string, acc: Accidental) => {
+/** The letter of `natural` with the accidental given, or (null) with the key signature's. */
+const withAlter = (natural: string, acc: Accidental | null, signature: SessionState["signature"] = {}) => {
   const p = parsePitch(natural);
-  return `${p.step}${SUFFIX[acc]}${p.octave}`;
+  return `${p.step}${SUFFIX[acc ?? signature[p.step] ?? 0]}${p.octave}`;
 };
 
 const naturalOf = (pitch: string) => {
@@ -42,8 +45,8 @@ const naturalOf = (pitch: string) => {
 export function place(s: SessionState, column: number, natural: string): SessionState {
   if (column < 0 || column >= s.notes.length) throw new Error(`column ${column} out of range`);
   const notes = [...s.notes];
-  notes[column] = withAlter(natural, s.accidental);
-  return { ...s, notes, selected: column, accidental: 0, lastWritten: notes[column] };
+  notes[column] = withAlter(natural, s.accidental, s.signature);
+  return { ...s, notes, selected: column, accidental: null, lastWritten: notes[column] };
 }
 
 export function clear(s: SessionState, column = s.selected): SessionState {
@@ -65,11 +68,11 @@ export function stepNote(s: SessionState, delta: number, start: string): Session
   if (!sounding(cur)) {
     const notes = [...s.notes];
     notes[s.selected] = s.lastWritten ?? start;
-    return { ...s, notes, accidental: 0, lastWritten: notes[s.selected] };
+    return { ...s, notes, accidental: null, lastWritten: notes[s.selected] };
   }
   const d = parsePitch(cur).diatonic + delta;
   const natural = `${STEPS[((d % 7) + 7) % 7]}${Math.floor(d / 7)}`;
-  return place({ ...s, accidental: 0 }, s.selected, natural);
+  return place({ ...s, accidental: null }, s.selected, natural);
 }
 
 /** Set the note to the given letter, in the octave nearest to the reference pitch. */
@@ -89,14 +92,14 @@ export function letterNote(s: SessionState, letter: Step, reference: string): Se
 
 /**
  * The accidental control: with a note in the selected column, alter that note
- * (pressing the same accidental again restores the natural); otherwise arm it for the next placement.
+ * (pressing the same accidental again restores the key's default); otherwise arm it for the next placement.
  */
 export function applyAccidental(s: SessionState, acc: Accidental): SessionState {
   const cur = s.notes[s.selected];
-  if (!sounding(cur)) return { ...s, accidental: s.accidental === acc ? 0 : acc };
-  const alter = parsePitch(cur).alter;
+  if (!sounding(cur)) return { ...s, accidental: s.accidental === acc ? null : acc };
+  const p = parsePitch(cur);
   const notes = [...s.notes];
-  notes[s.selected] = withAlter(naturalOf(cur), alter === acc ? 0 : acc);
+  notes[s.selected] = withAlter(naturalOf(cur), p.alter === acc ? null : acc, s.signature);
   return { ...s, notes, lastWritten: notes[s.selected] };
 }
 
@@ -132,6 +135,6 @@ export function moveNote(base: SessionState, from: number, to: number, natural: 
   if (!sounding(orig)) throw new Error(`no note to move in slot ${from}`);
   const notes = [...base.notes];
   notes[from] = null;
-  notes[to] = naturalOf(orig) === natural ? orig : natural;
-  return { ...base, notes, selected: to, accidental: 0, lastWritten: notes[to] };
+  notes[to] = naturalOf(orig) === natural ? orig : withAlter(natural, null, base.signature);
+  return { ...base, notes, selected: to, accidental: null, lastWritten: notes[to] };
 }

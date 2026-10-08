@@ -23,6 +23,11 @@ export interface ExerciseView {
   fux: string[] | null;
   /** Clef per staff; the upper staff is index 0. */
   clefs: { modern: [ClefId, ClefId]; original: [ClefId, ClefId] };
+  /**
+   * Key signature as alterations by letter: one flat (B♭) in the F mode, where every B Fux writes
+   * in these exercises is flat (decision D48); empty elsewhere.
+   */
+  signature: { B?: -1 };
   page: string;
   attribution: { license: string; repository: string; commit: string; urls: Record<string, string> };
 }
@@ -57,6 +62,7 @@ export function exerciseView(repo: FuxRepository, step: CurriculumStep): Exercis
     species: step.species,
     cantus: cf.pitch_sequence,
     layout: slotLayout(step.species, cf.pitch_sequence.length),
+    signature: step.modal_final === "F" ? { B: -1 as const } : {},
     page: step.page,
     attribution: { license, repository: repo.dataset.provenance.repository, commit: repo.dataset.provenance.commit, urls: {} as Record<string, string> },
   };
