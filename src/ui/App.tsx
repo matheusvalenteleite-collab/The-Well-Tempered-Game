@@ -30,6 +30,7 @@ import { trioReading } from "../game/trio-eval.ts";
 import { TrioReading } from "./TrioReading.tsx";
 import { startPlayback } from "./playback.ts";
 import { SavedPieces } from "./SavedPieces.tsx";
+import { DEMO_ENTRIES, type DemoEntry } from "../game/demo.ts";
 import { makePiece, restorePieces, snapshotMode, type Piece } from "../game/saved.ts";
 import { DEFAULT_CONTINUO_SETTINGS, validContinuoSettings, type ContinuoSettings } from "../game/continuo-settings.ts";
 import { CONTINUO_DEMO_MODE } from "../config.ts";
@@ -116,6 +117,8 @@ export function App() {
   const [showSaved, setShowSaved] = useState(false);
   const [savedPlaying, setSavedPlaying] = useState<{ id: string; slot: number } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [showDemo, setShowDemo] = useState(false);
+  const [demoLoaded, setDemoLoaded] = useState<string | null>(null);
   const [versions, setVersions] = useState<Versions>(() => validVersions(stored<unknown>("wtg.versions", null)));
   const [deskOpen, setDeskOpen] = useState(() => stored("wtg.deskOpen", true, (v) => typeof v === "boolean"));
   const [continuo, setContinuo] = useState(() => stored("wtg.continuo", false, (v) => typeof v === "boolean"));
@@ -227,6 +230,43 @@ export function App() {
   // Test hook: write a whole counterpoint at once (browser tests only).
   (window as unknown as { wtgSetNotes: (n: (string | null)[]) => void }).wtgSetNotes = (n) => update({ ...session, notes: n }, false);
   (window as unknown as { wtgFux: string[] | null }).wtgFux = VIEW.fux;
+
+  /** Judge a line for step k (the same evaluation as the Evaluate button). */
+  const judge = (k: number, notes: (string | null)[]) => {
+    const v = VIEWS[k];
+    return evaluate(
+      {
+        species: v.species,
+        modalFinal: v.modalFinal,
+        cantusVoice: v.cantusVoice,
+        cantus: v.cantus.map((p) => ({ pitch: p, duration: "1/1" })),
+        counterpoint: notes.map((p, i) => ({ pitch: sounding(p) ? p : null, duration: v.layout[i].duration })),
+      },
+      rulesForStep(STEPS[k].id),
+    );
+  };
+  /** Demo (D51): load Fux's solution into the exercise, judged, with Fux shown; no star is earned. */
+  const loadDemo = (d: DemoEntry) => {
+    const k = stepIndexOf(d.stepId);
+    const fux = VIEWS[k]?.fux;
+    if (k < 0 || !fux) return;
+    stopSaved();
+    if (k !== stepIndex) goTo(k);
+    else audio.stop();
+    setPlaying(false);
+    setCursor(-1);
+    setSessions((all) => all.map((x, i) => (i === k ? { ...x, notes: [...fux], selected: 0 } : x)));
+    setResult(judge(k, fux));
+    setShowFux(true);
+    setPlayMode("player");
+    setVersions({ ...versions, original: true });
+    if (d.continuo) {
+      setContinuo(true);
+      setContinuoSettings({ ...continuoSettings, ...d.continuo });
+      setDeskOpen(true);
+    }
+    setDemoLoaded(d.id);
+  };
 
   const missing = session.notes.filter((n, k) => n === null && !VIEW.layout[k].restAllowed).length;
   const toggleEvaluation = () => {
@@ -503,6 +543,9 @@ export function App() {
           <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1} aria-label={t("ui.nav.next")}>›</button>
         </nav>
         <div className="header-tools">
+          <button className="chipbtn demo" aria-pressed={showDemo} aria-expanded={showDemo} onClick={() => setShowDemo(!showDemo)} title={t("ui.demo.help")}>
+            {t("ui.demo")}
+          </button>
           <button className="icon quiet save" onClick={savePiece} aria-label={t("ui.saved.save")} title={t("ui.saved.saveHelp")}>
             <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
               <path d="M2 1.5h9.5L14.5 4.5v10h-12.5z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
@@ -522,6 +565,36 @@ export function App() {
         </div>
       </header>
       <main>
+        {showDemo && (
+          <section className="demo-area" aria-label={t("ui.demo.title")}>
+            <div className="demo-head">
+              <h3>{t("ui.demo.title")}</h3>
+              <button className="icon quiet" onClick={() => setShowDemo(false)} aria-label={t("ui.saved.close")}>×</button>
+            </div>
+            <p className="help">{t("ui.demo.intro")}</p>
+            <ol className="demo-list">
+              {DEMO_ENTRIES.map((d) => {
+                const k = stepIndexOf(d.stepId);
+                return (
+                  <li key={d.id} className={demoLoaded === d.id ? "loaded" : ""}>
+                    <div className="demo-title">
+                      <button className="chipbtn" aria-pressed={demoLoaded === d.id && STEP.id === d.stepId} onClick={() => loadDemo(d)}>
+                        {t("ui.demo.load")}
+                      </button>
+                      <strong>{t(`ui.demo.${d.id}.title`)}</strong>
+                      <span className="help">{k >= 0 ? stepLabel(k) : d.stepId}</span>
+                    </div>
+                    <ul>
+                      {Array.from({ length: d.tries }, (_, i) => (
+                        <li key={i}>{t(`ui.demo.${d.id}.try.${i + 1}`)}</li>
+                      ))}
+                    </ul>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+        )}
         <p className="meta">
           {t("ui.mode.fux")} · {t("ui.nav.voicesN", { n: COURSE.voices })} · {t(`ui.species.${VIEW.species}`)} · {t("ui.exercise.mode", { final: VIEW.modalFinal })} ·{" "}
           {VIEW.cantusVoice === "lower" ? t("ui.exercise.cantusBelow") : t("ui.exercise.cantusAbove")}

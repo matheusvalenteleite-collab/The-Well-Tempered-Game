@@ -379,3 +379,13 @@ kbd { font-family: ui-monospace, Menlo, monospace; font-size: 0.8rem; padding: 1
 .wave-time { position: absolute; right: 0; bottom: 0; font-size: 0.7rem; background: var(--paper); color: var(--muted); padding: 0 3px; font-variant-numeric: tabular-nums; }
 .track-actions { display: flex; flex-direction: column; gap: 4px; }
 @media (max-width: 600px) { .track { grid-template-columns: 44px 1fr; } .track-play { width: 40px; height: 40px; } .track-actions { grid-column: 1 / -1; flex-direction: row; justify-content: flex-end; } }
+/* Demo area (D51) */
+.header-tools .demo { font-size: 0.72rem; letter-spacing: 0.06em; min-height: 26px; padding: 2px 8px; }
+.demo-area { margin: 10px 0; padding: 10px 12px; border: 1px dashed var(--accent); border-radius: 6px; background: var(--paper); }
+.demo-head { display: flex; justify-content: space-between; align-items: center; }
+.demo-head h3 { margin: 0; font-variant: small-caps; letter-spacing: 0.05em; }
+.demo-list { margin: 6px 0 0; padding-left: 20px; display: grid; gap: 8px; }
+.demo-list > li.loaded { }
+.demo-title { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.demo-title .help { margin: 0; font-size: 0.75rem; }
+.demo-list ul { margin: 3px 0 0; padding-left: 18px; font-size: 0.82rem; }
