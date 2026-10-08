@@ -257,21 +257,10 @@ export class AudioEngine {
     return this.ctx && this.master ? { ctx: this.ctx, master: this.master } : null;
   }
 
-  private continuoGain: GainNode | null = null;
-  private continuoLevel = 0.6;
-  /** The continuo's input: a level control in front of the master. */
+  /** The continuo's input: its own mixer strip (level, balance, mute, solo) before the master. */
   continuoInput(): AudioNode | null {
     if (!this.ctx || !this.master) return null;
-    if (!this.continuoGain) {
-      this.continuoGain = this.ctx.createGain();
-      this.continuoGain.gain.value = this.continuoLevel;
-      this.continuoGain.connect(this.master);
-    }
-    return this.continuoGain;
-  }
-  setContinuoLevel(v: number) {
-    this.continuoLevel = Math.max(0, Math.min(1, v));
-    if (this.continuoGain && this.ctx) this.continuoGain.gain.setTargetAtTime(this.continuoLevel, this.ctx.currentTime, 0.02);
+    return this.channel("continuo");
   }
 
   /**

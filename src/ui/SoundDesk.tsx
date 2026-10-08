@@ -5,6 +5,8 @@ import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
 import { Knob } from "./Knob.tsx";
 import { SynthRack, presetName } from "./SynthRack.tsx";
 import { DrumBox } from "./DrumBox.tsx";
+import { ContinuoBox } from "./ContinuoBox.tsx";
+import { CONTINUO_DISPLAYS, type ContinuoSettings } from "../game/continuo-settings.ts";
 import { t } from "./i18n.ts";
 
 interface Props {
@@ -21,13 +23,21 @@ interface Props {
   onMaster(v: number): void;
   tuning: TemperamentId;
   onTuning(v: TemperamentId): void;
+  continuo: boolean;
+  onContinuo(on: boolean): void;
+  continuoSettings: ContinuoSettings;
+  onContinuoSettings(v: ContinuoSettings): void;
+  /** Folded to a single line. */
+  open: boolean;
+  onOpen(open: boolean): void;
 }
 
 const VOICES: Channel[] = ["cantus", "counterpoint", "fux"];
 
 /**
- * The Sound drawer: a mixing desk with one strip per voice, the drums and the master. Click a
- * strip's instrument to edit it below; chain buttons between voices link their sounds (decision D40).
+ * Mixer & synth: a mixing desk with one strip per voice, the drums, the continuo and the master.
+ * Click a strip (anywhere but its controls) to edit it below; chain buttons between voices link
+ * their sounds (decision D40). The box folds to one line.
  */
 export function SoundDesk(p: Props) {
   const [selected, setSelected] = useState<Strip>("counterpoint");
@@ -36,11 +46,20 @@ export function SoundDesk(p: Props) {
 
   const strip = (x: Strip) => {
     const m = s.mix[x];
-    const isVoice = x !== "drums";
-    const instrument = isVoice ? (presetName(s.synth[x as Channel]) ?? t("ui.synth.custom")) : t(`ui.drums.pattern.${patternById(p.drumKit.pattern).id}`);
-    const dim = (x === "fux" && !p.fuxOpen) || (x === "drums" && !p.drums);
+    const isVoice = VOICES.includes(x as Channel);
+    const instrument = isVoice
+      ? (presetName(s.synth[x as Channel]) ?? t("ui.synth.custom"))
+      : x === "drums"
+        ? t(`ui.drums.pattern.${patternById(p.drumKit.pattern).id}`)
+        : t(`ui.continuo.preset.${p.continuoSettings.preset}`);
+    const dim = (x === "fux" && !p.fuxOpen) || (x === "drums" && !p.drums) || (x === "continuo" && !p.continuo);
+    // Clicking anywhere on a strip that is not one of its controls selects it.
+    const pick = (e: React.MouseEvent) => {
+      if (!(e.target as HTMLElement).closest("button, input, select, .knob")) setSelected(x);
+    };
+    const cd = p.continuoSettings.display;
     return (
-      <div key={x} className={`strip ${selected === x ? "selected" : ""} ${dim ? "dim" : ""}`} role="group" aria-label={t(`ui.mixer.${x}`)}>
+      <div key={x} className={`strip ${selected === x ? "selected" : ""} ${dim ? "dim" : ""}`} role="group" aria-label={t(`ui.mixer.${x}`)} onClick={pick}>
         <div className="strip-name">{t(`ui.mixer.${x}`)}</div>
         <button className="instrument" aria-pressed={selected === x} onClick={() => setSelected(x)} title={t("ui.mixer.editHelp")}>
           {instrument}
@@ -82,6 +101,20 @@ export function SoundDesk(p: Props) {
         {x === "drums" && (
           <button className="chipbtn" tabIndex={-1} aria-pressed={p.drums} onClick={() => p.onDrums(!p.drums)}>{p.drums ? t("ui.drums.on") : t("ui.drums.off")}</button>
         )}
+        {x === "continuo" && (
+          <>
+            <button className="chipbtn" tabIndex={-1} aria-pressed={p.continuo} onClick={() => p.onContinuo(!p.continuo)}>{p.continuo ? t("ui.continuo.on") : t("ui.continuo.off")}</button>
+            <button
+              className="chipbtn bc"
+              tabIndex={-1}
+              disabled={!p.continuo}
+              title={`${t("ui.continuo.display")}: ${t(`ui.continuo.display.${cd}.help`)}`}
+              onClick={() => p.onContinuoSettings({ ...p.continuoSettings, display: CONTINUO_DISPLAYS[(CONTINUO_DISPLAYS.indexOf(cd) + 1) % CONTINUO_DISPLAYS.length] })}
+            >
+              {t(`ui.continuo.display.${cd}.short`)}
+            </button>
+          </>
+        )}
       </div>
     );
   };
@@ -118,8 +151,18 @@ export function SoundDesk(p: Props) {
   const group = voice ? linkedGroup(s, voice) : [];
   const title = voice ? `${t("ui.synth.title")} · ${group.map((c) => t(`ui.mixer.${c}`)).join(" + ")}` : "";
 
+  if (!p.open)
+    return (
+      <section className="sound folded" aria-label={t("ui.sound")}>
+        <button className="fold" aria-expanded={false} onClick={() => p.onOpen(true)} title={t("ui.sound.unfold")}>▸ {t("ui.sound")}</button>
+        <span className="fold-line" aria-hidden="true" />
+      </section>
+    );
   return (
     <section className="sound" aria-label={t("ui.sound")}>
+      <div className="fold-head">
+        <button className="fold" aria-expanded={true} onClick={() => p.onOpen(false)} title={t("ui.sound.fold")}>▾ {t("ui.sound")}</button>
+      </div>
       <div className="desk">
         {strip("cantus")}
         {chain("cantusCounterpoint")}
@@ -128,6 +171,7 @@ export function SoundDesk(p: Props) {
         {strip("fux")}
         <span className="desk-gap" />
         {strip("drums")}
+        {strip("continuo")}
         <div className="strip master" role="group" aria-label={t("ui.mixer.master")}>
           <div className="strip-name">{t("ui.mixer.master")}</div>
           <input className="fader" type="range" min={0} max={100} step={1} value={p.master} aria-label={t("ui.volume")} title={`${t("ui.volume")}: ${p.master}%`} onChange={(e) => p.onMaster(Number(e.target.value))} />
@@ -143,8 +187,11 @@ export function SoundDesk(p: Props) {
           <button className="chipbtn" tabIndex={-1} onClick={() => setAsk(null)}>{t("ui.synth.no")}</button>
         </div>
       )}
-      {voice && <SynthRack title={title} value={s.synth[voice]} onChange={(next) => p.onChange(editSynth(s, voice, next))} />}
-      {selected === "drums" && <DrumBox on={p.drums} onToggle={p.onDrums} value={p.drumKit} onChange={p.onDrumKit} onPreview={p.onPreviewDrums} />}
+      <div className="editor">
+        {voice && <SynthRack title={title} value={s.synth[voice]} onChange={(next) => p.onChange(editSynth(s, voice, next))} />}
+        {selected === "drums" && <DrumBox on={p.drums} onToggle={p.onDrums} value={p.drumKit} onChange={p.onDrumKit} onPreview={p.onPreviewDrums} />}
+        {selected === "continuo" && <ContinuoBox on={p.continuo} onToggle={p.onContinuo} value={p.continuoSettings} onChange={p.onContinuoSettings} />}
+      </div>
     </section>
   );
 }

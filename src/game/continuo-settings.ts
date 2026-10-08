@@ -13,11 +13,9 @@ export interface ContinuoSettings {
   passingFill: boolean;
   /** A stylistic liberty; never applied to stile antico. */
   inegal: boolean;
-  /** 0..1 */
-  level: number;
 }
 
-export const DEFAULT_CONTINUO_SETTINGS: ContinuoSettings = { display: "figured", preset: "stileAntico", finals: "organist", passingFill: true, inegal: false, level: 0.6 };
+export const DEFAULT_CONTINUO_SETTINGS: ContinuoSettings = { display: "figured", preset: "stileAntico", finals: "organist", passingFill: true, inegal: false };
 
 /** Each field is kept if valid, otherwise replaced by its default. */
 export function validContinuoSettings(raw: unknown): ContinuoSettings {
@@ -30,6 +28,5 @@ export function validContinuoSettings(raw: unknown): ContinuoSettings {
     finals: pick(r.finals, FINALS_MODES, d.finals),
     passingFill: typeof r.passingFill === "boolean" ? r.passingFill : d.passingFill,
     inegal: typeof r.inegal === "boolean" ? r.inegal : d.inegal,
-    level: typeof r.level === "number" && Number.isFinite(r.level) ? Math.min(1, Math.max(0, r.level)) : d.level,
   };
 }

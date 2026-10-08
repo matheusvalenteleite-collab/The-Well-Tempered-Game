@@ -22,7 +22,6 @@ import { ScoreView } from "./notation/ScoreView.tsx";
 import { buildOverlay, neutralOverlay } from "./notation/overlay.ts";
 import { Credits } from "./Credits.tsx";
 import { FuxComparison } from "./FuxComparison.tsx";
-import { ContinuoBox } from "./ContinuoBox.tsx";
 import { realizeContinuo } from "../continuo/realize.ts";
 import { playContinuo } from "../continuo/audio.ts";
 import { continuoInput, continuoKey, continuoOptions, type PlayMode } from "../game/continuo-input.ts";
@@ -100,10 +99,9 @@ export function App() {
     const ok = DRUM_PATTERNS.some((p) => p.id === v.pattern) && LOOP_LENGTHS.includes(v.length) && typeof v.level === "number";
     return ok ? v : { ...DEFAULT_DRUMS };
   });
-  const [showSound, setShowSound] = useState(false);
+  const [deskOpen, setDeskOpen] = useState(() => stored("wtg.deskOpen", true, (v) => typeof v === "boolean"));
   const [continuo, setContinuo] = useState(() => stored("wtg.continuo", false, (v) => typeof v === "boolean"));
   const [continuoSettings, setContinuoSettings] = useState<ContinuoSettings>(() => validContinuoSettings(stored<unknown>("wtg.continuoSettings", DEFAULT_CONTINUO_SETTINGS)));
-  const [showContinuo, setShowContinuo] = useState(false);
   const [loop, setLoop] = useState(() => stored("wtg.loop", true, (v) => typeof v === "boolean"));
   const [showNames, setShowNames] = useState(() => stored("wtg.names", false, (v) => typeof v === "boolean"));
   const [showIntervals, setShowIntervals] = useState(() => stored("wtg.intervals", false, (v) => typeof v === "boolean"));
@@ -155,10 +153,8 @@ export function App() {
     store("wtg.drumkit", drumKit);
   }, [drumKit, VIEW.modalFinal]);
   useEffect(() => store("wtg.continuo", continuo), [continuo]);
-  useEffect(() => {
-    audio.setContinuoLevel(continuoSettings.level);
-    store("wtg.continuoSettings", continuoSettings);
-  }, [continuoSettings]);
+  useEffect(() => store("wtg.deskOpen", deskOpen), [deskOpen]);
+  useEffect(() => store("wtg.continuoSettings", continuoSettings), [continuoSettings]);
   useEffect(() => {
     audio.temperament = tuning;
     store("wtg.tuning", tuning);
@@ -503,18 +499,15 @@ export function App() {
             </div>
             <Knob id="tempo" label={t("ui.tempo")} value={tempo} min={30} max={240} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
             <Knob id="volume" label={t("ui.volume")} value={volume} min={0} max={100} defaultValue={70} format={(v) => `${Math.round(v)}%`} onChange={(v) => setVolume(Math.round(v))} />
-            <button aria-pressed={showSound} aria-expanded={showSound} onClick={() => setShowSound(!showSound)} title={t("ui.sound.help")}>
-              {t("ui.sound")}
-              {drums ? " ●" : ""}
-            </button>
-            <button aria-pressed={continuo} aria-expanded={showContinuo} onClick={() => setShowContinuo(!showContinuo)} title={t("ui.continuo.help")}>
-              {t("ui.continuo")}
-              {continuo ? " ●" : ""}
-            </button>
           </div>
         </div>
-        {showSound && (
-          <SoundDesk
+        <SoundDesk
+            open={deskOpen}
+            onOpen={setDeskOpen}
+            continuo={continuo}
+            onContinuo={setContinuo}
+            continuoSettings={continuoSettings}
+            onContinuoSettings={setContinuoSettings}
             value={sound}
             onChange={setSound}
             fuxOpen={fuxOpen}
@@ -528,8 +521,6 @@ export function App() {
             tuning={tuning}
             onTuning={setTuning}
           />
-        )}
-        {showContinuo && <ContinuoBox on={continuo} onToggle={setContinuo} value={continuoSettings} onChange={setContinuoSettings} />}
         {result && (
           <section className="feedback" aria-live="polite">
             <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} layout={VIEW.layout} audio={audio} />

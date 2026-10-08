@@ -1,6 +1,5 @@
 import type { PresetId } from "../continuo/types.ts";
 import { CONTINUO_DISPLAYS, CONTINUO_PRESETS, FINALS_MODES, type ContinuoSettings } from "../game/continuo-settings.ts";
-import { Knob } from "./Knob.tsx";
 import { t } from "./i18n.ts";
 
 interface Props {
@@ -10,7 +9,7 @@ interface Props {
   onChange(v: ContinuoSettings): void;
 }
 
-/** Options for the basso continuo: on/off, level, what the score shows, and how it plays. A sibling of the drum box. */
+/** The continuo strip's editor: on/off, what the score shows, and how it plays (its level is the strip's fader). */
 export function ContinuoBox({ on, onToggle, value, onChange }: Props) {
   const set = (change: Partial<ContinuoSettings>, turnOn = false) => {
     onChange({ ...value, ...change });
@@ -24,7 +23,6 @@ export function ContinuoBox({ on, onToggle, value, onChange }: Props) {
         <button className="chipbtn" tabIndex={-1} aria-pressed={on} onClick={() => onToggle(!on)}>
           {on ? t("ui.continuo.on") : t("ui.continuo.off")}
         </button>
-        <Knob id="continuo-level" label={t("ui.continuo.level")} value={value.level} min={0} max={1} defaultValue={0.6} format={(v) => `${Math.round(v * 100)}%`} onChange={(v) => set({ level: v })} />
       </div>
       <div className="drum-families">
         <div className="drum-family">

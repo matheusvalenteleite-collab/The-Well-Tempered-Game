@@ -11,9 +11,9 @@ import { DEFAULT_SYNTH, SYNTH_PRESETS, type SynthSettings } from "./synth-settin
 import { NO_TRANSFORM, type LineTransform } from "../game/transform.ts";
 
 export type Channel = "cantus" | "counterpoint" | "fux";
-export type Strip = Channel | "drums";
+export type Strip = Channel | "drums" | "continuo";
 export const CHANNELS: Channel[] = ["cantus", "counterpoint", "fux"];
-export const STRIPS: Strip[] = ["cantus", "counterpoint", "fux", "drums"];
+export const STRIPS: Strip[] = ["cantus", "counterpoint", "fux", "drums", "continuo"];
 
 export interface Mix {
   /** 0..1.5 (1 = unity). */
@@ -42,7 +42,7 @@ const mix = (pan = 0, volume = 1): Mix => ({ volume, pan, mute: false, solo: fal
 export const DEFAULT_SOUND: SoundState = {
   synth: { cantus: { ...DEFAULT_SYNTH }, counterpoint: { ...DEFAULT_SYNTH }, fux: { ...FUX_SOUND } },
   links: { cantusCounterpoint: true, counterpointFux: false },
-  mix: { cantus: mix(0), counterpoint: mix(-0.3), fux: mix(0.3), drums: mix(0, 0.8) },
+  mix: { cantus: mix(0), counterpoint: mix(-0.3), fux: mix(0.3), drums: mix(0, 0.8), continuo: mix(0, 0.6) },
   fuxOctave: 0,
   cpTransform: { ...NO_TRANSFORM },
 };
