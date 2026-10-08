@@ -38,6 +38,8 @@ test("session: place, replace, accidentals, keyboard stepping", () => {
   assert.equal(s.notes[3], "G4");
   s = clear(s, 3);
   assert.equal(s.notes[3], null);
+  s = stepNote(s, 1, "F5"); // first arrow on an empty bar places the starting pitch itself
+  assert.equal(s.notes[3], "F5");
 });
 
 test("session converts to the shared player_solution representation", () => {

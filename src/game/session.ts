@@ -52,9 +52,10 @@ export function select(s: SessionState, column: number): SessionState {
   return { ...s, selected: Math.max(0, Math.min(s.notes.length - 1, column)) };
 }
 
-/** Move the selected note by diatonic steps (accidental dropped). Empty column: start from `start`. */
+/** Move the selected note by diatonic steps (accidental dropped). An empty column first receives `start`. */
 export function stepNote(s: SessionState, delta: number, start: string): SessionState {
-  const cur = s.notes[s.selected] ?? start;
+  const cur = s.notes[s.selected];
+  if (cur === null) return place({ ...s, accidental: 0 }, s.selected, start);
   const d = parsePitch(cur).diatonic + delta;
   const natural = `${STEPS[((d % 7) + 7) % 7]}${Math.floor(d / 7)}`;
   return place({ ...s, accidental: 0 }, s.selected, natural);

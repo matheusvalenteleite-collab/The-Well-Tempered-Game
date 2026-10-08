@@ -153,6 +153,11 @@ export function App() {
   };
 
   useEffect(() => scoreRef.current?.focus(), []);
+  /** Run a control action and return keyboard focus to the score, so arrows keep working. */
+  const andRefocus = (action: () => void) => () => {
+    action();
+    scoreRef.current?.focus({ preventScroll: true });
+  };
 
   const clefs = clefMode === "modern" ? VIEW.clefs.modern : VIEW.clefs.original;
   const figure = VIEW.figure ? t("ui.exercise.figure", { figure: VIEW.figure }) : "";
@@ -189,19 +194,19 @@ export function App() {
         <div className="controls">
           <div className="group" role="group" aria-label="accidental">
             {([[-1, "ui.accidental.flat"], [0, "ui.accidental.natural"], [1, "ui.accidental.sharp"]] as const).map(([a, key]) => (
-              <button key={a} aria-pressed={session.accidental === a && session.notes[session.selected] === null} onClick={() => update(applyAccidental(session, a))}>
+              <button key={a} aria-pressed={session.accidental === a && session.notes[session.selected] === null} onClick={andRefocus(() => update(applyAccidental(session, a)))}>
                 {t(key)}
               </button>
             ))}
-            <button onClick={() => update(clear(session), false)}>{t("ui.clear")}</button>
+            <button onClick={andRefocus(() => update(clear(session), false))}>{t("ui.clear")}</button>
           </div>
           <div className="group">
-            <button className="primary" onClick={runEvaluation} disabled={missing > 0} title={missing > 0 ? t("ui.evaluate.incomplete", { missing }) : undefined}>
+            <button className="primary" onClick={andRefocus(runEvaluation)} disabled={missing > 0} title={missing > 0 ? t("ui.evaluate.incomplete", { missing }) : undefined}>
               {t("ui.evaluate")}
             </button>
           </div>
           <div className="group">
-            <button onClick={play}>{playing ? t("ui.stop") : t("ui.play")}</button>
+            <button onClick={andRefocus(play)}>{playing ? t("ui.stop") : t("ui.play")}</button>
             <label className="tempo">
               {t("ui.tempo", { bpm: tempo })}
               <input id="tempo" type="range" min={30} max={120} value={tempo} onChange={(e) => setTempo(Number(e.target.value))} />
@@ -216,8 +221,8 @@ export function App() {
             <button aria-pressed={sound === "chip"} onClick={() => chooseSound("chip")}>{t("ui.sound.chip")}</button>
           </div>}
           <div className="group">
-            <button aria-pressed={clefMode === "modern"} onClick={() => setClefMode("modern")}>{t("ui.clefs.modern")}</button>
-            <button aria-pressed={clefMode === "original"} onClick={() => setClefMode("original")}>{t("ui.clefs.original")}</button>
+            <button aria-pressed={clefMode === "modern"} onClick={andRefocus(() => setClefMode("modern"))}>{t("ui.clefs.modern")}</button>
+            <button aria-pressed={clefMode === "original"} onClick={andRefocus(() => setClefMode("original"))}>{t("ui.clefs.original")}</button>
           </div>
         </div>
         {missing > 0 && <p className="help">{t("ui.evaluate.incomplete", { missing })}</p>}
