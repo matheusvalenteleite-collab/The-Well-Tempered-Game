@@ -9,10 +9,10 @@
 import { Soundfont } from "smplr";
 import { DEFAULT_DRUMS, DrumMachine, type DrumSettings } from "./drums.ts";
 import type { SynthSettings } from "./synth-settings.ts";
-import { audibleGain, CHANNELS, DEFAULT_SOUND, shiftOctave, STRIPS, type Channel, type SoundState, type Strip } from "./sound.ts";
+import { audibleGain, CHANNELS, DEFAULT_SOUND, shiftOctave, STRIPS, versionSettings, type Channel, type SoundState, type Strip } from "./sound.ts";
 import type { TemperamentId } from "./temperament.ts";
 import type { PlayEvent } from "../counterpoint/layout.ts";
-import type { VersionId } from "../game/versions.ts";
+import { VERSION_IDS, type VersionId } from "../game/versions.ts";
 import { Synth, type Instrument } from "./voice.ts";
 import { humanisePlan, type EventShape } from "./humanise.ts";
 
@@ -55,6 +55,8 @@ export class AudioEngine {
   /** Synth settings of the three voices (stable objects: the synths read them at each note). */
   private synth: Record<Channel, SynthSettings> = structuredClone(DEFAULT_SOUND.synth);
   private mix: SoundState = structuredClone(DEFAULT_SOUND);
+  /** Each version's synth settings (stable objects, D69): a copy of the Contrapunctus's or its own. */
+  private versionSynth: Record<VersionId, SynthSettings> = structuredClone(DEFAULT_SOUND.versionSynth);
   private channels = new Map<Strip, { gain: GainNode; pan: StereoPannerNode }>();
   temperament: TemperamentId = "equal";
   /** Drum track during "play all"; read live, so toggling takes effect from the next bar. */
@@ -82,6 +84,7 @@ export class AudioEngine {
    */
   setSoundState(state: SoundState) {
     for (const c of CHANNELS) Object.assign(this.synth[c], state.synth[c]);
+    for (const id of VERSION_IDS) Object.assign(this.versionSynth[id], versionSettings(state, id));
     for (const v of [this.current?.cantus, this.current?.counterpoint, this.current?.fux, ...this.versionVoices.values()]) if (v instanceof Synth) v.update();
     this.mix = structuredClone(state);
     this.applyMix();
@@ -309,7 +312,7 @@ export class AudioEngine {
         const shape = shapes?.[k];
         this.stretch = shape?.stretch ?? 1;
         this.soundEvent(inst, e, next + (shape?.delay ?? 0), whole, shape);
-        if (this.drums && e.cantus) this.drumMachine?.scheduleBar(next, whole, Math.floor(e.at), bars);
+        if (this.drums && e.cantus) this.drumMachine?.scheduleBar(next, whole, Math.floor(e.at), bars, this.loop);
         const slot = e.slot;
         this.timers.push(window.setTimeout(() => onSlot(slot), Math.max(0, (next - ctx.currentTime) * 1000)));
         next += ((events[k + 1]?.at ?? e.at + e.length) - e.at) * whole * (shape?.stretch ?? 1);
@@ -332,13 +335,13 @@ export class AudioEngine {
     tick();
   }
 
-  /** A voice per derived version of the player's line: the Contrapunctus sound, on its own strip. */
+  /** A voice per derived version of the player's line, on its own strip, with its own settings (D69). */
   private versionVoices = new Map<VersionId, Synth>();
   private versionVoice(id: VersionId): Synth | null {
     if (!this.ctx) return null;
     let v = this.versionVoices.get(id);
     if (!v) {
-      v = new Synth(this.ctx, this.channel(id), this.synth.counterpoint, () => this.temperament);
+      v = new Synth(this.ctx, this.channel(id), this.versionSynth[id], () => this.temperament);
       this.versionVoices.set(id, v);
     }
     return v;

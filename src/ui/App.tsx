@@ -12,7 +12,7 @@ import { loadSamples } from "../audio/voice.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
 import { SoundDesk } from "./SoundDesk.tsx";
 import { HelpCard } from "./HelpCard.tsx";
-import { DEFAULT_DRUMS, DRUM_PATTERNS, DrumMachine, LOOP_LENGTHS, type DrumSettings } from "../audio/drums.ts";
+import { DEFAULT_DRUMS, DRUM_PATTERNS, DRUM_KITS, DrumMachine, validLoopLength, type DrumSettings } from "../audio/drums.ts";
 import { Hints } from "./Hints.tsx";
 import { Study } from "./Study.tsx";
 import { stepStudy } from "./study.ts";
@@ -91,7 +91,7 @@ const VERSION_INK: Record<VersionId, string> = {
 };
 function validDrumKit(raw: unknown): DrumSettings {
   const v = { ...DEFAULT_DRUMS, ...(typeof raw === "object" && raw !== null ? (raw as Partial<DrumSettings>) : {}) };
-  const ok = DRUM_PATTERNS.some((p) => p.id === v.pattern) && LOOP_LENGTHS.includes(v.length) && typeof v.level === "number";
+  const ok = DRUM_PATTERNS.some((p) => p.id === v.pattern) && validLoopLength(v.length) && typeof v.level === "number" && (v.kit === undefined || DRUM_KITS.includes(v.kit));
   return ok ? v : { ...DEFAULT_DRUMS };
 }
 const stepIndexOf = (id: string) => STEPS.findIndex((s) => s.id === id);

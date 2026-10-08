@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { linkedGroup, linkEnds, linkNeedsConfirm, setLink, setMix, editSynth, type Channel, type Link, type SoundState, type Strip } from "../audio/sound.ts";
+import { linkedGroup, linkEnds, linkNeedsConfirm, setLink, setMix, editSynth, editVersionSynth, setVersionFollows, versionSettings, type Channel, type Link, type SoundState, type Strip } from "../audio/sound.ts";
 import { patternById, type DrumSettings } from "../audio/drums.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
 import { Knob } from "./Knob.tsx";
@@ -79,7 +79,7 @@ export function SoundDesk(p: Props) {
     const isVoice = VOICES.includes(x as Channel);
     const isVersion = VERSION_IDS.includes(x as VersionId);
     const instrument = isVoice || isVersion
-      ? (presetName(s.synth[isVersion ? "counterpoint" : (x as Channel)]) ?? t("ui.synth.custom"))
+      ? (presetName(isVersion ? versionSettings(s, x as VersionId) : s.synth[x as Channel]) ?? t("ui.synth.custom"))
       : x === "drums"
         ? t(`ui.drums.pattern.${patternById(p.drumKit.pattern).id}`)
         : t(`ui.continuo.preset.${p.continuoSettings.preset}`);
@@ -190,8 +190,9 @@ export function SoundDesk(p: Props) {
     </button>
   );
 
-  // A version strip shares the Contrapunctus sound: selecting it edits that synth.
-  const voice = VOICES.includes(selected as Channel) ? (selected as Channel) : VERSION_IDS.includes(selected as VersionId) ? "counterpoint" : null;
+  // A version strip has its own sound (D69): editing it never changes the Contrapunctus.
+  const voice = VOICES.includes(selected as Channel) ? (selected as Channel) : null;
+  const version = VERSION_IDS.includes(selected as VersionId) ? (selected as VersionId) : null;
   const group = voice ? linkedGroup(s, voice) : [];
   const title = voice ? `${t("ui.synth.title")} · ${group.map((c) => t(`ui.mixer.${c}`)).join(" + ")}` : "";
 
@@ -235,6 +236,16 @@ export function SoundDesk(p: Props) {
       )}
       <div className="editor">
         {voice && <SynthRack title={title} value={s.synth[voice]} onChange={(next) => p.onChange(editSynth(s, voice, next))} />}
+        {version && (
+          <>
+            <div className="follows">
+              <button className="chipbtn" tabIndex={-1} aria-pressed={s.versionFollows[version]} title={t("ui.synth.followsHelp")} onClick={() => p.onChange(setVersionFollows(s, version, !s.versionFollows[version]))}>
+                {t("ui.synth.follows")}
+              </button>
+            </div>
+            <SynthRack title={`${t("ui.synth.title")} · ${t(`ui.mixer.${version}`)}`} value={versionSettings(s, version)} onChange={(next) => p.onChange(editVersionSynth(s, version, next))} />
+          </>
+        )}
         {selected === "drums" && <DrumBox on={p.drums} onToggle={p.onDrums} value={p.drumKit} onChange={p.onDrumKit} onPreview={p.onPreviewDrums} />}
         {selected === "continuo" && <ContinuoBox on={p.continuo} onToggle={p.onContinuo} value={p.continuoSettings} onChange={p.onContinuoSettings} />}
       </div>

@@ -344,8 +344,8 @@ kbd { font-family: ui-monospace, Menlo, monospace; font-size: 0.8rem; padding: 1
 .sound .fold-head { display: flex; }
 .fold-line { flex: 1; border-top: 1px solid var(--line); }
 /* One editor size for every strip (synth, drums, continuo): selecting a strip never resizes the box. */
-.sound .editor { height: 214px; overflow: auto; }
-@media (max-width: 600px) { .sound .editor { height: 330px; } }
+.sound .editor { height: 250px; overflow: auto; }
+@media (max-width: 600px) { .sound .editor { height: auto; min-height: 364px; } }
 .sound .editor > section { width: 100%; height: 100%; box-sizing: border-box; }
 .strip .bc { font-size: 0.7rem; white-space: nowrap; }
 .sound:not(.folded) { width: min(100%, 760px); }
@@ -418,3 +418,9 @@ button, select, .chipbtn { font-size: 0.8rem; }
 
 /* Narrow screens: the exercise menu takes the rest of its row, with the next arrow beside it. */
 @media (max-width: 600px) { .exercise-nav { width: 100%; } .exercise-nav #exercise { flex: 1 1 60%; } }
+/* D71: the drum sound (kit) row; D69: a version's "same sound as Contrapunctus" switch. */
+.drum-kits { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 6px 0 2px; }
+.drum-kits .kit-label { font-size: 0.8rem; color: var(--muted); margin-right: 4px; }
+.sound .editor { position: relative; }
+.editor .follows { position: absolute; top: 8px; right: 12px; z-index: 1; }
+@media (max-width: 600px) { .editor .follows { position: static; margin: 4px 0 6px; } }

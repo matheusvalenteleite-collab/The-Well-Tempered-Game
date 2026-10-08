@@ -35,6 +35,12 @@ export interface SoundState {
   fuxOctave: number;
   /** The same for each version of the player's line (D66): listening only, the score is unchanged. */
   versionOctave: Record<VersionId, number>;
+  /**
+   * Each version's own sound (D69). While `versionFollows[id]` is true the version sounds like the
+   * Contrapunctus; editing the version's sound gives it its own copy, and the Contrapunctus is untouched.
+   */
+  versionSynth: Record<VersionId, SynthSettings>;
+  versionFollows: Record<VersionId, boolean>;
 }
 
 const FUX_SOUND = SYNTH_PRESETS.find((p) => p.id === "fluteOrgan")!.settings;
@@ -48,7 +54,23 @@ export const DEFAULT_SOUND: SoundState = {
   mix: { cantus: mix(0), counterpoint: mix(-0.3), fux: mix(0.3), inversion: mix(0.3), retrograde: mix(0.3), retroInversion: mix(0.3), canon: mix(0.3), drums: mix(0, 0.8), continuo: mix(0, 0.6) },
   fuxOctave: 0,
   versionOctave: { inversion: 0, retrograde: 0, retroInversion: 0, canon: 0 },
+  versionSynth: { inversion: { ...DEFAULT_SYNTH }, retrograde: { ...DEFAULT_SYNTH }, retroInversion: { ...DEFAULT_SYNTH }, canon: { ...DEFAULT_SYNTH } },
+  versionFollows: { inversion: true, retrograde: true, retroInversion: true, canon: true },
 };
+
+/** The sound a version plays with: the Contrapunctus's while it follows it, else its own (D69). */
+export const versionSettings = (s: SoundState, id: VersionId): SynthSettings => (s.versionFollows[id] ? s.synth.counterpoint : s.versionSynth[id]);
+
+/** Edit a version's sound: it stops following the Contrapunctus, which is left as it is (D69). */
+export function editVersionSynth(s: SoundState, id: VersionId, next: SynthSettings): SoundState {
+  return { ...s, versionSynth: { ...s.versionSynth, [id]: { ...next } }, versionFollows: { ...s.versionFollows, [id]: false } };
+}
+
+/** Make a version follow the Contrapunctus again, or give it its own copy of the current sound. */
+export function setVersionFollows(s: SoundState, id: VersionId, follows: boolean): SoundState {
+  const versionSynth = follows ? s.versionSynth : { ...s.versionSynth, [id]: { ...s.synth.counterpoint } };
+  return { ...s, versionSynth, versionFollows: { ...s.versionFollows, [id]: follows } };
+}
 
 /** The voices that share a configuration with `ch` (always including `ch`). */
 export function linkedGroup(s: SoundState, ch: Channel): Channel[] {
@@ -115,6 +137,8 @@ export function restoreSound(raw: unknown): SoundState {
   for (const x of STRIPS) if (r.mix?.[x]) out.mix[x] = { ...out.mix[x], ...r.mix[x] };
   if (typeof r.fuxOctave === "number") out.fuxOctave = Math.max(-3, Math.min(3, Math.round(r.fuxOctave)));
   for (const id of VERSION_IDS) {
+    if (r.versionSynth?.[id]) out.versionSynth[id] = { ...DEFAULT_SYNTH, ...r.versionSynth[id] };
+    if (typeof r.versionFollows?.[id] === "boolean") out.versionFollows[id] = r.versionFollows[id];
     const o = r.versionOctave?.[id];
     if (typeof o === "number") out.versionOctave[id] = Math.max(-3, Math.min(3, Math.round(o)));
   }
