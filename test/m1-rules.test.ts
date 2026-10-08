@@ -122,7 +122,8 @@ test("every rule carries source, severity and attribution metadata", () => {
 });
 
 test("fs.prefer-imperfect-consonances (1725 p. 46): an all-perfect counterpoint is not cleared", async () => {
-  const { rulesForStep, FUX_FIRST_SPECIES_CURRICULUM } = await import("../src/counterpoint/curriculum/fux-first-species.ts");
+  const { FUX_FIRST_SPECIES_CURRICULUM } = await import("../src/counterpoint/curriculum/fux-first-species.ts");
+  const { rulesForStep } = await import("../src/counterpoint/curriculum/index.ts");
   const cf = ["D4", "F4", "E4", "D4", "G4", "F4", "A4", "G4", "F4", "E4", "D4"];
   // octaves and unisons only, every perfect consonance reached by contrary motion; bar 10 keeps the cadence
   const cp = ["D5", "F3", "E5", "D3", "G4", "F5", "A3", "G5", "F4", "C#5", "D5"];

@@ -10,6 +10,7 @@ import { Soundfont } from "smplr";
 import { DrumMachine } from "./drums.ts";
 import { DEFAULT_SYNTH, type SynthSettings, type VoiceId, type VoiceSynths } from "./synth-settings.ts";
 import type { TemperamentId } from "./temperament.ts";
+import type { PlayEvent } from "../counterpoint/layout.ts";
 import { Synth, type Instrument } from "./voice.ts";
 
 export * from "./synth-settings.ts";
@@ -21,6 +22,8 @@ export interface PlaybackColumn {
   cantus: string;
   counterpoint: string | null;
 }
+
+export type { PlayEvent };
 
 type Voices = Record<VoiceId, Instrument>;
 
@@ -138,17 +141,30 @@ export class AudioEngine {
     this.both(inst, col, this.ctx.currentTime + 0.01, seconds);
   }
 
-  /** Play a short run of columns, then resolve. `barSeconds` defaults to half a bar at the current tempo. */
-  playSequence(cols: PlaybackColumn[], barSeconds = this.barSeconds / 2): Promise<void> {
+  /** Start the notes of one event; a cantus note always lasts the whole bar. */
+  private soundEvent(voices: Voices, e: PlayEvent, time: number, whole: number) {
+    if (e.cantus) {
+      voices.cantus.start(e.cantus, time, whole * 0.97);
+      this.notesStarted++;
+    }
+    if (e.counterpoint) {
+      voices.counterpoint.start(e.counterpoint, time, e.length * whole * 0.95);
+      this.notesStarted++;
+    }
+  }
+
+  /** Play a short excerpt, then resolve. `wholeSeconds` defaults to half the bar length at the current tempo. */
+  playSequence(events: PlayEvent[], wholeSeconds = this.barSeconds / 2): Promise<void> {
     return new Promise((resolve) => {
       void (async () => {
         this.stop();
         const inst = await this.instrument();
         const ctx = this.ctx;
-        if (!inst || !ctx) return resolve();
-        const t0 = ctx.currentTime + 0.05;
-        cols.forEach((c, k) => this.both(inst, c, t0 + k * barSeconds, barSeconds * 0.95));
-        this.timers.push(window.setTimeout(resolve, (0.05 + cols.length * barSeconds) * 1000));
+        if (!inst || !ctx || events.length === 0) return resolve();
+        const t0 = ctx.currentTime + 0.05 - events[0].at * wholeSeconds;
+        for (const e of events) this.soundEvent(inst, e, t0 + e.at * wholeSeconds, wholeSeconds);
+        const end = Math.max(...events.map((e) => e.at + e.length)) - events[0].at;
+        this.timers.push(window.setTimeout(resolve, (0.05 + end * wholeSeconds) * 1000));
       })();
     });
   }
@@ -187,33 +203,35 @@ export class AudioEngine {
   }
 
   /**
-   * Play all columns, one whole note each, with the drum track if it is on. Columns are scheduled
-   * just ahead of time, so tempo and drum changes take effect from the next bar.
-   * `onColumn(k)` fires as column k sounds; -1 marks the end.
+   * Play the whole exercise, with the drum track if it is on. Events are scheduled just ahead of
+   * time, so tempo and drum changes take effect from the next note.
+   * `onSlot(k)` fires as slot k sounds; -1 marks the end.
    */
-  async playAll(cols: PlaybackColumn[], onColumn: (k: number) => void): Promise<void> {
+  async playAll(events: PlayEvent[], onSlot: (k: number) => void): Promise<void> {
     this.stop();
     const inst = await this.instrument();
     const ctx = this.ctx;
-    if (!inst || !ctx) {
-      onColumn(-1);
+    if (!inst || !ctx || events.length === 0) {
+      onSlot(-1);
       return;
     }
+    const bars = Math.ceil(Math.max(...events.map((e) => e.at + e.length)));
     let k = 0;
     let next = ctx.currentTime + 0.1;
     const LOOKAHEAD = 0.15;
     const tick = () => {
-      while (k < cols.length && next < ctx.currentTime + LOOKAHEAD) {
+      while (k < events.length && next < ctx.currentTime + LOOKAHEAD) {
         const whole = this.barSeconds;
-        this.both(inst, cols[k], next, whole * 0.97);
-        if (this.drums) this.drumMachine?.scheduleBar(next, whole, k, cols.length);
-        const col = k;
-        this.timers.push(window.setTimeout(() => onColumn(col), Math.max(0, (next - ctx.currentTime) * 1000)));
-        next += whole;
+        const e = events[k];
+        this.soundEvent(inst, e, next, whole);
+        if (this.drums && e.cantus) this.drumMachine?.scheduleBar(next, whole, Math.floor(e.at), bars);
+        const slot = e.slot;
+        this.timers.push(window.setTimeout(() => onSlot(slot), Math.max(0, (next - ctx.currentTime) * 1000)));
+        next += ((events[k + 1]?.at ?? e.at + e.length) - e.at) * whole;
         k++;
       }
-      if (k >= cols.length) {
-        this.timers.push(window.setTimeout(() => onColumn(-1), Math.max(0, (next - ctx.currentTime) * 1000)));
+      if (k >= events.length) {
+        this.timers.push(window.setTimeout(() => onSlot(-1), Math.max(0, (next - ctx.currentTime) * 1000)));
         return;
       }
       this.timers.push(window.setTimeout(tick, 40));

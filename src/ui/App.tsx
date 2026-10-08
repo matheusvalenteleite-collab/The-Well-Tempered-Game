@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { repository } from "../music/fux/load-browser.ts";
-import { FUX_FIRST_SPECIES_CURRICULUM, rulesForStep, validateCurriculum } from "../counterpoint/curriculum/fux-first-species.ts";
+import { ALL_STEPS, COURSES, courseOf, rulesForStep, validateCurriculum } from "../counterpoint/curriculum/index.ts";
+import { REST, slotLength, sounding, timeline } from "../counterpoint/layout.ts";
 import { evaluate, type Evaluation } from "../counterpoint/engine.ts";
 import { compareWithOriginal } from "../music/fux/player.ts";
 import { exerciseView } from "../game/exercise-view.ts";
-import { applyAccidental, clear, initialState, letterNote, moveNote, place, select, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
+import { applyAccidental, clear, initialState, letterNote, moveNote, place, select, setRest, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
 import { AudioEngine, DEFAULT_SYNTH, renderLevel, SYNTH_PRESETS, type AudioStatus, type VoiceSynths } from "../audio/engine.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
 import { SynthRack, type SynthTarget } from "./SynthRack.tsx";
@@ -19,8 +20,15 @@ import { t } from "./i18n.ts";
 import type { Step } from "../music/pitch.ts";
 
 validateCurriculum(repository);
-const STEPS = FUX_FIRST_SPECIES_CURRICULUM;
+const STEPS = ALL_STEPS;
 const VIEWS = STEPS.map((s) => exerciseView(repository, s));
+const ORDINAL = ["", "1st", "2nd", "3rd", "4th", "5th"];
+/** A fresh session: empty slots, except that a rest stands where the layout allows one (Fux's usual opening). */
+const freshSession = (k: number) => {
+  const v = VIEWS[k];
+  const s = initialState(v.layout.length);
+  return { ...s, notes: v.layout.map((sl) => (sl.restAllowed ? REST : null)) };
+};
 const audio = new AudioEngine();
 // Owner decision D15: synthesized sound only for now (the sampled piano stays in the engine, unused).
 audio.sound = "chip";
@@ -56,12 +64,17 @@ const stepLabel = (k: number) => {
   const where = v.figure ? t("ui.exercise.figure", { figure: v.figure }) : t("ui.nav.fuxCantus");
   return `${s.ordinal}. ${where} · ${v.modalFinal} · ${t(s.cantus_voice === "lower" ? "ui.nav.cfBelow" : "ui.nav.cfAbove")}`;
 };
+const stepIndexOf = (id: string) => STEPS.findIndex((s) => s.id === id);
 
 export function App() {
-  const [stepIndex, setStepIndex] = useState(() => stored("wtg.step", 0, (v) => typeof v === "number" && v >= 0 && v < STEPS.length));
+  const [stepIndex, setStepIndex] = useState(() => {
+    const id = stored<string>("wtg.stepId", STEPS[0].id, (v) => typeof v === "string" && stepIndexOf(v) >= 0);
+    return stepIndexOf(id);
+  });
   const STEP = STEPS[stepIndex];
   const VIEW = VIEWS[stepIndex];
-  const [sessions, setSessions] = useState<SessionState[]>(() => VIEWS.map((v) => initialState(v.cantus.length)));
+  const COURSE = courseOf(STEP.id);
+  const [sessions, setSessions] = useState<SessionState[]>(() => VIEWS.map((_, k) => freshSession(k)));
   const session = sessions[stepIndex];
   const setSession = (s: SessionState) => setSessions((all) => all.map((x, i) => (i === stepIndex ? s : x)));
   const [stars, setStars] = useState<string[]>(() => stored<string[]>("wtg.stars", [], (v) => Array.isArray(v)));
@@ -101,7 +114,7 @@ export function App() {
     audio.setSynth(synth);
     store("wtg.synth2", synth);
   }, [synth]);
-  useEffect(() => store("wtg.step", stepIndex), [stepIndex]);
+  useEffect(() => store("wtg.stepId", STEP.id), [stepIndex]);
   useEffect(() => {
     audio.drums = drums;
     store("wtg.drums", drums);
@@ -122,7 +135,9 @@ export function App() {
     setStepIndex(k);
   };
 
-  const column = (k: number, notes = session.notes) => ({ cantus: VIEW.cantus[k], counterpoint: notes[k] });
+  /** The sonority of slot k: its bar's cantus note and the counterpoint note (if any). */
+  const column = (k: number, notes = session.notes) => ({ cantus: VIEW.cantus[VIEW.layout[k].bar], counterpoint: sounding(notes[k]) ? notes[k] : null });
+  const audition = (k: number, notes = session.notes) => void audio.playColumn(column(k, notes), audio.barSeconds * slotLength(VIEW.layout[k]));
 
   const update = (next: SessionState, sound = true) => {
     setSession(next);
@@ -131,7 +146,7 @@ export function App() {
       setShowFux(false);
     }
     const changed = next.notes[next.selected] !== session.notes[next.selected];
-    if (sound && changed && next.notes[next.selected]) void audio.playColumn(column(next.selected, next.notes));
+    if (sound && changed && sounding(next.notes[next.selected])) audition(next.selected, next.notes);
   };
 
   /** Selecting a bar without writing: it sounds if the player stays on it for DWELL_MS. */
@@ -143,11 +158,12 @@ export function App() {
     if (!browsing.current) return;
     browsing.current = false;
     const k = session.selected;
-    const timer = window.setTimeout(() => void audio.playColumn(column(k)), DWELL_MS);
+    const timer = window.setTimeout(() => audition(k), DWELL_MS);
     return () => window.clearTimeout(timer);
   }, [session]);
 
-  const missing = session.notes.filter((n) => n === null).length;
+  // An empty slot where a rest is allowed counts as the rest.
+  const missing = session.notes.filter((n, k) => n === null && !VIEW.layout[k].restAllowed).length;
   const toggleEvaluation = () => {
     if (result) {
       setResult(null);
@@ -157,11 +173,11 @@ export function App() {
     if (missing > 0) return;
     const ev = evaluate(
       {
-        species: "first",
+        species: VIEW.species,
         modalFinal: VIEW.modalFinal,
         cantusVoice: VIEW.cantusVoice,
         cantus: VIEW.cantus.map((p) => ({ pitch: p, duration: "1/1" })),
-        counterpoint: session.notes.map((p) => ({ pitch: p, duration: "1/1" })),
+        counterpoint: session.notes.map((p, k) => ({ pitch: sounding(p) ? p : null, duration: VIEW.layout[k].duration })),
       },
       rulesForStep(STEP.id),
     );
@@ -171,7 +187,7 @@ export function App() {
   };
   const fuxSolution = VIEW.exerciseId ? repository.getSolution(VIEW.exerciseId) : undefined;
   const marks = result ? result.violations.flatMap((v) => v.positions.map((c) => ({ column: c, severity: v.severity }))) : undefined;
-  const overlay = useMemo(() => (result ? buildOverlay(result.violations, VIEW.cantus, session.notes) : undefined), [result, session.notes, VIEW]);
+  const overlay = useMemo(() => (result ? buildOverlay(result.violations, VIEW.cantus, session.notes, VIEW.layout) : undefined), [result, session.notes, VIEW]);
 
   const play = () => {
     if (playing) {
@@ -181,7 +197,7 @@ export function App() {
       return;
     }
     setPlaying(true);
-    void audio.playAll(VIEW.cantus.map((_, k) => column(k)), (k) => {
+    void audio.playAll(timeline(VIEW.cantus, VIEW.layout, session.notes), (k) => {
       setCursor(k);
       if (k < 0) setPlaying(false);
     });
@@ -189,7 +205,7 @@ export function App() {
 
   // Starting pitch for keyboard entry before anything is written: the cantus note an octave away.
   const startPitch = (k: number) => {
-    const cf = VIEW.cantus[k];
+    const cf = VIEW.cantus[VIEW.layout[k].bar];
     const oct = Number(cf.slice(-1)) + (VIEW.cantusVoice === "lower" ? 1 : -1);
     return cf.slice(0, -1) + oct;
   };
@@ -205,12 +221,15 @@ export function App() {
     else if (k === "ArrowLeft") browse(s.selected - 1);
     else if (k === "ArrowUp") update(stepNote(s, 1, startPitch(s.selected)));
     else if (k === "ArrowDown") update(stepNote(s, -1, startPitch(s.selected)));
-    else if (/^[a-gA-G]$/.test(k)) update(letterNote(s, k.toUpperCase() as Step, s.notes[s.selected] ?? s.lastWritten ?? startPitch(s.selected)));
+    else if (/^[a-gA-G]$/.test(k)) {
+      const cur = s.notes[s.selected];
+      update(letterNote(s, k.toUpperCase() as Step, (sounding(cur) ? cur : null) ?? s.lastWritten ?? startPitch(s.selected)));
+    } else if (k === "r" || k === "R") update(setRest(s, VIEW.layout), false);
     else if (k === "#") update(applyAccidental(s, 1));
     else if (k === "-") update(applyAccidental(s, -1));
     else if (k === "n") update(applyAccidental(s, 0));
-    else if (k === "Delete" || k === "Backspace") update(clear(s), false);
-    else if (k === " ") void audio.playColumn(column(s.selected));
+    else if (k === "Delete" || k === "Backspace") update(VIEW.layout[s.selected].restAllowed ? setRest(s, VIEW.layout) : clear(s), false);
+    else if (k === " ") audition(s.selected);
     else if (k === "p" || k === "P") play();
     else return;
     e.preventDefault();
@@ -242,13 +261,50 @@ export function App() {
         <h1>{t("ui.title")}</h1>
         <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
           <button className="icon" onClick={() => goTo(stepIndex - 1)} disabled={stepIndex === 0} aria-label={t("ui.nav.prev")}>‹</button>
-          <select id="exercise" value={stepIndex} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("ui.nav.choose")}>
-            {STEPS.map((s, k) => (
-              <option key={s.id} value={k}>
-                {stars.includes(s.id) ? "★ " : ""}
-                {stepLabel(k)}
+          <select
+            id="voices"
+            value={COURSE.voices}
+            aria-label={t("ui.nav.voices")}
+            onChange={(e) => {
+              const c = COURSES.find((x) => x.voices === Number(e.target.value) && x.steps.length > 0);
+              if (c) goTo(stepIndexOf(c.steps[0].id));
+            }}
+          >
+            {[2, 3, 4].map((n) => (
+              <option key={n} value={n} disabled={!COURSES.some((c) => c.voices === n && c.steps.length > 0)}>
+                {t("ui.nav.voicesN", { n })}
               </option>
             ))}
+          </select>
+          <select
+            id="species"
+            value={COURSE.species}
+            aria-label={t("ui.nav.species")}
+            onChange={(e) => {
+              const c = COURSES.find((x) => x.voices === COURSE.voices && x.species === Number(e.target.value));
+              if (c && c.steps.length) goTo(stepIndexOf(c.steps[0].id));
+            }}
+          >
+            {COURSES.filter((c) => c.voices === COURSE.voices).map((c) => {
+              const done = c.steps.length > 0 && c.steps.every((x) => stars.includes(x.id));
+              return (
+                <option key={c.species} value={c.species} disabled={c.steps.length === 0}>
+                  {done ? "★ " : ""}
+                  {t("ui.nav.speciesN", { n: ORDINAL[c.species] })}
+                </option>
+              );
+            })}
+          </select>
+          <select id="exercise" value={stepIndex} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("ui.nav.choose")}>
+            {COURSE.steps.map((s) => {
+              const k = stepIndexOf(s.id);
+              return (
+                <option key={s.id} value={k}>
+                  {stars.includes(s.id) ? "★ " : ""}
+                  {stepLabel(k)}
+                </option>
+              );
+            })}
           </select>
           <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1} aria-label={t("ui.nav.next")}>›</button>
           <button className="link" onClick={() => setShowCredits(true)}>{t("ui.credits")}</button>
@@ -256,7 +312,7 @@ export function App() {
       </header>
       <main>
         <p className="meta">
-          {t("ui.mode.fux")} · {t("ui.species.first")} · {figure} · {t("ui.exercise.mode", { final: VIEW.modalFinal })} ·{" "}
+          {t("ui.mode.fux")} · {t("ui.nav.voicesN", { n: COURSE.voices })} · {t(`ui.species.${VIEW.species}`)} · {figure} · {t("ui.exercise.mode", { final: VIEW.modalFinal })} ·{" "}
           {VIEW.cantusVoice === "lower" ? t("ui.exercise.cantusBelow") : t("ui.exercise.cantusAbove")}
         </p>
         <blockquote className="tutor">
@@ -276,6 +332,7 @@ export function App() {
           <ScoreView
             cantus={VIEW.cantus}
             counterpoint={session.notes}
+            layout={VIEW.layout}
             cantusVoice={VIEW.cantusVoice}
             clefs={clefs}
             selected={session.selected}
@@ -309,18 +366,28 @@ export function App() {
               if (!dragBase.current) return;
               dragBase.current = null;
               const k = session.selected;
-              if (session.notes[k]) void audio.playColumn(column(k));
+              if (sounding(session.notes[k])) audition(k);
             }}
           />
         </div>
         <div className="controls">
           <div className="group" role="group" aria-label="accidental">
             {([[-1, "ui.accidental.flat"], [0, "ui.accidental.natural"], [1, "ui.accidental.sharp"]] as const).map(([a, key]) => (
-              <button key={a} aria-pressed={session.accidental === a && session.notes[session.selected] === null} onClick={() => update(applyAccidental(session, a))}>
+              <button key={a} aria-pressed={session.accidental === a && !sounding(session.notes[session.selected])} onClick={() => update(applyAccidental(session, a))}>
                 {t(key)}
               </button>
             ))}
-            <button onClick={() => update({ ...initialState(VIEW.cantus.length) }, false)}>{t("ui.clearAll")}</button>
+            {VIEW.layout.some((sl) => sl.restAllowed) && (
+              <button
+                aria-pressed={session.notes[session.selected] === REST}
+                disabled={!VIEW.layout[session.selected]?.restAllowed}
+                onClick={() => update(setRest(session, VIEW.layout), false)}
+                title={t("ui.rest.help")}
+              >
+                {t("ui.rest")}
+              </button>
+            )}
+            <button onClick={() => update(freshSession(stepIndex), false)}>{t("ui.clearAll")}</button>
           </div>
           <button className="primary" aria-pressed={result !== null} onClick={toggleEvaluation} disabled={missing > 0 && !result} title={missing > 0 ? t("ui.evaluate.incomplete", { missing }) : undefined}>
             {t("ui.evaluate")}
@@ -345,8 +412,8 @@ export function App() {
         {showSynth && <SynthRack value={synth} target={synthTarget} onTarget={setSynthTarget} onChange={setSynth} />}
         {result && (
           <section className="feedback" aria-live="polite">
-            <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} audio={audio} />
-            {fuxSolution && (
+            <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} layout={VIEW.layout} audio={audio} />
+            {fuxSolution && VIEW.fux && (
               <div>
                 <button onClick={() => setShowFux(!showFux)}>{showFux ? t("ui.fux.hide") : t("ui.fux.show")}</button>
                 {showFux && (
@@ -354,7 +421,8 @@ export function App() {
                     <h3>{t("ui.fux.title", { figure: VIEW.figure ?? "" })}</h3>
                     <ScoreView
                       cantus={VIEW.cantus}
-                      counterpoint={fuxSolution.counterpoint.notes.map((n) => n.pitch)}
+                      counterpoint={VIEW.fux}
+                      layout={VIEW.layout}
                       cantusVoice={VIEW.cantusVoice}
                       clefs={clefs}
                       selected={-1}
@@ -366,12 +434,14 @@ export function App() {
                     />
                     <p className="help">
                       {(() => {
-                        const cmp = compareWithOriginal(toPlayerSolution(session, repository.getExercise(VIEW.exerciseId!)!), fuxSolution);
-                        return t("ui.fux.agreement", { same: cmp.points.filter((p) => p.same_pitch).length, total: cmp.points.length });
+                        const filled = { ...session, notes: session.notes.map((n, k) => (n === null && VIEW.layout[k].restAllowed ? REST : n)) };
+                        const cmp = compareWithOriginal(toPlayerSolution(filled, repository.getExercise(VIEW.exerciseId!)!, VIEW.layout), fuxSolution);
+                        const key = VIEW.species === "first" ? "ui.fux.agreement" : "ui.fux.agreementNotes";
+                        return t(key, { same: cmp.points.filter((p) => p.same_pitch).length, total: cmp.points.length });
                       })()}
                     </p>
                     {missing === 0 && (
-                      <FuxComparison cantus={VIEW.cantus} player={session.notes as string[]} fux={fuxSolution.counterpoint.notes.map((n) => n.pitch as string)} />
+                      <FuxComparison cantus={VIEW.cantus} player={session.notes} fux={VIEW.fux} layout={VIEW.layout} />
                     )}
                   </div>
                 )}
@@ -380,7 +450,7 @@ export function App() {
           </section>
         )}
         {audioStatus === "failed" && <p className="status error">{t("ui.audio.failed")}</p>}
-        <p className="help">{t("ui.keyboard.help")}</p>
+        <p className="help">{t("ui.keyboard.help")}{VIEW.layout.some((sl) => sl.restAllowed) ? ` · ${t("ui.keyboard.rest")}` : ""}</p>
       </main>
       <footer>
         {showHints && <Hints step={STEP} cantus={VIEW.cantus} />}

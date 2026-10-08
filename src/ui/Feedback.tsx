@@ -8,6 +8,7 @@ import { ScoreView } from "./notation/ScoreView.tsx";
 import type { ClefId } from "./notation/clefs.ts";
 import { buildOverlay } from "./notation/overlay.ts";
 import { t } from "./i18n.ts";
+import { slotsOfBars, timeline, type Slot } from "../counterpoint/layout.ts";
 
 interface Props {
   result: Evaluation;
@@ -15,14 +16,15 @@ interface Props {
   counterpoint: (string | null)[];
   cantusVoice: Staff;
   clefs: [ClefId, ClefId];
+  layout: Slot[];
   audio: AudioEngine;
 }
 
 /** Excerpts are drawn only for local problems (at most this many bars). */
 const MAX_EXCERPT_BARS = 4;
 
-const barsText = (positions: number[]) => {
-  const bars = [...new Set(positions)].sort((a, b) => a - b).map((p) => p + 1);
+const barsText = (positions: number[], layout: Slot[]) => {
+  const bars = [...new Set(positions.map((p) => layout[p].bar))].sort((a, b) => a - b).map((p) => p + 1);
   return t(bars.length > 1 ? "ui.result.bars" : "ui.result.bar", { bars: bars.join(", ") });
 };
 
@@ -35,11 +37,12 @@ const sleep = (ms: number) => new Promise((r) => window.setTimeout(r, ms));
 function Item({ v, ...p }: { v: Violation } & Omit<Props, "result">) {
   const [phase, setPhase] = useState<"player" | "fixed">("player");
   const [busy, setBusy] = useState(false);
-  const lo = Math.min(...v.positions);
-  const hi = Math.max(...v.positions);
+  const lo = Math.min(...v.positions.map((k) => p.layout[k].bar));
+  const hi = Math.max(...v.positions.map((k) => p.layout[k].bar));
   const excerpt = hi - lo + 1 <= MAX_EXCERPT_BARS;
-  const correction = correctionFor(v, p.cantus, p.counterpoint, p.cantusVoice);
-  const cols = (notes: (string | null)[]) => p.cantus.slice(lo, hi + 1).map((c, i) => ({ cantus: c, counterpoint: notes[lo + i] }));
+  const correction = correctionFor(v, p.cantus, p.counterpoint, p.cantusVoice, p.layout);
+  const cols = (notes: (string | null)[]) => timeline(p.cantus, p.layout, notes, lo, hi);
+  const slots = slotsOfBars(p.layout, lo, hi);
 
   const hear = async () => {
     if (busy) return;
@@ -62,15 +65,16 @@ function Item({ v, ...p }: { v: Violation } & Omit<Props, "result">) {
     <div className={`layer ${layer}`}>
       <ScoreView
         cantus={p.cantus.slice(lo, hi + 1)}
-        counterpoint={notes.slice(lo, hi + 1)}
+        counterpoint={slots.map((k) => notes[k])}
+        layout={slots.map((k) => p.layout[k])}
         cantusVoice={p.cantusVoice}
         clefs={p.clefs}
         selected={-1}
         cursor={-1}
         firstBar={lo + 1}
         fixedScale={0.62}
-        overlay={buildOverlay(overlayViolations, p.cantus, notes, lo, hi)}
-        label={barsText(v.positions)}
+        overlay={buildOverlay(overlayViolations, p.cantus, notes, p.layout, lo, hi)}
+        label={barsText(v.positions, p.layout)}
         onPlace={() => {}}
         onSelect={() => {}}
         readOnly
@@ -82,7 +86,7 @@ function Item({ v, ...p }: { v: Violation } & Omit<Props, "result">) {
     <li className={v.severity}>
       <div className="text">
         <div className="where">
-          {barsText(v.positions)} · {t(v.severity === "error" ? "ui.result.error" : "ui.result.warning")}
+          {barsText(v.positions, p.layout)} · {t(v.severity === "error" ? "ui.result.error" : "ui.result.warning")}
         </div>
         <div>{t(`tutor.${v.messageKey}`)}</div>
         {v.detail && <div className="detail">{Object.entries(v.detail).map(([k, x]) => `${k}: ${simplifyDetail(x)}`).join(" · ")}</div>}

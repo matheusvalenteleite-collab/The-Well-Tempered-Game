@@ -1,30 +1,37 @@
 /**
- * Two-staff first-species score. VexFlow draws; input is ours: a click or tap on the
- * counterpoint staff places/replaces the note of the nearest column at that staff position.
+ * Two-staff score (cantus in whole notes; counterpoint in the slots of its species layout).
+ * VexFlow draws; input is ours: a click or tap on the counterpoint staff places/replaces the
+ * note of the nearest slot ("column") at that staff position.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Accidental, BarNote, Formatter, GhostNote, Renderer, Stave, StaveConnector, StaveNote, Voice } from "vexflow";
+import { Accidental, ModifierContext, Renderer, Stave, StaveConnector, StaveNote, TickContext } from "vexflow";
 import { parsePitch } from "../../music/pitch.ts";
 import type { Staff } from "../../music/fux/types.ts";
 import { pitchAtPosition, VEXFLOW_CLEF, type ClefId } from "./clefs.ts";
 import type { Overlay, Status } from "./overlay.ts";
+import { REST, slotLayout, type Slot } from "../../counterpoint/layout.ts";
 
 export interface ScoreProps {
+  /** One whole note per bar. */
   cantus: string[];
+  /** One entry per slot of `layout` (pitch, REST or null). */
   counterpoint: (string | null)[];
+  /** Slot layout of the counterpoint; default first species (one slot per bar). */
+  layout?: Slot[];
   cantusVoice: Staff;
   /** Clef of the upper and lower staff. */
   clefs: [ClefId, ClefId];
+  /** Selected slot, or -1. */
   selected: number;
-  /** Column sounding during playback, or -1. */
+  /** Slot sounding during playback, or -1. */
   cursor: number;
   onPlace(column: number, naturalPitch: string): void;
   onSelect(column: number): void;
   label: string;
-  /** Columns marked after evaluation. */
+  /** Slots marked after evaluation. */
   marks?: { column: number; severity: "error" | "warning" }[];
   readOnly?: boolean;
-  /** Bar number of the first column (excerpts start mid-exercise). Default 1. */
+  /** Bar number of the first bar (excerpts start mid-exercise). Default 1. */
   firstBar?: number;
   /** Fixed drawing scale (for excerpts); otherwise the scale follows the width. */
   fixedScale?: number;
@@ -55,6 +62,10 @@ const LABEL_Y = 152;
 const LINK_Y = 164;
 /** Horizontal space per bar (logical units): compact, so the melodic shape reads at a glance. */
 const BAR_W = 58;
+/** A bar holding two half notes. */
+const HALF_BAR_W = 92;
+/** Notehead offset from the left edge of its slot. */
+const NOTE_PAD = 12;
 /** Drawing scale on wide screens. */
 const BASE_SCALE = 0.85;
 const COLOR: Record<Status, string> = { ok: "var(--ok)", error: "var(--bad)", warning: "var(--warn)" };
@@ -67,6 +78,7 @@ function vexKey(pitch: string): { key: string; acc: string | null } {
 
 interface Geometry {
   scale: number;
+  /** One per slot. */
   columns: { x: number; left: number; right: number }[];
   staves: { top: number; bottom: number; spacing: number }[];
 }
@@ -93,7 +105,17 @@ export function ScoreView(props: ScoreProps) {
     const probe = new Stave(8, 0, 400);
     probe.addClef(VEXFLOW_CLEF[props.clefs[0]].clef).addTimeSignature("C|");
     const noteStart0 = probe.getNoteStartX();
-    const logicalWidth = noteStart0 + props.cantus.length * BAR_W + 24;
+    const layout = props.layout ?? slotLayout("first", props.cantus.length);
+    const bars = props.cantus.length;
+    const firstSlotBar = layout[0]?.bar ?? 0;
+    // Our own horizontal grid (the VexFlow formatter spreads unevenly around empty slots): a bar of
+    // one whole note is BAR_W wide, a bar of two half notes HALF_BAR_W.
+    const slotsIn = (b: number) => layout.filter((sl) => sl.bar - firstSlotBar === b).length;
+    const barW = Array.from({ length: bars }, (_, b) => (slotsIn(b) > 1 ? HALF_BAR_W : BAR_W));
+    const barX: number[] = [];
+    barW.reduce((x, w, b) => ((barX[b] = x), x + w), 0);
+    const musicWidth = barW.reduce((x, w) => x + w, 0);
+    const logicalWidth = noteStart0 + musicWidth + 24;
     const scale = props.fixedScale ?? Math.max(0.45, Math.min(BASE_SCALE, width / logicalWidth));
     const renderer = new Renderer(el, Renderer.Backends.SVG);
     renderer.resize(Math.ceil(logicalWidth * scale), Math.ceil(HEIGHT * scale));
@@ -114,37 +136,44 @@ export function ScoreView(props: ScoreProps) {
     });
     const start = Math.max(...staves.map((s) => s.getNoteStartX()));
     staves.forEach((s) => s.setNoteStartX(start));
+    const xOfBar = (b: number) => start + barX[b];
 
     const upperIsCantus = props.cantusVoice === "upper";
-    const staffNotes = (staffIndex: number) => {
-      const isCantus = upperIsCantus === (staffIndex === 0);
+    const cpIndex = upperIsCantus ? 1 : 0;
+    /** A note (or rest) placed with its notehead's left edge at logical x. */
+    const placed = (staffIndex: number, pitch: string, dur: "w" | "h", x: number, player: boolean) => {
       const clef = VEXFLOW_CLEF[props.clefs[staffIndex]].clef;
-      const notes = props.cantus.map((cf, k) => {
-        const pitch = isCantus ? cf : props.counterpoint[k];
-        if (pitch === null) return new GhostNote({ duration: "w" });
+      let n: StaveNote;
+      if (pitch === REST) n = new StaveNote({ keys: [clef === "bass" ? "d/3" : "b/4"], duration: `${dur}r`, clef });
+      else {
         const { key, acc } = vexKey(pitch);
-        const n = new StaveNote({ keys: [key], duration: "w", clef });
+        n = new StaveNote({ keys: [key], duration: dur, clef });
         if (acc) n.addModifier(new Accidental(acc));
-        if (!isCantus) n.setStyle({ fillStyle: "var(--ink-player)", strokeStyle: "var(--ink-player)" });
-        return n;
-      });
-      const tickables = notes.flatMap((n, k) => (k < notes.length - 1 ? [n, new BarNote()] : [n]));
-      const voice = new Voice({ num_beats: 2 * notes.length, beat_value: 2 }).addTickables(tickables);
-      return { notes, voice };
+        if (player) n.setStyle({ fillStyle: "var(--ink-player)", strokeStyle: "var(--ink-player)" });
+      }
+      n.setStave(staves[staffIndex]);
+      const mc = new ModifierContext();
+      n.addToModifierContext(mc);
+      mc.preFormat();
+      const tc = new TickContext();
+      tc.addTickable(n);
+      tc.preFormat();
+      tc.setX(0);
+      tc.setX(x - n.getAbsoluteX());
+      return n;
     };
-    const upper = staffNotes(0);
-    const lower = staffNotes(1);
-    new Formatter().joinVoices([upper.voice]).joinVoices([lower.voice]).format([upper.voice, lower.voice], staves[0].getNoteEndX() - start - 16);
-
-    // Column geometry from the cantus notes (always real notes).
-    const cfNotes = upperIsCantus ? upper.notes : lower.notes;
-    cfNotes.forEach((n, k) => n.setStave(staves[upperIsCantus ? 0 : 1]));
-    const xs = cfNotes.map((n) => n.getAbsoluteX() + 8);
-    const columns = xs.map((x, k) => ({
-      x,
-      left: k === 0 ? start : (xs[k - 1] + x) / 2,
-      right: k === xs.length - 1 ? staves[0].getNoteEndX() : (x + xs[k + 1]) / 2,
-    }));
+    const cfNotes = props.cantus.map((p, b) => placed(1 - cpIndex, p, "w", xOfBar(b) + NOTE_PAD, false));
+    // Slot geometry: each slot owns its share of the bar; x is the notehead centre.
+    const columns = layout.map((sl) => {
+      const b = sl.bar - firstSlotBar;
+      const share = barW[b] / slotsIn(b);
+      const left = xOfBar(b) + sl.beat * share;
+      return { left, right: left + share, x: left + NOTE_PAD + (sl.duration === "1/1" ? 8 : 6) };
+    });
+    const cpNotes = layout.map((sl, k) => {
+      const p = props.counterpoint[k];
+      return p === null || p === undefined ? null : placed(cpIndex, p, sl.duration === "1/1" ? "w" : "h", columns[k].left + NOTE_PAD, true);
+    });
 
     // Column highlights under the music.
     const top = STAFF_Y[0] - 10;
@@ -169,8 +198,11 @@ export function ScoreView(props: ScoreProps) {
     staves.forEach((s) => s.draw());
     new StaveConnector(staves[0], staves[1]).setType("singleLeft").setContext(ctx).draw();
     new StaveConnector(staves[0], staves[1]).setType("bracket").setContext(ctx).draw();
-    upper.voice.draw(ctx, staves[0]);
-    lower.voice.draw(ctx, staves[1]);
+    ctx.save();
+    ctx.setFillStyle("currentColor");
+    for (let b = 1; b < bars; b++) staves.forEach((s) => ctx.fillRect(xOfBar(b) - 2, s.getYForLine(0), 1, s.getYForLine(4) - s.getYForLine(0)));
+    ctx.restore();
+    for (const n of [...cfNotes, ...cpNotes]) n?.setContext(ctx).draw();
 
     // Discreet bar numbers above the upper staff.
     ctx.save();
@@ -178,13 +210,13 @@ export function ScoreView(props: ScoreProps) {
     ctx.setFillStyle("var(--bar-number)");
     const numberY = STAFF_Y[0] + 22;
     columns.forEach((c, k) => {
-      const label = String((props.firstBar ?? 1) + k);
+      if (layout[k].beat !== 0) return;
+      const label = String((props.firstBar ?? 1) + layout[k].bar - firstSlotBar);
       ctx.fillText(label, c.left + 4, numberY);
     });
     ctx.restore();
 
     if (props.overlay) {
-      const cpNotes = upperIsCantus ? lower.notes : upper.notes;
       const centerText = (text: string, x: number, y: number, size: number, bold = false) => {
         ctx.setFont("Georgia, serif", size, bold ? "bold" : "normal");
         ctx.fillText(text, x - ctx.measureText(text).width / 2, y);
@@ -222,8 +254,8 @@ export function ScoreView(props: ScoreProps) {
           // Arc between the two counterpoint notes, on the outside of the counterpoint staff.
           const na = cpNotes[link.from];
           const nb = cpNotes[link.to];
-          const ya = na instanceof StaveNote ? na.getYs()[0] : LABEL_Y;
-          const yb = nb instanceof StaveNote ? nb.getYs()[0] : LABEL_Y;
+          const ya = na ? na.getYs()[0] : LABEL_Y;
+          const yb = nb ? nb.getYs()[0] : LABEL_Y;
           const outward = upperIsCantus ? 1 : -1;
           const peak = (outward < 0 ? Math.min(ya, yb) : Math.max(ya, yb)) + outward * (26 + link.row * 14);
           ctx.beginPath();
@@ -243,7 +275,7 @@ export function ScoreView(props: ScoreProps) {
     };
     geo.current = g;
     el.dataset.geometry = JSON.stringify(g); // read by the browser tests
-  }, [width, props.cantus, props.counterpoint, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay]);
+  }, [width, props.cantus, props.counterpoint, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay]);
 
   const press = useRef<{ x: number; y: number; dragging: boolean; from: number } | null>(null);
 
@@ -307,7 +339,7 @@ export function ScoreView(props: ScoreProps) {
     const p = press.current;
     if (!p || props.readOnly || !props.onDrag) return;
     if (!p.dragging) {
-      if (Math.hypot(e.clientX - p.x, e.clientY - p.y) < 6 || props.counterpoint[p.from] === null) return;
+      if (Math.hypot(e.clientX - p.x, e.clientY - p.y) < 6 || props.counterpoint[p.from] === null || props.counterpoint[p.from] === REST) return;
       p.dragging = true;
     }
     const at = locate(e);

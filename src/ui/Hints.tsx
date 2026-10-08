@@ -1,7 +1,7 @@
-import { FUX_FIRST_SPECIES_CURRICULUM, type CurriculumStep } from "../counterpoint/curriculum/fux-first-species.ts";
+import { introductionsUpTo, ruleById, type CurriculumStep } from "../counterpoint/curriculum/index.ts";
 import { cadenceNote } from "../counterpoint/cadence.ts";
+import { fifthIsDiminished } from "../counterpoint/rules/second-species.ts";
 import { parsePitch } from "../music/pitch.ts";
-import { FIRST_SPECIES_FUX_STRICT } from "../counterpoint/rules/first-species.ts";
 import { t } from "./i18n.ts";
 
 
@@ -69,16 +69,17 @@ const Chip = ({ kind, children, def }: { kind: "perfect" | "imperfect" | "disson
 );
 
 export function Hints({ step, cantus }: { step: CurriculumStep; cantus: string[] }) {
-  const upTo = FUX_FIRST_SPECIES_CURRICULUM.filter((s) => s.ordinal <= step.ordinal);
-  const intro = upTo.flatMap((s) => s.introduces);
-  const severity = new Map(FIRST_SPECIES_FUX_STRICT.map((r) => [r.id, r.severity]));
-  const rules = intro.filter((x) => severity.get(x.ruleId) === "error");
-  const recs = intro.filter((x) => severity.get(x.ruleId) === "warning");
+  const intro = introductionsUpTo(step.id);
+  const rules = intro.filter((x) => ruleById(x.ruleId)?.severity === "error");
+  const recs = intro.filter((x) => ruleById(x.ruleId)?.severity === "warning");
+  const second = step.species === "second";
   const active = new Set(intro.map((x) => x.ruleId));
   const cad = cadenceNote(cantus, step.cantus_voice);
   const altered = parsePitch(cad).alter !== 0;
   const n = cantus.length;
   const below = step.cantus_voice === "lower";
+  const sixth = second && fifthIsDiminished(cantus[n - 2], step.cantus_voice);
+  const cadenceText = second ? `${sixth ? "6" : "P5"} → ${below ? "M6" : "m3"}` : below ? "M6" : "m3";
   const item = (x: (typeof intro)[number]) => (
     <li key={x.ruleId}>
       {t(`hints.rule.${x.ruleId}`)} <span className="ref">{t("hints.ref", { page: x.page })}</span>
@@ -109,7 +110,7 @@ export function Hints({ step, cantus }: { step: CurriculumStep; cantus: string[]
               </span>
             </div>
             <div className="row">
-              <Term def={t("hints.def.dissonance")}><span className="row-label">{t("hints.glance.dissonant")}</span></Term>
+              <Term def={t(second ? "hints.def.dissonance2" : "hints.def.dissonance")}><span className="row-label">{t(second ? "hints.glance.dissonant2" : "hints.glance.dissonant")}</span></Term>
               <span className="chips">
                 <Chip kind="dissonant" def={t("hints.def.second")}>2</Chip>
                 <Chip kind="dissonant" def={t("hints.def.fourth")}>4</Chip>
@@ -120,7 +121,7 @@ export function Hints({ step, cantus }: { step: CurriculumStep; cantus: string[]
             <p className="note"><Term def={t("hints.def.compound")}>{t("hints.glance.compounds")}</Term></p>
           </div>
 
-          {active.has("fs.perfect-approach") && (
+          {(active.has("fs.perfect-approach") || active.has("ss.perfect-approach")) && (
             <>
               <h3>{t("hints.glance.motion")}</h3>
               <table className="motion">
@@ -152,9 +153,9 @@ export function Hints({ step, cantus }: { step: CurriculumStep; cantus: string[]
 
           <h3>{t("hints.glance.frame")}</h3>
           <ol className="frame">
-            <li><span className="bar">1</span><span>{below ? t("hints.glance.startBelow") : t("hints.glance.startAbove")}</span></li>
+            <li><span className="bar">1</span><span>{second ? `${t("hints.glance.restOr")} ` : ""}{below ? t("hints.glance.startBelow") : t("hints.glance.startAbove")}</span></li>
             <li className="gap">⋯</li>
-            <li className="key"><span className="bar">{n - 1}</span><span>{below ? "M6" : "m3"}{altered ? ` · ${t("hints.glance.accidental")}` : ""}</span></li>
+            <li className="key"><span className="bar">{n - 1}</span><span>{cadenceText}{altered ? ` · ${t("hints.glance.accidental")}` : ""}</span></li>
             <li className="key"><span className="bar">{n}</span><span>{t("hints.glance.end")}</span></li>
           </ol>
         </div>
@@ -168,9 +169,20 @@ export function Hints({ step, cantus }: { step: CurriculumStep; cantus: string[]
               <ul>{recs.map(item)}</ul>
             </>
           )}
+          {second && step.ordinal >= 2 && (
+            <>
+              <h3>{t("hints.devices")}</h3>
+              <ul>
+                <li>{t("hints.device.rest")} <span className="ref">{t("hints.ref", { page: "59" })}</span></li>
+                <li>{t("hints.device.leap")} <span className="ref">{t("hints.ref", { page: "59-60" })}</span></li>
+              </ul>
+            </>
+          )}
           <h3>{t("hints.thisExercise")}</h3>
           <ul>
             <li>{t(altered ? "hints.cadenceAltered" : "hints.cadencePlain", { bar: n - 1 })}</li>
+            {sixth && <li>{t("hints.cadenceSixth", { bar: n - 1 })} <span className="ref">{t("hints.ref", { page: "60-61" })}</span></li>}
+            {second && <li>{t("hints.lookAhead")}</li>}
           </ul>
         </div>
       </div>

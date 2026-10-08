@@ -5,6 +5,8 @@
 import { DEFAULT_DEV_CONFIG, type DevConfig } from "../config.ts";
 import { parsePitch } from "../music/pitch.ts";
 import { FIRST_SPECIES_FUX_STRICT } from "./rules/first-species.ts";
+import { SECOND_SPECIES_FUX_STRICT } from "./rules/second-species.ts";
+import { slotLayout } from "./layout.ts";
 import { maxThreeParallelImperfect, noRepeatedClimax, voiceDistanceLimit } from "./rules/modern-additions.ts";
 import type { Analysis, CounterpointInput, Rule, Violation } from "./rules/types.ts";
 
@@ -13,7 +15,7 @@ export type PresetId = "fux-strict";
 /** The only player-facing preset. */
 export function presetRules(preset: PresetId = "fux-strict", config: DevConfig = DEFAULT_DEV_CONFIG): Rule[] {
   if (preset !== "fux-strict") throw new Error(`unknown preset ${preset}`);
-  const rules: Rule[] = [...FIRST_SPECIES_FUX_STRICT];
+  const rules: Rule[] = [...FIRST_SPECIES_FUX_STRICT, ...SECOND_SPECIES_FUX_STRICT];
   if (config.enableModernAdditions) {
     rules.push(maxThreeParallelImperfect, noRepeatedClimax);
     if (config.modernVoiceDistanceLimit !== null) rules.push(voiceDistanceLimit(config.modernVoiceDistanceLimit));
@@ -25,19 +27,37 @@ export class MalformedInputError extends Error {}
 
 export function analyse(input: CounterpointInput): Analysis {
   const { cantus, counterpoint } = input;
-  if (input.species !== "first") throw new MalformedInputError(`unsupported species ${input.species}`);
+  if (input.species !== "first" && input.species !== "second") throw new MalformedInputError(`unsupported species ${input.species}`);
   if (cantus.length < 2) throw new MalformedInputError("cantus firmus needs at least two notes");
-  if (counterpoint.length !== cantus.length) {
-    throw new MalformedInputError(`first species needs one counterpoint note per cantus note (${counterpoint.length} vs ${cantus.length})`);
+  const cf = cantus.map((n, k) => {
+    if (n.pitch === null) throw new MalformedInputError(`cantus bar ${k}: rest`);
+    if (n.duration !== "1/1") throw new MalformedInputError(`cantus bar ${k}: whole notes expected, got ${n.duration}`);
+    parsePitch(n.pitch); // throws on malformed spelling
+    return n.pitch;
+  });
+  const layout = slotLayout(input.species, cf.length);
+  if (counterpoint.length !== layout.length) {
+    throw new MalformedInputError(`${input.species} species needs ${layout.length} counterpoint notes against ${cf.length} cantus notes, got ${counterpoint.length}`);
   }
-  const pitches = (voice: typeof cantus, label: string) =>
-    voice.map((n, k) => {
-      if (n.pitch === null) throw new MalformedInputError(`${label} column ${k}: rests are not allowed in first species`);
-      if (n.duration !== "1/1") throw new MalformedInputError(`${label} column ${k}: first species uses whole notes, got ${n.duration}`);
-      parsePitch(n.pitch); // throws on malformed spelling
-      return n.pitch;
-    });
-  return { input, cantus: pitches(cantus, "cantus"), counterpoint: pitches(counterpoint, "counterpoint"), length: cantus.length };
+  const events = counterpoint.flatMap((n, k) => {
+    const slot = layout[k];
+    if (n.duration !== slot.duration) throw new MalformedInputError(`counterpoint note ${k}: expected ${slot.duration}, got ${n.duration}`);
+    if (n.pitch === null) {
+      if (!slot.restAllowed) throw new MalformedInputError(`counterpoint note ${k}: a rest is not allowed here`);
+      return [];
+    }
+    parsePitch(n.pitch);
+    return [{ slot: k, bar: slot.bar, beat: slot.beat, cantus: cf[slot.bar], counterpoint: n.pitch }];
+  });
+  const first = input.species === "first";
+  return {
+    input,
+    cantus: first ? cf : [],
+    counterpoint: first ? events.map((e) => e.counterpoint) : [],
+    length: first ? cf.length : 0,
+    events,
+    bars: cf.length,
+  };
 }
 
 /** Rules of `rules` that apply to this input (species, voicing, final). */

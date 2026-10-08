@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { loadFuxRepository } from "../src/music/fux/load-node.ts";
-import { FUX_FIRST_SPECIES_CURRICULUM as C, rulesForStep, validateCurriculum } from "../src/counterpoint/curriculum/fux-first-species.ts";
+import { FUX_FIRST_SPECIES_CURRICULUM as C } from "../src/counterpoint/curriculum/fux-first-species.ts";
+import { rulesForStep, validateCurriculum } from "../src/counterpoint/curriculum/index.ts";
 import { evaluate } from "../src/counterpoint/engine.ts";
 import { inputFor } from "../tools/m1/golden.ts";
 
@@ -29,5 +30,17 @@ test("each Fux solution clears the rules active at its own step", () => {
     const ex = repo.getExercise(s.exercise_id!)!;
     const ev = evaluate(inputFor(ex, repo.getSolution(ex.id)!), rulesForStep(s.id));
     assert.deepEqual(ev.errors, [], ex.figure);
+  }
+});
+
+test("content: every step has a tutor intro; every introduced rule has a hint and a tutor message", async () => {
+  const { t } = await import("../src/ui/i18n.ts");
+  const { ALL_STEPS, ruleById } = await import("../src/counterpoint/curriculum/index.ts");
+  for (const s of ALL_STEPS) {
+    assert.doesNotThrow(() => t(`tutor.step.${s.id}.intro`), s.id);
+    for (const x of s.introduces) {
+      assert.doesNotThrow(() => t(`hints.rule.${x.ruleId}`), x.ruleId);
+      assert.doesNotThrow(() => t(`tutor.${ruleById(x.ruleId)!.messageKey}`), x.ruleId);
+    }
   }
 });

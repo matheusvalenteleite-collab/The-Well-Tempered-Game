@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { pitchAtPosition, positionOfPitch } from "../src/ui/notation/clefs.ts";
-import { applyAccidental, clear, initialState, letterNote, place, stepNote, toPlayerSolution } from "../src/game/session.ts";
+import { applyAccidental, clear, initialState, letterNote, place, select, stepNote, setRest, toPlayerSolution } from "../src/game/session.ts";
+import { REST, slotLayout } from "../src/counterpoint/layout.ts";
 import { loadFuxRepository } from "../src/music/fux/load-node.ts";
 
 test("clef geometry: bottom lines and round trip", () => {
@@ -51,9 +52,25 @@ test("session converts to the shared player_solution representation", () => {
   let s = initialState(ex.measures);
   s = place(s, 0, "A4");
   s = place(s, 2, "G4");
-  const sol = toPlayerSolution(s, ex, new Date(0));
+  const sol = toPlayerSolution(s, ex, slotLayout("first", ex.measures), new Date(0));
   assert.equal(sol.kind, "player_solution");
   assert.deepEqual(sol.notes.map((n) => [n.pitch, n.offset, n.duration, n.midi]), [["A4", "0/1", "1/1", 69], ["G4", "2/1", "1/1", 67]]);
+});
+
+test("second species: rest on the first slot only; half-note offsets in the player solution", () => {
+  const repo = loadFuxRepository();
+  const ex = repo.getExercise("fux_2v_fig_035")!;
+  const layout = slotLayout("second", ex.measures);
+  assert.equal(layout.length, 2 * ex.measures - 1);
+  let s = initialState(layout.length);
+  s = setRest(s, layout);
+  assert.equal(s.notes[0], REST);
+  s = place(select(s, 1), 1, "D3");
+  s = place(select(s, 3), 3, "A3");
+  assert.equal(setRest(select(s, 3), layout).notes[3], "A3"); // no rest on an upbeat
+  const sol = toPlayerSolution(s, ex, layout, new Date(0));
+  assert.deepEqual(sol.notes.map((n) => [n.pitch, n.offset, n.duration]), [[null, "0/1", "1/2"], ["D3", "1/2", "1/2"], ["A3", "3/2", "1/2"]]);
+  assert.equal(stepNote(select(s, 0), 1, "D4").notes[0], "A3"); // stepping from a rest writes the last note
 });
 
 test("hint: the computed cadence note equals Fux's own penultimate note in all ten first-species exercises", async () => {
@@ -87,8 +104,27 @@ test("overlay: every fux-strict rule has a drawing; parallel fifths become a lin
   assert.equal(o.intervals[4].status, "error"); // parallel fifth
   assert.deepEqual(o.links.filter((l) => l.kind === "motion").map((l) => l.row), [0, 1]); // staggered
   // excerpt of bars 4-5 only
-  const ex = buildOverlay(ev.violations, cf, cp, 3, 4);
+  const ex = buildOverlay(ev.violations, cf, cp, undefined, 3, 4);
   assert.deepEqual(ex.links.map((l) => [l.from, l.to]), [[0, 1]]);
+});
+
+test("overlay, second species: every rule has a drawing; downbeat fifths linked across the upbeat", async () => {
+  const { buildOverlay } = await import("../src/ui/notation/overlay.ts");
+  const { SECOND_SPECIES_FUX_STRICT } = await import("../src/counterpoint/rules/second-species.ts");
+  const { evaluate } = await import("../src/counterpoint/engine.ts");
+  const cf = ["D4", "F4", "E4", "D4", "G4", "F4", "A4", "G4", "F4", "E4", "D4"];
+  const layout = slotLayout("second", cf.length);
+  // Josephus's Fig. 26
+  const cp = ["A4", "D5", "A4", "B4", "C5", "G4", "A4", "D5", "B4", "G4", "A4", "B4", "C5", "A4", "D5", "B4", "C5", "A4", "B4", "C#5", "D5"];
+  for (const r of SECOND_SPECIES_FUX_STRICT) {
+    assert.doesNotThrow(() => buildOverlay([{ ruleId: r.id, positions: [4, 6], severity: r.severity, messageKey: r.messageKey }], cf, cp, layout), r.id);
+  }
+  const ev = evaluate({ species: "second", modalFinal: "D", cantusVoice: "lower", cantus: cf.map((p) => ({ pitch: p, duration: "1/1" })), counterpoint: cp.map((p, k) => ({ pitch: p, duration: layout[k].duration })) });
+  const o = buildOverlay(ev.violations, cf, cp, layout);
+  assert.equal(o.intervals.length, 21);
+  assert.ok(o.links.some((l) => l.from === 14 && l.to === 16 && l.text === "parallel P5→P5"));
+  const ex = buildOverlay(ev.violations, cf, cp, layout, 7, 8); // bars 8-9: slots 14..17
+  assert.deepEqual(ex.links.map((l) => [l.from, l.to]), [[0, 2]]);
 });
 
 test("session: dragging a note to another bar and pitch", async () => {

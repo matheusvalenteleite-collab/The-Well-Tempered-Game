@@ -5,6 +5,7 @@
 import type { FuxRepository } from "../music/fux/repository.ts";
 import type { ModalFinal, Staff } from "../music/fux/types.ts";
 import type { CurriculumStep } from "../counterpoint/curriculum/fux-first-species.ts";
+import { notesToSlots, slotLayout, type Slot, type SpeciesId } from "../counterpoint/layout.ts";
 import { parsePitch } from "../music/pitch.ts";
 import { isClefId, type ClefId } from "../ui/notation/clefs.ts";
 
@@ -14,7 +15,12 @@ export interface ExerciseView {
   figure: string | null;
   modalFinal: ModalFinal;
   cantusVoice: Staff;
+  species: SpeciesId;
   cantus: string[];
+  /** The slots the player fills (one per counterpoint note). */
+  layout: Slot[];
+  /** Fux's counterpoint mapped onto the layout, or null without an original solution. */
+  fux: string[] | null;
   /** Clef per staff; the upper staff is index 0. */
   clefs: { modern: [ClefId, ClefId]; original: [ClefId, ClefId] };
   page: string;
@@ -48,7 +54,9 @@ export function exerciseView(repo: FuxRepository, step: CurriculumStep): Exercis
     step,
     modalFinal: step.modal_final,
     cantusVoice: step.cantus_voice,
+    species: step.species,
     cantus: cf.pitch_sequence,
+    layout: slotLayout(step.species, cf.pitch_sequence.length),
     page: step.page,
     attribution: { license, repository: repo.dataset.provenance.repository, commit: repo.dataset.provenance.commit, urls: {} as Record<string, string> },
   };
@@ -56,8 +64,10 @@ export function exerciseView(repo: FuxRepository, step: CurriculumStep): Exercis
     const ex = repo.getExercise(step.exercise_id);
     if (!ex) throw new Error(`${step.id}: unknown exercise ${step.exercise_id}`);
     const byStaff = (s: Staff) => (ex.cantus_voice === s ? ex.cantus_firmus.clef : ex.counterpoint.clef);
+    const sol = repo.getSolution(ex.id);
     return {
       ...base,
+      fux: sol ? notesToSlots(base.layout, sol.counterpoint.notes) : null,
       exerciseId: ex.id,
       figure: ex.figure,
       clefs: {
@@ -77,6 +87,7 @@ export function exerciseView(repo: FuxRepository, step: CurriculumStep): Exercis
     ...base,
     exerciseId: null,
     figure: null,
+    fux: null,
     clefs: {
       modern: displayClefs(cf.pitch_sequence, step.cantus_voice),
       original: step.cantus_voice === "upper" ? [cfOriginal, cpOriginal] : [cpOriginal, cfOriginal],

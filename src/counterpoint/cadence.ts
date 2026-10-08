@@ -2,6 +2,8 @@ import { harmonic, interval, isAbove } from "./interval.ts";
 import type { Violation } from "./rules/types.ts";
 import type { Staff } from "../music/fux/types.ts";
 import { parsePitch } from "../music/pitch.ts";
+import { slotLayout, type Slot } from "./layout.ts";
+import { fifthIsDiminished } from "./rules/second-species.ts";
 
 const STEPS = ["C", "D", "E", "F", "G", "A", "B"];
 const SUFFIX: Record<number, string> = { [-1]: "b", 0: "", 1: "#" };
@@ -41,8 +43,32 @@ function nearestOctave(target: string, near: string, cantusNote: string, cantusV
   return best;
 }
 
+/** The note a fifth (or, where that fifth is mi contra fa, a sixth) from `cf` on the counterpoint's side. */
+export function cadenceFifth(cf: string, cantusVoice: Staff): string {
+  const p = parsePitch(cf);
+  const sixth = fifthIsDiminished(cf, cantusVoice);
+  const steps = (sixth ? 5 : 4) * (cantusVoice === "lower" ? 1 : -1);
+  const d = p.diatonic + steps;
+  const natural = `${STEPS[((d % 7) + 7) % 7]}${Math.floor(d / 7)}`;
+  if (sixth) return natural;
+  for (const alter of [0, -1, 1]) {
+    const name = `${natural[0]}${SUFFIX[alter]}${natural.slice(1)}`;
+    if (interval(cf, name).name === "P5") return name;
+  }
+  throw new Error(`no fifth for ${cf}`);
+}
+
 /** A corrected counterpoint for the violations that have one obvious fix (the cadence), else null. */
-export function correctionFor(v: Violation, cantus: string[], cp: (string | null)[], cantusVoice: Staff): (string | null)[] | null {
+export function correctionFor(v: Violation, cantus: string[], cp: (string | null)[], cantusVoice: Staff, layout: Slot[] = slotLayout("first", cantus.length)): (string | null)[] | null {
+  if (v.ruleId === "ss.cadence") {
+    const bar = cantus.length - 2;
+    const down = layout.findIndex((s) => s.bar === bar && s.beat === 0);
+    const up = layout.findIndex((s) => s.bar === bar && s.beat === 1);
+    const fixed = [...cp];
+    if (v.positions.includes(down)) fixed[down] = nearestOctave(cadenceFifth(cantus[bar], cantusVoice), cp[down]!, cantus[bar], cantusVoice);
+    if (v.positions.includes(up)) fixed[up] = nearestOctave(cadenceNote(cantus, cantusVoice), cp[up]!, cantus[bar], cantusVoice);
+    return fixed;
+  }
   if (v.ruleId !== "fs.cadence") return null;
   const k = cantus.length - 2;
   const fixed = [...cp];

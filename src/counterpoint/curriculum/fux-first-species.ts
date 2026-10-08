@@ -6,9 +6,7 @@
  * the step where Fux introduces or notes it; rules not found in the text are not used.
  */
 import type { ModalFinal, Staff } from "../../music/fux/types.ts";
-import type { FuxRepository } from "../../music/fux/repository.ts";
-import { FIRST_SPECIES_FUX_STRICT } from "../rules/first-species.ts";
-import type { Rule } from "../rules/types.ts";
+import type { SpeciesId } from "../layout.ts";
 
 export interface RuleIntroduction {
   ruleId: string;
@@ -22,6 +20,8 @@ export interface CurriculumStep {
   /** Stable id of the step (not a Fux id). */
   id: string;
   ordinal: number;
+  voices: 2;
+  species: SpeciesId;
   /**
    * "canonical": a Fux exercise with his original solution.
    * "fux-cantus": Fux's cantus firmus, assigned by Aloysius but not worked out in the book (no original solution).
@@ -47,6 +47,8 @@ const step = (
 ): CurriculumStep => ({
   id: `fux-mode.s1.${String(ordinal).padStart(2, "0")}`,
   ordinal,
+  voices: 2,
+  species: "first",
   kind: exercise ? "canonical" : "fux-cantus",
   exercise_id: exercise,
   cf_id,
@@ -91,36 +93,3 @@ export const FUX_FIRST_SPECIES_CURRICULUM: readonly CurriculumStep[] = [
   step(11, null, "fux_cf_c_01", "C", "lower", "55"),
   step(12, null, "fux_cf_c_01", "C", "upper", "55"),
 ];
-
-const RULES_BY_ID = new Map(FIRST_SPECIES_FUX_STRICT.map((r) => [r.id, r]));
-
-/** Rules active at a step: everything introduced at or before it, in book order. */
-export function rulesForStep(stepId: string): Rule[] {
-  const target = FUX_FIRST_SPECIES_CURRICULUM.find((s) => s.id === stepId);
-  if (!target) throw new Error(`unknown curriculum step ${stepId}`);
-  return FUX_FIRST_SPECIES_CURRICULUM.filter((s) => s.ordinal <= target.ordinal)
-    .flatMap((s) => s.introduces)
-    .map((x) => RULES_BY_ID.get(x.ruleId)!);
-}
-
-/** Fails loudly if the curriculum and the dataset or rule set disagree. */
-export function validateCurriculum(repo: FuxRepository): void {
-  const introduced = new Set<string>();
-  for (const s of FUX_FIRST_SPECIES_CURRICULUM) {
-    for (const x of s.introduces) {
-      if (!RULES_BY_ID.has(x.ruleId)) throw new Error(`${s.id}: unknown rule ${x.ruleId}`);
-      if (introduced.has(x.ruleId)) throw new Error(`${s.id}: rule ${x.ruleId} introduced twice`);
-      introduced.add(x.ruleId);
-    }
-    if (!repo.getCantusFirmus(s.cf_id)) throw new Error(`${s.id}: unknown cf ${s.cf_id}`);
-    if (s.exercise_id) {
-      const ex = repo.getExercise(s.exercise_id);
-      if (!ex) throw new Error(`${s.id}: unknown exercise ${s.exercise_id}`);
-      if (ex.species !== "first" || ex.cantus_firmus.cf_id !== s.cf_id || ex.cantus_voice !== s.cantus_voice || ex.modal_final !== s.modal_final) {
-        throw new Error(`${s.id}: does not match exercise ${s.exercise_id}`);
-      }
-    }
-  }
-  const unplaced = FIRST_SPECIES_FUX_STRICT.filter((r) => !introduced.has(r.id)).map((r) => r.id);
-  if (unplaced.length) throw new Error(`rules without an introduction point: ${unplaced.join(", ")}`);
-}

@@ -1,15 +1,17 @@
 /**
- * Editing state for one first-species exercise: the player's (Josephus's) counterpoint,
- * one optional note per cantus column. Pure functions; the UI holds the state.
+ * Editing state for one exercise: the player's (Josephus's) counterpoint, one optional entry per
+ * slot of the layout (counterpoint/layout.ts): a spelled pitch, REST where a rest is allowed, or
+ * null when empty. Pure functions; the UI holds the state.
  */
 import { parsePitch, type Step } from "../music/pitch.ts";
 import { createPlayerSolution, playerNote, type PlayerSolution } from "../music/fux/player.ts";
 import type { Exercise } from "../music/fux/types.ts";
+import { REST, slotOffset, sounding, type Slot } from "../counterpoint/layout.ts";
 
 export type Accidental = -1 | 0 | 1;
 
 export interface SessionState {
-  /** Spelled pitch per column, or null when empty. */
+  /** Spelled pitch (or REST) per slot, or null when empty. */
   notes: (string | null)[];
   selected: number;
   /** Accidental applied to the next placement (the accidental control). */
@@ -22,7 +24,7 @@ const STEPS: Step[] = ["C", "D", "E", "F", "G", "A", "B"];
 const SUFFIX: Record<Accidental, string> = { [-1]: "b", 0: "", 1: "#" };
 
 export function initialState(columns: number): SessionState {
-  if (columns < 2) throw new Error("exercise needs at least two columns");
+  if (columns < 2) throw new Error("exercise needs at least two slots");
   return { notes: Array(columns).fill(null), selected: 0, accidental: 0, lastWritten: null };
 }
 
@@ -60,7 +62,7 @@ export function select(s: SessionState, column: number): SessionState {
  */
 export function stepNote(s: SessionState, delta: number, start: string): SessionState {
   const cur = s.notes[s.selected];
-  if (cur === null) {
+  if (!sounding(cur)) {
     const notes = [...s.notes];
     notes[s.selected] = s.lastWritten ?? start;
     return { ...s, notes, accidental: 0, lastWritten: notes[s.selected] };
@@ -91,7 +93,7 @@ export function letterNote(s: SessionState, letter: Step, reference: string): Se
  */
 export function applyAccidental(s: SessionState, acc: Accidental): SessionState {
   const cur = s.notes[s.selected];
-  if (cur === null) return { ...s, accidental: s.accidental === acc ? 0 : acc };
+  if (!sounding(cur)) return { ...s, accidental: s.accidental === acc ? 0 : acc };
   const alter = parsePitch(cur).alter;
   const notes = [...s.notes];
   notes[s.selected] = withAlter(naturalOf(cur), alter === acc ? 0 : acc);
@@ -102,10 +104,22 @@ export function isComplete(s: SessionState): boolean {
   return s.notes.every((n) => n !== null);
 }
 
+/** A rest in the selected slot, where the layout allows one; elsewhere nothing changes. */
+export function setRest(s: SessionState, layout: Slot[]): SessionState {
+  if (!layout[s.selected]?.restAllowed) return s;
+  const notes = [...s.notes];
+  notes[s.selected] = REST;
+  return { ...s, notes };
+}
+
 /** The player's counterpoint in the shared player_solution representation. */
-export function toPlayerSolution(s: SessionState, exercise: Exercise, now = new Date()): PlayerSolution {
+export function toPlayerSolution(s: SessionState, exercise: Exercise, layout: Slot[], now = new Date()): PlayerSolution {
   const sol = createPlayerSolution(exercise, now);
-  sol.notes = s.notes.flatMap((p, k) => (p === null ? [] : [playerNote(p, `${k}/1`, "1/1")]));
+  const offset = (k: number) => {
+    const x = slotOffset(layout[k]);
+    return Number.isInteger(x) ? `${x}/1` : `${Math.round(x * 2)}/2`;
+  };
+  sol.notes = s.notes.flatMap((p, k) => (p === null ? [] : [playerNote(p === REST ? null : p, offset(k), layout[k].duration)]));
   return sol;
 }
 
@@ -115,7 +129,7 @@ export function toPlayerSolution(s: SessionState, exercise: Exercise, now = new 
  */
 export function moveNote(base: SessionState, from: number, to: number, natural: string): SessionState {
   const orig = base.notes[from];
-  if (orig === null) throw new Error(`no note to move in column ${from}`);
+  if (!sounding(orig)) throw new Error(`no note to move in slot ${from}`);
   const notes = [...base.notes];
   notes[from] = null;
   notes[to] = naturalOf(orig) === natural ? orig : natural;
