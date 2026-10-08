@@ -14,7 +14,8 @@
  * - The unison only at the ends (p. 54): Fux's examples have upbeat unisons (Figs. 36, 39, 42)
  *   but never an interior downbeat unison, so it is checked on downbeats.
  * - More imperfect than perfect consonances (p. 46): Fig. 36 has six perfect against two
- *   imperfect downbeats, so it becomes a recommendation (warning), counted on downbeats.
+ *   imperfect downbeats, so it is dropped, not even kept as a recommendation: Fux's own solution
+ *   must be able to earn a star (owner: "Fux is always the last word", D39).
  * - No leap into or out of the unison (pp. 54-55): broken in Figs. 36, 39, 41 and 42; dropped.
  */
 import { harmonic, interval, isAbove, isConsonant, isLeap, isOctaveClass, isPerfectConsonance, isUnison, motion, type Interval } from "../interval.ts";
@@ -219,25 +220,6 @@ export const unisonOnlyAtEnds: Rule = {
   },
 };
 
-export const preferImperfectConsonances: Rule = {
-  ...base(
-    "ss.prefer-imperfect-consonances",
-    "warning",
-    { status: "verified", ref: "Gradus (1725), Exercitii I, Lectio I, p. 46", note: "A recommendation in this species (D35): Fux's Fig. 36 has more perfect than imperfect downbeats. Counted on interior downbeats." },
-    "rule.fs.prefer-imperfect-consonances",
-  ),
-  check(a) {
-    const perfect: number[] = [];
-    let imperfect = 0;
-    for (const e of a.events) {
-      if (e.beat !== 0 || e.bar === 0 || e.bar === a.bars - 1) continue;
-      if (isPerfectConsonance(vert(e))) perfect.push(e.slot);
-      else imperfect++;
-    }
-    return perfect.length > imperfect ? [v(this, perfect, { perfect: perfect.length, imperfect })] : [];
-  },
-};
-
 export const noVoiceCrossing: Rule = {
   ...base(
     "ss.no-voice-crossing",
@@ -284,6 +266,5 @@ export const SECOND_SPECIES_FUX_STRICT: readonly Rule[] = [
   convergingLeapIntoOctave,
   unisonOnlyAtEnds,
   noVoiceCrossing,
-  preferImperfectConsonances,
   preferContraryMotion,
 ];
