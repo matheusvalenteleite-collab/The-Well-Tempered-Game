@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Continuo harness (dev)</title>
+    <style>
+      :root { color-scheme: light dark; --fg: #1d1d1f; --bg: #fafaf7; --muted: #6b6b6b; --line: #d8d6cf; --hi: #f3e6b3; --cp: #b3261e; }
+      @media (prefers-color-scheme: dark) { :root { --fg: #ecebe6; --bg: #1b1b1a; --muted: #9a9890; --line: #3a3936; --hi: #4d4420; --cp: #ff8a80; } }
+      body { font: 14px/1.45 system-ui, sans-serif; color: var(--fg); background: var(--bg); margin: 0; padding: 16px; }
+      h1 { font-size: 18px; margin: 0 0 4px; }
+      .note { color: var(--muted); margin: 0 0 12px; }
+      .controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin-bottom: 12px; }
+      .controls label { display: inline-flex; gap: 6px; align-items: center; }
+      fieldset { border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; }
+      select, button, input { font: inherit; }
+      button { padding: 4px 14px; }
+      .scroll { overflow-x: auto; max-width: 100%; }
+      table { border-collapse: collapse; }
+      th, td { border: 1px solid var(--line); padding: 3px 7px; text-align: center; white-space: nowrap; font-variant-numeric: tabular-nums; }
+      th { text-align: right; color: var(--muted); font-weight: 500; position: sticky; left: 0; background: var(--bg); }
+      td.now { background: var(--hi); }
+      td.fig { font-weight: 600; font-family: Georgia, serif; font-size: 15px; }
+      td.cp { color: var(--cp); }
+      #stats { color: var(--muted); margin: 8px 0; }
+      #diag { color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <h1>Basso continuo — dev harness</h1>
+    <p class="note">Development only: not linked from the game. Exercises are Fux's own solutions (first and second species).</p>
+    <div class="controls">
+      <label>Exercise <select id="exercise"></select></label>
+      <fieldset><legend>Preset</legend>
+        <label><input type="radio" name="preset" value="stileAntico" checked /> stile antico</label>
+        <label><input type="radio" name="preset" value="cembalo" /> cembalo</label>
+        <label><input type="radio" name="preset" value="hofkapelle" /> Hofkapelle</label>
+      </fieldset>
+      <fieldset><legend>Finals</legend>
+        <label><input type="radio" name="finals" value="organist" checked /> organist (Picardy)</label>
+        <label><input type="radio" name="finals" value="strict" /> strict (8/5)</label>
+      </fieldset>
+    </div>
+    <div class="controls">
+      <label>Tempo (half notes/min) <input id="tempo" type="range" min="30" max="140" step="1" /> <span id="tempoOut"></span></label>
+      <button id="tempoDefault" type="button">default</button>
+      <label>Level <input id="level" type="range" min="0" max="1" step="0.01" value="0.8" /></label>
+      <label><input id="passing" type="checkbox" checked /> passing fills</label>
+      <label title="A stylistic liberty: delays the upbeat re-strike by 10% of a half note"><input id="inegal" type="checkbox" /> inégal (stylistic liberty)</label>
+      <label><input id="sung" type="checkbox" checked /> sung voices</label>
+      <label>Sung timbre <select id="timbre"></select></label>
+      <label>Temperament <select id="temperament"></select></label>
+    </div>
+    <div class="controls">
+      <button id="play" type="button">Play</button>
+      <button id="stop" type="button">Stop</button>
+      <button id="measure" type="button">Render offline &amp; measure</button>
+      <span id="diag"></span>
+    </div>
+    <div id="stats"></div>
+    <div class="scroll"><table id="score"></table></div>
+    <script type="module" src="/src/continuo/dev/harness.ts"></script>
+  </body>
+</html>
