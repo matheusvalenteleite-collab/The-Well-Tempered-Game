@@ -26,6 +26,11 @@ export function Credits({ onClose }: { onClose(): void }) {
           Pipe organ, sackbut (trombone) and cello: from nbrosowsky/tonejs-instruments (samples CC BY 3.0); organ and trombone from the
           Versilian Studios Orchestra 2 Community Edition, cello from Freesound (12408, flcellogrl); trimmed and re-encoded.
         </p>
+        <p>
+          Violin, flute, bassoon, French horn, trumpet, harp, double bass, xylophone (Versilian Studios Orchestra 2 Community Edition),
+          harmonium (Freesound 330410, donyaquick), classical guitar (Freesound 11573, quartertone), electric guitar, electric bass and
+          saxophone (Karoryfer Samples): all via nbrosowsky/tonejs-instruments (CC BY 3.0); thinned, trimmed and re-encoded.
+        </p>
         <button onClick={onClose}>{t("ui.close")}</button>
       </div>
     </div>

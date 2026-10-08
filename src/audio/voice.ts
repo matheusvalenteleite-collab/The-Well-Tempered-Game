@@ -4,7 +4,7 @@
  */
 import { FxChain } from "./effects.ts";
 import { frequency, type TemperamentId } from "./temperament.ts";
-import type { SampleSet, SynthSettings } from "./synth-settings.ts";
+import { isSampled, type SampleSet, type SynthSettings } from "./synth-settings.ts";
 import { SAMPLE_MANIFEST } from "./sample-manifest.ts";
 import { parsePitch } from "../music/pitch.ts";
 
@@ -17,7 +17,11 @@ interface Sample {
 const banks = new Map<SampleSet, Sample[]>();
 const loading = new Map<SampleSet, Promise<void>>();
 /** Relative loudness correction per instrument (measured), so the sets sit at similar levels. */
-const SET_GAIN: Record<SampleSet, number> = { grand: 2.6, organ: 1.7, sackbut: 1.9, cello: 1.6 };
+/** Levels of the recorded sets, matched by ear and by mean level against the cello (D42, D54). */
+const SET_GAIN: Record<SampleSet, number> = {
+  grand: 2.6, organ: 1.7, sackbut: 1.9, cello: 1.6, violin: 2.0, flute: 1.35, bassoon: 1.65, horn: 1.15, trumpet: 1.8, harp: 1.8, contrabass: 1.65,
+  harmonium: 1.7, guitar: 1.65, eguitar: 3.8, ebass: 2.1, sax: 1.15, xylophone: 3.2,
+};
 
 /** Fetch and decode an instrument's samples (once); notes before it arrives are skipped. */
 export function loadSamples(ctx: BaseAudioContext, set: SampleSet): Promise<void> {
@@ -219,7 +223,7 @@ export class Synth implements Instrument {
 
   /** Begin loading the recorded instrument if the settings use one. */
   preload() {
-    if (this.settings.model === "sampled") void loadSamples(this.ctx, this.settings.sampleSet);
+    if (isSampled(this.settings.model)) void loadSamples(this.ctx, this.settings.sampleSet);
   }
 
   /** A recorded note: the nearest sample (in the layer for this velocity), retuned by playback rate. */
@@ -263,7 +267,7 @@ export class Synth implements Instrument {
     // ADSR: attack to 1, decay to the sustain level, hold until the note ends, then release.
     // Velocity shades the loudness of the synthesized models (about ±6 dB around 0.75); the
     // recorded ones choose a layer and shade it themselves.
-    const peak = st.model === "sampled" ? 1 : 0.5 + 0.67 * velocity;
+    const peak = isSampled(st.model) ? 1 : 0.5 + 0.67 * velocity;
     env.gain.setValueAtTime(0, time);
     env.gain.linearRampToValueAtTime(peak, time + a);
     env.gain.setTargetAtTime(st.sustain * peak, time + a, Math.max(0.001, st.decay) / 3);
@@ -284,6 +288,7 @@ export class Synth implements Instrument {
 
     switch (st.model) {
       case "sampled":
+      case "sampledModern":
         this.sampled(freq, time, end, velocity, filter);
         return;
       case "piano":

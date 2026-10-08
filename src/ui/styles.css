@@ -344,7 +344,7 @@ kbd { font-family: ui-monospace, Menlo, monospace; font-size: 0.8rem; padding: 1
 .sound .fold-head { display: flex; }
 .fold-line { flex: 1; border-top: 1px solid var(--line); }
 /* One editor size for every strip (synth, drums, continuo): selecting a strip never resizes the box. */
-.sound .editor { height: 190px; overflow: auto; }
+.sound .editor { height: 214px; overflow: auto; }
 @media (max-width: 600px) { .sound .editor { height: 330px; } }
 .sound .editor > section { width: 100%; height: 100%; box-sizing: border-box; }
 .strip .bc { font-size: 0.7rem; white-space: nowrap; }

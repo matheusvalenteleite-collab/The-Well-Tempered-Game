@@ -8,8 +8,9 @@ export const WAVEFORMS: Waveform[] = ["sine", "triangle", "square", "sawtooth"];
  * seven suit counterpoint (sustained, vocal or keyboard-like tones); ring modulation and
  * wavefolding are there for fun.
  */
-export type SynthModel = "sampled" | "piano" | "subtractive" | "pluck" | "fm" | "additive" | "formant" | "bowed" | "wavetable" | "ringmod" | "wavefold";
-export const SYNTH_MODELS: SynthModel[] = ["sampled", "piano", "subtractive", "pluck", "fm", "additive", "formant", "bowed", "wavetable", "ringmod", "wavefold"];
+export type SynthModel = "sampled" | "sampledModern" | "piano" | "subtractive" | "pluck" | "fm" | "additive" | "formant" | "bowed" | "wavetable" | "ringmod" | "wavefold";
+/** Recorded instruments first (classic, then modern: D54), then the synthesis models. */
+export const SYNTH_MODELS: SynthModel[] = ["sampled", "sampledModern", "piano", "subtractive", "pluck", "fm", "additive", "formant", "bowed", "wavetable", "ringmod", "wavefold"];
 
 export type ReverbMode = "off" | "room" | "hall" | "cathedral" | "plate" | "spring";
 export const REVERB_MODES: ReverbMode[] = ["off", "room", "hall", "cathedral", "plate", "spring"];
@@ -23,8 +24,12 @@ export const DELAY_MODES: DelayMode[] = ["off", "digital", "analog", "tape", "sl
  * bowed pressure, body; wavetable position, scan (Hz); ring ratio (x), mix; wavefold drive, symmetry.
  */
 /** Recorded instruments (files in public/samples, see sample-manifest.ts). */
-export type SampleSet = "grand" | "organ" | "sackbut" | "cello";
-export const SAMPLE_SETS: SampleSet[] = ["grand", "organ", "sackbut", "cello"];
+export type SampleSet =
+  | "grand" | "organ" | "sackbut" | "cello" | "violin" | "flute" | "bassoon" | "horn" | "trumpet" | "harp" | "contrabass" | "harmonium" | "guitar"
+  | "eguitar" | "ebass" | "sax" | "xylophone";
+export const SAMPLE_SETS: SampleSet[] = ["grand", "organ", "sackbut", "cello", "violin", "flute", "bassoon", "horn", "trumpet", "harp", "contrabass", "harmonium", "guitar", "eguitar", "ebass", "sax", "xylophone"];
+/** Is this a recorded-instrument model (classic or modern)? */
+export const isSampled = (m: SynthModel) => m === "sampled" || m === "sampledModern";
 
 export interface SynthSettings {
   model: SynthModel;
@@ -101,6 +106,20 @@ export const SYNTH_PRESETS: { id: string; settings: SynthSettings }[] = [
   { id: "pipeOrgan", settings: p({ model: "sampled", sampleSet: "organ", attack: 0.01, decay: 0.05, sustain: 1, release: 0.18, tone: 12000 }) },
   { id: "sackbut", settings: p({ model: "sampled", sampleSet: "sackbut", attack: 0.02, decay: 0.05, sustain: 1, release: 0.15, tone: 12000 }) },
   { id: "celloSampled", settings: p({ model: "sampled", sampleSet: "cello", attack: 0.03, decay: 0.05, sustain: 1, release: 0.2, tone: 12000 }) },
+  { id: "violinSampled", settings: p({ model: "sampled", sampleSet: "violin", attack: 0.04, decay: 0.05, sustain: 1, release: 0.25, tone: 12000 }) },
+  { id: "fluteSampled", settings: p({ model: "sampled", sampleSet: "flute", attack: 0.03, decay: 0.05, sustain: 1, release: 0.2, tone: 12000 }) },
+  { id: "bassoonSampled", settings: p({ model: "sampled", sampleSet: "bassoon", attack: 0.03, decay: 0.05, sustain: 1, release: 0.18, tone: 12000 }) },
+  { id: "hornSampled", settings: p({ model: "sampled", sampleSet: "horn", attack: 0.05, decay: 0.05, sustain: 1, release: 0.25, tone: 12000 }) },
+  { id: "trumpetSampled", settings: p({ model: "sampled", sampleSet: "trumpet", attack: 0.02, decay: 0.05, sustain: 1, release: 0.15, tone: 12000 }) },
+  { id: "harpSampled", settings: p({ model: "sampled", sampleSet: "harp", attack: 0.002, decay: 0.05, sustain: 1, release: 0.6, tone: 12000 }) },
+  { id: "contrabassSampled", settings: p({ model: "sampled", sampleSet: "contrabass", attack: 0.04, decay: 0.05, sustain: 1, release: 0.2, tone: 12000 }) },
+  { id: "harmoniumSampled", settings: p({ model: "sampled", sampleSet: "harmonium", attack: 0.05, decay: 0.05, sustain: 1, release: 0.2, tone: 12000 }) },
+  { id: "guitarSampled", settings: p({ model: "sampled", sampleSet: "guitar", attack: 0.002, decay: 0.05, sustain: 1, release: 0.4, tone: 12000 }) },
+  // Modern recorded instruments
+  { id: "eguitarSampled", settings: p({ model: "sampledModern", sampleSet: "eguitar", attack: 0.002, decay: 0.05, sustain: 1, release: 0.3, tone: 12000 }) },
+  { id: "ebassSampled", settings: p({ model: "sampledModern", sampleSet: "ebass", attack: 0.002, decay: 0.05, sustain: 1, release: 0.2, tone: 12000 }) },
+  { id: "saxSampled", settings: p({ model: "sampledModern", sampleSet: "sax", attack: 0.02, decay: 0.05, sustain: 1, release: 0.18, tone: 12000 }) },
+  { id: "xylophoneSampled", settings: p({ model: "sampledModern", sampleSet: "xylophone", attack: 0.002, decay: 0.05, sustain: 1, release: 0.5, tone: 12000 }) },
   // Piano (modelled)
   { id: "gould", settings: GOULD },
   { id: "concertGrand", settings: p({ model: "piano", pianoHammer: 0.45, pianoDetach: 0, attack: 0.003, decay: 0.05, sustain: 1, release: 0.6, tone: 7000, reverbMode: "hall", reverbMix: 0.25 }) },

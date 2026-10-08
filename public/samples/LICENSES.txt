@@ -3,4 +3,10 @@ grand/   Salamander Grand Piano V3, Alexander Holm. CC BY 3.0 (https://creativec
 organ/   Versilian Studios Orchestra 2 Community Edition, via https://github.com/nbrosowsky/tonejs-instruments (CC BY 3.0).
 sackbut/ Trombone, same source as organ/.
 cello/   Freesound 12408 (flcellogrl, real cello notes), via tonejs-instruments (CC BY 3.0).
+violin/ flute/ bassoon/ horn/ trumpet/ harp/ contrabass/   Versilian Studios Orchestra 2 Community Edition, via tonejs-instruments (CC BY 3.0).
+harmonium/  Freesound 330410 (donyaquick, harmonium samples), via tonejs-instruments (CC BY 3.0).
+guitar/     Freesound 11573 (quartertone, classical guitar multisampled), via tonejs-instruments (CC BY 3.0).
+eguitar/ ebass/ sax/   Karoryfer Samples, via tonejs-instruments (CC BY 3.0).
+xylophone/  Versilian Studios Orchestra 2 Community Edition, via tonejs-instruments (CC BY 3.0).
+The sets added in D54 keep one sample every minor third or more (the nearest is retuned), trimmed to 4.5 s with a fade, mono 80 kbit/s MP3.
 All: leading silence removed, trimmed to 5 s with a fade, mono 96 kbit/s MP3 (grand: stereo 128 kbit/s).

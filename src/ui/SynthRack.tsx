@@ -36,6 +36,7 @@ const fmt = (k: NumericKey) => FORMAT[k] ?? pct;
 const SHARED: NumericKey[] = ["attack", "decay", "sustain", "release", "tone", "vibrato"];
 const BY_MODEL: Record<SynthModel, NumericKey[]> = {
   sampled: [],
+  sampledModern: [],
   piano: ["pianoHammer", "pianoDetach"],
   subtractive: ["detune"],
   pluck: ["pluckDamping", "pluckBrightness"],
