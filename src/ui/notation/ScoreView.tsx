@@ -33,6 +33,16 @@ export interface ScoreProps {
   /** Live drag of a counterpoint note to another bar and/or pitch; onDragEnd commits. */
   onDrag?(from: number, to: number, naturalPitch: string): void;
   onDragEnd?(): void;
+  /** Show a translucent "shadow" note where a click would write. */
+  showGhost?: boolean;
+}
+
+interface Ghost {
+  /** Placement of the overlay over the VexFlow drawing, in CSS pixels. */
+  box: { left: number; top: number; width: number; height: number; scale: number };
+  x: number;
+  y: number;
+  ledgers: number[];
 }
 
 /** Staff positions: close together normally, apart when the evaluation overlay needs the space. */
@@ -253,7 +263,36 @@ export function ScoreView(props: ScoreProps) {
     const margin = 5 * s.spacing; // ledger-line zone above and below the staff
     const onStaff = y >= s.top - margin && y <= s.bottom + margin;
     const position = Math.round((s.bottom - y) / (s.spacing / 2));
-    return { column, onStaff, natural: pitchAtPosition(props.clefs[cpStaff], position), inside: x >= g.columns[0].left && x < g.columns[g.columns.length - 1].right };
+    return {
+      column,
+      onStaff,
+      position,
+      staff: s,
+      svgRect: r,
+      natural: pitchAtPosition(props.clefs[cpStaff], position),
+      inside: x >= g.columns[0].left && x < g.columns[g.columns.length - 1].right,
+    };
+  };
+
+  const [ghost, setGhost] = useState<Ghost | null>(null);
+  const updateGhost = (e: React.PointerEvent<HTMLDivElement>) => {
+    const g = geo.current;
+    const at = props.showGhost && !props.readOnly && !press.current?.dragging ? locate(e) : null;
+    if (!g || !at || !at.inside || !at.onStaff) {
+      if (ghost) setGhost(null);
+      return;
+    }
+    const st = at.staff;
+    const yOf = (p: number) => st.bottom - (p * st.spacing) / 2;
+    const ledgers: number[] = [];
+    for (let p = -2; p >= at.position; p -= 2) ledgers.push(yOf(p));
+    for (let p = 10; p <= at.position; p += 2) ledgers.push(yOf(p));
+    const outer = e.currentTarget.getBoundingClientRect();
+    const box = { left: at.svgRect.left - outer.left, top: at.svgRect.top - outer.top, width: at.svgRect.width, height: at.svgRect.height, scale: g.scale };
+    const x = g.columns[at.column].x;
+    const y = yOf(at.position);
+    if (ghost && ghost.x === x && ghost.y === y) return;
+    setGhost({ box, x, y, ledgers });
   };
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -264,6 +303,7 @@ export function ScoreView(props: ScoreProps) {
     e.currentTarget.setPointerCapture(e.pointerId);
   };
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    updateGhost(e);
     const p = press.current;
     if (!p || props.readOnly || !props.onDrag) return;
     if (!p.dragging) {
@@ -289,12 +329,28 @@ export function ScoreView(props: ScoreProps) {
 
   return (
     <div
-      ref={host}
-      className={props.readOnly ? "score read-only" : "score"}
+      className="score-box"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      onPointerLeave={() => setGhost(null)}
       onPointerCancel={() => (press.current = null)}
-    />
+    >
+      <div ref={host} className={props.readOnly ? "score read-only" : "score"} />
+      {ghost && (
+        <svg
+          className="ghost"
+          aria-hidden="true"
+          style={{ left: ghost.box.left, top: ghost.box.top, width: ghost.box.width, height: ghost.box.height }}
+          viewBox={`0 0 ${ghost.box.width / ghost.box.scale} ${ghost.box.height / ghost.box.scale}`}
+        >
+          {ghost.ledgers.map((ly) => (
+            <line key={ly} x1={ghost.x - 10} x2={ghost.x + 10} y1={ly} y2={ly} />
+          ))}
+          <ellipse cx={ghost.x} cy={ghost.y} rx={6.5} ry={4.6} />
+          <ellipse className="hole" cx={ghost.x} cy={ghost.y} rx={2.6} ry={3.6} transform={`rotate(-35 ${ghost.x} ${ghost.y})`} />
+        </svg>
+      )}
+    </div>
   );
 }

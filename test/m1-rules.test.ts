@@ -121,7 +121,7 @@ test("every rule carries source, severity and attribution metadata", () => {
   }
 });
 
-test("fs.prefer-imperfect-consonances (1725 p. 46): an all-perfect counterpoint draws the recommendation", async () => {
+test("fs.prefer-imperfect-consonances (1725 p. 46): an all-perfect counterpoint is not cleared", async () => {
   const { rulesForStep, FUX_FIRST_SPECIES_CURRICULUM } = await import("../src/counterpoint/curriculum/fux-first-species.ts");
   const cf = ["D4", "F4", "E4", "D4", "G4", "F4", "A4", "G4", "F4", "E4", "D4"];
   // octaves and unisons only, every perfect consonance reached by contrary motion; bar 10 keeps the cadence
@@ -130,5 +130,5 @@ test("fs.prefer-imperfect-consonances (1725 p. 46): an all-perfect counterpoint 
     { species: "first", modalFinal: "D", cantusVoice: "lower", cantus: cf.map((p) => ({ pitch: p, duration: "1/1" })), counterpoint: cp.map((p) => ({ pitch: p, duration: "1/1" })) },
     rulesForStep(FUX_FIRST_SPECIES_CURRICULUM[0].id),
   );
-  assert.ok(ev.warnings.some((w) => w.ruleId === "fs.prefer-imperfect-consonances"));
+  assert.ok(ev.errors.some((w) => w.ruleId === "fs.prefer-imperfect-consonances"));
 });

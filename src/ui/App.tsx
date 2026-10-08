@@ -6,6 +6,7 @@ import { compareWithOriginal } from "../music/fux/player.ts";
 import { exerciseView } from "../game/exercise-view.ts";
 import { applyAccidental, clear, initialState, letterNote, moveNote, place, select, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
 import { AudioEngine, DEFAULT_SYNTH, renderLevel, SYNTH_PRESETS, type AudioStatus, type VoiceSynths } from "../audio/engine.ts";
+import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
 import { SynthRack, type SynthTarget } from "./SynthRack.tsx";
 import { Hints } from "./Hints.tsx";
 import { Feedback } from "./Feedback.tsx";
@@ -13,6 +14,7 @@ import { Knob } from "./Knob.tsx";
 import { ScoreView } from "./notation/ScoreView.tsx";
 import { buildOverlay } from "./notation/overlay.ts";
 import { Credits } from "./Credits.tsx";
+import { FuxComparison } from "./FuxComparison.tsx";
 import { t } from "./i18n.ts";
 import type { Step } from "../music/pitch.ts";
 
@@ -70,6 +72,8 @@ export function App() {
     return { cantus: { ...DEFAULT_SYNTH, ...v.cantus }, counterpoint: { ...DEFAULT_SYNTH, ...v.counterpoint } };
   });
   const [synthTarget, setSynthTarget] = useState<SynthTarget>("all");
+  const [drums, setDrums] = useState(() => stored("wtg.drums", false, (v) => typeof v === "boolean"));
+  const [tuning, setTuning] = useState<TemperamentId>(() => stored<TemperamentId>("wtg.tuning", "equal", (v) => TEMPERAMENTS.includes(v as TemperamentId)));
   const [cursor, setCursor] = useState(-1);
   const [playing, setPlaying] = useState(false);
   const [audioStatus, setAudioStatus] = useState<AudioStatus>("idle");
@@ -98,6 +102,14 @@ export function App() {
     store("wtg.synth2", synth);
   }, [synth]);
   useEffect(() => store("wtg.step", stepIndex), [stepIndex]);
+  useEffect(() => {
+    audio.drums = drums;
+    store("wtg.drums", drums);
+  }, [drums]);
+  useEffect(() => {
+    audio.temperament = tuning;
+    store("wtg.tuning", tuning);
+  }, [tuning]);
   useEffect(() => store("wtg.stars", stars), [stars]);
 
   const goTo = (k: number) => {
@@ -154,7 +166,8 @@ export function App() {
       rulesForStep(STEP.id),
     );
     setResult(ev);
-    if (ev.passed && !stars.includes(STEP.id)) setStars([...stars, STEP.id]);
+    // A star needs a clean result: no rule and no recommendation broken (owner decision D25).
+    if (ev.violations.length === 0 && !stars.includes(STEP.id)) setStars([...stars, STEP.id]);
   };
   const fuxSolution = VIEW.exerciseId ? repository.getSolution(VIEW.exerciseId) : undefined;
   const marks = result ? result.violations.flatMap((v) => v.positions.map((c) => ({ column: c, severity: v.severity }))) : undefined;
@@ -270,6 +283,7 @@ export function App() {
             label={label}
             marks={marks}
             overlay={overlay}
+            showGhost={active}
             onPlace={(col, natural) => {
               // An inactive score only takes a bar-selecting click.
               if (!active) {
@@ -317,6 +331,10 @@ export function App() {
             </button>
             <Knob id="tempo" label={t("ui.tempo")} value={tempo} min={30} max={120} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
             <Knob id="volume" label={t("ui.volume")} value={volume} min={0} max={100} defaultValue={70} format={(v) => `${Math.round(v)}%`} onChange={(v) => setVolume(Math.round(v))} />
+            <button aria-pressed={drums} onClick={() => setDrums(!drums)} title={t("ui.drums.help")}>{t("ui.drums")}</button>
+            <button className="tuning" onClick={() => setTuning(TEMPERAMENTS[(TEMPERAMENTS.indexOf(tuning) + 1) % TEMPERAMENTS.length])} title={t("ui.tuning.help")}>
+              {t(`ui.tuning.${tuning}`)}
+            </button>
           </div>
           <div className="group">
             <button aria-pressed={showSynth} onClick={() => setShowSynth(!showSynth)}>{t("ui.synth")}</button>
@@ -352,6 +370,9 @@ export function App() {
                         return t("ui.fux.agreement", { same: cmp.points.filter((p) => p.same_pitch).length, total: cmp.points.length });
                       })()}
                     </p>
+                    {missing === 0 && (
+                      <FuxComparison cantus={VIEW.cantus} player={session.notes as string[]} fux={fuxSolution.counterpoint.notes.map((n) => n.pitch as string)} />
+                    )}
                   </div>
                 )}
               </div>

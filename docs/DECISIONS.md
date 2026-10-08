@@ -30,3 +30,9 @@ Note: the page supplied as "p. 46" is p. 46 of Mann's English translation (secon
 | D21 | "More imperfect than perfect consonances, beginning and end excepted" is Fux's (1725 p. 46, read via Mann p. 28): restored as a recommendation from Fig. 5, checked as "perfect must not outnumber imperfect" because Fux's own Fig. 11 ties 4–4. Mann's footnote rules (leaps > 5th, successive leaps, repeated notes) are Mann's, not Fux's, and stay out. | `fs.prefer-imperfect-consonances` |
 | D22 | Synth models: subtractive, plucked string (Karplus–Strong), FM, additive; 12 presets. | `src/audio/engine.ts` |
 | D23 | Cantus firmus and counterpoint have independent synth settings; the rack edits Both / Counterpoint / Cantus firmus. | `SynthRack.tsx` |
+| D24 | "If Fux calls it a rule, it's a rule": `fs.prefer-imperfect-consonances` is an error. | severity `error` |
+| D25 | A star requires a clean result (no rule and no recommendation broken). | `App.tsx` |
+| D26 | Synth: 9 models (analog/subtractive, plucked string, FM, additive, formant voices, bowed string, wavetable, ring modulator, wavefolder), 23 presets shown per model; per-voice reverb (room, hall, cathedral, plate, spring) and delay (digital, analog, tape, slapback, ping-pong). | `src/audio/` |
+| D27 | "Both voices" edits move both voices relatively and never overwrite choices on which they differ. | `applyEdit()` |
+| D28 | Drum track toggle (kick, snare, hi-hats, crash, tom fill) during playback. Temperament toggle: equal, Pythagorean, ¼-comma meantone, Werckmeister III (spelled-pitch aware, anchored on D). | `drums.ts`, `temperament.ts` |
+| D29 | Fux comparison: each difference is weighed by Fux's stated criteria (p. 45 motion, p. 46 imperfect consonances, p. 53 ease of singing), crediting whichever side they favour. | `compare-fux.ts` |

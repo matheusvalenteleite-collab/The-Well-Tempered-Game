@@ -1,9 +1,24 @@
-import { DEFAULT_SYNTH, SYNTH_MODELS, SYNTH_PRESETS, WAVEFORMS, type SynthModel, type SynthSettings, type VoiceSynths } from "../audio/engine.ts";
+import {
+  applyEdit,
+  DEFAULT_SYNTH,
+  DELAY_MODES,
+  RANGES,
+  REVERB_MODES,
+  sharedChoice,
+  SYNTH_MODELS,
+  SYNTH_PRESETS,
+  WAVEFORMS,
+  type ChoiceKey,
+  type NumericKey,
+  type SynthModel,
+  type SynthSettings,
+  type SynthTarget,
+  type VoiceSynths,
+} from "../audio/synth-settings.ts";
 import { Knob } from "./Knob.tsx";
 import { t } from "./i18n.ts";
 
-/** Which voice the rack edits: both, the counterpoint (the player's voice), or the cantus firmus. */
-export type SynthTarget = "all" | "counterpoint" | "cantus";
+export type { SynthTarget };
 const TARGETS: SynthTarget[] = ["all", "counterpoint", "cantus"];
 
 interface Props {
@@ -13,59 +28,55 @@ interface Props {
   onChange(v: VoiceSynths): void;
 }
 
-type NumKey = { [K in keyof SynthSettings]: SynthSettings[K] extends number ? K : never }[keyof SynthSettings];
-interface KnobSpec { key: NumKey; min: number; max: number; log?: boolean; fmt(v: number): string }
-
 const ms = (v: number) => (v < 1 ? `${Math.round(v * 1000)} ms` : `${v.toFixed(2)} s`);
 const pct = (v: number) => `${Math.round(v * 100)}%`;
-const SHARED: KnobSpec[] = [
-  { key: "attack", min: 0.003, max: 1.5, log: true, fmt: ms },
-  { key: "decay", min: 0.01, max: 2.5, log: true, fmt: ms },
-  { key: "sustain", min: 0, max: 1, fmt: pct },
-  { key: "release", min: 0.01, max: 2.5, log: true, fmt: ms },
-  { key: "tone", min: 200, max: 10000, log: true, fmt: (v) => (v >= 1000 ? `${(v / 1000).toFixed(1)} kHz` : `${Math.round(v)} Hz`) },
-  { key: "vibrato", min: 0, max: 40, fmt: (v) => `${Math.round(v)} ¢` },
-];
-const BY_MODEL: Record<SynthModel, KnobSpec[]> = {
-  subtractive: [{ key: "detune", min: 0, max: 30, fmt: (v) => `${Math.round(v)} ¢` }],
-  pluck: [
-    { key: "pluckDamping", min: 0, max: 1, fmt: pct },
-    { key: "pluckBrightness", min: 0, max: 1, fmt: pct },
-  ],
-  fm: [
-    { key: "fmRatio", min: 0.5, max: 8, log: true, fmt: (v) => `${v.toFixed(2)}×` },
-    { key: "fmIndex", min: 0, max: 10, fmt: (v) => v.toFixed(1) },
-  ],
-  additive: [
-    { key: "addBrightness", min: 0, max: 1, fmt: pct },
-    { key: "addEven", min: 0, max: 1, fmt: pct },
-  ],
+const hz = (v: number) => (v >= 1000 ? `${(v / 1000).toFixed(1)} kHz` : `${Math.round(v)} Hz`);
+const FORMAT: Partial<Record<NumericKey, (v: number) => string>> = {
+  attack: ms, decay: ms, release: ms, delayTime: ms, tone: hz,
+  vibrato: (v) => `${Math.round(v)} ¢`, detune: (v) => `${Math.round(v)} ¢`,
+  fmRatio: (v) => `${v.toFixed(2)}×`, ringRatio: (v) => `${v.toFixed(2)}×`, fmIndex: (v) => v.toFixed(1),
+  wtScan: (v) => `${v.toFixed(1)} Hz`,
+  formantVowel: (v) => "a e i o u".split(" ")[Math.round(v)] ?? "",
+};
+const fmt = (k: NumericKey) => FORMAT[k] ?? pct;
+
+const SHARED: NumericKey[] = ["attack", "decay", "sustain", "release", "tone", "vibrato"];
+const BY_MODEL: Record<SynthModel, NumericKey[]> = {
+  subtractive: ["detune"],
+  pluck: ["pluckDamping", "pluckBrightness"],
+  fm: ["fmRatio", "fmIndex"],
+  additive: ["addBrightness", "addEven"],
+  formant: ["formantVowel", "formantBreath"],
+  bowed: ["bowPressure", "bowBody"],
+  wavetable: ["wtPosition", "wtScan"],
+  ringmod: ["ringRatio", "ringMix"],
+  wavefold: ["foldDrive", "foldSymmetry"],
 };
 
-const same = (a: SynthSettings, b: SynthSettings) =>
-  (Object.keys(a) as (keyof SynthSettings)[]).every((k) => (typeof a[k] === "number" ? Math.abs((a[k] as number) - (b[k] as number)) < 1e-6 : a[k] === b[k]));
-
-/** Apply only the fields that changed to the voices being edited, so "All" never erases per-voice differences elsewhere. */
-function apply(value: VoiceSynths, target: SynthTarget, shown: SynthSettings, next: SynthSettings): VoiceSynths {
-  const changed = (Object.keys(next) as (keyof SynthSettings)[]).filter((k) => next[k] !== shown[k]);
-  const patch = (s: SynthSettings) => ({ ...s, ...Object.fromEntries(changed.map((k) => [k, next[k]])) }) as SynthSettings;
-  return {
-    cantus: target === "counterpoint" ? value.cantus : patch(value.cantus),
-    counterpoint: target === "cantus" ? value.counterpoint : patch(value.counterpoint),
-  };
-}
-
-/** The synthesizer rack: voice and model switches with knobs on the left, presets on the right. */
+/** The synthesizer rack: voice, model and effects on the left; the model's presets on the right. */
 export function SynthRack({ value, target, onTarget, onChange }: Props) {
   const shown = target === "cantus" ? value.cantus : value.counterpoint;
-  const set = (next: SynthSettings) => onChange(apply(value, target, shown, next));
+  const set = (next: SynthSettings) => onChange(applyEdit(value, target, shown, next));
   const cycle = <T,>(list: T[], cur: T) => list[(list.indexOf(cur) + 1) % list.length];
-  const differ = target === "all" && !same(value.cantus, value.counterpoint);
-  const activePreset = SYNTH_PRESETS.find((p) => same(p.settings, shown) && (target !== "all" || !differ))?.id;
-  const knob = (k: KnobSpec) => (
-    <Knob key={k.key} id={`synth-${k.key}`} label={t(`ui.synth.${k.key}`)} value={shown[k.key]} min={k.min} max={k.max} log={k.log}
-      defaultValue={DEFAULT_SYNTH[k.key]} format={k.fmt} onChange={(v) => set({ ...shown, [k.key]: v })} />
+  const locked = (k: ChoiceKey) => target === "all" && !sharedChoice(value, k);
+  const differ = target === "all" && (Object.keys(shown) as (keyof SynthSettings)[]).some((k) => value.cantus[k] !== value.counterpoint[k]);
+  const knob = (k: NumericKey) => (
+    <Knob key={k} id={`synth-${k}`} label={t(`ui.synth.${k}`)} value={shown[k]} min={RANGES[k].min} max={RANGES[k].max} log={RANGES[k].log}
+      defaultValue={DEFAULT_SYNTH[k]} format={fmt(k)} onChange={(v) => set({ ...shown, [k]: v })} />
   );
+  const choice = (k: ChoiceKey, label: React.ReactNode, onClick: () => void) => (
+    <button className="chipbtn" tabIndex={-1} disabled={locked(k)} onClick={onClick} title={locked(k) ? t("ui.synth.locked") : undefined}>
+      {label}
+    </button>
+  );
+  const presets = SYNTH_PRESETS.filter((p) => p.settings.model === shown.model);
+  const applyPreset = (s: SynthSettings) =>
+    onChange({ cantus: target === "counterpoint" ? value.cantus : { ...s }, counterpoint: target === "cantus" ? value.counterpoint : { ...s } });
+  const isActive = (s: SynthSettings) =>
+    (target === "cantus" ? [value.cantus] : target === "counterpoint" ? [value.counterpoint] : [value.cantus, value.counterpoint]).every((v) =>
+      (Object.keys(s) as (keyof SynthSettings)[]).every((k) => (typeof s[k] === "number" ? Math.abs((s[k] as number) - (v[k] as number)) < 1e-6 : s[k] === v[k])),
+    );
+
   return (
     <section className="rack" aria-label={t("ui.synth.title")}>
       <div className="rack-main">
@@ -75,26 +86,48 @@ export function SynthRack({ value, target, onTarget, onChange }: Props) {
             {t(`ui.synth.target.${target}`)}
             {differ ? " *" : ""}
           </button>
-          <button className="chipbtn" tabIndex={-1} onClick={() => set({ ...shown, model: cycle(SYNTH_MODELS, shown.model) })} title={t("ui.synth.modelHelp")}>
-            {t(`ui.synth.model.${shown.model}`)}
-          </button>
-          {shown.model === "subtractive" && (
-            <button className="chipbtn wave" tabIndex={-1} onClick={() => set({ ...shown, waveform: cycle(WAVEFORMS, shown.waveform) })}>
-              <WaveIcon wave={shown.waveform} /> {t(`ui.synth.wave.${shown.waveform}`)}
-            </button>
-          )}
+          <select
+            className="model"
+            aria-label={t("ui.synth.modelHelp")}
+            value={shown.model}
+            disabled={locked("model")}
+            title={locked("model") ? t("ui.synth.locked") : t("ui.synth.modelHelp")}
+            onChange={(e) => set({ ...shown, model: e.target.value as SynthModel })}
+          >
+            {SYNTH_MODELS.map((m) => (
+              <option key={m} value={m}>{t(`ui.synth.model.${m}`)}</option>
+            ))}
+          </select>
+          {shown.model === "subtractive" &&
+            choice("waveform", <><WaveIcon wave={shown.waveform} /> {t(`ui.synth.wave.${shown.waveform}`)}</>, () => set({ ...shown, waveform: cycle(WAVEFORMS, shown.waveform) }))}
         </div>
         <div className="rack-knobs">
           {SHARED.map(knob)}
           <span className="knob-sep" aria-hidden="true" />
           {BY_MODEL[shown.model].map(knob)}
         </div>
-        {differ && <p className="rack-help">{t("ui.synth.differ")}</p>}
+        <div className="rack-fx">
+          <div className="fx">
+            {choice("reverbMode", <>{t("ui.synth.reverb")}: <strong>{t(`ui.synth.reverbMode.${shown.reverbMode}`)}</strong></>, () => set({ ...shown, reverbMode: cycle(REVERB_MODES, shown.reverbMode) }))}
+            {shown.reverbMode !== "off" && knob("reverbMix")}
+          </div>
+          <div className="fx">
+            {choice("delayMode", <>{t("ui.synth.delay")}: <strong>{t(`ui.synth.delayMode.${shown.delayMode}`)}</strong></>, () => set({ ...shown, delayMode: cycle(DELAY_MODES, shown.delayMode) }))}
+            {shown.delayMode !== "off" && (
+              <>
+                {knob("delayTime")}
+                {shown.delayMode !== "slapback" && knob("delayFeedback")}
+                {knob("delayMix")}
+              </>
+            )}
+          </div>
+        </div>
+        <p className="rack-help">{t(differ ? "ui.synth.differ" : "ui.synth.help")}</p>
       </div>
       <ul className="presets" aria-label={t("ui.synth.presets")}>
-        {SYNTH_PRESETS.map((p) => (
+        {presets.map((p) => (
           <li key={p.id}>
-            <button tabIndex={-1} aria-pressed={activePreset === p.id} onClick={() => set({ ...p.settings })}>{t(`ui.synth.preset.${p.id}`)}</button>
+            <button tabIndex={-1} aria-pressed={isActive(p.settings)} onClick={() => applyPreset(p.settings)}>{t(`ui.synth.preset.${p.id}`)}</button>
           </li>
         ))}
       </ul>

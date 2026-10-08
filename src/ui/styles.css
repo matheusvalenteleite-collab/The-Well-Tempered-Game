@@ -160,3 +160,23 @@ button.hear { margin-top: 6px; min-height: 26px; font-size: 0.8rem; padding: 2px
 .chipbtn.target { font-weight: 600; color: var(--accent); }
 .knob-sep { width: 1px; align-self: stretch; background: var(--line); margin: 4px 4px; }
 .presets { grid-template-columns: repeat(3, auto); }
+
+.rack-fx { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; }
+.rack-fx .fx { display: flex; align-items: center; gap: 2px; }
+.rack select.model { font: inherit; font-size: 0.78rem; padding: 2px 4px; border: 1px solid var(--line); border-radius: 4px; background: #fff; color: var(--ink); }
+.chipbtn:disabled, .rack select:disabled { opacity: 0.5; cursor: not-allowed; }
+button.tuning { font-size: 0.78rem; min-width: 0; }
+
+.compare h4 { margin: 12px 0 4px; font-size: 0.95rem; }
+.compare > ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.compare .where { font-size: 0.88rem; font-weight: 600; }
+.compare .reasons { margin: 2px 0 0; padding-left: 18px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 2px; }
+.compare .reasons .fuxBetter::marker { content: "◆ "; color: var(--accent); }
+.compare .reasons .playerBetter::marker { content: "★ "; color: #c8962a; }
+.compare .reasons .equal { color: var(--muted); }
+
+.score-box { position: relative; width: 100%; }
+svg.ghost { position: absolute; pointer-events: none; overflow: visible; }
+svg.ghost ellipse { fill: var(--ink-player); opacity: 0.35; }
+svg.ghost ellipse.hole { fill: #fff; opacity: 0.9; }
+svg.ghost line { stroke: var(--ink-player); stroke-width: 1.2; opacity: 0.45; }
