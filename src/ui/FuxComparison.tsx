@@ -12,31 +12,35 @@ export function FuxComparison({ cantus, player, fux, layout }: { cantus: string[
   const half = layout.length > cantus.length;
   if (all.length === 0) return <p className="help">{t("ui.compare.none")}</p>;
   if (diffs.length === 0) return <p className="help">{t("ui.compare.taste")}</p>;
-  const reason = (side: "fuxBetter" | "playerBetter", c: Criterion) => <li key={`${side}-${c}`} className={side}>{t(`ui.compare.${side}.${c}`)}</li>;
+  const where = (d: (typeof diffs)[number]) => (half ? `${d.bar + 1}${d.beat ? "b" : "a"}` : String(d.bar + 1));
+  // One line per reason, naming every bar it applies to (owner: say it once).
+  const groups = new Map<string, { cls: string; text: React.ReactNode; bars: string[] }>();
+  const add = (key: string, cls: string, text: React.ReactNode, d: (typeof diffs)[number]) => {
+    const g = groups.get(key) ?? { cls, text, bars: [] };
+    g.bars.push(where(d));
+    groups.set(key, g);
+  };
+  for (const d of diffs) {
+    for (const c of d.fuxBetter) add(`f-${c}`, "fuxBetter", t(`ui.compare.fuxBetter.${c}`), d);
+    for (const c of d.playerBetter) add(`p-${c}`, "playerBetter", t(`ui.compare.playerBetter.${c}`), d);
+    for (const c of d.mannPlayerBetter) add(`mp-${c}`, "mann playerBetter", <><strong>{t("ui.compare.mann.player")}</strong> {t(`ui.compare.mann.${c}`)}</>, d);
+    for (const c of d.mannFuxBetter) add(`mf-${c}`, "mann fuxBetter", <><strong>{t("ui.compare.mann.fux")}</strong> {t(`ui.compare.mann.${c}`)}</>, d);
+  }
   return (
     <section className="compare">
       <h4>{t("ui.compare.title")}</h4>
       <p className="help">{t("ui.compare.intro")} {t("ui.compare.mannNote")}</p>
-      <ul>
+      <ul className="where-list">
         {diffs.map((d) => (
           <li key={d.column}>
-            <div className="where">
-              {t(half ? "ui.compare.barBeat" : "ui.compare.bar", { bar: d.bar + 1, beat: t(d.beat ? "ui.compare.upbeat" : "ui.compare.downbeat"), player: pretty(d.player), pi: d.playerInterval, fux: pretty(d.fux), fi: d.fuxInterval })}
-            </div>
-            <ul className="reasons">
-              {d.fuxBetter.map((c) => reason("fuxBetter", c))}
-              {d.playerBetter.map((c) => reason("playerBetter", c))}
-              {d.mannPlayerBetter.length > 0 && (
-                <li className="mann playerBetter">
-                  <strong>{t("ui.compare.mann.player")}</strong> {d.mannPlayerBetter.map((c) => t(`ui.compare.mann.${c}`)).join("; ")}
-                </li>
-              )}
-              {d.mannFuxBetter.length > 0 && (
-                <li className="mann fuxBetter">
-                  <strong>{t("ui.compare.mann.fux")}</strong> {d.mannFuxBetter.map((c) => t(`ui.compare.mann.${c}`)).join("; ")}
-                </li>
-              )}
-            </ul>
+            {t(half ? "ui.compare.barBeat" : "ui.compare.bar", { bar: d.bar + 1, beat: t(d.beat ? "ui.compare.upbeat" : "ui.compare.downbeat"), player: pretty(d.player), pi: d.playerInterval, fux: pretty(d.fux), fi: d.fuxInterval })}
+          </li>
+        ))}
+      </ul>
+      <ul className="reasons">
+        {[...groups].map(([key, g]) => (
+          <li key={key} className={g.cls}>
+            <strong className="bars">{t(g.bars.length > 1 ? "ui.compare.bars" : "ui.compare.barOne", { bars: g.bars.join(", ") })}</strong> {g.text}
           </li>
         ))}
       </ul>

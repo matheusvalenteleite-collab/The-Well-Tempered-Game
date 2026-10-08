@@ -6,6 +6,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Accidental, ModifierContext, Renderer, Stave, StaveConnector, StaveNote, StaveTie, TickContext } from "vexflow";
 import { parsePitch } from "../../music/pitch.ts";
+import { harmonic, simpleName } from "../../counterpoint/interval.ts";
 import type { Staff } from "../../music/fux/types.ts";
 import { pitchAtPosition, VEXFLOW_CLEF, type ClefId } from "./clefs.ts";
 import type { Overlay, Status } from "./overlay.ts";
@@ -54,10 +55,13 @@ export interface ScoreProps {
    */
   continuo?: { realization: ContinuoRealization; display: "figured" | "realization" | "both" };
   /**
-   * Further lines derived from the player's (inversion, retrograde, canon...), each on its own
-   * read-only staff below the score, in the counterpoint's clef and in its own ink (D47).
+   * Further lines derived from the player's (inversion, retrograde, canon...), drawn on the
+   * player's staff in their own ink, named in the legend (D47, D58). With `intervals`, each gets
+   * its row of intervals against the cantus, in its ink and in italic.
    */
   extraLines?: { label: string; notes: (string | null)[]; ink: string }[];
+  /** Interval rows for the extra lines (the "Intervals" view toggle). */
+  extraIntervals?: boolean;
   /** Ink and label of the line on the player's staff when it is a derived version, not the written line. */
   playerInk?: string;
   playerLabel?: string;
@@ -75,12 +79,12 @@ interface Ghost {
 
 /** Staff positions: close together normally, apart when the evaluation overlay needs the space. */
 const LAYOUT = {
+  /** Excerpts: close together, apart when the overlay needs the space. */
   plain: { staffY: [20, 120], height: 240 },
   overlay: { staffY: [20, 175], height: 300 },
+  /** The main score: one layout whatever is shown, so that nothing moves (D58). */
+  main: { staffY: [20, 205], height: 330 },
 };
-/** Vertical positions (logical) of the overlay between the staves. */
-const LABEL_Y = 152;
-const LINK_Y = 164;
 /** Horizontal space per bar (logical units): compact, so the melodic shape reads at a glance. */
 const BAR_W = 58;
 /** A bar holding two half notes. */
@@ -95,8 +99,6 @@ const UI_FONT = "Inter, system-ui, sans-serif";
 const SERIF = "'EB Garamond', Garamond, Georgia, serif";
 /** Size of the continuo staves relative to the main staves. */
 const CUE = 0.75;
-/** Height (logical) of each extra staff for a derived line. */
-const EXTRA_H = 100;
 /** Gap (logical) between the score proper and the continuo block. */
 const CUE_GAP = -12;
 const CONTINUO_INK = "var(--ink-continuo)";
@@ -137,7 +139,11 @@ export function ScoreView(props: ScoreProps) {
     const el = host.current;
     if (!el || width === 0) return;
     el.innerHTML = "";
-    const { staffY: STAFF_Y, height: HEIGHT } = props.overlay ? LAYOUT.overlay : LAYOUT.plain;
+    const { staffY: STAFF_Y, height: HEIGHT } = props.fixedScale === undefined ? LAYOUT.main : props.overlay ? LAYOUT.overlay : LAYOUT.plain;
+    // Overlay rows between the staves: the player's intervals, the links under them, and above
+    // them one row per derived line.
+    const LABEL_Y = STAFF_Y[1] - 23;
+    const LINK_Y = LABEL_Y + 12;
     // Probe the clef/time-signature width, then size the score to its bars instead of the container.
     const probe = new Stave(8, 0, 400);
     const sig = props.signature ?? {};
@@ -172,24 +178,15 @@ export function ScoreView(props: ScoreProps) {
     staves.forEach((s) => s.setNoteStartX(start));
     const xOfBar = (b: number) => start + barX[b];
 
-    // Extra staves for the derived lines, then the continuo (laid out first, in its own cue-scaled
-    // coordinates, to know its height). Neither takes part in input.
+    // The continuo is laid out first (in its own, cue-scaled coordinates) to know its height; it
+    // takes no part in input.
     const extras = props.extraLines ?? [];
     const cpClef = VEXFLOW_CLEF[props.clefs[props.cantusVoice === "upper" ? 1 : 0]];
-    const extraStaves = extras.map((_, i) => {
-      const st = new Stave(8, HEIGHT - 30 + i * EXTRA_H, logicalWidth - 16);
-      st.addClef(cpClef.clef, "default", cpClef.annotation);
-      if (keySpec) st.addKeySignature(keySpec);
-      st.addTimeSignature("C|");
-      st.setEndBarType(3);
-      st.setNoteStartX(start);
-      return st;
-    });
-    const scoreBottom = HEIGHT + extras.length * EXTRA_H;
+    const scoreBottom = HEIGHT;
     const cue = props.continuo && props.continuo.realization.bars.length === bars ? layoutContinuo(props.continuo, logicalWidth, start, xOfBar, barW, sig) : null;
     const continuoTop = scoreBottom + CUE_GAP;
     const totalHeight = cue ? continuoTop + cue.height * CUE : scoreBottom;
-    const inertTop = extras.length ? HEIGHT - 4 : cue ? continuoTop : undefined;
+    const inertTop = cue ? continuoTop : undefined;
 
     const renderer = new Renderer(el, Renderer.Backends.SVG);
     renderer.resize(Math.ceil(logicalWidth * scale), Math.ceil(totalHeight * scale));
@@ -252,7 +249,7 @@ export function ScoreView(props: ScoreProps) {
     const top = STAFF_Y[0] - 10;
     // The playback cursor runs down through the continuo; marks and selection stay on the score.
     const bottom = STAFF_Y[1] + 100;
-    const cursorBottom = cue || extras.length ? totalHeight - 4 : bottom;
+    const cursorBottom = cue ? totalHeight - 4 : bottom;
     const rect = (k: number, cls: string) => {
       const c = columns[k];
       ctx.save();
@@ -278,30 +275,26 @@ export function ScoreView(props: ScoreProps) {
     for (let b = 1; b < bars; b++) staves.forEach((s) => ctx.fillRect(xOfBar(b) - 2, s.getYForLine(0), 1, s.getYForLine(4) - s.getYForLine(0)));
     ctx.restore();
     for (const n of [...cfNotes, ...fuxNotes, ...cpNotes]) n?.setContext(ctx).draw();
-    // Derived lines: one read-only staff each, labelled, in its ink.
-    extraStaves.forEach((st, i) => {
-      const line = extras[i];
-      st.setContext(ctx).draw();
-      ctx.save();
-      ctx.setFillStyle("currentColor");
-      for (let b = 1; b < bars; b++) ctx.fillRect(xOfBar(b) - 2, st.getYForLine(0), 1, st.getYForLine(4) - st.getYForLine(0));
-      ctx.setFillStyle(line.ink);
-      ctx.setFont(SERIF, 10, "italic");
-      ctx.fillText(line.label, st.getNoteEndX() - 4 - ctx.measureText(line.label).width, st.getYForLine(0) - 6);
-      ctx.restore();
-      layout.forEach((sl, k) => {
+    // Derived lines, on the player's staff in their own ink; a notehead that would touch one
+    // already in its slot moves right (D58).
+    const occupied: number[][] = layout.map((_, k) => {
+      const out: number[] = [];
+      for (const q of [props.counterpoint[k], props.fux?.[k]]) if (q && q !== REST) out.push(parsePitch(q).diatonic);
+      return out;
+    });
+    const extraNotes = extras.map((line) =>
+      layout.map((sl, k) => {
         const p = line.notes[k];
-        if (p === null || p === undefined) return;
+        if (p === null || p === undefined || p === REST) return null;
         const dur = sl.duration === "1/1" ? "w" : "h";
-        let n: StaveNote;
-        if (p === REST) n = new StaveNote({ keys: [cpClef.clef === "bass" ? "d/3" : "b/4"], duration: `${dur}r`, clef: cpClef.clef });
-        else {
-          const { key, acc } = vexKey(p, sig);
-          n = new StaveNote({ keys: [key], duration: dur, clef: cpClef.clef });
-          if (acc) n.addModifier(new Accidental(acc));
-          n.setStyle({ fillStyle: line.ink, strokeStyle: line.ink });
-        }
-        n.setStave(st);
+        const { key, acc } = vexKey(p, sig);
+        const n = new StaveNote({ keys: [key], duration: dur, clef: cpClef.clef, stem_direction: 1 });
+        if (acc) n.addModifier(new Accidental(acc));
+        n.setStyle({ fillStyle: line.ink, strokeStyle: line.ink });
+        n.setStave(staves[cpIndex]);
+        const d = parsePitch(p).diatonic;
+        const nudges = occupied[k].filter((o) => Math.abs(o - d) <= 1).length;
+        occupied[k].push(d);
         const mc = new ModifierContext();
         n.addToModifierContext(mc);
         mc.preFormat();
@@ -309,18 +302,25 @@ export function ScoreView(props: ScoreProps) {
         tc.addTickable(n);
         tc.preFormat();
         tc.setX(0);
-        tc.setX(columns[k].left + NOTE_PAD - n.getAbsoluteX());
+        tc.setX(columns[k].left + NOTE_PAD + nudges * 9 - n.getAbsoluteX());
         n.setContext(ctx).draw();
+        return { n, x: columns[k].left + NOTE_PAD + nudges * 9 };
+      }),
+    );
+    if (props.extraIntervals)
+      extras.forEach((line, i) => {
+        ctx.save();
+        ctx.setFillStyle(line.ink);
+        ctx.setFont(UI_FONT, 9, "italic");
+        layout.forEach((sl, k) => {
+          const p = line.notes[k];
+          if (!p || p === REST) return;
+          const text = simpleName(harmonic(props.cantus[sl.bar - firstSlotBar], p));
+          ctx.fillText(text, columns[k].x - ctx.measureText(text).width / 2, LABEL_Y - 13 * (i + 1));
+        });
+        ctx.restore();
       });
-    });
-    if (props.playerLabel) {
-      ctx.save();
-      ctx.setFillStyle(props.playerInk ?? "var(--ink-player)");
-      ctx.setFont(SERIF, 10, "italic");
-      const st = staves[cpIndex];
-      ctx.fillText(props.playerLabel, st.getNoteEndX() - 4 - ctx.measureText(props.playerLabel).width, st.getYForLine(0) - 6);
-      ctx.restore();
-    }
+
     if (cue) {
       const g = ctx.openGroup("continuo") as SVGGElement;
       g.setAttribute("transform", `translate(0 ${continuoTop}) scale(${CUE})`);
@@ -343,21 +343,33 @@ export function ScoreView(props: ScoreProps) {
       props.cantus.forEach((p, b) => label(p, cfNotes[b], xOfBar(b) + NOTE_PAD + 17, "var(--ink-muted)"));
       layout.forEach((sl, k) => {
         const p = props.counterpoint[k];
-        if (p) label(p, cpNotes[k], columns[k].left + NOTE_PAD + (sl.duration === "1/1" ? 17 : 13), "var(--ink-player)");
+        if (p) label(p, cpNotes[k], columns[k].left + NOTE_PAD + (sl.duration === "1/1" ? 17 : 13), props.playerInk ?? "var(--ink-player)");
+        const f = props.fux?.[k];
+        if (f) label(f, fuxNotes[k], columns[k].left + NOTE_PAD + (sl.duration === "1/1" ? 17 : 13) + 10, "var(--ink-fux)");
+        extras.forEach((line, i) => {
+          const e = extraNotes[i][k];
+          const q = line.notes[k];
+          if (e && q) label(q, e.n, e.x + (sl.duration === "1/1" ? 17 : 13), line.ink);
+        });
       });
     }
-    if (props.fux) {
-      // Legend, top right of the counterpoint staff.
+    if (props.fux || extras.length) {
+      // Legend, top right: every line on the player's staff, in its ink.
       ctx.save();
       ctx.setFont(UI_FONT, 9, "500");
       const y = 11;
-      const xr = staves[0].getNoteEndX() - 4;
-      ctx.setFillStyle("var(--ink-fux)");
-      const fuxLabel = "◇ Fux";
-      ctx.fillText(fuxLabel, xr - ctx.measureText(fuxLabel).width, y);
-      ctx.setFillStyle("var(--ink-player)");
-      const meLabel = "● you    ";
-      ctx.fillText(meLabel, xr - ctx.measureText(fuxLabel).width - ctx.measureText(meLabel).width, y);
+      let xr = staves[0].getNoteEndX() - 4;
+      const items: [string, string][] = [
+        [`● ${props.playerLabel ?? "you"}`, props.playerInk ?? "var(--ink-player)"],
+        ...extras.map((l): [string, string] => [`● ${l.label}`, l.ink]),
+        ...(props.fux ? [["◇ Fux", "var(--ink-fux)"] as [string, string]] : []),
+      ];
+      for (const [text, ink] of items.reverse()) {
+        ctx.setFillStyle(ink);
+        const w = ctx.measureText(text).width;
+        ctx.fillText(text, xr - w, y);
+        xr -= w + 12;
+      }
       ctx.restore();
     }
 
@@ -433,7 +445,7 @@ export function ScoreView(props: ScoreProps) {
     };
     geo.current = g;
     el.dataset.geometry = JSON.stringify(g); // read by the browser tests
-  }, [width, props.showNames, props.cantus, props.counterpoint, props.fux, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay, props.continuo, props.extraLines, props.playerInk, props.playerLabel, props.signature]);
+  }, [width, props.showNames, props.cantus, props.counterpoint, props.fux, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay, props.continuo, props.extraLines, props.extraIntervals, props.playerInk, props.playerLabel, props.signature]);
 
   const press = useRef<{ x: number; y: number; dragging: boolean; from: number } | null>(null);
 

@@ -119,7 +119,10 @@ export function trioReading(cantus: string[], player: (string | null)[], fux: (s
   }
   if (triads.length) out.push({ kind: "completeTriad", tone: "good", slots: triads });
   if (contrary.length) out.push({ kind: "contrary", tone: "good", slots: contrary });
-  return out;
+  // The cadence (owner): the final two bars are exempt from the faults and notes between the two
+  // counterpoints; there both lines usually take the same formula (7-8 or 2-1) by necessity.
+  const lastBars = new Set(layout.filter((sl) => sl.bar - firstBar >= cantus.length - 2).map((sl) => layout.indexOf(sl)));
+  return out.filter((f) => f.tone === "good" || !f.slots.every((k) => lastBars.has(k)));
 }
 
 /** The note at slot k is approached and left by step (a passing note). */

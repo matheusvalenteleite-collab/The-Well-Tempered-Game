@@ -215,7 +215,33 @@ export function App() {
   const column = (k: number, notes = session.notes) => ({ cantus: VIEW.cantus[VIEW.layout[k].bar], counterpoint: sounding(notes[k]) ? notes[k] : null });
   const audition = (k: number, notes = session.notes) => void audio.playColumn(column(k, notes), audio.barSeconds * slotLength(VIEW.layout[k]));
 
+  /** Undo/redo (D59): the written line's history, per exercise. */
+  const history = useRef(new Map<number, { past: (string | null)[][]; future: (string | null)[][] }>());
+  const hist = () => {
+    let h = history.current.get(stepIndex);
+    if (!h) history.current.set(stepIndex, (h = { past: [], future: [] }));
+    return h;
+  };
+  const remember = (notes: (string | null)[]) => {
+    const h = hist();
+    h.past.push(notes);
+    if (h.past.length > 200) h.past.shift();
+    h.future = [];
+  };
+  const restore = (dir: "undo" | "redo") => {
+    const h = hist();
+    const from = dir === "undo" ? h.past : h.future;
+    const to = dir === "undo" ? h.future : h.past;
+    const notes = from.pop();
+    if (!notes) return;
+    to.push(session.notes);
+    setSession({ ...session, notes });
+    setResult(null);
+    setShowFux(false);
+  };
+
   const update = (next: SessionState, sound = true) => {
+    if (next.notes.some((n, k) => n !== session.notes[k])) remember(session.notes);
     setSession(next);
     if (next.notes.some((n, k) => n !== session.notes[k])) {
       setResult(null);
@@ -473,7 +499,7 @@ export function App() {
 
   // Live changes (D57): what is heard follows the score while it plays. A change of the line, of the
   // versions or of the continuo restarts the playback at once, from the bar under the cursor.
-  const liveKey = JSON.stringify([versions, session.notes, continuoAvailable, continuoSettings, tuning]);
+  const liveKey = JSON.stringify([versions, session.notes, continuoAvailable, continuoSettings, tuning, humanise]);
   const lastLiveKey = useRef(liveKey);
   useEffect(() => {
     if (lastLiveKey.current === liveKey) return;
@@ -498,9 +524,17 @@ export function App() {
 
   /** Keys drive the score wherever focus is (buttons, knobs), except in form fields and dialogs. */
   const onKey = (e: KeyboardEvent) => {
-    if (showCredits || showHelp || showSaved || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
     const target = e.target as HTMLElement | null;
     if (target && ["TEXTAREA", "SELECT", "INPUT"].includes(target.tagName)) return;
+    if (!showCredits && !showHelp && !showSaved && (e.ctrlKey || e.metaKey) && !e.altKey && versions.original) {
+      const key = e.key.toLowerCase();
+      if (key === "z" || key === "y") {
+        restore(key === "y" || e.shiftKey ? "redo" : "undo");
+        e.preventDefault();
+        return;
+      }
+    }
+    if (showCredits || showHelp || showSaved || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
     const k = e.key;
     const s = session;
     // Only the written line is editable; while it is hidden (D47) the keys only browse and play.
@@ -670,6 +704,7 @@ export function App() {
           <div className="view-toggles" role="group" aria-label={t("ui.view.label")}>
             <button className="chipbtn" aria-pressed={showNames} onClick={() => setShowNames(!showNames)} title={t("ui.view.namesHelp")}>{t("ui.view.names")}</button>
             <button className="chipbtn" aria-pressed={showIntervals} onClick={() => setShowIntervals(!showIntervals)} title={t("ui.view.intervalsHelp")}>{t("ui.view.intervals")}</button>
+            <button className="chipbtn" aria-pressed={humanise} onClick={() => setHumanise(!humanise)} title={t("ui.demo.humaniseHelp")}>{t("ui.view.humanise")}</button>
           </div>
         </div>
         <blockquote className="tutor" lang="en">
@@ -687,6 +722,7 @@ export function App() {
             playerInk={versions.original ? undefined : VERSION_INK[shownLines[0].id as VersionId]}
             playerLabel={versions.original ? (shownLines.length > 1 ? t("ui.versions.original") : undefined) : t(`ui.versions.${shownLines[0].id}`, { n: versions.canonShift })}
             extraLines={shownLines.slice(1).map((l) => ({ label: t(`ui.versions.${l.id}`, { n: versions.canonShift }), notes: l.notes, ink: VERSION_INK[l.id as VersionId] }))}
+            extraIntervals={showIntervals}
             layout={VIEW.layout}
             cantusVoice={VIEW.cantusVoice}
             clefs={clefs}
@@ -703,6 +739,7 @@ export function App() {
             onPlace={(col, natural) => update(place(session, col, natural))}
             onSelect={(col) => browse(col)}
             onDrag={(from, to, natural) => {
+              if (!dragBase.current) remember(session.notes);
               dragBase.current ??= session;
               const next = moveNote(dragBase.current, from, to, natural);
               setSession(next);
@@ -730,6 +767,8 @@ export function App() {
               </button>
             )}
             <button onClick={() => update(freshSession(stepIndex), false)}>{t("ui.clearAll")}</button>
+            <button className="icon" onClick={() => restore("undo")} disabled={!versions.original || hist().past.length === 0} aria-label={t("ui.undo")} title={t("ui.undoHelp")}>↶</button>
+            <button className="icon" onClick={() => restore("redo")} disabled={!versions.original || hist().future.length === 0} aria-label={t("ui.redo")} title={t("ui.redoHelp")}>↷</button>
           </div>
           <div className="group judge">
             <button className="primary" aria-pressed={result !== null} onClick={toggleEvaluation} disabled={missing > 0 && !result} title={missing > 0 ? t("ui.evaluate.incomplete", { missing }) : undefined}>
@@ -766,6 +805,8 @@ export function App() {
             versions={versions}
             onVersions={setVersions}
             slots={VIEW.layout.length}
+            showFux={showFux && fuxOpen}
+            onShowFux={setShowFux}
             value={sound}
             onChange={setSound}
             fuxOpen={fuxOpen}

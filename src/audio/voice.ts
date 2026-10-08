@@ -244,7 +244,7 @@ export class Synth implements Instrument {
     src.playbackRate.value = freq / (440 * 2 ** ((best.midi - 69) / 12));
     const g = this.ctx.createGain();
     // Within a layer, velocity still shades the level (about ±6 dB around the neutral 0.75).
-    g.gain.value = SET_GAIN[set] * (0.5 + 0.67 * velocity) * (layers.length > 1 && layer === layers[0] ? 1.35 : 1);
+    g.gain.value = SET_GAIN[set] * (0.2 + 1.07 * velocity) * (layers.length > 1 && layer === layers[0] ? 1.35 : 1);
     src.connect(g).connect(out);
     src.start(time);
     src.stop(Math.min(end, time + best.buffer.duration / src.playbackRate.value));
@@ -267,7 +267,7 @@ export class Synth implements Instrument {
     // ADSR: attack to 1, decay to the sustain level, hold until the note ends, then release.
     // Velocity shades the loudness of the synthesized models (about ±6 dB around 0.75); the
     // recorded ones choose a layer and shade it themselves.
-    const peak = isSampled(st.model) ? 1 : 0.5 + 0.67 * velocity;
+    const peak = isSampled(st.model) ? 1 : 0.2 + 1.07 * velocity;
     env.gain.setValueAtTime(0, time);
     env.gain.linearRampToValueAtTime(peak, time + a);
     env.gain.setTargetAtTime(st.sustain * peak, time + a, Math.max(0.001, st.decay) / 3);

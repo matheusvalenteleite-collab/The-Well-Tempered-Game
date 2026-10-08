@@ -7,7 +7,7 @@ import { SynthRack, presetName } from "./SynthRack.tsx";
 import { DrumBox } from "./DrumBox.tsx";
 import { ContinuoBox } from "./ContinuoBox.tsx";
 import { CONTINUO_DISPLAYS, type ContinuoSettings } from "../game/continuo-settings.ts";
-import { activeVersions, VERSION_IDS, type VersionId, type Versions } from "../game/versions.ts";
+import { VERSION_IDS, type VersionId, type Versions } from "../game/versions.ts";
 import { t } from "./i18n.ts";
 
 interface Props {
@@ -33,6 +33,9 @@ interface Props {
   onVersions(v: Versions): void;
   /** Slots in the exercise (the canon's displacement wraps round them). */
   slots: number;
+  /** Fux's solution on the score (only once the exercise is cleared). */
+  showFux: boolean;
+  onShowFux(show: boolean): void;
   /** Folded to a single line. */
   open: boolean;
   onOpen(open: boolean): void;
@@ -50,6 +53,19 @@ export function SoundDesk(p: Props) {
   const [ask, setAsk] = useState<Link | null>(null);
   const s = p.value;
 
+  const toggleVersion = (k: "original" | VersionId) => {
+    const next = { ...p.versions, [k]: !p.versions[k] };
+    // Something is always heard: switching the last line off brings the original back.
+    if (!next.original && !VERSION_IDS.some((id) => next[id])) next.original = true;
+    p.onVersions(next);
+  };
+  const canonStepper = (
+    <div className="octave canon-shift" title={t("ui.mixer.canonShift", { n: p.versions.canonShift })}>
+      <button className="chipbtn" tabIndex={-1} disabled={!p.versions.canon || p.versions.canonShift <= 0} onClick={() => p.onVersions({ ...p.versions, canonShift: p.versions.canonShift - 1 })} aria-label={t("ui.mixer.canonEarlier")}>‹</button>
+      <span>C+{p.versions.canonShift}</span>
+      <button className="chipbtn" tabIndex={-1} disabled={!p.versions.canon || p.versions.canonShift >= p.slots - 1} onClick={() => p.onVersions({ ...p.versions, canonShift: p.versions.canonShift + 1 })} aria-label={t("ui.mixer.canonLater")}>›</button>
+    </div>
+  );
   const strip = (x: Strip) => {
     const m = s.mix[x];
     const isVoice = VOICES.includes(x as Channel);
@@ -59,7 +75,7 @@ export function SoundDesk(p: Props) {
       : x === "drums"
         ? t(`ui.drums.pattern.${patternById(p.drumKit.pattern).id}`)
         : t(`ui.continuo.preset.${p.continuoSettings.preset}`);
-    const dim = (x === "counterpoint" && !p.versions.original) || (x === "fux" && !p.fuxOpen) || (x === "drums" && !p.drums) || (x === "continuo" && !p.continuo);
+    const dim = (x === "counterpoint" && !p.versions.original) || (isVersion && !p.versions[x as VersionId]) || (x === "fux" && !p.fuxOpen) || (x === "drums" && !p.drums) || (x === "continuo" && !p.continuo);
     // Clicking anywhere on a strip that is not one of its controls selects it.
     const pick = (e: React.MouseEvent) => {
       if (!(e.target as HTMLElement).closest("button, input, select, .knob")) setSelected(x);
@@ -105,24 +121,23 @@ export function SoundDesk(p: Props) {
                 tabIndex={-1}
                 aria-pressed={p.versions[k]}
                 title={t(`ui.versions.help.${k}`)}
-                onClick={() => {
-                  const next = { ...p.versions, [k]: !p.versions[k] };
-                  // Something is always heard: switching the last line off brings the original back.
-                  if (!next.original && !VERSION_IDS.some((id) => next[id])) next.original = true;
-                  p.onVersions(next);
-                }}
+                onClick={() => toggleVersion(k)}
               >
                 {t(`ui.versions.short.${k}`)}
               </button>
             ))}
           </div>
         )}
-        {x === "canon" && (
-          <div className="octave" title={t("ui.mixer.canonShift", { n: p.versions.canonShift })}>
-            <button className="chipbtn" tabIndex={-1} disabled={p.versions.canonShift <= 0} onClick={() => p.onVersions({ ...p.versions, canonShift: p.versions.canonShift - 1 })} aria-label={t("ui.mixer.canonEarlier")}>‹</button>
-            <span>+{p.versions.canonShift}</span>
-            <button className="chipbtn" tabIndex={-1} disabled={p.versions.canonShift >= p.slots - 1} onClick={() => p.onVersions({ ...p.versions, canonShift: p.versions.canonShift + 1 })} aria-label={t("ui.mixer.canonLater")}>›</button>
-          </div>
+        {(x === "canon" || x === "counterpoint") && canonStepper}
+        {isVersion && (
+          <button className="chipbtn" tabIndex={-1} aria-pressed={p.versions[x as VersionId]} onClick={() => toggleVersion(x as VersionId)}>
+            {p.versions[x as VersionId] ? t("ui.continuo.on") : t("ui.continuo.off")}
+          </button>
+        )}
+        {x === "fux" && (
+          <button className="chipbtn" tabIndex={-1} aria-pressed={p.showFux} disabled={!p.fuxOpen} title={t(p.fuxOpen ? "ui.mixer.fuxScoreHelp" : "ui.play.locked")} onClick={() => p.onShowFux(!p.showFux)}>
+            {p.showFux ? t("ui.mixer.fuxHide") : t("ui.mixer.fuxShow")}
+          </button>
         )}
         {x === "drums" && (
           <button className="chipbtn" tabIndex={-1} aria-pressed={p.drums} onClick={() => p.onDrums(!p.drums)}>{p.drums ? t("ui.drums.on") : t("ui.drums.off")}</button>
@@ -196,8 +211,8 @@ export function SoundDesk(p: Props) {
         {strip("counterpoint")}
         {chain("counterpointFux")}
         {strip("fux")}
-        {activeVersions(p.versions).length > 0 && <span className="desk-gap" />}
-        {activeVersions(p.versions).map((id) => strip(id))}
+        <span className="desk-gap" />
+        {VERSION_IDS.map((id) => strip(id))}
         <span className="desk-gap" />
         {strip("drums")}
         {strip("continuo")}

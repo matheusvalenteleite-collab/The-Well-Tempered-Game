@@ -69,24 +69,25 @@ export function humanisePlan(events: PlayEvent[]): EventShape[] {
   return events.map((e, k) => {
     const pos = (e.at + e.length / 2) / total;
     const downbeat = Number.isInteger(e.at);
-    // 6. Final ritardando: the last ~15% slows progressively, up to about a third slower.
+    // 6. Final ritardando: the last ~15% slows progressively, up to about 40% slower; and the
+    // phrase arch in time (2): a little broader at the start, moving on in the middle.
     const tail = clamp(((e.at + e.length) / total - 0.85) / 0.15, 0, 1);
-    const stretch = 1 + 0.35 * tail * tail;
+    const stretch = (1 + 0.4 * tail * tail) * (1 + 0.06 * (1 - Math.sin(Math.PI * clamp(pos, 0, 1))));
     const notes: Record<string, NoteShape> = {};
     for (const [v, p] of Object.entries(voicesOf(e))) {
       const x = parsePitch(p);
       let vel = NEUTRAL;
-      vel += downbeat ? 0.05 : -0.04; // 1
-      vel += 0.08 * Math.sin(Math.PI * clamp(pos, 0, 1)) - 0.04; // 2
-      vel += clamp(0.006 * (x.midi - (mean.get(v) ?? x.midi)), -0.06, 0.06); // 3
-      vel += 0.025 * noise(k, v.length); // 7
+      vel += downbeat ? 0.1 : -0.08; // 1
+      vel += 0.16 * Math.sin(Math.PI * clamp(pos, 0, 1)) - 0.08; // 2
+      vel += clamp(0.012 * (x.midi - (mean.get(v) ?? x.midi)), -0.1, 0.1); // 3
+      vel += 0.04 * noise(k, v.length); // 7
       let length = 1;
       const next = nextOf.get(v)?.get(k);
-      if (next && next.midi === x.midi) length *= 0.82; // 4
-      else if (next && Math.abs(next.diatonic - x.diatonic) >= 3) length *= 0.9; // 5
+      if (next && next.midi === x.midi) length *= 0.72; // 4
+      else if (next && Math.abs(next.diatonic - x.diatonic) >= 3) length *= 0.85; // 5
       if (k === events.length - 1 || (pos > 0.97 && v === "cantus")) length *= 1.15; // 6
       notes[v] = { velocity: clamp(vel, 0.4, 1), length };
     }
-    return { delay: 0.008 * noise(k, 7), stretch, notes }; // 7
+    return { delay: 0.015 * noise(k, 7), stretch, notes }; // 7
   });
 }
