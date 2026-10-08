@@ -26,6 +26,7 @@ import { ContinuoBox } from "./ContinuoBox.tsx";
 import { realizeContinuo } from "../continuo/realize.ts";
 import { playContinuo } from "../continuo/audio.ts";
 import { continuoInput, continuoKey, continuoOptions, type PlayMode } from "../game/continuo-input.ts";
+import { transformLine } from "../game/transform.ts";
 import { DEFAULT_CONTINUO_SETTINGS, validContinuoSettings, type ContinuoSettings } from "../game/continuo-settings.ts";
 import { CONTINUO_DEMO_MODE } from "../config.ts";
 import { t } from "./i18n.ts";
@@ -242,19 +243,21 @@ export function App() {
 
   // Basso continuo (decision D44): generated for pleasure from whatever is written (demo mode),
   // realized for the player's line or Fux's, doubled colla parte for the trio. No part in grading.
+  // The line as heard: the written one, or its inversion / retrograde from the mixer (listening only).
+  const heard = useMemo(() => transformLine(session.notes, sound.cpTransform), [session.notes, sound.cpTransform]);
   const continuoAvailable = continuo && (CONTINUO_DEMO_MODE || Boolean(result?.passed));
   const continuoMode: PlayMode = playMode !== "player" && fuxOpen ? playMode : "player";
   const cOpts = continuoOptions(continuoMode, continuoSettings);
-  const cKey = continuoKey(STEP.id, continuoMode === "fux" ? VIEW.fux ?? [] : session.notes, continuoMode, cOpts);
+  const cKey = continuoKey(STEP.id, continuoMode === "fux" ? VIEW.fux ?? [] : heard, continuoMode, cOpts);
   const continuoPlan = useMemo(() => {
     if (!continuoAvailable) return null;
-    const input = continuoInput(VIEW, continuoMode === "fux" ? VIEW.fux! : session.notes, continuoMode);
+    const input = continuoInput(VIEW, continuoMode === "fux" ? VIEW.fux! : heard, continuoMode);
     return { input, realization: realizeContinuo(input, cOpts) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [continuoAvailable, cKey]);
   const realizationFor = (mode: PlayMode) => {
     if (mode === continuoMode) return continuoPlan;
-    const input = continuoInput(VIEW, mode === "fux" ? VIEW.fux! : session.notes, mode);
+    const input = continuoInput(VIEW, mode === "fux" ? VIEW.fux! : heard, mode);
     return { input, realization: realizeContinuo(input, continuoOptions(mode, continuoSettings)) };
   };
 
@@ -270,10 +273,10 @@ export function App() {
     setPlaying(true);
     const events =
       mode === "player"
-        ? timeline(VIEW.cantus, VIEW.layout, session.notes)
+        ? timeline(VIEW.cantus, VIEW.layout, heard)
         : mode === "fux"
           ? timeline(VIEW.cantus, VIEW.layout, VIEW.fux!)
-          : timeline(VIEW.cantus, VIEW.layout, session.notes, undefined, undefined, VIEW.fux!);
+          : timeline(VIEW.cantus, VIEW.layout, heard, undefined, undefined, VIEW.fux!);
     const plan = continuoAvailable ? realizationFor(mode) : null;
     const startContinuo = (startTime: number) => {
       const graph = audio.graph;

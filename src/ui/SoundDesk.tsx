@@ -70,6 +70,15 @@ export function SoundDesk(p: Props) {
             <button className="chipbtn" tabIndex={-1} disabled={s.fuxOctave >= 3} onClick={() => p.onChange({ ...s, fuxOctave: s.fuxOctave + 1 })} aria-label={t("ui.mixer.octaveUp")}>›</button>
           </div>
         )}
+        {x === "counterpoint" && (
+          <div className="ms transform" title={t("ui.mixer.transformHelp")}>
+            {(["inversion", "retrograde"] as const).map((k) => (
+              <button key={k} className="chipbtn" tabIndex={-1} aria-pressed={s.cpTransform[k]} title={t(`ui.mixer.${k}.help`)} onClick={() => p.onChange({ ...s, cpTransform: { ...s.cpTransform, [k]: !s.cpTransform[k] } })}>
+                {t(`ui.mixer.${k}`)}
+              </button>
+            ))}
+          </div>
+        )}
         {x === "drums" && (
           <button className="chipbtn" tabIndex={-1} aria-pressed={p.drums} onClick={() => p.onDrums(!p.drums)}>{p.drums ? t("ui.drums.on") : t("ui.drums.off")}</button>
         )}
