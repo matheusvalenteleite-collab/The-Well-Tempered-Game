@@ -28,7 +28,9 @@ function check(input: ContinuoInput, r: ContinuoRealization, label: string, win 
     // Every downbeat chord contains all sung pitch classes, or the bar is flagged.
     if (!bar.fallback) for (const n of f.sounding) assert.ok(played.has(mod(n.pitch.midi, 12)), `${label} bar ${bar.bar}: ${n.pitch.name} missing from ${bar.figure}`);
     // No right-hand note clashes with a sung note at a consonant downbeat.
-    if (frameConsonant(f)) for (const m of rh) for (const n of f.sounding) assert.ok(!clash(m, n.pitch.midi), `${label} bar ${bar.bar}: RH ${m} clashes with ${n.pitch.name}`);
+    // A prepared 7-6 or 9-8 suspension is a dissonance against the bass by design (A6), never against an upper voice.
+    const suspended = bar.device === "76" || bar.device === "98";
+    if (frameConsonant(f)) for (const m of rh) for (const n of f.sounding) if (!(suspended && n === f.bass)) assert.ok(!clash(m, n.pitch.midi), `${label} bar ${bar.bar}: RH ${m} clashes with ${n.pitch.name}`);
   }
   for (const e of r.events) {
     if (e.role === "bass") continue;
@@ -179,4 +181,32 @@ test("continuo: options are honoured", () => {
   assert.equal(atPitch.bassOctaves, 0);
   check(input, atPitch, "window C4..G5", { low: 60, high: 79 });
   assert.throws(() => realizeContinuo(input, { window: { low: "C4", high: "F4" } }));
+});
+
+test("continuo A6: partimento devices are applied, prepared, resolved, and never rub against an upper voice", () => {
+  const count: Record<string, number> = {};
+  for (const sol of SOLUTIONS) {
+    const input = inputFromSolution(sol);
+    const r = realizeContinuo(input);
+    const { notes } = sungNotes(input);
+    for (const bar of r.bars) {
+      if (!bar.device) continue;
+      count[bar.device] = (count[bar.device] ?? 0) + 1;
+      const t = 2 * bar.bar;
+      const f = frameAt(notes, t)!;
+      for (const m of soundingAt(r, t, ["rh"])) for (const u of f.uppers) assert.ok(!clash(m, u.pitch.midi), `${sol.id} bar ${bar.bar} ${bar.device}: RH ${m} against ${u.pitch.name}`);
+      if (bar.device === "43" || bar.device === "76" || bar.device === "98") {
+        // The suspension sounds before the downbeat (prepared) and leaves by step down on the upbeat.
+        const held = r.events.filter((e) => e.role === "rh" && e.startBeat < t && e.startBeat + e.durationBeats === t + 1);
+        assert.ok(held.length > 0, `${sol.id} bar ${bar.bar}: no prepared suspension`);
+      }
+    }
+    assert.deepEqual(realizeContinuo(input), r);
+    const off = realizeContinuo(input, { partimento: false });
+    assert.ok(off.bars.every((b) => !b.device));
+  }
+  // Fux's two-voice cadences put the bass on 2 or 7 (never 5), and a sung leading tone forbids the 7-6 there,
+  // so suspensions are rarer than 5-6; both must occur.
+  assert.ok((count["43"] ?? 0) + (count["76"] ?? 0) + (count["98"] ?? 0) > 0 && (count["56"] ?? 0) > 0, JSON.stringify(count));
+  console.log("partimento devices over Fux's solutions:", JSON.stringify(count));
 });

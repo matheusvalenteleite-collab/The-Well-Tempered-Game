@@ -23,6 +23,8 @@ export interface Segment {
   pitch: string;
   role: EventRole;
   label: string;
+  /** A6: an ornament the renderer plays on this note. */
+  ornament?: "trill";
 }
 
 interface Line {

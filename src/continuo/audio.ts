@@ -15,8 +15,10 @@ export interface PlayOptions {
   preset: PresetId;
   /** Half notes per minute (the game's alla-breve pulse). Default: defaultTempo(exercise). */
   tempoBpm?: number;
-  /** AudioContext time of beat 0. Default: now + 0.1 s. */
+  /** AudioContext time of beat 0 (or of `fromBeat`). Default: now + 0.1 s. */
   startTime?: number;
+  /** Start part-way through, at this half-note beat (a live restart); default 0. */
+  fromBeat?: number;
   /** Play the sung voices too (default true). */
   includeSungVoices?: boolean;
   /** 0..1 (default 0.8). */
@@ -47,7 +49,9 @@ export interface Playback {
 
 /** Levels and timings of the presets, to be tuned by ear. */
 export const PRESETS = {
-  stileAntico: { organ: { rh: 0.03, bass: 0.045, ranks: { 8: 1, 4: 0.3 }, bassRanks: { 8: 1 }, flute: true }, reverb: { mode: "hall", mix: 0.25 } },
+  // A chamber organ for continuo (D56): Gedackt 8' alone in the right hand, kept soft and under the
+  // voices; the bass a little firmer, Gedackt 8' with a quiet 4' flute for definition; less room.
+  stileAntico: { organ: { rh: 0.017, bass: 0.04, ranks: { 8: 1 }, bassRanks: { 8: 1, 4: 0.22 }, flute: true }, reverb: { mode: "hall", mix: 0.15 } },
   cembalo: { harpsichord: { rh: 0.11, bass: 0.13, octave: 0.08, restrike: 0.5 }, reverb: { mode: "room", mix: 0.18 } },
   hofkapelle: {
     organ: { rh: 0.022, bass: 0.035, ranks: { 8: 1, 4: 0.45, 2: 0.15 }, bassRanks: { 8: 1, 4: 0.45, 2: 0.15 }, flute: false },
@@ -69,6 +73,9 @@ export function defaultTempo(exercise: ContinuoInput): number {
 }
 
 let shared: AudioContext | null = null;
+
+/** The organ's right hand is released a little before the next chord (D56). */
+const ORGAN_RH_LEGATO = 0.9;
 
 /** Deterministic PRNG (mulberry32). */
 function rng(seed: number) {
@@ -97,7 +104,46 @@ interface Job {
 
 /** Note-level view of the realization: one entry per pitch per event. */
 function notesOf(events: ContinuoEvent[], roles: ContinuoEvent["role"][]) {
-  return events.filter((e) => roles.includes(e.role)).flatMap((e) => e.midi.map((m, i) => ({ start: e.startBeat, end: e.startBeat + e.durationBeats, midi: m, pitch: e.pitches[i], bar: e.bar, role: e.role })));
+  return events.filter((e) => roles.includes(e.role)).flatMap((e) => e.midi.map((m, i) => ({ start: e.startBeat, end: e.startBeat + e.durationBeats, midi: m, pitch: e.pitches[i], bar: e.bar, role: e.role, ornament: e.ornament })));
+}
+
+const LETTERS = ["C", "D", "E", "F", "G", "A", "B"];
+const NAT = [0, 2, 4, 5, 7, 9, 11];
+/** The diatonic note above `pitch` at `semis` semitones (1 or 2), spelled. */
+function upperNeighbour(pitch: string, midi: number, semis: number): string {
+  const m = /^([A-G])(#{1,2}|b{1,2})?(-?\d+)$/.exec(pitch)!;
+  const i = LETTERS.indexOf(m[1]);
+  const letter = LETTERS[(i + 1) % 7];
+  const octave = Number(m[3]) + (i === 6 ? 1 : 0);
+  const alter = midi + semis - (12 * (octave + 1) + NAT[(i + 1) % 7]);
+  return `${letter}${alter > 0 ? "#".repeat(alter) : "b".repeat(-alter)}${octave}`;
+}
+
+/**
+ * A cadential trill (A6): from the upper note, on the beat, about seven alternations a second,
+ * slowing a little, then the main note held to the end (the "tremblement appuyé" shape).
+ */
+function trillJobs(n: { start: number; end: number; midi: number; pitch: string }, sec: number, inst: Instrument, gain: number): Job[] {
+  const jobs: Job[] = [];
+  const upper = upperNeighbour(n.pitch, n.midi, 1);
+  const start = n.start * sec;
+  const end = n.end * sec;
+  const shake = Math.min(end - start, Math.max(0.6, (end - start) * 0.7));
+  let t = start;
+  let step = 0.065;
+  let k = 0;
+  while (t + step < start + shake) {
+    jobs.push({ at: t, dur: step * 0.95, pitch: k % 2 === 0 ? upper : n.pitch, inst, gain: gain * (k === 0 ? 1 : 0.85) });
+    t += step;
+    step *= 1.015;
+    k++;
+  }
+  if (k % 2 === 1) {
+    jobs.push({ at: t, dur: step * 0.95, pitch: upper, inst, gain: gain * 0.85 });
+    t += step;
+  }
+  jobs.push({ at: t, dur: Math.max(0.05, end - t), pitch: n.pitch, inst, gain });
+  return jobs;
 }
 
 /** Organ legato: a note followed at once by the same note is tied, not re-attacked. */
@@ -120,7 +166,11 @@ function buildJobs(exercise: ContinuoInput, r: ContinuoRealization, o: Required<
   const lastBar = r.bars.length - 1;
 
   const organ = (p: { rh: number; bass: number }) => {
-    for (const n of tie(rh)) jobs.push({ at: n.start * sec, dur: (n.end - n.start) * sec, pitch: n.pitch, inst: "organ", gain: p.rh });
+    for (const n of tie(rh)) {
+      if (n.ornament === "trill") jobs.push(...trillJobs(n, sec, "organ", p.rh));
+      // The right hand speaks slightly detached, behind the singers (D56).
+      else jobs.push({ at: n.start * sec, dur: (n.end - n.start) * sec * ORGAN_RH_LEGATO, pitch: n.pitch, inst: "organ", gain: p.rh });
+    }
     // The bass follows the sung bass: re-articulated, with a breath before each new note.
     for (const n of bass) jobs.push({ at: n.start * sec, dur: (n.end - n.start) * sec * 0.96, pitch: n.pitch, inst: "bassOrgan", gain: p.bass });
   };
@@ -134,7 +184,7 @@ function buildJobs(exercise: ContinuoInput, r: ContinuoRealization, o: Required<
           ...(n.midi > 48 ? [{ ...n, octave: -1, gain: p.octave }] : []),
           { ...n, octave: 0, gain: p.bass },
         ]),
-        ...rh.filter((n) => n.start === t).sort((a, b) => a.midi - b.midi).map((n) => ({ ...n, octave: 0, gain: p.rh })),
+        ...rh.filter((n) => n.start === t && n.ornament !== "trill").sort((a, b) => a.midi - b.midi).map((n) => ({ ...n, octave: 0, gain: p.rh })),
       ];
       const strike = (from: number, gainScale: number, endAt?: number) => {
         let at = from;
@@ -150,11 +200,12 @@ function buildJobs(exercise: ContinuoInput, r: ContinuoRealization, o: Required<
         strike((t + half) * sec, 0.8);
       } else strike(t * sec, 1);
     }
+    for (const n of rh) if (n.ornament === "trill") jobs.push(...trillJobs(n, sec, "harpsichord", p.rh * 0.9));
     // Second species: the top two right-hand notes held through the upbeat are re-struck softly.
     for (const bar of r.bars) {
       if (!bar.upbeat || bar.bar === lastBar) continue;
       const up = 2 * bar.bar + 1;
-      const held = rh.filter((n) => n.start < up && n.end > up).sort((a, b) => b.midi - a.midi).slice(0, 2);
+      const held = rh.filter((n) => n.start < up && n.end > up && n.ornament !== "trill").sort((a, b) => b.midi - a.midi).slice(0, 2);
       const at = (up + (o.inegal ? PRESETS.inegal : 0)) * sec;
       for (const n of held) jobs.push({ at, dur: n.end * sec - at, pitch: n.pitch, inst: "harpsichord", gain: p.rh * p.restrike });
     }
@@ -248,9 +299,11 @@ class Voices {
     const ranks = job.inst === "bassOrgan" ? preset.bassRanks : preset.ranks;
     const env = this.ctx.createGain();
     env.gain.setValueAtTime(0, at);
-    env.gain.linearRampToValueAtTime(job.gain, at + 0.015);
-    env.gain.setValueAtTime(job.gain, end);
-    env.gain.setTargetAtTime(0, end, 0.025);
+    // Stopped pipes speak gently (about 30 ms) and stop quickly.
+    const speech = preset.flute ? 0.03 : 0.015;
+    env.gain.linearRampToValueAtTime(job.gain, at + speech);
+    env.gain.setValueAtTime(job.gain, Math.max(at + speech, end));
+    env.gain.setTargetAtTime(0, Math.max(at + speech, end), 0.03);
     env.connect(out);
     for (const [feet, level] of Object.entries(ranks) as [string, number][]) {
       const o = this.track(this.ctx.createOscillator());
@@ -263,7 +316,8 @@ class Voices {
       o.start(at);
       o.stop(end + 0.2);
     }
-    this.noiseBurst(out, at, 0.025, f * 4, 3, job.gain * 0.5);
+    // The chiff: small for stopped flutes, lower in pitch.
+    this.noiseBurst(out, at, 0.025, preset.flute ? f * 3 : f * 4, 3, job.gain * (preset.flute ? 0.22 : 0.5));
   }
 
   organPreset: { ranks: Record<number, number>; bassRanks: Record<number, number>; flute: boolean } = PRESETS.stileAntico.organ;
@@ -413,13 +467,16 @@ export function playContinuo(exercise: ContinuoInput, realization: ContinuoReali
   // Jobs are built in seconds at the starting tempo; scheduling runs on a beat clock, so a live
   // tempo change re-anchors the clock at the scheduling horizon and later notes follow it.
   const secAt = () => (options.getTempo ? 60 / options.getTempo() : sec);
+  const fromBeat = options.fromBeat ?? 0;
   let anchorTime = start;
-  let anchorBeat = 0;
+  let anchorBeat = fromBeat;
   let cur = secAt();
   const timeOf = (beat: number) => anchorTime + (beat - anchorBeat) * cur;
   let k = 0;
+  while (k < jobs.length && jobs[k].at / sec < fromBeat - 1e-9) k++;
   let s = 0;
-  let nextBar = 0;
+  while (s < sungJobs.length && sungJobs[s].at / sec < fromBeat - 1e-9) s++;
+  let nextBar = Math.ceil(fromBeat / 2 - 1e-9);
   let ended = false;
   let stopped = false;
   let finish: () => void = () => {};

@@ -464,11 +464,30 @@ export function App() {
     if (mode !== "player" && !fuxOpen) return;
     setPlayMode(mode);
     setPlaying(true);
-    startPlayback(audio, VIEW, { notes: session.notes, versions, mode, continuo: continuoAvailable, continuoSettings, tuning }, (k) => {
-      setCursor(k);
-      if (k < 0) setPlaying(false);
-    });
+    startPlayback(audio, VIEW, { notes: session.notes, versions, mode, continuo: continuoAvailable, continuoSettings, tuning }, onLiveSlot);
   };
+  function onLiveSlot(k: number) {
+    setCursor(k);
+    if (k < 0) setPlaying(false);
+  }
+
+  // Live changes (D57): what is heard follows the score while it plays. A change of the line, of the
+  // versions or of the continuo restarts the playback at once, from the bar under the cursor.
+  const liveKey = JSON.stringify([versions, session.notes, continuoAvailable, continuoSettings, tuning]);
+  const lastLiveKey = useRef(liveKey);
+  useEffect(() => {
+    if (lastLiveKey.current === liveKey) return;
+    lastLiveKey.current = liveKey;
+    if (!playing || savedPlaying || demoPlaying) return;
+    if (playMode !== "player" && !fuxOpen) {
+      audio.stop();
+      setPlaying(false);
+      setCursor(-1);
+      return;
+    }
+    startPlayback(audio, VIEW, { notes: session.notes, versions, mode: playMode, continuo: continuoAvailable, continuoSettings, tuning }, onLiveSlot, Math.max(0, cursor));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveKey]);
 
   // Starting pitch for keyboard entry before anything is written: the cantus note an octave away.
   const startPitch = (k: number) => {

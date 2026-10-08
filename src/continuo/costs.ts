@@ -30,7 +30,9 @@ export type Costs = typeof COSTS;
 
 /** Structural defaults (not costs). */
 export const DEFAULTS = {
-  window: { low: "G3", high: "D5" },
+  // Not above c² (Werckmeister; Niedt allows f², Heinichen c³ only by exception): the right hand
+  // stays under the singers (D56).
+  window: { low: "F3", high: "C5" },
   /** Largest distance between the outer right-hand notes, in semitones. */
   maxRhSpan: 12,
   /**

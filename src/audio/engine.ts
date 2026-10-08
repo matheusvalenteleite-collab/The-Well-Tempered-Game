@@ -278,10 +278,12 @@ export class AudioEngine {
   }
 
   /**
-   * `onCycle(t)` is called with the AudioContext time of beat 0 of every pass (every loop),
+   * `from`: index of the event to start at (a live restart mid-piece); later passes start at 0.
+   * `onCycle(t, fromBeat)` is called with the AudioContext time of the first event of every pass
+   * and the half-note beat it stands for (0 on full passes),
    * when that pass is scheduled, so that an accompaniment can start sample-aligned.
    */
-  async playAll(events: PlayEvent[], onSlot: (k: number) => void, onCycle?: (startTime: number) => void): Promise<void> {
+  async playAll(events: PlayEvent[], onSlot: (k: number) => void, onCycle?: (startTime: number, fromBeat: number) => void, from = 0): Promise<void> {
     this.stop();
     const inst = await this.instrument();
     const ctx = this.ctx;
@@ -290,7 +292,7 @@ export class AudioEngine {
       return;
     }
     const bars = Math.ceil(Math.max(...events.map((e) => e.at + e.length)));
-    let k = 0;
+    let k = Math.max(0, Math.min(events.length - 1, from));
     let next = ctx.currentTime + 0.1;
     const LOOKAHEAD = 0.15;
     let announced = false;
@@ -298,7 +300,7 @@ export class AudioEngine {
     const tick = () => {
       if (k === 0 && !announced) {
         announced = true;
-        onCycle?.(next);
+        onCycle?.(next, k === 0 ? 0 : (events[k].at - events[0].at) * 2);
       }
       while (k < events.length && next < ctx.currentTime + LOOKAHEAD) {
         const whole = this.barSeconds;

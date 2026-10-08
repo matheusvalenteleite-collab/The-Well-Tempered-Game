@@ -6,6 +6,7 @@ import { parsePitch } from "../music/pitch.ts";
 import { COSTS, DEFAULTS } from "./costs.ts";
 import { chooseChord, consistentTriads, frameAt, letterForms, mod, spellAt, toPc, type Chord, type Frame } from "./frame.ts";
 import { enrichBar, passingFill, type BarPlan, type Segment } from "./enrichment.ts";
+import { FIGURES, partimento, type Device } from "./partimento.ts";
 import { sungNotes } from "./input.ts";
 import { candidates, collaParte, parallels, placeByOctave, viterbi, type DownbeatContext, type Voicing, type Window } from "./voicing.ts";
 import type { BarInfo, ContinuoEvent, ContinuoInput, ContinuoOptions, ContinuoRealization, SungNote } from "./types.ts";
@@ -16,6 +17,7 @@ export const DEFAULT_OPTIONS: ContinuoOptions = {
   bassOctaves: "auto",
   passingFill: true,
   texture: "realized",
+  partimento: true,
 };
 
 /** Octaves below the sung bass that keep the continuo bass in DEFAULTS.bassRange, without needless shifting (ties: fewer). */
@@ -122,6 +124,13 @@ export function realizeContinuo(exercise: ContinuoInput, options: Partial<Contin
       b < n - 1 && !plans[b].fallback && !plans[b + 1].fallback ? passingFill(segs, segments[b + 1], b, plans[b], plans[b + 1].forms, ectx) : segs,
     );
 
+  let devices: (Device | null)[] = plans.map(() => null);
+  if (opts.partimento) {
+    const pt = partimento(segments, plans, ectx, modalFinal);
+    segments = pt.segments;
+    devices = pt.devices;
+    pt.notes.forEach((x, b) => timelines[b].notes.push(...x));
+  }
   const events: ContinuoEvent[] = [...bassEvents(notes, n, shift, plans, timelines), ...rhEvents(segments.flat())];
   events.sort((a, b) => a.startBeat - b.startBeat || order(a.role) - order(b.role) || a.midi[0] - b.midi[0]);
 
@@ -149,6 +158,11 @@ export function realizeContinuo(exercise: ContinuoInput, options: Partial<Contin
       cost: Math.round(result.local[b] * 100) / 100,
     };
     if (timelines[b].upbeat) info.upbeat = timelines[b].upbeat;
+    const d = devices[b];
+    if (d) {
+      info.device = d;
+      info.figure = FIGURES[d];
+    }
     return info;
   });
 
@@ -208,12 +222,12 @@ function bassEvents(notes: SungNote[], n: number, shift: number, plans: BarPlan[
 function rhEvents(segs: Segment[]): ContinuoEvent[] {
   const groups = new Map<string, ContinuoEvent>();
   for (const s of [...segs].sort((a, b) => a.start - b.start || a.midi - b.midi)) {
-    const key = `${s.start}|${s.end}|${s.role}|${s.label}`;
+    const key = `${s.start}|${s.end}|${s.role}|${s.label}|${s.ornament ?? ""}`;
     const e = groups.get(key);
     if (e) {
       e.midi.push(s.midi);
       e.pitches.push(s.pitch);
-    } else groups.set(key, { startBeat: s.start, durationBeats: s.end - s.start, midi: [s.midi], pitches: [s.pitch], role: s.role, bar: s.bar, label: s.label });
+    } else groups.set(key, { startBeat: s.start, durationBeats: s.end - s.start, midi: [s.midi], pitches: [s.pitch], role: s.role, bar: s.bar, label: s.label, ...(s.ornament ? { ornament: s.ornament } : {}) });
   }
   return [...groups.values()];
 }

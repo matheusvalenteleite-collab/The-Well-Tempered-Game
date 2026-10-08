@@ -53,6 +53,8 @@ export interface ContinuoOptions {
   costs?: Partial<Costs>;
   /** Default "realized". */
   texture?: Texture;
+  /** A6: the partimento player's devices (suspensions, 5-6, 6/5, cadential trill). Default true. */
+  partimento?: boolean;
 }
 
 /** A pitch class with its spelling: a letter and an alteration. */
@@ -83,6 +85,8 @@ export interface ContinuoEvent {
   bar: number;
   /** Figure for a bass or chord event; "pass", "5 6", "c.p." ... for the others. */
   label: string;
+  /** A6: an ornament the renderer plays (the cadential trill). */
+  ornament?: "trill";
 }
 
 /** What happens on the upbeat of a second-species bar (A5). */
@@ -109,6 +113,8 @@ export interface BarInfo {
   upbeat?: { kind: UpbeatKind; figure?: string; chord?: string[] };
   /** Set for every bar of a "doubling" realization. */
   texture?: "doubling";
+  /** A6: the partimento device of this bar (suspension, 5-6, rule-of-the-octave 6/5). */
+  device?: "43" | "76" | "98" | "56" | "65";
 }
 
 export interface ParallelCount {
