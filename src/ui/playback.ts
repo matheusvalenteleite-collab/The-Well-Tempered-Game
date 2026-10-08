@@ -3,7 +3,7 @@
  * for "fux" and "trio", and the continuo. Used for the live exercise and for saved pieces.
  */
 import type { AudioEngine } from "../audio/engine.ts";
-import { timeline } from "../counterpoint/layout.ts";
+import { timeline, type PlayEvent } from "../counterpoint/layout.ts";
 import type { ExerciseView } from "../game/exercise-view.ts";
 import { heardLines, type Versions } from "../game/versions.ts";
 import { continuoInput, continuoOptions, type PlayMode } from "../game/continuo-input.ts";
@@ -22,9 +22,9 @@ export interface PlaySetup {
   tuning: TemperamentId;
 }
 
-/** `fromSlot`: start at that slot (a live restart after a change); later loops start at the top. */
-export function startPlayback(audio: AudioEngine, view: ExerciseView, s: PlaySetup, onSlot: (k: number) => void, fromSlot = 0): void {
-  if (s.mode !== "player" && !view.fux) return onSlot(-1);
+/** The events and the continuo starter of a setup (null when it cannot play: Fux's line without one). */
+export function buildPlayback(audio: AudioEngine, view: ExerciseView, s: PlaySetup): { events: PlayEvent[]; onCycle?: (startTime: number, fromBeat: number) => void } | null {
+  if (s.mode !== "player" && !view.fux) return null;
   const lines = heardLines(s.versions, s.notes, view.modalFinal);
   const original = s.versions.original ? s.notes : s.notes.map(() => null);
   const derived = Object.fromEntries(lines.filter((l) => l.id !== "original").map((l) => [l.id, l.notes]));
@@ -58,6 +58,28 @@ export function startPlayback(audio: AudioEngine, view: ExerciseView, s: PlaySet
       }),
     );
   };
-  const from = Math.max(0, events.findIndex((e) => e.slot >= fromSlot));
-  void audio.playAll(events, onSlot, plan ? startContinuo : undefined, fromSlot > 0 ? from : 0);
+  return { events, onCycle: plan ? startContinuo : undefined };
+}
+
+/** `fromSlot`: start at that slot (a live restart after a change); later loops start at the top. */
+export function startPlayback(audio: AudioEngine, view: ExerciseView, s: PlaySetup, onSlot: (k: number) => void, fromSlot = 0): void {
+  const b = buildPlayback(audio, view, s);
+  if (!b) return onSlot(-1);
+  const from = Math.max(0, b.events.findIndex((e) => e.slot >= fromSlot));
+  void audio.playAll(b.events, onSlot, b.onCycle, fromSlot > 0 ? from : 0);
+}
+
+/**
+ * Mix mode (D77): one pass per setup, in succession, as one continuous performance. `prepare(i)`
+ * puts setup i on the engine (sound, drums, tempo ...) just before its pass is scheduled.
+ */
+export function startPasses(audio: AudioEngine, view: ExerciseView, setups: PlaySetup[], prepare: (i: number) => void, onSlot: (k: number) => void): void {
+  const built = setups.map((s) => buildPlayback(audio, view, s) ?? buildPlayback(audio, view, { ...s, mode: "player" })!);
+  void audio.playAll(built[0].events, onSlot, undefined, 0, {
+    prepare(i) {
+      const k = i % built.length;
+      prepare(i);
+      return built[k];
+    },
+  });
 }

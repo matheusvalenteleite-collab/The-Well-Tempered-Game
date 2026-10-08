@@ -36,6 +36,8 @@ export interface ScoreProps {
   readOnly?: boolean;
   /** Bar number of the first bar (excerpts start mid-exercise). Default 1. */
   firstBar?: number;
+  /** Fux's line is what plays (D76): the player's line and its versions fade to a trace. */
+  fadePlayer?: boolean;
   /** Fixed drawing scale (for excerpts); otherwise the scale follows the width. */
   fixedScale?: number;
   /** Evaluation overlay: intervals between the staves and problem connectors. */
@@ -307,7 +309,12 @@ export function ScoreView(props: ScoreProps) {
     ctx.setFillStyle("currentColor");
     for (let b = 1; b < bars; b++) staves.forEach((s) => ctx.fillRect(xOfBar(b) - 2, s.getYForLine(0), 1, s.getYForLine(4) - s.getYForLine(0)));
     ctx.restore();
-    for (const n of [...cfNotes, ...fuxNotes, ...cpNotes]) n?.setContext(ctx).draw();
+    for (const n of [...cfNotes, ...fuxNotes]) n?.setContext(ctx).draw();
+    // The player's line and its versions in one group, which fades to a trace while Fux's own
+    // line is what plays (D76).
+    const playerGroup = ctx.openGroup("player-lines");
+    if (props.fadePlayer) playerGroup.setAttribute("opacity", "0.12");
+    for (const n of cpNotes) n?.setContext(ctx).draw();
     // Ligatures (fourth species): a tie from each upbeat to the same note on the next downbeat.
     const drawTies = (line: (string | null | undefined)[], notes: (StaveNote | null | undefined)[], ink: string) => {
       if (!props.ties) return;
@@ -321,7 +328,6 @@ export function ScoreView(props: ScoreProps) {
       }
     };
     drawTies(props.counterpoint, cpNotes, props.playerInk ?? "var(--ink-player)");
-    if (props.fux) drawTies(props.fux, fuxNotes, "var(--ink-fux)");
     // Derived lines, on the player's staff in their own ink; a notehead that would touch one
     // already in its slot moves right (D58).
     const occupied: number[][] = layout.map((_, k) => {
@@ -357,6 +363,8 @@ export function ScoreView(props: ScoreProps) {
       }),
     );
     extras.forEach((line, i) => drawTies(line.notes, extraNotes[i].map((x) => x?.n ?? null), line.ink));
+    ctx.closeGroup();
+    if (props.fux) drawTies(props.fux, fuxNotes, "var(--ink-fux)");
     if (props.extraIntervals)
       extras.forEach((line, i) => {
         ctx.save();
@@ -495,7 +503,7 @@ export function ScoreView(props: ScoreProps) {
     };
     geo.current = g;
     el.dataset.geometry = JSON.stringify(g); // read by the browser tests
-  }, [width, props.showNames, props.cantus, props.counterpoint, props.fux, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay, props.continuo, props.extraLines, props.extraIntervals, props.ties, props.playerInk, props.playerLabel, props.signature]);
+  }, [width, props.showNames, props.cantus, props.counterpoint, props.fux, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay, props.continuo, props.extraLines, props.extraIntervals, props.ties, props.playerInk, props.playerLabel, props.signature, props.fadePlayer]);
 
   const press = useRef<{ x: number; y: number; dragging: boolean; from: number } | null>(null);
 

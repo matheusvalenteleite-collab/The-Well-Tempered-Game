@@ -30,10 +30,10 @@ import { activeVersions, deriveVersion, heardLines, validVersions, type VersionI
 import { trioReading } from "../game/trio-eval.ts";
 import { TrioReading } from "./TrioReading.tsx";
 import { Fold } from "./Fold.tsx";
-import { startPlayback } from "./playback.ts";
+import { startPasses, startPlayback } from "./playback.ts";
 import { SavedPieces } from "./SavedPieces.tsx";
 import { DEMO_ENTRIES, type DemoEntry } from "../game/demo.ts";
-import { makePiece, restorePieces, snapshotMode, type Piece } from "../game/saved.ts";
+import { makePiece, restorePieces, snapshotMode, type Piece, type Setup } from "../game/saved.ts";
 import { DEFAULT_CONTINUO_SETTINGS, validContinuoSettings, type ContinuoSettings } from "../game/continuo-settings.ts";
 import { CONTINUO_DEMO_MODE } from "../config.ts";
 import { t } from "./i18n.ts";
@@ -374,6 +374,8 @@ export function App() {
   }, [result]);
   const fuxOpen = Boolean(VIEW.fux && (result?.passed || unlocked.includes(STEP.id) || stars.includes(STEP.id)));
   const [playMode, setPlayMode] = useState<PlayMode>("player");
+  // While Fux's line plays alone, it is shown and the player's own line fades to a trace (D76).
+  const fuxPlaying = playing && playMode === "fux" && fuxOpen;
 
   // Basso continuo (decision D44): generated for pleasure from whatever is written (demo mode),
   // realized for the player's line or Fux's, doubled colla parte for the trio. No part in grading.
@@ -512,6 +514,65 @@ export function App() {
     if (k < 0) setPlaying(false);
   }
 
+  // Mix mode (D77): the export plays N loops in succession, each with its own setup (sounds and
+  // mix, versions, line, drums, continuo, tempo, humanising, and which lines play), as one
+  // continuous piece. The player sets the loops up one by one; ‹ › move between them.
+  type Scene = Setup & { humanise: boolean };
+  const [mix, setMix] = useState<{ count: number; index: number; scenes: (Scene | null)[] } | null>(null);
+  const [mixCount, setMixCount] = useState(4);
+  const currentScene = (): Scene => ({
+    stepId: STEP.id,
+    notes: [...session.notes],
+    versions: { ...versions },
+    mode: playMode !== "player" && !fuxOpen ? "player" : playMode,
+    sound: structuredClone(sound),
+    drums,
+    drumKit: { ...drumKit },
+    continuo: continuoAvailable,
+    continuoSettings: { ...continuoSettings },
+    tuning,
+    tempo,
+    volume,
+    humanise,
+  });
+  const loadScene = (x: Scene) => {
+    setSessions((all) => all.map((ss, i) => (i === stepIndex ? { ...ss, notes: [...x.notes] } : ss)));
+    setVersions(x.versions);
+    setSound(structuredClone(x.sound));
+    setDrums(x.drums);
+    setDrumKit(x.drumKit);
+    setContinuo(x.continuo);
+    setContinuoSettings(x.continuoSettings);
+    setTuning(x.tuning);
+    setTempo(x.tempo);
+    setVolume(x.volume);
+    setHumanise(x.humanise);
+    setPlayMode(x.mode);
+  };
+  const startMix = (count: number) => {
+    setMix({ count, index: 0, scenes: Array.from({ length: count }, () => null) });
+    setExportPhase(null);
+  };
+  /** Keep the current setup as loop `index`, then show loop `to` (a new loop starts as a copy). */
+  const mixGo = (to: number) => {
+    if (!mix) return;
+    audio.stop();
+    setPlaying(false);
+    setCursor(-1);
+    const scenes = [...mix.scenes];
+    scenes[mix.index] = currentScene();
+    if (scenes[to]) loadScene(scenes[to]!);
+    setMix({ ...mix, index: to, scenes });
+  };
+  const mixScenes = (): Scene[] => {
+    if (!mix) return [];
+    const scenes = [...mix.scenes];
+    scenes[mix.index] = currentScene();
+    // Loops never visited take the setup of the loop before them.
+    for (let i = 0; i < scenes.length; i++) scenes[i] ??= scenes[i - 1] ?? currentScene();
+    return scenes as Scene[];
+  };
+
   // Export (D74, D75): what plays, as set up now, captured from the speakers' feed and saved as MP3
   // or WAV. The player chooses how many passes and how it ends: seamlessly (cut where the next pass
   // would start, so the file loops) or with the final cadence (the drums' ending and the reverb's
@@ -521,6 +582,9 @@ export function App() {
   const [exportPasses, setExportPasses] = useState(1);
   const [exportEnding, setExportEnding] = useState<"seamless" | "final">(() => (loop ? "seamless" : "final"));
   const [exportPass, setExportPass] = useState(1);
+  const [exportTotal, setExportTotal] = useState(1);
+  /** The export dialog's step: one setup or mix mode? then the number of loops, or the options. */
+  const [exportStep, setExportStep] = useState<"kind" | "mixCount" | "options">("kind");
   const exportTimer = useRef<number | null>(null);
   const exportStop = useRef<null | (() => void)>(null);
   const playingRef = useRef(playing);
@@ -529,7 +593,8 @@ export function App() {
     if (exportTimer.current !== null) window.clearInterval(exportTimer.current);
     exportTimer.current = null;
     exportStop.current = null;
-    audio.loop = loop;
+    restoreAudio();
+    audio.humanise = humanise;
   };
   const cancelExport = async () => {
     endExportTimer();
@@ -551,16 +616,33 @@ export function App() {
       setExportPhase(null);
       return;
     }
-    const passes = exportPasses;
+    const scenes = mix ? mixScenes() : null;
+    const passes = scenes ? scenes.length : exportPasses;
     const ending = exportEnding;
     setExportPass(1);
+    setExportTotal(passes);
     setExportPhase("recording");
     const mode = playMode !== "player" && !fuxOpen ? "player" : playMode;
     setPlayMode(mode);
     setPlaying(true);
     // Loop through the passes; the last one ends with the cadence when asked.
     audio.loop = passes > 1 || ending === "seamless";
-    startPlayback(audio, VIEW, { notes: session.notes, versions, mode, continuo: continuoAvailable, continuoSettings, tuning }, onLiveSlot);
+    if (scenes) {
+      // Mix mode: each pass is set up on the engine just before it is scheduled.
+      const lastLoop = (i: number) => i < passes - 1 || ending === "seamless";
+      startPasses(
+        audio,
+        VIEW,
+        scenes.map((x) => ({ notes: x.notes, versions: x.versions, mode: x.mode, continuo: x.continuo, continuoSettings: x.continuoSettings, tuning: x.tuning })),
+        (i) => {
+          const x = scenes[i % passes];
+          applyAudio(x, VIEW.modalFinal);
+          audio.humanise = x.humanise;
+          audio.loop = lastLoop(i);
+        },
+        onLiveSlot,
+      );
+    } else startPlayback(audio, VIEW, { notes: session.notes, versions, mode, continuo: continuoAvailable, continuoSettings, tuning }, onLiveSlot);
     const TAIL = 2.5;
     const finish = (span: [number, number] | null) => {
       endExportTimer();
@@ -593,10 +675,11 @@ export function App() {
       const c = audio.captureCycles;
       if (c.length) setExportPass(Math.min(passes, c.filter((x) => x <= audio.now).length || 1));
       // The last pass has started: let it end with the cadence.
-      if (ending === "final" && c.length >= passes) audio.loop = false;
+      if (!scenes && ending === "final" && c.length >= passes) audio.loop = false;
       if (c.length > passes && audio.now >= c[passes] + 0.05) return finish([c[0], c[passes]]);
       if (ending === "final" && c.length >= passes && audio.playEnd !== null && audio.now >= audio.playEnd + TAIL) return finish([c[0], audio.playEnd + TAIL]);
-      if (!playingRef.current) exportStop.current?.();
+      // The play button stopped it (not the piece ending on its own): keep what was recorded.
+      if (!playingRef.current && audio.playEnd === null) exportStop.current?.();
     }, 100);
   };
 
@@ -607,7 +690,7 @@ export function App() {
   useEffect(() => {
     if (lastLiveKey.current === liveKey) return;
     lastLiveKey.current = liveKey;
-    if (!playing || savedPlaying || demoPlaying) return;
+    if (!playing || savedPlaying || demoPlaying || exportPhase === "recording") return;
     if (playMode !== "player" && !fuxOpen) {
       audio.stop();
       setPlaying(false);
@@ -846,7 +929,8 @@ export function App() {
             label={label}
             marks={versions.original ? marks : undefined}
             overlay={versions.original ? overlay : undefined}
-            fux={showFux && fuxOpen ? VIEW.fux! : undefined}
+            fux={(showFux || fuxPlaying) && fuxOpen ? VIEW.fux! : undefined}
+            fadePlayer={fuxPlaying}
             ties={VIEW.species === "fourth"}
             continuo={continuoPlan && continuoSettings.display !== "none" ? { realization: continuoPlan.realization, display: continuoSettings.display } : undefined}
             showNames={showNames}
@@ -904,6 +988,7 @@ export function App() {
               <button className="export" aria-pressed={exportPhase !== null} onClick={() => {
                   if (exportPhase === null) {
                     setExportEnding(loop ? "seamless" : "final");
+                    setExportStep(mix ? "options" : "kind");
                     setExportPhase("choose");
                   } else if (exportPhase === "recording") exportStop.current?.();
                 }} aria-label={t("ui.export")} title={t("ui.export.help")}>⤓</button>
@@ -1032,16 +1117,52 @@ export function App() {
         <div className="dialog-backdrop" role="dialog" aria-modal="true" aria-label={t("ui.export")} onClick={() => exportPhase === "choose" && setExportPhase(null)}>
           <div className="dialog export-card" onClick={(e) => e.stopPropagation()}>
             <h2>{t("ui.export")}</h2>
-            {exportPhase === "choose" && (
+            {exportPhase === "choose" && exportStep === "kind" && (
               <>
-                <p>{t("ui.export.intro")}</p>
+                <p>{t("ui.export.kindQuestion")}</p>
+                <div className="export-formats">
+                  <button onClick={() => setExportStep("options")}>
+                    <strong>{t("ui.export.kind.single")}</strong> <span className="help">{t("ui.export.kind.single.help")}</span>
+                  </button>
+                  <button className="primary" onClick={() => setExportStep("mixCount")}>
+                    <strong>{t("ui.export.kind.mix")}</strong> <span className="help">{t("ui.export.kind.mix.help")}</span>
+                  </button>
+                </div>
+                <button onClick={() => setExportPhase(null)}>{t("ui.close")}</button>
+              </>
+            )}
+            {exportPhase === "choose" && exportStep === "mixCount" && (
+              <>
+                <p>{t("ui.export.mixCountQuestion")}</p>
                 <div className="export-options">
-                  <label>{t("ui.export.passes")}</label>
+                  <label>{t("ui.export.loops")}</label>
                   <span className="octave">
-                    <button className="chipbtn" disabled={exportPasses <= 1} onClick={() => setExportPasses(exportPasses - 1)} aria-label={t("ui.export.fewer")}>‹</button>
-                    <span>{t(exportPasses === 1 ? "ui.export.passOne" : "ui.export.passMany", { n: exportPasses })}</span>
-                    <button className="chipbtn" disabled={exportPasses >= 16} onClick={() => setExportPasses(exportPasses + 1)} aria-label={t("ui.export.more")}>›</button>
+                    <button className="chipbtn" disabled={mixCount <= 2} onClick={() => setMixCount(mixCount - 1)} aria-label={t("ui.export.fewer")}>‹</button>
+                    <span>{t("ui.export.passMany", { n: mixCount })}</span>
+                    <button className="chipbtn" disabled={mixCount >= 16} onClick={() => setMixCount(mixCount + 1)} aria-label={t("ui.export.more")}>›</button>
                   </span>
+                </div>
+                <p className="help">{t("ui.export.mixHow")}</p>
+                <div className="export-formats">
+                  <button className="primary" onClick={() => startMix(mixCount)}>{t("ui.export.mixStart")}</button>
+                </div>
+                <button onClick={() => setExportStep("kind")}>{t("ui.export.back")}</button>
+              </>
+            )}
+            {exportPhase === "choose" && exportStep === "options" && (
+              <>
+                <p>{t(mix ? "ui.export.mixIntro" : "ui.export.intro", { n: mix?.count ?? 0 })}</p>
+                <div className="export-options">
+                  {!mix && (
+                    <>
+                      <label>{t("ui.export.passes")}</label>
+                      <span className="octave">
+                        <button className="chipbtn" disabled={exportPasses <= 1} onClick={() => setExportPasses(exportPasses - 1)} aria-label={t("ui.export.fewer")}>‹</button>
+                        <span>{t(exportPasses === 1 ? "ui.export.passOne" : "ui.export.passMany", { n: exportPasses })}</span>
+                        <button className="chipbtn" disabled={exportPasses >= 16} onClick={() => setExportPasses(exportPasses + 1)} aria-label={t("ui.export.more")}>›</button>
+                      </span>
+                    </>
+                  )}
                   <label>{t("ui.export.ending")}</label>
                   <span className="segmented">
                     {(["seamless", "final"] as const).map((k) => (
@@ -1051,7 +1172,7 @@ export function App() {
                     ))}
                   </span>
                 </div>
-                <p className="help">{t("ui.export.live")}</p>
+                {!mix && <p className="help">{t("ui.export.live")}</p>}
                 <div className="export-formats">
                   {EXPORT_FORMATS.map((f) => (
                     <button key={f} className={f === "mp3" ? "primary" : undefined} onClick={() => void startExport(f)}>
@@ -1059,19 +1180,32 @@ export function App() {
                     </button>
                   ))}
                 </div>
-                <button onClick={() => setExportPhase(null)}>{t("ui.close")}</button>
+                <button onClick={() => (mix ? setExportPhase(null) : setExportStep("kind"))}>{t(mix ? "ui.close" : "ui.export.back")}</button>
               </>
             )}
             {exportPhase === "encoding" && <p>{t("ui.export.encoding")}</p>}
           </div>
         </div>
       )}
+      {exportPhase === "recording" && mix && <div className="recording-shield" aria-hidden="true" />}
+      {mix && exportPhase === null && (
+        <div className="recording-bar mix-bar" role="group" aria-label={t("ui.export.kind.mix")}>
+          <strong>{t("ui.export.mixLoop", { n: mix.index + 1, total: mix.count })}</strong>
+          <span className="help">{t(mix.scenes[mix.index] ? "ui.export.mixEditing" : "ui.export.mixSetUp")}</span>
+          <button className="chipbtn" disabled={mix.index === 0} onClick={() => mixGo(mix.index - 1)} aria-label={t("ui.export.mixPrev")}>‹</button>
+          <span className="mix-dots" aria-hidden="true">{mix.scenes.map((x, i) => (i === mix.index ? "●" : x ? "◉" : "○")).join(" ")}</span>
+          <button className="chipbtn" disabled={mix.index === mix.count - 1} onClick={() => mixGo(mix.index + 1)} aria-label={t("ui.export.mixNext")}>›</button>
+          <button className="primary" onClick={() => { setExportEnding(loop ? "seamless" : "final"); setExportStep("options"); setExportPhase("choose"); }}>{t("ui.export.mixExport")}</button>
+          <button onClick={() => setMix(null)}>{t("ui.export.mixLeave")}</button>
+        </div>
+      )}
       {exportPhase === "recording" && (
-        // Not modal: the desk, the score and the transport stay live while it records.
+        // Not modal: the desk, the score and the transport stay live while it records (one setup);
+        // in mix mode the loops play as set up, so the page is shielded.
         <div className="recording-bar" role="status">
           <span className="rec-dot" aria-hidden="true">●</span>
-          <span>{t("ui.export.recordingPass", { n: exportPass, total: exportPasses })}</span>
-          <span className="help">{t("ui.export.mixLive")}</span>
+          <span>{t("ui.export.recordingPass", { n: exportPass, total: exportTotal })}</span>
+          <span className="help">{t(mix ? "ui.export.mixPlaying" : "ui.export.mixLive")}</span>
           <button onClick={() => exportStop.current?.()}>{t("ui.export.stopSave")}</button>
           <button onClick={() => void cancelExport()}>{t("ui.export.cancel")}</button>
         </div>

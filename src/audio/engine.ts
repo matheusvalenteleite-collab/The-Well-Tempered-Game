@@ -43,6 +43,11 @@ class SampledPiano implements Instrument {
   }
 }
 
+/** Mix mode (D77): the events and accompaniment of pass i, set up on the engine when it is called. */
+export interface PassPlan {
+  prepare(pass: number): { events: PlayEvent[]; onCycle?: (startTime: number, fromBeat: number) => void };
+}
+
 /** The capture processor (D74): batches the input and posts it with the frame it started at. */
 const RECORDER_WORKLET = `
 class WtgRecorder extends AudioWorkletProcessor {
@@ -328,22 +333,25 @@ export class AudioEngine {
    * and the half-note beat it stands for (0 on full passes),
    * when that pass is scheduled, so that an accompaniment can start sample-aligned.
    */
-  async playAll(events: PlayEvent[], onSlot: (k: number) => void, onCycle?: (startTime: number, fromBeat: number) => void, from = 0): Promise<void> {
+  async playAll(events: PlayEvent[], onSlot: (k: number) => void, onCycle?: (startTime: number, fromBeat: number) => void, from = 0, passes?: PassPlan): Promise<void> {
     this.stop();
     const inst = await this.instrument();
     const ctx = this.ctx;
+    // Mix mode (D77): each pass brings its own events and accompaniment, and sets the engine up.
+    let pass = 0;
+    if (passes) ({ events, onCycle } = passes.prepare(0));
     if (!inst || !ctx || events.length === 0) {
       onSlot(-1);
       return;
     }
-    const bars = Math.ceil(Math.max(...events.map((e) => e.at + e.length)));
+    let bars = Math.ceil(Math.max(...events.map((e) => e.at + e.length)));
     this.cycleStarts = [];
     this.playEnd = null;
     let k = Math.max(0, Math.min(events.length - 1, from));
     let next = ctx.currentTime + 0.1;
     const LOOKAHEAD = 0.15;
     let announced = false;
-    const shapes = this.humanise ? humanisePlan(events) : null;
+    let shapes = this.humanise ? humanisePlan(events) : null;
     const tick = () => {
       if (k === 0 && !announced) {
         announced = true;
@@ -372,6 +380,12 @@ export class AudioEngine {
           if (this.drums) this.drumMachine?.scheduleBreath(next, this.barSeconds, 0.5);
           next += 0.5 * this.barSeconds;
           this.timers = this.timers.slice(-64);
+          if (passes) {
+            pass++;
+            ({ events, onCycle } = passes.prepare(pass));
+            bars = Math.ceil(Math.max(...events.map((e) => e.at + e.length)));
+            shapes = this.humanise ? humanisePlan(events) : null;
+          }
         } else {
           this.playEnd = next;
           this.timers.push(window.setTimeout(() => onSlot(-1), Math.max(0, (next - ctx.currentTime) * 1000)));

@@ -435,3 +435,6 @@ button, select, .chipbtn { font-size: 0.8rem; }
 .recording-bar { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 50; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; max-width: calc(100vw - 32px); box-sizing: border-box; padding: 8px 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18); }
 .recording-bar .rec-dot { color: #c0392b; animation: rec-blink 1.2s steps(2, start) infinite; }
 @keyframes rec-blink { to { visibility: hidden; } }
+/* D77: mix mode. */
+.recording-shield { position: fixed; inset: 0; z-index: 49; background: rgba(0, 0, 0, 0.12); }
+.mix-bar .mix-dots { font-size: 0.75rem; letter-spacing: 1px; color: var(--muted); }
