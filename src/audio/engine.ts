@@ -130,13 +130,21 @@ export class AudioEngine {
     this.applyMix();
   }
 
+  /** Channel gates (D78): a line switched off is silenced by its channel, never by a restart. */
+  private gates: Partial<Record<Strip, boolean>> = {};
+  setGates(g: Partial<Record<Strip, boolean>>) {
+    this.gates = { ...g };
+    this.applyMix();
+  }
+
   private applyMix() {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
     for (const x of STRIPS) {
       const ch = this.channels.get(x);
       if (!ch) continue;
-      ch.gain.gain.setTargetAtTime(audibleGain(this.mix, x), t, 0.02);
+      // A short glide (about 20 ms) so that a switch never clicks.
+      ch.gain.gain.setTargetAtTime(this.gates[x] === false ? 0 : audibleGain(this.mix, x), t, 0.02);
       ch.pan.pan.setTargetAtTime(this.mix.mix[x].pan, t, 0.02);
     }
   }
@@ -147,6 +155,7 @@ export class AudioEngine {
     if (!ch) {
       const gain = this.ctx!.createGain();
       const pan = this.ctx!.createStereoPanner();
+      gain.gain.value = this.gates[x] === false ? 0 : audibleGain(this.mix, x); // no blip on creation
       gain.connect(pan).connect(this.master!);
       ch = { gain, pan };
       this.channels.set(x, ch);

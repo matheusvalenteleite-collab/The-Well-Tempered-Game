@@ -30,7 +30,7 @@ import { activeVersions, deriveVersion, heardLines, validVersions, type VersionI
 import { trioReading } from "../game/trio-eval.ts";
 import { TrioReading } from "./TrioReading.tsx";
 import { Fold } from "./Fold.tsx";
-import { startPasses, startPlayback } from "./playback.ts";
+import { gatesOf, startPasses, startPlayback, type PlaySetup } from "./playback.ts";
 import { SavedPieces } from "./SavedPieces.tsx";
 import { DEMO_ENTRIES, type DemoEntry } from "../game/demo.ts";
 import { makePiece, restorePieces, snapshotMode, type Piece, type Setup } from "../game/saved.ts";
@@ -385,7 +385,8 @@ export function App() {
   const derived = (ln: typeof lines) => Object.fromEntries(ln.filter((l) => l.id !== "original").map((l) => [l.id, l.notes]));
   const shownLines = lines;
   const originalHeard = versions.original ? session.notes : session.notes.map(() => null);
-  const continuoAvailable = continuo && (CONTINUO_DEMO_MODE || Boolean(result?.passed));
+  const continuoAllowed = CONTINUO_DEMO_MODE || Boolean(result?.passed);
+  const continuoAvailable = continuo && continuoAllowed;
   const continuoMode: PlayMode = playMode !== "player" && fuxOpen ? playMode : "player";
   const cOpts = continuoOptions(continuoMode, continuoSettings);
   const cKey = continuoKey(STEP.id, continuoMode === "fux" ? VIEW.fux ?? [] : heard, continuoMode, cOpts);
@@ -413,6 +414,7 @@ export function App() {
   };
   const restoreAudio = () => {
     applyAudio({ sound, drums, drumKit, tuning, tempo, volume }, VIEW.modalFinal);
+    audio.setGates(gatesOf({ versions, continuoOn: continuo }));
     audio.loop = loop;
   };
   const stopSaved = () => {
@@ -507,7 +509,7 @@ export function App() {
     if (mode !== "player" && !fuxOpen) return;
     setPlayMode(mode);
     setPlaying(true);
-    startPlayback(audio, VIEW, { notes: session.notes, versions, mode, continuo: continuoAvailable, continuoSettings, tuning }, onLiveSlot);
+    startPlayback(audio, VIEW, { notes: session.notes, versions, mode, continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning }, onLiveSlot, 0, liveSetup);
   };
   function onLiveSlot(k: number) {
     setCursor(k);
@@ -633,7 +635,7 @@ export function App() {
       startPasses(
         audio,
         VIEW,
-        scenes.map((x) => ({ notes: x.notes, versions: x.versions, mode: x.mode, continuo: x.continuo, continuoSettings: x.continuoSettings, tuning: x.tuning })),
+        scenes.map((x) => ({ notes: x.notes, versions: x.versions, mode: x.mode, continuo: x.continuo, continuoOn: x.continuo, continuoSettings: x.continuoSettings, tuning: x.tuning })),
         (i) => {
           const x = scenes[i % passes];
           applyAudio(x, VIEW.modalFinal);
@@ -642,7 +644,7 @@ export function App() {
         },
         onLiveSlot,
       );
-    } else startPlayback(audio, VIEW, { notes: session.notes, versions, mode, continuo: continuoAvailable, continuoSettings, tuning }, onLiveSlot);
+    } else startPlayback(audio, VIEW, { notes: session.notes, versions, mode, continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning }, onLiveSlot, 0, liveSetup);
     const TAIL = 2.5;
     const finish = (span: [number, number] | null) => {
       endExportTimer();
@@ -685,7 +687,17 @@ export function App() {
 
   // Live changes (D57): what is heard follows the score while it plays. A change of the line, of the
   // versions or of the continuo restarts the playback at once, from the bar under the cursor.
-  const liveKey = JSON.stringify([versions, session.notes, continuoAvailable, continuoSettings, tuning, humanise]);
+  // Switching lines on and off (the versions, the original, the continuo) restarts nothing: it opens
+  // or closes their channels (D78). Only what changes the notes themselves restarts.
+  const liveSetupRef = useRef<PlaySetup | null>(null);
+  liveSetupRef.current = { notes: session.notes, versions, mode: playMode, continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning };
+  const liveSetup = () => liveSetupRef.current!;
+  useEffect(() => {
+    if (savedPlaying || demoPlaying || exportPhase === "recording") return;
+    audio.setGates(gatesOf({ versions, continuoOn: continuo }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [versions, continuo]);
+  const liveKey = JSON.stringify([versions.canonShift, session.notes, continuoAllowed, continuoSettings, tuning, humanise]);
   const lastLiveKey = useRef(liveKey);
   useEffect(() => {
     if (lastLiveKey.current === liveKey) return;
@@ -697,7 +709,7 @@ export function App() {
       setCursor(-1);
       return;
     }
-    startPlayback(audio, VIEW, { notes: session.notes, versions, mode: playMode, continuo: continuoAvailable, continuoSettings, tuning }, onLiveSlot, Math.max(0, cursor));
+    startPlayback(audio, VIEW, { notes: session.notes, versions, mode: playMode, continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning }, onLiveSlot, Math.max(0, cursor), liveSetup);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liveKey]);
 

@@ -5,7 +5,7 @@
 import type { AudioEngine } from "../audio/engine.ts";
 import { timeline, type PlayEvent } from "../counterpoint/layout.ts";
 import type { ExerciseView } from "../game/exercise-view.ts";
-import { heardLines, type Versions } from "../game/versions.ts";
+import { deriveVersion, heardLines, VERSION_IDS, type VersionId, type Versions } from "../game/versions.ts";
 import { continuoInput, continuoOptions, type PlayMode } from "../game/continuo-input.ts";
 import type { ContinuoSettings } from "../game/continuo-settings.ts";
 import type { TemperamentId } from "../audio/temperament.ts";
@@ -16,35 +16,53 @@ export interface PlaySetup {
   notes: (string | null)[];
   versions: Versions;
   mode: PlayMode;
-  /** The continuo plays (already gated by the caller: switched on, and allowed). */
+  /** The continuo may play (allowed here): it is realized and scheduled. */
   continuo: boolean;
+  /** The continuo is switched on (its channel gate, D78); default on. */
+  continuoOn?: boolean;
   continuoSettings: ContinuoSettings;
   tuning: TemperamentId;
 }
 
+/**
+ * The on/off state of each line as channel gates (D78): every line is always scheduled and a
+ * switch only opens or closes its channel, so toggling never restarts the playback.
+ */
+export function gatesOf(s: Pick<PlaySetup, "versions" | "continuoOn">): Partial<Record<"counterpoint" | VersionId | "continuo", boolean>> {
+  const g: Partial<Record<"counterpoint" | VersionId | "continuo", boolean>> = { counterpoint: s.versions.original || !VERSION_IDS.some((id) => s.versions[id]), continuo: s.continuoOn !== false };
+  for (const id of VERSION_IDS) g[id] = s.versions[id];
+  return g;
+}
+
 /** The events and the continuo starter of a setup (null when it cannot play: Fux's line without one). */
-export function buildPlayback(audio: AudioEngine, view: ExerciseView, s: PlaySetup): { events: PlayEvent[]; onCycle?: (startTime: number, fromBeat: number) => void } | null {
+export function buildPlayback(audio: AudioEngine, view: ExerciseView, s: PlaySetup, live?: () => PlaySetup): { events: PlayEvent[]; onCycle?: (startTime: number, fromBeat: number) => void } | null {
   if (s.mode !== "player" && !view.fux) return null;
-  const lines = heardLines(s.versions, s.notes, view.modalFinal);
-  const original = s.versions.original ? s.notes : s.notes.map(() => null);
-  const derived = Object.fromEntries(lines.filter((l) => l.id !== "original").map((l) => [l.id, l.notes]));
+  // Every version is scheduled, switched on or not: its channel gate decides whether it is heard.
+  const derived = Object.fromEntries(VERSION_IDS.map((id) => [id, deriveVersion(id, s.notes, view.modalFinal, s.versions.canonShift)]));
   const ties = { ties: view.species === "fourth" };
   const events =
     s.mode === "player"
-      ? timeline(view.cantus, view.layout, original, undefined, undefined, undefined, derived, ties)
+      ? timeline(view.cantus, view.layout, s.notes, undefined, undefined, undefined, derived, ties)
       : s.mode === "fux"
         ? timeline(view.cantus, view.layout, view.fux!, undefined, undefined, undefined, undefined, ties)
-        : timeline(view.cantus, view.layout, original, undefined, undefined, view.fux!, derived, ties);
-  let plan: { input: ReturnType<typeof continuoInput>; realization: ReturnType<typeof realizeContinuo> } | null = null;
-  if (s.continuo) {
-    const input = continuoInput(view, s.mode === "fux" ? view.fux! : lines.map((l) => l.notes), s.mode);
-    plan = { input, realization: realizeContinuo(input, continuoOptions(s.mode, s.continuoSettings)) };
-  }
+        : timeline(view.cantus, view.layout, s.notes, undefined, undefined, view.fux!, derived, ties);
+  // The continuo is realized at the start of each pass for the lines heard then (a switch made
+  // mid-pass reaches its harmony at the next pass, without interrupting anything).
+  const planFor = (x: PlaySetup) => {
+    const lines = heardLines(x.versions, x.notes, view.modalFinal);
+    const input = continuoInput(view, x.mode === "fux" ? view.fux! : lines.map((l) => l.notes), x.mode);
+    return { input, realization: realizeContinuo(input, continuoOptions(x.mode, x.continuoSettings)) };
+  };
+  const plan0 = s.continuo ? planFor(s) : null;
+  let first = true;
   const startContinuo = (startTime: number, fromBeat: number) => {
     const graph = audio.graph;
     const destination = audio.continuoInput();
-    if (!plan || !graph || !destination) return;
-    const c = s.continuoSettings;
+    if (!plan0 || !graph || !destination) return;
+    const now = !first && live ? live() : s;
+    const plan = first || !live ? plan0 : planFor({ ...now, mode: s.mode });
+    first = false;
+    const c = now.continuoSettings;
     audio.attach(
       playContinuo(plan.input, plan.realization, {
         preset: c.preset,
@@ -58,12 +76,13 @@ export function buildPlayback(audio: AudioEngine, view: ExerciseView, s: PlaySet
       }),
     );
   };
-  return { events, onCycle: plan ? startContinuo : undefined };
+  return { events, onCycle: plan0 ? startContinuo : undefined };
 }
 
 /** `fromSlot`: start at that slot (a live restart after a change); later loops start at the top. */
-export function startPlayback(audio: AudioEngine, view: ExerciseView, s: PlaySetup, onSlot: (k: number) => void, fromSlot = 0): void {
-  const b = buildPlayback(audio, view, s);
+export function startPlayback(audio: AudioEngine, view: ExerciseView, s: PlaySetup, onSlot: (k: number) => void, fromSlot = 0, live?: () => PlaySetup): void {
+  audio.setGates(gatesOf(s));
+  const b = buildPlayback(audio, view, s, live);
   if (!b) return onSlot(-1);
   const from = Math.max(0, b.events.findIndex((e) => e.slot >= fromSlot));
   void audio.playAll(b.events, onSlot, b.onCycle, fromSlot > 0 ? from : 0);
@@ -79,6 +98,7 @@ export function startPasses(audio: AudioEngine, view: ExerciseView, setups: Play
     prepare(i) {
       const k = i % built.length;
       prepare(i);
+      audio.setGates(gatesOf(setups[k]));
       return built[k];
     },
   });
