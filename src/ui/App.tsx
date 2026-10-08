@@ -55,7 +55,7 @@ audio.sound = "chip";
 Object.assign(window as object, { wtgAudio: audio, wtgRenderLevel: renderLevel, wtgPresets: SYNTH_PRESETS, wtgDrumMachine: DrumMachine, wtgLoadSamples: loadSamples });
 
 /** Milliseconds a bar must stay selected while browsing before it sounds. */
-const DWELL_MS = 500;
+const DWELL_MS = 150;
 
 /** Per-viewer conveniences in localStorage; the game works the same without them. */
 function stored<T>(key: string, fallback: T, valid: (v: unknown) => boolean = () => true): T {
