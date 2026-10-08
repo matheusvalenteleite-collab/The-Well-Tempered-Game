@@ -1,18 +1,16 @@
 import { compareWithFux, type Criterion } from "../counterpoint/compare-fux.ts";
 import { t } from "./i18n.ts";
-import { REST, type Slot } from "../counterpoint/layout.ts";
+import type { Slot } from "../counterpoint/layout.ts";
 
-const pretty = (p: string) => (p === REST ? t("ui.compare.rest") : p.replace("#", "♯").replace(/b(\d)/, "♭$1"));
-
-/** Bar-by-bar differences from Fux's solution, judged by criteria Fux states (never by "Fux said so"). */
+/** The differences from Fux's solution that a criterion he states weighs (never "Fux said so"), one line per reason. */
 export function FuxComparison({ cantus, player, fux, layout }: { cantus: string[]; player: (string | null)[]; fux: string[]; layout: Slot[] }) {
   const all = compareWithFux(cantus, player, fux, layout);
   // Differences that no stated criterion separates are a matter of taste: not listed.
   const diffs = all.filter((d) => d.fuxBetter.length + d.playerBetter.length + d.mannFuxBetter.length + d.mannPlayerBetter.length > 0);
   const half = layout.length > cantus.length;
-  const quarters = layout.some((sl) => sl.duration === "1/4");
   if (all.length === 0) return <p className="help">{t("ui.compare.none")}</p>;
-  if (diffs.length === 0) return <p className="help">{t("ui.compare.taste")}</p>;
+  // The score already shows where the two lines differ (D67): only what a criterion weighs is said.
+  if (diffs.length === 0) return null;
   const where = (d: (typeof diffs)[number]) => (half ? `${d.bar + 1}${"abcd"[d.beat]}` : String(d.bar + 1));
   // One line per reason, naming every bar it applies to (owner: say it once).
   const groups = new Map<string, { cls: string; text: React.ReactNode; bars: string[] }>();
@@ -31,13 +29,6 @@ export function FuxComparison({ cantus, player, fux, layout }: { cantus: string[
     <section className="compare">
       <h4>{t("ui.compare.title")}</h4>
       <p className="help">{t("ui.compare.intro")} {t("ui.compare.mannNote")}</p>
-      <ul className="where-list">
-        {diffs.map((d) => (
-          <li key={d.column}>
-            {t(half ? "ui.compare.barBeat" : "ui.compare.bar", { bar: d.bar + 1, beat: quarters ? t("ui.compare.quarter", { n: d.beat + 1 }) : t(d.beat ? "ui.compare.upbeat" : "ui.compare.downbeat"), player: pretty(d.player), pi: d.playerInterval, fux: pretty(d.fux), fi: d.fuxInterval })}
-          </li>
-        ))}
-      </ul>
       <ul className="reasons">
         {[...groups].map(([key, g]) => (
           <li key={key} className={g.cls}>
