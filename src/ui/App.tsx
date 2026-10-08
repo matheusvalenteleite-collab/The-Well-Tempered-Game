@@ -16,11 +16,14 @@ const VIEW = exerciseView(repository, STEP);
 const audio = new AudioEngine();
 
 const SOUND_KEY = "wtg.sound";
+/** Owner decision D15: 8-bit only for now; the piano option is hidden until its samples are verified. */
+const PIANO_ENABLED = false;
 function storedSound(): SoundId {
+  if (!PIANO_ENABLED) return "chip";
   try {
-    return localStorage.getItem(SOUND_KEY) === "chip" ? "chip" : "piano";
+    return localStorage.getItem(SOUND_KEY) === "piano" ? "piano" : "chip";
   } catch {
-    return "piano";
+    return "chip";
   }
 }
 audio.sound = storedSound();
@@ -148,10 +151,10 @@ export function App() {
               <input type="range" min={30} max={120} value={tempo} onChange={(e) => setTempo(Number(e.target.value))} />
             </label>
           </div>
-          <div className="group" role="group" aria-label="sound">
+          {PIANO_ENABLED && <div className="group" role="group" aria-label="sound">
             <button aria-pressed={sound === "piano"} onClick={() => chooseSound("piano")}>{t("ui.sound.piano")}</button>
             <button aria-pressed={sound === "chip"} onClick={() => chooseSound("chip")}>{t("ui.sound.chip")}</button>
-          </div>
+          </div>}
           <div className="group">
             <button aria-pressed={clefMode === "modern"} onClick={() => setClefMode("modern")}>{t("ui.clefs.modern")}</button>
             <button aria-pressed={clefMode === "original"} onClick={() => setClefMode("original")}>{t("ui.clefs.original")}</button>
