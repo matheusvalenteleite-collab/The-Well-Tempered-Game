@@ -24,11 +24,39 @@
     "source.exercise": "J. J. Fux, Gradus ad Parnassum (Vienna, 1725), {figure}, p. {page}. Encoding: Four Score and More / Open Music Theory (Mark Gotham), {license}.",
     "source.cantusOnly": "J. J. Fux, Gradus ad Parnassum (Vienna, 1725): cantus firmus in {final}, assigned on p. 55 without a worked example.",
     "sound.piano": "Piano",
-    "sound.chip": "8-bit"
+    "sound.chip": "8-bit",
+    "volume": "Volume",
+    "evaluate": "Evaluate",
+    "evaluate.incomplete": "Fill every bar before asking Aloysius to evaluate ({missing} empty).",
+    "result.cleared": "Cleared",
+    "result.notCleared": "Not yet",
+    "result.bars": "bars {bars}",
+    "result.bar": "bar {bars}",
+    "result.warning": "recommendation",
+    "result.error": "rule",
+    "fux.show": "Compare with Fux's solution",
+    "fux.hide": "Hide Fux's solution",
+    "fux.title": "Fux's solution (Fig. {figure}), for comparison only",
+    "fux.agreement": "Your counterpoint has the same note as Fux's in {same} of {total} bars. Matching Fux is not required."
   },
   "tutor": {
     "speaker.aloysius": "Aloysius",
     "speaker.josephus": "Josephus",
-    "step.fux-mode.s1.01.intro": "[Placeholder] Aloysius sets the first cantus firmus and asks Josephus to write a counterpoint above it, note against note."
+    "step.fux-mode.s1.01.intro": "[Placeholder] Aloysius sets the first cantus firmus and asks Josephus to write a counterpoint above it, note against note.",
+    "result.cleared": "[Placeholder] Aloysius approves: no rule is broken.",
+    "result.clearedWithWarnings": "[Placeholder] Aloysius approves, with a recommendation.",
+    "result.notCleared": "[Placeholder] Aloysius points out what must be corrected.",
+    "rule.fs.vertical-consonance": "[Placeholder] Only consonances are allowed in this species; this interval is a dissonance.",
+    "rule.fs.opening-perfect": "[Placeholder] Begin with a perfect consonance (with the counterpoint below: the octave or unison, to stay in the mode).",
+    "rule.fs.final-octave-or-unison": "[Placeholder] End on the octave or the unison.",
+    "rule.fs.cadence": "[Placeholder] Before the final, the cantus below asks for a major sixth (the cantus above, a minor third), opening to the octave.",
+    "rule.fs.perfect-approach": "[Placeholder] A perfect consonance may be reached only by contrary or oblique motion.",
+    "rule.fs.unison-only-at-ends": "[Placeholder] The unison belongs only at the beginning and the end.",
+    "rule.fs.melodic-tritone": "[Placeholder] Mi against fa: the leap of a tritone is forbidden.",
+    "rule.fs.melodic-major-sixth": "[Placeholder] The leap of a major sixth is forbidden.",
+    "rule.fs.converging-leap-into-octave": "[Placeholder] Do not leap into the octave or unison from a distant consonance with the voices converging.",
+    "rule.fs.unison-leap": "[Placeholder] Do not leap out of, or into, the unison.",
+    "rule.fs.no-voice-crossing": "[Placeholder] Here the counterpoint crosses the cantus firmus.",
+    "rule.fs.prefer-contrary-motion": "[Placeholder] Use contrary or oblique motion as much as possible; here similar motion predominates."
   }
 }

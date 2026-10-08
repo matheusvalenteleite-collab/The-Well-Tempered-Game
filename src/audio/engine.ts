@@ -26,11 +26,11 @@ class ChipSynth implements Instrument {
   private live = new Set<OscillatorNode>();
   private ctx: AudioContext;
   private out: GainNode;
-  constructor(ctx: AudioContext) {
+  constructor(ctx: AudioContext, destination: AudioNode) {
     this.ctx = ctx;
     this.out = ctx.createGain();
-    this.out.gain.value = 0.12;
-    this.out.connect(ctx.destination);
+    this.out.gain.value = 0.15; // square waves are loud; headroom for two voices
+    this.out.connect(destination);
   }
   start(note: string, time: number, duration: number) {
     const freq = 440 * 2 ** ((parsePitch(note).midi - 69) / 12);
@@ -69,6 +69,8 @@ class SampledPiano implements Instrument {
 
 export class AudioEngine {
   private ctx: AudioContext | null = null;
+  private master: GainNode | null = null;
+  private volume = 0.7;
   private instruments = new Map<SoundId, Promise<Instrument | null>>();
   private current: Instrument | null = null;
   private timers: number[] = [];
@@ -83,6 +85,12 @@ export class AudioEngine {
     this.onStatus(s);
   }
 
+  /** Master volume, 0..1. */
+  setVolume(v: number) {
+    this.volume = Math.max(0, Math.min(1, v));
+    if (this.master && this.ctx) this.master.gain.setTargetAtTime(this.volume, this.ctx.currentTime, 0.02);
+  }
+
   setSound(sound: SoundId) {
     this.stop();
     this.sound = sound;
@@ -91,15 +99,21 @@ export class AudioEngine {
 
   /** Resolve the selected instrument; must first be called from a user gesture. */
   private async instrument(): Promise<Instrument | null> {
-    this.ctx ??= new AudioContext();
+    if (!this.ctx) {
+      this.ctx = new AudioContext();
+      this.master = this.ctx.createGain();
+      this.master.gain.value = this.volume;
+      this.master.connect(this.ctx.destination);
+    }
     if (this.ctx.state === "suspended") await this.ctx.resume();
     const ctx = this.ctx;
+    const master = this.master!;
     let p = this.instruments.get(this.sound);
     if (!p) {
       p =
         this.sound === "chip"
-          ? Promise.resolve(new ChipSynth(ctx))
-          : new Soundfont(ctx, { instrument: "acoustic_grand_piano", kit: "MusyngKite" }).load.then(
+          ? Promise.resolve(new ChipSynth(ctx, master))
+          : new Soundfont(ctx, { instrument: "acoustic_grand_piano", kit: "MusyngKite", destination: master }).load.then(
               (sf) => new SampledPiano(sf),
               () => null,
             );
@@ -119,8 +133,8 @@ export class AudioEngine {
     this.notesStarted++;
   }
 
-  /** Sound one vertical sonority. */
-  async playColumn(col: PlaybackColumn, seconds = 1.4): Promise<void> {
+  /** Sound one vertical sonority briefly (used when a note is placed or a bar is auditioned). */
+  async playColumn(col: PlaybackColumn, seconds = 0.45): Promise<void> {
     const inst = await this.instrument();
     if (!inst || !this.ctx) return;
     const t = this.ctx.currentTime + 0.01;

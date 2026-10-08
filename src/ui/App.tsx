@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { repository } from "../music/fux/load-browser.ts";
-import { FUX_FIRST_SPECIES_CURRICULUM, validateCurriculum } from "../counterpoint/curriculum/fux-first-species.ts";
+import { FUX_FIRST_SPECIES_CURRICULUM, rulesForStep, validateCurriculum } from "../counterpoint/curriculum/fux-first-species.ts";
+import { evaluate, type Evaluation } from "../counterpoint/engine.ts";
+import { compareWithOriginal } from "../music/fux/player.ts";
 import { exerciseView } from "../game/exercise-view.ts";
-import { applyAccidental, clear, initialState, letterNote, place, select, stepNote, type SessionState } from "../game/session.ts";
+import { applyAccidental, clear, initialState, letterNote, place, select, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
 import { AudioEngine, type AudioStatus, type SoundId } from "../audio/engine.ts";
 import { ScoreView } from "./notation/ScoreView.tsx";
 import { Credits } from "./Credits.tsx";
@@ -14,6 +16,15 @@ validateCurriculum(repository);
 const STEP = FUX_FIRST_SPECIES_CURRICULUM[0];
 const VIEW = exerciseView(repository, STEP);
 const audio = new AudioEngine();
+const VOLUME_KEY = "wtg.volume";
+function storedVolume(): number {
+  try {
+    const v = Number(localStorage.getItem(VOLUME_KEY));
+    return localStorage.getItem(VOLUME_KEY) !== null && v >= 0 && v <= 100 ? v : 70;
+  } catch {
+    return 70;
+  }
+}
 
 const SOUND_KEY = "wtg.sound";
 /** Owner decision D15: 8-bit only for now; the piano option is hidden until its samples are verified. */
@@ -37,6 +48,18 @@ export function App() {
   const [audioStatus, setAudioStatus] = useState<AudioStatus>("idle");
   const [showCredits, setShowCredits] = useState(false);
   const [sound, setSound] = useState<SoundId>(audio.sound);
+  const [volume, setVolumeState] = useState(storedVolume);
+  const [result, setResult] = useState<Evaluation | null>(null);
+  const [showFux, setShowFux] = useState(false);
+  useEffect(() => audio.setVolume(volume / 100), [volume]);
+  const setVolume = (v: number) => {
+    setVolumeState(v);
+    try {
+      localStorage.setItem(VOLUME_KEY, String(v));
+    } catch {
+      /* not persisted */
+    }
+  };
   const scoreRef = useRef<HTMLDivElement>(null);
   audio.onStatus = setAudioStatus;
 
@@ -45,6 +68,10 @@ export function App() {
   const update = useCallback(
     (next: SessionState, sound = true) => {
       setSession(next);
+      if (next.notes.some((n, k) => n !== session.notes[k])) {
+        setResult(null);
+        setShowFux(false);
+      }
       const changed = next.notes[next.selected] !== session.notes[next.selected];
       if (sound && changed && next.notes[next.selected]) void audio.playColumn(column(next.selected, next.notes));
     },
@@ -61,6 +88,29 @@ export function App() {
     } catch {
       /* preference not persisted */
     }
+  };
+
+  const missing = session.notes.filter((n) => n === null).length;
+  const runEvaluation = () => {
+    if (missing > 0) return;
+    setResult(
+      evaluate(
+        {
+          species: "first",
+          modalFinal: VIEW.modalFinal,
+          cantusVoice: VIEW.cantusVoice,
+          cantus: VIEW.cantus.map((p) => ({ pitch: p, duration: "1/1" })),
+          counterpoint: session.notes.map((p) => ({ pitch: p, duration: "1/1" })),
+        },
+        rulesForStep(STEP.id),
+      ),
+    );
+  };
+  const fuxSolution = VIEW.exerciseId ? repository.getSolution(VIEW.exerciseId) : undefined;
+  const marks = result ? result.violations.flatMap((v) => v.positions.map((column) => ({ column, severity: v.severity }))) : undefined;
+  const barsText = (positions: number[]) => {
+    const bars = [...new Set(positions)].sort((a, b) => a - b).map((p) => p + 1);
+    return t(bars.length > 1 ? "ui.result.bars" : "ui.result.bar", { bars: bars.join(", ") });
   };
 
   const play = () => {
@@ -131,6 +181,7 @@ export function App() {
             selected={session.selected}
             cursor={cursor}
             label={label}
+            marks={marks}
             onPlace={(col, natural) => update(place(session, col, natural))}
             onSelect={(col) => update(select(session, col), false)}
           />
@@ -145,10 +196,19 @@ export function App() {
             <button onClick={() => update(clear(session), false)}>{t("ui.clear")}</button>
           </div>
           <div className="group">
-            <button className="primary" onClick={play}>{playing ? t("ui.stop") : t("ui.play")}</button>
+            <button className="primary" onClick={runEvaluation} disabled={missing > 0} title={missing > 0 ? t("ui.evaluate.incomplete", { missing }) : undefined}>
+              {t("ui.evaluate")}
+            </button>
+          </div>
+          <div className="group">
+            <button onClick={play}>{playing ? t("ui.stop") : t("ui.play")}</button>
             <label className="tempo">
               {t("ui.tempo", { bpm: tempo })}
-              <input type="range" min={30} max={120} value={tempo} onChange={(e) => setTempo(Number(e.target.value))} />
+              <input id="tempo" type="range" min={30} max={120} value={tempo} onChange={(e) => setTempo(Number(e.target.value))} />
+            </label>
+            <label className="volume">
+              {t("ui.volume")}
+              <input id="volume" type="range" min={0} max={100} value={volume} onChange={(e) => setVolume(Number(e.target.value))} />
             </label>
           </div>
           {PIANO_ENABLED && <div className="group" role="group" aria-label="sound">
@@ -160,6 +220,57 @@ export function App() {
             <button aria-pressed={clefMode === "original"} onClick={() => setClefMode("original")}>{t("ui.clefs.original")}</button>
           </div>
         </div>
+        {missing > 0 && <p className="help">{t("ui.evaluate.incomplete", { missing })}</p>}
+        {result && (
+          <section className="feedback" aria-live="polite">
+            <div className={result.passed ? "verdict ok" : "verdict bad"}>{result.passed ? t("ui.result.cleared") : t("ui.result.notCleared")}</div>
+            <blockquote className="tutor">
+              <span className="speaker">{t("tutor.speaker.aloysius")}.</span>{" "}
+              {t(!result.passed ? "tutor.result.notCleared" : result.warnings.length ? "tutor.result.clearedWithWarnings" : "tutor.result.cleared")}
+            </blockquote>
+            {result.violations.length > 0 && (
+              <ul>
+                {[...result.errors, ...result.warnings].map((v, i) => (
+                  <li key={i} className={v.severity}>
+                    <div className="where">
+                      {barsText(v.positions)} · {t(v.severity === "error" ? "ui.result.error" : "ui.result.warning")}
+                    </div>
+                    <div>{t(`tutor.${v.messageKey}`)}</div>
+                    {v.detail && <div className="detail">{Object.entries(v.detail).map(([k, x]) => `${k}: ${x}`).join(" · ")}</div>}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {fuxSolution && (
+              <div>
+                <button onClick={() => setShowFux(!showFux)}>{showFux ? t("ui.fux.hide") : t("ui.fux.show")}</button>
+                {showFux && (
+                  <div className="fux">
+                    <h3>{t("ui.fux.title", { figure: VIEW.figure ?? "" })}</h3>
+                    <ScoreView
+                      cantus={VIEW.cantus}
+                      counterpoint={fuxSolution.counterpoint.notes.map((n) => n.pitch)}
+                      cantusVoice={VIEW.cantusVoice}
+                      clefs={clefs}
+                      selected={-1}
+                      cursor={-1}
+                      label={t("ui.fux.title", { figure: VIEW.figure ?? "" })}
+                      onPlace={() => {}}
+                      onSelect={() => {}}
+                      readOnly
+                    />
+                    <p className="help">
+                      {(() => {
+                        const cmp = compareWithOriginal(toPlayerSolution(session, repository.getExercise(VIEW.exerciseId!)!), fuxSolution);
+                        return t("ui.fux.agreement", { same: cmp.points.filter((p) => p.same_pitch).length, total: cmp.points.length });
+                      })()}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
+        )}
         {audioStatus === "loading" && <p className="status">{t("ui.audio.loading")}</p>}
         {audioStatus === "failed" && <p className="status error">{t("ui.audio.failed")}</p>}
         <p className="help">{t("ui.keyboard.help")}</p>

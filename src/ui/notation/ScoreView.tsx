@@ -20,6 +20,9 @@ export interface ScoreProps {
   onPlace(column: number, naturalPitch: string): void;
   onSelect(column: number): void;
   label: string;
+  /** Columns marked after evaluation. */
+  marks?: { column: number; severity: "error" | "warning" }[];
+  readOnly?: boolean;
 }
 
 const STAFF_Y = [30, 150];
@@ -117,6 +120,13 @@ export function ScoreView(props: ScoreProps) {
       ctx.fillRect(c.left + 2, top, c.right - c.left - 4, bottom - top);
       ctx.restore();
     };
+    for (const m of props.marks ?? []) {
+      const c = columns[m.column];
+      ctx.save();
+      ctx.setFillStyle(m.severity === "error" ? "var(--mark-error)" : "var(--mark-warning)");
+      ctx.fillRect(c.left + 2, top, c.right - c.left - 4, bottom - top);
+      ctx.restore();
+    }
     if (props.selected >= 0) rect(props.selected, "selected");
     if (props.cursor >= 0) rect(props.cursor, "cursor");
 
@@ -133,11 +143,11 @@ export function ScoreView(props: ScoreProps) {
     };
     geo.current = g;
     el.dataset.geometry = JSON.stringify(g); // read by the browser tests
-  }, [width, props.cantus, props.counterpoint, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label]);
+  }, [width, props.cantus, props.counterpoint, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks]);
 
   const onPointer = (e: React.PointerEvent<HTMLDivElement>) => {
     const g = geo.current;
-    if (!g) return;
+    if (!g || props.readOnly) return;
     const r = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - r.left) / g.scale;
     const y = (e.clientY - r.top) / g.scale;
@@ -154,5 +164,5 @@ export function ScoreView(props: ScoreProps) {
     props.onPlace(column, pitchAtPosition(props.clefs[cpStaff], position));
   };
 
-  return <div ref={host} className="score" onPointerDown={onPointer} />;
+  return <div ref={host} className={props.readOnly ? "score read-only" : "score"} onPointerDown={onPointer} />;
 }
