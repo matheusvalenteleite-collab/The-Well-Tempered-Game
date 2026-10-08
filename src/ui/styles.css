@@ -29,8 +29,8 @@ h1 { font-size: 1.3rem; font-weight: 600; margin: 8px 0; }
 .tutor { margin: 8px 0 12px; padding: 8px 12px; border-left: 3px solid var(--accent); background: var(--paper); font-style: italic; }
 .tutor .speaker { font-style: normal; font-variant: small-caps; font-weight: 600; }
 .score-wrap { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; outline: none; touch-action: manipulation; }
-.score { width: 100%; cursor: crosshair; user-select: none; display: flex; justify-content: center; touch-action: none; }
-.score svg { display: block; }
+.score { width: 100%; cursor: crosshair; user-select: none; display: flex; touch-action: pan-x; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+.score svg { display: block; margin: 0 auto; flex: none; }
 .controls { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 10px; align-items: center; }
 .group { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
 button { font: inherit; font-size: 0.88rem; padding: 4px 10px; min-height: 32px; min-width: 32px; border: 1px solid var(--line); background: var(--paper); border-radius: 4px; cursor: pointer; color: var(--ink); }
@@ -184,7 +184,7 @@ button.tuning { font-size: 0.78rem; min-width: 0; }
 .compare .reasons .playerBetter::marker { content: "★ "; color: #c8962a; }
 .compare .reasons .equal { color: var(--muted); }
 
-.score-box { position: relative; width: 100%; }
+.score-box { position: relative; width: 100%; min-width: 0; overflow: hidden; }
 svg.ghost { position: absolute; pointer-events: none; overflow: visible; }
 svg.ghost ellipse { fill: var(--ink-player); opacity: 0.35; }
 svg.ghost ellipse.hole { fill: var(--paper); opacity: 0.9; }
@@ -254,9 +254,9 @@ svg.ghost line { stroke: var(--ink-player); stroke-width: 1.2; opacity: 0.45; }
   color-scheme: dark;
 }
 /* The engraved score keeps its light colours and is inverted as a whole in the dark theme. */
-.score svg { --ink-muted: #6b665e; --ink-player: #2c4f9e; --ink-fux: #1d6b66; --ok: #2d6a3e; --bad: #a0281a; --warn: #b07a0c; --selection: rgba(60, 100, 160, 0.10); --cursor: rgba(200, 140, 30, 0.25); --mark-error: rgba(190, 40, 30, 0.16); --mark-warning: rgba(220, 160, 20, 0.20); --bar-number: #9a948a; --ink-continuo: #938a7d; --ink-inversion: #7a3e9d; --ink-retrograde: #9a5a1e; --ink-retro-inversion: #a33d6e; --ink-canon: #4f6070; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .score svg { filter: invert(0.92) hue-rotate(180deg); } }
-:root[data-theme="dark"] .score svg { filter: invert(0.92) hue-rotate(180deg); }
+.score svg, .clef-pin svg { --ink-muted: #6b665e; --ink-player: #2c4f9e; --ink-fux: #1d6b66; --ok: #2d6a3e; --bad: #a0281a; --warn: #b07a0c; --selection: rgba(60, 100, 160, 0.10); --cursor: rgba(200, 140, 30, 0.25); --mark-error: rgba(190, 40, 30, 0.16); --mark-warning: rgba(220, 160, 20, 0.20); --bar-number: #9a948a; --ink-continuo: #938a7d; --ink-inversion: #7a3e9d; --ink-retrograde: #9a5a1e; --ink-retro-inversion: #a33d6e; --ink-canon: #4f6070; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .score svg, :root:not([data-theme="light"]) .clef-pin svg { filter: invert(0.92) hue-rotate(180deg); } }
+:root[data-theme="dark"] .score svg, :root[data-theme="dark"] .clef-pin svg { filter: invert(0.92) hue-rotate(180deg); }
 button.primary { background: var(--ink); color: var(--bg); }
 
 /* Header tools, exercise name, control groups, tabs */
@@ -415,3 +415,10 @@ button, select, .chipbtn { font-size: 0.8rem; }
 .desk { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; }
 .desk .strip { flex: 1 1 0; min-width: 74px; width: auto; }
 .strip .canon-shift span { font-size: 0.7rem; }
+
+/* D63: the pinned clefs of a scrolled score; a soft edge shows that the music continues under them. */
+.clef-pin { position: absolute; top: 0; left: 0; overflow: hidden; pointer-events: none; background: var(--paper); visibility: hidden; box-shadow: 6px 0 6px -6px rgba(0, 0, 0, 0.35); }
+.clef-pin.shown { visibility: visible; }
+.clef-pin svg { display: block; }
+/* Narrow screens: the exercise menu takes the rest of its row, with the next arrow beside it. */
+@media (max-width: 600px) { .exercise-nav { width: 100%; } .exercise-nav #exercise { flex: 1 1 60%; } }

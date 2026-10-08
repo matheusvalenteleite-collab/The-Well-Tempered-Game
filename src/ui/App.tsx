@@ -5,7 +5,7 @@ import { REST, slotLength, sounding, timeline } from "../counterpoint/layout.ts"
 import { evaluate, type Evaluation } from "../counterpoint/engine.ts";
 import { compareWithOriginal } from "../music/fux/player.ts";
 import { exerciseView } from "../game/exercise-view.ts";
-import { applyAccidental, clear, initialState, letterNote, moveNote, place, select, setRest, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
+import { applyAccidental, clear, initialState, letterNote, moveNote, place, repeatPrevious, select, setRest, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
 import { AudioEngine, renderLevel, SYNTH_PRESETS, type AudioStatus } from "../audio/engine.ts";
 import { restoreSound, type SoundState } from "../audio/sound.ts";
 import { loadSamples } from "../audio/voice.ts";
@@ -249,6 +249,18 @@ export function App() {
     }
     const changed = next.notes[next.selected] !== session.notes[next.selected];
     if (sound && changed && sounding(next.notes[next.selected])) audition(next.selected, next.notes);
+  };
+
+  /** The slot written by the last letter (the selection has moved past it), for the arrows to correct. */
+  const justWrote = useRef<number | null>(null);
+  /** Keyboard entry: write the selected slot, sound it, and move on to the next slot. */
+  const writeAndAdvance = (next: SessionState) => {
+    const w = next.selected;
+    if (next.notes[w] === session.notes[w] && !sounding(next.notes[w])) return;
+    const last = next.notes.length - 1;
+    update(w < last ? select(next, w + 1) : next, false);
+    audition(w, next.notes);
+    justWrote.current = w < last ? w : null;
   };
 
   /** Selecting a bar without writing: it sounds if the player stays on it for DWELL_MS. */
@@ -539,14 +551,25 @@ export function App() {
     const s = session;
     // Only the written line is editable; while it is hidden (D47) the keys only browse and play.
     if (!versions.original && !["ArrowRight", "ArrowLeft", " ", "p", "P", "?"].includes(k)) return;
+    const wrote = justWrote.current;
+    justWrote.current = null;
     if (k === "ArrowRight") browse(s.selected + 1);
     else if (k === "ArrowLeft") browse(s.selected - 1);
-    else if (k === "ArrowUp") update(stepNote(s, 1, startPitch(s.selected)));
-    else if (k === "ArrowDown") update(stepNote(s, -1, startPitch(s.selected)));
-    else if (/^[a-gA-G]$/.test(k)) {
+    else if (k === "ArrowUp" || k === "ArrowDown") {
+      // Right after a letter the selection has moved on: the arrows correct the note just written
+      // (the selection stays where it is). Shift moves by an octave.
+      const delta = (k === "ArrowUp" ? 1 : -1) * (e.shiftKey ? 7 : 1);
+      if (wrote !== null && wrote === s.selected - 1 && s.notes[s.selected] === null) {
+        const fixed = stepNote(select(s, wrote), delta, startPitch(wrote));
+        update(select(fixed, s.selected), false);
+        audition(wrote, fixed.notes);
+        justWrote.current = wrote;
+      } else update(stepNote(s, delta, startPitch(s.selected)));
+    } else if (/^[a-gA-G]$/.test(k)) {
       const cur = s.notes[s.selected];
-      update(letterNote(s, k.toUpperCase() as Step, (sounding(cur) ? cur : null) ?? s.lastWritten ?? startPitch(s.selected)));
-    } else if (k === "r" || k === "R") update(setRest(s, VIEW.layout), false);
+      writeAndAdvance(letterNote(s, k.toUpperCase() as Step, (sounding(cur) ? cur : null) ?? s.lastWritten ?? startPitch(s.selected)));
+    } else if (k === "t" || k === "T" || k === "+") writeAndAdvance(repeatPrevious(s));
+    else if (k === "r" || k === "R") update(setRest(s, VIEW.layout), false);
     else if (k === "#") update(applyAccidental(s, 1));
     else if (k === "-") update(applyAccidental(s, -1));
     else if (k === "n") update(applyAccidental(s, 0));
@@ -765,6 +788,11 @@ export function App() {
             {VIEW.layout.some((sl) => sl.restAllowed) && (
               <button aria-pressed={session.notes[session.selected] === REST} disabled={!VIEW.layout[session.selected]?.restAllowed} onClick={() => update(setRest(session, VIEW.layout), false)} title={t("ui.rest.help")}>
                 {t("ui.rest")}
+              </button>
+            )}
+            {VIEW.species === "fourth" && (
+              <button onClick={() => writeAndAdvance(repeatPrevious(session))} disabled={!sounding(session.notes[session.selected - 1])} title={t("ui.tie.help")}>
+                {t("ui.tie")}
               </button>
             )}
             <button onClick={() => update(freshSession(stepIndex), false)}>{t("ui.clearAll")}</button>

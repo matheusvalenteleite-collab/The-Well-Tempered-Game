@@ -91,6 +91,18 @@ export function letterNote(s: SessionState, letter: Step, reference: string): Se
 }
 
 /**
+ * Repeat the previous slot's note in the selected slot, accidental included: in fourth species this
+ * writes the tie (the same note on both sides of the bar line). Nothing happens after a rest or an empty slot.
+ */
+export function repeatPrevious(s: SessionState): SessionState {
+  const prev = s.notes[s.selected - 1];
+  if (!sounding(prev)) return s;
+  const notes = [...s.notes];
+  notes[s.selected] = prev;
+  return { ...s, notes, accidental: null, lastWritten: prev };
+}
+
+/**
  * The accidental control: with a note in the selected column, alter that note
  * (pressing the same accidental again restores the key's default); otherwise arm it for the next placement.
  */

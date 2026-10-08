@@ -178,3 +178,12 @@ test("key signature (F mode, D48): a plain B is B-flat; the natural sign gives B
   assert.equal(s.notes[3], "Bb3");
   assert.equal(place(initialState(2), 0, "B4").notes[0], "B4"); // no signature elsewhere
 });
+
+test("repeatPrevious writes the tie: the previous note, accidental included, and nothing after a rest (D63)", async () => {
+  const { initialState, repeatPrevious, select } = await import("../src/game/session.ts");
+  const s = { ...initialState(4), notes: ["r", "Bb4", null, null] };
+  const tied = repeatPrevious(select(s, 2));
+  assert.equal(tied.notes[2], "Bb4");
+  assert.equal(tied.lastWritten, "Bb4");
+  assert.equal(repeatPrevious(select(s, 1)).notes[1], "Bb4"); // after a rest: unchanged
+});
