@@ -6,6 +6,8 @@ import { DEFAULT_DEV_CONFIG, type DevConfig } from "../config.ts";
 import { parsePitch } from "../music/pitch.ts";
 import { FIRST_SPECIES_FUX_STRICT } from "./rules/first-species.ts";
 import { SECOND_SPECIES_FUX_STRICT } from "./rules/second-species.ts";
+import { THIRD_SPECIES_FUX_STRICT } from "./rules/third-species.ts";
+import { FOURTH_SPECIES_FUX_STRICT } from "./rules/fourth-species.ts";
 import { slotLayout } from "./layout.ts";
 import { maxThreeParallelImperfect, noRepeatedClimax, voiceDistanceLimit } from "./rules/modern-additions.ts";
 import type { Analysis, CounterpointInput, Rule, Violation } from "./rules/types.ts";
@@ -15,7 +17,7 @@ export type PresetId = "fux-strict";
 /** The only player-facing preset. */
 export function presetRules(preset: PresetId = "fux-strict", config: DevConfig = DEFAULT_DEV_CONFIG): Rule[] {
   if (preset !== "fux-strict") throw new Error(`unknown preset ${preset}`);
-  const rules: Rule[] = [...FIRST_SPECIES_FUX_STRICT, ...SECOND_SPECIES_FUX_STRICT];
+  const rules: Rule[] = [...FIRST_SPECIES_FUX_STRICT, ...SECOND_SPECIES_FUX_STRICT, ...THIRD_SPECIES_FUX_STRICT, ...FOURTH_SPECIES_FUX_STRICT];
   if (config.enableModernAdditions) {
     rules.push(maxThreeParallelImperfect, noRepeatedClimax);
     if (config.modernVoiceDistanceLimit !== null) rules.push(voiceDistanceLimit(config.modernVoiceDistanceLimit));
@@ -27,7 +29,7 @@ export class MalformedInputError extends Error {}
 
 export function analyse(input: CounterpointInput): Analysis {
   const { cantus, counterpoint } = input;
-  if (input.species !== "first" && input.species !== "second") throw new MalformedInputError(`unsupported species ${input.species}`);
+  if (!["first", "second", "third", "fourth"].includes(input.species)) throw new MalformedInputError(`unsupported species ${input.species}`);
   if (cantus.length < 2) throw new MalformedInputError("cantus firmus needs at least two notes");
   const cf = cantus.map((n, k) => {
     if (n.pitch === null) throw new MalformedInputError(`cantus bar ${k}: rest`);
@@ -47,7 +49,9 @@ export function analyse(input: CounterpointInput): Analysis {
       return [];
     }
     parsePitch(n.pitch);
-    return [{ slot: k, bar: slot.bar, beat: slot.beat, cantus: cf[slot.bar], counterpoint: n.pitch }];
+    const prev = counterpoint[k - 1];
+    const tied = input.species === "fourth" && slot.beat === 0 && k > 0 && layout[k - 1].beat === 1 && prev?.pitch === n.pitch;
+    return [{ slot: k, bar: slot.bar, beat: slot.beat, cantus: cf[slot.bar], counterpoint: n.pitch, ...(tied ? { tied: true } : {}) }];
   });
   const first = input.species === "first";
   return {

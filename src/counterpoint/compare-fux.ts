@@ -23,7 +23,7 @@ export interface BarDifference {
   column: number;
   /** 0-based bar of that slot; beat 0 = downbeat, 1 = upbeat. */
   bar: number;
-  beat: 0 | 1;
+  beat: Slot["beat"];
   player: string;
   fux: string;
   playerInterval: string;

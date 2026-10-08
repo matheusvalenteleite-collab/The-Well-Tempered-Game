@@ -28,12 +28,13 @@ export function startPlayback(audio: AudioEngine, view: ExerciseView, s: PlaySet
   const lines = heardLines(s.versions, s.notes, view.modalFinal);
   const original = s.versions.original ? s.notes : s.notes.map(() => null);
   const derived = Object.fromEntries(lines.filter((l) => l.id !== "original").map((l) => [l.id, l.notes]));
+  const ties = { ties: view.species === "fourth" };
   const events =
     s.mode === "player"
-      ? timeline(view.cantus, view.layout, original, undefined, undefined, undefined, derived)
+      ? timeline(view.cantus, view.layout, original, undefined, undefined, undefined, derived, ties)
       : s.mode === "fux"
-        ? timeline(view.cantus, view.layout, view.fux!)
-        : timeline(view.cantus, view.layout, original, undefined, undefined, view.fux!, derived);
+        ? timeline(view.cantus, view.layout, view.fux!, undefined, undefined, undefined, undefined, ties)
+        : timeline(view.cantus, view.layout, original, undefined, undefined, view.fux!, derived, ties);
   let plan: { input: ReturnType<typeof continuoInput>; realization: ReturnType<typeof realizeContinuo> } | null = null;
   if (s.continuo) {
     const input = continuoInput(view, s.mode === "fux" ? view.fux! : lines.map((l) => l.notes), s.mode);

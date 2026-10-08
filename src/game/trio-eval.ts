@@ -76,8 +76,8 @@ export function trioReading(cantus: string[], player: (string | null)[], fux: (s
     const [lo, mid, hi] = voices;
     // Sonority. In second species an upbeat dissonance between the two counterpoints passes if
     // either line moves by step into and out of its note (a passing note).
-    const passing = beat === 1 && (stepwiseAround(player, k) || stepwiseAround(fux, k));
-    if (!(beat === 1 && passing)) {
+    const passing = beat !== 0 && (stepwiseAround(player, k) || stepwiseAround(fux, k));
+    if (!passing) {
       if (!consonantWithBass(lo, mid) || !consonantWithBass(lo, hi)) {
         const bad = !consonantWithBass(lo, mid) ? mid : hi;
         // The cantus-player and cantus-Fux pairs are judged elsewhere; report only clashes that involve both counterpoints.

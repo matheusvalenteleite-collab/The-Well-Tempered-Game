@@ -23,7 +23,7 @@ export function TrioReading({ findings, layout }: { findings: TrioFinding[]; lay
       .map((k) => {
         const sl = layout[k];
         const bar = sl.bar - firstBar + 1;
-        return half ? `${bar}${sl.beat ? "b" : "a"}` : String(bar);
+        return half ? `${bar}${"abcd"[sl.beat]}` : String(bar);
       })
       .join(", ");
   const faults = merge(findings.filter((f) => f.tone === "fault"));

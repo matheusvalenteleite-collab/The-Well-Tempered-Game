@@ -4,7 +4,7 @@
  */
 import { parsePitch } from "../music/pitch.ts";
 import { COSTS, DEFAULTS } from "./costs.ts";
-import { chooseChord, consistentTriads, frameAt, letterForms, mod, spellAt, toPc, type Chord, type Frame } from "./frame.ts";
+import { chooseChord, clashes, consistentTriads, frameAt, frameConsonant, letterForms, mod, spellAt, toPc, type Chord, type Frame } from "./frame.ts";
 import { enrichBar, passingFill, type BarPlan, type Segment } from "./enrichment.ts";
 import { FIGURES, partimento, type Device } from "./partimento.ts";
 import { sungNotes } from "./input.ts";
@@ -35,9 +35,20 @@ function autoShift(frames: (Frame | null)[]): number {
   return best;
 }
 
-/** Downbeat frame of a bar; with nothing sounding on the downbeat, the first onset in the bar. */
-function barFrame(notes: SungNote[], b: number): Frame | null {
+/**
+ * Downbeat frame of a bar; with nothing sounding on the downbeat, the first onset in the bar. A
+ * dissonant downbeat that becomes consonant on the upbeat is a suspension (fourth species): the
+ * bar is read, as a figured-bass player reads it, from its resolution ("7 6", "4 3", "2 3").
+ */
+function barFrame(notes: SungNote[], b: number, suspended?: Set<number>): Frame | null {
   const f = frameAt(notes, 2 * b);
+  if (f && !frameConsonant(f)) {
+    const r = frameAt(notes, 2 * b + 1);
+    if (r && frameConsonant(r)) {
+      suspended?.add(b);
+      return { ...r, time: 2 * b };
+    }
+  }
   if (f) return f;
   const first = notes.find((n) => n.start > 2 * b && n.start < 2 * b + 2);
   return first ? frameAt(notes, first.start) : null;
@@ -50,7 +61,8 @@ export function realizeContinuo(exercise: ContinuoInput, options: Partial<Contin
   if (win.high - win.low < 12) throw new Error("the right-hand window must span at least an octave");
   const { notes, bars: n, modalFinal } = sungNotes(exercise);
 
-  const frames = Array.from({ length: n }, (_, b) => barFrame(notes, b));
+  const suspended = new Set<number>();
+  const frames = Array.from({ length: n }, (_, b) => barFrame(notes, b, suspended));
   const shift = opts.bassOctaves === "auto" ? autoShift(frames) : opts.bassOctaves;
   const lh = (f: Frame) => f.bass.pitch.midi - 12 * shift;
   if (opts.texture === "doubling") return realizeDoubling(notes, n, frames, shift, win, costs, modalFinal, opts);
@@ -131,6 +143,17 @@ export function realizeContinuo(exercise: ContinuoInput, options: Partial<Contin
     devices = pt.devices;
     pt.notes.forEach((x, b) => timelines[b].notes.push(...x));
   }
+  // Suspended bars: a right-hand note that would rub against the held dissonance (a second or a
+  // seventh with any sung note on the downbeat) waits for the resolution on the upbeat.
+  segments = segments.map((segs, b) => {
+    if (!suspended.has(b)) return segs;
+    const f = frameAt(notes, 2 * b);
+    if (!f) return segs;
+    return segs.flatMap((sg) => {
+      if (sg.start > 2 * b || sg.end <= 2 * b + 1 || !f.sounding.some((x) => clashes(x.pitch.midi, sg.midi) && mod(x.pitch.midi, 12) !== mod(sg.midi, 12))) return [sg];
+      return [{ ...sg, start: 2 * b + 1 }];
+    });
+  });
   const events: ContinuoEvent[] = [...bassEvents(notes, n, shift, plans, timelines), ...rhEvents(segments.flat())];
   events.sort((a, b) => a.startBeat - b.startBeat || order(a.role) - order(b.role) || a.midi[0] - b.midi[0]);
 
@@ -158,6 +181,13 @@ export function realizeContinuo(exercise: ContinuoInput, options: Partial<Contin
       cost: Math.round(result.local[b] * 100) / 100,
     };
     if (timelines[b].upbeat) info.upbeat = timelines[b].upbeat;
+    if (suspended.has(b) && !p.fallback) {
+      // The figure of a suspension: the sung intervals over the bass, on the downbeat then the upbeat.
+      const down = doublingFigure(frameAt(notes, 2 * b));
+      const up = doublingFigure(frameAt(notes, 2 * b + 1));
+      info.figure = down && up && down !== up ? `${down} ${up}` : info.figure;
+      info.suspension = true;
+    }
     const d = devices[b];
     if (d) {
       info.device = d;

@@ -53,7 +53,7 @@ Not carried into second species: `fs.unison-only-at-ends` (stated "in this speci
 (Fux's Figs. 36, 39, 41 and 42 leap from or to an upbeat unison). Fux's twelve solutions clear
 every second-species rule; the only findings are the crossing warnings at Figs. 37 and 39.
 
-## Two voices, third species (pp. 63-69) — not implemented yet
+## Two voices, third species (pp. 63-69)
 
 Four crotchets against a semibreve. Of five crotchets moving by step: the first consonant, the
 second may be dissonant, the third consonant, the fourth may be dissonant if the fifth is
@@ -64,7 +64,14 @@ first and second notes, but the authority of the masters is followed for the sak
 (pp. 64-65). Penultimate bar: specific formulas for each voicing (pp. 65-66). Accidental flats
 (and sharps) to avoid *mi contra fa* relations are not essential to the diatonic genus (pp. 68-69).
 
-## Two voices, fourth species (pp. 69-76) — not implemented yet
+Implemented (D61) as `ts.downbeat-consonance`, `ts.dissonance` (passing by step in one direction, or
+the cambiata: second quarter, a step down, then a skip of a third down to a consonance), `ts.cadence`
+(the penultimate bar ends on the major sixth / minor third), and the carried first-species precepts
+(`ts.opening-perfect`, `ts.final-octave-or-unison`, `ts.perfect-approach`, `ts.melodic-tritone`,
+`ts.melodic-major-sixth`, `ts.converging-leap-into-octave`, `ts.unison-only-at-ends` on downbeats).
+Fux's six solutions (Figs. 55-60) clear every rule.
+
+## Two voices, fourth species (pp. 69-76)
 
 Two minims tied over the bar, the first in arsis, the second in thesis: the ligature or syncope,
 consonant or dissonant (pp. 69-70). The first note of a tie is always consonant (p. 69); a
@@ -78,6 +85,13 @@ common (pp. 72-73). Ascending resolution: deferred; for now always descend (p. 7
 where possible, otherwise plain minims (p. 74); avoid repeating the same ligature pattern (p. 74).
 Ornamented and broken ligatures, and two quavers on the second or fourth crotchet (never the
 first or third), anticipate fifth species (p. 76).
+
+Implemented (D61) as `fos.arsis-consonant` (an untied upbeat may pass by step, as in second species),
+`fos.resolution`, `fos.ligature-kinds` (no 1-2 or 8-9 with the cantus below; no 7-8 with it above),
+`fos.cadence`, `fos.ligature-where-possible` (a warning when more than a third of the inner bars are
+untied: Aloysius approves one omission for variety, p. 74), and the carried precepts as in third
+species. A tie is entered as the same note on both sides of the bar line. Fux's six solutions
+(Figs. 73-78) clear every rule.
 
 ## Two voices, fifth species (pp. 76-81) — not implemented yet
 

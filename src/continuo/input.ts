@@ -7,6 +7,7 @@ import { parseRational, type PlayerSolution } from "../music/fux/player.ts";
 import type { Exercise, OriginalSolution } from "../music/fux/types.ts";
 import type { CounterpointInput, VoiceNote } from "../counterpoint/rules/types.ts";
 import type { ContinuoInput, MultiVoiceInput, SungNote } from "./types.ts";
+import type { SpeciesId } from "../counterpoint/layout.ts";
 
 export function toMultiVoice(input: ContinuoInput): MultiVoiceInput {
   if ("voices" in input) return input;
@@ -45,11 +46,11 @@ export function sungNotes(input: ContinuoInput): { notes: SungNote[]; bars: numb
 
 const voiceNotes = (notes: { pitch: string | null; duration: string }[]): VoiceNote[] => notes.map((n) => ({ pitch: n.pitch, duration: n.duration }));
 
-/** Fux's own solution of a first- or second-species exercise. */
+/** Fux's own solution of an exercise of the first four species. */
 export function inputFromSolution(sol: OriginalSolution): CounterpointInput {
-  if (sol.species !== "first" && sol.species !== "second") throw new Error(`${sol.id}: continuo inputs cover first and second species, got ${sol.species}`);
+  if (!["first", "second", "third", "fourth"].includes(sol.species)) throw new Error(`${sol.id}: continuo inputs cover species one to four, got ${sol.species}`);
   return {
-    species: sol.species,
+    species: sol.species as SpeciesId,
     modalFinal: sol.modal_final,
     cantusVoice: sol.cantus_voice,
     cantus: voiceNotes(sol.cantus_firmus.notes),
@@ -59,9 +60,9 @@ export function inputFromSolution(sol: OriginalSolution): CounterpointInput {
 
 /** A player's solved exercise. */
 export function inputFromPlayer(exercise: Exercise, sol: PlayerSolution): CounterpointInput {
-  if (exercise.species !== "first" && exercise.species !== "second") throw new Error(`${exercise.id}: unsupported species ${exercise.species}`);
+  if (!["first", "second", "third", "fourth"].includes(exercise.species)) throw new Error(`${exercise.id}: unsupported species ${exercise.species}`);
   return {
-    species: exercise.species,
+    species: exercise.species as SpeciesId,
     modalFinal: exercise.modal_final,
     cantusVoice: exercise.cantus_voice,
     cantus: voiceNotes(exercise.cantus_firmus.notes),

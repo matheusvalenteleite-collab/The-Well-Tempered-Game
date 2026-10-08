@@ -688,7 +688,7 @@ export function App() {
                       {demoPlaying === st.id ? "■" : "▶"}
                     </button>
                     <span>{stepLabel(k)}</span>
-                    <span className="help">{t("ui.nav.speciesN", { n: ORDINAL[VIEWS[k].species === "first" ? 1 : 2] })}</span>
+                    <span className="help">{t("ui.nav.speciesN", { n: ORDINAL[["first", "second", "third", "fourth"].indexOf(VIEWS[k].species) + 1] })}</span>
                   </li>
                 ) : null,
               )}
@@ -733,6 +733,7 @@ export function App() {
             marks={versions.original ? marks : undefined}
             overlay={versions.original ? overlay : undefined}
             fux={showFux && fuxOpen ? VIEW.fux! : undefined}
+            ties={VIEW.species === "fourth"}
             continuo={continuoPlan && continuoSettings.display !== "none" ? { realization: continuoPlan.realization, display: continuoSettings.display } : undefined}
             showNames={showNames}
             showGhost
@@ -823,11 +824,11 @@ export function App() {
         {result && (
           <section className="feedback" aria-live="polite">
             <Fold title={t("ui.fold.evaluation")} {...foldProps("evaluation")}>
-              <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} audio={audio} />
+              <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} ties={VIEW.species === "fourth"} audio={audio} />
             </Fold>
             {versionResults.map((v) => (
               <Fold key={v.id} className="version-eval" title={<span style={{ color: VERSION_INK[v.id] }}>{t(`ui.versions.${v.id}`, { n: versions.canonShift })}</span>} {...foldProps(`version-${v.id}`)}>
-                <Feedback result={v.ev} cantus={VIEW.cantus} counterpoint={v.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} audio={audio} />
+                <Feedback result={v.ev} cantus={VIEW.cantus} counterpoint={v.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} ties={VIEW.species === "fourth"} audio={audio} />
               </Fold>
             ))}
             <div className="after">

@@ -113,6 +113,8 @@ export interface BarInfo {
   upbeat?: { kind: UpbeatKind; figure?: string; chord?: string[] };
   /** Set for every bar of a "doubling" realization. */
   texture?: "doubling";
+  /** A sung suspension (fourth species): the bar is realized from its resolution; figure "7 6", "4 3" ... */
+  suspension?: boolean;
   /** A6: the partimento device of this bar (suspension, 5-6, rule-of-the-octave 6/5). */
   device?: "43" | "76" | "98" | "56" | "65";
 }

@@ -69,6 +69,13 @@ export function correctionFor(v: Violation, cantus: string[], cp: (string | null
     if (v.positions.includes(up)) fixed[up] = nearestOctave(cadenceNote(cantus, cantusVoice), cp[up]!, cantus[bar], cantusVoice);
     return fixed;
   }
+  if (v.ruleId === "ts.cadence") {
+    // Third species: the last quarter of the next-to-last bar becomes the note below the final.
+    const k = v.positions[0];
+    const fixed = [...cp];
+    fixed[k] = nearestOctave(cadenceNote(cantus, cantusVoice), cp[k]!, cantus[layout[k].bar], cantusVoice);
+    return fixed;
+  }
   if (v.ruleId !== "fs.cadence") return null;
   const k = cantus.length - 2;
   const fixed = [...cp];

@@ -10,7 +10,7 @@ import { harmonic, simpleName } from "../../counterpoint/interval.ts";
 import type { Staff } from "../../music/fux/types.ts";
 import { pitchAtPosition, VEXFLOW_CLEF, type ClefId } from "./clefs.ts";
 import type { Overlay, Status } from "./overlay.ts";
-import { REST, slotLayout, type Slot } from "../../counterpoint/layout.ts";
+import { REST, slotLayout, tiedToNext, type Slot } from "../../counterpoint/layout.ts";
 import type { ContinuoRealization } from "../../continuo/types.ts";
 import { cueChords, cueFigures, type CueChord } from "./continuo-staff.ts";
 
@@ -49,6 +49,8 @@ export interface ScoreProps {
   showNames?: boolean;
   /** Fux's counterpoint (one entry per slot), drawn on the player's staff with diamond noteheads. */
   fux?: (string | null)[];
+  /** Fourth species: a note repeated over the bar line (upbeat to downbeat) is drawn tied. */
+  ties?: boolean;
   /**
    * Basso continuo under the two staves, cue-sized and in its own ink. It takes no part in input,
    * selection or the overlay, and never moves the two staves: the score grows by its height.
@@ -89,6 +91,12 @@ const LAYOUT = {
 const BAR_W = 58;
 /** A bar holding two half notes. */
 const HALF_BAR_W = 92;
+/** A bar holding four quarter notes. */
+const QUARTER_BAR_W = 148;
+/** VexFlow duration of a slot. */
+const vexDur = (sl: Slot): "w" | "h" | "q" => (sl.duration === "1/1" ? "w" : sl.duration === "1/2" ? "h" : "q");
+/** Offset of a note name from the notehead's left edge. */
+const nameDx = (sl: Slot) => (sl.duration === "1/1" ? 17 : sl.duration === "1/2" ? 13 : 12);
 /** Notehead offset from the left edge of its slot. */
 const NOTE_PAD = 12;
 /** Drawing scale on wide screens. */
@@ -160,7 +168,7 @@ export function ScoreView(props: ScoreProps) {
     // Our own horizontal grid (the VexFlow formatter spreads unevenly around empty slots): a bar of
     // one whole note is BAR_W wide, a bar of two half notes HALF_BAR_W.
     const slotsIn = (b: number) => layout.filter((sl) => sl.bar - firstSlotBar === b).length;
-    const barW = Array.from({ length: bars }, (_, b) => (slotsIn(b) > 1 ? HALF_BAR_W : BAR_W));
+    const barW = Array.from({ length: bars }, (_, b) => (slotsIn(b) > 2 ? QUARTER_BAR_W : slotsIn(b) > 1 ? HALF_BAR_W : BAR_W));
     const barX: number[] = [];
     barW.reduce((x, w, b) => ((barX[b] = x), x + w), 0);
     const musicWidth = barW.reduce((x, w) => x + w, 0);
@@ -203,7 +211,7 @@ export function ScoreView(props: ScoreProps) {
     const cpIndex = upperIsCantus ? 1 : 0;
     /** A note (or rest) placed with its notehead's left edge at logical x. */
     type Look = "cantus" | "player" | "fux";
-    const placed = (staffIndex: number, pitch: string, dur: "w" | "h", x: number, look: Look, stem?: Stem) => {
+    const placed = (staffIndex: number, pitch: string, dur: "w" | "h" | "q", x: number, look: Look, stem?: Stem) => {
       const clef = VEXFLOW_CLEF[props.clefs[staffIndex]].clef;
       let n: StaveNote;
       if (pitch === REST) n = new StaveNote({ keys: [clef === "bass" ? "d/3" : "b/4"], duration: `${dur}r`, clef });
@@ -257,7 +265,7 @@ export function ScoreView(props: ScoreProps) {
     });
     const cpNotes = layout.map((sl, k) => {
       const p = props.counterpoint[k];
-      return p === null || p === undefined ? null : placed(cpIndex, p, sl.duration === "1/1" ? "w" : "h", columns[k].left + NOTE_PAD, "player", stemOf("player"));
+      return p === null || p === undefined ? null : placed(cpIndex, p, vexDur(sl), columns[k].left + NOTE_PAD, "player", stemOf("player"));
     });
     // Fux's line: stems down (the player's go up), nudged right where the two notes would collide.
     const fuxNotes = (props.fux ?? []).map((p, k) => {
@@ -265,7 +273,7 @@ export function ScoreView(props: ScoreProps) {
       if (!sl || p === null || p === REST) return null;
       const mine = props.counterpoint[k];
       const near = mine && mine !== REST && Math.abs(parsePitch(mine).diatonic - parsePitch(p).diatonic) <= 1;
-      return placed(cpIndex, p, sl.duration === "1/1" ? "w" : "h", columns[k].left + NOTE_PAD + (near ? 11 : 0), "fux", stemOf("fux"));
+      return placed(cpIndex, p, vexDur(sl), columns[k].left + NOTE_PAD + (near ? 11 : 0), "fux", stemOf("fux"));
     });
 
     // Column highlights under the music.
@@ -298,6 +306,20 @@ export function ScoreView(props: ScoreProps) {
     for (let b = 1; b < bars; b++) staves.forEach((s) => ctx.fillRect(xOfBar(b) - 2, s.getYForLine(0), 1, s.getYForLine(4) - s.getYForLine(0)));
     ctx.restore();
     for (const n of [...cfNotes, ...fuxNotes, ...cpNotes]) n?.setContext(ctx).draw();
+    // Ligatures (fourth species): a tie from each upbeat to the same note on the next downbeat.
+    const drawTies = (line: (string | null | undefined)[], notes: (StaveNote | null | undefined)[], ink: string) => {
+      if (!props.ties) return;
+      for (let k = 0; k + 1 < layout.length; k++) {
+        const a = notes[k];
+        const b = notes[k + 1];
+        if (!a || !b || !tiedToNext(layout, line.map((x) => x ?? null), k)) continue;
+        const tie = new StaveTie({ first_note: a, last_note: b, first_indices: [0], last_indices: [0] });
+        tie.setStyle({ fillStyle: ink, strokeStyle: ink });
+        tie.setContext(ctx).draw();
+      }
+    };
+    drawTies(props.counterpoint, cpNotes, props.playerInk ?? "var(--ink-player)");
+    if (props.fux) drawTies(props.fux, fuxNotes, "var(--ink-fux)");
     // Derived lines, on the player's staff in their own ink; a notehead that would touch one
     // already in its slot moves right (D58).
     const occupied: number[][] = layout.map((_, k) => {
@@ -309,7 +331,7 @@ export function ScoreView(props: ScoreProps) {
       layout.map((sl, k) => {
         const p = line.notes[k];
         if (p === null || p === undefined || p === REST) return null;
-        const dur = sl.duration === "1/1" ? "w" : "h";
+        const dur = vexDur(sl);
         const { key, acc } = vexKey(p, sig);
         const stem = stemOf(`extra${extras.indexOf(line)}`);
         const n = new StaveNote({ keys: [key], duration: dur, clef: cpClef.clef, ...(stem ? { stem_direction: stem } : {}) });
@@ -332,6 +354,7 @@ export function ScoreView(props: ScoreProps) {
         return { n, x: columns[k].left + NOTE_PAD + nudges * 9 };
       }),
     );
+    extras.forEach((line, i) => drawTies(line.notes, extraNotes[i].map((x) => x?.n ?? null), line.ink));
     if (props.extraIntervals)
       extras.forEach((line, i) => {
         ctx.save();
@@ -368,13 +391,13 @@ export function ScoreView(props: ScoreProps) {
       props.cantus.forEach((p, b) => label(p, cfNotes[b], xOfBar(b) + NOTE_PAD + 17, "var(--ink-muted)"));
       layout.forEach((sl, k) => {
         const p = props.counterpoint[k];
-        if (p) label(p, cpNotes[k], columns[k].left + NOTE_PAD + (sl.duration === "1/1" ? 17 : 13), props.playerInk ?? "var(--ink-player)");
+        if (p) label(p, cpNotes[k], columns[k].left + NOTE_PAD + nameDx(sl), props.playerInk ?? "var(--ink-player)");
         const f = props.fux?.[k];
-        if (f) label(f, fuxNotes[k], columns[k].left + NOTE_PAD + (sl.duration === "1/1" ? 17 : 13) + 10, "var(--ink-fux)");
+        if (f) label(f, fuxNotes[k], columns[k].left + NOTE_PAD + nameDx(sl) + 10, "var(--ink-fux)");
         extras.forEach((line, i) => {
           const e = extraNotes[i][k];
           const q = line.notes[k];
-          if (e && q) label(q, e.n, e.x + (sl.duration === "1/1" ? 17 : 13), line.ink);
+          if (e && q) label(q, e.n, e.x + nameDx(sl), line.ink);
         });
       });
     }
@@ -470,7 +493,7 @@ export function ScoreView(props: ScoreProps) {
     };
     geo.current = g;
     el.dataset.geometry = JSON.stringify(g); // read by the browser tests
-  }, [width, props.showNames, props.cantus, props.counterpoint, props.fux, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay, props.continuo, props.extraLines, props.extraIntervals, props.playerInk, props.playerLabel, props.signature]);
+  }, [width, props.showNames, props.cantus, props.counterpoint, props.fux, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay, props.continuo, props.extraLines, props.extraIntervals, props.ties, props.playerInk, props.playerLabel, props.signature]);
 
   const press = useRef<{ x: number; y: number; dragging: boolean; from: number } | null>(null);
 

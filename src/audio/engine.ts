@@ -224,17 +224,17 @@ export class AudioEngine {
       this.notesStarted++;
     }
     if (e.counterpoint) {
-      voices.counterpoint.start(e.counterpoint, time, e.length * whole * 0.95 * len("counterpoint"), v("counterpoint"));
+      voices.counterpoint.start(e.counterpoint, time, (e.lengths?.counterpoint ?? e.length) * whole * 0.95 * len("counterpoint"), v("counterpoint"));
       this.notesStarted++;
     }
     for (const [id, pitch] of Object.entries(e.versions ?? {})) {
       if (!pitch) continue;
-      this.versionVoice(id as VersionId)?.start(pitch, time, e.length * whole * 0.95 * len(id), v(id));
+      this.versionVoice(id as VersionId)?.start(pitch, time, (e.lengths?.[id] ?? e.length) * whole * 0.95 * len(id), v(id));
       this.notesStarted++;
     }
     if (e.fux) {
       // Fux's line may sound in another octave (listening only; the score is unchanged).
-      voices.fux.start(shiftOctave(e.fux, this.mix.fuxOctave), time, e.length * whole * 0.95 * len("fux"), v("fux"));
+      voices.fux.start(shiftOctave(e.fux, this.mix.fuxOctave), time, (e.lengths?.fux ?? e.length) * whole * 0.95 * len("fux"), v("fux"));
       this.notesStarted++;
     }
   }

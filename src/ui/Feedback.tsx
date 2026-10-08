@@ -17,6 +17,8 @@ interface Props {
   cantusVoice: Staff;
   clefs: [ClefId, ClefId];
   signature?: { B?: -1 };
+  /** Fourth species: ligatures drawn and played tied. */
+  ties?: boolean;
   layout: Slot[];
   audio: AudioEngine;
 }
@@ -43,7 +45,7 @@ function Excerpt({ v, ...p }: { v: Violation } & Omit<Props, "result">) {
   const hi = Math.max(...v.positions.map((k) => p.layout[k].bar));
   const excerpt = hi - lo + 1 <= MAX_EXCERPT_BARS;
   const correction = correctionFor(v, p.cantus, p.counterpoint, p.cantusVoice, p.layout);
-  const cols = (notes: (string | null)[]) => timeline(p.cantus, p.layout, notes, lo, hi);
+  const cols = (notes: (string | null)[]) => timeline(p.cantus, p.layout, notes, lo, hi, undefined, undefined, { ties: p.ties });
   const slots = slotsOfBars(p.layout, lo, hi);
 
   const hear = async () => {
@@ -71,6 +73,7 @@ function Excerpt({ v, ...p }: { v: Violation } & Omit<Props, "result">) {
         cantusVoice={p.cantusVoice}
         clefs={p.clefs}
         signature={p.signature}
+        ties={p.ties}
         selected={-1}
         cursor={-1}
         firstBar={lo + 1}
@@ -101,10 +104,11 @@ function Excerpt({ v, ...p }: { v: Violation } & Omit<Props, "result">) {
 /** A rule broken in several places is said once, naming them all (owner), with an excerpt for each. */
 function Item({ vs, ...p }: { vs: Violation[] } & Omit<Props, "result">) {
   const v = vs[0];
-  const bars = vs.map((x) => {
+  const bars0 = vs.map((x) => {
     const b = [...new Set(x.positions.map((k) => p.layout[k].bar + 1))].sort((a, c) => a - c);
     return b.length > 1 ? `${b[0]}–${b[b.length - 1]}` : String(b[0]);
   });
+  const bars = [...new Set(bars0)];
   const details = [...new Set(vs.filter((x) => x.detail).map((x) => Object.entries(x.detail!).map(([k, d]) => `${k}: ${simplifyDetail(d)}`).join(" · ")))];
   return (
     <li className={v.severity}>

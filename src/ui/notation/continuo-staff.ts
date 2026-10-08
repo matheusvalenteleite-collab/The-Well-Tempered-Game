@@ -66,7 +66,7 @@ export function cueFigures(r: ContinuoRealization): CueFigure[] {
   for (const bi of r.bars) {
     let parts: string[];
     if (bi.figure.includes(" · ")) parts = bi.figure.split(" · ");
-    else if (bi.upbeat?.kind === "innerChange" && bi.figure.includes(" ")) parts = bi.figure.split(" ");
+    else if ((bi.upbeat?.kind === "innerChange" || bi.suspension || bi.device) && bi.figure.includes(" ")) parts = bi.figure.split(" ");
     else parts = [bi.figure];
     parts.slice(0, 2).forEach((p, h) => {
       const text = p.trim();

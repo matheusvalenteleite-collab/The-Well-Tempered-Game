@@ -35,14 +35,18 @@ export interface Overlay {
 const VERTICAL = new Set([
   "fs.prefer-imperfect-consonances", "fs.vertical-consonance", "fs.opening-perfect", "fs.final-octave-or-unison", "fs.unison-only-at-ends", "fs.cadence",
   "ss.downbeat-consonance", "ss.passing-dissonance", "ss.opening-perfect", "ss.final-octave-or-unison", "ss.cadence", "ss.unison-only-at-ends", "ss.prefer-imperfect-consonances",
+  "ts.downbeat-consonance", "ts.dissonance", "ts.cadence", "ts.opening-perfect", "ts.final-octave-or-unison", "ts.unison-only-at-ends",
+  "fos.arsis-consonant", "fos.resolution", "fos.ligature-kinds", "fos.cadence", "fos.ligature-where-possible", "fos.opening-perfect", "fos.final-octave-or-unison", "fos.unison-only-at-ends",
 ]);
 /** Rules about the motion from one note to another (connect the labels). */
 const MOTION = new Set([
   "fs.perfect-approach", "fs.converging-leap-into-octave", "fs.prefer-contrary-motion",
   "ss.perfect-approach", "ss.downbeat-succession", "ss.converging-leap-into-octave", "ss.prefer-contrary-motion",
+  "ts.perfect-approach", "ts.converging-leap-into-octave",
+  "fos.perfect-approach", "fos.converging-leap-into-octave",
 ]);
 /** Rules about a leap in the counterpoint (connect the notes). */
-const MELODIC = new Set(["fs.melodic-tritone", "fs.melodic-major-sixth", "fs.unison-leap", "ss.melodic-tritone", "ss.melodic-major-sixth"]);
+const MELODIC = new Set(["fs.melodic-tritone", "fs.melodic-major-sixth", "fs.unison-leap", "ss.melodic-tritone", "ss.melodic-major-sixth", "ts.melodic-tritone", "ts.melodic-major-sixth", "fos.melodic-tritone", "fos.melodic-major-sixth"]);
 /** Rules whose positions are each, separately, a wrong interval (not a pair). */
 const EACH = new Set(["fs.cadence"]);
 

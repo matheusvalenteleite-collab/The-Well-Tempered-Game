@@ -281,7 +281,9 @@ export function passingFill(bar: Segment[], next: Segment[], b: number, plan: Ba
     if (!stepOk(p.midi, to.midi) || (Math.abs(steps) === 2 && !stepOk(p.midi, from.midi))) return;
     if (p.midi < ctx.win.low || p.midi > ctx.win.high || p.midi <= lh) return;
     if (result.some((s) => s !== seg && s.start <= up && s.end > up && s.midi === p.midi)) return;
-    if (frame.sounding.some((s) => clashes(s.pitch.midi, p.midi))) return;
+    // No clash with any sung note while it sounds (in third species the voices move again inside it).
+    const onsets = [up, ...ctx.notes.filter((x) => x.start > up && x.start < t1).map((x) => x.start)];
+    if (onsets.some((t) => frameAt(ctx.notes, t)?.sounding.some((s) => clashes(s.pitch.midi, p.midi)))) return;
     const k = result.indexOf(seg);
     result[k] = { ...seg, end: up };
     result.push({ bar: b, start: up, end: t1, midi: p.midi, pitch: name, role: "rh", label: "pass" });

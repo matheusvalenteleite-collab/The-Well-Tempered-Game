@@ -10,9 +10,10 @@ export function FuxComparison({ cantus, player, fux, layout }: { cantus: string[
   // Differences that no stated criterion separates are a matter of taste: not listed.
   const diffs = all.filter((d) => d.fuxBetter.length + d.playerBetter.length + d.mannFuxBetter.length + d.mannPlayerBetter.length > 0);
   const half = layout.length > cantus.length;
+  const quarters = layout.some((sl) => sl.duration === "1/4");
   if (all.length === 0) return <p className="help">{t("ui.compare.none")}</p>;
   if (diffs.length === 0) return <p className="help">{t("ui.compare.taste")}</p>;
-  const where = (d: (typeof diffs)[number]) => (half ? `${d.bar + 1}${d.beat ? "b" : "a"}` : String(d.bar + 1));
+  const where = (d: (typeof diffs)[number]) => (half ? `${d.bar + 1}${"abcd"[d.beat]}` : String(d.bar + 1));
   // One line per reason, naming every bar it applies to (owner: say it once).
   const groups = new Map<string, { cls: string; text: React.ReactNode; bars: string[] }>();
   const add = (key: string, cls: string, text: React.ReactNode, d: (typeof diffs)[number]) => {
@@ -33,7 +34,7 @@ export function FuxComparison({ cantus, player, fux, layout }: { cantus: string[
       <ul className="where-list">
         {diffs.map((d) => (
           <li key={d.column}>
-            {t(half ? "ui.compare.barBeat" : "ui.compare.bar", { bar: d.bar + 1, beat: t(d.beat ? "ui.compare.upbeat" : "ui.compare.downbeat"), player: pretty(d.player), pi: d.playerInterval, fux: pretty(d.fux), fi: d.fuxInterval })}
+            {t(half ? "ui.compare.barBeat" : "ui.compare.bar", { bar: d.bar + 1, beat: quarters ? t("ui.compare.quarter", { n: d.beat + 1 }) : t(d.beat ? "ui.compare.upbeat" : "ui.compare.downbeat"), player: pretty(d.player), pi: d.playerInterval, fux: pretty(d.fux), fi: d.fuxInterval })}
           </li>
         ))}
       </ul>

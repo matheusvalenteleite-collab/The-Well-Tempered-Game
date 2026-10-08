@@ -7,7 +7,7 @@ import { chooseChord, frameAt, frameConsonant, letterForms, mod, pcDistance } fr
 import type { CounterpointInput } from "../src/counterpoint/rules/types.ts";
 
 const repo = loadFuxRepository();
-const SOLUTIONS = repo.dataset.solutions.filter((s) => s.species === "first" || s.species === "second");
+const SOLUTIONS = repo.dataset.solutions.filter((s) => ["first", "second", "third", "fourth"].includes(s.species));
 const WIN = { low: parsePitch(DEFAULTS.window.low).midi, high: parsePitch(DEFAULTS.window.high).midi };
 const FINALS: FinalsMode[] = ["organist", "strict"];
 
@@ -26,7 +26,8 @@ function check(input: ContinuoInput, r: ContinuoRealization, label: string, win 
     const bass = soundingAt(r, t, ["bass"]);
     const played = new Set([...rh, ...bass].map((m) => mod(m, 12)));
     // Every downbeat chord contains all sung pitch classes, or the bar is flagged.
-    if (!bar.fallback) for (const n of f.sounding) assert.ok(played.has(mod(n.pitch.midi, 12)), `${label} bar ${bar.bar}: ${n.pitch.name} missing from ${bar.figure}`);
+    // A suspension bar is realized from its resolution: the held dissonance is the singer's alone.
+    if (!bar.fallback && !bar.suspension) for (const n of f.sounding) assert.ok(played.has(mod(n.pitch.midi, 12)), `${label} bar ${bar.bar}: ${n.pitch.name} missing from ${bar.figure}`);
     // No right-hand note clashes with a sung note at a consonant downbeat.
     // A prepared 7-6 or 9-8 suspension is a dissonance against the bass by design (A6), never against an upper voice.
     const suspended = bar.device === "76" || bar.device === "98";
@@ -57,8 +58,8 @@ function finalPcs(r: ContinuoRealization): Set<number> {
   return new Set([...soundingAt(r, t, ["rh", "doubling"]), ...soundingAt(r, t, ["bass"])].map((m) => mod(m, 12)));
 }
 
-test("continuo: every first- and second-species Fux solution, both finals", () => {
-  assert.equal(SOLUTIONS.length, 22);
+test("continuo: every Fux solution of the first four species, both finals", () => {
+  assert.equal(SOLUTIONS.length, 34);
   const rows: string[] = [];
   for (const sol of SOLUTIONS) {
     const input = inputFromSolution(sol);
