@@ -5,7 +5,10 @@ import { evaluate, type Evaluation } from "../counterpoint/engine.ts";
 import { compareWithOriginal } from "../music/fux/player.ts";
 import { exerciseView } from "../game/exercise-view.ts";
 import { applyAccidental, clear, initialState, letterNote, place, select, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
-import { AudioEngine, type AudioStatus, type SoundId } from "../audio/engine.ts";
+import { AudioEngine, DEFAULT_SYNTH, type AudioStatus, type SoundId, type SynthSettings } from "../audio/engine.ts";
+import { SynthRack } from "./SynthRack.tsx";
+import { Hints } from "./Hints.tsx";
+import { Feedback } from "./Feedback.tsx";
 import { ScoreView } from "./notation/ScoreView.tsx";
 import { Credits } from "./Credits.tsx";
 import { t } from "./i18n.ts";
@@ -17,6 +20,15 @@ const STEP = FUX_FIRST_SPECIES_CURRICULUM[0];
 const VIEW = exerciseView(repository, STEP);
 const audio = new AudioEngine();
 const VOLUME_KEY = "wtg.volume";
+const SYNTH_KEY = "wtg.synth";
+function storedSynth(): SynthSettings {
+  try {
+    const raw = localStorage.getItem(SYNTH_KEY);
+    return raw ? { ...DEFAULT_SYNTH, ...(JSON.parse(raw) as Partial<SynthSettings>) } : { ...DEFAULT_SYNTH };
+  } catch {
+    return { ...DEFAULT_SYNTH };
+  }
+}
 function storedVolume(): number {
   try {
     const v = Number(localStorage.getItem(VOLUME_KEY));
@@ -51,6 +63,18 @@ export function App() {
   const [volume, setVolumeState] = useState(storedVolume);
   const [result, setResult] = useState<Evaluation | null>(null);
   const [showFux, setShowFux] = useState(false);
+  const [showHints, setShowHints] = useState(false);
+  const [showSynth, setShowSynth] = useState(false);
+  const [synth, setSynthState] = useState<SynthSettings>(storedSynth);
+  useEffect(() => audio.setSynth(synth), [synth]);
+  const setSynth = (v: SynthSettings) => {
+    setSynthState(v);
+    try {
+      localStorage.setItem(SYNTH_KEY, JSON.stringify(v));
+    } catch {
+      /* not persisted */
+    }
+  };
   useEffect(() => audio.setVolume(volume / 100), [volume]);
   const setVolume = (v: number) => {
     setVolumeState(v);
@@ -108,10 +132,6 @@ export function App() {
   };
   const fuxSolution = VIEW.exerciseId ? repository.getSolution(VIEW.exerciseId) : undefined;
   const marks = result ? result.violations.flatMap((v) => v.positions.map((column) => ({ column, severity: v.severity }))) : undefined;
-  const barsText = (positions: number[]) => {
-    const bars = [...new Set(positions)].sort((a, b) => a - b).map((p) => p + 1);
-    return t(bars.length > 1 ? "ui.result.bars" : "ui.result.bar", { bars: bars.join(", ") });
-  };
 
   const play = () => {
     if (playing) {
@@ -199,6 +219,7 @@ export function App() {
               </button>
             ))}
             <button onClick={andRefocus(() => update(clear(session), false))}>{t("ui.clear")}</button>
+            <button onClick={andRefocus(() => update({ ...initialState(VIEW.cantus.length), selected: 0 }, false))}>{t("ui.clearAll")}</button>
           </div>
           <div className="group">
             <button className="primary" onClick={andRefocus(runEvaluation)} disabled={missing > 0} title={missing > 0 ? t("ui.evaluate.incomplete", { missing }) : undefined}>
@@ -221,31 +242,19 @@ export function App() {
             <button aria-pressed={sound === "chip"} onClick={() => chooseSound("chip")}>{t("ui.sound.chip")}</button>
           </div>}
           <div className="group">
+            <button aria-pressed={showSynth} onClick={() => setShowSynth(!showSynth)}>{t("ui.synth")}</button>
+            <button aria-pressed={showHints} onClick={andRefocus(() => setShowHints(!showHints))}>{t("ui.hints")}</button>
+          </div>
+          <div className="group">
             <button aria-pressed={clefMode === "modern"} onClick={andRefocus(() => setClefMode("modern"))}>{t("ui.clefs.modern")}</button>
             <button aria-pressed={clefMode === "original"} onClick={andRefocus(() => setClefMode("original"))}>{t("ui.clefs.original")}</button>
           </div>
         </div>
         {missing > 0 && <p className="help">{t("ui.evaluate.incomplete", { missing })}</p>}
+        {showSynth && <SynthRack value={synth} onChange={setSynth} onReset={() => setSynth({ ...DEFAULT_SYNTH })} />}
         {result && (
           <section className="feedback" aria-live="polite">
-            <div className={result.passed ? "verdict ok" : "verdict bad"}>{result.passed ? t("ui.result.cleared") : t("ui.result.notCleared")}</div>
-            <blockquote className="tutor">
-              <span className="speaker">{t("tutor.speaker.aloysius")}.</span>{" "}
-              {t(!result.passed ? "tutor.result.notCleared" : result.warnings.length ? "tutor.result.clearedWithWarnings" : "tutor.result.cleared")}
-            </blockquote>
-            {result.violations.length > 0 && (
-              <ul>
-                {[...result.errors, ...result.warnings].map((v, i) => (
-                  <li key={i} className={v.severity}>
-                    <div className="where">
-                      {barsText(v.positions)} · {t(v.severity === "error" ? "ui.result.error" : "ui.result.warning")}
-                    </div>
-                    <div>{t(`tutor.${v.messageKey}`)}</div>
-                    {v.detail && <div className="detail">{Object.entries(v.detail).map(([k, x]) => `${k}: ${x}`).join(" · ")}</div>}
-                  </li>
-                ))}
-              </ul>
-            )}
+            <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} />
             {fuxSolution && (
               <div>
                 <button onClick={() => setShowFux(!showFux)}>{showFux ? t("ui.fux.hide") : t("ui.fux.show")}</button>
@@ -281,10 +290,13 @@ export function App() {
         <p className="help">{t("ui.keyboard.help")}</p>
       </main>
       <footer>
+        {showHints && <Hints step={STEP} cantus={VIEW.cantus} />}
+        <p className="source">
         {VIEW.exerciseId
           ? t("ui.source.exercise", { figure, page: VIEW.page, license: VIEW.attribution.license })
           : t("ui.source.cantusOnly", { final: VIEW.modalFinal })}{" "}
         <a href={VIEW.attribution.urls.kern ?? VIEW.attribution.repository} target="_blank" rel="noreferrer">source</a>
+        </p>
       </footer>
       {showCredits && <Credits onClose={() => setShowCredits(false)} />}
     </div>

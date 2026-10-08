@@ -23,6 +23,10 @@ export interface ScoreProps {
   /** Columns marked after evaluation. */
   marks?: { column: number; severity: "error" | "warning" }[];
   readOnly?: boolean;
+  /** Bar number of the first column (excerpts start mid-exercise). Default 1. */
+  firstBar?: number;
+  /** Fixed drawing scale (for excerpts); otherwise the scale follows the width. */
+  fixedScale?: number;
 }
 
 const STAFF_Y = [30, 150];
@@ -57,7 +61,7 @@ export function ScoreView(props: ScoreProps) {
     const el = host.current;
     if (!el || width === 0) return;
     el.innerHTML = "";
-    const scale = width < 640 ? Math.max(0.55, width / 640) : 1;
+    const scale = props.fixedScale ?? (width < 640 ? Math.max(0.55, width / 640) : 1);
     const logicalWidth = width / scale;
     const renderer = new Renderer(el, Renderer.Backends.SVG);
     renderer.resize(width, HEIGHT * scale);
@@ -136,6 +140,17 @@ export function ScoreView(props: ScoreProps) {
     upper.voice.draw(ctx, staves[0]);
     lower.voice.draw(ctx, staves[1]);
 
+    // Discreet bar numbers above the upper staff.
+    ctx.save();
+    ctx.setFont("Georgia, serif", 9, "normal");
+    ctx.setFillStyle("var(--bar-number)");
+    const numberY = STAFF_Y[0] + 22;
+    columns.forEach((c, k) => {
+      const label = String((props.firstBar ?? 1) + k);
+      ctx.fillText(label, c.left + 4, numberY);
+    });
+    ctx.restore();
+
     const g: Geometry = {
       scale,
       columns,
@@ -143,7 +158,7 @@ export function ScoreView(props: ScoreProps) {
     };
     geo.current = g;
     el.dataset.geometry = JSON.stringify(g); // read by the browser tests
-  }, [width, props.cantus, props.counterpoint, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks]);
+  }, [width, props.cantus, props.counterpoint, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale]);
 
   const onPointer = (e: React.PointerEvent<HTMLDivElement>) => {
     const g = geo.current;

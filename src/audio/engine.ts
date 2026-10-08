@@ -1,7 +1,7 @@
 /**
  * Audio with two switchable sounds:
  * - "piano": sampled acoustic grand piano (smplr Soundfont, MusyngKite kit, fetched over the network);
- * - "chip": an 8-bit style square-wave synthesizer built from Web Audio oscillators (no download).
+ * - "chip": an oscillator synthesizer (waveform, ADSR, low-pass tone) built from Web Audio (no download).
  * The AudioContext is created on the first user gesture (browser autoplay policy). If the piano
  * samples cannot be loaded, the failure is reported; nothing is substituted silently.
  */
@@ -21,30 +21,55 @@ interface Instrument {
   stop(): void;
 }
 
-/** Square-wave voice with a short attack and release, like an old sound chip. */
-class ChipSynth implements Instrument {
+export type Waveform = "sine" | "triangle" | "square" | "sawtooth";
+export const WAVEFORMS: Waveform[] = ["sine", "triangle", "square", "sawtooth"];
+
+/** Synth settings (the "rack"). Times in seconds, sustain 0..1, tone = low-pass cutoff in Hz. */
+export interface SynthSettings {
+  waveform: Waveform;
+  attack: number;
+  decay: number;
+  sustain: number;
+  release: number;
+  tone: number;
+}
+
+export const DEFAULT_SYNTH: SynthSettings = { waveform: "triangle", attack: 0.02, decay: 0.15, sustain: 0.6, release: 0.25, tone: 2500 };
+
+/** Oscillator synthesizer with an ADSR envelope and a low-pass filter. */
+class Synth implements Instrument {
   private live = new Set<OscillatorNode>();
   private ctx: AudioContext;
   private out: GainNode;
-  constructor(ctx: AudioContext, destination: AudioNode) {
+  settings: SynthSettings;
+  constructor(ctx: AudioContext, destination: AudioNode, settings: SynthSettings) {
     this.ctx = ctx;
+    this.settings = settings;
     this.out = ctx.createGain();
-    this.out.gain.value = 0.15; // square waves are loud; headroom for two voices
+    this.out.gain.value = 0.18; // headroom for two voices
     this.out.connect(destination);
   }
   start(note: string, time: number, duration: number) {
+    const { waveform, attack, decay, sustain, release, tone } = this.settings;
     const freq = 440 * 2 ** ((parsePitch(note).midi - 69) / 12);
     const osc = this.ctx.createOscillator();
+    const filter = this.ctx.createBiquadFilter();
     const env = this.ctx.createGain();
-    osc.type = "square";
+    osc.type = waveform;
     osc.frequency.value = freq;
+    filter.type = "lowpass";
+    filter.frequency.value = tone;
+    // ADSR: attack to 1, decay to the sustain level, hold until the note ends, then release.
+    const a = Math.max(0.003, attack);
+    const off = time + Math.max(duration, a);
     env.gain.setValueAtTime(0, time);
-    env.gain.linearRampToValueAtTime(1, time + 0.01);
-    env.gain.setValueAtTime(1, time + Math.max(0.02, duration - 0.06));
-    env.gain.linearRampToValueAtTime(0, time + duration);
-    osc.connect(env).connect(this.out);
+    env.gain.linearRampToValueAtTime(1, time + a);
+    env.gain.setTargetAtTime(sustain, time + a, Math.max(0.001, decay) / 3);
+    env.gain.cancelScheduledValues(off);
+    env.gain.setTargetAtTime(0, off, Math.max(0.005, release) / 3);
+    osc.connect(filter).connect(env).connect(this.out);
     osc.start(time);
-    osc.stop(time + duration + 0.02);
+    osc.stop(off + release + 0.1);
     this.live.add(osc);
     osc.onended = () => this.live.delete(osc);
   }
@@ -75,6 +100,7 @@ export class AudioEngine {
   private current: Instrument | null = null;
   private timers: number[] = [];
   sound: SoundId = "piano";
+  synth: SynthSettings = { ...DEFAULT_SYNTH };
   status: AudioStatus = "idle";
   /** Number of notes started (for tests and diagnostics). */
   notesStarted = 0;
@@ -83,6 +109,11 @@ export class AudioEngine {
   private setStatus(s: AudioStatus) {
     this.status = s;
     this.onStatus(s);
+  }
+
+  /** Change synth settings; applies to notes started from now on. */
+  setSynth(settings: SynthSettings) {
+    Object.assign(this.synth, settings);
   }
 
   /** Master volume, 0..1. */
@@ -112,7 +143,7 @@ export class AudioEngine {
     if (!p) {
       p =
         this.sound === "chip"
-          ? Promise.resolve(new ChipSynth(ctx, master))
+          ? Promise.resolve(new Synth(ctx, master, this.synth))
           : new Soundfont(ctx, { instrument: "acoustic_grand_piano", kit: "MusyngKite", destination: master }).load.then(
               (sf) => new SampledPiano(sf),
               () => null,

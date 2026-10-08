@@ -52,3 +52,13 @@ test("session converts to the shared player_solution representation", () => {
   assert.equal(sol.kind, "player_solution");
   assert.deepEqual(sol.notes.map((n) => [n.pitch, n.offset, n.duration, n.midi]), [["A4", "0/1", "1/1", 69], ["G4", "2/1", "1/1", 67]]);
 });
+
+test("hint: the computed cadence note equals Fux's own penultimate note in all ten first-species exercises", async () => {
+  const { cadenceNote } = await import("../src/counterpoint/cadence.ts");
+  const repo = loadFuxRepository();
+  for (const ex of repo.listExercises({ species: "first" })) {
+    const sol = repo.getSolution(ex.id)!;
+    const cp = sol.counterpoint.pitch_sequence;
+    assert.equal(cadenceNote(sol.cantus_firmus.pitch_sequence, ex.cantus_voice), cp[cp.length - 2], ex.figure);
+  }
+});

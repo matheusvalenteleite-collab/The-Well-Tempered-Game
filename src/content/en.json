@@ -37,7 +37,23 @@
     "fux.show": "Compare with Fux's solution",
     "fux.hide": "Hide Fux's solution",
     "fux.title": "Fux's solution (Fig. {figure}), for comparison only",
-    "fux.agreement": "Your counterpoint has the same note as Fux's in {same} of {total} bars. Matching Fux is not required."
+    "fux.agreement": "Your counterpoint has the same note as Fux's in {same} of {total} bars. Matching Fux is not required.",
+    "clearAll": "Clear all",
+    "hints": "Hints",
+    "synth": "Synth",
+    "synth.title": "Synthesizer",
+    "synth.wave": "Wave",
+    "synth.waveNext": "Switch to {next}",
+    "synth.wave.sine": "Sine",
+    "synth.wave.triangle": "Triangle",
+    "synth.wave.square": "Square",
+    "synth.wave.sawtooth": "Sawtooth",
+    "synth.attack": "Attack",
+    "synth.decay": "Decay",
+    "synth.sustain": "Sustain",
+    "synth.release": "Release",
+    "synth.tone": "Tone",
+    "synth.reset": "Reset"
   },
   "tutor": {
     "speaker.aloysius": "Aloysius",
@@ -58,5 +74,25 @@
     "rule.fs.unison-leap": "[Placeholder] Do not leap out of, or into, the unison.",
     "rule.fs.no-voice-crossing": "[Placeholder] Here the counterpoint crosses the cantus firmus.",
     "rule.fs.prefer-contrary-motion": "[Placeholder] Use contrary or oblique motion as much as possible; here similar motion predominates."
+  },
+  "hints": {
+    "rules": "Rules (breaking one means the exercise is not cleared)",
+    "recommendations": "Recommendations",
+    "thisExercise": "In this exercise",
+    "ref": "(Fux 1725, p. {page})",
+    "cadencePlain": "The cadence note in bar {bar} is {note}; no accidental is needed in this mode.",
+    "cadenceAltered": "The cadence note in bar {bar} is {note}: the mode needs the accidental here.",
+    "rule.fs.vertical-consonance": "Every vertical interval must be a consonance: unison, third, fifth, sixth or octave (or a compound of these). The fourth counts as a dissonance.",
+    "rule.fs.prefer-contrary-motion": "Use contrary or oblique motion as much as possible.",
+    "rule.fs.perfect-approach": "Reach a perfect consonance (unison, fifth, octave) only by contrary or oblique motion, never by parallel or similar motion.",
+    "rule.fs.opening-perfect": "Begin on a perfect consonance. With the counterpoint below the cantus, begin on the octave or unison, not the fifth, to stay in the mode.",
+    "rule.fs.final-octave-or-unison": "End on the octave or the unison.",
+    "rule.fs.cadence": "In the next-to-last bar: a major sixth when the cantus is below, a minor third when the cantus is above; then the octave or unison.",
+    "rule.fs.melodic-tritone": "Never leap a tritone (augmented fourth).",
+    "rule.fs.no-voice-crossing": "Crossing the cantus firmus is noted as a recommendation.",
+    "rule.fs.melodic-major-sixth": "Never leap a major sixth.",
+    "rule.fs.unison-only-at-ends": "Use the unison only in the first and the last bar.",
+    "rule.fs.converging-leap-into-octave": "Do not leap into an octave or unison from a more distant consonance with the voices converging.",
+    "rule.fs.unison-leap": "Do not leap out of a unison, or into one."
   }
 }
