@@ -1,118 +1,109 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { repository } from "../music/fux/load-browser.ts";
 import { FUX_FIRST_SPECIES_CURRICULUM, rulesForStep, validateCurriculum } from "../counterpoint/curriculum/fux-first-species.ts";
 import { evaluate, type Evaluation } from "../counterpoint/engine.ts";
 import { compareWithOriginal } from "../music/fux/player.ts";
 import { exerciseView } from "../game/exercise-view.ts";
 import { applyAccidental, clear, initialState, letterNote, place, select, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
-import { AudioEngine, DEFAULT_SYNTH, type AudioStatus, type SoundId, type SynthSettings } from "../audio/engine.ts";
+import { AudioEngine, DEFAULT_SYNTH, type AudioStatus, type SynthSettings } from "../audio/engine.ts";
 import { SynthRack } from "./SynthRack.tsx";
 import { Hints } from "./Hints.tsx";
 import { Feedback } from "./Feedback.tsx";
+import { Knob } from "./Knob.tsx";
 import { ScoreView } from "./notation/ScoreView.tsx";
+import { buildOverlay } from "./notation/overlay.ts";
 import { Credits } from "./Credits.tsx";
 import { t } from "./i18n.ts";
 import type { Step } from "../music/pitch.ts";
 
 validateCurriculum(repository);
-// M2: one canonical exercise, the first of the book (Fig. 5).
+// One canonical exercise so far: the first of the book (Fig. 5).
 const STEP = FUX_FIRST_SPECIES_CURRICULUM[0];
 const VIEW = exerciseView(repository, STEP);
 const audio = new AudioEngine();
-const VOLUME_KEY = "wtg.volume";
-const SYNTH_KEY = "wtg.synth";
-function storedSynth(): SynthSettings {
-  try {
-    const raw = localStorage.getItem(SYNTH_KEY);
-    return raw ? { ...DEFAULT_SYNTH, ...(JSON.parse(raw) as Partial<SynthSettings>) } : { ...DEFAULT_SYNTH };
-  } catch {
-    return { ...DEFAULT_SYNTH };
-  }
-}
-function storedVolume(): number {
-  try {
-    const v = Number(localStorage.getItem(VOLUME_KEY));
-    return localStorage.getItem(VOLUME_KEY) !== null && v >= 0 && v <= 100 ? v : 70;
-  } catch {
-    return 70;
-  }
-}
+// Owner decision D15: synthesized sound only for now (the sampled piano stays in the engine, unused).
+audio.sound = "chip";
+(window as unknown as { wtgAudio: AudioEngine }).wtgAudio = audio; // read by the browser tests
 
-const SOUND_KEY = "wtg.sound";
-/** Owner decision D15: 8-bit only for now; the piano option is hidden until its samples are verified. */
-const PIANO_ENABLED = false;
-function storedSound(): SoundId {
-  if (!PIANO_ENABLED) return "chip";
+/** Seconds a bar must stay selected while browsing before it sounds. */
+const DWELL_MS = 1000;
+
+/** Per-viewer conveniences in localStorage; the game works the same without them. */
+function stored<T>(key: string, fallback: T, valid: (v: unknown) => boolean = () => true): T {
   try {
-    return localStorage.getItem(SOUND_KEY) === "piano" ? "piano" : "chip";
+    const raw = localStorage.getItem(key);
+    if (raw === null) return fallback;
+    const v = JSON.parse(raw) as unknown;
+    return valid(v) ? (typeof fallback === "object" ? { ...fallback, ...(v as object) } : (v as T)) : fallback;
   } catch {
-    return "chip";
+    return fallback;
   }
 }
-audio.sound = storedSound();
+function store(key: string, value: unknown) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* not persisted */
+  }
+}
 
 export function App() {
   const [session, setSession] = useState<SessionState>(() => initialState(VIEW.cantus.length));
   const [clefMode, setClefMode] = useState<"modern" | "original">("modern");
-  const [tempo, setTempo] = useState(60);
+  const [tempo, setTempo] = useState(() => stored("wtg.tempo", 60, (v) => typeof v === "number" && v >= 30 && v <= 120));
+  const [volume, setVolume] = useState(() => stored("wtg.volume", 70, (v) => typeof v === "number" && v >= 0 && v <= 100));
+  const [synth, setSynth] = useState<SynthSettings>(() => stored("wtg.synth", { ...DEFAULT_SYNTH }, (v) => typeof v === "object" && v !== null));
   const [cursor, setCursor] = useState(-1);
   const [playing, setPlaying] = useState(false);
   const [audioStatus, setAudioStatus] = useState<AudioStatus>("idle");
   const [showCredits, setShowCredits] = useState(false);
-  const [sound, setSound] = useState<SoundId>(audio.sound);
-  const [volume, setVolumeState] = useState(storedVolume);
   const [result, setResult] = useState<Evaluation | null>(null);
   const [showFux, setShowFux] = useState(false);
   const [showHints, setShowHints] = useState(false);
   const [showSynth, setShowSynth] = useState(false);
-  const [synth, setSynthState] = useState<SynthSettings>(storedSynth);
-  useEffect(() => audio.setSynth(synth), [synth]);
-  const setSynth = (v: SynthSettings) => {
-    setSynthState(v);
-    try {
-      localStorage.setItem(SYNTH_KEY, JSON.stringify(v));
-    } catch {
-      /* not persisted */
-    }
-  };
-  useEffect(() => audio.setVolume(volume / 100), [volume]);
-  const setVolume = (v: number) => {
-    setVolumeState(v);
-    try {
-      localStorage.setItem(VOLUME_KEY, String(v));
-    } catch {
-      /* not persisted */
-    }
-  };
+  /** The score is "active" after it was clicked or played from the keyboard; a click elsewhere deactivates it. */
+  const [active, setActive] = useState(true);
   const scoreRef = useRef<HTMLDivElement>(null);
+  const browsing = useRef(false);
   audio.onStatus = setAudioStatus;
+
+  useEffect(() => {
+    audio.tempo = tempo;
+    store("wtg.tempo", tempo);
+  }, [tempo]);
+  useEffect(() => {
+    audio.setVolume(volume / 100);
+    store("wtg.volume", volume);
+  }, [volume]);
+  useEffect(() => {
+    audio.setSynth(synth);
+    store("wtg.synth", synth);
+  }, [synth]);
 
   const column = (k: number, notes = session.notes) => ({ cantus: VIEW.cantus[k], counterpoint: notes[k] });
 
-  const update = useCallback(
-    (next: SessionState, sound = true) => {
-      setSession(next);
-      if (next.notes.some((n, k) => n !== session.notes[k])) {
-        setResult(null);
-        setShowFux(false);
-      }
-      const changed = next.notes[next.selected] !== session.notes[next.selected];
-      if (sound && changed && next.notes[next.selected]) void audio.playColumn(column(next.selected, next.notes));
-    },
-    [session],
-  );
-
-  const chooseSound = (s: SoundId) => {
-    setSound(s);
-    audio.setSound(s);
-    setPlaying(false);
-    setCursor(-1);
-    try {
-      localStorage.setItem(SOUND_KEY, s);
-    } catch {
-      /* preference not persisted */
+  const update = (next: SessionState, sound = true) => {
+    setSession(next);
+    if (next.notes.some((n, k) => n !== session.notes[k])) {
+      setResult(null);
+      setShowFux(false);
     }
+    const changed = next.notes[next.selected] !== session.notes[next.selected];
+    if (sound && changed && next.notes[next.selected]) void audio.playColumn(column(next.selected, next.notes));
   };
+
+  /** Selecting a bar without writing: it sounds if the player stays on it for DWELL_MS. */
+  const browse = (column: number) => {
+    browsing.current = true;
+    update(select(session, column), false);
+  };
+  useEffect(() => {
+    if (!browsing.current) return;
+    browsing.current = false;
+    const k = session.selected;
+    const timer = window.setTimeout(() => void audio.playColumn(column(k)), DWELL_MS);
+    return () => window.clearTimeout(timer);
+  }, [session.selected, session]);
 
   const missing = session.notes.filter((n) => n === null).length;
   const runEvaluation = () => {
@@ -131,7 +122,8 @@ export function App() {
     );
   };
   const fuxSolution = VIEW.exerciseId ? repository.getSolution(VIEW.exerciseId) : undefined;
-  const marks = result ? result.violations.flatMap((v) => v.positions.map((column) => ({ column, severity: v.severity }))) : undefined;
+  const marks = result ? result.violations.flatMap((v) => v.positions.map((c) => ({ column: c, severity: v.severity }))) : undefined;
+  const overlay = useMemo(() => (result ? buildOverlay(result.violations, VIEW.cantus, session.notes) : undefined), [result, session.notes]);
 
   const play = () => {
     if (playing) {
@@ -141,27 +133,31 @@ export function App() {
       return;
     }
     setPlaying(true);
-    void audio.playAll(VIEW.cantus.map((_, k) => column(k)), tempo, (k) => {
+    void audio.playAll(VIEW.cantus.map((_, k) => column(k)), (k) => {
       setCursor(k);
       if (k < 0) setPlaying(false);
     });
   };
 
-  // A reasonable starting pitch for keyboard entry: the cantus note an octave above or below.
+  // Starting pitch for keyboard entry before anything is written: the cantus note an octave away.
   const startPitch = (k: number) => {
     const cf = VIEW.cantus[k];
     const oct = Number(cf.slice(-1)) + (VIEW.cantusVoice === "lower" ? 1 : -1);
     return cf.slice(0, -1) + oct;
   };
 
-  const onKey = (e: React.KeyboardEvent) => {
+  /** Keys drive the score wherever focus is (buttons, knobs), except in text fields and dialogs. */
+  const onKey = (e: KeyboardEvent) => {
+    if (showCredits || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    const target = e.target as HTMLElement | null;
+    if (target && (target.tagName === "TEXTAREA" || target.tagName === "SELECT" || (target.tagName === "INPUT" && (target as HTMLInputElement).type !== "range"))) return;
     const k = e.key;
     const s = session;
-    if (k === "ArrowRight") update(select(s, s.selected + 1), false);
-    else if (k === "ArrowLeft") update(select(s, s.selected - 1), false);
+    if (k === "ArrowRight") browse(s.selected + 1);
+    else if (k === "ArrowLeft") browse(s.selected - 1);
     else if (k === "ArrowUp") update(stepNote(s, 1, startPitch(s.selected)));
     else if (k === "ArrowDown") update(stepNote(s, -1, startPitch(s.selected)));
-    else if (/^[a-gA-G]$/.test(k)) update(letterNote(s, k.toUpperCase() as Step, s.notes[s.selected] ?? s.notes[s.selected - 1] ?? startPitch(s.selected)));
+    else if (/^[a-gA-G]$/.test(k)) update(letterNote(s, k.toUpperCase() as Step, s.notes[s.selected] ?? s.lastWritten ?? startPitch(s.selected)));
     else if (k === "#") update(applyAccidental(s, 1));
     else if (k === "-") update(applyAccidental(s, -1));
     else if (k === "n") update(applyAccidental(s, 0));
@@ -170,18 +166,26 @@ export function App() {
     else if (k === "p" || k === "P") play();
     else return;
     e.preventDefault();
+    setActive(true);
   };
-
-  useEffect(() => scoreRef.current?.focus(), []);
-  /** Run a control action and return keyboard focus to the score, so arrows keep working. */
-  const andRefocus = (action: () => void) => () => {
-    action();
-    scoreRef.current?.focus({ preventScroll: true });
-  };
+  const keyRef = useRef(onKey);
+  keyRef.current = onKey;
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => keyRef.current(e);
+    const outside = (e: PointerEvent) => {
+      if (!scoreRef.current?.contains(e.target as Node)) setActive(false);
+    };
+    window.addEventListener("keydown", handler);
+    window.addEventListener("pointerdown", outside, true);
+    return () => {
+      window.removeEventListener("keydown", handler);
+      window.removeEventListener("pointerdown", outside, true);
+    };
+  }, []);
 
   const clefs = clefMode === "modern" ? VIEW.clefs.modern : VIEW.clefs.original;
   const figure = VIEW.figure ? t("ui.exercise.figure", { figure: VIEW.figure }) : "";
-  const label = useMemo(() => `${figure} ${t("ui.exercise.mode", { final: VIEW.modalFinal })}`, [figure]);
+  const label = `${figure} ${t("ui.exercise.mode", { final: VIEW.modalFinal })}`;
 
   return (
     <div className="app">
@@ -197,7 +201,14 @@ export function App() {
         <blockquote className="tutor">
           <span className="speaker">{t("tutor.speaker.aloysius")}.</span> {t(`tutor.step.${STEP.id}.intro`)}
         </blockquote>
-        <div className="score-wrap" ref={scoreRef} tabIndex={0} onKeyDown={onKey} data-notes={JSON.stringify(session.notes)} data-audio-notes={audio.notesStarted} aria-label={t("ui.keyboard.help")}>
+        <div
+          className={active ? "score-wrap active" : "score-wrap"}
+          ref={scoreRef}
+          data-notes={JSON.stringify(session.notes)}
+          data-active={active}
+          aria-label={t("ui.keyboard.help")}
+          title={active ? undefined : t("ui.score.inactive")}
+        >
           <ScoreView
             cantus={VIEW.cantus}
             counterpoint={session.notes}
@@ -207,51 +218,53 @@ export function App() {
             cursor={cursor}
             label={label}
             marks={marks}
-            onPlace={(col, natural) => update(place(session, col, natural))}
-            onSelect={(col) => update(select(session, col), false)}
+            overlay={overlay}
+            onPlace={(col, natural) => {
+              // An inactive score only takes a bar-selecting click.
+              if (!active) {
+                setActive(true);
+                browse(col);
+                return;
+              }
+              update(place(session, col, natural));
+            }}
+            onSelect={(col) => {
+              setActive(true);
+              browse(col);
+            }}
           />
         </div>
         <div className="controls">
           <div className="group" role="group" aria-label="accidental">
             {([[-1, "ui.accidental.flat"], [0, "ui.accidental.natural"], [1, "ui.accidental.sharp"]] as const).map(([a, key]) => (
-              <button key={a} aria-pressed={session.accidental === a && session.notes[session.selected] === null} onClick={andRefocus(() => update(applyAccidental(session, a)))}>
+              <button key={a} aria-pressed={session.accidental === a && session.notes[session.selected] === null} onClick={() => update(applyAccidental(session, a))}>
                 {t(key)}
               </button>
             ))}
-            <button onClick={andRefocus(() => update(clear(session), false))}>{t("ui.clear")}</button>
-            <button onClick={andRefocus(() => update({ ...initialState(VIEW.cantus.length), selected: 0 }, false))}>{t("ui.clearAll")}</button>
+            <button onClick={() => update(clear(session), false)}>{t("ui.clear")}</button>
+            <button onClick={() => update({ ...initialState(VIEW.cantus.length) }, false)}>{t("ui.clearAll")}</button>
           </div>
           <div className="group">
-            <button className="primary" onClick={andRefocus(runEvaluation)} disabled={missing > 0} title={missing > 0 ? t("ui.evaluate.incomplete", { missing }) : undefined}>
+            <button className="primary" onClick={runEvaluation} disabled={missing > 0} title={missing > 0 ? t("ui.evaluate.incomplete", { missing }) : undefined}>
               {t("ui.evaluate")}
             </button>
           </div>
-          <div className="group">
-            <button onClick={andRefocus(play)}>{playing ? t("ui.stop") : t("ui.play")}</button>
-            <label className="tempo">
-              {t("ui.tempo", { bpm: tempo })}
-              <input id="tempo" type="range" min={30} max={120} value={tempo} onChange={(e) => setTempo(Number(e.target.value))} />
-            </label>
-            <label className="volume">
-              {t("ui.volume")}
-              <input id="volume" type="range" min={0} max={100} value={volume} onChange={(e) => setVolume(Number(e.target.value))} />
-            </label>
+          <div className="group transport">
+            <button onClick={play}>{playing ? t("ui.stop") : t("ui.play")}</button>
+            <Knob id="tempo" label={t("ui.tempo")} value={tempo} min={30} max={120} defaultValue={60} format={(v) => t("ui.tempo.value", { bpm: Math.round(v) })} onChange={(v) => setTempo(Math.round(v))} />
+            <Knob id="volume" label={t("ui.volume")} value={volume} min={0} max={100} defaultValue={70} format={(v) => `${Math.round(v)}%`} onChange={(v) => setVolume(Math.round(v))} />
           </div>
-          {PIANO_ENABLED && <div className="group" role="group" aria-label="sound">
-            <button aria-pressed={sound === "piano"} onClick={() => chooseSound("piano")}>{t("ui.sound.piano")}</button>
-            <button aria-pressed={sound === "chip"} onClick={() => chooseSound("chip")}>{t("ui.sound.chip")}</button>
-          </div>}
           <div className="group">
             <button aria-pressed={showSynth} onClick={() => setShowSynth(!showSynth)}>{t("ui.synth")}</button>
-            <button aria-pressed={showHints} onClick={andRefocus(() => setShowHints(!showHints))}>{t("ui.hints")}</button>
+            <button aria-pressed={showHints} onClick={() => setShowHints(!showHints)}>{t("ui.hints")}</button>
           </div>
           <div className="group">
-            <button aria-pressed={clefMode === "modern"} onClick={andRefocus(() => setClefMode("modern"))}>{t("ui.clefs.modern")}</button>
-            <button aria-pressed={clefMode === "original"} onClick={andRefocus(() => setClefMode("original"))}>{t("ui.clefs.original")}</button>
+            <button aria-pressed={clefMode === "modern"} onClick={() => setClefMode("modern")}>{t("ui.clefs.modern")}</button>
+            <button aria-pressed={clefMode === "original"} onClick={() => setClefMode("original")}>{t("ui.clefs.original")}</button>
           </div>
         </div>
         {missing > 0 && <p className="help">{t("ui.evaluate.incomplete", { missing })}</p>}
-        {showSynth && <SynthRack value={synth} onChange={setSynth} onReset={() => setSynth({ ...DEFAULT_SYNTH })} />}
+        {showSynth && <SynthRack value={synth} onChange={setSynth} />}
         {result && (
           <section className="feedback" aria-live="polite">
             <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} />
@@ -285,17 +298,16 @@ export function App() {
             )}
           </section>
         )}
-        {audioStatus === "loading" && <p className="status">{t("ui.audio.loading")}</p>}
         {audioStatus === "failed" && <p className="status error">{t("ui.audio.failed")}</p>}
         <p className="help">{t("ui.keyboard.help")}</p>
       </main>
       <footer>
         {showHints && <Hints step={STEP} cantus={VIEW.cantus} />}
         <p className="source">
-        {VIEW.exerciseId
-          ? t("ui.source.exercise", { figure, page: VIEW.page, license: VIEW.attribution.license })
-          : t("ui.source.cantusOnly", { final: VIEW.modalFinal })}{" "}
-        <a href={VIEW.attribution.urls.kern ?? VIEW.attribution.repository} target="_blank" rel="noreferrer">source</a>
+          {VIEW.exerciseId
+            ? t("ui.source.exercise", { figure, page: VIEW.page, license: VIEW.attribution.license })
+            : t("ui.source.cantusOnly", { final: VIEW.modalFinal })}{" "}
+          <a href={VIEW.attribution.urls.kern ?? VIEW.attribution.repository} target="_blank" rel="noreferrer">source</a>
         </p>
       </footer>
       {showCredits && <Credits onClose={() => setShowCredits(false)} />}

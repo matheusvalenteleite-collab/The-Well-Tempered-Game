@@ -14,6 +14,8 @@ export interface SessionState {
   selected: number;
   /** Accidental applied to the next placement (the accidental control). */
   accidental: Accidental;
+  /** The note the player wrote most recently (any bar), or null. */
+  lastWritten: string | null;
 }
 
 const STEPS: Step[] = ["C", "D", "E", "F", "G", "A", "B"];
@@ -21,7 +23,7 @@ const SUFFIX: Record<Accidental, string> = { [-1]: "b", 0: "", 1: "#" };
 
 export function initialState(columns: number): SessionState {
   if (columns < 2) throw new Error("exercise needs at least two columns");
-  return { notes: Array(columns).fill(null), selected: 0, accidental: 0 };
+  return { notes: Array(columns).fill(null), selected: 0, accidental: 0, lastWritten: null };
 }
 
 const withAlter = (natural: string, acc: Accidental) => {
@@ -39,7 +41,7 @@ export function place(s: SessionState, column: number, natural: string): Session
   if (column < 0 || column >= s.notes.length) throw new Error(`column ${column} out of range`);
   const notes = [...s.notes];
   notes[column] = withAlter(natural, s.accidental);
-  return { ...s, notes, selected: column, accidental: 0 };
+  return { ...s, notes, selected: column, accidental: 0, lastWritten: notes[column] };
 }
 
 export function clear(s: SessionState, column = s.selected): SessionState {
@@ -52,10 +54,17 @@ export function select(s: SessionState, column: number): SessionState {
   return { ...s, selected: Math.max(0, Math.min(s.notes.length - 1, column)) };
 }
 
-/** Move the selected note by diatonic steps (accidental dropped). An empty column first receives `start`. */
+/**
+ * Move the selected note by diatonic steps (accidental dropped). An empty column first receives
+ * the note the player wrote last (with its accidental), or `start` if nothing has been written yet.
+ */
 export function stepNote(s: SessionState, delta: number, start: string): SessionState {
   const cur = s.notes[s.selected];
-  if (cur === null) return place({ ...s, accidental: 0 }, s.selected, start);
+  if (cur === null) {
+    const notes = [...s.notes];
+    notes[s.selected] = s.lastWritten ?? start;
+    return { ...s, notes, accidental: 0, lastWritten: notes[s.selected] };
+  }
   const d = parsePitch(cur).diatonic + delta;
   const natural = `${STEPS[((d % 7) + 7) % 7]}${Math.floor(d / 7)}`;
   return place({ ...s, accidental: 0 }, s.selected, natural);
@@ -86,7 +95,7 @@ export function applyAccidental(s: SessionState, acc: Accidental): SessionState 
   const alter = parsePitch(cur).alter;
   const notes = [...s.notes];
   notes[s.selected] = withAlter(naturalOf(cur), alter === acc ? 0 : acc);
-  return { ...s, notes };
+  return { ...s, notes, lastWritten: notes[s.selected] };
 }
 
 export function isComplete(s: SessionState): boolean {

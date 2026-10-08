@@ -4,6 +4,7 @@ import type { Staff } from "../music/fux/types.ts";
 import { ScoreView } from "./notation/ScoreView.tsx";
 import type { ClefId } from "./notation/clefs.ts";
 import { t } from "./i18n.ts";
+import { buildOverlay } from "./notation/overlay.ts";
 
 interface Props {
   result: Evaluation;
@@ -26,7 +27,7 @@ function Excerpt({ v, ...p }: { v: Violation } & Omit<Props, "result">) {
   const hi = Math.max(...v.positions);
   if (hi - lo + 1 > MAX_EXCERPT_BARS) return null;
   return (
-    <div className="excerpt" style={{ width: `${130 + 70 * (hi - lo + 1)}px` }}>
+    <div className="excerpt" style={{ width: `${140 + 80 * (hi - lo + 1)}px` }}>
       <ScoreView
         cantus={p.cantus.slice(lo, hi + 1)}
         counterpoint={p.counterpoint.slice(lo, hi + 1)}
@@ -36,6 +37,7 @@ function Excerpt({ v, ...p }: { v: Violation } & Omit<Props, "result">) {
         cursor={-1}
         marks={v.positions.map((c) => ({ column: c - lo, severity: v.severity }))}
         firstBar={lo + 1}
+        overlay={buildOverlay([v], p.cantus, p.counterpoint, lo, hi)}
         fixedScale={0.6}
         label={barsText(v.positions)}
         onPlace={() => {}}

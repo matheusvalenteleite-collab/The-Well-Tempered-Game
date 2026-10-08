@@ -7,6 +7,7 @@ import { Accidental, BarNote, Formatter, GhostNote, Renderer, Stave, StaveConnec
 import { parsePitch } from "../../music/pitch.ts";
 import type { Staff } from "../../music/fux/types.ts";
 import { pitchAtPosition, VEXFLOW_CLEF, type ClefId } from "./clefs.ts";
+import type { Overlay, Status } from "./overlay.ts";
 
 export interface ScoreProps {
   cantus: string[];
@@ -27,10 +28,16 @@ export interface ScoreProps {
   firstBar?: number;
   /** Fixed drawing scale (for excerpts); otherwise the scale follows the width. */
   fixedScale?: number;
+  /** Evaluation overlay: intervals between the staves and problem connectors. */
+  overlay?: Overlay;
 }
 
-const STAFF_Y = [30, 150];
-const HEIGHT = 270;
+const STAFF_Y = [30, 190];
+const HEIGHT = 315;
+/** Vertical positions (logical) of the overlay between the staves. */
+const LABEL_Y = 166;
+const LINK_Y = 178;
+const COLOR: Record<Status, string> = { ok: "var(--ok)", error: "var(--bad)", warning: "var(--warn)" };
 const ACC: Record<number, string> = { [-2]: "bb", [-1]: "b", 1: "#", 2: "##" };
 
 function vexKey(pitch: string): { key: string; acc: string | null } {
@@ -115,7 +122,7 @@ export function ScoreView(props: ScoreProps) {
     }));
 
     // Column highlights under the music.
-    const top = STAFF_Y[0] - 20;
+    const top = STAFF_Y[0] - 10;
     const bottom = STAFF_Y[1] + 100;
     const rect = (k: number, cls: string) => {
       const c = columns[k];
@@ -151,6 +158,59 @@ export function ScoreView(props: ScoreProps) {
     });
     ctx.restore();
 
+    if (props.overlay) {
+      const cpNotes = upperIsCantus ? lower.notes : upper.notes;
+      const centerText = (text: string, x: number, y: number, size: number, bold = false) => {
+        ctx.setFont("Georgia, serif", size, bold ? "bold" : "normal");
+        ctx.fillText(text, x - ctx.measureText(text).width / 2, y);
+      };
+      for (const lab of props.overlay.intervals) {
+        ctx.save();
+        ctx.setFillStyle(COLOR[lab.status]);
+        centerText(lab.text, columns[lab.column].x, LABEL_Y, 12, lab.status !== "ok");
+        ctx.restore();
+      }
+      for (const link of props.overlay.links) {
+        const xa = columns[link.from].x;
+        const xb = columns[link.to].x;
+        const ly = LINK_Y + link.row * 18;
+        ctx.save();
+        ctx.setStrokeStyle(COLOR[link.severity]);
+        ctx.setFillStyle(COLOR[link.severity]);
+        ctx.setLineWidth(2);
+        if (link.kind === "motion") {
+          // Bracket under the two interval labels, with an arrowhead into the second.
+          ctx.beginPath();
+          ctx.moveTo(xa, ly - 6);
+          ctx.lineTo(xa, ly);
+          ctx.lineTo(xb, ly);
+          ctx.lineTo(xb, ly - 6);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(xb - 4, ly - 2);
+          ctx.lineTo(xb, ly - 8);
+          ctx.lineTo(xb + 4, ly - 2);
+          ctx.closePath();
+          ctx.fill();
+          centerText(link.text, (xa + xb) / 2, ly + 11, 9);
+        } else {
+          // Arc between the two counterpoint notes, on the outside of the counterpoint staff.
+          const na = cpNotes[link.from];
+          const nb = cpNotes[link.to];
+          const ya = na instanceof StaveNote ? na.getYs()[0] : LABEL_Y;
+          const yb = nb instanceof StaveNote ? nb.getYs()[0] : LABEL_Y;
+          const outward = upperIsCantus ? 1 : -1;
+          const peak = (outward < 0 ? Math.min(ya, yb) : Math.max(ya, yb)) + outward * (26 + link.row * 14);
+          ctx.beginPath();
+          ctx.moveTo(xa, ya + outward * 8);
+          ctx.quadraticCurveTo((xa + xb) / 2, peak, xb, yb + outward * 8);
+          ctx.stroke();
+          centerText(link.text, (xa + xb) / 2, peak + (outward < 0 ? 2 : 10), 10, true);
+        }
+        ctx.restore();
+      }
+    }
+
     const g: Geometry = {
       scale,
       columns,
@@ -158,7 +218,7 @@ export function ScoreView(props: ScoreProps) {
     };
     geo.current = g;
     el.dataset.geometry = JSON.stringify(g); // read by the browser tests
-  }, [width, props.cantus, props.counterpoint, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale]);
+  }, [width, props.cantus, props.counterpoint, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay]);
 
   const onPointer = (e: React.PointerEvent<HTMLDivElement>) => {
     const g = geo.current;

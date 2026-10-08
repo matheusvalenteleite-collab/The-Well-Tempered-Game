@@ -24,7 +24,8 @@ interface Instrument {
 export type Waveform = "sine" | "triangle" | "square" | "sawtooth";
 export const WAVEFORMS: Waveform[] = ["sine", "triangle", "square", "sawtooth"];
 
-/** Synth settings (the "rack"). Times in seconds, sustain 0..1, tone = low-pass cutoff in Hz. */
+/** Synth settings (the "rack"). Times in seconds, sustain 0..1, tone = low-pass cutoff in Hz,
+ *  detune = spread of two oscillators in cents, vibrato = depth in cents. */
 export interface SynthSettings {
   waveform: Waveform;
   attack: number;
@@ -32,11 +33,25 @@ export interface SynthSettings {
   sustain: number;
   release: number;
   tone: number;
+  detune: number;
+  vibrato: number;
 }
 
-export const DEFAULT_SYNTH: SynthSettings = { waveform: "triangle", attack: 0.02, decay: 0.15, sustain: 0.6, release: 0.25, tone: 2500 };
+export const DEFAULT_SYNTH: SynthSettings = { waveform: "triangle", attack: 0.02, decay: 0.15, sustain: 0.6, release: 0.25, tone: 2500, detune: 0, vibrato: 0 };
 
-/** Oscillator synthesizer with an ADSR envelope and a low-pass filter. */
+/** Synthesized approximations, named by the sound they evoke (no samples involved). */
+export const SYNTH_PRESETS: { id: string; settings: SynthSettings }[] = [
+  { id: "soft", settings: DEFAULT_SYNTH },
+  { id: "piano", settings: { waveform: "triangle", attack: 0.005, decay: 0.9, sustain: 0.12, release: 0.45, tone: 3200, detune: 5, vibrato: 0 } },
+  { id: "harpsichord", settings: { waveform: "sawtooth", attack: 0.003, decay: 0.55, sustain: 0.04, release: 0.25, tone: 5200, detune: 7, vibrato: 0 } },
+  { id: "organ", settings: { waveform: "square", attack: 0.015, decay: 0.05, sustain: 1, release: 0.08, tone: 1800, detune: 3, vibrato: 0 } },
+  { id: "orchestra", settings: { waveform: "sawtooth", attack: 0.25, decay: 0.3, sustain: 0.85, release: 0.6, tone: 1600, detune: 14, vibrato: 12 } },
+  { id: "flute", settings: { waveform: "sine", attack: 0.08, decay: 0.1, sustain: 0.9, release: 0.2, tone: 3000, detune: 0, vibrato: 10 } },
+  { id: "bleep", settings: { waveform: "square", attack: 0.003, decay: 0.09, sustain: 0, release: 0.05, tone: 4500, detune: 0, vibrato: 0 } },
+  { id: "peng", settings: { waveform: "sawtooth", attack: 0.003, decay: 0.28, sustain: 0, release: 0.12, tone: 2800, detune: 9, vibrato: 0 } },
+];
+
+/** Oscillator synthesizer: two detunable oscillators, vibrato, ADSR envelope, low-pass filter. */
 class Synth implements Instrument {
   private live = new Set<OscillatorNode>();
   private ctx: AudioContext;
@@ -50,28 +65,48 @@ class Synth implements Instrument {
     this.out.connect(destination);
   }
   start(note: string, time: number, duration: number) {
-    const { waveform, attack, decay, sustain, release, tone } = this.settings;
+    const { waveform, attack, decay, sustain, release, tone, detune, vibrato } = this.settings;
     const freq = 440 * 2 ** ((parsePitch(note).midi - 69) / 12);
-    const osc = this.ctx.createOscillator();
     const filter = this.ctx.createBiquadFilter();
     const env = this.ctx.createGain();
-    osc.type = waveform;
-    osc.frequency.value = freq;
     filter.type = "lowpass";
     filter.frequency.value = tone;
-    // ADSR: attack to 1, decay to the sustain level, hold until the note ends, then release.
+    filter.connect(env).connect(this.out);
     const a = Math.max(0.003, attack);
     const off = time + Math.max(duration, a);
+    const end = off + release + 0.1;
+    // ADSR: attack to 1, decay to the sustain level, hold until the note ends, then release.
     env.gain.setValueAtTime(0, time);
     env.gain.linearRampToValueAtTime(1, time + a);
     env.gain.setTargetAtTime(sustain, time + a, Math.max(0.001, decay) / 3);
     env.gain.cancelScheduledValues(off);
     env.gain.setTargetAtTime(0, off, Math.max(0.005, release) / 3);
-    osc.connect(filter).connect(env).connect(this.out);
-    osc.start(time);
-    osc.stop(off + release + 0.1);
-    this.live.add(osc);
-    osc.onended = () => this.live.delete(osc);
+    let lfoGain: GainNode | null = null;
+    if (vibrato > 0) {
+      const lfo = this.ctx.createOscillator();
+      lfo.frequency.value = 5.5;
+      lfoGain = this.ctx.createGain();
+      lfoGain.gain.setValueAtTime(0, time);
+      lfoGain.gain.linearRampToValueAtTime(vibrato, time + 0.3); // vibrato fades in
+      lfo.connect(lfoGain);
+      lfo.start(time);
+      lfo.stop(end);
+    }
+    const spread = detune > 0 ? [-detune / 2, detune / 2] : [0];
+    for (const cents of spread) {
+      const osc = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      g.gain.value = 1 / spread.length;
+      osc.type = waveform;
+      osc.frequency.value = freq;
+      osc.detune.value = cents;
+      if (lfoGain) lfoGain.connect(osc.detune);
+      osc.connect(g).connect(filter);
+      osc.start(time);
+      osc.stop(end);
+      this.live.add(osc);
+      osc.onended = () => this.live.delete(osc);
+    }
   }
   stop() {
     for (const o of this.live) o.stop();
@@ -172,21 +207,40 @@ export class AudioEngine {
     for (const note of [col.cantus, col.counterpoint]) if (note) this.play(inst, note, t, seconds);
   }
 
-  /** Play all columns; `halfNoteBpm` is the alla-breve pulse, one whole note per column. `onColumn(-1)` marks the end. */
-  async playAll(cols: PlaybackColumn[], halfNoteBpm: number, onColumn: (k: number) => void): Promise<void> {
+  /** Alla-breve pulse (half notes per minute); read live by the scheduler, so changes affect playback in progress. */
+  tempo = 60;
+
+  /**
+   * Play all columns, one whole note each. Columns are scheduled just ahead of time, so a tempo
+   * change takes effect from the next column. `onColumn(k)` fires as column k sounds; -1 marks the end.
+   */
+  async playAll(cols: PlaybackColumn[], onColumn: (k: number) => void): Promise<void> {
     this.stop();
     const inst = await this.instrument();
-    if (!inst || !this.ctx) {
+    const ctx = this.ctx;
+    if (!inst || !ctx) {
       onColumn(-1);
       return;
     }
-    const whole = (2 * 60) / halfNoteBpm;
-    const t0 = this.ctx.currentTime + 0.1;
-    cols.forEach((c, k) => {
-      for (const note of [c.cantus, c.counterpoint]) if (note) this.play(inst, note, t0 + k * whole, whole * 0.97);
-      this.timers.push(window.setTimeout(() => onColumn(k), (0.1 + k * whole) * 1000));
-    });
-    this.timers.push(window.setTimeout(() => onColumn(-1), (0.1 + cols.length * whole) * 1000));
+    let k = 0;
+    let next = ctx.currentTime + 0.1;
+    const LOOKAHEAD = 0.15;
+    const tick = () => {
+      while (k < cols.length && next < ctx.currentTime + LOOKAHEAD) {
+        const whole = 120 / this.tempo;
+        for (const note of [cols[k].cantus, cols[k].counterpoint]) if (note) this.play(inst, note, next, whole * 0.97);
+        const col = k;
+        this.timers.push(window.setTimeout(() => onColumn(col), Math.max(0, (next - ctx.currentTime) * 1000)));
+        next += whole;
+        k++;
+      }
+      if (k >= cols.length) {
+        this.timers.push(window.setTimeout(() => onColumn(-1), Math.max(0, (next - ctx.currentTime) * 1000)));
+        return;
+      }
+      this.timers.push(window.setTimeout(tick, 40));
+    };
+    tick();
   }
 
   stop(): void {
