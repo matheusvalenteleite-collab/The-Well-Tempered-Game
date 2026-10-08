@@ -43,8 +43,11 @@ export interface NoteEvent {
   /** Slot index (the position reported in violations). */
   slot: number;
   bar: number;
-  /** 0 = thesis (downbeat); 1 = arsis in half notes; 1..3 the later quarters in quarter notes. */
-  beat: 0 | 1 | 2 | 3;
+  /** 0 = thesis (downbeat); 1 = arsis in half notes; 1..3 the later quarters in quarter notes; 0..7 eighths in fifth species. */
+  beat: number;
+  /** Fifth species (D82): onset within the bar (0..1 of a whole note) and length in whole notes. */
+  pos?: number;
+  len?: number;
   /** Fourth species: this note is the second half of a ligature (tied from the previous upbeat). */
   tied?: boolean;
   cantus: string;

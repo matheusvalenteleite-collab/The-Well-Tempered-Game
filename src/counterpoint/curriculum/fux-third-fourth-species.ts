@@ -12,7 +12,7 @@ import type { SpeciesId } from "../layout.ts";
 
 const make =
   (species: SpeciesId, n: number) =>
-  (ordinal: number, figure: number | null, cf_id: string, modal_final: ModalFinal, cantus_voice: Staff, page: string, introduces: RuleIntroduction[] = []): CurriculumStep => ({
+  (ordinal: number, figure: number | string | null, cf_id: string, modal_final: ModalFinal, cantus_voice: Staff, page: string, introduces: RuleIntroduction[] = []): CurriculumStep => ({
     id: `fux-mode.s${n}.${String(ordinal).padStart(2, "0")}`,
     ordinal,
     voices: 2,
@@ -89,4 +89,44 @@ export const FUX_FOURTH_SPECIES_CURRICULUM: readonly CurriculumStep[] = [
   s4(10, null, "fux_cf_a_01", "A", "upper", "75-76")(1),
   s4(11, null, "fux_cf_c_01", "C", "lower", "75-76")(1),
   s4(12, null, "fux_cf_c_01", "C", "upper", "75-76")(1),
+];
+
+const s5 = make("fifth", 5);
+const kept5 = "Fifth species is 'nothing other than a heap and combination of the preceding species' (p. 77): their precepts hold for the values they govern.";
+
+/**
+ * Fifth species (D82): Josephus works every mode in two voices, with Aloysius's help for the first
+ * (p. 77: "I will form the first example for you"), so all twelve are canonical (Figs. 82-88;
+ * cantus below and above; pp. 77-80).
+ */
+export const FUX_FIFTH_SPECIES_CURRICULUM: readonly CurriculumStep[] = [
+  s5(1, 82, "fux_cf_d_01", "D", "lower", "76-77", [
+    { ruleId: "fis.downbeat-consonance", page: "77", occasion: kept5 + " A note struck on the downbeat is consonant." },
+    { ruleId: "fis.suspension", page: "69-73, 76", occasion: "A dissonance held over the bar line is prepared, and resolved a step down, its resolution possibly decorated (p. 76)." },
+    { ruleId: "fis.weak-dissonance", page: "56-65, 76", occasion: "Off the downbeat a dissonance passes by step, or is the cambiata, or (a quaver) steps to a neighbour and back." },
+    { ruleId: "fis.quavers", page: "76", occasion: "Two quavers may be mixed in, on the second or fourth crotchet, never on the first or third." },
+    { ruleId: "fis.ligature", page: "69", occasion: "A note is tied over the bar line from the second half of the bar (the ligature's first note is in arsis)." },
+    { ruleId: "fis.cadence", page: "77-80", occasion: "The penultimate bar ends on the note below the final." },
+    { ruleId: "fis.opening-perfect", page: "77", occasion: kept5 },
+    { ruleId: "fis.final-octave-or-unison", page: "77", occasion: kept5 },
+    { ruleId: "fis.perfect-approach", page: "77", occasion: kept5 },
+    { ruleId: "fis.melodic-tritone", page: "77", occasion: kept5 },
+    { ruleId: "fis.melodic-major-sixth", page: "77", occasion: kept5 },
+    { ruleId: "fis.converging-leap-into-octave", page: "77", occasion: kept5 },
+    { ruleId: "fis.unison-only-at-ends", page: "77", occasion: `${kept5} Checked on downbeats not tied over.` },
+  ]),
+  s5(2, 83, "fux_cf_d_01", "D", "upper", "77"),
+  s5(3, "084a", "fux_cf_e_01", "E", "lower", "78"),
+  s5(4, "084b", "fux_cf_e_01", "E", "upper", "78"),
+  s5(5, "085a", "fux_cf_f_01", "F", "lower", "78"),
+  s5(6, "085b", "fux_cf_f_01", "F", "upper", "78"),
+  s5(7, "086a", "fux_cf_g_01", "G", "lower", "78-79"),
+  s5(8, "086b", "fux_cf_g_01", "G", "upper", "78-79"),
+  s5(9, "087a", "fux_cf_a_01", "A", "lower", "79"),
+  s5(10, "087b", "fux_cf_a_01", "A", "upper", "79"),
+  // Aloysius's advice on the two crotchets that limp (NB, bar 5 of the last example, pp. 80-81).
+  s5(11, "088a", "fux_cf_c_02", "C", "lower", "80-81", [
+    { ruleId: "fis.limping", page: "80-81", occasion: "Advice, not a precept: two crotchets at the start of a bar with no ligature following make the melody limp; tie them into a ligature, or go on with two more crotchets." },
+  ]),
+  s5(12, "088b", "fux_cf_c_02", "C", "upper", "80-81"),
 ];

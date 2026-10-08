@@ -8,17 +8,22 @@
  * bar as in the second, the upbeat tied over the bar line to the next downbeat (the ligature); the
  * player writes the same note on both sides of the bar line and the tie follows (D61). Fux opens
  * every fourth-species example with a half rest.
+ * Fifth species (pp. 76-81, D82): florid counterpoint, any mixture of the values of the earlier
+ * species. Each bar has eight eighth-note slots; a note fills its first slot with its pitch and the
+ * rest with HOLD; a HOLD at the start of a bar carries the note over the bar line (the tie).
  */
-export type SpeciesId = "first" | "second" | "third" | "fourth";
+export type SpeciesId = "first" | "second" | "third" | "fourth" | "fifth";
 
 /** The value written in a slot for a rest. */
 export const REST = "r";
+/** Fifth species: the slot continues the note (or rest) before it (D82). */
+export const HOLD = "~";
 
 export interface Slot {
   bar: number;
-  /** Position in the bar: 0 = thesis (downbeat); in half notes 1 = arsis; in quarters 1..3. */
-  beat: 0 | 1 | 2 | 3;
-  duration: "1/1" | "1/2" | "1/4";
+  /** Position in the bar: 0 = thesis (downbeat); in half notes 1 = arsis; in quarters 1..3; in eighths 0..7. */
+  beat: number;
+  duration: "1/1" | "1/2" | "1/4" | "1/8";
   restAllowed: boolean;
 }
 
@@ -26,6 +31,12 @@ export function slotLayout(species: SpeciesId, bars: number): Slot[] {
   if (bars < 2) throw new Error("an exercise needs at least two bars");
   if (species === "first") return Array.from({ length: bars }, (_, bar) => ({ bar, beat: 0, duration: "1/1", restAllowed: false }));
   const slots: Slot[] = [];
+  if (species === "fifth") {
+    // A rest may open the piece, in its first half bar (Fux's half rest).
+    for (let bar = 0; bar < bars - 1; bar++) for (let beat = 0; beat < 8; beat++) slots.push({ bar, beat, duration: "1/8", restAllowed: bar === 0 && beat < 4 });
+    slots.push({ bar: bars - 1, beat: 0, duration: "1/1", restAllowed: false });
+    return slots;
+  }
   if (species === "third") {
     for (let bar = 0; bar < bars - 1; bar++) for (const beat of [0, 1, 2, 3] as const) slots.push({ bar, beat, duration: "1/4", restAllowed: false });
     slots.push({ bar: bars - 1, beat: 0, duration: "1/1", restAllowed: false });
@@ -40,7 +51,7 @@ export function slotLayout(species: SpeciesId, bars: number): Slot[] {
 }
 
 /** Slot length in whole notes. */
-export const slotLength = (s: Slot) => (s.duration === "1/1" ? 1 : s.duration === "1/2" ? 0.5 : 0.25);
+export const slotLength = (s: Slot) => (s.duration === "1/1" ? 1 : s.duration === "1/2" ? 0.5 : s.duration === "1/4" ? 0.25 : 0.125);
 /** Slot onset in whole notes from the start. */
 export const slotOffset = (s: Slot) => s.bar + s.beat * slotLength(s);
 /** Is the slot on the downbeat (thesis)? */
@@ -63,8 +74,43 @@ export function slotsOfBars(layout: Slot[], lo: number, hi: number): number[] {
   return layout.flatMap((s, k) => (s.bar >= lo && s.bar <= hi ? [k] : []));
 }
 
+const frac = (r: string) => {
+  const [n, d] = r.split("/").map(Number);
+  return n / (d ?? 1);
+};
+
+/**
+ * Fifth species: Fux's notes (any values, ties across bar lines) onto the eighth-note slots: the
+ * first slot of a note gets its pitch (or REST), the others HOLD; a note tied from the one before
+ * is all HOLD. Fails loudly when a note does not fall on the grid.
+ */
+export function notesToFifthSlots(layout: Slot[], notes: { pitch: string | null; duration: string; offset?: string; tie?: string | null }[]): string[] {
+  const out: (string | null)[] = layout.map(() => null);
+  const indexAt = (t: number) => layout.findIndex((s) => Math.abs(slotOffset(s) - t) < 1e-9);
+  let t = 0;
+  for (const n of notes) {
+    const start = n.offset !== undefined ? frac(n.offset) : t;
+    const len = frac(n.duration);
+    const k = indexAt(start);
+    if (k < 0) throw new Error(`note at ${start} is off the eighth-note grid`);
+    const continues = n.tie === "stop" || n.tie === "continue";
+    let covered = 0;
+    let j = k;
+    while (covered < len - 1e-9 && j < layout.length) {
+      out[j] = j === k && !continues ? (n.pitch ?? REST) : HOLD;
+      covered += slotLength(layout[j]);
+      j++;
+    }
+    if (Math.abs(covered - len) > 1e-9) throw new Error(`note at ${start}: duration ${n.duration} does not fill whole slots`);
+    t = start + len;
+  }
+  if (out.some((x) => x === null)) throw new Error("the notes leave slots empty");
+  return out as string[];
+}
+
 /** Map Fux's solution notes (pitch or null for a rest) onto the layout; fails loudly on a mismatch. */
-export function notesToSlots(layout: Slot[], notes: { pitch: string | null; duration: string }[]): string[] {
+export function notesToSlots(layout: Slot[], notes: { pitch: string | null; duration: string; offset?: string; tie?: string | null }[]): string[] {
+  if (layout.some((s) => s.duration === "1/8")) return notesToFifthSlots(layout, notes);
   if (notes.length !== layout.length) throw new Error(`expected ${layout.length} notes for this layout, got ${notes.length}`);
   return notes.map((n, k) => {
     if (n.duration !== layout[k].duration) throw new Error(`slot ${k}: duration ${n.duration}, layout ${layout[k].duration}`);
@@ -74,7 +120,20 @@ export function notesToSlots(layout: Slot[], notes: { pitch: string | null; dura
 }
 
 export const isRest = (x: string | null) => x === REST;
-export const sounding = (x: string | null): x is string => x !== null && x !== REST;
+export const isHold = (x: string | null | undefined) => x === HOLD;
+export const sounding = (x: string | null): x is string => x !== null && x !== REST && x !== HOLD;
+
+/**
+ * Fifth species: the note that begins at slot k (pitch or REST) and how many slots it lasts
+ * (its HOLDs included, across bar lines); null when slot k is a HOLD or empty.
+ */
+export function noteSpan(line: (string | null | undefined)[], k: number): { value: string; slots: number } | null {
+  const v = line[k];
+  if (v === null || v === undefined || v === HOLD) return null;
+  let n = 1;
+  while (line[k + n] === HOLD) n++;
+  return { value: v, slots: n };
+}
 
 /** One onset for playback: the cantus sounds at each bar start, the counterpoint at each slot. */
 export interface PlayEvent {
@@ -111,6 +170,13 @@ export function timeline(
   const slots = slotsOfBars(layout, lo, hi);
   // With ties (fourth species), a note held over the bar line sounds once, for both halves.
   const voice = (line: (string | null)[], id: string, k: number, lengths: Record<string, number>) => {
+    // Fifth species: a HOLD continues the note before it; a note sounds for all its slots (D82).
+    if (line[k] === HOLD) return null;
+    if (line[k + 1] === HOLD) {
+      const span = noteSpan(line, k)!;
+      const last = Math.min(k + span.slots - 1, layout.length - 1);
+      lengths[id] = slotOffset(layout[last]) + slotLength(layout[last]) - slotOffset(layout[k]);
+    }
     if (opts.ties && k > 0 && tiedToNext(layout, line, k - 1) && slots.includes(k - 1)) return null;
     if (opts.ties && tiedToNext(layout, line, k) && slots.includes(k + 1)) lengths[id] = slotLength(layout[k]) + slotLength(layout[k + 1]);
     return sounding(line[k] ?? null) ? line[k] : null;

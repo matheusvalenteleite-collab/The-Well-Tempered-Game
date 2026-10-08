@@ -1693,6 +1693,359 @@
     "en": "I commend to you not only to work out the cantus firmi of the three remaining modes in this way, but also to exercise yourself very much in this species on others you find; you will never exercise enough.",
     "page": "75-76"
    }
+  },
+  "fux-mode.s5.01": {
+   "name": "Florid counterpoint",
+   "specific": [
+    "Every value of the earlier species may be used: half notes, crotchets, quavers in pairs on the second or fourth crotchet, ligatures over the bar line (pp. 76-77).",
+    "A dissonance on the downbeat only when tied over and resolved a step down; off the downbeat, passing, the cambiata, or a neighbour and back.",
+    "To write: choose the value (quaver, crotchet, half note, whole bar) in the Write group or with the keys 8, 4, 2, 1, then type the letters; T holds the note on (over the bar line it is the tie)."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "fux",
+     "latin": "Species ista Contrapunctum floridum appellatur, sic dictum, quia omnis generis ornatu, canendi gratiâ, flexibili motuum facilitate, concinnâ figurarum varietate, ùt hortus flosculis florere debet.",
+     "english": "This species is called florid counterpoint, because, like a garden with little flowers, it should flourish with ornaments of every kind, for the sake of singing, with easy, flexible motion and an elegant variety of figures.",
+     "page": "76"
+    },
+    {
+     "type": "fux",
+     "latin": "Species haec nihil aliud est, quàm praecedentium Contrapuncti Specierum Congeries & Compositio, nec quidquam novi hîc monendum occurrit, praeter Cantûs concinnitatem, cui plurimùm curae, atque operae dandum esse, nunquam è memoria tibi excidat, hortor, atque obsecro.",
+     "english": "This species is nothing other than a heap and combination of the preceding species of counterpoint, and nothing new needs to be said here, except the elegance of the melody, to which the greatest care and labour must be given: never let it slip from your memory, I urge and beseech you.",
+     "page": "77"
+    },
+    {
+     "type": "text",
+     "text": "Before the lesson Aloysius has shown how a ligature may be decorated or broken without changing its substance (p. 76), and that two quavers may be mixed in, on the second and fourth crotchet, never the first and third. Josephus fears to take up the pen with no example before him; Aloysius forms the first one himself (p. 77)."
+    },
+    {
+     "type": "fux",
+     "latin": "Praetereà nonnunquam duae Fusae sequenti Speciei immisceri possunt; quae quidem in secunda, & quarta tactûs parte, nunquam verò in prima & tertia ponendae sunt.",
+     "english": "Moreover, two quavers may sometimes be mixed into the following species; they are to be placed on the second and fourth part of the bar, never on the first and third.",
+     "page": "76"
+    }
+   ],
+   "intro": {
+    "la": "Species ista Contrapunctum floridum appellatur, sic dictum, quia omnis generis ornatu, canendi gratiâ, flexibili motuum facilitate, concinnâ figurarum varietate, ùt hortus flosculis florere debet.",
+    "en": "This species is called florid counterpoint, because, like a garden with little flowers, it should flourish with ornaments of every kind, for the sake of singing, with easy, flexible motion and an elegant variety of figures.",
+    "page": "76"
+   }
+  },
+  "fux-mode.s5.02": {
+   "name": "Aloysius's example, cantus above",
+   "specific": [
+    "The same precepts, with the counterpoint below: the cadence ends on the minor third, from a tied second."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "dialogue",
+     "lines": [
+      {
+       "who": "Josephus",
+       "text": "I shall do my best; but I hardly trust myself to take up the pen without an example before my eyes."
+      },
+      {
+       "who": "Aloysius",
+       "text": "Take heart: I will form the first example for you."
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": "Aloysius's first example is written for the D cantus with the counterpoint above and below (p. 77)."
+    }
+   ],
+   "intro": {
+    "la": "Alacri animo sis, formabo tibi primum exemplum.",
+    "en": "Take heart: I will form the first example for you.",
+    "page": "77"
+   }
+  },
+  "fux-mode.s5.03": {
+   "name": "Florid in E",
+   "specific": [
+    "Nothing new: the precepts of all the species hold. Cantus below: the cadence ends on the major sixth."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "text",
+     "text": "After Aloysius's example, the remaining cantus firmi are left to Josephus, to be fitted to that model (p. 78)."
+    }
+   ],
+   "intro": {
+    "la": "Huic igitur formulae reliquorum Cantuum firmorum Contrapuncta tibi accommodanda restant.",
+    "en": "To this model, then, you have still to fit counterpoints to the remaining cantus firmi.",
+    "page": "78"
+   }
+  },
+  "fux-mode.s5.04": {
+   "name": "Florid in E, cantus above",
+   "specific": [
+    "Nothing new: care for the melody above all (p. 77)."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "fux",
+     "latin": "Species haec nihil aliud est, quàm praecedentium Contrapuncti Specierum Congeries & Compositio, nec quidquam novi hîc monendum occurrit, praeter Cantûs concinnitatem, cui plurimùm curae, atque operae dandum esse, nunquam è memoria tibi excidat, hortor, atque obsecro.",
+     "english": "This species is nothing other than a heap and combination of the preceding species of counterpoint, and nothing new needs to be said here, except the elegance of the melody, to which the greatest care and labour must be given: never let it slip from your memory, I urge and beseech you.",
+     "page": "77"
+    }
+   ],
+   "intro": {
+    "la": "nec quidquam novi hîc monendum occurrit, praeter Cantûs concinnitatem",
+    "en": "nothing new needs to be said here, except the elegance of the melody",
+    "page": "77"
+   }
+  },
+  "fux-mode.s5.05": {
+   "name": "Florid in F",
+   "specific": [
+    "Enter the downbeat mostly by oblique motion or by a ligature (pp. 78-79)."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "fux",
+     "latin": "Satìs industriosè operatus es; & quod mihi non mediocriter placet, est, te non parùm attentionis canendi rationi tribuisse, quodque in introitu in Thesin plerumque motum obliquum, vel Syncopen adhibueris, quam industriam, quia plurimùm Contrapuncto affert gratiae, ulteriùs tibi commendatam volo.",
+     "english": "You have worked diligently enough; and what pleases me not a little is that you have paid no small attention to the manner of singing, and that on entering the downbeat you have mostly used oblique motion or syncopation: a diligence I commend to you further, since it brings very much grace to counterpoint.",
+     "page": "78-79"
+    }
+   ],
+   "intro": {
+    "la": "Satìs industriosè operatus es",
+    "en": "You have worked diligently enough",
+    "page": "78"
+   }
+  },
+  "fux-mode.s5.06": {
+   "name": "Florid in F, cantus above",
+   "specific": [
+    "Oblique motion and syncopation into the downbeat bring grace (p. 79)."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "fux",
+     "latin": "Satìs industriosè operatus es; & quod mihi non mediocriter placet, est, te non parùm attentionis canendi rationi tribuisse, quodque in introitu in Thesin plerumque motum obliquum, vel Syncopen adhibueris, quam industriam, quia plurimùm Contrapuncto affert gratiae, ulteriùs tibi commendatam volo.",
+     "english": "You have worked diligently enough; and what pleases me not a little is that you have paid no small attention to the manner of singing, and that on entering the downbeat you have mostly used oblique motion or syncopation: a diligence I commend to you further, since it brings very much grace to counterpoint.",
+     "page": "78-79"
+    },
+    {
+     "type": "dialogue",
+     "lines": [
+      {
+       "who": "Josephus",
+       "text": "I am filled with incredible joy to understand that my study and effort do not wholly displease you."
+      }
+     ]
+    }
+   ],
+   "intro": {
+    "la": "quam industriam, quia plurimùm Contrapuncto affert gratiae, ulteriùs tibi commendatam volo",
+    "en": "a diligence I commend to you further, since it brings very much grace to counterpoint",
+    "page": "79"
+   }
+  },
+  "fux-mode.s5.07": {
+   "name": "Florid in G",
+   "specific": [
+    "The three remaining modes are done in Aloysius's presence (p. 79)."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "dialogue",
+     "lines": [
+      {
+       "who": "Josephus",
+       "text": "Are the remaining three modes to be worked in your presence, or in private study?"
+      }
+     ]
+    },
+    {
+     "type": "fux",
+     "latin": "Cùm Species haec tantae sit utilitatis, ut vix dicere queam, ideo absolves tu quidem praedictos tres tonos me praesente; verùm te admonitum volo, ut hoc in genere Compositionis semper magìs magisque te exercere nunquam desistas.",
+     "english": "Since this species is of a usefulness I can hardly express, you shall indeed complete those three modes in my presence; but I want you warned never to cease exercising yourself more and more in this kind of composition.",
+     "page": "79"
+    }
+   ],
+   "intro": {
+    "la": "Cùm Species haec tantae sit utilitatis, ut vix dicere queam, ideo absolves tu quidem praedictos tres tonos me praesente; verùm te admonitum volo, ut hoc in genere Compositionis semper magìs magisque te exercere nunquam desistas.",
+    "en": "Since this species is of a usefulness I can hardly express, you shall indeed complete those three modes in my presence; but I want you warned never to cease exercising yourself more and more in this kind of composition.",
+    "page": "79"
+   }
+  },
+  "fux-mode.s5.08": {
+   "name": "Florid in G, cantus above",
+   "specific": [
+    "Nothing new; exercise yourself in this kind of composition more and more (p. 79)."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "dialogue",
+     "lines": [
+      {
+       "who": "Josephus",
+       "text": "I shall always keep your counsel as a law."
+      }
+     ]
+    }
+   ],
+   "intro": {
+    "la": "Consilium tuum semper ùt Legem observabo.",
+    "en": "I shall always keep your counsel as a law.",
+    "page": "79"
+   }
+  },
+  "fux-mode.s5.09": {
+   "name": "Florid in A",
+   "specific": [
+    "Quavers two at a time, on the second or fourth crotchet (p. 76)."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "fux",
+     "latin": "Praetereà nonnunquam duae Fusae sequenti Speciei immisceri possunt; quae quidem in secunda, & quarta tactûs parte, nunquam verò in prima & tertia ponendae sunt.",
+     "english": "Moreover, two quavers may sometimes be mixed into the following species; they are to be placed on the second and fourth part of the bar, never on the first and third.",
+     "page": "76"
+    }
+   ],
+   "intro": {
+    "la": "Praetereà nonnunquam duae Fusae sequenti Speciei immisceri possunt; quae quidem in secunda, & quarta tactûs parte, nunquam verò in prima & tertia ponendae sunt.",
+    "en": "Moreover, two quavers may sometimes be mixed into the following species; they are to be placed on the second and fourth part of the bar, never on the first and third.",
+    "page": "76"
+   }
+  },
+  "fux-mode.s5.10": {
+   "name": "Florid in A, cantus above",
+   "specific": [
+    "A ligature may be decorated or broken without losing its substance (p. 76)."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "fux",
+     "latin": "Pro concinnitate sequentis Speciei hîc praemitto, Ligaturas hucusque dictas etiam alio modo fieri posse, quae quidem substantiam minimè evertunt, afferunt tamen concentui celerioris motûs rationem.",
+     "english": "For the elegance of the following species I state here in advance that the ligatures described so far can also be made in another way, which does not at all overturn their substance, but brings a quicker motion to the harmony.",
+     "page": "76"
+    },
+    {
+     "type": "text",
+     "text": "Fux sets the substance (the tied dissonance and its resolution on the half bar) beside its variations, made 'for the sake of the melody or of the motion' (p. 76); the resolution may be ornamented, or reached after a consonant note interposed."
+    }
+   ],
+   "intro": {
+    "la": "Pro concinnitate sequentis Speciei hîc praemitto, Ligaturas hucusque dictas etiam alio modo fieri posse, quae quidem substantiam minimè evertunt, afferunt tamen concentui celerioris motûs rationem.",
+    "en": "For the elegance of the following species I state here in advance that the ligatures described so far can also be made in another way, which does not at all overturn their substance, but brings a quicker motion to the harmony.",
+    "page": "76"
+   }
+  },
+  "fux-mode.s5.11": {
+   "name": "Florid in C",
+   "specific": [
+    "Advice, not a precept: two crotchets opening a bar want a ligature after them, or two more crotchets (pp. 80-81). Fux's own solution has them in bar 5, marked NB."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "dialogue",
+     "lines": [
+      {
+       "who": "Josephus",
+       "text": "What does that NB placed at the fifth bar of the last example mean?"
+      }
+     ]
+    },
+    {
+     "type": "fux",
+     "latin": "Ne te afflixeris. Nihil enim de hoc ex me adhuc intellexisti; nunc tibi non quidem Praecepti, sed Consilii causâ dico, quòd positis duabus Semiminimis in principio tactûs, absque Ligatura continuò sequente, ratio cantandi claudicare videatur.",
+     "english": "Do not be troubled, for you have heard nothing of this from me yet. I tell you now, not as a precept but as advice, that when two crotchets are placed at the beginning of a bar with no ligature following at once, the melody seems to limp.",
+     "page": "80-81"
+    },
+    {
+     "type": "fux",
+     "latin": "Quapropter consultiùs erit, si duas tantùm Semiminimas in principio tactûs adhibere lubet, eas cum sequenti Ligatura stringere, vel cum duabus adhuc aliis Semiminimis cursum facilitare.",
+     "english": "It will therefore be wiser, if you wish to use only two crotchets at the beginning of a bar, to bind them to a following ligature, or to ease the run with two more crotchets.",
+     "page": "81"
+    }
+   ],
+   "intro": {
+    "la": "Quid indicat illud nota bene NB. in quinto tactu ultimi exempli in Cantu positum?",
+    "en": "What does that NB placed at the fifth bar of the last example mean?",
+    "page": "80"
+   }
+  },
+  "fux-mode.s5.12": {
+   "name": "Florid in C, cantus above",
+   "specific": [
+    "The last exercise of two-part composition (p. 81)."
+   ],
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "fux",
+     "latin": "Quapropter consultiùs erit, si duas tantùm Semiminimas in principio tactûs adhibere lubet, eas cum sequenti Ligatura stringere, vel cum duabus adhuc aliis Semiminimis cursum facilitare.",
+     "english": "It will therefore be wiser, if you wish to use only two crotchets at the beginning of a bar, to bind them to a following ligature, or to ease the run with two more crotchets.",
+     "page": "81"
+    },
+    {
+     "type": "fux",
+     "latin": "Jam Bicinium, omnes quinque Species percurrendo, supposito Cantu firmo, Deo sint Laudes, absolvimus.",
+     "english": "Now, praise be to God, we have completed two-part composition, running through all five species over a given cantus firmus.",
+     "page": "81"
+    },
+    {
+     "type": "text",
+     "text": "Aloysius turns next to note against note in three parts."
+    }
+   ],
+   "intro": {
+    "la": "Jam Bicinium, omnes quinque Species percurrendo, supposito Cantu firmo, Deo sint Laudes, absolvimus.",
+    "en": "Now, praise be to God, we have completed two-part composition, running through all five species over a given cantus firmus.",
+    "page": "81"
+   }
   }
  }
 }
