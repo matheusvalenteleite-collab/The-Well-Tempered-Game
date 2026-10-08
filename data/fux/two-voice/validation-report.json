@@ -1,0 +1,854 @@
+{
+ "dataset": "data/fux/two-voice/fux-two-voice.json",
+ "schema_version": "1.0.0",
+ "source_commit": "5c7cae40422bd5ed897a2be3b916a7bc1a2a2df7",
+ "canonical_reading": "kern_vor",
+ "counts": {
+  "exercises": 46,
+  "solutions": 46,
+  "annotated_solutions": 46,
+  "annotation_items": 1111,
+  "distinct_cantus_firmi": 14,
+  "distinct_cantus_firmi_used_by_exercises": 8,
+  "distinct_cantus_firmi_from_distinct_file_only": 6,
+  "cantus_firmus_families": 8,
+  "distinct_file_entries": 12,
+  "by_species": {
+   "first": 10,
+   "second": 12,
+   "third": 6,
+   "fourth": 6,
+   "fifth": 12
+  },
+  "by_modal_final": {
+   "D": 10,
+   "E": 10,
+   "F": 10,
+   "G": 6,
+   "A": 6,
+   "C": 4
+  },
+  "source_discrepancies": 32
+ },
+ "checks_run": 2173,
+ "checks_failed": 0,
+ "errors": [],
+ "corpus_level_checks": [
+  {
+   "check": "1. two-voice exercise count",
+   "ok": true,
+   "detail": "46 exercises",
+   "severity": "error"
+  },
+  {
+   "check": "2. exactly 46 exercises with unique ids",
+   "ok": true,
+   "detail": "46 unique ids",
+   "severity": "error"
+  },
+  {
+   "check": "solutions: one per exercise",
+   "ok": true,
+   "detail": "46 solutions",
+   "severity": "error"
+  },
+  {
+   "check": "annotations: one per exercise",
+   "ok": true,
+   "detail": "46 annotation records",
+   "severity": "error"
+  },
+  {
+   "check": "species counts match published table (README)",
+   "ok": true,
+   "detail": "{\"first\": 10, \"second\": 12, \"third\": 6, \"fourth\": 6, \"fifth\": 12}",
+   "severity": "error"
+  },
+  {
+   "check": "modal-final counts match published table (README)",
+   "ok": true,
+   "detail": "{\"D\": 10, \"E\": 10, \"F\": 10, \"G\": 6, \"A\": 6, \"C\": 4}",
+   "severity": "error"
+  },
+  {
+   "check": "cf ids unique",
+   "ok": true,
+   "detail": "14 records",
+   "severity": "error"
+  },
+  {
+   "check": "8. spelling/octave of every note vs I-Solutions.mxl (published) re-read",
+   "ok": true,
+   "detail": "1661 identical, 6 recorded divergences of 1667 notes and rests",
+   "severity": "error"
+  },
+  {
+   "check": "8. every sounding note aligned with per-exercise MusicXML or a recorded divergence",
+   "ok": true,
+   "detail": "1632 aligned (raw duration/divisions verified), 6 recorded divergences",
+   "severity": "error"
+  },
+  {
+   "check": "6. Distinct entry 0 maps to a CF record",
+   "ok": true,
+   "detail": "Modal final: d; Cantus firmus: Lower -> fux_cf_d_02 (octave_transposition (-1))",
+   "severity": "error"
+  },
+  {
+   "check": "7. Distinct entry 0 final",
+   "ok": true,
+   "detail": "",
+   "severity": "error"
+  },
+  {
+   "check": "6. Distinct entry 1 maps to a CF record",
+   "ok": true,
+   "detail": "Modal final: d; Cantus firmus: Upper -> fux_cf_d_01 (exact)",
+   "severity": "error"
+  },
+  {
+   "check": "7. Distinct entry 1 final",
+   "ok": true,
+   "detail": "",
+   "severity": "error"
+  },
+  {
+   "check": "6. Distinct entry 2 maps to a CF record",
+   "ok": true,
+   "detail": "Modal final: e; Cantus firmus: Lower -> fux_cf_e_02 (octave_transposition (-1))",
+   "severity": "error"
+  },
+  {
+   "check": "7. Distinct entry 2 final",
+   "ok": true,
+   "detail": "",
+   "severity": "error"
+  },
+  {
+   "check": "6. Distinct entry 3 maps to a CF record",
+   "ok": true,
+   "detail": "Modal final: e; Cantus firmus: Upper -> fux_cf_e_01 (exact)",
+   "severity": "error"
+  },
+  {
+   "check": "7. Distinct entry 3 final",
+   "ok": true,
+   "detail": "",
+   "severity": "error"
+  },
+  {
+   "check": "6. Distinct entry 4 maps to a CF record",
+   "ok": true,
+   "detail": "Modal final: f; Cantus firmus: Lower -> fux_cf_f_01 (exact)",
+   "severity": "error"
+  },
+  {
+   "check": "7. Distinct entry 4 final",
+   "ok": true,
+   "detail": "",
+   "severity": "error"
+  },
+  {
+   "check": "6. Distinct entry 5 maps to a CF record",
+   "ok": true,
+   "detail": "Modal final: f; Cantus firmus: Upper -> fux_cf_f_02 (octave_transposition (+1))",
+   "severity": "error"
+  },
+  {
+   "check": "7. Distinct entry 5 final",
+   "ok": true,
+   "detail": "",
+   "severity": "error"
+  },
+  {
+   "check": "6. Distinct entry 6 maps to a CF record",
+   "ok": true,
+   "detail": "Modal final: g; Cantus firmus: Lower -> fux_cf_g_02 (octave_transposition (-1))",
+   "severity": "error"
+  },
+  {
+   "check": "7. Distinct entry 6 final",
+   "ok": true,
+   "detail": "",
+   "severity": "error"
+  },
+  {
+   "check": "6. Distinct entry 7 maps to a CF record",
+   "ok": true,
+   "detail": "Modal final: g; Cantus firmus: Upper -> fux_cf_g_01 (exact)",
+   "severity": "error"
+  },
+  {
+   "check": "7. Distinct entry 7 final",
+   "ok": true,
+   "detail": "",
+   "severity": "error"
+  },
+  {
+   "check": "6. Distinct entry 8 maps to a CF record",
+   "ok": true,
+   "detail": "Modal final: a; Cantus firmus: Lower -> fux_cf_a_03 (octave_transposition (-1))",
+   "severity": "error"
+  },
+  {
+   "check": "7. Distinct entry 8 final",
+   "ok": true,
+   "detail": "",
+   "severity": "error"
+  },
+  {
+   "check": "6. Distinct entry 9 maps to a CF record",
+   "ok": true,
+   "detail": "Modal final: a; Cantus firmus: Upper -> fux_cf_a_01 (exact)",
+   "severity": "error"
+  },
+  {
+   "check": "7. Distinct entry 9 final",
+   "ok": true,
+   "detail": "",
+   "severity": "error"
+  },
+  {
+   "check": "6. Distinct entry 10 maps to a CF record",
+   "ok": true,
+   "detail": "Modal final: c; Cantus firmus: Lower -> fux_cf_c_03 (octave_transposition (-1))",
+   "severity": "error"
+  },
+  {
+   "check": "7. Distinct entry 10 final",
+   "ok": true,
+   "detail": "",
+   "severity": "error"
+  },
+  {
+   "check": "6. Distinct entry 11 maps to a CF record",
+   "ok": true,
+   "detail": "Modal final: c; Cantus firmus: Upper -> fux_cf_c_01 (exact)",
+   "severity": "error"
+  },
+  {
+   "check": "7. Distinct entry 11 final",
+   "ok": true,
+   "detail": "",
+   "severity": "error"
+  },
+  {
+   "check": "6. Distinct file has 12 entries (6 finals x 2 positions)",
+   "ok": true,
+   "detail": "",
+   "severity": "error"
+  },
+  {
+   "check": "6. every CF used by an exercise is catalogued",
+   "ok": true,
+   "detail": "",
+   "severity": "error"
+  },
+  {
+   "check": "10. no annotation-interval mismatches in source",
+   "ok": true,
+   "detail": "0 mismatches",
+   "severity": "error"
+  },
+  {
+   "check": "music21 independent parse: kern agrees with dataset except recorded divergences",
+   "ok": true,
+   "detail": "1667 identical, 0 recorded divergences, 0 unexplained, of 1667 onsets",
+   "severity": "error"
+  },
+  {
+   "check": "music21 independent parse: musicxml agrees with dataset except recorded divergences",
+   "ok": true,
+   "detail": "1657 identical, 10 recorded divergences, 0 unexplained, of 1667 onsets",
+   "severity": "error"
+  }
+ ],
+ "warnings": [],
+ "music21": {
+  "status": "ran",
+  "music21_version": "10.5.0",
+  "kern_compared": 1667,
+  "kern_agree": 1667,
+  "musicxml_compared": 1667,
+  "musicxml_agree": 1657,
+  "musicxml_known_divergence": 10
+ },
+ "observations": [
+  {
+   "exercise_id": "fux_2v_fig_022",
+   "kind": "annotation_refers_to_superseded_reading",
+   "detail": "m6+0/1: annotated C4/E4=M3, canonical C5/E4=m6"
+  },
+  {
+   "exercise_id": "fux_2v_fig_022",
+   "kind": "annotation_refers_to_superseded_reading",
+   "detail": "m7+0/1: annotated A3/F4=m6, canonical A4/F4=M3"
+  },
+  {
+   "exercise_id": "fux_2v_fig_022",
+   "kind": "annotation_refers_to_superseded_reading",
+   "detail": "m8+0/1: annotated B3/E4=P4, canonical B4/E4=P5"
+  },
+  {
+   "exercise_id": "fux_2v_fig_022",
+   "kind": "annotation_refers_to_superseded_reading",
+   "detail": "m9+0/1: annotated B3/D4=m3, canonical B4/D4=M6"
+  },
+  {
+   "exercise_id": "fux_2v_fig_022",
+   "kind": "annotation_refers_to_superseded_reading",
+   "detail": "m10+0/1: annotated A3/C4=m3, canonical A4/C4=M6"
+  },
+  {
+   "exercise_id": "fux_2v_fig_073",
+   "kind": "fourth_species_template_departure",
+   "detail": "bar 6: downbeat not tied over (1/2 1/2[)"
+  },
+  {
+   "exercise_id": "fux_2v_fig_075",
+   "kind": "fourth_species_template_departure",
+   "detail": "bar 4: downbeat not tied over (1/2 1/2[)"
+  },
+  {
+   "exercise_id": "fux_2v_fig_082",
+   "kind": "fifth_species_rhythmic_vocabulary",
+   "detail": "1/1x1, 1/2x9, 1/4x19, 1/8x2"
+  },
+  {
+   "exercise_id": "fux_2v_fig_082",
+   "kind": "fifth_species_ties",
+   "detail": "6 tied notes"
+  },
+  {
+   "exercise_id": "fux_2v_fig_083",
+   "kind": "fifth_species_rhythmic_vocabulary",
+   "detail": "1/1x1, 1/2x9, 1/4x18, 1/8x4"
+  },
+  {
+   "exercise_id": "fux_2v_fig_083",
+   "kind": "fifth_species_ties",
+   "detail": "6 tied notes"
+  },
+  {
+   "exercise_id": "fux_2v_fig_084a",
+   "kind": "fifth_species_rhythmic_vocabulary",
+   "detail": "1/1x1, 1/2x7, 1/4x19, 1/8x2"
+  },
+  {
+   "exercise_id": "fux_2v_fig_084a",
+   "kind": "fifth_species_ties",
+   "detail": "4 tied notes"
+  },
+  {
+   "exercise_id": "fux_2v_fig_084b",
+   "kind": "fifth_species_rhythmic_vocabulary",
+   "detail": "1/1x1, 1/2x9, 1/4x15, 1/8x2"
+  },
+  {
+   "exercise_id": "fux_2v_fig_084b",
+   "kind": "fifth_species_ties",
+   "detail": "4 tied notes"
+  },
+  {
+   "exercise_id": "fux_2v_fig_085a",
+   "kind": "fifth_species_rhythmic_vocabulary",
+   "detail": "1/1x1, 1/2x12, 1/4x18"
+  },
+  {
+   "exercise_id": "fux_2v_fig_085a",
+   "kind": "fifth_species_ties",
+   "detail": "5 tied notes"
+  },
+  {
+   "exercise_id": "fux_2v_fig_085b",
+   "kind": "fifth_species_rhythmic_vocabulary",
+   "detail": "1/1x1, 1/2x13, 1/4x15, 1/8x2"
+  },
+  {
+   "exercise_id": "fux_2v_fig_085b",
+   "kind": "fifth_species_ties",
+   "detail": "7 tied notes"
+  },
+  {
+   "exercise_id": "fux_2v_fig_086a",
+   "kind": "fifth_species_rhythmic_vocabulary",
+   "detail": "1/1x1, 1/2x9, 1/4x30, 1/8x4"
+  },
+  {
+   "exercise_id": "fux_2v_fig_086a",
+   "kind": "fifth_species_ties",
+   "detail": "6 tied notes"
+  },
+  {
+   "exercise_id": "fux_2v_fig_086b",
+   "kind": "fifth_species_rhythmic_vocabulary",
+   "detail": "1/1x1, 1/2x16, 1/4x18"
+  },
+  {
+   "exercise_id": "fux_2v_fig_086b",
+   "kind": "fifth_species_ties",
+   "detail": "7 tied notes"
+  },
+  {
+   "exercise_id": "fux_2v_fig_087a",
+   "kind": "fifth_species_rhythmic_vocabulary",
+   "detail": "1/1x1, 1/2x11, 1/4x18, 1/8x4"
+  },
+  {
+   "exercise_id": "fux_2v_fig_087a",
+   "kind": "fifth_species_ties",
+   "detail": "7 tied notes"
+  },
+  {
+   "exercise_id": "fux_2v_fig_087b",
+   "kind": "fifth_species_rhythmic_vocabulary",
+   "detail": "1/1x1, 1/2x12, 1/4x17, 1/8x2"
+  },
+  {
+   "exercise_id": "fux_2v_fig_087b",
+   "kind": "fifth_species_ties",
+   "detail": "8 tied notes"
+  },
+  {
+   "exercise_id": "fux_2v_fig_087b",
+   "kind": "annotation_refers_to_superseded_reading",
+   "detail": "m8+1/4: annotated C4/E4=M3, canonical G3/E4=M6"
+  },
+  {
+   "exercise_id": "fux_2v_fig_088a",
+   "kind": "fifth_species_rhythmic_vocabulary",
+   "detail": "1/1x1, 1/2x10, 1/4x10"
+  },
+  {
+   "exercise_id": "fux_2v_fig_088a",
+   "kind": "fifth_species_ties",
+   "detail": "3 tied notes"
+  },
+  {
+   "exercise_id": "fux_2v_fig_088b",
+   "kind": "fifth_species_rhythmic_vocabulary",
+   "detail": "1/1x1, 1/2x11, 1/4x7, 1/8x2"
+  },
+  {
+   "exercise_id": "fux_2v_fig_088b",
+   "kind": "fifth_species_ties",
+   "detail": "6 tied notes"
+  }
+ ],
+ "species_template_departures": 2,
+ "source_discrepancies": [
+  {
+   "exercise_id": "fux_2v_fig_022",
+   "kind": "note_reading_divergence",
+   "voice": "counterpoint",
+   "staff": "upper",
+   "a": "kern_vor",
+   "b": "musicxml_exercise_file",
+   "differences": [
+    {
+     "offset": "5/1",
+     "measure": 6,
+     "a": "@5/1 C5 dur=1/1",
+     "b": "@5/1 C4 dur=1/1"
+    },
+    {
+     "offset": "6/1",
+     "measure": 7,
+     "a": "@6/1 A4 dur=1/1",
+     "b": "@6/1 A3 dur=1/1"
+    },
+    {
+     "offset": "7/1",
+     "measure": 8,
+     "a": "@7/1 B4 dur=1/1",
+     "b": "@7/1 B3 dur=1/1"
+    },
+    {
+     "offset": "8/1",
+     "measure": 9,
+     "a": "@8/1 B4 dur=1/1",
+     "b": "@8/1 B3 dur=1/1"
+    },
+    {
+     "offset": "9/1",
+     "measure": 10,
+     "a": "@9/1 A4 dur=1/1",
+     "b": "@9/1 A3 dur=1/1"
+    }
+   ]
+  },
+  {
+   "exercise_id": "fux_2v_fig_022",
+   "kind": "note_reading_divergence",
+   "voice": "counterpoint",
+   "staff": "upper",
+   "a": "kern_vor",
+   "b": "musicxml_published",
+   "differences": [
+    {
+     "offset": "5/1",
+     "measure": 6,
+     "a": "@5/1 C5 dur=1/1",
+     "b": "@5/1 C4 dur=1/1"
+    },
+    {
+     "offset": "6/1",
+     "measure": 7,
+     "a": "@6/1 A4 dur=1/1",
+     "b": "@6/1 A3 dur=1/1"
+    },
+    {
+     "offset": "7/1",
+     "measure": 8,
+     "a": "@7/1 B4 dur=1/1",
+     "b": "@7/1 B3 dur=1/1"
+    },
+    {
+     "offset": "8/1",
+     "measure": 9,
+     "a": "@8/1 B4 dur=1/1",
+     "b": "@8/1 B3 dur=1/1"
+    },
+    {
+     "offset": "9/1",
+     "measure": 10,
+     "a": "@9/1 A4 dur=1/1",
+     "b": "@9/1 A3 dur=1/1"
+    }
+   ]
+  },
+  {
+   "exercise_id": "fux_2v_fig_022",
+   "kind": "note_reading_divergence",
+   "voice": "counterpoint",
+   "staff": "upper",
+   "a": "kern_vor",
+   "b": "musicxml_annotations",
+   "differences": [
+    {
+     "offset": "5/1",
+     "measure": 6,
+     "a": "@5/1 C5 dur=1/1",
+     "b": "@5/1 C4 dur=1/1"
+    },
+    {
+     "offset": "6/1",
+     "measure": 7,
+     "a": "@6/1 A4 dur=1/1",
+     "b": "@6/1 A3 dur=1/1"
+    },
+    {
+     "offset": "7/1",
+     "measure": 8,
+     "a": "@7/1 B4 dur=1/1",
+     "b": "@7/1 B3 dur=1/1"
+    },
+    {
+     "offset": "8/1",
+     "measure": 9,
+     "a": "@8/1 B4 dur=1/1",
+     "b": "@8/1 B3 dur=1/1"
+    },
+    {
+     "offset": "9/1",
+     "measure": 10,
+     "a": "@9/1 A4 dur=1/1",
+     "b": "@9/1 A3 dur=1/1"
+    }
+   ]
+  },
+  {
+   "exercise_id": "fux_2v_fig_022",
+   "kind": "modern_clef_divergence",
+   "staff": "upper",
+   "detail": "kern *clefG2 / per-exercise mxl treble_8vb / I-Solutions treble_8vb"
+  },
+  {
+   "exercise_id": "fux_2v_fig_022",
+   "kind": "annotation_source_differs_from_canonical_notes",
+   "file": "I/I-Annotations.mxl",
+   "detail": "m6 beat 0/1: annotated C4/E4 'M3'; canonical C5/E4 -> m6"
+  },
+  {
+   "exercise_id": "fux_2v_fig_022",
+   "kind": "annotation_source_differs_from_canonical_notes",
+   "file": "I/I-Annotations.mxl",
+   "detail": "m7 beat 0/1: annotated A3/F4 'm6'; canonical A4/F4 -> M3"
+  },
+  {
+   "exercise_id": "fux_2v_fig_022",
+   "kind": "annotation_source_differs_from_canonical_notes",
+   "file": "I/I-Annotations.mxl",
+   "detail": "m8 beat 0/1: annotated B3/E4 'P4'; canonical B4/E4 -> P5"
+  },
+  {
+   "exercise_id": "fux_2v_fig_022",
+   "kind": "annotation_source_differs_from_canonical_notes",
+   "file": "I/I-Annotations.mxl",
+   "detail": "m9 beat 0/1: annotated B3/D4 'm3'; canonical B4/D4 -> M6"
+  },
+  {
+   "exercise_id": "fux_2v_fig_022",
+   "kind": "annotation_source_differs_from_canonical_notes",
+   "file": "I/I-Annotations.mxl",
+   "detail": "m10 beat 0/1: annotated A3/C4 'm3'; canonical A4/C4 -> M6"
+  },
+  {
+   "exercise_id": "fux_2v_fig_033",
+   "kind": "upstream_editorial_emendation",
+   "file": "I/sp2/gap_033.json",
+   "detail": "Counterpoint, bar 3, second half: 1725 print C4, encoded G4. The interval figure printed below the note is 3: a third above the cantus E4 is G4."
+  },
+  {
+   "exercise_id": "fux_2v_fig_055",
+   "kind": "upstream_open_review_note",
+   "file": "I/sp3/gap_055.json",
+   "detail": "system 2: suspected_clef_engraving_error [needs_review] The upper clef is printed as C3 in the second system. The opening uses C1, and the notes and printed interval numbers suggest that C1 was intended in the continuation. The printed reading is preserved in source.systems."
+  },
+  {
+   "exercise_id": "fux_2v_fig_055",
+   "kind": "original_clef_varies_by_system",
+   "detail": "metadata clefs ['C1', 'C3'], per-system [('C1', 'C3'), ('C3', 'C3')]"
+  },
+  {
+   "exercise_id": "fux_2v_fig_059",
+   "kind": "metadata_schema_irregularity",
+   "file": "I/sp3/gap_059.json",
+   "detail": "figure object lacks keys ['note'] (treated as null)"
+  },
+  {
+   "exercise_id": "fux_2v_fig_060",
+   "kind": "data_tsv_vs_metadata",
+   "file": "I/data.tsv",
+   "detail": "data.tsv row {'Measure start': '314', 'Figure': '59', 'Species': '3', 'Modal final': 'f', 'Cantus firmus': 'Upper', 'Measure end': '325', 'Measure Count': '12'} vs metadata (figure, species, final, cf, measures, start-1)=('60', '3', 'f', 'Upper', 12, 313)"
+  },
+  {
+   "exercise_id": "fux_2v_fig_085b",
+   "kind": "note_reading_divergence",
+   "voice": "counterpoint",
+   "staff": "lower",
+   "a": "kern_vor",
+   "b": "musicxml_exercise_file",
+   "differences": [
+    {
+     "offset": "17/2",
+     "measure": 9,
+     "a": "@17/2 D3 dur=1/2 tie=start",
+     "b": "@17/2 D3 dur=1/2"
+    },
+    {
+     "offset": "9/1",
+     "measure": 10,
+     "a": "@9/1 D3 dur=1/4 tie=stop",
+     "b": "@9/1 D3 dur=1/4"
+    }
+   ]
+  },
+  {
+   "exercise_id": "fux_2v_fig_085b",
+   "kind": "note_reading_divergence",
+   "voice": "counterpoint",
+   "staff": "lower",
+   "a": "kern_vor",
+   "b": "musicxml_published",
+   "differences": [
+    {
+     "offset": "17/2",
+     "measure": 9,
+     "a": "@17/2 D3 dur=1/2 tie=start",
+     "b": "@17/2 D3 dur=1/2"
+    },
+    {
+     "offset": "9/1",
+     "measure": 10,
+     "a": "@9/1 D3 dur=1/4 tie=stop",
+     "b": "@9/1 D3 dur=1/4"
+    }
+   ]
+  },
+  {
+   "exercise_id": "fux_2v_fig_085b",
+   "kind": "note_reading_divergence",
+   "voice": "counterpoint",
+   "staff": "lower",
+   "a": "kern_vor",
+   "b": "musicxml_annotations",
+   "differences": [
+    {
+     "offset": "17/2",
+     "measure": 9,
+     "a": "@17/2 D3 dur=1/2 tie=start",
+     "b": "@17/2 D3 dur=1/2"
+    },
+    {
+     "offset": "9/1",
+     "measure": 10,
+     "a": "@9/1 D3 dur=1/4 tie=stop",
+     "b": "@9/1 D3 dur=1/4"
+    }
+   ]
+  },
+  {
+   "exercise_id": "fux_2v_fig_086a",
+   "kind": "note_reading_divergence",
+   "voice": "counterpoint",
+   "staff": "upper",
+   "a": "kern_vor",
+   "b": "musicxml_exercise_file",
+   "differences": [
+    {
+     "offset": "21/2",
+     "measure": 11,
+     "a": "@21/2 A4 dur=1/2 tie=start",
+     "b": "@21/2 A4 dur=1/2"
+    },
+    {
+     "offset": "11/1",
+     "measure": 12,
+     "a": "@11/1 A4 dur=1/4 tie=stop",
+     "b": "@11/1 A4 dur=1/4"
+    }
+   ]
+  },
+  {
+   "exercise_id": "fux_2v_fig_086a",
+   "kind": "note_reading_divergence",
+   "voice": "counterpoint",
+   "staff": "upper",
+   "a": "kern_vor",
+   "b": "musicxml_published",
+   "differences": [
+    {
+     "offset": "21/2",
+     "measure": 11,
+     "a": "@21/2 A4 dur=1/2 tie=start",
+     "b": "@21/2 A4 dur=1/2"
+    },
+    {
+     "offset": "11/1",
+     "measure": 12,
+     "a": "@11/1 A4 dur=1/4 tie=stop",
+     "b": "@11/1 A4 dur=1/4"
+    }
+   ]
+  },
+  {
+   "exercise_id": "fux_2v_fig_086a",
+   "kind": "note_reading_divergence",
+   "voice": "counterpoint",
+   "staff": "upper",
+   "a": "kern_vor",
+   "b": "musicxml_annotations",
+   "differences": [
+    {
+     "offset": "21/2",
+     "measure": 11,
+     "a": "@21/2 A4 dur=1/2 tie=start",
+     "b": "@21/2 A4 dur=1/2"
+    },
+    {
+     "offset": "11/1",
+     "measure": 12,
+     "a": "@11/1 A4 dur=1/4 tie=stop",
+     "b": "@11/1 A4 dur=1/4"
+    }
+   ]
+  },
+  {
+   "exercise_id": "fux_2v_fig_087a",
+   "kind": "kern_reference_vs_metadata",
+   "file": "I/sp5/gap_087a.krn",
+   "detail": "!!!OPR 'Gradus ad Parnassum Exercise; Fig. 87a; Species: 5; Modal final: a; Cantus firmus: Upper' vs expected 'Gradus ad Parnassum Exercise; Fig. 87a; Species: 5; Modal final: a; Cantus firmus: Lower'"
+  },
+  {
+   "exercise_id": "fux_2v_fig_087b",
+   "kind": "data_tsv_vs_metadata",
+   "file": "I/data.tsv",
+   "detail": "data.tsv row {'Measure start': '498', 'Figure': '87a', 'Species': '5', 'Modal final': 'a', 'Cantus firmus': 'Upper', 'Measure end': '509', 'Measure Count': '12'} vs metadata (figure, species, final, cf, measures, start-1)=('87b', '5', 'a', 'Upper', 12, 497)"
+  },
+  {
+   "exercise_id": "fux_2v_fig_087b",
+   "kind": "note_reading_divergence",
+   "voice": "counterpoint",
+   "staff": "lower",
+   "a": "kern_vor",
+   "b": "musicxml_exercise_file",
+   "differences": [
+    {
+     "offset": "29/4",
+     "measure": 8,
+     "a": "@29/4 G3 dur=1/4",
+     "b": "@29/4 C4 dur=1/4"
+    }
+   ]
+  },
+  {
+   "exercise_id": "fux_2v_fig_087b",
+   "kind": "note_reading_divergence",
+   "voice": "counterpoint",
+   "staff": "lower",
+   "a": "kern_vor",
+   "b": "musicxml_published",
+   "differences": [
+    {
+     "offset": "29/4",
+     "measure": 8,
+     "a": "@29/4 G3 dur=1/4",
+     "b": "@29/4 C4 dur=1/4"
+    }
+   ]
+  },
+  {
+   "exercise_id": "fux_2v_fig_087b",
+   "kind": "note_reading_divergence",
+   "voice": "counterpoint",
+   "staff": "lower",
+   "a": "kern_vor",
+   "b": "musicxml_annotations",
+   "differences": [
+    {
+     "offset": "29/4",
+     "measure": 8,
+     "a": "@29/4 G3 dur=1/4",
+     "b": "@29/4 C4 dur=1/4"
+    }
+   ]
+  },
+  {
+   "exercise_id": "fux_2v_fig_087b",
+   "kind": "annotation_source_differs_from_canonical_notes",
+   "file": "I/I-Annotations.mxl",
+   "detail": "m8 beat 1/4: annotated C4/E4 'M3'; canonical G3/E4 -> M6"
+  },
+  {
+   "kind": "distinct_entry_not_in_exercises",
+   "file": "I/I-Distinct.mxl",
+   "detail": "entry 0 (Modal final: d; Cantus firmus: Lower): D3 F3 E3 D3 G3 F3 A3 G3 F3 E3 D3 -> octave_transposition (-1) fux_cf_d_01"
+  },
+  {
+   "kind": "distinct_entry_not_in_exercises",
+   "file": "I/I-Distinct.mxl",
+   "detail": "entry 2 (Modal final: e; Cantus firmus: Lower): E3 C3 D3 C3 A2 A3 G3 E3 F3 E3 -> octave_transposition (-1) fux_cf_e_01"
+  },
+  {
+   "kind": "distinct_entry_not_in_exercises",
+   "file": "I/I-Distinct.mxl",
+   "detail": "entry 5 (Modal final: f; Cantus firmus: Upper): F4 G4 A4 F4 D4 E4 F4 C5 A4 F4 G4 F4 -> octave_transposition (+1) fux_cf_f_01"
+  },
+  {
+   "kind": "distinct_entry_not_in_exercises",
+   "file": "I/I-Distinct.mxl",
+   "detail": "entry 6 (Modal final: g; Cantus firmus: Lower): G2 C3 B2 G2 C3 E3 D3 G3 E3 C3 D3 B2 A2 G2 -> octave_transposition (-1) fux_cf_g_01"
+  },
+  {
+   "kind": "distinct_entry_not_in_exercises",
+   "file": "I/I-Distinct.mxl",
+   "detail": "entry 8 (Modal final: a; Cantus firmus: Lower): A2 C3 B2 D3 C3 E3 F3 E3 D3 C3 B2 A2 -> octave_transposition (-1) fux_cf_a_01"
+  },
+  {
+   "kind": "distinct_entry_not_in_exercises",
+   "file": "I/I-Distinct.mxl",
+   "detail": "entry 10 (Modal final: c; Cantus firmus: Lower): C3 E3 F3 G3 E3 A3 G3 E3 F3 E3 D3 C3 -> octave_transposition (-1) fux_cf_c_01"
+  }
+ ]
+}

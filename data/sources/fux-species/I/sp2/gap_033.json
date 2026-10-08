@@ -1,0 +1,48 @@
+{
+  "id": "gap_033",
+  "figure": {
+    "number": 33,
+    "suffix": "",
+    "note": "corrected version of 26",
+    "corrected": true,
+    "corrects": 26
+  },
+  "species": [
+    2
+  ],
+  "modal_final": "d",
+  "voices": 2,
+  "cantus_firmus": {
+    "part": 2,
+    "raw": "Lower"
+  },
+  "meter": "2/2",
+  "measures": 11,
+  "clefs": [
+    "C1",
+    "C3"
+  ],
+  "page": 59,
+  "source": {
+    "example_id": "gap_p067:1",
+    "pdf_file": "gap_p067.pdf",
+    "pdf_page": 67,
+    "example_on_page": 1
+  },
+  "editorial": {
+    "corrections": [
+      {
+        "kind": "pitch",
+        "location": {
+          "part": 1,
+          "measure": 3,
+          "offset_quarters": 2,
+          "description": "Counterpoint, bar 3, second half"
+        },
+        "printed": "C4",
+        "encoded": "G4",
+        "reason": "The interval figure printed below the note is 3: a third above the cantus E4 is G4."
+      }
+    ]
+  }
+}
