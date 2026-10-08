@@ -22,6 +22,12 @@ import { ScoreView } from "./notation/ScoreView.tsx";
 import { buildOverlay, neutralOverlay } from "./notation/overlay.ts";
 import { Credits } from "./Credits.tsx";
 import { FuxComparison } from "./FuxComparison.tsx";
+import { ContinuoBox } from "./ContinuoBox.tsx";
+import { realizeContinuo } from "../continuo/realize.ts";
+import { playContinuo } from "../continuo/audio.ts";
+import { continuoInput, continuoKey, continuoOptions, type PlayMode } from "../game/continuo-input.ts";
+import { DEFAULT_CONTINUO_SETTINGS, validContinuoSettings, type ContinuoSettings } from "../game/continuo-settings.ts";
+import { CONTINUO_DEMO_MODE } from "../config.ts";
 import { t } from "./i18n.ts";
 import type { Step } from "../music/pitch.ts";
 
@@ -83,7 +89,7 @@ export function App() {
   const session = sessions[stepIndex];
   const setSession = (s: SessionState) => setSessions((all) => all.map((x, i) => (i === stepIndex ? s : x)));
   const [stars, setStars] = useState<string[]>(() => stored<string[]>("wtg.stars", [], (v) => Array.isArray(v)));
-  const [tempo, setTempo] = useState(() => stored("wtg.tempo", 60, (v) => typeof v === "number" && v >= 30 && v <= 120));
+  const [tempo, setTempo] = useState(() => stored("wtg.tempo", 60, (v) => typeof v === "number" && v >= 30 && v <= 240));
   const [volume, setVolume] = useState(() => stored("wtg.volume", 70, (v) => typeof v === "number" && v >= 0 && v <= 100));
   const [sound, setSound] = useState<SoundState>(() => restoreSound(stored<unknown>("wtg.sound2", null)));
   const [theme, setTheme] = useState<"auto" | "light" | "dark">(() => stored("wtg.theme", "auto", (v) => v === "auto" || v === "light" || v === "dark"));
@@ -94,6 +100,9 @@ export function App() {
     return ok ? v : { ...DEFAULT_DRUMS };
   });
   const [showSound, setShowSound] = useState(false);
+  const [continuo, setContinuo] = useState(() => stored("wtg.continuo", false, (v) => typeof v === "boolean"));
+  const [continuoSettings, setContinuoSettings] = useState<ContinuoSettings>(() => validContinuoSettings(stored<unknown>("wtg.continuoSettings", DEFAULT_CONTINUO_SETTINGS)));
+  const [showContinuo, setShowContinuo] = useState(false);
   const [loop, setLoop] = useState(() => stored("wtg.loop", true, (v) => typeof v === "boolean"));
   const [showNames, setShowNames] = useState(() => stored("wtg.names", false, (v) => typeof v === "boolean"));
   const [showIntervals, setShowIntervals] = useState(() => stored("wtg.intervals", false, (v) => typeof v === "boolean"));
@@ -144,6 +153,11 @@ export function App() {
     audio.setDrums(drumKit, VIEW.modalFinal);
     store("wtg.drumkit", drumKit);
   }, [drumKit, VIEW.modalFinal]);
+  useEffect(() => store("wtg.continuo", continuo), [continuo]);
+  useEffect(() => {
+    audio.setContinuoLevel(continuoSettings.level);
+    store("wtg.continuoSettings", continuoSettings);
+  }, [continuoSettings]);
   useEffect(() => {
     audio.temperament = tuning;
     store("wtg.tuning", tuning);
@@ -190,6 +204,7 @@ export function App() {
   // An empty slot where a rest is allowed counts as the rest.
   // Test hook: write a whole counterpoint at once (browser tests only).
   (window as unknown as { wtgSetNotes: (n: (string | null)[]) => void }).wtgSetNotes = (n) => update({ ...session, notes: n }, false);
+  (window as unknown as { wtgFux: string[] | null }).wtgFux = VIEW.fux;
 
   const missing = session.notes.filter((n, k) => n === null && !VIEW.layout[k].restAllowed).length;
   const toggleEvaluation = () => {
@@ -223,8 +238,27 @@ export function App() {
 
   // Fux's solution (overlay, comparison, playback) opens only once the exercise is cleared.
   const fuxOpen = Boolean(result?.passed && VIEW.fux);
-  const [playMode, setPlayMode] = useState<"player" | "fux" | "trio">("player");
-  const play = (mode: "player" | "fux" | "trio" = "player") => {
+  const [playMode, setPlayMode] = useState<PlayMode>("player");
+
+  // Basso continuo (decision D44): generated for pleasure from whatever is written (demo mode),
+  // realized for the player's line or Fux's, doubled colla parte for the trio. No part in grading.
+  const continuoAvailable = continuo && (CONTINUO_DEMO_MODE || Boolean(result?.passed));
+  const continuoMode: PlayMode = playMode !== "player" && fuxOpen ? playMode : "player";
+  const cOpts = continuoOptions(continuoMode, continuoSettings);
+  const cKey = continuoKey(STEP.id, continuoMode === "fux" ? VIEW.fux ?? [] : session.notes, continuoMode, cOpts);
+  const continuoPlan = useMemo(() => {
+    if (!continuoAvailable) return null;
+    const input = continuoInput(VIEW, continuoMode === "fux" ? VIEW.fux! : session.notes, continuoMode);
+    return { input, realization: realizeContinuo(input, cOpts) };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [continuoAvailable, cKey]);
+  const realizationFor = (mode: PlayMode) => {
+    if (mode === continuoMode) return continuoPlan;
+    const input = continuoInput(VIEW, mode === "fux" ? VIEW.fux! : session.notes, mode);
+    return { input, realization: realizeContinuo(input, continuoOptions(mode, continuoSettings)) };
+  };
+
+  const play = (mode: PlayMode = "player") => {
     if (playing) {
       audio.stop();
       setPlaying(false);
@@ -240,10 +274,32 @@ export function App() {
         : mode === "fux"
           ? timeline(VIEW.cantus, VIEW.layout, VIEW.fux!)
           : timeline(VIEW.cantus, VIEW.layout, session.notes, undefined, undefined, VIEW.fux!);
-    void audio.playAll(events, (k) => {
-      setCursor(k);
-      if (k < 0) setPlaying(false);
-    });
+    const plan = continuoAvailable ? realizationFor(mode) : null;
+    const startContinuo = (startTime: number) => {
+      const graph = audio.graph;
+      const destination = audio.continuoInput();
+      if (!plan || !graph || !destination) return;
+      const s = continuoSettings;
+      audio.attach(
+        playContinuo(plan.input, plan.realization, {
+          preset: s.preset,
+          audio: { ctx: graph.ctx, destination },
+          includeSungVoices: false,
+          startTime,
+          getTempo: () => audio.tempo,
+          temperament: tuning,
+          inegal: s.inegal && s.preset !== "stileAntico",
+        }),
+      );
+    };
+    void audio.playAll(
+      events,
+      (k) => {
+        setCursor(k);
+        if (k < 0) setPlaying(false);
+      },
+      plan ? startContinuo : undefined,
+    );
   };
 
   // Starting pitch for keyboard entry before anything is written: the cantus note an octave away.
@@ -387,6 +443,7 @@ export function App() {
             marks={marks}
             overlay={overlay}
             fux={showFux && fuxOpen ? VIEW.fux! : undefined}
+            continuo={continuoPlan && continuoSettings.display !== "none" ? { realization: continuoPlan.realization, display: continuoSettings.display } : undefined}
             showNames={showNames}
             showGhost
             onPlace={(col, natural) => update(place(session, col, natural))}
@@ -441,11 +498,15 @@ export function App() {
                 </button>
               </div>
             </div>
-            <Knob id="tempo" label={t("ui.tempo")} value={tempo} min={30} max={120} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
+            <Knob id="tempo" label={t("ui.tempo")} value={tempo} min={30} max={240} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
             <Knob id="volume" label={t("ui.volume")} value={volume} min={0} max={100} defaultValue={70} format={(v) => `${Math.round(v)}%`} onChange={(v) => setVolume(Math.round(v))} />
             <button aria-pressed={showSound} aria-expanded={showSound} onClick={() => setShowSound(!showSound)} title={t("ui.sound.help")}>
               {t("ui.sound")}
               {drums ? " ●" : ""}
+            </button>
+            <button aria-pressed={continuo} aria-expanded={showContinuo} onClick={() => setShowContinuo(!showContinuo)} title={t("ui.continuo.help")}>
+              {t("ui.continuo")}
+              {continuo ? " ●" : ""}
             </button>
           </div>
         </div>
@@ -465,6 +526,7 @@ export function App() {
             onTuning={setTuning}
           />
         )}
+        {showContinuo && <ContinuoBox on={continuo} onToggle={setContinuo} value={continuoSettings} onChange={setContinuoSettings} />}
         {result && (
           <section className="feedback" aria-live="polite">
             <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} layout={VIEW.layout} audio={audio} />

@@ -146,7 +146,14 @@ export class AudioEngine {
       this.ctx = new AudioContext();
       this.master = this.ctx.createGain();
       this.master.gain.value = this.volume;
-      this.master.connect(this.ctx.destination);
+      // A safety limiter before the speakers: voices, drums and continuo together never clip.
+      const limiter = this.ctx.createDynamicsCompressor();
+      limiter.threshold.value = -3;
+      limiter.knee.value = 2;
+      limiter.ratio.value = 20;
+      limiter.attack.value = 0.002;
+      limiter.release.value = 0.2;
+      this.master.connect(limiter).connect(this.ctx.destination);
       this.drumMachine = new DrumMachine(this.ctx, this.channel("drums"));
       this.setDrums(this.drumSettings, this.final);
     }
@@ -239,7 +246,39 @@ export class AudioEngine {
    * time, so tempo and drum changes take effect from the next note.
    * `onSlot(k)` fires as slot k sounds; -1 marks the end.
    */
-  async playAll(events: PlayEvent[], onSlot: (k: number) => void): Promise<void> {
+  /** Things to stop with the playback (the continuo); `stop()` stops and forgets them. */
+  private attached = new Set<{ stop(): void }>();
+  attach(x: { stop(): void }) {
+    this.attached.add(x);
+  }
+
+  /** The context and master input, once the first gesture has created them (for the continuo). */
+  get graph(): { ctx: AudioContext; master: GainNode } | null {
+    return this.ctx && this.master ? { ctx: this.ctx, master: this.master } : null;
+  }
+
+  private continuoGain: GainNode | null = null;
+  private continuoLevel = 0.6;
+  /** The continuo's input: a level control in front of the master. */
+  continuoInput(): AudioNode | null {
+    if (!this.ctx || !this.master) return null;
+    if (!this.continuoGain) {
+      this.continuoGain = this.ctx.createGain();
+      this.continuoGain.gain.value = this.continuoLevel;
+      this.continuoGain.connect(this.master);
+    }
+    return this.continuoGain;
+  }
+  setContinuoLevel(v: number) {
+    this.continuoLevel = Math.max(0, Math.min(1, v));
+    if (this.continuoGain && this.ctx) this.continuoGain.gain.setTargetAtTime(this.continuoLevel, this.ctx.currentTime, 0.02);
+  }
+
+  /**
+   * `onCycle(t)` is called with the AudioContext time of beat 0 of every pass (every loop),
+   * when that pass is scheduled, so that an accompaniment can start sample-aligned.
+   */
+  async playAll(events: PlayEvent[], onSlot: (k: number) => void, onCycle?: (startTime: number) => void): Promise<void> {
     this.stop();
     const inst = await this.instrument();
     const ctx = this.ctx;
@@ -251,7 +290,12 @@ export class AudioEngine {
     let k = 0;
     let next = ctx.currentTime + 0.1;
     const LOOKAHEAD = 0.15;
+    let announced = false;
     const tick = () => {
+      if (k === 0 && !announced) {
+        announced = true;
+        onCycle?.(next);
+      }
       while (k < events.length && next < ctx.currentTime + LOOKAHEAD) {
         const whole = this.barSeconds;
         const e = events[k];
@@ -266,6 +310,7 @@ export class AudioEngine {
         if (this.loop) {
           // Loop: start again after half a bar's breath (read live, so the toggle works mid-play).
           k = 0;
+          announced = false;
           next += 0.5 * this.barSeconds;
           this.timers = this.timers.slice(-64);
         } else {
@@ -285,6 +330,8 @@ export class AudioEngine {
     this.current?.counterpoint.stop();
     this.current?.fux.stop();
     this.drumMachine?.stop();
+    for (const x of this.attached) x.stop();
+    this.attached.clear();
   }
 }
 

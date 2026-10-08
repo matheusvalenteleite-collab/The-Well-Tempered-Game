@@ -4,10 +4,10 @@
  */
 import { parsePitch } from "../music/pitch.ts";
 import { COSTS, DEFAULTS } from "./costs.ts";
-import { chooseChord, consistentTriads, frameAt, letterForms, mod, type Chord, type Frame } from "./frame.ts";
+import { chooseChord, consistentTriads, frameAt, letterForms, mod, spellAt, toPc, type Chord, type Frame } from "./frame.ts";
 import { enrichBar, passingFill, type BarPlan, type Segment } from "./enrichment.ts";
 import { sungNotes } from "./input.ts";
-import { candidates, collaParte, parallels, viterbi, type DownbeatContext, type Voicing, type Window } from "./voicing.ts";
+import { candidates, collaParte, parallels, placeByOctave, viterbi, type DownbeatContext, type Voicing, type Window } from "./voicing.ts";
 import type { BarInfo, ContinuoEvent, ContinuoInput, ContinuoOptions, ContinuoRealization, SungNote } from "./types.ts";
 
 export const DEFAULT_OPTIONS: ContinuoOptions = {
@@ -15,6 +15,7 @@ export const DEFAULT_OPTIONS: ContinuoOptions = {
   window: DEFAULTS.window,
   bassOctaves: "auto",
   passingFill: true,
+  texture: "realized",
 };
 
 /** Octaves below the sung bass that keep the continuo bass in DEFAULTS.bassRange, without needless shifting (ties: fewer). */
@@ -50,6 +51,7 @@ export function realizeContinuo(exercise: ContinuoInput, options: Partial<Contin
   const frames = Array.from({ length: n }, (_, b) => barFrame(notes, b));
   const shift = opts.bassOctaves === "auto" ? autoShift(frames) : opts.bassOctaves;
   const lh = (f: Frame) => f.bass.pitch.midi - 12 * shift;
+  if (opts.texture === "doubling") return realizeDoubling(notes, n, frames, shift, win, costs, modalFinal, opts);
   const ctxs: DownbeatContext[] = frames.map((f) => (f ? { bassMidi: lh(f), uppers: new Map(f.uppers.map((u) => [u.voice, u.pitch.midi])) } : { bassMidi: 0, uppers: new Map() }));
 
   const plans: BarPlan[] = frames.map((frame, b) => {
@@ -217,3 +219,67 @@ function rhEvents(segs: Segment[]): ContinuoEvent[] {
 }
 
 export type { Chord };
+
+/** Figure of a doubling: the generic intervals of the sung upper voices over the bass, compounds reduced ("10" -> "3"). */
+export function doublingFigure(f: Frame | null): string {
+  if (!f) return "";
+  const nums = new Set<number>();
+  for (const u of f.uppers) {
+    const k = u.pitch.diatonic - f.bass.pitch.diatonic + 1;
+    nums.add(k > 8 ? ((k - 2) % 7) + 2 : k);
+  }
+  return [...nums].sort((a, b) => b - a).join("/");
+}
+
+/**
+ * The "doubling" texture: no harmony is added. Left hand: the lowest sung voice, octave-shifted as
+ * in a realization. Right hand: each upper sung voice by octaves in the window (placeByOctave),
+ * following its every note through the bar (the colla parte follow of enrichBar). Only sung
+ * pitch classes occur.
+ */
+function realizeDoubling(notes: SungNote[], n: number, frames: (Frame | null)[], shift: number, win: Window, costs: typeof COSTS, modalFinal: ContinuoRealization["modalFinal"], opts: ContinuoOptions): ContinuoRealization {
+  const lh = (f: Frame) => f.bass.pitch.midi - 12 * shift;
+  let ref: number[] = [];
+  const plans: BarPlan[] = frames.map((frame, b) => {
+    const forms = letterForms(notes, 2 * b, 2 * b + 2);
+    let voicing: Voicing | null = null;
+    if (frame) {
+      const placed: { midi: number; pitch: string; voice: string }[] = [];
+      for (const u of [...frame.uppers].reverse()) {
+        const m = placeByOctave(u.pitch.midi, placed.length ? placed.map((x) => x.midi) : ref, lh(frame), win);
+        if (m === null || placed.some((x) => x.midi === m)) continue;
+        placed.push({ midi: m, pitch: spellAt(toPc(u.pitch), m), voice: u.voice });
+      }
+      placed.sort((a, c) => a.midi - c.midi);
+      voicing = { midi: placed.map((x) => x.midi), pitches: placed.map((x) => x.pitch), roles: placed.map(() => "doubling" as const), doubles: placed.map((x) => x.voice), barCost: 0 };
+      if (placed.length) ref = voicing.midi;
+    }
+    // enrichBar follows the doubled voices when the plan is marked colla parte.
+    return { bar: b, frame, chord: null, voicing, fallback: true, forms, nextBass: frames[b + 1]?.bass.pitch ?? null };
+  });
+  const ectx = { notes, shift, win, costs, followEntries: true };
+  const timelines = plans.map((p) => enrichBar(p, ectx));
+  const figureAt = (t: number) => doublingFigure(frameAt(notes, t));
+  const barFigure = (b: number) => {
+    const down = figureAt(2 * b);
+    const ups = [...new Set(notes.filter((x) => x.start > 2 * b && x.start < 2 * b + 2).map((x) => x.start))].sort((a, c) => a - c);
+    const up = ups.length ? figureAt(ups[0]) : "";
+    return up && up !== down ? `${down} · ${up}` : down;
+  };
+  const rh: ContinuoEvent[] = rhEvents(timelines.flatMap((t) => t.segments)).map((e) => ({ ...e, role: "doubling" as const, label: "doubling" }));
+  const bass = bassEvents(notes, n, shift, plans, timelines.map(() => ({}))).map((e) => ({ ...e, label: figureAt(e.startBeat) }));
+  const events = [...bass, ...rh].sort((a, b) => a.startBeat - b.startBeat || order(a.role) - order(b.role) || a.midi[0] - b.midi[0]);
+  const bars: BarInfo[] = plans.map((p, b) => ({
+    bar: b,
+    figure: barFigure(b),
+    chordPcs: [],
+    chord: [],
+    fallback: false,
+    notes: ["doubling", ...timelines[b].notes],
+    bass: p.frame ? spellLh(p.frame, shift) : "",
+    rh: p.voicing?.pitches ?? [],
+    cost: 0,
+    texture: "doubling",
+  }));
+  return { events, bars, beatsPerBar: 2, totalBeats: 2 * n, bassOctaves: shift, modalFinal, options: opts, stats: { fallbackBars: 0, parallels: { withBass: 0, withSung: 0 } } };
+}

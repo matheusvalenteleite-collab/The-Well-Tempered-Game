@@ -50,6 +50,8 @@ export interface EnrichContext {
   shift: number;
   win: Window;
   costs: Costs;
+  /** "doubling" texture: a sung upper voice that enters inside the bar is doubled from its entry. */
+  followEntries?: boolean;
 }
 
 export interface BarTimeline {
@@ -132,6 +134,15 @@ export function enrichBar(plan: BarPlan, ctx: EnrichContext): BarTimeline {
     const lh = lhAt(frame);
     if (plan.fallback || !chord) {
       // Colla parte: the doublings follow their voices; the added chord tone yields to any clash.
+      if (ctx.followEntries)
+        for (const n of frame.uppers)
+          if (n.start === t && !lines.some((l) => l.doubles === n.voice)) {
+            const m = placeByOctave(n.pitch.midi, lines.map((l) => l.midi), lh, ctx.win);
+            if (m !== null && !lines.some((l) => l.midi === m)) {
+              const label = lines[0]?.label ?? "doubling";
+              lines.push({ midi: m, pitch: spellAt({ step: n.pitch.step, alter: n.pitch.alter }, m), role: "doubling", doubles: n.voice, start: t, label });
+            }
+          }
       for (const l of [...lines]) {
         if (l.doubles) {
           const n = frame.sounding.find((s) => s.voice === l.doubles);

@@ -1,11 +1,28 @@
-# Basso continuo (dev module, not integrated)
+# Basso continuo
 
 An optional keyboard accompaniment for a solved exercise: a figured-bass realization in the
 manner of early-18th-century Vienna, played with the two sung voices. For pleasure, not grading.
 Occasional parallel fifths or octaves in the accompaniment are tolerated; a wrong note against
 the sung voices is not.
 
-Nothing in the game imports this folder. The only entry point is the dev harness.
+The game uses it through `src/game/continuo-input.ts` (input and options per play mode, memo key),
+`src/ui/ContinuoBox.tsx` (panel) and `ScoreView` (cue staves); see decision D44. The dev harness
+(`/continuo-dev.html`) stays dev-only.
+
+## Textures
+
+`texture: "realized"` (default) is the figured-bass realization below. `texture: "doubling"` adds
+no harmony: the left hand plays the lowest sung voice (octave-shifted as usual), the right hand
+doubles every upper sung voice colla parte, placed by octaves in the window and following each of
+its notes. Every bar has `fallback: false` and `texture: "doubling"`; bar figures are the generic
+intervals of the sung upper voices over the bass, compounds reduced ("10" → "3"), "down · up" when
+they change within the bar. The game uses it for trio playback.
+
+## Live tempo
+
+`playContinuo(..., { getTempo })` reads the tempo (half notes per minute) at every scheduling step,
+as the game's engine does: scheduling runs on a beat clock and re-anchors at the lookahead horizon
+when the tempo changes, so notes not yet scheduled follow it.
 
 ## Files
 

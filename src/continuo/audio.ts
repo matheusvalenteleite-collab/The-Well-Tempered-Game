@@ -32,6 +32,11 @@ export interface PlayOptions {
   onBar?: (bar: number) => void;
   /** Seed of the roll timings (deterministic playback). */
   seed?: number;
+  /**
+   * Live tempo (half notes per minute), read at every scheduling step, as the game's engine reads
+   * its own: a change applies to the notes not yet scheduled. Without it, `tempoBpm` is fixed.
+   */
+  getTempo?: () => number;
 }
 
 export interface Playback {
@@ -404,29 +409,55 @@ export function playContinuo(exercise: ContinuoInput, realization: ContinuoReali
   const { master, continuoBus, voices, synths, jobs, sungJobs, sec } = buildGraph(ctx, options.audio?.destination ?? ctx.destination, exercise, realization, options);
 
   const timers: ReturnType<typeof setTimeout>[] = [];
-  const LOOKAHEAD = 0.3;
+  const LOOKAHEAD = options.getTempo ? 0.15 : 0.3;
+  // Jobs are built in seconds at the starting tempo; scheduling runs on a beat clock, so a live
+  // tempo change re-anchors the clock at the scheduling horizon and later notes follow it.
+  const secAt = () => (options.getTempo ? 60 / options.getTempo() : sec);
+  let anchorTime = start;
+  let anchorBeat = 0;
+  let cur = secAt();
+  const timeOf = (beat: number) => anchorTime + (beat - anchorBeat) * cur;
   let k = 0;
   let s = 0;
+  let nextBar = 0;
+  let ended = false;
   let stopped = false;
   let finish: () => void = () => {};
   const done = new Promise<void>((resolve) => (finish = resolve));
+  const at = (time: number, fn: () => void) => timers.push(setTimeout(fn, Math.max(0, (time - ctx.currentTime) * 1000)));
   const tick = () => {
     if (stopped) return;
-    const horizon = ctx.currentTime + LOOKAHEAD - start;
-    while (k < jobs.length && jobs[k].at < horizon) voices.play(jobs[k++], start, continuoBus);
-    while (s < sungJobs.length && sungJobs[s].at < horizon) {
-      const j = sungJobs[s++];
-      synths.get(j.voice)!.start(j.pitch, start + j.at, j.dur);
+    const horizon = ctx.currentTime + LOOKAHEAD;
+    const next = secAt();
+    if (next !== cur) {
+      const h = Math.max(horizon, anchorTime);
+      anchorBeat += (h - anchorTime) / cur;
+      anchorTime = h;
+      cur = next;
     }
-    if (k < jobs.length || s < sungJobs.length) timers.push(setTimeout(tick, 50));
+    const hb = anchorBeat + (horizon - anchorTime) / cur;
+    while (k < jobs.length && jobs[k].at / sec < hb) {
+      const j = jobs[k++];
+      voices.play({ ...j, at: timeOf(j.at / sec), dur: (j.dur / sec) * cur }, 0, continuoBus);
+    }
+    while (s < sungJobs.length && sungJobs[s].at / sec < hb) {
+      const j = sungJobs[s++];
+      synths.get(j.voice)!.start(j.pitch, timeOf(j.at / sec), (j.dur / sec) * cur);
+    }
+    while (options.onBar && nextBar < realization.bars.length && 2 * nextBar < hb) {
+      const b = nextBar++;
+      at(timeOf(2 * b), () => options.onBar!(b));
+    }
+    if (!ended && realization.totalBeats <= hb) {
+      ended = true;
+      at(timeOf(realization.totalBeats) + 0.8, () => {
+        options.onBar?.(-1);
+        finish();
+      });
+    }
+    if (!ended || k < jobs.length || s < sungJobs.length) timers.push(setTimeout(tick, options.getTempo ? 40 : 50));
   };
   tick();
-  const at = (seconds: number, fn: () => void) => timers.push(setTimeout(fn, Math.max(0, (start + seconds - ctx.currentTime) * 1000)));
-  if (options.onBar) for (const b of realization.bars) at(2 * b.bar * sec, () => options.onBar!(b.bar));
-  at(realization.totalBeats * sec + 0.8, () => {
-    options.onBar?.(-1);
-    finish();
-  });
 
   return {
     done,

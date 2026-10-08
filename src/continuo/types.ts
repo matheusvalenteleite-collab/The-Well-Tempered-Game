@@ -12,6 +12,12 @@ import type { Costs } from "./costs.ts";
 
 export type FinalsMode = "organist" | "strict";
 export type PresetId = "stileAntico" | "cembalo" | "hofkapelle";
+/**
+ * "realized": a figured-bass realization (A1-A5). "doubling": no harmony added; the left hand
+ * doubles the lowest sung voice, the right hand doubles every upper sung voice colla parte,
+ * following each of their notes (the game's trio playback).
+ */
+export type Texture = "realized" | "doubling";
 
 /** One sung voice for the multi-voice form of the input (3- and 4-voice exercises later). */
 export interface SungVoiceInput {
@@ -45,6 +51,8 @@ export interface ContinuoOptions {
   passingFill: boolean;
   /** Overrides of the tuning constants. */
   costs?: Partial<Costs>;
+  /** Default "realized". */
+  texture?: Texture;
 }
 
 /** A pitch class with its spelling: a letter and an alteration. */
@@ -99,6 +107,8 @@ export interface BarInfo {
   /** Cost of this bar on the chosen path (transition into it plus its own cost). */
   cost: number;
   upbeat?: { kind: UpbeatKind; figure?: string; chord?: string[] };
+  /** Set for every bar of a "doubling" realization. */
+  texture?: "doubling";
 }
 
 export interface ParallelCount {

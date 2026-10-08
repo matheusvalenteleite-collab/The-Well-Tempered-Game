@@ -40,7 +40,7 @@ function showTempo() {
 function load(resetTempo: boolean) {
   const sol = repository.getSolution(exerciseSel.value)!;
   input = inputFromSolution(sol);
-  realization = realizeContinuo(input, { finals: radio("finals") as FinalsMode, passingFill: checked("passing"), preset: radio("preset") as PresetId });
+  realization = realizeContinuo(input, { finals: radio("finals") as FinalsMode, passingFill: checked("passing"), preset: radio("preset") as PresetId, texture: checked("doubling") ? "doubling" : "realized" });
   if (resetTempo) tempo.value = String(defaultTempo(input));
   showTempo();
   render();
@@ -142,7 +142,7 @@ exerciseSel.addEventListener("change", () => {
   stop();
   load(true);
 });
-for (const el of document.querySelectorAll("input[name=finals], input[name=preset], #passing")) el.addEventListener("change", () => load(false));
+for (const el of document.querySelectorAll("input[name=finals], input[name=preset], #passing, #doubling")) el.addEventListener("change", () => load(false));
 tempo.addEventListener("input", showTempo);
 $("tempoDefault").addEventListener("click", () => {
   tempo.value = String(defaultTempo(input));

@@ -12,3 +12,9 @@ export const DEFAULT_DEV_CONFIG: Readonly<DevConfig> = Object.freeze({
   enableModernAdditions: false,
   modernVoiceDistanceLimit: null,
 });
+
+/**
+ * Demo mode of the basso continuo: available at any time, realizing whatever is written (empty
+ * bars count as rests). Set to false to offer it only once the exercise is cleared.
+ */
+export const CONTINUO_DEMO_MODE = true;
