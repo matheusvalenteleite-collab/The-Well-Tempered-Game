@@ -207,7 +207,6 @@ export function App() {
     setPlaying(false);
     setCursor(-1);
     setResult(null);
-    setShowFux(false);
     setStepIndex(k);
   };
 
@@ -237,7 +236,6 @@ export function App() {
     to.push(session.notes);
     setSession({ ...session, notes });
     setResult(null);
-    setShowFux(false);
   };
 
   const update = (next: SessionState, sound = true) => {
@@ -245,7 +243,6 @@ export function App() {
     setSession(next);
     if (next.notes.some((n, k) => n !== session.notes[k])) {
       setResult(null);
-      setShowFux(false);
     }
     const changed = next.notes[next.selected] !== session.notes[next.selected];
     if (sound && changed && sounding(next.notes[next.selected])) audition(next.selected, next.notes);
@@ -322,7 +319,6 @@ export function App() {
   const toggleEvaluation = () => {
     if (result) {
       setResult(null);
-      setShowFux(false);
       return;
     }
     if (missing > 0) return;
@@ -367,8 +363,15 @@ export function App() {
     [result, showIntervals, session.notes, VIEW],
   );
 
-  // Fux's solution (overlay, comparison, playback) opens only once the exercise is cleared.
-  const fuxOpen = Boolean(result?.passed && VIEW.fux);
+  // Fux's solution (overlay, comparison, playback) opens once the exercise is cleared, and then
+  // stays open (D68): editing the line, undoing or switching the evaluation off never closes it;
+  // only the player hides it. An exercise starred earlier is open from the start.
+  const [unlocked, setUnlocked] = useState<string[]>([]);
+  useEffect(() => {
+    if (result?.passed && !unlocked.includes(STEP.id)) setUnlocked([...unlocked, STEP.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result]);
+  const fuxOpen = Boolean(VIEW.fux && (result?.passed || unlocked.includes(STEP.id) || stars.includes(STEP.id)));
   const [playMode, setPlayMode] = useState<PlayMode>("player");
 
   // Basso continuo (decision D44): generated for pleasure from whatever is written (demo mode),
@@ -457,7 +460,6 @@ export function App() {
     if (k !== stepIndex) goTo(k);
     setSessions((all) => all.map((x, i) => (i === k ? { ...x, notes: [...p.notes] } : x)));
     setResult(null);
-    setShowFux(false);
     setVersions(p.versions);
     setSound(structuredClone(p.sound));
     setDrums(p.drums);
@@ -768,7 +770,6 @@ export function App() {
               const next = moveNote(dragBase.current, from, to, natural);
               setSession(next);
               setResult(null);
-              setShowFux(false);
             }}
             onDragEnd={() => {
               if (!dragBase.current) return;
