@@ -21,7 +21,7 @@ test("rules become active in book order", () => {
   assert.ok(!ids(3).includes("fs.melodic-tritone") && ids(4).includes("fs.melodic-tritone"));
   assert.ok(!ids(6).includes("fs.melodic-major-sixth") && ids(7).includes("fs.melodic-major-sixth"));
   assert.ok(!ids(7).includes("fs.unison-leap") && ids(8).includes("fs.unison-leap"));
-  assert.equal(ids(12).length, 13);
+  assert.equal(ids(12).length, 12);
   assert.ok(ids(1).includes("fs.prefer-imperfect-consonances"));
 });
 

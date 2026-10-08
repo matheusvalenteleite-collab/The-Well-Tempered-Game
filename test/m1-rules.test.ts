@@ -72,7 +72,7 @@ test("each hard rule fires on a targeted defect", () => {
   // F4/C6 (P12) -> G4/G5 (P8): converging, the counterpoint leaping a fourth
   assert.ok(ids(["G4", "G4", "C6", "G5", "C5", "C5", "B4", "C5", "A4", "G4", "B4", "C5"]).includes("fs.converging-leap-into-octave"));
   assert.ok(ids(["C4", "G4", "A4", "B4", "C5", "C5", "B4", "C5", "A4", "G4", "B4", "C5"]).includes("fs.unison-leap")); // C4 unison, leap to G4
-  assert.ok(evaluate(input(with_(6, "F4"))).warnings.some((w) => w.ruleId === "fs.no-voice-crossing")); // G4 cantus, F4 counterpoint
+  assert.ok(!evaluate(input(with_(6, "F4"))).violations.some((w) => w.ruleId.includes("crossing"))); // crossing is free (D39)
 });
 
 test("cantus above: opening only P1/P8, cadence m3 -> P8/P1 (1725, pp. 48-49)", () => {

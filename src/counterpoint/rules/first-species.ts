@@ -235,32 +235,6 @@ export const unisonLeap: Rule = {
   },
 };
 
-export const noVoiceCrossing: Rule = {
-  id: "fs.no-voice-crossing",
-  source: "fux",
-  severity: "warning",
-  species: ["first"],
-  voicing: "any",
-  messageKey: "rule.fs.no-voice-crossing",
-  attribution: {
-    status: "contradicted",
-    ref: `${P}, p. 52`,
-    note: "Severity set to warning by decision D2. The source approves crossing: in Fig. 14, Fux has the counterpoint cross the cantus (notes 4-7), and Aloysius approves it ('Optimâ observantiâ id fecisti').",
-  },
-  check(a) {
-    const out: number[] = [];
-    for (let k = 0; k < a.length; k++) {
-      const cf = a.cantus[k];
-      const cp = a.counterpoint[k];
-      const crossed = a.input.cantusVoice === "lower" ? isAbove(cf, cp) : isAbove(cp, cf);
-      if (crossed) out.push(k);
-    }
-    return out.length ? [v(this, out)] : [];
-  },
-};
-
-// ---------------------------------------------------------------------------- warnings (fux-strict)
-
 export const preferContraryMotion: Rule = {
   id: "fs.prefer-contrary-motion",
   source: "fux",
@@ -318,7 +292,6 @@ export const FIRST_SPECIES_FUX_STRICT: readonly Rule[] = [
   melodicMajorSixth,
   convergingLeapIntoOctave,
   unisonLeap,
-  noVoiceCrossing,
   preferContraryMotion,
   preferImperfectConsonances,
 ];

@@ -24,7 +24,7 @@ test("fux-strict hard rules on Fux's 10 first-species solutions: none fails", ()
 
 test("warnings on Fux's solutions: only the Fig. 14 crossing (decision D2; Fux approves it, p. 52)", () => {
   const w = goldenFirstSpecies(repo).flatMap((r) => r.warnings.map((x) => `${r.figure}:${x.ruleId}:${x.positions.join(",")}`));
-  assert.deepEqual(w, ["14:fs.no-voice-crossing:3,4,5,6"]);
+  assert.deepEqual(w, []); // Fux is always the last word (D39)
 });
 
 test("the superseded published reading of Fig. 22 fails fux-strict (supports the kern reading)", () => {

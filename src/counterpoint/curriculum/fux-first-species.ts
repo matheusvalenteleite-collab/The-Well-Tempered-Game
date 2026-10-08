@@ -76,9 +76,7 @@ export const FUX_FIRST_SPECIES_CURRICULUM: readonly CurriculumStep[] = [
     { ruleId: "fs.melodic-tritone", page: "51-52", occasion: "Josephus's first version leaps a tritone: 'mi contra fa'." },
   ]),
   step(5, "fux_2v_fig_013", "fux_cf_f_01", "F", "lower", "52"),
-  step(6, "fux_2v_fig_014", "fux_cf_f_01", "F", "upper", "52", [
-    { ruleId: "fs.no-voice-crossing", page: "52", occasion: "Josephus crosses the cantus (Aloysius approves; a warning by owner decision D2)." },
-  ]),
+  step(6, "fux_2v_fig_014", "fux_cf_f_01", "F", "upper", "52", []),
   step(7, "fux_2v_fig_015", "fux_cf_g_01", "G", "lower", "53-54", [
     { ruleId: "fs.melodic-major-sixth", page: "53", occasion: "Josephus's first version leaps a major sixth." },
     { ruleId: "fs.unison-only-at-ends", page: "53-54", occasion: "The unison only at the beginning and the end." },

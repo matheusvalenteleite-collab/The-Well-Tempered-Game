@@ -37,7 +37,6 @@ export const FUX_SECOND_SPECIES_CURRICULUM: readonly CurriculumStep[] = [
     { ruleId: "ss.melodic-major-sixth", page: "56", occasion: recalled },
     { ruleId: "ss.converging-leap-into-octave", page: "56", occasion: recalled },
     { ruleId: "ss.unison-only-at-ends", page: "56", occasion: `${recalled} Checked on downbeats: Fux's own examples put unisons on upbeats (D35).` },
-    { ruleId: "ss.no-voice-crossing", page: "56", occasion: `${recalled} (A warning, decision D2.)` },
     { ruleId: "ss.cadence", page: "56-57", occasion: "The penultimate bar: a fifth, then a major sixth (cantus below) or a minor third (cantus above). 'Consider the end before you begin.'" },
     {
       ruleId: "ss.downbeat-succession",

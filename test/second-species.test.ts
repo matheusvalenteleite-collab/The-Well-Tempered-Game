@@ -28,7 +28,7 @@ test("second-species curriculum: Figs. 33-45 in book order, all rules placed", (
   assert.deepEqual(C.map((s) => s.exercise_id!.slice(-2)), ["33", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45"]);
 });
 
-test("every Fux second-species solution clears the rules of its step; warnings only for crossing", () => {
+test("every Fux second-species solution clears the rules of its step; no warnings either (D39)", () => {
   const warnings: string[] = [];
   for (const s of C) {
     const ex = repo.getExercise(s.exercise_id!)!;
@@ -48,7 +48,7 @@ test("every Fux second-species solution clears the rules of its step; warnings o
     assert.deepEqual(ev.errors, [], ex.figure);
     warnings.push(...ev.warnings.map((w) => `${ex.figure}:${w.ruleId}`));
   }
-  assert.deepEqual(warnings, ["37:ss.no-voice-crossing", "39:ss.no-voice-crossing"]);
+  assert.deepEqual(warnings, []);
 });
 
 test("Josephus's first attempt (Fig. 26, 1725 p. 57): exactly the two faults Aloysius marks", () => {

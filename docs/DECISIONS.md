@@ -6,7 +6,7 @@ Decisions taken by the project owner; code must follow them.
 |---|---|---|
 | D0 | Corrected kern reading (version of record) is canonical for Figs. 22, 85b, 86a, 87b. | `CANONICAL_READING = "kern_vor"` |
 | D1 | Fux's own C cantus firmi may be offered with the player's counterpoint, without an original solution. | curriculum steps 11-12 (`fux_cf_c_01`, after "Perge ergo ad A. & C.", p. 55) |
-| D2 | Voice crossing is a warning, not an error. | `fs.no-voice-crossing` severity `warning` |
+| D2 | Superseded by D39: voice crossing is not checked. | `fs.no-voice-crossing` severity `warning` |
 | D3 | ~~Keep the descending-minor-sixth ban for now.~~ Superseded by D11. | — |
 | D4 | ~~The unattested preferences stay as warnings.~~ Superseded by D11. | — |
 | D5 | **Fux mode follows the book: rules enter the game in Fux's order of presentation.** | `src/counterpoint/curriculum/fux-first-species.ts` |
@@ -45,4 +45,4 @@ Note: the page supplied as "p. 46" is p. 46 of Mann's English translation (secon
 | D36 | Supersedes D27. Synth voice menu: Both voices (default; one shared configuration), Cantus firmus, Contrapunctus. Returning to Both voices from a single voice asks for confirmation and gives both the Contrapunctus settings. Choosing a model loads its first preset, which is always clean (no reverb, no delay). Default sound: modelled piano, "Glenn Gould" preset. | `SynthRack.tsx`, `synth-settings.ts` |
 | D37 | Fux's solution (score overlay in diamonds, comparison, Fux and Trio playback) opens only once the exercise is cleared. No feedback cues. | `App.tsx` |
 | D38 | Exercises are named (study.en.json), not numbered by figure; the figure stays in the source line. Hints split into Rules (with "Specific to this exercise") and Lectio (mode, Fux's text with our translation, paraphrased dialogue, Mann's footnotes quoted and attributed). | `Hints.tsx`, `Study.tsx`, `content/study.en.json` |
-| D39 | "Fux is always the last word": no rule or recommendation may fire on Fux's own solution at its step. The second-species imperfect-consonance recommendation is dropped (Fig. 36). Open: the crossing warning (D2) still fires on Figs. 14, 37, 39. | `rules/second-species.ts` |
+| D39 | "Fux is always the last word": no rule or recommendation may fire on Fux's own solution at its step. The second-species imperfect-consonance recommendation is dropped (Fig. 36). The crossing warning (D2) is removed too: it fired on Figs. 14, 37, 39. | `rules/second-species.ts` |

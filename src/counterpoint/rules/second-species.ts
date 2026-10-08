@@ -220,19 +220,6 @@ export const unisonOnlyAtEnds: Rule = {
   },
 };
 
-export const noVoiceCrossing: Rule = {
-  ...base(
-    "ss.no-voice-crossing",
-    "warning",
-    { status: "contradicted", ref: "Gradus (1725), Exercitii I, Lectio I, p. 52", note: "Warning by decision D2 (Fux approves crossing at Fig. 14)." },
-    "rule.fs.no-voice-crossing",
-  ),
-  check(a) {
-    const out = a.events.filter((e) => (a.input.cantusVoice === "lower" ? isAbove(e.cantus, e.counterpoint) : isAbove(e.counterpoint, e.cantus))).map((e) => e.slot);
-    return out.length ? [v(this, out)] : [];
-  },
-};
-
 export const preferContraryMotion: Rule = {
   ...base(
     "ss.prefer-contrary-motion",
@@ -265,6 +252,5 @@ export const SECOND_SPECIES_FUX_STRICT: readonly Rule[] = [
   melodicMajorSixth,
   convergingLeapIntoOctave,
   unisonOnlyAtEnds,
-  noVoiceCrossing,
   preferContraryMotion,
 ];
