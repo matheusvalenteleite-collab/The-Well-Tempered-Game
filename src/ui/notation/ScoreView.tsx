@@ -102,6 +102,8 @@ const CUE = 0.75;
 /** Gap (logical) between the score proper and the continuo block. */
 const CUE_GAP = -12;
 const CONTINUO_INK = "var(--ink-continuo)";
+/** Stem direction on the player's staff: up, down, or none (0). */
+type Stem = 1 | -1 | 0;
 const ACC: Record<number, string> = { [-2]: "bb", [-1]: "b", 1: "#", 2: "##" };
 
 type Signature = { B?: -1 };
@@ -201,7 +203,7 @@ export function ScoreView(props: ScoreProps) {
     const cpIndex = upperIsCantus ? 1 : 0;
     /** A note (or rest) placed with its notehead's left edge at logical x. */
     type Look = "cantus" | "player" | "fux";
-    const placed = (staffIndex: number, pitch: string, dur: "w" | "h", x: number, look: Look, stem?: 1 | -1) => {
+    const placed = (staffIndex: number, pitch: string, dur: "w" | "h", x: number, look: Look, stem?: Stem) => {
       const clef = VEXFLOW_CLEF[props.clefs[staffIndex]].clef;
       let n: StaveNote;
       if (pitch === REST) n = new StaveNote({ keys: [clef === "bass" ? "d/3" : "b/4"], duration: `${dur}r`, clef });
@@ -209,6 +211,7 @@ export function ScoreView(props: ScoreProps) {
         const { key, acc } = vexKey(pitch, sig);
         // Fux's notes in diamonds, as in the 1725 print, so they never read as the player's.
         n = new StaveNote({ keys: [look === "fux" ? `${key}/D` : key], duration: dur, clef, ...(stem ? { stem_direction: stem } : {}) });
+        if (stem === 0) n.getStem()?.setVisibility(false);
         if (acc) n.addModifier(new Accidental(acc));
         const ink = look === "player" ? (props.playerInk ?? "var(--ink-player)") : look === "fux" ? "var(--ink-fux)" : null;
         if (ink) n.setStyle({ fillStyle: ink, strokeStyle: ink });
@@ -224,6 +227,26 @@ export function ScoreView(props: ScoreProps) {
       tc.setX(x - n.getAbsoluteX());
       return n;
     };
+    // Stems on the player's staff (D60): with two lines, the higher has its stems up and the lower
+    // down; with more, the highest up, the lowest down, and those between without stems. Lines are
+    // ranked by their mean pitch, so each keeps one look through the piece.
+    const extrasEarly = props.extraLines ?? [];
+    const staffLines: { id: string; notes: (string | null | undefined)[] }[] = [
+      { id: "player", notes: props.counterpoint },
+      ...(props.fux ? [{ id: "fux", notes: props.fux }] : []),
+      ...extrasEarly.map((l, i) => ({ id: `extra${i}`, notes: l.notes })),
+    ];
+    const meanOf = (xs: (string | null | undefined)[]) => {
+      const ms = xs.filter((q): q is string => !!q && q !== REST).map((q) => parsePitch(q).midi);
+      return ms.length ? ms.reduce((a, b) => a + b, 0) / ms.length : null;
+    };
+    const ranked = staffLines.map((l) => ({ id: l.id, mean: meanOf(l.notes) })).filter((l) => l.mean !== null).sort((a, b) => b.mean! - a.mean!);
+    const stemOf = (id: string): Stem | undefined => {
+      if (ranked.length < 2) return undefined;
+      const i = ranked.findIndex((l) => l.id === id);
+      if (i < 0) return undefined;
+      return i === 0 ? 1 : i === ranked.length - 1 ? -1 : 0;
+    };
     const cfNotes = props.cantus.map((p, b) => placed(1 - cpIndex, p, "w", xOfBar(b) + NOTE_PAD, "cantus"));
     // Slot geometry: each slot owns its share of the bar; x is the notehead centre.
     const columns = layout.map((sl) => {
@@ -234,7 +257,7 @@ export function ScoreView(props: ScoreProps) {
     });
     const cpNotes = layout.map((sl, k) => {
       const p = props.counterpoint[k];
-      return p === null || p === undefined ? null : placed(cpIndex, p, sl.duration === "1/1" ? "w" : "h", columns[k].left + NOTE_PAD, "player", props.fux ? 1 : undefined);
+      return p === null || p === undefined ? null : placed(cpIndex, p, sl.duration === "1/1" ? "w" : "h", columns[k].left + NOTE_PAD, "player", stemOf("player"));
     });
     // Fux's line: stems down (the player's go up), nudged right where the two notes would collide.
     const fuxNotes = (props.fux ?? []).map((p, k) => {
@@ -242,7 +265,7 @@ export function ScoreView(props: ScoreProps) {
       if (!sl || p === null || p === REST) return null;
       const mine = props.counterpoint[k];
       const near = mine && mine !== REST && Math.abs(parsePitch(mine).diatonic - parsePitch(p).diatonic) <= 1;
-      return placed(cpIndex, p, sl.duration === "1/1" ? "w" : "h", columns[k].left + NOTE_PAD + (near ? 11 : 0), "fux", -1);
+      return placed(cpIndex, p, sl.duration === "1/1" ? "w" : "h", columns[k].left + NOTE_PAD + (near ? 11 : 0), "fux", stemOf("fux"));
     });
 
     // Column highlights under the music.
@@ -288,7 +311,9 @@ export function ScoreView(props: ScoreProps) {
         if (p === null || p === undefined || p === REST) return null;
         const dur = sl.duration === "1/1" ? "w" : "h";
         const { key, acc } = vexKey(p, sig);
-        const n = new StaveNote({ keys: [key], duration: dur, clef: cpClef.clef, stem_direction: 1 });
+        const stem = stemOf(`extra${extras.indexOf(line)}`);
+        const n = new StaveNote({ keys: [key], duration: dur, clef: cpClef.clef, ...(stem ? { stem_direction: stem } : {}) });
+        if (stem === 0) n.getStem()?.setVisibility(false);
         if (acc) n.addModifier(new Accidental(acc));
         n.setStyle({ fillStyle: line.ink, strokeStyle: line.ink });
         n.setStave(staves[cpIndex]);
