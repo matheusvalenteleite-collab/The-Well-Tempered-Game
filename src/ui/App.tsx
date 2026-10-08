@@ -8,7 +8,7 @@ import { exerciseView } from "../game/exercise-view.ts";
 import { applyAccidental, clear, initialState, letterNote, moveNote, place, repeatPrevious, select, setRest, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
 import { AudioEngine, renderLevel, SYNTH_PRESETS, type AudioStatus } from "../audio/engine.ts";
 import { restoreSound, type SoundState } from "../audio/sound.ts";
-import { download, encode, EXPORT_FORMATS, type ExportFormat } from "../audio/export.ts";
+import { encode, EXPORT_FORMATS, saveFile, type ExportFormat } from "../audio/export.ts";
 import { loadSamples } from "../audio/voice.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
 import { SoundDesk } from "./SoundDesk.tsx";
@@ -562,8 +562,11 @@ export function App() {
         window.setTimeout(() => {
           if (data && data.channels[0].length > 0) {
             const base = `${stepStudy(STEP.id).name} ${VIEW.modalFinal}`.replace(/[^\p{L}\p{N} -]+/gu, "").trim() || "counterpoint";
-            download(encode(format, data.channels, data.sampleRate), `${base}.${format}`);
-            setToast(t("ui.export.done", { format: format.toUpperCase() }));
+            void saveFile(encode(format, data.channels, data.sampleRate), `${base}.${format}`).then((r) => {
+              setToast(t(`ui.export.${r}`, { format: format.toUpperCase() }));
+              setExportPhase(null);
+            });
+            return;
           } else setToast(t("ui.export.failed"));
           setExportPhase(null);
         }, 30);

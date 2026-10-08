@@ -17,3 +17,12 @@ test("export (D74): 16-bit conversion, a valid WAV header, an MP3 stream", async
   assert.equal(mp3[1] & 0xe0, 0xe0);
   assert.ok(mp3.length > 20000 && mp3.length < 30000, String(mp3.length));
 });
+
+test("zipOne (D74): a stored zip that unzips to the same bytes", async () => {
+  const { zipOne, crc32 } = await import("../src/audio/export.ts");
+  assert.equal(crc32(new TextEncoder().encode("123456789")), 0xcbf43926);
+  const data = new Uint8Array([1, 2, 3, 250, 251]);
+  const z = new Uint8Array(await zipOne("a b.mp3", data).arrayBuffer());
+  assert.deepEqual([...z.slice(0, 4)], [0x50, 0x4b, 0x03, 0x04]);
+  assert.deepEqual([...z.slice(30 + 7, 30 + 7 + 5)], [...data]);
+});

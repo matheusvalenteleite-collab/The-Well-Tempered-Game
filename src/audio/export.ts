@@ -67,6 +67,81 @@ export function encode(format: ExportFormat, channels: Float32Array[], sampleRat
   return format === "mp3" ? encodeMp3(channels, sampleRate) : encodeWav(channels, sampleRate);
 }
 
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+export function crc32(bytes: Uint8Array): number {
+  let c = 0xffffffff;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+/**
+ * One file in a .zip (stored, not compressed: audio does not compress). The claude.ai artifact
+ * viewer saves only some file types (zip among them, not mp3 or wav), so there the export is zipped.
+ */
+export function zipOne(name: string, data: Uint8Array): Blob {
+  const enc = new TextEncoder().encode(name);
+  const crc = crc32(data);
+  const local = new DataView(new ArrayBuffer(30));
+  local.setUint32(0, 0x04034b50, true);
+  local.setUint16(4, 20, true);
+  local.setUint16(6, 0x0800, true); // UTF-8 name
+  local.setUint16(8, 0, true); // stored
+  local.setUint32(14, crc, true);
+  local.setUint32(18, data.length, true);
+  local.setUint32(22, data.length, true);
+  local.setUint16(26, enc.length, true);
+  const central = new DataView(new ArrayBuffer(46));
+  central.setUint32(0, 0x02014b50, true);
+  central.setUint16(4, 20, true);
+  central.setUint16(6, 20, true);
+  central.setUint16(8, 0x0800, true);
+  central.setUint32(16, crc, true);
+  central.setUint32(20, data.length, true);
+  central.setUint32(24, data.length, true);
+  central.setUint16(28, enc.length, true);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true);
+  end.setUint16(8, 1, true);
+  end.setUint16(10, 1, true);
+  end.setUint32(12, 46 + enc.length, true);
+  end.setUint32(16, 30 + enc.length + data.length, true);
+  return new Blob([local.buffer, enc, data as BlobPart, central.buffer, enc, end.buffer], { type: "application/zip" });
+}
+
+type Saver = { save(r: { filename: string; data: Blob }): Promise<{ status: string }> };
+/** The artifact viewer's save capability, when the page runs inside it (D74). */
+const viewerSaver: Promise<Saver | null> = (() => {
+  const c = (globalThis as { claude?: { use?: (n: string) => Promise<unknown> } }).claude;
+  return c?.use ? (c.use("downloads") as Promise<Saver | null>).catch(() => null) : Promise.resolve(null);
+})();
+
+/**
+ * Save the file: inside the claude.ai viewer through its save dialog (zipped, see zipOne); anywhere
+ * else as an ordinary download. Resolves to what happened.
+ */
+export async function saveFile(blob: Blob, name: string): Promise<"saved" | "zipped" | "declined" | "failed"> {
+  const viewer = await viewerSaver;
+  if (!viewer) {
+    download(blob, name);
+    return "saved";
+  }
+  try {
+    const zip = zipOne(name, new Uint8Array(await blob.arrayBuffer()));
+    await viewer.save({ filename: name.replace(/\.[a-z0-9]+$/i, "") + ".zip", data: zip });
+    return "zipped";
+  } catch (e) {
+    return (e as { code?: string })?.code === "declined" ? "declined" : "failed";
+  }
+}
+
 /** Offer a file to the browser's downloads. */
 export function download(blob: Blob, name: string) {
   const url = URL.createObjectURL(blob);
