@@ -84,3 +84,28 @@ test("fourth species: ties are the same note over the bar line; rules catch an u
   );
   assert.ok(seven.violations.some((x) => x.ruleId === "fos.ligature-kinds"), JSON.stringify(seven.violations.map((x) => x.ruleId)));
 });
+
+test("fourth species: a ligature where possible (D62): Fux's omissions were possible ligatures, and his count is the allowance", async () => {
+  const { analyse } = await import("../src/counterpoint/engine.ts");
+  const { ligaturePossible } = await import("../src/counterpoint/rules/fourth-species.ts");
+  for (const s of steps.filter((x) => x.species === "fourth")) {
+    const v = exerciseView(repo, s);
+    if (!v.fux) {
+      assert.equal(s.free_minims, 1, s.id);
+      continue;
+    }
+    const a = analyse({ species: v.species, modalFinal: v.modalFinal, cantusVoice: v.cantusVoice, cantus: v.cantus.map((p) => ({ pitch: p, duration: "1/1" })), counterpoint: v.fux.map((p, k) => ({ pitch: sounding(p) ? p : null, duration: v.layout[k].duration })) });
+    const inner = a.events.filter((e) => e.beat === 0 && e.bar > 0 && e.bar < a.bars - 1);
+    for (const e of inner.filter((x) => x.tied)) assert.ok(ligaturePossible(a, e.bar), `${s.id} bar ${e.bar + 1}: Fux made a ligature the test calls impossible`);
+    const voluntary = inner.filter((e) => !e.tied && ligaturePossible(a, e.bar)).length;
+    assert.equal(s.free_minims, voluntary, s.id);
+  }
+  // Fig. 77 with two possible ligatures left out: over its allowance of 0.
+  const v = exerciseView(repo, ALL_STEPS.find((x) => x.id === "fux-mode.s4.05")!);
+  const broken = [...v.fux!];
+  broken[6] = "D4"; // bar 4: the C4 is no longer held; D4, a sixth over F3, struck afresh
+  broken[10] = "B4"; // bar 6: the A4 is no longer held; B4, a fifth over E3, struck afresh
+  const ev = judge("fux-mode.s4.05", broken);
+  assert.ok(ids(ev).includes("fos.ligature-where-possible"), JSON.stringify(ids(ev)));
+  assert.ok(!ids(judge("fux-mode.s4.05", v.fux!)).includes("fos.ligature-where-possible"));
+});

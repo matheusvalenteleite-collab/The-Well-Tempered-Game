@@ -515,7 +515,7 @@
     "rule.fos.resolution": "A dissonance on the downbeat must be tied over from the upbeat and resolve by step down to a consonance.",
     "rule.fos.ligature-kinds": "This ligature is not allowed: from the unison to the second, or from the octave to the ninth, it hides two unisons or octaves (cantus below); the seventh resolving to the octave is avoided (cantus above).",
     "rule.fos.cadence": "In the next-to-last bar: the seventh tied over and resolving to the major sixth (cantus below), or the second resolving to the minor third (cantus above).",
-    "rule.fos.ligature-where-possible": "Tie the upbeat over into the next bar wherever you can; a ligature may be left out now and then, for variety."
+    "rule.fos.ligature-where-possible": "Tie the upbeat over into the next bar wherever you can. Plain minims are fine where no ligature fits; leaving out one that fits is allowed only as often as Fux does it in this exercise."
   },
   "hints": {
     "rules": "Rules (breaking one means the exercise is not cleared)",

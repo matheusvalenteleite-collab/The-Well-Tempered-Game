@@ -88,9 +88,11 @@ first or third), anticipate fifth species (p. 76).
 
 Implemented (D61) as `fos.arsis-consonant` (an untied upbeat may pass by step, as in second species),
 `fos.resolution`, `fos.ligature-kinds` (no 1-2 or 8-9 with the cantus below; no 7-8 with it above),
-`fos.cadence`, `fos.ligature-where-possible` (a warning when more than a third of the inner bars are
-untied: Aloysius approves one omission for variety, p. 74), and the carried precepts as in third
-species. A tie is entered as the same note on both sides of the bar line. Fux's six solutions
+`fos.cadence`, `fos.ligature-where-possible` (D62: an untied bar counts only where a ligature was
+possible, i.e. some singable upbeat consonant with its cantus note could have been held into a
+consonance or a permitted, resolvable dissonance; such omissions are allowed as often as Fux makes
+them in his solution to the exercise: once in Figs. 73 and 75, never in the other four, once in the
+tasks without a solution), and the carried precepts as in third species. A tie is entered as the same note on both sides of the bar line. Fux's six solutions
 (Figs. 73-78) clear every rule.
 
 ## Two voices, fifth species (pp. 76-81) — not implemented yet

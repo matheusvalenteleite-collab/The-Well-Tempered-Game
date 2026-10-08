@@ -17,7 +17,9 @@
  * second resolving to the minor third, then the unison (cantus above) (pp. 73-74). A ligature in
  * every bar where possible, otherwise plain half notes (p. 74).
  */
-import { interval, isConsonant, type Interval } from "../interval.ts";
+import { harmonic, interval, isConsonant, type Interval } from "../interval.ts";
+import { parsePitch } from "../../music/pitch.ts";
+import { MELODIC_FORBIDDEN } from "./first-species.ts";
 import { carriedRules, ruleBase, v, vert } from "./third-species.ts";
 import type { Analysis, NoteEvent, Rule, Violation } from "./types.ts";
 
@@ -113,18 +115,65 @@ export const cadence: Rule = {
   },
 };
 
-export const ligatureWherePossible: Rule = {
+const DIATONIC = ["C", "D", "E", "F", "G", "A", "B"];
+/** The pitches a ligature may use: the naturals and B flat (Fux's only accidental in the arsis). */
+const spellings = (diatonic: number) => {
+  const name = `${DIATONIC[((diatonic % 7) + 7) % 7]}${Math.floor(diatonic / 7)}`;
+  return name.startsWith("B") ? [name, `Bb${name.slice(1)}`] : [name];
+};
+const singable = (from: string, to: string) => {
+  const i = interval(from, to);
+  return i.number <= 8 && i.number !== 7 && !MELODIC_FORBIDDEN.tritone(i) && !MELODIC_FORBIDDEN.majorSixth(i);
+};
+
+/**
+ * Could the upbeat of bar b - 1 have been tied into bar b? Aloysius: "where there is no room for a
+ * ligature" (p. 74). There is room when some note, reached from the downbeat of bar b - 1 by a
+ * singable interval, is consonant with that bar's cantus and, held over the bar line, is either
+ * consonant with the next cantus note or a dissonance of a permitted kind that can resolve a step
+ * down to a consonance. Only the next bar is looked at: a ligature that the line could have taken.
+ */
+export function ligaturePossible(a: Analysis, b: number): boolean {
+  const cf0 = a.input.cantus[b - 1]?.pitch;
+  const cf1 = a.input.cantus[b]?.pitch;
+  if (!cf0 || !cf1) return false;
+  const d = a.events.find((e) => e.bar === b - 1 && e.beat === 0)?.counterpoint;
+  const centre = parsePitch(d ?? a.events.find((e) => e.bar === b)!.counterpoint).diatonic;
+  const below = a.input.cantusVoice === "lower";
+  for (let k = centre - 7; k <= centre + 7; k++) {
+    for (const x of spellings(k)) {
+      if (below ? parsePitch(x).midi < parsePitch(cf0).midi : parsePitch(x).midi > parsePitch(cf0).midi) continue;
+      if (d && !singable(d, x)) continue;
+      const prep = harmonic(cf0, x);
+      if (!isConsonant(prep)) continue;
+      const held = harmonic(cf1, x);
+      if (isConsonant(held)) return true;
+      if (below && held.simple === 2 && (prep.simple === 8 || prep.number === 1)) continue;
+      if (!below && held.simple === 7) continue;
+      if (spellings(k - 1).some((r) => isConsonant(harmonic(cf1, r)))) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * "A ligature wherever possible" (p. 74), measured against Fux: an untied bar counts against the
+ * player only when a ligature was possible there; Aloysius's other licence, variety, is granted as
+ * many times as Fux takes it in his own solution to the exercise (D62).
+ */
+export const ligatureWherePossibleWith = (allowance: number): Rule => ({
   ...base("fos.ligature-where-possible", "warning", {
     status: "verified",
     ref: `${P}, p. 74`,
-    note: "'Omnino, ubi esse poterit' — but Aloysius approves Josephus leaving one out to avoid repeating the same ligatures. Counted over the inner bars: a warning only when more than a third of them are untied.",
+    note: "'Omnino, ubi esse poterit': plain minims where there is no room for a ligature. Josephus leaves one out where it was possible, to avoid repeating the same ligatures, and Aloysius approves. A bar counts only where a ligature was possible; the player may leave out as many as Fux does in his solution to the exercise (one at most where there is none).",
   }),
   check(a) {
-    const inner = a.events.filter((e) => e.beat === 0 && e.bar > 0 && e.bar < a.bars - 1);
-    const untied = inner.filter((e) => !e.tied);
-    return untied.length * 3 > inner.length ? [v(this, untied.map((e) => e.slot), { tied: inner.length - untied.length, untied: untied.length })] : [];
+    const omitted = a.events.filter((e) => e.beat === 0 && e.bar > 0 && e.bar < a.bars - 1 && !e.tied && ligaturePossible(a, e.bar));
+    return omitted.length > allowance ? [v(this, omitted.map((e) => e.slot), { omitted: omitted.length, allowed: allowance })] : [];
   },
-};
+});
+/** Without an exercise of Fux's to measure against: the most he allows himself in any of his six. */
+export const ligatureWherePossible = ligatureWherePossibleWith(1);
 
 // The rules of motion, read with the retardation taken away (p. 71: 'sublatâ retardatione'): the
 // carried perfect-approach rule then sees the real progression between the notes that change.

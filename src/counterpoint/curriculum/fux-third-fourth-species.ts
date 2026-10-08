@@ -57,7 +57,9 @@ export const FUX_THIRD_SPECIES_CURRICULUM: readonly CurriculumStep[] = [
   s3(12, null, "fux_cf_c_01", "C", "upper", "69"),
 ];
 
-const s4 = make("fourth", 4);
+const s4m = make("fourth", 4);
+/** Fourth species: free minims allowed where a ligature was possible, as many as Fux takes himself (D62). */
+const s4 = (...args: Parameters<typeof s4m>) => (free: number) => ({ ...s4m(...args), free_minims: free });
 const kept4 = "The rules of motion hold, read with the retardation taken away ('sublatâ retardatione', p. 71).";
 
 export const FUX_FOURTH_SPECIES_CURRICULUM: readonly CurriculumStep[] = [
@@ -66,7 +68,7 @@ export const FUX_FOURTH_SPECIES_CURRICULUM: readonly CurriculumStep[] = [
     { ruleId: "fos.resolution", page: "70", occasion: "A dissonance on the downbeat is a retardation of the following note: it resolves by step down to the next consonance." },
     { ruleId: "fos.ligature-kinds", page: "71-73", occasion: "Not from the unison to the second, nor from the octave to the ninth (cantus below); not the seventh to the octave (cantus above)." },
     { ruleId: "fos.cadence", page: "73-74", occasion: "The penultimate bar: the seventh resolving to the sixth (cantus below); the second to the minor third (cantus above)." },
-    { ruleId: "fos.ligature-where-possible", page: "74", occasion: "A ligature in every bar where possible; Aloysius accepts one left out for variety." },
+    { ruleId: "fos.ligature-where-possible", page: "74", occasion: "A ligature in every bar where possible; plain minims where there is no room for one. Leaving out a possible one, for variety, is allowed as often as Fux does it in the exercise." },
     { ruleId: "fos.opening-perfect", page: "69", occasion: "The first note sung, after the half rest, as in the other species." },
     { ruleId: "fos.final-octave-or-unison", page: "73-74", occasion: kept4 },
     { ruleId: "fos.perfect-approach", page: "71", occasion: kept4 },
@@ -74,17 +76,17 @@ export const FUX_FOURTH_SPECIES_CURRICULUM: readonly CurriculumStep[] = [
     { ruleId: "fos.melodic-major-sixth", page: "71", occasion: kept4 },
     { ruleId: "fos.converging-leap-into-octave", page: "71", occasion: kept4 },
     { ruleId: "fos.unison-only-at-ends", page: "71", occasion: `${kept4} Checked on downbeats not tied over.` },
-  ]),
-  s4(2, 74, "fux_cf_d_01", "D", "upper", "74"),
-  s4(3, 75, "fux_cf_e_01", "E", "lower", "75"),
-  s4(4, 76, "fux_cf_e_01", "E", "upper", "75"),
-  s4(5, 77, "fux_cf_f_01", "F", "lower", "75"),
-  s4(6, 78, "fux_cf_f_01", "F", "upper", "75"),
+  ])(1),
+  s4(2, 74, "fux_cf_d_01", "D", "upper", "74")(0),
+  s4(3, 75, "fux_cf_e_01", "E", "lower", "75")(1),
+  s4(4, 76, "fux_cf_e_01", "E", "upper", "75")(0),
+  s4(5, 77, "fux_cf_f_01", "F", "lower", "75")(0),
+  s4(6, 78, "fux_cf_f_01", "F", "upper", "75")(0),
   // "the cantus firmi of the other three modes ... I commend to you" (pp. 75-76).
-  s4(7, null, "fux_cf_g_01", "G", "lower", "75-76"),
-  s4(8, null, "fux_cf_g_01", "G", "upper", "75-76"),
-  s4(9, null, "fux_cf_a_02", "A", "lower", "75-76"),
-  s4(10, null, "fux_cf_a_01", "A", "upper", "75-76"),
-  s4(11, null, "fux_cf_c_01", "C", "lower", "75-76"),
-  s4(12, null, "fux_cf_c_01", "C", "upper", "75-76"),
+  s4(7, null, "fux_cf_g_01", "G", "lower", "75-76")(1),
+  s4(8, null, "fux_cf_g_01", "G", "upper", "75-76")(1),
+  s4(9, null, "fux_cf_a_02", "A", "lower", "75-76")(1),
+  s4(10, null, "fux_cf_a_01", "A", "upper", "75-76")(1),
+  s4(11, null, "fux_cf_c_01", "C", "lower", "75-76")(1),
+  s4(12, null, "fux_cf_c_01", "C", "upper", "75-76")(1),
 ];

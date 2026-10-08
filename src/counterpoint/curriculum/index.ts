@@ -6,7 +6,7 @@ import type { FuxRepository } from "../../music/fux/repository.ts";
 import { FIRST_SPECIES_FUX_STRICT } from "../rules/first-species.ts";
 import { SECOND_SPECIES_FUX_STRICT } from "../rules/second-species.ts";
 import { THIRD_SPECIES_FUX_STRICT } from "../rules/third-species.ts";
-import { FOURTH_SPECIES_FUX_STRICT } from "../rules/fourth-species.ts";
+import { FOURTH_SPECIES_FUX_STRICT, ligatureWherePossibleWith } from "../rules/fourth-species.ts";
 import { FUX_FOURTH_SPECIES_CURRICULUM, FUX_THIRD_SPECIES_CURRICULUM } from "./fux-third-fourth-species.ts";
 import type { Rule } from "../rules/types.ts";
 import type { SpeciesId } from "../layout.ts";
@@ -51,7 +51,8 @@ export function introductionsUpTo(stepId: string) {
 
 /** Rules active at a step. */
 export function rulesForStep(stepId: string): Rule[] {
-  return introductionsUpTo(stepId).map((x) => RULES_BY_ID.get(x.ruleId)!);
+  const free = courseOf(stepId).steps.find((s) => s.id === stepId)!.free_minims;
+  return introductionsUpTo(stepId).map((x) => (x.ruleId === "fos.ligature-where-possible" && free !== undefined ? ligatureWherePossibleWith(free) : RULES_BY_ID.get(x.ruleId)!));
 }
 
 export const ruleById = (id: string) => RULES_BY_ID.get(id);
