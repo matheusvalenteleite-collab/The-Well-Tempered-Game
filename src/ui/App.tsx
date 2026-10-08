@@ -512,14 +512,27 @@ export function App() {
     if (k < 0) setPlaying(false);
   }
 
-  // Export (D74): one pass of what is playing, as set up now, captured from the speakers' feed and
-  // saved as MP3 or WAV. With the loop on, exactly one cycle (it loops seamlessly in a player);
-  // with it off, the piece and its ending, with the reverb's tail.
+  // Export (D74, D75): what plays, as set up now, captured from the speakers' feed and saved as MP3
+  // or WAV. The player chooses how many passes and how it ends: seamlessly (cut where the next pass
+  // would start, so the file loops) or with the final cadence (the drums' ending and the reverb's
+  // tail). The recording is live: everything played with meanwhile (faders, mute and solo, sounds,
+  // versions, drums, continuo, tempo) is recorded as heard.
   const [exportPhase, setExportPhase] = useState<null | "choose" | "recording" | "encoding">(null);
+  const [exportPasses, setExportPasses] = useState(1);
+  const [exportEnding, setExportEnding] = useState<"seamless" | "final">(() => (loop ? "seamless" : "final"));
+  const [exportPass, setExportPass] = useState(1);
   const exportTimer = useRef<number | null>(null);
-  const cancelExport = async () => {
+  const exportStop = useRef<null | (() => void)>(null);
+  const playingRef = useRef(playing);
+  playingRef.current = playing;
+  const endExportTimer = () => {
     if (exportTimer.current !== null) window.clearInterval(exportTimer.current);
     exportTimer.current = null;
+    exportStop.current = null;
+    audio.loop = loop;
+  };
+  const cancelExport = async () => {
+    endExportTimer();
     audio.stop();
     setPlaying(false);
     setCursor(-1);
@@ -538,26 +551,24 @@ export function App() {
       setExportPhase(null);
       return;
     }
+    const passes = exportPasses;
+    const ending = exportEnding;
+    setExportPass(1);
     setExportPhase("recording");
     const mode = playMode !== "player" && !fuxOpen ? "player" : playMode;
     setPlayMode(mode);
     setPlaying(true);
+    // Loop through the passes; the last one ends with the cadence when asked.
+    audio.loop = passes > 1 || ending === "seamless";
     startPlayback(audio, VIEW, { notes: session.notes, versions, mode, continuo: continuoAvailable, continuoSettings, tuning }, onLiveSlot);
     const TAIL = 2.5;
-    exportTimer.current = window.setInterval(() => {
-      const c = audio.cycleStarts;
-      let span: [number, number] | null = null;
-      if (c.length >= 2 && audio.now >= c[1] + 0.05) span = [c[0], c[1]];
-      else if (audio.playEnd !== null && c.length >= 1 && audio.now >= audio.playEnd + TAIL) span = [c[0], audio.playEnd + TAIL];
-      if (!span) return;
-      window.clearInterval(exportTimer.current!);
-      exportTimer.current = null;
+    const finish = (span: [number, number] | null) => {
+      endExportTimer();
       audio.stop();
       setPlaying(false);
       setCursor(-1);
       setExportPhase("encoding");
-      const [from, to] = span;
-      void audio.stopCapture(from, to).then((data) => {
+      void audio.stopCapture(span?.[0], span?.[1]).then((data) => {
         // Let the "encoding" notice paint before the (synchronous) encoder runs.
         window.setTimeout(() => {
           if (data && data.channels[0].length > 0) {
@@ -567,10 +578,25 @@ export function App() {
               setExportPhase(null);
             });
             return;
-          } else setToast(t("ui.export.failed"));
+          }
+          setToast(t("ui.export.failed"));
           setExportPhase(null);
         }, 30);
       });
+    };
+    // Stop now and keep what was recorded (the player's own "stop and save", or the play button).
+    exportStop.current = () => {
+      const c = audio.captureCycles;
+      finish(c.length ? [c[0], audio.now] : null);
+    };
+    exportTimer.current = window.setInterval(() => {
+      const c = audio.captureCycles;
+      if (c.length) setExportPass(Math.min(passes, c.filter((x) => x <= audio.now).length || 1));
+      // The last pass has started: let it end with the cadence.
+      if (ending === "final" && c.length >= passes) audio.loop = false;
+      if (c.length > passes && audio.now >= c[passes] + 0.05) return finish([c[0], c[passes]]);
+      if (ending === "final" && c.length >= passes && audio.playEnd !== null && audio.now >= audio.playEnd + TAIL) return finish([c[0], audio.playEnd + TAIL]);
+      if (!playingRef.current) exportStop.current?.();
     }, 100);
   };
 
@@ -611,7 +637,7 @@ export function App() {
         return;
       }
     }
-    if (showCredits || showHelp || showSaved || exportPhase !== null || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    if (showCredits || showHelp || showSaved || (exportPhase !== null && (exportPhase !== "recording" || ["p", "P", " "].includes(e.key))) || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
     const k = e.key;
     const s = session;
     // Only the written line is editable; while it is hidden (D47) the keys only browse and play.
@@ -875,7 +901,12 @@ export function App() {
                 {playing && playMode === "player" ? "■" : "▶"}
               </button>
               <button className="loop" aria-pressed={loop} onClick={() => setLoop(!loop)} aria-label={t("ui.loop")} title={t(loop ? "ui.loop.on" : "ui.loop.off")}>⟲</button>
-              <button className="export" aria-pressed={exportPhase !== null} onClick={() => (exportPhase === null ? setExportPhase("choose") : exportPhase === "recording" ? void cancelExport() : undefined)} aria-label={t("ui.export")} title={t("ui.export.help")}>⤓</button>
+              <button className="export" aria-pressed={exportPhase !== null} onClick={() => {
+                  if (exportPhase === null) {
+                    setExportEnding(loop ? "seamless" : "final");
+                    setExportPhase("choose");
+                  } else if (exportPhase === "recording") exportStop.current?.();
+                }} aria-label={t("ui.export")} title={t("ui.export.help")}>⤓</button>
               <div className="play-small">
                 <button onClick={() => play("fux")} disabled={!fuxOpen} aria-label={t("ui.play.fux")} title={t(fuxOpen ? "ui.play.fux" : "ui.play.locked")}>
                   {playing && playMode === "fux" ? "■" : t("ui.play.fuxShort")}
@@ -997,13 +1028,30 @@ export function App() {
           }}
         />
       )}
-      {exportPhase !== null && (
+      {(exportPhase === "choose" || exportPhase === "encoding") && (
         <div className="dialog-backdrop" role="dialog" aria-modal="true" aria-label={t("ui.export")} onClick={() => exportPhase === "choose" && setExportPhase(null)}>
           <div className="dialog export-card" onClick={(e) => e.stopPropagation()}>
             <h2>{t("ui.export")}</h2>
             {exportPhase === "choose" && (
               <>
-                <p>{t(loop ? "ui.export.introLoop" : "ui.export.introOnce")}</p>
+                <p>{t("ui.export.intro")}</p>
+                <div className="export-options">
+                  <label>{t("ui.export.passes")}</label>
+                  <span className="octave">
+                    <button className="chipbtn" disabled={exportPasses <= 1} onClick={() => setExportPasses(exportPasses - 1)} aria-label={t("ui.export.fewer")}>‹</button>
+                    <span>{t(exportPasses === 1 ? "ui.export.passOne" : "ui.export.passMany", { n: exportPasses })}</span>
+                    <button className="chipbtn" disabled={exportPasses >= 16} onClick={() => setExportPasses(exportPasses + 1)} aria-label={t("ui.export.more")}>›</button>
+                  </span>
+                  <label>{t("ui.export.ending")}</label>
+                  <span className="segmented">
+                    {(["seamless", "final"] as const).map((k) => (
+                      <button key={k} className="chipbtn" aria-pressed={exportEnding === k} title={t(`ui.export.ending.${k}.help`)} onClick={() => setExportEnding(k)}>
+                        {t(`ui.export.ending.${k}`)}
+                      </button>
+                    ))}
+                  </span>
+                </div>
+                <p className="help">{t("ui.export.live")}</p>
                 <div className="export-formats">
                   {EXPORT_FORMATS.map((f) => (
                     <button key={f} className={f === "mp3" ? "primary" : undefined} onClick={() => void startExport(f)}>
@@ -1014,14 +1062,18 @@ export function App() {
                 <button onClick={() => setExportPhase(null)}>{t("ui.close")}</button>
               </>
             )}
-            {exportPhase === "recording" && (
-              <>
-                <p>{t("ui.export.recording")}</p>
-                <button onClick={() => void cancelExport()}>{t("ui.export.cancel")}</button>
-              </>
-            )}
             {exportPhase === "encoding" && <p>{t("ui.export.encoding")}</p>}
           </div>
+        </div>
+      )}
+      {exportPhase === "recording" && (
+        // Not modal: the desk, the score and the transport stay live while it records.
+        <div className="recording-bar" role="status">
+          <span className="rec-dot" aria-hidden="true">●</span>
+          <span>{t("ui.export.recordingPass", { n: exportPass, total: exportPasses })}</span>
+          <span className="help">{t("ui.export.mixLive")}</span>
+          <button onClick={() => exportStop.current?.()}>{t("ui.export.stopSave")}</button>
+          <button onClick={() => void cancelExport()}>{t("ui.export.cancel")}</button>
         </div>
       )}
       {showHelp && <HelpCard rest={VIEW.layout.some((sl) => sl.restAllowed)} onClose={() => setShowHelp(false)} />}

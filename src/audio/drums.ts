@@ -208,8 +208,8 @@ const ROLL: Partial<Record<DrumVoice, string>> = { snare: "x...x...x.x.xxXX", ki
 
 /**
  * The hits of bar `bar` as [voice, velocity, offset within the bar (0..1)]. When the piece loops,
- * the last bar does not end it with a crash: it plays the pattern's fill (or a snare roll) that
- * leads back into bar 1, and the bar before it keeps the groove (D72).
+ * the drums never stop (D72): the last bar keeps the groove, and the breath before the next pass
+ * carries the roll into bar 1 (see hitsForBreath).
  */
 export function hitsForBar(settings: DrumSettings, bar: number, totalBars: number, looping = false): [DrumVoice, number, number][] {
   const p = patternById(settings.pattern);
@@ -224,15 +224,32 @@ export function hitsForBar(settings: DrumSettings, bar: number, totalBars: numbe
       });
     }
   };
-  if (looping && bar === totalBars - 1) {
-    write(p.fill ?? ROLL, bar, 1);
-  } else if (!looping && bar === totalBars - 2 && p.fill) {
+  if (!looping && bar === totalBars - 2 && p.fill) {
     write(p.fill, bar, 1);
   } else {
     const L = settings.length;
     for (let loop = Math.floor(bar / L); loop * L < bar + 1; loop++) write(p.loop, loop * L, L);
   }
   if (bar === 0) for (const v of p.start ?? []) out.push([v, 1, 0]);
+  return out;
+}
+
+/**
+ * The breath between two passes of a loop (`span` bars, half a bar in the engine): the second half
+ * of the pattern's fill (or a snare roll), stretched to the breath, leading into bar 1 (D72).
+ */
+export function hitsForBreath(settings: DrumSettings, span = 0.5): [DrumVoice, number, number][] {
+  const p = patternById(settings.pattern);
+  const lines = p.fill ?? ROLL;
+  const steps = p.fill ? p.steps : 16;
+  const out: [DrumVoice, number, number][] = [];
+  for (const [v, line] of Object.entries(lines) as [DrumVoice, string][]) {
+    [...line].forEach((ch, i) => {
+      const vel = VELOCITY[ch];
+      const at = i / steps;
+      if (vel && at >= 0.5 - 1e-9) out.push([v, vel, (at - 0.5) * (span / 0.5)]);
+    });
+  }
   return out;
 }
 
@@ -465,6 +482,12 @@ export class DrumMachine {
   scheduleBar(t: number, barSeconds: number, bar: number, totalBars: number, looping = false) {
     this.kit = kitOf(this.settings);
     for (const [v, vel, at] of hitsForBar(this.settings, bar, totalBars, looping)) this.hit(v, t + at * barSeconds, vel);
+  }
+
+  /** The breath before the next pass of a loop, starting at `t` (D72). */
+  scheduleBreath(t: number, barSeconds: number, span = 0.5) {
+    this.kit = kitOf(this.settings);
+    for (const [v, vel, at] of hitsForBreath(this.settings, span)) this.hit(v, t + at * barSeconds, vel);
   }
 
   stop() {

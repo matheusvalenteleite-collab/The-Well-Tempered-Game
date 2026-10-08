@@ -428,3 +428,10 @@ button, select, .chipbtn { font-size: 0.8rem; }
 .export-card .export-formats { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 14px; }
 .export-card .export-formats button { text-align: left; padding: 8px 12px; }
 .export-card .export-formats button.primary .help { color: rgba(255, 255, 255, 0.8); }
+.export-card .export-options { display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; align-items: center; margin: 8px 0; }
+.export-card .export-options label { font-size: 0.85rem; color: var(--muted); }
+.export-card .export-options .octave, .export-card .export-options .segmented { display: inline-flex; gap: 4px; align-items: center; }
+/* D75: recording runs under a slim bar, not a dialog, so the desk stays playable. */
+.recording-bar { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 50; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; max-width: calc(100vw - 32px); box-sizing: border-box; padding: 8px 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18); }
+.recording-bar .rec-dot { color: #c0392b; animation: rec-blink 1.2s steps(2, start) infinite; }
+@keyframes rec-blink { to { visibility: hidden; } }

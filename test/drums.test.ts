@@ -39,17 +39,19 @@ test("openings, fills and endings", () => {
   assert.ok(hitsForBar({ pattern: "rock", length: 1, level: 1 }, 0, 8).some(([v]) => v === "crash"));
 });
 
-test("looping (D72): no final crash; the last bar rolls back into bar 1", async () => {
-  const { hitsForBar } = await import("../src/audio/drums.ts");
-  const last = hitsForBar({ pattern: "rock", length: 1, level: 1 }, 7, 8, true);
-  assert.ok(last.length > 4 && !last.some(([v]) => v === "crash"));
-  assert.ok(last.some(([v, , at]) => v.startsWith("tom") && at > 0.5));
-  // A pattern without a fill gets the snare roll; the bar before keeps the groove.
-  const bossa = hitsForBar({ pattern: "bossa", length: 1, level: 1 }, 7, 8, true);
-  assert.ok(bossa.filter(([v]) => v === "snare").length >= 6);
-  assert.deepEqual(hitsForBar({ pattern: "rock", length: 1, level: 1 }, 6, 8, true), hitsForBar({ pattern: "rock", length: 1, level: 1 }, 2, 8, true));
+test("looping (D72): the drums never stop; the last bar keeps the groove, the breath rolls into bar 1", async () => {
+  const { hitsForBar, hitsForBreath } = await import("../src/audio/drums.ts");
+  const rock = { pattern: "rock", length: 1, level: 1 };
+  const groove = hitsForBar(rock, 2, 8, true);
+  assert.deepEqual(hitsForBar(rock, 7, 8, true), groove);
+  assert.deepEqual(hitsForBar(rock, 6, 8, true), groove);
+  // The breath: rock's fill from its middle (toms), spread over half a bar.
+  const breath = hitsForBreath(rock, 0.5);
+  assert.ok(breath.some(([v]) => v.startsWith("tom")) && breath.every(([, , at]) => at >= 0 && at < 0.5));
+  // A pattern without a fill gets the snare roll.
+  assert.ok(hitsForBreath({ pattern: "bossa", length: 1, level: 1 }).filter(([v]) => v === "snare").length >= 4);
   // Not looping: the ending as before.
-  assert.deepEqual(hitsForBar({ pattern: "rock", length: 1, level: 1 }, 7, 8).map(([v]) => v), ["kick", "crash"]);
+  assert.deepEqual(hitsForBar(rock, 7, 8).map(([v]) => v), ["kick", "crash"]);
 });
 
 test("kits (D71): machine patterns bring their machine; any kit can be chosen", async () => {

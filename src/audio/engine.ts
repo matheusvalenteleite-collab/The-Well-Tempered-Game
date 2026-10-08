@@ -79,6 +79,8 @@ export class AudioEngine {
   /** AudioContext times at which the passes of the current "play all" start, and where it ends. */
   cycleStarts: number[] = [];
   playEnd: number | null = null;
+  /** Pass starts since the capture began (D75): kept across live restarts, which reset cycleStarts. */
+  captureCycles: number[] = [];
   private volume = 0.7;
   private instruments = new Map<SoundId, Promise<Voices | null>>();
   private current: Voices | null = null;
@@ -346,6 +348,7 @@ export class AudioEngine {
       if (k === 0 && !announced) {
         announced = true;
         this.cycleStarts.push(next);
+        if (this.capture) this.captureCycles.push(next);
         onCycle?.(next, k === 0 ? 0 : (events[k].at - events[0].at) * 2);
       }
       while (k < events.length && next < ctx.currentTime + LOOKAHEAD) {
@@ -365,6 +368,8 @@ export class AudioEngine {
           // Loop: start again after half a bar's breath (read live, so the toggle works mid-play).
           k = 0;
           announced = false;
+          // The drums do not stop: the roll fills the breath and lands on bar 1 (D72).
+          if (this.drums) this.drumMachine?.scheduleBreath(next, this.barSeconds, 0.5);
           next += 0.5 * this.barSeconds;
           this.timers = this.timers.slice(-64);
         } else {
@@ -389,6 +394,7 @@ export class AudioEngine {
     const ctx = this.ctx;
     if (!ctx || !this.limiter) throw new Error("audio is not available");
     this.capture?.node.disconnect();
+    this.captureCycles = [];
     const left: Float32Array[] = [];
     const right: Float32Array[] = [];
     const sink = ctx.createGain();
