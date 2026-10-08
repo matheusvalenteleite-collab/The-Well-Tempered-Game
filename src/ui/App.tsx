@@ -9,6 +9,8 @@ import { applyAccidental, clear, initialState, letterNote, moveNote, place, sele
 import { AudioEngine, DEFAULT_SYNTH, renderLevel, SYNTH_PRESETS, type AudioStatus, type VoiceSynths } from "../audio/engine.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
 import { SynthRack, type SynthTarget } from "./SynthRack.tsx";
+import { DrumBox } from "./DrumBox.tsx";
+import { DEFAULT_DRUMS, DRUM_PATTERNS, DrumMachine, LOOP_LENGTHS, type DrumSettings } from "../audio/drums.ts";
 import { Hints } from "./Hints.tsx";
 import { Feedback } from "./Feedback.tsx";
 import { Knob } from "./Knob.tsx";
@@ -33,7 +35,7 @@ const audio = new AudioEngine();
 // Owner decision D15: synthesized sound only for now (the sampled piano stays in the engine, unused).
 audio.sound = "chip";
 // Read by the browser tests.
-Object.assign(window as object, { wtgAudio: audio, wtgRenderLevel: renderLevel, wtgPresets: SYNTH_PRESETS });
+Object.assign(window as object, { wtgAudio: audio, wtgRenderLevel: renderLevel, wtgPresets: SYNTH_PRESETS, wtgDrumMachine: DrumMachine });
 
 /** Milliseconds a bar must stay selected while browsing before it sounds. */
 const DWELL_MS = 1000;
@@ -86,6 +88,12 @@ export function App() {
   });
   const [synthTarget, setSynthTarget] = useState<SynthTarget>("all");
   const [drums, setDrums] = useState(() => stored("wtg.drums", false, (v) => typeof v === "boolean"));
+  const [drumKit, setDrumKit] = useState<DrumSettings>(() => {
+    const v = stored<DrumSettings>("wtg.drumkit", DEFAULT_DRUMS, (x) => typeof x === "object" && x !== null);
+    const ok = DRUM_PATTERNS.some((p) => p.id === v.pattern) && LOOP_LENGTHS.includes(v.length) && typeof v.level === "number";
+    return ok ? v : { ...DEFAULT_DRUMS };
+  });
+  const [showDrums, setShowDrums] = useState(false);
   const [tuning, setTuning] = useState<TemperamentId>(() => stored<TemperamentId>("wtg.tuning", "equal", (v) => TEMPERAMENTS.includes(v as TemperamentId)));
   const [cursor, setCursor] = useState(-1);
   const [playing, setPlaying] = useState(false);
@@ -119,6 +127,10 @@ export function App() {
     audio.drums = drums;
     store("wtg.drums", drums);
   }, [drums]);
+  useEffect(() => {
+    audio.setDrums(drumKit, VIEW.modalFinal);
+    store("wtg.drumkit", drumKit);
+  }, [drumKit, VIEW.modalFinal]);
   useEffect(() => {
     audio.temperament = tuning;
     store("wtg.tuning", tuning);
@@ -398,7 +410,10 @@ export function App() {
             </button>
             <Knob id="tempo" label={t("ui.tempo")} value={tempo} min={30} max={120} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
             <Knob id="volume" label={t("ui.volume")} value={volume} min={0} max={100} defaultValue={70} format={(v) => `${Math.round(v)}%`} onChange={(v) => setVolume(Math.round(v))} />
-            <button aria-pressed={drums} onClick={() => setDrums(!drums)} title={t("ui.drums.help")}>{t("ui.drums")}</button>
+            <button aria-pressed={drums} aria-expanded={showDrums} onClick={() => setShowDrums(!showDrums)} title={t("ui.drums.help")}>
+              {t("ui.drums")}
+              {drums ? " ●" : ""}
+            </button>
             <button className="tuning" onClick={() => setTuning(TEMPERAMENTS[(TEMPERAMENTS.indexOf(tuning) + 1) % TEMPERAMENTS.length])} title={t("ui.tuning.help")}>
               {t(`ui.tuning.${tuning}`)}
             </button>
@@ -409,6 +424,7 @@ export function App() {
           </div>
         </div>
         {missing > 0 && !result && <p className="help">{t("ui.evaluate.incomplete", { missing })}</p>}
+        {showDrums && <DrumBox on={drums} onToggle={setDrums} value={drumKit} onChange={setDrumKit} onPreview={() => !playing && void audio.previewDrums()} />}
         {showSynth && <SynthRack value={synth} target={synthTarget} onTarget={setSynthTarget} onChange={setSynth} />}
         {result && (
           <section className="feedback" aria-live="polite">

@@ -7,7 +7,7 @@
  * The AudioContext is created on the first user gesture (browser autoplay policy).
  */
 import { Soundfont } from "smplr";
-import { DrumMachine } from "./drums.ts";
+import { DEFAULT_DRUMS, DrumMachine, type DrumSettings } from "./drums.ts";
 import { DEFAULT_SYNTH, type SynthSettings, type VoiceId, type VoiceSynths } from "./synth-settings.ts";
 import type { TemperamentId } from "./temperament.ts";
 import type { PlayEvent } from "../counterpoint/layout.ts";
@@ -54,6 +54,9 @@ export class AudioEngine {
   temperament: TemperamentId = "equal";
   /** Drum track during "play all"; read live, so toggling takes effect from the next bar. */
   drums = false;
+  private drumSettings: DrumSettings = { ...DEFAULT_DRUMS };
+  /** The final of the exercise's mode (tunes the timpani). */
+  private final = "D";
   /** Alla-breve pulse (half notes per minute); read live by the scheduler. */
   tempo = 60;
   status: AudioStatus = "idle";
@@ -71,6 +74,25 @@ export class AudioEngine {
     Object.assign(this.synth.cantus, settings.cantus);
     Object.assign(this.synth.counterpoint, settings.counterpoint);
     for (const v of [this.current?.cantus, this.current?.counterpoint]) if (v instanceof Synth) v.update();
+  }
+
+  /** Pattern, loop length and level of the drum track; read live by the scheduler. */
+  setDrums(settings: DrumSettings, final = this.final) {
+    this.drumSettings = { ...settings };
+    this.final = final;
+    if (this.drumMachine) {
+      this.drumMachine.settings = this.drumSettings;
+      this.drumMachine.final = final;
+      this.drumMachine.setLevel(settings.level);
+    }
+  }
+
+  /** Audition one bar of the drum pattern on its own. */
+  async previewDrums(): Promise<void> {
+    await this.instrument();
+    if (!this.ctx || !this.drumMachine) return;
+    this.drumMachine.stop();
+    this.drumMachine.scheduleBar(this.ctx.currentTime + 0.05, this.barSeconds, 1, 8);
   }
 
   /** Master volume, 0..1. */
@@ -93,6 +115,7 @@ export class AudioEngine {
       this.master.gain.value = this.volume;
       this.master.connect(this.ctx.destination);
       this.drumMachine = new DrumMachine(this.ctx, this.master);
+      this.setDrums(this.drumSettings, this.final);
     }
     if (this.ctx.state === "suspended") await this.ctx.resume();
     const ctx = this.ctx;
