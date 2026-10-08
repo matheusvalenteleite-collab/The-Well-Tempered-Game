@@ -101,8 +101,8 @@ const nameDx = (sl: Slot) => (sl.duration === "1/1" ? 17 : sl.duration === "1/2"
 const NOTE_PAD = 12;
 /** Drawing scale on wide screens. */
 const BASE_SCALE = 1;
-/** The main score is never drawn smaller than this: a longer score scrolls instead (D63). */
-const MIN_SCALE = 0.8;
+/** Smallest drawing scale: a longer score is scaled down to fit its box (D64: no scrolling). */
+const MIN_SCALE = 0.25;
 const COLOR: Record<Status, string> = { ok: "var(--ok)", neutral: "var(--ink-muted)", error: "var(--bad)", warning: "var(--warn)" };
 /** Type: a clean sans for labels and numbers; an old-style serif, in italic, for figures and voice labels. */
 const UI_FONT = "Inter, system-ui, sans-serif";
@@ -137,7 +137,6 @@ interface Geometry {
 export function ScoreView(props: ScoreProps) {
   const host = useRef<HTMLDivElement>(null);
   const geo = useRef<Geometry | null>(null);
-  const pin = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
 
   useLayoutEffect(() => {
@@ -151,7 +150,6 @@ export function ScoreView(props: ScoreProps) {
   useEffect(() => {
     const el = host.current;
     if (!el || width === 0) return;
-    const scrolled = el.scrollLeft;
     el.innerHTML = "";
     const { staffY: STAFF_Y, height: HEIGHT } = props.fixedScale === undefined ? LAYOUT.main : props.overlay ? LAYOUT.overlay : LAYOUT.plain;
     // Overlay rows between the staves: the player's intervals, the links under them, and above
@@ -497,34 +495,6 @@ export function ScoreView(props: ScoreProps) {
     };
     geo.current = g;
     el.dataset.geometry = JSON.stringify(g); // read by the browser tests
-
-    // The clefs stay pinned at the left edge while the score is scrolled (D63): a copy of the
-    // drawing, cut at the first bar.
-    const pinBox = pin.current;
-    if (pinBox) {
-      pinBox.innerHTML = "";
-      if (props.fixedScale === undefined) {
-        pinBox.appendChild(svg.cloneNode(true));
-        pinBox.style.width = `${Math.ceil((start - 4) * scale)}px`;
-        pinBox.style.height = `${svg.getAttribute("height")}px`;
-      }
-    }
-    const onScroll = () => pinBox?.classList.toggle("shown", el.scrollLeft > 2);
-
-    // A score wider than its box scrolls (D63): keep the scroll position across redraws, and bring
-    // the playback cursor, or else the selection, into view.
-    el.scrollLeft = scrolled;
-    const focus = props.cursor !== undefined && props.cursor >= 0 ? props.cursor : props.selected;
-    if (props.fixedScale === undefined && el.scrollWidth > el.clientWidth && focus !== undefined && columns[focus]) {
-      const x = columns[focus].x * scale;
-      const margin = Math.min(120, el.clientWidth / 4);
-      if (x < el.scrollLeft + margin || x > el.scrollLeft + el.clientWidth - margin) {
-        el.scrollTo({ left: Math.max(0, x - el.clientWidth / 3), behavior: props.cursor !== undefined && props.cursor >= 0 ? "smooth" : "auto" });
-      }
-    }
-    onScroll();
-    el.addEventListener("scroll", onScroll, { passive: true });
-    return () => el.removeEventListener("scroll", onScroll);
   }, [width, props.showNames, props.cantus, props.counterpoint, props.fux, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay, props.continuo, props.extraLines, props.extraIntervals, props.ties, props.playerInk, props.playerLabel, props.signature]);
 
   const press = useRef<{ x: number; y: number; dragging: boolean; from: number } | null>(null);
@@ -620,7 +590,6 @@ export function ScoreView(props: ScoreProps) {
       onPointerCancel={() => (press.current = null)}
     >
       <div ref={host} className={props.readOnly ? "score read-only" : "score"} />
-      <div ref={pin} className="clef-pin" aria-hidden="true" />
       {ghost && (
         <svg
           className="ghost"

@@ -335,7 +335,7 @@
     "demo.softB.try.2": "Press Trio and read the three-voice reading: where your line and Fux's would clash if sung together.",
     "demo.softB.try.3": "Switch O off on the Contrapunctus strip with I on: the inversion takes the place of your line.",
     "demo.third.title": "Third species, cantus below (D)",
-    "demo.third.try.1": "Four quarters against each whole note. The score is drawn at a readable size and scrolls; while it plays it follows the cursor.",
+    "demo.third.try.1": "Four quarters against each whole note; the score is scaled down so that the whole exercise fits.",
     "demo.third.try.2": "Switch Intervals on: the dissonant quarters are the passing notes, and in bar 3 a cambiata (a step down to a dissonant seventh, then a third down).",
     "demo.third.try.3": "Select a quarter, type letters (each one moves on to the next quarter) and press Evaluate to see the dissonances judged.",
     "demo.fourth.title": "Fourth species, cantus below (D), with continuo",
