@@ -1,5 +1,8 @@
 # The chorale library: plan
 
+> The conception of the chorale mode itself (what the library is for) is in `CONCEPT.md` (D101):
+> levels top-down, judgement by idiom and comparison, not a checker as in the Fux mode.
+
 Owner's brief: a Bach Chorales mode, built on chorale harmonization in the figured-bass tradition.
 For now, no generator. First an intelligent, well-parsed, informative library of the material, so
 that the principles, patterns and habits are known before anything is generated. **Bach is the
@@ -141,3 +144,10 @@ derived fact can be traced back to the source.
   The library keeps both orders.
 - **Modes.** The library keeps Sapp's modal labels (dorian, mixolydian, phrygian). Should the
   analysis read such chorales modally, or tonally in the key of their cadences?
+
+## After the library: the first level of the mode
+
+- Level 1, the cadence plan (`CADENCE-PLANS.md`, `data/chorales/cadence_plans.json`). For each
+  phrase end of Bach's 2,264, the context is how the melody closes, where the phrase stands, and
+  the mode; Bach's cadence chords are counted per context, with examples. For Kittel's 24
+  melodies, his basses' cadence chords stand beside Bach's at each phrase end.
