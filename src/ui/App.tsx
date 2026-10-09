@@ -7,7 +7,7 @@ import { compareWithOriginal } from "../music/fux/player.ts";
 import { exerciseView } from "../game/exercise-view.ts";
 import { applyAccidental, clear, clearSpan, holdSelected, initialState, letterNote, moveNote, onsetOf, place, repeatPrevious, select, setRest, spanFromSelected, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
 import { AudioEngine, renderLevel, SYNTH_PRESETS, type AudioStatus } from "../audio/engine.ts";
-import { restoreSound, shiftOctave, type SoundState } from "../audio/sound.ts";
+import { restoreSound, setMix as changeMix, shiftOctave, type SoundState } from "../audio/sound.ts";
 import { encode, EXPORT_FORMATS, saveFile, type ExportFormat } from "../audio/export.ts";
 import { loadSamples } from "../audio/voice.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
@@ -26,7 +26,7 @@ import { FuxComparison } from "./FuxComparison.tsx";
 import { realizeContinuo } from "../continuo/realize.ts";
 import { playContinuo } from "../continuo/audio.ts";
 import { continuoInput, continuoKey, continuoOptions, type PlayMode } from "../game/continuo-input.ts";
-import { activeVersions, deriveVersion, heardLines, validVersions, type VersionId, type Versions } from "../game/versions.ts";
+import { activeVersions, deriveVersion, heardLines, validVersions, VERSION_IDS, type VersionId, type Versions } from "../game/versions.ts";
 import { trioReading } from "../game/trio-eval.ts";
 import { TrioReading } from "./TrioReading.tsx";
 import { Fold } from "./Fold.tsx";
@@ -754,6 +754,26 @@ export function App() {
         e.preventDefault();
         return;
       }
+    }
+    // F1-F9 switch the numbered tracks on and off, as Ableton's F1-F8 switch its track activators (D85).
+    if (/^F[1-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey && !showCredits && !showHelp && !showSaved && exportPhase === null) {
+      const n = Number(e.key.slice(1));
+      if (n === 1) setSound(changeMix(sound, "cantus", { mute: !sound.mix.cantus.mute }));
+      else if (n === 2) {
+        const next = { ...versions, original: !versions.original };
+        if (!next.original && !VERSION_IDS.some((x) => next[x])) next.original = true;
+        setVersions(next);
+      }
+      else if (n === 3) fuxOpen && setFuxHeard(!fuxHeard);
+      else if (n >= 4 && n <= 7) {
+        const id = VERSION_IDS[n - 4];
+        const next = { ...versions, [id]: !versions[id] };
+        if (!next.original && !VERSION_IDS.some((x) => next[x])) next.original = true;
+        setVersions(next);
+      } else if (n === 8) setDrums(!drums);
+      else if (n === 9) setContinuo(!continuo);
+      e.preventDefault();
+      return;
     }
     if (showCredits || showHelp || showSaved || (exportPhase !== null && (exportPhase !== "recording" || ["p", "P", " "].includes(e.key))) || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
     const k = e.key;

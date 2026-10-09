@@ -9,6 +9,7 @@ const KEYS: [string, string][] = [
   ["8 4 3 2 6 1", "help.keys.value"],
   ["#  -  n", "help.keys.accidental"],
   ["Delete", "help.keys.clear"],
+  ["F1–F9", "help.keys.tracks"],
   ["Space", "help.keys.hear"],
   ["P", "help.keys.play"],
   ["?", "help.keys.help"],
