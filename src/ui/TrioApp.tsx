@@ -6,12 +6,14 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import data from "../../data/fux/three-voice/fux-three-voice.json" with { type: "json" };
-import { barOfSlot, playerStaves, slotOfBar, TRIO_SPECIES, trioSteps, voiceSlots, type TrioSpecies, type TrioStep } from "../game/trio.ts";
+import { barOfSlot, floridLayout, playerStaves, slotOfBar, TRIO_SPECIES, trioSteps, voiceSlots, type TrioSpecies, type TrioStep } from "../game/trio.ts";
 import { evaluateTrio2 } from "../counterpoint/three-voice-second.ts";
 import { evaluateTrioFlorid } from "../counterpoint/three-voice-florid.ts";
+import { evaluateTrioFifth } from "../counterpoint/three-voice-fifth.ts";
 import { evaluateTrio, type TrioEvaluation } from "../counterpoint/three-voice.ts";
-import { applyAccidental, clear, initialState, letterNote, place, select, setRest, stepNote, type SessionState } from "../game/session.ts";
-import { REST, slotLayout, type PlayEvent } from "../counterpoint/layout.ts";
+import { applyAccidental, clear, clearSpan, holdSelected, initialState, letterNote, onsetOf, place, select, spanFromSelected, stepNote, type SessionState } from "../game/session.ts";
+import { HOLD, REST, slotLayout, type PlayEvent } from "../counterpoint/layout.ts";
+import { NoteIcon } from "./NoteIcon.tsx";
 import { restoreSound, setMix as changeMix, type SoundState } from "../audio/sound.ts";
 import { DEFAULT_DRUMS, type DrumSettings } from "../audio/drums.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
@@ -37,7 +39,7 @@ import { ScoreTools } from "./ScoreTools.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 import type { NameStyle } from "../music/names.ts";
 
-/** Fux's three-voice exercises by species (D114: first and second). */
+/** Fux's three-voice exercises by species (D114, D116, D117: first to fifth). */
 const BY_SPECIES = Object.fromEntries(TRIO_SPECIES.map((n) => [n, trioSteps(data as never, n)])) as Record<TrioSpecies, TrioStep[]>;
 const ORDINAL = ["", "1st", "2nd", "3rd", "4th", "5th"];
 const stepLabel = (s: TrioStep) => t("ui.trio3.step", { n: s.ordinal, fig: s.figure, final: s.modalFinal, where: t(`ui.trio3.cantus.${s.cantusIndex}`) });
@@ -51,6 +53,11 @@ const freshSessions = (s: TrioStep): Sessions =>
       if (i === s.movingIndex && s.per === 2) {
         st.notes[0] = REST;
         st.selected = 1;
+      }
+      // Fifth species: the half rest as in two voices (D82), one rest held over four quaver slots.
+      if (i === s.movingIndex && s.per === 8) {
+        for (let k = 0; k < 4; k++) st.notes[k] = k === 0 ? REST : HOLD;
+        st.selected = 4;
       }
       return [i, st];
     }),
@@ -166,6 +173,15 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
   /** The note each voice sounds at the start of bar k (the minim voice: its thesis, or its arsis after the rest). */
   const downOf = (line: (string | null)[], voice: number, k: number) => {
     if (voice !== STEP.movingIndex) return line[k];
+    if (STEP.per === 8) {
+      // Florid: the note sounding at the downbeat (held over the bar line), or the first one sung after a rest.
+      const from = 8 * k;
+      for (let s = from; s < (k === STEP.cantus.length - 1 ? from + 1 : from + 8); s++) {
+        const d = line[s] === HOLD ? line[onsetOf(line, s)] : line[s];
+        if (d && d !== REST && d !== HOLD) return d;
+      }
+      return null;
+    }
     for (let j = 0; j < (k === STEP.cantus.length - 1 ? 1 : STEP.per); j++) {
       const d = line[STEP.per * k + j];
       if (d && d !== REST) return d;
@@ -207,22 +223,39 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
     const [a, b] = mine.map((i) => ps[i]);
     void audio.playSequence([{ slot: k, at: 0, length: 1, cantus: STEP.cantus[k], counterpoint: a ?? null, extra: b ? [{ channel: "second", pitch: b }] : [] }]);
   };
-  /** Where a voice is entered in bar b: its first slot, or after the opening rest. */
-  const entry = (i: number, b: number) => (i === STEP.movingIndex && b === 0 && sessions[i].notes[0] === REST ? 1 : slotOfBar(STEP, i, b));
+  /** Where a voice is entered in bar b: its first slot, or after the opening rest (held, in fifth species). */
+  const entry = (i: number, b: number) => {
+    if (!(i === STEP.movingIndex && b === 0 && sessions[i].notes[0] === REST)) return slotOfBar(STEP, i, b);
+    let k = 1;
+    while (sessions[i].notes[k] === HOLD) k++;
+    return k;
+  };
+  const FLORID = STEP.per === 8;
+  /** Fifth species: the value written next, in quaver slots (1, 2, 3, 4, 6, 8: quaver to whole bar). */
+  const [noteValue, setNoteValue] = useState(2);
   /** Move the voice to slot k; the other voice follows to the same bar. */
   const moveTo = (staff: number, base: SessionState, k: number) => {
     const slot = Math.max(0, Math.min(voiceSlots(STEP, staff) - 1, k));
     const bar = barOfSlot(STEP, staff, slot);
     return Object.fromEntries(mine.map((i) => [i, i === staff ? select(base, slot) : select(sessions[i], entry(i, bar))]));
   };
-  const write = (staff: number, next: SessionState, advance: boolean) => {
+  const write = (staff: number, raw: SessionState, advance: boolean) => {
+    // Fifth species (D82): the note lasts the chosen value; the selection moves past it.
+    const florid = FLORID && staff === STEP.movingIndex;
+    const next = florid ? spanFromSelected(raw, floridLayout(STEP.cantus.length), noteValue) : raw;
     const k = next.selected;
-    setSessions(moveTo(staff, next, advance ? k + 1 : k));
+    let to = k + 1;
+    while (florid && to < next.notes.length - 1 && next.notes[to] === HOLD) to++;
+    setSessions(moveTo(staff, next, advance ? to : k));
     setResult(null);
-    audition(barOfSlot(STEP, staff, k), { staff, pitch: next.notes[k] });
+    audition(barOfSlot(STEP, staff, k), { staff, pitch: next.notes[k] === HOLD ? next.notes[onsetOf(next.notes, k)] : next.notes[k] });
   };
-  /** One slot of the active voice to the left or right. */
-  const browse = (delta: number) => setSessions(moveTo(activeStaff, session, session.selected + delta));
+  /** One slot of the active voice to the left or right (over held slots, in fifth species). */
+  const browse = (delta: number) => {
+    let j = session.selected + delta;
+    while (FLORID && activeStaff === STEP.movingIndex && j > 0 && j < session.notes.length - 1 && session.notes[j] === HOLD) j += delta;
+    setSessions(moveTo(activeStaff, session, j));
+  };
   /** Every voice to bar b (a click above or below the staves). */
   const browseBar = (b: number) => {
     const bar = Math.max(0, Math.min(STEP.cantus.length - 1, b));
@@ -257,7 +290,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
       }
       events.push(ev);
       const m = STEP.movingIndex;
-      if (m === null) continue;
+      if (m === null || STEP.per === 8) continue;
       const per = STEP.per;
       const parts = k === n - 1 ? [0] : Array.from({ length: per }, (_, j) => j);
       for (const h of parts) {
@@ -271,6 +304,20 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
           const held = ties && h === per - 1 && line[slot + 1] === p ? len * 2 : len;
           events.push({ slot: k, at: k + h / per, length: held, cantus: null, counterpoint: null, extra: [{ channel: ch, pitch: p }] });
         }
+      }
+    }
+    // Fifth species: each note from its onset for its held length (quaver slots; the last bar whole).
+    const m = STEP.movingIndex;
+    if (m !== null && STEP.per === 8) {
+      const at = (slot: number) => (slot >= 8 * (n - 1) ? n - 1 : slot / 8);
+      for (const [line, ch] of [[sessions[m].notes, channelOf(m)], ...(fuxOpen ? [[STEP.fux[m], "fux"]] : [])] as [(string | null)[], "counterpoint" | "second" | "fux"][]) {
+        line.forEach((p, slot) => {
+          if (!p || p === REST || p === HOLD) return;
+          let end = slot + 1;
+          while (line[end] === HOLD) end++;
+          const length = (end >= line.length ? n : at(end)) - at(slot);
+          events.push({ slot: Math.min(n - 1, Math.floor(slot / 8)), at: at(slot), length, cantus: null, counterpoint: null, extra: [{ channel: ch, pitch: p }] });
+        });
       }
     }
     // The continuo plays under the lines heard: the player's two, or Fux's when only his are on.
@@ -310,7 +357,9 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
         ? evaluateTrio({ modalFinal: STEP.modalFinal, cantusIndex: STEP.cantusIndex, voices: voicesNow })
         : STEP.species === 2
           ? evaluateTrio2({ modalFinal: STEP.modalFinal, cantusIndex: STEP.cantusIndex, minimIndex: STEP.movingIndex, voices: voicesNow })
-          : evaluateTrioFlorid({ species: STEP.species as 3 | 4, modalFinal: STEP.modalFinal, cantusIndex: STEP.cantusIndex, movingIndex: STEP.movingIndex, voices: voicesNow, ligatureAllowance: Math.max(1, STEP.untied) });
+          : STEP.species === 5
+            ? evaluateTrioFifth({ modalFinal: STEP.modalFinal, cantusIndex: STEP.cantusIndex, movingIndex: STEP.movingIndex, voices: voicesNow })
+            : evaluateTrioFlorid({ species: STEP.species as 3 | 4, modalFinal: STEP.modalFinal, cantusIndex: STEP.cantusIndex, movingIndex: STEP.movingIndex, voices: voicesNow, ligatureAllowance: Math.max(1, STEP.untied) });
     setResult(ev);
     setTab("evaluation");
     if (ev.passed) {
@@ -334,19 +383,24 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
       else if (track === "fux") fuxOpen && setFuxHeard(!fuxHeard);
       else if (track === "drums") setDrums(!drums);
       else if (track === "continuo") setContinuo(!continuo);
-    } else if (k === "Tab") setActive(mine[(mine.indexOf(activeStaff) + (e.shiftKey ? mine.length - 1 : 1)) % mine.length]);
+    } else if (FLORID && activeStaff === STEP.movingIndex && ["8", "4", "3", "2", "6", "1"].includes(k)) setNoteValue({ "8": 1, "4": 2, "3": 3, "2": 4, "6": 6, "1": 8 }[k]!);
+    else if (FLORID && activeStaff === STEP.movingIndex && (k === "t" || k === "T" || k === "+")) write(activeStaff, holdSelected(s, floridLayout(STEP.cantus.length), noteValue), true);
+    else if (k === "Tab") setActive(mine[(mine.indexOf(activeStaff) + (e.shiftKey ? mine.length - 1 : 1)) % mine.length]);
     else if (k === "ArrowRight") browse(1);
     else if (k === "ArrowLeft") browse(-1);
-    else if ((k === "r" || k === "R") && activeStaff === STEP.movingIndex) update(activeStaff, { ...s, notes: s.notes.map((q, j) => (j === s.selected ? REST : q)) });
-    else if (k === "ArrowUp" || k === "ArrowDown") write(activeStaff, stepNote(s, (k === "ArrowUp" ? 1 : -1) * (e.shiftKey ? 7 : 1), startPitch(STEP, activeStaff)), false);
+    else if ((k === "r" || k === "R") && activeStaff === STEP.movingIndex) {
+      const rested = { ...s, notes: s.notes.map((q, j) => (j === s.selected ? REST : q)) };
+      if (FLORID) write(activeStaff, rested, true);
+      else update(activeStaff, rested);
+    } else if (k === "ArrowUp" || k === "ArrowDown") write(activeStaff, stepNote(FLORID && activeStaff === STEP.movingIndex ? select(s, onsetOf(s.notes, s.selected)) : s, (k === "ArrowUp" ? 1 : -1) * (e.shiftKey ? 7 : 1), startPitch(STEP, activeStaff)), false);
     else if (/^[a-gA-G]$/.test(k)) {
       const cur = s.notes[s.selected];
-      write(activeStaff, letterNote(s, k.toUpperCase() as Step, cur && cur !== REST ? cur : (s.lastWritten ?? startPitch(STEP, activeStaff))), true);
+      write(activeStaff, letterNote(s, k.toUpperCase() as Step, cur && cur !== REST && cur !== HOLD ? cur : (s.lastWritten ?? startPitch(STEP, activeStaff))), true);
     }
     else if (k === "#") update(activeStaff, applyAccidental(s, 1));
     else if (k === "-") update(activeStaff, applyAccidental(s, -1));
     else if (k === "n") update(activeStaff, applyAccidental(s, 0));
-    else if (k === "Delete" || k === "Backspace") update(activeStaff, clear(s));
+    else if (k === "Delete" || k === "Backspace") update(activeStaff, FLORID && activeStaff === STEP.movingIndex ? clearSpan(s) : clear(s));
     else if (k === " ") play(s.selected);
     else if (k === "p" || k === "P") play();
     else return;
@@ -370,7 +424,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
 
   // Two staves (D113): each voice by register; the player's two in their mixer colours.
   const mean = (line: (string | null)[]) => {
-    const ms = line.filter((x): x is string => !!x && x !== REST).map((x) => parsePitch(x).midi);
+    const ms = line.filter((x): x is string => !!x && x !== REST && x !== HOLD).map((x) => parsePitch(x).midi);
     return ms.reduce((a, b) => a + b, 0) / Math.max(1, ms.length);
   };
   // Placed by Fux's own lines (and the cantus), so that the staves do not change as the player writes.
@@ -388,7 +442,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
     notes: i === STEP.cantusIndex ? STEP.cantus : sessions[i].notes,
     editable: i !== STEP.cantusIndex,
     staff: layoutTwo.staff[i],
-    ...(i === STEP.movingIndex ? { per: STEP.per as 2 | 4, stem: stemOf(i) } : {}),
+    ...(i === STEP.movingIndex ? { per: STEP.per as 2 | 4 | 8, stem: stemOf(i) } : {}),
     ...(i === STEP.cantusIndex ? {} : { ink: INK[mine.indexOf(i)] }),
     ...(i !== STEP.cantusIndex && showFux && fuxOpen ? { fux: STEP.fux[i] } : {}),
   }));
@@ -423,9 +477,9 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
           </select>
           <select id="species" className="sel sel-species" value={species} aria-label={t("ui.nav.species")} onChange={(e) => goToSpecies(Number(e.target.value) as TrioSpecies)}>
             {[1, 2, 3, 4, 5].map((n) => (
-              <option key={n} value={n} disabled={n > 4}>
+              <option key={n} value={n}>
                 {t("ui.nav.speciesN", { n: ORDINAL[n] })}
-                {n <= 4 ? ` · ${BY_SPECIES[n as TrioSpecies].filter((x) => stars.includes(x.id)).length}/${BY_SPECIES[n as TrioSpecies].length}` : ""}
+                {` · ${BY_SPECIES[n as TrioSpecies].filter((x) => stars.includes(x.id)).length}/${BY_SPECIES[n as TrioSpecies].length}`}
               </option>
             ))}
           </select>
@@ -499,6 +553,18 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
             <button className="btn-acc" onClick={() => update(activeStaff, applyAccidental(session, -1))} aria-label="flat" title={t("ui.accidental.flat.help")}>♭</button>
             <button className="btn-acc" onClick={() => update(activeStaff, applyAccidental(session, 0))} aria-label="natural" title={t("ui.accidental.natural.help")}>♮</button>
             <button className="btn-acc" onClick={() => update(activeStaff, applyAccidental(session, 1))} aria-label="sharp" title={t("ui.accidental.sharp.help")}>♯</button>
+            {FLORID && activeStaff === STEP.movingIndex && (
+              <span className="values" role="radiogroup" aria-label={t("ui.value")}>
+                {([[1, "8"], [2, "4"], [3, "3"], [4, "2"], [6, "6"], [8, "1"]] as const).map(([n, key]) => (
+                  <button key={n} className="btn-val" role="radio" aria-checked={noteValue === n} aria-pressed={noteValue === n} onClick={() => setNoteValue(n)} title={t(`ui.value.${n}`, { key })} aria-label={t(`ui.value.${n}`, { key })}>
+                    <NoteIcon slots={n} />
+                  </button>
+                ))}
+                <button className="btn-hold" onClick={() => write(activeStaff, holdSelected(session, floridLayout(STEP.cantus.length), noteValue), true)} disabled={session.selected === 0 || session.notes[session.selected - 1] === null} title={t("ui.hold.help")}>
+                  {t("ui.hold")}
+                </button>
+              </span>
+            )}
             <button className="btn-edit" onClick={() => { setSessions(freshSessions(STEP)); setResult(null); }} title={t("ui.clearAll.help")}>{t("ui.clearAll")}</button>
           </div>
           <div className="group judge">

@@ -7,8 +7,8 @@
  * figured bass. One line, zoomed and scrolled sideways like the two-voice score (D100).
  */
 import { useEffect, useRef } from "react";
-import { Accidental, ModifierContext, Renderer, Stave, StaveConnector, StaveNote, StaveTie, TickContext } from "vexflow";
-import { REST } from "../../counterpoint/layout.ts";
+import { Accidental, Dot, ModifierContext, Renderer, Stave, StaveConnector, StaveNote, StaveTie, TickContext } from "vexflow";
+import { fifthGlyphs, REST, slotLayout } from "../../counterpoint/layout.ts";
 import { parsePitch } from "../../music/pitch.ts";
 import { noteName, type NameStyle } from "../../music/names.ts";
 import { harmonic } from "../../counterpoint/interval.ts";
@@ -29,8 +29,9 @@ export interface TrioVoice {
   /**
    * Species 2-4 (D114, D116): the voice moves in minims or ligatures (2 a bar) or crotchets (4);
    * `notes` (and `fux`) are its slots (one in the last bar; rests may stand anywhere).
+   * Fifth species (D117): 8 quaver slots a bar, a note held on by HOLD slots, as in two voices (D82).
    */
-  per?: 2 | 4;
+  per?: 2 | 4 | 8;
   /** Stem direction of its notes (up for the upper voice of a shared staff). */
   stem?: 1 | -1;
 }
@@ -72,7 +73,9 @@ interface Props {
 
 const BAR_W = 64;
 /** Wider bars when a voice moves in minims (or ligatures), wider still in crotchets. */
-const barWidth = (voices: TrioVoice[]) => (voices.some((v) => v.per === 4) ? 150 : voices.some((v) => v.per) ? 104 : BAR_W);
+const barWidth = (voices: TrioVoice[]) => (voices.some((v) => v.per === 8) ? 216 : voices.some((v) => v.per === 4) ? 150 : voices.some((v) => v.per) ? 104 : BAR_W);
+/** Florid notes: VexFlow duration and dots by length in quaver slots (as the two-voice score). */
+const FIFTH_DUR: Record<number, [string, number]> = { 1: ["8", 0], 2: ["q", 0], 3: ["q", 1], 4: ["h", 0], 5: ["h", 0], 6: ["h", 1], 7: ["h", 1], 8: ["w", 0] };
 const LEAD = 96;
 const NOTE_PAD = 14;
 const STAFF_Y = [28, 148];
@@ -174,13 +177,14 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     for (let j = 1; j < n; j++) staves.forEach((s) => ctx.fillRect(columns[j].left - 2, s.getYForLine(0), 1, s.getYForLine(4) - s.getYForLine(0)));
     ctx.restore();
 
-    const placeNote = (i: number, pitch: string, x: number, ink: string | null, diamond: boolean, duration: "w" | "h" | "q" = "w", stem: 1 | -1 = 1) => {
+    const placeNote = (i: number, pitch: string, x: number, ink: string | null, diamond: boolean, duration: string = "w", stem: 1 | -1 = 1, dots = 0) => {
       const clef = VEXFLOW_CLEF[p.clefs[i]].clef;
       if (pitch === REST) {
         // On the fourth line for the upper voice of a shared staff, the second for the lower one.
         const bass = p.clefs[i] === "bass";
         const key = stem === 1 ? (bass ? "f/3" : "d/5") : bass ? "b/2" : "g/4";
-        const r = new StaveNote({ keys: [key], duration: duration === "q" ? "qr" : duration === "w" ? "wr" : "hr", clef });
+        const r = new StaveNote({ keys: [key], duration: `${duration}r`, clef });
+        if (dots) Dot.buildAndAttach([r], { all: true });
         if (ink) r.setStyle({ fillStyle: ink, strokeStyle: ink });
         r.setStave(staves[i]);
         const tc = new TickContext();
@@ -196,6 +200,7 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
       const key = `${q.step.toLowerCase()}${acc ?? ""}/${q.octave}`;
       const note = new StaveNote({ keys: [diamond ? `${key}/D` : key], duration, clef, stem_direction: stem });
       if (acc) note.addModifier(new Accidental(acc));
+      if (dots) Dot.buildAndAttach([note], { all: true });
       if (ink) note.setStyle({ fillStyle: ink, strokeStyle: ink });
       note.setStave(staves[i]);
       const mc = new ModifierContext();
@@ -215,9 +220,22 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     for (let j = 0; j < n; j++) ctx.fillText(String(p.from + j + 1), columns[j].left + 4, STAFF_Y[0] + 20);
     ctx.restore();
     // Each voice's notes in a bar: one semibreve, or the moving voice's slots.
-    type Cell = { k: number; q: string | null; part: number; dur: "w" | "h" | "q" };
+    type Cell = { k: number; q: string | null; part: number; dur: string; dots?: number; tied?: boolean };
+    const florid = slotLayout("fifth", bars0);
     const inBar = (v: TrioVoice, bar: number, line: (string | null)[] | undefined): Cell[] => {
       if (!line) return [];
+      if (v.per === 8) {
+        // What begins in each quaver slot of the bar (a note held over the bar line: its tied continuation).
+        const gs = fifthGlyphs(line, florid);
+        const cells: Cell[] = [];
+        florid.forEach((sl, k) => {
+          const g = gs[k];
+          if (sl.bar !== bar || !g) return;
+          const last = sl.duration === "1/1";
+          cells.push({ k, q: g.value, part: sl.beat, dur: last ? "w" : FIFTH_DUR[g.slots][0], dots: last ? 0 : FIFTH_DUR[g.slots][1], tied: g.tied });
+        });
+        return cells;
+      }
       if (!v.per) return [{ k: bar, q: line[bar] ?? null, part: 0, dur: "w" }];
       if (bar === bars0 - 1) return [{ k: v.per * bar, q: line[v.per * bar] ?? null, part: 0, dur: "w" }];
       return Array.from({ length: v.per }, (_, h) => ({ k: v.per! * bar + h, q: line[v.per! * bar + h] ?? null, part: h, dur: v.per === 4 ? "q" : "h" }));
@@ -235,20 +253,29 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
       // Two voices a second apart (or in unison) on one staff: the lower one steps to the right.
       const shift = p.voices.map(() => 0);
       for (const st of [0, 1]) {
-        const on = p.voices.map((v, i) => ({ i, q: v.per ? (v.notes[v.per * bar] && v.notes[v.per * bar] !== REST ? v.notes[v.per * bar] : null) : v.notes[bar] })).filter((x) => x.q && p.voices[x.i].staff === st).sort((a, b) => parsePitch(b.q!).diatonic - parsePitch(a.q!).diatonic);
+        const on = p.voices.map((v, i) => ({ i, q: v.per ? ((c) => (c && c.part === 0 && c.q !== REST ? c.q : null))(inBar(v, bar, v.notes)[0]) : v.notes[bar] })).filter((x) => x.q && p.voices[x.i].staff === st).sort((a, b) => parsePitch(b.q!).diatonic - parsePitch(a.q!).diatonic);
         for (let k = 1; k < on.length; k++) if (parsePitch(on[k - 1].q!).diatonic - parsePitch(on[k].q!).diatonic <= 1 && !shift[on[k - 1].i]) shift[on[k].i] = 15;
       }
       p.voices.forEach((v, i) => {
         const fuxes = inBar(v, bar, v.fux);
-        inBar(v, bar, v.notes).forEach((e, n2) => {
+        const mineHere = inBar(v, bar, v.notes);
+        if (v.per === 8)
+          // Florid: Fux's notes stand at their own places in the bar (his rhythm may differ).
+          for (const f of fuxes) {
+            if (!f.q || f.q === REST) continue;
+            const e = mineHere.find((c) => c.part === f.part);
+            const near = e?.q && e.q !== REST && Math.abs(parsePitch(e.q).diatonic - parsePitch(f.q).diatonic) <= 1;
+            placeNote(v.staff, f.q, x + (f.part ? f.part * cellW(8) : shift[i]) + (near ? 9 : 0), "var(--ink-fux)", true, f.dur, v.stem ?? 1, f.dots ?? 0);
+          }
+        mineHere.forEach((e, n2) => {
           const at = x + (e.part ? e.part * cellW(v.per ?? 1) : shift[i]);
-          const fux = fuxes[n2]?.q;
+          const fux = v.per === 8 ? null : fuxes[n2]?.q;
           if (fux && fux !== REST) {
             const near = e.q && e.q !== REST && Math.abs(parsePitch(e.q).diatonic - parsePitch(fux).diatonic) <= 1;
             placeNote(v.staff, fux, at + (near ? 13 : 0), "var(--ink-fux)", true, e.dur, v.stem ?? 1);
           }
           if (!e.q) return;
-          const note = placeNote(v.staff, e.q, at, v.ink ?? null, false, e.dur, v.stem ?? 1);
+          const note = placeNote(v.staff, e.q, at, v.ink ?? null, false, e.dur, v.stem ?? 1, e.dots ?? 0);
           drawn[i].set(e.k, note);
           if (p.names && e.q !== REST) {
             // Names stand after the last notehead on the staff; two close notes' names part vertically.
@@ -299,6 +326,18 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     // The cadence tie (D114): an arsis held into the next thesis.
     p.voices.forEach((v, i) => {
       if (!v.per) return;
+      if (v.per === 8) {
+        // Florid (D117): a note held over the bar line, tied to its continuation.
+        const keys = [...drawn[i].keys()].sort((a, b) => a - b);
+        for (const c of Array.from({ length: n }, (_, j) => inBar(v, p.from + j, v.notes)).flat()) {
+          if (!c.tied || c.q === REST) continue;
+          const before = keys.filter((k) => k < c.k).pop();
+          const a = before !== undefined ? drawn[i].get(before) : undefined;
+          const b = drawn[i].get(c.k);
+          if (a && b) new StaveTie({ first_note: a, last_note: b, first_indices: [0], last_indices: [0] }).setContext(ctx).draw();
+        }
+        return;
+      }
       for (const [k, a] of drawn[i]) {
         const b = drawn[i].get(k + 1);
         if (k % v.per === v.per - 1 && b && v.notes[k] && v.notes[k] !== REST && v.notes[k] === v.notes[k + 1]) new StaveTie({ first_note: a, last_note: b, first_indices: [0], last_indices: [0] }).setContext(ctx).draw();
