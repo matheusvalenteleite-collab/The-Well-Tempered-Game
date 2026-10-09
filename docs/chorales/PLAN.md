@@ -105,8 +105,20 @@ derived fact can be traced back to the source.
 
      All 30,050 sonorities are read. The tests are marked for checking against his text, which
      could not be reached yet.
-   - Still to come: spacing, doubling, and the leading tone; then the same layer over Kittel's
-     basses. There, the fundamental chord comes from the bass, its figure and the melody.
+   - The same reading over Kittel's 194 basses (`data/chorales/kittel/analysis/`). Each
+     fundamental chord is built from the bass, its figure as a continuo player reads it, and
+     the melody.
+   - Kittel against Bach (`KITTEL-BACH.md`): each melody note is aligned with its note in Bach's
+     soprano, and the fundamental chords under the two are compared.
+
+     | comparison | same root | same root at cadences |
+     |---|---|---|
+     | Kittel's basses against Bach's settings | 53% | 75% |
+     | two of Bach's own settings of one tune (benchmark) | 69% | 86% |
+
+     Kittel's bass [1] is the closest to Bach (59%); agreement falls slowly with the number of
+     the bass ([8] 50%, [9] 45%).
+   - Still to come: spacing, doubling and the leading tone in Bach.
 6. **Knowledge write-up** (`docs/chorales/`): principles and habits with counts and examples,
    for the owner to read and correct before any of it becomes a game rule.
 

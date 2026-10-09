@@ -22,7 +22,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "chorales:concordance": "python3 tools/chorales/concordance.py",
-    "chorales:analyse": "python3 tools/chorales/bach_analyse.py"
+    "chorales:analyse": "python3 tools/chorales/bach_analyse.py && python3 tools/chorales/kittel_analyse.py"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

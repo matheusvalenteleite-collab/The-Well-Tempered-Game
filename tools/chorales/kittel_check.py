@@ -199,6 +199,82 @@ def sounding(notes: list[dict], t: F) -> dict | None:
     return None
 
 
+def harmonies(b: dict):
+    """Read one figured bass as a continuo player does. Yields, for every onset of a bass note or a
+    figure, (t, the bass note sounding, the bass note the chord stands on, the chord's rows, the
+    figure if one stands here). Dashes and extender lines hold rows over a moving bass; an
+    unfigured bass note off the minim beat passes under the harmony before it."""
+    figs = [f for f in b["figures"] if f["onset"]]
+    fig_at = {F(f["onset"]): f for f in figs}
+    times = sorted({F(n["offset"]) for n in b["notes"] if not n["rest"]} | set(fig_at))
+    held: dict[int, dict] = {}
+    last: dict[float, dict] = {}
+    current: dict[int, dict] = {}
+    chord_bass = None
+    for t in times:
+        bn = sounding(b["notes"], t)
+        if bn is None or bn["rest"]:
+            continue
+        new_note = F(bn["offset"]) == t
+        if t in fig_at:
+            st = fig_at[t]["stack"]
+            x = fig_at[t]["x"]
+            held = {hy: r for hy, r in held.items() if r.get("extender_to_x", 1e9) >= x - 2}
+            if all(r.get("continuation") for r in st):
+                pass  # dashes alone: the previous chord holds over this bass note
+            else:
+                current = expand(st, held, last)
+                current = {k: (r if "_bass" in r else dict(r, _bass=bn["pitch"])) for k, r in current.items()}
+                new_last = {}
+                for r in st:
+                    if r.get("continuation"):
+                        prev = next((lr for ly, lr in last.items() if abs(ly - r["y"]) < 1.5), None)
+                        if prev is not None:
+                            new_last[r["y"]] = prev
+                    else:
+                        new_last[r["y"]] = dict(r, _bass=bn["pitch"])
+                last = new_last
+                kept = {y: r for y, r in new_last.items() if "extender_to_x" in r}
+                for r in st:
+                    if r.get("continuation"):
+                        hy = next((hy for hy in held if abs(hy - r["y"]) < 1.5), None)
+                        if hy is not None:
+                            kept[r["y"]] = held[hy]
+                held = kept
+            chord_bass = bn
+        elif new_note:
+            # An unfigured bass note off the minim beat passes: the harmony holds. On the beat
+            # it carries a plain triad.
+            if (t * 2).denominator != 1 and chord_bass is not None:
+                continue
+            if held and bn.get("_x") is not None and any(r.get("extender_to_x", 0) > bn["_x"] for r in held.values()):
+                continue  # an extender line runs over this note: the figured chord holds
+            current = {k: dict(r, _bass=bn["pitch"]) for k, r in expand([], {}).items()}
+            held = {}
+            last = {}
+            chord_bass = bn
+        yield t, bn, chord_bass, current, fig_at.get(t)
+
+
+def chord_spelling(bass: str, full: dict[int, dict], ks: dict[str, int]) -> list[str] | None:
+    """The pitch classes of a figured chord, spelled (letter and accidental), bass first."""
+    if 0 in full:
+        return None
+    step, alter, _ = parse(bass)
+    out = [step + ("#" * alter if alter > 0 else "b" * -alter)]
+    for k, r in full.items():
+        k = k if k <= 8 else k - 7
+        rstep = parse(r["_bass"])[0] if "_bass" in r else step
+        st = STEPS[(STEPS.index(rstep) + k - 1) % 7]
+        a = ks.get(st, 0)
+        acc = r.get("accidental")
+        a = a + 1 if acc == "sharp" else a - 1 if acc == "flat" else 0 if acc == "natural" else a
+        if r.get("raised"):
+            a += 1
+        out.append(st + ("#" * a if a > 0 else "b" * -a))
+    return out
+
+
 def check(c: dict) -> tuple[int, int, list[str]]:
     ks = key_alters(c["key_signature"])
     melody = melody_timeline(c["melody"]["notes"])
@@ -206,55 +282,7 @@ def check(c: dict) -> tuple[int, int, list[str]]:
     bad = []
     chromatic: list[str] = []
     for b in c["basses"]:
-        figs = [f for f in b["figures"] if f["onset"]]
-        fig_at = {F(f["onset"]): f for f in figs}
-        times = sorted({F(n["offset"]) for n in b["notes"] if not n["rest"]} | set(fig_at))
-        held: dict[int, dict] = {}
-        last: dict[float, dict] = {}
-        current: dict[int, dict] = {}
-        chord_bass = None
-        for t in times:
-            bn = sounding(b["notes"], t)
-            if bn is None or bn["rest"]:
-                continue
-            new_note = F(bn["offset"]) == t
-            if t in fig_at:
-                st = fig_at[t]["stack"]
-                x = fig_at[t]["x"]
-                held = {hy: r for hy, r in held.items() if r.get("extender_to_x", 1e9) >= x - 2}
-                if all(r.get("continuation") for r in st):
-                    pass  # dashes alone: the previous chord holds over this bass note
-                else:
-                    current = expand(st, held, last)
-                    current = {k: (r if "_bass" in r else dict(r, _bass=bn["pitch"])) for k, r in current.items()}
-                    new_last = {}
-                    for r in st:
-                        if r.get("continuation"):
-                            prev = next((lr for ly, lr in last.items() if abs(ly - r["y"]) < 1.5), None)
-                            if prev is not None:
-                                new_last[r["y"]] = prev
-                        else:
-                            new_last[r["y"]] = dict(r, _bass=bn["pitch"])
-                    last = new_last
-                    kept = {y: r for y, r in new_last.items() if "extender_to_x" in r}
-                    for r in st:
-                        if r.get("continuation"):
-                            hy = next((hy for hy in held if abs(hy - r["y"]) < 1.5), None)
-                            if hy is not None:
-                                kept[r["y"]] = held[hy]
-                    held = kept
-                chord_bass = bn
-            elif new_note:
-                # An unfigured bass note off the minim beat passes: the harmony holds. On the beat
-                # it carries a plain triad.
-                if (t * 2).denominator != 1 and chord_bass is not None:
-                    continue
-                if held and bn.get("_x") is not None and any(r.get("extender_to_x", 0) > bn["_x"] for r in held.values()):
-                    continue  # an extender line runs over this note: the figured chord holds
-                current = {k: dict(r, _bass=bn["pitch"]) for k, r in expand([], {}).items()}
-                held = {}
-                last = {}
-                chord_bass = bn
+        for t, bn, chord_bass, current, fig in harmonies(b):
             pcs = chord_pcs(chord_bass["pitch"], current, ks)
             m = sounding(melody, t)
             if pcs is None or m is None or m["rest"]:
@@ -269,7 +297,6 @@ def check(c: dict) -> tuple[int, int, list[str]]:
                 ok += 1
                 chromatic.append(f"{b['label']} m.{bn.get('measure')} t={t}: melody {m['pitch']} over {bn['pitch']}")
             else:
-                fig = fig_at.get(t)
                 desc = "/".join(str(r.get("interval", r.get("accidental", "-"))) for r in fig["stack"]) if fig else "(none)"
                 kind = melodic_kind(melody, m, t, pcs)
                 if kind == "held over a change of harmony":

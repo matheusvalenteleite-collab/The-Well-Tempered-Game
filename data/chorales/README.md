@@ -108,5 +108,13 @@ A figure is `{onset, placed, x, page, stack}`.
 - A figure can stand over an empty bar: the resolution of a cadence over the bass note held under
   its fermata.
 
+### `kittel/analysis/`: Kirnberger's reading of each bass
+
+`kittel_NN.json` holds, for each bass, its harmonies. Each harmony has an onset, the bass, the
+chord bass, the figure spelled out, the root and kind of the fundamental chord, the bass's role,
+and the melody's role (or "incidental"). The comparison with Bach, one row per Kittel bass and
+Bach setting, is in `data/chorales/kittel_bach_comparison.json` and summarised in
+`docs/chorales/KITTEL-BACH.md`.
+
 Source: the 1811 text is in the public domain (owner). The PDF is a modern Dorico engraving,
 vendored at `data/sources/kittel-24/`.
