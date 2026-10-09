@@ -12,10 +12,10 @@ Regular countersubjects: 12 of 48 fugues; used both above and below the subject 
 **Intervals between the answer and the countersubject** (simple, by letter; at every onset of
 either line), in the fugues with a regular countersubject:
 
-- on the beat: 8/1: 6%, 3: 37%, 5: 10%, 6: 24%, 4: 14%, 2: 6%, 7: 4% (n = 109)
-- off the beat: 8/1: 7%, 3: 20%, 5: 13%, 6: 26%, 4: 17%, 2: 10%, 7: 7% (n = 196)
+- on the beat: 8/1: 6%, 3: 36%, 5: 8%, 6: 30%, 4: 11%, 2: 4%, 7: 3% (n = 96)
+- off the beat: 8/1: 8%, 3: 20%, 5: 14%, 6: 24%, 4: 16%, 2: 10%, 7: 7% (n = 207)
 
-For comparison, on the beat between the answer and free counterpoint (fugues without a regular countersubject): 8/1: 4%, 3: 33%, 5: 11%, 6: 27%, 4: 8%, 2: 8%, 7: 8% (n = 368).
+For comparison, on the beat between the answer and free counterpoint (fugues without a regular countersubject): 8/1: 4%, 3: 33%, 5: 12%, 6: 26%, 4: 9%, 2: 8%, 7: 8% (n = 381).
 
 **Reading.** Inverted at the octave, a third becomes a sixth and a sixth a third (both still
 consonant); an octave stays an octave; but a fifth becomes a fourth, a dissonance against the
@@ -30,26 +30,26 @@ uses, and only where the countersubject is the lowest sounding voice.
 
 | fugue | countersubject notes | later entries with it | kind | where |
 |---|---|---|---|---|
-| Fugue 1 in C major (I) | 14 | 1 of 23 | free | 0 above, 1 below |
-| Fugue 2 in C minor (I) | 19 | 5 of 6 | regular | 2 above, 3 below |
-| Fugue 3 in C♯ major (I) | 25 | 4 of 5 | regular | 3 above, 1 below |
+| Fugue 1 in C major (I) | 14 | 1 of 22 | free | 0 above, 1 below |
+| Fugue 2 in C minor (I) | 19 | 5 of 7 | regular | 2 above, 3 below |
+| Fugue 3 in C♯ major (I) | 25 | 7 of 17 | regular | 5 above, 2 below |
 | Fugue 4 in C♯ minor (I) | 12 | 1 of 13 | free | 0 above, 1 below |
-| Fugue 5 in D major (I) | 8 | 2 of 16 | free | 0 above, 2 below |
+| Fugue 5 in D major (I) | 8 | 2 of 15 | free | 0 above, 2 below |
 | Fugue 6 in D minor (I) | 22 | 1 of 2 | free | 1 above, 0 below |
-| Fugue 7 in E♭ major (I) | 20 | 3 of 10 | free | 3 above, 0 below |
-| Fugue 8 in D♯ minor (I) | 15 | 1 of 30 | free | 0 above, 1 below |
-| Fugue 9 in E major (I) | 21 | 4 of 11 | regular | 3 above, 1 below |
+| Fugue 7 in E♭ major (I) | 20 | 3 of 8 | regular | 3 above, 0 below |
+| Fugue 8 in D♯ minor (I) | 15 | 1 of 26 | free | 0 above, 1 below |
+| Fugue 9 in E major (I) | 21 | 4 of 10 | regular | 3 above, 1 below |
 | Fugue 10 in E minor (I) | 38 | 2 of 7 | free | 1 above, 1 below |
 | Fugue 11 in F major (I) | 20 | 3 of 12 | free | 2 above, 1 below |
-| Fugue 12 in F minor (I) | 27 | 2 of 2 | regular | 1 above, 1 below |
+| Fugue 12 in F minor (I) | 27 | 8 of 9 | regular | 5 above, 3 below |
 | Fugue 13 in F♯ major (I) | 25 | 4 of 6 | regular | 2 above, 2 below |
 | Fugue 14 in F♯ minor (I) | 20 | 1 of 7 | free | 0 above, 1 below |
 | Fugue 15 in G major (I) | 36 | 2 of 12 | free | 2 above, 0 below |
 | Fugue 16 in G minor (I) | 11 | 4 of 15 | free | 1 above, 3 below |
 | Fugue 17 in A♭ major (I) | 13 | 0 of 12 | free | – |
-| Fugue 18 in G♯ minor (I) | 15 | 7 of 11 | regular | 4 above, 3 below |
-| Fugue 19 in A major (I) | 15 | 1 of 20 | free | 1 above, 0 below |
-| Fugue 20 in A minor (I) | 25 | 1 of 33 | free | 0 above, 1 below |
+| Fugue 18 in G♯ minor (I) | 15 | 7 of 12 | regular | 4 above, 3 below |
+| Fugue 19 in A major (I) | 15 | 1 of 17 | free | 1 above, 0 below |
+| Fugue 20 in A minor (I) | 25 | 1 of 34 | free | 0 above, 1 below |
 | Fugue 21 in B♭ major (I) | 27 | 1 of 4 | free | 1 above, 0 below |
 | Fugue 22 in B♭ minor (I) | 14 | 1 of 17 | free | 1 above, 0 below |
 | Fugue 23 in B major (I) | 20 | 2 of 10 | free | 0 above, 2 below |
@@ -59,22 +59,22 @@ uses, and only where the countersubject is the lowest sounding voice.
 | Fugue 3 in C♯ major (II) | 5 | 5 of 12 | regular | 2 above, 3 below |
 | Fugue 4 in C♯ minor (II) | 9 | 1 of 14 | free | 0 above, 1 below |
 | Fugue 5 in D major (II) | 6 | 6 of 21 | free | 3 above, 3 below |
-| Fugue 6 in D minor (II) | 22 | 3 of 13 | free | 1 above, 2 below |
+| Fugue 6 in D minor (II) | 22 | 3 of 11 | free | 1 above, 2 below |
 | Fugue 7 in E♭ major (II) | 26 | 1 of 10 | free | 0 above, 1 below |
 | Fugue 8 in D♯ minor (II) | 16 | 6 of 15 | regular | 3 above, 3 below |
 | Fugue 9 in E major (II) | 16 | 3 of 18 | free | 1 above, 2 below |
 | Fugue 10 in E minor (II) | 32 | 2 of 8 | free | 1 above, 1 below |
-| Fugue 11 in F major (II) | 16 | 1 of 8 | free | 1 above, 0 below |
+| Fugue 11 in F major (II) | 16 | 1 of 6 | free | 1 above, 0 below |
 | Fugue 12 in F minor (II) | 30 | 1 of 8 | free | 1 above, 0 below |
 | Fugue 13 in F♯ major (II) | 15 | 3 of 8 | regular | 1 above, 2 below |
 | Fugue 14 in F♯ minor (II) | 14 | 1 of 10 | free | 0 above, 1 below |
 | Fugue 15 in G major (II) | 25 | 1 of 5 | free | 1 above, 0 below |
 | Fugue 16 in G minor (II) | 38 | 5 of 14 | regular | 3 above, 2 below |
 | Fugue 17 in A♭ major (II) | 13 | 2 of 13 | free | 1 above, 1 below |
-| Fugue 18 in G♯ minor (II) | 11 | 1 of 4 | free | 1 above, 0 below |
-| Fugue 19 in A major (II) | 14 | 1 of 9 | free | 0 above, 1 below |
+| Fugue 18 in G♯ minor (II) | 11 | 2 of 11 | free | 1 above, 1 below |
+| Fugue 19 in A major (II) | 14 | 1 of 12 | free | 0 above, 1 below |
 | Fugue 20 in A minor (II) | 38 | 2 of 7 | free | 0 above, 2 below |
-| Fugue 21 in B♭ major (II) | 13 | 1 of 18 | free | 0 above, 1 below |
+| Fugue 21 in B♭ major (II) | 13 | 1 of 13 | free | 0 above, 1 below |
 | Fugue 22 in B♭ minor (II) | 15 | 2 of 23 | free | 0 above, 2 below |
-| Fugue 23 in B major (II) | 25 | 3 of 4 | regular | 0 above, 3 below |
+| Fugue 23 in B major (II) | 25 | 3 of 13 | free | 0 above, 3 below |
 | Fugue 24 in B minor (II) | 32 | 2 of 8 | free | 1 above, 1 below |

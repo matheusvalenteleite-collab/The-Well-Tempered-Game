@@ -84,3 +84,21 @@ test("structure: Book I's C major fugue is all strettos and almost no episodes",
   const ep = episodes(f1, e, subject);
   assert.ok(ep.reduce((a, g) => a + g.end - g.on, 0) < 0.2 * f1.length);
 });
+
+test("exposition and entries: Book I's C minor fugue", async () => {
+  const { findEntriesByHead } = await import("../src/wtc/fugue.ts");
+  const { exposition } = await import("../src/wtc/exposition.ts");
+  const p = fugues.find((f) => f.id === "wtc1f02")!;
+  const { subject, answer } = subjectAndAnswer(p);
+  const { entries } = findEntriesByHead(p, subject);
+  // Bach's eight entries (bars 1, 3, 7, 11, 15, 20, 26, 29); the episodes' sequences on the head are not entries.
+  const bar = 4 * TPQ;
+  assert.deepEqual(entries.map((e) => Math.floor(e.on / bar) + 1), [1, 3, 7, 11, 15, 20, 26, 29]);
+  const ex = exposition(p, subject, answer, entries);
+  assert.deepEqual(ex.map((e) => [e.voice, e.role]), [[1, "subject"], [0, "answer"], [2, "subject"]]);
+  assert.ok(ex[2].link >= 2 * bar - TPQ); // the two-bar episode before the bass enters
+  // Book I's C major: alto, soprano, tenor, bass, the tenor with the answer (I V V I).
+  const c = fugues.find((f) => f.id === "wtc1f01")!;
+  const sc = subjectAndAnswer(c);
+  assert.deepEqual(exposition(c, sc.subject, sc.answer, findEntriesByHead(c, sc.subject).entries).map((e) => e.roman), ["I", "V", "V", "I"]);
+});

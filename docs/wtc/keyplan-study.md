@@ -10,40 +10,40 @@ fugues whose subject the analysis cuts short or long show few entries.
 
 ## The keys of the middle and final entries
 
-- in major fugues: I 29%, V 27%, vi 13%, IV 11%, ii 7%, iii 7%, VI 2%, III 1%, v 1%, vii 1%, II 0% (212)
-- in minor fugues: i 31%, iv 17%, III 10%, v 10%, VII 9%, VI 6%, V 5%, I 5%, IV 3%, ii 3%, vii 2%, iii 1% (197)
+- in major fugues: I 30%, V 27%, vi 14%, IV 10%, ii 7%, iii 6%, VI 2%, vii 2%, III 1%, v 1%, II 0% (221)
+- in minor fugues: i 32%, iv 16%, v 11%, III 10%, VII 8%, I 6%, V 5%, VI 5%, IV 2%, ii 2%, vii 1%, iii 0% (208)
 
 The first key away from tonic and dominant:
 
-- in major fugues: vi 52%, ii 17%, IV 13%, iii 9%, II 4%, VI 4% (23)
-- in minor fugues: III 48%, iv 33%, IV 5%, iii 5%, VI 5%, VII 5% (21)
+- in major fugues: vi 54%, ii 17%, IV 13%, iii 8%, II 4%, VI 4% (24)
+- in minor fugues: III 50%, iv 32%, IV 5%, iii 5%, VI 5%, VII 5% (22)
 
 | fugue | exposition | middle and final entries |
 |---|---|---|
-| Fugue 1 in C major (I) | I V V I | I V V V II III I V V V I V VI ii VI iii V vii I IV |
-| Fugue 2 in C minor (I) | i v i | III v i i |
-| Fugue 3 in C♯ major (I) | I V I | vi I V |
+| Fugue 1 in C major (I) | I V V I | I V V V II III I V V I V VI ii VI iii V vii I IV |
+| Fugue 2 in C minor (I) | i v i | III v i i i |
+| Fugue 3 in C♯ major (I) | I V I | V vi iii I vii V I I vii V IV I V I I |
 | Fugue 4 in C♯ minor (I) | i v i i | v iv i VII III i iv i i VII |
-| Fugue 5 in D major (I) | I V I V | I vi IV IV I vi I IV ii iii IV iii I |
+| Fugue 5 in D major (I) | I V I V | I vi IV I vi I IV ii vi IV iii I |
 | Fugue 6 in D minor (I) | i v i | – |
-| Fugue 7 in E♭ major (I) | I V I | V iii vi V IV V I V |
-| Fugue 8 in D♯ minor (I) | i v i | V IV v v I ii VII III VI iv iv iv V i i III VI III i iv VII V |
-| Fugue 9 in E major (I) | I V I | I V V vi I I V I I |
+| Fugue 7 in E♭ major (I) | I V I | V iii vi V I V |
+| Fugue 8 in D♯ minor (I) | i v i | V IV v v I ii VII III VI iv iv iv i III VI III i iv |
+| Fugue 9 in E major (I) | I V I | I V V vi I V I I |
 | Fugue 10 in E minor (I) | i v | iii vii iv i vii iv |
 | Fugue 11 in F major (I) | I V I | I V I I vi vi vi ii ii ii |
-| Fugue 12 in F minor (I) | I V I | – |
+| Fugue 12 in F minor (I) | I V I I | V I III VII V I |
 | Fugue 13 in F♯ major (I) | I V I | V vi IV I |
 | Fugue 14 in F♯ minor (I) | I V I I | I I |
 | Fugue 15 in G major (I) | I V I | vi iii iii V iii |
 | Fugue 16 in G minor (I) | i v i v | III VII VII III vii iv iv i i i i i |
 | Fugue 17 in A♭ major (I) | I I | I vi ii v V I I vi IV ii I |
 | Fugue 18 in G♯ minor (I) | i iv i iv | iv iv i iv v VI I iv |
-| Fugue 19 in A major (I) | I V I | V I vi I V vi V IV IV v VI III IV V I V vi IV |
-| Fugue 20 in A minor (I) | i v i v | i i v v i i III III iv i I i I |
+| Fugue 19 in A major (I) | I V I | V I vi vi I V vi V IV IV v III IV I V |
+| Fugue 20 in A minor (I) | i v i v | i i v v i i III III iv i I v i I |
 | Fugue 21 in B♭ major (I) | I I vi | ii IV |
 | Fugue 22 in B♭ minor (I) | i v i V I | iv I IV ii VII iv VII V i iv i iv i |
 | Fugue 23 in B major (I) | I V I V | I V I IV I V |
-| Fugue 24 in B minor (I) | i IV i IV | i iv i i IV VII III VI v IV i i iv |
+| Fugue 24 in B minor (I) | i IV i IV | i iv V i i I IV III v IV i i iv |
 | Fugue 1 in C major (II) | I V I | ii vi V I V |
 | Fugue 2 in C minor (II) | i v i | V V iv i v I IV VII III V i V iv I iv |
 | Fugue 3 in C♯ major (II) | I V | I V I V V iii III VI V |
@@ -54,17 +54,17 @@ The first key away from tonic and dominant:
 | Fugue 8 in D♯ minor (II) | i v i v | iv III VI i iv i VII VI i i i |
 | Fugue 9 in E major (II) | I V I V | V I V I I V V ii I ii V I V I V |
 | Fugue 10 in E minor (II) | i v i | III VII v i iv i |
-| Fugue 11 in F major (II) | I V I | V I IV vii I ii |
+| Fugue 11 in F major (II) | I V I | V I IV ii |
 | Fugue 12 in F minor (II) | i v i | III VII i i iv i |
 | Fugue 13 in F♯ major (II) | I V I | V I VI IV I I |
 | Fugue 14 in F♯ minor (II) | i v i | i III iv VI v iv v i |
 | Fugue 15 in G major (II) | I V I | vi iii I |
 | Fugue 16 in G minor (II) | i v i v | i v III VII ii VII ii iv i VI i |
 | Fugue 17 in A♭ major (II) | I V I V | I V I I vi v ii IV I V |
-| Fugue 18 in G♯ minor (II) | i v i | v VI |
-| Fugue 19 in A major (II) | I V I | V vi iii I IV V I |
+| Fugue 18 in G♯ minor (II) | i v i | i v v i i v VI i i |
+| Fugue 19 in A major (II) | I V I | V vi iii I IV V vi IV vii I |
 | Fugue 20 in A minor (II) | i v i | III v i iv i |
-| Fugue 21 in B♭ major (II) | I V I | V V I V I vi iii vi IV vi ii V IV V I IV |
+| Fugue 21 in B♭ major (II) | I V I | V V I V I vi IV vi ii V IV |
 | Fugue 22 in B♭ minor (II) | i v i v | i VII III ii VI i i VI |
-| Fugue 23 in B major (II) | I V I V | I |
+| Fugue 23 in B major (II) | I V I V | I V I V vi IV vi I V I |
 | Fugue 24 in B minor (II) | i v i | v III VII v iv i |

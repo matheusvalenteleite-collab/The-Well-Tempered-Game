@@ -13,6 +13,7 @@ import { degree, findEntriesByHead, line, names, predictAnswer, subjectAndAnswer
 import { TUNINGS, type TuningId } from "../wtc/tunings.ts";
 import { entryKey } from "../wtc/keyplan.ts";
 import { reduce, type Segment } from "../wtc/reduction.ts";
+import { exposition } from "../wtc/exposition.ts";
 import { episodes, strettos, type Episode } from "../wtc/structure.ts";
 import { parsePitch } from "../music/pitch.ts";
 import { playNotes, playPiece, stop } from "./keyboard.ts";
@@ -23,6 +24,7 @@ import answerStudy from "../../docs/wtc/answer-study.md?raw";
 import csStudy from "../../docs/wtc/countersubject-study.md?raw";
 import keyplanStudy from "../../docs/wtc/keyplan-study.md?raw";
 import structureStudy from "../../docs/wtc/structure-study.md?raw";
+import expositionStudy from "../../docs/wtc/exposition-study.md?raw";
 import crosscheck from "../../docs/wtc/crosscheck.md?raw";
 
 const FUGUES = fugueData as unknown as WtcPiece[];
@@ -314,7 +316,7 @@ function KeyPlanExercise({ p, a, tuning }: { p: WtcPiece; a: Analysis; tuning: T
     <fieldset className="lab-panel">
       <legend>Exercise: plan the keys</legend>
       <p className="lab-prose">
-        After the exposition the subject comes back in other keys. For each later entry, choose the key you would put it in; then compare with Bach and hear his entry. Bach's habit in the 48: major fugues go first to the relative minor (vi), then IV and ii; minor fugues to the relative major (III), then iv and VII (docs/wtc/keyplan-study.md). The keys are read automatically from the entries; a few in secondary keys may be misread (major for minor).
+        After the exposition the subject comes back in other keys. For each later entry, choose the key you would put it in; then compare with Bach and hear his entry. Bach's habit in the 48: the first key away from tonic and dominant is, in major fugues, the relative minor (vi) about half the time, then ii and IV; in minor fugues, the relative major (III) half the time, then iv (docs/wtc/keyplan-study.md). The keys are read automatically from the entries; a few in secondary keys may be misread (major for minor).
       </p>
       <div className="lab-table-wrap">
         <table className="lab-table">
@@ -350,6 +352,107 @@ function KeyPlanExercise({ p, a, tuning }: { p: WtcPiece; a: Analysis; tuning: T
       <div className="lab-actions">
         <button className="primary" onClick={() => setChecked(true)}>Compare with Bach</button>
         {checked && <span>{right} of {middle.length} as Bach placed them.</span>}
+      </div>
+    </fieldset>
+  );
+}
+
+/* ---------------------------------------------------------------- level 4: the exposition */
+
+/** Move a line by octaves so that its average pitch lies nearest a target. */
+function toRegister(notes: Note[], target: number): Note[] {
+  const avg = notes.reduce((x, n) => x + midi(n.pitch), 0) / notes.length;
+  const k = Math.round((target - avg) / 12);
+  return notes.map((n) => ({ ...n, pitch: transpose(n.pitch, 7 * k, 12 * k) }));
+}
+
+function ExpositionExercise({ p, a, tuning }: { p: WtcPiece; a: Analysis; tuning: TuningId }) {
+  const bach = useMemo(() => exposition(p, a.subject, a.answer, a.entries), [p, a]);
+  const n = p.voices.length;
+  const names = VOICE_NAMES[n] ?? p.voices.map((_, i) => `voice ${i + 1}`);
+  const [plan, setPlan] = useState<{ voice: number; role: "subject" | "answer" }[]>([]);
+  const [checked, setChecked] = useState(false);
+  useEffect(() => (setPlan(bach.map((_, i) => ({ voice: -1, role: i % 2 ? "answer" : "subject" }))), setChecked(false)), [bach]);
+  if (bach.length < 2 || plan.length !== bach.length) return null;
+  const len = a.subject[a.subject.length - 1].on + a.subject[a.subject.length - 1].dur - a.subject[0].on;
+  const expoEnd = bach[bach.length - 1].on + len;
+  // Each voice's register: its average pitch over the exposition.
+  const register = p.voices.map((v) => {
+    const ns = line(v).filter((x) => x.on < expoEnd);
+    return ns.length ? ns.reduce((x, m) => x + midi(m.pitch), 0) / ns.length : 60;
+  });
+  const used = new Set(plan.map((x) => x.voice));
+  const complete = plan.every((x) => x.voice >= 0) && used.size === plan.length;
+  const playPlan = () =>
+    playNotes(
+      plan.flatMap((x, i) => {
+        const src = x.role === "subject" ? a.subject : a.answer;
+        const shift = bach[i].on - src[0].on;
+        return toRegister(src, register[x.voice]).map((m) => ({ ...m, on: m.on + shift }));
+      }),
+      tuning,
+    );
+  const playBach = () => playNotes(p.voices.flatMap((v) => line(v).filter((x) => x.on < expoEnd)), tuning);
+  const voiceRight = (i: number) => plan[i].voice === bach[i].voice;
+  const roleRight = (i: number) => bach[i].role === "free" || bach[i].role === "other" || plan[i].role === bach[i].role;
+  const right = plan.filter((_, i) => voiceRight(i) && roleRight(i)).length;
+  const [num, den] = p.meter.split("/").map(Number);
+  const beat = (4 * TPQ) / den;
+  const bar = num * beat;
+  return (
+    <fieldset className="lab-panel">
+      <legend>Exercise: plan the exposition</legend>
+      <p className="lab-prose">
+        A fugue in {n} voices begins with each voice entering in turn: the subject in the tonic, the answer in the dominant. Choose the order the voices come in and, for each, subject or answer; hear your plan (the entries alone, at Bach's distances, in each voice's register), then compare with Bach. His habits in the 48 (docs/wtc/exposition-study.md): subject and answer alternate in 42 of the 48; each new voice is usually next to the one before (three times in four); the first voice is as often an inner one as an outer; a short link (codetta) comes before the third entry in about 60% of the fugues, almost never before the second.
+      </p>
+      <div className="lab-table-wrap">
+        <table className="lab-table">
+          <thead>
+            <tr>
+              <th>entry</th>
+              <th>voice</th>
+              <th>subject or answer</th>
+              {checked && <th>Bach</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {plan.map((x, i) => (
+              <tr key={i} className={checked && !(voiceRight(i) && roleRight(i)) ? "lab-illegal" : ""}>
+                <td>{i + 1}</td>
+                <td>
+                  <select value={x.voice} onChange={(ev) => (setPlan((ps) => ps.map((y, j) => (j === i ? { ...y, voice: Number(ev.target.value) } : y))), setChecked(false))}>
+                    <option value={-1}>–</option>
+                    {names.map((nm, v) => (
+                      <option key={v} value={v} disabled={used.has(v) && x.voice !== v}>{nm}</option>
+                    ))}
+                  </select>
+                </td>
+                <td>
+                  <select value={x.role} onChange={(ev) => (setPlan((ps) => ps.map((y, j) => (j === i ? { ...y, role: ev.target.value as "subject" | "answer" } : y))), setChecked(false))}>
+                    <option value="subject">subject (tonic)</option>
+                    <option value="answer">answer (dominant)</option>
+                  </select>
+                </td>
+                {checked && (
+                  <td>
+                    <b>{names[bach[i].voice]}</b>, {bach[i].role === "free" ? "not with the subject (a free entry, or one the analysis does not recognise)" : bach[i].role === "other" ? `in ${bach[i].roman}` : bach[i].role}
+                    {i > 0 && bach[i].link >= beat ? `, after a link of ${Math.round((bach[i].link / bar) * 4) / 4} bar${Math.round((bach[i].link / bar) * 4) / 4 > 1 ? "s" : ""}` : ""}
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="lab-actions">
+        <button onClick={playPlan} disabled={!complete}>▶ your plan</button>
+        <button className="primary" onClick={() => setChecked(true)} disabled={!complete}>Compare with Bach</button>
+        {checked && (
+          <>
+            <button onClick={playBach}>▶ Bach's exposition</button>
+            <span>{right} of {plan.length} entries as Bach planned them.</span>
+          </>
+        )}
       </div>
     </fieldset>
   );
@@ -534,15 +637,18 @@ export function WtcTab() {
       )}
       {a && <Timeline p={p} a={a} onPlayFrom={(t) => (setFrom(t), playPiece(p, { tuning, bpm, from: t, voices: voicesOn, onTick: setTick }))} />}
       {a && p.kind === "fugue" && <AnswerExercise p={p} a={a} tuning={tuning} />}
+      {a && p.kind === "fugue" && <ExpositionExercise p={p} a={a} tuning={tuning} />}
       {a && p.kind === "fugue" && <KeyPlanExercise p={p} a={a} tuning={tuning} />}
       <details className="lab-panel wtc-docs">
         <summary><b>The plan for the WTC mode</b> (a proposal: docs/wtc/CONCEPT.md)</summary>
         <div className="lab-habits"><Markdown text={concept} /></div>
       </details>
       <details className="lab-panel wtc-docs">
-        <summary><b>Studies</b>: Bach's answers; the countersubjects; the key plans; strettos and episodes; two readings compared</summary>
+        <summary><b>Studies</b>: Bach's answers; the expositions; the countersubjects; the key plans; strettos and episodes; two readings compared</summary>
         <div className="lab-habits">
           <Markdown text={answerStudy} />
+          <h2 className="lab-part">Expositions</h2>
+          <Markdown text={expositionStudy} />
           <h2 className="lab-part">Key plans</h2>
           <Markdown text={keyplanStudy} />
           <h2 className="lab-part">Strettos and episodes</h2>

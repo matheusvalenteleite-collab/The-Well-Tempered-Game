@@ -187,7 +187,11 @@ export function findEntries(p: WtcPiece, subject: Note[]): Entry[] {
             else rest++;
             if (head > (short ? 1 : 2) || rest > 1) ok = false;
           }
-          if (ok && i < Math.min(n - 2, counted) && l[s + i + 2].on - l[s + i + 1].on !== sIoi[i]) ok = false;
+          // A rhythm altered once past the head (a note split or joined) shares the tail's one change.
+          if (ok && i < Math.min(n - 2, counted) && l[s + i + 2].on - l[s + i + 1].on !== sIoi[i]) {
+            if (short || i < 5) ok = false;
+            else if (++rest > 1) ok = false;
+          }
         }
         if (ok && (form === "subject" || changed === 0)) {
           out.push({ voice, on: l[s].on, at: s, length: n, pitch: l[s].pitch, degree: degree(l[s].pitch, p.key, p.mode), form, changed });
@@ -244,10 +248,24 @@ export function findEntriesByHead(p: WtcPiece, subject: Note[]): { entries: Entr
   let best = { entries: full, head: n };
   let prev = full.length;
   for (let len = n - 1; len >= Math.max(8, Math.ceil(n / 2)); len--) {
-    const e = findEntries(p, subject.slice(0, len));
-    if (e.length > prev * 1.5 + 2 || e.length > cap) break;
+    const e = apart(p, findEntries(p, subject.slice(0, len)));
+    if (e.length > prev * 1.5 + 4 || e.length > cap) break;
     if (e.length >= best.entries.length) best = { entries: e, head: len };
     prev = e.length;
   }
   return best;
+}
+
+/**
+ * Entries, less those that overlap another in the same voice: a voice cannot state the subject
+ * again before it has finished it, so a head matched twice within its own length is a sequence's
+ * figure (an episode spun from the head), not two entries.
+ */
+function apart(p: WtcPiece, entries: Entry[]): Entry[] {
+  const end = (e: Entry) => {
+    const l = line(p.voices[e.voice]);
+    const last = l[Math.min(l.length - 1, e.at + e.length - 1)];
+    return last.on + last.dur;
+  };
+  return entries.filter((e) => !entries.some((x) => x !== e && x.voice === e.voice && x.on < end(e) && e.on < end(x)));
 }
