@@ -22,5 +22,6 @@ export const DEMO_ENTRIES: DemoEntry[] = [
   { id: "softB", stepId: "fux-mode.s2.06", tries: 3 },
   { id: "third", stepId: "fux-mode.s3.01", tries: 3 },
   { id: "fourth", stepId: "fux-mode.s4.01", continuo: { display: "both", preset: "cembalo" }, tries: 3 },
+  { id: "fifth", stepId: "fux-mode.s5.01", tries: 3 },
   { id: "continuo", stepId: "fux-mode.s2.03", continuo: { display: "both", preset: "cembalo", passingFill: true, finals: "organist" }, tries: 5 },
 ];

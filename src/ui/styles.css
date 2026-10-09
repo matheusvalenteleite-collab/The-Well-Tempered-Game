@@ -516,3 +516,8 @@ button, select, .chipbtn { font-size: 0.8rem; }
 .systems { display: flex; flex-direction: column; gap: 0; width: 100%; }
 .systems .system + .system { border-top: 1px dashed var(--line); }
 .systems-host { width: 100%; }
+/* D81, continued: the study panels in the 1990s look; titles in the pixel face, the text in Garamond. */
+:root[data-look="retro"] .study, :root[data-look="retro"] .hints { border: 2px solid #121212; border-radius: 0; box-shadow: 4px 4px 0 #121212; background: var(--paper); padding: 10px 14px; margin-top: 14px; }
+:root[data-look="retro"] .study h2, :root[data-look="retro"] .hints h2 { font-family: "Silkscreen", monospace; font-size: 0.95rem; font-variant: normal; }
+:root[data-look="retro"] .study h3, :root[data-look="retro"] .hints h3 { font-family: "Silkscreen", monospace; font-variant: normal; letter-spacing: 0; text-transform: none; font-size: 0.75rem; color: var(--accent); }
+:root[data-look="retro"] .tabs [role="tab"][aria-selected="true"] { background: #121212; color: #ffe14d; }
