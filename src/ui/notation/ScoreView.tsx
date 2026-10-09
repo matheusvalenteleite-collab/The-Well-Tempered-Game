@@ -13,7 +13,7 @@ import { pitchAtPosition, VEXFLOW_CLEF, type ClefId } from "./clefs.ts";
 import type { Overlay, Status } from "./overlay.ts";
 import { fifthGlyphs, HOLD, REST, slotLayout, tiedToNext, type Slot } from "../../counterpoint/layout.ts";
 import type { ContinuoRealization } from "../../continuo/types.ts";
-import { cueChords, cueFigures, type CueChord } from "./continuo-staff.ts";
+import { cueChords, cueFigures, drawFigureLine, type CueChord } from "./continuo-staff.ts";
 
 /** Logical width of bar b of a layout, and of the clef and signature before the first bar (D83). */
 export function barWidth(layout: Slot[], b: number): number {
@@ -460,7 +460,7 @@ export function ScoreView(props: ScoreProps) {
         const b = f.bar;
         if (b < 0 || b >= bars) continue;
         const x = xOfBar(b) + NOTE_PAD + 2 + (f.half * barW[b]) / 2;
-        f.stack.forEach((t, i) => ctx.fillText(t, x, y0 + i * 12));
+        f.stack.forEach((t, i) => drawFigureLine(ctx, t, x, y0 + i * 12));
       }
       ctx.restore();
     }
@@ -834,7 +834,7 @@ function layoutContinuo(
         ctx.setFont(SERIF, 12, "italic");
         for (const f of figs) {
           const x = xOf({ bar: f.bar, half: f.half, duration: barW[f.bar] > 60 || f.half ? "h" : "w", tones: [], tiedFrom: [] }) + 6;
-          f.stack.forEach((t, i) => ctx.fillText(t, x - ctx.measureText(t).width / 2, figY + 11 * i));
+          f.stack.forEach((t, i) => drawFigureLine(ctx, t, x - ctx.measureText(t.replace(/\\$/, "")).width / 2, figY + 11 * i));
         }
         ctx.restore();
       }
