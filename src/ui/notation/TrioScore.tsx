@@ -1,9 +1,10 @@
 /**
- * Three-staff score for three-voice first species (D90): whole notes on every staff, the player
- * writing on two of them. A tap or click on a staff writes there (and makes it the active voice);
- * Fux's own notes, when shown, are diamonds beside the player's. The figures (intervals above the
- * bass, compound as Fux prints them) stand under each upper note. Broken into systems and zoomed
- * as the two-staff score is (D83, D87).
+ * The three-voice score on two staves (D113, after D90): the voices share a treble and a bass staff
+ * by register, as in a keyboard reduction, each voice in its own colour (the cantus in black, the
+ * player's Contra I and Contra II in their track colours). A tap on a staff writes the active voice
+ * if it lives there, else the player's voice that does; Fux's notes, when shown, are diamonds
+ * beside the player's. The figures above the lowest voice are stacked under the bass staff, as a
+ * figured bass. One line, zoomed and scrolled sideways like the two-voice score (D100).
  */
 import { useEffect, useRef } from "react";
 import { Accidental, ModifierContext, Renderer, Stave, StaveConnector, StaveNote, TickContext } from "vexflow";
@@ -13,13 +14,15 @@ import { harmonic } from "../../counterpoint/interval.ts";
 import { pitchAtPosition, VEXFLOW_CLEF, type ClefId } from "./clefs.ts";
 import { Viewport } from "./Viewport.tsx";
 
-export interface TrioStaff {
-  clef: ClefId;
+/** One voice: its notes, the staff it is drawn on (0 upper, 1 lower) and its ink. */
+export interface TrioVoice {
   notes: (string | null)[];
   editable: boolean;
-  /** Fux's notes on this staff, drawn as diamonds (player staves only). */
+  staff: 0 | 1;
+  /** CSS colour of its notes (none: the ink of the page). */
+  ink?: string;
+  /** Fux's notes for this voice, drawn as diamonds (player voices only). */
   fux?: (string | null)[];
-  label?: string;
 }
 
 export interface TrioMark {
@@ -28,7 +31,10 @@ export interface TrioMark {
 }
 
 interface Props {
-  staves: TrioStaff[];
+  voices: TrioVoice[];
+  /** The clefs of the two staves. */
+  clefs: [ClefId, ClefId];
+  /** The voice being written. */
   active: number;
   selected: number;
   cursor: number;
@@ -39,8 +45,8 @@ interface Props {
   names?: boolean;
   nameStyle?: NameStyle;
   label: string;
-  onPlace(staff: number, bar: number, natural: string): void;
-  onSelect(staff: number, bar: number): void;
+  onPlace(voice: number, bar: number, natural: string): void;
+  onSelect(voice: number | null, bar: number): void;
   zoom: number;
   onZoom(z: number): void;
   zoomLabels: { in: string; out: string; reset: string };
@@ -50,12 +56,12 @@ interface Props {
 const BAR_W = 64;
 const LEAD = 96;
 const NOTE_PAD = 14;
-const STAFF_Y = [24, 132, 240];
-const HEIGHT = 400;
+const STAFF_Y = [28, 148];
+const HEIGHT = 300;
 
-/** The three staves in one line, zoomed and scrolled sideways like the two-voice score (D100). */
+/** The two staves in one line, zoomed and scrolled sideways like the two-voice score (D100). */
 export function TrioScore(p: Props) {
-  const bars = p.staves[0].notes.length;
+  const bars = p.voices[0].notes.length;
   const natural = LEAD + bars * BAR_W + 24;
   const playingX = p.cursor >= 0 ? LEAD + p.cursor * BAR_W : null;
   return (
@@ -94,9 +100,9 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     const svg = host.querySelector("svg")!;
     svg.setAttribute("role", "img");
     svg.setAttribute("aria-label", p.label);
-    const staves = p.staves.map((st, i) => {
+    const staves = p.clefs.map((clef, i) => {
       const s = new Stave(8, STAFF_Y[i], logicalWidth - 16);
-      s.addClef(VEXFLOW_CLEF[st.clef].clef);
+      s.addClef(VEXFLOW_CLEF[clef].clef);
       s.addTimeSignature("C|");
       s.setEndBarType(p.last ? 3 : 1);
       s.setContext(ctx);
@@ -114,7 +120,7 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
       ctx.fillRect(columns[j].left + 2, top, columns[j].right - columns[j].left - 4, bottom - top);
       ctx.restore();
     };
-    const whole = { top: band(0).top, bottom: band(2).bottom };
+    const whole = { top: band(0).top, bottom: band(1).bottom };
     for (const m of p.marks ?? []) if (m.bar >= p.from && m.bar <= p.to) fill(m.bar - p.from, whole.top, whole.bottom, m.severity === "error" ? "var(--mark-error)" : "var(--mark-warning)");
     for (const b of p.pulse ?? []) if (b >= p.from && b <= p.to) {
       const g = ctx.openGroup("pulse");
@@ -122,19 +128,20 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
       ctx.closeGroup();
       void g;
     }
-    if (p.selected >= p.from && p.selected <= p.to) fill(p.selected - p.from, band(p.active).top, band(p.active).bottom, "var(--selection)");
+    const activeStaff = p.voices[p.active]?.staff ?? 0;
+    if (p.selected >= p.from && p.selected <= p.to) fill(p.selected - p.from, band(activeStaff).top, band(activeStaff).bottom, "var(--selection)");
     if (p.cursor >= p.from && p.cursor <= p.to) fill(p.cursor - p.from, whole.top, whole.bottom, "var(--cursor)");
 
     staves.forEach((s) => s.draw());
-    new StaveConnector(staves[0], staves[2]).setType("singleLeft").setContext(ctx).draw();
-    new StaveConnector(staves[0], staves[2]).setType("bracket").setContext(ctx).draw();
+    new StaveConnector(staves[0], staves[1]).setType("singleLeft").setContext(ctx).draw();
+    new StaveConnector(staves[0], staves[1]).setType("brace").setContext(ctx).draw();
     ctx.save();
     ctx.setFillStyle("currentColor");
     for (let j = 1; j < n; j++) staves.forEach((s) => ctx.fillRect(columns[j].left - 2, s.getYForLine(0), 1, s.getYForLine(4) - s.getYForLine(0)));
     ctx.restore();
 
     const placeNote = (i: number, pitch: string, x: number, ink: string | null, diamond: boolean) => {
-      const clef = VEXFLOW_CLEF[p.staves[i].clef].clef;
+      const clef = VEXFLOW_CLEF[p.clefs[i]].clef;
       const q = parsePitch(pitch);
       const acc = q.alter === 0 ? null : q.alter === 1 ? "#" : q.alter === -1 ? "b" : q.alter === 2 ? "##" : "bb";
       const key = `${q.step.toLowerCase()}${acc ?? ""}/${q.octave}`;
@@ -161,38 +168,53 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     for (let j = 0; j < n; j++) {
       const bar = p.from + j;
       const x = columns[j].left + NOTE_PAD;
-      p.staves.forEach((st, i) => {
-        const mine = st.notes[bar];
-        const fux = st.fux?.[bar];
+      // Two voices a second apart (or in unison) on one staff: the lower one steps to the right.
+      const shift = p.voices.map(() => 0);
+      for (const st of [0, 1]) {
+        const on = p.voices.map((v, i) => ({ i, q: v.notes[bar] })).filter((x) => x.q && p.voices[x.i].staff === st).sort((a, b) => parsePitch(b.q!).diatonic - parsePitch(a.q!).diatonic);
+        for (let k = 1; k < on.length; k++) if (parsePitch(on[k - 1].q!).diatonic - parsePitch(on[k].q!).diatonic <= 1 && !shift[on[k - 1].i]) shift[on[k].i] = 15;
+      }
+      p.voices.forEach((v, i) => {
+        const mine = v.notes[bar];
+        const fux = v.fux?.[bar];
+        const at = x + shift[i];
         if (fux) {
           const near = mine && Math.abs(parsePitch(mine).diatonic - parsePitch(fux).diatonic) <= 1;
-          placeNote(i, fux, x + (near ? 13 : 0), "var(--ink-fux)", true);
+          placeNote(v.staff, fux, at + (near ? 13 : 0), "var(--ink-fux)", true);
         }
         if (mine) {
-          const note = placeNote(i, mine, x, st.editable ? "var(--ink-player)" : null, false);
+          const note = placeNote(v.staff, mine, at, v.ink ?? null, false);
           if (p.names) {
+            // Names stand after the last notehead on the staff; two close notes' names part vertically.
+            const others = p.voices.filter((w, k) => k !== i && w.staff === v.staff && w.notes[bar]).map((w) => parsePitch(w.notes[bar]!).diatonic);
+            const d = parsePitch(mine).diatonic;
+            const nudge = others.some((o) => Math.abs(o - d) <= 2) ? (others.some((o) => o < d || (o === d && i > 0)) ? -4 : 5) : 0;
+            const after = Math.max(0, ...p.voices.map((w, k) => (w.staff === v.staff ? shift[k] : 0)));
             ctx.save();
             ctx.setFont("Inter, system-ui, sans-serif", 9);
-            ctx.setFillStyle("var(--ink-muted)");
-            ctx.fillText(noteName(mine, p.nameStyle), x + 20, note.getYs()[0] + 3);
+            ctx.setFillStyle(v.ink ?? "var(--ink-muted)");
+            ctx.fillText(noteName(mine, p.nameStyle), x + 20 + after, note.getYs()[0] + 3 + nudge);
             ctx.restore();
           }
         }
       });
-      // Figures above the bass, under each upper note, when all three are written.
+      // Figures above the lowest voice, stacked under the bass staff as a figured bass (highest on top).
       if (p.figures) {
-        const ps = p.staves.map((st) => st.notes[bar]);
+        const ps = p.voices.map((v) => v.notes[bar]);
         if (ps.every(Boolean)) {
-          const bass = [0, 1, 2].reduce((lo, i) => (parsePitch(ps[i]!).midi < parsePitch(ps[lo]!).midi ? i : lo), 2);
+          const bass = ps.reduce((lo, q, i) => (parsePitch(q!).midi < parsePitch(ps[lo]!).midi ? i : lo), ps.length - 1);
+          const figs = ps
+            .map((q, i) => ({ i, q: q! }))
+            .filter(({ i }) => i !== bass)
+            .sort((a, b) => parsePitch(b.q).midi - parsePitch(a.q).midi)
+            .map(({ q }) => {
+              const f = harmonic(ps[bass]!, q);
+              return `${f.quality === "A" || f.quality === "d" ? f.quality : ""}${f.number}`;
+            });
           ctx.save();
           ctx.setFont("'EB Garamond', Garamond, Georgia, serif", 12);
           ctx.setFillStyle("var(--ink-muted)");
-          for (let i = 0; i < 3; i++) {
-            if (i === bass) continue;
-            const f = harmonic(ps[bass]!, ps[i]!);
-            const text = `${f.quality === "A" || f.quality === "d" ? f.quality : ""}${f.number}`;
-            ctx.fillText(text, x + 2, staves[i].getYForLine(4) + 30);
-          }
+          figs.forEach((text, k) => ctx.fillText(text, x + 2, staves[1].getYForLine(4) + 34 + k * 13));
           ctx.restore();
         }
       }
@@ -203,7 +225,7 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
       staves: staves.map((s) => ({ top: s.getYForLine(0), bottom: s.getYForLine(4), spacing: s.getSpacingBetweenLines() })),
     };
     host.dataset.geometry = JSON.stringify(geo.current);
-  }, [p.staves, p.active, p.selected, p.cursor, p.marks, p.figures, p.names, p.nameStyle, p.pulse, p.from, p.to, p.scale, p.fill, p.last, p.label, n]);
+  }, [p.voices, p.clefs, p.active, p.selected, p.cursor, p.marks, p.figures, p.names, p.nameStyle, p.pulse, p.from, p.to, p.scale, p.fill, p.last, p.label, n]);
 
   // Pointer: the nearest staff takes the tap; a second finger makes it a pinch, which writes nothing.
   const fingers = useRef(new Set<number>());
@@ -225,7 +247,10 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     const s = g.staves[staff];
     const onStaff = y >= s.top - 5 * s.spacing && y <= s.bottom + 5 * s.spacing;
     const position = Math.round((s.bottom - y) / (s.spacing / 2));
-    return { bar: p.from + column, staff, onStaff, natural: pitchAtPosition(p.staves[staff].clef, position) };
+    // The active voice if it lives on this staff, else the player's voice that does (if any).
+    const here = p.voices.map((v, i) => ({ v, i })).filter(({ v }) => v.staff === staff && v.editable).map(({ i }) => i);
+    const voice = here.includes(p.active) ? p.active : (here[0] ?? null);
+    return { bar: p.from + column, voice, onStaff, natural: pitchAtPosition(p.clefs[staff], position) };
   };
   const lift = (e: React.PointerEvent) => {
     fingers.current.delete(e.pointerId);
@@ -253,8 +278,8 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
         if (lift(e) || !pr || Math.hypot(e.clientX - pr.x, e.clientY - pr.y) > 8) return;
         const at = locate(e);
         if (!at) return;
-        if (at.onStaff && p.staves[at.staff].editable) p.onPlace(at.staff, at.bar, at.natural);
-        else p.onSelect(at.staff, at.bar);
+        if (at.onStaff && at.voice !== null) p.onPlace(at.voice, at.bar, at.natural);
+        else p.onSelect(at.voice, at.bar);
       }}
       onPointerCancel={(e) => {
         lift(e);

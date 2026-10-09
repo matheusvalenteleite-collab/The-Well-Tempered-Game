@@ -127,7 +127,7 @@ export class AudioEngine {
   setSoundState(state: SoundState) {
     for (const c of CHANNELS) Object.assign(this.synth[c], state.synth[c]);
     for (const id of VERSION_IDS) Object.assign(this.versionSynth[id], versionSettings(state, id));
-    for (const v of [this.current?.cantus, this.current?.counterpoint, this.current?.fux, ...this.versionVoices.values()]) if (v instanceof Synth) v.update();
+    for (const v of [this.current?.cantus, this.current?.counterpoint, this.current?.second, this.current?.fux, ...this.versionVoices.values()]) if (v instanceof Synth) v.update();
     this.mix = structuredClone(state);
     this.applyMix();
     this.masterFx?.update({ ...DEFAULT_SYNTH, ...(state.master ?? DEFAULT_MASTER_FX) });
@@ -295,12 +295,13 @@ export class AudioEngine {
           ? Promise.resolve({
               cantus: new Synth(ctx, this.channel("cantus"), this.synth.cantus, tuning),
               counterpoint: new Synth(ctx, this.channel("counterpoint"), this.synth.counterpoint, tuning),
+              second: new Synth(ctx, this.channel("second"), this.synth.second, tuning),
               fux: new Synth(ctx, this.channel("fux"), this.synth.fux, tuning),
             })
           : new Soundfont(ctx, { instrument: "acoustic_grand_piano", kit: "MusyngKite", destination: master }).load.then(
               (sf) => {
                 const piano = new SampledPiano(sf);
-                return { cantus: piano, counterpoint: piano, fux: piano };
+                return { cantus: piano, counterpoint: piano, second: piano, fux: piano };
               },
               () => null,
             );
@@ -585,6 +586,7 @@ export class AudioEngine {
     for (const v of this.versionVoices.values()) v.stop();
     this.current?.cantus.stop();
     this.current?.counterpoint.stop();
+    this.current?.second.stop();
     this.current?.fux.stop();
     this.drumMachine?.stop();
     for (const x of this.attached) x.stop();

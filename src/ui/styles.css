@@ -423,7 +423,7 @@ button, select, .chipbtn { font-size: 0.8rem; }
 
 /* ===== D80: the mixer in the manner of Ableton Live: track colours, activators, faders, meters. ===== */
 :root {
-  --trk-cantus: #e8833a; --trk-counterpoint: #3d7dff; --trk-fux: #12b59a;
+  --trk-cantus: #e8833a; --trk-counterpoint: #3d7dff; --trk-second: #c04fd8; --trk-fux: #12b59a;
   --trk-inversion: #a45ee5; --trk-retrograde: #e6a42b; --trk-retro-inversion: #e2508f; --trk-canon: #5fa8c9;
   --trk-drums: #e84b3c; --trk-continuo: #9bae3c; --trk-master: #9aa0a6;
   --desk-bg: #ece8df; --desk-strip: #f7f4ee; --desk-ink: #1d1b18; --desk-groove: #cfc8bb; --desk-off: #b9b2a5;
@@ -924,3 +924,15 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
   .continuobox .rack-title { font-size: 0.72rem; letter-spacing: 0; }
 }
 .strip.master .style-select { width: 100%; max-width: 76px; font-size: 0.7rem; padding: 1px 2px; margin: 2px 0; }
+
+/* D113: three voices on two staves; the voice chips. */
+.voice-chips { display: flex; gap: 6px; align-items: center; margin: 2px 0 4px; flex-wrap: wrap; }
+:root .voice-chips .voice-chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; font-size: 0.8rem; border: 2px solid var(--chip); background: color-mix(in srgb, var(--chip) 8%, var(--paper)); color: var(--ink); border-radius: 999px; min-height: 0; }
+.voice-chip .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--chip); }
+.voice-chip .where { opacity: 0.65; font-size: 0.72rem; }
+:root .voice-chips .voice-chip[aria-checked="true"] { background: var(--chip); color: #fff; }
+.voice-chip[aria-checked="true"] .dot { background: #fff; }
+.voice-chip[aria-checked="true"] .where { opacity: 0.85; }
+.voice-chip.cantus:disabled { opacity: 0.75; cursor: default; }
+:root[data-look="retro"] .voice-chip { border-radius: 0; box-shadow: 2px 2px 0 var(--edge); }
+.trio-with-fux ul { list-style: none; padding-left: 0; } .trio-with-fux .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--chip); }

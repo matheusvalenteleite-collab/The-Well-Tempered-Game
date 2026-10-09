@@ -1,6 +1,8 @@
 /**
  * Three voices (Exercitium II, D90): the player writes both voices that are not the cantus, in
  * any order. One engine and one mixer with the two-voice screen; no versions here (D89).
+ * D113: the voices on two staves by register, voice chips (Cantus, Contra I, Contra II) in the
+ * track colours, one mixer strip per written voice, the styles, and a comparison with Fux.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import data from "../../data/fux/three-voice/fux-three-voice.json" with { type: "json" };
@@ -17,7 +19,9 @@ import { realizeContinuo } from "../continuo/realize.ts";
 import { playContinuo } from "../continuo/audio.ts";
 import { DEFAULT_VERSIONS, type Versions } from "../game/versions.ts";
 import { parsePitch, type Step } from "../music/pitch.ts";
-import { TrioScore, type TrioStaff } from "./notation/TrioScore.tsx";
+import { TrioScore, type TrioVoice } from "./notation/TrioScore.tsx";
+import { trioStaves } from "./notation/trio-staves.ts";
+import { applyStyle, type StyleId } from "../audio/styles.ts";
 import { ZOOM_MAX, ZOOM_MIN } from "./notation/zoom.ts";
 import { SoundDesk, trackOrder } from "./SoundDesk.tsx";
 import { HFader } from "./HFader.tsx";
@@ -84,6 +88,8 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const [nameStyle, setNameStyle] = useState<NameStyle>(() => stored("wtg.nameStyle2", "solfege" as NameStyle, (v) => v === "letters" || v === "solfege"));
   useEffect(() => store("wtg.nameStyle2", nameStyle), [nameStyle]);
   const [versions, setVersions] = useState<Versions>({ ...DEFAULT_VERSIONS, original: true });
+  /** Contra II's activator on the mixer (D113); Contra I's is the Contrapunctus's (versions.original). */
+  const [secondOn, setSecondOn] = useState(true);
   const [playing, setPlaying] = useState(false);
   const [cursor, setCursor] = useState(-1);
 
@@ -131,8 +137,8 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
   useEffect(() => store("wtg.zoom", zoom), [zoom]);
   useEffect(() => store("wtg.fuxHeard", fuxHeard), [fuxHeard]);
   useEffect(() => {
-    audio.setGates({ counterpoint: versions.original, fux: fuxHeard && fuxOpen, continuo });
-  }, [versions.original, fuxHeard, fuxOpen, continuo]);
+    audio.setGates({ counterpoint: versions.original, second: secondOn, fux: fuxHeard && fuxOpen, continuo });
+  }, [versions.original, secondOn, fuxHeard, fuxOpen, continuo]);
   useEffect(() => () => audio.stop(), []);
 
   const lines = (k: number) => [0, 1, 2].map((i) => (i === STEP.cantusIndex ? STEP.cantus[k] : sessions[i].notes[k]));
@@ -157,7 +163,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const audition = (k: number, override?: { staff: number; pitch: string | null }) => {
     const ps = lines(k).map((p, i) => (override && i === override.staff ? override.pitch : p));
     const [a, b] = mine.map((i) => ps[i]);
-    void audio.playSequence([{ slot: k, at: 0, length: 1, cantus: STEP.cantus[k], counterpoint: a ?? null, extra: b ? [{ channel: "counterpoint", pitch: b }] : [] }]);
+    void audio.playSequence([{ slot: k, at: 0, length: 1, cantus: STEP.cantus[k], counterpoint: a ?? null, extra: b ? [{ channel: "second", pitch: b }] : [] }]);
   };
   const write = (staff: number, next: SessionState, advance: boolean) => {
     const k = next.selected;
@@ -190,7 +196,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
         cantus: STEP.cantus[k],
         counterpoint: a ?? null,
         fux: fuxOpen ? fuxLines[0][k] : null,
-        extra: [...(b ? [{ channel: "counterpoint" as const, pitch: b }] : []), ...(fuxOpen ? [{ channel: "fux" as const, pitch: fuxLines[1][k] }] : [])],
+        extra: [...(b ? [{ channel: "second" as const, pitch: b }] : []), ...(fuxOpen ? [{ channel: "fux" as const, pitch: fuxLines[1][k] }] : [])],
       };
     });
     // The continuo plays under the lines heard: the player's two, or Fux's when only his are on.
@@ -212,7 +218,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
         onCycle = undefined;
       }
     }
-    audio.setGates({ counterpoint: versions.original, fux: fuxHeard && fuxOpen, continuo });
+    audio.setGates({ counterpoint: versions.original, second: secondOn, fux: fuxHeard && fuxOpen, continuo });
     setPlaying(true);
     void audio.playAll(events, (k) => {
       setCursor(k);
@@ -239,10 +245,11 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
     if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return;
     const k = e.key;
     const s = session;
-    if (/^F[1-5]$/.test(k)) {
-      const track = trackOrder(false)[Number(k.slice(1)) - 1];
+    if (/^F[1-6]$/.test(k)) {
+      const track = trackOrder(false, true)[Number(k.slice(1)) - 1];
       if (track === "cantus") setSound(changeMix(sound, "cantus", { mute: !sound.mix.cantus.mute }));
       else if (track === "counterpoint") setVersions({ ...versions, original: !versions.original });
+      else if (track === "second") setSecondOn(!secondOn);
       else if (track === "fux") fuxOpen && setFuxHeard(!fuxHeard);
       else if (track === "drums") setDrums(!drums);
       else if (track === "continuo") setContinuo(!continuo);
@@ -276,13 +283,34 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
     return [...out].map(([bar, severity]) => ({ bar, severity }));
   }, [result]);
 
-  const staves: TrioStaff[] = [0, 1, 2].map((i) => ({
-    clef: STEP.clefs[i],
+  // Two staves (D113): each voice by register; the player's two in their mixer colours.
+  const mean = (line: (string | null)[]) => {
+    const ms = line.filter((x): x is string => !!x).map((x) => parsePitch(x).midi);
+    return ms.reduce((a, b) => a + b, 0) / Math.max(1, ms.length);
+  };
+  // Placed by Fux's own lines (and the cantus), so that the staves do not change as the player writes.
+  const layoutTwo = trioStaves([0, 1, 2].map((i) => mean(i === STEP.cantusIndex ? STEP.cantus : STEP.fux[i])));
+  const INK = ["var(--trk-counterpoint)", "var(--trk-second)"];
+  const voices: TrioVoice[] = [0, 1, 2].map((i) => ({
     notes: i === STEP.cantusIndex ? STEP.cantus : sessions[i].notes,
     editable: i !== STEP.cantusIndex,
+    staff: layoutTwo.staff[i],
+    ...(i === STEP.cantusIndex ? {} : { ink: INK[mine.indexOf(i)] }),
     ...(i !== STEP.cantusIndex && showFux && fuxOpen ? { fux: STEP.fux[i] } : {}),
   }));
-  const voiceName = (i: number) => t(`ui.trio3.voice.${i}`);
+  /** "Contra I", "Contra II" or "Cantus", with the voice's place (upper, middle, lower). */
+  const partName = (i: number) => (i === STEP.cantusIndex ? t("ui.trio3.chip.cantus") : t(mine.indexOf(i) === 0 ? "ui.mixer.contra1" : "ui.mixer.second"));
+  const voiceName = (i: number) => `${partName(i)} (${t(`ui.trio3.voice.${i}`)})`;
+  const chooseStyle = (id: StyleId) => {
+    const next = applyStyle(id, { sound, drumsOn: drums, drumKit, continuoOn: continuo, continuo: continuoSettings, tuning, tempo }, layoutTwo.staff[STEP.cantusIndex] === 0, { counterpointHigh: layoutTwo.staff[mine[0]] === 0, secondHigh: layoutTwo.staff[mine[1]] === 0 });
+    setSound(next.sound);
+    setDrums(next.drumsOn);
+    setDrumKit(next.drumKit);
+    setContinuo(next.continuoOn);
+    setContinuoSettings({ ...continuoSettings, ...next.continuo });
+    setTuning(next.tuning);
+    setTempo(next.tempo);
+  };
   const describe = (vs: number[]) => vs.map(voiceName).join(", ");
   const errors = result?.errors ?? [];
   const warnings = result?.warnings ?? [];
@@ -327,7 +355,8 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
           </span>
           <TrioScore
             pulse={highlight ?? undefined}
-            staves={staves}
+            voices={voices}
+            clefs={layoutTwo.clefs}
             active={activeStaff}
             selected={session.selected}
             cursor={cursor}
@@ -342,7 +371,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
               write(staff, place(select(s, bar), bar, natural), false);
             }}
             onSelect={(staff, bar) => {
-              if (mine.includes(staff)) setActive(staff);
+              if (staff !== null && mine.includes(staff)) setActive(staff);
               browse(bar);
               audition(bar);
             }}
@@ -355,10 +384,19 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
       }
       transport={
         <>
-        <p className="trio-writing">
-          <strong>{t("ui.trio3.writing", { voice: voiceName(activeStaff) })}</strong>{" "}
-          <button className="chipbtn" onClick={() => setActive(mine[(mine.indexOf(activeStaff) + 1) % mine.length])} title={t("ui.trio3.switch")}>{t("ui.trio3.other")} ⇥</button>
-        </p>
+        {/* Voice chips (D113): the voice being written, in its colour; Tab moves to the other. */}
+        <div className="voice-chips" role="radiogroup" aria-label={t("ui.trio3.chips")}>
+          {[0, 1, 2].map((i) => {
+            const isCantus = i === STEP.cantusIndex;
+            const colour = isCantus ? "var(--trk-cantus)" : INK[mine.indexOf(i)];
+            return (
+              <button key={i} role="radio" className={`voice-chip${isCantus ? " cantus" : ""}`} aria-checked={i === activeStaff} disabled={isCantus} style={{ ["--chip" as string]: colour }} onClick={() => setActive(i)} title={isCantus ? t("ui.trio3.chip.cantusHelp") : t("ui.trio3.chip.help", { voice: voiceName(i) })}>
+                <span className="dot" aria-hidden="true" />
+                {partName(i)} <span className="where">{t(`ui.trio3.voice.${i}`)}</span>
+              </button>
+            );
+          })}
+        </div>
         <div className="controls">
           <div className="group write" role="group">
             <button className="btn-acc" onClick={() => update(activeStaff, applyAccidental(session, -1))} aria-label="flat" title={t("ui.accidental.flat.help")}>♭</button>
@@ -425,6 +463,8 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
           onMaster={setVolume}
           tuning={tuning}
           onTuning={setTuning}
+          onStyle={chooseStyle}
+          trio={{ secondOn, onSecond: setSecondOn }}
         />
         ) },
         { id: "evaluation", text: true, label: t("ui.dock.evaluation"), content: (
@@ -455,6 +495,25 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
         ) : (
           <p className="dock-empty">{t("ui.dock.noEvaluation")}</p>
         )}
+          {fuxOpen && missing === 0 && (
+            // D113: each written voice beside Fux's own (the same note in the same bar).
+            <section className="trio-with-fux">
+              <h4>{t("ui.trio3.withFux")}</h4>
+              <ul>
+                {mine.map((i) => {
+                  const same = sessions[i].notes.filter((x, k) => x === STEP.fux[i][k]).length;
+                  const n = STEP.cantus.length;
+                  return (
+                    <li key={i} style={{ ["--chip" as string]: INK[mine.indexOf(i)] }}>
+                      <span className="dot" aria-hidden="true" /> <strong>{partName(i)}</strong>{" "}
+                      {t(same === n ? "ui.trio3.fuxSame" : same >= n * 0.6 ? "ui.trio3.fuxClose" : "ui.trio3.fuxOwn", { same, n })}
+                    </li>
+                  );
+                })}
+              </ul>
+              <button className="chipbtn" onClick={() => setShowFux(!showFux)}>{t(showFux ? "ui.trio3.fuxHide" : "ui.trio3.fuxShow")}</button>
+            </section>
+          )}
           {!fuxOpen && <p className="help">{t("ui.trio3.fuxLocked")}</p>}
           </>
         ) },

@@ -884,7 +884,21 @@
     "style.analog": "Analog",
     "style.analog.help": "Tape-echo synth lines over analog pads, a Roland CR-78",
     "style.techno": "Techno",
-    "style.techno.help": "Wavefolder synths, the pads arpeggiated, a TR-909 at 128 beats a minute"
+    "style.techno.help": "Wavefolder synths, the pads arpeggiated, a TR-909 at 128 beats a minute",
+    "mixer.contra1": "Contra I",
+    "mixer.short.contra1": "Contra I",
+    "mixer.second": "Contra II",
+    "mixer.short.second": "Contra II",
+    "trio3.chips": "The voice you are writing",
+    "trio3.chip.cantus": "Cantus",
+    "trio3.chip.cantusHelp": "The cantus firmus: given, not written",
+    "trio3.chip.help": "Write the {voice} (Tab switches voices; a click on a staff writes the voice that lives there)",
+    "trio3.withFux": "With Fux",
+    "trio3.fuxSame": "is Fux's own line, note for note ({same} of {n}).",
+    "trio3.fuxClose": "is close to Fux's: {same} of {n} notes as he wrote them.",
+    "trio3.fuxOwn": "is your own: {same} of {n} notes as Fux wrote them.",
+    "trio3.fuxShow": "Show his notes on the score",
+    "trio3.fuxHide": "Hide his notes"
   },
   "tutor": {
     "rule.fos.no-repetition": "In this species each upbeat brings a new note, which is then tied over the bar line; striking the downbeat's note again on its own upbeat is a whole note in disguise.",
