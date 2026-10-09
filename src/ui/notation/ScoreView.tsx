@@ -14,6 +14,14 @@ import { fifthGlyphs, HOLD, REST, slotLayout, tiedToNext, type Slot } from "../.
 import type { ContinuoRealization } from "../../continuo/types.ts";
 import { cueChords, cueFigures, type CueChord } from "./continuo-staff.ts";
 
+/** Logical width of bar b of a layout, and of the clef and signature before the first bar (D83). */
+export function barWidth(layout: Slot[], b: number): number {
+  const first = layout[0]?.bar ?? 0;
+  const n = layout.filter((sl) => sl.bar - first === b).length;
+  return n > 4 ? 212 : n > 2 ? 148 : n > 1 ? 92 : 58;
+}
+export const SCORE_LEAD = 96;
+
 export interface ScoreProps {
   /** One whole note per bar. */
   cantus: string[];
@@ -71,6 +79,14 @@ export interface ScoreProps {
   playerLabel?: string;
   /** Key signature (F mode: one flat, decision D48). */
   signature?: Signature;
+  /**
+   * Systems (D83): the note each line holds into the first slot from the system before (fifth
+   * species), so that its continuation is drawn; and whether this system ends the piece.
+   */
+  carry?: { counterpoint?: string | null; fux?: string | null; extras?: (string | null)[] };
+  lastSystem?: boolean;
+  /** Systems (D83): close the staves up unless the overlay needs the room. */
+  compact?: boolean;
 }
 
 interface Ghost {
@@ -157,7 +173,7 @@ export function ScoreView(props: ScoreProps) {
     const el = host.current;
     if (!el || width === 0) return;
     el.innerHTML = "";
-    const { staffY: STAFF_Y, height: HEIGHT } = props.fixedScale === undefined ? LAYOUT.main : props.overlay ? LAYOUT.overlay : LAYOUT.plain;
+    const { staffY: STAFF_Y, height: HEIGHT } = props.fixedScale === undefined && !props.compact ? LAYOUT.main : props.overlay || props.extraIntervals ? LAYOUT.overlay : LAYOUT.plain;
     // Overlay rows between the staves: the player's intervals, the links under them, and above
     // them one row per derived line.
     const LABEL_Y = STAFF_Y[1] - 23;
@@ -181,9 +197,9 @@ export function ScoreView(props: ScoreProps) {
     // (An excerpt of the final bar alone has no quaver slots: a held note there still marks it.)
     const fifth = layout.some((sl) => sl.duration === "1/8") || [props.counterpoint, props.fux ?? [], ...(props.extraLines ?? []).map((l) => l.notes)].some((l) => l.includes(HOLD));
     type Glyph = { value: string; dur: string; dots: number; tied: boolean };
-    const glyphsOf = (line: (string | null | undefined)[]): (Glyph | null)[] =>
+    const glyphsOf = (line: (string | null | undefined)[], held?: string | null): (Glyph | null)[] =>
       fifth
-        ? fifthGlyphs(line, layout).map((g, k) => (g ? { value: g.value, dur: layout[k].duration === "1/1" ? "w" : FIFTH_DUR[g.slots][0], dots: layout[k].duration === "1/1" ? 0 : FIFTH_DUR[g.slots][1], tied: g.tied } : null))
+        ? fifthGlyphs(line, layout, held ?? null).map((g, k) => (g ? { value: g.value, dur: layout[k].duration === "1/1" ? "w" : FIFTH_DUR[g.slots][0], dots: layout[k].duration === "1/1" ? 0 : FIFTH_DUR[g.slots][1], tied: g.tied } : null))
             .map((g) => (g && g.value === HOLD ? null : g))
         : layout.map((sl, k) => (line[k] === null || line[k] === undefined ? null : { value: line[k]!, dur: vexDur(sl), dots: 0, tied: false }));
     const barX: number[] = [];
@@ -198,7 +214,7 @@ export function ScoreView(props: ScoreProps) {
       s.addClef(vc.clef, "default", vc.annotation);
       if (keySpec) s.addKeySignature(keySpec);
       s.addTimeSignature("C|");
-      s.setEndBarType(3); // final double bar
+      s.setEndBarType(props.lastSystem === false ? 1 : 3); // final double bar (a plain one inside a system break)
       return s;
     });
     const start = Math.max(...staves.map((s) => s.getNoteStartX()));
@@ -281,13 +297,13 @@ export function ScoreView(props: ScoreProps) {
       const left = xOfBar(b) + sl.beat * share;
       return { left, right: left + share, x: left + NOTE_PAD + (sl.duration === "1/1" ? 8 : 6) };
     });
-    const cpGlyphs = glyphsOf(props.counterpoint);
+    const cpGlyphs = glyphsOf(props.counterpoint, props.carry?.counterpoint);
     const cpNotes = layout.map((_, k) => {
       const g = cpGlyphs[k];
       return g ? placed(cpIndex, g.value, g.dur, columns[k].left + NOTE_PAD, "player", stemOf("player"), g.dots) : null;
     });
     // Fux's line: stems down (the player's go up), nudged right where the two notes would collide.
-    const fuxGlyphs = props.fux ? glyphsOf(props.fux) : [];
+    const fuxGlyphs = props.fux ? glyphsOf(props.fux, props.carry?.fux) : [];
     const fuxNotes = (props.fux ?? []).map((_, k) => {
       const g = fuxGlyphs[k];
       if (!layout[k] || !g || g.value === REST) return null;
@@ -366,8 +382,8 @@ export function ScoreView(props: ScoreProps) {
       for (const q of [cpGlyphs[k]?.value, fuxGlyphs[k]?.value]) if (q && q !== REST) out.push(parsePitch(q).diatonic);
       return out;
     });
-    const extraNotes = extras.map((line) => {
-      const gl = glyphsOf(line.notes);
+    const extraNotes = extras.map((line, li) => {
+      const gl = glyphsOf(line.notes, props.carry?.extras?.[li]);
       return layout.map((_, k) => {
         const g = gl[k];
         if (!g || g.value === REST) return null;
@@ -536,7 +552,7 @@ export function ScoreView(props: ScoreProps) {
     };
     geo.current = g;
     el.dataset.geometry = JSON.stringify(g); // read by the browser tests
-  }, [width, props.showNames, props.cantus, props.counterpoint, props.fux, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay, props.continuo, props.extraLines, props.extraIntervals, props.ties, props.playerInk, props.playerLabel, props.signature, props.fadePlayer]);
+  }, [width, props.showNames, props.cantus, props.counterpoint, props.fux, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay, props.continuo, props.extraLines, props.extraIntervals, props.ties, props.playerInk, props.playerLabel, props.signature, props.fadePlayer, props.carry, props.lastSystem, props.compact]);
 
   const press = useRef<{ x: number; y: number; dragging: boolean; from: number } | null>(null);
 

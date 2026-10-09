@@ -128,8 +128,8 @@ export const sounding = (x: string | null): x is string => x !== null && x !== R
  * bar line, the continuation of a note held over it (`tied`), with its length in slots within the
  * bar; null where nothing begins.
  */
-export function fifthGlyphs(line: (string | null | undefined)[], layout: Slot[]): ({ value: string; slots: number; tied: boolean } | null)[] {
-  let held: string | null = null;
+export function fifthGlyphs(line: (string | null | undefined)[], layout: Slot[], heldIn: string | null = null): ({ value: string; slots: number; tied: boolean } | null)[] {
+  let held: string | null = heldIn;
   return layout.map((sl, k) => {
     const v = line[k];
     if (v === null || v === undefined) {

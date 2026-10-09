@@ -19,7 +19,7 @@ import { Study } from "./Study.tsx";
 import { stepStudy } from "./study.ts";
 import { Feedback } from "./Feedback.tsx";
 import { Knob } from "./Knob.tsx";
-import { ScoreView } from "./notation/ScoreView.tsx";
+import { Systems } from "./notation/Systems.tsx";
 import { buildOverlay, neutralOverlay } from "./notation/overlay.ts";
 import { Credits } from "./Credits.tsx";
 import { FuxComparison } from "./FuxComparison.tsx";
@@ -47,6 +47,8 @@ const ORDINAL = ["", "1st", "2nd", "3rd", "4th", "5th"];
 const freshSession = (k: number) => {
   const v = VIEWS[k];
   const s = initialState(v.layout.length, v.signature);
+  // Fifth species: Fux's opening half rest is one rest held over four quaver slots (D82).
+  if (v.species === "fifth") return { ...s, notes: v.layout.map((sl, j) => (j === 0 ? REST : sl.restAllowed ? HOLD : null)) };
   return { ...s, notes: v.layout.map((sl) => (sl.restAllowed ? REST : null)) };
 };
 const audio = new AudioEngine();
@@ -955,7 +957,7 @@ export function App() {
           <span className={starred ? "star earned" : "star"} aria-label={t(starred ? "ui.star.earned" : "ui.star.none")} title={t(starred ? "ui.star.earned" : "ui.star.none")}>
             {starred ? "★" : "☆"}
           </span>
-          <ScoreView
+          <Systems
             cantus={moved(VIEW.cantus, sound.cantusOctave)}
             counterpoint={moved(shownLines[0].notes, octaveOf(shownLines[0].id))}
             readOnly={!versions.original}

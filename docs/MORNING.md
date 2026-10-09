@@ -17,6 +17,8 @@ Game link (always the latest): https://claude.ai/artifact/NvkaBGCHrtDebE85H7udTX
 | 8a8e3cc | D80, D81 | **The mixer after Ableton.** Track colours; a numbered on/off button ("activator") for every track; solo; faders with a dB scale and level meters; dB readouts. **The 1990s look:** Silkscreen and VT323 type, hard-shadowed square buttons, a dark desk, stronger contrast. Fux's text keeps its Garamond. |
 | a9089c9, 17af77f | D82 | **Fifth species, two voices.** All twelve of Fux's exercises (Figs. 82–88). New rhythm model: quaver slots and held notes. Entry: choose the note value (keys 8 4 3 2 6 1), type the letters, T to hold or tie. Rules come from pp. 76–81, read from the 1725 scans. Fux's twelve solutions clear every rule, except Aloysius's "limping crotchets" advice in Fig. 88a bar 5, which is exactly where Fux prints his own NB. |
 
+| (see git log) | D83 | **Systems on a phone.** On narrow screens a long score breaks into lines of bars at a readable size. On a computer nothing changes: it still shrinks to fit. |
+
 ## Questions for you
 
 1. **Fux's activator** (track 3 on the mixer): I made it mean "Fux sings along with you" in your own playback. His separate Fux and Trio play buttons are unchanged. Is that the meaning you want, or should it do something else?
@@ -34,3 +36,4 @@ Game link (always the latest): https://claude.ai/artifact/NvkaBGCHrtDebE85H7udTX
 
    The scores are available (the same open dataset has three- and four-voice folders), but the rules and the interface depend on your answer. I have not started them.
 7. **The 1990s look** is now the default. Keep it, or make Classic the default?
+8. **Systems on the phone** (D83): the continuo is not drawn when the score is broken into systems. Is that acceptable for now?
