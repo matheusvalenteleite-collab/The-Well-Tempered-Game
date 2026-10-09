@@ -2,7 +2,7 @@
  * Three voices in the choices lab (first species): the audit of Fux's sixteen solutions and the
  * third voice added to a generated two-voice exercise. Judged by the game's three-voice rules (D90).
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import data from "../../data/fux/three-voice/fux-three-voice.json" with { type: "json" };
 import { trioSteps, type TrioStep } from "../game/trio.ts";
 import type { ModalFinal } from "../music/fux/index.ts";
@@ -45,22 +45,26 @@ function TrioStrip({ choices, selected, onSelect }: { choices: TrioChoice[]; sel
 }
 
 /** The three staves, read-only; `alt` replaces one note of one voice, the written one then drawn as a diamond. */
-function Trio({ voices, cantusIndex, added, alt, selected, label }: { voices: string[][]; cantusIndex: number; added?: number; alt?: { voice: number; bar: number; pitch: string } | null; selected?: { voice: number; bar: number } | null; label: string }) {
-  const [cursor, setCursor] = useState(-1);
+export function Trio({ voices, cantusIndex, added, alt, selected, label, cursor: outerCursor, transport = true, errorBars = [] }: { voices: string[][]; cantusIndex: number; added?: number; alt?: { voice: number; bar: number; pitch: string } | null; selected?: { voice: number; bar: number } | null; label: string; cursor?: number; transport?: boolean; errorBars?: number[] }) {
+  const [ownCursor, setCursor] = useState(-1);
+  const cursor = outerCursor ?? ownCursor;
   const shown = voices.map((l, v) => (alt && alt.voice === v ? l.map((p, k) => (k === alt.bar ? alt.pitch : p)) : l));
   return (
     <>
-      <div className="lab-row">
-        <button onClick={() => playLines(shown, 80, setCursor)}>▶ Play</button>
-        <button onClick={() => stop()}>■</button>
-        <span className="lab-note">Staves: {voices.map((_, v) => `${STAFF_NAMES[v]} ${v === cantusIndex ? "cantus firmus" : v === added ? "new voice" : "counterpoint"}`).join(" · ")}</span>
-      </div>
+      {transport && (
+        <div className="lab-row">
+          <button onClick={() => playLines(shown, 80, setCursor)}>▶ Play</button>
+          <button onClick={() => stop()}>■</button>
+          <span className="lab-note">Staves: {voices.map((_, v) => `${STAFF_NAMES[v]} ${v === cantusIndex ? "cantus firmus" : v === added ? "new voice" : "counterpoint"}`).join(" · ")}</span>
+        </div>
+      )}
       <div className="lab-score">
         <TrioScore
           staves={shown.map((notes, v) => ({ clef: clefOf(voices[v]), notes, editable: false, label: v === cantusIndex ? "Cantus firmus" : v === added ? "New voice" : undefined, fux: alt && alt.voice === v ? voices[v] : undefined }))}
           active={selected?.voice ?? -1}
           selected={selected?.bar ?? -1}
           cursor={cursor}
+          marks={errorBars.map((bar) => ({ bar, severity: "error" as const }))}
           figures
           names
           label={label}
@@ -75,7 +79,7 @@ function Trio({ voices, cantusIndex, added, alt, selected, label }: { voices: st
   );
 }
 
-function TrioChoiceDetail({ audit, at, setAt, writtenLabel }: { audit: TrioAudit; at: { i: number; bar: number }; setAt: (x: { i: number; bar: number }) => void; writtenLabel: string }) {
+export function TrioChoiceDetail({ audit, at, setAt, writtenLabel }: { audit: TrioAudit; at: { i: number; bar: number }; setAt: (x: { i: number; bar: number }) => void; writtenLabel: string }) {
   const v = audit.voices[at.i];
   const u = audit.choices[at.i][at.bar];
   const [alt, setAlt] = useState<string | null>(null);
@@ -92,6 +96,7 @@ function TrioChoiceDetail({ audit, at, setAt, writtenLabel }: { audit: TrioAudit
       </div>
       <Trio voices={audit.step.fux} cantusIndex={audit.step.cantusIndex} alt={alt ? { voice: v, bar: at.bar, pitch: alt } : null} selected={{ voice: v, bar: at.bar }} label="Three voices" />
       {alt && <p className="lab-note">Showing {alt} in place of {u.written}; the written note is drawn as a diamond.</p>}
+      <div className="lab-table-wrap">
       <table className="lab-table">
         <thead>
           <tr>
@@ -116,11 +121,12 @@ function TrioChoiceDetail({ audit, at, setAt, writtenLabel }: { audit: TrioAudit
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
 
-function TrioAuditList({ audits, sel, setSel }: { audits: TrioAudit[]; sel: { ex: number; i: number; bar: number }; setSel: (x: { ex: number; i: number; bar: number }) => void }) {
+export function TrioAuditList({ audits, sel, setSel }: { audits: TrioAudit[]; sel: { ex: number; i: number; bar: number }; setSel: (x: { ex: number; i: number; bar: number }) => void }) {
   return (
     <div className="lab-list">
       {audits.map((a, ex) => (
@@ -160,74 +166,21 @@ export function TrioAuditTab({ order, loo }: { order: TierName[]; loo: boolean }
   );
 }
 
-/** "Add a third voice" under a generated first-species exercise. */
-export function AddThirdVoice({ cantus, line, cantusVoice, final, weight, temperature }: { cantus: string[]; line: string[]; cantusVoice: "upper" | "lower"; final: ModalFinal; weight: number; temperature: number }) {
-  const [placement, setPlacement] = useState<Placement>("below");
-  const [result, setResult] = useState<ThirdVoice | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-  const [audit, setAudit] = useState<TrioAudit | null>(null);
-  const [at, setAt] = useState({ i: 0, bar: 0 });
-  const habits = useMemo(() => buildTrioHabits(TRIO_STEPS), []);
-  const accidentals = useMemo(() => trioAccidentals(TRIO_STEPS), []);
-  useEffect(() => (setResult(null), setAudit(null), setMessage(null)), [cantus, line]);
-  const add = () => {
-    setMessage("Searching…");
-    setAudit(null);
-    window.setTimeout(() => {
-      try {
-        const given: [string[], string[]] = cantusVoice === "lower" ? [line, cantus] : [cantus, line];
-        const r = generateThirdVoice({ modalFinal: final, given, cantusOfGiven: cantusVoice === "lower" ? 1 : 0, placement, habits, accidentals: accidentals[final] ?? [], counselWeight: weight, temperature, seed: Math.floor(Math.random() * 2 ** 31) });
-        setResult(r);
-        setMessage(r.warnings.length ? `Recommendations not followed: ${r.warnings.join(", ")}` : null);
-      } catch (e) {
-        setResult(null);
-        setMessage((e as Error).message);
-      }
-    }, 20);
-  };
-  const verdict = result ? judgeTrio({ modalFinal: final, cantusIndex: result.cantusIndex, rules: TRIO_FIRST_SPECIES }, result.voices) : null;
-  const runAudit = () => {
-    if (!result) return;
-    const step: TrioStep = { id: "generated", ordinal: 0, exerciseId: "generated", figure: "–", page: 0, modalFinal: final, cantusIndex: result.cantusIndex, cantus, fux: result.voices, clefs: [], clefs1725: [] };
-    const a = auditTrio(TRIO_STEPS, step, { leaveOneOut: false });
-    setAudit(a);
-    setAt({ i: Math.max(0, a.voices.indexOf(result.added)), bar: 0 });
-  };
-  return (
-    <section className="lab-trio">
-      <h2>Three voices</h2>
-      <p className="lab-note">A third voice for this exercise, found the same way and judged by the game's three-voice rules (first species, Exercitium II). Each bar's lowest note is the bass.</p>
-      <div className="lab-controls">
-        <span className="lab-group">
-          New voice{" "}
-          <select value={placement} onChange={(e) => setPlacement(e.target.value as Placement)}>
-            <option value="above">above both</option>
-            <option value="between">between them</option>
-            <option value="below">below both (a new bass)</option>
-          </select>
-        </span>
-        <button className="primary" onClick={add}>Add a third voice</button>
-        <button disabled={!result} onClick={runAudit}>Audit this trio</button>
-      </div>
-      {message && <p className="lab-note">{message}</p>}
-      {result && (
-        <>
-          <Trio voices={result.voices} cantusIndex={result.cantusIndex} added={result.added} label="Generated trio" />
-          {verdict && (
-            <p className="lab-note">
-              The game's three-voice judgement: {verdict.errors.length ? `${verdict.errors.length} errors (${[...new Set(verdict.errors.map((v) => v.ruleId))].join(", ")})` : "no rule broken"}
-              {verdict.warnings.length ? `; recommendations not followed: ${[...new Set(verdict.warnings.map((v) => v.ruleId))].join(", ")}` : ""}.
-            </p>
-          )}
-        </>
-      )}
-      {audit && (
-        <>
-          <TrioSummary s={audit.summary} who="the generated note" />
-          <TrioAuditList audits={[audit]} sel={{ ex: 0, ...at }} setSel={(x) => setAt({ i: x.i, bar: x.bar })} />
-          <TrioChoiceDetail audit={audit} at={at} setAt={setAt} writtenLabel="written:" />
-        </>
-      )}
-    </section>
-  );
+let cache: { habits: ReturnType<typeof buildTrioHabits>; accidentals: Record<string, string[]> } | null = null;
+
+/** A third voice for a generated first-species exercise (Fux's three-voice habits, his accidentals on that final). */
+export function addThirdVoice(o: { cantus: string[]; line: string[]; cantusVoice: "upper" | "lower"; final: ModalFinal; placement: Placement; weight: number; temperature: number }): ThirdVoice {
+  cache ??= { habits: buildTrioHabits(TRIO_STEPS), accidentals: trioAccidentals(TRIO_STEPS) };
+  const given: [string[], string[]] = o.cantusVoice === "lower" ? [o.line, o.cantus] : [o.cantus, o.line];
+  return generateThirdVoice({ modalFinal: o.final, given, cantusOfGiven: o.cantusVoice === "lower" ? 1 : 0, placement: o.placement, habits: cache.habits, accidentals: cache.accidentals[o.final] ?? [], counselWeight: o.weight, temperature: o.temperature, seed: Math.floor(Math.random() * 2 ** 31) });
 }
+
+export const judgeGeneratedTrio = (final: ModalFinal, t: ThirdVoice) => judgeTrio({ modalFinal: final, cantusIndex: t.cantusIndex, rules: TRIO_FIRST_SPECIES }, t.voices);
+
+/** The audit of a generated trio, as of one of Fux's. */
+export function auditGeneratedTrio(final: ModalFinal, cantus: string[], t: ThirdVoice): TrioAudit {
+  const step: TrioStep = { id: "generated", ordinal: 0, exerciseId: "generated", figure: "–", page: 0, modalFinal: final, cantusIndex: t.cantusIndex, cantus, fux: t.voices, clefs: [], clefs1725: [] };
+  return auditTrio(TRIO_STEPS, step, { leaveOneOut: false });
+}
+
+export const STAFF_ROLE = (t: ThirdVoice) => t.voices.map((_, v) => `${STAFF_NAMES[v]}: ${v === t.cantusIndex ? "cantus firmus" : v === t.added ? "third voice" : "counterpoint"}`).join(" · ");

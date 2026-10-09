@@ -150,3 +150,15 @@ test("two voices: the generators write sharps only in the last four bars, as Fux
     }
   }
 });
+
+test("three voices: where no error-free voice exists, the one breaking the fewest rules is written, its errors named", () => {
+  // Two lines a third or less apart: a middle voice can only double one of them.
+  const cantus = "D4 F4 D4 E4 F4 G4 E4 A4 G4 E4 F4 D4 E4 D4".split(" ");
+  const cp = "D4 D4 B3 C#4 A3 B3 C#4 A3 Bb3 C4 A3 B3 C#4 D4".split(" ");
+  const r = generateThirdVoice({ modalFinal: "D", given: [cantus, cp], cantusOfGiven: 0, placement: "between", habits: buildTrioHabits(trios), accidentals: trioAccidentals(trios).D ?? [], seed: 3 });
+  assert.equal(r.voices[r.added].length, cantus.length);
+  assert.ok(r.errors.length > 0 && r.reason);
+  const ev = judgeTrio({ modalFinal: "D", cantusIndex: r.cantusIndex, rules: TRIO_FIRST_SPECIES }, r.voices);
+  assert.ok(ev.errors.length <= 4, `${ev.errors.length} errors: ${r.voices[r.added].join(" ")}`);
+  assert.deepEqual([...new Set(ev.errors.map((x) => x.ruleId))].sort(), [...r.errors].sort());
+});

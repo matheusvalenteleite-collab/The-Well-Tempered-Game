@@ -38,3 +38,21 @@
 .lab-strip-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .lab-voice { font-size: 0.72rem; width: 3.6em; opacity: 0.75; }
 .lab [hidden] { display: none !important; }
+/* Generators: three numbered steps side by side, settings, one score box, the audit. */
+.lab-gen { display: flex; flex-direction: column; gap: 14px; }
+.lab-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.lab-panel { margin: 0; min-width: 0; padding: 10px 12px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); display: flex; flex-direction: column; gap: 8px; }
+.lab-panel legend { padding: 0 6px; font-weight: 600; font-size: 0.9rem; }
+.lab-panel[disabled] { opacity: 0.55; }
+.lab-fields { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+.lab-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.lab-status { margin: 0; font-size: 0.8rem; opacity: 0.85; min-height: 2.4em; overflow-wrap: anywhere; }
+.lab-settings { flex-direction: row; flex-wrap: wrap; align-items: center; }
+.lab-box { border: 1px solid var(--line); border-radius: 6px; background: var(--paper); }
+.lab-box-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.lab-box .lab-score { border: 0; border-radius: 0 0 6px 6px; }
+@media (max-width: 860px) { .lab-steps { grid-template-columns: 1fr; } }
+.lab-status.lab-bad, .lab-bad { color: var(--bad); }
+.lab-bad-select { border-color: var(--bad); color: var(--bad); }
+.lab-bad-option { color: var(--bad); }
+.lab-table-wrap { overflow-x: auto; max-width: 100%; }

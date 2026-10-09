@@ -275,6 +275,14 @@ export interface ThirdVoice {
   /** Staff of the new voice. */
   added: Position;
   warnings: string[];
+  /**
+   * Empty when the voice breaks no rule. Otherwise no error-free voice was found, and this is the
+   * one breaking the fewest rules (then the most Fux-like): its errors, the bars they touch, and why
+   * a clean voice was not found.
+   */
+  errors: string[];
+  errorBars: number[];
+  reason?: string;
 }
 
 const DEFERRED = new Set(["t1.final-chord", "t1.cadence"]);
@@ -332,7 +340,7 @@ export function generateThirdVoice(o: ThirdVoiceOptions): ThirdVoice {
     return evaluateTrio({ modalFinal: o.modalFinal, voices: assemble(line).map((l) => l.slice(0, k)), cantusIndex }, rules);
   };
   let reached = 0;
-  for (let attempt = 0; attempt < 4; attempt++) {
+  for (let attempt = 0; attempt < 2; attempt++) {
     const width = (o.width ?? 40) * 2 ** attempt;
     let beam: { line: string[]; cost: number }[] = [{ line: [], cost: 0 }];
     let snapshot: typeof beam = [];
@@ -361,7 +369,7 @@ export function generateThirdVoice(o: ThirdVoiceOptions): ThirdVoice {
     }
     if (beam.length) {
       const ev = judgePrefix(beam[0].line, TRIO_FIRST_SPECIES);
-      return { voices: assemble(beam[0].line), cantusIndex, added, warnings: [...new Set(ev.warnings.map((x) => x.ruleId))] };
+      return { voices: assemble(beam[0].line), cantusIndex, added, warnings: [...new Set(ev.warnings.map((x) => x.ruleId))], errors: [], errorBars: [] };
     }
     // The cadence: try every completion of the last two bars from the best states before it.
     let budget = 1500;
@@ -374,7 +382,7 @@ export function generateThirdVoice(o: ThirdVoiceOptions): ThirdVoice {
           if (!fits(b, n - 1) || !near(a, b) || --budget < 0) continue;
           const line = [...st.line, a, b];
           const ev = judgePrefix(line, TRIO_FIRST_SPECIES);
-          if (ev.passed) return { voices: assemble(line), cantusIndex, added, warnings: [...new Set(ev.warnings.map((x) => x.ruleId))] };
+          if (ev.passed) return { voices: assemble(line), cantusIndex, added, warnings: [...new Set(ev.warnings.map((x) => x.ruleId))], errors: [], errorBars: [] };
         }
       }
     }
@@ -386,5 +394,38 @@ export function generateThirdVoice(o: ThirdVoiceOptions): ThirdVoice {
       : reached < n
         ? ` Every candidate breaks a three-voice rule by bar ${reached + 1} of ${n}${reached + 1 >= n - 1 ? " (the cadence: the two lines leave no note for this voice that makes Fux's ending)" : ""}. Try another placement, or a new counterpoint.`
         : " Try another placement, or a new counterpoint.";
-  throw new Error(`No ${o.placement === "between" ? "middle" : o.placement === "above" ? "upper" : "lower"} voice fits these two lines under the three-voice rules.${why}`);
+  const reason = `No ${o.placement === "between" ? "middle" : o.placement === "above" ? "upper" : "lower"} voice fitting these two lines without breaking a three-voice rule was found.${why}`;
+  // The least bad voice: the same search, but a broken rule costs instead of excluding; a state's
+  // cost is led by its errors (each worth far more than any habit), so the beam keeps the lines
+  // that break the fewest rules and, among them, the most Fux-like.
+  const PENALTY = 1000;
+  let beam: { line: string[]; cost: number; errors: number }[] = [{ line: [], cost: 0, errors: 0 }];
+  const width = 2 * (o.width ?? 40);
+  for (let k = 0; k < n; k++) {
+    const next: typeof beam = [];
+    for (const st of beam) {
+      for (const p of vocab) {
+        if (!fits(p, k)) continue;
+        if (k > 0 && Math.abs(midi(p) - midi(st.line[k - 1])) > 12) continue;
+        const line = [...st.line, p];
+        const errors = k > 0 ? judgePrefix(line, k === n - 1 ? TRIO_FIRST_SPECIES : prefixRules).errors.length : 0;
+        next.push({ line, errors, cost: st.cost + stepCost(line, k) + noise() + PENALTY * Math.max(0, errors - st.errors) });
+      }
+    }
+    next.sort((a, b) => a.cost - b.cost);
+    beam = next.slice(0, width);
+  }
+  const best = beam
+    .map((st) => ({ st, ev: judgePrefix(st.line, TRIO_FIRST_SPECIES) }))
+    .sort((a, b) => a.ev.errors.length - b.ev.errors.length || a.st.cost - b.st.cost)[0];
+  if (!best) throw new Error(reason);
+  return {
+    voices: assemble(best.st.line),
+    cantusIndex,
+    added,
+    warnings: [...new Set(best.ev.warnings.map((x) => x.ruleId))],
+    errors: [...new Set(best.ev.errors.map((x) => x.ruleId))],
+    errorBars: [...new Set(best.ev.errors.flatMap((x) => x.positions))].sort((a, b) => a - b),
+    reason,
+  };
 }

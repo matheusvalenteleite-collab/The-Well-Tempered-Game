@@ -18,8 +18,9 @@ import { checkCantus, generateCantus } from "../counterpoint/choices/cantus.ts";
 import { DEFAULT_COUNSEL_WEIGHT, DEFAULT_TEMPERATURE, generateCounterpoint } from "../counterpoint/choices/counterpoint.ts";
 import { judgeLine } from "../counterpoint/choices/alternatives.ts";
 import { fuxAccidentals, pitchesBetween, registerWindow } from "../counterpoint/choices/vocabulary.ts";
-import { play, stop } from "./play.ts";
-import { AddThirdVoice, TrioAuditTab } from "./Trio.tsx";
+import { play, playLines, stop } from "./play.ts";
+import { addThirdVoice, auditGeneratedTrio, judgeGeneratedTrio, STAFF_ROLE, Trio, TrioAuditList, TrioAuditTab, TrioChoiceDetail, TrioSummary } from "./Trio.tsx";
+import type { Placement, ThirdVoice, TrioAudit } from "../counterpoint/choices/trio.ts";
 
 const SPECIES: SpeciesId[] = ["first", "second", "third", "fourth"];
 const FINALS: ModalFinal[] = ["D", "E", "F", "G", "A", "C"];
@@ -104,6 +105,7 @@ function ChoiceDetail({ audit, choice, setChoice, writtenLabel }: { audit: Exerc
         />
       </div>
       {alt && <p className="lab-note">Showing {alt} in place of {u.written}; the written line is drawn in diamonds.</p>}
+      <div className="lab-table-wrap">
       <table className="lab-table">
         <thead>
           <tr>
@@ -128,6 +130,7 @@ function ChoiceDetail({ audit, choice, setChoice, writtenLabel }: { audit: Exerc
           ))}
         </tbody>
       </table>
+      </div>
       <p className="lab-note">Legal candidates are listed best first by the tiers chosen above; click a row to hear and see it in place. ★ = the written note.</p>
     </div>
   );
@@ -209,6 +212,8 @@ function AuditTab() {
   );
 }
 
+const ruleIds = (vs: { ruleId: string }[]) => [...new Set(vs.map((v) => v.ruleId))].join(", ");
+
 function GenerateTab() {
   const accidentals = useMemo(() => fuxAccidentals(repository), []);
   const [final, setFinal] = useState<ModalFinal>("D");
@@ -216,36 +221,46 @@ function GenerateTab() {
   const [wide, setWide] = useState(false);
   const [species, setSpecies] = useState<SpeciesId>("first");
   const [cantusVoice, setCantusVoice] = useState<Staff>("lower");
+  const [placement, setPlacement] = useState<Placement>("below");
   const [weight, setWeight] = useState(DEFAULT_COUNSEL_WEIGHT);
   const [temperature, setTemperature] = useState(DEFAULT_TEMPERATURE);
   const [cantus, setCantus] = useState<string[] | null>(null);
   const [line, setLine] = useState<string[] | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const [trio, setTrio] = useState<ThirdVoice | null>(null);
+  /** Placements for which no error-free third voice was found, for the current two lines. */
+  const [unclean, setUnclean] = useState<Partial<Record<Placement, boolean>>>({});
+  const [msg, setMsg] = useState<{ cantus?: string | null; line?: string | null; trio?: string | null }>({});
   const [audit, setAudit] = useState<ExerciseAudit | null>(null);
+  const [trioAudit, setTrioAudit] = useState<TrioAudit | null>(null);
   const [choice, setChoice] = useState(0);
+  const [trioAt, setTrioAt] = useState({ i: 0, bar: 0 });
   const [cursor, setCursor] = useState(-1);
   const seed = () => Math.floor(Math.random() * 2 ** 31);
+  const clearAudits = () => (setAudit(null), setTrioAudit(null));
 
   const newCantus = () => {
     try {
       const c = generateCantus({ final, length: length === "auto" ? undefined : length, wideLeaps: wide, seed: seed() });
       setCantus(c);
       setLine(null);
-      setAudit(null);
-      setMessage(null);
+      setTrio(null);
+      setUnclean({});
+      clearAudits();
+      setMsg({});
       return c;
     } catch (e) {
-      setMessage((e as Error).message);
+      setMsg({ cantus: (e as Error).message });
       return null;
     }
   };
   const newLine = (c = cantus) => {
     if (!c) return;
-    setMessage("Searching…");
-    setAudit(null);
+    setMsg((m) => ({ ...m, line: "Searching…", trio: null }));
+    setTrio(null);
+    setUnclean({});
+    clearAudits();
     window.setTimeout(() => {
       try {
-        const corpus = fuxLines(repository, species);
         const [lo, hi] = registerWindow(c, cantusVoice);
         const g = generateCounterpoint({
           species,
@@ -254,16 +269,32 @@ function GenerateTab() {
           cantus: c,
           rules: rulesForStep(lastStepOf(species)),
           vocabulary: pitchesBetween(lo, hi, accidentals[final]),
-          habits: buildHabits(corpus, species),
+          habits: buildHabits(fuxLines(repository, species), species),
           counselWeight: weight,
           temperature,
           seed: seed(),
         });
         setLine(g.line);
-        setMessage(g.warnings.length ? `Recommendations not followed: ${g.warnings.join(", ")}` : null);
+        setMsg((m) => ({ ...m, line: null }));
       } catch (e) {
         setLine(null);
-        setMessage((e as Error).message);
+        setMsg((m) => ({ ...m, line: (e as Error).message }));
+      }
+    }, 20);
+  };
+  const newTrio = () => {
+    if (!cantus || !line) return;
+    setMsg((m) => ({ ...m, trio: "Searching…" }));
+    clearAudits();
+    window.setTimeout(() => {
+      try {
+        const t = addThirdVoice({ cantus, line, cantusVoice, final, placement, weight, temperature });
+        setTrio(t);
+        setUnclean((u) => ({ ...u, [placement]: t.errors.length > 0 }));
+        setMsg((m) => ({ ...m, trio: null }));
+      } catch (e) {
+        setTrio(null);
+        setMsg((m) => ({ ...m, trio: (e as Error).message }));
       }
     }, 20);
   };
@@ -273,103 +304,185 @@ function GenerateTab() {
     if (!cantus || !line || !layout) return null;
     return judgeLine({ species, modalFinal: final, cantusVoice, cantus, layout, rules: rulesForStep(lastStepOf(species)), vocabulary: [], habits: buildHabits([], species) }, line);
   }, [cantus, line, layout, species, final, cantusVoice]);
+  const trioVerdict = useMemo(() => (trio ? judgeGeneratedTrio(final, trio) : null), [trio, final]);
+  const playAll = () => {
+    if (!cantus || !layout) return;
+    if (trio) playLines(trio.voices, 80, setCursor);
+    else play(cantus, line ?? layout.map(() => null), layout, 80, setCursor);
+  };
   const runAudit = () => {
     if (!cantus || !line || !layout) return;
-    const corpus = fuxLines(repository, species);
+    if (trio) {
+      const a = auditGeneratedTrio(final, cantus, trio);
+      setTrioAudit(a);
+      setTrioAt({ i: Math.max(0, a.voices.indexOf(trio.added)), bar: 0 });
+      return;
+    }
     const fl: FuxLine = { stepId: lastStepOf(species), exerciseId: "generated", figure: "–", species, modalFinal: final, cantusVoice, cantus, layout, line };
-    setAudit(auditLine(repository, fl, corpus, { rules: "species", leaveOneOut: false }));
+    setAudit(auditLine(repository, fl, fuxLines(repository, species), { rules: "species", leaveOneOut: false }));
     setChoice(0);
   };
+  const trioPossible = !!line && species === "first";
 
   return (
-    <section>
-      <div className="lab-controls">
-        <span className="lab-group">
-          Final{" "}
-          <select value={final} onChange={(e) => setFinal(e.target.value as ModalFinal)}>
-            {FINALS.map((f) => <option key={f}>{f}</option>)}
-          </select>
-        </span>
-        <span className="lab-group">
-          Notes{" "}
-          <select value={String(length)} onChange={(e) => setLength(e.target.value === "auto" ? "auto" : Number(e.target.value))}>
-            <option value="auto">10–14</option>
-            {[9, 10, 11, 12, 13, 14].map((n) => <option key={n}>{n}</option>)}
-          </select>
-        </span>
-        <label className="lab-group" title="Fux's rare rising fifth (F) and octave (E)">
-          <input type="checkbox" checked={wide} onChange={(e) => setWide(e.target.checked)} /> rising 5th / 8ve
-        </label>
-        <button className="primary" onClick={() => newCantus()}>New cantus firmus</button>
+    <section className="lab-gen">
+      <div className="lab-steps">
+        <fieldset className="lab-panel">
+          <legend>1 · Cantus firmus</legend>
+          <div className="lab-fields">
+            <label className="lab-group">
+              Final
+              <select id="gen-final" value={final} onChange={(e) => setFinal(e.target.value as ModalFinal)}>
+                {FINALS.map((f) => <option key={f}>{f}</option>)}
+              </select>
+            </label>
+            <label className="lab-group">
+              Notes
+              <select id="gen-length" value={String(length)} onChange={(e) => setLength(e.target.value === "auto" ? "auto" : Number(e.target.value))}>
+                <option value="auto">10–14</option>
+                {[9, 10, 11, 12, 13, 14].map((n) => <option key={n}>{n}</option>)}
+              </select>
+            </label>
+            <label className="lab-group" title="Fux's rare rising fifth (F) and octave (E)">
+              <input id="gen-wide" type="checkbox" checked={wide} onChange={(e) => setWide(e.target.checked)} /> rising 5th / 8ve
+            </label>
+          </div>
+          <div className="lab-actions">
+            <button className="primary" onClick={() => newCantus()}>New cantus firmus</button>
+          </div>
+          <p className="lab-status">
+            {msg.cantus ?? (check ? (check.hard.length ? `Breaks: ${check.hard.join("; ")}` : `Every constraint kept${check.soft.length ? ` (soft: ${check.soft.join("; ")})` : ""}.`) : "None yet.")}
+          </p>
+        </fieldset>
+
+        <fieldset className="lab-panel" disabled={!cantus}>
+          <legend>2 · Counterpoint</legend>
+          <div className="lab-fields">
+            <label className="lab-group">
+              Species
+              <select id="gen-species" value={species} onChange={(e) => (setSpecies(e.target.value as SpeciesId), setLine(null), setTrio(null), clearAudits())}>
+                {SPECIES.map((x) => <option key={x}>{x}</option>)}
+              </select>
+            </label>
+            <label className="lab-group">
+              Cantus
+              <select id="gen-cantus-voice" value={cantusVoice} onChange={(e) => (setCantusVoice(e.target.value as Staff), setLine(null), setTrio(null), clearAudits())}>
+                <option value="lower">below</option>
+                <option value="upper">above</option>
+              </select>
+            </label>
+          </div>
+          <div className="lab-actions">
+            <button className="primary" onClick={() => newLine()}>New counterpoint</button>
+          </div>
+          <p className="lab-status">
+            {msg.line ?? (verdict ? (verdict.errors.length ? `${verdict.errors.length} errors: ${ruleIds(verdict.errors)}` : `No rule broken${verdict.warnings.length ? `; not followed: ${ruleIds(verdict.warnings)}` : ""}.`) : "None yet.")}
+          </p>
+        </fieldset>
+
+        <fieldset className="lab-panel" disabled={!trioPossible}>
+          <legend>3 · Third voice</legend>
+          <div className="lab-fields">
+            <label className="lab-group">
+              Place
+              <select id="gen-placement" className={unclean[placement] ? "lab-bad-select" : ""} value={placement} onChange={(e) => setPlacement(e.target.value as Placement)}>
+                {(
+                  [
+                    ["above", "above both"],
+                    ["between", "between them"],
+                    ["below", "below both (new bass)"],
+                  ] as [Placement, string][]
+                ).map(([v, label]) => (
+                  <option key={v} value={v} className={unclean[v] ? "lab-bad-option" : ""}>
+                    {label}
+                    {unclean[v] ? " — errors unavoidable" : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="lab-actions">
+            <button className="primary" onClick={newTrio}>Add third voice</button>
+            <button disabled={!trio} onClick={() => (setTrio(null), clearAudits(), setMsg((m) => ({ ...m, trio: null })))}>Remove</button>
+          </div>
+          <p className={`lab-status${trio?.errors.length ? " lab-bad" : ""}`}>
+            {line && species !== "first"
+              ? "First species only: the game has three-voice rules for first species alone so far."
+              : msg.trio ??
+                (trioVerdict
+                  ? trioVerdict.errors.length
+                    ? `Best possible: ${trioVerdict.errors.length} error${trioVerdict.errors.length > 1 ? "s" : ""} (${ruleIds(trioVerdict.errors)}), in bar${trio!.errorBars.length > 1 ? "s" : ""} ${trio!.errorBars.map((b) => b + 1).join(", ")}. ${trio!.reason ?? ""}`
+                    : `No three-voice rule broken${trioVerdict.warnings.length ? `; not followed: ${ruleIds(trioVerdict.warnings)}` : ""}.`
+                  : "None yet.")}
+          </p>
+        </fieldset>
       </div>
-      <div className="lab-controls">
-        <span className="lab-group">
-          Species{" "}
-          <select value={species} onChange={(e) => (setSpecies(e.target.value as SpeciesId), setLine(null), setAudit(null))}>
-            {SPECIES.map((s) => <option key={s}>{s}</option>)}
-          </select>
-        </span>
-        <span className="lab-group">
-          Cantus{" "}
-          <select value={cantusVoice} onChange={(e) => (setCantusVoice(e.target.value as Staff), setLine(null), setAudit(null))}>
-            <option value="lower">below</option>
-            <option value="upper">above</option>
-          </select>
-        </span>
-        <label className="lab-group" title="0: follow Fux's habits only. Higher: also obey his stated counsel (contrary motion, imperfect consonances, no repetition, small leaps); each point of counsel counts as this many bits of habit">
-          counsel weight <input type="range" min={0} max={6} step={0.5} value={weight} onChange={(e) => setWeight(Number(e.target.value))} /> {weight}
-        </label>
-        <label className="lab-group" title="0: always the most typical move. 1: each move about as often as Fux makes it. Above 1: rarer moves more often">
-          variety <input type="range" min={0} max={3} step={0.25} value={temperature} onChange={(e) => setTemperature(Number(e.target.value))} /> {temperature}
-        </label>
-        <button className="primary" disabled={!cantus} onClick={() => newLine()}>New counterpoint</button>
-        <button onClick={() => { const c = newCantus(); if (c) newLine(c); }}>Both</button>
-      </div>
-      {message && <p className="lab-note">{message}</p>}
+
+      <fieldset className="lab-panel lab-settings">
+        <legend>Search settings (counterpoint and third voice)</legend>
+        <div className="lab-fields">
+          <label className="lab-group" title="0: follow Fux's habits only. Higher: also obey his stated counsel (contrary motion, imperfect consonances, no repetition, small leaps); each point of counsel counts as this many bits of habit">
+            Counsel weight <input id="gen-weight" type="range" min={0} max={6} step={0.5} value={weight} onChange={(e) => setWeight(Number(e.target.value))} /> <b>{weight}</b>
+          </label>
+          <label className="lab-group" title="0: always the most typical move. 1: each move about as often as Fux makes it. Above 1: rarer moves more often">
+            Variety <input id="gen-variety" type="range" min={0} max={3} step={0.25} value={temperature} onChange={(e) => setTemperature(Number(e.target.value))} /> <b>{temperature}</b>
+          </label>
+        </div>
+      </fieldset>
+
       {cantus && layout && (
-        <>
-          <div className="lab-row">
-            <button disabled={!line} onClick={() => line && play(cantus, line, layout, 80, setCursor)}>▶ Play</button>
-            <button onClick={() => stop()}>■</button>
-            <button disabled={!line} onClick={runAudit}>Audit this line</button>
-            <span className="lab-note">
-              Cantus: {cantus.join(" ")} {check && (check.hard.length ? `— breaks: ${check.hard.join("; ")}` : "— every constraint kept")}
-              {check?.soft.length ? ` (soft: ${check.soft.join("; ")})` : ""}
-            </span>
+        <div className="lab-box">
+          <div className="lab-box-head">
+            <button className="primary" onClick={playAll}>▶ Play {trio ? "all three voices" : line ? "both voices" : "the cantus"}</button>
+            <button onClick={() => stop()} aria-label="Stop">■</button>
+            <span className="lab-note">{trio ? STAFF_ROLE(trio) : `Cantus ${cantusVoice === "lower" ? "below" : "above"} · ${species} species`}</span>
           </div>
           <div className="lab-score">
-            <ScoreView
-              cantus={cantus}
-              counterpoint={line ?? layout.map(() => null)}
-              layout={layout}
-              cantusVoice={cantusVoice}
-              clefs={displayClefs(cantus, cantusVoice)}
-              selected={-1}
-              cursor={cursor}
-              label="Generated"
-              ties={species === "fourth"}
-              showNames
-              readOnly
-              onPlace={() => undefined}
-              onSelect={() => undefined}
-            />
+            {trio ? (
+              <Trio voices={trio.voices} cantusIndex={trio.cantusIndex} added={trio.added} label="Generated exercise" cursor={cursor} transport={false} errorBars={trio.errorBars} />
+            ) : (
+              <ScoreView
+                cantus={cantus}
+                counterpoint={line ?? layout.map(() => null)}
+                layout={layout}
+                cantusVoice={cantusVoice}
+                clefs={displayClefs(cantus, cantusVoice)}
+                selected={-1}
+                cursor={cursor}
+                label="Generated exercise"
+                ties={species === "fourth"}
+                showNames
+                readOnly
+                onPlace={() => undefined}
+                onSelect={() => undefined}
+              />
+            )}
           </div>
-          {verdict && (
-            <p className="lab-note">
-              The game's judgement: {verdict.errors.length ? `${verdict.errors.length} errors (${[...new Set(verdict.errors.map((v) => v.ruleId))].join(", ")})` : "no rule broken"}
-              {verdict.warnings.length ? `; recommendations not followed: ${[...new Set(verdict.warnings.map((v) => v.ruleId))].join(", ")}` : ""}.
-            </p>
-          )}
-        </>
+        </div>
       )}
-      {cantus && line && species === "first" && <AddThirdVoice cantus={cantus} line={line} cantusVoice={cantusVoice} final={final} weight={weight} temperature={temperature} />}
-      {cantus && line && species !== "first" && <p className="lab-note">A third voice can be added in first species only: the game has three-voice rules for first species alone so far.</p>}
-      {audit && (
-        <>
-          <Summary s={audit.summary} who="the generated note" />
-          <Strip audit={audit} selected={choice} onSelect={setChoice} />
-          <ChoiceDetail audit={audit} choice={choice} setChoice={setChoice} writtenLabel="generated:" />
-        </>
+
+      {line && (
+        <fieldset className="lab-panel">
+          <legend>Audit of this exercise</legend>
+          <div className="lab-actions">
+            <button onClick={runAudit}>Audit {trio ? "the three voices" : "the counterpoint"}</button>
+            <span className="lab-note">Every alternative pitch at every note of the generated {trio ? "voices" : "line"}, judged and ranked as in the audit of Fux.</span>
+          </div>
+          {audit && !trio && (
+            <>
+              <Summary s={audit.summary} who="the generated note" />
+              <Strip audit={audit} selected={choice} onSelect={setChoice} />
+              <ChoiceDetail audit={audit} choice={choice} setChoice={setChoice} writtenLabel="generated:" />
+            </>
+          )}
+          {trioAudit && trio && (
+            <>
+              <TrioSummary s={trioAudit.summary} who="the generated note" />
+              <TrioAuditList audits={[trioAudit]} sel={{ ex: 0, ...trioAt }} setSel={(x) => setTrioAt({ i: x.i, bar: x.bar })} />
+              <TrioChoiceDetail audit={trioAudit} at={trioAt} setAt={setTrioAt} writtenLabel="generated:" />
+            </>
+          )}
+        </fieldset>
       )}
     </section>
   );
@@ -389,7 +502,7 @@ export function Lab() {
       <p className="lab-intro">
         {tab === "audit"
           ? "At every note of Fux's solutions (two voices, species 1–4; three voices, first species), every other pitch is put in its place and the whole line is judged again by the game's rules. The legal ones are ranked by the score vector: errors, then Fux's recommendations, then his stated counsel (motion, perfect consonances, repetition, leaps), then his habits measured on his other solutions."
-          : "A cantus firmus from the constraints accepted in D8 (each one checked against Fux's own cantus firmi), and a counterpoint found by a search that the game's rules judge at every downbeat and in full at the end, ranked by Fux's counsel and habits."}
+          : "Build an exercise in three steps: a cantus firmus from the constraints accepted in D8 (each checked against Fux's own cantus firmi); a counterpoint found by a search the game's rules judge as it goes; and, in first species, a third voice judged by the three-voice rules. All voices stand in one score and play together."}
       </p>
       {tab === "audit" ? <AuditTab /> : <GenerateTab />}
     </main>
