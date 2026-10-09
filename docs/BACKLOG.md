@@ -77,7 +77,8 @@ Findings and points for the owner:
   successive moves, how a downbeat is reached, the same fifth or octave on successive downbeats.
   Weighted, they cut the surprise at his notes from 1.24 to 0.96 bits per real choice (his note
   first 72%; 68% before; second species 63% → 75-78%). In words: perfect consonances on a
-  downbeat reached by contrary motion 99% (oblique would be legal); after a leap of a fourth or
+  downbeat reached by contrary motion 99% (oblique would mean a repeated note, legal only in first
+  species, so this is partly the rules); after a leap of a fourth or
   more he turns back 76% (up) and 95% (down), after a downward one more often by another leap
   than by step. The audit and both generators use this model; the generator's variety is
   calibrated at 0.75 on his rates of leaps and spacing. Not yet modelled: three voices (its own,
