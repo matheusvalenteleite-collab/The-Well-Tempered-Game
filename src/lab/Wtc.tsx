@@ -233,6 +233,73 @@ function AnswerExercise({ p, a, tuning }: { p: WtcPiece; a: Analysis; tuning: Tu
   );
 }
 
+/* ---------------------------------------------------------------- level 6: the key plan */
+
+function KeyPlanExercise({ p, a, tuning }: { p: WtcPiece; a: Analysis; tuning: TuningId }) {
+  const entries = a.entries.filter((e) => e.form === "subject");
+  // The exposition: until a voice enters a second time.
+  const seen = new Set<number>();
+  let expo = 0;
+  for (const e of entries) {
+    if (seen.has(e.voice)) break;
+    seen.add(e.voice);
+    expo++;
+  }
+  const middle = entries.slice(expo);
+  const options = p.mode === "major" ? ["I", "ii", "iii", "IV", "V", "vi"] : ["i", "III", "iv", "v", "V", "VI", "VII"];
+  const [picks, setPicks] = useState<string[]>([]);
+  const [checked, setChecked] = useState(false);
+  useEffect(() => (setPicks(middle.map(() => "")), setChecked(false)), [a]);
+  if (!middle.length) return null;
+  const bach = middle.map((e) => entryKey(p, e, a.subject).roman);
+  const barOf = (t: number) => [...p.bars].reverse().find((b) => b.on <= t)?.n ?? 1;
+  const right = bach.filter((k, i) => picks[i] === k).length;
+  const l = (e: Entry) => line(p.voices[e.voice]).slice(e.at, e.at + e.length);
+  return (
+    <fieldset className="lab-panel">
+      <legend>Exercise: plan the keys</legend>
+      <p className="lab-prose">
+        After the exposition the subject comes back in other keys. For each later entry, choose the key you would put it in; then compare with Bach and hear his entry. Bach's habit in the 48: major fugues go first to the relative minor (vi), then IV and ii; minor fugues to the relative major (III), then iv and VII (docs/wtc/keyplan-study.md). The keys are read automatically from the entries; a few in secondary keys may be misread (major for minor).
+      </p>
+      <div className="lab-table-wrap">
+        <table className="lab-table">
+          <thead>
+            <tr>
+              <th>entry</th>
+              <th>bar</th>
+              <th>voice</th>
+              <th>your key</th>
+              {checked && <th>Bach</th>}
+              {checked && <th></th>}
+            </tr>
+          </thead>
+          <tbody>
+            {middle.map((e, i) => (
+              <tr key={i} className={checked && picks[i] !== bach[i] ? "lab-illegal" : ""}>
+                <td>{expo + i + 1}</td>
+                <td>{barOf(e.on)}</td>
+                <td>{VOICE_NAMES[p.voices.length]?.[e.voice] ?? e.voice + 1}</td>
+                <td>
+                  <select value={picks[i] ?? ""} onChange={(ev) => (setPicks((ps) => ps.map((x, j) => (j === i ? ev.target.value : x))), setChecked(false))}>
+                    <option value="">–</option>
+                    {[...new Set([...options, ...(checked ? [bach[i]] : [])])].map((o) => <option key={o}>{o}</option>)}
+                  </select>
+                </td>
+                {checked && <td><b>{bach[i]}</b></td>}
+                {checked && <td><button onClick={() => playNotes(l(e), tuning)}>▶</button></td>}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="lab-actions">
+        <button className="primary" onClick={() => setChecked(true)}>Compare with Bach</button>
+        {checked && <span>{right} of {middle.length} as Bach placed them.</span>}
+      </div>
+    </fieldset>
+  );
+}
+
 /* ---------------------------------------------------------------- the tab */
 
 const ORDER = ["C major", "C minor", "C# major", "C# minor", "D major", "D minor", "Eb major", "D# minor", "E major", "E minor", "F major", "F minor", "F# major", "F# minor", "G major", "G minor", "Ab major", "G# minor", "A major", "A minor", "Bb major", "Bb minor", "B major", "B minor"];
@@ -411,6 +478,7 @@ export function WtcTab() {
         </fieldset>
       )}
       {a && p.kind === "fugue" && <AnswerExercise p={p} a={a} tuning={tuning} />}
+      {a && p.kind === "fugue" && <KeyPlanExercise p={p} a={a} tuning={tuning} />}
       <details className="lab-panel wtc-docs">
         <summary><b>The plan for the WTC mode</b> (a proposal: docs/wtc/CONCEPT.md)</summary>
         <div className="lab-habits"><Markdown text={concept} /></div>

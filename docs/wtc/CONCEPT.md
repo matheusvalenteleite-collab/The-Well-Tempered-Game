@@ -44,17 +44,19 @@ the levels above given as scaffolding.
 | level | the player | judged by | exists tonight |
 |---|---|---|---|
 | **0. Hear and see** | plays a fugue in a chosen tuning; sees the map (voices, entries marked) | – | lab prototype: map of all 48, entries found automatically, five tunings |
-| **1. Find the entries** | marks where the subject enters, in which voice, in which key | Bach's entries (the analysis, checked by hand where it is unsure) | analysis (`findEntries`); exercise not yet |
+| **1. Find the entries** | marks where the subject enters, in which voice, in which key | Bach's entries (the analysis, checked by hand where it is unsure) | lab exercise (click the entries on the map; hits, misses, false marks) |
 | **2. Answer the subject** | turns a subject into its answer: each note a fifth or a fourth up | the head by rule (law-like in the 48: 17 of 17, 7 of 7), the tail against Bach's answer | lab exercise for all 48 fugues; study docs/wtc/answer-study.md |
 | **3. The countersubject** | writes a line against the answer that works above and below it | two-voice rules in both positions (the free style: fifth species and its suspensions), and Bach's countersubject beside it | study docs/wtc/countersubject-study.md (16 regular, 14 inverted); exercise not yet |
 | **4. The exposition** | orders the entries, writes the links (codettas) between them | the entries' keys and voices; voice-leading | analysis of entry order; not yet |
 | **5. Episodes** | spins a sequence from a fragment of the subject | derivation from the subject (motive matching), sequence logic | `motives.ts` from the Fux work; not yet |
-| **6. The key plan** | chooses the keys of the middle entries (relative, dominant, subdominant...) | Bach's plans in the 48, as the chorale mode's level 1 judges cadence plans | not yet |
+| **6. The key plan** | chooses the keys of the middle entries (relative, dominant, subdominant...) | Bach's plans in the 48, as the chorale mode's level 1 judges cadence plans | lab exercise; study docs/wtc/keyplan-study.md (major: vi, IV, ii first; minor: III, iv, VII) |
 | **7. Stretto, inversion, augmentation** | finds and then writes overlapping or transformed entries | Bach's strettos | inversion found by `findEntries`; stretto not yet |
 | **8. Write a fugue** | two voices first (Book I no. 10 in E minor is Bach's two-voice fugue), then three | all the above | – |
 
 Preludes run beside: **P1** a progression to realize in a given figure (C major, Book I), **P2** a
-figure to choose for a progression, **P3** two-voice preludes in invention style.
+figure to choose for a progression, **P3** two-voice preludes in invention style. Tonight: the
+harmonic reduction of any prelude (a chord a bar, figured, with a Roman numeral, playable as block
+chords), the ground for P1.
 
 ## 4. How a solution is judged
 
@@ -79,9 +81,12 @@ habits measured on pieces the model has not seen, confounds tested before a habi
 - **Analysis (`src/wtc/`):** Humdrum reader; subject and answer; the answer rules (real, tonal
   variants, Bach's practice); entries of the subject (straight and inverted) for the fugue map;
   countersubjects and their uses; tunings (the game's four plus Kirnberger III and Vallotti).
-- **Studies (`docs/wtc/`):** the answers (law-like head, variable tail); the countersubjects.
+- **Studies (`docs/wtc/`):** the answers (law-like head, variable tail); the countersubjects; the
+  key plans; a cross-check against the main session's independent reading of 29 expositions (D119:
+  the answers' mutations agree in all but one fugue).
 - **Prototype:** the lab's "Well-Tempered Clavier" tab: the 48 in Bach's key order, Inventions and
-  Sinfonias, the map, playback in period tunings, the answer exercise.
+  Sinfonias, the map with entries labelled by key, playback in period tunings, the harmonic reduction,
+  and three exercises: find the entries (level 1), answer the subject (level 2), plan the keys (level 6).
 
 ## 6. For the owner to decide
 
@@ -94,4 +99,9 @@ habits measured on pieces the model has not seen, confounds tested before a habi
    of species counterpoint. Keyboard fugues need a grand staff with several voices per staff.
 4. **Who builds what:** proposed tonight to the main session: the lab session the data, analysis,
    studies and exercise logic (pure modules, as with the hints, D115); the main session the mode's
-   screen, notation, sound and integration.
+   screen, notation, sound and integration. The main session has meanwhile started its own first
+   layer (D119: 29 expositions from the ASAP dataset, an answer engine, a two-voice tonal
+   counterpoint engine) and the screen: the two readings were cross-checked and agree.
+5. **Two data sources, two licences:** this branch's Humdrum encoding (Huron, rights reserved) and
+   the main session's ASAP-derived file (CC BY-NC-SA 4.0, non-commercial). One should be chosen, or
+   both kept for study only.
