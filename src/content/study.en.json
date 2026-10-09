@@ -1,2051 +1,2061 @@
 {
- "modes": {
-  "D": {
-   "name": "The mode on D",
-   "body": [
-    {
-     "type": "text",
-     "text": "Final D, fifth A. Mann calls it Dorian. Between D and A lie the semitone E–F; above A, B♮ and the semitone B–C."
+  "modes": {
+    "D": {
+      "name": "The mode on D (Dorian)",
+      "body": [
+        {
+          "type": "text",
+          "text": "Its final is D: the note every melody in this mode returns to and ends on. A, a fifth above, is its second pillar. Play the white keys from D to D and you hear its colour: like a minor scale, but with a bright B♮ where minor would have B♭."
+        },
+        {
+          "type": "text",
+          "text": "At the cadence the two voices close onto D from opposite sides, and the one rising from below must lead into it by a semitone. So Fux raises C to C♯: over the cantus's E it makes the major sixth E–C♯ that opens to the octave (cantus below), or under it the minor third C♯–E that closes to the unison (cantus above)."
+        },
+        {
+          "type": "mann",
+          "text": "Thus, the seventh degree has to be raised in the Dorian (D), Mixolydian (G), and Aeolian (A) modes. (The second degree of a mode occurs always as the next to the last tone in the cantus firmus, the seventh degree always as the next to the last tone in the counterpoint.)",
+          "page": "28",
+          "note": "2"
+        },
+        {
+          "type": "text",
+          "text": "One danger lives inside this mode: F and B both belong to it, and they are a tritone apart — mi against fa. Never leap from one to the other. Where a line would otherwise outline that tritone, Fux sometimes writes B♭ in this mode too, for the reason he gives in the mode on F."
+        }
+      ]
     },
-    {
-     "type": "text",
-     "text": "At the cadence the counterpoint's next-to-last note is the seventh degree, C, raised to C♯: the major sixth over E (cantus below) or the minor third under E (cantus above)."
+    "E": {
+      "name": "The mode on E (Phrygian)",
+      "body": [
+        {
+          "type": "text",
+          "text": "Final E, fifth B. Its colour comes from the semitone directly above the final, E–F: melodies fall onto E from F, and that falling semitone is its cadence. No sharp is needed (D♯ would destroy the mode); the voice from below reaches E from D, a whole tone away."
+        },
+        {
+          "type": "text",
+          "text": "B and F also sit a tritone apart inside this mode, which makes it the most awkward of all. This is where Josephus first leaps a tritone (first species, cantus above), and where in second species the fifth that normally stands before the final is impossible (it would be F against B, a diminished fifth)."
+        },
+        {
+          "type": "text",
+          "text": "In four voices Aloysius calls E the most difficult mode, because it lacks a perfect fifth where the others have one (Mann p. 124)."
+        }
+      ]
     },
-    {
-     "type": "mann",
-     "text": "Thus, the seventh degree has to be raised in the Dorian (D), Mixolydian (G), and Aeolian (A) modes. (The second degree of a mode occurs always as the next to the last tone in the cantus firmus, the seventh degree always as the next to the last tone in the counterpoint.)",
-     "page": "28",
-     "note": "2"
+    "F": {
+      "name": "The mode on F (Lydian)",
+      "body": [
+        {
+          "type": "text",
+          "text": "Final F, fifth C. On paper its scale is the white keys from F to F, and the interval that defines it is the fourth above the final, F–B: a tritone, the harshest sound of the system, at the heart of the mode. Fux's cantus firmus never touches B at all."
+        },
+        {
+          "type": "text",
+          "text": "When the counterpoint needs that degree, Fux writes B♭ — nineteen times in his two-voice solutions, against a single B♮ (see Fig. 38). In third species Aloysius stops him and asks why (pp. 68–69): flats are not the custom of the diatonic genus they are working in. Josephus answers that otherwise a harsh mi contra fa would arise; and that the flats do the genus no harm, being mixed in 'not substantially but accidentally, out of necessity'. Aloysius approves, and adds that sharps must sometimes be used for the same reason — 'but where and when must be weighed with keen judgement'."
+        },
+        {
+          "type": "fux",
+          "latin": "Nec obesse arbitror generi Diatonico, cùm b. mollia illa non substantialiter, sed accidentaliter ex necessitate immixta esse constet.",
+          "english": "Nor do I think it harms the diatonic genus, since it is clear that those flats were mixed in not substantially but accidentally, out of necessity.",
+          "page": "69"
+        },
+        {
+          "type": "text",
+          "text": "What does that distinction mean? The 'diatonic genus' is the old name for the scale of tones and semitones that the white keys give; a written flat looks like a step into another genus (the chromatic, which moves by semitones). Josephus's point is that the B♭ does not belong to the mode's substance — the mode is still the F mode, its scale still the white keys — but is a correction applied in passing, where the tritone would otherwise sound. It is the old practice of musica ficta, the singers' unwritten accidentals, written out."
+        },
+        {
+          "type": "text",
+          "text": "In practice, though, an F mode whose B is nearly always flattened sounds like our F major. That is why the theorist Glarean (Dodecachordon, 1547), noticing how often F-mode melodies were sung with B♭, counted a separate mode on C — the Ionian, our major scale — among his twelve. The cadence of the F mode (E rising to F) needs no accidental: E–F is already a semitone."
+        }
+      ]
     },
-    {
-     "type": "text",
-     "text": "Watch the line F … B: the two notes of mi contra fa are both in the mode, and a careless leap between them is a tritone."
+    "G": {
+      "name": "The mode on G (Mixolydian)",
+      "body": [
+        {
+          "type": "text",
+          "text": "Final G, fifth D. Like a major scale with a lowered seventh: F♮, a whole tone below the final, gives the mode its open, slightly archaic sound."
+        },
+        {
+          "type": "text",
+          "text": "At the cadence that F must lead into G by a semitone, so Fux raises it to F♯. With that comes a risk: an F♮ in one voice close to an F♯ in the other is a false (or cross) relation, which is why Josephus sharpens the F a bar early in Fig. 21 (1725 p. 55)."
+        },
+        {
+          "type": "mann",
+          "text": "Thus, the seventh degree has to be raised in the Dorian (D), Mixolydian (G), and Aeolian (A) modes. (The second degree of a mode occurs always as the next to the last tone in the cantus firmus, the seventh degree always as the next to the last tone in the counterpoint.)",
+          "page": "28",
+          "note": "2"
+        }
+      ]
+    },
+    "A": {
+      "name": "The mode on A (Aeolian)",
+      "body": [
+        {
+          "type": "text",
+          "text": "Final A, fifth E: the white keys from A, our natural minor. At the cadence G is raised to G♯, so that it leads into A by a semitone."
+        },
+        {
+          "type": "mann",
+          "text": "Thus, the seventh degree has to be raised in the Dorian (D), Mixolydian (G), and Aeolian (A) modes. (The second degree of a mode occurs always as the next to the last tone in the cantus firmus, the seventh degree always as the next to the last tone in the counterpoint.)",
+          "page": "28",
+          "note": "2"
+        },
+        {
+          "type": "text",
+          "text": "As in the mode on D, F and B both belong to this mode, a tritone apart: never leap from one to the other."
+        }
+      ]
+    },
+    "C": {
+      "name": "The mode on C (Ionian)",
+      "body": [
+        {
+          "type": "text",
+          "text": "Final C, fifth G: the white keys from C, our major scale. It is the only mode whose seventh degree is already a semitone below the final (B–C), so its cadence needs no accidental."
+        },
+        {
+          "type": "text",
+          "text": "Fux leaves C to the pupil in first species (there is no worked example); in second species he works it out (Figs. 44–45)."
+        }
+      ]
     }
-   ]
   },
-  "E": {
-   "name": "The mode on E",
-   "body": [
-    {
-     "type": "text",
-     "text": "Final E, fifth B. Mann calls it Phrygian. Its peculiarity is the semitone directly above the final, E–F: the cantus ends F → E, falling by a semitone, so the cadence needs no accidental (the counterpoint's D is already a whole tone from E)."
+  "steps": {
+    "fux-mode.s1.01": {
+      "name": "First steps",
+      "specific": [
+        "Every vertical interval a consonance; reach perfect consonances only by contrary or oblique motion.",
+        "More thirds and sixths than fifths and octaves (1725 p. 46).",
+        "Begin and end on a perfect consonance; major sixth in the next-to-last bar."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius defines the species: notes of equal length, consonances only. Whole notes are used because they show the matter most clearly. He recalls the four rules of motion from the first book and adds two precepts: contrary and oblique motion as much as possible, and more imperfect than perfect consonances, with the beginning and the end excepted."
+        },
+        {
+          "type": "fux",
+          "latin": "adhibendo ut plurimum, motum contrarium, vel obliquum",
+          "english": "using contrary or oblique motion as much as possible",
+          "page": "45"
+        },
+        {
+          "type": "fux",
+          "latin": "meris Consonantiis constans",
+          "english": "consisting of consonances only",
+          "page": "45"
+        },
+        {
+          "type": "text",
+          "text": "Why more imperfect consonances? Because they are more harmonious; a composition of perfect consonances would lack harmony. Why perfect ones at the ends? Because the beginning should express perfection and the end repose, which imperfect consonances cannot give (paraphrase of p. 46)."
+        },
+        {
+          "type": "heading",
+          "text": "The dialogue"
+        },
+        {
+          "type": "dialogue",
+          "lines": [
+            {
+              "who": "Josephus",
+              "text": "writes a counterpoint above the cantus and puts the bar numbers over his part, and over the alto the consonances he means to use."
+            },
+            {
+              "who": "Josephus",
+              "text": "then justifies each move by the rule it obeys: a fifth to a third by oblique motion; third to third by parallel motion; third to fifth by contrary motion; and so on to the major sixth and the octave."
+            },
+            {
+              "who": "Aloysius",
+              "text": "approves: if he masters the motions and the rules, slight slips will soon disappear."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "Mann's notes"
+        },
+        {
+          "type": "mann",
+          "text": "Principles for the forming of melodies are discussed later in the course of the work. The basic rule, however, from which all others are derived, might be mentioned beforehand: the possibility of vocal performance should always be taken into consideration. Therefore, no augmented, diminished, or chromatic intervals are to be used, nor intervals larger than the fifth (except for the octave and the minor sixth, which latter, however, should be employed only in an upward direction). Registers too high or too low (see p. 79), skips following each other in the same direction, and skips which are not compensated for subsequently should also be avoided.",
+          "page": "27",
+          "note": "1"
+        },
+        {
+          "type": "mann",
+          "text": "Thus, the seventh degree has to be raised in the Dorian (D), Mixolydian (G), and Aeolian (A) modes. (The second degree of a mode occurs always as the next to the last tone in the cantus firmus, the seventh degree always as the next to the last tone in the counterpoint.)",
+          "page": "28",
+          "note": "2"
+        },
+        {
+          "type": "mann",
+          "text": "For Fig. 5, second and seventh bars: The repetition of a tone—the only way of using oblique motion in the first species—may occur occasionally in the counterpoint; however, the same tone should not be repeated more than once.",
+          "page": "29",
+          "note": "3"
+        },
+        {
+          "type": "text",
+          "text": "Note: Mann's melodic advice (no leaps larger than a fifth, compensate leaps, and so on) is his own, not Fux's; the game does not check it."
+        }
+      ],
+      "intro": {
+        "la": "Fiat ergo principium, Auspice Deo, à Compositione duarum vocum, ponendo quendam Cantum firmum, vel à proprio judicio inventum, vel ex aliquo Libro Chorali assumptum pro fundamento.",
+        "en": "Let us begin, then, with God's help, with composition in two voices, taking as our foundation a cantus firmus, either of our own invention or taken from some book of chant.",
+        "page": "45"
+      }
     },
-    {
-     "type": "text",
-     "text": "B and F, mi and fa, sit a tritone apart inside this mode, and the cantus moves around them. This is where Josephus first leaps a tritone (first species, cantus above), and where in second species the fifth before the final is impossible (F against B below)."
+    "fux-mode.s1.02": {
+      "name": "Below the cantus",
+      "specific": [
+        "With the counterpoint below: begin on the octave or unison, not the fifth (p. 48).",
+        "From an imperfect to a perfect consonance only by contrary motion: direct motion hides fifths and octaves (pp. 49-50)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Josephus now writes below the cantus, reckoning the intervals downwards. Aloysius marks two faults he could not have known about."
+        },
+        {
+          "type": "dialogue",
+          "lines": [
+            {
+              "who": "Josephus",
+              "text": "Why did you mark the first and second bars? I began on a fifth, a perfect consonance."
+            },
+            {
+              "who": "Aloysius",
+              "text": "The counterpoint must be in the mode of the cantus. The cantus is in D (la sol re); beginning on G (sol re ut) forces the opening out of the mode. I changed the fifth to an octave."
+            },
+            {
+              "who": "Aloysius",
+              "text": "The second fault is from bar 2 to 3: from a third to a fifth by direct motion. Let the lower voice stay on D: a tenth, then the fifth by contrary motion."
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "Why is direct motion into a perfect consonance forbidden? Because a good singer, filling the leap with passing notes (diminution), would make the hidden fifths or octaves audible (Figs. 7-8)."
+        },
+        {
+          "type": "text",
+          "text": "Aloysius then sets the plan for the rest of the lesson: all the modes in their natural order, E, F, G, A, C. B is left out because its fifth is diminished; altering it would move into a transposed mode, discussed elsewhere."
+        },
+        {
+          "type": "heading",
+          "text": "Mann's notes"
+        },
+        {
+          "type": "mann",
+          "text": "This quadruple denomination of the same tone derives from the old distribution of the tones into three hexachords (six-tone scales) … The degrees of each hexachord were called in turn, ut, re, mi, fa, sol, and la, and it was customary to indicate the position of a tone in all three hexachords.",
+          "page": "31",
+          "note": "4"
+        },
+        {
+          "type": "mann",
+          "text": "This refers to the old practice of improvised ornamentation, especially in the so-called diminution (filling out of intervals, and breaking up of large note values into smaller ones). Cf. pp. 41 and 51.",
+          "page": "33",
+          "note": "5"
+        }
+      ],
+      "intro": {
+        "la": "Jam perge, relicto Cantu firmo, ut est in Alto, infra pone Tenorem pro parte Contrapuncti.",
+        "en": "Now go on: leave the cantus firmus in the alto as it is, and put the tenor below it to carry the counterpoint.",
+        "page": "48"
+      }
     },
-    {
-     "type": "text",
-     "text": "In four voices Aloysius calls E the most difficult mode, because it lacks the perfect fifth where the others have one (Mann p. 124)."
+    "fux-mode.s1.03": {
+      "name": "Into E",
+      "specific": [
+        "No new precept. The cadence in E needs no accidental: the cantus falls a semitone F → E.",
+        "Beware F and B: mi contra fa."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius writes a cantus in E and Josephus sets a counterpoint above it. He is told he did very well. The modes differ, Aloysius says, because the semitones fall in different places, which changes the melody of each."
+        },
+        {
+          "type": "fux",
+          "latin": "mi contra fa est diabolus in Musica",
+          "english": "mi against fa is the devil in music",
+          "page": "52"
+        },
+        {
+          "type": "text",
+          "text": "That warning comes in the next exercise; here it is already latent, since the cantus moves around F and B."
+        }
+      ],
+      "intro": {
+        "la": "Age ergo, tuumque exercitium resumendo, construito Contrapunctum super Cantum firmum, quem tibi modò in E. praescripturus sum.",
+        "en": "Come then, take up your exercise again, and build a counterpoint above the cantus firmus I am about to set you in E.",
+        "page": "51"
+      }
+    },
+    "fux-mode.s1.04": {
+      "name": "The devil in music",
+      "specific": [
+        "No leap of a tritone (augmented fourth) in the counterpoint (pp. 51-52)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "dialogue",
+          "lines": [
+            {
+              "who": "Josephus",
+              "text": "So I made a mistake again: what is the bow from bar 6 to 7, with the cross over it?"
+            },
+            {
+              "who": "Aloysius",
+              "text": "Do not worry: you could not avoid it, since your attention had not been called to it. You know the verse: mi contra fa est diabolus in musica. Your leap is an augmented fourth, a tritone: hard to sing and ugly to hear, and therefore forbidden in strict counterpoint."
+            }
+          ]
+        },
+        {
+          "type": "fux",
+          "latin": "saltum Quartae majoris, sive Tritoni",
+          "english": "the leap of a major [augmented] fourth, or tritone",
+          "page": "51-52"
+        },
+        {
+          "type": "heading",
+          "text": "Mann's notes"
+        },
+        {
+          "type": "mann",
+          "text": "Mi (the third tone of a hexachord) and fa (the fourth tone of a hexachord) occur in most combinations of the different hexachords in the interval of a tritone or of a chromatic step, which makes their use in strict counterpoint impossible in these cases.",
+          "page": "35",
+          "note": "7"
+        },
+        {
+          "type": "mann",
+          "text": "The tritone is to be avoided even when reached stepwise if the line is not continued stepwise and in the same direction. The rule is less strict, however, when the tritone is brought about by the progressions of two voices … See Jeppesen, Counterpoint, p. 100.",
+          "page": "35",
+          "note": "9"
+        },
+        {
+          "type": "text",
+          "text": "The game checks only the leap Fux names (the augmented fourth); Mann's extension to stepwise tritones is his, not Fux's."
+        }
+      ],
+      "intro": {
+        "la": "Ad amussim fecisti. Nunc posito Cantu firmo in parte superiori, infrà in Tenore confice Contrapunctum.",
+        "en": "Done to a nicety. Now put the cantus firmus above, and make the counterpoint below it, in the tenor.",
+        "page": "51"
+      }
+    },
+    "fux-mode.s1.05": {
+      "name": "Neighbouring clefs",
+      "specific": [
+        "B and F are a tritone apart (mi contra fa). B♮ belongs to the mode and is allowed, but never leap between F and B, and never set a B against an F. Where your line would bring them together, write B♭ instead, as Fux does here (the ♭ button, or the - key); he calls such flats accidental, not part of the mode (1725 pp. 68-69).",
+        "No new precept. The cantus lies low here (tenor clef in the original): keep your line within reach of it."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "dialogue",
+          "lines": [
+            {
+              "who": "Josephus",
+              "text": "Here you put the cantus in the tenor clef. Is there a reason?"
+            },
+            {
+              "who": "Aloysius",
+              "text": "Only that you should become familiar with the clefs. Two voices should always be written in neighbouring clefs, so that simple intervals can be told from compound ones."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "Mann's notes"
+        },
+        {
+          "type": "mann",
+          "text": "A compound interval: the combination of a simple interval and the octave. The use of close position is essential for a balanced sound (cf. p. 112).",
+          "page": "36",
+          "note": "10"
+        }
+      ],
+      "intro": {
+        "la": "Fac bono animo sis, & de tono E. procede ad tonum F.",
+        "en": "Take heart, and go on from the mode of E to the mode of F.",
+        "page": "52"
+      }
+    },
+    "fux-mode.s1.06": {
+      "name": "Crossing over",
+      "specific": [
+        "B and F are a tritone apart (mi contra fa). B♮ belongs to the mode and is allowed, but never leap between F and B, and never set a B against an F. Where your line would bring them together, write B♭ instead, as Fux does here (the ♭ button, or the - key); he calls such flats accidental, not part of the mode (1725 pp. 68-69).",
+        "Crossing above the cantus is allowed where it avoids direct motion (p. 52): Aloysius approves it."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "dialogue",
+          "lines": [
+            {
+              "who": "Aloysius",
+              "text": "Right. But why did you let the counterpoint move above the cantus from the fourth to the seventh bar?"
+            },
+            {
+              "who": "Josephus",
+              "text": "Otherwise I would have had to use direct motion, and the voice leading would have been worse."
+            },
+            {
+              "who": "Aloysius",
+              "text": "You did very well, the more so since here you treated the cantus as a lower voice, as if it were a bass, and reckoned the consonances from it."
+            }
+          ]
+        },
+        {
+          "type": "fux",
+          "latin": "Optimâ observantiâ id fecisti",
+          "english": "you did that with the best attention",
+          "page": "52"
+        },
+        {
+          "type": "heading",
+          "text": "Mann's notes"
+        },
+        {
+          "type": "mann",
+          "text": "Voice crossing will prove to be a very important expedient, especially in three and four part writing (see p. 100). Cf. Jeppesen, Counterpoint, p. 113.",
+          "page": "36",
+          "note": "11"
+        }
+      ],
+      "intro": {
+        "la": "Nunc posito Basso infrà Cantum firmum, in eo formetur Contrapunctum.",
+        "en": "Now put a bass below the cantus firmus, and let the counterpoint be formed in it.",
+        "page": "52"
+      }
+    },
+    "fux-mode.s1.07": {
+      "name": "Singable lines",
+      "specific": [
+        "No leap of a major sixth: in strict counterpoint everything should be as singable as possible (p. 53).",
+        "The unison only in the first and last bars (pp. 53-54).",
+        "No leap into an octave or unison from a more distant consonance (p. 54)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "dialogue",
+          "lines": [
+            {
+              "who": "Josephus",
+              "text": "I wrote with the closest attention and still there are two marks, from bar 9 to 10 and from 10 to 11."
+            },
+            {
+              "who": "Aloysius",
+              "text": "Do not be impatient. From 9 to 10 you used a leap of a major sixth, which is forbidden in strict counterpoint, where everything should be as singable as possible. From 10 to 11 you brought the voices from a tenth into an octave by step, the upper voice down and the lower up. This octave, called battuta by the Italians, is forbidden by some; I have never found the reason, and I leave it to your discretion."
+            }
+          ]
+        },
+        {
+          "type": "fux",
+          "latin": "omnia cantu facillima esse debent",
+          "english": "everything should be very easy to sing",
+          "page": "53"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius adds two precepts: the unison may stand only at the beginning and the end (the voices would not be heard clearly enough), and a leap into the octave from a more distant consonance is not to be tolerated, even in more voices."
+        },
+        {
+          "type": "fux",
+          "latin": "excepto principio, & fine nunquam ponendus est",
+          "english": "except at the beginning and the end, it must never be used",
+          "page": "53-54"
+        },
+        {
+          "type": "heading",
+          "text": "Mann's notes"
+        },
+        {
+          "type": "mann",
+          "text": "Literally: \"beaten.\"",
+          "page": "37",
+          "note": "12"
+        },
+        {
+          "type": "mann",
+          "text": "Cf. Roth, Elemente der Stimmfuehrung, p. 72, where ottava and quinta battuta mean only such progressions and are therefore definitely forbidden.",
+          "page": "38",
+          "note": "14"
+        },
+        {
+          "type": "text",
+          "text": "The game does not check the battuta: Fux leaves it to discretion."
+        }
+      ],
+      "intro": {
+        "la": "Pergamus ad tonum G.",
+        "en": "Let us go on to the mode of G.",
+        "page": "52"
+      }
+    },
+    "fux-mode.s1.08": {
+      "name": "Leaving the unison",
+      "specific": [
+        "No leap out of or into a unison (pp. 54-55).",
+        "Fa tends down, mi up: a sharp may mark an ascent and avoid a false relation (p. 55)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "dialogue",
+          "lines": [
+            {
+              "who": "Josephus",
+              "text": "What does the N.B. on the first note mean?"
+            },
+            {
+              "who": "Aloysius",
+              "text": "That the progression from the unison into another consonance by a leap is bad in itself, just as the leap into a unison. Here it is in the cantus, which may not be changed, so it is tolerated."
+            },
+            {
+              "who": "Aloysius",
+              "text": "But why did you put a sharp in the eleventh bar? It is not usual in the diatonic system."
+            },
+            {
+              "who": "Josephus",
+              "text": "I wanted a sixth there; and I learned that fa leads down and mi leads up. Since the line rises, I used a sharp to stress the ascent. Besides, an F in bar 11 would make a harsh relation with the F♯ of bar 13."
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "Aloysius: every stumbling block is now removed."
+        }
+      ],
+      "intro": {
+        "la": "Restat adhuc ultimi exempli Contrapunctum in parte inferiori ponendum.",
+        "en": "There still remains the counterpoint to the last example, to be set in the lower part.",
+        "page": "54"
+      }
+    },
+    "fux-mode.s1.09": {
+      "name": "In A",
+      "specific": [
+        "No new precept: everything so far applies."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius sends Josephus on to the remaining modes, A and C. Fux gives two examples in A (cantus below and above); C is left to the pupil."
+        },
+        {
+          "type": "mann",
+          "text": "Thus, the seventh degree has to be raised in the Dorian (D), Mixolydian (G), and Aeolian (A) modes. (The second degree of a mode occurs always as the next to the last tone in the cantus firmus, the seventh degree always as the next to the last tone in the counterpoint.)",
+          "page": "28",
+          "note": "2"
+        }
+      ],
+      "intro": {
+        "la": "Nunc omnem offensionis lapidem sublatum esse arbitror. Perge ergo ad A. & C. duos superstites Tonos.",
+        "en": "Now I think every stumbling block has been cleared away. Go on, then, to A and C, the two remaining modes.",
+        "page": "55"
+      }
+    },
+    "fux-mode.s1.10": {
+      "name": "The species mastered",
+      "specific": [
+        "No new precept."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "After the two A exercises Aloysius declares that Josephus knows everything necessary in this species, and they move on to the second."
+        }
+      ],
+      "intro": {
+        "la": "… in Contrapuncto, in quo Compositionis genere omnia cantu facillima esse debent …",
+        "en": "… in counterpoint, a kind of composition in which everything ought to be as easy as possible to sing …",
+        "page": "53"
+      }
+    },
+    "fux-mode.s1.11": {
+      "name": "C on your own",
+      "specific": [
+        "Fux writes no counterpoint for this cantus: you are on your own."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius assigns C with A (\"the remaining modes, A and C\") but the book prints no C exercise in first species. There is no original solution to compare with."
+        }
+      ],
+      "intro": {
+        "la": "Ex duobus ultimis exemplis apparet, omnia scitu ad hanc speciem necessaria tibi jam nota esse.",
+        "en": "It is plain from the last two examples that you now know everything this species requires.",
+        "page": "55"
+      }
+    },
+    "fux-mode.s1.12": {
+      "name": "C on your own, below",
+      "specific": [
+        "No original solution.",
+        "Below the cantus: begin on the octave or unison."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "As the previous exercise, with the counterpoint below."
+        }
+      ],
+      "intro": {
+        "la": "Nunc perge, & eandem lectionem faciendo, percurre omnes tonos intrà hanc Octavam contentos, & naturali ordine gradatim sequentes.",
+        "en": "Now go on with the same lesson, and run through all the modes contained in this octave, one after another in their natural order.",
+        "page": "50"
+      }
+    },
+    "fux-mode.s2.01": {
+      "name": "Thesis and arsis",
+      "specific": [
+        "Two half notes against each whole note; the first (thesis) always consonant (p. 56).",
+        "The second (arsis) may be dissonant only as a passing note by step, filling a third (p. 56).",
+        "Read the downbeats as if the upbeat were absent when it is reached by a step or a third: no fifths or octaves in a row (pp. 57-59)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Binary time: each bar has two equal parts, the lowering of the hand (thesis) and its raising (arsis). Two minims stand against one semibreve."
+        },
+        {
+          "type": "fux",
+          "latin": "quarum una in Thesi veniens, semper consonans sit, necesse est, altera verò in Arsi, si de Nota praecedenti in sequentem gradatim moveatur, etiam dissonans esse poterit; si autem per saltum labatur, necessariò Consonans esse debet",
+          "english": "the one on the thesis must always be consonant; the one on the arsis may also be dissonant if it moves by step from the preceding note to the following one; but if it moves by leap it must be consonant",
+          "page": "56"
+        },
+        {
+          "type": "text",
+          "text": "Joseph asks whether the precepts of first species on motion and progression still hold. Aloysius: by all means (vel maximè), except for the next-to-last bar, which now has a fifth and then a major sixth (cantus below) or a fifth and then a minor third (cantus above)."
+        },
+        {
+          "type": "fux",
+          "latin": "Pro majori facilitate juvabit habere rationem finis, antequam scribere incipias",
+          "english": "to make it easier, it will help to think of the end before you begin to write",
+          "page": "57"
+        },
+        {
+          "type": "heading",
+          "text": "Josephus's first attempt"
+        },
+        {
+          "type": "dialogue",
+          "lines": [
+            {
+              "who": "Josephus",
+              "text": "I see two marks, on the first note of bar 9 and of bar 10, and I do not understand either: both times I went from an imperfect to a perfect consonance by contrary motion."
+            },
+            {
+              "who": "Aloysius",
+              "text": "You reason correctly; the two mistakes are of one kind, which you could not have known. A skip of a third cannot save two fifths or two octaves: the note in between, on the arsis, is so short and so close that it is as if it were not there."
+            }
+          ]
+        },
+        {
+          "type": "fux",
+          "latin": "saltus Tertiae neque duas Quintas, neque duas Octavas salvare possit",
+          "english": "a skip of a third can save neither two fifths nor two octaves",
+          "page": "57"
+        },
+        {
+          "type": "text",
+          "text": "A larger skip, of a fourth, fifth or sixth, is different: the distance makes the ear forget the first downbeat note before the next one comes. For the same reason Aloysius did not mark bars 3-4, where a skip of a fourth saves a sixth-to-fifth progression that would otherwise break the rule of motion (pp. 58-59). The corrected lesson is printed as Fig. 33."
+        },
+        {
+          "type": "fux",
+          "latin": "distantia de prima Nota ad secundam quasi oblivionem auribus afferre videtur soni Notae primae in Thesi",
+          "english": "the distance from the first note to the second seems to make the ears forget the sound of the first note on the thesis",
+          "page": "58"
+        },
+        {
+          "type": "heading",
+          "text": "Mann's notes"
+        },
+        {
+          "type": "mann",
+          "text": "I have used \"downbeat\" and \"upbeat,\" since these words have acquired currency as musical terms in English. Generally, the two Greek terms are used in the reverse, (thesis for upbeat, and arsis for downbeat (even in Bellermann and Jeppesen). This can be explained by the fact that Fux derives his terms from the raising and lowering of the arm whereas usually they are derived from the raising or lowering of the voice.",
+          "page": "41",
+          "note": "1"
+        }
+      ],
+      "intro": {
+        "la": "Pro majori facilitate juvabit habere rationem finis, antequam scribere incipias.",
+        "en": "To make it easier, it will help to think of the end before you begin to write.",
+        "page": "57"
+      }
+    },
+    "fux-mode.s2.02": {
+      "name": "The half rest",
+      "specific": [
+        "A half rest may replace the first note (p. 59).",
+        "If the voices are so close that contrary motion is impossible, leap a minor sixth (upward) or an octave (pp. 59-60)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Before Josephus writes below the cantus, Aloysius shows two devices."
+        },
+        {
+          "type": "fux",
+          "latin": "loco primae Notae pausa medii tactûs valoris poni possit",
+          "english": "in place of the first note a rest of half a bar may be put",
+          "page": "59"
+        },
+        {
+          "type": "fux",
+          "latin": "per saltum Sextae minoris, (qui licitus est) vel Octavae",
+          "english": "by a leap of a minor sixth (which is allowed) or of an octave",
+          "page": "60"
+        },
+        {
+          "type": "text",
+          "text": "From here on every one of Fux's second-species examples opens with the half rest. The game puts it in place for you; write over it if you prefer to begin on the downbeat, as Fux does in the first exercise."
+        },
+        {
+          "type": "text",
+          "text": "Counterpoint below the cantus: begin on the octave or the unison, never the fifth below (it would put your line in another mode), and reckon the intervals downwards from the cantus."
+        }
+      ],
+      "intro": {
+        "la": "Primum est, quòd locò primae Notae pausa medii tactûs valoris poni possit.",
+        "en": "The first is that in place of the first note a rest of half a bar may be put.",
+        "page": "59"
+      }
+    },
+    "fux-mode.s2.03": {
+      "name": "Half notes in E",
+      "specific": [
+        "No new precept."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius now has Josephus take all the cantus firmi of the first species through the five remaining modes, once above and once below. The E exercises come first."
+        }
+      ],
+      "intro": {
+        "la": "Nunc resumendo omnes Cantus firmos in prima Contrapuncti Specie praescriptos, percurre reliquos quinque tonos, superiùs, inferiùsque Contrapunctum fabricando.",
+        "en": "Now take up again all the cantus firmi set for the first species and run through the remaining five modes, building the counterpoint above and below.",
+        "page": "60"
+      }
+    },
+    "fux-mode.s2.04": {
+      "name": "No fifth in E",
+      "specific": [
+        "Here the fifth before the final would be mi contra fa (B under F): use a sixth instead (pp. 60-61)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "dialogue",
+          "lines": [
+            {
+              "who": "Josephus",
+              "text": "I remember you said that in the next-to-last bar there should first be a fifth when the counterpoint is below. But in this mode the fifth is dissonant, because of mi against fa; so I wrote a sixth instead."
+            },
+            {
+              "who": "Aloysius",
+              "text": "I am very pleased with this observation of yours. Go on now with the four remaining modes."
+            }
+          ]
+        },
+        {
+          "type": "fux",
+          "latin": "ob rationem mi contra fa; quapropter locò Quintae Sextam adhibendam esse judicavi",
+          "english": "because of mi against fa; so I judged that a sixth should be used instead of the fifth",
+          "page": "61"
+        },
+        {
+          "type": "fux",
+          "latin": "Summopere mihi placet haec tua observatio",
+          "english": "this observation of yours pleases me very much",
+          "page": "61"
+        }
+      ],
+      "intro": {
+        "la": "mi contra fa, est diabolus in Musica",
+        "en": "mi against fa is the devil in music",
+        "page": "51"
+      }
+    },
+    "fux-mode.s2.05": {
+      "name": "F, with the soft B",
+      "specific": [
+        "B and F are a tritone apart (mi contra fa). B♮ belongs to the mode and is allowed, but never leap between F and B, and never set a B against an F. Where your line would bring them together, write B♭ instead, as Fux does here (the ♭ button, or the - key); he calls such flats accidental, not part of the mode (1725 pp. 68-69)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Nothing new is said. Look at Fux's solution afterwards for the B♭s: he explains such flats only in the next species (1725 pp. 68-69)."
+        }
+      ],
+      "intro": {
+        "la": "Perge nunc, reliquosque quatuor tonos pari exercitio prosequere.",
+        "en": "Go on now, and pursue the four remaining modes with the same exercise.",
+        "page": "61"
+      }
+    },
+    "fux-mode.s2.06": {
+      "name": "F, from below",
+      "specific": [
+        "B and F are a tritone apart (mi contra fa). B♮ belongs to the mode and is allowed, but never leap between F and B, and never set a B against an F. Where your line would bring them together, write B♭ instead, as Fux does here (the ♭ button, or the - key); he calls such flats accidental, not part of the mode (1725 pp. 68-69)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Fux's own counterpoint crosses above the cantus for a few bars here, as Aloysius allowed in first species."
+        },
+        {
+          "type": "text",
+          "text": "Counterpoint below the cantus: begin on the octave or the unison, never the fifth below (it would put your line in another mode), and reckon the intervals downwards from the cantus."
+        }
+      ],
+      "intro": {
+        "la": "Fac ut poteris; nihil molestè feram; correctio obscuritatis tenebras facilè dissipabit.",
+        "en": "Do as well as you can; I shall not mind; correction will easily scatter the darkness.",
+        "page": "57"
+      }
+    },
+    "fux-mode.s2.07": {
+      "name": "G, the raised seventh",
+      "specific": [
+        "No new precept."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Nothing new is said."
+        },
+        {
+          "type": "mann",
+          "text": "Thus, the seventh degree has to be raised in the Dorian (D), Mixolydian (G), and Aeolian (A) modes. (The second degree of a mode occurs always as the next to the last tone in the cantus firmus, the seventh degree always as the next to the last tone in the counterpoint.)",
+          "page": "28",
+          "note": "2"
+        }
+      ],
+      "intro": {
+        "la": "… à Legislatoribus cujuscunque Facultatis nihil frustrà, nihil, quod ratione non fundatum sit, institutum fuisse.",
+        "en": "… the lawgivers of every art have laid down nothing in vain, nothing that is not founded on reason.",
+        "page": "50"
+      }
+    },
+    "fux-mode.s2.08": {
+      "name": "G, from below",
+      "specific": [
+        "No new precept."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Nothing new is said."
+        },
+        {
+          "type": "text",
+          "text": "Counterpoint below the cantus: begin on the octave or the unison, never the fifth below (it would put your line in another mode), and reckon the intervals downwards from the cantus."
+        }
+      ],
+      "intro": {
+        "la": "Secundum, si ambas partes ita vicinè, itaque conjunctim reperiri contingat, ut vix sciatur, quorsum eundum …",
+        "en": "The second: if the two parts happen to lie so close together that one hardly knows where to go …",
+        "page": "59"
+      }
+    },
+    "fux-mode.s2.09": {
+      "name": "A, a new cantus",
+      "specific": [
+        "No new precept."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Nothing new is said. In the dataset this exercise uses a slightly different A cantus from the first species (one note shorter); the encoding follows the 1725 print, to be double-checked."
+        }
+      ],
+      "intro": {
+        "la": "Gutta cavat lapidem, non vi, sed saepè cadendo.",
+        "en": "The drop hollows the stone, not by force but by falling often.",
+        "page": "62"
+      }
+    },
+    "fux-mode.s2.10": {
+      "name": "A, from below",
+      "specific": [
+        "No new precept."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Nothing new is said."
+        },
+        {
+          "type": "text",
+          "text": "Counterpoint below the cantus: begin on the octave or the unison, never the fifth below (it would put your line in another mode), and reckon the intervals downwards from the cantus."
+        }
+      ],
+      "intro": {
+        "la": "… ita ut nullum diem sinè linea (ùt dicitur) praeterlabi sinamus.",
+        "en": "… so that we let no day slip by without a line, as the saying goes.",
+        "page": "62"
+      }
+    },
+    "fux-mode.s2.11": {
+      "name": "C, worked out",
+      "specific": [
+        "No new precept."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Unlike first species, Fux works C out in this species."
+        }
+      ],
+      "intro": {
+        "la": "Satis commodè rem instituisti. Sic Dii laboribus omnia vendunt.",
+        "en": "You have gone about it well enough. So the gods sell everything for toil.",
+        "page": "62"
+      }
+    },
+    "fux-mode.s2.12": {
+      "name": "Looking ahead",
+      "specific": [
+        "Look ahead: weigh not only the bar you are writing but the following ones (pp. 62-63)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "fux",
+          "latin": "Gutta cavat lapidem, non vi, sed saepè cadendo",
+          "english": "the drop hollows the stone not by force but by falling often",
+          "page": "62"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius exhorts Josephus to let no day pass without a line, and to consider not only the bar in hand but the following ones. Josephus admits he could hardly have written the last exercises without weighing a bar or two ahead."
+        },
+        {
+          "type": "fux",
+          "latin": "ut non solùm illius tactûs, in quo laboras, rationem habeas, verùm etiam & sequentium",
+          "english": "that you take account not only of the bar you are working on but also of the following ones",
+          "page": "62-63"
+        },
+        {
+          "type": "text",
+          "text": "The lesson ends with ternary time: three notes against one, where the middle note may be dissonant if all three move by step (p. 63). Fux thinks it too easy to deserve its own lesson."
+        }
+      ],
+      "intro": {
+        "la": "… ut non solùm illius tactûs, in quo laboras, rationem habeas, verùm etiam & sequentium.",
+        "en": "… that you take account not only of the bar you are working on, but also of those that follow.",
+        "page": "62-63"
+      }
+    },
+    "fux-mode.s3.01": {
+      "name": "Four against one",
+      "specific": [
+        "Four quarters against each whole note. The first must be consonant (pp. 63-64).",
+        "A dissonant quarter must pass by step in one direction (the second and fourth; the third too, when it fills a skip of a third), or be the cambiata (pp. 63-65).",
+        "Next-to-last bar: end on the major sixth that opens to the octave (pp. 65-66)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "fux",
+          "latin": "Tertia Contrapuncti Species est quatuor semiminimarum contra unam semibrevem Compositio.",
+          "english": "The third species of counterpoint is the composition of four crotchets against one semibreve.",
+          "page": "63"
+        },
+        {
+          "type": "fux",
+          "latin": "si quinque semiminimas vel ascendendo, vel descendendo continuò gradatim se sequi contingat, prima Consonans esse debeat, secunda dissonans esse possit. Tertia denuò Consonans sit, necesse est. Quarta dissonans esse poterit, si quinta Consonantia fuerit",
+          "english": "if five crotchets happen to follow one another by step, ascending or descending, the first must be consonant, the second may be dissonant; the third must again be consonant; the fourth may be dissonant if the fifth is a consonance",
+          "page": "63-64"
+        },
+        {
+          "type": "text",
+          "text": "Two exceptions follow. First: when the second and fourth notes are consonant, the third may be dissonant; it is then only the diminution of a skip of a third, filling the space between two notes a third apart (p. 64)."
+        },
+        {
+          "type": "fux",
+          "latin": "Fallit autem primò in Hypothesi, ubi secundam & quartam Notam Consonantias esse contingit, quo in casu tertia Nota dissonantia esse poterit",
+          "english": "it fails, first, in the case where the second and fourth notes happen to be consonances; then the third note may be a dissonance",
+          "page": "64"
+        },
+        {
+          "type": "text",
+          "text": "Second: the nota cambiata. From a dissonant second note the line skips a third, down, to a consonance. Strictly the skip belongs between the first and second notes, which would make the second a sixth; but since crotchets broken into quavers have no place in this species, Aloysius follows the authority of the masters, 'perhaps for a better melody' (pp. 64-65)."
+        },
+        {
+          "type": "fux",
+          "latin": "Secunda Hypothesis est, ubi à communi regula deflectitur, Nota cambita, ab Italis Cambiata nuncupata, ubi de Nota secunda dissonante per saltum fit progressus in Consonantiam",
+          "english": "the second case, where the common rule is departed from, is the changed note, called cambiata by the Italians, where from a dissonant second note the progress is by a skip into a consonance",
+          "page": "64-65"
+        },
+        {
+          "type": "text",
+          "text": "Last, the penultimate bar, which 'has more difficulty than the others' (p. 65): its quarters lead to the note below the final, which rises to it. Everything said of the other species still holds (p. 66)."
+        },
+        {
+          "type": "fux",
+          "latin": "sed iterum, atque iterum admonitum te volo, ut sequentis tactûs vel maximè rationem habeas, si nullum in progrediendo obicem offendere cupis.",
+          "english": "but again and again I want you reminded to take the greatest account of the following bar, if you wish to meet no obstacle as you go on.",
+          "page": "66"
+        },
+        {
+          "type": "text",
+          "text": "Ternary time (three notes against one) Aloysius mentions and leaves without a lesson: the middle note may be dissonant when all three move by step (p. 63)."
+        }
+      ],
+      "intro": {
+        "la": "Tertia Contrapuncti Species est quatuor semiminimarum contra unam semibrevem Compositio.",
+        "en": "The third species of counterpoint is the composition of four crotchets against one semibreve.",
+        "page": "63"
+      }
+    },
+    "fux-mode.s3.02": {
+      "name": "Quarters below the cantus",
+      "specific": [
+        "Cantus above: the next-to-last bar ends on the minor third below the cantus, which closes on the unison or octave (p. 66)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Fux gives the penultimate bar for the cantus above separately (p. 66): the counterpoint's last quarter is the note below the final, a minor third under the cantus. Nothing else is new."
+        }
+      ],
+      "intro": {
+        "la": "His ergo cognitis, & iis, quae de aliis Speciebus jam dicta sunt, facilem tibi futuram spero hujus Speciei Compositionem",
+        "en": "Knowing this, and what has already been said of the other species, I hope the composition of this species will be easy for you",
+        "page": "66"
+      }
+    },
+    "fux-mode.s3.03": {
+      "name": "Quarters in E",
+      "specific": [
+        "No new precept. In E, beware F and B: mi contra fa, even when the tritone is filled in by step."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Josephus works through the cantus firmi of the first lesson in order: nothing new is said."
+        }
+      ],
+      "intro": {
+        "la": "Ergo Opus aggrediare, omnes in prima Lectione praescriptos Cantus firmos eo ordine persequendo.",
+        "en": "So set to work, taking all the cantus firmi prescribed in the first lesson in that order.",
+        "page": "66"
+      }
+    },
+    "fux-mode.s3.04": {
+      "name": "E, from below",
+      "specific": [
+        "No new precept. Cantus above: end the next-to-last bar on the minor third below the cantus."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Nothing new is said."
+        }
+      ],
+      "intro": {
+        "la": "Quo facto paulatim in tenebris lumen exoriri, & aliqua ex parte caliginis velum tibi sublatum iri senties, ac gaudebis.",
+        "en": "Done this way, you will feel a light gradually rising in the darkness and the veil of mist partly lifted from you, and you will rejoice.",
+        "page": "63"
+      }
+    },
+    "fux-mode.s3.05": {
+      "name": "Quarters in F",
+      "specific": [
+        "B and F are a tritone apart (mi contra fa). B♮ belongs to the mode and is allowed, but never leap between F and B, and never set a B against an F. Where your line would bring them together, write B♭ instead, as Fux does here (the ♭ button, or the - key); he calls such flats accidental, not part of the mode (1725 pp. 68-69)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Nothing new is said. Fux's own line uses B♭ where it would otherwise touch F in a tritone; he explains it in the next exercise."
+        }
+      ],
+      "intro": {
+        "la": "Mirum in modum laetor qui te tam sagacem videam",
+        "en": "I rejoice wonderfully to see you so sagacious",
+        "page": "63"
+      }
+    },
+    "fux-mode.s3.06": {
+      "name": "F, with accidental flats",
+      "specific": [
+        "B and F are a tritone apart (mi contra fa). B♮ belongs to the mode and is allowed, but never leap between F and B, and never set a B against an F. Where your line would bring them together, write B♭ instead, as Fux does here (the ♭ button, or the - key); he calls such flats accidental, not part of the mode (1725 pp. 68-69)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "dialogue",
+          "lines": [
+            {
+              "who": "Aloysius",
+              "text": "Why have you used flats in some places, a sign not customary in the diatonic genus we are working in?"
+            },
+            {
+              "who": "Josephus",
+              "text": "It seemed to me that otherwise a harsh relation would arise from mi against fa. Nor do I think it harms the diatonic genus, since those flats are mixed in not substantially but accidentally, out of necessity."
+            },
+            {
+              "who": "Aloysius",
+              "text": "Very well observed; for the same reason sharps must sometimes be used too: but where and when must be weighed with clear judgement."
+            }
+          ]
+        },
+        {
+          "type": "fux",
+          "latin": "Nec obesse arbitror generi Diatonico, cùm b. mollia illa non substantialiter, sed accidentaliter ex necessitate immixta esse constet.",
+          "english": "Nor do I think it harms the diatonic genus, since it is clear that those flats are mixed in not substantially but accidentally, out of necessity.",
+          "page": "69"
+        }
+      ],
+      "intro": {
+        "la": "Quare nonnullis in locis b. mollia adhibuisti, signum in genere Diatonico, in quo versamur, haud usitatum?",
+        "en": "Why have you used flats in some places, a sign not customary in the diatonic genus in which we are working?",
+        "page": "68"
+      }
+    },
+    "fux-mode.s3.07": {
+      "name": "G, in private study",
+      "specific": [
+        "No new precept: everything this species requires has been shown (p. 69)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
+        }
+      ],
+      "intro": {
+        "la": "Reliquos tres adhuc superstites tonos: G. A. C., ne nimis prolixi simus, privato studio persequendos tibi relinquo.",
+        "en": "The three modes still remaining, G, A and C, so as not to be too long, I leave you to work out in private study.",
+        "page": "69"
+      }
+    },
+    "fux-mode.s3.08": {
+      "name": "G, from below, in private study",
+      "specific": [
+        "No new precept: everything this species requires has been shown (p. 69). Cantus above: end the next-to-last bar on the minor third below the cantus."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
+        }
+      ],
+      "intro": {
+        "la": "Ex praecedentibus exemplis satìs memoriâ tenere videris ea, quae ad hanc Speciem requiruntur.",
+        "en": "From the preceding examples you seem to keep well in memory what this species requires.",
+        "page": "69"
+      }
+    },
+    "fux-mode.s3.09": {
+      "name": "A, in private study",
+      "specific": [
+        "No new precept: everything this species requires has been shown (p. 69)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
+        }
+      ],
+      "intro": {
+        "la": "Reliquos tres adhuc superstites tonos: G. A. C., ne nimis prolixi simus, privato studio persequendos tibi relinquo.",
+        "en": "The three modes still remaining, G, A and C, so as not to be too long, I leave you to work out in private study.",
+        "page": "69"
+      }
+    },
+    "fux-mode.s3.10": {
+      "name": "A, from below, in private study",
+      "specific": [
+        "No new precept: everything this species requires has been shown (p. 69). Cantus above: end the next-to-last bar on the minor third below the cantus."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
+        }
+      ],
+      "intro": {
+        "la": "Ex praecedentibus exemplis satìs memoriâ tenere videris ea, quae ad hanc Speciem requiruntur.",
+        "en": "From the preceding examples you seem to keep well in memory what this species requires.",
+        "page": "69"
+      }
+    },
+    "fux-mode.s3.11": {
+      "name": "C, in private study",
+      "specific": [
+        "No new precept: everything this species requires has been shown (p. 69)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
+        }
+      ],
+      "intro": {
+        "la": "Reliquos tres adhuc superstites tonos: G. A. C., ne nimis prolixi simus, privato studio persequendos tibi relinquo.",
+        "en": "The three modes still remaining, G, A and C, so as not to be too long, I leave you to work out in private study.",
+        "page": "69"
+      }
+    },
+    "fux-mode.s3.12": {
+      "name": "C, from below, in private study",
+      "specific": [
+        "No new precept: everything this species requires has been shown (p. 69). Cantus above: end the next-to-last bar on the minor third below the cantus."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
+        }
+      ],
+      "intro": {
+        "la": "Ex praecedentibus exemplis satìs memoriâ tenere videris ea, quae ad hanc Speciem requiruntur.",
+        "en": "From the preceding examples you seem to keep well in memory what this species requires.",
+        "page": "69"
+      }
+    },
+    "fux-mode.s4.01": {
+      "name": "The ligature",
+      "specific": [
+        "Two half notes tied over the bar line: write the same note on the upbeat and on the next downbeat, and they are tied (p. 69).",
+        "The first note of the ligature is always consonant; a dissonance on the downbeat resolves by step down to a consonance (pp. 69-70).",
+        "Cantus below: 2-1, 4-3, 7-6, 9-8, but never unison to second or octave to ninth (pp. 71-72). The cadence: 7 resolving to 6 (pp. 73-74)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "fux",
+          "latin": "Species haec constat duabus minimis contra semibrevem in uno eodemque loco positis, virgulâque curvatâ subductis, quarum prima in Arhsi, secunda in Thesi veniat, necesse est. Quae Species Ligatura, vel Sincope appellari consuevit",
+          "english": "This species consists of two minims against a semibreve, set on one and the same degree and joined by a curved line, the first of which must come in arsis, the second in thesis. This species is usually called the ligature, or syncopation",
+          "page": "69"
+        },
+        {
+          "type": "text",
+          "text": "The ligature is consonant, when both minims are consonances, or dissonant, when the first (which must always be consonant) is followed by a dissonance on the thesis (pp. 69-70)."
+        },
+        {
+          "type": "fux",
+          "latin": "Notas ligatas quasi vinculis constrictas haud aliud esse, quàm Notae sequentis retardationem",
+          "english": "tied notes, bound as if in chains, are nothing but the retardation of the following note",
+          "page": "70"
+        },
+        {
+          "type": "fux",
+          "latin": "Quam ob rem dissonantiae semper in proximam Consonantiam gradatim descendendo se moventem resolvendae sunt",
+          "english": "therefore dissonances must always be resolved by moving down by step to the nearest consonance",
+          "page": "70"
+        },
+        {
+          "type": "text",
+          "text": "Take the retardation away and the resolution is plain: with the cantus below, the second resolves to the unison, the fourth to the third, the seventh to the sixth, the ninth to the octave. For that reason one may not go by ligature from the unison to the second, nor from the octave to the ninth: without the delay they are two unisons or two octaves. From the third to the second, or from the tenth to the ninth, is good (pp. 71-72)."
+        },
+        {
+          "type": "fux",
+          "latin": "neque de Unisono in Secundam, neque de Octava in Nonam per Ligaturam progredi liceat",
+          "english": "it is not allowed to go by ligature from the unison to the second, nor from the octave to the ninth",
+          "page": "71"
+        },
+        {
+          "type": "heading",
+          "text": "Josephus's exercise"
+        },
+        {
+          "type": "dialogue",
+          "lines": [
+            {
+              "who": "Josephus",
+              "text": "Is every bar to have its ligature?"
+            },
+            {
+              "who": "Aloysius",
+              "text": "By all means, where it can be. You will sometimes meet a bar where there is no room for a ligature; then fill it with free minims, until the chance of a ligature comes back."
+            },
+            {
+              "who": "Aloysius",
+              "text": "You have done well; but why did you leave out the ligature in the fifth bar? There could have been one."
+            },
+            {
+              "who": "Josephus",
+              "text": "I could certainly; but I left it out on purpose, so as not to fall into a hateful repetition, having just used the same ligatures in the third and fourth bars."
+            },
+            {
+              "who": "Aloysius",
+              "text": "A prudent observation: much must be granted to the manner of singing and to the elegance of the progression. Go on."
+            }
+          ]
+        },
+        {
+          "type": "fux",
+          "latin": "Satìs providâ usus es observatione, quia & canendi rationi, & progressûs concinnitati haud parùm concedendum est. Perge.",
+          "english": "You made a prudent observation, for no little must be granted both to the manner of singing and to the elegance of the progression. Go on.",
+          "page": "74"
+        }
+      ],
+      "intro": {
+        "la": "Species haec constat duabus minimis contra semibrevem ... quarum prima in Arhsi, secunda in Thesi veniat, necesse est.",
+        "en": "This species consists of two minims against a semibreve ..., the first of which must come in arsis, the second in thesis.",
+        "page": "69"
+      }
+    },
+    "fux-mode.s4.02": {
+      "name": "Ligatures below the cantus",
+      "specific": [
+        "Cantus above: the second resolves to the third, the fourth to the fifth, the ninth to the tenth; the seventh resolving to the octave is avoided (pp. 72-73).",
+        "The cadence: the second resolving to the minor third, then the unison (pp. 73-74)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "fux",
+          "latin": "Dico igitur, quòd hoc loco Secunda resoluta in Tertiam; Quarta resoluta in Quintam, Nona resoluta in Decimam adhiberi possint.",
+          "english": "I say, then, that here the second resolved into the third, the fourth resolved into the fifth, and the ninth resolved into the tenth may be used.",
+          "page": "72"
+        },
+        {
+          "type": "dialogue",
+          "lines": [
+            {
+              "who": "Josephus",
+              "text": "Why do you leave out the seventh here? Can it not be used with the cantus above?"
+            },
+            {
+              "who": "Aloysius",
+              "text": "I admit I left it out on purpose. Hardly any other reason can be given than the weighty authority of the classical authors, which counts for most in practice: scarcely one of them resolves the seventh into the octave this way."
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "One might explain it, Aloysius says, by the octave: a perfect consonance gives the dissonance too little harmony to share. But the same authors often resolve the second, the inverted seventh, into the unison, which has far less; so the explanation fails, and he advises following the usage of the serious authors (p. 73). And he asks whether a ligature may resolve upwards: a Gordian knot, to be untied elsewhere. For now all dissonances resolve downwards (p. 73)."
+        },
+        {
+          "type": "fux",
+          "latin": "Interim omnes dissonantias in proximam Consonantiam descendendo resolvendas esse jure Magistri tibi dico.",
+          "english": "Meanwhile, by a master's right, I tell you that all dissonances are to be resolved by descending to the nearest consonance.",
+          "page": "73"
+        }
+      ],
+      "intro": {
+        "la": "Eritne singulis tactibus danda sua Ligatura? — Omninò, ubi esse poterit.",
+        "en": "Is every bar to have its ligature? — By all means, where it can be.",
+        "page": "74"
+      }
+    },
+    "fux-mode.s4.03": {
+      "name": "Ligatures in E",
+      "specific": [
+        "No new precept. Cantus below: the cadence is 7 resolving to 6."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Nothing new is said."
+        }
+      ],
+      "intro": {
+        "la": "Satìs providâ usus es observatione, quia & canendi rationi, & progressûs concinnitati haud parùm concedendum est. Perge.",
+        "en": "You made a prudent observation, for no little must be granted to the manner of singing and to the elegance of the progression. Go on.",
+        "page": "74"
+      }
+    },
+    "fux-mode.s4.04": {
+      "name": "E, from below",
+      "specific": [
+        "No new precept. Cantus above: 2-3, 4-5, 9-10, never 7-8; the cadence is 2 resolving to the minor third."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Nothing new is said."
+        }
+      ],
+      "intro": {
+        "la": "Interim omnes dissonantias in proximam Consonantiam descendendo resolvendas esse jure Magistri tibi dico.",
+        "en": "Meanwhile, by a master's right, I tell you that all dissonances are to be resolved by descending to the nearest consonance.",
+        "page": "73"
+      }
+    },
+    "fux-mode.s4.05": {
+      "name": "Ligatures in F",
+      "specific": [
+        "B and F are a tritone apart (mi contra fa). B♮ belongs to the mode and is allowed, but never leap between F and B, and never set a B against an F. Where your line would bring them together, write B♭ instead, as Fux does here (the ♭ button, or the - key); he calls such flats accidental, not part of the mode (1725 pp. 68-69)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Nothing new is said."
+        }
+      ],
+      "intro": {
+        "la": "Notas ligatas quasi vinculis constrictas haud aliud esse, quàm Notae sequentis retardationem",
+        "en": "Tied notes, bound as if in chains, are nothing but the retardation of the following note",
+        "page": "70"
+      }
+    },
+    "fux-mode.s4.06": {
+      "name": "F, from below",
+      "specific": [
+        "B and F are a tritone apart (mi contra fa). B♮ belongs to the mode and is allowed, but never leap between F and B, and never set a B against an F. Where your line would bring them together, write B♭ instead, as Fux does here (the ♭ button, or the - key); he calls such flats accidental, not part of the mode (1725 pp. 68-69)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius ends the lesson by commending ligatures, which season the harmony, and by showing, ahead of the next species, how a ligature may be decorated or broken; two quavers may enter on the second or fourth quarter, never on the first or third (p. 76)."
+        },
+        {
+          "type": "fux",
+          "latin": "Cùm autem Ligaturis haud mediocre condimentum Musicali Concentui accedat",
+          "english": "Since ligatures add no small seasoning to musical harmony",
+          "page": "75"
+        }
+      ],
+      "intro": {
+        "la": "Cùm autem Ligaturis haud mediocre condimentum Musicali Concentui accedat",
+        "en": "Since ligatures add no small seasoning to musical harmony",
+        "page": "75"
+      }
+    },
+    "fux-mode.s4.07": {
+      "name": "G, in private study",
+      "specific": [
+        "No new precept: a ligature in every bar where possible (pp. 74-76). The cadence: 7 resolving to 6."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
+        }
+      ],
+      "intro": {
+        "la": "non solùm reliquorum trium tonorum Cantus firmos hac ratione persequendos tibi commendo, verùm etiam, ut repertis aliis in hac Specie plurimùm te exerceas, nec unquam satìs exercebis.",
+        "en": "I commend to you not only to work out the cantus firmi of the three remaining modes in this way, but also to exercise yourself very much in this species on others you find; you will never exercise enough.",
+        "page": "75-76"
+      }
+    },
+    "fux-mode.s4.08": {
+      "name": "G, from below, in private study",
+      "specific": [
+        "No new precept: a ligature in every bar where possible (pp. 74-76). The cadence: 2 resolving to the minor third."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
+        }
+      ],
+      "intro": {
+        "la": "non solùm reliquorum trium tonorum Cantus firmos hac ratione persequendos tibi commendo, verùm etiam, ut repertis aliis in hac Specie plurimùm te exerceas, nec unquam satìs exercebis.",
+        "en": "I commend to you not only to work out the cantus firmi of the three remaining modes in this way, but also to exercise yourself very much in this species on others you find; you will never exercise enough.",
+        "page": "75-76"
+      }
+    },
+    "fux-mode.s4.09": {
+      "name": "A, in private study",
+      "specific": [
+        "No new precept: a ligature in every bar where possible (pp. 74-76). The cadence: 7 resolving to 6."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
+        }
+      ],
+      "intro": {
+        "la": "non solùm reliquorum trium tonorum Cantus firmos hac ratione persequendos tibi commendo, verùm etiam, ut repertis aliis in hac Specie plurimùm te exerceas, nec unquam satìs exercebis.",
+        "en": "I commend to you not only to work out the cantus firmi of the three remaining modes in this way, but also to exercise yourself very much in this species on others you find; you will never exercise enough.",
+        "page": "75-76"
+      }
+    },
+    "fux-mode.s4.10": {
+      "name": "A, from below, in private study",
+      "specific": [
+        "No new precept: a ligature in every bar where possible (pp. 74-76). The cadence: 2 resolving to the minor third."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
+        }
+      ],
+      "intro": {
+        "la": "non solùm reliquorum trium tonorum Cantus firmos hac ratione persequendos tibi commendo, verùm etiam, ut repertis aliis in hac Specie plurimùm te exerceas, nec unquam satìs exercebis.",
+        "en": "I commend to you not only to work out the cantus firmi of the three remaining modes in this way, but also to exercise yourself very much in this species on others you find; you will never exercise enough.",
+        "page": "75-76"
+      }
+    },
+    "fux-mode.s4.11": {
+      "name": "C, in private study",
+      "specific": [
+        "No new precept: a ligature in every bar where possible (pp. 74-76). The cadence: 7 resolving to 6."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
+        }
+      ],
+      "intro": {
+        "la": "non solùm reliquorum trium tonorum Cantus firmos hac ratione persequendos tibi commendo, verùm etiam, ut repertis aliis in hac Specie plurimùm te exerceas, nec unquam satìs exercebis.",
+        "en": "I commend to you not only to work out the cantus firmi of the three remaining modes in this way, but also to exercise yourself very much in this species on others you find; you will never exercise enough.",
+        "page": "75-76"
+      }
+    },
+    "fux-mode.s4.12": {
+      "name": "C, from below, in private study",
+      "specific": [
+        "No new precept: a ligature in every bar where possible (pp. 74-76). The cadence: 2 resolving to the minor third."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
+        }
+      ],
+      "intro": {
+        "la": "non solùm reliquorum trium tonorum Cantus firmos hac ratione persequendos tibi commendo, verùm etiam, ut repertis aliis in hac Specie plurimùm te exerceas, nec unquam satìs exercebis.",
+        "en": "I commend to you not only to work out the cantus firmi of the three remaining modes in this way, but also to exercise yourself very much in this species on others you find; you will never exercise enough.",
+        "page": "75-76"
+      }
+    },
+    "fux-mode.s5.01": {
+      "name": "Florid counterpoint",
+      "specific": [
+        "Every value of the earlier species may be used: half notes, crotchets, quavers in pairs on the second or fourth crotchet, ligatures over the bar line (pp. 76-77).",
+        "A dissonance on the downbeat only when tied over and resolved a step down; off the downbeat, passing, the cambiata, or a neighbour and back.",
+        "To write: choose the value (quaver, crotchet, half note, whole bar) in the Write group or with the keys 8, 4, 2, 1, then type the letters; T holds the note on (over the bar line it is the tie)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "fux",
+          "latin": "Species ista Contrapunctum floridum appellatur, sic dictum, quia omnis generis ornatu, canendi gratiâ, flexibili motuum facilitate, concinnâ figurarum varietate, ùt hortus flosculis florere debet.",
+          "english": "This species is called florid counterpoint, because, like a garden with little flowers, it should flourish with ornaments of every kind, for the sake of singing, with easy, flexible motion and an elegant variety of figures.",
+          "page": "76"
+        },
+        {
+          "type": "fux",
+          "latin": "Species haec nihil aliud est, quàm praecedentium Contrapuncti Specierum Congeries & Compositio, nec quidquam novi hîc monendum occurrit, praeter Cantûs concinnitatem, cui plurimùm curae, atque operae dandum esse, nunquam è memoria tibi excidat, hortor, atque obsecro.",
+          "english": "This species is nothing other than a heap and combination of the preceding species of counterpoint, and nothing new needs to be said here, except the elegance of the melody, to which the greatest care and labour must be given: never let it slip from your memory, I urge and beseech you.",
+          "page": "77"
+        },
+        {
+          "type": "text",
+          "text": "Before the lesson Aloysius has shown how a ligature may be decorated or broken without changing its substance (p. 76), and that two quavers may be mixed in, on the second and fourth crotchet, never the first and third. Josephus fears to take up the pen with no example before him; Aloysius forms the first one himself (p. 77)."
+        },
+        {
+          "type": "fux",
+          "latin": "Praetereà nonnunquam duae Fusae sequenti Speciei immisceri possunt; quae quidem in secunda, & quarta tactûs parte, nunquam verò in prima & tertia ponendae sunt.",
+          "english": "Moreover, two quavers may sometimes be mixed into the following species; they are to be placed on the second and fourth part of the bar, never on the first and third.",
+          "page": "76"
+        }
+      ],
+      "intro": {
+        "la": "Species ista Contrapunctum floridum appellatur, sic dictum, quia omnis generis ornatu, canendi gratiâ, flexibili motuum facilitate, concinnâ figurarum varietate, ùt hortus flosculis florere debet.",
+        "en": "This species is called florid counterpoint, because, like a garden with little flowers, it should flourish with ornaments of every kind, for the sake of singing, with easy, flexible motion and an elegant variety of figures.",
+        "page": "76"
+      }
+    },
+    "fux-mode.s5.02": {
+      "name": "Aloysius's example, cantus above",
+      "specific": [
+        "The same precepts, with the counterpoint below: the cadence ends on the minor third, from a tied second."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "dialogue",
+          "lines": [
+            {
+              "who": "Josephus",
+              "text": "I shall do my best; but I hardly trust myself to take up the pen without an example before my eyes."
+            },
+            {
+              "who": "Aloysius",
+              "text": "Take heart: I will form the first example for you."
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "Aloysius's first example is written for the D cantus with the counterpoint above and below (p. 77)."
+        }
+      ],
+      "intro": {
+        "la": "Alacri animo sis, formabo tibi primum exemplum.",
+        "en": "Take heart: I will form the first example for you.",
+        "page": "77"
+      }
+    },
+    "fux-mode.s5.03": {
+      "name": "Florid in E",
+      "specific": [
+        "Nothing new: the precepts of all the species hold. Cantus below: the cadence ends on the major sixth."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "text",
+          "text": "After Aloysius's example, the remaining cantus firmi are left to Josephus, to be fitted to that model (p. 78)."
+        }
+      ],
+      "intro": {
+        "la": "Huic igitur formulae reliquorum Cantuum firmorum Contrapuncta tibi accommodanda restant.",
+        "en": "To this model, then, you have still to fit counterpoints to the remaining cantus firmi.",
+        "page": "78"
+      }
+    },
+    "fux-mode.s5.04": {
+      "name": "Florid in E, cantus above",
+      "specific": [
+        "Nothing new: care for the melody above all (p. 77)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "fux",
+          "latin": "Species haec nihil aliud est, quàm praecedentium Contrapuncti Specierum Congeries & Compositio, nec quidquam novi hîc monendum occurrit, praeter Cantûs concinnitatem, cui plurimùm curae, atque operae dandum esse, nunquam è memoria tibi excidat, hortor, atque obsecro.",
+          "english": "This species is nothing other than a heap and combination of the preceding species of counterpoint, and nothing new needs to be said here, except the elegance of the melody, to which the greatest care and labour must be given: never let it slip from your memory, I urge and beseech you.",
+          "page": "77"
+        }
+      ],
+      "intro": {
+        "la": "nec quidquam novi hîc monendum occurrit, praeter Cantûs concinnitatem",
+        "en": "nothing new needs to be said here, except the elegance of the melody",
+        "page": "77"
+      }
+    },
+    "fux-mode.s5.05": {
+      "name": "Florid in F",
+      "specific": [
+        "Enter the downbeat mostly by oblique motion or by a ligature (pp. 78-79)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "fux",
+          "latin": "Satìs industriosè operatus es; & quod mihi non mediocriter placet, est, te non parùm attentionis canendi rationi tribuisse, quodque in introitu in Thesin plerumque motum obliquum, vel Syncopen adhibueris, quam industriam, quia plurimùm Contrapuncto affert gratiae, ulteriùs tibi commendatam volo.",
+          "english": "You have worked diligently enough; and what pleases me not a little is that you have paid no small attention to the manner of singing, and that on entering the downbeat you have mostly used oblique motion or syncopation: a diligence I commend to you further, since it brings very much grace to counterpoint.",
+          "page": "78-79"
+        }
+      ],
+      "intro": {
+        "la": "Satìs industriosè operatus es",
+        "en": "You have worked diligently enough",
+        "page": "78"
+      }
+    },
+    "fux-mode.s5.06": {
+      "name": "Florid in F, cantus above",
+      "specific": [
+        "Oblique motion and syncopation into the downbeat bring grace (p. 79)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "fux",
+          "latin": "Satìs industriosè operatus es; & quod mihi non mediocriter placet, est, te non parùm attentionis canendi rationi tribuisse, quodque in introitu in Thesin plerumque motum obliquum, vel Syncopen adhibueris, quam industriam, quia plurimùm Contrapuncto affert gratiae, ulteriùs tibi commendatam volo.",
+          "english": "You have worked diligently enough; and what pleases me not a little is that you have paid no small attention to the manner of singing, and that on entering the downbeat you have mostly used oblique motion or syncopation: a diligence I commend to you further, since it brings very much grace to counterpoint.",
+          "page": "78-79"
+        },
+        {
+          "type": "dialogue",
+          "lines": [
+            {
+              "who": "Josephus",
+              "text": "I am filled with incredible joy to understand that my study and effort do not wholly displease you."
+            }
+          ]
+        }
+      ],
+      "intro": {
+        "la": "quam industriam, quia plurimùm Contrapuncto affert gratiae, ulteriùs tibi commendatam volo",
+        "en": "a diligence I commend to you further, since it brings very much grace to counterpoint",
+        "page": "79"
+      }
+    },
+    "fux-mode.s5.07": {
+      "name": "Florid in G",
+      "specific": [
+        "The three remaining modes are done in Aloysius's presence (p. 79)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "dialogue",
+          "lines": [
+            {
+              "who": "Josephus",
+              "text": "Are the remaining three modes to be worked in your presence, or in private study?"
+            }
+          ]
+        },
+        {
+          "type": "fux",
+          "latin": "Cùm Species haec tantae sit utilitatis, ut vix dicere queam, ideo absolves tu quidem praedictos tres tonos me praesente; verùm te admonitum volo, ut hoc in genere Compositionis semper magìs magisque te exercere nunquam desistas.",
+          "english": "Since this species is of a usefulness I can hardly express, you shall indeed complete those three modes in my presence; but I want you warned never to cease exercising yourself more and more in this kind of composition.",
+          "page": "79"
+        }
+      ],
+      "intro": {
+        "la": "Cùm Species haec tantae sit utilitatis, ut vix dicere queam, ideo absolves tu quidem praedictos tres tonos me praesente; verùm te admonitum volo, ut hoc in genere Compositionis semper magìs magisque te exercere nunquam desistas.",
+        "en": "Since this species is of a usefulness I can hardly express, you shall indeed complete those three modes in my presence; but I want you warned never to cease exercising yourself more and more in this kind of composition.",
+        "page": "79"
+      }
+    },
+    "fux-mode.s5.08": {
+      "name": "Florid in G, cantus above",
+      "specific": [
+        "Nothing new; exercise yourself in this kind of composition more and more (p. 79)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "dialogue",
+          "lines": [
+            {
+              "who": "Josephus",
+              "text": "I shall always keep your counsel as a law."
+            }
+          ]
+        }
+      ],
+      "intro": {
+        "la": "Consilium tuum semper ùt Legem observabo.",
+        "en": "I shall always keep your counsel as a law.",
+        "page": "79"
+      }
+    },
+    "fux-mode.s5.09": {
+      "name": "Florid in A",
+      "specific": [
+        "Quavers two at a time, on the second or fourth crotchet (p. 76)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "fux",
+          "latin": "Praetereà nonnunquam duae Fusae sequenti Speciei immisceri possunt; quae quidem in secunda, & quarta tactûs parte, nunquam verò in prima & tertia ponendae sunt.",
+          "english": "Moreover, two quavers may sometimes be mixed into the following species; they are to be placed on the second and fourth part of the bar, never on the first and third.",
+          "page": "76"
+        }
+      ],
+      "intro": {
+        "la": "Praetereà nonnunquam duae Fusae sequenti Speciei immisceri possunt; quae quidem in secunda, & quarta tactûs parte, nunquam verò in prima & tertia ponendae sunt.",
+        "en": "Moreover, two quavers may sometimes be mixed into the following species; they are to be placed on the second and fourth part of the bar, never on the first and third.",
+        "page": "76"
+      }
+    },
+    "fux-mode.s5.10": {
+      "name": "Florid in A, cantus above",
+      "specific": [
+        "A ligature may be decorated or broken without losing its substance (p. 76)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "fux",
+          "latin": "Pro concinnitate sequentis Speciei hîc praemitto, Ligaturas hucusque dictas etiam alio modo fieri posse, quae quidem substantiam minimè evertunt, afferunt tamen concentui celerioris motûs rationem.",
+          "english": "For the elegance of the following species I state here in advance that the ligatures described so far can also be made in another way, which does not at all overturn their substance, but brings a quicker motion to the harmony.",
+          "page": "76"
+        },
+        {
+          "type": "text",
+          "text": "Fux sets the substance (the tied dissonance and its resolution on the half bar) beside its variations, made 'for the sake of the melody or of the motion' (p. 76); the resolution may be ornamented, or reached after a consonant note interposed."
+        }
+      ],
+      "intro": {
+        "la": "Pro concinnitate sequentis Speciei hîc praemitto, Ligaturas hucusque dictas etiam alio modo fieri posse, quae quidem substantiam minimè evertunt, afferunt tamen concentui celerioris motûs rationem.",
+        "en": "For the elegance of the following species I state here in advance that the ligatures described so far can also be made in another way, which does not at all overturn their substance, but brings a quicker motion to the harmony.",
+        "page": "76"
+      }
+    },
+    "fux-mode.s5.11": {
+      "name": "Florid in C",
+      "specific": [
+        "Advice, not a precept: two crotchets opening a bar want a ligature after them, or two more crotchets (pp. 80-81). Fux's own solution has them in bar 5, marked NB."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "dialogue",
+          "lines": [
+            {
+              "who": "Josephus",
+              "text": "What does that NB placed at the fifth bar of the last example mean?"
+            }
+          ]
+        },
+        {
+          "type": "fux",
+          "latin": "Ne te afflixeris. Nihil enim de hoc ex me adhuc intellexisti; nunc tibi non quidem Praecepti, sed Consilii causâ dico, quòd positis duabus Semiminimis in principio tactûs, absque Ligatura continuò sequente, ratio cantandi claudicare videatur.",
+          "english": "Do not be troubled, for you have heard nothing of this from me yet. I tell you now, not as a precept but as advice, that when two crotchets are placed at the beginning of a bar with no ligature following at once, the melody seems to limp.",
+          "page": "80-81"
+        },
+        {
+          "type": "fux",
+          "latin": "Quapropter consultiùs erit, si duas tantùm Semiminimas in principio tactûs adhibere lubet, eas cum sequenti Ligatura stringere, vel cum duabus adhuc aliis Semiminimis cursum facilitare.",
+          "english": "It will therefore be wiser, if you wish to use only two crotchets at the beginning of a bar, to bind them to a following ligature, or to ease the run with two more crotchets.",
+          "page": "81"
+        }
+      ],
+      "intro": {
+        "la": "Quid indicat illud nota bene NB. in quinto tactu ultimi exempli in Cantu positum?",
+        "en": "What does that NB placed at the fifth bar of the last example mean?",
+        "page": "80"
+      }
+    },
+    "fux-mode.s5.12": {
+      "name": "Florid in C, cantus above",
+      "specific": [
+        "The last exercise of two-part composition (p. 81)."
+      ],
+      "study": [
+        {
+          "type": "heading",
+          "text": "The lesson"
+        },
+        {
+          "type": "fux",
+          "latin": "Quapropter consultiùs erit, si duas tantùm Semiminimas in principio tactûs adhibere lubet, eas cum sequenti Ligatura stringere, vel cum duabus adhuc aliis Semiminimis cursum facilitare.",
+          "english": "It will therefore be wiser, if you wish to use only two crotchets at the beginning of a bar, to bind them to a following ligature, or to ease the run with two more crotchets.",
+          "page": "81"
+        },
+        {
+          "type": "fux",
+          "latin": "Jam Bicinium, omnes quinque Species percurrendo, supposito Cantu firmo, Deo sint Laudes, absolvimus.",
+          "english": "Now, praise be to God, we have completed two-part composition, running through all five species over a given cantus firmus.",
+          "page": "81"
+        },
+        {
+          "type": "text",
+          "text": "Aloysius turns next to note against note in three parts."
+        }
+      ],
+      "intro": {
+        "la": "Jam Bicinium, omnes quinque Species percurrendo, supposito Cantu firmo, Deo sint Laudes, absolvimus.",
+        "en": "Now, praise be to God, we have completed two-part composition, running through all five species over a given cantus firmus.",
+        "page": "81"
+      }
     }
-   ]
-  },
-  "F": {
-   "name": "The mode on F",
-   "body": [
-    {
-     "type": "text",
-     "text": "Final F, fifth C. Mann calls it Lydian. With B♮ the fourth above the final is a tritone, F–B; Fux's cantus avoids B altogether."
-    },
-    {
-     "type": "text",
-     "text": "In his counterpoints Fux often writes B♭ to avoid that tritone (Figs. 38-39); in third species Josephus explains such flats as accidental, not a change of the diatonic genus (1725 pp. 68-69). The cadence (E before F) needs no accidental."
-    },
-    {
-     "type": "text",
-     "text": "The cantus lies low (F3–C4): with the counterpoint below, voices crowd and crossing becomes tempting (Fig. 14)."
-    }
-   ]
-  },
-  "G": {
-   "name": "The mode on G",
-   "body": [
-    {
-     "type": "text",
-     "text": "Final G, fifth D. Mann calls it Mixolydian. The seventh degree F is raised to F♯ at the cadence."
-    },
-    {
-     "type": "mann",
-     "text": "Thus, the seventh degree has to be raised in the Dorian (D), Mixolydian (G), and Aeolian (A) modes. (The second degree of a mode occurs always as the next to the last tone in the cantus firmus, the seventh degree always as the next to the last tone in the counterpoint.)",
-     "page": "28",
-     "note": "2"
-    },
-    {
-     "type": "text",
-     "text": "Raising F creates a risk elsewhere: an F♮ near an F♯ in the other voice is a false relation, which is why Josephus sharpens F a bar early in Fig. 21 (1725 p. 55)."
-    }
-   ]
-  },
-  "A": {
-   "name": "The mode on A",
-   "body": [
-    {
-     "type": "text",
-     "text": "Final A, fifth E. Mann calls it Aeolian. The seventh degree G is raised to G♯ at the cadence."
-    },
-    {
-     "type": "mann",
-     "text": "Thus, the seventh degree has to be raised in the Dorian (D), Mixolydian (G), and Aeolian (A) modes. (The second degree of a mode occurs always as the next to the last tone in the cantus firmus, the seventh degree always as the next to the last tone in the counterpoint.)",
-     "page": "28",
-     "note": "2"
-    },
-    {
-     "type": "text",
-     "text": "As in D, F and B both belong to the mode: a leap between them is a tritone."
-    }
-   ]
-  },
-  "C": {
-   "name": "The mode on C",
-   "body": [
-    {
-     "type": "text",
-     "text": "Final C, fifth G. Mann calls it Ionian. B is already a semitone below the final, so the cadence needs no accidental."
-    },
-    {
-     "type": "text",
-     "text": "Fux leaves C to the pupil in first species (no worked example); in second species he works it out (Figs. 44-45)."
-    }
-   ]
   }
- },
- "steps": {
-  "fux-mode.s1.01": {
-   "name": "First steps",
-   "specific": [
-    "Every vertical interval a consonance; reach perfect consonances only by contrary or oblique motion.",
-    "More thirds and sixths than fifths and octaves (1725 p. 46).",
-    "Begin and end on a perfect consonance; major sixth in the next-to-last bar."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius defines the species: notes of equal length, consonances only. Whole notes are used because they show the matter most clearly. He recalls the four rules of motion from the first book and adds two precepts: contrary and oblique motion as much as possible, and more imperfect than perfect consonances, with the beginning and the end excepted."
-    },
-    {
-     "type": "fux",
-     "latin": "adhibendo ut plurimum, motum contrarium, vel obliquum",
-     "english": "using contrary or oblique motion as much as possible",
-     "page": "45"
-    },
-    {
-     "type": "fux",
-     "latin": "meris Consonantiis constans",
-     "english": "consisting of consonances only",
-     "page": "45"
-    },
-    {
-     "type": "text",
-     "text": "Why more imperfect consonances? Because they are more harmonious; a composition of perfect consonances would lack harmony. Why perfect ones at the ends? Because the beginning should express perfection and the end repose, which imperfect consonances cannot give (paraphrase of p. 46)."
-    },
-    {
-     "type": "heading",
-     "text": "The dialogue"
-    },
-    {
-     "type": "dialogue",
-     "lines": [
-      {
-       "who": "Josephus",
-       "text": "writes a counterpoint above the cantus and puts the bar numbers over his part, and over the alto the consonances he means to use."
-      },
-      {
-       "who": "Josephus",
-       "text": "then justifies each move by the rule it obeys: a fifth to a third by oblique motion; third to third by parallel motion; third to fifth by contrary motion; and so on to the major sixth and the octave."
-      },
-      {
-       "who": "Aloysius",
-       "text": "approves: if he masters the motions and the rules, slight slips will soon disappear."
-      }
-     ]
-    },
-    {
-     "type": "heading",
-     "text": "Mann's notes"
-    },
-    {
-     "type": "mann",
-     "text": "Principles for the forming of melodies are discussed later in the course of the work. The basic rule, however, from which all others are derived, might be mentioned beforehand: the possibility of vocal performance should always be taken into consideration. Therefore, no augmented, diminished, or chromatic intervals are to be used, nor intervals larger than the fifth (except for the octave and the minor sixth, which latter, however, should be employed only in an upward direction). Registers too high or too low (see p. 79), skips following each other in the same direction, and skips which are not compensated for subsequently should also be avoided.",
-     "page": "27",
-     "note": "1"
-    },
-    {
-     "type": "mann",
-     "text": "Thus, the seventh degree has to be raised in the Dorian (D), Mixolydian (G), and Aeolian (A) modes. (The second degree of a mode occurs always as the next to the last tone in the cantus firmus, the seventh degree always as the next to the last tone in the counterpoint.)",
-     "page": "28",
-     "note": "2"
-    },
-    {
-     "type": "mann",
-     "text": "For Fig. 5, second and seventh bars: The repetition of a tone—the only way of using oblique motion in the first species—may occur occasionally in the counterpoint; however, the same tone should not be repeated more than once.",
-     "page": "29",
-     "note": "3"
-    },
-    {
-     "type": "text",
-     "text": "Note: Mann's melodic advice (no leaps larger than a fifth, compensate leaps, and so on) is his own, not Fux's; the game does not check it."
-    }
-   ],
-   "intro": {
-    "la": "Fiat ergo principium, Auspice Deo, à Compositione duarum vocum, ponendo quendam Cantum firmum, vel à proprio judicio inventum, vel ex aliquo Libro Chorali assumptum pro fundamento.",
-    "en": "Let us begin, then, with God's help, with composition in two voices, taking as our foundation a cantus firmus, either of our own invention or taken from some book of chant.",
-    "page": "45"
-   }
-  },
-  "fux-mode.s1.02": {
-   "name": "Below the cantus",
-   "specific": [
-    "With the counterpoint below: begin on the octave or unison, not the fifth (p. 48).",
-    "From an imperfect to a perfect consonance only by contrary motion: direct motion hides fifths and octaves (pp. 49-50)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Josephus now writes below the cantus, reckoning the intervals downwards. Aloysius marks two faults he could not have known about."
-    },
-    {
-     "type": "dialogue",
-     "lines": [
-      {
-       "who": "Josephus",
-       "text": "Why did you mark the first and second bars? I began on a fifth, a perfect consonance."
-      },
-      {
-       "who": "Aloysius",
-       "text": "The counterpoint must be in the mode of the cantus. The cantus is in D (la sol re); beginning on G (sol re ut) forces the opening out of the mode. I changed the fifth to an octave."
-      },
-      {
-       "who": "Aloysius",
-       "text": "The second fault is from bar 2 to 3: from a third to a fifth by direct motion. Let the lower voice stay on D: a tenth, then the fifth by contrary motion."
-      }
-     ]
-    },
-    {
-     "type": "text",
-     "text": "Why is direct motion into a perfect consonance forbidden? Because a good singer, filling the leap with passing notes (diminution), would make the hidden fifths or octaves audible (Figs. 7-8)."
-    },
-    {
-     "type": "text",
-     "text": "Aloysius then sets the plan for the rest of the lesson: all the modes in their natural order, E, F, G, A, C. B is left out because its fifth is diminished; altering it would move into a transposed mode, discussed elsewhere."
-    },
-    {
-     "type": "heading",
-     "text": "Mann's notes"
-    },
-    {
-     "type": "mann",
-     "text": "This quadruple denomination of the same tone derives from the old distribution of the tones into three hexachords (six-tone scales) … The degrees of each hexachord were called in turn, ut, re, mi, fa, sol, and la, and it was customary to indicate the position of a tone in all three hexachords.",
-     "page": "31",
-     "note": "4"
-    },
-    {
-     "type": "mann",
-     "text": "This refers to the old practice of improvised ornamentation, especially in the so-called diminution (filling out of intervals, and breaking up of large note values into smaller ones). Cf. pp. 41 and 51.",
-     "page": "33",
-     "note": "5"
-    }
-   ],
-   "intro": {
-    "la": "Jam perge, relicto Cantu firmo, ut est in Alto, infra pone Tenorem pro parte Contrapuncti.",
-    "en": "Now go on: leave the cantus firmus in the alto as it is, and put the tenor below it to carry the counterpoint.",
-    "page": "48"
-   }
-  },
-  "fux-mode.s1.03": {
-   "name": "Into E",
-   "specific": [
-    "No new precept. The cadence in E needs no accidental: the cantus falls a semitone F → E.",
-    "Beware F and B: mi contra fa."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius writes a cantus in E and Josephus sets a counterpoint above it. He is told he did very well. The modes differ, Aloysius says, because the semitones fall in different places, which changes the melody of each."
-    },
-    {
-     "type": "fux",
-     "latin": "mi contra fa est diabolus in Musica",
-     "english": "mi against fa is the devil in music",
-     "page": "52"
-    },
-    {
-     "type": "text",
-     "text": "That warning comes in the next exercise; here it is already latent, since the cantus moves around F and B."
-    }
-   ],
-   "intro": {
-    "la": "Age ergo, tuumque exercitium resumendo, construito Contrapunctum super Cantum firmum, quem tibi modò in E. praescripturus sum.",
-    "en": "Come then, take up your exercise again, and build a counterpoint above the cantus firmus I am about to set you in E.",
-    "page": "51"
-   }
-  },
-  "fux-mode.s1.04": {
-   "name": "The devil in music",
-   "specific": [
-    "No leap of a tritone (augmented fourth) in the counterpoint (pp. 51-52)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "dialogue",
-     "lines": [
-      {
-       "who": "Josephus",
-       "text": "So I made a mistake again: what is the bow from bar 6 to 7, with the cross over it?"
-      },
-      {
-       "who": "Aloysius",
-       "text": "Do not worry: you could not avoid it, since your attention had not been called to it. You know the verse: mi contra fa est diabolus in musica. Your leap is an augmented fourth, a tritone: hard to sing and ugly to hear, and therefore forbidden in strict counterpoint."
-      }
-     ]
-    },
-    {
-     "type": "fux",
-     "latin": "saltum Quartae majoris, sive Tritoni",
-     "english": "the leap of a major [augmented] fourth, or tritone",
-     "page": "51-52"
-    },
-    {
-     "type": "heading",
-     "text": "Mann's notes"
-    },
-    {
-     "type": "mann",
-     "text": "Mi (the third tone of a hexachord) and fa (the fourth tone of a hexachord) occur in most combinations of the different hexachords in the interval of a tritone or of a chromatic step, which makes their use in strict counterpoint impossible in these cases.",
-     "page": "35",
-     "note": "7"
-    },
-    {
-     "type": "mann",
-     "text": "The tritone is to be avoided even when reached stepwise if the line is not continued stepwise and in the same direction. The rule is less strict, however, when the tritone is brought about by the progressions of two voices … See Jeppesen, Counterpoint, p. 100.",
-     "page": "35",
-     "note": "9"
-    },
-    {
-     "type": "text",
-     "text": "The game checks only the leap Fux names (the augmented fourth); Mann's extension to stepwise tritones is his, not Fux's."
-    }
-   ],
-   "intro": {
-    "la": "Ad amussim fecisti. Nunc posito Cantu firmo in parte superiori, infrà in Tenore confice Contrapunctum.",
-    "en": "Done to a nicety. Now put the cantus firmus above, and make the counterpoint below it, in the tenor.",
-    "page": "51"
-   }
-  },
-  "fux-mode.s1.05": {
-   "name": "Neighbouring clefs",
-   "specific": [
-    "B and F are a tritone apart (mi contra fa). B♮ belongs to the mode and is allowed, but never leap between F and B, and never set a B against an F. Where your line would bring them together, write B♭ instead, as Fux does here (the ♭ button, or the - key); he calls such flats accidental, not part of the mode (1725 pp. 68-69).",
-    "No new precept. The cantus lies low here (tenor clef in the original): keep your line within reach of it."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "dialogue",
-     "lines": [
-      {
-       "who": "Josephus",
-       "text": "Here you put the cantus in the tenor clef. Is there a reason?"
-      },
-      {
-       "who": "Aloysius",
-       "text": "Only that you should become familiar with the clefs. Two voices should always be written in neighbouring clefs, so that simple intervals can be told from compound ones."
-      }
-     ]
-    },
-    {
-     "type": "heading",
-     "text": "Mann's notes"
-    },
-    {
-     "type": "mann",
-     "text": "A compound interval: the combination of a simple interval and the octave. The use of close position is essential for a balanced sound (cf. p. 112).",
-     "page": "36",
-     "note": "10"
-    }
-   ],
-   "intro": {
-    "la": "Fac bono animo sis, & de tono E. procede ad tonum F.",
-    "en": "Take heart, and go on from the mode of E to the mode of F.",
-    "page": "52"
-   }
-  },
-  "fux-mode.s1.06": {
-   "name": "Crossing over",
-   "specific": [
-    "B and F are a tritone apart (mi contra fa). B♮ belongs to the mode and is allowed, but never leap between F and B, and never set a B against an F. Where your line would bring them together, write B♭ instead, as Fux does here (the ♭ button, or the - key); he calls such flats accidental, not part of the mode (1725 pp. 68-69).",
-    "Crossing above the cantus is allowed where it avoids direct motion (p. 52): Aloysius approves it."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "dialogue",
-     "lines": [
-      {
-       "who": "Aloysius",
-       "text": "Right. But why did you let the counterpoint move above the cantus from the fourth to the seventh bar?"
-      },
-      {
-       "who": "Josephus",
-       "text": "Otherwise I would have had to use direct motion, and the voice leading would have been worse."
-      },
-      {
-       "who": "Aloysius",
-       "text": "You did very well, the more so since here you treated the cantus as a lower voice, as if it were a bass, and reckoned the consonances from it."
-      }
-     ]
-    },
-    {
-     "type": "fux",
-     "latin": "Optimâ observantiâ id fecisti",
-     "english": "you did that with the best attention",
-     "page": "52"
-    },
-    {
-     "type": "heading",
-     "text": "Mann's notes"
-    },
-    {
-     "type": "mann",
-     "text": "Voice crossing will prove to be a very important expedient, especially in three and four part writing (see p. 100). Cf. Jeppesen, Counterpoint, p. 113.",
-     "page": "36",
-     "note": "11"
-    }
-   ],
-   "intro": {
-    "la": "Nunc posito Basso infrà Cantum firmum, in eo formetur Contrapunctum.",
-    "en": "Now put a bass below the cantus firmus, and let the counterpoint be formed in it.",
-    "page": "52"
-   }
-  },
-  "fux-mode.s1.07": {
-   "name": "Singable lines",
-   "specific": [
-    "No leap of a major sixth: in strict counterpoint everything should be as singable as possible (p. 53).",
-    "The unison only in the first and last bars (pp. 53-54).",
-    "No leap into an octave or unison from a more distant consonance (p. 54)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "dialogue",
-     "lines": [
-      {
-       "who": "Josephus",
-       "text": "I wrote with the closest attention and still there are two marks, from bar 9 to 10 and from 10 to 11."
-      },
-      {
-       "who": "Aloysius",
-       "text": "Do not be impatient. From 9 to 10 you used a leap of a major sixth, which is forbidden in strict counterpoint, where everything should be as singable as possible. From 10 to 11 you brought the voices from a tenth into an octave by step, the upper voice down and the lower up. This octave, called battuta by the Italians, is forbidden by some; I have never found the reason, and I leave it to your discretion."
-      }
-     ]
-    },
-    {
-     "type": "fux",
-     "latin": "omnia cantu facillima esse debent",
-     "english": "everything should be very easy to sing",
-     "page": "53"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius adds two precepts: the unison may stand only at the beginning and the end (the voices would not be heard clearly enough), and a leap into the octave from a more distant consonance is not to be tolerated, even in more voices."
-    },
-    {
-     "type": "fux",
-     "latin": "excepto principio, & fine nunquam ponendus est",
-     "english": "except at the beginning and the end, it must never be used",
-     "page": "53-54"
-    },
-    {
-     "type": "heading",
-     "text": "Mann's notes"
-    },
-    {
-     "type": "mann",
-     "text": "Literally: \"beaten.\"",
-     "page": "37",
-     "note": "12"
-    },
-    {
-     "type": "mann",
-     "text": "Cf. Roth, Elemente der Stimmfuehrung, p. 72, where ottava and quinta battuta mean only such progressions and are therefore definitely forbidden.",
-     "page": "38",
-     "note": "14"
-    },
-    {
-     "type": "text",
-     "text": "The game does not check the battuta: Fux leaves it to discretion."
-    }
-   ],
-   "intro": {
-    "la": "Pergamus ad tonum G.",
-    "en": "Let us go on to the mode of G.",
-    "page": "52"
-   }
-  },
-  "fux-mode.s1.08": {
-   "name": "Leaving the unison",
-   "specific": [
-    "No leap out of or into a unison (pp. 54-55).",
-    "Fa tends down, mi up: a sharp may mark an ascent and avoid a false relation (p. 55)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "dialogue",
-     "lines": [
-      {
-       "who": "Josephus",
-       "text": "What does the N.B. on the first note mean?"
-      },
-      {
-       "who": "Aloysius",
-       "text": "That the progression from the unison into another consonance by a leap is bad in itself, just as the leap into a unison. Here it is in the cantus, which may not be changed, so it is tolerated."
-      },
-      {
-       "who": "Aloysius",
-       "text": "But why did you put a sharp in the eleventh bar? It is not usual in the diatonic system."
-      },
-      {
-       "who": "Josephus",
-       "text": "I wanted a sixth there; and I learned that fa leads down and mi leads up. Since the line rises, I used a sharp to stress the ascent. Besides, an F in bar 11 would make a harsh relation with the F♯ of bar 13."
-      }
-     ]
-    },
-    {
-     "type": "text",
-     "text": "Aloysius: every stumbling block is now removed."
-    }
-   ],
-   "intro": {
-    "la": "Restat adhuc ultimi exempli Contrapunctum in parte inferiori ponendum.",
-    "en": "There still remains the counterpoint to the last example, to be set in the lower part.",
-    "page": "54"
-   }
-  },
-  "fux-mode.s1.09": {
-   "name": "In A",
-   "specific": [
-    "No new precept: everything so far applies."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius sends Josephus on to the remaining modes, A and C. Fux gives two examples in A (cantus below and above); C is left to the pupil."
-    },
-    {
-     "type": "mann",
-     "text": "Thus, the seventh degree has to be raised in the Dorian (D), Mixolydian (G), and Aeolian (A) modes. (The second degree of a mode occurs always as the next to the last tone in the cantus firmus, the seventh degree always as the next to the last tone in the counterpoint.)",
-     "page": "28",
-     "note": "2"
-    }
-   ],
-   "intro": {
-    "la": "Nunc omnem offensionis lapidem sublatum esse arbitror. Perge ergo ad A. & C. duos superstites Tonos.",
-    "en": "Now I think every stumbling block has been cleared away. Go on, then, to A and C, the two remaining modes.",
-    "page": "55"
-   }
-  },
-  "fux-mode.s1.10": {
-   "name": "The species mastered",
-   "specific": [
-    "No new precept."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "After the two A exercises Aloysius declares that Josephus knows everything necessary in this species, and they move on to the second."
-    }
-   ],
-   "intro": {
-    "la": "… in Contrapuncto, in quo Compositionis genere omnia cantu facillima esse debent …",
-    "en": "… in counterpoint, a kind of composition in which everything ought to be as easy as possible to sing …",
-    "page": "53"
-   }
-  },
-  "fux-mode.s1.11": {
-   "name": "C on your own",
-   "specific": [
-    "Fux writes no counterpoint for this cantus: you are on your own."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius assigns C with A (\"the remaining modes, A and C\") but the book prints no C exercise in first species. There is no original solution to compare with."
-    }
-   ],
-   "intro": {
-    "la": "Ex duobus ultimis exemplis apparet, omnia scitu ad hanc speciem necessaria tibi jam nota esse.",
-    "en": "It is plain from the last two examples that you now know everything this species requires.",
-    "page": "55"
-   }
-  },
-  "fux-mode.s1.12": {
-   "name": "C on your own, below",
-   "specific": [
-    "No original solution.",
-    "Below the cantus: begin on the octave or unison."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "As the previous exercise, with the counterpoint below."
-    }
-   ],
-   "intro": {
-    "la": "Nunc perge, & eandem lectionem faciendo, percurre omnes tonos intrà hanc Octavam contentos, & naturali ordine gradatim sequentes.",
-    "en": "Now go on with the same lesson, and run through all the modes contained in this octave, one after another in their natural order.",
-    "page": "50"
-   }
-  },
-  "fux-mode.s2.01": {
-   "name": "Thesis and arsis",
-   "specific": [
-    "Two half notes against each whole note; the first (thesis) always consonant (p. 56).",
-    "The second (arsis) may be dissonant only as a passing note by step, filling a third (p. 56).",
-    "Read the downbeats as if the upbeat were absent when it is reached by a step or a third: no fifths or octaves in a row (pp. 57-59)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Binary time: each bar has two equal parts, the lowering of the hand (thesis) and its raising (arsis). Two minims stand against one semibreve."
-    },
-    {
-     "type": "fux",
-     "latin": "quarum una in Thesi veniens, semper consonans sit, necesse est, altera verò in Arsi, si de Nota praecedenti in sequentem gradatim moveatur, etiam dissonans esse poterit; si autem per saltum labatur, necessariò Consonans esse debet",
-     "english": "the one on the thesis must always be consonant; the one on the arsis may also be dissonant if it moves by step from the preceding note to the following one; but if it moves by leap it must be consonant",
-     "page": "56"
-    },
-    {
-     "type": "text",
-     "text": "Joseph asks whether the precepts of first species on motion and progression still hold. Aloysius: by all means (vel maximè), except for the next-to-last bar, which now has a fifth and then a major sixth (cantus below) or a fifth and then a minor third (cantus above)."
-    },
-    {
-     "type": "fux",
-     "latin": "Pro majori facilitate juvabit habere rationem finis, antequam scribere incipias",
-     "english": "to make it easier, it will help to think of the end before you begin to write",
-     "page": "57"
-    },
-    {
-     "type": "heading",
-     "text": "Josephus's first attempt"
-    },
-    {
-     "type": "dialogue",
-     "lines": [
-      {
-       "who": "Josephus",
-       "text": "I see two marks, on the first note of bar 9 and of bar 10, and I do not understand either: both times I went from an imperfect to a perfect consonance by contrary motion."
-      },
-      {
-       "who": "Aloysius",
-       "text": "You reason correctly; the two mistakes are of one kind, which you could not have known. A skip of a third cannot save two fifths or two octaves: the note in between, on the arsis, is so short and so close that it is as if it were not there."
-      }
-     ]
-    },
-    {
-     "type": "fux",
-     "latin": "saltus Tertiae neque duas Quintas, neque duas Octavas salvare possit",
-     "english": "a skip of a third can save neither two fifths nor two octaves",
-     "page": "57"
-    },
-    {
-     "type": "text",
-     "text": "A larger skip, of a fourth, fifth or sixth, is different: the distance makes the ear forget the first downbeat note before the next one comes. For the same reason Aloysius did not mark bars 3-4, where a skip of a fourth saves a sixth-to-fifth progression that would otherwise break the rule of motion (pp. 58-59). The corrected lesson is printed as Fig. 33."
-    },
-    {
-     "type": "fux",
-     "latin": "distantia de prima Nota ad secundam quasi oblivionem auribus afferre videtur soni Notae primae in Thesi",
-     "english": "the distance from the first note to the second seems to make the ears forget the sound of the first note on the thesis",
-     "page": "58"
-    },
-    {
-     "type": "heading",
-     "text": "Mann's notes"
-    },
-    {
-     "type": "mann",
-     "text": "I have used \"downbeat\" and \"upbeat,\" since these words have acquired currency as musical terms in English. Generally, the two Greek terms are used in the reverse, (thesis for upbeat, and arsis for downbeat (even in Bellermann and Jeppesen). This can be explained by the fact that Fux derives his terms from the raising and lowering of the arm whereas usually they are derived from the raising or lowering of the voice.",
-     "page": "41",
-     "note": "1"
-    }
-   ],
-   "intro": {
-    "la": "Pro majori facilitate juvabit habere rationem finis, antequam scribere incipias.",
-    "en": "To make it easier, it will help to think of the end before you begin to write.",
-    "page": "57"
-   }
-  },
-  "fux-mode.s2.02": {
-   "name": "The half rest",
-   "specific": [
-    "A half rest may replace the first note (p. 59).",
-    "If the voices are so close that contrary motion is impossible, leap a minor sixth (upward) or an octave (pp. 59-60)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Before Josephus writes below the cantus, Aloysius shows two devices."
-    },
-    {
-     "type": "fux",
-     "latin": "loco primae Notae pausa medii tactûs valoris poni possit",
-     "english": "in place of the first note a rest of half a bar may be put",
-     "page": "59"
-    },
-    {
-     "type": "fux",
-     "latin": "per saltum Sextae minoris, (qui licitus est) vel Octavae",
-     "english": "by a leap of a minor sixth (which is allowed) or of an octave",
-     "page": "60"
-    },
-    {
-     "type": "text",
-     "text": "From here on every one of Fux's second-species examples opens with the half rest. The game puts it in place for you; write over it if you prefer to begin on the downbeat, as Fux does in the first exercise."
-    },
-    {
-     "type": "text",
-     "text": "Counterpoint below the cantus: begin on the octave or the unison, never the fifth below (it would put your line in another mode), and reckon the intervals downwards from the cantus."
-    }
-   ],
-   "intro": {
-    "la": "Primum est, quòd locò primae Notae pausa medii tactûs valoris poni possit.",
-    "en": "The first is that in place of the first note a rest of half a bar may be put.",
-    "page": "59"
-   }
-  },
-  "fux-mode.s2.03": {
-   "name": "Half notes in E",
-   "specific": [
-    "No new precept."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius now has Josephus take all the cantus firmi of the first species through the five remaining modes, once above and once below. The E exercises come first."
-    }
-   ],
-   "intro": {
-    "la": "Nunc resumendo omnes Cantus firmos in prima Contrapuncti Specie praescriptos, percurre reliquos quinque tonos, superiùs, inferiùsque Contrapunctum fabricando.",
-    "en": "Now take up again all the cantus firmi set for the first species and run through the remaining five modes, building the counterpoint above and below.",
-    "page": "60"
-   }
-  },
-  "fux-mode.s2.04": {
-   "name": "No fifth in E",
-   "specific": [
-    "Here the fifth before the final would be mi contra fa (B under F): use a sixth instead (pp. 60-61)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "dialogue",
-     "lines": [
-      {
-       "who": "Josephus",
-       "text": "I remember you said that in the next-to-last bar there should first be a fifth when the counterpoint is below. But in this mode the fifth is dissonant, because of mi against fa; so I wrote a sixth instead."
-      },
-      {
-       "who": "Aloysius",
-       "text": "I am very pleased with this observation of yours. Go on now with the four remaining modes."
-      }
-     ]
-    },
-    {
-     "type": "fux",
-     "latin": "ob rationem mi contra fa; quapropter locò Quintae Sextam adhibendam esse judicavi",
-     "english": "because of mi against fa; so I judged that a sixth should be used instead of the fifth",
-     "page": "61"
-    },
-    {
-     "type": "fux",
-     "latin": "Summopere mihi placet haec tua observatio",
-     "english": "this observation of yours pleases me very much",
-     "page": "61"
-    }
-   ],
-   "intro": {
-    "la": "mi contra fa, est diabolus in Musica",
-    "en": "mi against fa is the devil in music",
-    "page": "51"
-   }
-  },
-  "fux-mode.s2.05": {
-   "name": "F, with the soft B",
-   "specific": [
-    "B and F are a tritone apart (mi contra fa). B♮ belongs to the mode and is allowed, but never leap between F and B, and never set a B against an F. Where your line would bring them together, write B♭ instead, as Fux does here (the ♭ button, or the - key); he calls such flats accidental, not part of the mode (1725 pp. 68-69)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Nothing new is said. Look at Fux's solution afterwards for the B♭s: he explains such flats only in the next species (1725 pp. 68-69)."
-    }
-   ],
-   "intro": {
-    "la": "Perge nunc, reliquosque quatuor tonos pari exercitio prosequere.",
-    "en": "Go on now, and pursue the four remaining modes with the same exercise.",
-    "page": "61"
-   }
-  },
-  "fux-mode.s2.06": {
-   "name": "F, from below",
-   "specific": [
-    "B and F are a tritone apart (mi contra fa). B♮ belongs to the mode and is allowed, but never leap between F and B, and never set a B against an F. Where your line would bring them together, write B♭ instead, as Fux does here (the ♭ button, or the - key); he calls such flats accidental, not part of the mode (1725 pp. 68-69)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Fux's own counterpoint crosses above the cantus for a few bars here, as Aloysius allowed in first species."
-    },
-    {
-     "type": "text",
-     "text": "Counterpoint below the cantus: begin on the octave or the unison, never the fifth below (it would put your line in another mode), and reckon the intervals downwards from the cantus."
-    }
-   ],
-   "intro": {
-    "la": "Fac ut poteris; nihil molestè feram; correctio obscuritatis tenebras facilè dissipabit.",
-    "en": "Do as well as you can; I shall not mind; correction will easily scatter the darkness.",
-    "page": "57"
-   }
-  },
-  "fux-mode.s2.07": {
-   "name": "G, the raised seventh",
-   "specific": [
-    "No new precept."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Nothing new is said."
-    },
-    {
-     "type": "mann",
-     "text": "Thus, the seventh degree has to be raised in the Dorian (D), Mixolydian (G), and Aeolian (A) modes. (The second degree of a mode occurs always as the next to the last tone in the cantus firmus, the seventh degree always as the next to the last tone in the counterpoint.)",
-     "page": "28",
-     "note": "2"
-    }
-   ],
-   "intro": {
-    "la": "… à Legislatoribus cujuscunque Facultatis nihil frustrà, nihil, quod ratione non fundatum sit, institutum fuisse.",
-    "en": "… the lawgivers of every art have laid down nothing in vain, nothing that is not founded on reason.",
-    "page": "50"
-   }
-  },
-  "fux-mode.s2.08": {
-   "name": "G, from below",
-   "specific": [
-    "No new precept."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Nothing new is said."
-    },
-    {
-     "type": "text",
-     "text": "Counterpoint below the cantus: begin on the octave or the unison, never the fifth below (it would put your line in another mode), and reckon the intervals downwards from the cantus."
-    }
-   ],
-   "intro": {
-    "la": "Secundum, si ambas partes ita vicinè, itaque conjunctim reperiri contingat, ut vix sciatur, quorsum eundum …",
-    "en": "The second: if the two parts happen to lie so close together that one hardly knows where to go …",
-    "page": "59"
-   }
-  },
-  "fux-mode.s2.09": {
-   "name": "A, a new cantus",
-   "specific": [
-    "No new precept."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Nothing new is said. In the dataset this exercise uses a slightly different A cantus from the first species (one note shorter); the encoding follows the 1725 print, to be double-checked."
-    }
-   ],
-   "intro": {
-    "la": "Gutta cavat lapidem, non vi, sed saepè cadendo.",
-    "en": "The drop hollows the stone, not by force but by falling often.",
-    "page": "62"
-   }
-  },
-  "fux-mode.s2.10": {
-   "name": "A, from below",
-   "specific": [
-    "No new precept."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Nothing new is said."
-    },
-    {
-     "type": "text",
-     "text": "Counterpoint below the cantus: begin on the octave or the unison, never the fifth below (it would put your line in another mode), and reckon the intervals downwards from the cantus."
-    }
-   ],
-   "intro": {
-    "la": "… ita ut nullum diem sinè linea (ùt dicitur) praeterlabi sinamus.",
-    "en": "… so that we let no day slip by without a line, as the saying goes.",
-    "page": "62"
-   }
-  },
-  "fux-mode.s2.11": {
-   "name": "C, worked out",
-   "specific": [
-    "No new precept."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Unlike first species, Fux works C out in this species."
-    }
-   ],
-   "intro": {
-    "la": "Satis commodè rem instituisti. Sic Dii laboribus omnia vendunt.",
-    "en": "You have gone about it well enough. So the gods sell everything for toil.",
-    "page": "62"
-   }
-  },
-  "fux-mode.s2.12": {
-   "name": "Looking ahead",
-   "specific": [
-    "Look ahead: weigh not only the bar you are writing but the following ones (pp. 62-63)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "fux",
-     "latin": "Gutta cavat lapidem, non vi, sed saepè cadendo",
-     "english": "the drop hollows the stone not by force but by falling often",
-     "page": "62"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius exhorts Josephus to let no day pass without a line, and to consider not only the bar in hand but the following ones. Josephus admits he could hardly have written the last exercises without weighing a bar or two ahead."
-    },
-    {
-     "type": "fux",
-     "latin": "ut non solùm illius tactûs, in quo laboras, rationem habeas, verùm etiam & sequentium",
-     "english": "that you take account not only of the bar you are working on but also of the following ones",
-     "page": "62-63"
-    },
-    {
-     "type": "text",
-     "text": "The lesson ends with ternary time: three notes against one, where the middle note may be dissonant if all three move by step (p. 63). Fux thinks it too easy to deserve its own lesson."
-    }
-   ],
-   "intro": {
-    "la": "… ut non solùm illius tactûs, in quo laboras, rationem habeas, verùm etiam & sequentium.",
-    "en": "… that you take account not only of the bar you are working on, but also of those that follow.",
-    "page": "62-63"
-   }
-  },
-  "fux-mode.s3.01": {
-   "name": "Four against one",
-   "specific": [
-    "Four quarters against each whole note. The first must be consonant (pp. 63-64).",
-    "A dissonant quarter must pass by step in one direction (the second and fourth; the third too, when it fills a skip of a third), or be the cambiata (pp. 63-65).",
-    "Next-to-last bar: end on the major sixth that opens to the octave (pp. 65-66)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "fux",
-     "latin": "Tertia Contrapuncti Species est quatuor semiminimarum contra unam semibrevem Compositio.",
-     "english": "The third species of counterpoint is the composition of four crotchets against one semibreve.",
-     "page": "63"
-    },
-    {
-     "type": "fux",
-     "latin": "si quinque semiminimas vel ascendendo, vel descendendo continuò gradatim se sequi contingat, prima Consonans esse debeat, secunda dissonans esse possit. Tertia denuò Consonans sit, necesse est. Quarta dissonans esse poterit, si quinta Consonantia fuerit",
-     "english": "if five crotchets happen to follow one another by step, ascending or descending, the first must be consonant, the second may be dissonant; the third must again be consonant; the fourth may be dissonant if the fifth is a consonance",
-     "page": "63-64"
-    },
-    {
-     "type": "text",
-     "text": "Two exceptions follow. First: when the second and fourth notes are consonant, the third may be dissonant; it is then only the diminution of a skip of a third, filling the space between two notes a third apart (p. 64)."
-    },
-    {
-     "type": "fux",
-     "latin": "Fallit autem primò in Hypothesi, ubi secundam & quartam Notam Consonantias esse contingit, quo in casu tertia Nota dissonantia esse poterit",
-     "english": "it fails, first, in the case where the second and fourth notes happen to be consonances; then the third note may be a dissonance",
-     "page": "64"
-    },
-    {
-     "type": "text",
-     "text": "Second: the nota cambiata. From a dissonant second note the line skips a third, down, to a consonance. Strictly the skip belongs between the first and second notes, which would make the second a sixth; but since crotchets broken into quavers have no place in this species, Aloysius follows the authority of the masters, 'perhaps for a better melody' (pp. 64-65)."
-    },
-    {
-     "type": "fux",
-     "latin": "Secunda Hypothesis est, ubi à communi regula deflectitur, Nota cambita, ab Italis Cambiata nuncupata, ubi de Nota secunda dissonante per saltum fit progressus in Consonantiam",
-     "english": "the second case, where the common rule is departed from, is the changed note, called cambiata by the Italians, where from a dissonant second note the progress is by a skip into a consonance",
-     "page": "64-65"
-    },
-    {
-     "type": "text",
-     "text": "Last, the penultimate bar, which 'has more difficulty than the others' (p. 65): its quarters lead to the note below the final, which rises to it. Everything said of the other species still holds (p. 66)."
-    },
-    {
-     "type": "fux",
-     "latin": "sed iterum, atque iterum admonitum te volo, ut sequentis tactûs vel maximè rationem habeas, si nullum in progrediendo obicem offendere cupis.",
-     "english": "but again and again I want you reminded to take the greatest account of the following bar, if you wish to meet no obstacle as you go on.",
-     "page": "66"
-    },
-    {
-     "type": "text",
-     "text": "Ternary time (three notes against one) Aloysius mentions and leaves without a lesson: the middle note may be dissonant when all three move by step (p. 63)."
-    }
-   ],
-   "intro": {
-    "la": "Tertia Contrapuncti Species est quatuor semiminimarum contra unam semibrevem Compositio.",
-    "en": "The third species of counterpoint is the composition of four crotchets against one semibreve.",
-    "page": "63"
-   }
-  },
-  "fux-mode.s3.02": {
-   "name": "Quarters below the cantus",
-   "specific": [
-    "Cantus above: the next-to-last bar ends on the minor third below the cantus, which closes on the unison or octave (p. 66)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Fux gives the penultimate bar for the cantus above separately (p. 66): the counterpoint's last quarter is the note below the final, a minor third under the cantus. Nothing else is new."
-    }
-   ],
-   "intro": {
-    "la": "His ergo cognitis, & iis, quae de aliis Speciebus jam dicta sunt, facilem tibi futuram spero hujus Speciei Compositionem",
-    "en": "Knowing this, and what has already been said of the other species, I hope the composition of this species will be easy for you",
-    "page": "66"
-   }
-  },
-  "fux-mode.s3.03": {
-   "name": "Quarters in E",
-   "specific": [
-    "No new precept. In E, beware F and B: mi contra fa, even when the tritone is filled in by step."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Josephus works through the cantus firmi of the first lesson in order: nothing new is said."
-    }
-   ],
-   "intro": {
-    "la": "Ergo Opus aggrediare, omnes in prima Lectione praescriptos Cantus firmos eo ordine persequendo.",
-    "en": "So set to work, taking all the cantus firmi prescribed in the first lesson in that order.",
-    "page": "66"
-   }
-  },
-  "fux-mode.s3.04": {
-   "name": "E, from below",
-   "specific": [
-    "No new precept. Cantus above: end the next-to-last bar on the minor third below the cantus."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Nothing new is said."
-    }
-   ],
-   "intro": {
-    "la": "Quo facto paulatim in tenebris lumen exoriri, & aliqua ex parte caliginis velum tibi sublatum iri senties, ac gaudebis.",
-    "en": "Done this way, you will feel a light gradually rising in the darkness and the veil of mist partly lifted from you, and you will rejoice.",
-    "page": "63"
-   }
-  },
-  "fux-mode.s3.05": {
-   "name": "Quarters in F",
-   "specific": [
-    "B and F are a tritone apart (mi contra fa). B♮ belongs to the mode and is allowed, but never leap between F and B, and never set a B against an F. Where your line would bring them together, write B♭ instead, as Fux does here (the ♭ button, or the - key); he calls such flats accidental, not part of the mode (1725 pp. 68-69)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Nothing new is said. Fux's own line uses B♭ where it would otherwise touch F in a tritone; he explains it in the next exercise."
-    }
-   ],
-   "intro": {
-    "la": "Mirum in modum laetor qui te tam sagacem videam",
-    "en": "I rejoice wonderfully to see you so sagacious",
-    "page": "63"
-   }
-  },
-  "fux-mode.s3.06": {
-   "name": "F, with accidental flats",
-   "specific": [
-    "B and F are a tritone apart (mi contra fa). B♮ belongs to the mode and is allowed, but never leap between F and B, and never set a B against an F. Where your line would bring them together, write B♭ instead, as Fux does here (the ♭ button, or the - key); he calls such flats accidental, not part of the mode (1725 pp. 68-69)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "dialogue",
-     "lines": [
-      {
-       "who": "Aloysius",
-       "text": "Why have you used flats in some places, a sign not customary in the diatonic genus we are working in?"
-      },
-      {
-       "who": "Josephus",
-       "text": "It seemed to me that otherwise a harsh relation would arise from mi against fa. Nor do I think it harms the diatonic genus, since those flats are mixed in not substantially but accidentally, out of necessity."
-      },
-      {
-       "who": "Aloysius",
-       "text": "Very well observed; for the same reason sharps must sometimes be used too: but where and when must be weighed with clear judgement."
-      }
-     ]
-    },
-    {
-     "type": "fux",
-     "latin": "Nec obesse arbitror generi Diatonico, cùm b. mollia illa non substantialiter, sed accidentaliter ex necessitate immixta esse constet.",
-     "english": "Nor do I think it harms the diatonic genus, since it is clear that those flats are mixed in not substantially but accidentally, out of necessity.",
-     "page": "69"
-    }
-   ],
-   "intro": {
-    "la": "Quare nonnullis in locis b. mollia adhibuisti, signum in genere Diatonico, in quo versamur, haud usitatum?",
-    "en": "Why have you used flats in some places, a sign not customary in the diatonic genus in which we are working?",
-    "page": "68"
-   }
-  },
-  "fux-mode.s3.07": {
-   "name": "G, in private study",
-   "specific": [
-    "No new precept: everything this species requires has been shown (p. 69)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
-    }
-   ],
-   "intro": {
-    "la": "Reliquos tres adhuc superstites tonos: G. A. C., ne nimis prolixi simus, privato studio persequendos tibi relinquo.",
-    "en": "The three modes still remaining, G, A and C, so as not to be too long, I leave you to work out in private study.",
-    "page": "69"
-   }
-  },
-  "fux-mode.s3.08": {
-   "name": "G, from below, in private study",
-   "specific": [
-    "No new precept: everything this species requires has been shown (p. 69). Cantus above: end the next-to-last bar on the minor third below the cantus."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
-    }
-   ],
-   "intro": {
-    "la": "Ex praecedentibus exemplis satìs memoriâ tenere videris ea, quae ad hanc Speciem requiruntur.",
-    "en": "From the preceding examples you seem to keep well in memory what this species requires.",
-    "page": "69"
-   }
-  },
-  "fux-mode.s3.09": {
-   "name": "A, in private study",
-   "specific": [
-    "No new precept: everything this species requires has been shown (p. 69)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
-    }
-   ],
-   "intro": {
-    "la": "Reliquos tres adhuc superstites tonos: G. A. C., ne nimis prolixi simus, privato studio persequendos tibi relinquo.",
-    "en": "The three modes still remaining, G, A and C, so as not to be too long, I leave you to work out in private study.",
-    "page": "69"
-   }
-  },
-  "fux-mode.s3.10": {
-   "name": "A, from below, in private study",
-   "specific": [
-    "No new precept: everything this species requires has been shown (p. 69). Cantus above: end the next-to-last bar on the minor third below the cantus."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
-    }
-   ],
-   "intro": {
-    "la": "Ex praecedentibus exemplis satìs memoriâ tenere videris ea, quae ad hanc Speciem requiruntur.",
-    "en": "From the preceding examples you seem to keep well in memory what this species requires.",
-    "page": "69"
-   }
-  },
-  "fux-mode.s3.11": {
-   "name": "C, in private study",
-   "specific": [
-    "No new precept: everything this species requires has been shown (p. 69)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
-    }
-   ],
-   "intro": {
-    "la": "Reliquos tres adhuc superstites tonos: G. A. C., ne nimis prolixi simus, privato studio persequendos tibi relinquo.",
-    "en": "The three modes still remaining, G, A and C, so as not to be too long, I leave you to work out in private study.",
-    "page": "69"
-   }
-  },
-  "fux-mode.s3.12": {
-   "name": "C, from below, in private study",
-   "specific": [
-    "No new precept: everything this species requires has been shown (p. 69). Cantus above: end the next-to-last bar on the minor third below the cantus."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
-    }
-   ],
-   "intro": {
-    "la": "Ex praecedentibus exemplis satìs memoriâ tenere videris ea, quae ad hanc Speciem requiruntur.",
-    "en": "From the preceding examples you seem to keep well in memory what this species requires.",
-    "page": "69"
-   }
-  },
-  "fux-mode.s4.01": {
-   "name": "The ligature",
-   "specific": [
-    "Two half notes tied over the bar line: write the same note on the upbeat and on the next downbeat, and they are tied (p. 69).",
-    "The first note of the ligature is always consonant; a dissonance on the downbeat resolves by step down to a consonance (pp. 69-70).",
-    "Cantus below: 2-1, 4-3, 7-6, 9-8, but never unison to second or octave to ninth (pp. 71-72). The cadence: 7 resolving to 6 (pp. 73-74)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "fux",
-     "latin": "Species haec constat duabus minimis contra semibrevem in uno eodemque loco positis, virgulâque curvatâ subductis, quarum prima in Arhsi, secunda in Thesi veniat, necesse est. Quae Species Ligatura, vel Sincope appellari consuevit",
-     "english": "This species consists of two minims against a semibreve, set on one and the same degree and joined by a curved line, the first of which must come in arsis, the second in thesis. This species is usually called the ligature, or syncopation",
-     "page": "69"
-    },
-    {
-     "type": "text",
-     "text": "The ligature is consonant, when both minims are consonances, or dissonant, when the first (which must always be consonant) is followed by a dissonance on the thesis (pp. 69-70)."
-    },
-    {
-     "type": "fux",
-     "latin": "Notas ligatas quasi vinculis constrictas haud aliud esse, quàm Notae sequentis retardationem",
-     "english": "tied notes, bound as if in chains, are nothing but the retardation of the following note",
-     "page": "70"
-    },
-    {
-     "type": "fux",
-     "latin": "Quam ob rem dissonantiae semper in proximam Consonantiam gradatim descendendo se moventem resolvendae sunt",
-     "english": "therefore dissonances must always be resolved by moving down by step to the nearest consonance",
-     "page": "70"
-    },
-    {
-     "type": "text",
-     "text": "Take the retardation away and the resolution is plain: with the cantus below, the second resolves to the unison, the fourth to the third, the seventh to the sixth, the ninth to the octave. For that reason one may not go by ligature from the unison to the second, nor from the octave to the ninth: without the delay they are two unisons or two octaves. From the third to the second, or from the tenth to the ninth, is good (pp. 71-72)."
-    },
-    {
-     "type": "fux",
-     "latin": "neque de Unisono in Secundam, neque de Octava in Nonam per Ligaturam progredi liceat",
-     "english": "it is not allowed to go by ligature from the unison to the second, nor from the octave to the ninth",
-     "page": "71"
-    },
-    {
-     "type": "heading",
-     "text": "Josephus's exercise"
-    },
-    {
-     "type": "dialogue",
-     "lines": [
-      {
-       "who": "Josephus",
-       "text": "Is every bar to have its ligature?"
-      },
-      {
-       "who": "Aloysius",
-       "text": "By all means, where it can be. You will sometimes meet a bar where there is no room for a ligature; then fill it with free minims, until the chance of a ligature comes back."
-      },
-      {
-       "who": "Aloysius",
-       "text": "You have done well; but why did you leave out the ligature in the fifth bar? There could have been one."
-      },
-      {
-       "who": "Josephus",
-       "text": "I could certainly; but I left it out on purpose, so as not to fall into a hateful repetition, having just used the same ligatures in the third and fourth bars."
-      },
-      {
-       "who": "Aloysius",
-       "text": "A prudent observation: much must be granted to the manner of singing and to the elegance of the progression. Go on."
-      }
-     ]
-    },
-    {
-     "type": "fux",
-     "latin": "Satìs providâ usus es observatione, quia & canendi rationi, & progressûs concinnitati haud parùm concedendum est. Perge.",
-     "english": "You made a prudent observation, for no little must be granted both to the manner of singing and to the elegance of the progression. Go on.",
-     "page": "74"
-    }
-   ],
-   "intro": {
-    "la": "Species haec constat duabus minimis contra semibrevem ... quarum prima in Arhsi, secunda in Thesi veniat, necesse est.",
-    "en": "This species consists of two minims against a semibreve ..., the first of which must come in arsis, the second in thesis.",
-    "page": "69"
-   }
-  },
-  "fux-mode.s4.02": {
-   "name": "Ligatures below the cantus",
-   "specific": [
-    "Cantus above: the second resolves to the third, the fourth to the fifth, the ninth to the tenth; the seventh resolving to the octave is avoided (pp. 72-73).",
-    "The cadence: the second resolving to the minor third, then the unison (pp. 73-74)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "fux",
-     "latin": "Dico igitur, quòd hoc loco Secunda resoluta in Tertiam; Quarta resoluta in Quintam, Nona resoluta in Decimam adhiberi possint.",
-     "english": "I say, then, that here the second resolved into the third, the fourth resolved into the fifth, and the ninth resolved into the tenth may be used.",
-     "page": "72"
-    },
-    {
-     "type": "dialogue",
-     "lines": [
-      {
-       "who": "Josephus",
-       "text": "Why do you leave out the seventh here? Can it not be used with the cantus above?"
-      },
-      {
-       "who": "Aloysius",
-       "text": "I admit I left it out on purpose. Hardly any other reason can be given than the weighty authority of the classical authors, which counts for most in practice: scarcely one of them resolves the seventh into the octave this way."
-      }
-     ]
-    },
-    {
-     "type": "text",
-     "text": "One might explain it, Aloysius says, by the octave: a perfect consonance gives the dissonance too little harmony to share. But the same authors often resolve the second, the inverted seventh, into the unison, which has far less; so the explanation fails, and he advises following the usage of the serious authors (p. 73). And he asks whether a ligature may resolve upwards: a Gordian knot, to be untied elsewhere. For now all dissonances resolve downwards (p. 73)."
-    },
-    {
-     "type": "fux",
-     "latin": "Interim omnes dissonantias in proximam Consonantiam descendendo resolvendas esse jure Magistri tibi dico.",
-     "english": "Meanwhile, by a master's right, I tell you that all dissonances are to be resolved by descending to the nearest consonance.",
-     "page": "73"
-    }
-   ],
-   "intro": {
-    "la": "Eritne singulis tactibus danda sua Ligatura? — Omninò, ubi esse poterit.",
-    "en": "Is every bar to have its ligature? — By all means, where it can be.",
-    "page": "74"
-   }
-  },
-  "fux-mode.s4.03": {
-   "name": "Ligatures in E",
-   "specific": [
-    "No new precept. Cantus below: the cadence is 7 resolving to 6."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Nothing new is said."
-    }
-   ],
-   "intro": {
-    "la": "Satìs providâ usus es observatione, quia & canendi rationi, & progressûs concinnitati haud parùm concedendum est. Perge.",
-    "en": "You made a prudent observation, for no little must be granted to the manner of singing and to the elegance of the progression. Go on.",
-    "page": "74"
-   }
-  },
-  "fux-mode.s4.04": {
-   "name": "E, from below",
-   "specific": [
-    "No new precept. Cantus above: 2-3, 4-5, 9-10, never 7-8; the cadence is 2 resolving to the minor third."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Nothing new is said."
-    }
-   ],
-   "intro": {
-    "la": "Interim omnes dissonantias in proximam Consonantiam descendendo resolvendas esse jure Magistri tibi dico.",
-    "en": "Meanwhile, by a master's right, I tell you that all dissonances are to be resolved by descending to the nearest consonance.",
-    "page": "73"
-   }
-  },
-  "fux-mode.s4.05": {
-   "name": "Ligatures in F",
-   "specific": [
-    "B and F are a tritone apart (mi contra fa). B♮ belongs to the mode and is allowed, but never leap between F and B, and never set a B against an F. Where your line would bring them together, write B♭ instead, as Fux does here (the ♭ button, or the - key); he calls such flats accidental, not part of the mode (1725 pp. 68-69)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Nothing new is said."
-    }
-   ],
-   "intro": {
-    "la": "Notas ligatas quasi vinculis constrictas haud aliud esse, quàm Notae sequentis retardationem",
-    "en": "Tied notes, bound as if in chains, are nothing but the retardation of the following note",
-    "page": "70"
-   }
-  },
-  "fux-mode.s4.06": {
-   "name": "F, from below",
-   "specific": [
-    "B and F are a tritone apart (mi contra fa). B♮ belongs to the mode and is allowed, but never leap between F and B, and never set a B against an F. Where your line would bring them together, write B♭ instead, as Fux does here (the ♭ button, or the - key); he calls such flats accidental, not part of the mode (1725 pp. 68-69)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius ends the lesson by commending ligatures, which season the harmony, and by showing, ahead of the next species, how a ligature may be decorated or broken; two quavers may enter on the second or fourth quarter, never on the first or third (p. 76)."
-    },
-    {
-     "type": "fux",
-     "latin": "Cùm autem Ligaturis haud mediocre condimentum Musicali Concentui accedat",
-     "english": "Since ligatures add no small seasoning to musical harmony",
-     "page": "75"
-    }
-   ],
-   "intro": {
-    "la": "Cùm autem Ligaturis haud mediocre condimentum Musicali Concentui accedat",
-    "en": "Since ligatures add no small seasoning to musical harmony",
-    "page": "75"
-   }
-  },
-  "fux-mode.s4.07": {
-   "name": "G, in private study",
-   "specific": [
-    "No new precept: a ligature in every bar where possible (pp. 74-76). The cadence: 7 resolving to 6."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
-    }
-   ],
-   "intro": {
-    "la": "non solùm reliquorum trium tonorum Cantus firmos hac ratione persequendos tibi commendo, verùm etiam, ut repertis aliis in hac Specie plurimùm te exerceas, nec unquam satìs exercebis.",
-    "en": "I commend to you not only to work out the cantus firmi of the three remaining modes in this way, but also to exercise yourself very much in this species on others you find; you will never exercise enough.",
-    "page": "75-76"
-   }
-  },
-  "fux-mode.s4.08": {
-   "name": "G, from below, in private study",
-   "specific": [
-    "No new precept: a ligature in every bar where possible (pp. 74-76). The cadence: 2 resolving to the minor third."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
-    }
-   ],
-   "intro": {
-    "la": "non solùm reliquorum trium tonorum Cantus firmos hac ratione persequendos tibi commendo, verùm etiam, ut repertis aliis in hac Specie plurimùm te exerceas, nec unquam satìs exercebis.",
-    "en": "I commend to you not only to work out the cantus firmi of the three remaining modes in this way, but also to exercise yourself very much in this species on others you find; you will never exercise enough.",
-    "page": "75-76"
-   }
-  },
-  "fux-mode.s4.09": {
-   "name": "A, in private study",
-   "specific": [
-    "No new precept: a ligature in every bar where possible (pp. 74-76). The cadence: 7 resolving to 6."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
-    }
-   ],
-   "intro": {
-    "la": "non solùm reliquorum trium tonorum Cantus firmos hac ratione persequendos tibi commendo, verùm etiam, ut repertis aliis in hac Specie plurimùm te exerceas, nec unquam satìs exercebis.",
-    "en": "I commend to you not only to work out the cantus firmi of the three remaining modes in this way, but also to exercise yourself very much in this species on others you find; you will never exercise enough.",
-    "page": "75-76"
-   }
-  },
-  "fux-mode.s4.10": {
-   "name": "A, from below, in private study",
-   "specific": [
-    "No new precept: a ligature in every bar where possible (pp. 74-76). The cadence: 2 resolving to the minor third."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
-    }
-   ],
-   "intro": {
-    "la": "non solùm reliquorum trium tonorum Cantus firmos hac ratione persequendos tibi commendo, verùm etiam, ut repertis aliis in hac Specie plurimùm te exerceas, nec unquam satìs exercebis.",
-    "en": "I commend to you not only to work out the cantus firmi of the three remaining modes in this way, but also to exercise yourself very much in this species on others you find; you will never exercise enough.",
-    "page": "75-76"
-   }
-  },
-  "fux-mode.s4.11": {
-   "name": "C, in private study",
-   "specific": [
-    "No new precept: a ligature in every bar where possible (pp. 74-76). The cadence: 7 resolving to 6."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
-    }
-   ],
-   "intro": {
-    "la": "non solùm reliquorum trium tonorum Cantus firmos hac ratione persequendos tibi commendo, verùm etiam, ut repertis aliis in hac Specie plurimùm te exerceas, nec unquam satìs exercebis.",
-    "en": "I commend to you not only to work out the cantus firmi of the three remaining modes in this way, but also to exercise yourself very much in this species on others you find; you will never exercise enough.",
-    "page": "75-76"
-   }
-  },
-  "fux-mode.s4.12": {
-   "name": "C, from below, in private study",
-   "specific": [
-    "No new precept: a ligature in every bar where possible (pp. 74-76). The cadence: 2 resolving to the minor third."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius leaves this mode to private study: there is no solution of Fux's to compare with. Everything this species requires has been shown in the D, E and F exercises."
-    }
-   ],
-   "intro": {
-    "la": "non solùm reliquorum trium tonorum Cantus firmos hac ratione persequendos tibi commendo, verùm etiam, ut repertis aliis in hac Specie plurimùm te exerceas, nec unquam satìs exercebis.",
-    "en": "I commend to you not only to work out the cantus firmi of the three remaining modes in this way, but also to exercise yourself very much in this species on others you find; you will never exercise enough.",
-    "page": "75-76"
-   }
-  },
-  "fux-mode.s5.01": {
-   "name": "Florid counterpoint",
-   "specific": [
-    "Every value of the earlier species may be used: half notes, crotchets, quavers in pairs on the second or fourth crotchet, ligatures over the bar line (pp. 76-77).",
-    "A dissonance on the downbeat only when tied over and resolved a step down; off the downbeat, passing, the cambiata, or a neighbour and back.",
-    "To write: choose the value (quaver, crotchet, half note, whole bar) in the Write group or with the keys 8, 4, 2, 1, then type the letters; T holds the note on (over the bar line it is the tie)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "fux",
-     "latin": "Species ista Contrapunctum floridum appellatur, sic dictum, quia omnis generis ornatu, canendi gratiâ, flexibili motuum facilitate, concinnâ figurarum varietate, ùt hortus flosculis florere debet.",
-     "english": "This species is called florid counterpoint, because, like a garden with little flowers, it should flourish with ornaments of every kind, for the sake of singing, with easy, flexible motion and an elegant variety of figures.",
-     "page": "76"
-    },
-    {
-     "type": "fux",
-     "latin": "Species haec nihil aliud est, quàm praecedentium Contrapuncti Specierum Congeries & Compositio, nec quidquam novi hîc monendum occurrit, praeter Cantûs concinnitatem, cui plurimùm curae, atque operae dandum esse, nunquam è memoria tibi excidat, hortor, atque obsecro.",
-     "english": "This species is nothing other than a heap and combination of the preceding species of counterpoint, and nothing new needs to be said here, except the elegance of the melody, to which the greatest care and labour must be given: never let it slip from your memory, I urge and beseech you.",
-     "page": "77"
-    },
-    {
-     "type": "text",
-     "text": "Before the lesson Aloysius has shown how a ligature may be decorated or broken without changing its substance (p. 76), and that two quavers may be mixed in, on the second and fourth crotchet, never the first and third. Josephus fears to take up the pen with no example before him; Aloysius forms the first one himself (p. 77)."
-    },
-    {
-     "type": "fux",
-     "latin": "Praetereà nonnunquam duae Fusae sequenti Speciei immisceri possunt; quae quidem in secunda, & quarta tactûs parte, nunquam verò in prima & tertia ponendae sunt.",
-     "english": "Moreover, two quavers may sometimes be mixed into the following species; they are to be placed on the second and fourth part of the bar, never on the first and third.",
-     "page": "76"
-    }
-   ],
-   "intro": {
-    "la": "Species ista Contrapunctum floridum appellatur, sic dictum, quia omnis generis ornatu, canendi gratiâ, flexibili motuum facilitate, concinnâ figurarum varietate, ùt hortus flosculis florere debet.",
-    "en": "This species is called florid counterpoint, because, like a garden with little flowers, it should flourish with ornaments of every kind, for the sake of singing, with easy, flexible motion and an elegant variety of figures.",
-    "page": "76"
-   }
-  },
-  "fux-mode.s5.02": {
-   "name": "Aloysius's example, cantus above",
-   "specific": [
-    "The same precepts, with the counterpoint below: the cadence ends on the minor third, from a tied second."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "dialogue",
-     "lines": [
-      {
-       "who": "Josephus",
-       "text": "I shall do my best; but I hardly trust myself to take up the pen without an example before my eyes."
-      },
-      {
-       "who": "Aloysius",
-       "text": "Take heart: I will form the first example for you."
-      }
-     ]
-    },
-    {
-     "type": "text",
-     "text": "Aloysius's first example is written for the D cantus with the counterpoint above and below (p. 77)."
-    }
-   ],
-   "intro": {
-    "la": "Alacri animo sis, formabo tibi primum exemplum.",
-    "en": "Take heart: I will form the first example for you.",
-    "page": "77"
-   }
-  },
-  "fux-mode.s5.03": {
-   "name": "Florid in E",
-   "specific": [
-    "Nothing new: the precepts of all the species hold. Cantus below: the cadence ends on the major sixth."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "text",
-     "text": "After Aloysius's example, the remaining cantus firmi are left to Josephus, to be fitted to that model (p. 78)."
-    }
-   ],
-   "intro": {
-    "la": "Huic igitur formulae reliquorum Cantuum firmorum Contrapuncta tibi accommodanda restant.",
-    "en": "To this model, then, you have still to fit counterpoints to the remaining cantus firmi.",
-    "page": "78"
-   }
-  },
-  "fux-mode.s5.04": {
-   "name": "Florid in E, cantus above",
-   "specific": [
-    "Nothing new: care for the melody above all (p. 77)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "fux",
-     "latin": "Species haec nihil aliud est, quàm praecedentium Contrapuncti Specierum Congeries & Compositio, nec quidquam novi hîc monendum occurrit, praeter Cantûs concinnitatem, cui plurimùm curae, atque operae dandum esse, nunquam è memoria tibi excidat, hortor, atque obsecro.",
-     "english": "This species is nothing other than a heap and combination of the preceding species of counterpoint, and nothing new needs to be said here, except the elegance of the melody, to which the greatest care and labour must be given: never let it slip from your memory, I urge and beseech you.",
-     "page": "77"
-    }
-   ],
-   "intro": {
-    "la": "nec quidquam novi hîc monendum occurrit, praeter Cantûs concinnitatem",
-    "en": "nothing new needs to be said here, except the elegance of the melody",
-    "page": "77"
-   }
-  },
-  "fux-mode.s5.05": {
-   "name": "Florid in F",
-   "specific": [
-    "Enter the downbeat mostly by oblique motion or by a ligature (pp. 78-79)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "fux",
-     "latin": "Satìs industriosè operatus es; & quod mihi non mediocriter placet, est, te non parùm attentionis canendi rationi tribuisse, quodque in introitu in Thesin plerumque motum obliquum, vel Syncopen adhibueris, quam industriam, quia plurimùm Contrapuncto affert gratiae, ulteriùs tibi commendatam volo.",
-     "english": "You have worked diligently enough; and what pleases me not a little is that you have paid no small attention to the manner of singing, and that on entering the downbeat you have mostly used oblique motion or syncopation: a diligence I commend to you further, since it brings very much grace to counterpoint.",
-     "page": "78-79"
-    }
-   ],
-   "intro": {
-    "la": "Satìs industriosè operatus es",
-    "en": "You have worked diligently enough",
-    "page": "78"
-   }
-  },
-  "fux-mode.s5.06": {
-   "name": "Florid in F, cantus above",
-   "specific": [
-    "Oblique motion and syncopation into the downbeat bring grace (p. 79)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "fux",
-     "latin": "Satìs industriosè operatus es; & quod mihi non mediocriter placet, est, te non parùm attentionis canendi rationi tribuisse, quodque in introitu in Thesin plerumque motum obliquum, vel Syncopen adhibueris, quam industriam, quia plurimùm Contrapuncto affert gratiae, ulteriùs tibi commendatam volo.",
-     "english": "You have worked diligently enough; and what pleases me not a little is that you have paid no small attention to the manner of singing, and that on entering the downbeat you have mostly used oblique motion or syncopation: a diligence I commend to you further, since it brings very much grace to counterpoint.",
-     "page": "78-79"
-    },
-    {
-     "type": "dialogue",
-     "lines": [
-      {
-       "who": "Josephus",
-       "text": "I am filled with incredible joy to understand that my study and effort do not wholly displease you."
-      }
-     ]
-    }
-   ],
-   "intro": {
-    "la": "quam industriam, quia plurimùm Contrapuncto affert gratiae, ulteriùs tibi commendatam volo",
-    "en": "a diligence I commend to you further, since it brings very much grace to counterpoint",
-    "page": "79"
-   }
-  },
-  "fux-mode.s5.07": {
-   "name": "Florid in G",
-   "specific": [
-    "The three remaining modes are done in Aloysius's presence (p. 79)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "dialogue",
-     "lines": [
-      {
-       "who": "Josephus",
-       "text": "Are the remaining three modes to be worked in your presence, or in private study?"
-      }
-     ]
-    },
-    {
-     "type": "fux",
-     "latin": "Cùm Species haec tantae sit utilitatis, ut vix dicere queam, ideo absolves tu quidem praedictos tres tonos me praesente; verùm te admonitum volo, ut hoc in genere Compositionis semper magìs magisque te exercere nunquam desistas.",
-     "english": "Since this species is of a usefulness I can hardly express, you shall indeed complete those three modes in my presence; but I want you warned never to cease exercising yourself more and more in this kind of composition.",
-     "page": "79"
-    }
-   ],
-   "intro": {
-    "la": "Cùm Species haec tantae sit utilitatis, ut vix dicere queam, ideo absolves tu quidem praedictos tres tonos me praesente; verùm te admonitum volo, ut hoc in genere Compositionis semper magìs magisque te exercere nunquam desistas.",
-    "en": "Since this species is of a usefulness I can hardly express, you shall indeed complete those three modes in my presence; but I want you warned never to cease exercising yourself more and more in this kind of composition.",
-    "page": "79"
-   }
-  },
-  "fux-mode.s5.08": {
-   "name": "Florid in G, cantus above",
-   "specific": [
-    "Nothing new; exercise yourself in this kind of composition more and more (p. 79)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "dialogue",
-     "lines": [
-      {
-       "who": "Josephus",
-       "text": "I shall always keep your counsel as a law."
-      }
-     ]
-    }
-   ],
-   "intro": {
-    "la": "Consilium tuum semper ùt Legem observabo.",
-    "en": "I shall always keep your counsel as a law.",
-    "page": "79"
-   }
-  },
-  "fux-mode.s5.09": {
-   "name": "Florid in A",
-   "specific": [
-    "Quavers two at a time, on the second or fourth crotchet (p. 76)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "fux",
-     "latin": "Praetereà nonnunquam duae Fusae sequenti Speciei immisceri possunt; quae quidem in secunda, & quarta tactûs parte, nunquam verò in prima & tertia ponendae sunt.",
-     "english": "Moreover, two quavers may sometimes be mixed into the following species; they are to be placed on the second and fourth part of the bar, never on the first and third.",
-     "page": "76"
-    }
-   ],
-   "intro": {
-    "la": "Praetereà nonnunquam duae Fusae sequenti Speciei immisceri possunt; quae quidem in secunda, & quarta tactûs parte, nunquam verò in prima & tertia ponendae sunt.",
-    "en": "Moreover, two quavers may sometimes be mixed into the following species; they are to be placed on the second and fourth part of the bar, never on the first and third.",
-    "page": "76"
-   }
-  },
-  "fux-mode.s5.10": {
-   "name": "Florid in A, cantus above",
-   "specific": [
-    "A ligature may be decorated or broken without losing its substance (p. 76)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "fux",
-     "latin": "Pro concinnitate sequentis Speciei hîc praemitto, Ligaturas hucusque dictas etiam alio modo fieri posse, quae quidem substantiam minimè evertunt, afferunt tamen concentui celerioris motûs rationem.",
-     "english": "For the elegance of the following species I state here in advance that the ligatures described so far can also be made in another way, which does not at all overturn their substance, but brings a quicker motion to the harmony.",
-     "page": "76"
-    },
-    {
-     "type": "text",
-     "text": "Fux sets the substance (the tied dissonance and its resolution on the half bar) beside its variations, made 'for the sake of the melody or of the motion' (p. 76); the resolution may be ornamented, or reached after a consonant note interposed."
-    }
-   ],
-   "intro": {
-    "la": "Pro concinnitate sequentis Speciei hîc praemitto, Ligaturas hucusque dictas etiam alio modo fieri posse, quae quidem substantiam minimè evertunt, afferunt tamen concentui celerioris motûs rationem.",
-    "en": "For the elegance of the following species I state here in advance that the ligatures described so far can also be made in another way, which does not at all overturn their substance, but brings a quicker motion to the harmony.",
-    "page": "76"
-   }
-  },
-  "fux-mode.s5.11": {
-   "name": "Florid in C",
-   "specific": [
-    "Advice, not a precept: two crotchets opening a bar want a ligature after them, or two more crotchets (pp. 80-81). Fux's own solution has them in bar 5, marked NB."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "dialogue",
-     "lines": [
-      {
-       "who": "Josephus",
-       "text": "What does that NB placed at the fifth bar of the last example mean?"
-      }
-     ]
-    },
-    {
-     "type": "fux",
-     "latin": "Ne te afflixeris. Nihil enim de hoc ex me adhuc intellexisti; nunc tibi non quidem Praecepti, sed Consilii causâ dico, quòd positis duabus Semiminimis in principio tactûs, absque Ligatura continuò sequente, ratio cantandi claudicare videatur.",
-     "english": "Do not be troubled, for you have heard nothing of this from me yet. I tell you now, not as a precept but as advice, that when two crotchets are placed at the beginning of a bar with no ligature following at once, the melody seems to limp.",
-     "page": "80-81"
-    },
-    {
-     "type": "fux",
-     "latin": "Quapropter consultiùs erit, si duas tantùm Semiminimas in principio tactûs adhibere lubet, eas cum sequenti Ligatura stringere, vel cum duabus adhuc aliis Semiminimis cursum facilitare.",
-     "english": "It will therefore be wiser, if you wish to use only two crotchets at the beginning of a bar, to bind them to a following ligature, or to ease the run with two more crotchets.",
-     "page": "81"
-    }
-   ],
-   "intro": {
-    "la": "Quid indicat illud nota bene NB. in quinto tactu ultimi exempli in Cantu positum?",
-    "en": "What does that NB placed at the fifth bar of the last example mean?",
-    "page": "80"
-   }
-  },
-  "fux-mode.s5.12": {
-   "name": "Florid in C, cantus above",
-   "specific": [
-    "The last exercise of two-part composition (p. 81)."
-   ],
-   "study": [
-    {
-     "type": "heading",
-     "text": "The lesson"
-    },
-    {
-     "type": "fux",
-     "latin": "Quapropter consultiùs erit, si duas tantùm Semiminimas in principio tactûs adhibere lubet, eas cum sequenti Ligatura stringere, vel cum duabus adhuc aliis Semiminimis cursum facilitare.",
-     "english": "It will therefore be wiser, if you wish to use only two crotchets at the beginning of a bar, to bind them to a following ligature, or to ease the run with two more crotchets.",
-     "page": "81"
-    },
-    {
-     "type": "fux",
-     "latin": "Jam Bicinium, omnes quinque Species percurrendo, supposito Cantu firmo, Deo sint Laudes, absolvimus.",
-     "english": "Now, praise be to God, we have completed two-part composition, running through all five species over a given cantus firmus.",
-     "page": "81"
-    },
-    {
-     "type": "text",
-     "text": "Aloysius turns next to note against note in three parts."
-    }
-   ],
-   "intro": {
-    "la": "Jam Bicinium, omnes quinque Species percurrendo, supposito Cantu firmo, Deo sint Laudes, absolvimus.",
-    "en": "Now, praise be to God, we have completed two-part composition, running through all five species over a given cantus firmus.",
-    "page": "81"
-   }
-  }
- }
 }

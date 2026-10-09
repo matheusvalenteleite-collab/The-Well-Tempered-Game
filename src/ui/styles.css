@@ -648,3 +648,15 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
 :root[data-look="retro"] .fux-card { border: 2px solid var(--edge); box-shadow: 5px 5px 0 var(--edge); }
 .fux-card-title { display: block; font-family: var(--ui-font); font-size: 0.8rem; margin-bottom: 4px; }
 .fux-card .score-box { pointer-events: none; }
+
+/* D97: the 1725 print beside its quotations; the Gradus section. */
+.fux-quote { display: flex; gap: 10px; align-items: flex-start; }
+.page-thumb { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 3px !important; background: var(--paper); cursor: zoom-in; }
+.page-thumb img { width: 64px; height: auto; display: block; filter: sepia(0.25); }
+.page-thumb span { font-size: 0.7rem; font-family: var(--ui-font); }
+.page-viewer { max-width: min(760px, 96vw); max-height: 94vh; overflow: auto; }
+.page-viewer img { width: 100%; height: auto; display: block; filter: sepia(0.2); }
+.page-viewer-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.page-viewer-bar strong { flex: 1; text-align: center; font-family: var(--ui-font); }
+.gradus-quote { font-size: 1.15rem; font-style: italic; }
+.gradus-quote cite { display: block; font-size: 0.75rem; font-style: normal; margin-top: 6px; color: var(--muted); }

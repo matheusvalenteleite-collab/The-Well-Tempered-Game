@@ -1,7 +1,7 @@
 /**
  * How to play (D96): HOW TO PLAY and the rules in one place, a dock tab (detachable on a wide
  * screen) in sections — playing (controls, keys, the parts of the screen), the basics (the
- * concepts, each explained), and the rules of this exercise. "The Gradus" follows in D97.
+ * concepts, each explained), the rules of this exercise, and the Gradus itself (D97).
  */
 import { useEffect, useState, type ReactNode } from "react";
 import { Term } from "./Term.tsx";
@@ -25,17 +25,17 @@ const KEYS: [string, string][] = [
 const PARTS = ["score", "view", "transport", "evaluate", "dock", "mixer", "versions", "drums", "continuo", "master", "info", "files"] as const;
 const BASICS = ["cantusFirmus", "counterpoint", "species", "mode", "final", "interval", "consonance", "perfect", "imperfect", "dissonance", "motion", "cadence", "leadingTone", "downbeat", "passing", "cambiata", "ligature", "suspension", "miContraFa", "ficta", "triad", "sixThree", "figures", "continuo", "versions", "aloysius", "josephus", "gradus"] as const;
 
-type Section = "playing" | "basics" | "rules";
+type Section = "playing" | "basics" | "rules" | "gradus";
 
 export function Guide({ rules, section, onSection }: { rules: ReactNode; section?: Section; onSection?: (s: Section) => void }) {
-  const [own, setOwn] = useState<Section>(() => stored("wtg.guide", "playing" as Section, (v) => v === "playing" || v === "basics" || v === "rules"));
+  const [own, setOwn] = useState<Section>(() => stored("wtg.guide", "playing" as Section, (v) => v === "playing" || v === "basics" || v === "rules" || v === "gradus"));
   const current = section ?? own;
   const pick = (s: Section) => (onSection ? onSection(s) : setOwn(s));
   useEffect(() => store("wtg.guide", current), [current]);
   return (
     <div className="guide">
       <nav className="guide-tabs" role="tablist">
-        {(["playing", "basics", "rules"] as const).map((s) => (
+        {(["playing", "basics", "rules", "gradus"] as const).map((s) => (
           <button key={s} role="tab" aria-selected={current === s} aria-pressed={current === s} onClick={() => pick(s)} title={t(`guide.${s}.help`)}>
             {t(`guide.${s}`)}
           </button>
@@ -84,6 +84,19 @@ export function Guide({ rules, section, onSection }: { rules: ReactNode; section
         </div>
       )}
       {current === "rules" && <div className="guide-body">{rules}</div>}
+      {current === "gradus" && (
+        <div className="guide-body gradus">
+          <blockquote className="tutor gradus-quote">
+            “{t("guide.gradus.quote")}”
+            <cite>{t("guide.gradus.quoteCite")}</cite>
+          </blockquote>
+          <p>{t("guide.gradus.p1")}</p>
+          <p>{t("guide.gradus.p2")}</p>
+          <p>{t("guide.gradus.p3")}</p>
+          <p className="note">{t("guide.gradus.ref")}</p>
+          <p>{t("guide.gradus.p4")}</p>
+        </div>
+      )}
     </div>
   );
 }

@@ -536,6 +536,11 @@
     "figure.title": "Fux #{n}: the cantus and Fux's counterpoint",
     "figure.help": "Fux #{n}: one of Fux's printed examples. Point here (or tap) to see it",
     "figure.none": "This example is not among the two-voice exercises of the dataset.",
+    "scan.open": "Open page {page} of the 1725 print",
+    "scan.title": "Gradus ad Parnassum (Vienna, 1725), p. {page}",
+    "scan.prev": "Previous page",
+    "scan.next": "Next page",
+    "scan.source": "Scans from the Four Score and More / Open Music Theory dataset (Mark Gotham). ← → turn the page; Esc closes.",
     "howto": "HOW TO PLAY",
     "howtoTab": "How to play",
     "dock.mixer": "Mixer",
@@ -824,7 +829,7 @@
     "rule.fos.unison-only-at-ends": "No unison on an untied downbeat except in the first and last bars."
   },
   "study": {
-    "title": "Lectio · {name}",
+    "title": "Lectio: what Fux teaches here",
     "intro": "Fux's Latin is quoted from the Vienna print of 1725 with our translation; the dialogue is paraphrased; Alfred Mann's footnotes (The Study of Counterpoint, Norton, 1965) are quoted and marked as his, not Fux's.",
     "inTheBook": "In the book (1725, pp. {page})",
     "fuxCite": "Fux, Gradus ad Parnassum (1725), p. {page}; our translation",
@@ -912,6 +917,15 @@
     "part.info": "The info bar",
     "part.info.text": "The strip at the foot explains whatever you point at. On a phone, tap ⓘ and then any control to learn what it does; tap it again to use it.",
     "part.files": "Save, export, saved pieces",
-    "part.files.text": "At the top right: 💾 keeps the piece as it sounds now (♫ lists them); ⤓ records it as an audio file, one loop or several with different setups."
+    "part.files.text": "At the top right: 💾 keeps the piece as it sounds now (♫ lists them); ⤓ records it as an audio file, one loop or several with different setups.",
+    "gradus": "The Gradus",
+    "gradus.help": "What Fux's Gradus ad Parnassum is, and why it is still used",
+    "gradus.quote": "I will not be deterred by the most passionate haters of study, nor by the depravity of the present time.",
+    "gradus.quoteCite": "Fux, preface to the reader (1725), in English translation; the Latin is not among our scans and has not been checked",
+    "gradus.p1": "Johann Joseph Fux (c. 1660–1741), court Kapellmeister in Vienna, published Gradus ad Parnassum in 1725, in Latin, dedicated to the Emperor Charles VI. The title means 'steps to Parnassus' — the mountain of the Muses — and the book climbs it one step at a time.",
+    "gradus.p2": "Its practical part is a dialogue. Aloysius, the master (he stands for Palestrina, whose name Pierluigi gives Aloysius in Latin), teaches Josephus, the pupil, to write counterpoint against a given melody: first in two voices, then in three and four, each through five species of rhythm, from note against note to the florid. Josephus tries, makes mistakes, is corrected, and asks why. In this game Josephus is you, and the exercises, the cantus firmi and the solutions are Fux's own.",
+    "gradus.p3": "The book became the standard method for two centuries. Leopold Mozart is said to have taught his son Wolfgang from it; J. S. Bach and Beethoven held it in high esteem; Haydn worked through every one of its exercises. Lorenz Mizler translated it into German in 1742, and in the following decades it appeared in Italian, French and English. In Alfred Mann's English translation it is still used to teach counterpoint today.",
+    "gradus.ref": "Alfred Mann (tr. and ed.), The Study of Counterpoint from Johann Joseph Fux's Gradus ad Parnassum (New York: Norton, 1943; revised 1965).",
+    "gradus.p4": "Why Fux, and not simply the rules? Because he teaches the way a composer learns: by writing, being stopped, and understanding the reason. The rules in this game are his, read from the 1725 print, with the page beside each; where we had to interpret him, we say so."
   }
 }
