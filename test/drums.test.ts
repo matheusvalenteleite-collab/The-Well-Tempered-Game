@@ -19,11 +19,14 @@ test("loop length: x2 spreads one loop over two bars, /2 plays it twice in a bar
 });
 
 test("loop lengths (D99): the arrows step through plausible lengths; a 2/3-bar loop is a triplet feel", () => {
-  assert.equal(stepLoop(1, 1), 4 / 3);
-  assert.equal(stepLoop(1, -1), 3 / 4);
+  // D100: 1 and 2 bars side by side, the odd lengths before them.
+  assert.equal(stepLoop(1, 1), 2);
+  assert.equal(stepLoop(2, -1), 1);
+  assert.equal(stepLoop(1, -1), 3 / 2);
+  assert.equal(stepLoop(2, 1), 8 / 3);
   assert.equal(stepLoop(8, 1), null);
   assert.equal(stepLoop(1 / 4, -1), null);
-  assert.equal(stepLoop(9 / 4, 1), 8 / 3); // an old length between steps goes to its neighbour
+  assert.equal(stepLoop(9 / 4, 1), 8 / 3); // an old length off the list goes to its neighbour
   assert.ok(LOOP_STEPS.every(validLoopLength));
   assert.deepEqual(loopFraction(8 / 3), [8, 3]);
   assert.ok(validLoopLength(2 / 3) && !validLoopLength(0.1) && !validLoopLength("1"));
@@ -69,7 +72,8 @@ test("cues (D99): fills and the break are whole bars; pads: nine per kit", () =>
     assert.ok(hits.length > 0 && hits.every(([, , at]) => at >= 0 && at < 1), c);
   }
   assert.ok(hitsForCue({ pattern: "rock", length: 1, level: 1 }, "break").every(([, , at]) => at === 0));
-  for (const kit of DRUM_KITS) assert.equal(padsFor({ pattern: "rock", length: 1, level: 1, kit }).length, 9, kit);
+  // break2 holds two bars: its first is the one-bar break's.
+  assert.deepEqual(hitsForCue({ pattern: "rock", length: 1, level: 1 }, "break2"), hitsForCue({ pattern: "rock", length: 1, level: 1 }, "break"));
   for (const p of DRUM_PATTERNS) {
     const pads = padsFor({ pattern: p.id, length: 1, level: 1 });
     assert.equal(pads.length, 9, p.id);
@@ -100,11 +104,16 @@ test("looping (D72): the drums never stop; the last bar keeps the groove, the br
   assert.deepEqual(hitsForBar(rock, 7, 8).map(([v]) => v), ["kick", "crash"]);
 });
 
-test("kits (D71): machine patterns bring their machine; any kit can be chosen", async () => {
-  const { kitOf, DRUM_KITS, DRUM_PATTERNS } = await import("../src/audio/drums.ts");
+test("kits (D100): every kit has presets, its paradigm first; a pattern brings its kit; fresh settings reset the feel", async () => {
+  const { kitOf, presetsOf, freshDrums, DRUM_KITS, DRUM_PATTERNS } = await import("../src/audio/drums.ts");
   assert.equal(kitOf({ pattern: "house", length: 1, level: 1 }), "tr909");
-  assert.equal(kitOf({ pattern: "rock", length: 1, level: 1 }), "studio");
-  assert.equal(kitOf({ pattern: "rock", length: 1, level: 1, kit: "tr808" }), "tr808");
-  for (const p of DRUM_PATTERNS) if (p.kit) assert.ok(DRUM_KITS.includes(p.kit), p.id);
-  assert.equal(DRUM_PATTERNS.filter((p) => p.family === "machines").length, 7);
+  assert.equal(kitOf({ pattern: "beat60s", length: 1, level: 1 }), "sixties");
+  for (const k of DRUM_KITS) assert.ok(presetsOf(k).length >= 2, k);
+  for (const p of DRUM_PATTERNS) assert.ok(DRUM_KITS.includes(p.kit), p.id);
+  assert.equal(presetsOf("studio")[0].id, "rock");
+  assert.equal(presetsOf("sixties")[0].id, "beat60s");
+  assert.ok(presetsOf("sixties").length >= 4);
+  assert.deepEqual(freshDrums("funk", 0.4), { pattern: "funk", length: 2, level: 0.4 });
+  assert.equal(freshDrums("halftime", 0.4).length, 1);
+  assert.equal(freshDrums("techno", 0.4).length, 2);
 });

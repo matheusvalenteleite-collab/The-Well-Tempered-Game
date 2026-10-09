@@ -89,7 +89,7 @@ export function Shell(p: {
           {p.summary}
           <section className="dock">
             {strip(dock, dockTab, "dock")}
-            <div className="dock-body" role="tabpanel">{dockTab?.content}</div>
+            <div className={`dock-body${dockTab?.text ? "" : " fit"}`} role="tabpanel">{dockTab?.content}</div>
           </section>
         </div>
         {side.length > 0 && (

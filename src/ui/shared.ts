@@ -3,7 +3,7 @@
  * kept in localStorage (the game works the same without them).
  */
 import { AudioEngine, renderLevel, SYNTH_PRESETS } from "../audio/engine.ts";
-import { DEFAULT_DRUMS, DRUM_KITS, DRUM_PATTERNS, DrumMachine, validLoopLength, type DrumSettings } from "../audio/drums.ts";
+import { DEFAULT_DRUMS, DRUM_PATTERNS, DrumMachine, validLoopLength, type DrumSettings } from "../audio/drums.ts";
 import { loadSamples } from "../audio/voice.ts";
 
 export const audio = new AudioEngine();
@@ -33,9 +33,11 @@ export function store(key: string, value: unknown) {
 }
 
 export function validDrumKit(raw: unknown): DrumSettings {
-  const v = { ...DEFAULT_DRUMS, ...(typeof raw === "object" && raw !== null ? (raw as Partial<DrumSettings>) : {}) };
+  // A stored `kit` (before D100 a kit could play any pattern) is dropped: the pattern brings its kit.
+  const { kit: _kit, ...given } = (typeof raw === "object" && raw !== null ? raw : {}) as Partial<DrumSettings> & { kit?: unknown };
+  const v = { ...DEFAULT_DRUMS, ...given };
   const ok =
-    DRUM_PATTERNS.some((p) => p.id === v.pattern) && validLoopLength(v.length) && typeof v.level === "number" && (v.kit === undefined || DRUM_KITS.includes(v.kit)) &&
+    DRUM_PATTERNS.some((p) => p.id === v.pattern) && validLoopLength(v.length) && typeof v.level === "number" &&
     (v.swing === undefined || (typeof v.swing === "number" && v.swing >= 0.5 && v.swing <= 0.75)) &&
     (v.accent === undefined || typeof v.accent === "boolean") &&
     (v.autoFill === undefined || typeof v.autoFill === "boolean") &&

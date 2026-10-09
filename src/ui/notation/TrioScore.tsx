@@ -5,13 +5,13 @@
  * bass, compound as Fux prints them) stand under each upper note. Broken into systems and zoomed
  * as the two-staff score is (D83, D87).
  */
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Accidental, ModifierContext, Renderer, Stave, StaveConnector, StaveNote, TickContext } from "vexflow";
 import { parsePitch } from "../../music/pitch.ts";
 import { noteName, type NameStyle } from "../../music/names.ts";
 import { harmonic } from "../../counterpoint/interval.ts";
 import { pitchAtPosition, VEXFLOW_CLEF, type ClefId } from "./clefs.ts";
-import { useZoomGestures, ZOOM_MAX, ZOOM_MIN } from "./zoom.ts";
+import { Viewport } from "./Viewport.tsx";
 
 export interface TrioStaff {
   clef: ClefId;
@@ -52,54 +52,16 @@ const LEAD = 96;
 const NOTE_PAD = 14;
 const STAFF_Y = [24, 132, 240];
 const HEIGHT = 400;
-const NARROW = 700;
-const TARGET = 0.62;
-const STEP = 1.25;
 
+/** The three staves in one line, zoomed and scrolled sideways like the two-voice score (D100). */
 export function TrioScore(p: Props) {
-  const host = useRef<HTMLDivElement>(null);
-  const content = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(0);
-  useLayoutEffect(() => {
-    const el = host.current!;
-    const ro = new ResizeObserver(() => setWidth(el.clientWidth));
-    ro.observe(el);
-    setWidth(el.clientWidth);
-    return () => ro.disconnect();
-  }, []);
-  const commit = useZoomGestures(host, content, p.zoom, p.onZoom);
-
   const bars = p.staves[0].notes.length;
   const natural = LEAD + bars * BAR_W + 24;
-  const single = width ? width / natural : 1;
-  const wrapByDefault = width > 0 && ((width < NARROW && single < 0.6) || single < 0.35);
-  const scale = Math.max(0.3, Math.min(2.4, (wrapByDefault ? TARGET : Math.min(1, single)) * p.zoom));
-  const perSystem = width ? Math.max(1, Math.floor((width / scale - LEAD - 24) / BAR_W)) : bars;
-  const chunks: [number, number][] = [];
-  for (let a = 0; a < bars; a += perSystem) chunks.push([a, Math.min(bars, a + perSystem) - 1]);
-  // A last system of a single bar joins the one before.
-  if (chunks.length > 1 && chunks[chunks.length - 1][0] === bars - 1) {
-    chunks.pop();
-    chunks[chunks.length - 1][1] = bars - 1;
-  }
-
+  const playingX = p.cursor >= 0 ? LEAD + p.cursor * BAR_W : null;
   return (
-    <div ref={host} className={chunks.length > 1 ? "systems-host systems" : "systems-host"}>
-      <div className="zoombar" role="group">
-        {p.tools}
-        <button className="icon quiet" onClick={() => commit(p.zoom / STEP)} disabled={p.zoom <= ZOOM_MIN} aria-label={p.zoomLabels.out} title={p.zoomLabels.out}>−</button>
-        <button className="zoom-level" onClick={() => commit(1)} title={p.zoomLabels.reset}>{Math.round(p.zoom * 100)}%</button>
-        <button className="icon quiet" onClick={() => commit(p.zoom * STEP)} disabled={p.zoom >= ZOOM_MAX} aria-label={p.zoomLabels.in} title={p.zoomLabels.in}>+</button>
-      </div>
-      <div ref={content} className="systems-content">
-        {width > 0 &&
-          chunks.map(([a, b]) => (
-            <div key={`${a}-${b}`} className="system">
-              <TrioSystem {...p} from={a} to={b} scale={scale} fill={chunks.length > 1 && (b < bars - 1 || b - a + 1 >= perSystem * 0.66) ? width / scale : undefined} last={b === bars - 1} />
-            </div>
-          ))}
-      </div>
-    </div>
+    <Viewport natural={natural} naturalHeight={HEIGHT} zoom={p.zoom} onZoom={p.onZoom} zoomLabels={p.zoomLabels} tools={p.tools} playingX={playingX}>
+      {(scale) => <TrioSystem {...p} from={0} to={bars - 1} scale={scale} last />}
+    </Viewport>
   );
 }
 

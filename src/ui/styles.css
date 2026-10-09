@@ -696,50 +696,94 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
 .feedback .compare li { border-left: none; padding-left: 0; }
 :root[data-look="retro"] .feedback .excerpt { box-shadow: none; border: 1px solid var(--line); }
 
-/* D99: the drum box as a vintage machine. Groups colour-coded; the pads at the right on wide screens. */
-.drumbox { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-auto-flow: row dense; column-gap: 12px; row-gap: 6px; align-items: start; }
-.drumbox > :not(.drum-machine) { grid-column: 1; }
-.drumbox > .drum-machine { grid-column: 2; grid-row: 1 / span 4; }
-@media (max-width: 700px) { .drumbox { grid-template-columns: minmax(0, 1fr); } .drumbox > .drum-machine { grid-column: 1; grid-row: auto; } }
-.drum-grp { --g: #888; border-left: 4px solid var(--g); background: color-mix(in srgb, var(--g) 9%, transparent); padding: 3px 6px; border-radius: 0 4px 4px 0; }
-:root .drum-grp button.chipbtn:not([aria-pressed="true"]):not(:disabled), :root .drum-grp .presets button:not([aria-pressed="true"]) { background: color-mix(in srgb, var(--g) 14%, var(--paper)); }
-.grp-head { --g: #6b7280; }
-.grp-kit { --g: #0f9488; }
-.grp-feel { --g: #8b5cf6; }
-.fam-kit { --g: #e0532f; }
-.fam-machines { --g: #e08a1e; }
-.fam-percussion { --g: #b58a00; }
-.fam-tribal { --g: #4d8f2a; }
-.fam-orchestral { --g: #3b6fd8; }
-.drum-families { display: flex; flex-wrap: wrap; gap: 6px; }
-.drum-family { padding: 3px 6px 5px; }
-.drum-family h4 { color: color-mix(in srgb, var(--g) 70%, var(--ink)); }
-.drum-feel { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
-.drum-feel .loop, .drum-feel .ab { display: inline-flex; align-items: center; gap: 3px; }
-.feel-label { font-size: 0.78rem; color: var(--muted); }
-.feel-value { min-width: 5.2em; text-align: center; font-size: 0.78rem; font-variant-numeric: tabular-nums; }
-.drum-head .tap { font-weight: 700; letter-spacing: 0.06em; }
-.drum-head .tap:active { background: #2a56d6; color: #fff; }
-.drum-machine { display: flex; gap: 8px; align-items: flex-start; padding: 8px; background: #2b2b2e; border-radius: 6px; box-shadow: inset 0 0 0 2px #111, 0 2px 0 #00000040; }
-.pads { display: grid; grid-template-columns: repeat(3, 58px); grid-auto-rows: 52px; gap: 6px; }
-.pad-cell { --p: #888; position: relative; }
-.pad-cell.kind-low { --p: #e0532f; }
-.pad-cell.kind-snare { --p: #f08a24; }
-.pad-cell.kind-hat { --p: #e6c229; }
-.pad-cell.kind-tom { --p: #4caf50; }
-.pad-cell.kind-cymbal { --p: #3fa7d6; }
-.pad-cell.kind-perc { --p: #b16ad8; }
-:root .drum-machine button.pad { width: 100%; height: 100%; padding: 2px; border: none; border-radius: 6px; background: color-mix(in srgb, var(--p) 55%, #222); box-shadow: inset 0 -4px 0 #00000055, inset 0 1px 0 #ffffff30; color: #fff; display: flex; align-items: flex-end; justify-content: flex-start; cursor: pointer; transition: background 0.08s, transform 0.05s; touch-action: manipulation; }
-:root .drum-machine button.pad:active { transform: translateY(1px); }
-:root .drum-machine button.pad.lit { background: color-mix(in srgb, var(--p) 85%, #fff); box-shadow: 0 0 10px var(--p), inset 0 -2px 0 #00000040; }
-.pad-name { font-size: 0.62rem; line-height: 1.05; text-align: left; text-shadow: 0 1px 0 #0008; }
-:root .drum-machine .pad-cell.muted button.pad { background: #3a3a3e; color: #999; }
-:root .drum-machine button.pad-mute { position: absolute; top: 2px; right: 2px; min-width: 0; min-height: 0; width: 16px; height: 14px; padding: 0; font-size: 0.55rem; line-height: 14px; border: none; border-radius: 2px; background: #00000055; color: #ddd; box-shadow: none; }
-:root .drum-machine button.pad-mute[aria-pressed="true"] { background: #e8b400; color: #111; }
-.cues { display: flex; flex-direction: column; gap: 5px; min-width: 76px; }
-.cues .kit-label { color: #bbb; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; margin: 0; }
-:root .drum-machine .cues button.cue { min-height: 30px; font-weight: 700; color: #111; background: #f0a830; border-color: #111; }
-:root .drum-machine .cues button.cue-break { background: #e04a3a; color: #fff; }
-:root .drum-machine .cues button.cue[aria-pressed="true"] { animation: pulse 0.35s ease-in-out infinite alternate; background: #ffe066; color: #111; }
-:root[data-look="retro"] .drum-machine { border-radius: 0; box-shadow: 4px 4px 0 var(--edge); }
-:root[data-look="retro"] .drum-machine button.pad { border-radius: 0; }
+/* D100: the drum editor in columns, colour-coded; fits the dock without scrolling. */
+.sound .drumbox:not(.continuobox), .sound .continuobox.cols { display: flex; flex-direction: row; flex-wrap: nowrap; width: 100%; max-width: none; align-items: stretch; gap: 6px; padding: 6px; overflow: hidden; }
+.drumbox .dcol { --g: #888; display: flex; flex-direction: column; gap: 4px; padding: 4px 6px 6px; border-top: 4px solid var(--g); background: color-mix(in srgb, var(--g) 9%, transparent); min-width: 0; }
+.drumbox .grp-head { --g: #6b7280; flex: 0 0 auto; }
+.drumbox .grp-kit { --g: #0f9488; flex: 0 0 auto; }
+.drumbox .grp-preset { --g: #e0532f; flex: 0 0 auto; min-width: 104px; }
+.drumbox .grp-feel { --g: #8b5cf6; flex: 0 0 auto; }
+.drumbox .grp-fills { --g: #e8a020; flex: 0 0 auto; }
+.drumbox .grp-pads { --g: #3a3a3e; flex: 0 0 auto; }
+:root .drumbox .dcol button.chipbtn:not(.cue):not([aria-pressed="true"]):not(:disabled) { background: color-mix(in srgb, var(--g) 14%, var(--paper)); }
+.drumbox .dcol .chipbtn { min-height: 22px; padding: 0 6px; font-size: 0.78rem; text-align: left; white-space: nowrap; }
+.drumbox .dlabel { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.07em; color: color-mix(in srgb, var(--g) 65%, var(--ink)); font-weight: 600; }
+.drumbox .dhead { display: flex; align-items: center; gap: 6px; }
+.drumbox .stepper, .drumbox .ab { display: inline-flex; align-items: center; gap: 2px; }
+.drumbox .stepper .chipbtn { padding: 0 5px; }
+.drumbox .loop-len { min-width: 5.6em; text-align: center !important; }
+.drumbox .feel-value { min-width: 6.4em; text-align: center; font-size: 0.74rem; font-variant-numeric: tabular-nums; }
+.drumbox .tap { font-weight: 700; letter-spacing: 0.06em; text-align: center !important; }
+.drumbox .kit-grid { display: grid; grid-template-columns: repeat(2, auto); gap: 3px; }
+.drumbox .paradigm { color: #c8962a; }
+:root .drumbox .grp-fills button.chipbtn.cue:not([aria-pressed="true"]) { font-weight: 700; color: #111; background: #f0b040; text-align: center; }
+:root .drumbox .grp-fills button.chipbtn.cue-break:not([aria-pressed="true"]), :root .drumbox .grp-fills button.chipbtn.cue-break2:not([aria-pressed="true"]) { background: #e04a3a; color: #fff; }
+:root .drumbox .grp-fills button.cue[aria-pressed="true"] { animation: pulse 0.35s ease-in-out infinite alternate; background: #ffe066; color: #111; }
+.minipads { display: grid; grid-template-columns: repeat(3, 16px); grid-auto-rows: 16px; gap: 3px; padding: 4px; background: #222; border-radius: 3px; }
+.minipad { --p: #888; border-radius: 2px; background: color-mix(in srgb, var(--p) 40%, #222); cursor: pointer; transition: background 0.06s; }
+.minipad.kind-low { --p: #e0532f; } .minipad.kind-snare { --p: #f08a24; } .minipad.kind-hat { --p: #e6c229; }
+.minipad.kind-tom { --p: #4caf50; } .minipad.kind-cymbal { --p: #3fa7d6; } .minipad.kind-perc { --p: #b16ad8; }
+.minipad.lit { background: color-mix(in srgb, var(--p) 85%, #fff); box-shadow: 0 0 6px var(--p); }
+.minipad.muted { background: #444; outline: 1px dashed #888; outline-offset: -2px; }
+:root[data-look="retro"] .minipads, :root[data-look="retro"] .minipad { border-radius: 0; }
+
+/*
+ * D100: the mixer without scrolling. The dock's non-text tabs fit their box: the strips at the
+ * left, the selected strip's editor beside them, both as tall as the dock; shorter faders. Only
+ * the text tabs scroll. (A phone stacks the two and lets the dock scroll once.)
+ */
+.dock-body.fit { overflow: hidden; padding: 6px 8px; display: flex; flex-direction: column; }
+.dock-body.fit > .sound { flex: 1 1 auto; min-height: 0; }
+.dock .sound:not(.folded) { width: 100%; height: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: stretch; }
+.dock .sound .desk { flex-wrap: nowrap; overflow: hidden; height: 100%; padding: 4px; gap: 4px; align-items: stretch; }
+.dock .sound .desk .strip { flex: 0 0 76px; width: 76px; min-width: 0; gap: 3px; padding: 3px 3px 4px; justify-content: flex-start; }
+.dock .sound .desk .strip.master { flex-basis: 84px; width: 84px; }
+.dock .sound .desk-group { display: flex; gap: 4px; }
+.dock .sound .fader2, .dock .sound .strip.master .fader2 { height: auto; flex: 1 1 0; min-height: 56px; max-height: 92px; }
+.dock .sound .strip .knob svg { width: 22px; height: 22px; }
+.dock .sound .strip .instrument { min-height: 20px; font-size: 0.68rem; }
+.dock .sound .editor { height: 100%; min-height: 0; overflow: hidden; }
+.dock .sound .editor > section { height: 100%; margin: 0; overflow: hidden; }
+@media (max-width: 900px) {
+  .dock-body.fit { overflow: auto; display: block; }
+  .dock .sound:not(.folded) { display: flex; flex-direction: column; height: auto; }
+  .dock .sound .desk { height: 200px; overflow-x: auto; }
+  .dock .sound .editor, .dock .sound .editor > section { height: auto; overflow: visible; }
+}
+/* D100: the score in one line, in its window; on a computer the dock has a fixed height that fits the mixer, the score takes the rest. */
+.viewport { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; min-height: 0; }
+.viewport > .zoombar { position: absolute; top: 2px; right: 4px; z-index: 5; margin: 0; }
+.viewport-scroll { flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.viewport-content { width: max-content; min-width: 100%; display: flex; justify-content: center; }
+.viewport-content > .score { width: auto; }
+.zoombar .lock { font-size: 0.72rem; }
+.score-area { overflow: hidden; }
+.score-area .score-wrap { height: 100%; display: flex; }
+@media (min-width: 901px) {
+  .score-area { flex: 1 1 0; max-height: none; min-height: 120px; }
+  .main-col > .dock { flex: 0 0 clamp(300px, 36vh, 430px); }
+}
+@media (max-width: 900px) {
+  .score-area { flex: 0 0 auto; height: min(46vh, 300px); }
+}
+.dock .sound .fader2, .dock .sound .strip.master .fader2 { max-height: 84px; }
+/* D100: with many strips (advanced mode) the strips narrow before the editor does. */
+.dock .sound .desk { min-width: 0; }
+.dock .sound .desk .strip { flex: 0 1 76px; min-width: 54px; width: auto; }
+.dock .sound .desk .strip.master { flex: 0 1 84px; min-width: 62px; width: auto; }
+
+.dock .sound .desk .strip .fader2 { grid-template-columns: 18px 14px 6px; }
+@media (min-width: 901px) {
+  .dock .sound:not(.folded) { display: flex; flex-direction: row; }
+  .dock .sound .desk { flex: 0 1 auto; }
+  .dock .sound .editor { flex: 1 0 min(540px, 50vw); min-width: 0; }
+}
+.dock .sound .desk-group { min-width: 0; flex: 0 1 auto; }
+.dock .sound .desk .strip { overflow: hidden; }
+@media (max-width: 900px) {
+  .score-area { height: auto; max-height: none; }
+  .score-area .viewport { height: auto; }
+  .score-area .viewport-scroll { max-height: 46vh; }
+  .dock .sound .desk { height: 248px; }
+  .sound .drumbox:not(.continuobox), .sound .continuobox.cols { flex-wrap: wrap; overflow: visible; }
+}

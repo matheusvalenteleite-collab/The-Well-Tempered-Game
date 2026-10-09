@@ -16,75 +16,43 @@ export function ContinuoBox({ on, onToggle, value, onChange }: Props) {
     if (turnOn && !on) onToggle(true);
   };
   const antico = value.preset === "stileAntico";
+  const COLOURS = ["#b7791f", "#3b6fd8", "#8b5cf6"];
   return (
-    <section className="drumbox continuobox" aria-label={t("ui.continuo.title")}>
-      <div className="drum-head">
-        <span className="rack-title">{t("ui.continuo.title")}</span>
-        <button className="chipbtn" tabIndex={-1} aria-pressed={on} onClick={() => onToggle(!on)}>
-          {on ? t("ui.continuo.on") : t("ui.continuo.off")}
-        </button>
-      </div>
-      <div className="drum-families">
-        <div className="drum-family">
-          <h4>{t("ui.continuo.display")}</h4>
-          <div className="segmented" role="radiogroup" aria-label={t("ui.continuo.display")}>
-            {CONTINUO_DISPLAYS.map((d) => (
-              <button key={d} role="radio" className="chipbtn" tabIndex={-1} aria-checked={value.display === d} aria-pressed={value.display === d} disabled={!on} title={t(`ui.continuo.display.${d}.help`)} onClick={() => set({ display: d })}>
-                {t(`ui.continuo.display.${d}`)}
-              </button>
-            ))}
-          </div>
+    <section className="drumbox continuobox cols" aria-label={t("ui.continuo.title")} title={t("ui.continuo.boxHelp")}>
+      <div className="dcol grp-head">
+        <div className="dhead">
+          <span className="rack-title">{t("ui.continuo.title")}</span>
+          <button className="chipbtn" tabIndex={-1} aria-pressed={on} onClick={() => onToggle(!on)}>{on ? t("ui.continuo.on") : t("ui.continuo.off")}</button>
         </div>
-      </div>
-      <div className="drum-families">
-        {CONTINUO_PRESET_FAMILIES.map((fam) => (
-          <div key={fam.id} className="drum-family">
-            <h4>{t(`ui.continuo.family.${fam.id}`)}</h4>
-            <ul className="presets">
-              {fam.presets.map((p: PresetId) => (
-                <li key={p}>
-                  <button tabIndex={-1} aria-pressed={value.preset === p} title={t(`ui.continuo.preset.${p}.help`)} onClick={() => set({ preset: p }, true)}>
-                    {t(`ui.continuo.preset.${p}`)}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
+        <span className="dlabel">{t("ui.continuo.display")}</span>
+        {CONTINUO_DISPLAYS.map((d) => (
+          <button key={d} role="radio" className="chipbtn" tabIndex={-1} aria-checked={value.display === d} aria-pressed={value.display === d} disabled={!on} title={t(`ui.continuo.display.${d}.help`)} onClick={() => set({ display: d })}>
+            {t(`ui.continuo.display.${d}`)}
+          </button>
         ))}
-        <div className="drum-family">
-          <h4>{t("ui.continuo.finals")}</h4>
-          <ul className="presets">
-            {FINALS_MODES.map((f) => (
-              <li key={f}>
-                <button tabIndex={-1} aria-pressed={value.finals === f} title={t(`ui.continuo.finals.${f}.help`)} onClick={() => set({ finals: f }, true)}>
-                  {t(`ui.continuo.finals.${f}`)}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="drum-family">
-          <h4>{t("ui.continuo.options")}</h4>
-          <ul className="presets">
-            <li>
-              <button tabIndex={-1} aria-pressed={value.passingFill} title={t("ui.continuo.passing.help")} onClick={() => set({ passingFill: !value.passingFill }, true)}>
-                {t("ui.continuo.passing")}
-              </button>
-            </li>
-            <li>
-              <button tabIndex={-1} aria-pressed={value.inegal && !antico} disabled={antico} title={t(antico ? "ui.continuo.inegal.antico" : "ui.continuo.inegal.help")} onClick={() => set({ inegal: !value.inegal }, true)}>
-                {t("ui.continuo.inegal")}
-              </button>
-            </li>
-            <li>
-              <button tabIndex={-1} aria-pressed={value.accidentals} title={t("ui.continuo.accidentals.help")} onClick={() => set({ accidentals: !value.accidentals }, true)}>
-                {t("ui.continuo.accidentals")}
-              </button>
-            </li>
-          </ul>
-        </div>
       </div>
-      <p className="rack-help">{t("ui.continuo.boxHelp")}</p>
+      {CONTINUO_PRESET_FAMILIES.map((fam, i) => (
+        <div key={fam.id} className="dcol" style={{ ["--g" as string]: COLOURS[i % COLOURS.length] }} role="group">
+          <span className="dlabel">{t(`ui.continuo.family.${fam.id}`)}</span>
+          {fam.presets.map((p: PresetId) => (
+            <button key={p} className="chipbtn" tabIndex={-1} aria-pressed={value.preset === p} title={t(`ui.continuo.preset.${p}.help`)} onClick={() => set({ preset: p }, true)}>
+              {t(`ui.continuo.preset.${p}`)}
+            </button>
+          ))}
+        </div>
+      ))}
+      <div className="dcol grp-feel">
+        <span className="dlabel">{t("ui.continuo.finals")}</span>
+        {FINALS_MODES.map((f) => (
+          <button key={f} className="chipbtn" tabIndex={-1} aria-pressed={value.finals === f} title={t(`ui.continuo.finals.${f}.help`)} onClick={() => set({ finals: f }, true)}>
+            {t(`ui.continuo.finals.${f}`)}
+          </button>
+        ))}
+        <span className="dlabel">{t("ui.continuo.options")}</span>
+        <button className="chipbtn" tabIndex={-1} aria-pressed={value.passingFill} title={t("ui.continuo.passing.help")} onClick={() => set({ passingFill: !value.passingFill }, true)}>{t("ui.continuo.passing")}</button>
+        <button className="chipbtn" tabIndex={-1} aria-pressed={value.inegal && !antico} disabled={antico} title={t(antico ? "ui.continuo.inegal.antico" : "ui.continuo.inegal.help")} onClick={() => set({ inegal: !value.inegal }, true)}>{t("ui.continuo.inegal")}</button>
+        <button className="chipbtn" tabIndex={-1} aria-pressed={value.accidentals} title={t("ui.continuo.accidentals.help")} onClick={() => set({ accidentals: !value.accidentals }, true)}>{t("ui.continuo.accidentals")}</button>
+      </div>
     </section>
   );
 }

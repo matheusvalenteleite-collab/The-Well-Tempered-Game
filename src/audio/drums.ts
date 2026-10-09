@@ -14,7 +14,6 @@ export type DrumVoice =
   | "djembeLow" | "djembeSlap" | "frameDrum" | "taiko"
   | "timpTonic" | "timpFifth" | "bassDrum" | "fieldSnare" | "cymbals" | "triangle" | "guiro";
 
-export type DrumFamily = "kit" | "machines" | "percussion" | "tribal" | "orchestral";
 
 /**
  * The sound of the drums (D71): the game's own studio kit, or a synthesized imitation of a vintage
@@ -29,14 +28,17 @@ export type DrumFamily = "kit" | "machines" | "percussion" | "tribal" | "orchest
  *   sixties    A 1960s rock kit (D99): a muffled, felt-beater bass drum, a loose snare, thin trashy
  *              hats, washy cymbals and resonant toms with little pitch bend, as recorded in a room.
  */
-export type DrumKit = "studio" | "sixties" | "tr808" | "tr909" | "cr78" | "rhythmAce" | "sdsv";
-export const DRUM_KITS: readonly DrumKit[] = ["studio", "sixties", "tr808", "tr909", "cr78", "rhythmAce", "sdsv"];
+export type DrumKit = "studio" | "sixties" | "tr808" | "tr909" | "cr78" | "rhythmAce" | "sdsv" | "percussion" | "tribal" | "orchestral";
+/**
+ * The kits (D100): each with its own presets, the first of them its paradigm. Hand percussion,
+ * tribal drums and the orchestra are kits of their own, on the synthesized voices.
+ */
+export const DRUM_KITS: readonly DrumKit[] = ["studio", "sixties", "tr808", "tr909", "cr78", "rhythmAce", "sdsv", "percussion", "tribal", "orchestral"];
 
 export interface DrumPattern {
   id: string;
-  family: DrumFamily;
-  /** The machine the pattern is written for (selected with it); the studio kit otherwise. */
-  kit?: DrumKit;
+  /** The kit the pattern belongs to (D100): chosen with it, never played on another. */
+  kit: DrumKit;
   /** Steps per loop (16 = sixteenths of a bar at length 1; 12 for a shuffle). */
   steps: number;
   loop: Partial<Record<DrumVoice, string>>;
@@ -46,7 +48,7 @@ export interface DrumPattern {
   fill?: Partial<Record<DrumVoice, string>>;
   /** Hits on the final bar's downbeat (the loop stops there). */
   end: DrumVoice[];
-  /** The loop length it starts with, in bars (D99; 1 if absent). */
+  /** The loop length it starts with, in bars (D99; 2 if absent, D100). */
   bars?: number;
   /** Variation B (D99); derived from the loop if absent (see variationB). */
   b?: Partial<Record<DrumVoice, string>>;
@@ -55,131 +57,202 @@ export interface DrumPattern {
 export const DRUM_PATTERNS: readonly DrumPattern[] = [
   // ---- drum kit
   {
-    id: "rock", family: "kit", steps: 16,
+    id: "rock", kit: "studio", steps: 16,
     loop: { kick: "X.......x.......", snare: "....X.......X...", hat: "x.x.x.x.x.x.x.x.", openhat: "..............x." },
     b: { kick: "X.......x.x.....", snare: "....X.......X..g", hat: "x.x.x.x.x.x.x...", openhat: "..............x." },
     start: ["crash"], fill: { kick: "X.......x.......", snare: "....X.......X...", tomHigh: "..........x.x...", tomLow: "..............xx" }, end: ["kick", "crash"],
   },
   {
-    id: "funk", family: "kit", steps: 16,
+    id: "funk", kit: "studio", steps: 16,
     loop: { kick: "X..x..x...x..x..", snare: "....X..g.g..X..g", hat: "xgxgxgxgxgxgxgxg", openhat: "..........x....." },
     b: { kick: "X..x..x.x.x...x.", snare: "....X..g.g..X.gX", hat: "xgxgxgxgxgxgxg..", openhat: "..............x." },
     start: ["crash"], fill: { kick: "X..x..x.........", snare: "....X..gx.xxXxXX" }, end: ["kick", "crash"], bars: 2,
   },
   {
-    id: "halftime", family: "kit", steps: 16,
+    id: "halftime", kit: "studio", steps: 16, bars: 1,
     loop: { kick: "X.........x.....", snare: "........X.......", hat: "x.x.x.x.x.x.x.x.", ride: "x...x...x...x..." },
     start: ["crash"], fill: { kick: "X.........x.....", snare: "........X...xxXX" }, end: ["kick", "crash"],
   },
   {
-    id: "motorik", family: "kit", steps: 16,
+    id: "motorik", kit: "studio", steps: 16,
     loop: { kick: "X...x...X...x.x.", snare: "....x.......x...", hat: "xxxxxxxxxxxxxxxx", tambourine: "....x.......x..." },
     start: ["crash"], end: ["kick", "crash"],
   },
   {
-    id: "shuffle", family: "kit", steps: 12,
+    id: "shuffle", kit: "studio", steps: 12,
     loop: { kick: "X.....x.....", snare: "...X.....X..", hat: "x.xx.xx.xx.x" },
     start: ["crash"], fill: { kick: "X.....x.....", snare: "...X..x.xXxX" }, end: ["kick", "crash"],
   },
   // 1960s (D99), on the sixties kit
   {
-    id: "beat60s", family: "kit", kit: "sixties", steps: 16,
+    id: "beat60s", kit: "sixties", steps: 16,
     loop: { kick: "X.......X.x.....", snare: "....X.......X...", ride: "x.x.x.x.x.x.x.x.", tambourine: "....x.......x..." },
     b: { kick: "X.......X.x...x.", snare: "....X.......X.g.", ride: "x.x.x.x.x.x.x.x.", tambourine: "....x.......x..." },
     start: ["crash"], fill: { kick: "X...............", snare: "....X.x.x.x.....", tomHigh: "............x.x.", tomLow: "..............XX" }, end: ["kick", "crash"],
   },
   {
-    id: "motown", family: "kit", kit: "sixties", steps: 16,
+    id: "motown", kit: "sixties", steps: 16,
     loop: { kick: "X.x.....X.x.....", snare: "X...X...X...X...", hat: "x.x.x.x.x.x.x.x.", tambourine: "....X.......X..." },
     start: ["crash"], fill: { kick: "X.......X.......", snare: "X...X...x.x.xxXX" }, end: ["kick", "crash"],
   },
+  {
+    id: "garage", kit: "sixties", steps: 16,
+    loop: { kick: "X.x.....X.x.....", snare: "....X.......X...", openhat: "x.x.x.x.x.x.x.x.", tambourine: "x.x.x.x.x.x.x.x." },
+    start: ["crash"], fill: { kick: "X...............", snare: "....X...x.x.xxXX", crash: "................" }, end: ["kick", "crash"],
+  },
+  {
+    // A hypnotic loop of bass drum, damped snare and floor tom, in the manner of the studio
+    // psychedelia of 1966-67 (not a transcription of any record).
+    id: "psych", kit: "sixties", steps: 16,
+    loop: { kick: "X.....x.X.......", snare: "....X.....xX....", tomLow: "..x.......x...x.", ride: "x...x...x...x...", tambourine: "..x...x...x...x." },
+    b: { kick: "X.....x.X.....x.", snare: "....X.....xX..g.", tomLow: "..x.......x...xx", ride: "x...x...x...x...", tambourine: "..x...x...x...x." },
+    start: ["crash"], fill: { kick: "X...............", tomHigh: "....x.x.x.x.....", tomLow: "............XxXx" }, end: ["kick", "crash"],
+  },
+  {
+    id: "surf", kit: "sixties", steps: 16,
+    loop: { tomLow: "X.xxX.xxX.xxX.xx", tomHigh: "..x...x...x...x.", kick: "X.......X.......", snare: "....x.......x..." },
+    start: ["crash"], fill: { tomLow: "X.x.X.x.XxXxXxXx", tomHigh: "x.x.x.x.x.x.x.x." }, end: ["tomLow", "crash"],
+  },
   // ---- drum machines (D71)
   {
-    id: "electro", family: "machines", kit: "tr808", steps: 16,
+    id: "electro", kit: "tr808", steps: 16,
     loop: { kick: "X.....x...X..x..", clap: "....X.......X...", hat: "x.x.x.x.x.xxx.x.", cowbell: "......x.......x.", congaHigh: "..x.......x....." },
     start: ["crash"], fill: { kick: "X.....x...X.....", clap: "....X.......X.X.", tomLow: "........x.x.x.xx", tomHigh: "..........x.x..." }, end: ["kick", "crash"],
   },
   {
-    id: "slowjam", family: "machines", kit: "tr808", steps: 16,
+    id: "slowjam", kit: "tr808", steps: 16,
     loop: { kick: "X......x..X.....", snare: "....X.......X...", hat: "x.xx.xx.x.xx.x.x", rim: "..x.....x.....x.", congaLow: "..........x....." },
     end: ["kick", "crash"], bars: 2,
   },
   {
-    id: "house", family: "machines", kit: "tr909", steps: 16,
+    id: "house", kit: "tr909", steps: 16,
     loop: { kick: "X...X...X...X...", clap: "....X.......X...", openhat: "..x...x...x...x.", hat: "x.xxx.xxx.xxx.x." },
     start: ["crash"], fill: { kick: "X...X...X...X...", snare: "....x.x.xxxxXXXX" }, end: ["kick", "crash"],
   },
   {
-    id: "techno", family: "machines", kit: "tr909", steps: 16,
-    loop: { kick: "X...X...X...X...", hat: "..x...x...x...x.", ride: "x.x.x.x.x.x.x.x.", snare: ".......g....x..g", rim: "...x......x....." },
-    start: ["crash"], end: ["kick", "crash"],
+    // D100: written over two bars (32 steps): a deep four-on-the-floor at the pulse of the half
+    // notes, an off-beat open hat, sixteenth hats with accents, clap on the backbeat, a rim figure
+    // that shifts in the second bar, and a ride swelling at the end.
+    id: "techno", kit: "tr909", steps: 32,
+    loop: {
+      kick: "X.......X.......X.......X.......",
+      hat: "xgxXxgxgxgxXxgxgxgxXxgxgxgxXxgxx",
+      openhat: "....x.......x.......x.......x...",
+      clap: "........X...............X.......",
+      rim: "..x..x.....x..........x..x.x....",
+      ride: "........................x.x.x.x.",
+    },
+    b: {
+      kick: "X.......X.......X.......X.....x.",
+      hat: "xgxXxgxgxgxXxgxgxgxXxgxgxgxXxgxx",
+      openhat: "....x.......x.......x.......x.x.",
+      clap: "........X...............X.....x.",
+      rim: "..x..x.....x..x.......x..x.x..x.",
+      ride: "x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.",
+    },
+    start: ["crash"],
+    fill: { kick: "X.......X.......X.......X.......", clap: "........X.......x.x.x.x.XxXxXXXX", tomLow: "................x...x...x.x.x.xx" },
+    end: ["kick", "crash"],
   },
   {
-    id: "newwave", family: "machines", kit: "cr78", steps: 16,
+    id: "newwave", kit: "cr78", steps: 16,
     loop: { kick: "X.....x.X.......", snare: "....X.......X...", hat: "xgxgxgxgxgxgxgxg", tambourine: "....x.......x...", guiro: "x.......x......." },
     end: ["kick", "cymbals"],
   },
   {
-    id: "rhythmbox", family: "machines", kit: "rhythmAce", steps: 16,
+    id: "crDisco", kit: "cr78", steps: 16,
+    loop: { kick: "X...X...X...X...", snare: "....X.......X...", hat: "..x...x...x...x.", openhat: "......x.......x.", tambourine: "xxxxxxxxxxxxxxxx", cowbell: "x.......x......." },
+    end: ["kick", "cymbals"],
+  },
+  {
+    id: "rhythmbox", kit: "rhythmAce", steps: 16,
     loop: { kick: "X.......x.x.....", snare: "....x.......x...", claves: "x..x..x...x.x...", ride: "x.x.x.x.x.x.x.x." },
     end: ["kick", "ride"],
   },
   {
-    id: "synthtoms", family: "machines", kit: "sdsv", steps: 16,
+    id: "aceWaltz", kit: "rhythmAce", steps: 12,
+    loop: { kick: "X...........", snare: "....x...x...", ride: "x...x...x..." },
+    end: ["kick", "ride"],
+  },
+  {
+    id: "aceSlowRock", kit: "rhythmAce", steps: 12,
+    loop: { kick: "X.....x.....", snare: "...x.....x..", ride: "xxxxxxxxxxxx" },
+    end: ["kick", "ride"],
+  },
+  {
+    id: "aceBossa", kit: "rhythmAce", steps: 16,
+    loop: { kick: "X..xX..xX..xX..x", claves: "x..x..x...x..x..", ride: "x.x.x.x.x.x.x.x." },
+    end: ["kick", "claves"],
+  },
+  {
+    id: "synthtoms", kit: "sdsv", steps: 16,
     loop: { kick: "X.......X.x.....", snare: "....X.......X...", hat: "x.x.x.x.x.x.x.x.", tomLow: "..............x." },
     start: ["crash"], fill: { kick: "X.......x.......", tomHigh: "x.x.x.x.........", tomLow: "........x.x.xXXX" }, end: ["kick", "crash"],
   },
+  {
+    id: "big80s", kit: "sdsv", steps: 16,
+    loop: { kick: "X.......X.......", snare: "....X.......X...", hat: "x.x.x.x.x.x.x.x.", tomHigh: "..........x.....", tomLow: "...........x.x.." },
+    start: ["crash"], fill: { kick: "X...............", tomHigh: "x.x.x.x.........", tomLow: "........x.x.x.x.", snare: "............XXXX" }, end: ["kick", "crash"],
+  },
   // ---- hand percussion
   {
-    id: "bossa", family: "percussion", steps: 16,
+    id: "bossa", kit: "percussion", steps: 16,
     loop: { kick: "X..xx..xX..xx..x", rim: "x..x..x...x..x..", shaker: "xgxgxgxgxgxgxgxg" },
     end: ["kick", "rim"], bars: 2,
   },
   {
-    id: "conga", family: "percussion", steps: 16,
+    id: "conga", kit: "percussion", steps: 16,
     loop: { congaLow: "x.....x...x.....", congaHigh: "...x.x.x...x.xx.", cowbell: "x.x.xx.x.x.xx.x.", shaker: "xgxgxgxgxgxgxgxg" },
     fill: { congaHigh: "x.x.x.x.xxxxXXXX", congaLow: "x.......x......." }, end: ["congaLow", "cowbell"],
   },
   {
-    id: "clave", family: "percussion", steps: 16,
+    id: "clave", kit: "percussion", steps: 16,
     loop: { claves: "x..x..x...x.x...", woodblock: "..x...x...x...x.", bongo: "x.gx.gx.x.gx.gxg" },
     end: ["claves", "woodblock"],
   },
   // ---- tribal
   {
-    id: "tribal", family: "tribal", steps: 16,
+    id: "tribal", kit: "tribal", steps: 16,
     loop: { djembeLow: "X.....x...X.....", djembeSlap: "...x.....x..x..x", frameDrum: "x.......x.......", shaker: "x.x.x.x.x.x.x.x." },
     fill: { djembeLow: "X.x.X.x.X.x.XxXx", djembeSlap: "................" }, end: ["djembeLow", "frameDrum"],
   },
   {
-    id: "taiko", family: "tribal", steps: 16,
+    id: "taiko", kit: "tribal", steps: 16,
     loop: { taiko: "X...x.x.X...x...", rim: "..x...x...x...x.", clap: "....x.......x..." },
     fill: { taiko: "X.x.x.x.XxXxXxXX" }, end: ["taiko", "clap"],
   },
   {
-    id: "ritual", family: "tribal", steps: 16,
+    id: "ritual", kit: "tribal", steps: 16,
     loop: { frameDrum: "X..x............", shaker: "....x.......x...", triangle: "........x......." },
     end: ["frameDrum", "triangle"], bars: 2,
   },
   // ---- orchestral
   {
-    id: "timpani", family: "orchestral", steps: 16,
+    id: "timpani", kit: "orchestral", steps: 16,
     loop: { timpTonic: "X...............", timpFifth: "........x......." },
     fill: { timpFifth: "x.g.g.g.x.x.xxxx" }, end: ["timpTonic", "cymbals"],
   },
   {
-    id: "march", family: "orchestral", steps: 16,
+    id: "march", kit: "orchestral", steps: 16,
     loop: { fieldSnare: "X.xxx.x.X.xxx.x.", bassDrum: "X.......x.......", cymbals: "x...............", timpTonic: "x..............." },
     fill: { fieldSnare: "xxxxxxxxXXXXXXXX", bassDrum: "X.......x......." }, end: ["bassDrum", "cymbals", "timpTonic"],
   },
   {
-    id: "processional", family: "orchestral", steps: 16,
+    id: "processional", kit: "orchestral", steps: 16,
     loop: { bassDrum: "X...............", timpTonic: "........g.......", timpFifth: "............g...", triangle: "....x.......x..." },
     fill: { timpFifth: "g.g.g.g.x.x.x.x.", timpTonic: "................" }, end: ["bassDrum", "timpTonic", "cymbals"], bars: 2,
   },
 ];
 
-export const DRUM_FAMILIES: readonly DrumFamily[] = ["kit", "machines", "percussion", "tribal", "orchestral"];
+/** A kit's presets, its paradigm first (D100). */
+export const presetsOf = (kit: DrumKit) => DRUM_PATTERNS.filter((p) => p.kit === kit);
+/** The loop length a pattern starts with (D100: two bars unless it says otherwise). */
+export const defaultLength = (p: DrumPattern) => p.bars ?? 2;
+/**
+ * The settings of a pattern freshly chosen (D100): choosing a kit or a preset resets the loop
+ * length, the feel and the mutes to the preset's own; only the level stays.
+ */
+export const freshDrums = (pattern: string, level: number): DrumSettings => ({ pattern, length: defaultLength(patternById(pattern)), level });
 
 export type DrumVariation = "A" | "B" | "AB";
 
@@ -189,8 +262,6 @@ export interface DrumSettings {
   length: number;
   /** 0..1 */
   level: number;
-  /** The sound (D71); absent = the pattern's own machine, or the studio kit. */
-  kit?: DrumKit;
   /** Swing (D99): 0.5 = straight, up to 0.75; the off-beat sixteenths are delayed. */
   swing?: number;
   /** Accent (D99): the accented steps (X) louder, the rest softer, as on the vintage machines. */
@@ -203,17 +274,25 @@ export interface DrumSettings {
   autoFill?: boolean;
 }
 
-export const DEFAULT_DRUMS: DrumSettings = { pattern: "rock", length: 1, level: 0.55 };
+export const DEFAULT_DRUMS: DrumSettings = { pattern: "rock", length: 2, level: 0.55 };
 /** The kit a setting plays with. */
-export const kitOf = (s: DrumSettings): DrumKit => s.kit ?? patternById(s.pattern).kit ?? "studio";
+export const kitOf = (s: DrumSettings): DrumKit => patternById(s.pattern).kit;
 export const LOOP_MIN = 1 / 8;
 export const LOOP_MAX = 8;
-/** The loop lengths the arrows step through (D99): plausible lengths, from a quarter bar to eight bars. */
-export const LOOP_STEPS: readonly number[] = [1 / 4, 1 / 3, 1 / 2, 2 / 3, 3 / 4, 1, 4 / 3, 3 / 2, 2, 8 / 3, 3, 4, 6, 8];
-/** The next loop length up (dir 1) or down (dir -1) from `length`, or null at the end of the list. */
+/**
+ * The loop lengths the arrows step through (D99, D100). Not in order of size: 1 and 2 bars, the
+ * most used, stand side by side, the odd lengths 4/3 and 3/2 before them with the short ones.
+ */
+export const LOOP_STEPS: readonly number[] = [1 / 4, 1 / 3, 1 / 2, 2 / 3, 3 / 4, 4 / 3, 3 / 2, 1, 2, 8 / 3, 3, 4, 6, 8];
+/** The next loop length in the list (dir 1) or the one before (dir -1), or null at its ends. */
 export function stepLoop(length: number, dir: 1 | -1): number | null {
-  if (dir > 0) return LOOP_STEPS.find((l) => l > length + 1e-9) ?? null;
-  return [...LOOP_STEPS].reverse().find((l) => l < length - 1e-9) ?? null;
+  let i = LOOP_STEPS.findIndex((l) => Math.abs(l - length) < 1e-9);
+  if (i < 0) {
+    // A stored length off the list: its nearest neighbour in size stands in for it.
+    i = LOOP_STEPS.reduce((best, l, j) => (Math.abs(l - length) < Math.abs(LOOP_STEPS[best] - length) ? j : best), 0);
+    if ((dir > 0 && LOOP_STEPS[i] > length) || (dir < 0 && LOOP_STEPS[i] < length)) return LOOP_STEPS[i];
+  }
+  return LOOP_STEPS[i + dir] ?? null;
 }
 /** The swing settings offered (D99), as the delayed sixteenth's place in its pair: straight to triplet and beyond. */
 export const SWING_STEPS: readonly number[] = [0.5, 0.54, 0.58, 0.62, 0.66, 0.71];
@@ -261,9 +340,11 @@ function linesFor(p: DrumPattern, variation: DrumVariation | undefined, loopInde
 }
 
 /** Fills fired by hand (D99): the pattern's own, a snare roll, a tom cascade, stop-time hits. */
-export type DrumCue = "fill1" | "fill2" | "fill3" | "fill4" | "break";
-export const DRUM_CUES: readonly DrumCue[] = ["fill1", "fill2", "fill3", "fill4", "break"];
-const CUE_LINES: Record<Exclude<DrumCue, "fill1">, Partial<Record<DrumVoice, string>>> = {
+export type DrumCue = "fill1" | "fill2" | "fill3" | "fill4" | "break" | "break2";
+export const DRUM_CUES: readonly DrumCue[] = ["fill1", "fill2", "fill3", "fill4", "break", "break2"];
+/** Bars a cue takes (D100: a one-bar and a two-bar break). */
+export const cueBars = (c: DrumCue) => (c === "break2" ? 2 : 1);
+const CUE_LINES: Record<Exclude<DrumCue, "fill1" | "break2">, Partial<Record<DrumVoice, string>>> = {
   fill2: { kick: "X.......x.......", snare: "g.g.x.x.xxxxXXXX" },
   fill3: { kick: "X...............", snare: "X.x.............", tomHigh: "....X.x.x.......", tomLow: "..........X.x.XX" },
   fill4: { kick: "X.....X.....X...", snare: "X.....X.....X.xX", crash: "X..............." },
@@ -273,7 +354,7 @@ const CUE_LINES: Record<Exclude<DrumCue, "fill1">, Partial<Record<DrumVoice, str
 /** The step lines of a cue (a whole bar, 16 steps unless it is the pattern's own fill). */
 export function cueLines(p: DrumPattern, cue: DrumCue): { lines: Partial<Record<DrumVoice, string>>; steps: number } {
   if (cue === "fill1") return p.fill ? { lines: p.fill, steps: p.steps } : { lines: ROLL, steps: 16 };
-  return { lines: CUE_LINES[cue], steps: 16 };
+  return { lines: CUE_LINES[cue === "break2" ? "break" : cue], steps: 16 };
 }
 
 type Hit = [DrumVoice, number, number];
@@ -410,15 +491,9 @@ const PADS: Record<string, DrumPad[]> = {
     pad("perc", "woodblock"), pad("perc", "tambourine"), pad("cymbal", "crash"),
   ],
 };
-/**
- * The nine pads (D99): the kit's own; on the studio kit, a percussion, tribal or orchestral pattern
- * brings its family's instruments instead.
- */
+/** The nine pads of the pattern's kit (D99). */
 export function padsFor(s: DrumSettings): DrumPad[] {
-  const kit = kitOf(s);
-  const family = patternById(s.pattern).family;
-  if (kit === "studio" && (family === "percussion" || family === "tribal" || family === "orchestral")) return PADS[family];
-  return PADS[kit] ?? KIT_PADS;
+  return PADS[kitOf(s)] ?? KIT_PADS;
 }
 
 const FINAL_PC: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -558,7 +633,7 @@ export class DrumMachine {
         return false;
       case "tr909":
         switch (v) {
-          case "kick": this.sweep(t, 240, 52, 0.035, 0.5, vel); this.hiss(t, "lowpass", 3000, 0.008, 0.4 * vel); return true;
+          case "kick": this.sweep(t, 250, 47, 0.04, 0.62, vel); this.tone(t, 52, 45, 0.5, 0.35 * vel); this.hiss(t, "lowpass", 3000, 0.008, 0.4 * vel); return true;
           case "snare": this.sweep(t, 200, 180, 0.02, 0.1, 0.4 * vel, "triangle"); this.sweep(t, 340, 320, 0.02, 0.06, 0.25 * vel, "triangle"); this.hiss(t, "highpass", 2200, 0.22, 0.65 * vel); return true;
           case "clap": for (const d of [0, 0.009, 0.018]) this.hiss(t + d, "bandpass", 1300, 0.01, 0.9 * vel, 1); this.hiss(t + 0.027, "bandpass", 1300, 0.22, 0.6 * vel, 1); return true;
           case "hat": this.metal(t, 0.06, 0.2 * vel, 8500); this.hiss(t, "highpass", 9000, 0.05, 0.18 * vel); return true;
@@ -668,14 +743,20 @@ export class DrumMachine {
   onCue: ((cue: DrumCue | null) => void) | null = null;
   /** The bar after a cue opens with a crash. */
   private landing = false;
+  /** Bars of a break still to keep silent. */
+  private silent = 0;
 
   /** Schedule bar `bar` starting at time `t`, a bar lasting `barSeconds`. */
   scheduleBar(t: number, barSeconds: number, bar: number, totalBars: number, looping = false) {
     this.kit = kitOf(this.settings);
     const ending = bar === totalBars - 1 && !looping;
     let hits: Hit[];
-    if (this.cue && !ending && bar > 0) {
+    if (this.silent > 0 && !ending) {
+      hits = [];
+      this.silent--;
+    } else if (this.cue && !ending && bar > 0) {
       hits = hitsForCue(this.settings, this.cue);
+      this.silent = cueBars(this.cue) - 1;
       this.cue = null;
       this.landing = true;
       this.onCue?.(null);
@@ -691,7 +772,7 @@ export class DrumMachine {
   scheduleCue(t: number, barSeconds: number, cue: DrumCue) {
     this.kit = kitOf(this.settings);
     for (const [v, vel, at] of hitsForCue(this.settings, cue)) this.hit(v, t + at * barSeconds, vel);
-    this.hit("crash", t + barSeconds, 1);
+    this.hit("crash", t + cueBars(cue) * barSeconds, 1);
   }
 
   /** The breath before the next pass of a loop, starting at `t` (D72). */
@@ -704,6 +785,7 @@ export class DrumMachine {
     for (const n of this.live) n.stop();
     this.live.clear();
     this.landing = false;
+    this.silent = 0;
     if (this.cue) {
       this.cue = null;
       this.onCue?.(null);
