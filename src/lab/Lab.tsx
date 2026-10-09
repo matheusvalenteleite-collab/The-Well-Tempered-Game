@@ -5,6 +5,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { repository } from "../music/fux/load-browser.ts";
+import { parsePitch } from "../music/pitch.ts";
 import type { ModalFinal, Staff } from "../music/fux/index.ts";
 import { slotLayout, type SpeciesId } from "../counterpoint/layout.ts";
 import { displayClefs } from "../game/exercise-view.ts";
@@ -20,7 +21,7 @@ import { DEFAULT_COUNSEL_WEIGHT, DEFAULT_TEMPERATURE, generateCounterpoint } fro
 import { judgeLine } from "../counterpoint/choices/alternatives.ts";
 import { fuxAccidentals, pitchesBetween, registerWindow } from "../counterpoint/choices/vocabulary.ts";
 import { play, playLines, stop } from "./play.ts";
-import { addThirdVoice, auditGeneratedTrio, judgeGeneratedTrio, STAFF_ROLE, Trio, TrioAuditList, TrioAuditTab, TrioChoiceDetail, TrioSummary } from "./Trio.tsx";
+import { addThirdVoice, auditGeneratedTrio, judgeGeneratedTrio, TrioAuditList, TrioAuditTab, TrioChoiceDetail, TrioSummary } from "./Trio.tsx";
 import type { Placement, ThirdVoice, TrioAudit } from "../counterpoint/choices/trio.ts";
 
 const SPECIES: SpeciesId[] = ["first", "second", "third", "fourth"];
@@ -213,6 +214,8 @@ function AuditTab() {
   );
 }
 
+/** The third voice's ink: red, as the counterpoint is blue. */
+const THIRD_INK = "#c0392b";
 const ruleIds = (vs: { ruleId: string }[]) => [...new Set(vs.map((v) => v.ruleId))].join(", ");
 
 function GenerateTab() {
@@ -308,8 +311,28 @@ function GenerateTab() {
   const check = baseCantus ? checkCantus(baseCantus, final, true, wide) : null;
   /** Clefs: the cantus in its register's clef; every other line in whichever clef leaves fewer notes off the staff. */
   const cpGuess = line ?? (cantus ? transpose(cantus, cantusVoice === "lower" ? 1 : -1) : null);
-  const scoreClefs: [ClefId, ClefId] | null =
-    cantus && placed && cpGuess ? (cantusVoice === "upper" ? [placed.clef, clefFor(cpGuess.filter((p) => /^[A-G]/.test(p)))] : [clefFor(cpGuess.filter((p) => /^[A-G]/.test(p))), placed.clef]) : null;
+  /**
+   * The third voice on the two staves: each note on the staff of the given voice nearer to it in
+   * that bar (staying on the same staff on a tie), so that it crosses between them as it moves.
+   */
+  const third = useMemo(() => {
+    if (!trio || !cantus || !line) return null;
+    const notes = trio.voices[trio.added];
+    const m = (p: string) => parsePitch(p).midi;
+    let prev = false;
+    const onCantusStaff = notes.map((p, k) => {
+      const dc = Math.abs(m(p) - m(cantus[k]));
+      const dl = Math.abs(m(p) - m(line[k]));
+      prev = dc === dl ? prev : dc < dl;
+      return prev;
+    });
+    return { notes, onCantusStaff };
+  }, [trio, cantus, line]);
+  const sounding = (l: (string | null)[]) => l.filter((p): p is string => !!p && /^[A-G]/.test(p));
+  const cpStaffNotes = cpGuess ? [...sounding(cpGuess), ...(third ? third.notes.filter((_, k) => !third.onCantusStaff[k]) : [])] : [];
+  const cfStaffExtra = third ? third.notes.filter((_, k) => third.onCantusStaff[k]) : [];
+  const cfClef = placed ? (cfStaffExtra.length ? clefFor([...placed.line, ...cfStaffExtra]) : placed.clef) : null;
+  const scoreClefs: [ClefId, ClefId] | null = cantus && cfClef && cpStaffNotes.length ? (cantusVoice === "upper" ? [cfClef, clefFor(cpStaffNotes)] : [clefFor(cpStaffNotes), cfClef]) : null;
   const verdict = useMemo(() => {
     if (!cantus || !line || !layout) return null;
     return judgeLine({ species, modalFinal: final, cantusVoice, cantus, layout, rules: rulesForStep(lastStepOf(species)), vocabulary: [], habits: buildHabits([], species) }, line);
@@ -453,12 +476,10 @@ function GenerateTab() {
           <div className="lab-box-head">
             <button className="primary" onClick={playAll}>▶ Play {trio ? "all three voices" : line ? "both voices" : "the cantus"}</button>
             <button onClick={() => stop()} aria-label="Stop">■</button>
-            <span className="lab-note">{trio ? STAFF_ROLE(trio) : `Cantus ${cantusVoice === "lower" ? "below" : "above"} · ${species} species`}</span>
+            <span className="lab-note">{`Cantus ${cantusVoice === "lower" ? "below" : "above"} · ${species} species · counterpoint in blue${trio ? " · third voice in red, on whichever staff is nearer" : ""}`}</span>
           </div>
           <div className="lab-score">
-            {trio ? (
-              <Trio voices={trio.voices} cantusIndex={trio.cantusIndex} added={trio.added} label="Generated exercise" cursor={cursor} transport={false} errorBars={trio.errorBars} cantusClef={placed?.clef} />
-            ) : (
+            {(
               <ScoreView
                 cantus={cantus}
                 counterpoint={line ?? layout.map(() => null)}
@@ -471,6 +492,9 @@ function GenerateTab() {
                 ties={species === "fourth"}
                 showNames
                 readOnly
+                playerLabel="Counterpoint"
+                extraLines={third ? [{ label: "Third voice", notes: third.notes, ink: THIRD_INK, onCantusStaff: third.onCantusStaff }] : undefined}
+                marks={trio ? trio.errorBars.map((column) => ({ column, severity: "error" as const })) : undefined}
                 onPlace={() => undefined}
                 onSelect={() => undefined}
               />

@@ -46,6 +46,7 @@ function TrioStrip({ choices, selected, onSelect }: { choices: TrioChoice[]; sel
 /** The three staves, read-only; `alt` replaces one note of one voice, the written one then drawn as a diamond. */
 export function Trio({ voices, cantusIndex, added, alt, selected, label, cursor: outerCursor, transport = true, errorBars = [], cantusClef }: { voices: string[][]; cantusIndex: number; added?: number; alt?: { voice: number; bar: number; pitch: string } | null; selected?: { voice: number; bar: number } | null; label: string; cursor?: number; transport?: boolean; errorBars?: number[]; cantusClef?: LabClef }) {
   const [ownCursor, setCursor] = useState(-1);
+  const [zoom, setZoom] = useState(1);
   const cursor = outerCursor ?? ownCursor;
   const shown = voices.map((l, v) => (alt && alt.voice === v ? l.map((p, k) => (k === alt.bar ? alt.pitch : p)) : l));
   return (
@@ -69,8 +70,8 @@ export function Trio({ voices, cantusIndex, added, alt, selected, label, cursor:
           label={label}
           onPlace={() => undefined}
           onSelect={() => undefined}
-          zoom={1}
-          onZoom={() => undefined}
+          zoom={zoom}
+          onZoom={setZoom}
           zoomLabels={{ in: "Zoom in", out: "Zoom out", reset: "100%" }}
         />
       </div>
