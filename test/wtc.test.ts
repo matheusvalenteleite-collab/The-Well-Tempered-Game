@@ -112,3 +112,35 @@ test("D121: the whole fugue: the subject's first two entries are found where the
     assert.ok(es.some((e) => Math.abs(e.at - (t0!.at + f.answerAt)) < 1e-6 && !e.inverted), `${f.id}: the answer at ${f.answerAt}`);
   }
 });
+
+test("D123: the voices: nearly every entry in one voice (two entries in stretto may share a note), almost no voice sounding two notes at once; an exposition in each fugue", async () => {
+  const full = (await import("../data/bach/wtc/fugues-full.json", { with: { type: "json" } })).default as unknown as { notes: Record<string, number[][]> };
+  const { findEntries } = await import("../src/wtc/entries.ts");
+  const { separateVoices } = await import("../src/wtc/voices.ts");
+  const { studyMoments } = await import("../src/wtc/study.ts");
+  const { parsePitch } = await import("../src/music/pitch.ts");
+  const { isMinor } = await import("../src/wtc/fugues.ts");
+  let overlaps = 0;
+  let total = 0;
+  let entriesOne = 0;
+  let entriesTotal = 0;
+  for (const f of FUGUES) {
+    const all = full.notes[f.id].map(([m, o, d]) => ({ midi: m, at: o / 96, dur: d / 96 }));
+    const es = findEntries(all, f.subject.map((n) => ({ midi: parsePitch(n.pitch).midi, at: n.at, dur: n.dur })));
+    const { voice, count } = separateVoices(all, es.map((e) => e.notes));
+    assert.ok(count >= 2 && count <= 6, `${f.id}: ${count} voices`);
+    for (const e of es) {
+      entriesTotal++;
+      if (new Set(e.notes.map((i) => voice[i])).size === 1) entriesOne++;
+    }
+    for (let v = 0; v < count; v++) {
+      const xs = all.filter((_, i) => voice[i] === v).sort((a, b) => a.at - b.at);
+      for (let k = 1; k < xs.length; k++) if (xs[k].at < xs[k - 1].at + xs[k - 1].dur - 1e-6) overlaps++;
+    }
+    total += all.length;
+    const { sections } = studyMoments(all, voice, count, es, f.barQuarters, isMinor(f.key));
+    assert.equal(sections[0].kind, "exposition", f.id);
+  }
+  assert.ok(overlaps / total < 0.005, `${overlaps} of ${total}`);
+  assert.ok(entriesOne / entriesTotal > 0.97, `${entriesOne} of ${entriesTotal} entries in one voice`);
+});

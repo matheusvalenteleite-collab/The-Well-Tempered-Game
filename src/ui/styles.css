@@ -976,3 +976,21 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .score-wrap.wtc .pianoroll { position: absolute; inset: 0; }
 .roll-note.mark { fill: var(--accent, #e07b00); opacity: 1; }
 .roll-entry.mark { fill: var(--accent, #e07b00); cursor: default; }
+/* D123: the voice roll. */
+.roll-span { fill: var(--pulse, rgba(30, 111, 216, 0.10)); }
+.roll-outline rect { fill: none; stroke: var(--ink, #333); stroke-width: 1; opacity: 0.55; }
+.roll-outline.inv rect { stroke-dasharray: 3 2; }
+.roll-outline .roll-entry { fill: var(--ink, #333); }
+.roll-extra { fill: none; stroke: var(--accent, #e07b00); stroke-width: 1.6; }
+.score-wrap.wtc .voiceroll { position: absolute; inset: 0; }
+.wtc-voices { display: flex; flex-direction: column; gap: 6px; }
+.wtc-voice { display: flex; align-items: center; gap: 8px; }
+.wtc-voice .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--chip); flex: none; }
+.wtc-voice .vname { min-width: 7em; text-transform: capitalize; }
+.wtc-moments { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 3px; }
+.wtc-moments li { display: flex; gap: 8px; align-items: baseline; }
+.wtc-moments li.active { background: var(--selection, rgba(30, 111, 216, 0.12)); }
+.wtc-moments .when { min-width: 5.5em; color: var(--ink-muted, #777); font-variant-numeric: tabular-nums; }
+.wtc-sections { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0 10px; }
+.wtc-study h4 { margin: 0.8em 0 0.3em; }
+.wtc-workshop .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }

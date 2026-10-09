@@ -18,6 +18,25 @@ Game link (always the latest): https://claude.ai/artifact/NvkaBGCHrtDebE85H7udTX
   - Each fugue states the size of its tonic's third in the chosen temperament. In Werckmeister III, C–E is 390.2 cents and F♯–A♯ is 407.8; equal is 400 and pure is 386.3.
   - "Equal ↔ well" plays the opening in equal temperament and then in the well temperament.
 
+## Later in the night (after your message): the study (D123)
+
+The WTC mode now **opens on a study of the whole fugue**; the exercises are behind the "Exercises" button.
+
+- **The roll**: every note of the fugue in its voice's colour, each entry of the subject outlined. Tap anywhere to play from that bar.
+- **Voices** tab: Solo, Mute, or **Spotlight** for each voice. The spotlight gives the voice another instrument (organ against harpsichord) and lets the others recede. The coloured voice buttons under the score are spotlights too.
+- **Guide** tab:
+  - The sections (exposition, entries, episodes, close), each playable.
+  - The moments: every entry with its voice and degree, the strettos, episodes, pedal points, the highest and lowest notes, and the cadence. Each plays alone; an entry can also play by itself.
+  - "Every entry in a row", alone or in its texture.
+- **Workshop** tab:
+  - Change the subject's notes and hear your subject run through Bach's whole plan, every entry at his places and pitches. You can hear it alone (the architecture) or inside his unchanged texture, so you hear what your change does to his counterpoint.
+  - Add entries of your own anywhere (bar, degree, upside down) against his fugue.
+- **Where next?** tab, the game you suggested: the fugue unfolds entry by entry, and before each you name the degree the subject has moved to. It is a first form of "write the response": you predict the modulation rather than write the notes. The next step would be to write the entry's first notes.
+
+**Two limits, and a decision for you.**
+- The voices and entries are found by the game from the notes. They are reliable but not perfect (about 3% of entries split, a voice occasionally borrows a neighbour's note).
+- The Choices lab session has all 48 preludes and fugues with true voices, from David Huron's Humdrum encoding, which reserves "rights to derivative electronic formats". My copying it in was refused by this session's permission check. If you approve, importing it would give the study all 96 pieces, the preludes included, and exact voices.
+
 ## How to try it in two minutes
 
 1. In the first menu, choose **Well-Tempered Clavier**. The C major fugue of Book I opens.
