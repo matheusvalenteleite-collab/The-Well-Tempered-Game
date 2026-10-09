@@ -74,15 +74,15 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const [continuoSettings, setContinuoSettings] = useState<ContinuoSettings>(() => validContinuoSettings(stored<unknown>("wtg.continuoSettings", DEFAULT_CONTINUO_SETTINGS)));
   const [tuning, setTuning] = useState<TemperamentId>(() => stored("wtg.tuning", "equal" as TemperamentId, (v) => TEMPERAMENTS.includes(v as TemperamentId)));
   const [loop, setLoop] = useState(() => stored("wtg.loop", true, (v) => typeof v === "boolean"));
-  const [names, setNames] = useState(() => stored("wtg.names", false, (v) => typeof v === "boolean"));
-  const [figures, setFigures] = useState(() => stored("wtg.intervals", false, (v) => typeof v === "boolean"));
+  const [names, setNames] = useState(() => stored("wtg.names2", true, (v) => typeof v === "boolean"));
+  const [figures, setFigures] = useState(() => stored("wtg.intervals2", true, (v) => typeof v === "boolean"));
   const [zoom, setZoom] = useState(() => stored("wtg.zoom", 1, (v) => typeof v === "number" && v >= ZOOM_MIN && v <= ZOOM_MAX));
   const [fuxHeard, setFuxHeard] = useState(() => stored("wtg.fuxHeard", false, (v) => typeof v === "boolean"));
   const [showFux, setShowFux] = useState(false);
   const [tab, setTab] = useState<string>(() => stored("wtg.dock", "mixer", (v) => typeof v === "string"));
   useEffect(() => store("wtg.dock", tab), [tab]);
-  const [nameStyle, setNameStyle] = useState<NameStyle>(() => stored("wtg.nameStyle", "letters" as NameStyle, (v) => v === "letters" || v === "solfege"));
-  useEffect(() => store("wtg.nameStyle", nameStyle), [nameStyle]);
+  const [nameStyle, setNameStyle] = useState<NameStyle>(() => stored("wtg.nameStyle2", "solfege" as NameStyle, (v) => v === "letters" || v === "solfege"));
+  useEffect(() => store("wtg.nameStyle2", nameStyle), [nameStyle]);
   const [versions, setVersions] = useState<Versions>({ ...DEFAULT_VERSIONS, original: true });
   const [playing, setPlaying] = useState(false);
   const [cursor, setCursor] = useState(-1);
@@ -126,8 +126,8 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
     audio.loop = loop;
     store("wtg.loop", loop);
   }, [loop]);
-  useEffect(() => store("wtg.names", names), [names]);
-  useEffect(() => store("wtg.intervals", figures), [figures]);
+  useEffect(() => store("wtg.names2", names), [names]);
+  useEffect(() => store("wtg.intervals2", figures), [figures]);
   useEffect(() => store("wtg.zoom", zoom), [zoom]);
   useEffect(() => store("wtg.fuxHeard", fuxHeard), [fuxHeard]);
   useEffect(() => {

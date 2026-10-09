@@ -902,3 +902,13 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 /* D107: sixteen kits in three columns; a pad playing an added part is ringed. */
 .drumbox .kit-grid { grid-template-columns: repeat(3, auto); }
 .minipad.added { outline: 2px solid #ffe066; outline-offset: -2px; }
+
+/* D108: the quick start, centred. */
+.dialog.quickstart { max-width: 860px; width: min(860px, calc(100vw - 32px)); max-height: calc(100vh - 40px); }
+.dialog.quickstart h2 { margin: 0 0 8px; }
+.qs-steps { margin: 0 0 12px; padding-left: 1.4em; line-height: 1.45; }
+.qs-steps li { margin-bottom: 6px; }
+.dialog.quickstart .hints.basics { border-top: 1px solid var(--edge, #ccc); padding-top: 10px; }
+.qs-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; position: sticky; bottom: -16px; background: var(--paper); padding: 8px 0; }
+.qs-actions .primary { font-weight: 600; }
+.hints li.has-demo { list-style: none; margin-left: -1.1em; }

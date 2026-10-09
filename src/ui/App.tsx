@@ -21,6 +21,7 @@ import { NoteIcon } from "./NoteIcon.tsx";
 import { Systems, ZOOM_MAX, ZOOM_MIN } from "./notation/Systems.tsx";
 import { buildOverlay, neutralOverlay } from "./notation/overlay.ts";
 import { Credits } from "./Credits.tsx";
+import { QuickStart } from "./QuickStart.tsx";
 import { FuxComparison } from "./FuxComparison.tsx";
 import { realizeContinuo } from "../continuo/realize.ts";
 import { playContinuo } from "../continuo/audio.ts";
@@ -115,21 +116,24 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const [continuo, setContinuo] = useState(() => stored("wtg.continuo", false, (v) => typeof v === "boolean"));
   const [continuoSettings, setContinuoSettings] = useState<ContinuoSettings>(() => validContinuoSettings(stored<unknown>("wtg.continuoSettings", DEFAULT_CONTINUO_SETTINGS)));
   const [loop, setLoop] = useState(() => stored("wtg.loop", true, (v) => typeof v === "boolean"));
-  const [showNames, setShowNames] = useState(() => stored("wtg.names", false, (v) => typeof v === "boolean"));
-  const [showIntervals, setShowIntervals] = useState(() => stored("wtg.intervals", false, (v) => typeof v === "boolean"));
+  const [showNames, setShowNames] = useState(() => stored("wtg.names2", true, (v) => typeof v === "boolean"));
+  const [showIntervals, setShowIntervals] = useState(() => stored("wtg.intervals2", true, (v) => typeof v === "boolean"));
   const [tuning, setTuning] = useState<TemperamentId>(() => stored<TemperamentId>("wtg.tuning", "equal", (v) => TEMPERAMENTS.includes(v as TemperamentId)));
   const [cursor, setCursor] = useState(-1);
   const [playing, setPlaying] = useState(false);
   const [audioStatus, setAudioStatus] = useState<AudioStatus>("idle");
   const [showCredits, setShowCredits] = useState(false);
+  // The quick start opens by itself on the first visit, and on HOW TO PLAY (D108).
+  const [showQuick, setShowQuick] = useState(() => !stored("wtg.quickSeen", false, (v) => typeof v === "boolean"));
+  useEffect(() => { if (showQuick) store("wtg.quickSeen", true); }, [showQuick]);
   const [result, setResult] = useState<Evaluation | null>(null);
   const [showFux, setShowFux] = useState(false);
   /** The study area below: the rules of this exercise, or the Lectio (Fux's text and commentary). */
   /** The dock's tab (D94): the mixer, the evaluation, the rules, the lectio. */
   const [tab, setTab] = useState<string>(() => { const v: string = stored<string>("wtg.dock", "mixer", (x) => typeof x === "string"); return v === "rules" ? "guide" : v; });
   useEffect(() => store("wtg.dock", tab), [tab]);
-  const [nameStyle, setNameStyle] = useState<NameStyle>(() => stored("wtg.nameStyle", "letters" as NameStyle, (v) => v === "letters" || v === "solfege"));
-  useEffect(() => store("wtg.nameStyle", nameStyle), [nameStyle]);
+  const [nameStyle, setNameStyle] = useState<NameStyle>(() => stored("wtg.nameStyle2", "solfege" as NameStyle, (v) => v === "letters" || v === "solfege"));
+  useEffect(() => store("wtg.nameStyle2", nameStyle), [nameStyle]);
   const scoreRef = useRef<HTMLDivElement>(null);
   const browsing = useRef(false);
   const dragBase = useRef<SessionState | null>(null);
@@ -157,8 +161,8 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
     audio.loop = loop;
     store("wtg.loop", loop);
   }, [loop]);
-  useEffect(() => store("wtg.names", showNames), [showNames]);
-  useEffect(() => store("wtg.intervals", showIntervals), [showIntervals]);
+  useEffect(() => store("wtg.names2", showNames), [showNames]);
+  useEffect(() => store("wtg.intervals2", showIntervals), [showIntervals]);
   useEffect(() => {
     audio.drums = drums;
     store("wtg.drums", drums);
@@ -672,7 +676,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const onKey = (e: KeyboardEvent) => {
     const target = e.target as HTMLElement | null;
     if (target && ["TEXTAREA", "SELECT", "INPUT"].includes(target.tagName)) return;
-    if (!showCredits && !showSaved && (e.ctrlKey || e.metaKey) && !e.altKey && editable) {
+    if (!showCredits && !showSaved && !showQuick && (e.ctrlKey || e.metaKey) && !e.altKey && editable) {
       const key = e.key.toLowerCase();
       if (key === "z" || key === "y") {
         restore(key === "y" || e.shiftKey ? "redo" : "undo");
@@ -681,7 +685,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
       }
     }
     // F1-F9 switch the numbered tracks on and off, as Ableton's F1-F8 switch its track activators (D85).
-    if (/^F[1-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey && !showCredits && !showSaved && exportPhase === null) {
+    if (/^F[1-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey && !showCredits && !showSaved && !showQuick && exportPhase === null) {
       const track = trackOrder(advanced)[Number(e.key.slice(1)) - 1];
       const n = track === undefined ? 0 : track === "cantus" ? 1 : track === "counterpoint" ? 2 : track === "fux" ? 3 : track === "drums" ? 8 : track === "continuo" ? 9 : 4 + VERSION_IDS.indexOf(track as VersionId);
       if (n === 1) setSound(changeMix(sound, "cantus", { mute: !sound.mix.cantus.mute }));
@@ -699,7 +703,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
       e.preventDefault();
       return;
     }
-    if (showCredits || showSaved || (exportPhase !== null && (exportPhase !== "recording" || ["p", "P", " "].includes(e.key))) || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    if (showCredits || showSaved || showQuick || (exportPhase !== null && (exportPhase !== "recording" || ["p", "P", " "].includes(e.key))) || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
     const k = e.key;
     const s = session;
     // Only the written line is editable; while it is hidden (D47) the keys only browse and play.
@@ -736,7 +740,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
     else if (k === "Delete" || k === "Backspace") update(FIFTH ? clearSpan(s) : VIEW.layout[s.selected].restAllowed ? setRest(s, VIEW.layout) : clear(s), false);
     else if (k === " ") play(VIEW.layout.findIndex((sl) => sl.bar === VIEW.layout[s.selected].bar));
     else if (k === "p" || k === "P") play();
-    else if (k === "?") setTab("guide");
+    else if (k === "?") setShowQuick(true);
     else return;
     e.preventDefault();
   };
@@ -855,7 +859,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
             theme={theme}
             onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")}
             onCredits={() => setShowCredits(true)}
-            onHelp={() => setTab("guide")}
+            onHelp={() => setShowQuick(true)}
           />
         </>
       }
@@ -1089,6 +1093,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
       overlays={
         <>
       {showCredits && <Credits onClose={() => setShowCredits(false)} />}
+      {showQuick && <QuickStart basics={<RuleBasics step={STEP} cantus={VIEW.cantus} />} onClose={() => setShowQuick(false)} onMore={() => { setShowQuick(false); setTab("guide"); }} />}
       {toast && (
         <div className="toast" role="status">
           {toast}

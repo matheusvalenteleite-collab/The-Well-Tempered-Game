@@ -1103,5 +1103,12 @@
     "many.million": "over a million",
     "many.billion": "over a billion",
     "many.trillion": "over a trillion"
+  },
+  "quick": {
+    "step1": "The lower or upper staff holds the cantus firmus, the given melody in whole notes. Write your own line on the other staff: click where a note should go (or use the arrow keys and the letters A–G).",
+    "step2": "Each pair of notes sounding together makes an interval, written between the staves. The chart below sorts the intervals into perfect consonances, imperfect consonances and dissonances, and the rules say how they may follow one another; press ▶ beside a rule to watch it broken and then kept.",
+    "step3": "Press Play to hear both lines, then Evaluate. Aloysius marks what breaks a rule; a clean line earns the star and opens Fux's own solution to compare.",
+    "more": "The full guide",
+    "start": "Start writing"
   }
 }
