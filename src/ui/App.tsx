@@ -1,3 +1,4 @@
+import type { Mode } from "./Root.tsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { repository } from "../music/fux/load-browser.ts";
 import { ALL_STEPS, COURSES, courseOf, rulesForStep, validateCurriculum } from "../counterpoint/curriculum/index.ts";
@@ -76,7 +77,7 @@ const VERSION_INK: Record<VersionId, string> = {
 };
 const stepIndexOf = (id: string) => STEPS.findIndex((s) => s.id === id);
 
-export function App({ onVoices }: { onVoices(n: 2 | 3 | "chorale"): void }) {
+export function App({ onVoices }: { onVoices(n: Mode): void }) {
   const [stepIndex, setStepIndex] = useState(() => {
     const id = stored<string>("wtg.stepId", STEPS[0].id, (v) => typeof v === "string" && stepIndexOf(v) >= 0);
     return stepIndexOf(id);
@@ -793,9 +794,9 @@ export function App({ onVoices }: { onVoices(n: 2 | 3 | "chorale"): void }) {
             value={COURSE.voices}
             aria-label={t("ui.nav.voices")}
             onChange={(e) => {
-              if (e.target.value === "chorale") {
+              if (e.target.value === "chorale" || e.target.value === "wtc") {
                 audio.stop();
-                onVoices("chorale");
+                onVoices(e.target.value);
                 return;
               }
               if (Number(e.target.value) === 3) {
@@ -813,6 +814,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3 | "chorale"): void }) {
               </option>
             ))}
             <option value="chorale">{t("chorale.mode")}</option>
+            <option value="wtc">{t("wtc.mode")}</option>
           </select>
           <select
             id="species"

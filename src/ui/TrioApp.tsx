@@ -2,6 +2,7 @@
  * Three voices (Exercitium II, D90): the player writes both voices that are not the cantus, in
  * any order. One engine and one mixer with the two-voice screen; no versions here (D89).
  */
+import type { Mode } from "./Root.tsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import data from "../../data/fux/three-voice/fux-three-voice.json" with { type: "json" };
 import { playerStaves, trioSteps, type TrioStep } from "../game/trio.ts";
@@ -45,7 +46,7 @@ const startPitch = (s: TrioStep, staff: number) => {
   return `${"CDEFGAB"[((d % 7) + 7) % 7]}${Math.floor(d / 7)}`;
 };
 
-export function TrioApp({ onVoices }: { onVoices(n: 2 | 3 | "chorale"): void }) {
+export function TrioApp({ onVoices }: { onVoices(n: Mode): void }) {
   const [stepIndex, setStepIndex] = useState(() => Math.max(0, STEPS.findIndex((s) => s.id === stored("wtg.trioStep", STEPS[0].id))));
   const STEP = STEPS[stepIndex];
   useEffect(() => store("wtg.trioStep", STEP.id), [STEP.id]);
@@ -294,11 +295,12 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3 | "chorale"): void }) 
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
           <button className="icon" onClick={() => goTo(stepIndex - 1)} disabled={stepIndex === 0} aria-label={t("ui.nav.prev")}>‹</button>
-          <select id="voices" className="sel sel-voices" value={3} aria-label={t("ui.nav.voices")} onChange={(e) => e.target.value === "chorale" ? (audio.stop(), onVoices("chorale")) : Number(e.target.value) === 2 && (audio.stop(), onVoices(2))}>
+          <select id="voices" className="sel sel-voices" value={3} aria-label={t("ui.nav.voices")} onChange={(e) => e.target.value === "chorale" || e.target.value === "wtc" ? (audio.stop(), onVoices(e.target.value)) : Number(e.target.value) === 2 && (audio.stop(), onVoices(2))}>
             {[2, 3, 4].map((n) => (
               <option key={n} value={n} disabled={n === 4}>{t("ui.nav.voicesN", { n })}</option>
             ))}
             <option value="chorale">{t("chorale.mode")}</option>
+            <option value="wtc">{t("wtc.mode")}</option>
           </select>
           <select id="species" className="sel sel-species" value={1} aria-label={t("ui.nav.species")} onChange={() => undefined}>
             {[1, 2, 3, 4, 5].map((n) => (

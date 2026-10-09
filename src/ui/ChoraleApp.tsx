@@ -7,6 +7,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { BACH_REFS, CHORALES, compare, frac, soundingMelody, voiceChord, type PhraseVerdict } from "../chorale/level1.ts";
 import type { PlayEvent } from "../counterpoint/layout.ts";
+import type { Mode } from "./Root.tsx";
 import { MelodyScore, type MarkerState } from "./notation/MelodyScore.tsx";
 import { HFader } from "./HFader.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
@@ -16,7 +17,7 @@ import { t } from "./i18n.ts";
 
 type Picks = Record<number, (string | null)[]>;
 
-export function ChoraleApp({ onMode }: { onMode(mode: 2 | 3 | "chorale"): void }) {
+export function ChoraleApp({ onMode }: { onMode(mode: Mode): void }) {
   const [index, setIndex] = useState(() => Math.max(0, CHORALES.findIndex((c) => c.number === stored("wtg.chorale", 1, (v) => typeof v === "number"))));
   const ch = CHORALES[index];
   useEffect(() => store("wtg.chorale", ch.number), [ch.number]);
@@ -151,10 +152,11 @@ export function ChoraleApp({ onMode }: { onMode(mode: 2 | 3 | "chorale"): void }
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
             <button className="icon" onClick={() => goTo(index - 1)} disabled={index === 0} aria-label={t("ui.nav.prev")}>‹</button>
-            <select id="voices" className="sel sel-voices" value="chorale" aria-label={t("ui.nav.voices")} onChange={(e) => { stop(); onMode(e.target.value === "chorale" ? "chorale" : (Number(e.target.value) as 2 | 3)); }}>
+            <select id="voices" className="sel sel-voices" value="chorale" aria-label={t("ui.nav.voices")} onChange={(e) => { stop(); const v = e.target.value; onMode(v === "chorale" || v === "wtc" ? v : (Number(v) as 2 | 3)); }}>
               <option value={2}>{t("ui.nav.voicesN", { n: 2 })}</option>
               <option value={3}>{t("ui.nav.voicesN", { n: 3 })}</option>
               <option value="chorale">{t("chorale.mode")}</option>
+              <option value="wtc">{t("wtc.mode")}</option>
             </select>
             <select id="level" className="sel sel-species" value={1} aria-label={t("chorale.level")} onChange={() => undefined}>
               {[1, 2, 3, 4, 5, 6].map((n) => (

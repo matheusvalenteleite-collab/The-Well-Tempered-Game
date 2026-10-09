@@ -699,3 +699,21 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
 .muted { color: var(--muted, #8a8580); }
 .melody-score .rest { fill: var(--ink); }
 .melody-score .rest-glyph { font-size: 22px; fill: var(--ink); font-family: "Bravura", "Noto Music", "Segoe UI Symbol", serif; }
+
+/* The WTC mode, level 1: Prelude 1's harmonic plan (C6) */
+.wtc-score { padding: 6px 8px; overflow-y: auto; display: block; }
+.wtc-plan { width: 100%; }
+.wtc-plan { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 6px; }
+.wtc-bar { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 2px; border: 1px solid var(--line, #8884); border-radius: 4px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.wtc-bar.selected { outline: 2px solid var(--accent, #3b6fb6); outline-offset: 1px; }
+.wtc-bar.sounding { background: color-mix(in srgb, var(--accent, #3b6fb6) 14%, transparent); }
+.wtc-n { font-size: 0.75em; opacity: 0.7; }
+.wtc-notes { display: flex; flex-direction: column; align-items: center; font-size: 0.8em; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.wtc-fig { font-weight: 600; }
+.wtc-empty .wtc-notes { opacity: 0.6; }
+.wtc-bar.wtc-bach, .chorale-verdicts .wtc-bach { border-left: 3px solid #2e8b57; }
+.wtc-bar.wtc-root, .chorale-verdicts .wtc-root { border-left: 3px solid #3b6fb6; }
+.wtc-bar.wtc-other, .chorale-verdicts .wtc-other { border-left: 3px solid #c98a1b; }
+.chorale-verdicts .wtc-bach, .chorale-verdicts .wtc-root, .chorale-verdicts .wtc-other { padding-left: 6px; }
+.wtc-coda { cursor: default; opacity: 0.6; justify-content: center; min-height: 100%; font-size: 0.8em; text-align: center; }
+.chord small { opacity: 0.7; font-size: 0.75em; }
