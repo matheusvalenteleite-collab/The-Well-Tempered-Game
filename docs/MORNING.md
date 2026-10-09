@@ -16,9 +16,9 @@ Game link (always the latest): https://claude.ai/artifact/NvkaBGCHrtDebE85H7udTX
 | 04cdc0f | D79 | **Octave moves are drawn.** Fux's line and the four versions move on the score with their octave steppers. The cantus and the Contrapunctus get steppers too. What you wrote, and what is judged, never moves: a click on a raised Contrapunctus writes the pitch where it is written. |
 | 8a8e3cc | D80, D81 | **The mixer after Ableton.** Track colours; a numbered on/off button ("activator") for every track; solo; faders with a dB scale and level meters; dB readouts. **The 1990s look:** Silkscreen and VT323 type, hard-shadowed square buttons, a dark desk, stronger contrast. Fux's text keeps its Garamond. |
 | a9089c9, 17af77f | D82 | **Fifth species, two voices.** All twelve of Fux's exercises (Figs. 82–88). New rhythm model: quaver slots and held notes. Entry: choose the note value (keys 8 4 3 2 6 1), type the letters, T to hold or tie. Rules come from pp. 76–81, read from the 1725 scans. Fux's twelve solutions clear every rule, except Aloysius's "limping crotchets" advice in Fig. 88a bar 5, which is exactly where Fux prints his own NB. |
-| e242a88 | D84 | The study panels in the 1990s look; Aloysius's first fifth-species example in the demo area. |
-| (latest) | D85 | **F1–F9** switch the numbered tracks on and off, as in Ableton. |
 | 9aff3ec | D83 | **Systems on a phone.** On narrow screens a long score breaks into lines of bars at a readable size. On a computer nothing changes: it still shrinks to fit. |
+| e242a88 | D84 | The study panels in the 1990s look; Aloysius's first fifth-species example in the demo area. |
+| 5a05586 | D85 | **F1–F9** switch the numbered tracks on and off, as in Ableton. |
 
 ## Questions for you
 
