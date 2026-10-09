@@ -1,8 +1,21 @@
-# The Well-Tempered Clavier mode: a conception
+# The Well-Tempered Clavier mode: plan (chorale branch)
 
 Status: written overnight without the owner. These are proposals, not decisions; what is already
 built is marked as built. The owner's word for it: "it's all about the Well-Tempered Clavier: this
 is the end goal".
+
+**Two sessions worked on this the same night.** The Choices-lab session (branch
+`claude/beautiful-mccarthy-7li5nv`) wrote its own `docs/wtc/CONCEPT.md`, which goes further on the
+fugues (levels 0-8, a map of the 48, entries, key plans, strettos, the answer exercise in staff
+notation). This file was renamed from `CONCEPT.md` so that the two branches do not collide. It is
+best read as a complement for three things the lab does not have:
+
+- the prelude level built on public-domain notes (P1, Prelude 1, Mutopia);
+- the harmonic reader measured against human analyses (When in Rome, leave-one-out);
+- a licence-safe handling of the Humdrum encodings (local only).
+
+The fugue levels below overlap with the lab's levels 1, 2, 3, 5 and 7. Reconciling them is the
+owner's call.
 
 ## 1. Why the WTC comes last, and what it needs from the earlier modes
 

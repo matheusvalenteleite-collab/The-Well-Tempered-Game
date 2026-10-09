@@ -1,5 +1,5 @@
 /**
- * The WTC mode, level F2 (docs/wtc/CONCEPT.md): the answer. The player hears a fugue subject and
+ * The WTC mode, level F2 (docs/wtc/PLAN.md): the answer. The player hears a fugue subject and
  * chooses how the second voice answers it in the dominant: the real answer (every interval kept),
  * the textbook tonal answer (the dominant at the head answered by the tonic), or, where Bach did
  * something else, his own. Compare shows which is Bach's and what he changed.

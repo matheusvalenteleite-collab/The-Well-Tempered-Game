@@ -1,5 +1,5 @@
 /**
- * The WTC mode, level 1 (docs/wtc/CONCEPT.md): the harmonic plan of Prelude 1 in C (BWV 846/1).
+ * The WTC mode, level 1 (docs/wtc/PLAN.md): the harmonic plan of Prelude 1 in C (BWV 846/1).
  * The prelude is one figuration applied to a five-note chord per bar; the player chooses the chord
  * of each bar from four, all taken from Bach's own vocabulary in this prelude (the chord of a
  * neighbouring bar held or anticipated over this bar's bass, or a chord Bach puts on the same bass

@@ -1,5 +1,5 @@
 /**
- * The WTC mode (docs/wtc/CONCEPT.md, C6), level 1: the harmonic plan of Prelude 1 in C. For each
+ * The WTC mode (docs/wtc/PLAN.md, C6), level 1: the harmonic plan of Prelude 1 in C. For each
  * bar the player chooses one of four five-note chords over Bach's bass, hears it in Bach's
  * figuration, and compares the whole plan with Bach's. As in the chorale mode, no choice is
  * marked wrong: Bach's chord, its figures and its fundamental are the feedback.

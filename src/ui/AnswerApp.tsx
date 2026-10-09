@@ -1,5 +1,5 @@
 /**
- * The WTC mode, level F2: the answer (docs/wtc/CONCEPT.md). For each fugue the player hears the
+ * The WTC mode, level F2: the answer (docs/wtc/PLAN.md). For each fugue the player hears the
  * subject and chooses the answer: the real one, the textbook tonal one, or (where Bach did neither)
  * his own; Compare shows whose each is and which notes the mutation changed.
  */

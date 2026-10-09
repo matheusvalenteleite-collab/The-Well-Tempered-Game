@@ -3,7 +3,7 @@
 
 Input : data/local/sources/bach-wtc/kern/wtc{1,2}{p,f}NN.krn  (tools/wtc/fetch_wtc.sh)
 Output: data/local/wtc/wtc{1,2}{p,f}NN.json and data/local/wtc/index.json; a validation summary
-        in docs/wtc/IMPORT.md (counts only: committed).
+        in docs/wtc/IMPORT-LOCAL.md (counts only: committed).
 
 Not committed (data/local/ is ignored): the encodings' rights notices reserve derivative
 electronic formats. See tools/wtc/fetch_wtc.sh.
@@ -24,7 +24,7 @@ from kern_reader import read  # noqa: E402
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "data" / "local" / "sources" / "bach-wtc" / "kern"
 OUT = ROOT / "data" / "local" / "wtc"
-REPORT = ROOT / "docs" / "wtc" / "IMPORT.md"
+REPORT = ROOT / "docs" / "wtc" / "IMPORT-LOCAL.md"
 fr = lambda x: f"{x.numerator}/{x.denominator}"  # noqa: E731
 
 KEYS = {  # the key of each pair, in the order of the book
