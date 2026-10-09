@@ -922,7 +922,18 @@
     "hint.best": "Most Fux-like here: {note}.",
     "hint.write": "Write it",
     "view.harmony": "Harmony (modern)",
-    "view.harmonyHelp": "Roman numerals under the figures: a later lens (Rameau's fundamental bass, Weber's numerals), not Fux's; never graded. In brackets where an incomplete chord leaves the root a guess"
+    "view.harmonyHelp": "Roman numerals under the figures: a later lens (Rameau's fundamental bass, Weber's numerals), not Fux's; never graded. In brackets where an incomplete chord leaves the root a guess",
+    "trio3.moving2": "minims",
+    "trio3.moving3": "crotchets",
+    "trio3.moving4": "ligatures",
+    "trio3.intro3": "Since the same order of proceeding is set for us in three-part composition as we used in the lessons for two parts, this lesson is plainly the composition of four crotchets against a semibreve; with this distinction, that as in two voices the crotchets had to agree with the semibreve of one part only, so here they must agree with the semibreves of two parts.",
+    "trio3.introLa3": "Cùm idem progrediendi ordo in hac Tricinii Compositione nobis propositus sit, quo in dandis Bicinii Lectionibus usi sumus, per se patet, hanc Lectionem esse Compositionem, quatuor Semiminimis contra Semibrevem positis constantem; cum hac tamen differentiali observatione, ut quemadmodum Semiminimae in Bicinii compositione cum unius duntaxat partis Semibrevi, ità in hac Tricinii compositione cum duarum partium Semibrevibus consonare debeant.",
+    "trio3.cite3": "Gradus ad Parnassum (1725), p. 99, translated in this game",
+    "trio3.help3": "One voice moves in crotchets, four to a bar; the other two in semibreves. Tap a quarter of the bar to write that crotchet; ← → move by one crotchet; R writes a rest. Fux opens one of his four with a crotchet rest. 'If the first crotchet cannot make the harmonic triad, see that the second or the third does' (p. 100).",
+    "trio3.intro4": "Here recall what was said of ligatures in two voices: the way of making them is hardly to be changed in three, but to be observed to the letter. It remains only to teach how the concord of the third part is to be added. Remember too what was said above: that a ligature is nothing but the retardation of the following note. Hence the paradox: the third part must be given the same concord it would have needed had the ligature been left out.",
+    "trio3.introLa4": "Hîc in mentem revocanda sunt, quae de Ligaturis in Bicinio dicta sunt, quarum efficiendi ratio in Tricinio minimè mutanda, sed ad amussim observanda est. Ad rem pertinebit modò docere, quemadmodum accedente parte tertiâ socialis illius concordantia instituenda sit. Refert quoque hîc meminisse, quod suprà dictum est; Ligaturam nempe aliud non esse, quàm retardationem Notae sequentis. Unde Paradoxum fit: eandem tertiae parti tribui oportere concordantiam, quae omissâ Ligaturâ adhibenda fuisset.",
+    "trio3.cite4": "Gradus ad Parnassum (1725), p. 103, translated in this game",
+    "trio3.help4": "One voice moves in ligatures: an upbeat tied over the bar line (write the same note on both sides), after a half rest; the other two in semibreves. Tap the left or right half of a bar; R writes a rest where no ligature can be made (pp. 108, 111). Over a held bass, ligatures of dissonances alone are elegant (p. 107); in the bass, a ligature may resolve into the fifth (pp. 105-106)."
   },
   "tutor": {
     "rule.fos.no-repetition": "In this species each upbeat brings a new note, which is then tied over the bar line; striking the downbeat's note again on its own upbeat is a whole note in disguise.",

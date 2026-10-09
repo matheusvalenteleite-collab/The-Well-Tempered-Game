@@ -6,8 +6,9 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import data from "../../data/fux/three-voice/fux-three-voice.json" with { type: "json" };
-import { barOfSlot, playerStaves, slotOfBar, trioSteps, voiceSlots, type TrioStep } from "../game/trio.ts";
+import { barOfSlot, playerStaves, slotOfBar, TRIO_SPECIES, trioSteps, voiceSlots, type TrioSpecies, type TrioStep } from "../game/trio.ts";
 import { evaluateTrio2 } from "../counterpoint/three-voice-second.ts";
+import { evaluateTrioFlorid } from "../counterpoint/three-voice-florid.ts";
 import { evaluateTrio, type TrioEvaluation } from "../counterpoint/three-voice.ts";
 import { applyAccidental, clear, initialState, letterNote, place, select, setRest, stepNote, type SessionState } from "../game/session.ts";
 import { REST, slotLayout, type PlayEvent } from "../counterpoint/layout.ts";
@@ -37,7 +38,7 @@ import { HeaderTools } from "./HeaderTools.tsx";
 import type { NameStyle } from "../music/names.ts";
 
 /** Fux's three-voice exercises by species (D114: first and second). */
-const BY_SPECIES: Record<1 | 2, TrioStep[]> = { 1: trioSteps(data as never, 1), 2: trioSteps(data as never, 2) };
+const BY_SPECIES = Object.fromEntries(TRIO_SPECIES.map((n) => [n, trioSteps(data as never, n)])) as Record<TrioSpecies, TrioStep[]>;
 const ORDINAL = ["", "1st", "2nd", "3rd", "4th", "5th"];
 const stepLabel = (s: TrioStep) => t("ui.trio3.step", { n: s.ordinal, fig: s.figure, final: s.modalFinal, where: t(`ui.trio3.cantus.${s.cantusIndex}`) });
 
@@ -46,8 +47,8 @@ const freshSessions = (s: TrioStep): Sessions =>
   Object.fromEntries(
     playerStaves(s).map((i) => {
       const st = initialState(voiceSlots(s, i));
-      // The minim voice opens with Fux's half rest (a note may replace it).
-      if (i === s.minimIndex) {
+      // The moving voice opens with Fux's half rest in second and fourth species (a note may replace it).
+      if (i === s.movingIndex && s.per === 2) {
         st.notes[0] = REST;
         st.selected = 1;
       }
@@ -63,7 +64,7 @@ const startPitch = (s: TrioStep, staff: number) => {
 };
 
 export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
-  const [species, setSpecies] = useState<1 | 2>(() => stored<1 | 2>("wtg.trioSpecies", 1, (v) => v === 1 || v === 2));
+  const [species, setSpecies] = useState<TrioSpecies>(() => stored<TrioSpecies>("wtg.trioSpecies", 1, (v) => TRIO_SPECIES.includes(v as TrioSpecies)));
   useEffect(() => store("wtg.trioSpecies", species), [species]);
   const STEPS = BY_SPECIES[species];
   const [stepIndex, setStepIndex] = useState(() => Math.max(0, STEPS.findIndex((s) => s.id === stored("wtg.trioStep", STEPS[0].id))));
@@ -76,9 +77,9 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const activeStaff = mine.includes(active) ? active : mine[0];
   const session = sessions[activeStaff];
   const setSessions = (next: Sessions) => setAll((xs) => ({ ...xs, [STEP.id]: next }));
-  /** The bar being written, and which half of it for the minim voice. */
+  /** The bar being written, and which of its notes for the moving voice. */
   const activeBar = barOfSlot(STEP, activeStaff, session.selected);
-  const activeHalf: 0 | 1 | null = activeStaff === STEP.minimIndex && activeBar < STEP.cantus.length - 1 ? ((session.selected % 2) as 0 | 1) : null;
+  const activePart: number | null = activeStaff === STEP.movingIndex && activeBar < STEP.cantus.length - 1 ? session.selected % STEP.per : null;
   const [result, setResult] = useState<TrioEvaluation | null>(null);
   const [stars, setStars] = useState<string[]>(() => stored<string[]>("wtg.stars", [], (v) => Array.isArray(v)));
   useEffect(() => store("wtg.stars", stars), [stars]);
@@ -164,9 +165,12 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
 
   /** The note each voice sounds at the start of bar k (the minim voice: its thesis, or its arsis after the rest). */
   const downOf = (line: (string | null)[], voice: number, k: number) => {
-    if (voice !== STEP.minimIndex) return line[k];
-    const d = line[2 * k];
-    return d && d !== REST ? d : (line[2 * k + 1] ?? null);
+    if (voice !== STEP.movingIndex) return line[k];
+    for (let j = 0; j < (k === STEP.cantus.length - 1 ? 1 : STEP.per); j++) {
+      const d = line[STEP.per * k + j];
+      if (d && d !== REST) return d;
+    }
+    return null;
   };
   const lines = (k: number) => [0, 1, 2].map((i) => (i === STEP.cantusIndex ? STEP.cantus[k] : downOf(sessions[i].notes, i, k)));
   const missing = mine.reduce((n, i) => n + sessions[i].notes.filter((x) => x === null).length, 0);
@@ -181,7 +185,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
     setStepIndex(k);
     setActive(playerStaves(STEPS[k])[0]);
   };
-  const goToSpecies = (n: 1 | 2) => {
+  const goToSpecies = (n: TrioSpecies) => {
     if (n === species) return;
     audio.stop();
     setPlaying(false);
@@ -204,7 +208,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
     void audio.playSequence([{ slot: k, at: 0, length: 1, cantus: STEP.cantus[k], counterpoint: a ?? null, extra: b ? [{ channel: "second", pitch: b }] : [] }]);
   };
   /** Where a voice is entered in bar b: its first slot, or after the opening rest. */
-  const entry = (i: number, b: number) => (i === STEP.minimIndex && b === 0 && sessions[i].notes[0] === REST ? 1 : slotOfBar(STEP, i, b));
+  const entry = (i: number, b: number) => (i === STEP.movingIndex && b === 0 && sessions[i].notes[0] === REST ? 1 : slotOfBar(STEP, i, b));
   /** Move the voice to slot k; the other voice follows to the same bar. */
   const moveTo = (staff: number, base: SessionState, k: number) => {
     const slot = Math.max(0, Math.min(voiceSlots(STEP, staff) - 1, k));
@@ -234,12 +238,12 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
     }
     const n = STEP.cantus.length;
     const fuxLines = mine.map((i) => STEP.fux[i]);
-    // One event a bar for the semibreves; the minim voice (D114) in half notes on its own events,
+    // One event a bar for the semibreves; the moving voice (D114, D116) on its own events,
     // a tied note held through the bar line.
     const channelOf = (i: number) => (mine.indexOf(i) === 0 ? "counterpoint" : "second");
     const events: PlayEvent[] = [];
     for (let k = 0; k < n; k++) {
-      const whole = mine.filter((i) => i !== STEP.minimIndex);
+      const whole = mine.filter((i) => i !== STEP.movingIndex);
       const sem = (i: number) => sessions[i].notes[k] ?? null;
       const ev: PlayEvent = { slot: k, at: k, length: 1, cantus: STEP.cantus[k], counterpoint: null, extra: [] };
       for (const i of whole) {
@@ -249,21 +253,23 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
         else ev.extra!.push({ channel: "second", pitch: p });
       }
       if (fuxOpen) {
-        for (const i of mine.filter((x) => x !== STEP.minimIndex)) ev.extra!.push({ channel: "fux", pitch: STEP.fux[i][k] });
+        for (const i of mine.filter((x) => x !== STEP.movingIndex)) ev.extra!.push({ channel: "fux", pitch: STEP.fux[i][k] });
       }
       events.push(ev);
-      const m = STEP.minimIndex;
+      const m = STEP.movingIndex;
       if (m === null) continue;
-      const halves = k === n - 1 ? [0] : [0, 1];
-      for (const h of halves) {
-        const slot = k === n - 1 ? 2 * k : 2 * k + h;
-        const len = k === n - 1 ? 1 : 0.5;
+      const per = STEP.per;
+      const parts = k === n - 1 ? [0] : Array.from({ length: per }, (_, j) => j);
+      for (const h of parts) {
+        const slot = per * k + h;
+        const len = k === n - 1 ? 1 : 1 / per;
         for (const [line, ch] of [[sessions[m].notes, channelOf(m)], ...(fuxOpen ? [[STEP.fux[m], "fux"]] : [])] as [(string | null)[], "counterpoint" | "second" | "fux"][]) {
           const p = line[slot];
           if (!p || p === REST) continue;
-          if (h === 0 && slot > 0 && line[slot - 1] === p) continue; // tied over the bar line
-          const held = h === 1 && line[slot + 1] === p && k + 1 < n - 1 ? 1 : len;
-          events.push({ slot: k, at: k + h * 0.5, length: held, cantus: null, counterpoint: null, extra: [{ channel: ch, pitch: p }] });
+          const ties = species !== 3;
+          if (ties && h === 0 && slot > 0 && line[slot - 1] === p) continue; // tied over the bar line
+          const held = ties && h === per - 1 && line[slot + 1] === p ? len * 2 : len;
+          events.push({ slot: k, at: k + h / per, length: held, cantus: null, counterpoint: null, extra: [{ channel: ch, pitch: p }] });
         }
       }
     }
@@ -300,9 +306,11 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
     if (missing > 0) return;
     const voicesNow = [0, 1, 2].map((i) => (i === STEP.cantusIndex ? STEP.cantus : (sessions[i].notes as string[])));
     const ev =
-      STEP.minimIndex === null
+      STEP.movingIndex === null
         ? evaluateTrio({ modalFinal: STEP.modalFinal, cantusIndex: STEP.cantusIndex, voices: voicesNow })
-        : evaluateTrio2({ modalFinal: STEP.modalFinal, cantusIndex: STEP.cantusIndex, minimIndex: STEP.minimIndex, voices: voicesNow });
+        : STEP.species === 2
+          ? evaluateTrio2({ modalFinal: STEP.modalFinal, cantusIndex: STEP.cantusIndex, minimIndex: STEP.movingIndex, voices: voicesNow })
+          : evaluateTrioFlorid({ species: STEP.species as 3 | 4, modalFinal: STEP.modalFinal, cantusIndex: STEP.cantusIndex, movingIndex: STEP.movingIndex, voices: voicesNow, ligatureAllowance: Math.max(1, STEP.untied) });
     setResult(ev);
     setTab("evaluation");
     if (ev.passed) {
@@ -329,7 +337,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
     } else if (k === "Tab") setActive(mine[(mine.indexOf(activeStaff) + (e.shiftKey ? mine.length - 1 : 1)) % mine.length]);
     else if (k === "ArrowRight") browse(1);
     else if (k === "ArrowLeft") browse(-1);
-    else if ((k === "r" || k === "R") && activeStaff === STEP.minimIndex) update(activeStaff, setRest(s, slotLayout("second", STEP.cantus.length)));
+    else if ((k === "r" || k === "R") && activeStaff === STEP.movingIndex) update(activeStaff, { ...s, notes: s.notes.map((q, j) => (j === s.selected ? REST : q)) });
     else if (k === "ArrowUp" || k === "ArrowDown") write(activeStaff, stepNote(s, (k === "ArrowUp" ? 1 : -1) * (e.shiftKey ? 7 : 1), startPitch(STEP, activeStaff)), false);
     else if (/^[a-gA-G]$/.test(k)) {
       const cur = s.notes[s.selected];
@@ -368,7 +376,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
   // Placed by Fux's own lines (and the cantus), so that the staves do not change as the player writes.
   const means = [0, 1, 2].map((i) => mean(i === STEP.cantusIndex ? STEP.cantus : STEP.fux[i]));
   const layoutTwo = trioStaves(means);
-  /** The minims' stems: up for the upper of two voices on a staff, down for the lower; alone, by register. */
+  /** The moving voice's stems: up for the upper of two voices on a staff, down for the lower; alone, by register. */
   const stemOf = (i: number): 1 | -1 => {
     const mates = [0, 1, 2].filter((x) => x !== i && layoutTwo.staff[x] === layoutTwo.staff[i]);
     if (mates.length) return means[i] >= means[mates[0]] ? 1 : -1;
@@ -380,7 +388,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
     notes: i === STEP.cantusIndex ? STEP.cantus : sessions[i].notes,
     editable: i !== STEP.cantusIndex,
     staff: layoutTwo.staff[i],
-    ...(i === STEP.minimIndex ? { minims: true, stem: stemOf(i) } : {}),
+    ...(i === STEP.movingIndex ? { per: STEP.per as 2 | 4, stem: stemOf(i) } : {}),
     ...(i === STEP.cantusIndex ? {} : { ink: INK[mine.indexOf(i)] }),
     ...(i !== STEP.cantusIndex && showFux && fuxOpen ? { fux: STEP.fux[i] } : {}),
   }));
@@ -413,11 +421,11 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
               <option key={n} value={n} disabled={n === 4}>{t("ui.nav.voicesN", { n })}</option>
             ))}
           </select>
-          <select id="species" className="sel sel-species" value={species} aria-label={t("ui.nav.species")} onChange={(e) => goToSpecies(Number(e.target.value) as 1 | 2)}>
+          <select id="species" className="sel sel-species" value={species} aria-label={t("ui.nav.species")} onChange={(e) => goToSpecies(Number(e.target.value) as TrioSpecies)}>
             {[1, 2, 3, 4, 5].map((n) => (
-              <option key={n} value={n} disabled={n > 2}>
+              <option key={n} value={n} disabled={n > 4}>
                 {t("ui.nav.speciesN", { n: ORDINAL[n] })}
-                {n <= 2 ? ` · ${BY_SPECIES[n as 1 | 2].filter((x) => stars.includes(x.id)).length}/${BY_SPECIES[n as 1 | 2].length}` : ""}
+                {n <= 4 ? ` · ${BY_SPECIES[n as TrioSpecies].filter((x) => stars.includes(x.id)).length}/${BY_SPECIES[n as TrioSpecies].length}` : ""}
               </option>
             ))}
           </select>
@@ -445,7 +453,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
             clefs={layoutTwo.clefs}
             active={activeStaff}
             selected={activeBar}
-            selectedHalf={activeHalf}
+            selectedPart={activePart}
             cursor={cursor}
             marks={marks}
             figures={figures}
@@ -453,10 +461,10 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
             names={names}
             nameStyle={nameStyle}
             label={t("ui.trio3.name", { fig: STEP.figure })}
-            onPlace={(staff, bar, natural, half) => {
+            onPlace={(staff, bar, natural, part) => {
               setActive(staff);
               const s = sessions[staff];
-              const slot = Math.min(voiceSlots(STEP, staff) - 1, slotOfBar(STEP, staff, bar) + (staff === STEP.minimIndex ? half : 0));
+              const slot = Math.min(voiceSlots(STEP, staff) - 1, slotOfBar(STEP, staff, bar) + (staff === STEP.movingIndex ? part : 0));
               write(staff, place(select(s, slot), slot, natural), false);
             }}
             onSelect={(staff, bar) => {
@@ -481,7 +489,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
             return (
               <button key={i} role="radio" className={`voice-chip${isCantus ? " cantus" : ""}`} aria-checked={i === activeStaff} disabled={isCantus} style={{ ["--chip" as string]: colour }} onClick={() => setActive(i)} title={isCantus ? t("ui.trio3.chip.cantusHelp") : t("ui.trio3.chip.help", { voice: voiceName(i) })}>
                 <span className="dot" aria-hidden="true" />
-                {partName(i)} <span className="where">{t(`ui.trio3.voice.${i}`)}{i === STEP.minimIndex ? ` · ${t("ui.trio3.minims")}` : ""}</span>
+                {partName(i)} <span className="where">{t(`ui.trio3.voice.${i}`)}{i === STEP.movingIndex ? ` · ${t(`ui.trio3.moving${STEP.species}`)}` : ""}</span>
               </button>
             );
           })}
@@ -609,11 +617,11 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
         { id: "guide", text: true, label: t("ui.howtoTab"), content: (
           <Guide exercise={<>
             <blockquote className="tutor" lang="en">
-              <span className="speaker">{t("tutor.speaker.aloysius")}.</span> “{t(species === 2 ? "ui.trio3.intro2" : "ui.trio3.intro")}”
-              <cite title={t(species === 2 ? "ui.trio3.introLa2" : "ui.trio3.introLa")} lang="la">{t(species === 2 ? "ui.trio3.cite2" : "ui.trio3.cite")}</cite>
+              <span className="speaker">{t("tutor.speaker.aloysius")}.</span> “{t(species === 1 ? "ui.trio3.intro" : `ui.trio3.intro${species}`)}”
+              <cite title={t(species === 1 ? "ui.trio3.introLa" : `ui.trio3.introLa${species}`)} lang="la">{t(species === 1 ? "ui.trio3.cite" : `ui.trio3.cite${species}`)}</cite>
             </blockquote>
             <p className="help trio-help">{t("ui.trio3.help")}</p>
-            {species === 2 && <p className="help trio-help">{t("ui.trio3.help2")}</p>}
+            {species > 1 && <p className="help trio-help">{t(`ui.trio3.help${species}`)}</p>}
           </>} />
         ) },
       ]}

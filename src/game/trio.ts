@@ -1,13 +1,14 @@
 /**
  * Three-voice exercises (Exercitium II, D90): Fux's sixteen first-species exercises in his order,
- * and (D114) his nine second-species ones, one voice in minims (second-species slots),
+ * and (D114) his nine second-species ones, one voice in minims (second-species slots), and (D116)
+ * his four third-species (crotchets) and nine fourth-species (ligatures) ones,
  * read from data/fux/three-voice/fux-three-voice.json. The player writes the two voices that are
  * not the cantus firmus; Fux's own two are his solution. Staves in Fux's order (top first).
  */
 import type { ModalFinal } from "../music/fux/types.ts";
 import { parsePitch } from "../music/pitch.ts";
 import type { ClefId } from "../ui/notation/clefs.ts";
-import { notesToSlots, REST, slotLayout } from "../counterpoint/layout.ts";
+import { REST } from "../counterpoint/layout.ts";
 
 interface RawExercise {
   id: string;
@@ -29,10 +30,13 @@ export interface TrioStep {
   page: number;
   modalFinal: ModalFinal;
   cantusIndex: number;
-  /** 1 or 2 (D114). */
-  species: 1 | 2;
-  /** Second species: the staff of the voice in minims (its line has the second-species slots). */
-  minimIndex: number | null;
+  species: TrioSpecies;
+  /** Species 2-4: the staff of the moving voice (its line has `per` slots a bar, one in the last). */
+  movingIndex: number | null;
+  /** Slots a bar of the moving voice: 2 (minims, ligatures) or 4 (crotchets); 1 in first species. */
+  per: 1 | 2 | 4;
+  /** Fourth species: inner bars Fux himself leaves without a ligature (the player's allowance). */
+  untied: number;
   /** The cantus firmus, one whole note per bar. */
   cantus: string[];
   /** Fux's three lines, top staff first (the cantus among them); the minim voice by slots. */
@@ -61,14 +65,18 @@ export function modernClef(code: string): ClefId {
  */
 export const READINGS: [string, number, number, string, string][] = [["gap_110", 1, 5, "B3", "Bb3"]];
 
-export function trioSteps(data: { exercises: RawExercise[] }, species: 1 | 2 = 1): TrioStep[] {
+export type TrioSpecies = 1 | 2 | 3 | 4;
+export const TRIO_SPECIES: TrioSpecies[] = [1, 2, 3, 4];
+
+export function trioSteps(data: { exercises: RawExercise[] }, species: TrioSpecies = 1): TrioStep[] {
+  const per: 1 | 2 | 4 = species === 1 ? 1 : species === 3 ? 4 : 2;
   return data.exercises
     .filter((e) => e.species.length === 1 && e.species[0] === species)
     .map((e, k) => {
-      const minimIndex = species === 2 ? e.voices.findIndex((v) => v.notes.some((n) => n.duration === "1/2")) : -1;
+      const movingIndex = species === 1 ? -1 : e.voices.findIndex((v) => v.notes.length > e.measures || v.notes.some((n) => n.pitch === null));
       const lines = e.voices.map((v, i) =>
-        i === minimIndex
-          ? notesToSlots(slotLayout("second", e.measures), v.notes as never)
+        i === movingIndex
+          ? movingSlots(per as 2 | 4, e.measures, v.notes)
           : v.notes.map((n) => {
               if (!n.pitch) throw new Error(`${e.id}: rest in a semibreve line`);
               return n.pitch;
@@ -83,7 +91,12 @@ export function trioSteps(data: { exercises: RawExercise[] }, species: 1 | 2 = 1
         id: `fux-mode.t${species}.${String(k + 1).padStart(2, "0")}`,
         ordinal: k + 1,
         species,
-        minimIndex: minimIndex >= 0 ? minimIndex : null,
+        movingIndex: movingIndex >= 0 ? movingIndex : null,
+        per,
+        untied:
+          species === 4 && movingIndex >= 0
+            ? Array.from({ length: e.measures - 2 }, (_, j) => j + 1).filter((b) => lines[movingIndex][2 * b] !== lines[movingIndex][2 * b - 1]).length
+            : 0,
         exerciseId: e.id,
         figure: e.figure,
         page: e.page,
@@ -127,12 +140,12 @@ export function movingSlots(per: 2 | 4, bars: number, notes: { pitch: string | n
   return out;
 }
 
-/** Slots in a voice's line: one per bar, or the second-species slots for the minim voice. */
-export const voiceSlots = (s: TrioStep, voice: number) => (voice === s.minimIndex ? 2 * s.cantus.length - 1 : s.cantus.length);
+/** Slots in a voice's line: one per bar, or `per` a bar (one in the last) for the moving voice. */
+export const voiceSlots = (s: TrioStep, voice: number) => (voice === s.movingIndex ? s.per * (s.cantus.length - 1) + 1 : s.cantus.length);
 /** The bar of slot k in a voice's line. */
-export const barOfSlot = (s: TrioStep, voice: number, k: number) => (voice === s.minimIndex ? Math.min(s.cantus.length - 1, Math.floor(k / 2)) : k);
+export const barOfSlot = (s: TrioStep, voice: number, k: number) => (voice === s.movingIndex ? Math.min(s.cantus.length - 1, Math.floor(k / s.per)) : k);
 /** The first slot of bar b in a voice's line. */
-export const slotOfBar = (s: TrioStep, voice: number, b: number) => (voice === s.minimIndex ? 2 * b : b);
+export const slotOfBar = (s: TrioStep, voice: number, b: number) => (voice === s.movingIndex ? s.per * b : b);
 
 /** The staves the player writes (the two that are not the cantus). */
 export const playerStaves = (s: TrioStep) => [0, 1, 2].filter((x) => x !== s.cantusIndex);
