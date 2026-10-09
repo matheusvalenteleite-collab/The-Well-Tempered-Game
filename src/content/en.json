@@ -973,7 +973,17 @@
     "l2.summary.kittel": "with one of Kittel's basses at {n} of {of}",
     "l3.yours": "Your bass (degree)",
     "l3.habit": "Bach's bass under this melody degree ({n} notes on the beat)",
-    "prompt3": "Note {n} (bar {bar}), {pitch}, bass on degree:"
+    "prompt3": "Note {n} (bar {bar}), {pitch}, bass on degree:",
+    "l4.yours": "Your figure",
+    "l4.habit": "Bach, over this bass degree under this melody degree ({n} bass notes on the beat)",
+    "prompt4": "Bass note {n} (bar {bar}), {pitch} under {melody}, figured:",
+    "bassNote": "Bass note {n} (bar {bar})",
+    "bassUnder": "{pitch} (degree {degree}) under {melody}",
+    "whichBass": "Which of Kittel's basses",
+    "bassN": "Kittel's bass {label}",
+    "l4.kittel": "Kittel",
+    "rare2": "Bach never does so here: a choice of your own.",
+    "l4.summary": "with Kittel at {n} of {of} bass notes"
   },
   "wtc": {
     "mode": "Well-Tempered Clavier",

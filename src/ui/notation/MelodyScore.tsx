@@ -27,11 +27,16 @@ interface Props {
   onSelect(phrase: number): void;
   /** the melody notes that carry a marker (default: the fermatas); narrow markers when many */
   markerAt?: number[];
+  /** the bass clef (chorale level 4: one of Kittel's basses) */
+  clef?: "treble" | "bass";
 }
 
 const yOf = (diatonic: number) => TOP + 4 * S - (diatonic - E4) * (S / 2);
 
-export function MelodyScore({ chorale, picks, selected, states, cursor, onSelect, markerAt }: Props) {
+export function MelodyScore({ chorale, picks, selected, states, cursor, onSelect, markerAt, clef = "treble" }: Props) {
+  // the bass clef drawn as the treble: a note shown 12 diatonic steps higher (G2 on E4's line), the
+  // key signature's places two steps lower than the treble's
+  const shift = clef === "bass" ? 12 : 0;
   const ks = chorale.keySignature;
   const prefix = 34 + 9 * Math.abs(ks) + (chorale.meterSign ? 0 : 0);
   // bar widths: proportional to length, with room for every note
@@ -77,9 +82,9 @@ export function MelodyScore({ chorale, picks, selected, states, cursor, onSelect
             {[0, 1, 2, 3, 4].map((k) => (
               <line key={k} x1={4} x2={x} y1={TOP + k * S} y2={TOP + k * S} className="staff-line" />
             ))}
-            <text x={6} y={TOP + 4 * S - 1} className="clef">𝄞</text>
+            {clef === "bass" ? <text x={6} y={TOP + 2 * S + 4} className="clef">𝄢</text> : <text x={6} y={TOP + 4 * S - 1} className="clef">𝄞</text>}
             {Array.from({ length: Math.abs(ks) }, (_, k) => (
-              <text key={k} x={30 + k * 9} y={yOf((ks > 0 ? SHARPS : FLATS)[k]) + 4} className="accidental">{ks > 0 ? "♯" : "♭"}</text>
+              <text key={k} x={30 + k * 9} y={yOf((ks > 0 ? SHARPS : FLATS)[k] - (clef === "bass" ? 2 : 0)) + 4} className="accidental">{ks > 0 ? "♯" : "♭"}</text>
             ))}
             {si === 0 && chorale.meterSign === "C" && <text x={prefix - 12} y={TOP + 2 * S + 5} className="meter">𝄴</text>}
             {placed.map((b) => (
@@ -88,7 +93,7 @@ export function MelodyScore({ chorale, picks, selected, states, cursor, onSelect
             {placed.map((b) => (
               <text key={`n${b.number}`} x={b.x + 2} y={TOP - 14} className="bar-number">{b.number}</text>
             ))}
-            {chorale.melody.map((n, i) => (inSys(n) ? <Note key={i} n={n} x={n.grace ? xAt(frac(n.offset)) - 11 : xAt(frac(n.offset))} /> : null))}
+            {chorale.melody.map((n, i) => (inSys(n) ? <Note key={i} n={n} shift={shift} x={n.grace ? xAt(frac(n.offset)) - 11 : xAt(frac(n.offset))} /> : null))}
             {fermataIdx.map((ni, p) => {
               const n = chorale.melody[ni];
               if (!n || !inSys(n)) return null;
@@ -136,7 +141,7 @@ function Barline({ x, style }: { x: number; style: string | null }) {
   return <line className="barline" x1={x} x2={x} y1={y1} y2={y2} strokeDasharray={st.startsWith("dashed") ? "3 3" : undefined} />;
 }
 
-function Note({ n, x }: { n: MelodyNote; x: number }) {
+function Note({ n, x, shift = 0 }: { n: MelodyNote; x: number; shift?: number }) {
   if (!n.pitch) {
     // a rest: half (on the middle line), whole (hanging from the fourth), shorter as a glyph
     const d = frac(n.duration);
@@ -146,7 +151,8 @@ function Note({ n, x }: { n: MelodyNote; x: number }) {
     }
     return <text x={x - 4} y={TOP + 2.5 * S} className="rest-glyph">𝄽</text>;
   }
-  const p = parsePitch(n.pitch);
+  const p0 = parsePitch(n.pitch);
+  const p = { ...p0, diatonic: p0.diatonic + shift };
   const y = yOf(p.diatonic);
   const d = frac(n.duration);
   const small = Boolean(n.grace);

@@ -4,7 +4,7 @@ This was written for the owner, who left the instruction: "work on choices lab i
 develop it as further as you can without my help … do work on the Well-Tempered Clavier … this is
 the end goal."
 
-Everything below is committed and pushed on this branch. Decisions C6–C11 were taken without the
+Everything below is committed and pushed on this branch. Decisions C6–C12 were taken without the
 owner and are marked *assumed, owner to confirm* in `docs/DECISIONS.md`.
 
 ## 1. What to look at first
@@ -17,8 +17,9 @@ owner and are marked *assumed, owner to confirm* in `docs/DECISIONS.md`.
      marked as faults; Bach's prelude has none.
    - **F2, the answer.** Choose the answer to 26 fugue subjects: real, textbook tonal, or Bach's
      own mutation.
-2. **The game, Chorales**, now with **level 2** (the chord under every melody note) and **level 3**
-   (the bass under every melody note: Kittel's own exercise). Both are compared, note by note, with
+2. **The game, Chorales**, now with **level 2** (the chord under every melody note), **level 3**
+   (the bass under every melody note: Kittel's own exercise) and **level 4** (figure one of
+   Kittel's basses). Both are compared, note by note, with
    Kittel's basses, Bach's settings and Bach's habit.
 3. **`docs/wtc/PLAN.md`**: the WTC plan from this branch, and how it relates to the Choices lab's
    concept (section 3 below).
@@ -49,6 +50,9 @@ owner and are marked *assumed, owner to confirm* in `docs/DECISIONS.md`.
 - **Chorale level 3** (`docs/chorales/LEVEL3.md`). Bach's bass degree is the habit's first choice
   48% of the time and among its first three 82% of the time. Kittel's basses put 3.2 different
   bass degrees under a melody note on average, and one of them has Bach's under 84% of notes.
+- **Chorale level 4** (`docs/chorales/LEVEL4.md`). The figure (the chord's position over the bass)
+  is the most predictable layer: 81% first, 98% in the first three. Bach's commonest position is
+  Kittel's at 75% of his 7,171 read bass notes.
 
 ## 3. Coordination with the other sessions
 
@@ -85,13 +89,14 @@ owner and are marked *assumed, owner to confirm* in `docs/DECISIONS.md`.
    2. ask for permission;
    3. re-encode from the Bach-Gesellschaft edition;
    4. subjects only for the fugue levels.
-2. **C6–C11**: confirm or amend.
+2. **C6–C12**: confirm or amend.
    - C6: the WTC screen and P1.
    - C7: sources.
    - C8: F2, the answer.
    - C9: P2, the figured bass.
    - C10: chorale level 2.
    - C11: chorale level 3.
+   - C12: chorale level 4.
 3. **Kirnberger's text** is still unreachable from here: the proxy refuses archive.org and IMSLP.
    The analytical categories remain operational readings marked "to verify".
 
@@ -99,6 +104,6 @@ owner and are marked *assumed, owner to confirm* in `docs/DECISIONS.md`.
 
 - P1 and P2 for Preludes 2, 5 and 6, once their Mutopia sources are read and checked against
   Humdrum. A LilyPond reader for that was in progress at the time of writing; see the commit log.
-- Chorale level 4, the figures, using the same method as levels 1–3.
+- Chorale level 5, the voices (four real parts), judged by the boundaries Bach virtually never crosses.
 - Local keys in the chorale habits (a passage in the dominant now reads as II and V of the home
   key).

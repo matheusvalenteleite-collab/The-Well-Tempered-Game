@@ -41,3 +41,21 @@ test("level 3: Bach's and Kittel's bass degrees are among the options; degrees s
   assert.equal(bassPitch("b7", "F", 48), "Eb3");
   assert.equal(bassPitch("3", "Bb", 50), "D3");
 });
+
+import { LEVEL4, POSITIONS, bassChorale, realise } from "../src/chorale/level4.ts";
+
+test("level 4: Kittel's basses as scores; figures realised in the key", () => {
+  for (const ch of CHORALES) {
+    const l4 = LEVEL4[ch.number];
+    assert.ok(l4.basses.length >= 8);
+    for (const b of l4.basses) {
+      const sc = bassChorale(ch, b.notes);
+      assert.equal(sc.melody.length, b.notes.length);
+      for (const n of b.notes) if (n.kittel) assert.ok(POSITIONS.includes(n.kittel));
+    }
+  }
+  assert.deepEqual(realise("5/3", "G2", "G", "major"), ["B3", "D4"]);
+  assert.deepEqual(realise("6", "F#2", "G", "major"), ["A3", "D4"]);
+  assert.deepEqual(realise("4/2", "C3", "G", "major"), ["D4", "F#4", "A4"]);
+  assert.deepEqual(realise("6/5", "C#3", "D", "minor"), ["E4", "G4", "A4"]);
+});
