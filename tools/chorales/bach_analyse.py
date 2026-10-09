@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import json
 import sys
-from collections import Counter
+from collections import Counter, defaultdict
 from fractions import Fraction as F
 from pathlib import Path
 
@@ -288,7 +288,59 @@ def analyse(c: dict) -> dict:
         "key": c["key"], "beat": frac(beat),
         "verticalities": verts, "phrases": phrases, "cadences": cadences,
         "parallels": parallels(verts, phrases),
+        "voice_leading": voice_leading(verts, tl),
     }
+
+
+def voice_leading(verts: list[dict], tl: dict) -> dict:
+    """Counts per chorale (summed in the report): doubling in complete triads on the beat, spacing,
+    the leading tone of a dominant whose root falls a fifth, and the melodic intervals of each
+    voice. All read from the Kirnberger labels of the verticalities."""
+    out = {"doubling": Counter(), "spacing": Counter(), "leading_tone": Counter(), "melodic": Counter(), "overlap": 0}
+    beats = [v for v in verts if v["on_beat"] and v["root"]]
+    for v in beats:
+        roles = [v["labels"].get(x) for x in VOICES]
+        if v["chord"] in ("major", "minor", "diminished") and None not in roles and all(r in ("root", "third", "fifth") for r in roles):
+            if len(set(roles)) == 3:
+                dbl = next(r for r in ("root", "third", "fifth") if roles.count(r) == 2)
+                out["doubling"][(v["chord"], v["bass_role"], dbl)] += 1
+            elif len(set(roles)) == 2:
+                out["doubling"][(v["chord"], v["bass_role"], "incomplete: " + "+".join(sorted(set(roles))))] += 1
+        p = {x: v["pitches"][x] for x in VOICES}
+        if None not in p.values():
+            m = {x: K.midi(p[x]) for x in VOICES}
+            out["spacing"]["soprano-alto over an octave"] += m["soprano"] - m["alto"] > 12
+            out["spacing"]["alto-tenor over an octave"] += m["alto"] - m["tenor"] > 12
+            out["spacing"]["tenor-bass over a twelfth"] += m["tenor"] - m["bass"] > 19
+            out["spacing"]["beats"] += 1
+    # the leading tone: the third of a major triad or dominant seventh whose root then falls a fifth
+    for v1, v2 in zip(beats, beats[1:]):
+        if v1["chord"] not in ("major", "dominant seventh") or not v2["root"]:
+            continue
+        if (pc_of(v1["root"]) - pc_of(v2["root"])) % 12 != 7:
+            continue
+        for x in VOICES:
+            if v1["labels"].get(x) != "third" or v2["pitches"][x] is None:
+                continue
+            d = K.midi(v2["pitches"][x]) - K.midi(v1["pitches"][x])
+            kind = {1: "rises a semitone (to the root)", 0: "held", -3: "falls a third (to the fifth)", -4: "falls a third (to the fifth)",
+                    -1: "falls a semitone", -2: "falls a tone"}.get(d, "other")
+            out["leading_tone"][(x, kind)] += 1
+    # melodic intervals, note to note in each voice (ties merged)
+    for x in VOICES:
+        for (_, _, a), (_, _, b) in zip(tl[x], tl[x][1:]):
+            d = abs(K.midi(b["pitch"]) - K.midi(a["pitch"]))
+            g = abs(K.diatonic(b["pitch"]) - K.diatonic(a["pitch"]))
+            name = {0: "unison", 1: "second", 2: "third", 3: "fourth", 4: "fifth", 5: "sixth", 6: "seventh", 7: "octave"}.get(g, "wider than an octave")
+            aug = (g == 1 and d == 3) or (g == 3 and d == 6) or (g == 4 and d == 8) or (g == 2 and d == 5)
+            dim = (g == 3 and d == 4) or (g == 4 and d == 6) or (g == 6 and d == 9) or (g == 2 and d == 2)
+            out["melodic"][(x, name + (" (augmented)" if aug else " (diminished)" if dim else ""))] += 1
+    return {k: ({"|".join(map(str, kk)) if isinstance(kk, tuple) else kk: n for kk, n in v.items()} if isinstance(v, Counter) else v) for k, v in out.items()}
+
+
+def pc_of(name: str) -> int:
+    s, a = name[0], name[1:]
+    return (PC[s] + a.count("#") - a.count("b")) % 12
 
 
 def parallels(verts: list[dict], phrases: list[dict]) -> list[dict]:
@@ -329,6 +381,7 @@ def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     figs_beat, figs_all, cads, cad_deg, finals = Counter(), Counter(), Counter(), Counter(), Counter()
     n_vert = 0
+    vl = defaultdict(Counter)
     par = Counter()
     par_list = []
     chords, inv, nct, nct_beat, sev, roots, unan = Counter(), Counter(), Counter(), Counter(), Counter(), Counter(), 0
@@ -337,6 +390,10 @@ def main() -> None:
         a = analyse(c)
         (OUT / f"{c['id']}.json").write_text(json.dumps(a, ensure_ascii=False, separators=(",", ":")) + "\n")
         n_vert += len(a["verticalities"])
+        for k, d in a["voice_leading"].items():
+            if isinstance(d, dict):
+                for kk, n in d.items():
+                    vl[k][kk] += n
         prev_root = None
         for v in a["verticalities"]:
             if v["root"] is None:
@@ -426,6 +483,30 @@ def main() -> None:
            "| prepared | resolves down by step | bass moves at the resolution | count |", "|---|---|---|---|"]
     for (pr, rd, bm), n in sorted(sev.items(), key=lambda x: -x[1]):
         md.append(f"| {'yes' if pr else 'no'} | {'yes' if rd else 'no'} | {'—' if bm is None else ('yes' if bm else 'no')} | {n} |")
+    md += ["", "## Doubling in complete triads on the beat", "",
+           "Four voices, three chord members: which is doubled, by chord and by the bass's place in it.", "",
+           "| triad | bass is | doubled | count | share of that triad and position |", "|---|---|---|---|---|"]
+    groups = defaultdict(int)
+    for k, n in vl["doubling"].items():
+        ch, br, d = k.split("|")
+        groups[(ch, br)] += n
+    for k, n in sorted(vl["doubling"].items(), key=lambda x: (x[0].split("|")[0], x[0].split("|")[1], -x[1])):
+        ch, br, d = k.split("|")
+        if groups[(ch, br)] >= 30:
+            md.append(f"| {ch} | {br} | {d} | {n} | {100 * n / groups[(ch, br)]:.0f}% |")
+    md += ["", "## Spacing (on the beat)", "", "| | count | share |", "|---|---|---|"]
+    for k in ("soprano-alto over an octave", "alto-tenor over an octave", "tenor-bass over a twelfth"):
+        md.append(f"| {k} | {vl['spacing'][k]} | {100 * vl['spacing'][k] / vl['spacing']['beats']:.1f}% |")
+    md += ["", "## The leading tone", "",
+           "The third of a major triad or dominant seventh whose root then falls a fifth (V-I, in any key):",
+           "where that voice goes.", "", "| voice | goes | count |", "|---|---|---|"]
+    for k, n in sorted(vl["leading_tone"].items(), key=lambda x: (VOICES[::-1].index(x[0].split("|")[0]), -x[1])):
+        voice, kind = k.split("|")
+        md.append(f"| {voice} | {kind} | {n} |")
+    md += ["", "## Melodic intervals", "", "| voice | interval | count |", "|---|---|---|"]
+    for k, n in sorted(vl["melodic"].items(), key=lambda x: (VOICES[::-1].index(x[0].split("|")[0]), -x[1])):
+        voice, kind = k.split("|")
+        md.append(f"| {voice} | {kind} | {n} |")
     md += ["", "## Consecutive fifths and octaves", "",
            "Between two voices that both move, from one onset to the next. Contrary motion means the",
            "perfect interval is kept by an octave leap. Rows after a phrase end are kept apart: the fermata",

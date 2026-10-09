@@ -225,6 +225,133 @@ the same bass, as a suspension does).
 | no | no | — | 149 |
 | no | yes | no | 21 |
 
+## Doubling in complete triads on the beat
+
+Four voices, three chord members: which is doubled, by chord and by the bass's place in it.
+
+| triad | bass is | doubled | count | share of that triad and position |
+|---|---|---|---|---|
+| diminished | root | third | 44 | 94% |
+| diminished | root | root | 3 | 6% |
+| diminished | third | third | 329 | 83% |
+| diminished | third | fifth | 64 | 16% |
+| diminished | third | root | 4 | 1% |
+| major | fifth | fifth | 119 | 79% |
+| major | fifth | third | 25 | 17% |
+| major | fifth | root | 6 | 4% |
+| major | root | root | 5303 | 85% |
+| major | root | third | 506 | 8% |
+| major | root | fifth | 249 | 4% |
+| major | root | incomplete: root+third | 205 | 3% |
+| major | third | root | 844 | 34% |
+| major | third | third | 829 | 34% |
+| major | third | fifth | 768 | 31% |
+| major | third | incomplete: root+third | 6 | 0% |
+| minor | fifth | fifth | 108 | 82% |
+| minor | fifth | third | 14 | 11% |
+| minor | fifth | root | 9 | 7% |
+| minor | root | root | 2208 | 75% |
+| minor | root | third | 497 | 17% |
+| minor | root | incomplete: root+third | 134 | 5% |
+| minor | root | fifth | 103 | 4% |
+| minor | third | third | 471 | 50% |
+| minor | third | fifth | 238 | 25% |
+| minor | third | root | 221 | 24% |
+| minor | third | incomplete: root+third | 7 | 1% |
+
+## Spacing (on the beat)
+
+| | count | share |
+|---|---|---|
+| soprano-alto over an octave | 73 | 0.4% |
+| alto-tenor over an octave | 177 | 1.0% |
+| tenor-bass over a twelfth | 153 | 0.9% |
+
+## The leading tone
+
+The third of a major triad or dominant seventh whose root then falls a fifth (V-I, in any key):
+where that voice goes.
+
+| voice | goes | count |
+|---|---|---|
+| soprano | rises a semitone (to the root) | 512 |
+| soprano | falls a third (to the fifth) | 81 |
+| soprano | other | 57 |
+| soprano | held | 12 |
+| soprano | falls a semitone | 1 |
+| soprano | falls a tone | 1 |
+| alto | falls a third (to the fifth) | 562 |
+| alto | rises a semitone (to the root) | 530 |
+| alto | other | 32 |
+| alto | held | 24 |
+| alto | falls a semitone | 3 |
+| tenor | rises a semitone (to the root) | 420 |
+| tenor | falls a third (to the fifth) | 238 |
+| tenor | other | 90 |
+| tenor | held | 13 |
+| tenor | falls a semitone | 3 |
+| bass | rises a semitone (to the root) | 1121 |
+| bass | other | 33 |
+| bass | falls a third (to the fifth) | 13 |
+| bass | falls a semitone | 12 |
+| bass | held | 5 |
+
+## Melodic intervals
+
+| voice | interval | count |
+|---|---|---|
+| soprano | second | 12727 |
+| soprano | unison | 2726 |
+| soprano | third | 1322 |
+| soprano | fourth | 858 |
+| soprano | fifth | 343 |
+| soprano | sixth | 59 |
+| soprano | octave | 45 |
+| soprano | fourth (diminished) | 5 |
+| soprano | fifth (diminished) | 5 |
+| soprano | seventh | 3 |
+| alto | second | 13219 |
+| alto | unison | 4346 |
+| alto | third | 1708 |
+| alto | fourth | 1169 |
+| alto | fifth | 308 |
+| alto | sixth | 107 |
+| alto | octave | 40 |
+| alto | fifth (diminished) | 21 |
+| alto | fourth (diminished) | 18 |
+| alto | seventh | 5 |
+| alto | wider than an octave | 1 |
+| alto | fourth (augmented) | 1 |
+| alto | third (diminished) | 1 |
+| alto | fifth (augmented) | 1 |
+| tenor | second | 13548 |
+| tenor | unison | 3951 |
+| tenor | third | 1619 |
+| tenor | fourth | 1432 |
+| tenor | fifth | 716 |
+| tenor | sixth | 193 |
+| tenor | fifth (diminished) | 125 |
+| tenor | octave | 84 |
+| tenor | fourth (diminished) | 33 |
+| tenor | seventh | 5 |
+| tenor | seventh (diminished) | 2 |
+| tenor | fourth (augmented) | 1 |
+| bass | second | 13975 |
+| bass | fourth | 2556 |
+| bass | fifth | 1910 |
+| bass | third | 1561 |
+| bass | octave | 939 |
+| bass | unison | 904 |
+| bass | sixth | 197 |
+| bass | fifth (diminished) | 139 |
+| bass | fourth (diminished) | 70 |
+| bass | seventh | 64 |
+| bass | wider than an octave | 36 |
+| bass | seventh (diminished) | 19 |
+| bass | fourth (augmented) | 15 |
+| bass | fifth (augmented) | 8 |
+| bass | third (diminished) | 3 |
+
 ## Consecutive fifths and octaves
 
 Between two voices that both move, from one onset to the next. Contrary motion means the
