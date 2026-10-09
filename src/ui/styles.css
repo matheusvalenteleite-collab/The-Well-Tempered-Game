@@ -660,3 +660,38 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
 .page-viewer-bar strong { flex: 1; text-align: center; font-family: var(--ui-font); }
 .gradus-quote { font-size: 1.15rem; font-style: italic; }
 .gradus-quote cite { display: block; font-size: 0.75rem; font-style: normal; margin-top: 6px; color: var(--muted); }
+
+/* D98: the evaluation, flat — no box in a box. One verdict line, plain headed lists, With Fux. */
+.feedback, :root[data-look="retro"] .feedback { margin: 0; padding: 0; background: none; border: none; border-radius: 0; box-shadow: none; gap: 6px; }
+.eval { display: flex; flex-direction: column; gap: 6px; }
+.eval-verdict { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.eval-verdict strong { font-size: 1.05rem; }
+.eval-verdict.ok strong { color: var(--ok); }
+.eval-verdict.bad strong { color: var(--bad); }
+.eval-word { flex: 1 1 260px; font-style: italic; color: var(--muted); font-size: 0.9rem; }
+.eval-word .speaker { font-style: normal; font-variant: small-caps; color: var(--ink); }
+.eval-verdict .next { margin-left: auto; font-weight: 600; border-color: var(--ok); color: var(--ok); }
+.eval-h { display: flex; align-items: center; gap: 8px; margin: 10px 0 2px; font-size: 0.82rem; font-variant: small-caps; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; }
+.eval-h .eval-n { font-variant-numeric: tabular-nums; background: var(--line); color: var(--ink); border-radius: 8px; padding: 0 6px; font-size: 0.75rem; }
+.eval-h button { margin-left: auto; min-height: 24px; padding: 1px 8px; font-size: 0.78rem; font-variant: normal; letter-spacing: 0; }
+.feedback .violations { gap: 4px; }
+.feedback .violations li { padding: 4px 8px; gap: 6px 12px; border-left-width: 3px; background: none; border-radius: 0; }
+.feedback .violations .excerpt { padding: 2px; border-color: transparent; }
+.feedback .violations .excerpt:hover { border-color: var(--accent); }
+.feedback .version-eval { border-left: 3px solid var(--line); padding-left: 8px; margin-top: 4px; }
+.feedback .version-eval .eval-verdict { border-bottom: none; padding-bottom: 0; }
+.with-fux { display: flex; flex-direction: column; gap: 4px; }
+.with-fux-verdict { display: flex; align-items: center; gap: 12px; }
+.with-fux-verdict p { margin: 0; }
+.with-fux-badge { flex: 0 0 auto; min-width: 52px; text-align: center; font-size: 1.3rem; font-weight: 700; font-variant-numeric: tabular-nums; padding: 2px 6px; border: 2px solid currentColor; border-radius: 6px; cursor: help; }
+.with-fux-verdict.identical .with-fux-badge { font-size: 1.8rem; color: #c8962a; }
+.with-fux-verdict.close .with-fux-badge { color: #2a56d6; }
+.with-fux-verdict.remarkable .with-fux-badge { color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+.with-fux-verdict.good .with-fux-badge { color: var(--ok); }
+.with-fux-verdict.uneven .with-fux-badge { color: var(--warn); }
+.with-fux-verdict.clash .with-fux-badge { color: var(--bad); }
+.with-fux .compare h4 { font-size: 0.82rem; margin-top: 8px; }
+:root[data-look="retro"] .with-fux-badge { border-radius: 0; box-shadow: 2px 2px 0 var(--edge); }
+.feedback .violations li { align-items: flex-start; }
+.feedback .compare li { border-left: none; padding-left: 0; }
+:root[data-look="retro"] .feedback .excerpt { box-shadow: none; border: 1px solid var(--line); }

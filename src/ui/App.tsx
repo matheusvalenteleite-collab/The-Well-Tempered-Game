@@ -3,9 +3,8 @@ import { repository } from "../music/fux/load-browser.ts";
 import { ALL_STEPS, COURSES, courseOf, rulesForStep, validateCurriculum } from "../counterpoint/curriculum/index.ts";
 import { HOLD, REST, slotLength, sounding, timeline } from "../counterpoint/layout.ts";
 import { evaluate, type Evaluation } from "../counterpoint/engine.ts";
-import { compareWithOriginal } from "../music/fux/player.ts";
 import { exerciseView } from "../game/exercise-view.ts";
-import { applyAccidental, clear, clearSpan, holdSelected, initialState, letterNote, moveNote, onsetOf, place, repeatPrevious, select, setRest, spanFromSelected, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
+import { applyAccidental, clear, clearSpan, holdSelected, initialState, letterNote, moveNote, onsetOf, place, repeatPrevious, select, setRest, spanFromSelected, stepNote, type SessionState } from "../game/session.ts";
 import { AudioEngine, renderLevel, SYNTH_PRESETS, type AudioStatus } from "../audio/engine.ts";
 import { restoreSound, setMix as changeMix, shiftOctave, type SoundState } from "../audio/sound.ts";
 import { encode, EXPORT_FORMATS, saveFile, type ExportFormat } from "../audio/export.ts";
@@ -27,9 +26,8 @@ import { realizeContinuo } from "../continuo/realize.ts";
 import { playContinuo } from "../continuo/audio.ts";
 import { continuoInput, continuoKey, continuoOptions, type PlayMode } from "../game/continuo-input.ts";
 import { activeVersions, deriveVersion, heardLines, validVersions, VERSION_IDS, type VersionId, type Versions } from "../game/versions.ts";
-import { trioReading } from "../game/trio-eval.ts";
+import { trioFindings, trioVerdict } from "../game/trio-verdict.ts";
 import { TrioReading } from "./TrioReading.tsx";
-import { Fold } from "./Fold.tsx";
 import { gatesOf, modeOf, startPasses, startPlayback, type PlaySetup } from "./playback.ts";
 import { SavedPieces } from "./SavedPieces.tsx";
 import { makePiece, restorePieces, type Piece, type Setup } from "../game/saved.ts";
@@ -104,9 +102,6 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const [showSaved, setShowSaved] = useState(false);
   const [savedPlaying, setSavedPlaying] = useState<{ id: string; slot: number } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  /** Boxes folded to one line (D52), remembered per box. */
-  const [folded, setFolded] = useState<Record<string, boolean>>(() => stored<Record<string, boolean>>("wtg.folds", {}, (v) => typeof v === "object" && v !== null && !Array.isArray(v)));
-  const foldProps = (id: string) => ({ open: !folded[id], onToggle: (open: boolean) => setFolded({ ...folded, [id]: !open }) });
   /** Zoom of the score (D87): 1 is the size the screen chooses; pinch, Ctrl + wheel or − / +. */
   const [zoom, setZoom] = useState(() => stored("wtg.zoom", 1, (v) => typeof v === "number" && v >= ZOOM_MIN && v <= ZOOM_MAX));
   useEffect(() => store("wtg.zoom", zoom), [zoom]);
@@ -175,7 +170,6 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   useEffect(() => store("wtg.continuo", continuo), [continuo]);
   useEffect(() => store("wtg.versions", storedVersions), [storedVersions]);
   useEffect(() => store("wtg.saved", pieces), [pieces]);
-  useEffect(() => store("wtg.folds", folded), [folded]);
   useEffect(() => {
     if (!toast) return;
     const id = window.setTimeout(() => setToast(null), 2600);
@@ -1027,43 +1021,45 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
           <>
         {result ? (
           <section className="feedback" aria-live="polite">
-            <Fold title={t("ui.fold.evaluation")} {...foldProps("evaluation")}>
-              <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} ties={VIEW.species === "fourth"} audio={audio} />
-            </Fold>
+            <Feedback
+              result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} ties={VIEW.species === "fourth"} audio={audio}
+              actions={result.passed && stepIndex < STEPS.length - 1 ? <button className="next" onClick={() => goTo(stepIndex + 1)}>{t("ui.nav.nextExercise")} ›</button> : undefined}
+            />
+            {versionResults.length > 0 && <h3 className="eval-h">{t("ui.result.versionsTitle")}</h3>}
             {versionResults.map((v) => (
-              <Fold key={v.id} className="version-eval" title={<span style={{ color: VERSION_INK[v.id] }}>{t(`ui.versions.${v.id}`, { n: versions.canonShift })}</span>} {...foldProps(`version-${v.id}`)}>
-                <Feedback result={v.ev} cantus={VIEW.cantus} counterpoint={v.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} ties={VIEW.species === "fourth"} audio={audio} />
-              </Fold>
-            ))}
-            <div className="after">
-              {fuxSolution && VIEW.fux && !fuxOpen && <p className="help">{t("ui.fux.locked")}</p>}
-              {fuxSolution && VIEW.fux && fuxOpen && (
-                <button aria-pressed={showFux} onClick={() => setShowFux(!showFux)}>{showFux ? t("ui.fux.hide") : t("ui.fux.show")}</button>
-              )}
-              {result.passed && stepIndex < STEPS.length - 1 && (
-                <button className="next" onClick={() => goTo(stepIndex + 1)}>{t("ui.nav.nextExercise")} ›</button>
-              )}
-            </div>
-            {fuxOpen && showFux && fuxSolution && VIEW.fux && (
-              <Fold title={t("ui.fold.fux")} {...foldProps("fux")}>
-              <div className="fux">
-                <p className="help">{t("ui.fux.overlayHelp")}</p>
-                <p className="help">
-                  {(() => {
-                    const filled = { ...session, notes: session.notes.map((n, k) => (n === null && VIEW.layout[k].restAllowed ? REST : n)) };
-                    const cmp = compareWithOriginal(toPlayerSolution(filled, repository.getExercise(VIEW.exerciseId!)!, VIEW.layout), fuxSolution);
-                    const key = VIEW.species === "first" ? "ui.fux.agreement" : "ui.fux.agreementNotes";
-                    return t(key, { same: cmp.points.filter((p) => p.same_pitch).length, total: cmp.points.length });
-                  })()}
-                </p>
-                {missing === 0 && <FuxComparison cantus={VIEW.cantus} player={session.notes} fux={VIEW.fux} layout={VIEW.layout} />}
+              <div key={v.id} className="version-eval">
+                <h4 style={{ color: VERSION_INK[v.id] }}>{t(`ui.versions.${v.id}`, { n: versions.canonShift })}</h4>
+                <Feedback compact result={v.ev} cantus={VIEW.cantus} counterpoint={v.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} ties={VIEW.species === "fourth"} audio={audio} />
               </div>
-              </Fold>
-            )}
-            {fuxOpen && showFux && VIEW.fux && missing === 0 && COURSE.voices === 2 && (
-              <Fold title={t("ui.trio.title")} {...foldProps("trio")}>
-                <TrioReading findings={trioReading(VIEW.cantus, session.notes, VIEW.fux, VIEW.layout)} layout={VIEW.layout} />
-              </Fold>
+            ))}
+            {fuxSolution && VIEW.fux && (
+              <div className="with-fux">
+                <h3 className="eval-h">
+                  {t("ui.withFux.title")}
+                  {fuxOpen && <button className="btn-view" aria-pressed={showFux} onClick={() => setShowFux(!showFux)}>{showFux ? t("ui.fux.hide") : t("ui.fux.show")}</button>}
+                </h3>
+                {!fuxOpen ? (
+                  <p className="help">{t("ui.withFux.locked")}</p>
+                ) : missing > 0 ? (
+                  <p className="help">{t("ui.withFux.incomplete")}</p>
+                ) : (
+                  (() => {
+                    const v = trioVerdict(VIEW.cantus, session.notes, VIEW.fux!, VIEW.layout);
+                    const pct = v.places ? Math.round((100 * v.same) / v.places) : 0;
+                    const args = { pct, same: v.same, n: v.places, clean: v.clean, bad: v.places - v.clean };
+                    return (
+                      <>
+                        <div className={`with-fux-verdict ${v.grade}`}>
+                          <span className="with-fux-badge" data-info={t("ui.withFux.badgeHelp", args)}>{v.grade === "identical" ? t("ui.withFux.badge.identical") : t("ui.withFux.badge", args)}</span>
+                          <p>{t(`ui.withFux.${v.grade}`, args)}</p>
+                        </div>
+                        {v.grade !== "identical" && <FuxComparison cantus={VIEW.cantus} player={session.notes} fux={VIEW.fux!} layout={VIEW.layout} />}
+                        {v.grade !== "identical" && COURSE.voices === 2 && <TrioReading findings={trioFindings(VIEW.cantus, session.notes, VIEW.fux!, VIEW.layout)} layout={VIEW.layout} />}
+                      </>
+                    );
+                  })()
+                )}
+              </div>
             )}
           </section>
         ) : (
