@@ -761,8 +761,12 @@
     "demo.wrong": "Wrong",
     "demo.right": "Right",
     "demo.help": "Show it: the same few bars done wrong and done right, in turn",
-    "divider.score": "Drag to make the score taller or shorter; double-click to fit it to the music again",
-    "divider.columns": "Drag to share the width between the mixer and the texts; double-click to reset"
+    "divider.columns": "Drag to share the width between the mixer and the texts; double-click resets it",
+    "divider.panel": "Drag to make the bottom panel taller or shorter; double-click resets it",
+    "size.help": "Interface size: {size} (click for the next: small, medium, large)",
+    "size.S": "small",
+    "size.M": "medium",
+    "size.L": "large"
   },
   "tutor": {
     "rule.fos.no-repetition": "In this species each upbeat brings a new note, which is then tied over the bar line; striking the downbeat's note again on its own upbeat is a whole note in disguise.",

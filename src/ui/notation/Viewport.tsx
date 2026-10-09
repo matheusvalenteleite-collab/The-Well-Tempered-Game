@@ -4,8 +4,7 @@
  * that it scrolls sideways inside the box. The lock (on by default) makes the view follow what is
  * playing when it leaves the window, and return to the beginning at the end.
  */
-import { useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { ScoreFit } from "../Shell.tsx";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useZoomGestures, ZOOM_MAX, ZOOM_MIN } from "./zoom.ts";
 import { store, stored } from "../shared.ts";
 import { t } from "../i18n.ts";
@@ -57,12 +56,6 @@ export function Viewport(p: ViewportProps) {
   const fitH = !narrow && box.h > 40 ? (box.h - BAR_ROOM) / height : Infinity;
   const base = narrow ? Math.max(NARROW_MIN, Math.min(1, fitW)) : Math.max(0.25, Math.min(MAX_FIT, fitW, fitH));
   const scale = Math.max(0.2, Math.min(3, base * p.zoom));
-  // The height the music wants at the width it has (D105): the page sizes the score box to it.
-  const report = useContext(ScoreFit);
-  const wants = Math.ceil(height * Math.max(narrow ? NARROW_MIN : 0.25, Math.min(MAX_FIT, fitW)) + BAR_ROOM + 6);
-  useEffect(() => {
-    if (box.w > 0) report(wants);
-  }, [wants, box.w, report]);
 
   // The drawing's real height (the continuo and the figures add to it), for fitting the box: read
   // from its proportions, which do not depend on the scale it was last drawn at.
