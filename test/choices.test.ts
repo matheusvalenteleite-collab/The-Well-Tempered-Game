@@ -217,3 +217,14 @@ test("habit model: features name what a note does; every model feature has a wei
   }
   assert.ok(fuxCheaper / n > 0.7, `${fuxCheaper}/${n}`);
 });
+
+test("two voices: with no error-free line possible, the generator returns the least bad one (strict: it throws)", () => {
+  const habits = buildHabits(fuxLines(repo, "first"), "first");
+  const cantus = generateCantus({ final: "D", seed: 7 });
+  // Only two pitches to choose from: parallels and repetitions cannot all be avoided.
+  const o = { species: "first" as const, modalFinal: "D" as ModalFinal, cantusVoice: "lower" as Staff, cantus, rules: rulesForStep(lastStepOf("first")), vocabulary: ["D5", "A4"], habits, seed: 3 };
+  const g = generateCounterpoint(o);
+  assert.equal(g.line.length, cantus.length);
+  assert.ok(g.errors.length > 0 && g.errorSlots.length > 0);
+  assert.throws(() => generateCounterpoint({ ...o, strict: true }));
+});

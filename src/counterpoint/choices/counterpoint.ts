@@ -43,6 +43,8 @@ export interface CounterpointOptions {
    * inside the beam.) Ranking by the most typical move alone gives far fewer leaps than Fux writes.
    */
   temperature?: number;
+  /** Throw when no error-free line exists, instead of returning the least bad one. */
+  strict?: boolean;
 }
 
 export interface GeneratedLine {
@@ -50,6 +52,12 @@ export interface GeneratedLine {
   layout: Slot[];
   warnings: string[];
   cost: number;
+  /**
+   * Empty when the line breaks no rule. Otherwise no error-free line was found, and this is the one
+   * breaking the fewest rules (then the most Fux-like): its errors and the slots they touch.
+   */
+  errors: string[];
+  errorSlots: number[];
 }
 
 export const DEFAULT_COUNSEL_WEIGHT = 0;
@@ -156,7 +164,7 @@ function completeCadence(o: CounterpointOptions, layout: Slot[], states: State[]
       if (k === layout.length) {
         if (--budget < 0) return null;
         const ev = judge(o, o.cantus, line, o.rules);
-        return ev.passed ? { line, layout, warnings: [...new Set(ev.warnings.map((v) => v.ruleId))], cost } : null;
+        return ev.passed ? { line, layout, warnings: [...new Set(ev.warnings.map((v) => v.ruleId))], cost, errors: [], errorSlots: [] } : null;
       }
       for (const p of o.vocabulary) {
         if (budget < 0) return null;
@@ -214,11 +222,61 @@ export function generateCounterpoint(o: CounterpointOptions): GeneratedLine {
       .map((st) => ({ st, ev: judge(o, o.cantus, st.line, o.rules) }))
       .filter((x) => x.ev.passed)
       .sort((a, b) => a.ev.warnings.length - b.ev.warnings.length || a.st.cost - b.st.cost);
-    if (done.length) return { line: done[0].st.line, layout, warnings: [...new Set(done[0].ev.warnings.map((v) => v.ruleId))], cost: done[0].st.cost };
+    if (done.length) return { line: done[0].st.line, layout, warnings: [...new Set(done[0].ev.warnings.map((v) => v.ruleId))], cost: done[0].st.cost, errors: [], errorSlots: [] };
     // The beam reached the cadence with no state that can make Fux's formula: try every
     // completion of the last two bars from the best states before the cadence.
     const found = completeCadence(o, layout, snapshot, cadenceStart);
     if (found) return found;
   }
-  throw new Error("no counterpoint found for this cantus firmus");
+  if (o.strict) throw new Error("no counterpoint found for this cantus firmus");
+  return leastBad(o, layout, noise);
+}
+
+/**
+ * No line breaks no rule: the same search, but a broken rule costs instead of excluding. Each new
+ * error found on a prefix costs far more than any habit, so the beam keeps the lines that break the
+ * fewest rules and, among them, the most Fux-like. The prefilter still applies (it only removes
+ * what the rules forbid outright and nothing the cadence needs).
+ */
+function leastBad(o: CounterpointOptions, layout: Slot[], noise: () => number): GeneratedLine {
+  const PENALTY = 1000;
+  const width = 2 * (o.width ?? 40);
+  let beam: (State & { errors: number })[] = [{ line: [], cost: 0, errors: 0 }];
+  for (let k = 0; k < layout.length; k++) {
+    const s = layout[k];
+    const next: typeof beam = [];
+    for (const st of beam) {
+      const options = k === 0 && o.species === "fourth" ? [REST] : o.vocabulary;
+      for (const p of options) {
+        if (p !== REST && !prefilter(o, layout, st.line, k, p)) continue;
+        next.push({ line: [...st.line, p], errors: st.errors, cost: st.cost + (p === REST ? 0 : stepCost(o, layout, st.line, k, p) + noise()) });
+      }
+    }
+    if (!next.length) {
+      // Even the prefilter leaves nothing: drop it for this slot.
+      for (const st of beam) for (const p of o.vocabulary) next.push({ line: [...st.line, p], errors: st.errors + 1, cost: st.cost + PENALTY + stepCost(o, layout, st.line, k, p) });
+    }
+    if (s.beat === 0 && s.bar >= 1) {
+      for (const st of next) {
+        const ev = judge(o, o.cantus.slice(0, s.bar + 1), st.line, k === layout.length - 1 ? o.rules : o.rules.filter((x) => !DEFERRED.test(x.id)));
+        const e = ev.errors.length;
+        if (e > st.errors) st.cost += PENALTY * (e - st.errors);
+        st.errors = Math.max(st.errors, e);
+      }
+    }
+    next.sort((a, b) => a.cost - b.cost);
+    beam = next.slice(0, width);
+  }
+  const best = beam
+    .map((st) => ({ st, ev: judge(o, o.cantus, st.line, o.rules) }))
+    .sort((a, b) => a.ev.errors.length - b.ev.errors.length || a.st.cost - b.st.cost)[0];
+  if (!best) throw new Error("no counterpoint found for this cantus firmus");
+  return {
+    line: best.st.line,
+    layout,
+    warnings: [...new Set(best.ev.warnings.map((v) => v.ruleId))],
+    cost: best.st.cost,
+    errors: [...new Set(best.ev.errors.map((v) => v.ruleId))],
+    errorSlots: [...new Set(best.ev.errors.flatMap((v) => v.positions))].sort((a, b) => a - b),
+  };
 }

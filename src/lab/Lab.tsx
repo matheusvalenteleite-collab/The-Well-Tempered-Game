@@ -235,6 +235,8 @@ function GenerateTab() {
   const placed = useMemo(() => (baseCantus ? placeCantus(baseCantus, register) : null), [baseCantus, register]);
   const cantus = placed?.line ?? null;
   const [line, setLine] = useState<string[] | null>(null);
+  /** Slots where the generated line breaks a rule (only when no error-free line was found). */
+  const [lineErrorSlots, setLineErrorSlots] = useState<number[]>([]);
   const [trio, setTrio] = useState<ThirdVoice | null>(null);
   /** Placements for which no error-free third voice was found, for the current two lines. */
   const [unclean, setUnclean] = useState<Partial<Record<Placement, boolean>>>({});
@@ -285,6 +287,7 @@ function GenerateTab() {
           seed: seed(),
         });
         setLine(g.line);
+        setLineErrorSlots(g.errorSlots);
         setMsg((m) => ({ ...m, line: null }));
       } catch (e) {
         setLine(null);
@@ -417,8 +420,8 @@ function GenerateTab() {
           <div className="lab-actions">
             <button className="primary" onClick={() => newLine()}>New counterpoint</button>
           </div>
-          <p className="lab-status">
-            {msg.line ?? (verdict ? (verdict.errors.length ? `${verdict.errors.length} errors: ${ruleIds(verdict.errors)}` : `No rule broken${verdict.warnings.length ? `; not followed: ${ruleIds(verdict.warnings)}` : ""}.`) : "None yet.")}
+          <p className={`lab-status${verdict?.errors.length ? " lab-bad" : ""}`}>
+            {msg.line ?? (verdict ? (verdict.errors.length ? `No line without errors was found for this cantus. Best possible: ${verdict.errors.length} error${verdict.errors.length > 1 ? "s" : ""} (${ruleIds(verdict.errors)}), marked in the score.` : `No rule broken${verdict.warnings.length ? `; not followed: ${ruleIds(verdict.warnings)}` : ""}.`) : "None yet.")}
           </p>
         </fieldset>
 
@@ -495,7 +498,7 @@ function GenerateTab() {
                 readOnly
                 playerLabel="Counterpoint"
                 extraLines={third ? [{ label: "Third voice", notes: third.notes, ink: THIRD_INK, onCantusStaff: third.onCantusStaff }] : undefined}
-                marks={trio ? trio.errorBars.map((column) => ({ column, severity: "error" as const })) : undefined}
+                marks={trio ? trio.errorBars.map((column) => ({ column, severity: "error" as const })) : line && lineErrorSlots.length ? lineErrorSlots.map((column) => ({ column, severity: "error" as const })) : undefined}
                 onPlace={() => undefined}
                 onSelect={() => undefined}
               />

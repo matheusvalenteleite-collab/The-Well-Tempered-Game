@@ -105,13 +105,16 @@ Findings and points for the owner:
   widened from 25-60% to 20-62% (Fig. 42's A has 20%, the G 62%); "turn after a rising fourth"
   is soft (Fux's G does not turn once); outlined sixths allowed when they arpeggiate a triad
   (Fux's G: G-C-E); length 9-14 accepted (Fux's C variant has 9; generator default 10-14); and
-  Ewing's antepenultimate degree 1 or 3 (true of all Fux's) added. To approve or amend.
+  Ewing's antepenultimate degree 1 or 3 (true of all Fux's) added. To approve or amend: the table
+  is in docs/fux/cantus-constraints-amendment.md.
+- Two-voice generator: when no error-free line exists it returns the one breaking the fewest
+  rules (as the third voice does), marked in red in the score.
 
 ## Rules
 
 - Fig. 110, bar 6 (and Figs. 169, 170, bar 6): an unmarked B repeats the B♭ of bar 5 in the same
   voice. The dataset reads B♮ (a chromatic step found nowhere else in Fux); B♭ is far more likely.
-  Decide the reading before three or four voices are built.
+  Decide the reading before three or four voices are built. (Now item 7 of docs/fux/open-questions.md.)
 - The hint "leap a minor sixth (upward)" (pp. 59-60): the Latin gives no direction ("per saltum
   Sextae minoris, (qui licitus est)"), and Fux leaps a minor sixth downward 8 times. Check the
   examples on p. 60 and reword if needed.

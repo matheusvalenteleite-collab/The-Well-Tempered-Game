@@ -19,3 +19,8 @@
 6. **Fig. 42** uses an A cantus different from Figs. 22-23 and 43 in the dataset
    (`fux_cf_a_02`). Check against p. 62 whether Fux really changes the cantus or the encoding
    differs.
+7. **Figs. 110, 169, 170, bar 6**: an unmarked B repeats the B♭ of bar 5 in the same voice. The
+   dataset reads B♮, which would be a chromatic step found nowhere else in Fux; under the
+   period's convention (an accidental holds for an immediately repeated note) B♭ is far more
+   likely. Check the 1725 pages (Fig. 110: p. 91; Figs. 169-170 are in Exercitium III, not in the lab's dataset) and decide the reading before
+   three- or four-voice play uses these figures; then report it upstream (item 5).
