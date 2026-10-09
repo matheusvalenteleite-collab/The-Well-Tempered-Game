@@ -85,3 +85,17 @@ test("D119: two fifths in a row are a fault", () => {
   const ev = evaluateCounterpoint({ line, given, bar: 4, beat: 1, phase: 0, judged: new Set([0, 1, 2]) });
   assert.deepEqual(ev.errors.map((v) => v.ruleId), ["wtc.cp.parallel"]);
 });
+
+test("D119: the countersubject hint allows each of Bach's notes (within a seventh of the note before)", async () => {
+  const { counterHint } = await import("../src/wtc/hints.ts");
+  const { parsePitch } = await import("../src/music/pitch.ts");
+  for (const f of FUGUES) {
+    const line = f.countersubject.map((n) => n.pitch);
+    line.forEach((p, i) => {
+      const before = i > 0 ? line[i - 1] : f.subject[f.subject.length - 1].pitch;
+      if (Math.abs(parsePitch(p).diatonic - parsePitch(before).diatonic) > 6) return;
+      const h = counterHint(f, line, i);
+      assert.ok(h.allowed.some((a) => parsePitch(a).midi === parsePitch(p).midi), `${f.id} note ${i + 1} ${p}: ${h.allowed.join(" ")}`);
+    });
+  }
+});

@@ -9,9 +9,10 @@
  * every key sounds as itself (Werckmeister III, Kirnberger III, Vallotti, or equal).
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { FUGUES, KEY_ORDER, keyName, keySignature, isMinor, type WtcFugue, type WtcNote } from "../wtc/fugues.ts";
-import { evaluateAnswer, type AnswerEvaluation } from "../wtc/answer.ts";
+import { FUGUES, KEY_ORDER, keyName, keySignature, isMinor, realAnswer, type WtcFugue, type WtcNote } from "../wtc/fugues.ts";
+import { degree, evaluateAnswer, type AnswerEvaluation } from "../wtc/answer.ts";
 import { beatOf, evaluateCounterpoint, type CpEvaluation } from "../wtc/counterpoint.ts";
+import { counterHint } from "../wtc/hints.ts";
 import { parsePitch, type Step } from "../music/pitch.ts";
 import { WtcScore, type WtcScoreNote, type WtcScoreVoice } from "./notation/WtcScore.tsx";
 import { restoreSound, type SoundState } from "../audio/sound.ts";
@@ -25,8 +26,10 @@ import { t } from "./i18n.ts";
 import { Shell } from "./Shell.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 
-type Exercise = "answer" | "counter" | "study";
-const EXERCISES: Exercise[] = ["answer", "counter", "study"];
+type Exercise = "mutation" | "answer" | "counter" | "study";
+const EXERCISES: Exercise[] = ["mutation", "answer", "counter", "study"];
+/** The exercises the player writes (and earns a star for). */
+const WRITTEN: Exercise[] = ["mutation", "answer", "counter"];
 const STEPS: Step[] = ["C", "D", "E", "F", "G", "A", "B"];
 const INSTRUMENTS = ["harpsichord", "fluteOrgan", "grandRoom"] as const;
 type Instrument = (typeof INSTRUMENTS)[number];
@@ -72,7 +75,8 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
   const [stars, setStars] = useState<string[]>(() => stored<string[]>("wtg.wtcStars", [], (v) => Array.isArray(v)));
   useEffect(() => store("wtg.wtcStars", stars), [stars]);
   const [selected, setSelected] = useState(0);
-  const [result, setResult] = useState<{ kind: "answer"; ev: AnswerEvaluation } | { kind: "counter"; ev: CpEvaluation } | null>(null);
+  const [result, setResult] = useState<{ kind: "answer"; ev: AnswerEvaluation } | { kind: "counter"; ev: CpEvaluation } | { kind: "mutation"; ev: { passed: boolean; marked: number[] } } | null>(null);
+  const [hintOn, setHintOn] = useState(false);
   const [attempts, setAttempts] = useState<Record<string, number>>({});
   const [showBach, setShowBach] = useState(false);
   const [tab, setTab] = useState<string>(() => stored("wtg.wtcTab", "guide", (v) => typeof v === "string"));
@@ -127,9 +131,9 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
   const signature = useMemo(() => keySignature(F.key), [F.key]);
   const ex: Exercise = exercise;
   const key = `${F.id}:${ex}`;
-  const target = ex === "answer" ? F.answer : ex === "counter" ? F.countersubject : [];
+  const target = ex === "answer" ? F.answer : ex === "counter" ? F.countersubject : ex === "mutation" ? F.subject : [];
   const line: (string | null)[] = written[key] && written[key].length === target.length ? written[key] : target.map(() => null);
-  const missing = line.filter((x) => !x).length;
+  const missing = ex === "mutation" ? 0 : line.filter((x) => !x).length;
   const solved = stars.includes(key);
   const bachOpen = solved || (attempts[key] ?? 0) > 0;
   const setLine = (next: (string | null)[]) => {
@@ -157,6 +161,7 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
   // The verdicts, for colouring the written notes.
   const verdictInk = (i: number): string | undefined => {
     if (!result) return undefined;
+    if (result.kind === "mutation") return (line[i] === "x") === F.mutations.includes(i) ? "var(--ok-ink, #2e7d32)" : "var(--bad-ink, #c62828)";
     if (result.kind === "answer") {
       const v = result.ev.notes[i]?.verdict;
       return v === "bach" || v === "enharmonic" ? "var(--ok-ink, #2e7d32)" : v === "missing" ? undefined : "var(--bad-ink, #c62828)";
@@ -182,6 +187,10 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
       const mark = (ex === "study" || showBach || (result?.kind === "answer" && solved)) && F.mutations.includes(i) ? t("ui.wtc.mutationMark") : undefined;
       return { pitch, at: n.at + toAnswer, dur: n.dur, ...(mine ? { slot: i, ink: showBach ? INK_BACH : verdictInk(i) } : {}), ...(mark ? { mark } : {}), ...(i === 0 ? { label: t("ui.wtc.part.answer") } : {}) };
     });
+    if (ex === "mutation") {
+      const marked: WtcScoreNote[] = F.subject.map((n, i) => ({ pitch: n.pitch, at: n.at + off, dur: n.dur, slot: i, ink: verdictInk(i) ?? (line[i] === "x" ? INK_PLAYER : INK_GIVEN), ...(line[i] === "x" ? { mark: t("ui.wtc.mutationMark") } : {}), ...(i === 0 ? { label: t("ui.wtc.part.subject") } : {}) }));
+      return [{ notes: marked, staff: duxStaff, ink: INK_GIVEN, editable: true }];
+    }
     const dv: WtcScoreVoice = { notes: [...subjectNotes, ...csNotes], staff: duxStaff, ink: ex === "counter" ? INK_PLAYER : INK_GIVEN, editable: ex === "counter" && !showBach };
     const cv: WtcScoreVoice = { notes: answerNotes, staff: comesStaff, ink: ex === "answer" ? INK_PLAYER : ex === "study" ? INK_COMES : INK_GIVEN, editable: ex === "answer" && !showBach };
     // Within a shared staff the higher voice comes first (stems up).
@@ -218,6 +227,12 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
     const other = (ex === "answer" ? dux : comes).find((x) => x.at <= abs + 1e-6 && abs < x.at + x.dur - 1e-6);
     const len = Math.min(1, n.dur) / 4;
     void audio.playSequence([{ slot: 0, at: 0, length: len * 2, cantus: null, counterpoint: null, extra: [{ channel: "counterpoint", pitch }, ...(other ? [{ channel: "second" as const, pitch: other.pitch }] : [])] }]);
+  };
+  const toggle = (i: number) => {
+    const next = [...line];
+    next[i] = next[i] === "x" ? null : "x";
+    setLine(next);
+    void audio.playSequence([{ slot: 0, at: 0, length: Math.min(1, F.subject[i].dur) / 2, cantus: null, counterpoint: null, extra: [{ channel: "counterpoint", pitch: F.subject[i].pitch }] }]);
   };
   const write = (i: number, pitch: string | null, advance: boolean) => {
     const next = [...line];
@@ -275,7 +290,12 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
     if (result) return setResult(null);
     if (ex === "study" || missing > 0) return;
     setAttempts({ ...attempts, [key]: (attempts[key] ?? 0) + 1 });
-    if (ex === "answer") {
+    if (ex === "mutation") {
+      const marked = line.map((x, i) => (x === "x" ? i : -1)).filter((i) => i >= 0);
+      const passed = marked.length === F.mutations.length && marked.every((i) => F.mutations.includes(i));
+      setResult({ kind: "mutation", ev: { passed, marked } });
+      if (passed && !stars.includes(key)) setStars([...stars, key]);
+    } else if (ex === "answer") {
       const ev = evaluateAnswer(F, line);
       setResult({ kind: "answer", ev });
       if (ev.passed && !stars.includes(key)) setStars([...stars, key]);
@@ -303,6 +323,10 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
     else if (!editable) return;
     else if (k === "ArrowRight") setSelected(Math.min(target.length - 1, selected + 1));
     else if (k === "ArrowLeft") setSelected(Math.max(0, selected - 1));
+    else if (ex === "mutation") {
+      if (k === "x" || k === "X" || k === "m" || k === "M") toggle(selected);
+      else return;
+    } else if ((k === "h" || k === "H") && ex === "counter") setHintOn(!hintOn);
     else if (/^[a-gA-G]$/.test(k)) write(selected, placeLetter(k.toUpperCase() as Step, selected, cur), true);
     else if ((k === "ArrowUp" || k === "ArrowDown") && cur) write(selected, stepPitch(cur, (k === "ArrowUp" ? 1 : -1) * (e.shiftKey ? 7 : 1), signature), false);
     else if (k === "#" && cur) write(selected, alterPitch(cur, 1), false);
@@ -320,6 +344,8 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
     return () => window.removeEventListener("keydown", h);
   }, []);
 
+  // The hint (H): the notes the rules allow at the selected place of the countersubject.
+  const hint = useMemo(() => (hintOn && ex === "counter" && !showBach && target.length ? counterHint(F, line, Math.min(selected, target.length - 1)) : null), [hintOn, ex, showBach, F, line, selected, target.length]);
   // Messages for the evaluation.
   const barOfAnswerNote = (i: number) => barOf(F.answer[i].at + toAnswer) + 1;
   const barOfCs = (at: number) => barOf(at + toAnswer) + 1;
@@ -333,6 +359,27 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
   };
   const feedback = () => {
     if (!result) return <p className="dock-empty">{t("ui.dock.noEvaluation")}</p>;
+    if (result.kind === "mutation") {
+      const real = realAnswer(F);
+      const all = [...new Set([...result.ev.marked, ...F.mutations])].sort((a, b) => a - b);
+      const deg = (i: number) => ({ n: i + 1, sd: degree(F.subject[i].pitch, F.key), bd: degree(F.answer[i].pitch, F.key), rd: degree(real[i], F.key), bach: name(F.answer[i].pitch), real: name(real[i]) });
+      return (
+        <section className="feedback" aria-live="polite">
+          <p className={result.ev.passed ? "verdict ok" : "verdict bad"}>{t(result.ev.passed ? (F.mutations.length ? "ui.wtc.mut.passedTonal" : "ui.wtc.mut.passedReal") : "ui.wtc.mut.failed")}</p>
+          <ul>
+            {all.map((i) => {
+              const k2 = result.ev.marked.includes(i) ? (F.mutations.includes(i) ? "right" : "extra") : "missed";
+              return (
+                <li key={i} className={k2 === "right" ? "ok" : "error"}>
+                  {t(`ui.wtc.mut.${k2}`, deg(i))}
+                </li>
+              );
+            })}
+          </ul>
+          {result.ev.passed && <p className="help">{t("ui.wtc.mut.next")}</p>}
+        </section>
+      );
+    }
     if (result.kind === "answer") {
       const ev = result.ev;
       const bad = ev.notes.filter((n) => n.verdict !== "bach");
@@ -381,7 +428,7 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
                   {fs.map((f) => (
                     <button key={f.id} className="chipbtn" onClick={() => go(FUGUES.indexOf(f))} title={fugueLabel(f)}>
                       {roman(f.book)}
-                      {EXERCISES.slice(0, 2).every((e) => stars.includes(`${f.id}:${e}`)) ? "★" : EXERCISES.slice(0, 2).some((e) => stars.includes(`${f.id}:${e}`)) ? "☆" : ""}
+                      {WRITTEN.every((e) => stars.includes(`${f.id}:${e}`)) ? "★" : WRITTEN.some((e) => stars.includes(`${f.id}:${e}`)) ? "☆" : ""}
                     </button>
                   ))}
                   {!fs.length && <span className="wtc-none" title={t("ui.wtc.noFugue")}>–</span>}
@@ -422,7 +469,7 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
             <select id="exercise" className="sel sel-exercise" value={index} onChange={(e) => go(Number(e.target.value))} aria-label={t("ui.wtc.fugue")}>
               {FUGUES.map((f, k) => (
                 <option key={f.id} value={k}>
-                  {stars.includes(`${f.id}:answer`) && stars.includes(`${f.id}:counter`) ? "★ " : ""}
+                  {WRITTEN.every((e) => stars.includes(`${f.id}:${e}`)) ? "★ " : ""}
                   {fugueLabel(f)}
                 </option>
               ))}
@@ -448,6 +495,7 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
             label={fugueLabel(F)}
             onSlot={(slot, pitch) => {
               setSelected(slot);
+              if (ex === "mutation") return toggle(slot);
               if (pitch && ex !== "study" && !showBach) write(slot, pitch, false);
               else audition(slot, line[slot]);
             }}
@@ -458,11 +506,23 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
         </div>
       }
       transport={
+        <>
+        {hint && (
+          <div className="hint-bar" role="status" aria-live="polite">
+            <span className="hint-tag">{t("ui.hint.tag")}</span>
+            <span className="hint-body">
+              <strong>{t("ui.wtc.hint.where", { n: selected + 1, bar: barOf(F.countersubject[selected].at + toAnswer) + 1 })}</strong>{" "}
+              {hint.allowed.length ? t("ui.wtc.hint.allowed", { n: hint.allowed.length, notes: hint.allowed.map(name).join(", ") }) : t("ui.wtc.hint.none")}{" "}
+              {hint.written && (hint.faults.length ? <span className="hint-bad">{t("ui.wtc.hint.yoursBad", { note: name(hint.written) })} {t(`ui.${hint.faults[0].messageKey}`, { interval: hint.faults[0].detail?.interval ?? "" })}</span> : <span className="hint-ok">{t("ui.wtc.hint.yoursOk", { note: name(hint.written) })}</span>)}
+            </span>
+            <button className="hint-close" onClick={() => setHintOn(false)} aria-label={t("ui.close")} title={t("ui.close")}>×</button>
+          </div>
+        )}
         <div className="controls">
           <div className="group write" role="group">
-            <button className="btn-acc" onClick={() => line[selected] && write(selected, alterPitch(line[selected]!, -1), false)} aria-label="flat" title={t("ui.accidental.flat.help")} disabled={ex === "study"}>♭</button>
-            <button className="btn-acc" onClick={() => line[selected] && write(selected, alterPitch(line[selected]!, 0), false)} aria-label="natural" title={t("ui.accidental.natural.help")} disabled={ex === "study"}>♮</button>
-            <button className="btn-acc" onClick={() => line[selected] && write(selected, alterPitch(line[selected]!, 1), false)} aria-label="sharp" title={t("ui.accidental.sharp.help")} disabled={ex === "study"}>♯</button>
+            <button className="btn-acc" onClick={() => line[selected] && write(selected, alterPitch(line[selected]!, -1), false)} aria-label="flat" title={t("ui.accidental.flat.help")} disabled={ex === "study" || ex === "mutation"}>♭</button>
+            <button className="btn-acc" onClick={() => line[selected] && write(selected, alterPitch(line[selected]!, 0), false)} aria-label="natural" title={t("ui.accidental.natural.help")} disabled={ex === "study" || ex === "mutation"}>♮</button>
+            <button className="btn-acc" onClick={() => line[selected] && write(selected, alterPitch(line[selected]!, 1), false)} aria-label="sharp" title={t("ui.accidental.sharp.help")} disabled={ex === "study" || ex === "mutation"}>♯</button>
             <button className="btn-edit" onClick={() => setLine(target.map(() => null))} disabled={ex === "study"} title={t("ui.clearAll.help")}>{t("ui.clearAll")}</button>
           </div>
           <div className="group judge">
@@ -472,10 +532,13 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
                 {missing > 0 && !result && <span className="badge">{missing}</span>}
               </button>
             )}
-            {ex !== "study" && (
+            {ex !== "study" && ex !== "mutation" && (
               <button className="chipbtn" aria-pressed={showBach} disabled={!bachOpen} onClick={() => setShowBach(!showBach)} title={t(bachOpen ? "ui.wtc.bachHelp" : "ui.wtc.bachLocked")}>
                 {t(showBach ? "ui.wtc.bachHide" : "ui.wtc.bachShow")}
               </button>
+            )}
+            {ex === "counter" && (
+              <button className="chipbtn" aria-pressed={hintOn} onClick={() => setHintOn(!hintOn)} title={t("ui.wtc.hint.help")}>{t("ui.hint.tool")}</button>
             )}
           </div>
           <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
@@ -498,10 +561,11 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
             </select>
           </div>
         </div>
+        </>
       }
       summary={result && (
-        <div className={(result.kind === "answer" ? result.ev.passed : result.ev.passed) ? "eval-summary ok" : "eval-summary bad"} role="status">
-          <span className="verdict">{(result.kind === "answer" ? result.ev.passed : result.ev.passed) ? `✓ ${t("ui.summary.passed")}` : `✗ ${t("ui.wtc.summaryFailed")}`}</span>
+        <div className={result.ev.passed ? "eval-summary ok" : "eval-summary bad"} role="status">
+          <span className="verdict">{result.ev.passed ? `✓ ${t("ui.summary.passed")}` : `✗ ${t("ui.wtc.summaryFailed")}`}</span>
           <button className="link" onClick={() => setTab("evaluation")}>{t("ui.summary.open")} ▸</button>
         </div>
       )}
