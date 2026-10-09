@@ -102,3 +102,43 @@ test("exposition and entries: Book I's C minor fugue", async () => {
   const sc = subjectAndAnswer(c);
   assert.deepEqual(exposition(c, sc.subject, sc.answer, findEntriesByHead(c, sc.subject).entries).map((e) => e.roman), ["I", "V", "V", "I"]);
 });
+
+test("three voices: consecutives are errors, unexplained dissonances and unresolved suspensions warnings", async () => {
+  const { evaluateTrio } = await import("../src/wtc/trio.ts");
+  const q = TPQ;
+  const L = (...xs: [number, number, string][]) => xs.map(([on, dur, pitch]) => ({ on: on * q, dur: dur * q, pitch }));
+  // Parallel fifths between tenor and bass (C-G to D-A).
+  const fifths = evaluateTrio([L([0, 1, "E4"], [1, 1, "F4"]), L([0, 1, "G3"], [1, 1, "A3"]), L([0, 1, "C3"], [1, 1, "D3"])], "4/4", 1);
+  assert.ok(fifths.some((x) => x.rule === "fifths" && x.severity === "error"));
+  // F5 over a C major chord, entered by step and left by leap, a full beat long: no figure explains it.
+  const chord = [L([0, 2, "G3"]), L([0, 2, "E4"]), L([0, 2, "C3"])];
+  const bad = evaluateTrio([L([0, 1, "E5"], [1, 1, "F5"], [2, 1, "A4"]), ...chord], "4/4", 0);
+  assert.ok(bad.some((x) => x.rule === "non-chord tone" && x.severity === "warning" && x.note === 1));
+  // The same F5 as a passing note (E F G) is fine.
+  assert.equal(evaluateTrio([L([0, 1, "E5"], [1, 1, "F5"], [2, 1, "G5"]), ...chord], "4/4", 0).length, 0);
+  // A suspension: D5 held from a G chord into a C chord, resolved down to C5; then left by leap instead.
+  const under = [L([0, 2, "B3"], [2, 2, "C4"]), L([0, 2, "G2"], [2, 2, "C3"]), L([0, 2, "G3"], [2, 2, "E3"])];
+  assert.equal(evaluateTrio([L([0, 3, "D5"], [3, 1, "C5"]), ...under], "4/4", 0).filter((x) => x.rule === "suspension").length, 0);
+  assert.ok(evaluateTrio([L([0, 3, "D5"], [3, 1, "G4"]), ...under], "4/4", 0).some((x) => x.rule === "suspension"));
+});
+
+test("three voices: Bach's third entries have no errors (docs/wtc/trio-calibration.md)", async () => {
+  const { findEntriesByHead, line } = await import("../src/wtc/fugue.ts");
+  const { exposition } = await import("../src/wtc/exposition.ts");
+  const { subjectLength } = await import("../src/wtc/structure.ts");
+  const { evaluateTrio } = await import("../src/wtc/trio.ts");
+  let passages = 0;
+  for (const p of fugues) {
+    if (p.voices.length < 3) continue;
+    const { subject, answer } = subjectAndAnswer(p);
+    const ex = exposition(p, subject, answer, findEntriesByHead(p, subject).entries);
+    if (!ex[2] || ex[2].role === "free") continue;
+    const lines = p.voices.map((v, w) => (ex.slice(0, 3).some((e) => e.voice === w) ? line(v) : []));
+    for (const v of [ex[0].voice, ex[1].voice]) {
+      const errors = evaluateTrio(lines, p.meter, v, { from: ex[2].on, to: ex[2].on + subjectLength(subject) }).filter((x) => x.severity === "error");
+      assert.deepEqual(errors, [], `${p.id} voice ${v}`);
+    }
+    passages++;
+  }
+  assert.ok(passages >= 45);
+});
