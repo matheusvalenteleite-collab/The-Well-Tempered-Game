@@ -234,6 +234,6 @@ test("difficulty: freedom is the mean log2 of the legal pitches; Spearman on ran
   const d = difficultyOf([{ legal: 1 }, { legal: 4 }]);
   assert.equal(d.freedom, 1);
   assert.equal(d.forced, 0.5);
-  assert.equal(spearman([1, 2, 3], [10, 20, 30]), 1);
-  assert.equal(spearman([1, 2, 3], [3, 2, 1]), -1);
+  assert.ok(Math.abs(spearman([1, 2, 3], [10, 20, 30]) - 1) < 1e-9);
+  assert.ok(Math.abs(spearman([1, 2, 3], [3, 2, 1]) + 1) < 1e-9);
 });
