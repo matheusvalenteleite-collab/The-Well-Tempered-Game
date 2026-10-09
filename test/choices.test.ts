@@ -282,3 +282,17 @@ test("harmonic view: figures and Roman numerals (modern lens)", () => {
   assert.equal(harmonyOf(["G3", "C4", "E4"], "C").roman, "I6/4");
   assert.ok(harmonyOf(["D3", "A3", "D4"], "D").guessed);
 });
+
+import { generateTrio } from "../src/counterpoint/choices/trio.ts";
+test("three voices written together: both added voices break no three-voice rule, the cantus on any staff", () => {
+  const habits3 = buildTrioHabits(trios);
+  const acc3 = trioAccidentals(trios);
+  for (const [final, cantusIndex] of [["D", 0], ["A", 1], ["F", 2]] as [ModalFinal, 0 | 1 | 2][]) {
+    const cantus = generateCantus({ final, seed: 11 });
+    const t = generateTrio({ modalFinal: final, cantus, cantusIndex, steps: trios, habits: habits3, accidentals: acc3[final] ?? [], seed: 5 });
+    const ev = judgeTrio({ modalFinal: final, cantusIndex, rules: TRIO_FIRST_SPECIES }, t.voices);
+    assert.deepEqual(ev.errors.map((x) => x.ruleId), [], `${final} cantus on staff ${cantusIndex}`);
+    // The cantus is the same melody, moved by octaves only.
+    t.voices[cantusIndex].forEach((p, k) => assert.equal(p.replace(/-?\d+$/, ""), cantus[k].replace(/-?\d+$/, "")));
+  }
+});

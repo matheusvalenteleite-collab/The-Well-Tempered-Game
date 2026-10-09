@@ -12,7 +12,7 @@ import { TrioScore } from "../ui/notation/TrioScore.tsx";
 import { TRIO_FIRST_SPECIES } from "../counterpoint/three-voice.ts";
 import type { AuditSummary } from "../counterpoint/choices/audit.ts";
 import type { TierName } from "../counterpoint/choices/score.ts";
-import { auditTrio, auditTrios, buildTrioHabits, generateThirdVoice, judgeTrio, poolTrios, trioAccidentals, type Placement, type ThirdVoice, type TrioAudit, type TrioChoice } from "../counterpoint/choices/trio.ts";
+import { auditTrio, auditTrios, buildTrioHabits, generateThirdVoice, generateTrio, judgeTrio, poolTrios, trioAccidentals, type Placement, type ThirdVoice, type TrioAudit, type TrioChoice } from "../counterpoint/choices/trio.ts";
 import { playLines, stop } from "./play.ts";
 
 export const TRIO_STEPS: TrioStep[] = trioSteps(data as never);
@@ -194,3 +194,22 @@ export function auditGeneratedTrio(final: ModalFinal, cantus: string[], t: Third
 }
 
 export const STAFF_ROLE = (t: ThirdVoice) => t.voices.map((_, v) => `${STAFF_NAMES[v]}: ${v === t.cantusIndex ? "cantus firmus" : v === t.added ? "third voice" : "counterpoint"}`).join(" · ");
+
+/**
+ * Both added voices written together over the cantus on a chosen staff. Returned in the shape the
+ * generator's score shows: one added voice as the counterpoint (blue, on the other staff), the
+ * other as the third voice (red), with the cantus moved to Fux's octave for its staff.
+ */
+export function writeTrio(o: { cantus: string[]; final: ModalFinal; cantusIndex: 0 | 1 | 2; temperature: number }): { cantus: string[]; line: string[]; cantusVoice: "upper" | "lower"; trio: ThirdVoice } {
+  cache ??= { habits: buildTrioHabits(TRIO_STEPS), accidentals: trioAccidentals(TRIO_STEPS) };
+  const t = generateTrio({ modalFinal: o.final, cantus: o.cantus, cantusIndex: o.cantusIndex, steps: TRIO_STEPS, habits: cache.habits, accidentals: cache.accidentals[o.final] ?? [], temperature: o.temperature, seed: Math.floor(Math.random() * 2 ** 31) });
+  // Blue: the outer voice on the far side of the cantus (the bass under a cantus on top; the top voice otherwise).
+  const blue = o.cantusIndex === 0 ? 2 : 0;
+  const red = ([0, 1, 2] as const).find((v) => v !== o.cantusIndex && v !== blue)!;
+  return {
+    cantus: t.voices[o.cantusIndex],
+    line: t.voices[blue],
+    cantusVoice: blue < o.cantusIndex ? "lower" : "upper",
+    trio: { voices: t.voices, cantusIndex: o.cantusIndex, added: red, warnings: t.warnings, errors: [], errorBars: [] },
+  };
+}

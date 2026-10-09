@@ -112,7 +112,7 @@ Legal pitches at each choice (first ranking; \* where Fux's note is not ranked f
 
 | ranking | Fux first | first where free | mean rank |
 |---|---|---|---|
-| errors > warnings > counsel > habit | 77% | 74% (332) | 1.29 |
+| errors > warnings > counsel > habit | 77% | 74% (332) | 1.28 |
 | errors > warnings > counsel | 82% | 55% (332) | 1.22 |
 | errors > habit | 86% | 85% (332) | 1.17 |
-| errors > counsel > habit | 74% | 71% (332) | 1.32 |
+| errors > counsel > habit | 75% | 72% (332) | 1.30 |

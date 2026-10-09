@@ -83,8 +83,8 @@ Findings and points for the owner:
   than by step. The audit and both generators use this model; the generator's variety is
   calibrated at 0.75 on his rates of leaps and spacing. Not yet modelled: first-species repeated
   notes (3% generated against his 11%).
-- Three voices, the same method (docs/fux/trio-habits-study.md; same tab): of eleven candidate
-  features, five predict Fux's notes once the others are in: the sonority (by far the strongest),
+- Three voices, the same method (docs/fux/trio-habits-study.md; same tab): of twelve candidate
+  features, six predict Fux's notes (the opening sonority added later; figures below are before it) once the others are in: the sonority (by far the strongest),
   the melodic move (pooled over staves: by staff adds nothing once the rest is in), pairs of moves,
   the chord member the voice takes, and its motion with each other voice. Weighted, they cut the
   surprise at his notes from 1.00 to 0.73 bits (his note first 77% → 84% where the rules leave a
@@ -107,6 +107,16 @@ Findings and points for the owner:
   (Fux's G: G-C-E); length 9-14 accepted (Fux's C variant has 9; generator default 10-14); and
   Ewing's antepenultimate degree 1 or 3 (true of all Fux's) added. To approve or amend: the table
   is in docs/fux/cantus-constraints-amendment.md.
+- Three voices written together (`generateTrio` in `choices/trio.ts`; Generators, step 3, "write
+  two voices together over the cantus"): the cantus on the top, middle or bottom staff, moved by
+  octaves to where Fux writes it there; both added voices searched bar by bar as pairs, in his
+  registers for that staff (from his solutions with the cantus on the same staff), ranked by the
+  three-voice habits (the chord's own habits counted once), judged by the three-voice rules.
+  52 of 54 trials (six finals, three staves, three cantus each) found a clean pair; the two
+  failures were G and C with the cantus in the bass, positions Fux does not write. Generated
+  sonorities at the default variety (0.75): 3 8 37%, 3 5 36%, 3 6 9% (Fux 33%, 41%, 14%).
+  The three-voice habit model gained the opening sonority (weight 0.59; it predicts his notes once
+  the others are in), which keeps the generator from opening on a sixth over the final.
 - Harmonic view (plan step 8; `choices/harmony.ts`, lab `Harmony.tsx`): a "harmonic view
   (modern)" toggle under three-voice scores (the generated trio, Fux's sixteen in the audit):
   figures above the bass, stacked, and a Roman numeral relative to the final (upper case major,

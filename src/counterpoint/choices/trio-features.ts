@@ -157,6 +157,13 @@ export const tCadence: TrioFeature = {
   keys: (x) => (x.k >= x.bars - 3 ? [`${x.bars - 1 - x.k}:${sonorityKey(chordAt(x, x.k))}`] : []),
 };
 
+/** The opening sonority (Fux opens on the final in the bass, with octaves, a fifth or a third above). */
+export const tOpening: TrioFeature = {
+  id: "t-opening",
+  label: "the opening sonority",
+  keys: (x) => (x.k === 0 ? [sonorityKey(chordAt(x, 0))] : []),
+};
+
 /** The top note of the final chord over the bass (pp. 89-90: octave, fifth or major third). */
 export const tFinalTop: TrioFeature = {
   id: "t-final-top",
@@ -172,7 +179,7 @@ export const tSameSonority: TrioFeature = {
     [[x.k - 1, x.k], [x.k, x.k + 1]].flatMap(([a, b]) => (has(x, a) && has(x, b) ? [sonorityKey(chordAt(x, a)) === sonorityKey(chordAt(x, b)) ? "same" : "other"] : [])),
 };
 
-export const ALL_TRIO_FEATURES: TrioFeature[] = [tMelodicPooled, tMelodicByStaff, tMelodicByBass, tMovePairs, tSonority, tSpacing, tMember, tArrival, tCadence, tFinalTop, tSameSonority];
+export const ALL_TRIO_FEATURES: TrioFeature[] = [tMelodicPooled, tMelodicByStaff, tMelodicByBass, tMovePairs, tSonority, tSpacing, tMember, tArrival, tCadence, tOpening, tFinalTop, tSameSonority];
 
 /* ---------------------------------------------------------------- tables */
 
@@ -214,8 +221,11 @@ export function trioFeatureBits(t: TrioFeatureTables, features: TrioFeature[], x
  * The three-voice model in use: the features that predict Fux's choices once the others are in,
  * with weights learnt on his sixteen solutions (docs/fux/trio-habits-study.md).
  */
-export const TRIO_MODEL_FEATURES: TrioFeature[] = [tMelodicPooled, tMovePairs, tSonority, tMember, tArrival];
-export const TRIO_MODEL_WEIGHTS: Record<string, number> = { "t-melodic": 0.74, "t-move-pairs": 0.21, "t-sonority": 0.92, "t-member": 0.5, "t-arrival": 0.22 };
+export const TRIO_MODEL_FEATURES: TrioFeature[] = [tMelodicPooled, tMovePairs, tSonority, tMember, tArrival, tOpening];
+export const TRIO_MODEL_WEIGHTS: Record<string, number> = { "t-melodic": 0.74, "t-move-pairs": 0.2, "t-sonority": 0.88, "t-member": 0.48, "t-arrival": 0.22, "t-opening": 0.59 };
 
-export const trioModelBits = (t: TrioFeatureTables, x: TrioInput) =>
-  TRIO_MODEL_FEATURES.reduce((h, f) => h + (TRIO_MODEL_WEIGHTS[f.id] ?? 0) * trioFeatureBits(t, [f], x), 0);
+/** Features of the whole chord, not of one voice: counted once when two voices are chosen together. */
+export const CHORD_FEATURES = new Set(["t-sonority", "t-opening", "t-cadence", "t-final-top", "t-same-sonority"]);
+
+export const trioModelBits = (t: TrioFeatureTables, x: TrioInput, skip?: Set<string>) =>
+  TRIO_MODEL_FEATURES.reduce((h, f) => (skip?.has(f.id) ? h : h + (TRIO_MODEL_WEIGHTS[f.id] ?? 0) * trioFeatureBits(t, [f], x)), 0);

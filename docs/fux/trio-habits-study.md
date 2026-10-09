@@ -13,31 +13,33 @@ surprise at Fux's note (bits; lower is better) and how often it is ranked first,
 | + the sonority (figures above the bass) (summed) | 1.319 | 47% |
 | + melodic move into and out of the note, all voices pooled (summed) | 0.864 | 76% |
 | + the chord member the voice takes (bass, third, fifth, sixth, octave), by staff (summed) | 0.803 | 80% |
-| **all features, weighted** (weights also learnt without the exercise) | 0.748 | 82% |
+| + the opening sonority (summed) | 0.791 | 80% |
+| **all features, weighted** (weights also learnt without the exercise) | 0.739 | 82% |
 
 Weights learnt on all sixteen exercises, and what leaving each feature out costs (cross-validated):
 
 | feature | weight | without it: bits | change |
 |---|---|---|---|
-| melodic move into and out of the note, all voices pooled | 0.51 | 0.775 | +0.027 |
-| melodic move by staff (top, middle, bottom) | 0.29 | 0.752 | +0.004 |
-| melodic move by whether the voice is the sounding bass where it lands | 0.00 | 0.748 | -0.000 |
-| pairs of successive moves (what follows a leap), by staff | 0.14 | 0.755 | +0.007 |
-| the sonority (figures above the bass) | 0.86 | 0.932 | +0.184 |
-| spacing of the voice from its neighbouring staves | 0.12 | 0.746 | -0.002 |
-| the chord member the voice takes (bass, third, fifth, sixth, octave), by staff | 0.41 | 0.764 | +0.016 |
-| motion with each other voice into and out of the bar, by the consonance reached | 0.24 | 0.771 | +0.023 |
-| the sonority in each of the last three bars | 0.06 | 0.734 | -0.014 |
-| the top note of the final chord | 0.06 | 0.748 | -0.000 |
-| the same sonority in successive bars (or not) | 0.00 | 0.748 | +0.000 |
+| melodic move into and out of the note, all voices pooled | 0.52 | 0.767 | +0.028 |
+| melodic move by staff (top, middle, bottom) | 0.27 | 0.743 | +0.004 |
+| melodic move by whether the voice is the sounding bass where it lands | 0.00 | 0.739 | -0.000 |
+| pairs of successive moves (what follows a leap), by staff | 0.13 | 0.745 | +0.006 |
+| the sonority (figures above the bass) | 0.82 | 0.905 | +0.166 |
+| spacing of the voice from its neighbouring staves | 0.11 | 0.737 | -0.002 |
+| the chord member the voice takes (bass, third, fifth, sixth, octave), by staff | 0.39 | 0.753 | +0.014 |
+| motion with each other voice into and out of the bar, by the consonance reached | 0.24 | 0.762 | +0.023 |
+| the sonority in each of the last three bars | 0.08 | 0.725 | -0.014 |
+| the opening sonority | 0.56 | 0.748 | +0.009 |
+| the top note of the final chord | 0.05 | 0.739 | -0.000 |
+| the same sonority in successive bars (or not) | 0.00 | 0.739 | +0.000 |
 
 | model | bits | first |
 |---|---|---|
 | the Lab's model so far | 1.001 | 77% |
-| all features, weighted | 0.748 | 82% |
-| kept features only (t-melodic, t-move-pairs, t-sonority, t-member, t-arrival), weighted | 0.733 | 84% |
+| all features, weighted | 0.739 | 82% |
+| kept features only (t-melodic, t-move-pairs, t-sonority, t-member, t-arrival, t-opening), weighted | 0.723 | 84% |
 
-Weights of the kept features (all exercises): t-melodic 0.74, t-move-pairs 0.21, t-sonority 0.92, t-member 0.50, t-arrival 0.22.
+Weights of the kept features (all exercises): t-melodic 0.74, t-move-pairs 0.20, t-sonority 0.88, t-member 0.48, t-arrival 0.22, t-opening 0.59.
 
 ## The habits in words
 

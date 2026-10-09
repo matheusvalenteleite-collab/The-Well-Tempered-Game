@@ -18,7 +18,7 @@ import type { AuditSummary } from "./audit.ts";
 import { summarise } from "./audit.ts";
 import { DEFAULT_COUNSEL_WEIGHT, TRIO_TEMPERATURE } from "./counterpoint.ts";
 import { pitchesBetween, sharpAllowed } from "./vocabulary.ts";
-import { finalTopKey, learnTrioFeatures, sonorityKey, spacingKey, TRIO_MODEL_FEATURES, trioModelBits, type TrioFeatureTables } from "./trio-features.ts";
+import { finalTopKey, learnTrioFeatures, sonorityKey, spacingKey, TRIO_MODEL_FEATURES, trioModelBits, CHORD_FEATURES, type TrioFeatureTables } from "./trio-features.ts";
 
 export { finalTopKey, sonorityKey, spacingKey } from "./trio-features.ts";
 
@@ -435,4 +435,141 @@ export function generateThirdVoice(o: ThirdVoiceOptions): ThirdVoice {
     errorBars: [...new Set(best.ev.errors.flatMap((x) => x.positions))].sort((a, b) => a - b),
     reason,
   };
+}
+
+/* ---------------------------------------------------------------- both voices together */
+
+export interface TrioOptions {
+  modalFinal: ModalFinal;
+  /** The cantus firmus, in any octave: it is moved by octaves to where Fux writes it on its staff. */
+  cantus: string[];
+  /** Staff of the cantus: 0 top, 1 middle, 2 bottom. */
+  cantusIndex: Position;
+  /** Fux's sixteen solutions: his registers, staff by staff, for this position of the cantus. */
+  steps: TrioStep[];
+  habits: TrioHabits;
+  accidentals: string[];
+  temperature?: number;
+  width?: number;
+  seed?: number;
+}
+
+export interface GeneratedTrio {
+  /** The three lines, top first. */
+  voices: string[][];
+  cantusIndex: Position;
+  warnings: string[];
+}
+
+const octaveShift = (p: string, octaves: number) => p.replace(/-?\d+$/, (o) => String(Number(o) + octaves));
+
+/**
+ * The cantus moved by octaves to Fux's register for its staff, and a window for each staff (MIDI),
+ * from his solutions with the cantus on the same staff, measured from the cantus's first note.
+ */
+export function trioRegisters(steps: TrioStep[], cantus: string[], final: ModalFinal, cantusIndex: Position) {
+  const same = steps.filter((s) => s.cantusIndex === cantusIndex);
+  const pool = same.length ? same : steps;
+  const firsts = pool.filter((s) => s.modalFinal === final).map((s) => midi(s.cantus[0]));
+  const target = firsts.length ? firsts[0] : pool.map((s) => midi(s.cantus[0])).sort((a, b) => a - b)[Math.floor(pool.length / 2)];
+  const shift = Math.round((target - midi(cantus[0])) / 12);
+  const placed = cantus.map((p) => octaveShift(p, shift));
+  const windows = [0, 1, 2].map((v) => {
+    let lo = Infinity;
+    let hi = -Infinity;
+    for (const s of pool) {
+      const f = midi(s.cantus[0]);
+      for (const p of s.fux[v]) (lo = Math.min(lo, midi(p) - f)), (hi = Math.max(hi, midi(p) - f));
+    }
+    const f0 = midi(placed[0]);
+    return [f0 + lo - 2, f0 + hi + 2] as [number, number];
+  });
+  return { cantus: placed, windows };
+}
+
+/** A cheap local check on a bar's chord and the motion into it (the rules judge the rest). */
+function chordOk(prev: string[] | null, chord: string[]): boolean {
+  const m = chord.map(midi);
+  const low = m.indexOf(Math.min(...m));
+  for (let i = 0; i < 3; i++) {
+    for (let j = i + 1; j < 3; j++) {
+      const iv = harmonic(chord[i], chord[j]);
+      const withBass = i === low || j === low;
+      const name = simpleName(iv);
+      // Seconds, sevenths, augmented and diminished intervals never; the fourth only between upper voices.
+      if (/^[mM](2|7)$|^[AdA]/.test(name) || iv.quality === "A" || iv.quality === "d") return false;
+      if (withBass && (name === "4" || name === "P4")) return false;
+      if (prev) {
+        const mo = motion(prev[i], prev[j], chord[i], chord[j]);
+        if (mo === "parallel" && isPerfectConsonance(iv)) return false;
+      }
+    }
+    if (prev) {
+      const d = Math.abs(m[i] - midi(prev[i]));
+      const mi = harmonic(prev[i], chord[i]);
+      if (d > 12 || mi.quality === "A" || mi.quality === "d" || mi.number === 7 || (mi.number === 6 && mi.quality === "M")) return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Both added voices written together over a cantus on any staff (first species), in Fux's
+ * registers for that staff: a beam search bar by bar over pairs of notes, each pair checked
+ * cheaply, ranked by the three-voice habits of both new notes (the chord's own habits, such as its
+ * sonority, counted once), with seeded noise for variety,
+ * and the kept states judged by the game's three-voice rules on the prefix (the cadence and the
+ * final chord at the end).
+ */
+export function generateTrio(o: TrioOptions): GeneratedTrio {
+  const { cantus, windows } = trioRegisters(o.steps, o.cantus, o.modalFinal, o.cantusIndex);
+  const n = cantus.length;
+  const free = ([0, 1, 2] as Position[]).filter((v) => v !== o.cantusIndex) as [Position, Position];
+  const vocab = free.map((v) => pitchesBetween(windows[v][0], windows[v][1], o.accidentals));
+  const r = rng(o.seed ?? Date.now());
+  // 0.75: generated sonorities then come close to Fux's mix (3 8, 3 5, 3 6; checked on his sixteen cantus firmi).
+  const T = o.temperature ?? 0.75;
+  const noise = () => -(T / Math.LN2) * -Math.log(-Math.log(Math.max(1e-12, r())));
+  const prefixRules = TRIO_FIRST_SPECIES.filter((x) => !DEFERRED.has(x.id));
+  const assemble = (a: string[], b: string[]) => [0, 1, 2].map((v) => (v === o.cantusIndex ? cantus.slice(0, a.length) : v === free[0] ? a : b));
+  const judge = (a: string[], b: string[], rules: readonly TrioRule[]) => evaluateTrio({ modalFinal: o.modalFinal, voices: assemble(a, b), cantusIndex: o.cantusIndex }, rules);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const width = (o.width ?? 30) * 2 ** attempt;
+    let beam: { a: string[]; b: string[]; cost: number }[] = [{ a: [], b: [], cost: 0 }];
+    for (let k = 0; k < n && beam.length; k++) {
+      const next: typeof beam = [];
+      for (const st of beam) {
+        const prev = k > 0 ? assemble(st.a, st.b).map((l) => l[k - 1]) : null;
+        for (const x of vocab[0]) {
+          if (!sharpAllowed(x, k, n)) continue;
+          for (const y of vocab[1]) {
+            if (!sharpAllowed(y, k, n)) continue;
+            // Staff order kept, a step of crossing allowed (Fux crosses).
+            const chord = [0, 1, 2].map((v) => (v === o.cantusIndex ? cantus[k] : v === free[0] ? x : y));
+            if (midi(chord[0]) < midi(chord[1]) - 2 || midi(chord[1]) < midi(chord[2]) - 2) continue;
+            if (!chordOk(prev, chord)) continue;
+            const a = [...st.a, x];
+            const b = [...st.b, y];
+            const vs = assemble(a, b);
+            const habit = trioModelBits(o.habits.features, { voices: vs, v: free[0], k, bars: n }) + trioModelBits(o.habits.features, { voices: vs, v: free[1], k, bars: n }, CHORD_FEATURES);
+            next.push({ a, b, cost: st.cost + habit + noise() + noise() });
+          }
+        }
+      }
+      next.sort((p, q) => p.cost - q.cost);
+      const kept: typeof beam = [];
+      for (const st of next) {
+        if (k < n - 1 && kept.length >= width) break;
+        if (k > 0 && judge(st.a, st.b, k === n - 1 ? TRIO_FIRST_SPECIES : prefixRules).errors.length) continue;
+        kept.push(st);
+        if (k === n - 1) break;
+      }
+      beam = kept;
+    }
+    if (beam.length) {
+      const ev = judge(beam[0].a, beam[0].b, TRIO_FIRST_SPECIES);
+      return { voices: assemble(beam[0].a, beam[0].b), cantusIndex: o.cantusIndex, warnings: [...new Set(ev.warnings.map((x) => x.ruleId))] };
+    }
+  }
+  throw new Error("No pair of voices was found for this cantus on this staff without breaking a three-voice rule. Try another staff for the cantus, or a new cantus.");
 }

@@ -24,7 +24,7 @@ import { fuxAccidentals, pitchesBetween, registerWindow } from "../counterpoint/
 import { play, playLines, stop } from "./play.ts";
 import { HabitsTab } from "./Habits.tsx";
 import { WriteTab } from "./Write.tsx";
-import { addThirdVoice, auditGeneratedTrio, judgeGeneratedTrio, TrioAuditList, TrioAuditTab, TrioChoiceDetail, TrioSummary } from "./Trio.tsx";
+import { addThirdVoice, writeTrio, auditGeneratedTrio, judgeGeneratedTrio, TrioAuditList, TrioAuditTab, TrioChoiceDetail, TrioSummary } from "./Trio.tsx";
 import type { Placement, ThirdVoice, TrioAudit } from "../counterpoint/choices/trio.ts";
 
 const SPECIES: SpeciesId[] = ["first", "second", "third", "fourth"];
@@ -235,8 +235,15 @@ function GenerateTab() {
   /** The cantus as generated (Fux's octave), and the register it is written in. */
   const [baseCantus, setBaseCantus] = useState<string[] | null>(null);
   const [register, setRegister] = useState<Register>("mid");
-  const placed = useMemo(() => (baseCantus ? placeCantus(baseCantus, register) : null), [baseCantus, register]);
+  const placed0 = useMemo(() => (baseCantus ? placeCantus(baseCantus, register) : null), [baseCantus, register]);
+  /** Three voices written together: the cantus moved to Fux's octave for its staff. */
+  const [cantusOverride, setCantusOverride] = useState<string[] | null>(null);
+  const placed = useMemo(() => (placed0 && cantusOverride ? { line: cantusOverride, clef: clefFor(cantusOverride) } : placed0), [placed0, cantusOverride]);
   const cantus = placed?.line ?? null;
+  /** Step 3's mode: add a voice to the two lines, or write both voices together over the cantus. */
+  const [mode3, setMode3] = useState<"add" | "joint">("add");
+  const [cantusStaff, setCantusStaff] = useState<0 | 1 | 2>(1);
+  const [joint, setJoint] = useState(false);
   const [line, setLine] = useState<string[] | null>(null);
   /** Slots where the generated line breaks a rule (only when no error-free line was found). */
   const [lineErrorSlots, setLineErrorSlots] = useState<number[]>([]);
@@ -258,6 +265,8 @@ function GenerateTab() {
     try {
       const g = generateCantus({ final, length: length === "auto" ? undefined : length, wideLeaps: wide, seed: seed() });
       setBaseCantus(g);
+      setCantusOverride(null);
+      setJoint(false);
       const c = placeCantus(g, register).line;
       setLine(null);
       setTrio(null);
@@ -272,6 +281,12 @@ function GenerateTab() {
   };
   const newLine = (c = cantus) => {
     if (!c) return;
+    if (joint) {
+      // Back to two voices: the cantus returns to its register.
+      setJoint(false);
+      setCantusOverride(null);
+      if (placed0) c = placed0.line;
+    }
     setMsg((m) => ({ ...m, line: "Searching…", trio: null }));
     setTrio(null);
     setUnclean({});
@@ -297,6 +312,27 @@ function GenerateTab() {
       } catch (e) {
         setLine(null);
         setMsg((m) => ({ ...m, line: (e as Error).message }));
+      }
+    }, 20);
+  };
+  const newJoint = () => {
+    if (!placed0) return;
+    setMsg((m) => ({ ...m, trio: "Searching…" }));
+    clearAudits();
+    window.setTimeout(() => {
+      try {
+        const r = writeTrio({ cantus: placed0.line, final, cantusIndex: cantusStaff, temperature });
+        setSpecies("first");
+        setCantusOverride(r.cantus);
+        setCantusVoice(r.cantusVoice);
+        setLine(r.line);
+        setLineErrorSlots([]);
+        setTrio(r.trio);
+        setJoint(true);
+        setUnclean({});
+        setMsg((m) => ({ ...m, line: null, trio: null }));
+      } catch (e) {
+        setMsg((m) => ({ ...m, trio: (e as Error).message }));
       }
     }, 20);
   };
@@ -364,7 +400,7 @@ function GenerateTab() {
     setAudit(auditLine(repository, fl, fuxLines(repository, species), { rules: "species", leaveOneOut: false }));
     setChoice(0);
   };
-  const trioPossible = !!line && species === "first";
+  const trioPossible = mode3 === "joint" ? !!cantus : !!line && species === "first";
 
   return (
     <section className="lab-gen">
@@ -387,7 +423,7 @@ function GenerateTab() {
             </label>
             <label className="lab-group" title="Low: an octave below the middle, F clef. Middle: the octave nearest middle C, in whichever clef needs fewer ledger lines. High: an octave above the middle, G clef. The melody is the same in all three.">
               Register
-              <select id="gen-register" value={register} onChange={(e) => (setRegister(e.target.value as Register), setLine(null), setTrio(null), setUnclean({}), clearAudits(), setMsg({}))}>
+              <select id="gen-register" value={register} onChange={(e) => (setRegister(e.target.value as Register), setLine(null), setTrio(null), setJoint(false), setCantusOverride(null), setUnclean({}), clearAudits(), setMsg({}))}>
                 <option value="low">low (F clef)</option>
                 <option value="mid">middle</option>
                 <option value="high">high (G clef)</option>
@@ -410,13 +446,13 @@ function GenerateTab() {
           <div className="lab-fields">
             <label className="lab-group">
               Species
-              <select id="gen-species" value={species} onChange={(e) => (setSpecies(e.target.value as SpeciesId), setLine(null), setTrio(null), clearAudits())}>
+              <select id="gen-species" value={species} onChange={(e) => (setSpecies(e.target.value as SpeciesId), setLine(null), setTrio(null), setJoint(false), setCantusOverride(null), clearAudits())}>
                 {SPECIES.map((x) => <option key={x}>{x}</option>)}
               </select>
             </label>
             <label className="lab-group">
               Cantus
-              <select id="gen-cantus-voice" value={cantusVoice} onChange={(e) => (setCantusVoice(e.target.value as Staff), setLine(null), setTrio(null), clearAudits())}>
+              <select id="gen-cantus-voice" value={cantusVoice} onChange={(e) => (setCantusVoice(e.target.value as Staff), setLine(null), setTrio(null), setJoint(false), setCantusOverride(null), clearAudits())}>
                 <option value="lower">below</option>
                 <option value="upper">above</option>
               </select>
@@ -425,15 +461,32 @@ function GenerateTab() {
           <div className="lab-actions">
             <button className="primary" onClick={() => newLine()}>New counterpoint</button>
           </div>
-          <p className={`lab-status${verdict?.errors.length ? " lab-bad" : ""}`}>
-            {msg.line ?? (verdict ? (verdict.errors.length ? `No line without errors was found for this cantus. Best possible: ${verdict.errors.length} error${verdict.errors.length > 1 ? "s" : ""} (${ruleIds(verdict.errors)}), marked in the score.` : `No rule broken${verdict.warnings.length ? `; not followed: ${ruleIds(verdict.warnings)}` : ""}.`) : "None yet.")}
+          <p className={`lab-status${verdict?.errors.length && !joint ? " lab-bad" : ""}`}>
+            {joint ? "Written together with the third voice (step 3), judged by the three-voice rules there." : msg.line ?? (verdict ? (verdict.errors.length ? `No line without errors was found for this cantus. Best possible: ${verdict.errors.length} error${verdict.errors.length > 1 ? "s" : ""} (${ruleIds(verdict.errors)}), marked in the score.` : `No rule broken${verdict.warnings.length ? `; not followed: ${ruleIds(verdict.warnings)}` : ""}.`) : "None yet.")}
           </p>
         </fieldset>
 
-        <fieldset className="lab-panel" disabled={!trioPossible}>
+        <fieldset className="lab-panel" disabled={!cantus}>
           <legend>3 · Third voice</legend>
           <div className="lab-fields">
             <label className="lab-group">
+              Mode
+              <select id="gen-mode3" value={mode3} onChange={(e) => setMode3(e.target.value as "add" | "joint")}>
+                <option value="add">add one to the two lines</option>
+                <option value="joint">write two voices together over the cantus</option>
+              </select>
+            </label>
+            {mode3 === "joint" && (
+              <label className="lab-group" title="The cantus moves to the octave Fux gives it on that staff">
+                Cantus on
+                <select id="gen-cantus-staff" value={cantusStaff} onChange={(e) => setCantusStaff(Number(e.target.value) as 0 | 1 | 2)}>
+                  <option value={0}>top staff</option>
+                  <option value={1}>middle staff</option>
+                  <option value={2}>bottom staff</option>
+                </select>
+              </label>
+            )}
+            <label className="lab-group" hidden={mode3 === "joint"}>
               Place
               <select id="gen-placement" className={unclean[placement] ? "lab-bad-select" : ""} value={placement} onChange={(e) => setPlacement(e.target.value as Placement)}>
                 {(
@@ -452,11 +505,11 @@ function GenerateTab() {
             </label>
           </div>
           <div className="lab-actions">
-            <button className="primary" onClick={newTrio}>Add third voice</button>
+            {mode3 === "joint" ? <button className="primary" onClick={newJoint}>Write both voices</button> : <button className="primary" disabled={!trioPossible} onClick={newTrio}>Add third voice</button>}
             <button disabled={!trio} onClick={() => (setTrio(null), clearAudits(), setMsg((m) => ({ ...m, trio: null })))}>Remove</button>
           </div>
           <p className={`lab-status${trio?.errors.length ? " lab-bad" : ""}`}>
-            {line && species !== "first"
+            {mode3 === "add" && line && species !== "first"
               ? "First species only: the game has three-voice rules for first species alone so far."
               : msg.trio ??
                 (trioVerdict
