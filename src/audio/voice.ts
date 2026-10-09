@@ -32,11 +32,21 @@ export function loadSamples(ctx: BaseAudioContext, set: SampleSet): Promise<void
   if (!p) {
     const m = SAMPLE_MANIFEST[set];
     const files = m.layers.length ? m.notes.flatMap((n) => m.layers.map((l) => ({ n, l, f: `${n}-v${l}.mp3` }))) : m.notes.map((n) => ({ n, l: 0, f: `${n}.mp3` }));
+    // D112: one request for the whole instrument (its pack); the single files if there is none.
+    const pack = fetch(new URL(`samples/${set}/pack.bin`, document.baseURI))
+      .then((r) => (r.ok ? r.arrayBuffer() : null))
+      .catch(() => null);
+    const bytes = async (f: string): Promise<ArrayBuffer> => {
+      const all = await pack;
+      const at = m.pack?.[f];
+      if (all && at && at[0] + at[1] <= all.byteLength) return all.slice(at[0], at[0] + at[1]);
+      const res = await fetch(new URL(`samples/${set}/${f}`, document.baseURI));
+      if (!res.ok) throw new Error(`sample ${set}/${f}: ${res.status}`);
+      return res.arrayBuffer();
+    };
     p = Promise.all(
       files.map(async ({ n, l, f }) => {
-        const res = await fetch(new URL(`samples/${set}/${f}`, document.baseURI));
-        if (!res.ok) throw new Error(`sample ${set}/${f}: ${res.status}`);
-        const buffer = await ctx.decodeAudioData(await res.arrayBuffer());
+        const buffer = await ctx.decodeAudioData(await bytes(f));
         return { midi: parsePitch(n.replace("s", "#")).midi, layer: l, buffer };
       }),
     ).then((list) => {
