@@ -86,6 +86,65 @@ def fundamental(p: list[str]) -> dict:
     return {"root": H.name(best["root_step"], best["root_pc"]), "chord": best["quality"]}
 
 
+def figured(pitches: list[str]) -> list[str]:
+    """The figures as a continuo part prints them: the characteristic numbers only (the common chord
+    unfigured, 6 for 6/3, 6/4, 7, 6/5, 4/3, 4/2), an accidental before the number it alters (the key
+    of C has no signature), an accidental alone for the third."""
+    bass = pitches[0]
+    b = STEPS.index(bass[0]) + 7 * int(bass.lstrip("ABCDEFG#b"))
+    acc: dict[int, str] = {}
+    present = set()
+    for p in pitches[1:]:
+        g = (STEPS.index(p[0]) + 7 * int(p.lstrip("ABCDEFG#b")) - b) % 7 + 1
+        g = 8 if g == 1 else g
+        present.add(g)
+        a = p[1:].rstrip("0123456789")
+        if a:
+            acc[g] = "♯" if a.startswith("#") else "♭"
+    present.discard(8)
+    shapes = [({3, 5}, ["5", "3"]), ({3, 6}, ["6"]), ({4, 6}, ["6", "4"]), ({3, 5, 7}, ["7"]), ({3, 7}, ["7"]), ({5, 7}, ["7"]),
+              ({3, 5, 6}, ["6", "5"]), ({3, 6}, ["6"]), ({3, 4, 6}, ["4", "3"]), ({2, 4, 6}, ["4", "2"]), ({2, 4}, ["4", "2"]),
+              ({4, 5, 7}, ["7", "4"]), ({4, 5}, ["5", "4"]), ({4, 6, 7}, ["7", "6", "4"])]
+    nums = next((n for st, n in shapes if present == st), sorted((str(g) for g in present), reverse=True))
+    if nums == ["5", "3"]:
+        nums = []  # the common chord is unfigured
+    out = [acc.pop(int(n), "") + n for n in nums]
+    # an accidental on an interval the numbers do not show: the third's stands alone
+    for g, a in sorted(acc.items()):
+        if g == 3:
+            out.append(a)
+        elif g != 8:
+            out.append(a + str(g))
+    return out
+
+
+def voicings(pitches: list[str]) -> list[list[str]]:
+    """Every voicing of the bar's figured chord in Prelude 1's layout: the bass as given, a tenor and
+    three right-hand notes, ascending, the right hand within an octave and a third, the tenor below
+    it within an octave, every pitch class of Bach's chord present, spelled as Bach spells it."""
+    bass = pitches[0]
+    spell = {midi(p) % 12: p.rstrip("0123456789") for p in pitches}
+    pcs = set(spell)
+    lo, hi = midi(bass) + 1, 84
+    cands = [m for m in range(lo, hi + 1) if m % 12 in pcs]
+    name = lambda m: spell[m % 12] + str((m - (PC[spell[m % 12][0]] + spell[m % 12].count("#") - spell[m % 12].count("b"))) // 12 - 1)  # noqa: E731
+    out = []
+    for t in cands:
+        for a in cands:
+            if a <= t or a - t > 12 or t > 64:
+                continue
+            for b2 in cands:
+                if b2 <= a:
+                    continue
+                for c in cands:
+                    if c <= b2 or c - a > 15 or c < 64 or c > 81:
+                        continue
+                    if {m % 12 for m in (midi(bass), t, a, b2, c)} != pcs:
+                        continue
+                    out.append([bass, name(t), name(a), name(b2), name(c)])
+    return out
+
+
 def main() -> None:
     text = SRC.read_text()
     right = text[text.index("right = {"):text.index("left = {")]
@@ -125,6 +184,21 @@ def main() -> None:
         # a stable, not alphabetical, order: by the sum of the upper pitches (Bach's not always first)
         opts.sort(key=lambda c: (sum(midi(u) for u in c[1:]), c))
         x["choices"] = [{"pitches": c, "figures": figures(c), "fundamental": fundamental(c), "bach": c == x["pitches"]} for c in opts]
+    # level P2, the figured bass: the bass and Bach's figures are given (with their accidentals, as a
+    # continuo part would print them: the key signature of C has none, so every sharp or flat is
+    # figured); the player voices each chord. The options: every voicing of the figured chord in the
+    # prelude's layout (a tenor, then three notes above it in the right hand), every figured
+    # interval present, Bach's among them; at most six, Bach's and five others spread over the rest.
+    for x in plan:
+        x["figured"] = figured(x["pitches"])
+        alts = voicings(x["pitches"])
+        bach = x["pitches"]
+        others = [v for v in alts if v != bach]
+        step = max(1, len(others) // 5)
+        pick = others[::step][:5]
+        opts = sorted([bach] + pick, key=lambda c: [midi(u) for u in c[1:]])
+        x["realisations"] = [{"pitches": c, "bach": c == bach} for c in opts]
+        x["realisationCount"] = len(alts)
     # cross-check with the Humdrum edition (local)
     check = "Humdrum edition not present (tools/wtc/fetch_wtc.sh)"
     if LOCAL.exists():

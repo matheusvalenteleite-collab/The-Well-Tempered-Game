@@ -83,6 +83,7 @@ export function AnswerApp({ onMode, level, onLevel }: { onMode(mode: Mode): void
             </select>
             <select id="level" className="sel sel-species" value={level} aria-label={t("chorale.level")} onChange={(e) => { audio.stop(); onLevel(e.target.value as WtcLevel); }}>
               <option value="p1">{t("wtc.piece.p1")}</option>
+              <option value="p2">{t("wtc.level.p2")}</option>
               <option value="f2">{t("wtc.level.f2")}</option>
             </select>
             <select id="exercise" className="sel sel-exercise" value={index} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("ui.nav.choose")}>

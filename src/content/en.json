@@ -1020,6 +1020,19 @@
     "kind.tonal, Bach's own mutation": "a tonal answer of his own",
     "explain.real": "Bach keeps every interval of the subject: the answer is the subject a fifth higher (or a fourth lower), with no mutation. Where the textbook answer differs from it, it shows the mutation Bach chose not to make.",
     "explain.textbook tonal": "Bach answers the subject's dominant at the head with the tonic ({tonic}), a fourth instead of a fifth, and keeps the rest real: the school rule.",
-    "explain.tonal, Bach's own mutation": "Bach mutates the answer, but not by the school rule: another note, or a different place, is changed. Look at the marked notes: what does the change keep, and what does it avoid?"
+    "explain.tonal, Bach's own mutation": "Bach mutates the answer, but not by the school rule: another note, or a different place, is changed. Look at the marked notes: what does the change keep, and what does it avoid?",
+    "level.p2": "Prelude 1 in C · figured bass",
+    "p2.prompt": "Bar {n}, {bass} figured {figures}:",
+    "p2.summary": "Bach's voicing in {n} of {of} bars; parallel fifths or octaves: {faults} (Bach's prelude: {bach})",
+    "p2.motion": "the voices move {n} semitones",
+    "p2.fifths": "parallel fifths, {a} and {b}",
+    "p2.octaves": "parallel octaves, {a} and {b}",
+    "p2.about.2": "Here the harmony is given as a continuo part gives it: Bach's bass with its figures (the common chord unfigured; a sharp or flat before the number it alters, alone for the third). For each bar, choose how to voice the chord: a tenor and three notes for the right hand, in the prelude's layout. Every option has the figured notes; they differ in spacing, doubling, and how the voices move from the bar before.",
+    "p2.about.3": "Compare sets your voicing beside Bach's and marks parallel fifths and octaves from the bar before (each of the five notes is a line in the figuration, so Fux's rule applies to it). It also says how far the voices move: Bach keeps common notes and moves the rest by step.",
+    "voice.bass": "bass",
+    "voice.tenor": "tenor",
+    "voice.lower": "lower right-hand voice",
+    "voice.middle": "middle right-hand voice",
+    "voice.upper": "upper voice"
   }
 }

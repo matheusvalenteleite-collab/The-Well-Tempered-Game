@@ -730,3 +730,4 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
 .ls-note.marked .ls-head, .ls-note.marked .ls-acc { fill: #c98a1b; stroke: #c98a1b; }
 .line-staff-svg.chosen { background: color-mix(in srgb, var(--accent, #3b6fb6) 10%, transparent); }
 .line-staff-svg.bach .ls-label { fill: #2e8b57; font-weight: 700; opacity: 1; }
+.chorale-verdicts .fault { color: var(--bad, #b33); }

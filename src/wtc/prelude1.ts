@@ -26,6 +26,10 @@ export interface Bar {
   figures: number[];
   fundamental: Fundamental;
   choices: Choice[];
+  /** level P2: the figures as a continuo part prints them, and voicings of the figured chord */
+  figured: string[];
+  realisations: { pitches: string[]; bach: boolean }[];
+  realisationCount: number;
 }
 interface Slot {
   voice: number;
@@ -76,13 +80,12 @@ export function barEvents(pitches: string[], at: number, slot0 = 0): PlayEvent[]
   return ev;
 }
 
-/** The whole prelude with the player's chords; a bar not yet chosen sounds its bass alone. */
-export function pieceEvents(picks: (number | null)[], withCoda = true): PlayEvent[] {
+/** The whole prelude with the player's chords (five pitches a bar); a bar not yet chosen (null)
+ * sounds its bass alone. */
+export function pieceEvents(chords: (string[] | null)[], withCoda = true): PlayEvent[] {
   const ev: PlayEvent[] = [];
   BARS.forEach((b, i) => {
-    const k = picks[i];
-    const pitches = k === null || k === undefined ? [b.pitches[0]] : b.choices[k].pitches;
-    ev.push(...barEvents(pitches, i, ev.length));
+    ev.push(...barEvents(chords[i] ?? [b.pitches[0]], i, ev.length));
   });
   if (withCoda) CODA.forEach((n) => ev.push({ slot: ev.length, at: n.at, length: n.length, cantus: null, counterpoint: n.pitch }));
   return ev.sort((a, b) => a.at - b.at);
@@ -104,4 +107,40 @@ export function compare(picks: (number | null)[]): BarVerdict[] {
     const bach = b.choices.find((c) => c.bach)!;
     return { bar: b.bar, chosen, bach, same: !!chosen?.bach, sameRoot: !!chosen && chosen.fundamental.root === bach.fundamental.root && chosen.fundamental.chord === bach.fundamental.chord };
   });
+}
+
+/** "♯4 2" printed as a stack, top number first. */
+export const figuredLabel = (f: string[]) => (f.length ? f.join("/") : "–");
+
+const midiOf = (p: string): number => {
+  const m = /^([A-G])(#*|b*)(-?\d+)$/.exec(p)!;
+  const pc: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+  return 12 * (Number(m[3]) + 1) + pc[m[1]] + (m[2].startsWith("#") ? m[2].length : -m[2].length);
+};
+
+export const VOICES = ["bass", "tenor", "lower", "middle", "upper"] as const;
+
+/** Parallel fifths and octaves (or unisons) between two consecutive five-note chords, voice by
+ * voice (in the figuration each of the five is a line): both voices move, in the same direction,
+ * from a perfect interval to the same perfect interval. */
+export function parallels(prev: string[], cur: string[]): { voices: [number, number]; interval: "fifths" | "octaves" }[] {
+  const a = prev.map(midiOf);
+  const b = cur.map(midiOf);
+  const out: { voices: [number, number]; interval: "fifths" | "octaves" }[] = [];
+  for (let i = 0; i < 5; i++) {
+    for (let j = i + 1; j < 5; j++) {
+      const x = (((a[j] - a[i]) % 12) + 12) % 12;
+      const y = (((b[j] - b[i]) % 12) + 12) % 12;
+      const di = b[i] - a[i];
+      const dj = b[j] - a[j];
+      if (di === 0 || dj === 0 || Math.sign(di) !== Math.sign(dj)) continue;
+      if (x === y && (x === 7 || x === 0)) out.push({ voices: [i, j], interval: x === 7 ? "fifths" : "octaves" });
+    }
+  }
+  return out;
+}
+
+/** The voices' total motion (semitones) from one chord to the next, the bass aside. */
+export function motion(prev: string[], cur: string[]): number {
+  return [1, 2, 3, 4].reduce((s, k) => s + Math.abs(midiOf(cur[k]) - midiOf(prev[k])), 0);
 }

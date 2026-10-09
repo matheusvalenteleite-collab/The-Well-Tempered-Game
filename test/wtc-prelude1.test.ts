@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { BARS, barEvents, compare, figureLabel, pieceEvents } from "../src/wtc/prelude1.ts";
+import { BARS, barEvents, compare, figureLabel, figuredLabel, motion, parallels, pieceEvents } from "../src/wtc/prelude1.ts";
 
 test("Prelude 1: 32 bars, five pitches each, Bach's chord among the choices", () => {
   assert.equal(BARS.length, 32);
@@ -34,6 +34,28 @@ test("Prelude 1: Bach's plan agrees with Bach everywhere; an empty plan sounds t
   assert.ok(compare(bach).every((v) => v.same && v.sameRoot));
   const empty = pieceEvents(BARS.map(() => null), false);
   assert.equal(empty.length, 64);
-  const full = pieceEvents(bach);
+  const full = pieceEvents(BARS.map((b) => b.pitches));
   assert.ok(full.at(-1)!.at >= 34);
+});
+
+test("Prelude 1, P2: figures as a continuo part prints them; Bach's voicing among the options", () => {
+  assert.equal(figuredLabel(BARS[0].figured), "–");
+  assert.equal(figuredLabel(BARS[1].figured), "4/2");
+  assert.equal(figuredLabel(BARS[5].figured), "♯4/2");
+  assert.equal(figuredLabel(BARS[9].figured), "7/♯");
+  for (const b of BARS) {
+    assert.equal(b.realisations.filter((r) => r.bach).length, 1, `bar ${b.bar}`);
+    assert.ok(b.realisations.length >= 2 && b.realisations.length <= 6);
+    for (const r of b.realisations) assert.equal(r.pitches[0], b.pitches[0]);
+  }
+});
+
+test("Prelude 1, P2: parallels and motion", () => {
+  // C-G-C-E-G to D-A-D-F-A: every voice up a step, fifths and octaves throughout
+  const f = parallels(["C3", "G3", "C4", "E4", "G4"], ["D3", "A3", "D4", "F4", "A4"]);
+  assert.ok(f.some((x) => x.interval === "fifths" && x.voices[0] === 0 && x.voices[1] === 1));
+  assert.ok(f.some((x) => x.interval === "octaves" && x.voices[0] === 0 && x.voices[1] === 2));
+  // a held common tone is no parallel
+  assert.deepEqual(parallels(["C4", "E4", "G4", "C5", "E5"], ["C4", "D4", "A4", "D5", "F5"]), []);
+  assert.equal(motion(BARS[0].pitches, BARS[1].pitches), 2 + 2 + 2 + 1);
 });

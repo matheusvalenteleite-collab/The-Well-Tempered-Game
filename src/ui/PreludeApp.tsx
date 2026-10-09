@@ -1,11 +1,14 @@
 /**
- * The WTC mode (docs/wtc/PLAN.md, C6), level 1: the harmonic plan of Prelude 1 in C. For each
- * bar the player chooses one of four five-note chords over Bach's bass, hears it in Bach's
- * figuration, and compares the whole plan with Bach's. As in the chorale mode, no choice is
- * marked wrong: Bach's chord, its figures and its fundamental are the feedback.
+ * The WTC mode (docs/wtc/PLAN.md, C6) on Prelude 1 in C, two levels on one screen.
+ * P1, the harmonic plan: for each bar the player chooses one of four five-note chords over Bach's
+ * bass, hears it in Bach's figuration, and compares the plan with Bach's (chord, figures,
+ * fundamental). P2, the figured bass: the bass and Bach's figures are given; the player voices
+ * each chord (C9), and the comparison adds the voice-leading: parallel fifths and octaves from the
+ * bar before, and how far the voices move. As in the chorale mode, Bach's choice is the feedback;
+ * only the parallels are marked as faults, the boundary Fux's rules already draw.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BARS, barEvents, compare, figureLabel, pieceEvents, type Choice } from "../wtc/prelude1.ts";
+import { BARS, VOICES, barEvents, compare, figureLabel, figuredLabel, motion, parallels, pieceEvents, type Choice } from "../wtc/prelude1.ts";
 import type { Mode } from "./Root.tsx";
 import type { WtcLevel } from "./WtcRoot.tsx";
 import { HFader } from "./HFader.tsx";
@@ -19,8 +22,18 @@ type Picks = (number | null)[];
 const fund = (c: Choice) => `${c.fundamental.root} ${t(`wtc.chord.${c.fundamental.chord}`)}`;
 
 export function PreludeApp({ onMode, level, onLevel }: { onMode(mode: Mode): void; level: WtcLevel; onLevel(l: WtcLevel): void }) {
-  const [picks, setPicks] = useState<Picks>(() => stored<Picks>("wtg.prelude1", BARS.map(() => null), (v) => Array.isArray(v) && v.length === BARS.length));
-  useEffect(() => store("wtg.prelude1", picks), [picks]);
+  const p2 = level === "p2";
+  const key = p2 ? "wtg.prelude1p2" : "wtg.prelude1";
+  const load = (k: string) => stored<Picks>(k, BARS.map(() => null), (v) => Array.isArray(v) && v.length === BARS.length);
+  const [picks, setPicksState] = useState<Picks>(() => load(key));
+  useEffect(() => setPicksState(load(key)), [key]);
+  const setPicks = (v: Picks) => {
+    setPicksState(v);
+    store(key, v);
+  };
+  /** the options of a bar at this level, as five-pitch chords */
+  const opts = (i: number): { pitches: string[]; bach: boolean }[] => (p2 ? BARS[i].realisations : BARS[i].choices);
+  const chordAt = (i: number): string[] | null => (picks[i] === null || picks[i] === undefined ? null : opts(i)[picks[i]!]?.pitches ?? null);
   const [selected, setSelected] = useState(0);
   const [showCompare, setShowCompare] = useState(false);
   const [tab, setTab] = useState("compare");
@@ -45,7 +58,13 @@ export function PreludeApp({ onMode, level, onLevel }: { onMode(mode: Mode): voi
   }, [tempo]);
   useEffect(() => () => stop(), []);
 
-  const verdicts = useMemo(() => compare(picks), [picks]);
+  const verdicts = useMemo(() => (p2 ? null : compare(picks)), [picks, p2]);
+  const bachChords = BARS.map((b) => b.pitches);
+  const faults = (chords: (string[] | null)[]) =>
+    chords.map((c, i) => (i > 0 && c && chords[i - 1] ? parallels(chords[i - 1]!, c) : []));
+  const mine = BARS.map((_, i) => chordAt(i));
+  const myFaults = useMemo(() => faults(mine), [picks, p2]);
+  const bachFaults = useMemo(() => faults(bachChords), []);
   const done = picks.filter((x) => x !== null).length;
   const bar = BARS[selected];
 
@@ -64,24 +83,28 @@ export function PreludeApp({ onMode, level, onLevel }: { onMode(mode: Mode): voi
     timer.current = window.setInterval(() => setCursor(from + (performance.now() - t0) / 1000 / whole), 60);
     void audio.playSequence(events, whole).then(() => stop());
   }
-  const playAll = (bach = false) => (playing ? stop() : run(pieceEvents(bach ? BARS.map((b) => b.choices.findIndex((c) => c.bach)) : picks)));
+  const playAll = (bach = false) => (playing ? stop() : run(pieceEvents(bach ? bachChords : mine)));
   const audition = (pitches: string[], i: number) => run(barEvents(pitches, i), i);
   const choose = (k: number) => {
     const next = [...picks];
     next[selected] = k;
     setPicks(next);
-    audition(BARS[selected].choices[k].pitches, selected);
+    audition(opts(selected)[k].pitches, selected);
   };
   const next = () => setSelected(Math.min(BARS.length - 1, selected + 1));
 
   const state = (i: number) => {
-    const v = verdicts[i];
-    if (!v.chosen) return "empty";
+    if (picks[i] === null || picks[i] === undefined) return "empty";
     if (!showCompare) return "chosen";
+    if (p2) return myFaults[i].length ? "other" : opts(i)[picks[i]!].bach ? "bach" : "root";
+    const v = verdicts![i];
     return v.same ? "bach" : v.sameRoot ? "root" : "other";
   };
-  const agree = verdicts.filter((v) => v.same).length;
-  const agreeRoot = verdicts.filter((v) => v.sameRoot && !v.same).length;
+  const agree = p2 ? BARS.filter((_, i) => picks[i] !== null && opts(i)[picks[i]!].bach).length : verdicts!.filter((v) => v.same).length;
+  const agreeRoot = p2 ? 0 : verdicts!.filter((v) => v.sameRoot && !v.same).length;
+  const nFaults = myFaults.reduce((a, f) => a + f.length, 0);
+  const nBachFaults = bachFaults.reduce((a, f) => a + f.length, 0);
+  const faultText = (f: ReturnType<typeof parallels>) => f.map((x) => t(`wtc.p2.${x.interval}`, { a: t(`wtc.voice.${VOICES[x.voices[0]]}`), b: t(`wtc.voice.${VOICES[x.voices[1]]}`) })).join("; ");
 
   return (
     <Shell
@@ -97,6 +120,7 @@ export function PreludeApp({ onMode, level, onLevel }: { onMode(mode: Mode): voi
             </select>
             <select id="level" className="sel sel-species" value={level} aria-label={t("chorale.level")} onChange={(e) => { stop(); onLevel(e.target.value as WtcLevel); }}>
               <option value="p1">{t("wtc.piece.p1")}</option>
+              <option value="p2">{t("wtc.level.p2")}</option>
               <option value="f2">{t("wtc.level.f2")}</option>
             </select>
           </nav>
@@ -107,17 +131,16 @@ export function PreludeApp({ onMode, level, onLevel }: { onMode(mode: Mode): voi
         <div className="score-wrap wtc-score">
           <ol className="wtc-plan" aria-label={t("wtc.plan")}>
             {BARS.map((b, i) => {
-              const k = picks[i];
-              const c = k === null ? null : b.choices[k];
+              const c = chordAt(i);
               const sounding = cursor !== null && Math.floor(cursor) === i;
               return (
                 <li key={b.bar}>
                   <button className={`wtc-bar wtc-${state(i)}${i === selected ? " selected" : ""}${sounding ? " sounding" : ""}`} onClick={() => setSelected(i)} aria-label={t("wtc.barN", { n: b.bar })}>
                     <span className="wtc-n">{b.bar}</span>
                     <span className="wtc-notes">
-                      {(c ? c.pitches : [b.pitches[0]]).slice().reverse().map((p, j) => <span key={j}>{p}</span>)}
+                      {(c ?? [b.pitches[0]]).slice().reverse().map((p, j) => <span key={j}>{p}</span>)}
                     </span>
-                    <span className="wtc-fig">{c ? figureLabel(c.figures) : "?"}</span>
+                    <span className="wtc-fig">{p2 ? figuredLabel(b.figured) : c ? figureLabel(BARS[i].choices[picks[i]!].figures) : "?"}</span>
                   </button>
                 </li>
               );
@@ -129,13 +152,19 @@ export function PreludeApp({ onMode, level, onLevel }: { onMode(mode: Mode): voi
       transport={
         <div className="controls chorale-controls">
           <div className="group write" role="group" aria-label={t("wtc.choose")}>
-            <span className="prompt">{t("wtc.prompt", { n: bar.bar, bass: bar.pitches[0] })}</span>
-            {bar.choices.map((c, k) => (
-              <button key={k} className={picks[selected] === k ? "chord primary" : "chord"} onClick={() => choose(k)} title={c.pitches.join(" ")}>
-                {figureLabel(c.figures)}
-                <small> {c.pitches.slice(1).join(" ")}</small>
-              </button>
-            ))}
+            <span className="prompt">{p2 ? t("wtc.p2.prompt", { n: bar.bar, bass: bar.pitches[0], figures: figuredLabel(bar.figured) }) : t("wtc.prompt", { n: bar.bar, bass: bar.pitches[0] })}</span>
+            {p2
+              ? bar.realisations.map((c, k) => (
+                  <button key={k} className={picks[selected] === k ? "chord primary" : "chord"} onClick={() => choose(k)} title={c.pitches.join(" ")}>
+                    <small>{c.pitches.slice(1).join(" ")}</small>
+                  </button>
+                ))
+              : bar.choices.map((c, k) => (
+                  <button key={k} className={picks[selected] === k ? "chord primary" : "chord"} onClick={() => choose(k)} title={c.pitches.join(" ")}>
+                    {figureLabel(c.figures)}
+                    <small> {c.pitches.slice(1).join(" ")}</small>
+                  </button>
+                ))}
             <button className="icon" onClick={next} disabled={selected === BARS.length - 1} aria-label={t("ui.nav.next")}>›</button>
           </div>
           <div className="group judge">
@@ -156,7 +185,7 @@ export function PreludeApp({ onMode, level, onLevel }: { onMode(mode: Mode): voi
       }
       summary={showCompare && (
         <div className="eval-summary ok" role="status">
-          <span className="verdict">{t("wtc.summary", { n: agree, root: agreeRoot, of: done })}</span>
+          <span className="verdict">{p2 ? t("wtc.p2.summary", { n: agree, of: done, faults: nFaults, bach: nBachFaults }) : t("wtc.summary", { n: agree, root: agreeRoot, of: done })}</span>
           <button className="link" onClick={() => setTab("compare")}>{t("ui.summary.open")} ▸</button>
         </div>
       )}
@@ -170,17 +199,31 @@ export function PreludeApp({ onMode, level, onLevel }: { onMode(mode: Mode): voi
           text: true,
           content: showCompare ? (
             <ol className="chorale-verdicts">
-              {verdicts.map((v, i) => (
-                <li key={v.bar} className={`verdict wtc-${state(i)}`}>
-                  <button className="link" onClick={() => setSelected(i)}>{t("wtc.barN", { n: v.bar })}</button>{" "}
-                  <span className="muted">{t("wtc.bass", { bass: BARS[i].pitches[0] })}</span>
-                  <div>{t("wtc.yours")}: {v.chosen ? <><strong>{figureLabel(v.chosen.figures)}</strong> {v.chosen.pitches.slice(1).join(" ")} · {fund(v.chosen)}</> : "—"}</div>
-                  <div>
-                    {t("wtc.bach")}: <strong>{figureLabel(v.bach.figures)}</strong> {v.bach.pitches.slice(1).join(" ")} · {fund(v.bach)}{" "}
-                    <button className="link" onClick={() => audition(v.bach.pitches, i)}>▶</button>
-                  </div>
-                </li>
-              ))}
+              {BARS.map((b, i) => {
+                const c = chordAt(i);
+                const bachC = BARS[i].choices.find((x) => x.bach)!;
+                const prev = i > 0 ? mine[i - 1] : null;
+                return (
+                  <li key={b.bar} className={`verdict wtc-${state(i)}`}>
+                    <button className="link" onClick={() => setSelected(i)}>{t("wtc.barN", { n: b.bar })}</button>{" "}
+                    <span className="muted">{t("wtc.bass", { bass: b.pitches[0] })}{p2 ? ` · ${figuredLabel(b.figured)}` : ""}</span>
+                    <div>
+                      {t("wtc.yours")}:{" "}
+                      {c ? (
+                        p2 ? <>{c.slice(1).join(" ")}{prev && <span className="muted"> · {t("wtc.p2.motion", { n: motion(prev, c) })}</span>}</>
+                          : <><strong>{figureLabel(BARS[i].choices[picks[i]!].figures)}</strong> {c.slice(1).join(" ")} · {fund(BARS[i].choices[picks[i]!])}</>
+                      ) : "—"}
+                    </div>
+                    {p2 && myFaults[i].length > 0 && <div className="fault">✗ {faultText(myFaults[i])}</div>}
+                    <div>
+                      {t("wtc.bach")}:{" "}
+                      {p2 ? <>{b.pitches.slice(1).join(" ")}{i > 0 && <span className="muted"> · {t("wtc.p2.motion", { n: motion(bachChords[i - 1], b.pitches) })}</span>}</>
+                        : <><strong>{figureLabel(bachC.figures)}</strong> {bachC.pitches.slice(1).join(" ")} · {fund(bachC)}</>}{" "}
+                      <button className="link" onClick={() => audition(b.pitches, i)}>▶</button>
+                    </div>
+                  </li>
+                );
+              })}
             </ol>
           ) : <p className="muted">{t("wtc.beforeCompare")}</p>,
         },
@@ -191,8 +234,8 @@ export function PreludeApp({ onMode, level, onLevel }: { onMode(mode: Mode): voi
           content: (
             <div className="chorale-about">
               <p>{t("wtc.about.1")}</p>
-              <p>{t("wtc.about.2")}</p>
-              <p>{t("wtc.about.3")}</p>
+              <p>{t(p2 ? "wtc.p2.about.2" : "wtc.about.2")}</p>
+              <p>{t(p2 ? "wtc.p2.about.3" : "wtc.about.3")}</p>
               <p className="muted">{t("wtc.about.4")}</p>
             </div>
           ),

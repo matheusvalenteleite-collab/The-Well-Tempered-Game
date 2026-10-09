@@ -142,7 +142,51 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [],
+   "realisations": [
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "G4",
+      "C5",
+      "E5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "G4",
+      "C5",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "G4",
+      "E5",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "C5",
+      "E5",
+      "G5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 4
   },
   {
    "bar": 2,
@@ -238,7 +282,74 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "4",
+    "2"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "F4",
+      "A4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "F4",
+      "A4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "F4",
+      "A4",
+      "F5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "A4",
+      "C5",
+      "F5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "A4",
+      "D5",
+      "F5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "A4",
+      "F5",
+      "A5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 8
   },
   {
    "bar": 3,
@@ -334,7 +445,74 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "6",
+    "5"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "F4",
+      "G4",
+      "B4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "F4",
+      "G4",
+      "F5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "F4",
+      "B4",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "F4",
+      "F5",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "G4",
+      "D5",
+      "F5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "G4",
+      "F5",
+      "G5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 12
   },
   {
    "bar": 4,
@@ -430,7 +608,51 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [],
+   "realisations": [
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "G4",
+      "C5",
+      "E5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "G4",
+      "C5",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "G4",
+      "E5",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "C5",
+      "E5",
+      "G5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 4
   },
   {
    "bar": 5,
@@ -525,7 +747,53 @@
      },
      "bach": true
     }
-   ]
+   ],
+   "figured": [
+    "6"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "A4",
+      "C5",
+      "E5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "A4",
+      "C5",
+      "A5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "A4",
+      "E5",
+      "A5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "C5",
+      "E5",
+      "A5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 4
   },
   {
    "bar": 6,
@@ -620,7 +888,74 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "\u266f4",
+    "2"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "F#4",
+      "A4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "F#4",
+      "A4",
+      "D5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "F#4",
+      "A4",
+      "A5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "F#4",
+      "D5",
+      "A5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "A4",
+      "C5",
+      "F#5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "A4",
+      "F#5",
+      "A5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 12
   },
   {
    "bar": 7,
@@ -714,7 +1049,53 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "6"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "G4",
+      "B4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "G4",
+      "B4",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "G4",
+      "D5",
+      "G5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "B4",
+      "D5",
+      "G5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 4
   },
   {
    "bar": 8,
@@ -810,7 +1191,74 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "4",
+    "2"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "B3",
+      "C4",
+      "E4",
+      "G4",
+      "B4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "C4",
+      "E4",
+      "G4",
+      "C5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "B3",
+      "C4",
+      "E4",
+      "B4",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "C4",
+      "G4",
+      "B4",
+      "E5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "C4",
+      "B4",
+      "E5",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "E4",
+      "G4",
+      "C5",
+      "E5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 17
   },
   {
    "bar": 9,
@@ -887,7 +1335,73 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "7"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "A3",
+      "C4",
+      "E4",
+      "G4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "A3",
+      "C4",
+      "E4",
+      "G4",
+      "C5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "A3",
+      "C4",
+      "E4",
+      "A4",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "A3",
+      "C4",
+      "G4",
+      "A4",
+      "E5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "A3",
+      "C4",
+      "G4",
+      "E5",
+      "A5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "A3",
+      "E4",
+      "G4",
+      "A4",
+      "C5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 20
   },
   {
    "bar": 10,
@@ -987,7 +1501,74 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "7",
+    "\u266f"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "D3",
+      "F#3",
+      "A3",
+      "C4",
+      "F#4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "D3",
+      "F#3",
+      "C4",
+      "F#4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "D3",
+      "A3",
+      "C4",
+      "F#4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "D3",
+      "A3",
+      "D4",
+      "F#4",
+      "C5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "D3",
+      "A3",
+      "A4",
+      "C5",
+      "F#5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "D3",
+      "C4",
+      "F#4",
+      "D5",
+      "A5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 39
   },
   {
    "bar": 11,
@@ -1086,7 +1667,71 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [],
+   "realisations": [
+    {
+     "pitches": [
+      "G3",
+      "B3",
+      "D4",
+      "G4",
+      "B4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G3",
+      "B3",
+      "D4",
+      "G4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "B3",
+      "D4",
+      "B4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "B3",
+      "G4",
+      "B4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "B3",
+      "G4",
+      "D5",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "B3",
+      "B4",
+      "D5",
+      "G5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 9
   },
   {
    "bar": 12,
@@ -1185,7 +1830,74 @@
      },
      "bach": true
     }
-   ]
+   ],
+   "figured": [
+    "\u266f4",
+    "\u266d3"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "G3",
+      "Bb3",
+      "C#4",
+      "E4",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "Bb3",
+      "C#4",
+      "G4",
+      "E5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "Bb3",
+      "E4",
+      "G4",
+      "C#5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G3",
+      "Bb3",
+      "E4",
+      "C#5",
+      "E5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "C#4",
+      "E4",
+      "G4",
+      "Bb4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "C#4",
+      "G4",
+      "Bb4",
+      "E5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 23
   },
   {
    "bar": 13,
@@ -1282,7 +1994,73 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "6"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "F3",
+      "A3",
+      "D4",
+      "F4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F3",
+      "A3",
+      "D4",
+      "A4",
+      "D5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "F3",
+      "A3",
+      "D4",
+      "A4",
+      "F5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F3",
+      "A3",
+      "F4",
+      "D5",
+      "F5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F3",
+      "D4",
+      "F4",
+      "A4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F3",
+      "D4",
+      "A4",
+      "D5",
+      "A5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 16
   },
   {
    "bar": 14,
@@ -1380,7 +2158,74 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "4",
+    "\u266d3"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "F3",
+      "Ab3",
+      "B3",
+      "D4",
+      "F4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F3",
+      "Ab3",
+      "B3",
+      "Ab4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F3",
+      "Ab3",
+      "D4",
+      "F4",
+      "B4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "F3",
+      "Ab3",
+      "F4",
+      "B4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F3",
+      "B3",
+      "D4",
+      "Ab4",
+      "F5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F3",
+      "B3",
+      "Ab4",
+      "D5",
+      "Ab5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 30
   },
   {
    "bar": 15,
@@ -1475,7 +2320,73 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "6"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "E3",
+      "G3",
+      "C4",
+      "E4",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "E3",
+      "G3",
+      "C4",
+      "G4",
+      "C5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "E3",
+      "G3",
+      "E4",
+      "C5",
+      "E5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "E3",
+      "G3",
+      "G4",
+      "C5",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "E3",
+      "C4",
+      "E4",
+      "G4",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "E3",
+      "C4",
+      "G4",
+      "C5",
+      "E5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 20
   },
   {
    "bar": 16,
@@ -1553,7 +2464,74 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "4",
+    "2"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "E3",
+      "F3",
+      "A3",
+      "C4",
+      "E4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "E3",
+      "F3",
+      "A3",
+      "C4",
+      "F4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "E3",
+      "F3",
+      "C4",
+      "E4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "E3",
+      "A3",
+      "C4",
+      "F4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "E3",
+      "A3",
+      "F4",
+      "C5",
+      "F5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "E3",
+      "C4",
+      "F4",
+      "A4",
+      "F5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 33
   },
   {
    "bar": 17,
@@ -1650,7 +2628,73 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "7"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "D3",
+      "F3",
+      "A3",
+      "C4",
+      "F4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "D3",
+      "F3",
+      "A3",
+      "C4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "D3",
+      "F3",
+      "C4",
+      "F4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "D3",
+      "A3",
+      "C4",
+      "F4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "D3",
+      "A3",
+      "F4",
+      "C5",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "D3",
+      "C4",
+      "F4",
+      "A4",
+      "D5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 34
   },
   {
    "bar": 18,
@@ -1750,7 +2794,73 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "7"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "G2",
+      "B2",
+      "D3",
+      "F3",
+      "F4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "F3",
+      "B3",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "B3",
+      "F4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "F3",
+      "B3",
+      "D4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "G3",
+      "B3",
+      "F4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "B3",
+      "D4",
+      "D5",
+      "F5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 55
   },
   {
    "bar": 19,
@@ -1849,7 +2959,71 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [],
+   "realisations": [
+    {
+     "pitches": [
+      "C3",
+      "E3",
+      "G3",
+      "C4",
+      "E4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C3",
+      "E3",
+      "G3",
+      "C4",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "E3",
+      "E4",
+      "G4",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "G3",
+      "E4",
+      "G4",
+      "E5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "G3",
+      "G4",
+      "E5",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "C4",
+      "G4",
+      "C5",
+      "E5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 32
   },
   {
    "bar": 20,
@@ -1950,7 +3124,73 @@
      },
      "bach": true
     }
-   ]
+   ],
+   "figured": [
+    "\u266d7"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "C3",
+      "E3",
+      "G3",
+      "Bb3",
+      "E4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "E3",
+      "Bb3",
+      "G4",
+      "Bb4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "G3",
+      "Bb3",
+      "C4",
+      "E4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C3",
+      "G3",
+      "C4",
+      "E4",
+      "Bb4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "Bb3",
+      "E4",
+      "G4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "Bb3",
+      "G4",
+      "E5",
+      "G5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 44
   },
   {
    "bar": 21,
@@ -2050,7 +3290,73 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "7"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "F2",
+      "A2",
+      "E3",
+      "C4",
+      "E4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F2",
+      "C3",
+      "A3",
+      "E4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F2",
+      "E3",
+      "C4",
+      "E4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F2",
+      "F3",
+      "A3",
+      "C4",
+      "E4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "F2",
+      "A3",
+      "E4",
+      "F4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F2",
+      "C4",
+      "F4",
+      "A4",
+      "E5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 52
   },
   {
    "bar": 22,
@@ -2150,7 +3456,73 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "\u266d7"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "F#2",
+      "A2",
+      "Eb3",
+      "C4",
+      "F#4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F#2",
+      "C3",
+      "A3",
+      "C4",
+      "Eb4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "F#2",
+      "Eb3",
+      "A3",
+      "C4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F#2",
+      "F#3",
+      "C4",
+      "Eb4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F#2",
+      "A3",
+      "Eb4",
+      "A4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F#2",
+      "C4",
+      "A4",
+      "C5",
+      "Eb5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 55
   },
   {
    "bar": 23,
@@ -2251,7 +3623,76 @@
      },
      "bach": true
     }
-   ]
+   ],
+   "figured": [
+    "6",
+    "4",
+    "3",
+    "2"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "Ab2",
+      "B2",
+      "D3",
+      "C4",
+      "F4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "Ab2",
+      "D3",
+      "B3",
+      "C4",
+      "F4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "Ab2",
+      "F3",
+      "B3",
+      "C4",
+      "D4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "Ab2",
+      "F3",
+      "B3",
+      "D4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "Ab2",
+      "F3",
+      "D4",
+      "B4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "Ab2",
+      "B3",
+      "D4",
+      "C5",
+      "F5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 24
   },
   {
    "bar": 24,
@@ -2351,7 +3792,73 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "7"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "G2",
+      "B2",
+      "D3",
+      "F3",
+      "F4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "B3",
+      "F4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "F3",
+      "G3",
+      "B3",
+      "D4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "F3",
+      "B3",
+      "F4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "G3",
+      "D4",
+      "B4",
+      "F5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "B3",
+      "F4",
+      "D5",
+      "F5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 55
   },
   {
    "bar": 25,
@@ -2451,7 +3958,74 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "6",
+    "4"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "G2",
+      "C3",
+      "E3",
+      "G3",
+      "E4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "C3",
+      "G3",
+      "E4",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "E3",
+      "G3",
+      "C4",
+      "E4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "E3",
+      "C4",
+      "G4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "G3",
+      "E4",
+      "G4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "C4",
+      "E4",
+      "G4",
+      "G5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 35
   },
   {
    "bar": 26,
@@ -2552,7 +4126,74 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "7",
+    "4"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "G2",
+      "C3",
+      "D3",
+      "F3",
+      "F4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "F3",
+      "C4",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "C4",
+      "F4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "F3",
+      "C4",
+      "D4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "G3",
+      "C4",
+      "F4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "C4",
+      "D4",
+      "D5",
+      "F5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 55
   },
   {
    "bar": 27,
@@ -2653,7 +4294,73 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "7"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "G2",
+      "B2",
+      "D3",
+      "F3",
+      "F4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "F3",
+      "B3",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "B3",
+      "F4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "F3",
+      "B3",
+      "D4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "G3",
+      "B3",
+      "F4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "B3",
+      "D4",
+      "D5",
+      "F5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 55
   },
   {
    "bar": 28,
@@ -2754,7 +4461,76 @@
      },
      "bach": true
     }
-   ]
+   ],
+   "figured": [
+    "\u266f7",
+    "\u266d6",
+    "4",
+    "2"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "G2",
+      "A2",
+      "Eb3",
+      "C4",
+      "F#4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "Eb3",
+      "A3",
+      "C4",
+      "F#4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "Eb3",
+      "A3",
+      "F#4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "F#3",
+      "Eb4",
+      "A4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "A3",
+      "F#4",
+      "C5",
+      "Eb5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "C4",
+      "A4",
+      "Eb5",
+      "F#5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 26
   },
   {
    "bar": 29,
@@ -2854,7 +4630,74 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "6",
+    "4"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "G2",
+      "C3",
+      "E3",
+      "G3",
+      "E4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "C3",
+      "G3",
+      "E4",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "E3",
+      "G3",
+      "C4",
+      "G4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "E3",
+      "C4",
+      "G4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "G3",
+      "E4",
+      "G4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "C4",
+      "E4",
+      "G4",
+      "G5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 35
   },
   {
    "bar": 30,
@@ -2955,7 +4798,74 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "7",
+    "4"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "G2",
+      "C3",
+      "D3",
+      "F3",
+      "F4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "F3",
+      "C4",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "C4",
+      "F4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "F3",
+      "C4",
+      "D4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "G3",
+      "C4",
+      "F4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "C4",
+      "D4",
+      "D5",
+      "F5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 55
   },
   {
    "bar": 31,
@@ -3056,7 +4966,73 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "7"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "G2",
+      "B2",
+      "D3",
+      "F3",
+      "F4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "F3",
+      "B3",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "B3",
+      "F4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "F3",
+      "B3",
+      "D4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "G3",
+      "B3",
+      "F4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "B3",
+      "D4",
+      "D5",
+      "F5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 55
   },
   {
    "bar": 32,
@@ -3138,7 +5114,73 @@
      },
      "bach": false
     }
-   ]
+   ],
+   "figured": [
+    "\u266d7"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "C2",
+      "E2",
+      "E3",
+      "Bb3",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C2",
+      "Bb2",
+      "G3",
+      "E4",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C2",
+      "C3",
+      "G3",
+      "Bb3",
+      "E4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C2",
+      "E3",
+      "Bb3",
+      "C4",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C2",
+      "G3",
+      "E4",
+      "G4",
+      "Bb4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C2",
+      "Bb3",
+      "E4",
+      "E5",
+      "G5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 63
   }
  ]
 }
