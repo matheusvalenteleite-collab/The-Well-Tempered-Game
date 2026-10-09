@@ -224,9 +224,9 @@ export const openingOnFinal: TrioRule = {
   severity: "error",
   messageKey: "rule.t1.opening",
   attribution: {
-    status: "unverified",
-    ref: `${P}, pp. 87-93; Exercitii I, Lectio I, p. 47`,
-    note: "Not stated in Lectio I of the three voices. In two voices the piece begins on a perfect consonance that shows the mode; in all sixteen of Fux's three-voice solutions the bass of the first bar is the final (the upper voices may take its third).",
+    status: "verified",
+    ref: `Exercitii I, Lectio I, pp. 48-49; ${P}, pp. 87-93`,
+    note: "Not restated in the three-voice lesson; carried over from Fux's reason in two voices: a counterpoint below the cantus may not open a fifth below it, because the lowest note would then lie outside the mode (pp. 48-49) — the first lowest note must be the final. All sixteen of his three-voice solutions open so (the upper voices may take its third). Kept an error (D90).",
   },
   check(a) {
     const b = at(a, a.bass[0], 0);
