@@ -205,8 +205,6 @@ svg.ghost line { stroke: var(--ink-player); stroke-width: 1.2; opacity: 0.45; }
 /* Play: your counterpoint (large), Fux's and the trio (small, stacked) */
 .play-split { display: inline-flex; gap: 2px; align-items: stretch; }
 .play-split .play { min-width: 44px; min-height: 52px; font-size: 1.1rem; }
-.play-small { display: flex; flex-direction: column; gap: 2px; }
-.play-small button { min-height: 25px; min-width: 44px; padding: 0 6px; font-size: 0.72rem; }
 
 /* Synth: voice menu, steppers, confirmation */
 .target-menu { position: relative; display: inline-block; }

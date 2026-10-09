@@ -38,3 +38,11 @@ Game link (always the latest): https://claude.ai/artifact/NvkaBGCHrtDebE85H7udTX
    The scores are available (the same open dataset has three- and four-voice folders), but the rules and the interface depend on your answer. I have not started them.
 7. **The 1990s look** is now the default. Keep it, or make Classic the default?
 8. **Systems on the phone** (D83): the continuo is not drawn when the score is broken into systems. Is that acceptable for now?
+
+## Answers (9 October)
+
+1. No separate Fux and Trio buttons: the activators choose what plays (D88).
+2. The chips are not missed; the canon's controls live on the Canon strip.
+3, 4, 5, 7. Agreed as proposed.
+6. Three voices: the player writes everything Fux writes (both added voices), in whatever order.
+8. Yes: no continuo in systems for now.

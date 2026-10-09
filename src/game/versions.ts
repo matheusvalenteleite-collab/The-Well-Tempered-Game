@@ -29,7 +29,6 @@ export function validVersions(raw: unknown): Versions {
   const shift = typeof r.canonShift === "number" && Number.isInteger(r.canonShift) && r.canonShift >= 0 ? r.canonShift : DEFAULT_VERSIONS.canonShift;
   const v = { original: b("original"), inversion: b("inversion"), retrograde: b("retrograde"), retroInversion: b("retroInversion"), canon: b("canon"), canonShift: shift };
   // At least one line is always heard.
-  if (!v.original && !VERSION_IDS.some((id) => v[id])) v.original = true;
   return v;
 }
 

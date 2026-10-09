@@ -33,7 +33,7 @@ test("retrograde keeps rests in place; canon rotates by slots and x = 0 duplicat
 
 test("versions validator and heard lines", () => {
   assert.deepEqual(validVersions(null), DEFAULT_VERSIONS);
-  assert.equal(validVersions({ original: false }).original, true); // never silent
+  assert.equal(validVersions({ original: false }).original, false); // an activator may silence every line (D88)
   assert.equal(validVersions({ original: false, inversion: true }).original, false);
   assert.equal(validVersions({ canonShift: -2 }).canonShift, DEFAULT_VERSIONS.canonShift);
   const lines = heardLines({ ...DEFAULT_VERSIONS, original: false, inversion: true, canon: true, canonShift: 2 }, ["D4", "E4", "F4"], "D");

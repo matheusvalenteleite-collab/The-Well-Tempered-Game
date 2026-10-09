@@ -81,8 +81,6 @@ export function SoundDesk(p: Props) {
 
   const toggleVersion = (k: "original" | VersionId) => {
     const next = { ...p.versions, [k]: !p.versions[k] };
-    // Something is always heard: switching the last line off brings the original back.
-    if (!next.original && !VERSION_IDS.some((id) => next[id])) next.original = true;
     p.onVersions(next);
   };
   const canonStepper = (

@@ -30,9 +30,9 @@ import { activeVersions, deriveVersion, heardLines, validVersions, VERSION_IDS, 
 import { trioReading } from "../game/trio-eval.ts";
 import { TrioReading } from "./TrioReading.tsx";
 import { Fold } from "./Fold.tsx";
-import { gatesOf, startPasses, startPlayback, type PlaySetup } from "./playback.ts";
+import { gatesOf, modeOf, startPasses, startPlayback, type PlaySetup } from "./playback.ts";
 import { SavedPieces } from "./SavedPieces.tsx";
-import { makePiece, restorePieces, snapshotMode, type Piece, type Setup } from "../game/saved.ts";
+import { makePiece, restorePieces, type Piece, type Setup } from "../game/saved.ts";
 import { DEFAULT_CONTINUO_SETTINGS, validContinuoSettings, type ContinuoSettings } from "../game/continuo-settings.ts";
 import { CONTINUO_DEMO_MODE } from "../config.ts";
 import { t } from "./i18n.ts";
@@ -360,7 +360,13 @@ export function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result]);
   const fuxOpen = Boolean(VIEW.fux && (result?.passed || unlocked.includes(STEP.id) || stars.includes(STEP.id)));
-  const [playMode, setPlayMode] = useState<PlayMode>("player");
+  // What plays follows the activators (D88): Fux alone, the trio, or the player's lines.
+  const playMode: PlayMode = modeOf(versions, fuxHeard, fuxOpen);
+  /** An older setup's "fux" / "trio" becomes the switches it meant. */
+  const setPlayMode = (m: PlayMode) => {
+    setFuxHeard(m !== "player");
+    if (m === "fux") setVersions((v) => ({ ...v, original: false, inversion: false, retrograde: false, retroInversion: false, canon: false }));
+  };
   // While Fux's line plays alone, it is shown and the player's own line fades to a trace (D76).
   const fuxPlaying = playing && playMode === "fux" && fuxOpen;
 
@@ -371,6 +377,8 @@ export function App() {
   const heard = useMemo(() => lines.map((l) => l.notes), [lines]);
   const derived = (ln: typeof lines) => Object.fromEntries(ln.filter((l) => l.id !== "original").map((l) => [l.id, l.notes]));
   const shownLines = lines;
+  /** The written line is on the score (switched on, or nothing else is): it can be edited. */
+  const editable = shownLines[0].id === "original";
   // Octave moves (D79): the lines are drawn where they sound; what is written (and judged) is not moved.
   const octaveOf = (id: "original" | VersionId) => (id === "original" ? sound.counterpointOctave : sound.versionOctave[id]);
   /** A pitch clicked on the drawn (moved) line, back to where it is written. */
@@ -406,7 +414,7 @@ export function App() {
   };
   const restoreAudio = () => {
     applyAudio({ sound, drums, drumKit, tuning, tempo, volume }, VIEW.modalFinal);
-    audio.setGates(gatesOf({ versions, continuoOn: continuo, fuxHeard: fuxHeard && fuxOpen, mode: playMode }));
+    audio.setGates(gatesOf({ versions, continuoOn: continuo, fuxHeard: fuxHeard && fuxOpen }));
     audio.loop = loop;
   };
   const stopSaved = () => {
@@ -416,10 +424,9 @@ export function App() {
     restoreAudio();
   };
   const savePiece = () => {
-    const mode = snapshotMode(playing ? playMode : null, showFux && fuxOpen);
     const when = new Date().toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
     const piece = makePiece(
-      { stepId: STEP.id, notes: session.notes, versions, mode: mode !== "player" && !fuxOpen ? "player" : mode, sound, drums, drumKit, continuo: continuoAvailable, continuoSettings, tuning, tempo, volume },
+      { stepId: STEP.id, notes: session.notes, versions, mode: playMode, sound, drums, drumKit, continuo: continuoAvailable, continuoSettings, tuning, tempo, volume },
       `${name} · ${when}`,
     );
     setPieces([piece, ...pieces]);
@@ -471,18 +478,16 @@ export function App() {
     setToast(t("ui.saved.opened", { name: p.name }));
   };
 
-  const play = (mode: PlayMode = "player") => {
+  const play = () => {
     if (savedPlaying) stopSaved();
     if (playing) {
       audio.stop();
       setPlaying(false);
       setCursor(-1);
-      if (mode === playMode) return;
+      return;
     }
-    if (mode !== "player" && !fuxOpen) return;
-    setPlayMode(mode);
     setPlaying(true);
-    startPlayback(audio, VIEW, { notes: session.notes, versions, mode, continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning, fuxAlong: fuxOpen, fuxHeard }, onLiveSlot, 0, liveSetup);
+    startPlayback(audio, VIEW, { notes: session.notes, versions, mode: "player", continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning, fuxAlong: fuxOpen, fuxHeard }, onLiveSlot, 0, liveSetup);
   };
   function onLiveSlot(k: number) {
     setCursor(k);
@@ -499,7 +504,7 @@ export function App() {
     stepId: STEP.id,
     notes: [...session.notes],
     versions: { ...versions },
-    mode: playMode !== "player" && !fuxOpen ? "player" : playMode,
+    mode: playMode,
     sound: structuredClone(sound),
     drums,
     drumKit: { ...drumKit },
@@ -593,8 +598,6 @@ export function App() {
     setExportPass(1);
     setExportTotal(passes);
     setExportPhase("recording");
-    const mode = playMode !== "player" && !fuxOpen ? "player" : playMode;
-    setPlayMode(mode);
     setPlaying(true);
     // Loop through the passes; the last one ends with the cadence when asked.
     audio.loop = passes > 1 || ending === "seamless";
@@ -612,7 +615,7 @@ export function App() {
         },
         onLiveSlot,
       );
-    } else startPlayback(audio, VIEW, { notes: session.notes, versions, mode, continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning, fuxAlong: fuxOpen, fuxHeard }, onLiveSlot, 0, liveSetup);
+    } else startPlayback(audio, VIEW, { notes: session.notes, versions, mode: "player", continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning, fuxAlong: fuxOpen, fuxHeard }, onLiveSlot, 0, liveSetup);
     const TAIL = 2.5;
     const finish = (span: [number, number] | null) => {
       endExportTimer();
@@ -658,12 +661,12 @@ export function App() {
   // Switching lines on and off (the versions, the original, the continuo) restarts nothing: it opens
   // or closes their channels (D78). Only what changes the notes themselves restarts.
   const liveSetupRef = useRef<PlaySetup | null>(null);
-  liveSetupRef.current = { notes: session.notes, versions, mode: playMode, continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning, fuxAlong: fuxOpen, fuxHeard };
+  liveSetupRef.current = { notes: session.notes, versions, mode: "player", continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning, fuxAlong: fuxOpen, fuxHeard };
   const liveSetup = () => liveSetupRef.current!;
   const levels = useMemo(() => () => audio.levels(), [audio]);
   useEffect(() => {
     if (savedPlaying || exportPhase === "recording") return;
-    audio.setGates(gatesOf({ versions, continuoOn: continuo, fuxHeard: fuxHeard && fuxOpen, mode: playing ? playMode : "player" }));
+    audio.setGates(gatesOf({ versions, continuoOn: continuo, fuxHeard: fuxHeard && fuxOpen }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [versions, continuo, fuxHeard, fuxOpen]);
   const liveKey = JSON.stringify([versions.canonShift, session.notes, continuoAllowed, continuoSettings, tuning, fuxOpen]);
@@ -672,13 +675,7 @@ export function App() {
     if (lastLiveKey.current === liveKey) return;
     lastLiveKey.current = liveKey;
     if (!playing || savedPlaying || exportPhase === "recording") return;
-    if (playMode !== "player" && !fuxOpen) {
-      audio.stop();
-      setPlaying(false);
-      setCursor(-1);
-      return;
-    }
-    startPlayback(audio, VIEW, { notes: session.notes, versions, mode: playMode, continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning, fuxAlong: fuxOpen, fuxHeard }, onLiveSlot, Math.max(0, cursor), liveSetup);
+    startPlayback(audio, VIEW, { notes: session.notes, versions, mode: "player", continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning, fuxAlong: fuxOpen, fuxHeard }, onLiveSlot, Math.max(0, cursor), liveSetup);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liveKey]);
 
@@ -693,7 +690,7 @@ export function App() {
   const onKey = (e: KeyboardEvent) => {
     const target = e.target as HTMLElement | null;
     if (target && ["TEXTAREA", "SELECT", "INPUT"].includes(target.tagName)) return;
-    if (!showCredits && !showHelp && !showSaved && (e.ctrlKey || e.metaKey) && !e.altKey && versions.original) {
+    if (!showCredits && !showHelp && !showSaved && (e.ctrlKey || e.metaKey) && !e.altKey && editable) {
       const key = e.key.toLowerCase();
       if (key === "z" || key === "y") {
         restore(key === "y" || e.shiftKey ? "redo" : "undo");
@@ -707,14 +704,12 @@ export function App() {
       if (n === 1) setSound(changeMix(sound, "cantus", { mute: !sound.mix.cantus.mute }));
       else if (n === 2) {
         const next = { ...versions, original: !versions.original };
-        if (!next.original && !VERSION_IDS.some((x) => next[x])) next.original = true;
         setVersions(next);
       }
       else if (n === 3) fuxOpen && setFuxHeard(!fuxHeard);
       else if (n >= 4 && n <= 7) {
         const id = VERSION_IDS[n - 4];
         const next = { ...versions, [id]: !versions[id] };
-        if (!next.original && !VERSION_IDS.some((x) => next[x])) next.original = true;
         setVersions(next);
       } else if (n === 8) setDrums(!drums);
       else if (n === 9) setContinuo(!continuo);
@@ -725,7 +720,7 @@ export function App() {
     const k = e.key;
     const s = session;
     // Only the written line is editable; while it is hidden (D47) the keys only browse and play.
-    if (!versions.original && !["ArrowRight", "ArrowLeft", " ", "p", "P", "?"].includes(k)) return;
+    if (!editable && !["ArrowRight", "ArrowLeft", " ", "p", "P", "?"].includes(k)) return;
     const wrote = justWrote.current;
     justWrote.current = null;
     // Fifth species: the arrows step from note to note, over held slots (D82).
@@ -757,7 +752,7 @@ export function App() {
     else if (k === "n") update(applyAccidental(s, 0));
     else if (k === "Delete" || k === "Backspace") update(FIFTH ? clearSpan(s) : VIEW.layout[s.selected].restAllowed ? setRest(s, VIEW.layout) : clear(s), false);
     else if (k === " ") audition(s.selected);
-    else if (k === "p" || k === "P") play("player");
+    else if (k === "p" || k === "P") play();
     else if (k === "?") setShowHelp(true);
     else return;
     e.preventDefault();
@@ -879,9 +874,9 @@ export function App() {
             zoomLabels={{ in: t("ui.zoom.in"), out: t("ui.zoom.out"), reset: t("ui.zoom.reset") }}
             cantus={moved(VIEW.cantus, sound.cantusOctave)}
             counterpoint={moved(shownLines[0].notes, octaveOf(shownLines[0].id))}
-            readOnly={!versions.original}
-            playerInk={versions.original ? undefined : VERSION_INK[shownLines[0].id as VersionId]}
-            playerLabel={versions.original ? (shownLines.length > 1 ? t("ui.versions.original") : undefined) : t(`ui.versions.${shownLines[0].id}`, { n: versions.canonShift })}
+            readOnly={!editable}
+            playerInk={editable ? undefined : VERSION_INK[shownLines[0].id as VersionId]}
+            playerLabel={editable ? (shownLines.length > 1 ? t("ui.versions.original") : undefined) : t(`ui.versions.${shownLines[0].id}`, { n: versions.canonShift })}
             extraLines={shownLines.slice(1).map((l) => ({ label: t(`ui.versions.${l.id}`, { n: versions.canonShift }), notes: moved(l.notes, octaveOf(l.id)), ink: VERSION_INK[l.id as VersionId] }))}
             extraIntervals={showIntervals}
             layout={VIEW.layout}
@@ -891,8 +886,8 @@ export function App() {
             selected={session.selected}
             cursor={cursor}
             label={label}
-            marks={versions.original ? marks : undefined}
-            overlay={versions.original ? overlay : undefined}
+            marks={editable ? marks : undefined}
+            overlay={editable ? overlay : undefined}
             fux={(showFux || fuxPlaying) && fuxOpen ? moved(VIEW.fux!, sound.fuxOctave) : undefined}
             fadePlayer={fuxPlaying}
             ties={VIEW.species === "fourth"}
@@ -946,8 +941,8 @@ export function App() {
               </span>
             )}
             <button onClick={() => update(freshSession(stepIndex), false)}>{t("ui.clearAll")}</button>
-            <button className="icon" onClick={() => restore("undo")} disabled={!versions.original || hist().past.length === 0} aria-label={t("ui.undo")} title={t("ui.undoHelp")}>↶</button>
-            <button className="icon" onClick={() => restore("redo")} disabled={!versions.original || hist().future.length === 0} aria-label={t("ui.redo")} title={t("ui.redoHelp")}>↷</button>
+            <button className="icon" onClick={() => restore("undo")} disabled={!editable || hist().past.length === 0} aria-label={t("ui.undo")} title={t("ui.undoHelp")}>↶</button>
+            <button className="icon" onClick={() => restore("redo")} disabled={!editable || hist().future.length === 0} aria-label={t("ui.redo")} title={t("ui.redoHelp")}>↷</button>
           </div>
           <div className="group judge">
             <button className="primary" aria-pressed={result !== null} onClick={toggleEvaluation} disabled={missing > 0 && !result} title={missing > 0 ? t("ui.evaluate.incomplete", { missing }) : undefined}>
@@ -957,8 +952,8 @@ export function App() {
           </div>
           <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
             <div className="play-split">
-              <button className="icon play" onClick={() => play("player")} aria-label={t("ui.play.player")} title={t("ui.play.player")}>
-                {playing && playMode === "player" ? "■" : "▶"}
+              <button className="icon play" onClick={() => play()} aria-label={t("ui.play.player")} title={t("ui.play.player")}>
+                {playing ? "■" : "▶"}
               </button>
               <button className="loop" aria-pressed={loop} onClick={() => setLoop(!loop)} aria-label={t("ui.loop")} title={t(loop ? "ui.loop.on" : "ui.loop.off")}>⟲</button>
               <button className="export" aria-pressed={exportPhase !== null} onClick={() => {
@@ -968,14 +963,6 @@ export function App() {
                     setExportPhase("choose");
                   } else if (exportPhase === "recording") exportStop.current?.();
                 }} aria-label={t("ui.export")} title={t("ui.export.help")}>⤓</button>
-              <div className="play-small">
-                <button onClick={() => play("fux")} disabled={!fuxOpen} aria-label={t("ui.play.fux")} title={t(fuxOpen ? "ui.play.fux" : "ui.play.locked")}>
-                  {playing && playMode === "fux" ? "■" : t("ui.play.fuxShort")}
-                </button>
-                <button onClick={() => play("trio")} disabled={!fuxOpen} aria-label={t("ui.play.trio")} title={t(fuxOpen ? "ui.play.trio" : "ui.play.locked")}>
-                  {playing && playMode === "trio" ? "■" : t("ui.play.trioShort")}
-                </button>
-              </div>
             </div>
             <Knob id="tempo" label={t("ui.tempo")} value={tempo} min={30} max={240} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
             <Knob id="volume" label={t("ui.volume")} value={volume} min={0} max={100} defaultValue={70} format={(v) => `${Math.round(v)}%`} onChange={(v) => setVolume(Math.round(v))} />

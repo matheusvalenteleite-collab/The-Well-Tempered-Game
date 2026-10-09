@@ -20,7 +20,7 @@ export interface Piece {
   /** The player's line as written (one entry per slot). */
   notes: (string | null)[];
   versions: Versions;
-  /** "fux" / "trio" when Fux was on the score or playing; otherwise "player". */
+  /** What the activators made heard (D88): "fux" (Fux alone), "trio" (Fux with the player's lines) or "player". */
   mode: PlayMode;
   sound: SoundState;
   drums: boolean;
@@ -35,12 +35,6 @@ export interface Piece {
 }
 
 export type Setup = Omit<Piece, "id" | "name" | "savedAt">;
-
-/** Which playback a snapshot keeps: Fux playing, else Fux on the score (as a trio), else the player's lines. */
-export function snapshotMode(playing: PlayMode | null, fuxShown: boolean): PlayMode {
-  if (playing === "fux" || playing === "trio") return playing;
-  return fuxShown ? "trio" : "player";
-}
 
 export function makePiece(setup: Setup, name: string, now = new Date()): Piece {
   return { ...structuredClone(setup), id: `${now.getTime().toString(36)}-${Math.random().toString(36).slice(2, 7)}`, name, savedAt: now.toISOString() };
