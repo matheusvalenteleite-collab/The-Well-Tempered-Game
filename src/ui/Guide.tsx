@@ -22,20 +22,22 @@ const KEYS: [string, string][] = [
   ["F1–F9", "help.keys.tracks"],
   ["Tab", "help.keys.voice"],
 ];
-const PARTS = ["score", "view", "transport", "evaluate", "dock", "mixer", "versions", "drums", "continuo", "master", "info", "files"] as const;
 const BASICS = ["cantusFirmus", "counterpoint", "species", "mode", "final", "interval", "consonance", "perfect", "imperfect", "dissonance", "motion", "cadence", "leadingTone", "downbeat", "passing", "cambiata", "ligature", "suspension", "miContraFa", "ficta", "triad", "sixThree", "figures", "continuo", "versions", "aloysius", "josephus", "gradus"] as const;
 
-type Section = "playing" | "basics" | "rules" | "gradus";
+type Section = "playing" | "basics" | "exercise" | "gradus";
 
-export function Guide({ rules, section, onSection }: { rules: ReactNode; section?: Section; onSection?: (s: Section) => void }) {
-  const [own, setOwn] = useState<Section>(() => stored("wtg.guide", "playing" as Section, (v) => v === "playing" || v === "basics" || v === "rules" || v === "gradus"));
+export function Guide({ basics, exercise, section, onSection }: { basics?: ReactNode; exercise: ReactNode; section?: Section; onSection?: (s: Section) => void }) {
+  const [own, setOwn] = useState<Section>(() => {
+    const v = stored<string>("wtg.guide", "playing", (x) => typeof x === "string");
+    return v === "rules" ? "exercise" : v === "playing" || v === "basics" || v === "exercise" || v === "gradus" ? v : "playing";
+  });
   const current = section ?? own;
   const pick = (s: Section) => (onSection ? onSection(s) : setOwn(s));
   useEffect(() => store("wtg.guide", current), [current]);
   return (
     <div className="guide">
       <nav className="guide-tabs" role="tablist">
-        {(["playing", "basics", "rules", "gradus"] as const).map((s) => (
+        {(["playing", "basics", "exercise", "gradus"] as const).map((s) => (
           <button key={s} role="tab" aria-selected={current === s} aria-pressed={current === s} onClick={() => pick(s)} title={t(`guide.${s}.help`)}>
             {t(`guide.${s}`)}
           </button>
@@ -44,15 +46,6 @@ export function Guide({ rules, section, onSection }: { rules: ReactNode; section
       {current === "playing" && (
         <div className="guide-body">
           <p>{t("help.howto")}</p>
-          <h3>{t("guide.parts")}</h3>
-          <dl className="guide-parts">
-            {PARTS.map((k) => (
-              <div key={k}>
-                <dt>{t(`guide.part.${k}`)}</dt>
-                <dd>{t(`guide.part.${k}.text`)}</dd>
-              </div>
-            ))}
-          </dl>
           <h3>{t("guide.keys")}</h3>
           <table className="keys">
             <tbody>
@@ -69,7 +62,8 @@ export function Guide({ rules, section, onSection }: { rules: ReactNode; section
       )}
       {current === "basics" && (
         <div className="guide-body">
-          <p className="help">{t("guide.basics.intro")}</p>
+          {basics}
+          <h3>{t("guide.basics.terms")}</h3>
           <dl className="glossary">
             {BASICS.map((k) => {
               const [head, ...rest] = t(`gloss.${k}`).split(":");
@@ -83,7 +77,7 @@ export function Guide({ rules, section, onSection }: { rules: ReactNode; section
           </dl>
         </div>
       )}
-      {current === "rules" && <div className="guide-body">{rules}</div>}
+      {current === "exercise" && <div className="guide-body">{exercise}</div>}
       {current === "gradus" && (
         <div className="guide-body gradus">
           <blockquote className="tutor gradus-quote">

@@ -214,8 +214,10 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     const svg = e.currentTarget.querySelector("svg");
     if (!g || !svg) return null;
     const r = svg.getBoundingClientRect();
-    const x = (e.clientX - r.left) / g.scale;
-    const y = (e.clientY - r.top) / g.scale;
+    // On screen the drawing may be scaled again (the whole screen fitted to a small window, D103).
+    const k = g.scale * (r.width / (svg.width.baseVal.value || r.width));
+    const x = (e.clientX - r.left) / k;
+    const y = (e.clientY - r.top) / k;
     let column = g.columns.findIndex((c) => x >= c.left && x < c.right);
     if (column < 0) column = x < g.columns[0].left ? 0 : g.columns.length - 1;
     const centre = (s: Geometry["staves"][number]) => (s.top + s.bottom) / 2;

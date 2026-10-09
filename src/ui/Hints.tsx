@@ -6,6 +6,10 @@ import { fifthIsDiminished } from "../counterpoint/rules/second-species.ts";
 import { parsePitch } from "../music/pitch.ts";
 import { t } from "./i18n.ts";
 import { Term } from "./Term.tsx";
+import { useState } from "react";
+import { demoFor } from "../game/rule-demos.ts";
+import { exerciseTips, type Tip } from "../game/exercise-tips.ts";
+import { RuleDemo } from "./RuleDemo.tsx";
 
 
 type MotionKind = "parallel" | "similar" | "oblique" | "contrary";
@@ -52,38 +56,50 @@ const Chip = ({ kind, children, def }: { kind: "perfect" | "imperfect" | "disson
   </Term>
 );
 
-export function Hints({ step, cantus }: { step: CurriculumStep; cantus: string[] }) {
+/** What the guide needs to know of the exercise. */
+function facts(step: CurriculumStep, cantus: string[]) {
   const intro = introductionsUpTo(step.id);
-  const rules = intro.filter((x) => ruleById(x.ruleId)?.severity === "error");
-  const recs = intro.filter((x) => ruleById(x.ruleId)?.severity === "warning");
   const second = step.species === "second";
   const third = step.species === "third";
   const fourth = step.species === "fourth";
   const fifth = step.species === "fifth";
-  const diss = second ? "2" : third ? "3" : fourth ? "4" : fifth ? "5" : "";
-  const active = new Set(intro.map((x) => x.ruleId));
-  const cad = cadenceNote(cantus, step.cantus_voice);
-  const altered = parsePitch(cad).alter !== 0;
   const n = cantus.length;
   const below = step.cantus_voice === "lower";
-  const sixth = second && fifthIsDiminished(cantus[n - 2], step.cantus_voice);
-  const cadenceText = second
-    ? `${sixth ? "6" : "5"} → ${below ? "M6" : "m3"}`
-    : third
-      ? t("hints.glance.cadence3", { interval: below ? "M6" : "m3" })
-      : fourth || fifth
-        ? below ? "7 → M6" : "2 → m3"
-        : below ? "M6" : "m3";
-  const item = (x: (typeof intro)[number]) => (
-    <li key={x.ruleId}>
-      {t(`hints.rule.${x.ruleId}`)} <span className="ref">{t("hints.ref", { page: x.page })}</span>
-    </li>
-  );
+  const cad = cadenceNote(cantus, step.cantus_voice);
+  return { intro, second, third, fourth, fifth, n, below, cad, altered: parsePitch(cad).alter !== 0, diss: second ? "2" : third ? "3" : fourth ? "4" : fifth ? "5" : "", active: new Set(intro.map((x) => x.ruleId)) };
+}
+
+/**
+ * The basics of the step (D103): the intervals, the motions, and the rules and recommendations so
+ * far, each with its demonstration (wrong, then right, looping) a click away.
+ */
+export function RuleBasics({ step, cantus }: { step: CurriculumStep; cantus: string[] }) {
+  const f = facts(step, cantus);
+  const { diss, active } = f;
+  const [open, setOpen] = useState<string | null>(null);
+  const rules = f.intro.filter((x) => ruleById(x.ruleId)?.severity === "error");
+  const recs = f.intro.filter((x) => ruleById(x.ruleId)?.severity === "warning");
+  const item = (x: (typeof f.intro)[number]) => {
+    const demo = demoFor(x.ruleId);
+    const shown = open === x.ruleId && demo;
+    return (
+      <li key={x.ruleId} className={demo ? "has-demo" : undefined}>
+        {demo ? (
+          <button className="rule-line" aria-expanded={!!shown} onClick={() => setOpen(shown ? null : x.ruleId)} data-info={t("ui.demo.help")}>
+            <span className="demo-play">{shown ? "▾" : "▶"}</span> {t(`hints.rule.${x.ruleId}`)}
+          </button>
+        ) : (
+          <span>{t(`hints.rule.${x.ruleId}`)}</span>
+        )}{" "}
+        <span className="ref">{t("hints.ref", { page: x.page })}</span>
+        {shown && <RuleDemo demo={demo} />}
+      </li>
+    );
+  };
   return (
-    <section className="hints" aria-label={t("ui.hints")}>
+    <section className="hints basics" aria-label={t("ui.hints")}>
       <div className="hints-grid">
-        <div className="glance">
-          <h3>{t("hints.glance.intervals")}</h3>
+        <div className="glance">          <h3>{t("hints.glance.intervals")}</h3>
           <div className="chart">
             <div className="row">
               <Term def={t("hints.def.perfect")}><span className="row-label">{t("hints.glance.perfect")}</span></Term>
@@ -144,6 +160,56 @@ export function Hints({ step, cantus }: { step: CurriculumStep; cantus: string[]
             </>
           )}
 
+        </div>
+        <div className="detail-col">
+          <h3>{t("hints.rules")}</h3>
+          <ul>{rules.map(item)}</ul>
+          {recs.length > 0 && (
+            <>
+              <h3>{t("hints.recommendations")}</h3>
+              <ul>{recs.map(item)}</ul>
+            </>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** One tip in words (D103). */
+function tipText(tip: Tip, below: boolean): string {
+  switch (tip.kind) {
+    case "freedom": return t("tips.freedom", { n: tip.lines.toLocaleString("en") });
+    case "tight": return t("tips.tight", { bar: tip.bar, k: tip.consonant, notes: tip.usable.join(", ") });
+    case "forced": return t("tips.forced", { bar: tip.bar, note: tip.note });
+    case "openings": return t("tips.openings", { notes: tip.notes.join(", ") });
+    case "leap": {
+      const m = /^([Mm]?)(\d+)$/.exec(tip.size);
+      const word = m ? `${m[1] === "M" ? "major " : m[1] === "m" ? "minor " : ""}${t(`ui.trio.interval.single.${m[2]}`)}` : tip.size;
+      return t(tip.up ? "tips.leapUp" : "tips.leapDown", { bar: tip.bar, next: tip.bar + 1, size: word });
+    }
+    case "peak": return t(below ? "tips.low" : "tips.peak", { bar: tip.bar, note: tip.note });
+    case "tritone": return t("tips.tritone", { bars: tip.bars.join(", "), note: tip.cantusNote, avoid: tip.avoid });
+  }
+}
+
+/** This exercise only (D103): its frame, what Fux and Aloysius say of it, and tips from test-driving it. */
+export function ExerciseNotes({ step, cantus }: { step: CurriculumStep; cantus: string[] }) {
+  const f = facts(step, cantus);
+  const { second, third, fourth, fifth, n, below, cad, altered } = f;
+  const sixth = second && fifthIsDiminished(cantus[n - 2], step.cantus_voice);
+  const cadenceText = second
+    ? `${sixth ? "6" : "5"} → ${below ? "M6" : "m3"}`
+    : third
+      ? t("hints.glance.cadence3", { interval: below ? "M6" : "m3" })
+      : fourth || fifth
+        ? below ? "7 → M6" : "2 → m3"
+        : below ? "M6" : "m3";
+  const tips = exerciseTips(cantus, step.cantus_voice, step.species);
+  return (
+    <section className="hints exercise-notes" aria-label={t("hints.thisExercise")}>
+      <div className="hints-grid">
+        <div className="glance">
           <h3>{t("hints.glance.frame")}</h3>
           <ol className="frame">
             <li><span className="bar">1</span><span>{second || fourth ? `${t("hints.glance.restOr")} ` : ""}{below ? t("hints.glance.startBelow") : t("hints.glance.startAbove")}</span></li>
@@ -154,14 +220,19 @@ export function Hints({ step, cantus }: { step: CurriculumStep; cantus: string[]
         </div>
 
         <div className="detail-col">
-          <h3>{t("hints.rules")}</h3>
-          <ul>{rules.map(item)}</ul>
-          {recs.length > 0 && (
-            <>
-              <h3>{t("hints.recommendations")}</h3>
-              <ul>{recs.map(item)}</ul>
-            </>
-          )}
+          <h3>{t("hints.thisExercise")}</h3>
+          <ul>
+            {stepStudy(step.id).specific.map((x, i) => (
+              <li key={i}>{x}</li>
+            ))}
+            <li>{t(altered ? "hints.cadenceAltered" : "hints.cadencePlain", { bar: n - 1 })}</li>
+            {second && (() => {
+              const pen = cantus[n - 2];
+              const fifthNote = cadenceFifth(pen, step.cantus_voice);
+              const name = (x: string) => x.replace(/\d+$/, "").replace("#", "♯").replace(/^([A-G])b$/, "$1♭");
+              return <li>{t("hints.cadence2", { bar: n - 1, fifth: simpleName(harmonic(pen, fifthNote)), fifthNote: name(fifthNote), sixth: below ? "M6" : "m3", sixthNote: name(cad) })}</li>;
+            })()}
+          </ul>
           {second && step.ordinal >= 2 && (
             <>
               <h3>{t("hints.devices")}</h3>
@@ -171,19 +242,9 @@ export function Hints({ step, cantus }: { step: CurriculumStep; cantus: string[]
               </ul>
             </>
           )}
-          <h3>{t("hints.thisExercise")}</h3>
-          <ul>
-            {stepStudy(step.id).specific.map((x, i) => (
-              <li key={i}>{x}</li>
-            ))}
-            <li>{t(altered ? "hints.cadenceAltered" : "hints.cadencePlain", { bar: n - 1 })}</li>
-            {second && (() => {
-              const pen = cantus[n - 2];
-              const f = cadenceFifth(pen, step.cantus_voice);
-              const name = (x: string) => x.replace(/\d+$/, "").replace("#", "♯").replace(/^([A-G])b$/, "$1♭");
-              return <li>{t("hints.cadence2", { bar: n - 1, fifth: simpleName(harmonic(pen, f)), fifthNote: name(f), sixth: below ? "M6" : "m3", sixthNote: name(cad) })}</li>;
-            })()}
-          </ul>
+          <h3>{t("tips.title")}</h3>
+          <ul className="tips">{tips.map((tip, i) => <li key={i}>{tipText(tip, !below)}</li>)}</ul>
+          {step.species === "first" && <p className="note">{t("tips.method")}</p>}
         </div>
       </div>
     </section>

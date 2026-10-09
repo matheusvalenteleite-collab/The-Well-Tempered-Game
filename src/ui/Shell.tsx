@@ -5,6 +5,10 @@
  * taken out of the dock into a column on the right ("⇥"), and put back ("⇤").
  */
 import { useEffect, useState, type ReactNode } from "react";
+import { setUiScale } from "./ui-scale.ts";
+
+const DESIGN_W = 1366;
+const DESIGN_H = 768;
 import { InfoBar } from "./InfoBar.tsx";
 import { store, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
@@ -41,6 +45,22 @@ export function Shell(p: {
     m.addEventListener("change", on);
     return () => m.removeEventListener("change", on);
   }, []);
+  // D103: on a computer the screen is laid out for 1366 × 768 at least; a smaller window shows the
+  // same screen, scaled down, instead of squeezing or scrolling it. Phones keep their own layout.
+  const fit = () => {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    return w < 900 ? 1 : Math.max(0.6, Math.min(1, w / DESIGN_W, h / DESIGN_H));
+  };
+  const [scale, setScale] = useState(fit);
+  useEffect(() => {
+    const on = () => setScale(fit());
+    window.addEventListener("resize", on);
+    return () => window.removeEventListener("resize", on);
+  }, []);
+  useEffect(() => {
+    setUiScale(scale);
+  }, [scale]);
   const [detached, setDetached] = useState<string[]>(() => stored<string[]>("wtg.detached", [], (v) => Array.isArray(v)));
   useEffect(() => store("wtg.detached", detached), [detached]);
   const side = wide ? p.tabs.filter((x) => x.text && detached.includes(x.id)) : [];
@@ -80,7 +100,7 @@ export function Shell(p: {
   );
 
   return (
-    <div className="shell">
+    <div className="shell" style={scale < 1 ? { width: `${100 / scale}vw`, height: `${100 / scale}vh`, maxWidth: "none", transform: `scale(${scale})`, transformOrigin: "0 0", margin: 0 } : undefined}>
       <header className="topbar">{p.header}</header>
       <div className="shell-body">
         <div className="main-col">

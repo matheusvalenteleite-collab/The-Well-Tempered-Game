@@ -12,7 +12,7 @@ import { loadSamples } from "../audio/voice.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
 import { SoundDesk, trackOrder } from "./SoundDesk.tsx";
 import { DEFAULT_DRUMS, DRUM_PATTERNS, DRUM_KITS, DrumMachine, validLoopLength, type DrumSettings } from "../audio/drums.ts";
-import { Hints } from "./Hints.tsx";
+import { ExerciseNotes, RuleBasics } from "./Hints.tsx";
 import { Study } from "./Study.tsx";
 import { stepStudy } from "./study.ts";
 import { Feedback } from "./Feedback.tsx";
@@ -1069,12 +1069,12 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
           </>
         ) },
         { id: "guide", text: true, label: t("ui.howtoTab"), content: (
-          <Guide rules={<>
+          <Guide basics={<RuleBasics step={STEP} cantus={VIEW.cantus} />} exercise={<>
             <blockquote className="tutor" lang="en">
               <span className="speaker">{t("tutor.speaker.aloysius")}.</span> “{stepStudy(STEP.id).intro.en}”
               <cite title={stepStudy(STEP.id).intro.la} lang="la">{t("ui.tutor.cite", { page: stepStudy(STEP.id).intro.page })}</cite>
             </blockquote>
-            <Hints step={STEP} cantus={VIEW.cantus} />
+            <ExerciseNotes step={STEP} cantus={VIEW.cantus} />
           </>} />
         ) },
         { id: "lectio", text: true, label: t("ui.study"), content: (

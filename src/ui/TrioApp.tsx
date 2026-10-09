@@ -459,7 +459,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
           </>
         ) },
         { id: "guide", text: true, label: t("ui.howtoTab"), content: (
-          <Guide rules={<>
+          <Guide exercise={<>
             <blockquote className="tutor" lang="en">
               <span className="speaker">{t("tutor.speaker.aloysius")}.</span> “{t("ui.trio3.intro")}”
               <cite title={t("ui.trio3.introLa")} lang="la">{t("ui.trio3.cite")}</cite>

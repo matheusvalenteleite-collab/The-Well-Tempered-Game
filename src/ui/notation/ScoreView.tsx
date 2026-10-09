@@ -117,13 +117,13 @@ const LAYOUT = {
   mainContinuo: { staffY: [20, 140], height: 310 },
 };
 /** Horizontal space per bar (logical units): compact, so the melodic shape reads at a glance. */
-const BAR_W = 58;
+const BAR_W = 54;
 /** A bar holding two half notes. */
-const HALF_BAR_W = 92;
+const HALF_BAR_W = 80;
 /** A bar holding four quarter notes. */
-const QUARTER_BAR_W = 148;
+const QUARTER_BAR_W = 120;
 /** Fifth species (D82): a bar of eight quaver slots. */
-const EIGHTH_BAR_W = 212;
+const EIGHTH_BAR_W = 184;
 /** VexFlow duration and dots for a note of n quaver slots (fifth species). */
 const FIFTH_DUR: Record<number, [string, number]> = { 1: ["8", 0], 2: ["q", 0], 3: ["q", 1], 4: ["h", 0], 5: ["h", 0], 6: ["h", 1], 7: ["h", 1], 8: ["w", 0] };
 /** VexFlow duration of a slot. */
@@ -627,8 +627,10 @@ export function ScoreView(props: ScoreProps) {
     const svg = e.currentTarget.querySelector("svg");
     if (!svg) return null;
     const r = svg.getBoundingClientRect();
-    const x = (e.clientX - r.left) / g.scale;
-    const y = (e.clientY - r.top) / g.scale;
+    // On screen the drawing may be scaled again (the whole screen fitted to a small window, D103).
+    const k = g.scale * (r.width / (svg.width.baseVal.value || r.width));
+    const x = (e.clientX - r.left) / k;
+    const y = (e.clientY - r.top) / k;
     if (g.continuoTop !== undefined && y >= g.continuoTop) return null;
     let column = g.columns.findIndex((c) => x >= c.left && x < c.right);
     if (column < 0) column = x < g.columns[0].left ? 0 : g.columns.length - 1;

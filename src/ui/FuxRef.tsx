@@ -10,6 +10,7 @@ import { ScoreView } from "./notation/ScoreView.tsx";
 import { displayClefs } from "../game/exercise-view.ts";
 import { Term } from "./Term.tsx";
 import { t } from "./i18n.ts";
+import { uiScale } from "./ui-scale.ts";
 
 function figureScore(n: string): ReactNode {
   const ex = repository.listExercises().find((e) => String(e.figure) === n || String(e.figure).replace(/^0+/, "") === n);
@@ -47,7 +48,8 @@ export function FuxRef({ n, children }: { n: string; children?: ReactNode }) {
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const show = (e: React.MouseEvent | React.FocusEvent) => {
     const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    setPos({ x: Math.max(8, Math.min(window.innerWidth - 470, r.left)), y: r.top });
+    const k = uiScale();
+    setPos({ x: Math.max(8, Math.min(window.innerWidth - 470, r.left)) / k, y: r.top / k });
     setOpen(true);
   };
   const score = open ? figureScore(n) : null;
