@@ -504,6 +504,8 @@
     "compare.fuxBetter.variety": "You repeat the previous note here; Fux moves on. Repetition is the cheapest way out of a bad progression, and Aloysius praises avoiding it for variety's sake (1725 p. 74).",
     "compare.playerBetter.variety": "Fux repeats his previous note here and you move on, which gives your line more variety.",
     "view.label": "View",
+    "advanced": "Advanced",
+    "advanced.help": "Show the versions of your line on the mixer (inversion, retrograde, retrograde inversion, canon); off, the mixer keeps only the essential tracks and the versions are silent",
     "zoom.in": "Larger notes (pinch outwards, or Ctrl + wheel)",
     "zoom.out": "Smaller notes (pinch inwards, or Ctrl + wheel)",
     "zoom.reset": "Back to the size that fits the screen",

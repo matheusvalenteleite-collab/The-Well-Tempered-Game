@@ -11,7 +11,7 @@ import { restoreSound, setMix as changeMix, shiftOctave, type SoundState } from 
 import { encode, EXPORT_FORMATS, saveFile, type ExportFormat } from "../audio/export.ts";
 import { loadSamples } from "../audio/voice.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
-import { SoundDesk } from "./SoundDesk.tsx";
+import { SoundDesk, trackOrder } from "./SoundDesk.tsx";
 import { HelpCard } from "./HelpCard.tsx";
 import { DEFAULT_DRUMS, DRUM_PATTERNS, DRUM_KITS, DrumMachine, validLoopLength, type DrumSettings } from "../audio/drums.ts";
 import { Hints } from "./Hints.tsx";
@@ -134,7 +134,11 @@ export function App() {
   useEffect(() => store("wtg.zoom", zoom), [zoom]);
   const [fuxHeard, setFuxHeard] = useState(() => stored("wtg.fuxHeard", false, (v) => typeof v === "boolean"));
   useEffect(() => store("wtg.fuxHeard", fuxHeard), [fuxHeard]);
-  const [versions, setVersions] = useState<Versions>(() => validVersions(stored<unknown>("wtg.versions", null)));
+  const [storedVersions, setVersions] = useState<Versions>(() => validVersions(stored<unknown>("wtg.versions", null)));
+  /** Advanced settings (D89): the versions (I, R, RI, C) are offered, and heard, only then. */
+  const [advanced, setAdvanced] = useState(() => stored("wtg.advanced", false, (v) => typeof v === "boolean"));
+  useEffect(() => store("wtg.advanced", advanced), [advanced]);
+  const versions = useMemo<Versions>(() => (advanced ? storedVersions : { ...storedVersions, inversion: false, retrograde: false, retroInversion: false, canon: false }), [advanced, storedVersions]);
   const [deskOpen, setDeskOpen] = useState(() => stored("wtg.deskOpen", true, (v) => typeof v === "boolean"));
   const [continuo, setContinuo] = useState(() => stored("wtg.continuo", false, (v) => typeof v === "boolean"));
   const [continuoSettings, setContinuoSettings] = useState<ContinuoSettings>(() => validContinuoSettings(stored<unknown>("wtg.continuoSettings", DEFAULT_CONTINUO_SETTINGS)));
@@ -190,7 +194,7 @@ export function App() {
   }, [drumKit, VIEW.modalFinal]);
   useEffect(() => store("wtg.continuo", continuo), [continuo]);
   useEffect(() => store("wtg.deskOpen", deskOpen), [deskOpen]);
-  useEffect(() => store("wtg.versions", versions), [versions]);
+  useEffect(() => store("wtg.versions", storedVersions), [storedVersions]);
   useEffect(() => store("wtg.saved", pieces), [pieces]);
   useEffect(() => store("wtg.folds", folded), [folded]);
   useEffect(() => {
@@ -465,6 +469,7 @@ export function App() {
     setSessions((all) => all.map((x, i) => (i === k ? { ...x, notes: [...p.notes] } : x)));
     setResult(null);
     setVersions(p.versions);
+    if (VERSION_IDS.some((id) => p.versions[id])) setAdvanced(true);
     setSound(structuredClone(p.sound));
     setDrums(p.drums);
     setDrumKit(p.drumKit);
@@ -517,6 +522,7 @@ export function App() {
   const loadScene = (x: Scene) => {
     setSessions((all) => all.map((ss, i) => (i === stepIndex ? { ...ss, notes: [...x.notes] } : ss)));
     setVersions(x.versions);
+    if (VERSION_IDS.some((id) => x.versions[id])) setAdvanced(true);
     setSound(structuredClone(x.sound));
     setDrums(x.drums);
     setDrumKit(x.drumKit);
@@ -700,7 +706,8 @@ export function App() {
     }
     // F1-F9 switch the numbered tracks on and off, as Ableton's F1-F8 switch its track activators (D85).
     if (/^F[1-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey && !showCredits && !showHelp && !showSaved && exportPhase === null) {
-      const n = Number(e.key.slice(1));
+      const track = trackOrder(advanced)[Number(e.key.slice(1)) - 1];
+      const n = track === undefined ? 0 : track === "cantus" ? 1 : track === "counterpoint" ? 2 : track === "fux" ? 3 : track === "drums" ? 8 : track === "continuo" ? 9 : 4 + VERSION_IDS.indexOf(track as VersionId);
       if (n === 1) setSound(changeMix(sound, "cantus", { mute: !sound.mix.cantus.mute }));
       else if (n === 2) {
         const next = { ...versions, original: !versions.original };
@@ -827,6 +834,9 @@ export function App() {
           <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1} aria-label={t("ui.nav.next")}>›</button>
         </nav>
         <div className="header-tools">
+          <button className="chipbtn advanced" aria-pressed={advanced} onClick={() => setAdvanced(!advanced)} title={t("ui.advanced.help")}>
+            {t("ui.advanced")}
+          </button>
           <button className="chipbtn look" onClick={() => setLook(look === "retro" ? "classic" : "retro")} title={t("ui.look.help")}>
             {t("ui.look")}: {t(`ui.look.${look}`)}
           </button>
@@ -969,6 +979,7 @@ export function App() {
           </div>
         </div>
         <SoundDesk
+            advanced={advanced}
             open={deskOpen}
             onOpen={setDeskOpen}
             continuo={continuo}

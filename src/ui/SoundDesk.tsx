@@ -11,6 +11,11 @@ import { CONTINUO_DISPLAYS, type ContinuoSettings } from "../game/continuo-setti
 import { VERSION_IDS, type VersionId, type Versions } from "../game/versions.ts";
 import { t } from "./i18n.ts";
 
+/** The numbered tracks, in order (their activators' numbers and F1-F9); the versions only in advanced mode (D89). */
+export function trackOrder(advanced: boolean): Strip[] {
+  return ["cantus", "counterpoint", "fux", ...(advanced ? VERSION_IDS : []), "drums", "continuo"];
+}
+
 interface Props {
   value: SoundState;
   onChange(v: SoundState): void;
@@ -40,6 +45,8 @@ interface Props {
   /** Fux heard along with the player's lines (his strip's activator, D80). */
   fuxHeard: boolean;
   onFuxHeard(on: boolean): void;
+  /** Advanced settings (D89): the versions' strips are shown only then. */
+  advanced: boolean;
   /** Peak levels for the meters (D80). */
   levels?: () => Partial<Record<Strip | "master", number>>;
   /** Folded to a single line. */
@@ -104,7 +111,7 @@ export function SoundDesk(p: Props) {
     inversion: "var(--trk-inversion)", retrograde: "var(--trk-retrograde)", retroInversion: "var(--trk-retro-inversion)", canon: "var(--trk-canon)",
     drums: "var(--trk-drums)", continuo: "var(--trk-continuo)", master: "var(--trk-master)",
   };
-  const ORDER: Strip[] = ["cantus", "counterpoint", "fux", ...VERSION_IDS, "drums", "continuo"];
+  const ORDER = trackOrder(p.advanced);
   /** The track activator (D80): every track switches on and off with one press. */
   const active = (x: Strip): boolean =>
     x === "cantus" ? !s.mix.cantus.mute
@@ -229,8 +236,8 @@ export function SoundDesk(p: Props) {
         {strip("counterpoint")}
         {chain("counterpointFux")}
         {strip("fux")}
-        <span className="desk-gap" />
-        {VERSION_IDS.map((id) => strip(id))}
+        {p.advanced && <span className="desk-gap" />}
+        {p.advanced && VERSION_IDS.map((id) => strip(id))}
         <span className="desk-gap" />
         {strip("drums")}
         {strip("continuo")}
