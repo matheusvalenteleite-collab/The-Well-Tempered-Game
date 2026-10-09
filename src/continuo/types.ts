@@ -14,9 +14,12 @@ export type FinalsMode = "organist" | "strict";
 /**
  * The continuo's instruments (the realization is the same for every one; only the sound differs).
  * Baroque: stileAntico, cembalo, hofkapelle, theorbo. Orchestral (D73): pizzicato, sostenuto, brass.
- * Modern (D73): analogPads, electricPiano, rockBand.
+ * Modern (D73): analogPads, rockBand (the electric piano was dropped in D109).
+ * Ensembles of recorded instruments (D109): quartet, bach, mozart, beethoven, wagner; recorded
+ * strings in four articulations: sostenuto, staccato, sforzando, pizzicato.
  */
-export type PresetId = "stileAntico" | "cembalo" | "hofkapelle" | "theorbo" | "pizzicato" | "sostenuto" | "brass" | "analogPads" | "electricPiano" | "rockBand";
+export type PresetId = "stileAntico" | "cembalo" | "hofkapelle" | "theorbo" | "pizzicato" | "sostenuto" | "brass" | "analogPads" | "rockBand"
+  | "quartet" | "bach" | "mozart" | "beethoven" | "wagner" | "staccato" | "sforzando";
 /**
  * "realized": a figured-bass realization (A1-A5). "doubling": no harmony added; the left hand
  * doubles the lowest sung voice, the right hand doubles every upper sung voice colla parte,

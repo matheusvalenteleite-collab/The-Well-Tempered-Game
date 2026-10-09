@@ -21,6 +21,9 @@ const loading = new Map<SampleSet, Promise<void>>();
 const SET_GAIN: Record<SampleSet, number> = {
   grand: 2.6, organ: 1.7, sackbut: 1.9, cello: 1.6, violin: 2.0, flute: 1.35, bassoon: 1.65, horn: 1.15, trumpet: 1.8, harp: 1.8, contrabass: 1.65,
   harmonium: 1.7, guitar: 1.65, eguitar: 3.8, ebass: 2.1, sax: 1.15, xylophone: 3.2,
+  // D109: normalised to about -1 dBFS at the loudest note of each set; matched in the continuo's mix.
+  violinStac: 1.6, violinPizz: 3.2, violaSus: 1.6, violaStac: 1.6, violaPizz: 3.2, celloStac: 1.6, celloPizz: 3.2, bassPizz: 3.2, bassStac: 1.6,
+  oboe: 1.4, clarinet: 1.4, timpani: 1.6, rickBass: 1.6, cleanGuitar: 1.6,
 };
 
 /** Fetch and decode an instrument's samples (once); notes before it arrives are skipped. */
@@ -29,11 +32,21 @@ export function loadSamples(ctx: BaseAudioContext, set: SampleSet): Promise<void
   if (!p) {
     const m = SAMPLE_MANIFEST[set];
     const files = m.layers.length ? m.notes.flatMap((n) => m.layers.map((l) => ({ n, l, f: `${n}-v${l}.mp3` }))) : m.notes.map((n) => ({ n, l: 0, f: `${n}.mp3` }));
+    // D112: one request for the whole instrument (its pack); the single files if there is none.
+    const pack = fetch(new URL(`samples/${set}/pack.mp3`, document.baseURI))
+      .then((r) => (r.ok ? r.arrayBuffer() : null))
+      .catch(() => null);
+    const bytes = async (f: string): Promise<ArrayBuffer> => {
+      const all = await pack;
+      const at = m.pack?.[f];
+      if (all && at && at[0] + at[1] <= all.byteLength) return all.slice(at[0], at[0] + at[1]);
+      const res = await fetch(new URL(`samples/${set}/${f}`, document.baseURI));
+      if (!res.ok) throw new Error(`sample ${set}/${f}: ${res.status}`);
+      return res.arrayBuffer();
+    };
     p = Promise.all(
       files.map(async ({ n, l, f }) => {
-        const res = await fetch(new URL(`samples/${set}/${f}`, document.baseURI));
-        if (!res.ok) throw new Error(`sample ${set}/${f}: ${res.status}`);
-        const buffer = await ctx.decodeAudioData(await res.arrayBuffer());
+        const buffer = await ctx.decodeAudioData(await bytes(f));
         return { midi: parsePitch(n.replace("s", "#")).midi, layer: l, buffer };
       }),
     ).then((list) => {
@@ -244,7 +257,7 @@ export class Synth implements Instrument {
     src.playbackRate.value = freq / (440 * 2 ** ((best.midi - 69) / 12));
     const g = this.ctx.createGain();
     // Within a layer, velocity still shades the level (about ±6 dB around the neutral 0.75).
-    g.gain.value = SET_GAIN[set] * (0.2 + 1.07 * velocity) * (layers.length > 1 && layer === layers[0] ? 1.35 : 1);
+    g.gain.value = (SET_GAIN[set] ?? 1.6) * (0.2 + 1.07 * velocity) * (layers.length > 1 && layer === layers[0] ? 1.35 : 1);
     src.connect(g).connect(out);
     src.start(time);
     src.stop(Math.min(end, time + best.buffer.duration / src.playbackRate.value));

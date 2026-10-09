@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { Evaluation } from "../counterpoint/engine.ts";
 import type { Violation } from "../counterpoint/rules/types.ts";
 import type { Staff } from "../music/fux/types.ts";
@@ -78,7 +78,7 @@ function Excerpt({ v, ...p }: { v: Violation } & Omit<Props, "result">) {
         selected={-1}
         cursor={-1}
         firstBar={lo + 1}
-        fixedScale={0.62}
+        fixedScale={0.5}
         overlay={buildOverlay(overlayViolations, p.cantus, notes, p.layout, lo, hi)}
         label={barsText(v.positions, p.layout)}
         onPlace={() => {}}
@@ -129,23 +129,40 @@ function Item({ vs, ...p }: { vs: Violation[] } & Omit<Props, "result">) {
   );
 }
 
-export function Feedback(props: Props) {
-  const { result, ...rest } = props;
+/**
+ * The evaluation (D98): one verdict line (✓/✗ and Aloysius's word, no box), then the rules broken
+ * and the recommendations as two plain lists, each place with its small excerpt. `actions` sits at
+ * the end of the verdict line (the next exercise); `compact` drops the tutor's word (versions).
+ */
+export function Feedback(props: Props & { actions?: ReactNode; compact?: boolean }) {
+  const { result, actions, compact, ...rest } = props;
+  const errors = groupByRule(result.errors);
+  const warnings = groupByRule(result.warnings);
   return (
-    <>
-      <div className={result.passed ? "verdict ok" : "verdict bad"}>{result.passed ? t("ui.result.cleared") : t("ui.result.notCleared")}</div>
-      <blockquote className="tutor">
-        <span className="speaker">{t("tutor.speaker.aloysius")}.</span>{" "}
-        {t(!result.passed ? "tutor.result.notCleared" : result.warnings.length ? "tutor.result.clearedWithWarnings" : "tutor.result.cleared")}
-      </blockquote>
-      {result.violations.length > 0 && (
-        <ul className="violations">
-          {groupByRule([...result.errors, ...result.warnings]).map((vs) => (
-            <Item key={vs[0].ruleId} vs={vs} {...rest} />
-          ))}
-        </ul>
+    <div className="eval">
+      <div className={result.passed ? "eval-verdict ok" : "eval-verdict bad"}>
+        <strong>{result.passed ? "✓ " + t("ui.result.cleared") : "✗ " + t("ui.result.notCleared")}</strong>
+        {!compact && (
+          <span className="eval-word">
+            <span className="speaker">{t("tutor.speaker.aloysius")}.</span>{" "}
+            {t(!result.passed ? "tutor.result.notCleared" : result.warnings.length ? "tutor.result.clearedWithWarnings" : "tutor.result.cleared")}
+          </span>
+        )}
+        {actions}
+      </div>
+      {errors.length > 0 && (
+        <>
+          <h3 className="eval-h">{t("ui.result.rulesBroken")} <span className="eval-n">{errors.length}</span></h3>
+          <ul className="violations">{errors.map((vs) => <Item key={vs[0].ruleId} vs={vs} {...rest} />)}</ul>
+        </>
       )}
-    </>
+      {warnings.length > 0 && (
+        <>
+          <h3 className="eval-h">{t("ui.result.recommendations")} <span className="eval-n">{warnings.length}</span></h3>
+          <ul className="violations">{warnings.map((vs) => <Item key={vs[0].ruleId} vs={vs} {...rest} />)}</ul>
+        </>
+      )}
+    </div>
   );
 }
 

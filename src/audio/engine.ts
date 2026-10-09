@@ -7,7 +7,7 @@
  * The AudioContext is created on the first user gesture (browser autoplay policy).
  */
 import { Soundfont } from "smplr";
-import { DEFAULT_DRUMS, DrumMachine, type DrumSettings } from "./drums.ts";
+import { DEFAULT_DRUMS, DrumMachine, isSampled, kitOf, type DrumCue, type DrumSettings, type DrumVoice } from "./drums.ts";
 import { DEFAULT_SYNTH, type SynthSettings } from "./synth-settings.ts";
 import { FxChain } from "./effects.ts";
 import { audibleGain, CHANNELS, DEFAULT_MASTER_FX, DEFAULT_SOUND, shiftOctave, STRIPS, versionSettings, type Channel, type SoundState, type Strip } from "./sound.ts";
@@ -127,7 +127,7 @@ export class AudioEngine {
   setSoundState(state: SoundState) {
     for (const c of CHANNELS) Object.assign(this.synth[c], state.synth[c]);
     for (const id of VERSION_IDS) Object.assign(this.versionSynth[id], versionSettings(state, id));
-    for (const v of [this.current?.cantus, this.current?.counterpoint, this.current?.fux, ...this.versionVoices.values()]) if (v instanceof Synth) v.update();
+    for (const v of [this.current?.cantus, this.current?.counterpoint, this.current?.second, this.current?.fux, ...this.versionVoices.values()]) if (v instanceof Synth) v.update();
     this.mix = structuredClone(state);
     this.applyMix();
     this.masterFx?.update({ ...DEFAULT_SYNTH, ...(state.master ?? DEFAULT_MASTER_FX) });
@@ -199,6 +199,8 @@ export class AudioEngine {
     if (this.drumMachine) {
       this.drumMachine.settings = this.drumSettings;
       this.drumMachine.final = final;
+      const kit = kitOf(this.drumSettings);
+      if (isSampled(kit)) void this.drumMachine.loadKit(kit);
     }
   }
 
@@ -209,6 +211,44 @@ export class AudioEngine {
     this.drumMachine.stop();
     this.drumMachine.scheduleBar(this.ctx.currentTime + 0.05, this.barSeconds, 1, 8);
   }
+
+  /** Whether a playback with the drums is running (a cue then waits for the next bar). */
+  private running = false;
+
+  /**
+   * A fill or break fired by hand (D99). While the piece plays with the drums, it takes the next
+   * bar not yet scheduled (the current bar ends first) and the bar after lands on a crash; when
+   * nothing plays, it is heard at once. `onCue` reports when a cue is waiting and when it starts.
+   */
+  async drumCue(cue: DrumCue): Promise<void> {
+    await this.instrument();
+    if (!this.ctx || !this.drumMachine) return;
+    if (this.running && this.drums) {
+      this.drumMachine.cue = cue;
+      this.drumMachine.onCue?.(cue);
+    } else {
+      this.drumMachine.stop();
+      this.drumMachine.scheduleCue(this.ctx.currentTime + 0.05, this.barSeconds, cue);
+    }
+  }
+
+  /** Strike one pad now (D99). */
+  async drumPad(v: DrumVoice): Promise<void> {
+    await this.instrument();
+    if (!this.ctx || !this.drumMachine) return;
+    this.drumMachine.kit = kitOf(this.drumSettings);
+    this.drumMachine.hit(v, this.ctx.currentTime + 0.01, 1);
+  }
+
+  /** Listeners for the pads (every hit) and for cues (waiting / started); null to remove. */
+  onDrums(hit: ((v: DrumVoice, t: number) => void) | null, cue: ((c: DrumCue | null) => void) | null) {
+    this.drumListeners = { hit, cue };
+    if (this.drumMachine) {
+      this.drumMachine.onHit = hit;
+      this.drumMachine.onCue = cue;
+    }
+  }
+  private drumListeners: { hit: ((v: DrumVoice, t: number) => void) | null; cue: ((c: DrumCue | null) => void) | null } = { hit: null, cue: null };
 
   /** Master volume, 0..1. */
   setVolume(v: number) {
@@ -240,6 +280,8 @@ export class AudioEngine {
       this.master.connect(this.masterFx.input);
       this.limiter = limiter;
       this.drumMachine = new DrumMachine(this.ctx, this.channel("drums"));
+      this.drumMachine.onHit = this.drumListeners.hit;
+      this.drumMachine.onCue = this.drumListeners.cue;
       this.setDrums(this.drumSettings, this.final);
     }
     if (this.ctx.state === "suspended") await this.ctx.resume();
@@ -253,12 +295,13 @@ export class AudioEngine {
           ? Promise.resolve({
               cantus: new Synth(ctx, this.channel("cantus"), this.synth.cantus, tuning),
               counterpoint: new Synth(ctx, this.channel("counterpoint"), this.synth.counterpoint, tuning),
+              second: new Synth(ctx, this.channel("second"), this.synth.second, tuning),
               fux: new Synth(ctx, this.channel("fux"), this.synth.fux, tuning),
             })
           : new Soundfont(ctx, { instrument: "acoustic_grand_piano", kit: "MusyngKite", destination: master }).load.then(
               (sf) => {
                 const piano = new SampledPiano(sf);
-                return { cantus: piano, counterpoint: piano, fux: piano };
+                return { cantus: piano, counterpoint: piano, second: piano, fux: piano };
               },
               () => null,
             );
@@ -386,6 +429,7 @@ export class AudioEngine {
     this.playEnd = null;
     let k = Math.max(0, Math.min(events.length - 1, from));
     let next = ctx.currentTime + 0.1;
+    this.running = true;
     const LOOKAHEAD = 0.15;
     let announced = false;
     const tick = () => {
@@ -425,7 +469,10 @@ export class AudioEngine {
           }
         } else {
           this.playEnd = next;
-          this.timers.push(window.setTimeout(() => onSlot(-1), Math.max(0, (next - ctx.currentTime) * 1000)));
+          this.timers.push(window.setTimeout(() => {
+            this.running = false;
+            onSlot(-1);
+          }, Math.max(0, (next - ctx.currentTime) * 1000)));
           return;
         }
       }
@@ -533,11 +580,13 @@ export class AudioEngine {
   }
 
   stop(): void {
+    this.running = false;
     for (const t of this.timers) window.clearTimeout(t);
     this.timers = [];
     for (const v of this.versionVoices.values()) v.stop();
     this.current?.cantus.stop();
     this.current?.counterpoint.stop();
+    this.current?.second.stop();
     this.current?.fux.stop();
     this.drumMachine?.stop();
     for (const x of this.attached) x.stop();

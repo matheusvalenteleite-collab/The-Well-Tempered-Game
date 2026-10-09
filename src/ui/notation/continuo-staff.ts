@@ -3,6 +3,7 @@
  * Rhythm comes from the realization's events: a bar is one whole-note chord when nothing moves,
  * otherwise two half-note chords, with ties for the notes held through the bar.
  */
+import { conventionalFigure } from "../../continuo/figures.ts";
 import type { ContinuoRealization, EventRole } from "../../continuo/types.ts";
 
 export interface CueTone {
@@ -61,6 +62,25 @@ export function cueChords(r: ContinuoRealization, staff: "bass" | "rh"): CueChor
  * Figures under the bass: the bar's figure at the downbeat; a second figure under the upbeat
  * where the harmony changes ("5 6" over a held bass, "6/3 · 5/3" when the bass moves).
  */
+/**
+ * Draw one line of a figure (D101) with its left edge at x: a trailing "\\" is a stroke through the
+ * numeral (a raised sixth or fourth). Returns the width drawn.
+ */
+export function drawFigureLine(ctx: { fillText(t: string, x: number, y: number): unknown; measureText(t: string): { width: number }; beginPath(): unknown; moveTo(x: number, y: number): unknown; lineTo(x: number, y: number): unknown; stroke(): unknown; setLineWidth(w: number): unknown }, line: string, x: number, y: number): number {
+  const stroke = line.endsWith("\\");
+  const text = stroke ? line.slice(0, -1) : line;
+  ctx.fillText(text, x, y);
+  const w = ctx.measureText(text).width;
+  if (stroke) {
+    ctx.setLineWidth(1);
+    ctx.beginPath();
+    ctx.moveTo(x - 1, y - 1);
+    ctx.lineTo(x + w + 1, y - 9);
+    ctx.stroke();
+  }
+  return w;
+}
+
 export function cueFigures(r: ContinuoRealization): CueFigure[] {
   const out: CueFigure[] = [];
   for (const bi of r.bars) {
@@ -70,7 +90,12 @@ export function cueFigures(r: ContinuoRealization): CueFigure[] {
     else parts = [bi.figure];
     parts.slice(0, 2).forEach((p, h) => {
       const text = p.trim();
-      if (text) out.push({ bar: bi.bar, half: h as 0 | 1, stack: text === "c.p." ? [text] : text.split("/") });
+      if (!text) return;
+      // A realization is figured as a continuo player reads it (D101); a doubling shows the sung intervals.
+      // Suspensions and devices ("9 8", "4 3", "5 6") are written out in full, the resolution included.
+      const literal = text === "c.p." || bi.texture === "doubling" || ((bi.device || bi.suspension) && parts.length > 1);
+      const stack = literal ? text.split("/") : conventionalFigure(text);
+      if (stack.length) out.push({ bar: bi.bar, half: h as 0 | 1, stack });
     });
   }
   return out;

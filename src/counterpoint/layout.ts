@@ -171,7 +171,7 @@ export interface PlayEvent {
   /** Derived versions of the player's line (inversion, retrograde, canon...), by id. */
   versions?: Record<string, string | null>;
   /** Three voices (D90): further notes on the counterpoint or Fux channel (the second written voice, Fux's second). */
-  extra?: { channel: "counterpoint" | "fux"; pitch: string }[];
+  extra?: { channel: "counterpoint" | "second" | "fux"; pitch: string }[];
   /** Fourth species: the length of a tied note, by voice ("counterpoint", "fux" or a version id). */
   lengths?: Record<string, number>;
 }

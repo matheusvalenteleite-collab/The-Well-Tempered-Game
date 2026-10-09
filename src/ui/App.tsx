@@ -3,9 +3,8 @@ import { repository } from "../music/fux/load-browser.ts";
 import { ALL_STEPS, COURSES, courseOf, rulesForStep, validateCurriculum } from "../counterpoint/curriculum/index.ts";
 import { HOLD, REST, slotLength, sounding, timeline } from "../counterpoint/layout.ts";
 import { evaluate, type Evaluation } from "../counterpoint/engine.ts";
-import { compareWithOriginal } from "../music/fux/player.ts";
 import { exerciseView } from "../game/exercise-view.ts";
-import { applyAccidental, clear, clearSpan, holdSelected, initialState, letterNote, moveNote, onsetOf, place, repeatPrevious, select, setRest, spanFromSelected, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
+import { applyAccidental, clear, clearSpan, holdSelected, initialState, letterNote, moveNote, onsetOf, place, repeatPrevious, select, setRest, spanFromSelected, stepNote, type SessionState } from "../game/session.ts";
 import { AudioEngine, renderLevel, SYNTH_PRESETS, type AudioStatus } from "../audio/engine.ts";
 import { restoreSound, setMix as changeMix, shiftOctave, type SoundState } from "../audio/sound.ts";
 import { encode, EXPORT_FORMATS, saveFile, type ExportFormat } from "../audio/export.ts";
@@ -13,7 +12,7 @@ import { loadSamples } from "../audio/voice.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
 import { SoundDesk, trackOrder } from "./SoundDesk.tsx";
 import { DEFAULT_DRUMS, DRUM_PATTERNS, DRUM_KITS, DrumMachine, validLoopLength, type DrumSettings } from "../audio/drums.ts";
-import { Hints } from "./Hints.tsx";
+import { ExerciseNotes, RuleBasics } from "./Hints.tsx";
 import { Study } from "./Study.tsx";
 import { stepStudy } from "./study.ts";
 import { Feedback } from "./Feedback.tsx";
@@ -22,14 +21,17 @@ import { NoteIcon } from "./NoteIcon.tsx";
 import { Systems, ZOOM_MAX, ZOOM_MIN } from "./notation/Systems.tsx";
 import { buildOverlay, neutralOverlay } from "./notation/overlay.ts";
 import { Credits } from "./Credits.tsx";
+import { QuickStart } from "./QuickStart.tsx";
+import { HintBar } from "./HintBar.tsx";
+import { hintContext, hintsAvailable } from "../game/hints-context.ts";
+import { applyStyle, type StyleId } from "../audio/styles.ts";
 import { FuxComparison } from "./FuxComparison.tsx";
 import { realizeContinuo } from "../continuo/realize.ts";
-import { playContinuo } from "../continuo/audio.ts";
+import { playContinuo, preloadContinuo } from "../continuo/audio.ts";
 import { continuoInput, continuoKey, continuoOptions, type PlayMode } from "../game/continuo-input.ts";
 import { activeVersions, deriveVersion, heardLines, validVersions, VERSION_IDS, type VersionId, type Versions } from "../game/versions.ts";
-import { trioReading } from "../game/trio-eval.ts";
+import { trioFindings, trioVerdict } from "../game/trio-verdict.ts";
 import { TrioReading } from "./TrioReading.tsx";
-import { Fold } from "./Fold.tsx";
 import { gatesOf, modeOf, startPasses, startPlayback, type PlaySetup } from "./playback.ts";
 import { SavedPieces } from "./SavedPieces.tsx";
 import { makePiece, restorePieces, type Piece, type Setup } from "../game/saved.ts";
@@ -104,9 +106,6 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const [showSaved, setShowSaved] = useState(false);
   const [savedPlaying, setSavedPlaying] = useState<{ id: string; slot: number } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  /** Boxes folded to one line (D52), remembered per box. */
-  const [folded, setFolded] = useState<Record<string, boolean>>(() => stored<Record<string, boolean>>("wtg.folds", {}, (v) => typeof v === "object" && v !== null && !Array.isArray(v)));
-  const foldProps = (id: string) => ({ open: !folded[id], onToggle: (open: boolean) => setFolded({ ...folded, [id]: !open }) });
   /** Zoom of the score (D87): 1 is the size the screen chooses; pinch, Ctrl + wheel or − / +. */
   const [zoom, setZoom] = useState(() => stored("wtg.zoom", 1, (v) => typeof v === "number" && v >= ZOOM_MIN && v <= ZOOM_MAX));
   useEffect(() => store("wtg.zoom", zoom), [zoom]);
@@ -120,21 +119,38 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const [continuo, setContinuo] = useState(() => stored("wtg.continuo", false, (v) => typeof v === "boolean"));
   const [continuoSettings, setContinuoSettings] = useState<ContinuoSettings>(() => validContinuoSettings(stored<unknown>("wtg.continuoSettings", DEFAULT_CONTINUO_SETTINGS)));
   const [loop, setLoop] = useState(() => stored("wtg.loop", true, (v) => typeof v === "boolean"));
-  const [showNames, setShowNames] = useState(() => stored("wtg.names", false, (v) => typeof v === "boolean"));
-  const [showIntervals, setShowIntervals] = useState(() => stored("wtg.intervals", false, (v) => typeof v === "boolean"));
+  const [showNames, setShowNames] = useState(() => stored("wtg.names2", true, (v) => typeof v === "boolean"));
+  const [showIntervals, setShowIntervals] = useState(() => stored("wtg.intervals2", true, (v) => typeof v === "boolean"));
   const [tuning, setTuning] = useState<TemperamentId>(() => stored<TemperamentId>("wtg.tuning", "equal", (v) => TEMPERAMENTS.includes(v as TemperamentId)));
   const [cursor, setCursor] = useState(-1);
   const [playing, setPlaying] = useState(false);
   const [audioStatus, setAudioStatus] = useState<AudioStatus>("idle");
+  /** D111: a master style sets every track; Fux follows the player's line once he is unlocked. */
+  const chooseStyle = (id: StyleId) => {
+    const next = applyStyle(id, { sound, drumsOn: drums, drumKit, continuoOn: continuo, continuo: continuoSettings, tuning, tempo }, STEP.cantus_voice !== "lower");
+    setSound(next.sound);
+    setDrums(next.drumsOn);
+    setDrumKit(next.drumKit);
+    setContinuo(next.continuoOn);
+    setContinuoSettings({ ...continuoSettings, ...next.continuo });
+    setTuning(next.tuning);
+    setTempo(next.tempo);
+    setToast(t("ui.style.applied", { name: t(`ui.style.${id}`) }));
+  };
   const [showCredits, setShowCredits] = useState(false);
+  const [hintOn, setHintOn] = useState(() => stored("wtg.hints", false, (v) => typeof v === "boolean"));
+  useEffect(() => store("wtg.hints", hintOn), [hintOn]);
+  // The quick start opens by itself on the first visit, and on HOW TO PLAY (D108).
+  const [showQuick, setShowQuick] = useState(() => !stored("wtg.quickSeen", false, (v) => typeof v === "boolean"));
+  useEffect(() => { if (showQuick) store("wtg.quickSeen", true); }, [showQuick]);
   const [result, setResult] = useState<Evaluation | null>(null);
   const [showFux, setShowFux] = useState(false);
   /** The study area below: the rules of this exercise, or the Lectio (Fux's text and commentary). */
   /** The dock's tab (D94): the mixer, the evaluation, the rules, the lectio. */
   const [tab, setTab] = useState<string>(() => { const v: string = stored<string>("wtg.dock", "mixer", (x) => typeof x === "string"); return v === "rules" ? "guide" : v; });
   useEffect(() => store("wtg.dock", tab), [tab]);
-  const [nameStyle, setNameStyle] = useState<NameStyle>(() => stored("wtg.nameStyle", "letters" as NameStyle, (v) => v === "letters" || v === "solfege"));
-  useEffect(() => store("wtg.nameStyle", nameStyle), [nameStyle]);
+  const [nameStyle, setNameStyle] = useState<NameStyle>(() => stored("wtg.nameStyle2", "solfege" as NameStyle, (v) => v === "letters" || v === "solfege"));
+  useEffect(() => store("wtg.nameStyle2", nameStyle), [nameStyle]);
   const scoreRef = useRef<HTMLDivElement>(null);
   const browsing = useRef(false);
   const dragBase = useRef<SessionState | null>(null);
@@ -162,8 +178,8 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
     audio.loop = loop;
     store("wtg.loop", loop);
   }, [loop]);
-  useEffect(() => store("wtg.names", showNames), [showNames]);
-  useEffect(() => store("wtg.intervals", showIntervals), [showIntervals]);
+  useEffect(() => store("wtg.names2", showNames), [showNames]);
+  useEffect(() => store("wtg.intervals2", showIntervals), [showIntervals]);
   useEffect(() => {
     audio.drums = drums;
     store("wtg.drums", drums);
@@ -175,13 +191,17 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   useEffect(() => store("wtg.continuo", continuo), [continuo]);
   useEffect(() => store("wtg.versions", storedVersions), [storedVersions]);
   useEffect(() => store("wtg.saved", pieces), [pieces]);
-  useEffect(() => store("wtg.folds", folded), [folded]);
   useEffect(() => {
     if (!toast) return;
     const id = window.setTimeout(() => setToast(null), 2600);
     return () => window.clearTimeout(id);
   }, [toast]);
   useEffect(() => store("wtg.continuoSettings", continuoSettings), [continuoSettings]);
+  // Recorded ensembles (D109): fetch the preset's recordings as soon as it is chosen.
+  useEffect(() => {
+    const g = audio.graph;
+    if (g) preloadContinuo(g.ctx, continuoSettings.preset);
+  }, [continuoSettings.preset, continuo]);
   useEffect(() => {
     audio.temperament = tuning;
     store("wtg.tuning", tuning);
@@ -678,7 +698,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const onKey = (e: KeyboardEvent) => {
     const target = e.target as HTMLElement | null;
     if (target && ["TEXTAREA", "SELECT", "INPUT"].includes(target.tagName)) return;
-    if (!showCredits && !showSaved && (e.ctrlKey || e.metaKey) && !e.altKey && editable) {
+    if (!showCredits && !showSaved && !showQuick && (e.ctrlKey || e.metaKey) && !e.altKey && editable) {
       const key = e.key.toLowerCase();
       if (key === "z" || key === "y") {
         restore(key === "y" || e.shiftKey ? "redo" : "undo");
@@ -687,7 +707,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
       }
     }
     // F1-F9 switch the numbered tracks on and off, as Ableton's F1-F8 switch its track activators (D85).
-    if (/^F[1-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey && !showCredits && !showSaved && exportPhase === null) {
+    if (/^F[1-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey && !showCredits && !showSaved && !showQuick && exportPhase === null) {
       const track = trackOrder(advanced)[Number(e.key.slice(1)) - 1];
       const n = track === undefined ? 0 : track === "cantus" ? 1 : track === "counterpoint" ? 2 : track === "fux" ? 3 : track === "drums" ? 8 : track === "continuo" ? 9 : 4 + VERSION_IDS.indexOf(track as VersionId);
       if (n === 1) setSound(changeMix(sound, "cantus", { mute: !sound.mix.cantus.mute }));
@@ -705,7 +725,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
       e.preventDefault();
       return;
     }
-    if (showCredits || showSaved || (exportPhase !== null && (exportPhase !== "recording" || ["p", "P", " "].includes(e.key))) || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    if (showCredits || showSaved || showQuick || (exportPhase !== null && (exportPhase !== "recording" || ["p", "P", " "].includes(e.key))) || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
     const k = e.key;
     const s = session;
     // Only the written line is editable; while it is hidden (D47) the keys only browse and play.
@@ -742,7 +762,8 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
     else if (k === "Delete" || k === "Backspace") update(FIFTH ? clearSpan(s) : VIEW.layout[s.selected].restAllowed ? setRest(s, VIEW.layout) : clear(s), false);
     else if (k === " ") play(VIEW.layout.findIndex((sl) => sl.bar === VIEW.layout[s.selected].bar));
     else if (k === "p" || k === "P") play();
-    else if (k === "?") setTab("guide");
+    else if (k === "?") setShowQuick(true);
+    else if ((k === "h" || k === "H") && hintsAvailable(VIEW.species)) setHintOn(!hintOn);
     else return;
     e.preventDefault();
   };
@@ -765,6 +786,18 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   // The evaluation in one line under the transport (D94); the details are in the dock.
   const barsOf = (v: { positions: number[] }) => [...new Set(v.positions.map((k) => (VIEW.layout[k]?.bar ?? 0) + 1))];
   const gist = (key: string) => t(key).split(/(?<=[.;:])\s/)[0].replace(/[.;:]$/, "");
+  // D115: hints for the note being written (species 1-4).
+  const hintCtx = useMemo(() => (hintOn ? hintContext(repository, VIEW) : null), [hintOn, VIEW]);
+  const hintBar = hintOn && hintCtx && (
+    <HintBar
+      ctx={hintCtx}
+      line={session.notes}
+      selected={session.selected}
+      nameStyle={nameStyle}
+      onClose={() => setHintOn(false)}
+      onWrite={(unit, pitch) => update({ ...session, notes: session.notes.map((q, k) => (unit.includes(k) ? pitch : q)), selected: unit[0], lastWritten: pitch, accidental: null })}
+    />
+  );
   const summary = result && (
     <div className={result.passed ? "eval-summary ok" : "eval-summary bad"} role="status">
       <span className="verdict">{result.passed ? `✓ ${t("ui.summary.passed")}` : `✗ ${t("ui.summary.failed", { n: result.errors.length })}`}</span>
@@ -861,7 +894,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
             theme={theme}
             onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")}
             onCredits={() => setShowCredits(true)}
-            onHelp={() => setTab("guide")}
+            onHelp={() => setShowQuick(true)}
           />
         </>
       }
@@ -884,6 +917,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
                   setShowIntervals(v.intervals);
                 }}
                 fux={VIEW.fux ? { open: fuxOpen, shown: showFux, onShow: setShowFux } : undefined}
+                hint={{ on: hintOn, available: hintsAvailable(VIEW.species), onToggle: setHintOn }}
               />
             }
             cantus={moved(VIEW.cantus, sound.cantusOctave)}
@@ -987,7 +1021,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
         {audioStatus === "failed" && <p className="status error">{t("ui.audio.failed")}</p>}
         </>
       }
-      summary={summary}
+      summary={<>{summary}{hintBar}</>}
       tab={tab}
       onTab={setTab}
       idle={exerciseSource}
@@ -1017,53 +1051,57 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
             drumKit={drumKit}
             onDrumKit={setDrumKit}
             onPreviewDrums={() => !playing && void audio.previewDrums()}
+            onTempo={setTempo}
             master={volume}
             onMaster={setVolume}
             tuning={tuning}
             onTuning={setTuning}
+            onStyle={chooseStyle}
           />
         ) },
         { id: "evaluation", text: true, label: t("ui.dock.evaluation"), content: (
           <>
         {result ? (
           <section className="feedback" aria-live="polite">
-            <Fold title={t("ui.fold.evaluation")} {...foldProps("evaluation")}>
-              <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} ties={VIEW.species === "fourth"} audio={audio} />
-            </Fold>
+            <Feedback
+              result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} ties={VIEW.species === "fourth"} audio={audio}
+              actions={result.passed && stepIndex < STEPS.length - 1 ? <button className="next" onClick={() => goTo(stepIndex + 1)}>{t("ui.nav.nextExercise")} ›</button> : undefined}
+            />
+            {versionResults.length > 0 && <h3 className="eval-h">{t("ui.result.versionsTitle")}</h3>}
             {versionResults.map((v) => (
-              <Fold key={v.id} className="version-eval" title={<span style={{ color: VERSION_INK[v.id] }}>{t(`ui.versions.${v.id}`, { n: versions.canonShift })}</span>} {...foldProps(`version-${v.id}`)}>
-                <Feedback result={v.ev} cantus={VIEW.cantus} counterpoint={v.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} ties={VIEW.species === "fourth"} audio={audio} />
-              </Fold>
-            ))}
-            <div className="after">
-              {fuxSolution && VIEW.fux && !fuxOpen && <p className="help">{t("ui.fux.locked")}</p>}
-              {fuxSolution && VIEW.fux && fuxOpen && (
-                <button aria-pressed={showFux} onClick={() => setShowFux(!showFux)}>{showFux ? t("ui.fux.hide") : t("ui.fux.show")}</button>
-              )}
-              {result.passed && stepIndex < STEPS.length - 1 && (
-                <button className="next" onClick={() => goTo(stepIndex + 1)}>{t("ui.nav.nextExercise")} ›</button>
-              )}
-            </div>
-            {fuxOpen && showFux && fuxSolution && VIEW.fux && (
-              <Fold title={t("ui.fold.fux")} {...foldProps("fux")}>
-              <div className="fux">
-                <p className="help">{t("ui.fux.overlayHelp")}</p>
-                <p className="help">
-                  {(() => {
-                    const filled = { ...session, notes: session.notes.map((n, k) => (n === null && VIEW.layout[k].restAllowed ? REST : n)) };
-                    const cmp = compareWithOriginal(toPlayerSolution(filled, repository.getExercise(VIEW.exerciseId!)!, VIEW.layout), fuxSolution);
-                    const key = VIEW.species === "first" ? "ui.fux.agreement" : "ui.fux.agreementNotes";
-                    return t(key, { same: cmp.points.filter((p) => p.same_pitch).length, total: cmp.points.length });
-                  })()}
-                </p>
-                {missing === 0 && <FuxComparison cantus={VIEW.cantus} player={session.notes} fux={VIEW.fux} layout={VIEW.layout} />}
+              <div key={v.id} className="version-eval">
+                <h4 style={{ color: VERSION_INK[v.id] }}>{t(`ui.versions.${v.id}`, { n: versions.canonShift })}</h4>
+                <Feedback compact result={v.ev} cantus={VIEW.cantus} counterpoint={v.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} ties={VIEW.species === "fourth"} audio={audio} />
               </div>
-              </Fold>
-            )}
-            {fuxOpen && showFux && VIEW.fux && missing === 0 && COURSE.voices === 2 && (
-              <Fold title={t("ui.trio.title")} {...foldProps("trio")}>
-                <TrioReading findings={trioReading(VIEW.cantus, session.notes, VIEW.fux, VIEW.layout)} layout={VIEW.layout} />
-              </Fold>
+            ))}
+            {fuxSolution && VIEW.fux && (
+              <div className="with-fux">
+                <h3 className="eval-h">
+                  {t("ui.withFux.title")}
+                  {fuxOpen && <button className="btn-view" aria-pressed={showFux} onClick={() => setShowFux(!showFux)}>{showFux ? t("ui.fux.hide") : t("ui.fux.show")}</button>}
+                </h3>
+                {!fuxOpen ? (
+                  <p className="help">{t("ui.withFux.locked")}</p>
+                ) : missing > 0 ? (
+                  <p className="help">{t("ui.withFux.incomplete")}</p>
+                ) : (
+                  (() => {
+                    const v = trioVerdict(VIEW.cantus, session.notes, VIEW.fux!, VIEW.layout);
+                    const pct = v.places ? Math.round((100 * v.same) / v.places) : 0;
+                    const args = { pct, same: v.same, n: v.places, clean: v.clean, bad: v.places - v.clean };
+                    return (
+                      <>
+                        <div className={`with-fux-verdict ${v.grade}`}>
+                          <span className="with-fux-badge" data-info={t("ui.withFux.badgeHelp", args)}>{v.grade === "identical" ? t("ui.withFux.badge.identical") : t("ui.withFux.badge", args)}</span>
+                          <p>{t(`ui.withFux.${v.grade}`, args)}</p>
+                        </div>
+                        {v.grade !== "identical" && <FuxComparison cantus={VIEW.cantus} player={session.notes} fux={VIEW.fux!} layout={VIEW.layout} />}
+                        {v.grade !== "identical" && COURSE.voices === 2 && <TrioReading findings={trioFindings(VIEW.cantus, session.notes, VIEW.fux!, VIEW.layout)} layout={VIEW.layout} />}
+                      </>
+                    );
+                  })()
+                )}
+              </div>
             )}
           </section>
         ) : (
@@ -1072,12 +1110,12 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
           </>
         ) },
         { id: "guide", text: true, label: t("ui.howtoTab"), content: (
-          <Guide rules={<>
+          <Guide basics={<RuleBasics step={STEP} cantus={VIEW.cantus} />} exercise={<>
             <blockquote className="tutor" lang="en">
               <span className="speaker">{t("tutor.speaker.aloysius")}.</span> “{stepStudy(STEP.id).intro.en}”
               <cite title={stepStudy(STEP.id).intro.la} lang="la">{t("ui.tutor.cite", { page: stepStudy(STEP.id).intro.page })}</cite>
             </blockquote>
-            <Hints step={STEP} cantus={VIEW.cantus} />
+            <ExerciseNotes step={STEP} cantus={VIEW.cantus} />
           </>} />
         ) },
         { id: "lectio", text: true, label: t("ui.study"), content: (
@@ -1092,6 +1130,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
       overlays={
         <>
       {showCredits && <Credits onClose={() => setShowCredits(false)} />}
+      {showQuick && <QuickStart basics={<RuleBasics step={STEP} cantus={VIEW.cantus} />} onClose={() => setShowQuick(false)} onMore={() => { setShowQuick(false); setTab("guide"); }} />}
       {toast && (
         <div className="toast" role="status">
           {toast}
