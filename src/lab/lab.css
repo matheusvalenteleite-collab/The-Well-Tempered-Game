@@ -74,3 +74,19 @@ html, body { height: auto !important; overflow: auto !important; }
    given a height, else it takes the window's and leaves a tall blank under the staves. */
 .lab-score .viewport { height: 500px; }
 @media (max-width: 640px) { .lab-score .viewport { height: 380px; } }
+/* Well-Tempered Clavier tab */
+.wtc-roll { overflow-x: auto; overflow-y: hidden; border-top: 1px solid var(--line); background: var(--paper); cursor: crosshair; }
+.wtc-roll svg { display: block; }
+.wtc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 4px 8px; }
+.wtc-key { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; }
+.wtc-keyname { width: 2.6em; font-weight: 600; }
+.lab .wtc-chip { min-width: 30px; padding: 1px 6px; font-size: 0.75rem; }
+.lab .wtc-chip.wtc-sel { outline: 2px solid var(--ink-player); font-weight: 700; }
+.wtc-answer { display: flex; flex-direction: column; gap: 6px; overflow-x: auto; }
+.wtc-row { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
+.wtc-rowname { width: 7.5em; flex: none; font-size: 0.8rem; opacity: 0.8; }
+.wtc-note { display: inline-flex; flex-direction: column; align-items: center; min-width: 2.2em; padding: 2px 3px; border: 1px solid var(--line); border-radius: 4px; font-size: 0.85rem; }
+.wtc-note small { font-size: 0.65rem; opacity: 0.7; }
+.lab .wtc-pick { cursor: pointer; }
+.lab .wtc-fourth { background: color-mix(in srgb, var(--ink-player) 18%, var(--paper)); }
+.wtc-wrong { border-color: var(--bad) !important; color: var(--bad); }

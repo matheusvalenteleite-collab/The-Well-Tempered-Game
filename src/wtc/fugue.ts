@@ -157,9 +157,9 @@ export interface Entry {
 
 /**
  * Every entry of the subject in the fugue: in each voice, a run of notes with the subject's rhythm
- * and its intervals (by letter), allowing a changed interval among the first two (tonal answers)
- * and one more elsewhere; also inverted (intervals mirrored). The subject's first note's length and
- * the last note's are free (entries are often shortened or tied on).
+ * and its intervals (by letter), allowing two changed intervals among the first five (tonal answers)
+ * and one more elsewhere, the last two intervals free (for a subject of eight notes or fewer: one
+ * change, the last interval free); also inverted (intervals mirrored, exactly).
  */
 export function findEntries(p: WtcPiece, subject: Note[]): Entry[] {
   const n = subject.length;
@@ -171,15 +171,23 @@ export function findEntries(p: WtcPiece, subject: Note[]): Entry[] {
     for (let s = 0; s + n <= l.length; s++) {
       for (const form of ["subject", "inversion"] as const) {
         let changed = 0;
+        let head = 0;
+        let rest = 0;
         let ok = true;
+        // The last two intervals are free (entries are often bent at their end into what follows).
+        // Short subjects (eight notes or fewer): only the last interval free, one change allowed.
+        const short = n <= 8;
+        const counted = short ? n - 2 : n - 3;
         for (let i = 0; i < n - 1 && ok; i++) {
           const iv = diatonic(l[s + i + 1].pitch) - diatonic(l[s + i].pitch);
           const want = form === "subject" ? sInt[i] : -sInt[i];
-          if (iv !== want) {
+          if (iv !== want && i < counted) {
             changed++;
-            if (changed > 2 || (i >= 2 && changed > 1)) ok = false;
+            if (i < 5) head++;
+            else rest++;
+            if (head > (short ? 1 : 2) || rest > 1) ok = false;
           }
-          if (ok && i < n - 2 && l[s + i + 2].on - l[s + i + 1].on !== sIoi[i]) ok = false;
+          if (ok && i < Math.min(n - 2, counted) && l[s + i + 2].on - l[s + i + 1].on !== sIoi[i]) ok = false;
         }
         if (ok && (form === "subject" || changed === 0)) {
           out.push({ voice, on: l[s].on, at: s, length: n, pitch: l[s].pitch, degree: degree(l[s].pitch, p.key, p.mode), form, changed });
