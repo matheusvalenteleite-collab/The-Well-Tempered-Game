@@ -65,3 +65,12 @@ test("key plan: the exposition of Book I's C major fugue is I V V I; its middle 
   const s2 = subjectAndAnswer(f2).subject;
   assert.deepEqual(findEntries(f2, s2).slice(0, 2).map((e) => entryKey(f2, e, s2).roman), ["i", "v"]);
 });
+
+import { chordLabel, reduce } from "../src/wtc/reduction.ts";
+test("harmonic reduction: Book I's C major prelude opens I, ii4/2, V6/5, I", () => {
+  const pre: WtcPiece[] = JSON.parse(readFileSync(new URL("../data/wtc/preludes.json", import.meta.url), "utf8"));
+  const p1 = pre.find((p) => p.id === "wtc1p01")!;
+  assert.deepEqual(reduce(p1).slice(0, 4).map((s) => s.roman), ["I", "ii4/2", "V6/5", "I"]);
+  assert.equal(chordLabel(["G2", "D3", "B3", "F4"], "C", "major").roman, "V7");
+  assert.equal(chordLabel(["F#2", "C3", "A3", "Eb4"], "C", "major").roman, "♯iv°7");
+});

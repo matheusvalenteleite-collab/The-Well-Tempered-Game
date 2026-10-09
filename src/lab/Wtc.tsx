@@ -12,6 +12,7 @@ import { label, TPQ, type WtcPiece } from "../wtc/corpus.ts";
 import { degree, findEntries, line, names, predictAnswer, subjectAndAnswer, transpose, type Entry, type Note } from "../wtc/fugue.ts";
 import { TUNINGS, type TuningId } from "../wtc/tunings.ts";
 import { entryKey } from "../wtc/keyplan.ts";
+import { reduce, type Segment } from "../wtc/reduction.ts";
 import { parsePitch } from "../music/pitch.ts";
 import { playNotes, playPiece, stop } from "./keyboard.ts";
 import { Markdown } from "./Habits.tsx";
@@ -65,14 +66,14 @@ interface Guess {
   verdict?: "hit" | "false";
 }
 
-function PianoRoll({ p, a, tick, showEntries, onSeek, voicesOn, guesses, onPick, missed }: { p: WtcPiece; a: Analysis | null; tick: number; showEntries: boolean; onSeek: (t: number) => void; voicesOn: boolean[]; guesses?: Guess[]; onPick?: (tick: number, midi: number) => void; missed?: Entry[] }) {
+function PianoRoll({ p, a, tick, showEntries, onSeek, voicesOn, guesses, onPick, missed, segments }: { p: WtcPiece; a: Analysis | null; tick: number; showEntries: boolean; onSeek: (t: number) => void; voicesOn: boolean[]; guesses?: Guess[]; onPick?: (tick: number, midi: number) => void; missed?: Entry[]; segments?: Segment[] }) {
   const pxq = 22; // pixels per quarter note
   const all = p.voices.flat();
   const lo = Math.min(...all.map((n) => midi(n[2]))) - 1;
   const hi = Math.max(...all.map((n) => midi(n[2]))) + 1;
   const ph = 5;
   const W = (p.length / TPQ) * pxq + 40;
-  const H = (hi - lo + 1) * ph + 24;
+  const H = (hi - lo + 1) * ph + 24 + (segments ? 34 : 0);
   const x = (t: number) => 20 + (t / TPQ) * pxq;
   const y = (m: number) => 18 + (hi - m) * ph;
   const scroller = useRef<HTMLDivElement>(null);
@@ -97,14 +98,14 @@ function PianoRoll({ p, a, tick, showEntries, onSeek, voicesOn, guesses, onPick,
           if (sub === 0) main++;
           const inEntry = sub === 0 && entryNotes.has(`${vi}:${main}`);
           return (
-            <rect key={`${vi}-${k}`} x={x(on)} y={y(midi(pitch))} width={Math.max(2, (dur / TPQ) * pxq - 1)} height={ph - 0.5} rx={1.5} fill={INK[vi % INK.length]} opacity={showEntries ? (inEntry ? 1 : 0.38) : 0.85}>
+            <rect key={`${vi}-${k}`} x={x(on)} y={y(midi(pitch))} width={Math.max(2, (dur / TPQ) * pxq - 1)} height={ph - 0.5} rx={1.5} fill={INK[vi % INK.length]} opacity={showEntries && a ? (inEntry ? 1 : 0.38) : 0.85}>
               <title>{`${pitch} (${VOICE_NAMES[p.voices.length]?.[vi] ?? `voice ${vi + 1}`})`}</title>
             </rect>
           );
         });
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [p, entryNotes, voicesOn, showEntries],
+    [p, a, entryNotes, voicesOn, showEntries],
   );
   return (
     <div className="wtc-roll" ref={scroller}>
@@ -150,6 +151,12 @@ function PianoRoll({ p, a, tick, showEntries, onSeek, voicesOn, guesses, onPick,
           const l = line(p.voices[e.voice]);
           return <circle key={`m${i}`} cx={x(e.on)} cy={y(midi(l[e.at].pitch)) + ph / 2} r={7} fill="none" stroke="#a8761a" strokeWidth={2} strokeDasharray="3 2" />;
         })}
+        {segments?.map((g, i) => (
+          <g key={`s${i}`}>
+            <text x={x(g.on) + 3} y={H - 20} fontSize={11} fontWeight={600} fill={g.guessed ? "var(--ink-muted, #888)" : "var(--ink, #222)"} fontStyle={g.guessed ? "italic" : undefined}>{g.roman}</text>
+            <text x={x(g.on) + 3} y={H - 6} fontSize={9} fill="var(--ink-muted, #888)">{g.figures.join(" ")}</text>
+          </g>
+        ))}
         {tick >= 0 && <line x1={x(tick)} x2={x(tick)} y1={0} y2={H} stroke="var(--ink, #222)" strokeWidth={1.5} />}
       </svg>
     </div>
@@ -243,6 +250,8 @@ export function WtcTab() {
   const [voicesOn, setVoicesOn] = useState<boolean[]>([]);
   useEffect(() => (setVoicesOn(p.voices.map(() => true)), stop(), setTick(-1), setFrom(0)), [p]);
   const a = useMemo(() => analyse(p), [p]);
+  const [showReduction, setShowReduction] = useState(false);
+  const segments = useMemo(() => (showReduction ? reduce(p) : undefined), [p, showReduction]);
   // Level 1: find the entries (the marks hidden; clicks mark guesses).
   const [finding, setFinding] = useState(false);
   const [guesses, setGuesses] = useState<Guess[]>([]);
@@ -322,6 +331,12 @@ export function WtcTab() {
           <button className="primary" onClick={() => playPiece(p, { tuning, bpm, from, voices: voicesOn, onTick: setTick })}>▶ Play{from > 0 ? " from here" : ""}</button>
           <button onClick={() => stop()} aria-label="Stop">■</button>
           <b>{label(p)}</b>
+          <label className="lab-group" title="Each bar collapsed to its chord: figures and a Roman numeral (a modern lens on Bach's progression; crude where the music runs in passing notes)">
+            <input type="checkbox" checked={showReduction} onChange={(e) => setShowReduction(e.target.checked)} /> harmony
+          </label>
+          {showReduction && segments && (
+            <button onClick={() => playNotes(segments.flatMap((g) => g.chord.map((pitch) => ({ on: g.on, dur: g.dur, pitch }))), tuning, bpm)} title="The reduction as block chords, a chord a bar">▶ chords</button>
+          )}
           <span className="lab-note">{p.voices.length} voices · {p.meter}</span>
           {a && (
             <label className="lab-group">
@@ -362,6 +377,7 @@ export function WtcTab() {
           showEntries={showEntries && !finding}
           onSeek={(t) => setFrom(Math.round(t))}
           voicesOn={voicesOn}
+          segments={segments}
           guesses={finding ? judged : undefined}
           missed={finding ? missedEntries : undefined}
           onPick={
