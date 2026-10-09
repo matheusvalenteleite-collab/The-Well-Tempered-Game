@@ -3,7 +3,7 @@
 
 Three sessions read the 48 the same night, by different methods:
 
-  here   this branch: tools/wtc/fugues.py on the Humdrum encoding (data/wtc/fugues.json), answers
+  here   this branch: tools/wtc/fugues.py on the Humdrum encoding (data/wtc/fugue-analysis.json), answers
          classified by tools/wtc/answers.py;
   lab    the Choices-lab session (branch claude/beautiful-mccarthy-7li5nv): src/wtc/fugue.ts on
          its own parse of the same Humdrum encoding (subjectAndAnswer, predictAnswer "real");
@@ -52,7 +52,7 @@ def main() -> None:
     lab = {(x["book"], x["number"]): x for x in json.loads(Path(sys.argv[1]).read_text())}
     d119 = {(x["book"], x["number"]): x for x in json.loads(subprocess.run(
         ["git", "show", "origin/claude/continuo-integration:data/bach/wtc/fugues.json"], capture_output=True, text=True, check=True, cwd=ROOT).stdout)["fugues"]}
-    here = json.loads((ROOT / "data" / "wtc" / "fugues.json").read_text())["fugues"]
+    here = json.loads((ROOT / "data" / "wtc" / "fugue-analysis.json").read_text())["fugues"]
     rows = []
     agree_lab = agree_d = agree_all = n_d = subj_lab = 0
     for f in here:

@@ -28,7 +28,7 @@ Method (each step is a reading, labelled as such in the output):
                 diatonic intervals return against later entries.
   episodes      the time when no entry is sounding, as a share of the fugue, and the passages.
 
-Output: data/wtc/fugues.json (facts about the fugues: subjects as pitch names, entries by bar and
+Output: data/wtc/fugue-analysis.json (facts about the fugues: subjects as pitch names, entries by bar and
 voice; committed) and docs/wtc/FUGUES.md.
 
 Run:  python3 tools/wtc/fugues.py
@@ -41,7 +41,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 LOCAL = ROOT / "data" / "local" / "wtc"
-OUT = ROOT / "data" / "wtc" / "fugues.json"
+OUT = ROOT / "data" / "wtc" / "fugue-analysis.json"
 REPORT = ROOT / "docs" / "wtc" / "FUGUES.md"
 STEPS = "CDEFGAB"
 HEAD = 6

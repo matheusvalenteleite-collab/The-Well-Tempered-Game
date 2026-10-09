@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""The answers of the 48 fugues: real, textbook tonal, and Bach's (docs/wtc/CONCEPT.md, level F2).
+"""The answers of the 48 fugues: real, textbook tonal, and Bach's (docs/wtc/PLAN.md, level F2).
 
-For each fugue (data/wtc/fugues.json: the subject and the answer as computed there), three answers:
+For each fugue (data/wtc/fugue-analysis.json: the subject and the answer as computed there), three answers:
 
   real      the subject transposed to the dominant, every interval kept (up a fifth or down a
             fourth, whichever lies nearer Bach's answer);
@@ -26,7 +26,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-FUGUES = ROOT / "data" / "wtc" / "fugues.json"
+FUGUES = ROOT / "data" / "wtc" / "fugue-analysis.json"
 OUT = ROOT / "data" / "wtc" / "answers.json"
 REPORT = ROOT / "docs" / "wtc" / "ANSWERS.md"
 STEPS = "CDEFGAB"

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Which preludes are figuration preludes? (docs/wtc/CONCEPT.md, section 2)
+"""Which preludes are figuration preludes? (docs/wtc/PLAN.md, section 2)
 
 A figuration prelude, like Prelude 1 in C, applies one pattern to a chord per bar (or half bar). The
 test: cut the prelude into units (the bar, and the half bar), and describe each unit by its pattern,
