@@ -966,7 +966,9 @@
     "rule.fis.cadence": "The next-to-last bar must end on the note below the final: the major sixth (cantus below) or the minor third (cantus above).",
     "rule.fis.limping": "Two crotchets at the start of the bar with no ligature after them make the melody limp, says Aloysius: tie them into a ligature, or go on with two more crotchets. Advice, not a precept.",
     "rule.t2.repeated": "Never two minims on the same note (p. 96); only at the close may the upbeat be tied into the penultimate bar, where two separate minims would give a faulty unison or an empty octave.",
-    "rule.t2.downbeat-succession": "Fifths (or octaves) on two downbeats in a row, with only a step between them on the upbeat. In three voices a leap of a third on the upbeat is enough to save them, 'for the sake of the harmonic triad' (pp. 94-95)."
+    "rule.t2.downbeat-succession": "Fifths (or octaves) on two downbeats in a row, with only a step between them on the upbeat. In three voices a leap of a third on the upbeat is enough to save them, 'for the sake of the harmonic triad' (pp. 94-95).",
+    "rule.t3.triad": "In this bar no crotchet makes the harmonic triad with the two semibreves: 'if the first crotchet cannot make it, see that the second or the third does' (p. 100).",
+    "rule.t4.hidden-perfect": "This ligature hides two fifths (or octaves): it is prepared and resolved on the same perfect consonance with another voice. 'As the ligature cannot prevent two faulty octaves, so it cannot save two fifths' (p. 105); in the lower part it is tolerated."
   },
   "hints": {
     "rule.fos.no-repetition": "In this species each upbeat brings a new note, which is then tied over the bar line; striking the downbeat's note again on its own upbeat is a whole note in disguise.",
@@ -1105,7 +1107,9 @@
     "rule.fos.converging-leap-into-octave": "Do not leap into an octave or unison from a more distant consonance with the voices converging.",
     "rule.fos.unison-only-at-ends": "No unison on an untied downbeat except in the first and last bars.",
     "rule.t2.repeated": "Never two minims on the same note (p. 96); only at the close may the upbeat be tied into the penultimate bar, where two separate minims would give a faulty unison or an empty octave.",
-    "rule.t2.downbeat-succession": "Fifths (or octaves) on two downbeats in a row, with only a step between them on the upbeat. In three voices a leap of a third on the upbeat is enough to save them, 'for the sake of the harmonic triad' (pp. 94-95)."
+    "rule.t2.downbeat-succession": "Fifths (or octaves) on two downbeats in a row, with only a step between them on the upbeat. In three voices a leap of a third on the upbeat is enough to save them, 'for the sake of the harmonic triad' (pp. 94-95).",
+    "rule.t3.triad": "In this bar no crotchet makes the harmonic triad with the two semibreves: 'if the first crotchet cannot make it, see that the second or the third does' (p. 100).",
+    "rule.t4.hidden-perfect": "This ligature hides two fifths (or octaves): it is prepared and resolved on the same perfect consonance with another voice. 'As the ligature cannot prevent two faulty octaves, so it cannot save two fifths' (p. 105); in the lower part it is tolerated."
   },
   "study": {
     "title": "Lectio: what Fux teaches here",

@@ -7,7 +7,7 @@
 import type { ModalFinal } from "../music/fux/types.ts";
 import { parsePitch } from "../music/pitch.ts";
 import type { ClefId } from "../ui/notation/clefs.ts";
-import { notesToSlots, slotLayout } from "../counterpoint/layout.ts";
+import { notesToSlots, REST, slotLayout } from "../counterpoint/layout.ts";
 
 interface RawExercise {
   id: string;
@@ -53,6 +53,14 @@ export function modernClef(code: string): ClefId {
   return middle >= parsePitch("C4").diatonic ? "treble" : "bass";
 }
 
+/**
+ * Readings that differ from the dataset (open question 7, docs/fux/open-questions.md): an unmarked
+ * note repeating a flatted one in the same voice is read flat, by the period's convention that an
+ * accidental holds for an immediately repeated note. Owner's decision (D116): B flat, flagged as
+ * open until checked further. [exercise, voice (top = 0), bar (0-based), dataset pitch, reading].
+ */
+export const READINGS: [string, number, number, string, string][] = [["gap_110", 1, 5, "B3", "Bb3"]];
+
 export function trioSteps(data: { exercises: RawExercise[] }, species: 1 | 2 = 1): TrioStep[] {
   return data.exercises
     .filter((e) => e.species.length === 1 && e.species[0] === species)
@@ -66,6 +74,11 @@ export function trioSteps(data: { exercises: RawExercise[] }, species: 1 | 2 = 1
               return n.pitch;
             }),
       );
+      for (const [ex, voice, bar, was, now] of READINGS) {
+        if (ex !== e.id || species !== 1) continue;
+        if (lines[voice][bar] !== was) throw new Error(`${ex}: reading expects ${was} at bar ${bar + 1}`);
+        lines[voice][bar] = now;
+      }
       return {
         id: `fux-mode.t${species}.${String(k + 1).padStart(2, "0")}`,
         ordinal: k + 1,
@@ -82,6 +95,36 @@ export function trioSteps(data: { exercises: RawExercise[] }, species: 1 | 2 = 1
         clefs1725: e.clefs_1725,
       };
     });
+}
+
+/**
+ * The moving voice's notes onto its slots (D116): two a bar (second and fourth species) or four
+ * (third), one in the last bar. Unlike the two-voice layouts, a rest may stand anywhere, as Fux
+ * writes it in three voices (a crotchet rest to open Fig. 132, a whole bar to open Fig. 144, a
+ * minim in Fig. 151): each slot it covers is a rest. A tie is the same pitch in both slots.
+ */
+export function movingSlots(per: 2 | 4, bars: number, notes: { pitch: string | null; duration: string; offset?: string }[]): string[] {
+  const frac = (r: string) => {
+    const [n, d] = r.split("/").map(Number);
+    return n / (d ?? 1);
+  };
+  const out: string[] = Array.from({ length: per * (bars - 1) + 1 }, () => "");
+  let t = 0;
+  for (const n of notes) {
+    const start = n.offset !== undefined ? frac(n.offset) : t;
+    const len = frac(n.duration);
+    const first = Math.round(start * per);
+    const count = start >= bars - 1 - 1e-9 ? 1 : Math.round(len * per);
+    for (let j = 0; j < count; j++) {
+      const k = first + j;
+      if (k >= out.length) throw new Error("note beyond the last bar");
+      if (n.pitch !== null && j > 0) throw new Error(`a ${n.duration} note in a line of ${per} notes a bar`);
+      out[k] = n.pitch ?? REST;
+    }
+    t = start + len;
+  }
+  if (out.some((x) => x === "")) throw new Error("the notes leave slots empty");
+  return out;
 }
 
 /** Slots in a voice's line: one per bar, or the second-species slots for the minim voice. */
