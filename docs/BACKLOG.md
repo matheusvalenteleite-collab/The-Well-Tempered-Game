@@ -91,6 +91,19 @@ Findings and points for the owner:
   choice). Spacing and the final chord's top note add nothing once these are in; the generated
   third voices still end with the final on top 84% of the time (Fux 88%), with his rates of leaps
   (47% against 43%) and repeated notes (14%). The audit and the third-voice generator use it.
+- After a leap (docs/fux/leap-study.md): tested against von Hippel & Huron's regression to the
+  mean (Music Perception 18/1, 2000). In whole-note lines (first species, three voices) the turn
+  after a leap is accounted for by where the leap lands relative to the line's middle; leap size
+  adds nothing measurable. In the running lines of species 2-5 leaps turn back far more than steps
+  landing alike, even counting only consonant landings; whether that is a rule for leaps or the
+  inertia of steps in scales, these data cannot say. The "habit" of the habits study is to be read
+  accordingly.
+- Independence of the precepts (docs/fux/independence-study.md): every precept of species 1-4 has
+  a witness (a line, usually Fux's own with one or two notes changed, that breaks it alone), except
+  `fs.final-octave-or-unison`, which the first-species cadence rule already contains (an encoding
+  redundancy). Fifth species: the three rhythm precepts untested (pitches varied only). The
+  witnesses show the precepts allow leaps beyond the octave (a thirteenth): check whether Fux
+  forbids them.
 - Motives and imitation (docs/fux/motives-study.md): Fux's species solutions imitate the cantus
   (displaced 1-4 bars, straight or inverted, at any transposition) and repeat their own
   three-interval figures no more than counterpoints generated without any notion of either

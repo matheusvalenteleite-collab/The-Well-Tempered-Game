@@ -9,6 +9,10 @@ import { trioSteps, type TrioStep } from "../game/trio.ts";
 import type { ModalFinal } from "../music/fux/index.ts";
 import { clefFor, type LabClef } from "../counterpoint/choices/cantus.ts";
 import { TrioScore } from "../ui/notation/TrioScore.tsx";
+import { trioStaves } from "../ui/notation/trio-staves.ts";
+import { parsePitch } from "../music/pitch.ts";
+
+const THIRD_INK = "#c0392b";
 import { TRIO_FIRST_SPECIES } from "../counterpoint/three-voice.ts";
 import type { AuditSummary } from "../counterpoint/choices/audit.ts";
 import type { TierName } from "../counterpoint/choices/score.ts";
@@ -53,13 +57,15 @@ export function Trio({ voices, cantusIndex, added, alt, selected, label, cursor:
   const [zoom, setZoom] = useState(1);
   const cursor = outerCursor ?? ownCursor;
   const shown = voices.map((l, v) => (alt && alt.voice === v ? l.map((p, k) => (k === alt.bar ? alt.pitch : p)) : l));
+  // Two staves by register, as in the game (D113): each voice on the treble or bass staff.
+  const layout = trioStaves(voices.map((l) => l.reduce((t, p) => t + parsePitch(p).midi, 0) / l.length));
   return (
     <>
       {transport && (
         <div className="lab-row">
           <button onClick={() => playLines(shown, 80, setCursor)}>▶ Play</button>
           <button onClick={() => stop()}>■</button>
-          <span className="lab-note">Staves: {voices.map((_, v) => `${STAFF_NAMES[v]} ${v === cantusIndex ? "cantus firmus" : v === added ? "new voice" : "counterpoint"}`).join(" · ")}</span>
+          <span className="lab-note">Voices, top down: {voices.map((_, v) => `${STAFF_NAMES[v]} ${v === cantusIndex ? "cantus firmus (black)" : v === added ? "new voice (red)" : "counterpoint (blue)"}`).join(" · ")}</span>
           {final && (
             <label className="lab-group" title="Figures and Roman numerals under each bar: a later lens, not Fux's; never graded">
               <input type="checkbox" checked={harmony} onChange={(e) => setHarmony(e.target.checked)} /> harmonic view (modern)
@@ -69,7 +75,8 @@ export function Trio({ voices, cantusIndex, added, alt, selected, label, cursor:
       )}
       <div className="lab-score" ref={host}>
         <TrioScore
-          staves={shown.map((notes, v) => ({ clef: v === cantusIndex && cantusClef ? cantusClef : clefFor(voices[v]), notes, editable: false, label: v === cantusIndex ? "Cantus firmus" : v === added ? "New voice" : undefined, fux: alt && alt.voice === v ? voices[v] : undefined }))}
+          voices={shown.map((notes, v) => ({ notes, editable: false, staff: layout.staff[v], ink: v === cantusIndex ? undefined : v === added ? THIRD_INK : "var(--ink-player)", fux: alt && alt.voice === v ? voices[v] : undefined }))}
+          clefs={layout.clefs}
           active={selected?.voice ?? -1}
           selected={selected?.bar ?? -1}
           cursor={cursor}

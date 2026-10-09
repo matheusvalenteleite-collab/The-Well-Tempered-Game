@@ -7,6 +7,8 @@ import study from "../../docs/fux/habits-study.md?raw";
 import trio from "../../docs/fux/trio-habits-study.md?raw";
 import motives from "../../docs/fux/motives-study.md?raw";
 import difficulty from "../../docs/fux/difficulty.md?raw";
+import leaps from "../../docs/fux/leap-study.md?raw";
+import independence from "../../docs/fux/independence-study.md?raw";
 
 function inline(text: string): ReactNode[] {
   return text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).map((part, i) =>
@@ -22,6 +24,10 @@ export function HabitsTab() {
       <Markdown text={trio} />
       <h2 className="lab-part">Motives and imitation</h2>
       <Markdown text={motives} />
+      <h2 className="lab-part">After a leap: principle or regression to the mean?</h2>
+      <Markdown text={leaps} />
+      <h2 className="lab-part">Are the precepts independent?</h2>
+      <Markdown text={independence} />
       <h2 className="lab-part">Difficulty</h2>
       <Markdown text={difficulty} />
     </section>
