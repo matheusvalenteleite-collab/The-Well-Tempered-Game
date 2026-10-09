@@ -107,6 +107,11 @@ Findings and points for the owner:
   (Fux's G: G-C-E); length 9-14 accepted (Fux's C variant has 9; generator default 10-14); and
   Ewing's antepenultimate degree 1 or 3 (true of all Fux's) added. To approve or amend: the table
   is in docs/fux/cantus-constraints-amendment.md.
+- Difficulty (docs/fux/difficulty.md; `choices/difficulty.ts`): freedom per choice, log2 of the
+  legal pitches with the rest of a good line in place. Fux's species tighten steadily (2.17 bits in
+  first species, 1.67, 1.57, 0.89 in fourth, where 53% of choices are forced); within a species his
+  order goes through the modes and is not one of difficulty (weak correlations of both signs). For
+  the game: order generated practice by it. Shown in the lab's audit lists and summaries.
 - Two-voice generator: when no error-free line exists it returns the one breaking the fewest
   rules (as the third voice does), marked in red in the score.
 

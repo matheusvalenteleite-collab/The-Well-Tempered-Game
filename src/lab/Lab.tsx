@@ -38,6 +38,7 @@ function Summary({ s, who = "Fux's note" }: { s: AuditSummary; who?: string }) {
       <span><b>{pct(s.fuxFirst, s.choices)}</b> {who} ranked first</span>
       <span title="Only the choices where more than one pitch is legal; ranked first alone"><b>{pct(s.fuxFirstFree, s.free)}</b> first where there was a choice ({s.free})</span>
       <span>mean rank <b>{s.meanRank.toFixed(2)}</b></span>
+      <span title="log2 of the legal pitches, averaged over the choices: 0 = every note forced; lower = harder (docs/fux/difficulty.md)">freedom <b>{s.freedom.toFixed(2)}</b> bits</span>
       {s.fuxIllegal > 0 && <span className="lab-bad"><b>{s.fuxIllegal}</b> where the written note breaks a rule</span>}
     </div>
   );
@@ -203,7 +204,7 @@ function AuditTab() {
               <div key={a.line.exerciseId} className={`lab-ex${i === ex ? " lab-ex-sel" : ""}`} onClick={() => setEx(i)}>
                 <span className="lab-ex-name">Fig. {a.line.figure} · {a.line.modalFinal} · CF {a.line.cantusVoice === "lower" ? "below" : "above"}</span>
                 <Strip audit={a} selected={i === ex ? choice : undefined} onSelect={(c) => (setEx(i), setChoice(c))} />
-                <span className="lab-ex-stat">{pct(a.summary.fuxFirst, a.summary.choices)} first</span>
+                <span className="lab-ex-stat" title="Fux's note ranked first · freedom (bits per choice; lower = harder)">{pct(a.summary.fuxFirst, a.summary.choices)} first · {a.summary.freedom.toFixed(1)}</span>
               </div>
             ))}
           </div>
@@ -543,12 +544,12 @@ export function Lab() {
         <nav>
           <button className={tab === "audit" ? "primary" : ""} onClick={() => setTab("audit")}>Audit of Fux's choices</button>
           <button className={tab === "generate" ? "primary" : ""} onClick={() => setTab("generate")}>Generators</button>
-          <button className={tab === "habits" ? "primary" : ""} onClick={() => setTab("habits")}>Fux's habits</button>
+          <button className={tab === "habits" ? "primary" : ""} onClick={() => setTab("habits")}>Studies</button>
         </nav>
       </header>
       <p className="lab-intro">
         {tab === "habits"
-          ? "Which habits of Fux's predict the notes he actually wrote? Each candidate habit is measured by how well it predicts his choices in exercises it has not seen; the five that earn their place make the model used by the audit and the generators."
+          ? "Studies of Fux's solutions: which habits predict the notes he wrote (two and three voices; each habit measured on exercises it has not seen, the ones that earn their place make the model the audit and the generators use), whether he imitates or works with motives, and how hard each exercise is."
           : tab === "audit"
           ? "At every note of Fux's solutions (two voices, species 1–4; three voices, first species), every other pitch is put in its place and the whole line is judged again by the game's rules. The legal ones are ranked by the score vector: errors, then Fux's recommendations, then his stated counsel (motion, perfect consonances, repetition, leaps), then his habits measured on his other solutions."
           : "Build an exercise in three steps: a cantus firmus from the constraints accepted in D8 (each checked against Fux's own cantus firmi); a counterpoint found by a search the game's rules judge as it goes; and, in first species, a third voice judged by the three-voice rules. All voices stand in one score and play together."}

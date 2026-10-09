@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import study from "../../docs/fux/habits-study.md?raw";
 import trio from "../../docs/fux/trio-habits-study.md?raw";
 import motives from "../../docs/fux/motives-study.md?raw";
+import difficulty from "../../docs/fux/difficulty.md?raw";
 
 function inline(text: string): ReactNode[] {
   return text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).map((part, i) =>
@@ -21,6 +22,8 @@ export function HabitsTab() {
       <Markdown text={trio} />
       <h2 className="lab-part">Motives and imitation</h2>
       <Markdown text={motives} />
+      <h2 className="lab-part">Difficulty</h2>
+      <Markdown text={difficulty} />
     </section>
   );
 }

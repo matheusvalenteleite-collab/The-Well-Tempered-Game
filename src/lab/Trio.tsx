@@ -26,6 +26,7 @@ export function TrioSummary({ s, who }: { s: AuditSummary; who: string }) {
       <span><b>{pct(s.forced, s.choices)}</b> forced (only {who} is legal)</span>
       <span title="Only the choices where more than one pitch is legal; ranked first alone"><b>{pct(s.fuxFirstFree, s.free)}</b> {who} first where there was a choice ({s.free})</span>
       <span>mean rank <b>{s.meanRank.toFixed(2)}</b></span>
+      <span title="log2 of the legal pitches, averaged over the choices; lower = harder">freedom <b>{s.freedom.toFixed(2)}</b> bits</span>
       {s.fuxIllegal > 0 && <span className="lab-bad"><b>{s.fuxIllegal}</b> where the written note breaks a rule</span>}
     </div>
   );

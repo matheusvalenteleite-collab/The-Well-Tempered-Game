@@ -228,3 +228,12 @@ test("two voices: with no error-free line possible, the generator returns the le
   assert.ok(g.errors.length > 0 && g.errorSlots.length > 0);
   assert.throws(() => generateCounterpoint({ ...o, strict: true }));
 });
+
+import { difficultyOf, spearman } from "../src/counterpoint/choices/difficulty.ts";
+test("difficulty: freedom is the mean log2 of the legal pitches; Spearman on ranks", () => {
+  const d = difficultyOf([{ legal: 1 }, { legal: 4 }]);
+  assert.equal(d.freedom, 1);
+  assert.equal(d.forced, 0.5);
+  assert.equal(spearman([1, 2, 3], [10, 20, 30]), 1);
+  assert.equal(spearman([1, 2, 3], [3, 2, 1]), -1);
+});

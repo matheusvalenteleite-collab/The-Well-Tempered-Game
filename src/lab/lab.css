@@ -8,7 +8,7 @@
 .lab-summary { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 8px 10px; margin: 10px 0; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; font-size: 0.9rem; }
 .lab-bad { color: var(--bad); }
 .lab-list { display: flex; flex-direction: column; gap: 4px; }
-.lab-ex { display: grid; grid-template-columns: 13em 1fr 5em; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 4px; cursor: pointer; }
+.lab-ex { display: grid; grid-template-columns: 13em 1fr 8em; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 4px; cursor: pointer; }
 .lab-ex-sel { background: var(--paper); outline: 1px solid var(--line); }
 .lab-ex-name { font-size: 0.85rem; white-space: nowrap; }
 .lab-ex-stat { font-size: 0.8rem; text-align: right; }

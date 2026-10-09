@@ -9,6 +9,7 @@ import type { SpeciesId } from "../layout.ts";
 import { choicesAt, type ChoiceContext, type UnitChoices } from "./alternatives.ts";
 import { choiceUnits, fuxLines, type FuxLine } from "./corpus.ts";
 import { buildHabits } from "./habits.ts";
+import { difficultyOf } from "./difficulty.ts";
 import { TIER_NAMES, type TierName } from "./score.ts";
 import { fuxAccidentals, pitchesBetween, registerWindow } from "./vocabulary.ts";
 
@@ -40,6 +41,8 @@ export interface AuditSummary {
   /** Choices with more than one legal pitch, and Fux's note ranked first (alone) among them. */
   free: number;
   fuxFirstFree: number;
+  /** Mean freedom per choice, log2 of the legal pitches (difficulty.ts; lower = harder). */
+  freedom: number;
 }
 
 export const lastStepOf = (species: SpeciesId) => {
@@ -75,6 +78,7 @@ export function summarise(units: Pick<UnitChoices, "legal" | "rank" | "ties">[])
     fuxIllegal: units.filter((u) => u.rank === 0).length,
     free: units.filter((u) => u.legal > 1).length,
     fuxFirstFree: units.filter((u) => u.legal > 1 && u.rank === 1 && u.ties === 0).length,
+    freedom: difficultyOf(units).freedom,
   };
 }
 
