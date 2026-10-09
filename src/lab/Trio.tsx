@@ -2,7 +2,8 @@
  * Three voices in the choices lab (first species): the audit of Fux's sixteen solutions and the
  * third voice added to a generated two-voice exercise. Judged by the game's three-voice rules (D90).
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { HarmonyRow } from "./Harmony.tsx";
 import data from "../../data/fux/three-voice/fux-three-voice.json" with { type: "json" };
 import { trioSteps, type TrioStep } from "../game/trio.ts";
 import type { ModalFinal } from "../music/fux/index.ts";
@@ -45,8 +46,10 @@ function TrioStrip({ choices, selected, onSelect }: { choices: TrioChoice[]; sel
 }
 
 /** The three staves, read-only; `alt` replaces one note of one voice, the written one then drawn as a diamond. */
-export function Trio({ voices, cantusIndex, added, alt, selected, label, cursor: outerCursor, transport = true, errorBars = [], cantusClef }: { voices: string[][]; cantusIndex: number; added?: number; alt?: { voice: number; bar: number; pitch: string } | null; selected?: { voice: number; bar: number } | null; label: string; cursor?: number; transport?: boolean; errorBars?: number[]; cantusClef?: LabClef }) {
+export function Trio({ voices, cantusIndex, added, alt, selected, label, cursor: outerCursor, transport = true, errorBars = [], cantusClef, final }: { voices: string[][]; cantusIndex: number; added?: number; alt?: { voice: number; bar: number; pitch: string } | null; selected?: { voice: number; bar: number } | null; label: string; cursor?: number; transport?: boolean; errorBars?: number[]; cantusClef?: LabClef; final?: ModalFinal }) {
   const [ownCursor, setCursor] = useState(-1);
+  const [harmony, setHarmony] = useState(false);
+  const host = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
   const cursor = outerCursor ?? ownCursor;
   const shown = voices.map((l, v) => (alt && alt.voice === v ? l.map((p, k) => (k === alt.bar ? alt.pitch : p)) : l));
@@ -57,9 +60,14 @@ export function Trio({ voices, cantusIndex, added, alt, selected, label, cursor:
           <button onClick={() => playLines(shown, 80, setCursor)}>▶ Play</button>
           <button onClick={() => stop()}>■</button>
           <span className="lab-note">Staves: {voices.map((_, v) => `${STAFF_NAMES[v]} ${v === cantusIndex ? "cantus firmus" : v === added ? "new voice" : "counterpoint"}`).join(" · ")}</span>
+          {final && (
+            <label className="lab-group" title="Figures and Roman numerals under each bar: a later lens, not Fux's; never graded">
+              <input type="checkbox" checked={harmony} onChange={(e) => setHarmony(e.target.checked)} /> harmonic view (modern)
+            </label>
+          )}
         </div>
       )}
-      <div className="lab-score">
+      <div className="lab-score" ref={host}>
         <TrioScore
           staves={shown.map((notes, v) => ({ clef: v === cantusIndex && cantusClef ? cantusClef : clefFor(voices[v]), notes, editable: false, label: v === cantusIndex ? "Cantus firmus" : v === added ? "New voice" : undefined, fux: alt && alt.voice === v ? voices[v] : undefined }))}
           active={selected?.voice ?? -1}
@@ -76,6 +84,7 @@ export function Trio({ voices, cantusIndex, added, alt, selected, label, cursor:
           zoomLabels={{ in: "Zoom in", out: "Zoom out", reset: "100%" }}
         />
       </div>
+      {final && harmony && <HarmonyRow chords={shown[0].map((_, k) => shown.map((l) => l[k]))} final={final} scoreHost={host} />}
     </>
   );
 }
@@ -95,7 +104,7 @@ export function TrioChoiceDetail({ audit, at, setAt, writtenLabel }: { audit: Tr
         </span>
         <button onClick={() => setAt({ ...at, bar: Math.min(audit.choices[at.i].length - 1, at.bar + 1) })} aria-label="Next bar">›</button>
       </div>
-      <Trio voices={audit.step.fux} cantusIndex={audit.step.cantusIndex} alt={alt ? { voice: v, bar: at.bar, pitch: alt } : null} selected={{ voice: v, bar: at.bar }} label="Three voices" />
+      <Trio voices={audit.step.fux} cantusIndex={audit.step.cantusIndex} alt={alt ? { voice: v, bar: at.bar, pitch: alt } : null} selected={{ voice: v, bar: at.bar }} label="Three voices" final={audit.step.modalFinal} />
       {alt && <p className="lab-note">Showing {alt} in place of {u.written}; the written note is drawn as a diamond.</p>}
       <div className="lab-table-wrap">
       <table className="lab-table">

@@ -272,3 +272,13 @@ test("hints: writing Fux's line left to right, his note is legal at every step (
     }
   }
 });
+
+import { harmonyOf } from "../src/counterpoint/choices/harmony.ts";
+test("harmonic view: figures and Roman numerals (modern lens)", () => {
+  assert.deepEqual(harmonyOf(["D3", "F3", "A3"], "D"), { figures: ["5", "3"], roman: "i", guessed: false });
+  assert.equal(harmonyOf(["F3", "A3", "D4"], "D").roman, "i6");
+  assert.equal(harmonyOf(["A3", "C#4", "E4"], "D").roman, "V");
+  assert.equal(harmonyOf(["B3", "D4", "F4"], "C").roman, "vii°");
+  assert.equal(harmonyOf(["G3", "C4", "E4"], "C").roman, "I6/4");
+  assert.ok(harmonyOf(["D3", "A3", "D4"], "D").guessed);
+});

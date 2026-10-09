@@ -3,7 +3,8 @@
  * solutions, and the cantus firmus and counterpoint generators. For the owner to try before the
  * ideas enter the game (docs/BACKLOG.md, "Analysis, scoring and generation").
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { HarmonyRow } from "./Harmony.tsx";
 import { repository } from "../music/fux/load-browser.ts";
 import { parsePitch } from "../music/pitch.ts";
 import type { ModalFinal, Staff } from "../music/fux/index.ts";
@@ -248,6 +249,8 @@ function GenerateTab() {
   const [choice, setChoice] = useState(0);
   const [trioAt, setTrioAt] = useState({ i: 0, bar: 0 });
   const [cursor, setCursor] = useState(-1);
+  const [harmony, setHarmony] = useState(false);
+  const scoreHost = useRef<HTMLDivElement>(null);
   const seed = () => Math.floor(Math.random() * 2 ** 31);
   const clearAudits = () => (setAudit(null), setTrioAudit(null));
 
@@ -483,8 +486,13 @@ function GenerateTab() {
             <button className="primary" onClick={playAll}>▶ Play {trio ? "all three voices" : line ? "both voices" : "the cantus"}</button>
             <button onClick={() => stop()} aria-label="Stop">■</button>
             <span className="lab-note">{`Cantus ${cantusVoice === "lower" ? "below" : "above"} · ${species} species · counterpoint in blue${trio ? " · third voice in red, on whichever staff is nearer" : ""}`}</span>
+            {trio && (
+              <label className="lab-group" title="Figures and Roman numerals under each bar: a later lens (figured bass, Rameau's roots, Weber's numerals), not Fux's; never graded">
+                <input type="checkbox" checked={harmony} onChange={(e) => setHarmony(e.target.checked)} /> harmonic view (modern)
+              </label>
+            )}
           </div>
-          <div className="lab-score">
+          <div className="lab-score" ref={scoreHost}>
             {(
               <ScoreView
                 cantus={cantus}
@@ -506,6 +514,7 @@ function GenerateTab() {
               />
             )}
           </div>
+          {trio && harmony && <HarmonyRow chords={trio.voices[0].map((_, k) => trio.voices.map((l) => l[k]))} final={final} scoreHost={scoreHost} />}
         </div>
       )}
 

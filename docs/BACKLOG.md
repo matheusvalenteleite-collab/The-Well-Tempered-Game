@@ -107,6 +107,11 @@ Findings and points for the owner:
   (Fux's G: G-C-E); length 9-14 accepted (Fux's C variant has 9; generator default 10-14); and
   Ewing's antepenultimate degree 1 or 3 (true of all Fux's) added. To approve or amend: the table
   is in docs/fux/cantus-constraints-amendment.md.
+- Harmonic view (plan step 8; `choices/harmony.ts`, lab `Harmony.tsx`): a "harmonic view
+  (modern)" toggle under three-voice scores (the generated trio, Fux's sixteen in the audit):
+  figures above the bass, stacked, and a Roman numeral relative to the final (upper case major,
+  lower case minor, ° diminished, 6 and 6/4 for inversions, in brackets where an incomplete chord
+  leaves the root a guess). Labelled a later lens; never graded. Not yet in the game.
 - Write your own (lab tab; `choices/hints.ts`, step 5 of the plan): write on one of Fux's cantus
   firmi or a generated one; at each note the errors it causes (the game's hint text and Fux's
   page), the number of legal pitches given the rest of the line, the note's rank, and on request
