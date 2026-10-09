@@ -4,7 +4,8 @@
  * that it scrolls sideways inside the box. The lock (on by default) makes the view follow what is
  * playing when it leaves the window, and return to the beginning at the end.
  */
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { ScoreFit } from "../Shell.tsx";
 import { useZoomGestures, ZOOM_MAX, ZOOM_MIN } from "./zoom.ts";
 import { store, stored } from "../shared.ts";
 import { t } from "../i18n.ts";
@@ -14,7 +15,7 @@ const STEP = 1.25;
 const NARROW = 700;
 const NARROW_MIN = 0.62;
 /** On a computer the score never grows beyond this at 100%. */
-const MAX_FIT = 1.15;
+const MAX_FIT = 1.4;
 /** Room kept for the horizontal scrollbar. */
 const BAR_ROOM = 12;
 
@@ -41,18 +42,11 @@ export function Viewport(p: ViewportProps) {
   const [follow, setFollow] = useState(() => stored("wtg.follow", true, (v) => typeof v === "boolean"));
   useEffect(() => store("wtg.follow", follow), [follow]);
 
-  // The width is the box's; the height it may take is the cap the screen gives the score (D104:
-  // the score box is as tall as the music, never taller than half the screen).
   useLayoutEffect(() => {
     const el = host.current!;
-    const measure = () => {
-      const cap = parseFloat(getComputedStyle(el).getPropertyValue("--score-cap"));
-      setBox({ w: el.clientWidth, h: Number.isFinite(cap) && cap > 0 ? cap : el.clientHeight });
-    };
+    const measure = () => setBox({ w: el.clientWidth, h: el.clientHeight });
     const ro = new ResizeObserver(measure);
     ro.observe(el);
-    const shell = el.closest(".shell");
-    if (shell) ro.observe(shell);
     measure();
     return () => ro.disconnect();
   }, []);
@@ -63,6 +57,12 @@ export function Viewport(p: ViewportProps) {
   const fitH = !narrow && box.h > 40 ? (box.h - BAR_ROOM) / height : Infinity;
   const base = narrow ? Math.max(NARROW_MIN, Math.min(1, fitW)) : Math.max(0.25, Math.min(MAX_FIT, fitW, fitH));
   const scale = Math.max(0.2, Math.min(3, base * p.zoom));
+  // The height the music wants at the width it has (D105): the page sizes the score box to it.
+  const report = useContext(ScoreFit);
+  const wants = Math.ceil(height * Math.max(narrow ? NARROW_MIN : 0.25, Math.min(MAX_FIT, fitW)) + BAR_ROOM + 6);
+  useEffect(() => {
+    if (box.w > 0) report(wants);
+  }, [wants, box.w, report]);
 
   // The drawing's real height (the continuo and the figures add to it), for fitting the box: read
   // from its proportions, which do not depend on the scale it was last drawn at.

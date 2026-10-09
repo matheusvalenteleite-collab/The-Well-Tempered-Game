@@ -625,8 +625,8 @@
     "dock.mixer": "Mixer",
     "dock.evaluation": "Evaluation",
     "dock.noEvaluation": "Nothing judged yet. Write every bar, then press Evaluate.",
-    "dock.detach": "Move this tab to a column at the right, beside the score and the mixer",
-    "dock.attach": "Put this tab back into the dock below the score",
+    "dock.detach": "Move this tab to the right-hand column",
+    "dock.attach": "Bring this tab back to the left, beside the mixer",
     "info.explain": "Explain mode: tap any control to read what it does here; tap it again to use it. (A long press explains at any time.)",
     "info.explainOn": "Explain mode is on: tap any control to learn what it does.",
     "info.fold": "Fold the info bar",
@@ -760,7 +760,9 @@
     "drums.pattern.big80s.help": "A stadium beat on the Simmons, with falling-pitch tom answers.",
     "demo.wrong": "Wrong",
     "demo.right": "Right",
-    "demo.help": "Show it: the same few bars done wrong and done right, in turn"
+    "demo.help": "Show it: the same few bars done wrong and done right, in turn",
+    "divider.score": "Drag to make the score taller or shorter; double-click to fit it to the music again",
+    "divider.columns": "Drag to share the width between the mixer and the texts; double-click to reset"
   },
   "tutor": {
     "rule.fos.no-repetition": "In this species each upbeat brings a new note, which is then tied over the bar line; striking the downbeat's note again on its own upbeat is a whole note in disguise.",
