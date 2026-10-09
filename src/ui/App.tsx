@@ -36,6 +36,7 @@ import { makePiece, restorePieces, type Piece, type Setup } from "../game/saved.
 import { DEFAULT_CONTINUO_SETTINGS, validContinuoSettings, type ContinuoSettings } from "../game/continuo-settings.ts";
 import { CONTINUO_DEMO_MODE } from "../config.ts";
 import { t } from "./i18n.ts";
+import { audio, store, stored, validDrumKit } from "./shared.ts";
 import type { Step } from "../music/pitch.ts";
 
 validateCurriculum(repository);
@@ -50,34 +51,9 @@ const freshSession = (k: number) => {
   if (v.species === "fifth") return { ...s, notes: v.layout.map((sl, j) => (j === 0 ? REST : sl.restAllowed ? HOLD : null)) };
   return { ...s, notes: v.layout.map((sl) => (sl.restAllowed ? REST : null)) };
 };
-const audio = new AudioEngine();
-// Owner decision D15: synthesized sound only for now (the sampled piano stays in the engine, unused).
-audio.sound = "chip";
-// Read by the browser tests.
-Object.assign(window as object, { wtgAudio: audio, wtgRenderLevel: renderLevel, wtgPresets: SYNTH_PRESETS, wtgDrumMachine: DrumMachine, wtgLoadSamples: loadSamples });
 
 /** Milliseconds a bar must stay selected while browsing before it sounds. */
 const DWELL_MS = 150;
-
-/** Per-viewer conveniences in localStorage; the game works the same without them. */
-function stored<T>(key: string, fallback: T, valid: (v: unknown) => boolean = () => true): T {
-  try {
-    const raw = localStorage.getItem(key);
-    if (raw === null) return fallback;
-    const v = JSON.parse(raw) as unknown;
-    if (!valid(v)) return fallback;
-    return typeof fallback === "object" && !Array.isArray(fallback) ? { ...fallback, ...(v as object) } : (v as T);
-  } catch {
-    return fallback;
-  }
-}
-function store(key: string, value: unknown) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    /* not persisted */
-  }
-}
 
 const stepLabel = (k: number) => {
   const s = STEPS[k];
@@ -91,14 +67,9 @@ const VERSION_INK: Record<VersionId, string> = {
   retroInversion: "var(--ink-retro-inversion)",
   canon: "var(--ink-canon)",
 };
-function validDrumKit(raw: unknown): DrumSettings {
-  const v = { ...DEFAULT_DRUMS, ...(typeof raw === "object" && raw !== null ? (raw as Partial<DrumSettings>) : {}) };
-  const ok = DRUM_PATTERNS.some((p) => p.id === v.pattern) && validLoopLength(v.length) && typeof v.level === "number" && (v.kit === undefined || DRUM_KITS.includes(v.kit));
-  return ok ? v : { ...DEFAULT_DRUMS };
-}
 const stepIndexOf = (id: string) => STEPS.findIndex((s) => s.id === id);
 
-export function App() {
+export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const [stepIndex, setStepIndex] = useState(() => {
     const id = stored<string>("wtg.stepId", STEPS[0].id, (v) => typeof v === "string" && stepIndexOf(v) >= 0);
     return stepIndexOf(id);
@@ -790,12 +761,17 @@ export function App() {
             value={COURSE.voices}
             aria-label={t("ui.nav.voices")}
             onChange={(e) => {
+              if (Number(e.target.value) === 3) {
+                audio.stop();
+                onVoices(3);
+                return;
+              }
               const c = COURSES.find((x) => x.voices === Number(e.target.value) && x.steps.length > 0);
               if (c) goTo(stepIndexOf(c.steps[0].id));
             }}
           >
             {[2, 3, 4].map((n) => (
-              <option key={n} value={n} disabled={!COURSES.some((c) => c.voices === n && c.steps.length > 0)}>
+              <option key={n} value={n} disabled={n !== 3 && !COURSES.some((c) => c.voices === n && c.steps.length > 0)}>
                 {t("ui.nav.voicesN", { n })}
               </option>
             ))}

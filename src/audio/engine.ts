@@ -308,6 +308,11 @@ export class AudioEngine {
       this.versionVoice(id as VersionId)?.start(shiftOctave(pitch, this.mix.versionOctave?.[id as VersionId] ?? 0), time, (e.lengths?.[id] ?? e.length) * whole * 0.95);
       this.notesStarted++;
     }
+    for (const x of e.extra ?? []) {
+      const oct = x.channel === "fux" ? this.mix.fuxOctave : (this.mix.counterpointOctave ?? 0);
+      voices[x.channel].start(shiftOctave(x.pitch, oct), time, e.length * whole * 0.95);
+      this.notesStarted++;
+    }
     if (e.fux) {
       // Fux's line may sound in another octave (listening only; the score is unchanged).
       voices.fux.start(shiftOctave(e.fux, this.mix.fuxOctave), time, (e.lengths?.fux ?? e.length) * whole * 0.95);
