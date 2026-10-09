@@ -31,6 +31,13 @@ export function Credits({ onClose }: { onClose(): void }) {
           harmonium (Freesound 330410, donyaquick), classical guitar (Freesound 11573, quartertone), electric guitar, electric bass and
           saxophone (Karoryfer Samples): all via nbrosowsky/tonejs-instruments (CC BY 3.0); thinned, trimmed and re-encoded.
         </p>
+        <p>
+          Recorded drum kits (sfzinstruments editions, mixed to mono one-shots in two velocities): Virtuosity Drums (Versilian Studios
+          and Karoryfer Samples, drummer Austin McMahon; CC0), Big Rusty Drums and Unruly Drums (Karoryfer Samples; CC0), Naked Drums
+          (Wilkinson Audio; CC BY 4.0), DRSKit (Lars Muldjord, Bent Bisballe Nyeng, Jes Eiler and the DrumGizmo team; CC BY 4.0), Retro
+          Drum Sample Set 1 (Seven Graylands / The Tic Tok Men, after S. Christian Collins; Sequential Drumtraks, Casio RZ-1, Roland
+          CR-8000; offered for free use). SFZ ports by kinwie and the sfzinstruments project.
+        </p>
         <button onClick={onClose}>{t("ui.close")}</button>
       </div>
     </div>

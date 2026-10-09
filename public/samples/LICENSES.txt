@@ -10,3 +10,19 @@ eguitar/ ebass/ sax/   Karoryfer Samples, via tonejs-instruments (CC BY 3.0).
 xylophone/  Versilian Studios Orchestra 2 Community Edition, via tonejs-instruments (CC BY 3.0).
 The sets added in D54 keep one sample every minor third or more (the nearest is retuned), trimmed to 4.5 s with a fade, mono 80 kbit/s MP3.
 All: leading silence removed, trimmed to 5 s with a fade, mono 96 kbit/s MP3 (grand: stereo 128 kbit/s).
+
+Drum kits (drums/<kit>/, one-shots <voice>-1.mp3 soft and <voice>-2.mp3 loud; see drums/manifest.json):
+drums/virtuosity/  Virtuosity Drums, Versilian Studios & Karoryfer Samples (drummer Austin McMahon). CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/).
+         Source: https://github.com/sfzinstruments/virtuosity_drums
+drums/bigRusty/    Big Rusty Drums, Karoryfer Samples (vintage Polish kit by Zygmunt Szpaderski). CC0 1.0.
+         Source: https://github.com/sfzinstruments/karoryfer.big-rusty-drums
+drums/naked/       Naked Drums, Wilkinson Audio (SFZ port by kinwie). CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
+         Source: https://github.com/sfzinstruments/WilkinsonAudio.NakedDrums
+drums/drskit/      DRSKit, Lars Muldjord, Bent Bisballe Nyeng, Jes Eiler (DRSDrums) and the DrumGizmo team (SFZ port by kinwie). CC BY 4.0.
+         Source: https://github.com/sfzinstruments/DrumGizmo.DRSKit
+drums/retro/       Retro Drum Sample Set 1, Seven Graylands / The Tic Tok Men (from the GigaSampler version by S. Christian Collins);
+         Sequential Drumtraks, Casio RZ-1 and Roland CR-8000 samples. "Free use" per the source README (no formal license named).
+         Source: https://github.com/sfzinstruments/TicTokMen.RetroDrums1
+drums/unruly/      Unruly Drums, Karoryfer Samples. CC0 1.0.
+         Source: https://github.com/sfzinstruments/karoryfer.unruly-drums
+Drums: trimmed (onset kept, drums/hats <= 1.2 s, toms <= 1.6 s, cymbals <= 3 s, with a fade), multi-mic hits mixed to mono, re-encoded as mono 44.1 kHz 96 kbit/s MP3.
