@@ -7,7 +7,7 @@
  * The AudioContext is created on the first user gesture (browser autoplay policy).
  */
 import { Soundfont } from "smplr";
-import { DEFAULT_DRUMS, DrumMachine, type DrumSettings } from "./drums.ts";
+import { DEFAULT_DRUMS, DrumMachine, kitOf, type DrumCue, type DrumSettings, type DrumVoice } from "./drums.ts";
 import { DEFAULT_SYNTH, type SynthSettings } from "./synth-settings.ts";
 import { FxChain } from "./effects.ts";
 import { audibleGain, CHANNELS, DEFAULT_MASTER_FX, DEFAULT_SOUND, shiftOctave, STRIPS, versionSettings, type Channel, type SoundState, type Strip } from "./sound.ts";
@@ -210,6 +210,44 @@ export class AudioEngine {
     this.drumMachine.scheduleBar(this.ctx.currentTime + 0.05, this.barSeconds, 1, 8);
   }
 
+  /** Whether a playback with the drums is running (a cue then waits for the next bar). */
+  private running = false;
+
+  /**
+   * A fill or break fired by hand (D99). While the piece plays with the drums, it takes the next
+   * bar not yet scheduled (the current bar ends first) and the bar after lands on a crash; when
+   * nothing plays, it is heard at once. `onCue` reports when a cue is waiting and when it starts.
+   */
+  async drumCue(cue: DrumCue): Promise<void> {
+    await this.instrument();
+    if (!this.ctx || !this.drumMachine) return;
+    if (this.running && this.drums) {
+      this.drumMachine.cue = cue;
+      this.drumMachine.onCue?.(cue);
+    } else {
+      this.drumMachine.stop();
+      this.drumMachine.scheduleCue(this.ctx.currentTime + 0.05, this.barSeconds, cue);
+    }
+  }
+
+  /** Strike one pad now (D99). */
+  async drumPad(v: DrumVoice): Promise<void> {
+    await this.instrument();
+    if (!this.ctx || !this.drumMachine) return;
+    this.drumMachine.kit = kitOf(this.drumSettings);
+    this.drumMachine.hit(v, this.ctx.currentTime + 0.01, 1);
+  }
+
+  /** Listeners for the pads (every hit) and for cues (waiting / started); null to remove. */
+  onDrums(hit: ((v: DrumVoice, t: number) => void) | null, cue: ((c: DrumCue | null) => void) | null) {
+    this.drumListeners = { hit, cue };
+    if (this.drumMachine) {
+      this.drumMachine.onHit = hit;
+      this.drumMachine.onCue = cue;
+    }
+  }
+  private drumListeners: { hit: ((v: DrumVoice, t: number) => void) | null; cue: ((c: DrumCue | null) => void) | null } = { hit: null, cue: null };
+
   /** Master volume, 0..1. */
   setVolume(v: number) {
     this.volume = Math.max(0, Math.min(1, v));
@@ -240,6 +278,8 @@ export class AudioEngine {
       this.master.connect(this.masterFx.input);
       this.limiter = limiter;
       this.drumMachine = new DrumMachine(this.ctx, this.channel("drums"));
+      this.drumMachine.onHit = this.drumListeners.hit;
+      this.drumMachine.onCue = this.drumListeners.cue;
       this.setDrums(this.drumSettings, this.final);
     }
     if (this.ctx.state === "suspended") await this.ctx.resume();
@@ -386,6 +426,7 @@ export class AudioEngine {
     this.playEnd = null;
     let k = Math.max(0, Math.min(events.length - 1, from));
     let next = ctx.currentTime + 0.1;
+    this.running = true;
     const LOOKAHEAD = 0.15;
     let announced = false;
     const tick = () => {
@@ -425,7 +466,10 @@ export class AudioEngine {
           }
         } else {
           this.playEnd = next;
-          this.timers.push(window.setTimeout(() => onSlot(-1), Math.max(0, (next - ctx.currentTime) * 1000)));
+          this.timers.push(window.setTimeout(() => {
+            this.running = false;
+            onSlot(-1);
+          }, Math.max(0, (next - ctx.currentTime) * 1000)));
           return;
         }
       }
@@ -533,6 +577,7 @@ export class AudioEngine {
   }
 
   stop(): void {
+    this.running = false;
     for (const t of this.timers) window.clearTimeout(t);
     this.timers = [];
     for (const v of this.versionVoices.values()) v.stop();

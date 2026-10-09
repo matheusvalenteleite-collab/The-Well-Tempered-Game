@@ -34,6 +34,12 @@ export function store(key: string, value: unknown) {
 
 export function validDrumKit(raw: unknown): DrumSettings {
   const v = { ...DEFAULT_DRUMS, ...(typeof raw === "object" && raw !== null ? (raw as Partial<DrumSettings>) : {}) };
-  const ok = DRUM_PATTERNS.some((p) => p.id === v.pattern) && validLoopLength(v.length) && typeof v.level === "number" && (v.kit === undefined || DRUM_KITS.includes(v.kit));
+  const ok =
+    DRUM_PATTERNS.some((p) => p.id === v.pattern) && validLoopLength(v.length) && typeof v.level === "number" && (v.kit === undefined || DRUM_KITS.includes(v.kit)) &&
+    (v.swing === undefined || (typeof v.swing === "number" && v.swing >= 0.5 && v.swing <= 0.75)) &&
+    (v.accent === undefined || typeof v.accent === "boolean") &&
+    (v.autoFill === undefined || typeof v.autoFill === "boolean") &&
+    (v.variation === undefined || v.variation === "A" || v.variation === "B" || v.variation === "AB") &&
+    (v.mutes === undefined || (Array.isArray(v.mutes) && v.mutes.every((m) => typeof m === "string")));
   return ok ? v : { ...DEFAULT_DRUMS };
 }

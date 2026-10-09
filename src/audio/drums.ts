@@ -26,9 +26,11 @@ export type DrumFamily = "kit" | "machines" | "percussion" | "tribal" | "orchest
  *   cr78       Roland CR-78 CompuRhythm (1978): soft analog voices, the "metal beat", guiro, tambourine.
  *   rhythmAce  Ace Tone Rhythm Ace (1967), the preset rhythm boxes of the organ era: short, dull, plain.
  *   sdsv       Simmons SDS-V (1981): toms and snare as an oscillator with a deep pitch bend plus noise.
+ *   sixties    A 1960s rock kit (D99): a muffled, felt-beater bass drum, a loose snare, thin trashy
+ *              hats, washy cymbals and resonant toms with little pitch bend, as recorded in a room.
  */
-export type DrumKit = "studio" | "tr808" | "tr909" | "cr78" | "rhythmAce" | "sdsv";
-export const DRUM_KITS: readonly DrumKit[] = ["studio", "tr808", "tr909", "cr78", "rhythmAce", "sdsv"];
+export type DrumKit = "studio" | "sixties" | "tr808" | "tr909" | "cr78" | "rhythmAce" | "sdsv";
+export const DRUM_KITS: readonly DrumKit[] = ["studio", "sixties", "tr808", "tr909", "cr78", "rhythmAce", "sdsv"];
 
 export interface DrumPattern {
   id: string;
@@ -44,6 +46,10 @@ export interface DrumPattern {
   fill?: Partial<Record<DrumVoice, string>>;
   /** Hits on the final bar's downbeat (the loop stops there). */
   end: DrumVoice[];
+  /** The loop length it starts with, in bars (D99; 1 if absent). */
+  bars?: number;
+  /** Variation B (D99); derived from the loop if absent (see variationB). */
+  b?: Partial<Record<DrumVoice, string>>;
 }
 
 export const DRUM_PATTERNS: readonly DrumPattern[] = [
@@ -51,12 +57,14 @@ export const DRUM_PATTERNS: readonly DrumPattern[] = [
   {
     id: "rock", family: "kit", steps: 16,
     loop: { kick: "X.......x.......", snare: "....X.......X...", hat: "x.x.x.x.x.x.x.x.", openhat: "..............x." },
+    b: { kick: "X.......x.x.....", snare: "....X.......X..g", hat: "x.x.x.x.x.x.x...", openhat: "..............x." },
     start: ["crash"], fill: { kick: "X.......x.......", snare: "....X.......X...", tomHigh: "..........x.x...", tomLow: "..............xx" }, end: ["kick", "crash"],
   },
   {
     id: "funk", family: "kit", steps: 16,
     loop: { kick: "X..x..x...x..x..", snare: "....X..g.g..X..g", hat: "xgxgxgxgxgxgxgxg", openhat: "..........x....." },
-    start: ["crash"], fill: { kick: "X..x..x.........", snare: "....X..gx.xxXxXX" }, end: ["kick", "crash"],
+    b: { kick: "X..x..x.x.x...x.", snare: "....X..g.g..X.gX", hat: "xgxgxgxgxgxgxg..", openhat: "..............x." },
+    start: ["crash"], fill: { kick: "X..x..x.........", snare: "....X..gx.xxXxXX" }, end: ["kick", "crash"], bars: 2,
   },
   {
     id: "halftime", family: "kit", steps: 16,
@@ -73,6 +81,18 @@ export const DRUM_PATTERNS: readonly DrumPattern[] = [
     loop: { kick: "X.....x.....", snare: "...X.....X..", hat: "x.xx.xx.xx.x" },
     start: ["crash"], fill: { kick: "X.....x.....", snare: "...X..x.xXxX" }, end: ["kick", "crash"],
   },
+  // 1960s (D99), on the sixties kit
+  {
+    id: "beat60s", family: "kit", kit: "sixties", steps: 16,
+    loop: { kick: "X.......X.x.....", snare: "....X.......X...", ride: "x.x.x.x.x.x.x.x.", tambourine: "....x.......x..." },
+    b: { kick: "X.......X.x...x.", snare: "....X.......X.g.", ride: "x.x.x.x.x.x.x.x.", tambourine: "....x.......x..." },
+    start: ["crash"], fill: { kick: "X...............", snare: "....X.x.x.x.....", tomHigh: "............x.x.", tomLow: "..............XX" }, end: ["kick", "crash"],
+  },
+  {
+    id: "motown", family: "kit", kit: "sixties", steps: 16,
+    loop: { kick: "X.x.....X.x.....", snare: "X...X...X...X...", hat: "x.x.x.x.x.x.x.x.", tambourine: "....X.......X..." },
+    start: ["crash"], fill: { kick: "X.......X.......", snare: "X...X...x.x.xxXX" }, end: ["kick", "crash"],
+  },
   // ---- drum machines (D71)
   {
     id: "electro", family: "machines", kit: "tr808", steps: 16,
@@ -82,7 +102,7 @@ export const DRUM_PATTERNS: readonly DrumPattern[] = [
   {
     id: "slowjam", family: "machines", kit: "tr808", steps: 16,
     loop: { kick: "X......x..X.....", snare: "....X.......X...", hat: "x.xx.xx.x.xx.x.x", rim: "..x.....x.....x.", congaLow: "..........x....." },
-    end: ["kick", "crash"],
+    end: ["kick", "crash"], bars: 2,
   },
   {
     id: "house", family: "machines", kit: "tr909", steps: 16,
@@ -113,7 +133,7 @@ export const DRUM_PATTERNS: readonly DrumPattern[] = [
   {
     id: "bossa", family: "percussion", steps: 16,
     loop: { kick: "X..xx..xX..xx..x", rim: "x..x..x...x..x..", shaker: "xgxgxgxgxgxgxgxg" },
-    end: ["kick", "rim"],
+    end: ["kick", "rim"], bars: 2,
   },
   {
     id: "conga", family: "percussion", steps: 16,
@@ -139,7 +159,7 @@ export const DRUM_PATTERNS: readonly DrumPattern[] = [
   {
     id: "ritual", family: "tribal", steps: 16,
     loop: { frameDrum: "X..x............", shaker: "....x.......x...", triangle: "........x......." },
-    end: ["frameDrum", "triangle"],
+    end: ["frameDrum", "triangle"], bars: 2,
   },
   // ---- orchestral
   {
@@ -155,20 +175,32 @@ export const DRUM_PATTERNS: readonly DrumPattern[] = [
   {
     id: "processional", family: "orchestral", steps: 16,
     loop: { bassDrum: "X...............", timpTonic: "........g.......", timpFifth: "............g...", triangle: "....x.......x..." },
-    fill: { timpFifth: "g.g.g.g.x.x.x.x.", timpTonic: "................" }, end: ["bassDrum", "timpTonic", "cymbals"],
+    fill: { timpFifth: "g.g.g.g.x.x.x.x.", timpTonic: "................" }, end: ["bassDrum", "timpTonic", "cymbals"], bars: 2,
   },
 ];
 
 export const DRUM_FAMILIES: readonly DrumFamily[] = ["kit", "machines", "percussion", "tribal", "orchestral"];
 
+export type DrumVariation = "A" | "B" | "AB";
+
 export interface DrumSettings {
   pattern: string;
-  /** Loop length in bars, 1/8..8: any product of the factors 2 and 1.5 (D70). */
+  /** Loop length in bars, 1/8..8, an exact fraction n/d with d a product of 2s and 3s (D70, D99). */
   length: number;
   /** 0..1 */
   level: number;
   /** The sound (D71); absent = the pattern's own machine, or the studio kit. */
   kit?: DrumKit;
+  /** Swing (D99): 0.5 = straight, up to 0.75; the off-beat sixteenths are delayed. */
+  swing?: number;
+  /** Accent (D99): the accented steps (X) louder, the rest softer, as on the vintage machines. */
+  accent?: boolean;
+  /** Variation A, B, or A and B alternating loop by loop (D99). */
+  variation?: DrumVariation;
+  /** Voices silenced (D99), by the pads that carry them. */
+  mutes?: DrumVoice[];
+  /** Fill at the end of every pass of the loop and before the last bar (D99); on if absent. */
+  autoFill?: boolean;
 }
 
 export const DEFAULT_DRUMS: DrumSettings = { pattern: "rock", length: 1, level: 0.55 };
@@ -176,8 +208,15 @@ export const DEFAULT_DRUMS: DrumSettings = { pattern: "rock", length: 1, level: 
 export const kitOf = (s: DrumSettings): DrumKit => s.kit ?? patternById(s.pattern).kit ?? "studio";
 export const LOOP_MIN = 1 / 8;
 export const LOOP_MAX = 8;
-/** The time factors offered (D70): ×2 and ×1.5 lengthen the loop (slower), ÷ shortens it (faster). */
-export const LOOP_FACTORS = [2, 1.5] as const;
+/** The loop lengths the arrows step through (D99): plausible lengths, from a quarter bar to eight bars. */
+export const LOOP_STEPS: readonly number[] = [1 / 4, 1 / 3, 1 / 2, 2 / 3, 3 / 4, 1, 4 / 3, 3 / 2, 2, 8 / 3, 3, 4, 6, 8];
+/** The next loop length up (dir 1) or down (dir -1) from `length`, or null at the end of the list. */
+export function stepLoop(length: number, dir: 1 | -1): number | null {
+  if (dir > 0) return LOOP_STEPS.find((l) => l > length + 1e-9) ?? null;
+  return [...LOOP_STEPS].reverse().find((l) => l < length - 1e-9) ?? null;
+}
+/** The swing settings offered (D99), as the delayed sixteenth's place in its pair: straight to triplet and beyond. */
+export const SWING_STEPS: readonly number[] = [0.5, 0.54, 0.58, 0.62, 0.66, 0.71];
 
 const DENOMINATORS = [1, 2, 3, 4, 6, 8, 9, 12, 16, 18, 24, 27, 32, 36, 48, 54, 64, 72, 81, 96, 108, 128, 144, 162, 216, 243, 256];
 /** The loop length as a fraction n/d (d a product of 2s and 3s), or null if it is not one. */
@@ -189,68 +228,197 @@ export function loopFraction(length: number): [number, number] | null {
   return null;
 }
 export const validLoopLength = (l: unknown): l is number => typeof l === "number" && l >= LOOP_MIN - 1e-9 && l <= LOOP_MAX + 1e-9 && loopFraction(l) !== null;
-/** The loop length multiplied by `factor` (snapped to its exact fraction), or null if out of range. */
-export function scaleLoop(length: number, factor: number): number | null {
-  const raw = length * factor;
-  for (const d of DENOMINATORS) {
-    const n = Math.round(raw * d);
-    if (Math.abs(n / d - raw) < 1e-6) return validLoopLength(n / d) ? n / d : null;
-  }
-  return null;
-}
 
 export const patternById = (id: string) => DRUM_PATTERNS.find((p) => p.id === id) ?? DRUM_PATTERNS[0];
 
 const VELOCITY: Record<string, number> = { X: 1, x: 0.75, g: 0.3 };
+/** With accent on (D99): the accented steps stand out, as on the 808's accent bus. */
+const ACCENTED: Record<string, number> = { X: 1.35, x: 0.62, g: 0.24 };
 
 /** A roll for the last bar of a looped piece (D72), leading back into bar 1 instead of ending. */
 const ROLL: Partial<Record<DrumVoice, string>> = { snare: "x...x...x.x.xxXX", kick: "X.......x......." };
+
+/** The low voice that carries a pattern, and the voice that marks its off-beats. */
+const LOWS: DrumVoice[] = ["kick", "bassDrum", "taiko", "djembeLow", "congaLow", "frameDrum", "timpTonic"];
+
+/**
+ * Variation B of a pattern (D99): its own if written; otherwise the loop with a push of the low
+ * voice before the last beat and its last step left open, a little busier than A.
+ */
+export function variationB(p: DrumPattern): Partial<Record<DrumVoice, string>> {
+  if (p.b) return p.b;
+  const out = { ...p.loop };
+  const low = LOWS.find((v) => out[v]);
+  const put = (line: string, at: number, ch: string) => (line[at] === "." ? line.slice(0, at) + ch + line.slice(at + 1) : line);
+  if (low) out[low] = put(put(out[low]!, Math.round(p.steps * 0.6875), "x"), p.steps - 2, "g");
+  return out;
+}
+
+/** The step lines of the loop that covers bar position `loopIndex` (A, B or alternating). */
+function linesFor(p: DrumPattern, variation: DrumVariation | undefined, loopIndex: number) {
+  const v = variation ?? "A";
+  return v === "B" || (v === "AB" && loopIndex % 2 === 1) ? variationB(p) : p.loop;
+}
+
+/** Fills fired by hand (D99): the pattern's own, a snare roll, a tom cascade, stop-time hits. */
+export type DrumCue = "fill1" | "fill2" | "fill3" | "fill4" | "break";
+export const DRUM_CUES: readonly DrumCue[] = ["fill1", "fill2", "fill3", "fill4", "break"];
+const CUE_LINES: Record<Exclude<DrumCue, "fill1">, Partial<Record<DrumVoice, string>>> = {
+  fill2: { kick: "X.......x.......", snare: "g.g.x.x.xxxxXXXX" },
+  fill3: { kick: "X...............", snare: "X.x.............", tomHigh: "....X.x.x.......", tomLow: "..........X.x.XX" },
+  fill4: { kick: "X.....X.....X...", snare: "X.....X.....X.xX", crash: "X..............." },
+  break: { kick: "X...............", crash: "X..............." },
+};
+
+/** The step lines of a cue (a whole bar, 16 steps unless it is the pattern's own fill). */
+export function cueLines(p: DrumPattern, cue: DrumCue): { lines: Partial<Record<DrumVoice, string>>; steps: number } {
+  if (cue === "fill1") return p.fill ? { lines: p.fill, steps: p.steps } : { lines: ROLL, steps: 16 };
+  return { lines: CUE_LINES[cue], steps: 16 };
+}
+
+type Hit = [DrumVoice, number, number];
+
+/** Write step lines into `out`: lines spanning [from, from + span) bars, kept within bar `bar`. */
+function writeLines(out: Hit[], s: DrumSettings, lines: Partial<Record<DrumVoice, string>>, steps: number, bar: number, from: number, span: number) {
+  const vel = s.accent ? ACCENTED : VELOCITY;
+  const swing = s.swing ?? 0.5;
+  // Swing delays the second sixteenth of each pair (only in straight patterns of 8, 16 or 32 steps).
+  const swung = swing > 0.5 && steps % 8 === 0;
+  for (const [v, line] of Object.entries(lines) as [DrumVoice, string][]) {
+    [...line].forEach((ch, i) => {
+      const w = vel[ch];
+      if (!w) return;
+      const step = span / steps;
+      const at = from + i * step + (swung && i % 2 === 1 ? (swing - 0.5) * 2 * step : 0);
+      if (at >= bar - 1e-9 && at < bar + 1 - 1e-9) out.push([v, w, at - bar]);
+    });
+  }
+}
+
+const unmuted = (s: DrumSettings, hits: Hit[]) => (s.mutes?.length ? hits.filter(([v]) => !s.mutes!.includes(v)) : hits);
 
 /**
  * The hits of bar `bar` as [voice, velocity, offset within the bar (0..1)]. When the piece loops,
  * the drums never stop (D72): the last bar keeps the groove, and the breath before the next pass
  * carries the roll into bar 1 (see hitsForBreath).
  */
-export function hitsForBar(settings: DrumSettings, bar: number, totalBars: number, looping = false): [DrumVoice, number, number][] {
+export function hitsForBar(settings: DrumSettings, bar: number, totalBars: number, looping = false): Hit[] {
   const p = patternById(settings.pattern);
-  const out: [DrumVoice, number, number][] = [];
-  if (bar === totalBars - 1 && !looping) return p.end.map((v) => [v, 1, 0]);
-  const write = (lines: Partial<Record<DrumVoice, string>>, from: number, span: number) => {
-    for (const [v, line] of Object.entries(lines) as [DrumVoice, string][]) {
-      [...line].forEach((ch, s) => {
-        const vel = VELOCITY[ch];
-        const at = from + (s / p.steps) * span;
-        if (vel && at >= bar - 1e-9 && at < bar + 1 - 1e-9) out.push([v, vel, at - bar]);
-      });
-    }
-  };
-  if (!looping && bar === totalBars - 2 && p.fill) {
-    write(p.fill, bar, 1);
+  const out: Hit[] = [];
+  if (bar === totalBars - 1 && !looping) return unmuted(settings, p.end.map((v) => [v, 1, 0]));
+  if (!looping && bar === totalBars - 2 && p.fill && settings.autoFill !== false) {
+    writeLines(out, settings, p.fill, p.steps, bar, bar, 1);
   } else {
     const L = settings.length;
-    for (let loop = Math.floor(bar / L); loop * L < bar + 1; loop++) write(p.loop, loop * L, L);
+    for (let loop = Math.floor(bar / L + 1e-9); loop * L < bar + 1 - 1e-9; loop++) writeLines(out, settings, linesFor(p, settings.variation, loop), p.steps, bar, loop * L, L);
   }
   if (bar === 0) for (const v of p.start ?? []) out.push([v, 1, 0]);
-  return out;
+  return unmuted(settings, out);
+}
+
+/** The hits of a bar given over to a cue (D99), and the crash that lands on the bar after it. */
+export function hitsForCue(settings: DrumSettings, cue: DrumCue): Hit[] {
+  const p = patternById(settings.pattern);
+  const { lines, steps } = cueLines(p, cue);
+  const out: Hit[] = [];
+  writeLines(out, settings, lines, steps, 0, 0, 1);
+  return unmuted(settings, out);
 }
 
 /**
  * The breath between two passes of a loop (`span` bars, half a bar in the engine): the second half
- * of the pattern's fill (or a snare roll), stretched to the breath, leading into bar 1 (D72).
+ * of the pattern's fill (or a snare roll), stretched to the breath, leading into bar 1 (D72). With
+ * the auto fill off (D99) the groove simply goes on through it.
  */
-export function hitsForBreath(settings: DrumSettings, span = 0.5): [DrumVoice, number, number][] {
+export function hitsForBreath(settings: DrumSettings, span = 0.5): Hit[] {
   const p = patternById(settings.pattern);
+  const out: Hit[] = [];
+  if (settings.autoFill === false) {
+    const L = settings.length;
+    writeLines(out, settings, linesFor(p, settings.variation, 0), p.steps, 0, 0, L);
+    return unmuted(settings, out.filter(([, , at]) => at < span - 1e-9));
+  }
   const lines = p.fill ?? ROLL;
   const steps = p.fill ? p.steps : 16;
-  const out: [DrumVoice, number, number][] = [];
   for (const [v, line] of Object.entries(lines) as [DrumVoice, string][]) {
     [...line].forEach((ch, i) => {
-      const vel = VELOCITY[ch];
+      const vel = (settings.accent ? ACCENTED : VELOCITY)[ch];
       const at = i / steps;
       if (vel && at >= 0.5 - 1e-9) out.push([v, vel, (at - 0.5) * (span / 0.5)]);
     });
   }
-  return out;
+  return unmuted(settings, out);
+}
+
+/** A pad of the vintage pad area (D99): what it plays, and the voices it mutes with it. */
+export interface DrumPad {
+  voice: DrumVoice;
+  group: DrumVoice[];
+  kind: "low" | "snare" | "hat" | "tom" | "cymbal" | "perc";
+}
+const pad = (kind: DrumPad["kind"], voice: DrumVoice, ...more: DrumVoice[]): DrumPad => ({ voice, group: [voice, ...more], kind });
+const KIT_PADS: DrumPad[] = [
+  pad("low", "kick"), pad("snare", "snare"), pad("snare", "rim", "claves", "woodblock"),
+  pad("hat", "hat", "shaker"), pad("hat", "openhat", "tambourine"), pad("snare", "clap"),
+  pad("tom", "tomHigh", "congaHigh", "bongo"), pad("tom", "tomLow", "congaLow"), pad("cymbal", "crash", "ride", "cymbals"),
+];
+const PADS: Record<string, DrumPad[]> = {
+  studio: KIT_PADS,
+  sixties: [
+    pad("low", "kick"), pad("snare", "snare"), pad("perc", "tambourine"),
+    pad("hat", "hat", "openhat"), pad("cymbal", "ride"), pad("snare", "rim"),
+    pad("tom", "tomHigh"), pad("tom", "tomLow"), pad("cymbal", "crash", "cymbals"),
+  ],
+  tr808: [
+    pad("low", "kick"), pad("snare", "snare"), pad("snare", "clap"),
+    pad("hat", "hat"), pad("hat", "openhat"), pad("perc", "cowbell", "rim", "claves"),
+    pad("tom", "congaHigh", "tomHigh"), pad("tom", "congaLow", "tomLow"), pad("cymbal", "crash", "cymbals", "ride"),
+  ],
+  tr909: [
+    pad("low", "kick"), pad("snare", "snare"), pad("snare", "clap"),
+    pad("hat", "hat"), pad("hat", "openhat"), pad("snare", "rim"),
+    pad("tom", "tomHigh"), pad("tom", "tomLow"), pad("cymbal", "ride", "crash", "cymbals"),
+  ],
+  cr78: [
+    pad("low", "kick"), pad("snare", "snare"), pad("perc", "guiro"),
+    pad("hat", "hat"), pad("hat", "openhat"), pad("perc", "tambourine"),
+    pad("perc", "cowbell"), pad("snare", "rim"), pad("cymbal", "cymbals", "crash", "ride"),
+  ],
+  rhythmAce: [
+    pad("low", "kick"), pad("snare", "snare", "clap"), pad("perc", "claves", "rim"),
+    pad("hat", "hat", "shaker"), pad("cymbal", "ride"), pad("perc", "cowbell"),
+    pad("tom", "congaHigh", "bongo"), pad("tom", "congaLow", "tomLow", "tomHigh"), pad("cymbal", "crash", "cymbals", "openhat"),
+  ],
+  sdsv: [
+    pad("low", "kick"), pad("snare", "snare"), pad("snare", "clap"),
+    pad("hat", "hat"), pad("hat", "openhat"), pad("snare", "rim"),
+    pad("tom", "tomHigh"), pad("tom", "tomLow"), pad("cymbal", "crash", "ride", "cymbals"),
+  ],
+  percussion: [
+    pad("low", "kick"), pad("perc", "rim"), pad("perc", "shaker"),
+    pad("tom", "congaHigh"), pad("tom", "congaLow"), pad("perc", "cowbell"),
+    pad("tom", "bongo"), pad("perc", "claves"), pad("perc", "woodblock"),
+  ],
+  tribal: [
+    pad("low", "djembeLow"), pad("snare", "djembeSlap"), pad("low", "frameDrum"),
+    pad("low", "taiko"), pad("snare", "rim"), pad("snare", "clap"),
+    pad("hat", "shaker"), pad("cymbal", "triangle"), pad("perc", "claves"),
+  ],
+  orchestral: [
+    pad("low", "timpTonic"), pad("low", "timpFifth"), pad("low", "bassDrum"),
+    pad("snare", "fieldSnare"), pad("cymbal", "cymbals"), pad("cymbal", "triangle"),
+    pad("perc", "woodblock"), pad("perc", "tambourine"), pad("cymbal", "crash"),
+  ],
+};
+/**
+ * The nine pads (D99): the kit's own; on the studio kit, a percussion, tribal or orchestral pattern
+ * brings its family's instruments instead.
+ */
+export function padsFor(s: DrumSettings): DrumPad[] {
+  const kit = kitOf(s);
+  const family = patternById(s.pattern).family;
+  if (kit === "studio" && (family === "percussion" || family === "tribal" || family === "orchestral")) return PADS[family];
+  return PADS[kit] ?? KIT_PADS;
 }
 
 const FINAL_PC: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -425,6 +593,19 @@ export class DrumMachine {
           case "congaLow": case "tomLow": case "tomHigh": this.tone(t, 220, 210, 0.12, 0.5 * vel); return true;
         }
         return false;
+      case "sixties":
+        switch (v) {
+          case "kick": this.tone(t, 105, 52, 0.32, 0.9 * vel); this.hiss(t, "lowpass", 500, 0.04, 0.25 * vel); return true;
+          case "snare": this.hiss(t, "bandpass", 1500, 0.3, 0.6 * vel, 0.6); this.tone(t, 190, 172, 0.14, 0.35 * vel, "triangle"); this.hiss(t, "highpass", 4000, 0.18, 0.12 * vel); return true;
+          case "hat": this.hiss(t, "bandpass", 7500, 0.07, 0.24 * vel, 1.4); this.metal(t, 0.05, 0.04 * vel, 7000); return true;
+          case "openhat": this.hiss(t, "bandpass", 6500, 0.5, 0.2 * vel, 1); this.metal(t, 0.4, 0.04 * vel, 6000); return true;
+          case "ride": this.metal(t, 1.4, 0.08 * vel, 4500); this.hiss(t, "bandpass", 5000, 1.1, 0.1 * vel, 1.2); return true;
+          case "crash": case "cymbals": this.hiss(t, "highpass", 3200, 2.0, 0.3 * vel, 0.7); this.metal(t, 1.5, 0.07 * vel, 3500); return true;
+          case "tomHigh": this.tone(t, 205, 186, 0.4, 0.62 * vel); this.hiss(t, "lowpass", 900, 0.03, 0.15 * vel); return true;
+          case "tomLow": this.tone(t, 128, 112, 0.55, 0.72 * vel); this.hiss(t, "lowpass", 700, 0.04, 0.15 * vel); return true;
+          case "rim": this.tone(t, 1500, 1450, 0.04, 0.3 * vel, "triangle"); this.hiss(t, "bandpass", 2800, 0.03, 0.25 * vel, 3); return true;
+        }
+        return false;
       case "sdsv":
         switch (v) {
           case "kick": this.sweep(t, 130, 48, 0.08, 0.4, vel); this.hiss(t, "lowpass", 800, 0.03, 0.3 * vel); return true;
@@ -438,7 +619,11 @@ export class DrumMachine {
     }
   }
 
+  /** Called for every hit with its time, for the pads to light up (D99). */
+  onHit: ((v: DrumVoice, t: number) => void) | null = null;
+
   hit(v: DrumVoice, t: number, vel = 1) {
+    this.onHit?.(v, t);
     if (this.kit !== "studio" && this.machine(v, t, vel)) return;
     switch (v) {
       case "kick": return this.tone(t, 150, 42, 0.38, vel);
@@ -478,10 +663,35 @@ export class DrumMachine {
     }
   }
 
+  /** A fill or break fired by hand (D99), waiting for the next bar; `onCue` hears it start and end. */
+  cue: DrumCue | null = null;
+  onCue: ((cue: DrumCue | null) => void) | null = null;
+  /** The bar after a cue opens with a crash. */
+  private landing = false;
+
   /** Schedule bar `bar` starting at time `t`, a bar lasting `barSeconds`. */
   scheduleBar(t: number, barSeconds: number, bar: number, totalBars: number, looping = false) {
     this.kit = kitOf(this.settings);
-    for (const [v, vel, at] of hitsForBar(this.settings, bar, totalBars, looping)) this.hit(v, t + at * barSeconds, vel);
+    const ending = bar === totalBars - 1 && !looping;
+    let hits: Hit[];
+    if (this.cue && !ending && bar > 0) {
+      hits = hitsForCue(this.settings, this.cue);
+      this.cue = null;
+      this.landing = true;
+      this.onCue?.(null);
+    } else {
+      hits = hitsForBar(this.settings, bar, totalBars, looping);
+      if (this.landing && !hits.some(([v, , at]) => at === 0 && (v === "crash" || v === "cymbals"))) hits.push(["crash", 1, 0]);
+      this.landing = false;
+    }
+    for (const [v, vel, at] of hits) this.hit(v, t + at * barSeconds, vel);
+  }
+
+  /** Play a cue at once (when nothing is playing): the cue's bar and the landing crash. */
+  scheduleCue(t: number, barSeconds: number, cue: DrumCue) {
+    this.kit = kitOf(this.settings);
+    for (const [v, vel, at] of hitsForCue(this.settings, cue)) this.hit(v, t + at * barSeconds, vel);
+    this.hit("crash", t + barSeconds, 1);
   }
 
   /** The breath before the next pass of a loop, starting at `t` (D72). */
@@ -493,5 +703,10 @@ export class DrumMachine {
   stop() {
     for (const n of this.live) n.stop();
     this.live.clear();
+    this.landing = false;
+    if (this.cue) {
+      this.cue = null;
+      this.onCue?.(null);
+    }
   }
 }

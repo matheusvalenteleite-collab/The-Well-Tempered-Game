@@ -420,6 +420,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
           drumKit={drumKit}
           onDrumKit={setDrumKit}
           onPreviewDrums={() => !playing && void audio.previewDrums()}
+          onTempo={setTempo}
           master={volume}
           onMaster={setVolume}
           tuning={tuning}

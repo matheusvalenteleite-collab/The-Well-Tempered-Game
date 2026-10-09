@@ -27,6 +27,8 @@ interface Props {
   drumKit: DrumSettings;
   onDrumKit(v: DrumSettings): void;
   onPreviewDrums(): void;
+  /** Tap tempo on the drum strip (D99). */
+  onTempo?(bpm: number): void;
   master: number;
   onMaster(v: number): void;
   tuning: TemperamentId;
@@ -236,7 +238,7 @@ export function SoundDesk(p: Props) {
             <SynthRack title={`${t("ui.synth.title")} · ${t(`ui.mixer.${version}`)}`} value={versionSettings(s, version)} onChange={(next) => p.onChange(editVersionSynth(s, version, next))} />
           </>
         )}
-        {selected === "drums" && <DrumBox on={p.drums} onToggle={p.onDrums} value={p.drumKit} onChange={p.onDrumKit} onPreview={p.onPreviewDrums} />}
+        {selected === "drums" && <DrumBox on={p.drums} onToggle={p.onDrums} value={p.drumKit} onChange={p.onDrumKit} onPreview={p.onPreviewDrums} onTempo={p.onTempo} />}
         {selected === "master" && <MasterBox value={s.master ?? DEFAULT_MASTER_FX} onChange={(m) => p.onChange({ ...s, master: m })} />}
         {selected === "continuo" && <ContinuoBox on={p.continuo} onToggle={p.onContinuo} value={p.continuoSettings} onChange={p.onContinuoSettings} />}
       </div>
