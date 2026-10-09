@@ -13,6 +13,9 @@ import { FUGUES, KEY_ORDER, keyName, keySignature, isMinor, realAnswer, type Wtc
 import { degree, evaluateAnswer, type AnswerEvaluation } from "../wtc/answer.ts";
 import { beatOf, evaluateCounterpoint, type CpEvaluation } from "../wtc/counterpoint.ts";
 import { counterHint } from "../wtc/hints.ts";
+import { findEntries, type Entry, type FullNote } from "../wtc/entries.ts";
+import full from "../../data/bach/wtc/fugues-full.json" with { type: "json" };
+import { PianoRoll } from "./notation/PianoRoll.tsx";
 import { parsePitch, type Step } from "../music/pitch.ts";
 import { WtcScore, type WtcScoreNote, type WtcScoreVoice } from "./notation/WtcScore.tsx";
 import { restoreSound, type SoundState } from "../audio/sound.ts";
@@ -62,6 +65,11 @@ function alterPitch(p: string, how: number): string {
   const alter = how === 0 ? 0 : Math.max(-2, Math.min(2, x.alter + how));
   return `${x.step}${alter > 0 ? "#".repeat(alter) : "b".repeat(-alter)}${x.octave}`;
 }
+/** A MIDI number spelled with sharps, or with flats in a flat key (for the sound only). */
+const SHARPS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+const FLATS = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+const midiName = (m: number, flats: boolean) => `${(flats ? FLATS : SHARPS)[((m % 12) + 12) % 12]}${Math.floor(m / 12) - 1}`;
+const FULL = (full as unknown as { notes: Record<string, number[][]> }).notes;
 const mean = (xs: WtcNote[]) => xs.reduce((a, n) => a + parsePitch(n.pitch).midi, 0) / Math.max(1, xs.length);
 
 export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
@@ -77,6 +85,9 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
   const [selected, setSelected] = useState(0);
   const [result, setResult] = useState<{ kind: "answer"; ev: AnswerEvaluation } | { kind: "counter"; ev: CpEvaluation } | { kind: "mutation"; ev: { passed: boolean; marked: number[] } } | null>(null);
   const [hintOn, setHintOn] = useState(false);
+  /** In the study: the exposition on the staff, or the whole fugue as a roll (D121). */
+  const [whole, setWhole] = useState(() => stored("wtg.wtcWhole", false, (v) => typeof v === "boolean"));
+  useEffect(() => store("wtg.wtcWhole", whole), [whole]);
   const [attempts, setAttempts] = useState<Record<string, number>>({});
   const [showBach, setShowBach] = useState(false);
   const [tab, setTab] = useState<string>(() => stored("wtg.wtcTab", "guide", (v) => typeof v === "string"));
@@ -129,6 +140,10 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
   }, []);
 
   const signature = useMemo(() => keySignature(F.key), [F.key]);
+  const flats = Object.values(signature).some((x) => x < 0);
+  const allNotes: FullNote[] = useMemo(() => (FULL[F.id] ?? []).map(([m, o, d]) => ({ midi: m, at: o / 96, dur: d / 96 })), [F.id]);
+  const entries: Entry[] = useMemo(() => findEntries(allNotes, F.subject.map((n) => ({ midi: parsePitch(n.pitch).midi, at: n.at, dur: n.dur }))), [allNotes, F]);
+  const showWhole = exercise === "study" && whole && allNotes.length > 0;
   const ex: Exercise = exercise;
   const key = `${F.id}:${ex}`;
   const target = ex === "answer" ? F.answer : ex === "counter" ? F.countersubject : ex === "mutation" ? F.subject : [];
@@ -261,11 +276,26 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
     setExercise(e);
   };
 
-  const play = () => {
-    if (playing) {
+  const play = (fromQ = 0, restart = false) => {
+    if (playing && !restart) {
       audio.stop();
       setPlaying(false);
       setCursor(-1);
+      return;
+    }
+    if (showWhole) {
+      const inEntry = new Set(entries.flatMap((e) => e.notes));
+      const evs: PlayEvent[] = allNotes
+        .map((n, i) => ({ n, i }))
+        .filter(({ n }) => n.at >= fromQ - 1e-6)
+        .map(({ n, i }) => ({ slot: barOf(n.at), at: (n.at - fromQ) / 4, length: n.dur / 4, cantus: null, counterpoint: null, extra: [{ channel: inEntry.has(i) ? ("counterpoint" as const) : ("second" as const), pitch: midiName(n.midi, flats) }] }));
+      if (!evs.length) return;
+      audio.setGates({ counterpoint: true, second: true, fux: true, continuo: false });
+      setPlaying(true);
+      void audio.playAll(evs, (k) => {
+        setCursor(k);
+        if (k < 0) setPlaying(false);
+      });
       return;
     }
     const events: PlayEvent[] = [];
@@ -319,6 +349,7 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
     const editable = ex !== "study" && !showBach;
     const cur = line[selected];
     if (k === " " || k === "p" || k === "P") play();
+    else if ((k === "w" || k === "W") && ex === "study") setWhole(!whole);
     else if (k === "Enter") evaluate();
     else if (!editable) return;
     else if (k === "ArrowRight") setSelected(Math.min(target.length - 1, selected + 1));
@@ -446,6 +477,7 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
       <li>{t("ui.wtc.fact.key", { key: keyName(F.key), time: F.time })}</li>
       <li>{t(F.mutations.length ? "ui.wtc.fact.tonal" : "ui.wtc.fact.real", { n: F.mutations.length, interval: t(F.answerShift % 12 === 7 || F.answerShift % 12 === -5 ? (F.answerShift > 0 ? "ui.wtc.fifthUp" : "ui.wtc.fourthDown") : F.answerShift > 0 ? "ui.wtc.fourthUp" : "ui.wtc.fifthDown") })}</li>
       <li>{t("ui.wtc.fact.subject", { n: F.subject.length })}</li>
+      <li>{t("ui.wtc.fact.entries", { n: entries.length, inv: entries.filter((e) => e.inverted).length, bars: Math.ceil(Math.max(0, ...allNotes.map((n) => n.at + n.dur)) / F.barQuarters) })}</li>
     </ul>
   );
 
@@ -484,6 +516,9 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
           {ex !== "study" && (
             <span className={solved ? "star earned" : "star"} aria-label={t(solved ? "ui.star.earned" : "ui.star.none")}>{solved ? "★" : "☆"}</span>
           )}
+          {showWhole ? (
+            <PianoRoll notes={allNotes} entries={entries} barQuarters={F.barQuarters} cursor={cursor} label={fugueLabel(F)} onEntry={(e) => play(e.at, true)} />
+          ) : (
           <WtcScore
             voices={ordered}
             keySig={vexKey(F.key)}
@@ -503,6 +538,7 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
             onZoom={setZoom}
             zoomLabels={{ in: t("ui.zoom.in"), out: t("ui.zoom.out"), reset: t("ui.zoom.reset") }}
           />
+          )}
         </div>
       }
       transport={
@@ -537,13 +573,19 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
                 {t(showBach ? "ui.wtc.bachHide" : "ui.wtc.bachShow")}
               </button>
             )}
+            {ex === "study" && (
+              <span className="values" role="radiogroup" aria-label={t("ui.wtc.view")}>
+                <button className="chipbtn" role="radio" aria-checked={!whole} aria-pressed={!whole} onClick={() => (audio.stop(), setPlaying(false), setWhole(false))}>{t("ui.wtc.view.exposition")}</button>
+                <button className="chipbtn" role="radio" aria-checked={whole} aria-pressed={whole} onClick={() => (audio.stop(), setPlaying(false), setWhole(true))} title={t("ui.wtc.view.wholeHelp")}>{t("ui.wtc.view.whole")}</button>
+              </span>
+            )}
             {ex === "counter" && (
               <button className="chipbtn" aria-pressed={hintOn} onClick={() => setHintOn(!hintOn)} title={t("ui.wtc.hint.help")}>{t("ui.hint.tool")}</button>
             )}
           </div>
           <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
             <div className="play-split">
-              <button className="icon play" onClick={play} aria-label={t("ui.play.player")} title={t("ui.play.player")}>{playing ? "■" : "▶"}</button>
+              <button className="icon play" onClick={() => play()} aria-label={t("ui.play.player")} title={t("ui.play.player")}>{playing ? "■" : "▶"}</button>
             </div>
             <div className="hfaders">
               <HFader label={t("ui.tempo")} help={t("ui.wtc.tempoHelp")} value={tempo} min={15} max={120} defaultValue={36} format={(v) => `♩=${Math.round(v * 2)}`} onChange={(v) => setTempo(Math.round(v))} />

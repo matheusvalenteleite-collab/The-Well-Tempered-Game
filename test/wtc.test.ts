@@ -99,3 +99,16 @@ test("D119: the countersubject hint allows each of Bach's notes (within a sevent
     });
   }
 });
+
+test("D121: the whole fugue: the subject's first two entries are found where the exposition puts them", async () => {
+  const full = (await import("../data/bach/wtc/fugues-full.json", { with: { type: "json" } })).default as unknown as { notes: Record<string, number[][]> };
+  const { findEntries } = await import("../src/wtc/entries.ts");
+  const { parsePitch } = await import("../src/music/pitch.ts");
+  for (const f of FUGUES) {
+    const all = full.notes[f.id].map(([m, o, d]) => ({ midi: m, at: o / 96, dur: d / 96 }));
+    const es = findEntries(all, f.subject.map((n) => ({ midi: parsePitch(n.pitch).midi, at: n.at, dur: n.dur })));
+    const t0 = es.find((e) => e.shift === 0 && !e.inverted);
+    assert.ok(t0, `${f.id}: the subject itself`);
+    assert.ok(es.some((e) => Math.abs(e.at - (t0!.at + f.answerAt)) < 1e-6 && !e.inverted), `${f.id}: the answer at ${f.answerAt}`);
+  }
+});
