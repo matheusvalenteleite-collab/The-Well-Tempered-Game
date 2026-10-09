@@ -58,6 +58,13 @@ export interface ContinuoOptions {
   costs?: Partial<Costs>;
   /** Default "realized". */
   texture?: Texture;
+  /**
+   * Fux's accidentals (D93), default true: in the F mode B♭ unless a voice sings B♮ in the bar;
+   * elsewhere a flat sung in the bar before or after carries into a bar that does not name the
+   * letter. Sharps (cadential leading tones) stay in their own bar. False: white keys except the
+   * letters sung in the bar itself.
+   */
+  accidentals?: boolean;
   /** A6: the partimento player's devices (suspensions, 5-6, 6/5, cadential trill). Default true. */
   partimento?: boolean;
 }

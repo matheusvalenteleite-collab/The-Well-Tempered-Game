@@ -4,7 +4,7 @@
  */
 import { parsePitch } from "../music/pitch.ts";
 import { COSTS, DEFAULTS } from "./costs.ts";
-import { chooseChord, clashes, consistentTriads, frameAt, frameConsonant, letterForms, mod, spellAt, toPc, type Chord, type Frame } from "./frame.ts";
+import { chooseChord, clashes, consistentTriads, contextForms, frameAt, frameConsonant, letterForms, mod, spellAt, toPc, type Chord, type Frame } from "./frame.ts";
 import { enrichBar, passingFill, type BarPlan, type Segment } from "./enrichment.ts";
 import { FIGURES, partimento, type Device } from "./partimento.ts";
 import { sungNotes } from "./input.ts";
@@ -18,6 +18,7 @@ export const DEFAULT_OPTIONS: ContinuoOptions = {
   passingFill: true,
   texture: "realized",
   partimento: true,
+  accidentals: true,
 };
 
 /** Octaves below the sung bass that keep the continuo bass in DEFAULTS.bassRange, without needless shifting (ties: fewer). */
@@ -69,7 +70,7 @@ export function realizeContinuo(exercise: ContinuoInput, options: Partial<Contin
   const ctxs: DownbeatContext[] = frames.map((f) => (f ? { bassMidi: lh(f), uppers: new Map(f.uppers.map((u) => [u.voice, u.pitch.midi])) } : { bassMidi: 0, uppers: new Map() }));
 
   const plans: BarPlan[] = frames.map((frame, b) => {
-    const forms = letterForms(notes, 2 * b, 2 * b + 2);
+    const forms = contextForms(notes, b, modalFinal, opts.accidentals !== false);
     const nextBass = frames[b + 1]?.bass.pitch ?? null;
     const chord = frame ? chooseChord({ frame, nextBass, forms, ...(b === n - 1 ? { final: { mode: opts.finals, modalFinal } } : {}) }) : null;
     return { bar: b, frame, chord, voicing: null, fallback: !!chord && !chord.valid, forms, nextBass };

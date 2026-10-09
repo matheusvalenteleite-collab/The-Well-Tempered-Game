@@ -383,10 +383,14 @@ export class AudioEngine {
     const LOOKAHEAD = 0.15;
     let announced = false;
     const tick = () => {
-      if (k === 0 && !announced) {
+      // Each pass starts the accompaniment; a live restart from the middle starts it there too (it
+      // used to wait for the next pass, so a change of continuo settings silenced it until then).
+      if (!announced) {
         announced = true;
-        this.cycleStarts.push(next);
-        if (this.capture) this.captureCycles.push(next);
+        if (k === 0) {
+          this.cycleStarts.push(next);
+          if (this.capture) this.captureCycles.push(next);
+        }
         onCycle?.(next, k === 0 ? 0 : (events[k].at - events[0].at) * 2);
       }
       while (k < events.length && next < ctx.currentTime + LOOKAHEAD) {

@@ -163,7 +163,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
     setSessions(Object.fromEntries(mine.map((i) => [i, select(sessions[i], bar)])));
   };
 
-  const play = () => {
+  const play = (from = 0) => {
     if (playing) {
       audio.stop();
       setPlaying(false);
@@ -208,7 +208,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
     void audio.playAll(events, (k) => {
       setCursor(k);
       if (k < 0) setPlaying(false);
-    }, onCycle);
+    }, onCycle, from);
   };
 
   const evaluateNow = () => {
@@ -245,7 +245,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
     else if (k === "-") update(activeStaff, applyAccidental(s, -1));
     else if (k === "n") update(activeStaff, applyAccidental(s, 0));
     else if (k === "Delete" || k === "Backspace") update(activeStaff, clear(s));
-    else if (k === " ") audition(s.selected);
+    else if (k === " ") play(s.selected);
     else if (k === "p" || k === "P") play();
     else return;
     e.preventDefault();
@@ -374,7 +374,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
           </div>
           <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
             <div className="play-split">
-              <button className="icon play" onClick={play} aria-label={t("ui.play.player")} title={t("ui.play.player")}>{playing ? "■" : "▶"}</button>
+              <button className="icon play" onClick={() => play()} aria-label={t("ui.play.player")} title={t("ui.play.player")}>{playing ? "■" : "▶"}</button>
               <button className="loop" aria-pressed={loop} onClick={() => setLoop(!loop)} aria-label={t("ui.loop")} title={t(loop ? "ui.loop.on" : "ui.loop.off")}>⟲</button>
             </div>
             <Knob id="tempo" label={t("ui.tempo")} value={tempo} min={30} max={240} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />

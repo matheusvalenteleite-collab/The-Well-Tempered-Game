@@ -3,13 +3,15 @@ import { useZoomGestures, ZOOM_MAX, ZOOM_MIN } from "./zoom.ts";
 export { ZOOM_MAX, ZOOM_MIN };
 import { HOLD, slotLayout, slotsOfBars } from "../../counterpoint/layout.ts";
 import type { Overlay } from "./overlay.ts";
+import type { ContinuoRealization } from "../../continuo/types.ts";
 import { barWidth, SCORE_LEAD, ScoreView, type ScoreProps } from "./ScoreView.tsx";
 
 /**
  * The score broken into systems (D83), as on a printed page, when one line would be too small to
  * read: on a narrow screen when it would be drawn below 60% of its size, anywhere below 35%. Each
  * system is an ordinary score of a run of bars; clicks, selection, the playback cursor, marks and
- * the overlay are mapped between the systems and the whole. The continuo is not drawn in systems.
+ * the overlay are mapped between the systems and the whole; so is the continuo, in each
+ * system its own bars (D93).
  *
  * Zoom (D87): pinching with two fingers (or Ctrl + wheel, a trackpad pinch, or − / +) makes the
  * notes larger or smaller, and the score reflows into systems at the new size, as a text does,
@@ -23,6 +25,16 @@ const TARGET = 0.62;
 const SCALE_MIN = 0.3;
 const SCALE_MAX = 2.4;
 const STEP = 1.25;
+
+/** The continuo of bars a..b, renumbered from 0 (two half-note beats per bar). */
+function sliceRealization(r: ContinuoRealization, a: number, b: number): ContinuoRealization {
+  return {
+    ...r,
+    bars: r.bars.slice(a, b + 1).map((bi) => ({ ...bi, bar: bi.bar - a })),
+    events: r.events.filter((e) => e.bar >= a && e.bar <= b).map((e) => ({ ...e, bar: e.bar - a, startBeat: e.startBeat - 2 * a })),
+    totalBeats: 2 * (b - a + 1),
+  };
+}
 
 export function Systems(props: ScoreProps & { zoom?: number; onZoom?: (z: number) => void; zoomLabels?: { in: string; out: string; reset: string } }) {
   const host = useRef<HTMLDivElement>(null);
@@ -121,7 +133,7 @@ export function Systems(props: ScoreProps & { zoom?: number; onZoom?: (z: number
               marks={props.marks?.filter((m) => inside(m.column) >= 0).map((m) => ({ ...m, column: m.column - start }))}
               overlay={shiftOverlay(props.overlay, start, end)}
               firstBar={(props.firstBar ?? 1) + a}
-              continuo={undefined}
+              continuo={props.continuo && { ...props.continuo, realization: sliceRealization(props.continuo.realization, a, b) }}
               carry={{ counterpoint: heldAt(props.counterpoint, start), fux: heldAt(props.fux, start), extras: props.extraLines?.map((l) => heldAt(l.notes, start) ?? null) }}
               lastSystem={b === bars - 1}
               compact

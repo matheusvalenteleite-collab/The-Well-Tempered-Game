@@ -76,6 +76,11 @@ export function ContinuoBox({ on, onToggle, value, onChange }: Props) {
                 {t("ui.continuo.inegal")}
               </button>
             </li>
+            <li>
+              <button tabIndex={-1} aria-pressed={value.accidentals} title={t("ui.continuo.accidentals.help")} onClick={() => set({ accidentals: !value.accidentals }, true)}>
+                {t("ui.continuo.accidentals")}
+              </button>
+            </li>
           </ul>
         </div>
       </div>

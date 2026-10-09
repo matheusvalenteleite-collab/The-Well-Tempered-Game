@@ -58,13 +58,13 @@ export function continuoInput(view: ContinuoView, notes: (string | null)[] | (st
 }
 
 /** Realization options for a play mode and the panel's settings (presets only change the sound). */
-export function continuoOptions(mode: PlayMode, s: Pick<ContinuoSettings, "finals" | "passingFill" | "preset">): Partial<ContinuoOptions> {
-  return { finals: s.finals, passingFill: s.passingFill, preset: s.preset, texture: mode === "trio" ? "doubling" : "realized" };
+export function continuoOptions(mode: PlayMode, s: Pick<ContinuoSettings, "finals" | "passingFill" | "preset"> & { accidentals?: boolean }): Partial<ContinuoOptions> {
+  return { finals: s.finals, passingFill: s.passingFill, preset: s.preset, texture: mode === "trio" ? "doubling" : "realized", accidentals: s.accidentals !== false };
 }
 
 /** Memoization key: the notes that sound, the play mode and the options that shape the realization. */
 export function continuoKey(stepId: string, notes: (string | null)[] | (string | null)[][], mode: PlayMode, opts: Partial<ContinuoOptions>): string {
   const lines: (string | null)[][] = Array.isArray(notes[0]) ? (notes as (string | null)[][]) : [notes as (string | null)[]];
   const norm = lines.map((l) => l.map((n) => (sounding(n ?? null) ? n : null)));
-  return JSON.stringify([stepId, mode, norm.length === 1 ? norm[0] : norm, opts.finals, opts.passingFill, opts.texture]);
+  return JSON.stringify([stepId, mode, norm.length === 1 ? norm[0] : norm, opts.finals, opts.passingFill, opts.texture, opts.accidentals]);
 }

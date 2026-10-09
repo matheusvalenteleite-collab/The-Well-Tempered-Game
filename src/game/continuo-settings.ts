@@ -1,8 +1,9 @@
 /** The continuo panel's settings, as stored in localStorage (wtg.continuoSettings), with validation. */
 import type { FinalsMode, PresetId } from "../continuo/types.ts";
 
-export type ContinuoDisplay = "none" | "figured" | "realization" | "both";
-export const CONTINUO_DISPLAYS: ContinuoDisplay[] = ["none", "figured", "realization", "both"];
+/** "figured" (default, D93): the figures alone, under the lower staff; "staff": a small figured bass staff. */
+export type ContinuoDisplay = "none" | "figured" | "staff" | "realization" | "both";
+export const CONTINUO_DISPLAYS: ContinuoDisplay[] = ["none", "figured", "staff", "realization", "both"];
 export const CONTINUO_PRESET_FAMILIES: { id: "baroque" | "orchestral" | "modern"; presets: PresetId[] }[] = [
   { id: "baroque", presets: ["stileAntico", "cembalo", "hofkapelle", "theorbo"] },
   { id: "orchestral", presets: ["pizzicato", "sostenuto", "brass"] },
@@ -18,9 +19,11 @@ export interface ContinuoSettings {
   passingFill: boolean;
   /** A stylistic liberty; never applied to stile antico. */
   inegal: boolean;
+  /** Fux's accidentals in the harmony (D93); off: the white-key harmony of before. */
+  accidentals: boolean;
 }
 
-export const DEFAULT_CONTINUO_SETTINGS: ContinuoSettings = { display: "figured", preset: "stileAntico", finals: "organist", passingFill: true, inegal: false };
+export const DEFAULT_CONTINUO_SETTINGS: ContinuoSettings = { display: "figured", preset: "stileAntico", finals: "organist", passingFill: true, inegal: false, accidentals: true };
 
 /** Each field is kept if valid, otherwise replaced by its default. */
 export function validContinuoSettings(raw: unknown): ContinuoSettings {
@@ -33,5 +36,6 @@ export function validContinuoSettings(raw: unknown): ContinuoSettings {
     finals: pick(r.finals, FINALS_MODES, d.finals),
     passingFill: typeof r.passingFill === "boolean" ? r.passingFill : d.passingFill,
     inegal: typeof r.inegal === "boolean" ? r.inegal : d.inegal,
+    accidentals: typeof r.accidentals === "boolean" ? r.accidentals : d.accidentals,
   };
 }

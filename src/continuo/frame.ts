@@ -54,6 +54,17 @@ export function letterForms(notes: SungNote[], from: number, to: number): Map<St
   return forms;
 }
 
+/** The letter forms of bar b with Fux's accidentals (D93); see ContinuoOptions.accidentals. */
+export function contextForms(notes: SungNote[], b: number, modalFinal: ModalFinal, accidentals: boolean): Map<Step, number> {
+  const forms = letterForms(notes, 2 * b, 2 * b + 2);
+  if (!accidentals) return forms;
+  for (const near of [b - 1, b + 1]) {
+    for (const [step, alter] of letterForms(notes, 2 * near, 2 * near + 2)) if (alter < 0 && !forms.has(step)) forms.set(step, alter);
+  }
+  if (modalFinal === "F" && !forms.has("B")) forms.set("B", -1);
+  return forms;
+}
+
 /** The letter k-1 steps above `from` (k = generic interval), in its form for this bar. */
 function above(from: SpelledPc, k: number, forms: Map<Step, number>): SpelledPc {
   const step = STEPS[(STEPS.indexOf(from.step) + k - 1) % 7];

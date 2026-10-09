@@ -454,7 +454,8 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
     setToast(t("ui.saved.opened", { name: p.name }));
   };
 
-  const play = () => {
+  /** Play all, or from slot `from` to the end (Space: from the selected bar, D93); loops start again at bar 1. */
+  const play = (from = 0) => {
     if (savedPlaying) stopSaved();
     if (playing) {
       audio.stop();
@@ -463,7 +464,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
       return;
     }
     setPlaying(true);
-    startPlayback(audio, VIEW, { notes: session.notes, versions, mode: "player", continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning, fuxAlong: fuxOpen, fuxHeard }, onLiveSlot, 0, liveSetup);
+    startPlayback(audio, VIEW, { notes: session.notes, versions, mode: "player", continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning, fuxAlong: fuxOpen, fuxHeard }, onLiveSlot, from, liveSetup);
   };
   function onLiveSlot(k: number) {
     setCursor(k);
@@ -646,7 +647,8 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
     audio.setGates(gatesOf({ versions, continuoOn: continuo, fuxHeard: fuxHeard && fuxOpen }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [versions, continuo, fuxHeard, fuxOpen]);
-  const liveKey = JSON.stringify([versions.canonShift, session.notes, continuoAllowed, continuoSettings, tuning, fuxOpen]);
+  // The continuo's notation only changes the score: it restarts nothing (D93).
+  const liveKey = JSON.stringify([versions.canonShift, session.notes, continuoAllowed, { ...continuoSettings, display: null }, tuning, fuxOpen]);
   const lastLiveKey = useRef(liveKey);
   useEffect(() => {
     if (lastLiveKey.current === liveKey) return;
@@ -729,7 +731,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
     else if (k === "-") update(applyAccidental(s, -1));
     else if (k === "n") update(applyAccidental(s, 0));
     else if (k === "Delete" || k === "Backspace") update(FIFTH ? clearSpan(s) : VIEW.layout[s.selected].restAllowed ? setRest(s, VIEW.layout) : clear(s), false);
-    else if (k === " ") audition(s.selected);
+    else if (k === " ") play(VIEW.layout.findIndex((sl) => sl.bar === VIEW.layout[s.selected].bar));
     else if (k === "p" || k === "P") play();
     else if (k === "?") setShowHelp(true);
     else return;
