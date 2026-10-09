@@ -7,10 +7,13 @@
  * figured bass. One line, zoomed and scrolled sideways like the two-voice score (D100).
  */
 import { useEffect, useRef } from "react";
-import { Accidental, ModifierContext, Renderer, Stave, StaveConnector, StaveNote, TickContext } from "vexflow";
+import { Accidental, ModifierContext, Renderer, Stave, StaveConnector, StaveNote, StaveTie, TickContext } from "vexflow";
+import { REST } from "../../counterpoint/layout.ts";
 import { parsePitch } from "../../music/pitch.ts";
 import { noteName, type NameStyle } from "../../music/names.ts";
 import { harmonic } from "../../counterpoint/interval.ts";
+import { harmonyOf } from "../../counterpoint/choices/harmony.ts";
+import type { ModalFinal } from "../../music/fux/types.ts";
 import { pitchAtPosition, VEXFLOW_CLEF, type ClefId } from "./clefs.ts";
 import { Viewport } from "./Viewport.tsx";
 
@@ -23,6 +26,13 @@ export interface TrioVoice {
   ink?: string;
   /** Fux's notes for this voice, drawn as diamonds (player voices only). */
   fux?: (string | null)[];
+  /**
+   * Second species (D114): the voice moves in minims; `notes` (and `fux`) are its second-species
+   * slots (two a bar, one in the last; the first may be a rest).
+   */
+  minims?: boolean;
+  /** Stem direction of its minims (up for the upper voice of a shared staff). */
+  stem?: 1 | -1;
 }
 
 export interface TrioMark {
@@ -36,16 +46,23 @@ interface Props {
   clefs: [ClefId, ClefId];
   /** The voice being written. */
   active: number;
+  /** The selected bar, and (for the minim voice) which half of it. */
   selected: number;
+  selectedHalf?: 0 | 1 | null;
   cursor: number;
   marks?: TrioMark[];
   /** Bars pointed at in a text: they pulse (D96). */
   pulse?: number[];
   figures?: boolean;
+  /**
+   * D115: the harmonic view, a modern lens: a Roman numeral under each bar's figures, relative to
+   * the final (in brackets where an incomplete chord leaves the root a guess). Never graded.
+   */
+  harmony?: { final: ModalFinal } | null;
   names?: boolean;
   nameStyle?: NameStyle;
   label: string;
-  onPlace(voice: number, bar: number, natural: string): void;
+  onPlace(voice: number, bar: number, natural: string, half: 0 | 1): void;
   onSelect(voice: number | null, bar: number): void;
   zoom: number;
   onZoom(z: number): void;
@@ -54,6 +71,8 @@ interface Props {
 }
 
 const BAR_W = 64;
+/** Wider bars when a voice moves in minims. */
+const BAR_W2 = 104;
 const LEAD = 96;
 const NOTE_PAD = 14;
 const STAFF_Y = [28, 148];
@@ -61,9 +80,10 @@ const HEIGHT = 300;
 
 /** The two staves in one line, zoomed and scrolled sideways like the two-voice score (D100). */
 export function TrioScore(p: Props) {
-  const bars = p.voices[0].notes.length;
-  const natural = LEAD + bars * BAR_W + 24;
-  const playingX = p.cursor >= 0 ? LEAD + p.cursor * BAR_W : null;
+  const bars = (p.voices.find((v) => !v.minims) ?? p.voices[0]).notes.length;
+  const barW = p.voices.some((v) => v.minims) ? BAR_W2 : BAR_W;
+  const natural = LEAD + bars * barW + 24;
+  const playingX = p.cursor >= 0 ? LEAD + p.cursor * barW : null;
   return (
     <Viewport natural={natural} naturalHeight={HEIGHT} zoom={p.zoom} onZoom={p.onZoom} zoomLabels={p.zoomLabels} tools={p.tools} playingX={playingX}>
       {(scale) => <TrioSystem {...p} from={0} to={bars - 1} scale={scale} last />}
@@ -81,6 +101,8 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
   const el = useRef<HTMLDivElement>(null);
   const geo = useRef<Geometry | null>(null);
   const n = p.to - p.from + 1;
+  /** Bars in the piece (a semibreve voice has one note a bar). */
+  const bars0 = (p.voices.find((v) => !v.minims) ?? p.voices[0]).notes.length;
 
   useEffect(() => {
     const host = el.current;
@@ -90,7 +112,7 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     probe.addClef("treble");
     probe.addTimeSignature("C|");
     const start0 = probe.getNoteStartX();
-    const naturalW = start0 + n * BAR_W + 24;
+    const naturalW = start0 + n * (p.voices.some((v) => v.minims) ? BAR_W2 : BAR_W) + 24;
     const logicalWidth = Math.max(naturalW, p.fill ?? 0);
     const barW = (logicalWidth - start0 - 24) / n;
     const renderer = new Renderer(host, Renderer.Backends.SVG);
@@ -129,7 +151,18 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
       void g;
     }
     const activeStaff = p.voices[p.active]?.staff ?? 0;
-    if (p.selected >= p.from && p.selected <= p.to) fill(p.selected - p.from, band(activeStaff).top, band(activeStaff).bottom, "var(--selection)");
+    if (p.selected >= p.from && p.selected <= p.to) {
+      const j = p.selected - p.from;
+      const half = p.voices[p.active]?.minims && p.selectedHalf != null && p.selected < bars0 - 1 ? p.selectedHalf : null;
+      if (half === null) fill(j, band(activeStaff).top, band(activeStaff).bottom, "var(--selection)");
+      else {
+        const mid = (columns[j].left + columns[j].right) / 2;
+        ctx.save();
+        ctx.setFillStyle("var(--selection)");
+        ctx.fillRect(half === 0 ? columns[j].left + 2 : mid, band(activeStaff).top, mid - columns[j].left - 2, band(activeStaff).bottom - band(activeStaff).top);
+        ctx.restore();
+      }
+    }
     if (p.cursor >= p.from && p.cursor <= p.to) fill(p.cursor - p.from, whole.top, whole.bottom, "var(--cursor)");
 
     staves.forEach((s) => s.draw());
@@ -140,12 +173,27 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     for (let j = 1; j < n; j++) staves.forEach((s) => ctx.fillRect(columns[j].left - 2, s.getYForLine(0), 1, s.getYForLine(4) - s.getYForLine(0)));
     ctx.restore();
 
-    const placeNote = (i: number, pitch: string, x: number, ink: string | null, diamond: boolean) => {
+    const placeNote = (i: number, pitch: string, x: number, ink: string | null, diamond: boolean, duration: "w" | "h" = "w", stem: 1 | -1 = 1) => {
       const clef = VEXFLOW_CLEF[p.clefs[i]].clef;
+      if (pitch === REST) {
+        // On the fourth line for the upper voice of a shared staff, the second for the lower one.
+        const bass = p.clefs[i] === "bass";
+        const key = stem === 1 ? (bass ? "f/3" : "d/5") : bass ? "b/2" : "g/4";
+        const r = new StaveNote({ keys: [key], duration: "hr", clef });
+        if (ink) r.setStyle({ fillStyle: ink, strokeStyle: ink });
+        r.setStave(staves[i]);
+        const tc = new TickContext();
+        tc.addTickable(r);
+        tc.preFormat();
+        tc.setX(0);
+        tc.setX(x - r.getAbsoluteX());
+        r.setContext(ctx).draw();
+        return r;
+      }
       const q = parsePitch(pitch);
       const acc = q.alter === 0 ? null : q.alter === 1 ? "#" : q.alter === -1 ? "b" : q.alter === 2 ? "##" : "bb";
       const key = `${q.step.toLowerCase()}${acc ?? ""}/${q.octave}`;
-      const note = new StaveNote({ keys: [diamond ? `${key}/D` : key], duration: "w", clef });
+      const note = new StaveNote({ keys: [diamond ? `${key}/D` : key], duration, clef, stem_direction: stem });
       if (acc) note.addModifier(new Accidental(acc));
       if (ink) note.setStyle({ fillStyle: ink, strokeStyle: ink });
       note.setStave(staves[i]);
@@ -165,42 +213,58 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     ctx.setFillStyle("var(--bar-number)");
     for (let j = 0; j < n; j++) ctx.fillText(String(p.from + j + 1), columns[j].left + 4, STAFF_Y[0] + 20);
     ctx.restore();
+    // Each voice's notes in a bar: one semibreve, or (minims) the thesis and arsis slots.
+    const inBar = (v: TrioVoice, bar: number, line: (string | null)[] | undefined) => {
+      if (!line) return [];
+      if (!v.minims) return [{ k: bar, q: line[bar] ?? null, half: 0 as 0 | 1, dur: "w" as const }];
+      if (bar === bars0 - 1) return [{ k: 2 * bar, q: line[2 * bar] ?? null, half: 0 as 0 | 1, dur: "w" as const }];
+      return [0, 1].map((h) => ({ k: 2 * bar + h, q: line[2 * bar + h] ?? null, half: h as 0 | 1, dur: "h" as const }));
+    };
+    /** The note sounding at the downbeat (for collisions and figures): the arsis after an opening rest. */
+    const downNote = (v: TrioVoice, bar: number) => {
+      const xs = inBar(v, bar, v.notes).filter((e) => e.q && e.q !== REST);
+      return xs.length ? xs[0].q : null;
+    };
+    const drawn = p.voices.map(() => new Map<number, StaveNote>());
     for (let j = 0; j < n; j++) {
       const bar = p.from + j;
       const x = columns[j].left + NOTE_PAD;
+      const halfX = (columns[j].right - columns[j].left) / 2;
       // Two voices a second apart (or in unison) on one staff: the lower one steps to the right.
       const shift = p.voices.map(() => 0);
       for (const st of [0, 1]) {
-        const on = p.voices.map((v, i) => ({ i, q: v.notes[bar] })).filter((x) => x.q && p.voices[x.i].staff === st).sort((a, b) => parsePitch(b.q!).diatonic - parsePitch(a.q!).diatonic);
+        const on = p.voices.map((v, i) => ({ i, q: v.minims ? (v.notes[2 * bar] && v.notes[2 * bar] !== REST ? v.notes[2 * bar] : null) : v.notes[bar] })).filter((x) => x.q && p.voices[x.i].staff === st).sort((a, b) => parsePitch(b.q!).diatonic - parsePitch(a.q!).diatonic);
         for (let k = 1; k < on.length; k++) if (parsePitch(on[k - 1].q!).diatonic - parsePitch(on[k].q!).diatonic <= 1 && !shift[on[k - 1].i]) shift[on[k].i] = 15;
       }
       p.voices.forEach((v, i) => {
-        const mine = v.notes[bar];
-        const fux = v.fux?.[bar];
-        const at = x + shift[i];
-        if (fux) {
-          const near = mine && Math.abs(parsePitch(mine).diatonic - parsePitch(fux).diatonic) <= 1;
-          placeNote(v.staff, fux, at + (near ? 13 : 0), "var(--ink-fux)", true);
-        }
-        if (mine) {
-          const note = placeNote(v.staff, mine, at, v.ink ?? null, false);
-          if (p.names) {
+        const fuxes = inBar(v, bar, v.fux);
+        inBar(v, bar, v.notes).forEach((e, n2) => {
+          const at = x + (e.half ? halfX : shift[i]);
+          const fux = fuxes[n2]?.q;
+          if (fux && fux !== REST) {
+            const near = e.q && e.q !== REST && Math.abs(parsePitch(e.q).diatonic - parsePitch(fux).diatonic) <= 1;
+            placeNote(v.staff, fux, at + (near ? 13 : 0), "var(--ink-fux)", true, e.dur, v.stem ?? 1);
+          }
+          if (!e.q) return;
+          const note = placeNote(v.staff, e.q, at, v.ink ?? null, false, e.dur, v.stem ?? 1);
+          drawn[i].set(e.k, note);
+          if (p.names && e.q !== REST) {
             // Names stand after the last notehead on the staff; two close notes' names part vertically.
-            const others = p.voices.filter((w, k) => k !== i && w.staff === v.staff && w.notes[bar]).map((w) => parsePitch(w.notes[bar]!).diatonic);
-            const d = parsePitch(mine).diatonic;
-            const nudge = others.some((o) => Math.abs(o - d) <= 2) ? (others.some((o) => o < d || (o === d && i > 0)) ? -4 : 5) : 0;
-            const after = Math.max(0, ...p.voices.map((w, k) => (w.staff === v.staff ? shift[k] : 0)));
+            const others = p.voices.filter((w, k) => k !== i && w.staff === v.staff && downNote(w, bar)).map((w) => parsePitch(downNote(w, bar)!).diatonic);
+            const d = parsePitch(e.q).diatonic;
+            const nudge = !e.half && others.some((o) => Math.abs(o - d) <= 2) ? (others.some((o) => o < d || (o === d && i > 0)) ? -4 : 5) : 0;
+            const after = e.half ? 0 : Math.max(0, ...p.voices.map((w, k) => (w.staff === v.staff ? shift[k] : 0)));
             ctx.save();
             ctx.setFont("Inter, system-ui, sans-serif", 9);
             ctx.setFillStyle(v.ink ?? "var(--ink-muted)");
-            ctx.fillText(noteName(mine, p.nameStyle), x + 20 + after, note.getYs()[0] + 3 + nudge);
+            ctx.fillText(noteName(e.q, p.nameStyle), at + (e.dur === "h" ? 14 : 20) + after, note.getYs()[0] + 3 + nudge);
             ctx.restore();
           }
-        }
+        });
       });
       // Figures above the lowest voice, stacked under the bass staff as a figured bass (highest on top).
       if (p.figures) {
-        const ps = p.voices.map((v) => v.notes[bar]);
+        const ps = p.voices.map((v) => downNote(v, bar));
         if (ps.every(Boolean)) {
           const bass = ps.reduce((lo, q, i) => (parsePitch(q!).midi < parsePitch(ps[lo]!).midi ? i : lo), ps.length - 1);
           const figs = ps
@@ -218,14 +282,33 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
           ctx.restore();
         }
       }
+      if (p.harmony) {
+        const ps = p.voices.map((v) => downNote(v, bar));
+        if (ps.every(Boolean)) {
+          const h = harmonyOf(ps as string[], p.harmony.final);
+          ctx.save();
+          ctx.setFont("'EB Garamond', Garamond, Georgia, serif", 13);
+          ctx.setFillStyle("var(--harmony-ink, #7a5a1a)");
+          ctx.fillText(h.guessed ? `(${h.roman})` : h.roman, x - 2, staves[1].getYForLine(4) + 34 + (p.figures ? 30 : 0));
+          ctx.restore();
+        }
+      }
     }
+    // The cadence tie (D114): an arsis held into the next thesis.
+    p.voices.forEach((v, i) => {
+      if (!v.minims) return;
+      for (const [k, a] of drawn[i]) {
+        const b = drawn[i].get(k + 1);
+        if (k % 2 === 1 && b && v.notes[k] && v.notes[k] !== REST && v.notes[k] === v.notes[k + 1]) new StaveTie({ first_note: a, last_note: b, first_indices: [0], last_indices: [0] }).setContext(ctx).draw();
+      }
+    });
     geo.current = {
       scale: p.scale,
       columns,
       staves: staves.map((s) => ({ top: s.getYForLine(0), bottom: s.getYForLine(4), spacing: s.getSpacingBetweenLines() })),
     };
     host.dataset.geometry = JSON.stringify(geo.current);
-  }, [p.voices, p.clefs, p.active, p.selected, p.cursor, p.marks, p.figures, p.names, p.nameStyle, p.pulse, p.from, p.to, p.scale, p.fill, p.last, p.label, n]);
+  }, [p.voices, p.clefs, p.active, p.selected, p.selectedHalf, p.cursor, p.marks, p.figures, p.harmony, p.names, p.nameStyle, p.pulse, p.from, p.to, p.scale, p.fill, p.last, p.label, n, bars0]);
 
   // Pointer: the nearest staff takes the tap; a second finger makes it a pinch, which writes nothing.
   const fingers = useRef(new Set<number>());
@@ -250,7 +333,9 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     // The active voice if it lives on this staff, else the player's voice that does (if any).
     const here = p.voices.map((v, i) => ({ v, i })).filter(({ v }) => v.staff === staff && v.editable).map(({ i }) => i);
     const voice = here.includes(p.active) ? p.active : (here[0] ?? null);
-    return { bar: p.from + column, voice, onStaff, natural: pitchAtPosition(p.clefs[staff], position) };
+    const c = g.columns[column];
+    const half: 0 | 1 = x >= (c.left + c.right) / 2 ? 1 : 0;
+    return { bar: p.from + column, voice, onStaff, half, natural: pitchAtPosition(p.clefs[staff], position) };
   };
   const lift = (e: React.PointerEvent) => {
     fingers.current.delete(e.pointerId);
@@ -278,7 +363,7 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
         if (lift(e) || !pr || Math.hypot(e.clientX - pr.x, e.clientY - pr.y) > 8) return;
         const at = locate(e);
         if (!at) return;
-        if (at.onStaff && at.voice !== null) p.onPlace(at.voice, at.bar, at.natural);
+        if (at.onStaff && at.voice !== null) p.onPlace(at.voice, at.bar, at.natural, at.half);
         else p.onSelect(at.voice, at.bar);
       }}
       onPointerCancel={(e) => {

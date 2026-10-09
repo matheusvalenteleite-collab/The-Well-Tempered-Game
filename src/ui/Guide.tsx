@@ -17,6 +17,7 @@ const KEYS: [string, string][] = [
   ["R", "help.keys.rest"],
   ["T", "help.keys.tie"],
   ["8 4 3 2 6 1", "help.keys.value"],
+  ["H", "help.keys.hint"],
   ["Space", "help.keys.hear"],
   ["P", "help.keys.play"],
   ["F1–F9", "help.keys.tracks"],
