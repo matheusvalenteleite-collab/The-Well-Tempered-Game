@@ -33,7 +33,7 @@ export function loadSamples(ctx: BaseAudioContext, set: SampleSet): Promise<void
     const m = SAMPLE_MANIFEST[set];
     const files = m.layers.length ? m.notes.flatMap((n) => m.layers.map((l) => ({ n, l, f: `${n}-v${l}.mp3` }))) : m.notes.map((n) => ({ n, l: 0, f: `${n}.mp3` }));
     // D112: one request for the whole instrument (its pack); the single files if there is none.
-    const pack = fetch(new URL(`samples/${set}/pack.bin`, document.baseURI))
+    const pack = fetch(new URL(`samples/${set}/pack.mp3`, document.baseURI))
       .then((r) => (r.ok ? r.arrayBuffer() : null))
       .catch(() => null);
     const bytes = async (f: string): Promise<ArrayBuffer> => {
