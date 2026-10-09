@@ -14,7 +14,7 @@
     "data": "npm run data:build && npm run data:validate",
     "chorales:fetch": "tools/chorales/fetch_bach.sh",
     "chorales:bach": "python3 tools/chorales/bach_import.py && python3 tools/chorales/bach_validate.py",
-    "chorales:kittel": "python3 tools/chorales/kittel_extract.py && python3 tools/chorales/kittel_check.py",
+    "chorales:kittel": "python3 tools/chorales/kittel_extract.py && python3 tools/chorales/kittel_check.py && python3 tools/chorales/kittel_musicxml.py",
     "typecheck": "tsc --noEmit",
     "test": "node --test test/*.test.ts",
     "report:m1": "node tools/m1/report.ts",

@@ -14,8 +14,189 @@
  "meter_sign": "C",
  "key_signature": 3,
  "length": "19/1",
+ "measures": [
+  {
+   "number": 1,
+   "offset": "0/1",
+   "length": "1/1",
+   "page": 13,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 2,
+   "offset": "1/1",
+   "length": "1/1",
+   "page": 13,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 3,
+   "offset": "2/1",
+   "length": "1/1",
+   "page": 13,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 4,
+   "offset": "3/1",
+   "length": "1/1",
+   "page": 13,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 5,
+   "offset": "4/1",
+   "length": "1/1",
+   "page": 13,
+   "barline_after": "solid"
+  },
+  {
+   "number": 6,
+   "offset": "5/1",
+   "length": "1/1",
+   "page": 13,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 7,
+   "offset": "6/1",
+   "length": "1/1",
+   "page": 13,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 8,
+   "offset": "7/1",
+   "length": "1/1",
+   "page": 13,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 9,
+   "offset": "8/1",
+   "length": "1/1",
+   "page": 13,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 10,
+   "offset": "9/1",
+   "length": "1/1",
+   "page": 13,
+   "barline_after": "solid"
+  },
+  {
+   "number": 11,
+   "offset": "10/1",
+   "length": "1/1",
+   "page": 14,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 12,
+   "offset": "11/1",
+   "length": "1/1",
+   "page": 14,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 13,
+   "offset": "12/1",
+   "length": "1/1",
+   "page": 14,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 14,
+   "offset": "13/1",
+   "length": "1/1",
+   "page": 14,
+   "barline_after": "solid"
+  },
+  {
+   "number": 15,
+   "offset": "14/1",
+   "length": "1/1",
+   "page": 14,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 16,
+   "offset": "15/1",
+   "length": "1/1",
+   "page": 14,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 17,
+   "offset": "16/1",
+   "length": "1/1",
+   "page": 14,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 18,
+   "offset": "17/1",
+   "length": "1/1",
+   "page": 14,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 19,
+   "offset": "18/1",
+   "length": "1/1",
+   "page": 14,
+   "barline_after": "solid+thick"
+  }
+ ],
+ "phrases": [
+  {
+   "number": 1,
+   "first_measure": 1,
+   "last_measure": 5,
+   "offset": "0/1",
+   "end": "5/1",
+   "ends_at_solid_barline": true
+  },
+  {
+   "number": 2,
+   "first_measure": 6,
+   "last_measure": 10,
+   "offset": "5/1",
+   "end": "10/1",
+   "ends_at_solid_barline": true
+  },
+  {
+   "number": 3,
+   "first_measure": 11,
+   "last_measure": 14,
+   "offset": "10/1",
+   "end": "14/1",
+   "ends_at_solid_barline": true
+  },
+  {
+   "number": 4,
+   "first_measure": 15,
+   "last_measure": 19,
+   "offset": "14/1",
+   "end": "19/1",
+   "ends_at_solid_barline": true
+  }
+ ],
+ "structure": {
+  "form": "through",
+  "sections": [
+   {
+    "label": "A",
+    "first_measure": 1,
+    "last_measure": 19
+   }
+  ],
+  "performed": [
+   "A"
+  ]
+ },
  "melody": {
-  "staff": 0,
   "role": "melody",
   "label": null,
   "notes": [
@@ -23,7 +204,9 @@
     "pitch": null,
     "rest": true,
     "duration": "1/2",
-    "offset": "0/1"
+    "offset": "0/1",
+    "measure": 1,
+    "_page": 13
    },
    {
     "pitch": "A4",
@@ -31,7 +214,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "1/2",
-    "_x": 145.69
+    "measure": 1,
+    "_x": 145.69,
+    "_page": 13
    },
    {
     "pitch": "A4",
@@ -39,8 +224,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "1/1",
-    "measure": "2",
-    "_x": 184.62
+    "measure": 2,
+    "_x": 184.62,
+    "_page": 13
    },
    {
     "pitch": "G#4",
@@ -48,8 +234,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "3/2",
-    "measure": "2",
-    "_x": 213.68
+    "measure": 2,
+    "_x": 213.68,
+    "_page": 13
    },
    {
     "pitch": "F#4",
@@ -57,8 +244,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "2/1",
-    "measure": "3",
-    "_x": 249.97
+    "measure": 3,
+    "_x": 249.97,
+    "_page": 13
    },
    {
     "pitch": "G#4",
@@ -66,9 +254,10 @@
     "rest": false,
     "duration": "0/1",
     "offset": "5/2",
-    "measure": "3",
+    "measure": 3,
     "grace": true,
-    "_x": 285.6
+    "_x": 285.6,
+    "_page": 13
    },
    {
     "pitch": "A4",
@@ -76,8 +265,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "5/2",
-    "measure": "3",
-    "_x": 291.02
+    "measure": 3,
+    "_x": 291.02,
+    "_page": 13
    },
    {
     "pitch": "B4",
@@ -85,8 +275,9 @@
     "rest": false,
     "duration": "1/1",
     "offset": "3/1",
-    "measure": "4",
-    "_x": 339.29
+    "measure": 4,
+    "_x": 339.29,
+    "_page": 13
    },
    {
     "pitch": "A4",
@@ -94,16 +285,18 @@
     "rest": false,
     "duration": "1/1",
     "offset": "4/1",
-    "measure": "5",
+    "measure": 5,
     "fermata": true,
-    "_x": 416.64
+    "_x": 416.64,
+    "_page": 13
    },
    {
     "pitch": null,
     "rest": true,
     "duration": "1/2",
     "offset": "5/1",
-    "measure": "6"
+    "measure": 6,
+    "_page": 13
    },
    {
     "pitch": "A4",
@@ -111,8 +304,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "11/2",
-    "measure": "6",
-    "_x": 493.98
+    "measure": 6,
+    "_x": 493.98,
+    "_page": 13
    },
    {
     "pitch": "A4",
@@ -120,8 +314,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "6/1",
-    "measure": "7",
-    "_x": 530.27
+    "measure": 7,
+    "_x": 530.27,
+    "_page": 13
    },
    {
     "pitch": "B4",
@@ -129,8 +324,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "13/2",
-    "measure": "7",
-    "_x": 559.32
+    "measure": 7,
+    "_x": 559.32,
+    "_page": 13
    },
    {
     "pitch": "A4",
@@ -138,9 +334,10 @@
     "rest": false,
     "duration": "0/1",
     "offset": "7/1",
-    "measure": "8",
+    "measure": 8,
     "grace": true,
-    "_x": 592.42
+    "_x": 592.42,
+    "_page": 13
    },
    {
     "pitch": "G#4",
@@ -148,8 +345,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "7/1",
-    "measure": "8",
-    "_x": 597.83
+    "measure": 8,
+    "_x": 597.83,
+    "_page": 13
    },
    {
     "pitch": "A4",
@@ -157,9 +355,10 @@
     "rest": false,
     "duration": "0/1",
     "offset": "15/2",
-    "measure": "8",
+    "measure": 8,
     "grace": true,
-    "_x": 621.48
+    "_x": 621.48,
+    "_page": 13
    },
    {
     "pitch": "B4",
@@ -167,8 +366,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "15/2",
-    "measure": "8",
-    "_x": 626.89
+    "measure": 8,
+    "_x": 626.89,
+    "_page": 13
    },
    {
     "pitch": "A4",
@@ -176,8 +376,9 @@
     "rest": false,
     "duration": "1/1",
     "offset": "8/1",
-    "measure": "9",
-    "_x": 670.42
+    "measure": 9,
+    "_x": 670.42,
+    "_page": 13
    },
    {
     "pitch": "G#4",
@@ -185,16 +386,18 @@
     "rest": false,
     "duration": "1/1",
     "offset": "9/1",
-    "measure": "10",
+    "measure": 10,
     "fermata": true,
-    "_x": 759.74
+    "_x": 759.74,
+    "_page": 13
    },
    {
     "pitch": null,
     "rest": true,
     "duration": "1/2",
     "offset": "10/1",
-    "measure": "11"
+    "measure": 11,
+    "_page": 14
    },
    {
     "pitch": "G#4",
@@ -202,8 +405,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "21/2",
-    "measure": "11",
-    "_x": 155.85
+    "measure": 11,
+    "_x": 155.85,
+    "_page": 14
    },
    {
     "pitch": "A4",
@@ -211,8 +415,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "11/1",
-    "measure": "12",
-    "_x": 190.99
+    "measure": 12,
+    "_x": 190.99,
+    "_page": 14
    },
    {
     "pitch": "A4",
@@ -220,8 +425,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "23/2",
-    "measure": "12",
-    "_x": 250.12
+    "measure": 12,
+    "_x": 250.12,
+    "_page": 14
    },
    {
     "pitch": "B4",
@@ -229,8 +435,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "12/1",
-    "measure": "13",
-    "_x": 316.48
+    "measure": 13,
+    "_x": 316.48,
+    "_page": 14
    },
    {
     "pitch": "C#5",
@@ -238,8 +445,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "25/2",
-    "measure": "13",
-    "_x": 344.39
+    "measure": 13,
+    "_x": 344.39,
+    "_page": 14
    },
    {
     "pitch": "B4",
@@ -247,8 +455,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "13/1",
-    "measure": "14",
-    "_x": 391.04
+    "measure": 14,
+    "_x": 391.04,
+    "_page": 14
    },
    {
     "pitch": "B4",
@@ -256,16 +465,18 @@
     "rest": false,
     "duration": "1/2",
     "offset": "27/2",
-    "measure": "14",
+    "measure": 14,
     "fermata": true,
-    "_x": 430.46
+    "_x": 430.46,
+    "_page": 14
    },
    {
     "pitch": null,
     "rest": true,
     "duration": "1/2",
     "offset": "14/1",
-    "measure": "15"
+    "measure": 15,
+    "_page": 14
    },
    {
     "pitch": "C#5",
@@ -273,8 +484,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "29/2",
-    "measure": "15",
-    "_x": 493.52
+    "measure": 15,
+    "_x": 493.52,
+    "_page": 14
    },
    {
     "pitch": "D5",
@@ -282,8 +494,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "15/1",
-    "measure": "16",
-    "_x": 528.66
+    "measure": 16,
+    "_x": 528.66,
+    "_page": 14
    },
    {
     "pitch": "C#5",
@@ -291,8 +504,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "31/2",
-    "measure": "16",
-    "_x": 568.08
+    "measure": 16,
+    "_x": 568.08,
+    "_page": 14
    },
    {
     "pitch": "B4",
@@ -300,8 +514,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "16/1",
-    "measure": "17",
-    "_x": 614.73
+    "measure": 17,
+    "_x": 614.73,
+    "_page": 14
    },
    {
     "pitch": "C#5",
@@ -309,8 +524,9 @@
     "rest": false,
     "duration": "1/2",
     "offset": "33/2",
-    "measure": "17",
-    "_x": 642.64
+    "measure": 17,
+    "_x": 642.64,
+    "_page": 14
    },
    {
     "pitch": "B4",
@@ -318,8 +534,9 @@
     "rest": false,
     "duration": "1/1",
     "offset": "17/1",
-    "measure": "18",
-    "_x": 689.29
+    "measure": 18,
+    "_x": 689.29,
+    "_page": 14
    },
    {
     "pitch": "A4",
@@ -327,16 +544,16 @@
     "rest": false,
     "duration": "1/1",
     "offset": "18/1",
-    "measure": "19",
+    "measure": 19,
     "fermata": true,
-    "_x": 779.79
+    "_x": 779.79,
+    "_page": 14
    }
   ],
   "figures": []
  },
  "basses": [
   {
-   "staff": 1,
    "role": "bass 1",
    "label": "[1]",
    "notes": [
@@ -344,7 +561,9 @@
      "pitch": null,
      "rest": true,
      "duration": "1/2",
-     "offset": "0/1"
+     "offset": "0/1",
+     "measure": 1,
+     "_page": 13
     },
     {
      "pitch": "A3",
@@ -352,7 +571,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "1/2",
-     "_x": 145.69
+     "measure": 1,
+     "_x": 145.69,
+     "_page": 13
     },
     {
      "pitch": "F#3",
@@ -360,8 +581,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "1/1",
-     "measure": "2",
-     "_x": 184.62
+     "measure": 2,
+     "_x": 184.62,
+     "_page": 13
     },
     {
      "pitch": "C#3",
@@ -369,8 +591,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "3/2",
-     "measure": "2",
-     "_x": 213.68
+     "measure": 2,
+     "_x": 213.68,
+     "_page": 13
     },
     {
      "pitch": "D3",
@@ -378,8 +601,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "2/1",
-     "measure": "3",
-     "_x": 249.97
+     "measure": 3,
+     "_x": 249.97,
+     "_page": 13
     },
     {
      "pitch": "A2",
@@ -387,8 +611,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "5/2",
-     "measure": "3",
-     "_x": 291.02
+     "measure": 3,
+     "_x": 291.02,
+     "_page": 13
     },
     {
      "pitch": "D3",
@@ -396,9 +621,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "3/1",
-     "measure": "4",
+     "measure": 4,
      "slur": "start",
-     "_x": 339.29
+     "_x": 339.29,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -406,9 +632,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "7/2",
-     "measure": "4",
+     "measure": 4,
      "slur": "stop",
-     "_x": 380.34
+     "_x": 380.34,
+     "_page": 13
     },
     {
      "pitch": "A2",
@@ -416,16 +643,18 @@
      "rest": false,
      "duration": "1/1",
      "offset": "4/1",
-     "measure": "5",
+     "measure": 5,
      "fermata": true,
-     "_x": 416.64
+     "_x": 416.64,
+     "_page": 13
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "5/1",
-     "measure": "6"
+     "measure": 6,
+     "_page": 13
     },
     {
      "pitch": "F#3",
@@ -433,8 +662,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "11/2",
-     "measure": "6",
-     "_x": 493.98
+     "measure": 6,
+     "_x": 493.98,
+     "_page": 13
     },
     {
      "pitch": "C#3",
@@ -442,8 +672,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "6/1",
-     "measure": "7",
-     "_x": 530.27
+     "measure": 7,
+     "_x": 530.27,
+     "_page": 13
     },
     {
      "pitch": "D#3",
@@ -451,9 +682,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "13/2",
-     "measure": "7",
+     "measure": 7,
      "accidental_shown": true,
-     "_x": 559.32
+     "_x": 559.32,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -461,8 +693,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "7/1",
-     "measure": "8",
-     "_x": 597.83
+     "measure": 8,
+     "_x": 597.83,
+     "_page": 13
     },
     {
      "pitch": "G#3",
@@ -470,8 +703,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "15/2",
-     "measure": "8",
-     "_x": 626.89
+     "measure": 8,
+     "_x": 626.89,
+     "_page": 13
     },
     {
      "pitch": "F#3",
@@ -479,8 +713,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "8/1",
-     "measure": "9",
-     "_x": 670.42
+     "measure": 9,
+     "_x": 670.42,
+     "_page": 13
     },
     {
      "pitch": "B2",
@@ -488,8 +723,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "17/2",
-     "measure": "9",
-     "_x": 711.47
+     "measure": 9,
+     "_x": 711.47,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -497,16 +733,18 @@
      "rest": false,
      "duration": "1/1",
      "offset": "9/1",
-     "measure": "10",
+     "measure": 10,
      "fermata": true,
-     "_x": 759.74
+     "_x": 759.74,
+     "_page": 13
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "10/1",
-     "measure": "11"
+     "measure": 11,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -514,8 +752,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "21/2",
-     "measure": "11",
-     "_x": 155.85
+     "measure": 11,
+     "_x": 155.85,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -523,8 +762,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "11/1",
-     "measure": "12",
-     "_x": 190.99
+     "measure": 12,
+     "_x": 190.99,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -532,9 +772,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "23/2",
-     "measure": "12",
+     "measure": 12,
      "slur": "start",
-     "_x": 250.12
+     "_x": 250.12,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -542,9 +783,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "47/4",
-     "measure": "12",
+     "measure": 12,
      "slur": "stop",
-     "_x": 269.83
+     "_x": 269.83,
+     "_page": 14
     },
     {
      "pitch": "B2",
@@ -552,8 +794,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "12/1",
-     "measure": "13",
-     "_x": 316.48
+     "measure": 13,
+     "_x": 316.48,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -561,8 +804,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "25/2",
-     "measure": "13",
-     "_x": 344.39
+     "measure": 13,
+     "_x": 344.39,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -570,8 +814,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "13/1",
-     "measure": "14",
-     "_x": 391.04
+     "measure": 14,
+     "_x": 391.04,
+     "_page": 14
     },
     {
      "pitch": "E2",
@@ -579,16 +824,18 @@
      "rest": false,
      "duration": "1/2",
      "offset": "27/2",
-     "measure": "14",
+     "measure": 14,
      "fermata": true,
-     "_x": 430.46
+     "_x": 430.46,
+     "_page": 14
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "14/1",
-     "measure": "15"
+     "measure": 15,
+     "_page": 14
     },
     {
      "pitch": "A3",
@@ -596,8 +843,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "29/2",
-     "measure": "15",
-     "_x": 493.52
+     "measure": 15,
+     "_x": 493.52,
+     "_page": 14
     },
     {
      "pitch": "F#3",
@@ -605,8 +853,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "15/1",
-     "measure": "16",
-     "_x": 528.66
+     "measure": 16,
+     "_x": 528.66,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -614,9 +863,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "31/2",
-     "measure": "16",
+     "measure": 16,
      "slur": "start",
-     "_x": 568.08
+     "_x": 568.08,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -624,9 +874,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "63/4",
-     "measure": "16",
+     "measure": 16,
      "slur": "stop",
-     "_x": 587.79
+     "_x": 587.79,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -634,8 +885,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "16/1",
-     "measure": "17",
-     "_x": 614.73
+     "measure": 17,
+     "_x": 614.73,
+     "_page": 14
     },
     {
      "pitch": "A3",
@@ -643,8 +895,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "33/2",
-     "measure": "17",
-     "_x": 642.64
+     "measure": 17,
+     "_x": 642.64,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -652,8 +905,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "17/1",
-     "measure": "18",
-     "_x": 689.29
+     "measure": 18,
+     "_x": 689.29,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -661,8 +915,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "35/2",
-     "measure": "18",
-     "_x": 733.14
+     "measure": 18,
+     "_x": 733.14,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -670,9 +925,10 @@
      "rest": false,
      "duration": "1/1",
      "offset": "18/1",
-     "measure": "19",
+     "measure": 19,
      "fermata": true,
-     "_x": 779.79
+     "_x": 779.79,
+     "_page": 14
     }
    ],
    "figures": [
@@ -995,7 +1251,6 @@
    ]
   },
   {
-   "staff": 2,
    "role": "bass 2",
    "label": "[2]",
    "notes": [
@@ -1003,7 +1258,9 @@
      "pitch": null,
      "rest": true,
      "duration": "1/2",
-     "offset": "0/1"
+     "offset": "0/1",
+     "measure": 1,
+     "_page": 13
     },
     {
      "pitch": "A2",
@@ -1011,7 +1268,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "1/2",
-     "_x": 145.69
+     "measure": 1,
+     "_x": 145.69,
+     "_page": 13
     },
     {
      "pitch": "B2",
@@ -1019,8 +1278,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "1/1",
-     "measure": "2",
-     "_x": 184.62
+     "measure": 2,
+     "_x": 184.62,
+     "_page": 13
     },
     {
      "pitch": "C#3",
@@ -1028,8 +1288,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "3/2",
-     "measure": "2",
-     "_x": 213.68
+     "measure": 2,
+     "_x": 213.68,
+     "_page": 13
     },
     {
      "pitch": "D3",
@@ -1037,8 +1298,9 @@
      "rest": false,
      "duration": "3/4",
      "offset": "2/1",
-     "measure": "3",
-     "_x": 249.97
+     "measure": 3,
+     "_x": 249.97,
+     "_page": 13
     },
     {
      "pitch": "C#3",
@@ -1046,8 +1308,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "11/4",
-     "measure": "3",
-     "_x": 311.54
+     "measure": 3,
+     "_x": 311.54,
+     "_page": 13
     },
     {
      "pitch": "B2",
@@ -1055,8 +1318,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "3/1",
-     "measure": "4",
-     "_x": 339.29
+     "measure": 4,
+     "_x": 339.29,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -1064,8 +1328,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "7/2",
-     "measure": "4",
-     "_x": 380.34
+     "measure": 4,
+     "_x": 380.34,
+     "_page": 13
     },
     {
      "pitch": "A2",
@@ -1073,16 +1338,18 @@
      "rest": false,
      "duration": "1/1",
      "offset": "4/1",
-     "measure": "5",
+     "measure": 5,
      "fermata": true,
-     "_x": 416.64
+     "_x": 416.64,
+     "_page": 13
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "5/1",
-     "measure": "6"
+     "measure": 6,
+     "_page": 13
     },
     {
      "pitch": "C#3",
@@ -1090,8 +1357,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "11/2",
-     "measure": "6",
-     "_x": 493.98
+     "measure": 6,
+     "_x": 493.98,
+     "_page": 13
     },
     {
      "pitch": "D3",
@@ -1099,8 +1367,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "6/1",
-     "measure": "7",
-     "_x": 530.27
+     "measure": 7,
+     "_x": 530.27,
+     "_page": 13
     },
     {
      "pitch": "D#3",
@@ -1108,9 +1377,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "13/2",
-     "measure": "7",
+     "measure": 7,
      "accidental_shown": true,
-     "_x": 559.32
+     "_x": 559.32,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -1118,8 +1388,9 @@
      "rest": false,
      "duration": "3/4",
      "offset": "7/1",
-     "measure": "8",
-     "_x": 597.83
+     "measure": 8,
+     "_x": 597.83,
+     "_page": 13
     },
     {
      "pitch": "D3",
@@ -1127,9 +1398,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "31/4",
-     "measure": "8",
+     "measure": 8,
      "accidental_shown": true,
-     "_x": 641.42
+     "_x": 641.42,
+     "_page": 13
     },
     {
      "pitch": "C#3",
@@ -1137,8 +1409,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "8/1",
-     "measure": "9",
-     "_x": 670.42
+     "measure": 9,
+     "_x": 670.42,
+     "_page": 13
     },
     {
      "pitch": "B2",
@@ -1146,8 +1419,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "17/2",
-     "measure": "9",
-     "_x": 711.47
+     "measure": 9,
+     "_x": 711.47,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -1155,16 +1429,18 @@
      "rest": false,
      "duration": "1/1",
      "offset": "9/1",
-     "measure": "10",
+     "measure": 10,
      "fermata": true,
-     "_x": 759.74
+     "_x": 759.74,
+     "_page": 13
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "10/1",
-     "measure": "11"
+     "measure": 11,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -1172,8 +1448,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "21/2",
-     "measure": "11",
-     "_x": 155.85
+     "measure": 11,
+     "_x": 155.85,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -1181,8 +1458,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "11/1",
-     "measure": "12",
-     "_x": 190.99
+     "measure": 12,
+     "_x": 190.99,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -1190,9 +1468,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "23/2",
-     "measure": "12",
+     "measure": 12,
      "tie": "start",
-     "_x": 250.12
+     "_x": 250.12,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -1200,9 +1479,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "12/1",
-     "measure": "13",
+     "measure": 13,
      "tie": "stop",
-     "_x": 316.48
+     "_x": 316.48,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -1210,9 +1490,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "25/2",
-     "measure": "13",
+     "measure": 13,
      "slur": "start",
-     "_x": 344.39
+     "_x": 344.39,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -1220,9 +1501,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "51/4",
-     "measure": "13",
+     "measure": 13,
      "slur": "stop",
-     "_x": 364.1
+     "_x": 364.1,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -1230,8 +1512,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "13/1",
-     "measure": "14",
-     "_x": 391.04
+     "measure": 14,
+     "_x": 391.04,
+     "_page": 14
     },
     {
      "pitch": "F3",
@@ -1239,9 +1522,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "53/4",
-     "measure": "14",
+     "measure": 14,
      "accidental_shown": true,
-     "_x": 410.75
+     "_x": 410.75,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -1249,16 +1533,18 @@
      "rest": false,
      "duration": "1/2",
      "offset": "27/2",
-     "measure": "14",
+     "measure": 14,
      "fermata": true,
-     "_x": 430.46
+     "_x": 430.46,
+     "_page": 14
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "14/1",
-     "measure": "15"
+     "measure": 15,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -1266,8 +1552,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "29/2",
-     "measure": "15",
-     "_x": 493.52
+     "measure": 15,
+     "_x": 493.52,
+     "_page": 14
     },
     {
      "pitch": "B2",
@@ -1275,8 +1562,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "15/1",
-     "measure": "16",
-     "_x": 528.66
+     "measure": 16,
+     "_x": 528.66,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -1284,8 +1572,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "31/2",
-     "measure": "16",
-     "_x": 568.08
+     "measure": 16,
+     "_x": 568.08,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -1293,8 +1582,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "16/1",
-     "measure": "17",
-     "_x": 614.73
+     "measure": 17,
+     "_x": 614.73,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -1302,9 +1592,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "33/2",
-     "measure": "17",
+     "measure": 17,
      "slur": "start",
-     "_x": 642.64
+     "_x": 642.64,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -1312,9 +1603,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "67/4",
-     "measure": "17",
+     "measure": 17,
      "slur": "stop",
-     "_x": 662.35
+     "_x": 662.35,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -1322,8 +1614,9 @@
      "rest": false,
      "duration": "1/1",
      "offset": "17/1",
-     "measure": "18",
-     "_x": 689.29
+     "measure": 18,
+     "_x": 689.29,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -1331,9 +1624,10 @@
      "rest": false,
      "duration": "1/1",
      "offset": "18/1",
-     "measure": "19",
+     "measure": 19,
      "fermata": true,
-     "_x": 779.79
+     "_x": 779.79,
+     "_page": 14
     }
    ],
    "figures": [
@@ -1822,7 +2116,6 @@
    ]
   },
   {
-   "staff": 3,
    "role": "bass 3",
    "label": "[3]",
    "notes": [
@@ -1830,7 +2123,9 @@
      "pitch": null,
      "rest": true,
      "duration": "1/2",
-     "offset": "0/1"
+     "offset": "0/1",
+     "measure": 1,
+     "_page": 13
     },
     {
      "pitch": "A3",
@@ -1838,7 +2133,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "1/2",
-     "_x": 145.69
+     "measure": 1,
+     "_x": 145.69,
+     "_page": 13
     },
     {
      "pitch": "D3",
@@ -1846,8 +2143,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "1/1",
-     "measure": "2",
-     "_x": 184.62
+     "measure": 2,
+     "_x": 184.62,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -1855,8 +2153,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "3/2",
-     "measure": "2",
-     "_x": 213.68
+     "measure": 2,
+     "_x": 213.68,
+     "_page": 13
     },
     {
      "pitch": "B2",
@@ -1864,8 +2163,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "2/1",
-     "measure": "3",
-     "_x": 249.97
+     "measure": 3,
+     "_x": 249.97,
+     "_page": 13
     },
     {
      "pitch": "C#3",
@@ -1873,8 +2173,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "5/2",
-     "measure": "3",
-     "_x": 291.02
+     "measure": 3,
+     "_x": 291.02,
+     "_page": 13
     },
     {
      "pitch": "D3",
@@ -1882,9 +2183,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "3/1",
-     "measure": "4",
+     "measure": 4,
      "slur": "start",
-     "_x": 339.29
+     "_x": 339.29,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -1892,9 +2194,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "7/2",
-     "measure": "4",
+     "measure": 4,
      "slur": "stop",
-     "_x": 380.34
+     "_x": 380.34,
+     "_page": 13
     },
     {
      "pitch": "A2",
@@ -1902,16 +2205,18 @@
      "rest": false,
      "duration": "1/1",
      "offset": "4/1",
-     "measure": "5",
+     "measure": 5,
      "fermata": true,
-     "_x": 416.64
+     "_x": 416.64,
+     "_page": 13
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "5/1",
-     "measure": "6"
+     "measure": 6,
+     "_page": 13
     },
     {
      "pitch": "A3",
@@ -1919,8 +2224,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "11/2",
-     "measure": "6",
-     "_x": 493.98
+     "measure": 6,
+     "_x": 493.98,
+     "_page": 13
     },
     {
      "pitch": "F#3",
@@ -1928,8 +2234,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "6/1",
-     "measure": "7",
-     "_x": 530.27
+     "measure": 7,
+     "_x": 530.27,
+     "_page": 13
     },
     {
      "pitch": "D#3",
@@ -1937,9 +2244,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "13/2",
-     "measure": "7",
+     "measure": 7,
      "accidental_shown": true,
-     "_x": 559.32
+     "_x": 559.32,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -1947,8 +2255,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "7/1",
-     "measure": "8",
-     "_x": 597.83
+     "measure": 8,
+     "_x": 597.83,
+     "_page": 13
     },
     {
      "pitch": "E#3",
@@ -1956,9 +2265,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "15/2",
-     "measure": "8",
+     "measure": 8,
      "accidental_shown": true,
-     "_x": 626.89
+     "_x": 626.89,
+     "_page": 13
     },
     {
      "pitch": "F#3",
@@ -1966,8 +2276,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "8/1",
-     "measure": "9",
-     "_x": 670.42
+     "measure": 9,
+     "_x": 670.42,
+     "_page": 13
     },
     {
      "pitch": "B2",
@@ -1975,8 +2286,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "17/2",
-     "measure": "9",
-     "_x": 711.47
+     "measure": 9,
+     "_x": 711.47,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -1984,16 +2296,18 @@
      "rest": false,
      "duration": "1/1",
      "offset": "9/1",
-     "measure": "10",
+     "measure": 10,
      "fermata": true,
-     "_x": 759.74
+     "_x": 759.74,
+     "_page": 13
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "10/1",
-     "measure": "11"
+     "measure": 11,
+     "_page": 14
     },
     {
      "pitch": "E#3",
@@ -2001,9 +2315,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "21/2",
-     "measure": "11",
+     "measure": 11,
      "accidental_shown": true,
-     "_x": 155.85
+     "_x": 155.85,
+     "_page": 14
     },
     {
      "pitch": "F#3",
@@ -2011,8 +2326,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "11/1",
-     "measure": "12",
-     "_x": 190.99
+     "measure": 12,
+     "_x": 190.99,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -2020,8 +2336,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "23/2",
-     "measure": "12",
-     "_x": 250.12
+     "measure": 12,
+     "_x": 250.12,
+     "_page": 14
     },
     {
      "pitch": "B2",
@@ -2029,8 +2346,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "12/1",
-     "measure": "13",
-     "_x": 316.48
+     "measure": 13,
+     "_x": 316.48,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -2038,8 +2356,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "25/2",
-     "measure": "13",
-     "_x": 344.39
+     "measure": 13,
+     "_x": 344.39,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -2047,8 +2366,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "13/1",
-     "measure": "14",
-     "_x": 391.04
+     "measure": 14,
+     "_x": 391.04,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -2056,16 +2376,18 @@
      "rest": false,
      "duration": "1/2",
      "offset": "27/2",
-     "measure": "14",
+     "measure": 14,
      "fermata": true,
-     "_x": 430.46
+     "_x": 430.46,
+     "_page": 14
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "14/1",
-     "measure": "15"
+     "measure": 15,
+     "_page": 14
     },
     {
      "pitch": "A3",
@@ -2073,8 +2395,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "29/2",
-     "measure": "15",
-     "_x": 493.52
+     "measure": 15,
+     "_x": 493.52,
+     "_page": 14
     },
     {
      "pitch": "G#3",
@@ -2082,8 +2405,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "15/1",
-     "measure": "16",
-     "_x": 528.66
+     "measure": 16,
+     "_x": 528.66,
+     "_page": 14
     },
     {
      "pitch": "A3",
@@ -2091,8 +2415,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "31/2",
-     "measure": "16",
-     "_x": 568.08
+     "measure": 16,
+     "_x": 568.08,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -2100,8 +2425,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "16/1",
-     "measure": "17",
-     "_x": 614.73
+     "measure": 17,
+     "_x": 614.73,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -2109,9 +2435,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "33/2",
-     "measure": "17",
+     "measure": 17,
      "slur": "start",
-     "_x": 642.64
+     "_x": 642.64,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -2119,9 +2446,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "67/4",
-     "measure": "17",
+     "measure": 17,
      "slur": "stop",
-     "_x": 662.35
+     "_x": 662.35,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -2129,8 +2457,9 @@
      "rest": false,
      "duration": "1/1",
      "offset": "17/1",
-     "measure": "18",
-     "_x": 689.29
+     "measure": 18,
+     "_x": 689.29,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -2138,9 +2467,10 @@
      "rest": false,
      "duration": "1/1",
      "offset": "18/1",
-     "measure": "19",
+     "measure": 19,
      "fermata": true,
-     "_x": 779.79
+     "_x": 779.79,
+     "_page": 14
     }
    ],
    "figures": [
@@ -2592,7 +2922,6 @@
    ]
   },
   {
-   "staff": 4,
    "role": "bass 4",
    "label": "[4]",
    "notes": [
@@ -2600,7 +2929,9 @@
      "pitch": null,
      "rest": true,
      "duration": "1/2",
-     "offset": "0/1"
+     "offset": "0/1",
+     "measure": 1,
+     "_page": 13
     },
     {
      "pitch": "A3",
@@ -2608,7 +2939,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "1/2",
-     "_x": 145.69
+     "measure": 1,
+     "_x": 145.69,
+     "_page": 13
     },
     {
      "pitch": "D#3",
@@ -2616,9 +2949,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "1/1",
-     "measure": "2",
+     "measure": 2,
      "accidental_shown": true,
-     "_x": 184.62
+     "_x": 184.62,
+     "_page": 13
     },
     {
      "pitch": "E#3",
@@ -2626,9 +2960,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "3/2",
-     "measure": "2",
+     "measure": 2,
      "accidental_shown": true,
-     "_x": 213.68
+     "_x": 213.68,
+     "_page": 13
     },
     {
      "pitch": "F#3",
@@ -2636,8 +2971,9 @@
      "rest": false,
      "duration": "3/4",
      "offset": "2/1",
-     "measure": "3",
-     "_x": 249.97
+     "measure": 3,
+     "_x": 249.97,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -2645,9 +2981,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "11/4",
-     "measure": "3",
+     "measure": 3,
      "accidental_shown": true,
-     "_x": 311.54
+     "_x": 311.54,
+     "_page": 13
     },
     {
      "pitch": "D3",
@@ -2655,8 +2992,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "3/1",
-     "measure": "4",
-     "_x": 339.29
+     "measure": 4,
+     "_x": 339.29,
+     "_page": 13
     },
     {
      "pitch": "B2",
@@ -2664,8 +3002,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "13/4",
-     "measure": "4",
-     "_x": 359.82
+     "measure": 4,
+     "_x": 359.82,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -2673,8 +3012,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "7/2",
-     "measure": "4",
-     "_x": 380.34
+     "measure": 4,
+     "_x": 380.34,
+     "_page": 13
     },
     {
      "pitch": "A2",
@@ -2682,16 +3022,18 @@
      "rest": false,
      "duration": "1/1",
      "offset": "4/1",
-     "measure": "5",
+     "measure": 5,
      "fermata": true,
-     "_x": 416.64
+     "_x": 416.64,
+     "_page": 13
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "5/1",
-     "measure": "6"
+     "measure": 6,
+     "_page": 13
     },
     {
      "pitch": "F#3",
@@ -2699,8 +3041,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "11/2",
-     "measure": "6",
-     "_x": 493.98
+     "measure": 6,
+     "_x": 493.98,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -2708,8 +3051,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "6/1",
-     "measure": "7",
-     "_x": 530.27
+     "measure": 7,
+     "_x": 530.27,
+     "_page": 13
     },
     {
      "pitch": "D#3",
@@ -2717,9 +3061,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "13/2",
-     "measure": "7",
+     "measure": 7,
      "accidental_shown": true,
-     "_x": 559.32
+     "_x": 559.32,
+     "_page": 13
     },
     {
      "pitch": "D3",
@@ -2727,9 +3072,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "7/1",
-     "measure": "8",
+     "measure": 8,
      "accidental_shown": true,
-     "_x": 597.83
+     "_x": 597.83,
+     "_page": 13
     },
     {
      "pitch": "C#3",
@@ -2737,8 +3083,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "15/2",
-     "measure": "8",
-     "_x": 626.89
+     "measure": 8,
+     "_x": 626.89,
+     "_page": 13
     },
     {
      "pitch": "F#3",
@@ -2746,8 +3093,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "8/1",
-     "measure": "9",
-     "_x": 670.42
+     "measure": 9,
+     "_x": 670.42,
+     "_page": 13
     },
     {
      "pitch": "B2",
@@ -2755,8 +3103,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "17/2",
-     "measure": "9",
-     "_x": 711.47
+     "measure": 9,
+     "_x": 711.47,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -2764,16 +3113,18 @@
      "rest": false,
      "duration": "1/1",
      "offset": "9/1",
-     "measure": "10",
+     "measure": 10,
      "fermata": true,
-     "_x": 759.74
+     "_x": 759.74,
+     "_page": 13
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "10/1",
-     "measure": "11"
+     "measure": 11,
+     "_page": 14
     },
     {
      "pitch": "F3",
@@ -2781,9 +3132,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "21/2",
-     "measure": "11",
+     "measure": 11,
      "accidental_shown": true,
-     "_x": 155.85
+     "_x": 155.85,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -2791,8 +3143,9 @@
      "rest": false,
      "duration": "3/4",
      "offset": "11/1",
-     "measure": "12",
-     "_x": 190.99
+     "measure": 12,
+     "_x": 190.99,
+     "_page": 14
     },
     {
      "pitch": "F3",
@@ -2800,9 +3153,10 @@
      "rest": false,
      "duration": "1/8",
      "offset": "47/4",
-     "measure": "12",
+     "measure": 12,
      "accidental_shown": true,
-     "_x": 269.83
+     "_x": 269.83,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -2810,8 +3164,9 @@
      "rest": false,
      "duration": "1/8",
      "offset": "95/8",
-     "measure": "12",
-     "_x": 289.54
+     "measure": 12,
+     "_x": 289.54,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -2819,8 +3174,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "12/1",
-     "measure": "13",
-     "_x": 316.48
+     "measure": 13,
+     "_x": 316.48,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -2828,8 +3184,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "25/2",
-     "measure": "13",
-     "_x": 344.39
+     "measure": 13,
+     "_x": 344.39,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -2837,8 +3194,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "51/4",
-     "measure": "13",
-     "_x": 364.1
+     "measure": 13,
+     "_x": 364.1,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -2846,8 +3204,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "13/1",
-     "measure": "14",
-     "_x": 391.04
+     "measure": 14,
+     "_x": 391.04,
+     "_page": 14
     },
     {
      "pitch": "B2",
@@ -2855,8 +3214,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "53/4",
-     "measure": "14",
-     "_x": 410.75
+     "measure": 14,
+     "_x": 410.75,
+     "_page": 14
     },
     {
      "pitch": "E2",
@@ -2864,16 +3224,18 @@
      "rest": false,
      "duration": "1/2",
      "offset": "27/2",
-     "measure": "14",
+     "measure": 14,
      "fermata": true,
-     "_x": 430.46
+     "_x": 430.46,
+     "_page": 14
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "14/1",
-     "measure": "15"
+     "measure": 15,
+     "_page": 14
     },
     {
      "pitch": "A#2",
@@ -2881,9 +3243,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "29/2",
-     "measure": "15",
+     "measure": 15,
      "accidental_shown": true,
-     "_x": 493.52
+     "_x": 493.52,
+     "_page": 14
     },
     {
      "pitch": "B2",
@@ -2891,8 +3254,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "15/1",
-     "measure": "16",
-     "_x": 528.66
+     "measure": 16,
+     "_x": 528.66,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -2900,9 +3264,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "31/2",
-     "measure": "16",
+     "measure": 16,
      "slur": "start",
-     "_x": 568.08
+     "_x": 568.08,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -2910,9 +3275,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "63/4",
-     "measure": "16",
+     "measure": 16,
      "slur": "stop",
-     "_x": 587.79
+     "_x": 587.79,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -2920,8 +3286,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "16/1",
-     "measure": "17",
-     "_x": 614.73
+     "measure": 17,
+     "_x": 614.73,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -2929,9 +3296,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "33/2",
-     "measure": "17",
+     "measure": 17,
      "slur": "start",
-     "_x": 642.64
+     "_x": 642.64,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -2939,9 +3307,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "67/4",
-     "measure": "17",
+     "measure": 17,
      "slur": "stop",
-     "_x": 662.35
+     "_x": 662.35,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -2949,8 +3318,9 @@
      "rest": false,
      "duration": "3/8",
      "offset": "17/1",
-     "measure": "18",
-     "_x": 689.29
+     "measure": 18,
+     "_x": 689.29,
+     "_page": 14
     },
     {
      "pitch": "D#3",
@@ -2958,9 +3328,10 @@
      "rest": false,
      "duration": "1/8",
      "offset": "139/8",
-     "measure": "18",
+     "measure": 18,
      "accidental_shown": true,
-     "_x": 713.43
+     "_x": 713.43,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -2968,8 +3339,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "35/2",
-     "measure": "18",
-     "_x": 733.14
+     "measure": 18,
+     "_x": 733.14,
+     "_page": 14
     },
     {
      "pitch": "E2",
@@ -2977,8 +3349,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "71/4",
-     "measure": "18",
-     "_x": 752.85
+     "measure": 18,
+     "_x": 752.85,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -2986,9 +3359,10 @@
      "rest": false,
      "duration": "1/1",
      "offset": "18/1",
-     "measure": "19",
+     "measure": 19,
      "fermata": true,
-     "_x": 779.79
+     "_x": 779.79,
+     "_page": 14
     }
    ],
    "figures": [
@@ -3205,8 +3579,7 @@
       {
        "level": 1,
        "y": 314.5,
-       "interval": 8,
-       "accidental": "natural"
+       "interval": 8
       },
       {
        "level": 0,
@@ -3218,13 +3591,14 @@
     {
      "onset": "33/4",
      "placed": "subdivided",
-     "x": 681.35,
+     "x": 678.61,
      "page": 13,
      "stack": [
       {
        "level": 1,
        "y": 314.5,
-       "interval": 7
+       "interval": 7,
+       "accidental": "natural"
       },
       {
        "level": 0,
@@ -3292,7 +3666,7 @@
      ]
     },
     {
-     "onset": "45/4",
+     "onset": "91/8",
      "placed": "subdivided",
      "x": 221.15,
      "page": 14,
@@ -3481,7 +3855,19 @@
       {
        "level": 0,
        "y": 322.4,
-       "interval": 4,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "65/4",
+     "placed": "subdivided",
+     "x": 622.94,
+     "page": 14,
+     "stack": [
+      {
+       "level": 0,
+       "y": 322.4,
        "accidental": "sharp"
       }
      ]
@@ -3603,7 +3989,6 @@
    ]
   },
   {
-   "staff": 5,
    "role": "bass 5",
    "label": "[5]",
    "notes": [
@@ -3611,7 +3996,9 @@
      "pitch": null,
      "rest": true,
      "duration": "1/2",
-     "offset": "0/1"
+     "offset": "0/1",
+     "measure": 1,
+     "_page": 13
     },
     {
      "pitch": "A2",
@@ -3619,8 +4006,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "1/2",
+     "measure": 1,
      "tie": "start",
-     "_x": 145.69
+     "_x": 145.69,
+     "_page": 13
     },
     {
      "pitch": "A2",
@@ -3628,9 +4017,10 @@
      "rest": false,
      "duration": "1/1",
      "offset": "1/1",
-     "measure": "2",
+     "measure": 2,
      "tie": "continue",
-     "_x": 184.62
+     "_x": 184.62,
+     "_page": 13
     },
     {
      "pitch": "A2",
@@ -3638,9 +4028,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "2/1",
-     "measure": "3",
+     "measure": 3,
      "tie": "stop",
-     "_x": 249.97
+     "_x": 249.97,
+     "_page": 13
     },
     {
      "pitch": "B2",
@@ -3648,8 +4039,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "9/4",
-     "measure": "3",
-     "_x": 270.5
+     "measure": 3,
+     "_x": 270.5,
+     "_page": 13
     },
     {
      "pitch": "C#3",
@@ -3657,9 +4049,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "5/2",
-     "measure": "3",
+     "measure": 3,
      "slur": "start",
-     "_x": 291.02
+     "_x": 291.02,
+     "_page": 13
     },
     {
      "pitch": "A2",
@@ -3667,9 +4060,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "11/4",
-     "measure": "3",
+     "measure": 3,
      "slur": "stop",
-     "_x": 311.54
+     "_x": 311.54,
+     "_page": 13
     },
     {
      "pitch": "D3",
@@ -3677,8 +4071,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "3/1",
-     "measure": "4",
-     "_x": 339.29
+     "measure": 4,
+     "_x": 339.29,
+     "_page": 13
     },
     {
      "pitch": "B2",
@@ -3686,8 +4081,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "13/4",
-     "measure": "4",
-     "_x": 359.82
+     "measure": 4,
+     "_x": 359.82,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -3695,8 +4091,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "7/2",
-     "measure": "4",
-     "_x": 380.34
+     "measure": 4,
+     "_x": 380.34,
+     "_page": 13
     },
     {
      "pitch": "A2",
@@ -3704,16 +4101,18 @@
      "rest": false,
      "duration": "1/1",
      "offset": "4/1",
-     "measure": "5",
+     "measure": 5,
      "fermata": true,
-     "_x": 416.64
+     "_x": 416.64,
+     "_page": 13
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "5/1",
-     "measure": "6"
+     "measure": 6,
+     "_page": 13
     },
     {
      "pitch": "C#3",
@@ -3721,8 +4120,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "11/2",
-     "measure": "6",
-     "_x": 493.98
+     "measure": 6,
+     "_x": 493.98,
+     "_page": 13
     },
     {
      "pitch": "D3",
@@ -3730,8 +4130,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "6/1",
-     "measure": "7",
-     "_x": 530.27
+     "measure": 7,
+     "_x": 530.27,
+     "_page": 13
     },
     {
      "pitch": "D#3",
@@ -3739,9 +4140,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "13/2",
-     "measure": "7",
+     "measure": 7,
      "accidental_shown": true,
-     "_x": 559.32
+     "_x": 559.32,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -3749,8 +4151,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "7/1",
-     "measure": "8",
-     "_x": 597.83
+     "measure": 8,
+     "_x": 597.83,
+     "_page": 13
     },
     {
      "pitch": "E#3",
@@ -3758,9 +4161,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "15/2",
-     "measure": "8",
+     "measure": 8,
      "accidental_shown": true,
-     "_x": 626.89
+     "_x": 626.89,
+     "_page": 13
     },
     {
      "pitch": "F#3",
@@ -3768,8 +4172,9 @@
      "rest": false,
      "duration": "1/1",
      "offset": "8/1",
-     "measure": "9",
-     "_x": 670.42
+     "measure": 9,
+     "_x": 670.42,
+     "_page": 13
     },
     {
      "pitch": "C#3",
@@ -3777,16 +4182,18 @@
      "rest": false,
      "duration": "1/1",
      "offset": "9/1",
-     "measure": "10",
+     "measure": 10,
      "fermata": true,
-     "_x": 759.74
+     "_x": 759.74,
+     "_page": 13
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "10/1",
-     "measure": "11"
+     "measure": 11,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -3794,8 +4201,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "21/2",
-     "measure": "11",
-     "_x": 155.85
+     "measure": 11,
+     "_x": 155.85,
+     "_page": 14
     },
     {
      "pitch": "F#3",
@@ -3803,8 +4211,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "11/1",
-     "measure": "12",
-     "_x": 190.99
+     "measure": 12,
+     "_x": 190.99,
+     "_page": 14
     },
     {
      "pitch": "F#3",
@@ -3812,8 +4221,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "23/2",
-     "measure": "12",
-     "_x": 250.12
+     "measure": 12,
+     "_x": 250.12,
+     "_page": 14
     },
     {
      "pitch": "G#3",
@@ -3821,8 +4231,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "12/1",
-     "measure": "13",
-     "_x": 316.48
+     "measure": 13,
+     "_x": 316.48,
+     "_page": 14
     },
     {
      "pitch": "A3",
@@ -3830,8 +4241,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "25/2",
-     "measure": "13",
-     "_x": 344.39
+     "measure": 13,
+     "_x": 344.39,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -3839,8 +4251,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "13/1",
-     "measure": "14",
-     "_x": 391.04
+     "measure": 14,
+     "_x": 391.04,
+     "_page": 14
     },
     {
      "pitch": "D#3",
@@ -3848,9 +4261,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "53/4",
-     "measure": "14",
+     "measure": 14,
      "accidental_shown": true,
-     "_x": 410.75
+     "_x": 410.75,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -3858,16 +4272,18 @@
      "rest": false,
      "duration": "1/2",
      "offset": "27/2",
-     "measure": "14",
+     "measure": 14,
      "fermata": true,
-     "_x": 430.46
+     "_x": 430.46,
+     "_page": 14
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "14/1",
-     "measure": "15"
+     "measure": 15,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -3875,9 +4291,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "29/2",
-     "measure": "15",
+     "measure": 15,
      "tie": "start",
-     "_x": 493.52
+     "_x": 493.52,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -3885,9 +4302,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "15/1",
-     "measure": "16",
+     "measure": 16,
      "tie": "stop",
-     "_x": 528.66
+     "_x": 528.66,
+     "_page": 14
     },
     {
      "pitch": "B2",
@@ -3895,8 +4313,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "61/4",
-     "measure": "16",
-     "_x": 548.37
+     "measure": 16,
+     "_x": 548.37,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -3904,8 +4323,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "31/2",
-     "measure": "16",
-     "_x": 568.08
+     "measure": 16,
+     "_x": 568.08,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -3913,8 +4333,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "63/4",
-     "measure": "16",
-     "_x": 587.79
+     "measure": 16,
+     "_x": 587.79,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -3922,8 +4343,9 @@
      "rest": false,
      "duration": "3/4",
      "offset": "16/1",
-     "measure": "17",
-     "_x": 614.73
+     "measure": 17,
+     "_x": 614.73,
+     "_page": 14
     },
     {
      "pitch": "D#3",
@@ -3931,9 +4353,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "67/4",
-     "measure": "17",
+     "measure": 17,
      "accidental_shown": true,
-     "_x": 662.35
+     "_x": 662.35,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -3941,8 +4364,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "17/1",
-     "measure": "18",
-     "_x": 689.29
+     "measure": 18,
+     "_x": 689.29,
+     "_page": 14
     },
     {
      "pitch": "E2",
@@ -3950,8 +4374,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "35/2",
-     "measure": "18",
-     "_x": 733.14
+     "measure": 18,
+     "_x": 733.14,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -3959,9 +4384,10 @@
      "rest": false,
      "duration": "1/1",
      "offset": "18/1",
-     "measure": "19",
+     "measure": 19,
      "fermata": true,
-     "_x": 779.79
+     "_x": 779.79,
+     "_page": 14
     }
    ],
    "figures": [
@@ -4636,7 +5062,6 @@
    ]
   },
   {
-   "staff": 6,
    "role": "bass 6",
    "label": "[6]",
    "notes": [
@@ -4644,7 +5069,9 @@
      "pitch": null,
      "rest": true,
      "duration": "1/2",
-     "offset": "0/1"
+     "offset": "0/1",
+     "measure": 1,
+     "_page": 13
     },
     {
      "pitch": "A2",
@@ -4652,7 +5079,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "1/2",
-     "_x": 145.69
+     "measure": 1,
+     "_x": 145.69,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -4660,8 +5089,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "1/1",
-     "measure": "2",
-     "_x": 184.62
+     "measure": 2,
+     "_x": 184.62,
+     "_page": 13
     },
     {
      "pitch": "E#3",
@@ -4669,9 +5099,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "3/2",
-     "measure": "2",
+     "measure": 2,
      "accidental_shown": true,
-     "_x": 213.68
+     "_x": 213.68,
+     "_page": 13
     },
     {
      "pitch": "F#3",
@@ -4679,8 +5110,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "2/1",
-     "measure": "3",
-     "_x": 249.97
+     "measure": 3,
+     "_x": 249.97,
+     "_page": 13
     },
     {
      "pitch": "C#3",
@@ -4688,8 +5120,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "5/2",
-     "measure": "3",
-     "_x": 291.02
+     "measure": 3,
+     "_x": 291.02,
+     "_page": 13
     },
     {
      "pitch": "D3",
@@ -4697,8 +5130,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "3/1",
-     "measure": "4",
-     "_x": 339.29
+     "measure": 4,
+     "_x": 339.29,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -4706,8 +5140,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "7/2",
-     "measure": "4",
-     "_x": 380.34
+     "measure": 4,
+     "_x": 380.34,
+     "_page": 13
     },
     {
      "pitch": "A2",
@@ -4715,16 +5150,18 @@
      "rest": false,
      "duration": "1/1",
      "offset": "4/1",
-     "measure": "5",
+     "measure": 5,
      "fermata": true,
-     "_x": 416.64
+     "_x": 416.64,
+     "_page": 13
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "5/1",
-     "measure": "6"
+     "measure": 6,
+     "_page": 13
     },
     {
      "pitch": "A2",
@@ -4732,8 +5169,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "11/2",
-     "measure": "6",
-     "_x": 493.98
+     "measure": 6,
+     "_x": 493.98,
+     "_page": 13
     },
     {
      "pitch": "D3",
@@ -4741,8 +5179,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "6/1",
-     "measure": "7",
-     "_x": 530.27
+     "measure": 7,
+     "_x": 530.27,
+     "_page": 13
     },
     {
      "pitch": "B2",
@@ -4750,8 +5189,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "13/2",
-     "measure": "7",
-     "_x": 559.32
+     "measure": 7,
+     "_x": 559.32,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -4759,8 +5199,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "7/1",
-     "measure": "8",
-     "_x": 597.83
+     "measure": 8,
+     "_x": 597.83,
+     "_page": 13
     },
     {
      "pitch": "C#3",
@@ -4768,8 +5209,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "15/2",
-     "measure": "8",
-     "_x": 626.89
+     "measure": 8,
+     "_x": 626.89,
+     "_page": 13
     },
     {
      "pitch": "F#3",
@@ -4777,8 +5219,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "8/1",
-     "measure": "9",
-     "_x": 670.42
+     "measure": 9,
+     "_x": 670.42,
+     "_page": 13
     },
     {
      "pitch": "A2",
@@ -4786,8 +5229,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "17/2",
-     "measure": "9",
-     "_x": 711.47
+     "measure": 9,
+     "_x": 711.47,
+     "_page": 13
     },
     {
      "pitch": "F#2",
@@ -4795,8 +5239,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "35/4",
-     "measure": "9",
-     "_x": 731.99
+     "measure": 9,
+     "_x": 731.99,
+     "_page": 13
     },
     {
      "pitch": "C#3",
@@ -4804,16 +5249,18 @@
      "rest": false,
      "duration": "1/1",
      "offset": "9/1",
-     "measure": "10",
+     "measure": 10,
      "fermata": true,
-     "_x": 759.74
+     "_x": 759.74,
+     "_page": 13
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "10/1",
-     "measure": "11"
+     "measure": 11,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -4821,8 +5268,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "21/2",
-     "measure": "11",
-     "_x": 155.85
+     "measure": 11,
+     "_x": 155.85,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -4830,8 +5278,9 @@
      "rest": false,
      "duration": "3/4",
      "offset": "11/1",
-     "measure": "12",
-     "_x": 190.99
+     "measure": 12,
+     "_x": 190.99,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -4839,8 +5288,9 @@
      "rest": false,
      "duration": "1/8",
      "offset": "47/4",
-     "measure": "12",
-     "_x": 269.83
+     "measure": 12,
+     "_x": 269.83,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -4848,8 +5298,9 @@
      "rest": false,
      "duration": "1/8",
      "offset": "95/8",
-     "measure": "12",
-     "_x": 289.54
+     "measure": 12,
+     "_x": 289.54,
+     "_page": 14
     },
     {
      "pitch": "B2",
@@ -4857,8 +5308,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "12/1",
-     "measure": "13",
-     "_x": 316.48
+     "measure": 13,
+     "_x": 316.48,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -4866,8 +5318,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "25/2",
-     "measure": "13",
-     "_x": 344.39
+     "measure": 13,
+     "_x": 344.39,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -4875,8 +5328,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "13/1",
-     "measure": "14",
-     "_x": 391.04
+     "measure": 14,
+     "_x": 391.04,
+     "_page": 14
     },
     {
      "pitch": "F3",
@@ -4884,9 +5338,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "53/4",
-     "measure": "14",
+     "measure": 14,
      "accidental_shown": true,
-     "_x": 410.75
+     "_x": 410.75,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -4894,16 +5349,18 @@
      "rest": false,
      "duration": "1/2",
      "offset": "27/2",
-     "measure": "14",
+     "measure": 14,
      "fermata": true,
-     "_x": 430.46
+     "_x": 430.46,
+     "_page": 14
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "14/1",
-     "measure": "15"
+     "measure": 15,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -4911,8 +5368,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "29/2",
-     "measure": "15",
-     "_x": 493.52
+     "measure": 15,
+     "_x": 493.52,
+     "_page": 14
     },
     {
      "pitch": "B2",
@@ -4920,8 +5378,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "15/1",
-     "measure": "16",
-     "_x": 528.66
+     "measure": 16,
+     "_x": 528.66,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -4929,8 +5388,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "31/2",
-     "measure": "16",
-     "_x": 568.08
+     "measure": 16,
+     "_x": 568.08,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -4938,8 +5398,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "16/1",
-     "measure": "17",
-     "_x": 614.73
+     "measure": 17,
+     "_x": 614.73,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -4947,8 +5408,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "33/2",
-     "measure": "17",
-     "_x": 642.64
+     "measure": 17,
+     "_x": 642.64,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -4956,8 +5418,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "17/1",
-     "measure": "18",
-     "_x": 689.29
+     "measure": 18,
+     "_x": 689.29,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -4965,8 +5428,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "35/2",
-     "measure": "18",
-     "_x": 733.14
+     "measure": 18,
+     "_x": 733.14,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -4974,9 +5438,10 @@
      "rest": false,
      "duration": "1/1",
      "offset": "18/1",
-     "measure": "19",
+     "measure": 19,
      "fermata": true,
-     "_x": 779.79
+     "_x": 779.79,
+     "_page": 14
     }
    ],
    "figures": [
@@ -5436,7 +5901,6 @@
    ]
   },
   {
-   "staff": 7,
    "role": "bass 7",
    "label": "[7]",
    "notes": [
@@ -5444,7 +5908,9 @@
      "pitch": null,
      "rest": true,
      "duration": "1/2",
-     "offset": "0/1"
+     "offset": "0/1",
+     "measure": 1,
+     "_page": 13
     },
     {
      "pitch": "A3",
@@ -5452,7 +5918,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "1/2",
-     "_x": 145.69
+     "measure": 1,
+     "_x": 145.69,
+     "_page": 13
     },
     {
      "pitch": "F#3",
@@ -5460,8 +5928,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "1/1",
-     "measure": "2",
-     "_x": 184.62
+     "measure": 2,
+     "_x": 184.62,
+     "_page": 13
     },
     {
      "pitch": "C#3",
@@ -5469,8 +5938,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "3/2",
-     "measure": "2",
-     "_x": 213.68
+     "measure": 2,
+     "_x": 213.68,
+     "_page": 13
     },
     {
      "pitch": "D3",
@@ -5478,8 +5948,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "2/1",
-     "measure": "3",
-     "_x": 249.97
+     "measure": 3,
+     "_x": 249.97,
+     "_page": 13
     },
     {
      "pitch": "A3",
@@ -5487,9 +5958,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "5/2",
-     "measure": "3",
+     "measure": 3,
      "tie": "start",
-     "_x": 291.02
+     "_x": 291.02,
+     "_page": 13
     },
     {
      "pitch": "A3",
@@ -5497,9 +5969,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "3/1",
-     "measure": "4",
+     "measure": 4,
      "tie": "stop",
-     "_x": 339.29
+     "_x": 339.29,
+     "_page": 13
     },
     {
      "pitch": "G#3",
@@ -5507,8 +5980,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "7/2",
-     "measure": "4",
-     "_x": 380.34
+     "measure": 4,
+     "_x": 380.34,
+     "_page": 13
     },
     {
      "pitch": "A3",
@@ -5516,16 +5990,18 @@
      "rest": false,
      "duration": "1/1",
      "offset": "4/1",
-     "measure": "5",
+     "measure": 5,
      "fermata": true,
-     "_x": 416.64
+     "_x": 416.64,
+     "_page": 13
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "5/1",
-     "measure": "6"
+     "measure": 6,
+     "_page": 13
     },
     {
      "pitch": "F#3",
@@ -5533,8 +6009,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "11/2",
-     "measure": "6",
-     "_x": 493.98
+     "measure": 6,
+     "_x": 493.98,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -5542,8 +6019,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "6/1",
-     "measure": "7",
-     "_x": 530.27
+     "measure": 7,
+     "_x": 530.27,
+     "_page": 13
     },
     {
      "pitch": "D#3",
@@ -5551,9 +6029,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "13/2",
-     "measure": "7",
+     "measure": 7,
      "accidental_shown": true,
-     "_x": 559.32
+     "_x": 559.32,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -5561,8 +6040,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "7/1",
-     "measure": "8",
-     "_x": 597.83
+     "measure": 8,
+     "_x": 597.83,
+     "_page": 13
     },
     {
      "pitch": "G#3",
@@ -5570,8 +6050,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "15/2",
-     "measure": "8",
-     "_x": 626.89
+     "measure": 8,
+     "_x": 626.89,
+     "_page": 13
     },
     {
      "pitch": "A3",
@@ -5579,9 +6060,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "8/1",
-     "measure": "9",
+     "measure": 9,
      "slur": "start",
-     "_x": 670.42
+     "_x": 670.42,
+     "_page": 13
     },
     {
      "pitch": "G#3",
@@ -5589,9 +6071,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "33/4",
-     "measure": "9",
+     "measure": 9,
      "slur": "stop",
-     "_x": 690.94
+     "_x": 690.94,
+     "_page": 13
     },
     {
      "pitch": "F#3",
@@ -5599,8 +6082,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "17/2",
-     "measure": "9",
-     "_x": 711.47
+     "measure": 9,
+     "_x": 711.47,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -5608,16 +6092,18 @@
      "rest": false,
      "duration": "1/1",
      "offset": "9/1",
-     "measure": "10",
+     "measure": 10,
      "fermata": true,
-     "_x": 759.74
+     "_x": 759.74,
+     "_page": 13
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "10/1",
-     "measure": "11"
+     "measure": 11,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -5625,9 +6111,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "21/2",
-     "measure": "11",
+     "measure": 11,
      "tie": "start",
-     "_x": 155.85
+     "_x": 155.85,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -5635,9 +6122,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "11/1",
-     "measure": "12",
+     "measure": 12,
      "tie": "stop",
-     "_x": 190.99
+     "_x": 190.99,
+     "_page": 14
     },
     {
      "pitch": "F#3",
@@ -5645,8 +6133,9 @@
      "rest": false,
      "duration": "1/8",
      "offset": "45/4",
-     "measure": "12",
-     "_x": 210.7
+     "measure": 12,
+     "_x": 210.7,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -5654,8 +6143,9 @@
      "rest": false,
      "duration": "1/8",
      "offset": "91/8",
-     "measure": "12",
-     "_x": 230.41
+     "measure": 12,
+     "_x": 230.41,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -5663,9 +6153,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "23/2",
-     "measure": "12",
+     "measure": 12,
      "slur": "start",
-     "_x": 250.12
+     "_x": 250.12,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -5673,9 +6164,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "47/4",
-     "measure": "12",
+     "measure": 12,
      "slur": "stop",
-     "_x": 269.83
+     "_x": 269.83,
+     "_page": 14
     },
     {
      "pitch": "B2",
@@ -5683,8 +6175,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "12/1",
-     "measure": "13",
-     "_x": 316.48
+     "measure": 13,
+     "_x": 316.48,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -5692,8 +6185,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "25/2",
-     "measure": "13",
-     "_x": 344.39
+     "measure": 13,
+     "_x": 344.39,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -5701,8 +6195,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "13/1",
-     "measure": "14",
-     "_x": 391.04
+     "measure": 14,
+     "_x": 391.04,
+     "_page": 14
     },
     {
      "pitch": "D#3",
@@ -5710,9 +6205,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "53/4",
-     "measure": "14",
+     "measure": 14,
      "accidental_shown": true,
-     "_x": 410.75
+     "_x": 410.75,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -5720,16 +6216,18 @@
      "rest": false,
      "duration": "1/2",
      "offset": "27/2",
-     "measure": "14",
+     "measure": 14,
      "fermata": true,
-     "_x": 430.46
+     "_x": 430.46,
+     "_page": 14
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "14/1",
-     "measure": "15"
+     "measure": 15,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -5737,8 +6235,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "29/2",
-     "measure": "15",
-     "_x": 493.52
+     "measure": 15,
+     "_x": 493.52,
+     "_page": 14
     },
     {
      "pitch": "F#3",
@@ -5746,8 +6245,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "15/1",
-     "measure": "16",
-     "_x": 528.66
+     "measure": 16,
+     "_x": 528.66,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -5755,8 +6255,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "31/2",
-     "measure": "16",
-     "_x": 568.08
+     "measure": 16,
+     "_x": 568.08,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -5764,8 +6265,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "16/1",
-     "measure": "17",
-     "_x": 614.73
+     "measure": 17,
+     "_x": 614.73,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -5773,9 +6275,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "33/2",
-     "measure": "17",
+     "measure": 17,
      "slur": "start",
-     "_x": 642.64
+     "_x": 642.64,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -5783,9 +6286,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "67/4",
-     "measure": "17",
+     "measure": 17,
      "slur": "stop",
-     "_x": 662.35
+     "_x": 662.35,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -5793,8 +6297,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "17/1",
-     "measure": "18",
-     "_x": 689.29
+     "measure": 18,
+     "_x": 689.29,
+     "_page": 14
     },
     {
      "pitch": "E2",
@@ -5802,8 +6307,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "35/2",
-     "measure": "18",
-     "_x": 733.14
+     "measure": 18,
+     "_x": 733.14,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -5811,9 +6317,10 @@
      "rest": false,
      "duration": "1/1",
      "offset": "18/1",
-     "measure": "19",
+     "measure": 19,
      "fermata": true,
-     "_x": 779.79
+     "_x": 779.79,
+     "_page": 14
     }
    ],
    "figures": [
@@ -6344,7 +6851,6 @@
    ]
   },
   {
-   "staff": 8,
    "role": "bass 8",
    "label": "[8]",
    "notes": [
@@ -6352,7 +6858,9 @@
      "pitch": null,
      "rest": true,
      "duration": "1/2",
-     "offset": "0/1"
+     "offset": "0/1",
+     "measure": 1,
+     "_page": 13
     },
     {
      "pitch": "A3",
@@ -6360,7 +6868,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "1/2",
-     "_x": 145.69
+     "measure": 1,
+     "_x": 145.69,
+     "_page": 13
     },
     {
      "pitch": "F#3",
@@ -6368,8 +6878,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "1/1",
-     "measure": "2",
-     "_x": 184.62
+     "measure": 2,
+     "_x": 184.62,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -6377,8 +6888,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "3/2",
-     "measure": "2",
-     "_x": 213.68
+     "measure": 2,
+     "_x": 213.68,
+     "_page": 13
     },
     {
      "pitch": "D3",
@@ -6386,8 +6898,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "2/1",
-     "measure": "3",
-     "_x": 249.97
+     "measure": 3,
+     "_x": 249.97,
+     "_page": 13
     },
     {
      "pitch": "C#3",
@@ -6395,8 +6908,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "5/2",
-     "measure": "3",
-     "_x": 291.02
+     "measure": 3,
+     "_x": 291.02,
+     "_page": 13
     },
     {
      "pitch": "B2",
@@ -6404,8 +6918,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "3/1",
-     "measure": "4",
-     "_x": 339.29
+     "measure": 4,
+     "_x": 339.29,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -6413,8 +6928,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "7/2",
-     "measure": "4",
-     "_x": 380.34
+     "measure": 4,
+     "_x": 380.34,
+     "_page": 13
     },
     {
      "pitch": "A2",
@@ -6422,16 +6938,18 @@
      "rest": false,
      "duration": "1/1",
      "offset": "4/1",
-     "measure": "5",
+     "measure": 5,
      "fermata": true,
-     "_x": 416.64
+     "_x": 416.64,
+     "_page": 13
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "5/1",
-     "measure": "6"
+     "measure": 6,
+     "_page": 13
     },
     {
      "pitch": "A3",
@@ -6439,8 +6957,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "11/2",
-     "measure": "6",
-     "_x": 493.98
+     "measure": 6,
+     "_x": 493.98,
+     "_page": 13
     },
     {
      "pitch": "F#3",
@@ -6448,8 +6967,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "6/1",
-     "measure": "7",
-     "_x": 530.27
+     "measure": 7,
+     "_x": 530.27,
+     "_page": 13
     },
     {
      "pitch": "B3",
@@ -6457,8 +6977,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "13/2",
-     "measure": "7",
-     "_x": 559.32
+     "measure": 7,
+     "_x": 559.32,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -6466,8 +6987,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "7/1",
-     "measure": "8",
-     "_x": 597.83
+     "measure": 8,
+     "_x": 597.83,
+     "_page": 13
     },
     {
      "pitch": "D3",
@@ -6475,9 +6997,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "15/2",
-     "measure": "8",
+     "measure": 8,
      "accidental_shown": true,
-     "_x": 626.89
+     "_x": 626.89,
+     "_page": 13
     },
     {
      "pitch": "C3",
@@ -6485,9 +7008,10 @@
      "rest": false,
      "duration": "1/2",
      "offset": "8/1",
-     "measure": "9",
+     "measure": 9,
      "accidental_shown": true,
-     "_x": 670.42
+     "_x": 670.42,
+     "_page": 13
     },
     {
      "pitch": "B2",
@@ -6495,8 +7019,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "17/2",
-     "measure": "9",
-     "_x": 711.47
+     "measure": 9,
+     "_x": 711.47,
+     "_page": 13
     },
     {
      "pitch": "E3",
@@ -6504,16 +7029,18 @@
      "rest": false,
      "duration": "1/1",
      "offset": "9/1",
-     "measure": "10",
+     "measure": 10,
      "fermata": true,
-     "_x": 759.74
+     "_x": 759.74,
+     "_page": 13
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "10/1",
-     "measure": "11"
+     "measure": 11,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -6521,8 +7048,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "21/2",
-     "measure": "11",
-     "_x": 155.85
+     "measure": 11,
+     "_x": 155.85,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -6530,8 +7058,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "11/1",
-     "measure": "12",
-     "_x": 190.99
+     "measure": 12,
+     "_x": 190.99,
+     "_page": 14
     },
     {
      "pitch": "D3",
@@ -6539,9 +7068,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "23/2",
-     "measure": "12",
+     "measure": 12,
      "slur": "start",
-     "_x": 250.12
+     "_x": 250.12,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -6549,9 +7079,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "47/4",
-     "measure": "12",
+     "measure": 12,
      "slur": "stop",
-     "_x": 269.83
+     "_x": 269.83,
+     "_page": 14
     },
     {
      "pitch": "B2",
@@ -6559,8 +7090,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "12/1",
-     "measure": "13",
-     "_x": 316.48
+     "measure": 13,
+     "_x": 316.48,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -6568,8 +7100,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "25/2",
-     "measure": "13",
-     "_x": 344.39
+     "measure": 13,
+     "_x": 344.39,
+     "_page": 14
     },
     {
      "pitch": "G#2",
@@ -6577,8 +7110,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "13/1",
-     "measure": "14",
-     "_x": 391.04
+     "measure": 14,
+     "_x": 391.04,
+     "_page": 14
     },
     {
      "pitch": "F#2",
@@ -6586,8 +7120,9 @@
      "rest": false,
      "duration": "1/4",
      "offset": "53/4",
-     "measure": "14",
-     "_x": 410.75
+     "measure": 14,
+     "_x": 410.75,
+     "_page": 14
     },
     {
      "pitch": "E2",
@@ -6595,16 +7130,18 @@
      "rest": false,
      "duration": "1/2",
      "offset": "27/2",
-     "measure": "14",
+     "measure": 14,
      "fermata": true,
-     "_x": 430.46
+     "_x": 430.46,
+     "_page": 14
     },
     {
      "pitch": null,
      "rest": true,
      "duration": "1/2",
      "offset": "14/1",
-     "measure": "15"
+     "measure": 15,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -6612,8 +7149,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "29/2",
-     "measure": "15",
-     "_x": 493.52
+     "measure": 15,
+     "_x": 493.52,
+     "_page": 14
     },
     {
      "pitch": "F#3",
@@ -6621,9 +7159,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "15/1",
-     "measure": "16",
+     "measure": 16,
      "slur": "start",
-     "_x": 528.66
+     "_x": 528.66,
+     "_page": 14
     },
     {
      "pitch": "G#3",
@@ -6631,10 +7170,11 @@
      "rest": false,
      "duration": "1/4",
      "offset": "61/4",
-     "measure": "16",
+     "measure": 16,
      "slur": "stop",
      "accidental_shown": true,
-     "_x": 548.37
+     "_x": 548.37,
+     "_page": 14
     },
     {
      "pitch": "A3",
@@ -6642,8 +7182,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "31/2",
-     "measure": "16",
-     "_x": 568.08
+     "measure": 16,
+     "_x": 568.08,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -6651,8 +7192,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "16/1",
-     "measure": "17",
-     "_x": 614.73
+     "measure": 17,
+     "_x": 614.73,
+     "_page": 14
     },
     {
      "pitch": "C#3",
@@ -6660,9 +7202,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "33/2",
-     "measure": "17",
+     "measure": 17,
      "slur": "start",
-     "_x": 642.64
+     "_x": 642.64,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -6670,9 +7213,10 @@
      "rest": false,
      "duration": "1/4",
      "offset": "67/4",
-     "measure": "17",
+     "measure": 17,
      "slur": "stop",
-     "_x": 662.35
+     "_x": 662.35,
+     "_page": 14
     },
     {
      "pitch": "E3",
@@ -6680,8 +7224,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "17/1",
-     "measure": "18",
-     "_x": 689.29
+     "measure": 18,
+     "_x": 689.29,
+     "_page": 14
     },
     {
      "pitch": "E2",
@@ -6689,8 +7234,9 @@
      "rest": false,
      "duration": "1/2",
      "offset": "35/2",
-     "measure": "18",
-     "_x": 733.14
+     "measure": 18,
+     "_x": 733.14,
+     "_page": 14
     },
     {
      "pitch": "A2",
@@ -6698,9 +7244,10 @@
      "rest": false,
      "duration": "1/1",
      "offset": "18/1",
-     "measure": "19",
+     "measure": 19,
      "fermata": true,
-     "_x": 779.79
+     "_x": 779.79,
+     "_page": 14
     }
    ],
    "figures": [
@@ -6835,8 +7382,8 @@
      ]
     },
     {
-     "onset": "6/1",
-     "placed": "over_note",
+     "onset": "25/4",
+     "placed": "subdivided",
      "x": 531.96,
      "page": 13,
      "stack": [
@@ -6849,7 +7396,7 @@
      ]
     },
     {
-     "onset": "25/4",
+     "onset": "51/8",
      "placed": "subdivided",
      "x": 544.8,
      "page": 13,
@@ -7221,5 +7768,6 @@
    ]
   }
  ],
- "extraction_report": []
+ "extraction_report": [],
+ "findings": []
 }

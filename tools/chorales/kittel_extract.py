@@ -135,6 +135,7 @@ class Note:
     measure: str | None = None
     artic: list = field(default_factory=list)
     grace: bool = False
+    chord: list = field(default_factory=list)  # further noteheads struck with this one (lowest kept as the note)
 
 
 def glyphs_of(page) -> tuple[list[Glyph], list[dict]]:
@@ -159,7 +160,9 @@ def glyphs_of(page) -> tuple[list[Glyph], list[dict]]:
             if t not in FIG_FIGURATO:
                 raise ValueError(f"page {page.page_number}: unknown FiguratoB glyph {t!r}")
             k, v = FIG_FIGURATO[t]
-            out.append(Glyph("fig_" + k, v, x, y, ch["x1"] - ch["x0"], ch["size"], font, t))
+            # FiguratoB reports zero advance widths; its digits are about 0.45 em wide.
+            w = ch["x1"] - ch["x0"] or 0.45 * ch["size"]
+            out.append(Glyph("fig_" + k, v, x, y, w, ch["size"], font, t))
         else:
             text.append({"font": font, "text": t, "x": x, "y": y, "size": ch["size"]})
     return out, text
@@ -294,8 +297,17 @@ def read_page(page, prev_state: dict | None) -> dict:
     by_staff: dict[int, list[Note]] = defaultdict(list)
     for n in notes:
         by_staff[n.staff].append(n)
-    for lst in by_staff.values():
+    for si, lst in by_staff.items():
         lst.sort(key=lambda n: (n.x, -n.y))
+        # Noteheads at one x in one staff are one chord (in the basses: a cadence note doubled at
+        # the octave). The lowest stays the note; the others ride along in `chord`.
+        merged: list[Note] = []
+        for n in lst:
+            if merged and not n.rest and not merged[-1].rest and abs(n.x - merged[-1].x) < 1.5 and n.head == merged[-1].head:
+                merged[-1].chord.append(n)
+            else:
+                merged.append(n)
+        by_staff[si] = merged
 
     # Accidentals, dots, fermatas, flags, articulations -> notes
     used = set()
@@ -333,12 +345,23 @@ def read_page(page, prev_state: dict | None) -> dict:
             if cands:
                 min(cands, key=lambda n: abs(n.x - g.x)).artic.append(g.value)
         elif g.kind == "flag":
-            s = staff_of(staves, g.y, staves[0].space * 8) or nearest_staff(staves, g.y)
-            cands = [n for n in by_staff[s.index] if not n.rest and n.head == "black" and abs(g.x - n.x) < 2.5 * s.space]
+            # A flag hangs from the end of its stem: find the stem, then the notehead at its
+            # other end (a flag can reach into the staff above or below).
+            stem = next((l for l in stems if abs(l["x0"] - g.x) < 1.2 and l["top"] - 2 <= g.y <= l["bottom"] + 2), None)
+            cands = []
+            if stem is not None:
+                for lst in by_staff.values():
+                    for n in lst:
+                        if n.rest or n.head != "black":
+                            continue
+                        if (abs(n.x - stem["x0"]) < 0.9 or abs(n.x + n._w - stem["x0"]) < 0.9) and stem["top"] - 2 <= n.y <= stem["bottom"] + 2:  # type: ignore[attr-defined]
+                            cands.append(n)
+            if not cands:
+                cands = [n for lst in by_staff.values() for n in lst if not n.rest and n.head == "black" and abs(n.x + n._w - g.x) < 3.5 and 0 < n.y - g.y < 18]  # type: ignore[attr-defined]
             if cands:
-                min(cands, key=lambda n: abs(g.x - n.x)).flags = g.value
+                max(cands, key=lambda n: abs(n.y - g.y)).flags = g.value
             else:
-                report.append(f"p{page.page_number} staff {s.index}: flag at x={g.x:.1f} not attached")
+                report.append(f"p{page.page_number}: flag at x={g.x:.1f} y={g.y:.1f} not attached")
 
     # Stems -> notes; beams -> stems
     for s in staves:
@@ -376,8 +399,29 @@ def read_page(page, prev_state: dict | None) -> dict:
                 d += add
             n.duration = d
 
+    # Staff roles: staff 0 is the melody; a staff labelled "[n]" at the left is bass n; an unlabelled
+    # staff below the first is the melody printed again for the bass under it (No. 21, where
+    # one bass ends its last phrase in another place).
+    labels: dict[int, int] = {}
+    lab_chars = sorted((t for t in text if t["font"] == "Academico" and t["x"] < 90), key=lambda t: (round(t["y"]), t["x"]))
+    for t in lab_chars:
+        if t["text"].isdigit():
+            st = min(staves, key=lambda s: abs((s.top + s.bottom) / 2 - t["y"] + 3))
+            labels[st.index] = labels.get(st.index, 0) * 10 + int(t["text"])
+    roles: dict[int, str] = {0: "melody"}
+    for st in staves[1:]:
+        if st.index in labels:
+            roles[st.index] = f"bass {labels[st.index]}"
+    for st in staves[1:]:
+        if st.index not in labels:
+            nxt = next((x for x in staves if x.index > st.index and x.index in labels), None)
+            roles[st.index] = f"melody for bass {labels[nxt.index]}" if nxt else "unlabelled"
+            if staff_info[st.index]["clef"] != "G":
+                report.append(f"p{page.page_number} staff {st.index}: unlabelled staff with an F clef")
     return {
         "page": page.page_number,
+        "roles": roles,
+        "variant_staves": {si for si, r in roles.items() if r.startswith("melody for")},
         "staves": staves,
         "staff_info": staff_info,
         "bars": bars,
@@ -416,38 +460,73 @@ def _beam_y_at(c: dict, x: float) -> float | None:
 # --- time --------------------------------------------------------------------------------------------
 
 
+def bar_grid(pg: dict) -> list[float]:
+    """The system's barline positions (x), merged across staves (a staff that starts mid-system,
+    such as a reprinted melody, shares the barlines it reaches)."""
+    xs = sorted(b["x"] for si in pg["bars"] for b in pg["bars"][si])
+    grid: list[float] = []
+    for x in xs:
+        if not grid or x - grid[-1] > 3:
+            grid.append(x)
+    return grid
+
+
 def assign_time(pg: dict, meter_len: F, start_offset: F, first_measure: int, report: list[str]) -> list[dict]:
-    """Give every note an onset. Barlines split each staff into measures; inside a measure, onsets
-    are the running sum of durations. A whole rest fills its bar. The result is then checked
-    against the x positions: notes at the same onset must line up across staves."""
-    measures_out = []
-    bars = pg["bars"]
+    """Give every note an onset, on a bar grid shared by all staves.
+
+    The edition bars the chorales irregularly (its dashed bar lines follow the phrase, not a
+    metre) and leaves a bar empty, without rests, in the staves that do not need it (a bass whose
+    cadence takes one more bar than the others). So each bar has one length, the longest content
+    of any staff in it, and each staff's onsets run from the start of the bar. A whole rest fills
+    its bar. A staff that fills only part of a bar is reported (an underfull bar)."""
+    grid = bar_grid(pg)
+    nbars = len(grid) + 1
+    in_bar: dict[int, list[list[Note]]] = {}
     for si, lst in pg["notes"].items():
-        xs = [b["x"] for b in bars[si]]
-        cur = start_offset
-        bar_i = 0
-        groups: list[list[Note]] = [[]]
+        groups: list[list[Note]] = [[] for _ in range(nbars)]
         for n in lst:
-            while bar_i < len(xs) and n.x > xs[bar_i]:
-                groups.append([])
-                bar_i += 1
-            groups[-1].append(n)
-        # the barline list may end before the staff ends; pad
-        while len(groups) < len(xs) + 1:
-            groups.append([])
-        t = start_offset
-        for gi, grp in enumerate(groups):
-            # measure lengths: the first group of the first page may be an anacrusis
-            for n in grp:
+            k = sum(1 for x in grid if n.x > x)
+            groups[k].append(n)
+        in_bar[si] = groups
+    lengths = []
+    for k in range(nbars):
+        content = [sum((n.duration for n in g[k] if not (n.rest and n.head == "whole")), F(0)) for g in in_bar.values()]
+        L = max(content, default=F(0))
+        if L == 0 and any(n.rest and n.head == "whole" for g in in_bar.values() for n in g[k]):
+            L = meter_len
+        lengths.append(L)
+    t0 = start_offset
+    bars_out = []
+    for k in range(nbars):
+        for si, groups in in_bar.items():
+            t = t0
+            for n in groups[k]:
                 if n.rest and n.head == "whole":
-                    n.duration = meter_len
-            total = sum((n.duration for n in grp), F(0))
-            for n in grp:
+                    n.duration = lengths[k]
+                n.bar = k  # type: ignore[attr-defined]
                 n.offset = t
                 t += n.duration
-            if si == 0:
-                measures_out.append({"start": None, "length": total})
-    return measures_out
+            filled = t - t0
+            if groups[k] and filled < lengths[k] and groups[k][-1].fermata:
+                pg.setdefault("findings", []).append(f"p{pg['page']} staff {si}: the fermata note ends {lengths[k] - filled} before the other staves")
+            elif groups[k] and filled != lengths[k] and si not in pg.get("variant_staves", ()):
+                report.append(f"p{pg['page']} staff {si}: bar at x>{grid[k - 1] if k else 0:.0f} holds {filled} of {lengths[k]}")
+        bars_out.append({"index": k, "x_start": grid[k - 1] if k else None, "x_end": grid[k] if k < len(grid) else None, "start": t0, "length": lengths[k]})
+        t0 += lengths[k]
+    pg["bar_grid"] = bars_out
+    pg["end"] = t0
+    # the style of each barline, from the bass staves (the melody staff has its own short lines)
+    dots = [g for g in pg["glyphs"] if g.kind == "repeatdots"]
+    for b in bars_out:
+        x = b["x_end"]
+        if x is None:
+            continue
+        styles = [bl["style"] for si in pg["bars"] if si != 0 for bl in pg["bars"][si] if abs(bl["x"] - x) < 3]
+        style = max(set(styles), key=styles.count) if styles else "solid"
+        left = any(-9 < g.x - x < 0 for g in dots)
+        right = any(0 < g.x - x < 12 for g in dots)
+        b["barline"] = style + (" end-repeat" if left else "") + (" start-repeat" if right else "")
+    return bars_out
 
 
 def align_check(pg: dict, report: list[str]) -> None:
@@ -481,7 +560,7 @@ def read_figures(pg: dict, report: list[str]) -> dict[int, list[dict]]:
     per_staff: dict[int, list[Glyph]] = defaultdict(list)
     for g in figs:
         # a figure sits above its bass staff: the nearest staff whose top is below the glyph
-        below = [s for s in staves[1:] if s.top >= g.y - 2]
+        below = [s for s in staves[1:] if s.top >= g.y - 2 and pg["roles"].get(s.index, "").startswith("bass")]
         if not below:
             report.append(f"p{pg['page']}: figure glyph at y={g.y:.1f} below the last staff")
             continue
@@ -514,7 +593,12 @@ def read_figures(pg: dict, report: list[str]) -> dict[int, list[dict]]:
                     break
                 h = row_mates[-1]
                 pair = {h.kind, g.kind}
-                touching = g.x - (h.x + h.w) < 2.5
+                # FiguratoB reports unreliable glyph widths: judge by the distance between origins
+                # Measured over the book: a digit and the accidental after it touch (gap -0.2..0.7 pt)
+                # when they are one figure ("6♮"); "4 ♯", two figures in succession, leaves 2.3 pt.
+                # FiguratoB reports unreliable widths, so an accidental before its digit is judged
+                # by the distance between origins.
+                touching = g.x - (h.x + h.w) < 1.6 or (h.kind.startswith("fig_acc") and 0 < g.x - h.x < 8)
                 if touching and ("fig_digit" in pair or "fig_raised" in pair) and ("fig_acc" in pair or "fig_acc_bracketed" in pair) and len(row_mates) == 1:
                     c.append(g)
                     placed = True
@@ -578,6 +662,15 @@ def read_figures(pg: dict, report: list[str]) -> dict[int, list[dict]]:
             # the onset: the note whose x is nearest the column's left, or an x between notes
             onset, how = time_at_x(notes, min(xs), cx, pg)
             result.append({"x": round(min(xs), 2), "cx": cx, "onset": onset, "placed": how, "rows": items})
+        # Several figures over one note ("4 ♮", "6/4 5/3" over a cadence note): only the first
+        # stands at its onset; the others follow inside the note.
+        by_on: dict = defaultdict(list)
+        for c in result:
+            if c["placed"] == "over_note":
+                by_on[c["onset"]].append(c)
+        for group in by_on.values():
+            for c in sorted(group, key=lambda c: c["cx"])[1:]:
+                c["onset"], c["placed"] = None, "unplaced"
         place_inside_notes(result, notes)
         for c in result:
             if c["onset"] is None:
@@ -629,10 +722,17 @@ def place_inside_notes(result: list[dict], notes: list[Note]) -> None:
             if not gap:
                 continue
             step = (tb - ta) / (len(gap) + 1)
-            if step.numerator != 1 or step.denominator & (step.denominator - 1):
-                step = F(1, 4)
-            for k, c in enumerate(gap, 1):
-                t = ta + k * step
+            if step.numerator == 1 and not step.denominator & (step.denominator - 1):
+                times = [ta + k * step for k in range(1, len(gap) + 1)]
+            else:
+                # Halve what is left each time: "9 8 7" over a minim gives 9 on the beat, 8 on the
+                # second crotchet, 7 on the last quaver.
+                times, t, rest = [], ta, tb - ta
+                for _ in gap:
+                    rest /= 2
+                    t += rest
+                    times.append(t)
+            for c, t in zip(gap, times):
                 if ta < t < tb:
                     c["onset"], c["placed"] = t, "subdivided"
 
@@ -657,12 +757,15 @@ def spell(pg: dict, report: list[str]) -> None:
                 continue
             d = BOTTOM_LINE[info["clef"]] + n.step_pos
             step, octave = STEPS[d % 7], d // 7
-            if n.acc_written is not None:
-                local[(step, octave)] = n.acc_written
-                alter = n.acc_written
-            else:
-                alter = local.get((step, octave), ks.get(step, 0))
-            n.pitch = Pitch(step, alter, octave)
+            for m in [n] + n.chord:
+                d = BOTTOM_LINE[info["clef"]] + m.step_pos
+                step, octave = STEPS[d % 7], d // 7
+                if m.acc_written is not None:
+                    local[(step, octave)] = m.acc_written
+                    alter = m.acc_written
+                else:
+                    alter = local.get((step, octave), ks.get(step, 0))
+                m.pitch = Pitch(step, alter, octave)
 
 
 def ties_and_slurs(pg: dict, report: list[str]) -> None:
@@ -682,7 +785,8 @@ def ties_and_slurs(pg: dict, report: list[str]) -> None:
         a = min(left, key=lambda n: abs(n.y - ya)) if left else None
         b = min(right, key=lambda n: abs(n.y - yb)) if right else None
         consecutive = a is not None and b is not None and a in lst and lst.index(b) == lst.index(a) + 1
-        if a and b and consecutive and a.pitch and b.pitch and a.pitch.diatonic == b.pitch.diatonic and abs(a.y - b.y) < 1:
+        # a tie joins equal pitches; G to G sharp on one staff position is a slur
+        if a and b and consecutive and a.pitch and b.pitch and a.pitch == b.pitch and abs(a.y - b.y) < 1:
             a.tie_start, b.tie_stop = True, True
         elif a and b and a is not b:
             a.slur_start, b.slur_stop = True, True
@@ -718,6 +822,8 @@ def note_json(n: Note, measure: str) -> dict:
         d["fermata"] = True
     if n.grace:
         d["grace"] = True
+    if n.chord:
+        d["chord"] = [m.pitch.name for m in n.chord]
     if n.tie_start or n.tie_stop:
         d["tie"] = "continue" if n.tie_start and n.tie_stop else "start" if n.tie_start else "stop"
     if n.slur_start:
@@ -739,16 +845,10 @@ def build_chorale(pl, number: int, title: str, pages: list[int], overlay: Path |
     report: list[str] = []
     pgs = []
     offset = F(0)
-    staves_n = None
     meter = None
-    measure_numbers: list = []
     for k, pi in enumerate(pages):
         pg = read_page(pl.pages[pi], None)
         report += pg["report"]
-        if staves_n is None:
-            staves_n = len(pg["staves"])
-        elif len(pg["staves"]) != staves_n:
-            report.append(f"p{pi + 1}: {len(pg['staves'])} staves, expected {staves_n}")
         if meter is None:
             meter = pg["staff_info"][0]["meter"]
         mlen = F(1) if meter in ("C", "4/4") else F(int(meter.split("/")[0]), int(meter.split("/")[1]))
@@ -757,26 +857,49 @@ def build_chorale(pl, number: int, title: str, pages: list[int], overlay: Path |
         align_check(pg, report)
         ties_and_slurs(pg, report)
         pg["figures"] = read_figures(pg, report)
-        ends = [max((n.offset + n.duration for n in lst), default=offset) for lst in pg["notes"].values()]
-        if len(set(ends)) != 1:
-            report.append(f"p{pi + 1}: staves end at different times: {sorted(set(ends))}")
-        offset = max(ends)
+        offset = pg["end"]
         pgs.append(pg)
         if overlay:
             draw_overlay(pl, pi, pg, overlay / f"kittel_{number:02d}_p{pi + 1:02d}.png")
-    # bar numbers printed above the top staff (italic), per page, matched to barline x
-    voices = []
-    for si in range(staves_n):
-        notes = []
+    # Bars: numbered through the chorale from the bar grid; the printed numbers (above the melody)
+    # are a check. A segment of no length (before the first barline or after the last) is not a
+    # bar.
+    measures = []
+    for pg in pgs:
+        printed = bar_numbers(pg)
+        for b in pg["bar_grid"]:
+            if b["length"] == 0:
+                b["number"] = None  # the margin before the first or after the last barline
+                continue
+            b["number"] = len(measures) + 1
+            pn = printed.get("first") if b["x_start"] is None else next((v for k, v in printed.items() if k != "first" and abs(k - b["x_start"]) < 4), None)
+            if pn is not None and pn != str(b["number"]):
+                report.append(f"p{pg['page']}: bar {b['number']} is printed as {pn}")
+            measures.append({"number": b["number"], "offset": frac(b["start"]), "length": frac(b["length"]), "page": pg["page"], "barline_after": b.get("barline")})
+    roles = []
+    for pg in pgs:
+        for si in sorted(pg["roles"]):
+            if pg["roles"][si] not in roles:
+                roles.append(pg["roles"][si])
+    voices: dict[str, dict] = {}
+    for role in roles:
+        notes, figures = [], []
         for pg in pgs:
-            for n in pg["notes"][si]:
-                notes.append(note_json(n, measure_of(pg, si, n)))
-        figures = []
-        if si > 0:
-            for pg in pgs:
-                for col in pg["figures"].get(si, []):
-                    figures.append(fig_json(col, pg, si))
-        voices.append({"staff": si, "role": "melody" if si == 0 else f"bass {si}", "label": None if si == 0 else f"[{si}]", "notes": notes, "figures": figures})
+            for si, r in pg["roles"].items():
+                if r != role:
+                    continue
+                notes += [dict(note_json(n, measure_of(pg, si, n)), _page=pg["page"]) for n in pg["notes"][si]]
+                figures += [fig_json(col, pg, si) for col in pg["figures"].get(si, [])]
+        label = role.split()[-1] if role.startswith("bass") else None
+        voices[role] = {"role": role, "label": f"[{label}]" if label else None, "notes": notes, "figures": figures}
+    basses = [v for r, v in voices.items() if r.startswith("bass ")]
+    basses.sort(key=lambda v: int(v["role"].split()[1]))
+    for r, v in voices.items():
+        if r.startswith("melody for bass "):
+            b = next(x for x in basses if x["role"] == r.removeprefix("melody for "))
+            b["melody_variant"] = {"notes": v["notes"], "note": "the melody as printed again above this bass, where the bass ends a phrase in another place"}
+    if len(basses) not in (8, 9):
+        report.append(f"{len(basses)} basses")
     info0 = pgs[0]["staff_info"]
     return {
         "id": f"kittel_{number:02d}",
@@ -788,21 +911,49 @@ def build_chorale(pl, number: int, title: str, pages: list[int], overlay: Path |
         "meter_sign": meter,
         "key_signature": info0[0]["key"],
         "length": frac(offset),
-        "melody": voices[0],
-        "basses": voices[1:],
+        "measures": measures,
+        "phrases": phrases_of(measures, voices["melody"]["notes"]),
+        "structure": structure_of(measures),
+        "melody": voices["melody"],
+        "basses": basses,
         "extraction_report": report,
+        "findings": [f for pg in pgs for f in pg.get("findings", [])],
     }
 
 
-def measure_of(pg: dict, si: int, n: Note) -> str | None:
-    xs = [b["x"] for b in pg["bars"][si]]
-    nums = pg.setdefault("_barnums", bar_numbers(pg))
-    # measure number = printed number of the bar whose start barline precedes the note
-    starts = [x for x in xs if x < n.x]
-    if not starts:
-        return nums.get("first")
-    x = starts[-1]
-    return nums.get(round(x, 0)) or nums.get(round(x, 0) + 1) or nums.get(round(x, 0) - 1)
+def phrases_of(measures: list[dict], melody: list[dict]) -> list[dict]:
+    """Phrases end at the melody's fermatas (the lines of the hymn). The edition also keeps the
+    chorale's own barring at line ends (a solid bar line among the dashed ones); whether a phrase
+    ends at one is recorded."""
+    ends = sorted({n["measure"] for n in melody if n.get("fermata")})
+    out, start = [], measures[0]["number"] if measures else 1
+    for e in ends:
+        m = next(x for x in measures if x["number"] == e)
+        out.append({
+            "number": len(out) + 1, "first_measure": start, "last_measure": e,
+            "offset": next(x["offset"] for x in measures if x["number"] == start),
+            "end": frac(F(m["offset"]) + F(m["length"])),
+            "ends_at_solid_barline": (m.get("barline_after") or "dashed").split()[0] != "dashed",
+        })
+        start = e + 1
+    return out
+
+
+def structure_of(measures: list[dict]) -> dict:
+    """Repeat structure. An end-repeat with no start-repeat before it repeats from the beginning
+    (the Stollen of a bar form): A A B."""
+    end = next((m["number"] for m in measures if "end-repeat" in (m.get("barline_after") or "")), None)
+    if end is None:
+        return {"form": "through", "sections": [{"label": "A", "first_measure": 1, "last_measure": measures[-1]["number"]}], "performed": ["A"]}
+    return {
+        "form": "bar form (Stollen repeated)",
+        "sections": [{"label": "A", "first_measure": 1, "last_measure": end}, {"label": "B", "first_measure": end + 1, "last_measure": measures[-1]["number"]}],
+        "performed": ["A", "A", "B"],
+    }
+
+
+def measure_of(pg: dict, si: int, n: Note) -> int | None:
+    return pg["bar_grid"][n.bar]["number"] if hasattr(n, "bar") else None  # type: ignore[attr-defined]
 
 
 def bar_numbers(pg: dict) -> dict:

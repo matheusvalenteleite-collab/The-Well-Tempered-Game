@@ -39,7 +39,7 @@ def key_alters(n: int) -> dict[str, int]:
     return {s: (1 if n > 0 else -1) for s in order[: abs(n)]}
 
 
-def expand(stack: list[dict], held: dict[int, dict]) -> dict[int, dict]:
+def expand(stack: list[dict], held: dict[int, dict], last: dict | None = None) -> dict[int, dict]:
     """Intervals of a figure as {generic interval: row}, with abbreviations completed. `held` maps
     row levels to the rows of earlier figures still held (by an extender or a dash): a level the
     new figure leaves empty keeps its held interval."""
@@ -54,7 +54,10 @@ def expand(stack: list[dict], held: dict[int, dict]) -> dict[int, dict]:
         if hy is not None:
             taken.add(hy)
         if r.get("continuation"):
-            if hy is not None:
+            prev = next((lr for ly, lr in (last or {}).items() if abs(ly - r["y"]) < 1.5), None)
+            if prev is not None:
+                rows.append(prev)
+            elif hy is not None:
                 rows.append(held[hy])
             continue
         rows.append(r)
@@ -63,7 +66,7 @@ def expand(stack: list[dict], held: dict[int, dict]) -> dict[int, dict]:
             rows.append(r)
     nums = [r.get("interval") for r in rows if r.get("interval") is not None]
     accs_alone = [r for r in rows if r.get("interval") is None and r.get("accidental")]
-    s = set(nums)
+    s = set(nums) | ({3} if accs_alone else set())
     full: dict[int, dict] = {}
     for r in rows:
         if r.get("interval") is not None:
@@ -123,7 +126,70 @@ def chord_pcs(bass: str, full: dict[int, dict], ks: dict[str, int]) -> set[int] 
         if r.get("raised"):
             a += 1
         pcs.add((PC[st] + a) % 12)
+        pcs.add(("step", st))  # the letter, for the "accidental supplied by the melody" convention
+    pcs.add(("step", step))
     return pcs
+
+
+def diatonic(name: str) -> int:
+    step, _, octave = parse(name)
+    return 7 * octave + STEPS.index(step)
+
+
+def melodic_kind(melody: list[dict], m: dict, t: F, pcs: set[int]) -> str:
+    """Why a melody note may lie outside the chord: the usual non-chord tones of the upper voice."""
+    sung = [n for n in melody if not n.get("rest") and not n.get("grace")]
+    i = next((k for k, n in enumerate(sung) if n is m), None)
+    if i is None:
+        return "unexplained"
+    if F(m["offset"]) < t:
+        nxt = sung[i + 1] if i + 1 < len(sung) else None
+        if nxt is not None and diatonic(nxt["pitch"]) - diatonic(m["pitch"]) == -1:
+            return "suspension in the melody (held, resolving down by step)"
+        return "held over a change of harmony"
+    prev = sung[i - 1] if i > 0 else None
+    nxt = sung[i + 1] if i + 1 < len(sung) else None
+    d_in = diatonic(m["pitch"]) - diatonic(prev["pitch"]) if prev else None
+    d_out = diatonic(nxt["pitch"]) - diatonic(m["pitch"]) if nxt else None
+    if prev and m.get("tie") in ("stop", "continue"):
+        return "suspension (tied)"
+    if d_in == 0 and d_out in (-1, 1):
+        return "suspension (repeated)"
+    if d_in in (-1, 1) and d_out in (-1, 1):
+        return "passing" if d_in == d_out else "neighbour"
+    if d_out in (-1, 1):
+        return "appoggiatura (leap, then step)"
+    if d_in in (-1, 1) and nxt and d_out == 0:
+        return "anticipation"
+    return "unexplained"
+
+
+def melody_timeline(notes: list[dict]) -> list[dict]:
+    """The melody as it sounds. A small note before a melody note is a passing note in the time
+    of the note before it (the figures place it there: "5 6" over a held bass under B-(C)-D puts
+    the 6 under the small C, in the second half of the B). So the note before gives up its second
+    half to the small note."""
+    out: list[dict] = []
+    pending: list[dict] = []
+    for n in notes:
+        if n.get("grace"):
+            pending.append(n)
+            continue
+        if pending and out and not out[-1].get("rest"):
+            prev = out[-1]
+            half = F(prev["duration"]) / 2
+            prev["duration"] = frac_s(half)
+            start = F(prev["offset"]) + half
+            share = half / len(pending)
+            for k, g in enumerate(pending):
+                out.append(dict(g, grace=False, offset=frac_s(start + k * share), duration=frac_s(share), passing_small_note=True))
+        pending = []
+        out.append(dict(n))
+    return out
+
+
+def frac_s(x: F) -> str:
+    return f"{x.numerator}/{x.denominator}"
 
 
 def sounding(notes: list[dict], t: F) -> dict | None:
@@ -135,14 +201,16 @@ def sounding(notes: list[dict], t: F) -> dict | None:
 
 def check(c: dict) -> tuple[int, int, list[str]]:
     ks = key_alters(c["key_signature"])
-    melody = c["melody"]["notes"]
+    melody = melody_timeline(c["melody"]["notes"])
     ok = total = 0
     bad = []
+    chromatic: list[str] = []
     for b in c["basses"]:
         figs = [f for f in b["figures"] if f["onset"]]
         fig_at = {F(f["onset"]): f for f in figs}
         times = sorted({F(n["offset"]) for n in b["notes"] if not n["rest"]} | set(fig_at))
         held: dict[int, dict] = {}
+        last: dict[float, dict] = {}
         current: dict[int, dict] = {}
         chord_bass = None
         for t in times:
@@ -154,22 +222,38 @@ def check(c: dict) -> tuple[int, int, list[str]]:
                 st = fig_at[t]["stack"]
                 x = fig_at[t]["x"]
                 held = {hy: r for hy, r in held.items() if r.get("extender_to_x", 1e9) >= x - 2}
-                current = expand(st, held if not new_note or any(r.get("continuation") for r in st) else held)
-                kept = {r["y"]: dict(r, _bass=bn["pitch"]) for r in st if "extender_to_x" in r and not r.get("continuation")}
-                for r in st:
-                    if r.get("continuation"):
-                        hy = next((hy for hy in held if abs(hy - r["y"]) < 1.5), None)
-                        if hy is not None:
-                            kept[r["y"]] = held[hy]
-                held = kept
+                if all(r.get("continuation") for r in st):
+                    pass  # dashes alone: the previous chord holds over this bass note
+                else:
+                    current = expand(st, held, last)
+                    current = {k: (r if "_bass" in r else dict(r, _bass=bn["pitch"])) for k, r in current.items()}
+                    new_last = {}
+                    for r in st:
+                        if r.get("continuation"):
+                            prev = next((lr for ly, lr in last.items() if abs(ly - r["y"]) < 1.5), None)
+                            if prev is not None:
+                                new_last[r["y"]] = prev
+                        else:
+                            new_last[r["y"]] = dict(r, _bass=bn["pitch"])
+                    last = new_last
+                    kept = {y: r for y, r in new_last.items() if "extender_to_x" in r}
+                    for r in st:
+                        if r.get("continuation"):
+                            hy = next((hy for hy in held if abs(hy - r["y"]) < 1.5), None)
+                            if hy is not None:
+                                kept[r["y"]] = held[hy]
+                    held = kept
                 chord_bass = bn
             elif new_note:
                 # An unfigured bass note off the minim beat passes: the harmony holds. On the beat
                 # it carries a plain triad.
                 if (t * 2).denominator != 1 and chord_bass is not None:
                     continue
-                current = expand([], {})
+                if held and bn.get("_x") is not None and any(r.get("extender_to_x", 0) > bn["_x"] for r in held.values()):
+                    continue  # an extender line runs over this note: the figured chord holds
+                current = {k: dict(r, _bass=bn["pitch"]) for k, r in expand([], {}).items()}
                 held = {}
+                last = {}
                 chord_bass = bn
             pcs = chord_pcs(chord_bass["pitch"], current, ks)
             m = sounding(melody, t)
@@ -179,11 +263,24 @@ def check(c: dict) -> tuple[int, int, list[str]]:
             total += 1
             if (PC[step] + alter) % 12 in pcs:
                 ok += 1
+            elif ("step", step) in pcs:
+                # The figure leaves the alteration to the melody, which sings it (a ♯ third
+                # under a G♯ in the soprano needs no ♯ in the figure). Counted as agreeing.
+                ok += 1
+                chromatic.append(f"{b['label']} m.{bn.get('measure')} t={t}: melody {m['pitch']} over {bn['pitch']}")
             else:
                 fig = fig_at.get(t)
                 desc = "/".join(str(r.get("interval", r.get("accidental", "-"))) for r in fig["stack"]) if fig else "(none)"
-                bad.append(f"{b['label']} m.{bn.get('measure')} t={t}: melody {m['pitch']} over {bn['pitch']} figure {desc}")
-    return ok, total, bad
+                kind = melodic_kind(melody, m, t, pcs)
+                if kind == "held over a change of harmony":
+                    if F(bn["offset"]) < t:
+                        kind = "inner voices move under held melody and bass"
+                    elif (t * 2).denominator != 1:
+                        kind = "passing harmony on a weak crotchet under a held melody"
+                    else:
+                        kind = "held melody against a new bass note"
+                bad.append(f"[{kind}] {b['label']} m.{bn.get('measure')} t={t}: melody {m['pitch']} over {bn['pitch']} figure {desc}")
+    return ok, total, bad + [f"[accidental supplied by the melody] {x}" for x in chromatic]
 
 
 def main() -> None:
@@ -192,8 +289,9 @@ def main() -> None:
     a = ap.parse_args()
     want = {int(x) for x in a.chorales.split(",") if x}
     grand_ok = grand = 0
-    lines = ["# Kittel chorales: harmonic cross-check", "", "Generated by `tools/chorales/kittel_check.py`. Each line is a melody note outside the chord",
-             "that the bass and its figure imply at that onset: a melodic non-chord tone, a gap in the check's", "reading of the figures, or an extraction error. Every line is to be looked at against the PDF.", ""]
+    lines = ["# Kittel chorales: harmonic cross-check", "", "Generated by `tools/chorales/kittel_check.py`. At every onset of a bass note or a figure, the melody",
+             "note sounding is tested against the chord that the bass and its figure imply. Each line below is a",
+             "melody note outside that chord, classed by what the melody does there. Only the last two kinds are", "candidates for extraction errors.", ""]
     for path in sorted(DIR.glob("kittel_*.json")):
         c = json.loads(path.read_text())
         if want and c["number"] not in want:
@@ -208,7 +306,24 @@ def main() -> None:
             print("   ", x)
     if grand:
         print(f"all: {grand_ok}/{grand} ({100 * grand_ok / grand:.1f}%)")
-        lines.insert(6, f"**All: {grand_ok}/{grand} ({100 * grand_ok / grand:.1f}%)**\n")
+        import collections
+        import re as _re
+        kinds = collections.Counter(_re.match(r"- \[([^\]]+)\]", x).group(1) for x in lines if _re.match(r"- \[", x))
+        summary = [f"**All: {grand_ok}/{grand} onsets agree ({100 * grand_ok / grand:.1f}%)**", "",
+                   "| kind | count | reading |", "|---|---|---|"]
+        notes = {
+            "accidental supplied by the melody": "agrees: the figure leaves to the melody an alteration it sings",
+            "inner voices move under held melody and bass": "music: a figure inside a held bass note describes the inner voices",
+            "suspension in the melody (held, resolving down by step)": "music",
+            "passing harmony on a weak crotchet under a held melody": "music",
+            "passing": "music: melodic passing note", "neighbour": "music: melodic neighbour note",
+            "appoggiatura (leap, then step)": "music", "anticipation": "music",
+            "suspension (tied)": "music", "suspension (repeated)": "music",
+            "held melody against a new bass note": "to look at", "unexplained": "to look at",
+        }
+        for k, v in kinds.most_common():
+            summary.append(f"| {k} | {v} | {notes.get(k, '')} |")
+        lines[7:7] = summary + [""]
         if not want:
             (DIR / "CHECK.md").write_text("\n".join(lines) + "\n")
 
