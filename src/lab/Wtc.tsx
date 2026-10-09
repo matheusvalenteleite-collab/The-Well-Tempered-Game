@@ -13,6 +13,10 @@ import { degree, findEntries, line, names, predictAnswer, subjectAndAnswer, tran
 import { TUNINGS, type TuningId } from "../wtc/tunings.ts";
 import { parsePitch } from "../music/pitch.ts";
 import { playNotes, playPiece, stop } from "./keyboard.ts";
+import { Markdown } from "./Habits.tsx";
+import concept from "../../docs/wtc/CONCEPT.md?raw";
+import answerStudy from "../../docs/wtc/answer-study.md?raw";
+import csStudy from "../../docs/wtc/countersubject-study.md?raw";
 
 const FUGUES = fugueData as unknown as WtcPiece[];
 const PRELUDES = preludeData as unknown as WtcPiece[];
@@ -55,7 +59,13 @@ function analyse(p: WtcPiece): Analysis | null {
 
 /* ---------------------------------------------------------------- the map */
 
-function PianoRoll({ p, a, tick, showEntries, onSeek, voicesOn }: { p: WtcPiece; a: Analysis | null; tick: number; showEntries: boolean; onSeek: (t: number) => void; voicesOn: boolean[] }) {
+interface Guess {
+  voice: number;
+  on: number;
+  verdict?: "hit" | "false";
+}
+
+function PianoRoll({ p, a, tick, showEntries, onSeek, voicesOn, guesses, onPick, missed }: { p: WtcPiece; a: Analysis | null; tick: number; showEntries: boolean; onSeek: (t: number) => void; voicesOn: boolean[]; guesses?: Guess[]; onPick?: (tick: number, midi: number) => void; missed?: Entry[] }) {
   const pxq = 22; // pixels per quarter note
   const all = p.voices.flat();
   const lo = Math.min(...all.map((n) => midi(n[2]))) - 1;
@@ -100,7 +110,9 @@ function PianoRoll({ p, a, tick, showEntries, onSeek, voicesOn }: { p: WtcPiece;
     <div className="wtc-roll" ref={scroller}>
       <svg width={W} height={H} onClick={(ev) => {
         const r = (ev.currentTarget as SVGSVGElement).getBoundingClientRect();
-        onSeek(Math.max(0, ((ev.clientX - r.left - 20) / pxq) * TPQ));
+        const t = Math.max(0, ((ev.clientX - r.left - 20) / pxq) * TPQ);
+        if (onPick) onPick(t, hi - (ev.clientY - r.top - 18) / ph);
+        else onSeek(t);
       }}>
         {/* C lines, as on a keyboard */}
         {Array.from({ length: hi - lo + 1 }, (_, i) => lo + i).filter((m) => m % 12 === 0).map((m) => (
@@ -127,6 +139,17 @@ function PianoRoll({ p, a, tick, showEntries, onSeek, voicesOn }: { p: WtcPiece;
           );
         })}
         {notes}
+        {guesses?.map((g, i) => {
+          const l = line(p.voices[g.voice]);
+          const n = l.find((m) => m.on === g.on);
+          const yy = n ? y(midi(n.pitch)) : 20;
+          const col = g.verdict === "hit" ? "#2e7d4f" : g.verdict === "false" ? "#c0392b" : "var(--ink, #222)";
+          return <g key={`g${i}`}><circle cx={x(g.on)} cy={yy + ph / 2} r={6} fill="none" stroke={col} strokeWidth={2} /><text x={x(g.on) - 3} y={yy - 5} fontSize={10} fontWeight={700} fill={col}>{g.verdict === "hit" ? "✓" : g.verdict === "false" ? "✗" : "?"}</text></g>;
+        })}
+        {missed?.map((e, i) => {
+          const l = line(p.voices[e.voice]);
+          return <circle key={`m${i}`} cx={x(e.on)} cy={y(midi(l[e.at].pitch)) + ph / 2} r={7} fill="none" stroke="#a8761a" strokeWidth={2} strokeDasharray="3 2" />;
+        })}
         {tick >= 0 && <line x1={x(tick)} x2={x(tick)} y1={0} y2={H} stroke="var(--ink, #222)" strokeWidth={1.5} />}
       </svg>
     </div>
@@ -220,6 +243,25 @@ export function WtcTab() {
   const [voicesOn, setVoicesOn] = useState<boolean[]>([]);
   useEffect(() => (setVoicesOn(p.voices.map(() => true)), stop(), setTick(-1), setFrom(0)), [p]);
   const a = useMemo(() => analyse(p), [p]);
+  // Level 1: find the entries (the marks hidden; clicks mark guesses).
+  const [finding, setFinding] = useState(false);
+  const [guesses, setGuesses] = useState<Guess[]>([]);
+  const [checked, setChecked] = useState(false);
+  useEffect(() => (setGuesses([]), setChecked(false)), [p, finding]);
+  const nearest = (t: number, m: number) => {
+    let best: { voice: number; on: number; d: number } | null = null;
+    p.voices.forEach((v, voice) => {
+      if (voicesOn[voice] === false) return;
+      for (const n of line(v)) {
+        const d = Math.abs(n.on - t) / TPQ + Math.abs(midi(n.pitch) - m) / 3;
+        if (!best || d < best.d) best = { voice, on: n.on, d };
+      }
+    });
+    return best as { voice: number; on: number; d: number } | null;
+  };
+  const near = (g: Guess, e: Entry) => g.voice === e.voice && Math.abs(g.on - e.on) <= TPQ;
+  const judged: Guess[] = checked && a ? guesses.map((g) => ({ ...g, verdict: a.entries.some((e) => near(g, e)) ? "hit" : "false" })) : guesses;
+  const missedEntries = checked && a ? a.entries.filter((e) => !guesses.some((g) => near(g, e))) : [];
   const pick = (book: number, idx: number) => setId(`wtc${book}${kind === "fugue" ? "f" : "p"}${String(idx + 1).padStart(2, "0")}`);
   const tuningNote = TUNINGS.find((t) => t.id === tuning)?.note;
   return (
@@ -294,7 +336,45 @@ export function WtcTab() {
             ))}
           </span>
         </div>
-        <PianoRoll p={p} a={a} tick={tick} showEntries={showEntries} onSeek={(t) => setFrom(Math.round(t))} voicesOn={voicesOn} />
+        {a && (
+          <div className="lab-actions" style={{ padding: "6px 10px" }}>
+            <label className="lab-group" title="Level 1: the marks are hidden; click the first note of every entry of the subject you hear or see">
+              <input type="checkbox" checked={finding} onChange={(e) => setFinding(e.target.checked)} /> exercise: find the entries
+            </label>
+            {finding && (
+              <>
+                <span className="lab-note">Click the first note of each entry ({guesses.length} marked). Click a mark again to remove it.</span>
+                <button className="primary" onClick={() => setChecked(true)}>Check</button>
+                <button onClick={() => (setGuesses([]), setChecked(false))}>Clear</button>
+                {checked && (
+                  <span>
+                    <b>{judged.filter((g) => g.verdict === "hit").length}</b> of {a.entries.length} entries found, <b>{judged.filter((g) => g.verdict === "false").length}</b> marks where no entry begins; the dashed circles show the ones missed.
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+        )}
+        <PianoRoll
+          p={p}
+          a={a}
+          tick={tick}
+          showEntries={showEntries && !finding}
+          onSeek={(t) => setFrom(Math.round(t))}
+          voicesOn={voicesOn}
+          guesses={finding ? judged : undefined}
+          missed={finding ? missedEntries : undefined}
+          onPick={
+            finding
+              ? (t, m) => {
+                  const n = nearest(t, m);
+                  if (!n) return;
+                  setChecked(false);
+                  setGuesses((gs) => (gs.some((g) => g.voice === n.voice && g.on === n.on) ? gs.filter((g) => !(g.voice === n.voice && g.on === n.on)) : [...gs, { voice: n.voice, on: n.on }]));
+                }
+              : undefined
+          }
+        />
         <p className="lab-note" style={{ padding: "0 10px 8px" }}>
           Click the map to choose where playback starts. {a ? "S: the subject; A: the answer (a fifth up); \"on n\": an entry on another degree of the home key; inv.: inverted." : ""}
         </p>
@@ -315,6 +395,18 @@ export function WtcTab() {
         </fieldset>
       )}
       {a && p.kind === "fugue" && <AnswerExercise p={p} a={a} tuning={tuning} />}
+      <details className="lab-panel wtc-docs">
+        <summary><b>The plan for the WTC mode</b> (a proposal: docs/wtc/CONCEPT.md)</summary>
+        <div className="lab-habits"><Markdown text={concept} /></div>
+      </details>
+      <details className="lab-panel wtc-docs">
+        <summary><b>Studies</b>: Bach's answers; the countersubjects</summary>
+        <div className="lab-habits">
+          <Markdown text={answerStudy} />
+          <h2 className="lab-part">Countersubjects</h2>
+          <Markdown text={csStudy} />
+        </div>
+      </details>
     </section>
   );
 }

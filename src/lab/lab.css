@@ -90,3 +90,5 @@ html, body { height: auto !important; overflow: auto !important; }
 .lab .wtc-pick { cursor: pointer; }
 .lab .wtc-fourth { background: color-mix(in srgb, var(--ink-player) 18%, var(--paper)); }
 .wtc-wrong { border-color: var(--bad) !important; color: var(--bad); }
+.wtc-docs summary { cursor: pointer; }
+.wtc-docs[open] { display: block; }
