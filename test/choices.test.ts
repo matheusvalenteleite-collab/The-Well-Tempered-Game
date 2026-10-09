@@ -237,3 +237,24 @@ test("difficulty: freedom is the mean log2 of the legal pitches; Spearman on ran
   assert.ok(Math.abs(spearman([1, 2, 3], [10, 20, 30]) - 1) < 1e-9);
   assert.ok(Math.abs(spearman([1, 2, 3], [3, 2, 1]) + 1) < 1e-9);
 });
+
+import { hintAt, legalCounts } from "../src/counterpoint/choices/hints.ts";
+import { auditLine, contextFor } from "../src/counterpoint/choices/audit.ts";
+test("hints: on Fux's complete line, the legal counts are the audit's; a mistake elsewhere does not make every pitch illegal", () => {
+  const lines = fuxLines(repo, "first");
+  const l = lines[0];
+  const ctx = contextFor(repo, l, lines, {});
+  const a = auditLine(repo, l, lines, {});
+  assert.deepEqual(legalCounts(ctx, l.line).map((c) => c.legal), a.units.map((u) => u.legal));
+  // Parallel fifths planted at bars 2-3, then a hint asked for at bar 6 with bars 6-8 empty.
+  const broken: (string | null)[] = [...l.line];
+  const fifth = (k: number) => {
+    const m = [..."CDEFGAB"];
+    const c = l.cantus[k];
+    return `${m[(m.indexOf(c[0]) + 4) % 7]}${Number(c.slice(-1)) + (m.indexOf(c[0]) + 4 >= 7 ? 1 : 0)}`;
+  };
+  if (l.cantusVoice === "lower") (broken[1] = fifth(1)), (broken[2] = fifth(2));
+  broken[5] = broken[6] = broken[7] = null;
+  const h = hintAt(ctx, broken, [5]);
+  assert.ok(h && h.legal > 0 && h.best !== null);
+});

@@ -22,6 +22,7 @@ import { judgeLine } from "../counterpoint/choices/alternatives.ts";
 import { fuxAccidentals, pitchesBetween, registerWindow } from "../counterpoint/choices/vocabulary.ts";
 import { play, playLines, stop } from "./play.ts";
 import { HabitsTab } from "./Habits.tsx";
+import { WriteTab } from "./Write.tsx";
 import { addThirdVoice, auditGeneratedTrio, judgeGeneratedTrio, TrioAuditList, TrioAuditTab, TrioChoiceDetail, TrioSummary } from "./Trio.tsx";
 import type { Placement, ThirdVoice, TrioAudit } from "../counterpoint/choices/trio.ts";
 
@@ -536,7 +537,7 @@ function GenerateTab() {
 }
 
 export function Lab() {
-  const [tab, setTab] = useState<"audit" | "generate" | "habits">("audit");
+  const [tab, setTab] = useState<"audit" | "generate" | "write" | "habits">("audit");
   return (
     <main className="lab">
       <header className="lab-head">
@@ -544,17 +545,20 @@ export function Lab() {
         <nav>
           <button className={tab === "audit" ? "primary" : ""} onClick={() => setTab("audit")}>Audit of Fux's choices</button>
           <button className={tab === "generate" ? "primary" : ""} onClick={() => setTab("generate")}>Generators</button>
+          <button className={tab === "write" ? "primary" : ""} onClick={() => setTab("write")}>Write your own</button>
           <button className={tab === "habits" ? "primary" : ""} onClick={() => setTab("habits")}>Studies</button>
         </nav>
       </header>
       <p className="lab-intro">
-        {tab === "habits"
+        {tab === "write"
+          ? "Write a counterpoint on one of Fux's cantus firmi, or a generated one. At every note: the errors it causes (with Fux's page), how many pitches the rules allow there given the rest of your line, where your note ranks among them, and, if you ask, what Fux would most likely have written."
+          : tab === "habits"
           ? "Studies of Fux's solutions: which habits predict the notes he wrote (two and three voices; each habit measured on exercises it has not seen, the ones that earn their place make the model the audit and the generators use), whether he imitates or works with motives, and how hard each exercise is."
           : tab === "audit"
           ? "At every note of Fux's solutions (two voices, species 1–4; three voices, first species), every other pitch is put in its place and the whole line is judged again by the game's rules. The legal ones are ranked by the score vector: errors, then Fux's recommendations, then his stated counsel (motion, perfect consonances, repetition, leaps), then his habits measured on his other solutions."
           : "Build an exercise in three steps: a cantus firmus from the constraints accepted in D8 (each checked against Fux's own cantus firmi); a counterpoint found by a search the game's rules judge as it goes; and, in first species, a third voice judged by the three-voice rules. All voices stand in one score and play together."}
       </p>
-      {tab === "audit" ? <AuditTab /> : tab === "generate" ? <GenerateTab /> : <HabitsTab />}
+      {tab === "audit" ? <AuditTab /> : tab === "generate" ? <GenerateTab /> : tab === "write" ? <WriteTab /> : <HabitsTab />}
     </main>
   );
 }

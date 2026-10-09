@@ -107,6 +107,14 @@ Findings and points for the owner:
   (Fux's G: G-C-E); length 9-14 accepted (Fux's C variant has 9; generator default 10-14); and
   Ewing's antepenultimate degree 1 or 3 (true of all Fux's) added. To approve or amend: the table
   is in docs/fux/cantus-constraints-amendment.md.
+- Write your own (lab tab; `choices/hints.ts`, step 5 of the plan): write on one of Fux's cantus
+  firmi or a generated one; at each note the errors it causes (the game's hint text and Fux's
+  page), the number of legal pitches given the rest of the line, the note's rank, and on request
+  the most Fux-like note (habits learnt without the exercise) beside Fux's own. The engine judges
+  whole lines only, so a line being written is judged in the stretch of written bars around the
+  note, the opening and ending rules waiting until the stretch reaches them; a weak-beat note is
+  judged once its bar and the next downbeat are written. `hintAt` / `legalCounts` are ready for
+  the game.
 - Difficulty (docs/fux/difficulty.md; `choices/difficulty.ts`): freedom per choice, log2 of the
   legal pitches with the rest of a good line in place. Fux's species tighten steadily (2.17 bits in
   first species, 1.67, 1.57, 0.89 in fourth, where 53% of choices are forced); within a species his

@@ -63,10 +63,10 @@ export function judgeLine(ctx: ChoiceContext, line: (string | null)[]) {
   );
 }
 
-export function scoreCandidate(ctx: ChoiceContext, line: (string | null)[], unit: number[], pitch: string, written: boolean): Candidate {
+export function scoreCandidate(ctx: ChoiceContext, line: (string | null)[], unit: number[], pitch: string, written: boolean, judged?: { errors: { ruleId: string }[]; warnings: { ruleId: string }[] }): Candidate {
   const trial = [...line];
   for (const s of unit) trial[s] = pitch;
-  const ev = judgeLine(ctx, trial);
+  const ev = judged ?? judgeLine(ctx, trial);
   const counsel = counselOf(ctx.layout, ctx.cantus, trial, unit);
   const habit = habitOf(ctx.habits, ctx.cantusVoice, ctx.layout, ctx.cantus, trial, unit);
   return {
