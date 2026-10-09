@@ -7,7 +7,6 @@ import {
   SYNTH_MODELS,
   SYNTH_PRESETS,
   WAVEFORMS,
-  SAMPLE_SETS,
   type NumericKey,
   type SynthModel,
   type SynthSettings,
@@ -37,6 +36,7 @@ const fmt = (k: NumericKey) => FORMAT[k] ?? pct;
 const SHARED: NumericKey[] = ["attack", "decay", "sustain", "release", "tone", "vibrato"];
 const BY_MODEL: Record<SynthModel, NumericKey[]> = {
   sampled: [],
+  sampledModern: [],
   piano: ["pianoHammer", "pianoDetach"],
   subtractive: ["detune"],
   pluck: ["pluckDamping", "pluckBrightness"],
@@ -52,13 +52,14 @@ const BY_MODEL: Record<SynthModel, NumericKey[]> = {
 export const same = (a: SynthSettings, b: SynthSettings) =>
   (Object.keys(a) as (keyof SynthSettings)[]).every((k) => (typeof a[k] === "number" ? Math.abs((a[k] as number) - (b[k] as number)) < 1e-6 : a[k] === b[k]));
 
-/** The name of the preset these settings match, or null (custom). */
+/** The name of the preset these settings match; after edits, the preset they started from, "(edited)" (D95); null if neither. */
 export function presetName(v: SynthSettings): string | null {
   const p = SYNTH_PRESETS.find((x) => same(x.settings, v));
-  return p ? t(`ui.synth.preset.${p.id}`) : null;
+  if (p) return t(`ui.synth.preset.${p.id}`);
+  return v.preset && SYNTH_PRESETS.some((x) => x.id === v.preset) ? t("ui.synth.edited", { name: t(`ui.synth.preset.${v.preset}`) }) : null;
 }
 
-/** The synth editor for one voice (or one group of linked voices): model and preset with arrows, knobs, effects. */
+/** The synth editor for one voice (or one group of linked voices): family and preset, each with arrows; knobs; effects. */
 export function SynthRack({ title, value, onChange }: Props) {
   const shown = value;
   const set = (next: SynthSettings) => onChange(next);
@@ -75,10 +76,11 @@ export function SynthRack({ title, value, onChange }: Props) {
   const presets = SYNTH_PRESETS.filter((p) => p.settings.model === shown.model);
   const active = presets.findIndex((p) => same(p.settings, shown));
   /** Choosing a model loads its first preset, which is always clean (no reverb, no delay). */
-  const setModel = (m: SynthModel) => set({ ...firstPreset(m).settings });
+  const setModel = (m: SynthModel) => set({ ...firstPreset(m).settings, preset: firstPreset(m).id });
   const stepPreset = (d: number) => {
     const from = active < 0 ? (d > 0 ? -1 : 0) : active;
-    set({ ...presets[(from + d + presets.length) % presets.length].settings });
+    const q = presets[(from + d + presets.length) % presets.length];
+    set({ ...q.settings, preset: q.id });
   };
 
   return (
@@ -95,7 +97,25 @@ export function SynthRack({ title, value, onChange }: Props) {
             </select>
             <button className="chipbtn" tabIndex={-1} onClick={() => setModel(cycle(SYNTH_MODELS, shown.model, 1))} aria-label={t("ui.synth.nextModel")}>›</button>
           </span>
-          {shown.model === "sampled" && choice(<>{t(`ui.synth.sampleSet.${shown.sampleSet}`)}</>, () => set({ ...SYNTH_PRESETS.find((x) => x.settings.model === "sampled" && x.settings.sampleSet === cycle(SAMPLE_SETS, shown.sampleSet))!.settings }))}
+          <span className="stepper">
+            <button className="chipbtn" tabIndex={-1} onClick={() => stepPreset(-1)} aria-label={t("ui.synth.prevPreset")}>‹</button>
+            <select
+              className="model preset"
+              aria-label={t("ui.synth.presets")}
+              title={t("ui.synth.presets")}
+              value={active >= 0 ? presets[active].id : ""}
+              onChange={(e) => {
+                const q = presets.find((x) => x.id === e.target.value);
+                if (q) set({ ...q.settings, preset: q.id });
+              }}
+            >
+              {active < 0 && <option value="">{presetName(shown) ?? t("ui.synth.custom")}</option>}
+              {presets.map((q) => (
+                <option key={q.id} value={q.id}>{t(`ui.synth.preset.${q.id}`)}</option>
+              ))}
+            </select>
+            <button className="chipbtn" tabIndex={-1} onClick={() => stepPreset(1)} aria-label={t("ui.synth.nextPreset")}>›</button>
+          </span>
           {shown.model === "subtractive" && choice(<><WaveIcon wave={shown.waveform} /> {t(`ui.synth.wave.${shown.waveform}`)}</>, () => set({ ...shown, waveform: cycle(WAVEFORMS, shown.waveform) }))}
         </div>
         <div className="rack-knobs">
@@ -120,20 +140,6 @@ export function SynthRack({ title, value, onChange }: Props) {
           </div>
         </div>
         <p className="rack-help">{t("ui.synth.help")}</p>
-      </div>
-      <div className="preset-col">
-        <div className="stepper">
-          <button className="chipbtn" tabIndex={-1} onClick={() => stepPreset(-1)} aria-label={t("ui.synth.prevPreset")}>‹</button>
-          <span className="preset-name">{active >= 0 ? t(`ui.synth.preset.${presets[active].id}`) : t("ui.synth.custom")}</span>
-          <button className="chipbtn" tabIndex={-1} onClick={() => stepPreset(1)} aria-label={t("ui.synth.nextPreset")}>›</button>
-        </div>
-        <ul className="presets" aria-label={t("ui.synth.presets")}>
-          {presets.map((p, i) => (
-            <li key={p.id}>
-              <button tabIndex={-1} aria-pressed={i === active} onClick={() => set({ ...p.settings })}>{t(`ui.synth.preset.${p.id}`)}</button>
-            </li>
-          ))}
-        </ul>
       </div>
     </section>
   );

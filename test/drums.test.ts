@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { DRUM_PATTERNS, hitsForBar, LOOP_LENGTHS } from "../src/audio/drums.ts";
+import { DRUM_PATTERNS, hitsForBar, loopFraction, scaleLoop, validLoopLength } from "../src/audio/drums.ts";
 
 test("every pattern line has exactly `steps` characters of the step alphabet", () => {
   for (const p of DRUM_PATTERNS) {
@@ -16,7 +16,20 @@ test("loop length: x2 spreads one loop over two bars, /2 plays it twice in a bar
   assert.deepEqual(kicks(2, 3), [0]); // second half of a two-bar loop: the kick at step 8 lands on bar 3's downbeat
   assert.deepEqual(kicks(2, 2), [0]);
   assert.deepEqual(kicks(0.5, 3), [0, 0.25, 0.5, 0.75]);
-  assert.deepEqual(LOOP_LENGTHS, [0.25, 0.5, 1, 2, 4]);
+});
+
+test("loop factors 2 and 1.5 (D70): exact fractions, range 1/8..8, a 2/3-bar loop is a triplet feel", () => {
+  assert.equal(scaleLoop(1, 1.5), 1.5);
+  assert.deepEqual(loopFraction(scaleLoop(1, 1 / 1.5)!), [2, 3]);
+  let l = 1;
+  for (let i = 0; i < 3; i++) l = scaleLoop(l, 1 / 1.5)!;
+  assert.deepEqual(loopFraction(l), [8, 27]);
+  assert.equal(scaleLoop(8, 1.5), null);
+  assert.equal(scaleLoop(1 / 8, 1 / 2), null);
+  assert.ok(validLoopLength(2 / 3) && !validLoopLength(0.1) && !validLoopLength("1"));
+  // Kicks of "rock" (steps 0 and 8 of 16) over a loop of 2/3 bar: every third of a bar.
+  const kicks = hitsForBar({ pattern: "rock", length: 2 / 3, level: 1 }, 1, 4).filter(([v]) => v === "kick").map(([, , at]) => Math.round(at * 1000) / 1000);
+  assert.deepEqual(kicks, [0, 0.333, 0.667]);
 });
 
 test("openings, fills and endings", () => {
@@ -24,4 +37,28 @@ test("openings, fills and endings", () => {
   assert.deepEqual(at(7), ["timpTonic", "cymbals"]);
   assert.ok(at(6).every((v) => v === "timpFifth"));
   assert.ok(hitsForBar({ pattern: "rock", length: 1, level: 1 }, 0, 8).some(([v]) => v === "crash"));
+});
+
+test("looping (D72): the drums never stop; the last bar keeps the groove, the breath rolls into bar 1", async () => {
+  const { hitsForBar, hitsForBreath } = await import("../src/audio/drums.ts");
+  const rock = { pattern: "rock", length: 1, level: 1 };
+  const groove = hitsForBar(rock, 2, 8, true);
+  assert.deepEqual(hitsForBar(rock, 7, 8, true), groove);
+  assert.deepEqual(hitsForBar(rock, 6, 8, true), groove);
+  // The breath: rock's fill from its middle (toms), spread over half a bar.
+  const breath = hitsForBreath(rock, 0.5);
+  assert.ok(breath.some(([v]) => v.startsWith("tom")) && breath.every(([, , at]) => at >= 0 && at < 0.5));
+  // A pattern without a fill gets the snare roll.
+  assert.ok(hitsForBreath({ pattern: "bossa", length: 1, level: 1 }).filter(([v]) => v === "snare").length >= 4);
+  // Not looping: the ending as before.
+  assert.deepEqual(hitsForBar(rock, 7, 8).map(([v]) => v), ["kick", "crash"]);
+});
+
+test("kits (D71): machine patterns bring their machine; any kit can be chosen", async () => {
+  const { kitOf, DRUM_KITS, DRUM_PATTERNS } = await import("../src/audio/drums.ts");
+  assert.equal(kitOf({ pattern: "house", length: 1, level: 1 }), "tr909");
+  assert.equal(kitOf({ pattern: "rock", length: 1, level: 1 }), "studio");
+  assert.equal(kitOf({ pattern: "rock", length: 1, level: 1, kit: "tr808" }), "tr808");
+  for (const p of DRUM_PATTERNS) if (p.kit) assert.ok(DRUM_KITS.includes(p.kit), p.id);
+  assert.equal(DRUM_PATTERNS.filter((p) => p.family === "machines").length, 7);
 });

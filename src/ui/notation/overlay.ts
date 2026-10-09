@@ -4,7 +4,7 @@
  */
 import { harmonic, interval, motion, simpleName } from "../../counterpoint/interval.ts";
 import type { Severity, Violation } from "../../counterpoint/rules/types.ts";
-import { slotLayout, slotsOfBars, sounding, type Slot } from "../../counterpoint/layout.ts";
+import { HOLD, slotLayout, slotsOfBars, sounding, type Slot } from "../../counterpoint/layout.ts";
 
 export type Status = "ok" | "neutral" | Severity;
 
@@ -35,14 +35,20 @@ export interface Overlay {
 const VERTICAL = new Set([
   "fs.prefer-imperfect-consonances", "fs.vertical-consonance", "fs.opening-perfect", "fs.final-octave-or-unison", "fs.unison-only-at-ends", "fs.cadence",
   "ss.downbeat-consonance", "ss.passing-dissonance", "ss.opening-perfect", "ss.final-octave-or-unison", "ss.cadence", "ss.unison-only-at-ends", "ss.prefer-imperfect-consonances",
+  "ts.downbeat-consonance", "ts.dissonance", "ts.cadence", "ts.opening-perfect", "ts.final-octave-or-unison", "ts.unison-only-at-ends",
+  "fos.arsis-consonant", "fos.resolution", "fos.ligature-kinds", "fos.cadence", "fos.ligature-where-possible", "fos.opening-perfect", "fos.final-octave-or-unison", "fos.unison-only-at-ends",
+  "fis.downbeat-consonance", "fis.suspension", "fis.weak-dissonance", "fis.quavers", "fis.ligature", "fis.cadence", "fis.limping", "fis.opening-perfect", "fis.final-octave-or-unison", "fis.unison-only-at-ends",
 ]);
 /** Rules about the motion from one note to another (connect the labels). */
 const MOTION = new Set([
   "fs.perfect-approach", "fs.converging-leap-into-octave", "fs.prefer-contrary-motion",
   "ss.perfect-approach", "ss.downbeat-succession", "ss.converging-leap-into-octave", "ss.prefer-contrary-motion",
+  "ts.perfect-approach", "ts.converging-leap-into-octave",
+  "fos.perfect-approach", "fos.converging-leap-into-octave",
+  "fis.perfect-approach", "fis.converging-leap-into-octave",
 ]);
 /** Rules about a leap in the counterpoint (connect the notes). */
-const MELODIC = new Set(["fs.melodic-tritone", "fs.melodic-major-sixth", "fs.unison-leap", "ss.melodic-tritone", "ss.melodic-major-sixth"]);
+const MELODIC = new Set(["fs.melodic-tritone", "fs.melodic-major-sixth", "fs.unison-leap", "ss.melodic-tritone", "ss.melodic-major-sixth", "ts.melodic-tritone", "ts.melodic-major-sixth", "fos.melodic-tritone", "fos.melodic-major-sixth", "fis.melodic-tritone", "fis.melodic-major-sixth"]);
 /** Rules whose positions are each, separately, a wrong interval (not a pair). */
 const EACH = new Set(["fs.cadence"]);
 
@@ -65,7 +71,12 @@ export function buildOverlay(
   const first = slots[0];
   const inRange = (k: number) => slots.includes(k);
   const cf = (k: number) => cantus[layout[k].bar];
-  const cp = (k: number) => counterpoint[k]!;
+  // Fifth species: a HOLD slot stands for the note it continues (D82).
+  const cp = (k: number) => {
+    let j = k;
+    while (j > 0 && counterpoint[j] === HOLD) j--;
+    return counterpoint[j]!;
+  };
   const status = new Map<number, Status>();
   const links: Link[] = [];
   const previousSounding = (k: number) => {
@@ -108,7 +119,9 @@ export function buildOverlay(
   });
   const intervals: IntervalLabel[] = [];
   for (const k of slots) {
-    if (!sounding(counterpoint[k])) continue;
+    // A note held over the bar line shows its interval on the downbeat too (the suspension).
+    const heldOver = counterpoint[k] === HOLD && layout[k].beat === 0 && sounding(cp(k));
+    if (!sounding(counterpoint[k]) && !heldOver) continue;
     intervals.push({ column: k - first, text: simpleName(harmonic(cf(k), cp(k))), status: status.get(k) ?? "ok" });
   }
   return { intervals, links };
@@ -117,9 +130,12 @@ export function buildOverlay(
 /** Intervals of the written notes only, with no judgement (the "intervals" view before evaluation). */
 export function neutralOverlay(cantus: string[], counterpoint: (string | null)[], layout: Slot[]): Overlay {
   const intervals: IntervalLabel[] = [];
+  let held: string | null = null;
   layout.forEach((sl, k) => {
     const cp = counterpoint[k];
+    if (cp !== HOLD) held = sounding(cp) ? cp : null;
     if (sounding(cp)) intervals.push({ column: k, text: simpleName(harmonic(cantus[sl.bar], cp)), status: "neutral" });
+    else if (cp === HOLD && sl.beat === 0 && held) intervals.push({ column: k, text: simpleName(harmonic(cantus[sl.bar], held)), status: "neutral" });
   });
   return { intervals, links: [] };
 }

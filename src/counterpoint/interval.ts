@@ -111,11 +111,11 @@ export function isLeap(i: Interval): boolean {
 }
 
 /**
- * Display name with compound intervals reduced to their simple forms (m10 -> m3, P12 -> P5),
- * keeping the octave as P8 (P15 -> P8) and the unison as P1.
+ * Display name with compound intervals reduced to their simple forms (m10 -> m3, 12 -> 5),
+ * keeping the octave as 8 (15 -> 8) and the unison as 1. Perfect intervals carry no "P" (owner):
+ * a quality is written only where it tells something (M, m, A, d).
  */
 export function simpleName(i: Interval): string {
-  if (i.number <= 8) return i.name;
-  const reduced = ((i.number - 1) % 7) + 1;
-  return `${i.quality}${reduced === 1 ? 8 : reduced}`;
+  const reduced = i.number <= 8 ? i.number : ((i.number - 1) % 7) + 1 === 1 ? 8 : ((i.number - 1) % 7) + 1;
+  return `${i.quality === "P" ? "" : i.quality}${reduced}`;
 }

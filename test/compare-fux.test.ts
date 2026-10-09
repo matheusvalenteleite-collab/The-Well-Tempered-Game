@@ -9,7 +9,7 @@ test("comparison with Fux: criteria are reported for whichever side they favour"
   const diff = compareWithFux(cf, player, fux);
   assert.deepEqual(diff.map((d) => d.column), [0, 1, 2, 3, 4, 5, 7, 8]);
   const bar8 = diff.find((d) => d.column === 7)!; // player P5 vs Fux M3
-  assert.equal(bar8.playerInterval, "P5");
+  assert.equal(bar8.playerInterval, "5");
   assert.equal(bar8.fuxInterval, "M3");
   assert.ok(bar8.fuxBetter.includes("imperfect"));
   const bar9 = diff.find((d) => d.column === 8)!; // player F5 = P8 over F4; Fux D5 = M6
@@ -25,4 +25,17 @@ test("repeated notes are not credited: no motion or singability bonus, and varie
   const bar3 = compareWithFux(cf, lazy, fux).find((d) => d.column === 2)!;
   assert.ok(bar3.fuxBetter.includes("variety"));
   assert.ok(!bar3.playerBetter.includes("motion") && !bar3.playerBetter.includes("singable"));
+});
+
+test("Mann's layer: large leaps, same-direction leaps, uncompensated leaps, a tone thrice", async () => {
+  const { mannFaults } = await import("../src/counterpoint/compare-fux.ts");
+  assert.ok(mannFaults(["C4", "A4", "G4"], 1).has("largeLeap")); // major sixth
+  assert.ok(!mannFaults(["C4", "Ab4", "G4"], 1).has("largeLeap")); // rising minor sixth allowed
+  assert.ok(!mannFaults(["C4", "C5", "B4"], 1).has("largeLeap")); // octave allowed
+  assert.ok(mannFaults(["C4", "E4", "G4"], 1).has("leapsSameWay"));
+  assert.ok(mannFaults(["C4", "G4", "A4"], 1).has("uncompensated"));
+  assert.ok(!mannFaults(["C4", "G4", "F4"], 1).has("uncompensated"));
+  assert.ok(mannFaults(["D4", "D4", "D4"], 1).has("repeatedTwice"));
+  assert.ok(!mannFaults(["D4", "D4", "E4"], 1).has("repeatedTwice"));
+  assert.deepEqual([...mannFaults(["C4", null, "E4"], 1)], []);
 });

@@ -8,10 +8,12 @@
  */
 import { Soundfont } from "smplr";
 import { DEFAULT_DRUMS, DrumMachine, type DrumSettings } from "./drums.ts";
-import type { SynthSettings } from "./synth-settings.ts";
-import { audibleGain, CHANNELS, DEFAULT_SOUND, shiftOctave, STRIPS, type Channel, type SoundState, type Strip } from "./sound.ts";
+import { DEFAULT_SYNTH, type SynthSettings } from "./synth-settings.ts";
+import { FxChain } from "./effects.ts";
+import { audibleGain, CHANNELS, DEFAULT_MASTER_FX, DEFAULT_SOUND, shiftOctave, STRIPS, versionSettings, type Channel, type SoundState, type Strip } from "./sound.ts";
 import type { TemperamentId } from "./temperament.ts";
 import type { PlayEvent } from "../counterpoint/layout.ts";
+import { VERSION_IDS, type VersionId } from "../game/versions.ts";
 import { Synth, type Instrument } from "./voice.ts";
 
 export * from "./synth-settings.ts";
@@ -41,9 +43,51 @@ class SampledPiano implements Instrument {
   }
 }
 
+/** Mix mode (D77): the events and accompaniment of pass i, set up on the engine when it is called. */
+export interface PassPlan {
+  prepare(pass: number): { events: PlayEvent[]; onCycle?: (startTime: number, fromBeat: number) => void };
+}
+
+/** The capture processor (D74): batches the input and posts it with the frame it started at. */
+const RECORDER_WORKLET = `
+class WtgRecorder extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this.l = []; this.r = []; this.n = 0; this.frame = -1;
+    this.port.onmessage = () => { this.send(); this.port.postMessage("flushed"); };
+  }
+  send() {
+    if (!this.n) return;
+    const cat = (parts) => { const o = new Float32Array(this.n); let k = 0; for (const p of parts) { o.set(p, k); k += p.length; } return o; };
+    this.port.postMessage({ frame: this.frame, l: cat(this.l), r: cat(this.r) });
+    this.l = []; this.r = []; this.n = 0; this.frame = -1;
+  }
+  process(inputs) {
+    const i = inputs[0];
+    const n = i && i[0] ? i[0].length : 128;
+    if (this.frame < 0) this.frame = currentFrame;
+    const l = i && i[0] ? i[0].slice() : new Float32Array(n);
+    const r = i && i[1] ? i[1].slice() : l;
+    this.l.push(l); this.r.push(r); this.n += n;
+    if (this.n >= 16384) this.send();
+    return true;
+  }
+}
+registerProcessor("wtg-recorder", WtgRecorder);
+`;
+
 export class AudioEngine {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
+  /** The last node before the speakers: what an export captures (D74). */
+  private limiter: DynamicsCompressorNode | null = null;
+  /** The master's reverb and delay (D95), between the master fader and the limiter. */
+  private masterFx: FxChain | null = null;
+  /** AudioContext times at which the passes of the current "play all" start, and where it ends. */
+  cycleStarts: number[] = [];
+  playEnd: number | null = null;
+  /** Pass starts since the capture began (D75): kept across live restarts, which reset cycleStarts. */
+  captureCycles: number[] = [];
   private volume = 0.7;
   private instruments = new Map<SoundId, Promise<Voices | null>>();
   private current: Voices | null = null;
@@ -53,6 +97,8 @@ export class AudioEngine {
   /** Synth settings of the three voices (stable objects: the synths read them at each note). */
   private synth: Record<Channel, SynthSettings> = structuredClone(DEFAULT_SOUND.synth);
   private mix: SoundState = structuredClone(DEFAULT_SOUND);
+  /** Each version's synth settings (stable objects, D69): a copy of the Contrapunctus's or its own. */
+  private versionSynth: Record<VersionId, SynthSettings> = structuredClone(DEFAULT_SOUND.versionSynth);
   private channels = new Map<Strip, { gain: GainNode; pan: StereoPannerNode }>();
   temperament: TemperamentId = "equal";
   /** Drum track during "play all"; read live, so toggling takes effect from the next bar. */
@@ -80,8 +126,37 @@ export class AudioEngine {
    */
   setSoundState(state: SoundState) {
     for (const c of CHANNELS) Object.assign(this.synth[c], state.synth[c]);
-    for (const v of [this.current?.cantus, this.current?.counterpoint, this.current?.fux]) if (v instanceof Synth) v.update();
+    for (const id of VERSION_IDS) Object.assign(this.versionSynth[id], versionSettings(state, id));
+    for (const v of [this.current?.cantus, this.current?.counterpoint, this.current?.fux, ...this.versionVoices.values()]) if (v instanceof Synth) v.update();
     this.mix = structuredClone(state);
+    this.applyMix();
+    this.masterFx?.update({ ...DEFAULT_SYNTH, ...(state.master ?? DEFAULT_MASTER_FX) });
+  }
+
+  private meters = new Map<Strip | "master", AnalyserNode>();
+  private meterBuf = new Float32Array(512);
+  /** Peak level of each strip (and the master) now, in dB (-inf when silent); for the meters (D80). */
+  levels(): Partial<Record<Strip | "master", number>> {
+    const out: Partial<Record<Strip | "master", number>> = {};
+    if (this.limiter && !this.meters.has("master") && this.ctx) {
+      const m = this.ctx.createAnalyser();
+      m.fftSize = 512;
+      this.limiter.connect(m);
+      this.meters.set("master", m);
+    }
+    for (const [x, a] of this.meters) {
+      a.getFloatTimeDomainData(this.meterBuf);
+      let peak = 0;
+      for (let i = 0; i < this.meterBuf.length; i++) peak = Math.max(peak, Math.abs(this.meterBuf[i]));
+      out[x] = peak > 1e-5 ? 20 * Math.log10(peak) : -Infinity;
+    }
+    return out;
+  }
+
+  /** Channel gates (D78): a line switched off is silenced by its channel, never by a restart. */
+  private gates: Partial<Record<Strip, boolean>> = {};
+  setGates(g: Partial<Record<Strip, boolean>>) {
+    this.gates = { ...g };
     this.applyMix();
   }
 
@@ -91,7 +166,8 @@ export class AudioEngine {
     for (const x of STRIPS) {
       const ch = this.channels.get(x);
       if (!ch) continue;
-      ch.gain.gain.setTargetAtTime(audibleGain(this.mix, x), t, 0.02);
+      // A short glide (about 20 ms) so that a switch never clicks.
+      ch.gain.gain.setTargetAtTime(this.gates[x] === false ? 0 : audibleGain(this.mix, x), t, 0.02);
       ch.pan.pan.setTargetAtTime(this.mix.mix[x].pan, t, 0.02);
     }
   }
@@ -102,7 +178,13 @@ export class AudioEngine {
     if (!ch) {
       const gain = this.ctx!.createGain();
       const pan = this.ctx!.createStereoPanner();
+      gain.gain.value = this.gates[x] === false ? 0 : audibleGain(this.mix, x); // no blip on creation
       gain.connect(pan).connect(this.master!);
+      // A tap for the strip's level meter (D80).
+      const meter = this.ctx!.createAnalyser();
+      meter.fftSize = 512;
+      pan.connect(meter);
+      this.meters.set(x, meter);
       ch = { gain, pan };
       this.channels.set(x, ch);
       this.applyMix();
@@ -146,7 +228,17 @@ export class AudioEngine {
       this.ctx = new AudioContext();
       this.master = this.ctx.createGain();
       this.master.gain.value = this.volume;
-      this.master.connect(this.ctx.destination);
+      // A safety limiter before the speakers: voices, drums and continuo together never clip.
+      const limiter = this.ctx.createDynamicsCompressor();
+      limiter.threshold.value = -3;
+      limiter.knee.value = 2;
+      limiter.ratio.value = 20;
+      limiter.attack.value = 0.002;
+      limiter.release.value = 0.2;
+      limiter.connect(this.ctx.destination);
+      this.masterFx = new FxChain(this.ctx, limiter, { ...DEFAULT_SYNTH, ...(this.mix.master ?? DEFAULT_MASTER_FX) });
+      this.master.connect(this.masterFx.input);
+      this.limiter = limiter;
       this.drumMachine = new DrumMachine(this.ctx, this.channel("drums"));
       this.setDrums(this.drumSettings, this.final);
     }
@@ -181,15 +273,20 @@ export class AudioEngine {
   }
 
   private both(voices: Voices, col: PlaybackColumn, time: number, duration: number) {
-    voices.cantus.start(col.cantus, time, duration);
+    voices.cantus.start(shiftOctave(col.cantus, this.mix.cantusOctave ?? 0), time, duration);
     this.notesStarted++;
     if (col.counterpoint) {
-      voices.counterpoint.start(col.counterpoint, time, duration);
+      voices.counterpoint.start(shiftOctave(col.counterpoint, this.mix.counterpointOctave ?? 0), time, duration);
       this.notesStarted++;
     }
   }
 
   /** Length of one bar (a whole note) at the current tempo, in seconds. */
+  /** The audio clock (seconds), or 0 before the first gesture. */
+  get now(): number {
+    return this.ctx?.currentTime ?? 0;
+  }
+
   get barSeconds(): number {
     return 120 / this.tempo;
   }
@@ -204,16 +301,27 @@ export class AudioEngine {
   /** Start the notes of one event; a cantus note always lasts the whole bar. */
   private soundEvent(voices: Voices, e: PlayEvent, time: number, whole: number) {
     if (e.cantus) {
-      voices.cantus.start(e.cantus, time, whole * 0.97);
+      voices.cantus.start(shiftOctave(e.cantus, this.mix.cantusOctave ?? 0), time, whole * 0.97);
       this.notesStarted++;
     }
     if (e.counterpoint) {
-      voices.counterpoint.start(e.counterpoint, time, e.length * whole * 0.95);
+      voices.counterpoint.start(shiftOctave(e.counterpoint, this.mix.counterpointOctave ?? 0), time, (e.lengths?.counterpoint ?? e.length) * whole * 0.95);
+      this.notesStarted++;
+    }
+    for (const [id, pitch] of Object.entries(e.versions ?? {})) {
+      if (!pitch) continue;
+      // Each version may sound in another octave too (D66).
+      this.versionVoice(id as VersionId)?.start(shiftOctave(pitch, this.mix.versionOctave?.[id as VersionId] ?? 0), time, (e.lengths?.[id] ?? e.length) * whole * 0.95);
+      this.notesStarted++;
+    }
+    for (const x of e.extra ?? []) {
+      const oct = x.channel === "fux" ? this.mix.fuxOctave : (this.mix.counterpointOctave ?? 0);
+      voices[x.channel].start(shiftOctave(x.pitch, oct), time, e.length * whole * 0.95);
       this.notesStarted++;
     }
     if (e.fux) {
       // Fux's line may sound in another octave (listening only; the score is unchanged).
-      voices.fux.start(shiftOctave(e.fux, this.mix.fuxOctave), time, e.length * whole * 0.95);
+      voices.fux.start(shiftOctave(e.fux, this.mix.fuxOctave), time, (e.lengths?.fux ?? e.length) * whole * 0.95);
       this.notesStarted++;
     }
   }
@@ -239,24 +347,63 @@ export class AudioEngine {
    * time, so tempo and drum changes take effect from the next note.
    * `onSlot(k)` fires as slot k sounds; -1 marks the end.
    */
-  async playAll(events: PlayEvent[], onSlot: (k: number) => void): Promise<void> {
+  /** Things to stop with the playback (the continuo); `stop()` stops and forgets them. */
+  private attached = new Set<{ stop(): void }>();
+  attach(x: { stop(): void }) {
+    this.attached.add(x);
+  }
+
+  /** The context and master input, once the first gesture has created them (for the continuo). */
+  get graph(): { ctx: AudioContext; master: GainNode } | null {
+    return this.ctx && this.master ? { ctx: this.ctx, master: this.master } : null;
+  }
+
+  /** The continuo's input: its own mixer strip (level, balance, mute, solo) before the master. */
+  continuoInput(): AudioNode | null {
+    if (!this.ctx || !this.master) return null;
+    return this.channel("continuo");
+  }
+
+  /**
+   * `from`: index of the event to start at (a live restart mid-piece); later passes start at 0.
+   * `onCycle(t, fromBeat)` is called with the AudioContext time of the first event of every pass
+   * and the half-note beat it stands for (0 on full passes),
+   * when that pass is scheduled, so that an accompaniment can start sample-aligned.
+   */
+  async playAll(events: PlayEvent[], onSlot: (k: number) => void, onCycle?: (startTime: number, fromBeat: number) => void, from = 0, passes?: PassPlan): Promise<void> {
     this.stop();
     const inst = await this.instrument();
     const ctx = this.ctx;
+    // Mix mode (D77): each pass brings its own events and accompaniment, and sets the engine up.
+    let pass = 0;
+    if (passes) ({ events, onCycle } = passes.prepare(0));
     if (!inst || !ctx || events.length === 0) {
       onSlot(-1);
       return;
     }
-    const bars = Math.ceil(Math.max(...events.map((e) => e.at + e.length)));
-    let k = 0;
+    let bars = Math.ceil(Math.max(...events.map((e) => e.at + e.length)));
+    this.cycleStarts = [];
+    this.playEnd = null;
+    let k = Math.max(0, Math.min(events.length - 1, from));
     let next = ctx.currentTime + 0.1;
     const LOOKAHEAD = 0.15;
+    let announced = false;
     const tick = () => {
+      // Each pass starts the accompaniment; a live restart from the middle starts it there too (it
+      // used to wait for the next pass, so a change of continuo settings silenced it until then).
+      if (!announced) {
+        announced = true;
+        if (k === 0) {
+          this.cycleStarts.push(next);
+          if (this.capture) this.captureCycles.push(next);
+        }
+        onCycle?.(next, k === 0 ? 0 : (events[k].at - events[0].at) * 2);
+      }
       while (k < events.length && next < ctx.currentTime + LOOKAHEAD) {
         const whole = this.barSeconds;
         const e = events[k];
         this.soundEvent(inst, e, next, whole);
-        if (this.drums && e.cantus) this.drumMachine?.scheduleBar(next, whole, Math.floor(e.at), bars);
+        if (this.drums && e.cantus) this.drumMachine?.scheduleBar(next, whole, Math.floor(e.at), bars, this.loop);
         const slot = e.slot;
         this.timers.push(window.setTimeout(() => onSlot(slot), Math.max(0, (next - ctx.currentTime) * 1000)));
         next += ((events[k + 1]?.at ?? e.at + e.length) - e.at) * whole;
@@ -266,9 +413,18 @@ export class AudioEngine {
         if (this.loop) {
           // Loop: start again after half a bar's breath (read live, so the toggle works mid-play).
           k = 0;
+          announced = false;
+          // The drums do not stop: the roll fills the breath and lands on bar 1 (D72).
+          if (this.drums) this.drumMachine?.scheduleBreath(next, this.barSeconds, 0.5);
           next += 0.5 * this.barSeconds;
           this.timers = this.timers.slice(-64);
+          if (passes) {
+            pass++;
+            ({ events, onCycle } = passes.prepare(pass));
+            bars = Math.ceil(Math.max(...events.map((e) => e.at + e.length)));
+          }
         } else {
+          this.playEnd = next;
           this.timers.push(window.setTimeout(() => onSlot(-1), Math.max(0, (next - ctx.currentTime) * 1000)));
           return;
         }
@@ -278,13 +434,114 @@ export class AudioEngine {
     tick();
   }
 
+  // ---- Export (D74): capture the output while it plays.
+
+  private capture: { node: AudioNode; sink: GainNode; left: Float32Array[]; right: Float32Array[]; firstFrame: number | null; flush(): Promise<void> } | null = null;
+  private workletReady: Promise<boolean> | null = null;
+
+  /** Start capturing everything that reaches the speakers (needs a user gesture, like playing). */
+  async startCapture(): Promise<void> {
+    await this.instrument();
+    const ctx = this.ctx;
+    if (!ctx || !this.limiter) throw new Error("audio is not available");
+    this.capture?.node.disconnect();
+    this.captureCycles = [];
+    const left: Float32Array[] = [];
+    const right: Float32Array[] = [];
+    const sink = ctx.createGain();
+    sink.gain.value = 0;
+    sink.connect(ctx.destination);
+    this.workletReady ??= (async () => {
+      try {
+        const url = URL.createObjectURL(new Blob([RECORDER_WORKLET], { type: "application/javascript" }));
+        await ctx.audioWorklet.addModule(url);
+        return true;
+      } catch {
+        return false; // e.g. a page that forbids blob: modules: fall back on a script processor
+      }
+    })();
+    const state = { firstFrame: null as number | null };
+    let node: AudioNode;
+    let flush: () => Promise<void>;
+    if (await this.workletReady) {
+      const w = new AudioWorkletNode(ctx, "wtg-recorder", { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2], channelCount: 2, channelCountMode: "explicit" });
+      let flushed: () => void = () => {};
+      w.port.onmessage = (e) => {
+        if (e.data === "flushed") return flushed();
+        const { frame, l, r } = e.data as { frame: number; l: Float32Array; r: Float32Array };
+        state.firstFrame ??= frame;
+        left.push(l);
+        right.push(r);
+      };
+      flush = () => new Promise<void>((resolve) => {
+        flushed = resolve;
+        w.port.postMessage("flush");
+      });
+      node = w;
+    } else {
+      const sp = ctx.createScriptProcessor(4096, 2, 2);
+      sp.onaudioprocess = (e) => {
+        state.firstFrame ??= Math.round(e.playbackTime * ctx.sampleRate);
+        left.push(e.inputBuffer.getChannelData(0).slice());
+        right.push(e.inputBuffer.getChannelData(1).slice());
+      };
+      flush = async () => {};
+      node = sp;
+    }
+    this.limiter.connect(node);
+    node.connect(sink);
+    this.capture = { node, sink, left, right, get firstFrame() { return state.firstFrame; }, flush };
+  }
+
+  /**
+   * Stop capturing and return the audio between two AudioContext times (or all of it).
+   * The samples are stereo, at the context's rate.
+   */
+  async stopCapture(from?: number, to?: number): Promise<{ channels: Float32Array[]; sampleRate: number } | null> {
+    const c = this.capture;
+    const ctx = this.ctx;
+    if (!c || !ctx) return null;
+    await c.flush();
+    this.limiter?.disconnect(c.node);
+    c.node.disconnect();
+    c.sink.disconnect();
+    this.capture = null;
+    const join = (parts: Float32Array[]) => {
+      const out = new Float32Array(parts.reduce((n, p) => n + p.length, 0));
+      let at = 0;
+      for (const p of parts) (out.set(p, at), (at += p.length));
+      return out;
+    };
+    const sr = ctx.sampleRate;
+    const first = c.firstFrame ?? 0;
+    const a = Math.max(0, from === undefined ? 0 : Math.round(from * sr) - first);
+    const l = join(c.left);
+    const b = Math.min(l.length, to === undefined ? l.length : Math.round(to * sr) - first);
+    return { channels: [l.slice(a, b), join(c.right).slice(a, b)], sampleRate: sr };
+  }
+
+  /** A voice per derived version of the player's line, on its own strip, with its own settings (D69). */
+  private versionVoices = new Map<VersionId, Synth>();
+  private versionVoice(id: VersionId): Synth | null {
+    if (!this.ctx) return null;
+    let v = this.versionVoices.get(id);
+    if (!v) {
+      v = new Synth(this.ctx, this.channel(id), this.versionSynth[id], () => this.temperament);
+      this.versionVoices.set(id, v);
+    }
+    return v;
+  }
+
   stop(): void {
     for (const t of this.timers) window.clearTimeout(t);
     this.timers = [];
+    for (const v of this.versionVoices.values()) v.stop();
     this.current?.cantus.stop();
     this.current?.counterpoint.stop();
     this.current?.fux.stop();
     this.drumMachine?.stop();
+    for (const x of this.attached) x.stop();
+    this.attached.clear();
   }
 }
 

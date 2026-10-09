@@ -31,7 +31,7 @@ test("session: place, replace, accidentals, keyboard stepping", () => {
   s = applyAccidental(s, 1); // arms the next placement
   s = place(s, 9, "C5");
   assert.equal(s.notes[9], "C#5");
-  assert.equal(s.accidental, 0);
+  assert.equal(s.accidental, null);
   s = stepNote(s, 1, "D4");
   assert.equal(s.notes[9], "D5");
   s = { ...s, selected: 3 };
@@ -95,9 +95,9 @@ test("overlay: every fux-strict rule has a drawing; parallel fifths become a lin
   const ev = evaluate({ species: "first", modalFinal: "D", cantusVoice: "lower", cantus: cf.map((p) => ({ pitch: p, duration: "1/1" })), counterpoint: cp.map((p) => ({ pitch: p, duration: "1/1" })) });
   const o = buildOverlay(ev.violations, cf, cp);
   assert.equal(o.intervals.length, 11);
-  assert.deepEqual(o.intervals.map((i) => i.text), ["P8", "M6", "m6", "P5", "P5", "M6", "m3", "P5", "P8", "m6", "P8"]);
-  assert.ok(o.links.some((l) => l.from === 3 && l.to === 4 && l.text === "parallel P5→P5" && l.severity === "error"));
-  assert.ok(o.links.some((l) => l.from === 2 && l.to === 3 && l.text === "similar m6→P5"));
+  assert.deepEqual(o.intervals.map((i) => i.text), ["8", "M6", "m6", "5", "5", "M6", "m3", "5", "8", "m6", "8"]);
+  assert.ok(o.links.some((l) => l.from === 3 && l.to === 4 && l.text === "parallel 5→5" && l.severity === "error"));
+  assert.ok(o.links.some((l) => l.from === 2 && l.to === 3 && l.text === "similar m6→5"));
   assert.equal(o.intervals[9].status, "error"); // cadence m6
   assert.equal(o.intervals[10].status, "ok"); // the final octave itself is right
   assert.equal(o.intervals[3].status, "error"); // fifth reached by similar motion
@@ -122,7 +122,7 @@ test("overlay, second species: every rule has a drawing; downbeat fifths linked 
   const ev = evaluate({ species: "second", modalFinal: "D", cantusVoice: "lower", cantus: cf.map((p) => ({ pitch: p, duration: "1/1" })), counterpoint: cp.map((p, k) => ({ pitch: p, duration: layout[k].duration })) });
   const o = buildOverlay(ev.violations, cf, cp, layout);
   assert.equal(o.intervals.length, 21);
-  assert.ok(o.links.some((l) => l.from === 14 && l.to === 16 && l.text === "parallel P5→P5"));
+  assert.ok(o.links.some((l) => l.from === 14 && l.to === 16 && l.text === "parallel 5→5"));
   const ex = buildOverlay(ev.violations, cf, cp, layout, 7, 8); // bars 8-9: slots 14..17
   assert.deepEqual(ex.links.map((l) => [l.from, l.to]), [[0, 2]]);
 });
@@ -158,4 +158,32 @@ test("display clefs are G or F only, chosen by register (D30)", async () => {
   assert.deepEqual(displayClefs(["F3", "G3", "A3", "F3", "D3", "E3", "F3", "C4", "A3", "F3", "G3", "F3"], "upper"), ["bass", "bass"]);
   // Fig. 5: cantus below, counterpoint above → two G clefs.
   assert.deepEqual(displayClefs(["D4", "F4", "E4", "D4", "G4", "F4", "A4", "G4", "F4", "E4", "D4"], "lower"), ["treble", "treble"]);
+});
+
+test("key signature (F mode, D48): a plain B is B-flat; the natural sign gives B-natural", async () => {
+  const { initialState, place, applyAccidental, letterNote, moveNote } = await import("../src/game/session.ts");
+  let s = initialState(4, { B: -1 });
+  s = place(s, 0, "B4");
+  assert.equal(s.notes[0], "Bb4");
+  s = applyAccidental(s, 0);
+  assert.equal(s.notes[0], "B4");
+  s = applyAccidental(s, 0);
+  assert.equal(s.notes[0], "Bb4"); // pressing the natural again returns to the key
+  s = applyAccidental({ ...s, selected: 1 }, 0); // armed natural
+  s = place(s, 1, "B4");
+  assert.equal(s.notes[1], "B4");
+  s = letterNote({ ...s, selected: 2 }, "B", "A4");
+  assert.equal(s.notes[2], "Bb4");
+  s = moveNote(s, 2, 3, "B3");
+  assert.equal(s.notes[3], "Bb3");
+  assert.equal(place(initialState(2), 0, "B4").notes[0], "B4"); // no signature elsewhere
+});
+
+test("repeatPrevious writes the tie: the previous note, accidental included, and nothing after a rest (D63)", async () => {
+  const { initialState, repeatPrevious, select } = await import("../src/game/session.ts");
+  const s = { ...initialState(4), notes: ["r", "Bb4", null, null] };
+  const tied = repeatPrevious(select(s, 2));
+  assert.equal(tied.notes[2], "Bb4");
+  assert.equal(tied.lastWritten, "Bb4");
+  assert.equal(repeatPrevious(select(s, 1)).notes[1], "Bb4"); // after a rest: unchanged
 });

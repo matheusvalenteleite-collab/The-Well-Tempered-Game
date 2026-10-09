@@ -5,7 +5,12 @@
 import type { FuxRepository } from "../../music/fux/repository.ts";
 import { FIRST_SPECIES_FUX_STRICT } from "../rules/first-species.ts";
 import { SECOND_SPECIES_FUX_STRICT } from "../rules/second-species.ts";
+import { THIRD_SPECIES_FUX_STRICT } from "../rules/third-species.ts";
+import { FOURTH_SPECIES_FUX_STRICT, ligatureWherePossibleWith } from "../rules/fourth-species.ts";
+import { FUX_FIFTH_SPECIES_CURRICULUM, FUX_FOURTH_SPECIES_CURRICULUM, FUX_THIRD_SPECIES_CURRICULUM } from "./fux-third-fourth-species.ts";
+import { FIFTH_SPECIES_FUX_STRICT } from "../rules/fifth-species.ts";
 import type { Rule } from "../rules/types.ts";
+import { floridRhythm, fourthNoRepetition, secondNoRepetition, thirdNoRepetition } from "../rules/rhythm.ts";
 import type { SpeciesId } from "../layout.ts";
 import { FUX_FIRST_SPECIES_CURRICULUM, type CurriculumStep } from "./fux-first-species.ts";
 import { FUX_SECOND_SPECIES_CURRICULUM } from "./fux-second-species.ts";
@@ -22,13 +27,15 @@ export interface Course {
 export const COURSES: readonly Course[] = [
   { voices: 2, species: 1, steps: FUX_FIRST_SPECIES_CURRICULUM },
   { voices: 2, species: 2, steps: FUX_SECOND_SPECIES_CURRICULUM },
-  ...([3, 4, 5] as const).map((species) => ({ voices: 2 as const, species, steps: [] })),
+  { voices: 2, species: 3, steps: FUX_THIRD_SPECIES_CURRICULUM },
+  { voices: 2, species: 4, steps: FUX_FOURTH_SPECIES_CURRICULUM },
+  { voices: 2, species: 5, steps: FUX_FIFTH_SPECIES_CURRICULUM },
   ...([3, 4] as const).flatMap((voices) => ([1, 2, 3, 4, 5] as const).map((species) => ({ voices, species, steps: [] }))),
 ];
 
 export const ALL_STEPS: readonly CurriculumStep[] = COURSES.flatMap((c) => c.steps);
 
-const RULES: Record<SpeciesId, readonly Rule[]> = { first: FIRST_SPECIES_FUX_STRICT, second: SECOND_SPECIES_FUX_STRICT };
+const RULES: Record<SpeciesId, readonly Rule[]> = { first: FIRST_SPECIES_FUX_STRICT, second: [...SECOND_SPECIES_FUX_STRICT, secondNoRepetition], third: [...THIRD_SPECIES_FUX_STRICT, thirdNoRepetition], fourth: [...FOURTH_SPECIES_FUX_STRICT, fourthNoRepetition], fifth: [...FIFTH_SPECIES_FUX_STRICT, floridRhythm] };
 const RULES_BY_ID = new Map(Object.values(RULES).flat().map((r) => [r.id, r]));
 
 export const courseOf = (stepId: string) => {
@@ -46,7 +53,8 @@ export function introductionsUpTo(stepId: string) {
 
 /** Rules active at a step. */
 export function rulesForStep(stepId: string): Rule[] {
-  return introductionsUpTo(stepId).map((x) => RULES_BY_ID.get(x.ruleId)!);
+  const free = courseOf(stepId).steps.find((s) => s.id === stepId)!.free_minims;
+  return introductionsUpTo(stepId).map((x) => (x.ruleId === "fos.ligature-where-possible" && free !== undefined ? ligatureWherePossibleWith(free) : RULES_BY_ID.get(x.ruleId)!));
 }
 
 export const ruleById = (id: string) => RULES_BY_ID.get(id);

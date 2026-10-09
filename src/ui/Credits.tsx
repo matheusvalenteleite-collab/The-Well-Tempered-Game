@@ -17,7 +17,7 @@ export function Credits({ onClose }: { onClose(): void }) {
           Dataset: <a href={prov.repository}>{prov.repository}</a> @ <code>{prov.commit.slice(0, 7)}</code>
         </p>
         <h3>Software and sounds</h3>
-        <p>VexFlow (MIT), React (MIT), smplr (MIT). Other sounds are synthesized in the browser.</p>
+        <p>VexFlow (MIT), React (MIT), smplr (MIT). MP3 export: lamejs (@breezystack/lamejs, LGPL-3.0; source at github.com/breezystack/lamejs), a JavaScript port of LAME. Other sounds are synthesized in the browser.</p>
         <p>
           Grand piano: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), CC BY 3.0, via the sfzinstruments edition
           (github.com/sfzinstruments/SalamanderGrandPiano); two velocity layers, re-encoded.
@@ -25,6 +25,11 @@ export function Credits({ onClose }: { onClose(): void }) {
         <p>
           Pipe organ, sackbut (trombone) and cello: from nbrosowsky/tonejs-instruments (samples CC BY 3.0); organ and trombone from the
           Versilian Studios Orchestra 2 Community Edition, cello from Freesound (12408, flcellogrl); trimmed and re-encoded.
+        </p>
+        <p>
+          Violin, flute, bassoon, French horn, trumpet, harp, double bass, xylophone (Versilian Studios Orchestra 2 Community Edition),
+          harmonium (Freesound 330410, donyaquick), classical guitar (Freesound 11573, quartertone), electric guitar, electric bass and
+          saxophone (Karoryfer Samples): all via nbrosowsky/tonejs-instruments (CC BY 3.0); thinned, trimmed and re-encoded.
         </p>
         <button onClick={onClose}>{t("ui.close")}</button>
       </div>

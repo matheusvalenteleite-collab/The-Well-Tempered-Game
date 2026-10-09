@@ -5,6 +5,7 @@ import { stepStudy } from "./study.ts";
 import { fifthIsDiminished } from "../counterpoint/rules/second-species.ts";
 import { parsePitch } from "../music/pitch.ts";
 import { t } from "./i18n.ts";
+import { Term } from "./Term.tsx";
 
 
 type MotionKind = "parallel" | "similar" | "oblique" | "contrary";
@@ -44,25 +45,6 @@ function MotionGlyph({ kind }: { kind: MotionKind }) {
 }
 
 /** A term with a definition shown on hover, focus or tap. */
-function Term({ def, children }: { def: string; children: React.ReactNode }) {
-  // Keep the tip inside the viewport: shift it left when it would overflow on the right.
-  const fit = (e: React.SyntheticEvent<HTMLSpanElement>) => {
-    const tip = e.currentTarget.querySelector<HTMLSpanElement>(".tip");
-    if (!tip) return;
-    tip.style.left = "0px";
-    requestAnimationFrame(() => {
-      const r = tip.getBoundingClientRect();
-      const over = r.right - (document.documentElement.clientWidth - 8);
-      if (over > 0) tip.style.left = `${-over}px`;
-    });
-  };
-  return (
-    <span className="term" tabIndex={0} onMouseEnter={fit} onFocus={fit}>
-      {children}
-      <span className="tip" role="tooltip">{def}</span>
-    </span>
-  );
-}
 
 const Chip = ({ kind, children, def }: { kind: "perfect" | "imperfect" | "dissonant"; children: string; def: string }) => (
   <Term def={def}>
@@ -75,13 +57,23 @@ export function Hints({ step, cantus }: { step: CurriculumStep; cantus: string[]
   const rules = intro.filter((x) => ruleById(x.ruleId)?.severity === "error");
   const recs = intro.filter((x) => ruleById(x.ruleId)?.severity === "warning");
   const second = step.species === "second";
+  const third = step.species === "third";
+  const fourth = step.species === "fourth";
+  const fifth = step.species === "fifth";
+  const diss = second ? "2" : third ? "3" : fourth ? "4" : fifth ? "5" : "";
   const active = new Set(intro.map((x) => x.ruleId));
   const cad = cadenceNote(cantus, step.cantus_voice);
   const altered = parsePitch(cad).alter !== 0;
   const n = cantus.length;
   const below = step.cantus_voice === "lower";
   const sixth = second && fifthIsDiminished(cantus[n - 2], step.cantus_voice);
-  const cadenceText = second ? `${sixth ? "6" : "P5"} → ${below ? "M6" : "m3"}` : below ? "M6" : "m3";
+  const cadenceText = second
+    ? `${sixth ? "6" : "5"} → ${below ? "M6" : "m3"}`
+    : third
+      ? t("hints.glance.cadence3", { interval: below ? "M6" : "m3" })
+      : fourth || fifth
+        ? below ? "7 → M6" : "2 → m3"
+        : below ? "M6" : "m3";
   const item = (x: (typeof intro)[number]) => (
     <li key={x.ruleId}>
       {t(`hints.rule.${x.ruleId}`)} <span className="ref">{t("hints.ref", { page: x.page })}</span>
@@ -111,7 +103,7 @@ export function Hints({ step, cantus }: { step: CurriculumStep; cantus: string[]
               </span>
             </div>
             <div className="row">
-              <Term def={t(second ? "hints.def.dissonance2" : "hints.def.dissonance")}><span className="row-label">{t(second ? "hints.glance.dissonant2" : "hints.glance.dissonant")}</span></Term>
+              <Term def={t(`hints.def.dissonance${diss}`)}><span className="row-label">{t(`hints.glance.dissonant${diss}`)}</span></Term>
               <span className="chips">
                 <Chip kind="dissonant" def={t("hints.def.second")}>2</Chip>
                 <Chip kind="dissonant" def={t("hints.def.fourth")}>4</Chip>
@@ -122,7 +114,7 @@ export function Hints({ step, cantus }: { step: CurriculumStep; cantus: string[]
             <p className="note"><Term def={t("hints.def.compound")}>{t("hints.glance.compounds")}</Term></p>
           </div>
 
-          {(active.has("fs.perfect-approach") || active.has("ss.perfect-approach")) && (
+          {["fs", "ss", "ts", "fos"].some((x) => active.has(`${x}.perfect-approach`)) && (
             <>
               <h3>{t("hints.glance.motion")}</h3>
               <table className="motion">
@@ -154,7 +146,7 @@ export function Hints({ step, cantus }: { step: CurriculumStep; cantus: string[]
 
           <h3>{t("hints.glance.frame")}</h3>
           <ol className="frame">
-            <li><span className="bar">1</span><span>{second ? `${t("hints.glance.restOr")} ` : ""}{below ? t("hints.glance.startBelow") : t("hints.glance.startAbove")}</span></li>
+            <li><span className="bar">1</span><span>{second || fourth ? `${t("hints.glance.restOr")} ` : ""}{below ? t("hints.glance.startBelow") : t("hints.glance.startAbove")}</span></li>
             <li className="gap">⋯</li>
             <li className="key"><span className="bar">{n - 1}</span><span>{cadenceText}{altered ? ` · ${t("hints.glance.accidental")}` : ""}</span></li>
             <li className="key"><span className="bar">{n}</span><span>{t("hints.glance.end")}</span></li>

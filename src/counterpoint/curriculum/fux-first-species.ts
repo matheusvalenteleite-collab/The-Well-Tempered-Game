@@ -34,6 +34,8 @@ export interface CurriculumStep {
   cantus_voice: Staff;
   page: string;
   introduces: RuleIntroduction[];
+  /** Fourth species: ligatures that could have been made and were left out, as many as Fux leaves out in his solution (D62). */
+  free_minims?: number;
 }
 
 const step = (

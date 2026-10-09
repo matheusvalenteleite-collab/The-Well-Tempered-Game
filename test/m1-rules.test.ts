@@ -21,7 +21,7 @@ test("interval quality comes from diatonic size + semitones", () => {
 
 test("simple-form display names", async () => {
   const { simpleName } = await import("../src/counterpoint/interval.ts");
-  const cases: [string, string, string][] = [["C4", "Eb5", "m3"], ["C4", "G5", "P5"], ["C4", "C6", "P8"], ["C4", "C5", "P8"], ["C4", "C4", "P1"], ["C4", "D5", "M2"], ["C4", "F5", "P4"], ["C3", "A5", "M6"], ["C4", "E4", "M3"]];
+  const cases: [string, string, string][] = [["C4", "Eb5", "m3"], ["C4", "G5", "5"], ["C4", "C6", "8"], ["C4", "C5", "8"], ["C4", "C4", "1"], ["C4", "D5", "M2"], ["C4", "F5", "4"], ["C4", "F#4", "A4"], ["C3", "A5", "M6"], ["C4", "E4", "M3"]];
   for (const [a, b, n] of cases) assert.equal(simpleName(interval(a, b)), n, `${a}-${b}`);
 });
 
