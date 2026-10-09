@@ -717,3 +717,16 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
 .chorale-verdicts .wtc-bach, .chorale-verdicts .wtc-root, .chorale-verdicts .wtc-other { padding-left: 6px; }
 .wtc-coda { cursor: default; opacity: 0.6; justify-content: center; min-height: 100%; font-size: 0.8em; text-align: center; }
 .chord small { opacity: 0.7; font-size: 0.75em; }
+
+/* The WTC answers (level F2) */
+.line-staff { display: flex; flex-direction: column; gap: 2px; width: 100%; }
+.line-staff-svg { width: 100%; height: auto; max-height: 120px; }
+.ls-line, .ls-stem { stroke: currentColor; stroke-width: 1; opacity: 0.8; }
+.ls-head { fill: currentColor; stroke: currentColor; }
+.ls-head.open { fill: var(--paper, #fff); stroke-width: 1.4; }
+.ls-clef { font-size: 34px; fill: currentColor; }
+.ls-acc { font-size: 15px; fill: currentColor; }
+.ls-label { font-size: 13px; fill: currentColor; opacity: 0.8; }
+.ls-note.marked .ls-head, .ls-note.marked .ls-acc { fill: #c98a1b; stroke: #c98a1b; }
+.line-staff-svg.chosen { background: color-mix(in srgb, var(--accent, #3b6fb6) 10%, transparent); }
+.line-staff-svg.bach .ls-label { fill: #2e8b57; font-weight: 700; opacity: 1; }

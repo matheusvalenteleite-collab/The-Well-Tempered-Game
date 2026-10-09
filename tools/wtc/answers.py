@@ -1,0 +1,129 @@
+#!/usr/bin/env python3
+"""The answers of the 48 fugues: real, textbook tonal, and Bach's (docs/wtc/CONCEPT.md, level F2).
+
+For each fugue (data/wtc/fugues.json: the subject and the answer as computed there), three answers:
+
+  real      the subject transposed to the dominant, every interval kept (up a fifth or down a
+            fourth, whichever lies nearer Bach's answer);
+  textbook  the tonal answer by the school rule: at the head of the subject the dominant is
+            answered by the tonic (a fourth, not a fifth, higher): the dominants of an opening run
+            of tonic and dominant notes, and the first dominant among the first four notes; the
+            rest is real;
+  Bach      the answer as Bach wrote it (the second voice's entry, first notes as long as the
+            subject).
+
+Bach's answer is then classified, on its first eight notes (an ending he adapts to what follows
+is not the question here): real, the textbook tonal answer, or a tonal answer of his own (another
+mutation). Fugues whose computed subject is doubtful (more than 20 notes, docs/wtc/FUGUES.md)
+are left out of the game but counted in the report.
+
+Output: data/wtc/answers.json (the game's data; subjects and answers as pitch names) and
+docs/wtc/ANSWERS.md. Run: python3 tools/wtc/answers.py
+"""
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+FUGUES = ROOT / "data" / "wtc" / "fugues.json"
+OUT = ROOT / "data" / "wtc" / "answers.json"
+REPORT = ROOT / "docs" / "wtc" / "ANSWERS.md"
+STEPS = "CDEFGAB"
+PC = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
+
+
+def parse(p: str) -> tuple[int, int, int]:
+    """(letter index, alteration, octave)."""
+    rest = p[1:]
+    alter = rest.count("#") - rest.count("b")
+    return STEPS.index(p[0]), alter, int(rest.lstrip("#b"))
+
+
+def midi(p: str) -> int:
+    s, a, o = parse(p)
+    return 12 * (o + 1) + PC[STEPS[s]] + a
+
+
+def pc(p: str) -> int:
+    return midi(p) % 12
+
+
+def transpose(p: str, steps: int, semis: int) -> str:
+    s, a, o = parse(p)
+    d = 7 * o + s + steps
+    ns, no = d % 7, d // 7
+    target = midi(p) + semis
+    alter = target - (12 * (no + 1) + PC[STEPS[ns]])
+    return STEPS[ns] + ("#" * alter if alter > 0 else "b" * -alter) + str(no)
+
+
+def tonic_of(key: str, subject: list[str]) -> str:
+    k = key.split("/")[-1] if "/" in key else key  # eb/d#: the encoding spells D-sharp minor
+    k = k[0].upper() + k[1:]
+    # match the subject's spelling (E-flat or D-sharp)
+    letters = {parse(n)[0] for n in subject}
+    if STEPS.index(k[0]) not in letters and "/" in key:
+        k = key.split("/")[0]
+        k = k[0].upper() + k[1:]
+    return k
+
+
+def answers(f: dict) -> dict:
+    subj = f["subject"]["notes"]
+    bach = f["answer"]["notes"]
+    tonic = tonic_of(f["key"], subj)
+    t_pc = (PC[tonic[0]] + tonic.count("#") - tonic[1:].count("b")) % 12
+    d_pc = (t_pc + 7) % 12
+    # the dominant transposition nearest Bach's first note
+    cands = [(4 + 7 * o, 7 + 12 * o) for o in (-2, -1, 0, 1)]
+    steps, semis = min(cands, key=lambda c: abs(midi(subj[0]) + c[1] - midi(bach[0])))
+    real = [transpose(n, steps, semis) for n in subj]
+    # mutated: the dominants of an opening run of tonic and dominant notes, and the first dominant
+    # among the first four notes
+    run = 0
+    while run < len(subj) and pc(subj[run]) in (t_pc, d_pc):
+        run += 1
+    first = next((i for i in range(min(4, len(subj))) if pc(subj[i]) == d_pc), None)
+    mutate = {i for i in range(run) if pc(subj[i]) == d_pc} | ({first} if first is not None else set())
+    head = max(mutate) + 1 if mutate else 0
+    text = list(real)
+    for i in mutate:  # the dominant answered by the tonic: a fourth, not a fifth
+        text[i] = transpose(subj[i], steps - 1, semis - 2)
+    k = min(8, len(bach))
+    kind = "real" if bach[:k] == real[:k] else "textbook tonal" if bach[:k] == text[:k] else "tonal, Bach's own mutation"
+    return {"tonic": tonic, "real": real, "textbook": text, "bach": bach, "kind": kind, "head": head}
+
+
+def main() -> None:
+    fugues = json.loads(FUGUES.read_text())["fugues"]
+    out, rows = [], []
+    for f in fugues:
+        a = answers(f)
+        ok = len(f["subject"]["notes"]) <= 20
+        rows.append((f, a, ok))
+        if ok:
+            out.append({"id": f["id"], "book": f["book"], "number": f["number"], "key": f["key"], "voices": f["voices"],
+                        "subject": f["subject"]["notes"], "durations": f["subject"]["durations"],
+                        "subjectVoice": f["subject"]["voice"], "answerVoice": f["answer"]["voice"], **a})
+    OUT.write_text(json.dumps({"generated_by": "tools/wtc/answers.py", "fugues": out}, ensure_ascii=False, indent=1) + "\n")
+    from collections import Counter
+    c = Counter(a["kind"] for _, a, _ in rows)
+    own = c["tonal, Bach's own mutation"]
+    md = ["# The answers of the 48 fugues", "",
+          "Generated by `tools/wtc/answers.py` (method in its docstring). Bach's answer set beside the real answer and",
+          "the textbook tonal answer (at the head, the dominant answered by the tonic).", "",
+          f"**{c['real']} real, {c['textbook tonal']} the textbook tonal answer, {own} a tonal answer of Bach's own.**", "",
+          "| fugue | key | subject head | Bach's answer | in the game |", "|---|---|---|---|---|"]
+    for f, a, ok in rows:
+        md.append(f"| {f['book']}/{f['number']} | {f['key']} | {' '.join(f['subject']['notes'][:5])} | {a['kind']}: {' '.join(a['bach'][:5])} | {'yes' if ok else 'no (subject doubtful)'} |")
+    md += ["", "Caution: the subject's end and the answer are computed readings (docs/wtc/FUGUES.md). The class is decided on",
+           "the first eight notes."]
+    REPORT.write_text("\n".join(md) + "\n")
+    print(dict(c), "in game:", len(out))
+    for f, a, ok in rows[:0]:
+        print(f["book"], f["number"], a["kind"], "| S", " ".join(f["subject"]["notes"][:5]), "| R", " ".join(a["real"][:5]), "| T", " ".join(a["textbook"][:5]), "| B", " ".join(a["bach"][:5]))
+
+
+if __name__ == "__main__":
+    main()

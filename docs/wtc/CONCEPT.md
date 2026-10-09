@@ -59,7 +59,7 @@ analysis is the data for these levels:
 | level | the player | judged by |
 |---|---|---|
 | F1 hearing the subject | marks where the subject enters, in which voice and form | the computed entries (with the reading's stated limits) |
-| F2 the answer | writes the answer to a subject: real or tonal, and where the mutation falls | Bach's answer; the rule of tonal mutation (the fifth answered by the fourth) |
+| F2 the answer | chooses the answer to a subject: real, textbook tonal, or Bach's own mutation (**built**: `src/ui/AnswerApp.tsx`, 26 fugues); later, writes it | Bach's answer; the rule of tonal mutation (the fifth answered by the fourth) |
 | F3 the countersubject | writes a line against the answer that also works inverted at the octave | Fux's rules (two voices) checked in both positions; Bach's countersubject |
 | F4 the exposition | plans the order of voices and keys of the entries | Bach's expositions (the 48, counted) |
 | F5 episodes | builds a sequence from a fragment of the subject | comparison with Bach's episodes |

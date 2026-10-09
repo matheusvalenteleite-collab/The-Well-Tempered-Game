@@ -7,6 +7,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BARS, barEvents, compare, figureLabel, pieceEvents, type Choice } from "../wtc/prelude1.ts";
 import type { Mode } from "./Root.tsx";
+import type { WtcLevel } from "./WtcRoot.tsx";
 import { HFader } from "./HFader.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 import { Shell } from "./Shell.tsx";
@@ -17,7 +18,7 @@ type Picks = (number | null)[];
 
 const fund = (c: Choice) => `${c.fundamental.root} ${t(`wtc.chord.${c.fundamental.chord}`)}`;
 
-export function PreludeApp({ onMode }: { onMode(mode: Mode): void }) {
+export function PreludeApp({ onMode, level, onLevel }: { onMode(mode: Mode): void; level: WtcLevel; onLevel(l: WtcLevel): void }) {
   const [picks, setPicks] = useState<Picks>(() => stored<Picks>("wtg.prelude1", BARS.map(() => null), (v) => Array.isArray(v) && v.length === BARS.length));
   useEffect(() => store("wtg.prelude1", picks), [picks]);
   const [selected, setSelected] = useState(0);
@@ -94,8 +95,9 @@ export function PreludeApp({ onMode }: { onMode(mode: Mode): void }) {
               <option value="chorale">{t("chorale.mode")}</option>
               <option value="wtc">{t("wtc.mode")}</option>
             </select>
-            <select id="exercise" className="sel sel-exercise" value={1} aria-label={t("ui.nav.choose")} onChange={() => undefined}>
-              <option value={1}>{t("wtc.piece.p1")}</option>
+            <select id="level" className="sel sel-species" value={level} aria-label={t("chorale.level")} onChange={(e) => { stop(); onLevel(e.target.value as WtcLevel); }}>
+              <option value="p1">{t("wtc.piece.p1")}</option>
+              <option value="f2">{t("wtc.level.f2")}</option>
             </select>
           </nav>
           <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("about")} />
