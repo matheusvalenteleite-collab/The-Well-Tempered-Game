@@ -46,9 +46,9 @@ export function sungNotes(input: ContinuoInput): { notes: SungNote[]; bars: numb
 
 const voiceNotes = (notes: { pitch: string | null; duration: string }[]): VoiceNote[] => notes.map((n) => ({ pitch: n.pitch, duration: n.duration }));
 
-/** Fux's own solution of an exercise of the first four species. */
+/** Fux's own solution of an exercise of any species (ties re-struck: the continuo reads onsets). */
 export function inputFromSolution(sol: OriginalSolution): CounterpointInput {
-  if (!["first", "second", "third", "fourth"].includes(sol.species)) throw new Error(`${sol.id}: continuo inputs cover species one to four, got ${sol.species}`);
+  if (!["first", "second", "third", "fourth", "fifth"].includes(sol.species)) throw new Error(`${sol.id}: continuo inputs cover species one to five, got ${sol.species}`);
   return {
     species: sol.species as SpeciesId,
     modalFinal: sol.modal_final,
@@ -60,7 +60,7 @@ export function inputFromSolution(sol: OriginalSolution): CounterpointInput {
 
 /** A player's solved exercise. */
 export function inputFromPlayer(exercise: Exercise, sol: PlayerSolution): CounterpointInput {
-  if (!["first", "second", "third", "fourth"].includes(exercise.species)) throw new Error(`${exercise.id}: unsupported species ${exercise.species}`);
+  if (!["first", "second", "third", "fourth", "fifth"].includes(exercise.species)) throw new Error(`${exercise.id}: unsupported species ${exercise.species}`);
   return {
     species: exercise.species as SpeciesId,
     modalFinal: exercise.modal_final,

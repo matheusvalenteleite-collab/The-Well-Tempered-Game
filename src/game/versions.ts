@@ -5,7 +5,7 @@
  */
 import { parsePitch, type Step } from "../music/pitch.ts";
 import type { ModalFinal } from "../music/fux/types.ts";
-import { REST, sounding } from "../counterpoint/layout.ts";
+import { HOLD, REST, sounding } from "../counterpoint/layout.ts";
 
 export type VersionId = "inversion" | "retrograde" | "retroInversion" | "canon";
 export const VERSION_IDS: VersionId[] = ["inversion", "retrograde", "retroInversion", "canon"];
@@ -94,7 +94,15 @@ export function canon(notes: (string | null)[], shift: number): (string | null)[
   const n = notes.length;
   if (!n) return notes;
   const s = mod(shift, n);
-  return notes.map((_, k) => notes[mod(k - s, n)] ?? null);
+  const out = notes.map((_, k) => notes[mod(k - s, n)] ?? null);
+  // Fifth species (D82): a note cut by the wrap begins again where the line now starts.
+  for (let k = 0; k < n && out[k] === HOLD; k++) {
+    if (k > 0) break;
+    let j = mod(k - s, n);
+    while (notes[j] === HOLD && j > 0) j--;
+    out[k] = notes[j] === HOLD ? null : notes[j];
+  }
+  return out;
 }
 
 export function deriveVersion(id: VersionId, notes: (string | null)[], final: ModalFinal, canonShift: number): (string | null)[] {

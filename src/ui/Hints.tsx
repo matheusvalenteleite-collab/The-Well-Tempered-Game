@@ -77,7 +77,8 @@ export function Hints({ step, cantus }: { step: CurriculumStep; cantus: string[]
   const second = step.species === "second";
   const third = step.species === "third";
   const fourth = step.species === "fourth";
-  const diss = second ? "2" : third ? "3" : fourth ? "4" : "";
+  const fifth = step.species === "fifth";
+  const diss = second ? "2" : third ? "3" : fourth ? "4" : fifth ? "5" : "";
   const active = new Set(intro.map((x) => x.ruleId));
   const cad = cadenceNote(cantus, step.cantus_voice);
   const altered = parsePitch(cad).alter !== 0;
@@ -88,7 +89,7 @@ export function Hints({ step, cantus }: { step: CurriculumStep; cantus: string[]
     ? `${sixth ? "6" : "5"} → ${below ? "M6" : "m3"}`
     : third
       ? t("hints.glance.cadence3", { interval: below ? "M6" : "m3" })
-      : fourth
+      : fourth || fifth
         ? below ? "7 → M6" : "2 → m3"
         : below ? "M6" : "m3";
   const item = (x: (typeof intro)[number]) => (

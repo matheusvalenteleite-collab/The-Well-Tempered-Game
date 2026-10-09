@@ -7,7 +7,7 @@ import { chooseChord, frameAt, frameConsonant, letterForms, mod, pcDistance } fr
 import type { CounterpointInput } from "../src/counterpoint/rules/types.ts";
 
 const repo = loadFuxRepository();
-const SOLUTIONS = repo.dataset.solutions.filter((s) => ["first", "second", "third", "fourth"].includes(s.species));
+const SOLUTIONS = repo.dataset.solutions.filter((s) => ["first", "second", "third", "fourth", "fifth"].includes(s.species));
 const WIN = { low: parsePitch(DEFAULTS.window.low).midi, high: parsePitch(DEFAULTS.window.high).midi };
 const FINALS: FinalsMode[] = ["organist", "strict"];
 
@@ -46,7 +46,11 @@ function check(input: ContinuoInput, r: ContinuoRealization, label: string, win 
   for (const t of [...new Set(notes.map((n) => n.start))].filter((t) => t % 2 !== 0)) {
     const f = frameAt(notes, t)!;
     const rh = soundingAt(r, t, ["rh", "doubling"]);
-    if (frameConsonant(f)) for (const m of rh) for (const n of f.sounding) assert.ok(!clash(m, n.pitch.midi), `${label} beat ${t}: RH ${m} clashes with ${n.pitch.name}`);
+    // As on the downbeat, a prepared 7-6 / 9-8 is a dissonance against the bass until it resolves at
+    // the half bar (fifth species brings sung onsets inside it, D82).
+    const b = r.bars[Math.floor(t / 2)];
+    const suspended = !!b && (b.device === "76" || b.device === "98") && t < 2 * b.bar + 1;
+    if (frameConsonant(f)) for (const m of rh) for (const n of f.sounding) if (!(suspended && n === f.bass)) assert.ok(!clash(m, n.pitch.midi), `${label} beat ${t}: RH ${m} clashes with ${n.pitch.name}`);
     // Passing notes never clash with any sung note, consonant sonority or not.
     for (const e of r.events.filter((x) => x.label === "pass" && x.startBeat === t))
       for (const m of e.midi) for (const n of f.sounding) assert.ok(pcDistance(m, n.pitch.midi) > 2, `${label} beat ${t}: passing ${m} against ${n.pitch.name}`);
@@ -58,8 +62,8 @@ function finalPcs(r: ContinuoRealization): Set<number> {
   return new Set([...soundingAt(r, t, ["rh", "doubling"]), ...soundingAt(r, t, ["bass"])].map((m) => mod(m, 12)));
 }
 
-test("continuo: every Fux solution of the first four species, both finals", () => {
-  assert.equal(SOLUTIONS.length, 34);
+test("continuo: every Fux solution of the five species, both finals", () => {
+  assert.equal(SOLUTIONS.length, 46);
   const rows: string[] = [];
   for (const sol of SOLUTIONS) {
     const input = inputFromSolution(sol);

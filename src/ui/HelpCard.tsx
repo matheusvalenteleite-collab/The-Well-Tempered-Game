@@ -6,6 +6,7 @@ const KEYS: [string, string][] = [
   ["↑ ↓", "help.keys.step"],
   ["A–G", "help.keys.letter"],
   ["T", "help.keys.tie"],
+  ["8 4 3 2 6 1", "help.keys.value"],
   ["#  -  n", "help.keys.accidental"],
   ["Delete", "help.keys.clear"],
   ["Space", "help.keys.hear"],
@@ -20,7 +21,7 @@ export function HelpCard({ rest, onClose }: { rest: boolean; onClose(): void }) 
     window.addEventListener("keydown", esc);
     return () => window.removeEventListener("keydown", esc);
   }, [onClose]);
-  const keys = rest ? [...KEYS.slice(0, 6), ["R", "help.keys.rest"] as [string, string], ...KEYS.slice(6)] : KEYS;
+  const keys = rest ? [...KEYS.slice(0, 7), ["R", "help.keys.rest"] as [string, string], ...KEYS.slice(7)] : KEYS;
   return (
     <div className="dialog-backdrop" role="dialog" aria-modal="true" aria-label={t("ui.help.title")} onClick={onClose}>
       <div className="dialog help-card" onClick={(e) => e.stopPropagation()}>

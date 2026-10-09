@@ -4,13 +4,13 @@
  * note of the nearest slot ("column") at that staff position.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Accidental, ModifierContext, Renderer, Stave, StaveConnector, StaveNote, StaveTie, TickContext } from "vexflow";
+import { Accidental, Dot, ModifierContext, Renderer, Stave, StaveConnector, StaveNote, StaveTie, TickContext } from "vexflow";
 import { parsePitch } from "../../music/pitch.ts";
 import { harmonic, simpleName } from "../../counterpoint/interval.ts";
 import type { Staff } from "../../music/fux/types.ts";
 import { pitchAtPosition, VEXFLOW_CLEF, type ClefId } from "./clefs.ts";
 import type { Overlay, Status } from "./overlay.ts";
-import { REST, slotLayout, tiedToNext, type Slot } from "../../counterpoint/layout.ts";
+import { fifthGlyphs, HOLD, REST, slotLayout, tiedToNext, type Slot } from "../../counterpoint/layout.ts";
 import type { ContinuoRealization } from "../../continuo/types.ts";
 import { cueChords, cueFigures, type CueChord } from "./continuo-staff.ts";
 
@@ -95,6 +95,10 @@ const BAR_W = 58;
 const HALF_BAR_W = 92;
 /** A bar holding four quarter notes. */
 const QUARTER_BAR_W = 148;
+/** Fifth species (D82): a bar of eight quaver slots. */
+const EIGHTH_BAR_W = 212;
+/** VexFlow duration and dots for a note of n quaver slots (fifth species). */
+const FIFTH_DUR: Record<number, [string, number]> = { 1: ["8", 0], 2: ["q", 0], 3: ["q", 1], 4: ["h", 0], 5: ["h", 0], 6: ["h", 1], 7: ["h", 1], 8: ["w", 0] };
 /** VexFlow duration of a slot. */
 const vexDur = (sl: Slot): "w" | "h" | "q" => (sl.duration === "1/1" ? "w" : sl.duration === "1/2" ? "h" : "q");
 /** Offset of a note name from the notehead's left edge. */
@@ -172,7 +176,16 @@ export function ScoreView(props: ScoreProps) {
     // Our own horizontal grid (the VexFlow formatter spreads unevenly around empty slots): a bar of
     // one whole note is BAR_W wide, a bar of two half notes HALF_BAR_W.
     const slotsIn = (b: number) => layout.filter((sl) => sl.bar - firstSlotBar === b).length;
-    const barW = Array.from({ length: bars }, (_, b) => (slotsIn(b) > 2 ? QUARTER_BAR_W : slotsIn(b) > 1 ? HALF_BAR_W : BAR_W));
+    const barW = Array.from({ length: bars }, (_, b) => (slotsIn(b) > 4 ? EIGHTH_BAR_W : slotsIn(b) > 2 ? QUARTER_BAR_W : slotsIn(b) > 1 ? HALF_BAR_W : BAR_W));
+    // Fifth species: each slot shows the note begun there with its real value (D82).
+    // (An excerpt of the final bar alone has no quaver slots: a held note there still marks it.)
+    const fifth = layout.some((sl) => sl.duration === "1/8") || [props.counterpoint, props.fux ?? [], ...(props.extraLines ?? []).map((l) => l.notes)].some((l) => l.includes(HOLD));
+    type Glyph = { value: string; dur: string; dots: number; tied: boolean };
+    const glyphsOf = (line: (string | null | undefined)[]): (Glyph | null)[] =>
+      fifth
+        ? fifthGlyphs(line, layout).map((g, k) => (g ? { value: g.value, dur: layout[k].duration === "1/1" ? "w" : FIFTH_DUR[g.slots][0], dots: layout[k].duration === "1/1" ? 0 : FIFTH_DUR[g.slots][1], tied: g.tied } : null))
+            .map((g) => (g && g.value === HOLD ? null : g))
+        : layout.map((sl, k) => (line[k] === null || line[k] === undefined ? null : { value: line[k]!, dur: vexDur(sl), dots: 0, tied: false }));
     const barX: number[] = [];
     barW.reduce((x, w, b) => ((barX[b] = x), x + w), 0);
     const musicWidth = barW.reduce((x, w) => x + w, 0);
@@ -215,19 +228,20 @@ export function ScoreView(props: ScoreProps) {
     const cpIndex = upperIsCantus ? 1 : 0;
     /** A note (or rest) placed with its notehead's left edge at logical x. */
     type Look = "cantus" | "player" | "fux";
-    const placed = (staffIndex: number, pitch: string, dur: "w" | "h" | "q", x: number, look: Look, stem?: Stem) => {
+    const placed = (staffIndex: number, pitch: string, dur: string, x: number, look: Look, stem?: Stem, dots = 0) => {
       const clef = VEXFLOW_CLEF[props.clefs[staffIndex]].clef;
       let n: StaveNote;
-      if (pitch === REST) n = new StaveNote({ keys: [clef === "bass" ? "d/3" : "b/4"], duration: `${dur}r`, clef });
+      if (pitch === REST) n = new StaveNote({ keys: [clef === "bass" ? "d/3" : "b/4"], duration: `${dur}r`, clef, dots });
       else {
         const { key, acc } = vexKey(pitch, sig);
         // Fux's notes in diamonds, as in the 1725 print, so they never read as the player's.
-        n = new StaveNote({ keys: [look === "fux" ? `${key}/D` : key], duration: dur, clef, ...(stem ? { stem_direction: stem } : {}) });
+        n = new StaveNote({ keys: [look === "fux" ? `${key}/D` : key], duration: dur, clef, dots, ...(stem ? { stem_direction: stem } : {}) });
         if (stem === 0) n.getStem()?.setVisibility(false);
         if (acc) n.addModifier(new Accidental(acc));
         const ink = look === "player" ? (props.playerInk ?? "var(--ink-player)") : look === "fux" ? "var(--ink-fux)" : null;
         if (ink) n.setStyle({ fillStyle: ink, strokeStyle: ink });
       }
+      if (dots) Dot.buildAndAttach([n], { all: true });
       n.setStave(staves[staffIndex]);
       const mc = new ModifierContext();
       n.addToModifierContext(mc);
@@ -249,7 +263,7 @@ export function ScoreView(props: ScoreProps) {
       ...extrasEarly.map((l, i) => ({ id: `extra${i}`, notes: l.notes })),
     ];
     const meanOf = (xs: (string | null | undefined)[]) => {
-      const ms = xs.filter((q): q is string => !!q && q !== REST).map((q) => parsePitch(q).midi);
+      const ms = xs.filter((q): q is string => !!q && q !== REST && q !== HOLD).map((q) => parsePitch(q).midi);
       return ms.length ? ms.reduce((a, b) => a + b, 0) / ms.length : null;
     };
     const ranked = staffLines.map((l) => ({ id: l.id, mean: meanOf(l.notes) })).filter((l) => l.mean !== null).sort((a, b) => b.mean! - a.mean!);
@@ -267,17 +281,19 @@ export function ScoreView(props: ScoreProps) {
       const left = xOfBar(b) + sl.beat * share;
       return { left, right: left + share, x: left + NOTE_PAD + (sl.duration === "1/1" ? 8 : 6) };
     });
-    const cpNotes = layout.map((sl, k) => {
-      const p = props.counterpoint[k];
-      return p === null || p === undefined ? null : placed(cpIndex, p, vexDur(sl), columns[k].left + NOTE_PAD, "player", stemOf("player"));
+    const cpGlyphs = glyphsOf(props.counterpoint);
+    const cpNotes = layout.map((_, k) => {
+      const g = cpGlyphs[k];
+      return g ? placed(cpIndex, g.value, g.dur, columns[k].left + NOTE_PAD, "player", stemOf("player"), g.dots) : null;
     });
     // Fux's line: stems down (the player's go up), nudged right where the two notes would collide.
-    const fuxNotes = (props.fux ?? []).map((p, k) => {
-      const sl = layout[k];
-      if (!sl || p === null || p === REST) return null;
-      const mine = props.counterpoint[k];
-      const near = mine && mine !== REST && Math.abs(parsePitch(mine).diatonic - parsePitch(p).diatonic) <= 1;
-      return placed(cpIndex, p, vexDur(sl), columns[k].left + NOTE_PAD + (near ? 11 : 0), "fux", stemOf("fux"));
+    const fuxGlyphs = props.fux ? glyphsOf(props.fux) : [];
+    const fuxNotes = (props.fux ?? []).map((_, k) => {
+      const g = fuxGlyphs[k];
+      if (!layout[k] || !g || g.value === REST) return null;
+      const mine = cpGlyphs[k]?.value;
+      const near = mine && mine !== REST && Math.abs(parsePitch(mine).diatonic - parsePitch(g.value).diatonic) <= 1;
+      return placed(cpIndex, g.value, g.dur, columns[k].left + NOTE_PAD + (near ? 11 : 0), "fux", stemOf("fux"), g.dots);
     });
 
     // Column highlights under the music.
@@ -317,6 +333,21 @@ export function ScoreView(props: ScoreProps) {
     for (const n of cpNotes) n?.setContext(ctx).draw();
     // Ligatures (fourth species): a tie from each upbeat to the same note on the next downbeat.
     const drawTies = (line: (string | null | undefined)[], notes: (StaveNote | null | undefined)[], ink: string) => {
+      if (fifth) {
+        // A note held over the bar line: tied from the glyph before to its continuation.
+        const gl = glyphsOf(line);
+        let prev = -1;
+        gl.forEach((g, k) => {
+          if (!g) return;
+          if (g.tied && prev >= 0 && notes[prev] && notes[k]) {
+            const tie = new StaveTie({ first_note: notes[prev]!, last_note: notes[k]!, first_indices: [0], last_indices: [0] });
+            tie.setStyle({ fillStyle: ink, strokeStyle: ink });
+            tie.setContext(ctx).draw();
+          }
+          prev = k;
+        });
+        return;
+      }
       if (!props.ties) return;
       for (let k = 0; k + 1 < layout.length; k++) {
         const a = notes[k];
@@ -332,17 +363,19 @@ export function ScoreView(props: ScoreProps) {
     // already in its slot moves right (D58).
     const occupied: number[][] = layout.map((_, k) => {
       const out: number[] = [];
-      for (const q of [props.counterpoint[k], props.fux?.[k]]) if (q && q !== REST) out.push(parsePitch(q).diatonic);
+      for (const q of [cpGlyphs[k]?.value, fuxGlyphs[k]?.value]) if (q && q !== REST) out.push(parsePitch(q).diatonic);
       return out;
     });
-    const extraNotes = extras.map((line) =>
-      layout.map((sl, k) => {
-        const p = line.notes[k];
-        if (p === null || p === undefined || p === REST) return null;
-        const dur = vexDur(sl);
+    const extraNotes = extras.map((line) => {
+      const gl = glyphsOf(line.notes);
+      return layout.map((_, k) => {
+        const g = gl[k];
+        if (!g || g.value === REST) return null;
+        const p = g.value;
         const { key, acc } = vexKey(p, sig);
         const stem = stemOf(`extra${extras.indexOf(line)}`);
-        const n = new StaveNote({ keys: [key], duration: dur, clef: cpClef.clef, ...(stem ? { stem_direction: stem } : {}) });
+        const n = new StaveNote({ keys: [key], duration: g.dur, clef: cpClef.clef, dots: g.dots, ...(stem ? { stem_direction: stem } : {}) });
+        if (g.dots) Dot.buildAndAttach([n], { all: true });
         if (stem === 0) n.getStem()?.setVisibility(false);
         if (acc) n.addModifier(new Accidental(acc));
         n.setStyle({ fillStyle: line.ink, strokeStyle: line.ink });
@@ -360,8 +393,8 @@ export function ScoreView(props: ScoreProps) {
         tc.setX(columns[k].left + NOTE_PAD + nudges * 9 - n.getAbsoluteX());
         n.setContext(ctx).draw();
         return { n, x: columns[k].left + NOTE_PAD + nudges * 9 };
-      }),
-    );
+      });
+    });
     extras.forEach((line, i) => drawTies(line.notes, extraNotes[i].map((x) => x?.n ?? null), line.ink));
     ctx.closeGroup();
     if (props.fux) drawTies(props.fux, fuxNotes, "var(--ink-fux)");
@@ -372,7 +405,7 @@ export function ScoreView(props: ScoreProps) {
         ctx.setFont(UI_FONT, 9, "italic");
         layout.forEach((sl, k) => {
           const p = line.notes[k];
-          if (!p || p === REST) return;
+          if (!p || p === REST || p === HOLD) return;
           const text = simpleName(harmonic(props.cantus[sl.bar - firstSlotBar], p));
           ctx.fillText(text, columns[k].x - ctx.measureText(text).width / 2, LABEL_Y - 13 * (i + 1));
         });
@@ -389,7 +422,7 @@ export function ScoreView(props: ScoreProps) {
     if (props.showNames) {
       // Note names beside the noteheads: cantus, the player's notes and (if shown) Fux's.
       const label = (pitch: string, n: StaveNote | null, x: number, ink: string) => {
-        if (!n || pitch === REST) return;
+        if (!n || pitch === REST || pitch === HOLD) return;
         const p = parsePitch(pitch);
         const name = p.step + (p.alter > 0 ? "♯".repeat(p.alter) : p.alter < 0 ? "♭".repeat(-p.alter) : "");
         ctx.save();

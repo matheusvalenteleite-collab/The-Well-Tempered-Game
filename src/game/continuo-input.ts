@@ -4,7 +4,7 @@
  */
 import type { ModalFinal, Staff } from "../music/fux/types.ts";
 import type { SpeciesId, Slot } from "../counterpoint/layout.ts";
-import { sounding } from "../counterpoint/layout.ts";
+import { HOLD, sounding } from "../counterpoint/layout.ts";
 import type { VoiceNote } from "../counterpoint/rules/types.ts";
 import type { ContinuoInput, ContinuoOptions } from "../continuo/types.ts";
 import type { ContinuoSettings } from "./continuo-settings.ts";
@@ -20,8 +20,23 @@ export interface ContinuoView {
   fux: string[] | null;
 }
 
-/** A voice on the slot layout; empty slots and rests are rests (the continuo then follows the other voices). */
-const line = (layout: Slot[], notes: (string | null)[]): VoiceNote[] => layout.map((sl, k) => ({ pitch: sounding(notes[k] ?? null) ? notes[k] : null, duration: sl.duration }));
+/**
+ * A voice on the slot layout; empty slots and rests are rests (the continuo then follows the other
+ * voices). Fifth species: a HOLD lengthens the note before it (D82).
+ */
+const line = (layout: Slot[], notes: (string | null)[]): VoiceNote[] => {
+  const out: { pitch: string | null; len: number }[] = [];
+  const len = (d: string) => {
+    const [a, b] = d.split("/").map(Number);
+    return a / (b ?? 1);
+  };
+  layout.forEach((sl, k) => {
+    const v = notes[k] ?? null;
+    if (v === HOLD && out.length) out[out.length - 1].len += len(sl.duration);
+    else out.push({ pitch: sounding(v) ? v : null, len: len(sl.duration) });
+  });
+  return out.map((n) => ({ pitch: n.pitch, duration: `${Math.round(n.len * 8)}/8` }));
+};
 
 /**
  * "player": cantus and the player's line(s), realized. "fux": cantus and Fux's line, realized.

@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { repository } from "../music/fux/load-browser.ts";
 import { ALL_STEPS, COURSES, courseOf, rulesForStep, validateCurriculum } from "../counterpoint/curriculum/index.ts";
-import { REST, slotLength, sounding, timeline } from "../counterpoint/layout.ts";
+import { HOLD, REST, slotLength, sounding, timeline } from "../counterpoint/layout.ts";
 import { evaluate, type Evaluation } from "../counterpoint/engine.ts";
 import { compareWithOriginal } from "../music/fux/player.ts";
 import { exerciseView } from "../game/exercise-view.ts";
-import { applyAccidental, clear, initialState, letterNote, moveNote, place, repeatPrevious, select, setRest, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
+import { applyAccidental, clear, clearSpan, holdSelected, initialState, letterNote, moveNote, onsetOf, place, repeatPrevious, select, setRest, spanFromSelected, stepNote, toPlayerSolution, type SessionState } from "../game/session.ts";
 import { AudioEngine, renderLevel, SYNTH_PRESETS, type AudioStatus } from "../audio/engine.ts";
 import { restoreSound, shiftOctave, type SoundState } from "../audio/sound.ts";
 import { encode, EXPORT_FORMATS, saveFile, type ExportFormat } from "../audio/export.ts";
@@ -257,15 +257,22 @@ export function App() {
     if (sound && changed && sounding(next.notes[next.selected])) audition(next.selected, next.notes);
   };
 
+  const FIFTH = VIEW.species === "fifth";
+  /** Fifth species: the value written next, in quaver slots (1, 2, 3, 4, 6, 8: quaver to whole bar). */
+  const [noteValue, setNoteValue] = useState(2);
   /** The slot written by the last letter (the selection has moved past it), for the arrows to correct. */
   const justWrote = useRef<number | null>(null);
   /** Keyboard entry: write the selected slot, sound it, and move on to the next slot. */
-  const writeAndAdvance = (next: SessionState) => {
+  const writeAndAdvance = (raw: SessionState, hold = false) => {
+    // Fifth species (D82): the note lasts the chosen value; the selection moves past it.
+    const next = FIFTH ? spanFromSelected(raw, VIEW.layout, noteValue) : raw;
     const w = next.selected;
-    if (next.notes[w] === session.notes[w] && !sounding(next.notes[w])) return;
+    if (!hold && next.notes[w] === session.notes[w] && !sounding(next.notes[w])) return;
     const last = next.notes.length - 1;
-    update(w < last ? select(next, w + 1) : next, false);
-    audition(w, next.notes);
+    let to = w + 1;
+    if (FIFTH) while (to <= last && next.notes[to] === HOLD) to++;
+    update(w < last ? select(next, Math.min(last, to)) : next, false);
+    if (!hold) audition(w, next.notes);
     justWrote.current = w < last ? w : null;
   };
 
@@ -296,7 +303,7 @@ export function App() {
         modalFinal: v.modalFinal,
         cantusVoice: v.cantusVoice,
         cantus: v.cantus.map((p) => ({ pitch: p, duration: "1/1" })),
-        counterpoint: notes.map((p, i) => ({ pitch: sounding(p) ? p : null, duration: v.layout[i].duration })),
+        counterpoint: notes.map((p, i) => ({ pitch: p === HOLD ? HOLD : sounding(p) ? p : null, duration: v.layout[i].duration })),
       },
       rulesForStep(STEPS[k].id),
     );
@@ -337,7 +344,7 @@ export function App() {
         modalFinal: VIEW.modalFinal,
         cantusVoice: VIEW.cantusVoice,
         cantus: VIEW.cantus.map((p) => ({ pitch: p, duration: "1/1" })),
-        counterpoint: session.notes.map((p, k) => ({ pitch: sounding(p) ? p : null, duration: VIEW.layout[k].duration })),
+        counterpoint: session.notes.map((p, k) => ({ pitch: p === HOLD ? HOLD : sounding(p) ? p : null, duration: VIEW.layout[k].duration })),
       },
       rulesForStep(STEP.id),
     );
@@ -356,7 +363,7 @@ export function App() {
           modalFinal: VIEW.modalFinal,
           cantusVoice: VIEW.cantusVoice,
           cantus: VIEW.cantus.map((p) => ({ pitch: p, duration: "1/1" })),
-          counterpoint: notes.map((p, k) => ({ pitch: sounding(p) ? p : null, duration: VIEW.layout[k].duration })),
+          counterpoint: notes.map((p, k) => ({ pitch: p === HOLD ? HOLD : sounding(p) ? p : null, duration: VIEW.layout[k].duration })),
         },
         rulesForStep(STEP.id),
       );
@@ -753,8 +760,15 @@ export function App() {
     if (!versions.original && !["ArrowRight", "ArrowLeft", " ", "p", "P", "?"].includes(k)) return;
     const wrote = justWrote.current;
     justWrote.current = null;
-    if (k === "ArrowRight") browse(s.selected + 1);
-    else if (k === "ArrowLeft") browse(s.selected - 1);
+    // Fifth species: the arrows step from note to note, over held slots (D82).
+    const skipHolds = (from: number, d: number) => {
+      let j = from + d;
+      while (FIFTH && j > 0 && j < s.notes.length - 1 && s.notes[j] === HOLD) j += d;
+      return j;
+    };
+    if (FIFTH && ["8", "4", "3", "2", "6", "1"].includes(k)) setNoteValue({ "8": 1, "4": 2, "3": 3, "2": 4, "6": 6, "1": 8 }[k]!);
+    else if (k === "ArrowRight") browse(skipHolds(s.selected, 1));
+    else if (k === "ArrowLeft") browse(skipHolds(s.selected, -1));
     else if (k === "ArrowUp" || k === "ArrowDown") {
       // Right after a letter the selection has moved on: the arrows correct the note just written
       // (the selection stays where it is). Shift moves by an octave.
@@ -764,16 +778,16 @@ export function App() {
         update(select(fixed, s.selected), false);
         audition(wrote, fixed.notes);
         justWrote.current = wrote;
-      } else update(stepNote(s, delta, startPitch(s.selected)));
+      } else update(stepNote(FIFTH ? select(s, onsetOf(s.notes, s.selected)) : s, delta, startPitch(s.selected)));
     } else if (/^[a-gA-G]$/.test(k)) {
       const cur = s.notes[s.selected];
       writeAndAdvance(letterNote(s, k.toUpperCase() as Step, (sounding(cur) ? cur : null) ?? s.lastWritten ?? startPitch(s.selected)));
-    } else if (k === "t" || k === "T" || k === "+") writeAndAdvance(repeatPrevious(s));
-    else if (k === "r" || k === "R") update(setRest(s, VIEW.layout), false);
+    } else if (k === "t" || k === "T" || k === "+") writeAndAdvance(FIFTH ? holdSelected(s, VIEW.layout, noteValue) : repeatPrevious(s), FIFTH);
+    else if (k === "r" || k === "R") (FIFTH ? writeAndAdvance(setRest(s, VIEW.layout), true) : update(setRest(s, VIEW.layout), false));
     else if (k === "#") update(applyAccidental(s, 1));
     else if (k === "-") update(applyAccidental(s, -1));
     else if (k === "n") update(applyAccidental(s, 0));
-    else if (k === "Delete" || k === "Backspace") update(VIEW.layout[s.selected].restAllowed ? setRest(s, VIEW.layout) : clear(s), false);
+    else if (k === "Delete" || k === "Backspace") update(FIFTH ? clearSpan(s) : VIEW.layout[s.selected].restAllowed ? setRest(s, VIEW.layout) : clear(s), false);
     else if (k === " ") audition(s.selected);
     else if (k === "p" || k === "P") play("player");
     else if (k === "?") setShowHelp(true);
@@ -914,7 +928,7 @@ export function App() {
                       {demoPlaying === st.id ? "■" : "▶"}
                     </button>
                     <span>{stepLabel(k)}</span>
-                    <span className="help">{t("ui.nav.speciesN", { n: ORDINAL[["first", "second", "third", "fourth"].indexOf(VIEWS[k].species) + 1] })}</span>
+                    <span className="help">{t("ui.nav.speciesN", { n: ORDINAL[["first", "second", "third", "fourth", "fifth"].indexOf(VIEWS[k].species) + 1] })}</span>
                   </li>
                 ) : null,
               )}
@@ -964,9 +978,9 @@ export function App() {
             continuo={continuoPlan && continuoSettings.display !== "none" ? { realization: continuoPlan.realization, display: continuoSettings.display } : undefined}
             showNames={showNames}
             showGhost
-            onPlace={(col, natural) => update(place(session, col, unmove(natural)))}
+            onPlace={(col, natural) => update(FIFTH ? spanFromSelected(place(session, col, unmove(natural)), VIEW.layout, noteValue) : place(session, col, unmove(natural)))}
             onSelect={(col) => browse(col)}
-            onDrag={(from, to, natural) => {
+            onDrag={FIFTH ? undefined : (from, to, natural) => {
               if (!dragBase.current) remember(session.notes);
               dragBase.current ??= session;
               const next = moveNote(dragBase.current, from, to, unmove(natural));
@@ -997,6 +1011,18 @@ export function App() {
               <button onClick={() => writeAndAdvance(repeatPrevious(session))} disabled={!sounding(session.notes[session.selected - 1])} title={t("ui.tie.help")}>
                 {t("ui.tie")}
               </button>
+            )}
+            {FIFTH && (
+              <span className="values" role="radiogroup" aria-label={t("ui.value")}>
+                {([[1, "♪", "8"], [2, "♩", "4"], [3, "♩.", "3"], [4, "𝅗𝅥", "2"], [6, "𝅗𝅥.", "6"], [8, "𝅝", "1"]] as const).map(([n, glyph, key]) => (
+                  <button key={n} role="radio" aria-checked={noteValue === n} aria-pressed={noteValue === n} onClick={() => setNoteValue(n)} title={t(`ui.value.${n}`, { key })}>
+                    {glyph}
+                  </button>
+                ))}
+                <button onClick={() => writeAndAdvance(holdSelected(session, VIEW.layout, noteValue), true)} disabled={session.selected === 0 || session.notes[session.selected - 1] === null} title={t("ui.hold.help")}>
+                  {t("ui.hold")}
+                </button>
+              </span>
             )}
             <button onClick={() => update(freshSession(stepIndex), false)}>{t("ui.clearAll")}</button>
             <button className="icon" onClick={() => restore("undo")} disabled={!versions.original || hist().past.length === 0} aria-label={t("ui.undo")} title={t("ui.undoHelp")}>↶</button>

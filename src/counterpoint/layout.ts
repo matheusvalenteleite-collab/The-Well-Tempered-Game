@@ -124,6 +124,27 @@ export const isHold = (x: string | null | undefined) => x === HOLD;
 export const sounding = (x: string | null): x is string => x !== null && x !== REST && x !== HOLD;
 
 /**
+ * Fifth species (D82): what is drawn at each slot: the note (or rest) that begins there, or, at a
+ * bar line, the continuation of a note held over it (`tied`), with its length in slots within the
+ * bar; null where nothing begins.
+ */
+export function fifthGlyphs(line: (string | null | undefined)[], layout: Slot[]): ({ value: string; slots: number; tied: boolean } | null)[] {
+  let held: string | null = null;
+  return layout.map((sl, k) => {
+    const v = line[k];
+    if (v === null || v === undefined) {
+      held = null;
+      return null;
+    }
+    if (v !== HOLD) held = v;
+    if (v === HOLD && (sl.beat !== 0 || held === null)) return null;
+    let n = 1;
+    while (line[k + n] === HOLD && layout[k + n]?.bar === sl.bar) n++;
+    return { value: v === HOLD ? held! : v, slots: n, tied: v === HOLD };
+  });
+}
+
+/**
  * Fifth species: the note that begins at slot k (pitch or REST) and how many slots it lasts
  * (its HOLDs included, across bar lines); null when slot k is a HOLD or empty.
  */

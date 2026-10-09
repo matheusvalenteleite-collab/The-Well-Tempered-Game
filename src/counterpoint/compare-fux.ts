@@ -6,7 +6,7 @@
  */
 import { harmonic, interval, isImperfectConsonance, isPerfectConsonance, motion, simpleName } from "./interval.ts";
 import { parsePitch } from "../music/pitch.ts";
-import { REST, slotLayout, sounding, type Slot } from "./layout.ts";
+import { HOLD, REST, slotLayout, sounding, type Slot } from "./layout.ts";
 
 export type Criterion = "imperfect" | "motion" | "singable" | "variety";
 /**
@@ -124,6 +124,8 @@ export function compareWithFux(cantus: string[], player: (string | null)[], fux:
   const out: BarDifference[] = [];
   layout.forEach((slot, k) => {
     if (player[k] === fux[k] || player[k] === null || fux[k] === null) return;
+    // Fifth species: a held slot is compared at the note's onset, not again (D82).
+    if (player[k] === HOLD || fux[k] === HOLD) return;
     const base = { column: k, bar: slot.bar, beat: slot.beat, player: player[k]!, fux: fux[k]! };
     if (player[k] === REST || fux[k] === REST) {
       const iv = (x: string) => (x === REST ? "–" : simpleName(harmonic(cf(k), x)));

@@ -6,7 +6,7 @@
 import { parsePitch, type Step } from "../music/pitch.ts";
 import { createPlayerSolution, playerNote, type PlayerSolution } from "../music/fux/player.ts";
 import type { Exercise } from "../music/fux/types.ts";
-import { REST, slotOffset, sounding, type Slot } from "../counterpoint/layout.ts";
+import { HOLD, REST, slotOffset, sounding, type Slot } from "../counterpoint/layout.ts";
 
 export type Accidental = -1 | 0 | 1;
 
@@ -127,14 +127,40 @@ export function setRest(s: SessionState, layout: Slot[]): SessionState {
   return { ...s, notes };
 }
 
+/** A multiple of 1/8 as a reduced fraction ("1/2", "3/8"). */
+const reduced = (x: number) => {
+  let n = Math.round(x * 8);
+  let d = 8;
+  while (n % 2 === 0 && d > 1) {
+    n /= 2;
+    d /= 2;
+  }
+  return `${n}/${d}`;
+};
+
 /** The player's counterpoint in the shared player_solution representation. */
 export function toPlayerSolution(s: SessionState, exercise: Exercise, layout: Slot[], now = new Date()): PlayerSolution {
   const sol = createPlayerSolution(exercise, now);
   const offset = (k: number) => {
     const x = slotOffset(layout[k]);
-    return Number.isInteger(x) ? `${x}/1` : `${Math.round(x * 2)}/2`;
+    return Number.isInteger(x) ? `${x}/1` : reduced(x);
   };
-  sol.notes = s.notes.flatMap((p, k) => (p === null ? [] : [playerNote(p === REST ? null : p, offset(k), layout[k].duration)]));
+  // Fifth species: a HOLD lengthens the note before it (D82).
+  const len = (d: string) => {
+    const [a, b] = d.split("/").map(Number);
+    return a / (b ?? 1);
+  };
+  const merged: { k: number; p: string; len: number }[] = [];
+  s.notes.forEach((p, k) => {
+    if (p === null) return;
+    if (p === HOLD) {
+      if (merged.length) merged[merged.length - 1].len += len(layout[k].duration);
+      return;
+    }
+    merged.push({ k, p, len: len(layout[k].duration) });
+  });
+  const frac = (x: number) => (Number.isInteger(x) ? `${x}/1` : reduced(x));
+  sol.notes = merged.map((m) => playerNote(m.p === REST ? null : m.p, offset(m.k), layout[m.k].duration === "1/8" ? frac(m.len) : layout[m.k].duration));
   return sol;
 }
 
@@ -149,4 +175,42 @@ export function moveNote(base: SessionState, from: number, to: number, natural: 
   notes[from] = null;
   notes[to] = naturalOf(orig) === natural ? orig : withAlter(natural, null, base.signature);
   return { ...base, notes, selected: to, accidental: null, lastWritten: notes[to] };
+}
+
+/**
+ * Fifth species (D82): the note written at the selected slot lasts `n` slots (clipped at the end of
+ * its bar): the following slots become HOLD, and what was left of the old note after them is
+ * emptied (not silently lengthened).
+ */
+export function spanFromSelected(s: SessionState, layout: Slot[], n: number): SessionState {
+  const k = s.selected;
+  const notes = [...s.notes];
+  let j = k + 1;
+  while (j < k + n && j < layout.length && layout[j].bar === layout[k].bar && layout[k].duration === "1/8") notes[j++] = HOLD;
+  while (j < notes.length && notes[j] === HOLD) notes[j++] = null;
+  return { ...s, notes };
+}
+
+/** Fifth species: hold the note before the selected slot on, for `n` slots (over a bar line, the tie). */
+export function holdSelected(s: SessionState, layout: Slot[], n: number): SessionState {
+  const k = s.selected;
+  if (k === 0 || s.notes[k - 1] === null) return s;
+  return spanFromSelected({ ...s, notes: s.notes.map((x, i) => (i === k ? HOLD : x)) }, layout, n);
+}
+
+/** Fifth species: clear the note at the selected slot with its held continuation. */
+export function clearSpan(s: SessionState): SessionState {
+  const notes = [...s.notes];
+  let k = s.selected;
+  while (k > 0 && notes[k] === HOLD) k--;
+  notes[k] = null;
+  for (let j = k + 1; notes[j] === HOLD; j++) notes[j] = null;
+  return { ...s, notes, selected: k };
+}
+
+/** Fifth species: the slot where the note covering slot k begins. */
+export function onsetOf(notes: (string | null)[], k: number): number {
+  let j = k;
+  while (j > 0 && notes[j] === HOLD) j--;
+  return j;
 }
