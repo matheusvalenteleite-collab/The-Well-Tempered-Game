@@ -56,3 +56,5 @@
 .lab-bad-select { border-color: var(--bad); color: var(--bad); }
 .lab-bad-option { color: var(--bad); }
 .lab-table-wrap { overflow-x: auto; max-width: 100%; }
+/* The game fits one screen and never scrolls (D94); the lab is a long page and must. */
+html, body { height: auto !important; overflow: auto !important; }
