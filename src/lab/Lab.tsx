@@ -14,7 +14,8 @@ import { auditLine, auditSpecies, lastStepOf, pool, type AuditSummary, type Exer
 import { fuxLines, type FuxLine } from "../counterpoint/choices/corpus.ts";
 import { buildHabits } from "../counterpoint/choices/habits.ts";
 import type { TierName } from "../counterpoint/choices/score.ts";
-import { checkCantus, generateCantus } from "../counterpoint/choices/cantus.ts";
+import { checkCantus, clefFor, generateCantus, placeCantus, transpose, type Register } from "../counterpoint/choices/cantus.ts";
+import type { ClefId } from "../ui/notation/clefs.ts";
 import { DEFAULT_COUNSEL_WEIGHT, DEFAULT_TEMPERATURE, generateCounterpoint } from "../counterpoint/choices/counterpoint.ts";
 import { judgeLine } from "../counterpoint/choices/alternatives.ts";
 import { fuxAccidentals, pitchesBetween, registerWindow } from "../counterpoint/choices/vocabulary.ts";
@@ -224,7 +225,11 @@ function GenerateTab() {
   const [placement, setPlacement] = useState<Placement>("below");
   const [weight, setWeight] = useState(DEFAULT_COUNSEL_WEIGHT);
   const [temperature, setTemperature] = useState(DEFAULT_TEMPERATURE);
-  const [cantus, setCantus] = useState<string[] | null>(null);
+  /** The cantus as generated (Fux's octave), and the register it is written in. */
+  const [baseCantus, setBaseCantus] = useState<string[] | null>(null);
+  const [register, setRegister] = useState<Register>("mid");
+  const placed = useMemo(() => (baseCantus ? placeCantus(baseCantus, register) : null), [baseCantus, register]);
+  const cantus = placed?.line ?? null;
   const [line, setLine] = useState<string[] | null>(null);
   const [trio, setTrio] = useState<ThirdVoice | null>(null);
   /** Placements for which no error-free third voice was found, for the current two lines. */
@@ -240,8 +245,9 @@ function GenerateTab() {
 
   const newCantus = () => {
     try {
-      const c = generateCantus({ final, length: length === "auto" ? undefined : length, wideLeaps: wide, seed: seed() });
-      setCantus(c);
+      const g = generateCantus({ final, length: length === "auto" ? undefined : length, wideLeaps: wide, seed: seed() });
+      setBaseCantus(g);
+      const c = placeCantus(g, register).line;
       setLine(null);
       setTrio(null);
       setUnclean({});
@@ -299,7 +305,11 @@ function GenerateTab() {
     }, 20);
   };
   const layout = cantus ? slotLayout(species, cantus.length) : null;
-  const check = cantus ? checkCantus(cantus, final, true, wide) : null;
+  const check = baseCantus ? checkCantus(baseCantus, final, true, wide) : null;
+  /** Clefs: the cantus in its register's clef; every other line in whichever clef leaves fewer notes off the staff. */
+  const cpGuess = line ?? (cantus ? transpose(cantus, cantusVoice === "lower" ? 1 : -1) : null);
+  const scoreClefs: [ClefId, ClefId] | null =
+    cantus && placed && cpGuess ? (cantusVoice === "upper" ? [placed.clef, clefFor(cpGuess.filter((p) => /^[A-G]/.test(p)))] : [clefFor(cpGuess.filter((p) => /^[A-G]/.test(p))), placed.clef]) : null;
   const verdict = useMemo(() => {
     if (!cantus || !line || !layout) return null;
     return judgeLine({ species, modalFinal: final, cantusVoice, cantus, layout, rules: rulesForStep(lastStepOf(species)), vocabulary: [], habits: buildHabits([], species) }, line);
@@ -341,6 +351,14 @@ function GenerateTab() {
               <select id="gen-length" value={String(length)} onChange={(e) => setLength(e.target.value === "auto" ? "auto" : Number(e.target.value))}>
                 <option value="auto">10–14</option>
                 {[9, 10, 11, 12, 13, 14].map((n) => <option key={n}>{n}</option>)}
+              </select>
+            </label>
+            <label className="lab-group" title="Low: an octave below the middle, F clef. Middle: the octave nearest middle C, in whichever clef needs fewer ledger lines. High: an octave above the middle, G clef. The melody is the same in all three.">
+              Register
+              <select id="gen-register" value={register} onChange={(e) => (setRegister(e.target.value as Register), setLine(null), setTrio(null), setUnclean({}), clearAudits(), setMsg({}))}>
+                <option value="low">low (F clef)</option>
+                <option value="mid">middle</option>
+                <option value="high">high (G clef)</option>
               </select>
             </label>
             <label className="lab-group" title="Fux's rare rising fifth (F) and octave (E)">
@@ -439,14 +457,14 @@ function GenerateTab() {
           </div>
           <div className="lab-score">
             {trio ? (
-              <Trio voices={trio.voices} cantusIndex={trio.cantusIndex} added={trio.added} label="Generated exercise" cursor={cursor} transport={false} errorBars={trio.errorBars} />
+              <Trio voices={trio.voices} cantusIndex={trio.cantusIndex} added={trio.added} label="Generated exercise" cursor={cursor} transport={false} errorBars={trio.errorBars} cantusClef={placed?.clef} />
             ) : (
               <ScoreView
                 cantus={cantus}
                 counterpoint={line ?? layout.map(() => null)}
                 layout={layout}
                 cantusVoice={cantusVoice}
-                clefs={displayClefs(cantus, cantusVoice)}
+                clefs={scoreClefs ?? displayClefs(cantus, cantusVoice)}
                 selected={-1}
                 cursor={cursor}
                 label="Generated exercise"

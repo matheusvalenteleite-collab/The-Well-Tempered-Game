@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import data from "../../data/fux/three-voice/fux-three-voice.json" with { type: "json" };
 import { trioSteps, type TrioStep } from "../game/trio.ts";
 import type { ModalFinal } from "../music/fux/index.ts";
-import { parsePitch } from "../music/pitch.ts";
+import { clefFor, type LabClef } from "../counterpoint/choices/cantus.ts";
 import { TrioScore } from "../ui/notation/TrioScore.tsx";
 import { TRIO_FIRST_SPECIES } from "../counterpoint/three-voice.ts";
 import type { AuditSummary } from "../counterpoint/choices/audit.ts";
@@ -17,7 +17,6 @@ import { playLines, stop } from "./play.ts";
 export const TRIO_STEPS: TrioStep[] = trioSteps(data as never);
 const pct = (a: number, b: number) => (b ? `${Math.round((100 * a) / b)}%` : "–");
 const STAFF_NAMES = ["top", "middle", "bottom"];
-const clefOf = (line: string[]) => (line.reduce((a, p) => a + parsePitch(p).midi, 0) / line.length >= 60 ? "treble" : "bass");
 
 export function TrioSummary({ s, who }: { s: AuditSummary; who: string }) {
   return (
@@ -45,7 +44,7 @@ function TrioStrip({ choices, selected, onSelect }: { choices: TrioChoice[]; sel
 }
 
 /** The three staves, read-only; `alt` replaces one note of one voice, the written one then drawn as a diamond. */
-export function Trio({ voices, cantusIndex, added, alt, selected, label, cursor: outerCursor, transport = true, errorBars = [] }: { voices: string[][]; cantusIndex: number; added?: number; alt?: { voice: number; bar: number; pitch: string } | null; selected?: { voice: number; bar: number } | null; label: string; cursor?: number; transport?: boolean; errorBars?: number[] }) {
+export function Trio({ voices, cantusIndex, added, alt, selected, label, cursor: outerCursor, transport = true, errorBars = [], cantusClef }: { voices: string[][]; cantusIndex: number; added?: number; alt?: { voice: number; bar: number; pitch: string } | null; selected?: { voice: number; bar: number } | null; label: string; cursor?: number; transport?: boolean; errorBars?: number[]; cantusClef?: LabClef }) {
   const [ownCursor, setCursor] = useState(-1);
   const cursor = outerCursor ?? ownCursor;
   const shown = voices.map((l, v) => (alt && alt.voice === v ? l.map((p, k) => (k === alt.bar ? alt.pitch : p)) : l));
@@ -60,7 +59,7 @@ export function Trio({ voices, cantusIndex, added, alt, selected, label, cursor:
       )}
       <div className="lab-score">
         <TrioScore
-          staves={shown.map((notes, v) => ({ clef: clefOf(voices[v]), notes, editable: false, label: v === cantusIndex ? "Cantus firmus" : v === added ? "New voice" : undefined, fux: alt && alt.voice === v ? voices[v] : undefined }))}
+          staves={shown.map((notes, v) => ({ clef: v === cantusIndex && cantusClef ? cantusClef : clefFor(voices[v]), notes, editable: false, label: v === cantusIndex ? "Cantus firmus" : v === added ? "New voice" : undefined, fux: alt && alt.voice === v ? voices[v] : undefined }))}
           active={selected?.voice ?? -1}
           selected={selected?.bar ?? -1}
           cursor={cursor}

@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { parsePitch } from "../src/music/pitch.ts";
 import assert from "node:assert/strict";
 import { loadFuxRepository } from "../src/music/fux/load-node.ts";
 import { auditSpecies, lastStepOf, pool } from "../src/counterpoint/choices/audit.ts";
@@ -161,4 +162,22 @@ test("three voices: where no error-free voice exists, the one breaking the fewes
   const ev = judgeTrio({ modalFinal: "D", cantusIndex: r.cantusIndex, rules: TRIO_FIRST_SPECIES }, r.voices);
   assert.ok(ev.errors.length <= 4, `${ev.errors.length} errors: ${r.voices[r.added].join(" ")}`);
   assert.deepEqual([...new Set(ev.errors.map((x) => x.ruleId))].sort(), [...r.errors].sort());
+});
+
+import { offStaff, placeCantus } from "../src/counterpoint/choices/cantus.ts";
+
+test("cantus register: low on the F staff, high an octave above the middle on the G staff, the melody unchanged", () => {
+  const midi = (p: string) => parsePitch(p).midi;
+  for (const final of ["D", "E", "F", "G", "A", "C"] as ModalFinal[]) {
+    const c = generateCantus({ final, seed: 3 });
+    const low = placeCantus(c, "low");
+    const mid = placeCantus(c, "mid");
+    const high = placeCantus(c, "high");
+    assert.equal(low.clef, "bass");
+    assert.equal(high.clef, "treble");
+    for (const r of [low, mid, high]) assert.deepEqual(r.line.map((p, k) => midi(p) - midi(c[k])).filter((d, _, a) => d !== a[0]), []);
+    assert.equal(midi(mid.line[0]) - midi(low.line[0]), 12);
+    assert.equal(midi(high.line[0]) - midi(mid.line[0]), 12);
+    assert.ok(offStaff(mid.line, mid.clef) <= offStaff(mid.line, mid.clef === "bass" ? "treble" : "bass"));
+  }
 });

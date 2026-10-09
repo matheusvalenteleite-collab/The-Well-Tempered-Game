@@ -165,3 +165,42 @@ export function generateCantus(opts: CantusOptions): string[] {
   }
   throw new Error(`no cantus firmus found on ${opts.final}`);
 }
+
+/* ---------------------------------------------------------------- register and clef */
+
+export type Register = "low" | "mid" | "high";
+export type LabClef = "treble" | "bass";
+
+/** The notes each clef shows without ledger lines: the five lines and the space just outside them. */
+const ON_STAFF: Record<LabClef, [number, number]> = { treble: [parsePitch("D4").midi, parsePitch("G5").midi], bass: [parsePitch("F2").midi, parsePitch("B3").midi] };
+
+/** Notes of a line that need ledger lines in a clef. */
+export const offStaff = (line: string[], clef: LabClef) => line.filter((p) => midi(p) < ON_STAFF[clef][0] || midi(p) > ON_STAFF[clef][1]).length;
+
+/** The clef that leaves fewer notes off the staff (G on a tie when the line averages middle C or above). */
+export function clefFor(line: string[]): LabClef {
+  const t = offStaff(line, "treble");
+  const b = offStaff(line, "bass");
+  if (t !== b) return t < b ? "treble" : "bass";
+  return line.reduce((a, p) => a + midi(p), 0) / line.length >= 60 ? "treble" : "bass";
+}
+
+/** Move a line by whole octaves. */
+export const transpose = (line: string[], octaves: number) => line.map((p) => p.replace(/(-?\d+)$/, (o) => String(Number(o) + octaves)));
+
+/**
+ * The cantus firmus in a register, by whole octaves (the melody is unchanged):
+ * middle — the octave whose average lies nearest middle C, written in whichever clef leaves fewer
+ * notes off the staff; low — an octave below, in the F clef; high — an octave above, in the G clef.
+ */
+export function placeCantus(line: string[], register: Register): { line: string[]; clef: LabClef } {
+  const mean = (l: string[]) => l.reduce((a, p) => a + midi(p), 0) / l.length;
+  let mid = line;
+  for (const s of [-2, -1, 1, 2]) {
+    const t = transpose(line, s);
+    if (Math.abs(mean(t) - 60) < Math.abs(mean(mid) - 60)) mid = t;
+  }
+  if (register === "low") return { line: transpose(mid, -1), clef: "bass" };
+  if (register === "high") return { line: transpose(mid, 1), clef: "treble" };
+  return { line: mid, clef: clefFor(mid) };
+}
