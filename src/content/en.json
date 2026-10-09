@@ -903,7 +903,26 @@
     "trio3.introLa2": "Hîc loci in memoriam revocanda, observandaque sunt, quae de hac Specie in Bicinio praecepimus, quaeque ratione Triadis harmonicae de Semibrevi contra Semibrevem in Tricinio diximus; cum hac tamen relaxatione, quòd in hac Tricinii Specie in gratiam Triadis harmonicae Minima per saltum Tertiae nonnunquam duas Quintas salvare queat.",
     "trio3.cite2": "Gradus ad Parnassum (1725), p. 94, translated in this game",
     "trio3.help2": "One voice moves in minims, two to a bar, after a half rest; the other two in semibreves. Tap the left or right half of a bar to write the first or second minim; ← → move by one minim; R puts the rest back. At the close the upbeat may be tied into the penultimate bar (write the same note on both sides of the bar line), as Fux does in six of his nine examples (p. 96).",
-    "trio3.minims": "minims"
+    "trio3.minims": "minims",
+    "hint.tool": "Hint",
+    "hint.toolHelp": "Hints for the note you are writing: how many notes the rules allow there, whether yours is one, and (if you ask) the most Fux-like (H)",
+    "hint.unavailable": "Hints are not available in fifth species yet",
+    "hint.tag": "Hint",
+    "hint.thinking": "Weighing the notes…",
+    "hint.notYet": "Write the notes before this one (to the next downbeat) and the hint will follow.",
+    "hint.bar": "Bar {bar}",
+    "hint.barBeat": "Bar {bar}, note {beat}",
+    "hint.none": "No note works here as the line stands: look at the notes around it.",
+    "hint.one": "Only one note is allowed here.",
+    "hint.many": "{n} notes are allowed here.",
+    "hint.yoursOk": "Yours, {note}, is one of them: the {rank} most Fux-like of the {n}.",
+    "hint.yoursBad": "Yours, {note}, breaks a rule:",
+    "hint.suggest": "Suggest",
+    "hint.suggestHelp": "Show the note Fux would most likely write here (learnt from his other solutions, not this one)",
+    "hint.best": "Most Fux-like here: {note}.",
+    "hint.write": "Write it",
+    "view.harmony": "Harmony (modern)",
+    "view.harmonyHelp": "Roman numerals under the figures: a later lens (Rameau's fundamental bass, Weber's numerals), not Fux's; never graded. In brackets where an incomplete chord leaves the root a guess"
   },
   "tutor": {
     "rule.fos.no-repetition": "In this species each upbeat brings a new note, which is then tied over the bar line; striking the downbeat's note again on its own upbeat is a whole note in disguise.",
@@ -1112,7 +1131,8 @@
     "keys.hear": "Play from the selected bar to the end (again to stop)",
     "keys.play": "Play your counterpoint",
     "keys.help": "This guide",
-    "keys.voice": "Three voices: switch the voice you are writing"
+    "keys.voice": "Three voices: switch the voice you are writing",
+    "keys.hint": "Hint for the note you are writing (two voices, species 1-4)"
   },
   "gloss": {
     "gradus": "Gradus ad Parnassum ('Steps to Parnassus', Vienna 1725): Johann Joseph Fux's textbook of counterpoint, written in Latin as a dialogue between a master, Aloysius, and his pupil, Josephus. The exercises of this game are its exercises.",

@@ -936,3 +936,13 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .voice-chip.cantus:disabled { opacity: 0.75; cursor: default; }
 :root[data-look="retro"] .voice-chip { border-radius: 0; box-shadow: 2px 2px 0 var(--edge); }
 .trio-with-fux ul { list-style: none; padding-left: 0; } .trio-with-fux .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--chip); }
+
+/* D115: the hint bar, under the transport. */
+.hint-bar { display: flex; align-items: baseline; gap: 8px; padding: 4px 10px; margin: 2px 0; border-left: 4px solid var(--trk-counterpoint); background: color-mix(in srgb, var(--trk-counterpoint) 8%, var(--paper)); font-size: 0.85rem; }
+.hint-bar .hint-tag { font-weight: 700; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; color: var(--trk-counterpoint); }
+.hint-bar .hint-body { flex: 1; }
+.hint-bar .hint-ok { color: var(--ok, #1f7a3a); }
+.hint-bar .hint-bad { color: var(--bad, #b5382a); }
+.hint-bar .hint-wait { opacity: 0.6; }
+.hint-bar .hint-close { min-height: 0; padding: 0 6px; background: none; border: none; box-shadow: none; font-size: 1rem; }
+.hint-bar .chipbtn { font-size: 0.75rem; padding: 0 8px; min-height: 20px; }

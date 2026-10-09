@@ -12,6 +12,8 @@ import { REST } from "../../counterpoint/layout.ts";
 import { parsePitch } from "../../music/pitch.ts";
 import { noteName, type NameStyle } from "../../music/names.ts";
 import { harmonic } from "../../counterpoint/interval.ts";
+import { harmonyOf } from "../../counterpoint/choices/harmony.ts";
+import type { ModalFinal } from "../../music/fux/types.ts";
 import { pitchAtPosition, VEXFLOW_CLEF, type ClefId } from "./clefs.ts";
 import { Viewport } from "./Viewport.tsx";
 
@@ -52,6 +54,11 @@ interface Props {
   /** Bars pointed at in a text: they pulse (D96). */
   pulse?: number[];
   figures?: boolean;
+  /**
+   * D115: the harmonic view, a modern lens: a Roman numeral under each bar's figures, relative to
+   * the final (in brackets where an incomplete chord leaves the root a guess). Never graded.
+   */
+  harmony?: { final: ModalFinal } | null;
   names?: boolean;
   nameStyle?: NameStyle;
   label: string;
@@ -275,6 +282,17 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
           ctx.restore();
         }
       }
+      if (p.harmony) {
+        const ps = p.voices.map((v) => downNote(v, bar));
+        if (ps.every(Boolean)) {
+          const h = harmonyOf(ps as string[], p.harmony.final);
+          ctx.save();
+          ctx.setFont("'EB Garamond', Garamond, Georgia, serif", 13);
+          ctx.setFillStyle("var(--harmony-ink, #7a5a1a)");
+          ctx.fillText(h.guessed ? `(${h.roman})` : h.roman, x - 2, staves[1].getYForLine(4) + 34 + (p.figures ? 30 : 0));
+          ctx.restore();
+        }
+      }
     }
     // The cadence tie (D114): an arsis held into the next thesis.
     p.voices.forEach((v, i) => {
@@ -290,7 +308,7 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
       staves: staves.map((s) => ({ top: s.getYForLine(0), bottom: s.getYForLine(4), spacing: s.getSpacingBetweenLines() })),
     };
     host.dataset.geometry = JSON.stringify(geo.current);
-  }, [p.voices, p.clefs, p.active, p.selected, p.selectedHalf, p.cursor, p.marks, p.figures, p.names, p.nameStyle, p.pulse, p.from, p.to, p.scale, p.fill, p.last, p.label, n, bars0]);
+  }, [p.voices, p.clefs, p.active, p.selected, p.selectedHalf, p.cursor, p.marks, p.figures, p.harmony, p.names, p.nameStyle, p.pulse, p.from, p.to, p.scale, p.fill, p.last, p.label, n, bars0]);
 
   // Pointer: the nearest staff takes the tap; a second finger makes it a pinch, which writes nothing.
   const fingers = useRef(new Set<number>());

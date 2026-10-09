@@ -22,6 +22,8 @@ import { Systems, ZOOM_MAX, ZOOM_MIN } from "./notation/Systems.tsx";
 import { buildOverlay, neutralOverlay } from "./notation/overlay.ts";
 import { Credits } from "./Credits.tsx";
 import { QuickStart } from "./QuickStart.tsx";
+import { HintBar } from "./HintBar.tsx";
+import { hintContext, hintsAvailable } from "../game/hints-context.ts";
 import { applyStyle, type StyleId } from "../audio/styles.ts";
 import { FuxComparison } from "./FuxComparison.tsx";
 import { realizeContinuo } from "../continuo/realize.ts";
@@ -136,6 +138,8 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
     setToast(t("ui.style.applied", { name: t(`ui.style.${id}`) }));
   };
   const [showCredits, setShowCredits] = useState(false);
+  const [hintOn, setHintOn] = useState(() => stored("wtg.hints", false, (v) => typeof v === "boolean"));
+  useEffect(() => store("wtg.hints", hintOn), [hintOn]);
   // The quick start opens by itself on the first visit, and on HOW TO PLAY (D108).
   const [showQuick, setShowQuick] = useState(() => !stored("wtg.quickSeen", false, (v) => typeof v === "boolean"));
   useEffect(() => { if (showQuick) store("wtg.quickSeen", true); }, [showQuick]);
@@ -759,6 +763,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
     else if (k === " ") play(VIEW.layout.findIndex((sl) => sl.bar === VIEW.layout[s.selected].bar));
     else if (k === "p" || k === "P") play();
     else if (k === "?") setShowQuick(true);
+    else if ((k === "h" || k === "H") && hintsAvailable(VIEW.species)) setHintOn(!hintOn);
     else return;
     e.preventDefault();
   };
@@ -781,6 +786,18 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   // The evaluation in one line under the transport (D94); the details are in the dock.
   const barsOf = (v: { positions: number[] }) => [...new Set(v.positions.map((k) => (VIEW.layout[k]?.bar ?? 0) + 1))];
   const gist = (key: string) => t(key).split(/(?<=[.;:])\s/)[0].replace(/[.;:]$/, "");
+  // D115: hints for the note being written (species 1-4).
+  const hintCtx = useMemo(() => (hintOn ? hintContext(repository, VIEW) : null), [hintOn, VIEW]);
+  const hintBar = hintOn && hintCtx && (
+    <HintBar
+      ctx={hintCtx}
+      line={session.notes}
+      selected={session.selected}
+      nameStyle={nameStyle}
+      onClose={() => setHintOn(false)}
+      onWrite={(unit, pitch) => update({ ...session, notes: session.notes.map((q, k) => (unit.includes(k) ? pitch : q)), selected: unit[0], lastWritten: pitch, accidental: null })}
+    />
+  );
   const summary = result && (
     <div className={result.passed ? "eval-summary ok" : "eval-summary bad"} role="status">
       <span className="verdict">{result.passed ? `✓ ${t("ui.summary.passed")}` : `✗ ${t("ui.summary.failed", { n: result.errors.length })}`}</span>
@@ -900,6 +917,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
                   setShowIntervals(v.intervals);
                 }}
                 fux={VIEW.fux ? { open: fuxOpen, shown: showFux, onShow: setShowFux } : undefined}
+                hint={{ on: hintOn, available: hintsAvailable(VIEW.species), onToggle: setHintOn }}
               />
             }
             cantus={moved(VIEW.cantus, sound.cantusOctave)}
@@ -1003,7 +1021,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
         {audioStatus === "failed" && <p className="status error">{t("ui.audio.failed")}</p>}
         </>
       }
-      summary={summary}
+      summary={<>{summary}{hintBar}</>}
       tab={tab}
       onTab={setTab}
       idle={exerciseSource}

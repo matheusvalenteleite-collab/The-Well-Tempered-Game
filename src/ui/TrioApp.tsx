@@ -99,6 +99,8 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const [loop, setLoop] = useState(() => stored("wtg.loop", true, (v) => typeof v === "boolean"));
   const [names, setNames] = useState(() => stored("wtg.names2", true, (v) => typeof v === "boolean"));
   const [figures, setFigures] = useState(() => stored("wtg.intervals2", true, (v) => typeof v === "boolean"));
+  const [harmony, setHarmony] = useState(() => stored("wtg.harmony", false, (v) => typeof v === "boolean"));
+  useEffect(() => store("wtg.harmony", harmony), [harmony]);
   const [zoom, setZoom] = useState(() => stored("wtg.zoom", 1, (v) => typeof v === "number" && v >= ZOOM_MIN && v <= ZOOM_MAX));
   const [fuxHeard, setFuxHeard] = useState(() => stored("wtg.fuxHeard", false, (v) => typeof v === "boolean"));
   const [showFux, setShowFux] = useState(false);
@@ -447,6 +449,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
             cursor={cursor}
             marks={marks}
             figures={figures}
+            harmony={harmony ? { final: STEP.modalFinal } : null}
             names={names}
             nameStyle={nameStyle}
             label={t("ui.trio3.name", { fig: STEP.figure })}
@@ -464,7 +467,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
             zoom={zoom}
             onZoom={setZoom}
             zoomLabels={{ in: t("ui.zoom.in"), out: t("ui.zoom.out"), reset: t("ui.zoom.reset") }}
-            tools={<ScoreTools view={{ names: names ? nameStyle : "off", intervals: figures }} onView={(v) => { setNames(v.names !== "off"); if (v.names !== "off") setNameStyle(v.names); setFigures(v.intervals); }} fux={{ open: fuxOpen, shown: showFux, onShow: setShowFux }} />}
+            tools={<ScoreTools view={{ names: names ? nameStyle : "off", intervals: figures, harmony }} onView={(v) => { setNames(v.names !== "off"); if (v.names !== "off") setNameStyle(v.names); setFigures(v.intervals); setHarmony(!!v.harmony); }} fux={{ open: fuxOpen, shown: showFux, onShow: setShowFux }} />}
           />
         </div>
       }
