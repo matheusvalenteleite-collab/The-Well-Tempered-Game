@@ -83,7 +83,7 @@ export function PlanApp({ onMode, level, onLevel, piece }: { onMode(mode: Mode):
     return c.root === b.root && c.chord === b.chord;
   };
   const state = (i: number) => (picks[i] === null ? "empty" : !showCompare ? "chosen" : same(i) ? "bach" : sameRoot(i) ? "root" : "other");
-  const fund = (f: { root: string; chord: string }) => `${f.root} ${t(`wtc.chord.${f.chord}`)}`;
+  const fund = (f: { root: string; chord: string }) => `${f.root} ${t(`wtcp.chord.${f.chord}`)}`;
   const agree = bars.filter((_, i) => same(i)).length;
   const agreeRoot = bars.filter((_, i) => !same(i) && sameRoot(i)).length;
   const soundingBar = cursor === null ? null : piece.bars.find((b) => cursor >= frac(b.onset) && cursor < frac(b.onset) + frac(b.length))?.bar;
@@ -94,11 +94,11 @@ export function PlanApp({ onMode, level, onLevel, piece }: { onMode(mode: Mode):
         <>
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
-            <select id="voices" className="sel sel-voices" value="wtc" aria-label={t("ui.nav.voices")} onChange={(e) => { stop(); const v = e.target.value; onMode(v === "chorale" || v === "wtc" ? v : (Number(v) as 2 | 3)); }}>
+            <select id="voices" className="sel sel-voices" value="preludes" aria-label={t("ui.nav.voices")} onChange={(e) => { stop(); const v = e.target.value; onMode(v === "chorale" || v === "preludes" ? v : (Number(v) as 2 | 3)); }}>
               <option value={2}>{t("ui.nav.voicesN", { n: 2 })}</option>
               <option value={3}>{t("ui.nav.voicesN", { n: 3 })}</option>
               <option value="chorale">{t("chorale.mode")}</option>
-              <option value="wtc">{t("wtc.mode")}</option>
+              <option value="preludes">{t("wtcp.mode")}</option>
             </select>
             <WtcLevelSelect level={level} onLevel={onLevel} onChange={() => stop()} />
           </nav>
@@ -107,7 +107,7 @@ export function PlanApp({ onMode, level, onLevel, piece }: { onMode(mode: Mode):
       }
       score={
         <div className="score-wrap wtc-score">
-          <ol className="wtc-plan" aria-label={t("wtc.plan")}>
+          <ol className="wtc-plan" aria-label={t("wtcp.plan")}>
             {piece.bars.map((b) => {
               const i = bars.indexOf(b);
               if (i < 0) {
@@ -115,7 +115,7 @@ export function PlanApp({ onMode, level, onLevel, piece }: { onMode(mode: Mode):
                   <li key={b.bar}>
                     <span className={`wtc-bar wtc-coda${soundingBar === b.bar ? " sounding" : ""}`}>
                       <span className="wtc-n">{b.bar}</span>
-                      <span className="wtc-notes">{t("wtc.free")}</span>
+                      <span className="wtc-notes">{t("wtcp.free")}</span>
                     </span>
                   </li>
                 );
@@ -123,7 +123,7 @@ export function PlanApp({ onMode, level, onLevel, piece }: { onMode(mode: Mode):
               const c = picks[i] === null ? null : b.choices![picks[i]!];
               return (
                 <li key={b.bar}>
-                  <button className={`wtc-bar wtc-${state(i)}${i === selected ? " selected" : ""}${soundingBar === b.bar ? " sounding" : ""}`} onClick={() => setSelected(i)} aria-label={t("wtc.barN", { n: b.bar })}>
+                  <button className={`wtc-bar wtc-${state(i)}${i === selected ? " selected" : ""}${soundingBar === b.bar ? " sounding" : ""}`} onClick={() => setSelected(i)} aria-label={t("wtcp.barN", { n: b.bar })}>
                     <span className="wtc-n">{b.bar}</span>
                     <span className="wtc-notes">{c ? chordNames(c.pitches, "all", piece).split(" ").reverse().map((p, j) => <span key={j}>{p}</span>) : <span>?</span>}</span>
                     {c && showCompare && <span className="wtc-fig">{c.fundamental.root}</span>}
@@ -136,8 +136,8 @@ export function PlanApp({ onMode, level, onLevel, piece }: { onMode(mode: Mode):
       }
       transport={
         <div className="controls chorale-controls">
-          <div className="group write" role="group" aria-label={t("wtc.choose")}>
-            <span className="prompt">{t("wtc.plan.prompt", { n: bar.bar })}</span>
+          <div className="group write" role="group" aria-label={t("wtcp.choose")}>
+            <span className="prompt">{t("wtcp.plan.prompt", { n: bar.bar })}</span>
             {bar.choices!.map((c, k) => (
               <button key={k} className={picks[selected] === k ? "chord primary" : "chord"} onClick={() => choose(k)} title={c.pitches.join(" ")}>
                 {LETTERS[k]}
@@ -154,8 +154,8 @@ export function PlanApp({ onMode, level, onLevel, piece }: { onMode(mode: Mode):
             <button className="btn-edit" onClick={() => { setPicks(bars.map(() => null)); setShowCompare(false); setSelected(0); }}>{t("ui.clearAll")}</button>
           </div>
           <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
-            <button className="icon play" onClick={() => (playing ? stop() : run(pieceEvents(piece, picks)))} aria-label={t("wtc.play")} title={t("wtc.play")}>{playing ? "■" : "▶"}</button>
-            <button onClick={() => run(pieceEvents(piece, bachPicks))} disabled={playing || !showCompare} title={t("wtc.playBach")}>{t("wtc.bachs")}</button>
+            <button className="icon play" onClick={() => (playing ? stop() : run(pieceEvents(piece, picks)))} aria-label={t("wtcp.play")} title={t("wtcp.play")}>{playing ? "■" : "▶"}</button>
+            <button onClick={() => run(pieceEvents(piece, bachPicks))} disabled={playing || !showCompare} title={t("wtcp.playBach")}>{t("wtcp.bachs")}</button>
             <div className="hfaders">
               <HFader label={t("ui.tempo")} help={t("ui.tempo.help")} value={tempo} min={30} max={120} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
             </div>
@@ -164,7 +164,7 @@ export function PlanApp({ onMode, level, onLevel, piece }: { onMode(mode: Mode):
       }
       summary={showCompare && (
         <div className="eval-summary ok" role="status">
-          <span className="verdict">{t("wtc.summary", { n: agree, root: agreeRoot, of: done })}</span>
+          <span className="verdict">{t("wtcp.summary", { n: agree, root: agreeRoot, of: done })}</span>
           <button className="link" onClick={() => setTab("compare")}>{t("ui.summary.open")} ▸</button>
         </div>
       )}
@@ -183,27 +183,27 @@ export function PlanApp({ onMode, level, onLevel, piece }: { onMode(mode: Mode):
                 const bach = b.choices!.find((x) => x.bach)!;
                 return (
                   <li key={b.bar} className={`verdict wtc-${state(i)}`}>
-                    <button className="link" onClick={() => setSelected(i)}>{t("wtc.barN", { n: b.bar })}</button>
-                    <div>{t("wtc.yours")}: {c ? <>{chordNames(c.pitches, "upper", piece)} · {fund(c.fundamental)}</> : "—"}</div>
+                    <button className="link" onClick={() => setSelected(i)}>{t("wtcp.barN", { n: b.bar })}</button>
+                    <div>{t("wtcp.yours")}: {c ? <>{chordNames(c.pitches, "upper", piece)} · {fund(c.fundamental)}</> : "—"}</div>
                     <div>
-                      {t("wtc.bach")}: {chordNames(bach.pitches, "upper", piece)} · {fund(bach.fundamental)}{" "}
+                      {t("wtcp.bach")}: {chordNames(bach.pitches, "upper", piece)} · {fund(bach.fundamental)}{" "}
                       <button className="link" onClick={() => run(barEvents(piece, b, bach.pitches))}>▶</button>
                     </div>
                   </li>
                 );
               })}
             </ol>
-          ) : <p className="muted">{t("wtc.beforeCompare")}</p>,
+          ) : <p className="muted">{t("wtcp.beforeCompare")}</p>,
         },
         {
           id: "about",
-          label: t("wtc.plan.tab"),
+          label: t("wtcp.plan.tab"),
           text: true,
           content: (
             <div className="chorale-about">
-              <p>{t("wtc.plan.about.1", { title: piece.title })}</p>
-              <p>{t("wtc.plan.about.2")}</p>
-              <p className="muted">{t("wtc.plan.about.3")}</p>
+              <p>{t("wtcp.plan.about.1", { title: piece.title })}</p>
+              <p>{t("wtcp.plan.about.2")}</p>
+              <p className="muted">{t("wtcp.plan.about.3")}</p>
             </div>
           ),
         },

@@ -23,12 +23,12 @@ export function WtcRoot({ onMode }: { onMode(mode: Mode): void }) {
 export function WtcLevelSelect({ level, onLevel, onChange }: { level: WtcLevel; onLevel(l: WtcLevel): void; onChange?(): void }) {
   return (
     <select id="level" className="sel sel-species" value={level} aria-label={t("chorale.level")} onChange={(e) => { onChange?.(); onLevel(e.target.value as WtcLevel); }}>
-      <option value="p1">{t("wtc.piece.p1")}</option>
-      <option value="p2">{t("wtc.level.p2")}</option>
+      <option value="p1">{t("wtcp.piece.p1")}</option>
+      <option value="p2">{t("wtcp.level.p2")}</option>
       {PIECES.map((p) => (
-        <option key={p.id} value={`plan:${p.id}`}>{t("wtc.level.plan", { title: p.title.replace(/, BWV.*/, "") })}</option>
+        <option key={p.id} value={`plan:${p.id}`}>{t("wtcp.level.plan", { title: p.title.replace(/, BWV.*/, "") })}</option>
       ))}
-      <option value="f2">{t("wtc.level.f2")}</option>
+      <option value="f2">{t("wtcp.level.f2")}</option>
     </select>
   );
 }

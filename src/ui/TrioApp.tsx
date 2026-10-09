@@ -295,12 +295,12 @@ export function TrioApp({ onVoices }: { onVoices(n: Mode): void }) {
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
           <button className="icon" onClick={() => goTo(stepIndex - 1)} disabled={stepIndex === 0} aria-label={t("ui.nav.prev")}>‹</button>
-          <select id="voices" className="sel sel-voices" value={3} aria-label={t("ui.nav.voices")} onChange={(e) => e.target.value === "chorale" || e.target.value === "wtc" ? (audio.stop(), onVoices(e.target.value)) : Number(e.target.value) === 2 && (audio.stop(), onVoices(2))}>
+          <select id="voices" className="sel sel-voices" value={3} aria-label={t("ui.nav.voices")} onChange={(e) => e.target.value === "chorale" || e.target.value === "preludes" ? (audio.stop(), onVoices(e.target.value)) : Number(e.target.value) === 2 && (audio.stop(), onVoices(2))}>
             {[2, 3, 4].map((n) => (
               <option key={n} value={n} disabled={n === 4}>{t("ui.nav.voicesN", { n })}</option>
             ))}
             <option value="chorale">{t("chorale.mode")}</option>
-            <option value="wtc">{t("wtc.mode")}</option>
+            <option value="preludes">{t("wtcp.mode")}</option>
           </select>
           <select id="species" className="sel sel-species" value={1} aria-label={t("ui.nav.species")} onChange={() => undefined}>
             {[1, 2, 3, 4, 5].map((n) => (

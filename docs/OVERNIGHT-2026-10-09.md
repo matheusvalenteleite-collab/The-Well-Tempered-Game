@@ -4,12 +4,28 @@ This was written for the owner, who left the instruction: "work on choices lab i
 develop it as further as you can without my help … do work on the Well-Tempered Clavier … this is
 the end goal."
 
-Everything below is committed and pushed on this branch. Decisions C6–C13 were taken without the
+Everything below is committed and pushed on this branch. Decisions C6–C14 were taken without the
 owner and are marked *assumed, owner to confirm* in `docs/DECISIONS.md`.
+
+## 0. Your later guidance (relayed by the main session)
+
+Late in the night the main session relayed your guidance: the WTC mode is first a **study guide**,
+with exercises the least concern, and the main session is building it. This branch has adapted:
+
+- Its WTC screens are now a separate mode, **"WTC · preludes and harmony"** (mode value
+  `preludes`), so that they do not collide with the main session's WTC study screen.
+- Its fugue-answer level (F2) duplicates the main session's "Real or tonal?" (D120) and should
+  probably give way to it (C14).
+- What this branch can add to the study guide is data and readers rather than more exercises:
+  - the licence-safe public-domain notes (Mutopia, 37 pieces checked against Humdrum);
+  - a harmonic reader validated against human analyses, which could label the "important
+    moments";
+  - the figuration analysis of the preludes;
+  - the three-way cross-check of the fugue readings.
 
 ## 1. What to look at first
 
-1. **The game, Well-Tempered Clavier mode** (the voices selector, then "Well-Tempered Clavier").
+1. **The game, "WTC · preludes and harmony" mode** (in the voices selector).
    It has three levels:
    - **P1, Prelude 1's harmonic plan.** Choose the chord of each of the 32 bars, hear it in Bach's
      figuration, and compare the plan with Bach's.
@@ -91,7 +107,7 @@ owner and are marked *assumed, owner to confirm* in `docs/DECISIONS.md`.
    2. ask for permission;
    3. re-encode from the Bach-Gesellschaft edition;
    4. subjects only for the fugue levels.
-2. **C6–C13**: confirm or amend.
+2. **C6–C14**: confirm or amend.
    - C6: the WTC screen and P1.
    - C7: sources.
    - C8: F2, the answer.
@@ -100,6 +116,7 @@ owner and are marked *assumed, owner to confirm* in `docs/DECISIONS.md`.
    - C11: chorale level 3.
    - C12: chorale level 4.
    - C13: the harmonic plan for Preludes 2, 5 and 6.
+   - C14: the mode renamed after your study-guide guidance.
 3. **Kirnberger's text** is still unreachable from here: the proxy refuses archive.org and IMSLP.
    The analytical categories remain operational readings marked "to verify".
 

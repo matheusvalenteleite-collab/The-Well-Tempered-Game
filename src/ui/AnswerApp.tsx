@@ -66,7 +66,7 @@ export function AnswerApp({ onMode, level, onLevel }: { onMode(mode: Mode): void
     setPlaying(false);
     setIndex(i);
   };
-  const tags = (o: (typeof opts)[number]) => o.is.map((x) => t(`wtc.ans.${x}`)).join(" = ");
+  const tags = (o: (typeof opts)[number]) => o.is.map((x) => t(`wtcp.ans.${x}`)).join(" = ");
 
   return (
     <Shell
@@ -75,16 +75,16 @@ export function AnswerApp({ onMode, level, onLevel }: { onMode(mode: Mode): void
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
             <button className="icon" onClick={() => goTo(index - 1)} disabled={index === 0} aria-label={t("ui.nav.prev")}>‹</button>
-            <select id="voices" className="sel sel-voices" value="wtc" aria-label={t("ui.nav.voices")} onChange={(e) => { audio.stop(); const v = e.target.value; onMode(v === "chorale" || v === "wtc" ? v : (Number(v) as 2 | 3)); }}>
+            <select id="voices" className="sel sel-voices" value="preludes" aria-label={t("ui.nav.voices")} onChange={(e) => { audio.stop(); const v = e.target.value; onMode(v === "chorale" || v === "preludes" ? v : (Number(v) as 2 | 3)); }}>
               <option value={2}>{t("ui.nav.voicesN", { n: 2 })}</option>
               <option value={3}>{t("ui.nav.voicesN", { n: 3 })}</option>
               <option value="chorale">{t("chorale.mode")}</option>
-              <option value="wtc">{t("wtc.mode")}</option>
+              <option value="preludes">{t("wtcp.mode")}</option>
             </select>
             <WtcLevelSelect level={level} onLevel={onLevel} onChange={() => audio.stop()} />
             <select id="exercise" className="sel sel-exercise" value={index} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("ui.nav.choose")}>
               {FUGUES.map((x, k) => (
-                <option key={x.id} value={k}>{`${picks[x.id] !== undefined ? "● " : ""}${t("wtc.fugueN", { book: x.book === 1 ? "I" : "II", n: x.number, key: x.key })}`}</option>
+                <option key={x.id} value={k}>{`${picks[x.id] !== undefined ? "● " : ""}${t("wtcp.fugueN", { book: x.book === 1 ? "I" : "II", n: x.number, key: x.key })}`}</option>
               ))}
             </select>
             <button className="icon" onClick={() => goTo(index + 1)} disabled={index === FUGUES.length - 1} aria-label={t("ui.nav.next")}>›</button>
@@ -96,7 +96,7 @@ export function AnswerApp({ onMode, level, onLevel }: { onMode(mode: Mode): void
         <div className="score-wrap wtc-score">
           <LineStaff
             lines={[
-              { notes: f.subject, durations: f.durations, label: t("wtc.subject"), className: "subject" },
+              { notes: f.subject, durations: f.durations, label: t("wtcp.subject"), className: "subject" },
               ...opts.map((o, k) => ({
                 notes: o.notes,
                 durations: f.durations,
@@ -110,8 +110,8 @@ export function AnswerApp({ onMode, level, onLevel }: { onMode(mode: Mode): void
       }
       transport={
         <div className="controls chorale-controls">
-          <div className="group write" role="group" aria-label={t("wtc.ans.choose")}>
-            <span className="prompt">{t("wtc.ans.prompt", { voice: f.answerVoice })}</span>
+          <div className="group write" role="group" aria-label={t("wtcp.ans.choose")}>
+            <span className="prompt">{t("wtcp.ans.prompt", { voice: f.answerVoice })}</span>
             {opts.map((o, k) => (
               <button key={k} className={mine === k ? "chord primary" : "chord"} onClick={() => { setPicks({ ...picks, [f.id]: k }); play(o.notes); }}>
                 {LETTERS[k]}
@@ -122,8 +122,8 @@ export function AnswerApp({ onMode, level, onLevel }: { onMode(mode: Mode): void
             <button className="primary" aria-pressed={show} disabled={mine === undefined} onClick={() => { setCompared({ ...compared, [f.id]: !show }); setTab("compare"); }}>{t("chorale.compare")}</button>
           </div>
           <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
-            <button className="icon play" onClick={() => play(chosen ? chosen.notes : null)} aria-label={t("wtc.ans.play")} title={t("wtc.ans.play")}>{playing ? "■" : "▶"}</button>
-            <button onClick={() => play(null)} disabled={playing}>{t("wtc.subject")}</button>
+            <button className="icon play" onClick={() => play(chosen ? chosen.notes : null)} aria-label={t("wtcp.ans.play")} title={t("wtcp.ans.play")}>{playing ? "■" : "▶"}</button>
+            <button onClick={() => play(null)} disabled={playing}>{t("wtcp.subject")}</button>
             <div className="hfaders">
               <HFader label={t("ui.tempo")} help={t("ui.tempo.help")} value={tempo} min={30} max={120} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
             </div>
@@ -132,13 +132,13 @@ export function AnswerApp({ onMode, level, onLevel }: { onMode(mode: Mode): void
       }
       summary={show && (
         <div className="eval-summary ok" role="status">
-          <span className="verdict">{t("wtc.ans.summary", { n: withBach, of: answered.length })}</span>
+          <span className="verdict">{t("wtcp.ans.summary", { n: withBach, of: answered.length })}</span>
           <button className="link" onClick={() => setTab("compare")}>{t("ui.summary.open")} ▸</button>
         </div>
       )}
       tab={tab}
       onTab={setTab}
-      idle={t("wtc.ans.source")}
+      idle={t("wtcp.ans.source")}
       tabs={[
         {
           id: "compare",
@@ -147,22 +147,22 @@ export function AnswerApp({ onMode, level, onLevel }: { onMode(mode: Mode): void
           content: show && chosen ? (
             <div className="chorale-verdicts">
               <p>
-                {t("wtc.ans.yours", { letter: LETTERS[mine!] })} <strong>{tags(chosen)}</strong>. {t("wtc.ans.bachs", { letter: LETTERS[bachIdx] })} <strong>{t(`wtc.kind.${f.kind}`)}</strong>.
+                {t("wtcp.ans.yours", { letter: LETTERS[mine!] })} <strong>{tags(chosen)}</strong>. {t("wtcp.ans.bachs", { letter: LETTERS[bachIdx] })} <strong>{t(`wtcp.kind.${f.kind}`)}</strong>.
               </p>
-              <p>{t(`wtc.explain.${f.kind}`, { tonic: f.tonic })}</p>
-              {f.kind !== "real" && <p className="muted">{t("wtc.ans.changed", { notes: mutated(f, f.bach).slice(0, 8).map((i) => `${f.subject[i]} → ${f.bach[i]}`).join(", ") || "—" })}</p>}
+              <p>{t(`wtcp.explain.${f.kind}`, { tonic: f.tonic })}</p>
+              {f.kind !== "real" && <p className="muted">{t("wtcp.ans.changed", { notes: mutated(f, f.bach).slice(0, 8).map((i) => `${f.subject[i]} → ${f.bach[i]}`).join(", ") || "—" })}</p>}
             </div>
-          ) : <p className="muted">{t("wtc.ans.before")}</p>,
+          ) : <p className="muted">{t("wtcp.ans.before")}</p>,
         },
         {
           id: "about",
-          label: t("wtc.ans.tab"),
+          label: t("wtcp.ans.tab"),
           text: true,
           content: (
             <div className="chorale-about">
-              <p>{t("wtc.ans.about.1")}</p>
-              <p>{t("wtc.ans.about.2")}</p>
-              <p className="muted">{t("wtc.ans.about.3")}</p>
+              <p>{t("wtcp.ans.about.1")}</p>
+              <p>{t("wtcp.ans.about.2")}</p>
+              <p className="muted">{t("wtcp.ans.about.3")}</p>
             </div>
           ),
         },

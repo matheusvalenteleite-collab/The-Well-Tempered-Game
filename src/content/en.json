@@ -985,8 +985,8 @@
     "rare2": "Bach never does so here: a choice of your own.",
     "l4.summary": "with Kittel at {n} of {of} bass notes"
   },
-  "wtc": {
-    "mode": "Well-Tempered Clavier",
+  "wtcp": {
+    "mode": "WTC · preludes and harmony",
     "piece.p1": "Prelude 1 in C (BWV 846) · harmonic plan",
     "plan": "The harmonic plan, bar by bar",
     "barN": "Bar {n}",

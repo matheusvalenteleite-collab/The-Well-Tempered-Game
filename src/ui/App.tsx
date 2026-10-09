@@ -794,7 +794,7 @@ export function App({ onVoices }: { onVoices(n: Mode): void }) {
             value={COURSE.voices}
             aria-label={t("ui.nav.voices")}
             onChange={(e) => {
-              if (e.target.value === "chorale" || e.target.value === "wtc") {
+              if (e.target.value === "chorale" || e.target.value === "preludes") {
                 audio.stop();
                 onVoices(e.target.value);
                 return;
@@ -814,7 +814,7 @@ export function App({ onVoices }: { onVoices(n: Mode): void }) {
               </option>
             ))}
             <option value="chorale">{t("chorale.mode")}</option>
-            <option value="wtc">{t("wtc.mode")}</option>
+            <option value="preludes">{t("wtcp.mode")}</option>
           </select>
           <select
             id="species"
