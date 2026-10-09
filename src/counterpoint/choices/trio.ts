@@ -41,6 +41,12 @@ export interface TrioHabits {
   spacing: [Counts, Counts];
   /** Lowest and highest MIDI pitch Fux writes on each staff (top, middle, bottom). */
   range: [number, number][];
+  /**
+   * The top note of the final chord, as an interval above the bass ("8", "M3", "5"). The rule allows
+   * the octave, the fifth or the major third (pp. 89-90); Fux puts the final on top 14 times in 16,
+   * the major third twice, the fifth never (his fifths stand in the middle voice).
+   */
+  finalTop: Counts;
 }
 
 const melodicKey = (a: string, b: string) => String(Math.max(-12, Math.min(12, midi(b) - midi(a))));
@@ -62,8 +68,17 @@ export function spacingKey(upper: string, lower: string): string {
   return `${midi(upper) < midi(lower) ? "x" : ""}${simpleName(h)}${octaves > 0 ? `+${octaves}` : ""}`;
 }
 
+/** The highest note of a chord as a simple interval above its lowest ("8" for the final doubled on top). */
+export function finalTopKey(chord: string[]): string {
+  const sorted = [...chord].sort((a, b) => midi(a) - midi(b));
+  return simpleName(harmonic(sorted[0], sorted[sorted.length - 1])).replace(/^1$/, "8");
+}
+
+/** Surprisal of the final chord's top note (only in the last bar). */
+const finalTopBits = (t: TrioHabits, chord: string[]) => bits(prob(t.finalTop, finalTopKey(chord), 6));
+
 export function buildTrioHabits(steps: TrioStep[], exclude: string[] = []): TrioHabits {
-  const t: TrioHabits = { from: [], melodic: [new Map(), new Map(), new Map()], pooled: new Map(), sonority: new Map(), spacing: [new Map(), new Map()], range: [[127, 0], [127, 0], [127, 0]] };
+  const t: TrioHabits = { from: [], melodic: [new Map(), new Map(), new Map()], pooled: new Map(), sonority: new Map(), spacing: [new Map(), new Map()], range: [[127, 0], [127, 0], [127, 0]], finalTop: new Map() };
   for (const s of steps) {
     if (exclude.includes(s.exerciseId)) continue;
     t.from.push(s.exerciseId);
@@ -78,6 +93,7 @@ export function buildTrioHabits(steps: TrioStep[], exclude: string[] = []): Trio
     s.fux.forEach((l, v) => {
       for (const p of l) t.range[v] = [Math.min(t.range[v][0], midi(p)), Math.max(t.range[v][1], midi(p))];
     });
+    add(t.finalTop, finalTopKey(s.fux.map((l) => l[l.length - 1])));
     for (let k = 0; k < s.cantus.length; k++) {
       add(t.sonority, sonorityKey(s.fux.map((l) => l[k])));
       add(t.spacing[0], spacingKey(s.fux[0][k], s.fux[1][k]));
@@ -141,6 +157,7 @@ const spacingBits = (t: TrioHabits, voices: string[][], v: Position, k: number) 
 export function trioHabit(t: TrioHabits, voices: string[][], v: Position, k: number): number {
   const line = voices[v];
   let h = bits(prob(t.sonority, sonorityKey(voices.map((l) => l[k])), 40)) + spacingBits(t, voices, v, k);
+  if (k === line.length - 1) h += finalTopBits(t, voices.map((l) => l[k]));
   if (k > 0) h += bits(melodicP(t, v, melodicKey(line[k - 1], line[k])));
   if (k + 1 < line.length) h += bits(melodicP(t, v, melodicKey(line[k], line[k + 1])));
   return h;
@@ -323,6 +340,7 @@ export function generateThirdVoice(o: ThirdVoiceOptions): ThirdVoice {
   const stepCost = (line: string[], k: number) => {
     const vs = assemble(line).map((l) => l.slice(0, k + 1));
     let habit = bits(prob(o.habits.sonority, sonorityKey(vs.map((l) => l[k])), 40)) + spacingBits(o.habits, vs, added, k);
+    if (k === n - 1) habit += finalTopBits(o.habits, vs.map((l) => l[k]));
     if (k > 0) habit += bits(melodicP(o.habits, added, melodicKey(line[k - 1], line[k])));
     let counsel = 0;
     if (k > 0) {
@@ -411,6 +429,10 @@ export function generateThirdVoice(o: ThirdVoiceOptions): ThirdVoice {
         const errors = k > 0 ? judgePrefix(line, k === n - 1 ? TRIO_FIRST_SPECIES : prefixRules).errors.length : 0;
         next.push({ line, errors, cost: st.cost + stepCost(line, k) + noise() + PENALTY * Math.max(0, errors - st.errors) });
       }
+    }
+    if (!next.length) {
+      const where = o.placement === "above" ? "above them" : o.placement === "below" ? "below them" : "between them";
+      throw new Error(`There is no room for a third voice ${where} in bar ${k + 1}: the two lines already reach the edge of the compass Fux gives his three voices (or leave no note between them). Try another placement or register.`);
     }
     next.sort((a, b) => a.cost - b.cost);
     beam = next.slice(0, width);
