@@ -1,10 +1,11 @@
-# D8 amended: the cantus firmus constraints checked against Fux (for the owner's approval)
+# D8 amended: the cantus firmus constraints checked against Fux
+
+Approved by the owner on 9 October 2026; the decision number is for the main session to assign.
 
 D8 accepted the generator constraints of docs/m1/M1-REPORT.md §4. Building the generator
 (`src/counterpoint/choices/cantus.ts`, the Choices lab) and checking every constraint against
 Fux's own cantus firmi, under D39 ("Fux is always the last word"), required the changes below. Each
 is the smallest that lets all of Fux's cantus firmi pass. Nothing in the game depends on them yet.
-Approve, amend or reject each.
 
 | § 4 | as accepted | amended | why |
 |---|---|---|---|

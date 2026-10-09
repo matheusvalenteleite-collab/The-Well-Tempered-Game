@@ -118,8 +118,8 @@ Findings and points for the owner:
   widened from 25-60% to 20-62% (Fig. 42's A has 20%, the G 62%); "turn after a rising fourth"
   is soft (Fux's G does not turn once); outlined sixths allowed when they arpeggiate a triad
   (Fux's G: G-C-E); length 9-14 accepted (Fux's C variant has 9; generator default 10-14); and
-  Ewing's antepenultimate degree 1 or 3 (true of all Fux's) added. To approve or amend: the table
-  is in docs/fux/cantus-constraints-amendment.md.
+  Ewing's antepenultimate degree 1 or 3 (true of all Fux's) added. Approved by the owner,
+  9 October 2026 (docs/fux/cantus-constraints-amendment.md); decision number to be assigned.
 - Fifth species, two voices (`choices/florid.ts`): the audit now covers Fux's twelve florid
   solutions (his note legal at all 299 choices; first where free 74% with the full score vector,
   habits learnt on his florid lines with the weights fitted on species 1-4). The generator draws
