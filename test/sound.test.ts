@@ -1,28 +1,27 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { audibleGain, DEFAULT_SOUND, editSynth, linkedGroup, linkNeedsConfirm, restoreSound, setLink, setMix, shiftOctave } from "../src/audio/sound.ts";
+import { audibleGain, DEFAULT_SOUND, editSynth, restoreSound, setMix, shiftOctave } from "../src/audio/sound.ts";
 
-test("defaults: cantus and contrapunctus share the sampled grand; Fux has his own pipe organ", () => {
-  assert.equal(DEFAULT_SOUND.synth.counterpoint.sampleSet, "grand");
-  assert.equal(DEFAULT_SOUND.synth.fux.sampleSet, "organ");
-  assert.deepEqual(linkedGroup(DEFAULT_SOUND, "cantus"), ["cantus", "counterpoint"]);
-  assert.deepEqual(linkedGroup(DEFAULT_SOUND, "fux"), ["fux"]);
+test("D95 defaults: the three voices alike (recorded grand, a little room, no delay, centred), versions on their own", () => {
+  for (const c of ["cantus", "counterpoint", "fux"] as const) {
+    assert.equal(DEFAULT_SOUND.synth[c].sampleSet, "grand");
+    assert.equal(DEFAULT_SOUND.synth[c].reverbMode, "room");
+    assert.equal(DEFAULT_SOUND.synth[c].delayMode, "off");
+    assert.equal(DEFAULT_SOUND.mix[c].pan, 0);
+  }
+  assert.ok(Object.values(DEFAULT_SOUND.versionFollows).every((f) => f === false));
+  assert.equal(DEFAULT_SOUND.master.reverbMode, "off");
 });
 
-test("editing a linked voice edits its group; unlinked voices stay", () => {
+test("D95: editing one voice never changes another (no links)", () => {
   const s = editSynth(DEFAULT_SOUND, "cantus", { ...DEFAULT_SOUND.synth.cantus, tone: 3000 });
-  assert.equal(s.synth.counterpoint.tone, 3000);
+  assert.equal(s.synth.cantus.tone, 3000);
+  assert.notEqual(s.synth.counterpoint.tone, 3000);
   assert.notEqual(s.synth.fux.tone, 3000);
-  const u = setLink(s, "cantusCounterpoint", false);
-  const e = editSynth(u, "cantus", { ...u.synth.cantus, tone: 1000 });
-  assert.equal(e.synth.counterpoint.tone, 3000);
-});
-
-test("linking voices that differ asks first, then takes the Contrapunctus settings", () => {
-  assert.equal(linkNeedsConfirm(DEFAULT_SOUND, "counterpointFux"), true);
-  const s = setLink(DEFAULT_SOUND, "counterpointFux", true);
-  assert.equal(s.synth.fux.sampleSet, "grand");
-  assert.deepEqual(linkedGroup(s, "fux"), ["cantus", "counterpoint", "fux"]);
+  // An old stored state with links restores without them, and keeps its master defaults.
+  const r = restoreSound({ ...DEFAULT_SOUND, links: { cantusCounterpoint: true } });
+  assert.equal("links" in r, false);
+  assert.deepEqual(r.master, DEFAULT_SOUND.master);
 });
 
 test("mute and solo", () => {

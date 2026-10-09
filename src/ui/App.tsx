@@ -18,7 +18,8 @@ import { Hints } from "./Hints.tsx";
 import { Study } from "./Study.tsx";
 import { stepStudy } from "./study.ts";
 import { Feedback } from "./Feedback.tsx";
-import { Knob } from "./Knob.tsx";
+import { HFader } from "./HFader.tsx";
+import { NoteIcon } from "./NoteIcon.tsx";
 import { Systems, ZOOM_MAX, ZOOM_MIN } from "./notation/Systems.tsx";
 import { buildOverlay, neutralOverlay } from "./notation/overlay.ts";
 import { Credits } from "./Credits.tsx";
@@ -87,7 +88,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const [stars, setStars] = useState<string[]>(() => stored<string[]>("wtg.stars", [], (v) => Array.isArray(v)));
   const [tempo, setTempo] = useState(() => stored("wtg.tempo", 60, (v) => typeof v === "number" && v >= 30 && v <= 240));
   const [volume, setVolume] = useState(() => stored("wtg.volume", 70, (v) => typeof v === "number" && v >= 0 && v <= 100));
-  const [sound, setSound] = useState<SoundState>(() => restoreSound(stored<unknown>("wtg.sound2", null)));
+  const [sound, setSound] = useState<SoundState>(() => restoreSound(stored<unknown>("wtg.sound3", null)));
   // The look (D81): the 1990s look by default, the classic one a click away.
   const [look, setLook] = useState<"retro" | "classic">(() => stored("wtg.look", "retro", (v) => v === "retro" || v === "classic"));
   useEffect(() => {
@@ -148,7 +149,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   }, [volume]);
   useEffect(() => {
     audio.setSoundState(sound);
-    store("wtg.sound2", sound);
+    store("wtg.sound3", sound);
   }, [sound]);
   useEffect(() => {
     if (theme === "auto") delete document.documentElement.dataset.theme;
@@ -928,35 +929,35 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
         <div className="controls">
           <div className="group write" role="group" aria-label={t("ui.group.write")}>
             {([[-1, "ui.accidental.flat"], [0, "ui.accidental.natural"], [1, "ui.accidental.sharp"]] as const).map(([a, key]) => (
-              <button key={a} aria-pressed={session.accidental === a && !sounding(session.notes[session.selected])} onClick={() => update(applyAccidental(session, a))}>
+              <button key={a} className="btn-acc" aria-pressed={session.accidental === a && !sounding(session.notes[session.selected])} onClick={() => update(applyAccidental(session, a))} title={t(`${key}.help`)}>
                 {t(key)}
               </button>
             ))}
             {VIEW.layout.some((sl) => sl.restAllowed) && (
-              <button aria-pressed={session.notes[session.selected] === REST} disabled={!VIEW.layout[session.selected]?.restAllowed} onClick={() => update(setRest(session, VIEW.layout), false)} title={t("ui.rest.help")}>
+              <button className="btn-rest" aria-pressed={session.notes[session.selected] === REST} disabled={!VIEW.layout[session.selected]?.restAllowed} onClick={() => update(setRest(session, VIEW.layout), false)} title={t("ui.rest.help")}>
                 {t("ui.rest")}
               </button>
             )}
             {VIEW.species === "fourth" && (
-              <button onClick={() => writeAndAdvance(repeatPrevious(session))} disabled={!sounding(session.notes[session.selected - 1])} title={t("ui.tie.help")}>
+              <button className="btn-hold" onClick={() => writeAndAdvance(repeatPrevious(session))} disabled={!sounding(session.notes[session.selected - 1])} title={t("ui.tie.help")}>
                 {t("ui.tie")}
               </button>
             )}
             {FIFTH && (
               <span className="values" role="radiogroup" aria-label={t("ui.value")}>
-                {([[1, "♪", "8"], [2, "♩", "4"], [3, "♩.", "3"], [4, "𝅗𝅥", "2"], [6, "𝅗𝅥.", "6"], [8, "𝅝", "1"]] as const).map(([n, glyph, key]) => (
-                  <button key={n} role="radio" aria-checked={noteValue === n} aria-pressed={noteValue === n} onClick={() => setNoteValue(n)} title={t(`ui.value.${n}`, { key })}>
-                    {glyph}
+                {([[1, "8"], [2, "4"], [3, "3"], [4, "2"], [6, "6"], [8, "1"]] as const).map(([n, key]) => (
+                  <button key={n} className="btn-val" role="radio" aria-checked={noteValue === n} aria-pressed={noteValue === n} onClick={() => setNoteValue(n)} title={t(`ui.value.${n}`, { key })} aria-label={t(`ui.value.${n}`, { key })}>
+                    <NoteIcon slots={n} />
                   </button>
                 ))}
-                <button onClick={() => writeAndAdvance(holdSelected(session, VIEW.layout, noteValue), true)} disabled={session.selected === 0 || session.notes[session.selected - 1] === null} title={t("ui.hold.help")}>
+                <button className="btn-hold" onClick={() => writeAndAdvance(holdSelected(session, VIEW.layout, noteValue), true)} disabled={session.selected === 0 || session.notes[session.selected - 1] === null} title={t("ui.hold.help")}>
                   {t("ui.hold")}
                 </button>
               </span>
             )}
-            <button onClick={() => update(freshSession(stepIndex), false)}>{t("ui.clearAll")}</button>
-            <button className="icon" onClick={() => restore("undo")} disabled={!editable || hist().past.length === 0} aria-label={t("ui.undo")} title={t("ui.undoHelp")}>↶</button>
-            <button className="icon" onClick={() => restore("redo")} disabled={!editable || hist().future.length === 0} aria-label={t("ui.redo")} title={t("ui.redoHelp")}>↷</button>
+            <button className="btn-edit" onClick={() => update(freshSession(stepIndex), false)} title={t("ui.clearAll.help")}>{t("ui.clearAll")}</button>
+            <button className="icon btn-edit" onClick={() => restore("undo")} disabled={!editable || hist().past.length === 0} aria-label={t("ui.undo")} title={t("ui.undoHelp")}>↶</button>
+            <button className="icon btn-edit" onClick={() => restore("redo")} disabled={!editable || hist().future.length === 0} aria-label={t("ui.redo")} title={t("ui.redoHelp")}>↷</button>
           </div>
           <div className="group judge">
             <button className="primary" aria-pressed={result !== null} onClick={toggleEvaluation} disabled={missing > 0 && !result} title={missing > 0 ? t("ui.evaluate.incomplete", { missing }) : undefined}>
@@ -974,8 +975,10 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
               </button>
               <button className="loop" aria-pressed={loop} onClick={() => setLoop(!loop)} aria-label={t("ui.loop")} title={t(loop ? "ui.loop.on" : "ui.loop.off")}>⟲</button>
             </div>
-            <Knob id="tempo" label={t("ui.tempo")} value={tempo} min={30} max={240} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
-            <Knob id="volume" label={t("ui.volume")} value={volume} min={0} max={100} defaultValue={70} format={(v) => `${Math.round(v)}%`} onChange={(v) => setVolume(Math.round(v))} />
+            <div className="hfaders">
+              <HFader label={t("ui.tempo")} help={t("ui.tempo.help")} value={tempo} min={30} max={240} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
+              <HFader label={t("ui.volume")} help={t("ui.volume.help")} value={volume} min={0} max={100} defaultValue={70} format={(v) => `${Math.round(v)}%`} onChange={(v) => setVolume(Math.round(v))} />
+            </div>
           </div>
         </div>
         {audioStatus === "failed" && <p className="status error">{t("ui.audio.failed")}</p>}

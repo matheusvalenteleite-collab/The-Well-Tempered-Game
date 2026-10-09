@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Fader, formatDb, posOfDb } from "./Fader.tsx";
-import { linkedGroup, linkEnds, linkNeedsConfirm, setLink, setMix, editSynth, editVersionSynth, setVersionFollows, versionSettings, type Channel, type Link, type SoundState, type Strip } from "../audio/sound.ts";
+import { setMix, editSynth, editVersionSynth, versionSettings, DEFAULT_MASTER_FX, type Channel, type MasterFx, type SoundState, type Strip } from "../audio/sound.ts";
 import { patternById, type DrumSettings } from "../audio/drums.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
 import { Knob } from "./Knob.tsx";
 import { SynthRack, presetName } from "./SynthRack.tsx";
+import { MasterBox } from "./MasterBox.tsx";
 import { DrumBox } from "./DrumBox.tsx";
 import { ContinuoBox } from "./ContinuoBox.tsx";
 import { CONTINUO_DISPLAYS, type ContinuoSettings } from "../game/continuo-settings.ts";
@@ -58,12 +59,11 @@ const VOICES: Channel[] = ["cantus", "counterpoint", "fux"];
 
 /**
  * Mixer & synth: a mixing desk with one strip per voice, the drums, the continuo and the master.
- * Click a strip (anywhere but its controls) to edit it below; chain buttons between voices link
- * their sounds (decision D40). The box folds to one line.
+ * Click a strip (anywhere but its controls), the master included, to edit it below; each track
+ * is configured on its own (D95). The box folds to one line.
  */
 export function SoundDesk(p: Props) {
-  const [selected, setSelected] = useState<Strip>("counterpoint");
-  const [ask, setAsk] = useState<Link | null>(null);
+  const [selected, setSelected] = useState<Strip | "master">("counterpoint");
   const s = p.value;
   // The meters (D80), drawn at animation-frame rate straight into the DOM, with a gentle fall.
   const meterEls = useRef<Partial<Record<Strip | "master", HTMLDivElement | null>>>({});
@@ -179,39 +179,10 @@ export function SoundDesk(p: Props) {
     );
   };
 
-  const chain = (l: Link) => (
-    <button
-      key={l}
-      className={`chain ${s.links[l] ? "on" : ""}`}
-      aria-pressed={s.links[l]}
-      title={t(s.links[l] ? "ui.mixer.unlink" : "ui.mixer.link")}
-      onClick={() => {
-        if (s.links[l]) p.onChange(setLink(s, l, false));
-        else if (linkNeedsConfirm(s, l)) setAsk(l);
-        else p.onChange(setLink(s, l, true));
-      }}
-    >
-      <svg viewBox="0 0 28 14" width="28" height="14" aria-hidden="true">
-        {s.links[l] ? (
-          <>
-            <rect x="2" y="3" width="13" height="8" rx="4" />
-            <rect x="13" y="3" width="13" height="8" rx="4" />
-          </>
-        ) : (
-          <>
-            <rect x="0" y="3" width="11" height="8" rx="4" />
-            <rect x="17" y="3" width="11" height="8" rx="4" />
-          </>
-        )}
-      </svg>
-    </button>
-  );
-
   // A version strip has its own sound (D69): editing it never changes the Contrapunctus.
   const voice = VOICES.includes(selected as Channel) ? (selected as Channel) : null;
   const version = VERSION_IDS.includes(selected as VersionId) ? (selected as VersionId) : null;
-  const group = voice ? linkedGroup(s, voice) : [];
-  const title = voice ? `${t("ui.synth.title")} · ${group.map((c) => t(`ui.mixer.${c}`)).join(" + ")}` : "";
+  const title = voice ? `${t("ui.synth.title")} · ${t(`ui.mixer.${voice}`)}` : "";
 
   if (!p.open)
     return (
@@ -226,17 +197,30 @@ export function SoundDesk(p: Props) {
         <button className="fold" aria-expanded={true} onClick={() => p.onOpen(false)} title={t("ui.sound.fold")}>▾ {t("ui.sound")}</button>
       </div>
       <div className="desk">
-        {strip("cantus")}
-        {chain("cantusCounterpoint")}
-        {strip("counterpoint")}
-        {chain("counterpointFux")}
-        {strip("fux")}
-        {p.advanced && <span className="desk-gap" />}
-        {p.advanced && VERSION_IDS.map((id) => strip(id))}
-        <span className="desk-gap" />
-        {strip("drums")}
-        {strip("continuo")}
-        <div className="strip master" role="group" aria-label={t("ui.mixer.master")} style={{ ["--track" as string]: COLOR.master }}>
+        {/* Groups (D95): the two main voices; Fux (once his solution is open, or in advanced mode); the versions; drums and continuo; the master. */}
+        <div className="desk-group main" role="group" aria-label={t("ui.mixer.group.main")}>
+          {strip("cantus")}
+          {strip("counterpoint")}
+        </div>
+        {(p.fuxOpen || p.advanced) && (
+          <>
+            <span className="desk-sep" aria-hidden="true" />
+            <div className="desk-group">{strip("fux")}</div>
+          </>
+        )}
+        {p.advanced && (
+          <>
+            <span className="desk-sep" aria-hidden="true" />
+            <div className="desk-group">{VERSION_IDS.map((id) => strip(id))}</div>
+          </>
+        )}
+        <span className="desk-sep" aria-hidden="true" />
+        <div className="desk-group">
+          {strip("drums")}
+          {strip("continuo")}
+        </div>
+        <span className="desk-sep" aria-hidden="true" />
+        <div className={`strip master ${selected === "master" ? "selected" : ""}`} role="group" aria-label={t("ui.mixer.master")} style={{ ["--track" as string]: COLOR.master }} onClick={(e) => !(e.target as HTMLElement).closest("button, input, select, .knob, .fader2") && setSelected("master")} title={t("ui.mixer.masterHelp")}>
           <div className="strip-name">{t("ui.mixer.master")}</div>
           <button className="chipbtn tuning" tabIndex={-1} onClick={() => p.onTuning(TEMPERAMENTS[(TEMPERAMENTS.indexOf(p.tuning) + 1) % TEMPERAMENTS.length])} title={t("ui.tuning.help")}>
             {t("ui.tuning.label", { name: t(`ui.tuning.${p.tuning}`) })}
@@ -245,26 +229,15 @@ export function SoundDesk(p: Props) {
           <div className="db-readout">{formatDb(p.master / 100)}</div>
         </div>
       </div>
-      {ask && (
-        <div className="confirm" role="alertdialog">
-          <span>{t("ui.mixer.linkQuestion", { other: t(`ui.mixer.${linkEnds(ask).find((c) => c !== "counterpoint")}`) })}</span>
-          <button className="chipbtn" tabIndex={-1} onClick={() => { p.onChange(setLink(s, ask, true)); setAsk(null); }}>{t("ui.synth.yes")}</button>
-          <button className="chipbtn" tabIndex={-1} onClick={() => setAsk(null)}>{t("ui.synth.no")}</button>
-        </div>
-      )}
       <div className="editor">
         {voice && <SynthRack title={title} value={s.synth[voice]} onChange={(next) => p.onChange(editSynth(s, voice, next))} />}
         {version && (
           <>
-            <div className="follows">
-              <button className="chipbtn" tabIndex={-1} aria-pressed={s.versionFollows[version]} title={t("ui.synth.followsHelp")} onClick={() => p.onChange(setVersionFollows(s, version, !s.versionFollows[version]))}>
-                {t("ui.synth.follows")}
-              </button>
-            </div>
             <SynthRack title={`${t("ui.synth.title")} · ${t(`ui.mixer.${version}`)}`} value={versionSettings(s, version)} onChange={(next) => p.onChange(editVersionSynth(s, version, next))} />
           </>
         )}
         {selected === "drums" && <DrumBox on={p.drums} onToggle={p.onDrums} value={p.drumKit} onChange={p.onDrumKit} onPreview={p.onPreviewDrums} />}
+        {selected === "master" && <MasterBox value={s.master ?? DEFAULT_MASTER_FX} onChange={(m) => p.onChange({ ...s, master: m })} />}
         {selected === "continuo" && <ContinuoBox on={p.continuo} onToggle={p.onContinuo} value={p.continuoSettings} onChange={p.onContinuoSettings} />}
       </div>
     </section>

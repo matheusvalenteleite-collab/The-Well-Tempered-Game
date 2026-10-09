@@ -20,7 +20,7 @@ import { parsePitch, type Step } from "../music/pitch.ts";
 import { TrioScore, type TrioStaff } from "./notation/TrioScore.tsx";
 import { ZOOM_MAX, ZOOM_MIN } from "./notation/zoom.ts";
 import { SoundDesk, trackOrder } from "./SoundDesk.tsx";
-import { Knob } from "./Knob.tsx";
+import { HFader } from "./HFader.tsx";
 import { audio, store, stored, validDrumKit } from "./shared.ts";
 import { t } from "./i18n.ts";
 import { Shell } from "./Shell.tsx";
@@ -62,7 +62,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
   // Settings shared with the two-voice screen.
   const [tempo, setTempo] = useState(() => stored("wtg.tempo", 60, (v) => typeof v === "number" && v >= 30 && v <= 240));
   const [volume, setVolume] = useState(() => stored("wtg.volume", 70, (v) => typeof v === "number" && v >= 0 && v <= 100));
-  const [sound, setSound] = useState<SoundState>(() => restoreSound(stored<unknown>("wtg.sound2", null)));
+  const [sound, setSound] = useState<SoundState>(() => restoreSound(stored<unknown>("wtg.sound3", null)));
   const [look, setLook] = useState<"retro" | "classic">(() => stored("wtg.look", "retro", (v) => v === "retro" || v === "classic"));
   const [theme, setTheme] = useState<"auto" | "light" | "dark">(() => stored("wtg.theme", "auto", (v) => v === "auto" || v === "light" || v === "dark"));
   const [drums, setDrums] = useState(() => stored("wtg.drums", false, (v) => typeof v === "boolean"));
@@ -94,7 +94,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
   }, [volume]);
   useEffect(() => {
     audio.setSoundState(sound);
-    store("wtg.sound2", sound);
+    store("wtg.sound3", sound);
   }, [sound]);
   useEffect(() => {
     document.documentElement.dataset.look = look;
@@ -356,10 +356,10 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
         </p>
         <div className="controls">
           <div className="group write" role="group">
-            <button onClick={() => update(activeStaff, applyAccidental(session, -1))} aria-label="flat">♭</button>
-            <button onClick={() => update(activeStaff, applyAccidental(session, 0))} aria-label="natural">♮</button>
-            <button onClick={() => update(activeStaff, applyAccidental(session, 1))} aria-label="sharp">♯</button>
-            <button onClick={() => { setSessions(freshSessions(STEP)); setResult(null); }}>{t("ui.clearAll")}</button>
+            <button className="btn-acc" onClick={() => update(activeStaff, applyAccidental(session, -1))} aria-label="flat" title={t("ui.accidental.flat.help")}>♭</button>
+            <button className="btn-acc" onClick={() => update(activeStaff, applyAccidental(session, 0))} aria-label="natural" title={t("ui.accidental.natural.help")}>♮</button>
+            <button className="btn-acc" onClick={() => update(activeStaff, applyAccidental(session, 1))} aria-label="sharp" title={t("ui.accidental.sharp.help")}>♯</button>
+            <button className="btn-edit" onClick={() => { setSessions(freshSessions(STEP)); setResult(null); }} title={t("ui.clearAll.help")}>{t("ui.clearAll")}</button>
           </div>
           <div className="group judge">
             <button className="primary" aria-pressed={result !== null} onClick={evaluateNow} disabled={missing > 0 && !result} title={missing > 0 ? t("ui.evaluate.incomplete", { missing }) : undefined}>
@@ -372,8 +372,10 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
               <button className="icon play" onClick={() => play()} aria-label={t("ui.play.player")} title={t("ui.play.player")}>{playing ? "■" : "▶"}</button>
               <button className="loop" aria-pressed={loop} onClick={() => setLoop(!loop)} aria-label={t("ui.loop")} title={t(loop ? "ui.loop.on" : "ui.loop.off")}>⟲</button>
             </div>
-            <Knob id="tempo" label={t("ui.tempo")} value={tempo} min={30} max={240} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
-            <Knob id="volume" label={t("ui.volume")} value={volume} min={0} max={100} defaultValue={70} format={(v) => `${Math.round(v)}%`} onChange={(v) => setVolume(Math.round(v))} />
+            <div className="hfaders">
+              <HFader label={t("ui.tempo")} help={t("ui.tempo.help")} value={tempo} min={30} max={240} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
+              <HFader label={t("ui.volume")} help={t("ui.volume.help")} value={volume} min={0} max={100} defaultValue={70} format={(v) => `${Math.round(v)}%`} onChange={(v) => setVolume(Math.round(v))} />
+            </div>
           </div>
         </div>
         </>

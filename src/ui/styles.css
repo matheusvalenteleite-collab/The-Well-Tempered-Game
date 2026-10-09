@@ -598,3 +598,36 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
   .info-text { white-space: normal; font-size: 0.8rem; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .controls { gap: 4px; }
 }
+
+/* ===== D95: mixer groups, faders, input families ===== */
+.desk { align-items: stretch; }
+.desk-group { display: flex; gap: 6px; align-items: stretch; }
+.desk-group.main { padding: 3px; border-radius: 4px; background: color-mix(in srgb, var(--trk-counterpoint) 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--trk-counterpoint) 45%, transparent); }
+.desk-sep { width: 2px; align-self: stretch; margin: 0 6px; background: var(--desk-groove); opacity: 0.9; border-radius: 1px; }
+:root[data-look="retro"] .desk-sep { background: #8c8f98; }
+.desk .strip, .desk .strip.master { cursor: pointer; }
+.desk .strip button, .desk .strip .knob, .desk .strip .fader2 { cursor: auto; }
+.desk .strip button { cursor: pointer; }
+.desk .strip .fader-track { cursor: ns-resize; }
+.master-rack .rack-knobs { display: flex; gap: 10px; flex-wrap: wrap; }
+/* Tempo and volume: two horizontal faders, stacked and aligned. */
+.hfaders { display: grid; gap: 4px; min-width: 190px; }
+.hfader { display: grid; grid-template-columns: 52px 1fr 40px; align-items: center; gap: 6px; font-family: var(--ui-font); font-size: 0.8rem; }
+.hfader-label { text-align: right; color: var(--muted); }
+.hfader-value { font-variant-numeric: tabular-nums; }
+.hfader-track { position: relative; height: 14px; cursor: ew-resize; touch-action: none; }
+.hfader-track::before { content: ""; position: absolute; left: 0; right: 0; top: 6px; height: 3px; background: var(--line); border-radius: 2px; }
+.hfader-fill { position: absolute; left: 0; top: 6px; height: 3px; background: #2a56d6; border-radius: 2px; }
+.hfader-cap { position: absolute; top: 0; width: 10px; height: 14px; margin-left: -5px; background: var(--paper); border: 2px solid var(--ink); border-radius: 2px; }
+:root[data-look="retro"] .hfader-cap { border-radius: 0; box-shadow: 1px 1px 0 var(--edge); }
+/* Input buttons by kind (owner, D95): subtle tints, the same on/off blue. */
+.controls .btn-acc:not([aria-pressed="true"]) { background: color-mix(in srgb, #7b5cc4 10%, var(--paper)); }
+.controls .btn-rest:not([aria-pressed="true"]) { background: color-mix(in srgb, #8a8a8a 14%, var(--paper)); }
+.controls .btn-val:not([aria-pressed="true"]) { background: color-mix(in srgb, #2f9e6a 10%, var(--paper)); }
+.controls .btn-hold:not([aria-pressed="true"]) { background: color-mix(in srgb, #2f9e6a 18%, var(--paper)); }
+.controls .btn-edit:not([aria-pressed="true"]) { background: color-mix(in srgb, #c98a2b 10%, var(--paper)); }
+.controls .btn-val { min-width: 30px; padding: 0 4px; display: inline-flex; align-items: center; justify-content: center; }
+.note-icon { display: block; }
+.desk { justify-content: flex-start; }
+.desk .strip, .desk .strip.master { flex: 0 0 96px; width: 96px; }
+@media (max-width: 700px) { .desk { flex-wrap: nowrap; overflow-x: auto; } .desk .strip, .desk .strip.master { flex-basis: 84px; width: 84px; } }

@@ -8,8 +8,9 @@
  */
 import { Soundfont } from "smplr";
 import { DEFAULT_DRUMS, DrumMachine, type DrumSettings } from "./drums.ts";
-import type { SynthSettings } from "./synth-settings.ts";
-import { audibleGain, CHANNELS, DEFAULT_SOUND, shiftOctave, STRIPS, versionSettings, type Channel, type SoundState, type Strip } from "./sound.ts";
+import { DEFAULT_SYNTH, type SynthSettings } from "./synth-settings.ts";
+import { FxChain } from "./effects.ts";
+import { audibleGain, CHANNELS, DEFAULT_MASTER_FX, DEFAULT_SOUND, shiftOctave, STRIPS, versionSettings, type Channel, type SoundState, type Strip } from "./sound.ts";
 import type { TemperamentId } from "./temperament.ts";
 import type { PlayEvent } from "../counterpoint/layout.ts";
 import { VERSION_IDS, type VersionId } from "../game/versions.ts";
@@ -80,6 +81,8 @@ export class AudioEngine {
   private master: GainNode | null = null;
   /** The last node before the speakers: what an export captures (D74). */
   private limiter: DynamicsCompressorNode | null = null;
+  /** The master's reverb and delay (D95), between the master fader and the limiter. */
+  private masterFx: FxChain | null = null;
   /** AudioContext times at which the passes of the current "play all" start, and where it ends. */
   cycleStarts: number[] = [];
   playEnd: number | null = null;
@@ -127,6 +130,7 @@ export class AudioEngine {
     for (const v of [this.current?.cantus, this.current?.counterpoint, this.current?.fux, ...this.versionVoices.values()]) if (v instanceof Synth) v.update();
     this.mix = structuredClone(state);
     this.applyMix();
+    this.masterFx?.update({ ...DEFAULT_SYNTH, ...(state.master ?? DEFAULT_MASTER_FX) });
   }
 
   private meters = new Map<Strip | "master", AnalyserNode>();
@@ -231,7 +235,9 @@ export class AudioEngine {
       limiter.ratio.value = 20;
       limiter.attack.value = 0.002;
       limiter.release.value = 0.2;
-      this.master.connect(limiter).connect(this.ctx.destination);
+      limiter.connect(this.ctx.destination);
+      this.masterFx = new FxChain(this.ctx, limiter, { ...DEFAULT_SYNTH, ...(this.mix.master ?? DEFAULT_MASTER_FX) });
+      this.master.connect(this.masterFx.input);
       this.limiter = limiter;
       this.drumMachine = new DrumMachine(this.ctx, this.channel("drums"));
       this.setDrums(this.drumSettings, this.final);
