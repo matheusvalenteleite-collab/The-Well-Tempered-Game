@@ -78,7 +78,7 @@ export function buildPlayback(audio: AudioEngine, view: ExerciseView, s: PlaySet
         includeSungVoices: false,
         startTime,
         fromBeat,
-        getTempo: () => audio.tempo / audio.stretch,
+        getTempo: () => audio.tempo,
         temperament: s.tuning,
         inegal: c.inegal && c.preset !== "stileAntico",
       }),

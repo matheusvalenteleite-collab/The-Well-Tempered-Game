@@ -48,6 +48,10 @@ export interface ScoreProps {
   fadePlayer?: boolean;
   /** Fixed drawing scale (for excerpts); otherwise the scale follows the width. */
   fixedScale?: number;
+  /** Logical width to spread the bars over (a justified system); never narrower than the bars need. */
+  fillWidth?: number;
+  /** Drawing scale chosen by the zoom (the layout stays the full score's). */
+  drawScale?: number;
   /** Evaluation overlay: intervals between the staves and problem connectors. */
   overlay?: Overlay;
   /** Live drag of a counterpoint note to another bar and/or pitch; onDragEnd commits. */
@@ -192,7 +196,10 @@ export function ScoreView(props: ScoreProps) {
     // Our own horizontal grid (the VexFlow formatter spreads unevenly around empty slots): a bar of
     // one whole note is BAR_W wide, a bar of two half notes HALF_BAR_W.
     const slotsIn = (b: number) => layout.filter((sl) => sl.bar - firstSlotBar === b).length;
-    const barW = Array.from({ length: bars }, (_, b) => (slotsIn(b) > 4 ? EIGHTH_BAR_W : slotsIn(b) > 2 ? QUARTER_BAR_W : slotsIn(b) > 1 ? HALF_BAR_W : BAR_W));
+    const natural = Array.from({ length: bars }, (_, b) => (slotsIn(b) > 4 ? EIGHTH_BAR_W : slotsIn(b) > 2 ? QUARTER_BAR_W : slotsIn(b) > 1 ? HALF_BAR_W : BAR_W));
+    const naturalMusic = natural.reduce((x, w) => x + w, 0);
+    const spread = props.fillWidth ? Math.max(1, (props.fillWidth - noteStart0 - 24) / naturalMusic) : 1;
+    const barW = natural.map((w) => w * spread);
     // Fifth species: each slot shows the note begun there with its real value (D82).
     // (An excerpt of the final bar alone has no quaver slots: a held note there still marks it.)
     const fifth = layout.some((sl) => sl.duration === "1/8") || [props.counterpoint, props.fux ?? [], ...(props.extraLines ?? []).map((l) => l.notes)].some((l) => l.includes(HOLD));
@@ -206,7 +213,7 @@ export function ScoreView(props: ScoreProps) {
     barW.reduce((x, w, b) => ((barX[b] = x), x + w), 0);
     const musicWidth = barW.reduce((x, w) => x + w, 0);
     const logicalWidth = noteStart0 + musicWidth + 24;
-    const scale = props.fixedScale ?? Math.max(MIN_SCALE, Math.min(BASE_SCALE, width / logicalWidth));
+    const scale = props.fixedScale ?? props.drawScale ?? Math.max(MIN_SCALE, Math.min(BASE_SCALE, width / logicalWidth));
 
     const staves = props.clefs.map((c, i) => {
       const s = new Stave(8, STAFF_Y[i], logicalWidth - 16);
@@ -552,9 +559,12 @@ export function ScoreView(props: ScoreProps) {
     };
     geo.current = g;
     el.dataset.geometry = JSON.stringify(g); // read by the browser tests
-  }, [width, props.showNames, props.cantus, props.counterpoint, props.fux, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay, props.continuo, props.extraLines, props.extraIntervals, props.ties, props.playerInk, props.playerLabel, props.signature, props.fadePlayer, props.carry, props.lastSystem, props.compact]);
+  }, [width, props.showNames, props.cantus, props.counterpoint, props.fux, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay, props.continuo, props.extraLines, props.extraIntervals, props.ties, props.playerInk, props.playerLabel, props.signature, props.fadePlayer, props.carry, props.lastSystem, props.compact, props.fillWidth, props.drawScale]);
 
   const press = useRef<{ x: number; y: number; dragging: boolean; from: number } | null>(null);
+  /** Fingers on the score: a second one makes the gesture a pinch, which places nothing. */
+  const fingers = useRef(new Set<number>());
+  const pinched = useRef(false);
 
   /** Logical coordinates, bar and staff position under the pointer. */
   const locate = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -606,6 +616,14 @@ export function ScoreView(props: ScoreProps) {
   };
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === "touch") {
+      fingers.current.add(e.pointerId);
+      if (fingers.current.size > 1) {
+        pinched.current = true;
+        press.current = null;
+        return;
+      }
+    }
     if (props.readOnly) return;
     const at = locate(e);
     if (!at || !at.inside) return;
@@ -615,7 +633,8 @@ export function ScoreView(props: ScoreProps) {
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     updateGhost(e);
     const p = press.current;
-    if (!p || props.readOnly || !props.onDrag) return;
+    // A finger scrolls the page; only a mouse or pen drags a note to another pitch.
+    if (!p || props.readOnly || !props.onDrag || e.pointerType === "touch") return;
     if (!p.dragging) {
       if (Math.hypot(e.clientX - p.x, e.clientY - p.y) < 6 || props.counterpoint[p.from] === null || props.counterpoint[p.from] === REST) return;
       p.dragging = true;
@@ -623,10 +642,16 @@ export function ScoreView(props: ScoreProps) {
     const at = locate(e);
     if (at) props.onDrag(p.from, at.column, at.natural);
   };
+  const lift = (e: React.PointerEvent<HTMLDivElement>) => {
+    fingers.current.delete(e.pointerId);
+    const was = pinched.current;
+    if (fingers.current.size === 0) pinched.current = false;
+    return was;
+  };
   const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     const p = press.current;
     press.current = null;
-    if (!p) return;
+    if (lift(e) || !p) return;
     if (p.dragging) {
       props.onDragEnd?.();
       return;
@@ -644,7 +669,10 @@ export function ScoreView(props: ScoreProps) {
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerLeave={() => setGhost(null)}
-      onPointerCancel={() => (press.current = null)}
+      onPointerCancel={(e) => {
+        lift(e);
+        press.current = null;
+      }}
     >
       <div ref={host} className={props.readOnly ? "score read-only" : "score"} />
       {ghost && (

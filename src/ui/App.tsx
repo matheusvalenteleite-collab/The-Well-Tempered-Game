@@ -19,7 +19,7 @@ import { Study } from "./Study.tsx";
 import { stepStudy } from "./study.ts";
 import { Feedback } from "./Feedback.tsx";
 import { Knob } from "./Knob.tsx";
-import { Systems } from "./notation/Systems.tsx";
+import { Systems, ZOOM_MAX, ZOOM_MIN } from "./notation/Systems.tsx";
 import { buildOverlay, neutralOverlay } from "./notation/overlay.ts";
 import { Credits } from "./Credits.tsx";
 import { FuxComparison } from "./FuxComparison.tsx";
@@ -32,7 +32,6 @@ import { TrioReading } from "./TrioReading.tsx";
 import { Fold } from "./Fold.tsx";
 import { gatesOf, startPasses, startPlayback, type PlaySetup } from "./playback.ts";
 import { SavedPieces } from "./SavedPieces.tsx";
-import { DEMO_ENTRIES, type DemoEntry } from "../game/demo.ts";
 import { makePiece, restorePieces, snapshotMode, type Piece, type Setup } from "../game/saved.ts";
 import { DEFAULT_CONTINUO_SETTINGS, validContinuoSettings, type ContinuoSettings } from "../game/continuo-settings.ts";
 import { CONTINUO_DEMO_MODE } from "../config.ts";
@@ -127,16 +126,14 @@ export function App() {
   const [showSaved, setShowSaved] = useState(false);
   const [savedPlaying, setSavedPlaying] = useState<{ id: string; slot: number } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const [showDemo, setShowDemo] = useState(false);
   /** Boxes folded to one line (D52), remembered per box. */
   const [folded, setFolded] = useState<Record<string, boolean>>(() => stored<Record<string, boolean>>("wtg.folds", {}, (v) => typeof v === "object" && v !== null && !Array.isArray(v)));
   const foldProps = (id: string) => ({ open: !folded[id], onToggle: (open: boolean) => setFolded({ ...folded, [id]: !open }) });
-  const [demoLoaded, setDemoLoaded] = useState<string | null>(null);
+  /** Zoom of the score (D87): 1 is the size the screen chooses; pinch, Ctrl + wheel or − / +. */
+  const [zoom, setZoom] = useState(() => stored("wtg.zoom", 1, (v) => typeof v === "number" && v >= ZOOM_MIN && v <= ZOOM_MAX));
+  useEffect(() => store("wtg.zoom", zoom), [zoom]);
   const [fuxHeard, setFuxHeard] = useState(() => stored("wtg.fuxHeard", false, (v) => typeof v === "boolean"));
   useEffect(() => store("wtg.fuxHeard", fuxHeard), [fuxHeard]);
-  const [humanise, setHumanise] = useState(() => stored("wtg.humanise", false, (v) => typeof v === "boolean"));
-  /** The exercise whose Fux solution plays from the demo list. */
-  const [demoPlaying, setDemoPlaying] = useState<string | null>(null);
   const [versions, setVersions] = useState<Versions>(() => validVersions(stored<unknown>("wtg.versions", null)));
   const [deskOpen, setDeskOpen] = useState(() => stored("wtg.deskOpen", true, (v) => typeof v === "boolean"));
   const [continuo, setContinuo] = useState(() => stored("wtg.continuo", false, (v) => typeof v === "boolean"));
@@ -196,10 +193,6 @@ export function App() {
   useEffect(() => store("wtg.versions", versions), [versions]);
   useEffect(() => store("wtg.saved", pieces), [pieces]);
   useEffect(() => store("wtg.folds", folded), [folded]);
-  useEffect(() => {
-    audio.humanise = humanise;
-    store("wtg.humanise", humanise);
-  }, [humanise]);
   useEffect(() => {
     if (!toast) return;
     const id = window.setTimeout(() => setToast(null), 2600);
@@ -310,29 +303,6 @@ export function App() {
       rulesForStep(STEPS[k].id),
     );
   };
-  /** Demo (D51): load Fux's solution into the exercise, judged, with Fux shown; no star is earned. */
-  const loadDemo = (d: DemoEntry) => {
-    const k = stepIndexOf(d.stepId);
-    const fux = VIEWS[k]?.fux;
-    if (k < 0 || !fux) return;
-    stopSaved();
-    if (k !== stepIndex) goTo(k);
-    else audio.stop();
-    setPlaying(false);
-    setCursor(-1);
-    setSessions((all) => all.map((x, i) => (i === k ? { ...x, notes: [...fux], selected: 0 } : x)));
-    setResult(judge(k, fux));
-    setShowFux(true);
-    setPlayMode("player");
-    setVersions({ ...versions, original: true });
-    if (d.continuo) {
-      setContinuo(true);
-      setContinuoSettings({ ...continuoSettings, ...d.continuo });
-      setDeskOpen(true);
-    }
-    setDemoLoaded(d.id);
-  };
-
   const missing = session.notes.filter((n, k) => n === null && !VIEW.layout[k].restAllowed).length;
   const toggleEvaluation = () => {
     if (result) {
@@ -501,27 +471,8 @@ export function App() {
     setToast(t("ui.saved.opened", { name: p.name }));
   };
 
-  /** Demo list: Fux's solution of any exercise, with the cantus, on the current sound. */
-  const playFuxOf = (stepId: string) => {
-    const same = demoPlaying === stepId;
-    stopSaved();
-    audio.stop();
-    setPlaying(false);
-    setCursor(-1);
-    setDemoPlaying(null);
-    if (same) return;
-    const view = VIEWS[stepIndexOf(stepId)];
-    if (!view?.fux) return;
-    setDemoPlaying(stepId);
-    startPlayback(audio, view, { notes: view.fux, versions: { ...versions, original: true, inversion: false, retrograde: false, retroInversion: false, canon: false }, mode: "fux", continuo: continuo, continuoSettings, tuning }, (k) => {
-      if (stepId === STEP.id) setCursor(k);
-      if (k < 0) setDemoPlaying(null);
-    });
-  };
-
   const play = (mode: PlayMode = "player") => {
     if (savedPlaying) stopSaved();
-    setDemoPlaying(null);
     if (playing) {
       audio.stop();
       setPlaying(false);
@@ -539,9 +490,9 @@ export function App() {
   }
 
   // Mix mode (D77): the export plays N loops in succession, each with its own setup (sounds and
-  // mix, versions, line, drums, continuo, tempo, humanising, and which lines play), as one
+  // mix, versions, line, drums, continuo, tempo, and which lines play), as one
   // continuous piece. The player sets the loops up one by one; ‹ › move between them.
-  type Scene = Setup & { humanise: boolean };
+  type Scene = Setup;
   const [mix, setMix] = useState<{ count: number; index: number; scenes: (Scene | null)[] } | null>(null);
   const [mixCount, setMixCount] = useState(4);
   const currentScene = (): Scene => ({
@@ -557,7 +508,6 @@ export function App() {
     tuning,
     tempo,
     volume,
-    humanise,
   });
   const loadScene = (x: Scene) => {
     setSessions((all) => all.map((ss, i) => (i === stepIndex ? { ...ss, notes: [...x.notes] } : ss)));
@@ -570,7 +520,6 @@ export function App() {
     setTuning(x.tuning);
     setTempo(x.tempo);
     setVolume(x.volume);
-    setHumanise(x.humanise);
     setPlayMode(x.mode);
   };
   const startMix = (count: number) => {
@@ -618,7 +567,6 @@ export function App() {
     exportTimer.current = null;
     exportStop.current = null;
     restoreAudio();
-    audio.humanise = humanise;
   };
   const cancelExport = async () => {
     endExportTimer();
@@ -630,7 +578,6 @@ export function App() {
   };
   const startExport = async (format: ExportFormat) => {
     stopSaved();
-    setDemoPlaying(null);
     audio.stop();
     setPlaying(false);
     try {
@@ -661,7 +608,6 @@ export function App() {
         (i) => {
           const x = scenes[i % passes];
           applyAudio(x, VIEW.modalFinal);
-          audio.humanise = x.humanise;
           audio.loop = lastLoop(i);
         },
         onLiveSlot,
@@ -716,16 +662,16 @@ export function App() {
   const liveSetup = () => liveSetupRef.current!;
   const levels = useMemo(() => () => audio.levels(), [audio]);
   useEffect(() => {
-    if (savedPlaying || demoPlaying || exportPhase === "recording") return;
+    if (savedPlaying || exportPhase === "recording") return;
     audio.setGates(gatesOf({ versions, continuoOn: continuo, fuxHeard: fuxHeard && fuxOpen, mode: playing ? playMode : "player" }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [versions, continuo, fuxHeard, fuxOpen]);
-  const liveKey = JSON.stringify([versions.canonShift, session.notes, continuoAllowed, continuoSettings, tuning, humanise, fuxOpen]);
+  const liveKey = JSON.stringify([versions.canonShift, session.notes, continuoAllowed, continuoSettings, tuning, fuxOpen]);
   const lastLiveKey = useRef(liveKey);
   useEffect(() => {
     if (lastLiveKey.current === liveKey) return;
     lastLiveKey.current = liveKey;
-    if (!playing || savedPlaying || demoPlaying || exportPhase === "recording") return;
+    if (!playing || savedPlaying || exportPhase === "recording") return;
     if (playMode !== "player" && !fuxOpen) {
       audio.stop();
       setPlaying(false);
@@ -889,9 +835,6 @@ export function App() {
           <button className="chipbtn look" onClick={() => setLook(look === "retro" ? "classic" : "retro")} title={t("ui.look.help")}>
             {t("ui.look")}: {t(`ui.look.${look}`)}
           </button>
-          <button className="chipbtn demo" aria-pressed={showDemo} aria-expanded={showDemo} onClick={() => setShowDemo(!showDemo)} title={t("ui.demo.help")}>
-            {t("ui.demo")}
-          </button>
           <button className="icon quiet save" onClick={savePiece} aria-label={t("ui.saved.save")} title={t("ui.saved.saveHelp")}>
             <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
               <path d="M2 1.5h9.5L14.5 4.5v10h-12.5z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
@@ -911,52 +854,6 @@ export function App() {
         </div>
       </header>
       <main>
-        {showDemo && (
-          <Fold className="demo-area" title={t("ui.demo.title")} {...foldProps("demo")} extra={<button className="icon quiet demo-close" onClick={() => setShowDemo(false)} aria-label={t("ui.saved.close")}>×</button>}>
-            <p className="help">{t("ui.demo.intro")}</p>
-            <ol className="demo-list">
-              {DEMO_ENTRIES.map((d) => {
-                const k = stepIndexOf(d.stepId);
-                return (
-                  <li key={d.id} className={demoLoaded === d.id ? "loaded" : ""}>
-                    <div className="demo-title">
-                      <button className="chipbtn" aria-pressed={demoLoaded === d.id && STEP.id === d.stepId} onClick={() => loadDemo(d)}>
-                        {t("ui.demo.load")}
-                      </button>
-                      <strong>{t(`ui.demo.${d.id}.title`)}</strong>
-                      <span className="help">{k >= 0 ? stepLabel(k) : d.stepId}</span>
-                    </div>
-                    <ul>
-                      {Array.from({ length: d.tries }, (_, i) => (
-                        <li key={i}>{t(`ui.demo.${d.id}.try.${i + 1}`)}</li>
-                      ))}
-                    </ul>
-                  </li>
-                );
-              })}
-            </ol>
-            <div className="demo-humanise">
-              <button className="chipbtn" aria-pressed={humanise} onClick={() => setHumanise(!humanise)} title={t("ui.demo.humaniseHelp")}>
-                {t("ui.demo.humanise")}: {t(humanise ? "ui.continuo.on" : "ui.continuo.off")}
-              </button>
-              <span className="help">{t("ui.demo.humaniseTry")}</span>
-            </div>
-            <h4>{t("ui.demo.allTitle")}</h4>
-            <ul className="demo-all">
-              {STEPS.map((st, k) =>
-                VIEWS[k].fux ? (
-                  <li key={st.id}>
-                    <button className="chipbtn" aria-pressed={demoPlaying === st.id} onClick={() => playFuxOf(st.id)} aria-label={t(demoPlaying === st.id ? "ui.saved.stop" : "ui.saved.play")}>
-                      {demoPlaying === st.id ? "■" : "▶"}
-                    </button>
-                    <span>{stepLabel(k)}</span>
-                    <span className="help">{t("ui.nav.speciesN", { n: ORDINAL[["first", "second", "third", "fourth", "fifth"].indexOf(VIEWS[k].species) + 1] })}</span>
-                  </li>
-                ) : null,
-              )}
-            </ul>
-          </Fold>
-        )}
         <p className="meta">
           {t("ui.mode.fux")} · {t("ui.nav.voicesN", { n: COURSE.voices })} · {t(`ui.species.${VIEW.species}`)} · {t("ui.exercise.mode", { final: VIEW.modalFinal })} ·{" "}
           {VIEW.cantusVoice === "lower" ? t("ui.exercise.cantusBelow") : t("ui.exercise.cantusAbove")}
@@ -966,7 +863,6 @@ export function App() {
           <div className="view-toggles" role="group" aria-label={t("ui.view.label")}>
             <button className="chipbtn" aria-pressed={showNames} onClick={() => setShowNames(!showNames)} title={t("ui.view.namesHelp")}>{t("ui.view.names")}</button>
             <button className="chipbtn" aria-pressed={showIntervals} onClick={() => setShowIntervals(!showIntervals)} title={t("ui.view.intervalsHelp")}>{t("ui.view.intervals")}</button>
-            <button className="chipbtn" aria-pressed={humanise} onClick={() => setHumanise(!humanise)} title={t("ui.demo.humaniseHelp")}>{t("ui.view.humanise")}</button>
           </div>
         </div>
         <blockquote className="tutor" lang="en">
@@ -978,6 +874,9 @@ export function App() {
             {starred ? "★" : "☆"}
           </span>
           <Systems
+            zoom={zoom}
+            onZoom={setZoom}
+            zoomLabels={{ in: t("ui.zoom.in"), out: t("ui.zoom.out"), reset: t("ui.zoom.reset") }}
             cantus={moved(VIEW.cantus, sound.cantusOctave)}
             counterpoint={moved(shownLines[0].notes, octaveOf(shownLines[0].id))}
             readOnly={!versions.original}

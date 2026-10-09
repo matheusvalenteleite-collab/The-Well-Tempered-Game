@@ -14,7 +14,6 @@ import type { TemperamentId } from "./temperament.ts";
 import type { PlayEvent } from "../counterpoint/layout.ts";
 import { VERSION_IDS, type VersionId } from "../game/versions.ts";
 import { Synth, type Instrument } from "./voice.ts";
-import { humanisePlan, type EventShape } from "./humanise.ts";
 
 export * from "./synth-settings.ts";
 
@@ -293,32 +292,25 @@ export class AudioEngine {
     this.both(inst, col, this.ctx.currentTime + 0.01, seconds);
   }
 
-  /** Humanised playback (D53): read when "play all" starts. */
-  humanise = false;
-  /** The ritardando factor of the event being scheduled (1 = none); the continuo's clock follows it. */
-  stretch = 1;
-
-  /** Start the notes of one event; a cantus note always lasts the whole bar. `shape` humanises it. */
-  private soundEvent(voices: Voices, e: PlayEvent, time: number, whole: number, shape?: EventShape) {
-    const v = (id: string) => shape?.notes[id]?.velocity;
-    const len = (id: string) => shape?.notes[id]?.length ?? 1;
+  /** Start the notes of one event; a cantus note always lasts the whole bar. */
+  private soundEvent(voices: Voices, e: PlayEvent, time: number, whole: number) {
     if (e.cantus) {
-      voices.cantus.start(shiftOctave(e.cantus, this.mix.cantusOctave ?? 0), time, whole * 0.97 * len("cantus"), v("cantus"));
+      voices.cantus.start(shiftOctave(e.cantus, this.mix.cantusOctave ?? 0), time, whole * 0.97);
       this.notesStarted++;
     }
     if (e.counterpoint) {
-      voices.counterpoint.start(shiftOctave(e.counterpoint, this.mix.counterpointOctave ?? 0), time, (e.lengths?.counterpoint ?? e.length) * whole * 0.95 * len("counterpoint"), v("counterpoint"));
+      voices.counterpoint.start(shiftOctave(e.counterpoint, this.mix.counterpointOctave ?? 0), time, (e.lengths?.counterpoint ?? e.length) * whole * 0.95);
       this.notesStarted++;
     }
     for (const [id, pitch] of Object.entries(e.versions ?? {})) {
       if (!pitch) continue;
       // Each version may sound in another octave too (D66).
-      this.versionVoice(id as VersionId)?.start(shiftOctave(pitch, this.mix.versionOctave?.[id as VersionId] ?? 0), time, (e.lengths?.[id] ?? e.length) * whole * 0.95 * len(id), v(id));
+      this.versionVoice(id as VersionId)?.start(shiftOctave(pitch, this.mix.versionOctave?.[id as VersionId] ?? 0), time, (e.lengths?.[id] ?? e.length) * whole * 0.95);
       this.notesStarted++;
     }
     if (e.fux) {
       // Fux's line may sound in another octave (listening only; the score is unchanged).
-      voices.fux.start(shiftOctave(e.fux, this.mix.fuxOctave), time, (e.lengths?.fux ?? e.length) * whole * 0.95 * len("fux"), v("fux"));
+      voices.fux.start(shiftOctave(e.fux, this.mix.fuxOctave), time, (e.lengths?.fux ?? e.length) * whole * 0.95);
       this.notesStarted++;
     }
   }
@@ -385,7 +377,6 @@ export class AudioEngine {
     let next = ctx.currentTime + 0.1;
     const LOOKAHEAD = 0.15;
     let announced = false;
-    let shapes = this.humanise ? humanisePlan(events) : null;
     const tick = () => {
       if (k === 0 && !announced) {
         announced = true;
@@ -396,13 +387,11 @@ export class AudioEngine {
       while (k < events.length && next < ctx.currentTime + LOOKAHEAD) {
         const whole = this.barSeconds;
         const e = events[k];
-        const shape = shapes?.[k];
-        this.stretch = shape?.stretch ?? 1;
-        this.soundEvent(inst, e, next + (shape?.delay ?? 0), whole, shape);
+        this.soundEvent(inst, e, next, whole);
         if (this.drums && e.cantus) this.drumMachine?.scheduleBar(next, whole, Math.floor(e.at), bars, this.loop);
         const slot = e.slot;
         this.timers.push(window.setTimeout(() => onSlot(slot), Math.max(0, (next - ctx.currentTime) * 1000)));
-        next += ((events[k + 1]?.at ?? e.at + e.length) - e.at) * whole * (shape?.stretch ?? 1);
+        next += ((events[k + 1]?.at ?? e.at + e.length) - e.at) * whole;
         k++;
       }
       if (k >= events.length) {
@@ -418,7 +407,6 @@ export class AudioEngine {
             pass++;
             ({ events, onCycle } = passes.prepare(pass));
             bars = Math.ceil(Math.max(...events.map((e) => e.at + e.length)));
-            shapes = this.humanise ? humanisePlan(events) : null;
           }
         } else {
           this.playEnd = next;
@@ -533,7 +521,6 @@ export class AudioEngine {
     for (const t of this.timers) window.clearTimeout(t);
     this.timers = [];
     for (const v of this.versionVoices.values()) v.stop();
-    this.stretch = 1;
     this.current?.cantus.stop();
     this.current?.counterpoint.stop();
     this.current?.fux.stop();
