@@ -5,7 +5,7 @@
 import { writeFileSync } from "node:fs";
 import { loadFuxRepository } from "../../src/music/fux/load-node.ts";
 import { auditSpecies } from "../../src/counterpoint/choices/audit.ts";
-import { CHOICE_SPECIES } from "../../src/counterpoint/choices/corpus.ts";
+import { AUDIT_SPECIES as CHOICE_SPECIES } from "../../src/counterpoint/choices/corpus.ts";
 import { difficultyOf, spearman } from "../../src/counterpoint/choices/difficulty.ts";
 import { rulesForStep } from "../../src/counterpoint/curriculum/index.ts";
 
@@ -40,13 +40,16 @@ for (const species of CHOICE_SPECIES) {
   console.log("done", species);
 }
 const reading = [
-  "**Reading.** Across the species the exercises tighten steadily: the rules leave about two bits of",
-  "freedom per choice in first species (some four or five pitches) and under one bit in fourth (half",
-  "the choices forced). Within a species Fux's order is not one of difficulty: he goes through the",
-  "modes (D, E, F, G, A, C), cantus below then above, and the correlations, over six to twelve",
-  "exercises, are weak and of both signs. The first-species rise owes something to the rules added",
-  "step by step (7 to 12). For the game: order generated practice by this measure within a species;",
-  "Fux's own order needs no reordering, since it was never meant as a ladder of difficulty.",
+  "**Reading.** From first to fourth species the exercises tighten steadily: the rules leave about",
+  "two bits of freedom per choice in first species (some four or five pitches) and under one bit in",
+  "fourth (half the choices forced). Fifth species loosens again per note (1.75 bits), as its",
+  "mixture of values would suggest; the measure does not count its other freedom, the rhythm. Within",
+  "a species Fux's order is not one of difficulty: he goes through the modes (D, E, F, G, A, C),",
+  "cantus below then above, and the correlations, over six to twelve exercises, are weak to moderate",
+  "and of both signs (the strongest, fifth species, −0.52 over twelve, is not far from what chance",
+  "gives). The first-species rise owes something to the rules added step by step (7 to 12). For the",
+  "game: order generated practice by this measure within a species; Fux's own order needs no",
+  "reordering, since it was never meant as a ladder of difficulty.",
   "",
 ];
 writeFileSync("docs/fux/difficulty.md", [...head, ...summary, "", ...reading, ...out].join("\n"));

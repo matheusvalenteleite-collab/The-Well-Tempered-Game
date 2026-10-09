@@ -15,14 +15,18 @@ exercise's place in Fux's order (−1: each exercise tighter than the one before
 | second | 12 | 1.67 | 31% | 13 → 13 | +0.06 |
 | third | 6 | 1.57 | 41% | 11 → 11 | -0.31 |
 | fourth | 6 | 0.89 | 53% | 13 → 13 | -0.37 |
+| fifth | 12 | 1.75 | 31% | 14 → 15 | -0.52 |
 
-**Reading.** Across the species the exercises tighten steadily: the rules leave about two bits of
-freedom per choice in first species (some four or five pitches) and under one bit in fourth (half
-the choices forced). Within a species Fux's order is not one of difficulty: he goes through the
-modes (D, E, F, G, A, C), cantus below then above, and the correlations, over six to twelve
-exercises, are weak and of both signs. The first-species rise owes something to the rules added
-step by step (7 to 12). For the game: order generated practice by this measure within a species;
-Fux's own order needs no reordering, since it was never meant as a ladder of difficulty.
+**Reading.** From first to fourth species the exercises tighten steadily: the rules leave about
+two bits of freedom per choice in first species (some four or five pitches) and under one bit in
+fourth (half the choices forced). Fifth species loosens again per note (1.75 bits), as its
+mixture of values would suggest; the measure does not count its other freedom, the rhythm. Within
+a species Fux's order is not one of difficulty: he goes through the modes (D, E, F, G, A, C),
+cantus below then above, and the correlations, over six to twelve exercises, are weak to moderate
+and of both signs (the strongest, fifth species, −0.52 over twelve, is not far from what chance
+gives). The first-species rise owes something to the rules added step by step (7 to 12). For the
+game: order generated practice by this measure within a species; Fux's own order needs no
+reordering, since it was never meant as a ladder of difficulty.
 
 ## First species
 
@@ -77,3 +81,20 @@ Fux's own order needs no reordering, since it was never meant as a ladder of dif
 | 4 | 76 | E | above | 13 | 2.4 | 60% | 0.78 |
 | 5 | 77 | F | below | 13 | 2.7 | 58% | 0.87 |
 | 6 | 78 | F | above | 13 | 2.3 | 67% | 0.75 |
+
+## Fifth species
+
+| # | Fig. | final | cantus | rules | legal per choice | forced | freedom (bits) |
+|---|---|---|---|---|---|---|---|
+| 1 | 82 | D | below | 14 | 5.2 | 20% | 1.90 |
+| 2 | 83 | D | above | 14 | 5.2 | 31% | 1.69 |
+| 3 | 84a | E | below | 14 | 4.9 | 32% | 1.69 |
+| 4 | 84b | E | above | 14 | 5.2 | 35% | 1.72 |
+| 5 | 85a | F | below | 14 | 5.8 | 19% | 2.07 |
+| 6 | 85b | F | above | 14 | 4.9 | 42% | 1.54 |
+| 7 | 86a | G | below | 14 | 5.5 | 26% | 1.81 |
+| 8 | 86b | G | above | 14 | 5.1 | 36% | 1.63 |
+| 9 | 87a | A | below | 14 | 6.6 | 7% | 2.45 |
+| 10 | 87b | A | above | 14 | 5.2 | 46% | 1.57 |
+| 11 | 88a | C | below | 15 | 3.6 | 39% | 1.30 |
+| 12 | 88b | C | above | 15 | 3.5 | 53% | 1.17 |

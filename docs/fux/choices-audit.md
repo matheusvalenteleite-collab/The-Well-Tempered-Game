@@ -106,6 +106,34 @@ Legal pitches at each choice (first ranking; \* where Fux's note is not ranked f
 | 77 | F | below | 1 1 7\* 7 2 1 1 1 7 1 1 2 |
 | 78 | F | above | 1 1 1 6\* 3\* 4 1 7 1 1 1 1 |
 
+## Fifth species
+
+12 solutions, 299 choices; 5.2 legal pitches per choice; Fux's note the only legal one at 31% of choices; Fux illegal at 0.
+
+| ranking | Fux first | Fux first alone | first where free | mean rank |
+|---|---|---|---|---|
+| errors > warnings > counsel > habit | 82% | 82% | 74% (207) | 1.33 |
+| errors > warnings > counsel | 88% | 67% | 52% (207) | 1.25 |
+| errors > habit | 84% | 84% | 77% (207) | 1.27 |
+| errors > counsel > habit | 82% | 82% | 74% (207) | 1.33 |
+
+Legal pitches at each choice (first ranking; \* where Fux's note is not ranked first):
+
+| Fig. | final | cantus | choices |
+|---|---|---|---|
+| 82 | D | below | 5\* 1 9 1 1 10 2 9\* 9 7\* 2 10 3 8\* 2 10\* 2 3 9 10 5\* 8\* 1 1 2 |
+| 83 | D | above | 2 2\* 9\* 1 14\* 3 1 13 2 9 2 11 3\* 12 4 11\* 2 11 1 1 11 1 6\* 1 1 1 |
+| 84a | E | below | 1 9 1 6 1 9 2 7 8 9 2\* 9 1 10 1 3 1 13 2 11 2 9\* 4 1 1 |
+| 84b | E | above | 3 1 10 1 1 10 2 8 6 11\* 6 12\* 2 9 1 7 1 12\* 2 11 1 1 1 |
+| 85a | F | below | 1 1 10 5 13\* 9 8\* 1 11 4\* 12 4 2\* 10\* 1 5 7 2 11 3 10 7 9\* 3\* 1 2 |
+| 85b | F | above | 1 1 11 1 8 2 9 2 10 2 12 1 1 11\* 1 9\* 9 1 10 2 10 1 1 1 |
+| 86a | G | below | 1 12 1 11 2 7 1 10 1 9 2 8\* 1 10 2 1 11 1 10 2 11 2 11 1 12\* 2 11 1 12 2 9 2\* 14 2 9\* 3 1 2 |
+| 86b | G | above | 2 7 4 1 12\* 1 12\* 5 2 10 1 1 13\* 1 2\* 10 1 10 2 10 1 1 12 1 14\* 4 1 2 |
+| 87a | A | below | 4 8 5 9\* 12\* 6 9 7 6\* 10\* 6 3 12 3 11 5 8\* 3 11 3\* 9 10 5\* 8\* 1 1 2 |
+| 87b | A | above | 1 11 3\* 10 6 15\* 1 10 1 1 12 2\* 12 1 3\* 12\* 1 1 11 1 7\* 1 1 1 |
+| 88a | C | below | 1 1 1 8 2 5 1 9 2 1 9 2 7 4\* 8\* 1 1 2 |
+| 88b | C | above | 1 1 4 3 1 11 1 9 1 6\* 1 9\* 3 1 1 |
+
 ## Three voices, first species
 
 16 solutions, 374 choices (each of Fux's two added voices, bar by bar), judged by the game's three-voice rules (`evaluateTrio`, D90); habits: the weighted three-voice model (docs/fux/trio-habits-study.md: melodic moves, pairs of moves, the sonority, the chord member the voice takes, motion with each other voice). 3.6 legal pitches per choice; only Fux's note legal at 11%; Fux illegal at 0.

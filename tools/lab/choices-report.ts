@@ -1,9 +1,9 @@
-// The alternatives audit of Fux's two-voice solutions (species 1-4), written to
+// The alternatives audit of Fux's two-voice solutions (species 1-5), written to
 // docs/fux/choices-audit.md. Usage: node tools/lab/choices-report.ts
 import { writeFileSync } from "node:fs";
 import { loadFuxRepository } from "../../src/music/fux/load-node.ts";
 import { auditSpecies, pool, type ExerciseAudit } from "../../src/counterpoint/choices/audit.ts";
-import { CHOICE_SPECIES } from "../../src/counterpoint/choices/corpus.ts";
+import { AUDIT_SPECIES as CHOICE_SPECIES } from "../../src/counterpoint/choices/corpus.ts";
 import type { TierName } from "../../src/counterpoint/choices/score.ts";
 import { readFileSync } from "node:fs";
 import { trioSteps } from "../../src/game/trio.ts";

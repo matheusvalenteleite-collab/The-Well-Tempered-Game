@@ -296,3 +296,31 @@ test("three voices written together: both added voices break no three-voice rule
     t.voices[cantusIndex].forEach((p, k) => assert.equal(p.replace(/-?\d+$/, ""), cantus[k].replace(/-?\d+$/, "")));
   }
 });
+
+import { generateFlorid, sampleRhythm, middleBars, FIRST_BAR, CADENCE_BAR } from "../src/counterpoint/choices/florid.ts";
+test("fifth species: Fux legal at every choice (D39); generated florid lines break no rule; rhythms keep Fux's grammar", () => {
+  const lines = fuxLines(repo, "fifth");
+  assert.equal(lines.length, 12);
+  const a = lines.slice(0, 3).map((l) => auditLine(repo, l, lines, {}));
+  for (const x of a) assert.equal(x.summary.fuxIllegal, 0, `Fig. ${x.line.figure}`);
+  const pool = middleBars(lines);
+  let t = 1;
+  const rand = () => ((t = (t * 16807) % 2147483647) / 2147483647);
+  for (let n = 9; n <= 14; n++) {
+    const r = sampleRhythm(n, pool, rand);
+    assert.equal(r.length, n);
+    assert.equal(r[0], FIRST_BAR);
+    assert.equal(r[n - 2], CADENCE_BAR);
+    for (let b = 1; b < n - 1; b++) if (r[b][0] === "~") assert.equal(r[b - 1].lastIndexOf("x"), 4, `bar ${b}: tie after a minim on the half bar`);
+  }
+  const habits = buildHabits(lines, "fifth");
+  const acc = fuxAccidentals(repo);
+  const rules = rulesForStep(lastStepOf("fifth"));
+  for (const [final, cv] of [["D", "lower"], ["G", "upper"]] as [ModalFinal, Staff][]) {
+    const cantus = generateCantus({ final, seed: 13 });
+    const [lo, hi] = registerWindow(cantus, cv);
+    const g = generateFlorid({ modalFinal: final, cantusVoice: cv, cantus, rules, vocabulary: pitchesBetween(lo, hi, acc[final]), habits, lines, seed: 1 });
+    const ev = judgeLine({ species: "fifth", modalFinal: final, cantusVoice: cv, cantus, layout: g.layout, rules, vocabulary: [], habits }, g.line);
+    assert.deepEqual(ev.errors.map((v) => v.ruleId), [], `${final} ${cv}`);
+  }
+});

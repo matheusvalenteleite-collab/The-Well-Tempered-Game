@@ -21,11 +21,14 @@ export interface FuxLine {
   line: string[];
 }
 
-/** Species the choice tools handle (fifth species, with its held notes, is not covered yet). */
+/** Species of the habit studies and the write-your-own tab (fifth species has its rhythm too: florid.ts). */
 export const CHOICE_SPECIES: SpeciesId[] = ["first", "second", "third", "fourth"];
+/** Species the audit and the generators cover. */
+export const AUDIT_SPECIES: SpeciesId[] = ["first", "second", "third", "fourth", "fifth"];
 
 export function fuxLines(repo: FuxRepository, species?: SpeciesId): FuxLine[] {
-  return ALL_STEPS.filter((s) => s.voices === 2 && s.kind === "canonical" && CHOICE_SPECIES.includes(s.species) && (!species || s.species === species)).flatMap((s: CurriculumStep) => {
+  // Fifth species only when asked for by name (its held notes need the florid tools, florid.ts).
+  return ALL_STEPS.filter((s) => s.voices === 2 && s.kind === "canonical" && (species ? s.species === species : CHOICE_SPECIES.includes(s.species))).flatMap((s: CurriculumStep) => {
     const v = exerciseView(repo, s);
     if (!v.fux || !v.exerciseId) return [];
     return [{ stepId: s.id, exerciseId: v.exerciseId, figure: String(v.figure), species: s.species, modalFinal: s.modal_final, cantusVoice: s.cantus_voice, cantus: v.cantus, layout: v.layout, line: v.fux as string[] }];

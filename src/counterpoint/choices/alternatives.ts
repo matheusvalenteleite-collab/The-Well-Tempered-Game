@@ -6,7 +6,7 @@
  */
 import { evaluate } from "../engine.ts";
 import type { ModalFinal, Staff } from "../../music/fux/index.ts";
-import { sounding, type Slot, type SpeciesId } from "../layout.ts";
+import { HOLD, sounding, type Slot, type SpeciesId } from "../layout.ts";
 import type { Rule } from "../rules/types.ts";
 import type { HabitTables } from "./habits.ts";
 import { compareTiers, counselOf, counselTotal, habitOf, TIER_NAMES, type CounselParts, type HabitParts, type TierName, type Tiers } from "./score.ts";
@@ -57,7 +57,8 @@ export function judgeLine(ctx: ChoiceContext, line: (string | null)[]) {
       modalFinal: ctx.modalFinal,
       cantusVoice: ctx.cantusVoice,
       cantus: ctx.cantus.map((p) => ({ pitch: p, duration: "1/1" })),
-      counterpoint: line.map((p, k) => ({ pitch: sounding(p) ? p : null, duration: ctx.layout[k].duration })),
+      // Fifth species: a HOLD carries the note before it (the engine reads it so).
+      counterpoint: line.map((p, k) => ({ pitch: p === HOLD ? HOLD : sounding(p) ? p : null, duration: ctx.layout[k].duration })),
     },
     ctx.rules,
   );

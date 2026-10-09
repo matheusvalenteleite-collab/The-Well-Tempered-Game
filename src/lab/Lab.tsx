@@ -13,7 +13,8 @@ import { displayClefs } from "../game/exercise-view.ts";
 import { ScoreView } from "../ui/notation/ScoreView.tsx";
 import { rulesForStep } from "../counterpoint/curriculum/index.ts";
 import { auditLine, auditSpecies, lastStepOf, pool, type AuditSummary, type ExerciseAudit } from "../counterpoint/choices/audit.ts";
-import { fuxLines, type FuxLine } from "../counterpoint/choices/corpus.ts";
+import { AUDIT_SPECIES, fuxLines, type FuxLine } from "../counterpoint/choices/corpus.ts";
+import { generateFlorid } from "../counterpoint/choices/florid.ts";
 import { buildHabits } from "../counterpoint/choices/habits.ts";
 import type { TierName } from "../counterpoint/choices/score.ts";
 import { checkCantus, clefFor, generateCantus, placeCantus, transpose, type Register } from "../counterpoint/choices/cantus.ts";
@@ -27,7 +28,7 @@ import { WriteTab } from "./Write.tsx";
 import { addThirdVoice, writeTrio, auditGeneratedTrio, judgeGeneratedTrio, TrioAuditList, TrioAuditTab, TrioChoiceDetail, TrioSummary } from "./Trio.tsx";
 import type { Placement, ThirdVoice, TrioAudit } from "../counterpoint/choices/trio.ts";
 
-const SPECIES: SpeciesId[] = ["first", "second", "third", "fourth"];
+const SPECIES: SpeciesId[] = AUDIT_SPECIES;
 const FINALS: ModalFinal[] = ["D", "E", "F", "G", "A", "C"];
 const pct = (a: number, b: number) => (b ? `${Math.round((100 * a) / b)}%` : "–");
 
@@ -98,6 +99,7 @@ function ChoiceDetail({ audit, choice, setChoice, writtenLabel }: { audit: Exerc
           selected={u.unit[0]}
           cursor={cursor}
           label="Score"
+          fixedScale={l.species === "fifth" ? 1 : undefined}
           fux={alt ? l.line : undefined}
           playerLabel={alt ? `with ${alt}` : writtenLabel.replace(":", "")}
           ties={l.species === "fourth"}
@@ -294,6 +296,14 @@ function GenerateTab() {
     window.setTimeout(() => {
       try {
         const [lo, hi] = registerWindow(c, cantusVoice);
+        if (species === "fifth") {
+          const lines = fuxLines(repository, "fifth");
+          const f = generateFlorid({ modalFinal: final, cantusVoice, cantus: c, rules: rulesForStep(lastStepOf("fifth")), vocabulary: pitchesBetween(lo, hi, accidentals[final]), habits: buildHabits(lines, "fifth"), lines, temperature, seed: seed() });
+          setLine(f.line);
+          setLineErrorSlots([]);
+          setMsg((m) => ({ ...m, line: null }));
+          return;
+        }
         const g = generateCounterpoint({
           species,
           modalFinal: final,
@@ -556,6 +566,7 @@ function GenerateTab() {
                 selected={-1}
                 cursor={cursor}
                 label="Generated exercise"
+                fixedScale={species === "fifth" ? 1 : undefined}
                 ties={species === "fourth"}
                 showNames
                 readOnly
@@ -617,7 +628,7 @@ export function Lab() {
           : tab === "habits"
           ? "Studies of Fux's solutions: which habits predict the notes he wrote (two and three voices; each habit measured on exercises it has not seen, the ones that earn their place make the model the audit and the generators use), whether he imitates or works with motives, and how hard each exercise is."
           : tab === "audit"
-          ? "At every note of Fux's solutions (two voices, species 1–4; three voices, first species), every other pitch is put in its place and the whole line is judged again by the game's rules. The legal ones are ranked by the score vector: errors, then Fux's recommendations, then his stated counsel (motion, perfect consonances, repetition, leaps), then his habits measured on his other solutions."
+          ? "At every note of Fux's solutions (two voices, species 1–5; three voices, first species), every other pitch is put in its place and the whole line is judged again by the game's rules. The legal ones are ranked by the score vector: errors, then Fux's recommendations, then his stated counsel (motion, perfect consonances, repetition, leaps), then his habits measured on his other solutions."
           : "Build an exercise in three steps: a cantus firmus from the constraints accepted in D8 (each checked against Fux's own cantus firmi); a counterpoint found by a search the game's rules judge as it goes; and, in first species, a third voice judged by the three-voice rules. All voices stand in one score and play together."}
       </p>
       {tab === "audit" ? <AuditTab /> : tab === "generate" ? <GenerateTab /> : tab === "write" ? <WriteTab /> : <HabitsTab />}

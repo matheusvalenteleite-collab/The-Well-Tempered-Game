@@ -48,10 +48,10 @@ and compared each choice with Fux's, bar by bar, given Fux's previous bar.
 to try; nothing in the game uses them yet, and no decision number is taken until the owner rules.**
 Code: `src/counterpoint/choices/` (audit, score vector, habits, generators), `src/lab/` (the page,
 `vite.lab.config.ts`, `tools/build-lab-artifact.mjs`), `test/choices.test.ts`; report:
-`node tools/lab/choices-report.ts` → `docs/fux/choices-audit.md`. Two-voice species 1-4, and three
+`node tools/lab/choices-report.ts` → `docs/fux/choices-audit.md`. Two-voice species 1-5, and three
 voices in first species (`choices/trio.ts`, on the game's `evaluateTrio`): the audit of Fux's 16
 solutions, and "Add a third voice" (above, between, below) to a generated first-species exercise.
-Not yet: fifth species; three voices beyond first species (the game has no rules for them yet).
+Fifth species since added (below). Not yet: three voices beyond first species (the game has no rules for them yet).
 Findings and points for the owner:
 
 - Fux's note is legal at every one of his 691 choices (species 1-4). Where more than one pitch
@@ -107,6 +107,16 @@ Findings and points for the owner:
   (Fux's G: G-C-E); length 9-14 accepted (Fux's C variant has 9; generator default 10-14); and
   Ewing's antepenultimate degree 1 or 3 (true of all Fux's) added. To approve or amend: the table
   is in docs/fux/cantus-constraints-amendment.md.
+- Fifth species, two voices (`choices/florid.ts`): the audit now covers Fux's twelve florid
+  solutions (his note legal at all 299 choices; first where free 74% with the full score vector,
+  habits learnt on his florid lines with the weights fitted on species 1-4). The generator draws
+  each bar's rhythm from Fux's own middle bars under the grammar his solutions keep (the opening
+  half rest and minim; the cadence bar a held minim and a minim; a tie into a bar only after a
+  minim on the half bar; after two crotchets and a minim, a tie, so that the melody does not
+  "limp", pp. 80-81), then the pitches by beam search judged by the game's fifth-species rules
+  (D82), with Fux's counsel of variety against lines rocking between two notes (p. 77). 24 of 24
+  trials (six finals, cantus below and above) found a line with no error. Not yet: writing your
+  own florid line in the lab (rhythm entry), a habits study of florid rhythm beyond bar patterns.
 - Three voices written together (`generateTrio` in `choices/trio.ts`; Generators, step 3, "write
   two voices together over the cantus"): the cantus on the top, middle or bottom staff, moved by
   octaves to where Fux writes it there; both added voices searched bar by bar as pairs, in his
@@ -134,7 +144,8 @@ Findings and points for the owner:
   ready for the game.
 - Difficulty (docs/fux/difficulty.md; `choices/difficulty.ts`): freedom per choice, log2 of the
   legal pitches with the rest of a good line in place. Fux's species tighten steadily (2.17 bits in
-  first species, 1.67, 1.57, 0.89 in fourth, where 53% of choices are forced); within a species his
+  first species, 1.67, 1.57, 0.89 in fourth, where 53% of choices are forced; fifth loosens again
+  per note, 1.75, its rhythm not counted); within a species his
   order goes through the modes and is not one of difficulty (weak correlations of both signs). For
   the game: order generated practice by it. Shown in the lab's audit lists and summaries.
 - Two-voice generator: when no error-free line exists it returns the one breaking the fewest

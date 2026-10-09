@@ -1,6 +1,6 @@
 /** A small, self-contained player for the lab: two triangle voices, no dependency on the game's engine. */
 import { parsePitch } from "../music/pitch.ts";
-import { slotLength, sounding, tiedToNext, type Slot } from "../counterpoint/layout.ts";
+import { HOLD, slotLength, sounding, tiedToNext, type Slot } from "../counterpoint/layout.ts";
 
 let ctx: AudioContext | null = null;
 let stopAt: (() => void) | null = null;
@@ -43,6 +43,8 @@ export function play(cantus: string[], line: (string | null)[], layout: Slot[], 
     if (sounding(p ?? null) && !continues) {
       let total = len;
       for (let j = k; tiedToNext(layout, line, j); j++) total += slotLength(layout[j + 1]) * whole;
+      // Fifth species: a note lasts through the HOLD slots after it (over the bar line too).
+      for (let j = k + 1; j < layout.length && line[j] === HOLD; j++) total += slotLength(layout[j]) * whole;
       oscs.push(tone(ac, out, p!, t0 + t, total, 0.2));
     }
     if (onSlot) timers.push(window.setTimeout(() => onSlot(k), (t0 - ac.currentTime + t) * 1000));
