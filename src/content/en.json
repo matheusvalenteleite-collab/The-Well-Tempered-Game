@@ -898,7 +898,12 @@
     "trio3.fuxClose": "is close to Fux's: {same} of {n} notes as he wrote them.",
     "trio3.fuxOwn": "is your own: {same} of {n} notes as Fux wrote them.",
     "trio3.fuxShow": "Show his notes on the score",
-    "trio3.fuxHide": "Hide his notes"
+    "trio3.fuxHide": "Hide his notes",
+    "trio3.intro2": "Here recall and observe what we prescribed for this species in two voices, and what we said of the harmonic triad for semibreve against semibreve in three; with this relaxation, that in this species of three voices, for the sake of the harmonic triad, a minim may sometimes save two fifths by the leap of a third.",
+    "trio3.introLa2": "Hîc loci in memoriam revocanda, observandaque sunt, quae de hac Specie in Bicinio praecepimus, quaeque ratione Triadis harmonicae de Semibrevi contra Semibrevem in Tricinio diximus; cum hac tamen relaxatione, quòd in hac Tricinii Specie in gratiam Triadis harmonicae Minima per saltum Tertiae nonnunquam duas Quintas salvare queat.",
+    "trio3.cite2": "Gradus ad Parnassum (1725), p. 94, translated in this game",
+    "trio3.help2": "One voice moves in minims, two to a bar, after a half rest; the other two in semibreves. Tap the left or right half of a bar to write the first or second minim; ← → move by one minim; R puts the rest back. At the close the upbeat may be tied into the penultimate bar (write the same note on both sides of the bar line), as Fux does in six of his nine examples (p. 96).",
+    "trio3.minims": "minims"
   },
   "tutor": {
     "rule.fos.no-repetition": "In this species each upbeat brings a new note, which is then tied over the bar line; striking the downbeat's note again on its own upbeat is a whole note in disguise.",
