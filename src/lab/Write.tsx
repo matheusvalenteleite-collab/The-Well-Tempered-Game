@@ -112,7 +112,7 @@ export function WriteTab() {
     return () => clearTimeout(id);
   }, [ready, ctx, line]);
   const verdict = useMemo(() => (ready ? judgeWritten(ctx, line) : null), [ready, ctx, line]);
-  const complete = line.length > 0 && line.every((p, k) => sounding(p) || (k === 0 && species === "fourth"));
+  const complete = line.length > 0 && line.every((p, k) => sounding(p) || (k === 0 && (species === "fourth" || p === REST)));
 
   const write = (k: number, p: string | null) => {
     setLine((l) => l.map((q, j) => (j === k ? p : q)));
@@ -183,6 +183,7 @@ export function WriteTab() {
             <button disabled={!sounding(line[sel])} onClick={() => write(sel, inflect(line[sel]!, "b"))}>♭</button>
             <button disabled={!sounding(line[sel])} onClick={() => write(sel, inflect(line[sel]!, "n"))}>♮</button>
             <button disabled={!sounding(line[sel])} onClick={() => write(sel, null)}>Clear</button>
+            {species === "second" && sel === 0 && <button onClick={() => (write(0, REST), setSel(1))} title="Fux opens some second-species lines with a half rest">Rest</button>}
             <button onClick={() => setLine(layout.map((_, k) => (k === 0 && species === "fourth" ? REST : null)))}>Clear all</button>
             {source.fux && (
               <label className="lab-group" title="Fux's own solution in diamonds">

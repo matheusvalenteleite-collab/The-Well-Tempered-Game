@@ -112,9 +112,11 @@ Findings and points for the owner:
   page), the number of legal pitches given the rest of the line, the note's rank, and on request
   the most Fux-like note (habits learnt without the exercise) beside Fux's own. The engine judges
   whole lines only, so a line being written is judged in the stretch of written bars around the
-  note, the opening and ending rules waiting until the stretch reaches them; a weak-beat note is
-  judged once its bar and the next downbeat are written. `hintAt` / `legalCounts` are ready for
-  the game.
+  note, the opening and ending rules waiting until the stretch reaches them; the note at the
+  frontier of the writing is judged with its best continuation to the next downbeat (searched
+  steps first), so that a passing note is not read as a last note. Writing Fux's own lines left
+  to right, his note is legal at every step in all four species. `hintAt` / `legalCounts` are
+  ready for the game.
 - Difficulty (docs/fux/difficulty.md; `choices/difficulty.ts`): freedom per choice, log2 of the
   legal pitches with the rest of a good line in place. Fux's species tighten steadily (2.17 bits in
   first species, 1.67, 1.57, 0.89 in fourth, where 53% of choices are forced); within a species his

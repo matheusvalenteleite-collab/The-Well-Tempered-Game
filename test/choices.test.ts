@@ -258,3 +258,17 @@ test("hints: on Fux's complete line, the legal counts are the audit's; a mistake
   const h = hintAt(ctx, broken, [5]);
   assert.ok(h && h.legal > 0 && h.best !== null);
 });
+
+test("hints: writing Fux's line left to right, his note is legal at every step (D39), judged with its best continuation", () => {
+  for (const species of ["first", "fourth", "second"] as const) {
+    const lines = fuxLines(repo, species).slice(0, species === "second" ? 2 : 3);
+    for (const l of fuxLines(repo, species).filter((x) => lines.includes(x))) {
+      const ctx = contextFor(repo, l, fuxLines(repo, species), {});
+      for (let k = 1; k < l.line.length; k++) {
+        const h = hintAt(ctx, l.line.map((p, j) => (j < k ? p : null)), [k]);
+        assert.ok(h, `${species} Fig. ${l.figure} slot ${k}: no hint`);
+        assert.ok(h.candidates.find((c) => c.pitch === l.line[k])?.legal, `${species} Fig. ${l.figure} slot ${k}: Fux's ${l.line[k]} judged illegal`);
+      }
+    }
+  }
+});
