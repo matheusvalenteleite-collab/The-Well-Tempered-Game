@@ -62,3 +62,4 @@ html, body { height: auto !important; overflow: auto !important; }
 .lab-prose { max-width: 80ch; font-size: 0.9rem; }
 .lab-study td, .lab-study th { white-space: nowrap; }
 .lab-study td:first-child { white-space: normal; min-width: 14em; }
+.lab-part { font-size: 1.15rem; margin-top: 28px; padding-top: 10px; border-top: 1px solid var(--line); }

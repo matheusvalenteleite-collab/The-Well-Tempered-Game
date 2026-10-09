@@ -83,6 +83,12 @@ Findings and points for the owner:
   than by step. The audit and both generators use this model; the generator's variety is
   calibrated at 0.75 on his rates of leaps and spacing. Not yet modelled: three voices (its own,
   older model), first-species repeated notes (3% generated against his 11%).
+- Motives and imitation (docs/fux/motives-study.md): Fux's species solutions imitate the cantus
+  (displaced 1-4 bars, straight or inverted, at any transposition) and repeat their own
+  three-interval figures no more than counterpoints generated without any notion of either
+  (percentiles 33-69% against the generator's, mostly about 50%; the 3-interval "imitations" found
+  are short scalar runs). Not a habit in the species exercises; Fux teaches imitation after
+  Exercitium III. An imitative mode for the generators would be our addition, to be labelled so.
 - Habits are measured per role (counterpoint above or below) and with register and crossing
   (a tenth is not a third; a crossed third is not a third).
 - Ranking by the most typical move alone gives far fewer leaps than Fux writes (6-19% against

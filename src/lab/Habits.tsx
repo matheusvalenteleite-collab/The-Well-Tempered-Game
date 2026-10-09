@@ -4,6 +4,7 @@
  */
 import type { ReactNode } from "react";
 import study from "../../docs/fux/habits-study.md?raw";
+import motives from "../../docs/fux/motives-study.md?raw";
 
 function inline(text: string): ReactNode[] {
   return text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).map((part, i) =>
@@ -12,8 +13,18 @@ function inline(text: string): ReactNode[] {
 }
 
 export function HabitsTab() {
+  return (
+    <section className="lab-habits">
+      <Markdown text={study} />
+      <h2 className="lab-part">Motives and imitation</h2>
+      <Markdown text={motives} />
+    </section>
+  );
+}
+
+function Markdown({ text }: { text: string }) {
   const blocks: ReactNode[] = [];
-  const lines = study.split("\n");
+  const lines = text.split("\n");
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i];
     if (!l.trim()) continue;
@@ -50,5 +61,5 @@ export function HabitsTab() {
     while (i + 1 < lines.length && lines[i + 1].trim() && !/^(#|\|)/.test(lines[i + 1])) para.push(lines[++i]);
     blocks.push(<p key={i} className="lab-prose">{inline(para.join(" "))}</p>);
   }
-  return <section className="lab-habits">{blocks}</section>;
+  return <>{blocks}</>;
 }
