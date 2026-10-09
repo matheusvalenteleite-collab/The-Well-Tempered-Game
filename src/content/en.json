@@ -305,7 +305,7 @@
     "drums.shorter": "Shorter loop (faster)",
     "drums.longer": "Longer loop (slower)",
     "drums.resetLoop": "Back to this pattern's own length ({n})",
-    "drums.loopHelp": "How many bars one loop of the pattern lasts (a bar is one whole note of the cantus). The arrows go ¼, ⅓, ½, ⅔, ¾, 4/3, 3/2, then 1 and 2 bars side by side (the most useful), then 8/3, 3, 4, 6, 8. Each preset starts at its own length, most at 2 bars; click the length to go back to it.",
+    "drums.loopHelp": "How many bars one loop of the pattern lasts (a bar is one whole note of the cantus). The arrows go ¼, ⅓, ½, ⅔, ¾, 4/3, 3/2, then the most useful together, 1, 2, 4 and 8 bars, then 3, 5 and 6. Each preset starts at its own length, most at 2 bars; click the length to go back to it.",
     "drums.bar": "loop: {n} bar",
     "drums.bars": "loop: {n} bars",
     "drums.fraction": "loop: {n} bar",

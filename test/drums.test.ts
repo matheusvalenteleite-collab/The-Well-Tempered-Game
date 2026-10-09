@@ -19,16 +19,17 @@ test("loop length: x2 spreads one loop over two bars, /2 plays it twice in a bar
 });
 
 test("loop lengths (D99): the arrows step through plausible lengths; a 2/3-bar loop is a triplet feel", () => {
-  // D100: 1 and 2 bars side by side, the odd lengths before them.
+  // D102: 1, 2, 4, 8 together; then 3, 5, 6; no 8/3.
   assert.equal(stepLoop(1, 1), 2);
-  assert.equal(stepLoop(2, -1), 1);
+  assert.equal(stepLoop(2, 1), 4);
+  assert.equal(stepLoop(4, 1), 8);
+  assert.equal(stepLoop(8, 1), 3);
+  assert.equal(stepLoop(5, 1), 6);
+  assert.equal(stepLoop(6, 1), null);
   assert.equal(stepLoop(1, -1), 3 / 2);
-  assert.equal(stepLoop(2, 1), 8 / 3);
-  assert.equal(stepLoop(8, 1), null);
   assert.equal(stepLoop(1 / 4, -1), null);
-  assert.equal(stepLoop(9 / 4, 1), 8 / 3); // an old length off the list goes to its neighbour
+  assert.ok(!LOOP_STEPS.includes(8 / 3));
   assert.ok(LOOP_STEPS.every(validLoopLength));
-  assert.deepEqual(loopFraction(8 / 3), [8, 3]);
   assert.ok(validLoopLength(2 / 3) && !validLoopLength(0.1) && !validLoopLength("1"));
   // Kicks of "rock" (steps 0 and 8 of 16) over a loop of 2/3 bar: every third of a bar.
   const kicks = hitsForBar({ pattern: "rock", length: 2 / 3, level: 1 }, 1, 4).filter(([v]) => v === "kick").map(([, , at]) => Math.round(at * 1000) / 1000);
@@ -98,8 +99,9 @@ test("looping (D72): the drums never stop; the last bar keeps the groove, the br
   // The breath: rock's fill from its middle (toms), spread over half a bar.
   const breath = hitsForBreath(rock, 0.5);
   assert.ok(breath.some(([v]) => v.startsWith("tom")) && breath.every(([, , at]) => at >= 0 && at < 0.5));
-  // A pattern without a fill gets the snare roll.
-  assert.ok(hitsForBreath({ pattern: "bossa", length: 1, level: 1 }).filter(([v]) => v === "snare").length >= 4);
+  // Bossa's breath is its own fill (rim and shaker), not a snare roll (D102).
+  const bossa = hitsForBreath({ pattern: "bossa", length: 1, level: 1 });
+  assert.ok(bossa.some(([v]) => v === "rim") && !bossa.some(([v]) => v === "snare"));
   // Not looping: the ending as before.
   assert.deepEqual(hitsForBar(rock, 7, 8).map(([v]) => v), ["kick", "crash"]);
 });
@@ -116,4 +118,21 @@ test("kits (D100): every kit has presets, its paradigm first; a pattern brings i
   assert.deepEqual(freshDrums("funk", 0.4), { pattern: "funk", length: 2, level: 0.4 });
   assert.equal(freshDrums("halftime", 0.4).length, 1);
   assert.equal(freshDrums("techno", 0.4).length, 2);
+});
+
+test("fills (D102): every preset has its own; a fill keeps the groove's tempo and ends on the bar line", () => {
+  for (const p of DRUM_PATTERNS) assert.ok(p.fill, `${p.id} has a fill`);
+  // Rock at 2 bars: the fill before the last bar is the second half of the fill, at half speed.
+  const s = { pattern: "rock", length: 2, level: 1 };
+  const before = hitsForBar(s, 6, 8);
+  assert.ok(before.every(([, , at]) => at >= 0 && at < 1));
+  // Fill toms of rock sit at steps 10..15 of 16: over two bars, in the second bar at (step*2/16 - 1).
+  const toms = before.filter(([v]) => v.startsWith("tom")).map(([, , at]) => at);
+  assert.ok(toms.length && toms.every((at) => Math.abs(at * 8 - Math.round(at * 8)) < 1e-9), "toms on the eighth-of-bar grid of a two-bar loop");
+  // The breath at 2 bars: only the last quarter of the fill, in time.
+  const breath = hitsForBreath(s, 0.5);
+  assert.ok(breath.every(([, , at]) => at >= 0 && at < 0.5));
+  // A kit without snare plays the generic fills on its own drums.
+  const bossaFill = hitsForCue({ pattern: "bossa", length: 2, level: 1 }, "fill2").map(([v]) => v);
+  assert.ok(!bossaFill.includes("snare") && bossaFill.includes("congaHigh"));
 });
