@@ -963,7 +963,14 @@
     "about.2": "Choose, at each fermata, the chord the phrase cadences on, as a degree of the chorale's key: I, V, vi ... (lower case for minor chords). Then compare: Kittel wrote eight (or nine) basses to each of these melodies, and Bach set most of them; their cadences, and Bach's habit wherever a melody closes the same way, are laid beside yours, with the chorales to look at.",
     "about.3": "The melody is Kittel's (Vierundzwanzig Choräle mit acht verschiedenen Bässen, 1811). Bach's chorales are numbered as in Breitkopf's edition (371 vierstimmige Choralgesänge); each number links to its page in the 1784 print.",
     "about.4": "The chord readings follow Kirnberger's fundamental chords, applied by the game and still to be checked against his text. Later levels: the harmony under every note, the bass, the figures, the voices, the diminution.",
-    "source": "J. C. Kittel, Vierundzwanzig Choräle mit acht verschiedenen Bässen über eine Melodie (Offenbach: André, 1811), No. {n}. Bach: 371 vierstimmige Choralgesänge, encoding by C. S. Sapp (CC BY-NC-SA 4.0)."
+    "source": "J. C. Kittel, Vierundzwanzig Choräle mit acht verschiedenen Bässen über eine Melodie (Offenbach: André, 1811), No. {n}. Bach: 371 vierstimmige Choralgesänge, encoding by C. S. Sapp (CC BY-NC-SA 4.0).",
+    "note": "Note {n} (bar {bar})",
+    "degree": "{pitch}, degree {degree}",
+    "prompt2": "Note {n} (bar {bar}), {pitch}, over:",
+    "l2.yours": "Your chord",
+    "l2.habit": "Bach, at this melody degree ({n} notes on the beat)",
+    "l2.summary.bach": "with Bach at {n} of {of} notes",
+    "l2.summary.kittel": "with one of Kittel's basses at {n} of {of}"
   },
   "wtc": {
     "mode": "Well-Tempered Clavier",

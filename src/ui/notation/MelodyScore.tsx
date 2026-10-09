@@ -25,17 +25,20 @@ interface Props {
   states: MarkerState[];
   cursor: number | null; // time in whole notes, or null
   onSelect(phrase: number): void;
+  /** the melody notes that carry a marker (default: the fermatas); narrow markers when many */
+  markerAt?: number[];
 }
 
 const yOf = (diatonic: number) => TOP + 4 * S - (diatonic - E4) * (S / 2);
 
-export function MelodyScore({ chorale, picks, selected, states, cursor, onSelect }: Props) {
+export function MelodyScore({ chorale, picks, selected, states, cursor, onSelect, markerAt }: Props) {
   const ks = chorale.keySignature;
   const prefix = 34 + 9 * Math.abs(ks) + (chorale.meterSign ? 0 : 0);
   // bar widths: proportional to length, with room for every note
   const notesIn = (m: number) => chorale.melody.filter((n) => n.measure === m && !n.grace).length;
   const graceIn = (m: number) => chorale.melody.filter((n) => n.measure === m && n.grace).length;
-  const bars = chorale.measures.map((m) => ({ ...m, w: Math.max(frac(m.length) * 150, notesIn(m.number) * 30 + graceIn(m.number) * 12 + 18) }));
+  const per = markerAt ? 38 : 30; // room per note (a marker under every note at level 2)
+  const bars = chorale.measures.map((m) => ({ ...m, w: Math.max(frac(m.length) * 150, notesIn(m.number) * per + graceIn(m.number) * 12 + 18) }));
   // systems
   const systems: (typeof bars)[] = [[]];
   let used = prefix;
@@ -47,7 +50,8 @@ export function MelodyScore({ chorale, picks, selected, states, cursor, onSelect
     systems[systems.length - 1].push(b);
     used += b.w;
   }
-  const fermataIdx = chorale.melody.map((n, i) => (n.fermata ? i : -1)).filter((i) => i >= 0);
+  const fermataIdx = markerAt ?? chorale.melody.map((n, i) => (n.fermata ? i : -1)).filter((i) => i >= 0);
+  const mw = markerAt ? 30 : 44; // marker width
 
   return (
     <svg viewBox={`0 0 ${W} ${systems.length * SYS_H}`} className="melody-score" role="img" aria-label={chorale.title}>
@@ -87,13 +91,13 @@ export function MelodyScore({ chorale, picks, selected, states, cursor, onSelect
             {chorale.melody.map((n, i) => (inSys(n) ? <Note key={i} n={n} x={n.grace ? xAt(frac(n.offset)) - 11 : xAt(frac(n.offset))} /> : null))}
             {fermataIdx.map((ni, p) => {
               const n = chorale.melody[ni];
-              if (!inSys(n)) return null;
+              if (!n || !inSys(n)) return null;
               const cx = xAt(frac(n.offset)) + 4;
               const label = picks[p] ?? "?";
               return (
                 <g key={`m${p}`} className={`marker marker-${states[p]}${selected === p ? " selected" : ""}`} onClick={() => onSelect(p)} role="button" aria-label={`phrase ${p + 1}: ${label}`}>
-                  <rect x={cx - 22} y={TOP + 4 * S + 22} width={44} height={24} rx={5} />
-                  <text x={cx} y={TOP + 4 * S + 39} textAnchor="middle">{label}</text>
+                  <rect x={cx - mw / 2} y={TOP + 4 * S + 22} width={mw} height={24} rx={5} />
+                  <text x={cx} y={TOP + 4 * S + 39} textAnchor="middle" className={markerAt ? "marker-small" : undefined}>{label}</text>
                 </g>
               );
             })}

@@ -142,7 +142,12 @@ export interface PhraseVerdict {
 }
 
 export function compare(ch: Chorale, picks: (string | null)[]): PhraseVerdict[] {
-  return ch.phrases.map((p, i) => {
+  return comparePoints(ch.phrases, picks);
+}
+
+/** The comparison at any set of points (phrase ends at level 1, melody notes at level 2). */
+export function comparePoints(points: Pick<Phrase, "kittel" | "bach" | "habit">[], picks: (string | null)[]): PhraseVerdict[] {
+  return points.map((p, i) => {
     const chosen = picks[i] ?? null;
     const byChord = new Map<string, string[]>();
     for (const k of p.kittel) byChord.set(k.chord, [...(byChord.get(k.chord) ?? []), k.bass]);
