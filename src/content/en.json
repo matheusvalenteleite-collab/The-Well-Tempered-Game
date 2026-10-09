@@ -869,7 +869,22 @@
     "continuo.fig.dotted": "dotted",
     "continuo.fig.dotted.help": "Long and short: a dotted quarter and an eighth, twice a bar (the French overture's rhythm, smoothed)",
     "continuo.fig.tresillo": "tresillo",
-    "continuo.fig.tresillo.help": "3 + 3 + 2 eighths to the bar: the tresillo of Cuban and Latin American music, and of much rock and pop"
+    "continuo.fig.tresillo.help": "3 + 3 + 2 eighths to the bar: the tresillo of Cuban and Latin American music, and of much rock and pop",
+    "style.label": "Style…",
+    "style.help": "A style for the whole piece: sets the sound of every line, the drums, the continuo, the tuning and the tempo at once; each can then be changed on its own",
+    "style.applied": "Style: {name}",
+    "style.stileAntico": "Stile antico",
+    "style.stileAntico.help": "Voices over a soft chamber organ, quarter-comma meantone, a church acoustic",
+    "style.baroque": "Baroque",
+    "style.baroque.help": "Violin and cello over a harpsichord, Werckmeister III, a room",
+    "style.gould": "Glenn Gould",
+    "style.gould.help": "The recorded grand piano on every line, dry and close; no continuo, no drums",
+    "style.rockShow": "Rock show",
+    "style.rockShow.help": "Electric guitar and bass on the lines, the rock band continuo, a recorded drum kit",
+    "style.analog": "Analog",
+    "style.analog.help": "Tape-echo synth lines over analog pads, a Roland CR-78",
+    "style.techno": "Techno",
+    "style.techno.help": "Wavefolder synths, the pads arpeggiated, a TR-909 at 128 beats a minute"
   },
   "tutor": {
     "rule.fos.no-repetition": "In this species each upbeat brings a new note, which is then tied over the bar line; striking the downbeat's note again on its own upbeat is a whole note in disguise.",

@@ -22,6 +22,7 @@ import { Systems, ZOOM_MAX, ZOOM_MIN } from "./notation/Systems.tsx";
 import { buildOverlay, neutralOverlay } from "./notation/overlay.ts";
 import { Credits } from "./Credits.tsx";
 import { QuickStart } from "./QuickStart.tsx";
+import { applyStyle, type StyleId } from "../audio/styles.ts";
 import { FuxComparison } from "./FuxComparison.tsx";
 import { realizeContinuo } from "../continuo/realize.ts";
 import { playContinuo, preloadContinuo } from "../continuo/audio.ts";
@@ -122,6 +123,18 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const [cursor, setCursor] = useState(-1);
   const [playing, setPlaying] = useState(false);
   const [audioStatus, setAudioStatus] = useState<AudioStatus>("idle");
+  /** D111: a master style sets every track; Fux follows the player's line once he is unlocked. */
+  const chooseStyle = (id: StyleId) => {
+    const next = applyStyle(id, { sound, drumsOn: drums, drumKit, continuoOn: continuo, continuo: continuoSettings, tuning, tempo }, STEP.cantus_voice !== "lower");
+    setSound(next.sound);
+    setDrums(next.drumsOn);
+    setDrumKit(next.drumKit);
+    setContinuo(next.continuoOn);
+    setContinuoSettings({ ...continuoSettings, ...next.continuo });
+    setTuning(next.tuning);
+    setTempo(next.tempo);
+    setToast(t("ui.style.applied", { name: t(`ui.style.${id}`) }));
+  };
   const [showCredits, setShowCredits] = useState(false);
   // The quick start opens by itself on the first visit, and on HOW TO PLAY (D108).
   const [showQuick, setShowQuick] = useState(() => !stored("wtg.quickSeen", false, (v) => typeof v === "boolean"));
@@ -1025,6 +1038,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
             onMaster={setVolume}
             tuning={tuning}
             onTuning={setTuning}
+            onStyle={chooseStyle}
           />
         ) },
         { id: "evaluation", text: true, label: t("ui.dock.evaluation"), content: (

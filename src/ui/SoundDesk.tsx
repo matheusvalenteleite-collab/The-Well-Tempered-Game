@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { STYLES, type StyleId } from "../audio/styles.ts";
 import { Fader, formatDb, posOfDb } from "./Fader.tsx";
 import { setMix, editSynth, editVersionSynth, versionSettings, DEFAULT_MASTER_FX, type Channel, type MasterFx, type SoundState, type Strip } from "../audio/sound.ts";
 import { patternById, type DrumSettings } from "../audio/drums.ts";
@@ -33,6 +34,8 @@ interface Props {
   onMaster(v: number): void;
   tuning: TemperamentId;
   onTuning(v: TemperamentId): void;
+  /** D111: a master style, setting every track at once. */
+  onStyle?(id: StyleId): void;
   continuo: boolean;
   onContinuo(on: boolean): void;
   continuoSettings: ContinuoSettings;
@@ -224,6 +227,14 @@ export function SoundDesk(p: Props) {
         <span className="desk-sep" aria-hidden="true" />
         <div className={`strip master ${selected === "master" ? "selected" : ""}`} role="group" aria-label={t("ui.mixer.master")} style={{ ["--track" as string]: COLOR.master }} onClick={(e) => !(e.target as HTMLElement).closest("button, input, select, .knob, .fader2") && setSelected("master")} title={t("ui.mixer.masterHelp")}>
           <div className="strip-name">{t("ui.mixer.master")}</div>
+          {p.onStyle && (
+            <select className="style-select" tabIndex={-1} value="" onChange={(e) => e.target.value && p.onStyle!(e.target.value as StyleId)} title={t("ui.style.help")} aria-label={t("ui.style.label")}>
+              <option value="">{t("ui.style.label")}</option>
+              {STYLES.map((id) => (
+                <option key={id} value={id} title={t(`ui.style.${id}.help`)}>{t(`ui.style.${id}`)}</option>
+              ))}
+            </select>
+          )}
           <button className="chipbtn tuning" tabIndex={-1} onClick={() => p.onTuning(TEMPERAMENTS[(TEMPERAMENTS.indexOf(p.tuning) + 1) % TEMPERAMENTS.length])} title={t("ui.tuning.help")}>
             {t("ui.tuning.label", { name: t(`ui.tuning.${p.tuning}`) })}
           </button>

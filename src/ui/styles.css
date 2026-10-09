@@ -923,3 +923,4 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
   .continuobox .dcol { padding: 3px 4px 4px; gap: 3px; }
   .continuobox .rack-title { font-size: 0.72rem; letter-spacing: 0; }
 }
+.strip.master .style-select { width: 100%; max-width: 76px; font-size: 0.7rem; padding: 1px 2px; margin: 2px 0; }
