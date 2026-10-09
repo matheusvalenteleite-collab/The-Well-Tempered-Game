@@ -11,11 +11,12 @@ export { TPQ };
 export type WtcNote = [number, number, string, number];
 
 export interface WtcPiece {
-  /** "wtc1f01" ... "wtc2p24". */
+  /** "wtc1f01" ... "wtc2p24"; "inven01" ... "sinfo15". */
   id: string;
-  book: 1 | 2;
+  /** WTC book (1, 2); 0 for the inventions and sinfonias. */
+  book: 0 | 1 | 2;
   number: number;
-  kind: "fugue" | "prelude";
+  kind: "fugue" | "prelude" | "invention" | "sinfonia";
   /** Tonic as spelled ("C", "C#", "Eb") and mode. */
   key: string;
   mode: "major" | "minor";
@@ -28,15 +29,16 @@ export interface WtcPiece {
 }
 
 export function pieceFromKern(id: string, k: KernPiece): WtcPiece {
-  const m = /^wtc(\d)([pf])(\d+)$/.exec(id)!;
+  const inv = /^(inven|sinfo)(\d+)$/.exec(id);
+  const m = inv ? ["", "0", inv[1] === "inven" ? "i" : "s", inv[2]] : /^wtc(\d)([pf])(\d+)$/.exec(id)!;
   const kk = k.key ?? "C";
   const minor = kk[0] === kk[0].toLowerCase();
   const tonic = kk[0].toUpperCase() + (kk[1] === "-" ? "b" : kk[1] === "#" ? "#" : "");
   return {
     id,
-    book: Number(m[1]) as 1 | 2,
+    book: Number(m[1]) as 0 | 1 | 2,
     number: Number(m[3]),
-    kind: m[2] === "f" ? "fugue" : "prelude",
+    kind: m[2] === "f" ? "fugue" : m[2] === "p" ? "prelude" : m[2] === "i" ? "invention" : "sinfonia",
     key: tonic,
     mode: minor ? "minor" : "major",
     bwv: (k.refs.SCT ?? "").replace(/^BWV\s*/, ""),
@@ -50,5 +52,7 @@ export function pieceFromKern(id: string, k: KernPiece): WtcPiece {
 /** A human label: "Fugue 1 in C major (Book I, BWV 846)". */
 export function label(p: WtcPiece): string {
   const key = `${p.key.replace("b", "♭").replace("#", "♯")} ${p.mode}`;
-  return `${p.kind === "fugue" ? "Fugue" : "Prelude"} ${p.number} in ${key} (Book ${p.book === 1 ? "I" : "II"}${p.bwv ? `, BWV ${p.bwv}` : ""})`;
+  const kind = { fugue: "Fugue", prelude: "Prelude", invention: "Invention", sinfonia: "Sinfonia" }[p.kind];
+  const where = p.book ? `Book ${p.book === 1 ? "I" : "II"}${p.bwv ? `, BWV ${p.bwv}` : ""}` : p.bwv ? `BWV ${p.bwv}` : "";
+  return `${kind} ${p.number} in ${key}${where ? ` (${where})` : ""}`;
 }

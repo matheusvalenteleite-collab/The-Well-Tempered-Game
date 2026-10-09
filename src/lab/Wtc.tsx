@@ -7,6 +7,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import fugueData from "../../data/wtc/fugues.json" with { type: "json" };
 import preludeData from "../../data/wtc/preludes.json" with { type: "json" };
+import inventionData from "../../data/wtc/inventions.json" with { type: "json" };
 import { label, TPQ, type WtcPiece } from "../wtc/corpus.ts";
 import { degree, findEntries, line, names, predictAnswer, subjectAndAnswer, transpose, type Entry, type Note } from "../wtc/fugue.ts";
 import { TUNINGS, type TuningId } from "../wtc/tunings.ts";
@@ -15,6 +16,7 @@ import { playNotes, playPiece, stop } from "./keyboard.ts";
 
 const FUGUES = fugueData as unknown as WtcPiece[];
 const PRELUDES = preludeData as unknown as WtcPiece[];
+const INVENTIONS = inventionData as unknown as WtcPiece[];
 const INK = ["#1f5fbf", "#c0392b", "#2e7d4f", "#a8761a", "#7b4fa0"];
 const VOICE_NAMES: Record<number, string[]> = {
   2: ["upper", "lower"],
@@ -44,7 +46,7 @@ interface Analysis {
 }
 
 function analyse(p: WtcPiece): Analysis | null {
-  if (p.kind !== "fugue") return null;
+  if (p.kind === "prelude") return null;
   const sa = subjectAndAnswer(p);
   const real = predictAnswer(sa.subject, p.key, p.mode, "real");
   const departures = real.map((x, i) => (x[0] !== sa.answer[i].pitch[0] ? i : -1)).filter((i) => i >= 0);
@@ -206,14 +208,14 @@ function AnswerExercise({ p, a, tuning }: { p: WtcPiece; a: Analysis; tuning: Tu
 const ORDER = ["C major", "C minor", "C# major", "C# minor", "D major", "D minor", "Eb major", "D# minor", "E major", "E minor", "F major", "F minor", "F# major", "F# minor", "G major", "G minor", "Ab major", "G# minor", "A major", "A minor", "Bb major", "Bb minor", "B major", "B minor"];
 
 export function WtcTab() {
-  const [kind, setKind] = useState<"fugue" | "prelude">("fugue");
+  const [kind, setKind] = useState<"fugue" | "prelude" | "inventions">("fugue");
   const [id, setId] = useState("wtc1f01");
   const [tuning, setTuning] = useState<TuningId>("werckmeister3");
   const [bpm, setBpm] = useState(72);
   const [tick, setTick] = useState(-1);
   const [from, setFrom] = useState(0);
   const [showEntries, setShowEntries] = useState(true);
-  const pool = kind === "fugue" ? FUGUES : PRELUDES;
+  const pool = kind === "fugue" ? FUGUES : kind === "prelude" ? PRELUDES : INVENTIONS;
   const p = pool.find((x) => x.id === id) ?? pool[0];
   const [voicesOn, setVoicesOn] = useState<boolean[]>([]);
   useEffect(() => (setVoicesOn(p.voices.map(() => true)), stop(), setTick(-1), setFrom(0)), [p]);
@@ -226,8 +228,9 @@ export function WtcTab() {
         <legend>The 48</legend>
         <div className="lab-fields">
           <span className="lab-group">
-            <button className={kind === "fugue" ? "primary" : ""} onClick={() => (setKind("fugue"), setId(id.replace("p", "f")))}>Fugues</button>
-            <button className={kind === "prelude" ? "primary" : ""} onClick={() => (setKind("prelude"), setId(id.replace("f", "p")))}>Preludes</button>
+            <button className={kind === "fugue" ? "primary" : ""} onClick={() => (setKind("fugue"), setId(id.startsWith("wtc") ? id.replace("p", "f") : "wtc1f01"))}>Fugues</button>
+            <button className={kind === "prelude" ? "primary" : ""} onClick={() => (setKind("prelude"), setId(id.startsWith("wtc") ? id.replace("f", "p") : "wtc1p01"))}>Preludes</button>
+            <button className={kind === "inventions" ? "primary" : ""} onClick={() => (setKind("inventions"), setId("inven01"))} title="The two-part inventions and three-part sinfonias: the way from two voices to the fugue">Inventions & Sinfonias</button>
           </span>
           <label className="lab-group" title={tuningNote}>
             Tuning
@@ -239,7 +242,21 @@ export function WtcTab() {
             Tempo <input type="range" min={30} max={140} value={bpm} onChange={(e) => setBpm(Number(e.target.value))} /> <b>{bpm}</b>
           </label>
         </div>
-        <div className="wtc-grid">
+        {kind === "inventions" ? (
+          <div className="wtc-grid">
+            {INVENTIONS.filter((x) => x.kind === "invention").map((inv, i) => {
+              const sin = INVENTIONS.find((x) => x.kind === "sinfonia" && x.number === inv.number);
+              return (
+                <div key={inv.id} className="wtc-key">
+                  <span className="wtc-keyname">{nice(inv.key)}{inv.mode === "minor" ? "m" : ""}</span>
+                  <button className={`wtc-chip${inv.id === p.id ? " wtc-sel" : ""}`} title={`Invention ${i + 1} (two voices)`} onClick={() => setId(inv.id)}>2</button>
+                  {sin && <button className={`wtc-chip${sin.id === p.id ? " wtc-sel" : ""}`} title={`Sinfonia ${i + 1} (three voices)`} onClick={() => setId(sin.id)}>3</button>}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="wtc-grid">
           {ORDER.map((k, i) => (
             <div key={k} className="wtc-key">
               <span className="wtc-keyname">{nice(k.replace(" major", "").replace(" minor", "m"))}</span>
@@ -254,7 +271,8 @@ export function WtcTab() {
             </div>
           ))}
         </div>
-        <p className="lab-note">{tuningNote}. The keys in Bach's order, each in Book I and Book II.</p>
+        )}
+        <p className="lab-note">{tuningNote}. {kind === "inventions" ? "The fifteen keys of the Inventions (2: two voices) and Sinfonias (3: three voices)." : "The keys in Bach's order, each in Book I and Book II."}</p>
       </fieldset>
 
       <div className="lab-box">
@@ -292,11 +310,11 @@ export function WtcTab() {
             Answer in the {VOICE_NAMES[p.voices.length]?.[a.second] ?? `voice ${a.second + 1}`}: <b>{names(a.answer.map((n) => n.pitch)).map(nice).join(" ")}</b>{" "}
             <button onClick={() => playNotes(a.answer, tuning)}>▶</button>
             <br />
-            {a.departures.length ? `A tonal answer: note${a.departures.length > 1 ? "s" : ""} ${a.departures.map((i) => i + 1).join(", ")} answered a fourth up instead of a fifth.` : "A real answer: every note a fifth up."}
+            {p.kind !== "fugue" ? "In the inventions and sinfonias the second voice usually imitates at the octave, not at the fifth." : a.departures.length ? `A tonal answer: note${a.departures.length > 1 ? "s" : ""} ${a.departures.map((i) => i + 1).join(", ")} answered a fourth up instead of a fifth.` : "A real answer: every note a fifth up."}
           </p>
         </fieldset>
       )}
-      {a && <AnswerExercise p={p} a={a} tuning={tuning} />}
+      {a && p.kind === "fugue" && <AnswerExercise p={p} a={a} tuning={tuning} />}
     </section>
   );
 }

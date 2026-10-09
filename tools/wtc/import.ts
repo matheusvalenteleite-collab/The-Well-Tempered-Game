@@ -1,4 +1,5 @@
-// The Well-Tempered Clavier, imported: data/sources/bach-wtc/kern/*.krn → data/wtc/{fugues,preludes}.json,
+// The Well-Tempered Clavier (and the Inventions and Sinfonias), imported: data/sources/bach-wtc/kern/*.krn and
+// data/sources/bach-inventions/kern/*.krn → data/wtc/{fugues,preludes,inventions}.json,
 // with a validation report (docs/wtc/IMPORT.md). Usage: node tools/wtc/import.ts
 import { readdirSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { parseKern, TPQ } from "../../src/wtc/kern.ts";
@@ -7,6 +8,7 @@ import { pieceFromKern, type WtcPiece } from "../../src/wtc/corpus.ts";
 const dir = "data/sources/bach-wtc/kern";
 const fugues: WtcPiece[] = [];
 const preludes: WtcPiece[] = [];
+const inventions: WtcPiece[] = [];
 const report: string[] = [
   "# The Well-Tempered Clavier: import check",
   "",
@@ -19,10 +21,15 @@ const report: string[] = [
   "|---|---|---|---|---|---|---|",
 ];
 let problems = 0;
-for (const f of readdirSync(dir).filter((x) => x.endsWith(".krn")).sort()) {
-  const k = parseKern(readFileSync(`${dir}/${f}`, "utf8"));
+const files = [
+  ...readdirSync(dir).filter((x) => x.endsWith(".krn")).sort().map((f) => `${dir}/${f}`),
+  ...readdirSync("data/sources/bach-inventions/kern").filter((x) => x.endsWith(".krn")).sort().map((f) => `data/sources/bach-inventions/kern/${f}`),
+];
+for (const path of files) {
+  const f = path.split("/").pop()!;
+  const k = parseKern(readFileSync(path, "utf8"));
   const p = pieceFromKern(f.replace(".krn", ""), k);
-  (p.kind === "fugue" ? fugues : preludes).push(p);
+  (p.kind === "fugue" ? fugues : p.kind === "prelude" ? preludes : inventions).push(p);
   const [num, den] = (k.meter ?? "4/4").split("/").map(Number);
   const barLen = (num * 4 * TPQ) / den;
   const odd = k.bars.slice(1, -1).filter((b, i, a) => i + 1 < a.length && a[i + 1].on - b.on !== barLen && !(b.n === a[i + 1].n));
@@ -30,11 +37,12 @@ for (const f of readdirSync(dir).filter((x) => x.endsWith(".krn")).sort()) {
   if (odd.length || ends) problems++;
   report.push(`| ${p.id} | ${p.key} | ${p.voices.length} | ${p.voices.reduce((a, v) => a + v.length, 0)} | ${k.bars.length} | ${odd.length ? `${odd.length} odd (bar ${odd.slice(0, 3).map((b) => b.n).join(", ")})` : "ok"} | ${ends ? `${ends} early` : "ok"} |`);
 }
-report.splice(7, 0, `${fugues.length} fugues, ${preludes.length} preludes; ${problems} pieces with something to look at.`, "");
+report.splice(7, 0, `${fugues.length} fugues, ${preludes.length} preludes, ${inventions.length} inventions and sinfonias; ${problems} pieces with something to look at.`, "");
 mkdirSync("data/wtc", { recursive: true });
 mkdirSync("docs/wtc", { recursive: true });
 writeFileSync("data/wtc/fugues.json", JSON.stringify(fugues));
 writeFileSync("data/wtc/preludes.json", JSON.stringify(preludes));
+writeFileSync("data/wtc/inventions.json", JSON.stringify(inventions));
 writeFileSync("docs/wtc/IMPORT.md", report.join("\n") + "\n");
 console.log(report.slice(0, 10).join("\n"));
 console.log(`problems: ${problems}`);

@@ -5,7 +5,7 @@ piece: voices, notes, bars; **bar check**: bars whose length (bar line to bar li
 meter's (the first, a pickup, and the last are allowed to differ); **voice ends**: voices whose
 last note ends more than a bar before the piece's end (a sign of a lost spine).
 
-48 fugues, 48 preludes; 6 pieces with something to look at.
+48 fugues, 48 preludes, 30 inventions and sinfonias; 7 pieces with something to look at.
 
 | piece | key | voices | notes | bars | bar check | voice ends |
 |---|---|---|---|---|---|---|
@@ -105,3 +105,33 @@ last note ends more than a bar before the piece's end (a sign of a lost spine).
 | wtc2p22 | Bb | 1 | 1189 | 83 | ok | ok |
 | wtc2p23 | B | 1 | 1045 | 46 | ok | ok |
 | wtc2p24 | B | 1 | 875 | 66 | ok | ok |
+| inven01 | C | 2 | 458 | 22 | ok | ok |
+| inven02 | C | 2 | 635 | 27 | ok | ok |
+| inven03 | D | 2 | 495 | 59 | ok | ok |
+| inven04 | D | 2 | 443 | 52 | ok | ok |
+| inven05 | Eb | 2 | 734 | 32 | ok | ok |
+| inven06 | E | 2 | 547 | 60 | 1 odd (bar 20) | ok |
+| inven07 | E | 2 | 473 | 23 | ok | ok |
+| inven08 | F | 2 | 598 | 34 | ok | ok |
+| inven09 | F | 2 | 558 | 34 | ok | ok |
+| inven10 | G | 2 | 439 | 32 | ok | ok |
+| inven11 | G | 2 | 568 | 23 | ok | ok |
+| inven12 | A | 2 | 685 | 21 | ok | ok |
+| inven13 | A | 2 | 564 | 25 | ok | ok |
+| inven14 | Bb | 2 | 592 | 20 | ok | ok |
+| inven15 | B | 2 | 477 | 22 | ok | ok |
+| sinfo01 | C | 3 | 563 | 21 | ok | ok |
+| sinfo02 | C | 3 | 736 | 32 | ok | ok |
+| sinfo03 | C | 3 | 673 | 25 | ok | ok |
+| sinfo04 | C | 3 | 551 | 23 | ok | ok |
+| sinfo05 | C | 3 | 443 | 38 | ok | ok |
+| sinfo06 | E | 3 | 508 | 41 | ok | ok |
+| sinfo07 | E | 3 | 727 | 44 | ok | ok |
+| sinfo08 | F | 3 | 563 | 23 | ok | ok |
+| sinfo09 | F | 3 | 650 | 35 | ok | ok |
+| sinfo10 | G | 3 | 625 | 33 | ok | ok |
+| sinfo11 | G | 3 | 525 | 72 | ok | ok |
+| sinfo12 | A | 3 | 759 | 31 | ok | ok |
+| sinfo13 | A | 3 | 634 | 64 | ok | ok |
+| sinfo14 | C | 3 | 617 | 24 | ok | ok |
+| sinfo15 | B | 3 | 672 | 38 | ok | ok |
