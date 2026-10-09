@@ -18,6 +18,7 @@ import type { Slot } from "../layout.ts";
 import { onsets } from "./corpus.ts";
 import { bits, melodicKey, melodicProb, roleOf, samePerfect, successionBits, verticalKey, verticalProb, type HabitTables } from "./habits.ts";
 import type { Staff } from "../../music/fux/index.ts";
+import { modelBits } from "./features.ts";
 
 export type TierName = "errors" | "warnings" | "counsel" | "habit";
 export const TIER_NAMES: TierName[] = ["errors", "warnings", "counsel", "habit"];
@@ -92,7 +93,8 @@ export function counselOf(layout: Slot[], cantus: string[], line: (string | null
   return parts;
 }
 
-export function habitOf(t: HabitTables, cantusVoice: Staff, layout: Slot[], cantus: string[], line: (string | null)[], unit: number[]): HabitParts {
+/** The first model (melodic by role, vertical, successive downbeats), kept for comparison in the study. */
+export function legacyHabitOf(t: HabitTables, cantusVoice: Staff, layout: Slot[], cantus: string[], line: (string | null)[], unit: number[]): HabitParts {
   const role = roleOf(cantusVoice);
   const n = around(layout, line, unit);
   let melodic = 0;
@@ -119,6 +121,11 @@ function downbeatSuccession(t: HabitTables, layout: Slot[], cantus: string[], li
     if (there) h += successionBits(t, samePerfect(dir < 0 ? there : here, dir < 0 ? here : there));
   }
   return h;
+}
+
+/** Fux's habits: the weighted model of features.ts (melodic and vertical parts, in bits). */
+export function habitOf(t: HabitTables, cantusVoice: Staff, layout: Slot[], cantus: string[], line: (string | null)[], unit: number[]): HabitParts {
+  return modelBits(t.features, { layout, cantus, line, cantusVoice, unit });
 }
 
 export const counselTotal = (c: CounselParts) => c.motion + c.perfect + c.repeat + c.leap;

@@ -19,7 +19,8 @@ import type { ModalFinal, Staff } from "../../music/fux/index.ts";
 import { REST, slotLayout, sounding, type Slot, type SpeciesId } from "../layout.ts";
 import type { Rule } from "../rules/types.ts";
 import { rng } from "./cantus.ts";
-import { bits, melodicKey, melodicProb, roleOf, samePerfect, successionBits, verticalKey, verticalProb, type HabitTables } from "./habits.ts";
+import type { HabitTables } from "./habits.ts";
+import { modelBits } from "./features.ts";
 import { sharpAllowed } from "./vocabulary.ts";
 
 export interface CounterpointOptions {
@@ -52,7 +53,10 @@ export interface GeneratedLine {
 }
 
 export const DEFAULT_COUNSEL_WEIGHT = 0;
-export const DEFAULT_TEMPERATURE = 1;
+/** Calibrated on Fux's own rates of leaps and spacing with the weighted habit model (docs/fux/habits-study.md). */
+export const DEFAULT_TEMPERATURE = 0.75;
+/** The three-voice model (trio.ts) is unweighted; its calibration stays at 1. */
+export const TRIO_TEMPERATURE = 1;
 
 const DEFERRED = /cadence|final|prefer-imperfect|ligature-where-possible/;
 
@@ -122,13 +126,11 @@ function stepCost(o: CounterpointOptions, layout: Slot[], line: string[], k: num
   const cf = (j: number) => o.cantus[layout[j].bar];
   const prev = lastSounding(line, k);
   let counsel = 0;
-  let habit = bits(verticalProb(o.habits, s.beat === 0, verticalKey(cf(k), p, o.cantusVoice)));
-  if (s.beat === 0 && k > 0) {
-    // The downbeat before: the same fifth or octave again is rare in Fux (once in his fourth species, Fig. 77).
-    let j = k - 1;
-    while (j >= 0 && layout[j].beat !== 0) j--;
-    if (j >= 0 && sounding(line[j])) habit += successionBits(o.habits, samePerfect(verticalKey(cf(j), line[j], o.cantusVoice), verticalKey(cf(k), p, o.cantusVoice)));
-  }
+  // Fux's habits (the weighted model of features.ts), looking back from the new note: its
+  // interval with the cantus, the move into it and the pair of moves it ends, how it reaches a
+  // downbeat, and whether it repeats the fifth or octave of the downbeat before.
+  const h = modelBits(o.habits.features, { layout, cantus: o.cantus, line: [...line.slice(0, k), p], cantusVoice: o.cantusVoice, unit: [k] });
+  const habit = h.melodic + h.vertical;
   const tiedIn = prev !== null && prev[0] === k - 1 && prev[1] === p && o.species === "fourth" && s.beat === 0;
   if (prev && !tiedIn) {
     if (s.beat === 0) {
@@ -139,7 +141,6 @@ function stepCost(o: CounterpointOptions, layout: Slot[], line: string[], k: num
     if (d === 0) counsel++;
     if (d > 2) counsel++;
     if (d > 5) counsel++;
-    habit += bits(melodicProb(o.habits, roleOf(o.cantusVoice), melodicKey(prev[1], p)));
   }
   if (s.beat === 0 && s.bar > 0 && s.bar < o.cantus.length - 1 && isPerfectConsonance(harmonic(cf(k), p))) counsel++;
   return (o.counselWeight ?? DEFAULT_COUNSEL_WEIGHT) * counsel + habit;

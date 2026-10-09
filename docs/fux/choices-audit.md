@@ -14,25 +14,25 @@ counts only choices where more than one pitch was legal, and Fux's note first al
 
 | ranking | Fux first | Fux first alone | first where free | mean rank |
 |---|---|---|---|---|
-| errors > warnings > counsel > habit | 66% | 65% | 61% (105) | 1.54 |
+| errors > warnings > counsel > habit | 64% | 64% | 60% (105) | 1.57 |
 | errors > warnings > counsel | 75% | 47% | 40% (105) | 1.40 |
-| errors > habit | 64% | 64% | 59% (105) | 1.55 |
-| errors > counsel > habit | 66% | 65% | 61% (105) | 1.56 |
+| errors > habit | 64% | 64% | 59% (105) | 1.52 |
+| errors > counsel > habit | 64% | 64% | 60% (105) | 1.58 |
 
 Legal pitches at each choice (first ranking; \* where Fux's note is not ranked first):
 
 | Fig. | final | cantus | choices |
 |---|---|---|---|
-| 5 | D | below | 5 6 3 10 5\* 8\* 10 9\* 8\* 1 2 |
-| 6 | D | above | 2 4 10\* 10\* 9 8\* 6\* 11\* 6 2 1 |
+| 5 | D | below | 5 6\* 3 10 5\* 8\* 10\* 9\* 8\* 1 2 |
+| 6 | D | above | 2 4 10\* 10 9 8\* 6\* 11\* 6 2 1 |
 | 11 | E | below | 3 8\* 2 4 8\* 5 4 9\* 1 1 |
-| 12 | E | above | 3 7\* 9\* 9 8 6 7\* 7 2 1 |
-| 13 | F | below | 5 9 7\* 9\* 8 8 2 9\* 4\* 9\* 1 2 |
+| 12 | E | above | 3 7\* 9\* 9 8 6 7\* 7\* 2 1 |
+| 13 | F | below | 5 9 7 9\* 8 8 2 9\* 4\* 9\* 1 2 |
 | 14 | F | above | 2 10 9 8 10 9 8\* 9 6 8\* 2 1 |
 | 15 | G | below | 4\* 5 3\* 4 6\* 3 10 5\* 5\* 5\* 10\* 7 1 2 |
-| 21 | G | above | 3 2\* 5 6 7 5\* 6\* 7 4 5 11 7 1 2 |
+| 21 | G | above | 3 2\* 5\* 6 7 5 6\* 7 4 5 11 7 1 2 |
 | 22 | A | below | 4\* 5\* 8\* 6 7\* 7\* 2 8 6 7 1 2 |
-| 23 | A | above | 2 1 6 10 5\* 8 4 5\* 8\* 5 1 1 |
+| 23 | A | above | 2 1 6 10 5\* 8\* 4 5\* 8\* 5 1 1 |
 
 ## Second species
 
@@ -40,27 +40,27 @@ Legal pitches at each choice (first ranking; \* where Fux's note is not ranked f
 
 | ranking | Fux first | Fux first alone | first where free | mean rank |
 |---|---|---|---|---|
-| errors > warnings > counsel > habit | 81% | 81% | 73% (178) | 1.25 |
+| errors > warnings > counsel > habit | 83% | 83% | 76% (178) | 1.22 |
 | errors > warnings > counsel | 89% | 72% | 59% (178) | 1.13 |
-| errors > habit | 75% | 75% | 63% (178) | 1.39 |
-| errors > counsel > habit | 81% | 81% | 73% (178) | 1.25 |
+| errors > habit | 83% | 83% | 75% (178) | 1.24 |
+| errors > counsel > habit | 83% | 83% | 76% (178) | 1.22 |
 
 Legal pitches at each choice (first ranking; \* where Fux's note is not ranked first):
 
 | Fig. | final | cantus | choices |
 |---|---|---|---|
-| 33 | D | below | 4 10\* 1 8\* 1 3 7 7\* 2\* 10 1 5\* 2 9 1 6 5 1 2 1 2 |
-| 35 | D | above | 1 4\* 6\* 6\* 10\* 2 7 1 8\* 1 7 1 10\* 7\* 7\* 4 3\* 2 1 1 |
+| 33 | D | below | 4 10\* 1 8\* 1 3 7\* 7\* 2\* 10 1 5\* 2 9 1 6 5 1 2 1 2 |
+| 35 | D | above | 1 4\* 6\* 6\* 10 2 7 1 8\* 1 7 1 10\* 7\* 7\* 4 3 2 1 1 |
 | 36 | E | below | 3 1 4 1 5 7\* 3 1 7 1 6 6 5 1 4 1 1 1 |
 | 37 | E | above | 3 1 9 1 6 7 9 4 8\* 6 9 1 9 1 9 1 1 1 |
 | 38 | F | below | 5 7 9 1 9 1 8 1 7\* 1 9\* 1 4 5 8 1 9 1 4 2 1 2 |
 | 39 | F | above | 2 9 7\* 1 8 1 9 2 12\* 7 8\* 8 8 6 8 3 7\* 6 4 2 1 1 |
-| 40 | G | below | 4\* 1 10 1 8 1 4 1 4 7 6 1 9 1 8 1 9 1 9\* 9 10 5 2 2 1 2 |
+| 40 | G | below | 4\* 1 10 1 8 1 4 1 4 7 6 1 9 1 8 1 9 1 9 9 10 5 2 2 1 2 |
 | 41 | G | above | 2 7 10 1 10\* 1 6 1 9\* 5\* 8\* 1 5 1 7 1 8 1 9 2\* 12\* 5 4 2 1 2 |
-| 42 | A | below | 4 1 8 1 11\* 4 6\* 7 10 3 7 8 8\* 5\* 5 5\* 1 5 1 2 |
+| 42 | A | below | 4 1 8 1 11\* 4 6\* 7 10 3 7 8 8\* 5\* 5 5 1 5 1 2 |
 | 43 | A | above | 1 4\* 7\* 7\* 4 7\* 8\* 1 8 1 10\* 3 4 7 10 8\* 9 4 3 2 1 1 |
 | 44 | C | below | 4 4 7 3 6\* 1 8 1 6 1 7 1 8 6 7 1 7 1 2 2 1 2 |
-| 45 | C | above | 1 1 8 1 4 6\* 8 1 4 1 7\* 1 8 1 8\* 5\* 4 5 4\* 2 1 1 |
+| 45 | C | above | 1 1 8 1 4 6 8 1 4 1 7\* 1 8 1 8\* 5 4 5 4\* 2 1 1 |
 
 ## Third species
 
@@ -68,19 +68,19 @@ Legal pitches at each choice (first ranking; \* where Fux's note is not ranked f
 
 | ranking | Fux first | Fux first alone | first where free | mean rank |
 |---|---|---|---|---|
-| errors > warnings > counsel > habit | 88% | 87% | 78% (144) | 1.20 |
+| errors > warnings > counsel > habit | 86% | 85% | 74% (144) | 1.21 |
 | errors > warnings > counsel | 93% | 75% | 57% (144) | 1.12 |
-| errors > habit | 88% | 88% | 79% (144) | 1.20 |
-| errors > counsel > habit | 88% | 87% | 78% (144) | 1.20 |
+| errors > habit | 88% | 87% | 78% (144) | 1.18 |
+| errors > counsel > habit | 86% | 85% | 74% (144) | 1.21 |
 
 Legal pitches at each choice (first ranking; \* where Fux's note is not ranked first):
 
 | Fig. | final | cantus | choices |
 |---|---|---|---|
-| 55 | D | below | 1 7 1 7 1 8\* 2 4 1 9\* 2\* 6\* 1 9 2\* 10\* 2 8 1 6 6 6\* 1 8\* 2 1 10 2 2 8 1 8 7 1 7 1 1 8 2 1 2 |
-| 56 | D | above | 1 8 1 8 5\* 8\* 1 8\* 2\* 9\* 1 8 2 8 1 10 4 9\* 8\* 11 3 6 1 7 1 8 1 6 1 8 1 7 3 6 6\* 8 5\* 1 8 1 1 |
-| 57 | E | below | 4\* 1 9 1 1 7 1 8 1 7 1 5 7\* 1 8 1 5 7 1 8 1 7 1 6 6\* 10 1 9 1 8 10 9 1 8 1 1 1 |
-| 58 | E | above | 1 8 1 7 1 9 1 6 1 6 1 7 5 9 1 9 1 8 1 8 1 7 1 5 1 9 1 9 1 10\* 1 9 1 7 6 1 1 |
+| 55 | D | below | 1 7 1 7 1 8\* 2 4 1 9 2\* 6\* 1 9 2\* 10\* 2 8 1 6 6 6\* 1 8\* 2\* 1 10 2 2\* 8 1 8 7\* 1 7 1 1 8 2 1 2 |
+| 56 | D | above | 1 8 1 8 5\* 8\* 1 8\* 2\* 9\* 1 8 2 8 1 10 4 9\* 8\* 11 3 6\* 1 7 1 8 1 6 1 8 1 7 3 6\* 6\* 8 5\* 1 8 1 1 |
+| 57 | E | below | 4 1 9 1 1 7 1 8 1 7 1 5 7\* 1 8 1 5 7 1 8 1 7 1 6 6\* 10 1 9 1 8 10 9 1 8 1 1 1 |
+| 58 | E | above | 1 8 1 7 1 9 1 6 1 6 1 7 5 9\* 1 9 1 8 1 8 1 7 1 5 1 9 1 9 1 10\* 1 9 1 7\* 6 1 1 |
 | 59 | F | below | 1 7 1 7 7\* 8 1 4 1 9 1 9\* 1 7 1 7 1 1 8 1 5 1 7 1 1 7 1 3 1 8 1 8 1 9\* 10\* 5 1 7 1 8 2 7 1 1 2 |
 | 60 | F | above | 1 1 8 1 9\* 1 9 1 1 8 1 8 1 9 2 10 7 11\* 10\* 11 7 8\* 1 9 1 9 1 7 5 1 8 1 1 8 1 8 1 8 1 7 9\* 1 9 1 1 |
 
@@ -92,7 +92,7 @@ Legal pitches at each choice (first ranking; \* where Fux's note is not ranked f
 |---|---|---|---|---|
 | errors > warnings > counsel > habit | 85% | 85% | 69% (32) | 1.24 |
 | errors > warnings > counsel | 90% | 84% | 66% (32) | 1.16 |
-| errors > habit | 87% | 87% | 72% (32) | 1.18 |
+| errors > habit | 84% | 84% | 66% (32) | 1.25 |
 | errors > counsel > habit | 85% | 85% | 69% (32) | 1.24 |
 
 Legal pitches at each choice (first ranking; \* where Fux's note is not ranked first):

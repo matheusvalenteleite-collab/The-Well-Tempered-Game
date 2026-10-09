@@ -181,3 +181,35 @@ test("cantus register: low on the F staff, high an octave above the middle on th
     assert.ok(offStaff(mid.line, mid.clef) <= offStaff(mid.line, mid.clef === "bass" ? "treble" : "bass"));
   }
 });
+
+import { arrival, MODEL_FEATURES, MODEL_WEIGHTS, modelBits, moveClass, movePairs } from "../src/counterpoint/choices/features.ts";
+
+test("habit model: features name what a note does; every model feature has a weight; Fux's note costs less than the average legal one", () => {
+  assert.equal(moveClass(2), "+s");
+  assert.equal(moveClass(-5), "-5");
+  assert.equal(moveClass(0), "0");
+  for (const f of MODEL_FEATURES) assert.ok(MODEL_WEIGHTS[f.id] > 0, f.id);
+  const [l] = fuxLines(repo, "first");
+  const x = { layout: l.layout, cantus: l.cantus, line: l.line, cantusVoice: l.cantusVoice, unit: [3] };
+  assert.ok(movePairs.keys(x).every((k) => /^[-+]?[0s35L]>[-+]?[0s35L]$/.test(k)));
+  assert.ok(arrival.keys(x).every((k) => /^(contrary|oblique|similar|parallel|none)>(P|I|D)$/.test(k)));
+  // Over Fux's second-species solutions (each judged by a model learnt without it), his notes are cheaper than the average legal candidate.
+  const lines = fuxLines(repo, "second");
+  let fuxCheaper = 0;
+  let n = 0;
+  for (const a of auditSpecies(repo, "second").slice(0, 6)) {
+    const h = buildHabits(lines, "second", [a.line.exerciseId]);
+    for (const u of a.units) {
+      const legal = u.candidates.filter((c) => c.legal);
+      if (legal.length < 2) continue;
+      const cost = (p: string) => {
+        const m = modelBits(h.features, { layout: a.line.layout, cantus: a.line.cantus, line: a.line.line.map((q, k) => (u.unit.includes(k) ? p : q)), cantusVoice: a.line.cantusVoice, unit: u.unit });
+        return m.melodic + m.vertical;
+      };
+      const mean = legal.reduce((s, c) => s + cost(c.pitch), 0) / legal.length;
+      n++;
+      if (cost(u.written) < mean) fuxCheaper++;
+    }
+  }
+  assert.ok(fuxCheaper / n > 0.7, `${fuxCheaper}/${n}`);
+});

@@ -16,7 +16,7 @@ import { compareTiers, TIER_NAMES, type TierName, type Tiers } from "./score.ts"
 import { bits } from "./habits.ts";
 import type { AuditSummary } from "./audit.ts";
 import { summarise } from "./audit.ts";
-import { DEFAULT_COUNSEL_WEIGHT, DEFAULT_TEMPERATURE } from "./counterpoint.ts";
+import { DEFAULT_COUNSEL_WEIGHT, TRIO_TEMPERATURE } from "./counterpoint.ts";
 import { pitchesBetween, sharpAllowed } from "./vocabulary.ts";
 
 const midi = (p: string) => parsePitch(p).midi;
@@ -333,7 +333,7 @@ export function generateThirdVoice(o: ThirdVoiceOptions): ThirdVoice {
     return m <= Math.max(a, b) + 2 && m >= Math.min(a, b) - 2;
   };
   const r = rng(o.seed ?? Date.now());
-  const T = o.temperature ?? DEFAULT_TEMPERATURE;
+  const T = o.temperature ?? TRIO_TEMPERATURE;
   const noise = () => -(T / Math.LN2) * -Math.log(-Math.log(Math.max(1e-12, r())));
   const w = o.counselWeight ?? DEFAULT_COUNSEL_WEIGHT;
   const prefixRules = TRIO_FIRST_SPECIES.filter((x) => !DEFERRED.has(x.id));

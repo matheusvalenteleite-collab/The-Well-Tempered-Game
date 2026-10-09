@@ -71,6 +71,17 @@ Findings and points for the owner:
 - Generator settings: counsel weight 0 and variety 1 by default, i.e. each move drawn about as
   often as Fux makes it (Gumbel-max sampling); generated first-species lines then match his
   rates of repetition, leaps and spacing (14%, 32%, 7.4 semitones; Fux 11%, 32%, 7.1).
+- Fux's habits, measured (docs/fux/habits-study.md; the lab's "Fux's habits" tab): of eleven
+  candidate habits, five predict his notes once the others are in, each exercise judged by a model
+  learnt without it: the melodic move by voice position, the interval with the cantus, pairs of
+  successive moves, how a downbeat is reached, the same fifth or octave on successive downbeats.
+  Weighted, they cut the surprise at his notes from 1.24 to 0.96 bits per real choice (his note
+  first 72%; 68% before; second species 63% → 75-78%). In words: perfect consonances on a
+  downbeat reached by contrary motion 99% (oblique would be legal); after a leap of a fourth or
+  more he turns back 76% (up) and 95% (down), after a downward one more often by another leap
+  than by step. The audit and both generators use this model; the generator's variety is
+  calibrated at 0.75 on his rates of leaps and spacing. Not yet modelled: three voices (its own,
+  older model), first-species repeated notes (3% generated against his 11%).
 - Habits are measured per role (counterpoint above or below) and with register and crossing
   (a tenth is not a third; a crossed third is not a third).
 - Ranking by the most typical move alone gives far fewer leaps than Fux writes (6-19% against

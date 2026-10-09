@@ -12,7 +12,11 @@ import { harmonic, simpleName } from "../interval.ts";
 import { parsePitch } from "../../music/pitch.ts";
 import type { Staff } from "../../music/fux/index.ts";
 import type { SpeciesId } from "../layout.ts";
-import { onsets, type FuxLine } from "./corpus.ts";
+import { onsets, type FuxLine, choiceUnits } from "./corpus.ts";
+import { bits, melodicKey, roleOf, samePerfect, verticalKey } from "./keys.ts";
+import { learnFeatures, MODEL_FEATURES, type FeatureTables } from "./features.ts";
+
+export { bits, melodicKey, roleOf, samePerfect, verticalKey } from "./keys.ts";
 
 type Counts = Map<string, number>;
 const add = (m: Counts, k: string, n = 1) => m.set(k, (m.get(k) ?? 0) + n);
@@ -26,30 +30,15 @@ export interface HabitTables {
   vertical: { down: Counts; other: Counts };
   /** Successive downbeats on the same perfect consonance (fifths or octaves broken by the upbeats), and all successive downbeats. */
   succession: { same: number; total: number };
+  /** The weighted habit model (features.ts): its tables, learnt on the same lines. */
+  features: FeatureTables;
 }
 
-/** Role of the counterpoint: "upper" when the cantus is below. */
-export const roleOf = (cantusVoice: Staff): "upper" | "lower" => (cantusVoice === "lower" ? "upper" : "lower");
 
-export const melodicKey = (from: string, to: string) => {
-  const d = parsePitch(to).midi - parsePitch(from).midi;
-  return String(Math.max(-12, Math.min(12, d)));
-};
-/**
- * The vertical interval with its octave count ("M3", "M3+1" = a tenth), so that spacing is learnt
- * too, marked "x" when the counterpoint has crossed to the cantus's side.
- */
-export const verticalKey = (cantus: string, cp: string, cantusVoice: Staff) => {
-  const h = harmonic(cantus, cp);
-  const octaves = Math.floor((h.number - 1) / 7) - (h.number > 1 && (h.number - 1) % 7 === 0 ? 1 : 0);
-  const d = parsePitch(cp).midi - parsePitch(cantus).midi;
-  const crossed = cantusVoice === "lower" ? d < 0 : d > 0;
-  return `${crossed ? "x" : ""}${simpleName(h)}${octaves > 0 ? `+${octaves}` : ""}`;
-};
 
 /** Tables from Fux's lines of one species, leaving out the exercises in `exclude` (leave-one-out). */
 export function buildHabits(lines: FuxLine[], species: SpeciesId, exclude: string[] = []): HabitTables {
-  const t: HabitTables = { species, from: [], melodic: { pooled: new Map(), upper: new Map(), lower: new Map() }, vertical: { down: new Map(), other: new Map() }, succession: { same: 0, total: 0 } };
+  const t: HabitTables = { species, from: [], melodic: { pooled: new Map(), upper: new Map(), lower: new Map() }, vertical: { down: new Map(), other: new Map() }, succession: { same: 0, total: 0 }, features: new Map() };
   for (const l of lines) {
     if (l.species !== species || exclude.includes(l.exerciseId)) continue;
     t.from.push(l.exerciseId);
@@ -74,6 +63,8 @@ export function buildHabits(lines: FuxLine[], species: SpeciesId, exclude: strin
       add(s.beat === 0 ? t.vertical.down : t.vertical.other, verticalKey(l.cantus[s.bar], p, l.cantusVoice));
     });
   }
+  const used = lines.filter((l) => l.species === species && !exclude.includes(l.exerciseId));
+  t.features = learnFeatures(used, MODEL_FEATURES, (l) => choiceUnits(l.layout, l.line).filter((u) => /^[A-G]/.test(l.line[u[0]])));
   return t;
 }
 
@@ -92,10 +83,7 @@ export function melodicProb(t: HabitTables, role: "upper" | "lower", key: string
 
 export const verticalProb = (t: HabitTables, downbeat: boolean, key: string) => prob(downbeat ? t.vertical.down : t.vertical.other, key, VERTICAL_SIZE);
 
-export const bits = (p: number) => -Math.log2(p);
 
-/** Two vertical keys on successive downbeats: the same fifth or octave (unison) again? */
-export const samePerfect = (a: string, b: string) => /^x?(5|8|1)(\+\d)?$/.test(a) && a.replace(/^x|\+\d$/g, "") === b.replace(/^x|\+\d$/g, "");
 
 /** Surprisal of a downbeat following another on the same (or a different) perfect consonance. */
 export const successionBits = (t: HabitTables, same: boolean) => {

@@ -21,6 +21,7 @@ import { DEFAULT_COUNSEL_WEIGHT, DEFAULT_TEMPERATURE, generateCounterpoint } fro
 import { judgeLine } from "../counterpoint/choices/alternatives.ts";
 import { fuxAccidentals, pitchesBetween, registerWindow } from "../counterpoint/choices/vocabulary.ts";
 import { play, playLines, stop } from "./play.ts";
+import { HabitsTab } from "./Habits.tsx";
 import { addThirdVoice, auditGeneratedTrio, judgeGeneratedTrio, TrioAuditList, TrioAuditTab, TrioChoiceDetail, TrioSummary } from "./Trio.tsx";
 import type { Placement, ThirdVoice, TrioAudit } from "../counterpoint/choices/trio.ts";
 
@@ -465,7 +466,7 @@ function GenerateTab() {
           <label className="lab-group" title="0: follow Fux's habits only. Higher: also obey his stated counsel (contrary motion, imperfect consonances, no repetition, small leaps); each point of counsel counts as this many bits of habit">
             Counsel weight <input id="gen-weight" type="range" min={0} max={6} step={0.5} value={weight} onChange={(e) => setWeight(Number(e.target.value))} /> <b>{weight}</b>
           </label>
-          <label className="lab-group" title="0: always the most typical move. 1: each move about as often as Fux makes it. Above 1: rarer moves more often">
+          <label className="lab-group" title="0: always the most typical move. 0.75 (default): calibrated so that the lines leap and space themselves as often as Fux's do. Higher: rarer moves more often">
             Variety <input id="gen-variety" type="range" min={0} max={3} step={0.25} value={temperature} onChange={(e) => setTemperature(Number(e.target.value))} /> <b>{temperature}</b>
           </label>
         </div>
@@ -531,7 +532,7 @@ function GenerateTab() {
 }
 
 export function Lab() {
-  const [tab, setTab] = useState<"audit" | "generate">("audit");
+  const [tab, setTab] = useState<"audit" | "generate" | "habits">("audit");
   return (
     <main className="lab">
       <header className="lab-head">
@@ -539,14 +540,17 @@ export function Lab() {
         <nav>
           <button className={tab === "audit" ? "primary" : ""} onClick={() => setTab("audit")}>Audit of Fux's choices</button>
           <button className={tab === "generate" ? "primary" : ""} onClick={() => setTab("generate")}>Generators</button>
+          <button className={tab === "habits" ? "primary" : ""} onClick={() => setTab("habits")}>Fux's habits</button>
         </nav>
       </header>
       <p className="lab-intro">
-        {tab === "audit"
+        {tab === "habits"
+          ? "Which habits of Fux's predict the notes he actually wrote? Each candidate habit is measured by how well it predicts his choices in exercises it has not seen; the five that earn their place make the model used by the audit and the generators."
+          : tab === "audit"
           ? "At every note of Fux's solutions (two voices, species 1–4; three voices, first species), every other pitch is put in its place and the whole line is judged again by the game's rules. The legal ones are ranked by the score vector: errors, then Fux's recommendations, then his stated counsel (motion, perfect consonances, repetition, leaps), then his habits measured on his other solutions."
           : "Build an exercise in three steps: a cantus firmus from the constraints accepted in D8 (each checked against Fux's own cantus firmi); a counterpoint found by a search the game's rules judge as it goes; and, in first species, a third voice judged by the three-voice rules. All voices stand in one score and play together."}
       </p>
-      {tab === "audit" ? <AuditTab /> : <GenerateTab />}
+      {tab === "audit" ? <AuditTab /> : tab === "generate" ? <GenerateTab /> : <HabitsTab />}
     </main>
   );
 }
