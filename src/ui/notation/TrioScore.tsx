@@ -8,6 +8,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Accidental, ModifierContext, Renderer, Stave, StaveConnector, StaveNote, TickContext } from "vexflow";
 import { parsePitch } from "../../music/pitch.ts";
+import { noteName, type NameStyle } from "../../music/names.ts";
 import { harmonic } from "../../counterpoint/interval.ts";
 import { pitchAtPosition, VEXFLOW_CLEF, type ClefId } from "./clefs.ts";
 import { useZoomGestures, ZOOM_MAX, ZOOM_MIN } from "./zoom.ts";
@@ -34,12 +35,14 @@ interface Props {
   marks?: TrioMark[];
   figures?: boolean;
   names?: boolean;
+  nameStyle?: NameStyle;
   label: string;
   onPlace(staff: number, bar: number, natural: string): void;
   onSelect(staff: number, bar: number): void;
   zoom: number;
   onZoom(z: number): void;
   zoomLabels: { in: string; out: string; reset: string };
+  tools?: React.ReactNode;
 }
 
 const BAR_W = 64;
@@ -81,6 +84,7 @@ export function TrioScore(p: Props) {
   return (
     <div ref={host} className={chunks.length > 1 ? "systems-host systems" : "systems-host"}>
       <div className="zoombar" role="group">
+        {p.tools}
         <button className="icon quiet" onClick={() => commit(p.zoom / STEP)} disabled={p.zoom <= ZOOM_MIN} aria-label={p.zoomLabels.out} title={p.zoomLabels.out}>−</button>
         <button className="zoom-level" onClick={() => commit(1)} title={p.zoomLabels.reset}>{Math.round(p.zoom * 100)}%</button>
         <button className="icon quiet" onClick={() => commit(p.zoom * STEP)} disabled={p.zoom >= ZOOM_MAX} aria-label={p.zoomLabels.in} title={p.zoomLabels.in}>+</button>
@@ -200,7 +204,7 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
             ctx.save();
             ctx.setFont("Inter, system-ui, sans-serif", 9);
             ctx.setFillStyle("var(--ink-muted)");
-            ctx.fillText(mine.replace(/\d+$/, "").replace("b", "♭").replace("#", "♯"), x + 20, note.getYs()[0] + 3);
+            ctx.fillText(noteName(mine, p.nameStyle), x + 20, note.getYs()[0] + 3);
             ctx.restore();
           }
         }
@@ -229,7 +233,7 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
       staves: staves.map((s) => ({ top: s.getYForLine(0), bottom: s.getYForLine(4), spacing: s.getSpacingBetweenLines() })),
     };
     host.dataset.geometry = JSON.stringify(geo.current);
-  }, [p.staves, p.active, p.selected, p.cursor, p.marks, p.figures, p.names, p.from, p.to, p.scale, p.fill, p.last, p.label, n]);
+  }, [p.staves, p.active, p.selected, p.cursor, p.marks, p.figures, p.names, p.nameStyle, p.from, p.to, p.scale, p.fill, p.last, p.label, n]);
 
   // Pointer: the nearest staff takes the tap; a second finger makes it a pinch, which writes nothing.
   const fingers = useRef(new Set<number>());

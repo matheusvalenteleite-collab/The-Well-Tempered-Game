@@ -36,7 +36,7 @@ function sliceRealization(r: ContinuoRealization, a: number, b: number): Continu
   };
 }
 
-export function Systems(props: ScoreProps & { zoom?: number; onZoom?: (z: number) => void; zoomLabels?: { in: string; out: string; reset: string } }) {
+export function Systems(props: ScoreProps & { zoom?: number; onZoom?: (z: number) => void; zoomLabels?: { in: string; out: string; reset: string }; tools?: React.ReactNode }) {
   const host = useRef<HTMLDivElement>(null);
   const content = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -60,6 +60,7 @@ export function Systems(props: ScoreProps & { zoom?: number; onZoom?: (z: number
   const scale = Math.max(SCALE_MIN, Math.min(SCALE_MAX, (wrapByDefault ? TARGET : Math.min(1, single)) * zoom));
   const bar = props.onZoom && (
     <div className="zoombar" role="group">
+      {props.tools}
       <button className="icon quiet" onClick={() => commit(zoom / STEP)} disabled={zoom <= ZOOM_MIN} aria-label={props.zoomLabels?.out} title={props.zoomLabels?.out}>−</button>
       <button className="zoom-level" onClick={() => commit(1)} title={props.zoomLabels?.reset}>{Math.round(zoom * 100)}%</button>
       <button className="icon quiet" onClick={() => commit(zoom * STEP)} disabled={zoom >= ZOOM_MAX} aria-label={props.zoomLabels?.in} title={props.zoomLabels?.in}>+</button>

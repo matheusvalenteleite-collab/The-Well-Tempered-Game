@@ -23,6 +23,10 @@ import { SoundDesk, trackOrder } from "./SoundDesk.tsx";
 import { Knob } from "./Knob.tsx";
 import { audio, store, stored, validDrumKit } from "./shared.ts";
 import { t } from "./i18n.ts";
+import { Shell } from "./Shell.tsx";
+import { ScoreTools } from "./ScoreTools.tsx";
+import { HeaderTools } from "./HeaderTools.tsx";
+import type { NameStyle } from "../music/names.ts";
 
 const STEPS: TrioStep[] = trioSteps(data as never);
 const ORDINAL = ["", "1st", "2nd", "3rd", "4th", "5th"];
@@ -70,9 +74,12 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const [names, setNames] = useState(() => stored("wtg.names", false, (v) => typeof v === "boolean"));
   const [figures, setFigures] = useState(() => stored("wtg.intervals", false, (v) => typeof v === "boolean"));
   const [zoom, setZoom] = useState(() => stored("wtg.zoom", 1, (v) => typeof v === "number" && v >= ZOOM_MIN && v <= ZOOM_MAX));
-  const [deskOpen, setDeskOpen] = useState(() => stored("wtg.deskOpen", true, (v) => typeof v === "boolean"));
   const [fuxHeard, setFuxHeard] = useState(() => stored("wtg.fuxHeard", false, (v) => typeof v === "boolean"));
   const [showFux, setShowFux] = useState(false);
+  const [tab, setTab] = useState<string>(() => stored("wtg.dock", "mixer", (v) => typeof v === "string"));
+  useEffect(() => store("wtg.dock", tab), [tab]);
+  const [nameStyle, setNameStyle] = useState<NameStyle>(() => stored("wtg.nameStyle", "letters" as NameStyle, (v) => v === "letters" || v === "solfege"));
+  useEffect(() => store("wtg.nameStyle", nameStyle), [nameStyle]);
   const [versions, setVersions] = useState<Versions>({ ...DEFAULT_VERSIONS, original: true });
   const [playing, setPlaying] = useState(false);
   const [cursor, setCursor] = useState(-1);
@@ -119,7 +126,6 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
   useEffect(() => store("wtg.names", names), [names]);
   useEffect(() => store("wtg.intervals", figures), [figures]);
   useEffect(() => store("wtg.zoom", zoom), [zoom]);
-  useEffect(() => store("wtg.deskOpen", deskOpen), [deskOpen]);
   useEffect(() => store("wtg.fuxHeard", fuxHeard), [fuxHeard]);
   useEffect(() => {
     audio.setGates({ counterpoint: versions.original, fux: fuxHeard && fuxOpen, continuo });
@@ -216,6 +222,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
     if (missing > 0) return;
     const ev = evaluateTrio({ modalFinal: STEP.modalFinal, cantusIndex: STEP.cantusIndex, voices: [0, 1, 2].map((i) => (i === STEP.cantusIndex ? STEP.cantus : (sessions[i].notes as string[]))) });
     setResult(ev);
+    setTab("evaluation");
     if (ev.passed) {
       if (!stars.includes(STEP.id)) setStars([...stars, STEP.id]);
       if (!unlocked.includes(STEP.id)) setUnlocked([...unlocked, STEP.id]);
@@ -277,17 +284,18 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const warnings = result?.warnings ?? [];
 
   return (
-    <div className="app">
-      <header>
-        <h1>{t("ui.title")}</h1>
-        <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
+    <Shell
+      header={
+        <>
+          <h1 className="brand">{t("ui.title")}</h1>
+          <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
           <button className="icon" onClick={() => goTo(stepIndex - 1)} disabled={stepIndex === 0} aria-label={t("ui.nav.prev")}>‹</button>
-          <select id="voices" value={3} aria-label={t("ui.nav.voices")} onChange={(e) => Number(e.target.value) === 2 && (audio.stop(), onVoices(2))}>
+          <select id="voices" className="sel sel-voices" value={3} aria-label={t("ui.nav.voices")} onChange={(e) => Number(e.target.value) === 2 && (audio.stop(), onVoices(2))}>
             {[2, 3, 4].map((n) => (
               <option key={n} value={n} disabled={n === 4}>{t("ui.nav.voicesN", { n })}</option>
             ))}
           </select>
-          <select id="species" value={1} aria-label={t("ui.nav.species")} onChange={() => undefined}>
+          <select id="species" className="sel sel-species" value={1} aria-label={t("ui.nav.species")} onChange={() => undefined}>
             {[1, 2, 3, 4, 5].map((n) => (
               <option key={n} value={n} disabled={n !== 1}>
                 {t("ui.nav.speciesN", { n: ORDINAL[n] })}
@@ -295,7 +303,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
               </option>
             ))}
           </select>
-          <select id="exercise" value={stepIndex} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("ui.nav.choose")}>
+          <select id="exercise" className="sel sel-exercise" value={stepIndex} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("ui.nav.choose")}>
             {STEPS.map((s, k) => (
               <option key={s.id} value={k}>
                 {stars.includes(s.id) ? "★ " : ""}
@@ -305,28 +313,10 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
           </select>
           <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1} aria-label={t("ui.nav.next")}>›</button>
         </nav>
-        <div className="header-tools">
-          <button className="chipbtn look" onClick={() => setLook(look === "retro" ? "classic" : "retro")} title={t("ui.look.help")}>
-            {t("ui.look")}: {t(`ui.look.${look}`)}
-          </button>
-          <button className="icon quiet" onClick={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} aria-label={t("ui.theme.label")} title={t(`ui.theme.${theme}`)}>
-            {theme === "dark" ? "☾" : theme === "light" ? "☀" : "◐"}
-          </button>
-        </div>
-      </header>
-      <main>
-        <p className="meta">{t("ui.mode.fux")} · {t("ui.trio3.meta", { final: STEP.modalFinal, where: t(`ui.trio3.cantus.${STEP.cantusIndex}`) })}</p>
-        <div className="title-row">
-          <h2 className="exercise-name">{t("ui.trio3.name", { fig: STEP.figure })}</h2>
-          <div className="view-toggles" role="group" aria-label={t("ui.view.label")}>
-            <button className="chipbtn" aria-pressed={names} onClick={() => setNames(!names)} title={t("ui.view.namesHelp")}>{t("ui.view.names")}</button>
-            <button className="chipbtn" aria-pressed={figures} onClick={() => setFigures(!figures)} title={t("ui.view.intervalsHelp")}>{t("ui.view.intervals")}</button>
-          </div>
-        </div>
-        <blockquote className="tutor" lang="en">
-          <span className="speaker">{t("tutor.speaker.aloysius")}.</span> “{t("ui.trio3.intro")}”
-          <cite title={t("ui.trio3.introLa")} lang="la">{t("ui.trio3.cite")}</cite>
-        </blockquote>
+          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("rules")} />
+        </>
+      }
+      score={
         <div className="score-wrap trio" data-notes={JSON.stringify(mine.map((i) => sessions[i].notes))}>
           <span className={stars.includes(STEP.id) ? "star earned" : "star"} aria-label={t(stars.includes(STEP.id) ? "ui.star.earned" : "ui.star.none")}>
             {stars.includes(STEP.id) ? "★" : "☆"}
@@ -339,6 +329,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
             marks={marks}
             figures={figures}
             names={names}
+            nameStyle={nameStyle}
             label={t("ui.trio3.name", { fig: STEP.figure })}
             onPlace={(staff, bar, natural) => {
               setActive(staff);
@@ -353,8 +344,12 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
             zoom={zoom}
             onZoom={setZoom}
             zoomLabels={{ in: t("ui.zoom.in"), out: t("ui.zoom.out"), reset: t("ui.zoom.reset") }}
+            tools={<ScoreTools view={{ names: names ? nameStyle : "off", intervals: figures }} onView={(v) => { setNames(v.names !== "off"); if (v.names !== "off") setNameStyle(v.names); setFigures(v.intervals); }} fux={{ open: fuxOpen, shown: showFux, onShow: setShowFux }} />}
           />
         </div>
+      }
+      transport={
+        <>
         <p className="trio-writing">
           <strong>{t("ui.trio3.writing", { voice: voiceName(activeStaff) })}</strong>{" "}
           <button className="chipbtn" onClick={() => setActive(mine[(mine.indexOf(activeStaff) + 1) % mine.length])} title={t("ui.trio3.switch")}>{t("ui.trio3.other")} ⇥</button>
@@ -381,35 +376,23 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
             <Knob id="volume" label={t("ui.volume")} value={volume} min={0} max={100} defaultValue={70} format={(v) => `${Math.round(v)}%`} onChange={(v) => setVolume(Math.round(v))} />
           </div>
         </div>
-        {result && (
-          <section className="feedback trio-feedback" aria-live="polite">
-            <p className={result.passed ? "verdict ok" : "verdict bad"}>{result.passed ? t("ui.trio3.passed") : t("ui.trio3.failed", { n: errors.length })}</p>
-            <ul>
-              {errors.map((v, i) => (
-                <li key={`e${i}`} className="error">
-                  <span className="where">{t("ui.trio3.bar", { bars: v.positions.map((p) => p + 1).join("–") })} {t("ui.trio3.voices", { voices: describe(v.voices) })}</span> {t(`hints.${v.messageKey}`)}
-                </li>
-              ))}
-            </ul>
-            {warnings.length > 0 && (
-              <>
-                <h4>{t("ui.trio3.notes")}</h4>
-                <ul>
-                  {warnings.map((v, i) => (
-                    <li key={`w${i}`} className="warning">
-                      <span className="where">{t("ui.trio3.bar", { bars: v.positions.map((p) => p + 1).join("–") })} {t("ui.trio3.voices", { voices: describe(v.voices) })}</span> {t(`hints.${v.messageKey}`)}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </section>
-        )}
-        {!fuxOpen && <p className="help">{t("ui.trio3.fuxLocked")}</p>}
-        <SoundDesk
+        </>
+      }
+      summary={result && (
+        <div className={result.passed ? "eval-summary ok" : "eval-summary bad"} role="status">
+          <span className="verdict">{result.passed ? `✓ ${t("ui.summary.passed")}` : `✗ ${t("ui.summary.failed", { n: result.errors.length })}`}</span>
+          <button className="link" onClick={() => setTab("evaluation")}>{t("ui.summary.open")} ▸</button>
+        </div>
+      )}
+      tab={tab}
+      onTab={setTab}
+      idle={`J. J. Fux, Gradus ad Parnassum (Vienna, 1725), Fux #${STEP.figure}, p. ${STEP.page}. Encoding: Four Score and More / Open Music Theory (Mark Gotham), CC0-1.0.`}
+      tabs={[
+        { id: "mixer", label: t("ui.dock.mixer"), content: (
+          <SoundDesk
           advanced={false}
-          open={deskOpen}
-          onOpen={setDeskOpen}
+          open
+          onOpen={() => undefined}
           continuo={continuo}
           onContinuo={setContinuo}
           continuoSettings={continuoSettings}
@@ -435,11 +418,48 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
           tuning={tuning}
           onTuning={setTuning}
         />
-        <p className="help trio-help">{t("ui.trio3.help")}</p>
-        <footer className="source">
-          J. J. Fux, Gradus ad Parnassum (Vienna, 1725), Fig. {STEP.figure}, p. {STEP.page}. Encoding: Four Score and More / Open Music Theory (Mark Gotham), CC0-1.0.
-        </footer>
-      </main>
-    </div>
+        ) },
+        { id: "evaluation", text: true, label: t("ui.dock.evaluation"), content: (
+          <>
+          {result ? (
+          <section className="feedback trio-feedback" aria-live="polite">
+            <p className={result.passed ? "verdict ok" : "verdict bad"}>{result.passed ? t("ui.trio3.passed") : t("ui.trio3.failed", { n: errors.length })}</p>
+            <ul>
+              {errors.map((v, i) => (
+                <li key={`e${i}`} className="error">
+                  <span className="where">{t("ui.trio3.bar", { bars: v.positions.map((p) => p + 1).join("–") })} {t("ui.trio3.voices", { voices: describe(v.voices) })}</span> {t(`hints.${v.messageKey}`)}
+                </li>
+              ))}
+            </ul>
+            {warnings.length > 0 && (
+              <>
+                <h4>{t("ui.trio3.notes")}</h4>
+                <ul>
+                  {warnings.map((v, i) => (
+                    <li key={`w${i}`} className="warning">
+                      <span className="where">{t("ui.trio3.bar", { bars: v.positions.map((p) => p + 1).join("–") })} {t("ui.trio3.voices", { voices: describe(v.voices) })}</span> {t(`hints.${v.messageKey}`)}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </section>
+        ) : (
+          <p className="dock-empty">{t("ui.dock.noEvaluation")}</p>
+        )}
+          {!fuxOpen && <p className="help">{t("ui.trio3.fuxLocked")}</p>}
+          </>
+        ) },
+        { id: "rules", text: true, label: t("ui.hints"), content: (
+          <>
+            <blockquote className="tutor" lang="en">
+              <span className="speaker">{t("tutor.speaker.aloysius")}.</span> “{t("ui.trio3.intro")}”
+              <cite title={t("ui.trio3.introLa")} lang="la">{t("ui.trio3.cite")}</cite>
+            </blockquote>
+            <p className="help trio-help">{t("ui.trio3.help")}</p>
+          </>
+        ) },
+      ]}
+    />
   );
 }

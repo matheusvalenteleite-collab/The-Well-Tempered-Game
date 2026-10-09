@@ -36,6 +36,10 @@ import { makePiece, restorePieces, type Piece, type Setup } from "../game/saved.
 import { DEFAULT_CONTINUO_SETTINGS, validContinuoSettings, type ContinuoSettings } from "../game/continuo-settings.ts";
 import { CONTINUO_DEMO_MODE } from "../config.ts";
 import { t } from "./i18n.ts";
+import { Shell } from "./Shell.tsx";
+import { ScoreTools } from "./ScoreTools.tsx";
+import { HeaderTools } from "./HeaderTools.tsx";
+import type { NameStyle } from "../music/names.ts";
 import { audio, store, stored, validDrumKit } from "./shared.ts";
 import type { Step } from "../music/pitch.ts";
 
@@ -58,7 +62,7 @@ const DWELL_MS = 150;
 const stepLabel = (k: number) => {
   const s = STEPS[k];
   const v = VIEWS[k];
-  return `${s.ordinal}. ${stepStudy(s.id).name} · ${v.modalFinal} · ${t(s.cantus_voice === "lower" ? "ui.nav.cfBelow" : "ui.nav.cfAbove")}`;
+  return `${s.ordinal} · ${v.modalFinal} · ${t(s.cantus_voice === "lower" ? "ui.nav.cfBelow" : "ui.nav.cfAbove")}`;
 };
 /** Ink of each derived version of the player's line (score and mixer). */
 const VERSION_INK: Record<VersionId, string> = {
@@ -110,7 +114,6 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const [advanced, setAdvanced] = useState(() => stored("wtg.advanced", false, (v) => typeof v === "boolean"));
   useEffect(() => store("wtg.advanced", advanced), [advanced]);
   const versions = useMemo<Versions>(() => (advanced ? storedVersions : { ...storedVersions, inversion: false, retrograde: false, retroInversion: false, canon: false }), [advanced, storedVersions]);
-  const [deskOpen, setDeskOpen] = useState(() => stored("wtg.deskOpen", true, (v) => typeof v === "boolean"));
   const [continuo, setContinuo] = useState(() => stored("wtg.continuo", false, (v) => typeof v === "boolean"));
   const [continuoSettings, setContinuoSettings] = useState<ContinuoSettings>(() => validContinuoSettings(stored<unknown>("wtg.continuoSettings", DEFAULT_CONTINUO_SETTINGS)));
   const [loop, setLoop] = useState(() => stored("wtg.loop", true, (v) => typeof v === "boolean"));
@@ -125,7 +128,11 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const [result, setResult] = useState<Evaluation | null>(null);
   const [showFux, setShowFux] = useState(false);
   /** The study area below: the rules of this exercise, or the Lectio (Fux's text and commentary). */
-  const [tab, setTab] = useState<"rules" | "lectio" | null>(null);
+  /** The dock's tab (D94): the mixer, the evaluation, the rules, the lectio. */
+  const [tab, setTab] = useState<string>(() => stored("wtg.dock", "mixer", (v) => typeof v === "string"));
+  useEffect(() => store("wtg.dock", tab), [tab]);
+  const [nameStyle, setNameStyle] = useState<NameStyle>(() => stored("wtg.nameStyle", "letters" as NameStyle, (v) => v === "letters" || v === "solfege"));
+  useEffect(() => store("wtg.nameStyle", nameStyle), [nameStyle]);
   const scoreRef = useRef<HTMLDivElement>(null);
   const browsing = useRef(false);
   const dragBase = useRef<SessionState | null>(null);
@@ -164,7 +171,6 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
     store("wtg.drumkit", drumKit);
   }, [drumKit, VIEW.modalFinal]);
   useEffect(() => store("wtg.continuo", continuo), [continuo]);
-  useEffect(() => store("wtg.deskOpen", deskOpen), [deskOpen]);
   useEffect(() => store("wtg.versions", storedVersions), [storedVersions]);
   useEffect(() => store("wtg.saved", pieces), [pieces]);
   useEffect(() => store("wtg.folds", folded), [folded]);
@@ -296,6 +302,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
       rulesForStep(STEP.id),
     );
     setResult(ev);
+    setTab("evaluation");
     // A star needs a clean result: no rule and no recommendation broken (owner decision D25).
     if (ev.violations.length === 0 && !stars.includes(STEP.id)) setStars([...stars, STEP.id]);
   };
@@ -752,14 +759,34 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const label = `${name} ${t("ui.exercise.mode", { final: VIEW.modalFinal })}`;
   const starred = stars.includes(STEP.id);
 
+  // The evaluation in one line under the transport (D94); the details are in the dock.
+  const barsOf = (v: { positions: number[] }) => [...new Set(v.positions.map((k) => (VIEW.layout[k]?.bar ?? 0) + 1))];
+  const gist = (key: string) => t(key).split(/(?<=[.;:])\s/)[0].replace(/[.;:]$/, "");
+  const summary = result && (
+    <div className={result.passed ? "eval-summary ok" : "eval-summary bad"} role="status">
+      <span className="verdict">{result.passed ? `✓ ${t("ui.summary.passed")}` : `✗ ${t("ui.summary.failed", { n: result.errors.length })}`}</span>
+      {result.errors.slice(0, 2).map((v, i) => (
+        <span key={i} className="summary-item">
+          {" · "}
+          <span className="bar-ref">{t("ui.summary.bars", { bars: barsOf(v).join(", ") })}</span> {gist(`hints.${v.messageKey}`)}
+        </span>
+      ))}
+      {result.errors.length > 2 && <span className="summary-item"> · …</span>}
+      <button className="link" onClick={() => setTab("evaluation")}>{t("ui.summary.open")} ▸</button>
+    </div>
+  );
+  const exerciseSource = VIEW.exerciseId ? t("ui.source.exercise", { figure, page: VIEW.page, license: VIEW.attribution.license }) : t("ui.source.cantusOnly", { final: VIEW.modalFinal });
+
   return (
-    <div className="app">
-      <header>
-        <h1>{t("ui.title")}</h1>
-        <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
+    <Shell
+      header={
+        <>
+          <h1 className="brand">{t("ui.title")}</h1>
+          <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
           <button className="icon" onClick={() => goTo(stepIndex - 1)} disabled={stepIndex === 0} aria-label={t("ui.nav.prev")}>‹</button>
           <select
             id="voices"
+            className="sel sel-voices"
             value={COURSE.voices}
             aria-label={t("ui.nav.voices")}
             onChange={(e) => {
@@ -780,6 +807,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
           </select>
           <select
             id="species"
+            className="sel sel-species"
             value={COURSE.species}
             aria-label={t("ui.nav.species")}
             onChange={(e) => {
@@ -798,7 +826,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
               );
             })}
           </select>
-          <select id="exercise" value={stepIndex} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("ui.nav.choose")}>
+          <select id="exercise" className="sel sel-exercise" value={stepIndex} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("ui.nav.choose")}>
             {COURSE.steps.map((s) => {
               const k = stepIndexOf(s.id);
               return (
@@ -811,47 +839,30 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
           </select>
           <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1} aria-label={t("ui.nav.next")}>›</button>
         </nav>
-        <div className="header-tools">
-          <button className="chipbtn advanced" aria-pressed={advanced} onClick={() => setAdvanced(!advanced)} title={t("ui.advanced.help")}>
-            {t("ui.advanced")}
-          </button>
-          <button className="chipbtn look" onClick={() => setLook(look === "retro" ? "classic" : "retro")} title={t("ui.look.help")}>
-            {t("ui.look")}: {t(`ui.look.${look}`)}
-          </button>
-          <button className="icon quiet save" onClick={savePiece} aria-label={t("ui.saved.save")} title={t("ui.saved.saveHelp")}>
-            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-              <path d="M2 1.5h9.5L14.5 4.5v10h-12.5z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
-              <rect x="4.5" y="1.5" width="6" height="4" fill="none" stroke="currentColor" strokeWidth="1.2" />
-              <rect x="8.3" y="2.3" width="1.3" height="2.4" fill="currentColor" />
-              <rect x="4" y="9" width="8" height="5" rx="0.5" fill="none" stroke="currentColor" strokeWidth="1.2" />
-            </svg>
-          </button>
-          <button className="icon quiet" onClick={() => setShowSaved(true)} aria-label={t("ui.saved.title")} title={t("ui.saved.title")}>
-            ♫{pieces.length > 0 && <span className="count">{pieces.length}</span>}
-          </button>
-          <button className="icon quiet" onClick={() => setShowHelp(true)} aria-label={t("ui.help.title")} title={t("ui.help.title")}>?</button>
-          <button className="icon quiet" onClick={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} aria-label={t("ui.theme.label")} title={t(`ui.theme.${theme}`)}>
-            {theme === "dark" ? "☾" : theme === "light" ? "☀" : "◐"}
-          </button>
-          <button className="link" onClick={() => setShowCredits(true)}>{t("ui.credits")}</button>
-        </div>
-      </header>
-      <main>
-        <p className="meta">
-          {t("ui.mode.fux")} · {t("ui.nav.voicesN", { n: COURSE.voices })} · {t(`ui.species.${VIEW.species}`)} · {t("ui.exercise.mode", { final: VIEW.modalFinal })} ·{" "}
-          {VIEW.cantusVoice === "lower" ? t("ui.exercise.cantusBelow") : t("ui.exercise.cantusAbove")}
-        </p>
-        <div className="title-row">
-          <h2 className="exercise-name">{name}</h2>
-          <div className="view-toggles" role="group" aria-label={t("ui.view.label")}>
-            <button className="chipbtn" aria-pressed={showNames} onClick={() => setShowNames(!showNames)} title={t("ui.view.namesHelp")}>{t("ui.view.names")}</button>
-            <button className="chipbtn" aria-pressed={showIntervals} onClick={() => setShowIntervals(!showIntervals)} title={t("ui.view.intervalsHelp")}>{t("ui.view.intervals")}</button>
-          </div>
-        </div>
-        <blockquote className="tutor" lang="en">
-          <span className="speaker">{t("tutor.speaker.aloysius")}.</span> “{stepStudy(STEP.id).intro.en}”
-          <cite title={stepStudy(STEP.id).intro.la} lang="la">{t("ui.tutor.cite", { page: stepStudy(STEP.id).intro.page })}</cite>
-        </blockquote>
+          <HeaderTools
+            onSave={savePiece}
+            onExport={() => {
+              if (exportPhase === null) {
+                setExportEnding(loop ? "seamless" : "final");
+                setExportStep(mix ? "options" : "kind");
+                setExportPhase("choose");
+              } else if (exportPhase === "recording") exportStop.current?.();
+            }}
+            exporting={exportPhase !== null}
+            onSaved={() => setShowSaved(true)}
+            saved={pieces.length}
+            advanced={advanced}
+            onAdvanced={() => setAdvanced(!advanced)}
+            look={look}
+            onLook={() => setLook(look === "retro" ? "classic" : "retro")}
+            theme={theme}
+            onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")}
+            onCredits={() => setShowCredits(true)}
+            onHelp={() => setShowHelp(true)}
+          />
+        </>
+      }
+      score={
         <div className="score-wrap" ref={scoreRef} data-notes={JSON.stringify(session.notes)} aria-label={t("ui.help.short")}>
           <span className={starred ? "star earned" : "star"} aria-label={t(starred ? "ui.star.earned" : "ui.star.none")} title={t(starred ? "ui.star.earned" : "ui.star.none")}>
             {starred ? "★" : "☆"}
@@ -860,6 +871,17 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
             zoom={zoom}
             onZoom={setZoom}
             zoomLabels={{ in: t("ui.zoom.in"), out: t("ui.zoom.out"), reset: t("ui.zoom.reset") }}
+            tools={
+              <ScoreTools
+                view={{ names: showNames ? nameStyle : "off", intervals: showIntervals }}
+                onView={(v) => {
+                  setShowNames(v.names !== "off");
+                  if (v.names !== "off") setNameStyle(v.names);
+                  setShowIntervals(v.intervals);
+                }}
+                fux={VIEW.fux ? { open: fuxOpen, shown: showFux, onShow: setShowFux } : undefined}
+              />
+            }
             cantus={moved(VIEW.cantus, sound.cantusOctave)}
             counterpoint={moved(shownLines[0].notes, octaveOf(shownLines[0].id))}
             readOnly={!editable}
@@ -881,6 +903,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
             ties={VIEW.species === "fourth"}
             continuo={continuoPlan && continuoSettings.display !== "none" ? { realization: continuoPlan.realization, display: continuoSettings.display } : undefined}
             showNames={showNames}
+            nameStyle={nameStyle}
             showGhost
             onPlace={(col, natural) => update(FIFTH ? spanFromSelected(place(session, col, unmove(natural)), VIEW.layout, noteValue) : place(session, col, unmove(natural)))}
             onSelect={(col) => browse(col)}
@@ -899,6 +922,9 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
             }}
           />
         </div>
+      }
+      transport={
+        <>
         <div className="controls">
           <div className="group write" role="group" aria-label={t("ui.group.write")}>
             {([[-1, "ui.accidental.flat"], [0, "ui.accidental.natural"], [1, "ui.accidental.sharp"]] as const).map(([a, key]) => (
@@ -943,23 +969,28 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
               <button className="icon play" onClick={() => play()} aria-label={t("ui.play.player")} title={t("ui.play.player")}>
                 {playing ? "■" : "▶"}
               </button>
+              <button className="from-bar" onClick={() => play(VIEW.layout.findIndex((sl) => sl.bar === VIEW.layout[session.selected].bar))} aria-label={t("ui.play.fromBar")} title={t("ui.play.fromBar")}>
+                ▶|
+              </button>
               <button className="loop" aria-pressed={loop} onClick={() => setLoop(!loop)} aria-label={t("ui.loop")} title={t(loop ? "ui.loop.on" : "ui.loop.off")}>⟲</button>
-              <button className="export" aria-pressed={exportPhase !== null} onClick={() => {
-                  if (exportPhase === null) {
-                    setExportEnding(loop ? "seamless" : "final");
-                    setExportStep(mix ? "options" : "kind");
-                    setExportPhase("choose");
-                  } else if (exportPhase === "recording") exportStop.current?.();
-                }} aria-label={t("ui.export")} title={t("ui.export.help")}>⤓</button>
             </div>
             <Knob id="tempo" label={t("ui.tempo")} value={tempo} min={30} max={240} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
             <Knob id="volume" label={t("ui.volume")} value={volume} min={0} max={100} defaultValue={70} format={(v) => `${Math.round(v)}%`} onChange={(v) => setVolume(Math.round(v))} />
           </div>
         </div>
-        <SoundDesk
+        {audioStatus === "failed" && <p className="status error">{t("ui.audio.failed")}</p>}
+        </>
+      }
+      summary={summary}
+      tab={tab}
+      onTab={setTab}
+      idle={exerciseSource}
+      tabs={[
+        { id: "mixer", label: t("ui.dock.mixer"), content: (
+          <SoundDesk
             advanced={advanced}
-            open={deskOpen}
-            onOpen={setDeskOpen}
+            open
+            onOpen={() => undefined}
             continuo={continuo}
             onContinuo={setContinuo}
             continuoSettings={continuoSettings}
@@ -985,7 +1016,10 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
             tuning={tuning}
             onTuning={setTuning}
           />
-        {result && (
+        ) },
+        { id: "evaluation", text: true, label: t("ui.dock.evaluation"), content: (
+          <>
+        {result ? (
           <section className="feedback" aria-live="polite">
             <Fold title={t("ui.fold.evaluation")} {...foldProps("evaluation")}>
               <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} ties={VIEW.species === "fourth"} audio={audio} />
@@ -1026,23 +1060,31 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
               </Fold>
             )}
           </section>
+        ) : (
+          <p className="dock-empty">{t("ui.dock.noEvaluation")}</p>
         )}
-        {audioStatus === "failed" && <p className="status error">{t("ui.audio.failed")}</p>}
-        <nav className="tabs" aria-label={t("ui.study.tabs")}>
-          <button role="tab" aria-selected={tab === "rules"} onClick={() => setTab(tab === "rules" ? null : "rules")}>{t("ui.hints")}</button>
-          <button role="tab" aria-selected={tab === "lectio"} onClick={() => setTab(tab === "lectio" ? null : "lectio")} title={t("ui.study.help")}>{t("ui.study")}</button>
-        </nav>
-        {tab === "rules" && <Hints step={STEP} cantus={VIEW.cantus} />}
-        {tab === "lectio" && <Study step={STEP} />}
-      </main>
-      <footer>
-        <p className="source">
-          {VIEW.exerciseId
-            ? t("ui.source.exercise", { figure, page: VIEW.page, license: VIEW.attribution.license })
-            : t("ui.source.cantusOnly", { final: VIEW.modalFinal })}{" "}
-          <a href={VIEW.attribution.urls.kern ?? VIEW.attribution.repository} target="_blank" rel="noreferrer">source</a>
-        </p>
-      </footer>
+          </>
+        ) },
+        { id: "rules", text: true, label: t("ui.hints"), content: (
+          <>
+            <blockquote className="tutor" lang="en">
+              <span className="speaker">{t("tutor.speaker.aloysius")}.</span> “{stepStudy(STEP.id).intro.en}”
+              <cite title={stepStudy(STEP.id).intro.la} lang="la">{t("ui.tutor.cite", { page: stepStudy(STEP.id).intro.page })}</cite>
+            </blockquote>
+            <Hints step={STEP} cantus={VIEW.cantus} />
+          </>
+        ) },
+        { id: "lectio", text: true, label: t("ui.study"), content: (
+          <>
+            <Study step={STEP} />
+            <p className="source">
+              {exerciseSource} <a href={VIEW.attribution.urls.kern ?? VIEW.attribution.repository} target="_blank" rel="noreferrer">source</a>
+            </p>
+          </>
+        ) },
+      ]}
+      overlays={
+        <>
       {showCredits && <Credits onClose={() => setShowCredits(false)} />}
       {toast && (
         <div className="toast" role="status">
@@ -1166,6 +1208,8 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
         </div>
       )}
       {showHelp && <HelpCard rest={VIEW.layout.some((sl) => sl.restAllowed)} onClose={() => setShowHelp(false)} />}
-    </div>
+        </>
+      }
+    />
   );
 }

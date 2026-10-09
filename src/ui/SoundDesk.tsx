@@ -164,11 +164,6 @@ export function SoundDesk(p: Props) {
         {x === "counterpoint" && octaveStepper(s.counterpointOctave, (n) => p.onChange({ ...s, counterpointOctave: n }))}
         {isVersion && octaveStepper(s.versionOctave[x as VersionId], (n) => p.onChange({ ...s, versionOctave: { ...s.versionOctave, [x]: n } }))}
         {x === "canon" && canonStepper}
-        {x === "fux" && (
-          <button className="chipbtn" tabIndex={-1} aria-pressed={p.showFux} disabled={!p.fuxOpen} title={t(p.fuxOpen ? "ui.mixer.fuxScoreHelp" : "ui.play.locked")} onClick={() => p.onShowFux(!p.showFux)}>
-            {p.showFux ? t("ui.mixer.fuxHide") : t("ui.mixer.fuxShow")}
-          </button>
-        )}
         {x === "continuo" && (
           <button
             className="chipbtn bc"

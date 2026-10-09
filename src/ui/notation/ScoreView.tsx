@@ -6,6 +6,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Accidental, Dot, ModifierContext, Renderer, Stave, StaveConnector, StaveNote, StaveTie, TickContext } from "vexflow";
 import { parsePitch } from "../../music/pitch.ts";
+import { noteName, type NameStyle } from "../../music/names.ts";
 import { harmonic, simpleName } from "../../counterpoint/interval.ts";
 import type { Staff } from "../../music/fux/types.ts";
 import { pitchAtPosition, VEXFLOW_CLEF, type ClefId } from "./clefs.ts";
@@ -61,6 +62,8 @@ export interface ScoreProps {
   showGhost?: boolean;
   /** Print each note's name beside it, in small type (for readers new to notation). */
   showNames?: boolean;
+  /** Letters or do-re-mi (D94). */
+  nameStyle?: NameStyle;
   /** Fux's counterpoint (one entry per slot), drawn on the player's staff with diamond noteheads. */
   fux?: (string | null)[];
   /** Fourth species: a note repeated over the bar line (upbeat to downbeat) is drawn tied. */
@@ -462,8 +465,7 @@ export function ScoreView(props: ScoreProps) {
       // Note names beside the noteheads: cantus, the player's notes and (if shown) Fux's.
       const label = (pitch: string, n: StaveNote | null, x: number, ink: string) => {
         if (!n || pitch === REST || pitch === HOLD) return;
-        const p = parsePitch(pitch);
-        const name = p.step + (p.alter > 0 ? "♯".repeat(p.alter) : p.alter < 0 ? "♭".repeat(-p.alter) : "");
+        const name = noteName(pitch, props.nameStyle);
         ctx.save();
         ctx.setFont(UI_FONT, 8, "500");
         ctx.setFillStyle(ink);
@@ -575,7 +577,7 @@ export function ScoreView(props: ScoreProps) {
     };
     geo.current = g;
     el.dataset.geometry = JSON.stringify(g); // read by the browser tests
-  }, [width, props.showNames, props.cantus, props.counterpoint, props.fux, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay, props.continuo, props.extraLines, props.extraIntervals, props.ties, props.playerInk, props.playerLabel, props.signature, props.fadePlayer, props.carry, props.lastSystem, props.compact, props.fillWidth, props.drawScale]);
+  }, [width, props.showNames, props.cantus, props.counterpoint, props.fux, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay, props.continuo, props.extraLines, props.extraIntervals, props.ties, props.playerInk, props.playerLabel, props.signature, props.fadePlayer, props.carry, props.lastSystem, props.compact, props.fillWidth, props.drawScale, props.nameStyle]);
 
   const press = useRef<{ x: number; y: number; dragging: boolean; from: number } | null>(null);
   /** Fingers on the score: a second one makes the gesture a pinch, which places nothing. */
