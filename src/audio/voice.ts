@@ -244,7 +244,7 @@ export class Synth implements Instrument {
     src.playbackRate.value = freq / (440 * 2 ** ((best.midi - 69) / 12));
     const g = this.ctx.createGain();
     // Within a layer, velocity still shades the level (about ±6 dB around the neutral 0.75).
-    g.gain.value = SET_GAIN[set] * (0.2 + 1.07 * velocity) * (layers.length > 1 && layer === layers[0] ? 1.35 : 1);
+    g.gain.value = (SET_GAIN[set] ?? 1.6) * (0.2 + 1.07 * velocity) * (layers.length > 1 && layer === layers[0] ? 1.35 : 1);
     src.connect(g).connect(out);
     src.start(time);
     src.stop(Math.min(end, time + best.buffer.duration / src.playbackRate.value));

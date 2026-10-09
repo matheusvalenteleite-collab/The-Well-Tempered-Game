@@ -1,14 +1,16 @@
 /**
- * Web Audio renderer of a continuo realization: synthesized organ, harpsichord and strings
- * (no samples); since D73 also theorbo, pizzicato and sustained strings, brass, analog pads and
- * bass, electric piano, and a rock band (driven bass, two guitars); ten presets, lookahead scheduling, a master compressor against clipping.
+ * Web Audio renderer of a continuo realization: synthesized organ, harpsichord, theorbo and analog
+ * pads; since D109 ensembles of recorded instruments (string quartet, the orchestras of Bach, Mozart,
+ * Beethoven and Wagner, strings in four articulations, a brass choir, a rock band) played on the
+ * game's sampler; lookahead scheduling, a master compressor against clipping.
  * The sung voices are played with the game's own synth (src/audio/voice.ts), so they keep
  * their timbre; temperaments come from src/audio/temperament.ts.
  */
 import { FxChain } from "../audio/effects.ts";
-import { DEFAULT_SYNTH, type SynthSettings } from "../audio/synth-settings.ts";
+import { DEFAULT_SYNTH, type SampleSet, type SynthSettings } from "../audio/synth-settings.ts";
+import { SAMPLE_MANIFEST } from "../audio/sample-manifest.ts";
 import { frequency, type TemperamentId } from "../audio/temperament.ts";
-import { Synth } from "../audio/voice.ts";
+import { loadSamples, Synth } from "../audio/voice.ts";
 import { sungNotes } from "./input.ts";
 import type { ContinuoEvent, ContinuoInput, ContinuoRealization, PresetId } from "./types.ts";
 
@@ -57,20 +59,26 @@ export const PRESETS = {
   hofkapelle: {
     organ: { rh: 0.022, bass: 0.035, ranks: { 8: 1, 4: 0.45, 2: 0.15 }, bassRanks: { 8: 1, 4: 0.45, 2: 0.15 }, flute: false },
     harpsichord: { rh: 0.075, bass: 0.085, octave: 0.055, restrike: 0.5 },
-    strings: 0.03,
-    cello: 0.045,
-    violone: 0.04,
     reverb: { mode: "hall", mix: 0.22 },
   },
   // D73: further ensembles. Levels matched by offline rendering to about -28 dB RMS (the old
   // presets lie between -25 and -32), not by ear.
   theorbo: { lute: { rh: 0.16, bass: 0.19 }, viol: 0.056, reverb: { mode: "room", mix: 0.2 } },
-  pizzicato: { rh: 0.26, bass: 0.3, contrabass: 0.2, reverb: { mode: "hall", mix: 0.25 } },
-  sostenuto: { rh: 0.04, cello: 0.072, contrabass: 0.063, reverb: { mode: "hall", mix: 0.28 } },
-  brass: { rh: 0.042, bass: 0.063, reverb: { mode: "hall", mix: 0.24 } },
-  analogPads: { rh: 0.022, bass: 0.055, reverb: { mode: "hall", mix: 0.3 } },
-  electricPiano: { rh: 0.049, bass: 0.091, reverb: { mode: "room", mix: 0.16 } },
-  rockBand: { lead: 0.017, rhythm: 0.05, bass: 0.039, reverb: { mode: "room", mix: 0.14 } },
+  pizzicato: { reverb: { mode: "hall", mix: 0.25 } },
+  sostenuto: { reverb: { mode: "hall", mix: 0.28 } },
+  brass: { reverb: { mode: "hall", mix: 0.24 } },
+  // D109: the pad swells in (no attack) and sits louder.
+  analogPads: { rh: 0.06, bass: 0.07, reverb: { mode: "hall", mix: 0.32 } },
+  // D109: recorded guitars and bass; the lead is a clean guitar through a tape delay, kept back.
+  rockBand: { lead: 0.6, rhythm: 1, bass: 1.25, reverb: { mode: "room", mix: 0.14 } },
+  // D109: ensembles of recorded instruments. Levels are per part, relative (1 = a part at full voice).
+  quartet: { reverb: { mode: "room", mix: 0.2 } },
+  bach: { harpsichord: { rh: 0.05, bass: 0.06, octave: 0.04, restrike: 0.5 }, reverb: { mode: "hall", mix: 0.22 } },
+  mozart: { reverb: { mode: "hall", mix: 0.24 } },
+  beethoven: { reverb: { mode: "hall", mix: 0.26 } },
+  wagner: { reverb: { mode: "cathedral", mix: 0.24 } },
+  staccato: { reverb: { mode: "hall", mix: 0.24 } },
+  sforzando: { reverb: { mode: "hall", mix: 0.26 } },
   /** Roll: seconds between notes (min, max); final chord per note. */
   roll: { min: 0.025, max: 0.045, final: 0.09 },
   /** Fraction of a half note by which "inegal" delays the upbeat re-strike. */
@@ -100,9 +108,18 @@ function rng(seed: number) {
 }
 
 type Instrument =
-  | "organ" | "bassOrgan" | "harpsichord" | "strings" | "violone"
+  | "organ" | "bassOrgan" | "harpsichord"
   // D73
-  | "lute" | "theorboBass" | "pizz" | "bowed" | "brass" | "pad" | "synthBass" | "epiano" | "upright" | "eBass" | "leadGuitar" | "rhythmGuitar";
+  | "lute" | "theorboBass" | "bowed" | "pad" | "synthBass"
+  // D109: a recorded instrument (see `rec`).
+  | "rec";
+
+/**
+ * How a recorded instrument is played (D109): held with the bow or breath; short (staccato);
+ * an accent that falls away at once (sforzando-piano); plucked; a guitar lead through a delay;
+ * a picked bass.
+ */
+export type Articulation = "legato" | "stac" | "sfz" | "pizz" | "lead" | "pick" | "strum";
 
 /** One note to schedule, in seconds. */
 interface Job {
@@ -113,6 +130,8 @@ interface Job {
   octave?: number;
   inst: Instrument;
   gain: number;
+  /** A recorded instrument: its sample set, articulation and part level; `gain` is then the velocity. */
+  rec?: { set: string; art: Articulation; level: number };
 }
 
 /** Note-level view of the realization: one entry per pitch per event. */
@@ -169,6 +188,107 @@ function tie<T extends { start: number; end: number; midi: number }>(notes: T[])
   }
   return out.sort((a, b) => a.start - b.start || a.midi - b.midi);
 }
+
+/** The recorded instruments the ensembles are made of (D109). */
+type RecInst = "violin" | "viola" | "cello" | "contrabass" | "flute" | "oboe" | "clarinet" | "bassoon" | "horn" | "trumpet" | "trombone" | "timpani" | "harp" | "leadGuitar" | "rhythmGuitar" | "bassGuitar";
+/** Playable range (MIDI) of each; a part outside it moves by octaves. */
+const RANGE: Record<RecInst, [number, number]> = {
+  violin: [55, 93], viola: [48, 84], cello: [36, 76], contrabass: [28, 60], flute: [60, 96], oboe: [58, 89], clarinet: [50, 89], bassoon: [34, 72],
+  horn: [41, 77], trumpet: [54, 82], trombone: [40, 72], timpani: [40, 55], harp: [24, 100], leadGuitar: [52, 88], rhythmGuitar: [40, 76], bassGuitar: [28, 55],
+};
+/**
+ * The sample set for an instrument and articulation: the first of its candidates that exists, so
+ * that a dedicated recording (a viola, a pizzicato) is used where there is one and a near relative
+ * stands in where there is not.
+ */
+const SETS: Record<RecInst, Partial<Record<Articulation, string[]>> & { legato: string[] }> = {
+  violin: { legato: ["violinSus", "violin"], stac: ["violinStac", "violinSus", "violin"], pizz: ["violinPizz", "harp"] },
+  viola: { legato: ["violaSus", "cello"], stac: ["violaStac", "violaSus", "cello"], pizz: ["violaPizz", "violinPizz", "harp"] },
+  cello: { legato: ["cello"], stac: ["celloStac", "cello"], pizz: ["celloPizz", "bassPizz", "harp"] },
+  contrabass: { legato: ["contrabass"], stac: ["bassStac", "contrabass"], pizz: ["bassPizz", "celloPizz", "harp"] },
+  flute: { legato: ["flute"] },
+  oboe: { legato: ["oboe", "flute"] },
+  clarinet: { legato: ["clarinet", "flute"] },
+  bassoon: { legato: ["bassoon"] },
+  horn: { legato: ["horn"] },
+  trumpet: { legato: ["trumpet"] },
+  trombone: { legato: ["sackbut"] },
+  timpani: { legato: ["timpani"] },
+  harp: { legato: ["harp"] },
+  leadGuitar: { legato: ["cleanGuitar", "eguitar"] },
+  rhythmGuitar: { legato: ["rhythmGuitar", "eguitar"] },
+  bassGuitar: { legato: ["rickBass", "ebass"] },
+};
+export function recSet(inst: RecInst, art: Articulation): string | null {
+  const list = SETS[inst][art] ?? SETS[inst].legato;
+  return list.find((x) => x in SAMPLE_MANIFEST) ?? null;
+}
+
+/** Envelope and effects of each articulation, on the game's sampler (D109). */
+const ARTICULATION: Record<Articulation, Partial<SynthSettings>> = {
+  legato: { attack: 0.07, decay: 0.1, sustain: 1, release: 0.4, tone: 9000 },
+  sfz: { attack: 0.004, decay: 0.28, sustain: 0.3, release: 0.35, tone: 9000 },
+  stac: { attack: 0.004, decay: 0.1, sustain: 0.7, release: 0.07, tone: 9000 },
+  pizz: { attack: 0.002, decay: 0.05, sustain: 1, release: 0.2, tone: 9000 },
+  pick: { attack: 0.003, decay: 0.05, sustain: 1, release: 0.07, tone: 7000 },
+  strum: { attack: 0.003, decay: 0.05, sustain: 1, release: 0.12, tone: 6000 },
+  lead: { attack: 0.004, decay: 0.05, sustain: 1, release: 0.3, tone: 5500, delayMode: "tape", delayTime: 0.36, delayFeedback: 0.38, delayMix: 0.3, reverbMode: "spring", reverbMix: 0.18 },
+};
+/** Overall level of the recorded parts against the synthesized instruments. */
+const REC_LEVEL = 0.32;
+
+/** The recorded parts: one sampler per sample set, articulation and level. */
+class Recorded {
+  private players = new Map<string, Synth>();
+  private ctx: BaseAudioContext;
+  private out: AudioNode;
+  private tuning: () => TemperamentId;
+  constructor(ctx: BaseAudioContext, out: AudioNode, tuning: () => TemperamentId) {
+    this.ctx = ctx;
+    this.out = out;
+    this.tuning = tuning;
+  }
+  /** Create the samplers of these jobs (which starts loading their recordings). */
+  prepare(jobs: Job[]) {
+    for (const j of jobs) if (j.rec) this.player(j.rec);
+  }
+  private player(r: NonNullable<Job["rec"]>): Synth {
+    const key = `${r.set}|${r.art}|${r.level}`;
+    let s = this.players.get(key);
+    if (!s) {
+      const level = this.ctx.createGain();
+      level.gain.value = r.level * REC_LEVEL;
+      level.connect(this.out);
+      s = new Synth(this.ctx, level, { ...DEFAULT_SYNTH, model: "sampled", sampleSet: r.set as SampleSet, vibrato: 0, reverbMode: "off", delayMode: "off", ...ARTICULATION[r.art] }, this.tuning);
+      this.players.set(key, s);
+    }
+    return s;
+  }
+  play(j: Job, at: number, dur: number) {
+    if (!j.rec) return;
+    const k = j.octave ?? 0;
+    const pitch = k ? j.pitch.replace(/(-?\d+)$/, (o) => String(Number(o) + k)) : j.pitch;
+    this.player(j.rec).start(pitch, at, dur, j.gain);
+  }
+  stop() {
+    for (const s of this.players.values()) s.stop();
+  }
+}
+
+/** Start loading the recordings a preset uses, so that its first notes are heard. */
+export function preloadContinuo(ctx: BaseAudioContext, preset: PresetId) {
+  const sets = new Set<string>();
+  for (const inst of Object.keys(SETS) as RecInst[]) if (PRESET_INSTRUMENTS[preset]?.includes(inst)) for (const a of Object.keys(SETS[inst]) as Articulation[]) { const x = recSet(inst, a); if (x) sets.add(x); }
+  for (const x of sets) void loadSamples(ctx, x as SampleSet).catch(() => {});
+}
+const STRINGS: RecInst[] = ["violin", "viola", "cello", "contrabass"];
+const PRESET_INSTRUMENTS: Partial<Record<PresetId, RecInst[]>> = {
+  hofkapelle: [...STRINGS, "bassoon"], pizzicato: STRINGS, sostenuto: STRINGS, staccato: STRINGS, sforzando: STRINGS, brass: ["trumpet", "horn", "trombone"],
+  quartet: STRINGS, bach: [...STRINGS, "oboe", "bassoon"], mozart: [...STRINGS, "oboe", "horn", "bassoon"],
+  beethoven: [...STRINGS, "flute", "oboe", "clarinet", "bassoon", "horn", "trumpet", "timpani"],
+  wagner: [...STRINGS, "flute", "oboe", "clarinet", "bassoon", "horn", "trombone", "harp", "timpani"],
+  rockBand: ["leadGuitar", "rhythmGuitar", "bassGuitar"],
+};
 
 function buildJobs(exercise: ContinuoInput, r: ContinuoRealization, o: Required<Pick<PlayOptions, "preset" | "tempoBpm" | "inegal" | "seed">>): Job[] {
   const sec = 60 / o.tempoBpm;
@@ -250,53 +370,148 @@ function buildJobs(exercise: ContinuoInput, r: ContinuoRealization, o: Required<
   };
   const top = (t: number) => Math.max(...rh.filter((n) => n.start <= t && n.end > t).map((n) => n.midi));
 
+  // D109: parts of an ensemble. Each right-hand note has a rank at its onset (0 = the top note);
+  // the parts take ranks, the bass line, or doublings at the octave, each in its instrument's range.
+  type Note = (typeof rh)[number];
+  const soundingAt = (t: number) => rh.filter((n) => n.start <= t + 1e-9 && n.end > t + 1e-9);
+  const rankOf = (n: Note) => soundingAt(n.start).filter((x) => x.midi > n.midi).length;
+  const lowest = (n: Note) => soundingAt(n.start).every((x) => x.midi >= n.midi);
+  const ranks = (...k: number[]) => rh.filter((n) => k.includes(rankOf(n)));
+  const middle = rh.filter((n) => rankOf(n) >= 1 && !lowest(n));
+  const low = rh.filter((n) => rankOf(n) >= 1 && lowest(n));
+  /** Each recorded part: notes, instrument, articulation, level; octave shifts keep it in range. */
+  const part = (notes: Note[], inst: RecInst, art: Articulation, level: number, o: { octave?: number; vel?: number; pulse?: number; legato?: number } = {}) => {
+    const [lo, hi] = RANGE[inst];
+    const set = recSet(inst, art);
+    if (!set) return;
+    const fit = (midi: number) => {
+      let k = o.octave ?? 0;
+      while (midi + 12 * k < lo && k < 3) k++;
+      while (midi + 12 * k > hi && k > -3) k--;
+      return k;
+    };
+    const vel = o.vel ?? 0.75;
+    const add = (n: Note, from: number, to: number, v: number) => {
+      const at = from * sec;
+      const dur = art === "stac" ? Math.min(0.24, (to - from) * sec * 0.5) : art === "pizz" || art === "strum" ? (to - from) * sec : (to - from) * sec * (o.legato ?? 0.97);
+      jobs.push({ at, dur: Math.max(0.05, dur), pitch: n.pitch, octave: fit(n.midi), inst: "rec", gain: v, rec: { set, art, level } });
+    };
+    const list = art === "legato" || art === "sfz" || art === "lead" ? tie(notes) : notes;
+    for (const n of list) {
+      if (!o.pulse) {
+        add(n, n.start, n.end, art === "sfz" ? 0.95 : vel);
+        continue;
+      }
+      // Repeated on a pulse through the note (staccato, pizzicato, strumming, a driven bass),
+      // the first stroke of each bar a little stronger.
+      for (let t = n.start, i = 0; t < n.end - 1e-9; t += o.pulse, i++) add(n, t, Math.min(n.end, t + o.pulse), Math.min(1, vel * (t % 2 === 0 ? 1.12 : i % 2 ? 0.86 : 1)));
+    }
+  };
+  const bassOct = bass.map((n) => ({ ...n }));
+  /** The timpani on the bass's tonic and dominant downbeats at the start and the close. */
+  const timpani = (level: number) => {
+    const finalPc = bass.length ? bass[bass.length - 1].midi % 12 : 0;
+    for (const n of bass) {
+      const pc = n.midi % 12;
+      const near = n.bar <= 0 || n.bar >= lastBar - 1;
+      if (near && n.start % 2 === 0 && (pc === finalPc || pc === (finalPc + 7) % 12)) part([n], "timpani", "pizz", level, { vel: n.bar === lastBar ? 0.95 : 0.8 });
+    }
+  };
+  const strings = (art: Articulation, level: number, o: { pulse?: number; double?: boolean } = {}) => {
+    part(ranks(0), "violin", art, level, o);
+    part(middle, "violin", art, level * 0.85, o);
+    part(low, "viola", art, level * 0.85, o);
+    part(bass, "cello", art, level, o);
+    if (o.double !== false) part(bassOct, "contrabass", art, level * 0.8, { ...o, octave: -1 });
+  };
+
   if (o.preset === "theorbo") {
     const p = PRESETS.theorbo;
     struck(rh, "lute", p.lute.rh, PRESETS.roll.max, 0.55);
     struck(bass, "theorboBass", p.lute.bass, 0);
     held(bass, "bowed", p.viol);
-  } else if (o.preset === "pizzicato") {
-    const p = PRESETS.pizzicato;
-    struck(rh, "pizz", p.rh, 0.008, 0.85);
-    struck(bass, "pizz", p.bass, 0, 0.85);
-    for (const n of bass) jobs.push({ at: n.start * sec, dur: (n.end - n.start) * sec, pitch: n.pitch, octave: n.midi - 12 >= 28 ? -1 : 0, inst: "pizz", gain: p.contrabass });
-  } else if (o.preset === "sostenuto") {
-    const p = PRESETS.sostenuto;
-    held(rh, "bowed", p.rh, 0.99);
-    held(bass, "bowed", p.cello, 0.99);
-    held(bass.map((n) => ({ ...n, midi: n.midi - 12 })), "bowed", p.contrabass, 0.99, -1);
-  } else if (o.preset === "brass") {
-    const p = PRESETS.brass;
-    held(rh, "brass", p.rh, 0.93);
-    held(bass, "brass", p.bass, 0.93);
+  } else if (o.preset === "pizzicato") strings("pizz", 1, { pulse: 1 });
+  else if (o.preset === "sostenuto") strings("legato", 0.9);
+  else if (o.preset === "staccato") strings("stac", 2.8, { pulse: 0.5 });
+  else if (o.preset === "sforzando") strings("sfz", 2.5);
+  else if (o.preset === "brass") {
+    // A brass choir: trumpet on top, horns inside, trombones below and on the bass.
+    part(ranks(0), "trumpet", "legato", 1.1);
+    part(middle, "horn", "legato", 1.25);
+    part(low, "trombone", "legato", 1.1);
+    part(bass, "trombone", "legato", 1.4);
+  } else if (o.preset === "quartet") {
+    // Two violins, viola and cello, one to a part (the right hand's top three notes and the bass).
+    part(ranks(0), "violin", "legato", 1);
+    part(ranks(1), "violin", "legato", 0.85);
+    part(rh.filter((n) => rankOf(n) >= 2), "viola", "legato", 0.85);
+    part(bass, "cello", "legato", 1);
+  } else if (o.preset === "bach") {
+    // Leipzig, about 1730: strings, oboes with the violins, bassoon with the bass, harpsichord continuo.
+    strings("legato", 0.85);
+    part(ranks(0), "oboe", "legato", 0.45);
+    part(bass, "bassoon", "legato", 0.45);
+    harpsichord(PRESETS.bach.harpsichord);
+  } else if (o.preset === "mozart") {
+    // Vienna, about 1785: strings, a pair of oboes and of horns, bassoons on the bass; no continuo.
+    strings("legato", 0.85);
+    part(ranks(0), "oboe", "legato", 0.4);
+    part(low, "horn", "legato", 0.45);
+    part(bass, "bassoon", "legato", 0.4);
+  } else if (o.preset === "beethoven") {
+    // About 1808: strings, flutes, oboes, clarinets, bassoons in pairs, horns, trumpets and timpani.
+    strings("legato", 0.85);
+    part(ranks(0), "flute", "legato", 0.35, { octave: 1 });
+    part(ranks(0), "oboe", "legato", 0.35);
+    part(middle, "clarinet", "legato", 0.45);
+    part(low, "horn", "legato", 0.5);
+    part(bass, "bassoon", "legato", 0.45);
+    part(rh.filter((n) => rankOf(n) === 0 && n.bar >= lastBar - 1), "trumpet", "legato", 0.35);
+    timpani(0.7);
+  } else if (o.preset === "wagner") {
+    // About 1870: a large string body in octaves, woodwinds in threes, four horns, trombones and
+    // tuba under the harmony, a harp arpeggiating each chord.
+    strings("legato", 1);
+    part(ranks(0), "violin", "legato", 0.6, { octave: 1 });
+    part(ranks(0), "flute", "legato", 0.3, { octave: 1 });
+    part(ranks(0), "oboe", "legato", 0.3);
+    part(middle, "clarinet", "legato", 0.4);
+    part(middle, "horn", "legato", 0.5);
+    part(low, "horn", "legato", 0.5);
+    part(low, "trombone", "legato", 0.35);
+    part(bassOct, "trombone", "legato", 0.4, { octave: -1 });
+    part(bass, "bassoon", "legato", 0.35);
+    for (const t of [...new Set(rh.map((n) => n.start))]) {
+      const chord = [...bass.filter((n) => n.start <= t && n.end > t), ...soundingAt(t)].sort((a, b) => a.midi - b.midi);
+      chord.forEach((n, i) => jobs.push({ at: t * sec + i * 0.07, dur: 2.5, pitch: n.pitch, octave: n.midi < 48 ? 1 : 0, inst: "rec", gain: 0.6, rec: { set: recSet("harp", "pizz")!, art: "pizz", level: 0.35 } }));
+    }
+    timpani(0.6);
   } else if (o.preset === "analogPads") {
     const p = PRESETS.analogPads;
     held(rh, "pad", p.rh, 1);
     for (const n of bass) jobs.push({ at: n.start * sec, dur: (n.end - n.start) * sec * 0.9, pitch: n.pitch, octave: n.midi >= 48 ? -1 : 0, inst: "synthBass", gain: p.bass });
-  } else if (o.preset === "electricPiano") {
-    const p = PRESETS.electricPiano;
-    struck(rh, "epiano", p.rh, 0.004, 0.6);
-    struck(bass, "upright", p.bass, 0);
   } else if (o.preset === "rockBand") {
-    // The right hand is split between two guitars of different character (owner): an overdriven,
-    // sustained lead on the top note, a clean, chorused rhythm guitar strumming the notes below it.
-    // The left hand is an electric bass with some drive, an octave down where it is not already low.
+    // The right hand is split between two guitars (owner): a clean lead on the top note through a
+    // tape delay, 1960s-70s style and kept back, and a rhythm guitar strumming the notes below it in
+    // quarters; a bright picked bass (a Rickenbacker kind of sound) drives the bass line in quarters.
     const p = PRESETS.rockBand;
-    const isTop = (n: (typeof rh)[number]) => n.midi === top(n.start);
-    held(rh.filter(isTop), "leadGuitar", p.lead, 0.98);
-    struck(rh.filter((n) => !isTop(n)), "rhythmGuitar", p.rhythm, 0.012, 0.8);
-    for (const n of bass) jobs.push({ at: n.start * sec, dur: (n.end - n.start) * sec * 0.92, pitch: n.pitch, octave: n.midi >= 52 ? -1 : 0, inst: "eBass", gain: p.bass });
+    part(ranks(0), "leadGuitar", "lead", p.lead, { vel: 0.7 });
+    part(rh.filter((n) => rankOf(n) >= 1), "rhythmGuitar", "strum", p.rhythm, { pulse: 0.5, vel: 0.7 });
+    part(bass, "bassGuitar", "pick", p.bass, { pulse: 0.5, vel: 0.8 });
   } else if (o.preset === "stileAntico") organ(PRESETS.stileAntico.organ);
   else if (o.preset === "cembalo") harpsichord(PRESETS.cembalo.harpsichord);
   else {
+    // The Vienna court chapel: organ and harpsichord, recorded strings doubling the sung voices
+    // colla parte, cello, violone and bassoon on the bass.
     const h = PRESETS.hofkapelle;
     organ(h.organ);
     harpsichord(h.harpsichord);
-    for (const n of sungNotes(exercise).notes) jobs.push({ at: n.start * sec, dur: (n.end - n.start) * sec * 0.97, pitch: n.pitch.name, inst: "strings", gain: h.strings });
-    for (const n of bass) {
-      jobs.push({ at: n.start * sec, dur: (n.end - n.start) * sec * 0.97, pitch: n.pitch, inst: "strings", gain: h.cello });
-      jobs.push({ at: n.start * sec, dur: (n.end - n.start) * sec * 0.97, pitch: n.pitch, octave: n.midi - 12 >= 28 ? -1 : 0, inst: "violone", gain: h.violone });
-    }
+    const sung = sungNotes(exercise).notes.map((n) => ({ start: n.start, end: n.end, midi: n.pitch.midi, pitch: n.pitch.name, bar: 0, role: "rh" as const, ornament: undefined }));
+    part(sung.filter((n) => n.midi >= 55) as Note[], "violin", "legato", 0.5);
+    part(sung.filter((n) => n.midi < 55) as Note[], "viola", "legato", 0.5);
+    part(bass, "cello", "legato", 0.6);
+    part(bassOct, "contrabass", "legato", 0.5, { octave: -1 });
+    part(bass, "bassoon", "legato", 0.3);
   }
   return jobs.sort((a, b) => a.at - b.at);
 }
@@ -361,37 +576,17 @@ class Voices {
         return this.organ(f, at, end, job, out);
       case "harpsichord":
         return this.harpsichord(f, at, end, job.gain, out);
-      case "strings":
-        return this.strings(f, at, end, job.gain, out, 2500);
-      case "violone":
-        return this.strings(f, at, end, job.gain, out, 1200); // the 16' octave is in job.octave
       // D73
       case "lute":
         return this.pluck(f, at, end, job.gain, out, { damping: 0.996, decay: 1.6, lowpass: 3200, highpass: f * 0.5, release: 0.25 });
       case "theorboBass":
         return this.pluck(f, at, end, job.gain, out, { damping: 0.997, decay: 2.2, lowpass: 1800, highpass: 40, release: 0.3 });
-      case "pizz":
-        return this.pluck(f, at, end, job.gain, out, { damping: 0.985, decay: 0.32, lowpass: 2600, highpass: f * 0.5, release: 0.1, thump: 0.25 });
-      case "upright":
-        return this.pluck(f, at, end, job.gain, out, { damping: 0.992, decay: 0.9, lowpass: 900, highpass: 35, release: 0.08, thump: 0.3 });
-      case "rhythmGuitar":
-        // Clean, bright, with a chorus: a second string a few cents sharp, a few ms late.
-        this.pluck(f, at, end, job.gain, out, { damping: 0.997, decay: 2.2, lowpass: 5500, highpass: 140, release: 0.12 });
-        return this.pluck(f * 1.0046, at + 0.011, end, job.gain * 0.6, out, { damping: 0.997, decay: 2.2, lowpass: 5500, highpass: 140, release: 0.12 });
       case "bowed":
         return this.strings(f, at, end, job.gain, out, 2200, 0.35);
-      case "brass":
-        return this.brass(f, at, end, job.gain, out);
       case "pad":
         return this.pad(f, at, end, job.gain, out);
       case "synthBass":
         return this.synthBass(f, at, end, job.gain, out);
-      case "epiano":
-        return this.epiano(f, at, end, job.gain, out);
-      case "eBass":
-        return this.eBass(f, at, end, job.gain, out);
-      case "leadGuitar":
-        return this.leadGuitar(f, at, end, job.gain, out);
     }
   }
 
@@ -547,22 +742,6 @@ class Voices {
   }
 
   private curves = new Map<number, Float32Array<ArrayBuffer>>();
-  /** A soft-clipping curve (tanh), harder as `drive` grows: overdrive, fuzz. */
-  private shaper(drive: number): WaveShaperNode {
-    let c = this.curves.get(drive);
-    if (!c) {
-      c = new Float32Array(new ArrayBuffer(4096));
-      for (let i = 0; i < c.length; i++) {
-        const x = (i / (c.length - 1)) * 2 - 1;
-        c[i] = Math.tanh(drive * x) / Math.tanh(drive);
-      }
-      this.curves.set(drive, c);
-    }
-    const w = this.ctx.createWaveShaper();
-    w.curve = c;
-    w.oversample = "2x";
-    return w;
-  }
 
   /** Oscillators at f (times `ratio`), detuned by `cents`, into `dest`, between at and stop. */
   private oscs(dest: AudioNode, f: number, at: number, stop: number, spec: [OscillatorType, number, number, number][]) {
@@ -605,35 +784,26 @@ class Voices {
     lfo.stop(stop);
   }
 
-  /** Sackbuts and cornetts: saws through a low-pass that opens as the note speaks. */
-  private brass(f: number, at: number, end: number, gain: number, out: AudioNode) {
-    const lp = this.ctx.createBiquadFilter();
-    lp.type = "lowpass";
-    lp.Q.value = 1.2;
-    lp.frequency.setValueAtTime(f * 1.2, at);
-    lp.frequency.linearRampToValueAtTime(Math.min(9000, f * 7), at + 0.08);
-    lp.frequency.setTargetAtTime(Math.min(6000, f * 4), at + 0.08, 0.2);
-    const env = this.sustain(at, end, gain, 0.06, 0.12);
-    lp.connect(env).connect(out);
-    const stop = Math.max(end, at + 0.06) + 0.4;
-    const o = this.oscs(lp, f, at, stop, [["sawtooth", 1, -4, 0.5], ["sawtooth", 1, 4, 0.5]]);
-    this.vibrato(o, at, stop, 5, 6, 0.5);
-  }
 
   /** An analog string-machine pad: detuned saws and a sub, a slow low-pass sweep. */
   private pad(f: number, at: number, end: number, gain: number, out: AudioNode) {
     const lp = this.ctx.createBiquadFilter();
     lp.type = "lowpass";
-    lp.Q.value = 2;
-    lp.frequency.value = Math.min(5000, f * 3);
+    lp.Q.value = 0.8;
+    lp.frequency.value = Math.min(4000, f * 2.5);
     const lfo = this.track(this.ctx.createOscillator());
     lfo.frequency.value = 0.18;
     const sweep = this.ctx.createGain();
     sweep.gain.value = Math.min(1500, f * 1.5);
     lfo.connect(sweep).connect(lp.frequency);
-    const env = this.sustain(at, end, gain, 0.6, 0.9);
+    // D109: no attack — the chord swells in over about a second and lets go as slowly.
+    const env = this.ctx.createGain();
+    env.gain.setValueAtTime(0, at);
+    env.gain.setTargetAtTime(gain, at, 0.35);
+    env.gain.cancelScheduledValues(Math.max(end, at + 0.05));
+    env.gain.setTargetAtTime(0, Math.max(end, at + 0.05), 0.4);
     lp.connect(env).connect(out);
-    const stop = Math.max(end, at + 0.6) + 1.2;
+    const stop = Math.max(end, at + 0.6) + 2;
     lfo.start(at);
     lfo.stop(stop);
     this.oscs(lp, f, at, stop, [["sawtooth", 1, -12, 0.4], ["sawtooth", 1, 0, 0.4], ["sawtooth", 1, 12, 0.4], ["square", 0.5, 0, 0.18]]);
@@ -643,77 +813,16 @@ class Voices {
   private synthBass(f: number, at: number, end: number, gain: number, out: AudioNode) {
     const lp = this.ctx.createBiquadFilter();
     lp.type = "lowpass";
-    lp.Q.value = 7;
-    lp.frequency.setValueAtTime(Math.min(4000, f * 14), at);
+    lp.Q.value = 3;
+    lp.frequency.setValueAtTime(Math.min(2500, f * 8), at);
     lp.frequency.setTargetAtTime(Math.max(120, f * 2.5), at, 0.08);
     const env = this.sustain(at, end, gain, 0.005, 0.06);
     lp.connect(env).connect(out);
     this.oscs(lp, f, at, Math.max(end, at + 0.01) + 0.2, [["sawtooth", 1, 0, 0.6], ["square", 0.5, 0, 0.4]]);
   }
 
-  /** An electric piano (FM): a sine carrier whose bell-like brightness fades, and a long decay. */
-  private epiano(f: number, at: number, end: number, gain: number, out: AudioNode) {
-    const env = this.ctx.createGain();
-    env.gain.setValueAtTime(gain, at);
-    env.gain.setTargetAtTime(gain * 0.4, at, 0.4);
-    env.gain.setTargetAtTime(0, at + 0.5, 1.2);
-    env.gain.cancelScheduledValues(end);
-    env.gain.setTargetAtTime(0, end, 0.08);
-    env.connect(out);
-    const stop = Math.min(at + 4, end + 0.4);
-    const [carrier] = this.oscs(env, f, at, stop, [["sine", 1, 0, 1]]);
-    const mod = this.track(this.ctx.createOscillator());
-    mod.frequency.value = f;
-    const index = this.ctx.createGain();
-    index.gain.setValueAtTime(f * 2.2, at);
-    index.gain.setTargetAtTime(f * 0.25, at, 0.25);
-    mod.connect(index).connect(carrier.frequency);
-    mod.start(at);
-    mod.stop(stop);
-    // The tine's knock.
-    const knock = this.sustain(at, at + 0.02, gain * 0.25, 0.002, 0.06);
-    knock.connect(out);
-    this.oscs(knock, f * 7.1, at, at + 0.2, [["sine", 1, 0, 1]]);
-  }
 
-  /** An electric bass, picked, through a little drive and a cabinet's low-pass. */
-  private eBass(f: number, at: number, end: number, gain: number, out: AudioNode) {
-    const tone = this.ctx.createBiquadFilter();
-    tone.type = "lowpass";
-    tone.frequency.setValueAtTime(Math.min(3000, f * 18), at);
-    tone.frequency.setTargetAtTime(Math.max(400, f * 6), at, 0.15);
-    const drive = this.shaper(3);
-    const cab = this.ctx.createBiquadFilter();
-    cab.type = "lowpass";
-    cab.frequency.value = 2400;
-    const env = this.sustain(at, end, gain, 0.004, 0.07);
-    env.gain.setTargetAtTime(gain * 0.65, at + 0.004, 0.6);
-    tone.connect(drive).connect(cab).connect(env).connect(out);
-    this.oscs(tone, f, at, Math.max(end, at + 0.01) + 0.2, [["sawtooth", 1, 0, 0.55], ["triangle", 1, 0, 0.6]]);
-    this.noiseBurst(out, at, 0.008, 1800, 1.5, gain * 0.35);
-  }
 
-  /** An overdriven lead guitar: detuned saws into a hard clipper, a speaker cabinet, vibrato. */
-  private leadGuitar(f: number, at: number, end: number, gain: number, out: AudioNode) {
-    const pre = this.ctx.createBiquadFilter();
-    pre.type = "highpass";
-    pre.frequency.value = 150;
-    const drive = this.shaper(18);
-    const mid = this.ctx.createBiquadFilter();
-    mid.type = "peaking";
-    mid.frequency.value = 1100;
-    mid.Q.value = 1;
-    mid.gain.value = 5;
-    const cab = this.ctx.createBiquadFilter();
-    cab.type = "lowpass";
-    cab.frequency.value = 3400;
-    cab.Q.value = 0.9;
-    const env = this.sustain(at, end, gain, 0.01, 0.18);
-    pre.connect(drive).connect(mid).connect(cab).connect(env).connect(out);
-    const stop = Math.max(end, at + 0.01) + 0.4;
-    const o = this.oscs(pre, f, at, stop, [["sawtooth", 1, -6, 0.5], ["sawtooth", 1, 6, 0.5], ["square", 2, 0, 0.12]]);
-    this.vibrato(o, at, stop, 5.5, 18, 0.45);
-  }
 
   stop() {
     for (const n of this.live) {
@@ -731,6 +840,7 @@ interface Graph {
   master: GainNode;
   continuoBus: GainNode;
   voices: Voices;
+  recorded: Recorded;
   synths: Map<string, Synth>;
   jobs: Job[];
   sungJobs: { at: number; dur: number; pitch: string; voice: string }[];
@@ -770,7 +880,9 @@ function buildGraph(ctx: BaseAudioContext, destination: AudioNode, exercise: Con
   const tuning = () => voices.temperament;
   for (const n of sung) if (!synths.has(n.voice)) synths.set(n.voice, new Synth(ctx, limiter, { ...(options.sungSynth ?? DEFAULT_SYNTH) }, tuning));
   const sungJobs = sung.map((n) => ({ at: n.start * sec, dur: (n.end - n.start) * sec * 0.97, pitch: n.pitch.name, voice: n.voice }));
-  return { master, continuoBus, voices, synths, jobs, sungJobs, sec };
+  const recorded = new Recorded(ctx, continuoBus, tuning);
+  recorded.prepare(jobs);
+  return { master, continuoBus, voices, recorded, synths, jobs, sungJobs, sec };
 }
 
 /** Play the exercise with its continuo, scheduling just ahead of time. */
@@ -778,7 +890,7 @@ export function playContinuo(exercise: ContinuoInput, realization: ContinuoReali
   const ctx = options.audio?.ctx ?? (shared ??= new AudioContext());
   if (ctx.state === "suspended") void ctx.resume();
   const start = options.startTime ?? ctx.currentTime + 0.1;
-  const { master, continuoBus, voices, synths, jobs, sungJobs, sec } = buildGraph(ctx, options.audio?.destination ?? ctx.destination, exercise, realization, options);
+  const { master, continuoBus, voices, recorded, synths, jobs, sungJobs, sec } = buildGraph(ctx, options.audio?.destination ?? ctx.destination, exercise, realization, options);
 
   const timers: ReturnType<typeof setTimeout>[] = [];
   const LOOKAHEAD = options.getTempo ? 0.15 : 0.3;
@@ -813,7 +925,8 @@ export function playContinuo(exercise: ContinuoInput, realization: ContinuoReali
     const hb = anchorBeat + (horizon - anchorTime) / cur;
     while (k < jobs.length && jobs[k].at / sec < hb) {
       const j = jobs[k++];
-      voices.play({ ...j, at: timeOf(j.at / sec), dur: (j.dur / sec) * cur }, 0, continuoBus);
+      if (j.rec) recorded.play(j, timeOf(j.at / sec), (j.dur / sec) * cur);
+      else voices.play({ ...j, at: timeOf(j.at / sec), dur: (j.dur / sec) * cur }, 0, continuoBus);
     }
     while (s < sungJobs.length && sungJobs[s].at / sec < hb) {
       const j = sungJobs[s++];
@@ -843,6 +956,7 @@ export function playContinuo(exercise: ContinuoInput, realization: ContinuoReali
       master.gain.setTargetAtTime(0, ctx.currentTime, 0.015);
       setTimeout(() => {
         voices.stop();
+        recorded.stop();
         for (const v of synths.values()) v.stop();
         master.disconnect();
       }, 120);
@@ -858,7 +972,11 @@ export async function renderContinuoOffline(exercise: ContinuoInput, realization
   const seconds = (realization.totalBeats * 60) / tempo + 3;
   const ctx = new OfflineAudioContext(2, Math.ceil(seconds * sampleRate), sampleRate);
   const g = buildGraph(ctx, ctx.destination, exercise, realization, options);
-  for (const j of g.jobs) g.voices.play(j, 0.05, g.continuoBus);
+  await Promise.all([...new Set(g.jobs.flatMap((j) => (j.rec ? [j.rec.set] : [])))].map((x) => loadSamples(ctx, x as SampleSet).catch(() => {})));
+  for (const j of g.jobs) {
+    if (j.rec) g.recorded.play(j, 0.05 + j.at, j.dur);
+    else g.voices.play(j, 0.05, g.continuoBus);
+  }
   for (const j of g.sungJobs) g.synths.get(j.voice)!.start(j.pitch, 0.05 + j.at, j.dur);
   return ctx.startRendering();
 }

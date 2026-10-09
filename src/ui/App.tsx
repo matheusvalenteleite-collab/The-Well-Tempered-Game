@@ -24,7 +24,7 @@ import { Credits } from "./Credits.tsx";
 import { QuickStart } from "./QuickStart.tsx";
 import { FuxComparison } from "./FuxComparison.tsx";
 import { realizeContinuo } from "../continuo/realize.ts";
-import { playContinuo } from "../continuo/audio.ts";
+import { playContinuo, preloadContinuo } from "../continuo/audio.ts";
 import { continuoInput, continuoKey, continuoOptions, type PlayMode } from "../game/continuo-input.ts";
 import { activeVersions, deriveVersion, heardLines, validVersions, VERSION_IDS, type VersionId, type Versions } from "../game/versions.ts";
 import { trioFindings, trioVerdict } from "../game/trio-verdict.ts";
@@ -180,6 +180,11 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
     return () => window.clearTimeout(id);
   }, [toast]);
   useEffect(() => store("wtg.continuoSettings", continuoSettings), [continuoSettings]);
+  // Recorded ensembles (D109): fetch the preset's recordings as soon as it is chosen.
+  useEffect(() => {
+    const g = audio.graph;
+    if (g) preloadContinuo(g.ctx, continuoSettings.preset);
+  }, [continuoSettings.preset, continuo]);
   useEffect(() => {
     audio.temperament = tuning;
     store("wtg.tuning", tuning);

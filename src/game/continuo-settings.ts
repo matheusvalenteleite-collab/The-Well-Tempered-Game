@@ -4,10 +4,11 @@ import type { FinalsMode, PresetId } from "../continuo/types.ts";
 /** "figured" (default, D93): the figures alone, under the lower staff; "staff": a small figured bass staff. */
 export type ContinuoDisplay = "none" | "figured" | "staff" | "realization" | "both";
 export const CONTINUO_DISPLAYS: ContinuoDisplay[] = ["none", "figured", "staff", "realization", "both"];
-export const CONTINUO_PRESET_FAMILIES: { id: "baroque" | "orchestral" | "modern"; presets: PresetId[] }[] = [
+export const CONTINUO_PRESET_FAMILIES: { id: "baroque" | "ensembles" | "orchestral" | "modern"; presets: PresetId[] }[] = [
   { id: "baroque", presets: ["stileAntico", "cembalo", "hofkapelle", "theorbo"] },
-  { id: "orchestral", presets: ["pizzicato", "sostenuto", "brass"] },
-  { id: "modern", presets: ["analogPads", "electricPiano", "rockBand"] },
+  { id: "ensembles", presets: ["quartet", "bach", "mozart", "beethoven", "wagner"] },
+  { id: "orchestral", presets: ["sostenuto", "staccato", "sforzando", "pizzicato", "brass"] },
+  { id: "modern", presets: ["analogPads", "rockBand"] },
 ];
 export const CONTINUO_PRESETS: PresetId[] = CONTINUO_PRESET_FAMILIES.flatMap((f) => f.presets);
 export const FINALS_MODES: FinalsMode[] = ["organist", "strict"];
