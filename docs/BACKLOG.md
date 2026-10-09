@@ -84,10 +84,10 @@ Findings and points for the owner:
   calibrated at 0.75 on his rates of leaps and spacing. Not yet modelled: first-species repeated
   notes (3% generated against his 11%).
 - Three voices, the same method (docs/fux/trio-habits-study.md; same tab): of twelve candidate
-  features, six predict Fux's notes (the opening sonority added later; figures below are before it) once the others are in: the sonority (by far the strongest),
+  features, six predict Fux's notes once the others are in: the sonority (by far the strongest),
   the melodic move (pooled over staves: by staff adds nothing once the rest is in), pairs of moves,
-  the chord member the voice takes, and its motion with each other voice. Weighted, they cut the
-  surprise at his notes from 1.00 to 0.73 bits (his note first 77% → 84% where the rules leave a
+  the chord member the voice takes, its motion with each other voice, and the opening sonority.
+  Weighted, they cut the surprise at his notes from 1.00 to 0.72 bits (his note first 77% → 84% where the rules leave a
   choice). Spacing and the final chord's top note add nothing once these are in; the generated
   third voices still end with the final on top 84% of the time (Fux 88%), with his rates of leaps
   (47% against 43%) and repeated notes (14%). The audit and the third-voice generator use it.
