@@ -92,7 +92,16 @@ derived fact can be traced back to the source.
      - *Mir nach* is *Mach's mit mir, Gott*;
      - *Ach Herr, mich armen Sünder* is *Herzlich tut mich verlangen*;
      - *Lobe den Herren* is *Hast du denn, Jesu*, as a variant.
-5. **Analysis layer** over Bach first, then over Kittel's basses, with figures derived for Bach.
+5. **Analysis layer**. Begun over Bach (`data/chorales/bach/analysis/`, `BACH-COUNTS.md`):
+   - Verticalities with figures derived from Bach's voices, both literal and in period
+     abbreviation: 30,050 onsets, 17,980 of them on the beat.
+   - Phrases, and cadences with a first classification.
+   - Consecutive fifths and octaves: 18 inside phrases in 370 chorales, 17 of them involving
+     passing notes off the beat.
+   - Still to come: the non-chord tones (passing, neighbour, suspension with preparation and
+     resolution, anticipation, appoggiatura), spacing, doubling, and the resolution of leading
+     tones and sevenths; then the same layer over Kittel's basses (their figures are given;
+     the inner voices are not).
 6. **Knowledge write-up** (`docs/chorales/`): principles and habits with counts and examples,
    for the owner to read and correct before any of it becomes a game rule.
 

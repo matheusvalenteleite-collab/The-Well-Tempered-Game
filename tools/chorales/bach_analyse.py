@@ -1,0 +1,354 @@
+#!/usr/bin/env python3
+"""Analysis layer over Bach's chorales (layer 3): computed facts, each labelled as a reading.
+
+Input : data/chorales/bach/chorales/bach_NNN.json (the parsed layer)
+Output: data/chorales/bach/analysis/bach_NNN.json and docs/chorales/BACH-COUNTS.md
+
+For every chorale:
+
+  verticalities   every onset at which some voice strikes a note: the four sounding pitches (and
+                  which are struck, which held), the intervals of the upper voices over the bass,
+                  and the figure a continuo player would read there. Two figures: `literal` (every
+                  interval present, reduced to the octave except 9, with the accidentals that the
+                  key signature does not give) and `figure` (the period abbreviation: 5/3 -> "",
+                  6/3 -> 6, 6/5/3 -> 6/5, 6/4/3 -> 4/3, 6/4/2 -> 4/2, 7/5/3 -> 7; accidentals kept).
+                  Only figures on the beat are marked `on_beat`; between beats Bach's voices pass.
+  phrases         the lines of the hymn, ending at the soprano's fermatas (in the written order).
+  cadences        for each phrase end: the bass and soprano motion into the final chord, the final
+                  and penultimate figures, the degree of the final bass in the chorale's key, and a
+                  class (authentic perfect / imperfect, plagal, half, Phrygian half, deceptive,
+                  other), by the rules written in `classify_cadence`.
+
+The figures are derived from the notes, not read from a source: Bach's chorales carry no figures.
+
+Run:  python3 tools/chorales/bach_analyse.py
+"""
+from __future__ import annotations
+
+import json
+import sys
+from collections import Counter
+from fractions import Fraction as F
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "fux_import"))
+from pitch import Pitch, frac, parse_pitch_name  # noqa: E402
+
+ROOT = Path(__file__).resolve().parents[2]
+BACH = ROOT / "data" / "chorales" / "bach"
+OUT = BACH / "analysis"
+REPORT = ROOT / "docs" / "chorales" / "BACH-COUNTS.md"
+VOICES = ["bass", "tenor", "alto", "soprano"]
+STEPS = "CDEFGAB"
+PC = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
+ACC_SIGN = {-2: "bb", -1: "b", 0: "n", 1: "#", 2: "x"}
+
+
+def key_signature(ks: str | None) -> dict[str, int]:
+    out: dict[str, int] = {}
+    if not ks:
+        return out
+    i = 0
+    while i < len(ks):
+        step = ks[i].upper()
+        i += 1
+        alt = 0
+        while i < len(ks) and ks[i] in "#-":
+            alt += 1 if ks[i] == "#" else -1
+            i += 1
+        out[step] = alt
+    return out
+
+
+def timeline(notes: list[dict]) -> list[tuple[F, F, dict]]:
+    """(start, end, note) for each sounding note; tied notes are merged into one."""
+    out: list[tuple[F, F, dict]] = []
+    for n in notes:
+        if n.get("rest"):
+            continue
+        s, e = F(n["offset"]), F(n["offset"]) + F(n["duration"])
+        if n.get("tie") in ("stop", "continue") and out and out[-1][2]["pitch"] == n["pitch"] and out[-1][1] == s:
+            out[-1] = (out[-1][0], e, out[-1][2])
+            continue
+        out.append((s, e, n))
+    return out
+
+
+def at(tl: list[tuple[F, F, dict]], t: F) -> tuple[dict | None, bool]:
+    for s, e, n in tl:
+        if s <= t < e:
+            return n, s == t
+    return None, False
+
+
+def interval_number(bass: Pitch, upper: Pitch) -> int:
+    return upper.diatonic - bass.diatonic + 1
+
+
+def figure_of(bass: Pitch, uppers: list[Pitch], ks: dict[str, int]) -> tuple[str, str, list[dict]]:
+    """Literal and abbreviated figures of a sonority over its bass."""
+    rows: dict[int, str] = {}
+    detail = []
+    for u in uppers:
+        n = interval_number(bass, u)
+        if n < 1:
+            n = 1  # a voice below the bass (a crossing): read as a unison
+        simple = (n - 1) % 7 + 1
+        if simple == 1 and n > 1:
+            simple = 8
+        num = 9 if simple == 2 and n >= 9 else simple
+        acc = ""
+        if u.alter != ks.get(u.step, 0):
+            acc = ACC_SIGN.get(u.alter, "?")
+        detail.append({"pitch": u.name, "interval": n, "figure": num, "accidental": acc or None})
+        key = num if num != 8 else 8
+        if key not in rows or acc:
+            rows[key] = acc
+    nums = set(rows) - {8, 1}
+    # a 9 in a chord with 4 or 6 reads as 2 (4/2); otherwise it stays 9 (a suspension over the bass)
+    if 9 in nums and (4 in nums or 6 in nums) and 7 not in nums:
+        rows[2] = rows.pop(9)
+        nums = (nums - {9}) | {2}
+    literal = "/".join(f"{rows[k]}{k}" if rows[k] else str(k) for k in sorted(rows, reverse=True))
+    s = frozenset(nums)
+    abbreviations = {
+        frozenset({5, 3}): [], frozenset({3}): [], frozenset({5}): [], frozenset(): [],
+        frozenset({6, 3}): [6], frozenset({6}): [6],
+        frozenset({6, 4}): [6, 4],
+        frozenset({7, 5, 3}): [7], frozenset({7, 3}): [7], frozenset({7, 5}): [7], frozenset({7}): [7],
+        frozenset({6, 5, 3}): [6, 5], frozenset({6, 5}): [6, 5],
+        frozenset({6, 4, 3}): [4, 3], frozenset({4, 3}): [4, 3],
+        frozenset({6, 4, 2}): [4, 2], frozenset({4, 2}): [4, 2], frozenset({2}): [2], frozenset({6, 2}): [4, 2],
+        frozenset({5, 4}): [4], frozenset({4}): [4],
+        frozenset({9, 5, 3}): [9], frozenset({9, 3}): [9], frozenset({9, 5}): [9], frozenset({9}): [9],
+    }
+    shown = abbreviations.get(s)
+    if shown is None:
+        shown = sorted(nums, reverse=True)
+    # accidentals the abbreviation hides (an altered third under 6, or alone) are shown
+    parts = [f"{rows.get(k, '')}{k}" for k in shown]
+    if 3 in rows and rows[3] and 3 not in shown:
+        parts.append(rows[3])  # "#" alone = sharp third
+    for k in (5, 6) :
+        if k in rows and rows[k] and k not in shown:
+            parts.append(f"{rows[k]}{k}")
+    figure = "/".join(parts)
+    return literal, figure, detail
+
+
+DEGREES = {0: "I", 1: "bII", 2: "II", 3: "bIII", 4: "III", 5: "IV", 6: "#IV", 7: "V", 8: "bVI", 9: "VI", 10: "bVII", 11: "VII"}
+
+
+def numbers(literal: str) -> set[int]:
+    return {int("".join(ch for ch in part if ch.isdigit())) for part in literal.split("/") if any(ch.isdigit() for ch in part)}
+
+
+def root_position(v: dict) -> bool:
+    """No sixth and no second over the bass: a triad or seventh chord on its root, suspensions
+    (4, 9, 7) included."""
+    n = numbers(v["literal"]) - {8}
+    return 6 not in n and 2 not in n
+
+
+def classify_cadence(pen: dict, fin: dict, tonic_pc: int) -> str:
+    """The usual classes, by the bass motion into the final and the position of the two chords.
+    Written to be corrected: each test is one line."""
+    if pen is None or fin is None:
+        return "other"
+    b1, b2 = parse_pitch_name(pen["bass"]), parse_pitch_name(fin["bass"])
+    dia = (b2.diatonic - b1.diatonic) % 7  # generic interval up, within the octave: 3 = a fourth up
+    semis = (b2.midi - b1.midi) % 12
+    rp_pen, rp_fin = root_position(pen), root_position(fin)
+    deg = (PC[b2.step] + b2.alter - tonic_pc) % 12
+    if rp_fin and rp_pen and dia == 3 and semis == 5:
+        return "authentic, perfect" if fin["soprano_over_bass"] in (1, 8) else "authentic, imperfect"
+    if rp_fin and not rp_pen and dia == 1 and semis == 1 and 6 in numbers(pen["literal"]):
+        return "authentic, dominant inverted (leading tone in the bass)"
+    if rp_fin and dia == 6 and semis == 11 and 6 in numbers(pen["literal"]):
+        return "Phrygian half"
+    if rp_fin and deg == 7:
+        return "half"
+    if rp_fin and rp_pen and dia == 4 and semis == 7:
+        return "bass up a fifth: plagal, or a half cadence in another key"
+    if rp_fin and rp_pen and dia == 1 and semis in (1, 2):
+        return "deceptive"
+    if dia == 0 and semis == 0:
+        return "other: bass repeated"
+    return "other"
+
+
+def analyse(c: dict) -> dict:
+    ks = key_signature(c["key_signature"])
+    tl = {v: timeline(c["voices"][v]) for v in VOICES}
+    onsets = sorted({s for v in VOICES for s, _, _ in tl[v]})
+    measures = c["measures"]
+    beat = F(1, 2) if (c["meters"] and c["meters"][0]["meter"] == "3/2") else F(1, 4)
+
+    def measure_start(t: F) -> F:
+        return max((F(m["offset"]) for m in measures if F(m["offset"]) <= t), default=F(0))
+
+    verts = []
+    for t in onsets:
+        sounding = {v: at(tl[v], t) for v in VOICES}
+        if sounding["bass"][0] is None:
+            continue
+        bass = parse_pitch_name(sounding["bass"][0]["pitch"])
+        uppers = [parse_pitch_name(sounding[v][0]["pitch"]) for v in VOICES[1:] if sounding[v][0] is not None]
+        literal, figure, detail = figure_of(bass, uppers, ks)
+        verts.append({
+            "t": frac(t),
+            "measure": sounding["bass"][0]["measure"],
+            "on_beat": ((t - measure_start(t)) / beat).denominator == 1,
+            "pitches": {v: (sounding[v][0]["pitch"] if sounding[v][0] else None) for v in VOICES},
+            "struck": [v for v in VOICES if sounding[v][1]],
+            "literal": literal,
+            "figure": figure,
+            "crossing": any(d["interval"] < 1 for d in detail),
+        })
+    # phrases and cadences
+    sop = tl["soprano"]
+    ends = [(s, e) for s, e, n in sop if n.get("fermata")]
+    tonic_pc = (PC[c["key"]["tonic"][0]] + (1 if "#" in c["key"]["tonic"] else -1 if c["key"]["tonic"][1:2] == "b" else 0)) % 12
+    phrases, cadences = [], []
+    start = F(0)
+    for s, e in ends:
+        phrases.append({"number": len(phrases) + 1, "start": frac(start), "end": frac(e), "final_onset": frac(s)})
+        fin = next((v for v in verts if F(v["t"]) == s), None)
+        if fin is None:  # the soprano's final note may be struck before the others: take the last sonority at or before
+            fin = max((v for v in verts if F(v["t"]) <= s), key=lambda v: F(v["t"]), default=None)
+        fin_bass_start = max((x for x, _, _ in tl["bass"] if x <= s), default=None)
+        pen = None
+        if fin_bass_start is not None:
+            # the penultimate chord: the last sonority on the beat before the final bass note
+            # (a bass that passes in quavers into the final is passed over)
+            before = [v for v in verts if F(v["t"]) < fin_bass_start and v["on_beat"]]
+            if before:
+                pen = before[-1]
+        def brief(v):  # noqa: E306
+            if v is None:
+                return None
+            b, so = parse_pitch_name(v["pitches"]["bass"]), parse_pitch_name(v["pitches"]["soprano"])
+            n = so.diatonic - b.diatonic
+            return {"t": v["t"], "bass": v["pitches"]["bass"], "soprano": v["pitches"]["soprano"], "figure": v["figure"],
+                    "literal": v["literal"], "soprano_over_bass": n % 7 + 1 if n % 7 else 8}
+        bf, bp = brief(fin), brief(pen)
+        cls = classify_cadence(bp, bf, tonic_pc)
+        degree = None
+        if bf:
+            fb = parse_pitch_name(bf["bass"])
+            degree = DEGREES[(PC[fb.step] + fb.alter - tonic_pc) % 12]
+        cadences.append({"phrase": len(phrases), "final": bf, "penultimate": bp, "final_bass_degree": degree, "class": cls})
+        start = e
+    return {
+        "id": c["id"], "number": c["number"], "bwv": c["bwv"], "title": c["title"]["de"],
+        "key": c["key"], "beat": frac(beat),
+        "verticalities": verts, "phrases": phrases, "cadences": cadences,
+        "parallels": parallels(verts, phrases),
+    }
+
+
+def parallels(verts: list[dict], phrases: list[dict]) -> list[dict]:
+    """Consecutive perfect fifths, octaves and unisons between two voices that both move, from one
+    verticality to the next (any onset, so passing notes count; `on_beats` says whether both
+    chords fall on beats). Across a phrase end (after a fermata) they are kept but marked."""
+    out = []
+    ends = {F(p["end"]) for p in phrases}
+    pairs = [(a, b) for i, a in enumerate(VOICES) for b in VOICES[i + 1:]]
+    for v1, v2 in zip(verts, verts[1:]):
+        across = any(F(v1["t"]) < e <= F(v2["t"]) for e in ends)
+        for lo, hi in pairs:
+            a1, b1, a2, b2 = v1["pitches"][lo], v1["pitches"][hi], v2["pitches"][lo], v2["pitches"][hi]
+            if None in (a1, b1, a2, b2) or (a1 == a2 and b1 == b2):
+                continue
+            if a1 == a2 or b1 == b2:
+                continue  # one voice holds: no parallel motion
+            p1, q1, p2, q2 = map(parse_pitch_name, (a1, b1, a2, b2))
+            # absolute intervals: a crossed pair (tenor above alto) is measured as it sounds
+            i1, i2 = abs(q1.midi - p1.midi) % 12, abs(q2.midi - p2.midi) % 12
+            g1, g2 = abs(q1.diatonic - p1.diatonic) % 7, abs(q2.diatonic - p2.diatonic) % 7
+            kind = None
+            if i1 == i2 == 7 and g1 == g2 == 4:
+                kind = "fifths"
+            elif i1 == i2 == 0 and g1 == g2 == 0:
+                kind = "octaves" if q1.midi != p1.midi or q2.midi != p2.midi else "unisons"
+            if kind:
+                same_dir = (p2.midi - p1.midi) * (q2.midi - q1.midi) > 0
+                out.append({"from": v1["t"], "to": v2["t"], "measure": v2["measure"], "voices": f"{lo}-{hi}", "kind": kind,
+                            "motion": "parallel" if same_dir else "contrary (by octave leap)",
+                            "on_beats": v1["on_beat"] and v2["on_beat"], "across_phrase_end": across,
+                            "pitches": [a1, b1, a2, b2]})
+    return out
+
+
+def main() -> None:
+    index = json.loads((BACH / "index.json").read_text())
+    OUT.mkdir(parents=True, exist_ok=True)
+    figs_beat, figs_all, cads, cad_deg, finals = Counter(), Counter(), Counter(), Counter(), Counter()
+    n_vert = 0
+    par = Counter()
+    par_list = []
+    for e in index["catalogue"]:
+        c = json.loads((BACH / e["file"]).read_text())
+        a = analyse(c)
+        (OUT / f"{c['id']}.json").write_text(json.dumps(a, ensure_ascii=False, separators=(",", ":")) + "\n")
+        n_vert += len(a["verticalities"])
+        for x in a["parallels"]:
+            par[(x["kind"], x["motion"], x["on_beats"], x["across_phrase_end"])] += 1
+            if x["motion"] == "parallel" and not x["across_phrase_end"]:
+                par_list.append((c["number"], x))
+        for v in a["verticalities"]:
+            figs_all[v["figure"] or "5/3"] += 1
+            if v["on_beat"]:
+                figs_beat[v["figure"] or "5/3"] += 1
+        for k, cd in enumerate(a["cadences"]):
+            cads[cd["class"]] += 1
+            if cd["final_bass_degree"]:
+                cad_deg[(c["key"]["mode"] in ("minor", "dorian", "phrygian") and "minor-type" or "major-type", cd["final_bass_degree"])] += 1
+            if k == len(a["cadences"]) - 1 and cd["final"]:
+                third = None
+                b = parse_pitch_name(cd["final"]["bass"])
+                for vv in ("tenor", "alto", "soprano"):
+                    p = next((v for v in a["verticalities"] if v["t"] == cd["final"]["t"]), None)
+                    if p and p["pitches"][vv]:
+                        u = parse_pitch_name(p["pitches"][vv])
+                        if (u.diatonic - b.diatonic) % 7 == 2:
+                            third = (u.midi - b.midi) % 12
+                finals[(c["key"]["mode"], {3: "minor third", 4: "major third", None: "no third"}.get(third, "?"))] += 1
+    total_beat = sum(figs_beat.values())
+    md = ["# Bach's chorales: first counts", "",
+          "Generated by `tools/chorales/bach_analyse.py` over the 370 chorales (Breitkopf numbering).",
+          "These are counts of derived facts, not rules. The figures are read off Bach's four voices",
+          "(the chorales carry none). The cadence classes follow the simple tests written in",
+          "`classify_cadence`, which are meant to be corrected.", "",
+          f"- Verticalities (onsets where some voice moves): {n_vert}",
+          f"- On the beat: {total_beat}", "",
+          "## Figures on the beat (period abbreviation; \"5/3\" = no figure)", "",
+          "| figure | count | share |", "|---|---|---|"]
+    for f, k in figs_beat.most_common(30):
+        md.append(f"| {f} | {k} | {100 * k / total_beat:.1f}% |")
+    md += ["", "## Cadences at the fermatas", "", "| class | count |", "|---|---|"]
+    for f, k in cads.most_common():
+        md.append(f"| {f} | {k} |")
+    md += ["", "## Where the phrases end (degree of the final bass in the chorale's key)", "",
+           "| key type | degree | count |", "|---|---|---|"]
+    for (kt, d), k in sorted(cad_deg.items(), key=lambda x: (x[0][0], -x[1])):
+        md.append(f"| {kt} | {d} | {k} |")
+    md += ["", "## The last chord", "", "| mode (editor's label) | third of the last chord | count |", "|---|---|---|"]
+    for (m, t), k in sorted(finals.items(), key=lambda x: (x[0][0], -x[1])):
+        md.append(f"| {m} | {t} | {k} |")
+    md += ["", "## Consecutive fifths and octaves", "",
+           "Between two voices that both move, from one onset to the next. Contrary motion means the",
+           "perfect interval is kept by an octave leap. Rows after a phrase end are kept apart: the fermata",
+           "separates the chords.", "",
+           "| kind | motion | both on beats | across a phrase end | count |", "|---|---|---|---|---|"]
+    for (k, m, ob, ac), n in sorted(par.items(), key=lambda x: -x[1]):
+        md.append(f"| {k} | {m} | {'yes' if ob else 'no'} | {'yes' if ac else 'no'} | {n} |")
+    md += ["", "Parallel motion inside a phrase, every case (no., bar, voices, pitches):", ""]
+    for num, x in par_list:
+        md.append(f"- no. {num}, bar {x['measure']}, {x['voices']}: {x['kind']}, {' '.join(x['pitches'][:2])} → {' '.join(x['pitches'][2:])}{'' if x['on_beats'] else ' (off the beat)'}")
+    REPORT.write_text("\n".join(md) + "\n")
+    print(f"{len(index['catalogue'])} chorales, {n_vert} verticalities; cadences: {dict(cads)}")
+
+
+if __name__ == "__main__":
+    main()

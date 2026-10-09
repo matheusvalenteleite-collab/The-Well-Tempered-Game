@@ -23,6 +23,27 @@ whole note), `measure` (0 = anacrusis), `section`, and `kern` (the source token)
 Licence: the music is in the public domain; the encoding is Craig Stuart Sapp's, CC BY-NC-SA 4.0,
 and so are these derived files.
 
+### `bach/analysis/`: the analysis layer (computed readings, not source facts)
+
+`bach_NNN.json` per chorale, built by `npm run chorales:analyse`
+(`tools/chorales/bach_analyse.py`). It holds:
+
+- `verticalities`: every onset where some voice strikes a note. Each records the four sounding
+  pitches, which voices strike, and two figures derived from Bach's voices:
+  - `literal`: every interval over the bass, reduced to the octave except 9, with the
+    accidentals the key signature does not give;
+  - `figure`: the period abbreviation (5/3 → nothing, 6/3 → 6, 6/5/3 → 6/5, 6/4/3 → 4/3,
+    6/4/2 → 4/2, 7/5/3 → 7).
+
+  It also records `on_beat` and `crossing`.
+- `phrases`: the lines of the hymn, up to each soprano fermata.
+- `cadences`: per phrase end, the final and penultimate chords, the degree of the final bass in
+  the chorale's key, and a class. The class comes from one-line tests in `classify_cadence`,
+  written to be corrected.
+- `parallels`: consecutive fifths and octaves between two voices that both move.
+
+Summary counts are in `docs/chorales/BACH-COUNTS.md`.
+
 ## `kittel/`: J. C. Kittel, 24 chorales with eight basses (extracted and machine-checked; not yet proofread by eye)
 
 - `kittel_NN.json`: one chorale.
