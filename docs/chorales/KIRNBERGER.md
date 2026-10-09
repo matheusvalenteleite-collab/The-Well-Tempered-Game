@@ -1,6 +1,6 @@
 # Kirnberger as the authority for the analysis
 
-Owner's decision (D100): the analytical categories of the chorale library are Kirnberger's. The
+Owner's decision (C3): the analytical categories of the chorale library are Kirnberger's. The
 main source is J. Ph. Kirnberger, *Die Kunst des reinen Satzes in der Musik* (Berlin, 1771-79).
 The second is *Die wahren Grundsätze zum Gebrauche der Harmonie* (1773), published under
 Kirnberger's name and written with J. A. P. Schulz; it analyses two pieces by Bach by their

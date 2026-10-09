@@ -661,7 +661,7 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
 .gradus-quote { font-size: 1.15rem; font-style: italic; }
 .gradus-quote cite { display: block; font-size: 0.75rem; font-style: normal; margin-top: 6px; color: var(--muted); }
 
-/* Chorale mode (D101): the melody with a cadence marker under each fermata. */
+/* Chorale mode (C4): the melody with a cadence marker under each fermata. */
 .chorale-score { padding: 6px 8px; overflow-y: auto; }
 .melody-score { width: 100%; height: auto; display: block; }
 .melody-score .staff-line { stroke: var(--ink); stroke-width: 0.8; }

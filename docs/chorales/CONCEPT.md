@@ -3,7 +3,7 @@
 Owner, after the first library work: this material is more sophisticated than Fux and needs a
 conception of its own. Fux is an early support for basic counterpoint; the chorale mode is not
 an extension of it. This document is that conception. It is the frame for every later decision
-about the chorale mode (D101).
+about the chorale mode (C4).
 
 ## 1. Why Fux's design does not carry over
 
@@ -33,7 +33,7 @@ What stays:
   conception and is what the new evaluation needs.
 - **Fux as the prerequisite** of basic voice-leading. Kirnberger, too, teaches the strict style
   before the free.
-- **Bach as the last word (D98).** It changes role: it is no longer a filter that clears
+- **Bach as the last word (C1).** It changes role: it is no longer a filter that clears
   prohibitions, but the reference against which every choice is placed.
 
 ## 2. The material of the exercises

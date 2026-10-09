@@ -7,7 +7,7 @@ import { store, stored } from "./shared.ts";
 export type Mode = 2 | 3 | "chorale";
 
 /**
- * Two voices (Exercitium I), three (Exercitium II, D90), or the chorales (D101, a conception of
+ * Two voices (Exercitium I), three (Exercitium II, D90), or the chorales (C4, a conception of
  * their own): separate screens over one engine.
  */
 export function Root() {

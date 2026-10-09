@@ -1,12 +1,12 @@
 # The chorale library: plan
 
-> The conception of the chorale mode itself (what the library is for) is in `CONCEPT.md` (D101):
+> The conception of the chorale mode itself (what the library is for) is in `CONCEPT.md` (C4):
 > levels top-down, judgement by idiom and comparison, not a checker as in the Fux mode.
 
 Owner's brief: a Bach Chorales mode, built on chorale harmonization in the figured-bass tradition.
 For now, no generator. First an intelligent, well-parsed, informative library of the material, so
 that the principles, patterns and habits are known before anything is generated. **Bach is the
-last word** (D98).
+last word** (C1).
 
 ## Sources
 
@@ -20,7 +20,7 @@ The two corpora have different roles:
 - **Bach** is the authority. He gives one harmonization of each melody, with all four voices written.
 - **Kittel** teaches the method: one melody with many correct basses, figured, the inner voices left to the player. He was Bach's pupil (1748-50).
 
-Where they disagree, Bach decides (D98).
+Where they disagree, Bach decides (C1).
 
 ## Layers of the library
 
@@ -101,7 +101,7 @@ derived fact can be traced back to the source.
    - Phrases, and cadences with a first classification.
    - Consecutive fifths and octaves: 18 inside phrases in 370 chorales, 17 of them involving
      passing notes off the beat.
-   - Kirnberger's categories (D100, `KIRNBERGER.md`), applied to every sonority:
+   - Kirnberger's categories (C3, `KIRNBERGER.md`), applied to every sonority:
      - the fundamental chord (triad or seventh chord) and its root (the fundamental bass);
      - the part each voice plays in it, or the kind of incidental dissonance it is;
      - how each seventh is treated.
@@ -151,7 +151,7 @@ derived fact can be traced back to the source.
   phrase end of Bach's 2,277, the context is how the melody closes, where the phrase stands, and
   the mode; Bach's cadence chords are counted per context, with examples. For Kittel's 24
   melodies, his basses' cadence chords stand beside Bach's at each phrase end.
-- Level 1 on screen (D102): "Chorales" in the voices selector. Kittel's 24 melodies, with a cadence
+- Level 1 on screen (C5): "Chorales" in the voices selector. Kittel's 24 melodies, with a cadence
   choice at each fermata, Compare, and playback. The data are in `data/chorales/level1.json`
   (from `cadence_plans.py`); the tests are in `test/chorale-level1.test.ts`.
 - Fixed while building it: a fermata written on the second half of a tied note was lost when the

@@ -1,6 +1,6 @@
 # Chorales: the library (parsed layer)
 
-See `docs/chorales/PLAN.md` for the plan and `docs/DECISIONS.md` D98-D99 for the decisions.
+See `docs/chorales/PLAN.md` for the plan and `docs/DECISIONS.md` C1-C2 for the decisions.
 
 ## `bach/`: J. S. Bach, 371 four-part chorales
 

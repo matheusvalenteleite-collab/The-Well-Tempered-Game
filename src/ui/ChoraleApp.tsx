@@ -1,5 +1,5 @@
 /**
- * The chorale mode (docs/chorales/CONCEPT.md, D101), level 1: the cadence plan. The player chooses
+ * The chorale mode (docs/chorales/CONCEPT.md, C4), level 1: the cadence plan. The player chooses
  * the chord on which each phrase of one of Kittel's melodies cadences; "Compare" lays each choice
  * beside Kittel's basses, Bach's settings of the tune, and Bach's habit in the same context. No
  * choice is marked wrong: the masters' choices are the feedback.

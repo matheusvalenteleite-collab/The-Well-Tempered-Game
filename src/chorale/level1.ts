@@ -2,7 +2,7 @@
  * Level 1 of the chorale mode (docs/chorales/CONCEPT.md): the cadence plan. At each fermata of a
  * melody the player chooses the chord the phrase cadences on; the choice is then laid beside the
  * masters' (Kittel's 8-9 basses, Bach's settings of the tune) and beside Bach's habit in the same
- * context, with examples. No choice is an error here: the comparison is the feedback (D101).
+ * context, with examples. No choice is an error here: the comparison is the feedback (C4).
  *
  * Data: data/chorales/level1.json, written by tools/chorales/cadence_plans.py.
  */
