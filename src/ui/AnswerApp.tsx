@@ -6,7 +6,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { FUGUES, events, mutated, options } from "../wtc/answers.ts";
 import type { Mode } from "./Root.tsx";
-import type { WtcLevel } from "./WtcRoot.tsx";
+import { WtcLevelSelect, type WtcLevel } from "./WtcRoot.tsx";
 import { LineStaff } from "./notation/LineStaff.tsx";
 import { HFader } from "./HFader.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
@@ -81,11 +81,7 @@ export function AnswerApp({ onMode, level, onLevel }: { onMode(mode: Mode): void
               <option value="chorale">{t("chorale.mode")}</option>
               <option value="wtc">{t("wtc.mode")}</option>
             </select>
-            <select id="level" className="sel sel-species" value={level} aria-label={t("chorale.level")} onChange={(e) => { audio.stop(); onLevel(e.target.value as WtcLevel); }}>
-              <option value="p1">{t("wtc.piece.p1")}</option>
-              <option value="p2">{t("wtc.level.p2")}</option>
-              <option value="f2">{t("wtc.level.f2")}</option>
-            </select>
+            <WtcLevelSelect level={level} onLevel={onLevel} onChange={() => audio.stop()} />
             <select id="exercise" className="sel sel-exercise" value={index} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("ui.nav.choose")}>
               {FUGUES.map((x, k) => (
                 <option key={x.id} value={k}>{`${picks[x.id] !== undefined ? "● " : ""}${t("wtc.fugueN", { book: x.book === 1 ? "I" : "II", n: x.number, key: x.key })}`}</option>

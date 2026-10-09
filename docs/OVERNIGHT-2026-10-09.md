@@ -4,7 +4,7 @@ This was written for the owner, who left the instruction: "work on choices lab i
 develop it as further as you can without my help … do work on the Well-Tempered Clavier … this is
 the end goal."
 
-Everything below is committed and pushed on this branch. Decisions C6–C12 were taken without the
+Everything below is committed and pushed on this branch. Decisions C6–C13 were taken without the
 owner and are marked *assumed, owner to confirm* in `docs/DECISIONS.md`.
 
 ## 1. What to look at first
@@ -15,6 +15,8 @@ owner and are marked *assumed, owner to confirm* in `docs/DECISIONS.md`.
      figuration, and compare the plan with Bach's.
    - **P2, Prelude 1's figured bass.** Voice each figured chord. Parallels from the bar before are
      marked as faults; Bach's prelude has none.
+   - **P1 for Preludes 2, 5 and 6** too, from the public-domain Mutopia editions, read by a new
+     LilyPond reader and checked against Humdrum.
    - **F2, the answer.** Choose the answer to 26 fugue subjects: real, textbook tonal, or Bach's
      own mutation.
 2. **The game, Chorales**, now with **level 2** (the chord under every melody note), **level 3**
@@ -89,7 +91,7 @@ owner and are marked *assumed, owner to confirm* in `docs/DECISIONS.md`.
    2. ask for permission;
    3. re-encode from the Bach-Gesellschaft edition;
    4. subjects only for the fugue levels.
-2. **C6–C12**: confirm or amend.
+2. **C6–C13**: confirm or amend.
    - C6: the WTC screen and P1.
    - C7: sources.
    - C8: F2, the answer.
@@ -97,13 +99,15 @@ owner and are marked *assumed, owner to confirm* in `docs/DECISIONS.md`.
    - C10: chorale level 2.
    - C11: chorale level 3.
    - C12: chorale level 4.
+   - C13: the harmonic plan for Preludes 2, 5 and 6.
 3. **Kirnberger's text** is still unreachable from here: the proxy refuses archive.org and IMSLP.
    The analytical categories remain operational readings marked "to verify".
 
 ## 5. Next steps proposed
 
-- P1 and P2 for Preludes 2, 5 and 6, once their Mutopia sources are read and checked against
-  Humdrum. A LilyPond reader for that was in progress at the time of writing; see the commit log.
+- P2 (the figured bass) for Preludes 2, 5 and 6. Their notes now come from Mutopia: a LilyPond
+  reader (`tools/wtc/lily.py`) checks 37 Mutopia WTC pieces against Humdrum (`docs/wtc/MUTOPIA.md`),
+  and their P1 harmonic plan is built.
 - Chorale level 5, the voices (four real parts), judged by the boundaries Bach virtually never crosses.
 - Local keys in the chorale habits (a passage in the dominant now reads as II and V of the home
   key).

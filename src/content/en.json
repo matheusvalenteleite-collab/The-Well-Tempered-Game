@@ -1053,6 +1053,13 @@
     "voice.tenor": "tenor",
     "voice.lower": "lower right-hand voice",
     "voice.middle": "middle right-hand voice",
-    "voice.upper": "upper voice"
+    "voice.upper": "upper voice",
+    "level.plan": "{title} · harmonic plan",
+    "free": "as written",
+    "plan.prompt": "Bar {n}, the right hand:",
+    "plan.tab": "The plan",
+    "plan.about.1": "{title} repeats one figuration in most of its bars, like Prelude 1: what changes from bar to bar is the harmony. The bars that break the pattern (the opening, the cadenzas, the coda) sound as Bach wrote them.",
+    "plan.about.2": "For each figured bar choose its right hand: Bach's, or the right hand of a bar one or two before or after it (the harmony held or anticipated) over this bar's left hand. Each choice sounds as you make it.",
+    "plan.about.3": "Compare sets your plan beside Bach's, with the fundamental chord of each bar as the WTC harmonic reader reads it (measured against human analyses: docs/wtc/HARMONY.md). The notes come from the Mutopia edition (public domain), checked against the Humdrum edition."
   }
 }

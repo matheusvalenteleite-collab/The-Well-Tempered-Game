@@ -43,7 +43,7 @@ The levels below follow the chorale mode's top-down order (plan before detail; C
 
 | level | the player | judged by | status |
 |---|---|---|---|
-| P1 harmonic plan | chooses the chord of each bar from four over Bach's bass, hears it in Bach's figuration | the bar-by-bar comparison with Bach's chord, its figures and fundamental | **built for Prelude 1** (`src/ui/PreludeApp.tsx`) |
+| P1 harmonic plan | chooses the chord of each bar from four over Bach's bass, hears it in Bach's figuration | the bar-by-bar comparison with Bach's chord, its figures and fundamental | **built for Preludes 1, 2, 5, 6** (`src/ui/PreludeApp.tsx`, `src/ui/PlanApp.tsx`; C13) |
 | P2 figured bass | is given Bach's bass and figures and voices each bar (chooses among the voicings of the figured chord; later, types them) | parallel fifths and octaves (none in Bach's prelude); the voices' motion; Bach's voicing | **built for Prelude 1** (C9) |
 | P3 the bass | is given the upper voices and writes the bass | the chorale mode's bass criteria; comparison with Bach | proposed |
 | P4 figuration | chooses or designs the pattern that breaks the chords | listening; comparison with the other figuration preludes | proposed |

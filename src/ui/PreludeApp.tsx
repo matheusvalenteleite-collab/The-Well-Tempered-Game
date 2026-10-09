@@ -10,7 +10,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BARS, VOICES, barEvents, compare, figureLabel, figuredLabel, motion, parallels, pieceEvents, type Choice } from "../wtc/prelude1.ts";
 import type { Mode } from "./Root.tsx";
-import type { WtcLevel } from "./WtcRoot.tsx";
+import { WtcLevelSelect, type WtcLevel } from "./WtcRoot.tsx";
 import { HFader } from "./HFader.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 import { Shell } from "./Shell.tsx";
@@ -118,11 +118,7 @@ export function PreludeApp({ onMode, level, onLevel }: { onMode(mode: Mode): voi
               <option value="chorale">{t("chorale.mode")}</option>
               <option value="wtc">{t("wtc.mode")}</option>
             </select>
-            <select id="level" className="sel sel-species" value={level} aria-label={t("chorale.level")} onChange={(e) => { stop(); onLevel(e.target.value as WtcLevel); }}>
-              <option value="p1">{t("wtc.piece.p1")}</option>
-              <option value="p2">{t("wtc.level.p2")}</option>
-              <option value="f2">{t("wtc.level.f2")}</option>
-            </select>
+            <WtcLevelSelect level={level} onLevel={onLevel} onChange={() => stop()} />
           </nav>
           <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("about")} />
         </>
