@@ -52,7 +52,7 @@ const trios = trioSteps(JSON.parse(readFileSync("data/fux/three-voice/fux-three-
 const t = auditTrios(trios);
 const tp = poolTrios(t);
 out.push("## Three voices, first species", "");
-out.push(`${t.length} solutions, ${tp.choices} choices (each of Fux's two added voices, bar by bar), judged by the game's three-voice rules (\`evaluateTrio\`, D90); habits: sonority above the bass, spacing of neighbouring staves, melodic moves per staff. ${tp.meanLegal.toFixed(1)} legal pitches per choice; only Fux's note legal at ${pct(tp.forced, tp.choices)}; Fux illegal at ${tp.fuxIllegal}.`, "");
+out.push(`${t.length} solutions, ${tp.choices} choices (each of Fux's two added voices, bar by bar), judged by the game's three-voice rules (\`evaluateTrio\`, D90); habits: the weighted three-voice model (docs/fux/trio-habits-study.md: melodic moves, pairs of moves, the sonority, the chord member the voice takes, motion with each other voice). ${tp.meanLegal.toFixed(1)} legal pitches per choice; only Fux's note legal at ${pct(tp.forced, tp.choices)}; Fux illegal at ${tp.fuxIllegal}.`, "");
 out.push("| ranking | Fux first | first where free | mean rank |", "|---|---|---|---|");
 for (const [name, order] of ORDERS) {
   const q = poolTrios(auditTrios(trios, { order }));

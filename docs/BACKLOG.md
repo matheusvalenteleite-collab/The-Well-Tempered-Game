@@ -81,8 +81,16 @@ Findings and points for the owner:
   species, so this is partly the rules); after a leap of a fourth or
   more he turns back 76% (up) and 95% (down), after a downward one more often by another leap
   than by step. The audit and both generators use this model; the generator's variety is
-  calibrated at 0.75 on his rates of leaps and spacing. Not yet modelled: three voices (its own,
-  older model), first-species repeated notes (3% generated against his 11%).
+  calibrated at 0.75 on his rates of leaps and spacing. Not yet modelled: first-species repeated
+  notes (3% generated against his 11%).
+- Three voices, the same method (docs/fux/trio-habits-study.md; same tab): of eleven candidate
+  features, five predict Fux's notes once the others are in: the sonority (by far the strongest),
+  the melodic move (pooled over staves: by staff adds nothing once the rest is in), pairs of moves,
+  the chord member the voice takes, and its motion with each other voice. Weighted, they cut the
+  surprise at his notes from 1.00 to 0.73 bits (his note first 77% → 84% where the rules leave a
+  choice). Spacing and the final chord's top note add nothing once these are in; the generated
+  third voices still end with the final on top 84% of the time (Fux 88%), with his rates of leaps
+  (47% against 43%) and repeated notes (14%). The audit and the third-voice generator use it.
 - Motives and imitation (docs/fux/motives-study.md): Fux's species solutions imitate the cantus
   (displaced 1-4 bars, straight or inverted, at any transposition) and repeat their own
   three-interval figures no more than counterpoints generated without any notion of either

@@ -42,9 +42,9 @@ Imitations of three intervals or more in Fux's solutions:
 
 | measure | Fux / generated (percentile) |
 |---|---|
-| imitation run of an added voice with the cantus | 2.16 / 2.02 (57%) |
-| imitation run between the two added voices | 1.69 / 1.58 (56%) |
-| three-interval figures stated twice in an added voice | 0.16 / 0.09 (54%) |
+| imitation run of an added voice with the cantus | 2.16 / 2.09 (54%) |
+| imitation run between the two added voices | 1.69 / 1.74 (48%) |
+| three-interval figures stated twice in an added voice | 0.16 / 0.04 (56%) |
 
 No imitation of three intervals or more between Fux's added voices.
 

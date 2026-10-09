@@ -114,6 +114,10 @@ test("three voices: at every choice of Fux's sixteen first-species solutions, hi
   for (const a of audits) assert.equal(a.voices.length, 2);
   assert.equal(sonorityKey(["D4", "F4", "A4"]), "m3 5");
   assert.equal(sonorityKey(["A4", "F3", "D4"]), "M3 M6");
+  // The weighted three-voice model, each exercise judged without itself: Fux's note first alone at
+  // most choices the rules leave open (85% when measured; docs/fux/trio-habits-study.md).
+  const byHabit = poolTrios(auditTrios(trios, { order: ["errors", "habit"] }));
+  assert.ok(byHabit.fuxFirstFree / byHabit.free > 0.8, `${byHabit.fuxFirstFree}/${byHabit.free}`);
 });
 
 test("three voices: a third voice added to a generated exercise breaks no three-voice rule; sharps only at the cadence", () => {

@@ -18,6 +18,9 @@ import type { AuditSummary } from "./audit.ts";
 import { summarise } from "./audit.ts";
 import { DEFAULT_COUNSEL_WEIGHT, TRIO_TEMPERATURE } from "./counterpoint.ts";
 import { pitchesBetween, sharpAllowed } from "./vocabulary.ts";
+import { finalTopKey, learnTrioFeatures, sonorityKey, spacingKey, TRIO_MODEL_FEATURES, trioModelBits, type TrioFeatureTables } from "./trio-features.ts";
+
+export { finalTopKey, sonorityKey, spacingKey } from "./trio-features.ts";
 
 const midi = (p: string) => parsePitch(p).midi;
 /** Position of a voice: 0 top, 1 middle, 2 bottom, by staff. */
@@ -47,38 +50,17 @@ export interface TrioHabits {
    * the major third twice, the fifth never (his fifths stand in the middle voice).
    */
   finalTop: Counts;
+  /** The weighted model (trio-features.ts), learnt on the same solutions; what the audit and the generator use. */
+  features: TrioFeatureTables;
 }
 
 const melodicKey = (a: string, b: string) => String(Math.max(-12, Math.min(12, midi(b) - midi(a))));
-
-/** The sonority of a bar as Fux would figure it: simple intervals above the lowest note, sorted. */
-export function sonorityKey(chord: string[]): string {
-  const sorted = [...chord].sort((a, b) => midi(a) - midi(b));
-  return sorted
-    .slice(1)
-    .map((p) => simpleName(harmonic(sorted[0], p)).replace(/^1$/, "8"))
-    .sort((a, b) => parseInt(a.replace(/\D/g, "")) - parseInt(b.replace(/\D/g, "")))
-    .join(" ");
-}
-
-/** Distance between two neighbouring staves in a bar, upper staff first. */
-export function spacingKey(upper: string, lower: string): string {
-  const h = harmonic(lower, upper);
-  const octaves = Math.floor((h.number - 1) / 7) - (h.number > 1 && (h.number - 1) % 7 === 0 ? 1 : 0);
-  return `${midi(upper) < midi(lower) ? "x" : ""}${simpleName(h)}${octaves > 0 ? `+${octaves}` : ""}`;
-}
-
-/** The highest note of a chord as a simple interval above its lowest ("8" for the final doubled on top). */
-export function finalTopKey(chord: string[]): string {
-  const sorted = [...chord].sort((a, b) => midi(a) - midi(b));
-  return simpleName(harmonic(sorted[0], sorted[sorted.length - 1])).replace(/^1$/, "8");
-}
 
 /** Surprisal of the final chord's top note (only in the last bar). */
 const finalTopBits = (t: TrioHabits, chord: string[]) => bits(prob(t.finalTop, finalTopKey(chord), 6));
 
 export function buildTrioHabits(steps: TrioStep[], exclude: string[] = []): TrioHabits {
-  const t: TrioHabits = { from: [], melodic: [new Map(), new Map(), new Map()], pooled: new Map(), sonority: new Map(), spacing: [new Map(), new Map()], range: [[127, 0], [127, 0], [127, 0]], finalTop: new Map() };
+  const t: TrioHabits = { from: [], melodic: [new Map(), new Map(), new Map()], pooled: new Map(), sonority: new Map(), spacing: [new Map(), new Map()], range: [[127, 0], [127, 0], [127, 0]], finalTop: new Map(), features: new Map() };
   for (const s of steps) {
     if (exclude.includes(s.exerciseId)) continue;
     t.from.push(s.exerciseId);
@@ -100,6 +82,7 @@ export function buildTrioHabits(steps: TrioStep[], exclude: string[] = []): Trio
       add(t.spacing[1], spacingKey(s.fux[1][k], s.fux[2][k]));
     }
   }
+  t.features = learnTrioFeatures(steps.filter((s) => !exclude.includes(s.exerciseId)), TRIO_MODEL_FEATURES);
   return t;
 }
 
@@ -154,7 +137,11 @@ const spacingBits = (t: TrioHabits, voices: string[][], v: Position, k: number) 
   return h;
 };
 
-export function trioHabit(t: TrioHabits, voices: string[][], v: Position, k: number): number {
+/** The habit cost of voice v's note in bar k: the weighted model (docs/fux/trio-habits-study.md). */
+export const trioHabit = (t: TrioHabits, voices: string[][], v: Position, k: number) => trioModelBits(t.features, { voices, v, k, bars: voices[v].length });
+
+/** The first model (summed surprisals of melody by staff, sonority, spacing, final top note), kept for the study's comparison. */
+export function legacyTrioHabit(t: TrioHabits, voices: string[][], v: Position, k: number): number {
   const line = voices[v];
   let h = bits(prob(t.sonority, sonorityKey(voices.map((l) => l[k])), 40)) + spacingBits(t, voices, v, k);
   if (k === line.length - 1) h += finalTopBits(t, voices.map((l) => l[k]));
@@ -339,9 +326,7 @@ export function generateThirdVoice(o: ThirdVoiceOptions): ThirdVoice {
   const prefixRules = TRIO_FIRST_SPECIES.filter((x) => !DEFERRED.has(x.id));
   const stepCost = (line: string[], k: number) => {
     const vs = assemble(line).map((l) => l.slice(0, k + 1));
-    let habit = bits(prob(o.habits.sonority, sonorityKey(vs.map((l) => l[k])), 40)) + spacingBits(o.habits, vs, added, k);
-    if (k === n - 1) habit += finalTopBits(o.habits, vs.map((l) => l[k]));
-    if (k > 0) habit += bits(melodicP(o.habits, added, melodicKey(line[k - 1], line[k])));
+    const habit = trioModelBits(o.habits.features, { voices: vs, v: added, k, bars: n });
     let counsel = 0;
     if (k > 0) {
       const d = Math.abs(midi(line[k]) - midi(line[k - 1]));

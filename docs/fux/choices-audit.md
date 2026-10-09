@@ -108,11 +108,11 @@ Legal pitches at each choice (first ranking; \* where Fux's note is not ranked f
 
 ## Three voices, first species
 
-16 solutions, 374 choices (each of Fux's two added voices, bar by bar), judged by the game's three-voice rules (`evaluateTrio`, D90); habits: sonority above the bass, spacing of neighbouring staves, melodic moves per staff. 3.6 legal pitches per choice; only Fux's note legal at 11%; Fux illegal at 0.
+16 solutions, 374 choices (each of Fux's two added voices, bar by bar), judged by the game's three-voice rules (`evaluateTrio`, D90); habits: the weighted three-voice model (docs/fux/trio-habits-study.md: melodic moves, pairs of moves, the sonority, the chord member the voice takes, motion with each other voice). 3.6 legal pitches per choice; only Fux's note legal at 11%; Fux illegal at 0.
 
 | ranking | Fux first | first where free | mean rank |
 |---|---|---|---|
-| errors > warnings > counsel > habit | 76% | 73% (332) | 1.29 |
+| errors > warnings > counsel > habit | 77% | 74% (332) | 1.29 |
 | errors > warnings > counsel | 82% | 55% (332) | 1.22 |
-| errors > habit | 80% | 77% (332) | 1.25 |
-| errors > counsel > habit | 73% | 69% (332) | 1.33 |
+| errors > habit | 86% | 85% (332) | 1.17 |
+| errors > counsel > habit | 74% | 71% (332) | 1.32 |
