@@ -32,6 +32,12 @@ export function Credits({ onClose }: { onClose(): void }) {
           saxophone (Karoryfer Samples): all via nbrosowsky/tonejs-instruments (CC BY 3.0); thinned, trimmed and re-encoded.
         </p>
         <p>
+          The continuo's ensembles (D109): viola, string staccato (spiccato) and pizzicato, oboe, clarinet and timpani from the
+          Versilian Studios Orchestra 2 Community Edition (VSCO 2 CE, github.com/sgossner/VSCO-2-CE; CC0); a picked electric bass
+          ("babyblue", Black And Blue Basses) and a Gretsch guitar (Black And Green Guitars) by Karoryfer Samples (CC0), via the
+          sfzinstruments editions; trimmed, levelled and re-encoded.
+        </p>
+        <p>
           Recorded drum kits (sfzinstruments editions, mixed to mono one-shots in two velocities): Virtuosity Drums (Versilian Studios
           and Karoryfer Samples, drummer Austin McMahon; CC0), Big Rusty Drums and Unruly Drums (Karoryfer Samples; CC0), Naked Drums
           (Wilkinson Audio; CC BY 4.0), DRSKit (Lars Muldjord, Bent Bisballe Nyeng, Jes Eiler and the DrumGizmo team; CC BY 4.0), Retro

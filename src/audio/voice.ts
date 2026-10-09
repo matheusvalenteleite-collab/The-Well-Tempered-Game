@@ -21,6 +21,9 @@ const loading = new Map<SampleSet, Promise<void>>();
 const SET_GAIN: Record<SampleSet, number> = {
   grand: 2.6, organ: 1.7, sackbut: 1.9, cello: 1.6, violin: 2.0, flute: 1.35, bassoon: 1.65, horn: 1.15, trumpet: 1.8, harp: 1.8, contrabass: 1.65,
   harmonium: 1.7, guitar: 1.65, eguitar: 3.8, ebass: 2.1, sax: 1.15, xylophone: 3.2,
+  // D109: normalised to about -1 dBFS at the loudest note of each set; matched in the continuo's mix.
+  violinStac: 1.6, violinPizz: 3.2, violaSus: 1.6, violaStac: 1.6, violaPizz: 3.2, celloStac: 1.6, celloPizz: 3.2, bassPizz: 3.2, bassStac: 1.6,
+  oboe: 1.4, clarinet: 1.4, timpani: 1.6, rickBass: 1.6, cleanGuitar: 1.6,
 };
 
 /** Fetch and decode an instrument's samples (once); notes before it arrives are skipped. */
