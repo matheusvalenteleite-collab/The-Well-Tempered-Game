@@ -2,7 +2,7 @@
 // a line that can be inverted at the octave (the fifths and fourths between subject and
 // countersubject). Written to docs/wtc/countersubject-study.md. Usage: node tools/wtc/countersubject-study.ts
 import { readFileSync, writeFileSync } from "node:fs";
-import { findEntries, line, subjectAndAnswer } from "../../src/wtc/fugue.ts";
+import { findEntriesByHead, line, subjectAndAnswer } from "../../src/wtc/fugue.ts";
 import { countersubjectCandidate, countersubjectUses, verticals, within } from "../../src/wtc/countersubject.ts";
 import { label, TPQ, type WtcPiece } from "../../src/wtc/corpus.ts";
 
@@ -20,7 +20,7 @@ const csWeak: Record<string, number> = {};
 const freeStrong: Record<string, number> = {};
 for (const p of fugues) {
   const { subject, answer, first } = subjectAndAnswer(p);
-  const entries = findEntries(p, subject);
+  const entries = findEntriesByHead(p, subject).entries;
   const cs = countersubjectCandidate(p, first, answer);
   const uses = countersubjectUses(p, cs, entries);
   const later = Math.max(0, entries.length - 1);
@@ -52,7 +52,7 @@ const out = [
   "counts as **regular** when it returns, by its intervals and rhythm (at least 60% kept), against",
   "at least two later entries and a third of them; **above/below**: where it lies against those",
   "entries (both means Bach inverts it, so it must work in invertible counterpoint at the octave).",
-  "The entries are found automatically (`findEntries`), so counts are approximate.",
+  "The entries are found automatically (`findEntriesByHead`), so counts are approximate.",
   "",
   `Regular countersubjects: ${regular} of ${fugues.length} fugues; used both above and below the subject in ${both} of them.`,
   "",

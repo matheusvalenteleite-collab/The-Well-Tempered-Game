@@ -15,21 +15,29 @@ export interface Span {
   end: number;
 }
 
-export function entrySpan(p: WtcPiece, e: Entry): Span {
+/**
+ * An entry's span: as long as the subject lasts (`length`, in ticks, when given: an entry found by
+ * the subject's head is taken to carry the whole subject), else to the end of its matched notes.
+ */
+export function entrySpan(p: WtcPiece, e: Entry, length?: number): Span {
   const l = line(p.voices[e.voice]);
   const last = l[Math.min(l.length - 1, e.at + e.length - 1)];
-  return { on: e.on, end: last.on + last.dur };
+  return { on: e.on, end: Math.max(last.on + last.dur, length ? e.on + length : 0) };
 }
 
+/** The subject's length in ticks. */
+export const subjectLength = (subject: Note[]) => subject[subject.length - 1].on + subject[subject.length - 1].dur - subject[0].on;
+
 /** Entries that begin while an earlier one (in another voice) still sounds: [earlier, later]. */
-export function strettos(p: WtcPiece, entries: Entry[]): [Entry, Entry][] {
+export function strettos(p: WtcPiece, entries: Entry[], subject?: Note[]): [Entry, Entry][] {
+  const len = subject ? subjectLength(subject) : undefined;
   const out: [Entry, Entry][] = [];
   for (let i = 0; i < entries.length; i++)
     for (let j = i + 1; j < entries.length; j++) {
       const a = entries[i];
       const b = entries[j];
       if (a.voice === b.voice) continue;
-      const sa = entrySpan(p, a);
+      const sa = entrySpan(p, a, len);
       // Overlapping by more than a beat (an answer that enters on the subject's last note is no stretto).
       if (b.on > a.on && b.on < sa.end - TPQ) out.push([a, b]);
     }
@@ -45,7 +53,7 @@ export interface Episode extends Span {
 
 /** Stretches of at least half a bar, after the first entry, where no entry sounds. */
 export function episodes(p: WtcPiece, entries: Entry[], subject: Note[]): Episode[] {
-  const spans = entries.map((e) => entrySpan(p, e)).sort((a, b) => a.on - b.on);
+  const spans = entries.map((e) => entrySpan(p, e, subjectLength(subject))).sort((a, b) => a.on - b.on);
   const [num, den] = p.meter.split("/").map(Number);
   const bar = (num * 4 * TPQ) / den;
   const out: Episode[] = [];

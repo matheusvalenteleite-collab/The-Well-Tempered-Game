@@ -229,3 +229,25 @@ function bachAnswer(subject: Note[], degs: { deg: number; alter: number }[]): st
   if (tail >= 0) for (let i = tail; i < n; i++) fourth[i] = true;
   return subject.map((x, i) => (fourth[i] ? transpose(x.pitch, 3, 5) : transpose(x.pitch, 4, 7)));
 }
+
+/**
+ * Entries found with the subject's head where later entries vary its tail: the subject is
+ * shortened a note at a time (down to half its length, and never below eight notes) as long as the
+ * number of entries found does not jump (more than half again, plus two, at a step; or beyond two
+ * and a half times the full subject's count, plus four), which would mean the head has become a
+ * commonplace figure (a scale) rather than the subject; never finding fewer than the full subject.
+ */
+export function findEntriesByHead(p: WtcPiece, subject: Note[]): { entries: Entry[]; head: number } {
+  const n = subject.length;
+  const full = findEntries(p, subject);
+  const cap = 2.5 * full.length + 4;
+  let best = { entries: full, head: n };
+  let prev = full.length;
+  for (let len = n - 1; len >= Math.max(8, Math.ceil(n / 2)); len--) {
+    const e = findEntries(p, subject.slice(0, len));
+    if (e.length > prev * 1.5 + 2 || e.length > cap) break;
+    if (e.length >= best.entries.length) best = { entries: e, head: len };
+    prev = e.length;
+  }
+  return best;
+}

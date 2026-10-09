@@ -3,6 +3,25 @@
 Things the owner wants kept in view but not implemented now. Newest first. Move an item to
 DECISIONS.md (or delete it) when it is done or dropped.
 
+## Well-Tempered Clavier (the goal; night of 9-10 October 2026)
+
+The owner: the end goal of the whole game is a Well-Tempered Clavier mode. The lab session's work
+towards it (branch claude/beautiful-mccarthy-7li5nv); the proposal is docs/wtc/CONCEPT.md (levels
+0-8, preludes beside). The main session has its own first layer (D119, ASAP expositions, answer and
+tonal two-voice engines) and builds the screen; the two readings were cross-checked
+(docs/wtc/crosscheck.md).
+
+- Data: the 48 preludes and fugues and the 30 Inventions and Sinfonias from the Humdrum encoding
+  (Huron 1994; **rights to settle before any public build**: data/sources/bach-wtc/SOURCE.md).
+- Analysis (src/wtc/): subject and answer, answer rules (Bach's head rule law-like: 17 of 17, 7 of
+  7), entries through each fugue (by the subject's head where tails vary), the key of each entry,
+  strettos, episodes and sequences, countersubjects, harmonic reduction of the preludes, tunings.
+- Studies (docs/wtc/): answers, countersubjects, key plans, strettos and episodes, cross-check.
+- Lab prototype: the WTC tab (map, period tunings, harmony of the preludes; exercises: find the
+  entries, answer the subject, plan the keys).
+- Open: countersubject invertibility needs a test with the bass; Book II no. 11's answer note 2 to
+  check; entries in a few fugues are still under-found (Book I nos. 3, 6, 12; Book II no. 18).
+
 ## Study area (Lectio)
 
 - **Facsimiles of the book.** Show page images of the *Gradus* where they look good, e.g. next to

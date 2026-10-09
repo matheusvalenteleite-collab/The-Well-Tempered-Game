@@ -9,7 +9,7 @@ import fugueData from "../../data/wtc/fugues.json" with { type: "json" };
 import preludeData from "../../data/wtc/preludes.json" with { type: "json" };
 import inventionData from "../../data/wtc/inventions.json" with { type: "json" };
 import { label, TPQ, type WtcPiece } from "../wtc/corpus.ts";
-import { degree, findEntries, line, names, predictAnswer, subjectAndAnswer, transpose, type Entry, type Note } from "../wtc/fugue.ts";
+import { degree, findEntriesByHead, line, names, predictAnswer, subjectAndAnswer, transpose, type Entry, type Note } from "../wtc/fugue.ts";
 import { TUNINGS, type TuningId } from "../wtc/tunings.ts";
 import { entryKey } from "../wtc/keyplan.ts";
 import { reduce, type Segment } from "../wtc/reduction.ts";
@@ -61,8 +61,8 @@ function analyse(p: WtcPiece): Analysis | null {
   const sa = subjectAndAnswer(p);
   const real = predictAnswer(sa.subject, p.key, p.mode, "real");
   const departures = real.map((x, i) => (x[0] !== sa.answer[i].pitch[0] ? i : -1)).filter((i) => i >= 0);
-  const entries = findEntries(p, sa.subject);
-  return { ...sa, entries, departures, episodes: episodes(p, entries, sa.subject), stretto: new Set(strettos(p, entries).map(([, b]) => b)) };
+  const entries = findEntriesByHead(p, sa.subject).entries;
+  return { ...sa, entries, departures, episodes: episodes(p, entries, sa.subject), stretto: new Set(strettos(p, entries, sa.subject).map(([, b]) => b)) };
 }
 
 /* ---------------------------------------------------------------- the map */
