@@ -10,6 +10,7 @@ import { FOURTH_SPECIES_FUX_STRICT, ligatureWherePossibleWith } from "../rules/f
 import { FUX_FIFTH_SPECIES_CURRICULUM, FUX_FOURTH_SPECIES_CURRICULUM, FUX_THIRD_SPECIES_CURRICULUM } from "./fux-third-fourth-species.ts";
 import { FIFTH_SPECIES_FUX_STRICT } from "../rules/fifth-species.ts";
 import type { Rule } from "../rules/types.ts";
+import { floridRhythm, fourthNoRepetition, secondNoRepetition, thirdNoRepetition } from "../rules/rhythm.ts";
 import type { SpeciesId } from "../layout.ts";
 import { FUX_FIRST_SPECIES_CURRICULUM, type CurriculumStep } from "./fux-first-species.ts";
 import { FUX_SECOND_SPECIES_CURRICULUM } from "./fux-second-species.ts";
@@ -34,7 +35,7 @@ export const COURSES: readonly Course[] = [
 
 export const ALL_STEPS: readonly CurriculumStep[] = COURSES.flatMap((c) => c.steps);
 
-const RULES: Record<SpeciesId, readonly Rule[]> = { first: FIRST_SPECIES_FUX_STRICT, second: SECOND_SPECIES_FUX_STRICT, third: THIRD_SPECIES_FUX_STRICT, fourth: FOURTH_SPECIES_FUX_STRICT, fifth: FIFTH_SPECIES_FUX_STRICT };
+const RULES: Record<SpeciesId, readonly Rule[]> = { first: FIRST_SPECIES_FUX_STRICT, second: [...SECOND_SPECIES_FUX_STRICT, secondNoRepetition], third: [...THIRD_SPECIES_FUX_STRICT, thirdNoRepetition], fourth: [...FOURTH_SPECIES_FUX_STRICT, fourthNoRepetition], fifth: [...FIFTH_SPECIES_FUX_STRICT, floridRhythm] };
 const RULES_BY_ID = new Map(Object.values(RULES).flat().map((r) => [r.id, r]));
 
 export const courseOf = (stepId: string) => {

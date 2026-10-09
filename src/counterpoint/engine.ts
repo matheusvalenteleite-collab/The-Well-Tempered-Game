@@ -9,6 +9,7 @@ import { SECOND_SPECIES_FUX_STRICT } from "./rules/second-species.ts";
 import { THIRD_SPECIES_FUX_STRICT } from "./rules/third-species.ts";
 import { FOURTH_SPECIES_FUX_STRICT } from "./rules/fourth-species.ts";
 import { FIFTH_SPECIES_FUX_STRICT } from "./rules/fifth-species.ts";
+import { floridRhythm, fourthNoRepetition, secondNoRepetition, thirdNoRepetition } from "./rules/rhythm.ts";
 import { HOLD, noteSpan, REST, slotLayout, slotLength, slotOffset } from "./layout.ts";
 import { maxThreeParallelImperfect, noRepeatedClimax, voiceDistanceLimit } from "./rules/modern-additions.ts";
 import type { Analysis, CounterpointInput, NoteEvent, Rule, Violation } from "./rules/types.ts";
@@ -18,7 +19,7 @@ export type PresetId = "fux-strict";
 /** The only player-facing preset. */
 export function presetRules(preset: PresetId = "fux-strict", config: DevConfig = DEFAULT_DEV_CONFIG): Rule[] {
   if (preset !== "fux-strict") throw new Error(`unknown preset ${preset}`);
-  const rules: Rule[] = [...FIRST_SPECIES_FUX_STRICT, ...SECOND_SPECIES_FUX_STRICT, ...THIRD_SPECIES_FUX_STRICT, ...FOURTH_SPECIES_FUX_STRICT, ...FIFTH_SPECIES_FUX_STRICT];
+  const rules: Rule[] = [...FIRST_SPECIES_FUX_STRICT, ...SECOND_SPECIES_FUX_STRICT, ...THIRD_SPECIES_FUX_STRICT, ...FOURTH_SPECIES_FUX_STRICT, ...FIFTH_SPECIES_FUX_STRICT, secondNoRepetition, thirdNoRepetition, fourthNoRepetition, floridRhythm];
   if (config.enableModernAdditions) {
     rules.push(maxThreeParallelImperfect, noRepeatedClimax);
     if (config.modernVoiceDistanceLimit !== null) rules.push(voiceDistanceLimit(config.modernVoiceDistanceLimit));

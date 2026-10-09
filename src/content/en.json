@@ -596,6 +596,10 @@
     "continuo.boxHelp": "The accompaniment is generated, for pleasure only, and plays no part in grading. It follows whatever is written now, solved or not."
   },
   "tutor": {
+    "rule.fos.no-repetition": "In this species each upbeat brings a new note, which is then tied over the bar line; striking the downbeat's note again on its own upbeat is a whole note in disguise.",
+    "rule.fis.florid": "Florid counterpoint is a garden of figures: mix the values of the earlier species. A line that barely moves (whole notes, or bars where nothing happens more than twice) is not this species.",
+    "rule.ts.no-repetition": "Four crotchets against each whole note means four notes in motion: never strike the same note twice in a row.",
+    "rule.ss.no-repetition": "Two minims against each whole note means two different notes: striking the same note twice is a whole note in disguise.",
     "speaker.aloysius": "Aloysius",
     "speaker.josephus": "Josephus",
     "result.cleared": "[Placeholder] Aloysius approves: no rule is broken.",
@@ -634,6 +638,10 @@
     "rule.fis.limping": "Two crotchets at the start of the bar with no ligature after them make the melody limp, says Aloysius: tie them into a ligature, or go on with two more crotchets. Advice, not a precept."
   },
   "hints": {
+    "rule.fos.no-repetition": "In this species each upbeat brings a new note, which is then tied over the bar line; striking the downbeat's note again on its own upbeat is a whole note in disguise.",
+    "rule.fis.florid": "Florid counterpoint is a garden of figures: mix the values of the earlier species. A line that barely moves (whole notes, or bars where nothing happens more than twice) is not this species.",
+    "rule.ts.no-repetition": "Four crotchets against each whole note means four notes in motion: never strike the same note twice in a row.",
+    "rule.ss.no-repetition": "Two minims against each whole note means two different notes: striking the same note twice is a whole note in disguise.",
     "rules": "Rules (breaking one means the exercise is not cleared)",
     "recommendations": "Recommendations",
     "thisExercise": "Specific to this exercise",

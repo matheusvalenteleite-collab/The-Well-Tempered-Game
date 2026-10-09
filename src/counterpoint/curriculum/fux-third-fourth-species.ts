@@ -34,6 +34,7 @@ export const FUX_THIRD_SPECIES_CURRICULUM: readonly CurriculumStep[] = [
     { ruleId: "ts.downbeat-consonance", page: "63-64", occasion: "Of five quarters by step, the first must be consonant." },
     { ruleId: "ts.dissonance", page: "63-65", occasion: "The second and fourth may be dissonant, passing by step; the third too when it fills a skip of a third; and the nota cambiata, a skip of a third down from a dissonant second quarter." },
     { ruleId: "ts.cadence", page: "65-66", occasion: "The penultimate bar, which has more difficulty than the others, ends on the note below the final." },
+    { ruleId: "ts.no-repetition", page: "63", occasion: "Four crotchets against a semibreve: four notes, none struck twice in a row (our reading of the definition, D92)." },
     { ruleId: "ts.opening-perfect", page: "66", occasion: kept3 },
     { ruleId: "ts.final-octave-or-unison", page: "66", occasion: kept3 },
     { ruleId: "ts.perfect-approach", page: "66", occasion: kept3 },
@@ -64,6 +65,7 @@ const kept4 = "The rules of motion hold, read with the retardation taken away ('
 
 export const FUX_FOURTH_SPECIES_CURRICULUM: readonly CurriculumStep[] = [
   s4(1, 73, "fux_cf_d_01", "D", "lower", "69-74", [
+    { ruleId: "fos.no-repetition", page: "69", occasion: "The upbeat is a new note, tied over the bar line; never the downbeat struck again (our reading, D92)." },
     { ruleId: "fos.arsis-consonant", page: "69", occasion: "The first note of a ligature, in arsis, is always consonant." },
     { ruleId: "fos.resolution", page: "70", occasion: "A dissonance on the downbeat is a retardation of the following note: it resolves by step down to the next consonance." },
     { ruleId: "fos.ligature-kinds", page: "71-73", occasion: "Not from the unison to the second, nor from the octave to the ninth (cantus below); not the seventh to the octave (cantus above)." },
@@ -107,6 +109,7 @@ export const FUX_FIFTH_SPECIES_CURRICULUM: readonly CurriculumStep[] = [
     { ruleId: "fis.quavers", page: "76", occasion: "Two quavers may be mixed in, on the second or fourth crotchet, never on the first or third." },
     { ruleId: "fis.ligature", page: "69", occasion: "A note is tied over the bar line from the second half of the bar (the ligature's first note is in arsis)." },
     { ruleId: "fis.cadence", page: "77-80", occasion: "The penultimate bar ends on the note below the final." },
+    { ruleId: "fis.florid", page: "76-77", occasion: "A heap and combination of the preceding species, with an elegant variety of figures: the line must move (our reading, D92)." },
     { ruleId: "fis.opening-perfect", page: "77", occasion: kept5 },
     { ruleId: "fis.final-octave-or-unison", page: "77", occasion: kept5 },
     { ruleId: "fis.perfect-approach", page: "77", occasion: kept5 },

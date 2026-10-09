@@ -29,6 +29,7 @@ export const FUX_SECOND_SPECIES_CURRICULUM: readonly CurriculumStep[] = [
   step(1, 33, "fux_cf_d_01", "D", "lower", "56-59", [
     { ruleId: "ss.downbeat-consonance", page: "56", occasion: "The note in thesis is always consonant." },
     { ruleId: "ss.passing-dissonance", page: "56", occasion: "The note in arsis may be dissonant only as a passing note filling a third (diminution)." },
+    { ruleId: "ss.no-repetition", page: "56", occasion: "Two minims against a semibreve: two notes, not one struck twice (our reading of the definition, D92)." },
     { ruleId: "ss.perfect-approach", page: "56", occasion: recalled },
     { ruleId: "ss.prefer-contrary-motion", page: "56", occasion: recalled },
     { ruleId: "ss.opening-perfect", page: "56", occasion: recalled },
