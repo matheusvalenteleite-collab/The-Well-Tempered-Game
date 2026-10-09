@@ -35,9 +35,18 @@ The levels below follow the chorale mode's top-down order (plan before detail; C
 | P3 the bass | is given the upper voices and writes the bass | the chorale mode's bass criteria; comparison with Bach | proposed |
 | P4 figuration | chooses or designs the pattern that breaks the chords | listening; comparison with the other figuration preludes | proposed |
 
-Prelude 1 is the model. Next would come the other preludes built on a single figuration pattern.
-Which preludes those are should be measured, not assumed: a measure of how regularly each bar
-repeats one pattern, computed from the notes, is the next tool to write.
+Prelude 1 is the model. Next would come the other preludes built on a single figuration pattern,
+measured rather than assumed (`tools/wtc/preludes.py`, `docs/wtc/PRELUDES.md`). The measure is the
+share of bars (or half bars) whose voices move in the commonest rhythm and direction. It finds
+four figuration preludes, all in Book I:
+
+- 1/1 in C: 94%;
+- 1/5 in D: 74%;
+- 1/6 in D minor: 66%;
+- 1/2 in C minor: 57%.
+
+Every other prelude scores 32% or less. These four are the order of the P1 level. For each, the
+notes need a public-domain source (section 5).
 
 ## 3. The fugues
 
