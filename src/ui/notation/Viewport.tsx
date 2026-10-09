@@ -41,11 +41,19 @@ export function Viewport(p: ViewportProps) {
   const [follow, setFollow] = useState(() => stored("wtg.follow", true, (v) => typeof v === "boolean"));
   useEffect(() => store("wtg.follow", follow), [follow]);
 
+  // The width is the box's; the height it may take is the cap the screen gives the score (D104:
+  // the score box is as tall as the music, never taller than half the screen).
   useLayoutEffect(() => {
     const el = host.current!;
-    const ro = new ResizeObserver(() => setBox({ w: el.clientWidth, h: el.clientHeight }));
+    const measure = () => {
+      const cap = parseFloat(getComputedStyle(el).getPropertyValue("--score-cap"));
+      setBox({ w: el.clientWidth, h: Number.isFinite(cap) && cap > 0 ? cap : el.clientHeight });
+    };
+    const ro = new ResizeObserver(measure);
     ro.observe(el);
-    setBox({ w: el.clientWidth, h: el.clientHeight });
+    const shell = el.closest(".shell");
+    if (shell) ro.observe(shell);
+    measure();
     return () => ro.disconnect();
   }, []);
 

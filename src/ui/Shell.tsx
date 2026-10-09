@@ -8,7 +8,11 @@ import { useEffect, useState, type ReactNode } from "react";
 import { setUiScale } from "./ui-scale.ts";
 
 const DESIGN_W = 1366;
-const DESIGN_H = 768;
+const DESIGN_H = 720;
+const PHONE = 600;
+/** What the score may take of the screen's height: half, but always leaving the bars, the transport and the mixer their room. */
+const RESERVE = 455;
+const scoreCap = (h: number) => Math.round(Math.max(200, Math.min(h * 0.5, h - RESERVE)));
 import { InfoBar } from "./InfoBar.tsx";
 import { store, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
@@ -37,7 +41,7 @@ export function Shell(p: {
   idle: string;
   overlays?: ReactNode;
 }) {
-  const [wide, setWide] = useState(() => window.matchMedia?.(WIDE).matches ?? true);
+  const [wideMedia, setWide] = useState(() => window.matchMedia?.(WIDE).matches ?? true);
   useEffect(() => {
     const m = window.matchMedia?.(WIDE);
     if (!m) return;
@@ -47,20 +51,32 @@ export function Shell(p: {
   }, []);
   // D103: on a computer the screen is laid out for 1366 × 768 at least; a smaller window shows the
   // same screen, scaled down, instead of squeezing or scrolling it. Phones keep their own layout.
+  // D104: any window wider than a phone shows this one design, scaled up or down to fit it
+  // whole (the design grows wider or taller with the window's proportions, never narrower than
+  // 1366 or shorter than 700 units). Phones (below 600 px) keep their own layout.
   const fit = () => {
     const w = window.innerWidth;
     const h = window.innerHeight;
-    return w < 900 ? 1 : Math.max(0.6, Math.min(1, w / DESIGN_W, h / DESIGN_H));
+    return w < PHONE ? 1 : Math.max(0.35, Math.min(1.6, w / DESIGN_W, h / DESIGN_H));
   };
   const [scale, setScale] = useState(fit);
+  const [innerW, setInnerW] = useState(window.innerWidth);
+  const [innerH, setInnerH] = useState(window.innerHeight);
+  const phone = innerW < PHONE;
   useEffect(() => {
-    const on = () => setScale(fit());
+    const on = () => {
+      setScale(fit());
+      setInnerW(window.innerWidth);
+      setInnerH(window.innerHeight);
+    };
     window.addEventListener("resize", on);
     return () => window.removeEventListener("resize", on);
   }, []);
   useEffect(() => {
     setUiScale(scale);
   }, [scale]);
+  // Detaching text tabs to a side column: the scaled design is always wide enough.
+  const wide = !phone || wideMedia;
   const [detached, setDetached] = useState<string[]>(() => stored<string[]>("wtg.detached", [], (v) => Array.isArray(v)));
   useEffect(() => store("wtg.detached", detached), [detached]);
   const side = wide ? p.tabs.filter((x) => x.text && detached.includes(x.id)) : [];
@@ -69,8 +85,16 @@ export function Shell(p: {
   const dockTab = dock.find((x) => x.id === p.tab) ?? dock[0];
   const [sideId, setSideId] = useState<string | null>(null);
   const sideTab = side.find((x) => x.id === p.tab) ?? side.find((x) => x.id === sideId) ?? side[0];
+  // D104: a tall screen (a portrait or square window) shows the mixer and a text tab at once: the
+  // mixer on top at its own height, the text tabs in a pane below filling the rest.
+  const tall = !phone && innerH / scale > 950;
+  const texts = dock.filter((x) => x.text);
+  const [lastText, setLastText] = useState<string | null>(null);
+  const lowerTab = texts.find((x) => x.id === p.tab) ?? texts.find((x) => x.id === lastText) ?? texts[0];
+  const split = tall && texts.length > 0 && dock.some((x) => !x.text);
   const pick = (id: string) => {
     if (side.some((x) => x.id === id)) setSideId(id);
+    if (texts.some((x) => x.id === id)) setLastText(id);
     p.onTab(id);
   };
 
@@ -100,17 +124,40 @@ export function Shell(p: {
   );
 
   return (
-    <div className="shell" style={scale < 1 ? { width: `${100 / scale}vw`, height: `${100 / scale}vh`, maxWidth: "none", transform: `scale(${scale})`, transformOrigin: "0 0", margin: 0 } : undefined}>
+    <div
+      className="shell"
+      style={
+        phone
+          ? undefined
+          : ({ width: `${innerW / scale}px`, height: `${innerH / scale}px`, maxWidth: "none", transform: `scale(${scale})`, transformOrigin: "0 0", margin: 0, ["--score-cap" as string]: `${scoreCap(innerH / scale)}px` } as React.CSSProperties)
+      }
+    >
       <header className="topbar">{p.header}</header>
       <div className="shell-body">
         <div className="main-col">
           <div className="score-area">{p.score}</div>
           <div className="transport-row">{p.transport}</div>
           {p.summary}
-          <section className="dock">
-            {strip(dock, dockTab, "dock")}
-            <div className={`dock-body${dockTab?.text ? "" : " fit"}`} role="tabpanel">{dockTab?.content}</div>
-          </section>
+          {split ? (
+            <>
+              {dock
+                .filter((x) => !x.text)
+                .map((x) => (
+                  <section key={x.id} className="dock mixer-pane" aria-label={typeof x.label === "string" ? x.label : undefined}>
+                    <div className="dock-body fit">{x.content}</div>
+                  </section>
+                ))}
+              <section className="dock text-pane">
+                {strip(texts, lowerTab, "dock")}
+                <div className="dock-body" role="tabpanel">{lowerTab?.content}</div>
+              </section>
+            </>
+          ) : (
+            <section className="dock">
+              {strip(dock, dockTab, "dock")}
+              <div className={`dock-body${dockTab?.text ? "" : " fit"}`} role="tabpanel">{dockTab?.content}</div>
+            </section>
+          )}
         </div>
         {side.length > 0 && (
           <aside className="side-col">

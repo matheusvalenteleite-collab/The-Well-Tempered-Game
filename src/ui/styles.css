@@ -46,7 +46,7 @@ button.link { border: none; background: none; color: var(--accent); text-decorat
 footer { margin-top: 16px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 0.8rem; color: var(--muted); display: flex; flex-direction: column; gap: 8px; }
 .dialog-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; padding: 16px; }
 .dialog { background: var(--paper); max-width: 640px; width: 100%; max-height: 90vh; overflow: auto; padding: 16px 20px; border-radius: 6px; }
-@media (max-width: 600px) { .help { display: none; } h1 { font-size: 1.1rem; } }
+@media (max-width: 599px) { .help { display: none; } h1 { font-size: 1.1rem; } }
 :root { --mark-error: rgba(190, 40, 30, 0.16); --mark-warning: rgba(220, 160, 20, 0.20); --ok: #2d6a3e; --bad: #a0281a; }
 .score.read-only { cursor: default; }
 .volume { display: flex; flex-direction: column; font-size: 0.85rem; color: var(--muted); }
@@ -95,13 +95,13 @@ footer .source { margin: 0; padding-top: 8px; }
 .rack-help { margin: 0; font-size: 0.7rem; color: var(--muted); }
 .presets { list-style: none; margin: 0; padding: 0 0 0 10px; border-left: 1px solid var(--line); display: grid; grid-template-columns: repeat(2, auto); gap: 3px; align-content: start; }
 .presets button { width: 100%; min-height: 24px; padding: 1px 8px; font-size: 0.78rem; text-align: left; }
-@media (max-width: 600px) { .presets { border-left: none; padding-left: 0; grid-template-columns: repeat(4, 1fr); flex-basis: 100%; } }
+@media (max-width: 599px) { .presets { border-left: none; padding-left: 0; grid-template-columns: repeat(4, 1fr); flex-basis: 100%; } }
 /* Hints */
 .hints { padding-block: 4px 12px; color: var(--ink); font-size: 0.9rem; }
 .hints h2 { font-size: 1.05rem; margin: 4px 0 8px; font-variant: small-caps; letter-spacing: 0.04em; }
 .hints h3 { font-size: 0.82rem; margin: 12px 0 6px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
 .hints-grid { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 16px 28px; }
-@media (max-width: 700px) { .hints-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 599px) { .hints-grid { grid-template-columns: minmax(0, 1fr); } }
 .glance { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 4px 12px 12px; }
 .glance h3:first-child { margin-top: 8px; }
 .chart .row { display: grid; grid-template-columns: 96px 1fr; align-items: center; gap: 6px; margin-bottom: 6px; }
@@ -200,7 +200,7 @@ svg.ghost line { stroke: var(--ink-player); stroke-width: 1.2; opacity: 0.45; }
 .drum-families { display: flex; flex-wrap: wrap; gap: 6px 14px; }
 .drum-family h4 { margin: 0 0 3px; font-size: 0.72rem; font-weight: 600; color: var(--muted); font-variant: small-caps; letter-spacing: 0.04em; }
 .drumbox .presets { border-left: none; padding-left: 0; grid-template-columns: repeat(2, auto); }
-@media (max-width: 600px) { .drumbox .presets { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 599px) { .drumbox .presets { grid-template-columns: repeat(3, 1fr); } }
 
 /* Play: your counterpoint (large), Fux's and the trio (small, stacked) */
 .play-split { display: inline-flex; gap: 2px; align-items: stretch; }
@@ -224,7 +224,7 @@ svg.ghost line { stroke: var(--ink-player); stroke-width: 1.2; opacity: 0.45; }
 .study p { margin: 4px 0; font-size: 0.88rem; line-height: 1.45; }
 .study .note { color: var(--muted); font-size: 0.75rem; }
 .study-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 4px 22px; }
-@media (max-width: 700px) { .study-grid { grid-template-columns: 1fr; } }
+@media (max-width: 599px) { .study-grid { grid-template-columns: 1fr; } }
 .quote { margin: 6px 0; padding: 4px 10px; border-left: 3px solid var(--line); }
 .quote cite { display: block; font-size: 0.72rem; color: var(--muted); font-style: normal; }
 .fux-quote { border-left-color: var(--ink-fux); }
@@ -266,7 +266,7 @@ button.quiet:hover { color: var(--ink); border-color: var(--line); }
 .controls { gap: 10px 0; }
 .controls .group { padding: 0 14px; border-left: 1px solid var(--line); }
 .controls .group:first-child { padding-left: 0; border-left: none; }
-@media (max-width: 600px) { .controls .group { border-left: none; padding: 0 6px 0 0; } }
+@media (max-width: 599px) { .controls .group { border-left: none; padding: 0 6px 0 0; } }
 .badge { display: inline-block; margin-left: 6px; min-width: 18px; padding: 0 5px; border-radius: 9px; background: var(--muted); color: var(--bg); font-size: 0.72rem; line-height: 18px; text-align: center; }
 .after { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .after .next { margin-left: auto; font-weight: 600; border-color: var(--ok); color: var(--ok); }
@@ -304,7 +304,7 @@ kbd { font-family: ui-monospace, Menlo, monospace; font-size: 0.8rem; padding: 1
 .chain[aria-pressed="true"] { background: none; border-color: transparent; }
 .desk-gap { width: 12px; }
 .sound .rack, .sound .drumbox { margin-top: 0; }
-@media (max-width: 600px) { .strip { width: calc(50% - 30px); } .chain { display: none; } }
+@media (max-width: 599px) { .strip { width: calc(50% - 30px); } .chain { display: none; } }
 
 /* View toggles beside the exercise name; loop toggle beside play */
 .title-row { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
@@ -327,7 +327,7 @@ kbd { font-family: ui-monospace, Menlo, monospace; font-size: 0.8rem; padding: 1
 .strip.master .tuning { font-size: 0.66rem; padding: 1px 3px; }
 .chain { min-width: 26px; }
 .chain svg { width: 22px; }
-@media (max-width: 600px) { .desk { flex-wrap: wrap; } }
+@media (max-width: 599px) { .desk { flex-wrap: wrap; } }
 /* The strips share the synth's width evenly: one block, no loose gaps. */
 .desk { justify-content: stretch; }
 .desk .strip { flex: 1 1 0; width: auto; min-width: 72px; }
@@ -343,7 +343,7 @@ kbd { font-family: ui-monospace, Menlo, monospace; font-size: 0.8rem; padding: 1
 .fold-line { flex: 1; border-top: 1px solid var(--line); }
 /* One editor size for every strip (synth, drums, continuo): selecting a strip never resizes the box. */
 .sound .editor { height: 250px; overflow: auto; }
-@media (max-width: 600px) { .sound .editor { height: auto; min-height: 364px; } }
+@media (max-width: 599px) { .sound .editor { height: auto; min-height: 364px; } }
 .sound .editor > section { width: 100%; height: 100%; box-sizing: border-box; }
 .strip .bc { font-size: 0.7rem; white-space: nowrap; }
 .sound:not(.folded) { width: min(100%, 760px); }
@@ -380,7 +380,7 @@ kbd { font-family: ui-monospace, Menlo, monospace; font-size: 0.8rem; padding: 1
 .wave rect.played { fill: var(--accent); }
 .wave-time { position: absolute; right: 0; bottom: 0; font-size: 0.7rem; background: var(--paper); color: var(--muted); padding: 0 3px; font-variant-numeric: tabular-nums; }
 .track-actions { display: flex; flex-direction: column; gap: 4px; }
-@media (max-width: 600px) { .track { grid-template-columns: 44px 1fr; } .track-play { width: 40px; height: 40px; } .track-actions { grid-column: 1 / -1; flex-direction: row; justify-content: flex-end; } }
+@media (max-width: 599px) { .track { grid-template-columns: 44px 1fr; } .track-play { width: 40px; height: 40px; } .track-actions { grid-column: 1 / -1; flex-direction: row; justify-content: flex-end; } }
 
 /* UI type (D52): every control, label, number and tool in the sans. */
 button, select, input, .chipbtn, .strip, .rack, .drumbox, .desk, .knob, .controls, .exercise-nav, .header-tools, .meta, .view-toggles, .badge, .tabs, .track-sub, .track-date, .wave-time, .toast, .strip-name, .rack-title, .rack-help, kbd { font-family: var(--ui-font); }
@@ -399,13 +399,13 @@ button, select, .chipbtn { font-size: 0.8rem; }
 .strip .canon-shift span { font-size: 0.7rem; }
 
 /* Narrow screens: the exercise menu takes the rest of its row, with the next arrow beside it. */
-@media (max-width: 600px) { .exercise-nav { width: 100%; } .exercise-nav #exercise { flex: 1 1 60%; } }
+@media (max-width: 599px) { .exercise-nav { width: 100%; } .exercise-nav #exercise { flex: 1 1 60%; } }
 /* D71: the drum sound (kit) row; D69: a version's "same sound as Contrapunctus" switch. */
 .drum-kits { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 6px 0 2px; }
 .drum-kits .kit-label { font-size: 0.8rem; color: var(--muted); margin-right: 4px; }
 .sound .editor { position: relative; }
 .editor .follows { position: absolute; top: 8px; right: 12px; z-index: 1; }
-@media (max-width: 600px) { .editor .follows { position: static; margin: 4px 0 6px; } }
+@media (max-width: 599px) { .editor .follows { position: static; margin: 4px 0 6px; } }
 /* D74: export dialog. */
 .export-card .export-formats { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 14px; }
 .export-card .export-formats button { text-align: left; padding: 8px 12px; }
@@ -581,7 +581,7 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
 .view-pop button { text-align: left; justify-content: flex-start; }
 .controls .from-bar { font-size: 0.8rem; }
 .controls .loop { min-width: 26px; font-size: 0.8rem; opacity: 0.9; }
-@media (max-width: 700px) {
+@media (max-width: 599px) {
   .topbar { flex-wrap: wrap; padding: 4px 8px; gap: 4px; }
   .topbar .brand { display: none; }
   .topbar .exercise-nav { flex: 1 1 100%; }
@@ -629,7 +629,7 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
 .note-icon { display: block; }
 .desk { justify-content: flex-start; }
 .desk .strip, .desk .strip.master { flex: 0 0 96px; width: 96px; }
-@media (max-width: 700px) { .desk { flex-wrap: nowrap; overflow-x: auto; } .desk .strip, .desk .strip.master { flex-basis: 84px; width: 84px; } }
+@media (max-width: 599px) { .desk { flex-wrap: nowrap; overflow-x: auto; } .desk .strip, .desk .strip.master { flex-basis: 84px; width: 84px; } }
 
 /* D96: bars pointed at in a text pulse on the score. */
 .score svg { --pulse: rgba(42, 86, 214, 0.22); }
@@ -642,7 +642,7 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
 .guide-parts > div, .glossary > div { display: grid; grid-template-columns: minmax(110px, 22%) 1fr; gap: 2px 12px; padding: 4px 0; border-bottom: 1px dotted var(--line); }
 .guide-parts dt, .glossary dt { font-weight: 600; }
 .guide-parts dd, .glossary dd { margin: 0; }
-@media (max-width: 700px) { .guide-parts > div, .glossary > div { grid-template-columns: 1fr; } }
+@media (max-width: 599px) { .guide-parts > div, .glossary > div { grid-template-columns: 1fr; } }
 .fux-ref { color: #2a56d6; text-decoration: underline dotted; text-underline-offset: 3px; cursor: help; outline: none; position: relative; }
 .fux-card { position: fixed; z-index: 60; width: 460px; max-width: calc(100vw - 16px); padding: 8px; background: var(--paper); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22); display: block; }
 :root[data-look="retro"] .fux-card { border: 2px solid var(--edge); box-shadow: 5px 5px 0 var(--edge); }
@@ -744,7 +744,7 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
 .dock .sound .strip .instrument { min-height: 20px; font-size: 0.68rem; }
 .dock .sound .editor { height: 100%; min-height: 0; overflow: hidden; }
 .dock .sound .editor > section { height: 100%; margin: 0; overflow: hidden; }
-@media (max-width: 900px) {
+@media (max-width: 599px) {
   .dock-body.fit { overflow: auto; display: block; }
   .dock .sound:not(.folded) { display: flex; flex-direction: column; height: auto; }
   .dock .sound .desk { height: 200px; overflow-x: auto; }
@@ -759,11 +759,11 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
 .zoombar .lock { font-size: 0.72rem; }
 .score-area { overflow: hidden; }
 .score-area .score-wrap { height: 100%; display: flex; }
-@media (min-width: 901px) {
+@media (min-width: 600px) {
   .score-area { flex: 1 1 0; max-height: none; min-height: 120px; }
   .main-col > .dock { flex: 0 0 clamp(300px, 36vh, 430px); }
 }
-@media (max-width: 900px) {
+@media (max-width: 599px) {
   .score-area { flex: 0 0 auto; height: min(46vh, 300px); }
 }
 .dock .sound .fader2, .dock .sound .strip.master .fader2 { max-height: 84px; }
@@ -773,14 +773,14 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
 .dock .sound .desk .strip.master { flex: 0 1 84px; min-width: 62px; width: auto; }
 
 .dock .sound .desk .strip .fader2 { grid-template-columns: 18px 14px 6px; }
-@media (min-width: 901px) {
+@media (min-width: 600px) {
   .dock .sound:not(.folded) { display: flex; flex-direction: row; }
   .dock .sound .desk { flex: 0 1 auto; }
   .dock .sound .editor { flex: 1 0 min(540px, 50vw); min-width: 0; }
 }
 .dock .sound .desk-group { min-width: 0; flex: 0 1 auto; }
 .dock .sound .desk .strip { overflow: hidden; }
-@media (max-width: 900px) {
+@media (max-width: 599px) {
   .score-area { height: auto; max-height: none; }
   .score-area .viewport { height: auto; }
   .score-area .viewport-scroll { max-height: 46vh; }
@@ -813,4 +813,27 @@ footer.infobar:not(.folded) { height: 42px; min-height: 42px; align-items: cente
 .shell-body { padding-bottom: 0; }
 .main-col > .dock { border-bottom: none; }
 :root[data-look="retro"] .main-col > .dock { box-shadow: 3px 0 0 var(--edge); }
-@media (min-width: 900px) { html, body { overflow: hidden; } }
+@media (min-width: 600px) { html, body { overflow: hidden; } }
+
+/*
+ * D104: one design for every window wider than a phone, scaled to fit. The score box is as tall
+ * as the music (never more than half the screen); the dock takes the rest, the mixer's dark desk
+ * filling it, strips and editor at one height at its top.
+ */
+@media (min-width: 600px) {
+  .score-area { flex: 0 0 auto; height: auto; max-height: none; min-height: 0; overflow: hidden; }
+  .score-area .score-wrap { height: auto; }
+  .score-area .viewport { height: auto; }
+  .score-area .viewport-scroll { max-height: var(--score-cap, 50vh); }
+  .main-col > .dock { flex: 1 1 auto; min-height: 280px; }
+  .dock-body.fit { background: var(--desk-bg, #26272b); }
+  .dock-body.fit > .sound:not(.folded) { height: auto; align-items: flex-start; }
+  .dock .sound .desk { height: 250px; }
+  .dock .sound .editor { height: 250px; }
+}
+/* D104: on a tall screen the mixer stays on top at its height and the text tabs fill a pane below. */
+@media (min-width: 600px) {
+  .main-col > .dock.mixer-pane { flex: 0 0 auto; min-height: 0; }
+  .main-col > .dock.text-pane { flex: 1 1 auto; min-height: 200px; }
+}
+.dock-body.fit { background: var(--desk-bg, #26272b); }
