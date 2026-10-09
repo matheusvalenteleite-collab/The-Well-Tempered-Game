@@ -53,3 +53,15 @@ test("transposition keeps spelling; tunings differ where they should", () => {
   assert.ok(Math.abs(frequency("G#4", "equal") - frequency("Ab4", "equal")) < 1e-9);
   assert.ok(frequency("E4", "kirnberger3") < frequency("E4", "equal"));
 });
+
+import { entryKey } from "../src/wtc/keyplan.ts";
+test("key plan: the exposition of Book I's C major fugue is I V V I; its middle entries reach vi", () => {
+  const f1 = fugues.find((f) => f.id === "wtc1f01")!;
+  const { subject } = subjectAndAnswer(f1);
+  const keys = findEntries(f1, subject).filter((e) => e.form === "subject").map((e) => entryKey(f1, e, subject).roman);
+  assert.deepEqual(keys.slice(0, 4), ["I", "V", "V", "I"]);
+  assert.ok(keys.includes("vi"));
+  const f2 = fugues.find((f) => f.id === "wtc1f02")!;
+  const s2 = subjectAndAnswer(f2).subject;
+  assert.deepEqual(findEntries(f2, s2).slice(0, 2).map((e) => entryKey(f2, e, s2).roman), ["i", "v"]);
+});

@@ -11,12 +11,14 @@ import inventionData from "../../data/wtc/inventions.json" with { type: "json" }
 import { label, TPQ, type WtcPiece } from "../wtc/corpus.ts";
 import { degree, findEntries, line, names, predictAnswer, subjectAndAnswer, transpose, type Entry, type Note } from "../wtc/fugue.ts";
 import { TUNINGS, type TuningId } from "../wtc/tunings.ts";
+import { entryKey } from "../wtc/keyplan.ts";
 import { parsePitch } from "../music/pitch.ts";
 import { playNotes, playPiece, stop } from "./keyboard.ts";
 import { Markdown } from "./Habits.tsx";
 import concept from "../../docs/wtc/CONCEPT.md?raw";
 import answerStudy from "../../docs/wtc/answer-study.md?raw";
 import csStudy from "../../docs/wtc/countersubject-study.md?raw";
+import keyplanStudy from "../../docs/wtc/keyplan-study.md?raw";
 
 const FUGUES = fugueData as unknown as WtcPiece[];
 const PRELUDES = preludeData as unknown as WtcPiece[];
@@ -32,12 +34,10 @@ const nice = (k: string) => k.replace("b", "♭").replace("#", "♯");
 const keyName = (p: WtcPiece) => `${nice(p.key)} ${p.mode}`;
 const midi = (p: string) => parsePitch(p).midi;
 
-/** How an entry stands to the subject: S (as the subject), A (a fifth up: the answer), else its first note's degree. */
+/** An entry's label on the map: the key it stands in (Roman numeral against the home key), "inv." if inverted. */
 function entryTag(e: Entry, subject: Note[], p: WtcPiece): string {
-  const s = degree(subject[0].pitch, p.key, p.mode).deg;
-  const d = e.degree.deg;
-  const base = d === s ? "S" : (d - s + 7) % 7 === 4 || (d - s + 7) % 7 === 3 ? "A" : `on ${d}`;
-  return e.form === "inversion" ? `${base} inv.` : base;
+  const k = entryKey(p, e, subject).roman;
+  return e.form === "inversion" ? `${k} inv.` : k;
 }
 
 interface Analysis {
@@ -376,7 +376,7 @@ export function WtcTab() {
           }
         />
         <p className="lab-note" style={{ padding: "0 10px 8px" }}>
-          Click the map to choose where playback starts. {a ? "S: the subject; A: the answer (a fifth up); \"on n\": an entry on another degree of the home key; inv.: inverted." : ""}
+          Click the map to choose where playback starts. {a ? "Each entry is labelled with its key against the home key (I the tonic, V the dominant: the answer; vi, IV, III ... the middle entries; upper case major, lower case minor); inv.: inverted." : ""}
         </p>
       </div>
 
@@ -400,9 +400,11 @@ export function WtcTab() {
         <div className="lab-habits"><Markdown text={concept} /></div>
       </details>
       <details className="lab-panel wtc-docs">
-        <summary><b>Studies</b>: Bach's answers; the countersubjects</summary>
+        <summary><b>Studies</b>: Bach's answers; the countersubjects; the key plans</summary>
         <div className="lab-habits">
           <Markdown text={answerStudy} />
+          <h2 className="lab-part">Key plans</h2>
+          <Markdown text={keyplanStudy} />
           <h2 className="lab-part">Countersubjects</h2>
           <Markdown text={csStudy} />
         </div>
