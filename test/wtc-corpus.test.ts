@@ -74,3 +74,13 @@ test("harmonic reduction: Book I's C major prelude opens I, ii4/2, V6/5, I", () 
   assert.equal(chordLabel(["G2", "D3", "B3", "F4"], "C", "major").roman, "V7");
   assert.equal(chordLabel(["F#2", "C3", "A3", "Eb4"], "C", "major").roman, "♯iv°7");
 });
+
+import { episodes, strettos } from "../src/wtc/structure.ts";
+test("structure: Book I's C major fugue is all strettos and almost no episodes", () => {
+  const f1 = fugues.find((f) => f.id === "wtc1f01")!;
+  const { subject } = subjectAndAnswer(f1);
+  const e = findEntries(f1, subject);
+  assert.ok(strettos(f1, e).length >= 8);
+  const ep = episodes(f1, e, subject);
+  assert.ok(ep.reduce((a, g) => a + g.end - g.on, 0) < 0.2 * f1.length);
+});

@@ -13,6 +13,7 @@ import { degree, findEntries, line, names, predictAnswer, subjectAndAnswer, tran
 import { TUNINGS, type TuningId } from "../wtc/tunings.ts";
 import { entryKey } from "../wtc/keyplan.ts";
 import { reduce, type Segment } from "../wtc/reduction.ts";
+import { episodes, strettos, type Episode } from "../wtc/structure.ts";
 import { parsePitch } from "../music/pitch.ts";
 import { playNotes, playPiece, stop } from "./keyboard.ts";
 import { Markdown } from "./Habits.tsx";
@@ -20,6 +21,8 @@ import concept from "../../docs/wtc/CONCEPT.md?raw";
 import answerStudy from "../../docs/wtc/answer-study.md?raw";
 import csStudy from "../../docs/wtc/countersubject-study.md?raw";
 import keyplanStudy from "../../docs/wtc/keyplan-study.md?raw";
+import structureStudy from "../../docs/wtc/structure-study.md?raw";
+import crosscheck from "../../docs/wtc/crosscheck.md?raw";
 
 const FUGUES = fugueData as unknown as WtcPiece[];
 const PRELUDES = preludeData as unknown as WtcPiece[];
@@ -48,6 +51,9 @@ interface Analysis {
   second: number;
   entries: Entry[];
   departures: number[];
+  episodes: Episode[];
+  /** Entries that begin in stretto (before the one before has ended). */
+  stretto: Set<Entry>;
 }
 
 function analyse(p: WtcPiece): Analysis | null {
@@ -55,7 +61,8 @@ function analyse(p: WtcPiece): Analysis | null {
   const sa = subjectAndAnswer(p);
   const real = predictAnswer(sa.subject, p.key, p.mode, "real");
   const departures = real.map((x, i) => (x[0] !== sa.answer[i].pitch[0] ? i : -1)).filter((i) => i >= 0);
-  return { ...sa, entries: findEntries(p, sa.subject), departures };
+  const entries = findEntries(p, sa.subject);
+  return { ...sa, entries, departures, episodes: episodes(p, entries, sa.subject), stretto: new Set(strettos(p, entries).map(([, b]) => b)) };
 }
 
 /* ---------------------------------------------------------------- the map */
@@ -128,6 +135,12 @@ function PianoRoll({ p, a, tick, showEntries, onSeek, voicesOn, guesses, onPick,
             {b.n % 2 === 1 && <text x={x(b.on) + 2} y={10} fontSize={9} fill="var(--ink-muted, #888)">{b.n}</text>}
           </g>
         ))}
+        {showEntries && a?.episodes.map((g, i) => (
+          <g key={`ep${i}`}>
+            <rect x={x(g.on)} y={12} width={x(g.end) - x(g.on)} height={5} fill="var(--ink-muted, #999)" opacity={0.35} rx={2} />
+            <text x={x(g.on) + 2} y={25} fontSize={8} fill="var(--ink-muted, #777)">{g.sequence ? `episode · sequence${g.fromSubject ? " (from the subject)" : ""}` : "episode"}</text>
+          </g>
+        ))}
         {showEntries && a?.entries.map((e, i) => {
           const l = line(p.voices[e.voice]);
           const end = l[e.at + e.length - 1];
@@ -135,7 +148,7 @@ function PianoRoll({ p, a, tick, showEntries, onSeek, voicesOn, guesses, onPick,
           return (
             <g key={i}>
               <rect x={x(e.on) - 1} y={y(Math.max(...ms)) - 2} width={x(end.on + end.dur) - x(e.on) + 2} height={(Math.max(...ms) - Math.min(...ms) + 1) * ph + 4} fill={INK[e.voice % INK.length]} opacity={0.1} rx={3} />
-              <text x={x(e.on)} y={y(Math.max(...ms)) - 4} fontSize={9} fontWeight={700} fill={INK[e.voice % INK.length]}>{entryTag(e, a.subject, p)}</text>
+              <text x={x(e.on)} y={y(Math.max(...ms)) - 4} fontSize={9} fontWeight={700} fill={INK[e.voice % INK.length]}>{entryTag(e, a.subject, p)}{a.stretto.has(e) ? " · stretto" : ""}</text>
             </g>
           );
         })}
@@ -459,7 +472,7 @@ export function WtcTab() {
           }
         />
         <p className="lab-note" style={{ padding: "0 10px 8px" }}>
-          Click the map to choose where playback starts. {a ? "Each entry is labelled with its key against the home key (I the tonic, V the dominant: the answer; vi, IV, III ... the middle entries; upper case major, lower case minor); inv.: inverted." : ""}
+          Click the map to choose where playback starts. {a ? "Each entry is labelled with its key against the home key (I the tonic, V the dominant: the answer; vi, IV, III ... the middle entries; upper case major, lower case minor); inv.: inverted; stretto: it enters before the entry before has ended. The grey bars above mark the episodes (no entry sounding)." : ""}
         </p>
       </div>
 
@@ -484,11 +497,15 @@ export function WtcTab() {
         <div className="lab-habits"><Markdown text={concept} /></div>
       </details>
       <details className="lab-panel wtc-docs">
-        <summary><b>Studies</b>: Bach's answers; the countersubjects; the key plans</summary>
+        <summary><b>Studies</b>: Bach's answers; the countersubjects; the key plans; strettos and episodes; two readings compared</summary>
         <div className="lab-habits">
           <Markdown text={answerStudy} />
           <h2 className="lab-part">Key plans</h2>
           <Markdown text={keyplanStudy} />
+          <h2 className="lab-part">Strettos and episodes</h2>
+          <Markdown text={structureStudy} />
+          <h2 className="lab-part">Two readings compared</h2>
+          <Markdown text={crosscheck} />
           <h2 className="lab-part">Countersubjects</h2>
           <Markdown text={csStudy} />
         </div>
