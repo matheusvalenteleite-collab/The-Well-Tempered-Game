@@ -44,6 +44,28 @@ and compared each choice with Fux's, bar by bar, given Fux's previous bar.
    the score beside the note-name and interval views; from three voices on (two-voice dyads are
    ambiguous). Labelled as a modern lens (Rameau, Weber), not Fux's.
 
+**State (9 October 2026): steps 1, 2, 4 and 6 built as a separate "Choices lab" page for the owner
+to try; nothing in the game uses them yet, and no decision number is taken until the owner rules.**
+Code: `src/counterpoint/choices/` (audit, score vector, habits, generators), `src/lab/` (the page,
+`vite.lab.config.ts`, `tools/build-lab-artifact.mjs`), `test/choices.test.ts`; report:
+`node tools/lab/choices-report.ts` → `docs/fux/choices-audit.md`. Two-voice species 1-4; fifth
+species and three voices not yet. Findings and points for the owner:
+
+- Fux's note is legal at every one of his 691 choices (species 1-4). Where more than one pitch
+  is legal, the full score vector ranks his note first, alone, at 61% (first species), 74%
+  (second), 78% (third), 69% (fourth); his stated counsel alone (no habits) at 40-66%.
+- Habits are measured per role (counterpoint above or below) and with register and crossing
+  (a tenth is not a third; a crossed third is not a third).
+- Generator: ranking by the most typical move gives far fewer leaps than Fux writes (6-19%
+  against his 32% in first species). Default: one point of counsel = one bit of habit, with
+  sampling noise of 3 bits. Generated lines then match his rates of repetition, leaps and spacing
+  (first species: 11%, 26%, 7.2 semitones; Fux 11%, 32%, 7.1).
+- D8 bands checked against Fux's own cantus firmi ("Fux is the last word"): the leap band
+  widened from 25-60% to 20-62% (Fig. 42's A has 20%, the G 62%); "turn after a rising fourth"
+  is soft (Fux's G does not turn once); outlined sixths allowed when they arpeggiate a triad
+  (Fux's G: G-C-E); length 9-14 accepted (Fux's C variant has 9; generator default 10-14); and
+  Ewing's antepenultimate degree 1 or 3 (true of all Fux's) added. To approve or amend.
+
 ## Rules
 
 - Fig. 110, bar 6 (and Figs. 169, 170, bar 6): an unmarked B repeats the B♭ of bar 5 in the same

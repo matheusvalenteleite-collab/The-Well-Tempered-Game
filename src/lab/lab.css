@@ -1,0 +1,33 @@
+.lab { max-width: 1120px; margin: 0 auto; padding: 12px 16px 40px; font-family: system-ui, sans-serif; }
+.lab-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.lab-head h1 { font-size: 1.3rem; margin: 4px 0; }
+.lab-head nav { display: flex; gap: 6px; flex-wrap: wrap; }
+.lab-intro { font-size: 0.9rem; max-width: 80ch; }
+.lab-controls, .lab-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 8px 0; }
+.lab-group { display: inline-flex; align-items: center; gap: 6px; font-size: 0.88rem; }
+.lab-summary { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 8px 10px; margin: 10px 0; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; font-size: 0.9rem; }
+.lab-bad { color: var(--bad); }
+.lab-list { display: flex; flex-direction: column; gap: 4px; }
+.lab-ex { display: grid; grid-template-columns: 13em 1fr 5em; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 4px; cursor: pointer; }
+.lab-ex-sel { background: var(--paper); outline: 1px solid var(--line); }
+.lab-ex-name { font-size: 0.85rem; white-space: nowrap; }
+.lab-ex-stat { font-size: 0.8rem; text-align: right; }
+.lab-strip { display: flex; flex-wrap: wrap; gap: 2px; }
+.lab .lab-cell { min-width: 22px; min-height: 22px; padding: 0 3px; font-size: 0.72rem; border-radius: 3px; border: 1px solid transparent; background: color-mix(in srgb, var(--ink-player) 14%, var(--paper)); }
+.lab .lab-cell.lab-forced { background: color-mix(in srgb, var(--ink) 30%, var(--paper)); }
+.lab .lab-cell.lab-miss { border-color: var(--warn); }
+.lab .lab-cell.lab-sel { outline: 2px solid var(--ink-player); }
+.lab-detail { margin-top: 12px; }
+.lab-score { overflow-x: auto; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 4px; }
+.lab-note { font-size: 0.82rem; opacity: 0.85; }
+.lab-table { border-collapse: collapse; font-size: 0.82rem; margin-top: 8px; width: 100%; }
+.lab-table th, .lab-table td { padding: 3px 8px; border-bottom: 1px solid var(--line); text-align: left; }
+.lab-table tbody tr { cursor: pointer; }
+.lab-table tr.lab-illegal { opacity: 0.45; }
+.lab-table tr.lab-written td:first-child { font-weight: 700; }
+.lab-table tr.lab-alt { background: color-mix(in srgb, var(--ink-player) 12%, transparent); }
+.lab-ids { font-family: ui-monospace, monospace; font-size: 0.74rem; }
+@media (max-width: 640px) {
+  .lab-ex { grid-template-columns: 1fr; }
+  .lab-ex-stat { text-align: left; }
+}
