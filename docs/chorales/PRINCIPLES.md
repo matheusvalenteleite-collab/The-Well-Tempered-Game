@@ -84,19 +84,19 @@ fall to the fifth of the tonic, to complete the chord. Examples of the alto fall
 
 ## 6. Cadences
 
-At the soprano's fermatas (2264):
+At the soprano's fermatas (2277):
 
-- authentic, perfect: 1061 (47%). E.g. no. 1 (BWV 269), bar 7: D3 → G2, soprano G4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 1 (BWV 269), bar 21: D3 → G2, soprano G4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5)
-- half: 346 (15%). E.g. no. 1 (BWV 269), bar 4: G2 → D3, soprano A4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 1 (BWV 269), bar 10: G2 → D3, soprano A4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5)
-- other: 240 (11%). E.g. no. 10 (BWV 38/6), bar 13: A2 → G#2, soprano E4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=16); no. 11 (BWV 41/6 & 171/6), bar 2: G3 → Bb3, soprano D5 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=16)
+- authentic, perfect: 1062 (47%). E.g. no. 1 (BWV 269), bar 7: D3 → G2, soprano G4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 1 (BWV 269), bar 21: D3 → G2, soprano G4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5)
+- half: 347 (15%). E.g. no. 1 (BWV 269), bar 4: G2 → D3, soprano A4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 1 (BWV 269), bar 10: G2 → D3, soprano A4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5)
+- other: 249 (11%). E.g. no. 10 (BWV 38/6), bar 13: A2 → G#2, soprano E4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=16); no. 11 (BWV 41/6 & 171/6), bar 2: G3 → Bb3, soprano D5 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=16)
 - authentic, imperfect: 183 (8%). E.g. no. 1 (BWV 269), bar 14: G2 → C3, soprano G4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 1 (BWV 269), bar 18: A2 → D3, soprano A4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5)
 - authentic, dominant inverted (leading tone in the bass): 114 (5%). E.g. no. 6 (BWV 281), bar 2: E3 → F3, soprano A4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=13); no. 9 (BWV 248/12), bar 10: C#3 → D3, soprano A4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=15)
 - bass up a fifth: plagal, or a half cadence in another key: 111 (5%). E.g. no. 4 (BWV 86/6), bar 8: F#3 → C#3, soprano G#4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12); no. 5 (BWV 267), bar 10: A2 → E3, soprano B4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=13)
 - other: bass repeated: 79 (3%). E.g. no. 8 (BWV 40/8), bar 2: F2 → F2, soprano F4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=14); no. 8 (BWV 40/8), bar 8: Ab3 → Ab3, soprano C5 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=14)
 - Phrygian half: 68 (3%). E.g. no. 3 (BWV 153/1), bar 6: C3 → B2, soprano B4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12); no. 16 (BWV 311), bar 8: G2 → F#2, soprano F#4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=18)
-- deceptive: 62 (3%). E.g. no. 7 (BWV 17/7), bar 26: C#3 → D3, soprano A4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=14); no. 11 (BWV 41/6 & 171/6), bar 16: B3 → C4, soprano E5 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=16)
+- deceptive: 64 (3%). E.g. no. 7 (BWV 17/7), bar 26: C#3 → D3, soprano A4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=14); no. 11 (BWV 41/6 & 171/6), bar 16: B3 → C4, soprano E5 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=16)
 
-The last chord of a chorale in a minor or modal key has a major third in 154 of 177 (87%).
+The last chord of a chorale in a minor or modal key has a major third in 149 of 177 (84%).
 
 ## 7. Consecutive fifths and octaves
 

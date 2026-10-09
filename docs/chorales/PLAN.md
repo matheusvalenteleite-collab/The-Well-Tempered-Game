@@ -148,6 +148,12 @@ derived fact can be traced back to the source.
 ## After the library: the first level of the mode
 
 - Level 1, the cadence plan (`CADENCE-PLANS.md`, `data/chorales/cadence_plans.json`). For each
-  phrase end of Bach's 2,264, the context is how the melody closes, where the phrase stands, and
+  phrase end of Bach's 2,277, the context is how the melody closes, where the phrase stands, and
   the mode; Bach's cadence chords are counted per context, with examples. For Kittel's 24
   melodies, his basses' cadence chords stand beside Bach's at each phrase end.
+- Level 1 on screen (D102): "Chorales" in the voices selector. Kittel's 24 melodies, with a cadence
+  choice at each fermata, Compare, and playback. The data are in `data/chorales/level1.json`
+  (from `cadence_plans.py`); the tests are in `test/chorale-level1.test.ts`.
+- Fixed while building it: a fermata written on the second half of a tied note was lost when the
+  ties were merged (Kittel No. 23's last phrase; 13 phrase ends in Bach). It now belongs to the
+  note, and the counts are regenerated.

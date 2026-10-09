@@ -71,7 +71,9 @@ def timeline(notes: list[dict]) -> list[tuple[F, F, dict]]:
             continue
         s, e = F(n["offset"]), F(n["offset"]) + F(n["duration"])
         if n.get("tie") in ("stop", "continue") and out and out[-1][2]["pitch"] == n["pitch"] and out[-1][1] == s:
-            out[-1] = (out[-1][0], e, out[-1][2])
+            # a fermata written on the tied half belongs to the note
+            first = dict(out[-1][2], fermata=True) if n.get("fermata") else out[-1][2]
+            out[-1] = (out[-1][0], e, first)
             continue
         out.append((s, e, n))
     return out

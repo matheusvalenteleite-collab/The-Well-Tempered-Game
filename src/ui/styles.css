@@ -660,3 +660,42 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
 .page-viewer-bar strong { flex: 1; text-align: center; font-family: var(--ui-font); }
 .gradus-quote { font-size: 1.15rem; font-style: italic; }
 .gradus-quote cite { display: block; font-size: 0.75rem; font-style: normal; margin-top: 6px; color: var(--muted); }
+
+/* Chorale mode (D101): the melody with a cadence marker under each fermata. */
+.chorale-score { padding: 6px 8px; overflow-y: auto; }
+.melody-score { width: 100%; height: auto; display: block; }
+.melody-score .staff-line { stroke: var(--ink); stroke-width: 0.8; }
+.melody-score .barline line, .melody-score line.barline { stroke: var(--ink); stroke-width: 1; }
+.melody-score .barline circle { fill: var(--ink); }
+.melody-score .clef { font-size: 38px; fill: var(--ink); font-family: "Bravura", "Noto Music", "Segoe UI Symbol", serif; }
+.melody-score .meter { font-size: 22px; fill: var(--ink); font-family: "Bravura", "Noto Music", "Segoe UI Symbol", serif; }
+.melody-score .accidental { font-size: 14px; fill: var(--ink); }
+.melody-score .bar-number { font-size: 9px; fill: var(--muted, #8a8580); font-style: italic; }
+.melody-score .head { fill: var(--ink); stroke: var(--ink); stroke-width: 1; }
+.melody-score .head.hollow { fill: var(--paper); stroke-width: 1.6; }
+.melody-score .stem, .melody-score .flag { stroke: var(--ink); stroke-width: 1; fill: none; }
+.melody-score .dot { fill: var(--ink); }
+.melody-score .grace .head { fill: var(--ink); }
+.melody-score .fermata path { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+.melody-score .fermata circle { fill: var(--ink); }
+.melody-score .play-cursor { stroke: var(--accent); stroke-width: 2; opacity: 0.6; }
+.melody-score .marker { cursor: pointer; }
+.melody-score .marker rect { fill: var(--paper); stroke: var(--line); stroke-width: 1.2; }
+.melody-score .marker text { font-size: 13px; font-weight: 600; fill: var(--ink); }
+.melody-score .marker.selected rect { stroke: var(--accent); stroke-width: 2.4; }
+.melody-score .marker-chosen rect { fill: color-mix(in srgb, var(--accent) 12%, var(--paper)); }
+.melody-score .marker-bach rect { fill: color-mix(in srgb, #2e8b57 22%, var(--paper)); }
+.melody-score .marker-kittel rect { fill: color-mix(in srgb, #3b6fb6 20%, var(--paper)); }
+.melody-score .marker-other rect { fill: color-mix(in srgb, #c98a1b 22%, var(--paper)); }
+.chorale-controls .prompt { font-size: 0.85rem; margin-right: 4px; }
+.chorale-controls button.chord { min-width: 40px; font-weight: 600; }
+.chorale-verdicts { padding-left: 1.2em; display: flex; flex-direction: column; gap: 10px; }
+.chorale-verdicts .verdict > div { margin-left: 0.4em; font-size: 0.9rem; }
+.chorale-verdicts .hit { background: color-mix(in srgb, #2e8b57 18%, transparent); border-radius: 3px; padding: 0 2px; }
+.chorale-verdicts .verdict-bach { border-left: 3px solid #2e8b57; padding-left: 6px; }
+.chorale-verdicts .verdict-kittel { border-left: 3px solid #3b6fb6; padding-left: 6px; }
+.chorale-verdicts .verdict-other { border-left: 3px solid #c98a1b; padding-left: 6px; }
+.chorale-about p { max-width: 70ch; }
+.muted { color: var(--muted, #8a8580); }
+.melody-score .rest { fill: var(--ink); }
+.melody-score .rest-glyph { font-size: 22px; fill: var(--ink); font-family: "Bravura", "Noto Music", "Segoe UI Symbol", serif; }

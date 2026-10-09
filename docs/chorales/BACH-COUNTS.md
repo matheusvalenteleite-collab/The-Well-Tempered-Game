@@ -47,15 +47,15 @@ These are counts of derived facts, not rules. The figures are read off Bach's fo
 
 | class | count |
 |---|---|
-| authentic, perfect | 1061 |
-| half | 346 |
-| other | 240 |
+| authentic, perfect | 1062 |
+| half | 347 |
+| other | 249 |
 | authentic, imperfect | 183 |
 | authentic, dominant inverted (leading tone in the bass) | 114 |
 | bass up a fifth: plagal, or a half cadence in another key | 111 |
 | other: bass repeated | 79 |
 | Phrygian half | 68 |
-| deceptive | 62 |
+| deceptive | 64 |
 
 ## Where the phrases end (degree of the final bass in the chorale's key)
 
@@ -66,21 +66,22 @@ These are counts of derived facts, not rules. The figures are read off Bach's fo
 | major-type | VI | 124 |
 | major-type | IV | 70 |
 | major-type | II | 56 |
-| major-type | III | 52 |
-| major-type | bVII | 7 |
+| major-type | III | 54 |
+| major-type | bVII | 8 |
 | major-type | VII | 4 |
 | major-type | bVI | 3 |
 | major-type | bIII | 2 |
-| minor-type | I | 381 |
-| minor-type | V | 279 |
+| major-type | #IV | 1 |
+| minor-type | I | 384 |
+| minor-type | V | 280 |
 | minor-type | bIII | 191 |
-| minor-type | bVII | 97 |
+| minor-type | bVII | 98 |
 | minor-type | IV | 62 |
 | minor-type | bVI | 32 |
+| minor-type | VII | 11 |
 | minor-type | II | 9 |
-| minor-type | VII | 8 |
+| minor-type | III | 3 |
 | minor-type | bII | 2 |
-| minor-type | III | 2 |
 | minor-type | VI | 1 |
 | minor-type | #IV | 1 |
 
@@ -91,14 +92,15 @@ These are counts of derived facts, not rules. The figures are read off Bach's fo
 | dorian | major third | 31 |
 | dorian | no third | 5 |
 | dorian | minor third | 1 |
-| major | major third | 183 |
-| major | minor third | 1 |
-| minor | major third | 121 |
-| minor | minor third | 15 |
-| minor | no third | 2 |
+| major | major third | 182 |
+| major | minor third | 2 |
+| minor | major third | 117 |
+| minor | minor third | 18 |
+| minor | no third | 3 |
 | mixolydian | major third | 6 |
 | mixolydian | no third | 3 |
-| phrygian | major third | 2 |
+| phrygian | major third | 1 |
+| phrygian | minor third | 1 |
 
 ## Kirnberger: fundamental chords (on the beat)
 

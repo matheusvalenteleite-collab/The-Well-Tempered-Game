@@ -106,7 +106,17 @@ def kittel_rows() -> list[dict]:
     for p in sorted(KIT.glob("kittel_*.json")):
         c = json.loads(p.read_text())
         a = json.loads((KIT / "analysis" / p.name).read_text())
-        mel = [n for n in c["melody"]["notes"] if not n.get("rest") and not n.get("grace") and n.get("tie") not in ("stop", "continue")]
+        # the melody's notes, ties merged; a fermata written on the second half of a tie belongs to
+        # the note (No. 23 ends so)
+        mel = []
+        for n in c["melody"]["notes"]:
+            if n.get("rest") or n.get("grace"):
+                continue
+            if n.get("tie") in ("stop", "continue") and mel:
+                if n.get("fermata"):
+                    mel[-1] = dict(mel[-1], fermata=True)
+                continue
+            mel.append(n)
         ends = [i for i, n in enumerate(mel) if n.get("fermata")]
         # the tonic: the root of the last harmony of bass [1] (the final cadence)
         hs1 = [h for h in a["basses"][0]["harmonies"] if h.get("root")]
@@ -127,8 +137,66 @@ def kittel_rows() -> list[dict]:
                             "melody": f"{degree(mel[i - 1]['pitch'], tonic_name)}-{degree(mel[i]['pitch'], tonic_name)}" if i else "?",
                             "kittel": opts})
         bach = [x["bach"] for x in conc.get(c["number"], {}).get("same_tune", [])]
-        out.append({"kittel": c["number"], "title": c["title"], "tonic_pc": tonic, "phrases": phrases, "bach_settings": bach})
+        ks = c["key_signature"]
+        major_tonic = (7 * ks) % 12  # C=0 plus a fifth per sharp
+        mode = "major" if tonic == major_tonic else "minor"
+        out.append({"kittel": c["number"], "title": c["title"], "tonic_pc": tonic, "tonic": tonic_name, "mode": mode,
+                    "phrases": phrases, "bach_settings": bach})
     return out
+
+
+DIATONIC = {"major": ["I", "ii", "iii", "IV", "V", "vi", "vii°"], "minor": ["i", "ii°", "bIII", "iv", "v", "V", "bVI", "bVII"]}
+
+
+def level1(kit: list[dict], rows: list[dict], by_ctx: dict, ex: dict) -> None:
+    """The browser's data for level 1 (src/chorale): each Kittel melody with its phrase ends, the
+    masters' choices there, and Bach's habit in the same context."""
+    index = json.loads((BACH / "index.json").read_text())
+    scans = {}
+    for e in index["catalogue"]:
+        c = json.loads((BACH / e["file"]).read_text())
+        urls = c["references"].get("URL-scan")
+        urls = [urls] if isinstance(urls, str) else (urls or [])
+        u = next((x for x in urls if "bsb11137805" in x), urls[0] if urls else None)
+        scans[c["number"]] = {"bwv": c["bwv"], "title": c["title"]["de"], "scan": u.split()[0] if u else None}
+    bach_by_no = defaultdict(list)
+    for r in rows:
+        bach_by_no[r["bach"]].append(r)
+    out = []
+    for k in kit:
+        c = json.loads((KIT / f"kittel_{k['kittel']:02d}.json").read_text())
+        mel = [n for n in c["melody"]["notes"] if not n.get("rest")]
+        notes = [{key: n[key] for key in ("pitch", "offset", "duration", "measure", "fermata", "grace", "tie", "accidental_shown") if key in n} for n in c["melody"]["notes"]]
+        n_ph = len(k["phrases"])
+        phrases = []
+        for i, ph in enumerate(k["phrases"]):
+            end = [n for n in mel if n.get("fermata")][i]
+            pos = "first" if i == 0 else "last" if i == n_ph - 1 else "inner"
+            ctx = by_ctx.get((k["mode"], pos, ph["melody"]), Counter())
+            n_ctx = sum(ctx.values())
+            habit = [{"chord": ch, "count": m, "examples": [{"no": int(e.split("/")[0]), "bar": e.split("/")[1]} for e in ex[(k["mode"], pos, ph["melody"], ch)]]}
+                     for ch, m in ctx.most_common(5)]
+            bach = []
+            for bn in k["bach_settings"]:
+                br = bach_by_no[bn]
+                if i < len(br):
+                    bach.append({"no": bn, "chord": br[i]["chord"], "bar": br[i]["measure"]})
+            choices = list(DIATONIC[k["mode"]])
+            for ch in [x for _, x in ph["kittel"]] + [b["chord"] for b in bach] + [h["chord"] for h in habit]:
+                if ch not in choices and ch != "?":
+                    choices.append(ch)
+            phrases.append({"offset": end["offset"], "measure": ph["measure"], "position": pos, "melodyClose": ph["melody"],
+                            "kittel": [{"bass": lab, "chord": ch} for lab, ch in ph["kittel"]],
+                            "bach": bach, "habit": {"n": n_ctx, "options": habit}, "choices": choices})
+        out.append({"number": k["kittel"], "title": c["title"], "keySignature": c["key_signature"], "meterSign": c["meter_sign"],
+                    "tonic": k["tonic"], "mode": k["mode"], "length": c["length"],
+                    "measures": [{"number": m["number"], "offset": m["offset"], "length": m["length"], "barline": m.get("barline_after")} for m in c["measures"]],
+                    "melody": notes, "phrases": phrases})
+    used = {e["no"] for k in out for p in k["phrases"] for h in p["habit"]["options"] for e in h["examples"]} | {b["no"] for k in out for p in k["phrases"] for b in p["bach"]}
+    data = {"generated_by": "tools/chorales/cadence_plans.py", "level": 1,
+            "note": "Kittel's melodies (1811) with, at each fermata, the cadence chords of his basses, of Bach's settings of the tune, and Bach's habit in the same context (CONCEPT.md, level 1).",
+            "bach": {str(n): scans[n] for n in sorted(used)}, "chorales": out}
+    (ROOT / "data" / "chorales" / "level1.json").write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")) + "\n")
 
 
 def main() -> None:
@@ -145,6 +213,7 @@ def main() -> None:
     for r in rows:
         bach_by_no[r["bach"]].append(r)
     OUT_JSON.write_text(json.dumps({"bach_phrase_ends": rows, "kittel": kit}, ensure_ascii=False, indent=1) + "\n")
+    level1(kit, rows, by_ctx, ex)
 
     md = ["# Level 1: the cadence plan", "",
           "Generated by `tools/chorales/cadence_plans.py` (CONCEPT.md, level 1). At a phrase end the player sees",

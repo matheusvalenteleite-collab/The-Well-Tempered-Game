@@ -1,0 +1,238 @@
+/**
+ * The chorale mode (docs/chorales/CONCEPT.md, D101), level 1: the cadence plan. The player chooses
+ * the chord on which each phrase of one of Kittel's melodies cadences; "Compare" lays each choice
+ * beside Kittel's basses, Bach's settings of the tune, and Bach's habit in the same context. No
+ * choice is marked wrong: the masters' choices are the feedback.
+ */
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { BACH_REFS, CHORALES, compare, frac, soundingMelody, voiceChord, type PhraseVerdict } from "../chorale/level1.ts";
+import type { PlayEvent } from "../counterpoint/layout.ts";
+import { MelodyScore, type MarkerState } from "./notation/MelodyScore.tsx";
+import { HFader } from "./HFader.tsx";
+import { HeaderTools } from "./HeaderTools.tsx";
+import { Shell } from "./Shell.tsx";
+import { audio, store, stored } from "./shared.ts";
+import { t } from "./i18n.ts";
+
+type Picks = Record<number, (string | null)[]>;
+
+export function ChoraleApp({ onMode }: { onMode(mode: 2 | 3 | "chorale"): void }) {
+  const [index, setIndex] = useState(() => Math.max(0, CHORALES.findIndex((c) => c.number === stored("wtg.chorale", 1, (v) => typeof v === "number"))));
+  const ch = CHORALES[index];
+  useEffect(() => store("wtg.chorale", ch.number), [ch.number]);
+  const [picks, setPicks] = useState<Picks>(() => stored<Picks>("wtg.choralePicks", {}, (v) => typeof v === "object" && v !== null));
+  useEffect(() => store("wtg.choralePicks", picks), [picks]);
+  const mine = picks[ch.number] ?? ch.phrases.map(() => null);
+  const [selected, setSelected] = useState(0);
+  const [compared, setCompared] = useState<number | null>(null);
+  const [tab, setTab] = useState("compare");
+  const [tempo, setTempo] = useState(() => stored("wtg.tempo", 60, (v) => typeof v === "number" && v >= 30 && v <= 240));
+  const [playing, setPlaying] = useState(false);
+  const [cursor, setCursor] = useState<number | null>(null);
+  const timer = useRef<number | null>(null);
+  const [look, setLook] = useState<"retro" | "classic">(() => stored("wtg.look", "retro", (v) => v === "retro" || v === "classic"));
+  const [theme, setTheme] = useState<"auto" | "light" | "dark">(() => stored("wtg.theme", "auto", (v) => v === "auto" || v === "light" || v === "dark"));
+  useEffect(() => {
+    document.documentElement.dataset.look = look;
+    store("wtg.look", look);
+  }, [look]);
+  useEffect(() => {
+    if (theme === "auto") delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = theme;
+    store("wtg.theme", theme);
+  }, [theme]);
+  useEffect(() => {
+    audio.tempo = tempo;
+    store("wtg.tempo", tempo);
+  }, [tempo]);
+  useEffect(() => () => stop(), []);
+
+  const showCompare = compared === ch.number;
+  const verdicts = useMemo(() => compare(ch, mine), [ch, mine]);
+  const states: MarkerState[] = verdicts.map((v) =>
+    !v.chosen ? "empty" : !showCompare ? "chosen" : v.bach.some((b) => b.same) ? "bach" : v.kittel.length ? "kittel" : "other",
+  );
+  const done = mine.filter(Boolean).length;
+
+  const choose = (label: string) => {
+    const next = [...mine];
+    next[selected] = label;
+    setPicks({ ...picks, [ch.number]: next });
+    if (selected < ch.phrases.length - 1 && !next[selected + 1]) setSelected(selected + 1);
+  };
+  const goTo = (i: number) => {
+    stop();
+    setIndex(i);
+    setSelected(0);
+  };
+
+  function stop() {
+    audio.stop();
+    if (timer.current) window.clearInterval(timer.current);
+    timer.current = null;
+    setPlaying(false);
+    setCursor(null);
+  }
+  /** The melody, with the chosen chord sounding under each fermata (a plain root-position chord). */
+  function play(withChords = true) {
+    if (playing) return stop();
+    const mel = soundingMelody(ch.melody);
+    const events: PlayEvent[] = mel.map((n, i) => ({ slot: i, at: n.at, length: n.length, cantus: null, counterpoint: n.pitch }));
+    if (withChords) {
+      const ends = mel.filter((n) => n.fermata);
+      ch.phrases.forEach((p, i) => {
+        const end = ends[i];
+        const label = mine[i];
+        if (!end || !label) return;
+        const [bass, ...inner] = voiceChord(label, ch.tonic, end.pitch);
+        if (bass) events.push({ slot: 1000 + i, at: end.at, length: end.length, cantus: bass, counterpoint: null, extra: inner.map((pitch) => ({ channel: "counterpoint" as const, pitch })) });
+      });
+    }
+    events.sort((a, b) => a.at - b.at);
+    const whole = audio.barSeconds;
+    setPlaying(true);
+    const t0 = performance.now();
+    timer.current = window.setInterval(() => setCursor((performance.now() - t0) / 1000 / whole), 60);
+    void audio.playSequence(events, whole).then(() => stop());
+  }
+
+  const p = ch.phrases[selected];
+  const ref = (no: number, bar?: number | string) => {
+    const r = BACH_REFS[String(no)];
+    const label = `${no}${bar !== undefined ? `/${bar}` : ""}`;
+    return r?.scan ? <a key={label} href={r.scan} target="_blank" rel="noreferrer" title={`BWV ${r.bwv}, ${r.title}`}>{label}</a> : <span key={label}>{label}</span>;
+  };
+  const verdictText = (v: PhraseVerdict, i: number) => {
+    const ph = ch.phrases[i];
+    return (
+      <li key={i} className={`verdict verdict-${states[i]}`}>
+        <button className="link" onClick={() => setSelected(i)}>{t("chorale.phrase", { n: i + 1, bar: ph.measure })}</button>{" "}
+        <span className="muted">{t("chorale.close", { close: ph.melodyClose, pos: t(`chorale.pos.${ph.position}`) })}</span>
+        <div>
+          {t("chorale.yours")}: <strong>{v.chosen ?? "—"}</strong>
+        </div>
+        <div>
+          {t("chorale.kittel")}:{" "}
+          {v.kittelOptions.map(([c, basses]) => (
+            <span key={c} className={c === v.chosen ? "hit" : undefined}>
+              <strong>{c}</strong> {basses.join(" ")}{"; "}
+            </span>
+          ))}
+        </div>
+        <div>
+          {t("chorale.bach")}:{" "}
+          {v.bach.length ? v.bach.map((b) => (
+            <span key={b.no} className={b.same ? "hit" : undefined}>
+              <strong>{b.chord}</strong> ({ref(b.no, b.bar)}){" "}
+            </span>
+          )) : <span className="muted">{t("chorale.noBach")}</span>}
+        </div>
+        <div>
+          {t("chorale.habit", { n: ph.habit.n })}:{" "}
+          {ph.habit.options.map((o) => (
+            <span key={o.chord} className={o.chord === v.chosen ? "hit" : undefined}>
+              <strong>{o.chord}</strong> {Math.round((100 * o.count) / Math.max(1, ph.habit.n))}% ({o.examples.map((e) => ref(e.no, e.bar)).reduce<ReactNode[]>((a, x, k) => (k ? [...a, ", ", x] : [x]), [])}){"; "}
+            </span>
+          ))}
+          {v.chosen && v.habitShare === 0 && <em> {t("chorale.rare")}</em>}
+        </div>
+      </li>
+    );
+  };
+
+  const agreeBach = verdicts.filter((v) => v.bach.some((b) => b.same)).length;
+  const agreeKittel = verdicts.filter((v) => v.kittel.length > 0).length;
+  const withBach = verdicts.filter((v) => v.bach.length > 0).length;
+
+  return (
+    <Shell
+      header={
+        <>
+          <h1 className="brand">{t("ui.title")}</h1>
+          <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
+            <button className="icon" onClick={() => goTo(index - 1)} disabled={index === 0} aria-label={t("ui.nav.prev")}>‹</button>
+            <select id="voices" className="sel sel-voices" value="chorale" aria-label={t("ui.nav.voices")} onChange={(e) => { stop(); onMode(e.target.value === "chorale" ? "chorale" : (Number(e.target.value) as 2 | 3)); }}>
+              <option value={2}>{t("ui.nav.voicesN", { n: 2 })}</option>
+              <option value={3}>{t("ui.nav.voicesN", { n: 3 })}</option>
+              <option value="chorale">{t("chorale.mode")}</option>
+            </select>
+            <select id="level" className="sel sel-species" value={1} aria-label={t("chorale.level")} onChange={() => undefined}>
+              {[1, 2, 3, 4, 5, 6].map((n) => (
+                <option key={n} value={n} disabled={n !== 1}>{t(`chorale.level.${n}`)}</option>
+              ))}
+            </select>
+            <select id="exercise" className="sel sel-exercise" value={index} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("ui.nav.choose")}>
+              {CHORALES.map((c, k) => (
+                <option key={c.number} value={k}>{`${(picks[c.number] ?? []).filter(Boolean).length === c.phrases.length ? "● " : ""}${c.number}. ${c.title.replace(/ etc\.$/, "").replace(/ \[etc\.\]$/, "")}`}</option>
+              ))}
+            </select>
+            <button className="icon" onClick={() => goTo(index + 1)} disabled={index === CHORALES.length - 1} aria-label={t("ui.nav.next")}>›</button>
+          </nav>
+          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("about")} />
+        </>
+      }
+      score={
+        <div className="score-wrap chorale-score">
+          <MelodyScore chorale={ch} picks={mine} selected={selected} states={states} cursor={cursor} onSelect={setSelected} />
+        </div>
+      }
+      transport={
+        <div className="controls chorale-controls">
+          <div className="group write" role="group" aria-label={t("chorale.choose")}>
+            <span className="prompt">{t("chorale.prompt", { n: selected + 1, bar: p.measure })}</span>
+            {p.choices.map((c) => (
+              <button key={c} className={mine[selected] === c ? "chord primary" : "chord"} onClick={() => choose(c)}>{c}</button>
+            ))}
+          </div>
+          <div className="group judge">
+            <button className="primary" aria-pressed={showCompare} disabled={done === 0} onClick={() => { setCompared(showCompare ? null : ch.number); setTab("compare"); }}>
+              {t("chorale.compare")}
+              {done < ch.phrases.length && <span className="badge">{ch.phrases.length - done}</span>}
+            </button>
+            <button className="btn-edit" onClick={() => { setPicks({ ...picks, [ch.number]: ch.phrases.map(() => null) }); setCompared(null); setSelected(0); }}>{t("ui.clearAll")}</button>
+          </div>
+          <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
+            <button className="icon play" onClick={() => play(true)} aria-label={t("chorale.play")} title={t("chorale.play")}>{playing ? "■" : "▶"}</button>
+            <button onClick={() => play(false)} disabled={playing} title={t("chorale.playMelody")}>{t("chorale.melodyOnly")}</button>
+            <div className="hfaders">
+              <HFader label={t("ui.tempo")} help={t("ui.tempo.help")} value={tempo} min={30} max={120} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
+            </div>
+          </div>
+        </div>
+      }
+      summary={showCompare && (
+        <div className="eval-summary ok" role="status">
+          <span className="verdict">
+            {withBach ? t("chorale.summary.bach", { n: agreeBach, of: withBach }) + " · " : ""}
+            {t("chorale.summary.kittel", { n: agreeKittel, of: ch.phrases.length })}
+          </span>
+          <button className="link" onClick={() => setTab("compare")}>{t("ui.summary.open")} ▸</button>
+        </div>
+      )}
+      tab={tab}
+      onTab={setTab}
+      idle={t("chorale.source", { n: ch.number })}
+      tabs={[
+        {
+          id: "compare",
+          label: t("chorale.tab.compare"),
+          text: true,
+          content: showCompare ? <ol className="chorale-verdicts">{verdicts.map(verdictText)}</ol> : <p className="muted">{t("chorale.beforeCompare")}</p>,
+        },
+        {
+          id: "about",
+          label: t("chorale.tab.about"),
+          text: true,
+          content: (
+            <div className="chorale-about">
+              <p>{t("chorale.about.1")}</p>
+              <p>{t("chorale.about.2")}</p>
+              <p>{t("chorale.about.3")}</p>
+              <p className="muted">{t("chorale.about.4")}</p>
+            </div>
+          ),
+        },
+      ]}
+    />
+  );
+}

@@ -713,12 +713,32 @@
   {
    "bach": 11,
    "bwv": "41/6 & 171/6",
+   "measure": 19,
+   "mode": "major",
+   "position": "inner",
+   "melody": "#1-2",
+   "chord": "bVII",
+   "class": "deceptive"
+  },
+  {
+   "bach": 11,
+   "bwv": "41/6 & 171/6",
    "measure": 24,
    "mode": "major",
    "position": "inner",
    "melody": "4-3",
    "chord": "I",
    "class": "authentic, imperfect"
+  },
+  {
+   "bach": 11,
+   "bwv": "41/6 & 171/6",
+   "measure": 27,
+   "mode": "major",
+   "position": "inner",
+   "melody": "#1-2",
+   "chord": "II",
+   "class": "other"
   },
   {
    "bach": 11,
@@ -1035,9 +1055,19 @@
    "bwv": "311",
    "measure": 14,
    "mode": "minor",
-   "position": "last",
+   "position": "inner",
    "melody": "2-1",
    "chord": "IV",
+   "class": "other"
+  },
+  {
+   "bach": 16,
+   "bwv": "311",
+   "measure": 16,
+   "mode": "minor",
+   "position": "last",
+   "melody": "b6-5",
+   "chord": "V",
    "class": "other"
   },
   {
@@ -3185,10 +3215,20 @@
    "bwv": "121/6",
    "measure": 10,
    "mode": "minor",
-   "position": "last",
+   "position": "inner",
    "melody": "b7-1",
    "chord": "I",
    "class": "Phrygian half"
+  },
+  {
+   "bach": 56,
+   "bwv": "121/6",
+   "measure": 13,
+   "mode": "minor",
+   "position": "last",
+   "melody": "b6-5",
+   "chord": "V",
+   "class": "other"
   },
   {
    "bach": 57,
@@ -4725,10 +4765,20 @@
    "bwv": "245/15",
    "measure": 14,
    "mode": "minor",
-   "position": "last",
+   "position": "inner",
    "melody": "b6-5",
    "chord": "I",
    "class": "bass up a fifth: plagal, or a half cadence in another key"
+  },
+  {
+   "bach": 81,
+   "bwv": "245/15",
+   "measure": 16,
+   "mode": "minor",
+   "position": "last",
+   "melody": "b6-5",
+   "chord": "V",
+   "class": "half"
   },
   {
    "bach": 82,
@@ -5255,10 +5305,20 @@
    "bwv": "244/62",
    "measure": 10,
    "mode": "minor",
-   "position": "last",
+   "position": "inner",
    "melody": "1-2",
    "chord": "bVII",
    "class": "authentic, imperfect"
+  },
+  {
+   "bach": 89,
+   "bwv": "244/62",
+   "measure": 12,
+   "mode": "minor",
+   "position": "last",
+   "melody": "b6-5",
+   "chord": "V",
+   "class": "other"
   },
   {
    "bach": 90,
@@ -6685,10 +6745,20 @@
    "bwv": "245/37",
    "measure": 14,
    "mode": "minor",
-   "position": "last",
+   "position": "inner",
    "melody": "b2-1",
    "chord": "IV",
    "class": "bass up a fifth: plagal, or a half cadence in another key"
+  },
+  {
+   "bach": 113,
+   "bwv": "245/37",
+   "measure": 16,
+   "mode": "minor",
+   "position": "last",
+   "melody": "b2-1",
+   "chord": "I",
+   "class": "deceptive"
   },
   {
    "bach": 114,
@@ -8805,9 +8875,19 @@
    "bwv": "368",
    "measure": 28,
    "mode": "major",
-   "position": "last",
+   "position": "inner",
    "melody": "4-5",
    "chord": "V",
+   "class": "other"
+  },
+  {
+   "bach": 143,
+   "bwv": "368",
+   "measure": 31,
+   "mode": "major",
+   "position": "last",
+   "melody": "2-1",
+   "chord": "I",
    "class": "other"
   },
   {
@@ -12395,10 +12475,20 @@
    "bwv": "328",
    "measure": 45,
    "mode": "minor",
-   "position": "last",
+   "position": "inner",
    "melody": "b2-1",
    "chord": "IV",
    "class": "bass up a fifth: plagal, or a half cadence in another key"
+  },
+  {
+   "bach": 205,
+   "bwv": "328",
+   "measure": 47,
+   "mode": "minor",
+   "position": "last",
+   "melody": "b7-1",
+   "chord": "I",
+   "class": "other"
   },
   {
    "bach": 206,
@@ -17175,10 +17265,20 @@
    "bwv": "48/3",
    "measure": 6,
    "mode": "major",
-   "position": "last",
+   "position": "inner",
    "melody": "1-2",
    "chord": "bVII",
    "class": "authentic, imperfect"
+  },
+  {
+   "bach": 279,
+   "bwv": "48/3",
+   "measure": 9,
+   "mode": "major",
+   "position": "last",
+   "melody": "2-1",
+   "chord": "I",
+   "class": "other"
   },
   {
    "bach": 280,
@@ -19611,6 +19711,16 @@
    "class": "authentic, perfect"
   },
   {
+   "bach": 320,
+   "bwv": "323",
+   "measure": 10,
+   "mode": "minor",
+   "position": "last",
+   "melody": "2-1",
+   "chord": "I",
+   "class": "authentic, perfect"
+  },
+  {
    "bach": 321,
    "bwv": "40/3",
    "measure": 1,
@@ -21535,9 +21645,19 @@
    "bwv": "312",
    "measure": 13,
    "mode": "minor",
-   "position": "last",
+   "position": "inner",
    "melody": "2-1",
    "chord": "bVI",
+   "class": "other"
+  },
+  {
+   "bach": 352,
+   "bwv": "312",
+   "measure": 15,
+   "mode": "minor",
+   "position": "last",
+   "melody": "b6-5",
+   "chord": "V",
    "class": "other"
   },
   {
@@ -21865,10 +21985,20 @@
    "bwv": "10/7",
    "measure": 14,
    "mode": "minor",
-   "position": "last",
+   "position": "inner",
    "melody": "4-b3",
    "chord": "bIII",
    "class": "authentic, perfect"
+  },
+  {
+   "bach": 358,
+   "bwv": "10/7",
+   "measure": 19,
+   "mode": "minor",
+   "position": "last",
+   "melody": "2-1",
+   "chord": "I",
+   "class": "other"
   },
   {
    "bach": 359,
@@ -22646,6 +22776,8 @@
    "kittel": 1,
    "title": "Gott des Himmels und der Erden etc.",
    "tonic_pc": 7,
+   "tonic": "G",
+   "mode": "major",
    "phrases": [
     {
      "measure": 5,
@@ -22808,6 +22940,8 @@
    "kittel": 2,
    "title": "Allein Gott in der Höh [etc.]",
    "tonic_pc": 7,
+   "tonic": "G",
+   "mode": "major",
    "phrases": [
     {
      "measure": 5,
@@ -23012,6 +23146,8 @@
    "kittel": 3,
    "title": "Nun freut euch, liebe Christengemein etc.",
    "tonic_pc": 9,
+   "tonic": "A",
+   "mode": "major",
    "phrases": [
     {
      "measure": 5,
@@ -23213,6 +23349,8 @@
    "kittel": 4,
    "title": "Herr Jesu Christ dich zu uns etc.",
    "tonic_pc": 7,
+   "tonic": "G",
+   "mode": "major",
    "phrases": [
     {
      "measure": 5,
@@ -23375,6 +23513,8 @@
    "kittel": 5,
    "title": "Herr Gott, dich loben alle wir etc.",
    "tonic_pc": 9,
+   "tonic": "A",
+   "mode": "major",
    "phrases": [
     {
      "measure": 5,
@@ -23538,6 +23678,8 @@
    "kittel": 6,
    "title": "Jesus, meine Zuversicht etc.",
    "tonic_pc": 0,
+   "tonic": "C",
+   "mode": "major",
    "phrases": [
     {
      "measure": 4,
@@ -23701,6 +23843,8 @@
    "kittel": 7,
    "title": "Nun lasst uns Gott den Herren etc.",
    "tonic_pc": 9,
+   "tonic": "A",
+   "mode": "major",
    "phrases": [
     {
      "measure": 5,
@@ -23864,6 +24008,8 @@
    "kittel": 8,
    "title": "Nun danket alle Gott etc.",
    "tonic_pc": 5,
+   "tonic": "F",
+   "mode": "major",
    "phrases": [
     {
      "measure": 4,
@@ -24100,6 +24246,8 @@
    "kittel": 9,
    "title": "Mir nach, spricht Christus etc.",
    "tonic_pc": 2,
+   "tonic": "D",
+   "mode": "major",
    "phrases": [
     {
      "measure": 5,
@@ -24263,6 +24411,8 @@
    "kittel": 10,
    "title": "Liebster Jesu, wir sind hier etc.",
    "tonic_pc": 7,
+   "tonic": "G",
+   "mode": "major",
    "phrases": [
     {
      "measure": 4,
@@ -24426,6 +24576,8 @@
    "kittel": 11,
    "title": "Freu dich sehr, o meine Seele etc.",
    "tonic_pc": 7,
+   "tonic": "G",
+   "mode": "major",
    "phrases": [
     {
      "measure": 5,
@@ -24671,6 +24823,8 @@
    "kittel": 12,
    "title": "Christus, der ist mein Leben etc.",
    "tonic_pc": 2,
+   "tonic": "D",
+   "mode": "major",
    "phrases": [
     {
      "measure": 5,
@@ -24834,6 +24988,8 @@
    "kittel": 13,
    "title": "Lobt Gott, ihr Christen, allzugleich",
    "tonic_pc": 7,
+   "tonic": "G",
+   "mode": "major",
    "phrases": [
     {
      "measure": 5,
@@ -25036,6 +25192,8 @@
    "kittel": 14,
    "title": "Valet will ich dir geben etc.",
    "tonic_pc": 0,
+   "tonic": "C",
+   "mode": "major",
    "phrases": [
     {
      "measure": 5,
@@ -25275,6 +25433,8 @@
    "kittel": 15,
    "title": "Es ist das Heil uns kommen her etc.",
    "tonic_pc": 2,
+   "tonic": "D",
+   "mode": "major",
    "phrases": [
     {
      "measure": 5,
@@ -25480,6 +25640,8 @@
    "kittel": 16,
    "title": "Ach, wie heilig ist der Ort etc.",
    "tonic_pc": 10,
+   "tonic": "Bb",
+   "mode": "major",
    "phrases": [
     {
      "measure": 4,
@@ -25640,6 +25802,8 @@
    "kittel": 17,
    "title": "Wer nur den lieben Gott lässt walten etc.",
    "tonic_pc": 9,
+   "tonic": "A",
+   "mode": "minor",
    "phrases": [
     {
      "measure": 5,
@@ -25807,6 +25971,8 @@
    "kittel": 18,
    "title": "Wie schön leuchtet der Morgenstern etc.",
    "tonic_pc": 5,
+   "tonic": "F",
+   "mode": "major",
    "phrases": [
     {
      "measure": 5,
@@ -26087,6 +26253,8 @@
    "kittel": 19,
    "title": "Jesu meine Freude etc.",
    "tonic_pc": 2,
+   "tonic": "D",
+   "mode": "minor",
    "phrases": [
     {
      "measure": 4,
@@ -26330,6 +26498,8 @@
    "kittel": 20,
    "title": "Was mein Gott will, gescheh’ allzeit etc.",
    "tonic_pc": 9,
+   "tonic": "A",
+   "mode": "minor",
    "phrases": [
     {
      "measure": 5,
@@ -26572,6 +26742,8 @@
    "kittel": 21,
    "title": "O Gott, du frommer Gott etc.",
    "tonic_pc": 5,
+   "tonic": "F",
+   "mode": "major",
    "phrases": [
     {
      "measure": 4,
@@ -26810,6 +26982,8 @@
    "kittel": 22,
    "title": "Das Jesulein soll doch mein Trost etc.",
    "tonic_pc": 9,
+   "tonic": "A",
+   "mode": "major",
    "phrases": [
     {
      "measure": 5,
@@ -27084,6 +27258,8 @@
    "kittel": 23,
    "title": "Ach Herr, mich armen Sünder etc.",
    "tonic_pc": 4,
+   "tonic": "E",
+   "mode": "minor",
    "phrases": [
     {
      "measure": 5,
@@ -27294,6 +27470,48 @@
        "V"
       ]
      ]
+    },
+    {
+     "measure": 27,
+     "melody": "b3-1",
+     "kittel": [
+      [
+       "[1]",
+       "bVI"
+      ],
+      [
+       "[2]",
+       "bVI"
+      ],
+      [
+       "[3]",
+       "bVI"
+      ],
+      [
+       "[4]",
+       "bVI"
+      ],
+      [
+       "[5]",
+       "bVI"
+      ],
+      [
+       "[6]",
+       "bVI"
+      ],
+      [
+       "[7]",
+       "bVI"
+      ],
+      [
+       "[8]",
+       "bVI"
+      ],
+      [
+       "[9]",
+       "bVI"
+      ]
+     ]
     }
    ],
    "bach_settings": [
@@ -27312,6 +27530,8 @@
    "kittel": 24,
    "title": "Lobe den Herrn, den mächtigen König etc.",
    "tonic_pc": 7,
+   "tonic": "G",
+   "mode": "major",
    "phrases": [
     {
      "measure": 6,
