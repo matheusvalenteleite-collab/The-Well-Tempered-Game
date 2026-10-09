@@ -68,6 +68,11 @@ export function beatOf(time: string): number {
   return n % 3 === 0 && n > 3 ? 3 * unit : unit;
 }
 
+/**
+ * `trace`, for calibration only: the number of each exemption that excused a dissonance is pushed
+ * there (the numbers mark the `continue`s below), so that a script can see which rules Bach's lines
+ * need and which let injected faults through (D119).
+ */
 export function evaluateCounterpoint(inp: CpInput, trace?: number[]): CpEvaluation {
   const { line, given } = inp;
   const out: CpViolation[] = [];

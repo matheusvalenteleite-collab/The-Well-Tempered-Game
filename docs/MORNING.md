@@ -18,6 +18,19 @@ Game link (always the latest): https://claude.ai/artifact/NvkaBGCHrtDebE85H7udTX
   - Each fugue states the size of its tonic's third in the chosen temperament. In Werckmeister III, C–E is 390.2 cents and F♯–A♯ is 407.8; equal is 400 and pure is 386.3.
   - "Equal ↔ well" plays the opening in equal temperament and then in the well temperament.
 
+## How to try it in two minutes
+
+1. In the first menu, choose **Well-Tempered Clavier**. The C major fugue of Book I opens.
+2. Exercise **1 · Real or tonal?**: press Enter with nothing marked (C major I has a real answer). Then move to F minor I (the menu, or the Keys tab) and mark the first note (X).
+3. Exercise **2 · The answer**: type the letters; Enter evaluates. In C major the answer is G A B C D C B E A D E D C B.
+4. Exercise **5 · Study**: choose **Whole fugue** and press Space; try **Equal ↔ well**.
+
+## Proposed next steps (your call)
+
+- **The third entry and invertible counterpoint.** The third entries are found where expected in 28 of the 29 fugues. The next exercise would have you write what the answer's voice sings against the third entry, which is often Bach's countersubject again, inverted or transposed. It needs a three-voice tonal engine, calibrated on Bach as the two-voice one was.
+- **The preludes of Book I** (When-in-Rome has all 24 with Roman-numeral analyses, CC BY-SA). This would be the harmonic side of the "tonal turn". The licence of the prelude scores themselves is unclear, so I have not used them.
+- **The three missing keys** (C minor, E♭ minor, E minor) need another open encoding of those fugues.
+
 ## Questions for you
 
 1. **Bach as the last word.** In the countersubject engine I treated Bach's 29 lines as Fux's solutions were treated (D39): they must pass. The rules therefore admit what he does: implied-chord skips off the beat, a resolving tritone, a held note against the answer's passing figure. Is that the right authority for the tonal stage, or do you want a stricter, more textbook layer as well?
