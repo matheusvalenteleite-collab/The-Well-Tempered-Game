@@ -9,6 +9,11 @@ import type { Entry, FullNote } from "../../wtc/entries.ts";
 interface Props {
   notes: FullNote[];
   entries: Entry[];
+  /** Hide the entries (the hunt, D122) and show the player's marks instead. */
+  hidden?: boolean;
+  marks?: number[];
+  /** A tap near a note (the hunt). */
+  onPick?(note: number): void;
   barQuarters: number;
   /** The bar being played, or -1. */
   cursor: number;
@@ -30,7 +35,8 @@ export function PianoRoll(p: Props) {
   const y = (m: number) => PAD + (hi - m) * ROW;
   const x = (q: number) => PAD + q * PX_Q;
   const inEntry = new Map<number, Entry>();
-  for (const e of p.entries) for (const i of e.notes) inEntry.set(i, e);
+  if (!p.hidden) for (const e of p.entries) for (const i of e.notes) inEntry.set(i, e);
+  const marked = new Set(p.marks ?? []);
   const bars = Math.ceil(end / p.barQuarters);
   // Follow the cursor.
   useEffect(() => {
@@ -42,7 +48,26 @@ export function PianoRoll(p: Props) {
   }, [p.cursor]);
   return (
     <div className="pianoroll" ref={box}>
-      <svg width={width} height={height} role="img" aria-label={p.label}>
+      <svg
+        width={width}
+        height={height}
+        role="img"
+        aria-label={p.label}
+        onClick={(ev) => {
+          if (!p.onPick) return;
+          const r = (ev.currentTarget as SVGSVGElement).getBoundingClientRect();
+          const q = (ev.clientX - r.left - PAD) / PX_Q;
+          const m = hi - (ev.clientY - r.top - PAD) / ROW;
+          let best = -1;
+          let d0 = Infinity;
+          p.notes.forEach((n, i) => {
+            const dq = q < n.at ? n.at - q : q > n.at + n.dur ? q - n.at - n.dur : 0;
+            const d = dq * 4 + Math.abs(n.midi + 0.5 - m);
+            if (d < d0) (d0 = d), (best = i);
+          });
+          if (best >= 0 && d0 < 4) p.onPick(best);
+        }}
+      >
         {Array.from({ length: hi - lo + 1 }, (_, k) => hi - k).filter((m) => m % 12 === 0).map((m) => (
           <g key={`c${m}`}>
             <line x1={0} x2={width} y1={y(m) + ROW} y2={y(m) + ROW} className="roll-c" />
@@ -58,9 +83,12 @@ export function PianoRoll(p: Props) {
         {p.cursor >= 0 && <rect x={x(p.cursor * p.barQuarters)} y={PAD - 6} width={p.barQuarters * PX_Q} height={height - 2 * PAD + 6} className="roll-cursor" />}
         {p.notes.map((n, i) => {
           const e = inEntry.get(i);
-          return <rect key={i} x={x(n.at) + 0.5} y={y(n.midi)} width={Math.max(1.5, n.dur * PX_Q - 1)} height={ROW - 0.5} rx={1} className={e ? (e.inverted ? "roll-note inv" : "roll-note subj") : "roll-note"} />;
+          return <rect key={i} x={x(n.at) + 0.5} y={y(n.midi)} width={Math.max(1.5, n.dur * PX_Q - 1)} height={ROW - 0.5} rx={1} className={marked.has(i) ? "roll-note mark" : e ? (e.inverted ? "roll-note inv" : "roll-note subj") : "roll-note"} />;
         })}
-        {p.entries.map((e, k) => (
+        {[...marked].map((i) => (
+          <text key={`m${i}`} x={x(p.notes[i].at) - 2} y={y(p.notes[i].midi) - 3} className="roll-entry mark">▼</text>
+        ))}
+        {!p.hidden && p.entries.map((e, k) => (
           <text key={`e${k}`} x={x(e.at)} y={y(Math.max(...e.notes.map((i) => p.notes[i].midi))) - 3} className={e.inverted ? "roll-entry inv" : "roll-entry"} onClick={() => p.onEntry(e)}>
             {e.inverted ? "∀" : "S"}
           </text>

@@ -974,3 +974,5 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .roll-entry { font: bold 10px Inter, system-ui, sans-serif; fill: var(--trk-counterpoint, #1e6fd8); cursor: pointer; }
 .roll-entry.inv { fill: var(--trk-second, #b03ad0); }
 .score-wrap.wtc .pianoroll { position: absolute; inset: 0; }
+.roll-note.mark { fill: var(--accent, #e07b00); opacity: 1; }
+.roll-entry.mark { fill: var(--accent, #e07b00); cursor: default; }

@@ -8,11 +8,15 @@ Game link (always the latest): https://claude.ai/artifact/NvkaBGCHrtDebE85H7udTX
 - **Exercise 1, real or tonal?** (D120) Mark the subject's notes that a tonal answer must change, or none. The verdict names the degrees.
 - **Exercise 2, the answer.** You write the comes under or over Bach's subject, in its rhythm (grey notes). The verdict names what you did. A real answer where Bach's is tonal is reported with the degrees: in F minor I, the subject's C (degree 5) is answered by F (1), not by G (2).
 - **Exercise 3, the countersubject.** You write the subject's continuation against Bach's answer, in Bach's rhythm. It is judged by the species' doctrine carried into tonal free rhythm, then compared with Bach's own line. All 29 of Bach's lines pass these rules. A hint (H) lists the notes the rules allow at the selected place.
-- **Exercise 4, study.** Bach's exposition with the subject, answer and countersubject labelled, and the mutations marked ✱. **Whole fugue** (D121) shows the complete fugue as a roll, with every entry of the subject found automatically and coloured (inversions in another colour); tap an S to hear the fugue from that entry.
+- **Exercise 4, find the entries** (D122). The whole fugue as an uncoloured roll: listen, and mark where the subject enters; the machine's entries are then revealed.
+- **Exercise 5, study.** Bach's exposition with the subject, answer and countersubject labelled, and the mutations marked ✱. **Whole fugue** (D121) shows the complete fugue as a roll, with every entry of the subject found automatically and coloured (inversions in another colour); tap an S to hear the fugue from that entry.
 - **Sound.**
   - Instrument: harpsichord by default, or organ or piano.
   - Temperaments: Werckmeister III by default, Kirnberger III, Vallotti, or equal. Kirnberger III and Vallotti are new; they are computed from the sizes of their fifths, and the same computation reproduces Werckmeister III exactly.
-- **Keys tab.** The 24 keys in Bach's order, each with its fugues from Book I and Book II.
+- **Keys tab.** The 24 keys in Bach's order, each with its fugues from Book I and Book II. There is also a course order (D122), with short subjects and real answers first.
+- **The well temperament, audible and measured** (D122).
+  - Each fugue states the size of its tonic's third in the chosen temperament. In Werckmeister III, C–E is 390.2 cents and F♯–A♯ is 407.8; equal is 400 and pure is 386.3.
+  - "Equal ↔ well" plays the opening in equal temperament and then in the well temperament.
 
 ## Questions for you
 

@@ -9,7 +9,7 @@
  * every key sounds as itself (Werckmeister III, Kirnberger III, Vallotti, or equal).
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { FUGUES, KEY_ORDER, keyName, keySignature, isMinor, realAnswer, type WtcFugue, type WtcNote } from "../wtc/fugues.ts";
+import { FUGUES, KEY_ORDER, keyName, keySignature, isMinor, realAnswer, transpose, type WtcFugue, type WtcNote } from "../wtc/fugues.ts";
 import { degree, evaluateAnswer, type AnswerEvaluation } from "../wtc/answer.ts";
 import { beatOf, evaluateCounterpoint, type CpEvaluation } from "../wtc/counterpoint.ts";
 import { counterHint } from "../wtc/hints.ts";
@@ -20,7 +20,7 @@ import { parsePitch, type Step } from "../music/pitch.ts";
 import { WtcScore, type WtcScoreNote, type WtcScoreVoice } from "./notation/WtcScore.tsx";
 import { restoreSound, type SoundState } from "../audio/sound.ts";
 import { SYNTH_PRESETS } from "../audio/synth-settings.ts";
-import { WELL, type TemperamentId } from "../audio/temperament.ts";
+import { frequency, WELL, type TemperamentId } from "../audio/temperament.ts";
 import type { PlayEvent } from "../counterpoint/layout.ts";
 import { ZOOM_MAX, ZOOM_MIN } from "./notation/zoom.ts";
 import { HFader } from "./HFader.tsx";
@@ -29,10 +29,10 @@ import { t } from "./i18n.ts";
 import { Shell } from "./Shell.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 
-type Exercise = "mutation" | "answer" | "counter" | "study";
-const EXERCISES: Exercise[] = ["mutation", "answer", "counter", "study"];
-/** The exercises the player writes (and earns a star for). */
-const WRITTEN: Exercise[] = ["mutation", "answer", "counter"];
+type Exercise = "mutation" | "answer" | "counter" | "hunt" | "study";
+const EXERCISES: Exercise[] = ["mutation", "answer", "counter", "hunt", "study"];
+/** The exercises the player does (and earns a star for). */
+const WRITTEN: Exercise[] = ["mutation", "answer", "counter", "hunt"];
 const STEPS: Step[] = ["C", "D", "E", "F", "G", "A", "B"];
 const INSTRUMENTS = ["harpsichord", "fluteOrgan", "grandRoom"] as const;
 type Instrument = (typeof INSTRUMENTS)[number];
@@ -70,6 +70,15 @@ const SHARPS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 const FLATS = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
 const midiName = (m: number, flats: boolean) => `${(flats ? FLATS : SHARPS)[((m % 12) + 12) % 12]}${Math.floor(m / 12) - 1}`;
 const FULL = (full as unknown as { notes: Record<string, number[][]> }).notes;
+/** The tonic's third (major or minor) in a temperament, in cents. */
+function tonicThird(key: string, t: TemperamentId): number {
+  const tonic = `${key[0].toUpperCase()}${key.slice(1)}4`;
+  const third = transpose(tonic, 2, isMinor(key) ? 3 : 4);
+  return 1200 * Math.log2(frequency(third, t) / frequency(tonic, t));
+}
+/** A course order (D122): short subjects and real answers first; tonal heads and long lines later. */
+const difficulty = (f: WtcFugue) => f.subject.length + 8 * f.mutations.length + f.countersubject.length / 2;
+const COURSE = FUGUES.map((_, i) => i).sort((a, b) => difficulty(FUGUES[a]) - difficulty(FUGUES[b]));
 const mean = (xs: WtcNote[]) => xs.reduce((a, n) => a + parsePitch(n.pitch).midi, 0) / Math.max(1, xs.length);
 
 export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
@@ -83,8 +92,23 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
   const [stars, setStars] = useState<string[]>(() => stored<string[]>("wtg.wtcStars", [], (v) => Array.isArray(v)));
   useEffect(() => store("wtg.wtcStars", stars), [stars]);
   const [selected, setSelected] = useState(0);
-  const [result, setResult] = useState<{ kind: "answer"; ev: AnswerEvaluation } | { kind: "counter"; ev: CpEvaluation } | { kind: "mutation"; ev: { passed: boolean; marked: number[] } } | null>(null);
+  const [result, setResult] = useState<
+    | { kind: "answer"; ev: AnswerEvaluation }
+    | { kind: "counter"; ev: CpEvaluation }
+    | { kind: "mutation"; ev: { passed: boolean; marked: number[] } }
+    | { kind: "hunt"; ev: { passed: boolean; found: number[]; stray: number[] } }
+    | null
+  >(null);
+  /** The hunt (D122): the notes the player marks as entries of the subject, by fugue. */
+  const [hunts, setHunts] = useState<Record<string, number[]>>(() => stored("wtg.wtcHunts", {}, (v) => typeof v === "object" && v !== null));
+  useEffect(() => store("wtg.wtcHunts", hunts), [hunts]);
   const [hintOn, setHintOn] = useState(false);
+  const [order, setOrder] = useState<"bach" | "course">(() => stored("wtg.wtcOrder", "bach", (v) => v === "bach" || v === "course"));
+  useEffect(() => store("wtg.wtcOrder", order), [order]);
+  const ORDER = order === "course" ? COURSE : FUGUES.map((_, i) => i);
+  /** The A/B of temperaments: which one sounds now (null: none). */
+  const [comparing, setComparing] = useState<TemperamentId | null>(null);
+  const compareTimers = useRef<number[]>([]);
   /** In the study: the exposition on the staff, or the whole fugue as a roll (D121). */
   const [whole, setWhole] = useState(() => stored("wtg.wtcWhole", false, (v) => typeof v === "boolean"));
   useEffect(() => store("wtg.wtcWhole", whole), [whole]);
@@ -143,12 +167,23 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
   const flats = Object.values(signature).some((x) => x < 0);
   const allNotes: FullNote[] = useMemo(() => (FULL[F.id] ?? []).map(([m, o, d]) => ({ midi: m, at: o / 96, dur: d / 96 })), [F.id]);
   const entries: Entry[] = useMemo(() => findEntries(allNotes, F.subject.map((n) => ({ midi: parsePitch(n.pitch).midi, at: n.at, dur: n.dur }))), [allNotes, F]);
-  const showWhole = exercise === "study" && whole && allNotes.length > 0;
+  const showWhole = ((exercise === "study" && whole) || exercise === "hunt") && allNotes.length > 0;
+  const marks = hunts[F.id] ?? [];
+  /** Which entry a marked note finds: its first note, or a note within a beat and a tone of it. */
+  const beatQ = beatOf(F.time);
+  const matchEntry = (m: number) =>
+    entries.findIndex((e) => e.notes[0] === m || (Math.abs(allNotes[m].at - e.at) <= beatQ + 1e-6 && Math.abs(allNotes[m].midi - allNotes[e.notes[0]].midi) <= 2));
+  const pick = (i: number) => {
+    const next = marks.includes(i) ? marks.filter((x) => x !== i) : [...marks, i];
+    setHunts({ ...hunts, [F.id]: next });
+    setResult(null);
+    void audio.playSequence([{ slot: 0, at: 0, length: Math.min(1, allNotes[i].dur) / 2, cantus: null, counterpoint: null, extra: [{ channel: "counterpoint", pitch: midiName(allNotes[i].midi, flats) }] }]);
+  };
   const ex: Exercise = exercise;
   const key = `${F.id}:${ex}`;
   const target = ex === "answer" ? F.answer : ex === "counter" ? F.countersubject : ex === "mutation" ? F.subject : [];
   const line: (string | null)[] = written[key] && written[key].length === target.length ? written[key] : target.map(() => null);
-  const missing = ex === "mutation" ? 0 : line.filter((x) => !x).length;
+  const missing = ex === "mutation" || ex === "hunt" ? 0 : line.filter((x) => !x).length;
   const solved = stars.includes(key);
   const bachOpen = solved || (attempts[key] ?? 0) > 0;
   const setLine = (next: (string | null)[]) => {
@@ -175,7 +210,7 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
 
   // The verdicts, for colouring the written notes.
   const verdictInk = (i: number): string | undefined => {
-    if (!result) return undefined;
+    if (!result || result.kind === "hunt") return undefined;
     if (result.kind === "mutation") return (line[i] === "x") === F.mutations.includes(i) ? "var(--ok-ink, #2e7d32)" : "var(--bad-ink, #c62828)";
     if (result.kind === "answer") {
       const v = result.ev.notes[i]?.verdict;
@@ -257,6 +292,11 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
     if (advance) setSelected(Math.min(target.length - 1, i + 1));
   };
 
+  /** Step through the fugues in the chosen order. */
+  const step = (d: number) => {
+    const pos = ORDER.indexOf(index) + d;
+    if (pos >= 0 && pos < ORDER.length) go(ORDER[pos]);
+  };
   const go = (k: number) => {
     if (k < 0 || k >= FUGUES.length) return;
     audio.stop();
@@ -288,7 +328,7 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
       const evs: PlayEvent[] = allNotes
         .map((n, i) => ({ n, i }))
         .filter(({ n }) => n.at >= fromQ - 1e-6)
-        .map(({ n, i }) => ({ slot: barOf(n.at), at: (n.at - fromQ) / 4, length: n.dur / 4, cantus: null, counterpoint: null, extra: [{ channel: inEntry.has(i) ? ("counterpoint" as const) : ("second" as const), pitch: midiName(n.midi, flats) }] }));
+        .map(({ n, i }) => ({ slot: barOf(n.at), at: (n.at - fromQ) / 4, length: n.dur / 4, cantus: null, counterpoint: null, extra: [{ channel: inEntry.has(i) && exercise !== "hunt" ? ("counterpoint" as const) : ("second" as const), pitch: midiName(n.midi, flats) }] }));
       if (!evs.length) return;
       audio.setGates({ counterpoint: true, second: true, fux: true, continuo: false });
       setPlaying(true);
@@ -316,10 +356,53 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
     });
   };
 
+  /** The exposition's opening heard twice: in equal temperament, then in the chosen well temperament. */
+  const compare = () => {
+    compareTimers.current.forEach((x) => window.clearTimeout(x));
+    compareTimers.current = [];
+    audio.stop();
+    setPlaying(false);
+    setCursor(-1);
+    if (comparing) {
+      audio.temperament = tuning;
+      setComparing(null);
+      return;
+    }
+    const span = Math.min(F.answerAt + F.answer[F.answer.length - 1].at + F.answer[F.answer.length - 1].dur, F.answerAt + 2 * F.barQuarters);
+    const notes = [...F.subject.map((n) => ({ ...n })), ...F.answer.map((n) => ({ ...n, at: n.at + F.answerAt })), ...F.countersubject.map((n) => ({ ...n, at: n.at + F.answerAt }))].filter((n) => n.at < span);
+    const gap = F.barQuarters;
+    const evs: PlayEvent[] = [];
+    for (const pass of [0, 1]) for (const n of notes) evs.push({ slot: 0, at: (n.at + pass * (span + gap)) / 4, length: Math.min(n.dur, span - n.at) / 4, cantus: null, counterpoint: null, extra: [{ channel: "second", pitch: n.pitch }] });
+    evs.sort((a, b) => a.at - b.at);
+    const wholeSec = 120 / tempo;
+    audio.temperament = "equal";
+    setComparing("equal");
+    const other = tuning === "equal" ? "werckmeister3" : tuning;
+    compareTimers.current.push(window.setTimeout(() => ((audio.temperament = other), setComparing(other)), ((span + gap / 2) / 4) * wholeSec * 1000));
+    compareTimers.current.push(window.setTimeout(() => ((audio.temperament = tuning), setComparing(null)), ((2 * span + gap) / 4) * wholeSec * 1000 + 400));
+    void audio.playAll(evs, () => undefined);
+  };
+  useEffect(() => () => compareTimers.current.forEach((x) => window.clearTimeout(x)), []);
+
   const evaluate = () => {
     if (result) return setResult(null);
     if (ex === "study" || missing > 0) return;
     setAttempts({ ...attempts, [key]: (attempts[key] ?? 0) + 1 });
+    if (ex === "hunt") {
+      const hit = new Set<number>();
+      const stray: number[] = [];
+      for (const m of marks) {
+        const k = matchEntry(m);
+        if (k >= 0) hit.add(k);
+        else stray.push(m);
+      }
+      const found = [...hit].sort((a, b) => a - b);
+      const passed = found.length >= Math.ceil(entries.length * 0.8);
+      setResult({ kind: "hunt", ev: { passed, found, stray } });
+      if (passed && !stars.includes(key)) setStars([...stars, key]);
+      setTab("evaluation");
+      return;
+    }
     if (ex === "mutation") {
       const marked = line.map((x, i) => (x === "x" ? i : -1)).filter((i) => i >= 0);
       const passed = marked.length === F.mutations.length && marked.every((i) => F.mutations.includes(i));
@@ -390,6 +473,25 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
   };
   const feedback = () => {
     if (!result) return <p className="dock-empty">{t("ui.dock.noEvaluation")}</p>;
+    if (result.kind === "hunt") {
+      const ev = result.ev;
+      const bars = (q: number) => Math.floor(q / F.barQuarters) + 1;
+      const missed = entries.map((e, k) => ({ e, k })).filter(({ k }) => !ev.found.includes(k));
+      return (
+        <section className="feedback" aria-live="polite">
+          <p className={ev.passed ? "verdict ok" : "verdict bad"}>{t(ev.passed ? "ui.wtc.hunt.passed" : "ui.wtc.hunt.failed", { found: ev.found.length, n: entries.length })}</p>
+          <ul>
+            {missed.map(({ e, k }) => (
+              <li key={`m${k}`} className="error">{t(e.inverted ? "ui.wtc.hunt.missedInv" : "ui.wtc.hunt.missed", { bar: bars(e.at) })}</li>
+            ))}
+            {ev.stray.map((m) => (
+              <li key={`s${m}`} className="warning">{t("ui.wtc.hunt.stray", { bar: bars(allNotes[m].at) })}</li>
+            ))}
+          </ul>
+          <p className="help">{t("ui.wtc.hunt.note")}</p>
+        </section>
+      );
+    }
     if (result.kind === "mutation") {
       const real = realAnswer(F);
       const all = [...new Set([...result.ev.marked, ...F.mutations])].sort((a, b) => a - b);
@@ -448,6 +550,13 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
   const keyGrid = (
     <section className="wtc-keys" aria-label={t("ui.wtc.keys")}>
       <p className="help">{t("ui.wtc.keysHelp")}</p>
+      <label className="help">
+        {t("ui.wtc.order")}{" "}
+        <select className="sel" value={order} onChange={(e) => setOrder(e.target.value as "bach" | "course")}>
+          <option value="bach">{t("ui.wtc.order.bach")}</option>
+          <option value="course">{t("ui.wtc.order.course")}</option>
+        </select>
+      </label>
       <div className="wtc-grid">
         {[0, 1].map((row) => (
           <div key={row} className="wtc-row">
@@ -477,6 +586,7 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
       <li>{t("ui.wtc.fact.key", { key: keyName(F.key), time: F.time })}</li>
       <li>{t(F.mutations.length ? "ui.wtc.fact.tonal" : "ui.wtc.fact.real", { n: F.mutations.length, interval: t(F.answerShift % 12 === 7 || F.answerShift % 12 === -5 ? (F.answerShift > 0 ? "ui.wtc.fifthUp" : "ui.wtc.fourthDown") : F.answerShift > 0 ? "ui.wtc.fourthUp" : "ui.wtc.fifthDown") })}</li>
       <li>{t("ui.wtc.fact.subject", { n: F.subject.length })}</li>
+      <li>{t(isMinor(F.key) ? "ui.wtc.fact.thirdMinor" : "ui.wtc.fact.thirdMajor", { t: t(`ui.tuning.${tuning}`), c: tonicThird(F.key, tuning).toFixed(1), eq: isMinor(F.key) ? "300" : "400", pure: isMinor(F.key) ? "315.6" : "386.3" })}</li>
       <li>{t("ui.wtc.fact.entries", { n: entries.length, inv: entries.filter((e) => e.inverted).length, bars: Math.ceil(Math.max(0, ...allNotes.map((n) => n.at + n.dur)) / F.barQuarters) })}</li>
     </ul>
   );
@@ -487,7 +597,7 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
         <>
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
-            <button className="icon" onClick={() => go(index - 1)} disabled={index === 0} aria-label={t("ui.nav.prev")}>‹</button>
+            <button className="icon" onClick={() => step(-1)} disabled={ORDER.indexOf(index) === 0} aria-label={t("ui.nav.prev")}>‹</button>
             <select id="voices" className="sel sel-voices" value="wtc" aria-label={t("ui.nav.voices")} onChange={(e) => (audio.stop(), onVoices(e.target.value === "wtc" ? "wtc" : (Number(e.target.value) as 2 | 3)))}>
               <option value={2}>{t("ui.nav.voicesN", { n: 2 })}</option>
               <option value={3}>{t("ui.nav.voicesN", { n: 3 })}</option>
@@ -499,14 +609,14 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
               ))}
             </select>
             <select id="exercise" className="sel sel-exercise" value={index} onChange={(e) => go(Number(e.target.value))} aria-label={t("ui.wtc.fugue")}>
-              {FUGUES.map((f, k) => (
-                <option key={f.id} value={k}>
+              {ORDER.map((k) => FUGUES[k]).map((f) => (
+                <option key={f.id} value={FUGUES.indexOf(f)}>
                   {WRITTEN.every((e) => stars.includes(`${f.id}:${e}`)) ? "★ " : ""}
                   {fugueLabel(f)}
                 </option>
               ))}
             </select>
-            <button className="icon" onClick={() => go(index + 1)} disabled={index === FUGUES.length - 1} aria-label={t("ui.nav.next")}>›</button>
+            <button className="icon" onClick={() => step(1)} disabled={ORDER.indexOf(index) === ORDER.length - 1} aria-label={t("ui.nav.next")}>›</button>
           </nav>
           <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("guide")} />
         </>
@@ -517,7 +627,17 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
             <span className={solved ? "star earned" : "star"} aria-label={t(solved ? "ui.star.earned" : "ui.star.none")}>{solved ? "★" : "☆"}</span>
           )}
           {showWhole ? (
-            <PianoRoll notes={allNotes} entries={entries} barQuarters={F.barQuarters} cursor={cursor} label={fugueLabel(F)} onEntry={(e) => play(e.at, true)} />
+            <PianoRoll
+              notes={allNotes}
+              entries={entries}
+              hidden={ex === "hunt" && !result}
+              marks={ex === "hunt" ? marks : undefined}
+              onPick={ex === "hunt" ? pick : undefined}
+              barQuarters={F.barQuarters}
+              cursor={cursor}
+              label={fugueLabel(F)}
+              onEntry={(e) => play(e.at, true)}
+            />
           ) : (
           <WtcScore
             voices={ordered}
@@ -556,10 +676,10 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
         )}
         <div className="controls">
           <div className="group write" role="group">
-            <button className="btn-acc" onClick={() => line[selected] && write(selected, alterPitch(line[selected]!, -1), false)} aria-label="flat" title={t("ui.accidental.flat.help")} disabled={ex === "study" || ex === "mutation"}>♭</button>
-            <button className="btn-acc" onClick={() => line[selected] && write(selected, alterPitch(line[selected]!, 0), false)} aria-label="natural" title={t("ui.accidental.natural.help")} disabled={ex === "study" || ex === "mutation"}>♮</button>
-            <button className="btn-acc" onClick={() => line[selected] && write(selected, alterPitch(line[selected]!, 1), false)} aria-label="sharp" title={t("ui.accidental.sharp.help")} disabled={ex === "study" || ex === "mutation"}>♯</button>
-            <button className="btn-edit" onClick={() => setLine(target.map(() => null))} disabled={ex === "study"} title={t("ui.clearAll.help")}>{t("ui.clearAll")}</button>
+            <button className="btn-acc" onClick={() => line[selected] && write(selected, alterPitch(line[selected]!, -1), false)} aria-label="flat" title={t("ui.accidental.flat.help")} disabled={ex === "study" || ex === "mutation" || ex === "hunt"}>♭</button>
+            <button className="btn-acc" onClick={() => line[selected] && write(selected, alterPitch(line[selected]!, 0), false)} aria-label="natural" title={t("ui.accidental.natural.help")} disabled={ex === "study" || ex === "mutation" || ex === "hunt"}>♮</button>
+            <button className="btn-acc" onClick={() => line[selected] && write(selected, alterPitch(line[selected]!, 1), false)} aria-label="sharp" title={t("ui.accidental.sharp.help")} disabled={ex === "study" || ex === "mutation" || ex === "hunt"}>♯</button>
+            <button className="btn-edit" onClick={() => (ex === "hunt" ? (setHunts({ ...hunts, [F.id]: [] }), setResult(null)) : setLine(target.map(() => null)))} disabled={ex === "study"} title={t("ui.clearAll.help")}>{t("ui.clearAll")}</button>
           </div>
           <div className="group judge">
             {ex !== "study" && (
@@ -568,7 +688,7 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
                 {missing > 0 && !result && <span className="badge">{missing}</span>}
               </button>
             )}
-            {ex !== "study" && ex !== "mutation" && (
+            {ex !== "study" && ex !== "mutation" && ex !== "hunt" && (
               <button className="chipbtn" aria-pressed={showBach} disabled={!bachOpen} onClick={() => setShowBach(!showBach)} title={t(bachOpen ? "ui.wtc.bachHelp" : "ui.wtc.bachLocked")}>
                 {t(showBach ? "ui.wtc.bachHide" : "ui.wtc.bachShow")}
               </button>
@@ -591,6 +711,9 @@ export function WtcApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
               <HFader label={t("ui.tempo")} help={t("ui.wtc.tempoHelp")} value={tempo} min={15} max={120} defaultValue={36} format={(v) => `♩=${Math.round(v * 2)}`} onChange={(v) => setTempo(Math.round(v))} />
               <HFader label={t("ui.volume")} help={t("ui.volume.help")} value={volume} min={0} max={100} defaultValue={70} format={(v) => `${Math.round(v)}%`} onChange={(v) => setVolume(Math.round(v))} />
             </div>
+            <button className="chipbtn" aria-pressed={!!comparing} onClick={compare} title={t("ui.wtc.compareHelp")}>
+              {comparing ? t("ui.wtc.comparing", { t: t(`ui.tuning.${comparing}`) }) : t("ui.wtc.compare")}
+            </button>
             <select className="sel" value={tuning} onChange={(e) => setTuning(e.target.value as TemperamentId)} aria-label={t("ui.tuning")} title={t("ui.wtc.tuningHelp")}>
               {WELL.map((x) => (
                 <option key={x} value={x}>{t(`ui.tuning.${x}`)}</option>
