@@ -1,3 +1,25 @@
+# Night of 9–10 October 2026: the Well-Tempered Clavier mode
+
+Game link (always the latest): https://claude.ai/artifact/NvkaBGCHrtDebE85H7udTX. Open the first menu (voices) and choose **Well-Tempered Clavier**.
+
+## What it is (D119)
+
+- **Material.** 29 fugue expositions from both books, in 21 of the 24 keys, read from an open encoding (the ASAP dataset, CC BY-NC-SA). For each fugue: Bach's subject, his answer (real or tonal, with the mutated notes), and what the subject's voice sings against the answer. C minor, E♭ minor and E minor are missing because the source has no fugue in them.
+- **Exercise 1, the answer.** You write the comes under or over Bach's subject, in its rhythm (grey notes). The verdict names what you did. A real answer where Bach's is tonal is reported with the degrees: in F minor I, the subject's C (degree 5) is answered by F (1), not by G (2).
+- **Exercise 2, the countersubject.** You write the subject's continuation against Bach's answer, in Bach's rhythm. It is judged by the species' doctrine carried into tonal free rhythm, then compared with Bach's own line. All 29 of Bach's lines pass these rules.
+- **Exercise 3, study.** Bach's exposition with the subject, answer and countersubject labelled, and the mutations marked ✱.
+- **Sound.**
+  - Instrument: harpsichord by default, or organ or piano.
+  - Temperaments: Werckmeister III by default, Kirnberger III, Vallotti, or equal. Kirnberger III and Vallotti are new; they are computed from the sizes of their fifths, and the same computation reproduces Werckmeister III exactly.
+- **Keys tab.** The 24 keys in Bach's order, each with its fugues from Book I and Book II.
+
+## Questions for you
+
+1. **Bach as the last word.** In the countersubject engine I treated Bach's 29 lines as Fux's solutions were treated (D39): they must pass. The rules therefore admit what he does: implied-chord skips off the beat, a resolving tritone, a held note against the answer's passing figure. Is that the right authority for the tonal stage, or do you want a stricter, more textbook layer as well?
+2. **The appoggiatura** (leapt into on the beat, resolved down by step) never occurs in these countersubjects, so I made it a fault, with a message saying that it belongs to Bach's style elsewhere. Keep it as a fault, or allow it?
+3. **The subject's boundary.** The data decides where the subject ends: it lasts as long as the answer copies it. In a few fugues this keeps a short codetta inside the subject (F minor I ends "…G, F F G"). Should I trim to the textbook boundaries by hand?
+4. **The licence.** The source is non-commercial (CC BY-NC-SA). That is fine for a private teaching game. If the game is ever to be sold, the fugues must be re-encoded from a public-domain edition.
+
 # Night of 8–9 October 2026: what changed, how to go back, questions
 
 Game link (always the latest): https://claude.ai/artifact/NvkaBGCHrtDebE85H7udTX
