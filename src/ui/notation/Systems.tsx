@@ -131,6 +131,7 @@ export function Systems(props: ScoreProps & { zoom?: number; onZoom?: (z: number
               extraLines={props.extraLines?.map((l) => ({ ...l, notes: slice(l.notes) }))}
               selected={inside(props.selected)}
               cursor={inside(props.cursor)}
+              pulse={props.pulse?.filter((x) => x >= a && x <= b).map((x) => x - a)}
               marks={props.marks?.filter((m) => inside(m.column) >= 0).map((m) => ({ ...m, column: m.column - start }))}
               overlay={shiftOverlay(props.overlay, start, end)}
               firstBar={(props.firstBar ?? 1) + a}

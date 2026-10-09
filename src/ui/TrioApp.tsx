@@ -24,6 +24,9 @@ import { HFader } from "./HFader.tsx";
 import { audio, store, stored, validDrumKit } from "./shared.ts";
 import { t } from "./i18n.ts";
 import { Shell } from "./Shell.tsx";
+import { Guide } from "./Guide.tsx";
+import { BarRef } from "./BarRef.tsx";
+import { useHighlight } from "./highlight.ts";
 import { ScoreTools } from "./ScoreTools.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 import type { NameStyle } from "../music/names.ts";
@@ -265,6 +268,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
     return () => window.removeEventListener("keydown", h);
   }, []);
 
+  const highlight = useHighlight();
   const marks = useMemo(() => {
     if (!result) return [];
     const out = new Map<number, "error" | "warning">();
@@ -313,7 +317,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
           </select>
           <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1} aria-label={t("ui.nav.next")}>›</button>
         </nav>
-          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("rules")} />
+          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("guide")} />
         </>
       }
       score={
@@ -322,6 +326,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
             {stars.includes(STEP.id) ? "★" : "☆"}
           </span>
           <TrioScore
+            pulse={highlight ?? undefined}
             staves={staves}
             active={activeStaff}
             selected={session.selected}
@@ -429,7 +434,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
             <ul>
               {errors.map((v, i) => (
                 <li key={`e${i}`} className="error">
-                  <span className="where">{t("ui.trio3.bar", { bars: v.positions.map((p) => p + 1).join("–") })} {t("ui.trio3.voices", { voices: describe(v.voices) })}</span> {t(`hints.${v.messageKey}`)}
+                  <span className="where"><BarRef bars={v.positions}>{t("ui.trio3.bar", { bars: v.positions.map((p) => p + 1).join("–") })}</BarRef> {t("ui.trio3.voices", { voices: describe(v.voices) })}</span> {t(`hints.${v.messageKey}`)}
                 </li>
               ))}
             </ul>
@@ -439,7 +444,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
                 <ul>
                   {warnings.map((v, i) => (
                     <li key={`w${i}`} className="warning">
-                      <span className="where">{t("ui.trio3.bar", { bars: v.positions.map((p) => p + 1).join("–") })} {t("ui.trio3.voices", { voices: describe(v.voices) })}</span> {t(`hints.${v.messageKey}`)}
+                      <span className="where"><BarRef bars={v.positions}>{t("ui.trio3.bar", { bars: v.positions.map((p) => p + 1).join("–") })}</BarRef> {t("ui.trio3.voices", { voices: describe(v.voices) })}</span> {t(`hints.${v.messageKey}`)}
                     </li>
                   ))}
                 </ul>
@@ -452,14 +457,14 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
           {!fuxOpen && <p className="help">{t("ui.trio3.fuxLocked")}</p>}
           </>
         ) },
-        { id: "rules", text: true, label: t("ui.hints"), content: (
-          <>
+        { id: "guide", text: true, label: t("ui.howtoTab"), content: (
+          <Guide rules={<>
             <blockquote className="tutor" lang="en">
               <span className="speaker">{t("tutor.speaker.aloysius")}.</span> “{t("ui.trio3.intro")}”
               <cite title={t("ui.trio3.introLa")} lang="la">{t("ui.trio3.cite")}</cite>
             </blockquote>
             <p className="help trio-help">{t("ui.trio3.help")}</p>
-          </>
+          </>} />
         ) },
       ]}
     />

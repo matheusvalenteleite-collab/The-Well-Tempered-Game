@@ -8,6 +8,7 @@ import { ScoreView } from "./notation/ScoreView.tsx";
 import type { ClefId } from "./notation/clefs.ts";
 import { buildOverlay } from "./notation/overlay.ts";
 import { t } from "./i18n.ts";
+import { BarRef } from "./BarRef.tsx";
 import { slotsOfBars, timeline, type Slot } from "../counterpoint/layout.ts";
 
 interface Props {
@@ -114,7 +115,7 @@ function Item({ vs, ...p }: { vs: Violation[] } & Omit<Props, "result">) {
     <li className={v.severity}>
       <div className="text">
         <div className="where">
-          {t(bars.length > 1 || bars[0].includes("–") ? "ui.result.bars" : "ui.result.bar", { bars: bars.join(", ") })} · {t(v.severity === "error" ? "ui.result.error" : "ui.result.warning")}
+          <BarRef bars={[...new Set(vs.flatMap((x) => x.positions.map((k) => p.layout[k].bar)))]}>{t(bars.length > 1 || bars[0].includes("–") ? "ui.result.bars" : "ui.result.bar", { bars: bars.join(", ") })}</BarRef> · {t(v.severity === "error" ? "ui.result.error" : "ui.result.warning")}
         </div>
         <div>{t(`tutor.${v.messageKey}`)}</div>
         {details.length > 0 && <div className="detail">{details.join(" / ")}</div>}

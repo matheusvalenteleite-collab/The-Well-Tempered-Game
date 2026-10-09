@@ -1,6 +1,7 @@
 import type { TrioFinding } from "../game/trio-eval.ts";
 import type { Slot } from "../counterpoint/layout.ts";
 import { t } from "./i18n.ts";
+import { BarRef } from "./BarRef.tsx";
 
 // Findings of the same kind (and interval) are said once, naming all their places (owner).
 function merge(fs: TrioFinding[]) {
@@ -32,7 +33,9 @@ export function TrioReading({ findings, layout }: { findings: TrioFinding[]; lay
   const whereAll = (f: TrioFinding & { groups?: number[][] }) => (f.groups ? f.groups.map((g) => where(g).replace(", ", "–")).join(f.groups.every((g) => g.length === 1) ? ", " : "; ") : where(f.slots));
   const item = (f: TrioFinding & { groups?: number[][] }, i: number) => (
     <li key={`${f.kind}-${i}`} className={f.tone}>
-      {t(`ui.trio.${f.kind}`, { where: whereAll(f), detail: f.detail ? t(`ui.trio.interval.${f.kind === "parallelPerfect" ? "plural" : "single"}.${f.detail}`) : "", n: new Set(f.slots).size })}
+      <BarRef bars={[...new Set((f.groups ?? [f.slots]).flat().map((k) => layout[k].bar))]}>
+        {t(`ui.trio.${f.kind}`, { where: whereAll(f), detail: f.detail ? t(`ui.trio.interval.${f.kind === "parallelPerfect" ? "plural" : "single"}.${f.detail}`) : "", n: new Set(f.slots).size })}
+      </BarRef>
     </li>
   );
   return (

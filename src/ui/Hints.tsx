@@ -5,6 +5,7 @@ import { stepStudy } from "./study.ts";
 import { fifthIsDiminished } from "../counterpoint/rules/second-species.ts";
 import { parsePitch } from "../music/pitch.ts";
 import { t } from "./i18n.ts";
+import { Term } from "./Term.tsx";
 
 
 type MotionKind = "parallel" | "similar" | "oblique" | "contrary";
@@ -44,25 +45,6 @@ function MotionGlyph({ kind }: { kind: MotionKind }) {
 }
 
 /** A term with a definition shown on hover, focus or tap. */
-function Term({ def, children }: { def: string; children: React.ReactNode }) {
-  // Keep the tip inside the viewport: shift it left when it would overflow on the right.
-  const fit = (e: React.SyntheticEvent<HTMLSpanElement>) => {
-    const tip = e.currentTarget.querySelector<HTMLSpanElement>(".tip");
-    if (!tip) return;
-    tip.style.left = "0px";
-    requestAnimationFrame(() => {
-      const r = tip.getBoundingClientRect();
-      const over = r.right - (document.documentElement.clientWidth - 8);
-      if (over > 0) tip.style.left = `${-over}px`;
-    });
-  };
-  return (
-    <span className="term" tabIndex={0} onMouseEnter={fit} onFocus={fit}>
-      {children}
-      <span className="tip" role="tooltip">{def}</span>
-    </span>
-  );
-}
 
 const Chip = ({ kind, children, def }: { kind: "perfect" | "imperfect" | "dissonant"; children: string; def: string }) => (
   <Term def={def}>

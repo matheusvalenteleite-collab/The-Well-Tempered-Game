@@ -1,5 +1,6 @@
 import { compareWithFux, type Criterion } from "../counterpoint/compare-fux.ts";
 import { t } from "./i18n.ts";
+import { BarRef } from "./BarRef.tsx";
 import type { Slot } from "../counterpoint/layout.ts";
 
 /** The differences from Fux's solution that a criterion he states weighs (never "Fux said so"), one line per reason. */
@@ -13,10 +14,11 @@ export function FuxComparison({ cantus, player, fux, layout }: { cantus: string[
   if (diffs.length === 0) return null;
   const where = (d: (typeof diffs)[number]) => (half ? `${d.bar + 1}${"abcd"[d.beat]}` : String(d.bar + 1));
   // One line per reason, naming every bar it applies to (owner: say it once).
-  const groups = new Map<string, { cls: string; text: React.ReactNode; bars: string[] }>();
+  const groups = new Map<string, { cls: string; text: React.ReactNode; bars: string[]; nums: number[] }>();
   const add = (key: string, cls: string, text: React.ReactNode, d: (typeof diffs)[number]) => {
-    const g = groups.get(key) ?? { cls, text, bars: [] };
+    const g = groups.get(key) ?? { cls, text, bars: [], nums: [] };
     g.bars.push(where(d));
+    g.nums.push(d.bar);
     groups.set(key, g);
   };
   for (const d of diffs) {
@@ -32,7 +34,7 @@ export function FuxComparison({ cantus, player, fux, layout }: { cantus: string[
       <ul className="reasons">
         {[...groups].map(([key, g]) => (
           <li key={key} className={g.cls}>
-            <strong className="bars">{t(g.bars.length > 1 ? "ui.compare.bars" : "ui.compare.barOne", { bars: g.bars.join(", ") })}</strong> {g.text}
+            <strong className="bars"><BarRef bars={g.nums}>{t(g.bars.length > 1 ? "ui.compare.bars" : "ui.compare.barOne", { bars: g.bars.join(", ") })}</BarRef></strong> {g.text}
           </li>
         ))}
       </ul>

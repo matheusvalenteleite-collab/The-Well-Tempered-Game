@@ -42,6 +42,8 @@ export interface ScoreProps {
   label: string;
   /** Slots marked after evaluation. */
   marks?: { column: number; severity: "error" | "warning" }[];
+  /** Bars (0-based, in this score) pointed at in a text: they pulse (D96). */
+  pulse?: number[];
   readOnly?: boolean;
   /** Bar number of the first bar (excerpts start mid-exercise). Default 1. */
   firstBar?: number;
@@ -336,6 +338,14 @@ export function ScoreView(props: ScoreProps) {
       ctx.fillRect(c.left + 2, top, c.right - c.left - 4, (cls === "cursor" ? cursorBottom : bottom) - top);
       ctx.restore();
     };
+    if (props.pulse?.length) {
+      ctx.openGroup("pulse");
+      ctx.save();
+      ctx.setFillStyle("var(--pulse)");
+      for (const b of props.pulse) if (b >= 0 && b < bars) ctx.fillRect(xOfBar(b) + 1, top - 6, barW[b] - 2, bottom - top + 12);
+      ctx.restore();
+      ctx.closeGroup();
+    }
     for (const m of props.marks ?? []) {
       const c = columns[m.column];
       ctx.save();
@@ -577,7 +587,7 @@ export function ScoreView(props: ScoreProps) {
     };
     geo.current = g;
     el.dataset.geometry = JSON.stringify(g); // read by the browser tests
-  }, [width, props.showNames, props.cantus, props.counterpoint, props.fux, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay, props.continuo, props.extraLines, props.extraIntervals, props.ties, props.playerInk, props.playerLabel, props.signature, props.fadePlayer, props.carry, props.lastSystem, props.compact, props.fillWidth, props.drawScale, props.nameStyle]);
+  }, [width, props.showNames, props.cantus, props.counterpoint, props.fux, props.layout, props.clefs, props.cantusVoice, props.selected, props.cursor, props.label, props.marks, props.firstBar, props.fixedScale, props.overlay, props.continuo, props.extraLines, props.extraIntervals, props.ties, props.playerInk, props.playerLabel, props.signature, props.fadePlayer, props.carry, props.lastSystem, props.compact, props.fillWidth, props.drawScale, props.nameStyle, props.pulse]);
 
   const press = useRef<{ x: number; y: number; dragging: boolean; from: number } | null>(null);
   /** Fingers on the score: a second one makes the gesture a pinch, which places nothing. */

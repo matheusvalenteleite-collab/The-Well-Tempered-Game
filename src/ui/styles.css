@@ -142,9 +142,8 @@ button.play { min-width: 36px; font-size: 0.9rem; }
 .transport .knob { width: 54px; }
 .transport .knob svg { width: 30px; height: 30px; }
 /* Tooltips for terms */
-.term { position: relative; cursor: help; outline: none; display: inline-flex; align-items: center; gap: 4px; }
-.term .tip { display: none; position: absolute; left: 0; top: calc(100% + 4px); z-index: 5; width: max-content; max-width: min(240px, calc(100vw - 32px)); padding: 6px 8px; background: var(--ink); color: var(--bg); font-size: 0.78rem; font-weight: normal; line-height: 1.35; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); text-align: left; text-transform: none; letter-spacing: 0; }
-.term:hover .tip, .term:focus .tip, .term:focus-within .tip { display: block; }
+.term { cursor: help; outline: none; text-decoration: underline dotted; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 55%, transparent); }
+.term:hover, .term:focus { text-decoration-color: currentColor; background: color-mix(in srgb, #2a56d6 10%, transparent); }
 /* Motion glyphs */
 .motion-glyph line { stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; }
 .motion-glyph polygon { fill: var(--ink); }
@@ -631,3 +630,21 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
 .desk { justify-content: flex-start; }
 .desk .strip, .desk .strip.master { flex: 0 0 96px; width: 96px; }
 @media (max-width: 700px) { .desk { flex-wrap: nowrap; overflow-x: auto; } .desk .strip, .desk .strip.master { flex-basis: 84px; width: 84px; } }
+
+/* D96: bars pointed at in a text pulse on the score. */
+.score svg { --pulse: rgba(42, 86, 214, 0.22); }
+.vf-pulse rect { animation: pulse 0.9s ease-in-out infinite alternate; }
+@keyframes pulse { from { opacity: 0.25; } to { opacity: 1; } }
+.bar-ref { text-decoration: underline dotted; text-underline-offset: 3px; cursor: help; outline: none; }
+.bar-ref:hover, .bar-ref:focus { color: #2a56d6; text-decoration-style: solid; }
+.guide-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
+.guide-body h3 { margin: 14px 0 6px; font-size: 0.95rem; }
+.guide-parts > div, .glossary > div { display: grid; grid-template-columns: minmax(110px, 22%) 1fr; gap: 2px 12px; padding: 4px 0; border-bottom: 1px dotted var(--line); }
+.guide-parts dt, .glossary dt { font-weight: 600; }
+.guide-parts dd, .glossary dd { margin: 0; }
+@media (max-width: 700px) { .guide-parts > div, .glossary > div { grid-template-columns: 1fr; } }
+.fux-ref { color: #2a56d6; text-decoration: underline dotted; text-underline-offset: 3px; cursor: help; outline: none; position: relative; }
+.fux-card { position: fixed; z-index: 60; width: 460px; max-width: calc(100vw - 16px); padding: 8px; background: var(--paper); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22); display: block; }
+:root[data-look="retro"] .fux-card { border: 2px solid var(--edge); box-shadow: 5px 5px 0 var(--edge); }
+.fux-card-title { display: block; font-family: var(--ui-font); font-size: 0.8rem; margin-bottom: 4px; }
+.fux-card .score-box { pointer-events: none; }

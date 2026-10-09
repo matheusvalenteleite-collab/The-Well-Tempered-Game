@@ -1,13 +1,14 @@
 import type { CurriculumStep } from "../counterpoint/curriculum/index.ts";
 import { modeStudy, stepStudy, type Block } from "./study.ts";
 import { t } from "./i18n.ts";
+import { Rich } from "./FuxRef.tsx";
 
 function BlockView({ b }: { b: Block }) {
   switch (b.type) {
     case "heading":
       return <h4>{b.text}</h4>;
     case "text":
-      return <p>{b.text}</p>;
+      return <p><Rich text={b.text} /></p>;
     case "fux":
       return (
         <blockquote className="quote fux-quote">
@@ -19,7 +20,7 @@ function BlockView({ b }: { b: Block }) {
     case "mann":
       return (
         <blockquote className="quote mann-quote">
-          <p>{b.text}</p>
+          <p><Rich text={b.text} /></p>
           <cite>{t(b.note ? "study.mannCiteNote" : "study.mannCite", { page: b.page, note: b.note ?? "" })}</cite>
         </blockquote>
       );
@@ -29,7 +30,7 @@ function BlockView({ b }: { b: Block }) {
           <p className="paraphrase">{t("study.paraphrase")}</p>
           {b.lines.map((l, i) => (
             <p key={i}>
-              <span className="speaker">{l.who}.</span> {l.text}
+              <span className="speaker">{l.who}.</span> <Rich text={l.text} />
             </p>
           ))}
         </div>

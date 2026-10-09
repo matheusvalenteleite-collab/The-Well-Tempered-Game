@@ -33,6 +33,8 @@ interface Props {
   selected: number;
   cursor: number;
   marks?: TrioMark[];
+  /** Bars pointed at in a text: they pulse (D96). */
+  pulse?: number[];
   figures?: boolean;
   names?: boolean;
   nameStyle?: NameStyle;
@@ -152,6 +154,12 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     };
     const whole = { top: band(0).top, bottom: band(2).bottom };
     for (const m of p.marks ?? []) if (m.bar >= p.from && m.bar <= p.to) fill(m.bar - p.from, whole.top, whole.bottom, m.severity === "error" ? "var(--mark-error)" : "var(--mark-warning)");
+    for (const b of p.pulse ?? []) if (b >= p.from && b <= p.to) {
+      const g = ctx.openGroup("pulse");
+      fill(b - p.from, whole.top - 6, whole.bottom + 6, "var(--pulse)");
+      ctx.closeGroup();
+      void g;
+    }
     if (p.selected >= p.from && p.selected <= p.to) fill(p.selected - p.from, band(p.active).top, band(p.active).bottom, "var(--selection)");
     if (p.cursor >= p.from && p.cursor <= p.to) fill(p.cursor - p.from, whole.top, whole.bottom, "var(--cursor)");
 
@@ -233,7 +241,7 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
       staves: staves.map((s) => ({ top: s.getYForLine(0), bottom: s.getYForLine(4), spacing: s.getSpacingBetweenLines() })),
     };
     host.dataset.geometry = JSON.stringify(geo.current);
-  }, [p.staves, p.active, p.selected, p.cursor, p.marks, p.figures, p.names, p.nameStyle, p.from, p.to, p.scale, p.fill, p.last, p.label, n]);
+  }, [p.staves, p.active, p.selected, p.cursor, p.marks, p.figures, p.names, p.nameStyle, p.pulse, p.from, p.to, p.scale, p.fill, p.last, p.label, n]);
 
   // Pointer: the nearest staff takes the tap; a second finger makes it a pinch, which writes nothing.
   const fingers = useRef(new Set<number>());

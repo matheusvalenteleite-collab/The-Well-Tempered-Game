@@ -12,7 +12,6 @@ import { encode, EXPORT_FORMATS, saveFile, type ExportFormat } from "../audio/ex
 import { loadSamples } from "../audio/voice.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
 import { SoundDesk, trackOrder } from "./SoundDesk.tsx";
-import { HelpCard } from "./HelpCard.tsx";
 import { DEFAULT_DRUMS, DRUM_PATTERNS, DRUM_KITS, DrumMachine, validLoopLength, type DrumSettings } from "../audio/drums.ts";
 import { Hints } from "./Hints.tsx";
 import { Study } from "./Study.tsx";
@@ -38,6 +37,9 @@ import { DEFAULT_CONTINUO_SETTINGS, validContinuoSettings, type ContinuoSettings
 import { CONTINUO_DEMO_MODE } from "../config.ts";
 import { t } from "./i18n.ts";
 import { Shell } from "./Shell.tsx";
+import { Guide } from "./Guide.tsx";
+import { BarRef } from "./BarRef.tsx";
+import { useHighlight } from "./highlight.ts";
 import { ScoreTools } from "./ScoreTools.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 import type { NameStyle } from "../music/names.ts";
@@ -120,7 +122,6 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const [loop, setLoop] = useState(() => stored("wtg.loop", true, (v) => typeof v === "boolean"));
   const [showNames, setShowNames] = useState(() => stored("wtg.names", false, (v) => typeof v === "boolean"));
   const [showIntervals, setShowIntervals] = useState(() => stored("wtg.intervals", false, (v) => typeof v === "boolean"));
-  const [showHelp, setShowHelp] = useState(false);
   const [tuning, setTuning] = useState<TemperamentId>(() => stored<TemperamentId>("wtg.tuning", "equal", (v) => TEMPERAMENTS.includes(v as TemperamentId)));
   const [cursor, setCursor] = useState(-1);
   const [playing, setPlaying] = useState(false);
@@ -130,7 +131,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const [showFux, setShowFux] = useState(false);
   /** The study area below: the rules of this exercise, or the Lectio (Fux's text and commentary). */
   /** The dock's tab (D94): the mixer, the evaluation, the rules, the lectio. */
-  const [tab, setTab] = useState<string>(() => stored("wtg.dock", "mixer", (v) => typeof v === "string"));
+  const [tab, setTab] = useState<string>(() => { const v: string = stored<string>("wtg.dock", "mixer", (x) => typeof x === "string"); return v === "rules" ? "guide" : v; });
   useEffect(() => store("wtg.dock", tab), [tab]);
   const [nameStyle, setNameStyle] = useState<NameStyle>(() => stored("wtg.nameStyle", "letters" as NameStyle, (v) => v === "letters" || v === "solfege"));
   useEffect(() => store("wtg.nameStyle", nameStyle), [nameStyle]);
@@ -677,7 +678,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const onKey = (e: KeyboardEvent) => {
     const target = e.target as HTMLElement | null;
     if (target && ["TEXTAREA", "SELECT", "INPUT"].includes(target.tagName)) return;
-    if (!showCredits && !showHelp && !showSaved && (e.ctrlKey || e.metaKey) && !e.altKey && editable) {
+    if (!showCredits && !showSaved && (e.ctrlKey || e.metaKey) && !e.altKey && editable) {
       const key = e.key.toLowerCase();
       if (key === "z" || key === "y") {
         restore(key === "y" || e.shiftKey ? "redo" : "undo");
@@ -686,7 +687,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
       }
     }
     // F1-F9 switch the numbered tracks on and off, as Ableton's F1-F8 switch its track activators (D85).
-    if (/^F[1-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey && !showCredits && !showHelp && !showSaved && exportPhase === null) {
+    if (/^F[1-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey && !showCredits && !showSaved && exportPhase === null) {
       const track = trackOrder(advanced)[Number(e.key.slice(1)) - 1];
       const n = track === undefined ? 0 : track === "cantus" ? 1 : track === "counterpoint" ? 2 : track === "fux" ? 3 : track === "drums" ? 8 : track === "continuo" ? 9 : 4 + VERSION_IDS.indexOf(track as VersionId);
       if (n === 1) setSound(changeMix(sound, "cantus", { mute: !sound.mix.cantus.mute }));
@@ -704,7 +705,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
       e.preventDefault();
       return;
     }
-    if (showCredits || showHelp || showSaved || (exportPhase !== null && (exportPhase !== "recording" || ["p", "P", " "].includes(e.key))) || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    if (showCredits || showSaved || (exportPhase !== null && (exportPhase !== "recording" || ["p", "P", " "].includes(e.key))) || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
     const k = e.key;
     const s = session;
     // Only the written line is editable; while it is hidden (D47) the keys only browse and play.
@@ -741,7 +742,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
     else if (k === "Delete" || k === "Backspace") update(FIFTH ? clearSpan(s) : VIEW.layout[s.selected].restAllowed ? setRest(s, VIEW.layout) : clear(s), false);
     else if (k === " ") play(VIEW.layout.findIndex((sl) => sl.bar === VIEW.layout[s.selected].bar));
     else if (k === "p" || k === "P") play();
-    else if (k === "?") setShowHelp(true);
+    else if (k === "?") setTab("guide");
     else return;
     e.preventDefault();
   };
@@ -759,6 +760,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
   const figure = VIEW.figure ? t("ui.exercise.figure", { figure: VIEW.figure }) : t("ui.nav.fuxCantus");
   const label = `${name} ${t("ui.exercise.mode", { final: VIEW.modalFinal })}`;
   const starred = stars.includes(STEP.id);
+  const highlight = useHighlight();
 
   // The evaluation in one line under the transport (D94); the details are in the dock.
   const barsOf = (v: { positions: number[] }) => [...new Set(v.positions.map((k) => (VIEW.layout[k]?.bar ?? 0) + 1))];
@@ -769,7 +771,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
       {result.errors.slice(0, 2).map((v, i) => (
         <span key={i} className="summary-item">
           {" · "}
-          <span className="bar-ref">{t("ui.summary.bars", { bars: barsOf(v).join(", ") })}</span> {gist(`hints.${v.messageKey}`)}
+          <BarRef bars={barsOf(v).map((b) => b - 1)}>{t("ui.summary.bars", { bars: barsOf(v).join(", ") })}</BarRef> {gist(`hints.${v.messageKey}`)}
         </span>
       ))}
       {result.errors.length > 2 && <span className="summary-item"> · …</span>}
@@ -859,7 +861,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
             theme={theme}
             onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")}
             onCredits={() => setShowCredits(true)}
-            onHelp={() => setShowHelp(true)}
+            onHelp={() => setTab("guide")}
           />
         </>
       }
@@ -869,6 +871,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
             {starred ? "★" : "☆"}
           </span>
           <Systems
+            pulse={highlight ?? undefined}
             zoom={zoom}
             onZoom={setZoom}
             zoomLabels={{ in: t("ui.zoom.in"), out: t("ui.zoom.out"), reset: t("ui.zoom.reset") }}
@@ -1068,14 +1071,14 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
         )}
           </>
         ) },
-        { id: "rules", text: true, label: t("ui.hints"), content: (
-          <>
+        { id: "guide", text: true, label: t("ui.howtoTab"), content: (
+          <Guide rules={<>
             <blockquote className="tutor" lang="en">
               <span className="speaker">{t("tutor.speaker.aloysius")}.</span> “{stepStudy(STEP.id).intro.en}”
               <cite title={stepStudy(STEP.id).intro.la} lang="la">{t("ui.tutor.cite", { page: stepStudy(STEP.id).intro.page })}</cite>
             </blockquote>
             <Hints step={STEP} cantus={VIEW.cantus} />
-          </>
+          </>} />
         ) },
         { id: "lectio", text: true, label: t("ui.study"), content: (
           <>
@@ -1210,7 +1213,6 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
           <button onClick={() => void cancelExport()}>{t("ui.export.cancel")}</button>
         </div>
       )}
-      {showHelp && <HelpCard rest={VIEW.layout.some((sl) => sl.restAllowed)} onClose={() => setShowHelp(false)} />}
         </>
       }
     />
