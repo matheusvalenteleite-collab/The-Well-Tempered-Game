@@ -1,0 +1,634 @@
+{
+  "ui": {
+    "button": "TUTORIAL",
+    "buttonHelp": "Learn the game from zero: reading notes, intervals, the five species, three voices, then a tour of the screen",
+    "title": "Tutorial",
+    "back": "‹ Back",
+    "next": "Next ›",
+    "finish": "Finish",
+    "leave": "Back to the game",
+    "contents": "Contents",
+    "lessonOf": "Lesson {n} of {total}",
+    "chapterOf": "Chapter {n}",
+    "showMe": "Show me",
+    "showMeHelp": "Write the answer for me (Fux's own notes)",
+    "hint": "Hint",
+    "reset": "Start again",
+    "play": "▶ Listen",
+    "stop": "■ Stop",
+    "playAll": "▶ Play the whole line",
+    "names": "Note names",
+    "intervals": "Intervals",
+    "task": "Your turn",
+    "done": "Done",
+    "doneMark": "✓",
+    "skip": "Skip this one",
+    "skipHelp": "Go on without doing the task (it stays unticked in the contents)",
+    "heard": "heard",
+    "quizProgress": "{n} of {total}",
+    "quizNext": "Next question",
+    "quizAgain": "Not quite — try again.",
+    "quizRight": "Right.",
+    "fillLeft": "{n} empty place(s) left to fill.",
+    "passed": "✓ Aloysius has nothing to object.",
+    "failed": "✗ Not yet: Aloysius objects.",
+    "warnings": "Allowed, but Aloysius would rather you didn't:",
+    "bars": "bar {bars}",
+    "openGame": "Open this exercise in the game ›",
+    "startTour": "Show me the game screen ›",
+    "progress": "{n} of {total} lessons done",
+    "resetAll": "Forget my progress",
+    "resetAllConfirm": "Untick every lesson of the tutorial?",
+    "writeHere": "The bars waiting for you pulse: click your staff there to write a note. Click again to change it.",
+    "accidentals": "Accidental for the next note, or for the selected one:",
+    "welcomeBanner": "New to music, or to counterpoint? The tutorial teaches everything this game needs, from reading a note to writing in three voices.",
+    "welcomeOpen": "Open the tutorial",
+    "welcomeDismiss": "Not now",
+    "choiceAgain": "Not this one.",
+    "voice": "voice",
+    "cantus": "cantus firmus",
+    "yourLine": "your line",
+    "fuxLine": "Fux"
+  },
+  "chapters": {
+    "welcome": { "title": "Welcome", "blurb": "What you will learn, and how this tutorial works." },
+    "notes": { "title": "Reading notes", "blurb": "The staff, the seven letters, steps and leaps, sharps and flats." },
+    "intervals": { "title": "Intervals", "blurb": "Counting the distance between two notes, and hearing which ones rest and which ones clash." },
+    "motion": { "title": "Two voices moving", "blurb": "Contrary, oblique, similar and parallel motion, and the first great rule." },
+    "cantus": { "title": "The given melody", "blurb": "The cantus firmus, the modes, and the five species." },
+    "first": { "title": "First species", "blurb": "Note against note. You write your first counterpoint." },
+    "second": { "title": "Second species", "blurb": "Two notes against one: the passing note." },
+    "third": { "title": "Third species", "blurb": "Four notes against one: passing notes and the cambiata." },
+    "fourth": { "title": "Fourth species", "blurb": "Notes tied over the bar line: the suspension." },
+    "fifth": { "title": "Fifth species", "blurb": "Florid counterpoint: all the rhythms together." },
+    "three": { "title": "Three voices", "blurb": "The bass, the triad, and writing two voices at once." },
+    "four": { "title": "Four voices", "blurb": "A look ahead: what changes with a fourth voice." },
+    "end": { "title": "Playing the game", "blurb": "The road to the end, and a tour of the screen." }
+  },
+  "lessons": {
+    "welcome.hello": {
+      "title": "Welcome, Josephus",
+      "text": [
+        "In 1725 the Viennese court composer Johann Joseph Fux published **Gradus ad Parnassum**, a course in composition written as a conversation between a master, Aloysius, and his pupil, Josephus. For two hundred years composers learned from it; Haydn is said to have worked through every exercise, and it is still used to teach today.",
+        "This game is that course. You play Josephus: Aloysius gives you a melody, you write a second melody against it, and the game judges your line by Fux's own rules.",
+        "You need **no musical knowledge** to start. This tutorial teaches you everything the game asks for: how to read a note, what an interval is, how two voices may move, and then each of Fux's five 'species', one after another, until you can write in three voices. Every example you will hear is Fux's own."
+      ]
+    },
+    "welcome.goal": {
+      "title": "Where you are going",
+      "text": [
+        "Here is what you will be writing by the end of the first-species chapter. Below: a plain, slow melody that never changes, the **cantus firmus**. Above: Fux's answer to it, one note against each of the cantus's notes.",
+        "Press Listen. Notice how the two lines are each singable on their own, and how together they never clash. That double demand is what 'counterpoint' means."
+      ],
+      "prompt": "Press Listen to hear Fux's first example (Fig. 5 of the Gradus).",
+      "clips": { "fig5": "Fux, Fig. 5" },
+      "done": "That is the sound of first-species counterpoint. By the end of chapter 6 you will have written it yourself."
+    },
+    "welcome.how": {
+      "title": "How the tutorial works",
+      "text": [
+        "Each lesson is one short page: something to read, then something to do in the box below it — listen, answer a question, or write some notes. **Next** opens when the task is done.",
+        "Nothing here can be failed. If a writing task defeats you, **Hint** helps, and **Show me** writes Fux's answer for you; you can always **Skip** and come back. The contents at the side tick each lesson you finish, and the tutorial remembers where you stopped.",
+        "A word with a dotted line under it explains itself in the bar at the foot of the screen when you point at it. Turn your sound on, and let's begin."
+      ]
+    },
+    "notes.staff": {
+      "title": "The staff",
+      "text": [
+        "Music is written on a **staff** of five lines. Each line, and each space between two lines, is one note: the higher on the staff, the higher the note sounds. Notes can go above or below the staff too, on short extra lines.",
+        "Here there are two staves. The lower one holds a steady low note — ignore it for now. The upper one is yours. Click anywhere on it to write a note there; click again to replace it. Every note you write sounds, and its name appears beside it."
+      ],
+      "prompt": "Write a note in each of the four bars, each one higher than the one before.",
+      "hint": "Start near the bottom of the upper staff, then click a little higher in each bar.",
+      "done": "You have written a rising line. Higher on the staff, higher in sound."
+    },
+    "notes.letters": {
+      "title": "The seven letters",
+      "text": [
+        "Notes are named with the first seven letters: **A B C D E F G**, and then A again, higher. Each line or space up the staff is the next letter. Moving to the very next letter, up or down, is a **step**.",
+        "The sign at the start of the upper staff is the **treble clef** (or G clef): its curl wraps round the line of G. The sign on the lower staff is the **bass clef** (or F clef): its two dots sit either side of the line of F. A clef tells you which letter each line is; the names beside the notes will spare you counting until you are used to it."
+      ],
+      "prompt": "Write C, D, E and F, one in each bar, rising by step.",
+      "hint": "Find a C (its name appears when you write it), then click one line or space higher for D, and so on.",
+      "done": "C–D–E–F: four steps up the scale."
+    },
+    "notes.octave": {
+      "title": "The octave",
+      "text": [
+        "Climb eight letters from C and you reach C again: C D E F G A B C. The second C sounds like the first, only higher — so alike that we give it the same name. That distance is the **octave** (Latin for 'eighth').",
+        "The seven letters are the white keys of a piano. The black keys between them are the same letters raised or lowered a little; you will meet them in a moment."
+      ],
+      "prompt": "Listen to the scale from C to C, and to two notes an octave apart.",
+      "clips": { "scale": "C to C, step by step", "octave": "C and the C above; D and the D above" },
+      "done": "Same letter, eight notes apart: the octave."
+    },
+    "notes.steps": {
+      "title": "Steps and leaps",
+      "text": [
+        "A melody moves either by **step** (to the next letter) or by **leap** (skipping at least one letter). Steps make a line smooth and singable; leaps give it shape. Fux's melodies move mostly by step, with an occasional leap, usually followed by a step back the other way.",
+        "Listen to G going straight to B, and to G going to B through A."
+      ],
+      "prompt": "Is G up to B a step or a leap?",
+      "clips": { "gb": "G to B", "gab": "G, A, B" },
+      "options": {
+        "step": { "label": "A step", "why": "Not quite: between G and B lies A. A step goes to the very next letter." },
+        "leap": { "label": "A leap", "why": "Yes: G to B skips the A between them. G–A–B would be two steps." }
+      },
+      "done": "A leap over one letter is the smallest leap there is (a third, as you will see)."
+    },
+    "notes.sharp": {
+      "title": "Sharps and flats",
+      "text": [
+        "A **sharp** (♯) raises a note by the smallest distance in this music, a **semitone** (on the piano, to the very next key, usually a black one). A **flat** (♭) lowers it by a semitone. A **natural** (♮) cancels either.",
+        "Fux writes almost only the seven plain letters. He adds a sharp or a flat for a reason, most often at the very end of a piece, where a voice rises a semitone into the last note: you will meet his C♯ before the final D again and again.",
+        "To write one: press ♯ below the staff, then click where the note goes. Or select a note you have written and press ♯ to raise it."
+      ],
+      "prompt": "Write a C♯ in either bar.",
+      "hint": "Write a C first (its name appears beside it), then press ♯ while it is selected.",
+      "done": "C♯: a semitone above C. You will need it at the end of almost every D-mode exercise."
+    },
+    "intervals.count": {
+      "title": "Counting an interval",
+      "text": [
+        "The distance between two notes is an **interval**. Count it in letters, **counting both ends**: from D to F is D, E, F — three letters — so it is a **third**. D to A (D E F G A) is a **fifth**. D to the D above is an **octave** (8). Two notes on the same pitch make a **unison** (1).",
+        "Larger intervals are named the same way and then thought of as their smaller form: D to the F above the next D is a **tenth**, which counts as a third. The note names are shown to help you count."
+      ],
+      "prompt": "Count each interval, lower note to upper. Which number is it?",
+      "hint": "Say the letters from the lower note up to the upper one, counting both, and wrap from G back to A.",
+      "done": "You can measure any interval now. That is the counting the whole game rests on."
+    },
+    "intervals.sound": {
+      "title": "Hearing intervals",
+      "text": [
+        "Intervals do not all sound alike. Some sound **at rest**: the two notes melt together. Others **clash** and seem to want to move on. Fux's whole art is built on that difference.",
+        "Listen to each pair, played together. The third, the sixth, the fifth and the octave are restful. The second and the seventh rub. The fourth may surprise you: on its own it sounds quite open, yet in this style a fourth against the lowest voice is treated as a clash. The **tritone**, F against B, is the interval later nicknamed 'the devil in music'."
+      ],
+      "prompt": "Listen to every pair.",
+      "clips": { "third": "Third (D–F)", "sixth": "Sixth (D–B)", "fifth": "Fifth (D–A)", "octave": "Octave (D–D)", "second": "Second (D–E)", "seventh": "Seventh (D–C)", "fourth": "Fourth (D–G)", "tritone": "Tritone (F–B)" },
+      "done": "Restful and restless: keep those two sounds in your ear."
+    },
+    "intervals.classes": {
+      "title": "Perfect, imperfect, dissonant",
+      "text": [
+        "Fux sorts intervals into three families:",
+        "**Perfect consonances**: the unison, the fifth and the octave. Completely stable — so stable that the rules limit how you may arrive at them.",
+        "**Imperfect consonances**: the third and the sixth (each comes in a major and a minor size). Sweet and restful, but not final. You may reach them freely, and Fux wants them often.",
+        "**Dissonances**: everything else — the second, the fourth, the seventh and the tritone. In the first species they are forbidden; later, each species allows them in one carefully controlled way.",
+        "A larger interval belongs to the family of its smaller form: a tenth is a third, a twelfth is a fifth."
+      ],
+      "prompt": "Which family does each interval belong to?",
+      "hint": "Count first. 1, 5, 8: perfect. 3, 6: imperfect. 2, 4, 7: dissonant.",
+      "done": "Perfect, imperfect, dissonant: the three words you will use in every exercise."
+    },
+    "motion.kinds": {
+      "title": "Four ways of moving",
+      "text": [
+        "When two voices go from one pair of notes to the next, they move in one of four ways:",
+        "**Contrary**: one goes up, the other down. **Oblique**: one stays, the other moves. **Similar**: both go the same way, but by different distances. **Parallel**: both go the same way and keep the same interval (a third to a third, a fifth to a fifth).",
+        "Contrary motion keeps the voices independent, and Fux asks for it as much as possible (p. 45). Parallel motion makes them sound like one voice doubled."
+      ],
+      "prompt": "Listen to each kind of motion.",
+      "clips": { "contrary": "Contrary", "oblique": "Oblique", "similar": "Similar", "parallel": "Parallel (thirds)" },
+      "done": "Now name them yourself."
+    },
+    "motion.quiz": {
+      "title": "Naming the motion",
+      "text": ["Each example is two pairs of notes, one after the other. Follow the lower voice, then the upper one: up, down or staying?"],
+      "prompt": "Which kind of motion is it?",
+      "hint": "Both moving apart or together: contrary. One standing still: oblique. Both the same way: similar, or parallel if the interval stays the same.",
+      "done": "You can read motion now — and that is what the most important rule is about."
+    },
+    "motion.rule": {
+      "title": "The great rule",
+      "text": [
+        "Here it is, the rule Fux sets out before the first exercise: **reach a perfect consonance (unison, fifth, octave) only by contrary or oblique motion** — never by parallel or similar motion.",
+        "Listen to the two examples. Fifths in a row make the two voices fuse into one hollow, organ-like sound: the independence is lost. Reached from opposite directions, the same fifth sounds clean.",
+        "The upper voice starts on A, a fifth above the D. The lower voice then rises to E."
+      ],
+      "prompt": "Write a note above the E in bar 2: any consonance, as long as you don't reach a fifth or an octave by parallel or similar motion.",
+      "hint": "B would be a fifth reached in parallel — forbidden. Try G (a third) or C (a sixth).",
+      "clips": { "parallelFifths": "Parallel fifths (forbidden)", "contraryFifth": "A fifth by contrary motion (allowed)" },
+      "done": "That is the rule you will meet most often in the game."
+    },
+    "cantus.firm": {
+      "title": "The cantus firmus",
+      "text": [
+        "Every exercise starts from a **cantus firmus** ('fixed song'): a plain melody in long, equal notes, which never changes. Fux's are in the style of old church chant. Your task is always to write a second line against it.",
+        "This is the one Aloysius gives first. It begins and ends on D, moves mostly by step, and rises to a single high point. You will meet it in every chapter that follows, set five different ways."
+      ],
+      "prompt": "Listen to the cantus firmus on D.",
+      "clips": { "cf": "Fux's cantus firmus in D" },
+      "done": "D F E D G F A G F E D. Learn its shape: it is your companion for the rest of the tutorial."
+    },
+    "cantus.modes": {
+      "title": "Modes and the final",
+      "text": [
+        "Fux's melodies are not in major or minor keys but in **modes**: the scales you get by playing only the white keys of a piano, starting on different notes. Each mode is named by its **final**, the home note on which its melodies end. Fux uses six: on D, E, F, G, A and C.",
+        "Each has its own colour, because the semitones (E–F and B–C) fall in different places. The D mode sounds rather like a minor scale; the C mode like a major scale. The cantus firmus always begins and ends on the final, and so, at the very end, does your line."
+      ],
+      "prompt": "Listen to at least one of the modes (all six if you like).",
+      "clips": { "D": "Mode on D", "E": "Mode on E", "F": "Mode on F", "G": "Mode on G", "A": "Mode on A", "C": "Mode on C" },
+      "need": 1,
+      "done": "The game's exercises come in all six modes. The Lectio tab explains each one."
+    },
+    "cantus.five": {
+      "title": "One melody, five species",
+      "text": [
+        "Fux teaches counterpoint in five steps of rhythm, the **species**. Your line has: **1st** one note against each note of the cantus; **2nd** two notes; **3rd** four; **4th** notes tied across the bar line; **5th** all of these mixed, 'florid'.",
+        "Each species adds one new freedom and one new rule for using it. Listen to Fux's answers, all five against the same cantus in D."
+      ],
+      "prompt": "Listen to at least one of Fux's five answers.",
+      "clips": { "s1": "1st species (Fig. 5)", "s2": "2nd species (Fig. 33)", "s3": "3rd species (Fig. 55)", "s4": "4th species (Fig. 73)", "s5": "5th species (Fig. 82)" },
+      "need": 1,
+      "done": "Five rhythms, one melody underneath. Now you write them."
+    },
+    "first.rules": {
+      "title": "Note against note",
+      "text": [
+        "@quote:fux-mode.s1.01",
+        "In first species your line has one note against each note of the cantus. The intervals are shown between the staves. The rules:",
+        "1. **Every interval is a consonance** — no seconds, fourths, sevenths or tritones.",
+        "2. **A perfect consonance only by contrary or oblique motion** (the great rule).",
+        "3. **Begin on a perfect consonance**: unison, fifth or octave.",
+        "4. **End on the octave or the unison.**",
+        "5. **The cadence**: in the bar before the last, a **major sixth** when the cantus is below you. In D that means C♯ over the cantus's E, opening out to the octave D.",
+        "And two pieces of advice: prefer **imperfect** consonances (thirds and sixths) in the middle, and **contrary motion** wherever you can. Listen to Fux's line and read its intervals."
+      ],
+      "clips": { "fig5": "Fux, Fig. 5" }
+    },
+    "first.end": {
+      "title": "Write the ending",
+      "text": [
+        "Fux's line is written out, except for the last two bars. The ending is fixed by the rules, so it is the best place to start: Aloysius advises thinking of the end before you begin (p. 57).",
+        "The last note must make an octave (or unison) with the cantus's final D. In the bar before, the cantus has E; you need the major sixth above it, C♯, which rises by a semitone into the D."
+      ],
+      "prompt": "Write the last two notes.",
+      "hint": "Bar 10: C♯ (write C, then ♯). Bar 11: the D just above it.",
+      "done": "That is Fux's cadence in D: the sixth E–C♯ opening to the octave D–D."
+    },
+    "first.begin": {
+      "title": "Write the beginning",
+      "text": [
+        "Now the opening bar is empty. Begin on a **perfect consonance**: with your line above the cantus, the unison, the fifth or the octave above the D. Then listen to whether it leads well into Fux's second note."
+      ],
+      "prompt": "Write the first note.",
+      "hint": "Fux takes A, a fifth above D. The D an octave above works too.",
+      "done": "A perfect consonance to open, a perfect consonance to close: the frame of every first-species line."
+    },
+    "first.middle": {
+      "title": "The middle of the line",
+      "text": [
+        "Four bars in the middle are empty. Here you have the most freedom, and the coach under the score tells you, note by note, what each one makes against the cantus and how you reached it.",
+        "Aim for thirds and sixths, move against the cantus where you can, and keep your line singable: mostly steps, few leaps."
+      ],
+      "prompt": "Fill bars 4 to 7.",
+      "hint": "Fux: A, B, C, C. Over D, G, F, A that makes a fifth, a third, a fifth and a third.",
+      "done": "Every note consonant, every perfect consonance properly approached."
+    },
+    "first.whole": {
+      "title": "A whole counterpoint",
+      "text": [
+        "Now the staff is empty: write the whole line yourself. This is exactly the game's first exercise. Plan the ending first (C♯ then D), choose a perfect consonance to begin, and join them with consonances, moving against the cantus.",
+        "Your line does not have to be Fux's. Anything that keeps the rules is accepted — and in the game, once you have cleared an exercise, Fux's solution opens beside yours for comparison."
+      ],
+      "prompt": "Write all eleven notes.",
+      "hint": "Ending: C♯, D. Beginning: A or D. In between, a third or a sixth above each cantus note is always safe; just never land on a fifth or an octave with both voices moving the same way.",
+      "done": "Your first counterpoint. Aloysius would be pleased."
+    },
+    "first.below": {
+      "title": "Writing below the cantus",
+      "text": [
+        "@quote:fux-mode.s1.02",
+        "Fux next puts the cantus in the upper voice and the counterpoint underneath. Two things change.",
+        "**The beginning**: below the cantus, begin on the octave or the unison, never the fifth. A fifth below D is G: your lowest note would put the piece in G, not in the mode of D.",
+        "**The cadence**: below the cantus, the bar before the last needs a **minor third**, C♯ under the E, closing to the unison D."
+      ],
+      "prompt": "Write the first note and the last two.",
+      "hint": "Bar 1: the D an octave below. Bar 10: C♯ just under the E. Bar 11: D, in unison with the cantus.",
+      "done": "Above or below, the frame is the same: perfect at the ends, a semitone into the final."
+    },
+    "first.game": {
+      "title": "Now in the game",
+      "text": [
+        "The game has twelve first-species exercises: Fux's ten worked examples in the six modes, with the cantus below and above, and two more on the C-mode cantus that he leaves to private study. Rules join as Fux introduces them; each exercise lists its own under **How to play → Rules of this exercise**.",
+        "In the game you write on the full score, then press **Evaluate**. A clean result earns a ★ and opens Fux's own solution. You can come back to the tutorial any time with the TUTORIAL button."
+      ],
+      "prompt": "Try the first exercise in the game, or carry on with the second species."
+    },
+    "second.what": {
+      "title": "Two notes against one",
+      "text": [
+        "@quote:fux-mode.s2.01",
+        "In second species your line has two half notes against each whole note of the cantus: the first on the **downbeat** (the strong half of the bar), the second on the **upbeat** (the weak half).",
+        "The new freedom: the upbeat note **may be dissonant**, if it is a **passing note** — reached by step and left by step in the same direction, filling in the gap of a third. The downbeat must still be consonant.",
+        "The line may open with a half rest. At the end: in the bar before the last, a fifth on the downbeat, then the major sixth (cantus below) on the upbeat."
+      ],
+      "prompt": "Listen to Fux's second-species answer (Fig. 33). Watch the intervals on the upbeats.",
+      "clips": { "fig33": "Fux, Fig. 33" },
+      "done": "The 4s and 7s on the upbeats are passing notes: never on a downbeat, always by step."
+    },
+    "second.passing": {
+      "title": "A passing note",
+      "text": [
+        "In bar 5 the downbeat has B, a third above the cantus's G. The next bar begins on D. One note fits between B and D by step: write it on the upbeat. Against the G it makes a fourth — a dissonance, and exactly right here, because it passes."
+      ],
+      "prompt": "Write the upbeat of bar 5.",
+      "hint": "B, ?, D: the letter between them.",
+      "done": "B–C–D: the C clashes with the G for a moment and moves straight on. That is a passing note."
+    },
+    "second.bars": {
+      "title": "Two whole bars",
+      "text": [
+        "Bars 6 and 7 are empty: four notes. Downbeats consonant; upbeats consonant, or dissonant only as passing notes. And read the downbeats on their own, as if the upbeats were not there: they must not make fifths or octaves in a row either."
+      ],
+      "prompt": "Fill bars 6 and 7.",
+      "hint": "Fux: D, A | C, D. Over F and A: a sixth, a third, a third, and a passing fourth.",
+      "done": "Downbeats that would work as first species, upbeats that join them."
+    },
+    "second.cadence": {
+      "title": "The second-species cadence",
+      "text": [
+        "In the bar before the last, Fux's second-species cadence is a fifth on the downbeat and the major sixth on the upbeat, which then opens to the octave."
+      ],
+      "prompt": "Write the two notes of bar 10.",
+      "hint": "Over the E: B (a fifth), then C♯ (the major sixth).",
+      "done": "B–C♯–D: the fifth, the leading note, the octave."
+    },
+    "second.game": {
+      "title": "Second species in the game",
+      "text": [
+        "In the game, click the first half or the second half of a bar to write there. The **Rest** button puts the half rest at the start. There is one new rule that is easy to break by accident: never strike the same note twice in a row — two equal half notes are a whole note in disguise."
+      ],
+      "prompt": "Try Fux's first second-species exercise, or go on to the third species."
+    },
+    "third.what": {
+      "title": "Four notes against one",
+      "text": [
+        "@quote:fux-mode.s3.01",
+        "Now four crotchets (quarter notes) against each whole note. The **first** crotchet of the bar must be consonant. The others may be dissonant when they **pass** by step in one direction — and in one more way, the **cambiata**, which you will write next.",
+        "With four notes a bar the line becomes a real melody: scales, turns, and leaps that open space. The cadence: the last crotchet before the final is the leading note, C♯ in D."
+      ],
+      "prompt": "Listen to Fux's third-species answer (Fig. 55).",
+      "clips": { "fig55": "Fux, Fig. 55" },
+      "done": "Many dissonances, all of them in passing: the downbeats keep the harmony."
+    },
+    "third.cambiata": {
+      "title": "The cambiata",
+      "text": [
+        "The **cambiata** ('exchanged note') is the one dissonance in this species that does not pass by step. The second crotchet steps down to a dissonance, the third **leaps down a third** to a consonance, and the fourth steps back up.",
+        "In bar 3 Fux writes E (an octave over the cantus's E), then D (a seventh: the dissonance), then — the empty place — then C."
+      ],
+      "prompt": "Write the third crotchet of bar 3, a third below the D.",
+      "hint": "From D, count three letters down: D, C, B.",
+      "done": "E–D–B–C: the cambiata. The dissonant D leaps away instead of resolving by step."
+    },
+    "third.bar": {
+      "title": "A bar of crotchets",
+      "text": [
+        "Bar 5 is empty. Bar 4 ends on A; bar 6 begins on F, high up. Climb from one to the other by step, one note for each crotchet. Check the first crotchet: it must be consonant against the cantus's G."
+      ],
+      "prompt": "Write the four crotchets of bar 5.",
+      "hint": "From A up to F: B (or B♭, as Fux writes), C, D, E.",
+      "done": "A scale between two consonances: the crotchets in between may clash, because they pass."
+    },
+    "third.cadence": {
+      "title": "The third-species cadence",
+      "text": [
+        "The bar before the last, against the cantus's E. Climb to the leading note: the fourth crotchet must be the major sixth, C♯, which rises into the final D."
+      ],
+      "prompt": "Write the four crotchets of bar 10.",
+      "hint": "G, A, B, C♯ — up by step.",
+      "done": "G–A–B–C♯–D: the line runs up into the final."
+    },
+    "third.game": {
+      "title": "Third species in the game",
+      "text": [
+        "In the game the keyboard is fastest for crotchets: type the letters (A to G) and each note is written and the selection moves on; ↑ ↓ correct the note just written. Clicking works too. As in second species, never strike the same note twice in a row."
+      ],
+      "prompt": "Try Fux's first third-species exercise, or go on to the fourth species."
+    },
+    "fourth.what": {
+      "title": "Notes tied across the bar",
+      "text": [
+        "@quote:fux-mode.s4.01",
+        "In fourth species your line moves on the **upbeat** and is **tied** over the bar line, so it is held while the cantus changes underneath. A **tie** is the curved line joining two notes of the same pitch: they sound as one long note.",
+        "That held note is the **ligature**. When the cantus moves under it, it may become a dissonance — a **suspension**. It must then **resolve by step down** to a consonance on the upbeat. The note it is tied from (the **preparation**) must be consonant.",
+        "Preparation (consonant) → suspension (may clash) → resolution (a step down, consonant): listen for the 7 resolving to 6 again and again."
+      ],
+      "prompt": "Listen to Fux's fourth-species answer (Fig. 73).",
+      "clips": { "fig73": "Fux, Fig. 73" },
+      "done": "Tension and release, bar after bar: the suspension is the soul of this species."
+    },
+    "fourth.resolve": {
+      "title": "Resolve the suspension",
+      "text": [
+        "In bar 3 the D is tied over from bar 2. Against the cantus's E it is now a seventh: a suspension. It must resolve a step down, on the upbeat, to a consonance."
+      ],
+      "prompt": "Write the upbeat of bar 3.",
+      "hint": "One step down from D.",
+      "done": "D over E (a seventh) falls to C (a sixth): the 7–6 suspension."
+    },
+    "fourth.chain": {
+      "title": "A chain of suspensions",
+      "text": [
+        "Fux likes the 7–6 in chains: each resolution is itself tied over and becomes the next suspension. Bar 3 ends on C. Tie it into bar 4 (write C again on the downbeat — the game draws the tie), let it resolve down a step, then tie that note into bar 5."
+      ],
+      "prompt": "Write the downbeat and upbeat of bar 4, and the downbeat of bar 5.",
+      "hint": "C (tied), B♭ (press ♭ before writing B), B♭ (tied). Fux uses B♭ here; B♮ also fits the rules.",
+      "done": "C over D (a seventh) falls to B♭ (a sixth), which is held into the next bar: a chain."
+    },
+    "fourth.cadence": {
+      "title": "The fourth-species cadence",
+      "text": [
+        "At the end, the leading note arrives as the resolution of a suspension: D is tied over the E as a seventh, and resolves down to C♯, the major sixth, which rises into the final."
+      ],
+      "prompt": "Write the downbeat and upbeat of bar 10.",
+      "hint": "D (tied from bar 9), then C♯.",
+      "done": "The 7–6 cadence: the most Fux-like ending of all."
+    },
+    "fourth.game": {
+      "title": "Fourth species in the game",
+      "text": [
+        "In the game, write the same note again on the downbeat to tie it; the **Tie** button (or T) repeats the previous note for you. Aloysius wants a ligature wherever one is possible; plain half notes only where none fits."
+      ],
+      "prompt": "Try Fux's first fourth-species exercise, or go on to the fifth species."
+    },
+    "fifth.what": {
+      "title": "Florid counterpoint",
+      "text": [
+        "@quote:fux-mode.s5.01",
+        "The fifth species mixes everything: half notes, crotchets, ties and a few **quavers** (eighth notes), each value treated as in its own species. Dissonances pass, form cambiatas, or are suspended and resolved.",
+        "Two new points of style: quavers come only in pairs, on the second or fourth crotchet of the bar, never on the first or third; and a dissonance may never simply be struck on a downbeat — only tied into it."
+      ],
+      "prompt": "Listen to Fux's florid answer (Fig. 82).",
+      "clips": { "fig82": "Fux, Fig. 82" },
+      "done": "A garden of figures: all four earlier species in one line."
+    },
+    "fifth.choose": {
+      "title": "Which bar is florid and correct?",
+      "text": [
+        "Here are three versions of bar 3, against the cantus's E. Each option shows the line around it; listen and look. Only one keeps the rules of the fifth species."
+      ],
+      "prompt": "Choose the bar that keeps the rules.",
+      "options": {
+        "quavers": { "label": "G F E — quavers first", "why": "Two quavers on the first crotchet of the bar: quavers belong on the second or fourth crotchet." },
+        "fux": { "label": "G, F, E, G in crotchets", "why": "Fux's own bar: G is consonant on the downbeat, F passes between G and E, E and G are consonant." },
+        "struck": { "label": "F, then G, in half notes", "why": "F against E is a second, struck on the downbeat: a dissonance on the downbeat must be tied over and resolved, never struck." }
+      },
+      "done": "Every value keeps the rule of its own species."
+    },
+    "fifth.game": {
+      "title": "Fifth species in the game",
+      "text": [
+        "In the game, first choose the **value** of the next note with the note buttons (or the keys 8 4 3 2 6 1: quaver, crotchet, dotted crotchet, minim, dotted minim, whole bar), then click or type the letter. **Hold** (T) continues the note before, over the bar line as a tie. There are twelve exercises, all Fux's."
+      ],
+      "prompt": "Try Fux's first fifth-species exercise, or go on to three voices."
+    },
+    "three.bass": {
+      "title": "Three voices: the bass",
+      "text": [
+        "In three voices the cantus is joined by two lines of yours. Here the cantus in D is on top, and Fux's two voices are below it (Fig. 101).",
+        "Everything is now measured from the **bass**: the lowest note sounding in each bar, whichever voice it belongs to. Every voice must be consonant **against the bass**. Between the two upper voices a fourth is allowed — but not a second or a seventh.",
+        "The figures under the upper notes are their intervals above the bass, as Fux prints them. The game's three-voice exercises are in first species: whole notes in every voice."
+      ],
+      "prompt": "Listen to Fux's three voices.",
+      "clips": { "fig101": "Fux, Fig. 101" },
+      "done": "Three voices, one harmony in each bar."
+    },
+    "three.chords": {
+      "title": "The full triad",
+      "text": [
+        "Aloysius (p. 82): in every setting, 'unless some other reason prevents it, the harmonic triad is to be used' — a **third and a fifth above the bass** (figured 5/3). A sixth may take the fifth's place, for the line's sake: a third and a sixth (6/3, the **six-three**). A bar of only perfect consonances sounds bare; the game notes it as advice. The first and last bars are free.",
+        "Look at the figures of the highlighted bar."
+      ],
+      "prompt": "What stands above the bass in this bar?",
+      "hint": "Find the lowest note; count up to each of the other two (larger intervals reduced: 10 is 3).",
+      "choices": { "53": "5/3 — the full triad", "63": "6/3 — the six-three", "incomplete": "Bare — no fifth or sixth" },
+      "done": "The triad in the middle, bare octaves at the ends: the shape of a three-voice exercise."
+    },
+    "three.fill": {
+      "title": "Fill the middle voice",
+      "text": [
+        "Bars 5 and 6 of the middle voice are empty. In bar 5 the bass has E and the cantus G: the triad wants the fifth above the bass. In bar 6 the bass has D and the cantus F. Avoid fifths and octaves in a row between any two voices — not only against the bass."
+      ],
+      "prompt": "Write the middle voice in bars 5 and 6.",
+      "hint": "Bar 5: B (the fifth above E). Bar 6: D, an octave above the bass.",
+      "done": "Fux's middle voice. Writing for two voices at once means checking three pairs."
+    },
+    "three.cadence": {
+      "title": "The three-voice cadence",
+      "text": [
+        "In the bar before the last, both your voices are empty. The bass must arrive on the final, D; one voice must rise by a semitone into it. The cantus sings E above."
+      ],
+      "prompt": "Write the middle voice and the bass of bar 10.",
+      "hint": "Bass: A (it falls a fifth to the final D). Middle voice: C♯ (it rises a semitone to D).",
+      "done": "A, C♯, E: a full triad, every voice moving to its place in the final chord."
+    },
+    "three.game": {
+      "title": "Three voices in the game",
+      "text": [
+        "Choose **3 voices** in the first menu. You write both voices that are not the cantus, in any order: clicking a staff writes there and makes it the active voice; with the keyboard, **Tab** switches between your two voices. Sixteen of Fux's exercises are there, in his order."
+      ],
+      "prompt": "Try Fux's first three-voice exercise, or read ahead about four voices."
+    },
+    "four.preview": {
+      "title": "A look at four voices",
+      "text": [
+        "The Gradus goes on to four voices. The game does not have them yet, so this lesson is only a preview: there is nothing to write or judge here.",
+        "What changes is mostly arithmetic. A triad has three different notes, so with four voices one of them must be **doubled** — sung by two voices at once. The voices also have to share the space: four ranges (from high to low, the names still used today: soprano, alto, tenor, bass), each kept singable and not too far from its neighbours.",
+        "And the more voices, the harder it is to avoid every hidden fifth and octave; the rules relax as the texture thickens — already in three voices the game tolerates a fifth or octave reached by similar motion when the upper of the two voices moves by step.",
+        "When the four-voice screen is built, its rules will be read from Fux's own pages, as everything else in the game is."
+      ]
+    },
+    "end.path": {
+      "title": "The road to the end",
+      "text": [
+        "This is the whole game, in order. Each exercise cleared earns a ★; the menus count them for each species. Clearing an exercise also opens Fux's own solution, to see, hear and compare with yours.",
+        "When an exercise defeats you: open **How to play → Rules of this exercise** for the rules in force, read the **Lectio** for what Fux says about it, and look at the marks after **Evaluate** — each tells you which bar breaks which rule and why. Then come back here: every species has its chapter."
+      ]
+    },
+    "end.tour": {
+      "title": "A tour of the game screen",
+      "text": [
+        "Last, the screen itself. The tour opens the game's first exercise and points at each part in turn: where to choose an exercise, where to write, how to listen, how to be judged, and where the rules and Fux's text live.",
+        "You can leave the tour at any moment, and start it again from here."
+      ],
+      "prompt": "Start the tour."
+    }
+  },
+  "say": {
+    "wellDone": "Well done.",
+    "notHigher": "Bar {bar} is not higher than the bar before it.",
+    "fillAll": "{n} bar(s) still empty.",
+    "wrongLetter": "Bar {bar} has {got}; it should be {want}.",
+    "notStep": "Bar {bar} is not the very next note up: click one line or space above the note before.",
+    "sharpDone": "C♯ it is.",
+    "sharpNow": "Now select the C and press ♯ (or press ♯ first, then write the C).",
+    "sharpOther": "That is a sharp, but not on a C.",
+    "sharpStart": "Write a C first."
+  },
+  "coach": {
+    "perfect": "Bar {bar}: {note} against {cf} — a {interval}, a perfect consonance.",
+    "imperfect": "Bar {bar}: {note} against {cf} — a {interval}, an imperfect consonance.",
+    "dissonantFirst": "Bar {bar}: {note} against {cf} — a {interval}: a dissonance, not allowed in first species.",
+    "dissonantDown": "Bar {bar}: {note} against {cf} — a {interval}: a dissonance on the downbeat, not allowed here.",
+    "dissonantTied": "Bar {bar}: {note} against {cf} — a {interval}: a dissonance; on the downbeat it must be tied over and resolve a step down.",
+    "dissonantWeak": "Bar {bar}: {note} against {cf} — a {interval}: a dissonance; fine only if it passes by step (or forms a cambiata).",
+    "motion.contrary": "Reached by contrary motion.",
+    "motion.oblique": "Reached by oblique motion.",
+    "motion.similar": "Reached by similar motion.",
+    "motion.parallel": "Reached by parallel motion.",
+    "motionBad.parallel": "Reached by parallel motion: a perfect consonance in parallel — forbidden.",
+    "motionBad.similar": "Reached by similar motion: a perfect consonance reached that way is forbidden.",
+    "tritoneLeap": "The leap into it is a tritone (augmented fourth): forbidden.",
+    "majorSixthLeap": "The leap into it is a major sixth: forbidden.",
+    "seventhLeap": "The leap into it is a seventh: too wide to sing."
+  },
+  "quiz": {
+    "interval": "Lower note {lower}, upper note {upper}.",
+    "class": "{lower} and {upper}.",
+    "motion": "{a} then {b}.",
+    "chord": "Bar {bar}.",
+    "choice.perfect": "Perfect",
+    "choice.imperfect": "Imperfect",
+    "choice.dissonant": "Dissonant",
+    "choice.contrary": "Contrary",
+    "choice.oblique": "Oblique",
+    "choice.similar": "Similar",
+    "choice.parallel": "Parallel",
+    "why.interval": "Count {letters}: that is {n}.",
+    "why.class": "It is a {interval}.",
+    "why.motion": "Lower voice {lo}, upper voice {up}.",
+    "why.chord": "Over the bass {bass}: {figures}.",
+    "up": "goes up",
+    "down": "goes down",
+    "stays": "stays",
+    "play": "▶"
+  },
+  "road": {
+    "head": "{voices} voices",
+    "species": "{n} species",
+    "exercises": "{n} exercises",
+    "stars": "★ {n}/{total}",
+    "soon": "not in the game yet"
+  },
+  "tour": {
+    "next": "Next ›",
+    "back": "‹ Back",
+    "close": "End the tour",
+    "done": "Back to the tutorial",
+    "count": "{n} / {total}",
+    "intro": { "title": "The game screen", "text": "This is the first exercise of the game: the cantus firmus in D, your line above it. Let's walk round the screen." },
+    "nav": { "title": "Choosing an exercise", "text": "Three menus: the number of voices, the species, and the exercise (its number, the final of its mode, and whether the cantus is below or above). ‹ › step through the exercises in order. A ★ marks each one you have cleared." },
+    "score": { "title": "The score", "text": "Your staff and the cantus. Click or tap your staff to write; drag a note to move it. Pinch, Ctrl + wheel, or − / + above the score change the size." },
+    "view": { "title": "View", "text": "Turn on the note names (letters or do-re-mi) and the intervals between the staves — the training wheels you used in the tutorial." },
+    "write": { "title": "Writing", "text": "♭ ♮ ♯ for accidentals, the Rest, Tie, Hold and note-value buttons where the species needs them, Clear all, and undo / redo." },
+    "evaluate": { "title": "Evaluate", "text": "When every place is filled, press Evaluate (the number on it counts the empty places). Aloysius marks each broken rule on the score, and a line under the transport sums up." },
+    "listen": { "title": "Listening", "text": "▶ plays your line with the cantus; ▶| from the selected bar (Space); ⟲ loops; the faders set tempo and volume." },
+    "star": { "title": "The star", "text": "A clean result — no rule and no advice broken — earns the star. Clearing the exercise also opens Fux's own solution." },
+    "fux": { "title": "Fux's solution", "text": "Once you have cleared an exercise, ◇ Fux shows his line beside yours on the score; the Evaluation tab compares the two, with his reasons." },
+    "dock": { "title": "The tabs", "text": "Mixer: the sounds, drums and a basso continuo, for pleasure. Evaluation: the details of the judgement. How to play: the controls, the basics and the rules of this exercise. Lectio: Fux's own text for this exercise, with a translation." },
+    "info": { "title": "The info bar", "text": "Point at anything — a button, a dotted word — and this bar explains it. On a phone, tap ⓘ first." },
+    "help": { "title": "Help and the tutorial", "text": "HOW TO PLAY opens the guide; TUTORIAL brings you back here. That's the whole screen: good luck, Josephus." }
+  }
+}

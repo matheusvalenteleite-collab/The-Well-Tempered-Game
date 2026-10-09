@@ -76,7 +76,16 @@ const VERSION_INK: Record<VersionId, string> = {
 };
 const stepIndexOf = (id: string) => STEPS.findIndex((s) => s.id === id);
 
-export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
+/** The game screen's links to the tutorial (D98): hidden and silent while it is open, sent to an exercise from it. */
+export interface GameLink {
+  /** The tutorial is open over the game: keys and sound belong to it. */
+  suspended?: boolean;
+  /** Go to this exercise (a new `n` each time it is asked). */
+  command?: { stepId: string; n: number } | null;
+  onTutorial?: () => void;
+}
+
+export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 2 | 3): void } & GameLink) {
   const [stepIndex, setStepIndex] = useState(() => {
     const id = stored<string>("wtg.stepId", STEPS[0].id, (v) => typeof v === "string" && stepIndexOf(v) >= 0);
     return stepIndexOf(id);
@@ -676,6 +685,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
 
   /** Keys drive the score wherever focus is (buttons, knobs), except in form fields and dialogs. */
   const onKey = (e: KeyboardEvent) => {
+    if (suspended) return;
     const target = e.target as HTMLElement | null;
     if (target && ["TEXTAREA", "SELECT", "INPUT"].includes(target.tagName)) return;
     if (!showCredits && !showSaved && (e.ctrlKey || e.metaKey) && !e.altKey && editable) {
@@ -753,6 +763,23 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
+
+  // The tutorial (D98): while it is open the game is silent; on return its own sound comes back.
+  useEffect(() => {
+    if (suspended) {
+      stopSaved();
+      audio.stop();
+      setPlaying(false);
+      setCursor(-1);
+    } else restoreAudio();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [suspended]);
+  useEffect(() => {
+    if (!command) return;
+    const k = stepIndexOf(command.stepId);
+    if (k >= 0) goTo(k);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [command?.n]);
 
   const clefs = VIEW.clefs.modern;
   // Exercises are named, not numbered by figure; the figure stays in the source line below.
@@ -862,6 +889,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
             onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")}
             onCredits={() => setShowCredits(true)}
             onHelp={() => setTab("guide")}
+            onTutorial={onTutorial}
           />
         </>
       }

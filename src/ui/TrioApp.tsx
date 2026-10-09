@@ -29,6 +29,7 @@ import { BarRef } from "./BarRef.tsx";
 import { useHighlight } from "./highlight.ts";
 import { ScoreTools } from "./ScoreTools.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
+import type { GameLink } from "./App.tsx";
 import type { NameStyle } from "../music/names.ts";
 
 const STEPS: TrioStep[] = trioSteps(data as never);
@@ -45,7 +46,7 @@ const startPitch = (s: TrioStep, staff: number) => {
   return `${"CDEFGAB"[((d % 7) + 7) % 7]}${Math.floor(d / 7)}`;
 };
 
-export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
+export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices(n: 2 | 3): void } & GameLink) {
   const [stepIndex, setStepIndex] = useState(() => Math.max(0, STEPS.findIndex((s) => s.id === stored("wtg.trioStep", STEPS[0].id))));
   const STEP = STEPS[stepIndex];
   useEffect(() => store("wtg.trioStep", STEP.id), [STEP.id]);
@@ -134,6 +135,21 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
     audio.setGates({ counterpoint: versions.original, fux: fuxHeard && fuxOpen, continuo });
   }, [versions.original, fuxHeard, fuxOpen, continuo]);
   useEffect(() => () => audio.stop(), []);
+  // The tutorial (D98): silent while it is open; the screen's own sound back on return.
+  useEffect(() => {
+    if (suspended) {
+      audio.stop();
+      setPlaying(false);
+      setCursor(-1);
+      return;
+    }
+    audio.setSoundState(sound);
+    audio.drums = drums;
+    audio.setDrums(drumKit, STEP.modalFinal);
+    audio.loop = loop;
+    audio.setGates({ counterpoint: versions.original, fux: fuxHeard && fuxOpen, continuo });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [suspended]);
 
   const lines = (k: number) => [0, 1, 2].map((i) => (i === STEP.cantusIndex ? STEP.cantus[k] : sessions[i].notes[k]));
   const missing = mine.reduce((n, i) => n + sessions[i].notes.filter((x) => x === null).length, 0);
@@ -148,6 +164,12 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
     setStepIndex(k);
     setActive(playerStaves(STEPS[k])[0]);
   };
+  useEffect(() => {
+    if (!command) return;
+    const k = STEPS.findIndex((x) => x.id === command.stepId);
+    if (k >= 0 && k !== stepIndex) goTo(k);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [command?.n]);
 
   // Editing: every change withdraws the evaluation (as in two voices).
   const update = (staff: number, next: SessionState) => {
@@ -234,6 +256,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
 
   // Keys (as in two voices), plus Tab for the other voice and F1-F5 for the tracks.
   const onKey = (e: KeyboardEvent) => {
+    if (suspended) return;
     if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
     const target = e.target as HTMLElement | null;
     if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return;
@@ -317,7 +340,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
           </select>
           <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1} aria-label={t("ui.nav.next")}>›</button>
         </nav>
-          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("guide")} />
+          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("guide")} onTutorial={onTutorial} />
         </>
       }
       score={
