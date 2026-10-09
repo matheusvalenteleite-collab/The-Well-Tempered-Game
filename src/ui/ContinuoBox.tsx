@@ -1,4 +1,5 @@
 import type { PresetId } from "../continuo/types.ts";
+import { ARPEGGIOS, PATTERNS, type FigurationId } from "../continuo/figuration.ts";
 import { CONTINUO_DISPLAYS, CONTINUO_PRESET_FAMILIES, FINALS_MODES, type ContinuoSettings } from "../game/continuo-settings.ts";
 import { t } from "./i18n.ts";
 
@@ -17,6 +18,12 @@ export function ContinuoBox({ on, onToggle, value, onChange }: Props) {
   };
   const antico = value.preset === "stileAntico";
   const COLOURS = ["#b7791f", "#3b6fd8", "#8b5cf6"];
+  // D110: choosing a figuration plays it; the toggle keeps the choice and turns it off and on.
+  const figChip = (f: FigurationId) => (
+    <button key={f} className="chipbtn" tabIndex={-1} aria-pressed={value.figure && value.figuration === f} title={t(`ui.continuo.fig.${f}.help`)} onClick={() => set({ figuration: f, figure: !(value.figure && value.figuration === f) }, true)}>
+      {t(`ui.continuo.fig.${f}`)}
+    </button>
+  );
   return (
     <section className="drumbox continuobox cols" aria-label={t("ui.continuo.title")} title={t("ui.continuo.boxHelp")}>
       <div className="dcol grp-head">
@@ -41,6 +48,17 @@ export function ContinuoBox({ on, onToggle, value, onChange }: Props) {
           ))}
         </div>
       ))}
+      <div className="dcol grp-fig" role="group" aria-label={t("ui.continuo.arpeggios")}>
+        <span className="dlabel">
+          {t("ui.continuo.arpeggios")}{" "}
+          <button className="chipbtn fig-toggle" tabIndex={-1} aria-pressed={value.figure} title={t("ui.continuo.figure.help")} onClick={() => set({ figure: !value.figure }, true)}>{value.figure ? t("ui.continuo.figure.on") : t("ui.continuo.figure.off")}</button>
+        </span>
+        {ARPEGGIOS.map((f) => figChip(f))}
+      </div>
+      <div className="dcol grp-fig" role="group" aria-label={t("ui.continuo.patterns")}>
+        <span className="dlabel">{t("ui.continuo.patterns")}</span>
+        {PATTERNS.map((f) => figChip(f))}
+      </div>
       <div className="dcol grp-feel">
         <span className="dlabel">{t("ui.continuo.finals")}</span>
         {FINALS_MODES.map((f) => (

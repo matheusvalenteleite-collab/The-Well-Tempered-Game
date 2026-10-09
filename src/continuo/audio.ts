@@ -11,6 +11,7 @@ import { DEFAULT_SYNTH, type SampleSet, type SynthSettings } from "../audio/synt
 import { SAMPLE_MANIFEST } from "../audio/sample-manifest.ts";
 import { frequency, type TemperamentId } from "../audio/temperament.ts";
 import { loadSamples, Synth } from "../audio/voice.ts";
+import { figure, type FigurationId } from "./figuration.ts";
 import { sungNotes } from "./input.ts";
 import type { ContinuoEvent, ContinuoInput, ContinuoRealization, PresetId } from "./types.ts";
 
@@ -42,6 +43,8 @@ export interface PlayOptions {
    * its own: a change applies to the notes not yet scheduled. Without it, `tempoBpm` is fixed.
    */
   getTempo?: () => number;
+  /** D110: the right hand broken into an arpeggio or repeated in a rhythm; none: as realized. */
+  figuration?: FigurationId | null;
 }
 
 export interface Playback {
@@ -290,13 +293,14 @@ const PRESET_INSTRUMENTS: Partial<Record<PresetId, RecInst[]>> = {
   rockBand: ["leadGuitar", "rhythmGuitar", "bassGuitar"],
 };
 
-function buildJobs(exercise: ContinuoInput, r: ContinuoRealization, o: Required<Pick<PlayOptions, "preset" | "tempoBpm" | "inegal" | "seed">>): Job[] {
+function buildJobs(exercise: ContinuoInput, r: ContinuoRealization, o: Required<Pick<PlayOptions, "preset" | "tempoBpm" | "inegal" | "seed">> & { figuration?: FigurationId | null }): Job[] {
   const sec = 60 / o.tempoBpm;
   const jobs: Job[] = [];
   const random = rng(o.seed);
-  const rh = notesOf(r.events, ["rh", "doubling"]);
-  const bass = notesOf(r.events, ["bass"]);
   const lastBar = r.bars.length - 1;
+  const written = notesOf(r.events, ["rh", "doubling"]);
+  const rh = o.figuration ? figure(written, o.figuration, lastBar) : written.map((n) => ({ ...n, rank: undefined as number | undefined, low: undefined as boolean | undefined }));
+  const bass = notesOf(r.events, ["bass"]);
 
   const organ = (p: { rh: number; bass: number }) => {
     for (const n of tie(rh)) {
@@ -374,8 +378,8 @@ function buildJobs(exercise: ContinuoInput, r: ContinuoRealization, o: Required<
   // the parts take ranks, the bass line, or doublings at the octave, each in its instrument's range.
   type Note = (typeof rh)[number];
   const soundingAt = (t: number) => rh.filter((n) => n.start <= t + 1e-9 && n.end > t + 1e-9);
-  const rankOf = (n: Note) => soundingAt(n.start).filter((x) => x.midi > n.midi).length;
-  const lowest = (n: Note) => soundingAt(n.start).every((x) => x.midi >= n.midi);
+  const rankOf = (n: Note) => n.rank ?? soundingAt(n.start).filter((x) => x.midi > n.midi).length;
+  const lowest = (n: Note) => n.low ?? soundingAt(n.start).every((x) => x.midi >= n.midi);
   const ranks = (...k: number[]) => rh.filter((n) => k.includes(rankOf(n)));
   const middle = rh.filter((n) => rankOf(n) >= 1 && !lowest(n));
   const low = rh.filter((n) => rankOf(n) >= 1 && lowest(n));
@@ -872,7 +876,7 @@ function buildGraph(ctx: BaseAudioContext, destination: AudioNode, exercise: Con
   const voices = new Voices(ctx, seed);
   voices.temperament = options.temperament ?? "equal";
   if (options.preset === "stileAntico" || options.preset === "hofkapelle") voices.organPreset = PRESETS[options.preset].organ;
-  const jobs = buildJobs(exercise, realization, { preset: options.preset, tempoBpm: tempo, inegal: options.inegal ?? false, seed });
+  const jobs = buildJobs(exercise, realization, { preset: options.preset, tempoBpm: tempo, inegal: options.inegal ?? false, seed, figuration: options.figuration });
 
   // The sung voices, with the game's synth (one per voice).
   const sung = options.includeSungVoices === false ? [] : sungNotes(exercise).notes;

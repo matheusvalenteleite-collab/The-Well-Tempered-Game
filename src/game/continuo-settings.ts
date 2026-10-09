@@ -1,5 +1,6 @@
 /** The continuo panel's settings, as stored in localStorage (wtg.continuoSettings), with validation. */
 import type { FinalsMode, PresetId } from "../continuo/types.ts";
+import { FIGURATIONS, type FigurationId } from "../continuo/figuration.ts";
 
 /** "figured" (default, D93): the figures alone, under the lower staff; "staff": a small figured bass staff. */
 export type ContinuoDisplay = "none" | "figured" | "staff" | "realization" | "both";
@@ -22,9 +23,12 @@ export interface ContinuoSettings {
   inegal: boolean;
   /** Fux's accidentals in the harmony (D93); off: the white-key harmony of before. */
   accidentals: boolean;
+  /** D110: the right hand's figuration, and whether it is played. */
+  figuration: FigurationId;
+  figure: boolean;
 }
 
-export const DEFAULT_CONTINUO_SETTINGS: ContinuoSettings = { display: "figured", preset: "stileAntico", finals: "organist", passingFill: true, inegal: false, accidentals: true };
+export const DEFAULT_CONTINUO_SETTINGS: ContinuoSettings = { display: "figured", preset: "stileAntico", finals: "organist", passingFill: true, inegal: false, accidentals: true, figuration: "alberti", figure: false };
 
 /** Each field is kept if valid, otherwise replaced by its default. */
 export function validContinuoSettings(raw: unknown): ContinuoSettings {
@@ -38,5 +42,7 @@ export function validContinuoSettings(raw: unknown): ContinuoSettings {
     passingFill: typeof r.passingFill === "boolean" ? r.passingFill : d.passingFill,
     inegal: typeof r.inegal === "boolean" ? r.inegal : d.inegal,
     accidentals: typeof r.accidentals === "boolean" ? r.accidentals : d.accidentals,
+    figuration: pick(r.figuration, FIGURATIONS, d.figuration),
+    figure: typeof r.figure === "boolean" ? r.figure : d.figure,
   };
 }

@@ -912,3 +912,14 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .qs-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; position: sticky; bottom: -16px; background: var(--paper); padding: 8px 0; }
 .qs-actions .primary { font-weight: 600; }
 .hints li.has-demo { list-style: none; margin-left: -1.1em; }
+.drumbox .grp-fig { --g: #0d9488; flex: 0 0 auto; }
+.drumbox .fig-toggle { min-height: 0; padding: 0 6px; margin-left: 4px; font-size: inherit; }
+/* D110: the continuo panel's columns share a narrow width by wrapping their labels, never collapsing. */
+.sound .continuobox.cols { container: cbox / inline-size; }
+.sound .continuobox.cols > .dcol { flex: 0 1 auto; min-width: 72px; }
+@container cbox (max-width: 940px) {
+  .continuobox .dcol .chipbtn { white-space: normal; line-height: 1.1; font-size: 0.7rem; padding: 2px 4px; min-height: 20px; hyphens: auto; }
+  .continuobox .dcol .dlabel { font-size: 0.6rem; }
+  .continuobox .dcol { padding: 3px 4px 4px; gap: 3px; }
+  .continuobox .rack-title { font-size: 0.72rem; letter-spacing: 0; }
+}
