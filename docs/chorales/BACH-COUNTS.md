@@ -100,6 +100,131 @@ These are counts of derived facts, not rules. The figures are read off Bach's fo
 | mixolydian | no third | 3 |
 | phrygian | major third | 2 |
 
+## Kirnberger: fundamental chords (on the beat)
+
+Read with `tools/chorales/kirnberger.py`: the notes of a sonority stand in thirds over a
+fundamental bass (triad or seventh chord); a note that does not is taken away as an incidental
+dissonance, by its melodic shape. Sonorities left unanalysed: 0 of 30050.
+
+| chord | count |
+|---|---|
+| major | 9621 |
+| minor | 4399 |
+| triad, third not sounding | 880 |
+| minor seventh | 846 |
+| diminished | 681 |
+| dominant seventh | 669 |
+| half-diminished seventh | 364 |
+| major seventh | 219 |
+| seventh chord, third not sounding (minor seventh) | 132 |
+| diminished seventh | 95 |
+| augmented | 54 |
+| seventh chord, third not sounding (major seventh) | 8 |
+| seventh chord, third not sounding (diminished seventh) | 7 |
+| bare | 3 |
+| minor-major seventh | 2 |
+
+| chord | bass is | count |
+|---|---|---|
+| triad | root | 10988 |
+| triad | third | 3973 |
+| seventh chord | third | 1010 |
+| seventh chord | root | 755 |
+| triad | fifth | 438 |
+| triad | passing | 328 |
+| seventh chord | seventh | 315 |
+| seventh chord | fifth | 93 |
+| triad | neighbour | 34 |
+| triad | seventh | 20 |
+| seventh chord | escape | 15 |
+| seventh chord | neighbour | 4 |
+| triad | suspension | 3 |
+| seventh chord | appoggiatura | 2 |
+| triad | retardation | 1 |
+| seventh chord | passing | 1 |
+
+## The fundamental bass: how it moves (from beat to beat, when the root changes)
+
+| motion | count |
+|---|---|
+| up a fourth (down a fifth) | 5711 |
+| up a fifth (down a fourth) | 2691 |
+| up a second | 2592 |
+| down a third | 1469 |
+| down a second | 1309 |
+| up a third | 670 |
+| same letter, altered | 48 |
+
+## Incidental dissonances (by melodic shape)
+
+| kind | on the beat | count |
+|---|---|---|
+| passing | no | 4309 |
+| suspension | yes | 1221 |
+| passing | yes | 798 |
+| neighbour | no | 526 |
+| neighbour | yes | 365 |
+| suspension | no | 280 |
+| anticipation | no | 190 |
+| free | no | 133 |
+| retardation | no | 118 |
+| escape | no | 97 |
+| appoggiatura | no | 45 |
+| appoggiatura | yes | 43 |
+| escape | yes | 42 |
+| retardation | yes | 27 |
+| anticipation | yes | 26 |
+| free | yes | 5 |
+
+| voice | kind | count |
+|---|---|---|
+| soprano | passing | 732 |
+| soprano | suspension | 149 |
+| soprano | neighbour | 130 |
+| soprano | anticipation | 119 |
+| soprano | escape | 65 |
+| soprano | free | 60 |
+| soprano | retardation | 34 |
+| soprano | appoggiatura | 15 |
+| alto | suspension | 943 |
+| alto | passing | 942 |
+| alto | neighbour | 332 |
+| alto | retardation | 74 |
+| alto | anticipation | 44 |
+| alto | appoggiatura | 42 |
+| alto | free | 33 |
+| alto | escape | 24 |
+| tenor | passing | 1596 |
+| tenor | suspension | 406 |
+| tenor | neighbour | 291 |
+| tenor | anticipation | 53 |
+| tenor | free | 45 |
+| tenor | retardation | 36 |
+| tenor | escape | 34 |
+| tenor | appoggiatura | 24 |
+| bass | passing | 1837 |
+| bass | neighbour | 138 |
+| bass | escape | 16 |
+| bass | appoggiatura | 7 |
+| bass | suspension | 3 |
+| bass | retardation | 1 |
+
+## Sevenths: essential or incidental?
+
+Each seventh of a seventh chord on the beat, where it becomes one: prepared (held or struck again from the
+chord before) or free; resolving down by step or not; and, when it resolves, whether the bass moves
+at that moment (the harmony moves on: an essential seventh) or stays (the seventh resolves over
+the same bass, as a suspension does).
+
+| prepared | resolves down by step | bass moves at the resolution | count |
+|---|---|---|---|
+| yes | yes | yes | 1272 |
+| yes | yes | no | 494 |
+| yes | no | — | 215 |
+| no | yes | yes | 184 |
+| no | no | — | 149 |
+| no | yes | no | 21 |
+
 ## Consecutive fifths and octaves
 
 Between two voices that both move, from one onset to the next. Contrary motion means the

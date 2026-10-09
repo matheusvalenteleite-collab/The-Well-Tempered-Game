@@ -34,6 +34,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "fux_import"))
 from pitch import Pitch, frac, parse_pitch_name  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import kirnberger as K  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
 BACH = ROOT / "data" / "chorales" / "bach"
 OUT = BACH / "analysis"
@@ -205,6 +208,47 @@ def analyse(c: dict) -> dict:
             "figure": figure,
             "crossing": any(d["interval"] < 1 for d in detail),
         })
+        # Kirnberger: the fundamental chord and the part each voice plays in it
+        ctx = {}
+        for v in VOICES:
+            n, struck = sounding[v]
+            if n is None:
+                continue
+            idx = next(i for i, (a, _, m) in enumerate(tl[v]) if m is n)
+            ctx[v] = {"pitch": n["pitch"], "struck": struck, "held": not struck,
+                      "prev": tl[v][idx - 1][2]["pitch"] if idx > 0 and tl[v][idx - 1][1] == tl[v][idx][0] else (tl[v][idx - 1][2]["pitch"] if idx > 0 else None),
+                      "next": tl[v][idx + 1][2]["pitch"] if idx + 1 < len(tl[v]) else None,
+                      "on_beat": verts[-1]["on_beat"]}
+        ch, labels = K.analyse_sonority(ctx)
+        vv = verts[-1]
+        vv["root"] = ch.root if ch else None
+        vv["chord"] = ch.kind if ch else None
+        vv["bass_role"] = labels.get("bass")
+        vv["labels"] = labels
+    # sevenths: how each is treated (Kirnberger's essential dissonance)
+    # Counted where a seventh sounds on the beat: between beats a held chord tone can make a
+    # momentary "seventh" with a passing note, which is no part of the harmony.
+    for i, v in enumerate(verts):
+        if not v["on_beat"]:
+            continue
+        for voice, lab in v["labels"].items():
+            if lab != "seventh":
+                continue
+            n = at(tl[voice], F(v["t"]))[0]
+            idx = next(j for j, (_, _, m) in enumerate(tl[voice]) if m is n)
+            start = tl[voice][idx][0]
+            if F(v["t"]) != start and any(F(w["t"]) == start and w["on_beat"] and w["labels"].get(voice) == "seventh" for w in verts):
+                continue  # counted where it became a seventh
+            prev = tl[voice][idx - 1][2]["pitch"] if idx > 0 else None
+            nxt = tl[voice][idx + 1] if idx + 1 < len(tl[voice]) else None
+            prepared = (prev == n["pitch"] and tl[voice][idx - 1][1] == start) or F(v["t"]) > start
+            resolves = nxt is not None and K.diatonic(nxt[2]["pitch"]) - K.diatonic(n["pitch"]) == -1
+            bass_at_res = at(tl["bass"], nxt[0])[0] if nxt else None
+            bass_now = v["pitches"]["bass"]
+            v.setdefault("sevenths", []).append({
+                "voice": voice, "prepared": prepared, "resolves_down": resolves,
+                "bass_moves_at_resolution": (bass_at_res is not None and bass_at_res["pitch"] != bass_now) if resolves else None,
+            })
     # phrases and cadences
     sop = tl["soprano"]
     ends = [(s, e) for s, e, n in sop if n.get("fermata")]
@@ -287,11 +331,30 @@ def main() -> None:
     n_vert = 0
     par = Counter()
     par_list = []
+    chords, inv, nct, nct_beat, sev, roots, unan = Counter(), Counter(), Counter(), Counter(), Counter(), Counter(), 0
     for e in index["catalogue"]:
         c = json.loads((BACH / e["file"]).read_text())
         a = analyse(c)
         (OUT / f"{c['id']}.json").write_text(json.dumps(a, ensure_ascii=False, separators=(",", ":")) + "\n")
         n_vert += len(a["verticalities"])
+        prev_root = None
+        for v in a["verticalities"]:
+            if v["root"] is None:
+                unan += 1
+                continue
+            if v["on_beat"]:
+                chords[v["chord"]] += 1
+                inv[(v["chord"].endswith("seventh"), v["bass_role"])] += 1
+                if prev_root and prev_root != v["root"]:
+                    d = (K.STEPS.index(v["root"][0]) - K.STEPS.index(prev_root[0])) % 7
+                    roots[{0: "same letter, altered", 1: "up a second", 2: "up a third", 3: "up a fourth (down a fifth)", 4: "up a fifth (down a fourth)", 5: "down a third", 6: "down a second"}[d]] += 1
+                prev_root = v["root"]
+            for voice, lab in v["labels"].items():
+                if lab not in ("root", "third", "fifth", "seventh"):
+                    nct[(voice, lab)] += 1
+                    nct_beat[(lab, v["on_beat"])] += 1
+            for x in v.get("sevenths", []):
+                sev[(x["prepared"], x["resolves_down"], x["bass_moves_at_resolution"])] += 1
         for x in a["parallels"]:
             par[(x["kind"], x["motion"], x["on_beats"], x["across_phrase_end"])] += 1
             if x["motion"] == "parallel" and not x["across_phrase_end"]:
@@ -336,6 +399,33 @@ def main() -> None:
     md += ["", "## The last chord", "", "| mode (editor's label) | third of the last chord | count |", "|---|---|---|"]
     for (m, t), k in sorted(finals.items(), key=lambda x: (x[0][0], -x[1])):
         md.append(f"| {m} | {t} | {k} |")
+    md += ["", "## Kirnberger: fundamental chords (on the beat)", "",
+           "Read with `tools/chorales/kirnberger.py`: the notes of a sonority stand in thirds over a",
+           "fundamental bass (triad or seventh chord); a note that does not is taken away as an incidental",
+           f"dissonance, by its melodic shape. Sonorities left unanalysed: {unan} of {n_vert}.", "",
+           "| chord | count |", "|---|---|"]
+    for k, n in chords.most_common():
+        md.append(f"| {k} | {n} |")
+    md += ["", "| chord | bass is | count |", "|---|---|---|"]
+    for (is7, role), n in sorted(inv.items(), key=lambda x: -x[1]):
+        md.append(f"| {'seventh chord' if is7 else 'triad'} | {role} | {n} |")
+    md += ["", "## The fundamental bass: how it moves (from beat to beat, when the root changes)", "", "| motion | count |", "|---|---|"]
+    for k, n in roots.most_common():
+        md.append(f"| {k} | {n} |")
+    md += ["", "## Incidental dissonances (by melodic shape)", "", "| kind | on the beat | count |", "|---|---|---|"]
+    for (k, ob), n in sorted(nct_beat.items(), key=lambda x: -x[1]):
+        md.append(f"| {k} | {'yes' if ob else 'no'} | {n} |")
+    md += ["", "| voice | kind | count |", "|---|---|---|"]
+    for (voice, k), n in sorted(nct.items(), key=lambda x: (VOICES[::-1].index(x[0][0]), -x[1])):
+        md.append(f"| {voice} | {k} | {n} |")
+    md += ["", "## Sevenths: essential or incidental?", "",
+           "Each seventh of a seventh chord on the beat, where it becomes one: prepared (held or struck again from the",
+           "chord before) or free; resolving down by step or not; and, when it resolves, whether the bass moves",
+           "at that moment (the harmony moves on: an essential seventh) or stays (the seventh resolves over",
+           "the same bass, as a suspension does).", "",
+           "| prepared | resolves down by step | bass moves at the resolution | count |", "|---|---|---|---|"]
+    for (pr, rd, bm), n in sorted(sev.items(), key=lambda x: -x[1]):
+        md.append(f"| {'yes' if pr else 'no'} | {'yes' if rd else 'no'} | {'—' if bm is None else ('yes' if bm else 'no')} | {n} |")
     md += ["", "## Consecutive fifths and octaves", "",
            "Between two voices that both move, from one onset to the next. Contrary motion means the",
            "perfect interval is kept by an octave leap. Rows after a phrase end are kept apart: the fermata",

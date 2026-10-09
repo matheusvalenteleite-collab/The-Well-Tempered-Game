@@ -98,10 +98,15 @@ derived fact can be traced back to the source.
    - Phrases, and cadences with a first classification.
    - Consecutive fifths and octaves: 18 inside phrases in 370 chorales, 17 of them involving
      passing notes off the beat.
-   - Still to come: the non-chord tones (passing, neighbour, suspension with preparation and
-     resolution, anticipation, appoggiatura), spacing, doubling, and the resolution of leading
-     tones and sevenths; then the same layer over Kittel's basses (their figures are given;
-     the inner voices are not).
+   - Kirnberger's categories (D100, `KIRNBERGER.md`), applied to every sonority:
+     - the fundamental chord (triad or seventh chord) and its root (the fundamental bass);
+     - the part each voice plays in it, or the kind of incidental dissonance it is;
+     - how each seventh is treated.
+
+     All 30,050 sonorities are read. The tests are marked for checking against his text, which
+     could not be reached yet.
+   - Still to come: spacing, doubling, and the leading tone; then the same layer over Kittel's
+     basses. There, the fundamental chord comes from the bass, its figure and the melody.
 6. **Knowledge write-up** (`docs/chorales/`): principles and habits with counts and examples,
    for the owner to read and correct before any of it becomes a game rule.
 
