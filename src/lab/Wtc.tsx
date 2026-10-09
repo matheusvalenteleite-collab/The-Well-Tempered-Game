@@ -17,6 +17,7 @@ import { episodes, strettos, type Episode } from "../wtc/structure.ts";
 import { parsePitch } from "../music/pitch.ts";
 import { playNotes, playPiece, stop } from "./keyboard.ts";
 import { Markdown } from "./Habits.tsx";
+import { MiniStaff } from "./MiniStaff.tsx";
 import concept from "../../docs/wtc/CONCEPT.md?raw";
 import answerStudy from "../../docs/wtc/answer-study.md?raw";
 import csStudy from "../../docs/wtc/countersubject-study.md?raw";
@@ -229,6 +230,11 @@ function AnswerExercise({ p, a, tuning }: { p: WtcPiece; a: Analysis; tuning: Tu
           </div>
         )}
       </div>
+      <div className="wtc-staves">
+        <div><span className="wtc-rowname">subject</span><MiniStaff notes={a.subject} ink="#c0392b" /></div>
+        <div><span className="wtc-rowname">your answer</span><MiniStaff notes={a.subject.map((n, i) => ({ ...n, pitch: mine[i] }))} highlight={checked ? wrong.map((w, i) => (w ? i : -1)).filter((i) => i >= 0) : []} /></div>
+        {checked && <div><span className="wtc-rowname">Bach</span><MiniStaff notes={a.answer} ink="#2e7d4f" /></div>}
+      </div>
       <div className="lab-actions">
         <button className="primary" onClick={() => setChecked(true)}>Check against Bach</button>
         <button onClick={() => (setFourth(a.subject.map((n, i) => ruled[i][0] !== transpose(n.pitch, 4, 7)[0])), setChecked(false))}>Apply the rule</button>
@@ -242,6 +248,42 @@ function AnswerExercise({ p, a, tuning }: { p: WtcPiece; a: Analysis; tuning: Tu
       <p className="lab-note">
         The rule (Bach's practice in the 48, docs/wtc/answer-study.md): a subject beginning on ^5 is answered from ^1 (17 of 17); an early ^5 leapt to from ^1 is answered by ^1 (7 of 7); a tail that reaches the dominant key is answered a fourth up, where exactly varying from fugue to fugue.
       </p>
+    </fieldset>
+  );
+}
+
+/* ---------------------------------------------------------------- level 0: a guided listening */
+
+/** The fugue's events in order, from the analysis: entries (voice, key, stretto, inverted) and episodes. */
+function Timeline({ p, a, onPlayFrom }: { p: WtcPiece; a: Analysis; onPlayFrom: (t: number) => void }) {
+  const barOf = (t: number) => [...p.bars].reverse().find((b) => b.on <= t)?.n ?? 1;
+  const name = (v: number) => VOICE_NAMES[p.voices.length]?.[v] ?? `voice ${v + 1}`;
+  const keyName = (e: Entry) => {
+    const k = entryKey(p, e, a.subject);
+    return `${nice(k.name.length > 1 ? k.name[0].toUpperCase() + k.name.slice(1) : k.name.toUpperCase())} ${k.name[0] === k.name[0].toUpperCase() ? "major" : "minor"} (${k.roman})`;
+  };
+  const seen = new Set<number>();
+  const events: { t: number; text: string }[] = [];
+  a.entries.forEach((e, i) => {
+    const first = !seen.has(e.voice);
+    seen.add(e.voice);
+    const inExposition = first && i < p.voices.length;
+    const what = e.form === "inversion" ? "The subject, inverted," : inExposition ? (entryKey(p, e, a.subject).offset === 4 ? "The answer" : "The subject") : "An entry";
+    events.push({ t: e.on, text: `${what} in the ${name(e.voice)}, in ${keyName(e)}${a.stretto.has(e) ? ", in stretto (before the last entry has ended)" : ""}.` });
+  });
+  a.episodes.forEach((g) => events.push({ t: g.on, text: `Episode${g.sequence ? `: a sequence (a figure of ${g.sequence.notes} notes, ${g.sequence.times} times, ${g.sequence.step > 0 ? "rising" : "falling"} by ${["", "step", "thirds", "fourths", "fifths", "sixths", "sevenths"][Math.min(6, Math.abs(g.sequence.step))]})${g.fromSubject ? ", made from the subject" : ""}` : ""}, until bar ${barOf(g.end)}.` }));
+  events.sort((x, y) => x.t - y.t);
+  return (
+    <fieldset className="lab-panel">
+      <legend>Listen: the fugue, event by event</legend>
+      <ol className="wtc-timeline">
+        {events.map((ev, i) => (
+          <li key={i}>
+            <button onClick={() => onPlayFrom(ev.t)} title="Play from here">▶</button> <b>bar {barOf(ev.t)}</b> · {ev.text}
+          </li>
+        ))}
+      </ol>
+      <p className="lab-note">Read from the analysis (entries, keys, strettos, episodes found automatically): a first guide to hearing the fugue, not an authority.</p>
     </fieldset>
   );
 }
@@ -490,6 +532,7 @@ export function WtcTab() {
           </p>
         </fieldset>
       )}
+      {a && <Timeline p={p} a={a} onPlayFrom={(t) => (setFrom(t), playPiece(p, { tuning, bpm, from: t, voices: voicesOn, onTick: setTick }))} />}
       {a && p.kind === "fugue" && <AnswerExercise p={p} a={a} tuning={tuning} />}
       {a && p.kind === "fugue" && <KeyPlanExercise p={p} a={a} tuning={tuning} />}
       <details className="lab-panel wtc-docs">
