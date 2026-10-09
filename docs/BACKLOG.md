@@ -12,8 +12,46 @@ DECISIONS.md (or delete it) when it is done or dropped.
 - **Josephus's attempts.** Show his faulty first versions (e.g. Fig. 26 before Fig. 33; the
   first versions of Figs. 6, 12, 15) as images or as engraved scores with Aloysius's marks.
 
+## Analysis, scoring and generation (plan agreed October 2026; steps in order)
+
+Background: J. Ewing, *A Historical and Algorithmic Study of Fux's Approach to Counterpoint*
+(BA thesis, New College of Florida, 2009) scored three-voice first species with weighted rules
+and compared each choice with Fux's, bar by bar, given Fux's previous bar.
+
+1. **Alternatives audit (test + report).** For every Fux solution and every slot, substitute
+   each candidate pitch (mode notes, cadential sharps, B♭/E♭ where Fux uses them) into Fux's
+   otherwise unchanged line and count the substitutions that raise no error. Snapshot the
+   counts so a rule change shows how much it widens or narrows the game. Fux must remain legal
+   at every slot (D39).
+2. **Score vector.** Compare candidates lexicographically by tier, not by Ewing's powers of ten:
+   errors (Fux's precepts) > Fux's recommendations (warnings) > Fux's stated counsel
+   (singability, variety, look-ahead) > measured habits of Fux's solutions > modern additions
+   (dev only). Never affects stars (D25).
+3. **Measure Fux's habits** on all solutions in the dataset (leap rates per voice, bass vs upper
+   voices, sixths by quality and direction, repeated notes, successive leaps, cadence chords),
+   as data for tier 4. Done for three-voice first species (session of October 2026): bass skips
+   0.65 of its moves against 0.41-0.43 in the upper voices; 21 melodic minor sixths in the whole
+   corpus (13 up, 8 down), no major sixth.
+4. **Fit and validate tier 4** against Fux's choices (agreement with Fux, leave-one-exercise-out);
+   Ewing's text-only baseline matched Fux on 52% of chords.
+5. **Hints from the audit:** "Fux had N legal choices here", the rank of the player's note.
+6. **Generators** (D8): cantus firmus by the M1-REPORT §4 constraints; counterpoint by search
+   under errors, ranked by the score vector; every cantus must admit a counterpoint (§4.15).
+7. **Three voices:** compare-fux "singable" judged per voice with a bass allowance; motion rule
+   scoped as Fux's solutions require (17 direct motions into perfect consonances, all with the
+   bass, none between upper voices; 10 at the final cadence).
+8. **Harmonic view toggle (modern, never graded).** Roman numerals / figured-bass labels under
+   the score beside the note-name and interval views; from three voices on (two-voice dyads are
+   ambiguous). Labelled as a modern lens (Rameau, Weber), not Fux's.
+
 ## Rules
 
+- Fig. 110, bar 6 (and Figs. 169, 170, bar 6): an unmarked B repeats the B♭ of bar 5 in the same
+  voice. The dataset reads B♮ (a chromatic step found nowhere else in Fux); B♭ is far more likely.
+  Decide the reading before three or four voices are built.
+- The hint "leap a minor sixth (upward)" (pp. 59-60): the Latin gives no direction ("per saltum
+  Sextae minoris, (qui licitus est)"), and Fux leaps a minor sixth downward 8 times. Check the
+  examples on p. 60 and reword if needed.
 - Decide whether the crossing warning (D2) goes, given D39 ("Fux is always the last word"): it
   fires on Fux's own Figs. 14, 37 and 39, so those solutions cannot earn a star.
 
@@ -24,7 +62,8 @@ DECISIONS.md (or delete it) when it is done or dropped.
 
 ## Data
 
-- Report the upstream defects listed in docs/fux/open-questions.md.
+- Report the upstream defects listed in docs/fux/open-questions.md, and the B♮ readings of
+  Figs. 110, 169, 170, bar 6 (see Rules above) once decided.
 - Check Fig. 42's A cantus against 1725 p. 62.
 
 ## For Batch 4 — "What is the Gradus?" (owner, 9 October 2026)
