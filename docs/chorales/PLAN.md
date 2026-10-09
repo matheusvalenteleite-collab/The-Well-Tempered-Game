@@ -81,8 +81,17 @@ derived fact can be traced back to the source.
    - MusicXML for all 24, read back note for note by an independent parser (music21).
    - Finding: the small notes of the melody are passing notes in the time of the note before
      them (Kittel's figures show it).
-4. **Kittel-Bach concordance**: which of Kittel's 24 melodies Bach set among the 371, and in
-   which keys.
+4. ~~**Kittel-Bach concordance**~~ Done (`CONCORDANCE.md`, `data/chorales/concordance.json`).
+   - 22 of Kittel's 24 melodies are among Bach's 371, in 77 settings; 25 of those settings are
+     in Kittel's key.
+   - Not there: No. 16 *Ach, wie heilig ist der Ort* and No. 22 *Das Jesulein soll doch mein
+     Trost*.
+   - The match is made on the notes, which catches tunes under other texts and keeps apart
+     texts sung to other tunes:
+     - Kittel's *Nun freut euch* is Bach's *Es ist gewißlich an der Zeit*, not his no. 183;
+     - *Mir nach* is *Mach's mit mir, Gott*;
+     - *Ach Herr, mich armen Sünder* is *Herzlich tut mich verlangen*;
+     - *Lobe den Herren* is *Hast du denn, Jesu*, as a variant.
 5. **Analysis layer** over Bach first, then over Kittel's basses, with figures derived for Bach.
 6. **Knowledge write-up** (`docs/chorales/`): principles and habits with counts and examples,
    for the owner to read and correct before any of it becomes a game rule.

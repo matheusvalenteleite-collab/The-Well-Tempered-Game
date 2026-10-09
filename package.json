@@ -20,7 +20,8 @@
     "report:m1": "node tools/m1/report.ts",
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "chorales:concordance": "python3 tools/chorales/concordance.py"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
