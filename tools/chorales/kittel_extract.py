@@ -880,7 +880,7 @@ def draw_overlay(pl, pi: int, pg: dict, path: Path) -> None:
         s = pg["staves"][si]
         for col in cols:
             txt = "/".join(_row_text(r) for r in col["rows"])
-            d.text((col["x"] * sc, (s.top - 30) * sc), txt, fill=(0, 120, 0) if col["onset"] is not None else (255, 0, 255))
+            d.text((col["x"] * sc, (s.top - 27) * sc), txt, fill=(0, 120, 0) if col["onset"] is not None else (255, 0, 255))
     path.parent.mkdir(parents=True, exist_ok=True)
     im.save(path)
 
