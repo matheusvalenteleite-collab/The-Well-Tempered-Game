@@ -7,6 +7,8 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { BACH_REFS, CHORALES, comparePoints, frac, soundingMelody, voiceChord, type PhraseVerdict } from "../chorale/level1.ts";
 import { LEVEL2, noteIndices } from "../chorale/level2.ts";
+import { LEVEL3, bassPitch } from "../chorale/level3.ts";
+import { parsePitch } from "../music/pitch.ts";
 import type { PlayEvent } from "../counterpoint/layout.ts";
 import type { Mode } from "./Root.tsx";
 import { MelodyScore, type MarkerState } from "./notation/MelodyScore.tsx";
@@ -22,19 +24,19 @@ export function ChoraleApp({ onMode }: { onMode(mode: Mode): void }) {
   const [index, setIndex] = useState(() => Math.max(0, CHORALES.findIndex((c) => c.number === stored("wtg.chorale", 1, (v) => typeof v === "number"))));
   const ch = CHORALES[index];
   useEffect(() => store("wtg.chorale", ch.number), [ch.number]);
-  const [level, setLevel] = useState<1 | 2>(() => stored<1 | 2>("wtg.choraleLevel", 1, (v) => v === 1 || v === 2));
+  const [level, setLevel] = useState<1 | 2 | 3>(() => stored<1 | 2 | 3>("wtg.choraleLevel", 1, (v) => v === 1 || v === 2 || v === 3));
   useEffect(() => store("wtg.choraleLevel", level), [level]);
-  const picksKey = level === 1 ? "wtg.choralePicks" : "wtg.choralePicks2";
+  const picksKey = level === 1 ? "wtg.choralePicks" : `wtg.choralePicks${level}`;
   const [picks, setPicksState] = useState<Picks>(() => stored<Picks>(picksKey, {}, (v) => typeof v === "object" && v !== null));
   useEffect(() => setPicksState(stored<Picks>(picksKey, {}, (v) => typeof v === "object" && v !== null)), [picksKey]);
   const setPicks = (v: Picks) => {
     setPicksState(v);
     store(picksKey, v);
   };
-  const l2 = LEVEL2[ch.number];
+  const l2 = level === 3 ? LEVEL3[ch.number] : LEVEL2[ch.number];
   /** the points the player decides: phrase ends (level 1) or melody notes (level 2) */
   const points = level === 1 ? ch.phrases : l2.notes;
-  const markerAt = useMemo(() => (level === 2 ? noteIndices(ch, l2) : undefined), [level, ch, l2]);
+  const markerAt = useMemo(() => (level > 1 ? noteIndices(ch, l2) : undefined), [level, ch, l2]);
   const mine = picks[ch.number] ?? points.map(() => null);
   const [selected, setSelected] = useState(0);
   const [compared, setCompared] = useState<number | null>(null);
@@ -94,12 +96,23 @@ export function ChoraleApp({ onMode }: { onMode(mode: Mode): void }) {
     if (withChords) {
       // the sounding note each chosen chord goes under: the fermatas (level 1), every note (level 2)
       const at = level === 1 ? mel.filter((n) => n.fermata) : l2.notes.map((n) => mel.find((m) => Math.abs(m.at - frac(n.offset)) < 1e-9));
+      let prevBass: number | null = null;
       points.forEach((_, i) => {
         const end = at[i];
         const label = mine[i];
         if (!end || !label) return;
+        if (level === 3) {
+          // the bass line: each degree in the octave nearest the bass before
+          const b = bassPitch(label, l2.tonic, prevBass);
+          prevBass = parsePitch(b).midi;
+          events.push({ slot: 1000 + i, at: end.at, length: end.length, cantus: null, counterpoint: null, extra: [{ channel: "fux", pitch: b }] });
+          return;
+        }
         const [bass, ...inner] = voiceChord(label, ch.tonic, end.pitch);
-        if (bass) events.push({ slot: 1000 + i, at: end.at, length: end.length, cantus: bass, counterpoint: null, extra: inner.map((pitch) => ({ channel: "counterpoint" as const, pitch })) });
+        // the cantus channel holds a whole bar: right for a cadence chord (level 1), too long under
+        // every note (level 2), where the bass sounds as long as its melody note
+        if (bass && level === 1) events.push({ slot: 1000 + i, at: end.at, length: end.length, cantus: bass, counterpoint: null, extra: inner.map((pitch) => ({ channel: "counterpoint" as const, pitch })) });
+        else if (bass) events.push({ slot: 1000 + i, at: end.at, length: end.length, cantus: null, counterpoint: null, extra: [{ channel: "fux" as const, pitch: bass }, ...inner.map((pitch) => ({ channel: "counterpoint" as const, pitch }))] });
       });
     }
     events.sort((a, b) => a.at - b.at);
@@ -111,7 +124,7 @@ export function ChoraleApp({ onMode }: { onMode(mode: Mode): void }) {
   }
 
   const p = level === 1 ? ch.phrases[Math.min(selected, ch.phrases.length - 1)] : null;
-  const q = level === 2 ? l2.notes[Math.min(selected, l2.notes.length - 1)] : null;
+  const q = level > 1 ? l2.notes[Math.min(selected, l2.notes.length - 1)] : null;
   const choicesNow = p ? p.choices : q!.options;
   const ref = (no: number, bar?: number | string) => {
     const r = BACH_REFS[String(no)];
@@ -121,7 +134,7 @@ export function ChoraleApp({ onMode }: { onMode(mode: Mode): void }) {
   const verdictText = (v: PhraseVerdict, i: number) => {
     const ph = points[i];
     const l1 = level === 1 ? ch.phrases[i] : null;
-    const n2 = level === 2 ? l2.notes[i] : null;
+    const n2 = level > 1 ? l2.notes[i] : null;
     return (
       <li key={i} className={`verdict verdict-${states[i]}`}>
         {l1 ? (
@@ -136,7 +149,7 @@ export function ChoraleApp({ onMode }: { onMode(mode: Mode): void }) {
           </>
         )}
         <div>
-          {t(level === 1 ? "chorale.yours" : "chorale.l2.yours")}: <strong>{v.chosen ?? "—"}</strong>
+          {t(level === 1 ? "chorale.yours" : level === 2 ? "chorale.l2.yours" : "chorale.l3.yours")}: <strong>{v.chosen ?? "—"}</strong>
         </div>
         <div>
           {t("chorale.kittel")}:{" "}
@@ -155,7 +168,7 @@ export function ChoraleApp({ onMode }: { onMode(mode: Mode): void }) {
           )) : <span className="muted">{t("chorale.noBach")}</span>}
         </div>
         <div>
-          {t(level === 1 ? "chorale.habit" : "chorale.l2.habit", { n: ph.habit.n })}:{" "}
+          {t(level === 1 ? "chorale.habit" : level === 2 ? "chorale.l2.habit" : "chorale.l3.habit", { n: ph.habit.n })}:{" "}
           {ph.habit.options.map((o) => (
             <span key={o.chord} className={o.chord === v.chosen ? "hit" : undefined}>
               <strong>{o.chord}</strong> {Math.round((100 * o.count) / Math.max(1, ph.habit.n))}% ({o.examples.map((e) => ref(e.no, e.bar)).reduce<ReactNode[]>((a, x, k) => (k ? [...a, ", ", x] : [x]), [])}){"; "}
@@ -184,14 +197,14 @@ export function ChoraleApp({ onMode }: { onMode(mode: Mode): void }) {
               <option value="chorale">{t("chorale.mode")}</option>
               <option value="wtc">{t("wtc.mode")}</option>
             </select>
-            <select id="level" className="sel sel-species" value={level} aria-label={t("chorale.level")} onChange={(e) => { stop(); setLevel(Number(e.target.value) as 1 | 2); setSelected(0); setCompared(null); }}>
+            <select id="level" className="sel sel-species" value={level} aria-label={t("chorale.level")} onChange={(e) => { stop(); setLevel(Number(e.target.value) as 1 | 2 | 3); setSelected(0); setCompared(null); }}>
               {[1, 2, 3, 4, 5, 6].map((n) => (
-                <option key={n} value={n} disabled={n > 2}>{t(`chorale.level.${n}`)}</option>
+                <option key={n} value={n} disabled={n > 3}>{t(`chorale.level.${n}`)}</option>
               ))}
             </select>
             <select id="exercise" className="sel sel-exercise" value={index} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("ui.nav.choose")}>
               {CHORALES.map((c, k) => (
-                <option key={c.number} value={k}>{`${(picks[c.number] ?? []).filter(Boolean).length === (level === 1 ? c.phrases.length : LEVEL2[c.number].notes.length) ? "● " : ""}${c.number}. ${c.title.replace(/ etc\.$/, "").replace(/ \[etc\.\]$/, "")}`}</option>
+                <option key={c.number} value={k}>{`${(picks[c.number] ?? []).filter(Boolean).length === (level === 1 ? c.phrases.length : (level === 3 ? LEVEL3 : LEVEL2)[c.number].notes.length) ? "● " : ""}${c.number}. ${c.title.replace(/ etc\.$/, "").replace(/ \[etc\.\]$/, "")}`}</option>
               ))}
             </select>
             <button className="icon" onClick={() => goTo(index + 1)} disabled={index === CHORALES.length - 1} aria-label={t("ui.nav.next")}>›</button>
@@ -207,7 +220,7 @@ export function ChoraleApp({ onMode }: { onMode(mode: Mode): void }) {
       transport={
         <div className="controls chorale-controls">
           <div className="group write" role="group" aria-label={t("chorale.choose")}>
-            <span className="prompt">{p ? t("chorale.prompt", { n: selected + 1, bar: p.measure }) : t("chorale.prompt2", { n: selected + 1, bar: q!.measure, pitch: q!.pitch })}</span>
+            <span className="prompt">{p ? t("chorale.prompt", { n: selected + 1, bar: p.measure }) : t(level === 2 ? "chorale.prompt2" : "chorale.prompt3", { n: selected + 1, bar: q!.measure, pitch: q!.pitch })}</span>
             {choicesNow.map((c) => (
               <button key={c} className={mine[selected] === c ? "chord primary" : "chord"} onClick={() => choose(c)}>{c}</button>
             ))}

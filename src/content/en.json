@@ -970,7 +970,10 @@
     "l2.yours": "Your chord",
     "l2.habit": "Bach, at this melody degree ({n} notes on the beat)",
     "l2.summary.bach": "with Bach at {n} of {of} notes",
-    "l2.summary.kittel": "with one of Kittel's basses at {n} of {of}"
+    "l2.summary.kittel": "with one of Kittel's basses at {n} of {of}",
+    "l3.yours": "Your bass (degree)",
+    "l3.habit": "Bach's bass under this melody degree ({n} notes on the beat)",
+    "prompt3": "Note {n} (bar {bar}), {pitch}, bass on degree:"
   },
   "wtc": {
     "mode": "Well-Tempered Clavier",

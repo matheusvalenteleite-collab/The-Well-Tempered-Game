@@ -25,3 +25,19 @@ test("level 2: the options include every chord Bach and Kittel use, and choosing
     assert.ok(v.every((x, i) => !notes[i].bach.length || x.bach.some((b) => b.same)));
   }
 });
+
+import { LEVEL3, bassPitch } from "../src/chorale/level3.ts";
+
+test("level 3: Bach's and Kittel's bass degrees are among the options; degrees spell in the key", () => {
+  for (const ch of CHORALES) {
+    for (const n of LEVEL3[ch.number].notes) {
+      for (const b of n.bach) assert.ok(n.options.includes(b.chord));
+      for (const k of n.kittel) if (k.chord !== "?") assert.ok(n.options.includes(k.chord));
+    }
+  }
+  assert.equal(bassPitch("1", "G", 43), "G2");
+  assert.equal(bassPitch("5", "G", 43), "D3");
+  assert.equal(bassPitch("#4", "G", 48), "C#3");
+  assert.equal(bassPitch("b7", "F", 48), "Eb3");
+  assert.equal(bassPitch("3", "Bb", 50), "D3");
+});
