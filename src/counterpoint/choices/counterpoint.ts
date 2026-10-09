@@ -19,7 +19,8 @@ import type { ModalFinal, Staff } from "../../music/fux/index.ts";
 import { REST, slotLayout, sounding, type Slot, type SpeciesId } from "../layout.ts";
 import type { Rule } from "../rules/types.ts";
 import { rng } from "./cantus.ts";
-import { bits, melodicKey, melodicProb, roleOf, verticalKey, verticalProb, type HabitTables } from "./habits.ts";
+import { bits, melodicKey, melodicProb, roleOf, samePerfect, successionBits, verticalKey, verticalProb, type HabitTables } from "./habits.ts";
+import { sharpAllowed } from "./vocabulary.ts";
 
 export interface CounterpointOptions {
   species: SpeciesId;
@@ -32,9 +33,14 @@ export interface CounterpointOptions {
   seed?: number;
   /** Beam width (default 40). */
   width?: number;
-  /** Weight of one point of counsel against one bit of habit (default 1). */
+  /** Weight of one point of counsel against one bit of habit (default 0: Fux's habits alone, which already reflect his practice; the rules guard the precepts). */
   counselWeight?: number;
-  /** Gumbel noise added to each step's cost, in bits (default 3). With weight 1 and noise 3 the lines match Fux's own rates of repetition, leaps and spacing in first and third species; ranking by the most typical move alone gives far fewer leaps than Fux writes. */
+  /**
+   * Variety (temperature). Each note is in effect drawn at random with probability proportional to
+   * 2^(-cost / T): at T = 1, with the counsel weight at 0, a move is chosen about as often as Fux
+   * makes it; T = 0 always takes the cheapest; a higher T flattens the odds. (Gumbel-max sampling
+   * inside the beam.) Ranking by the most typical move alone gives far fewer leaps than Fux writes.
+   */
   temperature?: number;
 }
 
@@ -44,6 +50,9 @@ export interface GeneratedLine {
   warnings: string[];
   cost: number;
 }
+
+export const DEFAULT_COUNSEL_WEIGHT = 0;
+export const DEFAULT_TEMPERATURE = 1;
 
 const DEFERRED = /cadence|final|prefer-imperfect|ligature-where-possible/;
 
@@ -80,6 +89,7 @@ function prefilter(o: CounterpointOptions, layout: Slot[], line: string[], k: nu
   const consonant = isConsonant(harmonic(cf, p));
   const prev = lastSounding(line, k);
   const tiedIn = o.species === "fourth" && s.beat === 0 && prev !== null && prev[0] === k - 1 && prev[1] === p;
+  if (!sharpAllowed(p, s.bar, o.cantus.length)) return false;
   if (prev && !tiedIn) {
     const i = interval(prev[1], p);
     const d = Math.abs(midi(p) - midi(prev[1]));
@@ -113,6 +123,12 @@ function stepCost(o: CounterpointOptions, layout: Slot[], line: string[], k: num
   const prev = lastSounding(line, k);
   let counsel = 0;
   let habit = bits(verticalProb(o.habits, s.beat === 0, verticalKey(cf(k), p, o.cantusVoice)));
+  if (s.beat === 0 && k > 0) {
+    // The downbeat before: the same fifth or octave again is rare in Fux (once in his fourth species, Fig. 77).
+    let j = k - 1;
+    while (j >= 0 && layout[j].beat !== 0) j--;
+    if (j >= 0 && sounding(line[j])) habit += successionBits(o.habits, samePerfect(verticalKey(cf(j), line[j], o.cantusVoice), verticalKey(cf(k), p, o.cantusVoice)));
+  }
   const tiedIn = prev !== null && prev[0] === k - 1 && prev[1] === p && o.species === "fourth" && s.beat === 0;
   if (prev && !tiedIn) {
     if (s.beat === 0) {
@@ -126,7 +142,7 @@ function stepCost(o: CounterpointOptions, layout: Slot[], line: string[], k: num
     habit += bits(melodicProb(o.habits, roleOf(o.cantusVoice), melodicKey(prev[1], p)));
   }
   if (s.beat === 0 && s.bar > 0 && s.bar < o.cantus.length - 1 && isPerfectConsonance(harmonic(cf(k), p))) counsel++;
-  return (o.counselWeight ?? 1) * counsel + habit;
+  return (o.counselWeight ?? DEFAULT_COUNSEL_WEIGHT) * counsel + habit;
 }
 
 /** Depth-first completion of the last two bars from each state, best states first; full judgement only. */
@@ -160,7 +176,8 @@ function completeCadence(o: CounterpointOptions, layout: Slot[], states: State[]
 export function generateCounterpoint(o: CounterpointOptions): GeneratedLine {
   const layout = slotLayout(o.species, o.cantus.length);
   const r = rng(o.seed ?? Date.now());
-  const noise = () => (o.temperature ?? 3) * -Math.log(-Math.log(Math.max(1e-12, r()))); // Gumbel
+  // Gumbel-max: argmin of cost - (T / ln 2) * G samples in proportion to 2^(-cost / T).
+  const noise = () => -((o.temperature ?? DEFAULT_TEMPERATURE) / Math.LN2) * -Math.log(-Math.log(Math.max(1e-12, r())));
   const prefixRules = o.rules.filter((x) => !DEFERRED.test(x.id));
   for (let attempt = 0; attempt < 4; attempt++) {
     const width = (o.width ?? 40) * 2 ** attempt;

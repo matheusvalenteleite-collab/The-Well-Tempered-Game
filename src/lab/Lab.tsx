@@ -15,10 +15,11 @@ import { fuxLines, type FuxLine } from "../counterpoint/choices/corpus.ts";
 import { buildHabits } from "../counterpoint/choices/habits.ts";
 import type { TierName } from "../counterpoint/choices/score.ts";
 import { checkCantus, generateCantus } from "../counterpoint/choices/cantus.ts";
-import { generateCounterpoint } from "../counterpoint/choices/counterpoint.ts";
+import { DEFAULT_COUNSEL_WEIGHT, DEFAULT_TEMPERATURE, generateCounterpoint } from "../counterpoint/choices/counterpoint.ts";
 import { judgeLine } from "../counterpoint/choices/alternatives.ts";
 import { fuxAccidentals, pitchesBetween, registerWindow } from "../counterpoint/choices/vocabulary.ts";
 import { play, stop } from "./play.ts";
+import { AddThirdVoice, TrioAuditTab } from "./Trio.tsx";
 
 const SPECIES: SpeciesId[] = ["first", "second", "third", "fourth"];
 const FINALS: ModalFinal[] = ["D", "E", "F", "G", "A", "C"];
@@ -148,7 +149,7 @@ function TierPicker({ order, setOrder }: { order: TierName[]; setOrder: (o: Tier
 }
 
 function AuditTab() {
-  const [species, setSpecies] = useState<SpeciesId>("first");
+  const [species, setSpecies] = useState<SpeciesId | "trio">("first");
   const [rules, setRules] = useState<"step" | "species">("step");
   const [order, setOrder] = useState<TierName[]>(["errors", "warnings", "counsel", "habit"]);
   const [loo, setLoo] = useState(true);
@@ -157,6 +158,7 @@ function AuditTab() {
   const [choice, setChoice] = useState(0);
   useEffect(() => {
     setResults(null);
+    if (species === "trio") return;
     const id = window.setTimeout(() => setResults(auditSpecies(repository, species, { rules, order, leaveOneOut: loo })), 30);
     return () => clearTimeout(id);
   }, [species, rules, order, loo]);
@@ -166,11 +168,12 @@ function AuditTab() {
       <div className="lab-controls">
         <span className="lab-group">
           Species{" "}
-          <select value={species} onChange={(e) => (setSpecies(e.target.value as SpeciesId), setEx(0))}>
+          <select value={species} onChange={(e) => (setSpecies(e.target.value as SpeciesId | "trio"), setEx(0))}>
             {SPECIES.map((s) => <option key={s}>{s}</option>)}
+            <option value="trio">first, three voices</option>
           </select>
         </span>
-        <span className="lab-group">
+        <span className="lab-group" hidden={species === "trio"}>
           Rules{" "}
           <select value={rules} onChange={(e) => setRules(e.target.value as "step" | "species")}>
             <option value="step">in force at the exercise's step</option>
@@ -182,7 +185,9 @@ function AuditTab() {
           <input type="checkbox" checked={loo} onChange={(e) => setLoo(e.target.checked)} /> leave the exercise out of the habits
         </label>
       </div>
-      {!results ? (
+      {species === "trio" ? (
+        <TrioAuditTab order={order} loo={loo} />
+      ) : !results ? (
         <p className="lab-note">Judging every candidate at every choice of Fux's solutions…</p>
       ) : (
         <>
@@ -211,8 +216,8 @@ function GenerateTab() {
   const [wide, setWide] = useState(false);
   const [species, setSpecies] = useState<SpeciesId>("first");
   const [cantusVoice, setCantusVoice] = useState<Staff>("lower");
-  const [weight, setWeight] = useState(1);
-  const [temperature, setTemperature] = useState(3);
+  const [weight, setWeight] = useState(DEFAULT_COUNSEL_WEIGHT);
+  const [temperature, setTemperature] = useState(DEFAULT_TEMPERATURE);
   const [cantus, setCantus] = useState<string[] | null>(null);
   const [line, setLine] = useState<string[] | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -311,11 +316,11 @@ function GenerateTab() {
             <option value="upper">above</option>
           </select>
         </span>
-        <label className="lab-group" title="One point of Fux's counsel weighs this many bits of habit">
-          counsel weight <input type="range" min={0} max={8} step={0.5} value={weight} onChange={(e) => setWeight(Number(e.target.value))} /> {weight}
+        <label className="lab-group" title="0: follow Fux's habits only. Higher: also obey his stated counsel (contrary motion, imperfect consonances, no repetition, small leaps); each point of counsel counts as this many bits of habit">
+          counsel weight <input type="range" min={0} max={6} step={0.5} value={weight} onChange={(e) => setWeight(Number(e.target.value))} /> {weight}
         </label>
-        <label className="lab-group" title="Random variety (bits of noise per note)">
-          variety <input type="range" min={0} max={4} step={0.25} value={temperature} onChange={(e) => setTemperature(Number(e.target.value))} /> {temperature}
+        <label className="lab-group" title="0: always the most typical move. 1: each move about as often as Fux makes it. Above 1: rarer moves more often">
+          variety <input type="range" min={0} max={3} step={0.25} value={temperature} onChange={(e) => setTemperature(Number(e.target.value))} /> {temperature}
         </label>
         <button className="primary" disabled={!cantus} onClick={() => newLine()}>New counterpoint</button>
         <button onClick={() => { const c = newCantus(); if (c) newLine(c); }}>Both</button>
@@ -357,6 +362,8 @@ function GenerateTab() {
           )}
         </>
       )}
+      {cantus && line && species === "first" && <AddThirdVoice cantus={cantus} line={line} cantusVoice={cantusVoice} final={final} weight={weight} temperature={temperature} />}
+      {cantus && line && species !== "first" && <p className="lab-note">A third voice can be added in first species only: the game has three-voice rules for first species alone so far.</p>}
       {audit && (
         <>
           <Summary s={audit.summary} who="the generated note" />
@@ -381,7 +388,7 @@ export function Lab() {
       </header>
       <p className="lab-intro">
         {tab === "audit"
-          ? "At every note of Fux's two-voice solutions (species 1–4), every other pitch is put in its place and the whole line is judged again by the game's rules. The legal ones are ranked by the score vector: errors, then Fux's recommendations, then his stated counsel (motion, perfect consonances, repetition, leaps), then his habits measured on his other solutions."
+          ? "At every note of Fux's solutions (two voices, species 1–4; three voices, first species), every other pitch is put in its place and the whole line is judged again by the game's rules. The legal ones are ranked by the score vector: errors, then Fux's recommendations, then his stated counsel (motion, perfect consonances, repetition, leaps), then his habits measured on his other solutions."
           : "A cantus firmus from the constraints accepted in D8 (each one checked against Fux's own cantus firmi), and a counterpoint found by a search that the game's rules judge at every downbeat and in full at the end, ranked by Fux's counsel and habits."}
       </p>
       {tab === "audit" ? <AuditTab /> : <GenerateTab />}

@@ -97,3 +97,56 @@ test("counterpoint generator: what it writes breaks no rule of the species (judg
     }
   }
 });
+
+import { readFileSync } from "node:fs";
+import { trioSteps } from "../src/game/trio.ts";
+import { auditTrios, buildTrioHabits, generateThirdVoice, judgeTrio, poolTrios, sonorityKey, trioAccidentals } from "../src/counterpoint/choices/trio.ts";
+import { TRIO_FIRST_SPECIES } from "../src/counterpoint/three-voice.ts";
+import { sharpAllowed } from "../src/counterpoint/choices/vocabulary.ts";
+
+const trios = trioSteps(JSON.parse(readFileSync(new URL("../data/fux/three-voice/fux-three-voice.json", import.meta.url), "utf8")));
+
+test("three voices: at every choice of Fux's sixteen first-species solutions, his note is legal (D39)", () => {
+  const audits = auditTrios(trios);
+  assert.equal(audits.length, 16);
+  assert.equal(poolTrios(audits).fuxIllegal, 0);
+  for (const a of audits) assert.equal(a.voices.length, 2);
+  assert.equal(sonorityKey(["D4", "F4", "A4"]), "m3 5");
+  assert.equal(sonorityKey(["A4", "F3", "D4"]), "M3 M6");
+});
+
+test("three voices: a third voice added to a generated exercise breaks no three-voice rule; sharps only at the cadence", () => {
+  const habits3 = buildTrioHabits(trios);
+  const acc3 = trioAccidentals(trios);
+  const acc = fuxAccidentals(repo);
+  const habits = buildHabits(fuxLines(repo, "first"), "first");
+  let made = 0;
+  for (const final of ["D", "G", "A", "C"] as ModalFinal[]) {
+    const cantus = generateCantus({ final, seed: 4 });
+    const [lo, hi] = registerWindow(cantus, "lower");
+    const g = generateCounterpoint({ species: "first", modalFinal: final, cantusVoice: "lower", cantus, rules: rulesForStep(lastStepOf("first")), vocabulary: pitchesBetween(lo, hi, acc[final]), habits, seed: 2 });
+    for (const placement of ["above", "below"] as const) {
+      const r = generateThirdVoice({ modalFinal: final, given: [g.line, cantus], cantusOfGiven: 1, placement, habits: habits3, accidentals: acc3[final] ?? [], seed: 9 });
+      const ev = judgeTrio({ modalFinal: final, cantusIndex: r.cantusIndex, rules: TRIO_FIRST_SPECIES }, r.voices);
+      assert.deepEqual(ev.errors.map((x) => x.ruleId), [], `${final} ${placement}: ${r.voices[r.added].join(" ")}`);
+      assert.equal(r.voices[r.cantusIndex].join(" "), cantus.join(" "));
+      r.voices[r.added].forEach((p, k) => assert.ok(sharpAllowed(p, k, cantus.length), `${final} ${placement}: ${p} in bar ${k + 1}`));
+      made++;
+    }
+  }
+  assert.equal(made, 8);
+});
+
+test("two voices: the generators write sharps only in the last four bars, as Fux does", () => {
+  const acc = fuxAccidentals(repo);
+  for (const species of ["first", "second"] as const) {
+    const habits = buildHabits(fuxLines(repo, species), species);
+    for (const final of ["D", "G", "A"] as ModalFinal[]) {
+      const cantus = generateCantus({ final, seed: 21 });
+      const [lo, hi] = registerWindow(cantus, "upper");
+      const g = generateCounterpoint({ species, modalFinal: final, cantusVoice: "upper", cantus, rules: rulesForStep(lastStepOf(species)), vocabulary: pitchesBetween(lo, hi, acc[final]), habits, seed: 5 });
+      const layout = slotLayout(species, cantus.length);
+      g.line.forEach((p, k) => assert.ok(sharpAllowed(p, layout[k].bar, cantus.length), `${species} ${final}: ${p} at slot ${k}`));
+    }
+  }
+});

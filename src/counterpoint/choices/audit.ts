@@ -63,7 +63,7 @@ export function contextFor(repo: FuxRepository, line: FuxLine, corpus: FuxLine[]
   };
 }
 
-export function summarise(units: UnitChoices[]): AuditSummary {
+export function summarise(units: Pick<UnitChoices, "legal" | "rank" | "ties">[]): AuditSummary {
   const n = units.length || 1;
   return {
     choices: units.length,

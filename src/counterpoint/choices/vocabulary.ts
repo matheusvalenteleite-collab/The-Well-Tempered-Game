@@ -50,3 +50,11 @@ export function registerWindow(cantus: string[], cantusVoice: Staff, fux: (strin
   }
   return [lo, hi];
 }
+
+/**
+ * Fux writes his sharps only at the cadence: every C♯, F♯ and G♯ of his two- and three-voice
+ * solutions stands in the last four bars (the raised leading tone, F♯–G♯ rising to A once in
+ * Fig. 42, the major third of the E-mode final chord). The generators keep them there; the audit,
+ * which measures what the rules allow, does not.
+ */
+export const sharpAllowed = (pitch: string, bar: number, bars: number) => !pitch.includes("#") || bar >= bars - 4;

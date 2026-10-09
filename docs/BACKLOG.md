@@ -48,18 +48,33 @@ and compared each choice with Fux's, bar by bar, given Fux's previous bar.
 to try; nothing in the game uses them yet, and no decision number is taken until the owner rules.**
 Code: `src/counterpoint/choices/` (audit, score vector, habits, generators), `src/lab/` (the page,
 `vite.lab.config.ts`, `tools/build-lab-artifact.mjs`), `test/choices.test.ts`; report:
-`node tools/lab/choices-report.ts` → `docs/fux/choices-audit.md`. Two-voice species 1-4; fifth
-species and three voices not yet. Findings and points for the owner:
+`node tools/lab/choices-report.ts` → `docs/fux/choices-audit.md`. Two-voice species 1-4, and three
+voices in first species (`choices/trio.ts`, on the game's `evaluateTrio`): the audit of Fux's 16
+solutions, and "Add a third voice" (above, between, below) to a generated first-species exercise.
+Not yet: fifth species; three voices beyond first species (the game has no rules for them yet).
+Findings and points for the owner:
 
 - Fux's note is legal at every one of his 691 choices (species 1-4). Where more than one pitch
   is legal, the full score vector ranks his note first, alone, at 61% (first species), 74%
   (second), 78% (third), 69% (fourth); his stated counsel alone (no habits) at 40-66%.
+- Three voices: Fux's note legal at all 374 choices; first alone where free at 73% (habits alone
+  77%, counsel alone 55%). A middle voice often cannot be added to a two-voice exercise written
+  for two voices: the lines lie a third or less apart, and doubling one of them twice makes
+  parallel unisons; Fux spaces his three voices widely from the start. Some E-mode endings leave
+  no bass at all (the cadence Fux calls impossible in the regular way).
+- Sharps only at the cadence in both generators: every C♯, F♯, G♯ of Fux's two- and three-voice
+  solutions stands in the last four bars (F♯ in A once: Fig. 42, rising to G♯).
+- Fifths or octaves on successive downbeats, broken by the upbeat or the syncopation: allowed by
+  the rules (Fux's Fig. 77 has one; p. 72 judges ligatures "retardatione sublata"), rare in his
+  practice (3 of 118 successive downbeats in second species, 1 of 54 in fourth), and so scored
+  as rare by the habits.
+- Generator settings: counsel weight 0 and variety 1 by default, i.e. each move drawn about as
+  often as Fux makes it (Gumbel-max sampling); generated first-species lines then match his
+  rates of repetition, leaps and spacing (14%, 32%, 7.4 semitones; Fux 11%, 32%, 7.1).
 - Habits are measured per role (counterpoint above or below) and with register and crossing
   (a tenth is not a third; a crossed third is not a third).
-- Generator: ranking by the most typical move gives far fewer leaps than Fux writes (6-19%
-  against his 32% in first species). Default: one point of counsel = one bit of habit, with
-  sampling noise of 3 bits. Generated lines then match his rates of repetition, leaps and spacing
-  (first species: 11%, 26%, 7.2 semitones; Fux 11%, 32%, 7.1).
+- Ranking by the most typical move alone gives far fewer leaps than Fux writes (6-19% against
+  his 32% in first species): hence the sampling above.
 - D8 bands checked against Fux's own cantus firmi ("Fux is the last word"): the leap band
   widened from 25-60% to 20-62% (Fig. 42's A has 20%, the G 62%); "turn after a rising fourth"
   is soft (Fux's G does not turn once); outlined sixths allowed when they arpeggiate a triad

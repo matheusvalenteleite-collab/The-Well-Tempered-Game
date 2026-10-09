@@ -31,3 +31,10 @@
   .lab-ex { grid-template-columns: 1fr; }
   .lab-ex-stat { text-align: left; }
 }
+.lab-trio { margin-top: 18px; padding-top: 6px; border-top: 1px solid var(--line); }
+.lab-trio h2 { font-size: 1.05rem; margin: 6px 0; }
+.lab-ex.lab-ex3 { align-items: start; }
+.lab-strips { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.lab-strip-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.lab-voice { font-size: 0.72rem; width: 3.6em; opacity: 0.75; }
+.lab [hidden] { display: none !important; }

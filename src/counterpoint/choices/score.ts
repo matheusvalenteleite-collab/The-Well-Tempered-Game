@@ -16,7 +16,7 @@ import { harmonic, isPerfectConsonance, motion } from "../interval.ts";
 import { parsePitch } from "../../music/pitch.ts";
 import type { Slot } from "../layout.ts";
 import { onsets } from "./corpus.ts";
-import { bits, melodicKey, melodicProb, roleOf, verticalKey, verticalProb, type HabitTables } from "./habits.ts";
+import { bits, melodicKey, melodicProb, roleOf, samePerfect, successionBits, verticalKey, verticalProb, type HabitTables } from "./habits.ts";
 import type { Staff } from "../../music/fux/index.ts";
 
 export type TierName = "errors" | "warnings" | "counsel" | "habit";
@@ -99,8 +99,26 @@ export function habitOf(t: HabitTables, cantusVoice: Staff, layout: Slot[], cant
   if (n.prev) melodic += bits(melodicProb(t, role, melodicKey(n.prev[1], n.pitch)));
   if (n.next) melodic += bits(melodicProb(t, role, melodicKey(n.pitch, n.next[1])));
   let vertical = 0;
-  for (const s of unit) vertical += bits(verticalProb(t, layout[s].beat === 0, verticalKey(cantus[layout[s].bar], n.pitch, cantusVoice)));
+  for (const s of unit) {
+    vertical += bits(verticalProb(t, layout[s].beat === 0, verticalKey(cantus[layout[s].bar], n.pitch, cantusVoice)));
+    if (layout[s].beat === 0) vertical += downbeatSuccession(t, layout, cantus, line, s, cantusVoice);
+  }
   return { melodic, vertical };
+}
+
+/** The downbeat at slot s against the downbeats before and after it: the same fifth or octave again is rare in Fux. */
+function downbeatSuccession(t: HabitTables, layout: Slot[], cantus: string[], line: (string | null)[], s: number, cantusVoice: Staff): number {
+  const key = (k: number) => (line[k] && /^[A-G]/.test(line[k]!) ? verticalKey(cantus[layout[k].bar], line[k]!, cantusVoice) : null);
+  const here = key(s);
+  if (!here) return 0;
+  let h = 0;
+  for (const dir of [-1, 1]) {
+    let j = s + dir;
+    while (j >= 0 && j < layout.length && layout[j].beat !== 0) j += dir;
+    const there = j >= 0 && j < layout.length ? key(j) : null;
+    if (there) h += successionBits(t, samePerfect(dir < 0 ? there : here, dir < 0 ? here : there));
+  }
+  return h;
 }
 
 export const counselTotal = (c: CounselParts) => c.motion + c.perfect + c.repeat + c.leap;

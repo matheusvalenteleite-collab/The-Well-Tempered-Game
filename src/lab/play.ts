@@ -69,3 +69,29 @@ export function stop() {
   stopAt?.();
   stopAt = null;
 }
+
+/** Play whole-note lines together (three voices, first species); `onBar` follows the bar. */
+export function playLines(lines: string[][], bpm = 72, onBar?: (k: number) => void): void {
+  stop();
+  ctx ??= new AudioContext();
+  const ac = ctx;
+  const out = ac.createGain();
+  out.gain.value = 0.45;
+  out.connect(ac.destination);
+  const whole = (2 * 60) / bpm;
+  const t0 = ac.currentTime + 0.08;
+  const oscs = lines.flatMap((l) => l.map((p, k) => tone(ac, out, p, t0 + k * whole, whole, 0.15)));
+  const timers = onBar ? [...lines[0].map((_, k) => window.setTimeout(() => onBar(k), (t0 - ac.currentTime + k * whole) * 1000)), window.setTimeout(() => onBar(-1), (t0 - ac.currentTime + lines[0].length * whole) * 1000)] : [];
+  stopAt = () => {
+    oscs.forEach((o) => {
+      try {
+        o.stop();
+      } catch {
+        /* already stopped */
+      }
+    });
+    timers.forEach((x) => clearTimeout(x));
+    out.disconnect();
+    onBar?.(-1);
+  };
+}

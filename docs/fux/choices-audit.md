@@ -40,10 +40,10 @@ Legal pitches at each choice (first ranking; \* where Fux's note is not ranked f
 
 | ranking | Fux first | Fux first alone | first where free | mean rank |
 |---|---|---|---|---|
-| errors > warnings > counsel > habit | 82% | 82% | 74% (178) | 1.24 |
+| errors > warnings > counsel > habit | 81% | 81% | 73% (178) | 1.25 |
 | errors > warnings > counsel | 89% | 72% | 59% (178) | 1.13 |
-| errors > habit | 76% | 76% | 65% (178) | 1.38 |
-| errors > counsel > habit | 82% | 82% | 74% (178) | 1.24 |
+| errors > habit | 75% | 75% | 63% (178) | 1.39 |
+| errors > counsel > habit | 81% | 81% | 73% (178) | 1.25 |
 
 Legal pitches at each choice (first ranking; \* where Fux's note is not ranked first):
 
@@ -57,7 +57,7 @@ Legal pitches at each choice (first ranking; \* where Fux's note is not ranked f
 | 39 | F | above | 2 9 7\* 1 8 1 9 2 12\* 7 8\* 8 8 6 8 3 7\* 6 4 2 1 1 |
 | 40 | G | below | 4\* 1 10 1 8 1 4 1 4 7 6 1 9 1 8 1 9 1 9\* 9 10 5 2 2 1 2 |
 | 41 | G | above | 2 7 10 1 10\* 1 6 1 9\* 5\* 8\* 1 5 1 7 1 8 1 9 2\* 12\* 5 4 2 1 2 |
-| 42 | A | below | 4 1 8 1 11\* 4 6\* 7 10 3 7 8 8\* 5\* 5 5 1 5 1 2 |
+| 42 | A | below | 4 1 8 1 11\* 4 6\* 7 10 3 7 8 8\* 5\* 5 5\* 1 5 1 2 |
 | 43 | A | above | 1 4\* 7\* 7\* 4 7\* 8\* 1 8 1 10\* 3 4 7 10 8\* 9 4 3 2 1 1 |
 | 44 | C | below | 4 4 7 3 6\* 1 8 1 6 1 7 1 8 6 7 1 7 1 2 2 1 2 |
 | 45 | C | above | 1 1 8 1 4 6\* 8 1 4 1 7\* 1 8 1 8\* 5\* 4 5 4\* 2 1 1 |
@@ -70,7 +70,7 @@ Legal pitches at each choice (first ranking; \* where Fux's note is not ranked f
 |---|---|---|---|---|
 | errors > warnings > counsel > habit | 88% | 87% | 78% (144) | 1.20 |
 | errors > warnings > counsel | 93% | 75% | 57% (144) | 1.12 |
-| errors > habit | 88% | 87% | 78% (144) | 1.20 |
+| errors > habit | 88% | 88% | 79% (144) | 1.20 |
 | errors > counsel > habit | 88% | 87% | 78% (144) | 1.20 |
 
 Legal pitches at each choice (first ranking; \* where Fux's note is not ranked first):
@@ -90,10 +90,10 @@ Legal pitches at each choice (first ranking; \* where Fux's note is not ranked f
 
 | ranking | Fux first | Fux first alone | first where free | mean rank |
 |---|---|---|---|---|
-| errors > warnings > counsel > habit | 85% | 85% | 69% (32) | 1.25 |
+| errors > warnings > counsel > habit | 85% | 85% | 69% (32) | 1.24 |
 | errors > warnings > counsel | 90% | 84% | 66% (32) | 1.16 |
-| errors > habit | 84% | 84% | 66% (32) | 1.25 |
-| errors > counsel > habit | 85% | 85% | 69% (32) | 1.25 |
+| errors > habit | 87% | 87% | 72% (32) | 1.18 |
+| errors > counsel > habit | 85% | 85% | 69% (32) | 1.24 |
 
 Legal pitches at each choice (first ranking; \* where Fux's note is not ranked first):
 
@@ -105,3 +105,14 @@ Legal pitches at each choice (first ranking; \* where Fux's note is not ranked f
 | 76 | E | above | 3 4\* 1 1 9\* 2 1 1 1 1 |
 | 77 | F | below | 1 1 7\* 7 2 1 1 1 7 1 1 2 |
 | 78 | F | above | 1 1 1 6\* 3\* 4 1 7 1 1 1 1 |
+
+## Three voices, first species
+
+16 solutions, 374 choices (each of Fux's two added voices, bar by bar), judged by the game's three-voice rules (`evaluateTrio`, D90); habits: sonority above the bass, spacing of neighbouring staves, melodic moves per staff. 3.6 legal pitches per choice; only Fux's note legal at 11%; Fux illegal at 0.
+
+| ranking | Fux first | first where free | mean rank |
+|---|---|---|---|
+| errors > warnings > counsel > habit | 76% | 73% (332) | 1.29 |
+| errors > warnings > counsel | 82% | 55% (332) | 1.22 |
+| errors > habit | 80% | 77% (332) | 1.25 |
+| errors > counsel > habit | 73% | 69% (332) | 1.33 |

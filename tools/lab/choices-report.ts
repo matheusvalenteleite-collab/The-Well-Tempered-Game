@@ -5,6 +5,9 @@ import { loadFuxRepository } from "../../src/music/fux/load-node.ts";
 import { auditSpecies, pool, type ExerciseAudit } from "../../src/counterpoint/choices/audit.ts";
 import { CHOICE_SPECIES } from "../../src/counterpoint/choices/corpus.ts";
 import type { TierName } from "../../src/counterpoint/choices/score.ts";
+import { readFileSync } from "node:fs";
+import { trioSteps } from "../../src/game/trio.ts";
+import { auditTrios, poolTrios } from "../../src/counterpoint/choices/trio.ts";
 
 const repo = loadFuxRepository();
 const pct = (a: number, b: number) => `${Math.round((100 * a) / b)}%`;
@@ -45,5 +48,16 @@ for (const species of CHOICE_SPECIES) {
   }
   out.push("");
 }
+const trios = trioSteps(JSON.parse(readFileSync("data/fux/three-voice/fux-three-voice.json", "utf8")));
+const t = auditTrios(trios);
+const tp = poolTrios(t);
+out.push("## Three voices, first species", "");
+out.push(`${t.length} solutions, ${tp.choices} choices (each of Fux's two added voices, bar by bar), judged by the game's three-voice rules (\`evaluateTrio\`, D90); habits: sonority above the bass, spacing of neighbouring staves, melodic moves per staff. ${tp.meanLegal.toFixed(1)} legal pitches per choice; only Fux's note legal at ${pct(tp.forced, tp.choices)}; Fux illegal at ${tp.fuxIllegal}.`, "");
+out.push("| ranking | Fux first | first where free | mean rank |", "|---|---|---|---|");
+for (const [name, order] of ORDERS) {
+  const q = poolTrios(auditTrios(trios, { order }));
+  out.push(`| ${name} | ${pct(q.fuxFirst, q.choices)} | ${pct(q.fuxFirstFree, q.free)} (${q.free}) | ${q.meanRank.toFixed(2)} |`);
+}
+out.push("");
 writeFileSync("docs/fux/choices-audit.md", out.join("\n"));
 console.log("wrote docs/fux/choices-audit.md");
