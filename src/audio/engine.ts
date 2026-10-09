@@ -7,7 +7,7 @@
  * The AudioContext is created on the first user gesture (browser autoplay policy).
  */
 import { Soundfont } from "smplr";
-import { DEFAULT_DRUMS, DrumMachine, kitOf, type DrumCue, type DrumSettings, type DrumVoice } from "./drums.ts";
+import { DEFAULT_DRUMS, DrumMachine, isSampled, kitOf, type DrumCue, type DrumSettings, type DrumVoice } from "./drums.ts";
 import { DEFAULT_SYNTH, type SynthSettings } from "./synth-settings.ts";
 import { FxChain } from "./effects.ts";
 import { audibleGain, CHANNELS, DEFAULT_MASTER_FX, DEFAULT_SOUND, shiftOctave, STRIPS, versionSettings, type Channel, type SoundState, type Strip } from "./sound.ts";
@@ -199,6 +199,8 @@ export class AudioEngine {
     if (this.drumMachine) {
       this.drumMachine.settings = this.drumSettings;
       this.drumMachine.final = final;
+      const kit = kitOf(this.drumSettings);
+      if (isSampled(kit)) void this.drumMachine.loadKit(kit);
     }
   }
 

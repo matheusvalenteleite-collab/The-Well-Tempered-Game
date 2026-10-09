@@ -42,6 +42,7 @@ export function validDrumKit(raw: unknown): DrumSettings {
     (v.accent === undefined || typeof v.accent === "boolean") &&
     (v.autoFill === undefined || typeof v.autoFill === "boolean") &&
     (v.variation === undefined || v.variation === "A" || v.variation === "B" || v.variation === "AB") &&
-    (v.mutes === undefined || (Array.isArray(v.mutes) && v.mutes.every((m) => typeof m === "string")));
+    (v.mutes === undefined || (Array.isArray(v.mutes) && v.mutes.every((m) => typeof m === "string"))) &&
+    (v.parts === undefined || (typeof v.parts === "object" && v.parts !== null && Object.values(v.parts).every((k) => typeof k === "number" && k >= 1)));
   return ok ? v : { ...DEFAULT_DRUMS };
 }

@@ -99,6 +99,88 @@ export function searchFirstSpecies(cantus: string[], cantusVoice: "upper" | "low
   return { lines, candidates: c, usable };
 }
 
+/** Notes of the counterpoint's range around a cantus note (crossing allowed by up to a sixth in the middle). */
+function rangeOf(cf: string, below: boolean, crossing: boolean, nearEnd: boolean): string[] {
+  const d = parsePitch(cf).diatonic;
+  const out: string[] = [];
+  for (let s = crossing ? -5 : 0; s <= 11; s++) out.push(...forms(below ? d - s : d + s, nearEnd));
+  return out;
+}
+const pc = (x: string) => parsePitch(x).midi % 12;
+const consonant = (cp: string, cf: string) => isConsonant(harmonic(cp, cf));
+const perfect = (cp: string, cf: string) => isPerfectConsonance(harmonic(cp, cf));
+const isStep = (a: string, b: string) => interval(a, b).number === 2;
+
+/**
+ * Second species (D107): count the correct lines under its main rules, bar by bar over the
+ * downbeats, trying every upbeat between them. Downbeats consonant (a unison only at the ends);
+ * an upbeat consonant, or dissonant only as a passing note (by step, on in the same direction);
+ * no note struck twice in a bar; perfect consonances on a downbeat reached by contrary or oblique
+ * motion; no two fifths or octaves on successive downbeats bridged by a step or a third; the
+ * cadence (the major sixth or minor third on the last upbeat, after any consonance: Fux's own
+ * downbeats there vary);
+ * the ending on the octave or unison; a half rest at the start allowed.
+ */
+export function searchSecondSpecies(cantus: string[], cantusVoice: "upper" | "lower") {
+  const below = cantusVoice === "upper";
+  const n = cantus.length;
+  const cad = cadenceNote(cantus, below ? "upper" : "lower");
+  const firstOk = (note: string) => perfect(note, cantus[0]) && (!below || isOctaveClass(harmonic(note, cantus[0])));
+  const down = cantus.map((cf, b) => {
+    const xs = rangeOf(cf, below, b > 0 && b < n - 2, b >= n - 4);
+    if (b === n - 1) return xs.filter((x) => isOctaveClass(harmonic(x, cf)));
+    if (b === n - 2) return xs.filter((x) => consonant(x, cf) && !isUnison(harmonic(x, cf)));
+    return xs.filter((x) => consonant(x, cf) && (b === 0 || !isUnison(harmonic(x, cf))));
+  });
+  const ups = cantus.map((cf, b) => (b === n - 2 ? rangeOf(cf, below, false, true).filter((x) => pc(x) === pc(cad)) : rangeOf(cf, below, b > 0, b >= n - 4)));
+  /** May upbeat u stand between downbeats d (bar b, or the rest if null) and e (bar b + 1)? */
+  const bridge = (b: number, d: string | null, u: string, e: string) => {
+    const cf = cantus[b];
+    const next = cantus[b + 1];
+    if (d !== null && (u === d || !melodicOk(d, u))) return false;
+    if (!melodicOk(u, e)) return false;
+    if (d === null && !firstOk(u)) return false;
+    if (!consonant(u, cf)) {
+      if (d === null || !isStep(d, u) || !isStep(u, e)) return false;
+      if (interval(d, u).direction !== interval(u, e).direction) return false;
+    }
+    if (perfect(e, next)) {
+      const m = below ? motion(u, cf, e, next) : motion(cf, u, next, e);
+      if (m === "similar" || m === "parallel") return false;
+      if (d !== null && perfect(d, cf) && harmonic(d, cf).simple === harmonic(e, next).simple && interval(d, u).number <= 3) return false;
+    }
+    return true;
+  };
+  // Lines into each downbeat (forward) and from it to the end (backward); a rest may open bar 1.
+  const fwd = down.map((xs) => xs.map(() => 0));
+  down[0].forEach((x, i) => (fwd[0][i] = firstOk(x) ? 1 : 0));
+  let restStarts = 0;
+  for (let b = 0; b < n - 1; b++)
+    down[b + 1].forEach((e, j) => {
+      let sum = 0;
+      down[b].forEach((d, i) => {
+        if (fwd[b][i]) sum += fwd[b][i] * ups[b].filter((u) => bridge(b, d, u, e)).length;
+      });
+      if (b === 0) {
+        const r = ups[0].filter((u) => bridge(0, null, u, e)).length;
+        sum += r;
+        restStarts += r;
+      }
+      fwd[b + 1][j] = sum;
+    });
+  const bwd = down.map((xs) => xs.map(() => 0));
+  down[n - 1].forEach((_, i) => (bwd[n - 1][i] = 1));
+  for (let b = n - 2; b >= 0; b--)
+    down[b].forEach((d, i) => {
+      bwd[b][i] = down[b + 1].reduce((sum, e, j) => sum + (bwd[b + 1][j] ? bwd[b + 1][j] * ups[b].filter((u) => bridge(b, d, u, e)).length : 0), 0);
+    });
+  const lines = fwd[n - 1].reduce((a, x) => a + x, 0);
+  const usable = down.map((xs, b) => xs.filter((_, i) => (b === 0 ? fwd[0][i] > 0 : fwd[b][i] > 0) && bwd[b][i] > 0));
+  // Openings: a downbeat note of bar 1 that leads on, or (after the rest) an upbeat that does.
+  const restOpenings = ups[0].filter((u) => down[1].some((e, j) => bwd[1][j] > 0 && bridge(0, null, u, e)));
+  return { lines, usable, candidates: down, restOpenings, restStarts };
+}
+
 const prettyNote = (p: string) => p.replace("#", "♯").replace(/^([A-G])b/, "$1♭");
 
 /** The tips of an exercise, most useful first. */
@@ -118,6 +200,20 @@ export function exerciseTips(cantus: string[], cantusVoice: "upper" | "lower", s
         else tips.push({ kind: "tight", bar: tight + 1, usable: usable.map(prettyNote), consonant: s.candidates[tight].length });
       }
       tips.push({ kind: "openings", notes: s.usable[0].map(prettyNote) });
+    }
+  }
+  if (species === "second") {
+    const s = searchSecondSpecies(cantus, cantusVoice);
+    tips.push({ kind: "freedom", lines: s.lines });
+    if (s.lines > 0) {
+      let tight = -1;
+      for (let k = 1; k < n - 2; k++) if (tight < 0 || s.usable[k].length < s.usable[tight].length) tight = k;
+      if (tight > 0) {
+        const usable = s.usable[tight];
+        if (usable.length === 1) tips.push({ kind: "forced", bar: tight + 1, note: prettyNote(usable[0]) });
+        else tips.push({ kind: "tight", bar: tight + 1, usable: usable.map(prettyNote), consonant: s.candidates[tight].length });
+      }
+      tips.push({ kind: "openings", notes: [...s.usable[0], ...s.restOpenings.map((x) => `𝄼 ${x}`)].map(prettyNote) });
     }
   }
   // The cantus's leaps: the counterpoint answers them best by a step the other way.

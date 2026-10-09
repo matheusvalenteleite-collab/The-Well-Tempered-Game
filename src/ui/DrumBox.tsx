@@ -6,7 +6,7 @@
  * Choosing a kit or a preset starts from its defaults. The level is on the mixer.
  */
 import { useEffect, useRef, useState } from "react";
-import { DRUM_CUES, DRUM_KITS, defaultLength, freshDrums, kitOf, loopFraction, padsFor, patternById, presetsOf, stepLoop, SWING_STEPS, type DrumCue, type DrumSettings, type DrumVariation } from "../audio/drums.ts";
+import { cyclePad, DRUM_CUES, DRUM_KITS, defaultLength, padState, freshDrums, kitOf, loopFraction, padsFor, patternById, presetsOf, stepLoop, SWING_STEPS, type DrumCue, type DrumSettings, type DrumVariation } from "../audio/drums.ts";
 import { audio } from "./shared.ts";
 import { t } from "./i18n.ts";
 
@@ -21,10 +21,12 @@ interface Props {
   onTempo?(bpm: number): void;
 }
 
+/** "2 bars", "¾ bar", and a polymetric length as loops over bars: 4/3 = "3 loops / 4 bars" (D107). */
 const lengthText = (l: number) => {
   const f = loopFraction(l) ?? [l, 1];
-  const n = f[1] === 1 ? String(f[0]) : `${f[0]}/${f[1]}`;
-  return t(l === 1 ? "ui.drums.bar" : l > 1 ? "ui.drums.bars" : "ui.drums.fraction", { n });
+  if (f[1] === 1) return t(l === 1 ? "ui.drums.bar" : "ui.drums.bars", { n: String(f[0]) });
+  if (l < 1) return t("ui.drums.fraction", { n: `${f[0]}/${f[1]}` });
+  return t("ui.drums.poly", { loops: f[1], bars: f[0] });
 };
 const swingText = (s: number) => (s <= 0.5 ? t("ui.drums.swing.off") : `${Math.round(s * 100)}%`);
 
@@ -142,16 +144,19 @@ export function DrumBox({ on, onToggle, value, onChange, onPreview, onTempo }: P
         <span className="dlabel">{t("ui.drums.pads")}</span>
         <div className="minipads" title={t("ui.drums.pads.help")}>
           {pads.map((p, i) => {
-            const muted = p.group.every((v) => mutes.includes(v));
+            const state = padState(value, p);
+            const muted = state.kind === "off";
+            const name = t(`ui.drums.voice.${p.voice}`);
+            const now = state.kind === "part" ? t("ui.drums.pad.part", { name, part: state.part ?? "" }) : t(state.kind === "off" ? "ui.drums.pad.off" : "ui.drums.pad.original", { name });
             return (
               <span
                 key={`${p.voice}-${i}`}
                 ref={(el) => { padRefs.current[i] = el; }}
-                className={`minipad kind-${p.kind}${muted ? " muted" : ""}`}
+                className={`minipad kind-${p.kind}${muted ? " muted" : ""}${state.kind === "part" ? " added" : ""}`}
                 role="button"
-                aria-pressed={muted}
-                title={t(muted ? "ui.drums.unmute" : "ui.drums.mute", { name: t(`ui.drums.voice.${p.voice}`) })}
-                onClick={() => set({ mutes: muted ? mutes.filter((m) => !p.group.includes(m)) : [...new Set([...mutes, ...p.group])] })}
+                aria-pressed={!muted}
+                title={`${now} ${t("ui.drums.pad.next")}`}
+                onClick={() => onChange(cyclePad(value, p))}
               />
             );
           })}

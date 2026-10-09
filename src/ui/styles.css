@@ -899,3 +899,6 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .shell.layout-compact .dock .sound .editor { flex: 0 0 auto; }
 /* D106: the music sits in the middle of its box when the box is taller than the music. */
 .shell .score-area .viewport-content { min-height: 100%; align-items: center; }
+/* D107: sixteen kits in three columns; a pad playing an added part is ringed. */
+.drumbox .kit-grid { grid-template-columns: repeat(3, auto); }
+.minipad.added { outline: 2px solid #ffe066; outline-offset: -2px; }

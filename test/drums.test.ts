@@ -25,10 +25,12 @@ test("loop lengths (D99): the arrows step through plausible lengths; a 2/3-bar l
   assert.equal(stepLoop(4, 1), 8);
   assert.equal(stepLoop(8, 1), 3);
   assert.equal(stepLoop(5, 1), 6);
-  assert.equal(stepLoop(6, 1), null);
-  assert.equal(stepLoop(1, -1), 3 / 2);
+  // D107: the polymetric lengths after 6: three loops in four bars, two in three, and so on.
+  assert.equal(stepLoop(6, 1), 4 / 3);
+  assert.equal(stepLoop(4 / 3, 1), 3 / 2);
+  assert.equal(stepLoop(1, -1), 3 / 4);
   assert.equal(stepLoop(1 / 4, -1), null);
-  assert.ok(!LOOP_STEPS.includes(8 / 3));
+  assert.ok(LOOP_STEPS.every((l) => validLoopLength(l)));
   assert.ok(LOOP_STEPS.every(validLoopLength));
   assert.ok(validLoopLength(2 / 3) && !validLoopLength(0.1) && !validLoopLength("1"));
   // Kicks of "rock" (steps 0 and 8 of 16) over a loop of 2/3 bar: every third of a bar.
@@ -135,4 +137,29 @@ test("fills (D102): every preset has its own; a fill keeps the groove's tempo an
   // A kit without snare plays the generic fills on its own drums.
   const bossaFill = hitsForCue({ pattern: "bossa", length: 2, level: 1 }, "fill2").map(([v]) => v);
   assert.ok(!bossaFill.includes("snare") && bossaFill.includes("congaHigh"));
+});
+
+test("pads (D107): a click steps through the preset's part, the instrument's parts, and off", async () => {
+  const { cyclePad, padsFor, padState, padParts, patternById, hitsForBar } = await import("../src/audio/drums.ts");
+  let s = { pattern: "rock", length: 1, level: 1 } as Parameters<typeof cyclePad>[0];
+  const pads = padsFor(s);
+  const hat = pads.find((p) => p.voice === "hat")!;
+  // A pad the preset uses: original → each part → off → original.
+  const n = padParts(patternById("rock"), "hat").length;
+  const seen: string[] = [padState(s, hat).kind];
+  for (let i = 0; i < n + 2; i++) {
+    s = cyclePad(s, hat);
+    seen.push(padState(s, hat).kind);
+  }
+  assert.deepEqual(seen, ["original", ...Array(n).fill("part"), "off", "original"]);
+  // A pad the preset leaves silent: off → its parts → off; a part adds the voice to the groove.
+  const bell = { pattern: "rock", length: 1, level: 1 } as Parameters<typeof cyclePad>[0];
+  const cow = padsFor({ pattern: "electro", length: 1, level: 1 }).find((p) => p.voice === "cowbell")!;
+  const rockPads = padsFor(bell);
+  const silent = rockPads.find((p) => !p.group.some((v) => patternById("rock").loop[v]))!;
+  assert.equal(padState(bell, silent).kind, "off");
+  const added = cyclePad(bell, silent);
+  assert.equal(padState(added, silent).kind, "part");
+  assert.ok(hitsForBar(added, 2, 8).some(([v]) => v === silent.voice));
+  assert.ok(cow);
 });

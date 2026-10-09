@@ -179,7 +179,11 @@ export function RuleBasics({ step, cantus }: { step: CurriculumStep; cantus: str
 /** One tip in words (D103). */
 function tipText(tip: Tip, below: boolean): string {
   switch (tip.kind) {
-    case "freedom": return t("tips.freedom", { n: tip.lines.toLocaleString("en") });
+    case "freedom": {
+      const n = tip.lines;
+      const words = n >= 1e12 ? t("tips.many.trillion") : n >= 1e9 ? t("tips.many.billion") : n >= 1e6 ? t("tips.many.million") : n.toLocaleString("en");
+      return t("tips.freedom", { n: words });
+    }
     case "tight": return t("tips.tight", { bar: tip.bar, k: tip.consonant, notes: tip.usable.join(", ") });
     case "forced": return t("tips.forced", { bar: tip.bar, note: tip.note });
     case "openings": return t("tips.openings", { notes: tip.notes.join(", ") });
@@ -244,7 +248,7 @@ export function ExerciseNotes({ step, cantus }: { step: CurriculumStep; cantus: 
           )}
           <h3>{t("tips.title")}</h3>
           <ul className="tips">{tips.map((tip, i) => <li key={i}>{tipText(tip, !below)}</li>)}</ul>
-          {step.species === "first" && <p className="note">{t("tips.method")}</p>}
+          {(step.species === "first" || step.species === "second") && <p className="note">{t("tips.method")}</p>}
         </div>
       </div>
     </section>

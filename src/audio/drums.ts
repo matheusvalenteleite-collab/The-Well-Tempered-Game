@@ -28,12 +28,25 @@ export type DrumVoice =
  *   sixties    A 1960s rock kit (D99): a muffled, felt-beater bass drum, a loose snare, thin trashy
  *              hats, washy cymbals and resonant toms with little pitch bend, as recorded in a room.
  */
-export type DrumKit = "studio" | "sixties" | "tr808" | "tr909" | "cr78" | "rhythmAce" | "sdsv" | "percussion" | "tribal" | "orchestral";
+export type DrumKit = "studio" | "sixties" | "tr808" | "tr909" | "cr78" | "rhythmAce" | "sdsv" | "percussion" | "tribal" | "orchestral" | SampledKit;
+/**
+ * Recorded kits (D107), played from one-shot samples (public/samples/drums/<kit>/): a voice the
+ * kit lacks falls back on the synthesized studio voice.
+ *   virtuosity  Virtuosity Drums (Versilian Studios, Karoryfer; Austin McMahon), a jazz club kit. CC0.
+ *   bigRusty    Big Rusty Drums (Karoryfer), a vintage Polish kit by Zygmunt Szpaderski. CC0.
+ *   naked       Naked Drums (Wilkinson Audio), a modern Yamaha studio kit. CC BY 4.0.
+ *   drskit      DRSKit (DrumGizmo; Jes Eiler / DRSDrums), a handmade kit, jazz to rock. CC BY 4.0.
+ *   retro       Retro Drums 1 (The Tic Tok Men), samples of old drum machines.
+ *   unruly      Unruly Drums (Karoryfer), every drum with snare wires on it. CC0.
+ */
+export type SampledKit = "virtuosity" | "bigRusty" | "naked" | "drskit" | "retro" | "unruly";
+export const SAMPLED_KITS: readonly SampledKit[] = ["virtuosity", "bigRusty", "naked", "drskit", "retro", "unruly"];
+export const isSampled = (k: DrumKit): k is SampledKit => (SAMPLED_KITS as readonly string[]).includes(k);
 /**
  * The kits (D100): each with its own presets, the first of them its paradigm. Hand percussion,
  * tribal drums and the orchestra are kits of their own, on the synthesized voices.
  */
-export const DRUM_KITS: readonly DrumKit[] = ["studio", "sixties", "tr808", "tr909", "cr78", "rhythmAce", "sdsv", "percussion", "tribal", "orchestral"];
+export const DRUM_KITS: readonly DrumKit[] = ["naked", "drskit", "bigRusty", "virtuosity", "unruly", "retro", "studio", "sixties", "tr808", "tr909", "cr78", "rhythmAce", "sdsv", "percussion", "tribal", "orchestral"];
 
 export interface DrumPattern {
   id: string;
@@ -54,7 +67,7 @@ export interface DrumPattern {
   b?: Partial<Record<DrumVoice, string>>;
 }
 
-export const DRUM_PATTERNS: readonly DrumPattern[] = [
+const BASE_PATTERNS: DrumPattern[] = [
   // ---- drum kit
   {
     id: "rock", kit: "studio", steps: 16,
@@ -244,6 +257,31 @@ export const DRUM_PATTERNS: readonly DrumPattern[] = [
   },
 ];
 
+/** A preset of another kit, played on a recorded kit (D107). */
+const on = (kit: DrumKit, from: string, id: string, extra: Partial<DrumPattern> = {}): DrumPattern => ({ ...BASE_PATTERNS.find((p) => p.id === from)!, id, kit, ...extra });
+const JAZZ: DrumPattern = {
+  id: "jazzRide", kit: "virtuosity", steps: 12,
+  loop: { ride: "X..x.xX..x.x", hat: "...x.....x..", kick: "g..g..g..g..", snare: "........g..." },
+  b: { ride: "X..x.xX..x.x", hat: "...x.....x..", kick: "g..g..g..g..", snare: "..g.....g.x." },
+  start: ["crash"], fill: { ride: "X..x........", snare: "...x.xx.xX.X", kick: "X.........x." }, end: ["kick", "crash"],
+};
+const JAZZ_BRUSH_FREE: DrumPattern = {
+  id: "jazzTwo", kit: "virtuosity", steps: 12,
+  loop: { ride: "X.....X..x.x", hat: "...x.....x..", kick: "X.....g.....", rim: ".........x.." },
+  start: ["ride"], fill: { snare: "x..x.xx.xX.X", kick: "X.....x....." }, end: ["kick", "crash"],
+};
+
+export const DRUM_PATTERNS: readonly DrumPattern[] = [
+  on("naked", "rock", "nakedRock"), on("naked", "funk", "nakedFunk"), on("naked", "halftime", "nakedHalftime"), on("naked", "motorik", "nakedMotorik"),
+  on("drskit", "rock", "drsRock"), on("drskit", "shuffle", "drsShuffle"), on("drskit", "motown", "drsMotown"), on("drskit", "halftime", "drsHalftime"),
+  on("bigRusty", "beat60s", "rustyBeat"), on("bigRusty", "psych", "rustyPsych"), on("bigRusty", "garage", "rustyGarage"), on("bigRusty", "surf", "rustySurf"),
+  JAZZ, JAZZ_BRUSH_FREE, on("virtuosity", "bossa", "virtBossa", { kit: "virtuosity" }), on("virtuosity", "conga", "virtLatin"), on("virtuosity", "shuffle", "virtShuffle"),
+  on("unruly", "garage", "unrulyGarage"), on("unruly", "funk", "unrulyFunk"), on("unruly", "halftime", "unrulyHalftime"),
+  on("retro", "electro", "retroElectro"), on("retro", "newwave", "retroNewwave"), on("retro", "rhythmbox", "retroBox"), on("retro", "house", "retroHouse"),
+  ...BASE_PATTERNS,
+];
+
+
 /** A kit's presets, its paradigm first (D100). */
 export const presetsOf = (kit: DrumKit) => DRUM_PATTERNS.filter((p) => p.kit === kit);
 /** The loop length a pattern starts with (D100: two bars unless it says otherwise). */
@@ -270,6 +308,8 @@ export interface DrumSettings {
   variation?: DrumVariation;
   /** Voices silenced (D99), by the pads that carry them. */
   mutes?: DrumVoice[];
+  /** Parts given to pads by clicking (D107): the pad's voice → the number (1…) of its part. */
+  parts?: Partial<Record<DrumVoice, number>>;
   /** Fill at the end of every pass of the loop and before the last bar (D99); on if absent. */
   autoFill?: boolean;
 }
@@ -284,7 +324,7 @@ export const LOOP_MAX = 8;
  * come together, 1, 2, 4 and 8 bars; then 3, 5 and 6; the odd lengths 4/3 and 3/2 before 1 with
  * the short ones.
  */
-export const LOOP_STEPS: readonly number[] = [1 / 4, 1 / 3, 1 / 2, 2 / 3, 3 / 4, 4 / 3, 3 / 2, 1, 2, 4, 8, 3, 5, 6];
+export const LOOP_STEPS: readonly number[] = [1 / 4, 1 / 3, 1 / 2, 2 / 3, 3 / 4, 1, 2, 4, 8, 3, 5, 6, 4 / 3, 3 / 2, 5 / 4, 5 / 3, 8 / 5, 8 / 3];
 /** The next loop length in the list (dir 1) or the one before (dir -1), or null at its ends. */
 export function stepLoop(length: number, dir: 1 | -1): number | null {
   let i = LOOP_STEPS.findIndex((l) => Math.abs(l - length) < 1e-9);
@@ -298,7 +338,7 @@ export function stepLoop(length: number, dir: 1 | -1): number | null {
 /** The swing settings offered (D99), as the delayed sixteenth's place in its pair: straight to triplet and beyond. */
 export const SWING_STEPS: readonly number[] = [0.5, 0.54, 0.58, 0.62, 0.66, 0.71];
 
-const DENOMINATORS = [1, 2, 3, 4, 6, 8, 9, 12, 16, 18, 24, 27, 32, 36, 48, 54, 64, 72, 81, 96, 108, 128, 144, 162, 216, 243, 256];
+const DENOMINATORS = [1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15, 16, 18, 20, 24, 27, 30, 32, 36, 40, 48, 54, 64, 72, 80, 81, 96, 108, 128, 144, 160, 162, 216, 243, 256];
 /** The loop length as a fraction n/d (d a product of 2s and 3s), or null if it is not one. */
 export function loopFraction(length: number): [number, number] | null {
   for (const d of DENOMINATORS) {
@@ -335,9 +375,20 @@ export function variationB(p: DrumPattern): Partial<Record<DrumVoice, string>> {
 }
 
 /** The step lines of the loop that covers bar position `loopIndex` (A, B or alternating). */
-function linesFor(p: DrumPattern, variation: DrumVariation | undefined, loopIndex: number) {
-  const v = variation ?? "A";
-  return v === "B" || (v === "AB" && loopIndex % 2 === 1) ? variationB(p) : p.loop;
+function linesFor(p: DrumPattern, s: DrumSettings, loopIndex: number) {
+  const v = s.variation ?? "A";
+  const base = v === "B" || (v === "AB" && loopIndex % 2 === 1) ? variationB(p) : p.loop;
+  if (!s.parts || !Object.keys(s.parts).length) return base;
+  const out = { ...base };
+  for (const [voice, k] of Object.entries(s.parts) as [DrumVoice, number][]) {
+    const line = padParts(p, voice)[k - 1];
+    if (!line) continue;
+    // A part replaces what the pad's voices played (the group of the pad), or adds the voice.
+    const pad = padsFor(s).find((x) => x.voice === voice);
+    for (const g of pad?.group ?? [voice]) delete out[g];
+    out[voice] = line;
+  }
+  return out;
 }
 
 /** Fills fired by hand (D99): the pattern's own, a snare roll, a tom cascade, stop-time hits. */
@@ -411,7 +462,7 @@ function writeLines(out: Hit[], s: DrumSettings, lines: Partial<Record<DrumVoice
 function grooveThenFill(out: Hit[], s: DrumSettings, p: DrumPattern, bar: number, fill: { lines: Partial<Record<DrumVoice, string>>; steps: number }, windowStart: number, end: number) {
   const L = s.length;
   const fillStart = Math.max(windowStart, end - L);
-  for (let loop = Math.floor(bar / L + 1e-9); loop * L < bar + 1 - 1e-9; loop++) writeLines(out, s, linesFor(p, s.variation, loop), p.steps, bar, loop * L, L, -Infinity, fillStart);
+  for (let loop = Math.floor(bar / L + 1e-9); loop * L < bar + 1 - 1e-9; loop++) writeLines(out, s, linesFor(p, s, loop), p.steps, bar, loop * L, L, -Infinity, fillStart);
   writeLines(out, s, fill.lines, fill.steps, bar, end - L, L, fillStart, end);
 }
 
@@ -430,7 +481,7 @@ export function hitsForBar(settings: DrumSettings, bar: number, totalBars: numbe
     grooveThenFill(out, settings, p, bar, cueLines(p, "fill1"), bar, bar + 1);
   } else {
     const L = settings.length;
-    for (let loop = Math.floor(bar / L + 1e-9); loop * L < bar + 1 - 1e-9; loop++) writeLines(out, settings, linesFor(p, settings.variation, loop), p.steps, bar, loop * L, L);
+    for (let loop = Math.floor(bar / L + 1e-9); loop * L < bar + 1 - 1e-9; loop++) writeLines(out, settings, linesFor(p, settings, loop), p.steps, bar, loop * L, L);
   }
   if (bar === 0) for (const v of p.start ?? []) out.push([v, 1, 0]);
   return unmuted(settings, out);
@@ -455,14 +506,130 @@ export function hitsForBreath(settings: DrumSettings, span = 0.5): Hit[] {
   const out: Hit[] = [];
   const L = settings.length;
   if (settings.autoFill === false) {
-    writeLines(out, settings, linesFor(p, settings.variation, 0), p.steps, 0, 0, L);
+    writeLines(out, settings, linesFor(p, settings, 0), p.steps, 0, 0, L);
     return unmuted(settings, out.filter(([, , at]) => at < span - 1e-9));
   }
   // The breath is `span` bars: the end of the fill, at the loop's scale, landing on bar 1 (D102).
   const fill = cueLines(p, "fill1");
   writeLines(out, settings, fill.lines, fill.steps, 0, span - L, L, Math.max(0, span - L), span);
-  if (span > L) for (let loop = 0; loop * L < span - L - 1e-9; loop++) writeLines(out, settings, linesFor(p, settings.variation, loop), p.steps, 0, loop * L, L, 0, span - L);
+  if (span > L) for (let loop = 0; loop * L < span - L - 1e-9; loop++) writeLines(out, settings, linesFor(p, settings, loop), p.steps, 0, loop * L, L, 0, span - L);
   return unmuted(settings, out);
+}
+
+/**
+ * Parts for a pad (D107): what an instrument can play in this preset, by its role. Clicking a pad
+ * steps through them: a pad the pattern uses goes original → its parts → off; a pad it does not
+ * use goes off → its parts → off. Written on sixteen steps per loop and fitted to the pattern's.
+ */
+const PARTS16: Record<string, { name: string; line: string }[]> = {
+  bell: [
+    { name: "downbeats", line: "X...x...X...x..." },
+    { name: "offbeats", line: "..x...x...x...x." },
+    { name: "clave", line: "x..x..x...x.x..." },
+  ],
+  shaker: [
+    { name: "sixteenths", line: "xgxgXgxgxgxgXgxg" },
+    { name: "backbeat", line: "....X.......X..." },
+  ],
+  openhat: [
+    { name: "offbeats", line: "..x...x...x...x." },
+    { name: "last eighth", line: "..............x." },
+  ],
+  hat: [
+    { name: "eighths", line: "x.x.x.x.x.x.x.x." },
+    { name: "sixteenths", line: "xgxgxgxgxgxgxgxg" },
+    { name: "offbeats", line: "..x...x...x...x." },
+  ],
+  ride: [
+    { name: "eighths", line: "X.x.x.x.X.x.x.x." },
+    { name: "quarters", line: "x...x...x...x..." },
+  ],
+  crash: [
+    { name: "first beat", line: "X..............." },
+    { name: "every half bar", line: "X.......x......." },
+  ],
+  snare: [
+    { name: "backbeat", line: "....X.......X..." },
+    { name: "beat four", line: "............X..." },
+    { name: "ghosts", line: "..g.X..g.g..X.g." },
+  ],
+  rim: [
+    { name: "cross-stick", line: "....x.......x..." },
+    { name: "bossa", line: "x..x..x...x..x.." },
+  ],
+  tom: [
+    { name: "answer", line: "............x.xx" },
+    { name: "floor beat", line: "x...x...x...x..." },
+  ],
+  kick: [
+    { name: "one and three", line: "X.......X......." },
+    { name: "four on the floor", line: "X...X...X...X..." },
+  ],
+  drum: [
+    { name: "tumbao", line: "......x.x.....x." },
+    { name: "offbeats", line: "..x...x...x...x." },
+  ],
+  timpani: [
+    { name: "on one", line: "X..............." },
+    { name: "one and three", line: "X.......x......." },
+  ],
+  bright: [
+    { name: "quarters", line: "x...x...x...x..." },
+    { name: "offbeats", line: "..x...x...x...x." },
+  ],
+};
+const ROLE: Partial<Record<DrumVoice, string>> = {
+  cowbell: "bell", woodblock: "bell", claves: "bell", shaker: "shaker", tambourine: "shaker", guiro: "shaker",
+  openhat: "openhat", hat: "hat", ride: "ride", crash: "crash", cymbals: "crash", snare: "snare", clap: "snare", fieldSnare: "snare", djembeSlap: "snare",
+  rim: "rim", tomHigh: "tom", tomLow: "tom", kick: "kick", bassDrum: "kick", taiko: "kick", frameDrum: "kick", djembeLow: "kick",
+  congaHigh: "drum", congaLow: "drum", bongo: "drum", timpTonic: "timpani", timpFifth: "timpani", triangle: "bright",
+};
+/** Fit a sixteen-step line to `steps` steps per loop. */
+function fitLine(line16: string, steps: number): string {
+  if (steps === 16) return line16;
+  const out = Array.from({ length: steps }, () => ".");
+  [...line16].forEach((ch, i) => {
+    if (ch === ".") return;
+    const j = Math.round((i * steps) / 16) % steps;
+    if (out[j] === "." || ch === "X") out[j] = ch;
+  });
+  return out.join("");
+}
+export function padPartNames(voice: DrumVoice): string[] {
+  return (PARTS16[ROLE[voice] ?? "bright"] ?? []).map((x) => x.name);
+}
+export function padParts(p: DrumPattern, voice: DrumVoice): string[] {
+  return (PARTS16[ROLE[voice] ?? "bright"] ?? []).map((x) => fitLine(x.line, p.steps));
+}
+/** Whether the preset's own loop plays a pad. */
+export const padInPattern = (p: DrumPattern, pad: DrumPad) => pad.group.some((v) => p.loop[v] !== undefined);
+/**
+ * The next state of a pad (D107) as settings: parts and mutes. States: the original (pads the
+ * pattern uses), each part, off.
+ */
+export function cyclePad(s: DrumSettings, pad: DrumPad): DrumSettings {
+  const p = patternById(s.pattern);
+  const used = padInPattern(p, pad);
+  const n = padParts(p, pad.voice).length;
+  type State = "original" | number | "off";
+  const states: State[] = used ? ["original", ...Array.from({ length: n }, (_, i) => i + 1), "off"] : ["off", ...Array.from({ length: n }, (_, i) => i + 1)];
+  const muted = pad.group.every((v) => (s.mutes ?? []).includes(v));
+  const k = s.parts?.[pad.voice];
+  const now: State = muted ? "off" : k ? k : used ? "original" : "off";
+  const next = states[(states.indexOf(now) + 1) % states.length];
+  const parts = { ...(s.parts ?? {}) };
+  const mutes = new Set((s.mutes ?? []).filter((v) => !pad.group.includes(v)));
+  delete parts[pad.voice];
+  if (typeof next === "number") parts[pad.voice] = next;
+  else if (next === "off" && used) pad.group.forEach((v) => mutes.add(v));
+  return { ...s, parts, mutes: [...mutes] };
+}
+/** What a pad is doing now, in words for its tooltip. */
+export function padState(s: DrumSettings, pad: DrumPad): { kind: "original" | "part" | "off"; part?: string } {
+  if (pad.group.every((v) => (s.mutes ?? []).includes(v))) return { kind: "off" };
+  const k = s.parts?.[pad.voice];
+  if (k) return { kind: "part", part: padPartNames(pad.voice)[k - 1] };
+  return padInPattern(patternById(s.pattern), pad) ? { kind: "original" } : { kind: "off" };
 }
 
 /** A pad of the vintage pad area (D99): what it plays, and the voices it mutes with it. */
@@ -478,6 +645,16 @@ const KIT_PADS: DrumPad[] = [
   pad("tom", "tomHigh", "congaHigh", "bongo"), pad("tom", "tomLow", "congaLow"), pad("cymbal", "crash", "ride", "cymbals"),
 ];
 const PADS: Record<string, DrumPad[]> = {
+  virtuosity: [
+    pad("low", "kick"), pad("snare", "snare"), pad("snare", "rim", "claves", "woodblock"),
+    pad("hat", "hat", "shaker"), pad("hat", "openhat", "tambourine"), pad("perc", "cowbell"),
+    pad("tom", "congaHigh", "bongo", "tomHigh"), pad("tom", "congaLow", "tomLow"), pad("cymbal", "ride", "crash", "cymbals"),
+  ],
+  retro: [
+    pad("low", "kick"), pad("snare", "snare"), pad("snare", "clap"),
+    pad("hat", "hat"), pad("hat", "openhat"), pad("perc", "cowbell", "rim", "claves", "guiro", "tambourine"),
+    pad("tom", "tomHigh", "congaHigh"), pad("tom", "tomLow", "congaLow"), pad("cymbal", "crash", "ride", "cymbals"),
+  ],
   studio: KIT_PADS,
   sixties: [
     pad("low", "kick"), pad("snare", "snare"), pad("perc", "tambourine"),
@@ -731,9 +908,62 @@ export class DrumMachine {
   /** Called for every hit with its time, for the pads to light up (D99). */
   onHit: ((v: DrumVoice, t: number) => void) | null = null;
 
+  /** The recorded kits' one-shots (D107): kit → voice → [soft, loud], loaded on first use. */
+  private static manifest: Promise<Record<string, { voices: string[] }>> | null = null;
+  private samples = new Map<string, Map<string, AudioBuffer[]>>();
+  private loadingKits = new Set<string>();
+
+  /** Fetch and decode a recorded kit (once); until it arrives the synthesized voices play. */
+  loadKit(kit: SampledKit): Promise<void> {
+    if (this.samples.has(kit) || this.loadingKits.has(kit) || typeof document === "undefined") return Promise.resolve();
+    this.loadingKits.add(kit);
+    const url = (f: string) => new URL(`samples/drums/${f}`, document.baseURI);
+    DrumMachine.manifest ??= fetch(url("manifest.json")).then((r) => (r.ok ? r.json() : {}));
+    return DrumMachine.manifest
+      .then(async (m) => {
+        const voices = m[kit]?.voices ?? [];
+        const bank = new Map<string, AudioBuffer[]>();
+        await Promise.all(
+          voices.map(async (v) => {
+            const layers = await Promise.all(
+              [1, 2].map(async (l) => {
+                const r = await fetch(url(`${kit}/${v}-${l}.mp3`));
+                return r.ok ? this.ctx.decodeAudioData(await r.arrayBuffer()) : null;
+              }),
+            );
+            const ok = layers.filter((b): b is AudioBuffer => b !== null);
+            if (ok.length) bank.set(v, ok.length === 2 ? ok : [ok[0], ok[0]]);
+          }),
+        );
+        this.samples.set(kit, bank);
+      })
+      .catch(() => undefined)
+      .finally(() => this.loadingKits.delete(kit));
+  }
+
+  /** A recorded hit, if the kit has the voice; false to fall back on synthesis. */
+  private sampled(v: DrumVoice, t: number, vel: number): boolean {
+    if (!isSampled(this.kit)) return false;
+    const bank = this.samples.get(this.kit);
+    if (!bank) {
+      void this.loadKit(this.kit);
+      return false;
+    }
+    const layers = bank.get(v);
+    if (!layers) return false;
+    const src = this.track(this.ctx.createBufferSource());
+    src.buffer = layers[vel >= 0.7 ? 1 : 0];
+    const g = this.ctx.createGain();
+    g.gain.value = Math.min(1.4, 0.35 + 0.75 * vel);
+    src.connect(g).connect(this.out);
+    src.start(t);
+    return true;
+  }
+
   hit(v: DrumVoice, t: number, vel = 1) {
     this.onHit?.(v, t);
-    if (this.kit !== "studio" && this.machine(v, t, vel)) return;
+    if (this.sampled(v, t, vel)) return;
+    if (this.kit !== "studio" && !isSampled(this.kit) && this.machine(v, t, vel)) return;
     switch (v) {
       case "kick": return this.tone(t, 150, 42, 0.38, vel);
       case "snare": this.hiss(t, "bandpass", 1900, 0.2, 0.7 * vel); return this.tone(t, 220, 160, 0.12, 0.4 * vel, "triangle");

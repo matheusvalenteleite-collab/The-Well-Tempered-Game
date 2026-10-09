@@ -19,3 +19,19 @@ test("D103: the first-species search counts Fux's own lines among the correct on
     assert.ok(open && open.kind === "openings" && open.notes.length >= 1);
   }
 });
+
+test("D107: the second-species search counts Fux's lines too (every downbeat of his on a counted line)", async () => {
+  const { FUX_SECOND_SPECIES_CURRICULUM } = await import("../src/counterpoint/curriculum/fux-second-species.ts");
+  const { searchSecondSpecies } = await import("../src/game/exercise-tips.ts");
+  for (const s of FUX_SECOND_SPECIES_CURRICULUM) {
+    const v = exerciseView(repo, s);
+    const r = searchSecondSpecies(v.cantus, v.cantusVoice);
+    assert.ok(r.lines > 0, s.id);
+    if (v.fux)
+      v.layout.forEach((sl, k) => {
+        const note = v.fux![k];
+        if (sl.beat === 0 && note && note.toLowerCase() !== "r") assert.ok(r.usable[sl.bar].includes(note), `${s.id} bar ${sl.bar + 1}: ${note}`);
+      });
+    assert.ok(exerciseTips(v.cantus, v.cantusVoice, "second").some((t) => t.kind === "freedom"));
+  }
+});
