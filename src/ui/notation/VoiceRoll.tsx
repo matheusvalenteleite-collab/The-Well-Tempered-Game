@@ -27,7 +27,8 @@ interface Props {
   barQuarters: number;
   /** Where each bar begins (and the last ends), when the bars are not all alike. */
   barStarts?: number[];
-  cursor: number;
+  /** The bar being played, shaded (the tutorial's clips); -1 for none. */
+  cursor?: number;
   /** A shaded span (the section or moment chosen), in quarters. */
   span: { from: number; to: number } | null;
   /** The workshop's notes, drawn on top. */
@@ -156,6 +157,7 @@ export function VoiceRoll(p: Props) {
             {b < bars && (b % 2 === 0 || bars < 30) && <text x={x(q) + 2} y={STRIP + PAD - 9} className="roll-label">{b + (p.firstBar ?? 1)}</text>}
           </g>
         ))}
+        {(p.cursor ?? -1) >= 0 && p.cursor! < bars && <rect x={x(lines[p.cursor!])} y={STRIP + PAD - 6} width={(lines[p.cursor! + 1] - lines[p.cursor!]) * PX_Q} height={height - STRIP - 2 * PAD + 6} className="roll-cursor" />}
         {p.marker !== null && <line x1={x(p.marker)} x2={x(p.marker)} y1={STRIP + PAD - 8} y2={height - PAD + 4} className="roll-marker" />}
         {p.notes.map((n, i) =>
           p.hidden?.has(i) ? null : (

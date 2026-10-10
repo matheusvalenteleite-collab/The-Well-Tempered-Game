@@ -38,7 +38,7 @@ import { SYNTH_PRESETS } from "../audio/synth-settings.ts";
 import { WELL, type TemperamentId } from "../audio/temperament.ts";
 import type { PlayEvent } from "../counterpoint/layout.ts";
 import { HFader } from "./HFader.tsx";
-import { barAt, quartersAt, recording, secondsAt, trackOf } from "../audio/recording.ts";
+import { quartersAt, recording, secondsAt, trackOf } from "../audio/recording.ts";
 import { audio, store, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
 import { Shell } from "./Shell.tsx";
@@ -207,7 +207,6 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   }, []);
 
   const [playing, setPlaying] = useState(false);
-  const [cursor, setCursor] = useState(-1);
   const [span, setSpan] = useState<{ from: number; to: number } | null>(() => {
     const link = parseLink(window.location.hash);
     if (!link || link.id !== L.id || link.bar === null || link.to === null) return null;
@@ -264,7 +263,6 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   const ended = useRef<() => void>(() => undefined);
   ended.current = () => {
     playhead.stop();
-    setCursor(-1);
     const c = current.current;
     if (loopRef.current && c) {
       if (c.replay) c.replay();
@@ -332,7 +330,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     if (useRec && track && !only && !(through !== "off" && changed) && !(myNotes.length && !game)) {
       setPlaying(true);
       followRec();
-      void recording.play(track.urls, [[secondsAt(track, Math.max(0, from), barQ), secondsAt(track, to, barQ)]], (sec) => setCursor(barAt(track, sec)), () => ended.current(), volume / 100);
+      void recording.play(track.urls, [[secondsAt(track, Math.max(0, from), barQ), secondsAt(track, to, barQ)]], () => undefined, () => ended.current(), volume / 100);
       return;
     }
     const evs: PlayEvent[] = [];
@@ -359,10 +357,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     setPlaying(true);
     void audio.playAll(
       evs,
-      (k) => {
-        if (k < 0) ended.current();
-        else setCursor(k);
-      },
+      (k) => k < 0 && ended.current(),
       (t0) => follow0(t0, evs[0].at, [{ at: 0, from, to }]),
     );
   };
@@ -371,7 +366,6 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     halt();
     current.current = null;
     setPlaying(false);
-    setCursor(-1);
     setMarker(null);
   };
   /** Stop, and remember where it was (Play goes on from there). */
@@ -379,7 +373,6 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     const q = playhead.pos();
     halt();
     setPlaying(false);
-    setCursor(-1);
     setMarker(q);
   };
   /** Play, or go on: from the marker, else the chosen passage, else the start. */
@@ -442,10 +435,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     setPlaying(true);
     void audio.playAll(
       evs,
-      (k) => {
-        if (k < 0) ended.current();
-        else setCursor(k);
-      },
+      (k) => k < 0 && ended.current(),
       (t0) => follow0(t0, evs[0].at, [{ at: 0, from, to }]),
     );
   };
@@ -459,7 +449,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     if (useRec && track && !alone) {
       setPlaying(true);
       followRec();
-      void recording.play(track.urls, entries.map((e) => [secondsAt(track, e.at, barQ), secondsAt(track, e.end, barQ)] as [number, number]), (sec) => setCursor(barAt(track, sec)), () => ended.current(), volume / 100);
+      void recording.play(track.urls, entries.map((e) => [secondsAt(track, e.at, barQ), secondsAt(track, e.end, barQ)] as [number, number]), () => undefined, () => ended.current(), volume / 100);
       return;
     }
     const evs: PlayEvent[] = [];
@@ -486,10 +476,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     setPlaying(true);
     void audio.playAll(
       evs,
-      (k) => {
-        if (k < 0) ended.current();
-        else setCursor(k);
-      },
+      (k) => k < 0 && ended.current(),
       (start) => follow0(start, evs[0].at, parts),
     );
   };
@@ -1132,7 +1119,6 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
                 showEntries={showEntries && through === "off"}
                 barQuarters={barQ}
                 barStarts={starts}
-                cursor={cursor}
                 span={span}
                 extra={gameUntil !== null ? [] : [...throughNotes, ...myNotes]}
                 hidden={rollHidden}
