@@ -3,10 +3,13 @@
  * notes sound, the lowest as the bass, with figures and a Roman numeral against the home key
  * (sevenths and their inversions included; chordLabel below). Meant for the figurative preludes (Book I's C major
  * above all: a progression realized as one broken-chord figure), where it shows the progression
- * the figure decorates. It knows nothing of passing notes: in running preludes it is a crude reading.
+ * the figure decorates. Where a segment's notes do not stack in thirds, the chord they best fit
+ * (passing and neighbour notes outside it) is read instead, and marked as guessed.
  */
 import { parsePitch } from "../music/pitch.ts";
 import { TPQ, type WtcPiece } from "./corpus.ts";
+import { line } from "./fugue.ts";
+import { harmonies } from "./trio.ts";
 
 export interface Segment {
   on: number;
@@ -24,6 +27,9 @@ const pcName = (p: string) => p.replace(/-?\d+$/, "");
 export function reduce(p: WtcPiece, segment: number = barLength(p)): Segment[] {
   const out: Segment[] = [];
   const all = p.voices.flat();
+  // Where the segment's notes do not stack in thirds (passing and neighbour notes among them), the
+  // chord its notes best fit, weighted by duration and accent (src/wtc/trio.ts), with the notes outside it left out.
+  const fit = harmonies(p.voices.map(line), p.meter, p.length, segment);
   for (let t = 0; t < p.length; t += segment) {
     const notes = all.filter((n) => n[0] < t + segment && n[0] + n[1] > t);
     if (!notes.length) continue;
@@ -44,7 +50,21 @@ export function reduce(p: WtcPiece, segment: number = barLength(p)): Segment[] {
       chord.push(q);
       last = midi(q);
     }
-    const h = chordLabel(chord, p.key, p.mode);
+    let h = chordLabel(chord, p.key, p.mode);
+    const f = fit[Math.round(t / segment)];
+    if (h.roman === "?" && f?.pcs.length) {
+      const pcOf = (q: string) => ((midi(q) % 12) + 12) % 12;
+      const inChord = [...notes].map((n) => n[2]).filter((q) => f.pcs.includes(pcOf(q)));
+      if (inChord.length) {
+        const lowest = inChord.reduce((a, b) => (midi(b) < midi(a) ? b : a));
+        const kept = [lowest, ...[...new Set(inChord.map(pcName))].filter((x) => x !== pcName(lowest)).map((x) => chord.find((c) => pcName(c) === x) ?? `${x}4`)];
+        const g = chordLabel(kept, p.key, p.mode);
+        if (g.roman !== "?") {
+          h = { ...g, guessed: true };
+          chord.splice(0, chord.length, ...kept);
+        }
+      }
+    }
     out.push({ on: t, dur: Math.min(segment, p.length - t), chord, figures: h.figures, roman: h.roman, guessed: h.guessed });
   }
   return out;
