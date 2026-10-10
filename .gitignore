@@ -2,4 +2,7 @@ node_modules/
 __pycache__/
 *.pyc
 dist/
+public/samples/*/pack.mp3
+public/recordings/
+dist-artifact/
 data/local/

@@ -75,9 +75,10 @@ export function AnswerApp({ onMode, level, onLevel }: { onMode(mode: Mode): void
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
             <button className="icon" onClick={() => goTo(index - 1)} disabled={index === 0} aria-label={t("ui.nav.prev")}>‹</button>
-            <select id="voices" className="sel sel-voices" value="preludes" aria-label={t("ui.nav.voices")} onChange={(e) => { audio.stop(); const v = e.target.value; onMode(v === "chorale" || v === "preludes" ? v : (Number(v) as 2 | 3)); }}>
+            <select id="voices" className="sel sel-voices" value="preludes" aria-label={t("ui.nav.voices")} onChange={(e) => { audio.stop(); const v = e.target.value; onMode(v === "chorale" || v === "preludes" || v === "wtc" ? v : (Number(v) as 2 | 3)); }}>
               <option value={2}>{t("ui.nav.voicesN", { n: 2 })}</option>
               <option value={3}>{t("ui.nav.voicesN", { n: 3 })}</option>
+              <option value="wtc">{t("ui.wtc.mode")}</option>
               <option value="chorale">{t("chorale.mode")}</option>
               <option value="preludes">{t("wtcp.mode")}</option>
             </select>

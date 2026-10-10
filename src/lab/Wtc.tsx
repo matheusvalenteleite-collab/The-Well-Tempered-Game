@@ -1,0 +1,788 @@
+/**
+ * The Well-Tempered Clavier in the lab: Bach's 48 preludes and fugues, played in the tunings of the
+ * period, each fugue drawn as a map (every voice, every entry of the subject marked), and a first
+ * exercise, "write the answer", judged against Bach's own answer. A prototype for the game's WTC
+ * mode: the analysis is src/wtc/, the data data/wtc/.
+ */
+import { useEffect, useMemo, useRef, useState } from "react";
+import fugueData from "../../data/wtc/fugues.json" with { type: "json" };
+import preludeData from "../../data/wtc/preludes.json" with { type: "json" };
+import inventionData from "../../data/wtc/inventions.json" with { type: "json" };
+import { label, TPQ, type WtcPiece } from "../wtc/corpus.ts";
+import { degree, findEntriesByHead, line, names, predictAnswer, subjectAndAnswer, transpose, type Entry, type Note } from "../wtc/fugue.ts";
+import { TUNINGS, type TuningId } from "../wtc/tunings.ts";
+import { entryKey } from "../wtc/keyplan.ts";
+import { reduce, type Segment } from "../wtc/reduction.ts";
+import { exposition } from "../wtc/exposition.ts";
+import { study, type MomentKind } from "../wtc/fugue-study.ts";
+import { invert, moveInScale, scaleOf, throughThePlan } from "../wtc/workshop.ts";
+import { evaluateTrio } from "../wtc/trio.ts";
+import { episodes, strettos, type Episode } from "../wtc/structure.ts";
+import { parsePitch } from "../music/pitch.ts";
+import { playNotes, playPiece, playSpans, stop, type Span } from "./keyboard.ts";
+import { Markdown } from "./Habits.tsx";
+import { MiniStaff } from "./MiniStaff.tsx";
+import concept from "../../docs/wtc/CONCEPT.md?raw";
+import answerStudy from "../../docs/wtc/answer-study.md?raw";
+import csStudy from "../../docs/wtc/countersubject-study.md?raw";
+import keyplanStudy from "../../docs/wtc/keyplan-study.md?raw";
+import structureStudy from "../../docs/wtc/structure-study.md?raw";
+import expositionStudy from "../../docs/wtc/exposition-study.md?raw";
+import crosscheck from "../../docs/wtc/crosscheck.md?raw";
+
+const FUGUES = fugueData as unknown as WtcPiece[];
+const PRELUDES = preludeData as unknown as WtcPiece[];
+const INVENTIONS = inventionData as unknown as WtcPiece[];
+const INK = ["#1f5fbf", "#c0392b", "#2e7d4f", "#a8761a", "#7b4fa0"];
+const VOICE_NAMES: Record<number, string[]> = {
+  2: ["upper", "lower"],
+  3: ["soprano", "alto", "bass"],
+  4: ["soprano", "alto", "tenor", "bass"],
+  5: ["soprano I", "soprano II", "alto", "tenor", "bass"],
+};
+const nice = (k: string) => k.replace("b", "♭").replace("#", "♯");
+const keyName = (p: WtcPiece) => `${nice(p.key)} ${p.mode}`;
+const midi = (p: string) => parsePitch(p).midi;
+
+/** An entry's label on the map: the key it stands in (Roman numeral against the home key), "inv." if inverted. */
+function entryTag(e: Entry, subject: Note[], p: WtcPiece): string {
+  const k = entryKey(p, e, subject).roman;
+  return e.form === "inversion" ? `${k} inv.` : k;
+}
+
+interface Analysis {
+  subject: Note[];
+  answer: Note[];
+  first: number;
+  second: number;
+  entries: Entry[];
+  departures: number[];
+  episodes: Episode[];
+  /** Entries that begin in stretto (before the one before has ended). */
+  stretto: Set<Entry>;
+}
+
+function analyse(p: WtcPiece): Analysis | null {
+  if (p.kind === "prelude") return null;
+  const sa = subjectAndAnswer(p);
+  const real = predictAnswer(sa.subject, p.key, p.mode, "real");
+  const departures = real.map((x, i) => (x[0] !== sa.answer[i].pitch[0] ? i : -1)).filter((i) => i >= 0);
+  const entries = findEntriesByHead(p, sa.subject).entries;
+  return { ...sa, entries, departures, episodes: episodes(p, entries, sa.subject), stretto: new Set(strettos(p, entries, sa.subject).map(([, b]) => b)) };
+}
+
+/* ---------------------------------------------------------------- the map */
+
+interface Guess {
+  voice: number;
+  on: number;
+  verdict?: "hit" | "false";
+}
+
+function PianoRoll({ p, a, tick, showEntries, onSeek, voicesOn, guesses, onPick, missed, segments }: { p: WtcPiece; a: Analysis | null; tick: number; showEntries: boolean; onSeek: (t: number) => void; voicesOn: boolean[]; guesses?: Guess[]; onPick?: (tick: number, midi: number) => void; missed?: Entry[]; segments?: Segment[] }) {
+  const pxq = 22; // pixels per quarter note
+  const all = p.voices.flat();
+  const lo = Math.min(...all.map((n) => midi(n[2]))) - 1;
+  const hi = Math.max(...all.map((n) => midi(n[2]))) + 1;
+  const ph = 5;
+  const W = (p.length / TPQ) * pxq + 40;
+  const H = (hi - lo + 1) * ph + 24 + (segments ? 34 : 0);
+  const x = (t: number) => 20 + (t / TPQ) * pxq;
+  const y = (m: number) => 18 + (hi - m) * ph;
+  const scroller = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el || tick < 0) return;
+    const px = x(tick);
+    if (px < el.scrollLeft + 40 || px > el.scrollLeft + el.clientWidth - 80) el.scrollTo({ left: Math.max(0, px - el.clientWidth * 0.2) });
+  }, [tick]);
+  const entryNotes = useMemo(() => {
+    const set = new Set<string>();
+    if (a && showEntries) for (const e of a.entries) for (let i = 0; i < e.length; i++) set.add(`${e.voice}:${e.at + i}`);
+    return set;
+  }, [a, showEntries]);
+  // The notes, drawn once per piece and view (the playhead alone moves while playing).
+  const notes = useMemo(
+    () =>
+      p.voices.map((v, vi) => {
+        if (voicesOn[vi] === false) return null;
+        let main = -1;
+        return v.map(([on, dur, pitch, sub], k) => {
+          if (sub === 0) main++;
+          const inEntry = sub === 0 && entryNotes.has(`${vi}:${main}`);
+          return (
+            <rect key={`${vi}-${k}`} x={x(on)} y={y(midi(pitch))} width={Math.max(2, (dur / TPQ) * pxq - 1)} height={ph - 0.5} rx={1.5} fill={INK[vi % INK.length]} opacity={showEntries && a ? (inEntry ? 1 : 0.38) : 0.85}>
+              <title>{`${pitch} (${VOICE_NAMES[p.voices.length]?.[vi] ?? `voice ${vi + 1}`})`}</title>
+            </rect>
+          );
+        });
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [p, a, entryNotes, voicesOn, showEntries],
+  );
+  return (
+    <div className="wtc-roll" ref={scroller}>
+      <svg width={W} height={H} onClick={(ev) => {
+        const r = (ev.currentTarget as SVGSVGElement).getBoundingClientRect();
+        const t = Math.max(0, ((ev.clientX - r.left - 20) / pxq) * TPQ);
+        if (onPick) onPick(t, hi - (ev.clientY - r.top - 18) / ph);
+        else onSeek(t);
+      }}>
+        {/* C lines, as on a keyboard */}
+        {Array.from({ length: hi - lo + 1 }, (_, i) => lo + i).filter((m) => m % 12 === 0).map((m) => (
+          <g key={m}>
+            <line x1={0} x2={W} y1={y(m) + ph} y2={y(m) + ph} stroke="var(--line)" strokeDasharray="2 4" />
+            <text x={2} y={y(m) + ph - 1} fontSize={8} fill="var(--ink-muted, #888)">C{Math.floor(m / 12) - 1}</text>
+          </g>
+        ))}
+        {p.bars.map((b) => (
+          <g key={`${b.n}-${b.on}`}>
+            <line x1={x(b.on)} x2={x(b.on)} y1={12} y2={H} stroke="var(--line)" />
+            {b.n % 2 === 1 && <text x={x(b.on) + 2} y={10} fontSize={9} fill="var(--ink-muted, #888)">{b.n}</text>}
+          </g>
+        ))}
+        {showEntries && a?.episodes.map((g, i) => (
+          <g key={`ep${i}`}>
+            <rect x={x(g.on)} y={12} width={x(g.end) - x(g.on)} height={5} fill="var(--ink-muted, #999)" opacity={0.35} rx={2} />
+            <text x={x(g.on) + 2} y={25} fontSize={8} fill="var(--ink-muted, #777)">{g.sequence ? `episode · sequence${g.fromSubject ? " (from the subject)" : ""}` : "episode"}</text>
+          </g>
+        ))}
+        {showEntries && a?.entries.map((e, i) => {
+          const l = line(p.voices[e.voice]);
+          const end = l[e.at + e.length - 1];
+          const ms = l.slice(e.at, e.at + e.length).map((n) => midi(n.pitch));
+          return (
+            <g key={i}>
+              <rect x={x(e.on) - 1} y={y(Math.max(...ms)) - 2} width={x(end.on + end.dur) - x(e.on) + 2} height={(Math.max(...ms) - Math.min(...ms) + 1) * ph + 4} fill={INK[e.voice % INK.length]} opacity={0.1} rx={3} />
+              <text x={x(e.on)} y={y(Math.max(...ms)) - 4} fontSize={9} fontWeight={700} fill={INK[e.voice % INK.length]}>{entryTag(e, a.subject, p)}{a.stretto.has(e) ? " · stretto" : ""}</text>
+            </g>
+          );
+        })}
+        {notes}
+        {guesses?.map((g, i) => {
+          const l = line(p.voices[g.voice]);
+          const n = l.find((m) => m.on === g.on);
+          const yy = n ? y(midi(n.pitch)) : 20;
+          const col = g.verdict === "hit" ? "#2e7d4f" : g.verdict === "false" ? "#c0392b" : "var(--ink, #222)";
+          return <g key={`g${i}`}><circle cx={x(g.on)} cy={yy + ph / 2} r={6} fill="none" stroke={col} strokeWidth={2} /><text x={x(g.on) - 3} y={yy - 5} fontSize={10} fontWeight={700} fill={col}>{g.verdict === "hit" ? "✓" : g.verdict === "false" ? "✗" : "?"}</text></g>;
+        })}
+        {missed?.map((e, i) => {
+          const l = line(p.voices[e.voice]);
+          return <circle key={`m${i}`} cx={x(e.on)} cy={y(midi(l[e.at].pitch)) + ph / 2} r={7} fill="none" stroke="#a8761a" strokeWidth={2} strokeDasharray="3 2" />;
+        })}
+        {segments?.map((g, i) => (
+          <g key={`s${i}`}>
+            <text x={x(g.on) + 3} y={H - 20} fontSize={11} fontWeight={600} fill={g.guessed ? "var(--ink-muted, #888)" : "var(--ink, #222)"} fontStyle={g.guessed ? "italic" : undefined}>{g.roman}</text>
+            <text x={x(g.on) + 3} y={H - 6} fontSize={9} fill="var(--ink-muted, #888)">{g.figures.join(" ")}</text>
+          </g>
+        ))}
+        {tick >= 0 && <line x1={x(tick)} x2={x(tick)} y1={0} y2={H} stroke="var(--ink, #222)" strokeWidth={1.5} />}
+      </svg>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------- the exercise */
+
+function AnswerExercise({ p, a, tuning }: { p: WtcPiece; a: Analysis; tuning: TuningId }) {
+  // For each note of the subject: answered a fifth up (real) or a fourth up (tonal).
+  const [fourth, setFourth] = useState<boolean[]>(() => a.subject.map(() => false));
+  const [checked, setChecked] = useState(false);
+  useEffect(() => {
+    setFourth(a.subject.map(() => false));
+    setChecked(false);
+  }, [a]);
+  const mine = a.subject.map((n, i) => (fourth[i] ? transpose(n.pitch, 3, 5) : transpose(n.pitch, 4, 7)));
+  const bach = a.answer.map((n) => n.pitch);
+  const wrong = mine.map((m, i) => m[0] !== bach[i][0]);
+  const nWrong = wrong.filter(Boolean).length;
+  const ruled = predictAnswer(a.subject, p.key, p.mode, "bach");
+  const degs = a.subject.map((n) => degree(n.pitch, p.key, p.mode));
+  return (
+    <fieldset className="lab-panel">
+      <legend>Exercise: write the answer</legend>
+      <p className="lab-prose">
+        The second voice answers the subject in the dominant. Each note is answered a fifth higher (a <b>real</b> answer), unless it must be answered a fourth higher to keep the answer in the key (a <b>tonal</b> answer: the dominant of the subject answered by the tonic). Click a note to switch it between a fifth and a fourth up, then check against Bach.
+      </p>
+      <div className="wtc-answer">
+        <div className="wtc-row">
+          <span className="wtc-rowname">subject</span>
+          {a.subject.map((n, i) => (
+            <span key={i} className="wtc-note">
+              {nice(n.pitch.replace(/-?\d+$/, ""))}
+              <small>^{degs[i].alter > 0 ? "♯" : degs[i].alter < 0 ? "♭" : ""}{degs[i].deg}</small>
+            </span>
+          ))}
+          <button onClick={() => playNotes(a.subject, tuning)}>▶</button>
+        </div>
+        <div className="wtc-row">
+          <span className="wtc-rowname">your answer</span>
+          {mine.map((m, i) => (
+            <button key={i} className={`wtc-note wtc-pick${fourth[i] ? " wtc-fourth" : ""}${checked && wrong[i] ? " wtc-wrong" : ""}`} title={fourth[i] ? "a fourth up (tonal)" : "a fifth up (real)"} onClick={() => (setFourth((f) => f.map((x, j) => (j === i ? !x : x))), setChecked(false))}>
+              {nice(m.replace(/-?\d+$/, ""))}
+              <small>{fourth[i] ? "4th" : "5th"}</small>
+            </button>
+          ))}
+          <button onClick={() => playNotes(a.subject.map((n, i) => ({ ...n, pitch: mine[i] })), tuning)}>▶</button>
+        </div>
+        {checked && (
+          <div className="wtc-row">
+            <span className="wtc-rowname">Bach</span>
+            {bach.map((b, i) => (
+              <span key={i} className={`wtc-note${wrong[i] ? " wtc-wrong" : ""}`}>{nice(b.replace(/-?\d+$/, ""))}</span>
+            ))}
+            <button onClick={() => playNotes(a.answer, tuning)}>▶</button>
+          </div>
+        )}
+      </div>
+      <div className="wtc-staves">
+        <div><span className="wtc-rowname">subject</span><MiniStaff notes={a.subject} ink="#c0392b" /></div>
+        <div><span className="wtc-rowname">your answer</span><MiniStaff notes={a.subject.map((n, i) => ({ ...n, pitch: mine[i] }))} highlight={checked ? wrong.map((w, i) => (w ? i : -1)).filter((i) => i >= 0) : []} /></div>
+        {checked && <div><span className="wtc-rowname">Bach</span><MiniStaff notes={a.answer} ink="#2e7d4f" /></div>}
+      </div>
+      <div className="lab-actions">
+        <button className="primary" onClick={() => setChecked(true)}>Check against Bach</button>
+        <button onClick={() => (setFourth(a.subject.map((n, i) => ruled[i][0] !== transpose(n.pitch, 4, 7)[0])), setChecked(false))}>Apply the rule</button>
+        <button onClick={() => (setFourth(a.subject.map(() => false)), setChecked(false))}>All real</button>
+        {checked && (
+          <span className={nWrong ? "lab-bad" : ""}>
+            {nWrong ? `${nWrong} note${nWrong > 1 ? "s" : ""} differ${nWrong > 1 ? "" : "s"} from Bach's answer (letters compared; accidentals follow the dominant key).` : "Every letter as Bach wrote it."}
+          </span>
+        )}
+      </div>
+      <p className="lab-note">
+        The rule (Bach's practice in the 48, docs/wtc/answer-study.md): a subject beginning on ^5 is answered from ^1 (17 of 17); an early ^5 leapt to from ^1 is answered by ^1 (7 of 7); a tail that reaches the dominant key is answered a fourth up, where exactly varying from fugue to fugue.
+      </p>
+    </fieldset>
+  );
+}
+
+/* ---------------------------------------------------------------- level 0: a guided listening */
+
+/** The fugue's events in order, from the analysis: entries (voice, key, stretto, inverted) and episodes. */
+function Timeline({ p, a, onPlayFrom }: { p: WtcPiece; a: Analysis; onPlayFrom: (t: number) => void }) {
+  const barOf = (t: number) => [...p.bars].reverse().find((b) => b.on <= t)?.n ?? 1;
+  const name = (v: number) => VOICE_NAMES[p.voices.length]?.[v] ?? `voice ${v + 1}`;
+  const keyName = (e: Entry) => {
+    const k = entryKey(p, e, a.subject);
+    return `${nice(k.name.length > 1 ? k.name[0].toUpperCase() + k.name.slice(1) : k.name.toUpperCase())} ${k.name[0] === k.name[0].toUpperCase() ? "major" : "minor"} (${k.roman})`;
+  };
+  const seen = new Set<number>();
+  const events: { t: number; text: string }[] = [];
+  a.entries.forEach((e, i) => {
+    const first = !seen.has(e.voice);
+    seen.add(e.voice);
+    const inExposition = first && i < p.voices.length;
+    const what = e.form === "inversion" ? "The subject, inverted," : inExposition ? (entryKey(p, e, a.subject).offset === 4 ? "The answer" : "The subject") : "An entry";
+    events.push({ t: e.on, text: `${what} in the ${name(e.voice)}, in ${keyName(e)}${a.stretto.has(e) ? ", in stretto (before the last entry has ended)" : ""}.` });
+  });
+  a.episodes.forEach((g) => events.push({ t: g.on, text: `Episode${g.sequence ? `: a sequence (a figure of ${g.sequence.notes} notes, ${g.sequence.times} times, ${g.sequence.step > 0 ? "rising" : "falling"} by ${["", "step", "thirds", "fourths", "fifths", "sixths", "sevenths"][Math.min(6, Math.abs(g.sequence.step))]})${g.fromSubject ? ", made from the subject" : ""}` : ""}, until bar ${barOf(g.end)}.` }));
+  events.sort((x, y) => x.t - y.t);
+  return (
+    <fieldset className="lab-panel">
+      <legend>Listen: the fugue, event by event</legend>
+      <ol className="wtc-timeline">
+        {events.map((ev, i) => (
+          <li key={i}>
+            <button onClick={() => onPlayFrom(ev.t)} title="Play from here">▶</button> <b>bar {barOf(ev.t)}</b> · {ev.text}
+          </li>
+        ))}
+      </ol>
+      <p className="lab-note">Read from the analysis (entries, keys, strettos, episodes found automatically): a first guide to hearing the fugue, not an authority.</p>
+    </fieldset>
+  );
+}
+
+/* ---------------------------------------------------------------- level 6: the key plan */
+
+function KeyPlanExercise({ p, a, tuning }: { p: WtcPiece; a: Analysis; tuning: TuningId }) {
+  const entries = a.entries.filter((e) => e.form === "subject");
+  // The exposition: until a voice enters a second time.
+  const seen = new Set<number>();
+  let expo = 0;
+  for (const e of entries) {
+    if (seen.has(e.voice)) break;
+    seen.add(e.voice);
+    expo++;
+  }
+  const middle = entries.slice(expo);
+  const options = p.mode === "major" ? ["I", "ii", "iii", "IV", "V", "vi"] : ["i", "III", "iv", "v", "V", "VI", "VII"];
+  const [picks, setPicks] = useState<string[]>([]);
+  const [checked, setChecked] = useState(false);
+  useEffect(() => (setPicks(middle.map(() => "")), setChecked(false)), [a]);
+  if (!middle.length) return null;
+  const bach = middle.map((e) => entryKey(p, e, a.subject).roman);
+  const barOf = (t: number) => [...p.bars].reverse().find((b) => b.on <= t)?.n ?? 1;
+  const right = bach.filter((k, i) => picks[i] === k).length;
+  const l = (e: Entry) => line(p.voices[e.voice]).slice(e.at, e.at + e.length);
+  return (
+    <fieldset className="lab-panel">
+      <legend>Exercise: plan the keys</legend>
+      <p className="lab-prose">
+        After the exposition the subject comes back in other keys. For each later entry, choose the key you would put it in; then compare with Bach and hear his entry. Bach's habit in the 48: the first key away from tonic and dominant is, in major fugues, the relative minor (vi) about half the time, then ii and IV; in minor fugues, the relative major (III) half the time, then iv (docs/wtc/keyplan-study.md). The keys are read automatically from the entries; a few in secondary keys may be misread (major for minor).
+      </p>
+      <div className="lab-table-wrap">
+        <table className="lab-table">
+          <thead>
+            <tr>
+              <th>entry</th>
+              <th>bar</th>
+              <th>voice</th>
+              <th>your key</th>
+              {checked && <th>Bach</th>}
+              {checked && <th></th>}
+            </tr>
+          </thead>
+          <tbody>
+            {middle.map((e, i) => (
+              <tr key={i} className={checked && picks[i] !== bach[i] ? "lab-illegal" : ""}>
+                <td>{expo + i + 1}</td>
+                <td>{barOf(e.on)}</td>
+                <td>{VOICE_NAMES[p.voices.length]?.[e.voice] ?? e.voice + 1}</td>
+                <td>
+                  <select value={picks[i] ?? ""} onChange={(ev) => (setPicks((ps) => ps.map((x, j) => (j === i ? ev.target.value : x))), setChecked(false))}>
+                    <option value="">–</option>
+                    {[...new Set([...options, ...(checked ? [bach[i]] : [])])].map((o) => <option key={o}>{o}</option>)}
+                  </select>
+                </td>
+                {checked && <td><b>{bach[i]}</b></td>}
+                {checked && <td><button onClick={() => playNotes(l(e), tuning)}>▶</button></td>}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="lab-actions">
+        <button className="primary" onClick={() => setChecked(true)}>Compare with Bach</button>
+        {checked && <span>{right} of {middle.length} as Bach placed them.</span>}
+      </div>
+    </fieldset>
+  );
+}
+
+/* ---------------------------------------------------------------- level 4: the exposition */
+
+/** Move a line by octaves so that its average pitch lies nearest a target. */
+function toRegister(notes: Note[], target: number): Note[] {
+  const avg = notes.reduce((x, n) => x + midi(n.pitch), 0) / notes.length;
+  const k = Math.round((target - avg) / 12);
+  return notes.map((n) => ({ ...n, pitch: transpose(n.pitch, 7 * k, 12 * k) }));
+}
+
+function ExpositionExercise({ p, a, tuning }: { p: WtcPiece; a: Analysis; tuning: TuningId }) {
+  const bach = useMemo(() => exposition(p, a.subject, a.answer, a.entries), [p, a]);
+  const n = p.voices.length;
+  const names = VOICE_NAMES[n] ?? p.voices.map((_, i) => `voice ${i + 1}`);
+  const [plan, setPlan] = useState<{ voice: number; role: "subject" | "answer" }[]>([]);
+  const [checked, setChecked] = useState(false);
+  useEffect(() => (setPlan(bach.map((_, i) => ({ voice: -1, role: i % 2 ? "answer" : "subject" }))), setChecked(false)), [bach]);
+  if (bach.length < 2 || plan.length !== bach.length) return null;
+  const len = a.subject[a.subject.length - 1].on + a.subject[a.subject.length - 1].dur - a.subject[0].on;
+  const expoEnd = bach[bach.length - 1].on + len;
+  // Each voice's register: its average pitch over the exposition.
+  const register = p.voices.map((v) => {
+    const ns = line(v).filter((x) => x.on < expoEnd);
+    return ns.length ? ns.reduce((x, m) => x + midi(m.pitch), 0) / ns.length : 60;
+  });
+  const used = new Set(plan.map((x) => x.voice));
+  const complete = plan.every((x) => x.voice >= 0) && used.size === plan.length;
+  const playPlan = () =>
+    playNotes(
+      plan.flatMap((x, i) => {
+        const src = x.role === "subject" ? a.subject : a.answer;
+        const shift = bach[i].on - src[0].on;
+        return toRegister(src, register[x.voice]).map((m) => ({ ...m, on: m.on + shift }));
+      }),
+      tuning,
+    );
+  const playBach = () => playNotes(p.voices.flatMap((v) => line(v).filter((x) => x.on < expoEnd)), tuning);
+  const voiceRight = (i: number) => plan[i].voice === bach[i].voice;
+  const roleRight = (i: number) => bach[i].role === "free" || bach[i].role === "other" || plan[i].role === bach[i].role;
+  const right = plan.filter((_, i) => voiceRight(i) && roleRight(i)).length;
+  const [num, den] = p.meter.split("/").map(Number);
+  const beat = (4 * TPQ) / den;
+  const bar = num * beat;
+  return (
+    <fieldset className="lab-panel">
+      <legend>Exercise: plan the exposition</legend>
+      <p className="lab-prose">
+        A fugue in {n} voices begins with each voice entering in turn: the subject in the tonic, the answer in the dominant. Choose the order the voices come in and, for each, subject or answer; hear your plan (the entries alone, at Bach's distances, in each voice's register), then compare with Bach. His habits in the 48 (docs/wtc/exposition-study.md): subject and answer alternate in 42 of the 48; each new voice is usually next to the one before (three times in four); the first voice is as often an inner one as an outer; a short link (codetta) comes before the third entry in about 60% of the fugues, almost never before the second.
+      </p>
+      <div className="lab-table-wrap">
+        <table className="lab-table">
+          <thead>
+            <tr>
+              <th>entry</th>
+              <th>voice</th>
+              <th>subject or answer</th>
+              {checked && <th>Bach</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {plan.map((x, i) => (
+              <tr key={i} className={checked && !(voiceRight(i) && roleRight(i)) ? "lab-illegal" : ""}>
+                <td>{i + 1}</td>
+                <td>
+                  <select value={x.voice} onChange={(ev) => (setPlan((ps) => ps.map((y, j) => (j === i ? { ...y, voice: Number(ev.target.value) } : y))), setChecked(false))}>
+                    <option value={-1}>–</option>
+                    {names.map((nm, v) => (
+                      <option key={v} value={v} disabled={used.has(v) && x.voice !== v}>{nm}</option>
+                    ))}
+                  </select>
+                </td>
+                <td>
+                  <select value={x.role} onChange={(ev) => (setPlan((ps) => ps.map((y, j) => (j === i ? { ...y, role: ev.target.value as "subject" | "answer" } : y))), setChecked(false))}>
+                    <option value="subject">subject (tonic)</option>
+                    <option value="answer">answer (dominant)</option>
+                  </select>
+                </td>
+                {checked && (
+                  <td>
+                    <b>{names[bach[i].voice]}</b>, {bach[i].role === "free" ? "not with the subject (a free entry, or one the analysis does not recognise)" : bach[i].role === "other" ? `in ${bach[i].roman}` : bach[i].role}
+                    {i > 0 && bach[i].link >= beat ? `, after a link of ${Math.round((bach[i].link / bar) * 4) / 4} bar${Math.round((bach[i].link / bar) * 4) / 4 > 1 ? "s" : ""}` : ""}
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="lab-actions">
+        <button onClick={playPlan} disabled={!complete}>▶ your plan</button>
+        <button className="primary" onClick={() => setChecked(true)} disabled={!complete}>Compare with Bach</button>
+        {checked && (
+          <>
+            <button onClick={playBach}>▶ Bach's exposition</button>
+            <span>{right} of {plan.length} entries as Bach planned them.</span>
+          </>
+        )}
+      </div>
+    </fieldset>
+  );
+}
+
+/* ---------------------------------------------------------------- the study guide */
+
+const KIND_NAMES: Record<MomentKind, string> = { entry: "entries", stretto: "strettos", episode: "episodes", pedal: "pedal points", cadence: "cadences", climax: "the highest note" };
+
+/** Sections and moments of a fugue, each playable on its own, the voice that matters brought forward. */
+function StudyGuide({ p, a, play }: { p: WtcPiece; a: Analysis; play: (spans: Span[]) => void }) {
+  const s = useMemo(() => study(p, a.subject, a.answer, a.entries), [p, a]);
+  const [kinds, setKinds] = useState<Set<MomentKind>>(new Set(["entry", "stretto", "episode", "pedal", "cadence", "climax"]));
+  const [follow, setFollow] = useState(true);
+  const entries = s.moments.filter((m) => m.kind === "entry");
+  const counts = Object.fromEntries((Object.keys(KIND_NAMES) as MomentKind[]).map((k) => [k, s.moments.filter((m) => m.kind === k).length]));
+  return (
+    <fieldset className="lab-panel">
+      <legend>Study: sections and moments</legend>
+      <p className="lab-prose">
+        The fugue read for listening: its sections (the exposition, then from cadence to cadence) and its moments: every entry of the subject, the strettos, the episodes and their sequences, the pedal points, the cadences, the highest note. Play any of them on its own; with <i>bring the voice forward</i>, the voice that carries it sounds in a sustained flute-like tone and the others recede. All of it is read from the notes automatically, a first reading, not an analysis.
+      </p>
+      <div className="lab-actions">
+        <button className="primary" onClick={() => play(entries.map((m) => ({ from: m.on, to: m.end, spotlight: follow ? m.voice : null })))}>▶ Every entry in turn ({entries.length})</button>
+        <label className="lab-group">
+          <input type="checkbox" checked={follow} onChange={(e) => setFollow(e.target.checked)} /> bring the voice forward
+        </label>
+      </div>
+      <h4 className="wtc-h">Sections</h4>
+      <ul className="wtc-moments">
+        {s.sections.map((x, i) => (
+          <li key={i}>
+            <button onClick={() => play([{ from: x.on, to: x.end, spotlight: null }])}>▶</button> <b>{x.label}</b> <span className="lab-note">{x.detail}</span>
+          </li>
+        ))}
+      </ul>
+      <h4 className="wtc-h">Moments</h4>
+      <div className="lab-actions">
+        {(Object.keys(KIND_NAMES) as MomentKind[]).filter((k) => counts[k]).map((k) => (
+          <label key={k} className="lab-group">
+            <input type="checkbox" checked={kinds.has(k)} onChange={(e) => setKinds((ks) => { const n = new Set(ks); if (e.target.checked) n.add(k); else n.delete(k); return n; })} /> {KIND_NAMES[k]} ({counts[k]})
+          </label>
+        ))}
+      </div>
+      <ul className="wtc-moments">
+        {s.moments.filter((m) => kinds.has(m.kind)).map((m, i) => (
+          <li key={i} className={`wtc-m-${m.kind}`}>
+            <button onClick={() => play([{ from: m.on, to: m.end, spotlight: follow ? m.voice : null }])}>▶</button> {m.label} <span className="lab-note">{m.detail}</span>
+          </li>
+        ))}
+      </ul>
+    </fieldset>
+  );
+}
+
+/* ---------------------------------------------------------------- the workshop */
+
+/** Change the subject (by step, or turned upside down) and hear it carried through Bach's plan. */
+function Workshop({ p, a, tuning, bpm, onTick }: { p: WtcPiece; a: Analysis; tuning: TuningId; bpm: number; onTick: (t: number) => void }) {
+  const [edited, setEdited] = useState<Note[]>(a.subject);
+  const [report, setReport] = useState<string | null>(null);
+  useEffect(() => (setEdited(a.subject), setReport(null)), [a]);
+  const scale = scaleOf(p.key, p.mode === "major");
+  const changed = edited.map((n, i) => (n.pitch !== a.subject[i]?.pitch ? i : -1)).filter((i) => i >= 0);
+  const move = (i: number, by: number) => (setEdited((xs) => xs.map((n, j) => (j === i ? { ...n, pitch: moveInScale(n.pitch, by, scale) } : n))), setReport(null));
+  const plan = () => throughThePlan(p, a.subject, a.entries, edited);
+  const check = () => {
+    // Consecutive fifths and octaves in the whole fugue, with Bach's subject and with the player's.
+    const count = (q: WtcPiece) => {
+      const lines = q.voices.map(line);
+      return lines.reduce((n, _, v) => n + evaluateTrio(lines, q.meter, v).filter((x) => x.severity === "error").length, 0) / 2;
+    };
+    const before = count(p);
+    const after = count(plan().whole);
+    setReport(after > before ? `Your subject, set against Bach's countersubjects and free voices, makes ${after - before} more pair${after - before === 1 ? "" : "s"} of consecutive fifths or octaves than his (${after} against ${before}): his counterpoint was written for his subject.` : after < before ? `Fewer consecutives than in Bach's own (${after} against ${before}).` : `No consecutive fifths or octaves added (${after}, as in Bach's). Listen for the dissonances instead: his counterpoint was written for his subject.`);
+  };
+  return (
+    <fieldset className="lab-panel">
+      <legend>Workshop: your subject through Bach's plan</legend>
+      <p className="lab-prose">
+        Change the subject: move any note up or down a step in the key, or turn it upside down. Then hear it carried through the fugue as Bach planned it: every entry at its time, in its voice and its key (each note of each entry moved as you moved the subject's, so the tonal answer stays tonal). First the entries alone, the plan's skeleton; then inside the whole fugue, Bach's counterpoint around your subject, written for his.
+      </p>
+      <div className="wtc-answer">
+        <div className="wtc-row">
+          <span className="wtc-rowname">your subject</span>
+          {edited.map((n, i) => (
+            <span key={i} className={`wtc-note wtc-edit${changed.includes(i) ? " wtc-fourth" : ""}`}>
+              <button onClick={() => move(i, 1)} aria-label="up a step">▲</button>
+              {nice(n.pitch.replace(/-?\d+$/, ""))}
+              <button onClick={() => move(i, -1)} aria-label="down a step">▼</button>
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="wtc-staves">
+        <div><span className="wtc-rowname">Bach's</span><MiniStaff notes={a.subject} ink="#2e7d4f" /></div>
+        <div><span className="wtc-rowname">yours</span><MiniStaff notes={edited} highlight={changed} /></div>
+      </div>
+      <div className="lab-actions">
+        <button onClick={() => playNotes(edited, tuning, bpm)}>▶ your subject</button>
+        <button onClick={() => playNotes(a.subject, tuning, bpm)}>▶ Bach's</button>
+        <button onClick={() => (setEdited(invert(edited, p.key, p.mode)), setReport(null))}>Turn it upside down</button>
+        <button onClick={() => (setEdited(a.subject), setReport(null))}>Back to Bach's</button>
+      </div>
+      <div className="lab-actions">
+        <button className="primary" onClick={() => playPiece(plan().skeleton, { tuning, bpm, onTick })}>▶ Through the plan: the entries alone ({a.entries.length})</button>
+        <button onClick={() => playPiece(plan().whole, { tuning, bpm, onTick })}>▶ Inside the whole fugue</button>
+        <button onClick={check} disabled={!changed.length}>What it does to Bach's counterpoint</button>
+      </div>
+      {report && <p className="lab-note">{report}</p>}
+    </fieldset>
+  );
+}
+
+/* ---------------------------------------------------------------- the tab */
+
+const ORDER = ["C major", "C minor", "C# major", "C# minor", "D major", "D minor", "Eb major", "D# minor", "E major", "E minor", "F major", "F minor", "F# major", "F# minor", "G major", "G minor", "Ab major", "G# minor", "A major", "A minor", "Bb major", "Bb minor", "B major", "B minor"];
+
+export function WtcTab() {
+  const [kind, setKind] = useState<"fugue" | "prelude" | "inventions">("fugue");
+  const [id, setId] = useState("wtc1f01");
+  const [tuning, setTuning] = useState<TuningId>("werckmeister3");
+  const [bpm, setBpm] = useState(72);
+  const [tick, setTick] = useState(-1);
+  const [from, setFrom] = useState(0);
+  const [showEntries, setShowEntries] = useState(true);
+  const pool = kind === "fugue" ? FUGUES : kind === "prelude" ? PRELUDES : INVENTIONS;
+  const p = pool.find((x) => x.id === id) ?? pool[0];
+  const [voicesOn, setVoicesOn] = useState<boolean[]>([]);
+  const [spotlight, setSpotlight] = useState<number | null>(null);
+  useEffect(() => (setVoicesOn(p.voices.map(() => true)), setSpotlight(null), stop(), setTick(-1), setFrom(0)), [p]);
+  const a = useMemo(() => analyse(p), [p]);
+  const [showReduction, setShowReduction] = useState(false);
+  const segments = useMemo(() => (showReduction ? reduce(p) : undefined), [p, showReduction]);
+  // Level 1: find the entries (the marks hidden; clicks mark guesses).
+  const [finding, setFinding] = useState(false);
+  const [guesses, setGuesses] = useState<Guess[]>([]);
+  const [checked, setChecked] = useState(false);
+  useEffect(() => (setGuesses([]), setChecked(false)), [p, finding]);
+  const nearest = (t: number, m: number) => {
+    let best: { voice: number; on: number; d: number } | null = null;
+    p.voices.forEach((v, voice) => {
+      if (voicesOn[voice] === false) return;
+      for (const n of line(v)) {
+        const d = Math.abs(n.on - t) / TPQ + Math.abs(midi(n.pitch) - m) / 3;
+        if (!best || d < best.d) best = { voice, on: n.on, d };
+      }
+    });
+    return best as { voice: number; on: number; d: number } | null;
+  };
+  const near = (g: Guess, e: Entry) => g.voice === e.voice && Math.abs(g.on - e.on) <= TPQ;
+  const judged: Guess[] = checked && a ? guesses.map((g) => ({ ...g, verdict: a.entries.some((e) => near(g, e)) ? "hit" : "false" })) : guesses;
+  const missedEntries = checked && a ? a.entries.filter((e) => !guesses.some((g) => near(g, e))) : [];
+  const pick = (book: number, idx: number) => setId(`wtc${book}${kind === "fugue" ? "f" : "p"}${String(idx + 1).padStart(2, "0")}`);
+  const tuningNote = TUNINGS.find((t) => t.id === tuning)?.note;
+  return (
+    <section className="lab-gen">
+      <fieldset className="lab-panel">
+        <legend>The 48</legend>
+        <div className="lab-fields">
+          <span className="lab-group">
+            <button className={kind === "fugue" ? "primary" : ""} onClick={() => (setKind("fugue"), setId(id.startsWith("wtc") ? id.replace("p", "f") : "wtc1f01"))}>Fugues</button>
+            <button className={kind === "prelude" ? "primary" : ""} onClick={() => (setKind("prelude"), setId(id.startsWith("wtc") ? id.replace("f", "p") : "wtc1p01"))}>Preludes</button>
+            <button className={kind === "inventions" ? "primary" : ""} onClick={() => (setKind("inventions"), setId("inven01"))} title="The two-part inventions and three-part sinfonias: the way from two voices to the fugue">Inventions & Sinfonias</button>
+          </span>
+          <label className="lab-group" title={tuningNote}>
+            Tuning
+            <select value={tuning} onChange={(e) => setTuning(e.target.value as TuningId)}>
+              {TUNINGS.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+            </select>
+          </label>
+          <label className="lab-group">
+            Tempo <input type="range" min={30} max={140} value={bpm} onChange={(e) => setBpm(Number(e.target.value))} /> <b>{bpm}</b>
+          </label>
+        </div>
+        {kind === "inventions" ? (
+          <div className="wtc-grid">
+            {INVENTIONS.filter((x) => x.kind === "invention").map((inv, i) => {
+              const sin = INVENTIONS.find((x) => x.kind === "sinfonia" && x.number === inv.number);
+              return (
+                <div key={inv.id} className="wtc-key">
+                  <span className="wtc-keyname">{nice(inv.key)}{inv.mode === "minor" ? "m" : ""}</span>
+                  <button className={`wtc-chip${inv.id === p.id ? " wtc-sel" : ""}`} title={`Invention ${i + 1} (two voices)`} onClick={() => setId(inv.id)}>2</button>
+                  {sin && <button className={`wtc-chip${sin.id === p.id ? " wtc-sel" : ""}`} title={`Sinfonia ${i + 1} (three voices)`} onClick={() => setId(sin.id)}>3</button>}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="wtc-grid">
+          {ORDER.map((k, i) => (
+            <div key={k} className="wtc-key">
+              <span className="wtc-keyname">{nice(k.replace(" major", "").replace(" minor", "m"))}</span>
+              {[1, 2].map((book) => {
+                const pid = `wtc${book}${kind === "fugue" ? "f" : "p"}${String(i + 1).padStart(2, "0")}`;
+                return (
+                  <button key={book} className={`wtc-chip${pid === p.id ? " wtc-sel" : ""}`} title={`Book ${book === 1 ? "I" : "II"}`} onClick={() => pick(book, i)}>
+                    {book === 1 ? "I" : "II"}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+        )}
+        <p className="lab-note">{tuningNote}. {kind === "inventions" ? "The fifteen keys of the Inventions (2: two voices) and Sinfonias (3: three voices)." : "The keys in Bach's order, each in Book I and Book II."}</p>
+      </fieldset>
+
+      <div className="lab-box">
+        <div className="lab-box-head">
+          <button className="primary" onClick={() => playPiece(p, { tuning, bpm, from, voices: voicesOn, spotlight, onTick: setTick })}>▶ Play{from > 0 ? " from here" : ""}</button>
+          <button onClick={() => stop()} aria-label="Stop">■</button>
+          <b>{label(p)}</b>
+          <label className="lab-group" title="Each bar collapsed to its chord: figures and a Roman numeral (a modern lens on Bach's progression; crude where the music runs in passing notes)">
+            <input type="checkbox" checked={showReduction} onChange={(e) => setShowReduction(e.target.checked)} /> harmony
+          </label>
+          {showReduction && segments && (
+            <button onClick={() => playNotes(segments.flatMap((g) => g.chord.map((pitch) => ({ on: g.on, dur: g.dur, pitch }))), tuning, bpm)} title="The reduction as block chords, a chord a bar">▶ chords</button>
+          )}
+          <span className="lab-note">{p.voices.length} voices · {p.meter}</span>
+          {a && (
+            <label className="lab-group">
+              <input type="checkbox" checked={showEntries} onChange={(e) => setShowEntries(e.target.checked)} /> mark the entries ({a.entries.length})
+            </label>
+          )}
+          <span className="lab-group">
+            {p.voices.map((_, vi) => (
+              <label key={vi} style={{ color: INK[vi % INK.length] }}>
+                <input type="checkbox" checked={voicesOn[vi] !== false} onChange={(e) => setVoicesOn((v) => v.map((x, j) => (j === vi ? e.target.checked : x)))} /> {VOICE_NAMES[p.voices.length]?.[vi] ?? vi + 1}
+              </label>
+            ))}
+          </span>
+          <label className="lab-group" title="One voice in a sustained, flute-like tone, the others softer: for following a voice through the fugue">
+            spotlight{" "}
+            <select value={spotlight ?? ""} onChange={(e) => setSpotlight(e.target.value === "" ? null : Number(e.target.value))}>
+              <option value="">none</option>
+              {p.voices.map((_, vi) => (
+                <option key={vi} value={vi}>{VOICE_NAMES[p.voices.length]?.[vi] ?? vi + 1}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+        {a && (
+          <div className="lab-actions" style={{ padding: "6px 10px" }}>
+            <label className="lab-group" title="Level 1: the marks are hidden; click the first note of every entry of the subject you hear or see">
+              <input type="checkbox" checked={finding} onChange={(e) => setFinding(e.target.checked)} /> exercise: find the entries
+            </label>
+            {finding && (
+              <>
+                <span className="lab-note">Click the first note of each entry ({guesses.length} marked). Click a mark again to remove it.</span>
+                <button className="primary" onClick={() => setChecked(true)}>Check</button>
+                <button onClick={() => (setGuesses([]), setChecked(false))}>Clear</button>
+                {checked && (
+                  <span>
+                    <b>{judged.filter((g) => g.verdict === "hit").length}</b> of {a.entries.length} entries found, <b>{judged.filter((g) => g.verdict === "false").length}</b> marks where no entry begins; the dashed circles show the ones missed.
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+        )}
+        <PianoRoll
+          p={p}
+          a={a}
+          tick={tick}
+          showEntries={showEntries && !finding}
+          onSeek={(t) => setFrom(Math.round(t))}
+          voicesOn={voicesOn}
+          segments={segments}
+          guesses={finding ? judged : undefined}
+          missed={finding ? missedEntries : undefined}
+          onPick={
+            finding
+              ? (t, m) => {
+                  const n = nearest(t, m);
+                  if (!n) return;
+                  setChecked(false);
+                  setGuesses((gs) => (gs.some((g) => g.voice === n.voice && g.on === n.on) ? gs.filter((g) => !(g.voice === n.voice && g.on === n.on)) : [...gs, { voice: n.voice, on: n.on }]));
+                }
+              : undefined
+          }
+        />
+        <p className="lab-note" style={{ padding: "0 10px 8px" }}>
+          Click the map to choose where playback starts. {a ? "Each entry is labelled with its key against the home key (I the tonic, V the dominant: the answer; vi, IV, III ... the middle entries; upper case major, lower case minor); inv.: inverted; stretto: it enters before the entry before has ended. The grey bars above mark the episodes (no entry sounding)." : ""}
+        </p>
+      </div>
+
+      {a && (
+        <fieldset className="lab-panel">
+          <legend>Subject and answer</legend>
+          <p className="lab-prose">
+            Subject in the {VOICE_NAMES[p.voices.length]?.[a.first] ?? `voice ${a.first + 1}`}: <b>{names(a.subject.map((n) => n.pitch)).map(nice).join(" ")}</b>{" "}
+            <button onClick={() => playNotes(a.subject, tuning)}>▶</button>
+            <br />
+            Answer in the {VOICE_NAMES[p.voices.length]?.[a.second] ?? `voice ${a.second + 1}`}: <b>{names(a.answer.map((n) => n.pitch)).map(nice).join(" ")}</b>{" "}
+            <button onClick={() => playNotes(a.answer, tuning)}>▶</button>
+            <br />
+            {p.kind !== "fugue" ? "In the inventions and sinfonias the second voice usually imitates at the octave, not at the fifth." : a.departures.length ? `A tonal answer: note${a.departures.length > 1 ? "s" : ""} ${a.departures.map((i) => i + 1).join(", ")} answered a fourth up instead of a fifth.` : "A real answer: every note a fifth up."}
+          </p>
+        </fieldset>
+      )}
+      {a && p.kind === "fugue" && <StudyGuide p={p} a={a} play={(spans) => playSpans(p, spans, { tuning, bpm, voices: voicesOn, onTick: setTick })} />}
+      {a && p.kind === "fugue" && <Workshop p={p} a={a} tuning={tuning} bpm={bpm} onTick={setTick} />}
+      {a && p.kind !== "fugue" && <Timeline p={p} a={a} onPlayFrom={(t) => (setFrom(t), playPiece(p, { tuning, bpm, from: t, voices: voicesOn, spotlight, onTick: setTick }))} />}
+      {a && p.kind === "fugue" && <AnswerExercise p={p} a={a} tuning={tuning} />}
+      {a && p.kind === "fugue" && <ExpositionExercise p={p} a={a} tuning={tuning} />}
+      {a && p.kind === "fugue" && <KeyPlanExercise p={p} a={a} tuning={tuning} />}
+      <details className="lab-panel wtc-docs">
+        <summary><b>The plan for the WTC mode</b> (a proposal: docs/wtc/CONCEPT.md)</summary>
+        <div className="lab-habits"><Markdown text={concept} /></div>
+      </details>
+      <details className="lab-panel wtc-docs">
+        <summary><b>Studies</b>: Bach's answers; the expositions; the countersubjects; the key plans; strettos and episodes; two readings compared</summary>
+        <div className="lab-habits">
+          <Markdown text={answerStudy} />
+          <h2 className="lab-part">Expositions</h2>
+          <Markdown text={expositionStudy} />
+          <h2 className="lab-part">Key plans</h2>
+          <Markdown text={keyplanStudy} />
+          <h2 className="lab-part">Strettos and episodes</h2>
+          <Markdown text={structureStudy} />
+          <h2 className="lab-part">Two readings compared</h2>
+          <Markdown text={crosscheck} />
+          <h2 className="lab-part">Countersubjects</h2>
+          <Markdown text={csStudy} />
+        </div>
+      </details>
+    </section>
+  );
+}

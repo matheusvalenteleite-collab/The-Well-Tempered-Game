@@ -114,7 +114,7 @@ test("continuo settings validator and memoization keys", () => {
   assert.deepEqual(validContinuoSettings(null), DEFAULT_CONTINUO_SETTINGS);
   assert.equal(DEFAULT_CONTINUO_SETTINGS.display, "figured");
   const s = validContinuoSettings({ display: "both", preset: "cembalo", finals: "strict", passingFill: false, inegal: "yes" });
-  assert.deepEqual(s, { display: "both", preset: "cembalo", finals: "strict", passingFill: false, inegal: false, accidentals: true });
+  assert.deepEqual(s, { display: "both", preset: "cembalo", finals: "strict", passingFill: false, inegal: false, accidentals: true, figuration: "alberti", figure: false });
   assert.equal(validContinuoSettings({ display: "loud", preset: "organ" }).display, "figured");
   const o = continuoOptions("player", DEFAULT_CONTINUO_SETTINGS);
   const a = continuoKey("x", ["A4", null], "player", o);
