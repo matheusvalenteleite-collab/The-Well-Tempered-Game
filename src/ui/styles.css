@@ -946,3 +946,51 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .hint-bar .hint-wait { opacity: 0.6; }
 .hint-bar .hint-close { min-height: 0; padding: 0 6px; background: none; border: none; box-shadow: none; font-size: 1rem; }
 .hint-bar .chipbtn { font-size: 0.75rem; padding: 0 8px; min-height: 20px; }
+
+/* D119: the Well-Tempered Clavier's keys, in Bach's order (majors above, minors below). */
+.wtc-keys { padding: 4px 2px; }
+.wtc-grid { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.wtc-row { display: grid; grid-template-columns: repeat(12, minmax(54px, 1fr)); gap: 4px; }
+.wtc-key { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 2px; border: 1px solid var(--line, #ccc); border-radius: 4px; min-height: 52px; }
+.wtc-key.current { outline: 2px solid var(--accent, #1e4fd8); }
+.wtc-key.empty { opacity: 0.45; }
+.wtc-keyname { font-weight: 600; font-size: 0.9em; white-space: nowrap; }
+.wtc-key .chipbtn { padding: 0 6px; min-width: 2.2em; }
+.wtc-none { color: var(--ink-muted, #888); }
+.wtc-facts { margin: 0.2em 0 0.6em 1.2em; padding: 0; }
+.wtc-guide h3 { margin: 0.2em 0 0.3em; }
+.feedback li.ok { border-left: 3px solid var(--ok-ink, #2e7d32); padding-left: 8px; }
+
+/* D121: the whole fugue as a roll. */
+.pianoroll { overflow: auto; width: 100%; height: 100%; background: var(--paper, #faf7ee); }
+.pianoroll svg { display: block; }
+.roll-note { fill: var(--ink-muted, #8a8579); opacity: 0.55; }
+.roll-note.subj { fill: var(--trk-counterpoint, #1e6fd8); opacity: 0.95; }
+.roll-note.inv { fill: var(--trk-second, #b03ad0); opacity: 0.95; }
+.roll-bar { stroke: var(--line, #d6d0c0); stroke-width: 1; }
+.roll-c { stroke: var(--line, #e3ddcf); stroke-dasharray: 2 3; }
+.roll-label { font: 9px Inter, system-ui, sans-serif; fill: var(--ink-muted, #888); }
+.roll-cursor { fill: var(--cursor, rgba(255, 200, 0, 0.18)); }
+.roll-entry { font: bold 10px Inter, system-ui, sans-serif; fill: var(--trk-counterpoint, #1e6fd8); cursor: pointer; }
+.roll-entry.inv { fill: var(--trk-second, #b03ad0); }
+.score-wrap.wtc .pianoroll { position: absolute; inset: 0; }
+.roll-note.mark { fill: var(--accent, #e07b00); opacity: 1; }
+.roll-entry.mark { fill: var(--accent, #e07b00); cursor: default; }
+/* D123: the voice roll. */
+.roll-span { fill: var(--pulse, rgba(30, 111, 216, 0.10)); }
+.roll-outline rect { fill: none; stroke: var(--ink, #333); stroke-width: 1; opacity: 0.55; }
+.roll-outline.inv rect { stroke-dasharray: 3 2; }
+.roll-outline .roll-entry { fill: var(--ink, #333); }
+.roll-extra { fill: none; stroke: var(--accent, #e07b00); stroke-width: 1.6; }
+.score-wrap.wtc .voiceroll { position: absolute; inset: 0; }
+.wtc-voices { display: flex; flex-direction: column; gap: 6px; }
+.wtc-voice { display: flex; align-items: center; gap: 8px; }
+.wtc-voice .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--chip); flex: none; }
+.wtc-voice .vname { min-width: 7em; text-transform: capitalize; }
+.wtc-moments { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 3px; }
+.wtc-moments li { display: flex; gap: 8px; align-items: baseline; }
+.wtc-moments li.active { background: var(--selection, rgba(30, 111, 216, 0.12)); }
+.wtc-moments .when { min-width: 5.5em; color: var(--ink-muted, #777); font-variant-numeric: tabular-nums; }
+.wtc-sections { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0 10px; }
+.wtc-study h4 { margin: 0.8em 0 0.3em; }
+.wtc-workshop .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }

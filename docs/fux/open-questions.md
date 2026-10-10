@@ -19,8 +19,11 @@
 6. **Fig. 42** uses an A cantus different from Figs. 22-23 and 43 in the dataset
    (`fux_cf_a_02`). Check against p. 62 whether Fux really changes the cantus or the encoding
    differs.
-7. **Figs. 110, 169, 170, bar 6**: an unmarked B repeats the B♭ of bar 5 in the same voice. The
-   dataset reads B♮, which would be a chromatic step found nowhere else in Fux; under the
-   period's convention (an accidental holds for an immediately repeated note) B♭ is far more
-   likely. Check the 1725 pages (Fig. 110: p. 91; Figs. 169-170 are in Exercitium III, not in the lab's dataset) and decide the reading before
-   three- or four-voice play uses these figures; then report it upstream (item 5).
+7. **Fig. 110, bar 6** (middle voice, p. 91): an unmarked B repeats the B♭ of bar 5. The dataset
+   reads B♮ (a chromatic step B♭–B♮ found nowhere else in Fux's three-voice solutions); by the
+   period's convention that an accidental holds for an immediately repeated note, B♭ is likelier.
+   Fux writes the resulting sonority (E over B♭ over G) himself in Fig. 105, bar 5, so consonance
+   does not decide it, and both readings pass the game's rules. The game reads B♭ (owner, D116,
+   `READINGS` in src/game/trio.ts), but the question stays open: check other copies of the 1725
+   print (and Figs. 169-170, bar 6, in Exercitium III, which have the same passage) before
+   reporting it upstream (item 5).

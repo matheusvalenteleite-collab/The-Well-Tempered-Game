@@ -14,7 +14,7 @@ import { TUNINGS, type TuningId } from "../wtc/tunings.ts";
 import { entryKey } from "../wtc/keyplan.ts";
 import { reduce, type Segment } from "../wtc/reduction.ts";
 import { exposition } from "../wtc/exposition.ts";
-import { study, type MomentKind } from "../wtc/study.ts";
+import { study, type MomentKind } from "../wtc/fugue-study.ts";
 import { invert, moveInScale, scaleOf, throughThePlan } from "../wtc/workshop.ts";
 import { evaluateTrio } from "../wtc/trio.ts";
 import { episodes, strettos, type Episode } from "../wtc/structure.ts";

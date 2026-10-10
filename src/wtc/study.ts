@@ -1,236 +1,134 @@
 /**
- * A fugue for study: its moments (every entry, strettos, episodes and their sequences, pedal points,
- * cadences, the climax) and its sections (the exposition, then the stretches between cadences), each
- * a span of time that can be heard on its own, with a voice in the foreground.
- *
- * Everything here is read automatically from the notes (entries by src/wtc/fugue.ts, harmony by
- * src/wtc/trio.ts), so it is a first reading, to be corrected where it errs, not an analysis.
+ * The study of a whole fugue (D123): its sections and its moments, found from the notes, the
+ * voices (voices.ts) and the subject's entries (entries.ts), each with where it starts and ends so
+ * that it can be heard alone. Descriptive, never graded:
+ *   - sections: the exposition (the first entries, one for each voice), then middle entries and
+ *     episodes in turn, and the close (from the last entry);
+ *   - moments: each entry (its voice, the degree it starts on, upside down or not), strettos
+ *     (an entry beginning before the one before it has ended), episodes (a bar or more without
+ *     the subject), pedal points (a bass note held, or struck again, for two bars or more), the
+ *     highest and the lowest notes, and the final cadence.
  */
-import { parsePitch } from "../music/pitch.ts";
-import { TPQ, type WtcPiece } from "./corpus.ts";
-import { exposition, voiceNames } from "./exposition.ts";
-import { line, type Entry, type Note } from "./fugue.ts";
-import { entryKey } from "./keyplan.ts";
-import { episodes, strettos, subjectLength } from "./structure.ts";
-import { harmonicWindow, harmonies, type Harmony } from "./trio.ts";
+import type { Entry, FullNote } from "./entries.ts";
 
-export type MomentKind = "entry" | "stretto" | "episode" | "pedal" | "cadence" | "climax";
+export type MomentKind = "entry" | "stretto" | "episode" | "pedal" | "highest" | "lowest" | "cadence";
 
 export interface Moment {
   kind: MomentKind;
-  on: number;
-  end: number;
-  /** The voice to bring forward when it is heard, if one. */
-  voice: number | null;
-  label: string;
-  detail: string;
+  /** Quarters from the start of the first bar. */
+  from: number;
+  to: number;
+  /** The voices concerned (0 = the highest). */
+  voices: number[];
+  /** Details for the text: degrees, distances, pitches. */
+  detail: Record<string, string | number | boolean>;
 }
 
 export interface Section {
-  on: number;
-  end: number;
-  label: string;
-  detail: string;
+  kind: "exposition" | "episode" | "entries" | "close";
+  from: number;
+  to: number;
+  /** Entries in it (indices into the entries). */
+  entries: number[];
 }
 
-const P = parsePitch;
-const pc = (p: string) => ((P(p).midi % 12) + 12) % 12;
-const FLATS = ["C", "D♭", "D", "E♭", "E", "F", "G♭", "G", "A♭", "A", "B♭", "B"];
-const SHARPS = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
-/** Key names spelled as the home key's signature leans: flats in flat keys, sharps in sharp ones. */
-const keyNames = (p: WtcPiece) => {
-  const flatKey = p.key.includes("b") || (p.mode === "major" ? p.key === "F" : ["D", "G", "C", "F"].includes(p.key));
-  return flatKey ? FLATS : SHARPS;
-};
-const MAJOR_ROMAN: Record<number, string> = { 0: "I", 1: "♭II", 2: "II", 3: "♭III", 4: "III", 5: "IV", 6: "♯IV", 7: "V", 8: "♭VI", 9: "VI", 10: "♭VII", 11: "VII" };
-const MINOR_ROMAN: Record<number, string> = { 0: "I", 1: "♭II", 2: "II", 3: "III", 4: "♮III", 5: "IV", 6: "♯IV", 7: "V", 8: "VI", 9: "♮VI", 10: "VII", 11: "♯VII" };
+/** Degree names of a transposition (semitones above the tonic) in major or minor, Roman. */
+const DEG_MAJOR: Record<number, string> = { 0: "I", 2: "II", 4: "III", 5: "IV", 7: "V", 9: "VI", 11: "VII", 1: "♭II", 3: "♭III", 6: "♯IV", 8: "♭VI", 10: "♭VII" };
+const DEG_MINOR: Record<number, string> = { 0: "I", 2: "II", 3: "III", 5: "IV", 7: "V", 8: "VI", 10: "VII", 1: "♭II", 4: "♮III", 6: "♯IV", 9: "♮VI", 11: "♮VII" };
+export const degreeOf = (shift: number, minor: boolean) => (minor ? DEG_MINOR : DEG_MAJOR)[((shift % 12) + 12) % 12];
 
-/** A key's Roman numeral against the home key: the root's distance, upper case major, lower case minor. */
-export function romanOf(p: WtcPiece, root: number, minor: boolean): string {
-  const home = pc(`${p.key}4`);
-  const r = (p.mode === "major" ? MAJOR_ROMAN : MINOR_ROMAN)[(root - home + 12) % 12];
-  return minor ? r.toLowerCase() : r;
+const NAMES = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
+export const pitchName = (m: number) => `${NAMES[((m % 12) + 12) % 12]}${Math.floor(m / 12) - 1}`;
+
+/** Voice names by the number of voices: soprano down to bass. */
+export function voiceNames(count: number): string[] {
+  if (count === 2) return ["upper", "lower"];
+  if (count === 3) return ["soprano", "alto", "bass"];
+  if (count === 4) return ["soprano", "alto", "tenor", "bass"];
+  if (count === 5) return ["soprano I", "soprano II", "alto", "tenor", "bass"];
+  return Array.from({ length: count }, (_, i) => (i === 0 ? "soprano" : i === count - 1 ? "bass" : `voice ${i + 1}`));
 }
 
-const barOf = (p: WtcPiece, t: number) => [...p.bars].reverse().find((b) => b.on <= t)?.n ?? 1;
+/** The voice an entry is in: the voice of its first note. */
+export const entryVoice = (e: Entry, voice: number[]) => voice[e.notes[0]];
 
-/** Cadences: a dominant (major triad or dominant seventh) whose root falls a fifth to a triad on a strong beat, the bass leaping with it. */
-export function cadences(p: WtcPiece, lines: Note[][], H: Harmony[], meter: string): { on: number; root: number; minor: boolean; perfect: boolean }[] {
-  const w = harmonicWindow(meter);
-  const [num, den] = meter.split("/").map(Number);
-  const bar = (num * 4 * TPQ) / den;
-  const strong = (t: number) => t % bar === 0 || (num % 2 === 0 && num >= 4 && t % (bar / 2) === 0) || (num === 2 && t % (bar / 2) === 0 && den <= 2);
-  const lowest = (t: number) => {
-    let m: Note | null = null;
-    for (const l of lines) for (const n of l) if (n.on <= t && t < n.on + n.dur && (!m || P(n.pitch).midi < P(m.pitch).midi)) m = n;
-    return m;
-  };
-  const highest = (t: number) => {
-    let m: Note | null = null;
-    for (const l of lines) for (const n of l) if (n.on <= t && t < n.on + n.dur && (!m || P(n.pitch).midi > P(m.pitch).midi)) m = n;
-    return m;
-  };
-  const out: { on: number; root: number; minor: boolean; perfect: boolean }[] = [];
-  for (let k = 1; k < H.length; k++) {
-    const b = H[k];
-    // The arrival: a triad (a passing seventh above it read as a major or minor seventh chord).
-    const arrives = ["major", "minor", "major seventh", "minor seventh"].includes(b.name);
-    if (!b.pcs.length || !strong(b.on) || !arrives) continue;
-    // Within the bar, an arrival that at once becomes a dominant seventh is a step in a sequence, not a cadence.
-    const next = H[k + 1];
-    if (b.on % bar !== 0 && next && next.root === b.root && next.name === "dominant seventh") continue;
-    // The dominant in one of the two windows before (a cadential 6/4 or a passing chord may stand between).
-    const dom = [H[k - 1], H[k - 2]].some((a) => a && (a.name === "major" || a.name === "dominant seventh") && (a.root - b.root + 12) % 12 === 7);
-    if (!dom) continue;
-    // The bass: on the tonic at the arrival, on the dominant somewhere in the beat before.
-    const bb = lowest(b.on);
-    if (!bb || pc(bb.pitch) !== b.root) continue;
-    let fromDominant = false;
-    for (let t = b.on - w; t < b.on; t += w / 4) {
-      const x = lowest(t);
-      if (x && pc(x.pitch) === (b.root + 7) % 12) fromDominant = true;
-    }
-    if (!fromDominant) continue;
-    const top = highest(b.on);
-    out.push({ on: b.on, root: b.root, minor: b.name.startsWith("minor"), perfect: !!top && pc(top.pitch) === b.root });
-  }
-  // Drop those within two windows of the one before.
-  return out.filter((c, i) => i === 0 || c.on - out[i - 1].on > 2 * w);
-}
-
-export interface Study {
-  moments: Moment[];
-  sections: Section[];
-}
-
-/** The moments and sections of a fugue, from its subject, answer and entries. */
-export function study(p: WtcPiece, subject: Note[], answer: Note[], entries: Entry[]): Study {
-  const lines = p.voices.map(line);
-  const names = voiceNames(p.voices.length);
-  const longNames: Record<string, string> = { S: "soprano", A: "alto", T: "tenor", B: "bass", S1: "first soprano", S2: "second soprano", upper: "upper voice", lower: "lower voice" };
-  const vname = (v: number) => longNames[names[v]] ?? names[v];
-  const len = subjectLength(subject);
-  const [num, den] = p.meter.split("/").map(Number);
-  const bar = (num * 4 * TPQ) / den;
+export function studyMoments(notes: FullNote[], voice: number[], count: number, entries: Entry[], bar: number, minor: boolean): { moments: Moment[]; sections: Section[] } {
+  const end = Math.max(...notes.map((n) => n.at + n.dur));
+  const first = entries.find((e) => e.shift === 0 && !e.inverted) ?? entries[0];
   const moments: Moment[] = [];
-
-  const straight = entries;
-  const inStretto = new Set(strettos(p, straight, subject).map(([, b]) => b));
-  const expo = exposition(p, subject, answer, entries);
-  const answers = new Set(expo.filter((x) => x.role === "answer").map((x) => x.on));
-  for (const e of straight) {
-    const k = entryKey(p, e, subject);
-    const isAnswer = answers.has(e.on) && expo.some((x) => x.on === e.on && x.voice === e.voice);
-    moments.push({
-      kind: "entry",
-      on: e.on,
-      end: e.on + len,
-      voice: e.voice,
-      label: `${e.form === "inversion" ? "Inverted entry" : isAnswer ? "Answer" : "Entry"} in the ${vname(e.voice)}, ${isAnswer ? (p.mode === "minor" ? "v" : "V") : k.roman}`,
-      detail: `bar ${barOf(p, e.on)}, in ${k.name[0].toUpperCase() + k.name.slice(1).replace("b", "♭").replace("#", "♯")} ${k.name[0] === k.name[0].toUpperCase() ? "major" : "minor"}${inStretto.has(e) ? ", in stretto" : ""}${e.changed && !isAnswer ? `, ${e.changed} interval${e.changed > 1 ? "s" : ""} altered` : isAnswer && e.changed ? ", a tonal answer" : ""}`,
-    });
-  }
-  // Stretto passages: chains of entries, each beginning before the one before it has ended.
-  const beats = (t: number) => {
-    const x = Math.round((t / TPQ) * 2) / 2;
-    return `${x} beat${x === 1 ? "" : "s"}`;
-  };
-  const sorted = [...straight].sort((a, b) => a.on - b.on);
-  for (let i = 0; i < sorted.length; i++) {
-    const chain = [sorted[i]];
-    let end = sorted[i].on + len;
-    let j = i + 1;
-    while (j < sorted.length && sorted[j].on < end - TPQ && sorted[j].voice !== chain[chain.length - 1].voice) {
-      chain.push(sorted[j]);
-      end = Math.max(end, sorted[j].on + len);
-      j++;
-    }
-    if (chain.length < 2) continue;
-    moments.push({
-      kind: "stretto",
-      on: chain[0].on,
-      end,
-      voice: chain[1].voice,
-      label: `Stretto in ${chain.length} voices: ${chain.map((e, k) => (k ? `the ${vname(e.voice)} ${beats(e.on - chain[k - 1].on)} later` : `the ${vname(e.voice)}`)).join(", ")}`,
-      detail: `bars ${barOf(p, chain[0].on)}–${barOf(p, end - 1)}`,
-    });
-    i = j - 1;
-  }
-  for (const ep of episodes(p, straight, subject)) {
-    const s = ep.sequence;
-    moments.push({
-      kind: "episode",
-      on: ep.on,
-      end: ep.end,
-      voice: s ? s.voice : null,
-      label: s ? `Episode on a sequence (${vname(s.voice)}, a ${s.notes}-note figure ${s.times} times, ${s.step > 0 ? "rising" : "falling"} by ${Math.abs(s.step) === 1 ? "step" : `${Math.abs(s.step) + 1}ths`.replace("3ths", "thirds").replace("4ths", "fourths").replace("5ths", "fifths")})` : "Episode",
-      detail: `bars ${barOf(p, ep.on)}–${barOf(p, ep.end - 1)}${ep.fromSubject ? "; its figure comes from the subject" : ""}`,
-    });
-  }
-  // Pedal points: the lowest voice holding (or repeating) one pitch for a bar or more.
-  lines.forEach((l, v) => {
-    for (let i = 0; i < l.length; i++) {
-      let j = i;
-      while (j + 1 < l.length && l[j + 1].pitch === l[i].pitch && l[j + 1].on <= l[j].on + l[j].dur) j++;
-      const on = l[i].on;
-      const end = l[j].on + l[j].dur;
-      if (end - on >= bar) {
-        const lowest = lines.every((x, u) => u === v || x.every((n) => n.on + n.dur <= on || n.on >= end || P(n.pitch).midi >= P(l[i].pitch).midi));
-        if (lowest && !moments.some((m) => m.kind === "pedal" && m.on === on && m.end === end)) {
-          const degree = (pc(l[i].pitch) - pc(`${p.key}4`) + 12) % 12;
-          moments.push({ kind: "pedal", on, end, voice: v, label: `${degree === 0 ? "Tonic" : degree === 7 ? "Dominant" : ""} pedal point on ${l[i].pitch.replace(/-?\d+$/, "").replace("b", "♭").replace("#", "♯")}`.trim().replace(/^pedal/, "Pedal"), detail: `bars ${barOf(p, on)}–${barOf(p, end - 1)}, in the ${vname(v)}` });
-        }
-      }
-      i = j;
-    }
+  // Entries.
+  entries.forEach((e, k) => {
+    moments.push({ kind: "entry", from: e.at, to: e.end, voices: [entryVoice(e, voice)], detail: { index: k, degree: degreeOf(e.shift - (first?.shift ?? 0), minor), start: pitchName(notes[e.notes[0]].midi), inverted: e.inverted } });
   });
-  // The climax: the highest note, its first appearance.
-  let top: [number, Note] | null = null;
-  lines.forEach((l, v) => l.forEach((n) => (!top || P(n.pitch).midi > P(top[1].pitch).midi) && (top = [v, n])));
-  if (top) {
-    const [v, n] = top as [number, Note];
-    moments.push({ kind: "climax", on: Math.max(0, n.on - bar), end: n.on + n.dur + bar / 2, voice: v, label: `The highest note: ${n.pitch.replace("b", "♭").replace("#", "♯")}`, detail: `bar ${barOf(p, n.on)}, in the ${vname(v)}` });
+  // Strettos: an entry beginning before the previous one has ended (in another voice).
+  for (let k = 1; k < entries.length; k++) {
+    const a = entries[k - 1];
+    const b = entries[k];
+    if (b.at < a.end - 1e-6 && entryVoice(a, voice) !== entryVoice(b, voice)) {
+      moments.push({ kind: "stretto", from: a.at, to: Math.max(a.end, b.end), voices: [entryVoice(a, voice), entryVoice(b, voice)], detail: { distance: +(b.at - a.at).toFixed(3), beats: +((b.at - a.at) / 1).toFixed(2) } });
+    }
   }
-  // Cadences.
-  const H = harmonies(lines, p.meter, p.length);
-  const cads = cadences(p, lines, H, p.meter);
-  const [bn, bd] = p.meter.split("/").map(Number);
-  const barLen = (bn * 4 * TPQ) / bd;
-  // A cadence worth hearing: the top voice arrives on the key's tonic, or the arrival falls on a downbeat.
-  const real = cads.filter((c) => c.perfect || c.on % barLen === 0);
-  for (const c of real) {
-    const roman = romanOf(p, c.root, c.minor);
-    moments.push({
-      kind: "cadence",
-      on: Math.max(0, c.on - bar),
-      end: c.on + bar / 2,
-      voice: null,
-      label: `${c.perfect ? "Perfect cadence" : "Cadence"} in ${roman} (${keyNames(p)[c.root]} ${c.minor ? "minor" : "major"})`,
-      detail: `bar ${barOf(p, c.on)}${c.perfect ? ", the top voice on the key's tonic" : ""}`,
-    });
+  // Episodes: a bar or more with no entry sounding.
+  const covered = entries.map((e) => [e.at, e.end] as [number, number]).sort((a, b) => a[0] - b[0]);
+  let t = covered.length ? covered[0][1] : 0;
+  for (const [a, b] of covered.slice(1)) {
+    if (a - t >= bar - 1e-6) moments.push({ kind: "episode", from: t, to: a, voices: [], detail: { bars: +((a - t) / bar).toFixed(1) } });
+    t = Math.max(t, b);
   }
-  moments.sort((a, b) => a.on - b.on || a.kind.localeCompare(b.kind));
+  if (end - t >= 2 * bar) moments.push({ kind: "episode", from: t, to: end - bar, voices: [], detail: { bars: +((end - bar - t) / bar).toFixed(1), last: true } });
+  // Pedal points: the bass holding (or striking again) one pitch for two bars or more.
+  const bassV = count - 1;
+  const bass = notes.map((n, i) => ({ n, i })).filter(({ i }) => voice[i] === bassV).sort((x, y) => x.n.at - y.n.at);
+  for (let k = 0; k < bass.length; ) {
+    let j = k;
+    while (j + 1 < bass.length && bass[j + 1].n.midi === bass[k].n.midi && bass[j + 1].n.at <= bass[j].n.at + bass[j].n.dur + 1e-6) j++;
+    const from = bass[k].n.at;
+    const to = bass[j].n.at + bass[j].n.dur;
+    if (to - from >= 2 * bar - 1e-6) moments.push({ kind: "pedal", from, to, voices: [bassV], detail: { pitch: pitchName(bass[k].n.midi), bars: +((to - from) / bar).toFixed(1) } });
+    k = j + 1;
+  }
+  // The highest and the lowest note.
+  const hi = notes.reduce((a, n, i) => (n.midi > notes[a].midi ? i : a), 0);
+  const lo = notes.reduce((a, n, i) => (n.midi < notes[a].midi ? i : a), 0);
+  moments.push({ kind: "highest", from: Math.max(0, notes[hi].at - bar), to: notes[hi].at + notes[hi].dur + bar / 2, voices: [voice[hi]], detail: { pitch: pitchName(notes[hi].midi), at: notes[hi].at } });
+  moments.push({ kind: "lowest", from: Math.max(0, notes[lo].at - bar), to: notes[lo].at + notes[lo].dur + bar / 2, voices: [voice[lo]], detail: { pitch: pitchName(notes[lo].midi), at: notes[lo].at } });
+  // The close.
+  moments.push({ kind: "cadence", from: Math.max(0, end - 2 * bar), to: end, voices: [], detail: {} });
+  moments.sort((a, b) => a.from - b.from || a.kind.localeCompare(b.kind));
 
-  // Sections: the exposition (to the end of its last entry), then from cadence to cadence (at least
-  // two bars apart), the last running to the end.
-  const expoEnd = expo.length ? Math.max(...expo.map((e) => e.on)) + len : len;
-  const cuts = [0, expoEnd];
-  // Sections end at perfect cadences (the top voice on the tonic), at least two bars apart.
-  for (const c of cads) if (c.perfect && c.on > cuts[cuts.length - 1] + 2 * bar && p.length - c.on > 2 * bar) cuts.push(c.on);
-  cuts.push(p.length);
+  // Sections: the exposition (until each voice has entered once), then entries and episodes, the close.
   const sections: Section[] = [];
-  for (let i = 0; i + 1 < cuts.length; i++) {
-    const on = cuts[i];
-    const end = cuts[i + 1];
-    const inside = moments.filter((m) => m.kind === "entry" && m.on >= on && m.on < end);
-    const keys = [...new Set(inside.map((m) => m.label.split(", ").pop()!))];
-    const cad = cads.find((c) => c.on === end);
-    sections.push({
-      on,
-      end,
-      label: i === 0 ? "Exposition" : i === cuts.length - 2 ? "Final section" : `Section ${i + 1}`,
-      detail: `bars ${barOf(p, on)}–${barOf(p, end - 1)}: ${inside.length} entr${inside.length === 1 ? "y" : "ies"}${keys.length ? ` (${keys.join(", ")})` : ""}${cad ? `; closes with a cadence in ${romanOf(p, cad.root, cad.minor)}` : ""}`,
-    });
+  // The exposition: one entry for each voice, the first `count` entries.
+  let expoEnd = 0;
+  const expo: number[] = [];
+  for (let k = 0; k < entries.length && expo.length < count; k++) {
+    if (entries[k].inverted) continue;
+    expo.push(k);
+    expoEnd = Math.max(expoEnd, entries[k].end);
   }
+  if (expo.length) sections.push({ kind: "exposition", from: 0, to: expoEnd, entries: expo });
+  let cursor = expoEnd;
+  const rest = entries.map((_, k) => k).filter((k) => !expo.includes(k));
+  const lastEntry = rest.length ? rest[rest.length - 1] : -1;
+  let group: number[] = [];
+  const flush = () => {
+    if (!group.length) return;
+    sections.push({ kind: k2kind(group, lastEntry), from: Math.min(...group.map((k) => entries[k].at)), to: Math.max(...group.map((k) => entries[k].end)), entries: group });
+    cursor = Math.max(...group.map((k) => entries[k].end));
+    group = [];
+  };
+  const k2kind = (g: number[], last: number): Section["kind"] => (g.includes(last) ? "close" : "entries");
+  for (const k of rest) {
+    const e = entries[k];
+    if (e.at - cursor >= bar - 1e-6) {
+      flush();
+      sections.push({ kind: "episode", from: cursor, to: e.at, entries: [] });
+    }
+    group.push(k);
+    cursor = Math.max(cursor, e.end);
+  }
+  flush();
+  if (sections.length && sections[sections.length - 1].kind !== "close") sections.push({ kind: "close", from: cursor, to: end, entries: [] });
+  else if (sections.length) sections[sections.length - 1].to = end;
   return { moments, sections };
 }

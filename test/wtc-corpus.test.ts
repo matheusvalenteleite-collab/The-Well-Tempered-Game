@@ -145,7 +145,7 @@ test("three voices: Bach's third entries have no errors (docs/wtc/trio-calibrati
 
 test("study: Book II's E major fugue, its cadences in vi, ii, iii and I; Book I's C minor, its exposition", async () => {
   const { findEntriesByHead } = await import("../src/wtc/fugue.ts");
-  const { study } = await import("../src/wtc/study.ts");
+  const { study } = await import("../src/wtc/fugue-study.ts");
   const read = (id: string) => {
     const p = fugues.find((f) => f.id === id)!;
     const sa = subjectAndAnswer(p);

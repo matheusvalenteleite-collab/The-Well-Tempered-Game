@@ -196,7 +196,7 @@ export const judgeGeneratedTrio = (final: ModalFinal, t: ThirdVoice) => judgeTri
 
 /** The audit of a generated trio, as of one of Fux's. */
 export function auditGeneratedTrio(final: ModalFinal, cantus: string[], t: ThirdVoice): TrioAudit {
-  const step: TrioStep = { id: "generated", ordinal: 0, exerciseId: "generated", figure: "–", page: 0, modalFinal: final, cantusIndex: t.cantusIndex, cantus, fux: t.voices, clefs: [], clefs1725: [], species: 1, minimIndex: null };
+  const step: TrioStep = { id: "generated", ordinal: 0, exerciseId: "generated", figure: "–", page: 0, modalFinal: final, cantusIndex: t.cantusIndex, cantus, fux: t.voices, clefs: [], clefs1725: [], species: 1, movingIndex: null, per: 1, untied: 0 };
   return auditTrio(TRIO_STEPS, step, { leaveOneOut: false });
 }
 
