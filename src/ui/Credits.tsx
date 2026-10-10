@@ -19,6 +19,10 @@ export function Credits({ onClose }: { onClose(): void }) {
         <h3>Software and sounds</h3>
         <p>VexFlow (MIT), React (MIT), smplr (MIT). MP3 export: lamejs (@breezystack/lamejs, LGPL-3.0; source at github.com/breezystack/lamejs), a JavaScript port of LAME. Other sounds are synthesized in the browser.</p>
         <p>
+          Recordings (D128): Kimiko Ishizaka, The Open Well-Tempered Clavier, Book 1 (2015; welltemperedclavier.org), dedicated to the
+          public domain (CC0 1.0); re-encoded, its bars timed by the game.
+        </p>
+        <p>
           Grand piano: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), CC BY 3.0, via the sfzinstruments edition
           (github.com/sfzinstruments/SalamanderGrandPiano); two velocity layers, re-encoded.
         </p>
