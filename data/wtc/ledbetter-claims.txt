@@ -1,0 +1,403 @@
+# Ledbetter, Bach's Well-tempered Clavier (Yale, 2002), Part Two: bar-number claims about the 48, from the per-piece digest on
+# branch claude/vibrant-gates-fe6o3h (docs/wtc/ledbetter/README.md for the grammar and the flags). Facts only, no text.
+wtc1f01 section b.1-7 exposition
+wtc1f01 stretto b.7 voices? at 4th below
+wtc1f01 stretto b.10 voices? at 5th above
+wtc1f01 section b.7-14 close stretto
+wtc1f01 section b.14-19 triple and quadruple stretto
+wtc1f01 stretto b.14 voices?
+wtc1f01 stretto b.15 voices? (ff)
+wtc1f01 entry b.15 bass C (variant)
+wtc1f01 entry b.17 bass
+wtc1f01 section b.19-27 stretti over pedals
+wtc1f01 pedal b.19-19 II
+wtc1f01 pedal b.21-22 V
+wtc1f01 pedal b.24-27 I
+wtc1f02 entry b.3 voice? (modulating version)
+wtc1f02 section b.9-10 episode
+wtc1f02 section b.15-31 second section
+wtc1f02 entry b.15 alto (modulating version)
+wtc1f02 entry b.20 soprano c
+wtc1f02 section b.22-25 interlude
+wtc1f02 pedal b.25-26 V
+wtc1f02 entry b.26 bass
+wtc1p03 section b.63-98 insertion
+wtc1p03 section b.63-72
+wtc1p03 section b.87-96 (b.63-72 an octave lower)
+wtc1f03 section b.1-12 first section
+wtc1f03 entry b.1 voice? C#
+wtc1f03 entry b.4 voice? (answer)
+wtc1f03 entry b.6 bass C#
+wtc1f03 section b.7-10 episode
+wtc1f03 entry b.10 bass G#
+wtc1p04 section b.15-18 two-bar periodicity
+wtc1p04 section b.19-35 build-up
+wtc1p04 section b.35-38 added in final version
+wtc1f04 entry b.35 voice? (S2)
+wtc1f04 entry b.49 voice? (S3)
+wtc1f04 entry b.67 voice? (S3)
+wtc1f04 entry b.71 voice? (S3)
+wtc1f04 stretto b.94 voices?
+wtc1f04 entry b.94 soprano (S1)
+wtc1f04 entry b.95 alto (S1)
+wtc1f04 entry b.96 voice? (S1)
+wtc1f04 entry b.107 soprano (S1)
+wtc1p05 section b.19-26 subdominant reprise
+wtc1p05 section b.30-34 concert ending
+wtc1p07 section b.3-4 added
+wtc1p07 section b.10-24 section 2 (stile antico)
+wtc1p07 entry b.25 voice? (stile antico subject)
+wtc1p07 entry b.61 bass
+wtc1f07 entry b.1 voice?
+wtc1f07 entry b.3 alto (answer)
+wtc1f07 section b.4-5 link
+wtc1f07 entry b.6 bass (subject)
+wtc1f07 entry b.11 soprano Eb (answer)
+wtc1f07 section b.1-17 first half
+wtc1f07 entry b.17 voice? c (warped version)
+wtc1f07 entry b.26 bass (answer)
+wtc1f07 entry b.29 soprano (subject)
+wtc1f07 entry b.34 alto (answer)
+wtc1f08 stretto b.19½ voices?
+wtc1f08 stretto b.27 voices? (b.19½ stretto inverted at the 12th)
+wtc1f08 stretto b.77 voices? (normal, semi-augmented, augmented)
+wtc1p09 cadence b.8½ B
+wtc1p09 cadence b.15 A [GAP]
+wtc1f09 entry b.2 voice? B (answer)
+wtc1f09 entry b.16 voice?
+wtc1f09 stretto b.19 voices?
+wtc1f09 entry b.20 soprano B
+wtc1f09 entry b.28 voice? B
+wtc1f10 section b.1-19 first half
+wtc1f10 section b.20-38 second half (mirror inversion of first half)
+wtc1f11 section b.1-8 passepied first section
+wtc1f11 entry b.1 alto
+wtc1f11 entry b.4 soprano
+wtc1f11 entry b.9 bass
+wtc1f11 entry b.17 soprano
+wtc1f11 entry b.25 bass
+wtc1f11 section b.1-46 first section
+wtc1f11 cadence b.46 d
+wtc1f11 stretto b.46 voices?
+wtc1f11 entry b.49 bass (variant)
+wtc1p12 section b.1-9 first period
+wtc1p12 cadence b.12 V
+wtc1p12 section b.16½-21½ added [GAP]
+wtc1f12 section b.1-12 exposition
+wtc1f12 entry b.7 bass f
+wtc1f12 section b.10-13 interlude
+wtc1f12 entry b.13 voice? f
+wtc1f12 section b.16-18 interlude
+wtc1f12 entry b.19 voice? V
+wtc1f12 section b.22-26 interlude
+wtc1f12 entry b.27 bass f
+wtc1f12 section b.1-30 first half
+wtc1f12 entry b.34 voice? Ab
+wtc1f12 entry b.40 voice? Eb
+wtc1f12 entry b.47 voice? V
+wtc1f12 section b.50-52 interlude
+wtc1f12 entry b.53 bass f
+wtc1p13 entry b.1 voice?
+wtc1p13 entry b.7 voice?
+wtc1p13 entry b.12 voice?
+wtc1f13 section b.1-7 exposition
+wtc1f13 section b.7-23
+wtc1f13 section b.23-35
+wtc1f13 entry b.7½ soprano [GAP]
+wtc1f13 entry b.18 soprano [GAP]
+wtc1f13 entry b.34 soprano [GAP]
+wtc1f14 section b.11-14 episode
+wtc1f15 section b.20-31 exposition inverso
+wtc1f15 entry b.38 voice? e
+wtc1f15 entry b.43 voice? e (inverso)
+wtc1f15 stretto b.51 voices?
+wtc1f15 entry b.79 voice? I
+wtc1f16 cadence b.12 Bb
+wtc1f16 cadence b.24 i
+wtc1f16 cadence b.34 i
+wtc1f17 section b.8-9 solo
+wtc1f17 entry b.10 voice? I
+wtc1f17 section b.11-12 episode
+wtc1f17 entry b.13 voice? f
+wtc1f17 section b.14-15 episode
+wtc1f17 entry b.16 voice? bb
+wtc1f17 section b.19-20 episode
+wtc1f17 entry b.27 voice? I
+wtc1f18 section b.1-9 exposition
+wtc1f18 entry b.15 voice? [check]
+wtc1f18 entry b.37 voice? [check]
+wtc1p19 section b.6-8 episode
+wtc1p19 section b.14-17 episode
+wtc1f19 entry b.16 bass
+wtc1f19 entry b.33 bass
+wtc1f19 stretto b.25 voices?
+wtc1f20 section b.1-14½ exposition recto
+wtc1f20 section b.14½-27½ exposition inverso
+wtc1f20 section b.27½-48 stretto recto [GAP]
+wtc1f20 section b.48-64½ stretto inverso
+wtc1f20 stretto b.48½ voices? at octave
+wtc1f20 stretto b.64½ voices? at 5th
+wtc1f20 stretto b.66 voices? at 5th [check]
+wtc1f20 stretto b.67½ voices? at 5th [check]
+wtc1f20 stretto b.73 voices?
+wtc1f20 stretto b.76 voices?
+wtc1f20 stretto b.83 voices?
+wtc1p21 section b.1-10 motoric
+wtc1f21 entry b.13 soprano
+wtc1f21 entry b.37 voice? IV
+wtc1f21 entry b.41 voice? I
+wtc1f22 entry b.32 bass
+wtc1f22 entry b.46 voice?
+wtc1f22 entry b.55 voice?
+wtc1p23 cadence b.6 V
+wtc1p23 cadence b.10 vi
+wtc1f23 section b.1-9 exposition
+wtc1f23 section b.9-11 episode
+wtc1f23 entry b.11 tenor I
+wtc1f23 section b.14-16 episode
+wtc1f23 entry b.16 alto V
+wtc1f23 cadence b.18 V
+wtc1f23 entry b.18 soprano
+wtc1f23 entry b.20 alto
+wtc1f23 entry b.21 bass I
+wtc1f23 entry b.24 tenor
+wtc1f23 section b.26-28 episode
+wtc1f24 entry b.13 voice? V
+wtc1f24 entry b.21 voice? i
+wtc1f24 entry b.30 voice? iv
+wtc1f24 entry b.34 voice? V (half)
+wtc1f24 entry b.35 voice? V (half)
+wtc1f24 entry b.38 voice? i
+wtc1f24 entry b.41 voice? b (half)
+wtc1f24 entry b.42 voice? e (half)
+wtc1f24 entry b.43 voice? A (half)
+wtc1f24 entry b.44 voice? D
+wtc1f24 entry b.53 voice? V
+wtc1f24 entry b.57 voice? iv
+wtc1f24 entry b.60 voice? i
+wtc1f24 entry b.70 voice? iv
+wtc2p01 pedal b.1-3 I
+wtc2p01 section b.1-5 opening tonic sentence (870a)
+wtc2p01 section b.5½-14 tonally diffuse stretch
+wtc2p01 section b.14-19 bridge
+wtc2p01 section b.20-28 reprise in subdominant
+wtc2p01 section b.28-30 bridge recalled
+wtc2f01 cadence b.68 I (early fughetta)
+wtc2p02 section b.1-5 closed tonic period
+wtc2p02 section b.7-8 closing idea
+wtc2p02 cadence b.8 Eb
+wtc2p02 section b.23-24 second idea returns
+wtc2p03 section b.1-6 chordal decoration of cliché (872a)
+wtc2p03 section b.25-30 fugal working of cliché (872a)
+wtc2p03 section b.14-19 dissonant climax
+wtc2p03 section b.21-23 minor tinge
+wtc2f03 cadence b.4 V (earliest version)
+wtc2f03 cadence b.11 I (earliest version)
+wtc2f03 cadence b.4 I [check]
+wtc2f03 cadence b.7 V [check]
+wtc2f03 pedal b.25-29 V
+wtc2f04 entry b.2 voice? (answer)
+wtc2f04 cadence b.13 E
+wtc2f04 entry b.16 voice? c# (second tonic exposition)
+wtc2f04 entry b.20 bass
+wtc2f04 entry b.24 voice? (inversion exposition)
+wtc2f04 entry b.35 voice? (second subject)
+wtc2f04 stretto b.66 soprano+alto+bass
+wtc2p05 section b.1-4 closed opening phrase
+wtc2p05 section b.5-12 modulating sequence to dominant
+wtc2p05 section b.13-16 closing theme
+wtc2p05 cadence b.16 A
+wtc2p05 section b.27-29 semiquaver climax
+wtc2p05 section b.33-40 expanded closing theme
+wtc2f05 section b.1-10 exposition
+wtc2f05 section b.10-16 section two
+wtc2f05 stretto b.14 voices? at 4th
+wtc2f05 section b.20-27 section three [check]
+wtc2f05 stretto b.22 voices? at 5th [check]
+wtc2f05 stretto b.27 voices? at octave
+wtc2f05 stretto b.33 voices? at 6th (ff)
+wtc2f05 entry b.43 bass (chromatically altered)
+wtc2f05 stretto b.44 soprano+alto+tenor+bass (ff)
+wtc2p06 section b.1-5 opening formula (875a)
+wtc2p06 section b.7-15 modulation to dominant (875a)
+wtc2p06 section b.16-19 inverted formula (875a)
+wtc2p06 section b.20-26 midpoint (875a)
+wtc2p06 section b.10-12 circle-of-5ths transition
+wtc2p06 section b.13-17 development
+wtc2f06 stretto b.10 voices?
+wtc2f06 stretto b.14 voices? (recto)
+wtc2f06 entry b.14 soprano
+wtc2f06 stretto b.17 voices? (inverso)
+wtc2f06 stretto b.25 voices? (recto and inverso)
+wtc2p07 section b.1-12 opening section
+wtc2p07 section b.10-11 closing theme
+wtc2f07 entry b.1 bass
+wtc2f07 entry b.31 bass
+wtc2f07 entry b.60 bass
+wtc2f07 stretto b.30 tenor+bass
+wtc2f07 stretto b.37 alto+soprano
+wtc2f07 entry b.53 tenor
+wtc2f07 stretto b.59 soprano+bass
+wtc2p08 section b.3-9 tonic to relative major
+wtc2p08 section b.15-16 closing idea
+wtc2f08 entry b.1 alto
+wtc2f08 entry b.17 alto
+wtc2f08 entry b.23 alto
+wtc2f08 stretto b.23 voices?
+wtc2f08 entry b.30 alto
+wtc2f09 entry b.1 bass
+wtc2f09 section b.9-15 stretti of subject and countersubject
+wtc2f09 entry b.10 bass
+wtc2f09 section b.16-22 two new subjects
+wtc2f09 section b.23-34 low stretti
+wtc2f09 stretto b.23 soprano+alto
+wtc2f09 stretto b.25 bass+tenor
+wtc2f09 stretto b.27 voices? (diminution and inversion)
+wtc2f09 section b.35-43 final section
+wtc2f09 entry b.36 bass
+wtc2f09 entry b.37 soprano [check]
+wtc2f09 entry b.40 bass
+wtc2f10 section b.1-18 tonic exposition
+wtc2f10 entry b.1 soprano e
+wtc2f10 entry b.23 voice? G
+wtc2f10 entry b.29 voice? D
+wtc2f10 entry b.41 bass b
+wtc2f10 entry b.49 alto e
+wtc2f10 entry b.59 soprano a
+wtc2f10 pedal b.68-70 V
+wtc2f10 cadence b.71 e (original ending)
+wtc2f10 entry b.71 bass e
+wtc2p11 cadence b.16 C
+wtc2p11 cadence b.33 d
+wtc2p11 cadence b.57 F
+wtc2f11 entry b.21 bass (false entry)
+wtc2f11 entry b.52 alto d
+wtc2f11 cadence b.56 F (interrupted)
+wtc2f11 entry b.85 voice? F (reharmonised)
+wtc2f11 entry b.89 bass [GAP]
+wtc2f12 section b.24-31 relative major
+wtc2f12 cadence b.40 c
+wtc2f12 entry b.40 voice? f
+wtc2f12 pedal b.50-53 V
+wtc2f12 entry b.71 soprano bb
+wtc2f12 entry b.74 alto f
+wtc2f12 pedal b.80-83 V
+wtc2p13 section b.1-8 opening period (3+5)
+wtc2p13 section b.8-14 modulating phrase
+wtc2p13 section b.15-17 closing phrase (cadence in dominant)
+wtc2p13 section b.17-45 dominant to relative minor
+wtc2p13 section b.61-68 modulating phase, subdominant to tonic
+wtc2f13 section b.1-12 exposition
+wtc2f13 section b.12-20 episode 1
+wtc2f13 entry b.20 soprano I
+wtc2f13 section b.24-32 episode 2
+wtc2f13 entry b.32 voice? V
+wtc2f13 entry b.36 voice? I
+wtc2f13 entry b.40 voice? vi
+wtc2f13 section b.44-52 episode 1 return
+wtc2f13 entry b.52 voice? IV
+wtc2f13 section b.56-64 episode 2 return
+wtc2f13 section b.64-84 final exposition
+wtc2f13 entry b.64 voice?
+wtc2f13 entry b.70 alto
+wtc2f13 entry b.76 voice? I
+wtc2f14 section b.1-20 first exposition
+wtc2f14 cadence b.20 A
+wtc2f14 cadence b.36 c#
+wtc2f14 entry b.51 voice? b
+wtc2f14 entry b.55 voice? i
+wtc2f14 entry b.60 voice? v
+wtc2f14 entry b.66 voice? i
+wtc2p15 section b.1-16
+wtc2p15 cadence b.32 C
+wtc2f15 entry b.67 alto
+wtc2p17 section b.1-7 opening period
+wtc2p17 cadence b.16 Eb
+wtc2p17 section b.17-33 section 2 (dominant)
+wtc2p17 section b.34-49 section 3 (relative minor, f to Db)
+wtc2p17 section b.50-62 section 4 (subdominant)
+wtc2f17 section b.1-10 entries T-D-T-D
+wtc2f17 section b.10-13 episode (triple invertible)
+wtc2f17 section b.13-24 entries T-D-T-T
+wtc2f17 cadence b.16 f
+wtc2f17 entry b.22 voice?
+wtc2f17 entry b.24 voice? f
+wtc2f17 cadence b.27 C
+wtc2f17 entry b.32 voice? eb
+wtc2f17 entry b.35 voice? bb
+wtc2f17 entry b.37 bass Db
+wtc2f17 entry b.48 voice?
+wtc2p18 section b.5-8 modulating phase (to d#)
+wtc2p18 section b.8-15 motivic working
+wtc2p18 section b.11-15 episode
+wtc2f18 section b.1-61 section 1 (subject 1)
+wtc2f18 section b.61-97 section 2 (subject 2)
+wtc2f18 section b.97-143 double fugue
+wtc2f18 entry b.5 voice?
+wtc2f18 entry b.13 voice?
+wtc2f18 entry b.19 alto i
+wtc2f18 entry b.45 voice?
+wtc2f18 entry b.55 voice?
+wtc2f18 entry b.97 voice?
+wtc2f18 entry b.103 voice?
+wtc2f18 entry b.111 voice? E
+wtc2f18 entry b.125 voice? i
+wtc2f18 entry b.135 voice? i
+wtc2f19 entry b.5 soprano I
+wtc2f19 entry b.7 bass V
+wtc2f19 entry b.27 voice? I
+wtc2f20 entry b.17 alto a
+wtc2f20 entry b.21 voice? d
+wtc2p21 section b.1-8 area 1ab
+wtc2p21 section b.1-2 area 1a
+wtc2p21 section b.3-4 area 1b (inversion)
+wtc2p21 section b.9-12 area 2
+wtc2p21 section b.13-16 area 3
+wtc2p21 section b.17-20 area 4
+wtc2p21 section b.21-23 area 5
+wtc2p21 section b.24-27 area 6
+wtc2p21 section b.28-32 area 7 (closing idea)
+wtc2f21 entry b.1 voice?
+wtc2f21 pedal b.14-16 I
+wtc2f21 pedal b.22-24 V
+wtc2f21 section b.1-32 first half
+wtc2f21 section b.29-32 closing idea
+wtc2f21 cadence b.54 Eb
+wtc2f21 entry b.78 voice? I (ff)
+wtc2p22 entry b.1 alto
+wtc2p22 entry b.8 soprano v
+wtc2p22 section b.16-24 episode
+wtc2p22 entry b.25 bass i
+wtc2p22 entry b.31 voice? Db
+wtc2p22 section b.1-41 first section
+wtc2p22 cadence b.41 Ab
+wtc2p22 entry b.42 bass Ab
+wtc2p22 entry b.55 voice? eb
+wtc2p22 entry b.62 voice? i
+wtc2f22 section b.27-37 stretto recto exposition
+wtc2f22 stretto b.27 voices?
+wtc2f22 section b.42-63 inverted-subject exposition
+wtc2f22 entry b.42 voice? (inverted)
+wtc2f22 section b.80-93 stretto inverso exposition
+wtc2f22 stretto b.80 voices? at tritone
+wtc2f22 stretto b.89 voices? at tritone
+wtc2f22 pedal b.94-95 V
+wtc2f22 section b.96-101 stretto inverso exposition at the 10th
+wtc2f22 stretto b.96 voices? at 10th
+wtc2f23 entry b.28 voice? (subject 2)
+wtc2f23 entry b.42 voice? g#
+wtc2f23 entry b.48 bass
+wtc2f23 entry b.53 tenor g#
+wtc2f23 entry b.60 voice?
+wtc2f23 section b.63-74 episode
+wtc2f23 entry b.75 bass I
+wtc2f23 entry b.85 voice?
+wtc2p24 section b.1-8 opening period
+wtc2p24 section b.9-12 sequential passage
+wtc2p24 section b.13-16 closing idea
+wtc2p24 section b.33-36 sequential passage (bass-led)
+wtc2p24 section b.41-44 subdominant reprise (compressed)
+wtc2p24 section b.45-48 sequential passage
+wtc2p24 section b.49-52 closing idea
+wtc2f24 stretto b.69 voices? (ff)
+wtc2f24 stretto b.97 alto/bass/soprano

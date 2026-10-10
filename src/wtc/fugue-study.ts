@@ -185,7 +185,8 @@ export function study(p: WtcPiece, subject: Note[], answer: Note[], entries: Ent
   lines.forEach((l, v) => {
     for (let i = 0; i < l.length; i++) {
       let j = i;
-      while (j + 1 < l.length && l[j + 1].pitch === l[i].pitch && l[j + 1].on <= l[j].on + l[j].dur) j++;
+      // Held, or repeated (with rests between of no more than a beat: a drum-bass pedal).
+      while (j + 1 < l.length && l[j + 1].pitch === l[i].pitch && l[j + 1].on <= l[j].on + l[j].dur + beatOf(p.meter)) j++;
       const on = l[i].on;
       const end = l[j].on + l[j].dur;
       // A bar at least, and four beats (in alla breve, four minims: a whole note held across a short
