@@ -15,3 +15,8 @@ Made by `tools/wtc-extract.py` (D119): the notes alone decide the lines (the enc
 numbers are not reliable); written-out trills beside their main note are dropped; the subject
 lasts as long as the answer repeats it at a fixed transposition, mutations at the head aside.
 Missing keys (ASAP has no fugue in them): C minor, D sharp / E flat minor, E minor.
+
+`preludes-full.json` (D125) holds every note of the 29 preludes that go with these fugues, from the
+same ASAP scores under the same licence, made by `tools/wtc-preludes.py` (the same pooling of the
+notes, ties merged, ornaments beside their main note dropped): for each, the time signature, the
+bar in quarters and the notes as [MIDI, onset, length] in 96ths of a quarter from the first full bar.

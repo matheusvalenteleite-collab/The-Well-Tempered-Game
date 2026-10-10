@@ -80,7 +80,13 @@ export interface ScoreProps {
    * player's staff in their own ink, named in the legend (D47, D58). With `intervals`, each gets
    * its row of intervals against the cantus, in its ink and in italic.
    */
-  extraLines?: { label: string; notes: (string | null)[]; ink: string }[];
+  extraLines?: {
+    label: string;
+    notes: (string | null)[];
+    ink: string;
+    /** Per slot: draw this note on the cantus's staff instead of the player's (a line that crosses between the staves). */
+    onCantusStaff?: boolean[];
+  }[];
   /** Interval rows for the extra lines (the "Intervals" view toggle). */
   extraIntervals?: boolean;
   /** Ink and label of the line on the player's staff when it is a derived version, not the written line. */
@@ -428,15 +434,18 @@ export function ScoreView(props: ScoreProps) {
         const p = g.value;
         const { key, acc } = vexKey(p, sig);
         const stem = stemOf(`extra${extras.indexOf(line)}`);
-        const n = new StaveNote({ keys: [key], duration: g.dur, clef: cpClef.clef, dots: g.dots, ...(stem ? { stem_direction: stem } : {}) });
+        const onCantus = !!line.onCantusStaff?.[k];
+        const staffIndex = onCantus ? 1 - cpIndex : cpIndex;
+        const n = new StaveNote({ keys: [key], duration: g.dur, clef: onCantus ? VEXFLOW_CLEF[props.clefs[staffIndex]].clef : cpClef.clef, dots: g.dots, ...(stem ? { stem_direction: stem } : {}) });
         if (g.dots) Dot.buildAndAttach([n], { all: true });
         if (stem === 0) n.getStem()?.setVisibility(false);
         if (acc) n.addModifier(new Accidental(acc));
         n.setStyle({ fillStyle: line.ink, strokeStyle: line.ink });
-        n.setStave(staves[cpIndex]);
+        n.setStave(staves[staffIndex]);
         const d = parsePitch(p).diatonic;
-        const nudges = occupied[k].filter((o) => Math.abs(o - d) <= 1).length;
-        occupied[k].push(d);
+        const there = onCantus ? [parsePitch(props.cantus[layout[k].bar]).diatonic] : occupied[k];
+        const nudges = there.filter((o) => Math.abs(o - d) <= 1).length;
+        if (!onCantus) occupied[k].push(d);
         const mc = new ModifierContext();
         n.addToModifierContext(mc);
         mc.preFormat();

@@ -78,7 +78,7 @@ const VERSION_INK: Record<VersionId, string> = {
 };
 const stepIndexOf = (id: string) => STEPS.findIndex((s) => s.id === id);
 
-export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
+export function App({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
   const [stepIndex, setStepIndex] = useState(() => {
     const id = stored<string>("wtg.stepId", STEPS[0].id, (v) => typeof v === "string" && stepIndexOf(v) >= 0);
     return stepIndexOf(id);
@@ -826,6 +826,11 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
             value={COURSE.voices}
             aria-label={t("ui.nav.voices")}
             onChange={(e) => {
+              if (e.target.value === "wtc") {
+                audio.stop();
+                onVoices("wtc");
+                return;
+              }
               if (Number(e.target.value) === 3) {
                 audio.stop();
                 onVoices(3);
@@ -840,6 +845,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3): void }) {
                 {t("ui.nav.voicesN", { n })}
               </option>
             ))}
+            <option value="wtc">{t("ui.wtc.mode")}</option>
           </select>
           <select
             id="species"

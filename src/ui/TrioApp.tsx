@@ -70,7 +70,7 @@ const startPitch = (s: TrioStep, staff: number) => {
   return `${"CDEFGAB"[((d % 7) + 7) % 7]}${Math.floor(d / 7)}`;
 };
 
-export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
+export function TrioApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
   const [species, setSpecies] = useState<TrioSpecies>(() => stored<TrioSpecies>("wtg.trioSpecies", 1, (v) => TRIO_SPECIES.includes(v as TrioSpecies)));
   useEffect(() => store("wtg.trioSpecies", species), [species]);
   const STEPS = BY_SPECIES[species];
@@ -470,10 +470,11 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3): void }) {
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
           <button className="icon" onClick={() => goTo(stepIndex - 1)} disabled={stepIndex === 0} aria-label={t("ui.nav.prev")}>‹</button>
-          <select id="voices" className="sel sel-voices" value={3} aria-label={t("ui.nav.voices")} onChange={(e) => Number(e.target.value) === 2 && (audio.stop(), onVoices(2))}>
+          <select id="voices" className="sel sel-voices" value={3} aria-label={t("ui.nav.voices")} onChange={(e) => (e.target.value === "wtc" ? (audio.stop(), onVoices("wtc")) : Number(e.target.value) === 2 && (audio.stop(), onVoices(2)))}>
             {[2, 3, 4].map((n) => (
               <option key={n} value={n} disabled={n === 4}>{t("ui.nav.voicesN", { n })}</option>
             ))}
+            <option value="wtc">{t("ui.wtc.mode")}</option>
           </select>
           <select id="species" className="sel sel-species" value={species} aria-label={t("ui.nav.species")} onChange={(e) => goToSpecies(Number(e.target.value) as TrioSpecies)}>
             {[1, 2, 3, 4, 5].map((n) => (

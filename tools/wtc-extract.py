@@ -67,6 +67,7 @@ def sounding(ns, t):
 def frac(x): return f"{x.numerator}/{x.denominator}"
 
 results, problems = [], []
+full = {}
 for d in sorted(os.listdir(ROOT)):
     if not d.startswith("bwv_"): continue
     bwv = int(d[4:]); book, num, kname = info(bwv); fid = f"wtc{book}.{num:02d}"
@@ -149,11 +150,19 @@ for d in sorted(os.listdir(ROOT)):
         "answer": [{"pitch": pname(x["p"]), "at": frac(x["on"] - t2), "dur": frac(x["dur"])} for x in answer],
         "countersubject": [{"pitch": pname(x["p"]), "at": frac(x["on"] - t2), "dur": frac(x["dur"])} for x in cs],
     }
+    # Every note of the fugue (D121), for listening and for finding the subject's entries:
+    # [MIDI, onset, length] in 96ths of a quarter from the start of the first full bar.
+    full[fid] = [[n["midi"], int(round((n["on"] + pad) * 96)), int(round(n["dur"] * 96))] for n in ns]
     if common % 12 not in (5, 7) or [m for m in muts if m > 4] or k < 4: problems.append(f"{fid} shift {common} muts {muts} k {k}")
     results.append(rec)
 
 os.makedirs(os.path.dirname(OUT) or ".", exist_ok=True)
 json.dump({"source": "ASAP dataset (Foscarin, McLeod, Rigaux, Jacquemard, Sakai 2020), CC BY-NC-SA 4.0", "fugues": results}, open(OUT, "w"), indent=1, ensure_ascii=False)
+FULL = os.path.join(os.path.dirname(OUT), "fugues-full.json")
+with open(FULL, "w") as fh:
+    fh.write('{"source": "ASAP dataset (Foscarin et al. 2020), CC BY-NC-SA 4.0", "unit": "1/96 quarter", "notes": {\n')
+    fh.write(",\n".join(f'"{k}": {json.dumps(v, separators=(",", ":"))}' for k, v in full.items()))
+    fh.write("\n}}\n")
 for r in results:
     print(r["id"], r["key"], r["time"], "ans@", r["answerAt"], "3rd@", r["thirdAt"], "above" if r["answerAbove"] else "below", "shift", r["answerShift"], "mut", r["mutations"])
     print("  S:", " ".join(f"{x['pitch']}:{x['dur']}" for x in r["subject"]))
