@@ -7,21 +7,21 @@ single notes are altered (one in forty, moved a step or a third in the key) is t
 
 ## Bach against the rules
 
-Notes judged: 50083. Flagged: 338 (6.7 per thousand notes): non-chord tone 106, suspension 42, seventh 174, fifths 7, octaves 9.
+Notes judged: 50083. Flagged: 320 (6.4 per thousand notes): non-chord tone 101, seventh 156, suspension 47, fifths 7, octaves 9.
 
 Exemptions used (how many dissonances each explained):
 
-- chord of the half beat: 6114
-- passing note or neighbour: 4264
-- pedal: 560
-- appoggiatura: 433
-- échappée: 287
-- suspension: 205
-- suspension, ornamented resolution: 99
-- anticipation: 90
-- arpeggio: 34
-- retardation: 13
-- cambiata: 3
+- chord of the half beat: 6152
+- passing note or neighbour: 4252
+- pedal: 564
+- appoggiatura: 431
+- échappée: 288
+- suspension: 229
+- suspension, ornamented resolution: 104
+- anticipation: 86
+- arpeggio: 35
+- retardation: 14
+- cambiata: 4
 
 **Reading.** The rules read dissonance against the harmony of each beat (or half beat), not voice
 against voice: a first version that judged each pair of voices separately let one voice's passing
@@ -38,11 +38,11 @@ independence from the subject, its invertibility. Those belong to the comparison
 
 ## Altered notes
 
-Notes altered: 1445. Caught: 227 (16%): suspension 13, fifths 5, non-chord tone 118, seventh 77, octaves 14. An alteration can be harmless (a step to another chord tone, a passing note moved to another passing note), so 100% is not the aim.
+Notes altered: 1445. Caught: 228 (16%): suspension 14, fifths 5, non-chord tone 118, seventh 77, octaves 14. An alteration can be harmless (a step to another chord tone, a passing note moved to another passing note), so 100% is not the aim.
 
 ## The third entries
 
-The two voices already sounding, judged while the third voice enters with the subject: 46 expositions. Clean: 40. With an error (consecutives): 0. The warnings left are mostly misreadings of the harmony (a held note read against a chord the next beat clarifies) and are listed so that each can be checked.
+The two voices already sounding, judged while the third voice enters with the subject: 46 expositions. Clean: 41. With an error (consecutives): 0. The warnings left are mostly misreadings of the harmony (a held note read against a chord the next beat clarifies) and are listed so that each can be checked.
 
 | fugue | bar | what the rules say |
 |---|---|---|
@@ -68,7 +68,7 @@ The two voices already sounding, judged while the third voice enters with the su
 | Fugue 21 in B♭ major (I) | 9 | clean |
 | Fugue 22 in B♭ minor (I) | 10 | clean |
 | Fugue 23 in B major (I) | 5 | clean |
-| Fugue 24 in B minor (I) | 9 | warning: the seventh of the chord (B4) leaves by leap (voice 2, bar 9) |
+| Fugue 24 in B minor (I) | 9 | clean |
 | Fugue 1 in C major (II) | 9 | clean |
 | Fugue 2 in C minor (II) | 4 | clean |
 | Fugue 4 in C♯ minor (II) | 5 | clean |
@@ -97,52 +97,52 @@ The two voices already sounding, judged while the third voice enters with the su
 
 | fugue | voices | notes | flagged | per thousand |
 |---|---|---|---|---|
-| Fugue 1 in C major (I) | 4 | 734 | 3 | 4.1 |
-| Fugue 2 in C minor (I) | 3 | 754 | 3 | 4.0 |
-| Fugue 3 in C♯ major (I) | 3 | 1413 | 29 | 20.5 |
+| Fugue 1 in C major (I) | 4 | 734 | 5 | 6.8 |
+| Fugue 2 in C minor (I) | 3 | 754 | 1 | 1.3 |
+| Fugue 3 in C♯ major (I) | 3 | 1413 | 22 | 15.6 |
 | Fugue 4 in C♯ minor (I) | 5 | 1326 | 4 | 3.0 |
 | Fugue 5 in D major (I) | 4 | 780 | 3 | 3.8 |
 | Fugue 6 in D minor (I) | 3 | 716 | 14 | 19.6 |
-| Fugue 7 in E♭ major (I) | 3 | 899 | 8 | 8.9 |
-| Fugue 8 in D♯ minor (I) | 3 | 1385 | 3 | 2.2 |
+| Fugue 7 in E♭ major (I) | 3 | 899 | 7 | 7.8 |
+| Fugue 8 in D♯ minor (I) | 3 | 1385 | 4 | 2.9 |
 | Fugue 9 in E major (I) | 3 | 733 | 1 | 1.4 |
 | Fugue 11 in F major (I) | 3 | 670 | 6 | 9.0 |
-| Fugue 12 in F minor (I) | 4 | 1318 | 11 | 8.3 |
+| Fugue 12 in F minor (I) | 4 | 1318 | 7 | 5.3 |
 | Fugue 13 in F♯ major (I) | 3 | 858 | 3 | 3.5 |
-| Fugue 14 in F♯ minor (I) | 4 | 811 | 3 | 3.7 |
-| Fugue 15 in G major (I) | 3 | 1657 | 17 | 10.3 |
+| Fugue 14 in F♯ minor (I) | 4 | 811 | 2 | 2.5 |
+| Fugue 15 in G major (I) | 3 | 1657 | 18 | 10.9 |
 | Fugue 16 in G minor (I) | 4 | 747 | 3 | 4.0 |
-| Fugue 17 in A♭ major (I) | 4 | 891 | 9 | 10.1 |
+| Fugue 17 in A♭ major (I) | 4 | 891 | 7 | 7.9 |
 | Fugue 18 in G♯ minor (I) | 4 | 804 | 4 | 5.0 |
 | Fugue 19 in A major (I) | 3 | 1180 | 27 | 22.9 |
 | Fugue 20 in A minor (I) | 4 | 2355 | 18 | 7.6 |
-| Fugue 21 in B♭ major (I) | 3 | 952 | 7 | 7.4 |
-| Fugue 22 in B♭ minor (I) | 5 | 745 | 6 | 8.1 |
+| Fugue 21 in B♭ major (I) | 3 | 952 | 9 | 9.5 |
+| Fugue 22 in B♭ minor (I) | 5 | 745 | 5 | 6.7 |
 | Fugue 23 in B major (I) | 4 | 827 | 4 | 4.8 |
 | Fugue 24 in B minor (I) | 4 | 1802 | 22 | 12.2 |
-| Fugue 1 in C major (II) | 3 | 1023 | 7 | 6.8 |
+| Fugue 1 in C major (II) | 3 | 1023 | 5 | 4.9 |
 | Fugue 2 in C minor (II) | 4 | 654 | 3 | 4.6 |
-| Fugue 3 in C♯ major (II) | 3 | 789 | 8 | 10.1 |
-| Fugue 4 in C♯ minor (II) | 3 | 1353 | 3 | 2.2 |
+| Fugue 3 in C♯ major (II) | 3 | 789 | 6 | 7.6 |
+| Fugue 4 in C♯ minor (II) | 3 | 1353 | 4 | 3.0 |
 | Fugue 5 in D major (II) | 4 | 876 | 3 | 3.4 |
 | Fugue 6 in D minor (II) | 3 | 800 | 1 | 1.3 |
 | Fugue 7 in E♭ major (II) | 4 | 707 | 6 | 8.5 |
-| Fugue 8 in D♯ minor (II) | 4 | 1020 | 6 | 5.9 |
+| Fugue 8 in D♯ minor (II) | 4 | 1020 | 5 | 4.9 |
 | Fugue 9 in E major (II) | 4 | 750 | 1 | 1.3 |
-| Fugue 10 in E minor (II) | 3 | 1430 | 3 | 2.1 |
-| Fugue 11 in F major (II) | 3 | 979 | 3 | 3.1 |
-| Fugue 12 in F minor (II) | 3 | 1117 | 4 | 3.6 |
+| Fugue 10 in E minor (II) | 3 | 1430 | 6 | 4.2 |
+| Fugue 11 in F major (II) | 3 | 979 | 2 | 2.0 |
+| Fugue 12 in F minor (II) | 3 | 1117 | 7 | 6.3 |
 | Fugue 13 in F♯ major (II) | 3 | 1123 | 9 | 8.0 |
 | Fugue 14 in F♯ minor (II) | 3 | 1400 | 2 | 1.4 |
 | Fugue 15 in G major (II) | 3 | 693 | 1 | 1.4 |
-| Fugue 16 in G minor (II) | 4 | 1659 | 12 | 7.2 |
-| Fugue 17 in A♭ major (II) | 4 | 1321 | 2 | 1.5 |
+| Fugue 16 in G minor (II) | 4 | 1659 | 6 | 3.6 |
+| Fugue 17 in A♭ major (II) | 4 | 1321 | 4 | 3.0 |
 | Fugue 18 in G♯ minor (II) | 3 | 1529 | 11 | 7.2 |
 | Fugue 19 in A major (II) | 3 | 754 | 0 | 0.0 |
 | Fugue 20 in A minor (II) | 3 | 733 | 11 | 15.0 |
 | Fugue 21 in B♭ major (II) | 3 | 962 | 6 | 6.2 |
-| Fugue 22 in B♭ minor (II) | 4 | 1752 | 3 | 1.7 |
-| Fugue 23 in B major (II) | 4 | 1319 | 10 | 7.6 |
+| Fugue 22 in B♭ minor (II) | 4 | 1752 | 2 | 1.1 |
+| Fugue 23 in B major (II) | 4 | 1319 | 8 | 6.1 |
 | Fugue 24 in B minor (II) | 3 | 983 | 15 | 15.3 |
 
 ## The cases flagged in Bach (first 400)
@@ -150,10 +150,10 @@ The two voices already sounding, judged while the third voice enters with the su
 | fugue | bar | voice | note | rule | detail |
 |---|---|---|---|---|---|
 | Fugue 1 in C major (I) | 19 | 1 | G5 | non-chord tone | G5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
+| Fugue 1 in C major (I) | 23 | 1 | D5 | seventh | the seventh of the chord (D5) leaves by leap |
 | Fugue 1 in C major (I) | 20 | 2 | C5 | non-chord tone | C5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 1 in C major (I) | 15 | 3 | D4 | suspension | D4, held into a chord it does not belong to, is not resolved by step |
-| Fugue 2 in C minor (I) | 22 | 1 | Ab4 | seventh | the seventh of the chord (Ab4) leaves by leap |
-| Fugue 2 in C minor (I) | 10 | 2 | Ab4 | seventh | the seventh of the chord (Ab4) leaves by leap |
+| Fugue 1 in C major (I) | 23 | 3 | D4 | seventh | the seventh of the chord (D4) leaves by leap |
 | Fugue 2 in C minor (I) | 20 | 3 | Eb3 | seventh | the seventh of the chord (Eb3) leaves by leap |
 | Fugue 3 in C♯ major (I) | 7 | 1 | D#5 | suspension | D#5, held into a chord it does not belong to, is not resolved by step |
 | Fugue 3 in C♯ major (I) | 8 | 1 | A#4 | seventh | the seventh of the chord (A#4) leaves by leap |
@@ -163,15 +163,11 @@ The two voices already sounding, judged while the third voice enters with the su
 | Fugue 3 in C♯ major (I) | 18 | 1 | G#5 | suspension | G#5, held into a chord it does not belong to, is not resolved by step |
 | Fugue 3 in C♯ major (I) | 25 | 1 | D#5 | non-chord tone | D#5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 3 in C♯ major (I) | 35 | 1 | A#4 | non-chord tone | A#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
-| Fugue 3 in C♯ major (I) | 36 | 1 | G#4 | non-chord tone | G#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
-| Fugue 3 in C♯ major (I) | 37 | 1 | F#4 | non-chord tone | F#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 3 in C♯ major (I) | 42 | 1 | G#4 | non-chord tone | G#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 3 in C♯ major (I) | 49 | 1 | D#4 | seventh | the seventh of the chord (D#4) leaves by leap |
 | Fugue 3 in C♯ major (I) | 50 | 1 | C##4 | suspension | C##4, held into a chord it does not belong to, is not resolved by step |
 | Fugue 3 in C♯ major (I) | 52 | 1 | G#4 | non-chord tone | G#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 3 in C♯ major (I) | 54 | 1 | E5 | non-chord tone | E5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
-| Fugue 3 in C♯ major (I) | 54 | 1 | A#5 | seventh | the seventh of the chord (A#5) leaves by leap |
-| Fugue 3 in C♯ major (I) | 3 | 2 | D#4 | non-chord tone | D#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 3 in C♯ major (I) | 19 | 2 | G#4 | seventh | the seventh of the chord (G#4) leaves by leap |
 | Fugue 3 in C♯ major (I) | 19 | 2 | B#3 | non-chord tone | B#3 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 3 in C♯ major (I) | 24 | 2 | G#3 | suspension | G#3, held into a chord it does not belong to, is not resolved by step |
@@ -179,12 +175,9 @@ The two voices already sounding, judged while the third voice enters with the su
 | Fugue 3 in C♯ major (I) | 44 | 2 | D#4 | non-chord tone | D#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 3 in C♯ major (I) | 55 | 2 | D#4 | fifths | parallel fifths with the A#4 |
 | Fugue 3 in C♯ major (I) | 5 | 3 | G#3 | non-chord tone | G#3 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
-| Fugue 3 in C♯ major (I) | 14 | 3 | E#3 | non-chord tone | E#3 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 3 in C♯ major (I) | 39 | 3 | E#4 | non-chord tone | E#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
-| Fugue 3 in C♯ major (I) | 40 | 3 | D#4 | non-chord tone | D#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
-| Fugue 3 in C♯ major (I) | 41 | 3 | C#4 | non-chord tone | C#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 3 in C♯ major (I) | 46 | 3 | G#3 | non-chord tone | G#3 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
-| Fugue 4 in C♯ minor (I) | 64 | 2 | C#4 | seventh | the seventh of the chord (C#4) leaves by leap |
+| Fugue 4 in C♯ minor (I) | 8 | 3 | B#3 | seventh | the seventh of the chord (B#3) leaves by leap |
 | Fugue 4 in C♯ minor (I) | 104 | 3 | D#4 | octaves | parallel octaves with the D#3 |
 | Fugue 4 in C♯ minor (I) | 104 | 4 | D#3 | octaves | parallel octaves with the D#4 |
 | Fugue 4 in C♯ minor (I) | 93 | 5 | G#2 | fifths | parallel fifths with the D#5 |
@@ -197,7 +190,6 @@ The two voices already sounding, judged while the third voice enters with the su
 | Fugue 6 in D minor (I) | 16 | 1 | F#5 | seventh | the seventh of the chord (F#5) leaves by leap |
 | Fugue 6 in D minor (I) | 20 | 1 | A4 | suspension | A4, held into a chord it does not belong to, is not resolved by step |
 | Fugue 6 in D minor (I) | 20 | 1 | A4 | non-chord tone | A4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
-| Fugue 6 in D minor (I) | 28 | 1 | A5 | seventh | the seventh of the chord (A5) leaves by leap |
 | Fugue 6 in D minor (I) | 42 | 1 | D5 | suspension | D5, held into a chord it does not belong to, is not resolved by step |
 | Fugue 6 in D minor (I) | 42 | 1 | D5 | non-chord tone | D5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 6 in D minor (I) | 43 | 1 | C5 | seventh | the seventh of the chord (C5) leaves by leap |
@@ -205,9 +197,9 @@ The two voices already sounding, judged while the third voice enters with the su
 | Fugue 6 in D minor (I) | 16 | 2 | D4 | seventh | the seventh of the chord (D4) leaves by leap |
 | Fugue 6 in D minor (I) | 43 | 2 | G3 | octaves | parallel octaves with the G4 |
 | Fugue 6 in D minor (I) | 11 | 3 | E3 | seventh | the seventh of the chord (E3) leaves by leap |
+| Fugue 6 in D minor (I) | 24 | 3 | F3 | seventh | the seventh of the chord (F3) leaves by leap |
 | Fugue 7 in E♭ major (I) | 10 | 1 | G5 | suspension | G5, held into a chord it does not belong to, is not resolved by step |
 | Fugue 7 in E♭ major (I) | 15 | 1 | G5 | non-chord tone | G5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
-| Fugue 7 in E♭ major (I) | 16 | 1 | A4 | seventh | the seventh of the chord (A4) leaves by leap |
 | Fugue 7 in E♭ major (I) | 16 | 1 | D5 | non-chord tone | D5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 7 in E♭ major (I) | 31 | 1 | Bb5 | suspension | Bb5, held into a chord it does not belong to, is not resolved by step |
 | Fugue 7 in E♭ major (I) | 32 | 1 | Ab5 | suspension | Ab5, held into a chord it does not belong to, is not resolved by step |
@@ -216,6 +208,7 @@ The two voices already sounding, judged while the third voice enters with the su
 | Fugue 8 in D♯ minor (I) | 16 | 1 | B5 | suspension | B5, held into a chord it does not belong to, is not resolved by step |
 | Fugue 8 in D♯ minor (I) | 25 | 1 | A#5 | seventh | the seventh of the chord (A#5) leaves by leap |
 | Fugue 8 in D♯ minor (I) | 28 | 1 | G#5 | seventh | the seventh of the chord (G#5) leaves by leap |
+| Fugue 8 in D♯ minor (I) | 73 | 2 | C#5 | seventh | the seventh of the chord (C#5) leaves by leap |
 | Fugue 9 in E major (I) | 19 | 1 | C#4 | non-chord tone | C#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 11 in F major (I) | 32 | 1 | C5 | seventh | the seventh of the chord (C5) leaves by leap |
 | Fugue 11 in F major (I) | 34 | 1 | B4 | seventh | the seventh of the chord (B4) leaves by leap |
@@ -223,29 +216,24 @@ The two voices already sounding, judged while the third voice enters with the su
 | Fugue 11 in F major (I) | 51 | 2 | Bb3 | seventh | the seventh of the chord (Bb3) leaves by leap |
 | Fugue 11 in F major (I) | 65 | 2 | D3 | seventh | the seventh of the chord (D3) leaves by leap |
 | Fugue 11 in F major (I) | 67 | 3 | G2 | octaves | parallel octaves with the G3 |
-| Fugue 12 in F minor (I) | 14 | 1 | B4 | seventh | the seventh of the chord (B4) leaves by leap |
 | Fugue 12 in F minor (I) | 27 | 1 | G5 | suspension | G5, held into a chord it does not belong to, is not resolved by step |
-| Fugue 12 in F minor (I) | 27 | 1 | C5 | seventh | the seventh of the chord (C5) leaves by leap |
 | Fugue 12 in F minor (I) | 37 | 1 | G5 | suspension | G5, held into a chord it does not belong to, is not resolved by step |
 | Fugue 12 in F minor (I) | 38 | 1 | Eb5 | suspension | Eb5, held into a chord it does not belong to, is not resolved by step |
+| Fugue 12 in F minor (I) | 48 | 1 | F#5 | seventh | the seventh of the chord (F#5) leaves by leap |
 | Fugue 12 in F minor (I) | 56 | 1 | Db5 | seventh | the seventh of the chord (Db5) leaves by leap |
 | Fugue 12 in F minor (I) | 54 | 2 | C4 | seventh | the seventh of the chord (C4) leaves by leap |
 | Fugue 12 in F minor (I) | 13 | 3 | Ab3 | non-chord tone | Ab3 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
-| Fugue 12 in F minor (I) | 8 | 4 | B2 | seventh | the seventh of the chord (B2) leaves by leap |
-| Fugue 12 in F minor (I) | 28 | 4 | B2 | seventh | the seventh of the chord (B2) leaves by leap |
-| Fugue 12 in F minor (I) | 54 | 4 | B2 | seventh | the seventh of the chord (B2) leaves by leap |
 | Fugue 13 in F♯ major (I) | 21 | 1 | D#4 | non-chord tone | D#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 13 in F♯ major (I) | 25 | 2 | D#5 | suspension | D#5, held into a chord it does not belong to, is not resolved by step |
 | Fugue 13 in F♯ major (I) | 13 | 3 | F#3 | non-chord tone | F#3 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 14 in F♯ minor (I) | 24 | 2 | A4 | suspension | A4, held into a chord it does not belong to, is not resolved by step |
-| Fugue 14 in F♯ minor (I) | 14 | 3 | B3 | seventh | the seventh of the chord (B3) leaves by leap |
 | Fugue 14 in F♯ minor (I) | 15 | 3 | B3 | suspension | B3, held into a chord it does not belong to, is not resolved by step |
 | Fugue 15 in G major (I) | 9 | 1 | A4 | non-chord tone | A4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 15 in G major (I) | 35 | 1 | F4 | non-chord tone | F4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 15 in G major (I) | 54 | 1 | D5 | non-chord tone | D5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
-| Fugue 15 in G major (I) | 56 | 1 | D5 | seventh | the seventh of the chord (D5) leaves by leap |
 | Fugue 15 in G major (I) | 58 | 1 | D5 | suspension | D5, held into a chord it does not belong to, is not resolved by step |
 | Fugue 15 in G major (I) | 58 | 1 | D5 | non-chord tone | D5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
+| Fugue 15 in G major (I) | 58 | 1 | F#4 | non-chord tone | F#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 15 in G major (I) | 59 | 1 | E5 | non-chord tone | E5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 15 in G major (I) | 65 | 1 | C#5 | non-chord tone | C#5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 15 in G major (I) | 66 | 1 | B4 | non-chord tone | B4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
@@ -256,20 +244,19 @@ The two voices already sounding, judged while the third voice enters with the su
 | Fugue 15 in G major (I) | 16 | 3 | F3 | non-chord tone | F3 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 15 in G major (I) | 80 | 3 | B2 | non-chord tone | B2 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 15 in G major (I) | 81 | 3 | F#2 | non-chord tone | F#2 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
+| Fugue 15 in G major (I) | 81 | 3 | E3 | seventh | the seventh of the chord (E3) leaves by leap |
 | Fugue 15 in G major (I) | 82 | 3 | G2 | non-chord tone | G2 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 16 in G minor (I) | 9 | 1 | A4 | suspension | A4, held into a chord it does not belong to, is not resolved by step |
 | Fugue 16 in G minor (I) | 34 | 3 | A3 | octaves | parallel octaves with the A2 |
 | Fugue 16 in G minor (I) | 33 | 4 | G2 | seventh | the seventh of the chord (G2) leaves by leap |
 | Fugue 17 in A♭ major (I) | 8 | 1 | F5 | suspension | F5, held into a chord it does not belong to, is not resolved by step |
 | Fugue 17 in A♭ major (I) | 18 | 1 | Eb5 | seventh | the seventh of the chord (Eb5) leaves by leap |
-| Fugue 17 in A♭ major (I) | 27 | 1 | Bb4 | seventh | the seventh of the chord (Bb4) leaves by leap |
 | Fugue 17 in A♭ major (I) | 10 | 2 | Eb4 | seventh | the seventh of the chord (Eb4) leaves by leap |
 | Fugue 17 in A♭ major (I) | 34 | 2 | F4 | fifths | parallel fifths with the Bb3 |
 | Fugue 17 in A♭ major (I) | 13 | 3 | G3 | suspension | G3, held into a chord it does not belong to, is not resolved by step |
 | Fugue 17 in A♭ major (I) | 34 | 3 | Bb3 | fifths | parallel fifths with the F4 |
-| Fugue 17 in A♭ major (I) | 35 | 3 | Bb3 | seventh | the seventh of the chord (Bb3) leaves by leap |
 | Fugue 17 in A♭ major (I) | 28 | 4 | F3 | seventh | the seventh of the chord (F3) leaves by leap |
-| Fugue 18 in G♯ minor (I) | 35 | 1 | D#4 | seventh | the seventh of the chord (D#4) leaves by leap |
+| Fugue 18 in G♯ minor (I) | 17 | 1 | C#5 | suspension | C#5, held into a chord it does not belong to, is not resolved by step |
 | Fugue 18 in G♯ minor (I) | 27 | 2 | F#4 | fifths | parallel fifths with the B3 |
 | Fugue 18 in G♯ minor (I) | 27 | 2 | B4 | seventh | the seventh of the chord (B4) leaves by leap |
 | Fugue 18 in G♯ minor (I) | 22 | 3 | E#3 | non-chord tone | E#3 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
@@ -287,7 +274,7 @@ The two voices already sounding, judged while the third voice enters with the su
 | Fugue 19 in A major (I) | 37 | 2 | G#4 | non-chord tone | G#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 19 in A major (I) | 38 | 2 | G#4 | non-chord tone | G#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 19 in A major (I) | 39 | 2 | B3 | seventh | the seventh of the chord (B3) leaves by leap |
-| Fugue 19 in A major (I) | 52 | 2 | E4 | non-chord tone | E4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
+| Fugue 19 in A major (I) | 52 | 2 | E4 | seventh | the seventh of the chord (E4) leaves by leap |
 | Fugue 19 in A major (I) | 6 | 3 | C#3 | non-chord tone | C#3 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 19 in A major (I) | 7 | 3 | E4 | non-chord tone | E4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 19 in A major (I) | 10 | 3 | F#3 | non-chord tone | F#3 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
@@ -318,15 +305,16 @@ The two voices already sounding, judged while the third voice enters with the su
 | Fugue 20 in A minor (I) | 54 | 4 | F#2 | seventh | the seventh of the chord (F#2) leaves by leap |
 | Fugue 20 in A minor (I) | 74 | 4 | Eb2 | seventh | the seventh of the chord (Eb2) leaves by leap |
 | Fugue 20 in A minor (I) | 80 | 4 | D3 | seventh | the seventh of the chord (D3) leaves by leap |
-| Fugue 21 in B♭ major (I) | 1 | 1 | F4 | seventh | the seventh of the chord (F4) leaves by leap |
-| Fugue 21 in B♭ major (I) | 2 | 1 | F4 | seventh | the seventh of the chord (F4) leaves by leap |
 | Fugue 21 in B♭ major (I) | 15 | 1 | G5 | seventh | the seventh of the chord (G5) leaves by leap |
+| Fugue 21 in B♭ major (I) | 37 | 1 | F5 | suspension | F5, held into a chord it does not belong to, is not resolved by step |
 | Fugue 21 in B♭ major (I) | 37 | 1 | Bb4 | seventh | the seventh of the chord (Bb4) leaves by leap |
 | Fugue 21 in B♭ major (I) | 42 | 1 | Bb5 | suspension | Bb5, held into a chord it does not belong to, is not resolved by step |
 | Fugue 21 in B♭ major (I) | 7 | 2 | G4 | seventh | the seventh of the chord (G4) leaves by leap |
+| Fugue 21 in B♭ major (I) | 8 | 2 | G4 | seventh | the seventh of the chord (G4) leaves by leap |
+| Fugue 21 in B♭ major (I) | 38 | 2 | Eb4 | suspension | Eb4, held into a chord it does not belong to, is not resolved by step |
+| Fugue 21 in B♭ major (I) | 39 | 2 | F4 | suspension | F4, held into a chord it does not belong to, is not resolved by step |
 | Fugue 21 in B♭ major (I) | 11 | 3 | C4 | seventh | the seventh of the chord (C4) leaves by leap |
 | Fugue 22 in B♭ minor (I) | 19 | 1 | Ab4 | suspension | Ab4, held into a chord it does not belong to, is not resolved by step |
-| Fugue 22 in B♭ minor (I) | 33 | 1 | F5 | non-chord tone | F5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 22 in B♭ minor (I) | 22 | 4 | Db4 | seventh | the seventh of the chord (Db4) leaves by leap |
 | Fugue 22 in B♭ minor (I) | 58 | 4 | A3 | seventh | the seventh of the chord (A3) leaves by leap |
 | Fugue 22 in B♭ minor (I) | 15 | 5 | F2 | seventh | the seventh of the chord (F2) leaves by leap |
@@ -345,37 +333,34 @@ The two voices already sounding, judged while the third voice enters with the su
 | Fugue 24 in B minor (I) | 2 | 2 | B4 | seventh | the seventh of the chord (B4) leaves by leap |
 | Fugue 24 in B minor (I) | 2 | 2 | E#4 | seventh | the seventh of the chord (E#4) leaves by leap |
 | Fugue 24 in B minor (I) | 4 | 2 | C5 | non-chord tone | C5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
-| Fugue 24 in B minor (I) | 9 | 2 | B4 | seventh | the seventh of the chord (B4) leaves by leap |
 | Fugue 24 in B minor (I) | 36 | 2 | B4 | seventh | the seventh of the chord (B4) leaves by leap |
 | Fugue 24 in B minor (I) | 55 | 2 | D#5 | non-chord tone | D#5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 24 in B minor (I) | 57 | 2 | G#4 | suspension | G#4, held into a chord it does not belong to, is not resolved by step |
 | Fugue 24 in B minor (I) | 5 | 3 | G#3 | seventh | the seventh of the chord (G#3) leaves by leap |
 | Fugue 24 in B minor (I) | 16 | 3 | A#3 | non-chord tone | A#3 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 24 in B minor (I) | 44 | 3 | A3 | seventh | the seventh of the chord (A3) leaves by leap |
+| Fugue 24 in B minor (I) | 54 | 3 | C#4 | seventh | the seventh of the chord (C#4) leaves by leap |
 | Fugue 24 in B minor (I) | 69 | 3 | F#3 | seventh | the seventh of the chord (F#3) leaves by leap |
 | Fugue 24 in B minor (I) | 38 | 4 | F#3 | seventh | the seventh of the chord (F#3) leaves by leap |
 | Fugue 24 in B minor (I) | 43 | 4 | G#3 | seventh | the seventh of the chord (G#3) leaves by leap |
 | Fugue 24 in B minor (I) | 58 | 4 | B2 | seventh | the seventh of the chord (B2) leaves by leap |
 | Fugue 24 in B minor (I) | 70 | 4 | B2 | seventh | the seventh of the chord (B2) leaves by leap |
 | Fugue 1 in C major (II) | 82 | 1 | C5 | seventh | the seventh of the chord (C5) leaves by leap |
-| Fugue 1 in C major (II) | 24 | 2 | A4 | seventh | the seventh of the chord (A4) leaves by leap |
 | Fugue 1 in C major (II) | 26 | 2 | D4 | seventh | the seventh of the chord (D4) leaves by leap |
 | Fugue 1 in C major (II) | 14 | 3 | F3 | seventh | the seventh of the chord (F3) leaves by leap |
 | Fugue 1 in C major (II) | 16 | 3 | G3 | seventh | the seventh of the chord (G3) leaves by leap |
 | Fugue 1 in C major (II) | 21 | 3 | D4 | seventh | the seventh of the chord (D4) leaves by leap |
-| Fugue 1 in C major (II) | 24 | 3 | A3 | seventh | the seventh of the chord (A3) leaves by leap |
 | Fugue 2 in C minor (II) | 11 | 1 | Eb4 | seventh | the seventh of the chord (Eb4) leaves by leap |
 | Fugue 2 in C minor (II) | 11 | 2 | Gb4 | seventh | the seventh of the chord (Gb4) leaves by leap |
 | Fugue 2 in C minor (II) | 12 | 2 | Ab4 | seventh | the seventh of the chord (Ab4) leaves by leap |
 | Fugue 3 in C♯ major (II) | 14 | 1 | E#5 | octaves | parallel octaves with the E#3 |
 | Fugue 3 in C♯ major (II) | 17 | 1 | D#5 | non-chord tone | D#5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
-| Fugue 3 in C♯ major (II) | 26 | 1 | G#4 | seventh | the seventh of the chord (G#4) leaves by leap |
 | Fugue 3 in C♯ major (II) | 27 | 1 | G#4 | suspension | G#4, held into a chord it does not belong to, is not resolved by step |
 | Fugue 3 in C♯ major (II) | 3 | 2 | G#4 | seventh | the seventh of the chord (G#4) leaves by leap |
-| Fugue 3 in C♯ major (II) | 25 | 2 | E#4 | seventh | the seventh of the chord (E#4) leaves by leap |
 | Fugue 3 in C♯ major (II) | 26 | 2 | F#4 | suspension | F#4, held into a chord it does not belong to, is not resolved by step |
 | Fugue 3 in C♯ major (II) | 35 | 2 | B#3 | seventh | the seventh of the chord (B#3) leaves by leap |
 | Fugue 4 in C♯ minor (II) | 30 | 1 | A4 | non-chord tone | A4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
+| Fugue 4 in C♯ minor (II) | 68 | 1 | F##5 | seventh | the seventh of the chord (F##5) leaves by leap |
 | Fugue 4 in C♯ minor (II) | 70 | 1 | G#4 | non-chord tone | G#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 4 in C♯ minor (II) | 26 | 2 | B4 | seventh | the seventh of the chord (B4) leaves by leap |
 | Fugue 5 in D major (II) | 26 | 1 | C#4 | non-chord tone | C#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
@@ -389,22 +374,26 @@ The two voices already sounding, judged while the third voice enters with the su
 | Fugue 7 in E♭ major (II) | 10 | 3 | G4 | seventh | the seventh of the chord (G4) leaves by leap |
 | Fugue 7 in E♭ major (II) | 61 | 3 | F4 | seventh | the seventh of the chord (F4) leaves by leap |
 | Fugue 8 in D♯ minor (II) | 22 | 1 | D#5 | seventh | the seventh of the chord (D#5) leaves by leap |
-| Fugue 8 in D♯ minor (II) | 2 | 2 | D#4 | seventh | the seventh of the chord (D#4) leaves by leap |
-| Fugue 8 in D♯ minor (II) | 4 | 3 | A#3 | seventh | the seventh of the chord (A#3) leaves by leap |
+| Fugue 8 in D♯ minor (II) | 40 | 3 | B#3 | seventh | the seventh of the chord (B#3) leaves by leap |
 | Fugue 8 in D♯ minor (II) | 45 | 3 | G#3 | seventh | the seventh of the chord (G#3) leaves by leap |
 | Fugue 8 in D♯ minor (II) | 8 | 4 | D#3 | seventh | the seventh of the chord (D#3) leaves by leap |
 | Fugue 8 in D♯ minor (II) | 16 | 4 | G#2 | seventh | the seventh of the chord (G#2) leaves by leap |
 | Fugue 9 in E major (II) | 13 | 1 | F#4 | seventh | the seventh of the chord (F#4) leaves by leap |
 | Fugue 10 in E minor (II) | 36 | 1 | G5 | seventh | the seventh of the chord (G5) leaves by leap |
+| Fugue 10 in E minor (II) | 43 | 1 | D5 | non-chord tone | D5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 10 in E minor (II) | 79 | 1 | A4 | non-chord tone | A4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
+| Fugue 10 in E minor (II) | 85 | 1 | C5 | non-chord tone | C5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
+| Fugue 10 in E minor (II) | 56 | 2 | A4 | seventh | the seventh of the chord (A4) leaves by leap |
 | Fugue 10 in E minor (II) | 83 | 3 | A2 | seventh | the seventh of the chord (A2) leaves by leap |
 | Fugue 11 in F major (II) | 22 | 1 | C5 | non-chord tone | C5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 11 in F major (II) | 86 | 2 | Eb4 | seventh | the seventh of the chord (Eb4) leaves by leap |
-| Fugue 11 in F major (II) | 88 | 3 | C3 | seventh | the seventh of the chord (C3) leaves by leap |
 | Fugue 12 in F minor (II) | 9 | 1 | Bb5 | seventh | the seventh of the chord (Bb5) leaves by leap |
+| Fugue 12 in F minor (II) | 60 | 1 | G4 | seventh | the seventh of the chord (G4) leaves by leap |
 | Fugue 12 in F minor (II) | 64 | 1 | F5 | non-chord tone | F5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 12 in F minor (II) | 47 | 2 | C5 | non-chord tone | C5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
+| Fugue 12 in F minor (II) | 83 | 2 | E4 | seventh | the seventh of the chord (E4) leaves by leap |
 | Fugue 12 in F minor (II) | 23 | 3 | F2 | seventh | the seventh of the chord (F2) leaves by leap |
+| Fugue 12 in F minor (II) | 83 | 3 | E3 | seventh | the seventh of the chord (E3) leaves by leap |
 | Fugue 13 in F♯ major (II) | 32 | 1 | A#4 | seventh | the seventh of the chord (A#4) leaves by leap |
 | Fugue 13 in F♯ major (II) | 40 | 1 | C#5 | non-chord tone | C#5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 13 in F♯ major (II) | 56 | 1 | F#4 | non-chord tone | F#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
@@ -419,16 +408,12 @@ The two voices already sounding, judged while the third voice enters with the su
 | Fugue 15 in G major (II) | 70 | 2 | D4 | seventh | the seventh of the chord (D4) leaves by leap |
 | Fugue 16 in G minor (II) | 29 | 1 | A5 | non-chord tone | A5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 16 in G minor (II) | 30 | 1 | G5 | non-chord tone | G5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
-| Fugue 16 in G minor (II) | 69 | 1 | D5 | seventh | the seventh of the chord (D5) leaves by leap |
 | Fugue 16 in G minor (II) | 82 | 1 | G4 | suspension | G4, held into a chord it does not belong to, is not resolved by step |
 | Fugue 16 in G minor (II) | 18 | 2 | D5 | suspension | D5, held into a chord it does not belong to, is not resolved by step |
 | Fugue 16 in G minor (II) | 49 | 2 | C4 | non-chord tone | C4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
-| Fugue 16 in G minor (II) | 51 | 2 | G4 | seventh | the seventh of the chord (G4) leaves by leap |
-| Fugue 16 in G minor (II) | 52 | 2 | F4 | seventh | the seventh of the chord (F4) leaves by leap |
-| Fugue 16 in G minor (II) | 53 | 2 | Eb4 | seventh | the seventh of the chord (Eb4) leaves by leap |
-| Fugue 16 in G minor (II) | 14 | 3 | G3 | seventh | the seventh of the chord (G3) leaves by leap |
 | Fugue 16 in G minor (II) | 15 | 3 | F3 | seventh | the seventh of the chord (F3) leaves by leap |
-| Fugue 16 in G minor (II) | 54 | 4 | B2 | seventh | the seventh of the chord (B2) leaves by leap |
+| Fugue 17 in A♭ major (II) | 34 | 2 | C5 | seventh | the seventh of the chord (C5) leaves by leap |
+| Fugue 17 in A♭ major (II) | 39 | 2 | C4 | seventh | the seventh of the chord (C4) leaves by leap |
 | Fugue 17 in A♭ major (II) | 49 | 2 | Ab3 | seventh | the seventh of the chord (Ab3) leaves by leap |
 | Fugue 17 in A♭ major (II) | 42 | 3 | Db4 | seventh | the seventh of the chord (Db4) leaves by leap |
 | Fugue 18 in G♯ minor (II) | 43 | 1 | E#5 | non-chord tone | E#5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
@@ -451,7 +436,7 @@ The two voices already sounding, judged while the third voice enters with the su
 | Fugue 20 in A minor (II) | 6 | 2 | G#4 | seventh | the seventh of the chord (G#4) leaves by leap |
 | Fugue 20 in A minor (II) | 10 | 2 | A4 | seventh | the seventh of the chord (A4) leaves by leap |
 | Fugue 20 in A minor (II) | 18 | 2 | D4 | seventh | the seventh of the chord (D4) leaves by leap |
-| Fugue 20 in A minor (II) | 22 | 2 | Bb4 | seventh | the seventh of the chord (Bb4) leaves by leap |
+| Fugue 20 in A minor (II) | 13 | 3 | D#3 | seventh | the seventh of the chord (D#3) leaves by leap |
 | Fugue 20 in A minor (II) | 27 | 3 | D3 | seventh | the seventh of the chord (D3) leaves by leap |
 | Fugue 21 in B♭ major (II) | 30 | 1 | A4 | non-chord tone | A4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 21 in B♭ major (II) | 91 | 1 | D5 | non-chord tone | D5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
@@ -461,17 +446,15 @@ The two voices already sounding, judged while the third voice enters with the su
 | Fugue 21 in B♭ major (II) | 85 | 3 | D3 | seventh | the seventh of the chord (D3) leaves by leap |
 | Fugue 22 in B♭ minor (II) | 29 | 1 | Db5 | seventh | the seventh of the chord (Db5) leaves by leap |
 | Fugue 22 in B♭ minor (II) | 42 | 1 | A5 | non-chord tone | A5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
-| Fugue 22 in B♭ minor (II) | 49 | 3 | Cb4 | seventh | the seventh of the chord (Cb4) leaves by leap |
 | Fugue 23 in B major (II) | 33 | 1 | F#4 | non-chord tone | F#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 23 in B major (II) | 38 | 1 | G#4 | non-chord tone | G#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
-| Fugue 23 in B major (II) | 43 | 1 | D#5 | seventh | the seventh of the chord (D#5) leaves by leap |
 | Fugue 23 in B major (II) | 51 | 1 | B4 | seventh | the seventh of the chord (B4) leaves by leap |
 | Fugue 23 in B major (II) | 52 | 1 | A4 | non-chord tone | A4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 23 in B major (II) | 53 | 2 | B#3 | non-chord tone | B#3 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 23 in B major (II) | 58 | 2 | F#4 | non-chord tone | F#4 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
 | Fugue 23 in B major (II) | 60 | 2 | D#5 | seventh | the seventh of the chord (D#5) leaves by leap |
 | Fugue 23 in B major (II) | 79 | 2 | C#5 | non-chord tone | C#5 is not in the chord here and is neither a passing note, neighbour, appoggiatura, échappée nor anticipation |
-| Fugue 23 in B major (II) | 26 | 4 | C#3 | seventh | the seventh of the chord (C#3) leaves by leap |
+| Fugue 24 in B minor (II) | 30 | 1 | B4 | suspension | B4, held into a chord it does not belong to, is not resolved by step |
 | Fugue 24 in B minor (II) | 47 | 1 | C#5 | seventh | the seventh of the chord (C#5) leaves by leap |
 | Fugue 24 in B minor (II) | 48 | 1 | B4 | seventh | the seventh of the chord (B4) leaves by leap |
 | Fugue 24 in B minor (II) | 54 | 1 | C#5 | seventh | the seventh of the chord (C#5) leaves by leap |
@@ -484,6 +467,5 @@ The two voices already sounding, judged while the third voice enters with the su
 | Fugue 24 in B minor (II) | 84 | 2 | D5 | seventh | the seventh of the chord (D5) leaves by leap |
 | Fugue 24 in B minor (II) | 85 | 2 | C#5 | seventh | the seventh of the chord (C#5) leaves by leap |
 | Fugue 24 in B minor (II) | 29 | 3 | A3 | seventh | the seventh of the chord (A3) leaves by leap |
+| Fugue 24 in B minor (II) | 30 | 3 | G#3 | seventh | the seventh of the chord (G#3) leaves by leap |
 | Fugue 24 in B minor (II) | 43 | 3 | D4 | seventh | the seventh of the chord (D4) leaves by leap |
-| Fugue 24 in B minor (II) | 51 | 3 | A3 | seventh | the seventh of the chord (A3) leaves by leap |
-| Fugue 24 in B minor (II) | 53 | 3 | B3 | seventh | the seventh of the chord (B3) leaves by leap |

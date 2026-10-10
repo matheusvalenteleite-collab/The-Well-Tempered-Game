@@ -125,6 +125,8 @@ export function harmonies(lines: Note[][], meter: string, length: number, window
         s -= pcs.filter((x) => weight[x] === 0).length * w * 0.25;
         if (c.iv.length === 4) s -= w * 0.3;
         if (c.name === "augmented") s -= w;
+        // Between readings that cover the notes equally, the one with its root in the bass.
+        if (bass && r === pc((bass as Note).pitch)) s += w * 0.2;
         if (s > bestScore) {
           bestScore = s;
           best = { on: t, root: r, pcs, seventh: c.iv.length === 4 ? (c.iv[3] + r) % 12 : null, name: c.name };

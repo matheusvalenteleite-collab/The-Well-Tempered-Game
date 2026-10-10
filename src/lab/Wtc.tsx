@@ -14,9 +14,10 @@ import { TUNINGS, type TuningId } from "../wtc/tunings.ts";
 import { entryKey } from "../wtc/keyplan.ts";
 import { reduce, type Segment } from "../wtc/reduction.ts";
 import { exposition } from "../wtc/exposition.ts";
+import { study, type MomentKind } from "../wtc/study.ts";
 import { episodes, strettos, type Episode } from "../wtc/structure.ts";
 import { parsePitch } from "../music/pitch.ts";
-import { playNotes, playPiece, stop } from "./keyboard.ts";
+import { playNotes, playPiece, playSpans, stop, type Span } from "./keyboard.ts";
 import { Markdown } from "./Habits.tsx";
 import { MiniStaff } from "./MiniStaff.tsx";
 import concept from "../../docs/wtc/CONCEPT.md?raw";
@@ -458,6 +459,56 @@ function ExpositionExercise({ p, a, tuning }: { p: WtcPiece; a: Analysis; tuning
   );
 }
 
+/* ---------------------------------------------------------------- the study guide */
+
+const KIND_NAMES: Record<MomentKind, string> = { entry: "entries", stretto: "strettos", episode: "episodes", pedal: "pedal points", cadence: "cadences", climax: "the highest note" };
+
+/** Sections and moments of a fugue, each playable on its own, the voice that matters brought forward. */
+function StudyGuide({ p, a, play }: { p: WtcPiece; a: Analysis; play: (spans: Span[]) => void }) {
+  const s = useMemo(() => study(p, a.subject, a.answer, a.entries), [p, a]);
+  const [kinds, setKinds] = useState<Set<MomentKind>>(new Set(["entry", "stretto", "episode", "pedal", "cadence", "climax"]));
+  const [follow, setFollow] = useState(true);
+  const entries = s.moments.filter((m) => m.kind === "entry");
+  const counts = Object.fromEntries((Object.keys(KIND_NAMES) as MomentKind[]).map((k) => [k, s.moments.filter((m) => m.kind === k).length]));
+  return (
+    <fieldset className="lab-panel">
+      <legend>Study: sections and moments</legend>
+      <p className="lab-prose">
+        The fugue read for listening: its sections (the exposition, then from cadence to cadence) and its moments: every entry of the subject, the strettos, the episodes and their sequences, the pedal points, the cadences, the highest note. Play any of them on its own; with <i>bring the voice forward</i>, the voice that carries it sounds in a sustained flute-like tone and the others recede. All of it is read from the notes automatically, a first reading, not an analysis.
+      </p>
+      <div className="lab-actions">
+        <button className="primary" onClick={() => play(entries.map((m) => ({ from: m.on, to: m.end, spotlight: follow ? m.voice : null })))}>▶ Every entry in turn ({entries.length})</button>
+        <label className="lab-group">
+          <input type="checkbox" checked={follow} onChange={(e) => setFollow(e.target.checked)} /> bring the voice forward
+        </label>
+      </div>
+      <h4 className="wtc-h">Sections</h4>
+      <ul className="wtc-moments">
+        {s.sections.map((x, i) => (
+          <li key={i}>
+            <button onClick={() => play([{ from: x.on, to: x.end, spotlight: null }])}>▶</button> <b>{x.label}</b> <span className="lab-note">{x.detail}</span>
+          </li>
+        ))}
+      </ul>
+      <h4 className="wtc-h">Moments</h4>
+      <div className="lab-actions">
+        {(Object.keys(KIND_NAMES) as MomentKind[]).filter((k) => counts[k]).map((k) => (
+          <label key={k} className="lab-group">
+            <input type="checkbox" checked={kinds.has(k)} onChange={(e) => setKinds((ks) => { const n = new Set(ks); if (e.target.checked) n.add(k); else n.delete(k); return n; })} /> {KIND_NAMES[k]} ({counts[k]})
+          </label>
+        ))}
+      </div>
+      <ul className="wtc-moments">
+        {s.moments.filter((m) => kinds.has(m.kind)).map((m, i) => (
+          <li key={i} className={`wtc-m-${m.kind}`}>
+            <button onClick={() => play([{ from: m.on, to: m.end, spotlight: follow ? m.voice : null }])}>▶</button> {m.label} <span className="lab-note">{m.detail}</span>
+          </li>
+        ))}
+      </ul>
+    </fieldset>
+  );
+}
+
 /* ---------------------------------------------------------------- the tab */
 
 const ORDER = ["C major", "C minor", "C# major", "C# minor", "D major", "D minor", "Eb major", "D# minor", "E major", "E minor", "F major", "F minor", "F# major", "F# minor", "G major", "G minor", "Ab major", "G# minor", "A major", "A minor", "Bb major", "Bb minor", "B major", "B minor"];
@@ -473,7 +524,8 @@ export function WtcTab() {
   const pool = kind === "fugue" ? FUGUES : kind === "prelude" ? PRELUDES : INVENTIONS;
   const p = pool.find((x) => x.id === id) ?? pool[0];
   const [voicesOn, setVoicesOn] = useState<boolean[]>([]);
-  useEffect(() => (setVoicesOn(p.voices.map(() => true)), stop(), setTick(-1), setFrom(0)), [p]);
+  const [spotlight, setSpotlight] = useState<number | null>(null);
+  useEffect(() => (setVoicesOn(p.voices.map(() => true)), setSpotlight(null), stop(), setTick(-1), setFrom(0)), [p]);
   const a = useMemo(() => analyse(p), [p]);
   const [showReduction, setShowReduction] = useState(false);
   const segments = useMemo(() => (showReduction ? reduce(p) : undefined), [p, showReduction]);
@@ -553,7 +605,7 @@ export function WtcTab() {
 
       <div className="lab-box">
         <div className="lab-box-head">
-          <button className="primary" onClick={() => playPiece(p, { tuning, bpm, from, voices: voicesOn, onTick: setTick })}>▶ Play{from > 0 ? " from here" : ""}</button>
+          <button className="primary" onClick={() => playPiece(p, { tuning, bpm, from, voices: voicesOn, spotlight, onTick: setTick })}>▶ Play{from > 0 ? " from here" : ""}</button>
           <button onClick={() => stop()} aria-label="Stop">■</button>
           <b>{label(p)}</b>
           <label className="lab-group" title="Each bar collapsed to its chord: figures and a Roman numeral (a modern lens on Bach's progression; crude where the music runs in passing notes)">
@@ -575,6 +627,15 @@ export function WtcTab() {
               </label>
             ))}
           </span>
+          <label className="lab-group" title="One voice in a sustained, flute-like tone, the others softer: for following a voice through the fugue">
+            spotlight{" "}
+            <select value={spotlight ?? ""} onChange={(e) => setSpotlight(e.target.value === "" ? null : Number(e.target.value))}>
+              <option value="">none</option>
+              {p.voices.map((_, vi) => (
+                <option key={vi} value={vi}>{VOICE_NAMES[p.voices.length]?.[vi] ?? vi + 1}</option>
+              ))}
+            </select>
+          </label>
         </div>
         {a && (
           <div className="lab-actions" style={{ padding: "6px 10px" }}>
@@ -635,7 +696,8 @@ export function WtcTab() {
           </p>
         </fieldset>
       )}
-      {a && <Timeline p={p} a={a} onPlayFrom={(t) => (setFrom(t), playPiece(p, { tuning, bpm, from: t, voices: voicesOn, onTick: setTick }))} />}
+      {a && p.kind === "fugue" && <StudyGuide p={p} a={a} play={(spans) => playSpans(p, spans, { tuning, bpm, voices: voicesOn, onTick: setTick })} />}
+      {a && p.kind !== "fugue" && <Timeline p={p} a={a} onPlayFrom={(t) => (setFrom(t), playPiece(p, { tuning, bpm, from: t, voices: voicesOn, spotlight, onTick: setTick }))} />}
       {a && p.kind === "fugue" && <AnswerExercise p={p} a={a} tuning={tuning} />}
       {a && p.kind === "fugue" && <ExpositionExercise p={p} a={a} tuning={tuning} />}
       {a && p.kind === "fugue" && <KeyPlanExercise p={p} a={a} tuning={tuning} />}

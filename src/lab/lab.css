@@ -97,3 +97,12 @@ html, body { height: auto !important; overflow: auto !important; }
 .wtc-staff svg { display: block; }
 .wtc-timeline { margin: 0; padding-left: 1.4em; font-size: 0.88rem; display: flex; flex-direction: column; gap: 3px; max-height: 340px; overflow-y: auto; }
 .lab .wtc-timeline button { padding: 0 6px; font-size: 0.7rem; }
+.wtc-h { margin: 10px 0 4px; font-size: 0.95em; }
+.wtc-moments { list-style: none; padding: 0; margin: 0; max-height: 340px; overflow-y: auto; }
+.wtc-moments li { padding: 3px 0; border-bottom: 1px solid rgba(127, 127, 127, 0.15); }
+.wtc-moments li button { padding: 1px 7px; margin-right: 4px; }
+.wtc-m-stretto { border-left: 3px solid #c0392b; padding-left: 6px !important; }
+.wtc-m-episode { border-left: 3px solid #999; padding-left: 6px !important; }
+.wtc-m-cadence { border-left: 3px solid #2e7d4f; padding-left: 6px !important; }
+.wtc-m-pedal { border-left: 3px solid #a8761a; padding-left: 6px !important; }
+.wtc-m-climax { border-left: 3px solid #7b4fa0; padding-left: 6px !important; }

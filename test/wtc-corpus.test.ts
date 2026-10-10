@@ -142,3 +142,21 @@ test("three voices: Bach's third entries have no errors (docs/wtc/trio-calibrati
   }
   assert.ok(passages >= 45);
 });
+
+test("study: Book II's E major fugue, its cadences in vi, ii, iii and I; Book I's C minor, its exposition", async () => {
+  const { findEntriesByHead } = await import("../src/wtc/fugue.ts");
+  const { study } = await import("../src/wtc/study.ts");
+  const read = (id: string) => {
+    const p = fugues.find((f) => f.id === id)!;
+    const sa = subjectAndAnswer(p);
+    return study(p, sa.subject, sa.answer, findEntriesByHead(p, sa.subject).entries);
+  };
+  const e = read("wtc2f09");
+  const perfect = e.moments.filter((m) => m.kind === "cadence" && m.label.startsWith("Perfect")).map((m) => m.label.match(/in (\w+)/)![1]);
+  assert.deepEqual(perfect, ["vi", "ii", "iii", "I"]);
+  const c = read("wtc1f02");
+  assert.equal(c.sections[0].label, "Exposition");
+  assert.match(c.sections[0].detail, /bars 1–9: 3 entries/);
+  assert.ok(c.moments.some((m) => m.kind === "pedal" && m.label.startsWith("Tonic pedal")));
+  assert.equal(c.moments.filter((m) => m.kind === "entry").length, 8);
+});
