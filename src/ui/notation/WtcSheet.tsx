@@ -1,0 +1,599 @@
+/**
+ * The whole piece as a page of music (D147), the owner: "something like a hybrid of Gerubach and
+ * MuseScore". The engraving (src/wtc/engrave.ts) laid out in systems that fill the width, every
+ * bar of the piece, drawn once by VexFlow; what changes while the music plays is drawn over it
+ * without drawing the music again:
+ *
+ *   - the notes being played: struck (a key pressed: the head swells and glows in its voice's
+ *     colour) and still sounding (a softer glow until the note ends);
+ *   - a cursor that moves through the bar with the music, and the page following it;
+ *   - the chosen passage shaded; a click plays from the beat clicked, a drag across bars chooses
+ *     a passage (to play, or to loop).
+ *
+ * Drawing order matters for VexFlow: tuplets and beams are made before the notes are formatted
+ * and drawn (so flags give way to beams and stems are lengthened to meet them), and a dotted
+ * value carries its dots in its duration (so it takes its full time in the bar).
+ */
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Accidental, Beam, Dot, Formatter, GhostNote, Renderer, Stave, StaveConnector, StaveNote, StaveTie, Tuplet, Voice, type RenderContext, type StemmableNote } from "vexflow";
+import { parsePitch, type Step } from "../../music/pitch.ts";
+import type { EngBar, EngItem, EngLayer, Engraving } from "../../wtc/engrave.ts";
+import { onFrames, playhead } from "../playhead.ts";
+
+const EPS = 1e-6;
+const CLEFS = ["treble", "bass"] as const;
+const VEX_ACC = (alter: number) => (alter === 1 ? "#" : alter === -1 ? "b" : alter === 2 ? "##" : alter === -2 ? "bb" : "n");
+
+export type Ink = "voices" | "entries" | "plain";
+
+export interface SheetProps {
+  eng: Engraving;
+  /** Changes when the piece changes (resets the scroll). */
+  pieceId: string;
+  keySig: string;
+  signature: Record<Step, number>;
+  time: string;
+  barQuarters: number;
+  /** Bar number of the first bar (0 for a pickup). */
+  firstBar: number;
+  /** Each note's onset, end and voice (for the highlights). */
+  notes: { at: number; dur: number }[];
+  voice: number[];
+  colors: string[];
+  ink: Ink;
+  /** Notes of the subject's entries (coloured in the "entries" ink). */
+  entryNotes: Set<number>;
+  /** A label above a note (the start of an entry). */
+  labels: Map<number, string>;
+  /** The harmonic reading under the bass staff. */
+  chords?: { from: number; text: string; title: string }[];
+  /** Voices drawn faint (muted, or another soloed). */
+  faint: Set<number>;
+  /** The passage chosen, in quarters. */
+  span: { from: number; to: number } | null;
+  /** Where playback will start (a marker when stopped). */
+  marker: number | null;
+  zoom: number;
+  follow: boolean;
+  label: string;
+  onSeek(q: number): void;
+  onSelect(from: number, to: number): void;
+}
+
+interface BarGeo {
+  bar: number;
+  x0: number;
+  x1: number;
+  /** Onsets and their x, in time order (the bar's start and end included). */
+  ticks: [number, number][];
+}
+interface SysGeo {
+  top: number;
+  height: number;
+  trebleTop: number;
+  bassBottom: number;
+  bars: BarGeo[];
+}
+interface Geometry {
+  systems: SysGeo[];
+  /** Each note's heads, for the highlights. */
+  heads: Map<number, SVGElement[]>;
+  scale: number;
+}
+
+/** Staff space in units; the staves' line positions in diatonic steps. */
+const SP = 10;
+const TOP_LINE = [38, 26];
+const BOTTOM_LINE = [30, 18];
+
+/** The x of a quarter position in a bar, between the onsets around it. */
+function xAt(g: BarGeo, q: number): number {
+  const t = g.ticks;
+  if (q <= t[0][0]) return t[0][1];
+  for (let k = 1; k < t.length; k++) if (q <= t[k][0] + EPS) return t[k - 1][1] + ((q - t[k - 1][0]) / Math.max(EPS, t[k][0] - t[k - 1][0])) * (t[k][1] - t[k - 1][1]);
+  return t[t.length - 1][1];
+}
+
+interface Built {
+  voices: [Voice[], Voice[]];
+  drawn: { item: EngItem; layer: EngLayer; staff: number; note: StemmableNote }[];
+  beams: Beam[];
+  tuplets: Tuplet[];
+}
+
+function restKey(staff: number, stem: number): string {
+  if (staff === 0) return stem === 1 ? "d/5" : stem === -1 ? "f/4" : "b/4";
+  return stem === 1 ? "f/3" : stem === -1 ? "a/2" : "d/3";
+}
+
+/** One bar's VexFlow notes, tuplets and beams (not yet formatted or drawn). */
+function buildBar(bar: EngBar, num: number, den: number, inkOf: (layer: EngLayer, key: number | null) => string, signature: Record<Step, number>): Built {
+  const out: Built = { voices: [[], []], drawn: [], beams: [], tuplets: [] };
+  // Accidentals: by staff, in time order across the layers; a tied continuation shows none.
+  const acc = new Map<EngItem, (string | null)[]>();
+  bar.staves.forEach((layers) => {
+    const state = new Map<string, number>();
+    const items = layers.flatMap((l) => l.items).filter((it) => !it.rest).sort((a, b) => a.at - b.at);
+    for (const it of items) {
+      acc.set(
+        it,
+        it.keys.map((k) => {
+          const p = parsePitch(k.pitch);
+          const id = `${p.step}${p.octave}`;
+          const cur = state.get(id) ?? signature[p.step];
+          state.set(id, p.alter);
+          return !it.tieIn && cur !== p.alter ? VEX_ACC(p.alter) : null;
+        }),
+      );
+    }
+  });
+  bar.staves.forEach((layers, staff) => {
+    const clef = CLEFS[staff];
+    for (const layer of layers) {
+      const notes: StemmableNote[] = [];
+      for (const it of layer.items) {
+        const duration = it.dur;
+        let n: StemmableNote;
+        if (it.rest && it.ghost) n = new GhostNote({ duration, dots: it.dots });
+        else if (it.rest) {
+          const sn = new StaveNote({ keys: [restKey(staff, layers.length > 1 ? layer.stem : 0)], duration: `${duration}r`, dots: it.dots, clef });
+          if (it.dots) Dot.buildAndAttach([sn], { all: true });
+          const ink = inkOf(layer, null);
+          sn.setStyle({ fillStyle: ink, strokeStyle: ink });
+          n = sn;
+        } else {
+          const keys = it.keys.map((k) => {
+            const p = parsePitch(k.pitch);
+            return `${p.step.toLowerCase()}/${p.octave}`;
+          });
+          const sn = new StaveNote({ keys, duration, dots: it.dots, clef, ...(layer.stem ? { stem_direction: layer.stem } : { auto_stem: true }) });
+          if (it.dots) Dot.buildAndAttach([sn], { all: true });
+          (acc.get(it) ?? []).forEach((a, k) => a && sn.addModifier(new Accidental(a), k));
+          const ink = inkOf(layer, null);
+          sn.setStyle({ fillStyle: ink, strokeStyle: ink });
+          it.keys.forEach((k, idx) => {
+            const c = inkOf(layer, k.i);
+            if (c !== ink) sn.setKeyStyle(idx, { fillStyle: c, strokeStyle: c });
+          });
+          n = sn;
+        }
+        notes.push(n);
+        out.drawn.push({ item: it, layer, staff, note: n });
+      }
+      // Tuplets before the voice takes the notes (they change the notes' ticks).
+      const groups = new Map<number, StemmableNote[]>();
+      layer.items.forEach((it, k) => it.tuplet !== undefined && groups.set(it.tuplet, [...(groups.get(it.tuplet) ?? []), notes[k]]));
+      for (const g of groups.values()) {
+        out.tuplets.push(new Tuplet(g, { num_notes: 3, notes_occupied: 2, bracketed: !g.every((n) => ["8", "16", "32"].includes(n.getDuration())) }));
+      }
+      const v = new Voice({ num_beats: num, beat_value: den }).setMode(Voice.Mode.SOFT);
+      v.addTickables(notes);
+      out.voices[staff].push(v);
+      // Beams before formatting (stems meet the beam, flags give way).
+      const beams = new Map<number, StemmableNote[]>();
+      layer.items.forEach((it, k) => it.beam !== undefined && beams.set(it.beam, [...(beams.get(it.beam) ?? []), notes[k]]));
+      for (const g of beams.values()) {
+        const b = new Beam(g, layer.stem === 0);
+        const ink = inkOf(layer, null);
+        b.setStyle({ fillStyle: ink, strokeStyle: ink });
+        out.beams.push(b);
+      }
+      // Triplets of quavers beam together.
+      for (const g of groups.values()) if (g.length > 1 && g.every((n) => ["8", "16", "32"].includes(n.getDuration())) && !g.some((n) => n instanceof GhostNote || (n as StaveNote).isRest())) {
+        const b = new Beam(g, layer.stem === 0);
+        out.beams.push(b);
+      }
+    }
+  });
+  return out;
+}
+
+/** The width a bar needs (its notes at their closest), in units. */
+function minWidth(bar: EngBar, num: number, den: number, signature: Record<Step, number>): number {
+  try {
+    const b = buildBar(bar, num, den, () => "#000", signature);
+    const all = [...b.voices[0], ...b.voices[1]];
+    if (!all.length) return 60;
+    const fmt = new Formatter();
+    for (const vs of b.voices) if (vs.length) fmt.joinVoices(vs);
+    return fmt.preCalculateMinTotalWidth(all);
+  } catch {
+    return 40 + bar.staves.flat().reduce((a, l) => Math.max(a, l.items.length), 0) * 24;
+  }
+}
+
+/** The width of a system's opening (clef, key signature, and the time signature on the first). */
+function headerWidth(keySig: string, time: string | null): number {
+  const s = new Stave(0, 0, 400);
+  s.addClef("treble").addKeySignature(keySig);
+  if (time) s.addTimeSignature(time);
+  return s.getNoteStartX() + 6;
+}
+
+export function WtcSheet(p: SheetProps) {
+  const scroller = useRef<HTMLDivElement>(null);
+  const page = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+  const [geo, setGeo] = useState<Geometry | null>(null);
+  const geoRef = useRef<Geometry | null>(null);
+  useLayoutEffect(() => {
+    const el = scroller.current!;
+    const measure = () => setWidth(el.clientWidth);
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    measure();
+    return () => ro.disconnect();
+  }, []);
+  useEffect(() => scroller.current?.scrollTo({ top: 0 }), [p.pieceId]);
+
+  const [num, den] = p.time.split("/").map(Number);
+  // Bar widths depend only on the music: measured once a piece.
+  const mins = useMemo(() => p.eng.bars.map((b) => minWidth(b, num, den, p.signature)), [p.eng, num, den, p.signature]);
+
+  // Draw (only when the music, the width or the look changes).
+  useLayoutEffect(() => {
+    const host = page.current;
+    if (!host || width < 50) return;
+    host.innerHTML = "";
+    const scale = p.zoom;
+    const W = Math.max(320, (width - 6) / scale);
+    const MARGIN = 8;
+    const head0 = headerWidth(p.keySig, p.time);
+    const headN = headerWidth(p.keySig, null);
+    // Systems: bars at their natural width (a little more than their least) while they fit.
+    const natural = mins.map((m) => Math.max(64, m * 1.12 + 24));
+    const systems: { bars: number[]; ws: number[]; head: number }[] = [];
+    let cur: number[] = [];
+    let used = 0;
+    let head = head0;
+    natural.forEach((w, b) => {
+      if (cur.length && used + w > W - MARGIN * 2 - head) {
+        systems.push({ bars: cur, ws: [], head });
+        cur = [];
+        used = 0;
+        head = headN;
+      }
+      cur.push(b);
+      used += w;
+    });
+    if (cur.length) systems.push({ bars: cur, ws: [], head });
+    for (const [k, s] of systems.entries()) {
+      const nat = s.bars.reduce((a, b) => a + natural[b], 0);
+      const room = W - MARGIN * 2 - s.head;
+      // The last system is stretched only when it is nearly full.
+      const f = k === systems.length - 1 && nat < room * 0.7 ? 1 : room / nat;
+      s.ws = s.bars.map((b) => natural[b] * f);
+    }
+
+    const inkOf = (layer: EngLayer, key: number | null): string => {
+      const c = p.colors[layer.voice % p.colors.length];
+      if (p.ink === "voices") return c;
+      if (p.ink === "entries") return key !== null && p.entryNotes.has(key) ? c : "var(--sheet-ink, #222)";
+      return "var(--sheet-ink, #222)";
+    };
+
+    const heads = new Map<number, SVGElement[]>();
+    const sysGeo: SysGeo[] = [];
+    const lastTie = new Map<number, { note: StemmableNote; k: number; ctx: RenderContext }>();
+    let top = 0;
+    systems.forEach((s, si) => {
+      // Vertical room: from the highest and lowest notes on each staff.
+      let maxT = TOP_LINE[0], minT = BOTTOM_LINE[0], maxB = TOP_LINE[1], minB = BOTTOM_LINE[1];
+      for (const b of s.bars)
+        p.eng.bars[b].staves.forEach((layers, st) =>
+          layers.forEach((l) =>
+            l.items.forEach((it) =>
+              it.keys.forEach((k) => {
+                const d = parsePitch(k.pitch).diatonic;
+                if (st === 0) (maxT = Math.max(maxT, d)), (minT = Math.min(minT, d));
+                else (maxB = Math.max(maxB, d)), (minB = Math.min(minB, d));
+              }),
+            ),
+          ),
+        );
+      const above = 34 + Math.max(0, maxT - TOP_LINE[0]) * (SP / 2);
+      const gap = Math.min(170, Math.max(64, 30 + Math.max(0, BOTTOM_LINE[0] - minT) * (SP / 2) + Math.max(0, maxB - TOP_LINE[1]) * (SP / 2)));
+      const below = 26 + Math.max(0, BOTTOM_LINE[1] - minB) * (SP / 2) + (p.chords?.length ? 22 : 0);
+      const trebleY = above;
+      const bassY = trebleY + 4 * SP + gap;
+      const height = bassY + 4 * SP + below;
+      const div = document.createElement("div");
+      div.className = "sheet-sys";
+      div.dataset.sys = String(si);
+      host.appendChild(div);
+      const renderer = new Renderer(div, Renderer.Backends.SVG);
+      renderer.resize(Math.ceil(W * scale), Math.ceil(height * scale));
+      const ctx = renderer.getContext();
+      ctx.scale(scale, scale);
+      const svg = div.querySelector("svg")!;
+      svg.setAttribute("role", "img");
+      svg.setAttribute("aria-label", `${p.label}, ${s.bars[0] + p.firstBar}–${s.bars[s.bars.length - 1] + p.firstBar}`);
+      const bars: BarGeo[] = [];
+      let x = MARGIN;
+      s.bars.forEach((b, k) => {
+        const first = k === 0;
+        const w = s.ws[k] + (first ? s.head : 0);
+        const staves = CLEFS.map((clef, st) => {
+          const sv = new Stave(x, st === 0 ? trebleY : bassY, w, { space_above_staff_ln: 0, space_below_staff_ln: 0 });
+          if (first) {
+            sv.addClef(clef).addKeySignature(p.keySig);
+            if (si === 0) sv.addTimeSignature(p.time);
+          }
+          if (b === p.eng.bars.length - 1) sv.setEndBarType(3);
+          sv.setContext(ctx).draw();
+          return sv;
+        });
+        if (first) {
+          new StaveConnector(staves[0], staves[1]).setType("brace").setContext(ctx).draw();
+          new StaveConnector(staves[0], staves[1]).setType("singleLeft").setContext(ctx).draw();
+        }
+        new StaveConnector(staves[0], staves[1]).setType(b === p.eng.bars.length - 1 ? "boldDoubleRight" : "singleRight").setContext(ctx).draw();
+        // The bar number, small, over each bar.
+        ctx.save();
+        ctx.setFont("Inter, system-ui, sans-serif", first ? 11 : 9);
+        ctx.setFillStyle("var(--bar-number, #9a948a)");
+        ctx.fillText(String(b + p.firstBar), first ? x + 2 : x + 3, trebleY - 10 - Math.max(0, maxT - TOP_LINE[0] - 2) * 0);
+        ctx.restore();
+
+        const built = buildBar(p.eng.bars[b], num, den, inkOf, p.signature);
+        const all = [...built.voices[0], ...built.voices[1]];
+        const startX = staves[0].getNoteStartX();
+        const endX = staves[0].getNoteEndX();
+        const ticks: [number, number][] = [[p.eng.bars[b].from, startX - 4]];
+        if (all.length) {
+          const fmt = new Formatter();
+          for (const vs of built.voices) if (vs.length) fmt.joinVoices(vs);
+          fmt.format(all, Math.max(20, endX - startX - 12));
+          built.voices.forEach((vs, st) => vs.forEach((v) => v.draw(ctx, staves[st])));
+          for (const bm of built.beams) bm.setContext(ctx).draw();
+          for (const tp of built.tuplets) tp.setContext(ctx).draw();
+          // Geometry, heads, voices' classes, ties.
+          const seen = new Map<number, number>();
+          for (const d of built.drawn) {
+            const nx = d.note.getAbsoluteX();
+            if (!d.item.ghost && (!seen.has(Math.round(d.item.at * 96)) || seen.get(Math.round(d.item.at * 96))! > nx)) seen.set(Math.round(d.item.at * 96), nx);
+            const g = svg.querySelector(`#vf-${d.note.getAttribute("id")}`);
+            g?.classList.add(`v${d.layer.voice}`);
+            if (d.item.rest) continue;
+            const sn = d.note as StaveNote;
+            d.item.keys.forEach((key, idx) => {
+              const h = sn.noteHeads[idx];
+              const el = h && svg.querySelector<SVGElement>(`#vf-${h.getAttribute("id")}`);
+              if (!el) return;
+              el.style.setProperty("--hl", p.colors[d.layer.voice % p.colors.length]);
+              heads.set(key.i, [...(heads.get(key.i) ?? []), el]);
+            });
+            // Ties: from the last piece of the same note.
+            if (d.item.tieIn) {
+              const pairs = new Map<StemmableNote, { from: number[]; to: number[]; ctx: RenderContext }>();
+              d.item.keys.forEach((key, idx) => {
+                const prev = lastTie.get(key.i);
+                if (!prev) return;
+                const e = pairs.get(prev.note) ?? { from: [], to: [], ctx: prev.ctx };
+                e.from.push(prev.k);
+                e.to.push(idx);
+                pairs.set(prev.note, e);
+              });
+              for (const [prevNote, e] of pairs) {
+                if (e.ctx === ctx) new StaveTie({ first_note: prevNote, last_note: sn, first_indices: e.from, last_indices: e.to }).setContext(ctx).draw();
+                else {
+                  new StaveTie({ first_note: prevNote, last_note: null as unknown as StaveNote, first_indices: e.from, last_indices: e.from }).setContext(e.ctx).draw();
+                  new StaveTie({ first_note: null as unknown as StaveNote, last_note: sn, first_indices: e.to, last_indices: e.to }).setContext(ctx).draw();
+                }
+              }
+            }
+            d.item.keys.forEach((key, idx) => (d.item.tieOut ? lastTie.set(key.i, { note: sn, k: idx, ctx }) : lastTie.delete(key.i)));
+          }
+          for (const [q, nx] of [...seen.entries()].sort((a, c) => a[0] - c[0])) ticks.push([q / 96, nx]);
+          // Labels (the entries) above their notes.
+          for (const d of built.drawn) {
+            if (d.item.rest || d.item.tieIn) continue;
+            const lab = d.item.keys.map((k) => p.labels.get(k.i)).find(Boolean);
+            if (!lab) continue;
+            const sn = d.note as StaveNote;
+            const ext = sn.getStemExtents();
+            const yTop = Math.min(ext.topY, ext.baseY, ...sn.getYs()) - 7;
+            ctx.save();
+            ctx.setFont("Inter, system-ui, sans-serif", 10, "bold");
+            ctx.setFillStyle(p.colors[d.layer.voice % p.colors.length]);
+            ctx.fillText(lab, d.note.getAbsoluteX() - 3, Math.min(yTop, (d.staff === 0 ? trebleY : bassY) - 4));
+            ctx.restore();
+          }
+        }
+        ticks.push([p.eng.bars[b].to, x + w - 6]);
+        // The chords under the bass staff.
+        if (p.chords?.length) {
+          const g: BarGeo = { bar: b, x0: x, x1: x + w, ticks };
+          ctx.save();
+          ctx.setFont("Inter, system-ui, sans-serif", 10);
+          ctx.setFillStyle("var(--sheet-harmony, #6b5a3a)");
+          for (const c of p.chords) if (c.from >= p.eng.bars[b].from - EPS && c.from < p.eng.bars[b].to - EPS) ctx.fillText(c.text, xAt(g, c.from) - 2, bassY + 4 * SP + below - 10);
+          ctx.restore();
+        }
+        bars.push({ bar: b, x0: first ? startX - 6 : x, x1: x + w, ticks });
+        x += w;
+      });
+      sysGeo.push({ top, height, trebleTop: trebleY, bassBottom: bassY + 4 * SP, bars });
+      top += height;
+    });
+    // System tops in pixels, from the page.
+    const divs = host.querySelectorAll<HTMLDivElement>(".sheet-sys");
+    sysGeo.forEach((s, k) => (s.top = divs[k].offsetTop));
+    const g = { systems: sysGeo, heads, scale };
+    geoRef.current = g;
+    setGeo(g);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p.eng, mins, width, p.zoom, p.ink, p.colors, p.labels, p.chords, p.keySig, p.time, p.signature, p.firstBar, p.entryNotes]);
+
+  // Faint voices: by class, without drawing again.
+  useEffect(() => {
+    const host = page.current;
+    if (!host) return;
+    host.dataset.faint = [...p.faint].map((v) => `v${v}`).join(" ");
+  }, [p.faint, geo]);
+
+  // Where a quarter is: its system and x.
+  const locate = (g: Geometry, q: number): { s: number; x: number } | null => {
+    for (let s = 0; s < g.systems.length; s++) {
+      const sys = g.systems[s];
+      const last = sys.bars[sys.bars.length - 1];
+      const lastTo = last.ticks[last.ticks.length - 1][0];
+      if (q < lastTo - EPS || s === g.systems.length - 1) {
+        const bg = sys.bars.find((b) => q < b.ticks[b.ticks.length - 1][0] - EPS) ?? last;
+        return { s, x: xAt(bg, q) };
+      }
+    }
+    return null;
+  };
+
+  // The highlights and the cursor, every frame while the music plays.
+  const cursor = useRef<HTMLDivElement>(null);
+  const followRef = useRef(p.follow);
+  followRef.current = p.follow;
+  const userScroll = useRef(0);
+  useEffect(() => {
+    const lit = new Map<number, string>();
+    let lastSys = -1;
+    const order = p.notes.map((_, i) => i).sort((a, b) => p.notes[a].at - p.notes[b].at);
+    const maxDur = Math.max(...p.notes.map((n) => n.dur));
+    return onFrames((pos) => {
+      const g = geoRef.current;
+      const cur = cursor.current;
+      if (!g || !cur) return;
+      const next = new Map<number, string>();
+      if (pos !== null) {
+        const strike = Math.max(0.05, playhead.rate * 0.16);
+        // Notes sounding: those begun no earlier than the longest note before now.
+        let lo = 0;
+        let hi = order.length;
+        while (lo < hi) {
+          const m = (lo + hi) >> 1;
+          if (p.notes[order[m]].at < pos - maxDur - EPS) lo = m + 1;
+          else hi = m;
+        }
+        for (let k = lo; k < order.length; k++) {
+          const i = order[k];
+          const n = p.notes[i];
+          if (n.at > pos + EPS) break;
+          if (pos < n.at + n.dur - EPS) next.set(i, pos - n.at < strike ? "hl-hit" : "hl-on");
+        }
+      }
+      for (const [i, c] of lit) if (next.get(i) !== c) g.heads.get(i)?.forEach((el) => el.classList.remove(c));
+      for (const [i, c] of next) if (lit.get(i) !== c) g.heads.get(i)?.forEach((el) => el.classList.add(c));
+      lit.clear();
+      for (const [i, c] of next) lit.set(i, c);
+      // The cursor.
+      const at = pos === null ? null : locate(g, pos);
+      if (!at) {
+        cur.style.display = "none";
+        lastSys = -1;
+        return;
+      }
+      const sys = g.systems[at.s];
+      cur.style.display = "block";
+      cur.style.transform = `translate(${at.x * g.scale}px, ${sys.top + (sys.trebleTop - 14) * g.scale}px)`;
+      cur.style.height = `${(sys.bassBottom - sys.trebleTop + 28) * g.scale}px`;
+      // Following: a new system brings the page along (unless the reader has just scrolled).
+      if (at.s !== lastSys) {
+        lastSys = at.s;
+        const sc = scroller.current;
+        if (sc && followRef.current && performance.now() - userScroll.current > 2500) {
+          const want = sys.top - Math.min(40, sc.clientHeight * 0.08);
+          const bottom = sys.top + sys.height * g.scale;
+          const nextSys = g.systems[at.s + 1];
+          const needed = nextSys ? nextSys.top + nextSys.height * g.scale : bottom;
+          if (sys.top < sc.scrollTop || needed > sc.scrollTop + sc.clientHeight) sc.scrollTo({ top: want, behavior: "smooth" });
+        }
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p.notes]);
+
+  // Pointer: a click plays from the onset clicked, a drag across bars chooses a passage.
+  const drag = useRef<{ q: number; x: number; y: number; moved: boolean } | null>(null);
+  const [dragSpan, setDragSpan] = useState<{ from: number; to: number } | null>(null);
+  const hit = (e: React.PointerEvent): { q: number; barFrom: number; barTo: number } | null => {
+    const g = geoRef.current;
+    const host = page.current;
+    if (!g || !host) return null;
+    const r = host.getBoundingClientRect();
+    const x = (e.clientX - r.left) / g.scale;
+    const y = e.clientY - r.top;
+    const s = g.systems.find((sy) => y >= sy.top && y < sy.top + sy.height * g.scale) ?? null;
+    if (!s) return null;
+    const b = s.bars.find((bg) => x >= bg.x0 && x < bg.x1) ?? (x < s.bars[0].x0 ? s.bars[0] : s.bars[s.bars.length - 1]);
+    // The onset nearest the pointer (the bar's start before the first).
+    let best = b.ticks[0];
+    for (const t of b.ticks.slice(0, -1)) if (Math.abs(t[1] - x) < Math.abs(best[1] - x)) best = t;
+    return { q: best[0], barFrom: b.ticks[0][0], barTo: b.ticks[b.ticks.length - 1][0] };
+  };
+
+  // Overlays: the chosen passage, the marker, a drag in progress.
+  const shades = (span: { from: number; to: number } | null, cls: string) => {
+    if (!geo || !span) return null;
+    const out: JSX.Element[] = [];
+    geo.systems.forEach((s, k) => {
+      const a = s.bars[0].ticks[0][0];
+      const last = s.bars[s.bars.length - 1];
+      const z = last.ticks[last.ticks.length - 1][0];
+      if (span.to <= a + EPS || span.from >= z - EPS) return;
+      const from = locate(geo, Math.max(span.from, a))!;
+      const toQ = Math.min(span.to, z);
+      const bg = s.bars.find((b) => toQ <= b.ticks[b.ticks.length - 1][0] + EPS) ?? last;
+      const x1 = toQ >= bg.ticks[bg.ticks.length - 1][0] - EPS ? bg.x1 : xAt(bg, toQ);
+      out.push(<div key={`${cls}${k}`} className={cls} style={{ left: from.x * geo.scale, top: s.top + (s.trebleTop - 18) * geo.scale, width: Math.max(2, (x1 - from.x) * geo.scale), height: (s.bassBottom - s.trebleTop + 36) * geo.scale }} />);
+    });
+    return out;
+  };
+  const markerAt = geo && p.marker !== null ? locate(geo, p.marker) : null;
+
+  return (
+    <div
+      className="wtc-sheet"
+      ref={scroller}
+      onWheel={() => (userScroll.current = performance.now())}
+      onTouchMove={() => (userScroll.current = performance.now())}
+    >
+      <div
+        className="sheet-page"
+        onPointerDown={(e) => {
+          if (e.button !== 0) return;
+          const h = hit(e);
+          if (!h) return;
+          drag.current = { q: h.barFrom, x: e.clientX, y: e.clientY, moved: false };
+          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+        }}
+        onPointerMove={(e) => {
+          const d = drag.current;
+          if (!d) return;
+          if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 10) return;
+          d.moved = true;
+          const h = hit(e);
+          if (!h) return;
+          setDragSpan(h.barFrom >= d.q ? { from: d.q, to: h.barTo } : { from: h.barFrom, to: d.q + p.barQuarters });
+        }}
+        onPointerUp={(e) => {
+          const d = drag.current;
+          drag.current = null;
+          if (!d) return;
+          if (d.moved) {
+            if (dragSpan) p.onSelect(dragSpan.from, dragSpan.to);
+            setDragSpan(null);
+            return;
+          }
+          const h = hit(e);
+          if (h) p.onSeek(h.q);
+        }}
+        onPointerCancel={() => ((drag.current = null), setDragSpan(null))}
+      >
+        <div ref={page} className="sheet-music" />
+        <div className="sheet-over" aria-hidden="true">
+          {shades(p.span, "sheet-span")}
+          {shades(dragSpan, "sheet-drag")}
+          {markerAt && geo && <div className="sheet-marker" style={{ left: markerAt.x * geo.scale, top: geo.systems[markerAt.s].top + (geo.systems[markerAt.s].trebleTop - 18) * geo.scale, height: (geo.systems[markerAt.s].bassBottom - geo.systems[markerAt.s].trebleTop + 36) * geo.scale }} />}
+          <div ref={cursor} className="sheet-cursor" style={{ display: "none" }} />
+        </div>
+      </div>
+    </div>
+  );
+}

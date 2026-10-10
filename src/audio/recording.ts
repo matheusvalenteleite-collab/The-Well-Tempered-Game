@@ -33,6 +33,13 @@ export function secondsAt(t: Track, q: number, barQ: number): number {
   return t.bars[b] + f * (t.bars[b + 1] - t.bars[b]);
 }
 
+/** Seconds in the recording → quarters from the first bar (linear within a bar). */
+export function quartersAt(t: Track, s: number, barQ: number): number {
+  const b = barAt(t, s);
+  const len = t.bars[b + 1] - t.bars[b];
+  return (b + Math.max(0, Math.min(1, len > 0 ? (s - t.bars[b]) / len : 0))) * barQ;
+}
+
 /** Seconds in the recording → the bar (0-based) being played. */
 export function barAt(t: Track, s: number): number {
   let b = 0;
@@ -45,6 +52,11 @@ class Player {
   private el: HTMLAudioElement | null = null;
   private raf = 0;
   private token = 0;
+
+  /** The time in the track while it plays, else null. */
+  time(): number | null {
+    return this.el && !this.el.paused ? this.el.currentTime : null;
+  }
 
   stop() {
     this.token++;
