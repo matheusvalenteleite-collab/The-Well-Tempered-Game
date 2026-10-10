@@ -1194,3 +1194,8 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .nav-note { position: absolute; bottom: 0; width: 7px; height: 7px; margin-left: -3px; border-radius: 50%; background: #e0b733; border: 1px solid #8a6d12; }
 .wtc-note-edit { width: 100%; font: inherit; font-size: 0.95rem; padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper); color: var(--ink); resize: vertical; }
 .wtc-notes .note-text { flex: 1 1 auto; white-space: pre-wrap; }
+.wtc-viewmenu { position: relative; display: inline-block; }
+.wtc-viewpop { position: absolute; z-index: 20; top: auto; bottom: 100%; left: 0; margin-bottom: 4px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18); min-width: 15em; font: 13px var(--ui-font); white-space: nowrap; }
+.wtc-viewpop label { display: flex; align-items: center; gap: 6px; }
+.wtc-viewpop kbd { margin-left: auto; font: 10px var(--ui-font); color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; }
+.wtc-viewpop .row { display: flex; align-items: center; gap: 6px; }

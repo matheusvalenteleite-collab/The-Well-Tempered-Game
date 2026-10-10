@@ -235,6 +235,17 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   /** The reader's own notes, bar by bar, for each piece (D147): { "wtc1.02fugue": { 12: "…" } }, bars counted from 0. */
   const [annotations, setAnnotations] = useState<Record<string, Record<string, string>>>(() => stored("wtg.wtcNotes", {}, (v) => typeof v === "object" && v !== null && !Array.isArray(v)));
   useEffect(() => store("wtg.wtcNotes", annotations), [annotations]);
+  /** The View menu closes on a click elsewhere. */
+  const viewMenu = useRef<HTMLSpanElement>(null);
+  const [viewOpen, setViewOpen] = useState(false);
+  useEffect(() => {
+    const close = (e: PointerEvent) => {
+      const m = viewMenu.current;
+      if (m && !m.contains(e.target as Node)) setViewOpen(false);
+    };
+    window.addEventListener("pointerdown", close);
+    return () => window.removeEventListener("pointerdown", close);
+  }, []);
   /** The music alone: the bottom panel folded away (Z). */
   const [focus, setFocus] = useState(() => stored("wtg.wtcFocus", false, (v) => typeof v === "boolean"));
   useEffect(() => store("wtg.wtcFocus", focus), [focus]);
@@ -1159,20 +1170,43 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
               <button className="chipbtn" role="radio" aria-checked={view === "sheet"} aria-pressed={view === "sheet"} onClick={() => setView("sheet")} title={t("ui.study.sheetHelp")}>{t("ui.study.sheet")}</button>
               <button className="chipbtn" role="radio" aria-checked={view === "roll"} aria-pressed={view === "roll"} onClick={() => setView("roll")} title={t("ui.study.rollHelp")}>{t("ui.study.roll")}</button>
             </span>
-            <button className="chipbtn" aria-pressed={follow} onClick={() => setFollow(!follow)} title={t("ui.study.followHelp")}>{t("ui.study.follow")}</button>
-            <button className="chipbtn" aria-pressed={keys} onClick={() => setKeys(!keys)} title={t("ui.study.keysHelp")}>{t("ui.study.keys")}</button>
             <button className="chipbtn" aria-pressed={focus} onClick={() => setFocus(!focus)} title={t("ui.study.focusHelp")}>{t("ui.study.focus")}</button>
-            {view === "sheet" && (
-              <>
-                <select className="sel" value={ink} onChange={(e) => setInk(e.target.value as Ink)} aria-label={t("ui.study.ink")} title={t("ui.study.inkHelp")}>
-                  {(["voices", "entries", "plain"] as const).map((x) => (
-                    <option key={x} value={x}>{t(`ui.study.ink.${x}`)}</option>
-                  ))}
-                </select>
-                <button className="icon" onClick={() => setSheetZoom(Math.max(0.6, Math.round((sheetZoom - 0.1) * 10) / 10))} aria-label={t("ui.zoom.out")} title={t("ui.zoom.out")}>−</button>
-                <button className="icon" onClick={() => setSheetZoom(Math.min(2, Math.round((sheetZoom + 0.1) * 10) / 10))} aria-label={t("ui.zoom.in")} title={t("ui.zoom.in")}>+</button>
-              </>
-            )}
+            <span className="wtc-viewmenu" ref={viewMenu}>
+              <button className="chipbtn" aria-expanded={viewOpen} aria-pressed={viewOpen} onClick={() => setViewOpen(!viewOpen)} title={t("ui.study.viewHelp")}>{t("ui.study.view")} ▾</button>
+              {viewOpen && (
+              <div className="wtc-viewpop">
+                <label><input type="checkbox" checked={follow} onChange={() => setFollow(!follow)} /> {t("ui.study.follow")} <kbd>F</kbd></label>
+                <label><input type="checkbox" checked={keys} onChange={() => setKeys(!keys)} /> {t("ui.study.keys")} <kbd>K</kbd></label>
+                <label><input type="checkbox" checked={showEntries} onChange={(e) => setShowEntries(e.target.checked)} /> {t("ui.study.outline")}</label>
+                {view === "sheet" && (
+                  <>
+                    <label>
+                      {t("ui.study.ink")}{" "}
+                      <select className="sel" value={ink} onChange={(e) => setInk(e.target.value as Ink)} aria-label={t("ui.study.ink")}>
+                        {(["voices", "entries", "plain"] as const).map((x) => (
+                          <option key={x} value={x}>{t(`ui.study.ink.${x}`)}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <span className="row">
+                      {t("ui.study.size")}{" "}
+                      <button className="icon" onClick={() => setSheetZoom(Math.max(0.6, Math.round((sheetZoom - 0.1) * 10) / 10))} aria-label={t("ui.zoom.out")}>−</button>
+                      <span className="help">{Math.round(sheetZoom * 100)}%</span>
+                      <button className="icon" onClick={() => setSheetZoom(Math.min(2, Math.round((sheetZoom + 0.1) * 10) / 10))} aria-label={t("ui.zoom.in")}>+</button>
+                    </span>
+                  </>
+                )}
+                <label>
+                  {t("ui.study.h.title")}{" "}
+                  <select className="sel" value={harmony} onChange={(e) => setHarmony(e.target.value as "off" | "roman" | "letters")} aria-label={t("ui.study.h.title")}>
+                    {(["off", "roman", "letters"] as const).map((x) => (
+                      <option key={x} value={x}>{t(`ui.study.h.${x}`)}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              )}
+            </span>
             <div className="hfaders">
               {useRec ? (
                 <HFader label={t("ui.study.rec.speed")} help={t("ui.study.rec.speedHelp")} value={recRate * 100} min={50} max={125} defaultValue={100} format={(v) => `${Math.round(v)}%`} onChange={(v) => setRecRate(Math.round(v / 5) * 0.05)} />

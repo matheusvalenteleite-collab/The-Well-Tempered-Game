@@ -259,7 +259,10 @@ export function WtcSheet(p: SheetProps) {
     measure();
     return () => ro.disconnect();
   }, []);
-  useEffect(() => scroller.current?.scrollTo({ top: 0 }), [p.pieceId]);
+  useEffect(() => {
+    autoScroll.current = performance.now();
+    scroller.current?.scrollTo({ top: 0 });
+  }, [p.pieceId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Bar widths depend only on the music: measured once a piece (a change of metre needs room for its signature).
   const mins = useMemo(() => p.eng.bars.map((b, k) => minWidth(b, p.signature) + (k > 0 && b.time !== p.eng.bars[k - 1].time ? 26 : 0)), [p.eng, p.signature]);
@@ -502,6 +505,8 @@ export function WtcSheet(p: SheetProps) {
   const followRef = useRef(p.follow);
   followRef.current = p.follow;
   const userScroll = useRef(0);
+  /** When the page last scrolled itself (a scroll soon after is its own, not the reader's). */
+  const autoScroll = useRef(0);
   useEffect(() => {
     const lit = new Map<number, string>();
     let lastSys = -1;
@@ -553,7 +558,10 @@ export function WtcSheet(p: SheetProps) {
           const bottom = sys.top + sys.height * g.scale;
           const nextSys = g.systems[at.s + 1];
           const needed = nextSys ? nextSys.top + nextSys.height * g.scale : bottom;
-          if (sys.top < sc.scrollTop || needed > sc.scrollTop + sc.clientHeight) sc.scrollTo({ top: want, behavior: "smooth" });
+          if (sys.top < sc.scrollTop || needed > sc.scrollTop + sc.clientHeight) {
+            autoScroll.current = performance.now();
+            sc.scrollTo({ top: want, behavior: "smooth" });
+          }
         }
       }
     });
@@ -604,7 +612,10 @@ export function WtcSheet(p: SheetProps) {
     const at = locate(geo, q);
     if (!at) return;
     const sys = geo.systems[at.s];
-    if (sys.top < sc.scrollTop || sys.top + sys.height * geo.scale > sc.scrollTop + sc.clientHeight) sc.scrollTo({ top: Math.max(0, sys.top - 8), behavior: "smooth" });
+    if (sys.top < sc.scrollTop || sys.top + sys.height * geo.scale > sc.scrollTop + sc.clientHeight) {
+      autoScroll.current = performance.now();
+      sc.scrollTo({ top: Math.max(0, sys.top - 8), behavior: "smooth" });
+    }
   };
   useEffect(() => into(p.marker), [p.marker, geo]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => into(p.span?.from ?? null), [p.span?.from, geo]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -646,6 +657,9 @@ export function WtcSheet(p: SheetProps) {
       ref={scroller}
       onWheel={() => (userScroll.current = performance.now())}
       onTouchMove={() => (userScroll.current = performance.now())}
+      onScroll={() => {
+        if (performance.now() - autoScroll.current > 1000) userScroll.current = performance.now();
+      }}
     >
       <div
         className="sheet-page"
