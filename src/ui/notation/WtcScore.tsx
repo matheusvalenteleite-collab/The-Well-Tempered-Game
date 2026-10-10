@@ -5,7 +5,7 @@
  * voice in its colour; the notes the player writes are slots in the given rhythm (grey until
  * written); a tap selects a slot and places the note under the pointer, with the key signature.
  */
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Accidental, Beam, Dot, Formatter, Renderer, Stave, StaveConnector, StaveNote, StaveTie, Tuplet, Voice, type StemmableNote } from "vexflow";
 import { parsePitch, type Step } from "../../music/pitch.ts";
 import { pitchAtPosition, type ClefId } from "./clefs.ts";
@@ -138,13 +138,48 @@ export function WtcScore(p: Props) {
   );
 }
 
+/**
+ * A page of systems, one under the other (D127, the owner: "see the sheet music playing", as in
+ * Gerubach's videos): each row a few bars, fitted to the page's width; the row playing on top.
+ */
+export function WtcPage(p: Omit<Props, "voices" | "cursor" | "label" | "zoom" | "onZoom" | "zoomLabels" | "tools"> & { rows: { voices: WtcScoreVoice[]; bars: number; cursor: number; label: string; key: string }[] }) {
+  const host = useRef<HTMLDivElement>(null);
+  const [w, setW] = useState(0);
+  useLayoutEffect(() => {
+    const el = host.current!;
+    const measure = () => setW(el.clientWidth);
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    measure();
+    return () => ro.disconnect();
+  }, []);
+  return (
+    <div className="wtc-page" ref={host}>
+      {w > 0 &&
+        p.rows.map((r) => {
+          const voices = r.voices;
+          const bars = r.bars;
+          const widths = Array.from({ length: bars }, (_, b) => Math.max(150, 46 + Math.max(1, ...voices.map((v) => piecesInBar(v, b, p.barQuarters).length)) * 30));
+          const lefts = widths.reduce<number[]>((acc, x, i) => (acc.push(i === 0 ? LEAD : acc[i - 1] + widths[i - 1]), acc), []);
+          const natural = LEAD + widths.reduce((a, b) => a + b, 0) + 24;
+          const scale = Math.min(1.25, (w - 8) / natural);
+          return (
+            <div key={r.key} className={r.cursor >= 0 ? "wtc-sys playing" : "wtc-sys"}>
+              <WtcSystem {...p} voices={voices} cursor={r.cursor} label={r.label} zoom={1} onZoom={() => undefined} zoomLabels={{ in: "", out: "", reset: "" }} bars={bars} widths={widths} lefts={lefts} natural={natural} scale={scale} bothStaves />
+            </div>
+          );
+        })}
+    </div>
+  );
+}
+
 interface Hit {
   slot: number;
   x: number;
   staff: number;
 }
 
-function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[]; natural: number; scale: number }) {
+function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[]; natural: number; scale: number; bothStaves?: boolean }) {
   const el = useRef<HTMLDivElement>(null);
   const hits = useRef<Hit[]>([]);
   const geo = useRef<{ staves: { top: number; bottom: number; spacing: number }[] } | null>(null);
@@ -163,7 +198,7 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
     const [num, den] = p.time.split("/").map(Number);
     hits.current = [];
     // Only the staves the voices use (two voices on one staff, as Bach writes them, need one).
-    const used = [0, 1].filter((i) => p.voices.some((v) => v.staff === i));
+    const used = p.bothStaves ? [0, 1] : [0, 1].filter((i) => p.voices.some((v) => v.staff === i));
     const yOf = (i: number) => (used.length === 1 ? STAFF_Y[0] : STAFF_Y[i]);
     const drawnBySrc = new Map<WtcScoreNote, StaveNote[]>();
     const lastPiece = new Map<number, { note: StaveNote; tieNext: boolean }>(); // by voice, across bars

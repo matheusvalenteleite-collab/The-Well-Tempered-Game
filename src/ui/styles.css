@@ -1002,3 +1002,7 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .wtc-chords { display: flex; flex-wrap: wrap; gap: 2px 4px; font-family: var(--serif, Georgia, serif); }
 .wtc-chords .chipbtn { padding: 1px 5px; min-width: 0; }
 .wtc-chords .barno { opacity: 0.55; font-size: 0.75em; margin-left: 6px; align-self: center; }
+/* D127: the score as a page that follows the music. */
+.wtc-page { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; padding: 4px; }
+.wtc-sys { border-left: 3px solid transparent; }
+.wtc-sys.playing { border-left-color: var(--accent, #e07b00); }

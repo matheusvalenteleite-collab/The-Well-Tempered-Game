@@ -26,7 +26,7 @@ import { degreeOf, entryVoice, pitchName, studyMoments, voiceNames, type Moment,
 type Section = Omit<StudySection, "kind"> & { kind: StudySection["kind"] | "toKey" | "figure"; key?: { tonic: number; minor: boolean } };
 import { parsePitch, type Step } from "../music/pitch.ts";
 import { VoiceRoll, type RollExtra } from "./notation/VoiceRoll.tsx";
-import { WtcScore, type WtcScoreVoice } from "./notation/WtcScore.tsx";
+import { WtcPage, WtcScore, type WtcScoreVoice } from "./notation/WtcScore.tsx";
 import { ZOOM_MAX, ZOOM_MIN } from "./notation/zoom.ts";
 import { restoreSound, type SoundState } from "../audio/sound.ts";
 import { SYNTH_PRESETS } from "../audio/synth-settings.ts";
@@ -188,7 +188,7 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
   const [cursor, setCursor] = useState(-1);
   const [span, setSpan] = useState<{ from: number; to: number } | null>(null);
   /** The roll, or the chosen bars in notation (D124). */
-  const [view, setView] = useState<"roll" | "score">(() => stored("wtg.wtcStudyView", "roll", (v) => v === "roll" || v === "score"));
+  const [view, setView] = useState<"roll" | "score" | "page">(() => stored("wtg.wtcStudyView", "roll", (v) => v === "roll" || v === "score" || v === "page"));
   useEffect(() => store("wtg.wtcStudyView", view), [view]);
   const [zoom, setZoom] = useState(() => stored("wtg.wtcZoom", 1, (v) => typeof v === "number" && v >= ZOOM_MIN && v <= ZOOM_MAX));
   const [activeMoment, setActiveMoment] = useState<string | null>(null);
@@ -690,13 +690,23 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
   // The score view: the chosen span's bars (or four from the bar playing), at most eight.
   const scoreFrom = span ? barOf(span.from) : Math.floor(Math.max(0, cursor) / 4) * 4; // pages of four bars while it plays
   const scoreTo = Math.min(bars - 1, span ? Math.max(barOf(span.to - 1e-6), scoreFrom) : scoreFrom + 3, scoreFrom + 7);
-  const scoreVoices: WtcScoreVoice[] = useMemo(() => {
-    const q0 = scoreFrom * barQ;
-    const q1 = (scoreTo + 1) * barQ;
+  /** Each voice's staff, from its mean pitch over the whole piece (the same on every page). */
+  const staffOf = useMemo(() => Array.from({ length: count }, (_, v) => {
+    const ms = notes.filter((_, i) => voice[i] === v).map((n) => n.midi);
+    return (ms.length ? ms.reduce((a, m) => a + m, 0) / ms.length : 72 - v * 12) >= 60 ? 0 : 1;
+  }), [notes, voice, count]);
+  /** The voices of bars `fromBar`..`toBar` for the score, from the bar's start; a chord within a voice keeps its first note. */
+  const voicesFor = (fromBar: number, toBar: number): WtcScoreVoice[] => {
+    const q0 = fromBar * barQ;
+    const q1 = (toBar + 1) * barQ;
     const starts = new Map<number, string>();
     for (const e of entries) starts.set(e.notes[0], e.inverted ? "∀" : "S");
     return Array.from({ length: count }, (_, v) => {
-      const mine = notes.map((n, i) => ({ n, i })).filter(({ n, i }) => voice[i] === v && n.at < q1 - 1e-6 && n.at + n.dur > q0 + 1e-6 && !(gameUntil !== null && n.at >= gameUntil - 1e-6)).sort((a, b) => a.n.at - b.n.at);
+      const mine = notes
+        .map((n, i) => ({ n, i }))
+        .filter(({ n, i }) => voice[i] === v && n.at < q1 - 1e-6 && n.at + n.dur > q0 + 1e-6 && !(gameUntil !== null && n.at >= gameUntil - 1e-6))
+        .sort((a, b) => a.n.at - b.n.at)
+        .filter((x, k, xs) => k === 0 || Math.abs(x.n.at - xs[k - 1].n.at) > 1e-6);
       const out = mine.map(({ n, i }, k) => {
         const at = Math.max(n.at, q0);
         // A note overlapping the next in its voice is cut where the next begins.
@@ -704,10 +714,33 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
         const end = Math.min(n.at + n.dur, q1, next);
         return { pitch: P.spelled[i] ?? spell(n.midi, sig, flats), at: at - q0, dur: Math.max(1 / 96, end - at), ...(starts.has(i) && n.at >= q0 ? { label: starts.get(i) } : {}) };
       });
-      const mean = mine.reduce((a, x) => a + x.n.midi, 0) / Math.max(1, mine.length);
-      return { notes: out, staff: (mine.length ? mean : 72 - v * 12) >= 60 ? 0 : 1, ink: COLORS[v % COLORS.length], editable: false } as WtcScoreVoice;
+      return { notes: out, staff: staffOf[v] as 0 | 1, ink: COLORS[v % COLORS.length], editable: false } as WtcScoreVoice;
     }).filter((x) => x.notes.length);
-  }, [scoreFrom, scoreTo, P, barQ, entries, count, notes, voice, sig, flats, gameUntil]);
+  };
+  const scoreVoices: WtcScoreVoice[] = useMemo(() => voicesFor(scoreFrom, scoreTo),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [scoreFrom, scoreTo, P, barQ, entries, count, notes, voice, sig, flats, gameUntil, staffOf]);
+  // The page (D127): rows of a few bars, the row playing on top (else the chosen span's, else the first), three rows.
+  const rowBars = barQ <= 2 ? 6 : barQ <= 4 ? 4 : barQ <= 6 ? 3 : 2;
+  const [pageTop, setPageTop] = useState(0);
+  useEffect(() => {
+    if (cursor >= 0) setPageTop(Math.floor(cursor / rowBars));
+  }, [cursor, rowBars]);
+  useEffect(() => {
+    if (span) setPageTop(Math.floor(barOf(span.from) / rowBars));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [span?.from, rowBars]);
+  useEffect(() => setPageTop(0), [L.id, isPrelude]);
+  const pageRows = useMemo(() => {
+    const out = [];
+    for (let r = pageTop; r < pageTop + 3 && r * rowBars < bars; r++) {
+      const a = r * rowBars;
+      const z = Math.min(bars - 1, a + rowBars - 1);
+      out.push({ key: `${L.id}${isPrelude}${r}`, bars: z - a + 1, voices: voicesFor(a, z), cursor: cursor >= a && cursor <= z ? cursor - a : -1, label: `${fugueLabel(F)}, ${t("ui.study.bars", { a: a + firstBar, b: z + firstBar })}` });
+    }
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageTop, rowBars, bars, cursor, P, entries, staffOf, gameUntil, sig, flats]);
   const rollHidden = useMemo(() => {
     if (gameUntil === null) return hidden;
     const h = new Set(hidden);
@@ -744,7 +777,9 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
       }
       score={
         <div className="score-wrap wtc">
-          {view === "score" ? (
+          {view === "page" ? (
+            <WtcPage rows={pageRows} keySig={vexKey(F.key)} signature={sig} time={timeSig} barQuarters={barQ} selected={null} onSlot={() => undefined} />
+          ) : view === "score" ? (
             <WtcScore
               voices={scoreVoices}
               keySig={vexKey(F.key)}
@@ -792,6 +827,13 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
             <span className="values" role="radiogroup" aria-label={t("ui.wtc.view")}>
               <button className="chipbtn" role="radio" aria-checked={view === "roll"} aria-pressed={view === "roll"} onClick={() => setView("roll")} title={t("ui.study.rollHelp")}>{t("ui.study.roll")}</button>
               <button className="chipbtn" role="radio" aria-checked={view === "score"} aria-pressed={view === "score"} onClick={() => setView("score")} title={t("ui.study.scoreHelp")}>{t("ui.study.score")}</button>
+              <button className="chipbtn" role="radio" aria-checked={view === "page"} aria-pressed={view === "page"} onClick={() => setView("page")} title={t("ui.study.pageHelp")}>{t("ui.study.page")}</button>
+              {view === "page" && (
+                <>
+                  <button className="icon" onClick={() => setPageTop(Math.max(0, pageTop - 1))} disabled={pageTop === 0} aria-label={t("ui.study.pageUp")}>▲</button>
+                  <button className="icon" onClick={() => setPageTop(Math.min(Math.ceil(bars / rowBars) - 1, pageTop + 1))} disabled={(pageTop + 1) * rowBars >= bars} aria-label={t("ui.study.pageDown")}>▼</button>
+                </>
+              )}
             </span>
             <div className="hfaders">
               <HFader label={t("ui.tempo")} help={t("ui.wtc.tempoHelp")} value={tempo} min={15} max={120} defaultValue={36} format={(v) => `♩=${Math.round(v * 2)}`} onChange={(v) => setTempo(Math.round(v))} />
