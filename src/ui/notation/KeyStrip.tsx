@@ -53,7 +53,7 @@ export function KeyStrip(p: Props) {
           const i = order[k];
           const n = p.notes[i];
           if (n.at > pos + EPS) break;
-          if (pos >= n.at + n.dur - EPS || faintRef.current.has(p.voice[i])) continue;
+          if (pos >= n.at + n.dur - EPS || faintRef.current.has(p.voice[i]) || (playhead.only && !playhead.only.has(i))) continue;
           const c = p.colors[p.voice[i] % p.colors.length];
           const hit = pos - n.at < strike;
           // A key struck again while still held shows the strike.

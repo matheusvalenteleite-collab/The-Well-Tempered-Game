@@ -22,6 +22,8 @@ class Playhead {
   private listeners = new Set<Listener>();
   /** Quarters per second (for effects that should last a fixed time). */
   rate = 1;
+  /** The notes sounding, when only some of the piece is played (a voice's entry alone); else null. */
+  only: Set<number> | null = null;
 
   /** Follow `clock` through `stretches`. */
   start(clock: () => number, stretches: Stretch[], rate: number) {
@@ -43,6 +45,7 @@ class Playhead {
 
   stop() {
     const was = this.active;
+    this.only = null;
     this.clock = null;
     this.custom = null;
     this.stretches = [];

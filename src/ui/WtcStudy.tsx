@@ -259,19 +259,22 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   const [harmony, setHarmony] = useState<"off" | "roman" | "letters">(() => stored("wtg.wtcHarmony", "roman", (v) => v === "off" || v === "roman" || v === "letters"));
   useEffect(() => store("wtg.wtcHarmony", harmony), [harmony]);
   /** What is playing: to play it again (the loop), or from where it is at another tempo. */
-  const current = useRef<{ from: number; to: number; only?: Set<number>; replay?: () => void } | null>(null);
+  const current = useRef<{ from: number; to: number; only?: Set<number>; replay?: () => void; loopFrom?: number } | null>(null);
+  /** Where the music last was (a click, a pause, the end): where notes are written, where Shift+click extends from. */
+  const [lastPos, setLastPos] = useState<number | null>(null);
   const ended = useRef<() => void>(() => undefined);
   ended.current = () => {
     playhead.stop();
     const c = current.current;
     if (loopRef.current && c) {
       if (c.replay) c.replay();
-      else play(c.from, c.to, c.only);
+      else play(c.loopFrom ?? c.from, c.to, c.only);
     } else {
       setPlaying(false);
       current.current = null;
     }
   };
+  useEffect(() => setLastPos(null), [L.id, piece]);
   // The workshop: the subject changed note by note (semitones from Bach's), and the player's own entries.
   const [edits, setEdits] = useState<Record<string, number[]>>({});
   const edit = edits[F.id] ?? F.subject.map(() => 0);
@@ -303,7 +306,10 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   /** The playhead's mapping for the game's sounds: the first event sounds at `t0`; each stretch [score from, to) at its offset in wholes. */
   const follow0 = (t0: number, first: number, parts: { at: number; from: number; to: number }[]) => {
     const whole = audio.barSeconds;
-    playhead.start(() => audio.now, parts.map((x) => ({ t0: t0 + (x.at - first) * whole, t1: t0 + (x.at + (x.to - x.from) / 4 - first) * whole, q0: x.from, q1: x.to })), 4 / whole);
+    // What is seen waits for what is heard: the output's latency (Bluetooth, phones).
+    const ctx = audio.graph?.ctx;
+    const lat = ctx ? (ctx as AudioContext & { outputLatency?: number }).outputLatency || ctx.baseLatency || 0 : 0;
+    playhead.start(() => audio.now - lat, parts.map((x) => ({ t0: t0 + (x.at - first) * whole, t1: t0 + (x.at + (x.to - x.from) / 4 - first) * whole, q0: x.from, q1: x.to })), 4 / whole);
   };
   /** The playhead's mapping for the recording: its bar timings. */
   const followRec = () => {
@@ -321,10 +327,13 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   };
 
   /** Play from `from` to `to` (quarters); `only` limits to some notes; the workshop's notes join. */
-  const play = (from = 0, to = end, only?: Set<number>) => {
+  const play = (from = 0, to = end, only?: Set<number>, goOn = false) => {
     halt();
-    current.current = { from, to, only };
+    // Going on (a resume, a new tempo) keeps where a loop starts again.
+    current.current = { from, to, only, loopFrom: goOn ? (current.current?.loopFrom ?? current.current?.from ?? from) : from };
+    playhead.only = only ?? null;
     setMarker(null);
+    setLastPos(from);
     // D128: the recording, where there is one and nothing asks for the game's own sounds (a voice
     // alone, the workshop's subject or entries).
     if (useRec && track && !only && !(through !== "off" && changed) && !(myNotes.length && !game)) {
@@ -335,7 +344,13 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     }
     const evs: PlayEvent[] = [];
     const add = (midi: number, at: number, dur: number, ch: Ch | "canon") => {
-      if (at < from - 1e-6 || at >= to - 1e-6) return;
+      // A note still sounding where the playing starts sounds from there, for what is left of it.
+      if (at < from - 1e-6) {
+        if (at + dur <= from + 1e-6) return;
+        dur = at + dur - from;
+        at = from;
+      }
+      if (at >= to - 1e-6) return;
       const pitch = midiName(midi, flats);
       const len = Math.min(dur, to - at) / 4;
       const e: PlayEvent = { slot: barOf(at), at: (at - from) / 4, length: len, cantus: null, counterpoint: null };
@@ -374,13 +389,16 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     halt();
     setPlaying(false);
     setMarker(q);
+    if (q !== null) setLastPos(q);
   };
   /** Play, or go on: from the marker, else the chosen passage, else the start. */
   const resume = () => {
     const from = marker ?? span?.from ?? 0;
     const inSpan = span && from >= span.from - 1e-6 && from < span.to - 1e-6;
     const c = current.current;
-    if (c && marker !== null && from >= c.from - 1e-6 && from < c.to - 1e-6) return play(from, c.to, c.only);
+    // A mode of its own (every entry in a row, the chords alone) starts again.
+    if (c?.replay && marker !== null) return c.replay();
+    if (c && marker !== null && from >= c.from - 1e-6 && from < c.to - 1e-6) return play(from, c.to, c.only, true);
     play(from, inSpan ? span.to : end);
   };
   const toggle = () => (playing ? pause() : resume());
@@ -407,7 +425,8 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     const id = window.setTimeout(() => {
       const q = playhead.pos();
       const c = current.current;
-      if (q !== null && c && !c.replay) play(q, c.to, c.only);
+      if (q !== null && c && !c.replay) play(q, c.to, c.only, true);
+      else if (c?.replay) c.replay();
     }, 160);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -445,6 +464,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   const allEntries = (alone: boolean) => {
     halt();
     current.current = { from: 0, to: end, replay: () => allEntries(alone) };
+    if (alone) playhead.only = new Set(entries.flatMap((e) => e.notes));
     setMarker(null);
     if (useRec && track && !alone) {
       setPlaying(true);
@@ -599,7 +619,12 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   const keyRef = useRef<(e: KeyboardEvent) => void>(() => undefined);
   keyRef.current = (e: KeyboardEvent) => {
     const tg = e.target as HTMLElement | null;
-    if (tg && /^(INPUT|SELECT|TEXTAREA)$/.test(tg.tagName)) return;
+    // Typing goes to what is typed in; a checkbox or a slider leaves the keys to the music.
+    if (tg && (/^(SELECT|TEXTAREA)$/.test(tg.tagName) || (tg.tagName === "INPUT" && !/^(checkbox|radio|range|button)$/.test((tg as HTMLInputElement).type)) || tg.isContentEditable)) return;
+    if (e.key === "Escape" && viewOpen) {
+      setViewOpen(false);
+      return;
+    }
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     const here = () => playhead.pos() ?? marker ?? span?.from ?? 0;
     const jump = (q: number) => {
@@ -632,6 +657,15 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
       setSolo(solo === v ? null : v);
     }
   };
+  // A choice made in a menu of the transport gives the keys back to the music.
+  useEffect(() => {
+    const h = (e: Event) => {
+      const el = e.target as HTMLElement;
+      if (el.tagName === "SELECT" && el.closest(".transport-row, .wtc-viewpop")) (el as HTMLSelectElement).blur();
+    };
+    document.addEventListener("change", h);
+    return () => document.removeEventListener("change", h);
+  }, []);
   useEffect(() => {
     const h = (e: KeyboardEvent) => keyRef.current(e);
     window.addEventListener("keydown", h);
@@ -749,7 +783,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   const mine2: Record<string, string> = annotations[pieceKey] ?? {};
   const noteBars = Object.keys(mine2).map(Number).filter((b) => mine2[b]?.trim()).sort((a, b) => a - b);
   /** The bar the notes tab writes at: where Play would start (a pause, a click, the passage chosen). */
-  const noteBar = barOf((marker ?? span?.from ?? 0) + 1e-6);
+  const noteBar = barOf((marker ?? lastPos ?? span?.from ?? 0) + 1e-6);
   const setNote = (b: number, text: string) => {
     const next: Record<string, string> = { ...mine2, [b]: text };
     if (!text.trim()) delete next[String(b)];
@@ -1102,6 +1136,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
                 onNote={(b) => (setMarker(barStart(b)), setTab("notes"), setFocus(false))}
                 span={span}
                 marker={playing ? null : marker}
+                anchor={marker ?? lastPos}
                 zoom={sheetZoom}
                 follow={follow}
                 label={fugueLabel(F)}
@@ -1123,6 +1158,8 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
                 extra={gameUntil !== null ? [] : [...throughNotes, ...myNotes]}
                 hidden={rollHidden}
                 onSeek={seek}
+                onSelect={select}
+                fill
                 follow={follow}
                 marker={playing ? null : marker}
                 label={fugueLabel(F)}

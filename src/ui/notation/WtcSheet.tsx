@@ -62,6 +62,8 @@ export interface SheetProps {
   span: { from: number; to: number } | null;
   /** Where playback will start (a marker when stopped). */
   marker: number | null;
+  /** Where a Shift+click extends a passage from (the marker, else where the music last was). */
+  anchor?: number | null;
   zoom: number;
   follow: boolean;
   label: string;
@@ -576,14 +578,26 @@ export function WtcSheet(p: SheetProps) {
 
   // The highlights and the cursor, every frame while the music plays.
   const cursor = useRef<HTMLDivElement>(null);
+  const faintRef = useRef(p.faint);
+  faintRef.current = p.faint;
   const followRef = useRef(p.follow);
   followRef.current = p.follow;
-  const userScroll = useRef(0);
+  const userScroll = useRef(-1e9);
+  const lastSys = useRef(-1);
+  // A playback started (or a seek) brings the page to the music, whatever the reader did before.
+  useEffect(
+    () =>
+      playhead.on((active) => {
+        if (!active) return;
+        userScroll.current = -1e9;
+        lastSys.current = -1;
+      }),
+    [],
+  );
   /** When the page last scrolled itself (a scroll soon after is its own, not the reader's). */
   const autoScroll = useRef(0);
   useEffect(() => {
     const lit = new Map<number, string>();
-    let lastSys = -1;
     const order = p.notes.map((_, i) => i).sort((a, b) => p.notes[a].at - p.notes[b].at);
     const maxDur = Math.max(...p.notes.map((n) => n.dur));
     return onFrames((pos) => {
@@ -605,6 +619,8 @@ export function WtcSheet(p: SheetProps) {
           const i = order[k];
           const n = p.notes[i];
           if (n.at > pos + EPS) break;
+          // Only what is heard: not a muted voice, not a note left out of a passage played alone.
+          if (faintRef.current.has(p.voice[i]) || (playhead.only && !playhead.only.has(i))) continue;
           if (pos < n.at + n.dur - EPS) next.set(i, pos - n.at < strike ? "hl-hit" : "hl-on");
         }
       }
@@ -616,7 +632,7 @@ export function WtcSheet(p: SheetProps) {
       const at = pos === null ? null : locate(g, pos);
       if (!at) {
         cur.style.display = "none";
-        lastSys = -1;
+        lastSys.current = -1;
         return;
       }
       const sys = g.systems[at.s];
@@ -624,10 +640,11 @@ export function WtcSheet(p: SheetProps) {
       cur.style.transform = `translate(${at.x * g.scale}px, ${sys.top + (sys.trebleTop - 14) * g.scale}px)`;
       cur.style.height = `${(sys.bassBottom - sys.trebleTop + 28) * g.scale}px`;
       // Following: a new system brings the page along (unless the reader has just scrolled).
-      if (at.s !== lastSys) {
-        lastSys = at.s;
+      // (While the reader has just scrolled, the page waits, and catches up once they stop.)
+      if (at.s !== lastSys.current && !(followRef.current && performance.now() - userScroll.current <= 2500)) {
+        lastSys.current = at.s;
         const sc = scroller.current;
-        if (sc && followRef.current && performance.now() - userScroll.current > 2500) {
+        if (sc && followRef.current) {
           const want = sys.top - Math.min(40, sc.clientHeight * 0.08);
           const bottom = sys.top + sys.height * g.scale;
           const nextSys = g.systems[at.s + 1];
@@ -765,7 +782,7 @@ export function WtcSheet(p: SheetProps) {
           const h = hit(e);
           if (!h) return;
           // Shift: the passage from the marker (or the passage's start) to the bar clicked.
-          const anchor = p.span?.from ?? p.marker;
+          const anchor = p.span?.from ?? p.marker ?? p.anchor ?? null;
           if (e.shiftKey && anchor !== null && geoRef.current) {
             const bars = geoRef.current.systems.flatMap((sy) => sy.bars);
             const ab = bars.find((bg) => anchor < bg.ticks[bg.ticks.length - 1][0] - EPS) ?? bars[bars.length - 1];

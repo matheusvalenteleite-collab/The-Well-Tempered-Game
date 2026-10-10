@@ -6,7 +6,7 @@
  * D147: a cursor that moves with the music, the roll scrolling along with it, and each note lit as
  * it is played (struck, then held), as on the page of music.
  */
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Entry, FullNote } from "../../wtc/entries.ts";
 import { onFrames, playhead } from "../playhead.ts";
 
@@ -35,6 +35,10 @@ interface Props {
   extra: RollExtra[];
   /** Notes hidden (replaced in the workshop). */
   hidden?: Set<number>;
+  /** The pitches spread to fill the roll's height (its box has a height of its own). */
+  fill?: boolean;
+  /** A passage chosen by dragging across bars (or a bar double-clicked). */
+  onSelect?(from: number, to: number): void;
   /** A tap: play from that point (quarters, on the nearest onset before it). */
   onSeek(q: number): void;
   /** The roll follows the music. */
@@ -50,7 +54,9 @@ interface Props {
 }
 
 const PX_Q = 20;
-const ROW = 5;
+const STRIP_H = (p: { strip?: unknown[] }) => (p.strip?.length ? 18 : 0);
+/** The height of a semitone: at least this, more when the roll has room to fill. */
+const ROW_MIN = 5;
 const PAD = 24;
 
 export function VoiceRoll(p: Props) {
@@ -61,11 +67,29 @@ export function VoiceRoll(p: Props) {
   const end = Math.max(...p.notes.map((n) => n.at + n.dur), ...p.extra.map((n) => n.at + n.dur));
   const width = PAD + end * PX_Q + PAD;
   const STRIP = p.strip?.length ? 18 : 0;
+  const [room, setRoom] = useState(0);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setRoom(el.clientHeight));
+    ro.observe(el);
+    setRoom(el.clientHeight);
+    return () => ro.disconnect();
+  }, []);
+  const ROW = !p.fill ? ROW_MIN : Math.max(ROW_MIN, Math.min(14, (room - STRIP_H(p) - 2 * PAD - 16) / (hi - lo + 1)));
   const height = STRIP + PAD + (hi - lo + 1) * ROW + PAD;
   const y = (m: number) => STRIP + PAD + (hi - m) * ROW;
   const x = (q: number) => PAD + q * PX_Q;
   const lines = p.barStarts ?? Array.from({ length: Math.ceil(end / p.barQuarters - 1e-6) + 1 }, (_, b) => b * p.barQuarters);
   const bars = lines.length - 1;
+  const drag = useRef<{ x: number; moved: boolean } | null>(null);
+  const [dragSpan, setDragSpan] = useState<{ from: number; to: number } | null>(null);
+  const barAtX = (svg: SVGSVGElement, clientX: number) => {
+    const q = (clientX - svg.getBoundingClientRect().left - PAD) / PX_Q;
+    let k = 0;
+    while (k + 1 < bars && lines[k + 1] <= q) k++;
+    return k;
+  };
   useEffect(() => {
     const el = box.current;
     if (!el || !p.span) return;
@@ -75,9 +99,11 @@ export function VoiceRoll(p: Props) {
   }, [p.span?.from]);
   // The cursor and the notes lit, every frame while the music plays.
   const line = useRef<SVGLineElement>(null);
+  const faintRef = useRef(p.faint);
+  faintRef.current = p.faint;
   const followRef = useRef(p.follow);
   followRef.current = p.follow;
-  const userScroll = useRef(0);
+  const userScroll = useRef(-1e9);
   useEffect(() => {
     const order = p.notes.map((_, i) => i).sort((a, b) => p.notes[a].at - p.notes[b].at);
     const maxDur = Math.max(...p.notes.map((n) => n.dur));
@@ -93,6 +119,7 @@ export function VoiceRoll(p: Props) {
           const n = p.notes[i];
           if (n.at < pos - maxDur - 1e-6) continue;
           if (n.at > pos + 1e-6) break;
+          if (faintRef.current.has(p.voice[i]) || (playhead.only && !playhead.only.has(i))) continue;
           if (pos < n.at + n.dur - 1e-6) next.set(i, pos - n.at < strike ? "hl-hit" : "hl-on");
         }
       }
@@ -122,13 +149,39 @@ export function VoiceRoll(p: Props) {
         height={height}
         role="img"
         aria-label={p.label}
-        onClick={(ev) => {
+        onPointerDown={(ev) => {
+          if (ev.button !== 0) return;
+          drag.current = { x: ev.clientX, moved: false };
+        }}
+        onPointerMove={(ev) => {
+          const d = drag.current;
+          if (!d || (!d.moved && Math.abs(ev.clientX - d.x) < 10)) return;
+          d.moved = true;
+          (ev.currentTarget as SVGSVGElement).setPointerCapture(ev.pointerId);
+          const a = barAtX(ev.currentTarget as SVGSVGElement, d.x);
+          const b = barAtX(ev.currentTarget as SVGSVGElement, ev.clientX);
+          setDragSpan({ from: lines[Math.min(a, b)], to: lines[Math.max(a, b) + 1] });
+        }}
+        onPointerUp={(ev) => {
+          const d = drag.current;
+          drag.current = null;
+          if (!d) return;
+          if (d.moved) {
+            if (dragSpan) p.onSelect?.(dragSpan.from, dragSpan.to);
+            setDragSpan(null);
+            return;
+          }
           const r = (ev.currentTarget as SVGSVGElement).getBoundingClientRect();
           const q = (ev.clientX - r.left - PAD) / PX_Q;
           if (q < 0) return;
           // The onset nearest the tap (within a beat), else the tap's own place.
           const near = p.notes.reduce((best, n) => (Math.abs(n.at - q) < Math.abs(best - q) ? n.at : best), Math.floor(q / p.barQuarters) * p.barQuarters);
           p.onSeek(Math.abs(near - q) <= 0.5 ? near : Math.floor(q * 4) / 4);
+        }}
+        onPointerCancel={() => ((drag.current = null), setDragSpan(null))}
+        onDoubleClick={(ev) => {
+          const b = barAtX(ev.currentTarget as SVGSVGElement, ev.clientX);
+          p.onSelect?.(lines[b], lines[b + 1]);
         }}
       >
         {p.strip?.map((c, k) => (
@@ -144,6 +197,7 @@ export function VoiceRoll(p: Props) {
             })()}
           </g>
         ))}
+        {dragSpan && <rect x={x(dragSpan.from)} y={STRIP + PAD - 8} width={Math.max(2, (dragSpan.to - dragSpan.from) * PX_Q)} height={height - STRIP - 2 * PAD + 8} className="roll-drag" />}
         {p.span && <rect x={x(p.span.from)} y={STRIP + PAD - 8} width={Math.max(2, (p.span.to - p.span.from) * PX_Q)} height={height - STRIP - 2 * PAD + 8} className="roll-span" />}
         {Array.from({ length: hi - lo + 1 }, (_, k) => hi - k).filter((m) => m % 12 === 0).map((m) => (
           <g key={`c${m}`}>

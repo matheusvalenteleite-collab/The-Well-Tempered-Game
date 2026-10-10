@@ -1207,3 +1207,5 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
   .sheet-sys { break-inside: avoid; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+.voiceroll, .voiceroll svg { user-select: none; -webkit-user-select: none; }
+.roll-drag { fill: rgba(42, 86, 214, 0.16); }
