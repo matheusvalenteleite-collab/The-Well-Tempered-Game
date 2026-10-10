@@ -60,6 +60,12 @@ with exercises the least concern, and the main session is building it. This bran
   on parameters fitted to the others. Reading the bass as the root gets 48.3%. Six-four chords,
   diminished sevenths and leading-tone chords are counted apart as rival theories of the
   fundamental.
+- **Harmonic maps of all 96 movements** (`docs/wtc/HARMONIC-MAPS.md`, `data/wtc/harmonic-maps.json`).
+  The reader works by itself, with no human segmentation. It finds the analysts' root at 72.4% of
+  their segments, and marks candidate moments to listen to: pedals, diminished sevenths, cadences.
+  The lab's chord-a-bar reduction is right 92% of the time where it gives a numeral, but it does
+  so at only 140 of 3,679 segments (`docs/wtc/REDUCTION-CHECK.md`). The two complement each
+  other.
 - **Figuration preludes** (`docs/wtc/PRELUDES.md`). Measured, not assumed: 1/1, 1/5, 1/6 and 1/2.
   Every other prelude repeats one pattern in at most a third of its bars.
 - **Chorale level 2** (`docs/chorales/LEVEL2.md`). Held out by tune, Bach's chord under a melody
