@@ -206,3 +206,22 @@ test("readings checked against Ledbetter, Bach's Well-tempered Clavier (Yale, 20
   const ds = get("wtc1f08");
   assert.deepEqual(findTransformed(ds.p, ds.sa.subject).filter((e) => e.scale === 2).map((e) => ds.barOf(e.on)), [62, 67, 77]);
 });
+
+test("later subjects of double and triple fugues, from where Ledbetter says they enter", async () => {
+  const { laterSubjects } = await import("../src/wtc/subjects.ts");
+  const later = JSON.parse(readFileSync(new URL("../data/wtc/later-subjects.json", import.meta.url), "utf8")).fugues;
+  const at = (id: string) => {
+    const p = fugues.find((f) => f.id === id)!;
+    const sa = subjectAndAnswer(p);
+    const barOf = (t: number) => [...p.bars].reverse().find((b) => b.on <= t)!.n;
+    return laterSubjects(p, sa.subject, sa.answer, later[id].map((l: { bar: number }) => l.bar)).map((s) => s.occurrences.map((o) => barOf(o.on)));
+  };
+  // Book II no. 18: the chromatic second subject's own exposition, bb. 61, 66, 71.
+  assert.deepEqual(at("wtc2f18")[0].slice(0, 3), [61, 66, 71]);
+  // Book II no. 14: subject 2 in all three voices from b. 20; subject 3 from b. 36.
+  const fs = at("wtc2f14");
+  assert.deepEqual(fs[0].slice(0, 3), [20, 21, 22]);
+  assert.equal(fs[1][0], 36);
+  // Book I no. 4: the third subject from b. 49.
+  assert.equal(at("wtc1f04")[1][0], 49);
+});

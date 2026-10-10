@@ -1,0 +1,386 @@
+{
+ "source": "David Ledbetter, Bach's Well-tempered Clavier (Yale, 2002), Part Two, via the per-piece digest (branch claude/vibrant-gates-fe6o3h, docs/wtc/ledbetter/); bars as he gives them",
+ "fugues": {
+  "wtc1f01": [
+   {
+    "from": 1,
+    "to": 7,
+    "label": "exposition"
+   },
+   {
+    "from": 7,
+    "to": 14,
+    "label": "close stretto"
+   },
+   {
+    "from": 14,
+    "to": 19,
+    "label": "triple and quadruple stretto"
+   },
+   {
+    "from": 19,
+    "to": 27,
+    "label": "stretti over pedals"
+   }
+  ],
+  "wtc1f02": [
+   {
+    "from": 9,
+    "to": 10,
+    "label": "episode"
+   },
+   {
+    "from": 15,
+    "to": 31,
+    "label": "second section"
+   },
+   {
+    "from": 22,
+    "to": 25,
+    "label": "interlude"
+   }
+  ],
+  "wtc1f03": [
+   {
+    "from": 1,
+    "to": 12,
+    "label": "first section"
+   },
+   {
+    "from": 7,
+    "to": 10,
+    "label": "episode"
+   }
+  ],
+  "wtc1f07": [
+   {
+    "from": 1,
+    "to": 17,
+    "label": "first half"
+   },
+   {
+    "from": 4,
+    "to": 5,
+    "label": "link"
+   }
+  ],
+  "wtc1f10": [
+   {
+    "from": 1,
+    "to": 19,
+    "label": "first half"
+   },
+   {
+    "from": 20,
+    "to": 38,
+    "label": "second half (mirror inversion of first half)"
+   }
+  ],
+  "wtc1f11": [
+   {
+    "from": 1,
+    "to": 46,
+    "label": "first section"
+   },
+   {
+    "from": 1,
+    "to": 8,
+    "label": "passepied first section"
+   }
+  ],
+  "wtc1f12": [
+   {
+    "from": 1,
+    "to": 30,
+    "label": "first half"
+   },
+   {
+    "from": 1,
+    "to": 12,
+    "label": "exposition"
+   },
+   {
+    "from": 10,
+    "to": 13,
+    "label": "interlude"
+   },
+   {
+    "from": 16,
+    "to": 18,
+    "label": "interlude"
+   },
+   {
+    "from": 22,
+    "to": 26,
+    "label": "interlude"
+   },
+   {
+    "from": 50,
+    "to": 52,
+    "label": "interlude"
+   }
+  ],
+  "wtc1f13": [
+   {
+    "from": 1,
+    "to": 7,
+    "label": "exposition"
+   },
+   {
+    "from": 7,
+    "to": 23,
+    "label": ""
+   },
+   {
+    "from": 23,
+    "to": 35,
+    "label": ""
+   }
+  ],
+  "wtc1f14": [
+   {
+    "from": 11,
+    "to": 14,
+    "label": "episode"
+   }
+  ],
+  "wtc1f15": [
+   {
+    "from": 20,
+    "to": 31,
+    "label": "exposition inverso"
+   }
+  ],
+  "wtc1f17": [
+   {
+    "from": 8,
+    "to": 9,
+    "label": "solo"
+   },
+   {
+    "from": 11,
+    "to": 12,
+    "label": "episode"
+   },
+   {
+    "from": 14,
+    "to": 15,
+    "label": "episode"
+   },
+   {
+    "from": 19,
+    "to": 20,
+    "label": "episode"
+   }
+  ],
+  "wtc1f18": [
+   {
+    "from": 1,
+    "to": 9,
+    "label": "exposition"
+   }
+  ],
+  "wtc1f20": [
+   {
+    "from": 1,
+    "to": 14,
+    "label": "½ exposition recto"
+   },
+   {
+    "from": 48,
+    "to": 64,
+    "label": "½ stretto inverso"
+   }
+  ],
+  "wtc1f23": [
+   {
+    "from": 1,
+    "to": 9,
+    "label": "exposition"
+   },
+   {
+    "from": 9,
+    "to": 11,
+    "label": "episode"
+   },
+   {
+    "from": 14,
+    "to": 16,
+    "label": "episode"
+   },
+   {
+    "from": 26,
+    "to": 28,
+    "label": "episode"
+   }
+  ],
+  "wtc2f05": [
+   {
+    "from": 1,
+    "to": 10,
+    "label": "exposition"
+   },
+   {
+    "from": 10,
+    "to": 16,
+    "label": "section two"
+   },
+   {
+    "from": 20,
+    "to": 27,
+    "label": "section three",
+    "flag": "check"
+   }
+  ],
+  "wtc2f09": [
+   {
+    "from": 9,
+    "to": 15,
+    "label": "stretti of subject and countersubject"
+   },
+   {
+    "from": 16,
+    "to": 22,
+    "label": "two new subjects"
+   },
+   {
+    "from": 23,
+    "to": 34,
+    "label": "low stretti"
+   },
+   {
+    "from": 35,
+    "to": 43,
+    "label": "final section"
+   }
+  ],
+  "wtc2f10": [
+   {
+    "from": 1,
+    "to": 18,
+    "label": "tonic exposition"
+   }
+  ],
+  "wtc2f12": [
+   {
+    "from": 24,
+    "to": 31,
+    "label": "relative major"
+   }
+  ],
+  "wtc2f13": [
+   {
+    "from": 1,
+    "to": 12,
+    "label": "exposition"
+   },
+   {
+    "from": 12,
+    "to": 20,
+    "label": "episode 1"
+   },
+   {
+    "from": 24,
+    "to": 32,
+    "label": "episode 2"
+   },
+   {
+    "from": 44,
+    "to": 52,
+    "label": "episode 1 return"
+   },
+   {
+    "from": 56,
+    "to": 64,
+    "label": "episode 2 return"
+   },
+   {
+    "from": 64,
+    "to": 84,
+    "label": "final exposition"
+   }
+  ],
+  "wtc2f14": [
+   {
+    "from": 1,
+    "to": 20,
+    "label": "first exposition"
+   }
+  ],
+  "wtc2f17": [
+   {
+    "from": 1,
+    "to": 10,
+    "label": "entries T-D-T-D"
+   },
+   {
+    "from": 10,
+    "to": 13,
+    "label": "episode (triple invertible)"
+   },
+   {
+    "from": 13,
+    "to": 24,
+    "label": "entries T-D-T-T"
+   }
+  ],
+  "wtc2f18": [
+   {
+    "from": 1,
+    "to": 61,
+    "label": "section 1 (subject 1)"
+   },
+   {
+    "from": 61,
+    "to": 97,
+    "label": "section 2 (subject 2)"
+   },
+   {
+    "from": 97,
+    "to": 143,
+    "label": "double fugue"
+   }
+  ],
+  "wtc2f21": [
+   {
+    "from": 1,
+    "to": 32,
+    "label": "first half"
+   },
+   {
+    "from": 29,
+    "to": 32,
+    "label": "closing idea"
+   }
+  ],
+  "wtc2f22": [
+   {
+    "from": 27,
+    "to": 37,
+    "label": "stretto recto exposition"
+   },
+   {
+    "from": 42,
+    "to": 63,
+    "label": "inverted-subject exposition"
+   },
+   {
+    "from": 80,
+    "to": 93,
+    "label": "stretto inverso exposition"
+   },
+   {
+    "from": 96,
+    "to": 101,
+    "label": "stretto inverso exposition at the 10th"
+   }
+  ],
+  "wtc2f23": [
+   {
+    "from": 63,
+    "to": 74,
+    "label": "episode"
+   }
+  ]
+ }
+}

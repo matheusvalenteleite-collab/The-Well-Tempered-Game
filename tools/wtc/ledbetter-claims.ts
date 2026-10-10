@@ -7,11 +7,13 @@ import { findEntriesByHead, findTransformed, line, subjectAndAnswer, type Entry 
 import { cadences, study } from "../../src/wtc/fugue-study.ts";
 import { entryKey } from "../../src/wtc/keyplan.ts";
 import { harmonies } from "../../src/wtc/trio.ts";
+import { laterSubjects } from "../../src/wtc/subjects.ts";
 import { voiceNames } from "../../src/wtc/exposition.ts";
 import { label, TPQ, type WtcPiece } from "../../src/wtc/corpus.ts";
 import { parsePitch } from "../../src/music/pitch.ts";
 
 const fugues: WtcPiece[] = JSON.parse(readFileSync("data/wtc/fugues.json", "utf8"));
+const LATER: Record<string, { n: number; bar: number }[]> = JSON.parse(readFileSync("data/wtc/later-subjects.json", "utf8")).fugues;
 const claims = readFileSync("data/wtc/ledbetter-claims.txt", "utf8").split("\n").map((l) => l.trim()).filter((l) => /^wtc\df\d\d /.test(l));
 const LONG: Record<string, string> = { S: "soprano", A: "alto", T: "tenor", B: "bass", S1: "soprano", S2: "soprano", upper: "soprano", lower: "bass" };
 const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"];
@@ -25,10 +27,12 @@ function analyse(p: WtcPiece) {
   const entries = findEntriesByHead(p, sa.subject).entries;
   const answers = findEntriesByHead(p, sa.answer).entries;
   const transformed = findTransformed(p, sa.subject);
-  const s = study(p, sa.subject, sa.answer, entries);
+  const later = LATER[p.id] ?? [];
+  const s = study(p, sa.subject, sa.answer, entries, later);
+  const others = new Map(laterSubjects(p, sa.subject, sa.answer, later.map((l) => l.bar)).map((ls, i) => [later[i]?.n ?? i + 2, ls.occurrences] as const));
   const lines = p.voices.map(line);
   const cads = cadences(p, lines, harmonies(lines, p.meter, p.length), p.meter);
-  return { sa, entries, answers, transformed, s, cads };
+  return { sa, entries, answers, transformed, s, cads, others };
 }
 const barOf = (p: WtcPiece, t: number) => [...p.bars].reverse().find((b) => b.on <= t)?.n ?? 1;
 
@@ -45,6 +49,15 @@ for (const c of claims) {
   const near = (t: number, slack = 1) => Math.abs(barOf(p, t) - b0) <= slack;
   if (kind === "entry") {
     const [voiceWord, key] = tail.split(" ");
+    // A claim about a later subject (S2, "second subject", "subject 3") is checked against its entries.
+    const which = /\(S([23])\)|(second|third) subject|subject ([23])/i.exec(c);
+    if (which) {
+      const n = Number(which[1] ?? which[3] ?? (which[2]?.toLowerCase() === "second" ? 2 : 3));
+      const occ = a.others.get(n) ?? [];
+      const hit = occ.find((o) => Math.abs(barOf(p, o.on) - b0) <= 1);
+      results.push({ claim: c, kind, ok: hit ? true : flagged ? null : false, note: hit ? `found, subject ${n} in the ${names[hit.voice]} at bar ${barOf(p, hit.on)}` : occ.length ? `subject ${n} found, but not here` : `subject ${n} not identified` });
+      continue;
+    }
     const all: (Entry & { how: string })[] = [...a.entries.map((e) => ({ ...e, how: "" })), ...a.answers.map((e) => ({ ...e, how: " (as the answer)" })), ...a.transformed.map((e) => ({ ...e, how: e.scale === 2 ? " (augmentation)" : " (diminution)" }))];
     // The bar he names, or the bar before (an entry on an upbeat).
     const cands = all.filter((e) => barOf(p, e.on) === b0 || (barOf(p, e.on) === b0 - 1 && barOf(p, e.on + TPQ) === b0));
@@ -102,7 +115,10 @@ const out = [
   "",
   "Entries, strettos and pedal points are the analysis's own readings and should agree; cadences and",
   "sections are where it is known to be weak (docs/wtc/ledbetter-check.md), and his sections are the",
-  "better guide.",
+  "better guide: the study guide now takes his sections wherever the digest gives them",
+  "(data/wtc/ledbetter-sections.json); the section figures here measure the analysis's own reading.",
+  "Later subjects of double and triple fugues are found from where he says they enter",
+  "(data/wtc/later-subjects.json; src/wtc/subjects.ts).",
   "",
   "## By fugue",
   "",

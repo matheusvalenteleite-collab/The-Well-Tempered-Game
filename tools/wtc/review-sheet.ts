@@ -6,6 +6,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { findEntriesByHead, line, predictAnswer, subjectAndAnswer } from "../../src/wtc/fugue.ts";
 import { exposition, voiceNames } from "../../src/wtc/exposition.ts";
 import { study } from "../../src/wtc/fugue-study.ts";
+const LATER = JSON.parse(readFileSync("data/wtc/later-subjects.json", "utf8")).fugues;
+const GIVEN = JSON.parse(readFileSync("data/wtc/ledbetter-sections.json", "utf8")).fugues;
 import { subjectLength } from "../../src/wtc/structure.ts";
 import { label, TPQ, type WtcPiece } from "../../src/wtc/corpus.ts";
 import { parsePitch } from "../../src/music/pitch.ts";
@@ -32,7 +34,7 @@ const out = IDS.map((id) => {
   const sa = subjectAndAnswer(p);
   const { entries } = findEntriesByHead(p, sa.subject);
   const len = subjectLength(sa.subject);
-  const s = study(p, sa.subject, sa.answer, entries);
+  const s = study(p, sa.subject, sa.answer, entries, LATER[id] ?? [], GIVEN[id] ?? []);
   const expo = exposition(p, sa.subject, sa.answer, entries);
   const real = predictAnswer(sa.subject, p.key, p.mode, "real");
   const mutated = real.map((x, i) => (x[0] !== sa.answer[i]?.pitch[0] ? i + 1 : 0)).filter(Boolean);

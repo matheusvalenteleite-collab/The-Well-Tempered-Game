@@ -8,15 +8,18 @@ data/wtc/ledbetter-claims.txt. A claim holds if the analysis has the same thing 
 a cadence on the key named; a section starting there). Claims the digest flags [GAP] or [check] that
 the analysis does not bear out are left uncounted, as are sections starting at bar 1.
 
-- **entry**: 132 of 158 (84%)
+- **entry**: 135 of 158 (85%)
 - **stretto**: 27 of 41 (66%)
 - **pedal**: 4 of 11 (36%)
 - **cadence**: 8 of 18 (44%)
-- **section**: 17 of 49 (35%)
+- **section**: 18 of 49 (37%)
 
 Entries, strettos and pedal points are the analysis's own readings and should agree; cadences and
 sections are where it is known to be weak (docs/wtc/ledbetter-check.md), and his sections are the
-better guide.
+better guide: the study guide now takes his sections wherever the digest gives them
+(data/wtc/ledbetter-sections.json); the section figures here measure the analysis's own reading.
+Later subjects of double and triple fugues are found from where he says they enter
+(data/wtc/later-subjects.json; src/wtc/subjects.ts).
 
 ## By fugue
 
@@ -64,12 +67,12 @@ better guide.
 
 ### Fugue 4 in C♯ minor (Book I, BWV 849b)
 
-1 of 9 hold.
+2 of 9 hold.
 
-- ✓ `entry b.35 voice? (S2)`: found
-- ✗ `entry b.49 voice? (S3)`: not found
-- ✗ `entry b.67 voice? (S3)`: not found
-- ✗ `entry b.71 voice? (S3)`: not found
+- ✓ `entry b.35 voice? (S2)`: found, subject 2 in the soprano at bar 36
+- ✓ `entry b.49 voice? (S3)`: found, subject 3 in the alto at bar 49
+- ✗ `entry b.67 voice? (S3)`: subject 3 found, but not here
+- ✗ `entry b.71 voice? (S3)`: subject 3 found, but not here
 - ✗ `stretto b.94 voices?`: not found
 - ✗ `entry b.94 soprano (S1)`: not found
 - ✗ `entry b.95 alto (S1)`: not found
@@ -299,14 +302,14 @@ better guide.
 
 ### Fugue 4 in C♯ minor (Book II, BWV 873b)
 
-6 of 7 hold.
+7 of 7 hold.
 
 - ✓ `entry b.2 voice? (answer)`: found
 - ✓ `cadence b.13 E`: found at bar 13
 - ✓ `entry b.16 voice? c# (second tonic exposition)`: found, in c#
 - ✓ `entry b.20 bass`: found
 - ✓ `entry b.24 voice? (inversion exposition)`: found
-- ✗ `entry b.35 voice? (second subject)`: not found
+- ✓ `entry b.35 voice? (second subject)`: found, subject 2 in the soprano at bar 35
 - ✓ `stretto b.66 soprano+alto+bass`: found at bar 66
 
 ### Fugue 5 in D major (Book II, BWV 874b)
@@ -464,10 +467,10 @@ better guide.
 
 ### Fugue 18 in G♯ minor (Book II, BWV 887b)
 
-10 of 12 hold.
+11 of 12 hold.
 
 - · `section b.1-61 section 1 (subject 1)`: the opening
-- ✗ `section b.61-97 section 2 (subject 2)`: no section starts here
+- ✓ `section b.61-97 section 2 (subject 2)`: a section starts at bar 61
 - ✗ `section b.97-143 double fugue`: no section starts here
 - ✓ `entry b.5 voice?`: found
 - ✓ `entry b.13 voice?`: found
@@ -524,9 +527,9 @@ better guide.
 
 ### Fugue 23 in B major (Book II, BWV 892b)
 
-6 of 8 hold.
+7 of 8 hold.
 
-- ✗ `entry b.28 voice? (subject 2)`: not found
+- ✓ `entry b.28 voice? (subject 2)`: found, subject 2 in the soprano at bar 28
 - ✓ `entry b.42 voice? g#`: found, but read in F#, not g#
 - ✓ `entry b.48 bass`: found
 - ✓ `entry b.53 tenor g#`: found, but read in E, not g#

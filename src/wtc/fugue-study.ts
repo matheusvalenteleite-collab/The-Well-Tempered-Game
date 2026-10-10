@@ -10,6 +10,7 @@ import { parsePitch } from "../music/pitch.ts";
 import { TPQ, type WtcPiece } from "./corpus.ts";
 import { exposition, voiceNames } from "./exposition.ts";
 import { findTransformed, line, type Entry, type Note } from "./fugue.ts";
+import { laterSubjects } from "./subjects.ts";
 import { entryKey } from "./keyplan.ts";
 import { episodes, strettos, subjectLength } from "./structure.ts";
 import { beatTicks as beatOf, harmonicWindow, harmonies, type Harmony } from "./trio.ts";
@@ -104,7 +105,18 @@ export interface Study {
 }
 
 /** The moments and sections of a fugue, from its subject, answer and entries. */
-export function study(p: WtcPiece, subject: Note[], answer: Note[], entries: Entry[]): Study {
+export interface GivenSection {
+  from: number;
+  to: number;
+  label: string;
+}
+
+/**
+ * `later`: where later subjects of a double or triple fugue first enter (data/wtc/later-subjects.json).
+ * `given`: sections as the literature reads them (data/wtc/ledbetter-sections.json); where given, they
+ * replace the sections read from the cadences (the analysis's weakest reading).
+ */
+export function study(p: WtcPiece, subject: Note[], answer: Note[], entries: Entry[], later: { n: number; bar: number }[] = [], given: GivenSection[] = []): Study {
   const lines = p.voices.map(line);
   const names = voiceNames(p.voices.length);
   const longNames: Record<string, string> = { S: "soprano", A: "alto", T: "tenor", B: "bass", S1: "first soprano", S2: "second soprano", upper: "upper voice", lower: "lower voice" };
@@ -130,6 +142,21 @@ export function study(p: WtcPiece, subject: Note[], answer: Note[], entries: Ent
       detail: `bar ${barOf(p, e.on)}, in ${k.name[0].toUpperCase() + k.name.slice(1).replace("b", "♭").replace("#", "♯")} ${k.name[0] === k.name[0].toUpperCase() ? "major" : "minor"}${inStretto.has(e) ? ", in stretto" : ""}${e.changed && !isAnswer ? `, ${e.changed} interval${e.changed > 1 ? "s" : ""} altered` : isAnswer && e.changed ? ", a tonal answer" : ""}`,
     });
   }
+  // Entries of the later subjects.
+  const ORD = ["", "first", "second", "third", "fourth"];
+  laterSubjects(p, subject, answer, later.map((l) => l.bar)).forEach((ls, i) => {
+    const n = later[i]?.n ?? i + 2;
+    ls.occurrences.forEach((o, k) => {
+      moments.push({
+        kind: "entry",
+        on: o.on,
+        end: o.end,
+        voice: o.voice,
+        label: `${k === 0 ? "The " + ORD[n] + " subject enters" : "Entry of the " + ORD[n] + " subject"}, in the ${vname(o.voice)}`,
+        detail: `bar ${barOf(p, o.on)}`,
+      });
+    });
+  });
   // Entries in augmentation and diminution.
   for (const e of findTransformed(p, subject)) {
     const span = e.scale * len;
@@ -234,8 +261,38 @@ export function study(p: WtcPiece, subject: Note[], answer: Note[], entries: Ent
   const cuts = [0, expoEnd];
   // Sections end at perfect cadences (the top voice on the tonic), at least two bars apart.
   for (const c of cads) if (c.perfect && c.on > cuts[cuts.length - 1] + 2 * bar && p.length - c.on > 2 * bar) cuts.push(c.on);
+  // A later subject's first entry opens a section of its own.
+  for (const m of moments) if (m.kind === "entry" && m.label.startsWith("The ") && m.label.includes("subject enters")) cuts.push(m.on);
+  cuts.sort((a, b) => a - b);
+  for (let i = cuts.length - 1; i > 0; i--) if (cuts[i] - cuts[i - 1] < 2 * bar) cuts.splice(cuts[i] > expoEnd ? i - 1 : i, 1);
   cuts.push(p.length);
   const sections: Section[] = [];
+  // Sections given by the literature: the outermost spans (an episode inside a section is not a
+  // section), the gaps between them filled.
+  const outer = given.filter((g) => !/episode|interlude|codetta|link/i.test(g.label)).filter((g, _, all) => !all.some((h) => h !== g && h.from <= g.from && h.to >= g.to && h.to - h.from > g.to - g.from)).sort((a, b) => a.from - b.from);
+  if (outer.length >= 2 || (outer.length === 1 && outer[0].from > 1)) {
+    const bars = p.bars.length;
+    const onOf = (n: number) => p.bars.find((b) => b.n === n)?.on ?? p.length;
+    const spans: GivenSection[] = [];
+    let at = 1;
+    for (const g of outer) {
+      // His ranges end inclusively (bb. 9–15, 16–22) or share a bar (bb. 7–14, 14–19): a gap is a
+      // missing bar or more.
+      if (g.from > at + 1) spans.push({ from: at === 1 ? 1 : at + 1, to: g.from, label: at === 1 ? "Opening" : "" });
+      spans.push(g);
+      at = Math.max(at, g.to);
+    }
+    if (at + 1 < bars) spans.push({ from: at + 1, to: bars, label: "" });
+    spans.forEach((g, i) => {
+      const on = onOf(g.from);
+      const end = i + 1 < spans.length ? onOf(spans[i + 1].from) : p.length;
+      if (end <= on) return;
+      const inside = moments.filter((m) => m.kind === "entry" && m.on >= on && m.on < end);
+      const label = g.label ? g.label[0].toUpperCase() + g.label.slice(1) : `Section ${i + 1}`;
+      sections.push({ on, end, label, detail: `bars ${g.from}–${barOf(p, end - 1)}: ${inside.length} entr${inside.length === 1 ? "y" : "ies"} (as Ledbetter divides it)` });
+    });
+    return { moments, sections };
+  }
   for (let i = 0; i + 1 < cuts.length; i++) {
     const on = cuts[i];
     const end = cuts[i + 1];

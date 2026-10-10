@@ -8,6 +8,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import fugueData from "../../data/wtc/fugues.json" with { type: "json" };
 import preludeData from "../../data/wtc/preludes.json" with { type: "json" };
 import inventionData from "../../data/wtc/inventions.json" with { type: "json" };
+import laterData from "../../data/wtc/later-subjects.json" with { type: "json" };
+import sectionData from "../../data/wtc/ledbetter-sections.json" with { type: "json" };
 import { label, TPQ, type WtcPiece } from "../wtc/corpus.ts";
 import { degree, findEntriesByHead, line, names, predictAnswer, subjectAndAnswer, transpose, type Entry, type Note } from "../wtc/fugue.ts";
 import { TUNINGS, type TuningId } from "../wtc/tunings.ts";
@@ -467,7 +469,7 @@ const KIND_NAMES: Record<MomentKind, string> = { entry: "entries", stretto: "str
 
 /** Sections and moments of a fugue, each playable on its own, the voice that matters brought forward. */
 function StudyGuide({ p, a, play }: { p: WtcPiece; a: Analysis; play: (spans: Span[]) => void }) {
-  const s = useMemo(() => study(p, a.subject, a.answer, a.entries), [p, a]);
+  const s = useMemo(() => study(p, a.subject, a.answer, a.entries, (laterData.fugues as Record<string, { n: number; bar: number }[]>)[p.id] ?? [], (sectionData.fugues as Record<string, { from: number; to: number; label: string }[]>)[p.id] ?? []), [p, a]);
   const [kinds, setKinds] = useState<Set<MomentKind>>(new Set(["entry", "stretto", "episode", "pedal", "cadence", "climax"]));
   const [follow, setFollow] = useState(true);
   const entries = s.moments.filter((m) => m.kind === "entry");
@@ -476,7 +478,7 @@ function StudyGuide({ p, a, play }: { p: WtcPiece; a: Analysis; play: (spans: Sp
     <fieldset className="lab-panel">
       <legend>Study: sections and moments</legend>
       <p className="lab-prose">
-        The fugue read for listening: its sections (the exposition, then from cadence to cadence) and its moments: every entry of the subject, the strettos, the episodes and their sequences, the pedal points, the cadences, the highest note. Play any of them on its own; with <i>bring the voice forward</i>, the voice that carries it sounds in a sustained flute-like tone and the others recede. All of it is read from the notes automatically, a first reading, not an analysis.
+        The fugue read for listening: its sections (as David Ledbetter divides it in his commentary, where he does; otherwise the exposition, then from cadence to cadence) and its moments: every entry of the subject, the strettos, the episodes and their sequences, the pedal points, the cadences, the highest note. Play any of them on its own; with <i>bring the voice forward</i>, the voice that carries it sounds in a sustained flute-like tone and the others recede. All of it is read from the notes automatically, a first reading, not an analysis.
       </p>
       <div className="lab-actions">
         <button className="primary" onClick={() => play(entries.map((m) => ({ from: m.on, to: m.end, spotlight: follow ? m.voice : null })))}>▶ Every entry in turn ({entries.length})</button>
