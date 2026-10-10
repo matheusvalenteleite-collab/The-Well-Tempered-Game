@@ -8,10 +8,10 @@ data/wtc/ledbetter-claims.txt. A claim holds if the analysis has the same thing 
 a cadence on the key named; a section starting there). Claims the digest flags [GAP] or [check] that
 the analysis does not bear out are left uncounted, as are sections starting at bar 1.
 
-- **entry**: 150 of 173 (87%)
+- **entry**: 155 of 173 (90%)
 - **stretto**: 36 of 47 (77%)
-- **pedal**: 5 of 12 (42%)
-- **cadence**: 21 of 37 (57%)
+- **pedal**: 7 of 12 (58%)
+- **cadence**: 21 of 34 (62%)
 - **section**: 29 of 68 (43%)
 
 Entries, strettos and pedal points are the analysis's own readings and should agree; cadences and
@@ -57,14 +57,14 @@ Later subjects of double and triple fugues are found from where he says they ent
 
 ### Fugue 3 in C♯ major (Book I, BWV 848b)
 
-2 of 6 hold.
+5 of 6 hold.
 
 - · `section b.1-12 first section`: the opening
 - ✓ `entry b.1 voice? C#`: found, in C#
-- ✗ `entry b.4 voice? (answer)`: not found
-- ✗ `entry b.6 bass C#`: not found
+- ✓ `entry b.3 alto G# (score; answer, from 3:2.5; L.: bb.4–5)`: found, in G#
+- ✓ `entry b.5 bass C# (score; from 5:2.5; L.: bb.6–7)`: found, in C#
 - ✓ `section b.7-10 episode`: a section starts at bar 7
-- ✗ `entry b.10 bass G#`: found in the soprano, not the bass
+- ✓ `entry b.10 soprano G# (score; head varied; the bass reaches G# at 10:1; L.: bass on G)`: found, in G#
 - ✗ `section b.42-55 reprise`: no section starts here
 
 ### Fugue 4 in C♯ minor (Book I, BWV 849b)
@@ -108,7 +108,7 @@ Later subjects of double and triple fugues are found from where he says they ent
 - ✓ `entry b.6 bass (subject)`: found
 - ✓ `entry b.11 soprano Bb (answer; L.: a ritornello repeat in the tonic)`: found, in Bb
 - · `section b.1-17 first half`: the opening
-- ✓ `entry b.17 voice? c (warped version; analysis reads g) [check]`: found, but read in g, not c
+- ✓ `entry b.17 alto g (score; warped, with Ab and B; L.: C minor)`: found, in g
 - ✓ `entry b.26 bass (answer)`: found
 - ✓ `entry b.29 soprano (subject)`: found
 - ✓ `entry b.34 alto (answer)`: found
@@ -141,7 +141,7 @@ Later subjects of double and triple fugues are found from where he says they ent
 
 ### Fugue 11 in F major (Book I, BWV 856b)
 
-6 of 10 hold.
+7 of 10 hold.
 
 - · `section b.1-8 passepied first section`: the opening
 - ✓ `entry b.1 alto`: found
@@ -152,7 +152,7 @@ Later subjects of double and triple fugues are found from where he says they ent
 - · `section b.1-46 first section`: the opening
 - ✗ `cadence b.46 d`: not found
 - ✓ `stretto b.46 voices?`: found at bar 46
-- ✗ `entry b.49 bass (variant)`: found in the alto, not the bass
+- ✓ `entry b.47 bass g (score; variant: continuous semiquavers with échappée at b.49; L.: variant at b.49)`: found, in g
 - ✗ `section b.46-56 stretto`: no section starts here
 - ✗ `section b.56-72`: no section starts here
 
@@ -200,13 +200,13 @@ Later subjects of double and triple fugues are found from where he says they ent
 
 ### Fugue 15 in G major (Book I, BWV 860b)
 
-4 of 5 hold.
+3 of 5 hold.
 
 - ✗ `section b.20-31 exposition inverso`: no section starts here
 - ✓ `entry b.38 voice? e`: found, in e
 - ✓ `entry b.43 voice? e (inverso)`: found, in e
 - ✓ `stretto b.51 voices?`: found at bar 51
-- ✓ `entry b.79 voice? I (L.: tonic; the notes sit a 3rd up, level iii) [check]`: found, but read in iii, not I
+- ✗ `entry b.79 alto I (score; soprano doubles it in 10ths from B4; L.: tonic entry beginning on the 3rd)`: found in the soprano, not the alto
 
 ### Fugue 16 in G minor (Book I, BWV 861b)
 
@@ -220,14 +220,14 @@ Later subjects of double and triple fugues are found from where he says they ent
 
 ### Fugue 17 in A♭ major (Book I, BWV 862b)
 
-4 of 9 hold.
+5 of 9 hold.
 
 - ✓ `section b.8-9 solo`: a section starts at bar 7
 - ✓ `entry b.10 voice? I`: found, in I
 - ✗ `section b.11-12 episode`: no section starts here
 - ✓ `entry b.13 voice? f`: found, in f
 - ✗ `section b.14-15 episode`: no section starts here
-- ✗ `entry b.16 voice? bb`: not found
+- ✓ `entry b.17 tenor bb (score; alto follows at b.18 on F; L.: entries bb.16–19 in B flat minor)`: found, in bb
 - ✗ `section b.19-20 episode`: no section starts here
 - ✓ `entry b.27 voice? I`: found, in I
 - ✗ `section b.27-35 reprise`: no section starts here
@@ -320,13 +320,13 @@ Later subjects of double and triple fugues are found from where he says they ent
 
 13 of 14 hold.
 
-- ✓ `entry b.13 soprano V (L.: the 4th entry should start on the dominant and return to the tonic; analysis reads level E) [check]`: found, but read in IV, not V
+- ✓ `entry b.13 soprano e (score; answer form; L.: the 4th entry should start on the dominant and return to the tonic)`: found, but read in E, not e
 - ✓ `entry b.21 voice? i`: found, in i
 - ✓ `entry b.34 alto V (half)`: found, in V
 - ✓ `entry b.35 soprano i (half; L.: bb.34-5 dominant then tonic)`: found, in i
 - ✓ `entry b.38 voice? i`: found, in i
 - ✓ `entry b.41 voice? b (half)`: found, in b
-- ✓ `entry b.42 voice? e (half; G and G# both present) [check]`: found, but read in E, not e
+- ✓ `entry b.42 voice? e (half; G and G# both present)`: found, but read in E, not e
 - ✗ `entry b.43 voice? A (half)`: not found
 - ✓ `entry b.44 voice? D`: found, in D
 - ✓ `entry b.53 voice? V`: found, in V
@@ -337,9 +337,9 @@ Later subjects of double and triple fugues are found from where he says they ent
 
 ### Fugue 1 in C major (Book II, BWV 870b)
 
-0 of 1 hold.
+0 of 0 hold.
 
-- ✗ `cadence b.68 I (early fughetta)`: not found
+- · `cadence b.68 I (early fughetta) [check]`: not found
 
 ### Fugue 2 in C minor (Book II, BWV 871b)
 
@@ -349,10 +349,10 @@ Later subjects of double and triple fugues are found from where he says they ent
 
 ### Fugue 3 in C♯ major (Book II, BWV 872b)
 
-3 of 6 hold.
+3 of 4 hold.
 
-- ✗ `cadence b.4 V (earliest version)`: not found
-- ✗ `cadence b.11 I (earliest version)`: not found
+- · `cadence b.4 V (earliest version) (early version, not encoded) [check]`: not found
+- · `cadence b.11 I (earliest version) (early version, not encoded) [check]`: not found
 - ✓ `cadence b.4 C#`: found at bar 4
 - ✗ `cadence b.7 G#`: not found
 - ✓ `pedal b.25-29 V`: found, dominant pedal point on g♯
@@ -380,7 +380,7 @@ Later subjects of double and triple fugues are found from where he says they ent
 - · `section b.1-10 exposition`: the opening
 - ✗ `section b.10-16 section two`: no section starts here
 - ✓ `stretto b.14 voices? at 4th`: found at bar 14
-- ✗ `section b.20-27 section three [check]`: no section starts here
+- ✗ `section b.20-27 section three`: no section starts here
 - ✓ `stretto b.22 voices? at 5th [check]`: found at bar 22
 - ✓ `stretto b.27 voices? at octave`: found at bar 27
 - ✓ `stretto b.33 voices? at 6th (ff)`: found at bar 33
@@ -514,9 +514,9 @@ Later subjects of double and triple fugues are found from where he says they ent
 
 ### Fugue 15 in G major (Book II, BWV 884b)
 
-0 of 1 hold.
+1 of 1 hold.
 
-- ✗ `entry b.67 alto`: not found
+- ✓ `entry b.65 alto G (score; L.: bb.67-9 middle-part entry)`: found, in G
 
 ### Fugue 17 in A♭ major (Book II, BWV 886b)
 
@@ -532,7 +532,7 @@ Later subjects of double and triple fugues are found from where he says they ent
 - ✓ `entry b.32 voice? eb`: found, in eb
 - ✓ `entry b.35 voice? bb`: found, in bb
 - ✓ `entry b.37 bass Db`: found, in Db
-- ✗ `entry b.48 voice?`: not found
+- ✗ `entry b.48 tenor Ab (score; lamento/chromatic countersubject, not the main subject; L.: final entry bb.48-50)`: not found
 
 ### Fugue 18 in G♯ minor (Book II, BWV 887b)
 
@@ -573,11 +573,11 @@ Later subjects of double and triple fugues are found from where he says they ent
 
 ### Fugue 21 in B♭ major (Book II, BWV 890b)
 
-2 of 6 hold.
+4 of 6 hold.
 
 - ✓ `entry b.1 voice?`: found
-- ✗ `pedal b.14-16 I`: not found
-- ✗ `pedal b.22-24 V`: not found
+- ✓ `pedal b.14-16 I (score; alto, inner pedal; L.: long-held tonic in the middle part)`: found, inner tonic pedal point on b♭
+- ✓ `pedal b.22-24 V (score; soprano, upper pedal; L.: long-held dominant f'' in the cantus)`: found, upper dominant pedal point on f
 - · `section b.1-32 first half`: the opening
 - ✗ `section b.29-32 closing idea`: no section starts here
 - ✗ `cadence b.54 Eb`: not found
@@ -617,6 +617,6 @@ Later subjects of double and triple fugues are found from where he says they ent
 
 0 of 3 hold.
 
-- ✗ `stretto b.69 voices? (ff)`: not found
-- ✗ `stretto b.97 alto/bass/soprano`: not found
+- ✗ `stretto b.70 alto/bass (score; alto i, bass iv one bar later; L.: bb.69ff, unclear until b.73)`: not found
+- ✗ `stretto b.97 alto/bass (score; alto 97, bass 98; L.: three-part play middle/bass/cantus from b.97; cantus only echoes the A#–B close in b.99)`: not found
 - ✗ `cadence b.28 f# (score; L.: b.28 F#)`: not found

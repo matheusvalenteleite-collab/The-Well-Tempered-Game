@@ -220,9 +220,14 @@ export function study(p: WtcPiece, subject: Note[], answer: Note[], entries: Ent
       // bar is a suspension, not a pedal).
       if (end - on >= Math.max(bar, 4 * beatOf(p.meter))) {
         const lowest = lines.every((x, u) => u === v || x.every((n) => n.on + n.dur <= on || n.on >= end || P(n.pitch).midi >= P(l[i].pitch).midi));
-        if (lowest && !moments.some((m) => m.kind === "pedal" && m.on === on && m.end === end)) {
-          const degree = (pc(l[i].pitch) - pc(`${p.key}4`) + 12) % 12;
-          moments.push({ kind: "pedal", on, end, voice: v, label: `${degree === 0 ? "Tonic" : degree === 7 ? "Dominant" : ""} pedal point on ${l[i].pitch.replace(/-?\d+$/, "").replace("b", "♭").replace("#", "♯")}`.trim().replace(/^pedal/, "Pedal"), detail: `bars ${barOf(p, on)}–${barOf(p, end - 1)}, in the ${vname(v)}` });
+        // Above the bass, an inner or upper pedal must last longer (two bars and eight beats at least: a
+        // long note in an old-style fugue is not a pedal), and the tonic or dominant.
+        const degree = (pc(l[i].pitch) - pc(`${p.key}4`) + 12) % 12;
+        const high = !lowest && end - on >= Math.max(2 * bar, 8 * beatOf(p.meter)) && (degree === 0 || degree === 7);
+        if ((lowest || high) && !moments.some((m) => m.kind === "pedal" && m.on === on && m.end === end)) {
+          const where = lowest ? "" : v === 0 ? "Upper " : "Inner ";
+          const what = `${degree === 0 ? "tonic" : degree === 7 ? "dominant" : ""} pedal point on ${l[i].pitch.replace(/-?\d+$/, "").replace("b", "♭").replace("#", "♯")}`.trim();
+          moments.push({ kind: "pedal", on, end, voice: v, label: where ? `${where}${what}` : what[0].toUpperCase() + what.slice(1), detail: `bars ${barOf(p, on)}–${barOf(p, end - 1)}, in the ${vname(v)}` });
         }
       }
       i = j;
