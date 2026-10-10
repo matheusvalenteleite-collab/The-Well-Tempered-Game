@@ -247,3 +247,37 @@ test("the game's exercises unlock in the book's order in the real setup (D130)",
   assert.equal(furthestOpen([], false), "fux-mode.s1.01");
   assert.equal(furthestOpen(["fux-mode.s1.01", "fux-mode.s1.02"], false), "fux-mode.s1.03");
 });
+
+test("the fugue chapter states only what the study's data says of BWV 846 (D132)", async () => {
+  const { LIBRARY } = await import("../src/wtc/library.ts");
+  const { fugueFacts } = await import("../src/tutorial/poly.ts");
+  const { FUGUE_ID } = await import("../src/tutorial/course.ts");
+  const e = LIBRARY.find((x) => x.id === FUGUE_ID)!;
+  assert.equal(e.bwv, "846");
+  assert.equal(e.key, "C");
+  const f = fugueFacts(e.fugue());
+  assert.equal(f.voices, 4, "'Four voices'");
+  assert.equal(f.answerShift, 7, "'the answer a fifth higher, on G'");
+  assert.ok(f.stretto, "a stretto exists");
+  assert.equal(f.entries, 23, "'the subject enters 23 times'");
+  assert.equal(f.bars, 27, "'in 27 bars'");
+  const t = lesson("fugue.voices").task;
+  if (t.kind !== "choice") return assert.fail("choice");
+  assert.deepEqual(t.options.filter((o) => o.correct).map((o) => o.id), ["v4"]);
+});
+
+test("three voices, species two to five: Fux's first examples, all on the D cantus, each voice's notes filling every bar", async () => {
+  const { TRIO_SPECIES } = await import("../src/game/trio.ts");
+  const { trioNotes } = await import("../src/tutorial/poly.ts");
+  for (const n of TRIO_SPECIES.filter((x) => x > 1)) {
+    const s = trioSteps(data as never, n)[0];
+    assert.deepEqual(s.cantus, ["D4", "F4", "E4", "D4", "G4", "F4", "A4", "G4", "F4", "E4", "D4"]);
+    const notes = trioNotes(s);
+    for (const v of [0, 1, 2]) {
+      const mine = notes.filter((x) => x.voice === v);
+      const end = Math.max(...mine.map((x) => x.at + x.len));
+      assert.ok(Math.abs(end - s.cantus.length) < 1e-9, `species ${n} voice ${v} ends with the piece`);
+      for (let k = 1; k < mine.length; k++) assert.ok(mine[k].at >= mine[k - 1].at + mine[k - 1].len - 1e-9, `species ${n} voice ${v}: no overlap`);
+    }
+  }
+});

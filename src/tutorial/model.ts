@@ -52,7 +52,17 @@ export interface TrioScene {
 export type Clip =
   | { id: string; kind: "scene"; scene: Scene; notes?: (string | null)[]; from?: number; to?: number }
   | { id: string; kind: "columns"; columns: string[][]; seconds?: number }
-  | { id: string; kind: "melody"; notes: string[]; seconds?: number };
+  | { id: string; kind: "melody"; notes: string[]; seconds?: number }
+  /** Several voices, each note with its own onset and length (whole notes), each voice its own sound. */
+  | { id: string; kind: "poly"; notes: PolyNote[]; seconds: number };
+
+export interface PolyNote {
+  pitch: string;
+  /** Onset and length in whole notes from the clip's start. */
+  at: number;
+  len: number;
+  voice: number;
+}
 
 export interface Verdict {
   done: boolean;
@@ -87,7 +97,7 @@ export type Task =
   | { kind: "write"; check(notes: (string | null)[], scene: Scene): Verdict }
   | { kind: "judge" }
   | { kind: "trio" }
-  | { kind: "game"; voices: 2 | 3; stepId: string }
+  | { kind: "game"; voices: 2 | 3 | "wtc"; stepId?: string }
   | { kind: "tour" };
 
 export interface Lesson {

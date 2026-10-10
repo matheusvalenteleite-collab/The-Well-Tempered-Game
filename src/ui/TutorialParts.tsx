@@ -97,6 +97,20 @@ export function usePlayer() {
 /** The events and the length of a whole note for a clip. */
 export function clipEvents(c: Clip): { events: PlayEvent[]; whole: number } {
   if (c.kind === "scene") return { events: sceneEvents(c.scene, c.notes ?? c.scene.answer ?? c.scene.start, c.from, c.to), whole: audio.barSeconds };
+  if (c.kind === "poly") {
+    // Each voice its own sound: the mixer's voice channels, as the study plays a fugue (D123).
+    const CH = ["counterpoint", "second", "fux"] as const;
+    const VERSION = ["inversion", "retrograde", "retroInversion"];
+    return {
+      events: c.notes.map((n, k) => {
+        const e: PlayEvent = { slot: k, at: n.at, length: n.len, cantus: null, counterpoint: null };
+        if (n.voice < CH.length) e.extra = [{ channel: CH[n.voice], pitch: n.pitch }];
+        else (e.versions = { [VERSION[(n.voice - CH.length) % VERSION.length]]: n.pitch }), (e.lengths = { [VERSION[(n.voice - CH.length) % VERSION.length]]: n.len });
+        return e;
+      }),
+      whole: c.seconds,
+    };
+  }
   if (c.kind === "melody") return { events: c.notes.map((p, k) => ({ slot: k, at: k, length: 1, cantus: null, counterpoint: p })), whole: c.seconds ?? 0.6 };
   return {
     events: c.columns.map((col, k) => {

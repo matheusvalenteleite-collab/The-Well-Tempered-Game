@@ -60,7 +60,8 @@
     "starNone": "Not yet cleared",
     "starPlain": "Cleared: no rule broken (★, the next exercise is open). With no piece of advice broken either, the gold star 🌟.",
     "starGold": "Cleared with no rule and no advice broken: the gold star 🌟.",
-    "quickTutorial": "New to music? The full tutorial ›"
+    "quickTutorial": "New to music? The full tutorial ›",
+    "openStudy": "Open the Well-Tempered Clavier study ›"
   },
   "chapters": {
     "welcome": {
@@ -110,6 +111,10 @@
     "four": {
       "title": "Four voices",
       "blurb": "A look ahead: what changes with a fourth voice."
+    },
+    "fugue": {
+      "title": "Listening to a fugue",
+      "blurb": "Bach's Well-Tempered Clavier: subject, answer, entries, stretto — and the way into the study."
     },
     "end": {
       "title": "Playing the game",
@@ -413,6 +418,14 @@
       },
       "done": "Mostly steps, a few small leaps: a line a singer can sing."
     },
+    "first.hint": {
+      "title": "The Hint button",
+      "text": [
+        "In the game, a **Hint** button sits above the score (or press H). It looks at the place you are writing and tells you how many notes the rules allow there, given the rest of your line — and whether yours is one of them.",
+        "Ask it to **Suggest**, and it shows the note Fux would most likely write there, learnt from his other solutions (never from the one to this exercise). Use it when you are stuck, not to write the line for you: a line made of suggestions is not yet your own.",
+        "Hints work in two voices, species one to four; not yet in the fifth."
+      ]
+    },
     "first.whole": {
       "title": "A whole counterpoint",
       "text": [
@@ -681,6 +694,22 @@
       "hint": "Bass: A (it falls a fifth to the final D). Middle voice: C♯ (it rises a semitone to D).",
       "done": "A, C♯, E: a full triad, every voice moving to its place in the final chord."
     },
+    "three.moving": {
+      "title": "Three voices, one moving",
+      "text": [
+        "After first species, Fux takes three voices through the other four species too (Exercitium II, Lectiones II–V, 1725, pp. 94–114). One of your voices takes the new rhythm — minims, crotchets, ligatures, or florid — while the other keeps to whole notes with the cantus.",
+        "What you know carries over: the moving voice keeps the rules of its species, and on each downbeat the three voices make the harmony of the first three-voice lesson. Fux also grants a little more freedom; for instance, two fifths or octaves on successive downbeats are saved by a leap of a third in between (p. 94), where two voices needed a fourth.",
+        "Listen to his first example of each: again the same cantus in D, now with two companions."
+      ],
+      "prompt": "Listen to at least one of Fux's examples.",
+      "clips": {
+        "t2": "2nd species, three voices (Fig. 121)",
+        "t3": "3rd species, three voices (Fig. 130)",
+        "t4": "4th species, three voices (Fig. 141)",
+        "t5": "5th species, three voices (Fig. 154)"
+      },
+      "done": "One cantus, two companions, one of them dancing."
+    },
     "three.game": {
       "title": "Three voices in the game",
       "text": [
@@ -697,6 +726,103 @@
         "And the more voices, the harder it is to avoid every hidden fifth and octave; the rules relax as the texture thickens — already in three voices the game tolerates a fifth or octave reached by similar motion when the upper of the two voices moves by step.",
         "When the four-voice screen is built, its rules will be read from Fux's own pages, as everything else in the game is."
       ]
+    },
+    "fugue.what": {
+      "title": "What a fugue is",
+      "text": [
+        "Everything you have learnt leads here. A **fugue** is counterpoint grown into a whole piece: several voices, each a real melody, all built from one short theme, the **subject**.",
+        "Johann Sebastian Bach wrote the most famous collection of them, **The Well-Tempered Clavier**: two books (the first finished in 1722, the second some twenty years later), each with a prelude and a fugue in every major and minor key — 48 in all, all of them in the game's study.",
+        "Here is the first fugue of Book I, in C major. Listen to the subject alone: a rising scale, a little turn, a leap, and a run down. Then hear how the piece begins: one voice alone sings it, and a second joins."
+      ],
+      "prompt": "Listen to the subject, then to the opening.",
+      "clips": {
+        "subject": "The subject, alone",
+        "opening": "The opening: two voices"
+      },
+      "done": "Remember the subject's shape: you will now follow it through the piece."
+    },
+    "fugue.entries": {
+      "title": "The entries",
+      "text": [
+        "A fugue opens with its **exposition**: the voices come in one by one, each with the subject (or its answer), until all are singing. Each time the subject begins in a voice is an **entry**.",
+        "When a voice has sung the subject it does not stop: it goes on in counterpoint against the next entry — exactly the art you practised with Fux, now against a moving theme instead of a cantus firmus.",
+        "Listen to each entry of the exposition on its own, voice by voice."
+      ],
+      "prompt": "Listen to every entry of the exposition.",
+      "clips": {
+        "entry1": "First entry",
+        "entry2": "Second entry",
+        "entry3": "Third entry",
+        "entry4": "Fourth entry"
+      },
+      "done": "Same tune, different heights: each voice in its own register."
+    },
+    "fugue.voices": {
+      "title": "How many voices?",
+      "text": [
+        "Now the whole exposition, every voice together. Count the entries as they come in: each one is a new voice joining."
+      ],
+      "prompt": "How many voices does this fugue have?",
+      "clips": {
+        "exposition": "The exposition"
+      },
+      "options": {
+        "v3": {
+          "label": "Three",
+          "why": "Listen again: after the third entry, one more voice comes in, low down."
+        },
+        "v4": {
+          "label": "Four",
+          "why": "Four voices: once all four have entered, the exposition is over."
+        },
+        "v5": {
+          "label": "Five",
+          "why": "Not so many: count the entries of the subject — four, one in each voice."
+        }
+      },
+      "done": "Four voices — like a choir of soprano, alto, tenor and bass."
+    },
+    "fugue.answer": {
+      "title": "Subject and answer",
+      "text": [
+        "The second voice does not sing the subject at the same pitch: it sings it **a fifth higher**. This entry is called the **answer**. The pattern — subject in the home key, answer a fifth above — is the backbone of every exposition.",
+        "Sometimes the answer has to change a note or two to stay in the key (a **tonal** answer, as against a **real** one); the study's exercises let you decide which, fugue by fugue.",
+        "Listen to the subject, then to the answer, then to the two together as Bach writes them."
+      ],
+      "prompt": "Listen to all three.",
+      "clips": {
+        "subjectAlone": "The subject (on C)",
+        "answerAlone": "The answer (a fifth higher, on G)",
+        "both": "Both, as written"
+      },
+      "done": "Subject and answer: the call and the reply."
+    },
+    "fugue.stretto": {
+      "title": "Stretto",
+      "text": [
+        "After the exposition, the subject keeps returning, in different voices and on different notes; between returns there may be passages built from its fragments (**episodes**).",
+        "Sometimes a voice starts the subject **before the previous entry has finished**, so that the entries overlap like a round. This is a **stretto** ('tightened'), and this fugue is full of them: by the study's count the subject enters 23 times in 27 bars.",
+        "Listen to two overlapping entries alone, then with everything around them."
+      ],
+      "prompt": "Listen to the stretto, alone and in context.",
+      "clips": {
+        "strettoAlone": "Two entries overlapping, alone",
+        "strettoAll": "The same bars, all voices"
+      },
+      "done": "The subject chasing itself: the densest counterpoint of all."
+    },
+    "fugue.study": {
+      "title": "The Well-Tempered Clavier study",
+      "text": [
+        "The game's **Well-Tempered Clavier** mode lets you go as deep as you like into all 48 preludes and fugues:",
+        "• a **roll** that shows every voice in its own colour, with each entry of the subject outlined (and upside down where Bach inverts it); click an entry to hear it;",
+        "• a **spotlight** that plays one voice in another sound, so you can follow it through the texture;",
+        "• a **page** of score that follows the music as it plays;",
+        "• a **harmony** reading, the piece's keys, and the **temperament** (the old tunings that gave the collection its name);",
+        "• a **workshop**: change the subject's notes and hear the whole fugue sung with your version, or add entries of your own.",
+        "It opens on the fugue you have just heard."
+      ],
+      "prompt": "Open the study."
     },
     "end.path": {
       "title": "The road to the end",
@@ -791,6 +917,10 @@
     "view": {
       "title": "View",
       "text": "Turn on the note names (letters or do-re-mi) and the intervals between the staves — the training wheels you used in the tutorial."
+    },
+    "hint": {
+      "title": "Hint",
+      "text": "Stuck on a note? Hint (or H) tells how many notes the rules allow where you are writing and whether yours is one; Suggest shows the most Fux-like."
     },
     "write": {
       "title": "Writing",

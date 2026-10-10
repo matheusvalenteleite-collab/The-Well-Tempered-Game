@@ -22,7 +22,7 @@ import { ClipButtons, Inline, Prose, Quiz, RoadMap, SceneScore, TrioPane, usePla
 const TRIO = trioSteps(data as never);
 /** Every three-voice exercise, species by species (the road map). */
 const TRIO_ALL = TRIO_SPECIES.map((n) => ({ species: n, ids: trioSteps(data as never, n).map((s) => s.id) }));
-const CHAPTERS = buildCourse({ repo: repository, trio: TRIO });
+const CHAPTERS = buildCourse({ repo: repository, trio: TRIO, trioData: data });
 const LESSONS = lessonsOf(CHAPTERS);
 
 interface Progress {
@@ -35,7 +35,7 @@ const validProgress = (v: unknown) => typeof v === "object" && v !== null && typ
 /** Has this browser ever opened the tutorial? (The first-visit invitation reads it.) */
 export const tutorialSeen = () => stored<Progress | null>(KEY, null, validProgress) !== null;
 
-export function Tutorial(p: { onLeave(): void; onGame(voices: 2 | 3, stepId: string): void; onTour(): void }) {
+export function Tutorial(p: { onLeave(): void; onGame(voices: 2 | 3 | "wtc", stepId?: string): void; onTour(): void }) {
   const [progress, setProgress] = useState<Progress>(() => {
     const v = stored<Progress>(KEY, { at: LESSONS[0].lesson.id, done: [] }, validProgress);
     return LESSONS.some((x) => x.lesson.id === v.at) ? v : { ...v, at: LESSONS[0].lesson.id };
@@ -153,7 +153,7 @@ export function Tutorial(p: { onLeave(): void; onGame(voices: 2 | 3, stepId: str
  * One lesson's page. Keyed by the lesson, so that everything it holds (the task done, the clips
  * heard, the view toggles, what is playing) starts clean with each lesson and never leaks into the next.
  */
-function LessonPage(p: { skip: boolean; index: number; already: boolean; onDone(): void; onGo(k: number): void; onLeave(): void; onGame(voices: 2 | 3, stepId: string): void; onTour(): void }) {
+function LessonPage(p: { skip: boolean; index: number; already: boolean; onDone(): void; onGo(k: number): void; onLeave(): void; onGame(voices: 2 | 3 | "wtc", stepId?: string): void; onTour(): void }) {
   const { chapter, lesson } = LESSONS[p.index];
   const chapterIndex = CHAPTERS.findIndex((c) => c.id === chapter);
   const text = lessonText(lesson.id);
@@ -228,7 +228,7 @@ function LessonBody(p: {
   heard: string[];
   onHeard(id: string): void;
   onDone(done: boolean): void;
-  onGame(voices: 2 | 3, stepId: string): void;
+  onGame(voices: 2 | 3 | "wtc", stepId?: string): void;
   onTour(): void;
 }) {
   const { lesson, player } = p;
@@ -313,7 +313,7 @@ function LessonBody(p: {
     return (
       <section className="tut-task">
         {prompt}
-        <button className="primary tut-go" onClick={() => p.onGame(task.voices, task.stepId)}>{tt("ui.openGame")}</button>
+        <button className="primary tut-go" onClick={() => p.onGame(task.voices, task.stepId)}>{tt(task.voices === "wtc" ? "ui.openStudy" : "ui.openGame")}</button>
       </section>
     );
   }

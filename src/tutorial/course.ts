@@ -8,7 +8,9 @@
 import type { FuxRepository } from "../music/fux/repository.ts";
 import { ALL_STEPS, ruleById, rulesForStep } from "../counterpoint/curriculum/index.ts";
 import { exerciseView } from "../game/exercise-view.ts";
-import { playerStaves, type TrioStep } from "../game/trio.ts";
+import { playerStaves, TRIO_SPECIES, trioSteps, type TrioStep } from "../game/trio.ts";
+import { LIBRARY } from "../wtc/library.ts";
+import { fugueFacts, fugueNotes, trioNotes } from "./poly.ts";
 import { parsePitch } from "../music/pitch.ts";
 import { HOLD, REST } from "../counterpoint/layout.ts";
 import {
@@ -124,7 +126,14 @@ const motionItem = (a: string[], b: string[]): QuizItem => ({ columns: [a, b], a
 export interface TutorialData {
   repo: FuxRepository;
   trio: TrioStep[];
+  /** The three-voice data (all five species are read from it). */
+  trioData?: unknown;
 }
+
+/** The fugue the chapter on fugue listens to: Book I, no. 1, in C major (BWV 846). */
+export const FUGUE_ID = "wtc1.01";
+/** A whole note of the fugue, in seconds (a quarter at about 72). */
+const FUGUE_WHOLE = 3.3;
 
 export function trioScene(step: TrioStep, open: [number, number][]): TrioScene {
   return {
@@ -152,7 +161,7 @@ export const FIFTH_CHOICE: Record<"fux" | "quavers" | "struck", string[]> = {
   struck: ["F4", HOLD, HOLD, HOLD, "G4", HOLD, HOLD, HOLD],
 };
 
-export function buildCourse({ repo, trio }: TutorialData): Chapter[] {
+export function buildCourse({ repo, trio, trioData }: TutorialData): Chapter[] {
   const first = stepScene(repo, STEP_IDS.first);
   const second = stepScene(repo, STEP_IDS.second);
   const third = stepScene(repo, STEP_IDS.third);
@@ -170,6 +179,15 @@ export function buildCourse({ repo, trio }: TutorialData): Chapter[] {
   // Free scenes of the first lessons: a held D below, four bars to write in above.
   const held = freeScene(["D3", "D3", "D3", "D3"]);
   const firstRules = (ids: string[]) => ids.map((id) => ruleById(id)!);
+
+  // Three voices, species two to five: Fux's first example of each, again on the D cantus.
+  const moving = trioData ? TRIO_SPECIES.filter((n) => n > 1).map((n) => trioSteps(trioData as never, n)[0]) : [];
+  // The fugue chapter: Bach's C major fugue, Book I.
+  const F = LIBRARY.find((x) => x.id === FUGUE_ID)!.fugue();
+  const facts = fugueFacts(F);
+  const poly = (id: string, from: number, to: number, only?: number[]): Clip => ({ id, kind: "poly", notes: fugueNotes(F, from, to, only), seconds: FUGUE_WHOLE });
+  const expo = F.entries.slice(0, F.count);
+  const [s1, s2] = facts.stretto ?? [0, 1];
 
   const chapters: Chapter[] = [
     {
@@ -296,6 +314,7 @@ export function buildCourse({ repo, trio }: TutorialData): Chapter[] {
             ],
           },
         },
+        { id: "first.hint", task: { kind: "read" } },
         { id: "first.whole", scene: stepScene(repo, STEP_IDS.first, all(first)), task: { kind: "judge" } },
         { id: "first.below", scene: stepScene(repo, STEP_IDS.firstBelow, [0, 9, 10]), intervals: true, task: { kind: "judge" } },
         { id: "first.game", task: { kind: "game", voices: 2, stepId: STEP_IDS.first } },
@@ -370,12 +389,40 @@ export function buildCourse({ repo, trio }: TutorialData): Chapter[] {
         },
         { id: "three.fill", trio: trioScene(t1, playerStaves(t1).flatMap((s) => [[s, 4], [s, 5]] as [number, number][]).filter(([s]) => s === playerStaves(t1)[0])), task: { kind: "trio" } },
         { id: "three.cadence", trio: trioScene(t1, playerStaves(t1).map((s) => [s, 9] as [number, number])), task: { kind: "trio" } },
+        {
+          id: "three.moving",
+          task: { kind: "listen", clips: moving.map((s) => ({ id: `t${s.species}`, kind: "poly" as const, notes: trioNotes(s), seconds: 2.4 })), need: 1 },
+        },
         { id: "three.game", task: { kind: "game", voices: 3, stepId: STEP_IDS.trio } },
       ],
     },
     {
       id: "four",
       lessons: [{ id: "four.preview", task: { kind: "read" } }],
+    },
+    {
+      id: "fugue",
+      lessons: [
+        { id: "fugue.what", task: { kind: "listen", clips: [poly("subject", expo[0].at, expo[0].end, expo[0].notes), poly("opening", 0, expo[1].end)] } },
+        { id: "fugue.entries", task: { kind: "listen", clips: expo.map((e, k) => poly(`entry${k + 1}`, e.at, e.end, e.notes)) } },
+        {
+          id: "fugue.voices",
+          clips: [poly("exposition", 0, facts.exposition.to)],
+          task: { kind: "choice", options: [3, 4, 5].map((n) => ({ id: `v${n}`, correct: n === facts.voices })) },
+        },
+        {
+          id: "fugue.answer",
+          task: { kind: "listen", clips: [poly("subjectAlone", expo[0].at, expo[0].end, expo[0].notes), poly("answerAlone", expo[1].at, expo[1].end, expo[1].notes), poly("both", expo[0].at, expo[1].end)] },
+        },
+        {
+          id: "fugue.stretto",
+          task: {
+            kind: "listen",
+            clips: [poly("strettoAlone", F.entries[s1].at, F.entries[s2].end, [...F.entries[s1].notes, ...F.entries[s2].notes]), poly("strettoAll", F.entries[s1].at, F.entries[s2].end)],
+          },
+        },
+        { id: "fugue.study", task: { kind: "game", voices: "wtc" } },
+      ],
     },
     {
       id: "end",

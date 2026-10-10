@@ -4,6 +4,7 @@ export const TOUR_STOPS: { id: string; selector?: string }[] = [
   { id: "nav", selector: ".exercise-nav" },
   { id: "score", selector: ".score-wrap" },
   { id: "view", selector: ".view-menu" },
+  { id: "hint", selector: ".hint-tool" },
   { id: "write", selector: ".group.write" },
   { id: "evaluate", selector: ".group.judge" },
   { id: "listen", selector: ".group.listen" },

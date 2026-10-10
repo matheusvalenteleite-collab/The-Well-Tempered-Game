@@ -6,6 +6,7 @@ import { WtcStudy } from "./WtcStudy.tsx";
 import { Tutorial } from "./Tutorial.tsx";
 import { Tour } from "./Tour.tsx";
 import { store, stored } from "./shared.ts";
+import { FUGUE_ID } from "../tutorial/course.ts";
 
 /**
  * Two voices (Exercitium I), three (Exercitium II, D90), or the Well-Tempered Clavier (D119):
@@ -36,7 +37,12 @@ export function Root() {
       store(v === 3 ? "wtg.trioStep" : "wtg.stepId", stepId);
       setCommand({ stepId, n: Date.now() });
     }
-    if (v === "wtc") setWtcView("study");
+    if (v === "wtc") {
+      // The study, on the fugue the tutorial listened to.
+      store("wtg.wtcFugue", FUGUE_ID);
+      store("wtg.wtcPiece", "fugue");
+      setWtcView("study");
+    }
     setVoices(v);
     setScreen("game");
   };
