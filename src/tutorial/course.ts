@@ -284,6 +284,18 @@ export function buildCourse({ repo, trio }: TutorialData): Chapter[] {
         { id: "first.end", scene: stepScene(repo, STEP_IDS.first, [9, 10]), intervals: true, task: { kind: "judge" } },
         { id: "first.begin", scene: stepScene(repo, STEP_IDS.first, [0]), intervals: true, task: { kind: "judge" } },
         { id: "first.middle", scene: stepScene(repo, STEP_IDS.first, [3, 4, 5, 6]), intervals: true, task: { kind: "judge" } },
+        {
+          id: "first.melody",
+          task: {
+            kind: "choice",
+            scene: freeScene(["D3", "D3"], { start: ["D4", "A4"], rules: firstRules(["fs.melodic-tritone", "fs.melodic-major-sixth"]) }),
+            options: [
+              { id: "tritone", notes: ["F4", "B4"], correct: false },
+              { id: "sixth", notes: ["C4", "A4"], correct: false },
+              { id: "fifth", notes: ["D4", "A4"], correct: true },
+            ],
+          },
+        },
         { id: "first.whole", scene: stepScene(repo, STEP_IDS.first, all(first)), task: { kind: "judge" } },
         { id: "first.below", scene: stepScene(repo, STEP_IDS.firstBelow, [0, 9, 10]), intervals: true, task: { kind: "judge" } },
         { id: "first.game", task: { kind: "game", voices: 2, stepId: STEP_IDS.first } },

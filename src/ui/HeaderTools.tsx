@@ -61,7 +61,7 @@ export function HeaderTools(p: {
         </button>
       )}
       {p.onTutorial && (
-        <button className="howto tutorial-btn" onClick={p.onTutorial} title={tt("ui.buttonHelp")}>
+        <button className="howto tutorial-btn" onClick={() => p.onTutorial!()} title={tt("ui.buttonHelp")}>
           {tt("ui.button")}
         </button>
       )}

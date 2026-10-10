@@ -5,6 +5,7 @@
  */
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ScoreView } from "./notation/ScoreView.tsx";
+import { Systems } from "./notation/Systems.tsx";
 import { TrioScore } from "./notation/TrioScore.tsx";
 import { buildOverlay, neutralOverlay } from "./notation/overlay.ts";
 import { audio, stored } from "./shared.ts";
@@ -84,7 +85,12 @@ export function usePlayer() {
       setCursor(-1);
     });
   };
-  return { playing, cursor, play, stop };
+  /** A short sound (a note just written): stops whatever plays first, so nothing is left half-stopped. */
+  const audition = (events: PlayEvent[], whole: number) => {
+    stop();
+    void audio.playSequence(events, whole);
+  };
+  return { playing, cursor, play, stop, audition };
 }
 
 /** The events and the length of a whole note for a clip. */
@@ -167,9 +173,12 @@ export function SceneScore(p: {
   const readOnly = !p.onPlace || p.scene.open.length === 0;
   // The bars still waiting for the learner pulse (the game's pointer, D96).
   const waiting = readOnly ? [] : [...new Set(w.slots.filter((k) => p.scene.open.includes(k) && p.notes[k] === null).map((k) => p.scene.layout[k].bar - w.lo))];
+  // On a narrow screen a long score breaks into systems, as in the game (D83); a fifth-species
+  // excerpt (read-only, three bars) is drawn whole, its held note carried in.
+  const Score = p.scene.species === "fifth" ? ScoreView : Systems;
   return (
     <div className={p.compact ? "tut-score compact" : "tut-score"}>
-      <ScoreView
+      <Score
         cantus={w.cantus}
         counterpoint={shown}
         layout={w.layout}
@@ -267,7 +276,7 @@ export function WriteScene(p: {
     const sl = s.layout[k];
     const n = ns[k];
     if (!sounding(n)) return;
-    void audio.playSequence([{ slot: k, at: 0, length: 1, cantus: s.cantus[sl.bar], counterpoint: n }], 0.9);
+    p.player.audition([{ slot: k, at: 0, length: 1, cantus: s.cantus[sl.bar], counterpoint: n }], 0.9);
   };
   /** The next empty open slot after k (or k itself when none). */
   const nextOpen = (ns: (string | null)[], k: number) => s.open.find((j) => j > k && ns[j] === null) ?? s.open.find((j) => ns[j] === null) ?? k;
@@ -289,11 +298,10 @@ export function WriteScene(p: {
   // The coach speaks in intervals: only once they are taught (the judged lessons), never in the first ones.
   const lines = last !== null && p.mode === "judge" && s.species !== "fifth" ? coach(s, notes, last) : [];
   const hasAnswer = Boolean(s.answer && s.open.length);
-  const whole = p.player.cursor;
 
   return (
     <div className="tut-write">
-      <SceneScore scene={s} notes={notes} selected={session.selected} cursor={whole} names={p.names} intervals={p.intervals} result={result} label={p.label} onPlace={write} onSelect={(k) => s.open.includes(k) && setSession(select(session, k))} />
+      <SceneScore scene={s} notes={notes} selected={session.selected} cursor={p.player.playing === "line" ? p.player.cursor : -1} names={p.names} intervals={p.intervals} result={result} label={p.label} onPlace={write} onSelect={(k) => s.open.includes(k) && setSession(select(session, k))} />
       <div className="tut-tools">
         <span className="group" role="group" aria-label={tt("ui.accidentals")}>
           {ACCIDENTALS.map(([a, key]) => (
@@ -366,6 +374,8 @@ export function TrioPane(p: {
   player: ReturnType<typeof usePlayer>;
   hint?: string;
   label: string;
+  /** A clip of the lesson that plays this very scene (its cursor is shown). */
+  cursorClip?: string;
 }) {
   const s = p.scene;
   const [voices, setVoices] = useState<(string | null)[][]>(() => s.start.map((l) => [...l]));
@@ -381,7 +391,7 @@ export function TrioPane(p: {
   const audition = (bar: number, vs: (string | null)[][]) => {
     const col = vs.map((l) => l[bar]).filter((n): n is string => n !== null);
     const { events } = clipEvents({ id: "col", kind: "columns", columns: [col] });
-    void audio.playSequence(events, 1);
+    p.player.audition(events, 1);
   };
   const write = (staff: number, bar: number, pitch: string) => {
     const next = voices.map((l, i) => (i === staff ? l.map((n, b) => (b === bar ? pitch : n)) : l));
@@ -411,7 +421,7 @@ export function TrioPane(p: {
           staves={voices.map((notes, i) => ({ clef: s.clefs[i], notes, editable: p.writable && s.open.some(([a]) => a === i), label: i === s.cantusIndex ? tt("ui.cantus") : `${tt("ui.voice")} ${playerStaves.indexOf(i) + 1}` }))}
           active={sel?.[0] ?? playerStaves[0]}
           selected={sel?.[1] ?? -1}
-          cursor={p.player.playing === "trio" ? p.player.cursor : -1}
+          cursor={p.player.playing === "trio" || p.player.playing === p.cursorClip ? p.player.cursor : -1}
           marks={result ? result.violations.flatMap((v) => v.positions.map((bar) => ({ bar, severity: v.severity }))) : undefined}
           pulse={p.pulse ?? (p.writable ? [...new Set(s.open.filter(([a, b]) => voices[a][b] === null).map(([, b]) => b))] : undefined)}
           figures

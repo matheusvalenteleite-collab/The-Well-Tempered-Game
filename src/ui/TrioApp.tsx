@@ -30,6 +30,7 @@ import { useHighlight } from "./highlight.ts";
 import { ScoreTools } from "./ScoreTools.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 import type { GameLink } from "./App.tsx";
+import { LearnLink } from "./LearnLink.tsx";
 import type { NameStyle } from "../music/names.ts";
 
 const STEPS: TrioStep[] = trioSteps(data as never);
@@ -457,7 +458,7 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
             <ul>
               {errors.map((v, i) => (
                 <li key={`e${i}`} className="error">
-                  <span className="where"><BarRef bars={v.positions}>{t("ui.trio3.bar", { bars: v.positions.map((p) => p + 1).join("–") })}</BarRef> {t("ui.trio3.voices", { voices: describe(v.voices) })}</span> {t(`hints.${v.messageKey}`)}
+                  <span className="where"><BarRef bars={v.positions}>{t("ui.trio3.bar", { bars: v.positions.map((p) => p + 1).join("–") })}</BarRef> {t("ui.trio3.voices", { voices: describe(v.voices) })}</span> {t(`hints.${v.messageKey}`)} <LearnLink ruleId={v.ruleId} onLearn={onTutorial} />
                 </li>
               ))}
             </ul>
@@ -467,7 +468,7 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
                 <ul>
                   {warnings.map((v, i) => (
                     <li key={`w${i}`} className="warning">
-                      <span className="where"><BarRef bars={v.positions}>{t("ui.trio3.bar", { bars: v.positions.map((p) => p + 1).join("–") })}</BarRef> {t("ui.trio3.voices", { voices: describe(v.voices) })}</span> {t(`hints.${v.messageKey}`)}
+                      <span className="where"><BarRef bars={v.positions}>{t("ui.trio3.bar", { bars: v.positions.map((p) => p + 1).join("–") })}</BarRef> {t("ui.trio3.voices", { voices: describe(v.voices) })}</span> {t(`hints.${v.messageKey}`)} <LearnLink ruleId={v.ruleId} onLearn={onTutorial} />
                     </li>
                   ))}
                 </ul>

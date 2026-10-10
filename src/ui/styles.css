@@ -763,3 +763,7 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
 :root[data-look="retro"] .tour-card { border: 2px solid var(--edge); box-shadow: 6px 6px 0 var(--edge); }
 :root[data-look="retro"] .tour-card h3 { font-family: "Silkscreen", monospace; font-weight: 400; font-size: 1rem; }
 .tut-invite .dialog { max-width: 460px; }
+.learn-link { font-size: 0.78rem !important; white-space: nowrap; padding: 0 2px !important; color: #1d6b66 !important; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .learn-link { color: #6fc7bd !important; } }
+:root[data-theme="dark"] .learn-link { color: #6fc7bd !important; }
+@media (max-width: 800px) { .tutorial .brand { display: none; } .tutorial .topbar { flex-wrap: nowrap; } .tutorial .tut-progress .bar { width: 70px; } .tutorial .howto { padding: 3px 8px; } }

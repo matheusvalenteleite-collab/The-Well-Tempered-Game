@@ -9,9 +9,12 @@ import type { ClefId } from "./notation/clefs.ts";
 import { buildOverlay } from "./notation/overlay.ts";
 import { t } from "./i18n.ts";
 import { BarRef } from "./BarRef.tsx";
+import { LearnLink } from "./LearnLink.tsx";
 import { slotsOfBars, timeline, type Slot } from "../counterpoint/layout.ts";
 
 interface Props {
+  /** Open the tutorial at the lesson on a rule (D98). */
+  onLearn?: (lessonId: string) => void;
   result: Evaluation;
   cantus: string[];
   counterpoint: (string | null)[];
@@ -117,7 +120,7 @@ function Item({ vs, ...p }: { vs: Violation[] } & Omit<Props, "result">) {
         <div className="where">
           <BarRef bars={[...new Set(vs.flatMap((x) => x.positions.map((k) => p.layout[k].bar)))]}>{t(bars.length > 1 || bars[0].includes("–") ? "ui.result.bars" : "ui.result.bar", { bars: bars.join(", ") })}</BarRef> · {t(v.severity === "error" ? "ui.result.error" : "ui.result.warning")}
         </div>
-        <div>{t(`tutor.${v.messageKey}`)}</div>
+        <div>{t(`tutor.${v.messageKey}`)} <LearnLink ruleId={v.ruleId} onLearn={p.onLearn} /></div>
         {details.length > 0 && <div className="detail">{details.join(" / ")}</div>}
       </div>
       <div className="excerpts">

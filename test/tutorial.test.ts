@@ -186,3 +186,33 @@ test("the tutorial leans on the first exercise of each species, all on the D can
   }
   assert.deepEqual(TRIO.find((x) => x.id === STEP_IDS.trio)!.cantus, ["D4", "F4", "E4", "D4", "G4", "F4", "A4", "G4", "F4", "E4", "D4"]);
 });
+
+test("every rule of the game leads to the lesson that teaches it", async () => {
+  const { lessonForRule } = await import("../src/tutorial/links.ts");
+  const { ALL_STEPS, rulesForStep } = await import("../src/counterpoint/curriculum/index.ts");
+  const { TRIO_FIRST_SPECIES } = await import("../src/counterpoint/three-voice.ts");
+  const ids = new Set([...ALL_STEPS.flatMap((s) => rulesForStep(s.id).map((r) => r.id)), ...TRIO_FIRST_SPECIES.map((r) => r.id)]);
+  assert.ok(ids.size > 60);
+  for (const id of ids) {
+    const l = lessonForRule(id);
+    assert.ok(l && LESSONS.some((x) => x.id === l), `${id} -> ${l}`);
+  }
+});
+
+test("the melodic-leaps choice: the engine forbids the tritone and the major sixth, allows the fifth", () => {
+  const t = lesson("first.melody").task;
+  assert.equal(t.kind, "choice");
+  if (t.kind !== "choice") return;
+  const broken: Record<string, string[]> = Object.fromEntries(t.options.map((o) => [o.id, judge(t.scene!, o.notes!).errors.map((e) => e.ruleId)]));
+  assert.deepEqual({ ...broken }, { tritone: ["fs.melodic-tritone"], sixth: ["fs.melodic-major-sixth"], fifth: [] });
+  for (const o of t.options) assert.equal(broken[o.id].length === 0, o.correct, o.id);
+});
+
+test("a fifth-species excerpt that opens on a held note sounds it (the A held into bar 2 of Fig. 82)", () => {
+  const t = lesson("fifth.choose").task;
+  if (t.kind !== "choice" || !t.scene) return assert.fail("choice with a scene");
+  const s = t.scene;
+  const ev = sceneEvents(s, s.answer!, s.window![0], s.window![1]);
+  assert.equal(ev[0].counterpoint, "A4");
+  assert.equal(ev[0].lengths?.counterpoint, 0.25);
+});

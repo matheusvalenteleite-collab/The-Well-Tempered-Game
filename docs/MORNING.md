@@ -1,3 +1,31 @@
+# Night of 9–10 October 2026: the tutorial (D98)
+
+Branch `claude/tender-darwin-mr2uv4` (not merged, not published to the game link). Everything is in D98 in DECISIONS.md.
+
+## What was done
+
+- **TUTORIAL** (teal, beside HOW TO PLAY, on both the two- and three-voice screens) opens a screen of its own. The game stays underneath, hidden and silent: nothing written is lost, and "Back to the game" returns to it.
+- **13 chapters, 51 lessons**, all click-based: welcome; reading notes; intervals; motion and the rule of perfect consonances; the cantus, the modes, the five species; one chapter per species; three voices; four voices (a preview, nothing judged); the road map of the game and a **spotlight tour of the real screen**.
+- **Each lesson** is text plus one task: listen, quiz, choice, writing judged by the game's own rules, three-voice writing, open in the game, or the tour. Next opens once the task is done. Hint, Show me (Fux's notes), Start again and Skip are always there. A side contents list ticks lessons, and progress is remembered.
+- **One melody throughout**: the first exercise of every species is on the same D cantus (Figs. 5, 33, 55, 73, 82, and Fig. 101 in three voices), so the learner follows it through the whole book.
+- **From the game back to the tutorial**: every broken rule in the Evaluation (two and three voices) now has "Learn this in the tutorial ›", which opens the lesson that teaches it. Every rule of the game has one.
+- **A coach** under the tutorial's scores names what each note just written makes (interval, consonance, motion) and flags the rule of perfect consonances at once.
+- **First visit** (no tutorial opened, no star): one invitation to the tutorial, never again.
+- **Checks.**
+  - Tests: every answer passes the rules of its exercise in the game. Every wrong option breaks the rule its text names. The B♮ alternatives the hints mention pass. Quiz answers are checked by hand.
+  - Two independent reviews ran, one of the code and one of the text read as a zero-knowledge learner and against the sources. All their findings were fixed. Among them: B up to F is not a fifth to count as perfect; Fux himself quotes *mi contra fa est diabolus in musica*; the ten worked first-species examples are in five modes, not six; the cadence in every mode; and several terms used before they were explained.
+  - Checked in the browser: desktop and phone (scores break into systems), both looks, and dark mode.
+
+## Questions for you
+
+1. **The first-visit invitation**: keep it, or only the button?
+2. **Free navigation**: any lesson can be opened from the contents, and Skip is offered. Should the chapters instead unlock in order?
+3. **Four voices**: the preview says only what follows from the arithmetic (one note of the triad doubled), names the four ranges, and says the rules relax as voices are added. It attributes nothing to Fux, since our scans stop at p. 90. Enough, or should it wait for the four-voice screen?
+4. **Sound in the tutorial**: it plays the default sounds with every channel open, whatever the mixer holds; the game's own sound comes back on return. Agreed?
+5. **Note values**: the tutorial says "whole note (semibreve)", "crotchet (quarter note)", and so on, giving both names once and then using crotchet / minim / quaver as the game does. Agreed?
+
+---
+
 # Night of 8–9 October 2026: what changed, how to go back, questions
 
 Game link (always the latest): https://claude.ai/artifact/NvkaBGCHrtDebE85H7udTX

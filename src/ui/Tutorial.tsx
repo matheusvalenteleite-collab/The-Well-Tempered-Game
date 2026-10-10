@@ -39,13 +39,7 @@ export function Tutorial(p: { onLeave(): void; onGame(voices: 2 | 3, stepId: str
   const index = LESSONS.findIndex((x) => x.lesson.id === progress.at);
   const { chapter, lesson } = LESSONS[index];
   const chapterIndex = CHAPTERS.findIndex((c) => c.id === chapter);
-  const text = lessonText(lesson.id);
-  const [taskDone, setTaskDone] = useState(false);
-  const [names, setNames] = useState(lesson.names ?? true);
-  const [intervals, setIntervals] = useState(lesson.intervals ?? false);
-  const [heard, setHeard] = useState<string[]>([]);
   const [contents, setContents] = useState(false);
-  const player = usePlayer();
 
   // A clean sound for the lessons: the default voices, every channel open. The game puts its own back.
   useEffect(() => {
@@ -55,32 +49,20 @@ export function Tutorial(p: { onLeave(): void; onGame(voices: 2 | 3, stepId: str
     return () => audio.stop();
   }, []);
 
-  // A new lesson starts clean.
-  useEffect(() => {
-    player.stop();
-    setTaskDone(false);
-    setHeard([]);
-    setNames(lesson.names ?? true);
-    setIntervals(lesson.intervals ?? false);
-    document.querySelector(".tut-main")?.scrollTo({ top: 0 });
-  }, [lesson.id]);
-
-  const already = progress.done.includes(lesson.id);
-  const task = lesson.task;
-  const need = task.kind === "listen" ? Math.min(task.need ?? task.clips.length, task.clips.length) : 0;
-  // Reading, and the invitations to the game, are done on arrival.
-  const done = task.kind === "read" || task.kind === "game" || taskDone || (task.kind === "listen" && heard.filter((h) => task.clips.some((c) => c.id === h)).length >= need);
-  useEffect(() => {
-    if (done && !already) setProgress((x) => ({ ...x, done: [...new Set([...x.done, lesson.id])] }));
-  }, [done, already, lesson.id]);
 
   const go = (k: number) => {
     if (k < 0 || k >= LESSONS.length) return;
     setProgress((x) => ({ ...x, at: LESSONS[k].lesson.id }));
     setContents(false);
   };
-  const last = index === LESSONS.length - 1;
-  const hear = (id: string) => setHeard((h) => (h.includes(id) ? h : [...h, id]));
+  /** Tick a lesson (once its task is done). */
+  const markDone = (id: string) => {
+    if (progress.done.includes(id)) return;
+    // Stored at once: the tour closes the tutorial in the same moment, before an effect could run.
+    const next = { ...progress, done: [...progress.done, id] };
+    store(KEY, next);
+    setProgress(next);
+  };
 
   return (
     <div className="shell tutorial">
@@ -132,50 +114,91 @@ export function Tutorial(p: { onLeave(): void; onGame(voices: 2 | 3, stepId: str
             {tt("ui.resetAll")}
           </button>
         </nav>
-        <main className="tut-main" key={lesson.id}>
-          <p className="tut-kicker">
-            {tt("ui.chapterOf", { n: chapterIndex + 1 })} · {chapterText(chapter).title} — {tt("ui.lessonOf", { n: index + 1, total: LESSONS.length })}
-          </p>
-          <h2 className="tut-title">{already && <span className="tut-done-mark">{tt("ui.doneMark")} </span>}{text.title}</h2>
-          <Prose paragraphs={text.text} />
-          {lesson.clips && <ClipButtons clips={lesson.clips} labels={text.clips} player={player} />}
-          <LessonBody
-            lesson={lesson}
-            names={names}
-            intervals={intervals}
-            onNames={setNames}
-            onIntervals={setIntervals}
-            player={player}
-            heard={heard}
-            onHeard={hear}
-            onDone={setTaskDone}
-            onGame={p.onGame}
-            onTour={() => {
-              setTaskDone(true);
-              p.onTour();
-            }}
-          />
-          {done && text.done && task.kind !== "read" && <p className="tut-say ok tut-done-text">✓ <Inline text={text.done} /></p>}
-          <div className="tut-nav">
-            <button onClick={() => go(index - 1)} disabled={index === 0}>{tt("ui.back")}</button>
-            <span className="tool-gap" />
-            {!done && (
-              <button className="link" title={tt("ui.skipHelp")} onClick={() => go(index + 1)} disabled={last}>
-                {tt("ui.skip")}
-              </button>
-            )}
-            {last ? (
-              <button className="primary" onClick={p.onLeave}>{tt("ui.finish")}</button>
-            ) : (
-              <button className="primary tut-next" disabled={!done} onClick={() => go(index + 1)}>
-                {tt("ui.next")}
-              </button>
-            )}
-          </div>
-        </main>
+        <LessonPage
+          key={lesson.id}
+          index={index}
+          already={progress.done.includes(lesson.id)}
+          onDone={() => markDone(lesson.id)}
+          onGo={go}
+          onLeave={p.onLeave}
+          onGame={p.onGame}
+          onTour={() => {
+            // The tutorial closes for the tour: tick the lesson now.
+            markDone(lesson.id);
+            p.onTour();
+          }}
+        />
       </div>
       <InfoBar idle={chapterText(chapter).blurb} />
     </div>
+  );
+}
+
+/**
+ * One lesson's page. Keyed by the lesson, so that everything it holds (the task done, the clips
+ * heard, the view toggles, what is playing) starts clean with each lesson and never leaks into the next.
+ */
+function LessonPage(p: { index: number; already: boolean; onDone(): void; onGo(k: number): void; onLeave(): void; onGame(voices: 2 | 3, stepId: string): void; onTour(): void }) {
+  const { chapter, lesson } = LESSONS[p.index];
+  const chapterIndex = CHAPTERS.findIndex((c) => c.id === chapter);
+  const text = lessonText(lesson.id);
+  const [taskDone, setTaskDone] = useState(false);
+  const [names, setNames] = useState(lesson.names ?? true);
+  const [intervals, setIntervals] = useState(lesson.intervals ?? false);
+  const [heard, setHeard] = useState<string[]>([]);
+  const player = usePlayer();
+  useEffect(() => {
+    document.querySelector(".tut-main")?.scrollTo({ top: 0 });
+  }, []);
+  const task = lesson.task;
+  const need = task.kind === "listen" ? Math.min(task.need ?? task.clips.length, task.clips.length) : 0;
+  // Reading, and the invitations to the game, are done on arrival.
+  const done = task.kind === "read" || task.kind === "game" || taskDone || (task.kind === "listen" && heard.filter((h) => task.clips.some((c) => c.id === h)).length >= need);
+  useEffect(() => {
+    if (done && !p.already) p.onDone();
+  }, [done]);
+  const last = p.index === LESSONS.length - 1;
+  // A lesson done before may be passed again freely.
+  const open = done || p.already;
+  return (
+    <main className="tut-main">
+      <p className="tut-kicker">
+        {tt("ui.chapterOf", { n: chapterIndex + 1 })} · {chapterText(chapter).title} — {tt("ui.lessonOf", { n: p.index + 1, total: LESSONS.length })}
+      </p>
+      <h2 className="tut-title">{p.already && <span className="tut-done-mark">{tt("ui.doneMark")} </span>}{text.title}</h2>
+      <Prose paragraphs={text.text} />
+      {lesson.clips && <ClipButtons clips={lesson.clips} labels={text.clips} player={player} />}
+      <LessonBody
+        lesson={lesson}
+        names={names}
+        intervals={intervals}
+        onNames={setNames}
+        onIntervals={setIntervals}
+        player={player}
+        heard={heard}
+        onHeard={(id) => setHeard((h) => (h.includes(id) ? h : [...h, id]))}
+        onDone={setTaskDone}
+        onGame={p.onGame}
+        onTour={p.onTour}
+      />
+      {done && text.done && task.kind !== "read" && <p className="tut-say ok tut-done-text">✓ <Inline text={text.done} /></p>}
+      <div className="tut-nav">
+        <button onClick={() => p.onGo(p.index - 1)} disabled={p.index === 0}>{tt("ui.back")}</button>
+        <span className="tool-gap" />
+        {!open && (
+          <button className="link" title={tt("ui.skipHelp")} onClick={() => p.onGo(p.index + 1)} disabled={last}>
+            {tt("ui.skip")}
+          </button>
+        )}
+        {last ? (
+          <button className="primary" onClick={p.onLeave}>{tt("ui.finish")}</button>
+        ) : (
+          <button className="primary tut-next" disabled={!open} onClick={() => p.onGo(p.index + 1)}>
+            {tt("ui.next")}
+          </button>
+        )}
+      </div>
+    </main>
   );
 }
 
@@ -233,8 +256,12 @@ function LessonBody(p: {
   }
 
   // Read-only scenes (to look at while listening or answering).
-  const shown = scene ? <ReadScene scene={scene} names={p.names} intervals={p.intervals} cursor={player.cursor} label={label} /> : null;
-  const trio = lesson.trio ? <TrioPane scene={lesson.trio} names={p.names} writable={false} pulse={pulse} player={player} label={label} /> : null;
+  // The cursor follows a clip only when that clip plays the scene drawn.
+  const clips = [...(task.kind === "listen" ? task.clips : []), ...(lesson.clips ?? [])];
+  const own = clips.some((c) => c.id === player.playing && c.kind === "scene");
+  const shown = scene ? <ReadScene scene={scene} names={p.names} intervals={p.intervals} cursor={own ? player.cursor : -1} label={label} /> : null;
+  const trioClip = clips.find((c) => c.kind === "columns" && lesson.trio && c.columns.length === lesson.trio.answer[0].length)?.id;
+  const trio = lesson.trio ? <TrioPane scene={lesson.trio} names={p.names} writable={false} pulse={pulse} player={player} label={label} cursorClip={trioClip} /> : null;
 
   if (task.kind === "listen") {
     return (

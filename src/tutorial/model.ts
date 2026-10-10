@@ -162,8 +162,26 @@ export function judgeTrio(s: TrioScene, voices: (string | null)[][]): TrioEvalua
 
 /** Playback events of a scene's line (or bars from..to of it), for AudioEngine.playSequence. */
 export function sceneEvents(s: Scene, notes: (string | null)[] = s.answer ?? s.start, from = 0, to = s.cantus.length - 1): PlayEvent[] {
-  return timeline(s.cantus, s.layout, notes, from, to, undefined, undefined, { ties: s.species === "fourth" });
+  const events = timeline(s.cantus, s.layout, notes, from, to, undefined, undefined, { ties: s.species === "fourth" });
+  // Fifth species: a window that opens in the middle of a held note (a HOLD) sounds that note from
+  // the window's start, for the rest of its length, as the score draws it carried in.
+  const first = events[0]?.slot;
+  if (first !== undefined && first > 0 && notes[first] === HOLD) {
+    let j = first;
+    while (j > 0 && notes[j] === HOLD) j--;
+    const carried = notes[j];
+    if (sounding(carried)) {
+      let end = first;
+      while (end + 1 < notes.length && notes[end + 1] === HOLD) end++;
+      const last = s.layout[end];
+      const length = last.bar + last.beat * slotLengthOf(last) + slotLengthOf(last) - (s.layout[first].bar + s.layout[first].beat * slotLengthOf(s.layout[first]));
+      events[0] = { ...events[0], counterpoint: carried, lengths: { ...events[0].lengths, counterpoint: length } };
+    }
+  }
+  return events;
 }
+
+const slotLengthOf = (sl: Slot) => (sl.duration === "1/1" ? 1 : sl.duration === "1/2" ? 0.5 : sl.duration === "1/4" ? 0.25 : 0.125);
 
 // ---------------------------------------------------------------- words for intervals
 
@@ -247,7 +265,7 @@ export function coach(s: Scene, notes: (string | null)[], k: number): CoachLine[
   const leap = j >= 0 ? interval(notes[j]!, n) : null;
   if (leap && leap.quality === "A" && leap.simple === 4) out.push({ tone: "bad", key: "coach.tritoneLeap", vars });
   if (leap && leap.number === 6 && leap.quality === "M") out.push({ tone: "bad", key: "coach.majorSixthLeap", vars });
-  if (leap && leap.number === 7) out.push({ tone: "bad", key: "coach.seventhLeap", vars });
+  if (leap && leap.number === 7) out.push({ tone: "warn", key: "coach.seventhLeap", vars });
   return out;
 }
 

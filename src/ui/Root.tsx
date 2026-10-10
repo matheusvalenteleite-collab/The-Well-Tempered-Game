@@ -5,7 +5,6 @@ import { Tutorial, tutorialSeen } from "./Tutorial.tsx";
 import { Tour } from "./Tour.tsx";
 import { store, stored } from "./shared.ts";
 import { tt } from "../tutorial/text.ts";
-import { STEP_IDS } from "../tutorial/course.ts";
 
 /**
  * Two voices (Exercitium I) or three (Exercitium II, D90): separate screens over one engine.
@@ -26,7 +25,9 @@ export function Root() {
     setInvite(false);
     store("wtg.tutorialInvite", false);
   };
-  const openTutorial = () => {
+  /** Open the tutorial, where it was left or at a lesson (a rule's, from the evaluation). */
+  const openTutorial = (lessonId?: string) => {
+    if (lessonId) store("wtg.tutorial", { ...stored<{ at: string; done: string[] }>("wtg.tutorial", { at: lessonId, done: [] }, (v) => typeof v === "object" && v !== null), at: lessonId });
     dismiss();
     setTour(false);
     setScreen("tutorial");
@@ -39,6 +40,11 @@ export function Root() {
     setVoices(v);
     setScreen("game");
   };
+  // A command is obeyed once (the game applies it in the same commit, before this effect runs):
+  // a screen mounted later (another number of voices) must not replay it.
+  useEffect(() => {
+    if (command) setCommand(null);
+  }, [command]);
   const link = { suspended: screen !== "game", command, onTutorial: openTutorial };
   return (
     <>
@@ -50,7 +56,9 @@ export function Root() {
           onLeave={() => setScreen("game")}
           onGame={openGame}
           onTour={() => {
-            openGame(2, STEP_IDS.first);
+            // The tour shows the two-voice screen on the learner's own exercise; nothing is moved.
+            setVoices(2);
+            setScreen("game");
             setTour(true);
           }}
         />
@@ -71,7 +79,7 @@ export function Root() {
             <p>{tt("ui.welcomeBanner")}</p>
             <div className="tour-buttons">
               <button onClick={dismiss}>{tt("ui.welcomeDismiss")}</button>
-              <button className="primary" onClick={openTutorial}>{tt("ui.welcomeOpen")}</button>
+              <button className="primary" onClick={() => openTutorial()}>{tt("ui.welcomeOpen")}</button>
             </div>
           </div>
         </div>

@@ -82,7 +82,8 @@ export interface GameLink {
   suspended?: boolean;
   /** Go to this exercise (a new `n` each time it is asked). */
   command?: { stepId: string; n: number } | null;
-  onTutorial?: () => void;
+  /** Open the tutorial (at a lesson, when one is named). */
+  onTutorial?: (lessonId?: string) => void;
 }
 
 export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 2 | 3): void } & GameLink) {
@@ -1056,7 +1057,7 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
         {result ? (
           <section className="feedback" aria-live="polite">
             <Fold title={t("ui.fold.evaluation")} {...foldProps("evaluation")}>
-              <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} ties={VIEW.species === "fourth"} audio={audio} />
+              <Feedback result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} ties={VIEW.species === "fourth"} audio={audio} onLearn={onTutorial} />
             </Fold>
             {versionResults.map((v) => (
               <Fold key={v.id} className="version-eval" title={<span style={{ color: VERSION_INK[v.id] }}>{t(`ui.versions.${v.id}`, { n: versions.canonShift })}</span>} {...foldProps(`version-${v.id}`)}>
