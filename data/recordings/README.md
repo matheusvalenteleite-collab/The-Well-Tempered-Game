@@ -11,6 +11,8 @@ weighted and decaying) matched to the recording's CQT chroma by dynamic time war
 the steadiness of the bar lengths (and their changes where Bach changes tempo: the C minor prelude's
 Presto, Adagio and Allegro; the E minor prelude's Presto), not by ear.
 
-The audio itself (re-encoded at 128 kbps, `wtc1-NN{p,f}.mp3`) is not in the repository: it is
+The audio itself is not in the repository. The game streams it from the Internet Archive (item
+`bach-well-tempered-clavier-book-1`, the same 48 tracks; file names under `files`), or, re-encoded at
+128 kbps (`wtc1-NN{p,f}.mp3`), it is
 published beside the page under `recordings/ishizaka/`, and for local builds copied into
 `public/recordings/ishizaka/` (ignored by git).

@@ -1,16 +1,20 @@
 /**
  * A real recording in place of the game's sounds (D128): Kimiko Ishizaka's Open Well-Tempered
- * Clavier, Book I (2015, CC0 1.0), one track a piece, published beside the page (not in the
- * repository) under recordings/ishizaka/. Each track's bar lines are timed (tools/align-recording.py:
+ * Clavier, Book I (2015, CC0 1.0), one track a piece: beside the page where it is published with
+ * them (the claude.ai artifact, under recordings/ishizaka/), else streamed from the Internet Archive,
+ * which holds the same 48 tracks (archive.org/details/bach-well-tempered-clavier-book-1); never in
+ * the repository. Each track's bar lines are timed (tools/align-recording.py:
  * the score's chroma matched to the recording's by dynamic time warping), so a span of the score,
  * in quarters, plays as the matching stretch of the recording, and the bar being played is known.
  */
 import timing from "../../data/recordings/ishizaka-book1.json" with { type: "json" };
 
-const BARS = (timing as unknown as { bars: Record<string, number[]> }).bars;
+const DATA = timing as unknown as { archive: string; files: Record<string, string>; bars: Record<string, number[]> };
+const BARS = DATA.bars;
 
 export interface Track {
-  url: string;
+  /** Where to fetch it, in turn: beside the page, then the Internet Archive. */
+  urls: string[];
   /** Seconds of each bar line, the first bar's start to the last bar's end. */
   bars: number[];
 }
@@ -19,7 +23,7 @@ export interface Track {
 export function trackOf(id: string, prelude: boolean): Track | null {
   const key = `${id.replace(".", "-")}${prelude ? "p" : "f"}`;
   const bars = BARS[key];
-  return bars ? { url: new URL(`recordings/ishizaka/${key}.mp3`, document.baseURI).href, bars } : null;
+  return bars ? { urls: [new URL(`recordings/ishizaka/${key}.mp3`, document.baseURI).href, DATA.archive + encodeURIComponent(DATA.files[key])], bars } : null;
 }
 
 /** Quarters from the first bar → seconds in the recording (linear within a bar). */
@@ -48,15 +52,36 @@ class Player {
     this.el?.pause();
   }
 
-  /** Play [from, to) seconds of each stretch in turn; `onTime` gets the time while it plays, `onEnd` once at the end (or never, if stopped). */
-  async play(url: string, stretches: [number, number][], onTime: (s: number) => void, onEnd: () => void, volume = 1) {
-    this.stop();
-    const token = this.token;
+  /** The first of `urls` that loads (remembered for the next call). */
+  private async open(urls: string[], token: number): Promise<HTMLAudioElement | null> {
     if (!this.el) this.el = new Audio();
     const el = this.el;
-    if (el.src !== url) {
-      el.src = url;
-      el.preload = "auto";
+    if (urls.includes(el.src) && el.readyState >= 1 && !el.error) return el;
+    for (const url of urls) {
+      if (token !== this.token) return null;
+      const ok = await new Promise<boolean>((done) => {
+        const fin = (v: boolean) => (el.removeEventListener("loadedmetadata", yes), el.removeEventListener("error", no), done(v));
+        const yes = () => fin(true);
+        const no = () => fin(false);
+        el.addEventListener("loadedmetadata", yes);
+        el.addEventListener("error", no);
+        el.preload = "auto";
+        el.src = url;
+        el.load();
+      });
+      if (ok) return el;
+    }
+    return null;
+  }
+
+  /** Play [from, to) seconds of each stretch in turn; `onTime` gets the time while it plays, `onEnd` once at the end (or never, if stopped). */
+  async play(urls: string[], stretches: [number, number][], onTime: (s: number) => void, onEnd: () => void, volume = 1) {
+    this.stop();
+    const token = this.token;
+    const el = await this.open(urls, token);
+    if (!el) {
+      if (token === this.token) onEnd();
+      return;
     }
     el.volume = Math.max(0, Math.min(1, volume));
     for (const [from, to] of stretches) {

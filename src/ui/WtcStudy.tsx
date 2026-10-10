@@ -238,7 +238,7 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
     // alone, the workshop's subject or entries).
     if (useRec && track && !only && !(through !== "off" && changed) && !(myNotes.length && !game)) {
       setPlaying(true);
-      void recording.play(track.url, [[secondsAt(track, Math.max(0, from), barQ), secondsAt(track, to, barQ)]], (sec) => setCursor(barAt(track, sec)), () => (setPlaying(false), setCursor(-1)), volume / 100);
+      void recording.play(track.urls, [[secondsAt(track, Math.max(0, from), barQ), secondsAt(track, to, barQ)]], (sec) => setCursor(barAt(track, sec)), () => (setPlaying(false), setCursor(-1)), volume / 100);
       return;
     }
     const evs: PlayEvent[] = [];
@@ -308,7 +308,7 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
     recording.stop();
     if (useRec && track && !alone) {
       setPlaying(true);
-      void recording.play(track.url, entries.map((e) => [secondsAt(track, e.at, barQ), secondsAt(track, e.end, barQ)] as [number, number]), (sec) => setCursor(barAt(track, sec)), () => (setPlaying(false), setCursor(-1)), volume / 100);
+      void recording.play(track.urls, entries.map((e) => [secondsAt(track, e.at, barQ), secondsAt(track, e.end, barQ)] as [number, number]), (sec) => setCursor(barAt(track, sec)), () => (setPlaying(false), setCursor(-1)), volume / 100);
       return;
     }
     const evs: PlayEvent[] = [];
