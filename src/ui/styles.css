@@ -1199,3 +1199,11 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .wtc-viewpop label { display: flex; align-items: center; gap: 6px; }
 .wtc-viewpop kbd { margin-left: auto; font: 10px var(--ui-font); color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; }
 .wtc-viewpop .row { display: flex; align-items: center; gap: 6px; }
+.sheet-mark { position: absolute; font: italic 11px var(--serif, Georgia, serif); color: #7a5a22; background: rgba(251, 248, 239, 0.85); padding: 0 3px; border-radius: 3px; white-space: nowrap; pointer-events: auto; }
+/* Printing the study prints its score: every system, with its colours and bands, nothing else. */
+@media print {
+  .shell .topbar, .shell .transport-row, .shell .panel, .shell .divider, .infobar, .navigator, .keystrip, .wtc-now, .sheet-cursor, .sheet-marker, .sheet-drag, .sheet-note { display: none !important; }
+  html, body, .shell, .score-area, .score-wrap.wtc, .wtc-view, .wtc-sheet { position: static !important; height: auto !important; max-height: none !important; overflow: visible !important; border: none !important; box-shadow: none !important; background: #fff !important; }
+  .sheet-sys { break-inside: avoid; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

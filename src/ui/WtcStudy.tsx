@@ -1027,6 +1027,12 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     () => (showEntries ? (gameUntil !== null ? entries.filter((e) => e.end <= gameUntil + 1e-6) : entries).map((e) => ({ from: e.at, to: e.end, voice: entryVoice(e, voice), inverted: e.inverted })) : undefined),
     [showEntries, entries, gameUntil, voice],
   );
+  /** The keys the cadences reach, over the music where each is reached. */
+  const sheetMarks = useMemo(
+    () => (gameUntil !== null || harmony === "off" ? undefined : plan.map((c) => ({ at: chords[c.chord].from, text: `→ ${keyLabel(c.tonic, c.minor)}`, title: t("ui.study.m.arrival", { key: keyLabel(c.tonic, c.minor) }) }))),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [plan, chords, gameUntil, harmony, flats],
+  );
   const sheetNotes = useMemo(() => new Map(Object.entries(annotations[`${L.id}${piece}`] ?? {}).filter(([, v]) => v.trim()).map(([b, v]) => [Number(b), v])), [annotations, L.id, piece]);
   const faintKey = [...faint].sort().join(",");
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1105,6 +1111,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
                 dim={dimSet}
                 brackets={sheetBrackets}
                 notes2={sheetNotes}
+                marks={sheetMarks}
                 onNote={(b) => (setMarker(barStart(b)), setTab("notes"), setFocus(false))}
                 span={span}
                 marker={playing ? null : marker}
@@ -1196,6 +1203,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
                     </span>
                   </>
                 )}
+                <button className="chipbtn" onClick={() => (setViewOpen(false), setView("sheet"), window.setTimeout(() => window.print(), 300))}>{t("ui.study.print")}</button>
                 <label>
                   {t("ui.study.h.title")}{" "}
                   <select className="sel" value={harmony} onChange={(e) => setHarmony(e.target.value as "off" | "roman" | "letters")} aria-label={t("ui.study.h.title")}>

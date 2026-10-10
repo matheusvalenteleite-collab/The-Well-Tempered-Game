@@ -51,6 +51,8 @@ export interface SheetProps {
   faint: Set<number>;
   /** Voices drawn a little paler (another in the spotlight). */
   dim?: Set<number>;
+  /** Words over the music at a moment (the keys the cadences reach). */
+  marks?: { at: number; text: string; title?: string }[];
   /** The reader's notes, by bar (a mark over the bar; a click opens it). */
   notes2?: Map<number, string>;
   onNote?(bar: number): void;
@@ -337,7 +339,7 @@ export function WtcSheet(p: SheetProps) {
         );
       const above = Math.max(30, up[0] + 16);
       const gap = Math.min(230, Math.max(76, down[0] + up[1] + 18));
-      const below = Math.max(24, down[1] + 10) + (p.chords?.length ? 18 : 0);
+      const below = Math.max(24, down[1] + 16) + (p.chords?.length ? 18 : 0);
       const trebleY = above;
       const bassY = trebleY + 4 * SP + gap;
       const height = bassY + 4 * SP + below;
@@ -375,7 +377,8 @@ export function WtcSheet(p: SheetProps) {
         ctx.save();
         ctx.setFont("Inter, system-ui, sans-serif", first ? 11 : 9);
         ctx.setFillStyle("var(--bar-number, #9a948a)");
-        ctx.fillText(String(b + p.firstBar), first ? x + 2 : x + 3, trebleY - 12);
+        // At the top of the system, clear of the highest note.
+        ctx.fillText(String(b + p.firstBar), first ? x + 2 : x + 3, 11);
         ctx.restore();
 
         const startX = staves[0].getNoteStartX();
@@ -711,6 +714,20 @@ export function WtcSheet(p: SheetProps) {
         <div ref={page} className="sheet-music" />
         <div className="sheet-over" aria-hidden="true">
           {brackets}
+          {geo &&
+            p.marks?.map((m, k) => {
+              const at = locate(geo, m.at);
+              if (!at) return null;
+              const sys = geo.systems[at.s];
+              // Beside the bar number when it falls at the start of a bar.
+              const bar = sys.bars.find((b) => m.at < b.ticks[b.ticks.length - 1][0] - EPS);
+              const x = bar && at.x - bar.x0 < 26 ? bar.x0 + 26 : at.x - 2;
+              return (
+                <span key={`m${k}`} className="sheet-mark" style={{ left: x * geo.scale, top: sys.top }} data-info={m.title ?? m.text}>
+                  {m.text}
+                </span>
+              );
+            })}
           {geo &&
             p.notes2 &&
             [...p.notes2.entries()].map(([b, text]) => {
