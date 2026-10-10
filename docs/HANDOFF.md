@@ -56,7 +56,7 @@ older notes and the owner's open questions.
    5c7cae4) has Part III: Figs. 160–204, 32 exercises in Humdrum (CC0), and the 1725 pages to p. 138
    (`source_pdf/gap_p122.pdf` = p. 114, Exercitium III's opening). Next: vendor Part III and pp. 91–138,
    read the four-voice rules from the print, a four-voice screen like the three-voice one.
-   The owner: the player does what Josephus does. Read in the print: first species, Aloysius gives
+   The owner (D147): the player does what Josephus does, nothing else until the Fux mode is complete. Read in the print: first species, Aloysius gives
    Fig. 160 and has Josephus take the same cantus "singulis in partibus successive" (p. 115), so the
    player writes all three voices against the cantus, note against note; species 2–5, "quatuor
    Semiminimae cum tribus Semibrevibus" (p. 124): still three voices, one in the species, two in
