@@ -20,8 +20,8 @@ const KEYS: [string, string][] = [
   ["H", "help.keys.hint"],
   ["Space", "help.keys.hear"],
   ["P", "help.keys.play"],
-  ["F1–F9", "help.keys.tracks"],
-  ["Tab", "help.keys.voice"],
+  ["Alt + 1–9", "help.keys.tracks"],
+  ["V", "help.keys.voice"],
 ];
 const BASICS = ["cantusFirmus", "counterpoint", "species", "mode", "final", "interval", "consonance", "perfect", "imperfect", "dissonance", "motion", "cadence", "leadingTone", "downbeat", "passing", "cambiata", "ligature", "suspension", "miContraFa", "ficta", "triad", "sixThree", "figures", "continuo", "versions", "aloysius", "josephus", "gradus"] as const;
 

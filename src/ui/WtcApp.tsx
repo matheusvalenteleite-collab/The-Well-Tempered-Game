@@ -8,6 +8,9 @@
  * The keys are laid out in Bach's order; the temperament defaults to a circulating one, so that
  * every key sounds as itself (Werckmeister III, Kirnberger III, Vallotti, or equal).
  */
+import type { Mode } from "./Root.tsx";
+import { ModeSelect } from "./ModeSelect.tsx";
+import { keyBelongsToControl } from "./keys.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FUGUES, KEY_ORDER, keyName, keySignature, isMinor, realAnswer, transpose, type WtcFugue, type WtcNote } from "../wtc/fugues.ts";
 import { degree, evaluateAnswer, type AnswerEvaluation } from "../wtc/answer.ts";
@@ -82,7 +85,7 @@ const difficulty = (f: WtcFugue) => f.subject.length + 8 * f.mutations.length + 
 const COURSE = FUGUES.map((_, i) => i).sort((a, b) => difficulty(FUGUES[a]) - difficulty(FUGUES[b]));
 const mean = (xs: WtcNote[]) => xs.reduce((a, n) => a + parsePitch(n.pitch).midi, 0) / Math.max(1, xs.length);
 
-export function WtcApp({ onVoices, onStudy, onTutorial }: { onVoices(n: 2 | 3 | "wtc"): void; onStudy?(): void; onTutorial?: (lessonId?: string) => void }) {
+export function WtcApp({ onVoices, onStudy, onTutorial }: { onVoices(n: Mode): void; onStudy?(): void; onTutorial?: (lessonId?: string) => void }) {
   const [index, setIndex] = useState(() => Math.max(0, FUGUES.findIndex((f) => f.id === stored("wtg.wtcFugue", FUGUES[0].id))));
   const F = FUGUES[index];
   useEffect(() => store("wtg.wtcFugue", F.id), [F.id]);
@@ -429,6 +432,7 @@ export function WtcApp({ onVoices, onStudy, onTutorial }: { onVoices(n: 2 | 3 | 
     if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
     const tg = e.target as HTMLElement | null;
     if (tg && /^(INPUT|SELECT|TEXTAREA)$/.test(tg.tagName)) return;
+    if (keyBelongsToControl(e)) return;
     const k = e.key;
     const editable = ex !== "study" && !showBach;
     const cur = line[selected];
@@ -600,11 +604,7 @@ export function WtcApp({ onVoices, onStudy, onTutorial }: { onVoices(n: 2 | 3 | 
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
             <button className="icon" onClick={() => step(-1)} disabled={ORDER.indexOf(index) === 0} aria-label={t("ui.nav.prev")}>‹</button>
-            <select id="voices" className="sel sel-voices" value="wtc" aria-label={t("ui.nav.voices")} onChange={(e) => (audio.stop(), onVoices(e.target.value === "wtc" ? "wtc" : (Number(e.target.value) as 2 | 3)))}>
-              <option value={2}>{t("ui.nav.voicesN", { n: 2 })}</option>
-              <option value={3}>{t("ui.nav.voicesN", { n: 3 })}</option>
-              <option value="wtc">{t("ui.wtc.mode")}</option>
-            </select>
+            <ModeSelect value="wtc" onMode={(m) => (audio.stop(), onVoices(m))} />
             <select id="wtc-exercise" className="sel sel-species" value={ex} aria-label={t("ui.wtc.exercise")} onChange={(e) => choose(e.target.value as Exercise)}>
               {EXERCISES.map((x, i) => (
                 <option key={x} value={x}>{`${i + 1} · ${t(`ui.wtc.ex.${x}`)}`}</option>

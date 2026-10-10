@@ -89,21 +89,21 @@ export function DrumBox({ on, onToggle, value, onChange, onPreview, onTempo }: P
       <div className="dcol grp-head">
         <div className="dhead">
           <span className="rack-title">{t("ui.drums.title")}</span>
-          <button className="chipbtn" tabIndex={-1} aria-pressed={on} onClick={() => onToggle(!on)}>{on ? t("ui.drums.on") : t("ui.drums.off")}</button>
+          <button className="chipbtn" aria-pressed={on} onClick={() => onToggle(!on)}>{on ? t("ui.drums.on") : t("ui.drums.off")}</button>
         </div>
         <span className="dlabel">{t("ui.drums.loop")}</span>
         <span className="stepper" title={t("ui.drums.loopHelp")}>
-          <button className="chipbtn" tabIndex={-1} disabled={prev === null} onClick={() => prev !== null && set({ length: prev })} aria-label={t("ui.drums.shorter")}>‹</button>
-          <button className="chipbtn loop-len" tabIndex={-1} onClick={() => set({ length: defaultLength(pattern) })} title={t("ui.drums.resetLoop", { n: lengthText(defaultLength(pattern)) })}>{lengthText(value.length)}</button>
-          <button className="chipbtn" tabIndex={-1} disabled={next === null} onClick={() => next !== null && set({ length: next })} aria-label={t("ui.drums.longer")}>›</button>
+          <button className="chipbtn" disabled={prev === null} onClick={() => prev !== null && set({ length: prev })} aria-label={t("ui.drums.shorter")}>‹</button>
+          <button className="chipbtn loop-len" onClick={() => set({ length: defaultLength(pattern) })} title={t("ui.drums.resetLoop", { n: lengthText(defaultLength(pattern)) })}>{lengthText(value.length)}</button>
+          <button className="chipbtn" disabled={next === null} onClick={() => next !== null && set({ length: next })} aria-label={t("ui.drums.longer")}>›</button>
         </span>
-        {onTempo && <button className="chipbtn tap" tabIndex={-1} onClick={tap} title={t("ui.drums.tap.help")}>{t("ui.drums.tap")}</button>}
+        {onTempo && <button className="chipbtn tap" onClick={tap} title={t("ui.drums.tap.help")}>{t("ui.drums.tap")}</button>}
       </div>
       <div className="dcol grp-kit" role="group" aria-label={t("ui.drums.kit")}>
         <span className="dlabel">{t("ui.drums.kit")}</span>
         <div className="kit-grid">
           {DRUM_KITS.map((k) => (
-            <button key={k} className="chipbtn" tabIndex={-1} aria-pressed={kit === k} title={t(`ui.drums.kit.${k}.help`)} onClick={() => kit !== k && choose(presetsOf(k)[0].id)}>
+            <button key={k} className="chipbtn" aria-pressed={kit === k} title={t(`ui.drums.kit.${k}.help`)} onClick={() => kit !== k && choose(presetsOf(k)[0].id)}>
               {t(`ui.drums.kit.${k}`)}
             </button>
           ))}
@@ -112,7 +112,7 @@ export function DrumBox({ on, onToggle, value, onChange, onPreview, onTempo }: P
       <div className="dcol grp-preset" role="group" aria-label={t("ui.drums.presets")}>
         <span className="dlabel">{t("ui.drums.presetsOf", { kit: t(`ui.drums.kit.${kit}`) })}</span>
         {presetsOf(kit).map((p, i) => (
-          <button key={p.id} className="chipbtn" tabIndex={-1} aria-pressed={value.pattern === p.id} title={t(`ui.drums.pattern.${p.id}.help`)} onClick={() => choose(p.id)}>
+          <button key={p.id} className="chipbtn" aria-pressed={value.pattern === p.id} title={t(`ui.drums.pattern.${p.id}.help`)} onClick={() => choose(p.id)}>
             {t(`ui.drums.pattern.${p.id}`)}{i === 0 && <span className="paradigm" title={t("ui.drums.paradigm")}> ★</span>}
           </button>
         ))}
@@ -120,22 +120,22 @@ export function DrumBox({ on, onToggle, value, onChange, onPreview, onTempo }: P
       <div className="dcol grp-feel" role="group" aria-label={t("ui.drums.feel")}>
         <span className="dlabel">{t("ui.drums.feel")}</span>
         <span className="stepper" title={t("ui.drums.swing.help")}>
-          <button className="chipbtn" tabIndex={-1} disabled={swingIndex === 0} onClick={() => set({ swing: SWING_STEPS[swingIndex - 1] })} aria-label={t("ui.drums.swing")}>‹</button>
+          <button className="chipbtn" disabled={swingIndex === 0} onClick={() => set({ swing: SWING_STEPS[swingIndex - 1] })} aria-label={t("ui.drums.swing")}>‹</button>
           <span className="feel-value">{t("ui.drums.swing")} {swingText(SWING_STEPS[swingIndex])}</span>
-          <button className="chipbtn" tabIndex={-1} disabled={swingIndex === SWING_STEPS.length - 1} onClick={() => set({ swing: SWING_STEPS[swingIndex + 1] })} aria-label={t("ui.drums.swing")}>›</button>
+          <button className="chipbtn" disabled={swingIndex === SWING_STEPS.length - 1} onClick={() => set({ swing: SWING_STEPS[swingIndex + 1] })} aria-label={t("ui.drums.swing")}>›</button>
         </span>
-        <button className="chipbtn" tabIndex={-1} aria-pressed={!!value.accent} onClick={() => set({ accent: !value.accent })} title={t("ui.drums.accent.help")}>{t("ui.drums.accent")}</button>
+        <button className="chipbtn" aria-pressed={!!value.accent} onClick={() => set({ accent: !value.accent })} title={t("ui.drums.accent.help")}>{t("ui.drums.accent")}</button>
         <span className="ab" role="group" title={t("ui.drums.variation.help")}>
           {(["A", "B", "AB"] as DrumVariation[]).map((v) => (
-            <button key={v} className="chipbtn" tabIndex={-1} aria-pressed={(value.variation ?? "A") === v} onClick={() => set({ variation: v })}>{v === "AB" ? "A↔B" : v}</button>
+            <button key={v} className="chipbtn" aria-pressed={(value.variation ?? "A") === v} onClick={() => set({ variation: v })}>{v === "AB" ? "A↔B" : v}</button>
           ))}
         </span>
-        <button className="chipbtn" tabIndex={-1} aria-pressed={value.autoFill !== false} onClick={() => set({ autoFill: value.autoFill === false })} title={t("ui.drums.autoFill.help")}>{t("ui.drums.autoFill")}</button>
+        <button className="chipbtn" aria-pressed={value.autoFill !== false} onClick={() => set({ autoFill: value.autoFill === false })} title={t("ui.drums.autoFill.help")}>{t("ui.drums.autoFill")}</button>
       </div>
       <div className="dcol grp-fills" role="group" aria-label={t("ui.drums.fills")}>
         <span className="dlabel">{t("ui.drums.fills")}</span>
         {DRUM_CUES.map((c) => (
-          <button key={c} className={`chipbtn cue cue-${c}`} tabIndex={-1} aria-pressed={waiting === c} onClick={() => void audio.drumCue(c)} title={t(`ui.drums.cue.${c}.help`)}>
+          <button key={c} className={`chipbtn cue cue-${c}`} aria-pressed={waiting === c} onClick={() => void audio.drumCue(c)} title={t(`ui.drums.cue.${c}.help`)}>
             {t(`ui.drums.cue.${c}`)}
           </button>
         ))}

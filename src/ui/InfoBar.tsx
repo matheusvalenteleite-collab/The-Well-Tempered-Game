@@ -37,6 +37,11 @@ export function InfoBar({ idle }: { idle: string }) {
 
   useEffect(() => {
     const over = (e: MouseEvent) => setText(infoOf(e.target)?.text ?? null);
+    // Keyboard focus explains too (D149): the dotted terms and the controls, not only on hover.
+    const focus = (e: FocusEvent) => {
+      const info = infoOf(e.target);
+      if (info) setText(info.text);
+    };
     const leave = (e: MouseEvent) => {
       if (!e.relatedTarget) setText(null);
     };
@@ -76,6 +81,7 @@ export function InfoBar({ idle }: { idle: string }) {
       e.stopPropagation();
     };
     document.addEventListener("mouseover", over);
+    document.addEventListener("focusin", focus);
     document.addEventListener("mouseout", leave);
     document.addEventListener("click", click, true);
     document.addEventListener("click", swallowClick, true);
@@ -85,6 +91,7 @@ export function InfoBar({ idle }: { idle: string }) {
     document.addEventListener("pointermove", cancel, true);
     return () => {
       document.removeEventListener("mouseover", over);
+      document.removeEventListener("focusin", focus);
       document.removeEventListener("mouseout", leave);
       document.removeEventListener("click", click, true);
       document.removeEventListener("click", swallowClick, true);

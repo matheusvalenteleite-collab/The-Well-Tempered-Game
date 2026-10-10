@@ -5,6 +5,8 @@ import { t } from "./i18n.ts";
 import { Tour } from "./Tour.tsx";
 import { store, stored } from "./shared.ts";
 import { FUGUE_ID } from "../tutorial/fugue-id.ts";
+import { ModeIntro, Welcome, INTRO_LESSON } from "./Orientation.tsx";
+import { setBeta } from "./beta.ts";
 
 // Loaded when first opened (the first download on a phone was one 10 MB file): the Well-Tempered
 // Clavier, with its 48 pieces, and the tutorial.
@@ -66,12 +68,31 @@ export function Root() {
   useEffect(() => {
     if (command) setCommand(null);
   }, [command]);
+  // D149: the first visit says what the game is (only to a newcomer: no stars, no tutorial yet).
+  const [welcome, setWelcome] = useState(() => !stored("wtg.welcomed", false, (v) => typeof v === "boolean") && stored<string[]>("wtg.stars", [], (v) => Array.isArray(v)).length === 0 && stored<unknown>("wtg.tutorial", null) === null);
+  /** Remounts the two-voice screen after the welcome, so that it reads the learner's choice. */
+  const [welcomeKey, setWelcomeKey] = useState(0);
+  const closeWelcome = (beta: boolean) => {
+    setBeta(beta);
+    store("wtg.welcomed", true);
+    setWelcome(false);
+    setWelcomeKey((k) => k + 1);
+  };
+  // D149: the first time a mode opens, what it is and what it asks of the learner.
+  const [introSeen, setIntroSeen] = useState<string[]>(() => stored<string[]>("wtg.introSeen", [], (v) => Array.isArray(v)));
+  const intro = !welcome && screen === "game" && String(voices) in INTRO_LESSON && !introSeen.includes(String(voices)) ? String(voices) : null;
+  const closeIntro = () => {
+    if (!intro) return;
+    const next = [...introSeen, intro];
+    setIntroSeen(next);
+    store("wtg.introSeen", next);
+  };
   const link = { suspended: screen !== "game", command, onTutorial: openTutorial };
   const game =
     voices === "chorale" ? (
-      screen === "game" && <ChoraleApp onMode={setVoices} />
+      screen === "game" && <ChoraleApp onMode={setVoices} onTutorial={openTutorial} />
     ) : voices === "preludes" ? (
-      screen === "game" && <WtcRoot onMode={setVoices} />
+      screen === "game" && <WtcRoot onMode={setVoices} onTutorial={openTutorial} />
     ) : voices === "wtc" ? (
       screen === "game" &&
       (wtcView === "study" ? <WtcStudy onVoices={setVoices} onExercises={() => setWtcView("exercises")} onTutorial={openTutorial} /> : <WtcApp onVoices={setVoices} onStudy={() => setWtcView("study")} onTutorial={openTutorial} />)
@@ -80,7 +101,7 @@ export function Root() {
     ) : voices === 3 ? (
       <TrioApp onVoices={setVoices} {...link} />
     ) : (
-      <App onVoices={setVoices} {...link} />
+      <App key={welcomeKey} onVoices={setVoices} {...link} />
     );
   return (
     <>
@@ -100,6 +121,33 @@ export function Root() {
           }}
         />
         </Suspense>
+      )}
+      {welcome && screen === "game" && (
+        <Welcome
+          onTutorial={() => {
+            store("wtg.quickSeen", true); // the tutorial teaches what the quick start would
+            closeWelcome(false);
+            openTutorial();
+          }}
+          onFirst={() => {
+            closeWelcome(false);
+            setVoices(2);
+          }}
+          onExplore={() => {
+            store("wtg.quickSeen", true);
+            closeWelcome(true);
+          }}
+        />
+      )}
+      {intro && (
+        <ModeIntro
+          mode={intro}
+          onClose={closeIntro}
+          onLearn={(lesson) => {
+            closeIntro();
+            openTutorial(lesson);
+          }}
+        />
       )}
       {tour && screen === "game" && (
         <Tour

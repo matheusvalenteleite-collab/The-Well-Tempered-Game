@@ -112,7 +112,7 @@
     },
     "four": {
       "title": "Four voices",
-      "blurb": "A look ahead: what changes with a fourth voice."
+      "blurb": "Three voices against the cantus: doubling, spacing, and what Fux tolerates."
     },
     "fugue": {
       "title": "Listening to a fugue",
@@ -129,16 +129,16 @@
       "text": [
         "In 1725 the Viennese court composer Johann Joseph Fux published **Gradus ad Parnassum**, a course in composition written as a conversation between a master, Aloysius, and his pupil, Josephus. For two hundred years composers learned from it; Haydn is said to have worked through every exercise, and it is still used to teach today.",
         "This game is that course. You play Josephus: Aloysius gives you a melody, you write a second melody against it, and the game judges your line by rules read from Fux's own pages.",
-        "You need **no musical knowledge** to start. This tutorial teaches you everything the game asks for: how to read a note, what an interval is, how two voices may move, and then each of Fux's five 'species', one after another, until you can write in three voices. Every example you will hear is Fux's own."
+        "You need **no musical knowledge** to start. This tutorial teaches you everything the game asks for: how to read a note, what an interval is, how two voices may move, and then each of Fux's five 'species', one after another, until you can write in three and four voices. Every example you will hear is Fux's own."
       ]
     },
     "welcome.goal": {
       "title": "Where you are going",
       "text": [
         "Here is what you will be writing by the end of the first-species chapter. Below: a plain, slow melody that never changes, the **cantus firmus**. Above: Fux's answer to it, one note against each of the cantus's notes.",
-        "Press Listen. Notice how the two lines are each singable on their own, and how together they never clash. That double demand is what 'counterpoint' means."
+        "Press ▶ under the score. Notice how the two lines are each singable on their own, and how together they never clash. That double demand is what 'counterpoint' means."
       ],
-      "prompt": "Press Listen to hear Fux's first example (Fig. 5 of the Gradus).",
+      "prompt": "Press ▶ to hear Fux's first example (Fig. 5 of the Gradus).",
       "clips": {
         "fig5": "Fux, Fig. 5"
       },
@@ -715,18 +715,17 @@
     "three.game": {
       "title": "Three voices in the game",
       "text": [
-        "Choose **3 voices** in the first menu. You write both voices that are not the cantus, in any order: clicking a staff writes there and makes it the active voice; with the keyboard, **Tab** switches between your two voices. All five species are there, Fux's exercises in his order: in species two to five one of your voices takes the new rhythm while the other keeps to whole notes. The two-voice rules of each species hold for the moving voice, and the three-voice rules for the harmony on the downbeats.",
+        "Choose **3 voices** in the first menu. You write both voices that are not the cantus, in any order: clicking a staff writes there and makes it the active voice; with the keyboard, **V** switches between your two voices. All five species are there, Fux's exercises in his order: in species two to five one of your voices takes the new rhythm while the other keeps to whole notes. The two-voice rules of each species hold for the moving voice, and the three-voice rules for the harmony on the downbeats.",
         "What the game checks besides: begin and end with the final as the lowest note; in the last bar the other voices take its octave, its fifth or its major third — never the minor third (in D, no F♮ over the final D); and in your voices no tritone, major sixth or seventh leaps."
       ],
       "prompt": "Try Fux's first three-voice exercise, or read ahead about four voices."
     },
     "four.preview": {
-      "title": "A look at four voices",
+      "title": "Four voices",
       "text": [
-        "The Gradus goes on to four voices. The game does not have them yet, so this lesson is only a preview: there is nothing to write or judge here.",
-        "What changes is mostly arithmetic. A triad has three different notes, so with four voices one of them must be **doubled** — sung by two voices at once. The voices also have to share the space: four ranges (from high to low, the names still used today: soprano, alto, tenor, bass), each kept singable and not too far from its neighbours.",
-        "And the more voices, the harder it is to avoid every hidden fifth and octave; the rules relax as the texture thickens — already in three voices the game tolerates a fifth or octave reached by similar motion when the upper of the two voices moves by step.",
-        "When the four-voice screen is built, its rules will be read from Fux's own pages, as everything else in the game is."
+        "The Gradus ends its course in four voices (Exercitium III), and so does the game: choose **4 voices** in the first menu. Against the cantus you write three voices, species by species: Fux's own exercises first, then the modes he leaves to private study, without a solution of his, and last the species combined, each voice in its own rhythm.",
+        "What changes is mostly arithmetic. A triad has three different notes, so with four voices one of them must be **doubled**, sung by two voices at once. Fux says which: the octave of the bass first; where that would give faulty progressions, the third, more rarely the sixth (p. 114). The voices also share the space: from high to low, soprano, alto, tenor, bass, each kept singable and, Fux adds, the closer together the fuller the harmony.",
+        "And the more voices, the harder it is to avoid every hidden fifth and octave: Fux tolerates them where necessity forces them (p. 115), and so the game notes them as advice, not as faults. In species two to five one voice moves and two hold semibreves, which in the fourth and fifth species may be divided into two minims where a clash would otherwise be unavoidable (pp. 132–133)."
       ]
     },
     "fugue.what": {
@@ -829,8 +828,9 @@
     "end.path": {
       "title": "The road to the end",
       "text": [
-        "This is the whole game, in order. Each exercise cleared earns a ★, and a gold 🌟 if no advice was broken either; the menus count them for each species. Clearing one of Fux's worked exercises also opens his own solution, to see, hear and compare with yours. Some exercises (the C cantus in first species; the G, A and C cantus in third and fourth) are ones he left to private study: there is no solution of his to compare.",
-        "When an exercise defeats you: open **How to play → Rules of this exercise** for the rules in force, read the **Lectio** for what Fux says about it, and look at the marks after **Evaluate** — each tells you which bar breaks which rule and why. Then come back here: every species has its chapter."
+        "This is the whole game, in order: two voices, then three, then four, each through the five species. Each exercise cleared earns a ★, and a gold 🌟 if no advice was broken either; the menus count them for each species. Clearing one of Fux's worked exercises also opens his own solution, to see, hear and compare with yours. Some exercises (the C cantus in first species; the G, A and C cantus in third and fourth) are ones he left to private study: there is no solution of his to compare.",
+        "When an exercise defeats you: open **How to play → Rules of this exercise** for the rules in force, read the **Lectio** for what Fux says about it, and look at the marks after **Evaluate** — each tells you which bar breaks which rule and why. Then come back here: every species has its chapter.",
+        "Beyond Fux lie Bach's modes: the **Well-Tempered Clavier** (listening and fugue exercises; the tutorial's fugue chapter prepares it), and the **Chorales** and **WTC · preludes and harmony**, which ask for chords and figured-bass numbers that this tutorial does not teach."
       ]
     },
     "end.tour": {

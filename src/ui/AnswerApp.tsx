@@ -3,6 +3,7 @@
  * subject and chooses the answer: the real one, the textbook tonal one, or (where Bach did neither)
  * his own; Compare shows whose each is and which notes the mutation changed.
  */
+import { ModeSelect } from "./ModeSelect.tsx";
 import { useEffect, useMemo, useState } from "react";
 import { FUGUES, events, mutated, options } from "../wtc/answers.ts";
 import type { Mode } from "./Root.tsx";
@@ -17,7 +18,7 @@ import { t } from "./i18n.ts";
 type Picks = Record<string, number>;
 const LETTERS = "ABCD";
 
-export function AnswerApp({ onMode, level, onLevel }: { onMode(mode: Mode): void; level: WtcLevel; onLevel(l: WtcLevel): void }) {
+export function AnswerApp({ onMode, onTutorial, level, onLevel }: { onMode(mode: Mode): void; onTutorial?: () => void; level: WtcLevel; onLevel(l: WtcLevel): void }) {
   const [index, setIndex] = useState(() => Math.max(0, FUGUES.findIndex((f) => f.id === stored("wtg.answerFugue", FUGUES[0].id, (v) => typeof v === "string"))));
   const f = FUGUES[index];
   useEffect(() => store("wtg.answerFugue", f.id), [f.id]);
@@ -75,13 +76,7 @@ export function AnswerApp({ onMode, level, onLevel }: { onMode(mode: Mode): void
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
             <button className="icon" onClick={() => goTo(index - 1)} disabled={index === 0} aria-label={t("ui.nav.prev")}>‹</button>
-            <select id="voices" className="sel sel-voices" value="preludes" aria-label={t("ui.nav.voices")} onChange={(e) => { audio.stop(); const v = e.target.value; onMode(v === "chorale" || v === "preludes" || v === "wtc" ? v : (Number(v) as 2 | 3)); }}>
-              <option value={2}>{t("ui.nav.voicesN", { n: 2 })}</option>
-              <option value={3}>{t("ui.nav.voicesN", { n: 3 })}</option>
-              <option value="wtc">{t("ui.wtc.mode")}</option>
-              <option value="chorale">{t("chorale.mode")}</option>
-              <option value="preludes">{t("wtcp.mode")}</option>
-            </select>
+            <ModeSelect value="preludes" onMode={(m) => { audio.stop(); onMode(m); }} />
             <WtcLevelSelect level={level} onLevel={onLevel} onChange={() => audio.stop()} />
             <select id="exercise" className="sel sel-exercise" value={index} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("ui.nav.choose")}>
               {FUGUES.map((x, k) => (
@@ -90,7 +85,7 @@ export function AnswerApp({ onMode, level, onLevel }: { onMode(mode: Mode): void
             </select>
             <button className="icon" onClick={() => goTo(index + 1)} disabled={index === FUGUES.length - 1} aria-label={t("ui.nav.next")}>›</button>
           </nav>
-          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("about")} />
+          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("about")} onTutorial={onTutorial} />
         </>
       }
       score={

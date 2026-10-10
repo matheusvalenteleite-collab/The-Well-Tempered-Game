@@ -25,6 +25,8 @@ export const GAME_ORDER: readonly string[] = [
   ...QUARTET_SPECIES.flatMap((n) => QUARTET_ALL[n].map((s) => s.id)),
 ];
 
+/** The first three-voice exercise: "3 voices" opens with it. */
+export const FIRST_TRIO = GAME_ORDER[ALL_STEPS.length];
 /** The first four-voice exercise (Fig. 160): "4 voices" opens with it. */
 export const FIRST_QUARTET = QUARTET_ALL[1][0].id;
 

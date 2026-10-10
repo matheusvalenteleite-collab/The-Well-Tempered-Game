@@ -1,9 +1,9 @@
 /**
  * A horizontal fader (D95: tempo and volume, stacked and aligned): label, track, value. Drag along
- * it (or use the wheel); double-click resets. Like the knobs it never takes keyboard focus, so
- * the arrow keys stay with the score.
+ * it (or use the wheel); double-click resets. It takes keyboard focus as a slider (D149).
  */
 import { useRef } from "react";
+import { sliderKey } from "./keys.ts";
 
 export function HFader(p: { label: string; value: number; min: number; max: number; defaultValue: number; format(v: number): string; onChange(v: number): void; help?: string }) {
   const track = useRef<HTMLDivElement>(null);
@@ -19,6 +19,17 @@ export function HFader(p: { label: string; value: number; min: number; max: numb
       <div
         ref={track}
         className="hfader-track"
+        role="slider"
+        tabIndex={0}
+        aria-label={p.label}
+        aria-valuemin={p.min}
+        aria-valuemax={p.max}
+        aria-valuenow={p.value}
+        aria-valuetext={p.format(p.value)}
+        onKeyDown={(e) => {
+          const next = sliderKey(e, frac);
+          if (next !== null) p.onChange(p.min + next * (p.max - p.min));
+        }}
         onPointerDown={(e) => {
           e.currentTarget.setPointerCapture(e.pointerId);
           setFrom(e.clientX);

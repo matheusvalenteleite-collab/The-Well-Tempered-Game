@@ -6,6 +6,7 @@
  * voice in two voices (D82): a tap writes the part's value (a semibreve, a minim, a crotchet; the
  * florid part the value chosen), Hold (T) carries a note on.
  */
+import { ModeSelect } from "./ModeSelect.tsx";
 import type { Mode } from "./Root.tsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { barOfQuaver, normalise, partSlots, QUARTET_ALL, QUARTET_SPECIES, quartetInput, quartetPlayer, PART_CENTRE, snapSlot, template, valueAt as valueFor, type QuartetSpecies, type QuartetStep } from "../game/quartet.ts";
@@ -42,6 +43,7 @@ import type { GameLink } from "./App.tsx";
 import { LearnLink } from "./LearnLink.tsx";
 import { tt } from "../tutorial/text.ts";
 import { useBeta } from "./beta.ts";
+import { keyBelongsToControl, trackKey } from "./keys.ts";
 import { exerciseOpen, furthestOpen } from "../game/unlock.ts";
 import type { NameStyle } from "../music/names.ts";
 
@@ -121,7 +123,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial }: { onVoi
   const [zoom, setZoom] = useState(() => stored("wtg.zoom", 1, (v) => typeof v === "number" && v >= ZOOM_MIN && v <= ZOOM_MAX));
   const [fuxHeard, setFuxHeard] = useState(() => stored("wtg.fuxHeard", false, (v) => typeof v === "boolean"));
   const [showFux, setShowFux] = useState(false);
-  const [tab, setTab] = useState<string>(() => stored("wtg.dock", "mixer", (v) => typeof v === "string"));
+  const [tab, setTab] = useState<string>(() => stored("wtg.dock", "guide", (v) => typeof v === "string"));
   useEffect(() => store("wtg.dock", tab), [tab]);
   const [nameStyle, setNameStyle] = useState<NameStyle>(() => stored("wtg.nameStyle2", "solfege" as NameStyle, (v) => v === "letters" || v === "solfege"));
   useEffect(() => store("wtg.nameStyle2", nameStyle), [nameStyle]);
@@ -376,14 +378,16 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial }: { onVoi
   const isMoving = (i: number) => MOVING.includes(STEP.kinds[i]);
   const onKey = (e: KeyboardEvent) => {
     if (suspended) return;
-    if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    if (keyBelongsToControl(e)) return;
+    if (e.ctrlKey || e.metaKey || (e.altKey && trackKey(e) === null) || e.isComposing) return;
     const target = e.target as HTMLElement | null;
     if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return;
     const k = e.key;
+    const digit = trackKey(e);
     const s = session;
     const florid = STEP.kinds[activeStaff] === "florid";
-    if (/^F[1-7]$/.test(k)) {
-      const track = trackOrder(false, true, true)[Number(k.slice(1)) - 1];
+    if (digit !== null) {
+      const track = trackOrder(false, true, true)[digit - 1];
       if (track === "cantus") setSound(changeMix(sound, "cantus", { mute: !sound.mix.cantus.mute }));
       else if (track === "counterpoint") setVersions({ ...versions, original: !versions.original });
       else if (track === "second") setSecondOn(!secondOn);
@@ -393,7 +397,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial }: { onVoi
       else if (track === "continuo") setContinuo(!continuo);
     } else if (florid && ["8", "4", "3", "2", "6", "1"].includes(k)) setNoteValue({ "8": 1, "4": 2, "3": 3, "2": 4, "6": 6, "1": 8 }[k]!);
     else if (GRID && (k === "t" || k === "T" || k === "+")) hold();
-    else if (k === "Tab") setActive(mine[(mine.indexOf(activeStaff) + (e.shiftKey ? mine.length - 1 : 1)) % mine.length]);
+    else if (k === "v" || k === "V") setActive(mine[(mine.indexOf(activeStaff) + (e.shiftKey ? mine.length - 1 : 1)) % mine.length]);
     else if (k === "ArrowRight") browse(1);
     else if (k === "ArrowLeft") browse(-1);
     else if ((k === "r" || k === "R") && isMoving(activeStaff)) write(activeStaff, { ...s, notes: s.notes.map((q, j) => (j === s.selected ? REST : q)) }, true);
@@ -482,14 +486,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial }: { onVoi
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
             <button className="icon" onClick={() => goTo(stepIndex - 1)} disabled={stepIndex === 0} aria-label={t("ui.nav.prev")}>‹</button>
-            <select id="voices" className="sel sel-voices" value={4} aria-label={t("ui.nav.voices")} onChange={(e) => (e.target.value === "wtc" || e.target.value === "chorale" || e.target.value === "preludes" ? (audio.stop(), onVoices(e.target.value)) : Number(e.target.value) !== 4 && (audio.stop(), onVoices(Number(e.target.value) as 2 | 3)))}>
-              {[2, 3, 4].map((n) => (
-                <option key={n} value={n}>{t("ui.nav.voicesN", { n })}</option>
-              ))}
-              <option value="wtc">{t("ui.wtc.mode")}</option>
-              <option value="chorale">{t("chorale.mode")}</option>
-              <option value="preludes">{t("wtcp.mode")}</option>
-            </select>
+            <ModeSelect value={4} stars={stars} onMode={(m) => (audio.stop(), onVoices(m))} />
             <select id="species" className="sel sel-species" value={species} aria-label={t("ui.nav.species")} onChange={(e) => goToSpecies(Number(e.target.value) as QuartetSpecies)}>
               {QUARTET_SPECIES.map((n) => {
                 const open = exerciseOpen(BY_SPECIES[n][0].id, stars, beta);
@@ -608,7 +605,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial }: { onVoi
       }
       summary={result && (
         <div className={result.passed ? "eval-summary ok" : "eval-summary bad"} role="status">
-          <span className="verdict">{result.passed ? `✓ ${t("ui.summary.passed")}` : `✗ ${t("ui.summary.failed", { n: result.errors.length })}`}</span>
+          <span className="verdict">{result.passed ? `✓ ${t("ui.summary.passed")}` : `✗ ${t("ui.summary.failed", { n: new Set(result.errors.map((v) => v.ruleId)).size })}`}</span>
           <button className="link" onClick={() => setTab("evaluation")}>{t("ui.summary.open")} ▸</button>
         </div>
       )}
@@ -654,7 +651,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial }: { onVoi
           <>
             {result ? (
               <section className="feedback trio-feedback" aria-live="polite">
-                <p className={result.passed ? "verdict ok" : "verdict bad"}>{result.passed ? t("ui.trio3.passed") : t("ui.trio3.failed", { n: errors.length })}</p>
+                <p className={result.passed ? "verdict ok" : "verdict bad"}>{result.passed ? t("ui.trio3.passed") : t("ui.trio3.failed", { n: new Set(errors.map((v) => v.ruleId)).size })}</p>
                 <ul>
                   {errors.map((v, i) => (
                     <li key={`e${i}`} className="error">

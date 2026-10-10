@@ -4,6 +4,7 @@
  * beside Kittel's basses, Bach's settings of the tune, and Bach's habit in the same context. No
  * choice is marked wrong: the masters' choices are the feedback.
  */
+import { ModeSelect } from "./ModeSelect.tsx";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { BACH_REFS, CHORALES, comparePoints, frac, soundingMelody, voiceChord, type PhraseVerdict } from "../chorale/level1.ts";
 import { LEVEL2, noteIndices } from "../chorale/level2.ts";
@@ -21,7 +22,7 @@ import { t } from "./i18n.ts";
 
 type Picks = Record<number, (string | null)[]>;
 
-export function ChoraleApp({ onMode }: { onMode(mode: Mode): void }) {
+export function ChoraleApp({ onMode, onTutorial }: { onMode(mode: Mode): void; onTutorial?: () => void }) {
   const [index, setIndex] = useState(() => Math.max(0, CHORALES.findIndex((c) => c.number === stored("wtg.chorale", 1, (v) => typeof v === "number"))));
   const ch = CHORALES[index];
   useEffect(() => store("wtg.chorale", ch.number), [ch.number]);
@@ -219,13 +220,7 @@ export function ChoraleApp({ onMode }: { onMode(mode: Mode): void }) {
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
             <button className="icon" onClick={() => goTo(index - 1)} disabled={index === 0} aria-label={t("ui.nav.prev")}>‹</button>
-            <select id="voices" className="sel sel-voices" value="chorale" aria-label={t("ui.nav.voices")} onChange={(e) => { stop(); const v = e.target.value; onMode(v === "chorale" || v === "preludes" || v === "wtc" ? v : (Number(v) as 2 | 3)); }}>
-              <option value={2}>{t("ui.nav.voicesN", { n: 2 })}</option>
-              <option value={3}>{t("ui.nav.voicesN", { n: 3 })}</option>
-              <option value="wtc">{t("ui.wtc.mode")}</option>
-              <option value="chorale">{t("chorale.mode")}</option>
-              <option value="preludes">{t("wtcp.mode")}</option>
-            </select>
+            <ModeSelect value="chorale" onMode={(m) => { stop(); onMode(m); }} />
             <select id="level" className="sel sel-species" value={level} aria-label={t("chorale.level")} onChange={(e) => { stop(); setLevel(Number(e.target.value) as Level); setSelected(0); setCompared(null); }}>
               {[1, 2, 3, 4, 5, 6].map((n) => (
                 <option key={n} value={n} disabled={n > 4}>{t(`chorale.level.${n}`)}</option>
@@ -245,7 +240,7 @@ export function ChoraleApp({ onMode }: { onMode(mode: Mode): void }) {
             )}
             <button className="icon" onClick={() => goTo(index + 1)} disabled={index === CHORALES.length - 1} aria-label={t("ui.nav.next")}>›</button>
           </nav>
-          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("about")} />
+          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("about")} onTutorial={onTutorial} />
         </>
       }
       score={

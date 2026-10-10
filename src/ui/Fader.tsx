@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { sliderKey } from "./keys.ts";
 
 /**
  * A mixer fader in the manner of Ableton Live's (D80): a vertical track with a decibel scale and a
@@ -41,6 +42,11 @@ export function Fader(p: { value: number; onChange(v: number): void; label: stri
         aria-valuenow={p.value}
         aria-valuetext={`${formatDb(p.value)} dB`}
         title={`${p.label}: ${formatDb(p.value)} dB`}
+        tabIndex={0}
+        onKeyDown={(e) => {
+          const next = sliderKey(e, pos);
+          if (next !== null) p.onChange(gainOfPos(next));
+        }}
         onPointerDown={(e) => {
           e.preventDefault();
           const r = e.currentTarget.getBoundingClientRect();

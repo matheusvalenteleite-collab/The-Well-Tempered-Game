@@ -16,6 +16,9 @@
  * its sections (by the keys it reaches) and moments; and for both pieces a harmonic reading (the
  * chord of each bar or half-bar, by Roman numeral, over the roll; the chords alone as a skeleton).
  */
+import type { Mode } from "./Root.tsx";
+import { ModeSelect } from "./ModeSelect.tsx";
+import { keyBelongsToControl } from "./keys.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { chordName, chordTones, figurationChanges, figurationShare, findCadences, keyPlan, readHarmony, romanOf, type Chord } from "../wtc/harmony.ts";
 import { beatOf } from "../wtc/counterpoint.ts";
@@ -77,7 +80,7 @@ const vexKey = (key: string) => (key[0] === key[0].toLowerCase() ? `${key[0].toU
 const DEGREES = [0, 2, 3, 4, 5, 7, 8, 9, 10, 11, 1, 6];
 
 
-export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 | 3 | "wtc"): void; onExercises(): void; onTutorial?: (lessonId?: string) => void }) {
+export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mode): void; onExercises(): void; onTutorial?: (lessonId?: string) => void }) {
   const [index, setIndex] = useState(() => Math.max(0, LIBRARY.findIndex((f) => f.id === stored("wtg.wtcFugue", LIBRARY[0].id))));
   const L = LIBRARY[index];
   useEffect(() => store("wtg.wtcFugue", L.id), [L.id]);
@@ -438,6 +441,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   keyRef.current = (e: KeyboardEvent) => {
     const tg = e.target as HTMLElement | null;
     if (tg && /^(INPUT|SELECT|TEXTAREA)$/.test(tg.tagName)) return;
+    if (keyBelongsToControl(e)) return;
     if (e.key === " ") {
       e.preventDefault();
       if (playing) stop();
@@ -868,11 +872,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
             <button className="icon" onClick={() => go(index - 1)} disabled={index === 0} aria-label={t("ui.nav.prev")}>‹</button>
-            <select id="voices" className="sel sel-voices" value="wtc" aria-label={t("ui.nav.voices")} onChange={(e) => (stop(), onVoices(e.target.value === "wtc" ? "wtc" : (Number(e.target.value) as 2 | 3)))}>
-              <option value={2}>{t("ui.nav.voicesN", { n: 2 })}</option>
-              <option value={3}>{t("ui.nav.voicesN", { n: 3 })}</option>
-              <option value="wtc">{t("ui.wtc.mode")}</option>
-            </select>
+            <ModeSelect value="wtc" onMode={(m) => (stop(), onVoices(m))} />
             <select id="exercise" className="sel sel-exercise" value={index} onChange={(e) => go(Number(e.target.value))} aria-label={t("ui.wtc.fugue")}>
               {LIBRARY.map((f, k) => (
                 <option key={f.id} value={k}>{fugueLabel(f)}</option>

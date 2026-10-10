@@ -3,6 +3,7 @@
  * each figured bar the player chooses its harmony (Bach's bar, or a neighbouring bar's right hand
  * over this bar's left hand), hears it in Bach's figuration, and compares the plan with Bach's.
  */
+import { ModeSelect } from "./ModeSelect.tsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { barEvents, chordNames, figuredBars, pieceEvents, type PlanPiece } from "../wtc/preludes.ts";
 import { frac } from "../wtc/prelude1.ts";
@@ -17,7 +18,7 @@ import { t } from "./i18n.ts";
 type Picks = (number | null)[];
 const LETTERS = "ABCD";
 
-export function PlanApp({ onMode, level, onLevel, piece }: { onMode(mode: Mode): void; level: WtcLevel; onLevel(l: WtcLevel): void; piece: PlanPiece }) {
+export function PlanApp({ onMode, onTutorial, level, onLevel, piece }: { onMode(mode: Mode): void; onTutorial?: () => void; level: WtcLevel; onLevel(l: WtcLevel): void; piece: PlanPiece }) {
   const bars = useMemo(() => figuredBars(piece), [piece]);
   const key = `wtg.plan.${piece.id}`;
   const [picks, setPicksState] = useState<Picks>(() => stored<Picks>(key, bars.map(() => null), (v) => Array.isArray(v) && v.length === bars.length));
@@ -94,16 +95,10 @@ export function PlanApp({ onMode, level, onLevel, piece }: { onMode(mode: Mode):
         <>
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
-            <select id="voices" className="sel sel-voices" value="preludes" aria-label={t("ui.nav.voices")} onChange={(e) => { stop(); const v = e.target.value; onMode(v === "chorale" || v === "preludes" || v === "wtc" ? v : (Number(v) as 2 | 3)); }}>
-              <option value={2}>{t("ui.nav.voicesN", { n: 2 })}</option>
-              <option value={3}>{t("ui.nav.voicesN", { n: 3 })}</option>
-              <option value="wtc">{t("ui.wtc.mode")}</option>
-              <option value="chorale">{t("chorale.mode")}</option>
-              <option value="preludes">{t("wtcp.mode")}</option>
-            </select>
+            <ModeSelect value="preludes" onMode={(m) => { stop(); onMode(m); }} />
             <WtcLevelSelect level={level} onLevel={onLevel} onChange={() => stop()} />
           </nav>
-          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("about")} />
+          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("about")} onTutorial={onTutorial} />
         </>
       }
       score={

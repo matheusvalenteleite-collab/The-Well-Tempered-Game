@@ -23,6 +23,8 @@ import { Systems, ZOOM_MAX, ZOOM_MIN } from "./notation/Systems.tsx";
 import { buildOverlay, neutralOverlay } from "./notation/overlay.ts";
 import { Credits } from "./Credits.tsx";
 import { QuickStart } from "./QuickStart.tsx";
+import { ModeSelect } from "./ModeSelect.tsx";
+import { keyBelongsToControl, trackKey } from "./keys.ts";
 import { HintBar } from "./HintBar.tsx";
 import { hintContext, hintsAvailable } from "../game/hints-context.ts";
 import { applyStyle, type StyleId } from "../audio/styles.ts";
@@ -46,7 +48,7 @@ import { useHighlight } from "./highlight.ts";
 import { ScoreTools } from "./ScoreTools.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 import { useBeta } from "./beta.ts";
-import { exerciseOpen, FIRST_QUARTET, furthestOpen, GAME_ORDER } from "../game/unlock.ts";
+import { exerciseOpen, furthestOpen } from "../game/unlock.ts";
 import { tt } from "../tutorial/text.ts";
 import type { NameStyle } from "../music/names.ts";
 import { audio, store, stored, validDrumKit } from "./shared.ts";
@@ -158,13 +160,14 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
   const [hintOn, setHintOn] = useState(() => stored("wtg.hints", false, (v) => typeof v === "boolean"));
   useEffect(() => store("wtg.hints", hintOn), [hintOn]);
   // The quick start opens by itself on the first visit, and on HOW TO PLAY (D108).
-  const [showQuick, setShowQuick] = useState(() => !stored("wtg.quickSeen", false, (v) => typeof v === "boolean"));
+  // D149: not under the welcome; after it, only through its "I know the basics" door.
+  const [showQuick, setShowQuick] = useState(() => !stored("wtg.quickSeen", false, (v) => typeof v === "boolean") && stored("wtg.welcomed", false, (v) => typeof v === "boolean"));
   useEffect(() => { if (showQuick) store("wtg.quickSeen", true); }, [showQuick]);
   const [result, setResult] = useState<Evaluation | null>(null);
   const [showFux, setShowFux] = useState(false);
   /** The study area below: the rules of this exercise, or the Lectio (Fux's text and commentary). */
   /** The dock's tab (D94): the mixer, the evaluation, the rules, the lectio. */
-  const [tab, setTab] = useState<string>(() => { const v: string = stored<string>("wtg.dock", "mixer", (x) => typeof x === "string"); return v === "rules" ? "guide" : v; });
+  const [tab, setTab] = useState<string>(() => { const v: string = stored<string>("wtg.dock", "guide", (x) => typeof x === "string"); return v === "rules" ? "guide" : v; });
   useEffect(() => store("wtg.dock", tab), [tab]);
   const [nameStyle, setNameStyle] = useState<NameStyle>(() => stored("wtg.nameStyle2", "solfege" as NameStyle, (v) => v === "letters" || v === "solfege"));
   useEffect(() => store("wtg.nameStyle2", nameStyle), [nameStyle]);
@@ -734,9 +737,10 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
         return;
       }
     }
-    // F1-F9 switch the numbered tracks on and off, as Ableton's F1-F8 switch its track activators (D85).
-    if (/^F[1-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey && !showCredits && !showSaved && !showQuick && exportPhase === null) {
-      const track = trackOrder(advanced)[Number(e.key.slice(1)) - 1];
+    // Alt + 1-9 switch the numbered tracks on and off (D85; F1-F9 until D149).
+    const digit = trackKey(e);
+    if (digit !== null && !showCredits && !showSaved && !showQuick && exportPhase === null) {
+      const track = trackOrder(advanced)[digit - 1];
       const n = track === undefined ? 0 : track === "cantus" ? 1 : track === "counterpoint" ? 2 : track === "fux" ? 3 : track === "drums" ? 8 : track === "continuo" ? 9 : 4 + VERSION_IDS.indexOf(track as VersionId);
       if (n === 1) setSound(changeMix(sound, "cantus", { mute: !sound.mix.cantus.mute }));
       else if (n === 2) {
@@ -753,6 +757,7 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
       e.preventDefault();
       return;
     }
+    if (keyBelongsToControl(e)) return;
     if (showCredits || showSaved || showQuick || (exportPhase !== null && (exportPhase !== "recording" || ["p", "P", " "].includes(e.key))) || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
     const k = e.key;
     const s = session;
@@ -852,7 +857,7 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
   );
   const summary = result && (
     <div className={result.passed ? "eval-summary ok" : "eval-summary bad"} role="status">
-      <span className="verdict">{result.passed ? `✓ ${t("ui.summary.passed")}` : `✗ ${t("ui.summary.failed", { n: result.errors.length })}`}</span>
+      <span className="verdict">{result.passed ? `✓ ${t("ui.summary.passed")}` : `✗ ${t("ui.summary.failed", { n: new Set(result.errors.map((v) => v.ruleId)).size })}`}</span>
       {result.errors.slice(0, 2).map((v, i) => (
         <span key={i} className="summary-item">
           {" · "}
@@ -872,36 +877,7 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
           <button className="icon" onClick={() => goTo(stepIndex - 1)} disabled={stepIndex === 0} aria-label={t("ui.nav.prev")}>‹</button>
-          <select
-            id="voices"
-            className="sel sel-voices"
-            value={COURSE.voices}
-            aria-label={t("ui.nav.voices")}
-            onChange={(e) => {
-              if (e.target.value === "wtc" || e.target.value === "chorale" || e.target.value === "preludes") {
-                audio.stop();
-                onVoices(e.target.value);
-                return;
-              }
-              if (Number(e.target.value) === 3 || Number(e.target.value) === 4) {
-                audio.stop();
-                onVoices(Number(e.target.value) as 3 | 4);
-                return;
-              }
-              const c = COURSES.find((x) => x.voices === Number(e.target.value) && x.steps.length > 0);
-              if (c) goTo(stepIndexOf(c.steps[0].id));
-            }}
-          >
-            {[2, 3, 4].map((n) => (
-              <option key={n} value={n} disabled={n === 3 ? !exerciseOpen(GAME_ORDER[STEPS.length], stars, beta) : n === 4 ? !exerciseOpen(FIRST_QUARTET, stars, beta) : !COURSES.some((c) => c.voices === n && c.steps.length > 0)}>
-                {(n === 3 && !exerciseOpen(GAME_ORDER[STEPS.length], stars, beta)) || (n === 4 && !exerciseOpen(FIRST_QUARTET, stars, beta)) ? "🔒 " : ""}
-                {t("ui.nav.voicesN", { n })}
-              </option>
-            ))}
-            <option value="wtc">{t("ui.wtc.mode")}</option>
-            <option value="chorale">{t("chorale.mode")}</option>
-            <option value="preludes">{t("wtcp.mode")}</option>
-          </select>
+          <ModeSelect value={2} stars={stars} onMode={(m) => { audio.stop(); onVoices(m); }} />
           <select
             id="species"
             className="sel sel-species"
