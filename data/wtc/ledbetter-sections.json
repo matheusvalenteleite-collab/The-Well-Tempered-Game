@@ -264,7 +264,7 @@
    {
     "from": 1,
     "to": 14,
-    "label": "½ exposition recto"
+    "label": "exposition recto"
    },
    {
     "from": 1,
@@ -274,7 +274,17 @@
    {
     "from": 14,
     "to": 27,
+    "label": "exposition inverso"
+   },
+   {
+    "from": 14,
+    "to": 27,
     "label": "inversion"
+   },
+   {
+    "from": 27,
+    "to": 48,
+    "label": "stretto recto at the octave"
    },
    {
     "from": 27,
@@ -284,7 +294,7 @@
    {
     "from": 48,
     "to": 64,
-    "label": "½ stretto inverso"
+    "label": "stretto inverso"
    },
    {
     "from": 48,

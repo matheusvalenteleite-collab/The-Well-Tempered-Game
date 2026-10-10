@@ -127,8 +127,8 @@ wtc1f14 entry b.29 tenor
 wtc1f14 entry b.32 bass
 wtc1f14 entry b.37 soprano
 wtc1f14 cadence b.20 c# (score; L.: b.20 C#)
-wtc1f14 entry b.20 alto C#
-wtc1f14 entry b.25 soprano C#
+wtc1f14 entry b.20 alto f# (inverso, starting on C#; L. gives the starting note)
+wtc1f14 entry b.25 soprano c# (head varied; L. gives the starting note)
 wtc1p14 cadence b.12 C#
 wtc1f15 section b.20-31 exposition inverso
 wtc1f15 entry b.38 voice? e

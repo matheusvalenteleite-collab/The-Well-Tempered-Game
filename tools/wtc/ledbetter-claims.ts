@@ -43,7 +43,8 @@ for (const c of claims) {
   if (!cache.has(id)) cache.set(id, analyse(p));
   const a = cache.get(id)!;
   const names = voiceNames(p.voices.length).map((n) => LONG[n] ?? n);
-  const [b0, b1] = where.replace("b.", "").split("-").map(Number);
+  // Half bars (b.14½) count as the bar they fall in.
+  const [b0, b1] = where.replace("b.", "").split("-").map((x) => Math.floor(Number(x.replace("½", ".5"))));
   const tail = rest.join(" ").replace(/\([^)]*\)|\[[^\]]*\]/g, "").replace(/\s+/g, " ").trim();
   const flagged = /\[(GAP|check)\]/.test(c);
   const near = (t: number, slack = 1) => Math.abs(barOf(p, t) - b0) <= slack;

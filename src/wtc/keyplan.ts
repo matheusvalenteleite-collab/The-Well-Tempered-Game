@@ -94,6 +94,26 @@ export function entryKey(p: WtcPiece, e: Entry, subject: Note[]): EntryKey {
   // The subject's own mode decides when the entry does not show the third.
   let major = ((thirdPc - tonicPc + 12) % 12) === 4;
   if (!thirds.length) major = p.mode === "major" ? [0, 3, 4].includes(offset) : [2, 5, 6].includes(offset);
+  // The mode heard: every note sounding while the entry lasts, in all the voices, against the major
+  // and minor scales on that tonic (a chromatic subject's own thirds can mislead).
+  {
+    const on = l[0]?.on ?? e.on;
+    const last = l[l.length - 1];
+    const end = last ? last.on + last.dur : on;
+    let maj = 0;
+    let min = 0;
+    for (const v of p.voices)
+      for (const [o, d, pitch] of v) {
+        const overlap = Math.min(o + d, end) - Math.max(o, on);
+        if (overlap <= 0) continue;
+        const pc = (((parsePitch(pitch).midi - tonicPc) % 12) + 12) % 12;
+        if (pc === 4) maj += overlap;
+        if (pc === 3) min += overlap;
+        if (pc === 9) maj += overlap / 2;
+        if (pc === 8) min += overlap / 2;
+      }
+    if (maj + min > 0 && Math.max(maj, min) >= 2 * Math.min(maj, min)) major = maj > min;
+  }
   if (p.mode === "minor" && offset === 4) alter = 0; // the dominant of a minor key: its scale's fifth
   const name = `${letter}${alter > 0 ? "#" : alter < 0 ? "b" : ""}`;
   const roman = ROMAN[offset];

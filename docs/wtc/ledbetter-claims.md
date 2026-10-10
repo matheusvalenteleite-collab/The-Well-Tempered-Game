@@ -9,10 +9,10 @@ a cadence on the key named; a section starting there). Claims the digest flags [
 the analysis does not bear out are left uncounted, as are sections starting at bar 1.
 
 - **entry**: 148 of 173 (86%)
-- **stretto**: 31 of 46 (67%)
+- **stretto**: 35 of 47 (74%)
 - **pedal**: 5 of 12 (42%)
 - **cadence**: 21 of 37 (57%)
-- **section**: 27 of 68 (40%)
+- **section**: 29 of 68 (43%)
 
 Entries, strettos and pedal points are the analysis's own readings and should agree; cadences and
 sections are where it is known to be weak (docs/wtc/ledbetter-check.md), and his sections are the
@@ -115,9 +115,9 @@ Later subjects of double and triple fugues are found from where he says they ent
 
 ### Fugue 8 in D♯ minor (Book I, BWV 853b)
 
-1 of 3 hold.
+2 of 3 hold.
 
-- ✗ `stretto b.19½ voices?`: not found
+- ✓ `stretto b.19½ voices?`: found at bar 19
 - ✓ `stretto b.27 voices? (b.19½ stretto inverted at the 12th)`: found at bar 26
 - ✗ `stretto b.77 voices? (normal, semi-augmented, augmented)`: not found
 
@@ -161,19 +161,19 @@ Later subjects of double and triple fugues are found from where he says they ent
 9 of 12 hold.
 
 - · `section b.1-12 exposition`: the opening
-- ✓ `entry b.7 bass f`: found, but read in F, not f
+- ✓ `entry b.7 bass f`: found, in f
 - ✗ `section b.10-13 interlude`: no section starts here
-- ✓ `entry b.13 voice? f`: found, but read in F, not f
+- ✓ `entry b.13 voice? f`: found, in f
 - ✓ `section b.16-18 interlude`: a section starts at bar 16
 - ✓ `entry b.19 voice? V`: found, in V
 - ✗ `section b.22-26 interlude`: no section starts here
-- ✓ `entry b.27 bass f`: found, but read in F, not f
+- ✓ `entry b.27 bass f`: found, in f
 - · `section b.1-30 first half`: the opening
 - ✓ `entry b.34 voice? Ab`: found, in Ab
 - ✓ `entry b.40 voice? Eb`: found, in Eb
 - ✓ `entry b.47 voice? V`: found, in V
 - ✗ `section b.50-52 interlude`: no section starts here
-- ✓ `entry b.53 bass f`: found, but read in F, not f
+- ✓ `entry b.53 bass f`: found, in f
 
 ### Fugue 13 in F♯ major (Book I, BWV 858b)
 
@@ -195,8 +195,8 @@ Later subjects of double and triple fugues are found from where he says they ent
 - ✓ `entry b.32 bass`: found
 - ✓ `entry b.37 soprano`: found
 - ✗ `cadence b.20 c# (score; L.: b.20 C#)`: not found
-- ✓ `entry b.20 alto C#`: found, but read in c#, not C#
-- ✗ `entry b.25 soprano C#`: not found
+- ✓ `entry b.20 alto f# (inverso, starting on C#; L. gives the starting note)`: found, but read in c#, not f#
+- ✗ `entry b.25 soprano c# (head varied; L. gives the starting note)`: not found
 
 ### Fugue 15 in G major (Book I, BWV 860b)
 
@@ -257,16 +257,16 @@ Later subjects of double and triple fugues are found from where he says they ent
 
 ### Fugue 20 in A minor (Book I, BWV 865b)
 
-8 of 12 hold.
+13 of 13 hold.
 
 - · `section b.1-14½ exposition recto`: the opening
-- ✗ `section b.14½-27½ exposition inverso`: no section starts here
-- ✗ `section b.27½-48 stretto recto at the octave`: no section starts here
+- ✓ `section b.14½-27½ exposition inverso`: a section starts at bar 14
+- ✓ `section b.27½-48 stretto recto at the octave`: a section starts at bar 27
 - ✓ `section b.48-64½ stretto inverso`: a section starts at bar 48
-- ✗ `stretto b.48½ voices? at octave`: not found
-- ✗ `stretto b.64½ voices? at 5th`: not found
+- ✓ `stretto b.48½ voices? at octave`: found at bar 48
+- ✓ `stretto b.64½ voices? at 5th`: found at bar 64
 - ✓ `stretto b.66 voices? at 5th [check]`: found at bar 67
-- · `stretto b.67½ voices? at 5th [check]`: not found
+- ✓ `stretto b.67½ voices? at 5th [check]`: found at bar 67
 - ✓ `stretto b.73 voices?`: found at bar 73
 - ✓ `stretto b.76 voices?`: found at bar 76
 - ✓ `stretto b.83 voices?`: found at bar 83
@@ -325,7 +325,7 @@ Later subjects of double and triple fugues are found from where he says they ent
 - ✓ `entry b.34 voice? V (half)`: found, in V
 - ✓ `entry b.35 voice? V (half)`: found, but read in i, not V
 - ✓ `entry b.38 voice? i`: found, in i
-- ✓ `entry b.41 voice? b (half)`: found, but read in B, not b
+- ✓ `entry b.41 voice? b (half)`: found, in b
 - ✓ `entry b.42 voice? e (half)`: found, but read in E, not e
 - ✗ `entry b.43 voice? A (half)`: not found
 - ✓ `entry b.44 voice? D`: found, in D
