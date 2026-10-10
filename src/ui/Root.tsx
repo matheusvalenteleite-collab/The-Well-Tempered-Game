@@ -1,12 +1,17 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { App } from "./App.tsx";
 import { TrioApp } from "./TrioApp.tsx";
-import { WtcApp } from "./WtcApp.tsx";
-import { WtcStudy } from "./WtcStudy.tsx";
-import { Tutorial } from "./Tutorial.tsx";
+import { t } from "./i18n.ts";
 import { Tour } from "./Tour.tsx";
 import { store, stored } from "./shared.ts";
-import { FUGUE_ID } from "../tutorial/course.ts";
+import { FUGUE_ID } from "../tutorial/fugue-id.ts";
+
+// Loaded when first opened (the first download on a phone was one 10 MB file): the Well-Tempered
+// Clavier, with its 48 pieces, and the tutorial.
+const WtcApp = lazy(() => import("./WtcApp.tsx").then((m) => ({ default: m.WtcApp })));
+const WtcStudy = lazy(() => import("./WtcStudy.tsx").then((m) => ({ default: m.WtcStudy })));
+const Tutorial = lazy(() => import("./Tutorial.tsx").then((m) => ({ default: m.Tutorial })));
+const Loading = () => <div className="loading-screen">{t("ui.loading")}</div>;
 
 /**
  * Two voices (Exercitium I), three (Exercitium II, D90), or the Well-Tempered Clavier (D119):
@@ -64,9 +69,10 @@ export function Root() {
   return (
     <>
       <div className="game-layer" hidden={screen !== "game"}>
-        {game}
+        <Suspense fallback={<Loading />}>{game}</Suspense>
       </div>
       {screen === "tutorial" && (
+        <Suspense fallback={<Loading />}>
         <Tutorial
           onLeave={() => setScreen("game")}
           onGame={openGame}
@@ -77,6 +83,7 @@ export function Root() {
             setTour(true);
           }}
         />
+        </Suspense>
       )}
       {tour && screen === "game" && (
         <Tour

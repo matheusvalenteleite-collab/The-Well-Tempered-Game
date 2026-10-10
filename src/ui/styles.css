@@ -1125,3 +1125,6 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .tut-score.trio { height: 300px; }
 .tut-options.scored .tut-score { height: 220px; }
 @media (max-width: 599px) { .tut-score { height: auto; min-height: 220px; } .tut-score.trio { height: auto; min-height: 240px; } }
+/* Lazy screens (the Well-Tempered Clavier, the tutorial) while they load. */
+.loading-screen { height: 100vh; display: flex; align-items: center; justify-content: center; font-family: var(--ui-font); color: var(--muted); }
+.page-thumb .page-wait { display: block; width: 64px; height: 90px; background: var(--line); opacity: 0.4; }

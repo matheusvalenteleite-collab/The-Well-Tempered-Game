@@ -130,8 +130,8 @@ export interface TutorialData {
   trioData?: unknown;
 }
 
-/** The fugue the chapter on fugue listens to: Book I, no. 1, in C major (BWV 846). */
-export const FUGUE_ID = "wtc1.01";
+import { FUGUE_ID } from "./fugue-id.ts";
+export { FUGUE_ID };
 /** A whole note of the fugue, in seconds (a quarter at about 72). */
 const FUGUE_WHOLE = 3.3;
 
