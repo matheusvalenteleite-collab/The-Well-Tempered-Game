@@ -5,50 +5,54 @@ analyses (31 movements): does the reading there have the analyst's root?
 
 | reading | root agrees |
 |---|---|
-| the lab's reduction, a chord a bar | 3.5%; where it gives a numeral (140 of 3679 segments): 92.1% |
-| the lab's reduction, a chord a half bar | 7.0%; where it gives a numeral (324 of 3678): 79.6% |
+| the lab's reduction, a chord a bar | 29.7%; where it gives a numeral (3230 of 3679 segments): 33.8% |
+| the lab's reduction, a chord a half bar | 35.9%; where it gives a numeral (3234 of 3678): 40.8% |
 | this branch's harmonic map (half beats, passing notes discounted) | 72.4% |
 | this branch's reader given the analyst's segmentation (docs/wtc/HARMONY.md) | 83.3% |
 
-The lab's reduction gives no numeral ("?") where the notes of the bar do not stack in thirds, which in running
-textures is most bars: its own docstring warns of this. Where it does give one, the comparison is fair.
+Where the analyst's harmony lasts at least as long as the lab's segment (so that one chord per segment can agree):
+by the bar 75.0% of 324 segments, by the half bar 62.7% of 1114.
+
+Measured at the lab's commit d93ed86, where reduce() falls back, for a bar whose notes do not stack in thirds, to
+the chord they best fit (marked guessed); before it, the bar was left unread ("?") in most running textures, and
+the few numerals it gave agreed with the analyst at 92% (by the bar, 140 segments).
 
 The two answer different questions: a chord a bar is the progression a figuration prelude decorates (Prelude 1 in
 C, where the analyst too writes a chord a bar), and is meant as such; the map follows the harmony as fast as it
 changes. Where the analysis changes faster than the bar, a chord a bar cannot agree; the table by movement shows
-where each kind of reading serves. Together they suggest a division: the lab's chord-a-bar reading where it gives a
-numeral (rarely, but then nearly always the analyst's root), the map elsewhere.
+where each kind of reading serves. Together they suggest a division: the lab's chord-a-bar reading for
+slow harmony (a bar or more, where it agrees at 75%), the map where the harmony moves faster.
 
 | movement | segments | lab, bar | lab, half bar | map |
 |---|---|---|---|---|
-| wtc1p01 | 35 | 80% | 77% | 63% |
-| wtc1p02 | 60 | 0% | 0% | 78% |
-| wtc1p03 | 107 | 51% | 54% | 57% |
-| wtc1p04 | 91 | 0% | 1% | 70% |
-| wtc1p05 | 108 | 1% | 1% | 85% |
-| wtc1p06 | 114 | 0% | 10% | 82% |
-| wtc1p07 | 217 | 0% | 1% | 80% |
-| wtc1p08 | 67 | 4% | 9% | 91% |
-| wtc1p09 | 66 | 2% | 12% | 76% |
-| wtc1p10 | 76 | 0% | 1% | 89% |
-| wtc1p11 | 66 | 0% | 0% | 92% |
-| wtc1p12 | 85 | 1% | 1% | 61% |
-| wtc1p13 | 97 | 1% | 7% | 51% |
-| wtc1p14 | 95 | 0% | 1% | 68% |
-| wtc1p15 | 78 | 1% | 3% | 55% |
-| wtc1p16 | 114 | 0% | 0% | 81% |
-| wtc1p17 | 67 | 6% | 19% | 61% |
-| wtc1p18 | 88 | 1% | 1% | 68% |
-| wtc1p19 | 93 | 0% | 1% | 68% |
-| wtc1f19 | 352 | 0% | 1% | 59% |
-| wtc1p20 | 48 | 2% | 2% | 74% |
-| wtc1p21 | 74 | 1% | 18% | 95% |
-| wtc1p22 | 91 | 0% | 1% | 87% |
-| wtc1f22 | 169 | 2% | 17% | 75% |
-| wtc1p23 | 67 | 0% | 1% | 84% |
-| wtc1p24 | 152 | 0% | 1% | 72% |
-| wtc2f07 | 140 | 6% | 20% | 85% |
-| wtc2f11 | 185 | 2% | 11% | 66% |
-| wtc2f16 | 224 | 1% | 3% | 69% |
-| wtc2f23 | 258 | 3% | 4% | 73% |
-| wtc2f24 | 195 | 2% | 2% | 68% |
+| wtc1p01 | 35 | 86% | 83% | 63% |
+| wtc1p02 | 60 | 40% | 43% | 78% |
+| wtc1p03 | 107 | 71% | 65% | 57% |
+| wtc1p04 | 91 | 37% | 38% | 70% |
+| wtc1p05 | 108 | 15% | 26% | 85% |
+| wtc1p06 | 114 | 18% | 24% | 82% |
+| wtc1p07 | 217 | 19% | 24% | 80% |
+| wtc1p08 | 67 | 33% | 31% | 91% |
+| wtc1p09 | 66 | 21% | 42% | 76% |
+| wtc1p10 | 76 | 24% | 38% | 89% |
+| wtc1p11 | 66 | 23% | 67% | 92% |
+| wtc1p12 | 85 | 16% | 18% | 61% |
+| wtc1p13 | 97 | 27% | 29% | 51% |
+| wtc1p14 | 95 | 23% | 27% | 68% |
+| wtc1p15 | 78 | 22% | 27% | 55% |
+| wtc1p16 | 114 | 25% | 24% | 81% |
+| wtc1p17 | 67 | 34% | 42% | 61% |
+| wtc1p18 | 88 | 17% | 22% | 68% |
+| wtc1p19 | 93 | 20% | 15% | 68% |
+| wtc1f19 | 352 | 25% | 22% | 59% |
+| wtc1p20 | 48 | 42% | 38% | 74% |
+| wtc1p21 | 74 | 20% | 27% | 95% |
+| wtc1p22 | 91 | 16% | 22% | 87% |
+| wtc1f22 | 169 | 42% | 48% | 75% |
+| wtc1p23 | 67 | 21% | 18% | 84% |
+| wtc1p24 | 152 | 20% | 20% | 72% |
+| wtc2f07 | 140 | 57% | 58% | 85% |
+| wtc2f11 | 185 | 36% | 72% | 66% |
+| wtc2f16 | 224 | 30% | 38% | 69% |
+| wtc2f23 | 258 | 37% | 56% | 73% |
+| wtc2f24 | 195 | 28% | 26% | 68% |

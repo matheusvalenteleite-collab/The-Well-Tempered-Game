@@ -50,6 +50,7 @@ def main() -> None:
     maps = {p["id"]: p for p in json.loads(MAPS.read_text())["pieces"]}
     rows = []
     tot = {"bar": [0, 0, 0], "half": [0, 0, 0], "map": [0, 0]}
+    slow = {"bar": [0, 0], "half": [0, 0]}  # analyst segments at least as long as the lab's
     for pid, path in H.wir_pieces():
         piece = json.loads((LOCAL / f"{pid}.json").read_text())
         spans = H.wir_spans(path, piece)
@@ -68,6 +69,9 @@ def main() -> None:
                 if seg[2] is None:
                     unread += 1
                 ok += seg[2] == sp["root_pc"]
+                if sp["u"] - sp["t"] >= seg[1] - seg[0] and seg[2] is not None:
+                    slow[name][0] += seg[2] == sp["root_pc"]
+                    slow[name][1] += 1
             tot[name][0] += ok
             tot[name][1] += n
             tot[name][2] += unread
@@ -96,13 +100,16 @@ def main() -> None:
           f"| the lab's reduction, a chord a half bar | {pct(tot['half'])}; where it gives a numeral ({tot['half'][1] - tot['half'][2]} of {tot['half'][1]}): {pct([tot['half'][0], tot['half'][1] - tot['half'][2]])} |",
           f"| this branch's harmonic map (half beats, passing notes discounted) | {pct(tot['map'])} |",
           "| this branch's reader given the analyst's segmentation (docs/wtc/HARMONY.md) | 83.3% |", "",
-          "The lab's reduction gives no numeral (\"?\") where the notes of the bar do not stack in thirds, which in running",
-          "textures is most bars: its own docstring warns of this. Where it does give one, the comparison is fair.", "",
+          f"Where the analyst's harmony lasts at least as long as the lab's segment (so that one chord per segment can agree):",
+          f"by the bar {pct(slow['bar'])} of {slow['bar'][1]} segments, by the half bar {pct(slow['half'])} of {slow['half'][1]}.", "",
+          "Measured at the lab's commit d93ed86, where reduce() falls back, for a bar whose notes do not stack in thirds, to",
+          "the chord they best fit (marked guessed); before it, the bar was left unread (\"?\") in most running textures, and",
+          "the few numerals it gave agreed with the analyst at 92% (by the bar, 140 segments).", "",
           "The two answer different questions: a chord a bar is the progression a figuration prelude decorates (Prelude 1 in",
           "C, where the analyst too writes a chord a bar), and is meant as such; the map follows the harmony as fast as it",
           "changes. Where the analysis changes faster than the bar, a chord a bar cannot agree; the table by movement shows",
-          "where each kind of reading serves. Together they suggest a division: the lab's chord-a-bar reading where it gives a",
-          "numeral (rarely, but then nearly always the analyst's root), the map elsewhere.", "",
+          "where each kind of reading serves. Together they suggest a division: the lab's chord-a-bar reading for",
+          "slow harmony (a bar or more, where it agrees at 75%), the map where the harmony moves faster.", "",
           "| movement | segments | lab, bar | lab, half bar | map |", "|---|---|---|---|---|"] + rows
     REPORT.write_text("\n".join(md) + "\n")
     print("\n".join(md[4:10]))
