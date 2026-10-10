@@ -175,9 +175,14 @@ export function findEntries(p: WtcPiece, subject: Note[]): Entry[] {
         let rest = 0;
         let ok = true;
         // The last two intervals are free (entries are often bent at their end into what follows).
-        // Short subjects (eight notes or fewer): only the last interval free, one change allowed.
+        // Short subjects (eight notes or fewer): only the last interval free, one change allowed; the
+        // length of the last two notes free (a closing note shortened in stretto, Book I no. 4, b. 94).
         const short = n <= 8;
         const counted = short ? n - 2 : n - 3;
+        // Past the head, a long subject may be varied more (one change in every twelve notes, at least one).
+        const tail = Math.max(1, Math.floor((n - 5) / 12));
+        // A long subject's opening (an upbeat turn) may be varied in all of its first three intervals.
+        const headMax = short ? 1 : n >= 16 ? 3 : 2;
         for (let i = 0; i < n - 1 && ok; i++) {
           const iv = diatonic(l[s + i + 1].pitch) - diatonic(l[s + i].pitch);
           const want = form === "subject" ? sInt[i] : -sInt[i];
@@ -185,12 +190,12 @@ export function findEntries(p: WtcPiece, subject: Note[]): Entry[] {
             changed++;
             if (i < 5) head++;
             else rest++;
-            if (head > (short ? 1 : 2) || rest > 1) ok = false;
+            if (head > headMax || rest > tail) ok = false;
           }
           // A rhythm altered once past the head (a note split or joined) shares the tail's one change.
-          if (ok && i < Math.min(n - 2, counted) && l[s + i + 2].on - l[s + i + 1].on !== sIoi[i]) {
+          if (ok && i < Math.min(n - 2, short ? counted - 1 : counted) && l[s + i + 2].on - l[s + i + 1].on !== sIoi[i]) {
             if (short || i < 5) ok = false;
-            else if (++rest > 1) ok = false;
+            else if (++rest > tail) ok = false;
           }
         }
         if (ok && (form === "subject" || changed === 0)) {
@@ -268,4 +273,19 @@ function apart(p: WtcPiece, entries: Entry[]): Entry[] {
     return last.on + last.dur;
   };
   return entries.filter((e) => !entries.some((x) => x !== e && x.voice === e.voice && x.on < end(e) && e.on < end(x)));
+}
+
+/**
+ * Entries in augmentation (every value doubled) and diminution (halved), straight or inverted: the
+ * subject searched for at those rhythms. Subjects of fewer than six notes are skipped (diminished,
+ * they turn up in ordinary figuration).
+ */
+export function findTransformed(p: WtcPiece, subject: Note[]): (Entry & { scale: 2 | 0.5 })[] {
+  if (subject.length < 6) return [];
+  const out: (Entry & { scale: 2 | 0.5 })[] = [];
+  for (const scale of [2, 0.5] as const) {
+    const s = subject.map((n) => ({ ...n, on: n.on * scale, dur: n.dur * scale }));
+    for (const e of findEntries(p, s)) out.push({ ...e, scale });
+  }
+  return out.sort((a, b) => a.on - b.on);
 }

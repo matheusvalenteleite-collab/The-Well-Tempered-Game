@@ -1090,6 +1090,7 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .roll-span { fill: var(--pulse, rgba(30, 111, 216, 0.10)); }
 .roll-outline rect { fill: none; stroke: var(--ink, #333); stroke-width: 1; opacity: 0.55; }
 .roll-outline.inv rect { stroke-dasharray: 3 2; }
+.roll-outline.later rect { stroke-dasharray: 1 2; stroke-width: 1.4; }
 .roll-outline .roll-entry { fill: var(--ink, #333); }
 .roll-extra { fill: none; stroke: var(--accent, #e07b00); stroke-width: 1.6; }
 .score-wrap.wtc .voiceroll { position: absolute; inset: 0; }

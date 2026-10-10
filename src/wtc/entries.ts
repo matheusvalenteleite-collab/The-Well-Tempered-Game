@@ -24,6 +24,8 @@ export interface Entry {
   notes: number[];
   /** Where the entry ends (the last matched note's end). */
   end: number;
+  /** A later subject of a double or triple fugue (2, 3); absent for the first subject (D137). */
+  subject?: number;
 }
 
 const EPS = 1e-6;

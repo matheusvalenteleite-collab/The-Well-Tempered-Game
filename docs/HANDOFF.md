@@ -41,7 +41,7 @@ older notes and the owner's open questions.
 
 1. **The owner listens**: recordings (does the bar highlight follow? the E minor fugue of Book II
    is the least steady alignment), the companion's texts, the Page score. Act on what they report.
-2. **Ledbetter check**: session "Ledbetter's WTC book in Markdown" pushed branch
+2. **Ledbetter check** (done in part, D136–D137: strettos, pedals, later subjects, his sections; left: the harmony's cadences, which show only changes of key, and four emendations of the hand notes listed in D136; `node tools/wtc/ledbetter-game.ts` re-measures): session "Ledbetter's WTC book in Markdown" pushed branch
    `claude/vibrant-gates-fe6o3h` with 491 of Ledbetter's claims checked against the score
    (`docs/wtc/ledbetter/claims-score-check.md`). Merge its findings; use them to correct entries,
    sections and the companion where they disagree, and to add notes for more pieces.

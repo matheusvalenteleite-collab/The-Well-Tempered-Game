@@ -13,30 +13,28 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 | | fugues | preludes |
 |---|---|---|
-| entry | 152 of 173 (88%) | none |
-| stretto | 35 of 47 (74%) | none |
-| pedal | 3 of 12 (25%) | 3 of 3 (100%) |
+| entry | 157 of 173 (91%) | none |
+| stretto | 37 of 47 (79%) | none |
+| pedal | 7 of 12 (58%) | 3 of 3 (100%) |
 | cadence | 8 of 35 (23%) | 4 of 29 (14%) |
-| section | 52 of 68 (76%) | 12 of 61 (20%) |
+| section | 56 of 68 (82%) | 49 of 63 (78%) |
 
 ## Strettos the study shows and no claim names
 
-- wtc1f01: strettos the study shows that no claim names, at bars 17, 19, 20, 24
-- wtc1f04: strettos the study shows that no claim names, at bars 1, 22, 25, 29
+- wtc1f01: strettos the study shows that no claim names, at bars 17, 19, 24
+- wtc1f04: strettos the study shows that no claim names, at bars 19, 34, 44, 54, 72
 - wtc1f08: strettos the study shows that no claim names, at bars 24, 44, 52, 54
 - wtc1f11: strettos the study shows that no claim names, at bars 25, 36, 38, 48
-- wtc1f15: strettos the study shows that no claim names, at bars 60, 78
-- wtc1f17: strettos the study shows that no claim names, at bars 1, 5
-- wtc1f19: strettos the study shows that no claim names, at bars 1
+- wtc1f15: strettos the study shows that no claim names, at bars 60, 77, 78
+- wtc1f18: strettos the study shows that no claim names, at bars 24
 - wtc1f20: strettos the study shows that no claim names, at bars 17, 27, 31, 32, 36, 43, 53, 57, 62
-- wtc1f22: strettos the study shows that no claim names, at bars 1, 10, 36, 53, 55, 69
+- wtc1f22: strettos the study shows that no claim names, at bars 36, 55, 69
 - wtc1f24: strettos the study shows that no claim names, at bars 34, 41, 42, 43, 69
 - wtc2f02: strettos the study shows that no claim names, at bars 16, 17, 25
-- wtc2f05: strettos the study shows that no claim names, at bars 5
-- wtc2f06: strettos the study shows that no claim names, at bars 21
+- wtc2f06: strettos the study shows that no claim names, at bars 5, 21
 - wtc2f08: strettos the study shows that no claim names, at bars 43
-- wtc2f09: strettos the study shows that no claim names, at bars 1, 2, 4, 9, 10, 16, 30, 35, 36
-- wtc2f14: strettos the study shows that no claim names, at bars 16, 28
+- wtc2f09: strettos the study shows that no claim names, at bars 9, 10, 35
+- wtc2f15: strettos the study shows that no claim names, at bars 23, 25
 - wtc2f19: strettos the study shows that no claim names, at bars 24
 - wtc2f21: strettos the study shows that no claim names, at bars 25, 62
 - wtc2f22: strettos the study shows that no claim names, at bars 33, 67, 73
@@ -45,20 +43,20 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc1f01
 
-8 of 12 hold.
+11 of 12 hold.
 
 - · `section b.1-7 exposition`: the opening
 - ✓ `stretto b.7 voices? at 4th below`: found at bar 7
 - ✓ `stretto b.10 voices? at 5th above`: found at bar 10
 - ✓ `section b.7-14 close stretto`: a section starts at bar 7
-- ✗ `section b.14-19 triple and quadruple stretto`: no section starts here
+- ✓ `section b.14-19 triple and quadruple stretto`: a section starts at bar 14
 - ✓ `stretto b.14 voices?`: found at bar 14
 - ✓ `stretto b.15 voices? (ff)`: found at bar 14
 - ✓ `entry b.15 bass G (variant; the subject at the dominant level, G A B C D)`: found, on G
 - ✓ `entry b.17 bass`: found
-- ✗ `section b.19-27 stretti over pedals`: no section starts here
+- ✓ `section b.19-27 stretti over pedals`: a section starts at bar 19
 - ✗ `pedal b.19-19 II`: not found
-- ✗ `pedal b.21-22 V`: not found
+- ✓ `pedal b.21-22 V`: found, G3, bars 21–22
 - ✓ `pedal b.24-27 I`: found, C3, bars 24–27
 
 ### wtc1p01
@@ -69,14 +67,14 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc1f02
 
-7 of 8 hold.
+5 of 8 hold.
 
 - ✓ `entry b.3 voice? (modulating version)`: found
-- ✓ `section b.9-10 episode`: a section starts at bar 8
+- ✗ `section b.9-10 episode`: no section starts here
 - ✓ `section b.15-31 second section`: a section starts at bar 15
 - ✓ `entry b.15 alto (modulating version)`: found
 - ✓ `entry b.20 soprano c`: found, on c
-- ✓ `section b.22-25 interlude`: a section starts at bar 21
+- ✗ `section b.22-25 interlude`: no section starts here
 - ✗ `pedal b.25-26 V`: not found
 - ✓ `entry b.26 bass`: found
 - · `section b.1-15`: the opening
@@ -89,54 +87,54 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc1p03
 
-0 of 3 hold.
+3 of 3 hold.
 
-- ✗ `section b.63-98 insertion`: no section starts here
-- ✗ `section b.63-72`: no section starts here
-- ✗ `section b.87-96 (b.63-72 an octave lower)`: no section starts here
+- ✓ `section b.63-98 insertion`: a section starts at bar 63
+- ✓ `section b.63-72`: a section starts at bar 63
+- ✓ `section b.87-96 (b.63-72 an octave lower)`: a section starts at bar 87
 
 ### wtc1f03
 
-6 of 6 hold.
+5 of 6 hold.
 
 - · `section b.1-12 first section`: the opening
 - ✓ `entry b.1 voice? C#`: found, on C#
 - ✓ `entry b.3 alto G# (score; answer, from 3:2.5; L.: bb.4–5)`: found, on G#
 - ✓ `entry b.5 bass C# (score; from 5:2.5; L.: bb.6–7)`: found, on C#
-- ✓ `section b.7-10 episode`: a section starts at bar 6
+- ✗ `section b.7-10 episode`: no section starts here
 - ✓ `entry b.10 soprano G# (score; head varied; the bass reaches G# at 10:1; L.: bass on G)`: found, on G#
-- ✓ `section b.42-55 reprise`: a section starts at bar 43
+- ✓ `section b.42-55 reprise`: a section starts at bar 42
 
 ### wtc1p04
 
-0 of 3 hold.
+3 of 4 hold.
 
-- ✗ `section b.15-18 two-bar periodicity`: no section starts here
-- ✗ `section b.19-35 build-up`: no section starts here
-- · `section b.35-38 added in final version (early version, not encoded) [check]`: no section starts here
+- ✓ `section b.15-18 two-bar periodicity`: a section starts at bar 15
+- ✓ `section b.19-35 build-up`: a section starts at bar 19
+- ✓ `section b.35-38 added in final version (early version, not encoded) [check]`: a section starts at bar 36
 - ✗ `cadence b.14 g# (score; L.: b.14 G#)`: not found
 
 ### wtc1f04
 
-0 of 10 hold.
+5 of 10 hold.
 
-- ✗ `entry b.35 voice? (S2)`: a later subject: the study seeks only the first subject
-- ✗ `entry b.49 voice? (S3)`: a later subject: the study seeks only the first subject
-- ✗ `entry b.67 voice? (S3)`: a later subject: the study seeks only the first subject
-- ✗ `entry b.71 voice? (S3)`: a later subject: the study seeks only the first subject
-- ✗ `stretto b.94 voices?`: not found
-- ✗ `entry b.94 soprano (S1)`: not found
+- ✓ `entry b.35 voice? (S2)`: found, subject 2 in the soprano I at bar 36
+- ✓ `entry b.49 voice? (S3)`: found, subject 3 in the alto at bar 49
+- ✗ `entry b.67 voice? (S3)`: subject 3 found, but not here
+- ✗ `entry b.71 voice? (S3)`: subject 3 found, but not here
+- ✓ `stretto b.94 voices?`: found at bar 94
+- ✓ `entry b.94 soprano (S1)`: found
 - ✗ `entry b.95 alto (S1)`: not found
 - ✗ `entry b.96 voice? (S1)`: not found
 - ✗ `entry b.107 soprano (S1)`: not found
-- ✗ `section b.94-115 stretto`: no section starts here
+- ✓ `section b.94-115 stretto`: a section starts at bar 94
 
 ### wtc1p05
 
-0 of 2 hold.
+2 of 2 hold.
 
-- ✗ `section b.19-26 subdominant reprise`: no section starts here
-- ✗ `section b.30-34 concert ending`: no section starts here
+- ✓ `section b.19-26 subdominant reprise`: a section starts at bar 19
+- ✓ `section b.30-34 concert ending`: a section starts at bar 30
 
 ### wtc1f05
 
@@ -156,10 +154,10 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc1p07
 
-0 of 1 hold.
+1 of 1 hold.
 
 - · `section b.3-4 added (early version, not encoded) [check]`: no section starts here
-- ✗ `section b.10-24 section 2 (stile antico)`: no section starts here
+- ✓ `section b.10-24 section 2 (stile antico)`: a section starts at bar 10
 - · `entry b.25 soprano Bb (score; double-fugue semiquaver subject with slow countersubject in bass; L.: stile antico subject)`: a prelude: the study finds no entries in preludes
 - · `entry b.61 bass`: a prelude: the study finds no entries in preludes
 
@@ -214,7 +212,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc1f11
 
-8 of 10 hold.
+9 of 10 hold.
 
 - · `section b.1-8 passepied first section`: the opening
 - ✓ `entry b.1 alto`: found
@@ -227,7 +225,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 - ✓ `stretto b.46 voices?`: found at bar 46
 - ✓ `entry b.47 bass g (score; variant: continuous semiquavers with échappée at b.49; L.: variant at b.49)`: found, on g
 - ✓ `section b.46-56 stretto`: a section starts at bar 46
-- ✗ `section b.56-72`: no section starts here
+- ✓ `section b.56-72`: a section starts at bar 56
 
 ### wtc1p12
 
@@ -239,15 +237,15 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc1f12
 
-11 of 12 hold.
+9 of 12 hold.
 
 - · `section b.1-12 exposition`: the opening
 - ✓ `entry b.7 bass f`: found, on f
 - ✗ `section b.10-13 interlude`: no section starts here
 - ✓ `entry b.13 voice? f`: found, on f
-- ✓ `section b.16-18 interlude`: a section starts at bar 15
+- ✗ `section b.16-18 interlude`: no section starts here
 - ✓ `entry b.19 voice? V`: found, on V
-- ✓ `section b.22-26 interlude`: a section starts at bar 21
+- ✗ `section b.22-26 interlude`: no section starts here
 - ✓ `entry b.27 bass f`: found, on f
 - · `section b.1-30 first half`: the opening
 - ✓ `entry b.34 voice? Ab`: found, on Ab
@@ -266,11 +264,11 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc1f13
 
-3 of 4 hold.
+4 of 4 hold.
 
 - · `section b.1-7 exposition`: the opening
-- ✓ `section b.7-23`: a section starts at bar 6
-- ✗ `section b.23-35`: no section starts here
+- ✓ `section b.7-23`: a section starts at bar 7
+- ✓ `section b.23-35`: a section starts at bar 23
 - ✓ `entry b.20 bass d# (score; L.: b.22 bass)`: found, on d#
 - ✓ `entry b.5 bass (score; L.: b.7 bass)`: found
 
@@ -321,7 +319,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 - ✓ `entry b.10 voice? I`: found, on I
 - ✓ `section b.11-12 episode`: a section starts at bar 10
 - ✓ `entry b.13 voice? f`: found, on f
-- ✓ `section b.14-15 episode`: a section starts at bar 13
+- ✓ `section b.14-15 episode`: a section starts at bar 14
 - ✓ `entry b.17 tenor bb (score; alto follows at b.18 on F; L.: entries bb.16–19 in B flat minor)`: found, on bb
 - ✓ `section b.19-20 episode`: a section starts at bar 19
 - ✓ `entry b.27 voice? I`: found, on I
@@ -351,7 +349,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc1f19
 
-5 of 8 hold.
+6 of 8 hold.
 
 - ✗ `entry b.16 bass`: not found
 - ✓ `entry b.33 bass`: found
@@ -361,11 +359,11 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 - ✓ `entry b.4 bass`: found
 - ✓ `entry b.6 bass`: found
 - · `section b.1-20`: the opening
-- ✗ `section b.23-42 (score; L.: b.22-42)`: no section starts here
+- ✓ `section b.23-42 (score; L.: b.22-42)`: a section starts at bar 23
 
 ### wtc1f20
 
-12 of 13 hold.
+13 of 13 hold.
 
 - · `section b.1-14½ exposition recto`: the opening
 - ✓ `section b.14½-27½ exposition inverso`: a section starts at bar 14
@@ -377,7 +375,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 - ✓ `stretto b.67½ voices? at 5th [check]`: found at bar 67
 - ✓ `stretto b.73 voices?`: found at bar 73
 - ✓ `stretto b.76 voices?`: found at bar 76
-- ✗ `stretto b.83 voices?`: not found
+- ✓ `stretto b.83 voices?`: found at bar 83
 - ✓ `section b.14-27 inversion`: a section starts at bar 14
 - ✓ `section b.27-48 stretto`: a section starts at bar 27
 - ✓ `section b.48-64 stretto`: a section starts at bar 48
@@ -399,7 +397,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc1f22
 
-8 of 11 hold.
+9 of 11 hold.
 
 - ✓ `entry b.32 bass`: found
 - ✗ `entry b.46 voice?`: not found
@@ -407,9 +405,9 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 - ✓ `cadence b.25 Db`: shown: C♯ reached at bar 25
 - ✓ `section b.25-37`: a section starts at bar 25
 - ✓ `cadence b.37 ab`: shown: A♭ reached at bar 37
-- ✓ `section b.37-55`: a section starts at bar 36
+- ✓ `section b.37-55`: a section starts at bar 37
 - ✓ `cadence b.55 eb`: shown: e♭ reached at bar 55
-- ✗ `section b.55-75`: no section starts here
+- ✓ `section b.55-75`: a section starts at bar 55
 - ✓ `stretto b.67 soprano alto tenor bass voice?`: found at bar 67
 - · `section b.1-25 exposition`: the opening
 - ✗ `stretto b.50 soprano alto`: not found
@@ -426,7 +424,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 7 of 10 hold.
 
 - · `section b.1-9 exposition`: the opening
-- ✓ `section b.9-11 episode`: a section starts at bar 8
+- ✓ `section b.9-11 episode`: a section starts at bar 10
 - ✓ `entry b.11 tenor I`: found, on I
 - ✗ `section b.14-16 episode`: no section starts here
 - ✓ `entry b.16 alto V`: found, on V
@@ -458,14 +456,14 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc2p01
 
-4 of 5 hold.
+5 of 5 hold.
 
 - ✓ `pedal b.1-3 I`: found, C2, bars 1–3
 - · `section b.1-5 opening tonic sentence (870a)`: the opening
-- ✓ `section b.5½-14 tonally diffuse stretch`: a section starts at bar 6
-- ✓ `section b.14-19 bridge`: a section starts at bar 15
-- ✓ `section b.20-28 reprise in subdominant`: a section starts at bar 21
-- ✗ `section b.28-30 bridge recalled`: no section starts here
+- ✓ `section b.5½-14 tonally diffuse stretch`: a section starts at bar 5
+- ✓ `section b.14-19 bridge`: a section starts at bar 14
+- ✓ `section b.20-28 reprise in subdominant`: a section starts at bar 20
+- ✓ `section b.28-30 bridge recalled`: a section starts at bar 28
 
 ### wtc2f01
 
@@ -475,10 +473,10 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc2p02
 
-0 of 3 hold.
+1 of 3 hold.
 
 - · `section b.1-5 closed tonic period`: the opening
-- ✗ `section b.7-8 closing idea`: no section starts here
+- ✓ `section b.7-8 closing idea`: a section starts at bar 6
 - ✗ `cadence b.9 Eb (score; L.: Eb "reached at b.8")`: not found
 - ✗ `section b.23-24 second idea returns`: no section starts here
 
@@ -490,12 +488,12 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc2p03
 
-4 of 5 hold.
+5 of 5 hold.
 
 - · `section b.1-6 chordal decoration of cliché (872a)`: the opening
-- ✗ `section b.25-30 fugal working of cliché (872a)`: no section starts here
+- ✓ `section b.25-30 fugal working of cliché (872a)`: a section starts at bar 24
 - ✓ `section b.14-19 dissonant climax`: a section starts at bar 14
-- ✓ `section b.21-23 minor tinge`: a section starts at bar 21
+- ✓ `section b.21-23 minor tinge`: a section starts at bar 20
 - ✓ `cadence b.20 C#`: shown: C♯ reached at bar 20
 - ✓ `cadence b.6 G#`: shown: A♭ reached at bar 6
 
@@ -512,7 +510,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc2f04
 
-8 of 10 hold.
+9 of 10 hold.
 
 - ✓ `entry b.2 voice? (answer)`: found
 - ✗ `cadence b.13 E`: the harmony reads a cadence on E at bar 13, not shown (the key was already reached)
@@ -521,21 +519,21 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 - ✓ `entry b.24 voice? (inversion exposition)`: found (inverted)
 - ✓ `stretto b.66 soprano+alto+bass`: found at bar 66
 - ✓ `section b.16-24 exposition`: a section starts at bar 16
-- ✗ `entry b.35 soprano (second subject)`: a later subject: the study seeks only the first subject
+- ✓ `entry b.35 soprano (second subject)`: found, subject 2 in the soprano at bar 35
 - ✓ `section b.24-35 inversion`: a section starts at bar 24
-- ✓ `section b.48-71`: a section starts at bar 47
+- ✓ `section b.48-71`: a section starts at bar 48
 
 ### wtc2p05
 
-0 of 6 hold.
+5 of 6 hold.
 
 - · `section b.1-4 closed opening phrase`: the opening
-- ✗ `section b.5-12 modulating sequence to dominant`: no section starts here
-- ✗ `section b.13-16 closing theme`: no section starts here
+- ✓ `section b.5-12 modulating sequence to dominant`: a section starts at bar 5
+- ✓ `section b.13-16 closing theme`: a section starts at bar 13
 - ✗ `cadence b.16 A`: not found
-- ✗ `section b.27-29 semiquaver climax`: no section starts here
-- ✗ `section b.33-40 expanded closing theme`: no section starts here
-- ✗ `section b.41-56 reprise`: no section starts here
+- ✓ `section b.27-29 semiquaver climax`: a section starts at bar 27
+- ✓ `section b.33-40 expanded closing theme`: a section starts at bar 33
+- ✓ `section b.41-56 reprise`: a section starts at bar 41
 
 ### wtc2f05
 
@@ -544,8 +542,8 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 - · `section b.1-10 exposition`: the opening
 - ✓ `section b.10-16 section two`: a section starts at bar 10
 - ✓ `stretto b.14 voices? at 4th`: found at bar 14
-- ✓ `section b.20-27 section three`: a section starts at bar 21
-- ✓ `stretto b.22 voices? at 5th [check]`: found at bar 21
+- ✓ `section b.20-27 section three`: a section starts at bar 20
+- ✓ `stretto b.22 voices? at 5th [check]`: found at bar 22
 - ✓ `stretto b.27 voices? at octave`: found at bar 27
 - ✓ `stretto b.33 voices? at 6th (ff)`: found at bar 33
 - ✓ `entry b.43 bass (chromatically altered)`: found
@@ -556,14 +554,14 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc2p06
 
-0 of 2 hold.
+3 of 3 hold.
 
 - · `section b.1-5 opening formula (875a)`: the opening
-- · `section b.7-15 modulation to dominant (875a) [check]`: no section starts here
+- ✓ `section b.7-15 modulation to dominant (875a) [check]`: a section starts at bar 6
 - · `section b.16-19 inverted formula (875a) [check]`: no section starts here
 - · `section b.20-26 midpoint (875a) [check]`: no section starts here
-- ✗ `section b.9-12 circle-of-5ths transition (score; L.: bb.10–12, "four-bar")`: no section starts here
-- ✗ `section b.13-17 development`: no section starts here
+- ✓ `section b.9-12 circle-of-5ths transition (score; L.: bb.10–12, "four-bar")`: a section starts at bar 9
+- ✓ `section b.13-17 development`: a section starts at bar 13
 
 ### wtc2f06
 
@@ -577,10 +575,10 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc2p07
 
-1 of 1 hold.
+0 of 1 hold.
 
 - · `section b.1-12 opening section`: the opening
-- ✓ `section b.10-11 closing theme`: a section starts at bar 9
+- ✗ `section b.10-11 closing theme`: no section starts here
 - · `section b.1-12`: the opening
 
 ### wtc2f07
@@ -597,9 +595,9 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc2p08
 
-0 of 3 hold.
+1 of 3 hold.
 
-- ✗ `section b.3-9 tonic to relative major`: no section starts here
+- ✓ `section b.3-9 tonic to relative major`: a section starts at bar 3
 - ✗ `section b.15-16 closing idea`: no section starts here
 - ✗ `cadence b.9 F#`: not found
 
@@ -621,7 +619,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 - ✓ `section b.9-15 stretti of subject and countersubject`: a section starts at bar 9
 - ✓ `entry b.10 bass`: found
 - ✓ `section b.16-22 two new subjects`: a section starts at bar 16
-- ✓ `section b.23-34 low stretti`: a section starts at bar 22
+- ✓ `section b.23-34 low stretti`: a section starts at bar 23
 - ✗ `stretto b.23 soprano+alto`: not found
 - ✗ `stretto b.25 bass+tenor`: not found
 - ✗ `stretto b.27 voices? (diminution and inversion)`: not found
@@ -651,9 +649,9 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc2p10
 
-0 of 1 hold.
+1 of 1 hold.
 
-- ✗ `section b.80-108 reprise (score; L.: b.81-110 reprise)`: no section starts here
+- ✓ `section b.80-108 reprise (score; L.: b.81-110 reprise)`: a section starts at bar 80
 
 ### wtc2p11
 
@@ -675,40 +673,40 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc2f12
 
-4 of 7 hold.
+5 of 7 hold.
 
 - ✓ `section b.24-31 relative major`: a section starts at bar 24
 - ✗ `cadence b.40 c`: not found
 - ✓ `entry b.40 voice? f`: found, on f
-- ✗ `pedal b.50-53 V`: not found
+- ✓ `pedal b.50-53 V`: found, C3, bars 50–52
 - ✓ `entry b.71 soprano bb`: found, on bb
 - ✓ `entry b.74 alto f`: found, on f
 - ✗ `pedal b.80-83 V`: not found
 
 ### wtc2p13
 
-1 of 6 hold.
+4 of 6 hold.
 
 - · `section b.1-8 opening period (3+5)`: the opening
-- ✓ `section b.8-14 modulating phrase`: a section starts at bar 9
-- ✗ `section b.15-17 closing phrase (cadence in dominant)`: no section starts here
-- ✗ `section b.17-45 dominant to relative minor`: no section starts here
+- ✓ `section b.8-14 modulating phrase`: a section starts at bar 8
+- ✓ `section b.15-17 closing phrase (cadence in dominant)`: a section starts at bar 15
+- ✓ `section b.17-45 dominant to relative minor`: a section starts at bar 17
 - ✗ `section b.61-68 modulating phase, subdominant to tonic`: no section starts here
 - ✗ `cadence b.17 C#`: not found
-- ✗ `section b.57-68 reprise`: no section starts here
+- ✓ `section b.57-68 reprise`: a section starts at bar 57
 
 ### wtc2f13
 
-8 of 14 hold.
+10 of 14 hold.
 
 - · `section b.1-12 exposition`: the opening
-- ✗ `section b.12-20 episode 1`: no section starts here
+- ✓ `section b.12-20 episode 1`: a section starts at bar 13
 - ✗ `entry b.20 soprano I`: not found
 - ✗ `section b.24-32 episode 2`: no section starts here
 - ✓ `entry b.32 voice? V`: found, on V
 - ✓ `entry b.36 voice? I`: found, on I
 - ✓ `entry b.40 voice? vi`: found, on vi
-- ✗ `section b.44-52 episode 1 return`: no section starts here
+- ✓ `section b.44-52 episode 1 return`: a section starts at bar 45
 - ✓ `entry b.52 voice? IV`: found, on IV
 - ✗ `section b.56-64 episode 2 return`: no section starts here
 - ✓ `section b.64-84 final exposition`: a section starts at bar 64
@@ -759,21 +757,21 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc2p17
 
-1 of 5 hold.
+4 of 5 hold.
 
 - · `section b.1-7 opening period`: the opening
 - ✗ `cadence b.17 Eb (score; closing idea in b.16, arrival 17:1; L.: cadence at b.16)`: not found
-- ✗ `section b.17-33 section 2 (dominant)`: no section starts here
-- ✓ `section b.34-49 section 3 (relative minor, f to Db)`: a section starts at bar 33
-- ✗ `section b.50-62 section 4 (subdominant)`: no section starts here
-- ✗ `section b.64-77 coda`: no section starts here
+- ✓ `section b.17-33 section 2 (dominant)`: a section starts at bar 17
+- ✓ `section b.34-49 section 3 (relative minor, f to Db)`: a section starts at bar 34
+- ✓ `section b.50-62 section 4 (subdominant)`: a section starts at bar 50
+- ✓ `section b.64-77 coda`: a section starts at bar 63
 
 ### wtc2f17
 
 9 of 10 hold.
 
 - · `section b.1-10 entries T-D-T-D`: the opening
-- ✓ `section b.10-13 episode (triple invertible)`: a section starts at bar 9
+- ✓ `section b.10-13 episode (triple invertible)`: a section starts at bar 11
 - ✓ `section b.13-24 entries T-D-T-T`: a section starts at bar 13
 - ✗ `cadence b.16 f`: not found
 - ✓ `entry b.22 voice?`: found
@@ -786,18 +784,18 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc2p18
 
-0 of 3 hold.
+2 of 3 hold.
 
-- ✗ `section b.5-8 modulating phase (to d#)`: no section starts here
-- ✗ `section b.8-15 motivic working`: no section starts here
+- ✓ `section b.5-8 modulating phase (to d#)`: a section starts at bar 5
+- ✓ `section b.8-15 motivic working`: a section starts at bar 8
 - ✗ `section b.11-15 episode`: no section starts here
 
 ### wtc2f18
 
-11 of 12 hold.
+12 of 12 hold.
 
 - · `section b.1-61 section 1 (subject 1)`: the opening
-- ✗ `section b.61-97 section 2 (subject 2)`: no section starts here
+- ✓ `section b.61-97 section 2 (subject 2)`: a section starts at bar 61
 - ✓ `section b.97-143 double fugue`: a section starts at bar 97
 - ✓ `entry b.5 voice?`: found
 - ✓ `entry b.13 voice?`: found
@@ -824,12 +822,12 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc2p19
 
-2 of 4 hold.
+3 of 4 hold.
 
 - ✓ `cadence b.16 f#`: shown: f♯ reached at bar 16
 - ✗ `cadence b.9 E`: not found
 - ✓ `pedal b.30-32 I`: found, A2, bars 30–32
-- ✗ `section b.22-33 reprise`: no section starts here
+- ✓ `section b.22-33 reprise`: a section starts at bar 22
 
 ### wtc2f20
 
@@ -840,7 +838,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc2p21
 
-1 of 9 hold.
+2 of 9 hold.
 
 - · `section b.1-8 area 1ab`: the opening
 - · `section b.1-2 area 1a`: the opening
@@ -852,24 +850,24 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 - ✗ `section b.24-27 area 6`: no section starts here
 - ✗ `section b.28-32 area 7 (closing idea)`: no section starts here
 - · `section b.1-32`: the opening
-- ✓ `section b.33-48`: a section starts at bar 32
-- ✗ `section b.49-87 reprise`: no section starts here
+- ✓ `section b.33-48`: a section starts at bar 33
+- ✓ `section b.49-87 reprise`: a section starts at bar 49
 
 ### wtc2f21
 
-3 of 6 hold.
+4 of 6 hold.
 
 - ✓ `entry b.1 voice?`: found
-- ✗ `pedal b.14-16 I (score; alto, inner pedal; L.: long-held tonic in the middle part)`: not found
-- ✗ `pedal b.22-24 V (score; soprano, upper pedal; L.: long-held dominant f'' in the cantus)`: not found
+- ✓ `pedal b.14-16 I (score; alto, inner pedal; L.: long-held tonic in the middle part)`: found, B♭4, bars 14–16
+- ✓ `pedal b.22-24 V (score; soprano, upper pedal; L.: long-held dominant f'' in the cantus)`: found, F5, bars 22–24
 - · `section b.1-32 first half`: the opening
-- ✓ `section b.29-32 closing idea`: a section starts at bar 29
+- ✗ `section b.29-32 closing idea`: no section starts here
 - ✗ `cadence b.54 Eb`: not found
 - ✓ `entry b.78 voice? V (ff; L.: I, functional)`: found, on V
 
 ### wtc2p22
 
-0 of 3 hold.
+1 of 3 hold.
 
 - · `entry b.1 alto`: a prelude: the study finds no entries in preludes
 - · `entry b.8 soprano v`: a prelude: the study finds no entries in preludes
@@ -881,7 +879,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 - · `entry b.42 bass f (score; L.: Ab entry on the root, not the 3rd)`: a prelude: the study finds no entries in preludes
 - · `entry b.55 voice? eb`: a prelude: the study finds no entries in preludes
 - · `entry b.62 voice? i`: a prelude: the study finds no entries in preludes
-- ✗ `section b.55-83 reprise (score; L.: b.55-82 reprise)`: no section starts here
+- ✓ `section b.55-83 reprise (score; L.: b.55-82 reprise)`: a section starts at bar 55
 
 ### wtc2f22
 
@@ -900,9 +898,9 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc2f23
 
-8 of 10 hold.
+9 of 10 hold.
 
-- ✗ `entry b.28 voice? (subject 2)`: a later subject: the study seeks only the first subject
+- ✓ `entry b.28 voice? (subject 2)`: found, subject 2 in the soprano at bar 28
 - ✓ `entry b.42 soprano F# (harmonised towards g#: L.'s inversion at the 12th)`: found, on F#
 - ✓ `entry b.48 bass`: found
 - ✓ `entry b.53 tenor E (harmonised towards c#: L.'s inversion at the 12th)`: found, on E
@@ -921,15 +919,15 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc2p24
 
-1 of 6 hold.
+6 of 6 hold.
 
 - · `section b.1-8 opening period`: the opening
-- ✗ `section b.9-12 sequential passage`: no section starts here
-- ✓ `section b.13-16 closing idea`: a section starts at bar 12
-- ✗ `section b.33-36 sequential passage (bass-led)`: no section starts here
-- ✗ `section b.41-44 reprise in f# (score; the dominant minor, compressed; L.: "subdominant reprise", an error)`: no section starts here
-- ✗ `section b.45-48 sequential passage`: no section starts here
-- ✗ `section b.49-52 closing idea`: no section starts here
+- ✓ `section b.9-12 sequential passage`: a section starts at bar 9
+- ✓ `section b.13-16 closing idea`: a section starts at bar 13
+- ✓ `section b.33-36 sequential passage (bass-led)`: a section starts at bar 33
+- ✓ `section b.41-44 reprise in f# (score; the dominant minor, compressed; L.: "subdominant reprise", an error)`: a section starts at bar 41
+- ✓ `section b.45-48 sequential passage`: a section starts at bar 45
+- ✓ `section b.49-52 closing idea`: a section starts at bar 49
 
 ### wtc2f24
 

@@ -1,0 +1,11 @@
+{
+  "source": "David Ledbetter, Bach's Well-tempered Clavier: The 48 Preludes and Fugues (Yale, 2002), Part Two; the bars where later subjects first enter",
+  "fugues": {
+    "wtc1f04": [{ "n": 2, "bar": 35, "page": 161, "note": "combined at once with subject 1" }, { "n": 3, "bar": 49, "page": 161 }],
+    "wtc2f04": [{ "n": 2, "bar": 35, "page": 255, "note": "a quasi-exposition in all parts to b. 38" }],
+    "wtc2f09": [{ "n": 2, "bar": 16, "page": 280, "note": "two new subjects in double counterpoint, bb. 16-22" }],
+    "wtc2f14": [{ "n": 2, "bar": 20, "page": 297, "note": "its own exposition, after a cadence in the relative major" }, { "n": 3, "bar": 36, "page": 297, "note": "its own exposition, over a cadence in the dominant" }],
+    "wtc2f18": [{ "n": 2, "bar": 61, "page": 309, "note": "second section, bb. 61-97" }],
+    "wtc2f23": [{ "n": 2, "bar": 28, "page": 328, "note": "no separate exposition; it dominates the rest of the fugue" }]
+  }
+}

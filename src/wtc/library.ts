@@ -7,9 +7,15 @@
  * the subject's head (voice by voice, by intervals and rhythm, a varied tail allowed), and those of
  * entries.ts's (exact rhythm, inversions) that lie in one voice and overlap none of the first. The preludes are encoded as one keyboard stream, so their
  * strands are inferred (voices.ts), as before.
+ * D137: the later subjects of double and triple fugues (subjects.ts: where each first enters is
+ * Ledbetter's, its shape and its other entries are found in the notes), and Ledbetter's sections
+ * (data/wtc/ledbetter-sections.json, from his claims checked against the score).
  */
 import fuguesData from "../../data/wtc/fugues.json" with { type: "json" };
 import preludesData from "../../data/wtc/preludes.json" with { type: "json" };
+import laterData from "../../data/wtc/later-subjects.json" with { type: "json" };
+import sectionsData from "../../data/wtc/ledbetter-sections.json" with { type: "json" };
+import { laterSubjects } from "./subjects.ts";
 import type { WtcPiece } from "./corpus.ts";
 import { findEntriesByHead, line, subjectAndAnswer, TPQ } from "./fugue.ts";
 import { findEntries, type Entry, type FullNote } from "./entries.ts";
@@ -26,6 +32,8 @@ export interface LibPiece {
   spelled: string[];
   voice: number[];
   count: number;
+  /** Ledbetter's sections, in Bach's bars (a half bar as .5), where he gives them. */
+  given: { from: number; to: number; label: string }[];
 }
 
 export interface LibFugue extends LibPiece {
@@ -33,6 +41,8 @@ export interface LibFugue extends LibPiece {
   /** Where the subject starts within its bar, in quarters. */
   phase: number;
   entries: Entry[];
+  /** Entries of the later subjects (each with `subject`: 2, 3), in time order. */
+  later: Entry[];
 }
 
 export interface LibEntry {
@@ -75,12 +85,13 @@ function base(p: WtcPiece): { piece: LibPiece; index: Map<string, number>; pad: 
       voice.push(vi);
     }),
   );
-  return { piece: { time: p.meter, barQuarters: barQ, pickup: pad > 0 ? 1 : 0, notes, spelled, voice, count: p.voices.length }, index, pad };
+  const given = (sectionsData as { pieces: Record<string, LibPiece["given"]> }).pieces[p.id] ?? [];
+  return { piece: { time: p.meter, barQuarters: barQ, pickup: pad > 0 ? 1 : 0, notes, spelled, voice, count: p.voices.length, given }, index, pad };
 }
 
 function fugueOf(p: WtcPiece): LibFugue {
   const { piece, index, pad } = base(p);
-  const { subject } = subjectAndAnswer(p);
+  const { subject, answer } = subjectAndAnswer(p);
   const sMidi = subject.map((n) => parsePitch(n.pitch).midi);
   const s0 = subject[0].on;
   const lab: Entry[] = findEntriesByHead(p, subject).entries.map((e) => {
@@ -104,11 +115,39 @@ function fugueOf(p: WtcPiece): LibFugue {
   const kept: Entry[] = [];
   for (const e of [...lab.sort((a, b) => a.at - b.at), ...more.sort((a, b) => a.at - b.at)]) if (!kept.some((x) => voiceOf(x) === voiceOf(e) && x.at < e.end - 1e-6 && e.at < x.end - 1e-6)) kept.push(e);
   const entries = kept.sort((a, b) => a.at - b.at);
+  // The later subjects, each from the bar where Ledbetter has it enter; its entries' notes as encoded.
+  const later: Entry[] = [];
+  for (const { n, bar } of (laterData as { fugues: Record<string, { n: number; bar: number }[]> }).fugues[p.id] ?? []) {
+    const [ls] = laterSubjects(p, subject, answer, [bar]);
+    if (!ls) continue;
+    let first = -1;
+    for (const o of ls.occurrences) {
+      const ids = p.voices[o.voice].filter(([on, dur, , sub]) => sub === 0 && dur > 0 && on >= o.on && on < o.end).map(([on, , pitch]) => index.get(`${o.voice}:0:${on}:${pitch}`)!).filter((i) => i !== undefined);
+      if (!ids.length) continue;
+      if (first < 0) first = piece.notes[ids[0]].midi;
+      later.push({ at: o.on / TPQ + pad, end: o.end / TPQ + pad, shift: piece.notes[ids[0]].midi - first, inverted: false, notes: ids, subject: n });
+    }
+  }
+  // Within a voice, occurrences do not overlap (the first kept), and a figure carried on in sequence
+  // (each occurrence beginning where the one before ends: Book I no. 4's second subject, a step lower
+  // bar after bar) is one statement.
+  later.sort((a, b) => a.at - b.at);
+  const vOf = (e: Entry) => piece.voice[e.notes[0]];
+  for (let k = later.length - 1; k > 0; k--) if (later.slice(0, k).some((x) => vOf(x) === vOf(later[k]) && x.subject === later[k].subject && x.end > later[k].at + 1e-6)) later.splice(k, 1);
+  for (let k = later.length - 1; k > 0; k--) {
+    const prev = later.slice(0, k).reverse().find((x) => vOf(x) === vOf(later[k]) && x.subject === later[k].subject);
+    if (prev && Math.abs(prev.end - later[k].at) < 1e-6) {
+      prev.end = later[k].end;
+      prev.notes = [...prev.notes, ...later[k].notes];
+      later.splice(k, 1);
+    }
+  }
   return {
     ...piece,
     subject: subject.map((n) => ({ pitch: n.pitch, at: (n.on - s0) / TPQ, dur: n.dur / TPQ })),
     phase: (s0 / TPQ + pad) % piece.barQuarters,
     entries,
+    later,
   };
 }
 

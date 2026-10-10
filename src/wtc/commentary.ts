@@ -107,10 +107,18 @@ export function commentOn(m: Moment, c: CompanionContext, all: Moment[]): string
         `A passage between entries${move}: ${n} in which you can hear the subject's pieces, but never the whole.`,
       ], k);
     }
+    case "later": {
+      const ord = ordinal(Number(m.detail.n) - 1);
+      if (m.detail.first) return `A new subject enters, in the ${v(m.voices[0])}: the ${ord} subject of this fugue, with a shape of its own. Learn it now, as you learned the first; from here on the fugue has more than one idea to work with.`;
+      const against = c.entries.some((e) => e.at < m.to - 1e-6 && m.from < e.end - 1e-6);
+      return against ? `The ${ord} subject in the ${v(m.voices[0])}, sounding against an entry of the first: two subjects at once, each still recognisable.` : `The ${ord} subject again, now in the ${v(m.voices[0])}.`;
+    }
     case "pedal": {
       const pc = (Number(String(m.detail.pc ?? -1)) + 12) % 12;
       const rel = (((pc - c.tonicPc) % 12) + 12) % 12;
       const bars = String(m.detail.bars);
+      if (m.detail.place === "upper" || m.detail.place === "inner")
+        return `A pedal held not in the bass but in the ${v(m.voices[0])}: the ${rel === 0 ? "tonic" : "dominant"} sustained for ${bars} bars while the other parts move ${m.detail.place === "upper" ? "beneath" : "around"} it.`;
       const late = where(m.from) > 0.75;
       if (rel === 0) return `A tonic pedal: the bass holds the home note for ${bars} bars while the voices above it move freely. ${late ? "It is Bach's way of saying that we have arrived." : "The ground stays still; everything above it moves."}`;
       if (rel === 7) return `A dominant pedal: the bass sits on the fifth degree for ${bars} bars, holding back the resolution. Everything above it leans towards a tonic that has not come yet.`;
@@ -123,7 +131,7 @@ export function commentOn(m: Moment, c: CompanionContext, all: Moment[]): string
     case "lowest":
       return `The lowest note, ${m.detail.pitch}, in the ${v(m.voices[0])}: the floor of the piece${where(m.from) > 0.75 ? ", reached near the end, where the music settles" : ""}.`;
     case "cadence":
-      return `The close.${all.some((x) => x.kind === "pedal" && x.to >= m.to - c.barQ) ? " Over the held bass" : ""} the voices gather into the final cadence${c.picardy ? ", and if you listen to the third of the last chord, Bach turns minor into major: the Picardy third, a common Baroque way of ending in light" : ""}.`;
+      return `The close.${all.some((x) => x.kind === "pedal" && x.detail.place !== "upper" && x.detail.place !== "inner" && x.to >= m.to - c.barQ) ? " Over the held bass" : ""} the voices gather into the final cadence${c.picardy ? ", and if you listen to the third of the last chord, Bach turns minor into major: the Picardy third, a common Baroque way of ending in light" : ""}.`;
     case "arrival":
       return `A cadence in ${String(m.detail.keyLabel ?? "a new key")}: the music settles there, for a moment, before moving on.`;
     case "figure":
@@ -148,12 +156,14 @@ export function overview(c: CompanionContext, moments: Moment[]): string {
   const inv = c.entries.filter((e) => e.inverted).length;
   const str = moments.filter((m) => m.kind === "stretto").length;
   const extra = [inv ? `${inv} entr${inv === 1 ? "y is" : "ies are"} upside down` : "", str ? `in ${str} place${str === 1 ? "" : "s"} entries overlap in stretto` : ""].filter(Boolean).join("; ");
-  return `A fugue in ${c.count} voices in ${c.keyName}, ${c.bars} bars, on a subject of ${c.subjectNotes} notes heard ${c.entries.length} times${extra ? `; ${extra}` : ""}.${plan}`;
+  const more = moments.filter((m) => m.kind === "later" && m.detail.first).length;
+  const subjects = more ? ` Later ${more === 1 ? "a second subject enters" : `${more === 2 ? "a second and a third subject enter" : `${more} more subjects enter`}`}, and the fugue works with them too.` : "";
+  return `A fugue in ${c.count} voices in ${c.keyName}, ${c.bars} bars, on a subject of ${c.subjectNotes} notes heard ${c.entries.length} times${extra ? `; ${extra}` : ""}.${plan}${subjects}`;
 }
 
 /** The moment to show while the piece plays at quarter `q`: the most telling one sounding. */
 export function momentAt(moments: Moment[], q: number): Moment | null {
-  const rank: Record<string, number> = { stretto: 0, entry: 1, pedal: 2, cadence: 3, highest: 4, lowest: 5, arrival: 6, episode: 7, figure: 8 };
+  const rank: Record<string, number> = { stretto: 0, entry: 1, later: 1, pedal: 2, cadence: 3, highest: 4, lowest: 5, arrival: 6, episode: 7, figure: 8 };
   const here = moments.filter((m) => m.from <= q + 1e-6 && q < m.to - 1e-6);
   return here.sort((a, b) => rank[a.kind] - rank[b.kind] || b.from - a.from)[0] ?? null;
 }

@@ -7,7 +7,7 @@
 // Usage: node tools/wtc/ledbetter-game.ts
 import { readFileSync, writeFileSync } from "node:fs";
 import { LIBRARY, type LibPiece } from "../../src/wtc/library.ts";
-import { degreeOf, entryVoice, studyMoments, voiceNames } from "../../src/wtc/study.ts";
+import { degreeOf, entryVoice, mergeSections, studyMoments, voiceNames } from "../../src/wtc/study.ts";
 import { findCadences, figurationChanges, keyPlan, readHarmony } from "../../src/wtc/harmony.ts";
 import { beatOf } from "../../src/wtc/counterpoint.ts";
 import { parsePitch } from "../../src/music/pitch.ts";
@@ -24,6 +24,7 @@ interface Analysis {
   minor: boolean;
   tonic: number;
   entries: Entry[];
+  later: Entry[];
   moments: ReturnType<typeof studyMoments>["moments"];
   sections: number[];
   arrivals: { at: number; tonic: number; minor: boolean }[];
@@ -41,20 +42,23 @@ function analyse(id: string): Analysis {
   const minor = key[0] === key[0].toLowerCase();
   const tonic = pcOf(key);
   const entries = prelude ? [] : lib.fugue().entries;
+  const later = prelude ? [] : lib.fugue().later;
   const barQ = piece.barQuarters;
   const chords = readHarmony(piece.notes, barQ, beatOf(piece.time));
   const all = findCadences(chords);
   const plan = keyPlan(all);
-  const base = studyMoments(piece.notes, piece.voice, piece.count, entries, barQ, minor);
+  const base = studyMoments(piece.notes, piece.voice, piece.count, entries, barQ, minor, prelude ? undefined : { beat: beatOf(piece.time), tonicPc: tonic, later, subjectLength: (() => { const sj = lib.fugue().subject; return sj[sj.length - 1].at + sj[sj.length - 1].dur; })() });
+  const end = Math.max(...piece.notes.map((n) => n.at + n.dur));
   let sections: number[];
-  if (!prelude) sections = base.sections.map((s) => s.from);
+  if (!prelude) sections = mergeSections(base.sections, piece.given, later, barQ, piece.pickup, end).map((s) => s.from);
   else {
     // As the study screen: a prelude's sections run from one key reached to the next, else from one figuration to the next.
-    const end = Math.max(...piece.notes.map((n) => n.at + n.dur));
     const figures = figurationChanges(piece.notes, barQ);
-    sections = [0, ...(plan.length ? plan.map((c) => chords[c.chord].to) : figures.map((b) => b * barQ)).filter((q) => q > barQ && q < end - barQ)];
+    const cuts = [0, ...(plan.length ? plan.map((c) => chords[c.chord].to) : figures.map((b) => b * barQ)).filter((q) => q > barQ && q < end - barQ)];
+    const own = cuts.map((from, k) => ({ kind: "figure", from, to: cuts[k + 1] ?? end, entries: [] as number[] }));
+    sections = mergeSections(own, piece.given, [], barQ, piece.pickup, end).map((s) => s.from);
   }
-  return { piece, minor, tonic, entries, moments: base.moments, sections, arrivals: plan, cadences: all, names: voiceNames(piece.count) };
+  return { piece, minor, tonic, entries, later, moments: base.moments, sections, arrivals: plan, cadences: all, names: voiceNames(piece.count) };
 }
 
 interface Result { claim: string; kind: string; ok: boolean | null; note: string }
@@ -74,7 +78,13 @@ for (const c of claims) {
   let note = "";
   if (kind === "entry") {
     if (id[4] === "p") { ok = null; note = "a prelude: the study finds no entries in preludes"; }
-    else if (/\(S([23])\)|(second|third) subject|subject ([23])/i.test(c)) { ok = false; note = "a later subject: the study seeks only the first subject"; }
+    else if (/\(S([23])\)|(second|third) subject|subject ([23])/i.test(c)) {
+      const w = /\(S([23])\)|(second|third) subject|subject ([23])/i.exec(c)!;
+      const n = Number(w[1] ?? w[3] ?? (w[2].toLowerCase() === "second" ? 2 : 3));
+      const hit = a.later.find((e) => e.subject === n && Math.abs(bar(e.at) - b0) <= 1);
+      ok = !!hit;
+      note = hit ? `found, subject ${n} in the ${a.names[entryVoice(hit, p.voice)]} at bar ${bar(hit.at)}` : a.later.some((e) => e.subject === n) ? `subject ${n} found, but not here` : `subject ${n} not identified`;
+    }
     else {
       const [voiceWord, key] = tail.split(" ");
       const first = a.entries[0]?.shift ?? 0;
