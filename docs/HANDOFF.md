@@ -51,7 +51,12 @@ older notes and the owner's open questions.
 3. **Optional**: the lab's licence-safe fugue corpus (Kyle Rother's open-score edition, CC BY 4.0;
    `data/wtc/fugues-open.json` on `claude/beautiful-mccarthy-7li5nv` at 8be67d0). Only if the game
    is ever made public.
-4. Old backlog, last: evaluation redesign and graded three-voice reading with Fux; rule
+4. **Four voices in the Fux mode** (the owner's next priority, D139): source found and public domain. The
+   *species* dataset already vendored for two and three voices (`tools/fux_import/fetch_source.sh`, commit
+   5c7cae4) has Part III: Figs. 160–204, 32 exercises in Humdrum (CC0), and the 1725 pages to p. 138
+   (`source_pdf/gap_p122.pdf` = p. 114, Exercitium III's opening). Next: vendor Part III and pp. 91–138,
+   read the four-voice rules from the print, a four-voice screen like the three-voice one.
+5. Old backlog, last: evaluation redesign and graded three-voice reading with Fux; rule
    demonstrations; the Mann layer.
 
 Known faults: Book I C♯ minor fugue misses the second soprano's entry at bar 12 (altered head);
