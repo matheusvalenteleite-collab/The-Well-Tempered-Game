@@ -37,6 +37,11 @@ import { BarRef } from "./BarRef.tsx";
 import { useHighlight } from "./highlight.ts";
 import { ScoreTools } from "./ScoreTools.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
+import type { GameLink } from "./App.tsx";
+import { LearnLink } from "./LearnLink.tsx";
+import { tt } from "../tutorial/text.ts";
+import { useBeta } from "./beta.ts";
+import { exerciseOpen, furthestOpen } from "../game/unlock.ts";
 import type { NameStyle } from "../music/names.ts";
 
 /** Fux's three-voice exercises by species (D114, D116, D117: first to fifth). */
@@ -70,7 +75,7 @@ const startPitch = (s: TrioStep, staff: number) => {
   return `${"CDEFGAB"[((d % 7) + 7) % 7]}${Math.floor(d / 7)}`;
 };
 
-export function TrioApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
+export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices(n: 2 | 3 | "wtc"): void } & GameLink) {
   const [species, setSpecies] = useState<TrioSpecies>(() => stored<TrioSpecies>("wtg.trioSpecies", 1, (v) => TRIO_SPECIES.includes(v as TrioSpecies)));
   useEffect(() => store("wtg.trioSpecies", species), [species]);
   const STEPS = BY_SPECIES[species];
@@ -89,6 +94,9 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
   const activePart: number | null = activeStaff === STEP.movingIndex && activeBar < STEP.cantus.length - 1 ? session.selected % STEP.per : null;
   const [result, setResult] = useState<TrioEvaluation | null>(null);
   const [stars, setStars] = useState<string[]>(() => stored<string[]>("wtg.stars", [], (v) => Array.isArray(v)));
+  /** Gold stars (D143): cleared with no advice broken either. */
+  const [gold, setGold] = useState<string[]>(() => stored<string[]>("wtg.starsGold", [], (v) => Array.isArray(v)));
+  useEffect(() => store("wtg.starsGold", gold), [gold]);
   useEffect(() => store("wtg.stars", stars), [stars]);
   const [unlocked, setUnlocked] = useState<string[]>([]);
   const fuxOpen = Boolean(result?.passed || unlocked.includes(STEP.id) || stars.includes(STEP.id));
@@ -169,6 +177,21 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
     audio.setGates({ counterpoint: versions.original, second: secondOn, fux: fuxHeard && fuxOpen, continuo });
   }, [versions.original, secondOn, fuxHeard, fuxOpen, continuo]);
   useEffect(() => () => audio.stop(), []);
+  // The tutorial (D140): silent while it is open; the screen's own sound back on return.
+  useEffect(() => {
+    if (suspended) {
+      audio.stop();
+      setPlaying(false);
+      setCursor(-1);
+      return;
+    }
+    audio.setSoundState(sound);
+    audio.drums = drums;
+    audio.setDrums(drumKit, STEP.modalFinal);
+    audio.loop = loop;
+    audio.setGates({ counterpoint: versions.original, fux: fuxHeard && fuxOpen, continuo });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [suspended]);
 
   /** The note each voice sounds at the start of bar k (the minim voice: its thesis, or its arsis after the rest). */
   const downOf = (line: (string | null)[], voice: number, k: number) => {
@@ -191,8 +214,11 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
   const lines = (k: number) => [0, 1, 2].map((i) => (i === STEP.cantusIndex ? STEP.cantus[k] : downOf(sessions[i].notes, i, k)));
   const missing = mine.reduce((n, i) => n + sessions[i].notes.filter((x) => x === null).length, 0);
 
+  // The real setup (D142): a star on an exercise opens the next; in BETA all is open.
+  const beta = useBeta();
+  const isOpen = (k: number) => k >= 0 && k < STEPS.length && exerciseOpen(STEPS[k].id, stars, beta);
   const goTo = (k: number) => {
-    if (k < 0 || k >= STEPS.length) return;
+    if (k < 0 || k >= STEPS.length || !isOpen(k)) return;
     audio.stop();
     setPlaying(false);
     setCursor(-1);
@@ -202,7 +228,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
     setActive(playerStaves(STEPS[k])[0]);
   };
   const goToSpecies = (n: TrioSpecies) => {
-    if (n === species) return;
+    if (n === species || !exerciseOpen(BY_SPECIES[n][0].id, stars, beta)) return;
     audio.stop();
     setPlaying(false);
     setCursor(-1);
@@ -212,6 +238,32 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
     setStepIndex(0);
     setActive(playerStaves(BY_SPECIES[n][0])[0]);
   };
+  /** Any three-voice exercise by id, whatever its species (the tutorial, the real setup). */
+  const jumpTo = (id: string) => {
+    const n = Number(/\.t(\d)\./.exec(id)?.[1]) as TrioSpecies;
+    const k = BY_SPECIES[n]?.findIndex((x) => x.id === id) ?? -1;
+    if (k < 0 || (n === species && k === stepIndex)) return;
+    audio.stop();
+    setPlaying(false);
+    setCursor(-1);
+    setResult(null);
+    setShowFux(false);
+    setSpecies(n);
+    setStepIndex(k);
+    setActive(playerStaves(BY_SPECIES[n][k])[0]);
+  };
+  // On a locked exercise (the real setup switched on): where the learner stands, or back to two voices.
+  useEffect(() => {
+    if (isOpen(stepIndex)) return;
+    const id = furthestOpen(stars, beta);
+    if (id.startsWith("fux-mode.t")) jumpTo(id);
+    else onVoices(2);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [beta, stepIndex, species]);
+  useEffect(() => {
+    if (command) jumpTo(command.stepId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [command?.n]);
 
   // Editing: every change withdraws the evaluation (as in two voices).
   const update = (staff: number, next: SessionState) => {
@@ -364,12 +416,14 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
     setTab("evaluation");
     if (ev.passed) {
       if (!stars.includes(STEP.id)) setStars([...stars, STEP.id]);
+      if (ev.violations.length === 0 && !gold.includes(STEP.id)) setGold([...gold, STEP.id]);
       if (!unlocked.includes(STEP.id)) setUnlocked([...unlocked, STEP.id]);
     }
   };
 
   // Keys (as in two voices), plus Tab for the other voice and F1-F5 for the tracks.
   const onKey = (e: KeyboardEvent) => {
+    if (suspended) return;
     if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
     const target = e.target as HTMLElement | null;
     if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return;
@@ -478,7 +532,8 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
           </select>
           <select id="species" className="sel sel-species" value={species} aria-label={t("ui.nav.species")} onChange={(e) => goToSpecies(Number(e.target.value) as TrioSpecies)}>
             {[1, 2, 3, 4, 5].map((n) => (
-              <option key={n} value={n}>
+              <option key={n} value={n} disabled={!exerciseOpen(BY_SPECIES[n as TrioSpecies][0].id, stars, beta)}>
+                {exerciseOpen(BY_SPECIES[n as TrioSpecies][0].id, stars, beta) ? "" : "🔒 "}
                 {t("ui.nav.speciesN", { n: ORDINAL[n] })}
                 {` · ${BY_SPECIES[n as TrioSpecies].filter((x) => stars.includes(x.id)).length}/${BY_SPECIES[n as TrioSpecies].length}`}
               </option>
@@ -486,21 +541,21 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
           </select>
           <select id="exercise" className="sel sel-exercise" value={stepIndex} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("ui.nav.choose")}>
             {STEPS.map((s, k) => (
-              <option key={s.id} value={k}>
-                {stars.includes(s.id) ? "★ " : ""}
+              <option key={s.id} value={k} disabled={!isOpen(k)}>
+                {gold.includes(s.id) ? "🌟 " : stars.includes(s.id) ? "★ " : isOpen(k) ? "" : "🔒 "}
                 {stepLabel(s)}
               </option>
             ))}
           </select>
-          <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1} aria-label={t("ui.nav.next")}>›</button>
+          <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1 || !isOpen(stepIndex + 1)} aria-label={t("ui.nav.next")}>›</button>
         </nav>
-          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("guide")} />
+          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("guide")} onTutorial={onTutorial} />
         </>
       }
       score={
         <div className="score-wrap trio" data-notes={JSON.stringify(mine.map((i) => sessions[i].notes))}>
-          <span className={stars.includes(STEP.id) ? "star earned" : "star"} aria-label={t(stars.includes(STEP.id) ? "ui.star.earned" : "ui.star.none")}>
-            {stars.includes(STEP.id) ? "★" : "☆"}
+          <span className={gold.includes(STEP.id) ? "star earned gold" : stars.includes(STEP.id) ? "star earned" : "star"} aria-label={tt(gold.includes(STEP.id) ? "ui.starGold" : stars.includes(STEP.id) ? "ui.starPlain" : "ui.starNone")} title={tt(gold.includes(STEP.id) ? "ui.starGold" : stars.includes(STEP.id) ? "ui.starPlain" : "ui.starNone")}>
+            {gold.includes(STEP.id) ? "🌟" : stars.includes(STEP.id) ? "★" : "☆"}
           </span>
           <TrioScore
             pulse={highlight ?? undefined}
@@ -639,7 +694,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
             <ul>
               {errors.map((v, i) => (
                 <li key={`e${i}`} className="error">
-                  <span className="where"><BarRef bars={v.positions}>{t("ui.trio3.bar", { bars: v.positions.map((p) => p + 1).join("–") })}</BarRef> {t("ui.trio3.voices", { voices: describe(v.voices) })}</span> {t(`hints.${v.messageKey}`)}
+                  <span className="where"><BarRef bars={v.positions}>{t("ui.trio3.bar", { bars: v.positions.map((p) => p + 1).join("–") })}</BarRef> {t("ui.trio3.voices", { voices: describe(v.voices) })}</span> {t(`hints.${v.messageKey}`)} <LearnLink ruleId={v.ruleId} onLearn={onTutorial} />
                 </li>
               ))}
             </ul>
@@ -649,7 +704,7 @@ export function TrioApp({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
                 <ul>
                   {warnings.map((v, i) => (
                     <li key={`w${i}`} className="warning">
-                      <span className="where"><BarRef bars={v.positions}>{t("ui.trio3.bar", { bars: v.positions.map((p) => p + 1).join("–") })}</BarRef> {t("ui.trio3.voices", { voices: describe(v.voices) })}</span> {t(`hints.${v.messageKey}`)}
+                      <span className="where"><BarRef bars={v.positions}>{t("ui.trio3.bar", { bars: v.positions.map((p) => p + 1).join("–") })}</BarRef> {t("ui.trio3.voices", { voices: describe(v.voices) })}</span> {t(`hints.${v.messageKey}`)} <LearnLink ruleId={v.ruleId} onLearn={onTutorial} />
                     </li>
                   ))}
                 </ul>

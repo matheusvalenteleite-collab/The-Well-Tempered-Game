@@ -44,6 +44,9 @@ import { BarRef } from "./BarRef.tsx";
 import { useHighlight } from "./highlight.ts";
 import { ScoreTools } from "./ScoreTools.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
+import { useBeta } from "./beta.ts";
+import { exerciseOpen, furthestOpen, GAME_ORDER } from "../game/unlock.ts";
+import { tt } from "../tutorial/text.ts";
 import type { NameStyle } from "../music/names.ts";
 import { audio, store, stored, validDrumKit } from "./shared.ts";
 import type { Step } from "../music/pitch.ts";
@@ -78,7 +81,17 @@ const VERSION_INK: Record<VersionId, string> = {
 };
 const stepIndexOf = (id: string) => STEPS.findIndex((s) => s.id === id);
 
-export function App({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
+/** The game screen's links to the tutorial (D140): hidden and silent while it is open, sent to an exercise from it. */
+export interface GameLink {
+  /** The tutorial is open over the game: keys and sound belong to it. */
+  suspended?: boolean;
+  /** Go to this exercise (a new `n` each time it is asked). */
+  command?: { stepId: string; n: number } | null;
+  /** Open the tutorial (at a lesson, when one is named). */
+  onTutorial?: (lessonId?: string) => void;
+}
+
+export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 2 | 3 | "wtc"): void } & GameLink) {
   const [stepIndex, setStepIndex] = useState(() => {
     const id = stored<string>("wtg.stepId", STEPS[0].id, (v) => typeof v === "string" && stepIndexOf(v) >= 0);
     return stepIndexOf(id);
@@ -90,6 +103,9 @@ export function App({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
   const session = sessions[stepIndex];
   const setSession = (s: SessionState) => setSessions((all) => all.map((x, i) => (i === stepIndex ? s : x)));
   const [stars, setStars] = useState<string[]>(() => stored<string[]>("wtg.stars", [], (v) => Array.isArray(v)));
+  /** Gold stars (D143): cleared with no advice broken either. */
+  const [gold, setGold] = useState<string[]>(() => stored<string[]>("wtg.starsGold", [], (v) => Array.isArray(v)));
+  useEffect(() => store("wtg.starsGold", gold), [gold]);
   const [tempo, setTempo] = useState(() => stored("wtg.tempo", 60, (v) => typeof v === "number" && v >= 30 && v <= 240));
   const [volume, setVolume] = useState(() => stored("wtg.volume", 70, (v) => typeof v === "number" && v >= 0 && v <= 100));
   const [sound, setSound] = useState<SoundState>(() => restoreSound(stored<unknown>("wtg.sound3", null)));
@@ -208,8 +224,15 @@ export function App({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
   }, [tuning]);
   useEffect(() => store("wtg.stars", stars), [stars]);
 
+  // The real setup (D142): a star on an exercise opens the next; in BETA all is open.
+  const beta = useBeta();
+  const isOpen = (k: number) => k >= 0 && k < STEPS.length && exerciseOpen(STEPS[k].id, stars, beta);
   const goTo = (k: number) => {
     if (k < 0 || k >= STEPS.length || k === stepIndex) return;
+    if (!isOpen(k)) {
+      setToast(tt("ui.lockedExercise"));
+      return;
+    }
     audio.stop();
     setPlaying(false);
     setCursor(-1);
@@ -326,7 +349,10 @@ export function App({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
     setResult(ev);
     setTab("evaluation");
     // A star needs a clean result: no rule and no recommendation broken (owner decision D25).
-    if (ev.violations.length === 0 && !stars.includes(STEP.id)) setStars([...stars, STEP.id]);
+    // D143 (amends D25): no rule broken earns the star, which opens the next exercise; no advice
+    // broken either earns the gold star as well.
+    if (ev.passed && !stars.includes(STEP.id)) setStars([...stars, STEP.id]);
+    if (ev.violations.length === 0 && !gold.includes(STEP.id)) setGold([...gold, STEP.id]);
   };
   // Evaluate also judges each active version of the line against the cantus (D47).
   const versionResults = useMemo(() => {
@@ -696,6 +722,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
 
   /** Keys drive the score wherever focus is (buttons, knobs), except in form fields and dialogs. */
   const onKey = (e: KeyboardEvent) => {
+    if (suspended) return;
     const target = e.target as HTMLElement | null;
     if (target && ["TEXTAREA", "SELECT", "INPUT"].includes(target.tagName)) return;
     if (!showCredits && !showSaved && !showQuick && (e.ctrlKey || e.metaKey) && !e.altKey && editable) {
@@ -775,6 +802,30 @@ export function App({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
+  // The tutorial (D140): while it is open the game is silent; on return its own sound comes back.
+  useEffect(() => {
+    if (suspended) {
+      stopSaved();
+      audio.stop();
+      setPlaying(false);
+      setCursor(-1);
+    } else restoreAudio();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [suspended]);
+  // Switched to the real setup on a locked exercise: back to where the learner stands.
+  useEffect(() => {
+    if (isOpen(stepIndex)) return;
+    const k = stepIndexOf(furthestOpen(stars, beta));
+    if (k >= 0) setStepIndex(k);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [beta, stepIndex]);
+  useEffect(() => {
+    if (!command) return;
+    const k = stepIndexOf(command.stepId);
+    if (k >= 0) goTo(k);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [command?.n]);
+
   const clefs = VIEW.clefs.modern;
   // Exercises are named, not numbered by figure; the figure stays in the source line below.
   const name = stepStudy(STEP.id).name;
@@ -841,7 +892,8 @@ export function App({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
             }}
           >
             {[2, 3, 4].map((n) => (
-              <option key={n} value={n} disabled={n !== 3 && !COURSES.some((c) => c.voices === n && c.steps.length > 0)}>
+              <option key={n} value={n} disabled={n === 3 ? !exerciseOpen(GAME_ORDER[STEPS.length], stars, beta) : !COURSES.some((c) => c.voices === n && c.steps.length > 0)}>
+                {n === 3 && !exerciseOpen(GAME_ORDER[STEPS.length], stars, beta) ? "🔒 " : ""}
                 {t("ui.nav.voicesN", { n })}
               </option>
             ))}
@@ -859,9 +911,10 @@ export function App({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
           >
             {COURSES.filter((c) => c.voices === COURSE.voices).map((c) => {
               const done = c.steps.length > 0 && c.steps.every((x) => stars.includes(x.id));
+              const locked = c.steps.length > 0 && !isOpen(stepIndexOf(c.steps[0].id));
               return (
-                <option key={c.species} value={c.species} disabled={c.steps.length === 0}>
-                  {done ? "★ " : ""}
+                <option key={c.species} value={c.species} disabled={c.steps.length === 0 || locked}>
+                  {done ? "★ " : locked ? "🔒 " : ""}
                   {t("ui.nav.speciesN", { n: ORDINAL[c.species] })}
                   {c.steps.length > 0 ? ` · ${c.steps.filter((x) => stars.includes(x.id)).length}/${c.steps.length}` : ""}
                 </option>
@@ -872,14 +925,14 @@ export function App({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
             {COURSE.steps.map((s) => {
               const k = stepIndexOf(s.id);
               return (
-                <option key={s.id} value={k}>
-                  {stars.includes(s.id) ? "★ " : ""}
+                <option key={s.id} value={k} disabled={!isOpen(k)}>
+                  {gold.includes(s.id) ? "🌟 " : stars.includes(s.id) ? "★ " : isOpen(k) ? "" : "🔒 "}
                   {stepLabel(k)}
                 </option>
               );
             })}
           </select>
-          <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1} aria-label={t("ui.nav.next")}>›</button>
+          <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1 || !isOpen(stepIndex + 1)} aria-label={t("ui.nav.next")}>›</button>
         </nav>
           <HeaderTools
             onSave={savePiece}
@@ -901,13 +954,14 @@ export function App({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
             onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")}
             onCredits={() => setShowCredits(true)}
             onHelp={() => setShowQuick(true)}
+            onTutorial={onTutorial}
           />
         </>
       }
       score={
         <div className="score-wrap" ref={scoreRef} data-notes={JSON.stringify(session.notes)} aria-label={t("ui.help.short")}>
-          <span className={starred ? "star earned" : "star"} aria-label={t(starred ? "ui.star.earned" : "ui.star.none")} title={t(starred ? "ui.star.earned" : "ui.star.none")}>
-            {starred ? "★" : "☆"}
+          <span className={gold.includes(STEP.id) ? "star earned gold" : starred ? "star earned" : "star"} aria-label={tt(gold.includes(STEP.id) ? "ui.starGold" : starred ? "ui.starPlain" : "ui.starNone")} title={tt(gold.includes(STEP.id) ? "ui.starGold" : starred ? "ui.starPlain" : "ui.starNone")}>
+            {gold.includes(STEP.id) ? "🌟" : starred ? "★" : "☆"}
           </span>
           <Systems
             pulse={highlight ?? undefined}
@@ -1071,7 +1125,8 @@ export function App({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
           <section className="feedback" aria-live="polite">
             <Feedback
               result={result} cantus={VIEW.cantus} counterpoint={session.notes} cantusVoice={VIEW.cantusVoice} clefs={clefs} signature={VIEW.signature} layout={VIEW.layout} ties={VIEW.species === "fourth"} audio={audio}
-              actions={result.passed && stepIndex < STEPS.length - 1 ? <button className="next" onClick={() => goTo(stepIndex + 1)}>{t("ui.nav.nextExercise")} ›</button> : undefined}
+              actions={result.passed && stepIndex < STEPS.length - 1 && isOpen(stepIndex + 1) ? <button className="next" onClick={() => goTo(stepIndex + 1)}>{t("ui.nav.nextExercise")} ›</button> : undefined}
+              onLearn={onTutorial}
             />
             {versionResults.length > 0 && <h3 className="eval-h">{t("ui.result.versionsTitle")}</h3>}
             {versionResults.map((v) => (
@@ -1136,7 +1191,7 @@ export function App({ onVoices }: { onVoices(n: 2 | 3 | "wtc"): void }) {
       overlays={
         <>
       {showCredits && <Credits onClose={() => setShowCredits(false)} />}
-      {showQuick && <QuickStart basics={<RuleBasics step={STEP} cantus={VIEW.cantus} />} onClose={() => setShowQuick(false)} onMore={() => { setShowQuick(false); setTab("guide"); }} />}
+      {showQuick && <QuickStart basics={<RuleBasics step={STEP} cantus={VIEW.cantus} />} onClose={() => setShowQuick(false)} onMore={() => { setShowQuick(false); setTab("guide"); }} onTutorial={onTutorial && (() => { setShowQuick(false); onTutorial(); })} />}
       {toast && (
         <div className="toast" role="status">
           {toast}

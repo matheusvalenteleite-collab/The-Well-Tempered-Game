@@ -33,10 +33,13 @@ import { SYNTH_PRESETS } from "../audio/synth-settings.ts";
 import { WELL, type TemperamentId } from "../audio/temperament.ts";
 import type { PlayEvent } from "../counterpoint/layout.ts";
 import { HFader } from "./HFader.tsx";
+import { barAt, recording, secondsAt, trackOf } from "../audio/recording.ts";
 import { audio, store, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
 import { Shell } from "./Shell.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
+import { VOICE_COLORS } from "./voice-colors.ts";
+
 
 const roman = (b: number) => (b === 1 ? "I" : "II");
 const fugueLabel = (f: { key: string; book: number; number: number; bwv: string }) => `${keyName(f.key)} · ${roman(f.book)}/${f.number} · BWV ${f.bwv}`;
@@ -44,7 +47,7 @@ const SHARPS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 const FLATS = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
 const midiName = (m: number, flats: boolean) => `${(flats ? FLATS : SHARPS)[((m % 12) + 12) % 12]}${Math.floor(m / 12) - 1}`;
 /** The voices' colours (the track colours first). */
-const COLORS = ["#1e6fd8", "#d0491b", "#2e8b57", "#9b3fc6", "#b8860b", "#0f8f99"];
+const COLORS = VOICE_COLORS;
 /** The channels the voices sound on, one each (D123). */
 type Ch = "counterpoint" | "second" | "fux" | "inversion" | "retrograde" | "retroInversion";
 const VOICE_CH: Ch[] = ["counterpoint", "second", "fux", "inversion", "retrograde", "retroInversion"];
@@ -71,7 +74,7 @@ const vexKey = (key: string) => (key[0] === key[0].toLowerCase() ? `${key[0].toU
 const DEGREES = [0, 2, 3, 4, 5, 7, 8, 9, 10, 11, 1, 6];
 
 
-export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc"): void; onExercises(): void }) {
+export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 | 3 | "wtc"): void; onExercises(): void; onTutorial?: (lessonId?: string) => void }) {
   const [index, setIndex] = useState(() => Math.max(0, LIBRARY.findIndex((f) => f.id === stored("wtg.wtcFugue", LIBRARY[0].id))));
   const L = LIBRARY[index];
   useEffect(() => store("wtg.wtcFugue", L.id), [L.id]);
@@ -138,6 +141,11 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
   }, [tuning]);
   const [instrument, setInstrument] = useState<Instrument>(() => stored("wtg.wtcInstrument", "harpsichord" as Instrument, (v) => INSTRUMENTS.includes(v as Instrument)));
   useEffect(() => store("wtg.wtcInstrument", instrument), [instrument]);
+  /** The game's sounds, or Kimiko Ishizaka's recording where there is one (Book I; D128). */
+  const [source, setSource] = useState<"synth" | "recording">(() => stored("wtg.wtcSource", "synth", (v) => v === "synth" || v === "recording"));
+  useEffect(() => store("wtg.wtcSource", source), [source]);
+  const track = useMemo(() => trackOf(L.id, isPrelude), [L.id, isPrelude]);
+  const useRec = source === "recording" && !!track;
   // Voices: solo, mute, spotlight.
   const [solo, setSolo] = useState<number | null>(null);
   const [muted, setMuted] = useState<Set<number>>(new Set());
@@ -227,6 +235,14 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
   /** Play from `from` to `to` (quarters); `only` limits to some notes; the workshop's notes join. */
   const play = (from = 0, to = end, only?: Set<number>) => {
     audio.stop();
+    recording.stop();
+    // D128: the recording, where there is one and nothing asks for the game's own sounds (a voice
+    // alone, the workshop's subject or entries).
+    if (useRec && track && !only && !(through !== "off" && changed) && !(myNotes.length && !game)) {
+      setPlaying(true);
+      void recording.play(track.urls, [[secondsAt(track, Math.max(0, from), barQ), secondsAt(track, to, barQ)]], (sec) => setCursor(barAt(track, sec)), () => (setPlaying(false), setCursor(-1)), volume / 100);
+      return;
+    }
     const evs: PlayEvent[] = [];
     const add = (midi: number, at: number, dur: number, ch: Ch | "canon") => {
       if (at < from - 1e-6 || at >= to - 1e-6) return;
@@ -256,6 +272,7 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
   };
   const stop = () => {
     audio.stop();
+    recording.stop();
     setPlaying(false);
     setCursor(-1);
   };
@@ -267,6 +284,7 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
   /** The chords alone, as a skeleton: each chord's bass and its tones close above middle C, held for its span. */
   const playChords = (from = 0, to = end) => {
     audio.stop();
+    recording.stop();
     const evs: PlayEvent[] = [];
     for (const c of chords) {
       if (c.to <= from + 1e-6 || c.from >= to - 1e-6) continue;
@@ -289,6 +307,12 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
   /** Every entry in a row: alone (its own notes) or in its texture, a breath between. */
   const allEntries = (alone: boolean) => {
     audio.stop();
+    recording.stop();
+    if (useRec && track && !alone) {
+      setPlaying(true);
+      void recording.play(track.urls, entries.map((e) => [secondsAt(track, e.at, barQ), secondsAt(track, e.end, barQ)] as [number, number]), (sec) => setCursor(barAt(track, sec)), () => (setPlaying(false), setCursor(-1)), volume / 100);
+      return;
+    }
     const evs: PlayEvent[] = [];
     let t0 = 0;
     for (const e of entries) {
@@ -772,7 +796,7 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
             </span>
             <button className="chipbtn" onClick={() => (stop(), onExercises())} title={t("ui.study.exercisesHelp")}>{t("ui.study.exercises")}</button>
           </nav>
-          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("guide")} />
+          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("guide")} onTutorial={onTutorial} />
         </>
       }
       score={
@@ -839,12 +863,16 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
               <HFader label={t("ui.tempo")} help={t("ui.wtc.tempoHelp")} value={tempo} min={15} max={120} defaultValue={36} format={(v) => `♩=${Math.round(v * 2)}`} onChange={(v) => setTempo(Math.round(v))} />
               <HFader label={t("ui.volume")} help={t("ui.volume.help")} value={volume} min={0} max={100} defaultValue={70} format={(v) => `${Math.round(v)}%`} onChange={(v) => setVolume(Math.round(v))} />
             </div>
-            <select className="sel" value={tuning} onChange={(e) => setTuning(e.target.value as TemperamentId)} aria-label={t("ui.tuning")} title={t("ui.wtc.tuningHelp")}>
+            <select className="sel" value={tuning} disabled={useRec} onChange={(e) => setTuning(e.target.value as TemperamentId)} aria-label={t("ui.tuning")} title={t("ui.wtc.tuningHelp")}>
               {WELL.map((x) => (
                 <option key={x} value={x}>{t(`ui.tuning.${x}`)}</option>
               ))}
             </select>
-            <select className="sel" value={instrument} onChange={(e) => setInstrument(e.target.value as Instrument)} aria-label={t("ui.wtc.instrument")}>
+            <select className="sel" value={useRec ? "recording" : "synth"} onChange={(e) => (stop(), setSource(e.target.value === "recording" ? "recording" : "synth"))} aria-label={t("ui.study.rec.source")} title={t(track ? "ui.study.rec.help" : "ui.study.rec.none")}>
+              <option value="synth">{t("ui.study.rec.synth")}</option>
+              <option value="recording" disabled={!track}>{t("ui.study.rec.ishizaka")}</option>
+            </select>
+            <select className="sel" value={instrument} disabled={useRec} onChange={(e) => setInstrument(e.target.value as Instrument)} aria-label={t("ui.wtc.instrument")}>
               {INSTRUMENTS.map((x) => (
                 <option key={x} value={x}>{t(`ui.wtc.instrument.${x}`)}</option>
               ))}
@@ -861,7 +889,7 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
       }
       tab={isPrelude && (tab === "workshop" || tab === "next") ? "guide" : tab}
       onTab={setTab}
-      idle={`J. S. Bach, Das wohltemperirte Clavier, ${roman(F.book)}, ${isPrelude ? "Praeludium" : "Fuga"} ${F.number} (BWV ${F.bwv}). Encoding: David Huron (Humdrum, 1994, after the Bach-Gesellschaft edition; rights to derivative electronic formats reserved, for study only); ${isPrelude ? "strands, " : "voices as encoded; entries, "}chords and cadences found by the game.`}
+      idle={`${useRec ? "Recording: Kimiko Ishizaka, The Open Well-Tempered Clavier (2015), CC0; bars timed by the game. " : ""}J. S. Bach, Das wohltemperirte Clavier, ${roman(F.book)}, ${isPrelude ? "Praeludium" : "Fuga"} ${F.number} (BWV ${F.bwv}). Encoding: David Huron (Humdrum, 1994, after the Bach-Gesellschaft edition; rights to derivative electronic formats reserved, for study only); ${isPrelude ? "strands, " : "voices as encoded; entries, "}chords and cadences found by the game.`}
       tabs={[
         { id: "guide", text: true, label: t("ui.study.tab.guide"), content: guide },
         { id: "voices", label: t("ui.study.tab.voices"), content: voicesPanel },

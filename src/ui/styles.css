@@ -661,6 +661,116 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
 .gradus-quote { font-size: 1.15rem; font-style: italic; }
 .gradus-quote cite { display: block; font-size: 0.75rem; font-style: normal; margin-top: 6px; color: var(--muted); }
 
+/* ===== D140: the tutorial ===== */
+.game-layer[hidden] { display: none; }
+.tutorial-btn { background: #1d6b66 !important; }
+.tutorial .topbar { gap: 10px; }
+.tut-contents-btn { display: none; }
+.tut-progress { display: inline-flex; align-items: center; gap: 8px; font-family: var(--ui-font); font-size: 0.78rem; color: var(--muted); min-width: 0; }
+.tut-progress .bar { width: 120px; height: 8px; border: 1px solid var(--line); background: var(--paper); display: inline-block; overflow: hidden; }
+.tut-progress .bar span { display: block; height: 100%; background: var(--ok); transition: width 0.3s; }
+.tut-body { gap: 14px; }
+.tut-toc { flex: 0 0 250px; overflow-y: auto; overscroll-behavior: contain; border-right: 1px solid var(--line); padding-right: 8px; font-family: var(--ui-font); }
+.tut-toc ol { list-style: none; margin: 0; padding: 0; }
+.tut-toc > ol > li { margin-bottom: 2px; }
+.tut-toc button { width: 100%; text-align: left; border: none; background: none; box-shadow: none !important; min-height: 26px; padding: 2px 6px; font-size: 0.82rem; }
+.tut-toc .tut-chapter { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.tut-toc .tut-chapter .num { display: inline-block; min-width: 18px; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tut-toc .tut-chapter .tick { margin-left: auto; color: var(--ok); font-weight: 400; font-size: 0.75rem; }
+.tut-toc li.current > .tut-chapter { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.tut-toc .tut-lessons { margin: 2px 0 6px 24px; }
+.tut-toc .tut-lessons button { font-size: 0.78rem; color: var(--muted); min-height: 22px; }
+.tut-toc .tut-lessons button[aria-current="true"] { color: var(--ink); font-weight: 600; background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.tut-forget { margin-top: 12px; font-size: 0.72rem !important; color: var(--muted) !important; }
+.tut-main { flex: 1 1 auto; min-width: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 6px 24px; max-width: 900px; }
+.tut-kicker { margin: 0 0 2px; font-family: var(--ui-font); font-size: 0.75rem; color: var(--muted); letter-spacing: 0.02em; }
+.tut-title { margin: 0 0 8px; font-size: 1.5rem; font-weight: 600; }
+.tut-done-mark { color: var(--ok); }
+.tut-prose p { margin: 0 0 10px; line-height: 1.45; font-size: 1.05rem; }
+.tut-task { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--line); background: var(--paper); display: flex; flex-direction: column; gap: 8px; }
+.tut-prompt { margin: 0; font-size: 1.05rem; }
+.tut-task-label { display: inline-block; font-family: var(--ui-font); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #fff; background: #1d6b66; padding: 1px 6px; margin-right: 4px; vertical-align: 2px; }
+.help-line { margin: 0; font-family: var(--ui-font); font-size: 0.8rem; color: var(--muted); }
+.tut-view { display: flex; gap: 4px; flex-wrap: wrap; }
+.tut-score { background: var(--paper); border: 1px solid var(--line); overflow-x: auto; }
+.tut-score.compact { max-width: 420px; }
+.tut-score.trio .zoombar { display: none; }
+.tut-tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.tut-tools .tool-gap { flex: 1 1 auto; }
+.tut-tools .btn-acc { min-width: 34px; font-size: 1rem; }
+.tut-clips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.tut-clip.heard:not([aria-pressed="true"]) { border-color: var(--ok); }
+.tut-heard { color: var(--ok); }
+.tut-hint { margin: 0; padding: 6px 10px; border-left: 3px solid #c9921a; background: color-mix(in srgb, #c9921a 10%, var(--paper)); }
+.tut-coach { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; font-family: var(--ui-font); font-size: 0.86rem; }
+.tut-coach li { padding: 2px 8px; border-left: 3px solid var(--line); }
+.tut-coach li.ok { border-left-color: var(--ok); }
+.tut-coach li.bad { border-left-color: var(--bad); color: var(--bad); }
+.tut-coach li.warn { border-left-color: var(--warn); }
+.tut-say { margin: 0; font-family: var(--ui-font); font-size: 0.9rem; }
+.tut-say.ok { color: var(--ok); }
+.tut-say.bad { color: var(--bad); }
+.tut-say.info { color: var(--muted); }
+.tut-done-text { margin-top: 10px; font-family: inherit; font-size: 1rem; }
+.tut-judgement { display: flex; flex-direction: column; gap: 6px; }
+.tut-judgement .verdict { margin: 0; font-weight: 700; font-family: var(--ui-font); }
+.tut-judgement.ok .verdict { color: var(--ok); }
+.tut-judgement.bad .verdict { color: var(--bad); }
+.tut-quiz { display: flex; flex-direction: column; gap: 8px; }
+.tut-quiz-count { margin: 0; font-family: var(--ui-font); font-size: 0.75rem; color: var(--muted); }
+.tut-quiz-row { display: flex; align-items: center; gap: 8px; }
+.tut-quiz-prompt { font-size: 1.05rem; }
+.tut-choices { display: flex; flex-wrap: wrap; gap: 6px; }
+.tut-choices button { min-width: 44px; min-height: 36px; font-size: 0.95rem; }
+.tut-choices button.right, .tut-option.right .tut-pick { background: var(--ok) !important; color: #fff !important; border-color: var(--ok) !important; opacity: 1; }
+.tut-choices button.wrong, .tut-option.wrong .tut-pick { border-color: var(--bad) !important; color: var(--bad); }
+.tut-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.tut-options.scored { flex-direction: column; }
+.tut-option { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.tut-options.scored .tut-option { padding: 6px; border: 1px solid var(--line); }
+.tut-options.scored .tut-option .tut-score { flex: 1 1 320px; }
+.tut-option .tut-say { flex: 1 1 100%; }
+.tut-pick { min-height: 36px; font-size: 0.95rem; }
+.tut-go { align-self: flex-start; min-height: 40px; font-size: 1rem; }
+.tut-nav { display: flex; align-items: center; gap: 8px; margin-top: 16px; padding-top: 10px; border-top: 1px solid var(--line); }
+.tut-nav .tool-gap { flex: 1 1 auto; }
+.tut-nav .tut-next { min-width: 110px; min-height: 40px; font-size: 1rem; }
+.tut-road { border-collapse: collapse; font-family: var(--ui-font); font-size: 0.85rem; margin-top: 8px; }
+.tut-road th { text-align: left; padding: 8px 10px 2px 0; }
+.tut-road td { padding: 2px 14px 2px 0; border-bottom: 1px dotted var(--line); }
+:root[data-look="retro"] .tut-task, :root[data-look="retro"] .tut-score { border: 2px solid var(--edge); box-shadow: 3px 3px 0 var(--edge); }
+:root[data-look="retro"] .tut-title, :root[data-look="retro"] .tut-toc .tut-chapter { font-family: "Silkscreen", monospace; font-weight: 400; }
+:root[data-look="retro"] .tut-title { font-size: 1.15rem; }
+:root[data-look="retro"] .tut-toc button { box-shadow: none; border: none; }
+@media (max-width: 800px) {
+  .tut-contents-btn { display: inline-block; }
+  .tut-progress .count { display: none; }
+  .tut-toc { display: none; }
+  .tut-toc.open { display: block; position: fixed; z-index: 40; top: 44px; left: 0; bottom: 0; width: min(320px, 90vw); background: var(--bg); border-right: 2px solid var(--line); padding: 8px; box-shadow: 4px 0 18px rgba(0, 0, 0, 0.25); }
+  .tut-title { font-size: 1.25rem; }
+  .tut-prose p { font-size: 1rem; }
+}
+
+/* D140: the tour of the game screen. */
+.tour { position: fixed; inset: 0; z-index: 70; pointer-events: none; }
+.tour-shade { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.45); }
+.tour-spot { position: absolute; border-radius: 4px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45); outline: 3px solid #f2c94c; transition: all 0.25s ease; }
+.tour-card { position: absolute; pointer-events: auto; background: var(--paper); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35); padding: 10px 14px 12px; }
+.tour-card h3 { margin: 0 0 4px; font-size: 1.1rem; }
+.tour-card p { margin: 0 0 8px; line-height: 1.4; }
+.tour-count { font-family: var(--ui-font); font-size: 0.72rem !important; color: var(--muted); margin: 0 !important; }
+.tour-buttons { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+:root[data-look="retro"] .tour-card { border: 2px solid var(--edge); box-shadow: 6px 6px 0 var(--edge); }
+:root[data-look="retro"] .tour-card h3 { font-family: "Silkscreen", monospace; font-weight: 400; font-size: 1rem; }
+.tut-invite .dialog { max-width: 460px; }
+.learn-link { font-size: 0.78rem !important; white-space: nowrap; padding: 0 2px !important; color: #1d6b66 !important; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .learn-link { color: #6fc7bd !important; } }
+:root[data-theme="dark"] .learn-link { color: #6fc7bd !important; }
+@media (max-width: 800px) { .tutorial .brand { display: none; } .tutorial .topbar { flex-wrap: nowrap; } .tutorial .tut-progress .bar { width: 70px; } .tutorial .howto { padding: 3px 8px; } }
+/* D141: BETA or the real setup. */
+.beta-toggle { min-height: 26px; padding: 0 8px; font-family: var(--ui-font); font-size: 0.72rem !important; font-weight: 700; letter-spacing: 0.06em; margin-left: 6px; }
+.beta-toggle.on, .beta-toggle[aria-pressed="true"] { background: #d9a41a !important; border-color: #d9a41a !important; color: #121212 !important; }
+.tut-toc button:disabled { opacity: 0.45; cursor: not-allowed; }
 /* D98: the evaluation, flat — no box in a box. One verdict line, plain headed lists, With Fux. */
 .feedback, :root[data-look="retro"] .feedback { margin: 0; padding: 0; background: none; border: none; border-radius: 0; box-shadow: none; gap: 6px; }
 .eval { display: flex; flex-direction: column; gap: 6px; }
@@ -1006,3 +1116,20 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .wtc-page { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; padding: 4px; }
 .wtc-sys { border-left: 3px solid transparent; }
 .wtc-sys.playing { border-left-color: var(--accent, #e07b00); }
+/* D143: the gold star. */
+.star.gold { filter: drop-shadow(0 0 3px rgba(240, 190, 40, 0.8)); }
+/* D140 after D106: the scores fit their box, so the tutorial's boxes have a height of their own. */
+.tut-score { height: 290px; display: flex; flex-direction: column; overflow: hidden; }
+.tut-score > * { flex: 1 1 auto; min-height: 0; }
+.tut-score.compact { height: 210px; }
+.tut-score.trio { height: 300px; }
+.tut-options.scored .tut-score { height: 220px; }
+@media (max-width: 599px) { .tut-score { height: auto; min-height: 220px; } .tut-score.trio { height: auto; min-height: 240px; } }
+/* Lazy screens (the Well-Tempered Clavier, the tutorial) while they load. */
+.loading-screen { height: 100vh; display: flex; align-items: center; justify-content: center; font-family: var(--ui-font); color: var(--muted); }
+.page-thumb .page-wait { display: block; width: 64px; height: 90px; background: var(--line); opacity: 0.4; }
+/* D146: the fugue as a picture in the tutorial. */
+.tut-roll { margin: 6px 0 10px; border: 1px solid var(--line); background: var(--paper); }
+.tut-roll .pianoroll { max-height: 260px; overflow: auto; }
+.tut-roll .help-line { padding: 4px 8px; }
+:root[data-look="retro"] .tut-roll { border: 2px solid var(--edge); box-shadow: 3px 3px 0 var(--edge); }

@@ -1095,6 +1095,11 @@
     "study.pageHelp": "The score as a page that follows the music: the row being played on top, the next rows below (Space plays the whole piece)",
     "study.pageUp": "Back a row",
     "study.pageDown": "On a row",
+    "study.rec.source": "Sound",
+    "study.rec.synth": "The game's sounds",
+    "study.rec.ishizaka": "Kimiko Ishizaka (recording)",
+    "study.rec.help": "Kimiko Ishizaka's recording of Book I (The Open Well-Tempered Clavier, 2015, CC0): the whole piece, a section, a moment, every entry in a row, from her performance. A voice alone, the chords alone, solo, mute, spotlight and the workshop use the game's sounds, which can take a piece apart; a recording cannot.",
+    "study.rec.none": "A recording is available for Book I only (Kimiko Ishizaka's).",
     "wtc.mode": "Well-Tempered Clavier",
     "wtc.exercise": "Exercise",
     "wtc.fugue": "Fugue",
@@ -1165,7 +1170,8 @@
     "trio3.intro5": "What this species is, and of what kind, I suppose is plain to you from what we said of it in two voices: a composition of all five species, ordered by a beautiful and elegant manner of singing. How the concords of the other two parts, made of semibreves, are to be set, I hardly doubt you already know from the three-voice exercises worked through so far; so that I think it superfluous to linger here explaining them further. Let us therefore go on to the examples without delay.",
     "trio3.introLa5": "Quid, & qualis haec species sit, ex iis, quae de ea in Bicinio diximus, constare tibi suppono: esse nempè Compositionem omnium quinque specierum, pulchrâ concinnaque canendi ratione ordinatam. Quomodo autem reliquarum duarum partium semibrevibus constantium, instituendae sint concordantiae, ex Tricinii exercitationibus hucusque ventilatis tibi jam innotescere minimè dubito: adeò ut his ulteriùs explicandis hîc immorari supervacaneum existimem. Unde sinè mora ad exempla procedamus.",
     "trio3.cite5": "Gradus ad Parnassum (1725), pp. 111-112, translated in this game",
-    "trio3.help5": "One voice is florid, the other two in semibreves. Choose a value (keys 8, 4, 3, 2, 6, 1: quaver to whole bar) and write: the note lasts that long. Hold (T) carries the previous note on, over the bar line as a ligature; R writes a rest. The florid line keeps the rules of two voices against the bass, and the bar's opening sonority those of three-voice first species. Fux's counsel (p. 114): oblique motion in every bar, as much as possible, makes the labour much easier."
+    "trio3.help5": "One voice is florid, the other two in semibreves. Choose a value (keys 8, 4, 3, 2, 6, 1: quaver to whole bar) and write: the note lasts that long. Hold (T) carries the previous note on, over the bar line as a ligature; R writes a rest. The florid line keeps the rules of two voices against the bass, and the bar's opening sonority those of three-voice first species. Fux's counsel (p. 114): oblique motion in every bar, as much as possible, makes the labour much easier.",
+    "loading": "Loading…"
   },
   "tutor": {
     "rule.fos.no-repetition": "In this species each upbeat brings a new note, which is then tied over the bar line; striking the downbeat's note again on its own upbeat is a whole note in disguise.",
@@ -1450,7 +1456,7 @@
   "quick": {
     "step1": "The lower or upper staff holds the cantus firmus, the given melody in whole notes. Write your own line on the other staff: click where a note should go (or use the arrow keys and the letters A–G).",
     "step2": "Each pair of notes sounding together makes an interval, written between the staves. The chart below sorts the intervals into perfect consonances, imperfect consonances and dissonances, and the rules say how they may follow one another; press ▶ beside a rule to watch it broken and then kept.",
-    "step3": "Press Play to hear both lines, then Evaluate. Aloysius marks what breaks a rule; a clean line earns the star and opens Fux's own solution to compare.",
+    "step3": "Press Play to hear both lines, then Evaluate. Aloysius marks what breaks a rule; a line with no rule broken earns the ★ (a gold 🌟 with no advice broken either) and opens Fux's own solution to compare.",
     "more": "The full guide",
     "start": "Start writing"
   }

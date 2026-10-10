@@ -17,6 +17,7 @@
     "report:m1": "node tools/m1/report.ts",
     "dev": "vite",
     "build": "node tools/sample-manifest.mjs && tsc --noEmit && vite build",
+    "build:artifact": "node tools/sample-manifest.mjs && tsc --noEmit && vite build --mode artifact",
     "preview": "vite preview"
   },
   "devDependencies": {

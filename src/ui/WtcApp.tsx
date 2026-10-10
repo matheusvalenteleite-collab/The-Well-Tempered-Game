@@ -81,7 +81,7 @@ const difficulty = (f: WtcFugue) => f.subject.length + 8 * f.mutations.length + 
 const COURSE = FUGUES.map((_, i) => i).sort((a, b) => difficulty(FUGUES[a]) - difficulty(FUGUES[b]));
 const mean = (xs: WtcNote[]) => xs.reduce((a, n) => a + parsePitch(n.pitch).midi, 0) / Math.max(1, xs.length);
 
-export function WtcApp({ onVoices, onStudy }: { onVoices(n: 2 | 3 | "wtc"): void; onStudy?(): void }) {
+export function WtcApp({ onVoices, onStudy, onTutorial }: { onVoices(n: 2 | 3 | "wtc"): void; onStudy?(): void; onTutorial?: (lessonId?: string) => void }) {
   const [index, setIndex] = useState(() => Math.max(0, FUGUES.findIndex((f) => f.id === stored("wtg.wtcFugue", FUGUES[0].id))));
   const F = FUGUES[index];
   useEffect(() => store("wtg.wtcFugue", F.id), [F.id]);
@@ -619,7 +619,7 @@ export function WtcApp({ onVoices, onStudy }: { onVoices(n: 2 | 3 | "wtc"): void
             <button className="icon" onClick={() => step(1)} disabled={ORDER.indexOf(index) === ORDER.length - 1} aria-label={t("ui.nav.next")}>›</button>
             {onStudy && <button className="chipbtn" onClick={() => (audio.stop(), onStudy())} title={t("ui.study.studyHelp")}>{t("ui.study.study")}</button>}
           </nav>
-          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("guide")} />
+          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("guide")} onTutorial={onTutorial} />
         </>
       }
       score={
