@@ -31,6 +31,30 @@ export interface EngInput {
   time: string;
   /** Notes left out of the score (not yet revealed in a game). */
   hidden?: Set<number>;
+  /** Where each bar begins and the last ends, in quarters (else every `barQuarters`). */
+  barStarts?: number[];
+  /** Each bar's metre (else `time` throughout). */
+  meters?: string[];
+}
+
+/** The bar lines of a piece: given, or every `barQuarters` to the end of its notes. */
+export function barLines(input: EngInput): number[] {
+  if (input.barStarts && input.barStarts.length > 1) return input.barStarts;
+  const end = Math.max(...input.notes.map((n) => n.at + n.dur));
+  const n = Math.max(1, Math.ceil(end / input.barQuarters - EPS));
+  return Array.from({ length: n + 1 }, (_, k) => k * input.barQuarters);
+}
+
+/** The bar a position falls in (the last bar for anything after the end). */
+export function barIndex(starts: number[], q: number): number {
+  let lo = 0;
+  let hi = starts.length - 2;
+  while (lo < hi) {
+    const m = (lo + hi + 1) >> 1;
+    if (starts[m] <= q + EPS) lo = m;
+    else hi = m - 1;
+  }
+  return lo;
 }
 
 export interface EngKey {
@@ -76,6 +100,8 @@ export interface EngBar {
   index: number;
   from: number;
   to: number;
+  /** The bar's metre. */
+  time: string;
   /** Treble, bass. */
   staves: [EngLayer[], EngLayer[]];
 }
@@ -84,9 +110,6 @@ export interface Engraving {
   bars: EngBar[];
   /** staffOf[voice][bar]: 0 treble, 1 bass. */
   staffOf: number[][];
-  /** The beam unit and the beat unit, in quarters. */
-  beamUnit: number;
-  beatUnit: number;
 }
 
 /** [quarters, VexFlow duration, dots], longest first. */
@@ -127,8 +150,9 @@ export interface Value {
  * A length from `p` (quarters from the bar line) written in values that show the metre (the
  * rules in the header). `rest`: a rest's stricter grid.
  */
-export function spell(p: number, len: number, time: string, rest = false): Value[] {
-  const { beat, bar } = units(time);
+export function spell(p: number, len: number, time: string, rest = false, barLen?: number): Value[] {
+  const { beat } = units(time);
+  const bar = barLen ?? units(time).bar;
   const beats = Math.round(bar / beat);
   const mid = beats >= 4 && beats % 2 === 0 ? bar / 2 : -1;
   // A triplet value: a plain value's two thirds, alone.
@@ -191,9 +215,9 @@ function ledger(d: number, staff: number): number {
  * change, no change under a tie, a slight pull towards the voice's usual staff.
  */
 export function assignStaves(input: EngInput): number[][] {
-  const { notes, spelled, voice, count, barQuarters: barQ } = input;
-  const end = Math.max(...notes.map((n) => n.at + n.dur));
-  const bars = Math.max(1, Math.ceil(end / barQ - EPS));
+  const { notes, spelled, voice, count } = input;
+  const starts = barLines(input);
+  const bars = starts.length - 1;
   const dia = spelled.map((s) => parsePitch(s).diatonic);
   return Array.from({ length: count }, (_, v) => {
     const mine = notes.map((n, i) => ({ n, i })).filter(({ i }) => voice[i] === v);
@@ -202,11 +226,12 @@ export function assignStaves(input: EngInput): number[][] {
     const cost = Array.from({ length: bars }, () => [0, 0]);
     const tied = new Array(bars).fill(false); // a note of this voice sounds across the bar line before bar b
     for (const { n, i } of mine) {
-      const b0 = Math.floor(n.at / barQ + EPS);
-      const b1 = Math.min(bars - 1, Math.floor((n.at + n.dur - EPS) / barQ + EPS));
+      const b0 = barIndex(starts, n.at);
+      const b1 = barIndex(starts, n.at + n.dur - 2 * EPS);
       for (let b = b0; b <= b1; b++) {
         // A note counts in each bar it sounds in, by how much of the bar it fills (at least a little).
-        const share = Math.max(0.25, (Math.min(n.at + n.dur, (b + 1) * barQ) - Math.max(n.at, b * barQ)) / barQ);
+        const len = starts[b + 1] - starts[b];
+        const share = Math.max(0.25, (Math.min(n.at + n.dur, starts[b + 1]) - Math.max(n.at, starts[b])) / len);
         for (const s of [0, 1]) cost[b][s] += ledger(dia[i], s) * (b === b0 ? 1 : share);
         if (b > b0) tied[b] = true;
       }
@@ -243,11 +268,11 @@ interface Chord {
 
 /** The engraving of a whole piece (see the header). */
 export function engrave(input: EngInput): Engraving {
-  const { notes, spelled, voice, count, barQuarters: barQ, time } = input;
-  const end = Math.max(...notes.map((n) => n.at + n.dur));
-  const nBars = Math.max(1, Math.ceil(end / barQ - EPS));
+  const { notes, spelled, voice, count, time } = input;
+  const starts = barLines(input);
+  const nBars = starts.length - 1;
   const staffOf = assignStaves(input);
-  const { beat, beam: beamUnit } = units(time);
+  const meterOf = (b: number) => input.meters?.[b] ?? time;
   const dia = spelled.map((s) => parsePitch(s).diatonic);
   const byVoice: number[][] = Array.from({ length: count }, () => []);
   notes.forEach((_, i) => !input.hidden?.has(i) && byVoice[voice[i]]?.push(i));
@@ -255,8 +280,8 @@ export function engrave(input: EngInput): Engraving {
   // Where each voice is in its list (notes are visited bar by bar).
   const bars: EngBar[] = [];
   for (let b = 0; b < nBars; b++) {
-    const from = b * barQ;
-    const to = from + barQ;
+    const from = starts[b];
+    const to = starts[b + 1];
     const staves: [EngLayer[], EngLayer[]] = [[], []];
     for (let v = 0; v < count; v++) {
       const here = byVoice[v].filter((i) => notes[i].at < to - EPS && notes[i].at + notes[i].dur > from + EPS);
@@ -283,7 +308,7 @@ export function engrave(input: EngInput): Engraving {
       }
       chains.forEach((ch, sub) => {
         for (const c of ch) c.keys.sort((x, y) => dia[x.i] - dia[y.i]);
-        staves[staffOf[v][b]].push({ voice: v, sub, stem: 0, items: layerItems(ch, from, to, time, sub > 0) });
+        staves[staffOf[v][b]].push({ voice: v, sub, stem: 0, items: layerItems(ch, from, to, meterOf(b), sub > 0) });
       });
     }
     // Stems: on a staff with several layers, the highest up, the lowest down, the others by where they lie.
@@ -293,17 +318,22 @@ export function engrave(input: EngInput): Engraving {
         const ks = l.items.flatMap((it) => it.keys.map((k) => dia[k.i]));
         return ks.length ? ks.reduce((a, x) => a + x, 0) / ks.length : 0;
       };
-      const order = [...layers].sort((x, y) => pitch(y) - pitch(x) || x.voice - y.voice || x.sub - y.sub);
+      // By voice (the higher voice above), unless two layers clearly cross (by more than a third on average).
+      const order = [...layers].sort((x, y) => x.voice - y.voice || x.sub - y.sub);
+      for (let pass = 0; pass < order.length; pass++)
+        for (let k = 0; k + 1 < order.length; k++)
+          if (pitch(order[k + 1]) - pitch(order[k]) > 3) [order[k], order[k + 1]] = [order[k + 1], order[k]];
       order.forEach((l, k) => (l.stem = k === 0 ? 1 : k === order.length - 1 ? -1 : k < order.length / 2 ? 1 : -1));
       // Draw the stems-up layers first (VexFlow shifts colliding heads of the later voices).
       layers.sort((x, y) => y.stem - x.stem || order.indexOf(x) - order.indexOf(y));
     }
-    bars.push({ index: b, from, to, staves });
+    bars.push({ index: b, from, to, time: meterOf(b), staves });
   }
   // Beams: by the beam unit, broken by rests, triplets and anything a quarter or longer.
   for (const bar of bars)
     for (const layers of bar.staves)
       for (const l of layers) {
+        const beamUnit = units(bar.time).beam;
         let group = 0;
         let run: EngItem[] = [];
         let unit = -1;
@@ -325,7 +355,7 @@ export function engrave(input: EngInput): Engraving {
         }
         flush();
       }
-  return { bars, staffOf, beamUnit, beatUnit: beat };
+  return { bars, staffOf };
 }
 
 /** One layer's items in a bar: its chords in written values, rests between (invisible in a second layer). */
@@ -334,7 +364,7 @@ function layerItems(chain: Chord[], from: number, to: number, time: string, ghos
   let tuplet = 0;
   let tupletLeft = 0;
   const pushValues = (at: number, len: number, rest: boolean, c: Chord | null) => {
-    const vs = spell(at - from, len, time, rest);
+    const vs = spell(at - from, len, time, rest, to - from);
     let t = at;
     vs.forEach((v, k) => {
       let tp: number | undefined;

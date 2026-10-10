@@ -53,7 +53,7 @@ test("engraving: every bar of the 48 adds up, every note is written once", () =>
         for (const layers of b.staves)
           for (const l of layers) {
             const sum = l.items.reduce((a, it) => a + it.len, 0);
-            assert.ok(Math.abs(sum - P.barQuarters) < 1e-6, `${L.id} bar ${b.index + 1}: ${sum}`);
+            assert.ok(Math.abs(sum - (b.to - b.from)) < 1e-6, `${L.id} bar ${b.index + 1}: ${sum}`);
             for (const it of l.items) if (!it.tieIn) for (const k of it.keys) starts.set(k.i, (starts.get(k.i) ?? 0) + 1);
           }
       // Each note struck once; left out only: a note doubling another of its voice (an ossia encoded

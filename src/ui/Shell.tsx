@@ -80,6 +80,8 @@ export function Shell(p: {
   /** What the info bar says when nothing is pointed at (the source of the exercise). */
   idle: string;
   overlays?: ReactNode;
+  /** The score alone: the bottom panel folded away (D147, listening with the page of music). */
+  focus?: boolean;
 }) {
   const [win, setWin] = useState({ w: window.innerWidth, h: window.innerHeight });
   useEffect(() => {
@@ -129,7 +131,7 @@ export function Shell(p: {
 
   return (
     <div
-      className={`shell layout-${layout}`}
+      className={`shell layout-${layout}${p.focus ? " focus" : ""}`}
       style={zoom !== 1 ? { width: w, height: layout === "compact" ? undefined : h, minHeight: layout === "compact" ? h : undefined, transform: `scale(${zoom})`, transformOrigin: "0 0", maxWidth: "none", margin: 0 } : undefined}
     >
       <header className="topbar">
@@ -141,10 +143,10 @@ export function Shell(p: {
       <div className="score-area">{p.score}</div>
       <div className="transport-row">{p.transport}</div>
       {p.summary}
-      {layout !== "compact" && (
+      {layout !== "compact" && !p.focus && (
         <Divider dir="row" zoom={zoom} label={t("ui.divider.panel")} onDrag={(d) => setPanelH((x) => Math.max(PANEL_MIN, Math.min(1000, Math.round(Math.min(x, shownPanelH) - d))))} onReset={() => setPanelH(PANEL_H)} />
       )}
-      <div className="panel" style={layout !== "compact" ? { height: shownPanelH } : undefined}>
+      <div className="panel" hidden={p.focus} style={layout !== "compact" ? { height: shownPanelH } : undefined}>
         <section className="dock">
           {dock.length > 1 && strip(dock, dockTab)}
           <div className={`dock-body${dockTab?.text ? "" : " fit"}`} role="tabpanel">{dockTab?.content}</div>

@@ -56,6 +56,8 @@ export interface SheetProps {
   zoom: number;
   follow: boolean;
   label: string;
+  /** What a note is, for the info line when it is pointed at. */
+  describe?(i: number): string;
   onSeek(q: number): void;
   onSelect(from: number, to: number): void;
 }
@@ -101,14 +103,27 @@ interface Built {
   tuplets: Tuplet[];
 }
 
-function restKey(staff: number, stem: number): string {
-  if (staff === 0) return stem === 1 ? "d/5" : stem === -1 ? "f/4" : "b/4";
-  return stem === 1 ? "f/3" : stem === -1 ? "a/2" : "d/3";
+const STEP_NAMES = ["c", "d", "e", "f", "g", "a", "b"];
+const keyOfDiatonic = (d: number) => `${STEP_NAMES[((d % 7) + 7) % 7]}/${Math.floor(d / 7)}`;
+/**
+ * Where a rest sits: in the middle of a staff with one layer; in a staff shared by several, out of
+ * the other layers' way (up for the stems-up layer, down for the stems-down) and near its own notes.
+ */
+function restKey(staff: number, stem: number, layer: EngLayer, k: number): string {
+  const base = staff === 0 ? (stem === 1 ? 36 : stem === -1 ? 30 : 34) : stem === 1 ? 24 : stem === -1 ? 18 : 22;
+  if (stem === 0) return keyOfDiatonic(base);
+  // The nearest note of the layer.
+  let near: EngItem | null = null;
+  for (let d = 1; d < layer.items.length && !near; d++) for (const j of [k - d, k + d]) if (!near && layer.items[j] && !layer.items[j].rest) near = layer.items[j];
+  if (!near) return keyOfDiatonic(base);
+  const ds = near.keys.map((x) => parsePitch(x.pitch).diatonic);
+  return keyOfDiatonic(stem === 1 ? Math.max(base, Math.max(...ds) + 1) : Math.min(base, Math.min(...ds) - 1));
 }
 
 /** One bar's VexFlow notes, tuplets and beams (not yet formatted or drawn). */
-function buildBar(bar: EngBar, num: number, den: number, inkOf: (layer: EngLayer, key: number | null) => string, signature: Record<Step, number>): Built {
+function buildBar(bar: EngBar, inkOf: (layer: EngLayer, key: number | null) => string, signature: Record<Step, number>): Built {
   const out: Built = { voices: [[], []], drawn: [], beams: [], tuplets: [] };
+  const [num, den] = bar.time.split("/").map(Number);
   // Accidentals: by staff, in time order across the layers; a tied continuation shows none.
   const acc = new Map<EngItem, (string | null)[]>();
   bar.staves.forEach((layers) => {
@@ -131,12 +146,18 @@ function buildBar(bar: EngBar, num: number, den: number, inkOf: (layer: EngLayer
     const clef = CLEFS[staff];
     for (const layer of layers) {
       const notes: StemmableNote[] = [];
-      for (const it of layer.items) {
+      for (const [k, it] of layer.items.entries()) {
         const duration = it.dur;
         let n: StemmableNote;
-        if (it.rest && it.ghost) n = new GhostNote({ duration, dots: it.dots });
+        if (it.rest && it.ghost && it.tuplet === undefined) n = new GhostNote({ duration, dots: it.dots });
+        else if (it.rest && it.ghost) {
+          // In a triplet, an invisible rest (a tuplet needs stems to place itself).
+          const sn = new StaveNote({ keys: [restKey(staff, 0, layer, k)], duration: `${duration}r`, dots: it.dots, clef });
+          sn.setStyle({ fillStyle: "transparent", strokeStyle: "transparent" });
+          n = sn;
+        }
         else if (it.rest) {
-          const sn = new StaveNote({ keys: [restKey(staff, layers.length > 1 ? layer.stem : 0)], duration: `${duration}r`, dots: it.dots, clef });
+          const sn = new StaveNote({ keys: [restKey(staff, layers.length > 1 ? layer.stem : 0, layer, k)], duration: `${duration}r`, dots: it.dots, clef });
           if (it.dots) Dot.buildAndAttach([sn], { all: true });
           const ink = inkOf(layer, null);
           sn.setStyle({ fillStyle: ink, strokeStyle: ink });
@@ -163,8 +184,10 @@ function buildBar(bar: EngBar, num: number, den: number, inkOf: (layer: EngLayer
       // Tuplets before the voice takes the notes (they change the notes' ticks).
       const groups = new Map<number, StemmableNote[]>();
       layer.items.forEach((it, k) => it.tuplet !== undefined && groups.set(it.tuplet, [...(groups.get(it.tuplet) ?? []), notes[k]]));
-      for (const g of groups.values()) {
-        out.tuplets.push(new Tuplet(g, { num_notes: 3, notes_occupied: 2, bracketed: !g.every((n) => ["8", "16", "32"].includes(n.getDuration())) }));
+      for (const [id, g] of groups) {
+        const tp = new Tuplet(g, { num_notes: 3, notes_occupied: 2, bracketed: !g.every((n) => ["8", "16", "32"].includes(n.getDuration())) });
+        // A triplet of invisible rests keeps its time but shows no 3.
+        if (!layer.items.every((it) => it.tuplet !== id || it.ghost)) out.tuplets.push(tp);
       }
       const v = new Voice({ num_beats: num, beat_value: den }).setMode(Voice.Mode.SOFT);
       v.addTickables(notes);
@@ -189,9 +212,9 @@ function buildBar(bar: EngBar, num: number, den: number, inkOf: (layer: EngLayer
 }
 
 /** The width a bar needs (its notes at their closest), in units. */
-function minWidth(bar: EngBar, num: number, den: number, signature: Record<Step, number>): number {
+function minWidth(bar: EngBar, signature: Record<Step, number>): number {
   try {
-    const b = buildBar(bar, num, den, () => "#000", signature);
+    const b = buildBar(bar, () => "#000", signature);
     const all = [...b.voices[0], ...b.voices[1]];
     if (!all.length) return 60;
     const fmt = new Formatter();
@@ -226,19 +249,19 @@ export function WtcSheet(p: SheetProps) {
   }, []);
   useEffect(() => scroller.current?.scrollTo({ top: 0 }), [p.pieceId]);
 
-  const [num, den] = p.time.split("/").map(Number);
-  // Bar widths depend only on the music: measured once a piece.
-  const mins = useMemo(() => p.eng.bars.map((b) => minWidth(b, num, den, p.signature)), [p.eng, num, den, p.signature]);
+  // Bar widths depend only on the music: measured once a piece (a change of metre needs room for its signature).
+  const mins = useMemo(() => p.eng.bars.map((b, k) => minWidth(b, p.signature) + (k > 0 && b.time !== p.eng.bars[k - 1].time ? 26 : 0)), [p.eng, p.signature]);
 
   // Draw (only when the music, the width or the look changes).
   useLayoutEffect(() => {
     const host = page.current;
     if (!host || width < 50) return;
+    const t0 = performance.now();
     host.innerHTML = "";
     const scale = p.zoom;
     const W = Math.max(320, (width - 6) / scale);
     const MARGIN = 8;
-    const head0 = headerWidth(p.keySig, p.time);
+    const head0 = headerWidth(p.keySig, p.eng.bars[0]?.time ?? p.time);
     const headN = headerWidth(p.keySig, null);
     // Systems: bars at their natural width (a little more than their least) while they fit.
     const natural = mins.map((m) => Math.max(64, m * 1.12 + 24));
@@ -277,23 +300,28 @@ export function WtcSheet(p: SheetProps) {
     const lastTie = new Map<number, { note: StemmableNote; k: number; ctx: RenderContext }>();
     let top = 0;
     systems.forEach((s, si) => {
-      // Vertical room: from the highest and lowest notes on each staff.
-      let maxT = TOP_LINE[0], minT = BOTTOM_LINE[0], maxB = TOP_LINE[1], minB = BOTTOM_LINE[1];
+      // Vertical room: from the highest and lowest notes on each staff, and the stems that reach out.
+      const STEM = 3.5 * SP;
+      const up = [0, 0];
+      const down = [0, 0];
       for (const b of s.bars)
         p.eng.bars[b].staves.forEach((layers, st) =>
           layers.forEach((l) =>
-            l.items.forEach((it) =>
-              it.keys.forEach((k) => {
-                const d = parsePitch(k.pitch).diatonic;
-                if (st === 0) (maxT = Math.max(maxT, d)), (minT = Math.min(minT, d));
-                else (maxB = Math.max(maxB, d)), (minB = Math.min(minB, d));
-              }),
-            ),
+            l.items.forEach((it) => {
+              if (!it.keys.length) return;
+              const ds = it.keys.map((k) => parsePitch(k.pitch).diatonic);
+              const hi = Math.max(...ds);
+              const lo = Math.min(...ds);
+              const middle = (TOP_LINE[st] + BOTTOM_LINE[st]) / 2;
+              const stemUp = l.stem === 1 || (l.stem === 0 && (hi + lo) / 2 < middle);
+              up[st] = Math.max(up[st], (hi - TOP_LINE[st]) * (SP / 2) + (stemUp ? STEM : 6));
+              down[st] = Math.max(down[st], (BOTTOM_LINE[st] - lo) * (SP / 2) + (stemUp ? 6 : STEM));
+            }),
           ),
         );
-      const above = 34 + Math.max(0, maxT - TOP_LINE[0]) * (SP / 2);
-      const gap = Math.min(170, Math.max(64, 30 + Math.max(0, BOTTOM_LINE[0] - minT) * (SP / 2) + Math.max(0, maxB - TOP_LINE[1]) * (SP / 2)));
-      const below = 26 + Math.max(0, BOTTOM_LINE[1] - minB) * (SP / 2) + (p.chords?.length ? 22 : 0);
+      const above = Math.max(30, up[0] + 16);
+      const gap = Math.min(230, Math.max(76, down[0] + up[1] + 18));
+      const below = Math.max(24, down[1] + 10) + (p.chords?.length ? 18 : 0);
       const trebleY = above;
       const bassY = trebleY + 4 * SP + gap;
       const height = bassY + 4 * SP + below;
@@ -315,10 +343,9 @@ export function WtcSheet(p: SheetProps) {
         const w = s.ws[k] + (first ? s.head : 0);
         const staves = CLEFS.map((clef, st) => {
           const sv = new Stave(x, st === 0 ? trebleY : bassY, w, { space_above_staff_ln: 0, space_below_staff_ln: 0 });
-          if (first) {
-            sv.addClef(clef).addKeySignature(p.keySig);
-            if (si === 0) sv.addTimeSignature(p.time);
-          }
+          if (first) sv.addClef(clef).addKeySignature(p.keySig);
+          const bar = p.eng.bars[b];
+          if (b === 0 || bar.time !== p.eng.bars[b - 1].time) sv.addTimeSignature(bar.time);
           if (b === p.eng.bars.length - 1) sv.setEndBarType(3);
           sv.setContext(ctx).draw();
           return sv;
@@ -332,73 +359,82 @@ export function WtcSheet(p: SheetProps) {
         ctx.save();
         ctx.setFont("Inter, system-ui, sans-serif", first ? 11 : 9);
         ctx.setFillStyle("var(--bar-number, #9a948a)");
-        ctx.fillText(String(b + p.firstBar), first ? x + 2 : x + 3, trebleY - 10 - Math.max(0, maxT - TOP_LINE[0] - 2) * 0);
+        ctx.fillText(String(b + p.firstBar), first ? x + 2 : x + 3, trebleY - 12);
         ctx.restore();
 
-        const built = buildBar(p.eng.bars[b], num, den, inkOf, p.signature);
-        const all = [...built.voices[0], ...built.voices[1]];
         const startX = staves[0].getNoteStartX();
         const endX = staves[0].getNoteEndX();
         const ticks: [number, number][] = [[p.eng.bars[b].from, startX - 4]];
-        if (all.length) {
-          const fmt = new Formatter();
-          for (const vs of built.voices) if (vs.length) fmt.joinVoices(vs);
-          fmt.format(all, Math.max(20, endX - startX - 12));
-          built.voices.forEach((vs, st) => vs.forEach((v) => v.draw(ctx, staves[st])));
-          for (const bm of built.beams) bm.setContext(ctx).draw();
-          for (const tp of built.tuplets) tp.setContext(ctx).draw();
-          // Geometry, heads, voices' classes, ties.
-          const seen = new Map<number, number>();
-          for (const d of built.drawn) {
-            const nx = d.note.getAbsoluteX();
-            if (!d.item.ghost && (!seen.has(Math.round(d.item.at * 96)) || seen.get(Math.round(d.item.at * 96))! > nx)) seen.set(Math.round(d.item.at * 96), nx);
-            const g = svg.querySelector(`#vf-${d.note.getAttribute("id")}`);
-            g?.classList.add(`v${d.layer.voice}`);
-            if (d.item.rest) continue;
-            const sn = d.note as StaveNote;
-            d.item.keys.forEach((key, idx) => {
-              const h = sn.noteHeads[idx];
-              const el = h && svg.querySelector<SVGElement>(`#vf-${h.getAttribute("id")}`);
-              if (!el) return;
-              el.style.setProperty("--hl", p.colors[d.layer.voice % p.colors.length]);
-              heads.set(key.i, [...(heads.get(key.i) ?? []), el]);
-            });
-            // Ties: from the last piece of the same note.
-            if (d.item.tieIn) {
-              const pairs = new Map<StemmableNote, { from: number[]; to: number[]; ctx: RenderContext }>();
+        // A bar that cannot be drawn is left empty rather than losing the page.
+        try {
+          const built = buildBar(p.eng.bars[b], inkOf, p.signature);
+          const all = [...built.voices[0], ...built.voices[1]];
+          if (all.length) {
+            const fmt = new Formatter();
+            for (const vs of built.voices) if (vs.length) fmt.joinVoices(vs);
+            fmt.format(all, Math.max(20, endX - startX - 12));
+            built.voices.forEach((vs, st) => vs.forEach((v) => v.draw(ctx, staves[st])));
+            for (const bm of built.beams) bm.setContext(ctx).draw();
+            for (const tp of built.tuplets) tp.setContext(ctx).draw();
+            // Geometry, heads, voices' classes, ties.
+            const seen = new Map<number, number>();
+            for (const d of built.drawn) {
+              const nx = d.note.getAbsoluteX();
+              if (!d.item.ghost && (!seen.has(Math.round(d.item.at * 96)) || seen.get(Math.round(d.item.at * 96))! > nx)) seen.set(Math.round(d.item.at * 96), nx);
+              const g = svg.querySelector(`#vf-${d.note.getAttribute("id")}`);
+              g?.classList.add(`v${d.layer.voice}`);
+              if (d.item.rest) continue;
+              const sn = d.note as StaveNote;
               d.item.keys.forEach((key, idx) => {
-                const prev = lastTie.get(key.i);
-                if (!prev) return;
-                const e = pairs.get(prev.note) ?? { from: [], to: [], ctx: prev.ctx };
-                e.from.push(prev.k);
-                e.to.push(idx);
-                pairs.set(prev.note, e);
+                const h = sn.noteHeads[idx];
+                const el = h && svg.querySelector<SVGElement>(`#vf-${h.getAttribute("id")}`);
+                if (!el) return;
+                el.style.setProperty("--hl", p.colors[d.layer.voice % p.colors.length]);
+                if (p.describe) el.setAttribute("data-info", p.describe(key.i));
+                heads.set(key.i, [...(heads.get(key.i) ?? []), el]);
               });
-              for (const [prevNote, e] of pairs) {
-                if (e.ctx === ctx) new StaveTie({ first_note: prevNote, last_note: sn, first_indices: e.from, last_indices: e.to }).setContext(ctx).draw();
-                else {
-                  new StaveTie({ first_note: prevNote, last_note: null as unknown as StaveNote, first_indices: e.from, last_indices: e.from }).setContext(e.ctx).draw();
-                  new StaveTie({ first_note: null as unknown as StaveNote, last_note: sn, first_indices: e.to, last_indices: e.to }).setContext(ctx).draw();
+              // Ties: from the last piece of the same note.
+              if (d.item.tieIn) {
+                const pairs = new Map<StemmableNote, { from: number[]; to: number[]; ctx: RenderContext }>();
+                d.item.keys.forEach((key, idx) => {
+                  const prev = lastTie.get(key.i);
+                  if (!prev) return;
+                  const e = pairs.get(prev.note) ?? { from: [], to: [], ctx: prev.ctx };
+                  e.from.push(prev.k);
+                  e.to.push(idx);
+                  pairs.set(prev.note, e);
+                });
+                for (const [prevNote, e] of pairs) {
+                  if (e.ctx === ctx) new StaveTie({ first_note: prevNote, last_note: sn, first_indices: e.from, last_indices: e.to }).setContext(ctx).draw();
+                  else {
+                    new StaveTie({ first_note: prevNote, last_note: null as unknown as StaveNote, first_indices: e.from, last_indices: e.from }).setContext(e.ctx).draw();
+                    new StaveTie({ first_note: null as unknown as StaveNote, last_note: sn, first_indices: e.to, last_indices: e.to }).setContext(ctx).draw();
+                  }
                 }
               }
+              d.item.keys.forEach((key, idx) => (d.item.tieOut ? lastTie.set(key.i, { note: sn, k: idx, ctx }) : lastTie.delete(key.i)));
             }
-            d.item.keys.forEach((key, idx) => (d.item.tieOut ? lastTie.set(key.i, { note: sn, k: idx, ctx }) : lastTie.delete(key.i)));
+            for (const [q, nx] of [...seen.entries()].sort((a, c) => a[0] - c[0])) ticks.push([q / 96, nx]);
+            // Labels (the entries) above their notes.
+            for (const d of built.drawn) {
+              if (d.item.rest || d.item.tieIn) continue;
+              const lab = d.item.keys.map((k) => p.labels.get(k.i)).find(Boolean);
+              if (!lab) continue;
+              const sn = d.note as StaveNote;
+              let yTop = Math.min(...sn.getYs()) - 12;
+              if (sn.hasStem()) {
+                const ext = sn.getStemExtents();
+                yTop = Math.min(ext.topY, ext.baseY, ...sn.getYs()) - 7;
+              }
+              ctx.save();
+              ctx.setFont("Inter, system-ui, sans-serif", 10, "bold");
+              ctx.setFillStyle(p.colors[d.layer.voice % p.colors.length]);
+              ctx.fillText(lab, d.note.getAbsoluteX() - 3, Math.min(yTop, (d.staff === 0 ? trebleY : bassY) - 4));
+              ctx.restore();
+            }
           }
-          for (const [q, nx] of [...seen.entries()].sort((a, c) => a[0] - c[0])) ticks.push([q / 96, nx]);
-          // Labels (the entries) above their notes.
-          for (const d of built.drawn) {
-            if (d.item.rest || d.item.tieIn) continue;
-            const lab = d.item.keys.map((k) => p.labels.get(k.i)).find(Boolean);
-            if (!lab) continue;
-            const sn = d.note as StaveNote;
-            const ext = sn.getStemExtents();
-            const yTop = Math.min(ext.topY, ext.baseY, ...sn.getYs()) - 7;
-            ctx.save();
-            ctx.setFont("Inter, system-ui, sans-serif", 10, "bold");
-            ctx.setFillStyle(p.colors[d.layer.voice % p.colors.length]);
-            ctx.fillText(lab, d.note.getAbsoluteX() - 3, Math.min(yTop, (d.staff === 0 ? trebleY : bassY) - 4));
-            ctx.restore();
-          }
+        } catch (err) {
+          console.warn(`bar ${b + p.firstBar} not drawn`, err);
         }
         ticks.push([p.eng.bars[b].to, x + w - 6]);
         // The chords under the bass staff.
@@ -407,7 +443,7 @@ export function WtcSheet(p: SheetProps) {
           ctx.save();
           ctx.setFont("Inter, system-ui, sans-serif", 10);
           ctx.setFillStyle("var(--sheet-harmony, #6b5a3a)");
-          for (const c of p.chords) if (c.from >= p.eng.bars[b].from - EPS && c.from < p.eng.bars[b].to - EPS) ctx.fillText(c.text, xAt(g, c.from) - 2, bassY + 4 * SP + below - 10);
+          for (const c of p.chords) if (c.from >= p.eng.bars[b].from - EPS && c.from < p.eng.bars[b].to - EPS) ctx.fillText(c.text, xAt(g, c.from) - 2, bassY + 4 * SP + below - 8);
           ctx.restore();
         }
         bars.push({ bar: b, x0: first ? startX - 6 : x, x1: x + w, ticks });
@@ -420,6 +456,7 @@ export function WtcSheet(p: SheetProps) {
     const divs = host.querySelectorAll<HTMLDivElement>(".sheet-sys");
     sysGeo.forEach((s, k) => (s.top = divs[k].offsetTop));
     const g = { systems: sysGeo, heads, scale };
+    host.dataset.ms = String(Math.round(performance.now() - t0));
     geoRef.current = g;
     setGeo(g);
     // eslint-disable-next-line react-hooks/exhaustive-deps

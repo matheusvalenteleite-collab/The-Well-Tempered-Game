@@ -25,6 +25,8 @@ interface Props {
   entries: Entry[];
   showEntries: boolean;
   barQuarters: number;
+  /** Where each bar begins (and the last ends), when the bars are not all alike. */
+  barStarts?: number[];
   cursor: number;
   /** A shaded span (the section or moment chosen), in quarters. */
   span: { from: number; to: number } | null;
@@ -61,7 +63,8 @@ export function VoiceRoll(p: Props) {
   const height = STRIP + PAD + (hi - lo + 1) * ROW + PAD;
   const y = (m: number) => STRIP + PAD + (hi - m) * ROW;
   const x = (q: number) => PAD + q * PX_Q;
-  const bars = Math.ceil(end / p.barQuarters - 1e-6);
+  const lines = p.barStarts ?? Array.from({ length: Math.ceil(end / p.barQuarters - 1e-6) + 1 }, (_, b) => b * p.barQuarters);
+  const bars = lines.length - 1;
   useEffect(() => {
     const el = box.current;
     if (!el || !p.span) return;
@@ -147,13 +150,12 @@ export function VoiceRoll(p: Props) {
             <text x={2} y={y(m) + ROW - 1} className="roll-label">C{Math.floor(m / 12) - 1}</text>
           </g>
         ))}
-        {Array.from({ length: bars + 1 }, (_, b) => (
+        {lines.map((q, b) => (
           <g key={`b${b}`}>
-            <line x1={x(b * p.barQuarters)} x2={x(b * p.barQuarters)} y1={STRIP + PAD - 6} y2={height - PAD} className="roll-bar" />
-            {b < bars && (b % 2 === 0 || bars < 30) && <text x={x(b * p.barQuarters) + 2} y={STRIP + PAD - 9} className="roll-label">{b + (p.firstBar ?? 1)}</text>}
+            <line x1={x(q)} x2={x(q)} y1={STRIP + PAD - 6} y2={height - PAD} className="roll-bar" />
+            {b < bars && (b % 2 === 0 || bars < 30) && <text x={x(q) + 2} y={STRIP + PAD - 9} className="roll-label">{b + (p.firstBar ?? 1)}</text>}
           </g>
         ))}
-        {p.cursor >= 0 && <rect x={x(p.cursor * p.barQuarters)} y={STRIP + PAD - 6} width={p.barQuarters * PX_Q} height={height - STRIP - 2 * PAD + 6} className="roll-cursor" />}
         {p.marker !== null && <line x1={x(p.marker)} x2={x(p.marker)} y1={STRIP + PAD - 8} y2={height - PAD + 4} className="roll-marker" />}
         {p.notes.map((n, i) =>
           p.hidden?.has(i) ? null : (

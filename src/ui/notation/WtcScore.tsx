@@ -5,7 +5,7 @@
  * voice in its colour; the notes the player writes are slots in the given rhythm (grey until
  * written); a tap selects a slot and places the note under the pointer, with the key signature.
  */
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Accidental, Beam, Dot, Formatter, Renderer, Stave, StaveConnector, StaveNote, StaveTie, Tuplet, Voice, type StemmableNote } from "vexflow";
 import { parsePitch, type Step } from "../../music/pitch.ts";
 import { pitchAtPosition, type ClefId } from "./clefs.ts";
@@ -138,41 +138,6 @@ export function WtcScore(p: Props) {
   );
 }
 
-/**
- * A page of systems, one under the other (D127, the owner: "see the sheet music playing", as in
- * Gerubach's videos): each row a few bars, fitted to the page's width; the row playing on top.
- */
-export function WtcPage(p: Omit<Props, "voices" | "cursor" | "label" | "zoom" | "onZoom" | "zoomLabels" | "tools"> & { rows: { voices: WtcScoreVoice[]; bars: number; cursor: number; label: string; key: string }[] }) {
-  const host = useRef<HTMLDivElement>(null);
-  const [w, setW] = useState(0);
-  useLayoutEffect(() => {
-    const el = host.current!;
-    const measure = () => setW(el.clientWidth);
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    measure();
-    return () => ro.disconnect();
-  }, []);
-  return (
-    <div className="wtc-page" ref={host}>
-      {w > 0 &&
-        p.rows.map((r) => {
-          const voices = r.voices;
-          const bars = r.bars;
-          const widths = Array.from({ length: bars }, (_, b) => Math.max(150, 46 + Math.max(1, ...voices.map((v) => piecesInBar(v, b, p.barQuarters).length)) * 30));
-          const lefts = widths.reduce<number[]>((acc, x, i) => (acc.push(i === 0 ? LEAD : acc[i - 1] + widths[i - 1]), acc), []);
-          const natural = LEAD + widths.reduce((a, b) => a + b, 0) + 24;
-          const scale = Math.min(1.25, (w - 8) / natural);
-          return (
-            <div key={r.key} className={r.cursor >= 0 ? "wtc-sys playing" : "wtc-sys"}>
-              <WtcSystem {...p} voices={voices} cursor={r.cursor} label={r.label} zoom={1} onZoom={() => undefined} zoomLabels={{ in: "", out: "", reset: "" }} bars={bars} widths={widths} lefts={lefts} natural={natural} scale={scale} bothStaves />
-            </div>
-          );
-        })}
-    </div>
-  );
-}
-
 interface Hit {
   slot: number;
   x: number;
@@ -237,6 +202,8 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
       // Accidentals by the bar and the staff: the signature's, then what the bar has altered.
       const state = [new Map<string, number>(), new Map<string, number>()];
       const voices: Voice[] = [];
+      const beams: Beam[] = [];
+      const tuplets: Tuplet[] = [];
       const perVoice: { vi: number; v: WtcScoreVoice; tick: StaveNote[]; pieces: Piece[]; stem: 1 | -1 | 0 }[] = [];
       p.voices.forEach((v, vi) => {
         const pieces = piecesInBar(v, b, p.barQuarters);
@@ -264,13 +231,13 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
         for (const q of pv.pieces) {
           let n: StaveNote;
           if (q.rest) {
-            n = new StaveNote({ keys: [pv.stem === -1 ? (clef === "treble" ? "g/4" : "b/2") : pv.stem === 1 ? (clef === "treble" ? "d/5" : "f/3") : middle], duration: `${q.d}r`, clef });
+            n = new StaveNote({ keys: [pv.stem === -1 ? (clef === "treble" ? "g/4" : "b/2") : pv.stem === 1 ? (clef === "treble" ? "d/5" : "f/3") : middle], duration: `${q.d}r`, dots: q.dots, clef });
           } else if (!q.pitch) {
-            n = new StaveNote({ keys: [middle], duration: q.d, clef, ...(pv.stem ? { stem_direction: pv.stem } : { auto_stem: false }) });
+            n = new StaveNote({ keys: [middle], duration: q.d, dots: q.dots, clef, ...(pv.stem ? { stem_direction: pv.stem } : { auto_stem: false }) });
             n.setStyle({ fillStyle: "var(--slot-ink, #b9b2a0)", strokeStyle: "var(--slot-ink, #b9b2a0)" });
           } else {
             const pp = parsePitch(q.pitch);
-            n = new StaveNote({ keys: [`${pp.step.toLowerCase()}/${pp.octave}`], duration: q.d, clef, ...(pv.stem ? { stem_direction: pv.stem } : { auto_stem: true }) });
+            n = new StaveNote({ keys: [`${pp.step.toLowerCase()}/${pp.octave}`], duration: q.d, dots: q.dots, clef, ...(pv.stem ? { stem_direction: pv.stem } : { auto_stem: true }) });
             const acc = accOf.get(q);
             if (acc) n.addModifier(new Accidental(acc));
             const ink = q.src?.ink ?? pv.v.ink;
@@ -287,8 +254,38 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
             lastPiece.set(pv.vi, { note: n, tieNext: q.tieNext });
           } else lastPiece.set(pv.vi, { note: n, tieNext: false });
         }
+        // Triplets before the voice takes the notes (they change the notes' ticks).
+        const trip = pv.tick.filter((_, k) => pv.pieces[k].triplet);
+        for (let k = 0; k + 2 < trip.length; k += 3) {
+          const group = trip.slice(k, k + 3) as StemmableNote[];
+          tuplets.push(new Tuplet(group, { num_notes: 3, notes_occupied: 2 }));
+          if (group.every((n) => ["8", "16", "32"].includes(n.getDuration()))) beams.push(new Beam(group));
+        }
         const voice = new Voice({ num_beats: num, beat_value: den }).setMode(Voice.Mode.SOFT);
         voice.addTickables(pv.tick);
+        // Beams before formatting and drawing (stems meet the beam; flags give way to it), by the beat
+        // (a dotted quarter in compound time), by the notes' own places in the bar: a rest, a longer
+        // note or a triplet between two quavers breaks the beam.
+        {
+          const beat = num % 3 === 0 && num > 3 ? (3 * 4) / den : 4 / den;
+          const barStart = b * p.barQuarters;
+          let group: StemmableNote[] = [];
+          let groupBeat = -1;
+          const flush = () => {
+            if (group.length > 1) beams.push(new Beam(group, pv.stem === 0));
+            group = [];
+          };
+          pv.pieces.forEach((q, k) => {
+            const ok = !q.rest && !q.triplet && ["8", "16", "32", "64"].includes(q.d);
+            const bt = Math.floor((q.at - barStart) / beat + EPS);
+            if (!ok || bt !== groupBeat) flush();
+            if (ok) {
+              if (!group.length) groupBeat = bt;
+              group.push(pv.tick[k] as StemmableNote);
+            }
+          });
+          flush();
+        }
         voices.push(voice);
       }
       if (!voices.length) continue;
@@ -300,35 +297,8 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
       const startX = staves[0].getNoteStartX();
       fmt.format(voices, Math.max(40, x + w - startX - 16));
       perVoice.forEach((pv, i) => voices[i].draw(ctx, staves[pv.v.staff]));
-      // Beams and triplets.
-      for (const pv of perVoice) {
-        // Beamed by the beat (a dotted quarter in compound time), by the notes' own places in the bar:
-        // a rest, a longer note or a triplet between two quavers breaks the beam.
-        const beat = num % 3 === 0 && num > 3 ? (3 * 4) / den : 4 / den;
-        const barStart = b * p.barQuarters;
-        let group: StemmableNote[] = [];
-        let groupBeat = -1;
-        const flush = () => {
-          if (group.length > 1) new Beam(group, pv.stem === 0).setContext(ctx).draw();
-          group = [];
-        };
-        pv.pieces.forEach((q, k) => {
-          const ok = !q.rest && !q.triplet && ["8", "16", "32", "64"].includes(q.d);
-          const bt = Math.floor((q.at - barStart) / beat + EPS);
-          if (!ok || bt !== groupBeat) flush();
-          if (ok) {
-            if (!group.length) groupBeat = bt;
-            group.push(pv.tick[k] as StemmableNote);
-          }
-        });
-        flush();
-        const trip = pv.tick.filter((_, k) => pv.pieces[k].triplet);
-        for (let k = 0; k + 2 < trip.length; k += 3) {
-          const group = trip.slice(k, k + 3) as StemmableNote[];
-          new Tuplet(group, { num_notes: 3, notes_occupied: 2 }).setContext(ctx).draw();
-          if (group.every((n) => ["8", "16", "32"].includes(n.getDuration()))) new Beam(group).setContext(ctx).draw();
-        }
-      }
+      for (const bm of beams) bm.setContext(ctx).draw();
+      for (const tp of tuplets) tp.setContext(ctx).draw();
       // Slots (for taps and the selection), labels and marks.
       for (const pv of perVoice) {
         pv.pieces.forEach((q, k) => {

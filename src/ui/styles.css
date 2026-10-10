@@ -1113,9 +1113,6 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .wtc-chords .chipbtn { padding: 1px 5px; min-width: 0; }
 .wtc-chords .barno { opacity: 0.55; font-size: 0.75em; margin-left: 6px; align-self: center; }
 /* D127: the score as a page that follows the music. */
-.wtc-page { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; padding: 4px; }
-.wtc-sys { border-left: 3px solid transparent; }
-.wtc-sys.playing { border-left-color: var(--accent, #e07b00); }
 /* D143: the gold star. */
 .star.gold { filter: drop-shadow(0 0 3px rgba(240, 190, 40, 0.8)); }
 /* D140 after D106: the scores fit their box, so the tutorial's boxes have a height of their own. */
@@ -1155,7 +1152,7 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .sheet-music .vf-notehead.hl-hit path { transform: scale(1.5); transition: transform 0.03s; }
 .sheet-music .vf-notehead.hl-on { filter: drop-shadow(0 0 2.5px var(--hl)); }
 .sheet-music .vf-notehead.hl-on path { transform: scale(1.18); }
-.keystrip { position: relative; flex: 0 0 58px; height: 58px; background: #1c1b19; border-top: 1px solid var(--line); user-select: none; -webkit-user-select: none; overflow: hidden; }
+.keystrip { position: relative; flex: 0 0 46px; height: 46px; background: #1c1b19; border-top: 1px solid var(--line); user-select: none; -webkit-user-select: none; overflow: hidden; }
 .keystrip .key { position: absolute; top: 0; cursor: pointer; transition: background-color 0.3s ease-out, box-shadow 0.3s ease-out, transform 0.3s ease-out; }
 .keystrip .key.white { bottom: 0; background: linear-gradient(#ffffff, #efebe1); border-right: 1px solid #a9a397; border-radius: 0 0 3px 3px; }
 .keystrip .key.black { height: 60%; background: linear-gradient(#3a3835, #121110); border-radius: 0 0 2px 2px; z-index: 1; box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4); }
@@ -1169,3 +1166,21 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .roll-playhead { stroke: rgba(224, 123, 0, 0.9); stroke-width: 2; }
 .roll-marker { stroke: #2a56d6; stroke-width: 1.5; stroke-dasharray: 4 2; }
 .wtc-pos { font: 12px var(--ui-font); font-variant-numeric: tabular-nums; color: var(--muted); min-width: 8.5em; white-space: nowrap; }
+.shell .panel[hidden] { display: none; }
+.shell.layout-compact .score-wrap.wtc { height: 64vh; min-height: 280px; }
+.shell.layout-compact.focus .score-wrap.wtc { height: 82vh; }
+/* D147: the navigator, the whole piece at a glance under the music. */
+.navigator { position: relative; flex: 0 0 34px; height: 34px; background: var(--bg); border-top: 1px solid var(--line); cursor: pointer; user-select: none; -webkit-user-select: none; overflow: hidden; touch-action: none; }
+.nav-sec { position: absolute; top: 0; bottom: 0; border-right: 1px solid var(--line); opacity: 0.55; }
+.nav-sec.nav-exposition { background: rgba(42, 86, 214, 0.12); }
+.nav-sec.nav-entries { background: rgba(46, 139, 87, 0.10); }
+.nav-sec.nav-episode { background: rgba(184, 134, 11, 0.13); }
+.nav-sec.nav-close { background: rgba(155, 63, 198, 0.10); }
+.nav-sec.nav-toKey, .nav-sec.nav-figure { background: rgba(127, 127, 127, 0.07); }
+.nav-sec:hover { opacity: 1; }
+.nav-bar { position: absolute; top: 0; font: 9px var(--ui-font); color: var(--muted); padding-left: 2px; border-left: 1px solid var(--line); line-height: 10px; pointer-events: none; }
+.nav-entry { position: absolute; height: 3px; border-radius: 2px; opacity: 0.9; }
+.nav-entry.inv { opacity: 0.55; background-image: repeating-linear-gradient(90deg, transparent 0 3px, rgba(255, 255, 255, 0.7) 3px 5px); }
+.nav-span { position: absolute; top: 0; bottom: 0; background: rgba(42, 86, 214, 0.18); box-shadow: inset 0 0 0 1px rgba(42, 86, 214, 0.5); pointer-events: none; }
+.nav-marker { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #2a56d6; pointer-events: none; }
+.nav-head { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -1px; background: rgba(224, 123, 0, 0.9); pointer-events: none; }

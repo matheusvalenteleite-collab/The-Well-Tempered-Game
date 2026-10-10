@@ -26,6 +26,14 @@ export interface LibPiece {
   spelled: string[];
   voice: number[];
   count: number;
+  /**
+   * Where each bar begins, in quarters, and where the last ends (bars + 1 entries), from the
+   * encoding's bar lines: the bars are not all `barQuarters` long where the metre changes (Book II
+   * no. 3's prelude goes from 4/4 to 3/8 for its fughetta) or a bar is irregular.
+   */
+  barStarts: number[];
+  /** Each bar's metre ("4/4"; the declared one unless the bar's length says otherwise). */
+  meters: string[];
 }
 
 export interface LibFugue extends LibPiece {
@@ -75,7 +83,41 @@ function base(p: WtcPiece): { piece: LibPiece; index: Map<string, number>; pad: 
       voice.push(vi);
     }),
   );
-  return { piece: { time: p.meter, barQuarters: barQ, pickup: pad > 0 ? 1 : 0, notes, spelled, voice, count: p.voices.length }, index, pad };
+  const { barStarts, meters } = barsOf(p, barQ, pad, notes);
+  return { piece: { time: p.meter, barQuarters: barQ, pickup: pad > 0 ? 1 : 0, notes, spelled, voice, count: p.voices.length, barStarts, meters }, index, pad };
+}
+
+/** Metres a bar of another length may be in (the shortest name that fits). */
+const OTHER_METERS = ["3/8", "2/4", "3/4", "4/4", "6/8", "9/8", "12/8", "6/4", "3/2", "2/2", "4/2", "12/16", "6/16", "24/16"];
+
+/** The bars of a piece: from its bar lines (a pickup padded to a full bar, as the notes are). */
+function barsOf(p: WtcPiece, barQ: number, pad: number, notes: FullNote[]): { barStarts: number[]; meters: string[] } {
+  const end = Math.max(p.length / TPQ + pad, ...notes.map((n) => n.at + n.dur));
+  const lines = [...new Set(p.bars.map((b) => Math.round((b.on / TPQ + pad) * 960) / 960))].filter((q) => q > 1e-6 && q < end - 1e-6).sort((a, b) => a - b);
+  const starts = [0, ...lines];
+  // The last bar is drawn a full bar long (a final chord held longer, or an incomplete bar).
+  const last = starts[starts.length - 1];
+  const lastOnset = Math.max(...notes.map((n) => n.at));
+  const lastLen = starts.length > 1 ? last - starts[starts.length - 2] : barQ;
+  starts.push(Math.max(last + lastLen, Math.ceil((lastOnset + 1e-6 - last) / lastLen) * lastLen + last));
+  const [, den] = p.meter.split("/").map(Number);
+  const meterOf = (len: number) => {
+    if (Math.abs(len - barQ) < 1e-6) return p.meter;
+    const fits = OTHER_METERS.filter((m) => {
+      const [n, d] = m.split("/").map(Number);
+      return Math.abs((n * 4) / d - len) < 1e-6;
+    });
+    return fits.find((m) => Number(m.split("/")[1]) === den) ?? fits[0] ?? null;
+  };
+  const lens = starts.slice(0, -1).map((a, k) => starts[k + 1] - a);
+  // The first bar (a padded pickup) and the last take the metre of the bar next to them.
+  const meters = lens.map((len, k) => {
+    const own = k === 0 || k === lens.length - 1 ? null : meterOf(len);
+    if (own) return own;
+    const near = lens.length > 2 ? meterOf(lens[k === 0 ? 1 : k - 1]) : null;
+    return near ?? p.meter;
+  });
+  return { barStarts: starts, meters };
 }
 
 function fugueOf(p: WtcPiece): LibFugue {
