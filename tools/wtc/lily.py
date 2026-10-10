@@ -569,6 +569,8 @@ class Parser:
                 self.i += 2
         elif t.kind in ("scheme", "str", "num", "cmd"):
             self.i += 1
+            if t.kind == "num" and self.at("sym", "/") and self.at("num", k=1):
+                self.i += 2  # a fraction: \set Score.timeSignatureFraction = 2/2
 
     def skip_path(self) -> None:
         """Skip a context/grob/property path: Staff.NoteCollision #'prop, or Score.tempoHideNote."""
@@ -713,7 +715,9 @@ class Parser:
             raise LilyError(f"line {t.line}: {t.value!r} is not a pitch")
         step, alter = self.names[t.value]
         octave = 0
-        while (self.at("sym", "'") or self.at("sym", ",")) and not self.peek().space:
+        # octave marks, even when a space separates them from the name ("dis ," in some editions):
+        # LilyPond reads them with the note, and a lone ' or , has no other meaning in music
+        while self.at("sym", "'") or self.at("sym", ","):
             octave += 1 if self.next().value == "'" else -1
         while (self.at("sym", "!") or self.at("sym", "?")) and not self.peek().space:
             self.i += 1
