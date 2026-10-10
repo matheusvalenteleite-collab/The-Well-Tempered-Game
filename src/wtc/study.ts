@@ -84,7 +84,7 @@ export function studyMoments(notes: FullNote[], voice: number[], count: number, 
     while (j + 1 < bass.length && bass[j + 1].n.midi === bass[k].n.midi && bass[j + 1].n.at <= bass[j].n.at + bass[j].n.dur + 1e-6) j++;
     const from = bass[k].n.at;
     const to = bass[j].n.at + bass[j].n.dur;
-    if (to - from >= 2 * bar - 1e-6) moments.push({ kind: "pedal", from, to, voices: [bassV], detail: { pitch: pitchName(bass[k].n.midi), bars: +((to - from) / bar).toFixed(1) } });
+    if (to - from >= 2 * bar - 1e-6) moments.push({ kind: "pedal", from, to, voices: [bassV], detail: { pitch: pitchName(bass[k].n.midi), pc: ((bass[k].n.midi % 12) + 12) % 12, bars: +((to - from) / bar).toFixed(1) } });
     k = j + 1;
   }
   // The highest and the lowest note.

@@ -1133,3 +1133,8 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .tut-roll .pianoroll { max-height: 260px; overflow: auto; }
 .tut-roll .help-line { padding: 4px 8px; }
 :root[data-look="retro"] .tut-roll { border: 2px solid var(--edge); box-shadow: 3px 3px 0 var(--edge); }
+/* D133: the companion. */
+.companion-intro { font-size: 1.02em; line-height: 1.5; }
+.companion-note { font-style: italic; line-height: 1.5; border-left: 3px solid var(--accent, #e07b00); padding-left: 10px; }
+.score-wrap.wtc .companion-now { position: absolute; left: 10px; right: 10px; bottom: 10px; z-index: 3; background: var(--paper, #fbf7ec); color: var(--ink, #222); border: 1px solid var(--line, #ccc); border-left: 4px solid var(--accent, #e07b00); border-radius: 4px; padding: 8px 12px; font-family: var(--serif, Georgia, serif); font-size: 15px; line-height: 1.45; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12); pointer-events: none; }
+.companion-now .companion-label { font-family: var(--ui-font, inherit); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.65; margin-right: 6px; }

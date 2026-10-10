@@ -1101,6 +1101,8 @@
     "study.rec.of": "{performer} (recording)",
     "study.rec.help": "A real performance: Book I by Kimiko Ishizaka (The Open Well-Tempered Clavier, 2015, CC0), Book II by Arthur Loesser (1964, from the Internet Archive). The whole piece, a section, a moment, every entry in a row, from the performance (repeats as the pianist plays them). A voice alone, the chords alone, solo, mute, spotlight and the workshop use the game's sounds, which can take a piece apart; a recording cannot.",
     "study.rec.none": "No recording of this piece.",
+    "study.listening": "Listen with a companion: while the piece plays, a line follows the music and says what is happening",
+    "study.listeningNow": "Bar {bar}",
     "wtc.mode": "Well-Tempered Clavier",
     "wtc.exercise": "Exercise",
     "wtc.fugue": "Fugue",

@@ -22,6 +22,8 @@ import { beatOf } from "../wtc/counterpoint.ts";
 import { isMinor, keyName, keySignature } from "../wtc/fugues.ts";
 import type { Entry, FullNote } from "../wtc/entries.ts";
 import { LIBRARY } from "../wtc/library.ts";
+import { commentOn, momentAt, overview, type CompanionContext } from "../wtc/commentary.ts";
+import { NOTES } from "../wtc/notes.ts";
 import { degreeOf, entryVoice, pitchName, studyMoments, voiceNames, type Moment, type Section as StudySection } from "../wtc/study.ts";
 type Section = Omit<StudySection, "kind"> & { kind: StudySection["kind"] | "toKey" | "figure"; key?: { tonic: number; minor: boolean } };
 import { parsePitch, type Step } from "../music/pitch.ts";
@@ -467,6 +469,19 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
         return t("ui.study.m.figure", { bar: String(m.detail.bar) });
     }
   };
+  // D133: the companion: what each moment does, and a line that follows the music while it plays.
+  const lastChord = chords[chords.length - 1];
+  const companion: CompanionContext = {
+    minor, keyName: keyName(F.key), names, count, entries, firstShift: firstEntry?.shift ?? 0, entryVoice: (e) => entryVoice(e, voice),
+    subjectNotes: F.subject.length, bars, barQ, barNo: bq, tonicPc,
+    picardy: minor && !!lastChord && lastChord.quality === "maj" && lastChord.root === tonicPc, prelude: isPrelude,
+    expoEnd: sections.find((x) => x.kind === "exposition")?.to ?? 0,
+  };
+  const say = (m: Moment) => (m.kind === "arrival" ? momentText(m) : commentOn(m, companion, moments));
+  const [listening, setListening] = useState(() => stored("wtg.wtcCompanion", true, (v) => typeof v === "boolean"));
+  useEffect(() => store("wtg.wtcCompanion", listening), [listening]);
+  const nowMoment = playing && cursor >= 0 && listening ? momentAt(moments, cursor * barQ + barQ / 2) : null;
+  const note = NOTES[F.id]?.[isPrelude ? "prelude" : "fugue"];
   const [filter, setFilter] = useState<"all" | "entry" | "other">("all");
   const shown = moments.filter((m) => filter === "all" || isPrelude || (filter === "entry" ? m.kind === "entry" : m.kind !== "entry"));
   const strettos = moments.filter((m) => m.kind === "stretto").length;
@@ -479,7 +494,10 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   const guide = (
     <div className="guide wtc-study">
       <h3>{isPrelude ? t("ui.study.preludeOf", { label: fugueLabel(F) }) : fugueLabel(F)}</h3>
-      <p>{isPrelude ? t("ui.study.preludeOverview", { key: keyName(F.key), bars, time: timeSig, voices: count, pedals }) : t("ui.study.overview", { key: keyName(F.key), voices: count, bars, entries: entries.length, inv: inversions, strettos, pedals })}</p>
+      {isPrelude && <p>{t("ui.study.preludeOverview", { key: keyName(F.key), bars, time: timeSig, voices: count, pedals })}</p>}
+      <p className="companion-intro">{overview(companion, moments)}</p>
+      {note && <p className="companion-note">{note}</p>}
+      <label className="help"><input type="checkbox" checked={listening} onChange={(e) => setListening(e.target.checked)} /> {t("ui.study.listening")}</label>
       <p className="help">{t(isPrelude ? "ui.study.preludeHelp" : "ui.study.overviewHelp")}</p>
       <h4>{t("ui.study.sections")}</h4>
       <div className="wtc-sections">
@@ -536,7 +554,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
                 <button className="chipbtn" onClick={() => { setActiveMoment(key); setSpan({ from: m.from, to: m.to }); play(m.from, m.to, new Set(entries[Number(m.detail.index)].notes)); }} title={t("ui.study.aloneHelp")}>{t("ui.study.alone")}</button>
               )}
               <span className="when">{when(m)}</span>
-              <span style={m.voices.length === 1 ? { color: COLORS[m.voices[0] % COLORS.length] } : undefined}>{momentText(m)}</span>
+              <span style={m.voices.length === 1 ? { borderLeft: `3px solid ${COLORS[m.voices[0] % COLORS.length]}`, paddingLeft: 6 } : undefined}>{say(m)}</span>
             </li>
           );
         })}
@@ -801,6 +819,11 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
       }
       score={
         <div className="score-wrap wtc">
+          {nowMoment && (
+            <div className="companion-now" aria-live="polite">
+              <span className="companion-label">{t("ui.study.listeningNow", { bar: bq(cursor * barQ) })}</span> {say(nowMoment)}
+            </div>
+          )}
           {view === "page" ? (
             <WtcPage rows={pageRows} keySig={vexKey(F.key)} signature={sig} time={timeSig} barQuarters={barQ} selected={null} onSlot={() => undefined} />
           ) : view === "score" ? (
