@@ -34,7 +34,7 @@ Later subjects of double and triple fugues are found from where he says they ent
 - ✓ `section b.14-19 triple and quadruple stretto`: a section starts at bar 14
 - ✓ `stretto b.14 voices?`: found at bar 14
 - ✓ `stretto b.15 voices? (ff)`: found at bar 14
-- ✓ `entry b.15 bass C (variant)`: found, but read in G, not C
+- ✓ `entry b.15 bass G (variant; the subject at the dominant level, G A B C D)`: found, in G
 - ✓ `entry b.17 bass`: found
 - ✗ `section b.19-27 stretti over pedals`: no section starts here
 - ✗ `pedal b.19-19 II`: not found
@@ -106,9 +106,9 @@ Later subjects of double and triple fugues are found from where he says they ent
 - ✓ `entry b.3 alto (answer)`: found
 - ✗ `section b.4-5 link`: no section starts here
 - ✓ `entry b.6 bass (subject)`: found
-- ✓ `entry b.11 soprano Eb (answer)`: found, but read in Bb, not Eb
+- ✓ `entry b.11 soprano Bb (answer; L.: a ritornello repeat in the tonic)`: found, in Bb
 - · `section b.1-17 first half`: the opening
-- ✓ `entry b.17 voice? c (warped version)`: found, but read in g, not c
+- ✓ `entry b.17 voice? c (warped version; analysis reads g) [check]`: found, but read in g, not c
 - ✓ `entry b.26 bass (answer)`: found
 - ✓ `entry b.29 soprano (subject)`: found
 - ✓ `entry b.34 alto (answer)`: found
@@ -195,7 +195,7 @@ Later subjects of double and triple fugues are found from where he says they ent
 - ✓ `entry b.32 bass`: found
 - ✓ `entry b.37 soprano`: found
 - ✗ `cadence b.20 c# (score; L.: b.20 C#)`: not found
-- ✓ `entry b.20 alto f# (inverso, starting on C#; L. gives the starting note)`: found, but read in c#, not f#
+- ✓ `entry b.20 alto f# (inverso, starting on C#; c# also possible) [check]`: found, but read in c#, not f#
 - ✗ `entry b.25 soprano c# (head varied; L. gives the starting note)`: not found
 
 ### Fugue 15 in G major (Book I, BWV 860b)
@@ -603,9 +603,9 @@ Later subjects of double and triple fugues are found from where he says they ent
 9 of 10 hold.
 
 - ✓ `entry b.28 voice? (subject 2)`: found, subject 2 in the soprano at bar 28
-- ✓ `entry b.42 voice? g#`: found, but read in F#, not g#
+- ✓ `entry b.42 soprano F# (harmonised towards g#: L.'s inversion at the 12th)`: found, in F#
 - ✓ `entry b.48 bass`: found
-- ✓ `entry b.53 tenor g#`: found, but read in E, not g#
+- ✓ `entry b.53 tenor E (harmonised towards c#: L.'s inversion at the 12th)`: found, in E
 - ✓ `entry b.60 voice?`: found
 - ✗ `section b.63-74 episode`: no section starts here
 - ✓ `entry b.75 bass I`: found, in I

@@ -7,7 +7,7 @@ wtc1f01 section b.7-14 close stretto
 wtc1f01 section b.14-19 triple and quadruple stretto
 wtc1f01 stretto b.14 voices?
 wtc1f01 stretto b.15 voices? (ff)
-wtc1f01 entry b.15 bass C (variant)
+wtc1f01 entry b.15 bass G (variant; the subject at the dominant level, G A B C D)
 wtc1f01 entry b.17 bass
 wtc1f01 section b.19-27 stretti over pedals
 wtc1f01 pedal b.19-19 II
@@ -64,9 +64,9 @@ wtc1f07 entry b.1 voice?
 wtc1f07 entry b.3 alto (answer)
 wtc1f07 section b.4-5 link
 wtc1f07 entry b.6 bass (subject)
-wtc1f07 entry b.11 soprano Eb (answer)
+wtc1f07 entry b.11 soprano Bb (answer; L.: a ritornello repeat in the tonic)
 wtc1f07 section b.1-17 first half
-wtc1f07 entry b.17 voice? c (warped version)
+wtc1f07 entry b.17 voice? c (warped version; analysis reads g) [check]
 wtc1f07 entry b.26 bass (answer)
 wtc1f07 entry b.29 soprano (subject)
 wtc1f07 entry b.34 alto (answer)
@@ -127,7 +127,7 @@ wtc1f14 entry b.29 tenor
 wtc1f14 entry b.32 bass
 wtc1f14 entry b.37 soprano
 wtc1f14 cadence b.20 c# (score; L.: b.20 C#)
-wtc1f14 entry b.20 alto f# (inverso, starting on C#; L. gives the starting note)
+wtc1f14 entry b.20 alto f# (inverso, starting on C#; c# also possible) [check]
 wtc1f14 entry b.25 soprano c# (head varied; L. gives the starting note)
 wtc1p14 cadence b.12 C#
 wtc1f15 section b.20-31 exposition inverso
@@ -471,9 +471,9 @@ wtc2f22 section b.96-101 stretto inverso exposition at the 10th
 wtc2f22 stretto b.96 voices? at 10th
 wtc2p22 section b.55-83 reprise (score; L.: b.55-82 reprise)
 wtc2f23 entry b.28 voice? (subject 2)
-wtc2f23 entry b.42 voice? g#
+wtc2f23 entry b.42 soprano F# (harmonised towards g#: L.'s inversion at the 12th)
 wtc2f23 entry b.48 bass
-wtc2f23 entry b.53 tenor g#
+wtc2f23 entry b.53 tenor E (harmonised towards c#: L.'s inversion at the 12th)
 wtc2f23 entry b.60 voice?
 wtc2f23 section b.63-74 episode
 wtc2f23 entry b.75 bass I

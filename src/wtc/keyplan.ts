@@ -114,7 +114,6 @@ export function entryKey(p: WtcPiece, e: Entry, subject: Note[]): EntryKey {
       }
     if (maj + min > 0 && Math.max(maj, min) >= 2 * Math.min(maj, min)) major = maj > min;
   }
-  if (p.mode === "minor" && offset === 4) alter = 0; // the dominant of a minor key: its scale's fifth
   const name = `${letter}${alter > 0 ? "#" : alter < 0 ? "b" : ""}`;
   const roman = ROMAN[offset];
   return { offset, roman: major ? roman : roman.toLowerCase(), name: major ? name : name.toLowerCase() };
