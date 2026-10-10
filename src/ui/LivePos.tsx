@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import { onFrames, playhead } from "./playhead.ts";
 
-export function LivePos({ idle, format, title }: { idle: string; format(q: number): string; title?: string }) {
+export function LivePos({ idle, format, title, className = "wtc-pos" }: { idle: string; format(q: number): string; title?: string; className?: string }) {
   const el = useRef<HTMLSpanElement>(null);
   const fmt = useRef(format);
   fmt.current = format;
@@ -19,5 +19,5 @@ export function LivePos({ idle, format, title }: { idle: string; format(q: numbe
   useEffect(() => {
     if (el.current && !playhead.active) el.current.textContent = idle;
   }, [idle]);
-  return <span className="wtc-pos" ref={el} data-info={title} />;
+  return <span className={className} ref={el} data-info={title} />;
 }

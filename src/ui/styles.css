@@ -1184,3 +1184,9 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .nav-span { position: absolute; top: 0; bottom: 0; background: rgba(42, 86, 214, 0.18); box-shadow: inset 0 0 0 1px rgba(42, 86, 214, 0.5); pointer-events: none; }
 .nav-marker { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #2a56d6; pointer-events: none; }
 .nav-head { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -1px; background: rgba(224, 123, 0, 0.9); pointer-events: none; }
+.sheet-bracket { position: absolute; border-radius: 5px; background: color-mix(in srgb, var(--bc) 9%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bc) 35%, transparent); }
+.sheet-bracket.inv { box-shadow: none; outline: 1px dashed color-mix(in srgb, var(--bc) 45%, transparent); outline-offset: -1px; }
+.sheet-music[data-dim~="v0"] .v0, .sheet-music[data-dim~="v1"] .v1, .sheet-music[data-dim~="v2"] .v2, .sheet-music[data-dim~="v3"] .v3,
+.sheet-music[data-dim~="v4"] .v4, .sheet-music[data-dim~="v5"] .v5, .sheet-music[data-dim~="v6"] .v6, .sheet-music[data-dim~="v7"] .v7 { opacity: 0.4; }
+.wtc-now { flex: 0 0 auto; display: block; padding: 3px 10px; font: 12px var(--ui-font); color: var(--ink); background: var(--bg); border-top: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; min-height: 22px; }
+.shell.layout-compact .score-area:has(.score-wrap.wtc) { height: auto; max-height: none; overflow: visible; }

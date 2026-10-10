@@ -49,6 +49,10 @@ export interface SheetProps {
   chords?: { from: number; text: string; title: string }[];
   /** Voices drawn faint (muted, or another soloed). */
   faint: Set<number>;
+  /** Voices drawn a little paler (another in the spotlight). */
+  dim?: Set<number>;
+  /** The subject's entries, bracketed over (or under) their staff. */
+  brackets?: { from: number; to: number; voice: number; inverted: boolean }[];
   /** The passage chosen, in quarters. */
   span: { from: number; to: number } | null;
   /** Where playback will start (a marker when stopped). */
@@ -74,6 +78,9 @@ interface SysGeo {
   height: number;
   trebleTop: number;
   bassBottom: number;
+  /** The first and last bar of the system. */
+  first: number;
+  last: number;
   bars: BarGeo[];
 }
 interface Geometry {
@@ -258,7 +265,8 @@ export function WtcSheet(p: SheetProps) {
     if (!host || width < 50) return;
     const t0 = performance.now();
     host.innerHTML = "";
-    const scale = p.zoom;
+    // On a narrow screen the music is engraved smaller (a phone shows two bars a line, not one).
+    const scale = p.zoom * (width < 760 ? Math.max(0.55, width / 760) : 1);
     const W = Math.max(320, (width - 6) / scale);
     const MARGIN = 8;
     const head0 = headerWidth(p.keySig, p.eng.bars[0]?.time ?? p.time);
@@ -449,7 +457,7 @@ export function WtcSheet(p: SheetProps) {
         bars.push({ bar: b, x0: first ? startX - 6 : x, x1: x + w, ticks });
         x += w;
       });
-      sysGeo.push({ top, height, trebleTop: trebleY, bassBottom: bassY + 4 * SP, bars });
+      sysGeo.push({ top, height, trebleTop: trebleY, bassBottom: bassY + 4 * SP, bars, first: s.bars[0], last: s.bars[s.bars.length - 1] });
       top += height;
     });
     // System tops in pixels, from the page.
@@ -467,7 +475,8 @@ export function WtcSheet(p: SheetProps) {
     const host = page.current;
     if (!host) return;
     host.dataset.faint = [...p.faint].map((v) => `v${v}`).join(" ");
-  }, [p.faint, geo]);
+    host.dataset.dim = [...(p.dim ?? [])].map((v) => `v${v}`).join(" ");
+  }, [p.faint, p.dim, geo]);
 
   // Where a quarter is: its system and x.
   const locate = (g: Geometry, q: number): { s: number; x: number } | null => {
@@ -583,6 +592,37 @@ export function WtcSheet(p: SheetProps) {
     return out;
   };
   const markerAt = geo && p.marker !== null ? locate(geo, p.marker) : null;
+  // The entries, each a light band of its voice's colour behind its staff; broken where a system ends.
+  const brackets = useMemo(() => {
+    if (!geo || !p.brackets?.length) return null;
+    const out: JSX.Element[] = [];
+    p.brackets.forEach((e, k) => {
+      geo.systems.forEach((s, si) => {
+        const a = s.bars[0].ticks[0][0];
+        const last = s.bars[s.bars.length - 1];
+        const z = last.ticks[last.ticks.length - 1][0];
+        if (e.to <= a + EPS || e.from >= z - EPS) return;
+        const x0 = locate(geo, Math.max(e.from, a))!.x;
+        const toQ = Math.min(e.to, z);
+        const bg = s.bars.find((b) => toQ <= b.ticks[b.ticks.length - 1][0] + EPS) ?? last;
+        const x1 = toQ >= bg.ticks[bg.ticks.length - 1][0] - EPS ? bg.x1 - 4 : xAt(bg, toQ);
+        const bar = s.bars.find((b) => Math.max(e.from, a) < b.ticks[b.ticks.length - 1][0] - EPS)?.bar ?? s.first;
+        const staff = p.eng.staffOf[e.voice]?.[bar] ?? 0;
+        // A band behind the entry, over the staff it is on.
+        const yTop = staff === 0 ? s.trebleTop : s.bassBottom - 4 * SP;
+        const y = yTop - 12;
+        out.push(
+          <div
+            key={`b${k}-${si}`}
+            className={e.inverted ? "sheet-bracket inv" : "sheet-bracket"}
+            style={{ left: (x0 - 6) * geo.scale, top: s.top + y * geo.scale, width: Math.max(4, (x1 - x0 + 8) * geo.scale), height: (4 * SP + 24) * geo.scale, ["--bc" as string]: p.colors[e.voice % p.colors.length] }}
+          />,
+        );
+      });
+    });
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [geo, p.brackets, p.colors, p.eng]);
 
   return (
     <div
@@ -625,6 +665,7 @@ export function WtcSheet(p: SheetProps) {
       >
         <div ref={page} className="sheet-music" />
         <div className="sheet-over" aria-hidden="true">
+          {brackets}
           {shades(p.span, "sheet-span")}
           {shades(dragSpan, "sheet-drag")}
           {markerAt && geo && <div className="sheet-marker" style={{ left: markerAt.x * geo.scale, top: geo.systems[markerAt.s].top + (geo.systems[markerAt.s].trebleTop - 18) * geo.scale, height: (geo.systems[markerAt.s].bassBottom - geo.systems[markerAt.s].trebleTop + 36) * geo.scale }} />}

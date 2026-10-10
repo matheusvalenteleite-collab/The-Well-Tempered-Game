@@ -87,6 +87,13 @@ class Player {
   }
 
   /** Play [from, to) seconds of each stretch in turn; `onTime` gets the time while it plays, `onEnd` once at the end (or never, if stopped). */
+  /** The speed (1 = as recorded), the pitch kept; changes at once while it plays. */
+  setRate(rate: number) {
+    this.rate = Math.max(0.25, Math.min(2, rate));
+    if (this.el) this.el.playbackRate = this.rate;
+  }
+  private rate = 1;
+
   async play(urls: string[], stretches: [number, number][], onTime: (s: number) => void, onEnd: () => void, volume = 1) {
     this.stop();
     const token = this.token;
@@ -96,6 +103,8 @@ class Player {
       return;
     }
     el.volume = Math.max(0, Math.min(1, volume));
+    el.preservesPitch = true;
+    el.playbackRate = this.rate;
     for (const [from, to] of stretches) {
       if (token !== this.token) return;
       el.currentTime = from;

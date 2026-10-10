@@ -152,6 +152,12 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   const [source, setSource] = useState<"synth" | "recording">(() => stored("wtg.wtcSource", "synth", (v) => v === "synth" || v === "recording"));
   useEffect(() => store("wtg.wtcSource", source), [source]);
   const track = useMemo(() => trackOf(L.id, isPrelude), [L.id, isPrelude]);
+  /** The recording's speed (D147): slower to follow it closely, the pitch kept. */
+  const [recRate, setRecRate] = useState(() => stored("wtg.wtcRecRate", 1, (v) => typeof v === "number" && v >= 0.5 && v <= 1.25));
+  useEffect(() => {
+    recording.setRate(recRate);
+    store("wtg.wtcRecRate", recRate);
+  }, [recRate]);
   const useRec = source === "recording" && !!track;
   // Voices: solo, mute, spotlight.
   const [solo, setSolo] = useState<number | null>(null);
@@ -285,7 +291,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     playhead.follow(() => {
       const sec = recording.time();
       return sec === null ? null : quartersAt(track, sec, barQ);
-    }, barQ / Math.max(0.1, mean));
+    }, (barQ / Math.max(0.1, mean)) * recRate);
   };
   const halt = () => {
     audio.stop();
@@ -579,8 +585,8 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     else if (e.key === "f" || e.key === "F") setFollow(!follow);
     else if (e.key === "z" || e.key === "Z") setFocus(!focus);
     else if (e.key === "k" || e.key === "K") setKeys(!keys);
-    else if (e.key === "[") setTempo(Math.max(15, tempo - 3));
-    else if (e.key === "]") setTempo(Math.min(120, tempo + 3));
+    else if (e.key === "[") (useRec ? setRecRate(Math.max(0.5, Math.round((recRate - 0.05) * 100) / 100)) : setTempo(Math.max(15, tempo - 3)));
+    else if (e.key === "]") (useRec ? setRecRate(Math.min(1.25, Math.round((recRate + 0.05) * 100) / 100)) : setTempo(Math.min(120, tempo + 3)));
     else if (/^[1-6]$/.test(e.key) && Number(e.key) <= count) {
       const v = Number(e.key) - 1;
       setSolo(solo === v ? null : v);
@@ -919,6 +925,11 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     if (c) parts.push(t("ui.study.info.chord", { chord: `${chordName(c, flats)} · ${romanOf(c, tonicPc, minor, false)}` }));
     return `${parts.filter(Boolean).join(" · ")}. ${t("ui.study.info.click")}`;
   };
+  const dimSet = useMemo(() => new Set(spot === null ? [] : Array.from({ length: count }, (_, v) => v).filter((v) => v !== spot)), [spot, count]);
+  const sheetBrackets = useMemo(
+    () => (showEntries ? (gameUntil !== null ? entries.filter((e) => e.end <= gameUntil + 1e-6) : entries).map((e) => ({ from: e.at, to: e.end, voice: entryVoice(e, voice), inverted: e.inverted })) : undefined),
+    [showEntries, entries, gameUntil, voice],
+  );
   const faintKey = [...faint].sort().join(",");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const faintSet = useMemo(() => faint, [faintKey]);
@@ -927,6 +938,22 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   const posAt = (q: number) => {
     const b = barOf(q + 1e-6);
     return t("ui.study.at", { bar: b + firstBar, beat: Math.floor((q - barStart(b)) / beatOf(P.meters[b] ?? timeSig) + 1e-6) + 1 });
+  };
+  /** What is happening at a moment, in words: the section, the entries sounding, the chord (the caption under the music). */
+  const nowAt = (q: number) => {
+    const sec = sections.find((x) => x.from <= q + 1e-6 && q < x.to - 1e-6);
+    const ins = entries.filter((e) => e.at <= q + 1e-6 && q < e.end - 1e-6 && (gameUntil === null || e.end <= gameUntil + 1e-6));
+    const c = harmony === "off" || gameUntil !== null ? undefined : chords.find((x) => x.from <= q + 1e-6 && q < x.to - 1e-6);
+    const parts = [posAt(q)];
+    if (sec && gameUntil === null) parts.push(sectionName(sec));
+    if (ins.length)
+      parts.push(
+        t("ui.study.now.entries", {
+          list: ins.map((e) => `${names[entryVoice(e, voice)] ?? ""} ${e.inverted ? "∀ " : ""}${degreeOf((((e.shift - (firstEntry?.shift ?? 0)) % 12) + 12) % 12, minor)}`).join(", "),
+        }),
+      );
+    if (c) parts.push(`${chordName(c, flats)} · ${romanOf(c, tonicPc, minor, false)}`);
+    return parts.join("  ·  ");
   };
   const posLabel = marker !== null ? t("ui.study.at", { bar: bq(marker), beat: Math.floor((marker - barStart(barOf(marker + 1e-6))) / beatOf(P.meters[barOf(marker + 1e-6)] ?? timeSig) + 1e-6) + 1 }) : span ? when(span) : t("ui.study.fromStart");
 
@@ -977,6 +1004,8 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
                 labels={sheetLabels}
                 chords={sheetChords}
                 faint={faintSet}
+                dim={dimSet}
+                brackets={sheetBrackets}
                 span={span}
                 marker={playing ? null : marker}
                 zoom={sheetZoom}
@@ -1010,6 +1039,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
               />
             )}
           </div>
+          <LivePos className="wtc-now" idle={t("ui.study.now.idle")} format={nowAt} />
           <Navigator
             starts={starts}
             firstBar={firstBar}
@@ -1053,7 +1083,11 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
               </>
             )}
             <div className="hfaders">
-              <HFader label={t("ui.tempo")} help={t("ui.wtc.tempoHelp")} value={tempo} min={15} max={120} defaultValue={36} format={(v) => `♩=${Math.round(v * 2)}`} onChange={(v) => setTempo(Math.round(v))} />
+              {useRec ? (
+                <HFader label={t("ui.study.rec.speed")} help={t("ui.study.rec.speedHelp")} value={recRate * 100} min={50} max={125} defaultValue={100} format={(v) => `${Math.round(v)}%`} onChange={(v) => setRecRate(Math.round(v / 5) * 0.05)} />
+              ) : (
+                <HFader label={t("ui.tempo")} help={t("ui.wtc.tempoHelp")} value={tempo} min={15} max={120} defaultValue={36} format={(v) => `♩=${Math.round(v * 2)}`} onChange={(v) => setTempo(Math.round(v))} />
+              )}
               <HFader label={t("ui.volume")} help={t("ui.volume.help")} value={volume} min={0} max={100} defaultValue={70} format={(v) => `${Math.round(v)}%`} onChange={(v) => setVolume(Math.round(v))} />
             </div>
             <select className="sel" value={tuning} disabled={useRec} onChange={(e) => setTuning(e.target.value as TemperamentId)} aria-label={t("ui.tuning")} title={t("ui.wtc.tuningHelp")}>
