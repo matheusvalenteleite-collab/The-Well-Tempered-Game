@@ -246,7 +246,12 @@ def main() -> None:
            "  The numbers say how far a habit can guide the player and how much is left open: at level 2, as at level 1,",
            "  the screen should show the distribution and Bach's and Kittel's choices, never a single answer.",
            "- Chords are degrees of the chorale's home key: a passage in the dominant reads as II, V, and so on.",
-           "  Local keys are the next refinement (they would make the habit sharper inside modulations)."]
+           "  Local keys are the next refinement (they would make the habit sharper inside modulations).",
+           "- Tested for confounds by the Choices lab (branch claude/beautiful-mccarthy-7li5nv, commit edc0595,",
+           "  docs/chorales-lab/level2-confounds.md), each tune held out: the chord before still helps inside the phrase with",
+           "  the chord changing (2.27 to 2.11 bits, 44% to 51% first), but most where Bach keeps the chord (1.84 to 1.29 bits,",
+           "  53% to 76%), which is harmonic rhythm rather than progression. For the screen: the next-chord distribution as a",
+           "  suggestion, and a sign when the melody note invites keeping the chord."]
     OUT_MD.write_text("\n".join(md) + "\n")
     print("\n".join(md[7:13]))
     print(md[14], md[15], md[16])
