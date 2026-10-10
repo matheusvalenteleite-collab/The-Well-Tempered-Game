@@ -1127,7 +1127,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
       header={
         <>
           <h1 className="brand">{t("ui.title")}</h1>
-          <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
+          <nav className="exercise-nav wtc-nav" aria-label={t("ui.nav.label")}>
             <button className="icon" onClick={() => go(index - 1)} disabled={index === 0} aria-label={t("ui.nav.prev")}>‹</button>
             <select id="voices" className="sel sel-voices" value="wtc" aria-label={t("ui.nav.voices")} onChange={(e) => (stop(), onVoices(e.target.value === "wtc" ? "wtc" : (Number(e.target.value) as 2 | 3)))}>
               <option value={2}>{t("ui.nav.voicesN", { n: 2 })}</option>
