@@ -20,7 +20,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import re  # noqa: E402
+
 
 from lily import parse  # noqa: E402
 
@@ -42,12 +42,7 @@ def ticks(x: F) -> int:
 
 def piece(book: int, number: int) -> dict:
     path = SRC / f"book{book}" / f"fugue{number:02d}.ly"
-    # \set Score.timeSignatureFraction only changes the printed signature (Book II no. 9: 2/2 printed
-    # over breve bars); the reader does not know it, so it is dropped here.
-    text = re.sub(r"\\set\s+Score\.timeSignatureFraction\s*=\s*\S+", "", path.read_text(encoding="utf-8", errors="replace"))
-    # An octave mark written apart from its note ("dis ,", Book I no. 8, b. 60) belongs to the note: the
-    # editor's intent, and Humdrum's reading.
-    text = re.sub(r"(?<![\\\w])([a-g](?:isis|eses|is|es)?)\s+([,']+)(?=[\s\d|~.\]>)])", r"\1\2", text)
+    text = path.read_text(encoding="utf-8", errors="replace")
     for (b, n), (old, fix, why) in PATCHES.items():
         if (b, n) == (book, number):
             assert text.count(old) == 1, (book, number, old)

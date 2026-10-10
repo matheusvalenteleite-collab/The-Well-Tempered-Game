@@ -9,26 +9,6 @@ Huron's Humdrum encoding, whose rights to derivative electronic formats are rese
 - **Voice by voice** (the same attack in the same voice, voices top first): 50063 (97.8%).
 - **Bars identical** in every attack: 2693 of 2950 (91.3%).
 
-## What the differences are
-
-- **Octave slips in the edition**, corrected in the importer at the note where they begin (`PATCHES` in
-  tools/wtc/open_import.py): Book I no. 4, the mezzo from b. 25 (a re-entry written a third above the note
-  before its rests, which puts the rest of the voice an octave too high). An octave mark written apart from
-  its note (`dis ,`, Book I nos. 8 and 20) is read with its note.
-- **Rhythmic notation**: Book II no. 10's dotted figures (the open score's dotted eighth and sixteenth, the
-  Bach-Gesellschaft's; Humdrum's assimilated to triplets); Book I no. 5's overture figures (dotted eighth and
-  a triplet of 32nds against a double-dotted eighth and 32nds).
-- **Readings of the editions**: accidentals and single notes here and there (Book II no. 3, b. 6: F sharp
-  against F double sharp), a doubled line in Book II no. 3, b. 16; single-note octave choices.
-- **Voices**: in Book I nos. 6 and 9 and Book II nos. 1 and 3 the open score gives a divided voice a staff of
-  its own, so it has one voice more.
-
-## The analysis on the open corpus
-
-`WTC_FUGUES=data/wtc/fugues-open.json node tools/wtc/ledbetter-claims.ts`: Ledbetter's claims hold as on
-the Humdrum corpus, within one claim of each kind (entries 149 against 150 of 173, cadences 20 against 21,
-sections 28 against 29; strettos and pedals the same).
-
 | fugue | voices (open / Humdrum) | attacks (open / Humdrum) | same | same voice | identical bars | first differing bars |
 |---|---|---|---|---|---|---|
 | wtc1f01 | 4 / 4 | 734 / 740 | 99% | 99% | 22/27 | 4, 9, 12, 14, 18 |
