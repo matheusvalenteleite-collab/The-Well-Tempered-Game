@@ -14,7 +14,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 | | fugues | preludes |
 |---|---|---|
 | entry | 157 of 173 (91%) | none |
-| stretto | 37 of 47 (79%) | none |
+| stretto | 39 of 47 (83%) | none |
 | pedal | 7 of 12 (58%) | 3 of 3 (100%) |
 | cadence | 8 of 35 (23%) | 4 of 29 (14%) |
 | section | 56 of 68 (82%) | 49 of 63 (78%) |
@@ -23,17 +23,17 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 - wtc1f01: strettos the study shows that no claim names, at bars 17, 19, 24
 - wtc1f04: strettos the study shows that no claim names, at bars 19, 34, 44, 54, 72
-- wtc1f08: strettos the study shows that no claim names, at bars 24, 44, 52, 54
+- wtc1f08: strettos the study shows that no claim names, at bars 24, 44, 52, 54, 61, 62, 67
 - wtc1f11: strettos the study shows that no claim names, at bars 25, 36, 38, 48
 - wtc1f15: strettos the study shows that no claim names, at bars 60, 77, 78
 - wtc1f18: strettos the study shows that no claim names, at bars 24
 - wtc1f20: strettos the study shows that no claim names, at bars 17, 27, 31, 32, 36, 43, 53, 57, 62
 - wtc1f22: strettos the study shows that no claim names, at bars 36, 55, 69
 - wtc1f24: strettos the study shows that no claim names, at bars 34, 41, 42, 43, 69
-- wtc2f02: strettos the study shows that no claim names, at bars 16, 17, 25
+- wtc2f02: strettos the study shows that no claim names, at bars 14, 16, 17, 25
 - wtc2f06: strettos the study shows that no claim names, at bars 5, 21
 - wtc2f08: strettos the study shows that no claim names, at bars 43
-- wtc2f09: strettos the study shows that no claim names, at bars 9, 10, 35
+- wtc2f09: strettos the study shows that no claim names, at bars 9, 10, 30, 35, 39
 - wtc2f15: strettos the study shows that no claim names, at bars 23, 25
 - wtc2f19: strettos the study shows that no claim names, at bars 24
 - wtc2f21: strettos the study shows that no claim names, at bars 25, 62
@@ -178,11 +178,11 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc1f08
 
-2 of 3 hold.
+3 of 3 hold.
 
 - ✓ `stretto b.19½ voices?`: found at bar 19
 - ✓ `stretto b.27 voices? (b.19½ stretto inverted at the 12th)`: found at bar 26
-- ✗ `stretto b.77 voices? (normal, semi-augmented, augmented)`: not found
+- ✓ `stretto b.77 voices? (normal, semi-augmented, augmented)`: found at bar 77
 
 ### wtc1p09
 
@@ -613,7 +613,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc2f09
 
-10 of 16 hold.
+11 of 16 hold.
 
 - ✓ `entry b.1 bass`: found
 - ✓ `section b.9-15 stretti of subject and countersubject`: a section starts at bar 9
@@ -622,7 +622,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 - ✓ `section b.23-34 low stretti`: a section starts at bar 23
 - ✗ `stretto b.23 soprano+alto`: not found
 - ✗ `stretto b.25 bass+tenor`: not found
-- ✗ `stretto b.27 voices? (diminution and inversion)`: not found
+- ✓ `stretto b.27 voices? (diminution and inversion)`: found at bar 28
 - ✓ `section b.35-43 final section`: a section starts at bar 35
 - ✓ `entry b.36 bass`: found
 - ✓ `entry b.37 soprano [check]`: found

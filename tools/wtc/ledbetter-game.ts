@@ -47,7 +47,7 @@ function analyse(id: string): Analysis {
   const chords = readHarmony(piece.notes, barQ, beatOf(piece.time));
   const all = findCadences(chords);
   const plan = keyPlan(all);
-  const base = studyMoments(piece.notes, piece.voice, piece.count, entries, barQ, minor, prelude ? undefined : { beat: beatOf(piece.time), tonicPc: tonic, later, subjectLength: (() => { const sj = lib.fugue().subject; return sj[sj.length - 1].at + sj[sj.length - 1].dur; })() });
+  const base = studyMoments(piece.notes, piece.voice, piece.count, entries, barQ, minor, prelude ? undefined : { beat: beatOf(piece.time), tonicPc: tonic, later, transformed: prelude ? [] : lib.fugue().transformed, subjectLength: (() => { const sj = lib.fugue().subject; return sj[sj.length - 1].at + sj[sj.length - 1].dur; })() });
   const end = Math.max(...piece.notes.map((n) => n.at + n.dur));
   let sections: number[];
   if (!prelude) sections = mergeSections(base.sections, piece.given, later, barQ, piece.pickup, end).map((s) => s.from);

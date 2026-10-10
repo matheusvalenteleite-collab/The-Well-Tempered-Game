@@ -107,6 +107,13 @@ export function commentOn(m: Moment, c: CompanionContext, all: Moment[]): string
         `A passage between entries${move}: ${n} in which you can hear the subject's pieces, but never the whole.`,
       ], k);
     }
+    case "transformed": {
+      const aug = m.detail.scale === 2;
+      const inv = m.detail.inverted ? ", and upside down as well" : "";
+      const firstOne = !all.some((x) => x.kind === "transformed" && x.detail.scale === m.detail.scale && x.from < m.from - 1e-6);
+      if (aug) return firstOne ? `The subject in augmentation, in the ${v(m.voices[0])}: every note held twice as long${inv}. Against the other voices moving at their usual pace, it sounds like a cantus firmus, the subject slowed to a solemn line you can follow note by note.` : `The augmentation again, now in the ${v(m.voices[0])}${inv}: the subject at half speed, standing out against the faster parts.`;
+      return firstOne ? `The subject in diminution, in the ${v(m.voices[0])}: every value halved${inv}. It passes twice as fast, and so can be crowded into the texture more often; listen for the familiar shape hurrying by.` : `The subject in diminution again, in the ${v(m.voices[0])}${inv}.`;
+    }
     case "later": {
       const ord = ordinal(Number(m.detail.n) - 1);
       if (m.detail.first) return `A new subject enters, in the ${v(m.voices[0])}: the ${ord} subject of this fugue, with a shape of its own. Learn it now, as you learned the first; from here on the fugue has more than one idea to work with.`;
@@ -156,14 +163,17 @@ export function overview(c: CompanionContext, moments: Moment[]): string {
   const inv = c.entries.filter((e) => e.inverted).length;
   const str = moments.filter((m) => m.kind === "stretto").length;
   const extra = [inv ? `${inv} entr${inv === 1 ? "y is" : "ies are"} upside down` : "", str ? `in ${str} place${str === 1 ? "" : "s"} entries overlap in stretto` : ""].filter(Boolean).join("; ");
+  const aug = moments.filter((m) => m.kind === "transformed" && m.detail.scale === 2).length;
+  const dim = moments.filter((m) => m.kind === "transformed" && m.detail.scale !== 2).length;
+  const scaled = [aug ? `${aug} time${aug === 1 ? "" : "s"} in augmentation (its values doubled)` : "", dim ? `${dim} time${dim === 1 ? "" : "s"} in diminution (halved)` : ""].filter(Boolean).join(" and ");
   const more = moments.filter((m) => m.kind === "later" && m.detail.first).length;
   const subjects = more ? ` Later ${more === 1 ? "a second subject enters" : `${more === 2 ? "a second and a third subject enter" : `${more} more subjects enter`}`}, and the fugue works with them too.` : "";
-  return `A fugue in ${c.count} voices in ${c.keyName}, ${c.bars} bars, on a subject of ${c.subjectNotes} notes heard ${c.entries.length} times${extra ? `; ${extra}` : ""}.${plan}${subjects}`;
+  return `A fugue in ${c.count} voices in ${c.keyName}, ${c.bars} bars, on a subject of ${c.subjectNotes} notes heard ${c.entries.length} times${extra ? `; ${extra}` : ""}.${scaled ? ` The subject also comes ${scaled}.` : ""}${plan}${subjects}`;
 }
 
 /** The moment to show while the piece plays at quarter `q`: the most telling one sounding. */
 export function momentAt(moments: Moment[], q: number): Moment | null {
-  const rank: Record<string, number> = { stretto: 0, entry: 1, later: 1, pedal: 2, cadence: 3, highest: 4, lowest: 5, arrival: 6, episode: 7, figure: 8 };
+  const rank: Record<string, number> = { stretto: 0, entry: 1, later: 1, transformed: 1, pedal: 2, cadence: 3, highest: 4, lowest: 5, arrival: 6, episode: 7, figure: 8 };
   const here = moments.filter((m) => m.from <= q + 1e-6 && q < m.to - 1e-6);
   return here.sort((a, b) => rank[a.kind] - rank[b.kind] || b.from - a.from)[0] ?? null;
 }

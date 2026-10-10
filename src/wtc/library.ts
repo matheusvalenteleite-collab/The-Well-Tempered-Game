@@ -10,6 +10,8 @@
  * D137: the later subjects of double and triple fugues (subjects.ts: where each first enters is
  * Ledbetter's, its shape and its other entries are found in the notes), and Ledbetter's sections
  * (data/wtc/ledbetter-sections.json, from his claims checked against the score).
+ * D138: entries in augmentation and diminution (fugue.ts's findTransformed: the subject searched for
+ * at doubled and halved values, straight and inverted, for subjects of six notes or more).
  */
 import fuguesData from "../../data/wtc/fugues.json" with { type: "json" };
 import preludesData from "../../data/wtc/preludes.json" with { type: "json" };
@@ -17,7 +19,7 @@ import laterData from "../../data/wtc/later-subjects.json" with { type: "json" }
 import sectionsData from "../../data/wtc/ledbetter-sections.json" with { type: "json" };
 import { laterSubjects } from "./subjects.ts";
 import type { WtcPiece } from "./corpus.ts";
-import { findEntriesByHead, line, subjectAndAnswer, TPQ } from "./fugue.ts";
+import { findEntriesByHead, findTransformed, line, subjectAndAnswer, TPQ } from "./fugue.ts";
 import { findEntries, type Entry, type FullNote } from "./entries.ts";
 import { separateVoices } from "./voices.ts";
 import { parsePitch } from "../music/pitch.ts";
@@ -43,6 +45,8 @@ export interface LibFugue extends LibPiece {
   entries: Entry[];
   /** Entries of the later subjects (each with `subject`: 2, 3), in time order. */
   later: Entry[];
+  /** Entries in augmentation or diminution (each with `scale`), in time order. */
+  transformed: Entry[];
 }
 
 export interface LibEntry {
@@ -94,7 +98,7 @@ function fugueOf(p: WtcPiece): LibFugue {
   const { subject, answer } = subjectAndAnswer(p);
   const sMidi = subject.map((n) => parsePitch(n.pitch).midi);
   const s0 = subject[0].on;
-  const lab: Entry[] = findEntriesByHead(p, subject).entries.map((e) => {
+  const asEntry = (e: { voice: number; at: number; length: number; form: string }): Entry => {
     const l = line(p.voices[e.voice]).slice(e.at, e.at + e.length);
     const ids = l.map((n) => index.get(`${e.voice}:0:${n.on}:${n.pitch}`)!).filter((i) => i !== undefined);
     // The transposition: the commonest distance from the subject's notes (a tonal answer's mutated head aside).
@@ -104,7 +108,8 @@ function fugueOf(p: WtcPiece): LibFugue {
     const shift = [...tally.entries()].sort((a, b) => b[1] - a[1] || Math.abs(a[0]) - Math.abs(b[0]))[0][0];
     const last = l[l.length - 1];
     return { at: l[0].on / TPQ + pad, end: (last.on + last.dur) / TPQ + pad, shift, inverted: e.form === "inversion", notes: ids };
-  });
+  };
+  const lab: Entry[] = findEntriesByHead(p, subject).entries.map(asEntry);
   const voiceOf = (e: Entry) => piece.voice[e.notes[0]];
   const more = findEntries(piece.notes, subject.map((n) => ({ midi: parsePitch(n.pitch).midi, at: n.on / TPQ + pad, dur: n.dur / TPQ }))).filter(
     (e) => new Set(e.notes.map((i) => piece.voice[i])).size === 1 && !lab.some((x) => voiceOf(x) === voiceOf(e) && x.at < e.end - 1e-6 && e.at < x.end - 1e-6),
@@ -142,12 +147,24 @@ function fugueOf(p: WtcPiece): LibFugue {
       later.splice(k, 1);
     }
   }
+  // Augmentation and diminution: kept where no ordinary entry in the same voice overlaps them, nor an
+  // earlier one of these (the last note may be shared: an entry often begins on it, Book II no. 2, b. 16).
+  const transformed: Entry[] = [];
+  for (const e of findTransformed(p, subject)) {
+    const t = { ...asEntry(e), scale: e.scale };
+    const v = piece.voice[t.notes[0]];
+    const lastOn = piece.notes[t.notes[t.notes.length - 1]].at;
+    const clash = (x: Entry) => piece.voice[x.notes[0]] === v && x.at < lastOn - 1e-6 && t.at < x.notes.map((i) => piece.notes[i].at).pop()! - 1e-6;
+    if (!entries.some(clash) && !transformed.some(clash)) transformed.push(t);
+  }
+  transformed.sort((a, b) => a.at - b.at);
   return {
     ...piece,
     subject: subject.map((n) => ({ pitch: n.pitch, at: (n.on - s0) / TPQ, dur: n.dur / TPQ })),
     phase: (s0 / TPQ + pad) % piece.barQuarters,
     entries,
     later,
+    transformed,
   };
 }
 

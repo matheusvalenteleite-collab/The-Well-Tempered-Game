@@ -13,11 +13,12 @@
  * exposition is no stretto); in a fugue, a pedal point is the lowest sounding note held, or struck
  * again after rests of a beat at most, for a bar and four beats at least, or, above the bass, the
  * tonic or the dominant held for two bars and eight beats; entries of later subjects; Ledbetter's
- * sections where he gives them (mergeSections).
+ * sections where he gives them (mergeSections). D138: entries in augmentation and diminution, which
+ * also take part in strettos (Book II no. 9's low strettos in diminution, bb. 23–5).
  */
 import type { Entry, FullNote } from "./entries.ts";
 
-export type MomentKind = "entry" | "later" | "stretto" | "episode" | "pedal" | "highest" | "lowest" | "cadence" | "arrival" | "figure";
+export type MomentKind = "entry" | "later" | "transformed" | "stretto" | "episode" | "pedal" | "highest" | "lowest" | "cadence" | "arrival" | "figure";
 
 export interface Moment {
   kind: MomentKind;
@@ -65,7 +66,7 @@ export const entryVoice = (e: Entry, voice: number[]) => voice[e.notes[0]];
  * `fugue`, for a fugue (absent for a prelude, whose strands are guesses): the beat in quarters, the
  * tonic's pitch class, the entries of later subjects and the subject's length in quarters.
  */
-export function studyMoments(notes: FullNote[], voice: number[], count: number, entries: Entry[], bar: number, minor: boolean, fugue?: { beat: number; tonicPc: number; later: Entry[]; subjectLength: number }): { moments: Moment[]; sections: Section[] } {
+export function studyMoments(notes: FullNote[], voice: number[], count: number, entries: Entry[], bar: number, minor: boolean, fugue?: { beat: number; tonicPc: number; later: Entry[]; subjectLength: number; transformed?: Entry[] }): { moments: Moment[]; sections: Section[] } {
   const end = Math.max(...notes.map((n) => n.at + n.dur));
   const first = entries.find((e) => e.shift === 0 && !e.inverted) ?? entries[0];
   const moments: Moment[] = [];
@@ -79,16 +80,21 @@ export function studyMoments(notes: FullNote[], voice: number[], count: number, 
     const first = !later.slice(0, k).some((x) => x.subject === e.subject);
     moments.push({ kind: "later", from: e.at, to: e.end, voices: [entryVoice(e, voice)], detail: { n: e.subject ?? 2, first, start: pitchName(notes[e.notes[0]].midi) } });
   });
-  // Strettos: an entry beginning before the previous one is halfway through (in another voice).
-  for (let k = 1; k < entries.length; k++) {
-    const a = entries[k - 1];
-    const b = entries[k];
-    if (b.at - a.at < Math.max(a.end - a.at, fugue?.subjectLength ?? 0) / 2 - 1e-6 && entryVoice(a, voice) !== entryVoice(b, voice)) {
+  // Entries in augmentation and diminution.
+  const transformed = fugue?.transformed ?? [];
+  for (const e of transformed) moments.push({ kind: "transformed", from: e.at, to: e.end, voices: [entryVoice(e, voice)], detail: { scale: e.scale ?? 2, inverted: e.inverted, start: pitchName(notes[e.notes[0]].midi), degree: degreeOf(e.shift - (first?.shift ?? 0), minor) } });
+  // Strettos: an entry beginning before the previous one is halfway through (in another voice), the
+  // subject's length scaled for an augmentation or diminution.
+  const statements = [...entries, ...transformed].sort((a, b) => a.at - b.at);
+  for (let k = 1; k < statements.length; k++) {
+    const a = statements[k - 1];
+    const b = statements[k];
+    if (b.at - a.at < Math.max(a.end - a.at, (fugue?.subjectLength ?? 0) * (a.scale ?? 1)) / 2 - 1e-6 && entryVoice(a, voice) !== entryVoice(b, voice)) {
       moments.push({ kind: "stretto", from: a.at, to: Math.max(a.end, b.end), voices: [entryVoice(a, voice), entryVoice(b, voice)], detail: { distance: +(b.at - a.at).toFixed(3), beats: +((b.at - a.at) / 1).toFixed(2) } });
     }
   }
   // Episodes: a bar or more with no entry sounding.
-  const covered = [...entries, ...later].map((e) => [e.at, e.end] as [number, number]).sort((a, b) => a[0] - b[0]);
+  const covered = [...entries, ...later, ...transformed].map((e) => [e.at, e.end] as [number, number]).sort((a, b) => a[0] - b[0]);
   let t = covered.length ? covered[0][1] : 0;
   for (const [a, b] of covered.slice(1)) {
     if (a - t >= bar - 1e-6) moments.push({ kind: "episode", from: t, to: a, voices: [], detail: { bars: +((a - t) / bar).toFixed(1) } });

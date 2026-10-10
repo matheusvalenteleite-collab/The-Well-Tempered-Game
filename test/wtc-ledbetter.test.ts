@@ -11,7 +11,7 @@ function study(id: string) {
   const f = L.fugue();
   const tonicPc = parsePitch(`${L.key[0].toUpperCase()}${L.key.slice(1)}4`).midi % 12;
   const sj = f.subject[f.subject.length - 1];
-  const r = studyMoments(f.notes, f.voice, f.count, f.entries, f.barQuarters, L.key[0] === L.key[0].toLowerCase(), { beat: beatOf(f.time), tonicPc, later: f.later, subjectLength: sj.at + sj.dur });
+  const r = studyMoments(f.notes, f.voice, f.count, f.entries, f.barQuarters, L.key[0] === L.key[0].toLowerCase(), { beat: beatOf(f.time), tonicPc, later: f.later, transformed: f.transformed, subjectLength: sj.at + sj.dur });
   const end = Math.max(...f.notes.map((n) => n.at + n.dur));
   const bar = (q: number) => Math.floor(q / f.barQuarters + 1e-6) + 1 - f.pickup;
   return { f, ...r, bar, sections: mergeSections(r.sections, f.given, f.later, f.barQuarters, f.pickup, end) };
@@ -66,4 +66,20 @@ test("Ledbetter: his sections where he gives them, the game's own elsewhere", ()
   assert.ok(four.sections.some((x) => x.kind === "subject" && x.n === 3 && four.bar(x.from) === 49));
   // Contiguous, from the start to the end.
   for (const s of [one, four]) for (let k = 1; k < s.sections.length; k++) assert.equal(s.sections[k].from, s.sections[k - 1].to);
+});
+
+test("Ledbetter: entries in augmentation and diminution (Book I no. 8, Book II nos. 2 and 9)", () => {
+  const at = (id: string, scale: number) => {
+    const s = study(id);
+    return s.f.transformed.filter((e) => e.scale === scale).map((e) => s.bar(e.at));
+  };
+  assert.deepEqual(at("wtc1.08", 2), [62, 67, 77]);
+  assert.deepEqual(at("wtc2.02", 2), [14, 19]);
+  const dim = at("wtc2.09", 0.5);
+  assert.equal(dim[0], 23);
+  // Book I no. 8's stretto at b. 77, the augmentation against the subject at normal speed.
+  const eight = study("wtc1.08");
+  assert.ok(eight.moments.some((m) => m.kind === "stretto" && Math.abs(eight.bar(m.from) - 77) <= 1));
+  // No augmentation or diminution where the subject is short (fewer than six notes: Book I no. 4).
+  assert.equal(study("wtc1.04").f.transformed.length, 0);
 });

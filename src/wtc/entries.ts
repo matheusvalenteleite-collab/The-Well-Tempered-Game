@@ -26,6 +26,8 @@ export interface Entry {
   end: number;
   /** A later subject of a double or triple fugue (2, 3); absent for the first subject (D137). */
   subject?: number;
+  /** The subject in augmentation (2: every value doubled) or diminution (0.5) (D138). */
+  scale?: 2 | 0.5;
 }
 
 const EPS = 1e-6;

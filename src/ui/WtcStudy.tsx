@@ -106,7 +106,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   const chords: Chord[] = useMemo(() => readHarmony(notes, barQ, beatOf(timeSig)), [notes, barQ, timeSig]);
   const plan = useMemo(() => keyPlan(findCadences(chords)), [chords]);
   const { moments, sections, own: ownSections } = useMemo(() => {
-    const base = studyMoments(notes, voice, count, entries, barQ, minor, isPrelude ? undefined : { beat: beatOf(timeSig), tonicPc, later: FG.later, subjectLength: FG.subject.length ? FG.subject[FG.subject.length - 1].at + FG.subject[FG.subject.length - 1].dur : 0 });
+    const base = studyMoments(notes, voice, count, entries, barQ, minor, isPrelude ? undefined : { beat: beatOf(timeSig), tonicPc, later: FG.later, transformed: FG.transformed, subjectLength: FG.subject.length ? FG.subject[FG.subject.length - 1].at + FG.subject[FG.subject.length - 1].dur : 0 });
     const arrivals: Moment[] = plan.map((c) => ({ kind: "arrival", from: chords[c.chord - 1].from, to: chords[c.chord].to, voices: [], detail: { tonic: c.tonic, minor: c.minor } }));
     const end = Math.max(...notes.map((n) => n.at + n.dur));
     // D137: Ledbetter's sections where he gives them, the game's own in the gaps.
@@ -463,6 +463,8 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
         return t(m.detail.inverted ? "ui.study.m.entryInv" : "ui.study.m.entry", { voice: v, degree: String(m.detail.degree), start: String(m.detail.start) });
       case "later":
         return t(m.detail.first ? "ui.study.m.laterFirst" : "ui.study.m.later", { ord: ORDINAL[Number(m.detail.n)], voice: v, start: String(m.detail.start) });
+      case "transformed":
+        return t(m.detail.scale === 2 ? (m.detail.inverted ? "ui.study.m.augInv" : "ui.study.m.aug") : m.detail.inverted ? "ui.study.m.dimInv" : "ui.study.m.dim", { voice: v, start: String(m.detail.start) });
       case "stretto":
         return t("ui.study.m.stretto", { voices: v, beats: String(m.detail.distance) });
       case "episode":
@@ -495,7 +497,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   const nowMoment = playing && cursor >= 0 && listening ? momentAt(moments, cursor * barQ + barQ / 2) : null;
   const note = NOTES[F.id]?.[isPrelude ? "prelude" : "fugue"];
   const [filter, setFilter] = useState<"all" | "entry" | "other">("all");
-  const shown = moments.filter((m) => filter === "all" || isPrelude || (filter === "entry" ? m.kind === "entry" || m.kind === "later" : m.kind !== "entry" && m.kind !== "later"));
+  const shown = moments.filter((m) => filter === "all" || isPrelude || (filter === "entry" ? m.kind === "entry" || m.kind === "later" || m.kind === "transformed" : m.kind !== "entry" && m.kind !== "later" && m.kind !== "transformed"));
   const strettos = moments.filter((m) => m.kind === "stretto").length;
   const inversions = entries.filter((e) => e.inverted).length;
   const pedals = moments.filter((m) => m.kind === "pedal").length;
@@ -917,7 +919,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
             voice={voice}
             colors={asTexture ? ["var(--ink, #333)"] : COLORS}
             faint={faint}
-            entries={gameUntil !== null ? entries.filter((e) => e.end <= gameUntil + 1e-6) : isPrelude ? entries : [...entries, ...FG.later]}
+            entries={gameUntil !== null ? entries.filter((e) => e.end <= gameUntil + 1e-6) : isPrelude ? entries : [...entries, ...FG.transformed, ...FG.later]}
             showEntries={showEntries && through === "off"}
             barQuarters={barQ}
             cursor={cursor}

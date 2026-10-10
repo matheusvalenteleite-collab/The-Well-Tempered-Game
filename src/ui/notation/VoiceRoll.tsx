@@ -121,7 +121,7 @@ export function VoiceRoll(p: Props) {
             return (
               <g key={`e${k}`} className={e.subject ? "roll-outline later" : e.inverted ? "roll-outline inv" : "roll-outline"}>
                 <rect x={x(e.at) - 2} y={y(top) - 2} width={(e.end - e.at) * PX_Q + 4} height={(top - bot + 1) * ROW + 4} rx={3} />
-                <text x={x(e.at)} y={y(top) - 4} className="roll-entry">{e.subject ? `S${e.subject}` : e.inverted ? "∀" : "S"}</text>
+                <text x={x(e.at)} y={y(top) - 4} className="roll-entry">{e.subject ? `S${e.subject}` : `${e.inverted ? "∀" : "S"}${e.scale === 2 ? "×2" : e.scale === 0.5 ? "×½" : ""}`}</text>
               </g>
             );
           })}
