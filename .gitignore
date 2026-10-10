@@ -4,3 +4,4 @@ __pycache__/
 dist/
 public/samples/*/pack.mp3
 public/recordings/
+dist-artifact/
