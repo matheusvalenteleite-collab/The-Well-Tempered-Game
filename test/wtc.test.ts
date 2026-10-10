@@ -184,3 +184,22 @@ test("D125: Roman numerals in minor: the leading-tone chord plain, the Picardy t
   assert.equal(romanOf(c(5, 5, "maj"), 5, true, true), "I");
   assert.equal(romanOf(c(8, 0, "maj"), 5, true), "III⁶");
 });
+
+test("D126: the library: all 48 from the corpus, each fugue with its voices as encoded, its subject and entries (the first at the start, the answer next in another voice)", async () => {
+  const { LIBRARY } = await import("../src/wtc/library.ts");
+  assert.equal(LIBRARY.length, 48);
+  assert.equal(new Set(LIBRARY.map((l) => l.key)).size, 24);
+  for (const l of LIBRARY) {
+    const f = l.fugue();
+    assert.ok(f.count >= 2 && f.count <= 5, l.id);
+    assert.ok(f.entries.length >= 3, `${l.id}: ${f.entries.length} entries`);
+    const [a, b] = f.entries;
+    assert.notEqual(f.voice[a.notes[0]], f.voice[b.notes[0]], `${l.id}: the answer in another voice`);
+    assert.ok(f.entries.every((e) => e.notes.length >= 3 && new Set(e.notes.map((i) => f.voice[i])).size === 1), l.id);
+    const p = l.prelude();
+    assert.ok(p.notes.length > 200 && p.count >= 1, l.id);
+  }
+  // Book I no. 8: the prelude in E flat minor, the fugue in D sharp minor.
+  const eight = LIBRARY.find((l) => l.id === "wtc1.08")!;
+  assert.deepEqual([eight.preludeKey, eight.key], ["eb", "d#"]);
+});

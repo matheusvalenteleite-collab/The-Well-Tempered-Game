@@ -17,13 +17,11 @@
  * chord of each bar or half-bar, by Roman numeral, over the roll; the chords alone as a skeleton).
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import full from "../../data/bach/wtc/fugues-full.json" with { type: "json" };
-import preludes from "../../data/bach/wtc/preludes-full.json" with { type: "json" };
 import { chordName, chordTones, findCadences, figurationChanges, keyPlan, readHarmony, romanOf, type Chord } from "../wtc/harmony.ts";
 import { beatOf } from "../wtc/counterpoint.ts";
-import { FUGUES, isMinor, keyName, keySignature, type WtcFugue } from "../wtc/fugues.ts";
-import { findEntries, type Entry, type FullNote } from "../wtc/entries.ts";
-import { separateVoices } from "../wtc/voices.ts";
+import { isMinor, keyName, keySignature } from "../wtc/fugues.ts";
+import type { Entry, FullNote } from "../wtc/entries.ts";
+import { LIBRARY } from "../wtc/library.ts";
 import { degreeOf, entryVoice, pitchName, studyMoments, voiceNames, type Moment, type Section as StudySection } from "../wtc/study.ts";
 type Section = Omit<StudySection, "kind"> & { kind: StudySection["kind"] | "toKey" | "figure"; key?: { tonic: number; minor: boolean } };
 import { parsePitch, type Step } from "../music/pitch.ts";
@@ -40,10 +38,8 @@ import { t } from "./i18n.ts";
 import { Shell } from "./Shell.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 
-const FULL = (full as unknown as { notes: Record<string, number[][]> }).notes;
-const PRELUDES = (preludes as unknown as { preludes: Record<string, { time: string; barQuarters: number; notes: number[][] }> }).preludes;
 const roman = (b: number) => (b === 1 ? "I" : "II");
-const fugueLabel = (f: WtcFugue) => `${keyName(f.key)} · ${roman(f.book)}/${f.number} · BWV ${f.bwv}`;
+const fugueLabel = (f: { key: string; book: number; number: number; bwv: string }) => `${keyName(f.key)} · ${roman(f.book)}/${f.number} · BWV ${f.bwv}`;
 const SHARPS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const FLATS = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
 const midiName = (m: number, flats: boolean) => `${(flats ? FLATS : SHARPS)[((m % 12) + 12) % 12]}${Math.floor(m / 12) - 1}`;
@@ -76,23 +72,28 @@ const DEGREES = [0, 2, 3, 4, 5, 7, 8, 9, 10, 11, 1, 6];
 
 
 export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc"): void; onExercises(): void }) {
-  const [index, setIndex] = useState(() => Math.max(0, FUGUES.findIndex((f) => f.id === stored("wtg.wtcFugue", FUGUES[0].id))));
-  const F = FUGUES[index];
-  useEffect(() => store("wtg.wtcFugue", F.id), [F.id]);
+  const [index, setIndex] = useState(() => Math.max(0, LIBRARY.findIndex((f) => f.id === stored("wtg.wtcFugue", LIBRARY[0].id))));
+  const L = LIBRARY[index];
+  useEffect(() => store("wtg.wtcFugue", L.id), [L.id]);
   /** The prelude or the fugue (D125). */
   const [piece, setPiece] = useState<"prelude" | "fugue">(() => stored("wtg.wtcPiece", "fugue", (v) => v === "prelude" || v === "fugue"));
   useEffect(() => store("wtg.wtcPiece", piece), [piece]);
-  const PR = PRELUDES[F.id];
-  const isPrelude = piece === "prelude" && !!PR;
-  const barQ = isPrelude ? PR.barQuarters : F.barQuarters;
-  const timeSig = isPrelude ? PR.time : F.time;
+  // D126: all 48 from the corpus (true voices in the fugues); the piece shown.
+  const isPrelude = piece === "prelude";
+  const FG = L.fugue();
+  const P = isPrelude ? L.prelude() : FG;
+  const F = { id: L.id, book: L.book, number: L.number, bwv: L.bwv, key: isPrelude ? L.preludeKey : L.key, subject: FG.subject, phase: FG.phase };
+  const barQ = P.barQuarters;
+  const timeSig = P.time;
+  /** Bar numbers as Bach's: a pickup bar is bar 0. */
+  const firstBar = 1 - P.pickup;
   const minor = isMinor(F.key);
   const sig = useMemo(() => keySignature(F.key), [F.key]);
   const flats = Object.values(sig).some((x) => x < 0);
-  const notes: FullNote[] = useMemo(() => ((isPrelude ? PR.notes : FULL[F.id]) ?? []).map(([m, o, d]) => ({ midi: m, at: o / 96, dur: d / 96 })), [F.id, isPrelude, PR]);
-  const subject = useMemo(() => F.subject.map((n) => ({ midi: parsePitch(n.pitch).midi, at: n.at, dur: n.dur })), [F]);
-  const entries: Entry[] = useMemo(() => (isPrelude ? [] : findEntries(notes, subject)), [notes, subject, isPrelude]);
-  const { voice, count } = useMemo(() => separateVoices(notes, entries.map((e) => e.notes)), [notes, entries]);
+  const notes: FullNote[] = P.notes;
+  const subject = useMemo(() => FG.subject.map((n) => ({ midi: parsePitch(n.pitch).midi, at: n.at, dur: n.dur })), [FG]);
+  const entries: Entry[] = isPrelude ? [] : FG.entries;
+  const { voice, count } = P;
   const names = voiceNames(count);
   const tonicPc = parsePitch(`${F.key[0].toUpperCase()}${F.key.slice(1)}4`).midi % 12;
   // The harmonic reading (D125): the chords, the cadences, the keys reached.
@@ -214,7 +215,7 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
     });
   /** The player's own entries as notes (the subject, edited, from the chosen bar). */
   const myNotes: (RollExtra & { voice: number })[] = myEntries.flatMap((m) => {
-    const start = (m.bar - 1) * barQ + (F.phase % barQ);
+    const start = (m.bar - firstBar) * barQ + (F.phase % barQ);
     return subject.map((s, k) => {
       const d = (s.midi - subject[0].midi) + edit[k] - edit[0];
       return { midi: subject[0].midi + edit[0] + m.shift + (m.inverted ? -d : d), at: start + (s.at - subject[0].at), dur: s.dur, voice: m.voice };
@@ -385,7 +386,7 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
     if (x === "prelude" && (tab === "workshop" || tab === "next")) setTab("guide");
   };
   const go = (k: number) => {
-    if (k < 0 || k >= FUGUES.length) return;
+    if (k < 0 || k >= LIBRARY.length) return;
     stop();
     setSpan(null);
     setSolo(null);
@@ -415,7 +416,7 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
   }, []);
 
   // Texts.
-  const bq = (q: number) => barOf(q) + 1;
+  const bq = (q: number) => barOf(q) + firstBar;
   // The last bar a span sounds in (a span ending on a bar line ends in the bar before).
   const lastBar = (q: number) => bq(q - barQ / 96);
   const when = (m: { from: number; to: number }) => (bq(m.from) === lastBar(m.to) ? t("ui.study.bar", { a: bq(m.from) }) : t("ui.study.bars", { a: bq(m.from), b: lastBar(m.to) }));
@@ -617,7 +618,7 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
       {myEntries.length > 0 && (
         <ul className="wtc-moments">
           {myEntries.map((m, k) => {
-            const from = (m.bar - 1) * barQ;
+            const from = (m.bar - firstBar) * barQ;
             const len = subject[subject.length - 1].at + subject[subject.length - 1].dur - subject[0].at;
             return (
               <li key={k}>
@@ -701,12 +702,12 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
         // A note overlapping the next in its voice is cut where the next begins.
         const next = mine[k + 1]?.n.at ?? Infinity;
         const end = Math.min(n.at + n.dur, q1, next);
-        return { pitch: spell(n.midi, sig, flats), at: at - q0, dur: Math.max(1 / 96, end - at), ...(starts.has(i) && n.at >= q0 ? { label: starts.get(i) } : {}) };
+        return { pitch: P.spelled[i] ?? spell(n.midi, sig, flats), at: at - q0, dur: Math.max(1 / 96, end - at), ...(starts.has(i) && n.at >= q0 ? { label: starts.get(i) } : {}) };
       });
       const mean = mine.reduce((a, x) => a + x.n.midi, 0) / Math.max(1, mine.length);
       return { notes: out, staff: (mine.length ? mean : 72 - v * 12) >= 60 ? 0 : 1, ink: COLORS[v % COLORS.length], editable: false } as WtcScoreVoice;
     }).filter((x) => x.notes.length);
-  }, [scoreFrom, scoreTo, F, entries, count, notes, voice, sig, flats, gameUntil]);
+  }, [scoreFrom, scoreTo, P, barQ, entries, count, notes, voice, sig, flats, gameUntil]);
   const rollHidden = useMemo(() => {
     if (gameUntil === null) return hidden;
     const h = new Set(hidden);
@@ -727,13 +728,13 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
               <option value="wtc">{t("ui.wtc.mode")}</option>
             </select>
             <select id="exercise" className="sel sel-exercise" value={index} onChange={(e) => go(Number(e.target.value))} aria-label={t("ui.wtc.fugue")}>
-              {FUGUES.map((f, k) => (
+              {LIBRARY.map((f, k) => (
                 <option key={f.id} value={k}>{fugueLabel(f)}</option>
               ))}
             </select>
-            <button className="icon" onClick={() => go(index + 1)} disabled={index === FUGUES.length - 1} aria-label={t("ui.nav.next")}>›</button>
+            <button className="icon" onClick={() => go(index + 1)} disabled={index === LIBRARY.length - 1} aria-label={t("ui.nav.next")}>›</button>
             <span className="values" role="radiogroup" aria-label={t("ui.study.piece")}>
-              <button className="chipbtn" role="radio" aria-checked={isPrelude} aria-pressed={isPrelude} disabled={!PR} onClick={() => choosePiece("prelude")}>{t("ui.study.prelude")}</button>
+              <button className="chipbtn" role="radio" aria-checked={isPrelude} aria-pressed={isPrelude} onClick={() => choosePiece("prelude")}>{t("ui.study.prelude")}</button>
               <button className="chipbtn" role="radio" aria-checked={!isPrelude} aria-pressed={!isPrelude} onClick={() => choosePiece("fugue")}>{t("ui.study.fugue")}</button>
             </span>
             <button className="chipbtn" onClick={() => (stop(), onExercises())} title={t("ui.study.exercisesHelp")}>{t("ui.study.exercises")}</button>
@@ -752,12 +753,12 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
               barQuarters={barQ}
               selected={null}
               cursor={cursor >= scoreFrom && cursor <= scoreTo ? cursor - scoreFrom : -1}
-              label={`${fugueLabel(F)}, ${t("ui.study.bars", { a: scoreFrom + 1, b: scoreTo + 1 })}`}
+              label={`${fugueLabel(F)}, ${t("ui.study.bars", { a: scoreFrom + firstBar, b: scoreTo + firstBar })}`}
               onSlot={() => undefined}
               zoom={zoom}
               onZoom={setZoom}
               zoomLabels={{ in: t("ui.zoom.in"), out: t("ui.zoom.out"), reset: t("ui.zoom.reset") }}
-              tools={<span className="help">{t("ui.study.scoreBars", { a: scoreFrom + 1, b: scoreTo + 1 })}</span>}
+              tools={<span className="help">{t("ui.study.scoreBars", { a: scoreFrom + firstBar, b: scoreTo + firstBar })}</span>}
             />
           ) : (
           <VoiceRoll
@@ -774,6 +775,7 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
             hidden={rollHidden}
             onBar={(b) => (game ? undefined : (setSpan(null), setActiveMoment(null), play(b * barQ)))}
             label={fugueLabel(F)}
+            firstBar={firstBar}
             strip={harmony === "off" || gameUntil !== null ? undefined : chords.map((c, k) => ({ from: c.from, to: c.to, text: chordLabel(c, k), title: `${chordName(c, flats)} · ${romanOf(c, tonicPc, minor, k === chords.length - 1)}` }))}
             onStrip={(k) => playSpan(chords[k].from, chords[k].to, `c${k}`)}
           />
@@ -817,7 +819,7 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
       }
       tab={isPrelude && (tab === "workshop" || tab === "next") ? "guide" : tab}
       onTab={setTab}
-      idle={`J. S. Bach, Das wohltemperirte Clavier, ${roman(F.book)}, ${isPrelude ? "Praeludium" : "Fuga"} ${F.number} (BWV ${F.bwv}). Encoding: ASAP dataset (Foscarin et al. 2020), CC BY-NC-SA 4.0; voices, ${isPrelude ? "" : "entries, "}chords and cadences found by the game.`}
+      idle={`J. S. Bach, Das wohltemperirte Clavier, ${roman(F.book)}, ${isPrelude ? "Praeludium" : "Fuga"} ${F.number} (BWV ${F.bwv}). Encoding: David Huron (Humdrum, 1994, after the Bach-Gesellschaft edition; rights to derivative electronic formats reserved, for study only); ${isPrelude ? "strands, " : "voices as encoded; entries, "}chords and cadences found by the game.`}
       tabs={[
         { id: "guide", text: true, label: t("ui.study.tab.guide"), content: guide },
         { id: "voices", label: t("ui.study.tab.voices"), content: voicesPanel },

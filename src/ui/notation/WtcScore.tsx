@@ -267,9 +267,26 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
       perVoice.forEach((pv, i) => voices[i].draw(ctx, staves[pv.v.staff]));
       // Beams and triplets.
       for (const pv of perVoice) {
-        const beamable = pv.tick.filter((n, k) => !pv.pieces[k].rest && !pv.pieces[k].triplet && ["8", "16", "32", "64"].includes(pv.pieces[k].d));
-        const groups = Beam.generateBeams(beamable as StemmableNote[], { groups: Beam.getDefaultBeamGroups(p.time), ...(pv.stem ? { stem_direction: pv.stem, maintain_stem_directions: true } : {}) });
-        groups.forEach((g) => g.setContext(ctx).draw());
+        // Beamed by the beat (a dotted quarter in compound time), by the notes' own places in the bar:
+        // a rest, a longer note or a triplet between two quavers breaks the beam.
+        const beat = num % 3 === 0 && num > 3 ? (3 * 4) / den : 4 / den;
+        const barStart = b * p.barQuarters;
+        let group: StemmableNote[] = [];
+        let groupBeat = -1;
+        const flush = () => {
+          if (group.length > 1) new Beam(group, pv.stem === 0).setContext(ctx).draw();
+          group = [];
+        };
+        pv.pieces.forEach((q, k) => {
+          const ok = !q.rest && !q.triplet && ["8", "16", "32", "64"].includes(q.d);
+          const bt = Math.floor((q.at - barStart) / beat + EPS);
+          if (!ok || bt !== groupBeat) flush();
+          if (ok) {
+            if (!group.length) groupBeat = bt;
+            group.push(pv.tick[k] as StemmableNote);
+          }
+        });
+        flush();
         const trip = pv.tick.filter((_, k) => pv.pieces[k].triplet);
         for (let k = 0; k + 2 < trip.length; k += 3) {
           const group = trip.slice(k, k + 3) as StemmableNote[];

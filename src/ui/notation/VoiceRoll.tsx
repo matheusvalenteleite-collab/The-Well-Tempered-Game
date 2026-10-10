@@ -34,6 +34,8 @@ interface Props {
   /** A strip of labels above the bars (the chords), each over its span; tapping one plays from there. */
   strip?: { from: number; to: number; text: string; title: string }[];
   onStrip?(k: number): void;
+  /** The number of the roll's first bar (0 when it is a pickup). */
+  firstBar?: number;
 }
 
 const PX_Q = 20;
@@ -102,7 +104,7 @@ export function VoiceRoll(p: Props) {
         {Array.from({ length: bars + 1 }, (_, b) => (
           <g key={`b${b}`}>
             <line x1={x(b * p.barQuarters)} x2={x(b * p.barQuarters)} y1={STRIP + PAD - 6} y2={height - PAD} className="roll-bar" />
-            {b < bars && (b % 2 === 0 || bars < 30) && <text x={x(b * p.barQuarters) + 2} y={STRIP + PAD - 9} className="roll-label">{b + 1}</text>}
+            {b < bars && (b % 2 === 0 || bars < 30) && <text x={x(b * p.barQuarters) + 2} y={STRIP + PAD - 9} className="roll-label">{b + (p.firstBar ?? 1)}</text>}
           </g>
         ))}
         {p.cursor >= 0 && <rect x={x(p.cursor * p.barQuarters)} y={STRIP + PAD - 6} width={p.barQuarters * PX_Q} height={height - STRIP - 2 * PAD + 6} className="roll-cursor" />}

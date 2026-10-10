@@ -41,6 +41,8 @@ The WTC mode now **opens on a study of the whole fugue**; the exercises are behi
 - **Prelude / Fugue** at the top: each of the 29 fugues now has its prelude, from the same ASAP source and licence (no copying from the other sessions). A prelude has the roll, the score, its strands, pedal points and close, and sections by the keys it reaches.
 - **Harmony**, for preludes and fugues: a chord for each bar or half-bar, as Roman numerals with inversion figures (or chord names), in a strip over the roll and a list by bar, each playable; the keys reached by cadences; **Hear the chords alone** plays the harmonic skeleton as blocks. On the C major prelude it reads bars 1–15 as the textbooks do (I, ii⁴₂, V⁶₅, I, vi⁶, V⁴₂/V, V⁶, I⁴₂, vi7, V7/V, V, vii°⁴₃/ii, ii⁶, vii°⁴₃, I⁶), with G at bar 11 and C at bar 19. In contrapuntal textures it is noisier, and the guide says so.
 
+**Morning of 10 October** (D126): the lab's corpus is imported, on your word in this session. The study now has all 48 preludes and fugues, the three missing keys included, with the fugues' voices as Bach wrote them and the encoding's own spellings in the score. Every piece and tab was walked through in the browser. The exercises still use the 29 ASAP expositions.
+
 The import of the lab's corpus was refused again by the permission check, even after your go-ahead. I did not work around it. To allow it, add a Bash permission rule in the session settings, or tell me to ask the lab session to open a pull request into this branch for you to merge.
 
 **Two limits, and a decision for you.**
