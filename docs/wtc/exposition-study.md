@@ -10,7 +10,7 @@ it is marked free.
 ## Findings
 
 - **Subject and answer alternate** (tonic, dominant, tonic, ...) in 88% (42 of 48) of the expositions.
-- Roles of all exposition entries: subject 98, answer 65, free 3.
+- Roles of all exposition entries: subject 98, answer 65, free 2, other 1.
 - **Adjacent voices answer each other** (each new voice next to the one before it): 75% (89 of 118) of successive pairs.
 - **The first voice is an inner voice** in 53% (25 of 47) of the fugues in three or more voices.
 - **Links**: before entry 2, 2% (1 of 48); before entry 3, 60% (28 of 47); before entry 4, 29% (6 of 21); before entry 5, 0% (0 of 2).
@@ -27,7 +27,7 @@ The orders of entry, by number of voices:
 | Fugue 1 in C major (I) | 4 | A I, S V, T V, B I | no |
 | Fugue 2 in C minor (I) | 3 | A i, S v, B i (link 2 bar) | yes |
 | Fugue 3 in C♯ major (I) | 3 | S I, A V, B I | yes |
-| Fugue 4 in C♯ minor (I) | 5 | B i, T v, A i, S2 – (link 1.75 bar), S1 i | no |
+| Fugue 4 in C♯ minor (I) | 5 | B i, T v, A i, S2 iv (link 1.75 bar), S1 i | no |
 | Fugue 5 in D major (I) | 4 | B I, T V, A I (link 1 bar), S V | yes |
 | Fugue 6 in D minor (I) | 3 | S i, A v, B i | yes |
 | Fugue 7 in E♭ major (I) | 3 | S I, A V, B I (link 1 bar) | yes |

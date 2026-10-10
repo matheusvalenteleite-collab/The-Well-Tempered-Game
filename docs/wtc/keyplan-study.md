@@ -10,20 +10,20 @@ fugues whose subject the analysis cuts short or long show few entries.
 
 ## The keys of the middle and final entries
 
-- in major fugues: I 30%, V 28%, vi 14%, IV 10%, ii 7%, iii 6%, VI 2%, vii 2%, III 1%, v 1%, II 0% (224)
-- in minor fugues: i 34%, iv 17%, v 11%, III 11%, VII 9%, V 5%, VI 5%, I 4%, ii 2%, IV 2%, vii 1% (208)
+- in major fugues: I 30%, V 27%, vi 14%, IV 10%, ii 7%, iii 6%, VI 2%, vii 2%, III 1%, v 1%, II 0%, i 0% (231)
+- in minor fugues: i 34%, iv 17%, v 11%, III 10%, VII 8%, VI 5%, V 4%, I 4%, ii 3%, IV 2%, vii 1%, iii 0% (231)
 
 The first key away from tonic and dominant:
 
 - in major fugues: vi 58%, IV 13%, ii 13%, iii 8%, II 4%, VI 4% (24)
-- in minor fugues: III 55%, iv 32%, IV 5%, VI 5%, VII 5% (22)
+- in minor fugues: III 59%, iv 27%, IV 5%, VI 5%, VII 5% (22)
 
 | fugue | exposition | middle and final entries |
 |---|---|---|
 | Fugue 1 in C major (I) | I V V I | I V V V II III I V V I V VI ii VI iii V vii I IV |
 | Fugue 2 in C minor (I) | i v i | III v i i i |
 | Fugue 3 in C♯ major (I) | I V I | V vi iii I vii V I I vii V IV I V I I |
-| Fugue 4 in C♯ minor (I) | i v i i | v iv i VII III i iv i i VII |
+| Fugue 4 in C♯ minor (I) | i v i iv i | v III iv i VII III iv i v VI i iv iv ii VI i ii I i VII iv i i i iii i v vii iv i i VII |
 | Fugue 5 in D major (I) | I V I V | I vi IV I vi I IV ii vi IV iii I |
 | Fugue 6 in D minor (I) | i v i | – |
 | Fugue 7 in E♭ major (I) | I V I | V iii vi V I V |
@@ -37,7 +37,7 @@ The first key away from tonic and dominant:
 | Fugue 15 in G major (I) | I V I | vi iii iii V iii |
 | Fugue 16 in G minor (I) | i v i v | III VII VII III VII iv iv i i i i i |
 | Fugue 17 in A♭ major (I) | I I | I vi ii v V I I vi IV ii I |
-| Fugue 18 in G♯ minor (I) | i iv i iv | iv iv i iv v VI I iv |
+| Fugue 18 in G♯ minor (I) | i iv i iv | iv iv i iv v III VI I iv |
 | Fugue 19 in A major (I) | I V I | V I vi vi I V vi V IV IV V III IV I V |
 | Fugue 20 in A minor (I) | i v i v | i i v v i i III III iv i I v i I |
 | Fugue 21 in B♭ major (I) | I V I | V vi ii IV I |
@@ -46,13 +46,13 @@ The first key away from tonic and dominant:
 | Fugue 24 in B minor (I) | i IV i IV | i iv v i i i IV III v IV i i iv |
 | Fugue 1 in C major (II) | I V I | ii vi V I V |
 | Fugue 2 in C minor (II) | i v i | V V iv i v I IV VII III V i V iv I iv |
-| Fugue 3 in C♯ major (II) | I V | I V I V V iii III VI V |
+| Fugue 3 in C♯ major (II) | I V | I V I V V iii I I III VI I V vi i ii |
 | Fugue 4 in C♯ minor (II) | i v i | i v III i i I v i V |
 | Fugue 5 in D major (II) | I V I V | ii vi V I vi iii vi iii V V I vi IV I V iii I vi |
 | Fugue 6 in D minor (II) | i v i | i i i V iv VII i |
 | Fugue 7 in E♭ major (II) | I V I V | V I V I IV V I |
 | Fugue 8 in D♯ minor (II) | i v i v | iv III VI i iv i vii VI i i i |
-| Fugue 9 in E major (II) | I V I V | V I V I I V V ii I ii V I V I V |
+| Fugue 9 in E major (II) | I V I V | V I V I I V V ii ii I ii V I V I V |
 | Fugue 10 in E minor (II) | i v i | III VII v i iv i |
 | Fugue 11 in F major (II) | I V I | V I IV ii |
 | Fugue 12 in F minor (II) | i v i | III VII i i iv i |

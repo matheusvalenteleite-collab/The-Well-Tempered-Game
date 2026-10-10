@@ -7,7 +7,7 @@ entry, where no entry sounds. **Sequence**: within an episode, a figure of 3-8 n
 least three times, each time moved by the same step (same intervals and rhythm). **From the
 subject**: the sequence's figure contains a run of three of the subject's intervals.
 
-Fugues with a stretto: 32 of 48. Episodes: 321, 43% of the fugues' time; 25% of them built on a sequence, 8% on a figure from the subject.
+Fugues with a stretto: 33 of 48. Episodes: 327, 41% of the fugues' time; 24% of them built on a sequence, 8% on a figure from the subject.
 
 **Reading.** Where the entries are found reliably, the counts are a fair first map: strettos are
 common (most fugues overlap their entries somewhere), and episodes take a large share of the time.
@@ -22,7 +22,7 @@ come out too long.
 | Fugue 1 in C major (I) | 23 | 14 | 3 | 13% | 0 | 0 |
 | Fugue 2 in C minor (I) | 8 | 0 | 6 | 48% | 3 | 1 |
 | Fugue 3 in C♯ major (I) | 18 | 1 | 8 | 41% | 4 | 0 |
-| Fugue 4 in C♯ minor (I) | 14 | 3 | 7 | 60% | 3 | 0 |
+| Fugue 4 in C♯ minor (I) | 37 | 22 | 10 | 24% | 1 | 0 |
 | Fugue 5 in D major (I) | 16 | 1 | 7 | 47% | 3 | 2 |
 | Fugue 6 in D minor (I) | 3 | 1 | 1 | 82% | 1 | 0 |
 | Fugue 7 in E♭ major (I) | 9 | 0 | 8 | 53% | 2 | 0 |
@@ -36,7 +36,7 @@ come out too long.
 | Fugue 15 in G major (I) | 13 | 1 | 9 | 41% | 5 | 3 |
 | Fugue 16 in G minor (I) | 16 | 2 | 5 | 30% | 0 | 0 |
 | Fugue 17 in A♭ major (I) | 13 | 0 | 8 | 59% | 3 | 0 |
-| Fugue 18 in G♯ minor (I) | 13 | 1 | 6 | 39% | 1 | 0 |
+| Fugue 18 in G♯ minor (I) | 14 | 2 | 6 | 39% | 1 | 0 |
 | Fugue 19 in A major (I) | 18 | 1 | 7 | 46% | 0 | 0 |
 | Fugue 20 in A minor (I) | 35 | 16 | 8 | 13% | 0 | 0 |
 | Fugue 21 in B♭ major (I) | 8 | 0 | 3 | 31% | 1 | 0 |
@@ -45,13 +45,13 @@ come out too long.
 | Fugue 24 in B minor (I) | 17 | 4 | 9 | 41% | 4 | 0 |
 | Fugue 1 in C major (II) | 8 | 0 | 4 | 59% | 0 | 0 |
 | Fugue 2 in C minor (II) | 18 | 8 | 7 | 40% | 1 | 1 |
-| Fugue 3 in C♯ major (II) | 13 | 0 | 5 | 78% | 2 | 0 |
+| Fugue 3 in C♯ major (II) | 29 | 8 | 8 | 50% | 2 | 0 |
 | Fugue 4 in C♯ minor (II) | 15 | 3 | 7 | 57% | 3 | 2 |
 | Fugue 5 in D major (II) | 22 | 14 | 10 | 52% | 1 | 1 |
 | Fugue 6 in D minor (II) | 12 | 4 | 7 | 31% | 1 | 1 |
 | Fugue 7 in E♭ major (II) | 11 | 9 | 3 | 21% | 0 | 0 |
 | Fugue 8 in D♯ minor (II) | 16 | 1 | 5 | 30% | 1 | 1 |
-| Fugue 9 in E major (II) | 19 | 12 | 6 | 41% | 0 | 0 |
+| Fugue 9 in E major (II) | 20 | 14 | 6 | 41% | 0 | 0 |
 | Fugue 10 in E minor (II) | 9 | 0 | 6 | 36% | 2 | 2 |
 | Fugue 11 in F major (II) | 7 | 0 | 6 | 71% | 4 | 2 |
 | Fugue 12 in F minor (II) | 9 | 3 | 6 | 50% | 2 | 1 |

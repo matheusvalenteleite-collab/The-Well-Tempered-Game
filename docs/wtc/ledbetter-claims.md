@@ -8,8 +8,8 @@ data/wtc/ledbetter-claims.txt. A claim holds if the analysis has the same thing 
 a cadence on the key named; a section starting there). Claims the digest flags [GAP] or [check] that
 the analysis does not bear out are left uncounted, as are sections starting at bar 1.
 
-- **entry**: 148 of 173 (86%)
-- **stretto**: 35 of 47 (74%)
+- **entry**: 150 of 173 (87%)
+- **stretto**: 36 of 47 (77%)
 - **pedal**: 5 of 12 (42%)
 - **cadence**: 21 of 37 (57%)
 - **section**: 29 of 68 (43%)
@@ -69,16 +69,16 @@ Later subjects of double and triple fugues are found from where he says they ent
 
 ### Fugue 4 in C♯ minor (Book I, BWV 849b)
 
-2 of 10 hold.
+5 of 10 hold.
 
 - ✓ `entry b.35 voice? (S2)`: found, subject 2 in the soprano at bar 36
 - ✓ `entry b.49 voice? (S3)`: found, subject 3 in the alto at bar 49
 - ✗ `entry b.67 voice? (S3)`: subject 3 found, but not here
 - ✗ `entry b.71 voice? (S3)`: subject 3 found, but not here
-- ✗ `stretto b.94 voices?`: not found
-- ✗ `entry b.94 soprano (S1)`: not found
-- ✗ `entry b.95 alto (S1)`: not found
-- ✗ `entry b.96 voice? (S1)`: not found
+- ✓ `stretto b.94 voices?`: found at bar 94
+- ✓ `entry b.94 soprano (S1)`: found
+- ✗ `entry b.95 alto (S1)`: found in the soprano, not the alto
+- ✓ `entry b.96 voice? (S1)`: found
 - ✗ `entry b.107 soprano (S1)`: not found
 - ✗ `section b.94-115 stretto`: no section starts here
 

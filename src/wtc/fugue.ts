@@ -175,7 +175,8 @@ export function findEntries(p: WtcPiece, subject: Note[]): Entry[] {
         let rest = 0;
         let ok = true;
         // The last two intervals are free (entries are often bent at their end into what follows).
-        // Short subjects (eight notes or fewer): only the last interval free, one change allowed.
+        // Short subjects (eight notes or fewer): only the last interval free, one change allowed; the
+        // length of the last two notes free (a closing note shortened in stretto, Book I no. 4, b. 94).
         const short = n <= 8;
         const counted = short ? n - 2 : n - 3;
         // Past the head, a long subject may be varied more (one change in every twelve notes, at least one).
@@ -192,7 +193,7 @@ export function findEntries(p: WtcPiece, subject: Note[]): Entry[] {
             if (head > headMax || rest > tail) ok = false;
           }
           // A rhythm altered once past the head (a note split or joined) shares the tail's one change.
-          if (ok && i < Math.min(n - 2, counted) && l[s + i + 2].on - l[s + i + 1].on !== sIoi[i]) {
+          if (ok && i < Math.min(n - 2, short ? counted - 1 : counted) && l[s + i + 2].on - l[s + i + 1].on !== sIoi[i]) {
             if (short || i < 5) ok = false;
             else if (++rest > tail) ok = false;
           }
