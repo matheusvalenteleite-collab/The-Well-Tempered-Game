@@ -45,6 +45,9 @@ older notes and the owner's open questions.
    `claude/vibrant-gates-fe6o3h` with 491 of Ledbetter's claims checked against the score
    (`docs/wtc/ledbetter/claims-score-check.md`). Merge its findings; use them to correct entries,
    sections and the companion where they disagree, and to add notes for more pieces.
+   The lab session (stopped, not archived) also pushed to `claude/beautiful-mccarthy-7li5nv` its own
+   analysis checked against the score (entries 90%, strettos 77%, cadences 62%, pedals 58%; 22 claims
+   corrected): compare with this game's `src/wtc/library.ts` entries before changing them.
 3. **Optional**: the lab's licence-safe fugue corpus (Kyle Rother's open-score edition, CC BY 4.0;
    `data/wtc/fugues-open.json` on `claude/beautiful-mccarthy-7li5nv` at 8be67d0). Only if the game
    is ever made public.
