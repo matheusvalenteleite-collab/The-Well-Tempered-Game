@@ -191,7 +191,7 @@ Findings and points for the owner:
 - The hint "leap a minor sixth (upward)" (pp. 59-60): the Latin gives no direction ("per saltum
   Sextae minoris, (qui licitus est)"), and Fux leaps a minor sixth downward 8 times. Check the
   examples on p. 60 and reword if needed.
-- Settled by D131: warnings no longer withhold the star, so Fux's Figs. 14, 37 and 39 can earn it; whether the crossing warning (D2) should go at all is still open.
+- Settled by D143: warnings no longer withhold the star, so Fux's Figs. 14, 37 and 39 can earn it; whether the crossing warning (D2) should go at all is still open.
 
 ## Basso continuo
 

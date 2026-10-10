@@ -1,5 +1,5 @@
 /**
- * BETA or the real setup (owner, D129): one switch for the whole game, kept in this browser. In
+ * BETA or the real setup (owner, D141): one switch for the whole game, kept in this browser. In
  * BETA everything is open, for testing; in the real setup what is learnt unlocks progressively
  * (so far: the tutorial's lessons, one after another). BETA by default during the beta phase.
  */

@@ -1,5 +1,5 @@
 /**
- * The tour of the game screen (D128), the tutorial's last lesson: a spotlight on each part of the
+ * The tour of the game screen (D140), the tutorial's last lesson: a spotlight on each part of the
  * real screen in turn, with a card that says what it is for. The page stays usable underneath
  * (the shade lets clicks through), so the learner may try each part as it is shown.
  */

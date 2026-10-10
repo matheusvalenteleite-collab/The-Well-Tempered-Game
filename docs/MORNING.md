@@ -1,6 +1,6 @@
-# Night of 9–10 October 2026: the tutorial (D128; numbered D98 on its branch)
+# Night of 9–10 October 2026: the tutorial (D140; numbered D98, then D128, on its branch)
 
-Branch `claude/tender-darwin-mr2uv4` (not merged, not published to the game link). Everything is in D128 in DECISIONS.md.
+Branch `claude/tender-darwin-mr2uv4` (not merged, not published to the game link). Everything is in D140 in DECISIONS.md.
 
 ## What was done
 

@@ -81,7 +81,7 @@ const VERSION_INK: Record<VersionId, string> = {
 };
 const stepIndexOf = (id: string) => STEPS.findIndex((s) => s.id === id);
 
-/** The game screen's links to the tutorial (D128): hidden and silent while it is open, sent to an exercise from it. */
+/** The game screen's links to the tutorial (D140): hidden and silent while it is open, sent to an exercise from it. */
 export interface GameLink {
   /** The tutorial is open over the game: keys and sound belong to it. */
   suspended?: boolean;
@@ -103,7 +103,7 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
   const session = sessions[stepIndex];
   const setSession = (s: SessionState) => setSessions((all) => all.map((x, i) => (i === stepIndex ? s : x)));
   const [stars, setStars] = useState<string[]>(() => stored<string[]>("wtg.stars", [], (v) => Array.isArray(v)));
-  /** Gold stars (D131): cleared with no advice broken either. */
+  /** Gold stars (D143): cleared with no advice broken either. */
   const [gold, setGold] = useState<string[]>(() => stored<string[]>("wtg.starsGold", [], (v) => Array.isArray(v)));
   useEffect(() => store("wtg.starsGold", gold), [gold]);
   const [tempo, setTempo] = useState(() => stored("wtg.tempo", 60, (v) => typeof v === "number" && v >= 30 && v <= 240));
@@ -224,7 +224,7 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
   }, [tuning]);
   useEffect(() => store("wtg.stars", stars), [stars]);
 
-  // The real setup (D130): a star on an exercise opens the next; in BETA all is open.
+  // The real setup (D142): a star on an exercise opens the next; in BETA all is open.
   const beta = useBeta();
   const isOpen = (k: number) => k >= 0 && k < STEPS.length && exerciseOpen(STEPS[k].id, stars, beta);
   const goTo = (k: number) => {
@@ -349,7 +349,7 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
     setResult(ev);
     setTab("evaluation");
     // A star needs a clean result: no rule and no recommendation broken (owner decision D25).
-    // D131 (amends D25): no rule broken earns the star, which opens the next exercise; no advice
+    // D143 (amends D25): no rule broken earns the star, which opens the next exercise; no advice
     // broken either earns the gold star as well.
     if (ev.passed && !stars.includes(STEP.id)) setStars([...stars, STEP.id]);
     if (ev.violations.length === 0 && !gold.includes(STEP.id)) setGold([...gold, STEP.id]);
@@ -802,7 +802,7 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
-  // The tutorial (D128): while it is open the game is silent; on return its own sound comes back.
+  // The tutorial (D140): while it is open the game is silent; on return its own sound comes back.
   useEffect(() => {
     if (suspended) {
       stopSaved();

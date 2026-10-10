@@ -94,7 +94,7 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
   const activePart: number | null = activeStaff === STEP.movingIndex && activeBar < STEP.cantus.length - 1 ? session.selected % STEP.per : null;
   const [result, setResult] = useState<TrioEvaluation | null>(null);
   const [stars, setStars] = useState<string[]>(() => stored<string[]>("wtg.stars", [], (v) => Array.isArray(v)));
-  /** Gold stars (D131): cleared with no advice broken either. */
+  /** Gold stars (D143): cleared with no advice broken either. */
   const [gold, setGold] = useState<string[]>(() => stored<string[]>("wtg.starsGold", [], (v) => Array.isArray(v)));
   useEffect(() => store("wtg.starsGold", gold), [gold]);
   useEffect(() => store("wtg.stars", stars), [stars]);
@@ -177,7 +177,7 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
     audio.setGates({ counterpoint: versions.original, second: secondOn, fux: fuxHeard && fuxOpen, continuo });
   }, [versions.original, secondOn, fuxHeard, fuxOpen, continuo]);
   useEffect(() => () => audio.stop(), []);
-  // The tutorial (D128): silent while it is open; the screen's own sound back on return.
+  // The tutorial (D140): silent while it is open; the screen's own sound back on return.
   useEffect(() => {
     if (suspended) {
       audio.stop();
@@ -214,7 +214,7 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
   const lines = (k: number) => [0, 1, 2].map((i) => (i === STEP.cantusIndex ? STEP.cantus[k] : downOf(sessions[i].notes, i, k)));
   const missing = mine.reduce((n, i) => n + sessions[i].notes.filter((x) => x === null).length, 0);
 
-  // The real setup (D130): a star on an exercise opens the next; in BETA all is open.
+  // The real setup (D142): a star on an exercise opens the next; in BETA all is open.
   const beta = useBeta();
   const isOpen = (k: number) => k >= 0 && k < STEPS.length && exerciseOpen(STEPS[k].id, stars, beta);
   const goTo = (k: number) => {

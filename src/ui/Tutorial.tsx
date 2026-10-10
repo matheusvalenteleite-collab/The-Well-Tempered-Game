@@ -1,5 +1,5 @@
 /**
- * The tutorial (D128): a screen of its own, opened by TUTORIAL in the top bar. Chapters of short
+ * The tutorial (D140): a screen of its own, opened by TUTORIAL in the top bar. Chapters of short
  * lessons, from reading a note to three voices; each lesson is a page of text and one task (listen,
  * answer, write), and Next opens once the task is done. The game stays where it was underneath.
  * Progress (lessons done, the lesson reached) is remembered in this browser.

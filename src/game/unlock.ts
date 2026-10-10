@@ -1,5 +1,5 @@
 /**
- * Progressive unlocking (D129, D130). In BETA everything is open. In the real setup a thing opens
+ * Progressive unlocking (D141, D142). In BETA everything is open. In the real setup a thing opens
  * once the one before it is done (a tutorial lesson finished, an exercise starred); what is done
  * stays open; the first is always open.
  */
@@ -13,7 +13,7 @@ export function openInOrder(ids: readonly string[], done: readonly string[], k: 
 }
 
 /**
- * Every exercise of the game in the book's order (D130): two voices, species one to five, then
+ * Every exercise of the game in the book's order (D142): two voices, species one to five, then
  * three voices, species one to five. A star on an exercise opens the next, across species and voices.
  */
 export const GAME_ORDER: readonly string[] = [...ALL_STEPS.map((s) => s.id), ...TRIO_SPECIES.flatMap((n) => trioSteps(data as never, n).map((s) => s.id))];

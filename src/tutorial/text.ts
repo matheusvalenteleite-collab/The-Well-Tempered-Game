@@ -1,4 +1,4 @@
-/** The tutorial's words (D128): src/content/tutorial.en.json, read like the game's own strings. */
+/** The tutorial's words (D140): src/content/tutorial.en.json, read like the game's own strings. */
 import content from "../content/tutorial.en.json" with { type: "json" };
 
 export interface LessonText {

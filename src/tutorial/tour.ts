@@ -1,4 +1,4 @@
-/** The tour of the game screen (D128): its stops, in order — a text id and the element it points at (none: a card in the middle). */
+/** The tour of the game screen (D140): its stops, in order — a text id and the element it points at (none: a card in the middle). */
 export const TOUR_STOPS: { id: string; selector?: string }[] = [
   { id: "intro" },
   { id: "nav", selector: ".exercise-nav" },

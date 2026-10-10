@@ -1,5 +1,5 @@
 /**
- * The tutorial (D128) teaches nothing the game would reject: every answer it gives passes the
+ * The tutorial (D140) teaches nothing the game would reject: every answer it gives passes the
  * game's own rules, every wrong option breaks the rule its text names, every quiz answer is what
  * the notes make, and every lesson has its words.
  */
@@ -217,7 +217,7 @@ test("a fifth-species excerpt that opens on a held note sounds it (the A held in
   assert.equal(ev[0].lengths?.counterpoint, 0.25);
 });
 
-test("progressive unlocking (D129): in BETA all is open; in the real setup, one lesson after another", async () => {
+test("progressive unlocking (D141): in BETA all is open; in the real setup, one lesson after another", async () => {
   const { openInOrder: lessonOpen } = await import("../src/game/unlock.ts");
   const ids = ["a", "b", "c", "d"];
   assert.ok([0, 1, 2, 3].every((k) => lessonOpen(ids, [], k, true)));
@@ -227,7 +227,7 @@ test("progressive unlocking (D129): in BETA all is open; in the real setup, one 
   assert.deepEqual([0, 1, 2, 3].map((k) => lessonOpen(ids, ["a", "c"], k, false)), [true, true, true, true]);
 });
 
-test("the game's exercises unlock in the book's order in the real setup (D130)", async () => {
+test("the game's exercises unlock in the book's order in the real setup (D142)", async () => {
   const { GAME_ORDER, exerciseOpen, furthestOpen } = await import("../src/game/unlock.ts");
   const { ALL_STEPS } = await import("../src/counterpoint/curriculum/index.ts");
   const { TRIO_SPECIES } = await import("../src/game/trio.ts");
@@ -248,7 +248,7 @@ test("the game's exercises unlock in the book's order in the real setup (D130)",
   assert.equal(furthestOpen(["fux-mode.s1.01", "fux-mode.s1.02"], false), "fux-mode.s1.03");
 });
 
-test("the fugue chapter states only what the study's data says of BWV 846 (D132)", async () => {
+test("the fugue chapter states only what the study's data says of BWV 846 (D144)", async () => {
   const { LIBRARY } = await import("../src/wtc/library.ts");
   const { fugueFacts } = await import("../src/tutorial/poly.ts");
   const { FUGUE_ID } = await import("../src/tutorial/course.ts");

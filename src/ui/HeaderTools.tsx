@@ -1,4 +1,4 @@
-/** The top right of the top bar (D94): file icons, settings icons, then TUTORIAL (D128) and HOW TO PLAY, which stand out. */
+/** The top right of the top bar (D94): file icons, settings icons, then TUTORIAL (D140) and HOW TO PLAY, which stand out. */
 import { t } from "./i18n.ts";
 import { tt } from "../tutorial/text.ts";
 import { BetaToggle } from "./BetaToggle.tsx";

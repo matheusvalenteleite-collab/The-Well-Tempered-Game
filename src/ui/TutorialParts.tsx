@@ -1,5 +1,5 @@
 /**
- * The pieces of the tutorial screen (D128): text with Aloysius's lines, clip buttons, the writable
+ * The pieces of the tutorial screen (D140): text with Aloysius's lines, clip buttons, the writable
  * two-voice and three-voice scores with their coach and judgement, the quiz, the choice and the
  * road map. The logic lives in tutorial/model.ts; these only draw it and wire it to the engine.
  */

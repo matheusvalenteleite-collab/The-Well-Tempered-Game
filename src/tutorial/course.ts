@@ -1,5 +1,5 @@
 /**
- * The tutorial's course (D128): from reading a note to the end of the game, in chapters of short
+ * The tutorial's course (D140): from reading a note to the end of the game, in chapters of short
  * lessons. Every musical example is Fux's: the first exercise of each species is set over the same
  * cantus firmus in D (Figs. 5, 33, 55, 73, 82 in two voices, Fig. 101 in three), so the learner
  * follows one melody through the whole book. Writing tasks leave a few of Fux's notes out and judge

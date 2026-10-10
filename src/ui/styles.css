@@ -661,7 +661,7 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
 .gradus-quote { font-size: 1.15rem; font-style: italic; }
 .gradus-quote cite { display: block; font-size: 0.75rem; font-style: normal; margin-top: 6px; color: var(--muted); }
 
-/* ===== D128: the tutorial ===== */
+/* ===== D140: the tutorial ===== */
 .game-layer[hidden] { display: none; }
 .tutorial-btn { background: #1d6b66 !important; }
 .tutorial .topbar { gap: 10px; }
@@ -751,7 +751,7 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
   .tut-prose p { font-size: 1rem; }
 }
 
-/* D128: the tour of the game screen. */
+/* D140: the tour of the game screen. */
 .tour { position: fixed; inset: 0; z-index: 70; pointer-events: none; }
 .tour-shade { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.45); }
 .tour-spot { position: absolute; border-radius: 4px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45); outline: 3px solid #f2c94c; transition: all 0.25s ease; }
@@ -767,7 +767,7 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .learn-link { color: #6fc7bd !important; } }
 :root[data-theme="dark"] .learn-link { color: #6fc7bd !important; }
 @media (max-width: 800px) { .tutorial .brand { display: none; } .tutorial .topbar { flex-wrap: nowrap; } .tutorial .tut-progress .bar { width: 70px; } .tutorial .howto { padding: 3px 8px; } }
-/* D129: BETA or the real setup. */
+/* D141: BETA or the real setup. */
 .beta-toggle { min-height: 26px; padding: 0 8px; font-family: var(--ui-font); font-size: 0.72rem !important; font-weight: 700; letter-spacing: 0.06em; margin-left: 6px; }
 .beta-toggle.on, .beta-toggle[aria-pressed="true"] { background: #d9a41a !important; border-color: #d9a41a !important; color: #121212 !important; }
 .tut-toc button:disabled { opacity: 0.45; cursor: not-allowed; }
@@ -1116,9 +1116,9 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .wtc-page { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; padding: 4px; }
 .wtc-sys { border-left: 3px solid transparent; }
 .wtc-sys.playing { border-left-color: var(--accent, #e07b00); }
-/* D131: the gold star. */
+/* D143: the gold star. */
 .star.gold { filter: drop-shadow(0 0 3px rgba(240, 190, 40, 0.8)); }
-/* D128 after D106: the scores fit their box, so the tutorial's boxes have a height of their own. */
+/* D140 after D106: the scores fit their box, so the tutorial's boxes have a height of their own. */
 .tut-score { height: 290px; display: flex; flex-direction: column; overflow: hidden; }
 .tut-score > * { flex: 1 1 auto; min-height: 0; }
 .tut-score.compact { height: 210px; }
