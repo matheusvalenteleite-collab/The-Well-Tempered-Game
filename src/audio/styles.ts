@@ -58,15 +58,16 @@ export interface StyleTarget {
  * The settings after choosing a style. `cantusHigh`: the cantus is the upper line. In three voices
  * (D113) `trio` says which of the player's two voices are high (treble staff).
  */
-export function applyStyle(id: StyleId, now: StyleTarget, cantusHigh: boolean, trio?: { counterpointHigh: boolean; secondHigh: boolean }): StyleTarget {
+export function applyStyle(id: StyleId, now: StyleTarget, cantusHigh: boolean, trio?: { counterpointHigh: boolean; secondHigh: boolean; thirdHigh?: boolean }): StyleTarget {
   const s = STYLE[id];
   const high = synth(s.high);
   const low = synth(s.low);
   const line = trio ? (trio.counterpointHigh ? high : low) : cantusHigh ? low : high;
   const second = trio ? (trio.secondHigh ? high : low) : line;
+  const third = trio?.thirdHigh === undefined ? second : trio.thirdHigh ? high : low;
   const sound: SoundState = {
     ...now.sound,
-    synth: { cantus: cantusHigh ? high : low, counterpoint: line, second: { ...second }, fux: { ...line } },
+    synth: { cantus: cantusHigh ? high : low, counterpoint: line, second: { ...second }, third: { ...third }, fux: { ...line } },
     versionFollows: { inversion: true, retrograde: true, retroInversion: true, canon: true },
     master: { ...DEFAULT_MASTER_FX, ...s.master },
   };

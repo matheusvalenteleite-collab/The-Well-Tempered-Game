@@ -21,7 +21,7 @@
 import { harmonic, interval, isConsonant, isPerfectConsonance, motion, type Interval } from "./interval.ts";
 import { parsePitch } from "../music/pitch.ts";
 import type { ModalFinal } from "../music/fux/types.ts";
-import { REST } from "./layout.ts";
+import { HOLD, REST } from "./layout.ts";
 import { analyseTrio, consonanceWithBass, falseFifth, finalChord, imperfectInEachBar, innerUnison, melodicLeaps, openingOnFinal, parallelPerfect, upperDissonance, type TrioEvaluation, type TrioRule, type TrioViolation } from "./three-voice.ts";
 
 export interface TrioFloridInput {
@@ -37,11 +37,17 @@ export interface TrioFloridInput {
   voices: string[][];
   /** Fourth species: inner bars that may go without a ligature (as many as Fux's own solution has). */
   ligatureAllowance?: number;
+  /**
+   * Four voices (D148): a semibreve voice divided into two minims, by necessity (1725 pp. 132-133,
+   * 138): per voice, per bar, the note of its second half (null where the semibreve is whole). The
+   * line in `voices` holds the note sounding at the downbeat.
+   */
+  halves?: (string | null)[][];
 }
 
 const midi = (p: string) => parsePitch(p).midi;
 const pc = (p: string) => parsePitch(p).step;
-const sounds = (x: string | null | undefined): x is string => !!x && x !== REST;
+const sounds = (x: string | null | undefined): x is string => !!x && x !== REST && x !== HOLD;
 const viol = (id: string, severity: "error" | "warning", messageKey: string, positions: number[], voices: number[], detail?: Record<string, string | number>): TrioViolation => ({
   ruleId: id,
   positions,
@@ -62,30 +68,37 @@ interface Note {
 
 export function evaluateTrioFlorid(input: TrioFloridInput): TrioEvaluation {
   const m = input.movingIndex;
-  const others = [0, 1, 2].filter((x) => x !== m);
+  const all = input.voices.map((_, x) => x);
+  const others = all.filter((x) => x !== m);
   const bars = input.voices[others[0]].length;
   const per = input.species === 3 ? 4 : 2;
   const line = input.voices[m];
   if (line.length !== per * (bars - 1) + 1) throw new Error(`the moving voice needs ${per} notes a bar and one in the last`);
   const slotBar = (k: number) => Math.min(bars - 1, Math.floor(k / per));
   const notes: Note[] = line.flatMap((p, k) => (sounds(p) ? [{ p, bar: slotBar(k), beat: k === line.length - 1 ? 0 : k % per, slot: k }] : []));
-  const sem = (x: number, b: number) => input.voices[x][b];
+  /** A semibreve voice's note in bar b, in its first half (h = 0) or its second (h = 1, if divided). */
+  const sem = (x: number, b: number, h: 0 | 1 = 0) => (h === 1 && input.halves?.[x]?.[b]) || input.voices[x][b];
+  /** The half of the bar a moving-voice slot falls in. */
+  const halfOf = (k: number): 0 | 1 => (k < per * (bars - 1) && k % per >= per / 2 ? 1 : 0);
   /** Is the moving note dissonant against the semibreves of its bar (the bass; seconds and sevenths elsewhere)? */
-  const dissonant = (p: string, b: number) => {
-    const os = others.map((x) => sem(x, b));
+  const dissonant = (p: string, b: number, h: 0 | 1 = 0) => {
+    const os = others.map((x) => sem(x, b, h));
     const low = os.reduce((a, c) => (midi(c) < midi(a) ? c : a));
     if (midi(p) <= midi(low)) return os.some((o) => !isConsonant(harmonic(p, o)));
     if (!isConsonant(harmonic(low, p))) return true;
-    const up = os.find((o) => o !== low) ?? low;
-    const i = harmonic(up, p);
-    return !isConsonant(i) && i.simple !== 4 && !isFalseFifth(i);
+    return os.some((up, j) => {
+      if (j === os.indexOf(low)) return false;
+      const i = harmonic(midi(up) < midi(p) ? up : p, midi(up) < midi(p) ? p : up);
+      return !isConsonant(i) && i.simple !== 4 && !isFalseFifth(i);
+    });
   };
+  const dissonantNote = (n: Note) => dissonant(n.p, n.bar, halfOf(n.slot));
   const tiedInto = (k: number) => k > 0 && sounds(line[k]) && line[k - 1] === line[k] && input.species === 4 && k % per === 0;
   const tiedOut = (k: number) => k + 1 < line.length && tiedInto(k + 1);
   const out: TrioViolation[] = [];
-  const lowestOther = (b: number) => others.map((x) => sem(x, b)).reduce((a, c) => (midi(c) < midi(a) ? c : a));
+  const lowestOther = (b: number, h: 0 | 1 = 0) => others.map((x) => sem(x, b, h)).reduce((a, c) => (midi(c) < midi(a) ? c : a));
   /** The bass is held from bar b into the next, and the moving voice lies above it (p. 107). */
-  const heldBass = (b: number) => b + 1 < bars && lowestOther(b) === lowestOther(b + 1);
+  const heldBass = (b: number) => b + 1 < bars && lowestOther(b, 1) === lowestOther(b + 1);
   const nextNote = (n: Note) => notes[notes.indexOf(n) + 1];
   /**
    * At the close, a note whose only dissonance is a diminished fifth (augmented fourth) that
@@ -96,7 +109,7 @@ export function evaluateTrioFlorid(input: TrioFloridInput): TrioEvaluation {
     if (n.bar !== bars - 2) return false;
     const after = notes.find((x) => x.bar === bars - 1)?.p;
     if (!after) return false;
-    const os = others.map((x) => ({ now: sem(x, n.bar), then: sem(x, bars - 1) }));
+    const os = others.map((x) => ({ now: sem(x, n.bar, halfOf(n.slot)), then: sem(x, bars - 1) }));
     const low = Math.min(midi(n.p), ...os.map((o) => midi(o.now)));
     return os.every((o) => {
       const i = harmonic(midi(n.p) < midi(o.now) ? n.p : o.now, midi(n.p) < midi(o.now) ? o.now : n.p);
@@ -112,22 +125,30 @@ export function evaluateTrioFlorid(input: TrioFloridInput): TrioEvaluation {
   // The structural note of each bar (for the first-species rules): third species, the first note
   // sung in the bar; fourth, a dissonant downbeat stands for the note it delays ('Ligaturam nempe
   // aliud non esse, quàm retardationem Notae sequentis', p. 103), the consonance it resolves to.
+  /** Bars whose structural note is a resolution on the half bar (it sounds with the semibreves' second halves). */
+  const resolvedLate = new Set<number>();
   const struct = Array.from({ length: bars }, (_, b) => {
     const inBar = notes.filter((n) => n.bar === b);
     if (!inBar.length) return null;
     const d = inBar[0];
-    if (input.species === 4 && d.beat === 0 && tiedInto(d.slot) && dissonant(d.p, b) && inBar[1]) return inBar[1].p;
+    if (input.species === 4 && d.beat === 0 && tiedInto(d.slot) && dissonantNote(d) && inBar[1]) {
+      if (halfOf(inBar[1].slot) === 1) resolvedLate.add(b);
+      return inBar[1].p;
+    }
     return d.p;
   });
   // A bar where the moving voice rests throughout: it is left out of the skeleton by repeating the
   // previous structural note (it then forms no new progression).
   for (let b = 0; b < bars; b++) if (!struct[b]) struct[b] = struct[b - 1] ?? struct.find(Boolean)!;
-  const skeleton = [0, 1, 2].map((x) => (x === m ? (struct as string[]) : input.voices[x]));
+  const skeleton = all.map((x) => (x === m ? (struct as string[]) : input.voices[x]));
   const sk = analyseTrio({ modalFinal: input.modalFinal, cantusIndex: input.cantusIndex, voices: skeleton });
+  // Four voices (D148): with the moving voice, a resolution on the half bar meets a divided
+  // semibreve's second minim; among the semibreves, their downbeats.
+  const skM = analyseTrio({ modalFinal: input.modalFinal, cantusIndex: input.cantusIndex, voices: all.map((x) => (x === m ? (struct as string[]) : input.voices[x].map((p, b) => (resolvedLate.has(b) ? sem(x, b, 1) : p)))) });
   const SKELETON: readonly TrioRule[] = [consonanceWithBass, upperDissonance, openingOnFinal, finalChord, falseFifth, innerUnison, ...(input.species === 4 ? [imperfectInEachBar] : [])];
   const structNote = (b: number) => notes.find((n) => n.p === struct[b] && n.bar === b);
   out.push(
-    ...SKELETON.flatMap((r) => r.check(sk)).filter((v) => {
+    ...SKELETON.flatMap((r) => [...r.check(sk).filter((v) => !v.voices.includes(m)), ...r.check(skM).filter((v) => v.voices.includes(m))]).filter((v) => {
       if (v.voices.includes(m) && v.ruleId === "t1.false-fifth") return false;
       // Unisons with the moving voice arise from the ligatures themselves (Fig. 147).
       if (input.species === 4 && v.voices.includes(m) && v.ruleId === "t1.unison") return false;
@@ -144,7 +165,7 @@ export function evaluateTrioFlorid(input: TrioFloridInput): TrioEvaluation {
 
   // Dissonance treatment of the moving voice.
   notes.forEach((n, i) => {
-    if (!dissonant(n.p, n.bar)) return;
+    if (!dissonantNote(n)) return;
     const prev = notes[i - 1];
     const next = notes[i + 1];
     if (cadentialFalseFifth(n)) return;
@@ -153,19 +174,21 @@ export function evaluateTrioFlorid(input: TrioFloridInput): TrioEvaluation {
       // At the close, a neighbour note whose only dissonance is a tritone (Fig. 132, bar 10: A-G-A in
       // the bass under C#): not in the text, admitted because it is Fux's (D116).
       const tritoneOnly = others.every((x) => {
-        const o = sem(x, n.bar);
+        const o = sem(x, n.bar, halfOf(n.slot));
         const i = harmonic(midi(n.p) < midi(o) ? n.p : o, midi(n.p) < midi(o) ? o : n.p);
         return isConsonant(i) || isFalseFifth(i);
       });
-      if (n.bar === bars - 2 && tritoneOnly && !!prev && !!next && prev.p === next.p && step(prev.p, n.p)) return;
+      // Four voices (D148): Fux's Fig. 182, bar 10, the same neighbour A-G-A in the bass, a second
+      // under the tenor's A: the neighbour at the close is admitted whatever it meets.
+      if (n.bar === bars - 2 && (tritoneOnly || all.length === 4) && !!prev && !!next && prev.p === next.p && step(prev.p, n.p)) return;
       const passing = !!prev && !!next && step(prev.p, n.p) && step(n.p, next.p) && interval(prev.p, n.p).direction === interval(n.p, next.p).direction;
-      const cambiata = n.beat === 1 && !!prev && !!next && prev.bar === n.bar && step(prev.p, n.p) && interval(prev.p, n.p).direction === "down" && interval(n.p, next.p).number === 3 && interval(n.p, next.p).direction === "down" && !dissonant(next.p, next.bar);
+      const cambiata = n.beat === 1 && !!prev && !!next && prev.bar === n.bar && step(prev.p, n.p) && interval(prev.p, n.p).direction === "down" && interval(n.p, next.p).number === 3 && interval(n.p, next.p).direction === "down" && !dissonantNote(next);
       if (!passing && !cambiata) out.push(viol("t3.dissonance", "error", "rule.ts.dissonance", [n.bar], [m]));
       return;
     }
     // Fourth species.
     if (n.beat === 0) {
-      const resolves = !!next && (!dissonant(next.p, next.bar) || cadentialFalseFifth(next) || (tiedOut(next.slot) && heldBass(n.bar)));
+      const resolves = !!next && (!dissonantNote(next) || cadentialFalseFifth(next) || (tiedOut(next.slot) && heldBass(n.bar)));
       const ok = tiedInto(n.slot) && !!next && next.bar === n.bar && step(n.p, next.p) && interval(n.p, next.p).direction === "down" && resolves;
       if (!ok) out.push(viol("t4.resolution", "error", "rule.fos.resolution", [n.bar], [m]));
       return;
@@ -183,26 +206,26 @@ export function evaluateTrioFlorid(input: TrioFloridInput): TrioEvaluation {
   // above it (they hide two octaves); in the bass, no seventh resolving to the octave.
   if (input.species === 4)
     notes.forEach((n, i) => {
-      if (n.beat !== 0 || !tiedInto(n.slot) || !dissonant(n.p, n.bar)) return;
+      if (n.beat !== 0 || !tiedInto(n.slot) || !dissonantNote(n)) return;
       const os = others.map((x) => sem(x, n.bar));
       const lowX = others.reduce((a, c) => (midi(sem(c, n.bar)) < midi(sem(a, n.bar)) ? c : a));
       const low = sem(lowX, n.bar);
       if (midi(n.p) > midi(low)) {
-        const prep = harmonic(sem(lowX, n.bar - 1), notes[i - 1].p);
+        const prep = harmonic(sem(lowX, n.bar - 1, 1), notes[i - 1].p);
         const now = harmonic(low, n.p);
         if ((prep.simple === 8 || prep.number === 1) && now.simple === 2) out.push(viol("t4.ligature-kinds", "error", "rule.fos.ligature-kinds", [n.bar - 1, n.bar], [m]));
-      } else if (os.some((o) => harmonic(n.p, o).simple === 7 && notes[i + 1] && harmonic(notes[i + 1].p, o).simple === 8))
+      } else if (others.some((x) => harmonic(n.p, sem(x, n.bar)).simple === 7 && notes[i + 1] && harmonic(notes[i + 1].p, sem(x, n.bar, halfOf(notes[i + 1].slot))).simple === 8))
         out.push(viol("t4.ligature-kinds", "error", "rule.fos.ligature-kinds", [n.bar], [m]));
     });
 
   // Successions of perfect consonances between the moving voice and each semibreve.
   for (const x of others) {
     for (let b = 0; b < bars - 1; b++) {
-      const o0 = sem(x, b);
-      const o1 = sem(x, b + 1);
       const last = [...notes].reverse().find((n) => n.bar === b);
       const first = notes.find((n) => n.bar === b + 1);
       if (!last || !first) continue;
+      const o0 = sem(x, b, halfOf(last.slot));
+      const o1 = sem(x, b + 1);
       // Across the bar line, where both voices move (not into a tied note: that is the ligature).
       if (!tiedInto(first.slot)) {
         const i0 = harmonic(last.p, o0);
@@ -220,14 +243,16 @@ export function evaluateTrioFlorid(input: TrioFloridInput): TrioEvaluation {
   // voice, the moving voice above it (8-9-8, 5-x-5). In the lower part this is tolerated (p. 105).
   if (input.species === 4)
     notes.forEach((n, i) => {
-      if (n.beat !== 0 || !tiedInto(n.slot) || !dissonant(n.p, n.bar)) return;
+      if (n.beat !== 0 || !tiedInto(n.slot) || !dissonantNote(n)) return;
       const prep = notes[i - 1];
       const res = notes[i + 1];
       if (!prep || !res || res.bar !== n.bar) return;
       for (const x of others) {
-        const i0 = harmonic(sem(x, n.bar - 1), prep.p);
-        const i1 = harmonic(sem(x, n.bar), res.p);
-        if (isPerfectConsonance(i0) && isPerfectConsonance(i1) && i0.simple === i1.simple && midi(res.p) > midi(sem(x, n.bar)) && sem(x, n.bar - 1) !== sem(x, n.bar))
+        const before = sem(x, n.bar - 1, halfOf(prep.slot));
+        const after = sem(x, n.bar, halfOf(res.slot));
+        const i0 = harmonic(before, prep.p);
+        const i1 = harmonic(after, res.p);
+        if (isPerfectConsonance(i0) && isPerfectConsonance(i1) && i0.simple === i1.simple && midi(res.p) > midi(after) && before !== after)
           out.push(viol("t4.hidden-perfect", "error", "rule.t4.hidden-perfect", [n.bar - 1, n.bar], [m, x], { from: i0.name, to: i1.name }));
       }
     });
@@ -236,13 +261,13 @@ export function evaluateTrioFlorid(input: TrioFloridInput): TrioEvaluation {
   if (input.species === 3)
     for (let b = 1; b < bars - 1; b++) {
       const triad = notes
-        .filter((n) => n.bar === b && !dissonant(n.p, b))
+        .filter((n) => n.bar === b && !dissonantNote(n))
         .some((n) => {
-          const ps = [n.p, ...others.map((x) => sem(x, b))];
+          const ps = [n.p, ...others.map((x) => sem(x, b, halfOf(n.slot)))];
           const bass = ps.reduce((a, c) => (midi(c) < midi(a) ? c : a));
           return ps.some((q) => q !== bass && [3, 6].includes(harmonic(bass, q).simple));
         });
-      if (!triad) out.push(viol("t3.triad", "warning", "rule.t3.triad", [b], [0, 1, 2]));
+      if (!triad) out.push(viol("t3.triad", "warning", "rule.t3.triad", [b], all));
     }
 
   // The moving voice's melody: the forbidden leaps.
@@ -261,14 +286,14 @@ export function evaluateTrioFlorid(input: TrioFloridInput): TrioEvaluation {
   // The close: one voice reaches the final by a semitone (p. 90).
   {
     const k = bars - 1;
-    const ok = [0, 1, 2].some((x) => {
+    const ok = all.some((x) => {
       if (x === m) {
         const lastTwo = notes.slice(-2);
         return lastTwo.length === 2 && pc(lastTwo[1].p) === input.modalFinal && interval(lastTwo[0].p, lastTwo[1].p).semitones === 1;
       }
-      return pc(sem(x, k)) === input.modalFinal && interval(sem(x, k - 1), sem(x, k)).semitones === 1;
+      return pc(sem(x, k)) === input.modalFinal && interval(sem(x, k - 1, 1), sem(x, k)).semitones === 1;
     });
-    if (!ok) out.push(viol("t1.cadence", "error", "rule.t1.cadence", [k - 1, k], [0, 1, 2]));
+    if (!ok) out.push(viol("t1.cadence", "error", "rule.t1.cadence", [k - 1, k], all));
   }
 
   const errors = out.filter((x) => x.severity === "error");

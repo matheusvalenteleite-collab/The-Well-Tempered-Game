@@ -45,11 +45,10 @@ export interface TrioRule {
   check(a: TrioAnalysis): TrioViolation[];
 }
 
-const PAIRS: [number, number][] = [
-  [0, 1],
-  [0, 2],
-  [1, 2],
-];
+/** Staff indices 0..n-1 of the analysed texture. */
+const range = (a: TrioAnalysis) => a.input.voices.map((_, x) => x);
+/** Every pair of staves (x < y). */
+const pairs = (a: TrioAnalysis): [number, number][] => range(a).flatMap((x) => range(a).filter((y) => y > x).map((y): [number, number] => [x, y]));
 
 const midi = (p: string) => parsePitch(p).midi;
 const pc = (p: string) => parsePitch(p).step;
@@ -68,11 +67,12 @@ const isFourthClass = (i: Interval) => i.simple === 4;
 const isFalseFifth = (i: Interval) => (i.quality === "d" && i.simple === 5) || (i.quality === "A" && i.simple === 4);
 
 export function analyseTrio(input: TrioInput): TrioAnalysis {
-  if (input.voices.length !== 3) throw new Error("three voices expected");
+  if (input.voices.length !== 3 && input.voices.length !== 4) throw new Error("three or four voices expected");
   const bars = input.voices[0].length;
-  if (bars < 2 || input.voices.some((l) => l.length !== bars)) throw new Error("the three voices must have one note per bar each");
+  if (bars < 2 || input.voices.some((l) => l.length !== bars)) throw new Error("every voice must have one note per bar");
   for (const l of input.voices) for (const p of l) parsePitch(p);
-  const bass = Array.from({ length: bars }, (_, k) => [0, 1, 2].reduce((lo, x) => (midi(input.voices[x][k]) < midi(input.voices[lo][k]) ? x : lo), 2));
+  const last = input.voices.length - 1;
+  const bass = Array.from({ length: bars }, (_, k) => input.voices.reduce((lo, _l, x) => (midi(input.voices[x][k]) < midi(input.voices[lo][k]) ? x : lo), last));
   return { input, bars, bass };
 }
 
@@ -85,7 +85,7 @@ export const consonanceWithBass: TrioRule = {
     const out: TrioViolation[] = [];
     for (let k = 0; k < a.bars; k++) {
       const b = a.bass[k];
-      for (let x = 0; x < 3; x++) {
+      for (const x of range(a)) {
         if (x === b) continue;
         const i = harmonic(at(a, b, k), at(a, x, k));
         if (!isConsonant(i)) out.push(v(this, [k], [b, x], { interval: i.name }));
@@ -107,9 +107,11 @@ export const upperDissonance: TrioRule = {
   check(a) {
     const out: TrioViolation[] = [];
     for (let k = 0; k < a.bars; k++) {
-      const [x, y] = [0, 1, 2].filter((s) => s !== a.bass[k]);
-      const i = harmonic(at(a, x, k), at(a, y, k));
-      if (!isConsonant(i) && !isFourthClass(i) && !isFalseFifth(i)) out.push(v(this, [k], [x, y], { interval: i.name }));
+      for (const [x, y] of pairs(a)) {
+        if (x === a.bass[k] || y === a.bass[k]) continue;
+        const i = harmonic(at(a, x, k), at(a, y, k));
+        if (!isConsonant(i) && !isFourthClass(i) && !isFalseFifth(i)) out.push(v(this, [k], [x, y], { interval: i.name }));
+      }
     }
     return out;
   },
@@ -127,7 +129,7 @@ export const parallelPerfect: TrioRule = {
   check(a) {
     const out: TrioViolation[] = [];
     for (let k = 1; k < a.bars; k++) {
-      for (const [x, y] of PAIRS) {
+      for (const [x, y] of pairs(a)) {
         const i0 = harmonic(at(a, x, k - 1), at(a, y, k - 1));
         const i1 = harmonic(at(a, x, k), at(a, y, k));
         if (!isPerfectConsonance(i0) || !isPerfectConsonance(i1) || i0.simple !== i1.simple) continue;
@@ -152,7 +154,7 @@ export const directPerfect: TrioRule = {
   check(a) {
     const out: TrioViolation[] = [];
     for (let k = 1; k < a.bars; k++) {
-      for (const [x, y] of PAIRS) {
+      for (const [x, y] of pairs(a)) {
         const i0 = harmonic(at(a, x, k - 1), at(a, y, k - 1));
         const i1 = harmonic(at(a, x, k), at(a, y, k));
         if (!isPerfectConsonance(i1) || (isPerfectConsonance(i0) && i0.simple === i1.simple)) continue;
@@ -177,7 +179,7 @@ export const falseFifth: TrioRule = {
   check(a) {
     const out: TrioViolation[] = [];
     for (let k = 1; k < a.bars; k++) {
-      for (const [x, y] of PAIRS) {
+      for (const [x, y] of pairs(a)) {
         const i = harmonic(at(a, x, k), at(a, y, k));
         if (!(i.quality === "d" && i.simple === 5)) continue;
         if (motion(at(a, x, k - 1), at(a, y, k - 1), at(a, x, k), at(a, y, k)) === "similar") out.push(v(this, [k - 1, k], [x, y]));
@@ -200,8 +202,8 @@ export const imperfectInEachBar: TrioRule = {
     const out: TrioViolation[] = [];
     for (let k = 1; k < a.bars - 1; k++) {
       const b = a.bass[k];
-      const figs = [0, 1, 2].filter((x) => x !== b).map((x) => harmonic(at(a, b, k), at(a, x, k)));
-      if (!figs.some(isImperfectConsonance)) out.push(v(this, [k], [0, 1, 2], { figures: figs.map((f) => f.name).join(" ") }));
+      const figs = range(a).filter((x) => x !== b).map((x) => harmonic(at(a, b, k), at(a, x, k)));
+      if (!figs.some(isImperfectConsonance)) out.push(v(this, [k], range(a), { figures: figs.map((f) => f.name).join(" ") }));
     }
     return out;
   },
@@ -214,7 +216,7 @@ export const innerUnison: TrioRule = {
   attribution: { status: "verified", ref: `${P}, p. 88`, note: "'faceret unisonum, qui minùs confert harmoniae, quàm Octava'. Unisons at the beginning and the end are free." },
   check(a) {
     const out: TrioViolation[] = [];
-    for (let k = 1; k < a.bars - 1; k++) for (const [x, y] of PAIRS) if (harmonic(at(a, x, k), at(a, y, k)).name === "P1") out.push(v(this, [k], [x, y]));
+    for (let k = 1; k < a.bars - 1; k++) for (const [x, y] of pairs(a)) if (harmonic(at(a, x, k), at(a, y, k)).name === "P1") out.push(v(this, [k], [x, y]));
     return out;
   },
 };
@@ -249,7 +251,7 @@ export const finalChord: TrioRule = {
     const bp = at(a, b, k);
     const out: TrioViolation[] = [];
     if (pc(bp) !== a.input.modalFinal || parsePitch(bp).alter !== 0) out.push(v(this, [k], [b], { bass: bp }));
-    for (let x = 0; x < 3; x++) {
+    for (const x of range(a)) {
       if (x === b) continue;
       const i = harmonic(bp, at(a, x, k));
       const ok = (i.quality === "P" && (i.simple === 1 || i.simple === 5)) || (i.quality === "M" && i.simple === 3);
@@ -270,8 +272,8 @@ export const cadence: TrioRule = {
   },
   check(a) {
     const k = a.bars - 1;
-    const ok = [0, 1, 2].some((x) => pc(at(a, x, k)) === a.input.modalFinal && interval(at(a, x, k - 1), at(a, x, k)).semitones === 1);
-    return ok ? [] : [v(this, [k - 1, k], [0, 1, 2])];
+    const ok = range(a).some((x) => pc(at(a, x, k)) === a.input.modalFinal && interval(at(a, x, k - 1), at(a, x, k)).semitones === 1);
+    return ok ? [] : [v(this, [k - 1, k], range(a))];
   },
 };
 
@@ -287,7 +289,7 @@ export const melodicLeaps: TrioRule = {
   },
   check(a) {
     const out: TrioViolation[] = [];
-    for (let x = 0; x < 3; x++) {
+    for (const x of range(a)) {
       if (x === a.input.cantusIndex) continue;
       for (let k = 1; k < a.bars; k++) {
         const i = interval(at(a, x, k - 1), at(a, x, k));
