@@ -597,6 +597,17 @@ export function WtcSheet(p: SheetProps) {
     return out;
   };
   const markerAt = geo && p.marker !== null ? locate(geo, p.marker) : null;
+  // A marker or a passage chosen while nothing plays (a link, ← →, a moment) is brought into view.
+  const into = (q: number | null) => {
+    const sc = scroller.current;
+    if (!geo || !sc || q === null || playhead.active) return;
+    const at = locate(geo, q);
+    if (!at) return;
+    const sys = geo.systems[at.s];
+    if (sys.top < sc.scrollTop || sys.top + sys.height * geo.scale > sc.scrollTop + sc.clientHeight) sc.scrollTo({ top: Math.max(0, sys.top - 8), behavior: "smooth" });
+  };
+  useEffect(() => into(p.marker), [p.marker, geo]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => into(p.span?.from ?? null), [p.span?.from, geo]); // eslint-disable-line react-hooks/exhaustive-deps
   // The entries, each a light band of its voice's colour behind its staff; broken where a system ends.
   const brackets = useMemo(() => {
     if (!geo || !p.brackets?.length) return null;

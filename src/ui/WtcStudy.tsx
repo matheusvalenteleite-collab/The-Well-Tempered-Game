@@ -30,6 +30,7 @@ import { WtcSheet, type Ink } from "./notation/WtcSheet.tsx";
 import { KeyStrip } from "./notation/KeyStrip.tsx";
 import { Navigator } from "./notation/Navigator.tsx";
 import { LivePos } from "./LivePos.tsx";
+import { linkOf, parseLink } from "./wtc-link.ts";
 import { barIndex, engrave } from "../wtc/engrave.ts";
 import { playhead } from "./playhead.ts";
 import { restoreSound, type SoundState } from "../audio/sound.ts";
@@ -207,9 +208,17 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
 
   const [playing, setPlaying] = useState(false);
   const [cursor, setCursor] = useState(-1);
-  const [span, setSpan] = useState<{ from: number; to: number } | null>(null);
-  /** Where Play starts when nothing plays (after a pause or a click), in quarters (D147). */
-  const [marker, setMarker] = useState<number | null>(null);
+  const [span, setSpan] = useState<{ from: number; to: number } | null>(() => {
+    const link = parseLink(window.location.hash);
+    if (!link || link.id !== L.id || link.bar === null || link.to === null) return null;
+    const b = (x: number) => Math.max(0, Math.min(P.barStarts.length - 2, x - (1 - P.pickup)));
+    return { from: P.barStarts[b(link.bar)], to: P.barStarts[b(link.to) + 1] };
+  });
+  /** Where Play starts when nothing plays (after a pause or a click), in quarters (D147); a link may name it. */
+  const [marker, setMarker] = useState<number | null>(() => {
+    const link = parseLink(window.location.hash);
+    return link && link.id === L.id && link.bar !== null ? P.barStarts[Math.max(0, Math.min(P.barStarts.length - 2, link.bar - (1 - P.pickup)))] : null;
+  });
   /** Play the chosen passage (else the whole piece) again and again. */
   const [loop, setLoop] = useState(() => stored("wtg.wtcLoop", false, (v) => typeof v === "boolean"));
   useEffect(() => store("wtg.wtcLoop", loop), [loop]);
@@ -555,6 +564,36 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     setGame(null);
     setThrough("off");
     setIndex(k);
+  };
+
+  // The address names the piece and the passage (D147), so that it can be shared or kept.
+  const linkHere = (): string => linkOf({ id: L.id, piece, bar: span ? barOf(span.from + 1e-6) + firstBar : marker !== null ? barOf(marker + 1e-6) + firstBar : null, to: span ? barOf(span.to - 1e-3) + firstBar : null });
+  useEffect(() => {
+    if (playing) return;
+    try {
+      window.history.replaceState(null, "", linkHere());
+    } catch {
+      /* not allowed here */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [L.id, piece, marker, span, playing]);
+  useEffect(
+    () => () => {
+      try {
+        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      } catch {
+        /* not allowed here */
+      }
+    },
+    [],
+  );
+  const [copied, setCopied] = useState(false);
+  const copyLink = () => {
+    const url = window.location.href.split("#")[0] + linkHere();
+    void navigator.clipboard?.writeText(url).then(() => {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    });
   };
 
   // Keys (D147): Space plays or pauses, Escape stops, ← → a bar back or on, Home the start, L the
@@ -1114,6 +1153,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
             <button className="icon" onClick={stop} disabled={!playing && marker === null} aria-label={t("ui.study.stop")} title={t("ui.study.stopHelp")}>■</button>
             <button className="icon" aria-pressed={loop} onClick={() => setLoop(!loop)} aria-label={t("ui.study.loop")} title={t("ui.study.loopHelp")}>⟲</button>
             <LivePos idle={posLabel} format={posAt} title={t("ui.study.posHelp")} />
+            <button className="icon" onClick={copyLink} aria-label={t("ui.study.link")} title={t("ui.study.linkHelp")}>{copied ? "✓" : "🔗"}</button>
             {span && <button className="chipbtn" onClick={() => (setSpan(null), setActiveMoment(null), setMarker(null))} title={t("ui.study.wholeHelp")}>{t("ui.study.whole")}</button>}
             <span className="values" role="radiogroup" aria-label={t("ui.wtc.view")}>
               <button className="chipbtn" role="radio" aria-checked={view === "sheet"} aria-pressed={view === "sheet"} onClick={() => setView("sheet")} title={t("ui.study.sheetHelp")}>{t("ui.study.sheet")}</button>

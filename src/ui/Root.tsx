@@ -4,6 +4,7 @@ import { TrioApp } from "./TrioApp.tsx";
 import { t } from "./i18n.ts";
 import { Tour } from "./Tour.tsx";
 import { store, stored } from "./shared.ts";
+import { parseLink } from "./wtc-link.ts";
 import { FUGUE_ID } from "../tutorial/fugue-id.ts";
 
 // Loaded when first opened (the first download on a phone was one 10 MB file): the Well-Tempered
@@ -21,7 +22,17 @@ const Loading = () => <div className="loading-screen">{t("ui.loading")}</div>;
  * an exercise, or on the tour.
  */
 export function Root() {
-  const [voices, setVoices] = useState<2 | 3 | "wtc">(() => stored<2 | 3 | "wtc">("wtg.voices", 2, (v) => v === 2 || v === 3 || v === "wtc"));
+  const [voices, setVoices] = useState<2 | 3 | "wtc">(() => {
+    // A link to a passage of the 48 (D147) opens the study on it.
+    const link = parseLink(window.location.hash);
+    if (link) {
+      store("wtg.wtcFugue", link.id);
+      store("wtg.wtcPiece", link.piece);
+      store("wtg.wtcView", "study");
+      return "wtc";
+    }
+    return stored<2 | 3 | "wtc">("wtg.voices", 2, (v) => v === 2 || v === 3 || v === "wtc");
+  });
   useEffect(() => store("wtg.voices", voices), [voices]);
   // The Well-Tempered Clavier opens on the study (D123); the exercises are one button away.
   const [wtcView, setWtcView] = useState<"study" | "exercises">(() => stored<"study" | "exercises">("wtg.wtcView", "study", (v) => v === "study" || v === "exercises"));
