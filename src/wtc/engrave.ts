@@ -422,6 +422,29 @@ export function engrave(input: EngInput): Engraving {
         if (!chords.length) continue;
         chainsOf(chords).forEach((ch, sub) => staves[staffOf[v][b]].push({ voice: v, sub, stem: 0, items: layerItems(ch, from, to, meterOf(b), sub > 0, origin) }));
       }
+    // Three or more layers on a staff: two that move in the same rhythm (rests and ties alike) are
+    // written as one, in chords (as an edition prints voices in parallel), so stems do not collide.
+    for (const layers of staves) {
+      let merged = true;
+      while (merged && layers.length >= 3) {
+        merged = false;
+        for (let x = 0; x < layers.length && !merged; x++)
+          for (let y = x + 1; y < layers.length && !merged; y++) {
+            const A = layers[x].items;
+            const B = layers[y].items;
+            const same =
+              A.length === B.length &&
+              A.every((a, k) => {
+                const c = B[k];
+                return Math.abs(a.at - c.at) < EPS && Math.abs(a.len - c.len) < EPS && a.rest === c.rest && a.tieIn === c.tieIn && a.tieOut === c.tieOut && a.tuplet === c.tuplet && !a.keys.some((ka) => c.keys.some((kc) => dia[ka.i] === dia[kc.i]));
+              });
+            if (!same) continue;
+            A.forEach((a, k) => (a.keys = [...a.keys, ...B[k].keys].sort((u, w) => dia[u.i] - dia[w.i])));
+            layers.splice(y, 1);
+            merged = true;
+          }
+      }
+    }
     // Stems: on a staff with several layers, the highest up, the lowest down, the others by where they lie.
     for (const layers of staves) {
       if (layers.length < 2) continue;
