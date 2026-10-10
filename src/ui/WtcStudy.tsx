@@ -223,6 +223,9 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   useEffect(() => store("wtg.wtcInk", ink), [ink]);
   const [sheetZoom, setSheetZoom] = useState(() => stored("wtg.wtcSheetZoom", 1, (v) => typeof v === "number" && v >= 0.6 && v <= 2));
   useEffect(() => store("wtg.wtcSheetZoom", sheetZoom), [sheetZoom]);
+  /** The reader's own notes, bar by bar, for each piece (D147): { "wtc1.02fugue": { 12: "…" } }, bars counted from 0. */
+  const [annotations, setAnnotations] = useState<Record<string, Record<string, string>>>(() => stored("wtg.wtcNotes", {}, (v) => typeof v === "object" && v !== null && !Array.isArray(v)));
+  useEffect(() => store("wtg.wtcNotes", annotations), [annotations]);
   /** The music alone: the bottom panel folded away (Z). */
   const [focus, setFocus] = useState(() => stored("wtg.wtcFocus", false, (v) => typeof v === "boolean"));
   useEffect(() => store("wtg.wtcFocus", focus), [focus]);
@@ -705,6 +708,50 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     </div>
   );
 
+  const pieceKey = `${L.id}${piece}`;
+  const mine2: Record<string, string> = annotations[pieceKey] ?? {};
+  const noteBars = Object.keys(mine2).map(Number).filter((b) => mine2[b]?.trim()).sort((a, b) => a - b);
+  /** The bar the notes tab writes at: where Play would start (a pause, a click, the passage chosen). */
+  const noteBar = barOf((marker ?? span?.from ?? 0) + 1e-6);
+  const setNote = (b: number, text: string) => {
+    const next: Record<string, string> = { ...mine2, [b]: text };
+    if (!text.trim()) delete next[String(b)];
+    setAnnotations({ ...annotations, [pieceKey]: next });
+  };
+  const notesText = () => [`${isPrelude ? "Prelude" : "Fugue"} ${fugueLabel(F)}`, ...noteBars.map((b) => `${t("ui.study.bar", { a: b + firstBar })}: ${mine2[b]}`)].join("\n");
+  const notesPanel = (
+    <div className="guide wtc-study wtc-notes">
+      <p className="help">{t("ui.study.notes.help")}</p>
+      <h4>{t("ui.study.bar", { a: noteBar + firstBar })}</h4>
+      <textarea
+        className="wtc-note-edit"
+        rows={3}
+        value={mine2[noteBar] ?? ""}
+        placeholder={t("ui.study.notes.placeholder")}
+        onChange={(e) => setNote(noteBar, e.target.value)}
+        onKeyDown={(e) => e.stopPropagation()}
+      />
+      <div className="row">
+        <button className="chipbtn" onClick={() => setMarker(barStart(Math.max(0, noteBar - 1)))} disabled={noteBar === 0}>‹ {t("ui.study.notes.prev")}</button>
+        <button className="chipbtn" onClick={() => setMarker(barStart(Math.min(bars - 1, noteBar + 1)))} disabled={noteBar >= bars - 1}>{t("ui.study.notes.next")} ›</button>
+        <button className="chipbtn" onClick={() => seek(barStart(noteBar))}>▶ {t("ui.study.notes.play")}</button>
+        <button className="chipbtn" disabled={!noteBars.length} onClick={() => void navigator.clipboard?.writeText(notesText())}>{t("ui.study.notes.copy")}</button>
+      </div>
+      {noteBars.length > 0 && (
+        <ul className="wtc-moments">
+          {noteBars.map((b) => (
+            <li key={b} className={b === noteBar ? "active" : ""}>
+              <button className="chipbtn" onClick={() => seek(barStart(b))} aria-label={t("ui.study.play")}>▶</button>
+              <button className="chipbtn" onClick={() => setMarker(barStart(b))} title={t("ui.study.notes.edit")}>{t("ui.study.bar", { a: b + firstBar })}</button>
+              <span className="note-text">{mine2[b]}</span>
+              <button className="chipbtn" onClick={() => setNote(b, "")} aria-label={t("ui.study.notes.delete")}>✕</button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+
   const voicesPanel = (
     <div className="guide wtc-study">
       <p className="help">{t("ui.study.voicesHelp")}</p>
@@ -930,6 +977,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     () => (showEntries ? (gameUntil !== null ? entries.filter((e) => e.end <= gameUntil + 1e-6) : entries).map((e) => ({ from: e.at, to: e.end, voice: entryVoice(e, voice), inverted: e.inverted })) : undefined),
     [showEntries, entries, gameUntil, voice],
   );
+  const sheetNotes = useMemo(() => new Map(Object.entries(annotations[`${L.id}${piece}`] ?? {}).filter(([, v]) => v.trim()).map(([b, v]) => [Number(b), v])), [annotations, L.id, piece]);
   const faintKey = [...faint].sort().join(",");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const faintSet = useMemo(() => faint, [faintKey]);
@@ -1006,6 +1054,8 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
                 faint={faintSet}
                 dim={dimSet}
                 brackets={sheetBrackets}
+                notes2={sheetNotes}
+                onNote={(b) => (setMarker(barStart(b)), setTab("notes"), setFocus(false))}
                 span={span}
                 marker={playing ? null : marker}
                 zoom={sheetZoom}
@@ -1050,6 +1100,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
             marker={playing ? null : marker}
             onSeek={seek}
             onSelect={select}
+            notes={[...sheetNotes.entries()].map(([b, text]) => ({ at: barStart(b), text: `${t("ui.study.bar", { a: b + firstBar })}: ${text}` }))}
           />
           {keys && <KeyStrip notes={notes} voice={voice} colors={COLORS} faint={faintSet} onKey={soundKey} />}
         </div>
@@ -1121,6 +1172,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
       tabs={[
         { id: "guide", text: true, label: t("ui.study.tab.guide"), content: guide },
         { id: "voices", label: t("ui.study.tab.voices"), content: voicesPanel },
+        { id: "notes", text: true, label: noteBars.length ? `${t("ui.study.tab.notes")} (${noteBars.length})` : t("ui.study.tab.notes"), content: notesPanel },
         ...(isPrelude
           ? []
           : [

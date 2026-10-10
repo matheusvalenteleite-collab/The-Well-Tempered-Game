@@ -94,7 +94,8 @@ const OTHER_METERS = ["3/8", "2/4", "3/4", "4/4", "6/8", "9/8", "12/8", "6/4", "
 function barsOf(p: WtcPiece, barQ: number, pad: number, notes: FullNote[]): { barStarts: number[]; meters: string[] } {
   const end = Math.max(p.length / TPQ + pad, ...notes.map((n) => n.at + n.dur));
   const lines = [...new Set(p.bars.map((b) => Math.round((b.on / TPQ + pad) * 960) / 960))].filter((q) => q > 1e-6 && q < end - 1e-6).sort((a, b) => a - b);
-  const starts = [0, ...lines];
+  // A pickup bar starts where its music does (the notes are padded to a full bar; the score shows the bar short).
+  const starts = [pad > 1e-6 ? pad : 0, ...lines];
   // The last bar is drawn a full bar long (a final chord held longer, or an incomplete bar).
   const last = starts[starts.length - 1];
   const lastOnset = Math.max(...notes.map((n) => n.at));

@@ -51,6 +51,9 @@ export interface SheetProps {
   faint: Set<number>;
   /** Voices drawn a little paler (another in the spotlight). */
   dim?: Set<number>;
+  /** The reader's notes, by bar (a mark over the bar; a click opens it). */
+  notes2?: Map<number, string>;
+  onNote?(bar: number): void;
   /** The subject's entries, bracketed over (or under) their staff. */
   brackets?: { from: number; to: number; voice: number; inverted: boolean }[];
   /** The passage chosen, in quarters. */
@@ -143,8 +146,10 @@ function buildBar(bar: EngBar, inkOf: (layer: EngLayer, key: number | null) => s
           const p = parsePitch(k.pitch);
           const id = `${p.step}${p.octave}`;
           const cur = state.get(id) ?? signature[p.step];
+          // A note tied over the bar line carries its accidental through the tie only.
+          if (it.tieIn) return null;
           state.set(id, p.alter);
-          return !it.tieIn && cur !== p.alter ? VEX_ACC(p.alter) : null;
+          return cur !== p.alter ? VEX_ACC(p.alter) : null;
         }),
       );
     }
@@ -666,6 +671,25 @@ export function WtcSheet(p: SheetProps) {
         <div ref={page} className="sheet-music" />
         <div className="sheet-over" aria-hidden="true">
           {brackets}
+          {geo &&
+            p.notes2 &&
+            [...p.notes2.entries()].map(([b, text]) => {
+              const s = geo.systems.find((sy) => b >= sy.first && b <= sy.last);
+              const bg = s?.bars.find((x) => x.bar === b);
+              if (!s || !bg) return null;
+              return (
+                <button
+                  key={`n${b}`}
+                  className="sheet-note"
+                  style={{ left: (bg.x0 + 14) * geo.scale, top: s.top + Math.max(0, s.trebleTop - 30) * geo.scale }}
+                  data-info={text}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={() => p.onNote?.(b)}
+                >
+                  ✎
+                </button>
+              );
+            })}
           {shades(p.span, "sheet-span")}
           {shades(dragSpan, "sheet-drag")}
           {markerAt && geo && <div className="sheet-marker" style={{ left: markerAt.x * geo.scale, top: geo.systems[markerAt.s].top + (geo.systems[markerAt.s].trebleTop - 18) * geo.scale, height: (geo.systems[markerAt.s].bassBottom - geo.systems[markerAt.s].trebleTop + 36) * geo.scale }} />}

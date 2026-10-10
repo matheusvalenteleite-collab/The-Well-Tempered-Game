@@ -1190,3 +1190,7 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .sheet-music[data-dim~="v4"] .v4, .sheet-music[data-dim~="v5"] .v5, .sheet-music[data-dim~="v6"] .v6, .sheet-music[data-dim~="v7"] .v7 { opacity: 0.4; }
 .wtc-now { flex: 0 0 auto; display: block; padding: 3px 10px; font: 12px var(--ui-font); color: var(--ink); background: var(--bg); border-top: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; min-height: 22px; }
 .shell.layout-compact .score-area:has(.score-wrap.wtc) { height: auto; max-height: none; overflow: visible; }
+.sheet-note { position: absolute; pointer-events: auto; min-width: 0; min-height: 0; padding: 0 4px; height: 18px; line-height: 16px; font-size: 12px; border-radius: 9px; background: #fff3c4; border: 1px solid #d9b84a; color: #6b5310; cursor: pointer; }
+.nav-note { position: absolute; bottom: 0; width: 7px; height: 7px; margin-left: -3px; border-radius: 50%; background: #e0b733; border: 1px solid #8a6d12; }
+.wtc-note-edit { width: 100%; font: inherit; font-size: 0.95rem; padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper); color: var(--ink); resize: vertical; }
+.wtc-notes .note-text { flex: 1 1 auto; white-space: pre-wrap; }

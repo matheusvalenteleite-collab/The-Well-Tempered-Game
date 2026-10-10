@@ -102,6 +102,8 @@ export interface EngBar {
   to: number;
   /** The bar's metre. */
   time: string;
+  /** Where the bar's metre counts from: its start, or before it for a pickup (a short first bar). */
+  origin: number;
   /** Treble, bass. */
   staves: [EngLayer[], EngLayer[]];
 }
@@ -282,6 +284,8 @@ export function engrave(input: EngInput): Engraving {
   for (let b = 0; b < nBars; b++) {
     const from = starts[b];
     const to = starts[b + 1];
+    const full = units(meterOf(b)).bar;
+    const origin = b === 0 && to - from < full - EPS ? to - full : from;
     const staves: [EngLayer[], EngLayer[]] = [[], []];
     for (let v = 0; v < count; v++) {
       const here = byVoice[v].filter((i) => notes[i].at < to - EPS && notes[i].at + notes[i].dur > from + EPS);
@@ -308,7 +312,7 @@ export function engrave(input: EngInput): Engraving {
       }
       chains.forEach((ch, sub) => {
         for (const c of ch) c.keys.sort((x, y) => dia[x.i] - dia[y.i]);
-        staves[staffOf[v][b]].push({ voice: v, sub, stem: 0, items: layerItems(ch, from, to, meterOf(b), sub > 0) });
+        staves[staffOf[v][b]].push({ voice: v, sub, stem: 0, items: layerItems(ch, from, to, meterOf(b), sub > 0, origin) });
       });
     }
     // Stems: on a staff with several layers, the highest up, the lowest down, the others by where they lie.
@@ -327,7 +331,7 @@ export function engrave(input: EngInput): Engraving {
       // Draw the stems-up layers first (VexFlow shifts colliding heads of the later voices).
       layers.sort((x, y) => y.stem - x.stem || order.indexOf(x) - order.indexOf(y));
     }
-    bars.push({ index: b, from, to, time: meterOf(b), staves });
+    bars.push({ index: b, from, to, time: meterOf(b), origin, staves });
   }
   // Beams: by the beam unit, broken by rests, triplets and anything a quarter or longer.
   for (const bar of bars)
@@ -346,7 +350,7 @@ export function engrave(input: EngInput): Engraving {
         };
         for (const it of l.items) {
           const ok = !it.rest && it.tuplet === undefined && ["8", "16", "32", "64"].includes(it.dur);
-          const u = Math.floor((it.at - bar.from) / beamUnit + EPS);
+          const u = Math.floor((it.at - bar.origin) / beamUnit + EPS);
           if (!ok || u !== unit) flush();
           if (ok) {
             if (!run.length) unit = u;
@@ -359,12 +363,12 @@ export function engrave(input: EngInput): Engraving {
 }
 
 /** One layer's items in a bar: its chords in written values, rests between (invisible in a second layer). */
-function layerItems(chain: Chord[], from: number, to: number, time: string, ghostRests: boolean): EngItem[] {
+function layerItems(chain: Chord[], from: number, to: number, time: string, ghostRests: boolean, origin = from): EngItem[] {
   const out: EngItem[] = [];
   let tuplet = 0;
   let tupletLeft = 0;
   const pushValues = (at: number, len: number, rest: boolean, c: Chord | null) => {
-    const vs = spell(at - from, len, time, rest, to - from);
+    const vs = spell(at - origin, len, time, rest, to - origin);
     let t = at;
     vs.forEach((v, k) => {
       let tp: number | undefined;

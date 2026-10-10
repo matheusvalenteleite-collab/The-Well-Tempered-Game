@@ -23,6 +23,8 @@ interface Props {
   marker: number | null;
   onSeek(q: number): void;
   onSelect(from: number, to: number): void;
+  /** The reader's notes, as marks. */
+  notes?: { at: number; text: string }[];
 }
 
 export function Navigator(p: Props) {
@@ -92,6 +94,9 @@ export function Navigator(p: Props) {
           style={{ left: pct(e.at), width: `calc(${pct(e.end)} - ${pct(e.at)})`, background: p.colors[e.voice % p.colors.length], top: `${10 + (e.voice % 6) * 3}px` }}
           data-info={e.label}
         />
+      ))}
+      {p.notes?.map((n, k) => (
+        <div key={`n${k}`} className="nav-note" style={{ left: pct(n.at) }} data-info={n.text} />
       ))}
       {sel && <div className="nav-span" style={{ left: pct(sel.from), width: `calc(${pct(sel.to)} - ${pct(sel.from)})` }} />}
       {p.marker !== null && <div className="nav-marker" style={{ left: pct(p.marker) }} />}
