@@ -255,11 +255,19 @@ export function WtcSheet(p: SheetProps) {
   const geoRef = useRef<Geometry | null>(null);
   useLayoutEffect(() => {
     const el = scroller.current!;
-    const measure = () => setWidth(el.clientWidth);
+    // The page is laid out again when its width settles (not at every step of a window being resized).
+    let timer = 0;
+    const measure = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => setWidth(el.clientWidth), 120);
+    };
     const ro = new ResizeObserver(measure);
     ro.observe(el);
-    measure();
-    return () => ro.disconnect();
+    setWidth(el.clientWidth);
+    return () => {
+      ro.disconnect();
+      window.clearTimeout(timer);
+    };
   }, []);
   useEffect(() => {
     autoScroll.current = performance.now();

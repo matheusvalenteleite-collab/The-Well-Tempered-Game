@@ -1134,7 +1134,7 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 /* D147: the page of music that follows the playing, the keyboard under it, the notes lit as they sound. */
 .score-wrap.wtc { display: flex; flex-direction: column; overflow: hidden; }
 .score-wrap.wtc .wtc-view { position: relative; flex: 1 1 auto; min-height: 0; }
-.wtc-sheet { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; background: #fbf8ef; --sheet-ink: #1f1d1a; --bar-number: #9a948a; --sheet-harmony: #7a5a22; color-scheme: light; overscroll-behavior: contain; }
+.wtc-sheet { position: absolute; inset: 0; overflow-y: scroll; scrollbar-gutter: stable; overflow-x: hidden; background: #fbf8ef; --sheet-ink: #1f1d1a; --bar-number: #9a948a; --sheet-harmony: #7a5a22; color-scheme: light; overscroll-behavior: contain; }
 .sheet-page { position: relative; cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: pan-y; padding-bottom: 40px; }
 .sheet-music svg { display: block; }
 .sheet-over { position: absolute; inset: 0; pointer-events: none; }
