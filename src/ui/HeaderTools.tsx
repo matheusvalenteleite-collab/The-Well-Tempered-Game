@@ -1,6 +1,7 @@
 /** The top right of the top bar (D94): file icons, settings icons, then TUTORIAL (D98) and HOW TO PLAY, which stand out. */
 import { t } from "./i18n.ts";
 import { tt } from "../tutorial/text.ts";
+import { BetaToggle } from "./BetaToggle.tsx";
 
 const Disk = () => (
   <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
@@ -60,6 +61,7 @@ export function HeaderTools(p: {
           ©
         </button>
       )}
+      <BetaToggle />
       {p.onTutorial && (
         <button className="howto tutorial-btn" onClick={() => p.onTutorial!()} title={tt("ui.buttonHelp")}>
           {tt("ui.button")}

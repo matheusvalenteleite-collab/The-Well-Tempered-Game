@@ -767,3 +767,7 @@ footer.infobar { margin: 0; border-top: none; flex-direction: row; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .learn-link { color: #6fc7bd !important; } }
 :root[data-theme="dark"] .learn-link { color: #6fc7bd !important; }
 @media (max-width: 800px) { .tutorial .brand { display: none; } .tutorial .topbar { flex-wrap: nowrap; } .tutorial .tut-progress .bar { width: 70px; } .tutorial .howto { padding: 3px 8px; } }
+/* D99: BETA or the real setup. */
+.beta-toggle { min-height: 26px; padding: 0 8px; font-family: var(--ui-font); font-size: 0.72rem !important; font-weight: 700; letter-spacing: 0.06em; margin-left: 6px; }
+.beta-toggle.on, .beta-toggle[aria-pressed="true"] { background: #d9a41a !important; border-color: #d9a41a !important; color: #121212 !important; }
+.tut-toc button:disabled { opacity: 0.45; cursor: not-allowed; }

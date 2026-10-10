@@ -14,6 +14,9 @@ import { chapterText, lessonText, tt } from "../tutorial/text.ts";
 import { audio, store, stored } from "./shared.ts";
 import { restoreSound } from "../audio/sound.ts";
 import { InfoBar } from "./InfoBar.tsx";
+import { BetaToggle } from "./BetaToggle.tsx";
+import { useBeta } from "./beta.ts";
+import { lessonOpen } from "../tutorial/unlock.ts";
 import { ClipButtons, Inline, Prose, Quiz, RoadMap, SceneScore, TrioPane, usePlayer, WriteScene } from "./TutorialParts.tsx";
 
 const TRIO = trioSteps(data as never);
@@ -40,6 +43,10 @@ export function Tutorial(p: { onLeave(): void; onGame(voices: 2 | 3, stepId: str
   const { chapter, lesson } = LESSONS[index];
   const chapterIndex = CHAPTERS.findIndex((c) => c.id === chapter);
   const [contents, setContents] = useState(false);
+  const beta = useBeta();
+  const IDS = LESSONS.map((x) => x.lesson.id);
+  /** Lesson k may be opened from the contents (always in BETA; in the real setup, in order). */
+  const isOpen = (k: number) => lessonOpen(IDS, progress.done, k, beta);
 
   // A clean sound for the lessons: the default voices, every channel open. The game puts its own back.
   useEffect(() => {
@@ -74,6 +81,7 @@ export function Tutorial(p: { onLeave(): void; onGame(voices: 2 | 3, stepId: str
           <span className="count">{tt("ui.progress", { n: progress.done.length, total: LESSONS.length })}</span>
         </span>
         <div className="header-tools">
+          <BetaToggle />
           <button className="howto" onClick={p.onLeave}>{tt("ui.leave")}</button>
         </div>
       </header>
@@ -83,22 +91,26 @@ export function Tutorial(p: { onLeave(): void; onGame(voices: 2 | 3, stepId: str
             {CHAPTERS.map((c, ci) => {
               const ids = c.lessons.map((l) => l.id);
               const n = ids.filter((id) => progress.done.includes(id)).length;
+              const first = LESSONS.findIndex((x) => x.chapter === c.id);
               return (
                 <li key={c.id} className={c.id === chapter ? "current" : undefined}>
-                  <button className="tut-chapter" onClick={() => go(LESSONS.findIndex((x) => x.chapter === c.id))} title={chapterText(c.id).blurb}>
-                    <span className="num">{ci + 1}</span> {chapterText(c.id).title}
+                  <button className="tut-chapter" disabled={!isOpen(first)} onClick={() => go(first)} title={isOpen(first) ? chapterText(c.id).blurb : tt("ui.locked")}>
+                    <span className="num">{ci + 1}</span> {!isOpen(first) && "🔒 "}{chapterText(c.id).title}
                     <span className="tick">{n === ids.length ? "✓" : `${n}/${ids.length}`}</span>
                   </button>
                   {c.id === chapter && (
                     <ol className="tut-lessons">
-                      {c.lessons.map((l) => (
+                      {c.lessons.map((l) => {
+                        const k = IDS.indexOf(l.id);
+                        return (
                         <li key={l.id}>
-                          <button aria-current={l.id === lesson.id} onClick={() => go(LESSONS.findIndex((x) => x.lesson.id === l.id))}>
-                            {progress.done.includes(l.id) ? "✓ " : "· "}
+                          <button aria-current={l.id === lesson.id} disabled={!isOpen(k)} title={isOpen(k) ? undefined : tt("ui.locked")} onClick={() => go(k)}>
+                            {progress.done.includes(l.id) ? "✓ " : isOpen(k) ? "· " : "🔒 "}
                             {lessonText(l.id).title}
                           </button>
                         </li>
-                      ))}
+                        );
+                      })}
                     </ol>
                   )}
                 </li>
@@ -116,6 +128,7 @@ export function Tutorial(p: { onLeave(): void; onGame(voices: 2 | 3, stepId: str
         </nav>
         <LessonPage
           key={lesson.id}
+          skip={beta}
           index={index}
           already={progress.done.includes(lesson.id)}
           onDone={() => markDone(lesson.id)}
@@ -138,7 +151,7 @@ export function Tutorial(p: { onLeave(): void; onGame(voices: 2 | 3, stepId: str
  * One lesson's page. Keyed by the lesson, so that everything it holds (the task done, the clips
  * heard, the view toggles, what is playing) starts clean with each lesson and never leaks into the next.
  */
-function LessonPage(p: { index: number; already: boolean; onDone(): void; onGo(k: number): void; onLeave(): void; onGame(voices: 2 | 3, stepId: string): void; onTour(): void }) {
+function LessonPage(p: { skip: boolean; index: number; already: boolean; onDone(): void; onGo(k: number): void; onLeave(): void; onGame(voices: 2 | 3, stepId: string): void; onTour(): void }) {
   const { chapter, lesson } = LESSONS[p.index];
   const chapterIndex = CHAPTERS.findIndex((c) => c.id === chapter);
   const text = lessonText(lesson.id);
@@ -185,7 +198,7 @@ function LessonPage(p: { index: number; already: boolean; onDone(): void; onGo(k
       <div className="tut-nav">
         <button onClick={() => p.onGo(p.index - 1)} disabled={p.index === 0}>{tt("ui.back")}</button>
         <span className="tool-gap" />
-        {!open && (
+        {!open && p.skip && (
           <button className="link" title={tt("ui.skipHelp")} onClick={() => p.onGo(p.index + 1)} disabled={last}>
             {tt("ui.skip")}
           </button>

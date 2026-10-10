@@ -50,7 +50,12 @@
     "yourLine": "your line",
     "fuxLine": "Fux",
     "learn": "Learn this in the tutorial ›",
-    "learnHelp": "Open the tutorial's lesson on this rule"
+    "learnHelp": "Open the tutorial's lesson on this rule",
+    "betaOn": "BETA",
+    "betaOff": "REAL",
+    "betaOnHelp": "BETA: everything is open, for testing. Click for the real setup, where the tutorial's lessons unlock one after another.",
+    "betaOffHelp": "The real setup: the tutorial's lessons unlock one after another. Click for BETA, where everything is open.",
+    "locked": "Locked: finish the lesson before it first."
   },
   "chapters": {
     "welcome": {

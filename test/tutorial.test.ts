@@ -216,3 +216,13 @@ test("a fifth-species excerpt that opens on a held note sounds it (the A held in
   assert.equal(ev[0].counterpoint, "A4");
   assert.equal(ev[0].lengths?.counterpoint, 0.25);
 });
+
+test("progressive unlocking (D99): in BETA all is open; in the real setup, one lesson after another", async () => {
+  const { lessonOpen } = await import("../src/tutorial/unlock.ts");
+  const ids = ["a", "b", "c", "d"];
+  assert.ok([0, 1, 2, 3].every((k) => lessonOpen(ids, [], k, true)));
+  assert.deepEqual([0, 1, 2, 3].map((k) => lessonOpen(ids, [], k, false)), [true, false, false, false]);
+  assert.deepEqual([0, 1, 2, 3].map((k) => lessonOpen(ids, ["a"], k, false)), [true, true, false, false]);
+  // A lesson done (from a link out of the game, say) stays open, and opens the next.
+  assert.deepEqual([0, 1, 2, 3].map((k) => lessonOpen(ids, ["a", "c"], k, false)), [true, true, true, true]);
+});
