@@ -461,7 +461,13 @@ export function engrave(input: EngInput): Engraving {
       for (let pass = 0; pass < order.length; pass++)
         for (let k = 0; k + 1 < order.length; k++)
           if (pitch(order[k + 1]) - pitch(order[k]) > 3 || lowest(order[k + 1]) > highest(order[k])) [order[k], order[k + 1]] = [order[k + 1], order[k]];
-      order.forEach((l, k) => (l.stem = k === 0 ? 1 : k === order.length - 1 ? -1 : k < order.length / 2 ? 1 : -1));
+      // A middle layer's stems go into the wider gap: towards the layer above if it lies further
+      // from it than from the layer below, else downwards.
+      order.forEach((l, k) => {
+        if (k === 0) l.stem = 1;
+        else if (k === order.length - 1) l.stem = -1;
+        else l.stem = lowest(order[k - 1]) - highest(l) > lowest(l) - highest(order[k + 1]) ? 1 : -1;
+      });
       // Draw the stems-up layers first (VexFlow shifts colliding heads of the later voices).
       layers.sort((x, y) => y.stem - x.stem || order.indexOf(x) - order.indexOf(y));
 
