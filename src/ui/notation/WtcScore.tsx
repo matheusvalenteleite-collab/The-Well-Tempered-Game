@@ -25,6 +25,8 @@ export interface WtcScoreNote {
   mark?: string;
   /** The slot index for the player's voice (for selection and taps). */
   slot?: number;
+  /** Other notes struck with it in the same voice (a chord, D134). */
+  chord?: string[];
 }
 
 export interface WtcScoreVoice {
@@ -145,9 +147,10 @@ export function WtcScore(p: Props) {
 export function WtcPage(p: Omit<Props, "voices" | "cursor" | "label" | "zoom" | "onZoom" | "zoomLabels" | "tools"> & { rows: { voices: WtcScoreVoice[]; bars: number; cursor: number; label: string; key: string }[] }) {
   const host = useRef<HTMLDivElement>(null);
   const [w, setW] = useState(0);
+  const [h, setH] = useState(0);
   useLayoutEffect(() => {
     const el = host.current!;
-    const measure = () => setW(el.clientWidth);
+    const measure = () => (setW(el.clientWidth), setH(el.clientHeight));
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     measure();
@@ -162,7 +165,8 @@ export function WtcPage(p: Omit<Props, "voices" | "cursor" | "label" | "zoom" | 
           const widths = Array.from({ length: bars }, (_, b) => Math.max(150, 46 + Math.max(1, ...voices.map((v) => piecesInBar(v, b, p.barQuarters).length)) * 30));
           const lefts = widths.reduce<number[]>((acc, x, i) => (acc.push(i === 0 ? LEAD : acc[i - 1] + widths[i - 1]), acc), []);
           const natural = LEAD + widths.reduce((a, b) => a + b, 0) + 24;
-          const scale = Math.min(1.25, (w - 8) / natural);
+          // Fitted to the width, and small enough that two systems fit the page's height (reading ahead, as in a printed score).
+          const scale = Math.min(1.1, (w - 8) / natural, h > 100 ? (h - 12) / 2 / HEIGHT : Infinity);
           return (
             <div key={r.key} className={r.cursor >= 0 ? "wtc-sys playing" : "wtc-sys"}>
               <WtcSystem {...p} voices={voices} cursor={r.cursor} label={r.label} zoom={1} onZoom={() => undefined} zoomLabels={{ in: "", out: "", reset: "" }} bars={bars} widths={widths} lefts={lefts} natural={natural} scale={scale} bothStaves />
@@ -245,17 +249,23 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
         const stem: 1 | -1 | 0 = mates.length > 1 ? (p.voices.filter((w) => w.staff === v.staff).indexOf(v) === 0 ? 1 : -1) : 0;
         perVoice.push({ vi, v, tick: [], pieces, stem });
       });
-      // Accidentals in time order across the voices of a staff.
-      const accOf = new Map<Piece, string | null>();
+      // Accidentals in time order across the voices of a staff, for every note of a chord.
+      const keysOf = (q: Piece) => [q.pitch!, ...(q.src?.chord ?? [])].sort((a, c) => parsePitch(a).midi - parsePitch(c).midi);
+      const accOf = new Map<Piece, (string | null)[]>();
       for (const st of [0, 1]) {
         const all = perVoice.filter((x) => x.v.staff === st).flatMap((x) => x.pieces).filter((q) => !q.rest && q.pitch).sort((a, c) => a.at - c.at);
         for (const q of all) {
-          const pp = parsePitch(q.pitch!);
-          const k = `${pp.step}${pp.octave}`;
-          const cur = state[st].get(k) ?? p.signature[pp.step];
           const continued = q.src && q.src.at < q.at - EPS; // a tied continuation shows no accidental
-          accOf.set(q, !continued && cur !== pp.alter ? VEX_ACC(pp.alter) : null);
-          state[st].set(k, pp.alter);
+          accOf.set(
+            q,
+            keysOf(q).map((x) => {
+              const pp = parsePitch(x);
+              const k = `${pp.step}${pp.octave}`;
+              const cur = state[st].get(k) ?? p.signature[pp.step];
+              state[st].set(k, pp.alter);
+              return !continued && cur !== pp.alter ? VEX_ACC(pp.alter) : null;
+            }),
+          );
         }
       }
       for (const pv of perVoice) {
@@ -269,10 +279,12 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
             n = new StaveNote({ keys: [middle], duration: q.d, clef, ...(pv.stem ? { stem_direction: pv.stem } : { auto_stem: false }) });
             n.setStyle({ fillStyle: "var(--slot-ink, #b9b2a0)", strokeStyle: "var(--slot-ink, #b9b2a0)" });
           } else {
-            const pp = parsePitch(q.pitch);
-            n = new StaveNote({ keys: [`${pp.step.toLowerCase()}/${pp.octave}`], duration: q.d, clef, ...(pv.stem ? { stem_direction: pv.stem } : { auto_stem: true }) });
-            const acc = accOf.get(q);
-            if (acc) n.addModifier(new Accidental(acc));
+            const keys = keysOf(q).map((x) => {
+              const pp = parsePitch(x);
+              return `${pp.step.toLowerCase()}/${pp.octave}`;
+            });
+            n = new StaveNote({ keys, duration: q.d, clef, ...(pv.stem ? { stem_direction: pv.stem } : { auto_stem: true }) });
+            (accOf.get(q) ?? []).forEach((acc, i) => acc && n.addModifier(new Accidental(acc), i));
             const ink = q.src?.ink ?? pv.v.ink;
             n.setStyle({ fillStyle: ink, strokeStyle: ink });
           }

@@ -732,38 +732,90 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   // The score view: the chosen span's bars (or four from the bar playing), at most eight.
   const scoreFrom = span ? barOf(span.from) : Math.floor(Math.max(0, cursor) / 4) * 4; // pages of four bars while it plays
   const scoreTo = Math.min(bars - 1, span ? Math.max(barOf(span.to - 1e-6), scoreFrom) : scoreFrom + 3, scoreFrom + 7);
-  /** Each voice's staff, from its mean pitch over the whole piece (the same on every page). */
-  const staffOf = useMemo(() => Array.from({ length: count }, (_, v) => {
-    const ms = notes.filter((_, i) => voice[i] === v).map((n) => n.midi);
-    return (ms.length ? ms.reduce((a, m) => a + m, 0) / ms.length : 72 - v * 12) >= 60 ? 0 : 1;
-  }), [notes, voice, count]);
-  /** The voices of bars `fromBar`..`toBar` for the score, from the bar's start; a chord within a voice keeps its first note. */
+  /**
+   * Each voice's staff, bar by bar (D134): the highest voice on the treble staff and the lowest on
+   * the bass throughout; a middle voice on the staff its register needs, switching only when it
+   * clearly leaves the other (above D4 or below A3 on average in the bar), as an engraver would.
+   */
+  const staffOf = useMemo(() => {
+    const out = Array.from({ length: count }, () => new Array<0 | 1>(bars).fill(0));
+    for (let v = 0; v < count; v++) {
+      let cur: 0 | 1 | null = null;
+      for (let b = 0; b < bars; b++) {
+        const ms = notes.filter((n, i) => voice[i] === v && n.at < (b + 1) * barQ - 1e-6 && n.at + n.dur > b * barQ + 1e-6).map((n) => n.midi);
+        if (count >= 2 && v === 0) cur = 0;
+        else if (count >= 2 && v === count - 1) cur = 1;
+        else if (ms.length) {
+          const mean = ms.reduce((a, m) => a + m, 0) / ms.length;
+          if (cur === null) cur = mean >= 60 ? 0 : 1;
+          else if (cur === 1 && mean >= 62) cur = 0;
+          else if (cur === 0 && mean <= 57) cur = 1;
+        }
+        out[v][b] = cur ?? (v < count / 2 ? 0 : 1);
+      }
+    }
+    return out;
+  }, [notes, voice, count, bars, barQ]);
+  /**
+   * The voices of bars `fromBar`..`toBar` for the score, from the bar's start: each voice split by
+   * the staff it is on in each bar; notes struck together in one voice drawn as a chord (those of
+   * the same length; a shorter one is left out).
+   */
   const voicesFor = (fromBar: number, toBar: number): WtcScoreVoice[] => {
     const q0 = fromBar * barQ;
     const q1 = (toBar + 1) * barQ;
     const starts = new Map<number, string>();
     for (const e of entries) starts.set(e.notes[0], e.inverted ? "∀" : "S");
-    return Array.from({ length: count }, (_, v) => {
-      const mine = notes
+    const out: WtcScoreVoice[] = [];
+    for (let v = 0; v < count; v++) {
+      const all = notes
         .map((n, i) => ({ n, i }))
         .filter(({ n, i }) => voice[i] === v && n.at < q1 - 1e-6 && n.at + n.dur > q0 + 1e-6 && !(gameUntil !== null && n.at >= gameUntil - 1e-6))
-        .sort((a, b) => a.n.at - b.n.at)
-        .filter((x, k, xs) => k === 0 || Math.abs(x.n.at - xs[k - 1].n.at) > 1e-6);
-      const out = mine.map(({ n, i }, k) => {
-        const at = Math.max(n.at, q0);
-        // A note overlapping the next in its voice is cut where the next begins.
-        const next = mine[k + 1]?.n.at ?? Infinity;
-        const end = Math.min(n.at + n.dur, q1, next);
-        return { pitch: P.spelled[i] ?? spell(n.midi, sig, flats), at: at - q0, dur: Math.max(1 / 96, end - at), ...(starts.has(i) && n.at >= q0 ? { label: starts.get(i) } : {}) };
-      });
-      return { notes: out, staff: staffOf[v] as 0 | 1, ink: COLORS[v % COLORS.length], editable: false } as WtcScoreVoice;
-    }).filter((x) => x.notes.length);
+        .sort((a, b) => a.n.at - b.n.at || b.n.midi - a.n.midi);
+      // Chords: notes struck together; the first (highest) carries the others of its length.
+      const heads: { n: FullNote; i: number; chord: string[] }[] = [];
+      for (const x of all) {
+        const h = heads[heads.length - 1];
+        if (h && Math.abs(h.n.at - x.n.at) < 1e-6) {
+          if (Math.abs(h.n.dur - x.n.dur) < 1e-6 && x.n.midi !== h.n.midi) h.chord.push(P.spelled[x.i] ?? spell(x.n.midi, sig, flats));
+        } else heads.push({ ...x, chord: [] });
+      }
+      for (const st of [0, 1] as const) {
+        const mine = heads.filter(({ n }) => staffOf[v][Math.max(0, Math.min(bars - 1, barOf(Math.max(n.at, q0))))] === st);
+        if (!mine.length) continue;
+        out.push({
+          notes: mine.map(({ n, i, chord }, k) => {
+            const at = Math.max(n.at, q0);
+            // A note overlapping the next in its voice is cut where the next begins.
+            const next = mine[k + 1]?.n.at ?? Infinity;
+            const end = Math.min(n.at + n.dur, q1, next);
+            return { pitch: P.spelled[i] ?? spell(n.midi, sig, flats), at: at - q0, dur: Math.max(1 / 96, end - at), ...(chord.length ? { chord } : {}), ...(starts.has(i) && n.at >= q0 ? { label: starts.get(i) } : {}) };
+          }),
+          staff: st,
+          ink: COLORS[v % COLORS.length],
+          editable: false,
+        });
+      }
+    }
+    return out;
   };
   const scoreVoices: WtcScoreVoice[] = useMemo(() => voicesFor(scoreFrom, scoreTo),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [scoreFrom, scoreTo, P, barQ, entries, count, notes, voice, sig, flats, gameUntil, staffOf]);
   // The page (D127): rows of a few bars, the row playing on top (else the chosen span's, else the first), three rows.
-  const rowBars = barQ <= 2 ? 6 : barQ <= 4 ? 4 : barQ <= 6 ? 3 : 2;
+  // As many bars to a row as fill it: the score's width per bar grows with the busiest voice's notes
+  // (WtcScore: 46 + 30 per note, 150 at least); a row is about 1800 wide before scaling.
+  const rowBars = useMemo(() => {
+    const perBar = Array.from({ length: bars }, (_, b) => {
+      const on = new Map<number, Set<number>>();
+      notes.forEach((n, i) => {
+        if (n.at >= b * barQ - 1e-6 && n.at < (b + 1) * barQ - 1e-6) (on.get(voice[i]) ?? on.set(voice[i], new Set()).get(voice[i])!).add(Math.round(n.at * 96));
+      });
+      return Math.max(150, 46 + 30 * Math.max(1, ...[...on.values()].map((x) => x.size)));
+    });
+    const mean = perBar.reduce((a, x) => a + x, 0) / Math.max(1, bars);
+    return Math.max(2, Math.min(8, Math.floor(1700 / mean)));
+  }, [notes, voice, bars, barQ]);
   const [pageTop, setPageTop] = useState(0);
   useEffect(() => {
     if (cursor >= 0) setPageTop(Math.floor(cursor / rowBars));
