@@ -12,7 +12,8 @@ import { voiceNames } from "../../src/wtc/exposition.ts";
 import { label, TPQ, type WtcPiece } from "../../src/wtc/corpus.ts";
 import { parsePitch } from "../../src/music/pitch.ts";
 
-const fugues: WtcPiece[] = JSON.parse(readFileSync("data/wtc/fugues.json", "utf8"));
+// The corpus: the Humdrum-derived one, or another of the same shape (WTC_FUGUES=data/wtc/fugues-open.json).
+const fugues: WtcPiece[] = JSON.parse(readFileSync(process.env.WTC_FUGUES ?? "data/wtc/fugues.json", "utf8"));
 const LATER: Record<string, { n: number; bar: number }[]> = JSON.parse(readFileSync("data/wtc/later-subjects.json", "utf8")).fugues;
 const claims = readFileSync("data/wtc/ledbetter-claims.txt", "utf8").split("\n").map((l) => l.trim()).filter((l) => /^wtc\df\d\d /.test(l));
 const LONG: Record<string, string> = { S: "soprano", A: "alto", T: "tenor", B: "bass", S1: "soprano", S2: "soprano", upper: "soprano", lower: "bass" };
