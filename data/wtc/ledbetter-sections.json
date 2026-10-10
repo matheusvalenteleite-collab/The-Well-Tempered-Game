@@ -25,6 +25,11 @@
   ],
   "wtc1f02": [
    {
+    "from": 1,
+    "to": 15,
+    "label": ""
+   },
+   {
     "from": 9,
     "to": 10,
     "label": "episode"
@@ -50,6 +55,37 @@
     "from": 7,
     "to": 10,
     "label": "episode"
+   },
+   {
+    "from": 42,
+    "to": 55,
+    "label": "reprise"
+   }
+  ],
+  "wtc1f04": [
+   {
+    "from": 94,
+    "to": 115,
+    "label": "stretto"
+   }
+  ],
+  "wtc1f05": [
+   {
+    "from": 1,
+    "to": 6,
+    "label": "exposition"
+   }
+  ],
+  "wtc1f06": [
+   {
+    "from": 1,
+    "to": 21,
+    "label": ""
+   },
+   {
+    "from": 21,
+    "to": 44,
+    "label": "inversion"
    }
   ],
   "wtc1f07": [
@@ -64,6 +100,13 @@
     "label": "link"
    }
   ],
+  "wtc1f09": [
+   {
+    "from": 19,
+    "to": 29,
+    "label": "reprise"
+   }
+  ],
   "wtc1f10": [
    {
     "from": 1,
@@ -73,7 +116,7 @@
    {
     "from": 20,
     "to": 38,
-    "label": "second half (mirror inversion of first half)"
+    "label": "second half"
    }
   ],
   "wtc1f11": [
@@ -86,6 +129,16 @@
     "from": 1,
     "to": 8,
     "label": "passepied first section"
+   },
+   {
+    "from": 46,
+    "to": 56,
+    "label": "stretto"
+   },
+   {
+    "from": 56,
+    "to": 72,
+    "label": ""
    }
   ],
   "wtc1f12": [
@@ -171,13 +224,40 @@
     "from": 19,
     "to": 20,
     "label": "episode"
+   },
+   {
+    "from": 27,
+    "to": 35,
+    "label": "reprise"
    }
   ],
   "wtc1f18": [
    {
     "from": 1,
+    "to": 20,
+    "label": ""
+   },
+   {
+    "from": 1,
     "to": 9,
     "label": "exposition"
+   }
+  ],
+  "wtc1f19": [
+   {
+    "from": 1,
+    "to": 20,
+    "label": ""
+   },
+   {
+    "from": 23,
+    "to": 42,
+    "label": ""
+   },
+   {
+    "from": 42,
+    "to": 54,
+    "label": "reprise"
    }
   ],
   "wtc1f20": [
@@ -187,9 +267,51 @@
     "label": "½ exposition recto"
    },
    {
+    "from": 1,
+    "to": 14,
+    "label": "exposition"
+   },
+   {
+    "from": 14,
+    "to": 27,
+    "label": "inversion"
+   },
+   {
+    "from": 27,
+    "to": 48,
+    "label": "stretto"
+   },
+   {
     "from": 48,
     "to": 64,
     "label": "½ stretto inverso"
+   },
+   {
+    "from": 48,
+    "to": 64,
+    "label": "stretto"
+   }
+  ],
+  "wtc1f22": [
+   {
+    "from": 1,
+    "to": 25,
+    "label": "exposition"
+   },
+   {
+    "from": 25,
+    "to": 37,
+    "label": ""
+   },
+   {
+    "from": 37,
+    "to": 55,
+    "label": ""
+   },
+   {
+    "from": 55,
+    "to": 75,
+    "label": ""
    }
   ],
   "wtc1f23": [
@@ -214,6 +336,23 @@
     "label": "episode"
    }
   ],
+  "wtc2f04": [
+   {
+    "from": 16,
+    "to": 24,
+    "label": "exposition"
+   },
+   {
+    "from": 24,
+    "to": 35,
+    "label": "inversion"
+   },
+   {
+    "from": 48,
+    "to": 71,
+    "label": ""
+   }
+  ],
   "wtc2f05": [
    {
     "from": 1,
@@ -228,8 +367,7 @@
    {
     "from": 20,
     "to": 27,
-    "label": "section three",
-    "flag": "check"
+    "label": "section three"
    }
   ],
   "wtc2f09": [
@@ -285,6 +423,11 @@
     "label": "episode 2"
    },
    {
+    "from": 32,
+    "to": 44,
+    "label": "exposition"
+   },
+   {
     "from": 44,
     "to": 52,
     "label": "episode 1 return"
@@ -316,7 +459,7 @@
    {
     "from": 10,
     "to": 13,
-    "label": "episode (triple invertible)"
+    "label": "episode"
    },
    {
     "from": 13,
@@ -328,12 +471,12 @@
    {
     "from": 1,
     "to": 61,
-    "label": "section 1 (subject 1)"
+    "label": "section 1"
    },
    {
     "from": 61,
     "to": 97,
-    "label": "section 2 (subject 2)"
+    "label": "section 2"
    },
    {
     "from": 97,
