@@ -6,10 +6,15 @@ import { LIBRARY } from "../src/wtc/library.ts";
 const written = (p: number, len: number, time: string, rest = false) => spell(p, len, time, rest).map((v) => `${v.dur}${".".repeat(v.dots)}${v.triplet ? "t" : ""}`).join(" ");
 
 test("engraving: the metre's units", () => {
-  assert.deepEqual(units("4/4"), { beat: 1, beam: 1, bar: 4 });
-  assert.deepEqual(units("6/8"), { beat: 1.5, beam: 1.5, bar: 3 });
-  assert.deepEqual(units("12/16"), { beat: 0.75, beam: 0.75, bar: 3 });
-  assert.deepEqual(units("3/8"), { beat: 0.5, beam: 1.5, bar: 1.5 });
+  const u = (t: string) => {
+    const { beat, beam, bar } = units(t);
+    return { beat, beam, bar };
+  };
+  assert.deepEqual(u("4/4"), { beat: 1, beam: 1, bar: 4 });
+  assert.deepEqual(u("6/8"), { beat: 1.5, beam: 1.5, bar: 3 });
+  assert.deepEqual(u("12/16"), { beat: 0.75, beam: 0.75, bar: 3 });
+  assert.deepEqual(u("3/8"), { beat: 0.5, beam: 1.5, bar: 1.5 });
+  assert.deepEqual(u("2/2"), { beat: 2, beam: 2, bar: 4 });
 });
 
 test("engraving: lengths written to show the metre", () => {
@@ -26,6 +31,13 @@ test("engraving: lengths written to show the metre", () => {
   // Rests: on their own grid.
   assert.equal(written(0.5, 1.5, "4/4", true), "8 q");
   assert.equal(written(0, 1.5, "6/8", true), "q.");
+  // Compound time (the audit of D147): dotted rests on the beats, long notes in whole beats.
+  assert.equal(written(1.5, 1.5, "6/8", true), "q.");
+  assert.equal(written(0, 1.5, "12/16", true), "8. 8.");
+  assert.equal(written(0.75, 1.5, "12/16"), "8. 8.");
+  assert.equal(written(2, 3, "3/2"), "h.");
+  // A rest ending on a triplet: plain values, then the triplet.
+  assert.equal(written(0, 10 / 3, "2/2", true), "h q 8t");
 });
 
 test("engraving: Book I no. 1, bar 1 (the subject alone, in the alto)", () => {

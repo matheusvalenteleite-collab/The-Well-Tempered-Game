@@ -35,6 +35,8 @@ export interface EngInput {
   barStarts?: number[];
   /** Each bar's metre (else `time` throughout). */
   meters?: string[];
+  /** On a staff shared by several layers, rests shorter than a beat left out (a prelude's figuration, its strands inferred). */
+  quietRests?: boolean;
 }
 
 /** The bar lines of a piece: given, or every `barQuarters` to the end of its notes. */
@@ -131,14 +133,17 @@ const mod = (a: number, m: number) => {
 };
 
 /** The metre's units: the beat (what short values do not cross) and the beam group. */
-export function units(time: string): { beat: number; beam: number; bar: number } {
+export function units(time: string): { beat: number; beam: number; bar: number; sub: number; compound: boolean } {
   const [num, den] = time.split("/").map(Number);
   const bar = (num * 4) / den;
   const compound = num % 3 === 0 && num > 3;
-  const beat = compound ? (3 * 4) / den : den >= 8 ? 4 / den : 1;
-  // 3/8 (and 3/16) is beamed by the bar.
-  const beam = num === 3 && den >= 8 ? bar : compound ? beat : den >= 8 ? 4 / den : 1;
-  return { beat, beam: Math.max(beam, Math.min(bar, 0.5)), bar };
+  // The beat: a dotted value in compound time, a half in 2/2, 3/2, 4/2, else the denominator.
+  const beat = compound ? (3 * 4) / den : den === 2 ? 2 : den >= 8 ? 4 / den : 1;
+  // What shorter values must not cross: the quarter in simple time (the eighth in x/8), the beat in compound.
+  const sub = compound ? beat : den >= 8 ? 4 / den : 1;
+  // 3/8 (and 3/16) is beamed by the bar; alla breve eighths by the half (see the beams).
+  const beam = num === 3 && den >= 8 ? bar : compound ? beat : den >= 8 ? 4 / den : den === 2 ? 2 : 1;
+  return { beat, beam: Math.max(beam, Math.min(bar, 0.5)), bar, sub, compound };
 }
 
 export interface Value {
@@ -148,54 +153,94 @@ export interface Value {
   triplet: boolean;
 }
 
+/** Triplet values for a stretch off the plain grid, each the longest its position allows. */
+function tripletValues(at: number, len: number): Value[] {
+  const out: Value[] = [];
+  let left = len;
+  let guard = 0;
+  while (left > EPS && guard++ < 64) {
+    const tv = TRIPLETS.find(([q]) => q <= left + EPS && mod(at, q) === 0) ?? TRIPLETS.find(([q]) => q <= left + EPS) ?? TRIPLETS[TRIPLETS.length - 1];
+    out.push({ len: Math.min(tv[0], left), dur: tv[1], dots: 0, triplet: true });
+    at += tv[0];
+    left -= tv[0];
+  }
+  return out;
+}
+
 /**
  * A length from `p` (quarters from the bar line) written in values that show the metre (the
  * rules in the header). `rest`: a rest's stricter grid.
  */
 export function spell(p: number, len: number, time: string, rest = false, barLen?: number): Value[] {
-  const { beat } = units(time);
+  const { beat, sub, compound } = units(time);
   const bar = barLen ?? units(time).bar;
   const beats = Math.round(bar / beat);
   const mid = beats >= 4 && beats % 2 === 0 ? bar / 2 : -1;
-  // A triplet value: a plain value's two thirds, alone.
-  const tri = PLAIN.find(([q]) => Math.abs(q * (2 / 3) - len) < EPS);
-  if (tri && !VALUES.some(([q]) => Math.abs(q - len) < EPS)) return [{ len, dur: tri[1], dots: 0, triplet: true }];
+  // Off the plain grid where it starts: triplet values until it is back on it.
+  if (!dyadic(p)) {
+    // To the end of the triplet group it is in: the next quarter for triplet eighths (and
+    // quarters), the next eighth for triplet sixteenths.
+    const g = Math.abs(p * 3 - Math.round(p * 3)) < 1e-6 ? 1 : Math.abs(p * 6 - Math.round(p * 6)) < 1e-6 ? 0.5 : 0.25;
+    const head = Math.min(len, Math.ceil(p / g - EPS) * g - p);
+    return [...tripletValues(p, head), ...(len - head > EPS ? spell(p + head, len - head, time, rest, barLen) : [])];
+  }
+  // Ending off the grid: the plain part first, then the triplet tail.
+  if (!dyadic(len)) {
+    // The tail: from the last quarter (else eighth, sixteenth) line before the end.
+    const end = p + len;
+    let tail = len;
+    for (const g of [1, 0.5, 0.25]) {
+      const t = end - Math.floor(end / g + EPS) * g;
+      if (t > EPS && t <= len + EPS && dyadic(len - t)) {
+        tail = Math.min(len, t);
+        break;
+      }
+    }
+    if (len - tail < EPS) {
+      // A triplet value alone (within its group's span).
+      const tri = PLAIN.find(([q]) => Math.abs(q * (2 / 3) - len) < EPS);
+      if (tri) {
+        const span = tri[0] * 2;
+        if (Math.floor(p / span + EPS) === Math.floor((p + len - 2 * EPS) / span)) return [{ len, dur: tri[1], dots: 0, triplet: true }];
+      }
+      return tripletValues(p, len);
+    }
+    return [...spell(p, len - tail, time, rest, barLen), ...tripletValues(p + len - tail, tail)];
+  }
   const out: Value[] = [];
   let at = p;
   let left = len;
   let guard = 0;
+  const crosses = (a: number, e: number, unit: number) => Math.floor(a / unit + EPS) !== Math.floor((e - 2 * EPS) / unit);
   while (left > EPS && guard++ < 64) {
-    // Off the plain grid (inside a triplet): triplet values, the longest the position allows.
-    if (!dyadic(at) || !dyadic(left)) {
-      const tv = TRIPLETS.find(([q]) => q <= left + EPS && mod(at, q) === 0) ?? TRIPLETS.find(([q]) => q <= left + EPS) ?? TRIPLETS[TRIPLETS.length - 1];
-      out.push({ len: Math.min(tv[0], left), dur: tv[1], dots: 0, triplet: true });
-      at += tv[0];
-      left -= tv[0];
-      continue;
-    }
     const fits = VALUES.filter(([q]) => q <= left + EPS);
     if (!fits.length) {
-      // Not writable in plain values (a tuplet's piece): the nearest plain value, as a triplet.
-      const t = PLAIN.find(([q]) => q * (2 / 3) <= left + EPS) ?? PLAIN[PLAIN.length - 1];
-      out.push({ len: left, dur: t[1], dots: 0, triplet: true });
+      out.push(...tripletValues(at, left));
       break;
     }
-    const ok = fits.find(([q, , dots]) => {
-      const plain = dots ? (q * 2) / 3 : q;
-      const end = at + q;
-      if (end > bar + EPS) return false;
-      if (rest) {
-        if (mod(at, plain) !== 0 && !(at < EPS && Math.abs(q - bar) < EPS)) return false;
-        if (dots && !(Math.abs(q - beat) < EPS && mod(at, beat) === 0)) return false;
-        if (q < beat - EPS && Math.floor(at / beat + EPS) !== Math.floor((end - 2 * EPS) / beat)) return false;
-        if (mid > 0 && at < mid - EPS && end > mid + EPS && at > EPS) return false;
+    const ok =
+      fits.find(([q, , dots]) => {
+        const plain = dots ? (q * 2) / 3 : q;
+        const end = at + q;
+        if (end > bar + EPS) return false;
+        if (rest) {
+          if (mod(at, dots ? q : plain) !== 0 && !(at < EPS && Math.abs(q - bar) < EPS)) return false;
+          if (dots && !(Math.abs(q - beat) < EPS && mod(at, beat) === 0) && !(compound && Math.abs(q - beat / 2) < EPS)) return false;
+          if (q < beat - EPS && crosses(at, end, beat)) return false;
+          if (q < sub - EPS && crosses(at, end, sub)) return false;
+          // A rest of a beat or more: whole beats, from a beat.
+          if (q >= beat - EPS && (mod(at, beat) !== 0 || mod(q, beat) !== 0)) return false;
+          if (mid > 0 && at < mid - EPS && end > mid + EPS && at > EPS) return false;
+          return true;
+        }
+        if (mod(at, Math.min(plain, sub) / 2) !== 0) return false;
+        if (q < sub - EPS && crosses(at, end, sub)) return false;
+        if (q < beat - EPS) return !crosses(at, end, beat) || (!compound && sub < beat && !dots && mod(at, sub / 2) === 0 && q <= sub + EPS);
+        // A beat or more: in compound time whole beats when it crosses one.
+        if (compound && crosses(at, end, beat) && (mod(at, beat) !== 0 || mod(q, beat) !== 0) && !(mod(at, beat) === 0 && q <= beat + EPS)) return false;
+        if (mid > 0 && at < mid - EPS && end > mid + EPS && at > EPS) return !dots && mod(at, beat) === 0;
         return true;
-      }
-      if (mod(at, Math.min(plain, beat) / 2) !== 0) return false;
-      if (q < beat - EPS) return Math.floor(at / beat + EPS) === Math.floor((end - 2 * EPS) / beat);
-      if (mid > 0 && at < mid - EPS && end > mid + EPS && at > EPS) return !dots && mod(at, beat) === 0;
-      return true;
-    }) ?? fits[fits.length - 1];
+      }) ?? fits[fits.length - 1];
     out.push({ len: ok[0], dur: ok[1], dots: ok[2], triplet: false });
     at += ok[0];
     left -= ok[0];
@@ -221,25 +266,55 @@ export function assignStaves(input: EngInput): number[][] {
   const starts = barLines(input);
   const bars = starts.length - 1;
   const dia = spelled.map((s) => parsePitch(s).diatonic);
-  return Array.from({ length: count }, (_, v) => {
+  // Each voice's own costs (ledger lines, its usual staff), its notes in each bar, its ties.
+  const own: number[][][] = [];
+  const weight: number[][] = [];
+  const ties: boolean[][] = [];
+  for (let v = 0; v < count; v++) {
     const mine = notes.map((n, i) => ({ n, i })).filter(({ i }) => voice[i] === v);
     const mean = mine.length ? mine.reduce((a, { i }) => a + dia[i], 0) / mine.length : 28;
     const home = mean >= 27 ? 0 : 1;
     const cost = Array.from({ length: bars }, () => [0, 0]);
+    const w = new Array(bars).fill(0);
     const tied = new Array(bars).fill(false); // a note of this voice sounds across the bar line before bar b
     for (const { n, i } of mine) {
       const b0 = barIndex(starts, n.at);
       const b1 = barIndex(starts, n.at + n.dur - 2 * EPS);
+      w[b0]++;
       for (let b = b0; b <= b1; b++) {
         // A note counts in each bar it sounds in, by how much of the bar it fills (at least a little).
         const len = starts[b + 1] - starts[b];
         const share = Math.max(0.25, (Math.min(n.at + n.dur, starts[b + 1]) - Math.max(n.at, starts[b])) / len);
         for (const s of [0, 1]) cost[b][s] += ledger(dia[i], s) * (b === b0 ? 1 : share);
-        if (b > b0) tied[b] = true;
+        if (b > b0) {
+          tied[b] = true;
+          w[b] = Math.max(w[b], 1);
+        }
       }
     }
     for (let b = 0; b < bars; b++) cost[b][1 - home] += 0.6;
-    const SWITCH = 2.5;
+    own.push(cost);
+    weight.push(w);
+    ties.push(tied);
+  }
+  const SWITCH = 2.5;
+  const solve = (v: number, others: number[][] | null): number[] => {
+    const cost = own[v].map((c, b) => {
+      const out = [...c];
+      const w = weight[v][b];
+      if (!others || !w) return out;
+      // Crowding: being the third voice on a staff; order: a lower voice above a higher one's staff.
+      for (const s of [0, 1]) {
+        const there = others.filter((st, u) => u !== v && weight[u][b] && st[b] === s).length;
+        if (there >= 2) out[s] += 3 * w * (there - 1);
+      }
+      others.forEach((st, u) => {
+        if (u === v || !weight[u][b]) return;
+        if (u < v && st[b] === 1) out[0] += 4 * w;
+        if (u > v && st[b] === 0) out[1] += 4 * w;
+      });
+      return out;
+    });
     const best: number[][] = [[cost[0][0], cost[0][1]]];
     const from: number[][] = [[0, 1]];
     for (let b = 1; b < bars; b++) {
@@ -247,7 +322,7 @@ export function assignStaves(input: EngInput): number[][] {
       from.push([0, 0]);
       for (const s of [0, 1]) {
         const stay = best[b - 1][s];
-        const move = best[b - 1][1 - s] + (tied[b] ? 1e6 : SWITCH);
+        const move = best[b - 1][1 - s] + (ties[v][b] ? 1e6 : SWITCH);
         best[b][s] = Math.min(stay, move) + cost[b][s];
         from[b][s] = stay <= move ? s : 1 - s;
       }
@@ -256,7 +331,11 @@ export function assignStaves(input: EngInput): number[][] {
     out[bars - 1] = best[bars - 1][0] <= best[bars - 1][1] ? 0 : 1;
     for (let b = bars - 1; b > 0; b--) out[b - 1] = from[b][out[b]];
     return out;
-  });
+  };
+  // Each voice alone first, then each again against where the others are, a few rounds.
+  const staffs = Array.from({ length: count }, (_, v) => solve(v, null));
+  for (let round = 0; round < 3; round++) for (let v = 0; v < count; v++) staffs[v] = solve(v, staffs);
+  return staffs;
 }
 
 interface Chord {
@@ -322,14 +401,22 @@ export function engrave(input: EngInput): Engraving {
         const ks = l.items.flatMap((it) => it.keys.map((k) => dia[k.i]));
         return ks.length ? ks.reduce((a, x) => a + x, 0) / ks.length : 0;
       };
-      // By voice (the higher voice above), unless two layers clearly cross (by more than a third on average).
+      const ds = (l: EngLayer) => l.items.flatMap((it) => it.keys.map((k) => dia[k.i]));
+      const lowest = (l: EngLayer) => Math.min(...ds(l));
+      const highest = (l: EngLayer) => Math.max(...ds(l));
+      // By voice (the higher voice above), unless two layers clearly cross (by more than a third on
+      // average, or the lower voice wholly above the higher).
       const order = [...layers].sort((x, y) => x.voice - y.voice || x.sub - y.sub);
       for (let pass = 0; pass < order.length; pass++)
         for (let k = 0; k + 1 < order.length; k++)
-          if (pitch(order[k + 1]) - pitch(order[k]) > 3) [order[k], order[k + 1]] = [order[k + 1], order[k]];
+          if (pitch(order[k + 1]) - pitch(order[k]) > 3 || lowest(order[k + 1]) > highest(order[k])) [order[k], order[k + 1]] = [order[k + 1], order[k]];
       order.forEach((l, k) => (l.stem = k === 0 ? 1 : k === order.length - 1 ? -1 : k < order.length / 2 ? 1 : -1));
       // Draw the stems-up layers first (VexFlow shifts colliding heads of the later voices).
       layers.sort((x, y) => y.stem - x.stem || order.indexOf(x) - order.indexOf(y));
+      if (input.quietRests) {
+        const beat = units(meterOf(b)).beat;
+        for (const l of layers) for (const it of l.items) if (it.rest && it.len < beat - EPS) it.ghost = true;
+      }
     }
     bars.push({ index: b, from, to, time: meterOf(b), origin, staves });
   }
@@ -348,9 +435,12 @@ export function engrave(input: EngInput): Engraving {
           }
           run = [];
         };
+        // Alla breve: eighths beamed by the half, but shorter values by the quarter.
+        const quick = beamUnit > 1 && l.items.some((it) => !it.rest && ["16", "32", "64"].includes(it.dur));
+        const unitHere = quick ? 1 : beamUnit;
         for (const it of l.items) {
           const ok = !it.rest && it.tuplet === undefined && ["8", "16", "32", "64"].includes(it.dur);
-          const u = Math.floor((it.at - bar.origin) / beamUnit + EPS);
+          const u = Math.floor((it.at - bar.origin) / unitHere + EPS);
           if (!ok || u !== unit) flush();
           if (ok) {
             if (!run.length) unit = u;
@@ -366,21 +456,30 @@ export function engrave(input: EngInput): Engraving {
 function layerItems(chain: Chord[], from: number, to: number, time: string, ghostRests: boolean, origin = from): EngItem[] {
   const out: EngItem[] = [];
   let tuplet = 0;
-  let tupletLeft = 0;
+  /** The open triplet group: its length so far and the shortest value in it. */
+  let acc = 0;
+  let shortest = Infinity;
   const pushValues = (at: number, len: number, rest: boolean, c: Chord | null) => {
     const vs = spell(at - origin, len, time, rest, to - origin);
     let t = at;
     vs.forEach((v, k) => {
       let tp: number | undefined;
       if (v.triplet) {
-        if (tupletLeft <= EPS) {
-          tuplet++;
-          // A triplet group spans twice the plain value (three in the time of two).
-          tupletLeft = (PLAIN.find(([, d]) => d === v.dur)?.[0] ?? v.len * 1.5) * 2;
-        }
+        // A group closes when its length is a whole number of its unit: twice the plain value of its
+        // shortest note (a quarter for triplet eighths, a half for triplet quarters).
+        if (acc <= EPS) tuplet++;
         tp = tuplet;
-        tupletLeft -= v.len;
-      } else tupletLeft = 0;
+        acc += v.len;
+        shortest = Math.min(shortest, v.len);
+        const unit = shortest * 3;
+        if (Math.abs(acc / unit - Math.round(acc / unit)) < 1e-6) {
+          acc = 0;
+          shortest = Infinity;
+        }
+      } else {
+        acc = 0;
+        shortest = Infinity;
+      }
       out.push({
         rest,
         ...(rest && ghostRests ? { ghost: true } : {}),

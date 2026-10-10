@@ -967,8 +967,8 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     return new Set(notes.map((_, i) => i).filter((i) => notes[i].at >= gameUntil - 1e-6));
   }, [gameUntil, notes]);
   const eng = useMemo(
-    () => engrave({ notes, spelled: notes.map((n, i) => P.spelled[i] ?? spell(n.midi, sig, flats)), voice, count, barQuarters: barQ, time: timeSig, hidden: sheetHidden, barStarts: starts, meters: P.meters }),
-    [notes, P, voice, count, barQ, timeSig, sig, flats, sheetHidden, starts],
+    () => engrave({ notes, spelled: notes.map((n, i) => P.spelled[i] ?? spell(n.midi, sig, flats)), voice, count, barQuarters: barQ, time: timeSig, hidden: sheetHidden, barStarts: starts, meters: P.meters, quietRests: isPrelude }),
+    [notes, P, voice, count, barQ, timeSig, sig, flats, sheetHidden, starts, isPrelude],
   );
   /** Each entry's first note, labelled with the degree it enters on (∀ upside down). */
   const sheetLabels = useMemo(() => {

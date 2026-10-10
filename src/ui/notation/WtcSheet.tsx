@@ -124,16 +124,21 @@ const keyOfDiatonic = (d: number) => `${STEP_NAMES[((d % 7) + 7) % 7]}/${Math.fl
 function restKey(staff: number, stem: number, layer: EngLayer, k: number): string {
   const base = staff === 0 ? (stem === 1 ? 36 : stem === -1 ? 30 : 34) : stem === 1 ? 24 : stem === -1 ? 18 : 22;
   if (stem === 0) return keyOfDiatonic(base);
-  // The nearest note of the layer.
+  // The nearest note of the layer within a beat or so; out of the way, but not far from the staff.
+  const it0 = layer.items[k];
   let near: EngItem | null = null;
-  for (let d = 1; d < layer.items.length && !near; d++) for (const j of [k - d, k + d]) if (!near && layer.items[j] && !layer.items[j].rest) near = layer.items[j];
+  for (let d = 1; d < layer.items.length && !near; d++)
+    for (const j of [k - d, k + d]) {
+      const x = layer.items[j];
+      if (!near && x && !x.rest && Math.abs(x.at - it0.at) <= 1.5) near = x;
+    }
   if (!near) return keyOfDiatonic(base);
   const ds = near.keys.map((x) => parsePitch(x.pitch).diatonic);
-  return keyOfDiatonic(stem === 1 ? Math.max(base, Math.max(...ds) + 1) : Math.min(base, Math.min(...ds) - 1));
+  return keyOfDiatonic(stem === 1 ? Math.min(base + 3, Math.max(base, Math.max(...ds) + 1)) : Math.max(base - 3, Math.min(base, Math.min(...ds) - 1)));
 }
 
 /** One bar's VexFlow notes, tuplets and beams (not yet formatted or drawn). */
-function buildBar(bar: EngBar, inkOf: (layer: EngLayer, key: number | null) => string, signature: Record<Step, number>): Built {
+function buildBar(bar: EngBar, inkOf: (layer: EngLayer, key: number | null) => string, signature: Record<Step, number>, emptyRests = true): Built {
   const out: Built = { voices: [[], []], drawn: [], beams: [], tuplets: [] };
   const [num, den] = bar.time.split("/").map(Number);
   // Accidentals: by staff, in time order across the layers; a tied continuation shows none.
@@ -158,6 +163,16 @@ function buildBar(bar: EngBar, inkOf: (layer: EngLayer, key: number | null) => s
   });
   bar.staves.forEach((layers, staff) => {
     const clef = CLEFS[staff];
+    if (!layers.length) {
+      if (!emptyRests) return;
+      // An empty staff shows a bar's rest, as a page of music does.
+      const r = new StaveNote({ keys: [staff === 0 ? "d/5" : "f/3"], duration: "wr", clef, align_center: true });
+      r.setStyle({ fillStyle: "var(--sheet-ink, #222)", strokeStyle: "var(--sheet-ink, #222)" });
+      const v = new Voice({ num_beats: num, beat_value: den }).setMode(Voice.Mode.SOFT);
+      v.addTickables([r]);
+      out.voices[staff].push(v);
+      return;
+    }
     for (const layer of layers) {
       const notes: StemmableNote[] = [];
       for (const [k, it] of layer.items.entries()) {
@@ -215,10 +230,15 @@ function buildBar(bar: EngBar, inkOf: (layer: EngLayer, key: number | null) => s
         b.setStyle({ fillStyle: ink, strokeStyle: ink });
         out.beams.push(b);
       }
-      // Triplets of quavers beam together.
-      for (const g of groups.values()) if (g.length > 1 && g.every((n) => ["8", "16", "32"].includes(n.getDuration())) && !g.some((n) => n instanceof GhostNote || (n as StaveNote).isRest())) {
-        const b = new Beam(g, layer.stem === 0);
-        out.beams.push(b);
+      // A triplet's quavers beam together (its rests left out).
+      for (const g of groups.values()) {
+        const ns = g.filter((n) => !(n instanceof GhostNote) && !(n as StaveNote).isRest());
+        if (ns.length > 1 && ns.every((n) => ["8", "16", "32"].includes(n.getDuration()))) {
+          const b = new Beam(ns, layer.stem === 0);
+          const ink = inkOf(layer, null);
+          b.setStyle({ fillStyle: ink, strokeStyle: ink });
+          out.beams.push(b);
+        }
       }
     }
   });
@@ -228,7 +248,7 @@ function buildBar(bar: EngBar, inkOf: (layer: EngLayer, key: number | null) => s
 /** The width a bar needs (its notes at their closest), in units. */
 function minWidth(bar: EngBar, signature: Record<Step, number>): number {
   try {
-    const b = buildBar(bar, () => "#000", signature);
+    const b = buildBar(bar, () => "#000", signature, false);
     const all = [...b.voices[0], ...b.voices[1]];
     if (!all.length) return 60;
     const fmt = new Formatter();
@@ -238,6 +258,9 @@ function minWidth(bar: EngBar, signature: Record<Step, number>): number {
     return 40 + bar.staves.flat().reduce((a, l) => Math.max(a, l.items.length), 0) * 24;
   }
 }
+
+/** Common time and alla breve as Bach writes them (C and ¢). */
+const timeSymbol = (t: string) => (t === "4/4" ? "C" : t === "2/2" ? "C|" : t);
 
 /** The width of a system's opening (clef, key signature, and the time signature on the first). */
 function headerWidth(keySig: string, time: string | null): number {
@@ -371,7 +394,7 @@ export function WtcSheet(p: SheetProps) {
           const sv = new Stave(x, st === 0 ? trebleY : bassY, w, { space_above_staff_ln: 0, space_below_staff_ln: 0 });
           if (first) sv.addClef(clef).addKeySignature(p.keySig);
           const bar = p.eng.bars[b];
-          if (b === 0 || bar.time !== p.eng.bars[b - 1].time) sv.addTimeSignature(bar.time);
+          if (b === 0 || bar.time !== p.eng.bars[b - 1].time) sv.addTimeSignature(timeSymbol(bar.time));
           if (b === p.eng.bars.length - 1) sv.setEndBarType(3);
           sv.setContext(ctx).draw();
           return sv;
@@ -432,31 +455,63 @@ export function WtcSheet(p: SheetProps) {
                   pairs.set(prev.note, e);
                 });
                 for (const [prevNote, e] of pairs) {
-                  if (e.ctx === ctx) new StaveTie({ first_note: prevNote, last_note: sn, first_indices: e.from, last_indices: e.to }).setContext(ctx).draw();
+                  // On a staff shared by several layers a tie bows away from the other voice (up with
+                  // the stems-up layer, down with the stems-down one); alone, VexFlow's way.
+                  const shared = p.eng.bars[b].staves[d.staff].length > 1;
+                  const dir = shared ? (d.layer.stem === 1 ? -1 : 1) : 0;
+                  const ink = inkOf(d.layer, null);
+                  const tie = (t: StaveTie, c: RenderContext) => {
+                    if (dir) t.setDirection(dir);
+                    t.setStyle({ fillStyle: ink, strokeStyle: ink });
+                    t.setContext(c).draw();
+                  };
+                  if (e.ctx === ctx) tie(new StaveTie({ first_note: prevNote, last_note: sn, first_indices: e.from, last_indices: e.to }), ctx);
                   else {
-                    new StaveTie({ first_note: prevNote, last_note: null as unknown as StaveNote, first_indices: e.from, last_indices: e.from }).setContext(e.ctx).draw();
-                    new StaveTie({ first_note: null as unknown as StaveNote, last_note: sn, first_indices: e.to, last_indices: e.to }).setContext(ctx).draw();
+                    tie(new StaveTie({ first_note: prevNote, last_note: null as unknown as StaveNote, first_indices: e.from, last_indices: e.from }), e.ctx);
+                    // The tie's end at the start of the next system: an arc from a little before the note.
+                    const ys = sn.getYs();
+                    const nx = sn.getAbsoluteX();
+                    const down = dir ? dir === 1 : sn.getStemDirection() === -1 ? false : true;
+                    for (const k of e.to) {
+                      const y = ys[k] + (down ? 6 : -6);
+                      ctx.save();
+                      ctx.setStrokeStyle(ink);
+                      ctx.setLineWidth(1.4);
+                      ctx.beginPath();
+                      ctx.moveTo(nx - 22, y);
+                      ctx.quadraticCurveTo(nx - 10, y + (down ? 7 : -7), nx + 2, y);
+                      ctx.stroke();
+                      ctx.restore();
+                    }
                   }
                 }
               }
               d.item.keys.forEach((key, idx) => (d.item.tieOut ? lastTie.set(key.i, { note: sn, k: idx, ctx }) : lastTie.delete(key.i)));
             }
             for (const [q, nx] of [...seen.entries()].sort((a, c) => a[0] - c[0])) ticks.push([q / 96, nx]);
-            // Labels (the entries) above their notes.
+            // Labels (the entries) above everything drawn at that place on their staff.
+            const tops: { x: number; staff: number; y: number }[] = [];
+            for (const d of built.drawn) {
+              if (d.item.ghost || d.note instanceof GhostNote) continue;
+              const sn = d.note as StaveNote;
+              let y = Math.min(...sn.getYs()) - 6;
+              if (sn.hasStem() && !d.item.rest) {
+                const ext = sn.getStemExtents();
+                y = Math.min(y, ext.topY, ext.baseY);
+              }
+              tops.push({ x: d.note.getAbsoluteX(), staff: d.staff, y });
+            }
             for (const d of built.drawn) {
               if (d.item.rest || d.item.tieIn) continue;
               const lab = d.item.keys.map((k) => p.labels.get(k.i)).find(Boolean);
               if (!lab) continue;
-              const sn = d.note as StaveNote;
-              let yTop = Math.min(...sn.getYs()) - 12;
-              if (sn.hasStem()) {
-                const ext = sn.getStemExtents();
-                yTop = Math.min(ext.topY, ext.baseY, ...sn.getYs()) - 7;
-              }
+              const nx = d.note.getAbsoluteX();
+              const near = tops.filter((t) => t.staff === d.staff && Math.abs(t.x - nx) < 16).map((t) => t.y);
+              const y = Math.min((d.staff === 0 ? trebleY : bassY) - 4, ...near) - 5;
               ctx.save();
               ctx.setFont("Inter, system-ui, sans-serif", 10, "bold");
               ctx.setFillStyle(p.colors[d.layer.voice % p.colors.length]);
-              ctx.fillText(lab, d.note.getAbsoluteX() - 3, Math.min(yTop, (d.staff === 0 ? trebleY : bassY) - 4));
+              ctx.fillText(lab, nx - 3, y);
               ctx.restore();
             }
           }
