@@ -203,3 +203,25 @@ test("D126: the library: all 48 from the corpus, each fugue with its voices as e
   const eight = LIBRARY.find((l) => l.id === "wtc1.08")!;
   assert.deepEqual([eight.preludeKey, eight.key], ["eb", "d#"]);
 });
+
+test("D128/D131: a recording of every prelude and fugue (Ishizaka, Book I; Loesser, Book II), its bar lines in order, every bar played", async () => {
+  const { LIBRARY } = await import("../src/wtc/library.ts");
+  const { trackOf, secondsAt, barAt } = await import("../src/audio/recording.ts");
+  for (const l of LIBRARY) {
+    for (const prelude of [true, false]) {
+      const p = prelude ? l.prelude() : l.fugue();
+      const tr = trackOf(l.id, prelude);
+      assert.ok(tr, `${l.id}${prelude ? "p" : "f"}`);
+      assert.equal(tr!.performer, l.book === 1 ? "Kimiko Ishizaka" : "Arthur Loesser");
+      assert.equal(tr!.t.length, tr!.b.length + 1, l.id);
+      assert.ok(tr!.t.every((x, i) => i === 0 || x >= tr!.t[i - 1]), `${l.id}: times in order`);
+      const bars = Math.ceil(Math.max(...p.notes.map((n) => n.at + n.dur)) / p.barQuarters - 1e-6);
+      assert.deepEqual([...new Set(tr!.b)].sort((a, b) => a - b), Array.from({ length: bars }, (_, i) => i), `${l.id}: every bar played`);
+      const s = secondsAt(tr!, 1.5 * p.barQuarters, p.barQuarters);
+      assert.equal(barAt(tr!, s), 1, l.id);
+    }
+  }
+  // Book II no. 2: Loesser takes both repeats of the prelude.
+  const two = trackOf("wtc2.02", true)!;
+  assert.equal(two.b.length, 2 * new Set(two.b).size);
+});
