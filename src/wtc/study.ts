@@ -11,7 +11,7 @@
  */
 import type { Entry, FullNote } from "./entries.ts";
 
-export type MomentKind = "entry" | "stretto" | "episode" | "pedal" | "highest" | "lowest" | "cadence";
+export type MomentKind = "entry" | "stretto" | "episode" | "pedal" | "highest" | "lowest" | "cadence" | "arrival" | "figure";
 
 export interface Moment {
   kind: MomentKind;

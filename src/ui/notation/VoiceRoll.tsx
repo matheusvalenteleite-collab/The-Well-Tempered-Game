@@ -2,7 +2,7 @@
  * The whole fugue by voice (D123): every note as a bar of its length and pitch in its voice's
  * colour, the subject's entries outlined and labelled, the selected section or moment shaded, the
  * bar being played marked, and the player's own entries (the workshop) drawn on top. A tap plays
- * from that bar.
+ * from that bar. Above the bars, optionally, a strip of labels (the harmonic reading, D125).
  */
 import { useEffect, useRef } from "react";
 import type { Entry, FullNote } from "../../wtc/entries.ts";
@@ -31,6 +31,9 @@ interface Props {
   hidden?: Set<number>;
   onBar(bar: number): void;
   label: string;
+  /** A strip of labels above the bars (the chords), each over its span; tapping one plays from there. */
+  strip?: { from: number; to: number; text: string; title: string }[];
+  onStrip?(k: number): void;
 }
 
 const PX_Q = 20;
@@ -44,8 +47,9 @@ export function VoiceRoll(p: Props) {
   const hi = Math.max(...all) + 2;
   const end = Math.max(...p.notes.map((n) => n.at + n.dur), ...p.extra.map((n) => n.at + n.dur));
   const width = PAD + end * PX_Q + PAD;
-  const height = PAD + (hi - lo + 1) * ROW + PAD;
-  const y = (m: number) => PAD + (hi - m) * ROW;
+  const STRIP = p.strip?.length ? 18 : 0;
+  const height = STRIP + PAD + (hi - lo + 1) * ROW + PAD;
+  const y = (m: number) => STRIP + PAD + (hi - m) * ROW;
   const x = (q: number) => PAD + q * PX_Q;
   const bars = Math.ceil(end / p.barQuarters - 1e-6);
   useEffect(() => {
@@ -75,7 +79,20 @@ export function VoiceRoll(p: Props) {
           if (q >= 0) p.onBar(Math.floor(q / p.barQuarters));
         }}
       >
-        {p.span && <rect x={x(p.span.from)} y={PAD - 8} width={Math.max(2, (p.span.to - p.span.from) * PX_Q)} height={height - 2 * PAD + 8} className="roll-span" />}
+        {p.strip?.map((c, k) => (
+          <g key={`h${k}`} className="roll-chord" onClick={(ev) => (ev.stopPropagation(), p.onStrip?.(k))}>
+            <title>{c.title}</title>
+            <rect x={x(c.from) + 0.5} y={2} width={Math.max(2, (c.to - c.from) * PX_Q - 1)} height={STRIP - 4} rx={2} />
+            {(() => {
+              // The label if it fits; else without its figures; else none (the title still names it).
+              const w = (c.to - c.from) * PX_Q - 4;
+              const short = c.text.replace(/[⁰-⁹₀-₉]+/g, "");
+              const s = c.text.length * 6 <= w ? c.text : short.length * 6 <= w ? short : "";
+              return s ? <text x={x(c.from) + 3} y={STRIP - 6}>{s}</text> : null;
+            })()}
+          </g>
+        ))}
+        {p.span && <rect x={x(p.span.from)} y={STRIP + PAD - 8} width={Math.max(2, (p.span.to - p.span.from) * PX_Q)} height={height - STRIP - 2 * PAD + 8} className="roll-span" />}
         {Array.from({ length: hi - lo + 1 }, (_, k) => hi - k).filter((m) => m % 12 === 0).map((m) => (
           <g key={`c${m}`}>
             <line x1={0} x2={width} y1={y(m) + ROW} y2={y(m) + ROW} className="roll-c" />
@@ -84,11 +101,11 @@ export function VoiceRoll(p: Props) {
         ))}
         {Array.from({ length: bars + 1 }, (_, b) => (
           <g key={`b${b}`}>
-            <line x1={x(b * p.barQuarters)} x2={x(b * p.barQuarters)} y1={PAD - 6} y2={height - PAD} className="roll-bar" />
-            {b < bars && (b % 2 === 0 || bars < 30) && <text x={x(b * p.barQuarters) + 2} y={PAD - 9} className="roll-label">{b + 1}</text>}
+            <line x1={x(b * p.barQuarters)} x2={x(b * p.barQuarters)} y1={STRIP + PAD - 6} y2={height - PAD} className="roll-bar" />
+            {b < bars && (b % 2 === 0 || bars < 30) && <text x={x(b * p.barQuarters) + 2} y={STRIP + PAD - 9} className="roll-label">{b + 1}</text>}
           </g>
         ))}
-        {p.cursor >= 0 && <rect x={x(p.cursor * p.barQuarters)} y={PAD - 6} width={p.barQuarters * PX_Q} height={height - 2 * PAD + 6} className="roll-cursor" />}
+        {p.cursor >= 0 && <rect x={x(p.cursor * p.barQuarters)} y={STRIP + PAD - 6} width={p.barQuarters * PX_Q} height={height - STRIP - 2 * PAD + 6} className="roll-cursor" />}
         {p.notes.map((n, i) =>
           p.hidden?.has(i) ? null : (
             <rect key={i} x={x(n.at) + 0.5} y={y(n.midi)} width={Math.max(1.5, n.dur * PX_Q - 1)} height={ROW - 0.5} rx={1} fill={p.colors[p.voice[i] % p.colors.length]} opacity={p.faint.has(p.voice[i]) ? 0.18 : 0.92} />

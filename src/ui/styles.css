@@ -994,3 +994,11 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .wtc-sections { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0 10px; }
 .wtc-study h4 { margin: 0.8em 0 0.3em; }
 .wtc-workshop .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
+/* The harmonic reading over the roll (D125). */
+.roll-chord { cursor: pointer; }
+.roll-chord rect { fill: var(--paper, rgba(127, 127, 127, 0.10)); stroke: var(--line, rgba(127, 127, 127, 0.45)); stroke-width: 0.6; }
+.roll-chord:hover rect { fill: var(--pulse, rgba(30, 111, 216, 0.18)); }
+.roll-chord text { font-size: 10px; fill: var(--ink, currentColor); font-family: var(--serif, Georgia, serif); }
+.wtc-chords { display: flex; flex-wrap: wrap; gap: 2px 4px; font-family: var(--serif, Georgia, serif); }
+.wtc-chords .chipbtn { padding: 1px 5px; min-width: 0; }
+.wtc-chords .barno { opacity: 0.55; font-size: 0.75em; margin-left: 6px; align-self: center; }
