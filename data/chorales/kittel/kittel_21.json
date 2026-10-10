@@ -1,0 +1,9722 @@
+{
+ "id": "kittel_21",
+ "number": 21,
+ "title": "O Gott, du frommer Gott etc.",
+ "pages": [
+  41,
+  42
+ ],
+ "printed_pages": [
+  43,
+  44
+ ],
+ "meter": "4/4",
+ "meter_sign": "C",
+ "key_signature": -1,
+ "length": "27/1",
+ "measures": [
+  {
+   "number": 1,
+   "offset": "0/1",
+   "length": "1/1",
+   "page": 41,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 2,
+   "offset": "1/1",
+   "length": "1/1",
+   "page": 41,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 3,
+   "offset": "2/1",
+   "length": "1/1",
+   "page": 41,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 4,
+   "offset": "3/1",
+   "length": "1/1",
+   "page": 41,
+   "barline_after": "solid"
+  },
+  {
+   "number": 5,
+   "offset": "4/1",
+   "length": "1/1",
+   "page": 41,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 6,
+   "offset": "5/1",
+   "length": "1/1",
+   "page": 41,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 7,
+   "offset": "6/1",
+   "length": "1/1",
+   "page": 41,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 8,
+   "offset": "7/1",
+   "length": "1/1",
+   "page": 41,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 9,
+   "offset": "8/1",
+   "length": "1/1",
+   "page": 41,
+   "barline_after": "solid+thick end-repeat"
+  },
+  {
+   "number": 10,
+   "offset": "9/1",
+   "length": "1/1",
+   "page": 41,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 11,
+   "offset": "10/1",
+   "length": "1/1",
+   "page": 41,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 12,
+   "offset": "11/1",
+   "length": "1/1",
+   "page": 41,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 13,
+   "offset": "12/1",
+   "length": "1/1",
+   "page": 41,
+   "barline_after": "solid"
+  },
+  {
+   "number": 14,
+   "offset": "13/1",
+   "length": "1/1",
+   "page": 42,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 15,
+   "offset": "14/1",
+   "length": "1/1",
+   "page": 42,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 16,
+   "offset": "15/1",
+   "length": "1/1",
+   "page": 42,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 17,
+   "offset": "16/1",
+   "length": "1/1",
+   "page": 42,
+   "barline_after": "solid"
+  },
+  {
+   "number": 18,
+   "offset": "17/1",
+   "length": "1/1",
+   "page": 42,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 19,
+   "offset": "18/1",
+   "length": "1/1",
+   "page": 42,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 20,
+   "offset": "19/1",
+   "length": "1/1",
+   "page": 42,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 21,
+   "offset": "20/1",
+   "length": "1/1",
+   "page": 42,
+   "barline_after": "solid"
+  },
+  {
+   "number": 22,
+   "offset": "21/1",
+   "length": "1/1",
+   "page": 42,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 23,
+   "offset": "22/1",
+   "length": "1/1",
+   "page": 42,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 24,
+   "offset": "23/1",
+   "length": "1/1",
+   "page": 42,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 25,
+   "offset": "24/1",
+   "length": "1/1",
+   "page": 42,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 26,
+   "offset": "25/1",
+   "length": "1/1",
+   "page": 42,
+   "barline_after": "dashed"
+  },
+  {
+   "number": 27,
+   "offset": "26/1",
+   "length": "1/1",
+   "page": 42,
+   "barline_after": "solid+thick"
+  }
+ ],
+ "phrases": [
+  {
+   "number": 1,
+   "first_measure": 1,
+   "last_measure": 4,
+   "offset": "0/1",
+   "end": "4/1",
+   "ends_at_solid_barline": true
+  },
+  {
+   "number": 2,
+   "first_measure": 5,
+   "last_measure": 9,
+   "offset": "4/1",
+   "end": "9/1",
+   "ends_at_solid_barline": true
+  },
+  {
+   "number": 3,
+   "first_measure": 10,
+   "last_measure": 13,
+   "offset": "9/1",
+   "end": "13/1",
+   "ends_at_solid_barline": true
+  },
+  {
+   "number": 4,
+   "first_measure": 14,
+   "last_measure": 17,
+   "offset": "13/1",
+   "end": "17/1",
+   "ends_at_solid_barline": true
+  },
+  {
+   "number": 5,
+   "first_measure": 18,
+   "last_measure": 21,
+   "offset": "17/1",
+   "end": "21/1",
+   "ends_at_solid_barline": true
+  },
+  {
+   "number": 6,
+   "first_measure": 22,
+   "last_measure": 25,
+   "offset": "21/1",
+   "end": "25/1",
+   "ends_at_solid_barline": false
+  }
+ ],
+ "structure": {
+  "form": "bar form (Stollen repeated)",
+  "sections": [
+   {
+    "label": "A",
+    "first_measure": 1,
+    "last_measure": 9
+   },
+   {
+    "label": "B",
+    "first_measure": 10,
+    "last_measure": 27
+   }
+  ],
+  "performed": [
+   "A",
+   "A",
+   "B"
+  ]
+ },
+ "melody": {
+  "role": "melody",
+  "label": null,
+  "notes": [
+   {
+    "pitch": null,
+    "rest": true,
+    "duration": "1/2",
+    "offset": "0/1",
+    "measure": 1,
+    "_page": 41
+   },
+   {
+    "pitch": "A4",
+    "midi": 69,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "1/2",
+    "measure": 1,
+    "_x": 127.51,
+    "_page": 41
+   },
+   {
+    "pitch": "A4",
+    "midi": 69,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "1/1",
+    "measure": 2,
+    "_x": 158.84,
+    "_page": 41
+   },
+   {
+    "pitch": "D5",
+    "midi": 74,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "3/2",
+    "measure": 2,
+    "_x": 180.69,
+    "_page": 41
+   },
+   {
+    "pitch": "C5",
+    "midi": 72,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "2/1",
+    "measure": 3,
+    "_x": 212.42,
+    "_page": 41
+   },
+   {
+    "pitch": "Bb4",
+    "midi": 70,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "5/2",
+    "measure": 3,
+    "_x": 243.28,
+    "_page": 41
+   },
+   {
+    "pitch": "A4",
+    "midi": 69,
+    "rest": false,
+    "duration": "1/1",
+    "offset": "3/1",
+    "measure": 4,
+    "fermata": true,
+    "_x": 281.38,
+    "_page": 41
+   },
+   {
+    "pitch": null,
+    "rest": true,
+    "duration": "1/2",
+    "offset": "4/1",
+    "measure": 5,
+    "_page": 41
+   },
+   {
+    "pitch": "A4",
+    "midi": 69,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "9/2",
+    "measure": 5,
+    "_x": 341.33,
+    "_page": 41
+   },
+   {
+    "pitch": "Bb4",
+    "midi": 70,
+    "rest": false,
+    "duration": "0/1",
+    "offset": "5/1",
+    "measure": 5,
+    "grace": true,
+    "_x": 357.77,
+    "_page": 41
+   },
+   {
+    "pitch": "C5",
+    "midi": 72,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "5/1",
+    "measure": 6,
+    "_x": 370.42,
+    "_page": 41
+   },
+   {
+    "pitch": "F4",
+    "midi": 65,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "11/2",
+    "measure": 6,
+    "_x": 392.27,
+    "_page": 41
+   },
+   {
+    "pitch": "G4",
+    "midi": 67,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "6/1",
+    "measure": 7,
+    "_x": 430.37,
+    "_page": 41
+   },
+   {
+    "pitch": "A4",
+    "midi": 69,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "13/2",
+    "measure": 7,
+    "_x": 452.22,
+    "_page": 41
+   },
+   {
+    "pitch": "G4",
+    "midi": 67,
+    "rest": false,
+    "duration": "1/1",
+    "offset": "7/1",
+    "measure": 8,
+    "_x": 490.3,
+    "_page": 41
+   },
+   {
+    "pitch": "F4",
+    "midi": 65,
+    "rest": false,
+    "duration": "1/1",
+    "offset": "8/1",
+    "measure": 9,
+    "fermata": true,
+    "_x": 550.25,
+    "_page": 41
+   },
+   {
+    "pitch": null,
+    "rest": true,
+    "duration": "1/2",
+    "offset": "9/1",
+    "measure": 10,
+    "_page": 41
+   },
+   {
+    "pitch": "G4",
+    "midi": 67,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "19/2",
+    "measure": 10,
+    "_x": 618.71,
+    "_page": 41
+   },
+   {
+    "pitch": "G4",
+    "midi": 67,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "10/1",
+    "measure": 11,
+    "_x": 659.03,
+    "_page": 41
+   },
+   {
+    "pitch": "A4",
+    "midi": 69,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "21/2",
+    "measure": 11,
+    "_x": 680.89,
+    "_page": 41
+   },
+   {
+    "pitch": "Bb4",
+    "midi": 70,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "11/1",
+    "measure": 12,
+    "_x": 709.98,
+    "_page": 41
+   },
+   {
+    "pitch": "Bb4",
+    "midi": 70,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "23/2",
+    "measure": 12,
+    "_x": 731.83,
+    "_page": 41
+   },
+   {
+    "pitch": "A4",
+    "midi": 69,
+    "rest": false,
+    "duration": "1/1",
+    "offset": "12/1",
+    "measure": 13,
+    "fermata": true,
+    "_x": 769.92,
+    "_page": 41
+   },
+   {
+    "pitch": null,
+    "rest": true,
+    "duration": "1/2",
+    "offset": "13/1",
+    "measure": 14,
+    "_page": 42
+   },
+   {
+    "pitch": "G4",
+    "midi": 67,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "27/2",
+    "measure": 14,
+    "_x": 135.95,
+    "_page": 42
+   },
+   {
+    "pitch": "A4",
+    "midi": 69,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "14/1",
+    "measure": 15,
+    "_x": 162.16,
+    "_page": 42
+   },
+   {
+    "pitch": "C5",
+    "midi": 72,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "29/2",
+    "measure": 15,
+    "_x": 188.97,
+    "_page": 42
+   },
+   {
+    "pitch": "D5",
+    "midi": 74,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "15/1",
+    "measure": 16,
+    "_x": 225.64,
+    "_page": 42
+   },
+   {
+    "pitch": "D5",
+    "midi": 74,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "31/2",
+    "measure": 16,
+    "_x": 252.45,
+    "_page": 42
+   },
+   {
+    "pitch": "C5",
+    "midi": 72,
+    "rest": false,
+    "duration": "1/1",
+    "offset": "16/1",
+    "measure": 17,
+    "fermata": true,
+    "_x": 286.49,
+    "_page": 42
+   },
+   {
+    "pitch": null,
+    "rest": true,
+    "duration": "1/2",
+    "offset": "17/1",
+    "measure": 18,
+    "_page": 42
+   },
+   {
+    "pitch": "C5",
+    "midi": 72,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "35/2",
+    "measure": 18,
+    "_x": 339.51,
+    "_page": 42
+   },
+   {
+    "pitch": "C5",
+    "midi": 72,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "18/1",
+    "measure": 19,
+    "_x": 373.55,
+    "_page": 42
+   },
+   {
+    "pitch": "Bb4",
+    "midi": 70,
+    "rest": false,
+    "duration": "0/1",
+    "offset": "37/2",
+    "measure": 19,
+    "grace": true,
+    "_x": 387.11,
+    "_page": 42
+   },
+   {
+    "pitch": "A4",
+    "midi": 69,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "37/2",
+    "measure": 19,
+    "_x": 392.53,
+    "_page": 42
+   },
+   {
+    "pitch": "Bb4",
+    "midi": 70,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "19/1",
+    "measure": 20,
+    "_x": 426.56,
+    "_page": 42
+   },
+   {
+    "pitch": "C5",
+    "midi": 72,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "39/2",
+    "measure": 20,
+    "_x": 445.55,
+    "_page": 42
+   },
+   {
+    "pitch": "D5",
+    "midi": 74,
+    "rest": false,
+    "duration": "1/1",
+    "offset": "20/1",
+    "measure": 21,
+    "fermata": true,
+    "_x": 471.74,
+    "_page": 42
+   },
+   {
+    "pitch": null,
+    "rest": true,
+    "duration": "1/2",
+    "offset": "21/1",
+    "measure": 22,
+    "_page": 42
+   },
+   {
+    "pitch": "C5",
+    "midi": 72,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "43/2",
+    "measure": 22,
+    "_x": 534.98,
+    "_page": 42
+   },
+   {
+    "pitch": "Bb4",
+    "midi": 70,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "22/1",
+    "measure": 23,
+    "_x": 561.2,
+    "_page": 42
+   },
+   {
+    "pitch": "A4",
+    "midi": 69,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "45/2",
+    "measure": 23,
+    "_x": 588.0,
+    "_page": 42
+   },
+   {
+    "pitch": "G4",
+    "midi": 67,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "23/1",
+    "measure": 24,
+    "_x": 623.29,
+    "_page": 42
+   },
+   {
+    "pitch": "G4",
+    "midi": 67,
+    "rest": false,
+    "duration": "1/2",
+    "offset": "47/2",
+    "measure": 24,
+    "_x": 650.1,
+    "_page": 42
+   },
+   {
+    "pitch": "F4",
+    "midi": 65,
+    "rest": false,
+    "duration": "1/1",
+    "offset": "24/1",
+    "measure": 25,
+    "fermata": true,
+    "_x": 686.37,
+    "_page": 42
+   }
+  ],
+  "figures": []
+ },
+ "basses": [
+  {
+   "role": "bass 1",
+   "label": "[1]",
+   "notes": [
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "0/1",
+     "measure": 1,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "1/2",
+     "measure": 1,
+     "_x": 127.51,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "1/1",
+     "measure": 2,
+     "_x": 158.84,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "3/2",
+     "measure": 2,
+     "_x": 180.69,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "2/1",
+     "measure": 3,
+     "_x": 212.42,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "5/2",
+     "measure": 3,
+     "slur": "start",
+     "_x": 243.28,
+     "_page": 41
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "11/4",
+     "measure": 3,
+     "slur": "stop",
+     "_x": 258.72,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "3/1",
+     "measure": 4,
+     "fermata": true,
+     "_x": 281.38,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "4/1",
+     "measure": 5,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "9/2",
+     "measure": 5,
+     "_x": 341.33,
+     "_page": 41
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "5/1",
+     "measure": 6,
+     "_x": 370.42,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "11/2",
+     "measure": 6,
+     "slur": "start",
+     "_x": 392.27,
+     "_page": 41
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "23/4",
+     "measure": 6,
+     "slur": "stop",
+     "_x": 407.71,
+     "_page": 41
+    },
+    {
+     "pitch": "G2",
+     "midi": 43,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "6/1",
+     "measure": 7,
+     "_x": 430.37,
+     "_page": 41
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "13/2",
+     "measure": 7,
+     "_x": 452.22,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "7/1",
+     "measure": 8,
+     "_x": 490.3,
+     "_page": 41
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "8/1",
+     "measure": 9,
+     "fermata": true,
+     "_x": 550.25,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "9/1",
+     "measure": 10,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "19/2",
+     "measure": 10,
+     "slur": "start",
+     "_x": 618.71,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "39/4",
+     "measure": 10,
+     "slur": "stop",
+     "_x": 634.14,
+     "_page": 41
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "10/1",
+     "measure": 11,
+     "_x": 659.03,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "21/2",
+     "measure": 11,
+     "_x": 680.89,
+     "_page": 41
+    },
+    {
+     "pitch": "G3",
+     "midi": 55,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "11/1",
+     "measure": 12,
+     "_x": 709.98,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "23/2",
+     "measure": 12,
+     "_x": 731.83,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "12/1",
+     "measure": 13,
+     "fermata": true,
+     "_x": 769.92,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "13/1",
+     "measure": 14,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "27/2",
+     "measure": 14,
+     "_x": 135.95,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "14/1",
+     "measure": 15,
+     "_x": 162.16,
+     "_page": 42
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "29/2",
+     "measure": 15,
+     "_x": 188.97,
+     "_page": 42
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "15/1",
+     "measure": 16,
+     "_x": 225.64,
+     "_page": 42
+    },
+    {
+     "pitch": "G3",
+     "midi": 55,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "31/2",
+     "measure": 16,
+     "_x": 252.45,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "16/1",
+     "measure": 17,
+     "fermata": true,
+     "_x": 286.49,
+     "_page": 42
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "17/1",
+     "measure": 18,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "35/2",
+     "measure": 18,
+     "_x": 339.51,
+     "_page": 42
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "18/1",
+     "measure": 19,
+     "_x": 373.55,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "37/2",
+     "measure": 19,
+     "_x": 392.53,
+     "_page": 42
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "19/1",
+     "measure": 20,
+     "_x": 426.56,
+     "_page": 42
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "39/2",
+     "measure": 20,
+     "_x": 445.55,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "20/1",
+     "measure": 21,
+     "fermata": true,
+     "_x": 471.74,
+     "_page": 42
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "21/1",
+     "measure": 22,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "43/2",
+     "measure": 22,
+     "_x": 534.98,
+     "_page": 42
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "22/1",
+     "measure": 23,
+     "slur": "start",
+     "_x": 561.2,
+     "_page": 42
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "89/4",
+     "measure": 23,
+     "slur": "stop",
+     "_x": 574.6,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "45/2",
+     "measure": 23,
+     "_x": 588.0,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "23/1",
+     "measure": 24,
+     "_x": 623.29,
+     "_page": 42
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "24/1",
+     "measure": 25,
+     "fermata": true,
+     "_x": 686.37,
+     "_page": 42
+    }
+   ],
+   "figures": [
+    {
+     "onset": "3/2",
+     "placed": "over_note",
+     "x": 181.33,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 144.4,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "7/4",
+     "placed": "subdivided",
+     "x": 188.83,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 144.4,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "5/2",
+     "placed": "over_note",
+     "x": 243.87,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 144.4,
+       "interval": 6,
+       "extender_to_x": 266.43
+      }
+     ]
+    },
+    {
+     "onset": "9/2",
+     "placed": "over_note",
+     "x": 342.05,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 144.4,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "19/4",
+     "placed": "subdivided",
+     "x": 349.39,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 144.4,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "5/1",
+     "placed": "over_note",
+     "x": 371.01,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 144.4,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "11/2",
+     "placed": "over_note",
+     "x": 392.99,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 137.5,
+       "interval": 5
+      },
+      {
+       "level": 0,
+       "y": 144.4,
+       "interval": 3,
+       "extender_to_x": 429.99
+      }
+     ]
+    },
+    {
+     "onset": "6/1",
+     "placed": "over_note",
+     "x": 430.96,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 144.4,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "7/1",
+     "placed": "over_note",
+     "x": 491.99,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 137.5,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 144.4,
+       "interval": 8,
+       "extender_to_x": 531.12
+      }
+     ]
+    },
+    {
+     "onset": "15/2",
+     "placed": "column",
+     "x": 521.17,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 137.5,
+       "interval": 3,
+       "extender_to_x": 536.97
+      }
+     ]
+    },
+    {
+     "onset": "31/4",
+     "placed": "subdivided",
+     "x": 532.09,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 144.4,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "8/1",
+     "placed": "over_note",
+     "x": 552.0,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 137.5,
+       "interval": 8
+      },
+      {
+       "level": 0,
+       "y": 144.4,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "10/1",
+     "placed": "over_note",
+     "x": 659.62,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 144.4,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "11/1",
+     "placed": "over_note",
+     "x": 710.69,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 144.4,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "45/4",
+     "placed": "subdivided",
+     "x": 718.03,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 144.4,
+       "interval": 2
+      }
+     ]
+    },
+    {
+     "onset": "23/2",
+     "placed": "over_note",
+     "x": 732.41,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 144.4,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "29/2",
+     "placed": "over_note",
+     "x": 189.56,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 138.1,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "31/2",
+     "placed": "over_note",
+     "x": 249.66,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 131.2,
+       "interval": 3,
+       "accidental": "natural",
+       "editorial": true
+      },
+      {
+       "level": 0,
+       "y": 138.1,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "63/4",
+     "placed": "column",
+     "x": 265.86,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 138.1,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "18/1",
+     "placed": "over_note",
+     "x": 374.14,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 138.1,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "73/4",
+     "placed": "subdivided",
+     "x": 381.73,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 138.1,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "19/1",
+     "placed": "over_note",
+     "x": 427.15,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 138.1,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "39/2",
+     "placed": "over_note",
+     "x": 446.13,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 138.1,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "22/1",
+     "placed": "over_note",
+     "x": 561.79,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 138.1,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "23/1",
+     "placed": "over_note",
+     "x": 624.98,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 131.2,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 138.1,
+       "interval": 8,
+       "extender_to_x": 649.13
+      }
+     ]
+    },
+    {
+     "onset": "93/4",
+     "placed": "column",
+     "x": 636.69,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 131.2,
+       "interval": 3,
+       "extender_to_x": 649.13
+      }
+     ]
+    },
+    {
+     "onset": "47/2",
+     "placed": "column",
+     "x": 650.1,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 138.1,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "24/1",
+     "placed": "over_note",
+     "x": 688.11,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 131.2,
+       "interval": 8
+      },
+      {
+       "level": 0,
+       "y": 138.1,
+       "interval": 3
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "role": "bass 2",
+   "label": "[2]",
+   "notes": [
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "0/1",
+     "measure": 1,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "1/2",
+     "measure": 1,
+     "_x": 127.51,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "1/1",
+     "measure": 2,
+     "_x": 158.84,
+     "_page": 41
+    },
+    {
+     "pitch": "B2",
+     "midi": 47,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "3/2",
+     "measure": 2,
+     "accidental_shown": true,
+     "_x": 180.69,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "2/1",
+     "measure": 3,
+     "_x": 212.42,
+     "_page": 41
+    },
+    {
+     "pitch": "C#3",
+     "midi": 49,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "5/2",
+     "measure": 3,
+     "accidental_shown": true,
+     "_x": 243.28,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "3/1",
+     "measure": 4,
+     "fermata": true,
+     "_x": 281.38,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "4/1",
+     "measure": 5,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "9/2",
+     "measure": 5,
+     "_x": 341.33,
+     "_page": 41
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "5/1",
+     "measure": 6,
+     "_x": 370.42,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "11/2",
+     "measure": 6,
+     "tie": "start",
+     "_x": 392.27,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "6/1",
+     "measure": 7,
+     "tie": "stop",
+     "_x": 430.37,
+     "_page": 41
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "13/2",
+     "measure": 7,
+     "slur": "start",
+     "_x": 452.22,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "27/4",
+     "measure": 7,
+     "slur": "stop",
+     "_x": 467.64,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "7/1",
+     "measure": 8,
+     "_x": 490.3,
+     "_page": 41
+    },
+    {
+     "pitch": "C2",
+     "midi": 36,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "15/2",
+     "measure": 8,
+     "_x": 521.17,
+     "_page": 41
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "8/1",
+     "measure": 9,
+     "fermata": true,
+     "_x": 550.25,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "9/1",
+     "measure": 10,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "19/2",
+     "measure": 10,
+     "_x": 618.71,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "10/1",
+     "measure": 11,
+     "_x": 659.03,
+     "_page": 41
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "21/2",
+     "measure": 11,
+     "_x": 680.89,
+     "_page": 41
+    },
+    {
+     "pitch": "G2",
+     "midi": 43,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "11/1",
+     "measure": 12,
+     "_x": 709.98,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "23/2",
+     "measure": 12,
+     "slur": "start",
+     "_x": 731.83,
+     "_page": 41
+    },
+    {
+     "pitch": "G2",
+     "midi": 43,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "47/4",
+     "measure": 12,
+     "slur": "stop",
+     "_x": 747.26,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "12/1",
+     "measure": 13,
+     "fermata": true,
+     "_x": 769.92,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "13/1",
+     "measure": 14,
+     "_page": 42
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "27/2",
+     "measure": 14,
+     "_x": 135.95,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "14/1",
+     "measure": 15,
+     "_x": 162.16,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "29/2",
+     "measure": 15,
+     "_x": 188.97,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "15/1",
+     "measure": 16,
+     "_x": 225.64,
+     "_page": 42
+    },
+    {
+     "pitch": "G3",
+     "midi": 55,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "31/2",
+     "measure": 16,
+     "_x": 252.45,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "16/1",
+     "measure": 17,
+     "fermata": true,
+     "_x": 286.49,
+     "_page": 42
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "17/1",
+     "measure": 18,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "35/2",
+     "measure": 18,
+     "slur": "start",
+     "_x": 339.51,
+     "_page": 42
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "71/4",
+     "measure": 18,
+     "slur": "stop",
+     "_x": 352.92,
+     "_page": 42
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "18/1",
+     "measure": 19,
+     "_x": 373.55,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "37/2",
+     "measure": 19,
+     "_x": 392.53,
+     "_page": 42
+    },
+    {
+     "pitch": "G3",
+     "midi": 55,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "19/1",
+     "measure": 20,
+     "_x": 426.56,
+     "_page": 42
+    },
+    {
+     "pitch": "A3",
+     "midi": 57,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "39/2",
+     "measure": 20,
+     "_x": 445.55,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb3",
+     "midi": 58,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "20/1",
+     "measure": 21,
+     "fermata": true,
+     "_x": 471.74,
+     "_page": 42
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "21/1",
+     "measure": 22,
+     "_page": 42
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "43/2",
+     "measure": 22,
+     "_x": 534.98,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "22/1",
+     "measure": 23,
+     "_x": 561.2,
+     "_page": 42
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "45/2",
+     "measure": 23,
+     "_x": 588.0,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "23/1",
+     "measure": 24,
+     "_x": 623.29,
+     "_page": 42
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "24/1",
+     "measure": 25,
+     "fermata": true,
+     "_x": 686.37,
+     "_page": 42
+    }
+   ],
+   "figures": [
+    {
+     "onset": "3/2",
+     "placed": "over_note",
+     "x": 181.28,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 195.1,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 203.1,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "5/2",
+     "placed": "over_note",
+     "x": 240.05,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 203.1,
+       "interval": 7,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "3/1",
+     "placed": "over_note",
+     "x": 283.07,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 195.1,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 203.1,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "7/2",
+     "placed": "subdivided",
+     "x": 290.67,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 195.1,
+       "interval": 5
+      },
+      {
+       "level": 0,
+       "y": 203.1,
+       "interval": 3,
+       "accidental": "natural"
+      }
+     ]
+    },
+    {
+     "onset": "5/1",
+     "placed": "over_note",
+     "x": 371.01,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 195.1,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 203.1,
+       "interval": 5,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "11/2",
+     "placed": "over_note",
+     "x": 392.99,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 195.1,
+       "interval": 5
+      },
+      {
+       "level": 0,
+       "y": 203.1,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "6/1",
+     "placed": "over_note",
+     "x": 430.96,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 195.1,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 203.1,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "13/2",
+     "placed": "over_note",
+     "x": 452.81,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 203.1,
+       "interval": 6,
+       "extender_to_x": 475.35
+      }
+     ]
+    },
+    {
+     "onset": "7/1",
+     "placed": "over_note",
+     "x": 490.89,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 195.1,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 203.1,
+       "interval": 8,
+       "extender_to_x": 531.71
+      }
+     ]
+    },
+    {
+     "onset": "15/2",
+     "placed": "over_note",
+     "x": 521.88,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 195.1,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "31/4",
+     "placed": "subdivided",
+     "x": 532.68,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 203.1,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "8/1",
+     "placed": "over_note",
+     "x": 552.0,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 195.1,
+       "interval": 8
+      },
+      {
+       "level": 0,
+       "y": 203.1,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "10/1",
+     "placed": "over_note",
+     "x": 659.56,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 195.1,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 203.1,
+       "interval": 2
+      }
+     ]
+    },
+    {
+     "onset": "21/2",
+     "placed": "over_note",
+     "x": 681.48,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 203.1,
+       "interval": 6,
+       "raised": true
+      }
+     ]
+    },
+    {
+     "onset": "23/2",
+     "placed": "over_note",
+     "x": 732.42,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 203.1,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "12/1",
+     "placed": "over_note",
+     "x": 771.62,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 195.1,
+       "interval": 5,
+       "extender_to_x": 785.36
+      },
+      {
+       "level": 0,
+       "y": 203.1,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "25/2",
+     "placed": "subdivided",
+     "x": 778.23,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 203.1,
+       "interval": 3,
+       "accidental": "natural"
+      }
+     ]
+    },
+    {
+     "onset": "27/2",
+     "placed": "over_note",
+     "x": 136.54,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 191.4,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "15/1",
+     "placed": "over_note",
+     "x": 226.23,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 184.5,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 191.4,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "31/2",
+     "placed": "over_note",
+     "x": 249.66,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 184.5,
+       "interval": 3,
+       "accidental": "natural",
+       "editorial": true
+      },
+      {
+       "level": 0,
+       "y": 191.4,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "63/4",
+     "placed": "column",
+     "x": 265.86,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 191.4,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "18/1",
+     "placed": "over_note",
+     "x": 374.14,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 191.4,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "73/4",
+     "placed": "subdivided",
+     "x": 381.73,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 191.4,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "37/2",
+     "placed": "over_note",
+     "x": 393.24,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 191.4,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "75/4",
+     "placed": "subdivided",
+     "x": 400.56,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 191.4,
+       "interval": 7,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "19/1",
+     "placed": "over_note",
+     "x": 427.14,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 191.4,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "39/2",
+     "placed": "over_note",
+     "x": 446.13,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 191.4,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "43/2",
+     "placed": "over_note",
+     "x": 535.57,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 184.5,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 191.4,
+       "interval": 5,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "23/1",
+     "placed": "over_note",
+     "x": 624.98,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 184.5,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 191.4,
+       "interval": 8,
+       "extender_to_x": 649.13
+      }
+     ]
+    },
+    {
+     "onset": "93/4",
+     "placed": "column",
+     "x": 636.69,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 184.5,
+       "interval": 3,
+       "extender_to_x": 649.13
+      }
+     ]
+    },
+    {
+     "onset": "47/2",
+     "placed": "column",
+     "x": 650.1,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 191.4,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "24/1",
+     "placed": "over_note",
+     "x": 688.11,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 184.5,
+       "interval": 8
+      },
+      {
+       "level": 0,
+       "y": 191.4,
+       "interval": 3
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "role": "bass 3",
+   "label": "[3]",
+   "notes": [
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "0/1",
+     "measure": 1,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "1/2",
+     "measure": 1,
+     "_x": 127.51,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "1/1",
+     "measure": 2,
+     "_x": 158.84,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "3/2",
+     "measure": 2,
+     "_x": 180.69,
+     "_page": 41
+    },
+    {
+     "pitch": "F#2",
+     "midi": 42,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "2/1",
+     "measure": 3,
+     "accidental_shown": true,
+     "_x": 212.42,
+     "_page": 41
+    },
+    {
+     "pitch": "G2",
+     "midi": 43,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "5/2",
+     "measure": 3,
+     "_x": 243.28,
+     "_page": 41
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "3/1",
+     "measure": 4,
+     "fermata": true,
+     "_x": 281.38,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "4/1",
+     "measure": 5,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "9/2",
+     "measure": 5,
+     "_x": 341.33,
+     "_page": 41
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "5/1",
+     "measure": 6,
+     "_x": 370.42,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "11/2",
+     "measure": 6,
+     "_x": 392.27,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "6/1",
+     "measure": 7,
+     "_x": 430.37,
+     "_page": 41
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "13/2",
+     "measure": 7,
+     "slur": "start",
+     "_x": 452.22,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "27/4",
+     "measure": 7,
+     "slur": "stop",
+     "_x": 467.64,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "7/1",
+     "measure": 8,
+     "_x": 490.3,
+     "_page": 41
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "8/1",
+     "measure": 9,
+     "fermata": true,
+     "_x": 550.25,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "9/1",
+     "measure": 10,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "19/2",
+     "measure": 10,
+     "_x": 618.71,
+     "_page": 41
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "10/1",
+     "measure": 11,
+     "_x": 659.03,
+     "_page": 41
+    },
+    {
+     "pitch": "Eb3",
+     "midi": 51,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "21/2",
+     "measure": 11,
+     "accidental_shown": true,
+     "_x": 680.89,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "11/1",
+     "measure": 12,
+     "_x": 709.98,
+     "_page": 41
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "23/2",
+     "measure": 12,
+     "accidental_shown": true,
+     "_x": 731.83,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "12/1",
+     "measure": 13,
+     "fermata": true,
+     "_x": 769.92,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "13/1",
+     "measure": 14,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb3",
+     "midi": 58,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "27/2",
+     "measure": 14,
+     "accidental_shown": true,
+     "_x": 135.95,
+     "_page": 42
+    },
+    {
+     "pitch": "A3",
+     "midi": 57,
+     "rest": false,
+     "duration": "3/4",
+     "offset": "14/1",
+     "measure": 15,
+     "_x": 162.16,
+     "_page": 42
+    },
+    {
+     "pitch": "G3",
+     "midi": 55,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "59/4",
+     "measure": 15,
+     "_x": 202.38,
+     "_page": 42
+    },
+    {
+     "pitch": "F#3",
+     "midi": 54,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "15/1",
+     "measure": 16,
+     "accidental_shown": true,
+     "_x": 225.64,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "31/2",
+     "measure": 16,
+     "accidental_shown": true,
+     "_x": 252.45,
+     "_page": 42
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "16/1",
+     "measure": 17,
+     "fermata": true,
+     "_x": 286.49,
+     "_page": 42
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "17/1",
+     "measure": 18,
+     "_page": 42
+    },
+    {
+     "pitch": "A3",
+     "midi": 57,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "35/2",
+     "measure": 18,
+     "_x": 339.51,
+     "_page": 42
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "18/1",
+     "measure": 19,
+     "_x": 373.55,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "37/2",
+     "measure": 19,
+     "slur": "start",
+     "_x": 392.53,
+     "_page": 42
+    },
+    {
+     "pitch": "Eb3",
+     "midi": 51,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "75/4",
+     "measure": 19,
+     "slur": "stop",
+     "accidental_shown": true,
+     "_x": 405.93,
+     "_page": 42
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "19/1",
+     "measure": 20,
+     "_x": 426.56,
+     "_page": 42
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "39/2",
+     "measure": 20,
+     "_x": 445.55,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "20/1",
+     "measure": 21,
+     "fermata": true,
+     "_x": 471.74,
+     "_page": 42
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "21/1",
+     "measure": 22,
+     "_page": 42
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "43/2",
+     "measure": 22,
+     "_x": 534.98,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "22/1",
+     "measure": 23,
+     "slur": "start",
+     "_x": 561.2,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "89/4",
+     "measure": 23,
+     "slur": "stop",
+     "_x": 574.6,
+     "_page": 42
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "45/2",
+     "measure": 23,
+     "slur": "start",
+     "_x": 588.0,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "91/4",
+     "measure": 23,
+     "slur": "stop",
+     "_x": 601.41,
+     "_page": 42
+    },
+    {
+     "pitch": "B2",
+     "midi": 47,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "23/1",
+     "measure": 24,
+     "slur": "start",
+     "accidental_shown": true,
+     "_x": 623.29,
+     "_page": 42
+    },
+    {
+     "pitch": "G2",
+     "midi": 43,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "93/4",
+     "measure": 24,
+     "slur": "stop",
+     "_x": 636.69,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "47/2",
+     "measure": 24,
+     "slur": "start",
+     "_x": 650.1,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "95/4",
+     "measure": 24,
+     "slur": "stop",
+     "accidental_shown": true,
+     "_x": 663.5,
+     "_page": 42
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "24/1",
+     "measure": 25,
+     "_x": 686.37,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "49/2",
+     "measure": 25,
+     "_x": 713.17,
+     "_page": 42
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "25/1",
+     "measure": 26,
+     "fermata": true,
+     "_x": 747.21,
+     "_page": 42
+    }
+   ],
+   "figures": [
+    {
+     "onset": "3/2",
+     "placed": "over_note",
+     "x": 181.28,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "2/1",
+     "placed": "over_note",
+     "x": 209.18,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 7,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "5/2",
+     "placed": "over_note",
+     "x": 243.92,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "11/4",
+     "placed": "subdivided",
+     "x": 251.42,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "3/1",
+     "placed": "over_note",
+     "x": 283.59,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 262.7,
+       "accidental": "sharp"
+      }
+     ]
+    },
+    {
+     "onset": "9/2",
+     "placed": "over_note",
+     "x": 342.05,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "19/4",
+     "placed": "subdivided",
+     "x": 349.39,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "5/1",
+     "placed": "over_note",
+     "x": 371.01,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "21/4",
+     "placed": "subdivided",
+     "x": 378.6,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "6/1",
+     "placed": "over_note",
+     "x": 430.96,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 254.8,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "25/4",
+     "placed": "subdivided",
+     "x": 438.55,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 254.8,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 2
+      }
+     ]
+    },
+    {
+     "onset": "13/2",
+     "placed": "over_note",
+     "x": 452.81,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 6,
+       "extender_to_x": 475.35
+      }
+     ]
+    },
+    {
+     "onset": "7/1",
+     "placed": "over_note",
+     "x": 491.99,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 254.8,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 8,
+       "extender_to_x": 531.71
+      }
+     ]
+    },
+    {
+     "onset": "15/2",
+     "placed": "column",
+     "x": 521.75,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 254.8,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "31/4",
+     "placed": "subdivided",
+     "x": 532.68,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "8/1",
+     "placed": "over_note",
+     "x": 552.0,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 254.8,
+       "interval": 8
+      },
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "19/2",
+     "placed": "over_note",
+     "x": 619.23,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 254.8,
+       "interval": 4,
+       "accidental": "natural"
+      },
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 2
+      }
+     ]
+    },
+    {
+     "onset": "10/1",
+     "placed": "over_note",
+     "x": 659.62,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "21/2",
+     "placed": "over_note",
+     "x": 681.41,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 254.8,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 2
+      }
+     ]
+    },
+    {
+     "onset": "11/1",
+     "placed": "over_note",
+     "x": 710.57,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "23/2",
+     "placed": "over_note",
+     "x": 732.42,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 254.8,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "12/1",
+     "placed": "over_note",
+     "x": 771.62,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 9
+      }
+     ]
+    },
+    {
+     "onset": "25/2",
+     "placed": "subdivided",
+     "x": 779.21,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 262.7,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "27/2",
+     "placed": "over_note",
+     "x": 136.47,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 233.5,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 241.5,
+       "interval": 2
+      }
+     ]
+    },
+    {
+     "onset": "14/1",
+     "placed": "over_note",
+     "x": 162.75,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 243.6,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "29/2",
+     "placed": "column",
+     "x": 189.56,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 243.6,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "15/1",
+     "placed": "over_note",
+     "x": 226.23,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 235.7,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 243.6,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "31/2",
+     "placed": "over_note",
+     "x": 253.04,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 235.7,
+       "interval": 4,
+       "accidental": "natural"
+      },
+      {
+       "level": 0,
+       "y": 243.6,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "16/1",
+     "placed": "over_note",
+     "x": 288.18,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 243.6,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "35/2",
+     "placed": "over_note",
+     "x": 340.1,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 242.6,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "18/1",
+     "placed": "over_note",
+     "x": 374.14,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 243.6,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "73/4",
+     "placed": "subdivided",
+     "x": 381.26,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 243.6,
+       "interval": 5,
+       "extender_to_x": 426.18
+      }
+     ]
+    },
+    {
+     "onset": "19/1",
+     "placed": "over_note",
+     "x": 427.15,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 243.6,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "39/2",
+     "placed": "over_note",
+     "x": 446.13,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 243.6,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "20/1",
+     "placed": "over_note",
+     "x": 473.44,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 243.6,
+       "interval": 9
+      }
+     ]
+    },
+    {
+     "onset": "41/2",
+     "placed": "subdivided",
+     "x": 481.03,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 243.6,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "43/2",
+     "placed": "over_note",
+     "x": 535.57,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 235.7,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 243.6,
+       "interval": 5,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "22/1",
+     "placed": "over_note",
+     "x": 561.79,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 243.6,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "89/4",
+     "placed": "over_note",
+     "x": 575.18,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 243.6,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "45/2",
+     "placed": "over_note",
+     "x": 589.75,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 243.6,
+       "accidental": "natural",
+       "extender_to_x": 622.91
+      }
+     ]
+    },
+    {
+     "onset": "23/1",
+     "placed": "over_note",
+     "x": 623.88,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 235.7,
+       "interval": 6,
+       "extender_to_x": 685.98
+      },
+      {
+       "level": 0,
+       "y": 243.6,
+       "interval": 5,
+       "extender_to_x": 650.4
+      }
+     ]
+    },
+    {
+     "onset": "47/2",
+     "placed": "over_note",
+     "x": 651.35,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 243.6,
+       "accidental": "flat",
+       "extender_to_x": 685.98
+      }
+     ]
+    },
+    {
+     "onset": "24/1",
+     "placed": "over_note",
+     "x": 686.96,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 235.7,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 243.6,
+       "interval": 5,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "49/2",
+     "placed": "over_note",
+     "x": 713.89,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 235.7,
+       "interval": 5
+      },
+      {
+       "level": 0,
+       "y": 243.6,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "25/1",
+     "placed": "over_note",
+     "x": 748.91,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 235.7,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 243.6,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "51/2",
+     "placed": "subdivided",
+     "x": 756.5,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 235.7,
+       "interval": 5
+      },
+      {
+       "level": 0,
+       "y": 243.6,
+       "interval": 3
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "role": "bass 4",
+   "label": "[4]",
+   "notes": [
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "0/1",
+     "measure": 1,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "1/2",
+     "measure": 1,
+     "_x": 127.51,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "1/1",
+     "measure": 2,
+     "_x": 158.84,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "3/2",
+     "measure": 2,
+     "_x": 180.69,
+     "_page": 41
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "2/1",
+     "measure": 3,
+     "_x": 212.42,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "5/2",
+     "measure": 3,
+     "_x": 243.28,
+     "_page": 41
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "3/1",
+     "measure": 4,
+     "fermata": true,
+     "_x": 281.38,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "4/1",
+     "measure": 5,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "9/2",
+     "measure": 5,
+     "_x": 341.33,
+     "_page": 41
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "5/1",
+     "measure": 6,
+     "_x": 370.42,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "11/2",
+     "measure": 6,
+     "_x": 392.27,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "6/1",
+     "measure": 7,
+     "_x": 430.37,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "13/2",
+     "measure": 7,
+     "_x": 452.22,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "7/1",
+     "measure": 8,
+     "slur": "start",
+     "_x": 490.3,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "15/2",
+     "measure": 8,
+     "slur": "stop",
+     "_x": 521.17,
+     "_page": 41
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "8/1",
+     "measure": 9,
+     "fermata": true,
+     "_x": 550.25,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "9/1",
+     "measure": 10,
+     "_page": 41
+    },
+    {
+     "pitch": "B2",
+     "midi": 47,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "19/2",
+     "measure": 10,
+     "accidental_shown": true,
+     "_x": 618.71,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "10/1",
+     "measure": 11,
+     "_x": 659.03,
+     "_page": 41
+    },
+    {
+     "pitch": "F#2",
+     "midi": 42,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "21/2",
+     "measure": 11,
+     "accidental_shown": true,
+     "_x": 680.89,
+     "_page": 41
+    },
+    {
+     "pitch": "G2",
+     "midi": 43,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "11/1",
+     "measure": 12,
+     "_x": 709.98,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "23/2",
+     "measure": 12,
+     "_x": 731.83,
+     "_page": 41
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "12/1",
+     "measure": 13,
+     "fermata": true,
+     "_x": 769.92,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "13/1",
+     "measure": 14,
+     "_page": 42
+    },
+    {
+     "pitch": "B2",
+     "midi": 47,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "27/2",
+     "measure": 14,
+     "accidental_shown": true,
+     "_x": 135.95,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "14/1",
+     "measure": 15,
+     "slur": "start",
+     "_x": 162.16,
+     "_page": 42
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "57/4",
+     "measure": 15,
+     "slur": "stop",
+     "_x": 175.57,
+     "_page": 42
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "29/2",
+     "measure": 15,
+     "_x": 188.97,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "15/1",
+     "measure": 16,
+     "_x": 225.64,
+     "_page": 42
+    },
+    {
+     "pitch": "G3",
+     "midi": 55,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "31/2",
+     "measure": 16,
+     "_x": 252.45,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "16/1",
+     "measure": 17,
+     "fermata": true,
+     "_x": 286.49,
+     "_page": 42
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "17/1",
+     "measure": 18,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "35/2",
+     "measure": 18,
+     "tie": "start",
+     "_x": 339.51,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "18/1",
+     "measure": 19,
+     "tie": "continue",
+     "_x": 373.55,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "19/1",
+     "measure": 20,
+     "tie": "stop",
+     "_x": 426.56,
+     "_page": 42
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "39/2",
+     "measure": 20,
+     "_x": 445.55,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "20/1",
+     "measure": 21,
+     "fermata": true,
+     "_x": 471.74,
+     "_page": 42
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "21/1",
+     "measure": 22,
+     "_page": 42
+    },
+    {
+     "pitch": "F#2",
+     "midi": 42,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "43/2",
+     "measure": 22,
+     "accidental_shown": true,
+     "_x": 534.98,
+     "_page": 42
+    },
+    {
+     "pitch": "G2",
+     "midi": 43,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "22/1",
+     "measure": 23,
+     "_x": 561.2,
+     "_page": 42
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "45/2",
+     "measure": 23,
+     "slur": "start",
+     "_x": 588.0,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "91/4",
+     "measure": 23,
+     "slur": "stop",
+     "_x": 601.41,
+     "_page": 42
+    },
+    {
+     "pitch": "B2",
+     "midi": 47,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "23/1",
+     "measure": 24,
+     "accidental_shown": true,
+     "_x": 623.29,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "47/2",
+     "measure": 24,
+     "_x": 650.1,
+     "_page": 42
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "24/1",
+     "measure": 25,
+     "fermata": true,
+     "_x": 686.37,
+     "_page": 42
+    }
+   ],
+   "figures": [
+    {
+     "onset": "2/1",
+     "placed": "over_note",
+     "x": 213.01,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 316.8,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 323.7,
+       "interval": 5,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "5/1",
+     "placed": "over_note",
+     "x": 371.01,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 323.7,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "11/2",
+     "placed": "over_note",
+     "x": 392.85,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 323.7,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "6/1",
+     "placed": "over_note",
+     "x": 431.08,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 316.8,
+       "interval": 5
+      },
+      {
+       "level": 0,
+       "y": 323.7,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "7/1",
+     "placed": "over_note",
+     "x": 490.89,
+     "page": 41,
+     "stack": [
+      {
+       "level": 2,
+       "y": 309.9,
+       "interval": 6
+      },
+      {
+       "level": 1,
+       "y": 316.8,
+       "interval": 5
+      },
+      {
+       "level": 0,
+       "y": 323.7,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "29/4",
+     "placed": "subdivided",
+     "x": 498.48,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 323.7,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "15/2",
+     "placed": "over_note",
+     "x": 521.17,
+     "page": 41,
+     "stack": [
+      {
+       "level": 2,
+       "y": 301.1,
+       "interval": 5
+      },
+      {
+       "level": 1,
+       "y": 308.4,
+       "interval": 3
+      },
+      {
+       "level": 0,
+       "y": 315.7,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "31/4",
+     "placed": "subdivided",
+     "x": 532.09,
+     "page": 41,
+     "stack": [
+      {
+       "level": 2,
+       "y": 301.1,
+       "continuation": true
+      },
+      {
+       "level": 1,
+       "y": 308.4,
+       "continuation": true
+      },
+      {
+       "level": 0,
+       "y": 315.7,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "8/1",
+     "placed": "over_note",
+     "x": 550.25,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 301.1,
+       "interval": 3
+      },
+      {
+       "level": 0,
+       "y": 315.7,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "19/2",
+     "placed": "over_note",
+     "x": 619.3,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 316.8,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 323.7,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "21/2",
+     "placed": "over_note",
+     "x": 677.66,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 323.7,
+       "interval": 7,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "11/1",
+     "placed": "over_note",
+     "x": 710.69,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 316.8,
+       "interval": 5
+      },
+      {
+       "level": 0,
+       "y": 323.7,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "23/2",
+     "placed": "over_note",
+     "x": 732.41,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 323.7,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "27/2",
+     "placed": "over_note",
+     "x": 136.54,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 290.0,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "14/1",
+     "placed": "over_note",
+     "x": 162.75,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 290.0,
+       "interval": 6,
+       "extender_to_x": 182.27
+      },
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 4,
+       "extender_to_x": 182.27
+      }
+     ]
+    },
+    {
+     "onset": "29/2",
+     "placed": "over_note",
+     "x": 189.56,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "15/1",
+     "placed": "over_note",
+     "x": 226.23,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 290.0,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "31/2",
+     "placed": "over_note",
+     "x": 249.66,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 290.0,
+       "interval": 3,
+       "accidental": "natural",
+       "editorial": true
+      },
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "63/4",
+     "placed": "column",
+     "x": 266.45,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "35/2",
+     "placed": "over_note",
+     "x": 340.23,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 290.0,
+       "interval": 5
+      },
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "18/1",
+     "placed": "over_note",
+     "x": 375.18,
+     "page": 42,
+     "stack": [
+      {
+       "level": 2,
+       "y": 283.2,
+       "interval": 5
+      },
+      {
+       "level": 1,
+       "y": 290.0,
+       "interval": 2,
+       "extender_to_x": 387.78
+      },
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 7,
+       "extender_to_x": 387.78
+      }
+     ]
+    },
+    {
+     "onset": "73/4",
+     "placed": "subdivided",
+     "x": 383.63,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 283.2,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "37/2",
+     "placed": "column",
+     "x": 393.12,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 290.0,
+       "interval": 3,
+       "extender_to_x": 409.28
+      },
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "75/4",
+     "placed": "subdivided",
+     "x": 401.04,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 7,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "19/1",
+     "placed": "over_note",
+     "x": 427.15,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 290.0,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "39/2",
+     "placed": "over_note",
+     "x": 446.26,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 290.0,
+       "interval": 5
+      },
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "43/2",
+     "placed": "over_note",
+     "x": 531.75,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 290.0,
+       "interval": 7,
+       "accidental": "flat"
+      },
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "22/1",
+     "placed": "over_note",
+     "x": 561.91,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 5,
+       "editorial": true
+      }
+     ]
+    },
+    {
+     "onset": "89/4",
+     "placed": "subdivided",
+     "x": 570.2,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 6,
+       "accidental": "natural",
+       "editorial": true
+      }
+     ]
+    },
+    {
+     "onset": "45/2",
+     "placed": "over_note",
+     "x": 589.75,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 297.0,
+       "accidental": "natural"
+      }
+     ]
+    },
+    {
+     "onset": "23/1",
+     "placed": "over_note",
+     "x": 623.88,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 290.0,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "47/2",
+     "placed": "over_note",
+     "x": 646.37,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 290.0,
+       "interval": 3,
+       "accidental": "flat",
+       "editorial": true
+      },
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "95/4",
+     "placed": "column",
+     "x": 660.28,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 7,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "24/1",
+     "placed": "over_note",
+     "x": 684.24,
+     "page": 42,
+     "stack": [
+      {
+       "level": 2,
+       "y": 283.2,
+       "interval": 8,
+       "extender_to_x": 712.79
+      },
+      {
+       "level": 1,
+       "y": 290.0,
+       "interval": 7,
+       "accidental": "flat"
+      },
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "193/8",
+     "placed": "subdivided",
+     "x": 693.66,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 290.0,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 4,
+       "extender_to_x": 712.79
+      }
+     ]
+    },
+    {
+     "onset": "97/4",
+     "placed": "column",
+     "x": 700.36,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 290.0,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "49/2",
+     "placed": "column",
+     "x": 713.76,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 297.0,
+       "interval": 3
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "role": "bass 5",
+   "label": "[5]",
+   "notes": [
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "0/1",
+     "measure": 1,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "1/2",
+     "measure": 1,
+     "_x": 127.51,
+     "_page": 41
+    },
+    {
+     "pitch": "Eb3",
+     "midi": 51,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "1/1",
+     "measure": 2,
+     "accidental_shown": true,
+     "_x": 158.84,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "3/2",
+     "measure": 2,
+     "_x": 180.69,
+     "_page": 41
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "2/1",
+     "measure": 3,
+     "slur": "start",
+     "accidental_shown": true,
+     "_x": 212.42,
+     "_page": 41
+    },
+    {
+     "pitch": "F#3",
+     "midi": 54,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "9/4",
+     "measure": 3,
+     "slur": "stop",
+     "accidental_shown": true,
+     "_x": 227.85,
+     "_page": 41
+    },
+    {
+     "pitch": "G3",
+     "midi": 55,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "5/2",
+     "measure": 3,
+     "_x": 243.28,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "3/1",
+     "measure": 4,
+     "fermata": true,
+     "_x": 281.38,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "4/1",
+     "measure": 5,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "9/2",
+     "measure": 5,
+     "_x": 341.33,
+     "_page": 41
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "5/1",
+     "measure": 6,
+     "_x": 370.42,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "11/2",
+     "measure": 6,
+     "slur": "start",
+     "_x": 392.27,
+     "_page": 41
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "23/4",
+     "measure": 6,
+     "slur": "stop",
+     "_x": 407.71,
+     "_page": 41
+    },
+    {
+     "pitch": "G2",
+     "midi": 43,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "6/1",
+     "measure": 7,
+     "_x": 430.37,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "13/2",
+     "measure": 7,
+     "_x": 452.22,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "7/1",
+     "measure": 8,
+     "_x": 490.3,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "15/2",
+     "measure": 8,
+     "_x": 521.17,
+     "_page": 41
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "8/1",
+     "measure": 9,
+     "fermata": true,
+     "_x": 550.25,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "9/1",
+     "measure": 10,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "19/2",
+     "measure": 10,
+     "_x": 618.71,
+     "_page": 41
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "10/1",
+     "measure": 11,
+     "_x": 659.03,
+     "_page": 41
+    },
+    {
+     "pitch": "F#3",
+     "midi": 54,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "21/2",
+     "measure": 11,
+     "accidental_shown": true,
+     "_x": 680.89,
+     "_page": 41
+    },
+    {
+     "pitch": "G3",
+     "midi": 55,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "11/1",
+     "measure": 12,
+     "_x": 709.98,
+     "_page": 41
+    },
+    {
+     "pitch": "G2",
+     "midi": 43,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "23/2",
+     "measure": 12,
+     "_x": 731.83,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "12/1",
+     "measure": 13,
+     "fermata": true,
+     "_x": 769.92,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "13/1",
+     "measure": 14,
+     "_page": 42
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "27/2",
+     "measure": 14,
+     "_x": 135.95,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "14/1",
+     "measure": 15,
+     "_x": 162.16,
+     "_page": 42
+    },
+    {
+     "pitch": "Eb3",
+     "midi": 51,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "29/2",
+     "measure": 15,
+     "accidental_shown": true,
+     "_x": 188.97,
+     "_page": 42
+    },
+    {
+     "pitch": "Ab3",
+     "midi": 56,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "15/1",
+     "measure": 16,
+     "accidental_shown": true,
+     "_x": 225.64,
+     "_page": 42
+    },
+    {
+     "pitch": "G3",
+     "midi": 55,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "31/2",
+     "measure": 16,
+     "_x": 252.45,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "63/4",
+     "measure": 16,
+     "_x": 265.86,
+     "_page": 42
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "16/1",
+     "measure": 17,
+     "fermata": true,
+     "_x": 286.49,
+     "_page": 42
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "17/1",
+     "measure": 18,
+     "_page": 42
+    },
+    {
+     "pitch": "A3",
+     "midi": 57,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "35/2",
+     "measure": 18,
+     "_x": 339.51,
+     "_page": 42
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "18/1",
+     "measure": 19,
+     "_x": 373.55,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "37/2",
+     "measure": 19,
+     "_x": 392.53,
+     "_page": 42
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "19/1",
+     "measure": 20,
+     "_x": 426.56,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "39/2",
+     "measure": 20,
+     "_x": 445.55,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "20/1",
+     "measure": 21,
+     "fermata": true,
+     "_x": 471.74,
+     "_page": 42
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "21/1",
+     "measure": 22,
+     "_page": 42
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "43/2",
+     "measure": 22,
+     "_x": 534.98,
+     "_page": 42
+    },
+    {
+     "pitch": "G2",
+     "midi": 43,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "22/1",
+     "measure": 23,
+     "_x": 561.2,
+     "_page": 42
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "45/2",
+     "measure": 23,
+     "_x": 588.0,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "23/1",
+     "measure": 24,
+     "_x": 623.29,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "47/2",
+     "measure": 24,
+     "_x": 650.1,
+     "_page": 42
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "24/1",
+     "measure": 25,
+     "fermata": true,
+     "_x": 686.37,
+     "_page": 42
+    }
+   ],
+   "figures": [
+    {
+     "onset": "1/1",
+     "placed": "over_note",
+     "x": 159.36,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 375.3,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 2
+      }
+     ]
+    },
+    {
+     "onset": "3/2",
+     "placed": "over_note",
+     "x": 181.28,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "2/1",
+     "placed": "over_note",
+     "x": 213.01,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "9/4",
+     "placed": "over_note",
+     "x": 228.44,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 375.3,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "5/2",
+     "placed": "over_note",
+     "x": 243.87,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 9
+      }
+     ]
+    },
+    {
+     "onset": "11/4",
+     "placed": "subdivided",
+     "x": 251.47,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "3/1",
+     "placed": "over_note",
+     "x": 283.07,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "7/2",
+     "placed": "subdivided",
+     "x": 290.67,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 382.3,
+       "accidental": "natural"
+      }
+     ]
+    },
+    {
+     "onset": "9/2",
+     "placed": "over_note",
+     "x": 342.05,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "19/4",
+     "placed": "subdivided",
+     "x": 349.39,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "5/1",
+     "placed": "over_note",
+     "x": 371.01,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "11/2",
+     "placed": "over_note",
+     "x": 392.99,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 375.3,
+       "interval": 5,
+       "extender_to_x": 413.49
+      },
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 3,
+       "extender_to_x": 413.49
+      }
+     ]
+    },
+    {
+     "onset": "6/1",
+     "placed": "over_note",
+     "x": 430.96,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "7/1",
+     "placed": "over_note",
+     "x": 490.89,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 375.3,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "15/2",
+     "placed": "over_note",
+     "x": 521.8,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "31/4",
+     "placed": "subdivided",
+     "x": 529.3,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "8/1",
+     "placed": "over_note",
+     "x": 552.0,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 375.3,
+       "interval": 8
+      },
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "19/2",
+     "placed": "over_note",
+     "x": 619.23,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 375.3,
+       "interval": 4,
+       "accidental": "natural"
+      },
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 2
+      }
+     ]
+    },
+    {
+     "onset": "10/1",
+     "placed": "over_note",
+     "x": 659.03,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 375.1,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 382.4,
+       "interval": 6,
+       "accidental": "flat",
+       "editorial": true
+      }
+     ]
+    },
+    {
+     "onset": "41/4",
+     "placed": "subdivided",
+     "x": 669.96,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 375.1,
+       "continuation": true
+      },
+      {
+       "level": 0,
+       "y": 382.4,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "21/2",
+     "placed": "over_note",
+     "x": 681.48,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "11/1",
+     "placed": "over_note",
+     "x": 710.57,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 9
+      }
+     ]
+    },
+    {
+     "onset": "23/2",
+     "placed": "over_note",
+     "x": 732.47,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "12/1",
+     "placed": "over_note",
+     "x": 771.62,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 375.3,
+       "interval": 5,
+       "extender_to_x": 782.46
+      },
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "25/2",
+     "placed": "subdivided",
+     "x": 778.23,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 382.3,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "27/2",
+     "placed": "over_note",
+     "x": 136.54,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 350.3,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "29/2",
+     "placed": "over_note",
+     "x": 189.56,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 350.3,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "15/1",
+     "placed": "over_note",
+     "x": 226.23,
+     "page": 42,
+     "stack": [
+      {
+       "level": 2,
+       "y": 335.6,
+       "interval": 6
+      },
+      {
+       "level": 1,
+       "y": 342.3,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 350.3,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "31/2",
+     "placed": "over_note",
+     "x": 254.2,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 350.3,
+       "accidental": "natural"
+      }
+     ]
+    },
+    {
+     "onset": "16/1",
+     "placed": "over_note",
+     "x": 288.18,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 350.3,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "35/2",
+     "placed": "over_note",
+     "x": 340.1,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 350.3,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "18/1",
+     "placed": "over_note",
+     "x": 374.14,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 350.3,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "73/4",
+     "placed": "subdivided",
+     "x": 381.73,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 350.3,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "37/2",
+     "placed": "over_note",
+     "x": 393.12,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 350.3,
+       "interval": 9
+      }
+     ]
+    },
+    {
+     "onset": "19/1",
+     "placed": "over_note",
+     "x": 427.15,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 350.3,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "39/2",
+     "placed": "over_note",
+     "x": 446.13,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 342.3,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 350.3,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "22/1",
+     "placed": "over_note",
+     "x": 561.77,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 350.3,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "89/4",
+     "placed": "subdivided",
+     "x": 569.39,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 350.3,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "45/2",
+     "placed": "over_note",
+     "x": 588.59,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 350.3,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "23/1",
+     "placed": "over_note",
+     "x": 623.88,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 342.3,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 350.3,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "47/2",
+     "placed": "over_note",
+     "x": 650.73,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 350.3,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "95/4",
+     "placed": "subdivided",
+     "x": 658.23,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 350.3,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "24/1",
+     "placed": "over_note",
+     "x": 688.11,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 342.3,
+       "interval": 8
+      },
+      {
+       "level": 0,
+       "y": 350.3,
+       "interval": 3
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "role": "bass 6",
+   "label": "[6]",
+   "notes": [
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "0/1",
+     "measure": 1,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "1/2",
+     "measure": 1,
+     "_x": 127.51,
+     "_page": 41
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "1/1",
+     "measure": 2,
+     "_x": 158.84,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "3/2",
+     "measure": 2,
+     "_x": 180.69,
+     "_page": 41
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "2/1",
+     "measure": 3,
+     "_x": 212.42,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "5/2",
+     "measure": 3,
+     "slur": "start",
+     "_x": 243.28,
+     "_page": 41
+    },
+    {
+     "pitch": "G2",
+     "midi": 43,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "11/4",
+     "measure": 3,
+     "slur": "stop",
+     "_x": 258.72,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "3/1",
+     "measure": 4,
+     "fermata": true,
+     "_x": 281.38,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "4/1",
+     "measure": 5,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "9/2",
+     "measure": 5,
+     "_x": 341.33,
+     "_page": 41
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "5/1",
+     "measure": 6,
+     "_x": 370.42,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "11/2",
+     "measure": 6,
+     "tie": "start",
+     "_x": 392.27,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "6/1",
+     "measure": 7,
+     "tie": "stop",
+     "_x": 430.37,
+     "_page": 41
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "13/2",
+     "measure": 7,
+     "_x": 452.22,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "7/1",
+     "measure": 8,
+     "_x": 490.3,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "15/2",
+     "measure": 8,
+     "_x": 521.17,
+     "_page": 41
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "8/1",
+     "measure": 9,
+     "fermata": true,
+     "_x": 550.25,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "9/1",
+     "measure": 10,
+     "_page": 41
+    },
+    {
+     "pitch": "B2",
+     "midi": 47,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "19/2",
+     "measure": 10,
+     "accidental_shown": true,
+     "_x": 618.71,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "10/1",
+     "measure": 11,
+     "accidental_shown": true,
+     "_x": 659.03,
+     "_page": 41
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "21/2",
+     "measure": 11,
+     "_x": 680.89,
+     "_page": 41
+    },
+    {
+     "pitch": "G2",
+     "midi": 43,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "11/1",
+     "measure": 12,
+     "_x": 709.98,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "23/2",
+     "measure": 12,
+     "_x": 731.83,
+     "_page": 41
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "12/1",
+     "measure": 13,
+     "fermata": true,
+     "_x": 769.92,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "13/1",
+     "measure": 14,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb3",
+     "midi": 58,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "27/2",
+     "measure": 14,
+     "_x": 135.95,
+     "_page": 42
+    },
+    {
+     "pitch": "A3",
+     "midi": 57,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "14/1",
+     "measure": 15,
+     "_x": 162.16,
+     "_page": 42
+    },
+    {
+     "pitch": "G3",
+     "midi": 55,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "29/2",
+     "measure": 15,
+     "_x": 188.97,
+     "_page": 42
+    },
+    {
+     "pitch": "F#3",
+     "midi": 54,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "15/1",
+     "measure": 16,
+     "accidental_shown": true,
+     "_x": 225.64,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "31/2",
+     "measure": 16,
+     "accidental_shown": true,
+     "_x": 252.45,
+     "_page": 42
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "16/1",
+     "measure": 17,
+     "fermata": true,
+     "_x": 286.49,
+     "_page": 42
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "17/1",
+     "measure": 18,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "35/2",
+     "measure": 18,
+     "_x": 339.51,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "18/1",
+     "measure": 19,
+     "_x": 373.55,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "37/2",
+     "measure": 19,
+     "_x": 392.53,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "19/1",
+     "measure": 20,
+     "_x": 426.56,
+     "_page": 42
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "39/2",
+     "measure": 20,
+     "_x": 445.55,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "20/1",
+     "measure": 21,
+     "fermata": true,
+     "_x": 471.74,
+     "_page": 42
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "21/1",
+     "measure": 22,
+     "_page": 42
+    },
+    {
+     "pitch": "Eb3",
+     "midi": 51,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "43/2",
+     "measure": 22,
+     "accidental_shown": true,
+     "_x": 534.98,
+     "_page": 42
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "22/1",
+     "measure": 23,
+     "_x": 561.2,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "45/2",
+     "measure": 23,
+     "_x": 588.0,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "23/1",
+     "measure": 24,
+     "_x": 623.29,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "47/2",
+     "measure": 24,
+     "slur": "start",
+     "_x": 650.1,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "95/4",
+     "measure": 24,
+     "slur": "stop",
+     "_x": 663.5,
+     "_page": 42
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "24/1",
+     "measure": 25,
+     "slur": "start",
+     "_x": 686.37,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "97/4",
+     "measure": 25,
+     "slur": "stop",
+     "_x": 699.77,
+     "_page": 42
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "49/2",
+     "measure": 25,
+     "fermata": true,
+     "_x": 713.17,
+     "_page": 42
+    }
+   ],
+   "figures": [
+    {
+     "onset": "1/1",
+     "placed": "over_note",
+     "x": 159.43,
+     "page": 41,
+     "stack": [
+      {
+       "level": 2,
+       "y": 428.1,
+       "interval": 6,
+       "raised": true
+      },
+      {
+       "level": 1,
+       "y": 435.1,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 443.1,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "3/2",
+     "placed": "over_note",
+     "x": 181.33,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 435.1,
+       "interval": 8
+      },
+      {
+       "level": 0,
+       "y": 443.1,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "2/1",
+     "placed": "over_note",
+     "x": 213.01,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 435.1,
+       "interval": 6,
+       "raised": true
+      },
+      {
+       "level": 0,
+       "y": 443.1,
+       "interval": 5,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "5/2",
+     "placed": "over_note",
+     "x": 243.87,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 443.1,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "3/1",
+     "placed": "over_note",
+     "x": 283.07,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 443.1,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "7/2",
+     "placed": "subdivided",
+     "x": 290.67,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 443.1,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "5/1",
+     "placed": "over_note",
+     "x": 371.01,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 443.1,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "11/2",
+     "placed": "over_note",
+     "x": 392.99,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 435.1,
+       "interval": 5
+      },
+      {
+       "level": 0,
+       "y": 443.1,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "6/1",
+     "placed": "over_note",
+     "x": 430.89,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 435.1,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 443.1,
+       "interval": 2
+      }
+     ]
+    },
+    {
+     "onset": "13/2",
+     "placed": "over_note",
+     "x": 452.81,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 443.1,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "7/1",
+     "placed": "over_note",
+     "x": 490.89,
+     "page": 41,
+     "stack": [
+      {
+       "level": 2,
+       "y": 428.1,
+       "interval": 6,
+       "accidental": "natural"
+      },
+      {
+       "level": 1,
+       "y": 435.1,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 443.1,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "15/2",
+     "placed": "over_note",
+     "x": 521.8,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 443.1,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "31/4",
+     "placed": "subdivided",
+     "x": 529.28,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 443.1,
+       "interval": 7,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "8/1",
+     "placed": "over_note",
+     "x": 552.0,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 435.1,
+       "interval": 8
+      },
+      {
+       "level": 0,
+       "y": 443.1,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "19/2",
+     "placed": "over_note",
+     "x": 619.3,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 435.1,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 443.1,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "10/1",
+     "placed": "over_note",
+     "x": 659.62,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 435.1,
+       "interval": 4,
+       "accidental": "natural"
+      },
+      {
+       "level": 0,
+       "y": 443.1,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "21/2",
+     "placed": "over_note",
+     "x": 681.48,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 443.1,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "11/1",
+     "placed": "over_note",
+     "x": 710.55,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 443.1,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "23/2",
+     "placed": "over_note",
+     "x": 732.41,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 443.1,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "27/2",
+     "placed": "over_note",
+     "x": 136.47,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 393.6,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 401.5,
+       "interval": 2
+      }
+     ]
+    },
+    {
+     "onset": "14/1",
+     "placed": "over_note",
+     "x": 162.75,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 403.1,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "29/2",
+     "placed": "over_note",
+     "x": 189.56,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 396.7,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 404.7,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "15/1",
+     "placed": "over_note",
+     "x": 226.23,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 396.7,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 404.7,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "31/2",
+     "placed": "over_note",
+     "x": 253.04,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 396.7,
+       "interval": 4,
+       "accidental": "natural"
+      },
+      {
+       "level": 0,
+       "y": 404.7,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "16/1",
+     "placed": "over_note",
+     "x": 288.18,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 404.7,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "18/1",
+     "placed": "over_note",
+     "x": 374.19,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 404.7,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "73/4",
+     "placed": "subdivided",
+     "x": 381.69,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 404.7,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "37/2",
+     "placed": "over_note",
+     "x": 389.3,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 404.7,
+       "interval": 7,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "39/2",
+     "placed": "over_note",
+     "x": 446.13,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 404.7,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "20/1",
+     "placed": "over_note",
+     "x": 473.44,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 404.7,
+       "interval": 9
+      }
+     ]
+    },
+    {
+     "onset": "41/2",
+     "placed": "subdivided",
+     "x": 481.03,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 404.7,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "43/2",
+     "placed": "over_note",
+     "x": 535.5,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 396.7,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 404.7,
+       "interval": 2
+      }
+     ]
+    },
+    {
+     "onset": "22/1",
+     "placed": "over_note",
+     "x": 561.79,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 404.7,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "45/2",
+     "placed": "over_note",
+     "x": 588.59,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 396.7,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 404.7,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "23/1",
+     "placed": "over_note",
+     "x": 623.88,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 396.7,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 404.7,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "47/2",
+     "placed": "over_note",
+     "x": 651.35,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 404.7,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "24/1",
+     "placed": "over_note",
+     "x": 686.96,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 396.7,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 404.7,
+       "interval": 5,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "97/4",
+     "placed": "over_note",
+     "x": 700.48,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 396.7,
+       "interval": 5
+      },
+      {
+       "level": 0,
+       "y": 404.7,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "49/2",
+     "placed": "over_note",
+     "x": 713.76,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 396.7,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 404.7,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "99/4",
+     "placed": "subdivided",
+     "x": 721.36,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 396.7,
+       "interval": 5
+      },
+      {
+       "level": 0,
+       "y": 404.7,
+       "interval": 3
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "role": "bass 7",
+   "label": "[7]",
+   "notes": [
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "0/1",
+     "measure": 1,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "1/2",
+     "measure": 1,
+     "tie": "start",
+     "_x": 127.51,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "1/1",
+     "measure": 2,
+     "tie": "continue",
+     "_x": 158.84,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "2/1",
+     "measure": 3,
+     "tie": "continue",
+     "_x": 212.42,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "3/1",
+     "measure": 4,
+     "fermata": true,
+     "tie": "stop",
+     "_x": 281.38,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "4/1",
+     "measure": 5,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "9/2",
+     "measure": 5,
+     "_x": 341.33,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "5/1",
+     "measure": 6,
+     "_x": 370.42,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "6/1",
+     "measure": 7,
+     "_x": 430.37,
+     "_page": 41
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "13/2",
+     "measure": 7,
+     "slur": "start",
+     "_x": 452.22,
+     "_page": 41
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "27/4",
+     "measure": 7,
+     "slur": "stop",
+     "_x": 467.64,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "7/1",
+     "measure": 8,
+     "slur": "start",
+     "_x": 490.3,
+     "_page": 41
+    },
+    {
+     "pitch": "G2",
+     "midi": 43,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "29/4",
+     "measure": 8,
+     "slur": "stop",
+     "_x": 505.73,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "15/2",
+     "measure": 8,
+     "_x": 521.17,
+     "_page": 41
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "8/1",
+     "measure": 9,
+     "fermata": true,
+     "_x": 550.25,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "9/1",
+     "measure": 10,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "19/2",
+     "measure": 10,
+     "_x": 618.71,
+     "_page": 41
+    },
+    {
+     "pitch": "B2",
+     "midi": 47,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "10/1",
+     "measure": 11,
+     "accidental_shown": true,
+     "_x": 659.03,
+     "_page": 41
+    },
+    {
+     "pitch": "C#3",
+     "midi": 49,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "21/2",
+     "measure": 11,
+     "accidental_shown": true,
+     "_x": 680.89,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "11/1",
+     "measure": 12,
+     "_x": 709.98,
+     "_page": 41
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "23/2",
+     "measure": 12,
+     "_x": 731.83,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "12/1",
+     "measure": 13,
+     "fermata": true,
+     "_x": 769.92,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "13/1",
+     "measure": 14,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "27/2",
+     "measure": 14,
+     "_x": 135.95,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "14/1",
+     "measure": 15,
+     "_x": 162.16,
+     "_page": 42
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "29/2",
+     "measure": 15,
+     "_x": 188.97,
+     "_page": 42
+    },
+    {
+     "pitch": "A3",
+     "midi": 57,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "15/1",
+     "measure": 16,
+     "_x": 225.64,
+     "_page": 42
+    },
+    {
+     "pitch": "G3",
+     "midi": 55,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "31/2",
+     "measure": 16,
+     "_x": 252.45,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "16/1",
+     "measure": 17,
+     "fermata": true,
+     "_x": 286.49,
+     "_page": 42
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "17/1",
+     "measure": 18,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "35/2",
+     "measure": 18,
+     "_x": 339.51,
+     "_page": 42
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "18/1",
+     "measure": 19,
+     "_x": 373.55,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "37/2",
+     "measure": 19,
+     "_x": 392.53,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "19/1",
+     "measure": 20,
+     "_x": 426.56,
+     "_page": 42
+    },
+    {
+     "pitch": "Eb3",
+     "midi": 51,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "39/2",
+     "measure": 20,
+     "accidental_shown": true,
+     "_x": 445.55,
+     "_page": 42
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "20/1",
+     "measure": 21,
+     "fermata": true,
+     "_x": 471.74,
+     "_page": 42
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "21/1",
+     "measure": 22,
+     "_page": 42
+    },
+    {
+     "pitch": "Eb3",
+     "midi": 51,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "43/2",
+     "measure": 22,
+     "accidental_shown": true,
+     "_x": 534.98,
+     "_page": 42
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "22/1",
+     "measure": 23,
+     "_x": 561.2,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "45/2",
+     "measure": 23,
+     "_x": 588.0,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "23/1",
+     "measure": 24,
+     "_x": 623.29,
+     "_page": 42
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "47/2",
+     "measure": 24,
+     "_x": 650.1,
+     "_page": 42
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "24/1",
+     "measure": 25,
+     "slur": "start",
+     "_x": 686.37,
+     "_page": 42
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "49/2",
+     "measure": 25,
+     "_x": 713.17,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "25/1",
+     "measure": 26,
+     "slur": "stop",
+     "_x": 747.21,
+     "_page": 42
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "26/1",
+     "measure": 27,
+     "fermata": true,
+     "_x": 792.41,
+     "_page": 42
+    }
+   ],
+   "figures": [
+    {
+     "onset": "1/2",
+     "placed": "over_note",
+     "x": 128.15,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 495.9,
+       "interval": 3
+      },
+      {
+       "level": 0,
+       "y": 502.8,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "1/1",
+     "placed": "over_note",
+     "x": 156.71,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 495.9,
+       "interval": 3
+      },
+      {
+       "level": 0,
+       "y": 502.8,
+       "interval": 7,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "3/2",
+     "placed": "column",
+     "x": 181.28,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 494.4,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 501.2,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "2/1",
+     "placed": "over_note",
+     "x": 210.29,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 495.9,
+       "interval": 7,
+       "accidental": "flat"
+      },
+      {
+       "level": 0,
+       "y": 502.8,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "5/2",
+     "placed": "column",
+     "x": 243.87,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 493.8,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 500.7,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "3/1",
+     "placed": "over_note",
+     "x": 283.2,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 495.9,
+       "interval": 5
+      },
+      {
+       "level": 0,
+       "y": 502.8,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "9/2",
+     "placed": "over_note",
+     "x": 342.05,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 495.9,
+       "interval": 5
+      },
+      {
+       "level": 0,
+       "y": 502.8,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "5/1",
+     "placed": "over_note",
+     "x": 372.24,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 495.9,
+       "interval": 5
+      },
+      {
+       "level": 0,
+       "y": 502.8,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "11/2",
+     "placed": "column",
+     "x": 392.86,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 495.9,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 502.8,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "6/1",
+     "placed": "over_note",
+     "x": 430.89,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 495.9,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 502.8,
+       "interval": 2
+      }
+     ]
+    },
+    {
+     "onset": "13/2",
+     "placed": "over_note",
+     "x": 452.81,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 502.8,
+       "interval": 6,
+       "extender_to_x": 475.35
+      }
+     ]
+    },
+    {
+     "onset": "7/1",
+     "placed": "over_note",
+     "x": 490.89,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 495.9,
+       "interval": 9
+      },
+      {
+       "level": 0,
+       "y": 502.8,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "15/2",
+     "placed": "over_note",
+     "x": 521.74,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 502.8,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "8/1",
+     "placed": "over_note",
+     "x": 552.0,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 495.9,
+       "interval": 8
+      },
+      {
+       "level": 0,
+       "y": 502.8,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "19/2",
+     "placed": "over_note",
+     "x": 619.42,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 495.9,
+       "interval": 5
+      },
+      {
+       "level": 0,
+       "y": 502.8,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "10/1",
+     "placed": "over_note",
+     "x": 659.62,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 502.8,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "21/2",
+     "placed": "over_note",
+     "x": 681.48,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 502.8,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "11/1",
+     "placed": "over_note",
+     "x": 710.57,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 502.8,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "23/2",
+     "placed": "over_note",
+     "x": 732.42,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 495.9,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 502.8,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "12/1",
+     "placed": "over_note",
+     "x": 771.62,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 502.8,
+       "interval": 9
+      }
+     ]
+    },
+    {
+     "onset": "25/2",
+     "placed": "subdivided",
+     "x": 779.21,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 502.8,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "29/2",
+     "placed": "over_note",
+     "x": 189.56,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 456.9,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "15/1",
+     "placed": "over_note",
+     "x": 226.23,
+     "page": 42,
+     "stack": [
+      {
+       "level": 2,
+       "y": 442.2,
+       "interval": 6,
+       "raised": true
+      },
+      {
+       "level": 1,
+       "y": 448.9,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 456.9,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "31/2",
+     "placed": "over_note",
+     "x": 249.66,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 448.9,
+       "interval": 3,
+       "accidental": "natural",
+       "editorial": true
+      },
+      {
+       "level": 0,
+       "y": 456.9,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "63/4",
+     "placed": "column",
+     "x": 266.45,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 456.9,
+       "interval": 7,
+       "accidental": "natural"
+      }
+     ]
+    },
+    {
+     "onset": "16/1",
+     "placed": "over_note",
+     "x": 288.23,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 448.9,
+       "interval": 8
+      },
+      {
+       "level": 0,
+       "y": 456.9,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "35/2",
+     "placed": "over_note",
+     "x": 340.04,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 448.9,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 456.9,
+       "interval": 2
+      }
+     ]
+    },
+    {
+     "onset": "18/1",
+     "placed": "over_note",
+     "x": 374.14,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 456.9,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "37/2",
+     "placed": "over_note",
+     "x": 389.43,
+     "page": 42,
+     "stack": [
+      {
+       "level": 2,
+       "y": 442.2,
+       "interval": 6
+      },
+      {
+       "level": 1,
+       "y": 448.9,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 456.9,
+       "interval": 3,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "39/2",
+     "placed": "over_note",
+     "x": 446.13,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 456.9,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "20/1",
+     "placed": "over_note",
+     "x": 473.44,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 456.9,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "41/2",
+     "placed": "subdivided",
+     "x": 481.06,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 456.9,
+       "accidental": "sharp"
+      }
+     ]
+    },
+    {
+     "onset": "43/2",
+     "placed": "over_note",
+     "x": 535.57,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 456.9,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "22/1",
+     "placed": "over_note",
+     "x": 561.79,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 448.9,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 456.9,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "45/2",
+     "placed": "over_note",
+     "x": 588.59,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 448.9,
+       "interval": 4,
+       "raised": true
+      },
+      {
+       "level": 0,
+       "y": 456.9,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "23/1",
+     "placed": "over_note",
+     "x": 623.88,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 456.9,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "47/2",
+     "placed": "over_note",
+     "x": 650.68,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 448.9,
+       "interval": 7
+      },
+      {
+       "level": 0,
+       "y": 456.9,
+       "accidental": "sharp"
+      }
+     ]
+    },
+    {
+     "onset": "49/2",
+     "placed": "over_note",
+     "x": 713.76,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 448.9,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 456.9,
+       "interval": 5,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "25/1",
+     "placed": "over_note",
+     "x": 748.91,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 456.9,
+       "interval": 9
+      }
+     ]
+    },
+    {
+     "onset": "51/2",
+     "placed": "subdivided",
+     "x": 756.5,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 456.9,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "26/1",
+     "placed": "over_note",
+     "x": 794.1,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 456.9,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "53/2",
+     "placed": "subdivided",
+     "x": 801.7,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 456.9,
+       "interval": 3
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "role": "bass 8",
+   "label": "[8]",
+   "notes": [
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "0/1",
+     "measure": 1,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "1/2",
+     "measure": 1,
+     "_x": 127.51,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "1/1",
+     "measure": 2,
+     "_x": 158.84,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "3/2",
+     "measure": 2,
+     "_x": 180.69,
+     "_page": 41
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "2/1",
+     "measure": 3,
+     "_x": 212.42,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "5/2",
+     "measure": 3,
+     "_x": 243.28,
+     "_page": 41
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "3/1",
+     "measure": 4,
+     "fermata": true,
+     "_x": 281.38,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "4/1",
+     "measure": 5,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "9/2",
+     "measure": 5,
+     "_x": 341.33,
+     "_page": 41
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "5/1",
+     "measure": 6,
+     "_x": 370.42,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "11/2",
+     "measure": 6,
+     "_x": 392.27,
+     "_page": 41
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "6/1",
+     "measure": 7,
+     "_x": 430.37,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "13/2",
+     "measure": 7,
+     "_x": 452.22,
+     "_page": 41
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "7/1",
+     "measure": 8,
+     "slur": "start",
+     "_x": 490.3,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "15/2",
+     "measure": 8,
+     "slur": "stop",
+     "_x": 521.17,
+     "_page": 41
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "8/1",
+     "measure": 9,
+     "fermata": true,
+     "_x": 550.25,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "9/1",
+     "measure": 10,
+     "_page": 41
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "19/2",
+     "measure": 10,
+     "slur": "start",
+     "_x": 618.71,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "39/4",
+     "measure": 10,
+     "slur": "stop",
+     "_x": 634.14,
+     "_page": 41
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "10/1",
+     "measure": 11,
+     "_x": 659.03,
+     "_page": 41
+    },
+    {
+     "pitch": "Eb3",
+     "midi": 51,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "21/2",
+     "measure": 11,
+     "accidental_shown": true,
+     "_x": 680.89,
+     "_page": 41
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "11/1",
+     "measure": 12,
+     "_x": 709.98,
+     "_page": 41
+    },
+    {
+     "pitch": "Eb3",
+     "midi": 51,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "23/2",
+     "measure": 12,
+     "accidental_shown": true,
+     "_x": 731.83,
+     "_page": 41
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "12/1",
+     "measure": 13,
+     "fermata": true,
+     "_x": 769.92,
+     "_page": 41
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "13/1",
+     "measure": 14,
+     "_page": 42
+    },
+    {
+     "pitch": "G3",
+     "midi": 55,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "27/2",
+     "measure": 14,
+     "_x": 135.95,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "14/1",
+     "measure": 15,
+     "_x": 162.16,
+     "_page": 42
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "29/2",
+     "measure": 15,
+     "slur": "start",
+     "_x": 188.97,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "59/4",
+     "measure": 15,
+     "slur": "stop",
+     "_x": 202.38,
+     "_page": 42
+    },
+    {
+     "pitch": "F#3",
+     "midi": 54,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "15/1",
+     "measure": 16,
+     "slur": "start",
+     "accidental_shown": true,
+     "_x": 225.64,
+     "_page": 42
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "61/4",
+     "measure": 16,
+     "slur": "stop",
+     "_x": 239.05,
+     "_page": 42
+    },
+    {
+     "pitch": "G#3",
+     "midi": 56,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "31/2",
+     "measure": 16,
+     "slur": "start",
+     "accidental_shown": true,
+     "_x": 252.45,
+     "_page": 42
+    },
+    {
+     "pitch": "E3",
+     "midi": 52,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "63/4",
+     "measure": 16,
+     "slur": "stop",
+     "_x": 265.86,
+     "_page": 42
+    },
+    {
+     "pitch": "A3",
+     "midi": 57,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "16/1",
+     "measure": 17,
+     "fermata": true,
+     "_x": 286.49,
+     "_page": 42
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "17/1",
+     "measure": 18,
+     "_page": 42
+    },
+    {
+     "pitch": "A3",
+     "midi": 57,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "35/2",
+     "measure": 18,
+     "accidental_shown": true,
+     "_x": 339.51,
+     "_page": 42
+    },
+    {
+     "pitch": "G3",
+     "midi": 55,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "18/1",
+     "measure": 19,
+     "_x": 373.55,
+     "_page": 42
+    },
+    {
+     "pitch": "Gb3",
+     "midi": 54,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "37/2",
+     "measure": 19,
+     "accidental_shown": true,
+     "_x": 392.53,
+     "_page": 42
+    },
+    {
+     "pitch": "F3",
+     "midi": 53,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "19/1",
+     "measure": 20,
+     "_x": 426.56,
+     "_page": 42
+    },
+    {
+     "pitch": "Eb3",
+     "midi": 51,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "39/2",
+     "measure": 20,
+     "accidental_shown": true,
+     "_x": 445.55,
+     "_page": 42
+    },
+    {
+     "pitch": "D3",
+     "midi": 50,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "20/1",
+     "measure": 21,
+     "fermata": true,
+     "_x": 471.74,
+     "_page": 42
+    },
+    {
+     "pitch": null,
+     "rest": true,
+     "duration": "1/2",
+     "offset": "21/1",
+     "measure": 22,
+     "_page": 42
+    },
+    {
+     "pitch": "A2",
+     "midi": 45,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "43/2",
+     "measure": 22,
+     "_x": 534.98,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "22/1",
+     "measure": 23,
+     "_x": 561.2,
+     "_page": 42
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "45/2",
+     "measure": 23,
+     "_x": 588.0,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "23/1",
+     "measure": 24,
+     "_x": 623.29,
+     "_page": 42
+    },
+    {
+     "pitch": "Db3",
+     "midi": 49,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "24/1",
+     "measure": 25,
+     "slur": "start",
+     "accidental_shown": true,
+     "_x": 686.37,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "97/4",
+     "measure": 25,
+     "_x": 699.77,
+     "_page": 42
+    },
+    {
+     "pitch": "Bb2",
+     "midi": 46,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "49/2",
+     "measure": 25,
+     "_x": 713.17,
+     "_page": 42
+    },
+    {
+     "pitch": "B2",
+     "midi": 47,
+     "rest": false,
+     "duration": "1/4",
+     "offset": "99/4",
+     "measure": 25,
+     "accidental_shown": true,
+     "_x": 726.58,
+     "_page": 42
+    },
+    {
+     "pitch": "C3",
+     "midi": 48,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "25/1",
+     "measure": 26,
+     "_x": 747.21,
+     "_page": 42
+    },
+    {
+     "pitch": "C2",
+     "midi": 36,
+     "rest": false,
+     "duration": "1/2",
+     "offset": "51/2",
+     "measure": 26,
+     "slur": "stop",
+     "_x": 766.19,
+     "_page": 42
+    },
+    {
+     "pitch": "F2",
+     "midi": 41,
+     "rest": false,
+     "duration": "1/1",
+     "offset": "26/1",
+     "measure": 27,
+     "fermata": true,
+     "_x": 792.41,
+     "_page": 42
+    }
+   ],
+   "figures": [
+    {
+     "onset": "1/2",
+     "placed": "over_note",
+     "x": 128.23,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.8,
+       "interval": 5
+      },
+      {
+       "level": 0,
+       "y": 561.8,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "1/1",
+     "placed": "over_note",
+     "x": 159.43,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.8,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 561.8,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "2/1",
+     "placed": "over_note",
+     "x": 213.01,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.8,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 561.8,
+       "interval": 5,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "5/2",
+     "placed": "over_note",
+     "x": 243.87,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 561.8,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "11/4",
+     "placed": "subdivided",
+     "x": 251.47,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 561.8,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "5/1",
+     "placed": "over_note",
+     "x": 371.01,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 561.8,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "21/4",
+     "placed": "subdivided",
+     "x": 378.6,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 561.8,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "11/2",
+     "placed": "over_note",
+     "x": 392.91,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.8,
+       "interval": 8
+      },
+      {
+       "level": 0,
+       "y": 561.8,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "6/1",
+     "placed": "over_note",
+     "x": 430.96,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 561.8,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "7/1",
+     "placed": "over_note",
+     "x": 490.89,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.8,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 561.8,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "15/2",
+     "placed": "over_note",
+     "x": 521.8,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 561.8,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "31/4",
+     "placed": "subdivided",
+     "x": 529.3,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 561.8,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "8/1",
+     "placed": "over_note",
+     "x": 552.0,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.8,
+       "interval": 8
+      },
+      {
+       "level": 0,
+       "y": 561.8,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "19/2",
+     "placed": "over_note",
+     "x": 619.42,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.8,
+       "interval": 5,
+       "extender_to_x": 634.14
+      },
+      {
+       "level": 0,
+       "y": 561.8,
+       "interval": 3,
+       "extender_to_x": 634.14
+      }
+     ]
+    },
+    {
+     "onset": "10/1",
+     "placed": "over_note",
+     "x": 659.62,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 561.8,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "21/2",
+     "placed": "over_note",
+     "x": 681.41,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.8,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 561.8,
+       "interval": 2,
+       "raised": true
+      }
+     ]
+    },
+    {
+     "onset": "11/1",
+     "placed": "over_note",
+     "x": 710.57,
+     "page": 41,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.8,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 561.8,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "23/2",
+     "placed": "over_note",
+     "x": 728.6,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 561.8,
+       "interval": 7,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "12/1",
+     "placed": "over_note",
+     "x": 771.62,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 561.8,
+       "interval": 9
+      }
+     ]
+    },
+    {
+     "onset": "25/2",
+     "placed": "subdivided",
+     "x": 779.21,
+     "page": 41,
+     "stack": [
+      {
+       "level": 0,
+       "y": 561.8,
+       "interval": 8
+      }
+     ]
+    },
+    {
+     "onset": "27/2",
+     "placed": "over_note",
+     "x": 136.54,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "14/1",
+     "placed": "over_note",
+     "x": 162.88,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.5,
+       "interval": 3
+      },
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "57/4",
+     "placed": "subdivided",
+     "x": 170.22,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.5,
+       "interval": 4,
+       "accidental": "natural"
+      },
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "29/2",
+     "placed": "over_note",
+     "x": 189.56,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "15/1",
+     "placed": "over_note",
+     "x": 226.23,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.5,
+       "interval": 6,
+       "extender_to_x": 245.75
+      },
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 5,
+       "extender_to_x": 245.75
+      }
+     ]
+    },
+    {
+     "onset": "31/2",
+     "placed": "over_note",
+     "x": 253.04,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.5,
+       "interval": 6,
+       "extender_to_x": 272.55
+      },
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 5,
+       "extender_to_x": 272.55
+      }
+     ]
+    },
+    {
+     "onset": "35/2",
+     "placed": "over_note",
+     "x": 340.1,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "18/1",
+     "placed": "over_note",
+     "x": 374.14,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.5,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "73/4",
+     "placed": "subdivided",
+     "x": 380.07,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "37/2",
+     "placed": "over_note",
+     "x": 393.05,
+     "page": 42,
+     "stack": [
+      {
+       "level": 2,
+       "y": 546.8,
+       "interval": 6,
+       "accidental": "flat"
+      },
+      {
+       "level": 1,
+       "y": 553.5,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 2,
+       "accidental": "natural"
+      }
+     ]
+    },
+    {
+     "onset": "19/1",
+     "placed": "over_note",
+     "x": 427.15,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.5,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 4
+      }
+     ]
+    },
+    {
+     "onset": "39/2",
+     "placed": "over_note",
+     "x": 446.07,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.5,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 2
+      }
+     ]
+    },
+    {
+     "onset": "20/1",
+     "placed": "over_note",
+     "x": 473.44,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 6
+      }
+     ]
+    },
+    {
+     "onset": "43/2",
+     "placed": "over_note",
+     "x": 535.57,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.5,
+       "interval": 6
+      },
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 5,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "22/1",
+     "placed": "over_note",
+     "x": 561.83,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.5,
+       "interval": 8
+      },
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "23/1",
+     "placed": "over_note",
+     "x": 624.98,
+     "page": 42,
+     "stack": [
+      {
+       "level": 2,
+       "y": 546.8,
+       "interval": 5,
+       "extender_to_x": 649.72
+      },
+      {
+       "level": 1,
+       "y": 553.5,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 8,
+       "extender_to_x": 649.72
+      }
+     ]
+    },
+    {
+     "onset": "93/4",
+     "placed": "column",
+     "x": 637.28,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 553.5,
+       "interval": 3
+      }
+     ]
+    },
+    {
+     "onset": "47/2",
+     "placed": "column",
+     "x": 650.69,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 7
+      }
+     ]
+    },
+    {
+     "onset": "24/1",
+     "placed": "over_note",
+     "x": 687.08,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.5,
+       "interval": 3
+      },
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 5,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "97/4",
+     "placed": "over_note",
+     "x": 700.36,
+     "page": 42,
+     "stack": [
+      {
+       "level": 2,
+       "y": 546.8,
+       "interval": 6,
+       "accidental": "natural"
+      },
+      {
+       "level": 1,
+       "y": 553.5,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 561.5,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "49/2",
+     "placed": "over_note",
+     "x": 714.43,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 561.5,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "99/4",
+     "placed": "over_note",
+     "x": 723.35,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.5,
+       "interval": 3,
+       "accidental": "natural",
+       "editorial": true
+      },
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 7,
+       "accidental": "flat"
+      }
+     ]
+    },
+    {
+     "onset": "25/1",
+     "placed": "over_note",
+     "x": 747.8,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.5,
+       "interval": 4
+      },
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 5
+      }
+     ]
+    },
+    {
+     "onset": "101/4",
+     "placed": "subdivided",
+     "x": 755.39,
+     "page": 42,
+     "stack": [
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 6,
+       "accidental": "natural"
+      }
+     ]
+    },
+    {
+     "onset": "51/2",
+     "placed": "over_note",
+     "x": 766.77,
+     "page": 42,
+     "stack": [
+      {
+       "level": 1,
+       "y": 553.5,
+       "interval": 3
+      },
+      {
+       "level": 0,
+       "y": 561.5,
+       "interval": 7
+      }
+     ]
+    }
+   ],
+   "melody_variant": {
+    "notes": [
+     {
+      "pitch": null,
+      "rest": true,
+      "duration": "1/2",
+      "offset": "21/1",
+      "measure": 22,
+      "_page": 42
+     },
+     {
+      "pitch": "C5",
+      "midi": 72,
+      "rest": false,
+      "duration": "1/2",
+      "offset": "43/2",
+      "measure": 22,
+      "_x": 534.98,
+      "_page": 42
+     },
+     {
+      "pitch": "Bb4",
+      "midi": 70,
+      "rest": false,
+      "duration": "1/2",
+      "offset": "22/1",
+      "measure": 23,
+      "_x": 561.2,
+      "_page": 42
+     },
+     {
+      "pitch": "A4",
+      "midi": 69,
+      "rest": false,
+      "duration": "1/2",
+      "offset": "45/2",
+      "measure": 23,
+      "_x": 588.0,
+      "_page": 42
+     },
+     {
+      "pitch": "G4",
+      "midi": 67,
+      "rest": false,
+      "duration": "1/2",
+      "offset": "23/1",
+      "measure": 24,
+      "_x": 623.29,
+      "_page": 42
+     },
+     {
+      "pitch": "G4",
+      "midi": 67,
+      "rest": false,
+      "duration": "1/2",
+      "offset": "47/2",
+      "measure": 24,
+      "_x": 650.1,
+      "_page": 42
+     },
+     {
+      "pitch": "F4",
+      "midi": 65,
+      "rest": false,
+      "duration": "1/1",
+      "offset": "24/1",
+      "measure": 25,
+      "tie": "start",
+      "_x": 686.37,
+      "_page": 42
+     },
+     {
+      "pitch": "F4",
+      "midi": 65,
+      "rest": false,
+      "duration": "1/2",
+      "offset": "25/1",
+      "measure": 26,
+      "tie": "stop",
+      "_x": 747.21,
+      "_page": 42
+     },
+     {
+      "pitch": "E4",
+      "midi": 64,
+      "rest": false,
+      "duration": "1/2",
+      "offset": "51/2",
+      "measure": 26,
+      "_x": 766.19,
+      "_page": 42
+     },
+     {
+      "pitch": "F4",
+      "midi": 65,
+      "rest": false,
+      "duration": "1/1",
+      "offset": "26/1",
+      "measure": 27,
+      "fermata": true,
+      "_x": 792.41,
+      "_page": 42
+     }
+    ],
+    "note": "the melody as printed again above this bass, where the bass ends a phrase in another place"
+   }
+  }
+ ],
+ "extraction_report": [],
+ "findings": []
+}

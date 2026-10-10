@@ -1,3 +1,4 @@
+import type { Mode } from "./Root.tsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { repository } from "../music/fux/load-browser.ts";
 import { ALL_STEPS, COURSES, courseOf, rulesForStep, validateCurriculum } from "../counterpoint/curriculum/index.ts";
@@ -91,7 +92,7 @@ export interface GameLink {
   onTutorial?: (lessonId?: string) => void;
 }
 
-export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 2 | 3 | "wtc"): void } & GameLink) {
+export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: Mode): void } & GameLink) {
   const [stepIndex, setStepIndex] = useState(() => {
     const id = stored<string>("wtg.stepId", STEPS[0].id, (v) => typeof v === "string" && stepIndexOf(v) >= 0);
     return stepIndexOf(id);
@@ -877,9 +878,9 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
             value={COURSE.voices}
             aria-label={t("ui.nav.voices")}
             onChange={(e) => {
-              if (e.target.value === "wtc") {
+              if (e.target.value === "wtc" || e.target.value === "chorale" || e.target.value === "preludes") {
                 audio.stop();
-                onVoices("wtc");
+                onVoices(e.target.value);
                 return;
               }
               if (Number(e.target.value) === 3) {
@@ -898,6 +899,8 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
               </option>
             ))}
             <option value="wtc">{t("ui.wtc.mode")}</option>
+            <option value="chorale">{t("chorale.mode")}</option>
+            <option value="preludes">{t("wtcp.mode")}</option>
           </select>
           <select
             id="species"

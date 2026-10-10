@@ -1,0 +1,10 @@
+{
+  "repository": "https://github.com/craigsapp/bach-370-chorales",
+  "commit": "0fd9e00542445a522c6030c80c687b874aa569d5",
+  "commit_date": "2026-01-20T15:27:43-08:00",
+  "fetched": "2026-10-09T19:33:49Z",
+  "licence": "CC BY-NC-SA 4.0",
+  "edition": "Craig Stuart Sapp (2009-), referenced against 371 vierstimmige Choralgesaenge, 4th ed. A. Doerffel, Breitkopf & Haertel, c. 1875",
+  "scope": "kern/chor*.krn (370 files; no. 150 omitted upstream), LICENSE.txt, README.md",
+  "files": 370
+}

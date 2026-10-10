@@ -11,17 +11,25 @@ import { FUGUE_ID } from "../tutorial/fugue-id.ts";
 const WtcApp = lazy(() => import("./WtcApp.tsx").then((m) => ({ default: m.WtcApp })));
 const WtcStudy = lazy(() => import("./WtcStudy.tsx").then((m) => ({ default: m.WtcStudy })));
 const Tutorial = lazy(() => import("./Tutorial.tsx").then((m) => ({ default: m.Tutorial })));
+// The chorales (C4) and the WTC preludes and harmony (C6, C14), from the chorale session.
+const ChoraleApp = lazy(() => import("./ChoraleApp.tsx").then((m) => ({ default: m.ChoraleApp })));
+const WtcRoot = lazy(() => import("./WtcRoot.tsx").then((m) => ({ default: m.WtcRoot })));
+
+/** The screens: two voices, three, the Well-Tempered Clavier (study and exercises), the chorales,
+ * and the WTC preludes and harmony. */
+export type Mode = 2 | 3 | "wtc" | "chorale" | "preludes";
+const MODES: Mode[] = [2, 3, "wtc", "chorale", "preludes"];
 const Loading = () => <div className="loading-screen">{t("ui.loading")}</div>;
 
 /**
- * Two voices (Exercitium I), three (Exercitium II, D90), or the Well-Tempered Clavier (D119):
- * separate screens over one engine. The tutorial (D140) opens over the game, which stays mounted
- * underneath, hidden and silent, so that nothing written is lost (the Well-Tempered Clavier
+ * Two voices (Exercitium I), three (Exercitium II, D90), the Well-Tempered Clavier (D119), the
+ * chorales (C4) or the WTC preludes and harmony (C6, C14): separate screens over one engine.
+ * The tutorial (D140) opens over the game, which stays mounted underneath, hidden and silent, so that nothing written is lost (the Well-Tempered Clavier
  * screens, which have no such pause, close while it is open); from it the learner may be sent to
  * an exercise, or on the tour.
  */
 export function Root() {
-  const [voices, setVoices] = useState<2 | 3 | "wtc">(() => stored<2 | 3 | "wtc">("wtg.voices", 2, (v) => v === 2 || v === 3 || v === "wtc"));
+  const [voices, setVoices] = useState<Mode>(() => stored<Mode>("wtg.voices", 2, (v) => MODES.includes(v as Mode)));
   useEffect(() => store("wtg.voices", voices), [voices]);
   // The Well-Tempered Clavier opens on the study (D123); the exercises are one button away.
   const [wtcView, setWtcView] = useState<"study" | "exercises">(() => stored<"study" | "exercises">("wtg.wtcView", "study", (v) => v === "study" || v === "exercises"));
@@ -58,7 +66,11 @@ export function Root() {
   }, [command]);
   const link = { suspended: screen !== "game", command, onTutorial: openTutorial };
   const game =
-    voices === "wtc" ? (
+    voices === "chorale" ? (
+      screen === "game" && <ChoraleApp onMode={setVoices} />
+    ) : voices === "preludes" ? (
+      screen === "game" && <WtcRoot onMode={setVoices} />
+    ) : voices === "wtc" ? (
       screen === "game" &&
       (wtcView === "study" ? <WtcStudy onVoices={setVoices} onExercises={() => setWtcView("exercises")} onTutorial={openTutorial} /> : <WtcApp onVoices={setVoices} onStudy={() => setWtcView("study")} onTutorial={openTutorial} />)
     ) : voices === 3 ? (

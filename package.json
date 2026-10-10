@@ -12,13 +12,18 @@
     "data:build": "python3 tools/fux_import/build_dataset.py",
     "data:validate": "python3 tools/fux_import/validate.py",
     "data": "npm run data:build && npm run data:validate",
+    "chorales:fetch": "tools/chorales/fetch_bach.sh",
+    "chorales:bach": "python3 tools/chorales/bach_import.py && python3 tools/chorales/bach_validate.py",
+    "chorales:kittel": "python3 tools/chorales/kittel_extract.py && python3 tools/chorales/kittel_check.py && python3 tools/chorales/kittel_musicxml.py",
     "typecheck": "tsc --noEmit",
     "test": "node --test test/*.test.ts",
     "report:m1": "node tools/m1/report.ts",
     "dev": "vite",
     "build": "node tools/sample-manifest.mjs && tsc --noEmit && vite build",
     "build:artifact": "node tools/sample-manifest.mjs && tsc --noEmit && vite build --mode artifact",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "chorales:concordance": "python3 tools/chorales/concordance.py",
+    "chorales:analyse": "python3 tools/chorales/bach_analyse.py && python3 tools/chorales/kittel_analyse.py && python3 tools/chorales/principles.py"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
