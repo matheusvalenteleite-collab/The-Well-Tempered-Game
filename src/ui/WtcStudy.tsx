@@ -17,7 +17,7 @@
  * chord of each bar or half-bar, by Roman numeral, over the roll; the chords alone as a skeleton).
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { chordName, chordTones, findCadences, figurationChanges, keyPlan, readHarmony, romanOf, type Chord } from "../wtc/harmony.ts";
+import { chordName, chordTones, figurationChanges, figurationShare, findCadences, keyPlan, readHarmony, romanOf, type Chord } from "../wtc/harmony.ts";
 import { beatOf } from "../wtc/counterpoint.ts";
 import { isMinor, keyName, keySignature } from "../wtc/fugues.ts";
 import type { Entry, FullNote } from "../wtc/entries.ts";
@@ -153,6 +153,14 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   const [muted, setMuted] = useState<Set<number>>(new Set());
   const [spot, setSpot] = useState<number | null>(null);
   const [showEntries, setShowEntries] = useState(true);
+  /**
+   * D135: a prelude made of one figuration is a keyboard texture more than a set of voices: its
+   * strands are a convenience. Shown as one texture by default (the strands on request).
+   */
+  const figural = useMemo(() => isPrelude && figurationShare(notes, barQ) >= 0.4, [isPrelude, notes, barQ]);
+  const [strands, setStrands] = useState<boolean | null>(null);
+  useEffect(() => setStrands(null), [L.id, isPrelude]);
+  const asTexture = figural && strands !== true;
   const [look, setLook] = useState<"retro" | "classic">(() => stored("wtg.look", "retro", (v) => v === "retro" || v === "classic"));
   useEffect(() => {
     document.documentElement.dataset.look = look;
@@ -565,6 +573,10 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
 
   const voicesPanel = (
     <div className="guide wtc-study">
+      {isPrelude && <p>{t(figural ? "ui.study.texture.figural" : "ui.study.texture.strands")}</p>}
+      {figural && (
+        <label className="help"><input type="checkbox" checked={!asTexture} onChange={(e) => setStrands(e.target.checked)} /> {t("ui.study.texture.show")}</label>
+      )}
       <p className="help">{t("ui.study.voicesHelp")}</p>
       <div className="wtc-voices">
         {Array.from({ length: count }, (_, v) => (
@@ -898,7 +910,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
           <VoiceRoll
             notes={rollNotes}
             voice={voice}
-            colors={COLORS}
+            colors={asTexture ? ["var(--ink, #333)"] : COLORS}
             faint={faint}
             entries={gameUntil !== null ? entries.filter((e) => e.end <= gameUntil + 1e-6) : entries}
             showEntries={showEntries && through === "off"}
