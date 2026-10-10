@@ -144,3 +144,43 @@ test("D123: the voices: nearly every entry in one voice (two entries in stretto 
   assert.ok(overlaps / total < 0.005, `${overlaps} of ${total}`);
   assert.ok(entriesOne / entriesTotal > 0.97, `${entriesOne} of ${entriesTotal} entries in one voice`);
 });
+
+test("D125: the preludes: one for each fugue, every note from the first full bar", async () => {
+  const pre = (await import("../data/bach/wtc/preludes-full.json", { with: { type: "json" } })).default as unknown as { preludes: Record<string, { time: string; barQuarters: number; notes: number[][] }> };
+  for (const f of FUGUES) {
+    const p = pre.preludes[f.id];
+    assert.ok(p && p.notes.length > 300, f.id);
+    assert.ok(p.notes.every(([m, o, d]) => m >= 21 && m <= 108 && o >= 0 && d > 0), f.id);
+  }
+  // C major, Book I: 35 bars of 4/4, the first bar's figure C E G C E G C E over the held C and E.
+  const c = pre.preludes["wtc1.01"];
+  assert.equal(Math.max(...c.notes.map(([, o, d]) => o + d)) / 96 / c.barQuarters, 35);
+  assert.deepEqual(c.notes.slice(0, 5).map(([m]) => m), [60, 64, 67, 72, 76]);
+});
+
+test("D125: the harmonic reading of the C major prelude, Book I, as the textbooks give it; its keys: G (bar 11), C (bar 19)", async () => {
+  const pre = (await import("../data/bach/wtc/preludes-full.json", { with: { type: "json" } })).default as unknown as { preludes: Record<string, { barQuarters: number; notes: number[][] }> };
+  const { readHarmony, romanOf, chordName, findCadences, keyPlan } = await import("../src/wtc/harmony.ts");
+  const p = pre.preludes["wtc1.01"];
+  const notes = p.notes.map(([m, o, d]) => ({ midi: m, at: o / 96, dur: d / 96 }));
+  const ch = readHarmony(notes, p.barQuarters, 1);
+  const bar = (b: number) => ch.find((c) => Math.abs(c.from - (b - 1) * 4) < 1e-6)!;
+  const romans = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map((b) => romanOf(bar(b), 0, false));
+  assert.deepEqual(romans, ["I", "ii⁴₂", "V⁶₅", "I", "vi⁶", "V⁴₂/V", "V⁶", "I⁴₂", "vi7", "V7/V", "V", "vii°⁴₃/ii", "ii⁶", "vii°⁴₃", "I⁶"]);
+  assert.equal(chordName(bar(2), false), "Dm7/C");
+  assert.equal(chordName(bar(22), false), "F♯°7");
+  assert.equal(romanOf(bar(22), 0, false), "vii°7/V");
+  assert.deepEqual(keyPlan(findCadences(ch)).map((c) => [c.tonic, Math.floor(c.at / 4) + 1]), [[7, 11], [0, 19]]);
+});
+
+test("D125: Roman numerals in minor: the leading-tone chord plain, the Picardy third only at the end", async () => {
+  const { romanOf } = await import("../src/wtc/harmony.ts");
+  const c = (root: number, bass: number, quality: "maj" | "min" | "°7" | "7") => ({ from: 0, to: 1, root, bass, quality, fit: 1, bassMidi: 48 + bass });
+  // F minor (tonic 5).
+  assert.equal(romanOf(c(4, 4, "°7"), 5, true), "vii°7");
+  assert.equal(romanOf(c(0, 0, "7"), 5, true), "V7");
+  assert.equal(romanOf(c(5, 5, "7"), 5, true), "V7/iv");
+  assert.equal(romanOf(c(5, 5, "maj"), 5, true), "V/iv");
+  assert.equal(romanOf(c(5, 5, "maj"), 5, true, true), "I");
+  assert.equal(romanOf(c(8, 0, "maj"), 5, true), "III⁶");
+});

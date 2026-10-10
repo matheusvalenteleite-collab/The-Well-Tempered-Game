@@ -37,6 +37,10 @@ The WTC mode now **opens on a study of the whole fugue**; the exercises are behi
 - **Roll / Score** under the score area: the chosen section or moment in notation, voice by voice.
 - **Where next?** is now the "write the response" game: after the degree, you write the entry's first notes by letter, then hear Bach's.
 
+**Added after the usage-limit reset** (D125):
+- **Prelude / Fugue** at the top: each of the 29 fugues now has its prelude, from the same ASAP source and licence (no copying from the other sessions). A prelude has the roll, the score, its strands, pedal points and close, and sections by the keys it reaches.
+- **Harmony**, for preludes and fugues: a chord for each bar or half-bar, as Roman numerals with inversion figures (or chord names), in a strip over the roll and a list by bar, each playable; the keys reached by cadences; **Hear the chords alone** plays the harmonic skeleton as blocks. On the C major prelude it reads bars 1–15 as the textbooks do (I, ii⁴₂, V⁶₅, I, vi⁶, V⁴₂/V, V⁶, I⁴₂, vi7, V7/V, V, vii°⁴₃/ii, ii⁶, vii°⁴₃, I⁶), with G at bar 11 and C at bar 19. In contrapuntal textures it is noisier, and the guide says so.
+
 The import of the lab's corpus was refused again by the permission check, even after your go-ahead. I did not work around it. To allow it, add a Bash permission rule in the session settings, or tell me to ask the lab session to open a pull request into this branch for you to merge.
 
 **Two limits, and a decision for you.**
@@ -53,7 +57,7 @@ The import of the lab's corpus was refused again by the permission check, even a
 ## Proposed next steps (your call)
 
 - **The third entry and invertible counterpoint.** The third entries are found where expected in 28 of the 29 fugues. The next exercise would have you write what the answer's voice sings against the third entry, which is often Bach's countersubject again, inverted or transposed. It needs a three-voice tonal engine, calibrated on Bach as the two-voice one was.
-- **The preludes of Book I** (When-in-Rome has all 24 with Roman-numeral analyses, CC BY-SA). This would be the harmonic side of the "tonal turn". The licence of the prelude scores themselves is unclear, so I have not used them.
+- **Checking the harmonic reading against expert analyses.** When-in-Rome has Roman-numeral analyses of the Book I preludes (CC BY-SA). The analyses alone, without its scores, could serve as a test of the reader, bar by bar.
 - **The three missing keys** (C minor, E♭ minor, E minor) need another open encoding of those fugues.
 
 ## Questions for you
