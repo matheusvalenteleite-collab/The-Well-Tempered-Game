@@ -1,4 +1,4 @@
-/** "Learn this in the tutorial" beside a broken rule (D98): opens the lesson that teaches it. */
+/** "Learn this in the tutorial" beside a broken rule (D128): opens the lesson that teaches it. */
 import { lessonForRule } from "../tutorial/links.ts";
 import { tt } from "../tutorial/text.ts";
 

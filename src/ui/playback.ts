@@ -93,6 +93,7 @@ export function buildPlayback(audio: AudioEngine, view: ExerciseView, s0: PlaySe
         getTempo: () => audio.tempo,
         temperament: s.tuning,
         inegal: c.inegal && c.preset !== "stileAntico",
+        figuration: c.figure ? c.figuration : null,
       }),
     );
   };

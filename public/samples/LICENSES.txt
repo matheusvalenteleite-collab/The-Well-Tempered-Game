@@ -10,3 +10,43 @@ eguitar/ ebass/ sax/   Karoryfer Samples, via tonejs-instruments (CC BY 3.0).
 xylophone/  Versilian Studios Orchestra 2 Community Edition, via tonejs-instruments (CC BY 3.0).
 The sets added in D54 keep one sample every minor third or more (the nearest is retuned), trimmed to 4.5 s with a fade, mono 80 kbit/s MP3.
 All: leading silence removed, trimmed to 5 s with a fade, mono 96 kbit/s MP3 (grand: stereo 128 kbit/s).
+
+Drum kits (drums/<kit>/, one-shots <voice>-1.mp3 soft and <voice>-2.mp3 loud; see drums/manifest.json):
+drums/virtuosity/  Virtuosity Drums, Versilian Studios & Karoryfer Samples (drummer Austin McMahon). CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/).
+         Source: https://github.com/sfzinstruments/virtuosity_drums
+drums/bigRusty/    Big Rusty Drums, Karoryfer Samples (vintage Polish kit by Zygmunt Szpaderski). CC0 1.0.
+         Source: https://github.com/sfzinstruments/karoryfer.big-rusty-drums
+drums/naked/       Naked Drums, Wilkinson Audio (SFZ port by kinwie). CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
+         Source: https://github.com/sfzinstruments/WilkinsonAudio.NakedDrums
+drums/drskit/      DRSKit, Lars Muldjord, Bent Bisballe Nyeng, Jes Eiler (DRSDrums) and the DrumGizmo team (SFZ port by kinwie). CC BY 4.0.
+         Source: https://github.com/sfzinstruments/DrumGizmo.DRSKit
+drums/retro/       Retro Drum Sample Set 1, Seven Graylands / The Tic Tok Men (from the GigaSampler version by S. Christian Collins);
+         Sequential Drumtraks, Casio RZ-1 and Roland CR-8000 samples. "Free use" per the source README (no formal license named).
+         Source: https://github.com/sfzinstruments/TicTokMen.RetroDrums1
+drums/unruly/      Unruly Drums, Karoryfer Samples. CC0 1.0.
+         Source: https://github.com/sfzinstruments/karoryfer.unruly-drums
+Drums: trimmed (onset kept, drums/hats <= 1.2 s, toms <= 1.6 s, cymbals <= 3 s, with a fade), multi-mic hits mixed to mono, re-encoded as mono 44.1 kHz 96 kbit/s MP3.
+
+Orchestral articulations and rock instruments (one sample about every minor third; "-v1"/"-v2" = soft/loud velocity layers):
+violinStac/ violinPizz/   Solo violin, spiccato and pizzicato. VS Chamber Orchestra 2: Community Edition, Versilian Studios (Sam Gossner,
+         Simon Dalzell; sample cutting Elan Hickler). CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/).
+         Source: https://github.com/sgossner/VSCO-2-CE (Strings/Solo Violin/spic, Pizz). Homepage: http://vis.versilstudios.net/vsco-community.html
+violaSus/ violaStac/ violaPizz/   Viola section, sustain with vibrato, spiccato, pizzicato. VSCO 2 CE, as above. CC0 1.0.
+         Source: https://github.com/sgossner/VSCO-2-CE (Strings/Viola Section/susvib, spic, pizz)
+celloStac/ celloPizz/   Cello section, spiccato and pizzicato. VSCO 2 CE, as above. CC0 1.0.
+         Source: https://github.com/sgossner/VSCO-2-CE (Strings/Cello Section/spic, pizzT)
+bassPizz/ bassStac/   Solo contrabass, pizzicato and spiccato. VSCO 2 CE, as above. CC0 1.0.
+         Source: https://github.com/sgossner/VSCO-2-CE (Strings/Solo Contrabass/Pizz, Spic)
+oboe/ clarinet/   Oboe (sustain with vibrato) and clarinet (long sustain). VSCO 2 CE, as above. CC0 1.0.
+         Source: https://github.com/sgossner/VSCO-2-CE (Woodwinds/Oboe/Vib, Woodwinds/Clarinet/susLong)
+timpani/   Timpani single hits, five drums, two dynamics. VSCO 2 CE, as above. CC0 1.0.
+         Source: https://github.com/sgossner/VSCO-2-CE (Percussion/Timpani)
+rickBass/  Black And Blue Basses, "babyblue" Thunderbird-style bass played with a pick, bridge pickup. Karoryfer Samples. CC0 1.0.
+         Source: https://github.com/sfzinstruments/karoryfer.black-and-blue-basses
+cleanGuitar/  Black And Green Guitars, green Gretsch Anniversary, sustained single notes ("twang"). Karoryfer Samples (recorded by
+         Brian Wood). CC0 1.0. Source: https://github.com/sfzinstruments/karoryfer.black-and-green-guitars
+Processing: stereo mixed to mono; leading silence removed (onset at about 1 ms); trimmed with a fade (sustains 4.5 s, staccato
+<= 0.8 s, pizzicato <= 1.5 s, contrabass pizzicato <= 2 s, timpani <= 2.5 s, bass and guitar <= 4 s); contrabass high-passed at 30 Hz;
+one gain per set so its loudest note peaks at about -1 dBFS; mono 44.1 kHz 80 kbit/s MP3. Notes more than 20 cents off their name
+(and every timpani hit, to the nearest semitone of its principal tone) were retuned by resampling; one clarinet sample filed as F#
+sounds F and is named F6.

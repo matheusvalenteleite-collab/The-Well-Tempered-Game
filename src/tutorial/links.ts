@@ -1,5 +1,5 @@
 /**
- * From the game back to the tutorial (D98): the lesson that teaches each rule, so that a rule
+ * From the game back to the tutorial (D128): the lesson that teaches each rule, so that a rule
  * broken in the game's evaluation can be learnt where it is explained. Every rule of the game has
  * one (checked in test/tutorial.test.ts).
  */

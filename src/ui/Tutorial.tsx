@@ -1,5 +1,5 @@
 /**
- * The tutorial (D98): a screen of its own, opened by TUTORIAL in the top bar. Chapters of short
+ * The tutorial (D128): a screen of its own, opened by TUTORIAL in the top bar. Chapters of short
  * lessons, from reading a note to three voices; each lesson is a page of text and one task (listen,
  * answer, write), and Next opens once the task is done. The game stays where it was underneath.
  * Progress (lessons done, the lesson reached) is remembered in this browser.
@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useState } from "react";
 import data from "../../data/fux/three-voice/fux-three-voice.json" with { type: "json" };
 import { repository } from "../music/fux/load-browser.ts";
-import { trioSteps } from "../game/trio.ts";
+import { TRIO_SPECIES, trioSteps } from "../game/trio.ts";
 import { buildCourse, lessonsOf } from "../tutorial/course.ts";
 import { judge, sceneEvents, type Lesson, type Scene } from "../tutorial/model.ts";
 import { chapterText, lessonText, tt } from "../tutorial/text.ts";
@@ -20,6 +20,8 @@ import { openInOrder as lessonOpen } from "../game/unlock.ts";
 import { ClipButtons, Inline, Prose, Quiz, RoadMap, SceneScore, TrioPane, usePlayer, WriteScene } from "./TutorialParts.tsx";
 
 const TRIO = trioSteps(data as never);
+/** Every three-voice exercise, species by species (the road map). */
+const TRIO_ALL = TRIO_SPECIES.map((n) => ({ species: n, ids: trioSteps(data as never, n).map((s) => s.id) }));
 const CHAPTERS = buildCourse({ repo: repository, trio: TRIO });
 const LESSONS = lessonsOf(CHAPTERS);
 
@@ -329,7 +331,7 @@ function LessonBody(p: {
       {viewToggles}
       {shown}
       {trio}
-      {lesson.id === "end.path" && <RoadMap trioCount={TRIO.length} />}
+      {lesson.id === "end.path" && <RoadMap trio={TRIO_ALL} />}
     </>
   );
 }

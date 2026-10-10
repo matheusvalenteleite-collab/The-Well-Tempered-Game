@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { STYLES, type StyleId } from "../audio/styles.ts";
 import { Fader, formatDb, posOfDb } from "./Fader.tsx";
 import { setMix, editSynth, editVersionSynth, versionSettings, DEFAULT_MASTER_FX, type Channel, type MasterFx, type SoundState, type Strip } from "../audio/sound.ts";
 import { patternById, type DrumSettings } from "../audio/drums.ts";
@@ -13,8 +14,8 @@ import { VERSION_IDS, type VersionId, type Versions } from "../game/versions.ts"
 import { t } from "./i18n.ts";
 
 /** The numbered tracks, in order (their activators' numbers and F1-F9); the versions only in advanced mode (D89). */
-export function trackOrder(advanced: boolean): Strip[] {
-  return ["cantus", "counterpoint", "fux", ...(advanced ? VERSION_IDS : []), "drums", "continuo"];
+export function trackOrder(advanced: boolean, trio = false): Strip[] {
+  return ["cantus", "counterpoint", ...(trio ? (["second"] as Strip[]) : []), "fux", ...(advanced ? VERSION_IDS : []), "drums", "continuo"];
 }
 
 interface Props {
@@ -27,10 +28,14 @@ interface Props {
   drumKit: DrumSettings;
   onDrumKit(v: DrumSettings): void;
   onPreviewDrums(): void;
+  /** Tap tempo on the drum strip (D99). */
+  onTempo?(bpm: number): void;
   master: number;
   onMaster(v: number): void;
   tuning: TemperamentId;
   onTuning(v: TemperamentId): void;
+  /** D111: a master style, setting every track at once. */
+  onStyle?(id: StyleId): void;
   continuo: boolean;
   onContinuo(on: boolean): void;
   continuoSettings: ContinuoSettings;
@@ -50,12 +55,17 @@ interface Props {
   advanced: boolean;
   /** Peak levels for the meters (D80). */
   levels?: () => Partial<Record<Strip | "master", number>>;
+  /**
+   * Three voices (D113): one strip per written voice — Contra I on the Contrapunctus's channel,
+   * Contra II on its own — each with its own activator.
+   */
+  trio?: { secondOn: boolean; onSecond(on: boolean): void };
   /** Folded to a single line. */
   open: boolean;
   onOpen(open: boolean): void;
 }
 
-const VOICES: Channel[] = ["cantus", "counterpoint", "fux"];
+const VOICES: Channel[] = ["cantus", "counterpoint", "second", "fux"];
 
 /**
  * Mixer & synth: a mixing desk with one strip per voice, the drums, the continuo and the master.
@@ -107,15 +117,18 @@ export function SoundDesk(p: Props) {
   );
   // Track colours (D80): one per strip, as in Ableton's mixer; the voices' match their inks.
   const COLOR: Record<Strip | "master", string> = {
-    cantus: "var(--trk-cantus)", counterpoint: "var(--trk-counterpoint)", fux: "var(--trk-fux)",
+    cantus: "var(--trk-cantus)", counterpoint: "var(--trk-counterpoint)", second: "var(--trk-second)", fux: "var(--trk-fux)",
     inversion: "var(--trk-inversion)", retrograde: "var(--trk-retrograde)", retroInversion: "var(--trk-retro-inversion)", canon: "var(--trk-canon)",
     drums: "var(--trk-drums)", continuo: "var(--trk-continuo)", master: "var(--trk-master)",
   };
-  const ORDER = trackOrder(p.advanced);
+  const ORDER = trackOrder(p.advanced, !!p.trio);
+  // In three voices the Contrapunctus is Contra I (D113).
+  const name = (x: Strip, short = false) => t(p.trio && x === "counterpoint" ? `ui.mixer.${short ? "short." : ""}contra1` : `ui.mixer.${short ? "short." : ""}${x}`);
   /** The track activator (D80): every track switches on and off with one press. */
   const active = (x: Strip): boolean =>
     x === "cantus" ? !s.mix.cantus.mute
     : x === "counterpoint" ? p.versions.original
+    : x === "second" ? (p.trio?.secondOn ?? false)
     : x === "fux" ? p.fuxOpen && p.fuxHeard
     : x === "drums" ? p.drums
     : x === "continuo" ? p.continuo
@@ -123,6 +136,7 @@ export function SoundDesk(p: Props) {
   const activate = (x: Strip) => {
     if (x === "cantus") p.onChange(setMix(s, "cantus", { mute: !s.mix.cantus.mute }));
     else if (x === "counterpoint") toggleVersion("original");
+    else if (x === "second") p.trio?.onSecond(!p.trio.secondOn);
     else if (x === "fux") p.onFuxHeard(!p.fuxHeard);
     else if (x === "drums") p.onDrums(!p.drums);
     else if (x === "continuo") p.onContinuo(!p.continuo);
@@ -144,8 +158,8 @@ export function SoundDesk(p: Props) {
     };
     const cd = p.continuoSettings.display;
     return (
-      <div key={x} className={`strip ${selected === x ? "selected" : ""} ${on ? "" : "dim"}`} style={{ ["--track" as string]: COLOR[x] }} role="group" aria-label={t(`ui.mixer.${x}`)} onClick={pick}>
-        <div className="strip-name" title={t(`ui.mixer.${x}`)}>{t(`ui.mixer.short.${x}`)}</div>
+      <div key={x} className={`strip ${selected === x ? "selected" : ""} ${on ? "" : "dim"}`} style={{ ["--track" as string]: COLOR[x] }} role="group" aria-label={name(x)} onClick={pick}>
+        <div className="strip-name" title={name(x)}>{name(x, true)}</div>
         <button className="instrument" aria-pressed={selected === x} onClick={() => setSelected(x)} title={t("ui.mixer.editHelp")}>
           {instrument}
         </button>
@@ -161,7 +175,7 @@ export function SoundDesk(p: Props) {
         </div>
         {x === "fux" && octaveStepper(s.fuxOctave, (n) => p.onChange({ ...s, fuxOctave: n }))}
         {x === "cantus" && octaveStepper(s.cantusOctave, (n) => p.onChange({ ...s, cantusOctave: n }))}
-        {x === "counterpoint" && octaveStepper(s.counterpointOctave, (n) => p.onChange({ ...s, counterpointOctave: n }))}
+        {(x === "counterpoint" || x === "second") && octaveStepper(s.counterpointOctave, (n) => p.onChange({ ...s, counterpointOctave: n }))}
         {isVersion && octaveStepper(s.versionOctave[x as VersionId], (n) => p.onChange({ ...s, versionOctave: { ...s.versionOctave, [x]: n } }))}
         {x === "canon" && canonStepper}
         {x === "continuo" && (
@@ -182,7 +196,7 @@ export function SoundDesk(p: Props) {
   // A version strip has its own sound (D69): editing it never changes the Contrapunctus.
   const voice = VOICES.includes(selected as Channel) ? (selected as Channel) : null;
   const version = VERSION_IDS.includes(selected as VersionId) ? (selected as VersionId) : null;
-  const title = voice ? `${t("ui.synth.title")} · ${t(`ui.mixer.${voice}`)}` : "";
+  const title = voice ? `${t("ui.synth.title")} · ${name(voice)}` : "";
 
   if (!p.open)
     return (
@@ -201,6 +215,7 @@ export function SoundDesk(p: Props) {
         <div className="desk-group main" role="group" aria-label={t("ui.mixer.group.main")}>
           {strip("cantus")}
           {strip("counterpoint")}
+          {p.trio && strip("second")}
         </div>
         {(p.fuxOpen || p.advanced) && (
           <>
@@ -222,6 +237,14 @@ export function SoundDesk(p: Props) {
         <span className="desk-sep" aria-hidden="true" />
         <div className={`strip master ${selected === "master" ? "selected" : ""}`} role="group" aria-label={t("ui.mixer.master")} style={{ ["--track" as string]: COLOR.master }} onClick={(e) => !(e.target as HTMLElement).closest("button, input, select, .knob, .fader2") && setSelected("master")} title={t("ui.mixer.masterHelp")}>
           <div className="strip-name">{t("ui.mixer.master")}</div>
+          {p.onStyle && (
+            <select className="style-select" tabIndex={-1} value="" onChange={(e) => e.target.value && p.onStyle!(e.target.value as StyleId)} title={t("ui.style.help")} aria-label={t("ui.style.label")}>
+              <option value="">{t("ui.style.label")}</option>
+              {STYLES.map((id) => (
+                <option key={id} value={id} title={t(`ui.style.${id}.help`)}>{t(`ui.style.${id}`)}</option>
+              ))}
+            </select>
+          )}
           <button className="chipbtn tuning" tabIndex={-1} onClick={() => p.onTuning(TEMPERAMENTS[(TEMPERAMENTS.indexOf(p.tuning) + 1) % TEMPERAMENTS.length])} title={t("ui.tuning.help")}>
             {t("ui.tuning.label", { name: t(`ui.tuning.${p.tuning}`) })}
           </button>
@@ -236,7 +259,7 @@ export function SoundDesk(p: Props) {
             <SynthRack title={`${t("ui.synth.title")} · ${t(`ui.mixer.${version}`)}`} value={versionSettings(s, version)} onChange={(next) => p.onChange(editVersionSynth(s, version, next))} />
           </>
         )}
-        {selected === "drums" && <DrumBox on={p.drums} onToggle={p.onDrums} value={p.drumKit} onChange={p.onDrumKit} onPreview={p.onPreviewDrums} />}
+        {selected === "drums" && <DrumBox on={p.drums} onToggle={p.onDrums} value={p.drumKit} onChange={p.onDrumKit} onPreview={p.onPreviewDrums} onTempo={p.onTempo} />}
         {selected === "master" && <MasterBox value={s.master ?? DEFAULT_MASTER_FX} onChange={(m) => p.onChange({ ...s, master: m })} />}
         {selected === "continuo" && <ContinuoBox on={p.continuo} onToggle={p.onContinuo} value={p.continuoSettings} onChange={p.onContinuoSettings} />}
       </div>

@@ -8,11 +8,12 @@
 import { DEFAULT_SYNTH, GRAND_ROOM, SYNTH_PRESETS, type SynthSettings } from "./synth-settings.ts";
 import { VERSION_IDS, type VersionId } from "../game/versions.ts";
 
-export type Channel = "cantus" | "counterpoint" | "fux";
+/** "second": the player's second written voice in three voices (D113, Contra II). */
+export type Channel = "cantus" | "counterpoint" | "second" | "fux";
 /** Strips: the three voices, the derived versions of the player's line (D47), drums, continuo. */
 export type Strip = Channel | VersionId | "drums" | "continuo";
-export const CHANNELS: Channel[] = ["cantus", "counterpoint", "fux"];
-export const STRIPS: Strip[] = ["cantus", "counterpoint", "fux", ...VERSION_IDS, "drums", "continuo"];
+export const CHANNELS: Channel[] = ["cantus", "counterpoint", "second", "fux"];
+export const STRIPS: Strip[] = ["cantus", "counterpoint", "second", "fux", ...VERSION_IDS, "drums", "continuo"];
 
 export interface Mix {
   /** 0..1.5 (1 = unity). */
@@ -60,8 +61,8 @@ const mix = (pan = 0, volume = 1): Mix => ({ volume, pan, mute: false, solo: fal
 
 export const DEFAULT_SOUND: SoundState = {
   // Owner (D95): the three voices alike by default — the recorded piano, centred, a little room.
-  synth: { cantus: { ...GRAND_ROOM }, counterpoint: { ...GRAND_ROOM }, fux: { ...GRAND_ROOM } },
-  mix: { cantus: mix(0), counterpoint: mix(0), fux: mix(0), inversion: mix(0), retrograde: mix(0), retroInversion: mix(0), canon: mix(0), drums: mix(0, 0.8), continuo: mix(0, 0.6) },
+  synth: { cantus: { ...GRAND_ROOM }, counterpoint: { ...GRAND_ROOM }, second: { ...GRAND_ROOM }, fux: { ...GRAND_ROOM } },
+  mix: { cantus: mix(0), counterpoint: mix(0), second: mix(0), fux: mix(0), inversion: mix(0), retrograde: mix(0), retroInversion: mix(0), canon: mix(0), drums: mix(0, 0.8), continuo: mix(0, 0.6) },
   fuxOctave: 0,
   versionOctave: { inversion: 0, retrograde: 0, retroInversion: 0, canon: 0 },
   cantusOctave: 0,

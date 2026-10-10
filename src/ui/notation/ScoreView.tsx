@@ -13,7 +13,7 @@ import { pitchAtPosition, VEXFLOW_CLEF, type ClefId } from "./clefs.ts";
 import type { Overlay, Status } from "./overlay.ts";
 import { fifthGlyphs, HOLD, REST, slotLayout, tiedToNext, type Slot } from "../../counterpoint/layout.ts";
 import type { ContinuoRealization } from "../../continuo/types.ts";
-import { cueChords, cueFigures, type CueChord } from "./continuo-staff.ts";
+import { cueChords, cueFigures, drawFigureLine, type CueChord } from "./continuo-staff.ts";
 
 /** Logical width of bar b of a layout, and of the clef and signature before the first bar (D83). */
 export function barWidth(layout: Slot[], b: number): number {
@@ -80,7 +80,13 @@ export interface ScoreProps {
    * player's staff in their own ink, named in the legend (D47, D58). With `intervals`, each gets
    * its row of intervals against the cantus, in its ink and in italic.
    */
-  extraLines?: { label: string; notes: (string | null)[]; ink: string }[];
+  extraLines?: {
+    label: string;
+    notes: (string | null)[];
+    ink: string;
+    /** Per slot: draw this note on the cantus's staff instead of the player's (a line that crosses between the staves). */
+    onCantusStaff?: boolean[];
+  }[];
   /** Interval rows for the extra lines (the "Intervals" view toggle). */
   extraIntervals?: boolean;
   /** Ink and label of the line on the player's staff when it is a derived version, not the written line. */
@@ -111,17 +117,19 @@ const LAYOUT = {
   /** Excerpts: close together, apart when the overlay needs the space. */
   plain: { staffY: [20, 120], height: 240 },
   overlay: { staffY: [20, 175], height: 300 },
-  /** The main score: one layout whatever is shown, so that nothing moves (D58). */
-  main: { staffY: [20, 205], height: 330 },
+  /** The main score: one layout whatever is shown, so that nothing moves (D58), a little closer (D102). */
+  main: { staffY: [20, 185], height: 310 },
+  /** The main score with the continuo realized under it (D102): the staves closer still, the same height. */
+  mainContinuo: { staffY: [20, 140], height: 310 },
 };
 /** Horizontal space per bar (logical units): compact, so the melodic shape reads at a glance. */
-const BAR_W = 58;
+const BAR_W = 54;
 /** A bar holding two half notes. */
-const HALF_BAR_W = 92;
+const HALF_BAR_W = 80;
 /** A bar holding four quarter notes. */
-const QUARTER_BAR_W = 148;
+const QUARTER_BAR_W = 120;
 /** Fifth species (D82): a bar of eight quaver slots. */
-const EIGHTH_BAR_W = 212;
+const EIGHTH_BAR_W = 184;
 /** VexFlow duration and dots for a note of n quaver slots (fifth species). */
 const FIFTH_DUR: Record<number, [string, number]> = { 1: ["8", 0], 2: ["q", 0], 3: ["q", 1], 4: ["h", 0], 5: ["h", 0], 6: ["h", 1], 7: ["h", 1], 8: ["w", 0] };
 /** VexFlow duration of a slot. */
@@ -182,7 +190,9 @@ export function ScoreView(props: ScoreProps) {
     const el = host.current;
     if (!el || width === 0) return;
     el.innerHTML = "";
-    const { staffY: STAFF_Y, height: HEIGHT } = props.fixedScale === undefined && !props.compact ? LAYOUT.main : props.overlay || props.extraIntervals ? LAYOUT.overlay : LAYOUT.plain;
+    const main = props.fixedScale === undefined && !props.compact;
+    const realized = !!props.continuo && props.continuo.display !== "figured" && props.continuo.realization.bars.length === props.cantus.length;
+    const { staffY: STAFF_Y, height: HEIGHT } = main ? (realized ? LAYOUT.mainContinuo : LAYOUT.main) : props.overlay || props.extraIntervals ? LAYOUT.overlay : LAYOUT.plain;
     // Overlay rows between the staves: the player's intervals, the links under them, and above
     // them one row per derived line.
     const LABEL_Y = STAFF_Y[1] - 23;
@@ -237,13 +247,25 @@ export function ScoreView(props: ScoreProps) {
     // takes no part in input.
     const extras = props.extraLines ?? [];
     const cpClef = VEXFLOW_CLEF[props.clefs[props.cantusVoice === "upper" ? 1 : 0]];
-    // Figures alone (D93) sit under the lower staff, as a continuo player reads them: a little more room.
-    const scoreBottom = HEIGHT + (props.continuo?.display === "figured" ? 26 : 0);
+    // Figures alone (D93) sit under the lower staff, as a continuo player reads them, within the
+    // score's height; the realization goes under the staves at whatever small size fits the room
+    // left there, so that the score never grows when the continuo is shown (D102).
+    const scoreBottom = main ? HEIGHT : HEIGHT + (props.continuo?.display === "figured" ? 26 : 0);
     const figuresOnly = props.continuo?.display === "figured" && props.continuo.realization.bars.length === bars;
-    const cue = props.continuo && !figuresOnly && props.continuo.realization.bars.length === bars ? layoutContinuo(props.continuo, logicalWidth, start, xOfBar, barW, sig, props.lastSystem !== false) : null;
-    const continuoTop = scoreBottom + CUE_GAP;
-    const totalHeight = cue ? continuoTop + cue.height * CUE : scoreBottom;
-    const inertTop = cue ? continuoTop : undefined;
+    const lay = (k: number) => layoutContinuo(props.continuo!, logicalWidth, start, xOfBar, barW, sig, props.lastSystem !== false, k);
+    let cueK = CUE;
+    let cue = props.continuo && !figuresOnly && props.continuo.realization.bars.length === bars ? lay(CUE) : null;
+    let continuoTop = scoreBottom + CUE_GAP;
+    const cueHeight = cue?.height ?? 0;
+    /** Under the main score, the realization takes the room below `top`, as small as it must be. */
+    const fitCue = (top: number) => {
+      continuoTop = top;
+      cueK = Math.min(CUE, (HEIGHT - top - 2) / cueHeight);
+      cue = lay(cueK);
+    };
+    if (cue && main) fitCue(STAFF_Y[1] + 40 + 30);
+    const totalHeight = cue ? (main ? HEIGHT : continuoTop + cue.height * cueK) : scoreBottom;
+    let inertTop = cue ? continuoTop : undefined;
 
     const renderer = new Renderer(el, Renderer.Backends.SVG);
     renderer.resize(Math.ceil(logicalWidth * scale), Math.ceil(totalHeight * scale));
@@ -412,15 +434,18 @@ export function ScoreView(props: ScoreProps) {
         const p = g.value;
         const { key, acc } = vexKey(p, sig);
         const stem = stemOf(`extra${extras.indexOf(line)}`);
-        const n = new StaveNote({ keys: [key], duration: g.dur, clef: cpClef.clef, dots: g.dots, ...(stem ? { stem_direction: stem } : {}) });
+        const onCantus = !!line.onCantusStaff?.[k];
+        const staffIndex = onCantus ? 1 - cpIndex : cpIndex;
+        const n = new StaveNote({ keys: [key], duration: g.dur, clef: onCantus ? VEXFLOW_CLEF[props.clefs[staffIndex]].clef : cpClef.clef, dots: g.dots, ...(stem ? { stem_direction: stem } : {}) });
         if (g.dots) Dot.buildAndAttach([n], { all: true });
         if (stem === 0) n.getStem()?.setVisibility(false);
         if (acc) n.addModifier(new Accidental(acc));
         n.setStyle({ fillStyle: line.ink, strokeStyle: line.ink });
-        n.setStave(staves[cpIndex]);
+        n.setStave(staves[staffIndex]);
         const d = parsePitch(p).diatonic;
-        const nudges = occupied[k].filter((o) => Math.abs(o - d) <= 1).length;
-        occupied[k].push(d);
+        const there = onCantus ? [parsePitch(props.cantus[layout[k].bar]).diatonic] : occupied[k];
+        const nudges = there.filter((o) => Math.abs(o - d) <= 1).length;
+        if (!onCantus) occupied[k].push(d);
         const mc = new ModifierContext();
         n.addToModifierContext(mc);
         mc.preFormat();
@@ -452,7 +477,8 @@ export function ScoreView(props: ScoreProps) {
 
     if (figuresOnly) {
       const lower = staves[staves.length - 1];
-      const y0 = Math.max(lower.getYForLine(4) + 34, ...[...cpNotes, ...cfNotes].filter((n): n is StaveNote => !!n && n.getStave() === lower).map((n) => Math.max(...n.getYs()) + 22));
+      const deepest = Math.max(1, ...cueFigures(props.continuo!.realization).map((f) => f.stack.length));
+      const y0 = Math.min(HEIGHT - 4 - 12 * (deepest - 1), Math.max(lower.getYForLine(4) + 34, ...[...cpNotes, ...cfNotes].filter((n): n is StaveNote => !!n && n.getStave() === lower).map((n) => Math.max(...n.getYs()) + 22)));
       ctx.save();
       ctx.setFont(SERIF, 12, "italic");
       ctx.setFillStyle(CONTINUO_INK);
@@ -460,13 +486,22 @@ export function ScoreView(props: ScoreProps) {
         const b = f.bar;
         if (b < 0 || b >= bars) continue;
         const x = xOfBar(b) + NOTE_PAD + 2 + (f.half * barW[b]) / 2;
-        f.stack.forEach((t, i) => ctx.fillText(t, x, y0 + i * 12));
+        f.stack.forEach((t, i) => drawFigureLine(ctx, t, x, y0 + i * 12));
       }
       ctx.restore();
     }
+    if (cue && main) {
+      // Below the lowest note actually drawn on the lower staff (ledger lines included).
+      const lower = staves[staves.length - 1];
+      const lowest = Math.max(lower.getYForLine(4), ...[...cpNotes, ...cfNotes].filter((n): n is StaveNote => !!n && n.getStave() === lower).map((n) => Math.max(...n.getYs()))) + 14;
+      if (lowest > continuoTop) {
+        fitCue(lowest);
+        inertTop = continuoTop;
+      }
+    }
     if (cue) {
       const g = ctx.openGroup("continuo") as SVGGElement;
-      g.setAttribute("transform", `translate(0 ${continuoTop}) scale(${CUE})`);
+      g.setAttribute("transform", `translate(0 ${continuoTop}) scale(${cueK})`);
       g.setAttribute("aria-label", "basso continuo");
       cue.draw(ctx);
       ctx.closeGroup();
@@ -601,8 +636,10 @@ export function ScoreView(props: ScoreProps) {
     const svg = e.currentTarget.querySelector("svg");
     if (!svg) return null;
     const r = svg.getBoundingClientRect();
-    const x = (e.clientX - r.left) / g.scale;
-    const y = (e.clientY - r.top) / g.scale;
+    // On screen the drawing may be scaled again (the whole screen fitted to a small window, D103).
+    const k = g.scale * (r.width / (svg.width.baseVal.value || r.width));
+    const x = (e.clientX - r.left) / k;
+    const y = (e.clientY - r.top) / k;
     if (g.continuoTop !== undefined && y >= g.continuoTop) return null;
     let column = g.columns.findIndex((c) => x >= c.left && x < c.right);
     if (column < 0) column = x < g.columns[0].left ? 0 : g.columns.length - 1;
@@ -735,29 +772,30 @@ function layoutContinuo(
   barW: number[],
   sig: Signature = {},
   last = true,
+  k = CUE,
 ): { height: number; draw(ctx: Ctx): void } {
   const keySpec = sig.B === -1 ? "F" : null;
   const r = c.realization;
   const grand = c.display !== "staff";
   const figures = c.display !== "realization";
-  const left = 8 / CUE + (grand ? 22 : 0); // room for the brace
-  const width = (logicalWidth - 8) / CUE - left;
+  const left = 8 / k + (grand ? 22 : 0); // room for the brace
+  const width = (logicalWidth - 8) / k - left;
   const mk = (y: number, clef: "treble" | "bass") => {
     const s = new Stave(left, y, width, { space_above_staff_ln: 2 });
     s.addClef(clef, "default");
     if (keySpec) s.addKeySignature(keySpec);
     s.addTimeSignature("C|");
-    if (s.getNoteStartX() > start / CUE) {
+    if (s.getNoteStartX() > start / k) {
       // Too narrow beside the main staves' signature: drop the cue time signature.
       const t = new Stave(left, y, width, { space_above_staff_ln: 2 });
       t.addClef(clef, "default");
       if (keySpec) t.addKeySignature(keySpec);
       t.setEndBarType(last ? 3 : 1);
-      t.setNoteStartX(start / CUE);
+      t.setNoteStartX(start / k);
       return t;
     }
     s.setEndBarType(last ? 3 : 1);
-    s.setNoteStartX(start / CUE);
+    s.setNoteStartX(start / k);
     return s;
   };
   const rhStave = grand ? mk(0, "treble") : null;
@@ -765,7 +803,7 @@ function layoutContinuo(
   const ink = { fillStyle: CONTINUO_INK, strokeStyle: CONTINUO_INK };
   for (const s of [rhStave, bassStave]) s?.setStyle(ink);
 
-  const xOf = (ch: CueChord) => (xOfBar(ch.bar) + (ch.duration === "w" ? 0 : (ch.half * barW[ch.bar]) / 2) + NOTE_PAD) / CUE;
+  const xOf = (ch: CueChord) => (xOfBar(ch.bar) + (ch.duration === "w" ? 0 : (ch.half * barW[ch.bar]) / 2) + NOTE_PAD) / k;
   const build = (stave: Stave, clef: "treble" | "bass", chords: CueChord[]) =>
     chords.map((ch) => {
       let n: StaveNote;
@@ -810,7 +848,7 @@ function layoutContinuo(
       }
       // Bar lines, aligned with the main staves'.
       for (let b = 1; b < r.bars.length; b++)
-        for (const s of staves) ctx.fillRect((xOfBar(b) - 2) / CUE, s.getYForLine(0), 1 / CUE, s.getYForLine(4) - s.getYForLine(0));
+        for (const s of staves) ctx.fillRect((xOfBar(b) - 2) / k, s.getYForLine(0), 1 / k, s.getYForLine(4) - s.getYForLine(0));
       ctx.setFont(SERIF, 11, "italic");
       const top = staves[0].getYForLine(0);
       ctx.fillText("B.c.", 2, top - (grand ? 4 : 6));
@@ -834,7 +872,7 @@ function layoutContinuo(
         ctx.setFont(SERIF, 12, "italic");
         for (const f of figs) {
           const x = xOf({ bar: f.bar, half: f.half, duration: barW[f.bar] > 60 || f.half ? "h" : "w", tones: [], tiedFrom: [] }) + 6;
-          f.stack.forEach((t, i) => ctx.fillText(t, x - ctx.measureText(t).width / 2, figY + 11 * i));
+          f.stack.forEach((t, i) => drawFigureLine(ctx, t, x - ctx.measureText(t.replace(/\\$/, "")).width / 2, figY + 11 * i));
         }
         ctx.restore();
       }

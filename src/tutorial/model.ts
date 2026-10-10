@@ -1,5 +1,5 @@
 /**
- * The tutorial's logic (D98): scenes (a small score the learner reads, hears or writes on), tasks
+ * The tutorial's logic (D128): scenes (a small score the learner reads, hears or writes on), tasks
  * (what must be done before Next opens) and the coach (what a note just written makes against the
  * cantus). Pure functions over the game's own engine, rules and data: what the tutorial says is
  * right is what the game will accept. No React here; the screen is ui/Tutorial.tsx.

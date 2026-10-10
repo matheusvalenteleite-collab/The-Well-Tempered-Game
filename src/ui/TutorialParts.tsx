@@ -1,12 +1,13 @@
 /**
- * The pieces of the tutorial screen (D98): text with Aloysius's lines, clip buttons, the writable
+ * The pieces of the tutorial screen (D128): text with Aloysius's lines, clip buttons, the writable
  * two-voice and three-voice scores with their coach and judgement, the quiz, the choice and the
  * road map. The logic lives in tutorial/model.ts; these only draw it and wire it to the engine.
  */
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ScoreView } from "./notation/ScoreView.tsx";
 import { Systems } from "./notation/Systems.tsx";
-import { TrioScore } from "./notation/TrioScore.tsx";
+import { TrioScore, type TrioVoice } from "./notation/TrioScore.tsx";
+import { trioStaves } from "./notation/trio-staves.ts";
 import { buildOverlay, neutralOverlay } from "./notation/overlay.ts";
 import { audio, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
@@ -414,11 +415,25 @@ export function TrioPane(p: {
     p.player.play("trio", events, audio.barSeconds);
   };
   const playerStaves = [0, 1, 2].filter((x) => x !== s.cantusIndex);
+  // Two staves, as in the game (D113): each voice by the register of Fux's line, the player's in their colours.
+  const mean = (line: (string | null)[]) => {
+    const ms = line.filter((x): x is string => !!x).map((x) => parsePitch(x).midi);
+    return ms.reduce((a, b) => a + b, 0) / Math.max(1, ms.length);
+  };
+  const staves = trioStaves(s.answer.map(mean));
+  const INK = ["var(--trk-counterpoint)", "var(--trk-second)"];
+  const drawn: TrioVoice[] = voices.map((notes, i) => ({
+    notes,
+    editable: p.writable && s.open.some(([a]) => a === i),
+    staff: staves.staff[i],
+    ...(i === s.cantusIndex ? {} : { ink: INK[playerStaves.indexOf(i)] }),
+  }));
   return (
     <div className="tut-write">
       <div className="tut-score trio">
         <TrioScore
-          staves={voices.map((notes, i) => ({ clef: s.clefs[i], notes, editable: p.writable && s.open.some(([a]) => a === i), label: i === s.cantusIndex ? tt("ui.cantus") : `${tt("ui.voice")} ${playerStaves.indexOf(i) + 1}` }))}
+          voices={drawn}
+          clefs={staves.clefs}
           active={sel?.[0] ?? playerStaves[0]}
           selected={sel?.[1] ?? -1}
           cursor={p.player.playing === "trio" || p.player.playing === p.cursorClip ? p.player.cursor : -1}
@@ -433,7 +448,7 @@ export function TrioPane(p: {
             write(staff, bar, withAccidental(natural, pending));
             setPending(null);
           }}
-          onSelect={(staff, bar) => isOpen(staff, bar) && setSel([staff, bar])}
+          onSelect={(staff, bar) => staff !== null && isOpen(staff, bar) && setSel([staff, bar])}
           zoom={1}
           onZoom={() => undefined}
           zoomLabels={{ in: t("ui.zoom.in"), out: t("ui.zoom.out"), reset: t("ui.zoom.reset") }}
@@ -587,31 +602,28 @@ export function Quiz(p: {
 
 // ---------------------------------------------------------------- road map
 
-export function RoadMap({ trioCount }: { trioCount: number }) {
+export function RoadMap({ trio }: { trio: { species: number; ids: string[] }[] }) {
   const stars = stored<string[]>("wtg.stars", [], (v) => Array.isArray(v));
   const two = COURSES.filter((c) => c.voices === 2);
   const ord = ["", "1st", "2nd", "3rd", "4th", "5th"];
+  const row = (species: number, ids: string[]) => (
+    <tr key={species}>
+      <td>{tt("road.species", { n: ord[species] })}</td>
+      <td>{tt("road.exercises", { n: ids.length })}</td>
+      <td>{tt("road.stars", { n: ids.filter((id) => stars.includes(id)).length, total: ids.length })}</td>
+    </tr>
+  );
   return (
     <table className="tut-road">
       <tbody>
         <tr>
           <th colSpan={3}>{tt("road.head", { voices: 2 })}</th>
         </tr>
-        {two.map((c) => (
-          <tr key={c.species}>
-            <td>{tt("road.species", { n: ord[c.species] })}</td>
-            <td>{tt("road.exercises", { n: c.steps.length })}</td>
-            <td>{tt("road.stars", { n: c.steps.filter((s) => stars.includes(s.id)).length, total: c.steps.length })}</td>
-          </tr>
-        ))}
+        {two.map((c) => row(c.species, c.steps.map((s) => s.id)))}
         <tr>
           <th colSpan={3}>{tt("road.head", { voices: 3 })}</th>
         </tr>
-        <tr>
-          <td>{tt("road.species", { n: ord[1] })}</td>
-          <td>{tt("road.exercises", { n: trioCount })}</td>
-          <td>{tt("road.stars", { n: stars.filter((id) => id.startsWith("fux-mode.t1.")).length, total: trioCount })}</td>
-        </tr>
+        {trio.map((x) => row(x.species, x.ids))}
         <tr>
           <th colSpan={3}>{tt("road.head", { voices: 4 })}</th>
         </tr>

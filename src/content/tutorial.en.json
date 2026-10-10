@@ -56,7 +56,11 @@
     "betaOnHelp": "BETA: everything is open, for testing. Click for the real setup, where tutorial lessons and exercises unlock one after another.",
     "betaOffHelp": "The real setup: a tutorial lesson opens when the one before is done, an exercise when the one before has its ★. Click for BETA, where everything is open.",
     "locked": "Locked: finish the lesson before it first.",
-    "lockedExercise": "Locked: earn the ★ on the exercise before it first (or switch to BETA)."
+    "lockedExercise": "Locked: earn the ★ on the exercise before it first (or switch to BETA).",
+    "starNone": "Not yet cleared",
+    "starPlain": "Cleared: no rule broken (★, the next exercise is open). With no piece of advice broken either, the gold star 🌟.",
+    "starGold": "Cleared with no rule and no advice broken: the gold star 🌟.",
+    "quickTutorial": "New to music? The full tutorial ›"
   },
   "chapters": {
     "welcome": {
@@ -416,7 +420,7 @@
         "Your line does not have to be Fux's. Anything that keeps the rules is accepted — and in the game, once you have cleared one of Fux's worked exercises, his solution opens beside yours for comparison."
       ],
       "prompt": "Write all eleven notes.",
-      "hint": "Ending: C♯, D. Beginning: A or D. In between, a third or a sixth above each cantus note keeps every rule; but for the star in the game, mix in contrary motion — a line that only moves in parallel with the cantus draws Aloysius's advice.",
+      "hint": "Ending: C♯, D. Beginning: A or D. In between, a third or a sixth above each cantus note keeps every rule; but for the gold 🌟 in the game, mix in contrary motion — a line that only moves in parallel with the cantus draws Aloysius's advice.",
       "done": "Your first counterpoint. Aloysius would be pleased."
     },
     "first.below": {
@@ -436,7 +440,7 @@
       "text": [
         "The game has twelve first-species exercises: Fux's ten worked examples (modes on D, E, F, G and A, each with the cantus below and above), and two more on his C-mode cantus, which he leaves to private study. Rules join as Fux introduces them; each exercise lists its own under **How to play → Rules of this exercise**.",
         "The cadence in every mode: the note before the last, in your line, is the note just below the final. In D it needs a sharp (C♯), in G too (F♯), and in A (G♯). In F and C it is a semitone already (E–F, B–C). In E your line comes from D, a whole tone below, because there the cantus itself falls the semitone F–E.",
-        "In the game you write on the full score, then press **Evaluate**. A result with no broken rule and no advice earns a ★, and clearing one of Fux's worked exercises opens his own solution. You can come back to the tutorial any time with the TUTORIAL button."
+        "In the game you write on the full score, then press **Evaluate**. A result with no broken rule earns a ★, which opens the next exercise; with no piece of advice broken either, a gold 🌟. Clearing one of Fux's worked exercises also opens his own solution. You can come back to the tutorial any time with the TUTORIAL button."
       ],
       "prompt": "Try the first exercise in the game, or carry on with the second species."
     },
@@ -636,7 +640,7 @@
       "text": [
         "In three voices the cantus is joined by two lines of yours. Here the cantus in D is on top, and Fux's two voices are below it (Fig. 101).",
         "Everything is now measured from the **bass**: the lowest note sounding in each bar, whichever voice it belongs to. Every voice must be consonant **against the bass**. Between the two upper voices a fourth is allowed — but not a second or a seventh.",
-        "The numbers under the upper notes are their intervals above the bass. The game's three-voice exercises are in first species: whole notes in every voice."
+        "The numbers under the upper notes are their intervals above the bass. Here, in first species, every voice sings whole notes; the game has the other four species in three voices too, where one of your voices moves while the other holds whole notes."
       ],
       "prompt": "Listen to Fux's three voices.",
       "clips": {
@@ -680,7 +684,7 @@
     "three.game": {
       "title": "Three voices in the game",
       "text": [
-        "Choose **3 voices** in the first menu. You write both voices that are not the cantus, in any order: clicking a staff writes there and makes it the active voice; with the keyboard, **Tab** switches between your two voices. Sixteen of Fux's exercises are there, in his order.",
+        "Choose **3 voices** in the first menu. You write both voices that are not the cantus, in any order: clicking a staff writes there and makes it the active voice; with the keyboard, **Tab** switches between your two voices. All five species are there, Fux's exercises in his order: in species two to five one of your voices takes the new rhythm while the other keeps to whole notes. The two-voice rules of each species hold for the moving voice, and the three-voice rules for the harmony on the downbeats.",
         "What the game checks besides: begin and end with the final as the lowest note; in the last bar the other voices take its octave, its fifth or its major third — never the minor third (in D, no F♮ over the final D); and in your voices no tritone, major sixth or seventh leaps."
       ],
       "prompt": "Try Fux's first three-voice exercise, or read ahead about four voices."
@@ -697,7 +701,7 @@
     "end.path": {
       "title": "The road to the end",
       "text": [
-        "This is the whole game, in order. Each exercise cleared earns a ★; the menus count them for each species. Clearing one of Fux's worked exercises also opens his own solution, to see, hear and compare with yours. Some exercises (the C cantus in first species; the G, A and C cantus in third and fourth) are ones he left to private study: there is no solution of his to compare.",
+        "This is the whole game, in order. Each exercise cleared earns a ★, and a gold 🌟 if no advice was broken either; the menus count them for each species. Clearing one of Fux's worked exercises also opens his own solution, to see, hear and compare with yours. Some exercises (the C cantus in first species; the G, A and C cantus in third and fourth) are ones he left to private study: there is no solution of his to compare.",
         "When an exercise defeats you: open **How to play → Rules of this exercise** for the rules in force, read the **Lectio** for what Fux says about it, and look at the marks after **Evaluate** — each tells you which bar breaks which rule and why. Then come back here: every species has its chapter."
       ]
     },
@@ -802,7 +806,7 @@
     },
     "star": {
       "title": "The star",
-      "text": "A clean result — no rule and no advice broken — earns the star. Clearing the exercise also opens Fux's own solution."
+      "text": "No rule broken earns the ★ (and opens the next exercise when the game is not in BETA); no advice broken either, the gold 🌟. Clearing the exercise also opens Fux's own solution."
     },
     "fux": {
       "title": "Fux's solution",

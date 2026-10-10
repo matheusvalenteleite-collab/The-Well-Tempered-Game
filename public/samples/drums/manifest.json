@@ -1,0 +1,104 @@
+{
+  "virtuosity": {
+    "voices": [
+      "kick",
+      "snare",
+      "rim",
+      "hat",
+      "openhat",
+      "crash",
+      "ride",
+      "tomHigh",
+      "tomLow",
+      "cowbell",
+      "tambourine",
+      "shaker",
+      "congaHigh",
+      "congaLow",
+      "bongo",
+      "woodblock",
+      "claves",
+      "triangle",
+      "guiro"
+    ],
+    "notes": "Virtuosity Drums (CC0): kick = kick mic + OH, snare/rim = snare mic + OH, hats/cymbals/toms = mid + OH pair; percussion = close + OH (woodblock OH only); bongo = high bongo, congaHigh = conga, congaLow = tumba."
+  },
+  "bigRusty": {
+    "voices": [
+      "kick",
+      "snare",
+      "rim",
+      "hat",
+      "openhat",
+      "crash",
+      "ride",
+      "tomHigh",
+      "tomLow"
+    ],
+    "notes": "Big Rusty Drums (CC0): close + overhead mics; rim = sidestick, toms = 14in rack and 18in floor, crash 17in, ride 22in. No auxiliary percussion in the kit."
+  },
+  "naked": {
+    "voices": [
+      "kick",
+      "snare",
+      "rim",
+      "hat",
+      "openhat",
+      "crash",
+      "ride",
+      "tomHigh",
+      "tomLow"
+    ],
+    "notes": "Naked Drums (CC BY 4.0): direct mic + overheads (crash: OH + close room); rim = sidestick (OH only, close mic clips; one dynamic layer, soft = second round robin at -3 dB); toms 1 and 4."
+  },
+  "drskit": {
+    "voices": [
+      "kick",
+      "snare",
+      "rim",
+      "hat",
+      "openhat",
+      "crash",
+      "ride",
+      "tomHigh",
+      "tomLow"
+    ],
+    "notes": "DRSKit (CC BY 4.0): mono mix of close mic + OH L/R + ambience L/R from the 13-channel hits; rim = snare rimshot; crash = right crash (OH + ambience only); toms 1 and 3 (floor)."
+  },
+  "retro": {
+    "voices": [
+      "kick",
+      "snare",
+      "rim",
+      "clap",
+      "hat",
+      "openhat",
+      "crash",
+      "ride",
+      "tomHigh",
+      "tomLow",
+      "cowbell",
+      "tambourine",
+      "shaker",
+      "congaHigh",
+      "congaLow",
+      "claves"
+    ],
+    "notes": "Retro Drums 1 (free-use samples): Sequential Drumtraks for snare, rimshot, clap, hats, crash, ride, tambourine and cabasa (as shaker); Casio RZ-1 for kick and toms; Roland CR-8000 for cowbell, congas and claves. Single-velocity machines: soft layer = same hit at -6 dB."
+  },
+  "unruly": {
+    "voices": [
+      "kick",
+      "snare",
+      "rim",
+      "hat",
+      "openhat",
+      "crash",
+      "ride",
+      "tomHigh",
+      "tomLow",
+      "woodblock"
+    ],
+    "notes": "Unruly Drums (CC0, snare wires on every drum): kick in + out + OH, 14in snare top + OH pair, rim = sidestick, toms = 13in and 22in drums, clean tom articulation, 16in crash, 20in ride, woodblock close + OH."
+  }
+}
