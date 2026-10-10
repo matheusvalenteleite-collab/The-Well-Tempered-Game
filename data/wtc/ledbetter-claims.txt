@@ -134,7 +134,7 @@ wtc1f15 section b.20-31 exposition inverso
 wtc1f15 entry b.38 voice? e
 wtc1f15 entry b.43 voice? e (inverso)
 wtc1f15 stretto b.51 voices?
-wtc1f15 entry b.79 voice? I
+wtc1f15 entry b.79 voice? I (L.: tonic; the notes sit a 3rd up, level iii) [check]
 wtc1f16 cadence b.12 Bb
 wtc1f16 cadence b.24 i
 wtc1f16 cadence b.34 i
@@ -209,13 +209,13 @@ wtc1f23 entry b.20 alto
 wtc1f23 entry b.21 bass I
 wtc1f23 entry b.24 tenor
 wtc1f23 section b.26-28 episode
-wtc1f24 entry b.13 voice? V
+wtc1f24 entry b.13 soprano V (L.: the 4th entry should start on the dominant and return to the tonic; analysis reads level E) [check]
 wtc1f24 entry b.21 voice? i
-wtc1f24 entry b.34 voice? V (half)
-wtc1f24 entry b.35 voice? V (half)
+wtc1f24 entry b.34 alto V (half)
+wtc1f24 entry b.35 soprano i (half; L.: bb.34-5 dominant then tonic)
 wtc1f24 entry b.38 voice? i
 wtc1f24 entry b.41 voice? b (half)
-wtc1f24 entry b.42 voice? e (half)
+wtc1f24 entry b.42 voice? e (half; G and G# both present) [check]
 wtc1f24 entry b.43 voice? A (half)
 wtc1f24 entry b.44 voice? D
 wtc1f24 entry b.53 voice? V
@@ -336,7 +336,7 @@ wtc2p11 cadence b.16 C
 wtc2p11 cadence b.33 d
 wtc2p11 cadence b.57 F
 wtc2f11 entry b.21 bass (false entry)
-wtc2f11 entry b.52 alto d
+wtc2f11 entry b.52 alto F (L.: d, harmonised)
 wtc2f11 cadence b.56 F (interrupted)
 wtc2f11 entry b.85 voice? F (reharmonised)
 wtc2f11 entry b.89 bass (gap filled)
@@ -445,7 +445,7 @@ wtc2f21 pedal b.22-24 V
 wtc2f21 section b.1-32 first half
 wtc2f21 section b.29-32 closing idea
 wtc2f21 cadence b.54 Eb
-wtc2f21 entry b.78 voice? I (ff)
+wtc2f21 entry b.78 voice? V (ff; L.: I, functional)
 wtc2p21 section b.1-32
 wtc2p21 section b.33-48
 wtc2p21 section b.49-87 reprise

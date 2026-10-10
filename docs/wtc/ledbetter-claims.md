@@ -206,7 +206,7 @@ Later subjects of double and triple fugues are found from where he says they ent
 - ✓ `entry b.38 voice? e`: found, in e
 - ✓ `entry b.43 voice? e (inverso)`: found, in e
 - ✓ `stretto b.51 voices?`: found at bar 51
-- ✓ `entry b.79 voice? I`: found, but read in iii, not I
+- ✓ `entry b.79 voice? I (L.: tonic; the notes sit a 3rd up, level iii) [check]`: found, but read in iii, not I
 
 ### Fugue 16 in G minor (Book I, BWV 861b)
 
@@ -320,13 +320,13 @@ Later subjects of double and triple fugues are found from where he says they ent
 
 13 of 14 hold.
 
-- ✓ `entry b.13 voice? V`: found, but read in IV, not V
+- ✓ `entry b.13 soprano V (L.: the 4th entry should start on the dominant and return to the tonic; analysis reads level E) [check]`: found, but read in IV, not V
 - ✓ `entry b.21 voice? i`: found, in i
-- ✓ `entry b.34 voice? V (half)`: found, in V
-- ✓ `entry b.35 voice? V (half)`: found, but read in i, not V
+- ✓ `entry b.34 alto V (half)`: found, in V
+- ✓ `entry b.35 soprano i (half; L.: bb.34-5 dominant then tonic)`: found, in i
 - ✓ `entry b.38 voice? i`: found, in i
 - ✓ `entry b.41 voice? b (half)`: found, in b
-- ✓ `entry b.42 voice? e (half)`: found, but read in E, not e
+- ✓ `entry b.42 voice? e (half; G and G# both present) [check]`: found, but read in E, not e
 - ✗ `entry b.43 voice? A (half)`: not found
 - ✓ `entry b.44 voice? D`: found, in D
 - ✓ `entry b.53 voice? V`: found, in V
@@ -463,7 +463,7 @@ Later subjects of double and triple fugues are found from where he says they ent
 2 of 5 hold.
 
 - ✓ `entry b.21 bass (false entry)`: found
-- ✓ `entry b.52 alto d`: found, but read in F, not d
+- ✓ `entry b.52 alto F (L.: d, harmonised)`: found, in F
 - ✗ `cadence b.56 F (interrupted)`: not found
 - ✗ `entry b.85 voice? F (reharmonised)`: not found
 - ✗ `entry b.89 bass (gap filled)`: not found
@@ -581,7 +581,7 @@ Later subjects of double and triple fugues are found from where he says they ent
 - · `section b.1-32 first half`: the opening
 - ✗ `section b.29-32 closing idea`: no section starts here
 - ✗ `cadence b.54 Eb`: not found
-- ✓ `entry b.78 voice? I (ff)`: found, but read in V, not I
+- ✓ `entry b.78 voice? V (ff; L.: I, functional)`: found, in V
 
 ### Fugue 22 in B♭ minor (Book II, BWV 891b)
 
