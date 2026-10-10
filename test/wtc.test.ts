@@ -225,3 +225,18 @@ test("D128/D131: a recording of every prelude and fugue (Ishizaka, Book I; Loess
   const two = trackOf("wtc2.02", true)!;
   assert.equal(two.b.length, 2 * new Set(two.b).size);
 });
+
+test("D132: Bach's licences: a fault Bach commits in his own two-voice writing becomes a warning naming where; others stay errors", async () => {
+  const { withLicences, bachPlace } = await import("../src/wtc/licences.ts");
+  const ev = evaluateCounterpoint({
+    line: [{ pitch: "E5", at: 0, dur: 1 }, { pitch: "A4", at: 1, dur: 1 }, { pitch: "B4", at: 2, dur: 1 }],
+    given: [{ pitch: "C4", at: 0, dur: 1 }, { pitch: "D4", at: 1, dur: 1 }, { pitch: "E4", at: 2, dur: 1 }],
+    bar: 4, beat: 1, phase: 0, judged: new Set([0, 1, 2]),
+  });
+  // Parallel fifths: Bach's two-voice writing has one (Book I, C sharp major, bar 39).
+  const lax = withLicences(ev);
+  assert.ok(lax.passed);
+  assert.match(lax.warnings[0].detail!.bach, /Book I, Fugue 3/);
+  // A licence the data never saw stays an error.
+  assert.equal(bachPlace({ ruleId: "wtc.cp.nonexistent", at: 0, note: 0, severity: "error", messageKey: "x" }), null);
+});

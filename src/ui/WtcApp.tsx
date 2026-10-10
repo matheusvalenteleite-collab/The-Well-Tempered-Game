@@ -12,6 +12,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { FUGUES, KEY_ORDER, keyName, keySignature, isMinor, realAnswer, transpose, type WtcFugue, type WtcNote } from "../wtc/fugues.ts";
 import { degree, evaluateAnswer, type AnswerEvaluation } from "../wtc/answer.ts";
 import { beatOf, evaluateCounterpoint, type CpEvaluation } from "../wtc/counterpoint.ts";
+import { withLicences } from "../wtc/licences.ts";
 import { counterHint } from "../wtc/hints.ts";
 import { findEntries, type Entry, type FullNote } from "../wtc/entries.ts";
 import full from "../../data/bach/wtc/fugues-full.json" with { type: "json" };
@@ -416,7 +417,7 @@ export function WtcApp({ onVoices, onStudy, onTutorial }: { onVoices(n: 2 | 3 | 
       const tail = F.subject.map((n) => ({ ...n, at: n.at - F.answerAt }));
       const mine = F.countersubject.map((n, i) => ({ ...n, pitch: line[i]! }));
       const all = [...tail, ...mine];
-      const ev = evaluateCounterpoint({ line: all, given: F.answer, bar: F.barQuarters, beat: beatOf(F.time), phase: toAnswer % F.barQuarters, judged: new Set(mine.map((_, i) => i + tail.length)) });
+      const ev = withLicences(evaluateCounterpoint({ line: all, given: F.answer, bar: F.barQuarters, beat: beatOf(F.time), phase: toAnswer % F.barQuarters, judged: new Set(mine.map((_, i) => i + tail.length)) }));
       setResult({ kind: "counter", ev });
       if (ev.passed && !stars.includes(key)) setStars([...stars, key]);
     }
@@ -538,6 +539,7 @@ export function WtcApp({ onVoices, onStudy, onTutorial }: { onVoices(n: 2 | 3 | 
           {ev.violations.map((v, k) => (
             <li key={k} className={v.severity}>
               <span className="where">{t("ui.wtc.barOnly", { bar: barOfCs(v.at) })}</span> {t(`ui.${v.messageKey}`, { interval: v.detail?.interval ?? "", kind: v.detail?.interval ?? "" })}
+              {v.detail?.bach && <> {t(Number(v.detail.bachCount) > 1 ? "ui.wtc.licence" : "ui.wtc.licenceOnce", { where: v.detail.bach, n: v.detail.bachCount })}</>}
             </li>
           ))}
         </ul>

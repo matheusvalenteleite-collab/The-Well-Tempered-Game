@@ -99,7 +99,11 @@ function fugueOf(p: WtcPiece): LibFugue {
     (e) => new Set(e.notes.map((i) => piece.voice[i])).size === 1 && !lab.some((x) => voiceOf(x) === voiceOf(e) && x.at < e.end - 1e-6 && e.at < x.end - 1e-6),
   );
   // findEntries' shift is from the subject's first note as found in the piece; the lab's from the subject itself (the same, the first entry being the subject).
-  const entries = [...lab, ...more].sort((a, b) => a.at - b.at);
+  // Within a voice entries do not overlap (a subject of even notes matches a few notes on, in sequences):
+  // the lab's kept first, then mine in time order.
+  const kept: Entry[] = [];
+  for (const e of [...lab.sort((a, b) => a.at - b.at), ...more.sort((a, b) => a.at - b.at)]) if (!kept.some((x) => voiceOf(x) === voiceOf(e) && x.at < e.end - 1e-6 && e.at < x.end - 1e-6)) kept.push(e);
+  const entries = kept.sort((a, b) => a.at - b.at);
   return {
     ...piece,
     subject: subject.map((n) => ({ pitch: n.pitch, at: (n.on - s0) / TPQ, dur: n.dur / TPQ })),
