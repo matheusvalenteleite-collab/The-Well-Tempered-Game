@@ -22,6 +22,8 @@ import { separateVoices } from "../wtc/voices.ts";
 import { degreeOf, entryVoice, pitchName, studyMoments, voiceNames, type Moment } from "../wtc/study.ts";
 import { parsePitch, type Step } from "../music/pitch.ts";
 import { VoiceRoll, type RollExtra } from "./notation/VoiceRoll.tsx";
+import { WtcScore, type WtcScoreVoice } from "./notation/WtcScore.tsx";
+import { ZOOM_MAX, ZOOM_MIN } from "./notation/zoom.ts";
 import { restoreSound, type SoundState } from "../audio/sound.ts";
 import { SYNTH_PRESETS } from "../audio/synth-settings.ts";
 import { WELL, type TemperamentId } from "../audio/temperament.ts";
@@ -48,6 +50,21 @@ type Instrument = (typeof INSTRUMENTS)[number];
 /** The spotlight's sound: another instrument than the rest. */
 const SPOT: Record<Instrument, string> = { harpsichord: "fluteOrgan", fluteOrgan: "harpsichord", grandRoom: "fluteOrgan" };
 const STEPS: Step[] = ["C", "D", "E", "F", "G", "A", "B"];
+const PC_OF: Record<Step, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+/** A MIDI number spelled in the key: the step whose key-signature alteration gives it, else a natural, else a sharp (a flat in a flat key). */
+function spell(m: number, sig: Record<Step, number>, flats: boolean): string {
+  const pc = ((m % 12) + 12) % 12;
+  const oct = (step: Step, alter: number) => Math.floor((m - PC_OF[step] - alter) / 12) - 1;
+  const inKey = STEPS.find((st) => (((PC_OF[st] + sig[st]) % 12) + 12) % 12 === pc);
+  if (inKey) return `${inKey}${sig[inKey] > 0 ? "#".repeat(sig[inKey]) : "b".repeat(-sig[inKey])}${oct(inKey, sig[inKey])}`;
+  for (const alter of flats ? [0, -1, 1] : [0, 1, -1]) {
+    const st = STEPS.find((x) => (((PC_OF[x] + alter) % 12) + 12) % 12 === pc);
+    if (st) return `${st}${alter > 0 ? "#" : alter < 0 ? "b" : ""}${oct(st, alter)}`;
+  }
+  return midiName(m, flats);
+}
+/** VexFlow's key signature name ("F#", "Bbm"). */
+const vexKey = (key: string) => (key[0] === key[0].toLowerCase() ? `${key[0].toUpperCase()}${key.slice(1)}m` : key);
 const DEGREES = [0, 2, 3, 4, 5, 7, 8, 9, 10, 11, 1, 6];
 
 
@@ -135,6 +152,10 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
   const [playing, setPlaying] = useState(false);
   const [cursor, setCursor] = useState(-1);
   const [span, setSpan] = useState<{ from: number; to: number } | null>(null);
+  /** The roll, or the chosen bars in notation (D124). */
+  const [view, setView] = useState<"roll" | "score">(() => stored("wtg.wtcStudyView", "roll", (v) => v === "roll" || v === "score"));
+  useEffect(() => store("wtg.wtcStudyView", view), [view]);
+  const [zoom, setZoom] = useState(() => stored("wtg.wtcZoom", 1, (v) => typeof v === "number" && v >= ZOOM_MIN && v <= ZOOM_MAX));
   const [activeMoment, setActiveMoment] = useState<string | null>(null);
 
   // The workshop: the subject changed note by note (semitones from Bach's), and the player's own entries.
@@ -234,12 +255,17 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
   };
 
   // "Where next?": the fugue unfolds entry by entry.
-  const [game, setGame] = useState<{ k: number; score: number; tried: number; last: null | { ok: boolean; answer: string; right: string } } | null>(null);
+  /**
+   * The game (D124, the owner's "write the response"): before each entry, name the degree; then write
+   * its first notes by letter (the key signature applied, ♯ ♭ to alter); then hear it.
+   */
+  type GameLast = { ok: boolean; answer: string; right: string; phase: "notes" | "done"; written: number[]; notesOk: boolean | null };
+  const [game, setGame] = useState<{ k: number; score: number; tried: number; notesScore: number; last: null | GameLast } | null>(null);
   const gameEntries = entries.filter((e) => !e.inverted);
   const startGame = () => {
     // The game hides what is to come: no workshop overlays, no outlines ahead.
     setThrough("off");
-    setGame({ k: 1, score: 0, tried: 0, last: null });
+    setGame({ k: 1, score: 0, tried: 0, notesScore: 0, last: null });
     const e = gameEntries[1];
     if (e) playSpan(0, e.at, null);
   };
@@ -250,7 +276,31 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
     const rel = ((((e.shift - (firstEntry?.shift ?? 0)) % 12) + 12) % 12);
     const ok = rel === deg;
     const nameOf = (s: number) => `${degreeOf(s, minor)} (${pitchName(tonicMidi + s).replace(/-?\d+$/, "")})`;
-    setGame({ ...game, score: game.score + (ok ? 1 : 0), tried: game.tried + 1, last: { ok, answer: nameOf(deg), right: nameOf(rel) } });
+    setGame({ ...game, score: game.score + (ok ? 1 : 0), tried: game.tried + 1, last: { ok, answer: nameOf(deg), right: nameOf(rel), phase: "notes", written: [], notesOk: null } });
+  };
+  /** The entry's first notes (up to four), in time order. */
+  const entryHead = (e: Entry) => [...e.notes].sort((a, b) => notes[a].at - notes[b].at).slice(0, 4).map((i) => notes[i].midi);
+  const writeLetter = (step: Step) => {
+    if (!game?.last || game.last.phase !== "notes") return;
+    const e = gameEntries[game.k];
+    const head = entryHead(e);
+    if (game.last.written.length >= head.length) return;
+    const pc = (((PC_OF[step] + sig[step]) % 12) + 12) % 12;
+    setGame({ ...game, last: { ...game.last, written: [...game.last.written, pc] } });
+    void audio.playSequence([{ slot: 0, at: 0, length: 0.2, cantus: null, counterpoint: null, extra: [{ channel: "counterpoint", pitch: midiName(60 + pc, flats) }] }]);
+  };
+  const alterLast = (d: number) => {
+    if (!game?.last || game.last.phase !== "notes" || !game.last.written.length) return;
+    const w = [...game.last.written];
+    w[w.length - 1] = (((w[w.length - 1] + d) % 12) + 12) % 12;
+    setGame({ ...game, last: { ...game.last, written: w } });
+  };
+  const checkNotes = (skip = false) => {
+    if (!game?.last) return;
+    const e = gameEntries[game.k];
+    const head = entryHead(e).map((m) => ((m % 12) + 12) % 12);
+    const ok = !skip && head.length === game.last.written.length && head.every((x, i) => x === game.last!.written[i]);
+    setGame({ ...game, notesScore: game.notesScore + (ok ? 1 : 0), last: { ...game.last, phase: "done", notesOk: skip ? null : ok } });
     playSpan(e.at, e.end, null);
   };
   const nextGame = () => {
@@ -260,7 +310,7 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
     setGame({ ...game, k, last: null });
     playSpan(gameEntries[k - 1].end, gameEntries[k].at, null);
   };
-  const gameUntil = game && game.k < gameEntries.length && !game.last ? gameEntries[game.k].at : game && game.k < gameEntries.length ? gameEntries[game.k].end : null;
+  const gameUntil = game && game.k < gameEntries.length && game.last?.phase !== "done" ? gameEntries[game.k].at : game && game.k < gameEntries.length ? gameEntries[game.k].end : null;
 
   const go = (k: number) => {
     if (k < 0 || k >= FUGUES.length) return;
@@ -497,19 +547,63 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
           )}
           {game.last && (
             <p className={game.last.ok ? "verdict ok" : "verdict bad"}>
-              {game.last.ok ? t("ui.study.next.right", { right: game.last.right }) : t("ui.study.next.wrong", { answer: game.last.answer, right: game.last.right })}{" "}
+              {game.last.ok ? t("ui.study.next.right", { right: game.last.right }) : t("ui.study.next.wrong", { answer: game.last.answer, right: game.last.right })}
+            </p>
+          )}
+          {game.last && game.last.phase === "notes" && (
+            <>
+              <p>{t("ui.study.next.writeNotes", { n: entryHead(gameEntries[game.k]).length })}</p>
+              <div className="row">
+                {(["C", "D", "E", "F", "G", "A", "B"] as Step[]).map((st) => (
+                  <button key={st} className="chipbtn" onClick={() => writeLetter(st)}>{`${st}${sig[st] > 0 ? "♯" : sig[st] < 0 ? "♭" : ""}`}</button>
+                ))}
+                <button className="chipbtn" onClick={() => alterLast(1)} title={t("ui.accidental.sharp.help")}>♯</button>
+                <button className="chipbtn" onClick={() => alterLast(-1)} title={t("ui.accidental.flat.help")}>♭</button>
+                <button className="chipbtn" onClick={() => game.last && setGame({ ...game, last: { ...game.last, written: game.last.written.slice(0, -1) } })}>⌫</button>
+              </div>
+              <p className="help">{t("ui.study.next.written", { notes: game.last.written.map((pc) => midiName(60 + pc, flats).replace(/-?\d+$/, "").replace("#", "♯").replace(/(?<=[A-G])b/, "♭")).join(" ") || "–" })}</p>
+              <div className="row">
+                <button className="primary" onClick={() => checkNotes()} disabled={game.last.written.length < entryHead(gameEntries[game.k]).length}>{t("ui.study.next.check")}</button>
+                <button className="chipbtn" onClick={() => checkNotes(true)}>{t("ui.study.next.skip")}</button>
+              </div>
+            </>
+          )}
+          {game.last && game.last.phase === "done" && (
+            <p className={game.last.notesOk === false ? "verdict bad" : "verdict ok"}>
+              {game.last.notesOk === null ? "" : game.last.notesOk ? t("ui.study.next.notesRight") : t("ui.study.next.notesWrong", { bach: entryHead(gameEntries[game.k]).map((m) => spell(m, sig, flats).replace(/-?\d+$/, "").replace("#", "♯").replace(/(?<=[A-G])b/, "♭")).join(" ") })}{" "}
               <button className="chipbtn" onClick={nextGame}>{t("ui.study.next.go")}</button>
             </p>
           )}
         </>
       )}
-      {game && <p className="help">{t("ui.study.next.score", { score: game.score, tried: game.tried, n: gameEntries.length - 1 })}</p>}
+      {game && <p className="help">{t("ui.study.next.score", { score: game.score, tried: game.tried, n: gameEntries.length - 1, notes: game.notesScore })}</p>}
       {game && game.k >= gameEntries.length && <button className="chipbtn" onClick={startGame}>{t("ui.study.next.again2")}</button>}
       <p className="help">{t("ui.study.next.help")}</p>
     </div>
   );
 
   const rollNotes = gameNotes;
+  // The score view: the chosen span's bars (or four from the bar playing), at most eight.
+  const scoreFrom = span ? barOf(span.from) : Math.floor(Math.max(0, cursor) / 4) * 4; // pages of four bars while it plays
+  const scoreTo = Math.min(bars - 1, span ? Math.max(barOf(span.to - 1e-6), scoreFrom) : scoreFrom + 3, scoreFrom + 7);
+  const scoreVoices: WtcScoreVoice[] = useMemo(() => {
+    const q0 = scoreFrom * F.barQuarters;
+    const q1 = (scoreTo + 1) * F.barQuarters;
+    const starts = new Map<number, string>();
+    for (const e of entries) starts.set(e.notes[0], e.inverted ? "∀" : "S");
+    return Array.from({ length: count }, (_, v) => {
+      const mine = notes.map((n, i) => ({ n, i })).filter(({ n, i }) => voice[i] === v && n.at < q1 - 1e-6 && n.at + n.dur > q0 + 1e-6 && !(gameUntil !== null && n.at >= gameUntil - 1e-6)).sort((a, b) => a.n.at - b.n.at);
+      const out = mine.map(({ n, i }, k) => {
+        const at = Math.max(n.at, q0);
+        // A note overlapping the next in its voice is cut where the next begins.
+        const next = mine[k + 1]?.n.at ?? Infinity;
+        const end = Math.min(n.at + n.dur, q1, next);
+        return { pitch: spell(n.midi, sig, flats), at: at - q0, dur: Math.max(1 / 96, end - at), ...(starts.has(i) && n.at >= q0 ? { label: starts.get(i) } : {}) };
+      });
+      const mean = mine.reduce((a, x) => a + x.n.midi, 0) / Math.max(1, mine.length);
+      return { notes: out, staff: (mine.length ? mean : 72 - v * 12) >= 60 ? 0 : 1, ink: COLORS[v % COLORS.length], editable: false } as WtcScoreVoice;
+    }).filter((x) => x.notes.length);
+  }, [scoreFrom, scoreTo, F, entries, count, notes, voice, sig, flats, gameUntil]);
   const rollHidden = useMemo(() => {
     if (gameUntil === null) return hidden;
     const h = new Set(hidden);
@@ -542,6 +636,23 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
       }
       score={
         <div className="score-wrap wtc">
+          {view === "score" ? (
+            <WtcScore
+              voices={scoreVoices}
+              keySig={vexKey(F.key)}
+              signature={sig}
+              time={F.time}
+              barQuarters={F.barQuarters}
+              selected={null}
+              cursor={cursor >= scoreFrom && cursor <= scoreTo ? cursor - scoreFrom : -1}
+              label={`${fugueLabel(F)}, ${t("ui.study.bars", { a: scoreFrom + 1, b: scoreTo + 1 })}`}
+              onSlot={() => undefined}
+              zoom={zoom}
+              onZoom={setZoom}
+              zoomLabels={{ in: t("ui.zoom.in"), out: t("ui.zoom.out"), reset: t("ui.zoom.reset") }}
+              tools={<span className="help">{t("ui.study.scoreBars", { a: scoreFrom + 1, b: scoreTo + 1 })}</span>}
+            />
+          ) : (
           <VoiceRoll
             notes={rollNotes}
             voice={voice}
@@ -557,6 +668,7 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
             onBar={(b) => (game ? undefined : (setSpan(null), setActiveMoment(null), play(b * F.barQuarters)))}
             label={fugueLabel(F)}
           />
+          )}
         </div>
       }
       transport={
@@ -566,6 +678,10 @@ export function WtcStudy({ onVoices, onExercises }: { onVoices(n: 2 | 3 | "wtc")
               <button className="icon play" onClick={() => (playing ? stop() : span ? play(span.from, span.to) : play())} aria-label={t("ui.play.player")} title={t("ui.study.playHelp")}>{playing ? "■" : "▶"}</button>
             </div>
             {span && <button className="chipbtn" onClick={() => (setSpan(null), setActiveMoment(null))} title={t("ui.study.wholeHelp")}>{t("ui.study.whole")}</button>}
+            <span className="values" role="radiogroup" aria-label={t("ui.wtc.view")}>
+              <button className="chipbtn" role="radio" aria-checked={view === "roll"} aria-pressed={view === "roll"} onClick={() => setView("roll")} title={t("ui.study.rollHelp")}>{t("ui.study.roll")}</button>
+              <button className="chipbtn" role="radio" aria-checked={view === "score"} aria-pressed={view === "score"} onClick={() => setView("score")} title={t("ui.study.scoreHelp")}>{t("ui.study.score")}</button>
+            </span>
             <div className="hfaders">
               <HFader label={t("ui.tempo")} help={t("ui.wtc.tempoHelp")} value={tempo} min={15} max={120} defaultValue={36} format={(v) => `♩=${Math.round(v * 2)}`} onChange={(v) => setTempo(Math.round(v))} />
               <HFader label={t("ui.volume")} help={t("ui.volume.help")} value={volume} min={0} max={100} defaultValue={70} format={(v) => `${Math.round(v)}%`} onChange={(v) => setVolume(Math.round(v))} />

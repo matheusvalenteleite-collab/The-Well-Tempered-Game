@@ -33,6 +33,12 @@ The WTC mode now **opens on a study of the whole fugue**; the exercises are behi
   - Add entries of your own anywhere (bar, degree, upside down) against his fugue.
 - **Where next?** tab, the game you suggested: the fugue unfolds entry by entry, and before each you name the degree the subject has moved to. It is a first form of "write the response": you predict the modulation rather than write the notes. The next step would be to write the entry's first notes.
 
+**Added after your "just go"** (D124):
+- **Roll / Score** under the score area: the chosen section or moment in notation, voice by voice.
+- **Where next?** is now the "write the response" game: after the degree, you write the entry's first notes by letter, then hear Bach's.
+
+The import of the lab's corpus was refused again by the permission check, even after your go-ahead. I did not work around it. To allow it, add a Bash permission rule in the session settings, or tell me to ask the lab session to open a pull request into this branch for you to merge.
+
 **Two limits, and a decision for you.**
 - The voices and entries are found by the game from the notes. They are reliable but not perfect (about 3% of entries split, a voice occasionally borrows a neighbour's note).
 - The Choices lab session has all 48 preludes and fugues with true voices, from David Huron's Humdrum encoding, which reserves "rights to derivative electronic formats". My copying it in was refused by this session's permission check. If you approve, importing it would give the study all 96 pieces, the preludes included, and exact voices.
