@@ -689,7 +689,22 @@ export function WtcSheet(p: SheetProps) {
             return;
           }
           const h = hit(e);
-          if (h) p.onSeek(h.q);
+          if (!h) return;
+          // Shift: the passage from the marker (or the passage's start) to the bar clicked.
+          const anchor = p.span?.from ?? p.marker;
+          if (e.shiftKey && anchor !== null && geoRef.current) {
+            const bars = geoRef.current.systems.flatMap((sy) => sy.bars);
+            const ab = bars.find((bg) => anchor < bg.ticks[bg.ticks.length - 1][0] - EPS) ?? bars[bars.length - 1];
+            const aFrom = ab.ticks[0][0];
+            const aTo = p.span?.to ?? ab.ticks[ab.ticks.length - 1][0];
+            p.onSelect(Math.min(aFrom, h.barFrom), Math.max(aTo, h.barTo));
+            return;
+          }
+          p.onSeek(h.q);
+        }}
+        onDoubleClick={(e) => {
+          const h = hit(e as unknown as React.PointerEvent);
+          if (h) p.onSelect(h.barFrom, h.barTo);
         }}
         onPointerCancel={() => ((drag.current = null), setDragSpan(null))}
       >
