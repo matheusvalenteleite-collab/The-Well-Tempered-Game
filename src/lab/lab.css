@@ -106,3 +106,5 @@ html, body { height: auto !important; overflow: auto !important; }
 .wtc-m-cadence { border-left: 3px solid #2e7d4f; padding-left: 6px !important; }
 .wtc-m-pedal { border-left: 3px solid #a8761a; padding-left: 6px !important; }
 .wtc-m-climax { border-left: 3px solid #7b4fa0; padding-left: 6px !important; }
+.wtc-edit { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; }
+.wtc-edit button { padding: 0 5px; font-size: 0.7em; line-height: 1.2; }

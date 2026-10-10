@@ -15,6 +15,8 @@ import { entryKey } from "../wtc/keyplan.ts";
 import { reduce, type Segment } from "../wtc/reduction.ts";
 import { exposition } from "../wtc/exposition.ts";
 import { study, type MomentKind } from "../wtc/study.ts";
+import { invert, moveInScale, scaleOf, throughThePlan } from "../wtc/workshop.ts";
+import { evaluateTrio } from "../wtc/trio.ts";
 import { episodes, strettos, type Episode } from "../wtc/structure.ts";
 import { parsePitch } from "../music/pitch.ts";
 import { playNotes, playPiece, playSpans, stop, type Span } from "./keyboard.ts";
@@ -509,6 +511,65 @@ function StudyGuide({ p, a, play }: { p: WtcPiece; a: Analysis; play: (spans: Sp
   );
 }
 
+/* ---------------------------------------------------------------- the workshop */
+
+/** Change the subject (by step, or turned upside down) and hear it carried through Bach's plan. */
+function Workshop({ p, a, tuning, bpm, onTick }: { p: WtcPiece; a: Analysis; tuning: TuningId; bpm: number; onTick: (t: number) => void }) {
+  const [edited, setEdited] = useState<Note[]>(a.subject);
+  const [report, setReport] = useState<string | null>(null);
+  useEffect(() => (setEdited(a.subject), setReport(null)), [a]);
+  const scale = scaleOf(p.key, p.mode === "major");
+  const changed = edited.map((n, i) => (n.pitch !== a.subject[i]?.pitch ? i : -1)).filter((i) => i >= 0);
+  const move = (i: number, by: number) => (setEdited((xs) => xs.map((n, j) => (j === i ? { ...n, pitch: moveInScale(n.pitch, by, scale) } : n))), setReport(null));
+  const plan = () => throughThePlan(p, a.subject, a.entries, edited);
+  const check = () => {
+    // Consecutive fifths and octaves in the whole fugue, with Bach's subject and with the player's.
+    const count = (q: WtcPiece) => {
+      const lines = q.voices.map(line);
+      return lines.reduce((n, _, v) => n + evaluateTrio(lines, q.meter, v).filter((x) => x.severity === "error").length, 0) / 2;
+    };
+    const before = count(p);
+    const after = count(plan().whole);
+    setReport(after > before ? `Your subject, set against Bach's countersubjects and free voices, makes ${after - before} more pair${after - before === 1 ? "" : "s"} of consecutive fifths or octaves than his (${after} against ${before}): his counterpoint was written for his subject.` : after < before ? `Fewer consecutives than in Bach's own (${after} against ${before}).` : `No consecutive fifths or octaves added (${after}, as in Bach's). Listen for the dissonances instead: his counterpoint was written for his subject.`);
+  };
+  return (
+    <fieldset className="lab-panel">
+      <legend>Workshop: your subject through Bach's plan</legend>
+      <p className="lab-prose">
+        Change the subject: move any note up or down a step in the key, or turn it upside down. Then hear it carried through the fugue as Bach planned it: every entry at its time, in its voice and its key (each note of each entry moved as you moved the subject's, so the tonal answer stays tonal). First the entries alone, the plan's skeleton; then inside the whole fugue, Bach's counterpoint around your subject, written for his.
+      </p>
+      <div className="wtc-answer">
+        <div className="wtc-row">
+          <span className="wtc-rowname">your subject</span>
+          {edited.map((n, i) => (
+            <span key={i} className={`wtc-note wtc-edit${changed.includes(i) ? " wtc-fourth" : ""}`}>
+              <button onClick={() => move(i, 1)} aria-label="up a step">▲</button>
+              {nice(n.pitch.replace(/-?\d+$/, ""))}
+              <button onClick={() => move(i, -1)} aria-label="down a step">▼</button>
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="wtc-staves">
+        <div><span className="wtc-rowname">Bach's</span><MiniStaff notes={a.subject} ink="#2e7d4f" /></div>
+        <div><span className="wtc-rowname">yours</span><MiniStaff notes={edited} highlight={changed} /></div>
+      </div>
+      <div className="lab-actions">
+        <button onClick={() => playNotes(edited, tuning, bpm)}>▶ your subject</button>
+        <button onClick={() => playNotes(a.subject, tuning, bpm)}>▶ Bach's</button>
+        <button onClick={() => (setEdited(invert(edited, p.key, p.mode)), setReport(null))}>Turn it upside down</button>
+        <button onClick={() => (setEdited(a.subject), setReport(null))}>Back to Bach's</button>
+      </div>
+      <div className="lab-actions">
+        <button className="primary" onClick={() => playPiece(plan().skeleton, { tuning, bpm, onTick })}>▶ Through the plan: the entries alone ({a.entries.length})</button>
+        <button onClick={() => playPiece(plan().whole, { tuning, bpm, onTick })}>▶ Inside the whole fugue</button>
+        <button onClick={check} disabled={!changed.length}>What it does to Bach's counterpoint</button>
+      </div>
+      {report && <p className="lab-note">{report}</p>}
+    </fieldset>
+  );
+}
+
 /* ---------------------------------------------------------------- the tab */
 
 const ORDER = ["C major", "C minor", "C# major", "C# minor", "D major", "D minor", "Eb major", "D# minor", "E major", "E minor", "F major", "F minor", "F# major", "F# minor", "G major", "G minor", "Ab major", "G# minor", "A major", "A minor", "Bb major", "Bb minor", "B major", "B minor"];
@@ -697,6 +758,7 @@ export function WtcTab() {
         </fieldset>
       )}
       {a && p.kind === "fugue" && <StudyGuide p={p} a={a} play={(spans) => playSpans(p, spans, { tuning, bpm, voices: voicesOn, onTick: setTick })} />}
+      {a && p.kind === "fugue" && <Workshop p={p} a={a} tuning={tuning} bpm={bpm} onTick={setTick} />}
       {a && p.kind !== "fugue" && <Timeline p={p} a={a} onPlayFrom={(t) => (setFrom(t), playPiece(p, { tuning, bpm, from: t, voices: voicesOn, spotlight, onTick: setTick }))} />}
       {a && p.kind === "fugue" && <AnswerExercise p={p} a={a} tuning={tuning} />}
       {a && p.kind === "fugue" && <ExpositionExercise p={p} a={a} tuning={tuning} />}

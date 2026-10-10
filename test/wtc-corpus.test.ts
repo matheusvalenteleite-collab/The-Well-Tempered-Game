@@ -160,3 +160,17 @@ test("study: Book II's E major fugue, its cadences in vi, ii, iii and I; Book I'
   assert.ok(c.moments.some((m) => m.kind === "pedal" && m.label.startsWith("Tonic pedal")));
   assert.equal(c.moments.filter((m) => m.kind === "entry").length, 8);
 });
+
+test("workshop: an unchanged subject gives Bach's fugue back; an inverted one runs through his entries", async () => {
+  const { findEntriesByHead } = await import("../src/wtc/fugue.ts");
+  const { invert, throughThePlan } = await import("../src/wtc/workshop.ts");
+  const p = fugues.find((f) => f.id === "wtc1f02")!;
+  const sa = subjectAndAnswer(p);
+  const entries = findEntriesByHead(p, sa.subject).entries;
+  assert.deepEqual(throughThePlan(p, sa.subject, entries, sa.subject).whole.voices, p.voices);
+  const inv = invert(sa.subject, p.key, p.mode);
+  assert.deepEqual(inv.slice(0, 5).map((n) => n.pitch), ["C5", "D5", "C5", "F5", "Eb5"]);
+  const w = throughThePlan(p, sa.subject, entries, inv);
+  // The alto's entry (bar 1) is the inverted subject itself.
+  assert.deepEqual(w.skeleton.voices[1].slice(0, 5).map((n) => n[2]), ["C5", "D5", "C5", "F5", "Eb5"]);
+});
