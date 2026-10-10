@@ -9,10 +9,10 @@
 import { parsePitch } from "../music/pitch.ts";
 import { TPQ, type WtcPiece } from "./corpus.ts";
 import { exposition, voiceNames } from "./exposition.ts";
-import { line, type Entry, type Note } from "./fugue.ts";
+import { findTransformed, line, type Entry, type Note } from "./fugue.ts";
 import { entryKey } from "./keyplan.ts";
 import { episodes, strettos, subjectLength } from "./structure.ts";
-import { harmonicWindow, harmonies, type Harmony } from "./trio.ts";
+import { beatTicks as beatOf, harmonicWindow, harmonies, type Harmony } from "./trio.ts";
 
 export type MomentKind = "entry" | "stretto" | "episode" | "pedal" | "cadence" | "climax";
 
@@ -130,6 +130,18 @@ export function study(p: WtcPiece, subject: Note[], answer: Note[], entries: Ent
       detail: `bar ${barOf(p, e.on)}, in ${k.name[0].toUpperCase() + k.name.slice(1).replace("b", "♭").replace("#", "♯")} ${k.name[0] === k.name[0].toUpperCase() ? "major" : "minor"}${inStretto.has(e) ? ", in stretto" : ""}${e.changed && !isAnswer ? `, ${e.changed} interval${e.changed > 1 ? "s" : ""} altered` : isAnswer && e.changed ? ", a tonal answer" : ""}`,
     });
   }
+  // Entries in augmentation and diminution.
+  for (const e of findTransformed(p, subject)) {
+    const span = e.scale * len;
+    moments.push({
+      kind: "entry",
+      on: e.on,
+      end: e.on + span,
+      voice: e.voice,
+      label: `Entry in ${e.scale === 2 ? "augmentation" : "diminution"}${e.form === "inversion" ? " and inversion" : ""}, in the ${vname(e.voice)}`,
+      detail: `bar ${barOf(p, e.on)}, every value ${e.scale === 2 ? "doubled" : "halved"}`,
+    });
+  }
   // Stretto passages: chains of entries, each beginning before the one before it has ended.
   const beats = (t: number) => {
     const x = Math.round((t / TPQ) * 2) / 2;
@@ -140,7 +152,9 @@ export function study(p: WtcPiece, subject: Note[], answer: Note[], entries: Ent
     const chain = [sorted[i]];
     let end = sorted[i].on + len;
     let j = i + 1;
-    while (j < sorted.length && sorted[j].on < end - TPQ && sorted[j].voice !== chain[chain.length - 1].voice) {
+    // In stretto the next voice enters before the one before is halfway through the subject (a long
+    // subject's ordinary exposition, the answer entering on its last notes, is no stretto).
+    while (j < sorted.length && sorted[j].on - chain[chain.length - 1].on < len / 2 && sorted[j].voice !== chain[chain.length - 1].voice) {
       chain.push(sorted[j]);
       end = Math.max(end, sorted[j].on + len);
       j++;
@@ -174,7 +188,9 @@ export function study(p: WtcPiece, subject: Note[], answer: Note[], entries: Ent
       while (j + 1 < l.length && l[j + 1].pitch === l[i].pitch && l[j + 1].on <= l[j].on + l[j].dur) j++;
       const on = l[i].on;
       const end = l[j].on + l[j].dur;
-      if (end - on >= bar) {
+      // A bar at least, and four beats (in alla breve, four minims: a whole note held across a short
+      // bar is a suspension, not a pedal).
+      if (end - on >= Math.max(bar, 4 * beatOf(p.meter))) {
         const lowest = lines.every((x, u) => u === v || x.every((n) => n.on + n.dur <= on || n.on >= end || P(n.pitch).midi >= P(l[i].pitch).midi));
         if (lowest && !moments.some((m) => m.kind === "pedal" && m.on === on && m.end === end)) {
           const degree = (pc(l[i].pitch) - pc(`${p.key}4`) + 12) % 12;

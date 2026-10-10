@@ -10,12 +10,12 @@ fugues whose subject the analysis cuts short or long show few entries.
 
 ## The keys of the middle and final entries
 
-- in major fugues: I 30%, V 27%, vi 14%, IV 10%, ii 7%, iii 6%, VI 2%, vii 2%, III 1%, v 1%, II 0% (221)
+- in major fugues: I 30%, V 27%, vi 14%, IV 10%, ii 7%, iii 6%, VI 2%, vii 2%, III 1%, v 1%, II 0% (224)
 - in minor fugues: i 32%, iv 16%, v 11%, III 10%, VII 8%, I 6%, V 5%, VI 5%, IV 2%, ii 2%, vii 1%, iii 0% (208)
 
 The first key away from tonic and dominant:
 
-- in major fugues: vi 54%, ii 17%, IV 13%, iii 8%, II 4%, VI 4% (24)
+- in major fugues: vi 58%, IV 13%, ii 13%, iii 8%, II 4%, VI 4% (24)
 - in minor fugues: III 50%, iv 32%, IV 5%, iii 5%, VI 5%, VII 5% (22)
 
 | fugue | exposition | middle and final entries |
@@ -40,7 +40,7 @@ The first key away from tonic and dominant:
 | Fugue 18 in G♯ minor (I) | i iv i iv | iv iv i iv v VI I iv |
 | Fugue 19 in A major (I) | I V I | V I vi vi I V vi V IV IV v III IV I V |
 | Fugue 20 in A minor (I) | i v i v | i i v v i i III III iv i I v i I |
-| Fugue 21 in B♭ major (I) | I I vi | ii IV |
+| Fugue 21 in B♭ major (I) | I V I | V vi ii IV I |
 | Fugue 22 in B♭ minor (I) | i v i V I | iv I IV ii VII iv VII V i iv i iv i |
 | Fugue 23 in B major (I) | I V I V | I V I IV I V |
 | Fugue 24 in B minor (I) | i IV i IV | i iv V i i I IV III v IV i i iv |

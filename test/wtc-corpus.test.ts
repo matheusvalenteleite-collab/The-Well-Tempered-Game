@@ -174,3 +174,35 @@ test("workshop: an unchanged subject gives Bach's fugue back; an inverted one ru
   // The alto's entry (bar 1) is the inverted subject itself.
   assert.deepEqual(w.skeleton.voices[1].slice(0, 5).map((n) => n[2]), ["C5", "D5", "C5", "F5", "Eb5"]);
 });
+
+test("readings checked against Ledbetter, Bach's Well-tempered Clavier (Yale, 2002), Part Two", async () => {
+  const { findEntriesByHead, findTransformed } = await import("../src/wtc/fugue.ts");
+  const { study } = await import("../src/wtc/fugue-study.ts");
+  const get = (id: string) => {
+    const p = fugues.find((f) => f.id === id)!;
+    const sa = subjectAndAnswer(p);
+    const entries = findEntriesByHead(p, sa.subject).entries;
+    const barOf = (t: number) => [...p.bars].reverse().find((b) => b.on <= t)!.n;
+    return { p, sa, entries, s: study(p, sa.subject, sa.answer, entries), barOf };
+  };
+  const bars = (x: ReturnType<typeof get>, kind: string) => x.s.moments.filter((m) => m.kind === kind).map((m) => x.barOf(m.on));
+  // Book I no. 1 (pp. 149-50): close strettos at b. 7 and b. 10; dominant pedal bb. 21-2, tonic pedal from b. 24.
+  const c = get("wtc1f01");
+  assert.ok([7, 10].every((b) => bars(c, "stretto").includes(b)));
+  assert.deepEqual(bars(c, "pedal"), [21, 24]);
+  // Book I no. 16 (pp. 205-6): strettos at bb. 17-18 and 28-9; the cadence on the relative major at b. 12.
+  const g = get("wtc1f16");
+  assert.deepEqual(bars(g, "stretto"), [17, 28]);
+  assert.ok(g.s.moments.some((m) => m.kind === "cadence" && g.barOf(m.on + 1920 * 4) === 12 && m.label.includes("III")));
+  // Book I no. 21 (p. 222): entries at bb. 9, 13, 37 (subdominant) and 41 (tonic).
+  const b = get("wtc1f21");
+  assert.ok([9, 13, 37, 41].every((x) => b.entries.some((e) => b.barOf(e.on) === x)));
+  // Book II no. 7 (p. 271): stretto pairs at bb. 30, 37 and 59, and no others.
+  assert.deepEqual(bars(get("wtc2f07"), "stretto"), [30, 37, 59]);
+  // Book II no. 2 (pp. 244-5): augmentation, the bass keeping its entry for two thirds of the way through.
+  const cm = get("wtc2f02");
+  assert.ok(findTransformed(cm.p, cm.sa.subject).some((e) => e.scale === 2 && e.voice === 3 && cm.barOf(e.on) === 19));
+  // Book I no. 8: the augmentation entries of the last part.
+  const ds = get("wtc1f08");
+  assert.deepEqual(findTransformed(ds.p, ds.sa.subject).filter((e) => e.scale === 2).map((e) => ds.barOf(e.on)), [62, 67, 77]);
+});

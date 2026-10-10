@@ -42,11 +42,11 @@ const out = IDS.map((id) => {
   const ansEnd = sa.answer[sa.answer.length - 1];
   items.push({ id: `${id}-answer`, group: "Subject and answer", label: `Answer (${vn(sa.second)}): ${sa.answer.map((n) => nice(n.pitch)).join(" ")}`, detail: mutated.length ? `Tonal: note${mutated.length > 1 ? "s" : ""} ${mutated.join(", ")} answered a fourth up instead of a fifth.` : "Real: every note a fifth up.", on: sa.answer[0].on, end: ansEnd.on + ansEnd.dur, voice: sa.second });
   items.push({ id: `${id}-exposition`, group: "Subject and answer", label: `Exposition: ${expo.map((e) => `${vn(e.voice)} (${e.role === "free" ? "not found" : e.role === "other" ? e.roman : e.role})`).join(", ")}`, detail: expo.map((e, i) => (i && e.link >= beat ? `a link of ${bars(e.link)} before the ${vn(e.voice)}` : "")).filter(Boolean).join("; ") || "No links between entries.", on: 0, end: Math.max(...expo.map((e) => e.on)) + len, voice: null });
-  let k = 0;
   for (const m of s.moments) {
     if (m.kind === "episode" || m.kind === "climax") continue;
     const group = { entry: "Entries of the subject", stretto: "Strettos", pedal: "Pedal points", cadence: "Cadences" }[m.kind]!;
-    items.push({ id: `${id}-${m.kind}-${k++}`, group, label: m.label, detail: m.detail.replace(/bars (\d+)–\1\b/, "bar $1"), on: m.on, end: m.end, voice: m.voice });
+    // Ids by what the item is (kind, onset, voice), not by position, so that marks survive a re-reading.
+    items.push({ id: `${id}-${m.kind}-${m.on}-${m.voice ?? "x"}`, group, label: m.label, detail: m.detail.replace(/bars (\d+)–\1\b/, "bar $1"), on: m.on, end: m.end, voice: m.voice });
   }
   const voices = p.voices.map((v) => line(v).map((n) => [n.on, n.dur, parsePitch(n.pitch).midi]));
   return { id, title: label(p), meter: p.meter, voices: p.voices.map((_, v) => vn(v)), entriesFound: entries.length, items, notes: voices };

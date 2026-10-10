@@ -7,15 +7,15 @@ at least two later entries and a third of them; **above/below**: where it lies a
 entries (both means Bach inverts it, so it must work in invertible counterpoint at the octave).
 The entries are found automatically (`findEntriesByHead`), so counts are approximate.
 
-Regular countersubjects: 12 of 48 fugues; used both above and below the subject in 10 of them.
+Regular countersubjects: 13 of 48 fugues; used both above and below the subject in 10 of them.
 
 **Intervals between the answer and the countersubject** (simple, by letter; at every onset of
 either line), in the fugues with a regular countersubject:
 
-- on the beat: 8/1: 6%, 3: 36%, 5: 8%, 6: 30%, 4: 11%, 2: 4%, 7: 3% (n = 96)
-- off the beat: 8/1: 8%, 3: 20%, 5: 14%, 6: 24%, 4: 16%, 2: 10%, 7: 7% (n = 207)
+- on the beat: 8/1: 6%, 3: 35%, 5: 7%, 6: 31%, 4: 10%, 2: 6%, 7: 5% (n = 108)
+- off the beat: 8/1: 8%, 3: 22%, 5: 14%, 6: 23%, 4: 17%, 2: 10%, 7: 7% (n = 236)
 
-For comparison, on the beat between the answer and free counterpoint (fugues without a regular countersubject): 8/1: 4%, 3: 33%, 5: 12%, 6: 26%, 4: 9%, 2: 8%, 7: 8% (n = 381).
+For comparison, on the beat between the answer and free counterpoint (fugues without a regular countersubject): 8/1: 4%, 3: 34%, 5: 12%, 6: 25%, 4: 9%, 2: 8%, 7: 8% (n = 369).
 
 **Reading.** Inverted at the octave, a third becomes a sixth and a sixth a third (both still
 consonant); an octave stays an octave; but a fifth becomes a fourth, a dissonance against the
@@ -50,7 +50,7 @@ uses, and only where the countersubject is the lowest sounding voice.
 | Fugue 18 in G♯ minor (I) | 15 | 7 of 12 | regular | 4 above, 3 below |
 | Fugue 19 in A major (I) | 15 | 1 of 17 | free | 1 above, 0 below |
 | Fugue 20 in A minor (I) | 25 | 1 of 34 | free | 0 above, 1 below |
-| Fugue 21 in B♭ major (I) | 27 | 1 of 4 | free | 1 above, 0 below |
+| Fugue 21 in B♭ major (I) | 27 | 3 of 7 | regular | 3 above, 0 below |
 | Fugue 22 in B♭ minor (I) | 14 | 1 of 17 | free | 1 above, 0 below |
 | Fugue 23 in B major (I) | 20 | 2 of 10 | free | 0 above, 2 below |
 | Fugue 24 in B minor (I) | 24 | 1 of 16 | free | 1 above, 0 below |

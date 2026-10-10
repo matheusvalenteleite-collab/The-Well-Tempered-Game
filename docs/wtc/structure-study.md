@@ -7,7 +7,7 @@ entry, where no entry sounds. **Sequence**: within an episode, a figure of 3-8 n
 least three times, each time moved by the same step (same intervals and rhythm). **From the
 subject**: the sequence's figure contains a run of three of the subject's intervals.
 
-Fugues with a stretto: 32 of 48. Episodes: 322, 44% of the fugues' time; 25% of them built on a sequence, 8% on a figure from the subject.
+Fugues with a stretto: 32 of 48. Episodes: 321, 43% of the fugues' time; 25% of them built on a sequence, 8% on a figure from the subject.
 
 **Reading.** Where the entries are found reliably, the counts are a fair first map: strettos are
 common (most fugues overlap their entries somewhere), and episodes take a large share of the time.
@@ -39,7 +39,7 @@ come out too long.
 | Fugue 18 in G♯ minor (I) | 13 | 1 | 6 | 39% | 1 | 0 |
 | Fugue 19 in A major (I) | 18 | 1 | 7 | 46% | 0 | 0 |
 | Fugue 20 in A minor (I) | 35 | 16 | 8 | 13% | 0 | 0 |
-| Fugue 21 in B♭ major (I) | 5 | 0 | 4 | 55% | 1 | 0 |
+| Fugue 21 in B♭ major (I) | 8 | 0 | 3 | 31% | 1 | 0 |
 | Fugue 22 in B♭ minor (I) | 18 | 15 | 7 | 50% | 1 | 1 |
 | Fugue 23 in B major (I) | 11 | 0 | 5 | 30% | 0 | 0 |
 | Fugue 24 in B minor (I) | 17 | 4 | 9 | 41% | 4 | 0 |
