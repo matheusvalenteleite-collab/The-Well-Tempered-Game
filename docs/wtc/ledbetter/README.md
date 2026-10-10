@@ -65,7 +65,11 @@ on other analysts), then two lists:
 are letter names, lowercase for minor, or Roman degrees where he gives only a function. Bars are
 as he gives them (`28½`, `(ff)`). A claim may end with a short parenthesis (`(variant)`,
 `(early version)`), `(score; L.: …)` where the score corrected his reading, and a `[check]` flag.
-491 machine claims in all. 401 came from the converted text; 95 were added from the fills after
-being checked against the encoded score, and 6 lines were refined; the record of that check, with
-the notes for each verdict, is `claims-score-check.md`.
+491 machine claims in all. 401 came from the converted text; 95 were added from the fills and 6
+lines refined. Every claim has now been checked against the encoded score (data/wtc/fugues.json,
+preludes.json): 229 hold in the game's analysis, and the other 262 were read in the notes (see
+`claims-score-check.md`, with the evidence for each verdict). Of those, 35 were corrected to what the
+score shows, keeping Ledbetter's reading in the note `(score; …; L.: …)`, and 10 that concern early
+versions not in the encoding are flagged `[check]`. Where Ledbetter names a key, the key field gives
+the level at which the entry sits; his functional or harmonic reading goes in the parenthesis.
 Where a pair gives a range for a cadence, or a single bar for a section, the claim stays free-form.
