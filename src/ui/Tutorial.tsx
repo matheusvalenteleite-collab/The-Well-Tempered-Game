@@ -17,7 +17,7 @@ import { InfoBar } from "./InfoBar.tsx";
 import { BetaToggle } from "./BetaToggle.tsx";
 import { useBeta } from "./beta.ts";
 import { openInOrder as lessonOpen } from "../game/unlock.ts";
-import { ClipButtons, Inline, Prose, Quiz, RoadMap, SceneScore, TrioPane, usePlayer, WriteScene } from "./TutorialParts.tsx";
+import { ClipButtons, FugueRoll, Inline, Prose, Quiz, RoadMap, SceneScore, TrioPane, usePlayer, WriteScene } from "./TutorialParts.tsx";
 
 const TRIO = trioSteps(data as never);
 /** Every three-voice exercise, species by species (the road map). */
@@ -182,6 +182,7 @@ function LessonPage(p: { skip: boolean; index: number; already: boolean; onDone(
       </p>
       <h2 className="tut-title">{p.already && <span className="tut-done-mark">{tt("ui.doneMark")} </span>}{text.title}</h2>
       <Prose paragraphs={text.text} />
+      {lesson.roll && <FugueRoll fugueId={lesson.roll} clips={[...(lesson.task.kind === "listen" ? lesson.task.clips : []), ...(lesson.clips ?? [])]} player={player} />}
       {lesson.clips && <ClipButtons clips={lesson.clips} labels={text.clips} player={player} />}
       <LessonBody
         lesson={lesson}

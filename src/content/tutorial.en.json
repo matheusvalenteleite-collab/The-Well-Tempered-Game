@@ -61,7 +61,9 @@
     "starPlain": "Cleared: no rule broken (★, the next exercise is open). With no piece of advice broken either, the gold star 🌟.",
     "starGold": "Cleared with no rule and no advice broken: the gold star 🌟.",
     "quickTutorial": "New to music? The full tutorial ›",
-    "openStudy": "Open the Well-Tempered Clavier study ›"
+    "openStudy": "Open the Well-Tempered Clavier study ›",
+    "rollLabel": "The fugue as a picture: each note a bar, each voice a colour",
+    "rollHelp": "How to read it: time runs left to right, pitch goes up the page; each short bar is a note, each colour a voice (blue the highest, then red, green and purple). A box marked S is an entry of the subject. What you are listening to is shaded."
   },
   "chapters": {
     "welcome": {

@@ -40,7 +40,7 @@ export function fugueNotes(f: LibFugue, from: number, to: number, only?: number[
   return f.notes
     .map((n, i) => ({ n, i }))
     .filter(({ n, i }) => n.at >= from - 1e-6 && n.at < to - 1e-6 && (!keep || keep.has(i)))
-    .map(({ n, i }) => ({ pitch: f.spelled[i], at: (n.at - from) / 4, len: Math.min(n.dur, to - n.at) / 4, voice: f.voice[i] }));
+    .map(({ n, i }) => ({ pitch: f.spelled[i], at: (n.at - from) / 4, len: Math.min(n.dur, to - n.at) / 4, voice: f.voice[i], bar: Math.floor(n.at / f.barQuarters + 1e-9) }));
 }
 
 /** The facts the fugue lessons rely on. */

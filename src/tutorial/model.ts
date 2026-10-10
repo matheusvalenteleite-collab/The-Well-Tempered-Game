@@ -54,7 +54,15 @@ export type Clip =
   | { id: string; kind: "columns"; columns: string[][]; seconds?: number }
   | { id: string; kind: "melody"; notes: string[]; seconds?: number }
   /** Several voices, each note with its own onset and length (whole notes), each voice its own sound. */
-  | { id: string; kind: "poly"; notes: PolyNote[]; seconds: number };
+  | {
+      id: string;
+      kind: "poly";
+      notes: PolyNote[];
+      seconds: number;
+      /** A passage of a fugue (D146): its span in quarters and the voices heard, shown on the lesson's roll. */
+      span?: { from: number; to: number };
+      voices?: number[];
+    };
 
 export interface PolyNote {
   pitch: string;
@@ -62,6 +70,8 @@ export interface PolyNote {
   at: number;
   len: number;
   voice: number;
+  /** The bar of the piece it sounds in (0-based), for the roll's cursor. */
+  bar?: number;
 }
 
 export interface Verdict {
@@ -112,6 +122,8 @@ export interface Lesson {
   names?: boolean;
   /** Show the intervals between the staves. */
   intervals?: boolean;
+  /** A fugue drawn as a roll (D146), by its id in the study's library; the lesson's clips shade their passage on it. */
+  roll?: string;
 }
 
 export interface Chapter {

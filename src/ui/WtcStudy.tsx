@@ -38,6 +38,8 @@ import { audio, store, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
 import { Shell } from "./Shell.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
+import { VOICE_COLORS } from "./voice-colors.ts";
+
 
 const roman = (b: number) => (b === 1 ? "I" : "II");
 const fugueLabel = (f: { key: string; book: number; number: number; bwv: string }) => `${keyName(f.key)} · ${roman(f.book)}/${f.number} · BWV ${f.bwv}`;
@@ -45,7 +47,7 @@ const SHARPS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 const FLATS = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
 const midiName = (m: number, flats: boolean) => `${(flats ? FLATS : SHARPS)[((m % 12) + 12) % 12]}${Math.floor(m / 12) - 1}`;
 /** The voices' colours (the track colours first). */
-const COLORS = ["#1e6fd8", "#d0491b", "#2e8b57", "#9b3fc6", "#b8860b", "#0f8f99"];
+const COLORS = VOICE_COLORS;
 /** The channels the voices sound on, one each (D123). */
 type Ch = "counterpoint" | "second" | "fux" | "inversion" | "retrograde" | "retroInversion";
 const VOICE_CH: Ch[] = ["counterpoint", "second", "fux", "inversion", "retrograde", "retroInversion"];

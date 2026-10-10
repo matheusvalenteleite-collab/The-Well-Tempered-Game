@@ -8,6 +8,9 @@ import { ScoreView } from "./notation/ScoreView.tsx";
 import { Systems } from "./notation/Systems.tsx";
 import { TrioScore, type TrioVoice } from "./notation/TrioScore.tsx";
 import { trioStaves } from "./notation/trio-staves.ts";
+import { VoiceRoll } from "./notation/VoiceRoll.tsx";
+import { VOICE_COLORS } from "./voice-colors.ts";
+import { LIBRARY } from "../wtc/library.ts";
 import { buildOverlay, neutralOverlay } from "./notation/overlay.ts";
 import { audio, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
@@ -103,7 +106,8 @@ export function clipEvents(c: Clip): { events: PlayEvent[]; whole: number } {
     const VERSION = ["inversion", "retrograde", "retroInversion"];
     return {
       events: c.notes.map((n, k) => {
-        const e: PlayEvent = { slot: k, at: n.at, length: n.len, cantus: null, counterpoint: null };
+        // The slot is the bar of the piece where there is one: the roll's cursor follows it (D146).
+        const e: PlayEvent = { slot: n.bar ?? k, at: n.at, length: n.len, cantus: null, counterpoint: null };
         if (n.voice < CH.length) e.extra = [{ channel: CH[n.voice], pitch: n.pitch }];
         else (e.versions = { [VERSION[(n.voice - CH.length) % VERSION.length]]: n.pitch }), (e.lengths = { [VERSION[(n.voice - CH.length) % VERSION.length]]: n.len });
         return e;
@@ -646,5 +650,45 @@ export function RoadMap({ trio }: { trio: { species: number; ids: string[] }[] }
         </tr>
       </tbody>
     </table>
+  );
+}
+
+// ---------------------------------------------------------------- the fugue as a picture (D146)
+
+/**
+ * The whole fugue as the study draws it (D123): each note a bar of its length at its pitch, each voice
+ * in its colour, each entry of the subject outlined (S). The clip playing, or the last one played,
+ * shades its passage, scrolls to it and fades the voices it leaves out; the cursor follows its bars.
+ */
+export function FugueRoll({ fugueId, clips, player }: { fugueId: string; clips: Clip[]; player: ReturnType<typeof usePlayer> }) {
+  const F = useMemo(() => LIBRARY.find((x) => x.id === fugueId)!.fugue(), [fugueId]);
+  const [focus, setFocus] = useState<Clip | null>(null);
+  useEffect(() => {
+    const c = clips.find((x) => x.id === player.playing);
+    if (c) setFocus(c);
+  }, [player.playing]);
+  const span = focus?.kind === "poly" ? (focus.span ?? null) : null;
+  const heard = focus?.kind === "poly" ? focus.voices : undefined;
+  const faint = new Set(heard ? [...new Set(F.voice)].filter((v) => !heard.includes(v)) : []);
+  const own = clips.some((c) => c.id === player.playing);
+  return (
+    <div className="tut-roll">
+      <VoiceRoll
+        notes={F.notes}
+        voice={F.voice}
+        colors={VOICE_COLORS}
+        faint={faint}
+        entries={F.entries}
+        showEntries
+        barQuarters={F.barQuarters}
+        cursor={own ? player.cursor : -1}
+        span={span}
+        extra={[]}
+        onBar={() => undefined}
+        label={tt("ui.rollLabel")}
+        firstBar={1 - F.pickup}
+      />
+      <p className="help-line">{tt("ui.rollHelp")}</p>
+    </div>
   );
 }

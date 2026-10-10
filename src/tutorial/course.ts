@@ -185,7 +185,10 @@ export function buildCourse({ repo, trio, trioData }: TutorialData): Chapter[] {
   // The fugue chapter: Bach's C major fugue, Book I.
   const F = LIBRARY.find((x) => x.id === FUGUE_ID)!.fugue();
   const facts = fugueFacts(F);
-  const poly = (id: string, from: number, to: number, only?: number[]): Clip => ({ id, kind: "poly", notes: fugueNotes(F, from, to, only), seconds: FUGUE_WHOLE });
+  const poly = (id: string, from: number, to: number, only?: number[]): Clip => {
+    const notes = fugueNotes(F, from, to, only);
+    return { id, kind: "poly", notes, seconds: FUGUE_WHOLE, span: { from, to }, voices: [...new Set(notes.map((n) => n.voice))] };
+  };
   const expo = F.entries.slice(0, F.count);
   const [s1, s2] = facts.stretto ?? [0, 1];
 
@@ -403,19 +406,24 @@ export function buildCourse({ repo, trio, trioData }: TutorialData): Chapter[] {
     {
       id: "fugue",
       lessons: [
-        { id: "fugue.what", task: { kind: "listen", clips: [poly("subject", expo[0].at, expo[0].end, expo[0].notes), poly("opening", 0, expo[1].end)] } },
-        { id: "fugue.entries", task: { kind: "listen", clips: expo.map((e, k) => poly(`entry${k + 1}`, e.at, e.end, e.notes)) } },
+        { id: "fugue.what",
+          roll: FUGUE_ID, task: { kind: "listen", clips: [poly("subject", expo[0].at, expo[0].end, expo[0].notes), poly("opening", 0, expo[1].end)] } },
+        { id: "fugue.entries",
+          roll: FUGUE_ID, task: { kind: "listen", clips: expo.map((e, k) => poly(`entry${k + 1}`, e.at, e.end, e.notes)) } },
         {
           id: "fugue.voices",
+          roll: FUGUE_ID,
           clips: [poly("exposition", 0, facts.exposition.to)],
           task: { kind: "choice", options: [3, 4, 5].map((n) => ({ id: `v${n}`, correct: n === facts.voices })) },
         },
         {
           id: "fugue.answer",
+          roll: FUGUE_ID,
           task: { kind: "listen", clips: [poly("subjectAlone", expo[0].at, expo[0].end, expo[0].notes), poly("answerAlone", expo[1].at, expo[1].end, expo[1].notes), poly("both", expo[0].at, expo[1].end)] },
         },
         {
           id: "fugue.stretto",
+          roll: FUGUE_ID,
           task: {
             kind: "listen",
             clips: [poly("strettoAlone", F.entries[s1].at, F.entries[s2].end, [...F.entries[s1].notes, ...F.entries[s2].notes]), poly("strettoAll", F.entries[s1].at, F.entries[s2].end)],
