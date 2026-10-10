@@ -54,3 +54,34 @@ test("four voices: faults are found", () => {
 test("four voices: the run-length parts decode to quaver slots", () => {
   assert.deepEqual(decodePart("D4+3 ~+3 r"), ["D4", HOLD, HOLD, HOLD, HOLD, HOLD, HOLD, HOLD, "r"]);
 });
+
+test("four voices: each of Fux's parts can be written on the screen as he wrote it (D148)", async () => {
+  const { holdSelected, initialState, spanFromSelected } = await import("../src/game/session.ts");
+  const { slotLayout } = await import("../src/counterpoint/layout.ts");
+  const { normalise, quartetPlayer, template, valueAt } = await import("../src/game/quartet.ts");
+  for (const s of fuxSteps.filter((x) => x.species !== 1)) {
+    const layout = slotLayout("fifth", s.cantus.length);
+    for (const part of quartetPlayer(s)) {
+      const fux = s.fux![part];
+      let st = { ...initialState(fux.length), notes: template(s, part) };
+      const nextOnset = (k: number) => {
+        let j = k + 1;
+        while (j < fux.length && fux[j] === HOLD && layout[j].bar === layout[k].bar) j++;
+        return j - k;
+      };
+      for (let k = 0; k < fux.length; k++) {
+        const florid = nextOnset(k);
+        if (fux[k] !== HOLD) {
+          st = { ...st, notes: st.notes.map((x, j) => (j === k ? fux[k] : x)), selected: k };
+          st = spanFromSelected(st, layout, valueAt(s, part, st.notes, k, florid));
+        } else if (st.notes[k] === null) {
+          st = { ...st, selected: k };
+          if (s.kinds[part] === "ligatures") st = { ...st, notes: st.notes.map((x, j) => (j === k ? (st.notes.slice(0, k).reverse().find((y) => y !== HOLD) ?? null) : x)) };
+          else st = holdSelected(st, layout, valueAt(s, part, st.notes, k, florid));
+        }
+        st = { ...st, notes: normalise(s, part, st.notes) };
+      }
+      assert.deepEqual(st.notes, fux, `Fig. ${s.figure}, part ${part}`);
+    }
+  }
+});

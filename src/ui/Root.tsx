@@ -10,6 +10,8 @@ import { FUGUE_ID } from "../tutorial/fugue-id.ts";
 // Clavier, with its 48 pieces, and the tutorial.
 const WtcApp = lazy(() => import("./WtcApp.tsx").then((m) => ({ default: m.WtcApp })));
 const WtcStudy = lazy(() => import("./WtcStudy.tsx").then((m) => ({ default: m.WtcStudy })));
+// Four voices (D148), loaded when first opened.
+const QuartetApp = lazy(() => import("./QuartetApp.tsx").then((m) => ({ default: m.QuartetApp })));
 const Tutorial = lazy(() => import("./Tutorial.tsx").then((m) => ({ default: m.Tutorial })));
 // The chorales (C4) and the WTC preludes and harmony (C6, C14), from the chorale session.
 const ChoraleApp = lazy(() => import("./ChoraleApp.tsx").then((m) => ({ default: m.ChoraleApp })));
@@ -17,8 +19,8 @@ const WtcRoot = lazy(() => import("./WtcRoot.tsx").then((m) => ({ default: m.Wtc
 
 /** The screens: two voices, three, the Well-Tempered Clavier (study and exercises), the chorales,
  * and the WTC preludes and harmony. */
-export type Mode = 2 | 3 | "wtc" | "chorale" | "preludes";
-const MODES: Mode[] = [2, 3, "wtc", "chorale", "preludes"];
+export type Mode = 2 | 3 | 4 | "wtc" | "chorale" | "preludes";
+const MODES: Mode[] = [2, 3, 4, "wtc", "chorale", "preludes"];
 const Loading = () => <div className="loading-screen">{t("ui.loading")}</div>;
 
 /**
@@ -73,6 +75,8 @@ export function Root() {
     ) : voices === "wtc" ? (
       screen === "game" &&
       (wtcView === "study" ? <WtcStudy onVoices={setVoices} onExercises={() => setWtcView("exercises")} onTutorial={openTutorial} /> : <WtcApp onVoices={setVoices} onStudy={() => setWtcView("study")} onTutorial={openTutorial} />)
+    ) : voices === 4 ? (
+      <QuartetApp onVoices={setVoices} {...link} />
     ) : voices === 3 ? (
       <TrioApp onVoices={setVoices} {...link} />
     ) : (

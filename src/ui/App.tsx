@@ -46,7 +46,7 @@ import { useHighlight } from "./highlight.ts";
 import { ScoreTools } from "./ScoreTools.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 import { useBeta } from "./beta.ts";
-import { exerciseOpen, furthestOpen, GAME_ORDER } from "../game/unlock.ts";
+import { exerciseOpen, FIRST_QUARTET, furthestOpen, GAME_ORDER } from "../game/unlock.ts";
 import { tt } from "../tutorial/text.ts";
 import type { NameStyle } from "../music/names.ts";
 import { audio, store, stored, validDrumKit } from "./shared.ts";
@@ -883,9 +883,9 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
                 onVoices(e.target.value);
                 return;
               }
-              if (Number(e.target.value) === 3) {
+              if (Number(e.target.value) === 3 || Number(e.target.value) === 4) {
                 audio.stop();
-                onVoices(3);
+                onVoices(Number(e.target.value) as 3 | 4);
                 return;
               }
               const c = COURSES.find((x) => x.voices === Number(e.target.value) && x.steps.length > 0);
@@ -893,8 +893,8 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
             }}
           >
             {[2, 3, 4].map((n) => (
-              <option key={n} value={n} disabled={n === 3 ? !exerciseOpen(GAME_ORDER[STEPS.length], stars, beta) : !COURSES.some((c) => c.voices === n && c.steps.length > 0)}>
-                {n === 3 && !exerciseOpen(GAME_ORDER[STEPS.length], stars, beta) ? "🔒 " : ""}
+              <option key={n} value={n} disabled={n === 3 ? !exerciseOpen(GAME_ORDER[STEPS.length], stars, beta) : n === 4 ? !exerciseOpen(FIRST_QUARTET, stars, beta) : !COURSES.some((c) => c.voices === n && c.steps.length > 0)}>
+                {(n === 3 && !exerciseOpen(GAME_ORDER[STEPS.length], stars, beta)) || (n === 4 && !exerciseOpen(FIRST_QUARTET, stars, beta)) ? "🔒 " : ""}
                 {t("ui.nav.voicesN", { n })}
               </option>
             ))}

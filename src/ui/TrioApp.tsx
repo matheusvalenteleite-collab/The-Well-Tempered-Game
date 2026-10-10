@@ -42,7 +42,7 @@ import type { GameLink } from "./App.tsx";
 import { LearnLink } from "./LearnLink.tsx";
 import { tt } from "../tutorial/text.ts";
 import { useBeta } from "./beta.ts";
-import { exerciseOpen, furthestOpen } from "../game/unlock.ts";
+import { exerciseOpen, FIRST_QUARTET, furthestOpen } from "../game/unlock.ts";
 import type { NameStyle } from "../music/names.ts";
 
 /** Fux's three-voice exercises by species (D114, D116, D117: first to fifth). */
@@ -258,7 +258,7 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
     if (isOpen(stepIndex)) return;
     const id = furthestOpen(stars, beta);
     if (id.startsWith("fux-mode.t")) jumpTo(id);
-    else onVoices(2);
+    else onVoices(id.startsWith("fux-mode.q") ? 4 : 2);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [beta, stepIndex, species]);
   useEffect(() => {
@@ -525,9 +525,9 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
           <button className="icon" onClick={() => goTo(stepIndex - 1)} disabled={stepIndex === 0} aria-label={t("ui.nav.prev")}>‹</button>
-          <select id="voices" className="sel sel-voices" value={3} aria-label={t("ui.nav.voices")} onChange={(e) => (e.target.value === "wtc" || e.target.value === "chorale" || e.target.value === "preludes" ? (audio.stop(), onVoices(e.target.value)) : Number(e.target.value) === 2 && (audio.stop(), onVoices(2)))}>
+          <select id="voices" className="sel sel-voices" value={3} aria-label={t("ui.nav.voices")} onChange={(e) => (e.target.value === "wtc" || e.target.value === "chorale" || e.target.value === "preludes" ? (audio.stop(), onVoices(e.target.value)) : Number(e.target.value) !== 3 && (audio.stop(), onVoices(Number(e.target.value) as 2 | 4)))}>
             {[2, 3, 4].map((n) => (
-              <option key={n} value={n} disabled={n === 4}>{t("ui.nav.voicesN", { n })}</option>
+              <option key={n} value={n} disabled={n === 4 && !exerciseOpen(FIRST_QUARTET, stars, beta)}>{n === 4 && !exerciseOpen(FIRST_QUARTET, stars, beta) ? "🔒 " : ""}{t("ui.nav.voicesN", { n })}</option>
             ))}
             <option value="wtc">{t("ui.wtc.mode")}</option>
             <option value="chorale">{t("chorale.mode")}</option>

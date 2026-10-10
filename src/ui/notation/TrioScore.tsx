@@ -50,6 +50,8 @@ interface Props {
   /** The selected bar, and (for the moving voice) which note of it. */
   selected: number;
   selectedPart?: number | null;
+  /** Four voices (D148): how many slots of the active voice the selection covers (a minim: 4 quavers). */
+  selectedSpan?: number;
   cursor: number;
   marks?: TrioMark[];
   /** Bars pointed at in a text: they pulse (D96). */
@@ -71,6 +73,13 @@ interface Props {
   tools?: React.ReactNode;
 }
 
+/** Bars in the piece: a semibreve voice's notes, or (four voices, D148: every part in slots) a slot line's bars. */
+const barsOf = (voices: TrioVoice[]) => {
+  const whole = voices.find((v) => !v.per);
+  if (whole) return whole.notes.length;
+  const v = voices[0];
+  return (v.notes.length - 1) / v.per! + 1;
+};
 const BAR_W = 64;
 /** Wider bars when a voice moves in minims (or ligatures), wider still in crotchets. */
 const barWidth = (voices: TrioVoice[]) => (voices.some((v) => v.per === 8) ? 216 : voices.some((v) => v.per === 4) ? 150 : voices.some((v) => v.per) ? 104 : BAR_W);
@@ -83,7 +92,7 @@ const HEIGHT = 300;
 
 /** The two staves in one line, zoomed and scrolled sideways like the two-voice score (D100). */
 export function TrioScore(p: Props) {
-  const bars = (p.voices.find((v) => !v.per) ?? p.voices[0]).notes.length;
+  const bars = barsOf(p.voices);
   const barW = barWidth(p.voices);
   const natural = LEAD + bars * barW + 24;
   const playingX = p.cursor >= 0 ? LEAD + p.cursor * barW : null;
@@ -105,7 +114,7 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
   const geo = useRef<Geometry | null>(null);
   const n = p.to - p.from + 1;
   /** Bars in the piece (a semibreve voice has one note a bar). */
-  const bars0 = (p.voices.find((v) => !v.per) ?? p.voices[0]).notes.length;
+  const bars0 = barsOf(p.voices);
 
   useEffect(() => {
     const host = el.current;
@@ -163,7 +172,8 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
         const w = (columns[j].right - columns[j].left) / per;
         ctx.save();
         ctx.setFillStyle("var(--selection)");
-        ctx.fillRect(columns[j].left + part * w + 1, band(activeStaff).top, w - 2, band(activeStaff).bottom - band(activeStaff).top);
+        const span = Math.max(1, Math.min(per - part, p.selectedSpan ?? 1));
+        ctx.fillRect(columns[j].left + part * w + 1, band(activeStaff).top, w * span - 2, band(activeStaff).bottom - band(activeStaff).top);
         ctx.restore();
       }
     }
@@ -349,7 +359,7 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
       staves: staves.map((s) => ({ top: s.getYForLine(0), bottom: s.getYForLine(4), spacing: s.getSpacingBetweenLines() })),
     };
     host.dataset.geometry = JSON.stringify(geo.current);
-  }, [p.voices, p.clefs, p.active, p.selected, p.selectedPart, p.cursor, p.marks, p.figures, p.harmony, p.names, p.nameStyle, p.pulse, p.from, p.to, p.scale, p.fill, p.last, p.label, n, bars0]);
+  }, [p.voices, p.clefs, p.active, p.selected, p.selectedPart, p.selectedSpan, p.cursor, p.marks, p.figures, p.harmony, p.names, p.nameStyle, p.pulse, p.from, p.to, p.scale, p.fill, p.last, p.label, n, bars0]);
 
   // Pointer: the nearest staff takes the tap; a second finger makes it a pinch, which writes nothing.
   const fingers = useRef(new Set<number>());

@@ -232,8 +232,14 @@ test("the game's exercises unlock in the book's order in the real setup (D142)",
   const { ALL_STEPS } = await import("../src/counterpoint/curriculum/index.ts");
   const { TRIO_SPECIES } = await import("../src/game/trio.ts");
   const trioAll = TRIO_SPECIES.flatMap((n) => trioSteps(data as never, n));
-  assert.equal(GAME_ORDER.length, ALL_STEPS.length + trioAll.length);
-  assert.equal(GAME_ORDER[GAME_ORDER.length - 1], trioAll[trioAll.length - 1].id, "three voices, fifth species, last");
+  const { QUARTET_SPECIES, QUARTET_ALL } = await import("../src/game/quartet.ts");
+  const quartetAll = QUARTET_SPECIES.flatMap((n) => QUARTET_ALL[n]);
+  assert.equal(GAME_ORDER.length, ALL_STEPS.length + trioAll.length + quartetAll.length);
+  // D148: four voices after three, the species combined last.
+  assert.equal(GAME_ORDER[ALL_STEPS.length + trioAll.length], "fux-mode.q1.01", "four voices follow three");
+  assert.ok(exerciseOpen("fux-mode.q1.01", [trioAll[trioAll.length - 1].id], false));
+  assert.equal(GAME_ORDER[GAME_ORDER.length - 1], "fux-mode.q6.01", "the species combined, last");
+  assert.equal(quartetAll.length, 32 + 88);
   assert.equal(GAME_ORDER[0], "fux-mode.s1.01");
   assert.equal(GAME_ORDER[ALL_STEPS.length], "fux-mode.t1.01", "three voices follow two");
   assert.ok(GAME_ORDER.every((id) => exerciseOpen(id, [], true)), "BETA: all open");

@@ -19,7 +19,7 @@
 import data from "../../data/fux/four-voice/fux-four-voice-game.json" with { type: "json" };
 import type { ModalFinal } from "../music/fux/types.ts";
 import { parsePitch } from "../music/pitch.ts";
-import { HOLD } from "../counterpoint/layout.ts";
+import { HOLD, REST } from "../counterpoint/layout.ts";
 import type { PartKind, QuartetInput } from "../counterpoint/four-voice.ts";
 import { modernClef } from "./trio.ts";
 import type { ClefId } from "../ui/notation/clefs.ts";
@@ -210,3 +210,66 @@ export const quartetInput = (s: QuartetStep, lines: string[][]): QuartetInput =>
   voices: lines.map((l, i) => (i === s.cantusIndex ? s.cantus : l)),
   ligatureAllowance: Math.max(1, s.untied),
 });
+
+const MOVING: PartKind[] = ["minims", "crotchets", "ligatures", "florid"];
+export const isMovingPart = (k: PartKind) => MOVING.includes(k);
+
+/** A part's empty line before anything is written: the slots it must fill are empty, the rest held. */
+export function template(s: QuartetStep, part: number): (string | null)[] {
+  const bars = s.cantus.length;
+  if (s.species === 1) return Array(bars).fill(null);
+  const kind = s.kinds[part];
+  const g = kind === "florid" ? 1 : kind === "divisible" ? 8 : grainOf(kind);
+  const out: (string | null)[] = [];
+  for (let b = 0; b < bars - 1; b++) for (let q = 0; q < 8; q++) out.push(q % g === 0 ? null : HOLD);
+  out.push(null);
+  // Fux's half rest at the opening of the minims (second species), the ligatures and the florid part.
+  if ((kind === "minims" && s.species === 2) || kind === "ligatures" || kind === "florid") {
+    out[0] = REST;
+    for (let q = 1; q < 4; q++) out[q] = HOLD;
+  }
+  return out;
+}
+
+/**
+ * After an edit, a part of fixed values keeps its shape: the slots inside a value are held (an
+ * undivided semibreve's second half too); in a ligature part the same note on the downbeat is the tie.
+ */
+export function normalise(s: QuartetStep, part: number, notes: (string | null)[]): (string | null)[] {
+  if (s.species === 1) return notes;
+  const kind = s.kinds[part];
+  if (kind === "florid") return notes;
+  const g = kind === "divisible" ? 4 : grainOf(kind);
+  const out = notes.map((x, k) => (k < notes.length - 1 && x === null && (k % 8) % g !== 0 ? HOLD : x));
+  if (kind === "divisible") for (let k = 4; k < out.length - 1; k += 8) if (out[k] === null) out[k] = HOLD;
+  if (kind === "ligatures")
+    for (let k = 8; k < out.length - 1; k += 8) {
+      const before = out[k - 4] === HOLD ? null : out[k - 4];
+      if (out[k] && out[k] !== HOLD && out[k] !== REST && out[k] === before) out[k] = HOLD;
+    }
+  return out;
+}
+
+/** The value written at slot k of a part, in quaver slots (`florid`: the value chosen). */
+export function valueAt(s: QuartetStep, part: number, notes: (string | null)[], k: number, florid: number): number {
+  const bars = s.cantus.length;
+  if (s.species === 1 || k >= 8 * (bars - 1)) return 1;
+  const kind = s.kinds[part];
+  if (kind === "florid") return florid;
+  if (kind === "divisible") {
+    const half = k % 8 >= 4;
+    const divided = notes[8 * Math.floor(k / 8) + 4] !== HOLD;
+    return half || divided ? 4 : 8;
+  }
+  return grainOf(kind);
+}
+
+/** A tap at quaver `q` of a bar: the slot where the part's value there begins. */
+export function snapSlot(s: QuartetStep, part: number, bar: number, q: number): number {
+  const bars = s.cantus.length;
+  if (s.species === 1) return bar;
+  if (bar >= bars - 1) return 8 * (bars - 1);
+  const kind = s.kinds[part];
+  const g = kind === "florid" ? 1 : kind === "whole" ? 8 : kind === "crotchets" ? 2 : 4;
+  return 8 * bar + Math.floor(q / g) * g;
+}

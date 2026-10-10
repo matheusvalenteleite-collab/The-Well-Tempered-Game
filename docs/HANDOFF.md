@@ -1,7 +1,7 @@
-# Handoff (10 October 2026, evening)
+# Handoff (10 October 2026, night)
 
 Read this first in a new session. The decisions log (`docs/DECISIONS.md`: D1–D139 and D147 on for the game,
-D140–D146 for the tutorial (the next free number is D148), C1–C14 for the chorale mode) has the details; `docs/MORNING.md` has
+D140–D146 for the tutorial (the next free number is D149), C1–C14 for the chorale mode) has the details; `docs/MORNING.md` has
 older notes and the owner's open questions.
 
 ## How we work from now on (the owner's choice, after a usage warning)
@@ -17,8 +17,8 @@ older notes and the owner's open questions.
 
 ## Publishing
 
-- Tests: `npm test` (231). Builds: `npm run build` (Pages, split into chunks) and
-  `npm run build:artifact` then `node tools/build-artifact.mjs <out.html>` (one file, 16.6 MB of a
+- Tests: `npm test` (246). Builds: `npm run build` (Pages, split into chunks) and
+  `npm run build:artifact` then `node tools/build-artifact.mjs <out.html>` (one file, 16.67 MB of a
   16.8 MB ceiling: the artifact must not grow much more without splitting data out).
 - claude.ai artifact: https://claude.ai/artifact/NvkaBGCHrtDebE85H7udTX (private). It holds 501 of
   511 files (instrument samples and Ishizaka's 48 tracks): publish the page alone, no new files.
@@ -34,7 +34,7 @@ older notes and the owner's open questions.
   from the Internet Archive), bar-aligned (`data/recordings`, `tools/align-recording*.py`).
 - Exercises (exposition: real/tonal, answer, countersubject with Bach's licences, find the
   entries) on 29 ASAP fugues.
-- Also in the game: Fux species in two and three voices, continuo, tutorial (tutorial session),
+- Also in the game: Fux species in two, three and four voices, continuo, tutorial (tutorial session),
   chorale mode and "WTC · preludes and harmony" (chorale session).
 
 ## Waiting, in the owner's order
@@ -51,18 +51,12 @@ older notes and the owner's open questions.
 3. **Optional**: the lab's licence-safe fugue corpus (Kyle Rother's open-score edition, CC BY 4.0;
    `data/wtc/fugues-open.json` on `claude/beautiful-mccarthy-7li5nv` at 8be67d0). Only if the game
    is ever made public.
-4. **Four voices in the Fux mode** (the owner's next priority, D139): source found and public domain. The
-   *species* dataset already vendored for two and three voices (`tools/fux_import/fetch_source.sh`, commit
-   5c7cae4) has Part III: Figs. 160–204, 32 exercises in Humdrum (CC0), and the 1725 pages to p. 138
-   (`source_pdf/gap_p122.pdf` = p. 114, Exercitium III's opening). Next: vendor Part III and pp. 91–138,
-   read the four-voice rules from the print, a four-voice screen like the three-voice one.
-   The owner (D147): the player does what Josephus does, nothing else until the Fux mode is complete. Read in the print: first species, Aloysius gives
-   Fig. 160 and has Josephus take the same cantus "singulis in partibus successive" (p. 115), so the
-   player writes all three voices against the cantus, note against note; species 2–5, "quatuor
-   Semiminimae cum tribus Semibrevibus" (p. 124): still three voices, one in the species, two in
-   semibreves; the other modes left to private study ("Reliqua quinque tonorum exercitia … tibi
-   committo", p. 138), as tasks without Fux's solution (cf. D61); last, the species combined, each
-   voice its own motion (p. 138, Fig. 204).
+4. **Four voices in the Fux mode: built (D148)**. 120 exercises after the three-voice ones in the REAL
+   chain: Fux's 32 (Figs. 160-204) and 88 tasks of private study (four a mode), the species combined
+   last. For the owner to confirm: the four readings beyond the text listed in D148 (a divided
+   semibreve's second minim as an upbeat; the closing neighbour note of Fig. 182; how the combined
+   species is judged; suspensions against a divided semibreve), and whether p. 139 (after Fig. 204,
+   not in the vendored pages) leaves more modes of the combined species to private study.
 5. Old backlog, last: evaluation redesign and graded three-voice reading with Fux; rule
    demonstrations; the Mann layer.
 
