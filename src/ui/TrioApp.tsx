@@ -31,6 +31,8 @@ import { ScoreTools } from "./ScoreTools.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 import type { GameLink } from "./App.tsx";
 import { LearnLink } from "./LearnLink.tsx";
+import { useBeta } from "./beta.ts";
+import { exerciseOpen } from "../game/unlock.ts";
 import type { NameStyle } from "../music/names.ts";
 
 const STEPS: TrioStep[] = trioSteps(data as never);
@@ -155,8 +157,11 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
   const lines = (k: number) => [0, 1, 2].map((i) => (i === STEP.cantusIndex ? STEP.cantus[k] : sessions[i].notes[k]));
   const missing = mine.reduce((n, i) => n + sessions[i].notes.filter((x) => x === null).length, 0);
 
+  // The real setup (D100): a star on an exercise opens the next; in BETA all is open.
+  const beta = useBeta();
+  const isOpen = (k: number) => k >= 0 && k < STEPS.length && exerciseOpen(STEPS[k].id, stars, beta);
   const goTo = (k: number) => {
-    if (k < 0 || k >= STEPS.length) return;
+    if (k < 0 || k >= STEPS.length || !isOpen(k)) return;
     audio.stop();
     setPlaying(false);
     setCursor(-1);
@@ -165,6 +170,18 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
     setStepIndex(k);
     setActive(playerStaves(STEPS[k])[0]);
   };
+  // On a locked exercise (the real setup switched on): the furthest open one, or back to two voices.
+  useEffect(() => {
+    if (isOpen(stepIndex)) return;
+    if (!isOpen(0)) {
+      onVoices(2);
+      return;
+    }
+    let k = 0;
+    while (k + 1 < STEPS.length && isOpen(k + 1) && stars.includes(STEPS[k].id)) k++;
+    goTo(k);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [beta, stepIndex]);
   useEffect(() => {
     if (!command) return;
     const k = STEPS.findIndex((x) => x.id === command.stepId);
@@ -333,13 +350,13 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
           </select>
           <select id="exercise" className="sel sel-exercise" value={stepIndex} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("ui.nav.choose")}>
             {STEPS.map((s, k) => (
-              <option key={s.id} value={k}>
-                {stars.includes(s.id) ? "★ " : ""}
+              <option key={s.id} value={k} disabled={!isOpen(k)}>
+                {stars.includes(s.id) ? "★ " : isOpen(k) ? "" : "🔒 "}
                 {stepLabel(s)}
               </option>
             ))}
           </select>
-          <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1} aria-label={t("ui.nav.next")}>›</button>
+          <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1 || !isOpen(stepIndex + 1)} aria-label={t("ui.nav.next")}>›</button>
         </nav>
           <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("guide")} onTutorial={onTutorial} />
         </>

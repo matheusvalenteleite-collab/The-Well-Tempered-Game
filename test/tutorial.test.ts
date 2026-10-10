@@ -218,11 +218,29 @@ test("a fifth-species excerpt that opens on a held note sounds it (the A held in
 });
 
 test("progressive unlocking (D99): in BETA all is open; in the real setup, one lesson after another", async () => {
-  const { lessonOpen } = await import("../src/tutorial/unlock.ts");
+  const { openInOrder: lessonOpen } = await import("../src/game/unlock.ts");
   const ids = ["a", "b", "c", "d"];
   assert.ok([0, 1, 2, 3].every((k) => lessonOpen(ids, [], k, true)));
   assert.deepEqual([0, 1, 2, 3].map((k) => lessonOpen(ids, [], k, false)), [true, false, false, false]);
   assert.deepEqual([0, 1, 2, 3].map((k) => lessonOpen(ids, ["a"], k, false)), [true, true, false, false]);
   // A lesson done (from a link out of the game, say) stays open, and opens the next.
   assert.deepEqual([0, 1, 2, 3].map((k) => lessonOpen(ids, ["a", "c"], k, false)), [true, true, true, true]);
+});
+
+test("the game's exercises unlock in the book's order in the real setup (D100)", async () => {
+  const { GAME_ORDER, exerciseOpen, furthestOpen } = await import("../src/game/unlock.ts");
+  const { ALL_STEPS } = await import("../src/counterpoint/curriculum/index.ts");
+  assert.equal(GAME_ORDER.length, ALL_STEPS.length + TRIO.length);
+  assert.equal(GAME_ORDER[0], "fux-mode.s1.01");
+  assert.equal(GAME_ORDER[ALL_STEPS.length], "fux-mode.t1.01", "three voices follow two");
+  assert.ok(GAME_ORDER.every((id) => exerciseOpen(id, [], true)), "BETA: all open");
+  assert.equal(GAME_ORDER.filter((id) => exerciseOpen(id, [], false)).length, 1, "REAL: only the first");
+  assert.ok(exerciseOpen("fux-mode.s1.02", ["fux-mode.s1.01"], false));
+  assert.ok(!exerciseOpen("fux-mode.s1.03", ["fux-mode.s1.01"], false));
+  // Across species: the last first-species star opens the second species.
+  assert.ok(exerciseOpen("fux-mode.s2.01", ["fux-mode.s1.12"], false));
+  assert.ok(!exerciseOpen("fux-mode.t1.01", [], false));
+  assert.ok(exerciseOpen("fux-mode.t1.01", [ALL_STEPS[ALL_STEPS.length - 1].id], false));
+  assert.equal(furthestOpen([], false), "fux-mode.s1.01");
+  assert.equal(furthestOpen(["fux-mode.s1.01", "fux-mode.s1.02"], false), "fux-mode.s1.03");
 });

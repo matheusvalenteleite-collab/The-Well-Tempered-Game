@@ -42,6 +42,9 @@ import { BarRef } from "./BarRef.tsx";
 import { useHighlight } from "./highlight.ts";
 import { ScoreTools } from "./ScoreTools.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
+import { useBeta } from "./beta.ts";
+import { exerciseOpen, furthestOpen, GAME_ORDER } from "../game/unlock.ts";
+import { tt } from "../tutorial/text.ts";
 import type { NameStyle } from "../music/names.ts";
 import { audio, store, stored, validDrumKit } from "./shared.ts";
 import type { Step } from "../music/pitch.ts";
@@ -198,8 +201,15 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
   }, [tuning]);
   useEffect(() => store("wtg.stars", stars), [stars]);
 
+  // The real setup (D100): a star on an exercise opens the next; in BETA all is open.
+  const beta = useBeta();
+  const isOpen = (k: number) => k >= 0 && k < STEPS.length && exerciseOpen(STEPS[k].id, stars, beta);
   const goTo = (k: number) => {
     if (k < 0 || k >= STEPS.length || k === stepIndex) return;
+    if (!isOpen(k)) {
+      setToast(tt("ui.lockedExercise"));
+      return;
+    }
     audio.stop();
     setPlaying(false);
     setCursor(-1);
@@ -775,6 +785,13 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
     } else restoreAudio();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [suspended]);
+  // Switched to the real setup on a locked exercise: back to where the learner stands.
+  useEffect(() => {
+    if (isOpen(stepIndex)) return;
+    const k = stepIndexOf(furthestOpen(stars, beta));
+    if (k >= 0) setStepIndex(k);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [beta, stepIndex]);
   useEffect(() => {
     if (!command) return;
     const k = stepIndexOf(command.stepId);
@@ -831,7 +848,8 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
             }}
           >
             {[2, 3, 4].map((n) => (
-              <option key={n} value={n} disabled={n !== 3 && !COURSES.some((c) => c.voices === n && c.steps.length > 0)}>
+              <option key={n} value={n} disabled={n === 3 ? !exerciseOpen(GAME_ORDER[STEPS.length], stars, beta) : !COURSES.some((c) => c.voices === n && c.steps.length > 0)}>
+                {n === 3 && !exerciseOpen(GAME_ORDER[STEPS.length], stars, beta) ? "🔒 " : ""}
                 {t("ui.nav.voicesN", { n })}
               </option>
             ))}
@@ -848,9 +866,10 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
           >
             {COURSES.filter((c) => c.voices === COURSE.voices).map((c) => {
               const done = c.steps.length > 0 && c.steps.every((x) => stars.includes(x.id));
+              const locked = c.steps.length > 0 && !isOpen(stepIndexOf(c.steps[0].id));
               return (
-                <option key={c.species} value={c.species} disabled={c.steps.length === 0}>
-                  {done ? "★ " : ""}
+                <option key={c.species} value={c.species} disabled={c.steps.length === 0 || locked}>
+                  {done ? "★ " : locked ? "🔒 " : ""}
                   {t("ui.nav.speciesN", { n: ORDINAL[c.species] })}
                   {c.steps.length > 0 ? ` · ${c.steps.filter((x) => stars.includes(x.id)).length}/${c.steps.length}` : ""}
                 </option>
@@ -861,14 +880,14 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
             {COURSE.steps.map((s) => {
               const k = stepIndexOf(s.id);
               return (
-                <option key={s.id} value={k}>
-                  {stars.includes(s.id) ? "★ " : ""}
+                <option key={s.id} value={k} disabled={!isOpen(k)}>
+                  {stars.includes(s.id) ? "★ " : isOpen(k) ? "" : "🔒 "}
                   {stepLabel(k)}
                 </option>
               );
             })}
           </select>
-          <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1} aria-label={t("ui.nav.next")}>›</button>
+          <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1 || !isOpen(stepIndex + 1)} aria-label={t("ui.nav.next")}>›</button>
         </nav>
           <HeaderTools
             onSave={savePiece}

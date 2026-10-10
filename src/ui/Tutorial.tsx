@@ -16,7 +16,7 @@ import { restoreSound } from "../audio/sound.ts";
 import { InfoBar } from "./InfoBar.tsx";
 import { BetaToggle } from "./BetaToggle.tsx";
 import { useBeta } from "./beta.ts";
-import { lessonOpen } from "../tutorial/unlock.ts";
+import { openInOrder as lessonOpen } from "../game/unlock.ts";
 import { ClipButtons, Inline, Prose, Quiz, RoadMap, SceneScore, TrioPane, usePlayer, WriteScene } from "./TutorialParts.tsx";
 
 const TRIO = trioSteps(data as never);
