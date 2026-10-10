@@ -35,8 +35,8 @@ export interface EngInput {
   barStarts?: number[];
   /** Each bar's metre (else `time` throughout). */
   meters?: string[];
-  /** On a staff shared by several layers, rests shorter than a beat left out (a prelude's figuration, its strands inferred). */
-  quietRests?: boolean;
+  /** The voices are inferred strands (a prelude): those that take turns on a staff share a layer. */
+  mergeStrands?: boolean;
 }
 
 /** The bar lines of a piece: given, or every `barQuarters` to the end of its notes. */
@@ -224,8 +224,10 @@ export function spell(p: number, len: number, time: string, rest = false, barLen
         const end = at + q;
         if (end > bar + EPS) return false;
         if (rest) {
-          if (mod(at, dots ? q : plain) !== 0 && !(at < EPS && Math.abs(q - bar) < EPS)) return false;
-          if (dots && !(Math.abs(q - beat) < EPS && mod(at, beat) === 0) && !(compound && Math.abs(q - beat / 2) < EPS)) return false;
+          // In compound time a plain rest may finish a beat (an eighth, then a quarter rest).
+          const finishes = compound && !dots && Math.abs(mod(at + q, beat)) < EPS && q < beat - EPS;
+          if (mod(at, dots ? q : plain) !== 0 && !(at < EPS && Math.abs(q - bar) < EPS) && !finishes) return false;
+          if (dots && !(Math.abs(q - beat) < EPS && mod(at, beat) === 0)) return false;
           if (q < beat - EPS && crosses(at, end, beat)) return false;
           if (q < sub - EPS && crosses(at, end, sub)) return false;
           // A rest of a beat or more: whole beats, from a beat.
@@ -366,13 +368,12 @@ export function engrave(input: EngInput): Engraving {
     const full = units(meterOf(b)).bar;
     const origin = b === 0 && to - from < full - EPS ? to - full : from;
     const staves: [EngLayer[], EngLayer[]] = [[], []];
-    for (let v = 0; v < count; v++) {
-      const here = byVoice[v].filter((i) => notes[i].at < to - EPS && notes[i].at + notes[i].dur > from + EPS);
-      if (!here.length) continue;
-      // Chords: struck together, ending together, within the bar.
+    // Chords: a voice's notes struck together, ending together, within the bar.
+    const chordsOf = (v: number): Chord[] => {
       const chords: Chord[] = [];
-      for (const i of here) {
+      for (const i of byVoice[v]) {
         const n = notes[i];
+        if (!(n.at < to - EPS && n.at + n.dur > from + EPS)) continue;
         const a = Math.max(n.at, from);
         const e = Math.min(n.at + n.dur, to);
         const c = chords.find((c) => Math.abs(c.at - a) < EPS && Math.abs(c.end - e) < EPS);
@@ -381,19 +382,46 @@ export function engrave(input: EngInput): Engraving {
           if (!c.keys.some((k) => dia[k.i] === dia[i])) c.keys.push(key); // the same step twice cannot be drawn in one chord
         } else chords.push({ at: a, end: e, keys: [key], tieIn: n.at < from - EPS, tieOut: n.at + n.dur > to + EPS });
       }
+      return chords;
+    };
+    // Layers: each chord on the first layer free when it begins.
+    const chainsOf = (chords: Chord[]): Chord[][] => {
       chords.sort((x, y) => x.at - y.at || y.end - x.end);
-      // Layers: each chord on the first layer free when it begins.
       const chains: Chord[][] = [];
       for (const c of chords) {
         const free = chains.find((ch) => ch[ch.length - 1].end <= c.at + EPS);
         if (free) free.push(c);
         else chains.push([c]);
+        c.keys.sort((x, y) => dia[x.i] - dia[y.i]);
       }
-      chains.forEach((ch, sub) => {
-        for (const c of ch) c.keys.sort((x, y) => dia[x.i] - dia[y.i]);
-        staves[staffOf[v][b]].push({ voice: v, sub, stem: 0, items: layerItems(ch, from, to, meterOf(b), sub > 0, origin) });
-      });
-    }
+      return chains;
+    };
+    if (input.mergeStrands) {
+      // A prelude's strands (inferred, not Bach's voices) are written in as few layers as a staff
+      // needs: strands that take turns share a layer, as a keyboard player reads them.
+      for (const st of [0, 1]) {
+        const all: Chord[] = [];
+        for (let v = 0; v < count; v++) {
+          if (staffOf[v][b] !== st) continue;
+          for (const c of chordsOf(v)) {
+            const same = all.find((x) => Math.abs(x.at - c.at) < EPS && Math.abs(x.end - c.end) < EPS);
+            if (same) for (const k of c.keys) !same.keys.some((x) => dia[x.i] === dia[k.i]) && same.keys.push(k);
+            else all.push(c);
+          }
+        }
+        chainsOf(all).forEach((ch, sub) => {
+          const tally = new Map<number, number>();
+          for (const c of ch) for (const k of c.keys) tally.set(voice[k.i], (tally.get(voice[k.i]) ?? 0) + 1);
+          const v = [...tally.entries()].sort((x, y) => y[1] - x[1] || x[0] - y[0])[0][0];
+          staves[st].push({ voice: v, sub, stem: 0, items: layerItems(ch, from, to, meterOf(b), false, origin) });
+        });
+      }
+    } else
+      for (let v = 0; v < count; v++) {
+        const chords = chordsOf(v);
+        if (!chords.length) continue;
+        chainsOf(chords).forEach((ch, sub) => staves[staffOf[v][b]].push({ voice: v, sub, stem: 0, items: layerItems(ch, from, to, meterOf(b), sub > 0, origin) }));
+      }
     // Stems: on a staff with several layers, the highest up, the lowest down, the others by where they lie.
     for (const layers of staves) {
       if (layers.length < 2) continue;
@@ -413,10 +441,7 @@ export function engrave(input: EngInput): Engraving {
       order.forEach((l, k) => (l.stem = k === 0 ? 1 : k === order.length - 1 ? -1 : k < order.length / 2 ? 1 : -1));
       // Draw the stems-up layers first (VexFlow shifts colliding heads of the later voices).
       layers.sort((x, y) => y.stem - x.stem || order.indexOf(x) - order.indexOf(y));
-      if (input.quietRests) {
-        const beat = units(meterOf(b)).beat;
-        for (const l of layers) for (const it of l.items) if (it.rest && it.len < beat - EPS) it.ghost = true;
-      }
+
     }
     bars.push({ index: b, from, to, time: meterOf(b), origin, staves });
   }
@@ -459,6 +484,7 @@ function layerItems(chain: Chord[], from: number, to: number, time: string, ghos
   /** The open triplet group: its length so far and the shortest value in it. */
   let acc = 0;
   let shortest = Infinity;
+  let longest = 0;
   const pushValues = (at: number, len: number, rest: boolean, c: Chord | null) => {
     const vs = spell(at - origin, len, time, rest, to - origin);
     let t = at;
@@ -471,14 +497,21 @@ function layerItems(chain: Chord[], from: number, to: number, time: string, ghos
         tp = tuplet;
         acc += v.len;
         shortest = Math.min(shortest, v.len);
+        longest = Math.max(longest, v.len);
+        // It closes on a beat line: the quarter (the eighth for a group of triplet sixteenths only,
+        // the half for triplet quarters), when it has filled a whole number of its units.
         const unit = shortest * 3;
-        if (Math.abs(acc / unit - Math.round(acc / unit)) < 1e-6) {
+        const line = longest > 0.3 ? (longest > 0.6 ? 2 : 1) : 0.5;
+        const endAt = t + v.len - origin;
+        if (Math.abs(acc / unit - Math.round(acc / unit)) < 1e-6 && Math.abs(endAt / line - Math.round(endAt / line)) < 1e-6) {
           acc = 0;
           shortest = Infinity;
+          longest = 0;
         }
       } else {
         acc = 0;
         shortest = Infinity;
+        longest = 0;
       }
       out.push({
         rest,
