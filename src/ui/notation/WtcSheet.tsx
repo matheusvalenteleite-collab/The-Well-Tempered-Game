@@ -71,6 +71,8 @@ export interface SheetProps {
   describe?(i: number): string;
   onSeek(q: number): void;
   onSelect(from: number, to: number): void;
+  /** Alt+click: hear what sounds there and put the marker there, without playing on. */
+  onAudition?(q: number): void;
 }
 
 interface BarGeo {
@@ -791,7 +793,8 @@ export function WtcSheet(p: SheetProps) {
             p.onSelect(Math.min(aFrom, h.barFrom), Math.max(aTo, h.barTo));
             return;
           }
-          p.onSeek(h.q);
+          if (e.altKey && p.onAudition) p.onAudition(h.q);
+          else p.onSeek(h.q);
         }}
         onDoubleClick={(e) => {
           const h = hit(e as unknown as React.PointerEvent);

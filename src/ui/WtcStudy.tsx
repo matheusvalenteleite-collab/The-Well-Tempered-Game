@@ -614,6 +614,22 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     });
   };
 
+  /** The notes sounding at a moment, briefly (stepping while paused, Alt+click): what is heard there. */
+  const audition = (q: number) => {
+    if (useRec && playing) return;
+    const evs: PlayEvent[] = [];
+    notes.forEach((n, i) => {
+      if (!(n.at <= q + 1e-3 && q < n.at + n.dur - 1e-3) || !audible(voice[i])) return;
+      const ch = VOICE_CH[voice[i]] ?? "second";
+      const pitch = midiName(n.midi, flats);
+      const e: PlayEvent = { slot: 0, at: 0, length: 0.35, cantus: null, counterpoint: null };
+      if (ch === "counterpoint" || ch === "second" || ch === "fux") e.extra = [{ channel: ch, pitch }];
+      else (e.versions = { [ch]: pitch }), (e.lengths = { [ch]: 0.35 });
+      evs.push(e);
+    });
+    if (evs.length) void audio.playSequence(evs, 1.6);
+  };
+
   // Keys (D147): Space plays or pauses, Escape stops, ← → a bar back or on, Home the start, L the
   // loop, F following, [ ] the tempo, 1-6 a voice alone (again: all).
   const keyRef = useRef<(e: KeyboardEvent) => void>(() => undefined);
@@ -630,15 +646,39 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     const jump = (q: number) => {
       const to = Math.max(0, Math.min(end - 1e-3, q));
       if (playing) seek(to);
-      else setMarker(to);
+      else {
+        setMarker(to);
+        setLastPos(to);
+        audition(to);
+      }
+    };
+    /** The onsets of the piece, for stepping beat by beat or note by note. */
+    const beatAt = (q: number, dir: 1 | -1) => {
+      const b = barOf(q + 1e-3);
+      const bt = beatOf(P.meters[b] ?? timeSig);
+      const k = (q - barStart(b)) / bt;
+      const next = dir === 1 ? Math.floor(k + 1e-3) + 1 : Math.ceil(k - 1e-3) - 1;
+      return barStart(b) + next * bt;
     };
     if (e.key === " ") {
       e.preventDefault();
       toggle();
     } else if (e.key === "Escape") stop();
-    else if (e.key === "ArrowRight") {
+    else if (e.key === "ArrowRight" && e.shiftKey) {
+      e.preventDefault();
+      jump(beatAt(here(), 1));
+    } else if (e.key === "ArrowLeft" && e.shiftKey) {
+      e.preventDefault();
+      jump(beatAt(here(), -1));
+    } else if (e.key === "ArrowRight") {
       e.preventDefault();
       jump(barStart(barOf(here() + 1e-3) + 1));
+    } else if (e.key === "." || e.key === ",") {
+      // The next (or previous) entry of the subject.
+      const q = here();
+      const ins = (gameUntil !== null ? entries.filter((x) => x.end <= gameUntil + 1e-6) : entries).map((x) => x.at);
+      const to = e.key === "." ? ins.find((a) => a > q + 1e-3) : [...ins].reverse().find((a) => a < q - 1e-3);
+      if (to !== undefined) jump(to);
     } else if (e.key === "ArrowLeft") {
       e.preventDefault();
       const q = here();
@@ -1143,6 +1183,12 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
                 describe={describe}
                 onSeek={seek}
                 onSelect={select}
+                onAudition={(q) => {
+                  if (playing) return;
+                  setMarker(q);
+                  setLastPos(q);
+                  audition(q);
+                }}
               />
             ) : (
               <VoiceRoll
