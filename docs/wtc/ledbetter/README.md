@@ -22,13 +22,17 @@ missing, and in some, sentences break off. Consequently:
   by their "Notes to pages" running heads; uncertain attachments are flagged;
 - missing outright: Chapter Eight endnotes 12–22 and 60–72.
 
-Every `gaps-*.md` file lists its half-book's gaps, each with the words just before and after it as
-they appear in the converted text (curly apostrophes as printed), so that anyone holding the
-full PDF text can find the passage and fill it in.
+Every `gaps-*.md` file lists its half-book's gaps, each with the words just before and after it
+as they appear in the converted text, so that the passage can be found in the full text.
 
-Known slips in the digest itself: in Book II no. 22 (B flat major) the prelude's form table is on
-p. 318, not p. 319; the fragment "Italian Concerto has", filed under the F sharp major fugue (p. 294),
-probably belongs to the F sharp minor prelude.
+**Gaps filled.** The Choices lab session, which holds a complete text extraction of the PDF, filled
+them (branch claude/beautiful-mccarthy-7li5nv, `docs/wtc/ledbetter-fills/gap-fills.md`). The fills
+are merged into the digests, marked `[filled]`, `[filled; corrects …]` or `[displaced, restored]`;
+of 197 gaps, 158 are filled, 22 were only displaced, and 17 are lost music glyphs (mostly time
+signatures and accidentals, missing in the PDF text too), tagged `[GAP: not recoverable …]`. Each
+gap list gives every item's status. The fills corrected several readings of the digest (e.g. the
+"14th note" analyst in Book I no. 1 is Smend; the "author" who takes bb.1–3 as the subject of Book I
+no. 22 is Bach himself, with Czaczkes dissenting in n.107).
 
 ## Files
 
@@ -60,5 +64,8 @@ on other analysts), then two lists:
 (`voice?` where Ledbetter does not say; in three-voice pieces the middle voice is written alto). Keys
 are letter names, lowercase for minor, or Roman degrees where he gives only a function. Bars are
 as he gives them (`28½`, `(ff)`). A claim may end with a short parenthesis (`(variant)`,
-`(early version)`) and a `[GAP]` or `[check]` flag. 401 machine claims in all: 97, 79, 106, 119.
+`(early version)`), `(score; L.: …)` where the score corrected his reading, and a `[check]` flag.
+491 machine claims in all. 401 came from the converted text; 95 were added from the fills after
+being checked against the encoded score, and 6 lines were refined; the record of that check, with
+the notes for each verdict, is `claims-score-check.md`.
 Where a pair gives a range for a cadence, or a single bar for a section, the claim stays free-form.
