@@ -2908,7 +2908,7 @@
    "position": "inner",
    "melody": "1-7",
    "chord": "V",
-   "class": "half"
+   "class": "close on the local tonic, not from its dominant"
   },
   {
    "bach": 50,
@@ -3638,7 +3638,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "VI",
-   "class": "half, in the local key"
+   "class": "plagal, in the local key"
   },
   {
    "bach": 63,
@@ -5838,7 +5838,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "VI",
-   "class": "half, in the local key"
+   "class": "close on the local tonic, not from its dominant"
   },
   {
    "bach": 98,
@@ -8388,7 +8388,7 @@
    "position": "inner",
    "melody": "1-2",
    "chord": "V",
-   "class": "half"
+   "class": "close on the local tonic, not from its dominant"
   },
   {
    "bach": 137,
@@ -10168,7 +10168,7 @@
    "position": "inner",
    "melody": "2-5",
    "chord": "V",
-   "class": "close on the local tonic, not from its dominant"
+   "class": "half"
   },
   {
    "bach": 169,
@@ -11228,7 +11228,7 @@
    "position": "inner",
    "melody": "1-7",
    "chord": "V",
-   "class": "half"
+   "class": "close on the local tonic, not from its dominant"
   },
   {
    "bach": 190,
@@ -13958,7 +13958,7 @@
    "position": "inner",
    "melody": "4-5",
    "chord": "I",
-   "class": "half, in the local key"
+   "class": "close on the local tonic, not from its dominant"
   },
   {
    "bach": 227,
@@ -14088,7 +14088,7 @@
    "position": "inner",
    "melody": "1-b7",
    "chord": "v",
-   "class": "half"
+   "class": "close on the local tonic, not from its dominant"
   },
   {
    "bach": 230,
@@ -16338,7 +16338,7 @@
    "position": "inner",
    "melody": "1-2",
    "chord": "V",
-   "class": "half"
+   "class": "close on the local tonic, not from its dominant"
   },
   {
    "bach": 265,
@@ -19108,7 +19108,7 @@
    "position": "first",
    "melody": "3-2",
    "chord": "V",
-   "class": "half"
+   "class": "close on the local tonic, not from its dominant"
   },
   {
    "bach": 310,
@@ -21838,7 +21838,7 @@
    "position": "inner",
    "melody": "1-7",
    "chord": "V",
-   "class": "half"
+   "class": "close on the local tonic, not from its dominant"
   },
   {
    "bach": 356,
@@ -22288,7 +22288,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "VI",
-   "class": "half, in the local key"
+   "class": "plagal, in the local key"
   },
   {
    "bach": 363,
@@ -22478,7 +22478,7 @@
    "position": "inner",
    "melody": "1-7",
    "chord": "V",
-   "class": "half"
+   "class": "close on the local tonic, not from its dominant"
   },
   {
    "bach": 366,
@@ -22528,7 +22528,7 @@
    "position": "inner",
    "melody": "b6-5",
    "chord": "I",
-   "class": "half, in the local key"
+   "class": "close on the local tonic, not from its dominant"
   },
   {
    "bach": 367,

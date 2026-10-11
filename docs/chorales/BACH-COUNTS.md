@@ -48,15 +48,15 @@ These are counts of derived facts, not rules. The figures are read off Bach's fo
 | class | count |
 |---|---|
 | authentic, perfect | 1062 |
-| half | 290 |
+| half | 283 |
 | authentic, imperfect | 183 |
-| close on the local tonic, not from its dominant | 170 |
-| half, in the local key | 124 |
+| close on the local tonic, not from its dominant | 180 |
+| half, in the local key | 119 |
 | authentic, dominant inverted (leading tone in the bass) | 114 |
 | other: bass repeated | 79 |
 | Phrygian half | 68 |
 | deceptive | 64 |
-| plagal, in the local key | 35 |
+| plagal, in the local key | 37 |
 | resting point on a minor triad | 28 |
 | resting point on a major triad (a half cadence in the key reached?) | 27 |
 | authentic, penultimate inverted | 17 |
