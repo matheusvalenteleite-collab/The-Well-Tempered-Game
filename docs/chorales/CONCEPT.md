@@ -24,14 +24,15 @@ The chorale differs on every one of these points.
 | the main question | is it wrong? | which choice is it, and how idiomatic is it here? |
 | order of decisions | bottom-up, note against note | top-down: where the phrases go, then the bass, then the voices |
 | the given voice | a cantus firmus, an equal partner | a tune in the soprano, tonally loaded, to be *interpreted* |
-| rules | absolute prohibitions | norms that depend on position, voice and style. The leading tone rises in the soprano and is free in the alto; parallels occur through passing notes; the seventh is prepared in the strict style and free in the free style (Kirnberger) |
+| rules | absolute prohibitions | norms that depend on position, voice and style. The leading tone rises in the soprano and is free in the alto; parallels occur through passing notes; the seventh is mostly prepared, but enters free in particular places (over a moving bass, in certain voices and positions) |
 | feedback | "error in bar 4" | "here Bach goes to the relative minor; Kittel's basses [3] and [6] reach the same cadence another way; your choice is rare in the corpus, and this is why" |
 
 What stays:
 
 - **The library** (parsed corpora, concordance, the Kirnberger reading). It is neutral as to
   conception and is what the new evaluation needs.
-- **Fux as the prerequisite** of basic voice-leading. Kirnberger, too, teaches the strict style
+- **Fux as the prerequisite** of basic voice-leading: the Fux mode is the game's strict discipline
+  (C16). Kirnberger, too, teaches the strict style
   before the free.
 - **Bach as the last word (C1).** It changes role: it is no longer a filter that clears
   prohibitions, but the reference against which every choice is placed.
@@ -57,8 +58,8 @@ At each level the levels above may be given (as scaffolding) or chosen by the pl
 | **2. Harmony** | the chord under each melody note, and the harmonic rhythm | a root (fundamental bass) per melody note, or per beat | Bach's progressions in context (from this root, over this melody degree) and Kirnberger's fundamental bass |
 | **3. Bass** | the bass as a line: inversions, contour, motion against the soprano | the bass notes | Bach's and Kittel's basses: intervals, contrary motion, cadence formulas |
 | **4. Figures** | the thoroughbass notation of 2 and 3 | figures under the bass | Kittel's figuring practice (the common language of the period) |
-| **5. Voices** | alto and tenor, strict style | the inner voices, chord by chord | voice-leading norms counted over Bach: doubling, spacing, the leading tone, the seventh, parallels |
-| **6. Diminution** | passing notes, suspensions, anticipations; the free style | embellishment of 3 and 5 | where Bach puts which incidental dissonance, by voice and beat (Kirnberger's categories) |
+| **5. Voices** | alto and tenor | the inner voices, chord by chord | voice-leading norms counted over Bach: doubling, spacing, the leading tone, the seventh, parallels |
+| **6. Diminution** | passing notes, suspensions, anticipations | embellishment of 3 and 5 | where Bach puts which incidental dissonance, by voice and beat (Kirnberger's categories) |
 
 Levels 3-4 are Kittel's own method: given the melody, write and figure a bass. Levels 5-6 are
 Bach's: the four voices written out and embellished. The mode leads from the first to the second.
@@ -71,12 +72,14 @@ Three layers, each with its own place in the feedback.
 
 What Bach virtually never does, counted over the corpus and cited:
 
-- consecutive fifths and octaves on the beat;
-- the augmented second in a line;
-- an unprepared, unresolved seventh in the strict style.
+- consecutive fifths and octaves on successive beats (Bach: 1 in 370 chorales, no. 320, bar 8,
+  to be checked in the Breitkopf print; 17 more inside phrases pass through notes off the beat,
+  which are not errors);
+- the augmented second in a line (Bach: none in 82,424 melodic steps).
 
-Only these are reported as errors. A candidate becomes a boundary only by the owner's decision,
-with its count in front of him (as in D39).
+Only these are reported as errors (owner, C16). A candidate becomes a boundary only by the owner's
+decision, with its count in front of them (as in D39). The unprepared seventh is not one: 354 of
+Bach's 2,335 sevenths on the beat enter free.
 
 ### b. Idiom
 
@@ -87,6 +90,12 @@ choice next to their own.
 - **A rare choice is not an error.** It is shown as rare, with Bach's instances if there are
   any.
 - **A number is never shown without examples:** what is learnt is the cases, not a score.
+- **Contexts fine enough to discipline** (C16): the habit is counted in the context that decides
+  Bach's choice, not over the corpus at large. A seventh, for instance, by how it is approached,
+  what the bass does, which voice has it and where it falls in the bar: a free seventh where Bach
+  almost never writes one reads as "Bach almost never does this here", with his few cases; where he
+  often does, as his idiom. Kirnberger's categories name what is shown ("prepared, as in the strict
+  style"; "entered free over a moving bass, as Bach does in no. X"), not a setting.
 
 ### c. Comparison
 
@@ -99,10 +108,9 @@ those settings:
 
 The settings are playable alongside the player's.
 
-**Style** is a choice the player makes, and the judgement follows it:
-
-- **strict style** (Kirnberger's strenger Satz): prepared sevenths, few free dissonances;
-- **free style** (freier Satz): Bach's practice.
+**One style: Bach's** (owner, C16). There is no strict/free setting. The Fux mode is the game's
+strict discipline and the chorale mode's prerequisite; inside the chorale mode the discipline lies
+in the fineness of the contexts (b), not in a second judge beside Bach (C1).
 
 Kittel's organist's thoroughbass and Bach's four-part vocal writing are two references, not one.
 
@@ -122,8 +130,8 @@ Kittel's organist's thoroughbass and Bach's four-part vocal writing are two refe
 
 ## 6. The path
 
-- **Through the levels.** Plan first, then harmony, then bass and figures, then strict
-  voices, then diminution and the free style.
+- **Through the levels.** Plan first, then harmony, then bass and figures, then the voices,
+  then diminution.
 - **Through the melodies, by measured difficulty:**
   - the number and length of phrases;
   - how many cadences leave the key, and how far;
@@ -145,8 +153,8 @@ Kittel's organist's thoroughbass and Bach's four-part vocal writing are two refe
 2. **Melody features and a difficulty ranking** over the melodies of both corpora (Kittel's 24 and Bach's 370 settings; fewer distinct tunes, since tunes recur).
 3. **Kirnberger's text** for checking the categories (`KIRNBERGER.md`).
 4. **The owner's decisions:**
-   - which boundaries;
-   - which styles;
+   - which boundaries (decided, C16: two);
+   - which styles (decided, C16: Bach's alone);
    - how the first levels look on screen.
 
 ## 8. Open questions for the owner

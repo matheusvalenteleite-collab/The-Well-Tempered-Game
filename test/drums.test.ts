@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { DRUM_CUES, DRUM_KITS, DRUM_PATTERNS, hitsForBar, hitsForBreath, hitsForCue, LOOP_STEPS, loopFraction, padsFor, patternById, stepLoop, validLoopLength, variationB } from "../src/audio/drums.ts";
+import { DRUM_CUES, DRUM_PATTERNS, hitsForBar, hitsForBreath, hitsForCue, LOOP_STEPS, padsFor, patternById, stepLoop, validLoopLength, variationB } from "../src/audio/drums.ts";
 
 test("every pattern line has exactly `steps` characters of the step alphabet", () => {
   for (const p of DRUM_PATTERNS) {

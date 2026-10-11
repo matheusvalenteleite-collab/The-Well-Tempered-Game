@@ -6,7 +6,7 @@
  * written); a tap selects a slot and places the note under the pointer, with the key signature.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Accidental, Beam, Dot, Formatter, Renderer, Stave, StaveConnector, StaveNote, StaveTie, Tuplet, Voice, type StemmableNote } from "vexflow";
+import { Accidental, Articulation, Beam, Dot, Formatter, Renderer, Stave, StaveConnector, StaveNote, StaveTie, Tuplet, Voice, type StemmableNote } from "vexflow";
 import { parsePitch, type Step } from "../../music/pitch.ts";
 import { pitchAtPosition, type ClefId } from "./clefs.ts";
 import { Viewport } from "./Viewport.tsx";
@@ -25,6 +25,10 @@ export interface WtcScoreNote {
   mark?: string;
   /** The slot index for the player's voice (for selection and taps). */
   slot?: number;
+  /** Other notes struck with it in the same voice (a chord, D134). */
+  chord?: string[];
+  /** A fermata over (or under) it (the chorales, C15). */
+  fermata?: boolean;
 }
 
 export interface WtcScoreVoice {
@@ -51,12 +55,19 @@ interface Props {
   onZoom(z: number): void;
   zoomLabels: { in: string; out: string; reset: string };
   tools?: React.ReactNode;
+  /**
+   * Lines of text under the lower staff at onsets (quarters), placed under the notes struck there
+   * (the chorales' figures and fundamental bass, C15); `ink` colours them.
+   */
+  under?: { at: number; lines: string[]; ink?: string }[];
 }
 
 const EPS = 1e-6;
 const CLEFS: [ClefId, ClefId] = ["treble", "bass"];
 const STAFF_Y = [40, 170];
 const HEIGHT = 300;
+/** Room for the lines of text under the staves (C15). */
+const heightOf = (under?: unknown[]) => HEIGHT + (under?.length ? 56 : 0);
 const LEAD = 120;
 /** VexFlow durations by length in quarters, longest first. */
 const DURS: [number, string, number][] = [
@@ -132,7 +143,7 @@ export function WtcScore(p: Props) {
   const natural = LEAD + widths.reduce((a, b) => a + b, 0) + 24;
   const playingX = p.cursor >= 0 && p.cursor < bars ? lefts[p.cursor] : null;
   return (
-    <Viewport natural={natural} naturalHeight={HEIGHT} zoom={p.zoom} onZoom={p.onZoom} zoomLabels={p.zoomLabels} tools={p.tools} playingX={playingX}>
+    <Viewport natural={natural} naturalHeight={heightOf(p.under)} zoom={p.zoom} onZoom={p.onZoom} zoomLabels={p.zoomLabels} tools={p.tools} playingX={playingX}>
       {(scale) => <WtcSystem {...p} bars={bars} widths={widths} lefts={lefts} natural={natural} scale={scale} />}
     </Viewport>
   );
@@ -142,12 +153,13 @@ export function WtcScore(p: Props) {
  * A page of systems, one under the other (D127, the owner: "see the sheet music playing", as in
  * Gerubach's videos): each row a few bars, fitted to the page's width; the row playing on top.
  */
-export function WtcPage(p: Omit<Props, "voices" | "cursor" | "label" | "zoom" | "onZoom" | "zoomLabels" | "tools"> & { rows: { voices: WtcScoreVoice[]; bars: number; cursor: number; label: string; key: string }[] }) {
+export function WtcPage(p: Omit<Props, "voices" | "cursor" | "label" | "zoom" | "onZoom" | "zoomLabels" | "tools" | "under"> & { rows: { voices: WtcScoreVoice[]; bars: number; cursor: number; label: string; key: string; under?: Props["under"] }[]; fitWidth?: boolean }) {
   const host = useRef<HTMLDivElement>(null);
   const [w, setW] = useState(0);
+  const [h, setH] = useState(0);
   useLayoutEffect(() => {
     const el = host.current!;
-    const measure = () => setW(el.clientWidth);
+    const measure = () => (setW(el.clientWidth), setH(el.clientHeight));
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     measure();
@@ -162,10 +174,12 @@ export function WtcPage(p: Omit<Props, "voices" | "cursor" | "label" | "zoom" | 
           const widths = Array.from({ length: bars }, (_, b) => Math.max(150, 46 + Math.max(1, ...voices.map((v) => piecesInBar(v, b, p.barQuarters).length)) * 30));
           const lefts = widths.reduce<number[]>((acc, x, i) => (acc.push(i === 0 ? LEAD : acc[i - 1] + widths[i - 1]), acc), []);
           const natural = LEAD + widths.reduce((a, b) => a + b, 0) + 24;
-          const scale = Math.min(1.25, (w - 8) / natural);
+          // Fitted to the width, and small enough that two systems fit the page's height (reading ahead, as in a printed score).
+          // `fitWidth` (the chorales, C17): rows as wide as the page, scrolled, large enough to write on.
+          const scale = Math.min(1.1, (w - 8) / natural, !p.fitWidth && h > 100 ? (h - 12) / 2 / heightOf(r.under) : Infinity);
           return (
             <div key={r.key} className={r.cursor >= 0 ? "wtc-sys playing" : "wtc-sys"}>
-              <WtcSystem {...p} voices={voices} cursor={r.cursor} label={r.label} zoom={1} onZoom={() => undefined} zoomLabels={{ in: "", out: "", reset: "" }} bars={bars} widths={widths} lefts={lefts} natural={natural} scale={scale} bothStaves />
+              <WtcSystem {...p} voices={voices} cursor={r.cursor} label={r.label} under={r.under} zoom={1} onZoom={() => undefined} zoomLabels={{ in: "", out: "", reset: "" }} bars={bars} widths={widths} lefts={lefts} natural={natural} scale={scale} bothStaves />
             </div>
           );
         })}
@@ -189,7 +203,7 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
     if (!host) return;
     host.innerHTML = "";
     const renderer = new Renderer(host, Renderer.Backends.SVG);
-    renderer.resize(Math.ceil(p.natural * p.scale), Math.ceil(HEIGHT * p.scale));
+    renderer.resize(Math.ceil(p.natural * p.scale), Math.ceil(heightOf(p.under) * p.scale));
     const ctx = renderer.getContext();
     ctx.scale(p.scale, p.scale);
     const svg = host.querySelector("svg")!;
@@ -204,6 +218,8 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
     const lastPiece = new Map<number, { note: StaveNote; tieNext: boolean }>(); // by voice, across bars
     const ties: [StaveNote, StaveNote][] = [];
     let staves0: Stave[] = [];
+    /** Where each onset is drawn (the leftmost note struck there), for the text under the staves. */
+    const onsetX = new Map<number, number>();
     for (let b = 0; b < p.bars; b++) {
       const x = b === 0 ? 8 : p.lefts[b];
       const w = b === 0 ? p.lefts[0] - 8 + p.widths[0] : p.widths[b];
@@ -245,17 +261,23 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
         const stem: 1 | -1 | 0 = mates.length > 1 ? (p.voices.filter((w) => w.staff === v.staff).indexOf(v) === 0 ? 1 : -1) : 0;
         perVoice.push({ vi, v, tick: [], pieces, stem });
       });
-      // Accidentals in time order across the voices of a staff.
-      const accOf = new Map<Piece, string | null>();
+      // Accidentals in time order across the voices of a staff, for every note of a chord.
+      const keysOf = (q: Piece) => [q.pitch!, ...(q.src?.chord ?? [])].sort((a, c) => parsePitch(a).midi - parsePitch(c).midi);
+      const accOf = new Map<Piece, (string | null)[]>();
       for (const st of [0, 1]) {
         const all = perVoice.filter((x) => x.v.staff === st).flatMap((x) => x.pieces).filter((q) => !q.rest && q.pitch).sort((a, c) => a.at - c.at);
         for (const q of all) {
-          const pp = parsePitch(q.pitch!);
-          const k = `${pp.step}${pp.octave}`;
-          const cur = state[st].get(k) ?? p.signature[pp.step];
           const continued = q.src && q.src.at < q.at - EPS; // a tied continuation shows no accidental
-          accOf.set(q, !continued && cur !== pp.alter ? VEX_ACC(pp.alter) : null);
-          state[st].set(k, pp.alter);
+          accOf.set(
+            q,
+            keysOf(q).map((x) => {
+              const pp = parsePitch(x);
+              const k = `${pp.step}${pp.octave}`;
+              const cur = state[st].get(k) ?? p.signature[pp.step];
+              state[st].set(k, pp.alter);
+              return !continued && cur !== pp.alter ? VEX_ACC(pp.alter) : null;
+            }),
+          );
         }
       }
       for (const pv of perVoice) {
@@ -266,17 +288,24 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
           if (q.rest) {
             n = new StaveNote({ keys: [pv.stem === -1 ? (clef === "treble" ? "g/4" : "b/2") : pv.stem === 1 ? (clef === "treble" ? "d/5" : "f/3") : middle], duration: `${q.d}r`, clef });
           } else if (!q.pitch) {
-            n = new StaveNote({ keys: [middle], duration: q.d, clef, ...(pv.stem ? { stem_direction: pv.stem } : { auto_stem: false }) });
+            // An empty slot where its voice lives: low on the staff for the lower of two voices, high for the upper (C17).
+            const home = pv.stem === -1 ? (clef === "treble" ? "e/4" : "g/2") : pv.stem === 1 ? (clef === "treble" ? "e/5" : "a/3") : middle;
+            n = new StaveNote({ keys: [home], duration: q.d, clef, ...(pv.stem ? { stem_direction: pv.stem } : { auto_stem: false }) });
             n.setStyle({ fillStyle: "var(--slot-ink, #b9b2a0)", strokeStyle: "var(--slot-ink, #b9b2a0)" });
           } else {
-            const pp = parsePitch(q.pitch);
-            n = new StaveNote({ keys: [`${pp.step.toLowerCase()}/${pp.octave}`], duration: q.d, clef, ...(pv.stem ? { stem_direction: pv.stem } : { auto_stem: true }) });
-            const acc = accOf.get(q);
-            if (acc) n.addModifier(new Accidental(acc));
+            const keys = keysOf(q).map((x) => {
+              const pp = parsePitch(x);
+              return `${pp.step.toLowerCase()}/${pp.octave}`;
+            });
+            n = new StaveNote({ keys, duration: q.d, clef, ...(pv.stem ? { stem_direction: pv.stem } : { auto_stem: true }) });
+            (accOf.get(q) ?? []).forEach((acc, i) => acc && n.addModifier(new Accidental(acc), i));
             const ink = q.src?.ink ?? pv.v.ink;
             n.setStyle({ fillStyle: ink, strokeStyle: ink });
           }
           if (q.dots) Dot.buildAndAttach([n], { all: true });
+          // The fermata on the note's last written piece (the one not tied on).
+          if (!q.rest && q.src?.fermata && !q.tieNext)
+            n.addModifier(new Articulation("a@a").setPosition(pv.stem === -1 ? 4 : 3));
           pv.tick.push(n);
           if (!q.rest && q.src) {
             const xs = drawnBySrc.get(q.src) ?? [];
@@ -335,6 +364,10 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
           if (q.rest || !q.src) return;
           const n = pv.tick[k];
           const nx = n.getAbsoluteX();
+          if (q.src.at >= q.at - EPS) {
+            const key = Math.round(q.at * 64);
+            onsetX.set(key, Math.min(onsetX.get(key) ?? Infinity, nx));
+          }
           if (q.src.slot !== undefined && q.src.at >= q.at - EPS) {
             if (pv.v.editable) hits.current.push({ slot: q.src.slot, x: nx, staff: pv.v.staff });
             if (pv.v.editable && p.selected === q.src.slot) {
@@ -348,7 +381,8 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
             ctx.save();
             ctx.setFont("Inter, system-ui, sans-serif", 10);
             ctx.setFillStyle(q.src.ink ?? pv.v.ink);
-            const y = pv.stem === -1 ? staves[pv.v.staff].getYForLine(4) + 62 : staves[pv.v.staff].getYForLine(0) - 26;
+            // Above a fermata, clear of it.
+            const y = pv.stem === -1 ? staves[pv.v.staff].getYForLine(4) + 62 : staves[pv.v.staff].getYForLine(0) - (q.src.fermata ? 38 : 26);
             if (q.src.label) ctx.fillText(q.src.label, nx - 2, y);
             if (q.src.mark) ctx.fillText(q.src.mark, nx + 2, y + 12);
             ctx.restore();
@@ -356,11 +390,23 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
         });
       }
     }
+    if (p.under?.length && staves0.length) {
+      const underY = staves0[used[used.length - 1]].getYForLine(4) + 42;
+      ctx.save();
+      ctx.setFont("Inter, system-ui, sans-serif", 10);
+      for (const u of p.under) {
+        const x = onsetX.get(Math.round(u.at * 64));
+        if (x === undefined) continue;
+        ctx.setFillStyle(u.ink ?? "var(--ink)");
+        u.lines.forEach((line, i) => line && ctx.fillText(line, x, underY + i * 12));
+      }
+      ctx.restore();
+    }
     for (const [a, c] of ties) new StaveTie({ first_note: a, last_note: c, first_indices: [0], last_indices: [0] }).setContext(ctx).draw();
     // The selection is drawn after the notes: redraw nothing; it sits under them as a translucent band.
     geo.current = { staves: staves0.map((s, i) => (used.includes(i) ? { top: s.getYForLine(0), bottom: s.getYForLine(4), spacing: s.getSpacingBetweenLines() } : { top: -1e6, bottom: -1e6, spacing: 10 })) };
     host.dataset.geometry = JSON.stringify(geo.current);
-  }, [p.voices, p.keySig, p.signature, p.time, p.barQuarters, p.selected, p.cursor, p.label, p.bars, p.widths, p.lefts, p.natural, p.scale]);
+  }, [p.voices, p.keySig, p.signature, p.time, p.barQuarters, p.selected, p.cursor, p.label, p.bars, p.widths, p.lefts, p.natural, p.scale, p.under]);
 
   const press = useRef<{ x: number; y: number } | null>(null);
   const locate = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -371,7 +417,14 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
     const k = p.scale * (r.width / (svg.width.baseVal.value || r.width));
     const x = (e.clientX - r.left) / k;
     const y = (e.clientY - r.top) / k;
-    const best = hits.current.reduce((a, h) => (Math.abs(h.x + 5 - x) < Math.abs(a.x + 5 - x) ? h : a));
+    // The staff tapped first (two editable voices, one on each staff: the chorales' alto and tenor, C17), then the nearest slot on it.
+    const near = (i: number) => {
+      const st = g.staves[i];
+      return st ? Math.abs((st.top + st.bottom) / 2 - y) : Infinity;
+    };
+    const tapped = [0, 1].reduce((a, i) => (near(i) < near(a) ? i : a), 0);
+    const pool = hits.current.some((h) => h.staff === tapped) ? hits.current.filter((h) => h.staff === tapped) : hits.current;
+    const best = pool.reduce((a, h) => (Math.abs(h.x + 5 - x) < Math.abs(a.x + 5 - x) ? h : a));
     if (Math.abs(best.x + 5 - x) > 40) return null;
     const s = g.staves[best.staff];
     const onStaff = y >= s.top - 5 * s.spacing && y <= s.bottom + 5 * s.spacing;

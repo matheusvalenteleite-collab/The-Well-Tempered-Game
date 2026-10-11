@@ -7,6 +7,7 @@
  * bar before, and how far the voices move. As in the chorale mode, Bach's choice is the feedback;
  * only the parallels are marked as faults, the boundary Fux's rules already draw.
  */
+import { ModeSelect } from "./ModeSelect.tsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BARS, VOICES, barEvents, compare, figureLabel, figuredLabel, motion, parallels, pieceEvents, type Choice } from "../wtc/prelude1.ts";
 import type { Mode } from "./Root.tsx";
@@ -21,7 +22,7 @@ type Picks = (number | null)[];
 
 const fund = (c: Choice) => `${c.fundamental.root} ${t(`wtcp.chord.${c.fundamental.chord}`)}`;
 
-export function PreludeApp({ onMode, level, onLevel }: { onMode(mode: Mode): void; level: WtcLevel; onLevel(l: WtcLevel): void }) {
+export function PreludeApp({ onMode, onTutorial, level, onLevel }: { onMode(mode: Mode): void; onTutorial?: () => void; level: WtcLevel; onLevel(l: WtcLevel): void }) {
   const p2 = level === "p2";
   const key = p2 ? "wtg.prelude1p2" : "wtg.prelude1";
   const load = (k: string) => stored<Picks>(k, BARS.map(() => null), (v) => Array.isArray(v) && v.length === BARS.length);
@@ -112,16 +113,10 @@ export function PreludeApp({ onMode, level, onLevel }: { onMode(mode: Mode): voi
         <>
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
-            <select id="voices" className="sel sel-voices" value="preludes" aria-label={t("ui.nav.voices")} onChange={(e) => { stop(); const v = e.target.value; onMode(v === "chorale" || v === "preludes" || v === "wtc" ? v : (Number(v) as 2 | 3)); }}>
-              <option value={2}>{t("ui.nav.voicesN", { n: 2 })}</option>
-              <option value={3}>{t("ui.nav.voicesN", { n: 3 })}</option>
-              <option value="wtc">{t("ui.wtc.mode")}</option>
-              <option value="chorale">{t("chorale.mode")}</option>
-              <option value="preludes">{t("wtcp.mode")}</option>
-            </select>
+            <ModeSelect value="preludes" onMode={(m) => { stop(); onMode(m); }} />
             <WtcLevelSelect level={level} onLevel={onLevel} onChange={() => stop()} />
           </nav>
-          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("about")} />
+          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("about")} onTutorial={onTutorial} />
         </>
       }
       score={

@@ -1,5 +1,5 @@
 import type { CurriculumStep } from "../counterpoint/curriculum/index.ts";
-import { modeStudy, stepStudy, type Block } from "./study.ts";
+import { lectioFor, modeStudy, stepStudy, type Block } from "./study.ts";
 import { useState } from "react";
 import { t } from "./i18n.ts";
 import { PageThumb, PageViewer, scanPage } from "./Scans.tsx";
@@ -63,6 +63,34 @@ export function Study({ step }: { step: CurriculumStep }) {
         </div>
         <div>
           <h3>{t("study.inTheBook", { page: step.page })}</h3>
+          {s.study.map((b, i) => (
+            <BlockView key={i} b={b} onPage={setViewing} />
+          ))}
+        </div>
+      </div>
+      {viewing !== null && <PageViewer page={viewing} onClose={() => setViewing(null)} />}
+    </section>
+  );
+}
+
+/** The Lectio for three and four voices (D153): the mode, then the lesson of the species, with Fux's words and the scans. */
+export function LectioVoices({ voices, lesson, final }: { voices: 3 | 4; lesson: string; final: string }) {
+  const s = lectioFor(voices, lesson);
+  const [viewing, setViewing] = useState<number | null>(null);
+  const mode = modeStudy(final);
+  return (
+    <section className="study" aria-label={t("ui.study")}>
+      <h2>{t("study.title", { name: s.name })}</h2>
+      <p className="note">{t("study.intro34")}</p>
+      <div className="study-grid">
+        <div>
+          <h3>{mode.name}</h3>
+          {mode.body.map((b, i) => (
+            <BlockView key={i} b={b} onPage={setViewing} />
+          ))}
+        </div>
+        <div>
+          <h3>{s.name} · {t("study.inTheBook", { page: s.pages })}</h3>
           {s.study.map((b, i) => (
             <BlockView key={i} b={b} onPage={setViewing} />
           ))}

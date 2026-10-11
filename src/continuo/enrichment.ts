@@ -10,7 +10,7 @@
  */
 import { parsePitch, type Step } from "../music/pitch.ts";
 import type { Costs } from "./costs.ts";
-import { chooseChord, clashes, frameAt, frameConsonant, mod, pcDistance, pcOf, spellAt, STEPS, type Chord, type Frame } from "./frame.ts";
+import { chooseChord, clashes, frameAt, frameConsonant, mod, pcDistance, spellAt, STEPS, type Chord, type Frame } from "./frame.ts";
 import { candidates, placeByOctave, spellIn, transitionCost, type Voicing, type Window } from "./voicing.ts";
 import type { BarInfo, EventRole, SungNote } from "./types.ts";
 import type { SpelledPitch } from "../music/pitch.ts";

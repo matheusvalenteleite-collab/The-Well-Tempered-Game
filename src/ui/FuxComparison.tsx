@@ -1,4 +1,4 @@
-import { compareWithFux, type Criterion } from "../counterpoint/compare-fux.ts";
+import { compareWithFux } from "../counterpoint/compare-fux.ts";
 import { t } from "./i18n.ts";
 import { BarRef } from "./BarRef.tsx";
 import type { Slot } from "../counterpoint/layout.ts";

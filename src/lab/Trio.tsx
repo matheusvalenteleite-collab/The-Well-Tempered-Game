@@ -7,7 +7,7 @@ import { HarmonyRow } from "./Harmony.tsx";
 import data from "../../data/fux/three-voice/fux-three-voice.json" with { type: "json" };
 import { trioSteps, type TrioStep } from "../game/trio.ts";
 import type { ModalFinal } from "../music/fux/index.ts";
-import { clefFor, type LabClef } from "../counterpoint/choices/cantus.ts";
+import type { LabClef } from "../counterpoint/choices/cantus.ts";
 import { TrioScore } from "../ui/notation/TrioScore.tsx";
 import { trioStaves } from "../ui/notation/trio-staves.ts";
 import { parsePitch } from "../music/pitch.ts";

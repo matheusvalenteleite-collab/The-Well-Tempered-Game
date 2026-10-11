@@ -9,6 +9,13 @@ import { t } from "./i18n.ts";
 // Still inlined (D97), but each page is loaded only when shown: the pages were 4 MB of the first download.
 const FILES = import.meta.glob("../assets/scans/*.jpg", { query: "?inline", import: "default" }) as Record<string, () => Promise<string>>;
 const PAGES: Record<number, () => Promise<string>> = Object.fromEntries(Object.entries(FILES).map(([path, load]) => [Number(/p(\d+)\.jpg$/.exec(path)![1]), load]));
+// Pp. 91-138 (three and four voices, D153) are files beside the page (public/scans), not inlined:
+// the single-file artifact has no room for them, so there they come from the published site.
+const SITE = "https://matheusvalenteleite-collab.github.io/The-Well-Tempered-Game/";
+for (let n = 91; n <= 138; n++) {
+  const file = `scans/p${String(n).padStart(3, "0")}.jpg`;
+  PAGES[n] = () => Promise.resolve(import.meta.env.MODE === "artifact" ? SITE + file : new URL(file, document.baseURI).href);
+}
 const loaded = new Map<number, string>();
 
 /** A page's image, once loaded (null meanwhile). */
@@ -41,7 +48,7 @@ export function PageThumb({ page, onOpen }: { page: number; onOpen(p: number): v
   const src = useScan(page);
   return (
     <button className="page-thumb" onClick={() => onOpen(page)} title={t("ui.scan.open", { page })} aria-label={t("ui.scan.open", { page })}>
-      {src ? <img src={src} alt="" /> : <span className="page-wait" aria-hidden="true" />}
+      {src ? <img src={src} alt="" onError={(e) => (e.currentTarget.style.visibility = "hidden")} /> : <span className="page-wait" aria-hidden="true" />}
       <span>p. {page}</span>
     </button>
   );
@@ -51,6 +58,7 @@ export function PageViewer({ page, onClose }: { page: number; onClose(): void })
   const [p, setP] = useState(page);
   const i = LIST.indexOf(p);
   const src = useScan(p);
+  const [broken, setBroken] = useState<number | null>(null);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -70,7 +78,13 @@ export function PageViewer({ page, onClose }: { page: number; onClose(): void })
           <button className="icon" disabled={i >= LIST.length - 1} onClick={() => setP(LIST[i + 1])} aria-label={t("ui.scan.next")}>›</button>
           <button className="icon quiet" onClick={onClose} aria-label={t("ui.close")}>×</button>
         </div>
-        {src ? <img src={src} alt={t("ui.scan.title", { page: p })} /> : <p className="help">{t("ui.loading")}</p>}
+        {broken === p ? (
+          <p className="help">{t("ui.scan.offline")} <a href={SITE + `scans/p${String(p).padStart(3, "0")}.jpg`} target="_blank" rel="noreferrer">{t("ui.scan.title", { page: p })}</a></p>
+        ) : src ? (
+          <img src={src} alt={t("ui.scan.title", { page: p })} onError={() => setBroken(p)} />
+        ) : (
+          <p className="help">{t("ui.loading")}</p>
+        )}
         <p className="help">{t("ui.scan.source")}</p>
       </div>
     </div>

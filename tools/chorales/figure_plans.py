@@ -22,6 +22,7 @@ from fractions import Fraction as F
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from habits import share_habits  # noqa: E402
 from cadence_plans import MINORISH, degree, pcn  # noqa: E402
 from harmony_plans import Model, merged, tune_key  # noqa: E402
 from bass_plans import evaluate  # noqa: E402
@@ -129,13 +130,21 @@ def kittel_level4(events: list[dict]) -> list[dict]:
     return out
 
 
+NOTE_FIELDS = ["offset", "measure", "pitch", "degree", "melody", "melodyDegree", "printed", "kittel", "habit"]
+
+
 def main() -> None:
     events = bach_events()
     models = [("mode + bass degree", ["mode", "bdeg"]), ("mode + bass degree + melody degree", ["mode", "bdeg", "deg"])]
     results = [(name, evaluate(events, f)) for name, f in models]
     kit = kittel_level4(events)
-    OUT_JSON.write_text(json.dumps({"generated_by": "tools/chorales/figure_plans.py", "level": 4, "positions": POSITIONS,
-                                    "chorales": kit}, ensure_ascii=False, separators=(",", ":")) + "\n")
+    shared, habits = share_habits(kit, lambda c: (n for b in c["basses"] for n in b["notes"]))
+    # Each note as a row under NOTE_FIELDS (the names written once; src/chorale/level4.ts reads them back).
+    for c in shared:
+        for b in c["basses"]:
+            b["notes"] = [[n[k] for k in NOTE_FIELDS] for n in b["notes"]]
+    OUT_JSON.write_text(json.dumps({"generated_by": "tools/chorales/figure_plans.py", "level": 4, "positions": POSITIONS, "noteFields": NOTE_FIELDS,
+                                    "chorales": shared, "habits": habits}, ensure_ascii=False, separators=(",", ":")) + "\n")
     allnotes = [n for c in kit for b in c["basses"] for n in b["notes"]]
     known = [n for n in allnotes if n["kittel"]]
     agree = sum(1 for n in known if n["habit"]["options"] and n["habit"]["options"][0]["chord"] == n["kittel"])

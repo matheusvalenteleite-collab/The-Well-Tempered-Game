@@ -11,6 +11,9 @@ import { harmonic, interval, isConsonant, isImperfectConsonance, isPerfectConson
 import { evaluate, type Evaluation } from "../counterpoint/engine.ts";
 import type { Rule } from "../counterpoint/rules/types.ts";
 import { evaluateTrio, type TrioEvaluation } from "../counterpoint/three-voice.ts";
+import { evaluateTrio2 } from "../counterpoint/three-voice-second.ts";
+import { evaluateTrioFlorid } from "../counterpoint/three-voice-florid.ts";
+import { evaluateQuartet, type PartKind } from "../counterpoint/four-voice.ts";
 import { parsePitch } from "../music/pitch.ts";
 
 /** A two-staff score of the tutorial: given notes, the slots left open to the learner, the answer. */
@@ -36,16 +39,27 @@ export interface Scene {
   stepId?: string;
 }
 
-/** A three-staff scene (three voices, first species): staves top first. */
+/**
+ * A scene of three or four staves, top first: three voices in species one to four, or four voices
+ * in first species (D154).
+ */
 export interface TrioScene {
   modalFinal: ModalFinal;
   cantusIndex: number;
   clefs: ClefId[];
   start: (string | null)[][];
-  /** [staff, bar] cells the learner may write. */
+  /** [staff, slot] cells the learner may write: the bar, or on the moving staff its slot. */
   open: [number, number][];
   answer: string[][];
   stepId: string;
+  /** Three voices, species 2-4: the staff that moves and its slots a bar (one in the last bar). */
+  species?: 1 | 2 | 3 | 4;
+  movingIndex?: number | null;
+  per?: 1 | 2 | 4;
+  /** Fourth species: inner bars that may go without a ligature (as in the game). */
+  untied?: number;
+  /** Four voices: what each part sings. */
+  kinds?: PartKind[];
 }
 
 /** Something to hear: a line against its cantus, or bare sonorities one after another. */
@@ -82,10 +96,17 @@ export interface Verdict {
   vars?: Record<string, string | number>;
 }
 
+/** The quizzes: intervals, their classes, motion, three-voice chords; and (D150) harmony. */
+export type QuizKind = "interval" | "class" | "motion" | "chord" | "degree" | "figure" | "cadence";
+/** The harmony quizzes, drawn as chords on two staves. */
+export const HARMONY_QUIZ: readonly QuizKind[] = ["degree", "figure", "cadence"];
+
 export interface QuizItem {
   /** Lower note first; one sonority, or two in a row (motion). */
   columns: string[][];
   answer: string;
+  /** Harmony (D150): the key, its tonic ("C"; lower case for minor, "a"). */
+  key?: string;
   /** Three voices: the bar of the scene this sonority is taken from (0-based). */
   bar?: number;
 }
@@ -103,12 +124,15 @@ export type Task =
   /** Done when `need` clips (default all) have been heard. */
   | { kind: "listen"; clips: Clip[]; need?: number }
   | { kind: "choice"; options: Option[]; scene?: Scene }
-  | { kind: "quiz"; quiz: "interval" | "class" | "motion" | "chord"; items: QuizItem[]; choices: string[] }
+  | { kind: "quiz"; quiz: QuizKind; items: QuizItem[]; choices: string[] }
   | { kind: "write"; check(notes: (string | null)[], scene: Scene): Verdict }
   | { kind: "judge" }
   | { kind: "trio" }
-  | { kind: "game"; voices: 2 | 3 | "wtc"; stepId?: string }
+  | { kind: "game"; voices: GameMode; stepId?: string }
   | { kind: "tour" };
+
+/** Where a lesson can send the learner in the game. */
+export type GameMode = 2 | 3 | 4 | "wtc" | "chorale" | "preludes";
 
 export interface Lesson {
   /** Content key: tutorial.en.json lessons[id]. */
@@ -124,6 +148,8 @@ export interface Lesson {
   intervals?: boolean;
   /** A fugue drawn as a roll (D146), by its id in the study's library; the lesson's clips shade their passage on it. */
   roll?: string;
+  /** Harmony (D150): chords to draw on two staves, with their figures. */
+  chords?: string[][];
 }
 
 export interface Chapter {
@@ -178,8 +204,13 @@ export function judge(s: Scene, notes: (string | null)[]): Evaluation {
   );
 }
 
+/** The game's own judgement of the scene (the same evaluator as the exercise it comes from). */
 export function judgeTrio(s: TrioScene, voices: (string | null)[][]): TrioEvaluation {
-  return evaluateTrio({ modalFinal: s.modalFinal, cantusIndex: s.cantusIndex, voices: voices as string[][] });
+  const base = { modalFinal: s.modalFinal, cantusIndex: s.cantusIndex, voices: voices as string[][] };
+  if (s.kinds) return evaluateQuartet({ ...base, kinds: s.kinds });
+  if (!s.species || s.species === 1 || s.movingIndex == null) return evaluateTrio(base);
+  if (s.species === 2) return evaluateTrio2({ ...base, minimIndex: s.movingIndex });
+  return evaluateTrioFlorid({ ...base, species: s.species, movingIndex: s.movingIndex, ligatureAllowance: Math.max(1, s.untied ?? 1) });
 }
 
 /** Playback events of a scene's line (or bars from..to of it), for AudioEngine.playSequence. */

@@ -4,6 +4,10 @@
  * beside Kittel's basses, Bach's settings of the tune, and Bach's habit in the same context. No
  * choice is marked wrong: the masters' choices are the feedback.
  */
+import { ModeSelect } from "./ModeSelect.tsx";
+import { ChoraleStudy } from "./ChoraleStudy.tsx";
+import { ChoraleVoices } from "./ChoraleVoices.tsx";
+import { ChoraleDiminution } from "./ChoraleDiminution.tsx";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { BACH_REFS, CHORALES, comparePoints, frac, soundingMelody, voiceChord, type PhraseVerdict } from "../chorale/level1.ts";
 import { LEVEL2, noteIndices } from "../chorale/level2.ts";
@@ -20,16 +24,31 @@ import { audio, store, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
 
 type Picks = Record<number, (string | null)[]>;
+type Level = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
-export function ChoraleApp({ onMode }: { onMode(mode: Mode): void }) {
+/** The chorale screen: Bach's settings to hear and read (C15), or the levels on Kittel's melodies. */
+export function ChoraleApp({ onMode, onTutorial }: { onMode(mode: Mode): void; onTutorial?: () => void }) {
+  const [level, setLevel] = useState<Level>(() => stored<Level>("wtg.choraleLevel", 1, (v) => v === 0 || v === 1 || v === 2 || v === 3 || v === 4 || v === 5 || v === 6));
+  useEffect(() => store("wtg.choraleLevel", level), [level]);
+  const levelSelect = (onChange?: () => void) => (
+    <select id="level" className="sel sel-species" value={level} aria-label={t("chorale.level")} onChange={(e) => { onChange?.(); setLevel(Number(e.target.value) as Level); }}>
+      {[0, 1, 2, 3, 4, 5, 6].map((n) => (
+        <option key={n} value={n}>{t(`chorale.level.${n}`)}</option>
+      ))}
+    </select>
+  );
+  if (level === 6) return <ChoraleDiminution onMode={onMode} onTutorial={onTutorial} levelSelect={levelSelect()} />;
+  if (level === 5) return <ChoraleVoices onMode={onMode} onTutorial={onTutorial} levelSelect={levelSelect()} />;
+  if (level === 0) return <ChoraleStudy onMode={onMode} onTutorial={onTutorial} levelSelect={levelSelect()} />;
+  return <ChoraleLevels onMode={onMode} onTutorial={onTutorial} level={level} levelSelect={levelSelect} />;
+}
+
+function ChoraleLevels({ onMode, onTutorial, level, levelSelect }: { onMode(mode: Mode): void; onTutorial?: () => void; level: Exclude<Level, 0 | 5 | 6>; levelSelect(onChange?: () => void): ReactNode }) {
   const [index, setIndex] = useState(() => Math.max(0, CHORALES.findIndex((c) => c.number === stored("wtg.chorale", 1, (v) => typeof v === "number"))));
   const ch = CHORALES[index];
   useEffect(() => store("wtg.chorale", ch.number), [ch.number]);
-  type Level = 1 | 2 | 3 | 4;
-  const [level, setLevel] = useState<Level>(() => stored<Level>("wtg.choraleLevel", 1, (v) => v === 1 || v === 2 || v === 3 || v === 4));
   const [bassIdx, setBassIdx] = useState(() => stored("wtg.choraleBass", 0, (v) => typeof v === "number" && v >= 0 && v < 9));
   useEffect(() => store("wtg.choraleBass", bassIdx), [bassIdx]);
-  useEffect(() => store("wtg.choraleLevel", level), [level]);
   const picksKey = level === 1 ? "wtg.choralePicks" : `wtg.choralePicks${level}`;
   const [picks, setPicksState] = useState<Picks>(() => stored<Picks>(picksKey, {}, (v) => typeof v === "object" && v !== null));
   useEffect(() => setPicksState(stored<Picks>(picksKey, {}, (v) => typeof v === "object" && v !== null)), [picksKey]);
@@ -219,18 +238,8 @@ export function ChoraleApp({ onMode }: { onMode(mode: Mode): void }) {
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
             <button className="icon" onClick={() => goTo(index - 1)} disabled={index === 0} aria-label={t("ui.nav.prev")}>‹</button>
-            <select id="voices" className="sel sel-voices" value="chorale" aria-label={t("ui.nav.voices")} onChange={(e) => { stop(); const v = e.target.value; onMode(v === "chorale" || v === "preludes" || v === "wtc" ? v : (Number(v) as 2 | 3)); }}>
-              <option value={2}>{t("ui.nav.voicesN", { n: 2 })}</option>
-              <option value={3}>{t("ui.nav.voicesN", { n: 3 })}</option>
-              <option value="wtc">{t("ui.wtc.mode")}</option>
-              <option value="chorale">{t("chorale.mode")}</option>
-              <option value="preludes">{t("wtcp.mode")}</option>
-            </select>
-            <select id="level" className="sel sel-species" value={level} aria-label={t("chorale.level")} onChange={(e) => { stop(); setLevel(Number(e.target.value) as Level); setSelected(0); setCompared(null); }}>
-              {[1, 2, 3, 4, 5, 6].map((n) => (
-                <option key={n} value={n} disabled={n > 4}>{t(`chorale.level.${n}`)}</option>
-              ))}
-            </select>
+            <ModeSelect value="chorale" onMode={(m) => { stop(); onMode(m); }} />
+            {levelSelect(() => { stop(); setSelected(0); setCompared(null); })}
             <select id="exercise" className="sel sel-exercise" value={index} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("ui.nav.choose")}>
               {CHORALES.map((c, k) => (
                 <option key={c.number} value={k}>{`${(picks[c.number] ?? []).filter(Boolean).length === (level === 1 ? c.phrases.length : level === 4 ? -1 : (level === 3 ? LEVEL3 : LEVEL2)[c.number].notes.length) ? "● " : ""}${c.number}. ${c.title.replace(/ etc\.$/, "").replace(/ \[etc\.\]$/, "")}`}</option>
@@ -245,7 +254,7 @@ export function ChoraleApp({ onMode }: { onMode(mode: Mode): void }) {
             )}
             <button className="icon" onClick={() => goTo(index + 1)} disabled={index === CHORALES.length - 1} aria-label={t("ui.nav.next")}>›</button>
           </nav>
-          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("about")} />
+          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("about")} onTutorial={onTutorial} />
         </>
       }
       score={

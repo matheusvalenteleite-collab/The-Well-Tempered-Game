@@ -1,0 +1,65 @@
+{
+  "id": "gap_170",
+  "figure": {
+    "number": 170,
+    "suffix": "",
+    "note": null,
+    "corrected": false,
+    "corrects": null
+  },
+  "species": [
+    1
+  ],
+  "modal_final": "f",
+  "voices": 4,
+  "cantus_firmus": {
+    "part": 1,
+    "raw": "1"
+  },
+  "meter": "2/2",
+  "measures": 12,
+  "clefs": [
+    "C1",
+    "C3",
+    "C4",
+    "F4"
+  ],
+  "page": 120,
+  "source": {
+    "example_id": "gap_p128:2",
+    "pdf_file": "gap_p128.pdf",
+    "pdf_page": 128,
+    "example_on_page": 2,
+    "systems": [
+      {
+        "system_in_example": 1,
+        "system_on_page": 2,
+        "pdf_file": "gap_p128.pdf",
+        "pdf_page": 128,
+        "printed_page": 120,
+        "clefs": [
+          "C1",
+          "C3",
+          "C4",
+          "F2"
+        ]
+      }
+    ]
+  },
+  "editorial": {
+    "corrections": [
+      {
+        "kind": "clef",
+        "location": {
+          "part": 4,
+          "measure": 1,
+          "offset_quarters": 0,
+          "description": "Opening bass clef"
+        },
+        "printed": "F2",
+        "encoded": "F4",
+        "reason": "The context strongly suggests F4 (bass clef). The pitches implied by that reading fit, and F4 is used widely in the collection while F2 is not."
+      }
+    ]
+  }
+}

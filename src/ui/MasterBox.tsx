@@ -17,7 +17,7 @@ export function MasterBox({ value, onChange }: { value: MasterFx; onChange(v: Ma
         <ul className="presets">
           {REVERB_MODES.map((m) => (
             <li key={m}>
-              <button tabIndex={-1} aria-pressed={value.reverbMode === m} onClick={() => set({ reverbMode: m })}>{t(`ui.synth.reverbMode.${m}`)}</button>
+              <button aria-pressed={value.reverbMode === m} onClick={() => set({ reverbMode: m })}>{t(`ui.synth.reverbMode.${m}`)}</button>
             </li>
           ))}
         </ul>
@@ -28,7 +28,7 @@ export function MasterBox({ value, onChange }: { value: MasterFx; onChange(v: Ma
         <ul className="presets">
           {DELAY_MODES.map((m) => (
             <li key={m}>
-              <button tabIndex={-1} aria-pressed={value.delayMode === m} onClick={() => set({ delayMode: m })}>{t(`ui.synth.delayMode.${m}`)}</button>
+              <button aria-pressed={value.delayMode === m} onClick={() => set({ delayMode: m })}>{t(`ui.synth.delayMode.${m}`)}</button>
             </li>
           ))}
         </ul>

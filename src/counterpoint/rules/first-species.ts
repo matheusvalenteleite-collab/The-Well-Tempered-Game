@@ -10,7 +10,6 @@
 import {
   harmonic,
   interval,
-  isAbove,
   isConsonant,
   isImperfectConsonance,
   isLeap,

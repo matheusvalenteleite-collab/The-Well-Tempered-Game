@@ -12,3 +12,10 @@ test("three voices on two staves: by where each line lies", () => {
   // three low voices: the upper staff in the bass clef
   assert.deepEqual(trioStaves([50, 45, 40]), { staff: [0, 0, 1], clefs: ["bass", "bass"] });
 });
+
+test("four voices: two parts on each staff, the highest two above (D148)", async () => {
+  const { quartetStaves } = await import("../src/ui/notation/trio-staves.ts");
+  const r = quartetStaves([72, 66, 61, 50]);
+  assert.deepEqual(r.staff, [0, 0, 1, 1]);
+  assert.deepEqual(r.clefs, ["treble", "bass"]);
+});

@@ -4,10 +4,14 @@
  * D113: the voices on two staves by register, voice chips (Cantus, Contra I, Contra II) in the
  * track colours, one mixer strip per written voice, the styles, and a comparison with Fux.
  */
+import { LectioVoices } from "./Study.tsx";
+import { QuartetApp } from "./QuartetApp.tsx";
+import { TRIO_COMBINED } from "../game/quartet.ts";
+import { ModeSelect } from "./ModeSelect.tsx";
 import type { Mode } from "./Root.tsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import data from "../../data/fux/three-voice/fux-three-voice.json" with { type: "json" };
-import { barOfSlot, floridLayout, playerStaves, slotOfBar, TRIO_SPECIES, trioSteps, voiceSlots, type TrioSpecies, type TrioStep } from "../game/trio.ts";
+import { barOfSlot, clefMiddle, floridLayout, playerStaves, slotOfBar, TRIO_SPECIES, trioTasks, voiceSlots, type TrioSpecies, type TrioTask as TrioStep } from "../game/trio.ts";
 import { evaluateTrio2 } from "../counterpoint/three-voice-second.ts";
 import { evaluateTrioFlorid } from "../counterpoint/three-voice-florid.ts";
 import { evaluateTrioFifth } from "../counterpoint/three-voice-fifth.ts";
@@ -42,13 +46,16 @@ import type { GameLink } from "./App.tsx";
 import { LearnLink } from "./LearnLink.tsx";
 import { tt } from "../tutorial/text.ts";
 import { useBeta } from "./beta.ts";
+import { keyBelongsToControl, trackKey } from "./keys.ts";
+import { SavedParts, Toast, undoKey, usePartsExport, usePartsHistory, usePartsPieces } from "./PartsTools.tsx";
+import { makePartsPiece, type PartsPiece } from "../game/saved.ts";
 import { exerciseOpen, furthestOpen } from "../game/unlock.ts";
 import type { NameStyle } from "../music/names.ts";
 
 /** Fux's three-voice exercises by species (D114, D116, D117: first to fifth). */
-const BY_SPECIES = Object.fromEntries(TRIO_SPECIES.map((n) => [n, trioSteps(data as never, n)])) as Record<TrioSpecies, TrioStep[]>;
+const BY_SPECIES = Object.fromEntries(TRIO_SPECIES.map((n) => [n, trioTasks(data as never, n)])) as Record<TrioSpecies, TrioStep[]>;
 const ORDINAL = ["", "1st", "2nd", "3rd", "4th", "5th"];
-const stepLabel = (s: TrioStep) => t("ui.trio3.step", { n: s.ordinal, fig: s.figure, final: s.modalFinal, where: t(`ui.trio3.cantus.${s.cantusIndex}`) });
+const stepLabel = (s: TrioStep) => t("ui.trio3.step", { n: s.ordinal, fig: s.figure, final: s.modalFinal, where: t(`ui.trio3.cantus.${s.cantusIndex}`) + (s.fux ? "" : ` · ${t("ui.quartet.stepPrivate")}`) });
 
 type Sessions = Record<number, SessionState>;
 const freshSessions = (s: TrioStep): Sessions =>
@@ -76,7 +83,29 @@ const startPitch = (s: TrioStep, staff: number) => {
   return `${"CDEFGAB"[((d % 7) + 7) % 7]}${Math.floor(d / 7)}`;
 };
 
-export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices(n: Mode): void } & GameLink) {
+/**
+ * Three voices: the five species on this screen, and (D152) the species combined, Fig. 134 and its
+ * tasks, on the four-voice screen's machinery with three parts, between the third and the fourth.
+ */
+export function TrioApp(props: { onVoices(n: Mode): void } & GameLink) {
+  const [combined, setCombined] = useState(() => stored("wtg.trioCombined", false, (v) => typeof v === "boolean"));
+  useEffect(() => store("wtg.trioCombined", combined), [combined]);
+  if (combined)
+    return (
+      <QuartetApp
+        {...props}
+        trio={{
+          onSpecies: (n) => {
+            store("wtg.trioSpecies", n);
+            setCombined(false);
+          },
+        }}
+      />
+    );
+  return <TrioCore {...props} onCombined={() => setCombined(true)} />;
+}
+
+function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { onVoices(n: Mode): void; onCombined(): void } & GameLink) {
   const [species, setSpecies] = useState<TrioSpecies>(() => stored<TrioSpecies>("wtg.trioSpecies", 1, (v) => TRIO_SPECIES.includes(v as TrioSpecies)));
   useEffect(() => store("wtg.trioSpecies", species), [species]);
   const STEPS = BY_SPECIES[species];
@@ -89,7 +118,18 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
   const [active, setActive] = useState(mine[0]);
   const activeStaff = mine.includes(active) ? active : mine[0];
   const session = sessions[activeStaff];
-  const setSessions = (next: Sessions) => setAll((xs) => ({ ...xs, [STEP.id]: next }));
+  /** Undo/redo (D155): every edit of the parts is remembered, per exercise. */
+  const history = usePartsHistory<Sessions>(STEP.id);
+  const setSessions = (next: Sessions) => {
+    history.remember(sessions, next);
+    setAll((xs) => ({ ...xs, [STEP.id]: next }));
+  };
+  const restore = (dir: "undo" | "redo") => {
+    const back = history.restore(dir, sessions);
+    if (!back) return;
+    setAll((xs) => ({ ...xs, [STEP.id]: back }));
+    setResult(null);
+  };
   /** The bar being written, and which of its notes for the moving voice. */
   const activeBar = barOfSlot(STEP, activeStaff, session.selected);
   const activePart: number | null = activeStaff === STEP.movingIndex && activeBar < STEP.cantus.length - 1 ? session.selected % STEP.per : null;
@@ -100,7 +140,9 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
   useEffect(() => store("wtg.starsGold", gold), [gold]);
   useEffect(() => store("wtg.stars", stars), [stars]);
   const [unlocked, setUnlocked] = useState<string[]>([]);
-  const fuxOpen = Boolean(result?.passed || unlocked.includes(STEP.id) || stars.includes(STEP.id));
+  const FUX = STEP.fux;
+  /** A task of private study has no solution of Fux's to open (D152). */
+  const fuxOpen = FUX !== null && Boolean(result?.passed || unlocked.includes(STEP.id) || stars.includes(STEP.id));
 
   // Settings shared with the two-voice screen.
   const [tempo, setTempo] = useState(() => stored("wtg.tempo", 60, (v) => typeof v === "number" && v >= 30 && v <= 240));
@@ -121,7 +163,7 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
   const [zoom, setZoom] = useState(() => stored("wtg.zoom", 1, (v) => typeof v === "number" && v >= ZOOM_MIN && v <= ZOOM_MAX));
   const [fuxHeard, setFuxHeard] = useState(() => stored("wtg.fuxHeard", false, (v) => typeof v === "boolean"));
   const [showFux, setShowFux] = useState(false);
-  const [tab, setTab] = useState<string>(() => stored("wtg.dock", "mixer", (v) => typeof v === "string"));
+  const [tab, setTab] = useState<string>(() => stored("wtg.dock", "guide", (v) => typeof v === "string"));
   useEffect(() => store("wtg.dock", tab), [tab]);
   const [nameStyle, setNameStyle] = useState<NameStyle>(() => stored("wtg.nameStyle2", "solfege" as NameStyle, (v) => v === "letters" || v === "solfege"));
   useEffect(() => store("wtg.nameStyle2", nameStyle), [nameStyle]);
@@ -257,12 +299,14 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
   useEffect(() => {
     if (isOpen(stepIndex)) return;
     const id = furthestOpen(stars, beta);
-    if (id.startsWith("fux-mode.t")) jumpTo(id);
-    else onVoices(2);
+    if (id.startsWith("fux-mode.t6")) onCombined();
+    else if (id.startsWith("fux-mode.t")) jumpTo(id);
+    else onVoices(id.startsWith("fux-mode.q") ? 4 : 2);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [beta, stepIndex, species]);
   useEffect(() => {
-    if (command) jumpTo(command.stepId);
+    if (command?.stepId.startsWith("fux-mode.t6")) onCombined();
+    else if (command) jumpTo(command.stepId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [command?.n]);
 
@@ -315,15 +359,15 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
     setSessions(Object.fromEntries(mine.map((i) => [i, select(sessions[i], entry(i, bar))])));
   };
 
-  const play = (from = 0) => {
-    if (playing) {
+  const play = (from = 0, fresh = false) => {
+    if (playing && !fresh) {
       audio.stop();
       setPlaying(false);
       setCursor(-1);
       return;
     }
     const n = STEP.cantus.length;
-    const fuxLines = mine.map((i) => STEP.fux[i]);
+    const fuxLines = mine.map((i) => FUX?.[i] ?? []);
     // One event a bar for the semibreves; the moving voice (D114, D116) on its own events,
     // a tied note held through the bar line.
     const channelOf = (i: number) => (mine.indexOf(i) === 0 ? "counterpoint" : "second");
@@ -338,8 +382,8 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
         if (channelOf(i) === "counterpoint") ev.counterpoint = p;
         else ev.extra!.push({ channel: "second", pitch: p });
       }
-      if (fuxOpen) {
-        for (const i of mine.filter((x) => x !== STEP.movingIndex)) ev.extra!.push({ channel: "fux", pitch: STEP.fux[i][k] });
+      if (fuxOpen && FUX) {
+        for (const i of mine.filter((x) => x !== STEP.movingIndex)) ev.extra!.push({ channel: "fux", pitch: FUX[i][k] });
       }
       events.push(ev);
       const m = STEP.movingIndex;
@@ -349,7 +393,7 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
       for (const h of parts) {
         const slot = per * k + h;
         const len = k === n - 1 ? 1 : 1 / per;
-        for (const [line, ch] of [[sessions[m].notes, channelOf(m)], ...(fuxOpen ? [[STEP.fux[m], "fux"]] : [])] as [(string | null)[], "counterpoint" | "second" | "fux"][]) {
+        for (const [line, ch] of [[sessions[m].notes, channelOf(m)], ...(fuxOpen && FUX ? [[FUX[m], "fux"]] : [])] as [(string | null)[], "counterpoint" | "second" | "fux"][]) {
           const p = line[slot];
           if (!p || p === REST) continue;
           const ties = species !== 3;
@@ -363,7 +407,7 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
     const m = STEP.movingIndex;
     if (m !== null && STEP.per === 8) {
       const at = (slot: number) => (slot >= 8 * (n - 1) ? n - 1 : slot / 8);
-      for (const [line, ch] of [[sessions[m].notes, channelOf(m)], ...(fuxOpen ? [[STEP.fux[m], "fux"]] : [])] as [(string | null)[], "counterpoint" | "second" | "fux"][]) {
+      for (const [line, ch] of [[sessions[m].notes, channelOf(m)], ...(fuxOpen && FUX ? [[FUX[m], "fux"]] : [])] as [(string | null)[], "counterpoint" | "second" | "fux"][]) {
         line.forEach((p, slot) => {
           if (!p || p === REST || p === HOLD) return;
           let end = slot + 1;
@@ -422,16 +466,58 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
     }
   };
 
-  // Keys (as in two voices), plus Tab for the other voice and F1-F5 for the tracks.
+  // Saved pieces and export (D155).
+  const { pieces, setPieces, toast, setToast } = usePartsPieces();
+  const [showSaved, setShowSaved] = useState(false);
+  const ALL_STEPS3 = TRIO_SPECIES.flatMap((n) => BY_SPECIES[n]);
+  const mineHere = pieces.filter((x) => ALL_STEPS3.some((st) => st.id === x.stepId));
+  const savePiece = () => {
+    const when = new Date().toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    const parts = [0, 1, 2].map((i) => (mine.includes(i) ? [...sessions[i].notes] : []));
+    const piece = makePartsPiece({ stepId: STEP.id, parts, sound, drums, drumKit, continuo, continuoSettings, tuning, tempo, volume }, `${stepLabel(STEP)} · ${when}`);
+    setPieces([piece, ...pieces]);
+    setToast(t("ui.saved.done", { name: piece.name }));
+  };
+  const openPiece = (x: PartsPiece) => {
+    const st = ALL_STEPS3.find((y) => y.id === x.stepId);
+    if (!st) return;
+    jumpTo(st.id);
+    const fresh = freshSessions(st);
+    const loaded = Object.fromEntries(playerStaves(st).map((i) => [i, { ...fresh[i], notes: x.parts[i]?.length === fresh[i].notes.length ? [...x.parts[i]] : fresh[i].notes }])) as Sessions;
+    setAll((xs) => ({ ...xs, [st.id]: loaded }));
+    setResult(null);
+    setSound(structuredClone(x.sound));
+    setDrums(x.drums);
+    setDrumKit(x.drumKit);
+    setContinuo(x.continuo);
+    setContinuoSettings(x.continuoSettings);
+    setTuning(x.tuning);
+    setTempo(x.tempo);
+    setVolume(x.volume);
+    setShowSaved(false);
+    setToast(t("ui.saved.opened", { name: x.name }));
+  };
+  const exporter = usePartsExport({ start: () => play(0, true), stop: () => { audio.stop(); setPlaying(false); setCursor(-1); }, playing, loop, fileBase: `Fux three voices ${STEP.figure ?? ""} ${STEP.modalFinal}`, onToast: setToast });
+
+  // Keys (as in two voices), plus V for the next voice and Alt + 1-6 for the tracks (D149).
   const onKey = (e: KeyboardEvent) => {
     if (suspended) return;
-    if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    if (keyBelongsToControl(e)) return;
+    if (showSaved || exporter.phase === "choose") return;
     const target = e.target as HTMLElement | null;
     if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return;
+    const u = undoKey(e);
+    if (u) {
+      restore(u);
+      e.preventDefault();
+      return;
+    }
+    if (e.ctrlKey || e.metaKey || (e.altKey && trackKey(e) === null) || e.isComposing) return;
     const k = e.key;
+    const digit = trackKey(e);
     const s = session;
-    if (/^F[1-6]$/.test(k)) {
-      const track = trackOrder(false, true)[Number(k.slice(1)) - 1];
+    if (digit !== null) {
+      const track = trackOrder(false, true)[digit - 1];
       if (track === "cantus") setSound(changeMix(sound, "cantus", { mute: !sound.mix.cantus.mute }));
       else if (track === "counterpoint") setVersions({ ...versions, original: !versions.original });
       else if (track === "second") setSecondOn(!secondOn);
@@ -440,7 +526,7 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
       else if (track === "continuo") setContinuo(!continuo);
     } else if (FLORID && activeStaff === STEP.movingIndex && ["8", "4", "3", "2", "6", "1"].includes(k)) setNoteValue({ "8": 1, "4": 2, "3": 3, "2": 4, "6": 6, "1": 8 }[k]!);
     else if (FLORID && activeStaff === STEP.movingIndex && (k === "t" || k === "T" || k === "+")) write(activeStaff, holdSelected(s, floridLayout(STEP.cantus.length), noteValue), true);
-    else if (k === "Tab") setActive(mine[(mine.indexOf(activeStaff) + (e.shiftKey ? mine.length - 1 : 1)) % mine.length]);
+    else if (k === "v" || k === "V") setActive(mine[(mine.indexOf(activeStaff) + (e.shiftKey ? mine.length - 1 : 1)) % mine.length]);
     else if (k === "ArrowRight") browse(1);
     else if (k === "ArrowLeft") browse(-1);
     else if ((k === "r" || k === "R") && activeStaff === STEP.movingIndex) {
@@ -483,7 +569,7 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
     return ms.reduce((a, b) => a + b, 0) / Math.max(1, ms.length);
   };
   // Placed by Fux's own lines (and the cantus), so that the staves do not change as the player writes.
-  const means = [0, 1, 2].map((i) => mean(i === STEP.cantusIndex ? STEP.cantus : STEP.fux[i]));
+  const means = [0, 1, 2].map((i) => (i === STEP.cantusIndex ? mean(STEP.cantus) : FUX ? mean(FUX[i]) : clefMiddle(STEP.clefs1725[i])));
   const layoutTwo = trioStaves(means);
   /** The moving voice's stems: up for the upper of two voices on a staff, down for the lower; alone, by register. */
   const stemOf = (i: number): 1 | -1 => {
@@ -499,7 +585,7 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
     staff: layoutTwo.staff[i],
     ...(i === STEP.movingIndex ? { per: STEP.per as 2 | 4 | 8, stem: stemOf(i) } : {}),
     ...(i === STEP.cantusIndex ? {} : { ink: INK[mine.indexOf(i)] }),
-    ...(i !== STEP.cantusIndex && showFux && fuxOpen ? { fux: STEP.fux[i] } : {}),
+    ...(i !== STEP.cantusIndex && showFux && fuxOpen && FUX ? { fux: FUX[i] } : {}),
   }));
   /** "Contra I", "Contra II" or "Cantus", with the voice's place (upper, middle, lower). */
   const partName = (i: number) => (i === STEP.cantusIndex ? t("ui.trio3.chip.cantus") : t(mine.indexOf(i) === 0 ? "ui.mixer.contra1" : "ui.mixer.second"));
@@ -525,22 +611,24 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
           <button className="icon" onClick={() => goTo(stepIndex - 1)} disabled={stepIndex === 0} aria-label={t("ui.nav.prev")}>‹</button>
-          <select id="voices" className="sel sel-voices" value={3} aria-label={t("ui.nav.voices")} onChange={(e) => (e.target.value === "wtc" || e.target.value === "chorale" || e.target.value === "preludes" ? (audio.stop(), onVoices(e.target.value)) : Number(e.target.value) === 2 && (audio.stop(), onVoices(2)))}>
-            {[2, 3, 4].map((n) => (
-              <option key={n} value={n} disabled={n === 4}>{t("ui.nav.voicesN", { n })}</option>
-            ))}
-            <option value="wtc">{t("ui.wtc.mode")}</option>
-            <option value="chorale">{t("chorale.mode")}</option>
-            <option value="preludes">{t("wtcp.mode")}</option>
-          </select>
-          <select id="species" className="sel sel-species" value={species} aria-label={t("ui.nav.species")} onChange={(e) => goToSpecies(Number(e.target.value) as TrioSpecies)}>
-            {[1, 2, 3, 4, 5].map((n) => (
-              <option key={n} value={n} disabled={!exerciseOpen(BY_SPECIES[n as TrioSpecies][0].id, stars, beta)}>
-                {exerciseOpen(BY_SPECIES[n as TrioSpecies][0].id, stars, beta) ? "" : "🔒 "}
-                {t("ui.nav.speciesN", { n: ORDINAL[n] })}
-                {` · ${BY_SPECIES[n as TrioSpecies].filter((x) => stars.includes(x.id)).length}/${BY_SPECIES[n as TrioSpecies].length}`}
-              </option>
-            ))}
+          <ModeSelect value={3} stars={stars} onMode={(m) => (audio.stop(), onVoices(m))} />
+          <select id="species" className="sel sel-species" value={species} aria-label={t("ui.nav.species")} onChange={(e) => (Number(e.target.value) === 6 ? (audio.stop(), onCombined()) : goToSpecies(Number(e.target.value) as TrioSpecies))}>
+            {[1, 2, 3, 6, 4, 5].map((n) =>
+              n === 6 ? (
+                // D152: the species combined, Fig. 134, where Fux puts it (after the third species).
+                <option key={n} value={n} disabled={!exerciseOpen(TRIO_COMBINED[0].id, stars, beta)}>
+                  {exerciseOpen(TRIO_COMBINED[0].id, stars, beta) ? "" : "🔒 "}
+                  {t("ui.trio3.speciesCombined")}
+                  {` · ${TRIO_COMBINED.filter((x) => stars.includes(x.id)).length}/${TRIO_COMBINED.length}`}
+                </option>
+              ) : (
+                <option key={n} value={n} disabled={!exerciseOpen(BY_SPECIES[n as TrioSpecies][0].id, stars, beta)}>
+                  {exerciseOpen(BY_SPECIES[n as TrioSpecies][0].id, stars, beta) ? "" : "🔒 "}
+                  {t("ui.nav.speciesN", { n: ORDINAL[n] })}
+                  {` · ${BY_SPECIES[n as TrioSpecies].filter((x) => stars.includes(x.id)).length}/${BY_SPECIES[n as TrioSpecies].length}`}
+                </option>
+              ),
+            )}
           </select>
           <select id="exercise" className="sel sel-exercise" value={stepIndex} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("ui.nav.choose")}>
             {STEPS.map((s, k) => (
@@ -552,7 +640,7 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
           </select>
           <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1 || !isOpen(stepIndex + 1)} aria-label={t("ui.nav.next")}>›</button>
         </nav>
-          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("guide")} onTutorial={onTutorial} />
+          <HeaderTools onSave={savePiece} onExport={exporter.button} exporting={exporter.phase !== null} onSaved={() => setShowSaved(true)} saved={mineHere.length} look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("guide")} onTutorial={onTutorial} />
         </>
       }
       score={
@@ -624,6 +712,8 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
                 </button>
               </span>
             )}
+            <button className="icon btn-edit" onClick={() => restore("undo")} disabled={!history.can("undo")} aria-label={t("ui.undo")} title={t("ui.undoHelp")}>↶</button>
+            <button className="icon btn-edit" onClick={() => restore("redo")} disabled={!history.can("redo")} aria-label={t("ui.redo")} title={t("ui.redoHelp")}>↷</button>
             <button className="btn-edit" onClick={() => { setSessions(freshSessions(STEP)); setResult(null); }} title={t("ui.clearAll.help")}>{t("ui.clearAll")}</button>
           </div>
           <div className="group judge">
@@ -647,13 +737,20 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
       }
       summary={result && (
         <div className={result.passed ? "eval-summary ok" : "eval-summary bad"} role="status">
-          <span className="verdict">{result.passed ? `✓ ${t("ui.summary.passed")}` : `✗ ${t("ui.summary.failed", { n: result.errors.length })}`}</span>
+          <span className="verdict">{result.passed ? `✓ ${t("ui.summary.passed")}` : `✗ ${t("ui.summary.failed", { n: new Set(result.errors.map((v) => v.ruleId)).size })}`}</span>
           <button className="link" onClick={() => setTab("evaluation")}>{t("ui.summary.open")} ▸</button>
         </div>
       )}
       tab={tab}
       onTab={setTab}
-      idle={`J. J. Fux, Gradus ad Parnassum (Vienna, 1725), Fux #${STEP.figure}, p. ${STEP.page}. Encoding: Four Score and More / Open Music Theory (Mark Gotham), CC0-1.0.`}
+      idle={!FUX ? `J. J. Fux, Gradus ad Parnassum (Vienna, 1725), p. ${STEP.page}: left to private study. Cantus firmus: Fux's.` : `J. J. Fux, Gradus ad Parnassum (Vienna, 1725), Fux #${STEP.figure}, p. ${STEP.page}. Encoding: Four Score and More / Open Music Theory (Mark Gotham), CC0-1.0.`}
+      overlays={
+        <>
+          {exporter.overlay}
+          {showSaved && <SavedParts pieces={mineHere} stepName={(id) => { const st = ALL_STEPS3.find((y) => y.id === id); return st ? stepLabel(st) : id; }} onOpen={openPiece} onRename={(id, name) => setPieces(pieces.map((x) => (x.id === id ? { ...x, name } : x)))} onDelete={(id) => setPieces(pieces.filter((x) => x.id !== id))} onClose={() => setShowSaved(false)} />}
+          <Toast text={toast} />
+        </>
+      }
       tabs={[
         { id: "mixer", label: t("ui.dock.mixer"), content: (
           <SoundDesk
@@ -693,7 +790,7 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
           <>
           {result ? (
           <section className="feedback trio-feedback" aria-live="polite">
-            <p className={result.passed ? "verdict ok" : "verdict bad"}>{result.passed ? t("ui.trio3.passed") : t("ui.trio3.failed", { n: errors.length })}</p>
+            <p className={result.passed ? "verdict ok" : "verdict bad"}>{result.passed ? t("ui.trio3.passed") : t("ui.trio3.failed", { n: new Set(errors.map((v) => v.ruleId)).size })}</p>
             <ul>
               {errors.map((v, i) => (
                 <li key={`e${i}`} className="error">
@@ -723,7 +820,7 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
               <h4>{t("ui.trio3.withFux")}</h4>
               <ul>
                 {mine.map((i) => {
-                  const same = sessions[i].notes.filter((x, k) => x === STEP.fux[i][k]).length;
+                  const same = sessions[i].notes.filter((x, k) => x === FUX![i][k]).length;
                   const n = voiceSlots(STEP, i);
                   return (
                     <li key={i} style={{ ["--chip" as string]: INK[mine.indexOf(i)] }}>
@@ -736,9 +833,11 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
               <button className="chipbtn" onClick={() => setShowFux(!showFux)}>{t(showFux ? "ui.trio3.fuxHide" : "ui.trio3.fuxShow")}</button>
             </section>
           )}
-          {!fuxOpen && <p className="help">{t("ui.trio3.fuxLocked")}</p>}
+          {FUX && !fuxOpen && <p className="help">{t("ui.trio3.fuxLocked")}</p>}
+          {!FUX && <p className="help">{t("ui.quartet.private", { page: STEP.page })}</p>}
           </>
         ) },
+        { id: "lectio", text: true, label: t("ui.study"), content: <LectioVoices voices={3} lesson={String(species)} final={STEP.modalFinal} /> },
         { id: "guide", text: true, label: t("ui.howtoTab"), content: (
           <Guide exercise={<>
             <blockquote className="tutor" lang="en">

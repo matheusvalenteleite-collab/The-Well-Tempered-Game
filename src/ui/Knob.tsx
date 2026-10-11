@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { sliderKey } from "./keys.ts";
 
 interface KnobProps {
   id: string;
@@ -17,8 +18,8 @@ interface KnobProps {
 const ARC = 270; // degrees of travel
 
 /**
- * Rotary knob, operated by dragging up/down (or the mouse wheel); double-click resets.
- * It never takes keyboard focus, so the arrow keys stay with the score.
+ * Rotary knob, operated by dragging up/down (or the mouse wheel); double-click resets. It takes
+ * keyboard focus (D149): the arrows, Page Up/Down, Home and End move it; the score's keys pass it by.
  */
 export function Knob(p: KnobProps) {
   const drag = useRef<{ y: number; t: number } | null>(null);
@@ -46,6 +47,12 @@ export function Knob(p: KnobProps) {
         aria-valuemax={p.max}
         aria-valuenow={p.value}
         aria-valuetext={p.format(p.value)}
+        tabIndex={0}
+        focusable="true"
+        onKeyDown={(e) => {
+          const next = sliderKey(e, t);
+          if (next !== null) p.onChange(fromT(next));
+        }}
         onPointerDown={(e) => {
           e.preventDefault();
           (e.target as Element).setPointerCapture(e.pointerId);

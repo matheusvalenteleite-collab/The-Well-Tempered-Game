@@ -18,7 +18,7 @@
  *   must be able to earn a star (owner: "Fux is always the last word", D39).
  * - No leap into or out of the unison (pp. 54-55): broken in Figs. 36, 39, 41 and 42; dropped.
  */
-import { harmonic, interval, isAbove, isConsonant, isLeap, isOctaveClass, isPerfectConsonance, isUnison, motion, type Interval } from "../interval.ts";
+import { harmonic, interval, isConsonant, isLeap, isOctaveClass, isPerfectConsonance, isUnison, motion, type Interval } from "../interval.ts";
 import { MELODIC_FORBIDDEN } from "./first-species.ts";
 import type { Analysis, NoteEvent, Rule, Violation } from "./types.ts";
 

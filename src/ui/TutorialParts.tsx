@@ -7,7 +7,8 @@ import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "
 import { ScoreView } from "./notation/ScoreView.tsx";
 import { Systems } from "./notation/Systems.tsx";
 import { TrioScore, type TrioVoice } from "./notation/TrioScore.tsx";
-import { trioStaves } from "./notation/trio-staves.ts";
+import { quartetStaves, trioStaves } from "./notation/trio-staves.ts";
+import { chordOf, degreeOf } from "../tutorial/harmony.ts";
 import { VoiceRoll } from "./notation/VoiceRoll.tsx";
 import { VOICE_COLORS } from "./voice-colors.ts";
 import { LIBRARY } from "../wtc/library.ts";
@@ -15,7 +16,8 @@ import { buildOverlay, neutralOverlay } from "./notation/overlay.ts";
 import { audio, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
 import { stepStudy } from "./study.ts";
-import { HOLD, sounding, type PlayEvent, type Slot } from "../counterpoint/layout.ts";
+import { HOLD, REST, sounding, type PlayEvent, type Slot } from "../counterpoint/layout.ts";
+import { quartetNotes, trioNotes } from "../tutorial/poly.ts";
 import { harmonic, interval } from "../counterpoint/interval.ts";
 import { applyAccidental, initialState, place, select, type Accidental, type SessionState } from "../game/session.ts";
 import { parsePitch } from "../music/pitch.ts";
@@ -23,7 +25,7 @@ import { COURSES } from "../counterpoint/curriculum/index.ts";
 import type { Violation } from "../counterpoint/rules/types.ts";
 import type { Evaluation } from "../counterpoint/engine.ts";
 import type { TrioEvaluation } from "../counterpoint/three-voice.ts";
-import { coach, complete, freeScene, intervalWords, judge, judgeTrio, sceneEvents, slotsOf, type Clip, type QuizItem, type Scene, type TrioScene, type Verdict } from "../tutorial/model.ts";
+import { coach, complete, freeScene, intervalWords, judge, judgeTrio, sceneEvents, slotsOf, type Clip, type QuizItem, type QuizKind, HARMONY_QUIZ, type Scene, type TrioScene, type Verdict } from "../tutorial/model.ts";
 import { tt } from "../tutorial/text.ts";
 
 // ---------------------------------------------------------------- text
@@ -397,55 +399,75 @@ export function TrioPane(p: {
   cursorClip?: string;
 }) {
   const s = p.scene;
+  const n = s.answer.length;
+  const per = s.per ?? 1;
+  const moving = s.movingIndex ?? null;
   const [voices, setVoices] = useState<(string | null)[][]>(() => s.start.map((l) => [...l]));
+  // The selection: [staff, slot] (the bar, or on the moving staff its slot).
   const [sel, setSel] = useState<[number, number] | null>(s.open[0] ?? null);
   const [pending, setPending] = useState<Accidental | null>(null);
   const [showHint, setShowHint] = useState(false);
-  const isOpen = (staff: number, bar: number) => s.open.some(([a, b]) => a === staff && b === bar);
-  const full = voices.every((l) => l.every((n) => n !== null));
+  const isOpen = (staff: number, k: number) => s.open.some(([a, b]) => a === staff && b === k);
+  const barOf = (staff: number, k: number) => (staff === moving ? Math.floor(k / per) : k);
+  const full = voices.every((l) => l.every((x) => x !== null));
   const result = useMemo(() => (p.writable && full ? judgeTrio(s, voices) : null), [voices, full, p.writable, s]);
   const done = Boolean(result && result.errors.length === 0);
   useEffect(() => p.onDone?.(done), [done]);
 
+  /** What sounds at a bar's downbeat (the moving voice's first note of the bar). */
   const audition = (bar: number, vs: (string | null)[][]) => {
-    const col = vs.map((l) => l[bar]).filter((n): n is string => n !== null);
+    const col = vs.map((l, i) => (i === moving ? l[Math.min(l.length - 1, bar * per)] : l[bar])).filter((x): x is string => !!x && x !== REST && x !== HOLD);
     const { events } = clipEvents({ id: "col", kind: "columns", columns: [col] });
     p.player.audition(events, 1);
   };
-  const write = (staff: number, bar: number, pitch: string) => {
-    const next = voices.map((l, i) => (i === staff ? l.map((n, b) => (b === bar ? pitch : n)) : l));
+  const write = (staff: number, k: number, pitch: string) => {
+    const next = voices.map((l, i) => (i === staff ? l.map((x, b) => (b === k ? pitch : x)) : l));
     setVoices(next);
-    setSel([staff, bar]);
-    audition(bar, next);
+    setSel([staff, k]);
+    audition(barOf(staff, k), next);
   };
   const accidental = (a: Accidental) => {
     const cur = sel ? voices[sel[0]][sel[1]] : null;
-    if (sel && cur) {
+    if (sel && cur && cur !== REST && cur !== HOLD) {
       const q = parsePitch(cur);
       write(sel[0], sel[1], withAccidental(`${q.step}${q.octave}`, q.alter === a ? null : a));
     } else setPending(pending === a ? null : a);
   };
+  const bars = s.answer[s.cantusIndex].length;
   const playAll = () => {
-    const events: PlayEvent[] = s.answer[0].map((_, k) => {
-      const col = voices.map((l) => l[k]).filter((n): n is string => n !== null).sort((a, b) => parsePitch(a).midi - parsePitch(b).midi);
+    const lines = voices.map((l) => l.map((x) => x ?? REST));
+    const notes =
+      moving === null && !s.kinds
+        ? null
+        : s.kinds
+          ? quartetNotes({ species: 1, cantusIndex: s.cantusIndex, fux: lines } as never)
+          : trioNotes({ movingIndex: moving, per, species: s.species ?? 1 } as never, lines);
+    if (notes) {
+      const { events, whole } = clipEvents({ id: "trio", kind: "poly", notes: notes.filter((x) => x.pitch !== REST), seconds: audio.barSeconds });
+      return p.player.play("trio", events, whole);
+    }
+    const events: PlayEvent[] = Array.from({ length: bars }, (_, k) => {
+      const col = voices.map((l) => l[k]).filter((x): x is string => x !== null).sort((a, b) => parsePitch(a).midi - parsePitch(b).midi);
       return { slot: k, at: k, length: 1, cantus: col[0] ?? null, counterpoint: col[1] ?? null, extra: col.slice(2).map((x) => ({ channel: "counterpoint" as const, pitch: x })) };
     });
     p.player.play("trio", events, audio.barSeconds);
   };
-  const playerStaves = [0, 1, 2].filter((x) => x !== s.cantusIndex);
-  // Two staves, as in the game (D113): each voice by the register of Fux's line, the player's in their colours.
+  const playerStaves = Array.from({ length: n }, (_, i) => i).filter((x) => x !== s.cantusIndex);
+  // Two staves, as in the game (D113, D148): each voice by the register of Fux's line, the player's in their colours.
   const mean = (line: (string | null)[]) => {
-    const ms = line.filter((x): x is string => !!x).map((x) => parsePitch(x).midi);
+    const ms = line.filter((x): x is string => !!x && x !== REST && x !== HOLD).map((x) => parsePitch(x).midi);
     return ms.reduce((a, b) => a + b, 0) / Math.max(1, ms.length);
   };
-  const staves = trioStaves(s.answer.map(mean));
-  const INK = ["var(--trk-counterpoint)", "var(--trk-second)"];
+  const staves = n === 4 ? quartetStaves(s.answer.map(mean)) : trioStaves(s.answer.map(mean));
+  const INK = ["var(--trk-counterpoint)", "var(--trk-second)", "var(--trk-third)"];
   const drawn: TrioVoice[] = voices.map((notes, i) => ({
     notes,
     editable: p.writable && s.open.some(([a]) => a === i),
     staff: staves.staff[i],
+    ...(i === moving && per > 1 ? { per: per as 2 | 4 } : {}),
     ...(i === s.cantusIndex ? {} : { ink: INK[playerStaves.indexOf(i)] }),
   }));
+  const selBar = sel ? barOf(sel[0], sel[1]) : -1;
   return (
     <div className="tut-write">
       <div className="tut-score trio">
@@ -453,20 +475,26 @@ export function TrioPane(p: {
           voices={drawn}
           clefs={staves.clefs}
           active={sel?.[0] ?? playerStaves[0]}
-          selected={sel?.[1] ?? -1}
+          selected={selBar}
+          selectedPart={sel && sel[0] === moving ? sel[1] - selBar * per : null}
           cursor={p.player.playing === "trio" || p.player.playing === p.cursorClip ? p.player.cursor : -1}
           marks={result ? result.violations.flatMap((v) => v.positions.map((bar) => ({ bar, severity: v.severity }))) : undefined}
-          pulse={p.pulse ?? (p.writable ? [...new Set(s.open.filter(([a, b]) => voices[a][b] === null).map(([, b]) => b))] : undefined)}
+          pulse={p.pulse ?? (p.writable ? [...new Set(s.open.filter(([a, b]) => voices[a][b] === null).map(([a, b]) => barOf(a, b)))] : undefined)}
           figures
           names={p.names}
           nameStyle="letters"
           label={p.label}
-          onPlace={(staff, bar, natural) => {
-            if (!p.writable || !isOpen(staff, bar)) return;
-            write(staff, bar, withAccidental(natural, pending));
+          onPlace={(staff, bar, natural, part) => {
+            const k = staff === moving ? Math.min(voices[staff].length - 1, bar * per + part) : bar;
+            if (!p.writable || !isOpen(staff, k)) return;
+            write(staff, k, withAccidental(natural, pending));
             setPending(null);
           }}
-          onSelect={(staff, bar) => staff !== null && isOpen(staff, bar) && setSel([staff, bar])}
+          onSelect={(staff, bar) => {
+            if (staff === null) return;
+            const k = staff === moving ? bar * per : bar;
+            if (isOpen(staff, k)) setSel([staff, k]);
+          }}
           zoom={1}
           onZoom={() => undefined}
           zoomLabels={{ in: t("ui.zoom.in"), out: t("ui.zoom.out"), reset: t("ui.zoom.reset") }}
@@ -528,6 +556,16 @@ function why(quiz: string, item: QuizItem): string {
     };
     return tt("quiz.why.motion", { lo: dir(c0[0], c1[0]), up: dir(c0[1], c1[1]) });
   }
+  if (quiz === "degree" || quiz === "figure") {
+    const ch = chordOf(c0);
+    const ps0 = [...c0].sort((a, b) => parsePitch(a).midi - parsePitch(b).midi);
+    if (!ch) return "";
+    const member = tt(`quiz.member.${ch.bassMember}`);
+    return quiz === "degree"
+      ? tt("quiz.why.degree", { root: pitchName(ch.rootPitch), quality: tt(`quiz.quality.${ch.quality}`), degree: degreeOf(c0, item.key ?? "C") })
+      : tt("quiz.why.figure", { bass: pitchName(ps0[0]), member, root: pitchName(ch.rootPitch) });
+  }
+  if (quiz === "cadence") return tt("quiz.why.cadence", { a: degreeOf(c0, item.key ?? "C"), b: degreeOf(c1, item.key ?? "C") });
   const ps = [...c0].sort((a, b) => parsePitch(a).midi - parsePitch(b).midi);
   return tt("quiz.why.chord", { bass: pitchName(ps[0]), figures: ps.slice(1).map((x) => intervalWords(harmonic(ps[0], x))).join(" and ") });
 }
@@ -541,8 +579,49 @@ function itemScene(item: QuizItem): Scene {
   return freeScene(lows, { start: highs, open: [], clefs: ["treble", lowClef] });
 }
 
+/**
+ * Harmony (D150): chords drawn on two staves, the voices by rank (the bass the lowest note of each
+ * chord), with or without their figures.
+ */
+export function ChordScore({ columns, figures, names, label, cursor = -1 }: { columns: string[][]; figures: boolean; names: boolean; label: string; cursor?: number }) {
+  const n = Math.max(...columns.map((c) => c.length));
+  const sorted = columns.map((c) => [...c].sort((a, b) => parsePitch(a).midi - parsePitch(b).midi));
+  // Lines from the top down: line 0 the highest note of each chord, the last line the bass.
+  const lines = Array.from({ length: n }, (_, j) => sorted.map((c) => c[c.length - 1 - j] ?? null));
+  const mean = (l: (string | null)[]) => {
+    const ms = l.filter((x): x is string => !!x).map((x) => parsePitch(x).midi);
+    return ms.reduce((a, b) => a + b, 0) / Math.max(1, ms.length);
+  };
+  const means = lines.map(mean);
+  const staves = n === 4 ? quartetStaves(means) : trioStaves(means);
+  const voices: TrioVoice[] = lines.map((notes, i) => ({ notes, editable: false, staff: staves.staff[i] }));
+  return (
+    <div className="tut-score trio">
+      <TrioScore
+        voices={voices}
+        clefs={staves.clefs}
+        active={-1}
+        selected={-1}
+        cursor={cursor}
+        figures={figures}
+        names={names}
+        nameStyle="letters"
+        label={label}
+        onPlace={() => undefined}
+        onSelect={() => undefined}
+        zoom={1}
+        onZoom={() => undefined}
+        zoomLabels={{ in: t("ui.zoom.in"), out: t("ui.zoom.out"), reset: t("ui.zoom.reset") }}
+      />
+    </div>
+  );
+}
+
+/** "C major", "A minor" from a quiz key ("C", "a"). */
+const keyName = (k = "C") => tt(k === k.toLowerCase() ? "quiz.keyMinor" : "quiz.keyMajor", { tonic: pitchName(k.toUpperCase()) });
+
 export function Quiz(p: {
-  quiz: "interval" | "class" | "motion" | "chord";
+  quiz: QuizKind;
   items: QuizItem[];
   choices: string[];
   labels?: Record<string, string>;
@@ -562,8 +641,12 @@ export function Quiz(p: {
   const finished = k >= p.items.length;
   if (finished) return null;
   const clip: Clip = { id: `q${k}`, kind: "columns", columns: item.columns };
+  const harmony = HARMONY_QUIZ.includes(p.quiz);
   const prompt =
-    p.quiz === "chord"
+    p.quiz === "degree" ? tt("quiz.degree", { key: keyName(item.key) })
+    : p.quiz === "figure" ? tt("quiz.figure")
+    : p.quiz === "cadence" ? tt("quiz.cadence", { key: keyName(item.key) })
+    : p.quiz === "chord"
       ? tt("quiz.chord", { bar: (item.bar ?? 0) + 1 })
       : p.quiz === "motion"
         ? tt("quiz.motion", { a: item.columns[0].map(pitchName).join("–"), b: item.columns[1].map(pitchName).join("–") })
@@ -571,7 +654,8 @@ export function Quiz(p: {
   return (
     <div className="tut-quiz">
       <p className="tut-quiz-count">{tt("ui.quizProgress", { n: k + 1, total: p.items.length })}</p>
-      {p.quiz !== "chord" && (
+      {harmony && <ChordScore columns={item.columns} figures={false} names={p.names} label={prompt} />}
+      {p.quiz !== "chord" && !harmony && (
         <SceneScore scene={itemScene(item)} notes={item.columns.map((c) => c[1])} names={p.names} intervals={false} label={prompt} compact />
       )}
       <div className="tut-quiz-row">

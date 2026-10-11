@@ -41,7 +41,6 @@ const VOICE_NAMES: Record<number, string[]> = {
   5: ["soprano I", "soprano II", "alto", "tenor", "bass"],
 };
 const nice = (k: string) => k.replace("b", "♭").replace("#", "♯");
-const keyName = (p: WtcPiece) => `${nice(p.key)} ${p.mode}`;
 const midi = (p: string) => parsePitch(p).midi;
 
 /** An entry's label on the map: the key it stands in (Roman numeral against the home key), "inv." if inverted. */

@@ -8,6 +8,9 @@
  * The keys are laid out in Bach's order; the temperament defaults to a circulating one, so that
  * every key sounds as itself (Werckmeister III, Kirnberger III, Vallotti, or equal).
  */
+import type { Mode } from "./Root.tsx";
+import { ModeSelect } from "./ModeSelect.tsx";
+import { keyBelongsToControl } from "./keys.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FUGUES, KEY_ORDER, keyName, keySignature, isMinor, realAnswer, transpose, type WtcFugue, type WtcNote } from "../wtc/fugues.ts";
 import { degree, evaluateAnswer, type AnswerEvaluation } from "../wtc/answer.ts";
@@ -82,7 +85,7 @@ const difficulty = (f: WtcFugue) => f.subject.length + 8 * f.mutations.length + 
 const COURSE = FUGUES.map((_, i) => i).sort((a, b) => difficulty(FUGUES[a]) - difficulty(FUGUES[b]));
 const mean = (xs: WtcNote[]) => xs.reduce((a, n) => a + parsePitch(n.pitch).midi, 0) / Math.max(1, xs.length);
 
-export function WtcApp({ onVoices, onStudy, onTutorial }: { onVoices(n: 2 | 3 | "wtc"): void; onStudy?(): void; onTutorial?: (lessonId?: string) => void }) {
+export function WtcApp({ onVoices, onStudy, onTutorial }: { onVoices(n: Mode): void; onStudy?(): void; onTutorial?: (lessonId?: string) => void }) {
   const [index, setIndex] = useState(() => Math.max(0, FUGUES.findIndex((f) => f.id === stored("wtg.wtcFugue", FUGUES[0].id))));
   const F = FUGUES[index];
   useEffect(() => store("wtg.wtcFugue", F.id), [F.id]);
@@ -220,6 +223,16 @@ export function WtcApp({ onVoices, onStudy, onTutorial }: { onVoices(n: 2 | 3 | 
     const bad = result.ev.errors.some((e) => e.note - F.subject.length === i);
     return bad ? "var(--bad-ink, #c62828)" : "var(--ok-ink, #2e7d32)";
   };
+  /** D149: the verdict as a sign as well as a colour (red and green alone fail colour-blind eyes). */
+  const verdictMark = (i: number): string | undefined => {
+    const ink = verdictInk(i);
+    return ink === undefined ? undefined : ink.includes("ok-ink") ? "✓" : "✗";
+  };
+  const withVerdict = (mark: string | undefined, i: number, mine: boolean) => {
+    const v = mine && !showBach ? verdictMark(i) : undefined;
+    const m = [mark, v].filter(Boolean).join(" ");
+    return m ? { mark: m } : {};
+  };
   const INK_GIVEN = "var(--trk-cantus, #222)";
   /** In the study, the dux and the comes each in a colour of their own. */
   const INK_COMES = "var(--trk-second)";
@@ -230,16 +243,16 @@ export function WtcApp({ onVoices, onStudy, onTutorial }: { onVoices(n: 2 | 3 | 
     const csNotes: WtcScoreNote[] = F.countersubject.map((n, i) => {
       const mine = ex === "counter";
       const pitch = mine ? (showBach ? n.pitch : line[i]) : n.pitch;
-      return { pitch, at: n.at + toAnswer, dur: n.dur, ...(mine ? { slot: i, ink: showBach ? INK_BACH : verdictInk(i) } : {}), ...(i === 0 ? { label: t("ui.wtc.part.countersubject") } : {}) };
+      return { pitch, at: n.at + toAnswer, dur: n.dur, ...(mine ? { slot: i, ink: showBach ? INK_BACH : verdictInk(i) } : {}), ...withVerdict(undefined, i, mine), ...(i === 0 ? { label: t("ui.wtc.part.countersubject") } : {}) };
     });
     const answerNotes: WtcScoreNote[] = F.answer.map((n, i) => {
       const mine = ex === "answer";
       const pitch = mine ? (showBach ? n.pitch : line[i]) : n.pitch;
       const mark = (ex === "study" || showBach || (result?.kind === "answer" && solved)) && F.mutations.includes(i) ? t("ui.wtc.mutationMark") : undefined;
-      return { pitch, at: n.at + toAnswer, dur: n.dur, ...(mine ? { slot: i, ink: showBach ? INK_BACH : verdictInk(i) } : {}), ...(mark ? { mark } : {}), ...(i === 0 ? { label: t("ui.wtc.part.answer") } : {}) };
+      return { pitch, at: n.at + toAnswer, dur: n.dur, ...(mine ? { slot: i, ink: showBach ? INK_BACH : verdictInk(i) } : {}), ...withVerdict(mark, i, mine), ...(i === 0 ? { label: t("ui.wtc.part.answer") } : {}) };
     });
     if (ex === "mutation") {
-      const marked: WtcScoreNote[] = F.subject.map((n, i) => ({ pitch: n.pitch, at: n.at + off, dur: n.dur, slot: i, ink: verdictInk(i) ?? (line[i] === "x" ? INK_PLAYER : INK_GIVEN), ...(line[i] === "x" ? { mark: t("ui.wtc.mutationMark") } : {}), ...(i === 0 ? { label: t("ui.wtc.part.subject") } : {}) }));
+      const marked: WtcScoreNote[] = F.subject.map((n, i) => ({ pitch: n.pitch, at: n.at + off, dur: n.dur, slot: i, ink: verdictInk(i) ?? (line[i] === "x" ? INK_PLAYER : INK_GIVEN), ...withVerdict(line[i] === "x" ? t("ui.wtc.mutationMark") : undefined, i, true), ...(i === 0 ? { label: t("ui.wtc.part.subject") } : {}) }));
       return [{ notes: marked, staff: duxStaff, ink: INK_GIVEN, editable: true }];
     }
     const dv: WtcScoreVoice = { notes: [...subjectNotes, ...csNotes], staff: duxStaff, ink: ex === "counter" ? INK_PLAYER : INK_GIVEN, editable: ex === "counter" && !showBach };
@@ -429,6 +442,7 @@ export function WtcApp({ onVoices, onStudy, onTutorial }: { onVoices(n: 2 | 3 | 
     if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
     const tg = e.target as HTMLElement | null;
     if (tg && /^(INPUT|SELECT|TEXTAREA)$/.test(tg.tagName)) return;
+    if (keyBelongsToControl(e)) return;
     const k = e.key;
     const editable = ex !== "study" && !showBach;
     const cur = line[selected];
@@ -600,11 +614,7 @@ export function WtcApp({ onVoices, onStudy, onTutorial }: { onVoices(n: 2 | 3 | 
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
             <button className="icon" onClick={() => step(-1)} disabled={ORDER.indexOf(index) === 0} aria-label={t("ui.nav.prev")}>‹</button>
-            <select id="voices" className="sel sel-voices" value="wtc" aria-label={t("ui.nav.voices")} onChange={(e) => (audio.stop(), onVoices(e.target.value === "wtc" ? "wtc" : (Number(e.target.value) as 2 | 3)))}>
-              <option value={2}>{t("ui.nav.voicesN", { n: 2 })}</option>
-              <option value={3}>{t("ui.nav.voicesN", { n: 3 })}</option>
-              <option value="wtc">{t("ui.wtc.mode")}</option>
-            </select>
+            <ModeSelect value="wtc" onMode={(m) => (audio.stop(), onVoices(m))} />
             <select id="wtc-exercise" className="sel sel-species" value={ex} aria-label={t("ui.wtc.exercise")} onChange={(e) => choose(e.target.value as Exercise)}>
               {EXERCISES.map((x, i) => (
                 <option key={x} value={x}>{`${i + 1} · ${t(`ui.wtc.ex.${x}`)}`}</option>
