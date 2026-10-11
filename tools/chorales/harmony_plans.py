@@ -31,6 +31,7 @@ from fractions import Fraction as F
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from habits import share_habits  # noqa: E402
 from cadence_plans import MINORISH, ROMAN, chord_label, degree, pcn, quality  # noqa: E402
 from concordance import GAP_BACH, GAP_KITTEL, SUBST  # noqa: E402
 
@@ -203,7 +204,7 @@ def kittel_level2(events: list[dict]) -> list[dict]:
             total = sum(cnt.values())
             top = [c for c, _ in cnt.most_common(4)]
             used = {x["chord"] for x in kit if x["chord"] != "?"} | {x["chord"] for x in bach_at[i]}
-            options = sorted(set(top) | used, key=order_key)
+            options = sorted(set(top) | used, key=lambda c: (order_key(c), c))
             notes.append({
                 "offset": n["offset"], "measure": n["measure"], "pitch": n["pitch"], "degree": deg, "fermata": bool(n.get("fermata")),
                 "options": options, "kittel": kit, "bach": bach_at[i],
@@ -224,9 +225,10 @@ def main() -> None:
     ]
     results = [(name, evaluate(events, f)) for name, f in models]
     kit = kittel_level2(events)
+    shared, habits = share_habits(kit, lambda c: c["notes"])
     OUT_JSON.write_text(json.dumps({"generated_by": "tools/chorales/harmony_plans.py", "level": 2,
                                     "note": "Chords as degrees of the chorale's key (Roman numerals; lower case minor, ° diminished), Kirnberger's fundamentals as tools/chorales/kirnberger.py reads them.",
-                                    "chorales": kit}, ensure_ascii=False, separators=(",", ":")) + "\n")
+                                    "chorales": shared, "habits": habits}, ensure_ascii=False, separators=(",", ":")) + "\n")
     n_notes = sum(len(c["notes"]) for c in kit)
     with_bach = sum(1 for c in kit for n in c["notes"] if n["bach"])
     agree_kb = sum(1 for c in kit for n in c["notes"] if n["bach"] and any(k["chord"] == n["bach"][0]["chord"] for k in n["kittel"]))

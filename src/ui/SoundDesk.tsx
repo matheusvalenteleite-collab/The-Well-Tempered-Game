@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { STYLES, type StyleId } from "../audio/styles.ts";
 import { Fader, formatDb, posOfDb } from "./Fader.tsx";
-import { setMix, editSynth, editVersionSynth, versionSettings, DEFAULT_MASTER_FX, type Channel, type MasterFx, type SoundState, type Strip } from "../audio/sound.ts";
+import { setMix, editSynth, editVersionSynth, versionSettings, DEFAULT_MASTER_FX, type Channel, type SoundState, type Strip } from "../audio/sound.ts";
 import { patternById, type DrumSettings } from "../audio/drums.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
 import { Knob } from "./Knob.tsx";

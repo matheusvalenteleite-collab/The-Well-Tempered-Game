@@ -40,9 +40,6 @@ export function figures(p: WtcPiece, subject: Note[], answer: Note[], K = 8): { 
     ...findTransformed(p, subject).map((e) => ({ voice: e.voice, on: e.on, end: e.on + len * e.scale })),
   ];
   const lines = p.voices.map(line);
-  // The end of the first subject's exposition: every voice has entered and stated it.
-  const firsts = p.voices.map((_, v) => Math.min(...firstSubject.filter((o) => o.voice === v).map((o) => o.on), Infinity)).filter(Number.isFinite);
-  const expositionEnd = (firsts.length ? Math.max(...firsts) : 0) + len;
   const inFirst = (v: number, t: number) => firstSubject.some((o) => o.voice === v && t >= o.on && t < o.end);
   const key = (l: Note[], s: number, k: number) => {
     const iv: number[] = [];

@@ -44,7 +44,6 @@ export function Tutorial(p: { onLeave(): void; onGame(voices: GameMode, stepId?:
   useEffect(() => store(KEY, progress), [progress]);
   const index = LESSONS.findIndex((x) => x.lesson.id === progress.at);
   const { chapter, lesson } = LESSONS[index];
-  const chapterIndex = CHAPTERS.findIndex((c) => c.id === chapter);
   const [contents, setContents] = useState(false);
   const beta = useBeta();
   const IDS = LESSONS.map((x) => x.lesson.id);

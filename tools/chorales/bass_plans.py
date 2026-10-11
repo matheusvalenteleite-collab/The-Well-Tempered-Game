@@ -22,6 +22,7 @@ from fractions import Fraction as F
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from habits import share_habits  # noqa: E402
 from cadence_plans import MINORISH, degree, pcn  # noqa: E402
 from harmony_plans import Model, merged, nw_pairs, tune_key  # noqa: E402
 
@@ -117,7 +118,7 @@ def kittel_level3(events: list[dict]) -> list[dict]:
             deg = degree(n["pitch"], tonic_name)
             cnt = habit.counts[1].get((mode, deg), Counter())
             used = {x["chord"] for x in kit if x["chord"] != "?"} | {x["chord"] for x in bach_at[i]}
-            options = sorted({d for d, _ in cnt.most_common(4)} | used, key=order_key)
+            options = sorted({d for d, _ in cnt.most_common(4)} | used, key=lambda d: (order_key(d), d))
             notes.append({"offset": n["offset"], "measure": n["measure"], "pitch": n["pitch"], "degree": deg, "fermata": bool(n.get("fermata")),
                           "options": options, "kittel": kit, "bach": bach_at[i],
                           "habit": {"n": sum(cnt.values()), "options": [{"chord": d, "count": k, "examples": examples[(mode, deg, d)]} for d, k in cnt.most_common(6)]}})
@@ -131,9 +132,10 @@ def main() -> None:
               ("mode + melody degree + bass before", ["mode", "deg", "prev"])]
     results = [(name, evaluate(events, f)) for name, f in models]
     kit = kittel_level3(events)
+    shared, habits = share_habits(kit, lambda c: c["notes"])
     OUT_JSON.write_text(json.dumps({"generated_by": "tools/chorales/bass_plans.py", "level": 3,
                                     "note": "Bass notes as scale degrees of the chorale's key (by spelling: #4, b7...); 'chord' holds the degree, as at levels 1-2.",
-                                    "chorales": kit}, ensure_ascii=False, separators=(",", ":")) + "\n")
+                                    "chorales": shared, "habits": habits}, ensure_ascii=False, separators=(",", ":")) + "\n")
     n_notes = sum(len(c["notes"]) for c in kit)
     with_bach = [n for c in kit for n in c["notes"] if n["bach"]]
     agree = sum(1 for n in with_bach if any(k["chord"] == n["bach"][0]["chord"] for k in n["kittel"]))

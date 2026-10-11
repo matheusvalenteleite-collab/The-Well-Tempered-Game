@@ -8,9 +8,6 @@
  * upper voices), so melodic frequencies are kept per role (counterpoint above / below the cantus)
  * and shrunk towards the pooled frequencies where the role has few observations.
  */
-import { harmonic, simpleName } from "../interval.ts";
-import { parsePitch } from "../../music/pitch.ts";
-import type { Staff } from "../../music/fux/index.ts";
 import type { SpeciesId } from "../layout.ts";
 import { onsets, type FuxLine, choiceUnits } from "./corpus.ts";
 import { bits, melodicKey, roleOf, samePerfect, verticalKey } from "./keys.ts";

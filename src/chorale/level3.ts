@@ -8,8 +8,11 @@
  */
 import raw from "../../data/chorales/level3.json" with { type: "json" };
 import type { L2Chorale } from "./level2.ts";
+import type { Phrase } from "./level1.ts";
+import { withHabit } from "./habits.ts";
 
-export const LEVEL3: Record<number, L2Chorale> = Object.fromEntries((raw as unknown as { chorales: L2Chorale[] }).chorales.map((c) => [c.number, c]));
+const DATA = raw as unknown as { chorales: L2Chorale[]; habits: Phrase["habit"][] };
+export const LEVEL3: Record<number, L2Chorale> = Object.fromEntries(DATA.chorales.map((c) => [c.number, { ...c, notes: c.notes.map((n) => withHabit(n, DATA.habits)) }]));
 
 const STEPS = "CDEFGAB";
 const PC: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };

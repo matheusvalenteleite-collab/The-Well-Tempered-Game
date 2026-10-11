@@ -2,17 +2,16 @@ import type { Mode } from "./Root.tsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { repository } from "../music/fux/load-browser.ts";
 import { ALL_STEPS, COURSES, courseOf, rulesForStep, validateCurriculum } from "../counterpoint/curriculum/index.ts";
-import { HOLD, REST, slotLength, sounding, timeline } from "../counterpoint/layout.ts";
+import { HOLD, REST, slotLength, sounding } from "../counterpoint/layout.ts";
 import { evaluate, type Evaluation } from "../counterpoint/engine.ts";
 import { exerciseView } from "../game/exercise-view.ts";
 import { applyAccidental, clear, clearSpan, holdSelected, initialState, letterNote, moveNote, onsetOf, place, repeatPrevious, select, setRest, spanFromSelected, stepNote, type SessionState } from "../game/session.ts";
-import { AudioEngine, renderLevel, SYNTH_PRESETS, type AudioStatus } from "../audio/engine.ts";
+import type { AudioStatus } from "../audio/engine.ts";
 import { restoreSound, setMix as changeMix, shiftOctave, type SoundState } from "../audio/sound.ts";
 import { encode, EXPORT_FORMATS, saveFile, type ExportFormat } from "../audio/export.ts";
-import { loadSamples } from "../audio/voice.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
 import { SoundDesk, trackOrder } from "./SoundDesk.tsx";
-import { DEFAULT_DRUMS, DRUM_PATTERNS, DRUM_KITS, DrumMachine, validLoopLength, type DrumSettings } from "../audio/drums.ts";
+import { DEFAULT_DRUMS, type DrumSettings } from "../audio/drums.ts";
 import { ExerciseNotes, RuleBasics } from "./Hints.tsx";
 import { Study } from "./Study.tsx";
 import { stepStudy } from "./study.ts";
@@ -30,7 +29,7 @@ import { hintContext, hintsAvailable } from "../game/hints-context.ts";
 import { applyStyle, type StyleId } from "../audio/styles.ts";
 import { FuxComparison } from "./FuxComparison.tsx";
 import { realizeContinuo } from "../continuo/realize.ts";
-import { playContinuo, preloadContinuo } from "../continuo/audio.ts";
+import { preloadContinuo } from "../continuo/audio.ts";
 import { continuoInput, continuoKey, continuoOptions, type PlayMode } from "../game/continuo-input.ts";
 import { activeVersions, deriveVersion, heardLines, validVersions, VERSION_IDS, type VersionId, type Versions } from "../game/versions.ts";
 import { trioFindings, trioVerdict } from "../game/trio-verdict.ts";
@@ -320,19 +319,6 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
   (window as unknown as { wtgFux: string[] | null }).wtgFux = VIEW.fux;
 
   /** Judge a line for step k (the same evaluation as the Evaluate button). */
-  const judge = (k: number, notes: (string | null)[]) => {
-    const v = VIEWS[k];
-    return evaluate(
-      {
-        species: v.species,
-        modalFinal: v.modalFinal,
-        cantusVoice: v.cantusVoice,
-        cantus: v.cantus.map((p) => ({ pitch: p, duration: "1/1" })),
-        counterpoint: notes.map((p, i) => ({ pitch: p === HOLD ? HOLD : sounding(p) ? p : null, duration: v.layout[i].duration })),
-      },
-      rulesForStep(STEPS[k].id),
-    );
-  };
   const missing = session.notes.filter((n, k) => n === null && !VIEW.layout[k].restAllowed).length;
   const toggleEvaluation = () => {
     if (result) {
@@ -409,7 +395,6 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
   // The lines heard and shown: the written one (if on) and its active versions (D47).
   const lines = useMemo(() => heardLines(versions, session.notes, VIEW.modalFinal), [versions, session.notes, VIEW.modalFinal]);
   const heard = useMemo(() => lines.map((l) => l.notes), [lines]);
-  const derived = (ln: typeof lines) => Object.fromEntries(ln.filter((l) => l.id !== "original").map((l) => [l.id, l.notes]));
   const shownLines = lines;
   /** The written line is on the score (switched on, or nothing else is): it can be edited. */
   const editable = shownLines[0].id === "original";
@@ -418,7 +403,6 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
   /** A pitch clicked on the drawn (moved) line, back to where it is written. */
   const unmove = (natural: string) => (sound.counterpointOctave ? shiftOctave(natural, -sound.counterpointOctave) : natural);
   const moved = <T extends string | null>(notes: T[], n: number): T[] => (n ? notes.map((q) => (sounding(q) ? (shiftOctave(q, n) as T) : q)) : notes);
-  const originalHeard = versions.original ? session.notes : session.notes.map(() => null);
   const continuoAllowed = CONTINUO_DEMO_MODE || Boolean(result?.passed);
   const continuoAvailable = continuo && continuoAllowed;
   const continuoMode: PlayMode = playMode !== "player" && fuxOpen ? playMode : "player";
@@ -430,11 +414,6 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
     return { input, realization: realizeContinuo(input, cOpts) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [continuoAvailable, cKey]);
-  const realizationFor = (mode: PlayMode) => {
-    if (mode === continuoMode) return continuoPlan;
-    const input = continuoInput(VIEW, mode === "fux" ? VIEW.fux! : heard, mode);
-    return { input, realization: realizeContinuo(input, continuoOptions(mode, continuoSettings)) };
-  };
 
   // Saved pieces (D49). A saved piece plays with its own sound set on the engine; the live
   // setup is put back when it stops.

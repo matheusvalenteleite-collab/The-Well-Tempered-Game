@@ -502,8 +502,6 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
   const note = NOTES[F.id]?.[isPrelude ? "prelude" : "fugue"];
   const [filter, setFilter] = useState<"all" | "entry" | "other">("all");
   const shown = moments.filter((m) => filter === "all" || isPrelude || (filter === "entry" ? m.kind === "entry" || m.kind === "later" || m.kind === "transformed" : m.kind !== "entry" && m.kind !== "later" && m.kind !== "transformed"));
-  const strettos = moments.filter((m) => m.kind === "stretto").length;
-  const inversions = entries.filter((e) => e.inverted).length;
   const pedals = moments.filter((m) => m.kind === "pedal").length;
 
   const faint = new Set(Array.from({ length: count }, (_, v) => v).filter((v) => !audible(v)));

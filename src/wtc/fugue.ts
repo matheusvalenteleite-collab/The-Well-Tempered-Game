@@ -16,7 +16,6 @@ export interface Note {
 
 const STEPS = "CDEFGAB";
 const STEP_PC = [0, 2, 4, 5, 7, 9, 11];
-const midi = (p: string) => parsePitch(p).midi;
 const diatonic = (p: string) => parsePitch(p).diatonic;
 
 /** The voice's main line. */

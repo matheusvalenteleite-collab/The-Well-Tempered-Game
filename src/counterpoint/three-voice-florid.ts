@@ -99,7 +99,6 @@ export function evaluateTrioFlorid(input: TrioFloridInput): TrioEvaluation {
   const lowestOther = (b: number, h: 0 | 1 = 0) => others.map((x) => sem(x, b, h)).reduce((a, c) => (midi(c) < midi(a) ? c : a));
   /** The bass is held from bar b into the next, and the moving voice lies above it (p. 107). */
   const heldBass = (b: number) => b + 1 < bars && lowestOther(b, 1) === lowestOther(b + 1);
-  const nextNote = (n: Note) => notes[notes.indexOf(n) + 1];
   /**
    * At the close, a note whose only dissonance is a diminished fifth (augmented fourth) that
    * resolves inward into the final bar (the lower note up a semitone, the upper down a step): Fux's
@@ -207,7 +206,6 @@ export function evaluateTrioFlorid(input: TrioFloridInput): TrioEvaluation {
   if (input.species === 4)
     notes.forEach((n, i) => {
       if (n.beat !== 0 || !tiedInto(n.slot) || !dissonantNote(n)) return;
-      const os = others.map((x) => sem(x, n.bar));
       const lowX = others.reduce((a, c) => (midi(sem(c, n.bar)) < midi(sem(a, n.bar)) ? c : a));
       const low = sem(lowX, n.bar);
       if (midi(n.p) > midi(low)) {

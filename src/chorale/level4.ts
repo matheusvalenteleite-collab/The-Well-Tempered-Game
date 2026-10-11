@@ -9,6 +9,7 @@
  */
 import raw from "../../data/chorales/level4.json" with { type: "json" };
 import type { Chorale, MelodyNote, Phrase } from "./level1.ts";
+import { fromRow, withHabit } from "./habits.ts";
 
 export interface L4Note {
   offset: string;
@@ -28,9 +29,11 @@ interface L4Chorale {
   mode: "major" | "minor";
   basses: { label: string; notes: L4Note[] }[];
 }
-const DATA = raw as unknown as { positions: string[]; chorales: L4Chorale[] };
+const DATA = raw as unknown as { positions: string[]; noteFields: string[]; habits: Phrase["habit"][]; chorales: (Omit<L4Chorale, "basses"> & { basses: { label: string; notes: unknown[][] }[] })[] };
 export const POSITIONS = DATA.positions;
-export const LEVEL4: Record<number, L4Chorale> = Object.fromEntries(DATA.chorales.map((c) => [c.number, c]));
+export const LEVEL4: Record<number, L4Chorale> = Object.fromEntries(
+  DATA.chorales.map((c) => [c.number, { ...c, basses: c.basses.map((b) => ({ label: b.label, notes: b.notes.map((r) => withHabit(fromRow<L4Note>(DATA.noteFields, r), DATA.habits)) })) }]),
+);
 
 /** The bass as a chorale for the score (its notes in place of the melody). */
 export function bassChorale(ch: Chorale, notes: L4Note[]): Chorale {

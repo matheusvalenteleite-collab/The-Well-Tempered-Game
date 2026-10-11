@@ -15,7 +15,6 @@ import { evaluateQuartet, type PartKind } from "../counterpoint/four-voice.ts";
 import type { TrioEvaluation } from "../counterpoint/three-voice.ts";
 import { applyAccidental, clear, clearSpan, holdSelected, initialState, letterNote, onsetOf, place, select, spanFromSelected, stepNote, type SessionState } from "../game/session.ts";
 import { HOLD, REST, slotLayout, type PlayEvent } from "../counterpoint/layout.ts";
-import { floridLayout } from "../game/trio.ts";
 import { NoteIcon } from "./NoteIcon.tsx";
 import { restoreSound, setMix as changeMix, type SoundState } from "../audio/sound.ts";
 import { DEFAULT_DRUMS, type DrumSettings } from "../audio/drums.ts";
@@ -104,7 +103,6 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
   const N = PARTS.length;
   const BARS = STEP.cantus.length;
   const GRID = STEP.species !== 1;
-  const layout = useMemo(() => floridLayout(BARS), [BARS]);
   const [all, setAll] = useState<Record<string, Sessions>>({});
   const sessions = all[STEP.id] ?? freshSessions(STEP);
   const mine = quartetPlayer(STEP);

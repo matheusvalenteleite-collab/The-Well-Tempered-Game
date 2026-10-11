@@ -40,7 +40,6 @@ export function DrumBox({ on, onToggle, value, onChange, onPreview, onTempo }: P
   const pattern = patternById(value.pattern);
   const kit = kitOf(value);
   const pads = padsFor(value);
-  const mutes = value.mutes ?? [];
   const padRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const padsRef = useRef(pads);
   padsRef.current = pads;

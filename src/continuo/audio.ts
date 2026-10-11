@@ -372,8 +372,6 @@ function buildJobs(exercise: ContinuoInput, r: ContinuoRealization, o: Required<
       for (const n of notes.filter((x) => x.start < up && x.end > up)) jobs.push({ at: up * sec, dur: n.end * sec - up * sec, pitch: n.pitch, inst, gain: gain * restrike });
     }
   };
-  const top = (t: number) => Math.max(...rh.filter((n) => n.start <= t && n.end > t).map((n) => n.midi));
-
   // D109: parts of an ensemble. Each right-hand note has a rank at its onset (0 = the top note);
   // the parts take ranks, the bass line, or doublings at the octave, each in its instrument's range.
   type Note = (typeof rh)[number];
@@ -745,8 +743,6 @@ class Voices {
     if (o.thump) this.noiseBurst(out, at, 0.01, Math.min(1500, f * 3), 1, gain * o.thump);
   }
 
-  private curves = new Map<number, Float32Array<ArrayBuffer>>();
-
   /** Oscillators at f (times `ratio`), detuned by `cents`, into `dest`, between at and stop. */
   private oscs(dest: AudioNode, f: number, at: number, stop: number, spec: [OscillatorType, number, number, number][]) {
     const made: OscillatorNode[] = [];
@@ -773,19 +769,6 @@ class Voices {
     env.gain.setValueAtTime(gain, Math.max(end, at + attack));
     env.gain.setTargetAtTime(0, Math.max(end, at + attack), release / 3);
     return env;
-  }
-
-  /** Delayed vibrato on the given oscillators. */
-  private vibrato(oscs: OscillatorNode[], at: number, stop: number, rate: number, cents: number, delay: number) {
-    const lfo = this.track(this.ctx.createOscillator());
-    lfo.frequency.value = rate;
-    const depth = this.ctx.createGain();
-    depth.gain.setValueAtTime(0, at);
-    depth.gain.linearRampToValueAtTime(cents, at + delay);
-    lfo.connect(depth);
-    for (const o of oscs) depth.connect(o.detune);
-    lfo.start(at);
-    lfo.stop(stop);
   }
 
 

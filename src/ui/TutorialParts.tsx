@@ -8,7 +8,7 @@ import { ScoreView } from "./notation/ScoreView.tsx";
 import { Systems } from "./notation/Systems.tsx";
 import { TrioScore, type TrioVoice } from "./notation/TrioScore.tsx";
 import { quartetStaves, trioStaves } from "./notation/trio-staves.ts";
-import { chordOf, degreeOf, figuresOf } from "../tutorial/harmony.ts";
+import { chordOf, degreeOf } from "../tutorial/harmony.ts";
 import { VoiceRoll } from "./notation/VoiceRoll.tsx";
 import { VOICE_COLORS } from "./voice-colors.ts";
 import { LIBRARY } from "../wtc/library.ts";
