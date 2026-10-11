@@ -16,7 +16,7 @@ import { EnsembleSelect } from "./EnsembleSelect.tsx";
 import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
 import { playChorale, prepareChoraleAudio, type ChoraleNote } from "../audio/chorale-performance.ts";
 import { Shell } from "./Shell.tsx";
-import { WtcPage, type WtcScoreVoice } from "./notation/WtcScore.tsx";
+import { WtcPage, type WtcScoreVoice, planClefs } from "./notation/WtcScore.tsx";
 import { pageRows, useRowBars } from "./notation/page-rows.ts";
 import { audio, store, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
@@ -125,6 +125,8 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
   }, [B, ch, mine, worst, shift, bach, openScore]);
   const under = useMemo(() => (bach ? [] : B.slots.filter((s) => s.printed).map((s) => ({ at: quarters(s.at), lines: s.printed.split("/").map(figureLabel) }))), [B, shift, bach]);
   const bars = Math.ceil((ch.length + shift) / barUnits);
+  // P15: one clef plan for the whole chorale, so that the clefs hold across the rows.
+  const clefPlan = useMemo(() => (openScore ? planClefs(voices, CHORALE_CLEFS, barUnits / 8) : undefined), [openScore, voices, barUnits]);
   const rows = useMemo(
     () => pageRows({ voices, under, barQ: barUnits / 8, bars, rowBars, cursor, key: key, label: (a, z) => t("chorale.l5.scoreLabel", { n: ch.number, title: ch.title, bass: B.label }) + ` (${a + 1}-${z})` }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -270,7 +272,7 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
       }
       score={
         <div className="score-wrap chorale-score">
-          <WtcPage fitWidth clefs={openScore ? CHORALE_CLEFS : undefined} autoClefs={openScore} rows={rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={barUnits / 8} selected={selected} onSlot={write} />
+          <WtcPage fitWidth clefs={openScore ? CHORALE_CLEFS : undefined} clefPlan={clefPlan} rows={rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={barUnits / 8} selected={selected} onSlot={write} />
         </div>
       }
       transport={

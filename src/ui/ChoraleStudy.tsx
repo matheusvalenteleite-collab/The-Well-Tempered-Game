@@ -18,7 +18,7 @@ import { EnsembleSelect } from "./EnsembleSelect.tsx";
 import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
 import { choraleGates, fermataWordsOf, playChorale, prepareChoraleAudio } from "../audio/chorale-performance.ts";
 import { Shell } from "./Shell.tsx";
-import { WtcPage, type WtcScoreVoice } from "./notation/WtcScore.tsx";
+import { WtcPage, type WtcScoreVoice, planClefs } from "./notation/WtcScore.tsx";
 import { pageRows, useRowBars } from "./notation/page-rows.ts";
 import { useStudyData } from "../chorale/study-data.ts";
 import { audio, store, stored } from "./shared.ts";
@@ -147,7 +147,9 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
     const barQ = barUnits / 8;
     const bars = Math.ceil((ch.length + shift) / barUnits);
     const rows = pageRows({ voices, under, barQ, bars, rowBars, cursor, key: String(ch.n), label: (a, z) => t("chorale.study.rowLabel", { n: ch.n, title: ch.title, a: a + (ch.pickup ? 0 : 1), b: z - (ch.pickup ? 1 : 0) }) });
-    return { rows, barQ, barUnits, shift };
+    // P15: one clef plan for the whole chorale, so that the clefs hold across the rows.
+    const clefPlan = openScore ? planClefs(voices, CHORALE_CLEFS, barQ) : undefined;
+    return { rows, barQ, barUnits, shift, clefPlan };
   }, [ch, data, layers, cursor, rowBars, openScore]);
 
   // P5: through the live loop (tempo and the voices heard apply at once), with a pause.
@@ -204,7 +206,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
       score={
         <div className="score-wrap chorale-score chorale-study">
           {ch && view ? (
-            <WtcPage fitWidth clefs={openScore ? CHORALE_CLEFS : undefined} autoClefs={openScore} rows={view.rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={view.barQ} selected={null} onSlot={() => undefined} />
+            <WtcPage fitWidth clefs={openScore ? CHORALE_CLEFS : undefined} clefPlan={view.clefPlan} rows={view.rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={view.barQ} selected={null} onSlot={() => undefined} />
           ) : (
             <p className="help">{t("ui.loading")}</p>
           )}
