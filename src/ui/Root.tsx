@@ -13,6 +13,8 @@ import { setBeta } from "./beta.ts";
 // Clavier, with its 48 pieces, and the tutorial.
 const WtcApp = lazy(() => import("./WtcApp.tsx").then((m) => ({ default: m.WtcApp })));
 const WtcStudy = lazy(() => import("./WtcStudy.tsx").then((m) => ({ default: m.WtcStudy })));
+// The composer: a fugue on the player's own subject (docs/wtc/COMPOSE.md).
+const ComposeApp = lazy(() => import("./ComposeApp.tsx").then((m) => ({ default: m.ComposeApp })));
 // Four voices (D148), loaded when first opened.
 const QuartetApp = lazy(() => import("./QuartetApp.tsx").then((m) => ({ default: m.QuartetApp })));
 const Tutorial = lazy(() => import("./Tutorial.tsx").then((m) => ({ default: m.Tutorial })));
@@ -37,7 +39,7 @@ export function Root() {
   const [voices, setVoices] = useState<Mode>(() => stored<Mode>("wtg.voices", 2, (v) => MODES.includes(v as Mode)));
   useEffect(() => store("wtg.voices", voices), [voices]);
   // The Well-Tempered Clavier opens on the study (D123); the exercises are one button away.
-  const [wtcView, setWtcView] = useState<"study" | "exercises">(() => stored<"study" | "exercises">("wtg.wtcView", "study", (v) => v === "study" || v === "exercises"));
+  const [wtcView, setWtcView] = useState<"study" | "exercises" | "compose">(() => stored<"study" | "exercises" | "compose">("wtg.wtcView", "study", (v) => v === "study" || v === "exercises" || v === "compose"));
   useEffect(() => store("wtg.wtcView", wtcView), [wtcView]);
   const [screen, setScreen] = useState<"game" | "tutorial">("game");
   const [tour, setTour] = useState(false);
@@ -116,7 +118,13 @@ export function Root() {
       shown && <WtcRoot onMode={setVoices} onTutorial={openTutorial} />
     ) : voices === "wtc" ? (
       shown &&
-      (wtcView === "study" ? <WtcStudy onVoices={setVoices} onExercises={() => setWtcView("exercises")} onTutorial={openTutorial} /> : <WtcApp onVoices={setVoices} onStudy={() => setWtcView("study")} onTutorial={openTutorial} />)
+      (wtcView === "study" ? (
+        <WtcStudy onVoices={setVoices} onExercises={() => setWtcView("exercises")} onCompose={() => setWtcView("compose")} onTutorial={openTutorial} />
+      ) : wtcView === "compose" ? (
+        <ComposeApp onVoices={setVoices} onStudy={() => setWtcView("study")} onExercises={() => setWtcView("exercises")} onTutorial={openTutorial} />
+      ) : (
+        <WtcApp onVoices={setVoices} onStudy={() => setWtcView("study")} onCompose={() => setWtcView("compose")} onTutorial={openTutorial} />
+      ))
     ) : voices === 4 ? (
       <QuartetApp onVoices={setVoices} {...link} />
     ) : voices === 3 ? (

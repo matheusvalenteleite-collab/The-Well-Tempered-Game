@@ -80,7 +80,7 @@ const vexKey = (key: string) => (key[0] === key[0].toLowerCase() ? `${key[0].toU
 const DEGREES = [0, 2, 3, 4, 5, 7, 8, 9, 10, 11, 1, 6];
 
 
-export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mode): void; onExercises(): void; onTutorial?: (lessonId?: string) => void }) {
+export function WtcStudy({ onVoices, onExercises, onCompose, onTutorial }: { onVoices(n: Mode): void; onExercises(): void; onCompose?(): void; onTutorial?: (lessonId?: string) => void }) {
   const [index, setIndex] = useState(() => Math.max(0, LIBRARY.findIndex((f) => f.id === stored("wtg.wtcFugue", LIBRARY[0].id))));
   const L = LIBRARY[index];
   useEffect(() => store("wtg.wtcFugue", L.id), [L.id]);
@@ -882,6 +882,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
               <button className="chipbtn" role="radio" aria-checked={!isPrelude} aria-pressed={!isPrelude} onClick={() => choosePiece("fugue")}>{t("ui.study.fugue")}</button>
             </span>
             <button className="chipbtn" onClick={() => (stop(), onExercises())} title={t("ui.study.exercisesHelp")}>{t("ui.study.exercises")}</button>
+            {onCompose && <button className="chipbtn" onClick={() => (stop(), onCompose())} title={t("ui.compose.openHelp")}>{t("ui.compose.open")}</button>}
           </nav>
           <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("guide")} onTutorial={onTutorial} />
         </>

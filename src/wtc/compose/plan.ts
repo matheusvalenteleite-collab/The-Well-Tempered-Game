@@ -139,9 +139,9 @@ export function realise(d: FugueDraft): Realised {
         at = Math.max(at, p.to);
       }
       if (sec.to > at + EPS) gaps.push([at, sec.to]);
-      gaps.forEach(([a, b], k) => {
-        // The first voice's rests before the subject's upbeat are no passage.
-        if (sec.id === "expo" && voice === first && b <= d.phase + EPS) return;
+      // The first voice's rests before the subject's upbeat are no passage.
+      const passages = gaps.filter(([, b]) => !(sec.id === "expo" && voice === first && b <= d.phase + EPS));
+      passages.forEach(([a, b], k) => {
         const slot = `${sec.id}:${voice}:${k}`;
         const f = freeNotes(d.free[slot], a, b);
         parts.push({ section: sec.id, voice, kind: "free", from: a, to: b, notes: f.notes, slot, overflow: f.overflow });

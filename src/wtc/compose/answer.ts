@@ -137,3 +137,25 @@ export function answerNotes(d: FugueDraft): WtcNote[] {
   const subject = toNotes(d.subject);
   return subject.map((n, i) => ({ pitch: d.answer!.pitches[i] ?? n.pitch, at: n.at + d.answer!.at, dur: n.dur }));
 }
+
+/** Which notes of an answer are a fourth above the subject's (the mutated ones), by letter. */
+export function fourthsOf(subject: WtcNote[], pitches: string[]): Set<number> {
+  const pc = (p: string) => p.replace(/-?\d+$/, "");
+  return new Set(subject.map((n, i) => (pitches[i] && pc(pitches[i]) === pc(fourth(n.pitch)) && pc(fourth(n.pitch)) !== pc(fifth(n.pitch)) ? i : -1)).filter((i) => i >= 0));
+}
+
+/**
+ * The answer kept in step with a changed subject: the same notes mutated, re-placed in the other
+ * voice's register; dropped if the subject has gained or lost notes, or no longer allows the entry.
+ */
+export function refreshAnswer(d: FugueDraft, before: WtcNote[]): FugueDraft {
+  if (!d.answer) return d;
+  const subject = toNotes(d.subject);
+  if (subject.length !== before.length || !entryPoints(d).some((t) => Math.abs(t - d.answer!.at) < EPS)) return { ...d, answer: null };
+  try {
+    const pitches = placeAnswer(answerWith(subject, fourthsOf(before, d.answer.pitches)), d);
+    return { ...d, answer: { ...d.answer, pitches } };
+  } catch {
+    return { ...d, answer: null };
+  }
+}

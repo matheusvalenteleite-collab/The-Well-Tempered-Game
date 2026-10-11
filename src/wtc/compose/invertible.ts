@@ -55,7 +55,21 @@ export function judgePair(line: WtcNote[], given: WtcNote[], d: FugueDraft, befo
   const all = [...before.filter((n) => n.at + n.dur <= line[0].at + 1e-6), ...line];
   const k = all.length - line.length;
   const ev = withLicences(evaluateCounterpoint({ line: all, given, bar, beat: beatOf(d.time), phase: phase % bar, judged: new Set(line.map((_, i) => i + k)) }));
-  return ev.violations.map((v) => ({ ...v, note: v.note - k }));
+  return isolated(ev.violations, bar).map((v) => ({ ...v, note: v.note - k }));
+}
+
+/**
+ * Bach's licences (D132) excuse a fault he commits somewhere in the 48: in the composer, only where
+ * it is isolated. A licence of the same rule within a bar of another is the habit, not the licence
+ * (a countersubject doubling the answer in octaves would otherwise pass on Bach's few consecutive
+ * octaves), and stays an error.
+ */
+export function isolated(vs: CpViolation[], bar: number): CpViolation[] {
+  return vs.map((v) => {
+    if (v.severity !== "warning" || !v.detail?.bach) return v;
+    const near = vs.some((w) => w !== v && w.ruleId === v.ruleId && Math.abs(w.at - v.at) <= bar + 1e-6);
+    return near ? { ...v, severity: "error" as const } : v;
+  });
 }
 
 /** The countersubject (from the answer's entry) in its three placings. */
@@ -64,7 +78,8 @@ export function placings(d: FugueDraft): PlacingResult[] {
   const answer = answerNotes(d).map((n) => ({ ...n, at: n.at - d.answer!.at }));
   const cs = toNotes(d.countersubject);
   if (!cs.length || !answer.length) return [];
-  const csAbove = d.first === 0;
+  // Above or below as written (a countersubject may cross to the other side of the answer).
+  const csAbove = mean(cs) >= mean(answer);
   const written = cs;
   const inverted = across(written, answer, !csAbove);
   // Against the subject in the tonic: the countersubject carried from the answer's key.

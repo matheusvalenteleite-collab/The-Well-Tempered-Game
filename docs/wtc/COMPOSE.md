@@ -265,6 +265,27 @@ The existing exercises are kept. Each step of the composer is also one of the ex
 "write the answer", S3 is "write the countersubject". The exercises become practice on Bach's
 material for the step the player will meet on their own.
 
+## 5a. Status (11 October 2026)
+
+M1 is built (D158), with the owner's go-ahead on the recommended answers to section 6: the two-voice
+slice, the judge only, Bach's practice with his licences, the Humdrum notes for private use. What it
+does not yet do, against the M1 list above:
+
+- **L0 was done narrowly.** The composer uses one note model (`WtcNote`, quarters) and converts for the
+  analysis; the duplicated helpers elsewhere (fault 5) and faults 1, 6 and 7 are untouched. Fault 1
+  matters only from three voices (M3); fault 2 (`predictAnswer`'s 4/4) is avoided: the composer has its
+  own answer rules, metre-aware.
+- **The subject judge** has no implied-harmony reading (L2): it reports degrees, length, range, leaps,
+  modulation and upbeat against the 29 subjects.
+- **Entries in the relative key** are carried degree by degree (`toKey`): a minor subject's leading
+  note becomes the major key's, and the reverse. Bach adapts more freely; the player retouches.
+- **The judge is the two-voice countersubject judge**, lenient by design (D119: 115 of 189 injected
+  faults caught); licences now excuse only isolated faults (D158 b).
+- **The score** shows one section at a time in the fugue step (or the whole, small); notation is
+  still the exercises' (two voices, no ties editable: a long note is a value, dotted or not).
+- **Not yet**: the answer entering a fifth below in the lower voice is placed by register only;
+  codettas are written only in the exposition; no comparison passages from the 48 (M2).
+
 ## 6. For the owner to decide
 
 1. **The first milestone.** Choose one:

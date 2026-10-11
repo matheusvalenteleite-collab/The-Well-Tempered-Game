@@ -117,6 +117,13 @@ test("compose: a fifth that stands below turns into a fourth above: the inverted
   assert.ok(inverted.violations[0].detail?.bach);
 });
 
+test("compose: Bach's licences excuse an isolated fault, not a habit: a countersubject doubling the answer fails", () => {
+  const f = FUGUES.find((x) => x.id === "wtc1.12")!;
+  const d = bachDraft(f);
+  d.countersubject = f.answer.map((n) => ({ pitch: n.pitch.replace(/\d+$/, (o) => String(Number(o) - 1)), dur: n.dur }));
+  for (const p of placings(d)) assert.ok(p.violations.filter((v) => v.ruleId === "wtc.cp.parallel" && v.severity === "error").length >= 5, p.placing);
+});
+
 test("compose: the plan of a two-voice fugue from Bach's exposition; the analysis hears its entries", () => {
   const f = FUGUES.find((x) => x.id === "wtc1.12")!; // F minor: a tonal answer, a regular countersubject
   const d = bachDraft(f);
