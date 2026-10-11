@@ -8,8 +8,9 @@
  */
 import { useEffect, useRef } from "react";
 import { tapVoice } from "./tap-voice.ts";
-import { Accidental, Dot, ModifierContext, Renderer, Stave, StaveConnector, StaveNote, StaveTie, TickContext } from "vexflow";
-import { fifthGlyphs, REST, slotLayout } from "../../counterpoint/layout.ts";
+import { chooseClefs } from "./clef-chooser.ts";
+import { Accidental, ClefNote, Dot, ModifierContext, Renderer, Stave, StaveConnector, StaveNote, StaveTie, TickContext } from "vexflow";
+import { fifthGlyphs, HOLD as HOLD_MARK, REST, slotLayout } from "../../counterpoint/layout.ts";
 import { parsePitch } from "../../music/pitch.ts";
 import { noteName, type NameStyle } from "../../music/names.ts";
 import { harmonic } from "../../counterpoint/interval.ts";
@@ -72,6 +73,11 @@ interface Props {
   onZoom(z: number): void;
   zoomLabels: { in: string; out: string; reset: string };
   tools?: React.ReactNode;
+  /**
+   * P6: each staff's clef chosen bar by bar from its notes (G and F, and their octave forms), a
+   * change marked by a small clef before the bar line; `clefs` then gives the staves and where they start.
+   */
+  autoClefs?: boolean;
 }
 
 /** Bars in the piece: a semibreve voice's notes, or (four voices, D148: every part in slots) a slot line's bars. */
@@ -137,8 +143,21 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     const svg = host.querySelector("svg")!;
     svg.setAttribute("role", "img");
     svg.setAttribute("aria-label", p.label);
-    const staves = p.clefs.map((clef, i) => {
+    // P6: the clef of each staff in each bar (absolute bars).
+    // The pitches of each staff in each bar: the written notes, and Fux's where they are shown.
+    const pitchesIn = (st: number, b: number) =>
+      p.voices
+        .filter((v) => v.staff === st)
+        .flatMap((v) => [v.notes, v.fux ?? []].flatMap((line) => line.filter((q, k): q is string => !!q && q !== REST && q !== HOLD_MARK && Math.min(bars0 - 1, v.per ? Math.floor(k / v.per) : k) === b)));
+    const plan: ClefId[][] = p.autoClefs
+      ? chooseClefs(p.clefs.map((_, st) => Array.from({ length: bars0 }, (_, b) => pitchesIn(st, b))), { prefer: p.clefs.map((c) => (c === "treble" || c === "bass" ? c : undefined)) })
+      : p.clefs.map((c) => Array.from({ length: bars0 }, () => c));
+    host.dataset.clefs = JSON.stringify(plan);
+    let curBar = p.from;
+    const clefAt = (i: number) => plan[i][Math.max(0, Math.min(bars0 - 1, curBar))] ?? p.clefs[i];
+    const staves = p.clefs.map((_, i) => {
       const s = new Stave(8, staffY(i), logicalWidth - 16);
+      const clef = plan[i][p.from] ?? p.clefs[i];
       s.addClef(VEXFLOW_CLEF[clef].clef, "default", VEXFLOW_CLEF[clef].annotation);
       s.addTimeSignature("C|");
       s.setEndBarType(p.last ? 3 : 1);
@@ -202,14 +221,15 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     ctx.restore();
 
     const placeNote = (i: number, pitch: string, x: number, ink: string | null, diamond: boolean, duration: string = "w", stem: 1 | -1 = 1, dots = 0) => {
-      const clef = VEXFLOW_CLEF[p.clefs[i]].clef;
-      // A tenor's treble clef with an 8 below: written an octave above the sound.
-      const up = p.clefs[i] === "treble_8vb" ? 1 : 0;
+      const clefId = clefAt(i);
+      const clef = VEXFLOW_CLEF[clefId].clef;
+      // A treble clef with an 8 below: written an octave above the sound; a bass clef with an 8 above, below it.
+      const up = clefId === "treble_8vb" ? 1 : clefId === "bass_8va" ? -1 : 0;
       const alone = p.voices.filter((v) => v.staff === i).length < 2;
       if (pitch === REST) {
         // On the fourth line for the upper voice of a shared staff, the second for the lower one;
         // in the middle of a staff of its own.
-        const bass = p.clefs[i] === "bass";
+        const bass = clef === "bass";
         const key = alone ? (bass ? "d/3" : "b/4") : stem === 1 ? (bass ? "f/3" : "d/5") : bass ? "b/2" : "g/4";
         const r = new StaveNote({ keys: [key], duration: `${duration}r`, clef });
         if (dots) Dot.buildAndAttach([r], { all: true });
@@ -277,6 +297,21 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     const drawn = p.voices.map(() => new Map<number, StaveNote>());
     for (let j = 0; j < n; j++) {
       const bar = p.from + j;
+      curBar = bar;
+      // A change of clef: a small clef just before this bar's line (P6).
+      if (j > 0)
+        p.clefs.forEach((_, i) => {
+          const c = plan[i][bar];
+          if (!c || c === plan[i][bar - 1]) return;
+          const glyph = new ClefNote(VEXFLOW_CLEF[c].clef, "small", VEXFLOW_CLEF[c].annotation);
+          glyph.setStave(staves[i]);
+          const tc = new TickContext();
+          tc.addTickable(glyph);
+          tc.preFormat();
+          tc.setX(0);
+          tc.setX(columns[j].left - 20 - glyph.getAbsoluteX());
+          glyph.setContext(ctx).draw();
+        });
       const x = columns[j].left + NOTE_PAD;
       const cellW = (per: number) => (columns[j].right - columns[j].left) / per;
       // Two voices a second apart (or in unison) on one staff: the lower one steps to the right.
@@ -378,7 +413,7 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
       staves: staves.map((s) => ({ top: s.getYForLine(0), bottom: s.getYForLine(4), spacing: s.getSpacingBetweenLines() })),
     };
     host.dataset.geometry = JSON.stringify(geo.current);
-  }, [p.voices, p.clefs, p.active, p.selected, p.selectedPart, p.selectedSpan, p.cursor, p.marks, p.figures, p.harmony, p.names, p.nameStyle, p.pulse, p.from, p.to, p.scale, p.fill, p.last, p.label, n, bars0]);
+  }, [p.voices, p.clefs, p.active, p.selected, p.selectedPart, p.selectedSpan, p.cursor, p.marks, p.figures, p.harmony, p.names, p.nameStyle, p.pulse, p.from, p.to, p.scale, p.fill, p.last, p.label, n, bars0, p.autoClefs]);
 
   // Pointer: the nearest staff takes the tap; a second finger makes it a pinch, which writes nothing.
   const fingers = useRef(new Set<number>());
@@ -407,7 +442,12 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     const c = g.columns[column];
     const per = voice !== null ? (p.voices[voice].per ?? 1) : 1;
     const part = Math.max(0, Math.min(per - 1, Math.floor(((x - c.left) / (c.right - c.left)) * per)));
-    return { bar: p.from + column, voice, onStaff, part, natural: pitchAtPosition(p.clefs[staff], position) };
+    return { bar: p.from + column, voice, onStaff, part, natural: pitchAtPosition(clefOfBar(staff, p.from + column), position) };
+  };
+  /** The clef in force on a staff in a bar, as last drawn (P6). */
+  const clefOfBar = (staff: number, bar: number): ClefId => {
+    const plan = JSON.parse(el.current?.dataset.clefs ?? "[]") as ClefId[][];
+    return plan[staff]?.[bar] ?? p.clefs[staff];
   };
   const lift = (e: React.PointerEvent) => {
     fingers.current.delete(e.pointerId);

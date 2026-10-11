@@ -694,6 +694,7 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
             pulse={highlight ?? undefined}
             voices={voices}
             clefs={drawn.clefs}
+            autoClefs={staffLayout === "open"}
             active={activeStaff}
             selected={activeBar}
             selectedPart={activePart}

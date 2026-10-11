@@ -205,7 +205,7 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
       score={
         <div className="score-wrap chorale-score">
           {ch && view ? (
-            <WtcPage fitWidth clefs={openScore ? CHORALE_CLEFS : undefined} rows={view.rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={view.barUnits / 8} selected={selected} onSlot={(s) => !showBach && setSelected(s)} />
+            <WtcPage fitWidth clefs={openScore ? CHORALE_CLEFS : undefined} autoClefs={openScore} rows={view.rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={view.barUnits / 8} selected={selected} onSlot={(s) => !showBach && setSelected(s)} />
           ) : (
             <p className="help">{t("ui.loading")}</p>
           )}

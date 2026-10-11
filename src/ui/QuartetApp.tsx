@@ -653,6 +653,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
             pulse={highlight ?? undefined}
             voices={voices}
             clefs={drawn.clefs}
+            autoClefs={staffLayout === "open"}
             active={activeStaff}
             selected={activeBar}
             selectedPart={activePart}

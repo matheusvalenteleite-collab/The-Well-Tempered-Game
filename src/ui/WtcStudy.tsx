@@ -958,11 +958,11 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
             </div>
           )}
           {view === "page" ? (
-            <WtcPage rows={pageRows} clefs={openScore ? openClefList : undefined} keySig={vexKey(F.key)} signature={sig} time={timeSig} barQuarters={barQ} selected={null} onSlot={() => undefined} />
+            <WtcPage rows={pageRows} clefs={openScore ? openClefList : undefined} autoClefs={openScore} keySig={vexKey(F.key)} signature={sig} time={timeSig} barQuarters={barQ} selected={null} onSlot={() => undefined} />
           ) : view === "score" ? (
             <WtcScore
               voices={scoreVoices}
-              clefs={openScore ? openClefList : undefined}
+              clefs={openScore ? openClefList : undefined} autoClefs={openScore}
               keySig={vexKey(F.key)}
               signature={sig}
               time={timeSig}

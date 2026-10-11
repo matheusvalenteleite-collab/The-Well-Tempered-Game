@@ -202,7 +202,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
       score={
         <div className="score-wrap chorale-score chorale-study">
           {ch && view ? (
-            <WtcPage fitWidth clefs={openScore ? CHORALE_CLEFS : undefined} rows={view.rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={view.barQ} selected={null} onSlot={() => undefined} />
+            <WtcPage fitWidth clefs={openScore ? CHORALE_CLEFS : undefined} autoClefs={openScore} rows={view.rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={view.barQ} selected={null} onSlot={() => undefined} />
           ) : (
             <p className="help">{t("ui.loading")}</p>
           )}

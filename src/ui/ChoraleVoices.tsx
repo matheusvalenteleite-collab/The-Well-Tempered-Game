@@ -263,7 +263,7 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
       }
       score={
         <div className="score-wrap chorale-score">
-          <WtcPage fitWidth clefs={openScore ? CHORALE_CLEFS : undefined} rows={rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={barUnits / 8} selected={selected} onSlot={write} />
+          <WtcPage fitWidth clefs={openScore ? CHORALE_CLEFS : undefined} autoClefs={openScore} rows={rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={barUnits / 8} selected={selected} onSlot={write} />
         </div>
       }
       transport={
