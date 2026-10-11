@@ -14,7 +14,8 @@ import { HFader } from "./HFader.tsx";
 import { TransportButtons } from "./TransportButtons.tsx";
 import { EnsembleSelect } from "./EnsembleSelect.tsx";
 import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
-import { playChorale, playChoraleEvents, prepareChoraleAudio, type ChoraleNote } from "../audio/chorale-performance.ts";
+import { fermataLinesOf, playChorale, prepareChoraleAudio, type ChoraleNote } from "../audio/chorale-performance.ts";
+import { GuideCaption, GuideList, GuideModeSelect, useGuideMode } from "./ListeningGuide.tsx";
 import { Shell } from "./Shell.tsx";
 import { WtcPage, planClefs, type WtcScoreVoice } from "./notation/WtcScore.tsx";
 import { pageRows, useRowBars } from "./notation/page-rows.ts";
@@ -124,6 +125,23 @@ export function ChoraleWorkbench({ onMode, onTutorial, stage, onStage, stageSele
   const quarters = (u: number) => (u + shift) / 8;
   const unitsOf = (offset: string) => Math.round(frac(offset) * UNIT);
   const barOfUnits = (u: number) => Math.floor((u + shift) / barUnits);
+  // P17: the words of each line, from Bach's setting of this hymn (the one under its own title), when
+  // its lines are as many as the melody's fermatas; the guide's moments belong to Bach's settings and
+  // are shown on those screens, not over the player's harmony.
+  const [guideMode, setGuideMode] = useGuideMode();
+  const wordLines = useMemo(() => {
+    const ends = c5.melody.filter((n) => n[3]).map((n) => n[0] + n[1]);
+    // Titles compared by their letters only (Kittel's "Herr Jesu Christ dich zu uns etc." is Bach's "Herr Jesu Christ, dich zu uns wend").
+    const letters = (x: string) => x.toLowerCase().replace(/ß/g, "ss").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\[etc\.\]|etc\./g, "").replace(/[^a-z]/g, "");
+    const hymn = letters(c5.title).slice(0, 14);
+    const words = c5.bach.filter((b) => letters(b.title).startsWith(hymn)).map((b) => fermataLinesOf(b.no) ?? []).find((w) => w.length === ends.length) ?? [];
+    if (!words.length) return [];
+    return words.map((item, index) => {
+      const at = index ? ends[index - 1] : 0;
+      return { item, index, bar: barOfUnits(at), shown: barOfUnits(at) + (c5.pickup ? 0 : 1) };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [c5]);
   const barLabel = (u: number) => barOfUnits(u) + (c5.pickup ? 0 : 1);
 
   // The bass the player wrote (stage 3), each degree nearest the bass before, as long as its note.
@@ -388,9 +406,13 @@ export function ChoraleWorkbench({ onMode, onTutorial, stage, onStage, stageSele
       playChorale(audio, { voices: four, barUnits, pickup: c5.pickup }, (b) => (b < 0 ? stop() : setCursor(b)), from);
       return;
     }
-    const events: PlayEvent[] = [];
-    const ev = (at: number, dur: number, extra: NonNullable<PlayEvent["extra"]>) => extra.length && events.push({ slot: barOfUnits(at), at: at / UNIT, length: dur / UNIT, cantus: null, counterpoint: null, extra });
-    for (const [at, dur, pitch] of c5.melody) ev(at, dur, [{ channel: "counterpoint", pitch }]);
+    // P23: stages 1-4 performed too (the fermatas as the reading chosen, the phrase arch): the melody,
+    // the inner chord tones and the bass laid out as the chorale's voices (soprano, -, inner, bass).
+    const inner: ChoraleNote[] = [];
+    const bassLine: ChoraleNote[] = [];
+    const ev = (at: number, dur: number, extra: NonNullable<PlayEvent["extra"]>) => {
+      for (const x of extra) (x.channel === "fux" ? bassLine : inner).push([at, dur, x.pitch]);
+    };
     const noteAt = (u: number) => c5.melody.find(([at]) => at === u);
     if (stage <= 2) {
       const chords: [number, string][] = stage === 1 ? ch.phrases.map((ph, k) => [unitsOf(ph.offset), mine1[k]] as [number, string | null]).filter((x): x is [number, string] => !!x[1]) : l2.notes.map((n, i) => [unitsOf(n.offset), mine2[i]] as [number, string | null]).filter((x): x is [number, string] => !!x[1]);
@@ -410,7 +432,8 @@ export function ChoraleWorkbench({ onMode, onTutorial, stage, onStage, stageSele
     prepareChoraleAudio(audio);
     setPlaying(true);
     setPausedAt(null);
-    playChoraleEvents(audio, events, (b) => (b < 0 ? stop() : setCursor(b)), from);
+    const byTime = (a: ChoraleNote, b: ChoraleNote) => a[0] - b[0];
+    playChorale(audio, { voices: [c5.melody as ChoraleNote[], [], inner.sort(byTime), bassLine.sort(byTime)], barUnits, pickup: c5.pickup }, (b) => (b < 0 ? stop() : setCursor(b)), from);
   };
   const liveKey = JSON.stringify([stage, ch.number, bassNo, mine1, mine2, mine3, mine4, voices5, mine6, bachShown]);
   const lastLive = useRef(liveKey);
@@ -608,6 +631,7 @@ export function ChoraleWorkbench({ onMode, onTutorial, stage, onStage, stageSele
       }
       transport={
         <div className="controls chorale-controls">
+          {guideMode === "captions" && wordLines.length > 0 && <GuideCaption moments={[]} lines={wordLines} cursor={playing || pausedAt !== null ? Math.max(0, cursor) : -1} />}
           <div className="group write" role="group" aria-label={t("chorale.choose")}>
             <span className="prompt">{prompt}</span>
             {stage <= 4 &&
@@ -655,6 +679,7 @@ export function ChoraleWorkbench({ onMode, onTutorial, stage, onStage, stageSele
               <TransportButtons playing={playing} pausedAt={pausedAt} onPlay={() => play()} onStop={stop} label={t("chorale.play")} />
             </span>
             <EnsembleSelect />
+            {wordLines.length > 0 && <GuideModeSelect mode={guideMode} onMode={setGuideMode} />}
             <label className="check" title={t("ui.view.staves.open.help")}>
               <input type="checkbox" checked={openScore} onChange={(e) => setStaffLayout(e.target.checked ? "open" : "compact")} /> {t("ui.view.staves.open")}
             </label>
@@ -683,6 +708,7 @@ export function ChoraleWorkbench({ onMode, onTutorial, stage, onStage, stageSele
       idle={t("chorale.wb.idle", { n: ch.number, label: b4.label })}
       tabs={[
         { id: "compare", label: t("chorale.tab.compare"), text: true, content: compareTab },
+        ...(wordLines.length ? [{ id: "guide", label: t("listen.tab"), text: true, content: <><p className="muted">{t("listen.workbench")}</p><GuideList moments={[]} lines={wordLines} quiet /></> }] : []),
         {
           id: "about",
           label: t("chorale.wb.tab.about"),

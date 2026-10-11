@@ -309,3 +309,24 @@ These are interpolations, not sourced figures, and the slider changes them live.
 5. To have real figures, a later step could measure fermatas and tempi in a few recordings (for
    instance the St Matthew Passion's chorales by Harnoncourt, Herreweghe, Koopman, Gardiner).
    Nothing published does this.
+
+## Implemented after revision 2
+
+**P19: dynamics.** Each note now carries its own level: `PlayEvent.db`, by channel; the engine turns it into the voice's velocity with `velocityOfDb`. In the choir practice (every ensemble but the organ):
+- every line rises to its soprano's highest note, then falls back to its cadence (`phraseLevels`);
+- the rise is 2 dB when the melody spans a fifth or more in that line, and proportionally less when it spans less, so a level line barely swells;
+- a suspension is sung 1 dB louder (C. P. E. Bach, *Versuch* I, ch. 3, §29), when the screen knows the suspensions (`Chorale.suspensions`, taken from the study's harmony);
+- the organ stays level.
+
+**P20: the fermatas chosen by the player** (the owner: "even more fermata options and the possibility of making them longer or shorter").
+- **The choices for each fermata:**
+  - as the reading decides;
+  - sung through;
+  - leaned on (×1.25);
+  - a breath in time;
+  - a caesura (in time, then a silence of twice the breath);
+  - held ×1.5, ×2 or ×3, each followed by its breath.
+- **Longer or shorter:** − and + scale the fermata's added time, its breath and its silence by a factor from ×0.25 to ×3. A slider labelled "Fermatas" scales all of them at once.
+- **On the score:** the cadence label carries a sign for each fermata (→ through, ’ breath, // caesura, ×n held). Tapping a fermata opens its row in the "Fermatas" tab, which gives the reason for the reading's choice and the player's controls.
+- **Under the strict reading,** only the fermatas the player has changed are planned.
+- **Storage and timing:** the choices are kept per chorale in this browser (`wtg.fermatas.bach-N`). A change made during playback restarts the chorale from the current bar, re-planned.

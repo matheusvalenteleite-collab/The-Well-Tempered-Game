@@ -13,7 +13,11 @@ import { HFader } from "./HFader.tsx";
 import { TransportButtons } from "./TransportButtons.tsx";
 import { EnsembleSelect } from "./EnsembleSelect.tsx";
 import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
-import { fermataWordsOf, playChorale, prepareChoraleAudio } from "../audio/chorale-performance.ts";
+import { currentReading, fermataLinesOf, fermataWordsOf, planFermatas, playChorale, prepareChoraleAudio, type Chorale } from "../audio/chorale-performance.ts";
+import { notesFor, useListeningNotes } from "../chorale/listening-notes.ts";
+import { commentaryFor, mergeGuide } from "./chorale-commentary.ts";
+import { GuideCaption, GuideList, GuideModeSelect, marker, useGuideMode } from "./ListeningGuide.tsx";
+import { FermataList, FermataScale, fermataSign, useFermataEdits } from "./FermataEditor.tsx";
 import { Shell } from "./Shell.tsx";
 import { WtcPage, type WtcScoreVoice, planClefs } from "./notation/WtcScore.tsx";
 import { pageRows, useRowBars } from "./notation/page-rows.ts";
@@ -82,6 +86,11 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
   // P5: the engine as the chorales need it, whatever the last screen left.
   useEffect(() => prepareChoraleAudio(audio), []);
   const openScore = useStaffLayout() === "open";
+  // P17, P20: the listening guide (Bach's setting) and the fermatas, shared with the study of this chorale.
+  const [guideMode, setGuideMode] = useGuideMode();
+  const listening = useListeningNotes();
+  const [fermataEdits, setFermataEdit] = useFermataEdits(`bach-${number}`);
+  const [replan, setReplan] = useState(0);
 
   const list = data ? data.chorales.filter((c) => !onlyKittel || c.kittel) : [];
   const ch = data ? data.chorales.find((c) => c.n === number) ?? data.chorales[0] : null;
@@ -97,6 +106,33 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
     const barUnits = (UNIT * num) / den;
     const shift = ch.pickup ? barUnits - ch.pickup : 0;
     const quarters = (u: number) => (u + shift) / 8;
+    const drawnBar = (u: number) => Math.floor((u + shift) / barUnits);
+    const shownBar = (u: number) => drawnBar(u) + (ch.pickup ? 0 : 1);
+    // P17: the guide's moments belong to Bach's setting (the reduction leaves out its incidental
+    // notes): shown with it; the words of each line always.
+    const moments = showBach ? mergeGuide(listening ? notesFor(listening, ch.n) : [], commentaryFor(ch.n, barUnits, ch.pickup)).map((item, index) => ({ item, index, bar: drawnBar(item.at), shown: shownBar(item.at) })) : [];
+    const ends = ch.voices[0].filter((n) => n[3]).map((n) => n[0] + n[1]);
+    const wordLines = (fermataLinesOf(ch.n) ?? []).map((item, index) => {
+      const at = index ? ends[index - 1] ?? 0 : 0;
+      return { item, index, bar: drawnBar(at), shown: shownBar(at) };
+    });
+    // P19, P20: the chorale as performed: suspensions (Bach's, when his setting sounds) and the player's fermatas.
+    const SUSPENSION = data?.kinds.indexOf("suspension") ?? -1;
+    const perf: Chorale = {
+      voices: showBach ? ch.voices : lines,
+      barUnits,
+      pickup: ch.pickup,
+      cadences: ch.cadences,
+      fermataWords: fermataWordsOf(ch.n),
+      suspensions: showBach ? ch.harmony.flatMap((h) => (h[4] ?? []).filter(([, k]) => k === SUSPENSION).map(([v]) => [h[0], v] as [number, number])) : [],
+      fermataEdits,
+    };
+    const plans = planFermatas(perf, currentReading());
+    const fermataWordList = fermataLinesOf(ch.n) ?? [];
+    const fermataRows = ch.voices[0].filter((n) => n[3]).map((n, k) => {
+      const line = fermataWordList[k];
+      return { plan: plans.find((p) => p.at === n[0]), bar: shownBar(n[0]), word: line ? line.split(/\s+/).pop() : null };
+    });
     const shown = showBach ? ch.voices : lines;
     const voices: WtcScoreVoice[] = shown.map((notes, v) => {
       const base = red.voices[v];
@@ -109,7 +145,11 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
           const i = base.findIndex((b) => b[0] === at);
           const added = !showBach && v > 0 && i < 0;
           const bad = errors.some((e) => e.v === v && e.at === at);
-          return { pitch, at: quarters(at), dur: dur / 8, fermata: Boolean(f) && (openScore || v === 0 || v === 3), ...(i >= 0 && v > 0 && !showBach ? { slot: slotOf(v, i) } : {}), ...(bad ? { ink: INK.grave } : added ? { ink: INK.mine } : {}) };
+          // P17, P20: over the soprano, the guide's markers and how each fermata is sung.
+          const marks = v === 0 && guideMode !== "off" ? moments.filter((m) => m.item.at >= at && m.item.at < at + dur).map((m) => marker(m.index)).join("") : "";
+          const sign = v === 0 && f ? fermataSign(plans.find((p) => p.at === at)) : "";
+          const label = [marks, sign].filter(Boolean).join(" ");
+          return { pitch, at: quarters(at), dur: dur / 8, fermata: Boolean(f) && (openScore || v === 0 || v === 3), ...(i >= 0 && v > 0 && !showBach ? { slot: slotOf(v, i) } : {}), ...(bad ? { ink: INK.grave } : added ? { ink: INK.mine } : {}), ...(label ? { label } : {}) };
         }),
       };
     });
@@ -117,8 +157,8 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
     const rows = pageRows({ voices, barQ: barUnits / 8, bars, rowBars, cursor, key: `${ch.n}-${showBach}`, label: (a, z) => t("chorale.l6.rowLabel", { n: ch.n, title: ch.title, a: a + (ch.pickup ? 0 : 1), b: z - (ch.pickup ? 1 : 0) }) });
     // P15: one clef plan for the whole chorale, so that the clefs hold across the rows.
     const clefPlan = openScore ? planClefs(voices, CHORALE_CLEFS, barUnits / 8) : undefined;
-    return { rows, barUnits, shift, clefPlan };
-  }, [ch, red, lines, showBach, errors, rowBars, cursor, openScore]);
+    return { rows, barUnits, shift, clefPlan, moments, wordLines, perf, fermataRows };
+  }, [ch, red, lines, showBach, errors, rowBars, cursor, openScore, guideMode, listening, fermataEdits, replan, data]);
 
   const sel = selected === null || !red ? null : { v: Math.floor(selected / 1000), i: selected % 1000 };
   const opts = sel && red ? options(red.voices[sel.v], sel.i) : [];
@@ -141,12 +181,12 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
     prepareChoraleAudio(audio);
     setPlaying(true);
     setPausedAt(null);
-    playChorale(audio, { voices: showBach ? ch.voices : lines, barUnits: view.barUnits, pickup: ch.pickup, cadences: ch.cadences, fermataWords: fermataWordsOf(ch.n) }, (b) => {
+    playChorale(audio, view.perf, (b) => {
       if (b < 0) return stop();
       setCursor(b);
     }, from);
   };
-  const liveKey = JSON.stringify([ch?.n, showBach, mine]);
+  const liveKey = JSON.stringify([ch?.n, showBach, mine, fermataEdits, replan]);
   const lastLive = useRef(liveKey);
   useEffect(() => {
     if (lastLive.current === liveKey) return;
@@ -237,11 +277,13 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
             </label>
             <button className="btn-edit" onClick={() => { if (ch) setAll({ ...all, [ch.n]: {} }); setCompared(null); }}>{t("ui.clearAll")}</button>
           </div>
+          {guideMode === "captions" && view && <GuideCaption moments={view.moments} lines={view.wordLines} cursor={playing || pausedAt !== null ? Math.max(0, cursor) : -1} />}
           <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
             <span className="play-split">
               <TransportButtons playing={playing} pausedAt={pausedAt} onPlay={() => play()} onStop={stop} label={t("chorale.play")} />
             </span>
-            <EnsembleSelect />
+            <EnsembleSelect onReading={() => setReplan((x) => x + 1)} />
+            <GuideModeSelect mode={guideMode} onMode={setGuideMode} />
             <label className="check" title={t("ui.view.staves.open.help")}>
               <input type="checkbox" checked={openScore} onChange={(e) => setStaffLayout(e.target.checked ? "open" : "compact")} /> {t("ui.view.staves.open")}
             </label>
@@ -249,6 +291,7 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
               <input type="checkbox" checked={onlyKittel} onChange={(e) => setOnlyKittel(e.target.checked)} /> {t("chorale.study.onlyKittel")}
             </label>
             <div className="hfaders">
+              <FermataScale onChange={() => setReplan((x) => x + 1)} />
               <HFader label={t("ui.tempo")} help={t("ui.tempo.help")} value={tempo} min={30} max={120} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
             </div>
           </div>
@@ -290,6 +333,23 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
             ) : (
               <p className="muted">{t("chorale.l6.before")}</p>
             ),
+        },
+        {
+          id: "fermatas",
+          label: t("fermata.tab"),
+          text: true,
+          content: view ? <FermataList rows={view.fermataRows} edits={fermataEdits} onEdit={setFermataEdit} selected={null} onSelect={() => undefined} tap={false} /> : null,
+        },
+        {
+          id: "guide",
+          label: t("listen.tab"),
+          text: true,
+          content: view ? (
+            <>
+              {!showBach && <p className="muted">{t("listen.bachOnly")}</p>}
+              <GuideList moments={view.moments} lines={view.wordLines} quiet={!showBach} />
+            </>
+          ) : null,
         },
         {
           id: "about",

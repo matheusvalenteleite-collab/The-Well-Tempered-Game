@@ -4,12 +4,33 @@
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { parseKern } from "../../src/wtc/kern.ts";
 
+/**
+ * P23: appoggiaturas the WTC encodings leave in local comments (e.g. wtc2p23.krn: "! (16eeP/" before
+ * "8dd#p\"; kern P marks an appoggiatura, p its main note): each read as a long grace (Q) on the next
+ * note of its spine, so that it is heard (half the main note, two thirds of a dotted one).
+ */
+export function appoggiaturas(text: string): string {
+  return text
+    .split("\n")
+    .map((l) => {
+      if (!/^![^!]/.test(l) || !/\d[a-gA-G]+[#n-]*P/.test(l)) return l;
+      return l
+        .split("\t")
+        .map((f) => {
+          const m = /^!\s*\(?(\d+\.?)([a-gA-G]+[#n-]*)P/.exec(f);
+          return m ? `${m[1]}${m[2]}Q` : ".";
+        })
+        .join("\t");
+    })
+    .join("\n");
+}
+
 const dirs = ["data/sources/bach-wtc/kern", "data/sources/bach-inventions/kern"];
 const out: Record<string, [number, number, string, string, string[]?][]> = {};
 const counts: Record<string, number> = {};
 for (const dir of dirs)
   for (const f of readdirSync(dir).filter((x) => x.endsWith(".krn")).sort()) {
-    const k = parseKern(readFileSync(`${dir}/${f}`, "utf8"));
+    const k = parseKern(appoggiaturas(readFileSync(`${dir}/${f}`, "utf8")));
     const rows: [number, number, string, string, string[]?][] = [];
     k.voices.forEach((v, i) =>
       v.forEach((n) => {

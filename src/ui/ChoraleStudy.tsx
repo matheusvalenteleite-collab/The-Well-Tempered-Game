@@ -16,8 +16,10 @@ import { TransportButtons } from "./TransportButtons.tsx";
 import { figureLabel } from "../counterpoint/interval.ts";
 import { EnsembleSelect } from "./EnsembleSelect.tsx";
 import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
-import { choraleGates, fermataLinesOf, fermataWordsOf, playChorale, prepareChoraleAudio } from "../audio/chorale-performance.ts";
+import { choraleGates, currentReading, fermataLinesOf, fermataWordsOf, planFermatas, playChorale, prepareChoraleAudio, type Chorale } from "../audio/chorale-performance.ts";
+import { FermataList, FermataScale, fermataSign, useFermataEdits } from "./FermataEditor.tsx";
 import { notesFor, useListeningNotes } from "../chorale/listening-notes.ts";
+import { commentaryFor, mergeGuide } from "./chorale-commentary.ts";
 import { GuideCaption, GuideList, GuideModeSelect, marker, useGuideMode } from "./ListeningGuide.tsx";
 import { Shell } from "./Shell.tsx";
 import { WtcPage, type WtcScoreVoice, planClefs } from "./notation/WtcScore.tsx";
@@ -97,6 +99,10 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
   // P17: the listening guide (captions while playing, markers, or none).
   const [guideMode, setGuideMode] = useGuideMode();
   const listening = useListeningNotes();
+  // P20: the player's fermatas for this chorale; the one chosen on the score; a change re-plans them.
+  const [fermataEdits, setFermataEdit] = useFermataEdits(`bach-${number}`);
+  const [fermataSel, setFermataSel] = useState<number | null>(null);
+  const [replan, setReplan] = useState(0);
   const stop = () => {
     audio.stop();
     if (timer.current) window.clearInterval(timer.current);
@@ -116,6 +122,20 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
     if (!ch || !data) return null;
     const [num, den] = ch.meter.split("/").map(Number);
     const barUnits = (UNIT * num) / den;
+    // The chorale as it is performed (P14, P19, P20): its cadences, words, suspensions and the player's fermatas.
+    const SUSPENSION = data.kinds.indexOf("suspension");
+    const perf: Chorale = {
+      voices: ch.voices,
+      barUnits,
+      pickup: ch.pickup,
+      cadences: ch.cadences,
+      fermataWords: fermataWordsOf(ch.n),
+      suspensions: ch.harmony.flatMap((h) => (h[4] ?? []).filter(([, k]) => k === SUSPENSION).map(([v]) => [h[0], v] as [number, number])),
+      fermataEdits,
+    };
+    const plans = planFermatas(perf, currentReading());
+    const fermataWordList = fermataLinesOf(ch.n) ?? [];
+    let fk = -1;
     // The upbeat bar drawn whole: the music starts where the upbeat begins in it.
     const shift = ch.pickup ? barUnits - ch.pickup : 0;
     const quarters = (u: number) => (u + shift) / 8;
@@ -125,7 +145,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
     // P17: the guide's moments, placed in their bars; the line sung from each phrase start.
     const drawnBar = (u: number) => Math.floor((u + shift) / barUnits);
     const shownBar = (u: number) => drawnBar(u) + (ch.pickup ? 0 : 1);
-    const moments = (listening ? notesFor(listening, ch.n) : []).map((item, index) => ({ item, index, bar: drawnBar(item.at), shown: shownBar(item.at) }));
+    const moments = mergeGuide(listening ? notesFor(listening, ch.n) : [], commentaryFor(ch.n, barUnits, ch.pickup)).map((item, index) => ({ item, index, bar: drawnBar(item.at), shown: shownBar(item.at) }));
     const ends = ch.voices[0].filter((n) => n[3]).map((n) => n[0] + n[1]);
     const lines = (fermataLinesOf(ch.n) ?? []).map((item, index) => {
       const at = index ? ends[index - 1] ?? 0 : 0;
@@ -134,14 +154,18 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
     const voices: WtcScoreVoice[] = ch.voices.map((notes, v) => ({
       staff: openScore ? v : v < 2 ? 0 : 1,
       ink: NOTE_INK,
-      editable: false,
+      // P20: the soprano's fermatas answer a tap (they open their choices); nothing else is editable.
+      editable: v === 0,
       notes: notes.map(([at, dur, pitch, fermata]) => {
+        const k = v === 0 && fermata ? ++fk : -1;
         const kind = layers.incidental ? struck.get(`${v}|${at}`) : undefined;
         // The cadence named over the soprano's note at the phrase end.
         const cad = v === 0 && layers.cadences ? [...cadAt.values()].find((c) => c[0] >= at && c[0] < at + dur) : undefined;
         // P17: the guide's markers over the soprano's note sounding at each moment.
         const marks = v === 0 && guideMode !== "off" ? moments.filter((m) => m.item.at >= at && m.item.at < at + dur).map((m) => marker(m.index)).join("") : "";
-        const label = [marks, cad ? `${t(`chorale.study.cad.${CADENCE_SHORT[cad[1]] ?? "other"}`)} ${cad[2]}`.trim() : ""].filter(Boolean).join(" ");
+        // P20: the fermata's treatment beside its cadence (→ through, ’ breath, // caesura, ×n held).
+        const sign = v === 0 && fermata ? fermataSign(plans.find((p) => p.at === at)) : "";
+        const label = [marks, cad ? `${t(`chorale.study.cad.${CADENCE_SHORT[cad[1]] ?? "other"}`)} ${cad[2]}`.trim() : "", sign].filter(Boolean).join(" ");
         return {
           pitch,
           at: quarters(at),
@@ -150,6 +174,8 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
           fermata: Boolean(fermata) && (openScore || v === 0 || v === 3),
           ...(kind !== undefined ? { ink: KIND_INK[kind] } : {}),
           ...(label ? { label } : {}),
+          // P20: the fermata's index as the slot a tap reports.
+          ...(k >= 0 ? { slot: k } : {}),
         };
       }),
     }));
@@ -166,8 +192,13 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
     const rows = pageRows({ voices, under, barQ, bars, rowBars, cursor, key: String(ch.n), label: (a, z) => t("chorale.study.rowLabel", { n: ch.n, title: ch.title, a: a + (ch.pickup ? 0 : 1), b: z - (ch.pickup ? 1 : 0) }) });
     // P15: one clef plan for the whole chorale, so that the clefs hold across the rows.
     const clefPlan = openScore ? planClefs(voices, CHORALE_CLEFS, barQ) : undefined;
-    return { rows, barQ, barUnits, shift, clefPlan, moments, lines };
-  }, [ch, data, layers, cursor, rowBars, openScore, guideMode, listening]);
+    // One row a soprano fermata (a strict reading plans none: they are sung as written).
+    const fermataRows = ch.voices[0].filter((n) => n[3]).map((n, k) => {
+      const line = fermataWordList[k];
+      return { plan: plans.find((p) => p.at === n[0]), bar: shownBar(n[0]), word: line ? line.split(/\s+/).pop() : null };
+    });
+    return { rows, barQ, barUnits, shift, clefPlan, moments, lines, perf, fermataRows };
+  }, [ch, data, layers, cursor, rowBars, openScore, guideMode, listening, fermataEdits, replan]);
 
   // P5: through the live loop (tempo and the voices heard apply at once), with a pause.
   const play = () => {
@@ -181,11 +212,22 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
     setPlaying(true);
     const from = pausedAt ?? 0;
     setPausedAt(null);
-    playChorale(audio, { voices: ch.voices, barUnits: view.barUnits, pickup: ch.pickup, cadences: ch.cadences, fermataWords: fermataWordsOf(ch.n) }, (b) => {
+    playChorale(audio, view.perf, (b) => {
       if (b < 0) return stop();
       setCursor(b);
     }, from);
   };
+  // P20: a fermata changed while the chorale plays: it goes on from the bar it is in, re-planned (D57).
+  const restart = useRef<() => void>(() => undefined);
+  restart.current = () => {
+    if (!playing || !view) return;
+    audio.stop();
+    playChorale(audio, view.perf, (b) => {
+      if (b < 0) return stop();
+      setCursor(b);
+    }, Math.max(0, cursor));
+  };
+  useEffect(() => restart.current(), [fermataEdits, replan]);
 
   // The row playing kept in sight.
   const row = cursor >= 0 ? Math.floor(cursor / rowBars) : -1;
@@ -223,7 +265,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
       score={
         <div className="score-wrap chorale-score chorale-study">
           {ch && view ? (
-            <WtcPage fitWidth clefs={openScore ? CHORALE_CLEFS : undefined} clefPlan={view.clefPlan} rows={view.rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={view.barQ} selected={null} onSlot={() => undefined} />
+            <WtcPage fitWidth clefs={openScore ? CHORALE_CLEFS : undefined} clefPlan={view.clefPlan} rows={view.rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={view.barQ} selected={fermataSel} onSlot={(slot) => { setFermataSel(slot); setTab("fermatas"); }} />
           ) : (
             <p className="help">{t("ui.loading")}</p>
           )}
@@ -250,7 +292,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
             <span className="play-split">
               <TransportButtons playing={playing} pausedAt={pausedAt} onPlay={play} onStop={stop} label={t("chorale.play")} />
             </span>
-            <EnsembleSelect heard={heard} />
+            <EnsembleSelect heard={heard} onReading={() => setReplan((x) => x + 1)} />
             <GuideModeSelect mode={guideMode} onMode={setGuideMode} />
             <label className="check" title={t("ui.view.staves.open.help")}>
               <input type="checkbox" checked={openScore} onChange={(e) => setStaffLayout(e.target.checked ? "open" : "compact")} /> {t("ui.view.staves.open")}
@@ -269,6 +311,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
               {t("chorale.study.onlyKittel")}
             </label>
             <div className="hfaders">
+              <FermataScale onChange={() => setReplan((x) => x + 1)} />
               <HFader label={t("ui.tempo")} help={t("ui.tempo.help")} value={tempo} min={30} max={120} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
             </div>
           </div>
@@ -299,6 +342,12 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
               {ch.kittel && <p className="help">{t("chorale.study.kittel", { list: ch.kittel.join(", ") })}</p>}
             </div>
           ) : null,
+        },
+        {
+          id: "fermatas",
+          label: t("fermata.tab"),
+          text: true,
+          content: view ? <FermataList rows={view.fermataRows} edits={fermataEdits} onEdit={setFermataEdit} selected={fermataSel} onSelect={setFermataSel} /> : null,
         },
         {
           id: "guide",
