@@ -270,3 +270,20 @@ export function innerVoices(vm: VoiceModel, slots: Slot[], r?: () => number, T =
   for (let i = 1; i < ps.length; i++) cost += ps[i].cost + moveCost(vm, slots[i - 1], slots[i], ps[i - 1], ps[i], o);
   return { alto: ps.map((p) => p.alto), tenor: ps.map((p) => p.tenor), cost: cost / slots.length };
 }
+
+/** How surprising Bach's alto and tenor at slot i are, given his at slot i-1 (X1): -log2 of their
+ *  probability among every pair the search would consider there, and the pair it would have chosen.
+ *  Null where his pair is not among them (an incidental note on the beat, a voice out of range or
+ *  crossing) or where the slot before has no pair of his. */
+export function voiceSurprise(vm: VoiceModel, slots: Slot[], i: number, alto: (string | null)[], tenor: (string | null)[]): { bits: number; expected: { alto: string; tenor: string; p: number } } | null {
+  if (i < 1 || !alto[i] || !tenor[i] || !alto[i - 1] || !tenor[i - 1]) return null;
+  const prev: Pair = { alto: alto[i - 1]!, tenor: tenor[i - 1]!, a: midiOf(alto[i - 1]!), t: midiOf(tenor[i - 1]!), cost: 0 };
+  const layer = pairs(vm, slots[i]);
+  const same = (p: Pair) => midiOf(p.alto) === midiOf(alto[i]!) && midiOf(p.tenor) === midiOf(tenor[i]!) && letterOf(p.alto) === letterOf(alto[i]!) && letterOf(p.tenor) === letterOf(tenor[i]!);
+  const w = layer.map((q) => Math.pow(2, -(q.cost + moveCost(vm, slots[i - 1], slots[i], prev, q))));
+  const z = w.reduce((a, b) => a + b, 0);
+  const k = layer.findIndex(same);
+  if (k < 0 || z <= 0) return null;
+  const best = w.indexOf(Math.max(...w));
+  return { bits: -Math.log2(w[k] / z), expected: { alto: layer[best].alto, tenor: layer[best].tenor, p: w[best] / z } };
+}

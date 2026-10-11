@@ -1,0 +1,397 @@
+<title>Bach's Exceptions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: a rater's desk — the list of moments in a narrow column, the moment itself (score, sound, verdict) beside it. */
+  :root {
+    --bg: #f3f4f6;
+    --panel: #ffffff;
+    --ink: #1c2230;
+    --muted: #5d6576;
+    --rule: #d9dde5;
+    --accent: #2f5d62;
+    --accent-soft: #e2ecec;
+    --mark: #b4442f;
+    --beautiful: #a8730c;
+    --idiomatic: #2c5f9e;
+    --slip: #a33636;
+    --unsure: #6a6f7c;
+    --font-display: "Spectral", "Iowan Old Style", Georgia, serif;
+    --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14171d; --panel: #1c2028; --ink: #e6e8ee; --muted: #9aa1b0; --rule: #2e3440;
+      --accent: #7fb6b9; --accent-soft: #243437; --mark: #e2775f;
+      --beautiful: #e0ae4a; --idiomatic: #7aa7e0; --slip: #e07a7a; --unsure: #9aa1b0;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14171d; --panel: #1c2028; --ink: #e6e8ee; --muted: #9aa1b0; --rule: #2e3440;
+    --accent: #7fb6b9; --accent-soft: #243437; --mark: #e2775f;
+    --beautiful: #e0ae4a; --idiomatic: #7aa7e0; --slip: #e07a7a; --unsure: #9aa1b0;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
+  .wrap { padding-inline: 16px; padding-block: 20px 40px; max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; }
+  @media (max-width: 860px) { .wrap { grid-template-columns: minmax(0, 1fr); } .list { max-height: 260px; } }
+  header.top { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; }
+  h1 { font-family: var(--font-display); font-weight: 600; font-size: 1.9rem; margin: 0; letter-spacing: 0.005em; text-wrap: balance; }
+  .lede { color: var(--muted); max-width: 70ch; margin: 4px 0 0; }
+  .progress { font-family: var(--font-data); font-size: 0.85rem; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+  .bar { width: 160px; height: 6px; background: var(--rule); border-radius: 3px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+  .notice { grid-column: 1 / -1; font-size: 0.85rem; color: var(--muted); border-left: 3px solid var(--rule); padding: 2px 10px; }
+
+  .list { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; overflow-y: auto; max-height: calc(100vh - 140px); position: sticky; top: env(safe-area-inset-top, 0px); }
+  .filters { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; border-bottom: 1px solid var(--rule); position: sticky; top: 0; background: var(--panel); z-index: 1; }
+  .chip { font: inherit; font-size: 0.78rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--rule); background: transparent; color: var(--muted); cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--accent-soft); color: var(--ink); border-color: var(--accent); }
+  .level-head { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding: 10px 12px 4px; }
+  .item { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 8px; align-items: center; width: 100%; text-align: left; font: inherit; color: inherit; background: none; border: 0; border-top: 1px solid var(--rule); padding: 7px 12px; cursor: pointer; }
+  .item:hover { background: var(--accent-soft); }
+  .item[aria-current="true"] { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+  .item .dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--rule); }
+  .item .dot[data-r="beautiful"] { background: var(--beautiful); border-color: var(--beautiful); }
+  .item .dot[data-r="idiomatic"] { background: var(--idiomatic); border-color: var(--idiomatic); }
+  .item .dot[data-r="slip"] { background: var(--slip); border-color: var(--slip); }
+  .item .dot[data-r="unsure"] { background: var(--unsure); border-color: var(--unsure); }
+  .item .t { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.86rem; }
+  .item .b { font-family: var(--font-data); font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .moment { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 18px 20px 20px; min-width: 0; display: grid; gap: 14px; }
+  .mhead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 16px; }
+  .mhead h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.45rem; margin: 0; text-wrap: balance; }
+  .meta { font-size: 0.85rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+  .meta a { color: var(--accent); }
+  .level { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 8px; border-radius: 4px; background: var(--accent-soft); color: var(--ink); }
+  .facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; margin: 0; }
+  .facts dt { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding-top: 2px; }
+  .facts dd { margin: 0; }
+  .facts dd.bach { font-weight: 500; }
+  .bits { font-family: var(--font-data); }
+  .bits small { color: var(--muted); font-family: var(--font-body); }
+  .score { overflow-x: auto; border: 1px solid var(--rule); border-radius: 6px; padding: 6px 4px; background: var(--panel); }
+  .score svg { max-width: none; }
+  .play { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+  button.act { font: inherit; font-size: 0.9rem; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: var(--panel); cursor: pointer; }
+  button.act.ghost { background: transparent; color: var(--accent); }
+  button:focus-visible, .chip:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .tempo { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--muted); }
+  .tempo output { font-family: var(--font-data); min-width: 3ch; }
+  .lane { position: relative; height: 8px; background: var(--rule); border-radius: 4px; flex: 1 1 200px; min-width: 120px; }
+  .lane .head { position: absolute; top: 0; bottom: 0; left: 0; width: 0; background: var(--accent); border-radius: 4px; }
+  .lane .m { position: absolute; top: -4px; bottom: -4px; width: 3px; background: var(--mark); border-radius: 2px; }
+  label.inline { font-size: 0.85rem; color: var(--muted); display: inline-flex; gap: 6px; align-items: center; }
+
+  .verdict { display: grid; gap: 10px; border-top: 1px solid var(--rule); padding-top: 14px; }
+  .verdict h3 { margin: 0; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 500; }
+  .choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; }
+  .choice { font: inherit; text-align: left; padding: 10px 12px; border-radius: 8px; border: 1.5px solid var(--rule); background: transparent; color: var(--ink); cursor: pointer; display: grid; gap: 2px; }
+  .choice b { font-weight: 600; display: flex; justify-content: space-between; gap: 8px; }
+  .choice kbd { font-family: var(--font-data); font-size: 0.75rem; color: var(--muted); border: 1px solid var(--rule); border-radius: 3px; padding: 0 4px; }
+  .choice span { font-size: 0.8rem; color: var(--muted); }
+  .choice[data-r="beautiful"][aria-pressed="true"] { border-color: var(--beautiful); box-shadow: inset 0 0 0 1px var(--beautiful); }
+  .choice[data-r="idiomatic"][aria-pressed="true"] { border-color: var(--idiomatic); box-shadow: inset 0 0 0 1px var(--idiomatic); }
+  .choice[data-r="slip"][aria-pressed="true"] { border-color: var(--slip); box-shadow: inset 0 0 0 1px var(--slip); }
+  .choice[data-r="unsure"][aria-pressed="true"] { border-color: var(--unsure); box-shadow: inset 0 0 0 1px var(--unsure); }
+  textarea { font: inherit; width: 100%; min-height: 64px; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink); resize: vertical; }
+  .nav { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .saved { font-size: 0.8rem; color: var(--muted); }
+  .keys { font-size: 0.8rem; color: var(--muted); }
+  @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Bach's Exceptions</h1>
+      <p class="lede">The choices in Bach's 370 chorales that surprise the generator most, measured by models that never saw the tune. Listen, read, and say what kind of rarity each one is.</p>
+    </div>
+    <div class="progress" aria-live="polite"><span id="count">0 of 0 rated</span><div class="bar"><i id="bar"></i></div></div>
+  </header>
+  <p class="notice" id="notice" hidden></p>
+
+  <nav class="list" aria-label="Moments">
+    <div class="filters" role="group" aria-label="Show">
+      <button class="chip" data-f="all" aria-pressed="true">All</button>
+      <button class="chip" data-f="unrated" aria-pressed="false">Unrated</button>
+    </div>
+    <div id="items"></div>
+  </nav>
+
+  <main class="moment" id="moment">
+    <div class="mhead">
+      <h2 id="m-title">Loading moments…</h2>
+      <span class="level" id="m-level"></span>
+    </div>
+    <div class="meta" id="m-meta"></div>
+    <dl class="facts">
+      <dt>Bach</dt><dd class="bach" id="m-did"></dd>
+      <dt>Expected</dt><dd id="m-exp"></dd>
+      <dt>Surprise</dt><dd class="bits" id="m-bits"></dd>
+    </dl>
+    <div class="score" id="score" aria-label="Score excerpt; the moment is marked ▼"></div>
+    <div class="play">
+      <button class="act" id="play-all" type="button">Play excerpt</button>
+      <button class="act ghost" id="play-moment" type="button">Play the moment</button>
+      <button class="act ghost" id="stop" type="button">Stop</button>
+      <div class="lane" aria-hidden="true"><div class="head" id="head"></div><div class="m" id="mk"></div></div>
+      <label class="tempo" for="tempo">♩ = <output id="tempo-out">72</output><input id="tempo" type="range" min="40" max="110" value="72"></label>
+      <label class="inline" for="solo"><input type="checkbox" id="solo"> Bring out the voice</label>
+    </div>
+    <section class="verdict" aria-labelledby="v-h">
+      <h3 id="v-h">What kind of rarity is it?</h3>
+      <div class="choices" id="choices">
+        <button class="choice" data-r="beautiful" type="button" aria-pressed="false"><b>Beautiful, expressive <kbd>1</kbd></b><span>A deliberate licence worth learning</span></button>
+        <button class="choice" data-r="idiomatic" type="button" aria-pressed="false"><b>Idiomatic <kbd>2</kbd></b><span>Ordinary Bach; the model misses why</span></button>
+        <button class="choice" data-r="slip" type="button" aria-pressed="false"><b>Slip or doubtful <kbd>3</kbd></b><span>An error, a misreading, or not convincing</span></button>
+        <button class="choice" data-r="unsure" type="button" aria-pressed="false"><b>Not sure <kbd>4</kbd></b><span>Come back to it</span></button>
+      </div>
+      <label for="note" class="keys">A note (what you hear, the text, a better reading)</label>
+      <textarea id="note" placeholder="Optional"></textarea>
+      <div class="nav">
+        <button class="act ghost" id="prev" type="button">← Previous</button>
+        <span class="saved" id="saved" aria-live="polite"></span>
+        <button class="act" id="next" type="button">Next →</button>
+      </div>
+      <p class="keys">Keys: 1–4 rate · space plays · M plays the moment · ← → move between moments.</p>
+    </section>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min.js"></script>
+<script>
+const MOMENTS = /*__MOMENTS__*/[];
+const LEVELS = { cadence: "Cadence", chord: "Chord", bass: "Bass", voices: "Inner voices", embellishment: "Embellishment" };
+const VOICE = ["soprano", "alto", "tenor", "bass"];
+const ratings = {};
+let index = 0, filter = "all", db = null, local = true;
+
+const $ = (id) => document.getElementById(id);
+const store = {
+  load() { try { return JSON.parse(localStorage.getItem("bach-exceptions") || "{}"); } catch { return {}; } },
+  save() { try { localStorage.setItem("bach-exceptions", JSON.stringify(ratings)); } catch {} },
+};
+Object.assign(ratings, store.load());
+
+function visible() { return MOMENTS.map((m, i) => i).filter((i) => filter === "all" || !ratings[MOMENTS[i].id]?.rating); }
+
+function renderList() {
+  const box = $("items");
+  box.textContent = "";
+  let level = null;
+  for (const i of visible()) {
+    const m = MOMENTS[i];
+    if (m.level !== level) {
+      level = m.level;
+      const h = document.createElement("div");
+      h.className = "level-head";
+      h.textContent = LEVELS[level];
+      box.append(h);
+    }
+    const b = document.createElement("button");
+    b.className = "item";
+    b.type = "button";
+    if (i === index) b.setAttribute("aria-current", "true");
+    const dot = document.createElement("span");
+    dot.className = "dot";
+    if (ratings[m.id]?.rating) dot.dataset.r = ratings[m.id].rating;
+    const t = document.createElement("span");
+    t.className = "t";
+    t.textContent = `No. ${m.no}, bar ${m.bar}: ${m.title}`;
+    const bits = document.createElement("span");
+    bits.className = "b";
+    bits.textContent = `${m.bits} b`;
+    b.append(dot, t, bits);
+    b.addEventListener("click", () => show(i));
+    box.append(b);
+  }
+  const n = MOMENTS.filter((m) => ratings[m.id]?.rating).length;
+  $("count").textContent = `${n} of ${MOMENTS.length} rated`;
+  $("bar").style.width = `${(100 * n) / Math.max(1, MOMENTS.length)}%`;
+}
+
+function ink() { return getComputedStyle(document.documentElement).getPropertyValue("--ink").trim() || "#000"; }
+
+function show(i) {
+  stop();
+  index = Math.max(0, Math.min(MOMENTS.length - 1, i));
+  const m = MOMENTS[index];
+  $("m-title").textContent = `No. ${m.no}, bar ${m.bar}`;
+  $("m-level").textContent = LEVELS[m.level];
+  const meta = $("m-meta");
+  meta.textContent = "";
+  for (const s of [m.title, `BWV ${m.bwv}`, m.key, m.voice === null ? "the whole chord" : `voice: ${VOICE[m.voice]}`]) {
+    const span = document.createElement("span");
+    span.textContent = s;
+    meta.append(span);
+  }
+  if (m.scan) {
+    const a = document.createElement("a");
+    a.href = m.scan;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = "Breitkopf print ↗";
+    meta.append(a);
+  }
+  $("m-did").textContent = m.did;
+  $("m-exp").textContent = m.expected;
+  $("m-bits").innerHTML = "";
+  const b = document.createElement("span");
+  b.textContent = `${m.bits} bits `;
+  const sm = document.createElement("small");
+  sm.textContent = `(about 1 in ${m.bits > 30 ? "a billion" : Math.round(2 ** m.bits).toLocaleString()})`;
+  $("m-bits").append(b, sm);
+  $("solo").disabled = m.voice === null;
+  $("solo").checked = false;
+  $("mk").style.left = `${(100 * m.mark) / m.length}%`;
+  $("head").style.width = "0";
+  if (window.ABCJS) {
+    ABCJS.renderAbc("score", m.abc, { responsive: "resize", foregroundColor: ink(), add_classes: true, paddingtop: 4, paddingbottom: 4 });
+  } else {
+    $("score").textContent = "The score could not load; the sound still plays.";
+  }
+  const r = ratings[m.id] || {};
+  for (const c of document.querySelectorAll(".choice")) c.setAttribute("aria-pressed", String(c.dataset.r === r.rating));
+  $("note").value = r.note || "";
+  $("saved").textContent = r.rating ? "Saved" : "";
+  renderList();
+}
+
+async function rate(value) {
+  const m = MOMENTS[index];
+  const prev = ratings[m.id] || {};
+  ratings[m.id] = { ...prev, rating: value, note: $("note").value };
+  store.save();
+  for (const c of document.querySelectorAll(".choice")) c.setAttribute("aria-pressed", String(c.dataset.r === value));
+  renderList();
+  await persist(m);
+}
+
+let noteTimer = null;
+$("note").addEventListener("input", () => {
+  const m = MOMENTS[index];
+  ratings[m.id] = { ...(ratings[m.id] || {}), note: $("note").value };
+  store.save();
+  clearTimeout(noteTimer);
+  noteTimer = setTimeout(() => persist(m), 800);
+});
+
+async function persist(m) {
+  if (!db) { $("saved").textContent = "Saved in this browser"; return; }
+  const r = ratings[m.id] || {};
+  try {
+    $("saved").textContent = "Saving…";
+    await db.collection("ratings").doc(m.id).set({ rating: r.rating || null, note: r.note || "", no: m.no, bar: m.bar, level: m.level, bits: m.bits, updated: new Date().toISOString() });
+    $("saved").textContent = "Saved";
+  } catch (e) {
+    $("saved").textContent = "Not saved to the shared record (kept in this browser): " + (e && e.code ? e.code : "error");
+  }
+}
+
+// ---- sound: a small organ, one note per scheduled event ----
+let ctx = null, playing = [], raf = null;
+function audio() {
+  if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+  if (ctx.state === "suspended") ctx.resume();
+  return ctx;
+}
+function tone(ac, midi, start, dur, gain) {
+  const f = 440 * Math.pow(2, (midi - 69) / 12);
+  const g = ac.createGain();
+  g.gain.setValueAtTime(0, start);
+  g.gain.linearRampToValueAtTime(gain, start + 0.02);
+  g.gain.setValueAtTime(gain, start + Math.max(0.03, dur - 0.05));
+  g.gain.linearRampToValueAtTime(0, start + dur);
+  g.connect(ac.destination);
+  for (const [mult, amp] of [[1, 1], [2, 0.35], [3, 0.12], [4, 0.06]]) {
+    const o = ac.createOscillator();
+    o.type = "sine";
+    o.frequency.value = f * mult;
+    const og = ac.createGain();
+    og.gain.value = amp;
+    o.connect(og).connect(g);
+    o.start(start);
+    o.stop(start + dur + 0.02);
+    playing.push(o);
+  }
+}
+function play(from, to) {
+  stop();
+  const m = MOMENTS[index];
+  const ac = audio();
+  const bpm = Number($("tempo").value);
+  const unit = 60 / bpm / 8; // one 32nd
+  const t0 = ac.currentTime + 0.08;
+  const solo = $("solo").checked && m.voice !== null;
+  for (const [v, on, dur, midi] of m.play) {
+    const a = Math.max(on, from), b = Math.min(on + dur, to);
+    if (b <= a) continue;
+    const gain = solo ? (v === m.voice ? 0.16 : 0.035) : 0.07;
+    tone(ac, midi, t0 + (a - from) * unit, (b - a) * unit, gain);
+  }
+  const total = (to - from) * unit;
+  const lane = () => {
+    const x = Math.min(1, (ac.currentTime - t0) / total);
+    $("head").style.width = `${100 * ((from + Math.max(0, x) * (to - from)) / m.length)}%`;
+    if (x < 1) raf = requestAnimationFrame(lane);
+  };
+  raf = requestAnimationFrame(lane);
+}
+function stop() {
+  for (const o of playing) { try { o.stop(); } catch {} }
+  playing = [];
+  if (raf) cancelAnimationFrame(raf);
+}
+$("play-all").addEventListener("click", () => play(0, MOMENTS[index].length));
+$("play-moment").addEventListener("click", () => {
+  const m = MOMENTS[index];
+  play(Math.max(0, m.mark - 16), Math.min(m.length, m.mark + 24));
+});
+$("stop").addEventListener("click", stop);
+$("tempo").addEventListener("input", () => ($("tempo-out").textContent = $("tempo").value));
+for (const c of document.querySelectorAll(".choice")) c.addEventListener("click", () => rate(c.dataset.r));
+$("prev").addEventListener("click", () => show(index - 1));
+$("next").addEventListener("click", () => show(index + 1));
+for (const c of document.querySelectorAll(".chip")) c.addEventListener("click", () => {
+  filter = c.dataset.f;
+  for (const d of document.querySelectorAll(".chip")) d.setAttribute("aria-pressed", String(d === c));
+  renderList();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.target.closest && e.target.closest("textarea, input")) return;
+  const map = { "1": "beautiful", "2": "idiomatic", "3": "slip", "4": "unsure" };
+  if (map[e.key]) { rate(map[e.key]); e.preventDefault(); }
+  else if (e.key === " ") { play(0, MOMENTS[index].length); e.preventDefault(); }
+  else if (e.key === "m" || e.key === "M") { $("play-moment").click(); }
+  else if (e.key === "ArrowRight") show(index + 1);
+  else if (e.key === "ArrowLeft") show(index - 1);
+});
+
+show(0);
+
+// the shared record: ratings the owner (and Claude) can read back
+(async () => {
+  try {
+    db = window.claude?.use ? await window.claude.use("db") : null;
+  } catch { db = null; }
+  if (!db) {
+    $("notice").hidden = false;
+    $("notice").textContent = "Ratings are kept in this browser only here: open the page signed in to claude.ai to keep them in the shared record.";
+    return;
+  }
+  try {
+    const snap = await db.collection("ratings").get();
+    for (const d of snap.docs) {
+      const x = d.data();
+      if (x) ratings[d.id] = { rating: x.rating || undefined, note: x.note || "" };
+    }
+    store.save();
+    show(index);
+  } catch {}
+})();
+</script>

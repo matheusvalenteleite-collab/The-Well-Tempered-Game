@@ -200,3 +200,17 @@ built top-down by the levels of `CONCEPT.md`. Steps: (1) cadence plan, (2) a cho
   the chorales Bach is the last word, with no errors, only warnings of varying gravity. The generator
   costs every warning by its rarity in Bach's own chorales; parallel fifths and octaves (similar
   motion, as counted in Bach) and the augmented second are the gravest.
+
+### Bach's exceptions (the owner, 11 October 2026)
+
+Rarity has several sources (avoided, marked, a rare opportunity, a slip), and a generator costed by
+rarity alone treats a parallel fifth and an expressive licence alike. The plan: X1 a map of surprise
+over the 370 chorales; X2 each moment sorted by its source (avoidance, markedness, position, text,
+the print); X3 the owner's ear as ground truth; X4 a catalogue of Bach's licences with their
+occasions; X5 a "daring" control in the generator using them where their occasion is; X6 measured
+against Bach's profile of surprise and by blind listening; X7 the Atlas's "Bach does the unexpected".
+
+- X1 built: `tools/chorales/surprise_report.ts` → `docs/chorales/EXCEPTIONS.md`,
+  `data/chorales/generator/surprise.json` (every choice's surprise, each tune held out), and the
+  rating page for X3 (`tools/chorales/exceptions-page.html` → `data/chorales/generator/exceptions.html`,
+  published as an artifact whose ratings Claude reads back).
