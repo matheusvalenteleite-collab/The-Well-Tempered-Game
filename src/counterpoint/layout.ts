@@ -174,6 +174,8 @@ export interface PlayEvent {
   extra?: { channel: "counterpoint" | "second" | "third" | "fux"; pitch: string }[];
   /** Fourth species: the length of a tied note, by voice ("counterpoint", "fux" or a version id). */
   lengths?: Record<string, number>;
+  /** P19: a note's level against its channel's, in dB, by channel ("cantus", "counterpoint", "second", a version id ...); 0 or absent: as set. */
+  db?: Record<string, number>;
 }
 
 /**

@@ -15,6 +15,7 @@ import { restoreSound, type SoundState } from "./sound.ts";
 import { SYNTH_PRESETS, type SynthSettings } from "./synth-settings.ts";
 import type { VersionId } from "../game/versions.ts";
 import fermataWordsData from "../../data/playback/chorale-fermatas.json" with { type: "json" };
+import { parsePitch } from "../music/pitch.ts";
 
 /** A note: onset and length in 32nds from the first note, pitch, and a fermata flag. */
 export type ChoraleNote = readonly [number, number, string, (0 | 1 | boolean)?];
@@ -34,7 +35,28 @@ export interface Chorale {
   cadences?: readonly (readonly [number, string, string?])[];
   /** P14: the words at each soprano fermata, in order: the punctuation ending them in every stanza line ('.', ':', ',', '' none; null no words). */
   fermataWords?: readonly (readonly (string | null)[])[];
+  /** P19: the suspensions, [onset in 32nds, voice], sung a little louder (C. P. E. Bach, Versuch I, ch. 3, §29). */
+  suspensions?: readonly (readonly [number, number])[];
+  /** P20: the player's choice for each soprano fermata, in order (none: as the reading decides). */
+  fermataEdits?: readonly (FermataEdit | null | undefined)[];
 }
+
+/**
+ * P20: what the player may make of a fermata (the owner: "even more fermata options and the
+ * possibility of making them longer or shorter"): as the reading decides; sung through; leaned on
+ * (a little longer); a breath in time; a caesura (in time, then a silence); held 1.5, 2 or 3 times.
+ */
+export const FERMATA_CHOICES = ["auto", "through", "tenuto", "breath", "caesura", "short", "hold", "long"] as const;
+export type FermataChoice = (typeof FERMATA_CHOICES)[number];
+export interface FermataEdit {
+  kind?: FermataChoice;
+  /** Longer or shorter: the hold's added time, the breath and the silence after it, multiplied (0.25-3). */
+  scale?: number;
+}
+/** P20: all fermatas longer or shorter (the screens' "Fermatas" slider), multiplying each one's own scale. */
+let fermataScaleNow = 1;
+export const currentFermataScale = () => fermataScaleNow;
+export const setFermataScale = (x: number) => (fermataScaleNow = Math.max(0.25, Math.min(3, x)));
 
 /** The bar (counted as the score draws it, the upbeat bar whole) of an onset in 32nds. */
 export const barOf = (c: Chorale, at: number) => Math.floor((at + (c.pickup ? c.barUnits - c.pickup : 0)) / c.barUnits);
@@ -57,14 +79,16 @@ export function doubled(events: PlayEvent[]): PlayEvent[] {
   return events.map((e) => {
     const versions: Partial<Record<VersionId, string>> = {};
     const lengths: Record<string, number> = { ...(e.lengths ?? {}) };
+    const db: Record<string, number> = { ...(e.db ?? {}) };
     for (const x of e.extra ?? []) {
       const v = (CHORALE_CHANNELS as readonly string[]).indexOf(x.channel);
       if (v >= 0) {
         versions[DOUBLING_CHANNELS[v]] = x.pitch;
         lengths[DOUBLING_CHANNELS[v]] = e.length;
+        if (e.db?.[x.channel]) db[DOUBLING_CHANNELS[v]] = e.db[x.channel];
       }
     }
-    return Object.keys(versions).length ? { ...e, versions: { ...(e.versions ?? {}), ...versions }, lengths } : e;
+    return Object.keys(versions).length ? { ...e, versions: { ...(e.versions ?? {}), ...versions }, lengths, ...(Object.keys(db).length ? { db } : {}) } : e;
   });
 }
 
@@ -250,8 +274,42 @@ const CADENCE_RIT: [RegExp, number][] = [[/authentic, perfect/, 0.12], [/authent
 const fullClose = (cls: string) => /authentic/.test(cls);
 
 /** Each fermata's treatment under a reading (pure; the soprano's fermatas, else any voice's). */
-export function planFermatas(c: Chorale, reading: Reading): FermataPlan[] {
-  if (reading === "strict") return [];
+export function planFermatas(c: Chorale, reading: Reading, scale = fermataScaleNow): FermataPlan[] {
+  const edits = c.fermataEdits ?? [];
+  const auto = reading === "strict" ? [] : readFermatas(c, reading);
+  if (reading === "strict" && !edits.some((e) => e && ((e.kind && e.kind !== "auto") || (e.scale ?? 1) !== 1))) return [];
+  const sop = c.voices[0] ?? [];
+  const marks = sop.filter((n) => n[3]);
+  const out: FermataPlan[] = [];
+  marks.forEach((n, k) => {
+    const e = edits[k];
+    const base = auto[k] ?? { at: n[0], end: n[0] + n[1], kind: "through" as const, hold: 1, breath: 0, gap: 0, rit: 0, why: "as written" };
+    const d = base.end - base.at;
+    const breathLen = Math.min(d / 2, d > 8 ? 8 : 4);
+    const choice = e?.kind && e.kind !== "auto" ? e.kind : null;
+    let p: FermataPlan = base;
+    if (choice) {
+      const rit = Math.max(base.rit, 0.04);
+      const plan = (kind: FermataPlan["kind"], hold: number, breath: number, gap: number, r: number, why: string): FermataPlan => ({ ...base, kind, hold, breath, gap, rit: r, why });
+      if (choice === "through") p = plan("through", 1, 0, 0, 0.02, "your choice: sung through");
+      else if (choice === "tenuto") p = plan("hold", 1.25, 0, 0, rit, "your choice: leaned on");
+      else if (choice === "breath") p = plan("breath", 1, breathLen, 0, rit, "your choice: a breath, in time");
+      else if (choice === "caesura") p = plan("breath", 1, 0, breathLen * 2, rit, "your choice: a caesura");
+      else if (choice === "short") p = plan("hold", 1.5, 0, breathLen, rit, "your choice: held half again");
+      else if (choice === "hold") p = plan("hold", 2, 0, breathLen, rit, "your choice: held twice its value");
+      else p = plan("hold", 3, 0, breathLen * 1.5, rit, "your choice: held long");
+      if (base.kind === "final") p = { ...p, kind: "final", rit: Math.max(p.rit, base.rit) };
+    }
+    // Longer or shorter: its own scale times all fermatas' scale.
+    const s = Math.max(0.25, Math.min(3, (e?.scale ?? 1) * scale));
+    if (s !== 1 && p.kind !== "through") p = { ...p, hold: 1 + (p.hold - 1) * s, breath: Math.min(d / 2, p.breath * s), gap: p.gap * s };
+    out.push(p);
+  });
+  return reading === "strict" ? out.filter((_, k) => edits[k]) : out;
+}
+
+/** The reading's own plan of each fermata (P14). */
+function readFermatas(c: Chorale, reading: Reading): FermataPlan[] {
   const sop = c.voices[0] ?? [];
   const marks = sop.filter((n) => n[3]).map((n) => [n[0], n[0] + n[1]] as [number, number]);
   const pieceEnd = Math.max(...c.voices.flatMap((v) => v.map((n) => n[0] + n[1])));
@@ -292,6 +350,35 @@ export function planFermatas(c: Chorale, reading: Reading): FermataPlan[] {
 }
 
 /**
+ * P19: the phrase's dynamic arch (docs/playback/CHORALE-PERFORMANCE.md, rev. 2, "Dynamics and
+ * balance"): from each line's start the level rises to +2 dB at the soprano's highest note in it,
+ * then falls back to 0 by the cadence (Todd 1992; the KTH rules "High loud" and "Phrase arch").
+ * A line that is level throughout swells less: the rise is scaled by the melody's span in it (a
+ * fifth or more: the whole 2 dB). The level is in dB at an onset in 32nds.
+ */
+export function phraseLevels(c: Chorale, peak = 2): (at: number) => number {
+  const sop = c.voices[0] ?? [];
+  if (!sop.length) return () => 0;
+  const midi = (p: string) => parsePitch(p).midi;
+  const ends = sop.filter((n) => n[3]).map((n) => n[0] + n[1]);
+  const last = sop[sop.length - 1][0] + sop[sop.length - 1][1];
+  if (!ends.length || ends[ends.length - 1] < last - 1e-9) ends.push(last);
+  const lines = ends.map((e, k) => {
+    const from = k ? ends[k - 1] : 0;
+    const notes = sop.filter((n) => n[0] >= from - 1e-9 && n[0] < e - 1e-9);
+    const top = notes.reduce((a, n) => (midi(n[2]) > midi(a[2]) ? n : a), notes[0] ?? sop[0]);
+    const span = notes.length ? midi(top[2]) - Math.min(...notes.map((n) => midi(n[2]))) : 0;
+    return { from, to: e, crest: top[0], height: peak * Math.min(1, span / 7) };
+  });
+  return (at: number) => {
+    const l = lines.find((x) => at >= x.from - 1e-9 && at < x.to - 1e-9);
+    if (!l || l.height === 0) return 0;
+    if (at <= l.crest) return l.crest > l.from ? (l.height * (at - l.from)) / (l.crest - l.from) : l.height;
+    return l.to > l.crest ? l.height * Math.max(0, 1 - (at - l.crest) / (l.to - l.crest)) : 0;
+  };
+}
+
+/**
  * The chorale performed: its notes moved to their performed places (still in whole notes at the
  * written tempo, so the live tempo scales them all). Into each fermata the tempo eases over two
  * beats by its cadence's weight, the last line over three (Friberg and Sundberg's final ritardando);
@@ -323,6 +410,8 @@ export function performChorale(c: Chorale, reading: Reading, practice: Practice 
   };
   const breathAt = new Map(plans.filter((f) => f.breath).map((f) => [f.end, f.breath * (factor[Math.max(0, Math.floor(f.end) - 1)] ?? 1)]));
   const lift = (0.045 / wholeSeconds) * 32; // a re-struck note's lift, about 45 ms, in 32nds
+  const level = practice === "organ" ? () => 0 : phraseLevels(c);
+  const susp = new Set((practice === "organ" ? [] : c.suspensions ?? []).map(([a, v]) => `${a}|${v}`));
   const events: PlayEvent[] = [];
   c.voices.forEach((notes, v) => {
     const channel = CHORALE_CHANNELS[Math.min(v, CHORALE_CHANNELS.length - 1)];
@@ -336,7 +425,9 @@ export function performChorale(c: Chorale, reading: Reading, practice: Practice 
       const next = notes[k + 1];
       if (next && next[2] === pitch && Math.abs(next[0] - end) < 1e-9) stop -= lift;
       stop = Math.max(start + (stop - start) * 0.5, stop);
-      events.push({ slot: barOf(c, a), at: start / 32, length: Math.max(1 / 64, (stop - start) / 32), cantus: null, counterpoint: null, extra: [{ channel, pitch }] });
+      // P19: the phrase's arch and a suspension's dissonance a little louder (choir practice only).
+      const db = level(a) + (susp.has(`${a}|${v}`) ? 1 : 0);
+      events.push({ slot: barOf(c, a), at: start / 32, length: Math.max(1 / 64, (stop - start) / 32), cantus: null, counterpoint: null, extra: [{ channel, pitch }], ...(db ? { db: { [channel]: Math.round(db * 100) / 100 } } : {}) });
     }
   });
   return events.sort((x, y) => x.at - y.at);

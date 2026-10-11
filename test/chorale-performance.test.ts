@@ -57,3 +57,39 @@ test("the chorales' words are there: no. 1 ends its first line without punctuati
   assert.deepEqual(w[0], ["", ","]);
   assert.equal(w[5][1], ".");
 });
+
+test("P20: a fermata the player chooses, longer or shorter", async () => {
+  const { setFermataScale } = await import("../src/audio/chorale-performance.ts");
+  const base = chorale();
+  const [auto0] = planFermatas(base, "context");
+  const held = planFermatas({ ...base, fermataEdits: [{ kind: "hold" }] }, "context")[0];
+  assert.equal(held.kind, "hold");
+  assert.equal(held.hold, 2);
+  const longer = planFermatas({ ...base, fermataEdits: [{ kind: "hold", scale: 2 }] }, "context")[0];
+  assert.equal(longer.hold, 3); // 1 + (2 - 1) × 2
+  assert.equal(longer.gap, held.gap * 2);
+  const through = planFermatas({ ...base, fermataEdits: [{ kind: "through", scale: 3 }] }, "context")[0];
+  assert.equal(through.kind, "through");
+  assert.equal(through.hold, 1);
+  // Strict: only the fermatas the player chose are planned.
+  assert.equal(planFermatas(base, "strict").length, 0);
+  assert.equal(planFermatas({ ...base, fermataEdits: [null, { kind: "long" }] }, "strict").length, 1);
+  // All fermatas shorter.
+  const half = planFermatas(base, "context", 0.5)[0];
+  assert.ok(half.hold <= auto0.hold);
+  setFermataScale(1);
+});
+
+test("P19: the phrase rises to its highest note and falls to the cadence; the organ stays level", async () => {
+  const { phraseLevels, performChorale } = await import("../src/audio/chorale-performance.ts");
+  const c = chorale();
+  const lv = phraseLevels(c);
+  const sop = c.voices[0];
+  const firstEnd = sop.find((n) => n[3])!;
+  const line = sop.filter((n) => n[0] < firstEnd[0] + firstEnd[1]);
+  const { parsePitch } = await import("../src/music/pitch.ts");
+  const top = line.reduce((a, n) => (parsePitch(n[2]).midi > parsePitch(a[2]).midi ? n : a));
+  assert.ok(lv(top[0]) >= lv(0));
+  assert.ok(lv(top[0]) <= 2);
+  assert.ok(performChorale(c, "context", "organ").every((e) => !e.db));
+});
