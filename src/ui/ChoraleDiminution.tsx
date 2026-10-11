@@ -13,7 +13,7 @@ import { HFader } from "./HFader.tsx";
 import { TransportButtons } from "./TransportButtons.tsx";
 import { EnsembleSelect } from "./EnsembleSelect.tsx";
 import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
-import { playChorale, prepareChoraleAudio } from "../audio/chorale-performance.ts";
+import { fermataWordsOf, playChorale, prepareChoraleAudio } from "../audio/chorale-performance.ts";
 import { Shell } from "./Shell.tsx";
 import { WtcPage, type WtcScoreVoice } from "./notation/WtcScore.tsx";
 import { pageRows, useRowBars } from "./notation/page-rows.ts";
@@ -139,7 +139,7 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
     prepareChoraleAudio(audio);
     setPlaying(true);
     setPausedAt(null);
-    playChorale(audio, { voices: showBach ? ch.voices : lines, barUnits: view.barUnits, pickup: ch.pickup }, (b) => {
+    playChorale(audio, { voices: showBach ? ch.voices : lines, barUnits: view.barUnits, pickup: ch.pickup, cadences: ch.cadences, fermataWords: fermataWordsOf(ch.n) }, (b) => {
       if (b < 0) return stop();
       setCursor(b);
     }, from);

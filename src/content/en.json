@@ -1592,6 +1592,12 @@
     "start": "Start writing"
   },
   "chorale": {
+    "reading": "Fermatas",
+    "reading.help": "How the fermatas are performed: by context (the words, the cadence, a voice moving under it), as line marks with a breath in time, or held; or the notes strictly in time",
+    "reading.context": "Fermatas: by context",
+    "reading.historical": "Fermatas: a breath, in time",
+    "reading.traditional": "Fermatas: held",
+    "reading.strict": "Strictly in time",
     "ensemble": "Ensemble",
     "ensemble.help": "Who performs the chorale: choir, four soloists, organ, string quartet, synthesizer, reeds, winds, or choir with orchestra (changes at once, even while it plays)",
     "ensemble.piano": "Piano (the game's sound)",

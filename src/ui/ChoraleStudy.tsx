@@ -16,7 +16,7 @@ import { TransportButtons } from "./TransportButtons.tsx";
 import { figureLabel } from "../counterpoint/interval.ts";
 import { EnsembleSelect } from "./EnsembleSelect.tsx";
 import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
-import { choraleGates, playChorale, prepareChoraleAudio } from "../audio/chorale-performance.ts";
+import { choraleGates, fermataWordsOf, playChorale, prepareChoraleAudio } from "../audio/chorale-performance.ts";
 import { Shell } from "./Shell.tsx";
 import { WtcPage, type WtcScoreVoice } from "./notation/WtcScore.tsx";
 import { pageRows, useRowBars } from "./notation/page-rows.ts";
@@ -162,7 +162,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
     setPlaying(true);
     const from = pausedAt ?? 0;
     setPausedAt(null);
-    playChorale(audio, { voices: ch.voices, barUnits: view.barUnits, pickup: ch.pickup }, (b) => {
+    playChorale(audio, { voices: ch.voices, barUnits: view.barUnits, pickup: ch.pickup, cadences: ch.cadences, fermataWords: fermataWordsOf(ch.n) }, (b) => {
       if (b < 0) return stop();
       setCursor(b);
     }, from);

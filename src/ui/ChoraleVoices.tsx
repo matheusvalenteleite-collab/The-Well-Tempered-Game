@@ -14,7 +14,7 @@ import { TransportButtons } from "./TransportButtons.tsx";
 import { figureLabel } from "../counterpoint/interval.ts";
 import { EnsembleSelect } from "./EnsembleSelect.tsx";
 import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
-import { playChoraleEvents, prepareChoraleAudio } from "../audio/chorale-performance.ts";
+import { playChorale, prepareChoraleAudio, type ChoraleNote } from "../audio/chorale-performance.ts";
 import { Shell } from "./Shell.tsx";
 import { WtcPage, type WtcScoreVoice } from "./notation/WtcScore.tsx";
 import { pageRows, useRowBars } from "./notation/page-rows.ts";
@@ -22,7 +22,6 @@ import { audio, store, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
 import { BACH_REFS } from "../chorale/level1.ts";
 import { HABITS, LEVEL5, compareBach, judge, share, type Finding } from "../chorale/level5.ts";
-import type { PlayEvent } from "../counterpoint/layout.ts";
 import { parsePitch, type Step } from "../music/pitch.ts";
 
 const UNIT = 32;
@@ -165,7 +164,6 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
     line[selected % n] = null;
     setWritten({ ...written, [key]: { ...mine, [voice]: line } });
   };
-  const barOfUnits = (at: number) => Math.floor((at + shift) / barUnits);
   // P5: through the live loop (tempo applies at once), with a pause; a note written while it plays
   // restarts it from the bar under the cursor.
   const play = (from = pausedAt ?? 0, fresh = false) => {
@@ -174,23 +172,30 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
       setPlaying(false);
       return setPausedAt(Math.max(0, cursor));
     }
-    const events: PlayEvent[] = [];
-    const ev = (at: number, dur: number, extra: PlayEvent["extra"]) => events.push({ slot: barOfUnits(at), at: at / UNIT, length: dur / UNIT, cantus: null, counterpoint: null, extra });
-    for (const [at, dur, pitch] of ch.melody) ev(at, dur, [{ channel: "counterpoint", pitch }]);
+    // P14: as four voices, performed (fermatas by the reading chosen, the final cadence).
+    const sop: ChoraleNote[] = ch.melody.map(([at, dur, pitch, f]) => [at, dur, pitch, f ? 1 : 0]);
+    const alto: ChoraleNote[] = [];
+    const tenor: ChoraleNote[] = [];
+    const bass: ChoraleNote[] = [];
     if (bach)
       ch.melody.forEach(([at, dur], i) => {
         const b = bach.inner[i];
-        if (b) ev(at, dur, [{ channel: "second", pitch: b[0] }, { channel: "third", pitch: b[1] }, { channel: "fux", pitch: b[2] }]);
+        if (!b) return;
+        alto.push([at, dur, b[0]]);
+        tenor.push([at, dur, b[1]]);
+        bass.push([at, dur, b[2]]);
       });
-    else for (const [at, dur, pitch] of B.bass) ev(at, dur, [{ channel: "fux", pitch }]);
-    if (!bach) B.slots.forEach((s, i) => {
-      const extra = [mine.alto[i] && { channel: "second" as const, pitch: mine.alto[i]! }, mine.tenor[i] && { channel: "third" as const, pitch: mine.tenor[i]! }].filter((x): x is { channel: "second" | "third"; pitch: string } => !!x);
-      if (extra.length) ev(s.at, s.dur, extra);
-    });
+    else {
+      for (const [at, dur, pitch] of B.bass) bass.push([at, dur, pitch]);
+      B.slots.forEach((s, i) => {
+        if (mine.alto[i]) alto.push([s.at, s.dur, mine.alto[i]!]);
+        if (mine.tenor[i]) tenor.push([s.at, s.dur, mine.tenor[i]!]);
+      });
+    }
     prepareChoraleAudio(audio);
     setPlaying(true);
     setPausedAt(null);
-    playChoraleEvents(audio, events, (b) => {
+    playChorale(audio, { voices: [sop, alto, tenor, bass], barUnits, pickup: ch.pickup }, (b) => {
       if (b < 0) return stop();
       setCursor(b);
     }, from);
