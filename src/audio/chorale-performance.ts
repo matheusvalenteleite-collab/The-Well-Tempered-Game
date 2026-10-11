@@ -119,7 +119,16 @@ export function ensembleSpec(e: Ensemble): EnsembleSpec {
         ],
       };
     case "soloists":
-      return { voices: [sung(0, 16, 0.08, 6500, true), sung(3.2, 13, 0.12, 5200, true), sung(1, 18, 0.1, 4800, true), sung(3.6, 11, 0.14, 3400, true)] };
+      // P16: four singers of VocalSet (a soprano, a mezzo-soprano, a tenor, a bass), each on "a";
+      // the formant voices beneath them where the recordings cannot be loaded.
+      return {
+        voices: [
+          choir("soloSoprano", sung(0, 16, 0.08, 6500, true)),
+          choir("soloAlto", sung(3.2, 13, 0.12, 5200, true)),
+          choir("soloTenor", sung(1, 18, 0.1, 4800, true)),
+          choir("soloBass", sung(3.6, 11, 0.14, 3400, true)),
+        ],
+      };
     case "organ":
       return { voices: [preset("pipeOrgan"), preset("pipeOrgan"), preset("pipeOrgan"), { ...preset("pipeOrgan"), tone: 6000 }] };
     case "strings":

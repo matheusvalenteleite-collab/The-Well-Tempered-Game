@@ -1,6 +1,7 @@
 # Recorded voices for the chorale ensembles: the options (for the owner's choice)
 
-The game has no recorded voices yet. The two choirs of P7 ("Choir", "Four soloists") are the
+**Outcome**: "Choir" uses Sonatina's chorus with FluidR3's choir (P13); "Four soloists" uses VocalSet (the owner's
+choice; P16, `tools/playback/vocalset/README.md`). Both load from the website; the claude.ai page falls back to the
 formant synthesizer.
 
 **Finding**: no permissively licensed library offers separate soprano, alto, tenor and bass choir

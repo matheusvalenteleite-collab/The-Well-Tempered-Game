@@ -26,18 +26,23 @@ const SET_GAIN: Record<SampleSet, number> = {
   oboe: 1.4, clarinet: 1.4, timpani: 1.6, rickBass: 1.6, cleanGuitar: 1.6,
   // P13: the choirs (Sonatina's chorus, FluidR3's choir aahs).
   choirUpper: 1.5, choirLower: 1.5, choirAahs: 1.7,
+  // P16: the soloists (each note at one level when cut; matched to the choirs).
+  soloSoprano: 1.6, soloAlto: 1.6, soloTenor: 1.6, soloBass: 1.7,
 };
 
 /**
  * P13: sets whose samples are looped over a steady stretch (seconds), so that a held chord sustains
  * as long as it is written (the choirs' recordings last about 7 s, FluidR3's about 3 s).
  */
-const LOOPS: Partial<Record<SampleSet, [number, number]>> = { choirUpper: [1.6, 5.4], choirLower: [1.6, 5.4], choirAahs: [0.9, 2.5] };
+const LOOPS: Partial<Record<SampleSet, [number, number]>> = { choirUpper: [1.6, 5.4], choirLower: [1.6, 5.4], choirAahs: [0.9, 2.5],
+  // P16: the soloists' notes are cut so that 1.0-3.0 s is one seamless loop.
+  soloSoprano: [1.0, 3.0], soloAlto: [1.0, 3.0], soloTenor: [1.0, 3.0], soloBass: [1.0, 3.0],
+};
 /**
  * P13: sets kept on the website only (the owner: "load from website"; the claude.ai page has no room
  * for them): fetched from the site when the page itself does not have them.
  */
-const REMOTE = new Set<SampleSet>(["choirUpper", "choirLower", "choirAahs"]);
+const REMOTE = new Set<SampleSet>(["choirUpper", "choirLower", "choirAahs", "soloSoprano", "soloAlto", "soloTenor", "soloBass"]);
 const SITE = "https://matheusvalenteleite-collab.github.io/The-Well-Tempered-Game/";
 /** Sets that could not be loaded: their notes are sung by the formant synthesizer instead (P13). */
 const failed = new Set<SampleSet>();
