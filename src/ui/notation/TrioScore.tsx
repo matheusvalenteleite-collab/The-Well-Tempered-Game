@@ -155,7 +155,16 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
       ctx.restore();
     };
     const whole = { top: band(0).top, bottom: band(1).bottom };
-    for (const m of p.marks ?? []) if (m.bar >= p.from && m.bar <= p.to) fill(m.bar - p.from, whole.top, whole.bottom, m.severity === "error" ? "var(--mark-error)" : "var(--mark-warning)");
+    for (const m of p.marks ?? []) {
+      if (m.bar < p.from || m.bar > p.to) continue;
+      fill(m.bar - p.from, whole.top, whole.bottom, m.severity === "error" ? "var(--mark-error)" : "var(--mark-warning)");
+      // D149: a shape beside the colour, ✗ a rule broken, ! a piece of advice.
+      ctx.save();
+      ctx.setFillStyle(m.severity === "error" ? "var(--bad)" : "var(--warn)");
+      ctx.setFont("Inter, system-ui, sans-serif", 11, "700");
+      ctx.fillText(m.severity === "error" ? "✗" : "!", columns[m.bar - p.from].right - 12, whole.top + 12);
+      ctx.restore();
+    }
     for (const b of p.pulse ?? []) if (b >= p.from && b <= p.to) {
       const g = ctx.openGroup("pulse");
       fill(b - p.from, whole.top - 6, whole.bottom + 6, "var(--pulse)");

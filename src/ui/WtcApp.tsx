@@ -223,6 +223,16 @@ export function WtcApp({ onVoices, onStudy, onTutorial }: { onVoices(n: Mode): v
     const bad = result.ev.errors.some((e) => e.note - F.subject.length === i);
     return bad ? "var(--bad-ink, #c62828)" : "var(--ok-ink, #2e7d32)";
   };
+  /** D149: the verdict as a sign as well as a colour (red and green alone fail colour-blind eyes). */
+  const verdictMark = (i: number): string | undefined => {
+    const ink = verdictInk(i);
+    return ink === undefined ? undefined : ink.includes("ok-ink") ? "✓" : "✗";
+  };
+  const withVerdict = (mark: string | undefined, i: number, mine: boolean) => {
+    const v = mine && !showBach ? verdictMark(i) : undefined;
+    const m = [mark, v].filter(Boolean).join(" ");
+    return m ? { mark: m } : {};
+  };
   const INK_GIVEN = "var(--trk-cantus, #222)";
   /** In the study, the dux and the comes each in a colour of their own. */
   const INK_COMES = "var(--trk-second)";
@@ -233,16 +243,16 @@ export function WtcApp({ onVoices, onStudy, onTutorial }: { onVoices(n: Mode): v
     const csNotes: WtcScoreNote[] = F.countersubject.map((n, i) => {
       const mine = ex === "counter";
       const pitch = mine ? (showBach ? n.pitch : line[i]) : n.pitch;
-      return { pitch, at: n.at + toAnswer, dur: n.dur, ...(mine ? { slot: i, ink: showBach ? INK_BACH : verdictInk(i) } : {}), ...(i === 0 ? { label: t("ui.wtc.part.countersubject") } : {}) };
+      return { pitch, at: n.at + toAnswer, dur: n.dur, ...(mine ? { slot: i, ink: showBach ? INK_BACH : verdictInk(i) } : {}), ...withVerdict(undefined, i, mine), ...(i === 0 ? { label: t("ui.wtc.part.countersubject") } : {}) };
     });
     const answerNotes: WtcScoreNote[] = F.answer.map((n, i) => {
       const mine = ex === "answer";
       const pitch = mine ? (showBach ? n.pitch : line[i]) : n.pitch;
       const mark = (ex === "study" || showBach || (result?.kind === "answer" && solved)) && F.mutations.includes(i) ? t("ui.wtc.mutationMark") : undefined;
-      return { pitch, at: n.at + toAnswer, dur: n.dur, ...(mine ? { slot: i, ink: showBach ? INK_BACH : verdictInk(i) } : {}), ...(mark ? { mark } : {}), ...(i === 0 ? { label: t("ui.wtc.part.answer") } : {}) };
+      return { pitch, at: n.at + toAnswer, dur: n.dur, ...(mine ? { slot: i, ink: showBach ? INK_BACH : verdictInk(i) } : {}), ...withVerdict(mark, i, mine), ...(i === 0 ? { label: t("ui.wtc.part.answer") } : {}) };
     });
     if (ex === "mutation") {
-      const marked: WtcScoreNote[] = F.subject.map((n, i) => ({ pitch: n.pitch, at: n.at + off, dur: n.dur, slot: i, ink: verdictInk(i) ?? (line[i] === "x" ? INK_PLAYER : INK_GIVEN), ...(line[i] === "x" ? { mark: t("ui.wtc.mutationMark") } : {}), ...(i === 0 ? { label: t("ui.wtc.part.subject") } : {}) }));
+      const marked: WtcScoreNote[] = F.subject.map((n, i) => ({ pitch: n.pitch, at: n.at + off, dur: n.dur, slot: i, ink: verdictInk(i) ?? (line[i] === "x" ? INK_PLAYER : INK_GIVEN), ...withVerdict(line[i] === "x" ? t("ui.wtc.mutationMark") : undefined, i, true), ...(i === 0 ? { label: t("ui.wtc.part.subject") } : {}) }));
       return [{ notes: marked, staff: duxStaff, ink: INK_GIVEN, editable: true }];
     }
     const dv: WtcScoreVoice = { notes: [...subjectNotes, ...csNotes], staff: duxStaff, ink: ex === "counter" ? INK_PLAYER : INK_GIVEN, editable: ex === "counter" && !showBach };

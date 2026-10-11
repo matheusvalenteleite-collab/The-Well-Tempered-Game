@@ -1,7 +1,7 @@
 # Handoff (10 October 2026, night)
 
 Read this first in a new session. The decisions log (`docs/DECISIONS.md`: D1–D139 and D147 on for the game,
-D140–D146 for the tutorial (the next free number is D151), C1–C14 for the chorale mode) has the details; `docs/MORNING.md` has
+D140–D146 for the tutorial (the next free number is D152), C1–C14 for the chorale mode) has the details; `docs/MORNING.md` has
 older notes and the owner's open questions.
 
 ## How we work from now on (the owner's choice, after a usage warning)
@@ -58,11 +58,10 @@ older notes and the owner's open questions.
    species is judged; suspensions against a divided semibreve), and whether p. 139 (after Fig. 204,
    not in the vendored pages) leaves more modes of the combined species to private study.
 5. **Learnability and accessibility (D149)**: the audit's first two items are done (keyboard, orientation).
-   The harmony chapter is in the tutorial (D150). Left, in order: contrast tokens (dark accent
-   2.5:1, retro pressed 3.0:1, warnings, off activators) and a shape beside colour for errors and
-   warnings; a spoken account of the score (live region: bar, note written, cantus) and a text view;
-   targets under 24 px; reduced motion (rule demos loop, pulses, smooth scrolling); focus traps in
-   dialogs; `.help` hidden on phones (it hides three WTC checkboxes and the credits).
+   The harmony chapter is in the tutorial (D150); contrast and signs beside colour are done (D151).
+   Left, in order: a spoken account of the score (live region: bar, note written, cantus) and a text
+   view; targets under 24 px; reduced motion (rule demos loop, pulses, smooth scrolling); focus traps
+   in dialogs; `.help` hidden on phones (it hides three WTC checkboxes and the credits).
 6. Old backlog, last: evaluation redesign and graded three-voice reading with Fux; rule
    demonstrations; the Mann layer.
 

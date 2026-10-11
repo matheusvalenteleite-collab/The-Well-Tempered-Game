@@ -373,6 +373,10 @@ export function ScoreView(props: ScoreProps) {
       ctx.save();
       ctx.setFillStyle(m.severity === "error" ? "var(--mark-error)" : "var(--mark-warning)");
       ctx.fillRect(c.left + 2, top, c.right - c.left - 4, bottom - top);
+      // D149: a shape beside the colour, ✗ a rule broken, ! a piece of advice.
+      ctx.setFillStyle(m.severity === "error" ? "var(--bad)" : "var(--warn)");
+      ctx.setFont(UI_FONT, 11, "700");
+      ctx.fillText(m.severity === "error" ? "✗" : "!", c.right - 12, top + 12);
       ctx.restore();
     }
     if (props.selected >= 0) rect(props.selected, "selected");
@@ -581,6 +585,8 @@ export function ScoreView(props: ScoreProps) {
         ctx.setStrokeStyle(COLOR[link.severity]);
         ctx.setFillStyle(COLOR[link.severity]);
         ctx.setLineWidth(2);
+        // D149: advice dashed, a broken rule solid, not by colour alone.
+        ctx.setLineDash(link.severity === "warning" ? [5, 3] : []);
         if (link.kind === "motion") {
           // Bracket under the two interval labels, with an arrowhead into the second.
           ctx.beginPath();
