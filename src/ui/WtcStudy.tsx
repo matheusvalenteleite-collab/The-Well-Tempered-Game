@@ -19,6 +19,8 @@
 import type { Mode } from "./Root.tsx";
 import { ModeSelect } from "./ModeSelect.tsx";
 import { keyBelongsToControl } from "./keys.ts";
+import { keySteps, ornamentUnit, realise } from "../music/ornaments.ts";
+import { openClefs, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { chordName, chordTones, figurationChanges, figurationShare, findCadences, keyPlan, readHarmony, romanOf, type Chord } from "../wtc/harmony.ts";
 import { beatOf } from "../wtc/counterpoint.ts";
@@ -61,6 +63,12 @@ const INSTRUMENTS = ["harpsichord", "fluteOrgan", "grandRoom"] as const;
 type Instrument = (typeof INSTRUMENTS)[number];
 /** The spotlight's sound: another instrument than the rest. */
 const SPOT: Record<Instrument, string> = { harpsichord: "fluteOrgan", fluteOrgan: "harpsichord", grandRoom: "fluteOrgan" };
+/**
+ * Kinds of spotlight (P3): another instrument (D123's), louder with the rest receding, placed in
+ * the middle with the rest to the sides, or alone with the rest a soft background.
+ */
+const SPOT_KINDS = ["instrument", "louder", "stereo", "alone"] as const;
+type SpotKind = (typeof SPOT_KINDS)[number];
 const STEPS: Step[] = ["C", "D", "E", "F", "G", "A", "B"];
 const PC_OF: Record<Step, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 /** A MIDI number spelled in the key: the step whose key-signature alteration gives it, else a natural, else a sharp (a flat in a flat key). */
@@ -99,6 +107,25 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
   const minor = isMinor(F.key);
   const sig = useMemo(() => keySignature(F.key), [F.key]);
   const flats = Object.values(sig).some((x) => x < 0);
+  /** P8: ornaments played (Bach's Explication): the note before each in its voice, and the key's steps. */
+  /** P8: the ornaments marked on the roll: tr, a mordent ∿, a turn ∽, a grace note ♪. */
+  const rollMarks = useMemo(() => new Map([...P.orn].map(([i, o]) => [i, /[TtO]/.test(o.signs) ? "tr" : /[MmWw]/.test(o.signs) ? "∿" : /[S$]/.test(o.signs) ? "∽" : "♪"])), [P]);
+  const prevInVoice = useMemo(() => {
+    const last = new Map<number, number>();
+    return P.notes.map((n, i) => {
+      const before = last.get(P.voice[i]);
+      last.set(P.voice[i], i);
+      return before === undefined ? undefined : P.notes[before].midi;
+    });
+  }, [P]);
+  const steps = useMemo(() => keySteps(sig), [sig]);
+  /** What note i sounds as: itself, or its ornament realised at the tempo now. */
+  const sounding = (i: number, midi = P.notes[i].midi): { midi: number; at: number; dur: number }[] => {
+    const n = P.notes[i];
+    const o = ornaments ? P.orn.get(i) : undefined;
+    if (!o) return [{ midi, at: n.at, dur: n.dur }];
+    return realise({ midi, at: n.at, dur: n.dur }, o.signs, o.grace, { unit: ornamentUnit(audio.tempo), prevMidi: prevInVoice[i], ...steps });
+  };
   const notes: FullNote[] = P.notes;
   const subject = useMemo(() => FG.subject.map((n) => ({ midi: parsePitch(n.pitch).midi, at: n.at, dur: n.dur })), [FG]);
   const entries: Entry[] = isPrelude ? [] : FG.entries;
@@ -153,11 +180,21 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
   useEffect(() => store("wtg.wtcSource", source), [source]);
   const track = useMemo(() => trackOf(L.id, isPrelude), [L.id, isPrelude]);
   const useRec = source === "recording" && !!track;
-  // Voices: solo, mute, spotlight.
-  const [solo, setSolo] = useState<number | null>(null);
-  const [muted, setMuted] = useState<Set<number>>(new Set());
-  const [spot, setSpot] = useState<number | null>(null);
+  // Voices (P3): a checklist of the voices heard (any subset), and a spotlight on any of them.
+  const [off, setOff] = useState<Set<number>>(new Set());
+  const [spot, setSpot] = useState<Set<number>>(new Set());
+  const [spotKind, setSpotKind] = useState<SpotKind>(() => stored("wtg.wtcSpotKind", "instrument" as SpotKind, (v) => SPOT_KINDS.includes(v as SpotKind)));
+  useEffect(() => store("wtg.wtcSpotKind", spotKind), [spotKind]);
+  const toggle = (set: Set<number>, v: number) => {
+    const m = new Set(set);
+    if (m.has(v)) m.delete(v);
+    else m.add(v);
+    return m;
+  };
   const [showEntries, setShowEntries] = useState(true);
+  /** P8: ornaments played and shown (Bach's Explication), or the notes plain. */
+  const [ornaments, setOrnaments] = useState(() => stored("wtg.ornaments", true, (v) => typeof v === "boolean"));
+  useEffect(() => store("wtg.ornaments", ornaments), [ornaments]);
   /**
    * D135: a prelude made of one figuration is a keyboard texture more than a set of voices: its
    * strands are a convenience. Shown as one texture by default (the strands on request).
@@ -178,29 +215,54 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
     store("wtg.theme", theme);
   }, [theme]);
 
-  // The sound: one channel a voice; the spotlight in another instrument, the rest receding.
+  // The sound: one channel a voice, each from its place left to right; the spotlight (P3) as chosen.
+  // Everything here is a channel's sound, volume or place, so it applies at once while playing.
   const sound = useMemo<SoundState>(() => {
     const s = restoreSound(null);
     const base = SYNTH_PRESETS.find((p) => p.id === instrument)!.settings;
     const lit = SYNTH_PRESETS.find((p) => p.id === SPOT[instrument])!.settings;
+    const lits = [...spot].filter((v) => v < count).sort((a, b) => a - b);
+    const any = lits.length > 0;
+    let side = 0;
     VOICE_CH.forEach((ch, v) => {
-      const set = spot === v ? { ...lit } : { ...base };
+      const on = spot.has(v);
+      const set = any && on && spotKind === "instrument" ? { ...lit } : { ...base };
       if (ch === "counterpoint" || ch === "second" || ch === "fux") s.synth[ch] = set;
       else s.versionSynth[ch] = set;
-      s.mix[ch].volume = spot === null || spot === v ? 1 : 0.4;
-      s.mix[ch].pan = count > 1 ? -0.5 + (v / Math.max(1, count - 1)) * 1 * 0.6 + 0.2 : 0;
+      s.mix[ch].pan = count > 1 ? -0.3 + (v / Math.max(1, count - 1)) * 0.6 : 0;
+      s.mix[ch].volume = 1;
+      if (!any) return;
+      if (spotKind === "instrument") s.mix[ch].volume = on ? 1 : 0.55;
+      else if (spotKind === "louder") s.mix[ch].volume = on ? 1 : 0.3;
+      else if (spotKind === "alone") s.mix[ch].volume = on ? 1 : 0.1;
+      else {
+        // Stereo: the spotlit voices in the middle, close together; the others far to the sides.
+        const j = lits.indexOf(v);
+        s.mix[ch].pan = on ? (lits.length > 1 ? -0.15 + (j / (lits.length - 1)) * 0.3 : 0) : side++ % 2 === 0 ? -0.9 : 0.9;
+        s.mix[ch].volume = on ? 1 : 0.7;
+      }
     });
     return s;
-  }, [instrument, spot, count]);
+  }, [instrument, spot, spotKind, count]);
   useEffect(() => audio.setSoundState(sound), [sound]);
-  const audible = (v: number) => (solo === null ? !muted.has(v) : solo === v);
+  const audible = (v: number) => !off.has(v);
   useEffect(() => {
     const gates: Record<string, boolean> = { cantus: false, continuo: false, canon: true };
     VOICE_CH.forEach((ch, v) => (gates[ch] = audible(v)));
     gates.canon = true; // the workshop's own entries
     audio.setGates(gates);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [solo, muted, count]);
+  }, [off, count]);
+  /** Quick choices of the voices heard (P3), by place from the top: upper or lower half, outer, inner. */
+  const presets = useMemo(() => {
+    const all = Array.from({ length: count }, (_, v) => v);
+    const half = Math.ceil(count / 2);
+    const out: { id: string; voices: number[] }[] = [{ id: "all", voices: all }];
+    if (count >= 2) out.push({ id: "upper", voices: all.slice(0, count === 2 ? 1 : half) }, { id: "lower", voices: all.slice(count === 2 ? 1 : count - half) });
+    if (count >= 3) out.push({ id: "outer", voices: [0, count - 1] }, { id: "inner", voices: all.slice(1, -1) });
+    return out;
+  }, [count]);
+  const hearOnly = (voices: number[]) => setOff(new Set(Array.from({ length: count }, (_, v) => v).filter((v) => !voices.includes(v))));
   useEffect(() => {
     audio.loop = false;
     audio.drums = false;
@@ -274,7 +336,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
     notes.forEach((n, i) => {
       if (only && !only.has(i)) return;
       if (through === "alone" && changed && !entryNote.has(i)) return;
-      add(edited.get(i) ?? n.midi, n.at, n.dur, VOICE_CH[voice[i]] ?? "second");
+      for (const x of edited.has(i) ? [{ midi: edited.get(i)!, at: n.at, dur: n.dur }] : sounding(i)) add(x.midi, x.at, x.dur, VOICE_CH[voice[i]] ?? "second");
     });
     if (!only && !game) for (const n of myNotes) add(n.midi, n.at, n.dur, "canon");
     evs.sort((a, b) => a.at - b.at);
@@ -334,7 +396,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
       const from = e.at;
       const to = e.end;
       const pick = notes.map((n, i) => ({ n, i })).filter(({ n, i }) => n.at >= from - 1e-6 && n.at < to - 1e-6 && (!alone || e.notes.includes(i)));
-      for (const { n, i } of pick) {
+      for (const { n: n0, i } of pick) for (const n of sounding(i).map((x) => ({ ...n0, ...x }))) {
         const ch = VOICE_CH[voice[i]] ?? "second";
         const pitch = midiName(n.midi, flats);
         const len = Math.min(n.dur, to - n.at) / 4;
@@ -416,9 +478,8 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
     stop();
     setSpan(null);
     setActiveMoment(null);
-    setSolo(null);
-    setMuted(new Set());
-    setSpot(null);
+    setOff(new Set());
+    setSpot(new Set());
     setGame(null);
     setThrough("off");
     setPiece(x);
@@ -428,9 +489,8 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
     if (k < 0 || k >= LIBRARY.length) return;
     stop();
     setSpan(null);
-    setSolo(null);
-    setMuted(new Set());
-    setSpot(null);
+    setOff(new Set());
+    setSpot(new Set());
     setGame(null);
     setThrough("off");
     setIndex(k);
@@ -592,12 +652,31 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
           <div key={v} className="wtc-voice" style={{ ["--chip" as string]: COLORS[v % COLORS.length] }}>
             <span className="dot" aria-hidden="true" />
             <span className="vname">{names[v]}</span>
-            <button className="chipbtn" aria-pressed={solo === v} onClick={() => setSolo(solo === v ? null : v)} title={t("ui.study.soloHelp")}>{t("ui.study.solo")}</button>
-            <button className="chipbtn" aria-pressed={muted.has(v)} onClick={() => { const m = new Set(muted); if (m.has(v)) m.delete(v); else m.add(v); setMuted(m); }} title={t("ui.study.muteHelp")}>{t("ui.study.mute")}</button>
-            <button className="chipbtn" aria-pressed={spot === v} onClick={() => setSpot(spot === v ? null : v)} title={t("ui.study.spotHelp")}>{t("ui.study.spot")}</button>
+            <label className="wtc-heard" title={t("ui.study.hearHelp")}>
+              <input type="checkbox" checked={!off.has(v)} onChange={() => setOff(toggle(off, v))} /> {t("ui.study.hear")}
+            </label>
+            <button className="chipbtn" onClick={() => hearOnly([v])} title={t("ui.study.soloHelp")}>{t("ui.study.solo")}</button>
+            <button className="chipbtn" aria-pressed={spot.has(v)} onClick={() => setSpot(toggle(spot, v))} title={t("ui.study.spotHelp")}>{t("ui.study.spot")}</button>
             <span className="help">{t("ui.study.voiceEntries", { n: entries.filter((e) => entryVoice(e, voice) === v).length })}</span>
           </div>
         ))}
+      </div>
+      <div className="wtc-presets" role="group" aria-label={t("ui.study.presets")}>
+        <span>{t("ui.study.presets")}</span>
+        {presets.map((x) => (
+          <button key={x.id} className="chipbtn" aria-pressed={x.voices.length === count - off.size && x.voices.every((v) => !off.has(v))} onClick={() => hearOnly(x.voices)}>
+            {t(`ui.study.preset.${x.id}`)}
+          </button>
+        ))}
+      </div>
+      <div className="wtc-presets" role="group" aria-label={t("ui.study.spotKind")}>
+        <span>{t("ui.study.spotKind")}</span>
+        {SPOT_KINDS.map((k) => (
+          <button key={k} className="chipbtn" aria-pressed={spotKind === k} onClick={() => setSpotKind(k)} title={t(`ui.study.spotKind.${k}.help`)}>
+            {t(`ui.study.spotKind.${k}`)}
+          </button>
+        ))}
+        {spot.size > 0 && <button className="chipbtn" onClick={() => setSpot(new Set())}>{t("ui.study.spotClear")}</button>}
       </div>
       <p className="help">{t("ui.study.voicesNote")}</p>
     </div>
@@ -758,10 +837,18 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
    * the bass throughout; a middle voice on the staff its register needs, switching only when it
    * clearly leaves the other (above D4 or below A3 on average in the bar), as an engraver would.
    */
+  // P4: a fugue may be read one staff a voice (the player's choice); each voice's clef by its register.
+  const staffLayout = useStaffLayout();
+  const openScore = staffLayout === "open" && !isPrelude && count > 1;
+  const openClefList = useMemo(
+    () => openClefs(Array.from({ length: count }, (_, v) => { const ms = notes.filter((_, i) => voice[i] === v).map((n) => n.midi); return ms.reduce((a, m) => a + m, 0) / Math.max(1, ms.length); })),
+    [notes, voice, count],
+  );
   const staffOf = useMemo(() => {
-    const out = Array.from({ length: count }, () => new Array<0 | 1>(bars).fill(0));
+    if (openScore) return Array.from({ length: count }, (_, v) => new Array<number>(bars).fill(v));
+    const out = Array.from({ length: count }, () => new Array<number>(bars).fill(0));
     for (let v = 0; v < count; v++) {
-      let cur: 0 | 1 | null = null;
+      let cur: number | null = null;
       for (let b = 0; b < bars; b++) {
         const ms = notes.filter((n, i) => voice[i] === v && n.at < (b + 1) * barQ - 1e-6 && n.at + n.dur > b * barQ + 1e-6).map((n) => n.midi);
         if (count >= 2 && v === 0) cur = 0;
@@ -776,7 +863,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
       }
     }
     return out;
-  }, [notes, voice, count, bars, barQ]);
+  }, [notes, voice, count, bars, barQ, openScore]);
   /**
    * The voices of bars `fromBar`..`toBar` for the score, from the bar's start: each voice split by
    * the staff it is on in each bar; notes struck together in one voice drawn as a chord (those of
@@ -801,7 +888,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
           if (Math.abs(h.n.dur - x.n.dur) < 1e-6 && x.n.midi !== h.n.midi) h.chord.push(P.spelled[x.i] ?? spell(x.n.midi, sig, flats));
         } else heads.push({ ...x, chord: [] });
       }
-      for (const st of [0, 1] as const) {
+      for (const st of openScore ? [v] : [0, 1]) {
         const mine = heads.filter(({ n }) => staffOf[v][Math.max(0, Math.min(bars - 1, barOf(Math.max(n.at, q0))))] === st);
         if (!mine.length) continue;
         out.push({
@@ -810,7 +897,8 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
             // A note overlapping the next in its voice is cut where the next begins.
             const next = mine[k + 1]?.n.at ?? Infinity;
             const end = Math.min(n.at + n.dur, q1, next);
-            return { pitch: P.spelled[i] ?? spell(n.midi, sig, flats), at: at - q0, dur: Math.max(1 / 96, end - at), ...(chord.length ? { chord } : {}), ...(starts.has(i) && n.at >= q0 ? { label: starts.get(i) } : {}) };
+            const o = ornaments && n.at >= q0 ? P.orn.get(i) : undefined;
+            return { pitch: P.spelled[i] ?? spell(n.midi, sig, flats), at: at - q0, dur: Math.max(1 / 96, end - at), ...(chord.length ? { chord } : {}), ...(starts.has(i) && n.at >= q0 ? { label: starts.get(i) } : {}), ...(o ? { orn: o.signs, grace: o.grace.map((g) => g.pitch) } : {}) };
           }),
           staff: st,
           ink: COLORS[v % COLORS.length],
@@ -822,7 +910,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
   };
   const scoreVoices: WtcScoreVoice[] = useMemo(() => voicesFor(scoreFrom, scoreTo),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [scoreFrom, scoreTo, P, barQ, entries, count, notes, voice, sig, flats, gameUntil, staffOf]);
+    [scoreFrom, scoreTo, P, barQ, entries, count, notes, voice, sig, flats, gameUntil, staffOf, ornaments]);
   // The page (D127): rows of a few bars, the row playing on top (else the chosen span's, else the first), three rows.
   // As many bars to a row as fill it: the score's width per bar grows with the busiest voice's notes
   // (WtcScore: 46 + 30 per note, 150 at least); a row is about 1800 wide before scaling.
@@ -855,7 +943,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
     }
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pageTop, rowBars, bars, cursor, P, entries, staffOf, gameUntil, sig, flats]);
+  }, [pageTop, rowBars, bars, cursor, P, entries, staffOf, gameUntil, sig, flats, ornaments]);
   const rollHidden = useMemo(() => {
     if (gameUntil === null) return hidden;
     const h = new Set(hidden);
@@ -894,10 +982,11 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
             </div>
           )}
           {view === "page" ? (
-            <WtcPage rows={pageRows} keySig={vexKey(F.key)} signature={sig} time={timeSig} barQuarters={barQ} selected={null} onSlot={() => undefined} />
+            <WtcPage rows={pageRows} clefs={openScore ? openClefList : undefined} autoClefs={openScore} keySig={vexKey(F.key)} signature={sig} time={timeSig} barQuarters={barQ} selected={null} onSlot={() => undefined} />
           ) : view === "score" ? (
             <WtcScore
               voices={scoreVoices}
+              clefs={openScore ? openClefList : undefined} autoClefs={openScore}
               keySig={vexKey(F.key)}
               signature={sig}
               time={timeSig}
@@ -924,6 +1013,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
             span={span}
             extra={gameUntil !== null ? [] : [...throughNotes, ...myNotes]}
             hidden={rollHidden}
+            marks={ornaments ? rollMarks : undefined}
             onBar={(b) => (game ? undefined : (setSpan(null), setActiveMoment(null), play(b * barQ)))}
             label={fugueLabel(F)}
             firstBar={firstBar}
@@ -944,6 +1034,14 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
               <button className="chipbtn" role="radio" aria-checked={view === "roll"} aria-pressed={view === "roll"} onClick={() => setView("roll")} title={t("ui.study.rollHelp")}>{t("ui.study.roll")}</button>
               <button className="chipbtn" role="radio" aria-checked={view === "score"} aria-pressed={view === "score"} onClick={() => setView("score")} title={t("ui.study.scoreHelp")}>{t("ui.study.score")}</button>
               <button className="chipbtn" role="radio" aria-checked={view === "page"} aria-pressed={view === "page"} onClick={() => setView("page")} title={t("ui.study.pageHelp")}>{t("ui.study.page")}</button>
+              <button className="chipbtn" aria-pressed={ornaments} onClick={() => setOrnaments(!ornaments)} title={t("ui.study.ornamentsHelp")}>
+                {t("ui.study.ornaments")}
+              </button>
+              {!isPrelude && view !== "roll" && (
+                <button className="chipbtn" aria-pressed={openScore} onClick={() => setStaffLayout(openScore ? "compact" : "open")} title={t(openScore ? "ui.view.staves.compact.help" : "ui.view.staves.open.help")}>
+                  {t("ui.view.staves.open")}
+                </button>
+              )}
               {view === "page" && (
                 <>
                   <button className="icon" onClick={() => setPageTop(Math.max(0, pageTop - 1))} disabled={pageTop === 0} aria-label={t("ui.study.pageUp")}>▲</button>
@@ -972,7 +1070,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
           </div>
           <div className="group" role="group" aria-label={t("ui.study.voices")}>
             {Array.from({ length: count }, (_, v) => (
-              <button key={v} className="chipbtn" aria-pressed={spot === v} style={spot === v ? { background: COLORS[v % COLORS.length], color: "#fff", fontWeight: 700 } : { color: COLORS[v % COLORS.length], fontWeight: 700 }} onClick={() => setSpot(spot === v ? null : v)} title={t("ui.study.spotHelp")}>
+              <button key={v} className="chipbtn" aria-pressed={spot.has(v)} style={spot.has(v) ? { background: COLORS[v % COLORS.length], color: "#fff", fontWeight: 700 } : { color: COLORS[v % COLORS.length], fontWeight: 700, opacity: off.has(v) ? 0.5 : 1 }} onClick={() => setSpot(toggle(spot, v))} title={t("ui.study.spotHelp")}>
                 {names[v]}
               </button>
             ))}
@@ -984,7 +1082,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
       idle={`${useRec && track ? `Recording: ${track.performer === "Kimiko Ishizaka" ? "Kimiko Ishizaka, The Open Well-Tempered Clavier (2015)" : "Arthur Loesser (1964), via the Internet Archive"}, ${track.licence}; bars timed by the game. ` : ""}J. S. Bach, Das wohltemperirte Clavier, ${roman(F.book)}, ${isPrelude ? "Praeludium" : "Fuga"} ${F.number} (BWV ${F.bwv}). Encoding: David Huron (Humdrum, 1994, after the Bach-Gesellschaft edition; rights to derivative electronic formats reserved, for study only); ${isPrelude ? "strands, " : "voices as encoded; entries, "}chords and cadences found by the game.`}
       tabs={[
         { id: "guide", text: true, label: t("ui.study.tab.guide"), content: guide },
-        { id: "voices", label: t("ui.study.tab.voices"), content: voicesPanel },
+        { id: "voices", text: true, label: t("ui.study.tab.voices"), content: voicesPanel },
         ...(isPrelude
           ? []
           : [

@@ -17,6 +17,7 @@ import fuguesData from "../../data/wtc/fugues.json" with { type: "json" };
 import preludesData from "../../data/wtc/preludes.json" with { type: "json" };
 import laterData from "../../data/wtc/later-subjects.json" with { type: "json" };
 import sectionsData from "../../data/wtc/ledbetter-sections.json" with { type: "json" };
+import ornamentsData from "../../data/wtc/ornaments.json" with { type: "json" };
 import { laterSubjects } from "./subjects.ts";
 import type { WtcPiece } from "./corpus.ts";
 import { findEntriesByHead, findTransformed, line, subjectAndAnswer, TPQ } from "./fugue.ts";
@@ -36,6 +37,8 @@ export interface LibPiece {
   count: number;
   /** Ledbetter's sections, in Bach's bars (a half bar as .5), where he gives them. */
   given: { from: number; to: number; label: string }[];
+  /** P8: the ornaments as encoded, by note index: the kern signs and the grace notes before it. */
+  orn: Map<number, { signs: string; grace: { kind: "q" | "Q"; midi: number; pitch: string }[] }>;
 }
 
 export interface LibFugue extends LibPiece {
@@ -90,7 +93,14 @@ function base(p: WtcPiece): { piece: LibPiece; index: Map<string, number>; pad: 
     }),
   );
   const given = (sectionsData as { pieces: Record<string, LibPiece["given"]> }).pieces[p.id] ?? [];
-  return { piece: { time: p.meter, barQuarters: barQ, pickup: pad > 0 ? 1 : 0, notes, spelled, voice, count: p.voices.length, given }, index, pad };
+  // P8: each ornament on its note (the voice, onset and pitch as encoded; any sub-line).
+  const orn: LibPiece["orn"] = new Map();
+  for (const [vi, on, pitch, signs, grace] of (ornamentsData as unknown as Record<string, [number, number, string, string, string[]?][]>)[p.id] ?? []) {
+    const i = [0, 1, 2, 3].map((sub) => index.get(`${vi}:${sub}:${on}:${pitch}`)).find((x) => x !== undefined);
+    if (i === undefined) continue;
+    orn.set(i, { signs, grace: (grace ?? []).map((g) => ({ kind: g[0] as "q" | "Q", pitch: g.slice(1), midi: parsePitch(g.slice(1)).midi })) });
+  }
+  return { piece: { time: p.meter, barQuarters: barQ, pickup: pad > 0 ? 1 : 0, notes, spelled, voice, count: p.voices.length, given, orn }, index, pad };
 }
 
 function fugueOf(p: WtcPiece): LibFugue {
