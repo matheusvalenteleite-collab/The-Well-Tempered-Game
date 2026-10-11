@@ -1,35 +1,33 @@
 /**
- * Bach's exceptions, X4 (first version): a catalogue of Bach's harmonic licences in the 370 chorales,
- * each kind with every instance and its occasion. The owner's first ratings (X3,
- * docs/chorales/EXCEPTIONS-RATINGS.md) found the licences in the harmony: the chord, the cadence, the
- * bass, the sonority. Each category is a definition over the corpus, not a model's surprise, so that
- * its instances can be counted and their occasions described: where in the phrase, over which melody
- * degree, what comes before and after, whether Bach does it again in another setting of the tune
- * (a sign of design), in a modal chorale or not, and how surprising the chord is to the generator's
- * model trained without the tune.
+ * Bach's exceptions, X4 (second version): a catalogue of Bach's licences in the 370 chorales, each
+ * kind with every instance and its occasion. The owner's first ratings (X3,
+ * docs/chorales/EXCEPTIONS-RATINGS.md) found the licences in the harmony; the second
+ * (docs/chorales/LICENCES-RATINGS.md) found them chromatic, and two readings wrong where the chorale's
+ * home key was taken for the local key or the mode. So every chord is read in its local key
+ * (src/chorale/generate/keys.ts), and the catalogue keeps the chromatic licences: chromatic bass
+ * lines, the Neapolitan, mixture, diminished sevenths of another degree, applied dominants that go
+ * elsewhere, closes in distant keys, phrases ending on a dissonant chord. (Left out: two incidental
+ * dissonances at once and dissonant sonorities found once, rated ordinary; the augmented sixth, absent
+ * from the chorales as a chord.) Each category is a definition over the corpus, not a model's
+ * surprise, so that its instances can be counted and their occasions described: where in the phrase,
+ * over which melody degree, what comes before and after, whether Bach does it again in another
+ * setting of the tune (a sign of design), in a modal chorale or not, and how surprising the chord is
+ * to the generator's model trained without the tune.
  *
- * Output: docs/chorales/LICENCES.md, data/chorales/generator/licences.json, and the second rating page
- * data/chorales/generator/licences.html (examples of every category, to rate on the owner's clarified
- * scale).   Run:  node tools/chorales/licences_report.ts   (after tools/chorales/surprise_report.ts)
+ * Output: docs/chorales/LICENCES.md, data/chorales/generator/licences.json.
+ * Run:  node tools/chorales/licences_report.ts   (after tools/chorales/surprise_report.ts)
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { BACH, melodyOf, type BachChorale, type BachEvent } from "../../src/chorale/generate/corpus.ts";
-import { phraseEnds, trainModels } from "../../src/chorale/generate/index.ts";
-import { STUDY } from "../../src/chorale/generate/diminution.ts";
-import { midiOf } from "../../src/chorale/generate/theory.ts";
-import { barAt, excerpt, thirty, writePage } from "./exceptions_lib.ts";
+import { phraseEnds } from "../../src/chorale/generate/index.ts";
+import { keyDegree, localKeys } from "../../src/chorale/generate/keys.ts";
+import { barAt, thirty } from "./exceptions_lib.ts";
 
-const LETTERS = "CDEFGAB";
-const step = (p: string) => LETTERS.indexOf(p[0]) + 7 * Number(p.replace(/^[A-G][#b]*/, ""));
 const acc = (n: string) => n.replace(/#/g, "♯").replace(/b/g, "♭");
 const label = (c: string) => c.replace(/^b/, "♭").replace(/^#/, "♯");
-const spelled = (n: BachEvent) => `${label(n.chord)} (${acc(n.root)} ${n.kind})`;
+const spelled = (n: BachEvent) => `${acc(n.root)} ${n.kind}`;
 const deg = (d: string) => d.replace("#", "♯").replace("b", "♭");
 const pct = (a: number, b: number) => `${b ? Math.round((100 * a) / b) : 0}%`;
-
-/** An augmented sixth over the bass in any upper voice (a sixth spanning ten semitones). */
-const augSixth = (n: BachEvent) =>
-  [n.sp, n.a, n.tn].some((p) => p && ((step(p) - step(n.bp)) % 7 + 7) % 7 === 5 && (((midiOf(p) - midiOf(n.bp)) % 12) + 12) % 12 === 10);
 
 interface Instance {
   cat: string;
@@ -44,54 +42,27 @@ interface Instance {
   did: string;
 }
 
-// how often each chord ends a phrase, by mode (for "remote" cadences)
-const endCount = new Map<string, number>(),
-  endTotal = new Map<string, number>();
-for (const c of BACH)
-  for (const e of phraseEnds(melodyOf(c))) {
-    const k = `${c.mode}|${c.notes[e.index].chord}`;
-    endCount.set(k, (endCount.get(k) ?? 0) + 1);
-    endTotal.set(c.mode, (endTotal.get(c.mode) ?? 0) + 1);
-  }
-const remote = (c: BachChorale, chord: string) => (endCount.get(`${c.mode}|${chord}`) ?? 0) / (endTotal.get(c.mode) ?? 1) < 0.03;
-// how often each diminished-seventh chord stands on its (unsounded) root, for the "remote" ones
-const dimRoot = new Map<string, number>();
-let dimAll = 0;
-for (const c of BACH)
-  for (const n of c.notes)
-    if (n.kind.startsWith("dominant seventh, minor ninth")) {
-      dimRoot.set(`${c.mode}|${n.chord}`, (dimRoot.get(`${c.mode}|${n.chord}`) ?? 0) + 1);
-      dimAll++;
-    }
+const kindOf = (n: BachEvent) => (/minor ninth/.test(n.kind) ? "diminished seventh" : n.kind);
+const inLocal = (c: BachChorale, i: number) => {
+  const k = localKeys(c)[i];
+  return `${label(k.chord)} of ${acc(k.tonic)} ${k.mode}`;
+};
+/** The keys closely related to home, as degrees of it: the keys of the home scale's major and minor
+ *  triads, by the edition's mode (a Mixolydian chorale's v and ♭VII are near), and in minor the major
+ *  dominant and subdominant too. A region in any other key is distant. */
+const NEAR: Record<string, Set<string>> = {
+  major: new Set(["I", "ii", "iii", "IV", "V", "vi"]),
+  minor: new Set(["i", "bIII", "iv", "v", "bVI", "bVII", "V", "IV"]),
+  mixolydian: new Set(["I", "ii", "IV", "v", "vi", "bVII"]),
+  dorian: new Set(["i", "ii", "bIII", "IV", "v", "bVII", "V", "iv"]),
+  phrygian: new Set(["i", "bII", "bIII", "iv", "bVI", "bvii", "V"]),
+};
+const near = (c: BachChorale, degree: string) => (NEAR[c.edition_mode] ?? NEAR[c.mode]).has(degree);
+const isDominantKind = (n: BachEvent) => /^(major$|dominant)/.test(n.kind) || n.kind === "seventh chord, third not sounding (minor seventh)";
 
+/** Each category is read in the local key (src/chorale/generate/keys.ts): the second ratings found the
+ *  licences chromatic, and two readings wrong where the home key was taken for the local one. */
 const CATEGORIES: { key: string; name: string; about: string; test: (c: BachChorale, i: number, ends: Set<number>) => string | null }[] = [
-  {
-    key: "flat-second",
-    name: "The flat second (the Neapolitan's chord)",
-    about: "the major chord on the lowered second degree, in any position",
-    test: (c, i) => (c.notes[i].chord === "bII" ? `${spelled(c.notes[i])}${c.notes[i].pos ? ` with ${c.notes[i].pos}` : ""}` : null),
-  },
-  {
-    key: "mixture",
-    name: "Mixture: the minor mode's chords in a major key",
-    about: "♭III, ♭VI, ♭VII, iv, v or ii° in a chorale in a major key (the Mixolydian chorales left out)",
-    test: (c, i) => (c.mode === "major" && c.edition_mode === "major" && ["bIII", "bVI", "bVII", "iv", "v", "II°"].includes(c.notes[i].chord) ? spelled(c.notes[i]) : null),
-  },
-  {
-    key: "remote-diminished",
-    name: "Diminished sevenths of distant keys",
-    about: "the diminished seventh chord (read as a dominant with a minor ninth, its root unsounded) on a root it rarely has in the chorales (under 5% of them)",
-    test: (c, i) => {
-      const n = c.notes[i];
-      return n.kind.startsWith("dominant seventh, minor ninth") && (dimRoot.get(`${c.mode}|${n.chord}`) ?? 0) / dimAll < 0.05 ? `the diminished seventh of ${label(n.chord)}'s key: ${acc(n.root)} rootless` : null;
-    },
-  },
-  {
-    key: "augmented-sixth",
-    name: "Augmented sixths",
-    about: "an upper voice an augmented sixth above the bass on an on-beat chord (in the whole corpus, every onset counted, the interval occurs three times, all off the beat as incidental notes: nos. 19, 146, 340; as a chord the augmented sixth is absent from the chorales)",
-    test: (c, i) => (augSixth(c.notes[i]) ? `${spelled(c.notes[i])}, an augmented sixth over ${acc(c.notes[i].bp)}` : null),
-  },
   {
     key: "chromatic-bass",
     name: "Chromatic bass lines",
@@ -108,22 +79,68 @@ const CATEGORIES: { key: string; name: string; about: string; test: (c: BachChor
     },
   },
   {
-    key: "remote-cadence",
-    name: "Remote cadences",
-    about: "a phrase that ends on a chord under 3% of Bach's phrase ends in that mode",
-    test: (c, i, ends) => (ends.has(i) && remote(c, c.notes[i].chord) ? `the phrase ends on ${spelled(c.notes[i])}` : null),
+    key: "neapolitan",
+    name: "The Neapolitan: the flat second in its local key",
+    about: "the major chord on the lowered second degree of the local key (not the Phrygian second: a Phrygian chorale's own second degree in its home region)",
+    test: (c, i) => {
+      const k = localKeys(c)[i];
+      if (k.chord !== "bII") return null;
+      if (c.edition_mode === "phrygian" && k.tonic === c.tonic) return null;
+      return `${spelled(c.notes[i])}${c.notes[i].pos ? ` with ${c.notes[i].pos}` : ""}, ${inLocal(c, i)}`;
+    },
   },
   {
-    key: "diminished-cadence",
-    name: "Phrases that end on a diminished chord",
-    about: "a phrase end on a diminished triad or seventh",
-    test: (c, i, ends) => (ends.has(i) && /diminished|minor ninth/.test(c.notes[i].kind) ? `the phrase ends on ${spelled(c.notes[i])}` : null),
+    key: "mixture",
+    name: "Mixture: the minor mode's chords in a major region",
+    about: "♭III, ♭VI, ♭VII, i, iv, v or ii° in a region in a major key, the chord outside the key and not applied to a degree",
+    test: (c, i) => {
+      const k = localKeys(c)[i];
+      return k.mode === "major" && !k.diatonic && !k.applied && ["bIII", "bVI", "bVII", "i", "iv", "v", "II°"].includes(k.chord) ? `${spelled(c.notes[i])}, ${inLocal(c, i)}` : null;
+    },
   },
   {
-    key: "dissonance-cluster",
-    name: "Two incidental dissonances at once",
-    about: "two or more voices incidental (suspended, passing, appoggiatura) on the same beat",
-    test: (c, i) => (c.notes[i].inc.length >= 2 ? `${acc(c.notes[i].lit)} over the bass, incidental in ${[...c.notes[i].inc].map((v) => ({ S: "soprano", A: "alto", T: "tenor", B: "bass" })[v as "S"]).join(" and ")}` : null),
+    key: "diminished-seventh",
+    name: "Diminished sevenths of another degree",
+    about: "the diminished seventh chord (read as a dominant with a minor ninth, its root unsounded) other than the local key's own, or the own of a region distant from home",
+    test: (c, i) => {
+      const n = c.notes[i];
+      const k = localKeys(c)[i];
+      if (!/minor ninth/.test(n.kind) || (k.chord === "V" && near(c, keyDegree(c, k)))) return null;
+      const where = k.chord === "V" ? `of ${acc(k.tonic)} ${k.mode}, ${label(keyDegree(c, k))} of the home key` : k.applied ? `applied to ${label(k.applied)} of ${acc(k.tonic)} ${k.mode}` : `outside ${acc(k.tonic)} ${k.mode}`;
+      return `the diminished seventh on ${acc(n.root)} (rootless), ${where}`;
+    },
+  },
+  {
+    key: "evaded-dominant",
+    name: "Applied dominants that go elsewhere",
+    about: "a dominant of a degree (major, dominant seventh, diminished seventh) outside the local key that does not go to the degree it points to",
+    test: (c, i) => {
+      const k = localKeys(c)[i];
+      const n = c.notes[i];
+      if (k.diatonic || k.applied || !isDominantKind(n) || k.chord === "bII" || ["bIII", "bVI", "bVII"].includes(k.chord) || i + 1 >= c.notes.length) return null;
+      return `${spelled(n)}, ${inLocal(c, i)}, then ${label(localKeys(c)[i + 1].chord)}`;
+    },
+  },
+  {
+    key: "distant-close",
+    name: "Closes in distant keys",
+    about: "a phrase that closes on the tonic of a region not closely related to home (near: the keys of the home scale's triads, by the edition's mode, and in minor the major dominant and subdominant)",
+    test: (c, i, ends) => {
+      if (!ends.has(i)) return null;
+      const k = localKeys(c)[i];
+      const d = keyDegree(c, k);
+      return /^(I|i)$/.test(k.chord) && !near(c, d) ? `the phrase closes in ${acc(k.tonic)} ${k.mode} (${label(d)} of the home key)` : null;
+    },
+  },
+  {
+    key: "open-close",
+    name: "Phrases that end on a dissonant chord",
+    about: "a phrase end (not the last) on a dominant seventh, a diminished seventh, or a diminished or half-diminished chord",
+    test: (c, i, ends) => {
+      const n = c.notes[i];
+      if (!ends.has(i) || i === c.notes.length - 1 || !/seventh|diminished|minor ninth/.test(n.kind) || n.kind.startsWith("major seventh")) return null;
+      return `the phrase ends on ${kindOf(n)} ${acc(n.root)}, ${inLocal(c, i)}`;
+    },
   },
 ];
 
@@ -167,11 +184,13 @@ const say = (s = "") => {
   lines.push(s);
   console.log(s);
 };
-say("# Bach's licences, X4: a first catalogue");
+say("# Bach's licences, X4: the catalogue read in local keys");
 say();
-say("Generated by `node tools/chorales/licences_report.ts`. The owner's first ratings (docs/chorales/EXCEPTIONS-RATINGS.md) found");
-say("Bach's licences in the harmony. Each category below is a definition over the 370 chorales, with every instance and its");
-say("occasion. *Surprise*: the chord's surprise to the generator's model trained without the tune (X1), in bits. *Again in");
+say("Generated by `node tools/chorales/licences_report.ts`. The owner's ratings found Bach's licences in the harmony (first");
+say("round, docs/chorales/EXCEPTIONS-RATINGS.md) and chromatic (second round, docs/chorales/LICENCES-RATINGS.md), and two");
+say("readings wrong where the home key was taken for the local key. Every chord is now read in its local key (docs/chorales/KEYS.md),");
+say("and the catalogue keeps the chromatic licences. Each category below is a definition over the 370 chorales, with every");
+say("instance and its occasion; degrees are of the local key. *Surprise*: the chord's surprise to the generator's model trained without the tune (X1), in bits. *Again in");
 say("another setting*: of the instances whose tune Bach set again with the same melody, the share where the other setting has");
 say("it at the same note (a sign of design rather than chance). *Modal*: in a Dorian, Mixolydian or Phrygian chorale, or one");
 say("ending off its tonic, where a modal idiom may be at work rather than a licence.");
@@ -203,7 +222,12 @@ for (const cat of CATEGORIES) {
   if (xs.length) {
     say();
     say(`- Melody degree above it: ${ctx((x) => deg(ev(x, 0).deg))}.`);
-    say(`- The chord before: ${ctx((x) => (ev(x, -1) ? label(ev(x, -1).chord) : "(start)"))}; after: ${ctx((x) => (ev(x, 1) ? label(ev(x, 1).chord) : "(end)"))}.`);
+    const local = (x: Instance, d: number) => {
+      const c = BACH.find((y) => y.no === x.no)!;
+      const k = localKeys(c)[x.i + d];
+      return k ? label(k.chord) : d < 0 ? "(start)" : "(end)";
+    };
+    say(`- The chord before (in the local key): ${ctx((x) => local(x, -1))}; after: ${ctx((x) => local(x, 1))}.`);
     const r = [...new Set(rated.ratings.filter((y) => xs.some((x) => x.no === y.no && x.bar === y.bar)).map((y) => `no. ${y.no} bar ${y.bar} ${y.rating}`))];
     if (r.length) say(`- In the bars rated in the first round: ${r.join("; ")}.`);
     say(`- The most surprising: ${[...xs]
@@ -214,86 +238,35 @@ for (const cat of CATEGORIES) {
   }
   say();
 }
-writeFileSync(new URL("../../docs/chorales/LICENCES.md", import.meta.url), lines.join("\n") + "\n");
 writeFileSync(
   new URL("../../data/chorales/generator/licences.json", import.meta.url),
   JSON.stringify({ generated_by: "tools/chorales/licences_report.ts", categories: summary, instances: instances.map((x) => [x.cat, x.no, x.at, x.bar, x.atEnd ? 1 : 0, x.modal]) }) + "\n",
 );
 
-// ---- the second rating page: four examples of each category (the most surprising, in different
-// chorales, none rated before) and the chord the owner pointed out (no. 295, bar 5) ----
-const study = new Map(STUDY.chorales.map((s) => [s.n, s]));
-const ratedAt = new Set(rated.ratings.map((y) => `${y.no}|${y.bar}`));
-const picks: Instance[] = [];
-const used = new Set<number>();
-for (const cat of CATEGORIES) {
-  const xs = instances
-    .filter((x) => x.cat === cat.key && !ratedAt.has(`${x.no}|${x.bar}`))
-    .sort((a, b) => (bitsAt.get(`${b.no}|${b.at}`) ?? 0) - (bitsAt.get(`${a.no}|${a.at}`) ?? 0));
-  let n = 0;
-  for (const x of xs) {
-    if (n >= 4) break;
-    if (used.has(x.no)) continue;
-    used.add(x.no);
-    picks.push(x);
-    n++;
-  }
+// The second rating page (round 2, rated 11 October 2026: docs/chorales/LICENCES-RATINGS.md) stays as
+// published, data/chorales/generator/licences.html; its examples were chosen from the first catalogue.
+// How the narrowed catalogue sorts them:
+const r2 = JSON.parse(readFileSync(new URL("../../data/chorales/generator/licences-ratings.json", import.meta.url), "utf8")) as { ratings: { id: string; no: number; bar: number; rating: string | null; flag: boolean }[] };
+const tally = new Map<string, number>();
+const sorted: string[] = [];
+for (const y of r2.ratings) {
+  const at = Number(y.id.split("-").pop());
+  const inNew = instances.filter((x) => x.no === y.no && x.at === at).map((x) => x.cat);
+  const r = y.flag ? "flagged" : (y.rating ?? "unrated");
+  const k = `${r}|${inNew.length ? "kept" : "left out"}`;
+  tally.set(k, (tally.get(k) ?? 0) + 1);
+  sorted.push(`| no. ${y.no} bar ${y.bar} | ${y.id.replace(/^\d+-/, "").replace(/-\d+(-c)?$/, "")} | ${r} | ${inNew.length ? inNew.join(", ") : "–"} |`);
 }
-const owner = instances.find((x) => x.no === 295 && x.bar === 5 && x.at === 160) ?? null;
-if (owner && !picks.includes(owner)) picks.push(owner);
-const extra: Instance[] = owner ? [] : [{ cat: "owner", no: 295, i: BACH.find((c) => c.no === 295)!.notes.findIndex((n) => thirty(n.t) === 160), at: 160, bar: 5, lastPhrase: false, atEnd: false, modal: null, did: "the chord you pointed out in the first round" }];
-const LEVELS = Object.fromEntries([...CATEGORIES.map((c) => [c.key, c.name]), ["owner", "Pointed out by you"], ["sonority", "Dissonant sonority (X1, new)"], ["voices", "Inner voices (X1, recalibrated)"]]);
-// what the chord model (each tune held out) expected at each pick
-const expectedAt = new Map<string, string>();
-for (const x of [...picks, ...extra, ...(owner ? [owner] : [])]) {
-  const c = BACH.find((y) => y.no === x.no)!;
-  const models = trainModels(BACH.filter((y) => y.tune !== c.tune));
-  const m = melodyOf(c);
-  const n = c.notes[x.i];
-  const d = models.harmony.model.dist({ mode: m.mode, deg: n.deg, prev: x.i ? c.notes[x.i - 1].chord : "start" });
-  expectedAt.set(`${x.no}|${x.at}`, [...d].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, p]) => `${label(k)} ${Math.round(100 * p)}%`).join(", ") + " (the chord model, without this tune)");
-}
-const page = [...picks, ...extra].map((x) => {
-  const c = BACH.find((y) => y.no === x.no)!;
-  const s = study.get(x.no)!;
-  const bits = bitsAt.get(`${x.no}|${x.at}`) ?? 0;
-  return {
-    id: `${x.no}-${x.cat}-${x.at}`,
-    no: x.no,
-    bar: x.bar,
-    level: x.cat,
-    bits: Number(bits.toFixed(1)),
-    voice: null,
-    did: x.did + (x.modal ? ` · in a modal chorale (${x.modal})` : ""),
-    expected: expectedAt.get(`${x.no}|${x.at}`) ?? "",
-    title: s.title,
-    bwv: s.bwv,
-    key: `${s.tonic} ${s.mode}`,
-    scan: s.scan ?? null,
-    ...excerpt(c, s, { at: x.at, bar: x.bar, voice: null }),
-  };
-});
-// and, to test X1's new and recalibrated levels, its most surprising dissonant sonorities and inner
-// voices (none rated before, other chorales than the examples above)
-const x1 = JSON.parse(readFileSync(new URL("../../data/chorales/generator/exceptions-moments.json", import.meta.url), "utf8")) as { moments: { id: string; no: number; bar: number; level: string }[] };
-const ratedIds = new Set((JSON.parse(readFileSync(new URL("../../data/chorales/generator/exceptions-ratings.json", import.meta.url), "utf8")) as { ratings: { id: string }[] }).ratings.map((y) => y.id));
-const fromX1 = [
-  ...x1.moments.filter((y) => y.level === "sonority" && !ratedIds.has(y.id) && !used.has(y.no)).slice(0, 5),
-  ...x1.moments.filter((y) => y.level === "voices" && !ratedIds.has(y.id) && !used.has(y.no) && !ratedAt.has(`${y.no}|${y.bar}`)).slice(0, 4),
+const t = (r: string, k: string) => tally.get(`${r}|${k}`) ?? 0;
+const tail = [
+  "## The second round's examples in the narrowed catalogue",
+  "",
+  `The owner rated 34 examples of the first catalogue (docs/chorales/LICENCES-RATINGS.md). In the narrowed one: of the ${t("special", "kept") + t("special", "left out")} rated special, ${t("special", "kept")} are kept; of the ${t("ordinary", "kept") + t("ordinary", "left out")} rated ordinary, ${t("ordinary", "left out")} are left out; the ${t("flagged", "kept") + t("flagged", "left out")} flagged readings, ${t("flagged", "left out")} left out. (The examples were chosen from the first catalogue, so this is a check of the definitions against the ear, in sample.)`,
+  "",
+  "| example | first catalogue | rated | narrowed catalogue |",
+  "|---|---|---|---|",
+  ...sorted,
+  "",
 ];
-page.push(...(fromX1 as unknown as typeof page));
-writePage(new URL("../../data/chorales/generator/licences.html", import.meta.url), page, {
-  title: "Bach's Licences",
-  lede: "Examples of each kind of licence in Bach's chorales, the most surprising first. All of them are beautiful in some sense: say which strike you as immediately special.",
-  question: "How does it strike you?",
-  choices: [
-    { key: "special", label: "Immediately special", hint: "It stands out at once" },
-    { key: "ordinary", label: "Beautiful, in an ordinary way", hint: "Lovely, but not remarkable" },
-    { key: "unsure", label: "Not sure", hint: "Come back to it" },
-  ],
-  flag: true,
-  levels: LEVELS,
-  collection: "licences",
-  storeKey: "bach-licences",
-});
-console.log(`\n${page.length} examples on the rating page`);
+for (const l of tail) say(l);
+writeFileSync(new URL("../../docs/chorales/LICENCES.md", import.meta.url), lines.join("\n") + "\n");
