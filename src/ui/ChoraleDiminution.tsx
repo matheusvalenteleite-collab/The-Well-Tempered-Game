@@ -16,6 +16,7 @@ import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts
 import { currentReading, fermataLinesOf, fermataWordsOf, planFermatas, playChorale, prepareChoraleAudio, type Chorale } from "../audio/chorale-performance.ts";
 import { notesFor, useListeningNotes } from "../chorale/listening-notes.ts";
 import { commentaryFor, mergeGuide } from "./chorale-commentary.ts";
+import { useFold } from "./FoldControls.tsx";
 import { GuideCaption, GuideList, GuideModeSelect, marker, useGuideMode } from "./ListeningGuide.tsx";
 import { FermataList, FermataScale, fermataSign, useFermataEdits } from "./FermataEditor.tsx";
 import { Shell } from "./Shell.tsx";
@@ -86,6 +87,8 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
   // P5: the engine as the chorales need it, whatever the last screen left.
   useEffect(() => prepareChoraleAudio(audio), []);
   const openScore = useStaffLayout() === "open";
+  // P26: on a phone, the controls but ▶/■ folded behind "Options".
+  const fold = useFold();
   // P17, P20: the listening guide (Bach's setting) and the fermatas, shared with the study of this chorale.
   const [guideMode, setGuideMode] = useGuideMode();
   const listening = useListeningNotes();
@@ -282,6 +285,9 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
             <span className="play-split">
               <TransportButtons playing={playing} pausedAt={pausedAt} onPlay={() => play()} onStop={stop} label={t("chorale.play")} />
             </span>
+            {fold.button}
+            {fold.show && (
+              <>
             <EnsembleSelect onReading={() => setReplan((x) => x + 1)} />
             <GuideModeSelect mode={guideMode} onMode={setGuideMode} />
             <label className="check" title={t("ui.view.staves.open.help")}>
@@ -294,6 +300,8 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
               <FermataScale onChange={() => setReplan((x) => x + 1)} />
               <HFader label={t("ui.tempo")} help={t("ui.tempo.help")} value={tempo} min={30} max={120} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
             </div>
+              </>
+            )}
           </div>
         </div>
       }

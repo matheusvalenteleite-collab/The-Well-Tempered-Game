@@ -15,6 +15,7 @@ import { TransportButtons } from "./TransportButtons.tsx";
 import { EnsembleSelect } from "./EnsembleSelect.tsx";
 import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
 import { fermataLinesOf, playChorale, prepareChoraleAudio, type ChoraleNote } from "../audio/chorale-performance.ts";
+import { useFold } from "./FoldControls.tsx";
 import { GuideCaption, GuideList, GuideModeSelect, useGuideMode } from "./ListeningGuide.tsx";
 import { Shell } from "./Shell.tsx";
 import { WtcPage, planClefs, type WtcScoreVoice } from "./notation/WtcScore.tsx";
@@ -183,6 +184,8 @@ export function ChoraleWorkbench({ onMode, onTutorial, stage, onStage, stageSele
   const bach = stage === 5 && bachShown !== null ? c5.bach[bachShown] ?? null : null;
   const rowBars = useRowBars();
   const openScore = useStaffLayout() === "open";
+  // P26: on a phone, the controls but ▶/■ folded behind "Options".
+  const fold = useFold();
   const [tempo, setTempo] = useState(() => stored("wtg.tempo", 60, (v) => typeof v === "number" && v >= 30 && v <= 240));
   useEffect(() => {
     audio.tempo = tempo;
@@ -678,6 +681,9 @@ export function ChoraleWorkbench({ onMode, onTutorial, stage, onStage, stageSele
             <span className="play-split">
               <TransportButtons playing={playing} pausedAt={pausedAt} onPlay={() => play()} onStop={stop} label={t("chorale.play")} />
             </span>
+            {fold.button}
+            {fold.show && (
+              <>
             <EnsembleSelect />
             {wordLines.length > 0 && <GuideModeSelect mode={guideMode} onMode={setGuideMode} />}
             <label className="check" title={t("ui.view.staves.open.help")}>
@@ -694,6 +700,8 @@ export function ChoraleWorkbench({ onMode, onTutorial, stage, onStage, stageSele
             <div className="hfaders">
               <HFader label={t("ui.tempo")} help={t("ui.tempo.help")} value={tempo} min={30} max={120} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
             </div>
+              </>
+            )}
           </div>
         </div>
       }

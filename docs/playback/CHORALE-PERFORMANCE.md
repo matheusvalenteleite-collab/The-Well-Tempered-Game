@@ -330,3 +330,9 @@ These are interpolations, not sourced figures, and the slider changes them live.
 - **On the score:** the cadence label carries a sign for each fermata (→ through, ’ breath, // caesura, ×n held). Tapping a fermata opens its row in the "Fermatas" tab, which gives the reason for the reading's choice and the player's controls.
 - **Under the strict reading,** only the fermatas the player has changed are planned.
 - **Storage and timing:** the choices are kept per chorale in this browser (`wtg.fermatas.bach-N`). A change made during playback restarts the chorale from the current bar, re-planned.
+
+**P25: the same dynamics for Fux and the WTC** (`src/audio/dynamics.ts`; applied in `AudioEngine.playAll` while `audio.dynamics` is on, which it is by default).
+- **Dissonance accent:** wherever the sounding notes make a second, a seventh, a tritone, or a fourth against the lowest voice, the notes struck there are 1 dB louder (C. P. E. Bach §29).
+- **Phrase arch:** a piece of at most 16 whole notes (a Fux exercise, a short excerpt) is treated as one phrase. It rises to +2 dB at its highest note and falls back by the end, scaled by how far that note stands above its own voice's lowest note (a fifth or more: the whole 2 dB).
+- **Longer pieces** (whole preludes and fugues) get the accents only, since the game does not yet know where their phrases end.
+- **Events that carry their own levels** (the chorales) are left as they are.

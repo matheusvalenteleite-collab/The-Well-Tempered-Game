@@ -1298,7 +1298,14 @@
     "trio3.introCombined": "From these examples, not badly made, I see that you are already imbued with no mean knowledge. So I commend to you the examples of the other modes and cantus firmi, to be worked out in private study at home. When they are done, if you like, the cantus firmi of all six modes may be taken up again and completed, so that crotchets are set in one of the parts, minims in another, semibreves in the third, after the manner of the following example.",
     "trio3.introLaCombined": "Ex his haud malè factis exemplis intelligo, te jam haud mediocri quadam cognitione imbutum esse. Unde caeterorum tonorum Cantuumque firmorum exempla privato studio domi tuae persolvenda tibi commendo. Quibus peractis si lubet, omnes sex tonorum Cantus firmi denuò resumi, atque perfici poterunt, ità ut in una partium Semiminimae, in altera Minimae, tertiâ Semibreves ponantur ad sequentis exempli tenorem.",
     "trio3.citeCombined": "Gradus ad Parnassum (1725), p. 102, translated in this game",
-    "trio3.helpCombined": "Each part its own species: crotchets in the upper of the two parts you write, minims in the lower, against the cantus in semibreves, as in Fux's example (Fig. 134); then every mode, the cantus moving through the three parts 'with the triple change we have used so far' (p. 102). Each part is judged by its own species against the others as they sound. Tap a staff to write; V switches part; T holds a note on (a penultimate semibreve)."
+    "trio3.helpCombined": "Each part its own species: crotchets in the upper of the two parts you write, minims in the lower, against the cantus in semibreves, as in Fux's example (Fig. 134); then every mode, the cantus moving through the three parts 'with the triple change we have used so far' (p. 102). Each part is judged by its own species against the others as they sound. Tap a staff to write; V switches part; T holds a note on (a penultimate semibreve).",
+    "study.ornamentStyle": "Whose ornaments",
+    "study.ornamentStyleHelp": "How the trills are played: as Bach's own table (the Explication, 1720: the alternation, then the main note held), or as his son C. P. E. Bach teaches (Versuch, 1753: every trill but the short one lasts the whole note, and on a longer note it closes with a turn below)",
+    "study.ornamentStyle.explication": "tr: Bach's Explication",
+    "study.ornamentStyle.cpe": "tr: C. P. E. Bach",
+    "fold.open": "⚙ Options",
+    "fold.close": "⚙ Hide options",
+    "fold.help": "The layers, voices, ensemble, guide and sliders"
   },
   "tutor": {
     "rule.fos.no-repetition": "In this species each upbeat brings a new note, which is then tied over the bar line; striking the downbeat's note again on its own upbeat is a whole note in disguise.",

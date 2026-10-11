@@ -19,7 +19,7 @@
 import type { Mode } from "./Root.tsx";
 import { ModeSelect } from "./ModeSelect.tsx";
 import { keyBelongsToControl } from "./keys.ts";
-import { keySteps, ornamentUnit, realise } from "../music/ornaments.ts";
+import { keySteps, ornamentUnit, ORNAMENT_STYLES, realise, type OrnamentStyle } from "../music/ornaments.ts";
 import { openClefs, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { chordName, chordTones, figurationChanges, figurationShare, findCadences, keyPlan, readHarmony, romanOf, type Chord } from "../wtc/harmony.ts";
@@ -119,12 +119,14 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
     });
   }, [P]);
   const steps = useMemo(() => keySteps(sig), [sig]);
+  // P24: the ornament style, read when a note is realised (it is set further down, with the view's controls).
+  const ornamentStyleRef = useRef<OrnamentStyle>("explication");
   /** What note i sounds as: itself, or its ornament realised at the tempo now. */
   const sounding = (i: number, midi = P.notes[i].midi): { midi: number; at: number; dur: number }[] => {
     const n = P.notes[i];
     const o = ornaments ? P.orn.get(i) : undefined;
     if (!o) return [{ midi, at: n.at, dur: n.dur }];
-    return realise({ midi, at: n.at, dur: n.dur }, o.signs, o.grace, { unit: ornamentUnit(audio.tempo), prevMidi: prevInVoice[i], ...steps });
+    return realise({ midi, at: n.at, dur: n.dur }, o.signs, o.grace, { unit: ornamentUnit(audio.tempo), prevMidi: prevInVoice[i], ...steps, style: ornamentStyleRef.current });
   };
   const notes: FullNote[] = P.notes;
   const subject = useMemo(() => FG.subject.map((n) => ({ midi: parsePitch(n.pitch).midi, at: n.at, dur: n.dur })), [FG]);
@@ -195,6 +197,10 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
   /** P8: ornaments played and shown (Bach's Explication), or the notes plain. */
   const [ornaments, setOrnaments] = useState(() => stored("wtg.ornaments", true, (v) => typeof v === "boolean"));
   useEffect(() => store("wtg.ornaments", ornaments), [ornaments]);
+  // P24: whose practice the ornaments follow: Bach's Explication (default) or C. P. E. Bach's Versuch.
+  const [ornamentStyle, setOrnamentStyle] = useState<OrnamentStyle>(() => stored<OrnamentStyle>("wtg.ornamentStyle", "explication", (v) => ORNAMENT_STYLES.includes(v as OrnamentStyle)));
+  useEffect(() => store("wtg.ornamentStyle", ornamentStyle), [ornamentStyle]);
+  ornamentStyleRef.current = ornamentStyle;
   /**
    * D135: a prelude made of one figuration is a keyboard texture more than a set of voices: its
    * strands are a convenience. Shown as one texture by default (the strands on request).
@@ -1044,6 +1050,13 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
               <button className="chipbtn" aria-pressed={ornaments} onClick={() => setOrnaments(!ornaments)} title={t("ui.study.ornamentsHelp")}>
                 {t("ui.study.ornaments")}
               </button>
+              {ornaments && (
+                <select className="sel" value={ornamentStyle} onChange={(e) => setOrnamentStyle(e.target.value as OrnamentStyle)} aria-label={t("ui.study.ornamentStyle")} title={t("ui.study.ornamentStyleHelp")}>
+                  {ORNAMENT_STYLES.map((x) => (
+                    <option key={x} value={x}>{t(`ui.study.ornamentStyle.${x}`)}</option>
+                  ))}
+                </select>
+              )}
               {!isPrelude && view !== "roll" && (
                 <button className="chipbtn" aria-pressed={openScore} onClick={() => setStaffLayout(openScore ? "compact" : "open")} title={t(openScore ? "ui.view.staves.compact.help" : "ui.view.staves.open.help")}>
                   {t("ui.view.staves.open")}
