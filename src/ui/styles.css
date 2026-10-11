@@ -971,7 +971,7 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 
 /* The transport, compact. */
 .play-split .play { min-width: 36px; min-height: 36px; font-size: 0.95rem; }
-.play-split .from-bar, .play-split .loop { min-height: 36px; min-width: 30px; font-size: 0.85rem; }
+.play-split .from-bar, .play-split .loop, .play-split .stop { min-height: 36px; min-width: 30px; font-size: 0.85rem; }
 .shell .controls { gap: 6px; }
 .shell.layout-compact .dock .sound .editor { flex: 0 0 auto; }
 /* D106: the music sits in the middle of its box when the box is taller than the music. */

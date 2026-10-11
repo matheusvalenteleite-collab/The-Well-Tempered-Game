@@ -33,6 +33,7 @@ import { applyStyle, type StyleId } from "../audio/styles.ts";
 import { ZOOM_MAX, ZOOM_MIN } from "./notation/zoom.ts";
 import { SoundDesk, trackOrder } from "./SoundDesk.tsx";
 import { HFader } from "./HFader.tsx";
+import { TransportButtons } from "./TransportButtons.tsx";
 import { audio, store, stored, validDrumKit } from "./shared.ts";
 import { t } from "./i18n.ts";
 import { Shell } from "./Shell.tsx";
@@ -159,7 +160,12 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
   const [secondOn, setSecondOn] = useState(true);
   const [thirdOn, setThirdOn] = useState(true);
   const [playing, setPlaying] = useState(false);
+  const playingRef = useRef(false);
+  playingRef.current = playing;
   const [cursor, setCursor] = useState(-1);
+  /** The bar a pause left the playback at (P2): ▶ goes on from there; ■ forgets it. */
+  const [pausedAt, setPausedAt] = useState<number | null>(null);
+  useEffect(() => setPausedAt(null), [STEP.id, suspended]);
   /** The florid part's value, in quaver slots (1, 2, 3, 4, 6, 8). */
   const [noteValue, setNoteValue] = useState(2);
 
@@ -248,6 +254,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
     audio.stop();
     setPlaying(false);
     setCursor(-1);
+    setPausedAt(null);
     setResult(null);
     setShowFux(false);
   };
@@ -293,6 +300,8 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
     setResult(null);
   };
   const audition = (k: number, override?: { staff: number; pitch: string | null }) => {
+    // While the piece plays, the change is heard in it (P2): a one-off chord would stop it.
+    if (playingRef.current) return;
     const ps = PARTS.map((i) => (override && i === override.staff ? (override.pitch === REST ? null : override.pitch) : i === STEP.cantusIndex ? STEP.cantus[k] : downOf(sessions[i].notes, i, k)));
     const extra = mine.slice(1).flatMap((i, j) => (ps[i] ? [{ channel: CHANNELS[j + 1], pitch: ps[i]! }] : []));
     void audio.playSequence([{ slot: k, at: 0, length: 1, cantus: STEP.cantus[k], counterpoint: ps[mine[0]] ?? null, extra }]);
@@ -339,13 +348,22 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
     setSessions(Object.fromEntries(mine.map((i) => [i, select(sessions[i], entry(i, bar))])));
   };
 
-  const play = (from = 0, fresh = false) => {
-    if (playing && !fresh) {
-      audio.stop();
-      setPlaying(false);
-      setCursor(-1);
-      return;
-    }
+  /** Stop (■): silence, and the next ▶ starts from the top. */
+  const stopPlay = () => {
+    audio.stop();
+    setPlaying(false);
+    setCursor(-1);
+    setPausedAt(null);
+  };
+  /** Pause (P2): silence, the cursor kept; ▶ goes on from that bar. */
+  const pausePlay = () => {
+    audio.stop();
+    setPlaying(false);
+    setPausedAt(Math.max(0, cursor));
+  };
+  const play = (from = pausedAt ?? 0, fresh = false) => {
+    if (playing && !fresh) return pausePlay();
+    setPausedAt(null);
     const events: PlayEvent[] = [];
     for (let k = 0; k < BARS; k++) events.push({ slot: k, at: k, length: 1, cantus: STEP.cantus[k], counterpoint: null, extra: [] });
     const lines: [(string | null)[], "counterpoint" | "second" | "third" | "fux"][] = mine.map((i, j) => [sessions[i].notes, CHANNELS[j]]);
@@ -365,31 +383,54 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
         events.push({ slot: Math.min(BARS - 1, Math.floor(slot / 8)), at: at(slot), length, cantus: null, counterpoint: null, extra: [{ channel: ch, pitch: p }] });
       });
     }
-    let onCycle: ((startTime: number, fromBeat: number) => void) | undefined;
-    if (continuo) {
-      const fuxOnly = !versions.original && fuxHeard && fuxOpen && STEP.fux;
-      const heard = mine.map((i) => Array.from({ length: BARS }, (_, k) => downOf(fuxOnly ? STEP.fux![i] : sessions[i].notes, i, k)));
+    // The engine schedules in order of time (P2): the parts' notes were appended after the bars,
+    // so in species 2-5 they sounded at once at the end of the first pass.
+    events.sort((a, b) => a.at - b.at);
+    // The continuo is always scheduled and heard through its gate (D78), so that switching it on
+    // while playing is heard at once; it is realized at each pass for the lines then heard.
+    const onCycle = (startTime: number, fromBeat: number) => {
+      const now = liveRef.current;
+      const fuxOnly = !now.original && now.fuxHeard && fuxOpen && STEP.fux;
+      const heard = mine.map((i) => Array.from({ length: BARS }, (_, k) => downOf(fuxOnly ? STEP.fux![i] : now.sessions[i].notes, i, k)));
+      const graph = audio.graph;
+      const destination = audio.continuoInput();
+      if (!graph || !destination) return;
       try {
         const view = { species: "first" as const, modalFinal: STEP.modalFinal, cantusVoice: "upper" as const, cantus: STEP.cantus, layout: slotLayout("first", BARS), fux: null };
         const input = continuoInput(view, heard, "player");
-        const realization = realizeContinuo(input, continuoOptions("player", continuoSettings));
-        onCycle = (startTime, fromBeat) => {
-          const graph = audio.graph;
-          const destination = audio.continuoInput();
-          if (!graph || !destination) return;
-          audio.attach(playContinuo(input, realization, { preset: continuoSettings.preset, audio: { ctx: graph.ctx, destination }, includeSungVoices: false, startTime, fromBeat, getTempo: () => audio.tempo, temperament: tuning, inegal: continuoSettings.inegal && continuoSettings.preset !== "stileAntico", figuration: continuoSettings.figure ? continuoSettings.figuration : null }));
-        };
+        const cs = now.continuoSettings;
+        const realization = realizeContinuo(input, continuoOptions("player", cs));
+        audio.attach(playContinuo(input, realization, { preset: cs.preset, audio: { ctx: graph.ctx, destination }, includeSungVoices: false, startTime, fromBeat, getTempo: () => audio.tempo, temperament: now.tuning, inegal: cs.inegal && cs.preset !== "stileAntico", figuration: cs.figure ? cs.figuration : null }));
       } catch {
-        onCycle = undefined;
+        // an incomplete line has no continuo yet
       }
-    }
+    };
     audio.setGates(gates());
     setPlaying(true);
+    const start = Math.max(0, events.findIndex((e) => e.at >= from));
     void audio.playAll(events, (k) => {
       setCursor(k);
-      if (k < 0) setPlaying(false);
-    }, onCycle, from);
+      if (k < 0) {
+        setPlaying(false);
+        setPausedAt(null);
+      }
+    }, onCycle, start);
   };
+  // What the continuo reads at each pass (P2).
+  const liveRef = useRef({ sessions, original: versions.original, fuxHeard, continuoSettings, tuning });
+  liveRef.current = { sessions, original: versions.original, fuxHeard, continuoSettings, tuning };
+  // Live changes (D57 as in two voices, P2): a change of the notes, of the continuo's settings, of
+  // the tuning or of Fux's line restarts the playback at once from the bar under the cursor;
+  // switches (voices, Fux heard, continuo on/off) only open or close channels (D78).
+  const liveKey = JSON.stringify([STEP.id, mine.map((i) => sessions[i].notes), { ...continuoSettings, display: null }, tuning, fuxOpen]);
+  const lastLiveKey = useRef(liveKey);
+  useEffect(() => {
+    if (lastLiveKey.current === liveKey) return;
+    lastLiveKey.current = liveKey;
+    if (!playing || exporter.phase === "recording") return;
+    play(Math.max(0, cursor), true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveKey]);
 
   const evaluateNow = () => {
     if (result) return setResult(null);
@@ -436,7 +477,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
     setShowSaved(false);
     setToast(t("ui.saved.opened", { name: x.name }));
   };
-  const exporter = usePartsExport({ start: () => play(0, true), stop: () => { audio.stop(); setPlaying(false); setCursor(-1); }, playing, loop, fileBase: `Fux ${N === 3 ? "three" : "four"} voices ${STEP.figure ?? ""} ${STEP.modalFinal}`, onToast: setToast });
+  const exporter = usePartsExport({ start: () => play(0, true), stop: stopPlay, playing, loop, fileBase: `Fux ${N === 3 ? "three" : "four"} voices ${STEP.figure ?? ""} ${STEP.modalFinal}`, onToast: setToast });
 
   const isMoving = (i: number) => MOVING.includes(STEP.kinds[i]);
   const onKey = (e: KeyboardEvent) => {
@@ -681,7 +722,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
             </div>
             <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
               <div className="play-split">
-                <button className="icon play" onClick={() => play()} aria-label={t("ui.play.player")} title={t("ui.play.player")}>{playing ? "■" : "▶"}</button>
+                <TransportButtons playing={playing} pausedAt={pausedAt} onPlay={() => play()} onStop={stopPlay} />
                 <button className="loop" aria-pressed={loop} onClick={() => setLoop(!loop)} aria-label={t("ui.loop")} title={t(loop ? "ui.loop.on" : "ui.loop.off")}>⟲</button>
               </div>
               <div className="hfaders">
