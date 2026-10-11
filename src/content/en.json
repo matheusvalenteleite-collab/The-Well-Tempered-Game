@@ -1829,7 +1829,12 @@
     "guide.voice.soprano": "soprano",
     "guide.voice.alto": "alto",
     "guide.voice.tenor": "tenor",
-    "guide.voice.bass": "bass"
+    "guide.voice.bass": "bass",
+    "guide.neapolitan": "Bar {bar}: a major chord on {root}, a semitone above the tonic, the \"Neapolitan\" chord, dark and sudden before the cadence.",
+    "guide.borrowed": "Bar {bar}: a chord borrowed from the minor ({root} {chord}) shadows the major key for a moment.",
+    "guide.pedal": "From bar {bar}: the bass holds {pitch} while the harmony above it moves: a pedal point.",
+    "guide.quality.major": "major",
+    "guide.quality.minor": "minor"
   },
   "wtcp": {
     "piece.p1": "Prelude 1 in C (BWV 846) · harmonic plan",
