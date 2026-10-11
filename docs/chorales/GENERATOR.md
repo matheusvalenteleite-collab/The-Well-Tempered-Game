@@ -26,8 +26,8 @@ each against his other basses and Bach (the benchmark: what a master's set of va
 
 | | chords attested | at phrase ends | Bach's chord (where Bach set the tune) | Kittel's chords found | different chords per note | different cadence plans |
 |---|---|---|---|---|---|---|
-| **Kittel's basses** (each against the others) | 91% | 95% | 47% | 100% | 2.5 | 4.6 |
-| **generator**, diverse settings | 81% | 89% | 44% | 74% | 2.6 | 4.4 |
+| **Kittel's basses** (each against the others) | 92% | 95% | 47% | 100% | 2.5 | 4.6 |
+| **generator**, diverse settings | 82% | 90% | 44% | 74% | 2.6 | 4.5 |
 | generator, its single most likely setting | 90% | 98% | 52% | 43% | 1.0 | 1.0 |
 | baseline: each chord drawn alone from Bach's habit at the melody degree | 71% | 64% | 39% | 61% | 2.4 | 5.6 |
 
@@ -45,10 +45,10 @@ different cadence when the eight are chosen (3 chords: it gives Kittel's 4.6 cad
 |---|---|---|---|---|
 | 0.5 | 0.5 | 87% | 67% | 2.0 |
 | 0.65 | 0.5 | 84% | 71% | 2.3 |
-| 0.8 | 0.5 | 81% | 74% | 2.6 |
-| 1 | 0.5 | 77% | 76% | 3.0 |
-| 1 | 0.15 | 81% | 73% | 2.7 |
-| *Kittel* | | 91% | 100% | 2.5 |
+| 0.8 | 0.5 | 82% | 74% | 2.6 |
+| 1 | 0.5 | 78% | 76% | 3.0 |
+| 1 | 0.15 | 81% | 73% | 2.6 |
+| *Kittel* | | 92% | 100% | 2.5 |
 
 ## 3. The bass and its figures (step 3)
 
@@ -66,8 +66,8 @@ On Kittel's melodies, the eight generated basses beside his eight (each of his a
 | | bass attested | different basses per note | positions 5/3 / 6 / 6/4 / 7 / 6/5 / 4/3 / 4/2 | moves by step | leaps beyond a fifth | mean move (semitones) | range (semitones) | outer fifths/octaves per 100 moves | final bass 1, 5/3 |
 |---|---|---|---|---|---|---|---|---|---|
 | **Kittel's basses** | 87% | 3.2 | 53% / 24% / 6% / 4% / 8% / 2% / 3% | 48% | 8% | 3.8 | 17 | 0.4 | 79% |
-| **generator** | 79% | 3.1 | 63% / 28% / 1% / 1% / 5% / 0% / 1% | 36% | 3% | 3.6 | 14 | 0.0 | 95% |
-| *Bach's 370 chorales* | | | 62% / 24% / 2% / 3% / 6% / 1% / 2% | 36% | 7% | 4.0 | 18 | 0.1 | 91% |
+| **generator** | 79% | 3.1 | 63% / 29% / 1% / 1% / 5% / 0% / 1% | 36% | 3% | 3.6 | 14 | 0.0 | 95% |
+| *Bach's 370 chorales* | | | 62% / 24% / 2% / 3% / 7% / 1% / 2% | 36% | 7% | 4.0 | 18 | 0.1 | 91% |
 
 Bach's row reads his on-beat basses under the melody's attacks (his chorales move in crotchets, Kittel's in minims). Kittel's
 positions are read from his figures (data/chorales/level4.json), Bach's by Kirnberger's reading: a cadential 6/4 is a 6/4
@@ -124,7 +124,7 @@ The basses (pitch and figure; Kittel's pitches as he writes them, his figures om
 | gen. 2 | G3 | F#3 6 | D#3 6 | B2 | E3 | D3 | G2 6/5 | G2 | C3 | A2 6 | B2 6 | C3 6/5 | E3 # | C3 6/5 | G3 | G3 | G3 | C#3 6 | D#3 6 | E3 6 | G3 | D3 | C3 | B2 7/# | E3 | F#3 6 | G3 | D3 | G2 |
 | gen. 3 | G3 | F#3 6 | B2 #6 | G#2 | B2 6 | D3 | G2 6/5 | G2 | C3 | A2 6 | E3 | F#3 6 | G3 | D3 | G3 | G3 | E3 | F#3 6 | G3 | C3 6 | E3 # | A2 | C3 | D3 | B2 6 | D3 | G3 | D3 | G2 |
 | gen. 4 | G2 | C3 6 | B2 6 | B2 6 | C3 | A2 6 | G2 6/5 | D3 | C#3 6 | D3 | B2 6 | F#3 6 | G3 | D3 | G3 | G3 | G3 | C3 6 | E3 | A3 | D3 6/5/n | A2 | C3 | A2 6 | G2 | D3 | G3 | D3 | G2 |
-| gen. 5 | G3 | F#3 6 | G3 | G3 | E3 6 | A2 6 | E3 6 | C3 4/2 | C3 | A2 6 | B2 6 | D3 | G3 | C3 6/5 | G3 | G3 | G3 | F#3 6 | G3 | E3 6 | G3 | A3 | A2 | D#3 6/5 | E3 | F#3 6 | D#3 6 | D3 | G2 |
+| gen. 5 | G3 | F#3 6 | G3 | G3 | E3 6 | A2 6 | E3 6 | C3 4/2 | C3 | A2 6 | B2 6 | D3 | G3 | C3 6/5 | G3 | G3 | G3 | F#3 6 | G3 | E3 6 | G3 | A3 | A2 | D#3 7 | E3 | F#3 6 | D#3 6 | D3 | G2 |
 | gen. 6 | G3 | F#3 6 | G3 | B3 | E3 | D3 | A2 # | D3 | G2 6/5 | B2 # | E3 7 | C3 6/5 | E3 | C3 6/5 | G3 | G3 | E3 | C3 6 | B2 6 | E3 6 | G3 | D3 | G2 6/5 | D3 | E3 | C3 6/5 | B2 6 | D3 | G2 |
 | gen. 7 | G3 | F#3 6 | G3 | B2 6 | C3 | A2 6 | E2 6 | G2 | C3 | A2 6 | B2 6 | D3 | G3 | D3 | G3 | E3 | E3 | F#3 6 | G3 | E3 6 | G3 | D3 | C#3 6 | D3 | G3 | F3 6 | E3 # | C3 6/5 | G2 |
 | gen. 8 | G3 | F#3 6 | G3 | F#3 6 | G3 | B2 | C3 | G2 | C3 6 | D3 | B2 6 | A2 | G2 | D3 | G3 | G3 | G3 | F#3 6 | G3 | E3 6 | G3 | A2 | C3 | A2 6 | G2 | F#2 6 | G#2 | A2 | B2 6/5 |
@@ -145,11 +145,11 @@ The basses (pitch and figure; Kittel's pitches as he writes them, his figures om
 | gen. 1 | I | IV | **VII°** | IV | I | **V** | I | **IV** | I | **V** | V | V | I | V | V | I | I | **V** | I | V | V | I | IV | I | V | I | **V** | I |
 | gen. 2 | I | I | V | **II** | I | ii | I | vi | I | **V** | V | V | I | **III** | III | vi | **vi** | ii | **III** | V | V | I | ii | **VI** | ii | **VI** | ii | I |
 | gen. 3 | I | vi | V | vi | **#IV°** | **V** | I | I | IV | **V** | V | V | vi | **III** | III | vi | IV | **V** | I | V | V | **vi** | ii | I | V | I | **V** | I |
-| gen. 4 | I | I | V | vi | **II** | **V** | I | I | I | **V** | V | V | vi | V | V | I | IV | **V** | I | V | V | I | ii | **VI** | ii | **VI** | ii | I |
+| gen. 4 | I | I | V | vi | vi | **V** | I | vi | vi | **V** | V | V | I | V | **iii** | vi | I | **II** | **VI** | **ii** | V | I | **I** | I | V | **iii** | **V** | I |
 | gen. 5 | I | vi | III | vi | **II** | **vii** | I | I | vi | **ii** | V | V | I | V | V | I | IV | **V** | I | **ii** | V | I | V | I | V | I | **V** | I |
-| gen. 6 | I | I | **VII°** | vi | vi | ii | I | vi | IV | **ii** | V | V | I | V | V | I | I | ii | **vi** | V | V | I | IV | I | ii | **VI** | ii | I |
-| gen. 7 | I | I | V | **II** | I | ii | I | vi | vi | **V** | V | V | vi | **III** | **iii** | I | I | **V** | I | V | V | I | IV | I | V | I | **V** | I |
-| gen. 8 | I | vi | **VII°** | IV | IV | ii | I | **IV** | I | **ii** | V | V | vi | **III** | III | vi | **vi** | ii | I | **ii** | V | I | IV | I | V | I | **V** | I |
+| gen. 6 | I | I | V | vi | **II** | **V** | I | I | I | **V** | V | V | vi | V | V | I | IV | **V** | I | V | V | I | ii | **VI** | ii | **VI** | ii | I |
+| gen. 7 | I | I | **VII°** | vi | vi | ii | I | vi | IV | **ii** | V | V | I | V | V | I | I | ii | **vi** | V | V | I | IV | I | ii | **VI** | ii | I |
+| gen. 8 | I | I | V | **II** | I | ii | I | vi | vi | **V** | V | V | vi | **III** | **iii** | I | I | **V** | I | V | V | I | IV | I | V | I | **V** | I |
 
 The top row is the melody as scale degrees (𝄐 a fermata). In the generated rows, a chord in bold is used
 under that note by neither Kittel nor Bach.
@@ -169,11 +169,11 @@ The basses (pitch and figure; Kittel's pitches as he writes them, his figures om
 | gen. 1 | A2 | D3 | B2 6 | D3 | C#3 6 | E3 | A2 | D3 | C#3 6 | E3 | E3 | G#3 6 | A3 | E3 | E3 | C#3 6 | C#3 6 | E3 | A3 | E3 | E3 | A3 | F#3 6 | A3 | G#3 6 | A3 | E3 | A2 |
 | gen. 2 | A2 | C#3 6 | E3 | B2 # | A2 | D3 6/5 | A3 | F#3 | C#3 6 | E3 | E3 | E3 | C#3 6 | C#3 # | E#3 6 | F#3 | F#3 | D4 6/5 | E#3 6 | E3 | E3 | A3 | B3 | F#3 # | D3 6 | F#3 # | D3 6/5 | A2 |
 | gen. 3 | A3 | F#3 | E3 | A3 6/5 | F#3 #6 | E3 | A2 | A2 | D3 | D3 4/2 | E3 | G#3 6 | F#3 | C#3 # | E#3 6 | F#3 | D3 | G#3 6 | A3 | E3 | E3 | A2 6 | B2 | C#3 6 | E3 | A3 | E3 | A2 |
-| gen. 4 | A2 | C#3 6 | E3 | A2 6/5 | D#3 6/5 | E3 | A2 | A2 | C#3 6 | E3 | E3 | E3 | F#3 | E3 | E3 | C#3 6 | D3 | D3 4/2 | A3 | E3 | E3 | C#3 6 | B2 | F#3 # | D3 6/5 | A#2 6/5 | B2 | C#3 6 |
+| gen. 4 | A2 | A2 | E3 | A3 6/5 | F#3 | E3 | A3 | F#3 | F#3 | G#3 6 | G#3 6 | E3 | C#3 6 | E3 | C#3 | F#3 | C#3 6 | D#3 6 | F#3 # | D3 6/5 | E3 | A3 | A3 | A3 | G#3 6 | E3 6 | E3 | A2 |
 | gen. 5 | A3 | F#3 | E#3 6 | F#3 | D#3 6/5 | B2 6/# | C#3 6 | A2 | F#3 | D3 6/5 | E3 | E3 | C#3 6 | E3 | E3 | C#3 6 | D3 | G#3 6 | A3 | D3 6/5 | E3 | A3 | G#3 6 | A3 | E3 | A3 | E3 | A2 |
-| gen. 6 | A2 | C#3 6 | B2 6 | A2 6/5 | F#3 | D3 6/5 | A3 | F#3 | D3 | B2 | E3 7 | E3 | A2 | E3 | E3 | C#3 6 | C#3 6 | D3 6 | F#3 | G#3 6 | E3 | C#3 6 | F#3 6 | A3 | D3 6/5 | F#3 # | D3 6/5 | A2 |
-| gen. 7 | A2 | A2 | E3 | D#3 6 | C#3 6 | D3 6 | A3 | F#3 | F#3 | G#3 6 | B2 6/4 | E3 | F#3 | C#3 # | C#3 | A2 | A2 | E3 | A3 | E3 | E3 | A3 | F#3 6 | E3 6/4 | G#3 6 | A3 | E3 | A2 |
-| gen. 8 | A3 | F#3 | B2 6 | D3 | D3 | D3 6/5 | A2 | D3 | C#3 6 | B2 | E3 | E3 | F#3 | C#3 # | E#3 6 | F#3 | F#3 | D3 6/5 | A3 | D3 6/5 | E3 | A3 | F#3 6 | E3 6/4 | E3 | A3 | E3 | A2 |
+| gen. 6 | A2 | C#3 6 | E3 | A2 6/5 | D#3 6/5 | E3 | A2 | A2 | C#3 6 | E3 | E3 | E3 | F#3 | E3 | E3 | C#3 6 | D3 | D3 4/2 | A3 | E3 | E3 | C#3 6 | B2 | F#3 # | D3 6/5 | A#2 n7 | B2 | C#3 6 |
+| gen. 7 | A2 | C#3 6 | B2 6 | A2 6/5 | F#3 | D3 6/5 | A3 | F#3 | D3 | B2 | E3 7 | E3 | A2 | E3 | E3 | C#3 6 | C#3 6 | D3 6 | F#3 | G#3 6 | E3 | C#3 6 | F#3 6 | A3 | D3 6/5 | F#3 # | D3 6/5 | A2 |
+| gen. 8 | A2 | A2 | E3 | D#3 6 | C#3 6 | D3 6 | A3 | F#3 | F#3 | G#3 6 | B2 6/4 | E3 | F#3 | C#3 # | C#3 | A2 | A2 | E3 | A3 | E3 | E3 | A3 | F#3 6 | E3 6/4 | G#3 6 | A3 | E3 | A2 |
 
 ## Reading
 
