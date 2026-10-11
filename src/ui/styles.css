@@ -1245,3 +1245,5 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .chorale-verdicts .verdict-grave3 { border-left: 3px solid #c4473a; padding-left: 6px; }
 .chorale-verdicts .verdict-grave2 { border-left: 3px solid #d35400; padding-left: 6px; }
 .chorale-verdicts .verdict-grave1 { border-left: 3px solid #b7950b; padding-left: 6px; }
+/* P8: ornament marks on the WTC roll. */
+.roll-orn { font: italic 700 9px var(--ui-font); pointer-events: none; }

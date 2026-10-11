@@ -1021,6 +1021,8 @@
     "study.machine": "Found by the game from the notes: the entries in the subject's exact rhythm (entries with an altered rhythm are missed), the voices by line (a voice may now and then take a note of its neighbour). Degrees are of the note the entry starts on, against the tonic.",
     "study.voices": "Voices",
     "study.voicesHelp": "Choose the voices you hear: tick any of them (soprano and alto only, tenor and bass only ...), or take a quick choice below. Spotlight brings one voice or several forward, in the way chosen below; the voice buttons under the score are spotlights too. Everything changes at once, even while playing.",
+    "study.ornaments": "tr Ornaments",
+    "study.ornamentsHelp": "Trills, mordents, turns and grace notes as Bach wrote them, shown and played after his own table (the Explication, 1720); off: the plain notes",
     "study.hear": "Heard",
     "study.hearHelp": "Tick to hear this voice, untick to leave it out",
     "study.presets": "Hear:",

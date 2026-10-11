@@ -29,6 +29,8 @@ interface Props {
   extra: RollExtra[];
   /** Notes hidden (replaced in the workshop). */
   hidden?: Set<number>;
+  /** P8: ornament marks over notes, by note index ("tr", "~", "∽" …). */
+  marks?: Map<number, string>;
   onBar(bar: number): void;
   label: string;
   /** A strip of labels above the bars (the chords), each over its span; tapping one plays from there. */
@@ -110,7 +112,10 @@ export function VoiceRoll(p: Props) {
         {p.cursor >= 0 && <rect x={x(p.cursor * p.barQuarters)} y={STRIP + PAD - 6} width={p.barQuarters * PX_Q} height={height - STRIP - 2 * PAD + 6} className="roll-cursor" />}
         {p.notes.map((n, i) =>
           p.hidden?.has(i) ? null : (
-            <rect key={i} x={x(n.at) + 0.5} y={y(n.midi)} width={Math.max(1.5, n.dur * PX_Q - 1)} height={ROW - 0.5} rx={1} fill={p.colors[p.voice[i] % p.colors.length]} opacity={p.faint.has(p.voice[i]) ? 0.18 : 0.92} />
+<g key={i}>
+              <rect x={x(n.at) + 0.5} y={y(n.midi)} width={Math.max(1.5, n.dur * PX_Q - 1)} height={ROW - 0.5} rx={1} fill={p.colors[p.voice[i] % p.colors.length]} opacity={p.faint.has(p.voice[i]) ? 0.18 : 0.92} />
+              {p.marks?.has(i) && <text x={x(n.at)} y={y(n.midi) - 1} className="roll-orn" fill={p.colors[p.voice[i] % p.colors.length]}>{p.marks.get(i)}</text>}
+            </g>
           ),
         )}
         {p.showEntries &&

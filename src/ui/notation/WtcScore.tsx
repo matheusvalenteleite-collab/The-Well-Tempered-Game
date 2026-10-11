@@ -6,7 +6,7 @@
  * written); a tap selects a slot and places the note under the pointer, with the key signature.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Accidental, Articulation, Beam, Dot, Formatter, Renderer, Stave, StaveConnector, StaveNote, StaveTie, Tuplet, Voice, type StemmableNote } from "vexflow";
+import { Accidental, Articulation, Beam, GraceNote, GraceNoteGroup, Ornament, Dot, Formatter, Renderer, Stave, StaveConnector, StaveNote, StaveTie, Tuplet, Voice, type StemmableNote } from "vexflow";
 import { parsePitch, type Step } from "../../music/pitch.ts";
 import { pitchAtPosition, type ClefId } from "./clefs.ts";
 import { chooseClefs } from "./clef-chooser.ts";
@@ -30,6 +30,20 @@ export interface WtcScoreNote {
   chord?: string[];
   /** A fermata over (or under) it (the chorales, C15). */
   fermata?: boolean;
+  /** P8: its ornament signs as the kern encoding writes them (T t trill, M m mordent, W w short trill, S turn, $ inverted turn), and the grace notes before it. */
+  orn?: string;
+  grace?: string[];
+}
+
+/** P8: the sign drawn for kern ornament signs (VexFlow's names). */
+function ornamentGlyph(signs: string): string | null {
+  if (/[Tt]/.test(signs)) return "tr";
+  if (/[Mm]/.test(signs)) return "mordent";
+  if (/[Ww]/.test(signs)) return "mordent_inverted";
+  if (signs.includes("$")) return "turn_inverted";
+  if (signs.includes("S")) return "turn";
+  if (signs.includes("O")) return "tr";
+  return null;
 }
 
 export interface WtcScoreVoice {
@@ -329,6 +343,20 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
             });
             n = new StaveNote({ keys, duration: q.d, clef, ...(pv.stem ? { stem_direction: pv.stem } : { auto_stem: true }) });
             (accOf.get(q) ?? []).forEach((acc, i) => acc && n.addModifier(new Accidental(acc), i));
+            // P8: the ornament over the note's first piece, its grace notes before it.
+            if (q.src && q.src.at >= q.at - EPS) {
+              const glyph = q.src.orn ? ornamentGlyph(q.src.orn) : null;
+              if (glyph) n.addModifier(new Ornament(glyph).setPosition(pv.stem === -1 ? 4 : 3), 0);
+              if (q.src.grace?.length) {
+                const gs = q.src.grace.map((g) => {
+                  const gp = parsePitch(g);
+                  const gn = new GraceNote({ keys: [`${gp.step.toLowerCase()}/${gp.octave + up}`], duration: "8", slash: q.src!.grace!.length === 1, clef });
+                  if (gp.alter) gn.addModifier(new Accidental(VEX_ACC(gp.alter)), 0);
+                  return gn;
+                });
+                n.addModifier(new GraceNoteGroup(gs, q.src.grace.length > 1), 0);
+              }
+            }
             const ink = q.src?.ink ?? pv.v.ink;
             n.setStyle({ fillStyle: ink, strokeStyle: ink });
           }

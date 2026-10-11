@@ -19,6 +19,7 @@
 import type { Mode } from "./Root.tsx";
 import { ModeSelect } from "./ModeSelect.tsx";
 import { keyBelongsToControl } from "./keys.ts";
+import { keySteps, ornamentUnit, realise } from "../music/ornaments.ts";
 import { openClefs, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { chordName, chordTones, figurationChanges, figurationShare, findCadences, keyPlan, readHarmony, romanOf, type Chord } from "../wtc/harmony.ts";
@@ -106,6 +107,25 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
   const minor = isMinor(F.key);
   const sig = useMemo(() => keySignature(F.key), [F.key]);
   const flats = Object.values(sig).some((x) => x < 0);
+  /** P8: ornaments played (Bach's Explication): the note before each in its voice, and the key's steps. */
+  /** P8: the ornaments marked on the roll: tr, a mordent ∿, a turn ∽, a grace note ♪. */
+  const rollMarks = useMemo(() => new Map([...P.orn].map(([i, o]) => [i, /[TtO]/.test(o.signs) ? "tr" : /[MmWw]/.test(o.signs) ? "∿" : /[S$]/.test(o.signs) ? "∽" : "♪"])), [P]);
+  const prevInVoice = useMemo(() => {
+    const last = new Map<number, number>();
+    return P.notes.map((n, i) => {
+      const before = last.get(P.voice[i]);
+      last.set(P.voice[i], i);
+      return before === undefined ? undefined : P.notes[before].midi;
+    });
+  }, [P]);
+  const steps = useMemo(() => keySteps(sig), [sig]);
+  /** What note i sounds as: itself, or its ornament realised at the tempo now. */
+  const sounding = (i: number, midi = P.notes[i].midi): { midi: number; at: number; dur: number }[] => {
+    const n = P.notes[i];
+    const o = ornaments ? P.orn.get(i) : undefined;
+    if (!o) return [{ midi, at: n.at, dur: n.dur }];
+    return realise({ midi, at: n.at, dur: n.dur }, o.signs, o.grace, { unit: ornamentUnit(audio.tempo), prevMidi: prevInVoice[i], ...steps });
+  };
   const notes: FullNote[] = P.notes;
   const subject = useMemo(() => FG.subject.map((n) => ({ midi: parsePitch(n.pitch).midi, at: n.at, dur: n.dur })), [FG]);
   const entries: Entry[] = isPrelude ? [] : FG.entries;
@@ -172,6 +192,9 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
     return m;
   };
   const [showEntries, setShowEntries] = useState(true);
+  /** P8: ornaments played and shown (Bach's Explication), or the notes plain. */
+  const [ornaments, setOrnaments] = useState(() => stored("wtg.ornaments", true, (v) => typeof v === "boolean"));
+  useEffect(() => store("wtg.ornaments", ornaments), [ornaments]);
   /**
    * D135: a prelude made of one figuration is a keyboard texture more than a set of voices: its
    * strands are a convenience. Shown as one texture by default (the strands on request).
@@ -313,7 +336,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
     notes.forEach((n, i) => {
       if (only && !only.has(i)) return;
       if (through === "alone" && changed && !entryNote.has(i)) return;
-      add(edited.get(i) ?? n.midi, n.at, n.dur, VOICE_CH[voice[i]] ?? "second");
+      for (const x of edited.has(i) ? [{ midi: edited.get(i)!, at: n.at, dur: n.dur }] : sounding(i)) add(x.midi, x.at, x.dur, VOICE_CH[voice[i]] ?? "second");
     });
     if (!only && !game) for (const n of myNotes) add(n.midi, n.at, n.dur, "canon");
     evs.sort((a, b) => a.at - b.at);
@@ -373,7 +396,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
       const from = e.at;
       const to = e.end;
       const pick = notes.map((n, i) => ({ n, i })).filter(({ n, i }) => n.at >= from - 1e-6 && n.at < to - 1e-6 && (!alone || e.notes.includes(i)));
-      for (const { n, i } of pick) {
+      for (const { n: n0, i } of pick) for (const n of sounding(i).map((x) => ({ ...n0, ...x }))) {
         const ch = VOICE_CH[voice[i]] ?? "second";
         const pitch = midiName(n.midi, flats);
         const len = Math.min(n.dur, to - n.at) / 4;
@@ -874,7 +897,8 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
             // A note overlapping the next in its voice is cut where the next begins.
             const next = mine[k + 1]?.n.at ?? Infinity;
             const end = Math.min(n.at + n.dur, q1, next);
-            return { pitch: P.spelled[i] ?? spell(n.midi, sig, flats), at: at - q0, dur: Math.max(1 / 96, end - at), ...(chord.length ? { chord } : {}), ...(starts.has(i) && n.at >= q0 ? { label: starts.get(i) } : {}) };
+            const o = ornaments && n.at >= q0 ? P.orn.get(i) : undefined;
+            return { pitch: P.spelled[i] ?? spell(n.midi, sig, flats), at: at - q0, dur: Math.max(1 / 96, end - at), ...(chord.length ? { chord } : {}), ...(starts.has(i) && n.at >= q0 ? { label: starts.get(i) } : {}), ...(o ? { orn: o.signs, grace: o.grace.map((g) => g.pitch) } : {}) };
           }),
           staff: st,
           ink: COLORS[v % COLORS.length],
@@ -886,7 +910,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
   };
   const scoreVoices: WtcScoreVoice[] = useMemo(() => voicesFor(scoreFrom, scoreTo),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [scoreFrom, scoreTo, P, barQ, entries, count, notes, voice, sig, flats, gameUntil, staffOf]);
+    [scoreFrom, scoreTo, P, barQ, entries, count, notes, voice, sig, flats, gameUntil, staffOf, ornaments]);
   // The page (D127): rows of a few bars, the row playing on top (else the chosen span's, else the first), three rows.
   // As many bars to a row as fill it: the score's width per bar grows with the busiest voice's notes
   // (WtcScore: 46 + 30 per note, 150 at least); a row is about 1800 wide before scaling.
@@ -919,7 +943,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
     }
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pageTop, rowBars, bars, cursor, P, entries, staffOf, gameUntil, sig, flats]);
+  }, [pageTop, rowBars, bars, cursor, P, entries, staffOf, gameUntil, sig, flats, ornaments]);
   const rollHidden = useMemo(() => {
     if (gameUntil === null) return hidden;
     const h = new Set(hidden);
@@ -989,6 +1013,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
             span={span}
             extra={gameUntil !== null ? [] : [...throughNotes, ...myNotes]}
             hidden={rollHidden}
+            marks={ornaments ? rollMarks : undefined}
             onBar={(b) => (game ? undefined : (setSpan(null), setActiveMoment(null), play(b * barQ)))}
             label={fugueLabel(F)}
             firstBar={firstBar}
@@ -1009,6 +1034,9 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
               <button className="chipbtn" role="radio" aria-checked={view === "roll"} aria-pressed={view === "roll"} onClick={() => setView("roll")} title={t("ui.study.rollHelp")}>{t("ui.study.roll")}</button>
               <button className="chipbtn" role="radio" aria-checked={view === "score"} aria-pressed={view === "score"} onClick={() => setView("score")} title={t("ui.study.scoreHelp")}>{t("ui.study.score")}</button>
               <button className="chipbtn" role="radio" aria-checked={view === "page"} aria-pressed={view === "page"} onClick={() => setView("page")} title={t("ui.study.pageHelp")}>{t("ui.study.page")}</button>
+              <button className="chipbtn" aria-pressed={ornaments} onClick={() => setOrnaments(!ornaments)} title={t("ui.study.ornamentsHelp")}>
+                {t("ui.study.ornaments")}
+              </button>
               {!isPrelude && view !== "roll" && (
                 <button className="chipbtn" aria-pressed={openScore} onClick={() => setStaffLayout(openScore ? "compact" : "open")} title={t(openScore ? "ui.view.staves.compact.help" : "ui.view.staves.open.help")}>
                   {t("ui.view.staves.open")}
