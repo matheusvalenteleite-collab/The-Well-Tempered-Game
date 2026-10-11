@@ -9,7 +9,7 @@ two at the melody's fermatas.
 
 **Over all 626 comparisons (Kittel bass × Bach setting):** same root 53%, same bass 41%; at the cadences same root 75%, same bass 73%.
 
-**Benchmark: two of Bach's own settings of the same tune**, compared the same way: same root 69%, same bass 61%; at the cadences same root 86%, same bass 85% (6360 aligned melody notes).
+**Benchmark: two of Bach's own settings of the same tune**, compared the same way: same root 68%, same bass 61%; at the cadences same root 86%, same bass 85% (6360 aligned melody notes).
 
 ## By the number of the bass (does Kittel order his basses by distance from the plain setting?)
 
@@ -59,7 +59,7 @@ two at the melody's fermatas.
 | 11 | 256 | [7] (61%) | [3] (36%) | 52% |
 | 11 | 282 | [7] (58%) | [3] (40%) | 52% |
 | 11 | 298 | [4] (70%) | [3] (43%) | 58% |
-| 12 | 6 | [2] (91%) | [8] (48%) | 67% |
+| 12 | 6 | [2] (86%) | [5] (45%) | 66% |
 | 12 | 316 | [5] (60%) | [3] (40%) | 50% |
 | 13 | 54 | [1] (57%) | [7] (35%) | 49% |
 | 13 | 276 | [3] (64%) | [6] (39%) | 51% |
@@ -72,11 +72,11 @@ two at the melody's fermatas.
 | 15 | 329 | [1] (65%) | [8] (40%) | 55% |
 | 15 | 335 | [1] (78%) | [6] (50%) | 63% |
 | 15 | 354 | [4] (68%) | [8] (42%) | 57% |
-| 17 | 62 | [2] (67%) | [7] (45%) | 55% |
+| 17 | 62 | [2] (64%) | [7] (42%) | 54% |
 | 17 | 104 | [1] (71%) | [7] (41%) | 55% |
-| 17 | 112 | [1] (67%) | [4] (48%) | 55% |
-| 17 | 146 | [8] (62%) | [7] (47%) | 55% |
-| 17 | 204 | [1] (68%) | [4] (53%) | 58% |
+| 17 | 112 | [1] (67%) | [4] (45%) | 53% |
+| 17 | 146 | [8] (65%) | [7] (44%) | 54% |
+| 17 | 204 | [1] (68%) | [4] (50%) | 57% |
 | 17 | 339 | [3] (62%) | [6] (44%) | 53% |
 | 18 | 86 | [6] (76%) | [3] (50%) | 63% |
 | 18 | 195 | [6] (76%) | [3] (51%) | 64% |
@@ -90,7 +90,7 @@ two at the melody's fermatas.
 | 19 | 324 | [7] (72%) | [4] (58%) | 64% |
 | 19 | 356 | [7] (72%) | [1] (58%) | 64% |
 | 20 | 41 | [1] (56%) | [8] (35%) | 45% |
-| 20 | 115 | [4] (51%) | [8] (35%) | 41% |
+| 20 | 115 | [4] (49%) | [8] (35%) | 41% |
 | 20 | 120 | [1] (54%) | [3] (38%) | 42% |
 | 20 | 265 | [4] (50%) | [8] (29%) | 41% |
 | 20 | 349 | [1] (54%) | [3] (38%) | 42% |

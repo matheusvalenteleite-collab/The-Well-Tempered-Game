@@ -224,12 +224,15 @@ on the root a third lower while reading F-A-C-E going to G on F would be inconsi
 
 **Code:**
 - The counts give how the root moves, beat to beat.
-- **Not yet applied** (proposed, for the owner). A root-position seventh chord on the beat whose
-  bass then rises a step, and whose seventh falls by step into the following harmony, would be read
-  on the third below the bass: the bass becomes the third, and the seventh becomes the ninth, an
-  incidental note for the octave. In Bach's chorales this concerns 54 of 469 root-position seventh
-  chords on the beat; 27 more have the bass rising a step but the seventh moving otherwise.
-  Inversions (§ 12) would come after.
+- **Applied (C24, owner's approval).** A root-position seventh chord on the beat, whose bass then
+  rises a step and whose seventh falls by step into the following harmony, is read on the third below
+  the bass. The analysis reads the chord with the seventh's resolution in its place: it must give the
+  sixth-fifth chord of an essential seventh chord. The bass is then that chord's third, and the
+  seventh is its ninth, an incidental note for the octave. In Bach's chorales this applies to 34
+  chords on the beat, out of 54 candidates where the bass rises a step and the seventh falls; in the
+  other 20 the resolution does not give such a chord. Example: B-D-F-A going to C is G's seventh
+  chord with A for G, the case of § 13. The verticalities so read carry `improper_seventh`.
+- **Inversions (§ 12)** are not yet applied.
 
 ### 5. Cadences
 
@@ -270,5 +273,5 @@ on the root a third lower while reading F-A-C-E going to G on F would be inconsi
   pp. 30, 34, 39, 63, 72, 81, 84 and 214 rest on the OCR, which is clean there but has not been
   compared with the print.
 - The owner's decisions:
-  - the improper seventh (section 4): adopt the proposed reading or not.
+  - the improper seventh: adopted for root position (C24); the inversions remain.
   - The strict style was decided in C23: it is the frame of the explanations, not of the judgment.

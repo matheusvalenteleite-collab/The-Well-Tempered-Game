@@ -117,11 +117,11 @@ dissonance, by its melodic shape. Sonorities left unanalysed: 0 of 30050.
 | minor | 4412 |
 | triad, third not sounding | 873 |
 | diminished | 679 |
-| minor seventh | 670 |
-| dominant seventh | 657 |
-| half-diminished seventh | 364 |
+| dominant seventh | 669 |
+| minor seventh | 666 |
+| half-diminished seventh | 353 |
 | dominant seventh, minor ninth for the root | 225 |
-| major seventh | 163 |
+| major seventh | 166 |
 | seventh chord, third not sounding (minor seventh) | 132 |
 | seventh chord, third not sounding (major seventh) | 8 |
 | bare | 2 |
@@ -130,8 +130,8 @@ dissonance, by its melodic shape. Sonorities left unanalysed: 0 of 30050.
 |---|---|---|
 | triad | root | 10896 |
 | triad | third | 4183 |
-| seventh chord | third | 1121 |
-| seventh chord | root | 576 |
+| seventh chord | third | 1155 |
+| seventh chord | root | 542 |
 | seventh chord | seventh | 351 |
 | triad | fifth | 329 |
 | triad | passing | 320 |
@@ -149,12 +149,12 @@ dissonance, by its melodic shape. Sonorities left unanalysed: 0 of 30050.
 
 | motion | count |
 |---|---|
-| up a fourth (down a fifth) | 5877 |
-| up a fifth (down a fourth) | 2647 |
-| up a second | 2488 |
-| down a third | 1427 |
-| down a second | 1284 |
-| up a third | 651 |
+| up a fourth (down a fifth) | 5895 |
+| up a fifth (down a fourth) | 2645 |
+| up a second | 2472 |
+| down a third | 1419 |
+| down a second | 1291 |
+| up a third | 649 |
 | same letter, altered | 7 |
 
 ## Incidental dissonances (by melodic shape)
@@ -167,7 +167,7 @@ dissonance, by its melodic shape. Sonorities left unanalysed: 0 of 30050.
 | neighbour | no | 525 |
 | neighbour | yes | 314 |
 | suspension | no | 283 |
-| ninth | yes | 225 |
+| ninth | yes | 259 |
 | anticipation | no | 199 |
 | ninth | no | 168 |
 | retardation | no | 141 |
@@ -186,7 +186,7 @@ dissonance, by its melodic shape. Sonorities left unanalysed: 0 of 30050.
 | soprano | suspension | 219 |
 | soprano | anticipation | 125 |
 | soprano | neighbour | 122 |
-| soprano | ninth | 84 |
+| soprano | ninth | 98 |
 | soprano | escape | 70 |
 | soprano | free | 60 |
 | soprano | retardation | 41 |
@@ -194,7 +194,7 @@ dissonance, by its melodic shape. Sonorities left unanalysed: 0 of 30050.
 | alto | suspension | 1172 |
 | alto | passing | 939 |
 | alto | neighbour | 323 |
-| alto | ninth | 117 |
+| alto | ninth | 127 |
 | alto | retardation | 83 |
 | alto | appoggiatura | 55 |
 | alto | anticipation | 46 |
@@ -203,7 +203,7 @@ dissonance, by its melodic shape. Sonorities left unanalysed: 0 of 30050.
 | tenor | passing | 1590 |
 | tenor | suspension | 540 |
 | tenor | neighbour | 264 |
-| tenor | ninth | 151 |
+| tenor | ninth | 161 |
 | tenor | anticipation | 54 |
 | tenor | retardation | 52 |
 | tenor | free | 45 |
@@ -228,12 +228,12 @@ the same bass is a seventh whose next note is itself passing, or one sounding wi
 
 | prepared | resolves down by step | bass moves at the resolution | count |
 |---|---|---|---|
-| yes | yes | yes | 1278 |
-| no | yes | yes | 244 |
-| yes | yes | no | 238 |
-| yes | no | — | 229 |
-| no | no | — | 199 |
-| no | yes | no | 16 |
+| yes | yes | yes | 1280 |
+| no | yes | yes | 249 |
+| yes | no | — | 235 |
+| yes | yes | no | 222 |
+| no | no | — | 200 |
+| no | yes | no | 17 |
 
 ## Doubling in complete triads on the beat
 
@@ -287,7 +287,7 @@ where that voice goes.
 | soprano | rises a semitone (to the root) | 527 |
 | soprano | falls a third (to the fifth) | 87 |
 | soprano | other | 56 |
-| soprano | held | 11 |
+| soprano | held | 12 |
 | soprano | falls a semitone | 1 |
 | alto | falls a third (to the fifth) | 566 |
 | alto | rises a semitone (to the root) | 543 |
@@ -299,7 +299,7 @@ where that voice goes.
 | tenor | other | 90 |
 | tenor | held | 11 |
 | tenor | falls a semitone | 3 |
-| bass | rises a semitone (to the root) | 1287 |
+| bass | rises a semitone (to the root) | 1298 |
 | bass | other | 37 |
 | bass | falls a semitone | 15 |
 | bass | held | 7 |
