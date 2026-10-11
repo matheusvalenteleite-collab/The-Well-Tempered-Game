@@ -18,7 +18,7 @@ import { restoreSound, setMix as changeMix, type SoundState } from "../audio/sou
 import { DEFAULT_DRUMS, type DrumSettings } from "../audio/drums.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
 import { DEFAULT_CONTINUO_SETTINGS, validContinuoSettings, type ContinuoSettings } from "../game/continuo-settings.ts";
-import { continuoInput, continuoOptions } from "../game/continuo-input.ts";
+import { continuoOptions, trioContinuoInput } from "../game/continuo-input.ts";
 import { realizeContinuo } from "../continuo/realize.ts";
 import { playContinuo } from "../continuo/audio.ts";
 import { DEFAULT_VERSIONS, type Versions } from "../game/versions.ts";
@@ -376,11 +376,10 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
     let onCycle: ((startTime: number, fromBeat: number) => void) | undefined;
     if (continuo) {
       const fuxOnly = !versions.original && fuxHeard && fuxOpen;
-      // The continuo harmonises the downbeats (the minim voice's thesis notes).
-      const heard = (fuxOnly ? fuxLines : mine.map((i) => sessions[i].notes)).map((line, j) => Array.from({ length: n }, (_, k) => downOf(line, mine[j], k)));
+      // The continuo hears the voices as sung, the moving one in its rhythm (a suspension read from its resolution).
+      const heard = fuxOnly ? fuxLines : mine.map((i) => sessions[i].notes);
       try {
-        const view = { species: "first" as const, modalFinal: STEP.modalFinal, cantusVoice: "upper" as const, cantus: STEP.cantus, layout: slotLayout("first", n), fux: null };
-        const input = continuoInput(view, heard, "player");
+        const input = trioContinuoInput(STEP, mine, heard);
         const realization = realizeContinuo(input, continuoOptions("player", continuoSettings));
         onCycle = (startTime, fromBeat) => {
           const graph = audio.graph;
