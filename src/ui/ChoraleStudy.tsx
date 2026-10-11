@@ -14,6 +14,7 @@ import { HeaderTools } from "./HeaderTools.tsx";
 import { HFader } from "./HFader.tsx";
 import { Shell } from "./Shell.tsx";
 import { WtcPage, type WtcScoreVoice } from "./notation/WtcScore.tsx";
+import { pageRows, useRowBars } from "./notation/page-rows.ts";
 import { audio, store, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
 import type { PlayEvent } from "../counterpoint/layout.ts";
@@ -48,8 +49,7 @@ const VOICE_NAMES = ["soprano", "alto", "tenor", "bass"] as const;
 /** The voices' names in their mixer colours (on the controls); the notes are in the page's ink, so that the incidental notes' colours stand out. */
 const INK = ["var(--trk-counterpoint)", "var(--trk-second)", "var(--trk-third)", "var(--trk-fux)"];
 const NOTE_INK = "#1d1b17";
-/** Bars to a row of the page. */
-const ROW_BARS = 4;
+
 const CHANNEL = ["counterpoint", "second", "third", "fux"] as const;
 /** The incidental notes' colours, by kind (in the order of the data's `kinds`). */
 const KIND_INK = ["#1f8a4c", "#2a7fb8", "#c0392b", "#d35400", "#8e44ad", "#b7950b", "#7f8c8d", "#5d4037"];
@@ -114,6 +114,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
   const [cursor, setCursor] = useState(-1);
   const timer = useRef<number | null>(null);
   const [onlyKittel, setOnlyKittel] = useState(false);
+  const rowBars = useRowBars();
 
   const list = data ? data.chorales.filter((c) => !onlyKittel || c.kittel) : [];
   const ch = data ? data.chorales.find((c) => c.n === number) ?? data.chorales[0] : null;
@@ -163,30 +164,12 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
           return { at: quarters(at), lines: [...fig, ...Array(3 - Math.min(3, fig.length)).fill(""), layers.fundamental && root ? `${root}${chord}` : ""] };
         })
       : undefined;
-    // The page: rows of a few bars, each voice's notes cut at the row's ends.
+    // The page: rows of a few bars.
     const barQ = barUnits / 8;
     const bars = Math.ceil((ch.length + shift) / barUnits);
-    const rows = [];
-    for (let a = 0; a < bars; a += ROW_BARS) {
-      const z = Math.min(bars, a + ROW_BARS);
-      const q0 = a * barQ;
-      const q1 = z * barQ;
-      rows.push({
-        key: `${ch.n}-${a}`,
-        bars: z - a,
-        cursor: cursor >= a && cursor < z ? cursor - a : -1,
-        label: t("chorale.study.rowLabel", { n: ch.n, title: ch.title, a: a + (ch.pickup ? 0 : 1), b: z - (ch.pickup ? 1 : 0) }),
-        voices: voices.map((v) => ({
-          ...v,
-          notes: v.notes
-            .filter((n) => n.at < q1 - 1e-9 && n.at + n.dur > q0 + 1e-9)
-            .map((n) => ({ ...n, at: Math.max(n.at, q0) - q0, dur: Math.min(n.at + n.dur, q1) - Math.max(n.at, q0), fermata: n.fermata && n.at + n.dur <= q1 + 1e-9, label: n.at >= q0 - 1e-9 ? n.label : undefined })),
-        })),
-        under: under?.filter((u) => u.at >= q0 - 1e-9 && u.at < q1 - 1e-9).map((u) => ({ ...u, at: u.at - q0 })),
-      });
-    }
+    const rows = pageRows({ voices, under, barQ, bars, rowBars, cursor, key: String(ch.n), label: (a, z) => t("chorale.study.rowLabel", { n: ch.n, title: ch.title, a: a + (ch.pickup ? 0 : 1), b: z - (ch.pickup ? 1 : 0) }) });
     return { rows, barQ, barUnits, shift };
-  }, [ch, data, layers, cursor]);
+  }, [ch, data, layers, cursor, rowBars]);
 
   const play = () => {
     if (playing || !ch || !view) return stop();
@@ -205,7 +188,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
   };
 
   // The row playing kept in sight.
-  const row = cursor >= 0 ? Math.floor(cursor / ROW_BARS) : -1;
+  const row = cursor >= 0 ? Math.floor(cursor / rowBars) : -1;
   useEffect(() => {
     if (row >= 0) document.querySelector(".chorale-study .wtc-sys.playing")?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [row]);
@@ -240,7 +223,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
       score={
         <div className="score-wrap chorale-score chorale-study">
           {ch && view ? (
-            <WtcPage rows={view.rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={view.barQ} selected={null} onSlot={() => undefined} />
+            <WtcPage fitWidth rows={view.rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={view.barQ} selected={null} onSlot={() => undefined} />
           ) : (
             <p className="help">{t("ui.loading")}</p>
           )}

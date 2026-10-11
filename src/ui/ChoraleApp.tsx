@@ -6,6 +6,7 @@
  */
 import { ModeSelect } from "./ModeSelect.tsx";
 import { ChoraleStudy } from "./ChoraleStudy.tsx";
+import { ChoraleVoices } from "./ChoraleVoices.tsx";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { BACH_REFS, CHORALES, comparePoints, frac, soundingMelody, voiceChord, type PhraseVerdict } from "../chorale/level1.ts";
 import { LEVEL2, noteIndices } from "../chorale/level2.ts";
@@ -22,24 +23,25 @@ import { audio, store, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
 
 type Picks = Record<number, (string | null)[]>;
-type Level = 0 | 1 | 2 | 3 | 4;
+type Level = 0 | 1 | 2 | 3 | 4 | 5;
 
 /** The chorale screen: Bach's settings to hear and read (C15), or the levels on Kittel's melodies. */
 export function ChoraleApp({ onMode, onTutorial }: { onMode(mode: Mode): void; onTutorial?: () => void }) {
-  const [level, setLevel] = useState<Level>(() => stored<Level>("wtg.choraleLevel", 1, (v) => v === 0 || v === 1 || v === 2 || v === 3 || v === 4));
+  const [level, setLevel] = useState<Level>(() => stored<Level>("wtg.choraleLevel", 1, (v) => v === 0 || v === 1 || v === 2 || v === 3 || v === 4 || v === 5));
   useEffect(() => store("wtg.choraleLevel", level), [level]);
   const levelSelect = (onChange?: () => void) => (
     <select id="level" className="sel sel-species" value={level} aria-label={t("chorale.level")} onChange={(e) => { onChange?.(); setLevel(Number(e.target.value) as Level); }}>
       {[0, 1, 2, 3, 4, 5, 6].map((n) => (
-        <option key={n} value={n} disabled={n > 4}>{t(`chorale.level.${n}`)}</option>
+        <option key={n} value={n} disabled={n > 5}>{t(`chorale.level.${n}`)}</option>
       ))}
     </select>
   );
+  if (level === 5) return <ChoraleVoices onMode={onMode} onTutorial={onTutorial} levelSelect={levelSelect()} />;
   if (level === 0) return <ChoraleStudy onMode={onMode} onTutorial={onTutorial} levelSelect={levelSelect()} />;
   return <ChoraleLevels onMode={onMode} onTutorial={onTutorial} level={level} levelSelect={levelSelect} />;
 }
 
-function ChoraleLevels({ onMode, onTutorial, level, levelSelect }: { onMode(mode: Mode): void; onTutorial?: () => void; level: Exclude<Level, 0>; levelSelect(onChange?: () => void): ReactNode }) {
+function ChoraleLevels({ onMode, onTutorial, level, levelSelect }: { onMode(mode: Mode): void; onTutorial?: () => void; level: Exclude<Level, 0 | 5>; levelSelect(onChange?: () => void): ReactNode }) {
   const [index, setIndex] = useState(() => Math.max(0, CHORALES.findIndex((c) => c.number === stored("wtg.chorale", 1, (v) => typeof v === "number"))));
   const ch = CHORALES[index];
   useEffect(() => store("wtg.chorale", ch.number), [ch.number]);

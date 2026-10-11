@@ -1,7 +1,7 @@
 # Handoff (10 October 2026, night)
 
 Read this first in a new session. The decisions log (`docs/DECISIONS.md`: D1–D139 and D147 on for the game,
-D140–D146 for the tutorial (the next free number is D158), C1–C16 for the chorale mode (next C17)) has the details; `docs/MORNING.md` has
+D140–D146 for the tutorial (the next free number is D158), C1–C17 for the chorale mode (next C18)) has the details; `docs/MORNING.md` has
 older notes and the owner's open questions.
 
 ## How we work from now on (the owner's choice, after a usage warning)
@@ -17,7 +17,7 @@ older notes and the owner's open questions.
 
 ## Publishing
 
-- Tests: `npm test` (258). Builds: `npm run build` (Pages, split into chunks) and
+- Tests: `npm test` (261). Builds: `npm run build` (Pages, split into chunks) and
   `npm run build:artifact` then `node tools/build-artifact.mjs <out.html>` (one file, 14.4 MB of a
   16.8 MB ceiling: D156 made room, C15 took 1.9 MB of it).
 - claude.ai artifact: https://claude.ai/artifact/NvkaBGCHrtDebE85H7udTX (private). It holds 501 of
@@ -65,11 +65,11 @@ older notes and the owner's open questions.
    in dialogs; `.help` hidden on phones (it hides three WTC checkboxes and the credits).
 6. **The chorale mode** (C4 conception, `docs/chorales/CONCEPT.md`): levels 1-4 on Kittel's 24 melodies
    (C5, C10-C12, the owner still to confirm C10-C12); Bach's 370 settings to hear and read with their
-   cadences, figures, fundamental bass and incidental notes (C15). Next, by the owner's plan: level 5
-   (alto and tenor over Kittel's figured basses), in Bach's style alone (C16): two boundaries
-   (consecutive fifths and octaves on successive beats; the augmented second), everything else as
-   idiom in contexts fine enough to discipline (the seventh by approach, bass, voice and position).
-   Open: no. 320, bar 8, to be checked in the Breitkopf print.
+   cadences, figures, fundamental bass and incidental notes (C15). Level 5, the voices over Kittel's
+   figured basses, in Bach's style alone (C16, C17). No. 320, bar 8 checked in the later Breitkopf
+   print (plate 12021): the consecutive fifths are there (the 1784-87 first edition not seen).
+   Next: Bach's own inner voices beside the player's at level 5 where he set the tune; then
+   level 6 (diminution).
 7. Old backlog, last: evaluation redesign and graded three-voice reading with Fux; rule
    demonstrations; the Mann layer.
 

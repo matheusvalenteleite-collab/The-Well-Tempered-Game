@@ -153,7 +153,7 @@ export function WtcScore(p: Props) {
  * A page of systems, one under the other (D127, the owner: "see the sheet music playing", as in
  * Gerubach's videos): each row a few bars, fitted to the page's width; the row playing on top.
  */
-export function WtcPage(p: Omit<Props, "voices" | "cursor" | "label" | "zoom" | "onZoom" | "zoomLabels" | "tools" | "under"> & { rows: { voices: WtcScoreVoice[]; bars: number; cursor: number; label: string; key: string; under?: Props["under"] }[] }) {
+export function WtcPage(p: Omit<Props, "voices" | "cursor" | "label" | "zoom" | "onZoom" | "zoomLabels" | "tools" | "under"> & { rows: { voices: WtcScoreVoice[]; bars: number; cursor: number; label: string; key: string; under?: Props["under"] }[]; fitWidth?: boolean }) {
   const host = useRef<HTMLDivElement>(null);
   const [w, setW] = useState(0);
   const [h, setH] = useState(0);
@@ -175,7 +175,8 @@ export function WtcPage(p: Omit<Props, "voices" | "cursor" | "label" | "zoom" | 
           const lefts = widths.reduce<number[]>((acc, x, i) => (acc.push(i === 0 ? LEAD : acc[i - 1] + widths[i - 1]), acc), []);
           const natural = LEAD + widths.reduce((a, b) => a + b, 0) + 24;
           // Fitted to the width, and small enough that two systems fit the page's height (reading ahead, as in a printed score).
-          const scale = Math.min(1.1, (w - 8) / natural, h > 100 ? (h - 12) / 2 / heightOf(r.under) : Infinity);
+          // `fitWidth` (the chorales, C17): rows as wide as the page, scrolled, large enough to write on.
+          const scale = Math.min(1.1, (w - 8) / natural, !p.fitWidth && h > 100 ? (h - 12) / 2 / heightOf(r.under) : Infinity);
           return (
             <div key={r.key} className={r.cursor >= 0 ? "wtc-sys playing" : "wtc-sys"}>
               <WtcSystem {...p} voices={voices} cursor={r.cursor} label={r.label} under={r.under} zoom={1} onZoom={() => undefined} zoomLabels={{ in: "", out: "", reset: "" }} bars={bars} widths={widths} lefts={lefts} natural={natural} scale={scale} bothStaves />
@@ -287,7 +288,9 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
           if (q.rest) {
             n = new StaveNote({ keys: [pv.stem === -1 ? (clef === "treble" ? "g/4" : "b/2") : pv.stem === 1 ? (clef === "treble" ? "d/5" : "f/3") : middle], duration: `${q.d}r`, clef });
           } else if (!q.pitch) {
-            n = new StaveNote({ keys: [middle], duration: q.d, clef, ...(pv.stem ? { stem_direction: pv.stem } : { auto_stem: false }) });
+            // An empty slot where its voice lives: low on the staff for the lower of two voices, high for the upper (C17).
+            const home = pv.stem === -1 ? (clef === "treble" ? "e/4" : "g/2") : pv.stem === 1 ? (clef === "treble" ? "e/5" : "a/3") : middle;
+            n = new StaveNote({ keys: [home], duration: q.d, clef, ...(pv.stem ? { stem_direction: pv.stem } : { auto_stem: false }) });
             n.setStyle({ fillStyle: "var(--slot-ink, #b9b2a0)", strokeStyle: "var(--slot-ink, #b9b2a0)" });
           } else {
             const keys = keysOf(q).map((x) => {
@@ -414,7 +417,14 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
     const k = p.scale * (r.width / (svg.width.baseVal.value || r.width));
     const x = (e.clientX - r.left) / k;
     const y = (e.clientY - r.top) / k;
-    const best = hits.current.reduce((a, h) => (Math.abs(h.x + 5 - x) < Math.abs(a.x + 5 - x) ? h : a));
+    // The staff tapped first (two editable voices, one on each staff: the chorales' alto and tenor, C17), then the nearest slot on it.
+    const near = (i: number) => {
+      const st = g.staves[i];
+      return st ? Math.abs((st.top + st.bottom) / 2 - y) : Infinity;
+    };
+    const tapped = [0, 1].reduce((a, i) => (near(i) < near(a) ? i : a), 0);
+    const pool = hits.current.some((h) => h.staff === tapped) ? hits.current.filter((h) => h.staff === tapped) : hits.current;
+    const best = pool.reduce((a, h) => (Math.abs(h.x + 5 - x) < Math.abs(a.x + 5 - x) ? h : a));
     if (Math.abs(best.x + 5 - x) > 40) return null;
     const s = g.staves[best.staff];
     const onStaff = y >= s.top - 5 * s.spacing && y <= s.bottom + 5 * s.spacing;
