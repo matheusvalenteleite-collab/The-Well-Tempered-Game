@@ -200,7 +200,7 @@ images):
 - **§ 13 (pp. 23-24).** The preceding and the following harmony decide. The diminished seventh chord
   "cannot be regarded in two ways at all": its seventh always stands for the sixth, with the third
   below the bass as root. That is how C22 now reads it.
-- **Bach.** The *Vorbericht* (pp. 3-4) and p. 43: all of Bach's works reduce "to a naturally
+- **Bach.** The *Vorbericht* (unpaginated) and p. 43: all of Bach's works reduce "to a naturally
   progressing fundamental bass and to two simple fundamental chords, the triad and the essential
   seventh chord". The treatise ends (§ 23, pp. 52 ff.) with a fugue by Bach analysed by its
   fundamental bass.
