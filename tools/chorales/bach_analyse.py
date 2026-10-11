@@ -243,6 +243,29 @@ def analyse(c: dict) -> dict:
         vv["chord"] = ch.kind if ch else None
         vv["bass_role"] = labels.get("bass")
         vv["labels"] = labels
+    # The improper seventh (Kirnberger, Die wahren Grundsaetze, 1773, §§ 9-13, pp. 16-24; Kunst I,
+    # pp. 62, 66-67, 80): a seventh chord on its root whose bass then rises a step, its seventh
+    # falling by step into the following harmony, stands on the third below the bass. Its seventh
+    # is the ninth of that root, a Vorhalt of the octave resolving late; take it away and the sixth-
+    # fifth chord of the essential seventh remains. Read with the seventh's resolution in its place.
+    beats = [v for v in verts if v["on_beat"] and v["root"]]
+    for a, b in zip(beats, beats[1:]):
+        if a["chord"] not in K.SEVENTH_KINDS or a["labels"].get("bass") != "root":
+            continue
+        if K.diatonic(b["pitches"]["bass"]) - K.diatonic(a["pitches"]["bass"]) != 1:
+            continue
+        v7 = next(x for x, r in a["labels"].items() if r == "seventh")
+        res = b["pitches"].get(v7)
+        if v7 == "bass" or res is None or K.diatonic(res) - K.diatonic(a["pitches"][v7]) != -1:
+            continue
+        ch = K.fundamental({**{x: p for x, p in a["pitches"].items() if p and x in a["labels"]}, v7: res})
+        if ch is None or not ch.seventh or ch.members.get("bass") != "third":
+            continue
+        a["root"], a["chord"] = ch.root, ch.kind
+        a["labels"] = {**{x: r for x, r in a["labels"].items()}, **{x: r for x, r in ch.members.items() if a["labels"].get(x) in K.ROLE.values()}}
+        a["labels"][v7] = "ninth"
+        a["bass_role"] = "third"
+        a["improper_seventh"] = True
     # sevenths: how each is treated (Kirnberger's essential dissonance)
     # Counted where a seventh sounds on the beat: between beats a held chord tone can make a
     # momentary "seventh" with a passing note, which is no part of the harmony.
