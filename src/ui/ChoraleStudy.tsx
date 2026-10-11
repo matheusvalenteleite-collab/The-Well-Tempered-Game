@@ -17,7 +17,7 @@ import { figureLabel } from "../counterpoint/interval.ts";
 import { EnsembleSelect } from "./EnsembleSelect.tsx";
 import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
 import { choraleGates, fermataLinesOf, fermataWordsOf, playChorale, prepareChoraleAudio } from "../audio/chorale-performance.ts";
-import { guideNotes } from "../music/chorale-guide.ts";
+import { notesFor, useListeningNotes } from "../chorale/listening-notes.ts";
 import { GuideCaption, GuideList, GuideModeSelect, marker, useGuideMode } from "./ListeningGuide.tsx";
 import { Shell } from "./Shell.tsx";
 import { WtcPage, type WtcScoreVoice, planClefs } from "./notation/WtcScore.tsx";
@@ -96,6 +96,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
   const [pausedAt, setPausedAt] = useState<number | null>(null);
   // P17: the listening guide (captions while playing, markers, or none).
   const [guideMode, setGuideMode] = useGuideMode();
+  const listening = useListeningNotes();
   const stop = () => {
     audio.stop();
     if (timer.current) window.clearInterval(timer.current);
@@ -124,7 +125,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
     // P17: the guide's moments, placed in their bars; the line sung from each phrase start.
     const drawnBar = (u: number) => Math.floor((u + shift) / barUnits);
     const shownBar = (u: number) => drawnBar(u) + (ch.pickup ? 0 : 1);
-    const moments = guideNotes(ch).map((item, index) => ({ item, index, bar: drawnBar(item.at), shown: shownBar(item.at) }));
+    const moments = (listening ? notesFor(listening, ch.n) : []).map((item, index) => ({ item, index, bar: drawnBar(item.at), shown: shownBar(item.at) }));
     const ends = ch.voices[0].filter((n) => n[3]).map((n) => n[0] + n[1]);
     const lines = (fermataLinesOf(ch.n) ?? []).map((item, index) => {
       const at = index ? ends[index - 1] ?? 0 : 0;
@@ -166,7 +167,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
     // P15: one clef plan for the whole chorale, so that the clefs hold across the rows.
     const clefPlan = openScore ? planClefs(voices, CHORALE_CLEFS, barQ) : undefined;
     return { rows, barQ, barUnits, shift, clefPlan, moments, lines };
-  }, [ch, data, layers, cursor, rowBars, openScore, guideMode]);
+  }, [ch, data, layers, cursor, rowBars, openScore, guideMode, listening]);
 
   // P5: through the live loop (tempo and the voices heard apply at once), with a pause.
   const play = () => {

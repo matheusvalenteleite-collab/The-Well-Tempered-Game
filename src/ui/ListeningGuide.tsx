@@ -1,10 +1,11 @@
 /**
- * P17: the chorales' listening guide on screen. The moments (src/music/chorale-guide.ts) appear as
+ * P17: the chorales' listening guide on screen. The moments (the chorale session's
+ * src/chorale/listening-notes.ts, C28) appear as
  * captions while the chorale plays, or only as numbered markers over the score (the owner: "Captions
  * while playing which can be toggled off and become simple markers"); their list is a tab of its own.
  */
 import { useState } from "react";
-import type { GuideNote } from "../music/chorale-guide.ts";
+import type { ListeningNote } from "../chorale/listening-notes.ts";
 import { store, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
 
@@ -13,10 +14,8 @@ const KEY = "wtg.choraleGuide";
 const MODES: GuideMode[] = ["captions", "markers", "off"];
 
 /** The circled numbers that mark the moments over the score. */
-export const marker = (i: number) => String.fromCodePoint(0x2460 + i);
+export const marker = (i: number) => (i < 20 ? String.fromCodePoint(0x2460 + i) : `(${i + 1})`);
 
-/** A moment's sentence. */
-export const guideText = (g: GuideNote) => t(`listen.${g.kind === "chromatic" ? `chromatic.${g.vars.way}` : g.kind}`, g.vars);
 
 export function useGuideMode(): [GuideMode, (m: GuideMode) => void] {
   const [mode, setMode] = useState<GuideMode>(() => stored<GuideMode>(KEY, "captions", (v) => MODES.includes(v as GuideMode)));
@@ -40,7 +39,7 @@ export interface Placed<T> { item: T; index: number; bar: number; shown: number 
  * The caption under the score while the chorale plays: the line being sung and the latest moment
  * reached (kept for two bars after its own), or the hint before ▶.
  */
-export function GuideCaption({ moments, lines, cursor }: { moments: Placed<GuideNote>[]; lines: Placed<string | null>[]; cursor: number }) {
+export function GuideCaption({ moments, lines, cursor }: { moments: Placed<ListeningNote>[]; lines: Placed<string | null>[]; cursor: number }) {
   if (cursor < 0) return <div className="guide-caption idle">{t("listen.idle")}</div>;
   const line = [...lines].reverse().find((l) => l.bar <= cursor);
   const now = [...moments].reverse().find((m) => m.bar <= cursor && cursor - m.bar <= 2);
@@ -49,7 +48,7 @@ export function GuideCaption({ moments, lines, cursor }: { moments: Placed<Guide
       {line?.item && <div className="guide-line">{t("listen.line", { n: line.index + 1, text: line.item })}</div>}
       {now && (
         <div className="guide-moment" key={now.index}>
-          <span className="guide-mark">{marker(now.index)}</span> {guideText(now.item)}
+          <span className="guide-mark">{marker(now.index)}</span> {now.item.text}
         </div>
       )}
     </div>
@@ -57,14 +56,14 @@ export function GuideCaption({ moments, lines, cursor }: { moments: Placed<Guide
 }
 
 /** The guide's tab: every moment with its bar, and the words of each line. */
-export function GuideList({ moments, lines }: { moments: Placed<GuideNote>[]; lines: Placed<string | null>[] }) {
+export function GuideList({ moments, lines }: { moments: Placed<ListeningNote>[]; lines: Placed<string | null>[] }) {
   return (
     <div className="chorale-about guide-list">
       {moments.length ? (
         <ol className="chorale-verdicts">
           {moments.map((m) => (
             <li key={m.index}>
-              <strong>{marker(m.index)} {t("listen.bar", { bar: m.shown })}</strong> {guideText(m.item)}
+              <strong>{marker(m.index)} {t("listen.bar", { bar: m.shown })}</strong> {m.item.text}
             </li>
           ))}
         </ol>
