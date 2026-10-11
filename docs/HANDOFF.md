@@ -1,7 +1,7 @@
 # Handoff (10 October 2026, night)
 
 Read this first in a new session. The decisions log (`docs/DECISIONS.md`: D1–D139 and D147 on for the game,
-D140–D146 for the tutorial (the next free number is D158), C1–C29 for the chorale mode (next C30)) has the details; `docs/MORNING.md` has
+D140–D146 for the tutorial (the next free number is D158), C1–C30 for the chorale mode (next C31)) has the details; `docs/MORNING.md` has
 older notes and the owner's open questions.
 
 ## How we work from now on (the owner's choice, after a usage warning)

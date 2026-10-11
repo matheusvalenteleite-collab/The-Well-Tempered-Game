@@ -180,7 +180,13 @@ export function judge(slots: Slot[], alto: (string | null)[], tenor: (string | n
         const ctx = `${v}|${prepared}|${bass}`;
         const outcome = motionOf(p, q);
         const sh = share("seventh", ctx, outcome);
-        if (sh && sh.k / sh.n < RARE) out.push({ gravity: 1, slots: [i, j], key: "seventh", vars: { voice: v, prepared, how: outcome, k: sh.k, n: sh.n }, habit: { ctx, table: "seventh", outcome } });
+        // C23: the strict style is the frame. A seventh that enters unprepared, or does not fall by
+        // step into the next harmony, takes a licence of the free style, named as Kirnberger names
+        // it (Kunst I, p. 81: "the entry of an unprepared dissonance, the passing over of the
+        // resolution, and a resolution of the dissonance in another voice"), with Bach's habit.
+        const licences = [prepared === "free" ? "unprepared" : null, outcome !== "step down" && outcome !== "held" ? "unresolved" : null].filter((x): x is string => !!x);
+        for (const l of licences) out.push({ gravity: 1, slots: [i, j], key: `licence.${l}`, vars: { voice: v, how: outcome }, habit: { ctx, table: "seventh", outcome } });
+        if (!licences.length && sh && sh.k / sh.n < RARE) out.push({ gravity: 1, slots: [i, j], key: "seventh", vars: { voice: v, prepared, how: outcome, k: sh.k, n: sh.n }, habit: { ctx, table: "seventh", outcome } });
       }
       const dominant = DOMINANTS.includes(s.kind) && ((pc(s.root) - pc(slots[j].root) + 12) % 12) === 7;
       if (dominant && role === "third") {

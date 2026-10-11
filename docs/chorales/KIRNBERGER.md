@@ -23,7 +23,7 @@ between pp. 32 and 33.
 
 **Readings checked against the page images**:
 - table II;
-- pp. 80, 90, 96, 97, 195.
+- pp. 80, 81, 90, 96, 97, 195.
 
 **Readings taken from the archive's OCR**, read in context but not compared line by line with the
 images: the remaining pages cited.
@@ -270,7 +270,7 @@ on the root a third lower while reading F-A-C-E going to G on F would be inconsi
 - *Kunst* II; the rest of *Die wahren Grundsätze* (read for §§ 9-13 and the Bach passages only);
   the secondary literature above.
 - The page images of the pages cited from the OCR. The translated phrases in quotation marks from
-  pp. 30, 34, 39, 63, 72, 81, 84 and 214 rest on the OCR, which is clean there but has not been
+  pp. 30, 34, 39, 63, 72, 84 and 214 rest on the OCR, which is clean there but has not been
   compared with the print.
 - The owner's decisions:
   - the improper seventh: adopted for root position (C24); the inversions remain.

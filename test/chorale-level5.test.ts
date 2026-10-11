@@ -67,3 +67,28 @@ test("level 5 beside Bach (C18): his settings moved to Kittel's key; writing his
   assert.equal(r.same, r.sameBass);
   assert.deepEqual(r.differ, []);
 });
+
+test("C23: an unprepared seventh, and one that does not fall by step, are named as Kirnberger's free-style licences", async () => {
+  const { LEVEL5, judge } = await import("../src/chorale/level5.ts");
+  // The first seventh chord over one of Kittel's basses, with a next chord on another root.
+  for (const ch of Object.values(LEVEL5)) {
+    for (const b of ch.basses) {
+      const i = b.slots.findIndex((s, k) => k > 0 && s.above.some(([, r]) => r === "seventh") && b.slots.slice(k + 1).some((x) => x.root !== s.root || x.kind !== s.kind));
+      if (i < 0) continue;
+      const s = b.slots[i];
+      const j = b.slots.findIndex((x, k) => k > i && (x.root !== s.root || x.kind !== s.kind));
+      const seventh = s.above.find(([, r]) => r === "seventh")![0];
+      const alto: (string | null)[] = b.slots.map(() => null);
+      const tenor: (string | null)[] = b.slots.map(() => null);
+      alto[i - 1] = "C4";
+      alto[i] = `${seventh}4`;
+      alto[j] = `${seventh}5`; // a leap of an octave: no resolution
+      if (alto[i - 1] === alto[i]) alto[i - 1] = "D4";
+      const keys = judge(b.slots, alto, tenor).map((f) => f.key);
+      assert.ok(keys.includes("licence.unprepared"), keys.join(","));
+      assert.ok(keys.includes("licence.unresolved"), keys.join(","));
+      return;
+    }
+  }
+  assert.fail("no seventh chord found");
+});
