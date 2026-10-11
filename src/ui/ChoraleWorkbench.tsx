@@ -14,7 +14,7 @@ import { HFader } from "./HFader.tsx";
 import { TransportButtons } from "./TransportButtons.tsx";
 import { EnsembleSelect } from "./EnsembleSelect.tsx";
 import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
-import { fermataLinesOf, playChorale, playChoraleEvents, prepareChoraleAudio, type ChoraleNote } from "../audio/chorale-performance.ts";
+import { fermataLinesOf, playChorale, prepareChoraleAudio, type ChoraleNote } from "../audio/chorale-performance.ts";
 import { GuideCaption, GuideList, GuideModeSelect, useGuideMode } from "./ListeningGuide.tsx";
 import { Shell } from "./Shell.tsx";
 import { WtcPage, planClefs, type WtcScoreVoice } from "./notation/WtcScore.tsx";
@@ -406,9 +406,13 @@ export function ChoraleWorkbench({ onMode, onTutorial, stage, onStage, stageSele
       playChorale(audio, { voices: four, barUnits, pickup: c5.pickup }, (b) => (b < 0 ? stop() : setCursor(b)), from);
       return;
     }
-    const events: PlayEvent[] = [];
-    const ev = (at: number, dur: number, extra: NonNullable<PlayEvent["extra"]>) => extra.length && events.push({ slot: barOfUnits(at), at: at / UNIT, length: dur / UNIT, cantus: null, counterpoint: null, extra });
-    for (const [at, dur, pitch] of c5.melody) ev(at, dur, [{ channel: "counterpoint", pitch }]);
+    // P23: stages 1-4 performed too (the fermatas as the reading chosen, the phrase arch): the melody,
+    // the inner chord tones and the bass laid out as the chorale's voices (soprano, -, inner, bass).
+    const inner: ChoraleNote[] = [];
+    const bassLine: ChoraleNote[] = [];
+    const ev = (at: number, dur: number, extra: NonNullable<PlayEvent["extra"]>) => {
+      for (const x of extra) (x.channel === "fux" ? bassLine : inner).push([at, dur, x.pitch]);
+    };
     const noteAt = (u: number) => c5.melody.find(([at]) => at === u);
     if (stage <= 2) {
       const chords: [number, string][] = stage === 1 ? ch.phrases.map((ph, k) => [unitsOf(ph.offset), mine1[k]] as [number, string | null]).filter((x): x is [number, string] => !!x[1]) : l2.notes.map((n, i) => [unitsOf(n.offset), mine2[i]] as [number, string | null]).filter((x): x is [number, string] => !!x[1]);
@@ -428,7 +432,8 @@ export function ChoraleWorkbench({ onMode, onTutorial, stage, onStage, stageSele
     prepareChoraleAudio(audio);
     setPlaying(true);
     setPausedAt(null);
-    playChoraleEvents(audio, events, (b) => (b < 0 ? stop() : setCursor(b)), from);
+    const byTime = (a: ChoraleNote, b: ChoraleNote) => a[0] - b[0];
+    playChorale(audio, { voices: [c5.melody as ChoraleNote[], [], inner.sort(byTime), bassLine.sort(byTime)], barUnits, pickup: c5.pickup }, (b) => (b < 0 ? stop() : setCursor(b)), from);
   };
   const liveKey = JSON.stringify([stage, ch.number, bassNo, mine1, mine2, mine3, mine4, voices5, mine6, bachShown]);
   const lastLive = useRef(liveKey);

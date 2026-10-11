@@ -5,6 +5,35 @@
  */
 import { frequency, type TuningId } from "../wtc/tunings.ts";
 import { TPQ, type WtcPiece } from "../wtc/corpus.ts";
+import { keySteps, ornamentUnit, realise } from "../music/ornaments.ts";
+import { parsePitch } from "../music/pitch.ts";
+import ornamentsData from "../../data/wtc/ornaments.json" with { type: "json" };
+
+// P23: the ornaments of the encodings (data/wtc/ornaments.json: voice, onset in ticks, pitch, kern
+// signs, grace notes), played as the game's WTC study plays them (Bach's Explication; ORNAMENTS.md).
+type OrnRow = [number, number, string, string, string[]?];
+const ORN = ornamentsData as unknown as Record<string, OrnRow[]>;
+const SHARPS = "FCGDAEB";
+const MAJOR_SIG: Record<string, number> = { C: 0, G: 1, D: 2, A: 3, E: 4, B: 5, "F#": 6, "C#": 7, F: -1, Bb: -2, Eb: -3, Ab: -4, Db: -5, Gb: -6, Cb: -7 };
+const MINOR_SIG: Record<string, number> = { A: 0, E: 1, B: 2, "F#": 3, "C#": 4, "G#": 5, "D#": 6, "A#": 7, D: -1, G: -2, C: -3, F: -4, Bb: -5, Eb: -6, Ab: -7 };
+/** The key signature of a piece, as alterations by letter. */
+function signatureOf(p: WtcPiece): Record<string, number> {
+  const n = (p.mode === "minor" ? MINOR_SIG : MAJOR_SIG)[p.key] ?? 0;
+  const sig: Record<string, number> = { C: 0, D: 0, E: 0, F: 0, G: 0, A: 0, B: 0 };
+  for (let i = 0; i < Math.abs(n); i++) sig[n > 0 ? SHARPS[i] : SHARPS[6 - i]] = n > 0 ? 1 : -1;
+  return sig;
+}
+/** A note as it sounds: itself, or its ornament realised at the tempo (bpm in quarters a minute). */
+function sounding(p: WtcPiece, voice: number, k: number, bpm: number, steps: ReturnType<typeof keySteps>): [number, number, string][] {
+  const [on, dur, pitch] = p.voices[voice][k];
+  const row = (ORN[p.id] ?? []).find((r) => r[0] === voice && r[1] === on && r[2] === pitch);
+  if (!row) return [[on, dur, pitch]];
+  const prev = k > 0 ? parsePitch(p.voices[voice][k - 1][2]).midi : undefined;
+  const graces = (row[4] ?? []).map((g) => ({ kind: g[0] as "q" | "Q", midi: parsePitch(g.slice(1)).midi }));
+  const notes = realise({ midi: parsePitch(pitch).midi, at: on / TPQ, dur: dur / TPQ }, row[3], graces, { unit: ornamentUnit(bpm / 2), prevMidi: prev, ...steps });
+  const NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+  return notes.map((x) => [Math.round(x.at * TPQ), Math.max(1, Math.round(x.dur * TPQ)), `${NAMES[((x.midi % 12) + 12) % 12]}${Math.floor(x.midi / 12) - 1}`]);
+}
 
 let ctx: AudioContext | null = null;
 let stopAll: (() => void) | null = null;
@@ -78,6 +107,8 @@ export interface PlayOptions {
   to?: number;
   /** A voice to bring forward in a distinct (sustained) tone, the others softer. */
   spotlight?: number | null;
+  /** P23: the encoded ornaments played (default); false: the notes as written. */
+  ornaments?: boolean;
 }
 
 export function playPiece(p: WtcPiece, o: PlayOptions): void {
@@ -111,7 +142,9 @@ export function playSpans(p: WtcPiece, spans: Span[], o: Omit<PlayOptions, "from
       if (o.voices && !o.voices[i]) return;
       const lit = sp.spotlight === i;
       const dim = sp.spotlight != null && !lit;
-      for (const [on, dur, pitch] of v) {
+      const steps = keySteps(signatureOf(p));
+      const notes = o.ornaments === false ? v : v.flatMap((_, k) => sounding(p, i, k, o.bpm, steps));
+      for (const [on, dur, pitch] of notes) {
         if (on + dur <= sp.from || on >= to) continue;
         const start = Math.max(on, sp.from);
         const t = at + (start - sp.from) * secPerTick;

@@ -25,16 +25,20 @@ it; more research may refine it.
   | T | 179 |
   | W | 106 (almost all in the Inventions) |
   | t | 92 |
-  | grace notes | 70 |
+  | grace notes | 97 (70 before P23) |
   | S | 48 |
   | m | 43 |
   | O | 26 |
   | w | 6 |
 
-- In the WTC study, 409 ornaments are attached to their notes.
+- In the WTC study, 409 ornaments were attached to their notes before P23's appoggiaturas.
+- The lab (the build of `vite.lab.config.ts`; its WTC tab has the Inventions and Sinfonias) plays them too since P23 (`src/lab/keyboard.ts`).
 - Known gaps:
-  - The WTC encodings leave some appoggiaturas inside comments (e.g. `wtc2p23.krn`, lines
-    418–422). Their notes keep the written value, so the appoggiatura is not heard.
+  - The WTC encodings leave 27 appoggiaturas inside local comments (e.g. `wtc2p23.krn`, lines
+    418–422: `! (16eeP/` before `8dd#p`; kern P marks an appoggiatura, p its main note), in eight
+    preludes (Book I nos. 4, 8, 10; Book II nos. 4, 9, 18, 23, 24). Since P23 `appoggiaturas()` in
+    `tools/wtc/ornaments.ts` reads each as a long grace (Q) on the next note of its spine, so it is
+    heard and drawn: half the main note, two thirds of a dotted one. Grace notes: 70 → 97.
   - Some tokens in `sinfo05.krn` (`wSSS`, `sSS`, `qq`) are not in the kern reference; they are
     read as the signs they contain.
 
