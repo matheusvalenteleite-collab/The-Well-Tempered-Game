@@ -149,7 +149,7 @@ function pairsAt(vm: VoiceModel, s: Slot, o: VoiceOptions, relax: number): Pair[
   const S = midiOf(s.soprano),
     B = midiOf(s.bass);
   // the bass's letter is a chord member unless the bass is an incidental note (a passing bass)
-  const chordRole = ["root", "third", "fifth", "seventh"].includes(s.bassRole);
+  const chordRole = ["root", "third", "fifth", "seventh", "ninth"].includes(s.bassRole);
   const members: [string, string][] = chordRole ? [[letterOf(s.bass), s.bassRole], ...s.above] : s.above;
   const notes = (lo: number, hi: number) =>
     members.flatMap(([l, role]) => [2, 3, 4, 5].map((o) => ({ name: `${l}${o}`, midi: midiOf(`${l}${o}`), role })).filter((x) => x.midi >= lo && x.midi <= hi));

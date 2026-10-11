@@ -42,9 +42,14 @@ const KINDS: Record<string, [string, number][]> = {
   "seventh chord, third not sounding (minor seventh)": [["fifth", 7], ["seventh", 10]],
   "seventh chord, third not sounding (major seventh)": [["fifth", 7], ["seventh", 11]],
   "seventh chord, third not sounding (diminished seventh)": [["fifth", 6], ["seventh", 9]],
+  "dominant seventh, diminished fifth": [["third", 4], ["fifth", 6], ["seventh", 10]],
+  // the diminished seventh chord, read on the dominant a major third below (C22): the root does not sound
+  "dominant seventh, minor ninth for the root": [["third", 4], ["fifth", 7], ["seventh", 10], ["ninth", 13]],
   bare: [],
 };
-const STEPS = { third: 2, fifth: 4, seventh: 6 } as const;
+/** Kinds whose root does not sound (level5.ts leaves it out of a slot's members too). */
+const ROOTLESS = new Set(["dominant seventh, minor ninth for the root"]);
+const STEPS = { third: 2, fifth: 4, seventh: 6, ninth: 1 } as const;
 const LETTERS = "CDEFGAB";
 const NATURAL = [0, 2, 4, 5, 7, 9, 11];
 
@@ -66,7 +71,10 @@ export function bachSlots(c: BachChorale): Slot[] | null {
     const n = c.notes[i];
     const intervals = KINDS[n.kind];
     if (!intervals || !n.root || !n.role) return null;
-    const members: [string, string][] = [[n.root, "root"], ...intervals.map(([role, semis]) => [member(n.root, STEPS[role as keyof typeof STEPS], semis), role] as [string, string])];
+    const members: [string, string][] = [
+      ...(ROOTLESS.has(n.kind) ? [] : [[n.root, "root"] as [string, string]]),
+      ...intervals.map(([role, semis]) => [member(n.root, STEPS[role as keyof typeof STEPS], semis), role] as [string, string]),
+    ];
     const at = thirtySeconds(n.t);
     const dur = i + 1 < c.notes.length ? thirtySeconds(c.notes[i + 1].t) - at : 8;
     out.push({ at, dur, soprano: n.sp, bass: n.bp, root: n.root, kind: n.kind, bassRole: n.role, printed: "", above: members.filter(([, r]) => r !== n.role) });

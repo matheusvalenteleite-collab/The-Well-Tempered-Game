@@ -14,22 +14,22 @@ seventh apart, an augmented second).
 Bach's chorales are read one chord per on-beat melody attack, as the generator writes, and his embellishments placed on
 those chords. *Embellished*: the share of the notes that can take an embellishment that take one.
 
-On his own reduced voices (each voice in its own rhythm), Bach embellishes 14% of the alto's notes that can take an
+On his own reduced voices (each voice in its own rhythm), Bach embellishes 15% of the alto's notes that can take an
 embellishment, 15% of the tenor's, 16% of the bass's. Read one chord per beat, as below, some of his are lost (an
 embellishment after a note held over two beats, for instance), so his row below understates him a little.
 
 | | alto embellished | tenor | bass | the same kind where Bach has one | surface rarities per 100 chords |
 |---|---|---|---|---|---|
-| *Bach* | 11% | 11% | 11% |  | 0.4 |
-| **generator, drawn** (as often as Bach) | 15% | 16% | 22% | 55% | 0.1 |
-| generator, the most likely choice at every note | 13% | 18% | 25% | 67% | 0.1 |
+| *Bach* | 12% | 11% | 11% |  | 0.4 |
+| **generator, drawn** (as often as Bach) | 17% | 16% | 22% | 55% | 0.1 |
+| generator, the most likely choice at every note | 13% | 18% | 25% | 64% | 0.1 |
 
 Kinds, by voice (share of the embellishments):
 
 | | alto passing | alto neighbourUp | alto neighbourDown | alto suspension | alto anticipation | tenor passing | tenor neighbourUp | tenor neighbourDown | tenor suspension | tenor anticipation | bass passing | bass neighbourUp | bass neighbourDown | bass suspension | bass anticipation |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| *Bach* | 46% | 5% | 5% | 42% | 1% | 74% | 5% | 3% | 17% | 1% | 94% | 3% | 3% | 0% | 0% |
-| **generator, drawn** | 65% | 2% | 6% | 26% | 0% | 83% | 2% | 3% | 11% | 1% | 92% | 4% | 4% | 0% | 0% |
+| *Bach* | 41% | 4% | 6% | 49% | 1% | 71% | 3% | 3% | 22% | 1% | 94% | 3% | 3% | 0% | 0% |
+| **generator, drawn** | 60% | 1% | 6% | 32% | 0% | 81% | 1% | 4% | 14% | 1% | 92% | 4% | 4% | 0% | 0% |
 
 *Surface rarities*: the surface cost in units of one pair of parallel fifths/octaves (a clash of two incidental notes
 counts half). Bach's own row is measured the same way on his reduced and re-embellished voices.
@@ -42,10 +42,10 @@ embellishments then move in crotchets, as his basses' passing notes do.
 
 | | alto embellished (per note) | tenor | bass |
 |---|---|---|---|
-| generator's settings | 10% | 10% | 17% |
-| Kittel's basses | 5% | 6% | (his own) |
+| generator's settings | 10% | 11% | 16% |
+| Kittel's basses | 6% | 6% | (his own) |
 
-The bass moves by step in 62% of its moves once embellished (36% before);
+The bass moves by step in 61% of its moves once embellished (36% before);
 Kittel's basses, with their own passing notes, in 57%.
 
 ## Reading

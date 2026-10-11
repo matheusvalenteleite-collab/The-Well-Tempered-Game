@@ -258,3 +258,8 @@ test("diminution: embellishes the lower voices of a four-part setting, keeping i
   assert.deepEqual(kept.lines[3], four[3]);
   assert.equal(kept.count[2], 0);
 });
+
+test("slots: every one of Bach's 370 chorales reads as slots, its every chord kind known", () => {
+  const missing = BACH.filter((c) => !bachSlots(c)).map((c) => `${c.no}: ${[...new Set(c.notes.map((n) => n.kind))].join(", ")}`);
+  assert.deepEqual(missing, []);
+});
