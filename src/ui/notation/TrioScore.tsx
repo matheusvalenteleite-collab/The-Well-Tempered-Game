@@ -13,7 +13,7 @@ import { Accidental, ClefNote, Dot, ModifierContext, Renderer, Stave, StaveConne
 import { fifthGlyphs, HOLD as HOLD_MARK, REST, slotLayout } from "../../counterpoint/layout.ts";
 import { parsePitch } from "../../music/pitch.ts";
 import { noteName, type NameStyle } from "../../music/names.ts";
-import { harmonic } from "../../counterpoint/interval.ts";
+import { figureLabel, harmonic } from "../../counterpoint/interval.ts";
 import { harmonyOf } from "../../counterpoint/choices/harmony.ts";
 import type { ModalFinal } from "../../music/fux/types.ts";
 import { pitchAtPosition, VEXFLOW_CLEF, type ClefId } from "./clefs.ts";
@@ -366,7 +366,7 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
             .sort((a, b) => parsePitch(b.q).midi - parsePitch(a.q).midi)
             .map(({ q }) => {
               const f = harmonic(ps[bass]!, q);
-              return `${f.quality === "A" || f.quality === "d" ? f.quality : ""}${f.number}`;
+              return figureLabel(`${f.quality === "A" || f.quality === "d" ? f.quality : ""}${f.number}`);
             });
           ctx.save();
           ctx.setFont("'EB Garamond', Garamond, Georgia, serif", 12);

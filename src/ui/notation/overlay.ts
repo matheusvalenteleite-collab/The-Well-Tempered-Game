@@ -2,7 +2,7 @@
  * Evaluation overlay: the interval of every bar (drawn between the staves) and the lines that
  * connect the bars involved in a motion or melodic problem. Pure; the score only draws it.
  */
-import { harmonic, interval, motion, simpleName } from "../../counterpoint/interval.ts";
+import { harmonic, interval, intervalLabel, motion } from "../../counterpoint/interval.ts";
 import type { Severity, Violation } from "../../counterpoint/rules/types.ts";
 import { HOLD, slotLayout, slotsOfBars, sounding, type Slot } from "../../counterpoint/layout.ts";
 
@@ -97,8 +97,8 @@ export function buildOverlay(
         if (!inRange(a) || !inRange(b)) continue;
         mark(b); // the interval arrived at by the faulty motion
         const m = motion(cf(a), cp(a), cf(b), cp(b));
-        const from = simpleName(harmonic(cf(a), cp(a)));
-        const to = simpleName(harmonic(cf(b), cp(b)));
+        const from = intervalLabel(harmonic(cf(a), cp(a)));
+        const to = intervalLabel(harmonic(cf(b), cp(b)));
         const text = v.ruleId.endsWith("converging-leap-into-octave") ? `leap ${from}→${to}` : `${m} ${from}→${to}`;
         links.push({ from: a - first, to: b - first, row: 0, severity: v.severity, kind: "motion", text });
       }
@@ -106,7 +106,7 @@ export function buildOverlay(
       const [a, b] = [Math.min(...v.positions), Math.max(...v.positions)];
       if (!inRange(a) || !inRange(b)) continue;
       const i = interval(cp(a), cp(b));
-      links.push({ from: a - first, to: b - first, row: 0, severity: v.severity, kind: "melodic", text: `${simpleName(i)}${ARROW[i.direction]}` });
+      links.push({ from: a - first, to: b - first, row: 0, severity: v.severity, kind: "melodic", text: `${intervalLabel(i)}${ARROW[i.direction]}` });
     } else {
       throw new Error(`no overlay drawing defined for rule ${v.ruleId}`);
     }
@@ -122,7 +122,7 @@ export function buildOverlay(
     // A note held over the bar line shows its interval on the downbeat too (the suspension).
     const heldOver = counterpoint[k] === HOLD && layout[k].beat === 0 && sounding(cp(k));
     if (!sounding(counterpoint[k]) && !heldOver) continue;
-    intervals.push({ column: k - first, text: simpleName(harmonic(cf(k), cp(k))), status: status.get(k) ?? "ok" });
+    intervals.push({ column: k - first, text: intervalLabel(harmonic(cf(k), cp(k))), status: status.get(k) ?? "ok" });
   }
   return { intervals, links };
 }
@@ -134,8 +134,8 @@ export function neutralOverlay(cantus: string[], counterpoint: (string | null)[]
   layout.forEach((sl, k) => {
     const cp = counterpoint[k];
     if (cp !== HOLD) held = sounding(cp) ? cp : null;
-    if (sounding(cp)) intervals.push({ column: k, text: simpleName(harmonic(cantus[sl.bar], cp)), status: "neutral" });
-    else if (cp === HOLD && sl.beat === 0 && held) intervals.push({ column: k, text: simpleName(harmonic(cantus[sl.bar], held)), status: "neutral" });
+    if (sounding(cp)) intervals.push({ column: k, text: intervalLabel(harmonic(cantus[sl.bar], cp)), status: "neutral" });
+    else if (cp === HOLD && sl.beat === 0 && held) intervals.push({ column: k, text: intervalLabel(harmonic(cantus[sl.bar], held)), status: "neutral" });
   });
   return { intervals, links: [] };
 }

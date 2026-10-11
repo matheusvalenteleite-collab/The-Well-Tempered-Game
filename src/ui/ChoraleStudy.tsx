@@ -13,6 +13,7 @@ import type { Mode } from "./Root.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 import { HFader } from "./HFader.tsx";
 import { TransportButtons } from "./TransportButtons.tsx";
+import { figureLabel } from "../counterpoint/interval.ts";
 import { EnsembleSelect } from "./EnsembleSelect.tsx";
 import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
 import { choraleGates, playChorale, prepareChoraleAudio } from "../audio/chorale-performance.ts";
@@ -138,7 +139,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
     const under = layers.figures || layers.fundamental
       ? ch.harmony.map(([at, root, chord, figure]) => {
           // The figures stacked as a continuo part prints them (the highest on top), the root below on its own line.
-          const fig = layers.figures && figure ? figure.split("/") : [];
+          const fig = layers.figures && figure ? figure.split("/").map(figureLabel) : [];
           return { at: quarters(at), lines: [...fig, ...Array(3 - Math.min(3, fig.length)).fill(""), layers.fundamental && root ? `${root}${chord}` : ""] };
         })
       : undefined;

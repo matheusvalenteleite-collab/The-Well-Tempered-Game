@@ -119,3 +119,32 @@ export function simpleName(i: Interval): string {
   const reduced = i.number <= 8 ? i.number : ((i.number - 1) % 7) + 1 === 1 ? 8 : ((i.number - 1) % 7) + 1;
   return `${i.quality === "P" ? "" : i.quality}${reduced}`;
 }
+
+/**
+ * P9 (owner, superseding D16's reduction on screen): an interval as shown. A compound interval keeps
+ * its number, with the octave(s) and the simple interval it adds beside it, so that its consonance
+ * reads at once: m10 [8+m3], 12 [8+5]. (`simpleName` stays the reduced name the game reasons with.)
+ */
+export function intervalLabel(i: Interval): string {
+  const q = i.quality === "P" ? "" : i.quality;
+  if (i.number <= 8) return `${q}${i.number}`;
+  const [octave, simple] = compoundParts(i.number);
+  return `${q}${i.number} [${octave}+${q}${simple}]`;
+}
+
+/**
+ * The parts of a compound interval number (P9): the octave (or double octave) and the simple
+ * interval above it, in interval arithmetic: 10 = 8 + 3, 12 = 8 + 5, 15 = 8 + 8, 17 = 15 + 3.
+ */
+export function compoundParts(n: number): number[] {
+  if (n <= 8) return [n];
+  let octaves = Math.floor((n - 1) / 7);
+  let simple = n - 7 * octaves;
+  if (simple === 1) (octaves -= 1), (simple = 8);
+  return [7 * octaves + 1, simple];
+}
+
+/** A figure as figured basses print it ("9", "6/4", "#10") with each compound number written so: "9 [8+2]". */
+export function figureLabel(figure: string): string {
+  return figure.replace(/\d+/g, (d) => (Number(d) > 8 ? `${d} [${compoundParts(Number(d)).join("+")}]` : d));
+}

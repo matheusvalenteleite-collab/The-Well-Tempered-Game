@@ -7,7 +7,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Accidental, Dot, ModifierContext, Renderer, Stave, StaveConnector, StaveNote, StaveTie, TickContext } from "vexflow";
 import { parsePitch } from "../../music/pitch.ts";
 import { noteName, type NameStyle } from "../../music/names.ts";
-import { harmonic, simpleName } from "../../counterpoint/interval.ts";
+import { harmonic, intervalLabel } from "../../counterpoint/interval.ts";
 import type { Staff } from "../../music/fux/types.ts";
 import { pitchAtPosition, VEXFLOW_CLEF, type ClefId } from "./clefs.ts";
 import type { Overlay, Status } from "./overlay.ts";
@@ -473,7 +473,7 @@ export function ScoreView(props: ScoreProps) {
         layout.forEach((sl, k) => {
           const p = line.notes[k];
           if (!p || p === REST || p === HOLD) return;
-          const text = simpleName(harmonic(props.cantus[sl.bar - firstSlotBar], p));
+          const text = intervalLabel(harmonic(props.cantus[sl.bar - firstSlotBar], p));
           ctx.fillText(text, columns[k].x - ctx.measureText(text).width / 2, LABEL_Y - 13 * (i + 1));
         });
         ctx.restore();

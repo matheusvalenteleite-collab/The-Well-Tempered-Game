@@ -11,6 +11,7 @@ import type { Mode } from "./Root.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 import { HFader } from "./HFader.tsx";
 import { TransportButtons } from "./TransportButtons.tsx";
+import { figureLabel } from "../counterpoint/interval.ts";
 import { EnsembleSelect } from "./EnsembleSelect.tsx";
 import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
 import { playChoraleEvents, prepareChoraleAudio } from "../audio/chorale-performance.ts";
@@ -123,7 +124,7 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [B, ch, mine, worst, shift, bach, openScore]);
-  const under = useMemo(() => (bach ? [] : B.slots.filter((s) => s.printed).map((s) => ({ at: quarters(s.at), lines: s.printed.split("/") }))), [B, shift, bach]);
+  const under = useMemo(() => (bach ? [] : B.slots.filter((s) => s.printed).map((s) => ({ at: quarters(s.at), lines: s.printed.split("/").map(figureLabel) }))), [B, shift, bach]);
   const bars = Math.ceil((ch.length + shift) / barUnits);
   const rows = useMemo(
     () => pageRows({ voices, under, barQ: barUnits / 8, bars, rowBars, cursor, key: key, label: (a, z) => t("chorale.l5.scoreLabel", { n: ch.number, title: ch.title, bass: B.label }) + ` (${a + 1}-${z})` }),

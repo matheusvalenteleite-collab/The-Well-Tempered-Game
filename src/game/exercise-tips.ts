@@ -11,7 +11,7 @@
  * the evaluation applies every rule. All twelve of Fux's first-species lines are among those counted.
  */
 import { cadenceNote } from "../counterpoint/cadence.ts";
-import { harmonic, interval, isConsonant, isOctaveClass, isPerfectConsonance, isUnison, motion, simpleName } from "../counterpoint/interval.ts";
+import { harmonic, interval, isConsonant, isOctaveClass, isPerfectConsonance, isUnison, motion, intervalLabel } from "../counterpoint/interval.ts";
 import { parsePitch } from "../music/pitch.ts";
 
 export type Tip =
@@ -219,7 +219,7 @@ export function exerciseTips(cantus: string[], cantusVoice: "upper" | "lower", s
   // The cantus's leaps: the counterpoint answers them best by a step the other way.
   for (let k = 0; k < n - 1; k++) {
     const i = interval(cantus[k], cantus[k + 1]);
-    if (i.number >= 4) tips.push({ kind: "leap", bar: k + 1, size: simpleName(i), up: i.direction === "up" });
+    if (i.number >= 4) tips.push({ kind: "leap", bar: k + 1, size: intervalLabel(i), up: i.direction === "up" });
   }
   // The peak (cantus above) or the low point (cantus below), where the voices are closest.
   const ds = cantus.map((p) => parsePitch(p).midi);
