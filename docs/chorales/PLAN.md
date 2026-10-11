@@ -169,7 +169,7 @@ built top-down by the levels of `CONCEPT.md`. Steps: (1) cadence plan, (2) a cho
   (`tools/chorales/generator_data.py`), tests `test/chorale-generate.test.ts`, report
   `docs/chorales/GENERATOR.md` (`npm run chorales:generator`). Measured on unseen melodies only.
 - Step 3 built: the bass and its figures (`bass.ts`: a chain of bass degree and position given chord,
-  melody, phrase place and the bass before; no consecutive fifths or octaves with the melody; octaves by
+  melody, phrase place and the bass before; no parallel fifths or octaves with the melody; octaves by
   the likeliest line; figures from chord and position, `theory.ts`). Chords and bass are drawn together
   (`joint.ts`). The settings of Kittel's 24 melodies are written as MusicXML for listening and comparison
   (`data/chorales/generator/musicxml/`, `tools/chorales/generator_musicxml.py`).
@@ -189,5 +189,5 @@ built top-down by the levels of `CONCEPT.md`. Steps: (1) cadence plan, (2) a cho
   stepwise motion. The only settings chosen by looking at Kittel.
 - G3. One judge (owner, 11 October 2026): the generator's criterion is the game's (`level5.ts`), and in
   the chorales Bach is the last word, with no errors, only warnings of varying gravity. The generator
-  costs every warning by its rarity in Bach's own chorales; consecutive fifths and octaves (similar
+  costs every warning by its rarity in Bach's own chorales; parallel fifths and octaves (similar
   motion, as counted in Bach) and the augmented second are the gravest.

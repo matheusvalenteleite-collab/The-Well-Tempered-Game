@@ -312,7 +312,7 @@ say();
 say("Under every melody note, one bass note: which member of the chord is in the bass and whether the chord has its");
 say("seventh (its *position*), drawn given the chord, the melody's degree and the bass before; then the octaves chosen");
 say("for the likeliest line in Bach's terms (size of each move, distance from the melody, register); then the figure.");
-say("One boundary is enforced rather than learnt: no consecutive fifths or octaves between melody and bass.");
+say("One boundary is enforced rather than learnt: no parallel fifths or octaves between melody and bass.");
 say();
 say(`On Bach's chorales (every setting of the tune held out), given Bach's chords: the most likely bass is Bach's under`);
 say(`${pct(bassB.deg, bassB.n)} of the notes, the position Bach's under ${pct(bassB.pos, bassB.n)}. With the generator's own plan and chords (steps 1-3),`);
@@ -400,7 +400,7 @@ say("  91% of his. The chain knows one chord of context and the home key only: i
 say("  the local key, and it cannot plan a phrase as a whole. Unattested is not wrong (the 'baseline' row shows what");
 say("  wrong-ish looks like: 64% at cadences), but it is where to look first. Next refinements, each to be measured");
 say("  here: the local key of each phrase (from its cadence), two chords of context, and the harmonic rhythm.");
-say("- **Step 3: the bass is Bach-like and attested at 80% under Kittel's melodies (his own 87%)**, never in consecutive");
+say("- **Step 3: the bass is Bach-like and attested at 80% under Kittel's melodies (his own 87%)**, never in parallel");
 say("  fifths or octaves with the melody, ending on a root-position tonic almost always. Given Bach's chords the most likely");
 say("  bass is Bach's own under 80% of notes. It uses fewer seventh chords and 6/4s than either master (drawn at T = 0.8,");
 say("  rare choices thin out), and it moves by step less than Kittel (see above).");

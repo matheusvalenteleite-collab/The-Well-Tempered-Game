@@ -4,7 +4,7 @@
  * chord member is in the bass and whether the chord has its seventh, drawn given the mode, the chord,
  * the melody's degree and the bass before. Only pairs Bach uses under that chord are offered.
  *
- * One boundary is enforced, not learnt: no consecutive fifths or octaves (or unisons) between melody
+ * One boundary is enforced, not learnt: no parallel fifths or octaves (or unisons) between melody
  * and bass when both move (docs/chorales/CONCEPT.md, 4a). It is octave-independent, so it is decided
  * here on degrees.
  *
@@ -37,7 +37,7 @@ const split = (s: string) => {
   return { deg: s.slice(0, k), pos: s.slice(k + 1) };
 };
 
-/** Consecutive fifths, octaves or unisons between melody and bass, both moving. */
+/** Parallel fifths, octaves or unisons between melody and bass, both moving. */
 export function parallel(m0: string, b0: string, m1: string, b1: string): boolean {
   const pm0 = degreePc(m0),
     pm1 = degreePc(m1),
@@ -107,7 +107,7 @@ export class BassModel {
   private readonly byChord = new Map<string, Set<string>>();
 
   /** The bass under chord `chord` at note i after the bass `prev` (a "degree:position" or "start"):
-   *  the pairs Bach uses under that chord, without consecutive fifths or octaves with the melody
+   *  the pairs Bach uses under that chord, without parallel fifths or octaves with the melody
    *  (unless every pair would make them). `lineWeight` > 0 favours moving by step (each step 2^w
    *  times as likely), which the chain alone underrates (GENERATOR.md). */
   row(m: Melody, i: number, chord: string, prev: string, T = 1, lineWeight = 0, f?: string | null): Map<string, number> {

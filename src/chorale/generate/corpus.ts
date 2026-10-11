@@ -24,6 +24,14 @@ export interface BachEvent {
   /** Bass and soprano MIDI numbers. */
   bm: number;
   sm: number;
+  /** Soprano and bass, spelled. */
+  sp: string;
+  bp: string;
+  /** Kirnberger's reading of the chord: its root, kind ("major", "dominant seventh", ...), and the
+   *  bass's member ("root", "third", "fifth", "seventh", or "passing" where it is not a chord tone). */
+  root: string;
+  kind: string;
+  role: string | null;
   /** Alto and tenor, spelled (null where they rest). */
   a: string | null;
   tn: string | null;

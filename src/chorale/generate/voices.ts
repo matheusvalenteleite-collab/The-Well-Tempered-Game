@@ -9,8 +9,8 @@
  *  - between chords: each inner voice's move (its size, as Bach's alto and tenor move from chord to
  *    chord where nothing sounds between), the seventh's
  *    and the leading tone's continuation (by voice), and what the game's own chord-to-chord check
- *    (level5.ts findingsBetween) finds: consecutive fifths or octaves in a pair with an inner voice (by
- *    similar motion, grave; by contrary motion, a warning) and the augmented second in an inner line.
+ *    (level5.ts findingsBetween) finds: parallel fifths or octaves in a pair with an inner voice (grave), fifths
+ *    or octaves by contrary motion (a warning) and the augmented second in an inner line.
  * None of these is an error (C21: in the chorales Bach is the last word, and there are only warnings
  * of three gravities): their cost is their rarity in Bach's own chorales, counted the same way
  * between chords that follow each other directly.
@@ -32,14 +32,14 @@ const pcOf = (name: string) => ((parsePitch(`${name}4`).midi % 12) + 12) % 12;
 const diatonic = (p: string) => LETTERS.indexOf(p[0]) + 7 * parsePitch(p).octave;
 const bits = (k: number, n: number) => -Math.log2((k + 0.5) / (n + 1));
 
-/** Consecutive fifths or octaves (unisons) by similar motion, as level5.ts judges them. */
-export function consecutive(a0: number, b0: number, a1: number, b1: number): boolean {
+/** Parallel fifths or octaves (unisons): similar motion, as level5.ts judges them. */
+export function parallelMotion(a0: number, b0: number, a1: number, b1: number): boolean {
   if (a0 === a1 || b0 === b1) return false;
   const i0 = Math.abs(a0 - b0) % 12;
   return (i0 === 0 || i0 === 7) && i0 === Math.abs(a1 - b1) % 12 && Math.sign(a1 - a0) === Math.sign(b1 - b0);
 }
 
-/** Consecutive fifths or octaves (unisons) by contrary motion (a warning in level5.ts, C21). */
+/** Fifths or octaves (unisons) by contrary motion (a warning in level5.ts, C21). */
 export function contrary(a0: number, b0: number, a1: number, b1: number): boolean {
   if (a0 === a1 || b0 === b1) return false;
   const i0 = Math.abs(a0 - b0) % 12;
@@ -55,15 +55,15 @@ const motionOf = (a: number, b: number) => (a === b ? "held" : `${Math.abs(b - a
 export class VoiceModel {
   /** Cost of an inner voice's move by its size in semitones (0..12, 13 = beyond an octave). */
   readonly move: Record<"alto" | "tenor", number[]>;
-  /** Cost of one consecutive fifth or octave (similar motion; by contrary motion), and of one augmented
+  /** Cost of one pair of parallel fifths or octaves, of fifths or octaves by contrary motion, and of one augmented
    *  second: their rarity in Bach. */
-  readonly consecutive: number;
+  readonly parallel: number;
   readonly contrary: number;
   readonly augSecond: number;
   /** Cost of leaving out the fifth of a triad. */
   readonly noFifth: number;
   /** The counts behind these, for the report. */
-  readonly counts: { pairsMoved: number; consecutive: number; contrary: number; innerMoves: number; augSecond: number; triads: number; noFifth: number };
+  readonly counts: { pairsMoved: number; parallel: number; contrary: number; innerMoves: number; augSecond: number; triads: number; noFifth: number };
 
   constructor(train: BachChorale[]) {
     const mv = { alto: new Array(14).fill(0), tenor: new Array(14).fill(0) };
@@ -89,7 +89,7 @@ export class VoiceModel {
             if (!(x === 1 || x === 2 || y === 1 || y === 2)) continue;
             if (col0[x] === col1[x] || col0[y] === col1[y]) continue;
             pairs++;
-            if (consecutive(col0[x], col0[y], col1[x], col1[y])) cons++;
+            if (parallelMotion(col0[x], col0[y], col1[x], col1[y])) cons++;
             if (contrary(col0[x], col0[y], col1[x], col1[y])) contra++;
           }
       }
@@ -99,7 +99,7 @@ export class VoiceModel {
       return c.map((k) => bits(k, z));
     };
     this.move = { alto: table(mv.alto), tenor: table(mv.tenor) };
-    this.consecutive = bits(cons, pairs);
+    this.parallel = bits(cons, pairs);
     this.contrary = bits(contra, pairs);
     this.augSecond = bits(aug, inner);
     // The fifth of a root-position or first-inversion triad, present or not, in Bach's four voices.
@@ -113,7 +113,7 @@ export class VoiceModel {
         if (pcs.size < 3) missing++;
       }
     this.noFifth = bits(missing, triads);
-    this.counts = { pairsMoved: pairs, consecutive: cons, contrary: contra, innerMoves: inner, augSecond: aug, triads, noFifth: missing };
+    this.counts = { pairsMoved: pairs, parallel: cons, contrary: contra, innerMoves: inner, augSecond: aug, triads, noFifth: missing };
   }
 }
 
@@ -148,7 +148,9 @@ function pairsAt(vm: VoiceModel, s: Slot, o: VoiceOptions, relax: number): Pair[
   const w = o.habits ?? 1;
   const S = midiOf(s.soprano),
     B = midiOf(s.bass);
-  const members: [string, string][] = [[letterOf(s.bass), s.bassRole], ...s.above];
+  // the bass's letter is a chord member unless the bass is an incidental note (a passing bass)
+  const chordRole = ["root", "third", "fifth", "seventh"].includes(s.bassRole);
+  const members: [string, string][] = chordRole ? [[letterOf(s.bass), s.bassRole], ...s.above] : s.above;
   const notes = (lo: number, hi: number) =>
     members.flatMap(([l, role]) => [2, 3, 4, 5].map((o) => ({ name: `${l}${o}`, midi: midiOf(`${l}${o}`), role })).filter((x) => x.midi >= lo && x.midi <= hi));
   const out: Pair[] = [];
@@ -165,8 +167,8 @@ function pairsAt(vm: VoiceModel, s: Slot, o: VoiceOptions, relax: number): Pair[
       if (needed.some((p) => !pcs.has(p))) continue;
       let cost = 0;
       // the relaxations: as grave as the rarest warnings
-      cost += (a.midi > S ? vm.consecutive : 0) + (t.midi < B ? vm.consecutive : 0);
-      cost += optional.filter((p) => !pcs.has(p)).length * vm.consecutive;
+      cost += (a.midi > S ? vm.parallel : 0) + (t.midi < B ? vm.parallel : 0);
+      cost += optional.filter((p) => !pcs.has(p)).length * vm.parallel;
       if (fifth && !pcs.has(pcOf(fifth[0]))) cost += vm.noFifth;
       // doubling, in a triad whose every voice is a chord member (as level5.ts reads it)
       if (["major", "minor", "diminished", "augmented"].includes(s.kind)) {
@@ -181,7 +183,7 @@ function pairsAt(vm: VoiceModel, s: Slot, o: VoiceOptions, relax: number): Pair[
       } else if (s.kind.includes("seventh")) {
         // a doubled seventh is not a habit of Bach's
         const sev = s.above.find(([, r]) => r === "seventh") ?? (s.bassRole === "seventh" ? [letterOf(s.bass), "seventh"] : null);
-        if (sev && col.filter((m) => m % 12 === pcOf(sev[0])).length > 1) cost += vm.consecutive / 2;
+        if (sev && col.filter((m) => m % 12 === pcOf(sev[0])).length > 1) cost += vm.parallel / 2;
       }
       const sp = (pair: string, over: boolean) => {
         const h = HABITS.spacing[pair];
@@ -205,7 +207,7 @@ function moveCost(vm: VoiceModel, s0: Slot, s1: Slot, p: Pair, q: Pair, o: Voice
   let cost = vm.move.alto[Math.min(13, Math.abs(q.a - p.a))] + vm.move.tenor[Math.min(13, Math.abs(q.t - p.t))];
   // the game's own chord-to-chord check (level5.ts), each finding costed by its rarity in Bach
   for (const f of findingsBetween(1, [s0.soprano, p.alto, p.tenor, s0.bass], [s1.soprano, q.alto, q.tenor, s1.bass]))
-    cost += f.key === "parallel" ? vm.consecutive : f.key === "contrary" ? vm.contrary : f.key === "augSecond" ? vm.augSecond : 0;
+    cost += f.key === "parallel" ? vm.parallel : f.key === "contrary" ? vm.contrary : f.key === "augSecond" ? vm.augSecond : 0;
   const changes = s1.root !== s0.root || s1.kind !== s0.kind;
   if (changes) {
     for (const [v, x, y] of [["alto", p.alto, q.alto], ["tenor", p.tenor, q.tenor]] as const) {

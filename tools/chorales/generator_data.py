@@ -78,6 +78,11 @@ def chorale_events(c: dict, a: dict) -> dict:
             "fig": v["figure"],
             "bm": midi(v["pitches"]["bass"]),
             "sm": midi(v["pitches"]["soprano"]),
+            "root": v["root"],
+            "kind": v["chord"],
+            "role": v.get("bass_role"),
+            "sp": v["pitches"]["soprano"],
+            "bp": v["pitches"]["bass"],
             "a": v["pitches"].get("alto"),
             "tn": v["pitches"].get("tenor"),
         }
@@ -105,7 +110,7 @@ def main() -> None:
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({
         "generated_by": "tools/chorales/generator_data.py",
-        "note": "On-beat soprano attacks of Bach's chorales. deg: melody degree; chord: Kirnberger's fundamental as a degree of the key (upper case major, lower case minor, ° diminished); bass: bass degree; fig: figure in period abbreviation; bm, sm: bass and soprano MIDI; a, tn: alto and tenor, spelled (null where resting); pos: the chord's position over the bass (5/3, 6, 6/4, 7, 6/5, 4/3, 4/2; absent where the bass is not a chord tone); direct: no onset in any voice since the event before; end: soprano fermata; close: the melody's last two degrees at a phrase end.",
+        "note": "On-beat soprano attacks of Bach's chorales. deg: melody degree; chord: Kirnberger's fundamental as a degree of the key (upper case major, lower case minor, ° diminished); bass: bass degree; fig: figure in period abbreviation; bm, sm: bass and soprano MIDI; sp, bp: soprano and bass spelled; root, kind, role: Kirnberger's fundamental (root, chord kind, the bass's member or 'passing'); a, tn: alto and tenor, spelled (null where resting); pos: the chord's position over the bass (5/3, 6, 6/4, 7, 6/5, 4/3, 4/2; absent where the bass is not a chord tone); direct: no onset in any voice since the event before; end: soprano fermata; close: the melody's last two degrees at a phrase end.",
         "chorales": chorales,
     }, ensure_ascii=False, separators=(",", ":")) + "\n")
     n = sum(len(c["notes"]) for c in chorales)

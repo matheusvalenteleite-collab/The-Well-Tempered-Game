@@ -55,7 +55,7 @@ different cadence when the eight are chosen (3 chords: it gives Kittel's 4.6 cad
 Under every melody note, one bass note: which member of the chord is in the bass and whether the chord has its
 seventh (its *position*), drawn given the chord, the melody's degree and the bass before; then the octaves chosen
 for the likeliest line in Bach's terms (size of each move, distance from the melody, register); then the figure.
-One boundary is enforced rather than learnt: no consecutive fifths or octaves between melody and bass.
+One boundary is enforced rather than learnt: no parallel fifths or octaves between melody and bass.
 
 On Bach's chorales (every setting of the tune held out), given Bach's chords: the most likely bass is Bach's under
 80% of the notes, the position Bach's under 74%. With the generator's own plan and chords (steps 1-3),
@@ -189,7 +189,7 @@ The basses (pitch and figure; Kittel's pitches as he writes them, his figures om
   the local key, and it cannot plan a phrase as a whole. Unattested is not wrong (the 'baseline' row shows what
   wrong-ish looks like: 64% at cadences), but it is where to look first. Next refinements, each to be measured
   here: the local key of each phrase (from its cadence), two chords of context, and the harmonic rhythm.
-- **Step 3: the bass is Bach-like and attested at 80% under Kittel's melodies (his own 87%)**, never in consecutive
+- **Step 3: the bass is Bach-like and attested at 80% under Kittel's melodies (his own 87%)**, never in parallel
   fifths or octaves with the melody, ending on a root-position tonic almost always. Given Bach's chords the most likely
   bass is Bach's own under 80% of notes. It uses fewer seventh chords and 6/4s than either master (drawn at T = 0.8,
   rare choices thin out), and it moves by step less than Kittel (see above).

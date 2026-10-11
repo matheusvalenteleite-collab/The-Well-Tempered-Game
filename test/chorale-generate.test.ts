@@ -129,7 +129,7 @@ test("theory: figures in the period's abbreviation, with the accidentals the key
   assert.equal(parseDegree("b7").pc, 10);
 });
 
-test("bass: consecutive fifths and octaves with the melody, both moving, are recognised", () => {
+test("bass: parallel fifths and octaves with the melody, both moving, are recognised", () => {
   assert.ok(parallel("5", "1", "6", "2")); // fifths
   assert.ok(parallel("1", "1", "2", "2")); // octaves
   assert.ok(!parallel("5", "1", "5", "2")); // the melody holds
@@ -143,7 +143,7 @@ test("bass: phrase places", () => {
   m.notes.forEach((n, i) => n.end && i < m.notes.length - 1 && assert.equal(places[i], "end"));
 });
 
-test("settings: the bass never makes consecutive fifths or octaves with the melody; it lies below it, in range; it ends on the tonic", () => {
+test("settings: the bass never makes parallel fifths or octaves with the melody; it lies below it, in range; it ends on the tonic", () => {
   const sets = diverseSettings(models, m, key, 8, rng(5), { pool: 60 });
   for (const s of sets) {
     const b = s.bass;
@@ -170,21 +170,21 @@ test("bass model: given Bach's chords on an unseen chorale, the most likely bass
   assert.ok(hits / c.notes.filter((n) => n.pos).length > 0.6, `${hits}`);
 });
 
-import { VoiceModel, innerVoices, pairs, consecutive, augmentedSecond } from "../src/chorale/generate/voices.ts";
+import { VoiceModel, innerVoices, pairs, parallelMotion, augmentedSecond } from "../src/chorale/generate/voices.ts";
 import { bachSlots, settingSlots } from "../src/chorale/generate/slots.ts";
 import { LEVEL5, judge } from "../src/chorale/level5.ts";
 
 const vm = new VoiceModel(BACH);
 
 test("voices: the two gravest warnings are recognised as the game's judge reads them", () => {
-  assert.ok(consecutive(67, 60, 69, 62)); // fifths up
-  assert.ok(!consecutive(67, 60, 65, 62)); // contrary motion: not counted (C16, as counted in Bach)
+  assert.ok(parallelMotion(67, 60, 69, 62)); // fifths up
+  assert.ok(!parallelMotion(67, 60, 65, 62)); // contrary motion: not counted (C16, as counted in Bach)
   assert.ok(augmentedSecond("F4", "G#4"));
   assert.ok(!augmentedSecond("F4", "Ab4"));
-  assert.ok(vm.consecutive > 8 && vm.augSecond > vm.consecutive, `${vm.consecutive} ${vm.augSecond}`);
+  assert.ok(vm.parallel > 8 && vm.augSecond > vm.parallel, `${vm.parallel} ${vm.augSecond}`);
 });
 
-test("voices: over Kittel's No. 1, bass [1], the chord is complete, within range, and the judge finds no consecutives", () => {
+test("voices: over Kittel's No. 1, bass [1], the chord is complete, within range, and the judge finds no parallel fifths or octaves", () => {
   const slots = LEVEL5[1].basses[0].slots;
   const v = innerVoices(vm, slots)!;
   assert.equal(v.alto.length, slots.length);
