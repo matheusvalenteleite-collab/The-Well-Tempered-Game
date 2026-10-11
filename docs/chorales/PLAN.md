@@ -230,3 +230,9 @@ against Bach's profile of surprise and by blind listening; X7 the Atlas's "Bach 
     eight categories over the 370 chorales with their occasions; the augmented sixth is absent from the
     chorales as a chord; the second rating page "Bach's Licences" (34 examples) asks: immediately special,
     or beautiful in an ordinary way.
+- X3, round 2 rated (`docs/chorales/LICENCES-RATINGS.md`, 11 October 2026): the licences are chromatic
+  (chromatic bass lines 4 of 4 special, distant diminished sevenths 5 of 6, mixture 3 of 4); remote cadences,
+  incidental dissonances and once-found sonorities are mostly ordinary. Two flat seconds flagged as misread:
+  the global key read where the local key or the Phrygian mode governs. Next: a local key for the readings,
+  the catalogue narrowed to the chromatic licences, then X5. The owner's note: think motivically and
+  imitatively too.
