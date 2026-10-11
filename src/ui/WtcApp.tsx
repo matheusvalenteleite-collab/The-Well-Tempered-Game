@@ -24,7 +24,7 @@ import { frequency, WELL, type TemperamentId } from "../audio/temperament.ts";
 import type { PlayEvent } from "../counterpoint/layout.ts";
 import { ZOOM_MAX, ZOOM_MIN } from "./notation/zoom.ts";
 import { HFader } from "./HFader.tsx";
-import { audio, store, stored } from "./shared.ts";
+import { audio, store, stored, storedVolume } from "./shared.ts";
 import { t } from "./i18n.ts";
 import { Shell } from "./Shell.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
@@ -121,7 +121,7 @@ export function WtcApp({ onVoices, onStudy, onTutorial }: { onVoices(n: 2 | 3 | 
     audio.tempo = tempo;
     store("wtg.wtcTempo", tempo);
   }, [tempo]);
-  const [volume, setVolume] = useState(() => stored("wtg.volume", 70, (v) => typeof v === "number"));
+  const [volume, setVolume] = useState(() => storedVolume());
   useEffect(() => audio.setVolume(volume / 100), [volume]);
   const [tuning, setTuning] = useState<TemperamentId>(() => stored("wtg.wtcTuning", "werckmeister3" as TemperamentId, (v) => WELL.includes(v as TemperamentId)));
   useEffect(() => {

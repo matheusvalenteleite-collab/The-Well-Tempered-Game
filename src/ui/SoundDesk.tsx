@@ -248,7 +248,7 @@ export function SoundDesk(p: Props) {
           <button className="chipbtn tuning" tabIndex={-1} onClick={() => p.onTuning(TEMPERAMENTS[(TEMPERAMENTS.indexOf(p.tuning) + 1) % TEMPERAMENTS.length])} title={t("ui.tuning.help")}>
             {t("ui.tuning.label", { name: t(`ui.tuning.${p.tuning}`) })}
           </button>
-          <Fader value={p.master / 100} label={t("ui.volume")} color={COLOR.master} meterRef={(el) => (meterEls.current.master = el)} onChange={(v) => p.onMaster(Math.round(Math.min(1, v) * 100))} />
+          <Fader value={p.master / 100} label={t("ui.volume")} color={COLOR.master} meterRef={(el) => (meterEls.current.master = el)} onChange={(v) => p.onMaster(Math.min(1, v) * 100)} />
           <div className="db-readout">{formatDb(p.master / 100)}</div>
         </div>
       </div>

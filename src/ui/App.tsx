@@ -48,7 +48,7 @@ import { useBeta } from "./beta.ts";
 import { exerciseOpen, furthestOpen, GAME_ORDER } from "../game/unlock.ts";
 import { tt } from "../tutorial/text.ts";
 import type { NameStyle } from "../music/names.ts";
-import { audio, store, stored, validDrumKit } from "./shared.ts";
+import { audio, store, stored, validDrumKit, storedVolume } from "./shared.ts";
 import type { Step } from "../music/pitch.ts";
 
 validateCurriculum(repository);
@@ -107,7 +107,7 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
   const [gold, setGold] = useState<string[]>(() => stored<string[]>("wtg.starsGold", [], (v) => Array.isArray(v)));
   useEffect(() => store("wtg.starsGold", gold), [gold]);
   const [tempo, setTempo] = useState(() => stored("wtg.tempo", 60, (v) => typeof v === "number" && v >= 30 && v <= 240));
-  const [volume, setVolume] = useState(() => stored("wtg.volume", 70, (v) => typeof v === "number" && v >= 0 && v <= 100));
+  const [volume, setVolume] = useState(() => storedVolume());
   const [sound, setSound] = useState<SoundState>(() => restoreSound(stored<unknown>("wtg.sound3", null)));
   // The look (D81): the 1990s look by default, the classic one a click away.
   const [look, setLook] = useState<"retro" | "classic">(() => stored("wtg.look", "retro", (v) => v === "retro" || v === "classic"));
