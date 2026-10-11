@@ -1,7 +1,7 @@
 # Handoff (10 October 2026, night)
 
 Read this first in a new session. The decisions log (`docs/DECISIONS.md`: D1–D139 and D147 on for the game,
-D140–D146 for the tutorial (the next free number is D158), C1–C19 for the chorale mode (next C20)) has the details; `docs/MORNING.md` has
+D140–D146 for the tutorial (the next free number is D158), C1–C20 for the chorale mode (next C21)) has the details; `docs/MORNING.md` has
 older notes and the owner's open questions.
 
 ## How we work from now on (the owner's choice, after a usage warning)
@@ -68,7 +68,7 @@ older notes and the owner's open questions.
    cadences, figures, fundamental bass and incidental notes (C15). Level 5, the voices over Kittel's
    figured basses, in Bach's style alone (C16, C17). No. 320, bar 8 checked in the later Breitkopf
    print (plate 12021): the consecutive fifths are there (the 1784-87 first edition not seen).
-   Bach's own settings beside the player's at level 5 (C18); level 6, diminution on Bach's chorales reduced to chord tones (C19). Every level of CONCEPT.md is now on screen. The generator
+   Bach's own settings beside the player's at level 5 (C18); level 6, diminution on Bach's chorales reduced to chord tones (C19). Every level of CONCEPT.md is now on screen. The long-term plan is `docs/chorales/ROADMAP.md` (C20): one workbench, the readings checked, then the path. The generator
    (other session, branch claude/chorale-fugue-generation-fbclx4, src/chorale/generate/) is theirs;
    they were asked to judge their inner voices with src/chorale/level5.ts and to number decisions G1...
 7. Old backlog, last: evaluation redesign and graded three-voice reading with Fux; rule
