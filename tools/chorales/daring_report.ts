@@ -9,12 +9,12 @@
  * chord successions Bach uses).
  *
  * Output: docs/chorales/DARING.md, data/chorales/generator/daring.json and daring-weights.json.
- * Run:  node tools/chorales/daring_report.ts
+ * Run:  node tools/chorales/daring_report.ts   (--eval: measure the calibrated weights without calibrating again)
  */
 import { writeFileSync } from "node:fs";
 import { BACH, melodyOf, type BachChorale } from "../../src/chorale/generate/corpus.ts";
 import { Daring, diverseSettings, trainModels, type Models } from "../../src/chorale/generate/index.ts";
-import { GROUPS, GROUP_NAMES, type DaringOption, type Weights } from "../../src/chorale/generate/daring.ts";
+import { GROUPS, GROUP_NAMES, LEVELS, type DaringOption, type Weights } from "../../src/chorale/generate/daring.ts";
 import { LICENCES, licencesOf, settingAsChorale as asChorale } from "../../src/chorale/generate/licences.ts";
 import type { Key } from "../../src/chorale/generate/theory.ts";
 import { rng } from "../../src/counterpoint/choices/cantus.ts";
@@ -77,11 +77,13 @@ const calibTrain = BACH.filter((c) => !calibTunes.has(c.tune) && !held.has(c.tun
 const cModels = trainModels(calibTrain);
 const cLex = new Daring(calibTrain);
 const target1 = groupRates(count(BACH));
-const levels: Record<string, Weights> = {};
+// with --eval, the weights already calibrated (data/chorales/generator/daring-weights.json) are measured
+const EVAL = process.argv.includes("--eval");
+const levels: Record<string, Weights> = EVAL ? { ...LEVELS } : {};
 const log: string[] = [];
 const EPS = 0.05;
 let w: Weights = Object.fromEntries(GROUP_NAMES.map((g) => [g, 0]));
-for (const level of [1, 2, 3]) {
+for (const level of EVAL ? [] : [1, 2, 3]) {
   const target = Object.fromEntries(GROUP_NAMES.map((g) => [g, level * target1[g]]));
   let best: { w: Weights; err: number } | null = null;
   for (let it = 0; it < 8; it++) {
@@ -96,7 +98,7 @@ for (const level of [1, 2, 3]) {
   levels[String(level)] = Object.fromEntries(Object.entries(best!.w).map(([g, v]) => [g, Number(v.toFixed(2))]));
   w = { ...best!.w };
 }
-writeFileSync(new URL("../../data/chorales/generator/daring-weights.json", import.meta.url), JSON.stringify({ generated_by: "tools/chorales/daring_report.ts", target_per_100_chords_level_1: target1, levels, log }, null, 1) + "\n");
+if (!EVAL) writeFileSync(new URL("../../data/chorales/generator/daring-weights.json", import.meta.url), JSON.stringify({ generated_by: "tools/chorales/daring_report.ts", target_per_100_chords_level_1: target1, levels, log }, null, 1) + "\n");
 
 // ---- evaluation on the test melodies ----
 const models = trainModels(train);

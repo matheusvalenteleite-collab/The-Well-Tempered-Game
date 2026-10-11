@@ -295,7 +295,7 @@ function renderList() {
   }
   const n = MOMENTS.filter((m) => ratings[m.id]?.rating).length;
   $("count").textContent = `${n} of ${MOMENTS.length} rated`;
-  $("list-toggle").firstElementChild.textContent = `Moment ${index + 1} of ${MOMENTS.length}: all moments`;
+  $("list-toggle").firstElementChild.textContent = `${SETTINGS.item || "Moment"} ${index + 1} of ${MOMENTS.length}: all ${SETTINGS.items || "moments"}`;
   $("bar").style.width = `${(100 * n) / Math.max(1, MOMENTS.length)}%`;
 }
 
@@ -453,7 +453,7 @@ function stop() {
 }
 function dockReset() {
   dockPlaying = null;
-  $("d-play").textContent = "▶ Excerpt";
+  $("d-play").textContent = SETTINGS.blind ? "▶ Play" : "▶ Excerpt";
   $("d-moment").textContent = "▶ Moment";
 }
 $("play-all").addEventListener("click", () => play(0, MOMENTS[index].length));
@@ -474,7 +474,7 @@ function dock(which, from, to) {
   if (dockPlaying === which) { stop(); return; }
   play(from, to);
   dockPlaying = which;
-  $("d-play").textContent = which === "all" ? "■ Stop" : "▶ Excerpt";
+  $("d-play").textContent = which === "all" ? "■ Stop" : SETTINGS.blind ? "▶ Play" : "▶ Excerpt";
   $("d-moment").textContent = which === "moment" ? "■ Stop" : "▶ Moment";
 }
 $("d-play").addEventListener("click", () => dock("all", 0, MOMENTS[index].length));

@@ -90,6 +90,8 @@ writePage(new URL("../../data/chorales/generator/listening.html", import.meta.ur
     { key: "unsure", label: "Not sure", hint: "Come back to it" },
   ],
   blind: true,
+  item: "Version",
+  items: "versions",
   levels,
   collection: "listening",
   storeKey: "bach-listening",
