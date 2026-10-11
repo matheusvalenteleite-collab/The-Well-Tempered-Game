@@ -86,6 +86,8 @@ const sung = (vowel: number, vibrato: number, breath: number, tone: number, solo
   reverbMode: "hall",
   reverbMix: solo ? 0.18 : 0.3,
 });
+/** A recorded choir set, with the formant voice's settings beneath it as its fallback (P13). */
+const choir = (sampleSet: SynthSettings["sampleSet"], fallback: SynthSettings): SynthSettings => ({ ...fallback, model: "sampled", sampleSet, attack: 0.09, decay: 0.05, sustain: 1, release: 0.35, tone: 12000, detune: 0 });
 /** Wendy Carlos's Moog (Switched-On Bach, 1968): each voice its own patch. */
 const moog = (waveform: SynthSettings["waveform"], tone: number, o: Partial<SynthSettings> = {}): SynthSettings => ({ ...preset("chip"), waveform, tone, attack: 0.02, decay: 0.2, sustain: 0.75, release: 0.12, ...o });
 
@@ -100,7 +102,17 @@ interface EnsembleSpec {
 export function ensembleSpec(e: Ensemble): EnsembleSpec {
   switch (e) {
     case "choir":
-      return { voices: [sung(0, 12, 0.18, 5200, false), sung(0.4, 11, 0.2, 4600, false), sung(0.2, 10, 0.2, 4000, false), sung(3.4, 9, 0.18, 3000, false)] };
+      // P13: recorded choirs (Sonatina's chorus for soprano, tenor and bass, FluidR3's choir for the
+      // alto, whose range Sonatina's upper choir does not reach), the formant voices kept underneath
+      // as the fallback where the samples cannot be loaded (the claude.ai page).
+      return {
+        voices: [
+          choir("choirUpper", sung(0, 12, 0.18, 5200, false)),
+          choir("choirAahs", sung(0.4, 11, 0.2, 4600, false)),
+          choir("choirLower", sung(0.2, 10, 0.2, 4000, false)),
+          choir("choirLower", sung(3.4, 9, 0.18, 3000, false)),
+        ],
+      };
     case "soloists":
       return { voices: [sung(0, 16, 0.08, 6500, true), sung(3.2, 13, 0.12, 5200, true), sung(1, 18, 0.1, 4800, true), sung(3.6, 11, 0.14, 3400, true)] };
     case "organ":
