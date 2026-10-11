@@ -30,7 +30,10 @@ VOICES = ["soprano", "alto", "tenor", "bass"]
 TONES = {"root", "third", "fifth", "seventh"}
 KINDS = ["passing", "neighbour", "suspension", "retardation", "appoggiatura", "anticipation", "escape", "free"]
 CHORDS = {"major": "", "minor": "m", "diminished": "o", "dominant seventh": "7", "minor seventh": "m7",
-          "triad, third not sounding": "5", "seventh chord, third not sounding (minor seventh)": "7(no 3)"}
+          "half-diminished seventh": "ø7", "major seventh": "maj7", "dominant seventh, diminished fifth": "7(b5)",
+          "dominant seventh, minor ninth for the root": "7(b9)",
+          "triad, third not sounding": "5", "seventh chord, third not sounding (minor seventh)": "7(no 3)",
+          "seventh chord, third not sounding (major seventh)": "maj7(no 3)", "bare": "5"}
 
 
 def q(x: str) -> int:

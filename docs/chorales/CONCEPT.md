@@ -116,6 +116,10 @@ in the fineness of the contexts (b), not in a second judge beside Bach (C1).
 
 Kittel's organist's thoroughbass and Bach's four-part vocal writing are two references, not one.
 
+### d. The strict style as the frame (C23)
+
+Kirnberger classes church music, and so the chorale, as the strict style (*Kunst* I, p. 80). The free style relaxes it by named licences: unprepared dissonance, a resolution passed over or taken by another voice, the passing note on the beat, long passing dissonances (pp. 80-81). The mode starts the learner there, coming from Fux. The strict style is the frame in which Bach's practice is explained: each licence Bach takes is named as Kirnberger names it and counted ("unprepared seventh: a licence of the free style, Kunst I p. 81; Bach takes it in n of m cases"). It is not the standard by which the player is judged; judgment stays as in a (C21), graded by Bach's habit.
+
 ## 5. Kinds of task
 
 1. **Hear and read.** Bach's setting with its levels laid open: the cadence plan, the

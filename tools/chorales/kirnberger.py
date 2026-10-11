@@ -1,13 +1,13 @@
 """Fundamental chords and dissonance after Kirnberger (shared by the chorale analyses).
 
-Kirnberger (Die Kunst des reinen Satzes, 1771-79; with J. A. P. Schulz, Die wahren Grundsaetze zum
-Gebrauche der Harmonie, 1773) reduces harmony to two fundamental chords, the triad and the
-seventh chord, each standing on a fundamental bass (Grundbass), and divides dissonances into
-essential ones, which belong to the chord (the seventh of the seventh chord), and incidental ones,
-which stand in the place of a consonance (suspensions, passing notes). This module applies those
-distinctions to four-part sonorities. The tests are operational readings of the distinctions; the
-names and the tests are to be checked against Kirnberger's text (docs/chorales/KIRNBERGER.md), which
-could not be consulted when this was written.
+Kirnberger (Die Kunst des reinen Satzes in der Musik I, Berlin 1771/1774; with J. A. P. Schulz, Die
+wahren Grundsaetze zum Gebrauch der Harmonie, 1773) reduces harmony to two fundamental chords, the
+triad and the seventh chord, each standing on a fundamental bass (Grundbass), and divides
+dissonances into essential ones, which belong to the chord (the seventh of the seventh chord), and
+incidental ones, which stand in the place of a consonance (suspensions, passing notes). This module
+applies those distinctions to four-part sonorities. The tests were checked against Kunst I
+(docs/chorales/KIRNBERGER.md gives the pages); where the code reads more than he states, that file
+says so.
 
 Pitches are spelled names ("F#4"); the reading is by letters (generic intervals) first, so that the
 spelling decides, as in a thoroughbass: C-E-G is a triad, C-Fb-G is not.
@@ -43,17 +43,32 @@ def midi(name: str) -> int:
 @dataclass
 class Chord:
     root: str  # spelled pitch class of the fundamental bass, e.g. "F#"
-    kind: str  # major / minor / diminished / augmented triad; dominant / minor / half-diminished / diminished / major seventh
+    kind: str  # major / minor / diminished triad; one of Kirnberger's five essential seventh chords
     seventh: bool
     members: dict  # voice -> "root" / "third" / "fifth" / "seventh"
     complete: bool  # third present (and fifth, for a triad: an omitted fifth is common and allowed)
 
 
-TRIADS = {(4, 7): "major", (3, 7): "minor", (3, 6): "diminished", (4, 8): "augmented", (4, None): "major", (3, None): "minor"}
+# Kunst I, p. 34: the triad is of three kinds, major, minor and diminished; p. 39: any other
+# "triad" (the augmented among them) is not consonant and of no use.
+TRIADS = {(4, 7): "major", (3, 7): "minor", (3, 6): "diminished", (4, None): "major", (3, None): "minor"}
+# Kunst I, table II (after p. 32) and p. 64: the essential seventh is minor with a major third and
+# perfect fifth, minor with a minor third and perfect fifth, major with a major third and perfect
+# fifth, minor with a minor third and diminished fifth, minor with a major third and diminished
+# fifth. The diminished seventh is "always an incidental dissonance" (p. 80); see `fundamental`.
 SEVENTHS = {(4, 7, 10): "dominant seventh", (3, 7, 10): "minor seventh", (3, 6, 10): "half-diminished seventh",
-            (3, 6, 9): "diminished seventh", (4, 7, 11): "major seventh", (3, 7, 11): "minor-major seventh",
+            (4, 7, 11): "major seventh", (4, 6, 10): "dominant seventh, diminished fifth",
             (4, None, 10): "dominant seventh", (3, None, 10): "minor seventh", (4, None, 11): "major seventh"}
 ROLE = {0: "root", 2: "third", 4: "fifth", 6: "seventh"}
+# The diminished seventh chord read as Kirnberger reads it (p. 90): the seventh chord on the
+# dominant, inverted, with the minor ninth held in place of the root. Over the letter that would be
+# its root, its notes are the third, fifth and seventh of the true root a major third below; the
+# note a diminished seventh above stands for the true root (its octave), as the ninth.
+DIMINISHED = {"root": "third", "third": "fifth", "fifth": "seventh", "seventh": "ninth"}
+DIMINISHED_KIND = "dominant seventh, minor ninth for the root"
+# The chords whose third is a leading tone when the root then falls a fifth.
+DOMINANTS = ("major", "dominant seventh", "dominant seventh, diminished fifth", DIMINISHED_KIND)
+SEVENTH_KINDS = set(SEVENTHS.values()) | {DIMINISHED_KIND}
 
 
 def fundamental(notes: dict[str, str]) -> Chord | None:
@@ -88,8 +103,15 @@ def fundamental(notes: dict[str, str]) -> Chord | None:
         if third is None:
             # No third: root and fifth (a third replaced by a suspended fourth, or an open
             # sonority), or root, fifth and seventh (7/5/4: the third suspended). Incomplete.
+            if sev == 9 and fifth in (None, 6):
+                tpc = (pcs[rv] - 4) % 12
+                tstep = STEPS[(r - 2) % 7]
+                off = (tpc - PC[tstep]) % 12
+                tname = tstep + ("#" * off if off < 6 else "b" * (12 - off))
+                found.append(Chord(tname, DIMINISHED_KIND, True, {v: DIMINISHED[x] for v, x in roles.items()}, False))
+                continue
             if sev is not None:
-                kind = {10: "seventh chord, third not sounding (minor seventh)", 11: "seventh chord, third not sounding (major seventh)", 9: "seventh chord, third not sounding (diminished seventh)"}.get(sev)
+                kind = {10: "seventh chord, third not sounding (minor seventh)", 11: "seventh chord, third not sounding (major seventh)"}.get(sev)
                 if kind is None or fifth not in (None, 6, 7):
                     continue
                 kind, complete = kind, False
@@ -97,6 +119,14 @@ def fundamental(notes: dict[str, str]) -> Chord | None:
                 kind, complete = ("triad, third not sounding" if fifth == 7 else "bare"), False
         elif sev is not None:
             kind = SEVENTHS.get((third, fifth, sev))
+            if kind is None and third == 3 and fifth in (6, None) and sev == 9:
+                # B-D-F-Ab: G7 with Ab, the minor ninth, for G (Kunst I, p. 90).
+                tpc = (pcs[rv] - 4) % 12
+                tstep = STEPS[(r - 2) % 7]
+                off = (tpc - PC[tstep]) % 12
+                tname = tstep + ("#" * off if off < 6 else "b" * (12 - off))
+                found.append(Chord(tname, DIMINISHED_KIND, True, {v: DIMINISHED[x] for v, x in roles.items()}, fifth is not None))
+                continue
             if kind is None:
                 continue
             complete = True
@@ -144,6 +174,30 @@ def analyse_sonority(ctx: dict[str, dict]) -> tuple[Chord | None, dict[str, str]
     shapes = {v: shape(c["prev"], c["pitch"], c["next"], c["held"]) for v, c in ctx.items()}
     ch = fundamental(notes)
     if ch is not None:
+        # A seventh held over and resolving down by step while the bass stays is no essential
+        # seventh but the suspension of the sixth (Kunst I, pp. 78-80: the essential seventh does
+        # not resolve over the same bass; the 7-6 is a Vorhalt). The chord is the one it resolves
+        # into, read with the resolution in its place.
+        # The 6/4 on the good beat whose sixth and fourth fall to the fifth and third over the same
+        # bass: the dissonant 6/4, its fourth and sixth Vorhalte of the third and fifth, the root in
+        # the bass (Kunst I, pp. 50-51: the consonant 6/4 needs no resolution and may fall on any
+        # part of the bar; the dissonant one, like every Vorhalt, falls on the good part).
+        if not ch.seventh and ch.members.get("bass") == "fifth" and ctx["bass"].get("on_beat"):
+            upper = [v for v, r in ch.members.items() if r in ("root", "third")]
+            if upper and all(ctx[v].get("resolves_over_bass") and ctx[v]["next"] and diatonic(ctx[v]["next"]) - diatonic(ctx[v]["pitch"]) == -1 for v in upper):
+                ch2 = fundamental({**notes, **{v: ctx[v]["next"] for v in upper}})
+                if ch2 is not None and not ch2.seventh and ch2.complete and ch2.members.get("bass") == "root":
+                    labels = dict(ch2.members)
+                    for v in upper:
+                        labels[v] = "suspension"
+                    return ch2, labels
+        v7 = next((v for v, r in ch.members.items() if r == "seventh"), None)
+        if v7 is not None and shapes[v7] == "suspension" and ctx[v7].get("resolves_over_bass") and v7 != "bass":
+            ch2 = fundamental({**notes, v7: ctx[v7]["next"]})
+            if ch2 is not None and not ch2.seventh and ch2.complete:
+                labels = dict(ch2.members)
+                labels[v7] = "suspension"
+                return ch2, labels
         # A seventh struck in passing (or as a neighbour) is incidental, not essential: if the
         # other notes make a triad, the triad stands and the seventh passes (the bass B under C
         # major on its way from C to A; the 8-7 that passes over a held bass).
