@@ -8,6 +8,7 @@
 import type { FuxRepository } from "../music/fux/repository.ts";
 import { ALL_STEPS, ruleById, rulesForStep } from "../counterpoint/curriculum/index.ts";
 import { exerciseView } from "../game/exercise-view.ts";
+import { FIRST_SPECIES_FUX_STRICT } from "../counterpoint/rules/first-species.ts";
 import { playerStaves, TRIO_SPECIES, trioSteps, type TrioStep } from "../game/trio.ts";
 import { LIBRARY } from "../wtc/library.ts";
 import { fugueFacts, fugueNotes, trioNotes } from "./poly.ts";
@@ -318,7 +319,9 @@ export function buildCourse({ repo, trio, trioData }: TutorialData): Chapter[] {
           },
         },
         { id: "first.hint", task: { kind: "read" } },
-        { id: "first.whole", scene: stepScene(repo, STEP_IDS.first, all(first)), task: { kind: "judge" } },
+        // Judged by every rule of the chapter, the melodic ones just taught included (the game's first
+        // exercise raises them later).
+        { id: "first.whole", scene: { ...stepScene(repo, STEP_IDS.first, all(first)), rules: FIRST_SPECIES_FUX_STRICT }, task: { kind: "judge" } },
         { id: "first.below", scene: stepScene(repo, STEP_IDS.firstBelow, [0, 9, 10]), intervals: true, task: { kind: "judge" } },
         { id: "first.game", task: { kind: "game", voices: 2, stepId: STEP_IDS.first } },
       ],

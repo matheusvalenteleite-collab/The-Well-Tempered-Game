@@ -431,11 +431,11 @@
     "first.whole": {
       "title": "A whole counterpoint",
       "text": [
-        "Now the staff is empty: write the whole line yourself. This is exactly the game's first exercise. Plan the ending first (C♯ then D), choose a perfect consonance to begin, and join them with consonances, moving against the cantus.",
+        "Now the staff is empty: write the whole line yourself. This is the game's first exercise, judged by every rule of this chapter, the melodic ones included. Plan the ending first (C♯ then D), choose a perfect consonance to begin, and join them with consonances, moving against the cantus.",
         "Your line does not have to be Fux's. Anything that keeps the rules is accepted — and in the game, once you have cleared one of Fux's worked exercises, his solution opens beside yours for comparison."
       ],
       "prompt": "Write all eleven notes.",
-      "hint": "Ending: C♯, D. Beginning: A or D. In between, a third or a sixth above each cantus note keeps every rule; but for the gold 🌟 in the game, mix in contrary motion — a line that only moves in parallel with the cantus draws Aloysius's advice.",
+      "hint": "Ending: C♯, D. Beginning: A or D. In between, mostly thirds and sixths, and listen to your line as a melody: thirds above every cantus note would leap F up to B, a tritone. And for the gold 🌟 in the game, mix in contrary motion — a line that only moves in parallel with the cantus draws Aloysius's advice.",
       "done": "Your first counterpoint. Aloysius would be pleased."
     },
     "first.below": {
