@@ -5,7 +5,7 @@
  * while playing which can be toggled off and become simple markers"); their list is a tab of its own.
  */
 import { useState } from "react";
-import type { ListeningNote } from "../chorale/listening-notes.ts";
+import type { GuideItem } from "./chorale-commentary.ts";
 import { store, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
 
@@ -39,7 +39,7 @@ export interface Placed<T> { item: T; index: number; bar: number; shown: number 
  * The caption under the score while the chorale plays: the line being sung and the latest moment
  * reached (kept for two bars after its own), or the hint before ▶.
  */
-export function GuideCaption({ moments, lines, cursor }: { moments: Placed<ListeningNote>[]; lines: Placed<string | null>[]; cursor: number }) {
+export function GuideCaption({ moments, lines, cursor }: { moments: Placed<GuideItem>[]; lines: Placed<string | null>[]; cursor: number }) {
   if (cursor < 0) return <div className="guide-caption idle">{t("listen.idle")}</div>;
   const line = [...lines].reverse().find((l) => l.bar <= cursor);
   const now = [...moments].reverse().find((m) => m.bar <= cursor && cursor - m.bar <= 2);
@@ -49,6 +49,7 @@ export function GuideCaption({ moments, lines, cursor }: { moments: Placed<Liste
       {now && (
         <div className="guide-moment" key={now.index}>
           <span className="guide-mark">{marker(now.index)}</span> {now.item.text}
+          {now.item.cite && <span className="guide-cite"> ({now.item.cite})</span>}
         </div>
       )}
     </div>
@@ -56,7 +57,7 @@ export function GuideCaption({ moments, lines, cursor }: { moments: Placed<Liste
 }
 
 /** The guide's tab: every moment with its bar, and the words of each line. */
-export function GuideList({ moments, lines, quiet }: { moments: Placed<ListeningNote>[]; lines: Placed<string | null>[]; quiet?: boolean }) {
+export function GuideList({ moments, lines, quiet }: { moments: Placed<GuideItem>[]; lines: Placed<string | null>[]; quiet?: boolean }) {
   return (
     <div className="chorale-about guide-list">
       {moments.length ? (
@@ -64,6 +65,7 @@ export function GuideList({ moments, lines, quiet }: { moments: Placed<Listening
           {moments.map((m) => (
             <li key={m.index}>
               <strong>{marker(m.index)} {t("listen.bar", { bar: m.shown })}</strong> {m.item.text}
+              {m.item.cite && <span className="guide-cite"> ({m.item.cite})</span>}
             </li>
           ))}
         </ol>

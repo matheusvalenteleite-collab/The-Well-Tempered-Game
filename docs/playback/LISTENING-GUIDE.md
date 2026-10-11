@@ -25,8 +25,27 @@ The sentences are the chorale session's (`chorale.guide.*`); the screen shows th
 and added to `data/playback/chorale-fermatas.json` as `line` by `tools/playback/chorale_texts.py`.
 Where several stanza lines are given, the first is used.
 
+## Written notes (P22)
+
+`data/playback/chorale-commentary.json` holds 27 notes on 25 chorales, each paraphrasing or quoting a commentary
+read in full view on archive.org, with its page. The commentaries:
+- André Pirro, *L'esthétique de Jean-Sébastien Bach* (1907), pp. 136–138;
+- Spitta, trans. Bell and Fuller-Maitland, vols. II–III (1884–85);
+- Schweitzer, trans. Newman, vol. II (1911);
+- W. G. Whittaker, *Fugitive Notes on Certain Cantatas and the Motets* (1924);
+- Parry (1909).
+
+The research, with each source's URL and the cautions, is in `CHORALE-COMMENTARY-RESEARCH.md`.
+
+- **Checked against the notes:** every number against the study's BWV and title; every claim about pitches
+  against the notes, for example the bass of *Es ist genug* in bar 15 (A, G♯, G, F♯, F, E, D♯).
+- **Left out:**
+  - Schweitzer on "Ach großer König": he places it in the St Matthew Passion, so which setting he means is uncertain.
+  - Parry on an unnamed Christmas Oratorio chorale.
+  - Whittaker's "thirteenth bar" of the motet, not mapped onto the edition.
+  - The research's "chromatic rising bass" in No. 279: the notes do not show it.
+- **Shown:** the notes join the observations in the captions, the markers and the Guide tab, each with its citation.
+
 ## Not yet
 
-- The hand-written notes for a curated set of chorales, each resting on a commentary that has
-  actually been read.
-- Captions on the other chorale screens (the workbench, the diminution).
+- More written notes: Terry's *Bach's Chorals* I could not be downloaded, and no open modern analyses were found.

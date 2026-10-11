@@ -1269,3 +1269,4 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .fermata-sign { font-weight: 700; font-family: var(--ui-font); }
 .fermata-controls { display: inline-flex; align-items: center; gap: 6px; margin-left: 8px; flex-wrap: wrap; }
 .fermata-scale { min-width: 3.2em; text-align: center; font-family: var(--ui-font); font-size: 0.85rem; }
+.guide-cite { font-size: 0.85em; opacity: 0.7; font-style: italic; }

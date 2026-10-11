@@ -19,6 +19,7 @@ import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts
 import { choraleGates, currentReading, fermataLinesOf, fermataWordsOf, planFermatas, playChorale, prepareChoraleAudio, type Chorale } from "../audio/chorale-performance.ts";
 import { FermataList, FermataScale, fermataSign, useFermataEdits } from "./FermataEditor.tsx";
 import { notesFor, useListeningNotes } from "../chorale/listening-notes.ts";
+import { commentaryFor, mergeGuide } from "./chorale-commentary.ts";
 import { GuideCaption, GuideList, GuideModeSelect, marker, useGuideMode } from "./ListeningGuide.tsx";
 import { Shell } from "./Shell.tsx";
 import { WtcPage, type WtcScoreVoice, planClefs } from "./notation/WtcScore.tsx";
@@ -144,7 +145,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
     // P17: the guide's moments, placed in their bars; the line sung from each phrase start.
     const drawnBar = (u: number) => Math.floor((u + shift) / barUnits);
     const shownBar = (u: number) => drawnBar(u) + (ch.pickup ? 0 : 1);
-    const moments = (listening ? notesFor(listening, ch.n) : []).map((item, index) => ({ item, index, bar: drawnBar(item.at), shown: shownBar(item.at) }));
+    const moments = mergeGuide(listening ? notesFor(listening, ch.n) : [], commentaryFor(ch.n, barUnits, ch.pickup)).map((item, index) => ({ item, index, bar: drawnBar(item.at), shown: shownBar(item.at) }));
     const ends = ch.voices[0].filter((n) => n[3]).map((n) => n[0] + n[1]);
     const lines = (fermataLinesOf(ch.n) ?? []).map((item, index) => {
       const at = index ? ends[index - 1] ?? 0 : 0;

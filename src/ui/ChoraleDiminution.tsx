@@ -15,6 +15,7 @@ import { EnsembleSelect } from "./EnsembleSelect.tsx";
 import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
 import { currentReading, fermataLinesOf, fermataWordsOf, planFermatas, playChorale, prepareChoraleAudio, type Chorale } from "../audio/chorale-performance.ts";
 import { notesFor, useListeningNotes } from "../chorale/listening-notes.ts";
+import { commentaryFor, mergeGuide } from "./chorale-commentary.ts";
 import { GuideCaption, GuideList, GuideModeSelect, marker, useGuideMode } from "./ListeningGuide.tsx";
 import { FermataList, FermataScale, fermataSign, useFermataEdits } from "./FermataEditor.tsx";
 import { Shell } from "./Shell.tsx";
@@ -109,7 +110,7 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
     const shownBar = (u: number) => drawnBar(u) + (ch.pickup ? 0 : 1);
     // P17: the guide's moments belong to Bach's setting (the reduction leaves out its incidental
     // notes): shown with it; the words of each line always.
-    const moments = showBach && listening ? notesFor(listening, ch.n).map((item, index) => ({ item, index, bar: drawnBar(item.at), shown: shownBar(item.at) })) : [];
+    const moments = showBach ? mergeGuide(listening ? notesFor(listening, ch.n) : [], commentaryFor(ch.n, barUnits, ch.pickup)).map((item, index) => ({ item, index, bar: drawnBar(item.at), shown: shownBar(item.at) })) : [];
     const ends = ch.voices[0].filter((n) => n[3]).map((n) => n[0] + n[1]);
     const wordLines = (fermataLinesOf(ch.n) ?? []).map((item, index) => {
       const at = index ? ends[index - 1] ?? 0 : 0;
