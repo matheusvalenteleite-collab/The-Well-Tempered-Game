@@ -16,7 +16,7 @@ import { pageRows, useRowBars } from "./notation/page-rows.ts";
 import { audio, store, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
 import { BACH_REFS } from "../chorale/level1.ts";
-import { HABITS, LEVEL5, judge, share, type Finding } from "../chorale/level5.ts";
+import { HABITS, LEVEL5, compareBach, judge, share, type Finding } from "../chorale/level5.ts";
 import type { PlayEvent } from "../counterpoint/layout.ts";
 import { parsePitch, type Step } from "../music/pitch.ts";
 
@@ -29,7 +29,7 @@ const signatureOf = (n: number): Record<Step, number> => {
   for (let i = 0; i < Math.abs(n); i++) sig[order[i]] += n > 0 ? 1 : -1;
   return sig;
 };
-const INK = { given: "#1d1b17", alto: "#c04fd8", tenor: "#c2410c", error: "#c4473a", figure: "#d35400", note: "#b7950b" };
+const INK = { bach: "#1e6fd8", given: "#1d1b17", alto: "#c04fd8", tenor: "#c2410c", error: "#c4473a", figure: "#d35400", note: "#b7950b" };
 type Written = Record<string, { alto: (string | null)[]; tenor: (string | null)[] }>;
 
 export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode: Mode): void; onTutorial?: () => void; levelSelect: ReactNode }) {
@@ -46,6 +46,9 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
   useEffect(() => store("wtg.choraleVoices", written), [written]);
   const mine = written[key] && written[key].alto.length === n ? written[key] : { alto: Array<string | null>(n).fill(null), tenor: Array<string | null>(n).fill(null) };
   const [selected, setSelected] = useState<number | null>(0);
+  /** Bach's setting shown and heard in place of the player's voices and Kittel's bass (C18), by its index, or null. */
+  const [bachShown, setBachShown] = useState<number | null>(null);
+  const bach = bachShown !== null ? ch.bach[bachShown] ?? null : null;
   const [checked, setChecked] = useState<string | null>(null);
   const [tab, setTab] = useState("check");
   const rowBars = useRowBars();
@@ -93,15 +96,21 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
   const voices: WtcScoreVoice[] = useMemo(() => {
     const slotNotes = (line: (string | null)[], base: number, ink: string) =>
       B.slots.map((s, i) => ({ pitch: line[i], at: quarters(s.at), dur: s.dur / 8, slot: base + i, ...(worst.has(i) && line[i] ? { ink: INK[worst.get(i) as "error" | "figure" | "note"] } : {}) }));
+    const melody = { staff: 0 as const, ink: INK.given, editable: false, notes: ch.melody.map(([at, dur, pitch, f]) => ({ pitch, at: quarters(at), dur: dur / 8, fermata: Boolean(f) })) };
+    if (bach) {
+      // Bach's alto, tenor and bass, one chord to each melody note his setting matches.
+      const part = (v: 0 | 1 | 2) => ch.melody.flatMap(([at, dur], i) => (bach.inner[i] ? [{ pitch: bach.inner[i]![v], at: quarters(at), dur: dur / 8 }] : []));
+      return [melody, { staff: 0, ink: INK.bach, editable: false, notes: part(0) }, { staff: 1, ink: INK.bach, editable: false, notes: part(1) }, { staff: 1, ink: INK.bach, editable: false, notes: part(2) }];
+    }
     return [
-      { staff: 0, ink: INK.given, editable: false, notes: ch.melody.map(([at, dur, pitch, f]) => ({ pitch, at: quarters(at), dur: dur / 8, fermata: Boolean(f) })) },
+      melody,
       { staff: 0, ink: INK.alto, editable: true, notes: slotNotes(mine.alto, 0, INK.alto) },
       { staff: 1, ink: INK.tenor, editable: true, notes: slotNotes(mine.tenor, n, INK.tenor) },
       { staff: 1, ink: INK.given, editable: false, notes: B.bass.map(([at, dur, pitch]) => ({ pitch, at: quarters(at), dur: dur / 8 })) },
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [B, ch, mine, worst, shift]);
-  const under = useMemo(() => B.slots.filter((s) => s.printed).map((s) => ({ at: quarters(s.at), lines: s.printed.split("/") })), [B, shift]);
+  }, [B, ch, mine, worst, shift, bach]);
+  const under = useMemo(() => (bach ? [] : B.slots.filter((s) => s.printed).map((s) => ({ at: quarters(s.at), lines: s.printed.split("/") }))), [B, shift, bach]);
   const bars = Math.ceil((ch.length + shift) / barUnits);
   const rows = useMemo(
     () => pageRows({ voices, under, barQ: barUnits / 8, bars, rowBars, cursor, key: key, label: (a, z) => t("chorale.l5.scoreLabel", { n: ch.number, title: ch.title, bass: B.label }) + ` (${a + 1}-${z})` }),
@@ -144,8 +153,13 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
     if (playing) return stop();
     const events: PlayEvent[] = [];
     for (const [at, dur, pitch] of ch.melody) events.push({ slot: 0, at: at / UNIT, length: dur / UNIT, cantus: null, counterpoint: null, extra: [{ channel: "counterpoint", pitch }] });
-    for (const [at, dur, pitch] of B.bass) events.push({ slot: 0, at: at / UNIT, length: dur / UNIT, cantus: null, counterpoint: null, extra: [{ channel: "fux", pitch }] });
-    B.slots.forEach((s, i) => {
+    if (bach)
+      ch.melody.forEach(([at, dur], i) => {
+        const b = bach.inner[i];
+        if (b) events.push({ slot: 0, at: at / UNIT, length: dur / UNIT, cantus: null, counterpoint: null, extra: [{ channel: "second", pitch: b[0] }, { channel: "third", pitch: b[1] }, { channel: "fux", pitch: b[2] }] });
+      });
+    else for (const [at, dur, pitch] of B.bass) events.push({ slot: 0, at: at / UNIT, length: dur / UNIT, cantus: null, counterpoint: null, extra: [{ channel: "fux", pitch }] });
+    if (!bach) B.slots.forEach((s, i) => {
       const extra = [mine.alto[i] && { channel: "second" as const, pitch: mine.alto[i]! }, mine.tenor[i] && { channel: "third" as const, pitch: mine.tenor[i]! }].filter((x): x is { channel: "second" | "third"; pitch: string } => !!x);
       if (extra.length) events.push({ slot: 0, at: s.at / UNIT, length: s.dur / UNIT, cantus: null, counterpoint: null, extra });
     });
@@ -239,6 +253,14 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
           </div>
           <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
             <button className="icon play" onClick={play} aria-label={t("chorale.play")} title={t("chorale.play")}>{playing ? "■" : "▶"}</button>
+            {ch.bach.length > 0 && (
+              <select className="sel" value={bachShown ?? ""} aria-label={t("chorale.l5.bachShow")} title={t("chorale.l5.bachShowHelp")} onChange={(e) => { stop(); setBachShown(e.target.value === "" ? null : Number(e.target.value)); }}>
+                <option value="">{t("chorale.l5.yours")}</option>
+                {ch.bach.map((b, k) => (
+                  <option key={b.no} value={k}>{t("chorale.l5.bachN", { no: b.no, bwv: b.bwv })}</option>
+                ))}
+              </select>
+            )}
             <div className="hfaders">
               <HFader label={t("ui.tempo")} help={t("ui.tempo.help")} value={tempo} min={30} max={120} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
             </div>
@@ -259,15 +281,30 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
           id: "check",
           label: t("chorale.l5.tab.check"),
           text: true,
-          content: showCheck ? (
-            findings.length ? <ol className="chorale-verdicts">{findings.map(item)}</ol> : <p>{t("chorale.l5.clean")}</p>
-          ) : (
-            <p className="muted">{t("chorale.l5.before")}</p>
+          content: (
+            <>
+              {showCheck ? (findings.length ? <ol className="chorale-verdicts">{findings.map(item)}</ol> : <p>{t("chorale.l5.clean")}</p>) : <p className="muted">{t("chorale.l5.before")}</p>}
+              {showCheck && ch.bach.length > 0 && (
+                <div className="chorale-about">
+                  <h4>{t("chorale.l5.bachTitle")}</h4>
+                  {ch.bach.map((b, k) => {
+                    const c = compareBach(ch, B.slots, mine.alto, mine.tenor, b);
+                    return (
+                      <p key={b.no}>
+                        <button className="link" onClick={() => setBachShown(k)}>{t("chorale.l5.bachN", { no: b.no, bwv: b.bwv })}</button>{" "}
+                        {t("chorale.l5.bachCompare", { aligned: c.aligned, sameBass: c.sameBass, same: c.same })}
+                        {c.differ.length > 0 && <> {t("chorale.l5.bachDiffer", { bars: [...new Set(c.differ.map(barOf))].join(", ") })}</>}
+                      </p>
+                    );
+                  })}
+                </div>
+              )}
+            </>
           ),
         },
         {
           id: "about",
-          label: t("chorale.tab.about"),
+          label: t("chorale.l5.tab.about"),
           text: true,
           content: (
             <div className="chorale-about">

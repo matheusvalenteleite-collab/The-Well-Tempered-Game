@@ -30,7 +30,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from cadence_plans import pcn  # noqa: E402
 from figure_plans import printed, sounding  # noqa: E402
-from harmony_plans import merged  # noqa: E402
+from harmony_plans import merged, nw_pairs  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 BACH = ROOT / "data" / "chorales" / "bach"
@@ -131,6 +131,47 @@ def pickup(c: dict) -> int:
     return first if first < 32 * num // den else 0
 
 
+def diatonic(p: str) -> int:
+    """Letter steps from C0 (C4 is 28): the spelling's place, whatever its accidental."""
+    acc = p[1:].rstrip("0123456789-")
+    return LETTERS.index(p[0]) + 7 * int(p[1 + len(acc):])
+
+
+def transpose(p: str, steps: int, semis: int) -> str:
+    """A pitch moved by `steps` letters and `semis` semitones, spelled (sharps and flats as needed)."""
+    d = diatonic(p) + steps
+    letter, octave = LETTERS[d % 7], d // 7
+    natural = 12 * (octave + 1) + {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}[letter]
+    alter = midi(p) + semis - natural
+    return f"{letter}{'#' * alter if alter > 0 else 'b' * -alter}{octave}"
+
+
+def bach_settings(number: int, mel: list[dict]) -> list[dict]:
+    """Bach's settings of the tune (the concordance's same tune), in Kittel's key: at each of
+    Kittel's melody notes that the alignment matches, Bach's alto, tenor and bass sounding there
+    (null elsewhere)."""
+    rows = {r["kittel"]: r for r in json.loads((ROOT / "data" / "chorales" / "concordance.json").read_text())["rows"]}
+    out = []
+    for st in rows.get(number, {}).get("same_tune", []):
+        bc = json.loads((BACH / "chorales" / f"bach_{st['bach']:03d}.json").read_text())
+        ba = json.loads((BACH / "analysis" / f"bach_{st['bach']:03d}.json").read_text())
+        sop = merged(bc["voices"]["soprano"])
+        pairs = nw_pairs([n["midi"] for n in mel], [n["midi"] + st["transposition"] for n in sop])
+        if not pairs:
+            continue
+        i0, j0 = pairs[0]
+        steps = diatonic(mel[i0]["pitch"]) - diatonic(sop[j0]["pitch"])
+        vs = ba["verticalities"]
+        inner: list = [None] * len(mel)
+        for i, j in pairs:
+            t = F(sop[j]["offset"])
+            v = next((x for x in reversed(vs) if F(x["t"]) <= t), None)
+            if v and all(v["pitches"].get(x) for x in ("alto", "tenor", "bass")):
+                inner[i] = [transpose(v["pitches"][x], steps, st["transposition"]) for x in ("alto", "tenor", "bass")]
+        out.append({"no": st["bach"], "bwv": st["bwv"], "title": st["title"], "inner": inner})
+    return out
+
+
 def kittel_level5() -> list[dict]:
     out = []
     for p in sorted(KIT.glob("kittel_*.json")):
@@ -161,7 +202,7 @@ def kittel_level5() -> list[dict]:
                               printed(figs[t]["stack"]) if t in figs else "", [[x, letter_role(h["root"], x[0])] for x in above]])
             basses.append({"label": b["label"], "bass": bass, "slots": slots})
         out.append({"number": c["number"], "title": c["title"], "tonic": tonic, "mode": mode, "sig": c["key_signature"], "meter": c["meter"],
-                    "pickup": pickup(c), "length": end, "melody": melody, "basses": basses})
+                    "pickup": pickup(c), "length": end, "melody": melody, "basses": basses, "bach": bach_settings(c["number"], mel)})
     return out
 
 

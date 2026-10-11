@@ -39,6 +39,8 @@ export interface L5Chorale {
   length: number;
   melody: [number, number, string, 1?][];
   basses: { label: string; bass: [number, number, string][]; slots: Slot[] }[];
+  /** Bach's settings of the tune in Kittel's key: at each melody note the alignment matches, his alto, tenor and bass. */
+  bach: { no: number; bwv: string; title: string; inner: ([string, string, string] | null)[] }[];
 }
 /** Counts by context: [outcome, count, examples [chorale, bar]]. */
 export interface HabitTable {
@@ -171,4 +173,31 @@ export function judge(slots: Slot[], alto: (string | null)[], tenor: (string | n
     }
   }
   return out;
+}
+
+/**
+ * Bach's setting beside the player's (C18): at the slots that fall on a melody note Bach's setting
+ * matches, whether his bass is Kittel's there, and if so whether his alto and tenor sound the same
+ * pitch classes as the player's.
+ */
+export function compareBach(c: L5Chorale, slots: Slot[], alto: (string | null)[], tenor: (string | null)[], setting: L5Chorale["bach"][number]) {
+  const melIndex = new Map(c.melody.map(([at], i) => [at, i]));
+  let aligned = 0;
+  let sameBass = 0;
+  let same = 0;
+  const differ: number[] = [];
+  slots.forEach((s, k) => {
+    const i = melIndex.get(s.at);
+    const b = i === undefined ? null : setting.inner[i];
+    if (!b) return;
+    aligned++;
+    if (pc(letter(b[2])) !== pc(letter(s.bass))) return;
+    sameBass++;
+    if (!alto[k] || !tenor[k]) return;
+    const mine = [pc(letter(alto[k]!)), pc(letter(tenor[k]!))].sort().join();
+    const his = [pc(letter(b[0])), pc(letter(b[1]))].sort().join();
+    if (mine === his) same++;
+    else differ.push(k);
+  });
+  return { aligned, sameBass, same, differ };
 }

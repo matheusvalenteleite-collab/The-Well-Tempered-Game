@@ -48,3 +48,19 @@ test("level 5: the data, every bass with its slots, Bach's habits counted with e
   const s = HABITS.seventh["alto|prepared|bass moves"];
   assert.equal(s.options[0][0], "step down");
 });
+
+test("level 5 beside Bach (C18): his settings moved to Kittel's key; writing his voices agrees with him everywhere his bass is Kittel's", async () => {
+  const { compareBach } = await import("../src/chorale/level5.ts");
+  const settings = Object.values(LEVEL5).reduce((n, c) => n + c.bach.length, 0);
+  assert.ok(settings >= 70, `${settings} settings`);
+  const c = LEVEL5[1];
+  const b = c.bach[0];
+  const slots = c.basses[0].slots;
+  const at = new Map(c.melody.map(([t], i) => [t, i]));
+  const alto = slots.map((s) => (at.has(s.at) ? b.inner[at.get(s.at)!]?.[0] ?? null : null));
+  const tenor = slots.map((s) => (at.has(s.at) ? b.inner[at.get(s.at)!]?.[1] ?? null : null));
+  const r = compareBach(c, slots, alto, tenor, b);
+  assert.ok(r.aligned > 10 && r.sameBass > 3);
+  assert.equal(r.same, r.sameBass);
+  assert.deepEqual(r.differ, []);
+});
