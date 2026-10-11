@@ -495,6 +495,7 @@
     "saved.title": "Saved pieces",
     "saved.close": "Close",
     "saved.empty": "Nothing saved yet. The floppy disk at the top saves what you hear and see, with every setting.",
+    "saved.helpParts": "Pieces are kept in this browser. Click a title to rename it; Open loads the exercise, your parts and the sound settings back into this screen.",
     "saved.help": "Pieces are kept in this browser. Click a title to rename it; Open loads the piece and its settings back into the game.",
     "saved.play": "Play",
     "saved.stop": "Stop",

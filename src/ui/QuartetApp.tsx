@@ -42,6 +42,8 @@ import { BarRef } from "./BarRef.tsx";
 import { useHighlight } from "./highlight.ts";
 import { ScoreTools } from "./ScoreTools.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
+import { SavedParts, Toast, undoKey, usePartsExport, usePartsHistory, usePartsPieces } from "./PartsTools.tsx";
+import { makePartsPiece, type PartsPiece } from "../game/saved.ts";
 import type { GameLink } from "./App.tsx";
 import { LearnLink } from "./LearnLink.tsx";
 import { tt } from "../tutorial/text.ts";
@@ -109,7 +111,18 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
   const [active, setActive] = useState(mine[0]);
   const activeStaff = mine.includes(active) ? active : mine[0];
   const session = sessions[activeStaff];
-  const setSessions = (next: Sessions) => setAll((xs) => ({ ...xs, [STEP.id]: next }));
+  /** Undo/redo (D155): every edit of the parts is remembered, per exercise. */
+  const history = usePartsHistory<Sessions>(STEP.id);
+  const setSessions = (next: Sessions) => {
+    history.remember(sessions, next);
+    setAll((xs) => ({ ...xs, [STEP.id]: next }));
+  };
+  const restore = (dir: "undo" | "redo") => {
+    const back = history.restore(dir, sessions);
+    if (!back) return;
+    setAll((xs) => ({ ...xs, [STEP.id]: back }));
+    setResult(null);
+  };
   const activeBar = barOfQuaver(STEP, session.selected);
   const activePart: number | null = GRID && activeBar < BARS - 1 ? session.selected % 8 : null;
   const [result, setResult] = useState<TrioEvaluation | null>(null);
@@ -328,8 +341,8 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
     setSessions(Object.fromEntries(mine.map((i) => [i, select(sessions[i], entry(i, bar))])));
   };
 
-  const play = (from = 0) => {
-    if (playing) {
+  const play = (from = 0, fresh = false) => {
+    if (playing && !fresh) {
       audio.stop();
       setPlaying(false);
       setCursor(-1);
@@ -394,13 +407,53 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
     }
   };
 
+  // Saved pieces and export (D155).
+  const { pieces, setPieces, toast, setToast } = usePartsPieces();
+  const [showSaved, setShowSaved] = useState(false);
+  const ALL_HERE = SPECIES_LIST.flatMap((n) => BY[n] ?? []);
+  const mineHere = pieces.filter((x) => ALL_HERE.some((st) => st.id === x.stepId));
+  const savePiece = () => {
+    const when = new Date().toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    const parts = PARTS.map((i) => (mine.includes(i) ? [...sessions[i].notes] : []));
+    const piece = makePartsPiece({ stepId: STEP.id, parts, sound, drums, drumKit, continuo, continuoSettings, tuning, tempo, volume }, `${stepLabel(STEP)} · ${when}`);
+    setPieces([piece, ...pieces]);
+    setToast(t("ui.saved.done", { name: piece.name }));
+  };
+  const openPiece = (x: PartsPiece) => {
+    const st = ALL_HERE.find((y) => y.id === x.stepId);
+    if (!st) return;
+    jumpTo(st.id);
+    const fresh = freshSessions(st);
+    const loaded = Object.fromEntries(quartetPlayer(st).map((i) => [i, { ...fresh[i], notes: x.parts[i]?.length === fresh[i].notes.length ? [...x.parts[i]] : fresh[i].notes }])) as Sessions;
+    setAll((xs) => ({ ...xs, [st.id]: loaded }));
+    setResult(null);
+    setSound(structuredClone(x.sound));
+    setDrums(x.drums);
+    setDrumKit(x.drumKit);
+    setContinuo(x.continuo);
+    setContinuoSettings(x.continuoSettings);
+    setTuning(x.tuning);
+    setTempo(x.tempo);
+    setVolume(x.volume);
+    setShowSaved(false);
+    setToast(t("ui.saved.opened", { name: x.name }));
+  };
+  const exporter = usePartsExport({ start: () => play(0, true), stop: () => { audio.stop(); setPlaying(false); setCursor(-1); }, playing, loop, fileBase: `Fux ${N === 3 ? "three" : "four"} voices ${STEP.figure ?? ""} ${STEP.modalFinal}`, onToast: setToast });
+
   const isMoving = (i: number) => MOVING.includes(STEP.kinds[i]);
   const onKey = (e: KeyboardEvent) => {
     if (suspended) return;
     if (keyBelongsToControl(e)) return;
-    if (e.ctrlKey || e.metaKey || (e.altKey && trackKey(e) === null) || e.isComposing) return;
+    if (showSaved || exporter.phase === "choose") return;
     const target = e.target as HTMLElement | null;
     if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return;
+    const u = undoKey(e);
+    if (u) {
+      restore(u);
+      e.preventDefault();
+      return;
+    }
+    if (e.ctrlKey || e.metaKey || (e.altKey && trackKey(e) === null) || e.isComposing) return;
     const k = e.key;
     const digit = trackKey(e);
     const s = session;
@@ -545,7 +598,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
             </select>
             <button className="icon" onClick={() => goTo(stepIndex + 1)} disabled={stepIndex === STEPS.length - 1 || !isOpen(stepIndex + 1)} aria-label={t("ui.nav.next")}>›</button>
           </nav>
-          <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("guide")} onTutorial={onTutorial} />
+          <HeaderTools onSave={savePiece} onExport={exporter.button} exporting={exporter.phase !== null} onSaved={() => setShowSaved(true)} saved={mineHere.length} look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("guide")} onTutorial={onTutorial} />
         </>
       }
       score={
@@ -618,6 +671,8 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
                   {t("ui.quartet.hold")}
                 </button>
               )}
+              <button className="icon btn-edit" onClick={() => restore("undo")} disabled={!history.can("undo")} aria-label={t("ui.undo")} title={t("ui.undoHelp")}>↶</button>
+              <button className="icon btn-edit" onClick={() => restore("redo")} disabled={!history.can("redo")} aria-label={t("ui.redo")} title={t("ui.redoHelp")}>↷</button>
               <button className="btn-edit" onClick={() => { setSessions(freshSessions(STEP)); setResult(null); }} title={t("ui.clearAll.help")}>{t("ui.clearAll")}</button>
             </div>
             <div className="group judge">
@@ -648,6 +703,13 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
       tab={tab}
       onTab={setTab}
       idle={STEP.figure ? `J. J. Fux, Gradus ad Parnassum (Vienna, 1725), Fux #${STEP.figure}, p. ${STEP.page}. Encoding: Four Score and More / Open Music Theory (Mark Gotham), CC0-1.0.` : `J. J. Fux, Gradus ad Parnassum (Vienna, 1725), p. ${STEP.page}: left to private study. Cantus firmus: Fux's.`}
+      overlays={
+        <>
+          {exporter.overlay}
+          {showSaved && <SavedParts pieces={mineHere} stepName={(id) => { const st = ALL_HERE.find((y) => y.id === id); return st ? stepLabel(st) : id; }} onOpen={openPiece} onRename={(id, name) => setPieces(pieces.map((x) => (x.id === id ? { ...x, name } : x)))} onDelete={(id) => setPieces(pieces.filter((x) => x.id !== id))} onClose={() => setShowSaved(false)} />}
+          <Toast text={toast} />
+        </>
+      }
       tabs={[
         { id: "mixer", label: t("ui.dock.mixer"), content: (
           <SoundDesk
