@@ -169,3 +169,61 @@ test("bass model: given Bach's chords on an unseen chorale, the most likely bass
   const hits = c.notes.filter((n, i) => n.pos && v[i] === n.bass).length;
   assert.ok(hits / c.notes.filter((n) => n.pos).length > 0.6, `${hits}`);
 });
+
+import { VoiceModel, innerVoices, pairs, consecutive, augmentedSecond } from "../src/chorale/generate/voices.ts";
+import { bachSlots, settingSlots } from "../src/chorale/generate/slots.ts";
+import { LEVEL5, judge } from "../src/chorale/level5.ts";
+
+const vm = new VoiceModel(BACH);
+
+test("voices: the two gravest warnings are recognised as the game's judge reads them", () => {
+  assert.ok(consecutive(67, 60, 69, 62)); // fifths up
+  assert.ok(!consecutive(67, 60, 65, 62)); // contrary motion: not counted (C16, as counted in Bach)
+  assert.ok(augmentedSecond("F4", "G#4"));
+  assert.ok(!augmentedSecond("F4", "Ab4"));
+  assert.ok(vm.consecutive > 8 && vm.augSecond > vm.consecutive, `${vm.consecutive} ${vm.augSecond}`);
+});
+
+test("voices: over Kittel's No. 1, bass [1], the chord is complete, within range, and the judge finds no consecutives", () => {
+  const slots = LEVEL5[1].basses[0].slots;
+  const v = innerVoices(vm, slots)!;
+  assert.equal(v.alto.length, slots.length);
+  const f = judge(slots, v.alto, v.tenor);
+  assert.deepEqual(
+    f.filter((x) => ["parallel", "augSecond", "missing", "foreign", "range", "crossing"].includes(x.key)),
+    [],
+  );
+});
+
+test("voices: every one of Kittel's 194 basses can be voiced (relaxing where a strict voicing is impossible)", () => {
+  for (const c of Object.values(LEVEL5)) for (const b of c.basses) for (const s of b.slots) assert.ok(pairs(vm, s).length > 0, `${c.number} ${b.label} ${s.at}`);
+});
+
+test("voices: drawn voicings vary and are reproducible from the seed", () => {
+  const slots = LEVEL5[1].basses[0].slots;
+  const a = innerVoices(vm, slots, rng(1), 1)!,
+    b = innerVoices(vm, slots, rng(1), 1)!,
+    c = innerVoices(vm, slots, rng(2), 1)!;
+  assert.deepEqual(a, b);
+  assert.notDeepEqual(a.alto.concat(a.tenor), c.alto.concat(c.tenor));
+});
+
+test("voices: a generated setting becomes slots the judge reads, and is voiced", () => {
+  const s = bestSetting(models, m, key);
+  const end = `${LEVEL5[1].length}/32`;
+  const slots = settingSlots(s, key, k1.notes.map((n) => ({ pitch: n.pitch, offset: n.offset })), end);
+  assert.equal(slots.length, m.notes.length);
+  assert.equal(slots[0].at, 0);
+  assert.ok(slots.every((x) => x.dur > 0));
+  const v = innerVoices(vm, slots)!;
+  assert.equal(judge(slots, v.alto, v.tenor).filter((x) => x.key === "missing" || x.key === "foreign").length, 0);
+});
+
+test("voices: on one of Bach's chorales (his soprano, bass and chords), the search mostly writes his inner voices", () => {
+  const c = BACH.find((x) => x.no === 35)!;
+  const slots = bachSlots(c);
+  if (!slots) return;
+  const v = innerVoices(new VoiceModel(BACH.filter((x) => x.tune !== c.tune)), slots)!;
+  const same = c.notes.filter((n, i) => n.a && midiOf(n.a) % 12 === midiOf(v.alto[i]) % 12).length;
+  assert.ok(same / c.notes.length > 0.4, `${same}/${c.notes.length}`);
+});

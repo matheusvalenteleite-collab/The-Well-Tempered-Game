@@ -173,3 +173,21 @@ built top-down by the levels of `CONCEPT.md`. Steps: (1) cadence plan, (2) a cho
   the likeliest line; figures from chord and position, `theory.ts`). Chords and bass are drawn together
   (`joint.ts`). The settings of Kittel's 24 melodies are written as MusicXML for listening and comparison
   (`data/chorales/generator/musicxml/`, `tools/chorales/generator_musicxml.py`).
+- Step 4 built: the alto and tenor (`voices.ts`: under every chord, every (alto, tenor) completing it;
+  costs in bits from Bach's habits, the level-5 tables of `src/chorale/level5.ts` and the moves of his
+  inner voices; the cheapest path, or drawn for variety; `slots.ts` reads the generator's settings and
+  Bach's chorales as level 5's slots). Judged by the game's own `judge()`; report
+  `docs/chorales/GENERATOR-VOICES.md` (`tools/chorales/voices_report.ts`); four-part MusicXML of the
+  generated settings and of Kittel's own basses (`data/chorales/generator/musicxml/satb_*.mxl`).
+
+### Decisions of the generator (G series; the C series is the chorale mode's)
+
+- G1. The generator learns from Bach alone; Kittel's basses are its benchmark, never its training data,
+  and every measure is taken on melodies the models have not seen (`GENERATOR.md`).
+- G2. Variety by Kittel's measure: the eight settings are drawn at T = 0.8, the likelier half kept, a
+  different cadence counting as three chords; the bass prefers steps (w = 2) to reach Bach's rate of
+  stepwise motion. The only settings chosen by looking at Kittel.
+- G3. One judge (owner, 11 October 2026): the generator's criterion is the game's (`level5.ts`), and in
+  the chorales Bach is the last word, with no errors, only warnings of varying gravity. The generator
+  costs every warning by its rarity in Bach's own chorales; consecutive fifths and octaves (similar
+  motion, as counted in Bach) and the augmented second are the gravest.

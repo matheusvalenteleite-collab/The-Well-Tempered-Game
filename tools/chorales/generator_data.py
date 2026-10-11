@@ -61,7 +61,8 @@ def chorale_events(c: dict, a: dict) -> dict:
     sop = soprano_notes(c["voices"]["soprano"])
     at = {F(n["offset"]): i for i, n in enumerate(sop)}
     notes = []
-    for v in a["verticalities"]:
+    last_seen = None  # the index of the last verticality exported
+    for vi, v in enumerate(a["verticalities"]):
         if not v["on_beat"] or "soprano" not in v["struck"] or not v["root"]:
             continue
         i = at.get(F(v["t"]))
@@ -77,10 +78,15 @@ def chorale_events(c: dict, a: dict) -> dict:
             "fig": v["figure"],
             "bm": midi(v["pitches"]["bass"]),
             "sm": midi(v["pitches"]["soprano"]),
+            "a": v["pitches"].get("alto"),
+            "tn": v["pitches"].get("tenor"),
         }
         pos = position(v.get("bass_role"), v.get("chord"))
         if pos:
             e["pos"] = pos
+        if last_seen is not None and last_seen == vi - 1:
+            e["direct"] = 1
+        last_seen = vi
         if n.get("fermata"):
             e["end"] = 1
             if i > 0:
@@ -99,7 +105,7 @@ def main() -> None:
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({
         "generated_by": "tools/chorales/generator_data.py",
-        "note": "On-beat soprano attacks of Bach's chorales. deg: melody degree; chord: Kirnberger's fundamental as a degree of the key (upper case major, lower case minor, ° diminished); bass: bass degree; fig: figure in period abbreviation; bm, sm: bass and soprano MIDI; pos: the chord's position over the bass (5/3, 6, 6/4, 7, 6/5, 4/3, 4/2; absent where the bass is not a chord tone); end: soprano fermata; close: the melody's last two degrees at a phrase end.",
+        "note": "On-beat soprano attacks of Bach's chorales. deg: melody degree; chord: Kirnberger's fundamental as a degree of the key (upper case major, lower case minor, ° diminished); bass: bass degree; fig: figure in period abbreviation; bm, sm: bass and soprano MIDI; a, tn: alto and tenor, spelled (null where resting); pos: the chord's position over the bass (5/3, 6, 6/4, 7, 6/5, 4/3, 4/2; absent where the bass is not a chord tone); direct: no onset in any voice since the event before; end: soprano fermata; close: the melody's last two degrees at a phrase end.",
         "chorales": chorales,
     }, ensure_ascii=False, separators=(",", ":")) + "\n")
     n = sum(len(c["notes"]) for c in chorales)

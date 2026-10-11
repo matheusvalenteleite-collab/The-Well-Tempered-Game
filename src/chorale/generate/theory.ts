@@ -128,3 +128,52 @@ export function degreePitches(deg: string, k: Key, lo: number, hi: number): { na
   }
   return out;
 }
+
+const ROLES = ["root", "third", "fifth", "seventh"] as const;
+const SEVENTH_POSITIONS = new Set(["7", "6/5", "4/3", "4/2"]);
+
+/** Spell a pitch class over the tonic on a step of the key ("F#", "Bb"). */
+function spell(k: Key, step: number, pcOverTonic: number): string {
+  const letter = mod(tonicLetter(k) + step, 7);
+  const a = mod(tonicPc(k) + pcOverTonic - NATURAL[letter] + 6, 12) - 6;
+  return LETTERS[letter] + (a > 0 ? "#".repeat(a) : "b".repeat(-a));
+}
+
+export interface ChordTones {
+  /** The root's letter name ("F#"). */
+  root: string;
+  /** The chord as tools/chorales/kirnberger.py names it ("major", "dominant seventh", ...). */
+  kind: string;
+  /** The bass's member ("root", "third", "fifth", "seventh"). */
+  bassRole: string;
+  /** The other members, by letter name, with their roles. */
+  above: [string, string][];
+}
+
+/** The chord over a bass in a position: its members spelled from the bass (as `figure` does). */
+export function chordTones(pos: string, bassDeg: string, chord: string, k: Key): ChordTones {
+  const P = POSITION[pos] ?? POSITION["5/3"];
+  const rootStep = mod(parseDegree(bassDeg).step - P.root, 7);
+  const pcs = chordMembers(chord, k).pcs;
+  const seventh = SEVENTH_POSITIONS.has(pos);
+  const n = seventh ? 4 : 3;
+  const names = [0, 1, 2, 3].slice(0, n).map((j) => spell(k, rootStep + 2 * j, pcs[j]));
+  const bassIndex = [0, 2, 4, 6].indexOf(P.root);
+  const triad = mod(pcs[1] - pcs[0], 12) === 4 ? "major" : mod(pcs[2] - pcs[0], 12) === 6 ? "diminished" : "minor";
+  let kind: string = triad;
+  if (seventh) {
+    const s = mod(pcs[3] - pcs[0], 12);
+    kind =
+      triad === "major"
+        ? s === 11 ? "major seventh" : "dominant seventh"
+        : triad === "minor"
+          ? s === 11 ? "minor-major seventh" : "minor seventh"
+          : s === 9 ? "diminished seventh" : "half-diminished seventh";
+  }
+  return {
+    root: names[0],
+    kind,
+    bassRole: ROLES[bassIndex],
+    above: names.flatMap((nm, j) => (j === bassIndex ? [] : [[nm, ROLES[j]] as [string, string]])),
+  };
+}

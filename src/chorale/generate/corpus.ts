@@ -24,8 +24,13 @@ export interface BachEvent {
   /** Bass and soprano MIDI numbers. */
   bm: number;
   sm: number;
+  /** Alto and tenor, spelled (null where they rest). */
+  a: string | null;
+  tn: string | null;
   /** The chord's position over the bass (absent where the bass is not a chord tone). */
   pos?: string;
+  /** No onset in any voice since the event before (the two chords follow each other directly). */
+  direct?: 1;
   /** A soprano fermata: the end of a phrase. */
   end?: 1;
   /** At a phrase end: the melody's last two degrees ("2-1"). */

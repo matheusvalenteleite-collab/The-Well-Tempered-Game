@@ -379,7 +379,7 @@ writeFileSync(
       settings: allSets.get(c.number)!.map((x, k) => ({
         label: `gen. ${k + 1}`,
         score: Number(x.score.toFixed(3)),
-        notes: c.notes.map((n, i) => ({ offset: n.offset, pitch: x.bass.pitches[i], chord: x.chords[i], position: x.bass.positions[i], figure: x.bass.figures[i] })),
+        notes: c.notes.map((n, i) => ({ offset: n.offset, pitch: x.bass.pitches[i], degree: x.bass.degrees[i], chord: x.chords[i], position: x.bass.positions[i], figure: x.bass.figures[i] })),
       })),
     })),
   }) + "\n",
