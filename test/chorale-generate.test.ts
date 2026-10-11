@@ -227,3 +227,34 @@ test("voices: on one of Bach's chorales (his soprano, bass and chords), the sear
   const same = c.notes.filter((n, i) => n.a && midiOf(n.a) % 12 === midiOf(v.alto[i]) % 12).length;
   assert.ok(same / c.notes.length > 0.4, `${same}/${c.notes.length}`);
 });
+
+import { DiminutionModel, STUDY, bachRows, diminish, signature } from "../src/chorale/generate/diminution.ts";
+import { augmentedSeconds, type Note } from "../src/chorale/level6.ts";
+
+test("diminution: key signatures; Bach's reduced chorales as training rows", () => {
+  assert.deepEqual(
+    [signature("G", "major"), signature("A", "minor"), signature("F#", "minor"), signature("Bb", "major"), signature("C", "minor")],
+    [1, 0, 3, -2, -3],
+  );
+  const rows = bachRows(STUDY.chorales.slice(0, 20));
+  assert.ok(rows.length > 1000);
+  assert.ok(rows.some((r) => r.kind === "passing") && rows.some((r) => r.kind === "suspension") && rows.some((r) => r.kind === "none"));
+});
+
+test("diminution: embellishes the lower voices of a four-part setting, keeping its length, the chords' notes and the bass when asked", () => {
+  const dm = new DiminutionModel(STUDY.chorales, { parallel: vm.parallel, augSecond: vm.augSecond });
+  const slots = LEVEL5[1].basses[0].slots;
+  const v = innerVoices(vm, slots)!;
+  const line = (ps: string[]): Note[] => slots.map((s, i) => [s.at, s.dur, ps[i]]);
+  const four = [line(slots.map((s) => s.soprano)), line(v.alto), line(v.tenor), line(slots.map((s) => s.bass))];
+  const d = diminish(dm, four, LEVEL5[1].sig, rng(9), 1);
+  const total = (l: Note[]) => l.reduce((a, n) => a + n[1], 0);
+  for (let k = 1; k < 4; k++) {
+    assert.equal(total(d.lines[k]), total(four[k]), `voice ${k} keeps its length`);
+    assert.deepEqual(augmentedSeconds(d.lines[k]), [], `voice ${k}: no augmented second`);
+  }
+  assert.ok(d.count.reduce((a, b) => a + b, 0) > 0);
+  const kept = diminish(dm, four, LEVEL5[1].sig, rng(9), 1, [true, true, false]);
+  assert.deepEqual(kept.lines[3], four[3]);
+  assert.equal(kept.count[2], 0);
+});

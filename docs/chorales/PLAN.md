@@ -180,6 +180,15 @@ built top-down by the levels of `CONCEPT.md`. Steps: (1) cadence plan, (2) a cho
   `docs/chorales/GENERATOR-VOICES.md` (`tools/chorales/voices_report.ts`); four-part MusicXML of the
   generated settings and of Kittel's own basses (`data/chorales/generator/musicxml/satb_*.mxl`).
 
+- Step 5 built: diminution (`diminution.ts`: a passing note, neighbour, suspension or anticipation on
+  the alto, tenor and bass, the kinds and their writing those of `src/chorale/level6.ts`; where Bach
+  puts them learnt from his 370 chorales reduced by `level6.ts reduce`; the three voices chosen
+  together, the surface they make costed by its rarity in Bach; drawn as often as Bach chooses).
+  Report `docs/chorales/GENERATOR-DIMINUTION.md` (`tools/chorales/diminution_report.ts`); the four-part
+  MusicXML files are now embellished.
+- All 370 of Bach's chorales are read as slots (Kirnberger's reading of each chord; a passing bass is
+  marked so), not only the 177 whose every on-beat bass is a chord tone.
+
 ### Decisions of the generator (G series; the C series is the chorale mode's)
 
 - G1. The generator learns from Bach alone; Kittel's basses are its benchmark, never its training data,

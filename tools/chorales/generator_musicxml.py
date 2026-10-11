@@ -4,10 +4,11 @@ writes Kittel's own (open them side by side in a notation program to compare, or
 
 - generated_kittel_NN.musicxml: the melody and the eight generated figured basses, one staff each
   (steps 1-3; from data/chorales/generator/kittel-settings.json);
-- satb_generated_kittel_NN.mxl: the eight generated settings in four parts (steps 1-4), one after
-  another like a set of variations;
-- satb_kittel_NN.mxl: Kittel's own figured basses with generated alto and tenor (step 4), one after
-  another (from data/chorales/generator/satb.json, tools/chorales/voices_report.ts).
+- satb_generated_kittel_NN.mxl: the eight generated settings in four parts (steps 1-5, embellished),
+  one after another like a set of variations;
+- satb_kittel_NN.mxl: Kittel's own figured basses with generated, embellished alto and tenor (steps
+  4-5), one after another (from data/chorales/generator/satb.json: tools/chorales/voices_report.ts,
+  then tools/chorales/diminution_report.ts adds the embellished voices).
 The four-part files are compressed MusicXML (.mxl), which notation programs open directly.
 
 Input : the files above, and data/chorales/kittel/kittel_NN.json (the melody, the bars)
@@ -123,8 +124,9 @@ def satb_xml(c: dict, verses: list[dict], title: str) -> str:
         for n in mel:
             local = [x for x in measures if F(x["offset"]) <= F(n["offset"]) + shift < F(x["offset"]) + F(x["length"])][0]
             sop.append(dict(n, offset=str(F(n["offset"]) + shift), measure=local["number"]))
+        src = v.get("dim") or v
         for key, dest in (("alto", alto), ("tenor", ten), ("bass", bas)):
-            dest += split_notes(measures, [(F(a) * W + k * span, F(d) * W, p) for a, d, p in v[key]], fermata_last=True)
+            dest += split_notes(measures, [(F(n[0]) * W + k * span, F(n[1]) * W, n[2]) for n in src[key]], fermata_last=True)
         if "figures" in v:
             for at, rows in v["figures"]:
                 if rows:
