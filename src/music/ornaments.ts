@@ -34,7 +34,19 @@ export interface OrnamentContext {
   /** The key's step above and below a note (in semitones), for signs that do not say (S, $, O, W). */
   stepAbove(midi: number): number;
   stepBelow(midi: number): number;
+  /**
+   * P24: whose practice: "explication" (the default: Bach's Explication, the main note held after the
+   * alternation) or "cpe" (C. P. E. Bach, Versuch I, ch. 2, sect. 3: every trill but the Pralltriller
+   * beaten for the note's whole value, §21; a trill on a somewhat long note always closing with a
+   * Nachschlag, the step below and the note, §13).
+   */
+  style?: OrnamentStyle;
 }
+
+export const ORNAMENT_STYLES = ["explication", "cpe"] as const;
+export type OrnamentStyle = (typeof ORNAMENT_STYLES)[number];
+/** P24: "somewhat long" (C. P. E. Bach §13), taken as a crotchet or longer (a design choice). */
+const LONG_FOR_NACHSCHLAG = 1;
 
 /** The ornament notes' length in quarters at a tempo (`tempo`: the engine's half notes a minute). */
 export function ornamentUnit(tempo: number, perSecond = 11): number {
@@ -68,12 +80,18 @@ export function realise(n: Sounding, signs: string, graces: { kind: "q" | "Q"; m
     const U = N + trillUp;
     // Alternate for most of the note (the Explication's Trillo: five notes then the main note held on
     // a crotchet), an even count so that it lands on the main note; with R, close below and back.
-    const span = dur * (dur <= 1 ? 0.7 : 0.8);
-    let k = Math.max(4, Math.floor(span / u));
+    const cpe = ctx.style === "cpe";
+    // C. P. E. Bach: through the whole note (§21); otherwise most of it.
+    // The closing turn: written (R), or C. P. E. Bach's Nachschlag on a somewhat long note (§13): the
+    // alternation ends on the main note, then the step below, then the main note held (… U N L N).
+    const closing = has("R") || (cpe && n.dur >= LONG_FOR_NACHSCHLAG);
+    const span = cpe ? dur : dur * (dur <= 1 ? 0.7 : 0.8);
+    // C. P. E. Bach: the alternation through the whole note (§21), its last note as long as the others.
+    let k = Math.max(4, Math.floor(span / u + 1e-9) - (cpe ? 1 + (closing ? 1 : 0) : 0));
     if (k % 2) k--;
     const notes: number[] = [];
     for (let j = 0; j < k; j++) notes.push(j % 2 === 0 ? U : N);
-    if (has("R")) notes.splice(notes.length - 2, 2, N - ctx.stepBelow(N), N);
+    if (closing) notes.push(N - ctx.stepBelow(N));
     seq([...notes, N]);
   } else if (has("M") || has("m")) {
     seq([N, N - (has("M") ? 2 : 1), N]);

@@ -64,11 +64,14 @@ als vier Bewegungen" (not much more than four alternations, eight notes) to a pu
 about 80 a minute (XVII.vii §55, p. 267). The speed is kept between a 32nd and a 16th of the written
 tempo.
 
-**Not yet followed**:
-- C. P. E. Bach's §21: every trill but the Pralltriller fills its whole note.
-- C. P. E. Bach's §13: a closing turn on long notes.
-- Quantz's slower trills in low registers.
-- Neumann's case for main-note trills and pre-beat graces in some contexts.
+**C. P. E. Bach's practice, as an option (P24)**: a menu beside "tr Ornaments" in the WTC study chooses "Bach's Explication" (the default) or "C. P. E. Bach". Checked against the *Versuch* I, ch. 2, sect. 3 (1759 text, paragraph numbers as in 1753):
+- §21: every kind of trill except the Pralltriller "so lange geschlagen werden müssen, als die Geltung der Note, worüber er steht, dauret" (must be beaten as long as the note's value lasts). The alternation runs to the end of the note.
+- §13: "Der Triller über einer Note, welche etwas lang ist, … hat allezeit einen Nachschlag" (a trill on a somewhat long note always has a suffix): the step below, then the note. "Somewhat long" is taken as a crotchet or longer (*design*).
+- The written closing turn (R) now ends … U N L N, the main note struck once. Before P24 it was struck twice.
+
+**Corrected**: the earlier list had "Quantz's slower trills in low registers". Quantz IX §§2–6 (pp. 83–85) ties the trill's speed to the room (slower in a resonant place) and to the piece (slower in sad pieces, faster in merry ones), not to register. Nothing is implemented for it.
+
+**Not yet followed**: Neumann's case for main-note trills and pre-beat graces in some contexts (not read).
 
 These are refinements for the owner to decide. The Explication shows the main note held after the
 alternation.
