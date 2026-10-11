@@ -179,6 +179,19 @@ def classify_cadence(pen: dict, fin: dict, tonic_pc: int) -> str:
         return "deceptive"
     if dia == 0 and semis == 0:
         return "other: bass repeated"
+    # By the fundamental bass (Kunst I, pp. 94-99): the full close needs the penultimate root a
+    # fifth above the last; with an inverted chord it is a changed cadence, a resting point and no
+    # full close (p. 99). Any triad gives a small resting point (p. 96); on a major triad it is the
+    # half cadence when that triad is the dominant of the key the phrase is in, which the analysis
+    # does not decide.
+    fr, pr = fin.get("root"), pen.get("root")
+    if rp_fin and fr and pr and fin.get("chord") in ("major", "minor") and (pc_of(pr) - pc_of(fr)) % 12 == 7 \
+            and pen.get("chord") in K.DOMINANTS:
+        return "authentic, penultimate inverted"
+    if rp_fin and fin.get("chord") in ("major", "triad, third not sounding"):
+        return "resting point on a major triad (a half cadence in the key reached?)"
+    if rp_fin and fin.get("chord") == "minor":
+        return "resting point on a minor triad"
     return "other"
 
 
@@ -220,7 +233,10 @@ def analyse(c: dict) -> dict:
             ctx[v] = {"pitch": n["pitch"], "struck": struck, "held": not struck,
                       "prev": tl[v][idx - 1][2]["pitch"] if idx > 0 and tl[v][idx - 1][1] == tl[v][idx][0] else (tl[v][idx - 1][2]["pitch"] if idx > 0 else None),
                       "next": tl[v][idx + 1][2]["pitch"] if idx + 1 < len(tl[v]) else None,
-                      "on_beat": verts[-1]["on_beat"]}
+                      "on_beat": verts[-1]["on_beat"],
+                      # the voice's next note comes while the bass still holds the same pitch
+                      "resolves_over_bass": idx + 1 < len(tl[v]) and sounding["bass"][0] is not None
+                      and (at(tl["bass"], tl[v][idx + 1][0])[0] or {}).get("pitch") == sounding["bass"][0]["pitch"]}
         ch, labels = K.analyse_sonority(ctx)
         vv = verts[-1]
         vv["root"] = ch.root if ch else None
@@ -276,7 +292,8 @@ def analyse(c: dict) -> dict:
             b, so = parse_pitch_name(v["pitches"]["bass"]), parse_pitch_name(v["pitches"]["soprano"])
             n = so.diatonic - b.diatonic
             return {"t": v["t"], "bass": v["pitches"]["bass"], "soprano": v["pitches"]["soprano"], "figure": v["figure"],
-                    "literal": v["literal"], "soprano_over_bass": n % 7 + 1 if n % 7 else 8}
+                    "literal": v["literal"], "soprano_over_bass": n % 7 + 1 if n % 7 else 8,
+                    "root": v.get("root"), "chord": v.get("chord")}
         bf, bp = brief(fin), brief(pen)
         cls = classify_cadence(bp, bf, tonic_pc)
         degree = None
@@ -317,7 +334,7 @@ def voice_leading(verts: list[dict], tl: dict) -> dict:
             out["spacing"]["beats"] += 1
     # the leading tone: the third of a major triad or dominant seventh whose root then falls a fifth
     for v1, v2 in zip(beats, beats[1:]):
-        if v1["chord"] not in ("major", "dominant seventh") or not v2["root"]:
+        if v1["chord"] not in K.DOMINANTS or not v2["root"]:
             continue
         if (pc_of(v1["root"]) - pc_of(v2["root"])) % 12 != 7:
             continue
@@ -403,7 +420,7 @@ def main() -> None:
                 continue
             if v["on_beat"]:
                 chords[v["chord"]] += 1
-                inv[(v["chord"].endswith("seventh"), v["bass_role"])] += 1
+                inv[(v["chord"] in K.SEVENTH_KINDS or "third not sounding (" in v["chord"], v["bass_role"])] += 1
                 if prev_root and prev_root != v["root"]:
                     d = (K.STEPS.index(v["root"][0]) - K.STEPS.index(prev_root[0])) % 7
                     roots[{0: "same letter, altered", 1: "up a second", 2: "up a third", 3: "up a fourth (down a fifth)", 4: "up a fifth (down a fourth)", 5: "down a third", 6: "down a second"}[d]] += 1
@@ -480,8 +497,10 @@ def main() -> None:
     md += ["", "## Sevenths: essential or incidental?", "",
            "Each seventh of a seventh chord on the beat, where it becomes one: prepared (held or struck again from the",
            "chord before) or free; resolving down by step or not; and, when it resolves, whether the bass moves",
-           "at that moment (the harmony moves on: an essential seventh) or stays (the seventh resolves over",
-           "the same bass, as a suspension does).", "",
+           "at that moment (the harmony moves on: an essential seventh) or stays. A held seventh that falls by",
+           "step over the same bass into a triad is no longer counted here: Kirnberger reads it as the",
+           "suspension of the sixth (Kunst I, pp. 78-80), and so does the analysis. What still resolves over",
+           "the same bass is a seventh whose next note is itself passing, or one sounding with its fifth.", "",
            "| prepared | resolves down by step | bass moves at the resolution | count |", "|---|---|---|---|"]
     for (pr, rd, bm), n in sorted(sev.items(), key=lambda x: -x[1]):
         md.append(f"| {'yes' if pr else 'no'} | {'yes' if rd else 'no'} | {'—' if bm is None else ('yes' if bm else 'no')} | {n} |")

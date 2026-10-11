@@ -49,13 +49,16 @@ These are counts of derived facts, not rules. The figures are read off Bach's fo
 |---|---|
 | authentic, perfect | 1062 |
 | half | 347 |
-| other | 249 |
 | authentic, imperfect | 183 |
+| resting point on a major triad (a half cadence in the key reached?) | 159 |
 | authentic, dominant inverted (leading tone in the bass) | 114 |
 | bass up a fifth: plagal, or a half cadence in another key | 111 |
 | other: bass repeated | 79 |
 | Phrygian half | 68 |
 | deceptive | 64 |
+| other | 45 |
+| resting point on a minor triad | 28 |
+| authentic, penultimate inverted | 17 |
 
 ## Where the phrases end (degree of the final bass in the chorale's key)
 
@@ -110,102 +113,105 @@ dissonance, by its melodic shape. Sonorities left unanalysed: 0 of 30050.
 
 | chord | count |
 |---|---|
-| major | 9621 |
-| minor | 4399 |
-| triad, third not sounding | 880 |
-| minor seventh | 846 |
-| diminished | 681 |
-| dominant seventh | 669 |
+| major | 9795 |
+| minor | 4412 |
+| triad, third not sounding | 873 |
+| diminished | 679 |
+| minor seventh | 670 |
+| dominant seventh | 657 |
 | half-diminished seventh | 364 |
-| major seventh | 219 |
+| dominant seventh, minor ninth for the root | 225 |
+| major seventh | 163 |
 | seventh chord, third not sounding (minor seventh) | 132 |
-| diminished seventh | 95 |
-| augmented | 54 |
 | seventh chord, third not sounding (major seventh) | 8 |
-| seventh chord, third not sounding (diminished seventh) | 7 |
-| bare | 3 |
-| minor-major seventh | 2 |
+| bare | 2 |
 
 | chord | bass is | count |
 |---|---|---|
-| triad | root | 10988 |
-| triad | third | 3973 |
-| seventh chord | third | 1010 |
-| seventh chord | root | 755 |
-| triad | fifth | 438 |
-| triad | passing | 328 |
-| seventh chord | seventh | 315 |
-| seventh chord | fifth | 93 |
-| triad | neighbour | 34 |
-| triad | seventh | 20 |
+| triad | root | 10896 |
+| triad | third | 4183 |
+| seventh chord | third | 1121 |
+| seventh chord | root | 576 |
+| seventh chord | seventh | 351 |
+| triad | fifth | 329 |
+| triad | passing | 320 |
+| seventh chord | fifth | 126 |
+| triad | neighbour | 29 |
+| seventh chord | ninth | 18 |
 | seventh chord | escape | 15 |
+| seventh chord | passing | 6 |
 | seventh chord | neighbour | 4 |
 | triad | suspension | 3 |
 | seventh chord | appoggiatura | 2 |
 | triad | retardation | 1 |
-| seventh chord | passing | 1 |
 
 ## The fundamental bass: how it moves (from beat to beat, when the root changes)
 
 | motion | count |
 |---|---|
-| up a fourth (down a fifth) | 5711 |
-| up a fifth (down a fourth) | 2691 |
-| up a second | 2592 |
-| down a third | 1469 |
-| down a second | 1309 |
-| up a third | 670 |
-| same letter, altered | 48 |
+| up a fourth (down a fifth) | 5877 |
+| up a fifth (down a fourth) | 2647 |
+| up a second | 2488 |
+| down a third | 1427 |
+| down a second | 1284 |
+| up a third | 651 |
+| same letter, altered | 7 |
 
 ## Incidental dissonances (by melodic shape)
 
 | kind | on the beat | count |
 |---|---|---|
-| passing | no | 4309 |
-| suspension | yes | 1221 |
-| passing | yes | 798 |
-| neighbour | no | 526 |
-| neighbour | yes | 365 |
-| suspension | no | 280 |
-| anticipation | no | 190 |
+| passing | no | 4313 |
+| suspension | yes | 1651 |
+| passing | yes | 766 |
+| neighbour | no | 525 |
+| neighbour | yes | 314 |
+| suspension | no | 283 |
+| ninth | yes | 225 |
+| anticipation | no | 199 |
+| ninth | no | 168 |
+| retardation | no | 141 |
 | free | no | 133 |
-| retardation | no | 118 |
-| escape | no | 97 |
-| appoggiatura | no | 45 |
-| appoggiatura | yes | 43 |
-| escape | yes | 42 |
-| retardation | yes | 27 |
+| escape | no | 101 |
+| appoggiatura | no | 56 |
+| appoggiatura | yes | 54 |
+| escape | yes | 43 |
+| retardation | yes | 36 |
 | anticipation | yes | 26 |
 | free | yes | 5 |
 
 | voice | kind | count |
 |---|---|---|
-| soprano | passing | 732 |
-| soprano | suspension | 149 |
-| soprano | neighbour | 130 |
-| soprano | anticipation | 119 |
-| soprano | escape | 65 |
+| soprano | passing | 719 |
+| soprano | suspension | 219 |
+| soprano | anticipation | 125 |
+| soprano | neighbour | 122 |
+| soprano | ninth | 84 |
+| soprano | escape | 70 |
 | soprano | free | 60 |
-| soprano | retardation | 34 |
+| soprano | retardation | 41 |
 | soprano | appoggiatura | 15 |
-| alto | suspension | 943 |
-| alto | passing | 942 |
-| alto | neighbour | 332 |
-| alto | retardation | 74 |
-| alto | anticipation | 44 |
-| alto | appoggiatura | 42 |
+| alto | suspension | 1172 |
+| alto | passing | 939 |
+| alto | neighbour | 323 |
+| alto | ninth | 117 |
+| alto | retardation | 83 |
+| alto | appoggiatura | 55 |
+| alto | anticipation | 46 |
 | alto | free | 33 |
-| alto | escape | 24 |
-| tenor | passing | 1596 |
-| tenor | suspension | 406 |
-| tenor | neighbour | 291 |
-| tenor | anticipation | 53 |
+| alto | escape | 25 |
+| tenor | passing | 1590 |
+| tenor | suspension | 540 |
+| tenor | neighbour | 264 |
+| tenor | ninth | 151 |
+| tenor | anticipation | 54 |
+| tenor | retardation | 52 |
 | tenor | free | 45 |
-| tenor | retardation | 36 |
-| tenor | escape | 34 |
-| tenor | appoggiatura | 24 |
-| bass | passing | 1837 |
-| bass | neighbour | 138 |
+| tenor | appoggiatura | 33 |
+| tenor | escape | 33 |
+| bass | passing | 1831 |
+| bass | neighbour | 130 |
+| bass | ninth | 41 |
 | bass | escape | 16 |
 | bass | appoggiatura | 7 |
 | bass | suspension | 3 |
@@ -215,17 +221,19 @@ dissonance, by its melodic shape. Sonorities left unanalysed: 0 of 30050.
 
 Each seventh of a seventh chord on the beat, where it becomes one: prepared (held or struck again from the
 chord before) or free; resolving down by step or not; and, when it resolves, whether the bass moves
-at that moment (the harmony moves on: an essential seventh) or stays (the seventh resolves over
-the same bass, as a suspension does).
+at that moment (the harmony moves on: an essential seventh) or stays. A held seventh that falls by
+step over the same bass into a triad is no longer counted here: Kirnberger reads it as the
+suspension of the sixth (Kunst I, pp. 78-80), and so does the analysis. What still resolves over
+the same bass is a seventh whose next note is itself passing, or one sounding with its fifth.
 
 | prepared | resolves down by step | bass moves at the resolution | count |
 |---|---|---|---|
-| yes | yes | yes | 1272 |
-| yes | yes | no | 494 |
-| yes | no | — | 215 |
-| no | yes | yes | 184 |
-| no | no | — | 149 |
-| no | yes | no | 21 |
+| yes | yes | yes | 1278 |
+| no | yes | yes | 244 |
+| yes | yes | no | 238 |
+| yes | no | — | 229 |
+| no | no | — | 199 |
+| no | yes | no | 16 |
 
 ## Doubling in complete triads on the beat
 
@@ -238,9 +246,9 @@ Four voices, three chord members: which is doubled, by chord and by the bass's p
 | diminished | third | third | 329 | 83% |
 | diminished | third | fifth | 64 | 16% |
 | diminished | third | root | 4 | 1% |
-| major | fifth | fifth | 119 | 79% |
-| major | fifth | third | 25 | 17% |
-| major | fifth | root | 6 | 4% |
+| major | fifth | fifth | 76 | 71% |
+| major | fifth | third | 25 | 23% |
+| major | fifth | root | 6 | 6% |
 | major | root | root | 5303 | 85% |
 | major | root | third | 506 | 8% |
 | major | root | fifth | 249 | 4% |
@@ -249,9 +257,9 @@ Four voices, three chord members: which is doubled, by chord and by the bass's p
 | major | third | third | 829 | 34% |
 | major | third | fifth | 768 | 31% |
 | major | third | incomplete: root+third | 6 | 0% |
-| minor | fifth | fifth | 108 | 82% |
-| minor | fifth | third | 14 | 11% |
-| minor | fifth | root | 9 | 7% |
+| minor | fifth | fifth | 59 | 72% |
+| minor | fifth | third | 14 | 17% |
+| minor | fifth | root | 9 | 11% |
 | minor | root | root | 2208 | 75% |
 | minor | root | third | 497 | 17% |
 | minor | root | incomplete: root+third | 134 | 5% |
@@ -276,27 +284,26 @@ where that voice goes.
 
 | voice | goes | count |
 |---|---|---|
-| soprano | rises a semitone (to the root) | 512 |
-| soprano | falls a third (to the fifth) | 81 |
-| soprano | other | 57 |
-| soprano | held | 12 |
+| soprano | rises a semitone (to the root) | 527 |
+| soprano | falls a third (to the fifth) | 87 |
+| soprano | other | 56 |
+| soprano | held | 11 |
 | soprano | falls a semitone | 1 |
-| soprano | falls a tone | 1 |
-| alto | falls a third (to the fifth) | 562 |
-| alto | rises a semitone (to the root) | 530 |
-| alto | other | 32 |
-| alto | held | 24 |
+| alto | falls a third (to the fifth) | 566 |
+| alto | rises a semitone (to the root) | 543 |
+| alto | other | 35 |
+| alto | held | 18 |
 | alto | falls a semitone | 3 |
-| tenor | rises a semitone (to the root) | 420 |
-| tenor | falls a third (to the fifth) | 238 |
+| tenor | rises a semitone (to the root) | 425 |
+| tenor | falls a third (to the fifth) | 247 |
 | tenor | other | 90 |
-| tenor | held | 13 |
+| tenor | held | 11 |
 | tenor | falls a semitone | 3 |
-| bass | rises a semitone (to the root) | 1121 |
-| bass | other | 33 |
-| bass | falls a third (to the fifth) | 13 |
-| bass | falls a semitone | 12 |
-| bass | held | 5 |
+| bass | rises a semitone (to the root) | 1287 |
+| bass | other | 37 |
+| bass | falls a semitone | 15 |
+| bass | held | 7 |
+| bass | falls a third (to the fifth) | 6 |
 
 ## Melodic intervals
 

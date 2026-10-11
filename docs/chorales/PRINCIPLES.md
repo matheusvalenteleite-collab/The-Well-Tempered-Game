@@ -8,32 +8,32 @@ Kirnberger's as applied in `KIRNBERGER.md`, still to be checked against his text
 
 ## 1. The fundamental bass
 
-From beat to beat, where the root changes (14442 changes), it moves:
+From beat to beat, where the root changes (14374 changes), it moves:
 
-- down a fifth: 5711 (40%)
-- up a fifth: 2691 (19%)
-- up a step: 2592 (18%)
-- down a third: 1469 (10%)
-- down a step: 1309 (9%)
-- up a third: 670 (5%)
+- down a fifth: 5877 (41%)
+- up a fifth: 2647 (18%)
+- up a step: 2488 (17%)
+- down a third: 1427 (10%)
+- down a step: 1284 (9%)
+- up a third: 651 (5%)
 
 Falling fifths dominate (about two to one over rising fifths); rising fifths and rising steps follow.
 Falling thirds outnumber rising thirds by about two to one; falling steps are half as common as rising ones.
 Rising thirds and falling steps are the rarer motions:
 
 - *up a third*: no. 1 (BWV 269), bar 2: G major → B minor — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 1 (BWV 269), bar 19: C major → E minor — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 2 (BWV 347), bar 1: F# minor → A major — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=11)
-- *down a step*: no. 1 (BWV 269), bar 8: A minor → G major — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 1 (BWV 269), bar 11: B minor → A minor — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 1 (BWV 269), bar 15: G major → F# diminished — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5)
+- *down a step*: no. 1 (BWV 269), bar 8: A minor → G major — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 1 (BWV 269), bar 11: B minor → A minor — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 1 (BWV 269), bar 12: A minor → G major — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5)
 
 ## 2. The seventh (essential dissonance)
 
-Sevenths of seventh chords on the beat (2335):
+Sevenths of seventh chords on the beat (2204):
 
-- prepared, resolves down, the bass moves: 1272 (54%). E.g. no. 1 (BWV 269), bar 5: soprano D5 over G2 (E minor seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 1 (BWV 269), bar 6: alto G4 over C3 (A minor seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5)
-- prepared, resolves down, over the same bass: 494 (21%). E.g. no. 1 (BWV 269), bar 12: alto A4 over B2 (B minor seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 2 (BWV 347), bar 7: tenor B3 over C#3 (C# seventh chord, third not sounding (minor seventh)) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=11)
-- prepared, does not resolve down: 215 (9%). E.g. no. 5 (BWV 267), bar 10: alto B4 over A3 (C major seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=13); no. 5 (BWV 267), bar 16: alto G4 over C3 (A minor seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=13)
-- free, resolves down, the bass moves: 184 (8%). E.g. no. 4 (BWV 86/6), bar 4: alto E4 over F#3 (F# seventh chord, third not sounding (minor seventh)) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12); no. 5 (BWV 267), bar 6: alto C4 over D3 (D seventh chord, third not sounding (minor seventh)) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=13)
-- free, does not resolve down: 149 (6%). E.g. no. 3 (BWV 153/1), bar 3: tenor D4 over E3 (E seventh chord, third not sounding (minor seventh)) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12); no. 5 (BWV 267), bar 5: tenor D4 over E3 (E seventh chord, third not sounding (minor seventh)) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=13)
-- free, resolves down, over the same bass: 21 (1%). E.g. no. 17 (BWV 145/5), bar 17: tenor A3 over B2 (B seventh chord, third not sounding (minor seventh)) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=19); no. 37 (BWV 352), bar 11: soprano D5 over E3 (E dominant seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=27)
+- prepared, resolves down, the bass moves: 1278 (58%). E.g. no. 1 (BWV 269), bar 5: soprano D5 over G2 (E minor seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 1 (BWV 269), bar 6: alto G4 over C3 (A minor seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5)
+- free, resolves down, the bass moves: 244 (11%). E.g. no. 3 (BWV 153/1), bar 2: soprano D5 over B2 (E dominant seventh, minor ninth for the root) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12); no. 4 (BWV 86/6), bar 4: alto E4 over F#3 (F# seventh chord, third not sounding (minor seventh)) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12)
+- prepared, resolves down, over the same bass: 238 (11%). E.g. no. 2 (BWV 347), bar 7: tenor B3 over C#3 (C# seventh chord, third not sounding (minor seventh)) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=11); no. 2 (BWV 347), bar 11: soprano E5 over A3 (F# minor seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=11)
+- prepared, does not resolve down: 229 (10%). E.g. no. 5 (BWV 267), bar 10: alto B4 over A3 (C major seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=13); no. 5 (BWV 267), bar 16: alto G4 over C3 (A minor seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=13)
+- free, does not resolve down: 199 (9%). E.g. no. 3 (BWV 153/1), bar 3: tenor D4 over E3 (E seventh chord, third not sounding (minor seventh)) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12); no. 3 (BWV 153/1), bar 10: alto A4 over D#3 (B dominant seventh, minor ninth for the root) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12)
+- free, resolves down, over the same bass: 16 (1%). E.g. no. 17 (BWV 145/5), bar 17: tenor A3 over B2 (B seventh chord, third not sounding (minor seventh)) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=19); no. 37 (BWV 352), bar 11: soprano D5 over E3 (E dominant seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=27)
 
 Most sevenths are prepared and resolve down as the harmony moves (the strict treatment).
 A smaller share enters free and resolves; these are the free style's sevenths, to be compared with Kirnberger.
@@ -41,14 +41,14 @@ Those that do not resolve down by step need looking at, one by one.
 
 ## 3. Suspensions on the beat
 
-Upper-voice suspensions on the beat (1218), by the interval of the suspended note over the bass:
+Upper-voice suspensions on the beat (1648), by the interval of the suspended note over the bass:
 
-- 4: 684 (56%). E.g. no. 3 (BWV 153/1), bar 4: tenor A3 over E3 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12); no. 4 (BWV 86/6), bar 2: alto A4 over E3 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12)
-- 9: 452 (37%). E.g. no. 1 (BWV 269), bar 15: alto A4 over G2 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 1 (BWV 269), bar 17: alto F#4 over E3 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5)
-- 2: 49 (4%). E.g. no. 5 (BWV 267), bar 6: tenor A3 over G3 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=13); no. 13 (BWV 33/6), bar 4: tenor B3 over A3 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=17)
-- 5: 16 (1%). E.g. no. 15 (BWV 277), bar 10: alto E4 over A2 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=18); no. 70 (BWV 322), bar 2: alto G4 over C3 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=41)
-- 7: 16 (1%). E.g. no. 99 (BWV 16/6), bar 10: soprano D5 over E3 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=54); no. 143 (BWV 368), bar 18: soprano C5 over D3 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=75)
-- 6: 1 (0%). E.g. no. 116 (BWV 29/8), bar 31: soprano B4 over D#3 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=61)
+- 4: 784 (48%). E.g. no. 3 (BWV 153/1), bar 4: tenor A3 over E3 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12); no. 4 (BWV 86/6), bar 2: alto A4 over E3 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12)
+- 9: 452 (27%). E.g. no. 1 (BWV 269), bar 15: alto A4 over G2 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 1 (BWV 269), bar 17: alto F#4 over E3 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5)
+- 7: 241 (15%). E.g. no. 1 (BWV 269), bar 12: alto A4 over B2 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 2 (BWV 347), bar 12: tenor E4 over F#3 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=11)
+- 6: 97 (6%). E.g. no. 7 (BWV 17/7), bar 36: soprano C#5 over E3 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=14); no. 11 (BWV 41/6 & 171/6), bar 31: tenor E4 over G3 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=16)
+- 2: 49 (3%). E.g. no. 5 (BWV 267), bar 6: tenor A3 over G3 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=13); no. 13 (BWV 33/6), bar 4: tenor B3 over A3 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=17)
+- 5: 25 (2%). E.g. no. 30 (BWV 363), bar 6: alto F#4 over B2 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=24); no. 70 (BWV 322), bar 2: alto G4 over C3 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=41)
 
 Suspensions in the bass itself (the bass held into a new harmony and falling): 3.
 
@@ -56,17 +56,17 @@ Suspensions in the bass itself (the bass held into a new harmony and falling): 3
 
 | kind | soprano | alto | tenor | bass |
 |---|---|---|---|---|
-| passing | 732 | 942 | 1596 | 1837 |
-| suspension | 149 | 943 | 406 | 3 |
-| neighbour | 130 | 332 | 291 | 138 |
-| anticipation | 119 | 44 | 53 | 0 |
-| retardation | 34 | 74 | 36 | 1 |
-| appoggiatura | 15 | 42 | 24 | 7 |
-| escape | 65 | 24 | 34 | 16 |
+| passing | 719 | 939 | 1590 | 1831 |
+| suspension | 219 | 1172 | 540 | 3 |
+| neighbour | 122 | 323 | 264 | 130 |
+| anticipation | 125 | 46 | 54 | 0 |
+| retardation | 41 | 83 | 52 | 1 |
+| appoggiatura | 15 | 55 | 33 | 7 |
+| escape | 70 | 25 | 33 | 16 |
 | free | 60 | 33 | 45 | 0 |
 
 Passing notes are commonest in the bass and tenor; suspensions belong to the alto and tenor (almost
-never the bass); the anticipation is the soprano's (57 of its 119 fall in the half bar before a fermata).
+never the bass); the anticipation is the soprano's (63 of its 125 fall in the half bar before a fermata).
 The soprano, the given melody, carries the fewest passing notes and suspensions.
 
 ## 5. The leading tone
@@ -75,9 +75,9 @@ The third of a dominant moving to its tonic (root down a fifth):
 
 | voice | rises to the root | falls to the fifth | other |
 |---|---|---|---|
-| soprano | 512 | 81 | 71 |
-| alto | 530 | 562 | 59 |
-| tenor | 420 | 238 | 106 |
+| soprano | 527 | 87 | 68 |
+| alto | 543 | 566 | 56 |
+| tenor | 425 | 247 | 104 |
 
 In the soprano the leading tone rises; in the inner voices, and in the alto above all, Bach lets it
 fall to the fifth of the tonic, to complete the chord. Examples of the alto falling: no. 1 (BWV 269), bar 7: alto F#4 → D4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 1 (BWV 269), bar 21: alto F#4 → D4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 2 (BWV 347), bar 2: alto D#4 → B3 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=11)
@@ -88,13 +88,16 @@ At the soprano's fermatas (2277):
 
 - authentic, perfect: 1062 (47%). E.g. no. 1 (BWV 269), bar 7: D3 → G2, soprano G4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 1 (BWV 269), bar 21: D3 → G2, soprano G4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5)
 - half: 347 (15%). E.g. no. 1 (BWV 269), bar 4: G2 → D3, soprano A4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 1 (BWV 269), bar 10: G2 → D3, soprano A4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5)
-- other: 249 (11%). E.g. no. 10 (BWV 38/6), bar 13: A2 → G#2, soprano E4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=16); no. 11 (BWV 41/6 & 171/6), bar 2: G3 → Bb3, soprano D5 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=16)
 - authentic, imperfect: 183 (8%). E.g. no. 1 (BWV 269), bar 14: G2 → C3, soprano G4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 1 (BWV 269), bar 18: A2 → D3, soprano A4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5)
+- resting point on a major triad (a half cadence in the key reached?): 159 (7%). E.g. no. 11 (BWV 41/6 & 171/6), bar 2: G3 → Bb3, soprano D5 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=16); no. 15 (BWV 277), bar 6: Bb2 → F2, soprano A4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=18)
 - authentic, dominant inverted (leading tone in the bass): 114 (5%). E.g. no. 6 (BWV 281), bar 2: E3 → F3, soprano A4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=13); no. 9 (BWV 248/12), bar 10: C#3 → D3, soprano A4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=15)
 - bass up a fifth: plagal, or a half cadence in another key: 111 (5%). E.g. no. 4 (BWV 86/6), bar 8: F#3 → C#3, soprano G#4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12); no. 5 (BWV 267), bar 10: A2 → E3, soprano B4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=13)
 - other: bass repeated: 79 (3%). E.g. no. 8 (BWV 40/8), bar 2: F2 → F2, soprano F4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=14); no. 8 (BWV 40/8), bar 8: Ab3 → Ab3, soprano C5 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=14)
 - Phrygian half: 68 (3%). E.g. no. 3 (BWV 153/1), bar 6: C3 → B2, soprano B4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12); no. 16 (BWV 311), bar 8: G2 → F#2, soprano F#4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=18)
 - deceptive: 64 (3%). E.g. no. 7 (BWV 17/7), bar 26: C#3 → D3, soprano A4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=14); no. 11 (BWV 41/6 & 171/6), bar 16: B3 → C4, soprano E5 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=16)
+- other: 45 (2%). E.g. no. 10 (BWV 38/6), bar 13: A2 → G#2, soprano E4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=16); no. 11 (BWV 41/6 & 171/6), bar 27: G3 → F#3, soprano D5 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=16)
+- resting point on a minor triad: 28 (1%). E.g. no. 28 (BWV 36(2)/8), bar 2: E3 → B2, soprano B4 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=23); no. 32 (BWV 386), bar 10: E3 → B2, soprano D5 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=25)
+- authentic, penultimate inverted: 17 (1%). E.g. no. 85 (BWV 45/7), bar 2: F#3 → A3, soprano C#5 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=48); no. 111 (BWV 245/17), bar 6: F3 → C3, soprano C5 — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=59)
 
 The last chord of a chorale in a minor or modal key has a major third in 149 of 177 (84%).
 

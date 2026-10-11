@@ -648,7 +648,7 @@
    "position": "first",
    "melody": "4-2",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 11,
@@ -968,7 +968,7 @@
    "position": "inner",
    "melody": "4-5",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 15,
@@ -988,7 +988,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "bVI",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 15,
@@ -1058,7 +1058,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "IV",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 16,
@@ -1588,7 +1588,7 @@
    "position": "inner",
    "melody": "4-4",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 25,
@@ -1708,7 +1708,7 @@
    "position": "first",
    "melody": "2-1",
    "chord": "i",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 28,
@@ -1838,7 +1838,7 @@
    "position": "last",
    "melody": "2-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 31,
@@ -1898,7 +1898,7 @@
    "position": "first",
    "melody": "6-5",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 32,
@@ -1938,7 +1938,7 @@
    "position": "inner",
    "melody": "3-4",
    "chord": "ii",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 32,
@@ -1998,7 +1998,7 @@
    "position": "first",
    "melody": "5-4",
    "chord": "iv",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 34,
@@ -2018,7 +2018,7 @@
    "position": "inner",
    "melody": "4-b3",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 34,
@@ -2048,7 +2048,7 @@
    "position": "last",
    "melody": "b2-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 35,
@@ -2108,7 +2108,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 36,
@@ -2218,7 +2218,7 @@
    "position": "first",
    "melody": "2-3",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 38,
@@ -2348,7 +2348,7 @@
    "position": "inner",
    "melody": "7-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 40,
@@ -2478,7 +2478,7 @@
    "position": "inner",
    "melody": "2-7",
    "chord": "III",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 42,
@@ -2518,7 +2518,7 @@
    "position": "inner",
    "melody": "7-#5",
    "chord": "III",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 43,
@@ -2648,7 +2648,7 @@
    "position": "first",
    "melody": "7-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 46,
@@ -2838,7 +2838,7 @@
    "position": "inner",
    "melody": "1-b7",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 49,
@@ -2857,7 +2857,7 @@
    "mode": "minor",
    "position": "last",
    "melody": "7-1",
-   "chord": "iv",
+   "chord": "I",
    "class": "other"
   },
   {
@@ -3118,7 +3118,7 @@
    "position": "inner",
    "melody": "4-5",
    "chord": "iii",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 54,
@@ -3178,7 +3178,7 @@
    "position": "inner",
    "melody": "b3-2",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 55,
@@ -3208,7 +3208,7 @@
    "position": "inner",
    "melody": "b3-b3",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 56,
@@ -3288,7 +3288,7 @@
    "position": "first",
    "melody": "6-5",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 58,
@@ -3328,7 +3328,7 @@
    "position": "inner",
    "melody": "1-7",
    "chord": "III",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 58,
@@ -4128,7 +4128,7 @@
    "position": "inner",
    "melody": "7-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 70,
@@ -4168,7 +4168,7 @@
    "position": "inner",
    "melody": "b6-5",
    "chord": "i",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 71,
@@ -4208,7 +4208,7 @@
    "position": "inner",
    "melody": "4-5",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 71,
@@ -4298,7 +4298,7 @@
    "position": "inner",
    "melody": "1-2",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 73,
@@ -4398,7 +4398,7 @@
    "position": "inner",
    "melody": "b7-4",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 75,
@@ -4448,7 +4448,7 @@
    "position": "inner",
    "melody": "2-3",
    "chord": "VI",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 76,
@@ -4518,7 +4518,7 @@
    "position": "inner",
    "melody": "3-4",
    "chord": "ii",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 77,
@@ -4528,7 +4528,7 @@
    "position": "inner",
    "melody": "3-4",
    "chord": "IV",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 77,
@@ -4678,7 +4678,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "VI",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 80,
@@ -4748,7 +4748,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "IV",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 81,
@@ -4758,7 +4758,7 @@
    "position": "inner",
    "melody": "b3-2",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 81,
@@ -4788,7 +4788,7 @@
    "position": "first",
    "melody": "3-4",
    "chord": "iv",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 82,
@@ -4948,7 +4948,7 @@
    "position": "first",
    "melody": "2-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 84,
@@ -4958,7 +4958,7 @@
    "position": "inner",
    "melody": "7-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 84,
@@ -5008,7 +5008,7 @@
    "position": "first",
    "melody": "5-6",
    "chord": "IV",
-   "class": "other"
+   "class": "authentic, penultimate inverted"
   },
   {
    "bach": 85,
@@ -5048,7 +5048,7 @@
    "position": "inner",
    "melody": "b7-6",
    "chord": "IV",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 85,
@@ -5068,7 +5068,7 @@
    "position": "inner",
    "melody": "7-1",
    "chord": "vi",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 85,
@@ -5458,7 +5458,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "IV",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 91,
@@ -5468,7 +5468,7 @@
    "position": "inner",
    "melody": "1-1",
    "chord": "bVI",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 91,
@@ -5518,7 +5518,7 @@
    "position": "inner",
    "melody": "1-2",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 92,
@@ -5608,7 +5608,7 @@
    "position": "inner",
    "melody": "5-b3",
    "chord": "bVI",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 94,
@@ -5748,7 +5748,7 @@
    "position": "first",
    "melody": "7-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 97,
@@ -5778,7 +5778,7 @@
    "position": "inner",
    "melody": "3-1",
    "chord": "IV",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 97,
@@ -5838,7 +5838,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "VI",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 98,
@@ -5898,7 +5898,7 @@
    "position": "inner",
    "melody": "4-2",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 99,
@@ -6618,7 +6618,7 @@
    "position": "inner",
    "melody": "4-b3",
    "chord": "bIII",
-   "class": "other"
+   "class": "authentic, penultimate inverted"
   },
   {
    "bach": 111,
@@ -6628,7 +6628,7 @@
    "position": "inner",
    "melody": "b6-5",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 111,
@@ -6798,7 +6798,7 @@
    "position": "inner",
    "melody": "4-2",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 114,
@@ -6848,7 +6848,7 @@
    "position": "inner",
    "melody": "6-b7",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 115,
@@ -6868,7 +6868,7 @@
    "position": "inner",
    "melody": "2-b3",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 115,
@@ -7028,7 +7028,7 @@
    "position": "inner",
    "melody": "1-7",
    "chord": "III",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 117,
@@ -7078,7 +7078,7 @@
    "position": "inner",
    "melody": "3-4",
    "chord": "ii",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 118,
@@ -7088,7 +7088,7 @@
    "position": "inner",
    "melody": "3-4",
    "chord": "IV",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 118,
@@ -7218,7 +7218,7 @@
    "position": "inner",
    "melody": "6-b7",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 120,
@@ -7238,7 +7238,7 @@
    "position": "inner",
    "melody": "2-b3",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 120,
@@ -7438,7 +7438,7 @@
    "position": "inner",
    "melody": "b3-2",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 123,
@@ -7478,7 +7478,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 124,
@@ -7648,7 +7648,7 @@
    "position": "inner",
    "melody": "3-4",
    "chord": "IV",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 127,
@@ -7678,7 +7678,7 @@
    "position": "inner",
    "melody": "2-b3",
    "chord": "i",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 127,
@@ -7778,7 +7778,7 @@
    "position": "inner",
    "melody": "5-4",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 129,
@@ -7798,7 +7798,7 @@
    "position": "inner",
    "melody": "1-5",
    "chord": "i",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 129,
@@ -7917,7 +7917,7 @@
    "mode": "minor",
    "position": "inner",
    "melody": "b6-5",
-   "chord": "i",
+   "chord": "V",
    "class": "other"
   },
   {
@@ -7947,7 +7947,7 @@
    "mode": "minor",
    "position": "inner",
    "melody": "b3-b3",
-   "chord": "bVI",
+   "chord": "bIII",
    "class": "other"
   },
   {
@@ -7958,7 +7958,7 @@
    "position": "inner",
    "melody": "1-b7",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 132,
@@ -7968,7 +7968,7 @@
    "position": "inner",
    "melody": "5-4",
    "chord": "iv",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 132,
@@ -8008,7 +8008,7 @@
    "position": "inner",
    "melody": "1-b7",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 132,
@@ -8018,7 +8018,7 @@
    "position": "inner",
    "melody": "1-b7",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 132,
@@ -8098,7 +8098,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "i",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 133,
@@ -8168,7 +8168,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "bVI",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 133,
@@ -8418,7 +8418,7 @@
    "position": "inner",
    "melody": "1-7",
    "chord": "III",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 137,
@@ -8638,7 +8638,7 @@
    "position": "inner",
    "melody": "1-7",
    "chord": "III",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 140,
@@ -8708,7 +8708,7 @@
    "position": "inner",
    "melody": "7-7",
    "chord": "III",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 141,
@@ -8838,7 +8838,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "vi",
-   "class": "other"
+   "class": "authentic, penultimate inverted"
   },
   {
    "bach": 143,
@@ -8928,7 +8928,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "IV",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 144,
@@ -9038,7 +9038,7 @@
    "position": "first",
    "melody": "7-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 147,
@@ -9158,7 +9158,7 @@
    "position": "inner",
    "melody": "1-2",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 149,
@@ -9198,7 +9198,7 @@
    "position": "inner",
    "melody": "1-7",
    "chord": "III",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 151,
@@ -9218,7 +9218,7 @@
    "position": "first",
    "melody": "7-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 152,
@@ -9238,7 +9238,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 152,
@@ -9498,7 +9498,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "VI",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 157,
@@ -9677,7 +9677,7 @@
    "mode": "major",
    "position": "last",
    "melody": "1-1",
-   "chord": "IV",
+   "chord": "I",
    "class": "other"
   },
   {
@@ -9828,7 +9828,7 @@
    "position": "first",
    "melody": "2-3",
    "chord": "I",
-   "class": "other"
+   "class": "authentic, penultimate inverted"
   },
   {
    "bach": 164,
@@ -9988,7 +9988,7 @@
    "position": "first",
    "melody": "4-5",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 167,
@@ -10028,7 +10028,7 @@
    "position": "inner",
    "melody": "b3-4",
    "chord": "bVII",
-   "class": "other"
+   "class": "authentic, penultimate inverted"
   },
   {
    "bach": 167,
@@ -10068,7 +10068,7 @@
    "position": "first",
    "melody": "1-2",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 168,
@@ -10098,7 +10098,7 @@
    "position": "inner",
    "melody": "4-5",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 168,
@@ -10138,7 +10138,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "VI",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 169,
@@ -10418,7 +10418,7 @@
    "position": "inner",
    "melody": "#5-6",
    "chord": "vi",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 173,
@@ -10498,7 +10498,7 @@
    "position": "first",
    "melody": "1-7",
    "chord": "III",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 175,
@@ -10698,7 +10698,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 179,
@@ -10708,7 +10708,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 179,
@@ -10788,7 +10788,7 @@
    "position": "first",
    "melody": "4-b3",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 181,
@@ -10848,7 +10848,7 @@
    "position": "inner",
    "melody": "4-b3",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 182,
@@ -10898,7 +10898,7 @@
    "position": "inner",
    "melody": "7-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 183,
@@ -11008,7 +11008,7 @@
    "position": "inner",
    "melody": "7-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 185,
@@ -11187,7 +11187,7 @@
    "mode": "major",
    "position": "inner",
    "melody": "#1-2",
-   "chord": "V",
+   "chord": "ii",
    "class": "authentic, perfect"
   },
   {
@@ -11298,7 +11298,7 @@
    "position": "inner",
    "melody": "4-2",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 191,
@@ -11368,7 +11368,7 @@
    "position": "first",
    "melody": "2-1",
    "chord": "i",
-   "class": "other"
+   "class": "authentic, penultimate inverted"
   },
   {
    "bach": 193,
@@ -11428,7 +11428,7 @@
    "position": "inner",
    "melody": "5-7",
    "chord": "V",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 194,
@@ -11538,7 +11538,7 @@
    "position": "first",
    "melody": "7-1",
    "chord": "i",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 196,
@@ -11598,7 +11598,7 @@
    "position": "first",
    "melody": "1-5",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 197,
@@ -11618,7 +11618,7 @@
    "position": "inner",
    "melody": "4-5",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 197,
@@ -11637,7 +11637,7 @@
    "mode": "minor",
    "position": "inner",
    "melody": "1-1",
-   "chord": "iv",
+   "chord": "I",
    "class": "other"
   },
   {
@@ -11648,7 +11648,7 @@
    "position": "inner",
    "melody": "1-5",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 197,
@@ -11678,7 +11678,7 @@
    "position": "inner",
    "melody": "1-2",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 197,
@@ -11688,7 +11688,7 @@
    "position": "inner",
    "melody": "1-5",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 197,
@@ -11718,7 +11718,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "IV",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 197,
@@ -11728,7 +11728,7 @@
    "position": "inner",
    "melody": "4-5",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 197,
@@ -11747,7 +11747,7 @@
    "mode": "minor",
    "position": "last",
    "melody": "1-1",
-   "chord": "iv",
+   "chord": "I",
    "class": "other"
   },
   {
@@ -11818,7 +11818,7 @@
    "position": "inner",
    "melody": "b6-5",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 198,
@@ -11838,7 +11838,7 @@
    "position": "first",
    "melody": "b7-1",
    "chord": "IV",
-   "class": "other"
+   "class": "authentic, penultimate inverted"
   },
   {
    "bach": 199,
@@ -11928,7 +11928,7 @@
    "position": "inner",
    "melody": "b7-6",
    "chord": "IV",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 200,
@@ -11938,7 +11938,7 @@
    "position": "inner",
    "melody": "6-5",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 200,
@@ -12098,7 +12098,7 @@
    "position": "inner",
    "melody": "1-5",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 202,
@@ -12118,7 +12118,7 @@
    "position": "inner",
    "melody": "5-3",
    "chord": "VI",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 202,
@@ -12208,7 +12208,7 @@
    "position": "inner",
    "melody": "3-4",
    "chord": "iv",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 203,
@@ -12428,7 +12428,7 @@
    "position": "inner",
    "melody": "4-4",
    "chord": "iv",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 205,
@@ -12458,7 +12458,7 @@
    "position": "inner",
    "melody": "b3-1",
    "chord": "IV",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 205,
@@ -12508,7 +12508,7 @@
    "position": "inner",
    "melody": "2-b3",
    "chord": "bIII",
-   "class": "other"
+   "class": "authentic, penultimate inverted"
   },
   {
    "bach": 206,
@@ -12868,7 +12868,7 @@
    "position": "first",
    "melody": "7-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 212,
@@ -13028,7 +13028,7 @@
    "position": "inner",
    "melody": "b6-5",
    "chord": "i",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 214,
@@ -13058,7 +13058,7 @@
    "position": "inner",
    "melody": "b6-5",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 214,
@@ -13188,7 +13188,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "bVI",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 215,
@@ -13228,7 +13228,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 216,
@@ -13258,7 +13258,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "I",
-   "class": "other"
+   "class": "authentic, penultimate inverted"
   },
   {
    "bach": 216,
@@ -13298,7 +13298,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "vi",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 216,
@@ -13498,7 +13498,7 @@
    "position": "inner",
    "melody": "b6-4",
    "chord": "iv",
-   "class": "other"
+   "class": "authentic, penultimate inverted"
   },
   {
    "bach": 220,
@@ -13508,7 +13508,7 @@
    "position": "inner",
    "melody": "5-4",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 220,
@@ -13528,7 +13528,7 @@
    "position": "inner",
    "melody": "6-b7",
    "chord": "bVII",
-   "class": "other"
+   "class": "authentic, penultimate inverted"
   },
   {
    "bach": 220,
@@ -13698,7 +13698,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "VI",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 223,
@@ -13708,7 +13708,7 @@
    "position": "inner",
    "melody": "7-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 223,
@@ -13828,7 +13828,7 @@
    "position": "inner",
    "melody": "4-b3",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 225,
@@ -13928,7 +13928,7 @@
    "position": "inner",
    "melody": "4-5",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 227,
@@ -13938,7 +13938,7 @@
    "position": "inner",
    "melody": "4-5",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 227,
@@ -13958,7 +13958,7 @@
    "position": "inner",
    "melody": "4-5",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 227,
@@ -14038,7 +14038,7 @@
    "position": "inner",
    "melody": "b6-5",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 229,
@@ -14058,7 +14058,7 @@
    "position": "first",
    "melody": "4-5",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 230,
@@ -14228,7 +14228,7 @@
    "position": "inner",
    "melody": "b6-5",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 232,
@@ -14438,7 +14438,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 235,
@@ -14908,7 +14908,7 @@
    "position": "inner",
    "melody": "5-4",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 242,
@@ -15058,7 +15058,7 @@
    "position": "first",
    "melody": "2-1",
    "chord": "i",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 245,
@@ -15078,7 +15078,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "i",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 245,
@@ -15088,7 +15088,7 @@
    "position": "last",
    "melody": "2-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 246,
@@ -15098,7 +15098,7 @@
    "position": "first",
    "melody": "2-3",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 246,
@@ -15128,7 +15128,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "VI",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 246,
@@ -15158,7 +15158,7 @@
    "position": "first",
    "melody": "2-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 247,
@@ -15268,7 +15268,7 @@
    "position": "inner",
    "melody": "3-2",
    "chord": "ii",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 249,
@@ -15328,7 +15328,7 @@
    "position": "inner",
    "melody": "7-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 250,
@@ -15548,7 +15548,7 @@
    "position": "inner",
    "melody": "1-2",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 253,
@@ -15698,7 +15698,7 @@
    "position": "inner",
    "melody": "7-1",
    "chord": "vi",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 255,
@@ -15818,7 +15818,7 @@
    "position": "first",
    "melody": "2-3",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 258,
@@ -15868,7 +15868,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "VI",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 258,
@@ -15988,7 +15988,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "IV",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 259,
@@ -15998,7 +15998,7 @@
    "position": "inner",
    "melody": "1-1",
    "chord": "bVI",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 259,
@@ -16108,7 +16108,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "IV",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 261,
@@ -16458,7 +16458,7 @@
    "position": "inner",
    "melody": "4-b3",
    "chord": "VII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 267,
@@ -16468,7 +16468,7 @@
    "position": "last",
    "melody": "2-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 268,
@@ -16478,7 +16478,7 @@
    "position": "first",
    "melody": "2-3",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 268,
@@ -16538,7 +16538,7 @@
    "position": "inner",
    "melody": "5-1",
    "chord": "IV",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 268,
@@ -16858,7 +16858,7 @@
    "position": "inner",
    "melody": "7-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 273,
@@ -17058,7 +17058,7 @@
    "position": "first",
    "melody": "6-5",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 277,
@@ -17068,7 +17068,7 @@
    "position": "inner",
    "melody": "6-5",
    "chord": "iii",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 277,
@@ -17098,7 +17098,7 @@
    "position": "inner",
    "melody": "2-7",
    "chord": "III",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 277,
@@ -17108,7 +17108,7 @@
    "position": "inner",
    "melody": "7-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 277,
@@ -17238,7 +17238,7 @@
    "position": "inner",
    "melody": "7-1",
    "chord": "vi",
-   "class": "other"
+   "class": "authentic, penultimate inverted"
   },
   {
    "bach": 279,
@@ -17388,7 +17388,7 @@
    "position": "inner",
    "melody": "4-4",
    "chord": "bVII",
-   "class": "other"
+   "class": "authentic, penultimate inverted"
   },
   {
    "bach": 281,
@@ -17497,7 +17497,7 @@
    "mode": "minor",
    "position": "inner",
    "melody": "4-b3",
-   "chord": "bVI",
+   "chord": "bIII",
    "class": "authentic, perfect"
   },
   {
@@ -17528,7 +17528,7 @@
    "position": "first",
    "melody": "3-4",
    "chord": "IV",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 284,
@@ -17558,7 +17558,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "vi",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 284,
@@ -17568,7 +17568,7 @@
    "position": "inner",
    "melody": "6-5",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 284,
@@ -17618,7 +17618,7 @@
    "position": "inner",
    "melody": "1-b7",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 285,
@@ -17818,7 +17818,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "VI",
-   "class": "other"
+   "class": "authentic, penultimate inverted"
   },
   {
    "bach": 289,
@@ -17848,7 +17848,7 @@
    "position": "first",
    "melody": "5-4",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 290,
@@ -18128,7 +18128,7 @@
    "position": "inner",
    "melody": "1-2",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 294,
@@ -18518,7 +18518,7 @@
    "position": "inner",
    "melody": "5-b3",
    "chord": "bVI",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 300,
@@ -18588,7 +18588,7 @@
    "position": "first",
    "melody": "b7-1",
    "chord": "IV",
-   "class": "other"
+   "class": "authentic, penultimate inverted"
   },
   {
    "bach": 302,
@@ -18968,7 +18968,7 @@
    "position": "inner",
    "melody": "b6-5",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 307,
@@ -19188,7 +19188,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "VI",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 311,
@@ -19298,7 +19298,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 313,
@@ -19328,7 +19328,7 @@
    "position": "last",
    "melody": "2-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 314,
@@ -19588,7 +19588,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "IV",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 318,
@@ -19638,7 +19638,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 319,
@@ -19868,7 +19868,7 @@
    "position": "first",
    "melody": "6-5",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 323,
@@ -20028,7 +20028,7 @@
    "position": "inner",
    "melody": "1-b7",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 325,
@@ -20177,7 +20177,7 @@
    "mode": "major",
    "position": "inner",
    "melody": "4-2",
-   "chord": "bVI°",
+   "chord": "III",
    "class": "other"
   },
   {
@@ -20278,7 +20278,7 @@
    "position": "last",
    "melody": "7-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 330,
@@ -20288,7 +20288,7 @@
    "position": "first",
    "melody": "6-5",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 330,
@@ -20328,7 +20328,7 @@
    "position": "inner",
    "melody": "3-4",
    "chord": "ii",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 330,
@@ -20518,7 +20518,7 @@
    "position": "inner",
    "melody": "2-3",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 333,
@@ -20548,7 +20548,7 @@
    "position": "inner",
    "melody": "7-6",
    "chord": "vi",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 333,
@@ -20778,7 +20778,7 @@
    "position": "last",
    "melody": "2-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 338,
@@ -20798,7 +20798,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 338,
@@ -20858,7 +20858,7 @@
    "position": "last",
    "melody": "2-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 340,
@@ -20888,7 +20888,7 @@
    "position": "inner",
    "melody": "b6-5",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 340,
@@ -21038,7 +21038,7 @@
    "position": "inner",
    "melody": "4-5",
    "chord": "iii",
-   "class": "other"
+   "class": "resting point on a minor triad"
   },
   {
    "bach": 342,
@@ -21118,7 +21118,7 @@
    "position": "first",
    "melody": "7-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 344,
@@ -21148,7 +21148,7 @@
    "position": "last",
    "melody": "2-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 345,
@@ -21368,7 +21368,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 348,
@@ -21428,7 +21428,7 @@
    "position": "inner",
    "melody": "6-b7",
    "chord": "bVII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 349,
@@ -21448,7 +21448,7 @@
    "position": "inner",
    "melody": "2-b3",
    "chord": "bIII",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 349,
@@ -21617,7 +21617,7 @@
    "mode": "minor",
    "position": "inner",
    "melody": "4-5",
-   "chord": "i",
+   "chord": "V",
    "class": "other"
   },
   {
@@ -21648,7 +21648,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "bVI",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 352,
@@ -21678,7 +21678,7 @@
    "position": "inner",
    "melody": "2-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 353,
@@ -21688,7 +21688,7 @@
    "position": "inner",
    "melody": "#1-2",
    "chord": "ii",
-   "class": "other"
+   "class": "authentic, penultimate inverted"
   },
   {
    "bach": 353,
@@ -21708,7 +21708,7 @@
    "position": "last",
    "melody": "2-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 354,
@@ -21798,7 +21798,7 @@
    "position": "inner",
    "melody": "4-3",
    "chord": "VI",
-   "class": "other"
+   "class": "authentic, penultimate inverted"
   },
   {
    "bach": 355,
@@ -22048,7 +22048,7 @@
    "position": "inner",
    "melody": "b6-5",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 359,
@@ -22528,7 +22528,7 @@
    "position": "inner",
    "melody": "b6-5",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   },
   {
    "bach": 367,
@@ -22768,7 +22768,7 @@
    "position": "last",
    "melody": "2-1",
    "chord": "I",
-   "class": "other"
+   "class": "resting point on a major triad (a half cadence in the key reached?)"
   }
  ],
  "kittel": [
@@ -24197,7 +24197,7 @@
       ],
       [
        "[8]",
-       "iv"
+       "bVI"
       ]
      ]
     },
