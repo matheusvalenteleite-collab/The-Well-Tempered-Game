@@ -13,6 +13,7 @@ import type { Mode } from "./Root.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 import { HFader } from "./HFader.tsx";
 import { TransportButtons } from "./TransportButtons.tsx";
+import { EnsembleSelect } from "./EnsembleSelect.tsx";
 import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
 import { choraleGates, playChorale, prepareChoraleAudio } from "../audio/chorale-performance.ts";
 import { Shell } from "./Shell.tsx";
@@ -228,6 +229,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
             <span className="play-split">
               <TransportButtons playing={playing} pausedAt={pausedAt} onPlay={play} onStop={stop} label={t("chorale.play")} />
             </span>
+            <EnsembleSelect heard={heard} />
             <label className="check" title={t("ui.view.staves.open.help")}>
               <input type="checkbox" checked={openScore} onChange={(e) => setStaffLayout(e.target.checked ? "open" : "compact")} /> {t("ui.view.staves.open")}
             </label>

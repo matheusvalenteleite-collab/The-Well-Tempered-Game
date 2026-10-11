@@ -1577,6 +1577,17 @@
     "start": "Start writing"
   },
   "chorale": {
+    "ensemble": "Ensemble",
+    "ensemble.help": "Who performs the chorale: choir, four soloists, organ, string quartet, synthesizer, reeds, winds, or choir with orchestra (changes at once, even while it plays)",
+    "ensemble.piano": "Piano (the game's sound)",
+    "ensemble.choir": "Choir",
+    "ensemble.soloists": "Four soloists (one voice a part)",
+    "ensemble.organ": "Organ",
+    "ensemble.strings": "String quartet",
+    "ensemble.synth": "Synthesizer (after Wendy Carlos)",
+    "ensemble.reeds": "Reed quartet (oboes, bassoons)",
+    "ensemble.winds": "Wind quartet (flute, oboe, clarinet, bassoon)",
+    "ensemble.choirOrchestra": "Choir and orchestra (colla parte)",
     "level": "Level",
     "level.0": "Bach's settings · hear and read",
     "study.choose": "Choose one of Bach's 370 chorales",

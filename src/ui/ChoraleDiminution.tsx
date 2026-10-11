@@ -11,6 +11,7 @@ import type { Mode } from "./Root.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 import { HFader } from "./HFader.tsx";
 import { TransportButtons } from "./TransportButtons.tsx";
+import { EnsembleSelect } from "./EnsembleSelect.tsx";
 import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
 import { playChorale, prepareChoraleAudio } from "../audio/chorale-performance.ts";
 import { Shell } from "./Shell.tsx";
@@ -238,6 +239,7 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
             <span className="play-split">
               <TransportButtons playing={playing} pausedAt={pausedAt} onPlay={() => play()} onStop={stop} label={t("chorale.play")} />
             </span>
+            <EnsembleSelect />
             <label className="check" title={t("ui.view.staves.open.help")}>
               <input type="checkbox" checked={openScore} onChange={(e) => setStaffLayout(e.target.checked ? "open" : "compact")} /> {t("ui.view.staves.open")}
             </label>

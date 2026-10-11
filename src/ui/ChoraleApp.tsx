@@ -19,6 +19,7 @@ import type { Mode } from "./Root.tsx";
 import { MelodyScore, type MarkerState } from "./notation/MelodyScore.tsx";
 import { HFader } from "./HFader.tsx";
 import { TransportButtons } from "./TransportButtons.tsx";
+import { EnsembleSelect } from "./EnsembleSelect.tsx";
 import { playChoraleEvents, prepareChoraleAudio } from "../audio/chorale-performance.ts";
 import { HeaderTools } from "./HeaderTools.tsx";
 import { Shell } from "./Shell.tsx";
@@ -303,6 +304,7 @@ function ChoraleLevels({ onMode, onTutorial, level, levelSelect }: { onMode(mode
             <span className="play-split">
               <TransportButtons playing={playing} pausedAt={pausedAt === null ? null : Math.floor(pausedAt)} onPlay={() => play(playing || pausedAt !== null ? withChordsRef.current : true)} onStop={stop} label={t("chorale.play")} />
             </span>
+            <EnsembleSelect />
             <button onClick={() => play(false, 0)} disabled={playing} title={t("chorale.playMelody")}>{t("chorale.melodyOnly")}</button>
             <div className="hfaders">
               <HFader label={t("ui.tempo")} help={t("ui.tempo.help")} value={tempo} min={30} max={120} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
