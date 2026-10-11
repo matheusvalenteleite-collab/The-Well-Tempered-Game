@@ -34,6 +34,7 @@ import { applyStyle, type StyleId } from "../audio/styles.ts";
 import { ZOOM_MAX, ZOOM_MIN } from "./notation/zoom.ts";
 import { SoundDesk, trackOrder } from "./SoundDesk.tsx";
 import { HFader } from "./HFader.tsx";
+import { openClefs, useStaffLayout } from "./staff-layout.ts";
 import { TransportButtons } from "./TransportButtons.tsx";
 import { audio, store, stored, validDrumKit } from "./shared.ts";
 import { t } from "./i18n.ts";
@@ -609,6 +610,9 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
   // Placed by Fux's own lines (and the cantus), so that the staves do not change as the player writes.
   const means = [0, 1, 2].map((i) => (i === STEP.cantusIndex ? mean(STEP.cantus) : FUX ? mean(FUX[i]) : clefMiddle(STEP.clefs1725[i])));
   const layoutTwo = trioStaves(means);
+  // P4: the score as the player chose it, one staff a voice or the two staves.
+  const staffLayout = useStaffLayout();
+  const drawn = staffLayout === "open" ? { staff: [0, 1, 2], clefs: openClefs(means) } : layoutTwo;
   /** The moving voice's stems: up for the upper of two voices on a staff, down for the lower; alone, by register. */
   const stemOf = (i: number): 1 | -1 => {
     const mates = [0, 1, 2].filter((x) => x !== i && layoutTwo.staff[x] === layoutTwo.staff[i]);
@@ -620,7 +624,7 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
   const voices: TrioVoice[] = [0, 1, 2].map((i) => ({
     notes: i === STEP.cantusIndex ? STEP.cantus : sessions[i].notes,
     editable: i !== STEP.cantusIndex,
-    staff: layoutTwo.staff[i],
+    staff: drawn.staff[i],
     ...(i === STEP.movingIndex ? { per: STEP.per as 2 | 4 | 8, stem: stemOf(i) } : {}),
     ...(i === STEP.cantusIndex ? {} : { ink: INK[mine.indexOf(i)] }),
     ...(i !== STEP.cantusIndex && showFux && fuxOpen && FUX ? { fux: FUX[i] } : {}),
@@ -689,7 +693,7 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
           <TrioScore
             pulse={highlight ?? undefined}
             voices={voices}
-            clefs={layoutTwo.clefs}
+            clefs={drawn.clefs}
             active={activeStaff}
             selected={activeBar}
             selectedPart={activePart}
@@ -714,7 +718,7 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
             zoom={zoom}
             onZoom={setZoom}
             zoomLabels={{ in: t("ui.zoom.in"), out: t("ui.zoom.out"), reset: t("ui.zoom.reset") }}
-            tools={<ScoreTools view={{ names: names ? nameStyle : "off", intervals: figures, harmony }} onView={(v) => { setNames(v.names !== "off"); if (v.names !== "off") setNameStyle(v.names); setFigures(v.intervals); setHarmony(!!v.harmony); }} fux={{ open: fuxOpen, shown: showFux, onShow: setShowFux }} />}
+            tools={<ScoreTools view={{ names: names ? nameStyle : "off", intervals: figures, harmony }} onView={(v) => { setNames(v.names !== "off"); if (v.names !== "off") setNameStyle(v.names); setFigures(v.intervals); setHarmony(!!v.harmony); }} fux={{ open: fuxOpen, shown: showFux, onShow: setShowFux }}  staffChoice />}
           />
         </div>
       }

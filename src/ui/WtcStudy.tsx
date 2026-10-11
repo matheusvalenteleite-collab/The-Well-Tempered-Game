@@ -19,6 +19,7 @@
 import type { Mode } from "./Root.tsx";
 import { ModeSelect } from "./ModeSelect.tsx";
 import { keyBelongsToControl } from "./keys.ts";
+import { openClefs, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { chordName, chordTones, figurationChanges, figurationShare, findCadences, keyPlan, readHarmony, romanOf, type Chord } from "../wtc/harmony.ts";
 import { beatOf } from "../wtc/counterpoint.ts";
@@ -813,10 +814,18 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
    * the bass throughout; a middle voice on the staff its register needs, switching only when it
    * clearly leaves the other (above D4 or below A3 on average in the bar), as an engraver would.
    */
+  // P4: a fugue may be read one staff a voice (the player's choice); each voice's clef by its register.
+  const staffLayout = useStaffLayout();
+  const openScore = staffLayout === "open" && !isPrelude && count > 1;
+  const openClefList = useMemo(
+    () => openClefs(Array.from({ length: count }, (_, v) => { const ms = notes.filter((_, i) => voice[i] === v).map((n) => n.midi); return ms.reduce((a, m) => a + m, 0) / Math.max(1, ms.length); })),
+    [notes, voice, count],
+  );
   const staffOf = useMemo(() => {
-    const out = Array.from({ length: count }, () => new Array<0 | 1>(bars).fill(0));
+    if (openScore) return Array.from({ length: count }, (_, v) => new Array<number>(bars).fill(v));
+    const out = Array.from({ length: count }, () => new Array<number>(bars).fill(0));
     for (let v = 0; v < count; v++) {
-      let cur: 0 | 1 | null = null;
+      let cur: number | null = null;
       for (let b = 0; b < bars; b++) {
         const ms = notes.filter((n, i) => voice[i] === v && n.at < (b + 1) * barQ - 1e-6 && n.at + n.dur > b * barQ + 1e-6).map((n) => n.midi);
         if (count >= 2 && v === 0) cur = 0;
@@ -831,7 +840,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
       }
     }
     return out;
-  }, [notes, voice, count, bars, barQ]);
+  }, [notes, voice, count, bars, barQ, openScore]);
   /**
    * The voices of bars `fromBar`..`toBar` for the score, from the bar's start: each voice split by
    * the staff it is on in each bar; notes struck together in one voice drawn as a chord (those of
@@ -856,7 +865,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
           if (Math.abs(h.n.dur - x.n.dur) < 1e-6 && x.n.midi !== h.n.midi) h.chord.push(P.spelled[x.i] ?? spell(x.n.midi, sig, flats));
         } else heads.push({ ...x, chord: [] });
       }
-      for (const st of [0, 1] as const) {
+      for (const st of openScore ? [v] : [0, 1]) {
         const mine = heads.filter(({ n }) => staffOf[v][Math.max(0, Math.min(bars - 1, barOf(Math.max(n.at, q0))))] === st);
         if (!mine.length) continue;
         out.push({
@@ -949,10 +958,11 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
             </div>
           )}
           {view === "page" ? (
-            <WtcPage rows={pageRows} keySig={vexKey(F.key)} signature={sig} time={timeSig} barQuarters={barQ} selected={null} onSlot={() => undefined} />
+            <WtcPage rows={pageRows} clefs={openScore ? openClefList : undefined} keySig={vexKey(F.key)} signature={sig} time={timeSig} barQuarters={barQ} selected={null} onSlot={() => undefined} />
           ) : view === "score" ? (
             <WtcScore
               voices={scoreVoices}
+              clefs={openScore ? openClefList : undefined}
               keySig={vexKey(F.key)}
               signature={sig}
               time={timeSig}
@@ -999,6 +1009,11 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
               <button className="chipbtn" role="radio" aria-checked={view === "roll"} aria-pressed={view === "roll"} onClick={() => setView("roll")} title={t("ui.study.rollHelp")}>{t("ui.study.roll")}</button>
               <button className="chipbtn" role="radio" aria-checked={view === "score"} aria-pressed={view === "score"} onClick={() => setView("score")} title={t("ui.study.scoreHelp")}>{t("ui.study.score")}</button>
               <button className="chipbtn" role="radio" aria-checked={view === "page"} aria-pressed={view === "page"} onClick={() => setView("page")} title={t("ui.study.pageHelp")}>{t("ui.study.page")}</button>
+              {!isPrelude && view !== "roll" && (
+                <button className="chipbtn" aria-pressed={openScore} onClick={() => setStaffLayout(openScore ? "compact" : "open")} title={t(openScore ? "ui.view.staves.compact.help" : "ui.view.staves.open.help")}>
+                  {t("ui.view.staves.open")}
+                </button>
+              )}
               {view === "page" && (
                 <>
                   <button className="icon" onClick={() => setPageTop(Math.max(0, pageTop - 1))} disabled={pageTop === 0} aria-label={t("ui.study.pageUp")}>▲</button>

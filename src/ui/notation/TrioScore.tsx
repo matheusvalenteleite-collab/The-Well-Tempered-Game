@@ -18,11 +18,11 @@ import type { ModalFinal } from "../../music/fux/types.ts";
 import { pitchAtPosition, VEXFLOW_CLEF, type ClefId } from "./clefs.ts";
 import { Viewport } from "./Viewport.tsx";
 
-/** One voice: its notes, the staff it is drawn on (0 upper, 1 lower) and its ink. */
+/** One voice: its notes, the staff it is drawn on (0 the top one; P4: as many staves as `clefs`) and its ink. */
 export interface TrioVoice {
   notes: (string | null)[];
   editable: boolean;
-  staff: 0 | 1;
+  staff: number;
   /** CSS colour of its notes (none: the ink of the page). */
   ink?: string;
   /** Fux's notes for this voice, drawn as diamonds (player voices only). */
@@ -44,8 +44,8 @@ export interface TrioMark {
 
 interface Props {
   voices: TrioVoice[];
-  /** The clefs of the two staves. */
-  clefs: [ClefId, ClefId];
+  /** The clefs of the staves, top down: two (the compact score), or one a voice (P4, open score). */
+  clefs: ClefId[];
   /** The voice being written. */
   active: number;
   /** The selected bar, and (for the moving voice) which note of it. */
@@ -88,8 +88,10 @@ const barWidth = (voices: TrioVoice[]) => (voices.some((v) => v.per === 8) ? 216
 const FIFTH_DUR: Record<number, [string, number]> = { 1: ["8", 0], 2: ["q", 0], 3: ["q", 1], 4: ["h", 0], 5: ["h", 0], 6: ["h", 1], 7: ["h", 1], 8: ["w", 0] };
 const LEAD = 96;
 const NOTE_PAD = 14;
-const STAFF_Y = [28, 148];
-const HEIGHT = 300;
+/** The staves' places (P4: any number of them, 120 apart) and the height they need. */
+const STAFF_GAP = 120;
+const staffY = (i: number) => 28 + i * STAFF_GAP;
+const heightOf = (staves: number) => 300 + Math.max(0, staves - 2) * STAFF_GAP;
 
 /** The two staves in one line, zoomed and scrolled sideways like the two-voice score (D100). */
 export function TrioScore(p: Props) {
@@ -98,7 +100,7 @@ export function TrioScore(p: Props) {
   const natural = LEAD + bars * barW + 24;
   const playingX = p.cursor >= 0 ? LEAD + p.cursor * barW : null;
   return (
-    <Viewport natural={natural} naturalHeight={HEIGHT} zoom={p.zoom} onZoom={p.onZoom} zoomLabels={p.zoomLabels} tools={p.tools} playingX={playingX}>
+    <Viewport natural={natural} naturalHeight={heightOf(p.clefs.length)} zoom={p.zoom} onZoom={p.onZoom} zoomLabels={p.zoomLabels} tools={p.tools} playingX={playingX}>
       {(scale) => <TrioSystem {...p} from={0} to={bars - 1} scale={scale} last />}
     </Viewport>
   );
@@ -129,15 +131,15 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     const logicalWidth = Math.max(naturalW, p.fill ?? 0);
     const barW = (logicalWidth - start0 - 24) / n;
     const renderer = new Renderer(host, Renderer.Backends.SVG);
-    renderer.resize(Math.ceil(logicalWidth * p.scale), Math.ceil(HEIGHT * p.scale));
+    renderer.resize(Math.ceil(logicalWidth * p.scale), Math.ceil(heightOf(p.clefs.length) * p.scale));
     const ctx = renderer.getContext();
     ctx.scale(p.scale, p.scale);
     const svg = host.querySelector("svg")!;
     svg.setAttribute("role", "img");
     svg.setAttribute("aria-label", p.label);
     const staves = p.clefs.map((clef, i) => {
-      const s = new Stave(8, STAFF_Y[i], logicalWidth - 16);
-      s.addClef(VEXFLOW_CLEF[clef].clef);
+      const s = new Stave(8, staffY(i), logicalWidth - 16);
+      s.addClef(VEXFLOW_CLEF[clef].clef, "default", VEXFLOW_CLEF[clef].annotation);
       s.addTimeSignature("C|");
       s.setEndBarType(p.last ? 3 : 1);
       s.setContext(ctx);
@@ -155,7 +157,8 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
       ctx.fillRect(columns[j].left + 2, top, columns[j].right - columns[j].left - 4, bottom - top);
       ctx.restore();
     };
-    const whole = { top: band(0).top, bottom: band(1).bottom };
+    const last = staves.length - 1;
+    const whole = { top: band(0).top, bottom: band(last).bottom };
     for (const m of p.marks ?? []) {
       if (m.bar < p.from || m.bar > p.to) continue;
       fill(m.bar - p.from, whole.top, whole.bottom, m.severity === "error" ? "var(--mark-error)" : "var(--mark-warning)");
@@ -190,8 +193,9 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     if (p.cursor >= p.from && p.cursor <= p.to) fill(p.cursor - p.from, whole.top, whole.bottom, "var(--cursor)");
 
     staves.forEach((s) => s.draw());
-    new StaveConnector(staves[0], staves[1]).setType("singleLeft").setContext(ctx).draw();
-    new StaveConnector(staves[0], staves[1]).setType("brace").setContext(ctx).draw();
+    // Two staves: a keyboard's brace; one a voice (P4): a choir's bracket over them all.
+    new StaveConnector(staves[0], staves[last]).setType("singleLeft").setContext(ctx).draw();
+    new StaveConnector(staves[0], staves[last]).setType(staves.length === 2 ? "brace" : "bracket").setContext(ctx).draw();
     ctx.save();
     ctx.setFillStyle("currentColor");
     for (let j = 1; j < n; j++) staves.forEach((s) => ctx.fillRect(columns[j].left - 2, s.getYForLine(0), 1, s.getYForLine(4) - s.getYForLine(0)));
@@ -199,10 +203,14 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
 
     const placeNote = (i: number, pitch: string, x: number, ink: string | null, diamond: boolean, duration: string = "w", stem: 1 | -1 = 1, dots = 0) => {
       const clef = VEXFLOW_CLEF[p.clefs[i]].clef;
+      // A tenor's treble clef with an 8 below: written an octave above the sound.
+      const up = p.clefs[i] === "treble_8vb" ? 1 : 0;
+      const alone = p.voices.filter((v) => v.staff === i).length < 2;
       if (pitch === REST) {
-        // On the fourth line for the upper voice of a shared staff, the second for the lower one.
+        // On the fourth line for the upper voice of a shared staff, the second for the lower one;
+        // in the middle of a staff of its own.
         const bass = p.clefs[i] === "bass";
-        const key = stem === 1 ? (bass ? "f/3" : "d/5") : bass ? "b/2" : "g/4";
+        const key = alone ? (bass ? "d/3" : "b/4") : stem === 1 ? (bass ? "f/3" : "d/5") : bass ? "b/2" : "g/4";
         const r = new StaveNote({ keys: [key], duration: `${duration}r`, clef });
         if (dots) Dot.buildAndAttach([r], { all: true });
         if (ink) r.setStyle({ fillStyle: ink, strokeStyle: ink });
@@ -217,8 +225,9 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
       }
       const q = parsePitch(pitch);
       const acc = q.alter === 0 ? null : q.alter === 1 ? "#" : q.alter === -1 ? "b" : q.alter === 2 ? "##" : "bb";
-      const key = `${q.step.toLowerCase()}${acc ?? ""}/${q.octave}`;
-      const note = new StaveNote({ keys: [diamond ? `${key}/D` : key], duration, clef, stem_direction: stem });
+      const key = `${q.step.toLowerCase()}${acc ?? ""}/${q.octave + up}`;
+      // A voice on a staff of its own turns its stems by where its notes stand.
+      const note = new StaveNote({ keys: [diamond ? `${key}/D` : key], duration, clef, ...(alone ? { auto_stem: true } : { stem_direction: stem }) });
       if (acc) note.addModifier(new Accidental(acc));
       if (dots) Dot.buildAndAttach([note], { all: true });
       if (ink) note.setStyle({ fillStyle: ink, strokeStyle: ink });
@@ -237,7 +246,7 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     ctx.save();
     ctx.setFont("Inter, system-ui, sans-serif", 9);
     ctx.setFillStyle("var(--bar-number)");
-    for (let j = 0; j < n; j++) ctx.fillText(String(p.from + j + 1), columns[j].left + 4, STAFF_Y[0] + 20);
+    for (let j = 0; j < n; j++) ctx.fillText(String(p.from + j + 1), columns[j].left + 4, staffY(0) + 20);
     ctx.restore();
     // Each voice's notes in a bar: one semibreve, or the moving voice's slots.
     type Cell = { k: number; q: string | null; part: number; dur: string; dots?: number; tied?: boolean };
@@ -272,7 +281,7 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
       const cellW = (per: number) => (columns[j].right - columns[j].left) / per;
       // Two voices a second apart (or in unison) on one staff: the lower one steps to the right.
       const shift = p.voices.map(() => 0);
-      for (const st of [0, 1]) {
+      for (let st = 0; st < staves.length; st++) {
         const on = p.voices.map((v, i) => ({ i, q: v.per ? ((c) => (c && c.part === 0 && c.q !== REST ? c.q : null))(inBar(v, bar, v.notes)[0]) : v.notes[bar] })).filter((x) => x.q && p.voices[x.i].staff === st).sort((a, b) => parsePitch(b.q!).diatonic - parsePitch(a.q!).diatonic);
         for (let k = 1; k < on.length; k++) if (parsePitch(on[k - 1].q!).diatonic - parsePitch(on[k].q!).diatonic <= 1 && !shift[on[k - 1].i]) shift[on[k].i] = 15;
       }
@@ -327,7 +336,7 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
           ctx.save();
           ctx.setFont("'EB Garamond', Garamond, Georgia, serif", 12);
           ctx.setFillStyle("var(--ink-muted)");
-          figs.forEach((text, k) => ctx.fillText(text, x + 2, staves[1].getYForLine(4) + 34 + k * 13));
+          figs.forEach((text, k) => ctx.fillText(text, x + 2, staves[last].getYForLine(4) + 34 + k * 13));
           ctx.restore();
         }
       }
@@ -338,7 +347,7 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
           ctx.save();
           ctx.setFont("'EB Garamond', Garamond, Georgia, serif", 13);
           ctx.setFillStyle("var(--harmony-ink, #7a5a1a)");
-          ctx.fillText(h.guessed ? `(${h.roman})` : h.roman, x - 2, staves[1].getYForLine(4) + 34 + (p.figures ? 30 : 0));
+          ctx.fillText(h.guessed ? `(${h.roman})` : h.roman, x - 2, staves[last].getYForLine(4) + 34 + (p.figures ? 30 : 0));
           ctx.restore();
         }
       }

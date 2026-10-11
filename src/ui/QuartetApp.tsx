@@ -33,6 +33,7 @@ import { applyStyle, type StyleId } from "../audio/styles.ts";
 import { ZOOM_MAX, ZOOM_MIN } from "./notation/zoom.ts";
 import { SoundDesk, trackOrder } from "./SoundDesk.tsx";
 import { HFader } from "./HFader.tsx";
+import { openClefs, useStaffLayout } from "./staff-layout.ts";
 import { TransportButtons } from "./TransportButtons.tsx";
 import { audio, store, stored, validDrumKit } from "./shared.ts";
 import { t } from "./i18n.ts";
@@ -548,6 +549,9 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
   };
   const means = PARTS.map((i) => (i === STEP.cantusIndex ? mean(STEP.cantus) : STEP.fux ? mean(STEP.fux[i]) : N === 4 ? PART_CENTRE[i] : clefMiddle(STEP.clefs1725[i])));
   const staves = N === 4 ? quartetStaves(means) : trioStaves(means);
+  // P4: the score as the player chose it, one staff a voice or the two staves.
+  const staffLayout = useStaffLayout();
+  const drawn = staffLayout === "open" ? { staff: PARTS, clefs: openClefs(means) } : staves;
   const stemOf = (i: number): 1 | -1 => {
     const mates = PARTS.filter((x) => x !== i && staves.staff[x] === staves.staff[i]);
     if (mates.length) return means[i] >= Math.max(...mates.map((x) => means[x])) ? 1 : -1;
@@ -561,7 +565,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
     return {
       notes: isCantus ? cantusLine : sessions[i].notes,
       editable: !isCantus,
-      staff: staves.staff[i],
+      staff: drawn.staff[i],
       ...(GRID ? { per: 8 as const, stem: stemOf(i) } : {}),
       ...(isCantus ? {} : { ink: INK[mine.indexOf(i)] }),
       ...(!isCantus && showFux && fuxOpen && STEP.fux ? { fux: STEP.fux[i] } : {}),
@@ -648,7 +652,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
           <TrioScore
             pulse={highlight ?? undefined}
             voices={voices}
-            clefs={staves.clefs}
+            clefs={drawn.clefs}
             active={activeStaff}
             selected={activeBar}
             selectedPart={activePart}
@@ -673,7 +677,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
             zoom={zoom}
             onZoom={setZoom}
             zoomLabels={{ in: t("ui.zoom.in"), out: t("ui.zoom.out"), reset: t("ui.zoom.reset") }}
-            tools={<ScoreTools view={{ names: names ? nameStyle : "off", intervals: figures, harmony }} onView={(v) => { setNames(v.names !== "off"); if (v.names !== "off") setNameStyle(v.names); setFigures(v.intervals); setHarmony(!!v.harmony); }} fux={{ open: fuxOpen, shown: showFux, onShow: setShowFux }} />}
+            tools={<ScoreTools view={{ names: names ? nameStyle : "off", intervals: figures, harmony }} onView={(v) => { setNames(v.names !== "off"); if (v.names !== "off") setNameStyle(v.names); setFigures(v.intervals); setHarmony(!!v.harmony); }} fux={{ open: fuxOpen, shown: showFux, onShow: setShowFux }} staffChoice />}
           />
         </div>
       }
