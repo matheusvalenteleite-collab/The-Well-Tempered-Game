@@ -4,7 +4,7 @@ import { loadFuxRepository } from "../src/music/fux/load-node.ts";
 import { ALL_STEPS, rulesForStep } from "../src/counterpoint/curriculum/index.ts";
 import { exerciseView } from "../src/game/exercise-view.ts";
 import { evaluate } from "../src/counterpoint/engine.ts";
-import { slotLayout, sounding, timeline, tiedToNext } from "../src/counterpoint/layout.ts";
+import { HOLD, slotLayout, sounding, timeline, tiedToNext } from "../src/counterpoint/layout.ts";
 
 const repo = loadFuxRepository();
 const steps = ALL_STEPS.filter((s) => s.species === "third" || s.species === "fourth");
@@ -108,4 +108,17 @@ test("fourth species: a ligature where possible (D62): Fux's omissions were poss
   const ev = judge("fux-mode.s4.05", broken);
   assert.ok(ids(ev).includes("fos.ligature-where-possible"), JSON.stringify(ids(ev)));
   assert.ok(!ids(judge("fux-mode.s4.05", v.fux!)).includes("fos.ligature-where-possible"));
+});
+
+test("fourth and fifth species: no ligature from the octave to the ninth, cantus below (pp. 71-72; the octave's `simple` is 1)", () => {
+  // Cantus E4 then D4 under a held E5: the octave above E4 becomes a ninth above D4, resolving to the octave.
+  const cf = ["D4", "E4", "D4", "E4", "D4"];
+  const cantus = cf.map((p) => ({ pitch: p, duration: "1/1" }));
+  const halves = [null, "A4", "A4", "E5", "E5", "D5", "D5", "C#5", "D5"];
+  const fourth = evaluate({ species: "fourth", modalFinal: "D", cantusVoice: "lower", cantus, counterpoint: halves.map((p, k) => ({ pitch: p, duration: k === 8 ? "1/1" : "1/2" })) }, rulesForStep("fux-mode.s4.01"));
+  assert.ok(fourth.violations.some((x) => x.ruleId === "fos.ligature-kinds"), JSON.stringify(fourth.violations.map((x) => x.ruleId)));
+  // The same line in fifth species: eighths, each half note held (~) over its other three, tied over the bar line.
+  const eighths = halves.slice(0, 8).flatMap((p, k) => (k > 0 && p === halves[k - 1] ? [HOLD, HOLD, HOLD, HOLD] : [p, ...(p ? [HOLD, HOLD, HOLD] : [null, null, null])]));
+  const fifth = evaluate({ species: "fifth", modalFinal: "D", cantusVoice: "lower", cantus, counterpoint: [...eighths, "D5"].map((p, k) => ({ pitch: p, duration: k === 32 ? "1/1" : "1/8" })) }, rulesForStep("fux-mode.s5.01"));
+  assert.ok(fifth.violations.some((x) => x.ruleId === "fis.suspension"), JSON.stringify(fifth.violations.map((x) => x.ruleId)));
 });

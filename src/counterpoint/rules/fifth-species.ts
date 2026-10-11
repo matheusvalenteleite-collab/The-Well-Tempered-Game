@@ -73,7 +73,7 @@ export const suspension: Rule = {
       const resolved = below(res) || (below(half) && between.every((x) => isConsonant(vert(x))));
       const now = vert(e).simple;
       const from = prep ? vert(prep) : null;
-      const badKind = a.input.cantusVoice === "lower" ? !!from && now === 2 && (from.simple === 8 || from.number === 1) : now === 7;
+      const badKind = a.input.cantusVoice === "lower" ? !!from && now === 2 && from.simple === 1 : now === 7;
       if (!prepared || !resolved || badKind) out.push(v(this, res ? [e.slot, res.slot] : [e.slot], { interval: vert(e).name }));
     });
     return out;
