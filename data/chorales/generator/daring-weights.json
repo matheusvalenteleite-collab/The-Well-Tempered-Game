@@ -1,1 +1,63 @@
-{ "generated_by": "tools/chorales/daring_report.ts", "levels": {} }
+{
+ "generated_by": "tools/chorales/daring_report.ts",
+ "target_per_100_chords_level_1": {
+  "chromatic-bass": 0.42395978438616677,
+  "mixture": 0.31494155411543817,
+  "diminished-seventh": 0.5632608563987644,
+  "evaded-dominant": 0.8721458421658288,
+  "distant-close": 0.18775361879958816,
+  "open-close": 0.08479195687723336
+ },
+ "levels": {
+  "1": {
+   "chromatic-bass": 4.19,
+   "mixture": -2.62,
+   "diminished-seventh": 0.45,
+   "evaded-dominant": -4.5,
+   "distant-close": 1.11,
+   "open-close": 5.2
+  },
+  "2": {
+   "chromatic-bass": 5.7,
+   "mixture": -1.24,
+   "diminished-seventh": 0.59,
+   "evaded-dominant": -3.66,
+   "distant-close": 4.8,
+   "open-close": 14
+  },
+  "3": {
+   "chromatic-bass": 6.66,
+   "mixture": -0.33,
+   "diminished-seventh": 0.69,
+   "evaded-dominant": -2.95,
+   "distant-close": 8.5,
+   "open-close": 14
+  }
+ },
+ "log": [
+  "level 1 iteration 0: error 6.74; chromatic-bass 0.02/0.42 (λ 0.0), mixture 0.34/0.31 (λ 0.0), diminished-seventh 0.12/0.56 (λ 0.0), evaded-dominant 1.46/0.87 (λ 0.0), distant-close 0.15/0.19 (λ 0.0), open-close 0.02/0.08 (λ 0.0)",
+  "level 1 iteration 1: error 4.07; chromatic-bass 0.29/0.42 (λ 2.9), mixture 0.43/0.31 (λ -0.1), diminished-seventh 1.38/0.56 (λ 1.8), evaded-dominant 1.55/0.87 (λ -0.7), distant-close 0.12/0.19 (λ 0.2), open-close 0.03/0.08 (λ 1.0)",
+  "level 1 iteration 2: error 2.23; chromatic-bass 0.33/0.42 (λ 3.3), mixture 0.42/0.31 (λ -0.5), diminished-seventh 0.60/0.56 (λ 0.6), evaded-dominant 1.61/0.87 (λ -1.5), distant-close 0.17/0.19 (λ 0.7), open-close 0.05/0.08 (λ 1.8)",
+  "level 1 iteration 3: error 2.21; chromatic-bass 0.39/0.42 (λ 3.7), mixture 0.46/0.31 (λ -0.9), diminished-seventh 0.65/0.56 (λ 0.5), evaded-dominant 1.41/0.87 (λ -2.4), distant-close 0.19/0.19 (λ 0.8), open-close 0.03/0.08 (λ 2.3)",
+  "level 1 iteration 4: error 2.03; chromatic-bass 0.34/0.42 (λ 3.8), mixture 0.42/0.31 (λ -1.4), diminished-seventh 0.56/0.56 (λ 0.3), evaded-dominant 1.29/0.87 (λ -3.0), distant-close 0.17/0.19 (λ 0.8), open-close 0.03/0.08 (λ 3.0)",
+  "level 1 iteration 5: error 2.07; chromatic-bass 0.37/0.42 (λ 4.0), mixture 0.46/0.31 (λ -1.7), diminished-seventh 0.62/0.56 (λ 0.3), evaded-dominant 1.19/0.87 (λ -3.5), distant-close 0.17/0.19 (λ 0.9), open-close 0.03/0.08 (λ 3.7)",
+  "level 1 iteration 6: error 2.05; chromatic-bass 0.43/0.42 (λ 4.2), mixture 0.43/0.31 (λ -2.2), diminished-seventh 0.46/0.56 (λ 0.2), evaded-dominant 1.27/0.87 (λ -4.0), distant-close 0.17/0.19 (λ 1.0), open-close 0.03/0.08 (λ 4.5)",
+  "level 1 iteration 7: error 1.68; chromatic-bass 0.42/0.42 (λ 4.2), mixture 0.42/0.31 (λ -2.6), diminished-seventh 0.64/0.56 (λ 0.5), evaded-dominant 1.21/0.87 (λ -4.5), distant-close 0.15/0.19 (λ 1.1), open-close 0.05/0.08 (λ 5.2)",
+  "level 2 iteration 0: error 5.01; chromatic-bass 0.42/0.85 (λ 4.2), mixture 0.42/0.63 (λ -2.6), diminished-seventh 0.64/1.13 (λ 0.5), evaded-dominant 1.21/1.74 (λ -4.5), distant-close 0.15/0.38 (λ 1.1), open-close 0.05/0.17 (λ 5.2)",
+  "level 2 iteration 1: error 3.05; chromatic-bass 0.71/0.85 (λ 5.1), mixture 0.50/0.63 (λ -2.1), diminished-seventh 1.36/1.13 (λ 1.2), evaded-dominant 1.63/1.74 (λ -4.0), distant-close 0.17/0.38 (λ 2.2), open-close 0.05/0.17 (λ 6.4)",
+  "level 2 iteration 2: error 2.65; chromatic-bass 0.77/0.85 (λ 5.4), mixture 0.48/0.63 (λ -1.8), diminished-seventh 1.18/1.13 (λ 1.0), evaded-dominant 1.56/1.74 (λ -3.9), distant-close 0.25/0.38 (λ 3.1), open-close 0.03/0.17 (λ 7.6)",
+  "level 2 iteration 3: error 2.50; chromatic-bass 0.73/0.85 (λ 5.5), mixture 0.51/0.63 (λ -1.4), diminished-seventh 1.24/1.13 (λ 0.9), evaded-dominant 1.73/1.74 (λ -3.7), distant-close 0.26/0.38 (λ 3.6), open-close 0.03/0.17 (λ 9.0)",
+  "level 2 iteration 4: error 1.89; chromatic-bass 0.85/0.85 (λ 5.7), mixture 0.56/0.63 (λ -1.1), diminished-seventh 1.32/1.13 (λ 0.8), evaded-dominant 1.77/1.74 (λ -3.7), distant-close 0.29/0.38 (λ 4.1), open-close 0.05/0.17 (λ 10.5)",
+  "level 2 iteration 5: error 2.00; chromatic-bass 0.81/0.85 (λ 5.7), mixture 0.67/0.63 (λ -1.0), diminished-seventh 1.10/1.13 (λ 0.6), evaded-dominant 1.58/1.74 (λ -3.7), distant-close 0.31/0.38 (λ 4.4), open-close 0.03/0.17 (λ 11.6)",
+  "level 2 iteration 6: error 1.68; chromatic-bass 0.88/0.85 (λ 5.8), mixture 0.73/0.63 (λ -1.0), diminished-seventh 1.13/1.13 (λ 0.6), evaded-dominant 1.81/1.74 (λ -3.6), distant-close 0.33/0.38 (λ 4.6), open-close 0.05/0.17 (λ 13.1)",
+  "level 2 iteration 7: error 1.28; chromatic-bass 0.77/0.85 (λ 5.7), mixture 0.64/0.63 (λ -1.2), diminished-seventh 1.07/1.13 (λ 0.6), evaded-dominant 1.69/1.74 (λ -3.7), distant-close 0.31/0.38 (λ 4.8), open-close 0.08/0.17 (λ 14.0)",
+  "level 3 iteration 0: error 4.50; chromatic-bass 0.77/1.27 (λ 5.7), mixture 0.64/0.94 (λ -1.2), diminished-seventh 1.07/1.69 (λ 0.6), evaded-dominant 1.69/2.62 (λ -3.7), distant-close 0.31/0.56 (λ 4.8), open-close 0.08/0.25 (λ 14.0)",
+  "level 3 iteration 1: error 3.41; chromatic-bass 1.08/1.27 (λ 6.4), mixture 0.77/0.94 (λ -0.7), diminished-seventh 2.31/1.69 (λ 1.2), evaded-dominant 2.37/2.62 (λ -3.0), distant-close 0.28/0.56 (λ 5.6), open-close 0.06/0.25 (λ 14.0)",
+  "level 3 iteration 2: error 2.30; chromatic-bass 1.18/1.27 (λ 6.6), mixture 0.85/0.94 (λ -0.4), diminished-seventh 1.67/1.69 (λ 0.8), evaded-dominant 2.51/2.62 (λ -2.9), distant-close 0.37/0.56 (λ 6.5), open-close 0.06/0.25 (λ 14.0)",
+  "level 3 iteration 3: error 2.27; chromatic-bass 1.38/1.27 (λ 6.7), mixture 0.88/0.94 (λ -0.3), diminished-seventh 1.67/1.69 (λ 0.8), evaded-dominant 2.59/2.62 (λ -2.8), distant-close 0.36/0.56 (λ 7.0), open-close 0.06/0.25 (λ 14.0)",
+  "level 3 iteration 4: error 2.05; chromatic-bass 1.19/1.27 (λ 6.6), mixture 0.94/0.94 (λ -0.2), diminished-seventh 1.77/1.69 (λ 0.8), evaded-dominant 2.52/2.62 (λ -2.8), distant-close 0.36/0.56 (λ 7.6), open-close 0.08/0.25 (λ 14.0)",
+  "level 3 iteration 5: error 2.08; chromatic-bass 1.33/1.27 (λ 6.7), mixture 0.99/0.94 (λ -0.2), diminished-seventh 1.77/1.69 (λ 0.8), evaded-dominant 2.80/2.62 (λ -2.8), distant-close 0.51/0.56 (λ 8.2), open-close 0.05/0.25 (λ 14.0)",
+  "level 3 iteration 6: error 1.80; chromatic-bass 1.24/1.27 (λ 6.6), mixture 0.99/0.94 (λ -0.3), diminished-seventh 1.69/1.69 (λ 0.7), evaded-dominant 2.77/2.62 (λ -2.9), distant-close 0.50/0.56 (λ 8.3), open-close 0.06/0.25 (λ 14.0)",
+  "level 3 iteration 7: error 1.58; chromatic-bass 1.29/1.27 (λ 6.7), mixture 0.99/0.94 (λ -0.3), diminished-seventh 1.70/1.69 (λ 0.7), evaded-dominant 2.73/2.62 (λ -3.0), distant-close 0.50/0.56 (λ 8.5), open-close 0.08/0.25 (λ 14.0)"
+ ]
+}
