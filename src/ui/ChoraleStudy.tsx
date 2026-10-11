@@ -16,7 +16,9 @@ import { TransportButtons } from "./TransportButtons.tsx";
 import { figureLabel } from "../counterpoint/interval.ts";
 import { EnsembleSelect } from "./EnsembleSelect.tsx";
 import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
-import { choraleGates, fermataWordsOf, playChorale, prepareChoraleAudio } from "../audio/chorale-performance.ts";
+import { choraleGates, fermataLinesOf, fermataWordsOf, playChorale, prepareChoraleAudio } from "../audio/chorale-performance.ts";
+import { guideNotes } from "../music/chorale-guide.ts";
+import { GuideCaption, GuideList, GuideModeSelect, marker, useGuideMode } from "./ListeningGuide.tsx";
 import { Shell } from "./Shell.tsx";
 import { WtcPage, type WtcScoreVoice, planClefs } from "./notation/WtcScore.tsx";
 import { pageRows, useRowBars } from "./notation/page-rows.ts";
@@ -92,6 +94,8 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
 
   /** The bar a pause left the playback at (P2, P5): ▶ goes on from there. */
   const [pausedAt, setPausedAt] = useState<number | null>(null);
+  // P17: the listening guide (captions while playing, markers, or none).
+  const [guideMode, setGuideMode] = useGuideMode();
   const stop = () => {
     audio.stop();
     if (timer.current) window.clearInterval(timer.current);
@@ -117,6 +121,15 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
     const struck = new Map<string, number>();
     for (const h of ch.harmony) for (const [v, k] of h[4] ?? []) struck.set(`${v}|${h[0]}`, k);
     const cadAt = new Map(ch.cadences.map((c) => [c[0], c]));
+    // P17: the guide's moments, placed in their bars; the line sung from each phrase start.
+    const drawnBar = (u: number) => Math.floor((u + shift) / barUnits);
+    const shownBar = (u: number) => drawnBar(u) + (ch.pickup ? 0 : 1);
+    const moments = guideNotes(ch).map((item, index) => ({ item, index, bar: drawnBar(item.at), shown: shownBar(item.at) }));
+    const ends = ch.voices[0].filter((n) => n[3]).map((n) => n[0] + n[1]);
+    const lines = (fermataLinesOf(ch.n) ?? []).map((item, index) => {
+      const at = index ? ends[index - 1] ?? 0 : 0;
+      return { item, index, bar: drawnBar(at), shown: shownBar(at) };
+    });
     const voices: WtcScoreVoice[] = ch.voices.map((notes, v) => ({
       staff: openScore ? v : v < 2 ? 0 : 1,
       ink: NOTE_INK,
@@ -125,6 +138,9 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
         const kind = layers.incidental ? struck.get(`${v}|${at}`) : undefined;
         // The cadence named over the soprano's note at the phrase end.
         const cad = v === 0 && layers.cadences ? [...cadAt.values()].find((c) => c[0] >= at && c[0] < at + dur) : undefined;
+        // P17: the guide's markers over the soprano's note sounding at each moment.
+        const marks = v === 0 && guideMode !== "off" ? moments.filter((m) => m.item.at >= at && m.item.at < at + dur).map((m) => marker(m.index)).join("") : "";
+        const label = [marks, cad ? `${t(`chorale.study.cad.${CADENCE_SHORT[cad[1]] ?? "other"}`)} ${cad[2]}`.trim() : ""].filter(Boolean).join(" ");
         return {
           pitch,
           at: quarters(at),
@@ -132,7 +148,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
           // On the outer voices only: on all four they crowd between the staves.
           fermata: Boolean(fermata) && (openScore || v === 0 || v === 3),
           ...(kind !== undefined ? { ink: KIND_INK[kind] } : {}),
-          ...(cad ? { label: `${t(`chorale.study.cad.${CADENCE_SHORT[cad[1]] ?? "other"}`)} ${cad[2]}`.trim() } : {}),
+          ...(label ? { label } : {}),
         };
       }),
     }));
@@ -149,8 +165,8 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
     const rows = pageRows({ voices, under, barQ, bars, rowBars, cursor, key: String(ch.n), label: (a, z) => t("chorale.study.rowLabel", { n: ch.n, title: ch.title, a: a + (ch.pickup ? 0 : 1), b: z - (ch.pickup ? 1 : 0) }) });
     // P15: one clef plan for the whole chorale, so that the clefs hold across the rows.
     const clefPlan = openScore ? planClefs(voices, CHORALE_CLEFS, barQ) : undefined;
-    return { rows, barQ, barUnits, shift, clefPlan };
-  }, [ch, data, layers, cursor, rowBars, openScore]);
+    return { rows, barQ, barUnits, shift, clefPlan, moments, lines };
+  }, [ch, data, layers, cursor, rowBars, openScore, guideMode]);
 
   // P5: through the live loop (tempo and the voices heard apply at once), with a pause.
   const play = () => {
@@ -214,6 +230,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
       }
       transport={
         <div className="controls chorale-controls">
+          {guideMode === "captions" && view && <GuideCaption moments={view.moments} lines={view.lines} cursor={playing || pausedAt !== null ? Math.max(0, cursor) : -1} />}
           <div className="group" role="group" aria-label={t("chorale.study.layers")}>
             {(["cadences", "figures", "fundamental", "incidental"] as const).map((k) => (
               <label key={k} className="check" title={t(`chorale.study.layer.${k}.help`)}>
@@ -233,6 +250,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
               <TransportButtons playing={playing} pausedAt={pausedAt} onPlay={play} onStop={stop} label={t("chorale.play")} />
             </span>
             <EnsembleSelect heard={heard} />
+            <GuideModeSelect mode={guideMode} onMode={setGuideMode} />
             <label className="check" title={t("ui.view.staves.open.help")}>
               <input type="checkbox" checked={openScore} onChange={(e) => setStaffLayout(e.target.checked ? "open" : "compact")} /> {t("ui.view.staves.open")}
             </label>
@@ -280,6 +298,12 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
               {ch.kittel && <p className="help">{t("chorale.study.kittel", { list: ch.kittel.join(", ") })}</p>}
             </div>
           ) : null,
+        },
+        {
+          id: "guide",
+          label: t("listen.tab"),
+          text: true,
+          content: view ? <GuideList moments={view.moments} lines={view.lines} /> : null,
         },
         {
           id: "about",

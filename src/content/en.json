@@ -1888,5 +1888,33 @@
     "plan.about.1": "{title} repeats one figuration in most of its bars, like Prelude 1: what changes from bar to bar is the harmony. The bars that break the pattern (the opening, the cadenzas, the coda) sound as Bach wrote them.",
     "plan.about.2": "For each figured bar choose its right hand: Bach's, or the right hand of a bar one or two before or after it (the harmony held or anticipated) over this bar's left hand. Each choice sounds as you make it.",
     "plan.about.3": "Compare sets your plan beside Bach's, with the fundamental chord of each bar as the WTC harmonic reader reads it (measured against human analyses: docs/wtc/HARMONY.md). The notes come from the Mutopia edition (public domain), checked against the Humdrum edition."
+  },
+  "listen": {
+    "mode": "Listening guide",
+    "mode.help": "Notes on moments worth hearing: shown as captions while the chorale plays, or only as numbered markers over the score",
+    "mode.captions": "Guide: captions",
+    "mode.markers": "Guide: markers",
+    "mode.off": "Guide: off",
+    "tab": "Guide",
+    "line": "Line {n}: «{text}»",
+    "bar": "Bar {bar}",
+    "idle": "Press ▶: the guide's notes appear here as the music reaches them.",
+    "none": "Nothing out of the ordinary is flagged in this chorale. Listen to its lines and where each comes to rest.",
+    "about": "These notes are read off the notes themselves, for every chorale: they say what happens and what to listen for, not what Bach meant by it. At most eight a chorale, the most telling first.",
+    "words": "Words: the first stanza as the Chorale-Corpus edition gives it (Gertim Alberda's transcription).",
+    "picardy": "The chorale is in the minor, yet its last chord is {tonic} major: the third is raised at the very end (a “Picardy third”). Listen for the warmth of that final chord.",
+    "deceptive": "The music leans toward home but steps aside to {chord} instead (a deceptive cadence). The ear expects rest; the phrase stays open.",
+    "phrygian": "A Phrygian cadence: the bass sinks a half step onto a major chord while the soprano rises. The line ends like a question, a close inherited from the old church modes.",
+    "farKey": "This line comes to rest on {chord}, an unusual resting place in {tonic}: fewer than one phrase in fifty in Bach's chorales ends there.",
+    "relativeMajor": "The first line to close on the major chord of the relative key ({chord}): after the minor, the music opens out.",
+    "chromatic.down": "The {voice} sinks by half steps from {from} to {to}. Theorists of the time (Christoph Bernhard) called such a line passus duriusculus, a “rather hard passage”; Baroque music uses it for pain and lament.",
+    "chromatic.up": "The {voice} climbs by half steps from {from} to {to}, each step tightening the harmony. Theorists of the time (Christoph Bernhard) called such a line passus duriusculus, a “rather hard passage”.",
+    "diminished": "A diminished seventh chord: four notes each a minor third apart, among the most tense sounds in Bach's harmony. Listen for the bite, and for where it resolves.",
+    "neapolitan": "A Neapolitan chord ({chord} major, a half step above the tonic): a dark, poignant colour on the way to the cadence.",
+    "falseRelation": "A false relation: {first} in the {firstVoice} is followed at once by {second} in the {secondVoice}. The two forms of one note rub against each other, a sharp and deliberate tang.",
+    "suspensions": "A chain of suspensions: one voice after another holds its note while the harmony moves under it, making a dissonance, then gives way a step down. Tension, release, tension again.",
+    "pedal": "The bass stays on {note} while the chords change above it (a pedal point): the harmony moves over an anchor.",
+    "borrowed": "A shadow over the major: {chord}, a chord borrowed from {tonic} minor.",
+    "summit": "The melody reaches its highest note, {note}, only here. Hear how the other voices carry it."
   }
 }

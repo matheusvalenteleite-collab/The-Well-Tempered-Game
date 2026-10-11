@@ -348,6 +348,12 @@ export function fermataWordsOf(n: number): (string | null)[][] | undefined {
   return c?.fermatas.map((f) => f.punct);
 }
 
+/** P17: the words of each line, at its fermata (the first stanza line that sings it), for the listening guide. */
+export function fermataLinesOf(n: number): (string | null)[] | undefined {
+  const c = (fermataWordsData as unknown as { chorales: Record<string, { fermatas: { line?: (string | null)[] }[] }> }).chorales[`chor${String(n).padStart(3, "0")}`];
+  return c?.fermatas.map((f) => (f.line ?? []).find((x) => x)?.replace(/^\d+\.\s*/, "") ?? null);
+}
+
 /** The reading chosen on the chorale screens (P14), set by its menu; "context" by default. */
 let readingNow: Reading = "context";
 export const currentReading = () => readingNow;

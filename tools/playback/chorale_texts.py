@@ -76,6 +76,18 @@ def punct(s):
     return ""
 
 
+def join(syl):
+    """Syllables into words: "mei-" "-nes" -> "meines"."""
+    out = ""
+    for x in syl:
+        x = x.lstrip("-") if out.endswith("\x00") else (" " + x if out else x)
+        out = out.replace("\x00", "")
+        if x.endswith("-"):
+            x = x[:-1] + "\x00"
+        out += x
+    return out.replace("\x00", "").strip()
+
+
 iv = lambda s: [b - a for a, b in zip(s, s[1:])]
 pieces = sorted(os.path.basename(p)[: -len(".notes.tsv")] for p in glob.glob(C + "/notes/*.notes.tsv"))
 cso = {p: csop(p) for p in pieces}
@@ -94,20 +106,26 @@ for kf in sorted(glob.glob(K + "/chor*.krn")):
     for bl in sm.get_matching_blocks():
         for t in range(bl.size + 1):
             mp[bl.a + t] = bl.b + t
-    fermatas, last = [], None
+    fermatas, last, sung = [], None, {}
     for i, (m, ferm) in enumerate(ks):
         j = mp.get(i)
         if j is not None and cs[j][1] and any(x.strip() for x in cs[j][1]):
             last = cs[j][1]
+            for k, x in enumerate(cs[j][1]):
+                if x.strip():
+                    sung.setdefault(k, []).append(x.strip())
         if ferm:
             lines = [x.strip() for x in (last or [])]
-            fermatas.append({"punct": [punct(x) if x else None for x in lines], "word": next((x for x in lines if x), "")})
+            # The words of the line ending here, in each stanza line that sings it (the guide quotes them).
+            text = [join(sung[k]) if sung.get(k) else None for k in range(len(lines))]
+            sung = {}
+            fermatas.append({"punct": [punct(x) if x else None for x in lines], "word": next((x for x in lines if x), ""), "line": text})
     out[c] = {"piece": piece, "match": round(score, 3), "fermatas": fermatas}
 os.makedirs("data/playback", exist_ok=True)
 json.dump(
     {
         "source": "Chorale-Corpus, Bach_JS (Gertim Alberda's transcription; github.com/Chorale-Corpus/Bach_JS), CC BY-NC-SA 4.0",
-        "note": "Per chorale, each soprano fermata in order: the punctuation ending the syllable sung there in every stanza line ('.', ':', ',', '' none; null: no words in that line) and the first line's word.",
+        "note": "Per chorale, each soprano fermata in order: the punctuation ending the syllable sung there in every stanza line ('.', ':', ',', '' none; null: no words in that line) and the first line's word; and the line's words in each stanza line (line).",
         "chorales": out,
     },
     open("data/playback/chorale-fermatas.json", "w", encoding="utf-8"),
