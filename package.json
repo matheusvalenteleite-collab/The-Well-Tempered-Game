@@ -23,6 +23,7 @@
     "build:artifact": "node tools/sample-manifest.mjs && tsc --noEmit && vite build --mode artifact",
     "preview": "vite preview",
     "chorales:concordance": "python3 tools/chorales/concordance.py",
+    "chorales:generator": "python3 tools/chorales/generator_data.py && node tools/chorales/generator_report.ts",
     "chorales:analyse": "python3 tools/chorales/bach_analyse.py && python3 tools/chorales/kittel_analyse.py && python3 tools/chorales/principles.py"
   },
   "devDependencies": {

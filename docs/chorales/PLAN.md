@@ -157,3 +157,14 @@ derived fact can be traced back to the source.
 - Fixed while building it: a fermata written on the second half of a tied note was lost when the
   ties were merged (Kittel No. 23's last phrase; 13 phrase ends in Bach). It now belongs to the
   note, and the counts are regenerated.
+
+## The generator (Phase A, October 2026)
+
+The owner's brief: from a chorale melody, several settings in the manner of Kittel's eight basses,
+built top-down by the levels of `CONCEPT.md`. Steps: (1) cadence plan, (2) a chord under every note,
+(3) the bass and its figures, (4) inner voices, (5) diminution, (6) lock and regenerate in the lab.
+
+- Steps 1-2 built: `src/chorale/generate/` (plan, chord chain sampled exactly under the plan, eight
+  settings chosen to be likely and far apart), training data `data/chorales/generator/bach-events.json`
+  (`tools/chorales/generator_data.py`), tests `test/chorale-generate.test.ts`, report
+  `docs/chorales/GENERATOR.md` (`npm run chorales:generator`). Measured on unseen melodies only.
