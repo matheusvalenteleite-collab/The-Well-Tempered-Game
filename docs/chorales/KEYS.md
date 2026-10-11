@@ -21,42 +21,42 @@ Two levels, as an analyst reads them:
   key and goes to it is *applied* to that degree (V/ii, vii°/V). A minor key's tonic as a major chord at a phrase end
   (the Picardy third) is in the key. What is left is *chromatic* in its local key: the licences' ground.
 
-Weights (set by hand): pitch 1, inKey 2, outKey -4, dominant 4, tonicEnd 6, dominantEnd 2, change 9, distance 0.6, last 30.
+Weights (set by hand): pitch 1, inKey 2, outKey -4, dominant 4, tonicEnd 6, fullClose 12, dominantEnd 2, change 9, distance 0.6, last 30.
 
 ## Checks
 
-- Phrase ends on the local tonic: 64.9%; on the local dominant (half closes): 28.1%; together 93.0% of 2277.
-- Key changes: 3.49 a chorale. The first chord in the home key in 361 of 370 chorales (the others begin on the dominant's chord, read as in the dominant's key until a close confirms home).
-- Chords in their local key: 96.5% diatonic, 2.0% applied to a degree, 1.5% chromatic, of 16511.
+- Phrase ends on the local tonic: 67.1%; on the local dominant (half closes): 26.8%; together 93.9% of 2277.
+- Key changes: 3.74 a chorale. The first chord in the home key in 361 of 370 chorales (the others are read as beginning in the key of their first close).
+- Chords in their local key: 96.6% diatonic, 1.8% applied to a degree, 1.5% chromatic, of 16511.
 - Robustness: the shares change little when a weight is halved or doubled:
 
 | weights changed | ends on local I or V | key changes a chorale | diatonic |
 |---|---|---|---|
-| none | 93.0% | 3.49 | 96.5% |
-| change 6 | 97.2% | 4.89 | 97.4% |
-| change 12 | 90.3% | 2.74 | 95.8% |
-| distance 0.3 | 93.5% | 3.66 | 96.7% |
-| distance 1.2 | 92.3% | 3.30 | 96.2% |
-| inKey 1, outKey -2 | 92.6% | 3.21 | 95.8% |
-| dominant 0 | 90.5% | 2.76 | 96.1% |
-| tonicEnd 3 | 92.0% | 3.31 | 96.3% |
+| none | 93.9% | 3.74 | 96.6% |
+| change 6 | 97.4% | 4.92 | 97.4% |
+| change 12 | 91.7% | 3.27 | 96.2% |
+| distance 0.3 | 94.3% | 3.82 | 96.7% |
+| distance 1.2 | 93.3% | 3.62 | 96.4% |
+| inKey 1, outKey -2 | 93.5% | 3.56 | 96.1% |
+| dominant 0 | 93.3% | 3.39 | 96.6% |
+| tonicEnd 3 | 93.2% | 3.66 | 96.5% |
 
 - The owner's flags:
-  - no. 132 bar 23: home A minor; region D minor (iv of home); the chord ♭VI there, in the key.
+  - no. 132 bar 23: home A minor; region D minor (iv of home); the chord iv there, in the key.
   - no. 205 bar 7: home E phrygian; region C major (♭VI of home); the chord IV there, in the key.
 
 ## The regions
 
 Share of the chords in each region, by the region's key as a degree of home (upper case major, lower case minor).
 
-- Major chorales: I 74.5%, V 9.1%, vi 6.0%, ii 4.8%, IV 4.4%, iii 0.5%, ♭VII 0.3%, v 0.2%, II 0.1%.
-- Minor chorales (the Dorian and Phrygian among them): i 60.9%, ♭III 21.2%, iv 5.6%, ♭VII 4.7%, v 3.0%, ♭VI 2.1%, V 0.6%, ♭vii 0.6%, IV 0.5%.
+- Major chorales: I 73.4%, V 9.7%, vi 6.0%, IV 4.9%, ii 4.8%, iii 0.5%, ♭VII 0.3%, v 0.2%, II 0.1%.
+- Minor chorales (the Dorian and Phrygian among them): i 60.5%, ♭III 21.2%, iv 5.6%, ♭VII 4.8%, v 3.0%, ♭VI 2.1%, V 0.9%, ♭vii 0.6%, IV 0.5%.
 
 ## Applied and chromatic chords
 
-Applied (the most common): major: V/vi 71, minor: V/V 62, major: V/V 61, major: vii°/V 43, minor: V/iv 29, major: V/ii 26, major: vii°/ii 11, major: V/iii 7, major: vii°/IV 7, minor: vii°/V 6.
+Applied (the most common): major: V/vi 71, minor: V/V 53, major: V/V 44, major: vii°/V 40, minor: V/iv 29, major: V/ii 27, major: vii°/ii 11, major: V/iii 7, major: vii°/IV 7, minor: vii°/iv 6.
 
-Chromatic in the local key (the most common): major: III (major) 32, major: II (dominant seventh) 31, major: vii (minor) 13, major: v (minor) 13, minor: II (dominant seventh) 12, major: bVII (major) 11, major: i (minor) 10, minor: I (major) 10, major: VI (major) 10, major: VI (dominant seventh) 10, major: II (major) 10, minor: II (dominant seventh, minor ninth for the root) 6, major: v (minor seventh) 5, minor: II (major) 5.
+Chromatic in the local key (the most common): major: III (major) 32, major: II (dominant seventh) 30, major: vii (minor) 13, major: v (minor) 13, major: i (minor) 12, minor: II (dominant seventh) 12, major: bVII (major) 11, minor: I (major) 10, major: VI (major) 10, major: VI (dominant seventh) 10, major: II (major) 10, minor: II (dominant seventh, minor ninth for the root) 6, minor: II (major) 5, major: II° (half-diminished seventh) 4.
 
 Chromatic chords that do not go where an applied chord would (an applied dominant left unresolved, mixture, the flat
 second) are the ground of the narrowed licence catalogue (docs/chorales/LICENCES.md).

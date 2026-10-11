@@ -73,6 +73,9 @@ export const WEIGHTS = {
   dominant: 4,
   /** A phrase end on the key's tonic, on its dominant. */
   tonicEnd: 6,
+  /** More for a full close: the tonic at a phrase end reached from its dominant establishes the key
+   *  (Kirnberger, Kunst I, pp. 95-96), a V/V-V close in the home key being a close in the dominant's. */
+  fullClose: 12,
   dominantEnd: 2,
   /** Changing key; each step of the circle of fifths between the local and the home key, per chord. */
   change: 9,
@@ -177,10 +180,17 @@ export function localKeys(c: BachChorale, w = WEIGHTS): LocalKey[] {
     }
     if (n.end) {
       const r = mod(rq[i].root - pc, 12);
-      if (r === 0 && (rq[i].q === "o" || rq[i].q === (mode === "major" ? "M" : "m") || (mode === "minor" && rq[i].q === "M" && i === N - 1))) x += w.tonicEnd;
-      else if (r === 7 && rq[i].q !== "m") x += w.dominantEnd;
+      const fromDominant = i > 0 && isDominant(c.notes[i - 1]) && mod(rq[i - 1].root - rq[i].root, 12) === 7;
+      if (r === 0 && (rq[i].q === "o" || rq[i].q === (mode === "major" ? "M" : "m") || (mode === "minor" && rq[i].q === "M" && i === N - 1))) x += w.tonicEnd + (fromDominant ? w.fullClose : 0);
+      // a half close on the key's dominant, unless that dominant is reached from its own dominant: then
+      // the phrase closes in the dominant's key (Kirnberger, Kunst I, pp. 95-96), not on its dominant
+      else if (r === 7 && rq[i].q !== "m" && !fromDominant) x += w.dominantEnd;
     }
-    if (i === N - 1 && pc === home && mode === c.mode) x += w.last;
+    if (i === N - 1) {
+      // the last chord is read in the home key, always
+      if (pc !== home || mode !== c.mode) return -Infinity;
+      x += w.last;
+    }
     x -= w.distance * distance(fifths(pc, mode), homeFifths);
     return x;
   };

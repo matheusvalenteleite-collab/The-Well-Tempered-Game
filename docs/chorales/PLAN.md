@@ -236,3 +236,39 @@ against Bach's profile of surprise and by blind listening; X7 the Atlas's "Bach 
   the global key read where the local key or the Phrygian mode governs. Next: a local key for the readings,
   the catalogue narrowed to the chromatic licences, then X5. The owner's note: think motivically and
   imitatively too.
+
+### After the second ratings: local keys, the narrowed catalogue, daring, motives (11 October 2026)
+
+The owner asked for all four steps in order, without conferring.
+
+1. **Local keys** (`src/chorale/generate/keys.ts`, `docs/chorales/KEYS.md`, export
+   `data/chorales/generator/local-keys.json`): regions confirmed by phrase closes (an HMM over the 24
+   keys), applied chords inside them; a full close (V-I at a phrase end) establishes its key, as
+   Kirnberger reads it (Kunst I, pp. 95-96; the chorale session's C31 divergence, resolved this way);
+   every chorale ends at home. 94% of phrase ends fall on the local tonic or dominant; 726 of 734 full
+   closes on the local tonic. The owner's two flags read right. The chorale session imports the
+   export (C31) to decide its open cadence classes.
+2. **The catalogue narrowed** (`docs/chorales/LICENCES.md`, tests in `src/chorale/generate/licences.ts`):
+   chromatic bass lines, the Neapolitan (2: the 57 flat seconds were home-key and Phrygian misreadings),
+   mixture in a major region, diminished sevenths of another degree, applied dominants that go
+   elsewhere, closes in distant keys, phrases ending on a dissonant chord. Of round 2's examples, 11 of
+   15 special kept, 14 of 17 ordinary and both flags left out.
+3. **Daring, X5-X6** (`src/chorale/generate/daring.ts`, `docs/chorales/DARING.md`): an exponential tilt
+   of whole settings by the share of Bach's uses of each choice that are licences, one weight per
+   group, calibrated on held-out melodies so that level 1 writes Bach's rate, 2 twice, 3 three times.
+   On unseen melodies level 1 matches Bach's own settings of them in chromatic basses (0.35 against
+   0.34 per 100 chords), diminished sevenths (0.74, 0.74), mixture (0.46, 0.48), at a cost of 0.04
+   bits per note. For this the generator now writes the diminished seventh (bass positions 6/5°,
+   4/3°, 4/2°, 9°). Two limits: applied dominants that go elsewhere stay at three times Bach's rate at
+   every level (a fault of the plain chain, which a negative weight does not remove); phrases ending on
+   a dissonant chord cannot be raised (the dissonance is in the bass's position at a fixed cadence).
+   (Measured with the local keys before the full-close rule; the rule moves phrase-end readings only.)
+   Blind listening: the page "Could It Be Bach?" (`tools/chorales/listening_report.ts`,
+   https://claude.ai/artifact/5L4r12UYhJFCvyBYGoExKU, collection "listening"; the key in
+   `data/chorales/generator/listening-key.json`), Bach and levels 0, 1, 3 on six held-out melodies.
+4. **Motive and imitation** (`src/chorale/generate/motives.ts`, `docs/chorales/MOTIVES.md`): motivic
+   unity real (a chorale's shaped figures recur in it 23.5% of the time, in another 8.6%); imitation
+   local and modest (figures passed between tenor and bass); no pre-imitation of the melody; chromatic
+   lines live in the bass. The diminution's density brought to Bach's with his balance of kinds (a
+   restraint on passing notes); what the generator still lacks is Bach's locality of figures, which
+   three note-by-note devices did not give: a passage must be planned (Phase B's craft).
