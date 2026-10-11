@@ -6,6 +6,7 @@
  * (smplr Soundfont, fetched over the network; hidden in the UI for now, decision D15).
  * The AudioContext is created on the first user gesture (browser autoplay policy).
  */
+import { shapeEvents } from "./dynamics.ts";
 import { Soundfont } from "smplr";
 import { DEFAULT_DRUMS, DrumMachine, isSampled, kitOf, type DrumCue, type DrumSettings, type DrumVoice } from "./drums.ts";
 import { DEFAULT_SYNTH, type SynthSettings } from "./synth-settings.ts";
@@ -87,6 +88,8 @@ registerProcessor("wtg-recorder", WtgRecorder);
 `;
 
 export class AudioEngine {
+  /** P25: shape the Fux and WTC playback (arch, dissonances a little louder); off: every note as set. */
+  dynamics = true;
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   /** The last node before the speakers: what an export captures (D74). */
@@ -433,6 +436,8 @@ export class AudioEngine {
     // Mix mode (D77): each pass brings its own events and accompaniment, and sets the engine up.
     let pass = 0;
     if (passes) ({ events, onCycle } = passes.prepare(0));
+    // P25: the phrase arch and the dissonances' accent (events that carry their own levels kept).
+    if (this.dynamics) events = shapeEvents(events);
     if (!inst || !ctx || events.length === 0) {
       onSlot(-1);
       return;
@@ -478,6 +483,7 @@ export class AudioEngine {
           if (passes) {
             pass++;
             ({ events, onCycle } = passes.prepare(pass));
+            if (this.dynamics) events = shapeEvents(events);
             bars = Math.ceil(Math.max(...events.map((e) => e.at + e.length)));
           }
         } else {
