@@ -6,7 +6,7 @@
  * Data: data/chorales/level2.json, written by tools/chorales/harmony_plans.py.
  */
 import raw from "../../data/chorales/level2.json" with { type: "json" };
-import type { Chorale, MelodyNote, Phrase } from "./level1.ts";
+import type { Phrase } from "./level1.ts";
 import { withHabit } from "./habits.ts";
 
 export interface L2Note {
@@ -31,8 +31,3 @@ export interface L2Chorale {
 
 const DATA = raw as unknown as { chorales: L2Chorale[]; habits: Phrase["habit"][] };
 export const LEVEL2: Record<number, L2Chorale> = Object.fromEntries(DATA.chorales.map((c) => [c.number, { ...c, notes: c.notes.map((n) => withHabit(n, DATA.habits)) }]));
-
-/** The index in the melody of each level-2 note (the written note at its offset, not a small note). */
-export function noteIndices(ch: Chorale, l2: L2Chorale): number[] {
-  return l2.notes.map((n) => ch.melody.findIndex((m: MelodyNote) => !m.grace && m.pitch !== null && m.offset === n.offset));
-}

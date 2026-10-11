@@ -25,9 +25,8 @@ Four directions were weighed:
 
 1. **Consolidate.**
    - One chorale workbench instead of seven views: one melody, the levels as stages, the player's
-     choices carried forward, missing stages filled from Bach or Kittel. First version done (C26):
-     the stages carry the answers forward on the existing screens; next, one screen whose score
-     grows stage by stage.
+     choices carried forward, missing stages filled from Bach or Kittel. Done: the stages carry the
+     answers forward (C26), on one screen whose score grows stage by stage (C27).
    - D, the readings the judgments use: Kirnberger's categories against his text (done for
      *Kunst* I, C22; *Kunst* II and *Die wahren Grundsätze* remain); the cadences classed "other"
      (249 read by the fundamental bass, C22; 45 remain); Kittel's basses proofread against the

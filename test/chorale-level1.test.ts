@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { CHORALES, compare, parseChord, soundingMelody, voiceChord } from "../src/chorale/level1.ts";
+import { CHORALES, comparePoints, parseChord, soundingMelody, voiceChord } from "../src/chorale/level1.ts";
 
 test("the level-1 data holds Kittel's 24 melodies with a phrase per fermata", () => {
   assert.equal(CHORALES.length, 24);
@@ -39,7 +39,7 @@ test("a small note in the melody takes the second half of the note before it", (
 
 test("the comparison names Kittel's basses and Bach's settings that agree", () => {
   const c = CHORALES.find((x) => x.number === 1)!;
-  const v = compare(c, ["V", "I", "V", "I"]);
+  const v = comparePoints(c.phrases, ["V", "I", "V", "I"]);
   assert.ok(v[0].kittel.length >= 7);
   assert.ok(v[0].bach.every((b) => b.same));
   assert.ok((v[0].habitShare ?? 0) > 0.5);

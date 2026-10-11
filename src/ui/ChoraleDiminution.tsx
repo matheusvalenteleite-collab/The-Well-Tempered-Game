@@ -19,9 +19,7 @@ import { WtcPage, type WtcScoreVoice } from "./notation/WtcScore.tsx";
 import { pageRows, useRowBars } from "./notation/page-rows.ts";
 import { audio, store, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
-import { useStudyData, type StudyChorale } from "../chorale/study-data.ts";
-import { LEVEL5 } from "../chorale/level5.ts";
-import { workbenchId } from "../chorale/workbench.ts";
+import { useStudyData } from "../chorale/study-data.ts";
 import { augmentedSeconds, bachAs, options, realise, reduce, type Embellishment, type Note } from "../chorale/level6.ts";
 import type { Step } from "../music/pitch.ts";
 
@@ -39,25 +37,8 @@ type Chosen = Record<number, Record<number, Record<number, Embellishment>>>;
 /** A slot id: the voice and the reduced note's index. */
 const slotOf = (v: number, i: number) => v * 1000 + i;
 
-export function ChoraleDiminution({ onMode, onTutorial, levelSelect, workbench = false, onStage }: { onMode(mode: Mode): void; onTutorial?: () => void; levelSelect: ReactNode; workbench?: boolean; onStage?(stage: number): void }) {
+export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(mode: Mode): void; onTutorial?: () => void; levelSelect: ReactNode }) {
   const data = useStudyData();
-  // The workbench (C26): stage 6 embellishes the player's own setting of one of Kittel's melodies,
-  // their alto and tenor of stage 5 over Kittel's bass, instead of one of Bach's chorales.
-  const [kNumber, setKNumber] = useState(() => stored("wtg.chorale", 1, (v) => typeof v === "number"));
-  useEffect(() => { if (workbench) store("wtg.chorale", kNumber); }, [workbench, kNumber]);
-  const wb = useMemo(() => {
-    if (!workbench) return null;
-    const c5 = LEVEL5[kNumber] ?? Object.values(LEVEL5)[0];
-    const bassNo = Math.min(stored("wtg.choraleBass", 0, (v) => typeof v === "number"), c5.basses.length - 1);
-    const B = c5.basses[bassNo];
-    const w = stored<Record<string, { alto: (string | null)[]; tenor: (string | null)[] }>>("wtg.choraleVoices", {}, (v) => typeof v === "object" && v !== null)[`${c5.number}-${bassNo}`];
-    const complete = Boolean(w && w.alto.length === B.slots.length && w.alto.every(Boolean) && w.tenor.every(Boolean));
-    const line = (xs: (string | null)[]): Note[] => B.slots.map((sl, i) => [sl.at, sl.dur, xs[i]!]);
-    const synthetic: StudyChorale | null = complete
-      ? { n: workbenchId(c5.number, bassNo), bwv: "", title: c5.title, tonic: c5.tonic, mode: c5.mode, sig: c5.sig, meter: c5.meter, pickup: c5.pickup, length: c5.length, scan: null, voices: [c5.melody as Note[], line(w!.alto), line(w!.tenor), B.bass as Note[]], harmony: [], cadences: [] }
-      : null;
-    return { c5, bassNo, B, ch: synthetic };
-  }, [workbench, kNumber]);
   const [number, setNumber] = useState(() => stored("wtg.choraleStudy", 1, (v) => typeof v === "number"));
   useEffect(() => store("wtg.choraleStudy", number), [number]);
   const [all, setAll] = useState<Chosen>(() => stored<Chosen>("wtg.choraleDim", {}, (v) => typeof v === "object" && v !== null));
@@ -103,9 +84,8 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect, workbench =
   const openScore = useStaffLayout() === "open";
 
   const list = data ? data.chorales.filter((c) => !onlyKittel || c.kittel) : [];
-  const ch = wb ? wb.ch : data ? data.chorales.find((c) => c.n === number) ?? data.chorales[0] : null;
-  const red = useMemo(() => (ch && (wb || data) ? reduce(ch, data?.kinds ?? []) : null), [ch, data, wb]);
-  const bachTune = wb && data ? data.chorales.filter((c) => c.kittel?.includes(wb.c5.number)) : [];
+  const ch = data ? data.chorales.find((c) => c.n === number) ?? data.chorales[0] : null;
+  const red = useMemo(() => (ch && data ? reduce(ch, data.kinds) : null), [ch, data]);
   const mine = (ch && all[ch.n]) || {};
   const lines: Note[][] = useMemo(() => (red && ch ? red.voices.map((l, v) => (v === 0 ? l : realise(l, mine[v] ?? {}, ch.sig))) : []), [red, ch, mine]);
   const showCompare = ch !== null && compared === ch.n;
@@ -174,8 +154,7 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect, workbench =
   }, [liveKey]);
   const goTo = (n: number) => {
     stop();
-    if (wb) setKNumber(n);
-    else setNumber(n);
+    setNumber(n);
     setSelected(null);
     setShowBach(false);
   };
@@ -211,22 +190,15 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect, workbench =
         <>
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
-            {!wb && <button className="icon" onClick={() => idx > 0 && goTo(list[idx - 1].n)} disabled={idx <= 0} aria-label={t("ui.nav.prev")}>‹</button>}
+            <button className="icon" onClick={() => idx > 0 && goTo(list[idx - 1].n)} disabled={idx <= 0} aria-label={t("ui.nav.prev")}>‹</button>
             <ModeSelect value="chorale" onMode={(m) => { stop(); onMode(m); }} />
             {levelSelect}
-            {wb && (
-              <select id="exercise" className="sel sel-exercise" value={wb.c5.number} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("ui.nav.choose")}>
-                {Object.values(LEVEL5).sort((a, b) => a.number - b.number).map((c) => (
-                  <option key={c.number} value={c.number}>{`${c.number}. ${c.title.replace(/ etc\.$/, "").replace(/ \[etc\.\]$/, "")}`}</option>
-                ))}
-              </select>
-            )}
-            {!wb && <select id="exercise" className="sel sel-exercise" value={ch?.n ?? 1} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("chorale.study.choose")} disabled={!data}>
+            <select id="exercise" className="sel sel-exercise" value={ch?.n ?? 1} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("chorale.study.choose")} disabled={!data}>
               {list.map((c) => (
                 <option key={c.n} value={c.n}>{`${all[c.n] && Object.values(all[c.n]).some((m) => Object.keys(m).length) ? "● " : ""}${c.n}. ${c.title} (BWV ${c.bwv})`}</option>
               ))}
-            </select>}
-            {!wb && <button className="icon" onClick={() => idx >= 0 && idx < list.length - 1 && goTo(list[idx + 1].n)} disabled={idx < 0 || idx >= list.length - 1} aria-label={t("ui.nav.next")}>›</button>}
+            </select>
+            <button className="icon" onClick={() => idx >= 0 && idx < list.length - 1 && goTo(list[idx + 1].n)} disabled={idx < 0 || idx >= list.length - 1} aria-label={t("ui.nav.next")}>›</button>
           </nav>
           <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("about")} onTutorial={onTutorial} />
         </>
@@ -235,11 +207,6 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect, workbench =
         <div className="score-wrap chorale-score">
           {ch && view ? (
             <WtcPage fitWidth clefs={openScore ? CHORALE_CLEFS : undefined} autoClefs={openScore} rows={view.rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={view.barUnits / 8} selected={selected} onSlot={(s) => !showBach && setSelected(s)} />
-          ) : wb ? (
-            <div className="help">
-              <p>{t("chorale.l6w.need", { label: wb.B.label })}</p>
-              {onStage && <button className="primary" onClick={() => onStage(5)}>{t("chorale.l6w.go5")}</button>}
-            </div>
           ) : (
             <p className="help">{t("ui.loading")}</p>
           )}
@@ -262,12 +229,10 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect, workbench =
             )}
           </div>
           <div className="group judge">
-            <button className="primary" aria-pressed={showCompare} disabled={!ch} onClick={() => { if (ch) setCompared(showCompare ? null : ch.n); setTab("compare"); }}>{t(wb ? "chorale.l6w.compare" : "chorale.l6.compare")}</button>
-            {!wb && (
-              <label className="check">
-                <input type="checkbox" checked={showBach} onChange={(e) => { setShowBach(e.target.checked); setSelected(null); }} /> {t("chorale.l6.showBach")}
-              </label>
-            )}
+            <button className="primary" aria-pressed={showCompare} disabled={!ch} onClick={() => { if (ch) setCompared(showCompare ? null : ch.n); setTab("compare"); }}>{t("chorale.l6.compare")}</button>
+            <label className="check">
+              <input type="checkbox" checked={showBach} onChange={(e) => { setShowBach(e.target.checked); setSelected(null); }} /> {t("chorale.l6.showBach")}
+            </label>
             <button className="btn-edit" onClick={() => { if (ch) setAll({ ...all, [ch.n]: {} }); setCompared(null); }}>{t("ui.clearAll")}</button>
           </div>
           <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
@@ -278,11 +243,9 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect, workbench =
             <label className="check" title={t("ui.view.staves.open.help")}>
               <input type="checkbox" checked={openScore} onChange={(e) => setStaffLayout(e.target.checked ? "open" : "compact")} /> {t("ui.view.staves.open")}
             </label>
-            {!wb && (
-              <label className="check">
-                <input type="checkbox" checked={onlyKittel} onChange={(e) => setOnlyKittel(e.target.checked)} /> {t("chorale.study.onlyKittel")}
-              </label>
-            )}
+            <label className="check">
+              <input type="checkbox" checked={onlyKittel} onChange={(e) => setOnlyKittel(e.target.checked)} /> {t("chorale.study.onlyKittel")}
+            </label>
             <div className="hfaders">
               <HFader label={t("ui.tempo")} help={t("ui.tempo.help")} value={tempo} min={30} max={120} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
             </div>
@@ -291,17 +254,17 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect, workbench =
       }
       summary={compare && (
         <div className="eval-summary ok" role="status">
-          <span className="verdict">{wb ? t("chorale.l6w.summary", { yours: compare.yours, grave: errors.length }) : t("chorale.l6.summary", { yours: compare.yours, bach: compare.bach, both: compare.both, same: compare.sameKind, grave: errors.length })}</span>
+          <span className="verdict">{t("chorale.l6.summary", { yours: compare.yours, bach: compare.bach, both: compare.both, same: compare.sameKind, grave: errors.length })}</span>
           <button className="link" onClick={() => setTab("compare")}>{t("ui.summary.open")} ▸</button>
         </div>
       )}
       tab={tab}
       onTab={setTab}
-      idle={wb ? t("chorale.l6w.source", { n: wb.c5.number, label: wb.B.label }) : ch ? t("chorale.study.source", { n: ch.n, bwv: ch.bwv }) : ""}
+      idle={ch ? t("chorale.study.source", { n: ch.n, bwv: ch.bwv }) : ""}
       tabs={[
         {
           id: "compare",
-          label: t(wb ? "chorale.l6w.tab.compare" : "chorale.l6.tab.compare"),
+          label: t("chorale.l6.tab.compare"),
           text: true,
           content:
             compare && red ? (
@@ -315,29 +278,23 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect, workbench =
                     return (
                       <li key={r.slot} className={`verdict verdict-${state}`}>
                         <button className="link" onClick={() => { setShowBach(false); setSelected(r.slot); }}>{t("chorale.l6.place", { voice: t(`chorale.l6.voice.${VOICES[v]}`), bar: barOf(red.voices[v][i][0]) })}</button>{" "}
-                        {t("chorale.l6.yours")}: <strong>{r.yours ? t(`chorale.l6.emb.${r.yours}`) : "—"}</strong>
-                        {!wb && (
-                          <>
-                            {" · "}{t("chorale.l6.bach")}:{" "}
-                            <strong>{r.bach ? `${t(`chorale.study.kind.${r.bach.raw}`)}${r.bach.pitch ? ` (${r.bach.pitch})` : ""}` : "—"}</strong>
-                          </>
-                        )}
+                        {t("chorale.l6.yours")}: <strong>{r.yours ? t(`chorale.l6.emb.${r.yours}`) : "—"}</strong> · {t("chorale.l6.bach")}:{" "}
+                        <strong>{r.bach ? `${t(`chorale.study.kind.${r.bach.raw}`)}${r.bach.pitch ? ` (${r.bach.pitch})` : ""}` : "—"}</strong>
                       </li>
                     );
                   })}
                 </ol>
               </div>
             ) : (
-              <p className="muted">{t(wb ? "chorale.l6w.before" : "chorale.l6.before")}</p>
+              <p className="muted">{t("chorale.l6.before")}</p>
             ),
         },
         {
           id: "about",
-          label: t(wb ? "chorale.l6w.tab.about" : "chorale.l6.tab.about"),
+          label: t("chorale.l6.tab.about"),
           text: true,
           content: (
             <div className="chorale-about">
-              {wb && <p>{bachTune.length ? t("chorale.l6w.bachTune", { list: bachTune.map((c) => `${c.n} (BWV ${c.bwv})`).join(", ") }) : t("chorale.l6w.noBachTune")}</p>}
               <p>{t("chorale.l6.about.1")}</p>
               <p>{t("chorale.l6.about.2")}</p>
               <p className="muted">{t("chorale.l6.about.3")}</p>
