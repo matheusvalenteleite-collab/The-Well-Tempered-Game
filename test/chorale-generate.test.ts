@@ -263,3 +263,28 @@ test("slots: every one of Bach's 370 chorales reads as slots, its every chord ki
   const missing = BACH.filter((c) => !bachSlots(c)).map((c) => `${c.no}: ${[...new Set(c.notes.map((n) => n.kind))].join(", ")}`);
   assert.deepEqual(missing, []);
 });
+
+test("local keys: every chorale ends at home, phrase ends mostly on the local tonic or dominant, the owner's flags", async () => {
+  const { localKeys, keyDegree } = await import("../src/chorale/generate/keys.ts");
+  let ends = 0,
+    good = 0;
+  for (const c of BACH) {
+    const k = localKeys(c);
+    assert.equal(k.length, c.notes.length);
+    assert.equal(keyDegree(c, k[k.length - 1]).toUpperCase(), "I", `no. ${c.no}`);
+    k.forEach((x, i) => {
+      if (c.notes[i].end) {
+        ends++;
+        if (/^(I|i|V)$/.test(x.chord)) good++;
+      }
+    });
+  }
+  assert.ok(good / ends > 0.9, `${good}/${ends}`);
+  // no. 132 bar 23: VI of D minor, not the flat second of A minor; no. 205 bar 7: the Phrygian second, IV of C
+  const c132 = BACH.find((c) => c.no === 132)!;
+  const k132 = localKeys(c132)[c132.notes.findIndex((n) => n.t === "22/1")];
+  assert.deepEqual([k132.tonic, k132.mode, k132.chord, k132.diatonic], ["D", "minor", "bVI", true]);
+  const c205 = BACH.find((c) => c.no === 205)!;
+  const k205 = localKeys(c205)[c205.notes.findIndex((n) => n.t === "27/4")];
+  assert.equal(k205.chord, "IV");
+});
