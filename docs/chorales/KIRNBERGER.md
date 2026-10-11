@@ -182,11 +182,54 @@ Where the code reads more than Kirnberger states, this file says so.
 - **The improper seventh** (*unächte Septime*). A seventh after which the bass rises a step is the
   ninth of a root a third lower, resolving late (pp. 62, 66-67).
 
+**Die wahren Grundsätze** (1773; Bayerische Staatsbibliothek copy, Internet Archive
+`10527344bsb`, read in the OCR; section and page numbers as printed, to be checked against the
+images):
+- **§ 9 (p. 16).** The test between the accidental and the essential seventh. If the sixth follows
+  the seventh over the same bass, or could be struck in its place, the seventh is accidental and
+  counts as a sixth in the fundamental harmony. Otherwise it is essential.
+- **§§ 10-11 (pp. 17-19).** An accidental dissonance may resolve only on the following harmony, and
+  so look essential. Such a delay "can effect no change in the fundamental harmony" (p. 18). The
+  seventh chord that results, "whether diminished or not", the treatise calls the *uneigentliche*
+  (improper) seventh chord. It is a seventh-ninth chord on the third below the bass, whose ninth is a
+  *Vorhalt* of the octave, and so "nothing other than our essential seventh chord" (p. 19). Take the
+  accidental seventh away and the sixth-fifth chord, the first inversion of the essential seventh,
+  remains. Its bass therefore moves as that chord's does, up a step, "which experience also
+  confirms" (p. 20).
+- **§ 12.** The same holds for the inversions of the improper seventh chord.
+- **§ 13 (pp. 23-24).** The preceding and the following harmony decide. The diminished seventh chord
+  "cannot be regarded in two ways at all": its seventh always stands for the sixth, with the third
+  below the bass as root. That is how C22 now reads it.
+- **Bach.** The *Vorbericht* (pp. 3-4) and p. 43: all of Bach's works reduce "to a naturally
+  progressing fundamental bass and to two simple fundamental chords, the triad and the essential
+  seventh chord". The treatise ends (§ 23, pp. 52 ff.) with a fugue by Bach analysed by its
+  fundamental bass.
+
+**Finding.** The improper seventh is not a marginal device of *Kunst* I. It is a systematic part of
+the theory, and the *Grundsätze* give it operational tests:
+- whether the sixth could stand for the seventh;
+- whether the bass then rises a step;
+- the preceding and the following harmony.
+
+C22's reading of the diminished seventh chord is the same doctrine. Reading the diminished seventh
+on the root a third lower while reading F-A-C-E going to G on F would be inconsistent with it.
+
+**Secondary literature** (located, not yet read):
+- D. W. Beach and J. Thym, "The True Principles for the Practice of Harmony by Johann Philipp
+  Kirnberger: A Translation", *Journal of Music Theory* 23/2 (1979), pp. 163-225;
+- Kirnberger, *The Art of Strict Musical Composition*, tr. D. Beach and J. Thym (New Haven: Yale
+  University Press, 1982);
+- D. W. Beach, *The Harmonic Theories of Johann Philipp Kirnberger: Their Origins and Influences*
+  (PhD diss., Yale University, 1974).
+
 **Code:**
 - The counts give how the root moves, beat to beat.
-- **Not applied:** the improper-seventh reading. The analysis reads F-A-C-E going to G as a major
-  seventh chord on F, not as D's seventh chord with its ninth. This is to be decided with the owner:
-  it would make ninths part of the fundamental bass, as the diminished seventh now does.
+- **Not yet applied** (proposed, for the owner). A root-position seventh chord on the beat whose
+  bass then rises a step, and whose seventh falls by step into the following harmony, would be read
+  on the third below the bass: the bass becomes the third, and the seventh becomes the ninth, an
+  incidental note for the octave. In Bach's chorales this concerns 54 of 469 root-position seventh
+  chords on the beat; 27 more have the bass rising a step but the seventh moving otherwise.
+  Inversions (§ 12) would come after.
 
 ### 5. Cadences
 
@@ -221,13 +264,11 @@ Where the code reads more than Kirnberger states, this file says so.
 
 ## What remains
 
-- *Kunst* II and *Die wahren Grundsätze*, for:
-  - the analyses of Bach by the fundamental bass;
-  - the ninth and eleventh as Schulz states them.
+- *Kunst* II; the rest of *Die wahren Grundsätze* (read for §§ 9-13 and the Bach passages only);
+  the secondary literature above.
 - The page images of the pages cited from the OCR. The translated phrases in quotation marks from
   pp. 30, 34, 39, 63, 72, 81, 84 and 214 rest on the OCR, which is clean there but has not been
   compared with the print.
 - The owner's decisions:
-  - the improper seventh (section 4);
-  - whether the strict style, or the one style of C16, is how the mode should present Bach
-    (section 3).
+  - the improper seventh (section 4): adopt the proposed reading or not.
+  - The strict style was decided in C23: it is the frame of the explanations, not of the judgment.
