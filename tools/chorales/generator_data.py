@@ -25,11 +25,19 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from cadence_plans import MINORISH, chord_label, degree, pcn, quality  # noqa: E402
+from figure_plans import position  # noqa: E402
 from harmony_plans import tune_key  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 BACH = ROOT / "data" / "chorales" / "bach"
 OUT = ROOT / "data" / "chorales" / "generator" / "bach-events.json"
+
+
+def midi(name: str) -> int:
+    """MIDI number of a spelled pitch (C4 = 60; B#3 = 60, Cb4 = 59)."""
+    acc = name[1:].rstrip("0123456789-")
+    octave = int(name[1 + len(acc):])
+    return 12 * (octave + 1) + {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}[name[0]] + acc.count("#") - acc.count("b")
 
 
 def soprano_notes(sop: list[dict]) -> list[dict]:
@@ -67,7 +75,12 @@ def chorale_events(c: dict, a: dict) -> dict:
             "chord": chord_label(pcn(v["root"]), tonic, quality(v["chord"])),
             "bass": degree(v["pitches"]["bass"], tonic_name),
             "fig": v["figure"],
+            "bm": midi(v["pitches"]["bass"]),
+            "sm": midi(v["pitches"]["soprano"]),
         }
+        pos = position(v.get("bass_role"), v.get("chord"))
+        if pos:
+            e["pos"] = pos
         if n.get("fermata"):
             e["end"] = 1
             if i > 0:
@@ -86,7 +99,7 @@ def main() -> None:
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({
         "generated_by": "tools/chorales/generator_data.py",
-        "note": "On-beat soprano attacks of Bach's chorales. deg: melody degree; chord: Kirnberger's fundamental as a degree of the key (upper case major, lower case minor, ° diminished); bass: bass degree; fig: figure in period abbreviation; end: soprano fermata; close: the melody's last two degrees at a phrase end.",
+        "note": "On-beat soprano attacks of Bach's chorales. deg: melody degree; chord: Kirnberger's fundamental as a degree of the key (upper case major, lower case minor, ° diminished); bass: bass degree; fig: figure in period abbreviation; bm, sm: bass and soprano MIDI; pos: the chord's position over the bass (5/3, 6, 6/4, 7, 6/5, 4/3, 4/2; absent where the bass is not a chord tone); end: soprano fermata; close: the melody's last two degrees at a phrase end.",
         "chorales": chorales,
     }, ensure_ascii=False, separators=(",", ":")) + "\n")
     n = sum(len(c["notes"]) for c in chorales)

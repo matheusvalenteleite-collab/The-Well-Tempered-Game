@@ -1,13 +1,17 @@
 /**
- * How good is the chorale generator (src/chorale/generate/, Phase A steps 1-2)? Every measure is
+ * How good is the chorale generator (src/chorale/generate/, Phase A steps 1-3)? Every measure is
  * taken on melodies the models have not seen: Bach's chorales with every setting of the tune held
  * out, Kittel's melodies with Bach's settings of them held out (Kittel's basses are never trained on).
  *
- * Output: docs/chorales/GENERATOR.md.   Run:  node tools/chorales/generator_report.ts
+ * Output: docs/chorales/GENERATOR.md, and data/chorales/generator/kittel-settings.json (the settings of
+ * Kittel's melodies, for tools/chorales/generator_musicxml.py to write as MusicXML).
+ * Run:  node tools/chorales/generator_report.ts
  */
 import { writeFileSync } from "node:fs";
+import l4Raw from "../../data/chorales/level4.json" with { type: "json" };
 import { BACH, KITTEL, kittelBasses, kittelMelody, melodyOf, type BachChorale, type KittelChorale } from "../../src/chorale/generate/corpus.ts";
-import { bestHarmony, bestSetting, diverseSettings, fixedFromPlan, phraseEnds, trainModels, type Models, type Setting } from "../../src/chorale/generate/index.ts";
+import { bestHarmony, bestSetting, diverseSettings, figureText, fixedFromPlan, parallel, phraseEnds, trainModels, type Models, type Setting } from "../../src/chorale/generate/index.ts";
+import { midiOf } from "../../src/chorale/generate/theory.ts";
 import { draw } from "../../src/chorale/generate/model.ts";
 import { rng } from "../../src/counterpoint/choices/cantus.ts";
 
@@ -23,6 +27,7 @@ const tunes = [...new Set(BACH.map((c) => c.tune))];
 let planHit = 0,
   planN = 0;
 const harm = { own: 0, best: 0, free: 0, n: 0 };
+const bassB = { deg: 0, pos: 0, n: 0, pipeDeg: 0, pipeN: 0 };
 for (const t of tunes) {
   const models = trainModels(BACH.filter((c) => c.tune !== t));
   for (const c of BACH.filter((c) => c.tune === t)) {
@@ -34,7 +39,16 @@ for (const t of tunes) {
     const own = bestHarmony(models.harmony, m, fixedFromPlan(m, ends, bachPlan));
     const withBest = bestHarmony(models.harmony, m, fixedFromPlan(m, ends, best));
     const free = bestHarmony(models.harmony, m, m.notes.map(() => null));
+    const bachChain = models.bass.best(m, c.notes.map((n) => n.chord)).map((x) => x.split(":"));
+    const pipe = models.bass.best(m, withBest).map((x) => x.split(":")[0]);
     c.notes.forEach((n, i) => {
+      if (n.pos) {
+        bassB.deg += bachChain[i][0] === n.bass ? 1 : 0;
+        bassB.pos += bachChain[i][1] === n.pos ? 1 : 0;
+        bassB.n++;
+      }
+      bassB.pipeDeg += pipe[i] === n.bass ? 1 : 0;
+      bassB.pipeN++;
       harm.own += own[i] === n.chord ? 1 : 0;
       harm.best += withBest[i] === n.chord ? 1 : 0;
       harm.free += free[i] === n.chord ? 1 : 0;
@@ -127,6 +141,7 @@ const gen = zero(),
   indep = zero(),
   top = zero();
 const examples: { c: KittelChorale; sets: Setting[] }[] = [];
+const allSets = new Map<number, Setting[]>();
 const kModels: Models[] = KITTEL.map((c) => {
   const held = new Set(c.bachSettings);
   return trainModels(BACH.filter((b: BachChorale) => !held.has(b.no)));
@@ -135,9 +150,11 @@ for (const [ci, c] of KITTEL.entries()) {
   const models = kModels[ci];
   const m = kittelMelody(c);
   const nb = kittelBasses(c);
-  const sets = diverseSettings(models, m, nb, rng(1000 + c.number));
+  const key = { tonic: c.tonic, mode: c.mode };
+  const sets = diverseSettings(models, m, key, nb, rng(1000 + c.number));
+  allSets.set(c.number, sets);
   measure(c, sets.map((s) => s.chords), gen);
-  measure(c, [bestSetting(models, m).chords], top);
+  measure(c, [bestSetting(models, m, key).chords], top);
   measure(c, Array.from({ length: nb }, (_, k) => c.notes.map((n) => n.kittel[k].chord)), kit, true);
   const r = rng(2000 + c.number);
   const ind = Array.from({ length: nb }, () => m.notes.map((n) => draw(models.harmony.step(m.mode, n.deg, "start"), r())));
@@ -178,13 +195,154 @@ say("| T | kept | chords attested | Kittel's chords found | different chords per
 say("|---|---|---|---|---|");
 for (const [T, keep] of [[0.5, 0.5], [0.65, 0.5], [0.8, 0.5], [1, 0.5], [1, 0.15]]) {
   const s = zero();
-  KITTEL.forEach((c, ci) => measure(c, diverseSettings(kModels[ci], kittelMelody(c), kittelBasses(c), rng(1000 + c.number), { T, keep }).map((x) => x.chords), s));
+  KITTEL.forEach((c, ci) =>
+    measure(c, diverseSettings(kModels[ci], kittelMelody(c), { tonic: c.tonic, mode: c.mode }, kittelBasses(c), rng(1000 + c.number), { T, keep }).map((x) => x.chords), s),
+  );
   say(`| ${T} | ${keep} | ${pct(s.attested, s.n)} | ${pct(s.cover, s.coverN)} | ${(s.spread / s.spreadN).toFixed(1)} |`);
 }
 say(`| *Kittel* | | ${pct(kit.attested, kit.n)} | 100% | ${(kit.spread / kit.spreadN).toFixed(1)} |`);
 say();
 
-say("## 3. Two examples");
+// ---- Step 3: the bass ----
+interface BStats {
+  attested: number;
+  n: number;
+  spread: number;
+  spreadN: number;
+  pos: Map<string, number>;
+  posN: number;
+  steps: number;
+  leaps: number;
+  moves: number;
+  size: number;
+  range: number;
+  ranges: number;
+  par: number;
+  parN: number;
+  final: number;
+  finals: number;
+}
+const bzero = (): BStats => ({ attested: 0, n: 0, spread: 0, spreadN: 0, pos: new Map(), posN: 0, steps: 0, leaps: 0, moves: 0, size: 0, range: 0, ranges: 0, par: 0, parN: 0, final: 0, finals: 0 });
+
+/** Bass lines (degrees, MIDI, positions) under a Kittel melody, against Kittel's basses and Bach's settings. */
+function measureBass(c: KittelChorale, lines: { deg: string[]; midi: (number | null)[]; pos: (string | null)[] }[], s: BStats, leaveOut = false) {
+  c.notes.forEach((n, i) => {
+    const kit = n.kittelBass.map((k) => k.degree);
+    if (kit.includes("?")) return;
+    lines.forEach((l, k) => {
+      const ref = new Set([...n.bachBass, ...kit.filter((_, j) => !(leaveOut && j === k))]);
+      s.attested += ref.has(l.deg[i]) ? 1 : 0;
+      s.n++;
+    });
+    s.spread += new Set(lines.map((l) => l.deg[i])).size;
+    s.spreadN++;
+  });
+  for (const l of lines) {
+    for (const p of l.pos) if (p) (s.pos.set(p, (s.pos.get(p) ?? 0) + 1), s.posN++);
+    const ms = l.midi.filter((x): x is number => x !== null);
+    for (let i = 1; i < ms.length; i++) {
+      const d = Math.abs(ms[i] - ms[i - 1]);
+      if (d === 0) continue;
+      s.moves++;
+      s.size += d;
+      if (d <= 2) s.steps++;
+      if (d > 7) s.leaps++;
+    }
+    if (ms.length) ((s.range += Math.max(...ms) - Math.min(...ms)), s.ranges++);
+    for (let i = 1; i < l.deg.length; i++) {
+      if (l.deg[i] === "?" || l.deg[i - 1] === "?") continue;
+      s.par += parallel(c.notes[i - 1].degree, l.deg[i - 1], c.notes[i].degree, l.deg[i]) ? 1 : 0;
+      s.parN++;
+    }
+    const last = l.deg.length - 1;
+    s.final += l.deg[last] === "1" && (l.pos[last] ?? "5/3") === "5/3" ? 1 : 0;
+    s.finals++;
+  }
+}
+
+type L4 = { number: number; basses: { notes: { offset: string; kittel: string | null }[] }[] };
+const l4 = new Map((l4Raw as unknown as { chorales: L4[] }).chorales.map((c) => [c.number, c]));
+const bGen = bzero(),
+  bKit = bzero();
+for (const c of KITTEL) {
+  const sets = allSets.get(c.number)!;
+  measureBass(c, sets.map((x) => ({ deg: x.bass.degrees, midi: x.bass.midi, pos: x.bass.positions })), bGen);
+  const nb = kittelBasses(c);
+  const kl = Array.from({ length: nb }, (_, k) => {
+    const posAt = new Map(l4.get(c.number)!.basses[k].notes.map((x) => [x.offset, x.kittel]));
+    return {
+      deg: c.notes.map((n) => n.kittelBass[k].degree),
+      midi: c.notes.map((n) => (n.kittelBass[k].pitch ? midiOf(n.kittelBass[k].pitch!) : null)),
+      pos: c.notes.map((n) => posAt.get(n.offset) ?? null),
+    };
+  });
+  measureBass(c, kl, bKit, true);
+}
+// Bach's own basses, read the same way (on-beat melody attacks; positions as Kirnberger's reading gives them)
+const bBach = bzero();
+for (const c of BACH) {
+  const l = { deg: c.notes.map((n) => n.bass), midi: c.notes.map((n) => n.bm), pos: c.notes.map((n) => n.pos ?? null) };
+  for (const p of l.pos) if (p) (bBach.pos.set(p, (bBach.pos.get(p) ?? 0) + 1), bBach.posN++);
+  for (let i = 1; i < l.midi.length; i++) {
+    const d = Math.abs(l.midi[i] - l.midi[i - 1]);
+    if (!d) continue;
+    bBach.moves++;
+    bBach.size += d;
+    if (d <= 2) bBach.steps++;
+    if (d > 7) bBach.leaps++;
+  }
+  bBach.range += Math.max(...l.midi) - Math.min(...l.midi);
+  bBach.ranges++;
+  const last = l.deg.length - 1;
+  bBach.final += l.deg[last] === "1" && l.pos[last] === "5/3" ? 1 : 0;
+  bBach.finals++;
+}
+// Bach's own outer voices, as the same test reads them (on-beat melody attacks)
+let bachPar = 0,
+  bachParN = 0;
+for (const c of BACH)
+  for (let i = 1; i < c.notes.length; i++) ((bachPar += parallel(c.notes[i - 1].deg, c.notes[i - 1].bass, c.notes[i].deg, c.notes[i].bass) ? 1 : 0), bachParN++);
+
+say("## 3. The bass and its figures (step 3)");
+say();
+say("Under every melody note, one bass note: which member of the chord is in the bass and whether the chord has its");
+say("seventh (its *position*), drawn given the chord, the melody's degree and the bass before; then the octaves chosen");
+say("for the likeliest line in Bach's terms (size of each move, distance from the melody, register); then the figure.");
+say("One boundary is enforced rather than learnt: no consecutive fifths or octaves between melody and bass.");
+say();
+say(`On Bach's chorales (every setting of the tune held out), given Bach's chords: the most likely bass is Bach's under`);
+say(`${pct(bassB.deg, bassB.n)} of the notes, the position Bach's under ${pct(bassB.pos, bassB.n)}. With the generator's own plan and chords (steps 1-3),`);
+say(`the bass degree is Bach's under ${pct(bassB.pipeDeg, bassB.pipeN)}.`);
+say();
+say("On Kittel's melodies, the eight generated basses beside his eight (each of his against his others and Bach):");
+say();
+const posRow = (s: BStats) => ["5/3", "6", "6/4", "7", "6/5", "4/3", "4/2"].map((p) => pct(s.pos.get(p) ?? 0, s.posN)).join(" / ");
+say("| | bass attested | different basses per note | positions 5/3 / 6 / 6/4 / 7 / 6/5 / 4/3 / 4/2 | moves by step | leaps beyond a fifth | mean move (semitones) | range (semitones) | outer fifths/octaves per 100 moves | final bass 1, 5/3 |");
+say("|---|---|---|---|---|---|---|---|---|---|");
+const brow = (name: string, s: BStats) =>
+  say(
+    `| ${name} | ${pct(s.attested, s.n)} | ${(s.spread / s.spreadN).toFixed(1)} | ${posRow(s)} | ${pct(s.steps, s.moves)} | ${pct(s.leaps, s.moves)} | ${(s.size / s.moves).toFixed(1)} | ${(s.range / s.ranges).toFixed(0)} | ${((100 * s.par) / s.parN).toFixed(1)} | ${pct(s.final, s.finals)} |`,
+  );
+brow("**Kittel's basses**", bKit);
+brow("**generator**", bGen);
+say(
+  `| *Bach's 370 chorales* | | | ${posRow(bBach)} | ${pct(bBach.steps, bBach.moves)} | ${pct(bBach.leaps, bBach.moves)} | ${(bBach.size / bBach.moves).toFixed(1)} | ${(bBach.range / bBach.ranges).toFixed(0)} | ${((100 * bachPar) / bachParN).toFixed(1)} | ${pct(bBach.final, bBach.finals)} |`,
+);
+say();
+say("Bach's row reads his on-beat basses under the melody's attacks (his chorales move in crotchets, Kittel's in minims). Kittel's");
+say("positions are read from his figures (data/chorales/level4.json), Bach's by Kirnberger's reading: a cadential 6/4 is a 6/4");
+say("in Kittel's figures and a V with a suspension in Bach's reading, so the 6/4 and 7 columns are not like for like.");
+say("The last column reads the bass at the onset of the melody's last note; Kittel's bass sometimes moves under it (to the");
+say("tonic from b6, from 3 with 6/5, ...), which is why his share is lower than Bach's.");
+say();
+say("The chord and the bass are drawn together (one chain of pairs), so that a chord can be chosen for the bass it allows.");
+say("Even so, the chain alone moves the bass by step less often than Bach (31% of moves under Kittel's melodies); a");
+say("preference for steps (each step 2^w as likely) brings it to Bach's rate at w = 2 (37%; w = 3 gives 39%), with no");
+say("measurable cost in attestation (chords 81%, basses 78-79% at w = 0-3). Kittel's 49% is out of reach without passing");
+say("notes in the bass, which are step 5: one bass note under every melody note here.");
+say();
+
+say("## 4. Two examples");
 for (const { c, sets } of examples) {
   say();
   say(`### Kittel No. ${c.number}, *${c.title}* (${c.tonic} ${c.mode})`);
@@ -198,7 +356,30 @@ for (const { c, sets } of examples) {
   say();
   say("The top row is the melody as scale degrees (𝄐 a fermata). In the generated rows, a chord in bold is used");
   say("under that note by neither Kittel nor Bach.");
+  say();
+  say("The basses (pitch and figure; Kittel's pitches as he writes them, his figures omitted here):");
+  say();
+  say(`| | ${c.notes.map((n) => n.pitch).join(" | ")} |`);
+  say(`|---|${c.notes.map(() => "---").join("|")}|`);
+  for (let k = 0; k < kittelBasses(c); k++) say(`| Kittel ${c.notes[0].kittel[k].bass} | ${c.notes.map((n) => n.kittelBass[k].pitch ?? "").join(" | ")} |`);
+  sets.forEach((x, k) => say(`| gen. ${k + 1} | ${x.bass.pitches.map((p, i) => p + (figureText(x.bass.figures[i]) ? ` ${figureText(x.bass.figures[i])}` : "")).join(" | ")} |`));
 }
+
+writeFileSync(
+  new URL("../../data/chorales/generator/kittel-settings.json", import.meta.url),
+  JSON.stringify({
+    generated_by: "tools/chorales/generator_report.ts",
+    note: "Generated settings of Kittel's melodies (steps 1-3): per setting, the bass under each melody note (offset as in data/chorales/level2.json), with its figure.",
+    chorales: KITTEL.map((c) => ({
+      number: c.number,
+      settings: allSets.get(c.number)!.map((x, k) => ({
+        label: `gen. ${k + 1}`,
+        score: Number(x.score.toFixed(3)),
+        notes: c.notes.map((n, i) => ({ offset: n.offset, pitch: x.bass.pitches[i], chord: x.chords[i], position: x.bass.positions[i], figure: x.bass.figures[i] })),
+      })),
+    })),
+  }) + "\n",
+);
 
 say();
 say("## Reading");
@@ -215,6 +396,10 @@ say("  91% of his. The chain knows one chord of context and the home key only: i
 say("  the local key, and it cannot plan a phrase as a whole. Unattested is not wrong (the 'baseline' row shows what");
 say("  wrong-ish looks like: 64% at cadences), but it is where to look first. Next refinements, each to be measured");
 say("  here: the local key of each phrase (from its cadence), two chords of context, and the harmonic rhythm.");
-say("- Not yet: the bass (inversions, step 3), the figures, the inner voices (step 4). A setting is chords only.");
+say("- **Step 3: the bass is Bach-like and attested at 80% under Kittel's melodies (his own 87%)**, never in consecutive");
+say("  fifths or octaves with the melody, ending on a root-position tonic almost always. Given Bach's chords the most likely");
+say("  bass is Bach's own under 80% of notes. It uses fewer seventh chords and 6/4s than either master (drawn at T = 0.8,");
+say("  rare choices thin out), and it moves by step less than Kittel (see above).");
+say("- Not yet: the inner voices (step 4) and the diminution (step 5): one bass note under every melody note, no passing notes.");
 
 writeFileSync(new URL("../../docs/chorales/GENERATOR.md", import.meta.url), out.join("\n") + "\n");

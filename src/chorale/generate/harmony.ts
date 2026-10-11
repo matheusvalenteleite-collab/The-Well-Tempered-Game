@@ -6,7 +6,8 @@
  * then sampled exactly under that constraint (backward filtering, forward sampling), so the chords
  * before a cadence lead to it as Bach's do, rather than being forced at the last moment.
  */
-import { Backoff, draw, temper, type Ctx } from "./model.ts";
+import { Backoff, temper, type Ctx } from "./model.ts";
+import { bestChain, chainLogProb, sampleChain } from "./chain.ts";
 import type { BachChorale, Melody } from "./corpus.ts";
 
 export class HarmonyModel {
@@ -50,79 +51,16 @@ export function fixedFromPlan(m: Melody, ends: { index: number }[], plan: string
   return f;
 }
 
-function backward(h: HarmonyModel, m: Melody, fixed: Fixed, T: number): Map<string, number>[] {
-  const n = m.notes.length;
-  const beta: Map<string, number>[] = new Array(n);
-  const cand = (i: number) => (fixed[i] ? [fixed[i]!] : h.allowed(m.mode, m.notes[i].deg));
-  beta[n - 1] = new Map(cand(n - 1).map((c) => [c, 1]));
-  for (let i = n - 2; i >= 0; i--) {
-    const b = new Map<string, number>();
-    let z = 0;
-    for (const c of cand(i)) {
-      const row = h.step(m.mode, m.notes[i + 1].deg, c, T, fixed[i + 1]);
-      let s = 0;
-      for (const [c2, p] of row) s += p * (beta[i + 1].get(c2) ?? 0);
-      b.set(c, s);
-      z += s;
-    }
-    if (z > 0) for (const [c, v] of b) b.set(c, v / z);
-    beta[i] = b;
-  }
-  return beta;
-}
+const stepper = (h: HarmonyModel, m: Melody, fixed: Fixed, T: number) => (i: number, prev: string) => h.step(m.mode, m.notes[i].deg, prev, T, fixed[i]);
+const statesOf = (h: HarmonyModel, m: Melody, fixed: Fixed) => (i: number) => (fixed[i] ? [fixed[i]!] : h.allowed(m.mode, m.notes[i].deg));
 
 /** A chord sequence drawn from the chain at temperature T, exactly under the fixed chords. */
-export function sampleHarmony(h: HarmonyModel, m: Melody, fixed: Fixed, r: () => number, T = 1): string[] {
-  const beta = backward(h, m, fixed, T);
-  const out: string[] = [];
-  let prev = "start";
-  for (let i = 0; i < m.notes.length; i++) {
-    const row = h.step(m.mode, m.notes[i].deg, prev, T, fixed[i]);
-    const w = new Map<string, number>();
-    for (const [c, p] of row) w.set(c, p * (beta[i].get(c) ?? 0));
-    prev = draw(w, r());
-    out.push(prev);
-  }
-  return out;
-}
+export const sampleHarmony = (h: HarmonyModel, m: Melody, fixed: Fixed, r: () => number, T = 1): string[] =>
+  sampleChain(m.notes.length, stepper(h, m, fixed, T), statesOf(h, m, fixed), r);
 
 /** The most likely chord sequence under the fixed chords (Viterbi). */
-export function bestHarmony(h: HarmonyModel, m: Melody, fixed: Fixed): string[] {
-  const n = m.notes.length;
-  let score = new Map<string, number>();
-  const back: Map<string, string>[] = [];
-  for (const [c, p] of h.step(m.mode, m.notes[0].deg, "start", 1, fixed[0])) score.set(c, Math.log(p));
-  for (let i = 1; i < n; i++) {
-    const next = new Map<string, number>();
-    const bp = new Map<string, string>();
-    for (const [prev, s] of score) {
-      for (const [c, p] of h.step(m.mode, m.notes[i].deg, prev, 1, fixed[i])) {
-        const v = s + Math.log(p);
-        if (v > (next.get(c) ?? -Infinity)) {
-          next.set(c, v);
-          bp.set(c, prev);
-        }
-      }
-    }
-    score = next;
-    back.push(bp);
-  }
-  let c = [...score].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))[0][0];
-  const out = [c];
-  for (let i = n - 2; i >= 0; i--) {
-    c = back[i].get(c)!;
-    out.push(c);
-  }
-  return out.reverse();
-}
+export const bestHarmony = (h: HarmonyModel, m: Melody, fixed: Fixed): string[] => bestChain(m.notes.length, stepper(h, m, fixed, 1));
 
 /** log2 probability of a chord sequence under the chain (T = 1, no constraint). */
-export function harmonyLogProb(h: HarmonyModel, m: Melody, chords: string[]): number {
-  let s = 0;
-  let prev = "start";
-  m.notes.forEach((n, i) => {
-    s += Math.log2(h.step(m.mode, n.deg, prev).get(chords[i]) ?? 1e-9);
-    prev = chords[i];
-  });
-  return s;
-}
+export const harmonyLogProb = (h: HarmonyModel, m: Melody, chords: string[]): number =>
+  chainLogProb(stepper(h, m, m.notes.map(() => null), 1), chords);
