@@ -1302,7 +1302,10 @@
     "study.ornamentStyle": "Whose ornaments",
     "study.ornamentStyleHelp": "How the trills are played: as Bach's own table (the Explication, 1720: the alternation, then the main note held), or as his son C. P. E. Bach teaches (Versuch, 1753: every trill but the short one lasts the whole note, and on a longer note it closes with a turn below)",
     "study.ornamentStyle.explication": "tr: Bach's Explication",
-    "study.ornamentStyle.cpe": "tr: C. P. E. Bach"
+    "study.ornamentStyle.cpe": "tr: C. P. E. Bach",
+    "fold.open": "⚙ Options",
+    "fold.close": "⚙ Hide options",
+    "fold.help": "The layers, voices, ensemble, guide and sliders"
   },
   "tutor": {
     "rule.fos.no-repetition": "In this species each upbeat brings a new note, which is then tied over the bar line; striking the downbeat's note again on its own upbeat is a whole note in disguise.",

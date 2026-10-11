@@ -20,6 +20,7 @@ import { choraleGates, currentReading, fermataLinesOf, fermataWordsOf, planFerma
 import { FermataList, FermataScale, fermataSign, useFermataEdits } from "./FermataEditor.tsx";
 import { notesFor, useListeningNotes } from "../chorale/listening-notes.ts";
 import { commentaryFor, mergeGuide } from "./chorale-commentary.ts";
+import { useFold } from "./FoldControls.tsx";
 import { GuideCaption, GuideList, GuideModeSelect, marker, useGuideMode } from "./ListeningGuide.tsx";
 import { Shell } from "./Shell.tsx";
 import { WtcPage, type WtcScoreVoice, planClefs } from "./notation/WtcScore.tsx";
@@ -117,6 +118,8 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
   useEffect(() => audio.setGates(choraleGates(heard)), [heard]);
   const staffLayout = useStaffLayout();
   const openScore = staffLayout === "open";
+  // P26: on a phone, the controls but ▶/■ folded behind "Options".
+  const fold = useFold();
 
   const view = useMemo(() => {
     if (!ch || !data) return null;
@@ -274,6 +277,8 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
       transport={
         <div className="controls chorale-controls">
           {guideMode === "captions" && view && <GuideCaption moments={view.moments} lines={view.lines} cursor={playing || pausedAt !== null ? Math.max(0, cursor) : -1} />}
+          {fold.show && (
+            <>
           <div className="group" role="group" aria-label={t("chorale.study.layers")}>
             {(["cadences", "figures", "fundamental", "incidental"] as const).map((k) => (
               <label key={k} className="check" title={t(`chorale.study.layer.${k}.help`)}>
@@ -288,10 +293,15 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
               </label>
             ))}
           </div>
+            </>
+          )}
           <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
             <span className="play-split">
               <TransportButtons playing={playing} pausedAt={pausedAt} onPlay={play} onStop={stop} label={t("chorale.play")} />
             </span>
+            {fold.button}
+            {fold.show && (
+              <>
             <EnsembleSelect heard={heard} onReading={() => setReplan((x) => x + 1)} />
             <GuideModeSelect mode={guideMode} onMode={setGuideMode} />
             <label className="check" title={t("ui.view.staves.open.help")}>
@@ -314,6 +324,8 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
               <FermataScale onChange={() => setReplan((x) => x + 1)} />
               <HFader label={t("ui.tempo")} help={t("ui.tempo.help")} value={tempo} min={30} max={120} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
             </div>
+              </>
+            )}
           </div>
         </div>
       }
