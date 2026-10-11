@@ -165,6 +165,8 @@ export function choraleSound(ensemble: Ensemble | null = null): SoundState {
       s.mix[id].volume = spec.doublingLevel ?? 0.6;
     });
   }
+  // The melody forward (P14): the lower voices about 3 dB under the soprano.
+  for (const ch of ["second", "third", "fux"] as const) s.mix[ch].volume = 0.71;
   s.fuxOctave = 0;
   for (const k of ["cantusOctave", "counterpointOctave"] as const) if (k in s) (s as unknown as Record<string, number>)[k] = 0;
   return s;
