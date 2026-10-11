@@ -107,6 +107,42 @@
   .saved { font-size: 0.8rem; color: var(--muted); }
   .keys { font-size: 0.8rem; color: var(--muted); }
   @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
+
+  /* Phones: the list folds away behind a button, the score wraps onto several systems at a readable
+     size, and the sound and the way between moments stay at the thumb in a bar at the bottom. */
+  .list-toggle, .dock { display: none; }
+  @media (max-width: 860px) {
+    body { font-size: 16px; padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+    .wrap { padding-block: 12px 24px; gap: 12px; }
+    h1 { font-size: 1.45rem; }
+    .lede { font-size: 0.9rem; }
+    .progress { width: 100%; justify-content: space-between; }
+    .bar { flex: 1 1 auto; width: auto; }
+    .list-toggle { display: inline-flex; justify-content: space-between; align-items: center; width: 100%; font: inherit; font-size: 0.95rem; padding: 11px 14px; border-radius: 8px; border: 1px solid var(--rule); background: var(--panel); color: var(--ink); cursor: pointer; }
+    .list { position: static; max-height: 60vh; display: none; }
+    .wrap.open .list { display: block; }
+    .item { padding: 11px 12px; }
+    .item .t { font-size: 0.92rem; }
+    .chip { font-size: 0.9rem; padding: 6px 14px; }
+    .moment { padding: 14px 12px 16px; gap: 12px; }
+    .mhead h2 { font-size: 1.25rem; }
+    .facts { grid-template-columns: minmax(0, 1fr); gap: 0; }
+    .facts dd { margin-bottom: 6px; }
+    .score { padding: 4px 0; border: 0; }
+    .play .act { display: none; }
+    .play { gap: 10px 14px; }
+    .lane { flex-basis: 100%; }
+    .tempo { flex: 1 1 auto; }
+    .tempo input { flex: 1 1 auto; }
+    .choices { grid-template-columns: minmax(0, 1fr); }
+    .choice { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px; min-height: 52px; }
+    .choice span { text-align: right; }
+    .choice kbd { display: none; }
+    .verdict .nav .act { display: none; }
+    .dock { display: grid; grid-template-columns: auto 1fr 1fr auto; gap: 8px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--panel); border-top: 1px solid var(--rule); }
+    .dock button { min-height: 46px; padding: 0 14px; font-size: 1rem; }
+  }
+  @media (hover: none) { .hint { display: none; } }
 </style>
 
 <div class="wrap">
@@ -116,6 +152,7 @@
       <p class="lede" id="page-lede">The choices in Bach's 370 chorales that surprise the generator most, measured by models that never saw the tune. Listen, read, and say what kind of rarity each one is.</p>
     </div>
     <div class="progress" aria-live="polite"><span id="count">0 of 0 rated</span><div class="bar"><i id="bar"></i></div></div>
+    <button class="list-toggle" id="list-toggle" type="button" aria-expanded="false"><span>All moments</span><span aria-hidden="true">▾</span></button>
   </header>
   <p class="notice" id="notice" hidden></p>
 
@@ -163,9 +200,15 @@
         <span class="saved" id="saved" aria-live="polite"></span>
         <button class="act" id="next" type="button">Next →</button>
       </div>
-      <p class="keys">Keys: 1–4 rate · space plays · M plays the moment · ← → move between moments.</p>
+      <p class="keys hint">Keys: 1–4 rate · space plays · M plays the moment · ← → move between moments.</p>
     </section>
   </main>
+</div>
+<div class="dock" aria-label="Sound and moments">
+  <button class="act ghost" id="d-prev" type="button" aria-label="Previous moment">←</button>
+  <button class="act" id="d-play" type="button">▶ Excerpt</button>
+  <button class="act ghost" id="d-moment" type="button">▶ Moment</button>
+  <button class="act ghost" id="d-next" type="button" aria-label="Next moment">→</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min.js"></script>
@@ -240,15 +283,33 @@ function renderList() {
     bits.className = "b";
     bits.textContent = `${m.bits} b`;
     b.append(dot, t, bits);
-    b.addEventListener("click", () => show(i));
+    b.addEventListener("click", () => { show(i); if (narrow.matches) { openList(false); $("moment").scrollIntoView({ block: "start" }); } });
     box.append(b);
   }
   const n = MOMENTS.filter((m) => ratings[m.id]?.rating).length;
   $("count").textContent = `${n} of ${MOMENTS.length} rated`;
+  $("list-toggle").firstElementChild.textContent = `Moment ${index + 1} of ${MOMENTS.length}: all moments`;
   $("bar").style.width = `${(100 * n) / Math.max(1, MOMENTS.length)}%`;
 }
 
 function ink() { return getComputedStyle(document.documentElement).getPropertyValue("--ink").trim() || "#000"; }
+
+const narrow = window.matchMedia("(max-width: 860px)");
+let drawnWidth = 0;
+function drawScore(m) {
+  const opts = { responsive: "resize", foregroundColor: ink(), add_classes: true, paddingtop: 4, paddingbottom: 4 };
+  drawnWidth = $("score").clientWidth;
+  if (narrow.matches) {
+    // a phone: lay the excerpt out at the screen's width, two bars or so a system, rather than shrink it
+    Object.assign(opts, { staffwidth: Math.max(240, drawnWidth - 16), wrap: { minSpacing: 1.6, maxSpacing: 2.6, preferredMeasuresPerLine: 2 }, paddingleft: 0, paddingright: 0 });
+  }
+  ABCJS.renderAbc("score", m.abc, opts);
+}
+let resizeTimer = null;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { if (window.ABCJS && Math.abs($("score").clientWidth - drawnWidth) > 24) drawScore(MOMENTS[index]); }, 200);
+});
 
 function show(i) {
   stop();
@@ -284,7 +345,7 @@ function show(i) {
   $("mk").style.left = `${(100 * m.mark) / m.length}%`;
   $("head").style.width = "0";
   if (window.ABCJS) {
-    ABCJS.renderAbc("score", m.abc, { responsive: "resize", foregroundColor: ink(), add_classes: true, paddingtop: 4, paddingbottom: 4 });
+    drawScore(m);
   } else {
     $("score").textContent = "The score could not load; the sound still plays.";
   }
@@ -373,6 +434,7 @@ function play(from, to) {
     const x = Math.min(1, (ac.currentTime - t0) / total);
     $("head").style.width = `${100 * ((from + Math.max(0, x) * (to - from)) / m.length)}%`;
     if (x < 1) raf = requestAnimationFrame(lane);
+    else dockReset();
   };
   raf = requestAnimationFrame(lane);
 }
@@ -380,6 +442,12 @@ function stop() {
   for (const o of playing) { try { o.stop(); } catch {} }
   playing = [];
   if (raf) cancelAnimationFrame(raf);
+  dockReset();
+}
+function dockReset() {
+  dockPlaying = null;
+  $("d-play").textContent = "▶ Excerpt";
+  $("d-moment").textContent = "▶ Moment";
 }
 $("play-all").addEventListener("click", () => play(0, MOMENTS[index].length));
 $("play-moment").addEventListener("click", () => {
@@ -387,6 +455,29 @@ $("play-moment").addEventListener("click", () => {
   play(Math.max(0, m.mark - 16), Math.min(m.length, m.mark + 24));
 });
 $("stop").addEventListener("click", stop);
+function openList(on) {
+  document.querySelector(".wrap").classList.toggle("open", on);
+  $("list-toggle").setAttribute("aria-expanded", String(on));
+  $("list-toggle").lastElementChild.textContent = on ? "▴" : "▾";
+}
+$("list-toggle").addEventListener("click", () => openList(!document.querySelector(".wrap").classList.contains("open")));
+// the bottom bar on phones: a play button that stops when pressed again, and the way between moments
+let dockPlaying = null;
+function dock(which, from, to) {
+  if (dockPlaying === which) { stop(); return; }
+  play(from, to);
+  dockPlaying = which;
+  $("d-play").textContent = which === "all" ? "■ Stop" : "▶ Excerpt";
+  $("d-moment").textContent = which === "moment" ? "■ Stop" : "▶ Moment";
+}
+$("d-play").addEventListener("click", () => dock("all", 0, MOMENTS[index].length));
+$("d-moment").addEventListener("click", () => {
+  const m = MOMENTS[index];
+  dock("moment", Math.max(0, m.mark - 16), Math.min(m.length, m.mark + 24));
+});
+function move(i) { show(i); $("moment").scrollIntoView({ block: "start", behavior: "smooth" }); }
+$("d-prev").addEventListener("click", () => move(index - 1));
+$("d-next").addEventListener("click", () => move(index + 1));
 $("tempo").addEventListener("input", () => ($("tempo-out").textContent = $("tempo").value));
 for (const c of document.querySelectorAll(".choice")) c.addEventListener("click", () => rate(c.dataset.r));
 $("flag").addEventListener("change", () => {
