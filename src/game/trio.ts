@@ -69,7 +69,77 @@ export const READINGS: [string, number, number, string, string][] = [["gap_110",
 export type TrioSpecies = 1 | 2 | 3 | 4 | 5;
 export const TRIO_SPECIES: TrioSpecies[] = [1, 2, 3, 4, 5];
 
+/** A three-voice exercise of the game: one of Fux's (`fux` his lines), or a task of private study (`fux` null, D152). */
+export type TrioTask = Omit<TrioStep, "fux"> & { fux: string[][] | null };
+
+/** Fux's three-voice exercises of a species, in his order. */
 export function trioSteps(data: { exercises: RawExercise[] }, species: TrioSpecies = 1): TrioStep[] {
+  return fuxTrioSteps(data, species);
+}
+
+/** Every exercise of a species in the game (D152): Fux's, then the modes he leaves to private study. */
+export function trioTasks(data: { exercises: RawExercise[] }, species: TrioSpecies = 1): TrioTask[] {
+  const fux = fuxTrioSteps(data, species);
+  return [...fux, ...privateTrioSteps(species, fux)];
+}
+
+/** The cantus firmi (Fux's, as in two voices) for the tasks of private study. */
+const CANTUS: Record<ModalFinal, string[]> = {
+  D: ["D4", "F4", "E4", "D4", "G4", "F4", "A4", "G4", "F4", "E4", "D4"],
+  E: ["E4", "C4", "D4", "C4", "A3", "A4", "G4", "E4", "F4", "E4"],
+  F: ["F3", "G3", "A3", "F3", "D3", "E3", "F3", "C4", "A3", "F3", "G3", "F3"],
+  G: ["G3", "C4", "B3", "G3", "C4", "E4", "D4", "G4", "E4", "C4", "D4", "B3", "A3", "G3"],
+  A: ["A3", "C4", "B3", "D4", "C4", "E4", "F4", "E4", "D4", "C4", "B3", "A3"],
+  C: ["C4", "E4", "F4", "G4", "E4", "A4", "G4", "E4", "F4", "E4", "D4", "C4"],
+};
+/** MIDI of a 1725 clef's middle line (C1 G4 ... F4 D3). */
+export const clefMiddle = (code: string) => {
+  const m = /^([CFG])(\d)$/.exec(code)!;
+  const anchor = { C: "C4", F: "F3", G: "G4" }[m[1] as "C" | "F" | "G"];
+  const d = parsePitch(anchor).diatonic + (3 - Number(m[2])) * 2;
+  return parsePitch(`${"CDEFGAB"[((d % 7) + 7) % 7]}${Math.floor(d / 7)}`).midi;
+};
+/**
+ * The cantus in the octave nearest the middle line of its part's 1725 clef: the rule that places
+ * all sixteen of Fux's three-voice first-species cantus firmi as he does (test/three-voice.test.ts).
+ */
+export function trioCantus(final: ModalFinal, clef: string): string[] {
+  const cf = CANTUS[final];
+  const mean = cf.reduce((a, p) => a + parsePitch(p).midi, 0) / cf.length;
+  const target = clefMiddle(clef);
+  const k = [-2, -1, 0, 1].reduce((b, x) => (Math.abs(mean + 12 * x - target) < Math.abs(mean + 12 * b - target) ? x : b), 0);
+  return cf.map((p) => p.replace(/-?\d+$/, (o) => String(Number(o) + k)));
+}
+
+/**
+ * The modes Aloysius leaves to private study in three voices (D152), read from the 1725 print:
+ * second species, "reliquos tres tonos privato studio ... tibi relinquo" (p. 99: G, A, C); third,
+ * "caeterorum tonorum Cantuumque firmorum exempla privato studio domi tuae persolvenda" (p. 102:
+ * E, F, G, A, C); fourth, "Reliquos tres tonos pari exercitio percurres" (p. 111: G, A, C); fifth,
+ * "reliquorum quatuor tonorum exercitationes privato studio" (p. 114: F, G, A, C). First species
+ * has all six modes from Fux. Each mode as many times as Fux's D set of that species, the parts
+ * placed and the clefs as there.
+ */
+const TRIO_PRIVATE: Record<2 | 3 | 4 | 5, { modes: ModalFinal[]; page: number }> = {
+  2: { modes: ["G", "A", "C"], page: 99 },
+  3: { modes: ["E", "F", "G", "A", "C"], page: 102 },
+  4: { modes: ["G", "A", "C"], page: 111 },
+  5: { modes: ["F", "G", "A", "C"], page: 114 },
+};
+
+function privateTrioSteps(species: TrioSpecies, fux: TrioStep[]): TrioTask[] {
+  if (species === 1) return [];
+  const plan = fux.filter((s) => s.modalFinal === "D");
+  const { modes, page } = TRIO_PRIVATE[species];
+  return modes.flatMap((final) =>
+    plan.map((d, j): TrioTask => {
+      const cantus = trioCantus(final, d.clefs1725[d.cantusIndex]);
+      return { ...d, fux: null, exerciseId: `private.t${species}.${final}.${j + 1}`, figure: "", page, modalFinal: final, cantus, untied: species === 4 ? 1 : 0, id: "", ordinal: 0 };
+    }),
+  ).map((s, k) => ({ ...s, id: `fux-mode.t${species}.${String(fux.length + k + 1).padStart(2, "0")}`, ordinal: fux.length + k + 1 }));
+}
+
+function fuxTrioSteps(data: { exercises: RawExercise[] }, species: TrioSpecies): TrioStep[] {
   const per: 1 | 2 | 4 | 8 = species === 1 ? 1 : species === 3 ? 4 : species === 5 ? 8 : 2;
   return data.exercises
     .filter((e) => e.species.length === 1 && e.species[0] === species)
@@ -147,11 +217,11 @@ export function movingSlots(per: 2 | 4, bars: number, notes: { pitch: string | n
 export const floridLayout = (bars: number) => slotLayout("fifth", bars).map((s) => ({ ...s, restAllowed: true }));
 
 /** Slots in a voice's line: one per bar, or `per` a bar (one in the last) for the moving voice. */
-export const voiceSlots = (s: TrioStep, voice: number) => (voice === s.movingIndex ? s.per * (s.cantus.length - 1) + 1 : s.cantus.length);
+export const voiceSlots = (s: TrioTask, voice: number) => (voice === s.movingIndex ? s.per * (s.cantus.length - 1) + 1 : s.cantus.length);
 /** The bar of slot k in a voice's line. */
-export const barOfSlot = (s: TrioStep, voice: number, k: number) => (voice === s.movingIndex ? Math.min(s.cantus.length - 1, Math.floor(k / s.per)) : k);
+export const barOfSlot = (s: TrioTask, voice: number, k: number) => (voice === s.movingIndex ? Math.min(s.cantus.length - 1, Math.floor(k / s.per)) : k);
 /** The first slot of bar b in a voice's line. */
-export const slotOfBar = (s: TrioStep, voice: number, b: number) => (voice === s.movingIndex ? s.per * b : b);
+export const slotOfBar = (s: TrioTask, voice: number, b: number) => (voice === s.movingIndex ? s.per * b : b);
 
 /** The staves the player writes (the two that are not the cantus). */
-export const playerStaves = (s: TrioStep) => [0, 1, 2].filter((x) => x !== s.cantusIndex);
+export const playerStaves = (s: TrioTask) => [0, 1, 2].filter((x) => x !== s.cantusIndex);

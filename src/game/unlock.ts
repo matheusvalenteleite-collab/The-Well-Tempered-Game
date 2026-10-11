@@ -5,8 +5,8 @@
  */
 import data from "../../data/fux/three-voice/fux-three-voice.json" with { type: "json" };
 import { ALL_STEPS } from "../counterpoint/curriculum/index.ts";
-import { TRIO_SPECIES, trioSteps } from "./trio.ts";
-import { QUARTET_ALL, QUARTET_SPECIES } from "./quartet.ts";
+import { TRIO_SPECIES, trioTasks } from "./trio.ts";
+import { QUARTET_ALL, QUARTET_SPECIES, TRIO_COMBINED } from "./quartet.ts";
 
 export function openInOrder(ids: readonly string[], done: readonly string[], k: number, beta: boolean): boolean {
   if (beta || k <= 0) return true;
@@ -21,7 +21,8 @@ export function openInOrder(ids: readonly string[], done: readonly string[], k: 
  */
 export const GAME_ORDER: readonly string[] = [
   ...ALL_STEPS.map((s) => s.id),
-  ...TRIO_SPECIES.flatMap((n) => trioSteps(data as never, n).map((s) => s.id)),
+  // Three voices: the species combined (Fig. 134, D152) where Fux puts it, after the third species.
+  ...TRIO_SPECIES.flatMap((n) => [...trioTasks(data as never, n).map((s) => s.id), ...(n === 3 ? TRIO_COMBINED.map((s) => s.id) : [])]),
   ...QUARTET_SPECIES.flatMap((n) => QUARTET_ALL[n].map((s) => s.id)),
 ];
 

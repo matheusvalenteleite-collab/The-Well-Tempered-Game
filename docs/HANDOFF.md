@@ -1,7 +1,7 @@
 # Handoff (10 October 2026, night)
 
 Read this first in a new session. The decisions log (`docs/DECISIONS.md`: D1–D139 and D147 on for the game,
-D140–D146 for the tutorial (the next free number is D152), C1–C14 for the chorale mode) has the details; `docs/MORNING.md` has
+D140–D146 for the tutorial (the next free number is D153), C1–C14 for the chorale mode) has the details; `docs/MORNING.md` has
 older notes and the owner's open questions.
 
 ## How we work from now on (the owner's choice, after a usage warning)
@@ -17,7 +17,7 @@ older notes and the owner's open questions.
 
 ## Publishing
 
-- Tests: `npm test` (250). Builds: `npm run build` (Pages, split into chunks) and
+- Tests: `npm test` (253). Builds: `npm run build` (Pages, split into chunks) and
   `npm run build:artifact` then `node tools/build-artifact.mjs <out.html>` (one file, 16.67 MB of a
   16.8 MB ceiling: the artifact must not grow much more without splitting data out).
 - claude.ai artifact: https://claude.ai/artifact/NvkaBGCHrtDebE85H7udTX (private). It holds 501 of
@@ -51,12 +51,12 @@ older notes and the owner's open questions.
 3. **Optional**: the lab's licence-safe fugue corpus (Kyle Rother's open-score edition, CC BY 4.0;
    `data/wtc/fugues-open.json` on `claude/beautiful-mccarthy-7li5nv` at 8be67d0). Only if the game
    is ever made public.
-4. **Four voices in the Fux mode: built (D148)**. 120 exercises after the three-voice ones in the REAL
-   chain: Fux's 32 (Figs. 160-204) and 88 tasks of private study (four a mode), the species combined
-   last. For the owner to confirm: the four readings beyond the text listed in D148 (a divided
-   semibreve's second minim as an upbeat; the closing neighbour note of Fig. 182; how the combined
-   species is judged; suspensions against a divided semibreve), and whether p. 139 (after Fig. 204,
-   not in the vendored pages) leaves more modes of the combined species to private study.
+4. **The Fux mode is complete (D148, D152)**: two, three and four voices, every exercise of the 1725
+   print and every task it sets (three voices: the modes left to private study and the species
+   combined, Fig. 134; four voices: Exercitium III). For the owner to confirm: the readings beyond the
+   text listed in D148 and D152; p. 139 (after Fig. 204, outside the vendored pages); Fig. 110's
+   B flat (D116). Not built for three and four voices (two voices has them): the Lectio panel
+   (Fux's text with the scans), undo, saving pieces, export.
 5. **Learnability and accessibility (D149)**: the audit's first two items are done (keyboard, orientation).
    The harmony chapter is in the tutorial (D150); contrast and signs beside colour are done (D151).
    Left, in order: a spoken account of the score (live region: bar, note written, cantus) and a text

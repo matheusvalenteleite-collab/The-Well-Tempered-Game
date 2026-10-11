@@ -9,7 +9,7 @@
 import { ModeSelect } from "./ModeSelect.tsx";
 import type { Mode } from "./Root.tsx";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { barOfQuaver, normalise, partSlots, QUARTET_ALL, QUARTET_SPECIES, quartetInput, quartetPlayer, PART_CENTRE, snapSlot, template, valueAt as valueFor, type QuartetSpecies, type QuartetStep } from "../game/quartet.ts";
+import { barOfQuaver, normalise, partSlots, QUARTET_ALL, QUARTET_SPECIES, quartetInput, quartetPlayer, PART_CENTRE, snapSlot, TRIO_COMBINED, template, valueAt as valueFor, type QuartetSpecies, type QuartetStep } from "../game/quartet.ts";
 import { evaluateQuartet, type PartKind } from "../counterpoint/four-voice.ts";
 import type { TrioEvaluation } from "../counterpoint/three-voice.ts";
 import { applyAccidental, clear, clearSpan, holdSelected, initialState, letterNote, onsetOf, place, select, spanFromSelected, stepNote, type SessionState } from "../game/session.ts";
@@ -26,7 +26,9 @@ import { playContinuo } from "../continuo/audio.ts";
 import { DEFAULT_VERSIONS, type Versions } from "../game/versions.ts";
 import { parsePitch, type Step } from "../music/pitch.ts";
 import { TrioScore, type TrioVoice } from "./notation/TrioScore.tsx";
-import { quartetStaves } from "./notation/trio-staves.ts";
+import { quartetStaves, trioStaves } from "./notation/trio-staves.ts";
+import data3 from "../../data/fux/three-voice/fux-three-voice.json" with { type: "json" };
+import { clefMiddle, TRIO_SPECIES, trioTasks } from "../game/trio.ts";
 import { applyStyle, type StyleId } from "../audio/styles.ts";
 import { ZOOM_MAX, ZOOM_MIN } from "./notation/zoom.ts";
 import { SoundDesk, trackOrder } from "./SoundDesk.tsx";
@@ -48,10 +50,12 @@ import { exerciseOpen, furthestOpen } from "../game/unlock.ts";
 import type { NameStyle } from "../music/names.ts";
 
 const BY_SPECIES = QUARTET_ALL;
+/** The three-voice exercises by species (for the species menu of the combined species, D152). */
+const TRIO_BY = Object.fromEntries(TRIO_SPECIES.map((n) => [n, trioTasks(data3 as never, n)])) as Record<number, ReturnType<typeof trioTasks>>;
 const ORDINAL = ["", "1st", "2nd", "3rd", "4th", "5th"];
 const speciesLabel = (n: QuartetSpecies) => (n === 6 ? t("ui.quartet.speciesCombined") : t("ui.nav.speciesN", { n: ORDINAL[n] }));
 const stepLabel = (s: QuartetStep) =>
-  t("ui.quartet.step", { n: s.ordinal, final: s.modalFinal, where: `${t(`ui.quartet.cantus.${s.cantusIndex}`)} · ${s.figure ? t("ui.quartet.stepFux", { fig: s.figure }) : t("ui.quartet.stepPrivate")}` });
+  t("ui.quartet.step", { n: s.ordinal, final: s.modalFinal, where: `${t(s.kinds.length === 3 ? `ui.trio3.cantus.${s.cantusIndex}` : `ui.quartet.cantus.${s.cantusIndex}`)} · ${s.figure ? t("ui.quartet.stepFux", { fig: s.figure }) : t("ui.quartet.stepPrivate")}` });
 /** The player's three parts: Contra I, II, III on the counterpoint, second and third channels. */
 const CHANNELS = ["counterpoint", "second", "third"] as const;
 const INK = ["var(--trk-counterpoint)", "var(--trk-second)", "var(--trk-third)"];
@@ -76,13 +80,25 @@ const startPitch = (s: QuartetStep, staff: number) => {
   return `${"CDEFGAB"[((d % 7) + 7) % 7]}${Math.floor(d / 7)}`;
 };
 
-export function QuartetApp({ onVoices, suspended, command, onTutorial }: { onVoices(n: Mode): void } & GameLink) {
-  const [species, setSpecies] = useState<QuartetSpecies>(() => stored<QuartetSpecies>("wtg.quartetSpecies", 1, (v) => QUARTET_SPECIES.includes(v as QuartetSpecies)));
-  useEffect(() => store("wtg.quartetSpecies", species), [species]);
-  const STEPS = BY_SPECIES[species];
-  const [stepIndex, setStepIndex] = useState(() => Math.max(0, STEPS.findIndex((s) => s.id === stored("wtg.quartetStep", STEPS[0].id))));
+/**
+ * `trio` (D152): the same screen for the three-voice species combined (Fig. 134 and its tasks),
+ * shown inside "3 voices"; choosing another species hands back to the three-voice screen.
+ */
+export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: { onVoices(n: Mode): void; trio?: { onSpecies(n: number): void } } & GameLink) {
+  const BY: Partial<Record<QuartetSpecies, QuartetStep[]>> = trio ? { 6: TRIO_COMBINED } : BY_SPECIES;
+  const SPECIES_LIST: QuartetSpecies[] = trio ? [6] : QUARTET_SPECIES;
+  const KEY = trio ? "wtg.trioCombinedStep" : "wtg.quartetStep";
+  const [species, setSpecies] = useState<QuartetSpecies>(() => (trio ? 6 : stored<QuartetSpecies>("wtg.quartetSpecies", 1, (v) => QUARTET_SPECIES.includes(v as QuartetSpecies))));
+  useEffect(() => {
+    if (!trio) store("wtg.quartetSpecies", species);
+  }, [species, trio]);
+  const STEPS = BY[species]!;
+  const [stepIndex, setStepIndex] = useState(() => Math.max(0, STEPS.findIndex((s) => s.id === stored(KEY, STEPS[0].id))));
   const STEP = STEPS[Math.min(stepIndex, STEPS.length - 1)];
-  useEffect(() => store("wtg.quartetStep", STEP.id), [STEP.id]);
+  useEffect(() => store(KEY, STEP.id), [STEP.id, KEY]);
+  /** The parts: four, or three in the three-voice species combined. */
+  const PARTS = STEP.kinds.map((_, i) => i);
+  const N = PARTS.length;
   const BARS = STEP.cantus.length;
   const GRID = STEP.species !== 1;
   const layout = useMemo(() => floridLayout(BARS), [BARS]);
@@ -230,31 +246,33 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial }: { onVoi
     setActive(quartetPlayer(STEPS[k])[0]);
   };
   const goToSpecies = (n: QuartetSpecies) => {
-    if (n === species || !exerciseOpen(BY_SPECIES[n][0].id, stars, beta)) return;
+    if (n === species || !BY[n] || !exerciseOpen(BY[n]![0].id, stars, beta)) return;
     reset();
     setSpecies(n);
     setStepIndex(0);
-    setActive(quartetPlayer(BY_SPECIES[n][0])[0]);
+    setActive(quartetPlayer(BY[n]![0])[0]);
   };
   /** Any four-voice exercise by id (the real setup, a command). */
   const jumpTo = (id: string) => {
-    const n = Number(/\.q(\d)\./.exec(id)?.[1]) as QuartetSpecies;
-    const k = BY_SPECIES[n]?.findIndex((x) => x.id === id) ?? -1;
+    const n = Number(/\.[qt](\d)\./.exec(id)?.[1]) as QuartetSpecies;
+    const k = BY[n]?.findIndex((x) => x.id === id) ?? -1;
     if (k < 0 || (n === species && k === stepIndex)) return;
     reset();
     setSpecies(n);
     setStepIndex(k);
-    setActive(quartetPlayer(BY_SPECIES[n][k])[0]);
+    setActive(quartetPlayer(BY[n]![k])[0]);
   };
   useEffect(() => {
     if (isOpen(stepIndex)) return;
     const id = furthestOpen(stars, beta);
-    if (id.startsWith("fux-mode.q")) jumpTo(id);
-    else onVoices(id.startsWith("fux-mode.t") ? 3 : 2);
+    const mine = trio ? "fux-mode.t6" : "fux-mode.q";
+    if (id.startsWith(mine)) jumpTo(id);
+    else if (trio && id.startsWith("fux-mode.t")) trio.onSpecies(Number(/\.t(\d)\./.exec(id)?.[1]));
+    else onVoices(id.startsWith("fux-mode.q") ? 4 : id.startsWith("fux-mode.t") ? 3 : 2);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [beta, stepIndex, species]);
   useEffect(() => {
-    if (command && command.stepId.startsWith("fux-mode.q")) jumpTo(command.stepId);
+    if (command && command.stepId.startsWith(trio ? "fux-mode.t6" : "fux-mode.q")) jumpTo(command.stepId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [command?.n]);
 
@@ -263,7 +281,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial }: { onVoi
     setResult(null);
   };
   const audition = (k: number, override?: { staff: number; pitch: string | null }) => {
-    const ps = [0, 1, 2, 3].map((i) => (override && i === override.staff ? (override.pitch === REST ? null : override.pitch) : i === STEP.cantusIndex ? STEP.cantus[k] : downOf(sessions[i].notes, i, k)));
+    const ps = PARTS.map((i) => (override && i === override.staff ? (override.pitch === REST ? null : override.pitch) : i === STEP.cantusIndex ? STEP.cantus[k] : downOf(sessions[i].notes, i, k)));
     const extra = mine.slice(1).flatMap((i, j) => (ps[i] ? [{ channel: CHANNELS[j + 1], pitch: ps[i]! }] : []));
     void audio.playSequence([{ slot: k, at: 0, length: 1, cantus: STEP.cantus[k], counterpoint: ps[mine[0]] ?? null, extra }]);
   };
@@ -364,7 +382,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial }: { onVoi
   const evaluateNow = () => {
     if (result) return setResult(null);
     if (missing > 0) return;
-    const lines = [0, 1, 2, 3].map((i) => (i === STEP.cantusIndex ? STEP.cantus : (sessions[i].notes as string[])));
+    const lines = PARTS.map((i) => (i === STEP.cantusIndex ? STEP.cantus : (sessions[i].notes as string[])));
     const ev = evaluateQuartet(quartetInput(STEP, lines));
     setResult(ev);
     setTab("evaluation");
@@ -387,7 +405,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial }: { onVoi
     const s = session;
     const florid = STEP.kinds[activeStaff] === "florid";
     if (digit !== null) {
-      const track = trackOrder(false, true, true)[digit - 1];
+      const track = trackOrder(false, true, N === 4)[digit - 1];
       if (track === "cantus") setSound(changeMix(sound, "cantus", { mute: !sound.mix.cantus.mute }));
       else if (track === "counterpoint") setVersions({ ...versions, original: !versions.original });
       else if (track === "second") setSecondOn(!secondOn);
@@ -435,15 +453,15 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial }: { onVoi
     const ms = line.filter((x): x is string => !!x && x !== REST && x !== HOLD).map((x) => parsePitch(x).midi);
     return ms.reduce((a, b) => a + b, 0) / Math.max(1, ms.length);
   };
-  const means = [0, 1, 2, 3].map((i) => (i === STEP.cantusIndex ? mean(STEP.cantus) : STEP.fux ? mean(STEP.fux[i]) : PART_CENTRE[i]));
-  const staves = quartetStaves(means);
+  const means = PARTS.map((i) => (i === STEP.cantusIndex ? mean(STEP.cantus) : STEP.fux ? mean(STEP.fux[i]) : N === 4 ? PART_CENTRE[i] : clefMiddle(STEP.clefs1725[i])));
+  const staves = N === 4 ? quartetStaves(means) : trioStaves(means);
   const stemOf = (i: number): 1 | -1 => {
-    const mates = [0, 1, 2, 3].filter((x) => x !== i && staves.staff[x] === staves.staff[i]);
+    const mates = PARTS.filter((x) => x !== i && staves.staff[x] === staves.staff[i]);
     if (mates.length) return means[i] >= Math.max(...mates.map((x) => means[x])) ? 1 : -1;
     const middle = staves.clefs[staves.staff[i]] === "bass" ? 50 : 71;
     return means[i] < middle ? 1 : -1;
   };
-  const voices: TrioVoice[] = [0, 1, 2, 3].map((i) => {
+  const voices: TrioVoice[] = PARTS.map((i) => {
     const isCantus = i === STEP.cantusIndex;
     // In species 2-5 the cantus, like the others, is drawn from quaver slots: one semibreve a bar.
     const cantusLine = GRID ? STEP.cantus.flatMap((p, k) => (k === BARS - 1 ? [p] : [p, ...Array(7).fill(HOLD)])) : STEP.cantus;
@@ -457,7 +475,8 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial }: { onVoi
     };
   });
   const partName = (i: number) => (i === STEP.cantusIndex ? t("ui.trio3.chip.cantus") : t(NAMES[mine.indexOf(i)]));
-  const voiceName = (i: number) => `${partName(i)} (${t(`ui.quartet.voice.${i}`)})`;
+  const placeName = (i: number) => t(N === 4 ? `ui.quartet.voice.${i}` : `ui.trio3.voice.${i}`);
+  const voiceName = (i: number) => `${partName(i)} (${placeName(i)})`;
   const chooseStyle = (id: StyleId) => {
     const next = applyStyle(id, { sound, drumsOn: drums, drumKit, continuoOn: continuo, continuo: continuoSettings, tuning, tempo }, staves.staff[STEP.cantusIndex] === 0, {
       counterpointHigh: staves.staff[mine[0]] === 0,
@@ -486,18 +505,34 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial }: { onVoi
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
             <button className="icon" onClick={() => goTo(stepIndex - 1)} disabled={stepIndex === 0} aria-label={t("ui.nav.prev")}>‹</button>
-            <ModeSelect value={4} stars={stars} onMode={(m) => (audio.stop(), onVoices(m))} />
-            <select id="species" className="sel sel-species" value={species} aria-label={t("ui.nav.species")} onChange={(e) => goToSpecies(Number(e.target.value) as QuartetSpecies)}>
-              {QUARTET_SPECIES.map((n) => {
-                const open = exerciseOpen(BY_SPECIES[n][0].id, stars, beta);
+            <ModeSelect value={trio ? 3 : 4} stars={stars} onMode={(m) => (audio.stop(), onVoices(m))} />
+            <select id="species" className="sel sel-species" value={species} aria-label={t("ui.nav.species")} onChange={(e) => (trio && Number(e.target.value) !== 6 ? (audio.stop(), trio.onSpecies(Number(e.target.value))) : goToSpecies(Number(e.target.value) as QuartetSpecies))}>
+              {trio &&
+                TRIO_SPECIES.filter((n) => n !== 4 && n !== 5).map((n) => (
+                  <option key={n} value={n} disabled={!exerciseOpen(TRIO_BY[n][0].id, stars, beta)}>
+                    {exerciseOpen(TRIO_BY[n][0].id, stars, beta) ? "" : "🔒 "}
+                    {t("ui.nav.speciesN", { n: ORDINAL[n] })}
+                    {` · ${TRIO_BY[n].filter((x) => stars.includes(x.id)).length}/${TRIO_BY[n].length}`}
+                  </option>
+                ))}
+              {SPECIES_LIST.map((n) => {
+                const open = exerciseOpen(BY[n]![0].id, stars, beta);
                 return (
                   <option key={n} value={n} disabled={!open}>
                     {open ? "" : "🔒 "}
-                    {speciesLabel(n)}
-                    {` · ${BY_SPECIES[n].filter((x) => stars.includes(x.id)).length}/${BY_SPECIES[n].length}`}
+                    {trio ? t("ui.trio3.speciesCombined") : speciesLabel(n)}
+                    {` · ${BY[n]!.filter((x) => stars.includes(x.id)).length}/${BY[n]!.length}`}
                   </option>
                 );
               })}
+              {trio &&
+                ([4, 5] as const).map((n) => (
+                  <option key={n} value={n} disabled={!exerciseOpen(TRIO_BY[n][0].id, stars, beta)}>
+                    {exerciseOpen(TRIO_BY[n][0].id, stars, beta) ? "" : "🔒 "}
+                    {t("ui.nav.speciesN", { n: ORDINAL[n] })}
+                    {` · ${TRIO_BY[n].filter((x) => stars.includes(x.id)).length}/${TRIO_BY[n].length}`}
+                  </option>
+                ))}
             </select>
             <select id="exercise" className="sel sel-exercise" value={stepIndex} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("ui.nav.choose")}>
               {STEPS.map((s, k) => (
@@ -552,13 +587,13 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial }: { onVoi
       transport={
         <>
           <div className="voice-chips" role="radiogroup" aria-label={t("ui.trio3.chips")}>
-            {[0, 1, 2, 3].map((i) => {
+            {PARTS.map((i) => {
               const isCantus = i === STEP.cantusIndex;
               const colour = isCantus ? "var(--trk-cantus)" : INK[mine.indexOf(i)];
               return (
                 <button key={i} role="radio" className={`voice-chip${isCantus ? " cantus" : ""}`} aria-checked={i === activeStaff} disabled={isCantus} style={{ ["--chip" as string]: colour }} onClick={() => setActive(i)} title={isCantus ? t("ui.trio3.chip.cantusHelp") : t("ui.trio3.chip.help", { voice: voiceName(i) })}>
                   <span className="dot" aria-hidden="true" />
-                  {partName(i)} <span className="where">{t(`ui.quartet.voice.${i}`)}{kindLabel(i)}</span>
+                  {partName(i)} <span className="where">{placeName(i)}{kindLabel(i)}</span>
                 </button>
               );
             })}
@@ -644,7 +679,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial }: { onVoi
             tuning={tuning}
             onTuning={setTuning}
             onStyle={chooseStyle}
-            trio={{ secondOn, onSecond: setSecondOn, thirdOn, onThird: setThirdOn }}
+            trio={N === 4 ? { secondOn, onSecond: setSecondOn, thirdOn, onThird: setThirdOn } : { secondOn, onSecond: setSecondOn }}
           />
         ) },
         { id: "evaluation", text: true, label: t("ui.dock.evaluation"), content: (
@@ -702,11 +737,11 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial }: { onVoi
         { id: "guide", text: true, label: t("ui.howtoTab"), content: (
           <Guide exercise={<>
             <blockquote className="tutor" lang="en">
-              <span className="speaker">{t("tutor.speaker.aloysius")}.</span> “{t(`ui.quartet.intro${species}`)}”
-              <cite title={t(`ui.quartet.introLa${species}`)} lang="la">{t(`ui.quartet.cite${species}`)}</cite>
+              <span className="speaker">{t("tutor.speaker.aloysius")}.</span> “{t(trio ? "ui.trio3.introCombined" : `ui.quartet.intro${species}`)}”
+              <cite title={t(trio ? "ui.trio3.introLaCombined" : `ui.quartet.introLa${species}`)} lang="la">{t(trio ? "ui.trio3.citeCombined" : `ui.quartet.cite${species}`)}</cite>
             </blockquote>
-            <p className="help trio-help">{t("ui.quartet.help")}</p>
-            <p className="help trio-help">{t(`ui.quartet.help${species}`)}</p>
+            <p className="help trio-help">{t(trio ? "ui.trio3.help" : "ui.quartet.help")}</p>
+            <p className="help trio-help">{t(trio ? "ui.trio3.helpCombined" : `ui.quartet.help${species}`)}</p>
             {!hasFux && <p className="help trio-help">{t("ui.quartet.private", { page: STEP.page })}</p>}
           </>} />
         ) },

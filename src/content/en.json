@@ -1253,7 +1253,7 @@
     "intro.learn": "Learn it in the tutorial",
     "intro.start": "Start",
     "intro.3.title": "Three voices",
-    "intro.3.what": "Exercitium II of the Gradus: against Fux's cantus you write two voices, through the same five species as in two voices.",
+    "intro.3.what": "Exercitium II of the Gradus: against Fux's cantus you write two voices, through the same five species as in two voices. In each species Fux's own exercises come first, then the modes he leaves to private study, without a solution of his; after the third species, the species combined (crotchets, minims and semibreves at once, Fig. 134).",
     "intro.3.do": "Tap a staff to write in the voice that lives there; the chips under the score (or V) choose the voice. Evaluate judges the harmony of the three and each voice's line; a cleared exercise opens Fux's own solution.",
     "intro.3.need": "the five species in two voices. The tutorial's three-voice chapter shows what changes when a third voice joins.",
     "intro.4.title": "Four voices",
@@ -1271,7 +1271,12 @@
     "intro.preludes.title": "WTC · preludes and harmony",
     "intro.preludes.what": "Bach's preludes read as chord plans: over his bass, choose the chord of each bar, and compare your plan with his.",
     "intro.preludes.do": "Choose a bar, then one of four chords (each sounds in Bach's figuration as you choose it); Compare sets your plan beside Bach's. Nothing is marked wrong.",
-    "intro.preludes.need": "chords, and figured-bass numbers: 5/3, 6/3, 6/4/2 … are the intervals above the bass. The tutorial's harmony chapter teaches them."
+    "intro.preludes.need": "chords, and figured-bass numbers: 5/3, 6/3, 6/4/2 … are the intervals above the bass. The tutorial's harmony chapter teaches them.",
+    "trio3.speciesCombined": "Combined (2nd + 3rd)",
+    "trio3.introCombined": "From these examples, not badly made, I see that you are already imbued with no mean knowledge. So I commend to you the examples of the other modes and cantus firmi, to be worked out in private study at home. When they are done, if you like, the cantus firmi of all six modes may be taken up again and completed, so that crotchets are set in one of the parts, minims in another, semibreves in the third, after the manner of the following example.",
+    "trio3.introLaCombined": "Ex his haud malè factis exemplis intelligo, te jam haud mediocri quadam cognitione imbutum esse. Unde caeterorum tonorum Cantuumque firmorum exempla privato studio domi tuae persolvenda tibi commendo. Quibus peractis si lubet, omnes sex tonorum Cantus firmi denuò resumi, atque perfici poterunt, ità ut in una partium Semiminimae, in altera Minimae, tertiâ Semibreves ponantur ad sequentis exempli tenorem.",
+    "trio3.citeCombined": "Gradus ad Parnassum (1725), p. 102, translated in this game",
+    "trio3.helpCombined": "Each part its own species: crotchets in the upper of the two parts you write, minims in the lower, against the cantus in semibreves, as in Fux's example (Fig. 134); then every mode, the cantus moving through the three parts 'with the triple change we have used so far' (p. 102). Each part is judged by its own species against the others as they sound. Tap a staff to write; V switches part; T holds a note on (a penultimate semibreve)."
   },
   "tutor": {
     "rule.fos.no-repetition": "In this species each upbeat brings a new note, which is then tied over the bar line; striking the downbeat's note again on its own upbeat is a whole note in disguise.",

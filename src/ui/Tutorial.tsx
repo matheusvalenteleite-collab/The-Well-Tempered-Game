@@ -8,7 +8,7 @@ import type { GameMode } from "../tutorial/model.ts";
 import { useEffect, useMemo, useState } from "react";
 import data from "../../data/fux/three-voice/fux-three-voice.json" with { type: "json" };
 import { repository } from "../music/fux/load-browser.ts";
-import { TRIO_SPECIES, trioSteps } from "../game/trio.ts";
+import { TRIO_SPECIES, trioSteps, trioTasks } from "../game/trio.ts";
 import { buildCourse, lessonsOf } from "../tutorial/course.ts";
 import { judge, sceneEvents, type Lesson, type Scene } from "../tutorial/model.ts";
 import { chapterText, lessonText, tt } from "../tutorial/text.ts";
@@ -22,7 +22,7 @@ import { ChordScore, ClipButtons, FugueRoll, Inline, Prose, Quiz, RoadMap, Scene
 
 const TRIO = trioSteps(data as never);
 /** Every three-voice exercise, species by species (the road map). */
-const TRIO_ALL = TRIO_SPECIES.map((n) => ({ species: n, ids: trioSteps(data as never, n).map((s) => s.id) }));
+const TRIO_ALL = TRIO_SPECIES.map((n) => ({ species: n, ids: trioTasks(data as never, n).map((s) => s.id) }));
 const CHAPTERS = buildCourse({ repo: repository, trio: TRIO, trioData: data });
 const LESSONS = lessonsOf(CHAPTERS);
 

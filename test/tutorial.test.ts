@@ -231,8 +231,13 @@ test("the game's exercises unlock in the book's order in the real setup (D142)",
   const { GAME_ORDER, exerciseOpen, furthestOpen } = await import("../src/game/unlock.ts");
   const { ALL_STEPS } = await import("../src/counterpoint/curriculum/index.ts");
   const { TRIO_SPECIES } = await import("../src/game/trio.ts");
-  const trioAll = TRIO_SPECIES.flatMap((n) => trioSteps(data as never, n));
-  const { QUARTET_SPECIES, QUARTET_ALL } = await import("../src/game/quartet.ts");
+  const { trioTasks } = await import("../src/game/trio.ts");
+  const { QUARTET_SPECIES, QUARTET_ALL, TRIO_COMBINED } = await import("../src/game/quartet.ts");
+  // D152: three voices with the tasks of private study, and the species combined after the third.
+  const trioAll = TRIO_SPECIES.flatMap((n) => [...trioTasks(data as never, n), ...(n === 3 ? TRIO_COMBINED : [])]);
+  assert.equal(trioAll.length, 45 - 1 + 50 + 18);
+  const third = trioTasks(data as never, 3);
+  assert.equal(GAME_ORDER[GAME_ORDER.indexOf(third[third.length - 1].id) + 1], "fux-mode.t6.01", "Fig. 134 after the third species");
   const quartetAll = QUARTET_SPECIES.flatMap((n) => QUARTET_ALL[n]);
   assert.equal(GAME_ORDER.length, ALL_STEPS.length + trioAll.length + quartetAll.length);
   // D148: four voices after three, the species combined last.

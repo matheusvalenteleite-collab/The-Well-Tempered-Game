@@ -85,3 +85,17 @@ test("four voices: each of Fux's parts can be written on the screen as he wrote 
     }
   }
 });
+
+test("three voices, the species combined (D152): Fig. 134 passes, and every mode with the cantus in each part follows it", async () => {
+  const { TRIO_COMBINED } = await import("../src/game/quartet.ts");
+  assert.equal(TRIO_COMBINED.length, 18);
+  const fig = TRIO_COMBINED[0];
+  assert.equal(fig.figure, "134");
+  assert.deepEqual(fig.kinds, ["crotchets", "minims", "cantus"]);
+  assert.deepEqual(judge(fig).violations, []);
+  for (const s of TRIO_COMBINED.slice(1)) {
+    assert.equal(s.fux, null);
+    assert.equal(s.kinds.filter((k) => k === "crotchets").length, 1);
+    assert.equal(s.kinds.filter((k) => k === "minims").length, 1);
+  }
+});

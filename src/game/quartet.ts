@@ -17,6 +17,9 @@
  * the octave of each part as he places D, E and F.
  */
 import data from "../../data/fux/four-voice/fux-four-voice-game.json" with { type: "json" };
+import trioData from "../../data/fux/three-voice/fux-three-voice.json" with { type: "json" };
+import { notesToFifthSlots, slotLayout } from "../counterpoint/layout.ts";
+import { trioCantus } from "./trio.ts";
 import type { ModalFinal } from "../music/fux/types.ts";
 import { parsePitch } from "../music/pitch.ts";
 import { HOLD, REST } from "../counterpoint/layout.ts";
@@ -185,11 +188,40 @@ export function quartetSteps(species: QuartetSpecies): QuartetStep[] {
   return all.map((s, k) => ({ ...s, id: `fux-mode.q${species}.${String(k + 1).padStart(2, "0")}`, ordinal: k + 1 }));
 }
 
+/**
+ * Three voices, the species combined (D152): Fux's Fig. 134 (p. 102: crotchets above, minims in
+ * the middle, the cantus in the bass), and the task he sets with it, "omnes sex tonorum Cantus
+ * firmi denuò resumi ... ut in una partium Semiminimae, in altera Minimae, tertiâ Semibreves",
+ * "with that triple change we have used so far": every mode, the cantus in each of the three parts
+ * (the upper of the other two in crotchets, the lower in minims, as in Fig. 134), the clefs his.
+ */
+export function trioCombinedSteps(): QuartetStep[] {
+  type Raw = { id: string; figure: string; species: number[]; modal_final: ModalFinal; cantus_index: number; measures: number; clefs_1725: string[]; page: number; voices: { notes: { pitch: string | null; duration: string; offset?: string; tie?: string | null }[] }[] };
+  const fig = (trioData as { exercises: Raw[] }).exercises.find((e) => e.species.length > 1)!;
+  const layout = slotLayout("fifth", fig.measures);
+  const lines = fig.voices.map((v, i) => (i === fig.cantus_index ? v.notes.map((n) => n.pitch!) : notesToFifthSlots(layout, v.notes)));
+  const kindsFor = (ci: number): PartKind[] => {
+    const others = [0, 1, 2].filter((x) => x !== ci);
+    return [0, 1, 2].map((x) => (x === ci ? "cantus" : x === others[0] ? "crotchets" : "minims"));
+  };
+  const base = { species: 6 as QuartetSpecies, untied: 0, clefs: fig.clefs_1725.map(modernClef), clefs1725: fig.clefs_1725 };
+  const steps: Omit<QuartetStep, "id" | "ordinal">[] = [
+    { ...base, exerciseId: fig.id, figure: fig.figure, page: fig.page, modalFinal: fig.modal_final, cantusIndex: fig.cantus_index, kinds: kindsFor(fig.cantus_index), cantus: lines[fig.cantus_index], fux: lines },
+  ];
+  for (const final of ["D", "E", "F", "G", "A", "C"] as ModalFinal[])
+    for (const ci of [0, 1, 2]) {
+      if (final === fig.modal_final && ci === fig.cantus_index) continue;
+      steps.push({ ...base, exerciseId: `private.t6.${final}.${ci}`, figure: null, page: fig.page, modalFinal: final, cantusIndex: ci, kinds: kindsFor(ci), cantus: trioCantus(final, fig.clefs_1725[ci]), fux: null });
+    }
+  return steps.map((s, k) => ({ ...s, id: `fux-mode.t6.${String(k + 1).padStart(2, "0")}`, ordinal: k + 1 }));
+}
+export const TRIO_COMBINED: QuartetStep[] = trioCombinedSteps();
+
 /** Every four-voice exercise, species by species. */
 export const QUARTET_ALL: Record<QuartetSpecies, QuartetStep[]> = Object.fromEntries(QUARTET_SPECIES.map((n) => [n, quartetSteps(n)])) as Record<QuartetSpecies, QuartetStep[]>;
 
 /** The parts the player writes (all but the cantus). */
-export const quartetPlayer = (s: QuartetStep) => [0, 1, 2, 3].filter((x) => x !== s.cantusIndex);
+export const quartetPlayer = (s: QuartetStep) => s.kinds.map((_, x) => x).filter((x) => x !== s.cantusIndex);
 /** Slots in a written part: one a bar in first species, else quaver slots. */
 export const partSlots = (s: QuartetStep) => (s.species === 1 ? s.cantus.length : quaverSlots(s.cantus.length));
 /** The bar of slot k. */
