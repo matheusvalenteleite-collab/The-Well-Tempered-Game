@@ -1841,7 +1841,12 @@
     "guide.borrowed": "A chord borrowed from the minor ({root} {chord}) shadows the major key for a moment.",
     "guide.pedal": "The bass holds {pitch} while the harmony above it moves: a pedal point.",
     "guide.quality.major": "major",
-    "guide.quality.minor": "minor"
+    "guide.quality.minor": "minor",
+    "l5.licence.unprepared": "the {voice}'s seventh enters unprepared: in the strict style a dissonance is prepared; the free style allows \"the entry of an unprepared dissonance\" (Kirnberger, Kunst I, p. 81).",
+    "l5.licence.unresolved": "the {voice}'s seventh goes on by a {how}, not falling by step: the free style allows \"the passing over of the resolution, and a resolution of the dissonance in another voice\" (Kirnberger, Kunst I, p. 81).",
+    "study.cad.halfLocal": "HC (local key)",
+    "study.cad.plagal": "plagal",
+    "study.cad.localTonic": "on the local I"
   },
   "wtcp": {
     "piece.p1": "Prelude 1 in C (BWV 846) · harmonic plan",

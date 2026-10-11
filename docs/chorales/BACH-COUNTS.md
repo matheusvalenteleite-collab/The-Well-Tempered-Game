@@ -48,17 +48,20 @@ These are counts of derived facts, not rules. The figures are read off Bach's fo
 | class | count |
 |---|---|
 | authentic, perfect | 1062 |
-| half | 347 |
+| half | 298 |
 | authentic, imperfect | 183 |
-| resting point on a major triad (a half cadence in the key reached?) | 159 |
+| close on the local tonic, not from its dominant | 162 |
+| half, in the local key | 124 |
 | authentic, dominant inverted (leading tone in the bass) | 114 |
-| bass up a fifth: plagal, or a half cadence in another key | 111 |
 | other: bass repeated | 79 |
 | Phrygian half | 68 |
 | deceptive | 64 |
-| other | 45 |
+| plagal, in the local key | 35 |
 | resting point on a minor triad | 28 |
+| resting point on a major triad (a half cadence in the key reached?) | 27 |
 | authentic, penultimate inverted | 17 |
+| bass up a fifth: plagal, or a half cadence in another key | 11 |
+| other | 5 |
 
 ## Where the phrases end (degree of the final bass in the chorale's key)
 

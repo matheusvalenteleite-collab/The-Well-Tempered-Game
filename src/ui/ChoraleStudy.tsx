@@ -59,6 +59,9 @@ const CADENCE_SHORT: Record<string, string> = {
   "authentic, penultimate inverted": "chg",
   "resting point on a major triad (a half cadence in the key reached?)": "restMaj",
   "resting point on a minor triad": "restMin",
+  "half, in the local key": "halfLocal",
+  "plagal, in the local key": "plagal",
+  "close on the local tonic, not from its dominant": "localTonic",
   other: "other",
 };
 
