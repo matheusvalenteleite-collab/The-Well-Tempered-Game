@@ -1237,3 +1237,4 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --mode-fux: #c0473f; --mode-chorale: #3f9a64; --mode-wtc: #4f78d0; } }
 :root[data-theme="dark"] { --mode-fux: #c0473f; --mode-chorale: #3f9a64; --mode-wtc: #4f78d0; }
+.chorale-verdicts .verdict-empty { border-left: 3px solid var(--line); padding-left: 6px; }

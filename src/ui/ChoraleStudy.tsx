@@ -15,33 +15,11 @@ import { HFader } from "./HFader.tsx";
 import { Shell } from "./Shell.tsx";
 import { WtcPage, type WtcScoreVoice } from "./notation/WtcScore.tsx";
 import { pageRows, useRowBars } from "./notation/page-rows.ts";
+import { useStudyData } from "../chorale/study-data.ts";
 import { audio, store, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
 import type { PlayEvent } from "../counterpoint/layout.ts";
 import type { Step } from "../music/pitch.ts";
-
-type Note = [number, number, string, 1?];
-type Onset = [number, string, string, string, [number, number][]?];
-export interface StudyChorale {
-  n: number;
-  bwv: string;
-  title: string;
-  tonic: string;
-  mode: string;
-  sig: number;
-  meter: string;
-  pickup: number;
-  length: number;
-  scan: string | null;
-  kittel?: number[];
-  voices: Note[][];
-  harmony: Onset[];
-  cadences: [number, string, string][];
-}
-interface StudyData {
-  kinds: string[];
-  chorales: StudyChorale[];
-}
 
 /** 32nds of a whole note, as the data counts. */
 const UNIT = 32;
@@ -72,19 +50,6 @@ const CADENCE_SHORT: Record<string, string> = {
   "other: bass repeated": "rep",
   other: "other",
 };
-
-let cache: StudyData | null = null;
-function useStudyData(): StudyData | null {
-  const [d, setD] = useState<StudyData | null>(cache);
-  useEffect(() => {
-    if (cache) return;
-    void import("../../data/chorales/study.json").then((m) => {
-      cache = (m.default ?? m) as unknown as StudyData;
-      setD(cache);
-    });
-  }, []);
-  return d;
-}
 
 export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode: Mode): void; onTutorial?: () => void; levelSelect: ReactNode }) {
   const data = useStudyData();
