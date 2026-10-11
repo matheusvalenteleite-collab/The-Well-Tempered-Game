@@ -35,6 +35,8 @@ export interface EngInput {
   barStarts?: number[];
   /** Each bar's metre (else `time` throughout). */
   meters?: string[];
+  /** Each voice's staff in the edition (0 treble, 1 bass), where it is known (the fugues); else from its mean pitch. */
+  homes?: number[];
   /** The voices are inferred strands (a prelude): those that take turns on a staff share a layer. */
   mergeStrands?: boolean;
 }
@@ -275,7 +277,7 @@ export function assignStaves(input: EngInput): number[][] {
   for (let v = 0; v < count; v++) {
     const mine = notes.map((n, i) => ({ n, i })).filter(({ i }) => voice[i] === v);
     const mean = mine.length ? mine.reduce((a, { i }) => a + dia[i], 0) / mine.length : 28;
-    const home = mean >= 27 ? 0 : 1;
+    const home = input.homes?.[v] ?? (mean >= 27 ? 0 : 1);
     const cost = Array.from({ length: bars }, () => [0, 0]);
     const w = new Array(bars).fill(0);
     const tied = new Array(bars).fill(false); // a note of this voice sounds across the bar line before bar b
@@ -294,7 +296,7 @@ export function assignStaves(input: EngInput): number[][] {
         }
       }
     }
-    for (let b = 0; b < bars; b++) cost[b][1 - home] += 0.6;
+    for (let b = 0; b < bars; b++) cost[b][1 - home] += 1.0;
     own.push(cost);
     weight.push(w);
     ties.push(tied);
