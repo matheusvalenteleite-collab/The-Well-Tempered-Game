@@ -12,6 +12,7 @@ import l4Raw from "../../data/chorales/level4.json" with { type: "json" };
 import { BACH, KITTEL, kittelBasses, kittelMelody, melodyOf, type BachChorale, type KittelChorale } from "../../src/chorale/generate/corpus.ts";
 import { bestHarmony, bestSetting, diverseSettings, figureText, fixedFromPlan, parallel, phraseEnds, trainModels, type Models, type Setting } from "../../src/chorale/generate/index.ts";
 import { midiOf } from "../../src/chorale/generate/theory.ts";
+import { fromRow } from "../../src/chorale/habits.ts";
 import { draw } from "../../src/chorale/generate/model.ts";
 import { rng } from "../../src/counterpoint/choices/cantus.ts";
 
@@ -260,8 +261,11 @@ function measureBass(c: KittelChorale, lines: { deg: string[]; midi: (number | n
   }
 }
 
-type L4 = { number: number; basses: { notes: { offset: string; kittel: string | null }[] }[] };
-const l4 = new Map((l4Raw as unknown as { chorales: L4[] }).chorales.map((c) => [c.number, c]));
+type L4 = { number: number; basses: { notes: unknown[][] }[] };
+const l4Data = l4Raw as unknown as { noteFields: string[]; chorales: L4[] };
+const l4 = new Map(
+  l4Data.chorales.map((c) => [c.number, { basses: c.basses.map((b) => ({ notes: b.notes.map((r) => fromRow<{ offset: string; kittel: string | null }>(l4Data.noteFields, r)) })) }]),
+);
 const bGen = bzero(),
   bKit = bzero();
 for (const c of KITTEL) {
