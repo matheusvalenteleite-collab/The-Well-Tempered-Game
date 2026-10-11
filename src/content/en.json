@@ -1924,7 +1924,9 @@
     "idle": "Press ▶: the guide's notes appear here as the music reaches them.",
     "none": "Nothing out of the ordinary is flagged in this chorale. Listen to its lines and where each comes to rest.",
     "about": "The notes are found in every chorale by the chorale study's own analysis (Kirnberger's categories; pages cited where a sentence rests on him). They say what happens and what to listen for.",
-    "words": "Words: the first stanza as the Chorale-Corpus edition gives it (Gertim Alberda's transcription)."
+    "words": "Words: the stanza Bach's setting carries (the first, where it gives several), from the Chorale-Corpus edition (Gertim Alberda's transcription).",
+    "bachOnly": "The guide's notes are about Bach's own setting: tick “Bach's original” to see and hear them. The words of each line are below.",
+    "workbench": "The words of each line, as Bach's setting of this hymn has them. The guide's notes on moments in the music are on “Bach's settings”, where his own harmony sounds."
   },
   "fermata": {
     "tab": "Fermatas",
@@ -1943,6 +1945,7 @@
     "longer": "Longer",
     "reset": "as before",
     "scale": "Fermatas",
-    "scale.help": "All the fermatas shorter or longer: their holds, breaths and silences"
+    "scale.help": "All the fermatas shorter or longer: their holds, breaths and silences",
+    "helpNoTap": "How each fermata is sung: → sung through, ’ a breath in time, // a caesura (in time, then a silence), ×1.5 held half again (and so on). Choose here; − and + make it shorter or longer. The slider under the score makes them all shorter or longer."
   }
 }

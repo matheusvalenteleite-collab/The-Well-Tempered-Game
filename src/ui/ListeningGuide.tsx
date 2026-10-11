@@ -56,7 +56,7 @@ export function GuideCaption({ moments, lines, cursor }: { moments: Placed<Liste
 }
 
 /** The guide's tab: every moment with its bar, and the words of each line. */
-export function GuideList({ moments, lines }: { moments: Placed<ListeningNote>[]; lines: Placed<string | null>[] }) {
+export function GuideList({ moments, lines, quiet }: { moments: Placed<ListeningNote>[]; lines: Placed<string | null>[]; quiet?: boolean }) {
   return (
     <div className="chorale-about guide-list">
       {moments.length ? (
@@ -67,7 +67,7 @@ export function GuideList({ moments, lines }: { moments: Placed<ListeningNote>[]
             </li>
           ))}
         </ol>
-      ) : (
+      ) : quiet ? null : (
         <p>{t("listen.none")}</p>
       )}
       {lines.some((l) => l.item) && (

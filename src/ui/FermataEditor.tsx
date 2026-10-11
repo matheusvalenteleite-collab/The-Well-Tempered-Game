@@ -80,10 +80,10 @@ export interface FermataRow {
 }
 
 /** The "Fermatas" tab: each fermata, how it is sung and why, with the player's choice. */
-export function FermataList({ rows, edits, onEdit, selected, onSelect }: { rows: FermataRow[]; edits: (FermataEdit | null)[]; onEdit(k: number, e: FermataEdit | null): void; selected: number | null; onSelect(k: number): void }) {
+export function FermataList({ rows, edits, onEdit, selected, onSelect, tap = true }: { rows: FermataRow[]; edits: (FermataEdit | null)[]; onEdit(k: number, e: FermataEdit | null): void; selected: number | null; onSelect(k: number): void; tap?: boolean }) {
   return (
     <div className="chorale-about fermata-list">
-      <p className="muted">{t("fermata.help")}</p>
+      <p className="muted">{t(tap ? "fermata.help" : "fermata.helpNoTap")}</p>
       <ol className="chorale-verdicts">
         {rows.map((r, k) => {
           const e = edits[k] ?? {};
