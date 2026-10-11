@@ -558,7 +558,8 @@ export function ScoreView(props: ScoreProps) {
     ctx.save();
     ctx.setFont(UI_FONT, 8, "normal");
     ctx.setFillStyle("var(--bar-number)");
-    const numberY = STAFF_Y[0] + 22;
+    // P10: high above the top staff, in a band of their own, where a tap selects the bar.
+    const numberY = STAFF_Y[0] + 8;
     columns.forEach((c, k) => {
       if (layout[k].beat !== 0) return;
       const label = String((props.firstBar ?? 1) + layout[k].bar - firstSlotBar);
@@ -652,7 +653,9 @@ export function ScoreView(props: ScoreProps) {
     const cpStaff = props.cantusVoice === "upper" ? 1 : 0;
     const s = g.staves[cpStaff];
     const margin = 5 * s.spacing; // ledger-line zone above and below the staff
-    const onStaff = y >= s.top - margin && y <= s.bottom + margin;
+    // The bar numbers' band above the top staff selects only (P10).
+    const ruler = y < g.staves[0].top - 2.6 * g.staves[0].spacing;
+    const onStaff = !ruler && y >= s.top - margin && y <= s.bottom + margin;
     const position = Math.round((s.bottom - y) / (s.spacing / 2));
     return {
       column,

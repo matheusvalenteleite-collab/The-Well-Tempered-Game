@@ -96,8 +96,10 @@ const LEAD = 96;
 const NOTE_PAD = 14;
 /** The staves' places (P4: any number of them, 120 apart) and the height they need. */
 const STAFF_GAP = 120;
-const staffY = (i: number) => 28 + i * STAFF_GAP;
-const heightOf = (staves: number) => 300 + Math.max(0, staves - 2) * STAFF_GAP;
+/** P10: a band above the staves for the bar numbers, which a tap selects (nothing written). */
+const RULER = 22;
+const staffY = (i: number) => 28 + RULER + i * STAFF_GAP;
+const heightOf = (staves: number) => 300 + RULER + Math.max(0, staves - 2) * STAFF_GAP;
 
 /** The two staves in one line, zoomed and scrolled sideways like the two-voice score (D100). */
 export function TrioScore(p: Props) {
@@ -266,7 +268,13 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     ctx.save();
     ctx.setFont("Inter, system-ui, sans-serif", 9);
     ctx.setFillStyle("var(--bar-number)");
-    for (let j = 0; j < n; j++) ctx.fillText(String(p.from + j + 1), columns[j].left + 4, staffY(0) + 20);
+    // The bar numbers in their band (P10): a tap there selects the bar; the selected one stands out.
+    for (let j = 0; j < n; j++) {
+      const sel = p.from + j === p.selected;
+      ctx.setFillStyle(sel ? "var(--selection-ink, #2a56d6)" : "var(--bar-number)");
+      ctx.setFont("Inter, system-ui, sans-serif", sel ? 11 : 9, sel ? "700" : "400");
+      ctx.fillText(String(p.from + j + 1), columns[j].left + 4, staffY(0) - 2);
+    }
     ctx.restore();
     // Each voice's notes in a bar: one semibreve, or the moving voice's slots.
     type Cell = { k: number; q: string | null; part: number; dur: string; dots?: number; tied?: boolean };
@@ -436,13 +444,15 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     const centre = (s: Geometry["staves"][number]) => (s.top + s.bottom) / 2;
     const staff = g.staves.reduce((best, s, i) => (Math.abs(centre(s) - y) < Math.abs(centre(g.staves[best]) - y) ? i : best), 0);
     const s = g.staves[staff];
-    const onStaff = y >= s.top - 5 * s.spacing && y <= s.bottom + 5 * s.spacing;
+    // The bar numbers' band above the top staff selects only (P10).
+    const ruler = y < g.staves[0].top - 3.2 * g.staves[0].spacing;
+    const onStaff = !ruler && y >= s.top - 5 * s.spacing && y <= s.bottom + 5 * s.spacing;
     const position = Math.round((s.bottom - y) / (s.spacing / 2));
     const voice = tapVoice(p.voices, staff, p.active, lastOnStaff.current);
     const c = g.columns[column];
     const per = voice !== null ? (p.voices[voice].per ?? 1) : 1;
     const part = Math.max(0, Math.min(per - 1, Math.floor(((x - c.left) / (c.right - c.left)) * per)));
-    return { bar: p.from + column, voice, onStaff, part, natural: pitchAtPosition(clefOfBar(staff, p.from + column), position) };
+    return { bar: p.from + column, voice: ruler ? null : voice, onStaff, part, natural: pitchAtPosition(clefOfBar(staff, p.from + column), position) };
   };
   /** The clef in force on a staff in a bar, as last drawn (P6). */
   const clefOfBar = (staff: number, bar: number): ClefId => {

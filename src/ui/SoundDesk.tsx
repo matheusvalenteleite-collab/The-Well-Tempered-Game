@@ -14,8 +14,10 @@ import { VERSION_IDS, type VersionId, type Versions } from "../game/versions.ts"
 import { t } from "./i18n.ts";
 
 /** The numbered tracks, in order (their activators' numbers and Alt + 1-9, D149); the versions only in advanced mode (D89). */
-export function trackOrder(advanced: boolean, trio = false, quartet = false): Strip[] {
-  return ["cantus", "counterpoint", ...(trio ? (["second"] as Strip[]) : []), ...(quartet ? (["third"] as Strip[]) : []), "fux", ...(advanced ? VERSION_IDS : []), "drums", "continuo"];
+export function trackOrder(advanced: boolean, trio = false, quartet = false, voices?: Strip[]): Strip[] {
+  // P10: the voices in the order given (top voice first), so that the numbers follow the strips.
+  const v = voices ?? (["cantus", "counterpoint", ...(trio ? ["second"] : []), ...(quartet ? ["third"] : [])] as Strip[]);
+  return [...v, "fux", ...(advanced ? VERSION_IDS : []), "drums", "continuo"];
 }
 
 interface Props {
@@ -60,6 +62,12 @@ interface Props {
    * Contra II on its own — each with its own activator.
    */
   trio?: { secondOn: boolean; onSecond(on: boolean): void; thirdOn?: boolean; onThird?(on: boolean): void };
+  /** P10: the voices' strips in this order (top voice first, by pitch); default cantus, Contra I, II, III. */
+  voiceOrder?: Strip[];
+  /** P10: names of strips that differ from the default (four voices: soprano, alto, tenor, bass). */
+  names?: Partial<Record<Strip, string>>;
+  /** P10: a voice's strip picked: the screen makes it the voice being written. */
+  onStripSelect?(x: Strip): void;
   /** Folded to a single line. */
   open: boolean;
   onOpen(open: boolean): void;
@@ -122,9 +130,9 @@ export function SoundDesk(p: Props) {
     drums: "var(--trk-drums)", continuo: "var(--trk-continuo)", master: "var(--trk-master)",
   };
   const quartet = !!p.trio?.onThird;
-  const ORDER = trackOrder(p.advanced, !!p.trio, quartet);
+  const ORDER = trackOrder(p.advanced, !!p.trio, quartet, p.voiceOrder);
   // In three voices the Contrapunctus is Contra I (D113).
-  const name = (x: Strip, short = false) => t(p.trio && x === "counterpoint" ? `ui.mixer.${short ? "short." : ""}contra1` : `ui.mixer.${short ? "short." : ""}${x}`);
+  const name = (x: Strip, short = false) => p.names?.[x] ?? t(p.trio && x === "counterpoint" ? `ui.mixer.${short ? "short." : ""}contra1` : `ui.mixer.${short ? "short." : ""}${x}`);
   /** The track activator (D80): every track switches on and off with one press. */
   const active = (x: Strip): boolean =>
     x === "cantus" ? !s.mix.cantus.mute
@@ -157,13 +165,13 @@ export function SoundDesk(p: Props) {
     const on = active(x);
     // Clicking anywhere on a strip that is not one of its controls selects it.
     const pick = (e: React.MouseEvent) => {
-      if (!(e.target as HTMLElement).closest("button, input, select, .knob, .fader2")) setSelected(x);
+      if (!(e.target as HTMLElement).closest("button, input, select, .knob, .fader2")) (setSelected(x), p.onStripSelect?.(x));
     };
     const cd = p.continuoSettings.display;
     return (
       <div key={x} className={`strip ${selected === x ? "selected" : ""} ${on ? "" : "dim"}`} style={{ ["--track" as string]: COLOR[x] }} role="group" aria-label={name(x)} onClick={pick}>
         <div className="strip-name" title={name(x)}>{name(x, true)}</div>
-        <button className="instrument" aria-pressed={selected === x} onClick={() => setSelected(x)} title={t("ui.mixer.editHelp")}>
+        <button className="instrument" aria-pressed={selected === x} onClick={() => (setSelected(x), p.onStripSelect?.(x))} title={t("ui.mixer.editHelp")}>
           {instrument}
         </button>
         <Knob id={`pan-${x}`} label={t("ui.mixer.pan")} value={m.pan} min={-1} max={1} defaultValue={0}
@@ -216,10 +224,7 @@ export function SoundDesk(p: Props) {
       <div className="desk">
         {/* Groups (D95): the two main voices; Fux (once his solution is open, or in advanced mode); the versions; drums and continuo; the master. */}
         <div className="desk-group main" role="group" aria-label={t("ui.mixer.group.main")}>
-          {strip("cantus")}
-          {strip("counterpoint")}
-          {p.trio && strip("second")}
-          {quartet && strip("third")}
+          {(p.voiceOrder ?? (["cantus", "counterpoint", ...(p.trio ? ["second"] : []), ...(quartet ? ["third"] : [])] as Strip[])).map((x) => strip(x))}
         </div>
         {(p.fuxOpen || p.advanced) && (
           <>

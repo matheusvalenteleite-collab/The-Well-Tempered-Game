@@ -499,7 +499,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
     const s = session;
     const florid = STEP.kinds[activeStaff] === "florid";
     if (digit !== null) {
-      const track = trackOrder(false, true, N === 4)[digit - 1];
+      const track = trackOrder(false, true, N === 4, PARTS.map(stripOf))[digit - 1];
       if (track === "cantus") setSound(changeMix(sound, "cantus", { mute: !sound.mix.cantus.mute }));
       else if (track === "counterpoint") setVersions({ ...versions, original: !versions.original });
       else if (track === "second") setSecondOn(!secondOn);
@@ -571,9 +571,14 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
       ...(!isCantus && showFux && fuxOpen && STEP.fux ? { fux: STEP.fux[i] } : {}),
     };
   });
-  const partName = (i: number) => (i === STEP.cantusIndex ? t("ui.trio3.chip.cantus") : t(NAMES[mine.indexOf(i)]));
-  const placeName = (i: number) => t(N === 4 ? `ui.quartet.voice.${i}` : `ui.trio3.voice.${i}`);
-  const voiceName = (i: number) => `${partName(i)} (${placeName(i)})`;
+  // P10: in four voices the parts are named by their place, soprano to bass; the cantus too ("CF (tenor)").
+  const satb = N === 4;
+  const partName = (i: number) => (satb ? (i === STEP.cantusIndex ? t("ui.satb.cf", { part: t(`ui.satb.${i}`) }) : t(`ui.satb.${i}`)) : i === STEP.cantusIndex ? t("ui.trio3.chip.cantus") : t(NAMES[mine.indexOf(i)]));
+  const placeName = (i: number) => (satb ? "" : t(N === 4 ? `ui.quartet.voice.${i}` : `ui.trio3.voice.${i}`));
+  const voiceName = (i: number) => (satb ? partName(i) : `${partName(i)} (${placeName(i)})`);
+  /** Each part's mixer strip; the strips in the parts' order, top voice first (P10). */
+  const stripOf = (i: number) => (i === STEP.cantusIndex ? "cantus" : CHANNELS[mine.indexOf(i)]);
+  const stripNames = satb ? Object.fromEntries(PARTS.map((i) => [stripOf(i), i === STEP.cantusIndex ? t("ui.satb.cf", { part: t(`ui.satb.short.${i}`) }) : t(`ui.satb.strip.${i}`)])) : undefined;
   const chooseStyle = (id: StyleId) => {
     const next = applyStyle(id, { sound, drumsOn: drums, drumKit, continuoOn: continuo, continuo: continuoSettings, tuning, tempo }, staves.staff[STEP.cantusIndex] === 0, {
       counterpointHigh: staves.staff[mine[0]] === 0,
@@ -691,7 +696,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
               return (
                 <button key={i} role="radio" className={`voice-chip${isCantus ? " cantus" : ""}`} aria-checked={i === activeStaff} disabled={isCantus} style={{ ["--chip" as string]: colour }} onClick={() => setActive(i)} title={isCantus ? t("ui.trio3.chip.cantusHelp") : t("ui.trio3.chip.help", { voice: voiceName(i) })}>
                   <span className="dot" aria-hidden="true" />
-                  {partName(i)} <span className="where">{placeName(i)}{kindLabel(i)}</span>
+                  {partName(i)} <span className="where">{placeName(i)}{satb ? kindLabel(i).replace(/^ · /, "") : kindLabel(i)}</span>
                 </button>
               );
             })}
@@ -728,6 +733,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
             <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
               <div className="play-split">
                 <TransportButtons playing={playing} pausedAt={pausedAt} onPlay={() => play()} onStop={stopPlay} />
+                <button className="from-bar" onClick={() => play(activeBar, true)} aria-label={t("ui.play.fromBar")} title={`${t("ui.play.fromBar")}: ${activeBar + 1}`}>▶|</button>
                 <button className="loop" aria-pressed={loop} onClick={() => setLoop(!loop)} aria-label={t("ui.loop")} title={t(loop ? "ui.loop.on" : "ui.loop.off")}>⟲</button>
               </div>
               <div className="hfaders">
@@ -787,6 +793,12 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
             onTuning={setTuning}
             onStyle={chooseStyle}
             trio={N === 4 ? { secondOn, onSecond: setSecondOn, thirdOn, onThird: setThirdOn } : { secondOn, onSecond: setSecondOn }}
+            voiceOrder={PARTS.map(stripOf)}
+            names={stripNames}
+            onStripSelect={(x) => {
+              const i = mine.find((k) => stripOf(k) === x);
+              if (i !== undefined) setActive(i);
+            }}
           />
         ) },
         { id: "evaluation", text: true, label: t("ui.dock.evaluation"), content: (

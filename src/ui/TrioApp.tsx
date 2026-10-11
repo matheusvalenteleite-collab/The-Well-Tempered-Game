@@ -556,7 +556,7 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
     const digit = trackKey(e);
     const s = session;
     if (digit !== null) {
-      const track = trackOrder(false, true)[digit - 1];
+      const track = trackOrder(false, true, false, [0, 1, 2].map((i) => (i === STEP.cantusIndex ? "cantus" : mine.indexOf(i) === 0 ? "counterpoint" : "second")))[digit - 1];
       if (track === "cantus") setSound(changeMix(sound, "cantus", { mute: !sound.mix.cantus.mute }));
       else if (track === "counterpoint") setVersions({ ...versions, original: !versions.original });
       else if (track === "second") setSecondOn(!secondOn);
@@ -581,7 +581,7 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
     else if (k === "-") update(activeStaff, applyAccidental(s, -1));
     else if (k === "n") update(activeStaff, applyAccidental(s, 0));
     else if (k === "Delete" || k === "Backspace") update(activeStaff, FLORID && activeStaff === STEP.movingIndex ? clearSpan(s) : clear(s));
-    else if (k === " ") play(s.selected);
+    else if (k === " ") play(activeBar);
     else if (k === "p" || k === "P") play();
     else return;
     e.preventDefault();
@@ -768,6 +768,7 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
           <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
             <div className="play-split">
               <TransportButtons playing={playing} pausedAt={pausedAt} onPlay={() => play()} onStop={stopPlay} />
+                <button className="from-bar" onClick={() => play(activeBar, true)} aria-label={t("ui.play.fromBar")} title={`${t("ui.play.fromBar")}: ${activeBar + 1}`}>▶|</button>
               <button className="loop" aria-pressed={loop} onClick={() => setLoop(!loop)} aria-label={t("ui.loop")} title={t(loop ? "ui.loop.on" : "ui.loop.off")}>⟲</button>
             </div>
             <div className="hfaders">
@@ -827,6 +828,12 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
           onTuning={setTuning}
           onStyle={chooseStyle}
           trio={{ secondOn, onSecond: setSecondOn }}
+          // P10: the voices' strips top voice first; picking one makes it the voice being written.
+          voiceOrder={[0, 1, 2].map((i) => (i === STEP.cantusIndex ? "cantus" : mine.indexOf(i) === 0 ? "counterpoint" : "second"))}
+          onStripSelect={(x) => {
+            const i = mine.find((k) => (mine.indexOf(k) === 0 ? "counterpoint" : "second") === x);
+            if (i !== undefined) setActive(i);
+          }}
         />
         ) },
         { id: "evaluation", text: true, label: t("ui.dock.evaluation"), content: (
