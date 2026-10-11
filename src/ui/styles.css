@@ -1195,3 +1195,8 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 /* D149: the desk keeps its own ink: its strips stay light in the classic dark theme. */
 .desk .strip { color: var(--desk-ink); }
 .desk .strip .knob-value, .desk .strip .octave span { color: var(--desk-ink); }
+/* Bach's settings (C15): the legend of incidental notes. */
+.nct-legend { list-style: none; padding: 0; margin: 4px 0 8px; }
+.nct-legend li { margin: 2px 0; }
+.nct-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: baseline; }
+.chorale-controls label.check { display: inline-flex; align-items: center; gap: 3px; margin-right: 8px; font-size: 0.85rem; }

@@ -1,7 +1,7 @@
 # Handoff (10 October 2026, night)
 
 Read this first in a new session. The decisions log (`docs/DECISIONS.md`: D1–D139 and D147 on for the game,
-D140–D146 for the tutorial (the next free number is D157), C1–C14 for the chorale mode) has the details; `docs/MORNING.md` has
+D140–D146 for the tutorial (the next free number is D157), C1–C15 for the chorale mode (next C16)) has the details; `docs/MORNING.md` has
 older notes and the owner's open questions.
 
 ## How we work from now on (the owner's choice, after a usage warning)
@@ -17,9 +17,9 @@ older notes and the owner's open questions.
 
 ## Publishing
 
-- Tests: `npm test` (257). Builds: `npm run build` (Pages, split into chunks) and
-  `npm run build:artifact` then `node tools/build-artifact.mjs <out.html>` (one file, 12.4 MB of a
-  16.8 MB ceiling after the housekeeping of D156).
+- Tests: `npm test` (258). Builds: `npm run build` (Pages, split into chunks) and
+  `npm run build:artifact` then `node tools/build-artifact.mjs <out.html>` (one file, 14.4 MB of a
+  16.8 MB ceiling: D156 made room, C15 took 1.9 MB of it).
 - claude.ai artifact: https://claude.ai/artifact/NvkaBGCHrtDebE85H7udTX (private). It holds 501 of
   511 files (instrument samples and Ishizaka's 48 tracks): publish the page alone, no new files.
 
@@ -63,7 +63,13 @@ older notes and the owner's open questions.
    Left, in order: a spoken account of the score (live region: bar, note written, cantus) and a text
    view; targets under 24 px; reduced motion (rule demos loop, pulses, smooth scrolling); focus traps
    in dialogs; `.help` hidden on phones (it hides three WTC checkboxes and the credits).
-6. Old backlog, last: evaluation redesign and graded three-voice reading with Fux; rule
+6. **The chorale mode** (C4 conception, `docs/chorales/CONCEPT.md`): levels 1-4 on Kittel's 24 melodies
+   (C5, C10-C12, the owner still to confirm C10-C12); Bach's 370 settings to hear and read with their
+   cadences, figures, fundamental bass and incidental notes (C15). Next, by the owner's plan: level 5
+   (alto and tenor over Kittel's figured basses, strict style), once the owner has ruled on the
+   boundaries (CONCEPT.md section 4a: consecutive fifths and octaves on the beat, the augmented
+   second, the unprepared seventh in the strict style), each put to the owner with Bach's counts and examples.
+7. Old backlog, last: evaluation redesign and graded three-voice reading with Fux; rule
    demonstrations; the Mann layer.
 
 Known faults: Book I C♯ minor fugue misses the second soprano's entry at bar 12 (altered head);
