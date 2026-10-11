@@ -48,7 +48,7 @@ export function Root() {
     setScreen("tutorial");
   };
   /** Leave the tutorial for an exercise of the game, or for the Well-Tempered Clavier. */
-  const openGame = (v: 2 | 3 | "wtc", stepId?: string) => {
+  const openGame = (v: Mode, stepId?: string) => {
     // A screen not mounted yet reads its exercise from storage; a mounted one obeys the command.
     if (stepId) {
       store(v === 3 ? "wtg.trioStep" : "wtg.stepId", stepId);

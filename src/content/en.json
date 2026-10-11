@@ -1267,11 +1267,11 @@
     "intro.chorale.title": "Chorales",
     "intro.chorale.what": "Harmonizing chorale melodies as Bach's contemporaries learned to, level by level: first the chord each phrase ends on, then the harmony under every note, the bass, the figures, the voices.",
     "intro.chorale.do": "Choose at each marker, press Compare: your choices are set beside Kittel's basses and Bach's own settings. Nothing is marked wrong.",
-    "intro.chorale.need": "chords and their degrees in a key (I, IV, V, vi …: upper case major, lower case minor) and cadences. The tutorial teaches counterpoint, not harmony: if these are new to you, begin with the Fux mode.",
+    "intro.chorale.need": "chords and their degrees in a key (I, IV, V, vi …: upper case major, lower case minor) and cadences. The tutorial's harmony chapter teaches them.",
     "intro.preludes.title": "WTC · preludes and harmony",
     "intro.preludes.what": "Bach's preludes read as chord plans: over his bass, choose the chord of each bar, and compare your plan with his.",
     "intro.preludes.do": "Choose a bar, then one of four chords (each sounds in Bach's figuration as you choose it); Compare sets your plan beside Bach's. Nothing is marked wrong.",
-    "intro.preludes.need": "chords, and figured-bass numbers: 5/3, 6/3, 6/4/2 … are the intervals above the bass. The tutorial does not teach them: if they are new to you, begin with the Fux mode."
+    "intro.preludes.need": "chords, and figured-bass numbers: 5/3, 6/3, 6/4/2 … are the intervals above the bass. The tutorial's harmony chapter teaches them."
   },
   "tutor": {
     "rule.fos.no-repetition": "In this species each upbeat brings a new note, which is then tied over the bar line; striking the downbeat's note again on its own upbeat is a whole note in disguise.",

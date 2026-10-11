@@ -287,3 +287,15 @@ test("three voices, species two to five: Fux's first examples, all on the D cant
     }
   }
 });
+
+test("tutorial: every quiz's computed answer is among its choices, and the harmony chapter comes before the end (D150)", () => {
+  for (const { lesson } of lessonsOf(CHAPTERS)) {
+    if (lesson.task.kind !== "quiz") continue;
+    const { choices, items } = lesson.task;
+    for (const it of items) assert.ok(choices.includes(it.answer), `${lesson.id}: ${it.answer} not among ${choices}`);
+    // Every choice is used at least once, so no option is a dead end.
+    if (lesson.id.startsWith("harmony.")) for (const c of choices) assert.ok(items.some((it) => it.answer === c), `${lesson.id}: no item answers ${c}`);
+  }
+  const ids = CHAPTERS.map((c) => c.id);
+  assert.equal(ids.indexOf("harmony"), ids.indexOf("end") - 1);
+});

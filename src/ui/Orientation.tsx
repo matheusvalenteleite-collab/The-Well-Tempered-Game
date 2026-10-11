@@ -58,7 +58,7 @@ export function Welcome({ onTutorial, onFirst, onExplore }: { onTutorial(): void
 }
 
 /** The modes with an introduction, and the tutorial lesson that prepares each (if any). */
-export const INTRO_LESSON: Record<string, string | null> = { "3": "three.bass", "4": "four.preview", wtc: "fugue.what", chorale: null, preludes: null };
+export const INTRO_LESSON: Record<string, string | null> = { "3": "three.bass", "4": "four.preview", wtc: "fugue.what", chorale: "harmony.triad", preludes: "harmony.figures" };
 
 export function ModeIntro({ mode, onClose, onLearn }: { mode: string; onClose(): void; onLearn?: (lesson: string) => void }) {
   const lesson = INTRO_LESSON[mode];

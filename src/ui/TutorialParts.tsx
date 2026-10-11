@@ -7,7 +7,8 @@ import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "
 import { ScoreView } from "./notation/ScoreView.tsx";
 import { Systems } from "./notation/Systems.tsx";
 import { TrioScore, type TrioVoice } from "./notation/TrioScore.tsx";
-import { trioStaves } from "./notation/trio-staves.ts";
+import { quartetStaves, trioStaves } from "./notation/trio-staves.ts";
+import { chordOf, degreeOf, figuresOf } from "../tutorial/harmony.ts";
 import { VoiceRoll } from "./notation/VoiceRoll.tsx";
 import { VOICE_COLORS } from "./voice-colors.ts";
 import { LIBRARY } from "../wtc/library.ts";
@@ -23,7 +24,7 @@ import { COURSES } from "../counterpoint/curriculum/index.ts";
 import type { Violation } from "../counterpoint/rules/types.ts";
 import type { Evaluation } from "../counterpoint/engine.ts";
 import type { TrioEvaluation } from "../counterpoint/three-voice.ts";
-import { coach, complete, freeScene, intervalWords, judge, judgeTrio, sceneEvents, slotsOf, type Clip, type QuizItem, type Scene, type TrioScene, type Verdict } from "../tutorial/model.ts";
+import { coach, complete, freeScene, intervalWords, judge, judgeTrio, sceneEvents, slotsOf, type Clip, type QuizItem, type QuizKind, HARMONY_QUIZ, type Scene, type TrioScene, type Verdict } from "../tutorial/model.ts";
 import { tt } from "../tutorial/text.ts";
 
 // ---------------------------------------------------------------- text
@@ -528,6 +529,16 @@ function why(quiz: string, item: QuizItem): string {
     };
     return tt("quiz.why.motion", { lo: dir(c0[0], c1[0]), up: dir(c0[1], c1[1]) });
   }
+  if (quiz === "degree" || quiz === "figure") {
+    const ch = chordOf(c0);
+    const ps0 = [...c0].sort((a, b) => parsePitch(a).midi - parsePitch(b).midi);
+    if (!ch) return "";
+    const member = tt(`quiz.member.${ch.bassMember}`);
+    return quiz === "degree"
+      ? tt("quiz.why.degree", { root: pitchName(ch.rootPitch), quality: tt(`quiz.quality.${ch.quality}`), degree: degreeOf(c0, item.key ?? "C") })
+      : tt("quiz.why.figure", { bass: pitchName(ps0[0]), member, root: pitchName(ch.rootPitch) });
+  }
+  if (quiz === "cadence") return tt("quiz.why.cadence", { a: degreeOf(c0, item.key ?? "C"), b: degreeOf(c1, item.key ?? "C") });
   const ps = [...c0].sort((a, b) => parsePitch(a).midi - parsePitch(b).midi);
   return tt("quiz.why.chord", { bass: pitchName(ps[0]), figures: ps.slice(1).map((x) => intervalWords(harmonic(ps[0], x))).join(" and ") });
 }
@@ -541,8 +552,49 @@ function itemScene(item: QuizItem): Scene {
   return freeScene(lows, { start: highs, open: [], clefs: ["treble", lowClef] });
 }
 
+/**
+ * Harmony (D150): chords drawn on two staves, the voices by rank (the bass the lowest note of each
+ * chord), with or without their figures.
+ */
+export function ChordScore({ columns, figures, names, label, cursor = -1 }: { columns: string[][]; figures: boolean; names: boolean; label: string; cursor?: number }) {
+  const n = Math.max(...columns.map((c) => c.length));
+  const sorted = columns.map((c) => [...c].sort((a, b) => parsePitch(a).midi - parsePitch(b).midi));
+  // Lines from the top down: line 0 the highest note of each chord, the last line the bass.
+  const lines = Array.from({ length: n }, (_, j) => sorted.map((c) => c[c.length - 1 - j] ?? null));
+  const mean = (l: (string | null)[]) => {
+    const ms = l.filter((x): x is string => !!x).map((x) => parsePitch(x).midi);
+    return ms.reduce((a, b) => a + b, 0) / Math.max(1, ms.length);
+  };
+  const means = lines.map(mean);
+  const staves = n === 4 ? quartetStaves(means) : trioStaves(means);
+  const voices: TrioVoice[] = lines.map((notes, i) => ({ notes, editable: false, staff: staves.staff[i] }));
+  return (
+    <div className="tut-score trio">
+      <TrioScore
+        voices={voices}
+        clefs={staves.clefs}
+        active={-1}
+        selected={-1}
+        cursor={cursor}
+        figures={figures}
+        names={names}
+        nameStyle="letters"
+        label={label}
+        onPlace={() => undefined}
+        onSelect={() => undefined}
+        zoom={1}
+        onZoom={() => undefined}
+        zoomLabels={{ in: t("ui.zoom.in"), out: t("ui.zoom.out"), reset: t("ui.zoom.reset") }}
+      />
+    </div>
+  );
+}
+
+/** "C major", "A minor" from a quiz key ("C", "a"). */
+const keyName = (k = "C") => tt(k === k.toLowerCase() ? "quiz.keyMinor" : "quiz.keyMajor", { tonic: pitchName(k.toUpperCase()) });
+
 export function Quiz(p: {
-  quiz: "interval" | "class" | "motion" | "chord";
+  quiz: QuizKind;
   items: QuizItem[];
   choices: string[];
   labels?: Record<string, string>;
@@ -562,8 +614,12 @@ export function Quiz(p: {
   const finished = k >= p.items.length;
   if (finished) return null;
   const clip: Clip = { id: `q${k}`, kind: "columns", columns: item.columns };
+  const harmony = HARMONY_QUIZ.includes(p.quiz);
   const prompt =
-    p.quiz === "chord"
+    p.quiz === "degree" ? tt("quiz.degree", { key: keyName(item.key) })
+    : p.quiz === "figure" ? tt("quiz.figure")
+    : p.quiz === "cadence" ? tt("quiz.cadence", { key: keyName(item.key) })
+    : p.quiz === "chord"
       ? tt("quiz.chord", { bar: (item.bar ?? 0) + 1 })
       : p.quiz === "motion"
         ? tt("quiz.motion", { a: item.columns[0].map(pitchName).join("–"), b: item.columns[1].map(pitchName).join("–") })
@@ -571,7 +627,8 @@ export function Quiz(p: {
   return (
     <div className="tut-quiz">
       <p className="tut-quiz-count">{tt("ui.quizProgress", { n: k + 1, total: p.items.length })}</p>
-      {p.quiz !== "chord" && (
+      {harmony && <ChordScore columns={item.columns} figures={false} names={p.names} label={prompt} />}
+      {p.quiz !== "chord" && !harmony && (
         <SceneScore scene={itemScene(item)} notes={item.columns.map((c) => c[1])} names={p.names} intervals={false} label={prompt} compact />
       )}
       <div className="tut-quiz-row">

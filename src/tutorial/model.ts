@@ -82,10 +82,17 @@ export interface Verdict {
   vars?: Record<string, string | number>;
 }
 
+/** The quizzes: intervals, their classes, motion, three-voice chords; and (D150) harmony. */
+export type QuizKind = "interval" | "class" | "motion" | "chord" | "degree" | "figure" | "cadence";
+/** The harmony quizzes, drawn as chords on two staves. */
+export const HARMONY_QUIZ: readonly QuizKind[] = ["degree", "figure", "cadence"];
+
 export interface QuizItem {
   /** Lower note first; one sonority, or two in a row (motion). */
   columns: string[][];
   answer: string;
+  /** Harmony (D150): the key, its tonic ("C"; lower case for minor, "a"). */
+  key?: string;
   /** Three voices: the bar of the scene this sonority is taken from (0-based). */
   bar?: number;
 }
@@ -103,12 +110,15 @@ export type Task =
   /** Done when `need` clips (default all) have been heard. */
   | { kind: "listen"; clips: Clip[]; need?: number }
   | { kind: "choice"; options: Option[]; scene?: Scene }
-  | { kind: "quiz"; quiz: "interval" | "class" | "motion" | "chord"; items: QuizItem[]; choices: string[] }
+  | { kind: "quiz"; quiz: QuizKind; items: QuizItem[]; choices: string[] }
   | { kind: "write"; check(notes: (string | null)[], scene: Scene): Verdict }
   | { kind: "judge" }
   | { kind: "trio" }
-  | { kind: "game"; voices: 2 | 3 | "wtc"; stepId?: string }
+  | { kind: "game"; voices: GameMode; stepId?: string }
   | { kind: "tour" };
+
+/** Where a lesson can send the learner in the game. */
+export type GameMode = 2 | 3 | 4 | "wtc" | "chorale" | "preludes";
 
 export interface Lesson {
   /** Content key: tutorial.en.json lessons[id]. */
@@ -124,6 +134,8 @@ export interface Lesson {
   intervals?: boolean;
   /** A fugue drawn as a roll (D146), by its id in the study's library; the lesson's clips shade their passage on it. */
   roll?: string;
+  /** Harmony (D150): chords to draw on two staves, with their figures. */
+  chords?: string[][];
 }
 
 export interface Chapter {

@@ -63,7 +63,9 @@
     "quickTutorial": "New to music? The full tutorial ›",
     "openStudy": "Open the Well-Tempered Clavier study ›",
     "rollLabel": "The fugue as a picture: each note a bar, each voice a colour",
-    "rollHelp": "How to read it: time runs left to right, pitch goes up the page; each short bar is a note, each colour a voice (blue the highest, then red, green and purple). A box marked S is an entry of the subject. What you are listening to is shaded."
+    "rollHelp": "How to read it: time runs left to right, pitch goes up the page; each short bar is a note, each colour a voice (blue the highest, then red, green and purple). A box marked S is an entry of the subject. What you are listening to is shaded.",
+    "openChorales": "Open the Chorales",
+    "openPreludes": "Open the preludes"
   },
   "chapters": {
     "welcome": {
@@ -118,6 +120,10 @@
       "title": "Listening to a fugue",
       "blurb": "Bach's Well-Tempered Clavier: subject, answer, entries, stretto — and the way into the study."
     },
+    "harmony": {
+      "title": "Chords and harmony",
+      "blurb": "Triads, their degrees in a key, figures over the bass, cadences: what Bach's chorales and preludes ask for."
+    },
     "end": {
       "title": "Playing the game",
       "blurb": "The road to the end, and a tour of the screen."
@@ -129,7 +135,7 @@
       "text": [
         "In 1725 the Viennese court composer Johann Joseph Fux published **Gradus ad Parnassum**, a course in composition written as a conversation between a master, Aloysius, and his pupil, Josephus. For two hundred years composers learned from it; Haydn is said to have worked through every exercise, and it is still used to teach today.",
         "This game is that course. You play Josephus: Aloysius gives you a melody, you write a second melody against it, and the game judges your line by rules read from Fux's own pages.",
-        "You need **no musical knowledge** to start. This tutorial teaches you everything the game asks for: how to read a note, what an interval is, how two voices may move, and then each of Fux's five 'species', one after another, until you can write in three and four voices. Every example you will hear is Fux's own."
+        "You need **no musical knowledge** to start. This tutorial teaches you everything the game asks for: how to read a note, what an interval is, how two voices may move, and then each of Fux's five 'species', one after another, until you can write in three and four voices; and, last, the chords and figures that Bach's modes ask for. Every example you will hear is Fux's own."
       ]
     },
     "welcome.goal": {
@@ -825,12 +831,163 @@
       ],
       "prompt": "Open the study."
     },
+    "harmony.triad": {
+      "title": "The triad",
+      "text": [
+        "Fux's counterpoint is built note by note, but its sonorities are already chords: the 'harmonic triad' Aloysius asks for in three voices is a **third and a fifth above the bass**. Take any note, add the note a third above it and the note a third above that: a **triad**. Its lowest note in that stack is the **root**; the others are its **third** and its **fifth**.",
+        "The third decides its colour. A **major** triad has a major third (four semitones) under a perfect fifth; a **minor** triad a minor third (three semitones) under a perfect fifth; a **diminished** triad a minor third under a diminished fifth, the tense one."
+      ],
+      "prompt": "Listen to the three kinds.",
+      "clips": {
+        "major": "Major: C–E–G",
+        "minor": "Minor: A–C–E",
+        "diminished": "Diminished: B–D–F"
+      },
+      "done": "Major, minor, diminished: the three triads that a major scale makes from its own notes."
+    },
+    "harmony.degrees": {
+      "title": "Degrees: the Roman numerals",
+      "text": [
+        "Build a triad on each note of the C major scale, using only the scale's notes, and you get seven chords. They are named by the **degree** of their root, counted from the key note (the **tonic**) in Roman numerals: I on C, II on D, and so on to VII on B.",
+        "Upper case for a major triad, lower case for a minor one, a small circle for the diminished: in any major key **I, ii, iii, IV, V, vi, vii°**. The three major ones carry the key: **I** the tonic, **V** the dominant, **IV** the subdominant."
+      ],
+      "prompt": "Listen to the triads of C major, I to the octave.",
+      "clips": {
+        "scale": "I ii iii IV V vi vii° I"
+      },
+      "done": "Those numerals are the ones the Chorales mode asks for, and the ones the study writes above the music."
+    },
+    "harmony.degreesQuiz": {
+      "title": "Name the degree",
+      "text": [
+        "Find the root (the note with the others a third and a fifth above it), count from C to it, and choose upper or lower case by the third."
+      ],
+      "prompt": "In C major: which degree is this chord?",
+      "hint": "Root on C is I, on D ii, on E iii, on F IV, on G V, on A vi, on B vii°.",
+      "choices": {
+        "I": "I",
+        "ii": "ii",
+        "iii": "iii",
+        "IV": "IV",
+        "V": "V",
+        "vi": "vi",
+        "vii°": "vii°"
+      },
+      "done": "Seven degrees, one key."
+    },
+    "harmony.minor": {
+      "title": "Minor keys",
+      "text": [
+        "In a minor key the numerals change case: in A minor the tonic chord is **i** (A–C–E), the subdominant **iv** (D–F–A), and **VI** (F–A–C) and **III** (C–E–G) are major.",
+        "The dominant is the exception. A minor's own seventh note is G, which gives a minor v (E–G–B); but to lead into the tonic the seventh is raised a semitone, **G♯**, and the dominant becomes major: **V** (E–G♯–B). It is the same semitone Fux demands at every close, the raised seventh rising to the final."
+      ],
+      "prompt": "Listen to i, iv, V, VI, V, i in A minor; hear the G♯ pull towards A.",
+      "clips": {
+        "minor": "i iv V VI V i"
+      },
+      "done": "Major V, minor tonic: the sound of a minor key."
+    },
+    "harmony.figures": {
+      "title": "Inversions and figures",
+      "text": [
+        "A triad need not stand on its root. Whatever note is lowest is the **bass**, and the chord is named by the intervals above it, the **figures** that Baroque players read under a bass line (the 'thoroughbass').",
+        "Root in the bass: a third and a fifth above it, **5/3** (root position). Third in the bass: a third and a sixth, **6/3**, written simply 6 (first inversion; Fux's six-three). Fifth in the bass: a fourth and a sixth, **6/4** (second inversion), unstable, used mostly on the way to a cadence. The same chord, three basses."
+      ],
+      "prompt": "Listen to C–E–G over C, over E, over G, and read the figures under the bass staff.",
+      "clips": {
+        "inversions": "5/3, 6/3, 6/4"
+      },
+      "done": "Figures count from the bass, whatever the root."
+    },
+    "harmony.figuresQuiz": {
+      "title": "Read the figures",
+      "text": [
+        "Find the lowest note, then count up to each of the others (an octave and more reduced): 3 and 5, 3 and 6, or 4 and 6."
+      ],
+      "prompt": "Which figures stand over the bass?",
+      "hint": "A fourth above the bass means 6/4; a sixth with a third means 6/3.",
+      "choices": {
+        "53": "5/3 — root in the bass",
+        "63": "6/3 — third in the bass",
+        "64": "6/4 — fifth in the bass"
+      },
+      "done": "Root position, first inversion, second inversion."
+    },
+    "harmony.sevenths": {
+      "title": "Seventh chords",
+      "text": [
+        "Add one more third above the fifth and the triad becomes a **seventh chord**: on G, G–B–D–F, the **dominant seventh** (V7), whose F wants to fall to E and whose B wants to rise to C.",
+        "With four notes there are four basses, and four sets of figures, each named by its most telling intervals: root in the bass **7**; third in the bass **6/5**; fifth in the bass **4/3**; seventh in the bass **4/2** (written 2, and in full 6/4/2, as the Preludes mode prints it).",
+        "Under the bass staff the game lists every interval above the bass (6, d5, 3 for the second chord); the figure names only the telling ones (6/5), the rest being understood."
+      ],
+      "prompt": "Listen to G–B–D–F over each of its notes.",
+      "clips": {
+        "sevenths": "7, 6/5, 4/3, 4/2"
+      },
+      "done": "The seventh in the bass, 4/2, must fall a step: Bach's preludes are full of it."
+    },
+    "harmony.seventhsQuiz": {
+      "title": "Seventh chords by their figures",
+      "text": [
+        "Find the bass, then look for the second (two neighbouring letters) inside the chord: where it lies decides the figures."
+      ],
+      "prompt": "Which figures?",
+      "hint": "A second right above the bass: 4/2. A second at the top of a third: 4/3. A fifth and a sixth over the bass: 6/5. Bass, third, fifth, seventh stacked: 7.",
+      "choices": {
+        "7": "7 — root in the bass",
+        "65": "6/5 — third in the bass",
+        "43": "4/3 — fifth in the bass",
+        "42": "4/2 — seventh in the bass"
+      },
+      "done": "Four basses, four figures."
+    },
+    "harmony.cadences": {
+      "title": "Cadences",
+      "text": [
+        "A phrase ends on a **cadence**: two chords that close it. The four kinds have names (later ones than Fux's):",
+        "• **authentic**: V to I, the full close (Fux's clausula, the raised seventh rising to the final, sounds inside it);",
+        "• **half**: a phrase that stops on V, a comma rather than a full stop;",
+        "• **plagal**: IV to I, the 'Amen';",
+        "• **deceptive**: V that goes, not to I, but to vi."
+      ],
+      "prompt": "Listen to the four, in C.",
+      "clips": {
+        "authentic": "Authentic: V–I",
+        "half": "Half: I–V",
+        "plagal": "Plagal: IV–I",
+        "deceptive": "Deceptive: V–vi"
+      },
+      "done": "Where a chorale's phrases end, and on which of these chords, is the first level of the Chorales mode."
+    },
+    "harmony.cadenceQuiz": {
+      "title": "Name the cadence",
+      "text": [
+        "Name the two chords as degrees of the key, then the cadence: V–I, IV–I, V–vi, or a phrase ending on V."
+      ],
+      "prompt": "Which cadence?",
+      "hint": "Find the root of each chord and count from the tonic.",
+      "choices": {
+        "authentic": "Authentic (V–I)",
+        "half": "Half (ends on V)",
+        "plagal": "Plagal (IV–I)",
+        "deceptive": "Deceptive (V–vi)"
+      },
+      "done": "That is the harmony the chorales and preludes ask for."
+    },
+    "harmony.modes": {
+      "title": "Harmony in the game",
+      "text": [
+        "Three places in the game use what this chapter taught. **Chorales**: at each fermata of a chorale melody, choose the chord the phrase cadences on (I, V, vi …), then compare with Kittel's basses and Bach's own settings. **WTC · preludes and harmony**: over Bach's bass in the C major prelude, choose each bar's chord by its figures (5/3, 6/3, 6/4/2 …) and compare with Bach's plan. **The Well-Tempered Clavier** study writes the Roman numerals of the chords above the music.",
+        "Neither mode marks anything wrong: Bach's choices are the comparison."
+      ],
+      "prompt": "Open the Chorales."
+    },
     "end.path": {
       "title": "The road to the end",
       "text": [
         "This is the whole game, in order: two voices, then three, then four, each through the five species. Each exercise cleared earns a ★, and a gold 🌟 if no advice was broken either; the menus count them for each species. Clearing one of Fux's worked exercises also opens his own solution, to see, hear and compare with yours. Some exercises (the C cantus in first species; the G, A and C cantus in third and fourth) are ones he left to private study: there is no solution of his to compare.",
         "When an exercise defeats you: open **How to play → Rules of this exercise** for the rules in force, read the **Lectio** for what Fux says about it, and look at the marks after **Evaluate** — each tells you which bar breaks which rule and why. Then come back here: every species has its chapter.",
-        "Beyond Fux lie Bach's modes: the **Well-Tempered Clavier** (listening and fugue exercises; the tutorial's fugue chapter prepares it), and the **Chorales** and **WTC · preludes and harmony**, which ask for chords and figured-bass numbers that this tutorial does not teach."
+        "Beyond Fux lie Bach's modes: the **Well-Tempered Clavier** (listening and fugue exercises; the tutorial's fugue chapter prepares it), and the **Chorales** and **WTC · preludes and harmony**, which ask for the chords and figures of the harmony chapter."
       ]
     },
     "end.tour": {
@@ -889,7 +1046,23 @@
     "up": "goes up",
     "down": "goes down",
     "stays": "stays",
-    "play": "▶"
+    "play": "▶",
+    "degree": "In {key}: which degree?",
+    "figure": "Which figures stand over the bass?",
+    "cadence": "In {key}: which cadence?",
+    "keyMajor": "{tonic} major",
+    "keyMinor": "{tonic} minor",
+    "member.0": "root",
+    "member.2": "third",
+    "member.4": "fifth",
+    "member.6": "seventh",
+    "quality.major": "major",
+    "quality.minor": "minor",
+    "quality.diminished": "diminished",
+    "quality.augmented": "augmented",
+    "why.degree": "The root is {root}, a {quality} triad: {degree}.",
+    "why.figure": "{bass} is in the bass, the chord's {member} (its root is {root}).",
+    "why.cadence": "{a} then {b}."
   },
   "road": {
     "head": "{voices} voices",

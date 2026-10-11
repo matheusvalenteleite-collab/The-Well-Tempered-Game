@@ -4,6 +4,7 @@
  * answer, write), and Next opens once the task is done. The game stays where it was underneath.
  * Progress (lessons done, the lesson reached) is remembered in this browser.
  */
+import type { GameMode } from "../tutorial/model.ts";
 import { useEffect, useMemo, useState } from "react";
 import data from "../../data/fux/three-voice/fux-three-voice.json" with { type: "json" };
 import { repository } from "../music/fux/load-browser.ts";
@@ -17,7 +18,7 @@ import { InfoBar } from "./InfoBar.tsx";
 import { BetaToggle } from "./BetaToggle.tsx";
 import { useBeta } from "./beta.ts";
 import { openInOrder as lessonOpen } from "../game/unlock.ts";
-import { ClipButtons, FugueRoll, Inline, Prose, Quiz, RoadMap, SceneScore, TrioPane, usePlayer, WriteScene } from "./TutorialParts.tsx";
+import { ChordScore, ClipButtons, FugueRoll, Inline, Prose, Quiz, RoadMap, SceneScore, TrioPane, usePlayer, WriteScene } from "./TutorialParts.tsx";
 
 const TRIO = trioSteps(data as never);
 /** Every three-voice exercise, species by species (the road map). */
@@ -35,7 +36,7 @@ const validProgress = (v: unknown) => typeof v === "object" && v !== null && typ
 /** Has this browser ever opened the tutorial? (The first-visit invitation reads it.) */
 export const tutorialSeen = () => stored<Progress | null>(KEY, null, validProgress) !== null;
 
-export function Tutorial(p: { onLeave(): void; onGame(voices: 2 | 3 | "wtc", stepId?: string): void; onTour(): void }) {
+export function Tutorial(p: { onLeave(): void; onGame(voices: GameMode, stepId?: string): void; onTour(): void }) {
   const [progress, setProgress] = useState<Progress>(() => {
     const v = stored<Progress>(KEY, { at: LESSONS[0].lesson.id, done: [] }, validProgress);
     return LESSONS.some((x) => x.lesson.id === v.at) ? v : { ...v, at: LESSONS[0].lesson.id };
@@ -153,7 +154,7 @@ export function Tutorial(p: { onLeave(): void; onGame(voices: 2 | 3 | "wtc", ste
  * One lesson's page. Keyed by the lesson, so that everything it holds (the task done, the clips
  * heard, the view toggles, what is playing) starts clean with each lesson and never leaks into the next.
  */
-function LessonPage(p: { skip: boolean; index: number; already: boolean; onDone(): void; onGo(k: number): void; onLeave(): void; onGame(voices: 2 | 3 | "wtc", stepId?: string): void; onTour(): void }) {
+function LessonPage(p: { skip: boolean; index: number; already: boolean; onDone(): void; onGo(k: number): void; onLeave(): void; onGame(voices: GameMode, stepId?: string): void; onTour(): void }) {
   const { chapter, lesson } = LESSONS[p.index];
   const chapterIndex = CHAPTERS.findIndex((c) => c.id === chapter);
   const text = lessonText(lesson.id);
@@ -229,7 +230,7 @@ function LessonBody(p: {
   heard: string[];
   onHeard(id: string): void;
   onDone(done: boolean): void;
-  onGame(voices: 2 | 3 | "wtc", stepId?: string): void;
+  onGame(voices: GameMode, stepId?: string): void;
   onTour(): void;
 }) {
   const { lesson, player } = p;
@@ -277,7 +278,13 @@ function LessonBody(p: {
   const own = clips.some((c) => c.id === player.playing && c.kind === "scene");
   const shown = scene ? <ReadScene scene={scene} names={p.names} intervals={p.intervals} cursor={own ? player.cursor : -1} label={label} /> : null;
   const trioClip = clips.find((c) => c.kind === "columns" && lesson.trio && c.columns.length === lesson.trio.answer[0].length)?.id;
-  const trio = lesson.trio ? <TrioPane scene={lesson.trio} names={p.names} writable={false} pulse={pulse} player={player} label={label} cursorClip={trioClip} /> : null;
+  // Harmony (D150): the lesson's chords, the cursor on them while the clip that plays them sounds.
+  const chordClip = clips.find((c) => c.kind === "columns" && lesson.chords && JSON.stringify(c.columns) === JSON.stringify(lesson.chords))?.id;
+  const trio = lesson.trio ? (
+    <TrioPane scene={lesson.trio} names={p.names} writable={false} pulse={pulse} player={player} label={label} cursorClip={trioClip} />
+  ) : lesson.chords ? (
+    <ChordScore columns={lesson.chords} figures names={p.names} label={label} cursor={chordClip && player.playing === chordClip ? player.cursor : -1} />
+  ) : null;
 
   if (task.kind === "listen") {
     return (
@@ -314,7 +321,7 @@ function LessonBody(p: {
     return (
       <section className="tut-task">
         {prompt}
-        <button className="primary tut-go" onClick={() => p.onGame(task.voices, task.stepId)}>{tt(task.voices === "wtc" ? "ui.openStudy" : "ui.openGame")}</button>
+        <button className="primary tut-go" onClick={() => p.onGame(task.voices, task.stepId)}>{tt(task.voices === "wtc" ? "ui.openStudy" : task.voices === "chorale" ? "ui.openChorales" : task.voices === "preludes" ? "ui.openPreludes" : "ui.openGame")}</button>
       </section>
     );
   }

@@ -1,7 +1,7 @@
 # Handoff (10 October 2026, night)
 
 Read this first in a new session. The decisions log (`docs/DECISIONS.md`: D1–D139 and D147 on for the game,
-D140–D146 for the tutorial (the next free number is D150), C1–C14 for the chorale mode) has the details; `docs/MORNING.md` has
+D140–D146 for the tutorial (the next free number is D151), C1–C14 for the chorale mode) has the details; `docs/MORNING.md` has
 older notes and the owner's open questions.
 
 ## How we work from now on (the owner's choice, after a usage warning)
@@ -17,7 +17,7 @@ older notes and the owner's open questions.
 
 ## Publishing
 
-- Tests: `npm test` (246). Builds: `npm run build` (Pages, split into chunks) and
+- Tests: `npm test` (250). Builds: `npm run build` (Pages, split into chunks) and
   `npm run build:artifact` then `node tools/build-artifact.mjs <out.html>` (one file, 16.67 MB of a
   16.8 MB ceiling: the artifact must not grow much more without splitting data out).
 - claude.ai artifact: https://claude.ai/artifact/NvkaBGCHrtDebE85H7udTX (private). It holds 501 of
@@ -58,8 +58,7 @@ older notes and the owner's open questions.
    species is judged; suspensions against a divided semibreve), and whether p. 139 (after Fig. 204,
    not in the vendored pages) leaves more modes of the combined species to private study.
 5. **Learnability and accessibility (D149)**: the audit's first two items are done (keyboard, orientation).
-   Left, in order: a harmony chapter in the tutorial (triads, degrees, inversions as figures, cadences),
-   so that Chorales, Preludes and the WTC harmony strip become learnable; contrast tokens (dark accent
+   The harmony chapter is in the tutorial (D150). Left, in order: contrast tokens (dark accent
    2.5:1, retro pressed 3.0:1, warnings, off activators) and a shape beside colour for errors and
    warnings; a spoken account of the score (live region: bar, note written, cantus) and a text view;
    targets under 24 px; reduced motion (rule demos loop, pulses, smooth scrolling); focus traps in
