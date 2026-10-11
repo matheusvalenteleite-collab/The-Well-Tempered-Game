@@ -155,6 +155,28 @@ def root_position(v: dict) -> bool:
     return 6 not in n and 2 not in n
 
 
+# The local keys (the generator session's reading, imported by import_local_keys.py): at each on-beat
+# soprano attack, the chord as a degree of the key the passage is in.
+LOCAL = ROOT / "data/chorales/local-keys.json"
+LOCAL_KEYS = {int(k): {e[0]: e for e in v} for k, v in json.loads(LOCAL.read_text())["chorales"].items()} if LOCAL.exists() else {}
+LOCAL_SOURCE = json.loads(LOCAL.read_text())["source"] if LOCAL.exists() else None
+
+
+def by_local_key(cls: str, local: str | None) -> str:
+    """The classes the chorale's key leaves open, decided in the local key (C31). Kirnberger's half
+    cadence rests on the dominant of the key the phrase is in (Kunst I, p. 96); a close on the local
+    tonic that does not come from its dominant is no full close (pp. 94-96)."""
+    undecided = cls.startswith("resting point on a major triad") or cls.startswith("bass up a fifth") or cls in ("half", "other")
+    if not undecided or local is None:
+        return cls
+    if local in ("V", "V7"):
+        return cls if cls == "half" else "half, in the local key"
+    if local in ("I", "i"):
+        # From the subdominant (the bass up a fifth): Kirnberger's less perfect final cadence (p. 94).
+        return "plagal, in the local key" if cls.startswith("bass up a fifth") else "close on the local tonic, not from its dominant"
+    return cls
+
+
 def classify_cadence(pen: dict, fin: dict, tonic_pc: int) -> str:
     """The usual classes, by the bass motion into the final and the position of the two chords.
     Written to be corrected: each test is one line."""
@@ -319,11 +341,14 @@ def analyse(c: dict) -> dict:
                     "root": v.get("root"), "chord": v.get("chord")}
         bf, bp = brief(fin), brief(pen)
         cls = classify_cadence(bp, bf, tonic_pc)
+        loc = LOCAL_KEYS.get(c["number"], {}).get(bf["t"]) if bf else None
+        cls = by_local_key(cls, loc[3] if loc else None)
         degree = None
         if bf:
             fb = parse_pitch_name(bf["bass"])
             degree = DEGREES[(PC[fb.step] + fb.alter - tonic_pc) % 12]
-        cadences.append({"phrase": len(phrases), "final": bf, "penultimate": bp, "final_bass_degree": degree, "class": cls})
+        cadences.append({"phrase": len(phrases), "final": bf, "penultimate": bp, "final_bass_degree": degree, "class": cls,
+                         **({"local": {"tonic": loc[1], "mode": loc[2], "chord": loc[3]}} if loc else {})})
         start = e
     return {
         "id": c["id"], "number": c["number"], "bwv": c["bwv"], "title": c["title"]["de"],

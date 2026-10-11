@@ -262,8 +262,23 @@ on the root a third lower while reading F-A-C-E going to G on F would be inconsi
   | other | 45 | |
 
   The "half" class (347) is still the final bass on degree V of the chorale's key.
-- **Local keys** (ROADMAP phase 3) would decide whether the 159 resting points on a major triad
-  are half cadences.
+- **Local keys (C31).** The generator session's reading of every chord in its local key (its
+  `src/chorale/generate/keys.ts`, `docs/chorales/KEYS.md`; imported by
+  `tools/chorales/import_local_keys.py`) decides the classes the chorale's key left open. A rest on
+  the local dominant is Kirnberger's half cadence (p. 96); a close on the local tonic from its
+  subdominant, the bass rising a fifth, is his less perfect close (p. 94); any other close on the
+  local tonic is not a full close. The authentic closes are left as read: where the local reading
+  calls a close on V an applied dominant going to V, Kirnberger's full close in the dominant's key
+  (pp. 95-96) is the other reading, and the two are left side by side.
+
+  | class | count |
+  |---|---|
+  | half, in the local key | 124 |
+  | plagal, in the local key | 35 |
+  | close on the local tonic, not from its dominant | 162 |
+  | resting point on a major triad (undecided) | 27 |
+  | resting point on a minor triad | 28 |
+  | other | 5 |
 
 ## What remains
 
