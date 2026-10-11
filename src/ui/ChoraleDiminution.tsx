@@ -3,7 +3,7 @@
  * chorales with its alto, tenor and bass reduced to chord tones, the soprano as he wrote it. Tap a
  * note of a lower voice and choose how it goes on to the next: a passing note, a neighbour, a
  * suspension, an anticipation (only those its next note allows). "Compare" sets the result beside
- * Bach's own diminution at the same places; the one error is the augmented second (C16).
+ * Bach's own diminution at the same places; an augmented second is a grave warning (C21: nothing is an error).
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ModeSelect } from "./ModeSelect.tsx";
@@ -23,7 +23,7 @@ import type { Step } from "../music/pitch.ts";
 const UNIT = 32;
 const VOICES = ["soprano", "alto", "tenor", "bass"] as const;
 const CHANNEL = ["counterpoint", "second", "third", "fux"] as const;
-const INK = { given: "#1d1b17", mine: "#c2410c", bach: "#1e6fd8", error: "#c4473a" };
+const INK = { given: "#1d1b17", mine: "#c2410c", bach: "#1e6fd8", grave: "#c4473a" };
 const MAJOR_BY_SIG: Record<number, string> = { [-7]: "Cb", [-6]: "Gb", [-5]: "Db", [-4]: "Ab", [-3]: "Eb", [-2]: "Bb", [-1]: "F", 0: "C", 1: "G", 2: "D", 3: "A", 4: "E", 5: "B", 6: "F#", 7: "C#" };
 const signatureOf = (n: number): Record<Step, number> => {
   const sig: Record<Step, number> = { C: 0, D: 0, E: 0, F: 0, G: 0, A: 0, B: 0 };
@@ -101,7 +101,7 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
           const i = base.findIndex((b) => b[0] === at);
           const added = !showBach && v > 0 && i < 0;
           const bad = errors.some((e) => e.v === v && e.at === at);
-          return { pitch, at: quarters(at), dur: dur / 8, fermata: Boolean(f) && (v === 0 || v === 3), ...(i >= 0 && v > 0 && !showBach ? { slot: slotOf(v, i) } : {}), ...(bad ? { ink: INK.error } : added ? { ink: INK.mine } : {}) };
+          return { pitch, at: quarters(at), dur: dur / 8, fermata: Boolean(f) && (v === 0 || v === 3), ...(i >= 0 && v > 0 && !showBach ? { slot: slotOf(v, i) } : {}), ...(bad ? { ink: INK.grave } : added ? { ink: INK.mine } : {}) };
         }),
       };
     });
@@ -227,8 +227,8 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
         </div>
       }
       summary={compare && (
-        <div className={errors.length ? "eval-summary bad" : "eval-summary ok"} role="status">
-          <span className="verdict">{t("chorale.l6.summary", { yours: compare.yours, bach: compare.bach, both: compare.both, same: compare.sameKind, errors: errors.length })}</span>
+        <div className="eval-summary ok" role="status">
+          <span className="verdict">{t("chorale.l6.summary", { yours: compare.yours, bach: compare.bach, both: compare.both, same: compare.sameKind, grave: errors.length })}</span>
           <button className="link" onClick={() => setTab("compare")}>{t("ui.summary.open")} ▸</button>
         </div>
       )}
@@ -243,7 +243,7 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
           content:
             compare && red ? (
               <div className="chorale-about">
-                {errors.length > 0 && <p><strong>{t("chorale.l5.tone.error")}</strong> {t("chorale.l6.augSecond", { bars: [...new Set(errors.map((e) => barOf(e.at)))].join(", ") })}</p>}
+                {errors.length > 0 && <p><strong>{t("chorale.l5.gravity.3")}</strong> {t("chorale.l6.augSecond", { bars: [...new Set(errors.map((e) => barOf(e.at)))].join(", ") })}</p>}
                 <ol className="chorale-verdicts">
                   {compare.rows.map((r) => {
                     const v = Math.floor(r.slot / 1000);

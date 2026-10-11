@@ -7,27 +7,30 @@ const C = slot("E5", "C3", "C", "major", "root", [["E", "third"], ["G", "fifth"]
 const G = slot("D5", "G2", "G", "major", "root", [["B", "third"], ["D", "fifth"]]);
 const F = slot("F5", "F2", "F", "major", "root", [["A", "third"], ["C", "fifth"]]);
 
-// C17: the two boundaries are errors, the figure is the task, the rest is Bach's habit.
-test("level 5: consecutive fifths and octaves with an inner voice, the augmented second", () => {
+// C17, C21: warnings of three gravities; the figure is the task; the rest is Bach's habit.
+test("level 5: consecutive fifths and octaves with an inner voice (grave by similar motion, a warning by contrary), the augmented second", () => {
   // Tenor and bass a twelfth apart, both falling a fourth: fifths, C-G to G-D.
   const f = judge([C, G], ["G4", "G4"], ["G3", "D3"]);
-  assert.ok(f.some((x) => x.tone === "error" && x.key === "parallel" && x.vars.kind === "fifths" && x.vars.a === "tenor" && x.vars.b === "bass"));
-  // Contrary motion into the same interval class is not reported.
-  assert.ok(!judge([C, G], ["G4", "G4"], ["G3", "D4"]).some((x) => x.key === "parallel" && x.vars.a === "tenor" && x.vars.b === "bass"));
+  assert.ok(f.some((x) => x.gravity === 3 && x.key === "parallel" && x.vars.kind === "fifths" && x.vars.a === "tenor" && x.vars.b === "bass"));
+  // Contrary motion into the same interval class is a warning, not grave (C21).
+  const contrary = judge([C, G], ["G4", "G4"], ["G3", "D4"]).find((x) => x.vars.a === "tenor" && x.vars.b === "bass");
+  assert.ok(contrary && contrary.key === "contrary" && contrary.gravity === 2);
+  // Nothing in the chorale mode is an error: every finding has a gravity.
+  assert.ok(judge([C, G], ["C4", "C4"], ["C4", "C4"]).every((x) => [1, 2, 3].includes(x.gravity)));
   // The soprano and bass alone are given: their consecutives are not the player's.
   assert.ok(!judge([C, F], ["G4", "A4"], ["C4", "C4"]).some((x) => x.key === "parallel" && x.vars.a === "soprano" && x.vars.b === "bass"));
   const minor = slot("E5", "A2", "A", "minor", "root", [["C", "third"], ["E", "fifth"]]);
   const dom = slot("D5", "E3", "E", "major", "root", [["G#", "third"], ["B", "fifth"]]);
-  assert.ok(judge([minor, dom], ["F4", "G#4"], ["C4", "B3"]).some((x) => x.key === "augSecond" && x.vars.voice === "alto"));
+  assert.ok(judge([minor, dom], ["F4", "G#4"], ["C4", "B3"]).some((x) => x.key === "augSecond" && x.gravity === 3 && x.vars.voice === "alto"));
 });
 
 test("level 5: the figure, a missing fifth only noted, notes outside the chord", () => {
   const ok = judge([C], ["G4"], ["C4"]);
-  assert.ok(!ok.some((x) => x.tone === "figure"), JSON.stringify(ok));
-  assert.ok(judge([C], ["C4"], ["C4"]).some((x) => x.tone === "note" && x.key === "noFifth"));
-  assert.ok(judge([C], ["G4"], ["D4"]).some((x) => x.tone === "figure" && x.key === "foreign" && x.vars.voice === "tenor"));
+  assert.ok(!ok.some((x) => x.gravity === 3), JSON.stringify(ok));
+  assert.ok(judge([C], ["C4"], ["C4"]).some((x) => x.gravity === 1 && x.key === "noFifth"));
+  assert.ok(judge([C], ["G4"], ["D4"]).some((x) => x.gravity === 3 && x.key === "foreign" && x.vars.voice === "tenor"));
   const D7 = slot("C5", "D3", "D", "dominant seventh", "root", [["F#", "third"], ["A", "fifth"], ["C", "seventh"]], "7");
-  assert.ok(judge([D7], ["A4"], ["D4"]).some((x) => x.tone === "figure" && x.key === "missing" && x.vars.letter === "F#"));
+  assert.ok(judge([D7], ["A4"], ["D4"]).some((x) => x.gravity === 3 && x.key === "missing" && x.vars.letter === "F#"));
 });
 
 test("level 5: the data, every bass with its slots, Bach's habits counted with examples", () => {

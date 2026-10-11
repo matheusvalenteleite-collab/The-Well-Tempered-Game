@@ -1,9 +1,9 @@
 /**
  * Level 5 of the chorale mode, the voices (C17; docs/chorales/CONCEPT.md section 3): over one of
  * Kittel's figured basses and under the melody, the player writes the alto (upper staff) and the
- * tenor (lower staff), one note to each of Kittel's harmonies. "Check" judges what is written as
- * C16 says: the two boundaries as errors, the figure as the task, everything else as Bach's habit
- * in the same context, with his examples. Nothing else is marked wrong.
+ * tenor (lower staff), one note to each of Kittel's harmonies. "Check" gives warnings of three
+ * gravities (C21; nothing is an error), the figure as the task, and Bach's habit in the same
+ * context, with his examples.
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ModeSelect } from "./ModeSelect.tsx";
@@ -29,7 +29,9 @@ const signatureOf = (n: number): Record<Step, number> => {
   for (let i = 0; i < Math.abs(n); i++) sig[order[i]] += n > 0 ? 1 : -1;
   return sig;
 };
-const INK = { bach: "#1e6fd8", given: "#1d1b17", alto: "#c04fd8", tenor: "#c2410c", error: "#c4473a", figure: "#d35400", note: "#b7950b" };
+const INK = { bach: "#1e6fd8", given: "#1d1b17", alto: "#c04fd8", tenor: "#c2410c" };
+/** The warnings' colours by gravity (C21): grave, warning, note. */
+const GRAVE_INK: Record<1 | 2 | 3, string> = { 3: "#c4473a", 2: "#d35400", 1: "#b7950b" };
 type Written = Record<string, { alto: (string | null)[]; tenor: (string | null)[] }>;
 
 export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode: Mode): void; onTutorial?: () => void; levelSelect: ReactNode }) {
@@ -87,15 +89,14 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
   const showCheck = checked === key;
   const findings = useMemo(() => (showCheck ? judge(B.slots, mine.alto, mine.tenor) : []), [showCheck, B, mine]);
   const worst = useMemo(() => {
-    const m = new Map<number, Finding["tone"]>();
-    const rank = { error: 3, figure: 2, note: 1, good: 0 };
-    for (const f of findings) for (const s of f.slots) if (!m.has(s) || rank[f.tone] > rank[m.get(s)!]) m.set(s, f.tone);
+    const m = new Map<number, Finding["gravity"]>();
+    for (const f of findings) for (const s of f.slots) if (!m.has(s) || f.gravity > m.get(s)!) m.set(s, f.gravity);
     return m;
   }, [findings]);
 
   const voices: WtcScoreVoice[] = useMemo(() => {
     const slotNotes = (line: (string | null)[], base: number, ink: string) =>
-      B.slots.map((s, i) => ({ pitch: line[i], at: quarters(s.at), dur: s.dur / 8, slot: base + i, ...(worst.has(i) && line[i] ? { ink: INK[worst.get(i) as "error" | "figure" | "note"] } : {}) }));
+      B.slots.map((s, i) => ({ pitch: line[i], at: quarters(s.at), dur: s.dur / 8, slot: base + i, ...(worst.has(i) && line[i] ? { ink: GRAVE_INK[worst.get(i)!] } : {}) }));
     const melody = { staff: 0 as const, ink: INK.given, editable: false, notes: ch.melody.map(([at, dur, pitch, f]) => ({ pitch, at: quarters(at), dur: dur / 8, fermata: Boolean(f) })) };
     if (bach) {
       // Bach's alto, tenor and bass, one chord to each melody note his setting matches.
@@ -187,9 +188,9 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
     const sh = f.habit ? share(f.habit.table, f.habit.ctx, f.habit.outcome) : null;
     const commonest = f.habit ? HABITS[f.habit.table][f.habit.ctx]?.options[0] : undefined;
     return (
-      <li key={k} className={`verdict verdict-${f.tone === "error" ? "other" : f.tone === "figure" ? "kittel" : "chosen"}`}>
+      <li key={k} className={`verdict verdict-grave${f.gravity}`}>
         <button className="link" onClick={() => setSelected(f.slots[0])}>{t("chorale.l5.at", { bar: barOf(f.slots[0]) })}</button>{" "}
-        <strong>{t(`chorale.l5.tone.${f.tone}`)}</strong> {t(`chorale.l5.${f.key}`, f.vars)}
+        <strong>{t(`chorale.l5.gravity.${f.gravity}`)}</strong> {t(`chorale.l5.${f.key}`, f.vars)}
         {sh && (
           <div className="muted">
             {t("chorale.l5.bach", { k: sh.k, n: sh.n })} {sh.examples.length > 0 && <>({sh.examples.map(([no, bar]) => ref(no, bar)).reduce<ReactNode[]>((a, x, i) => (i ? [...a, ", ", x] : [x]), [])})</>}
@@ -201,9 +202,9 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
       </li>
     );
   };
-  const errors = findings.filter((f) => f.tone === "error").length;
-  const figure = findings.filter((f) => f.tone === "figure").length;
-  const notes = findings.filter((f) => f.tone === "note").length;
+  const grave = findings.filter((f) => f.gravity === 3).length;
+  const warnings = findings.filter((f) => f.gravity === 2).length;
+  const notes = findings.filter((f) => f.gravity === 1).length;
   const sel = selected === null ? null : { voice: selected < n ? "alto" : "tenor", bar: barOf(selected % n) };
 
   return (
@@ -268,8 +269,8 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
         </div>
       }
       summary={showCheck && (
-        <div className={errors ? "eval-summary bad" : "eval-summary ok"} role="status">
-          <span className="verdict">{t("chorale.l5.summary", { errors, figure, notes })}</span>
+        <div className="eval-summary ok" role="status">
+          <span className="verdict">{t("chorale.l5.summary", { grave, warnings, notes })}</span>
           <button className="link" onClick={() => setTab("check")}>{t("ui.summary.open")} ▸</button>
         </div>
       )}
