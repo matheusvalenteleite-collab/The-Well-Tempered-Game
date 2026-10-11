@@ -8,18 +8,18 @@
  *  - in a chord: the doubling (by chord kind and bass member), the spacing, a missing fifth;
  *  - between chords: each inner voice's move (its size, as Bach's alto and tenor move from chord to
  *    chord where nothing sounds between), the seventh's
- *    and the leading tone's continuation (by voice), consecutive fifths or octaves by similar motion in
- *    a pair with an inner voice, and the augmented second in an inner line.
- * The last two are no longer errors (the owner, 11 October 2026: in the chorales Bach is the last word,
- * and there are only warnings of varying gravity): their cost is their rarity in Bach's own chorales,
- * counted the same way between chords that follow each other directly, which makes them the gravest
- * warnings.
+ *    and the leading tone's continuation (by voice), and what the game's own chord-to-chord check
+ *    (level5.ts findingsBetween) finds: consecutive fifths or octaves in a pair with an inner voice (by
+ *    similar motion, grave; by contrary motion, a warning) and the augmented second in an inner line.
+ * None of these is an error (C21: in the chorales Bach is the last word, and there are only warnings
+ * of three gravities): their cost is their rarity in Bach's own chorales, counted the same way
+ * between chords that follow each other directly.
  *
  * The voices are then the cheapest path through the chorale (Viterbi), or a path drawn with
  * probabilities 2^-cost (raised to 1/T) for variety, by the chain of chain.ts.
  */
 import { parsePitch } from "../../music/pitch.ts";
-import { HABITS, share, type Slot } from "../level5.ts";
+import { HABITS, findingsBetween, share, type Slot } from "../level5.ts";
 import { bestChain, sampleChain, type Step } from "./chain.ts";
 import type { BachChorale } from "./corpus.ts";
 import { midiOf } from "./theory.ts";
@@ -39,6 +39,13 @@ export function consecutive(a0: number, b0: number, a1: number, b1: number): boo
   return (i0 === 0 || i0 === 7) && i0 === Math.abs(a1 - b1) % 12 && Math.sign(a1 - a0) === Math.sign(b1 - b0);
 }
 
+/** Consecutive fifths or octaves (unisons) by contrary motion (a warning in level5.ts, C21). */
+export function contrary(a0: number, b0: number, a1: number, b1: number): boolean {
+  if (a0 === a1 || b0 === b1) return false;
+  const i0 = Math.abs(a0 - b0) % 12;
+  return (i0 === 0 || i0 === 7) && i0 === Math.abs(a1 - b1) % 12 && Math.sign(a1 - a0) !== Math.sign(b1 - b0);
+}
+
 /** An augmented second between two spelled pitches. */
 export const augmentedSecond = (p: string, q: string) => Math.abs(diatonic(q) - diatonic(p)) === 1 && Math.abs(midiOf(q) - midiOf(p)) === 3;
 
@@ -48,18 +55,21 @@ const motionOf = (a: number, b: number) => (a === b ? "held" : `${Math.abs(b - a
 export class VoiceModel {
   /** Cost of an inner voice's move by its size in semitones (0..12, 13 = beyond an octave). */
   readonly move: Record<"alto" | "tenor", number[]>;
-  /** Cost of one consecutive fifth or octave, and of one augmented second: their rarity in Bach. */
+  /** Cost of one consecutive fifth or octave (similar motion; by contrary motion), and of one augmented
+   *  second: their rarity in Bach. */
   readonly consecutive: number;
+  readonly contrary: number;
   readonly augSecond: number;
   /** Cost of leaving out the fifth of a triad. */
   readonly noFifth: number;
   /** The counts behind these, for the report. */
-  readonly counts: { pairsMoved: number; consecutive: number; innerMoves: number; augSecond: number; triads: number; noFifth: number };
+  readonly counts: { pairsMoved: number; consecutive: number; contrary: number; innerMoves: number; augSecond: number; triads: number; noFifth: number };
 
   constructor(train: BachChorale[]) {
     const mv = { alto: new Array(14).fill(0), tenor: new Array(14).fill(0) };
     let pairs = 0,
       cons = 0,
+      contra = 0,
       inner = 0,
       aug = 0;
     for (const c of train) {
@@ -80,6 +90,7 @@ export class VoiceModel {
             if (col0[x] === col1[x] || col0[y] === col1[y]) continue;
             pairs++;
             if (consecutive(col0[x], col0[y], col1[x], col1[y])) cons++;
+            if (contrary(col0[x], col0[y], col1[x], col1[y])) contra++;
           }
       }
     }
@@ -89,6 +100,7 @@ export class VoiceModel {
     };
     this.move = { alto: table(mv.alto), tenor: table(mv.tenor) };
     this.consecutive = bits(cons, pairs);
+    this.contrary = bits(contra, pairs);
     this.augSecond = bits(aug, inner);
     // The fifth of a root-position or first-inversion triad, present or not, in Bach's four voices.
     let triads = 0,
@@ -101,7 +113,7 @@ export class VoiceModel {
         if (pcs.size < 3) missing++;
       }
     this.noFifth = bits(missing, triads);
-    this.counts = { pairsMoved: pairs, consecutive: cons, innerMoves: inner, augSecond: aug, triads, noFifth: missing };
+    this.counts = { pairsMoved: pairs, consecutive: cons, contrary: contra, innerMoves: inner, augSecond: aug, triads, noFifth: missing };
   }
 }
 
@@ -191,12 +203,9 @@ const keyOf = (p: Pair) => `${p.alto}${KEY}${p.tenor}`;
 function moveCost(vm: VoiceModel, s0: Slot, s1: Slot, p: Pair, q: Pair, o: VoiceOptions = {}): number {
   const w = o.habits ?? 1;
   let cost = vm.move.alto[Math.min(13, Math.abs(q.a - p.a))] + vm.move.tenor[Math.min(13, Math.abs(q.t - p.t))];
-  const c0 = [midiOf(s0.soprano), p.a, p.t, midiOf(s0.bass)],
-    c1 = [midiOf(s1.soprano), q.a, q.t, midiOf(s1.bass)];
-  for (let x = 0; x < 4; x++)
-    for (let y = x + 1; y < 4; y++) if ((x === 1 || x === 2 || y === 1 || y === 2) && consecutive(c0[x], c0[y], c1[x], c1[y])) cost += vm.consecutive;
-  if (augmentedSecond(p.alto, q.alto)) cost += vm.augSecond;
-  if (augmentedSecond(p.tenor, q.tenor)) cost += vm.augSecond;
+  // the game's own chord-to-chord check (level5.ts), each finding costed by its rarity in Bach
+  for (const f of findingsBetween(1, [s0.soprano, p.alto, p.tenor, s0.bass], [s1.soprano, q.alto, q.tenor, s1.bass]))
+    cost += f.key === "parallel" ? vm.consecutive : f.key === "contrary" ? vm.contrary : f.key === "augSecond" ? vm.augSecond : 0;
   const changes = s1.root !== s0.root || s1.kind !== s0.kind;
   if (changes) {
     for (const [v, x, y] of [["alto", p.alto, q.alto], ["tenor", p.tenor, q.tenor]] as const) {
