@@ -1,0 +1,112 @@
+# The Well-Tempered Clavier mode: plan (chorale branch)
+
+Status: written overnight without the owner. These are proposals, not decisions; what is already
+built is marked as built. The owner's word for it: "it's all about the Well-Tempered Clavier: this
+is the end goal".
+
+**Two sessions worked on this the same night.** The Choices-lab session (branch
+`claude/beautiful-mccarthy-7li5nv`) wrote its own `docs/wtc/CONCEPT.md`, which goes further on the
+fugues (levels 0-8, a map of the 48, entries, key plans, strettos, the answer exercise in staff
+notation). This file was renamed from `CONCEPT.md` so that the two branches do not collide. It is
+best read as a complement for three things the lab does not have:
+
+- the prelude level built on public-domain notes (P1, Prelude 1, Mutopia);
+- the harmonic reader measured against human analyses (When in Rome, leave-one-out);
+- a licence-safe handling of the Humdrum encodings (local only).
+
+The fugue levels below overlap with the lab's levels 1, 2, 3, 5 and 7. Reconciling them is the
+owner's call.
+
+## 1. Why the WTC comes last, and what it needs from the earlier modes
+
+The game has three stages, and each needs the one before it.
+
+- **Fux** (Exercitium I-II) teaches voice-leading: consonance and dissonance, motion between voices,
+  the treatment of the dissonance. That is the grammar of every line in the WTC.
+- **The chorales** (C series) teach harmony as Bach practised it: the plan of cadences, the
+  fundamental bass, the bass line, the figures, four real voices. That is the grammar of every
+  chord in the WTC.
+- **The WTC** is where Bach composes with both at once, in two ways that the two halves of each
+  pair make plain:
+  - a **prelude** often unfolds a harmony in a figuration. Prelude 1 in C is a figured bass realised
+    as a keyboard texture: one figuration pattern, one chord per bar;
+  - a **fugue** is counterpoint governed by a subject: every voice takes the subject in turn, and
+    the rest of the texture has to fit against it (answer, countersubject, episodes, stretto).
+
+So the WTC mode is not a new grammar. It applies the grammar of the two earlier modes to the forms
+Bach wrote in. That fixes the order of its levels: first harmony laid out in time (the preludes),
+then counterpoint laid out against a subject (the fugues).
+
+## 2. The preludes
+
+The levels below follow the chorale mode's top-down order (plan before detail; C4).
+
+| level | the player | judged by | status |
+|---|---|---|---|
+| P1 harmonic plan | chooses the chord of each bar from four over Bach's bass, hears it in Bach's figuration | the bar-by-bar comparison with Bach's chord, its figures and fundamental | **built for Preludes 1, 2, 5, 6** (`src/ui/PreludeApp.tsx`, `src/ui/PlanApp.tsx`; C13) |
+| P2 figured bass | is given Bach's bass and figures and voices each bar (chooses among the voicings of the figured chord; later, types them) | parallel fifths and octaves (none in Bach's prelude); the voices' motion; Bach's voicing | **built for Prelude 1** (C9) |
+| P3 the bass | is given the upper voices and writes the bass | the chorale mode's bass criteria; comparison with Bach | proposed |
+| P4 figuration | chooses or designs the pattern that breaks the chords | listening; comparison with the other figuration preludes | proposed |
+
+Prelude 1 is the model. Next would come the other preludes built on a single figuration pattern,
+measured rather than assumed (`tools/wtc/preludes.py`, `docs/wtc/PRELUDES.md`). The measure is the
+share of bars (or half bars) whose voices move in the commonest rhythm and direction. It finds
+four figuration preludes, all in Book I:
+
+- 1/1 in C: 94%;
+- 1/5 in D: 74%;
+- 1/6 in D minor: 66%;
+- 1/2 in C minor: 57%.
+
+Every other prelude scores 32% or less. These four are the order of the P1 level. For each, the
+notes need a public-domain source (section 5).
+
+## 3. The fugues
+
+The fugue analysis of all 48 is built (`tools/wtc/fugues.py`, `docs/wtc/FUGUES.md`). It finds the
+subject, the answer (real or tonal), the entries (in prime, inversion, augmentation and
+diminution), the exposition, the stretti and the episodes. It reproduces the facts any analysis
+states: 1/1 has 24 entries, 1/8 is augmented from bar 62, 2/2 is augmented, 2/9 is diminished. That
+analysis is the data for these levels:
+
+| level | the player | judged by |
+|---|---|---|
+| F1 hearing the subject | marks where the subject enters, in which voice and form | the computed entries (with the reading's stated limits) |
+| F2 the answer | chooses the answer to a subject: real, textbook tonal, or Bach's own mutation (**built**: `src/ui/AnswerApp.tsx`, 26 fugues); later, writes it | Bach's answer; the rule of tonal mutation (the fifth answered by the fourth) |
+| F3 the countersubject | writes a line against the answer that also works inverted at the octave | Fux's rules (two voices) checked in both positions; Bach's countersubject |
+| F4 the exposition | plans the order of voices and keys of the entries | Bach's expositions (the 48, counted) |
+| F5 episodes | builds a sequence from a fragment of the subject | comparison with Bach's episodes |
+| F6 stretto | tries the subject against itself at a chosen distance and interval | the engine's rules, then Bach's stretti (190 found) |
+
+F3 and F6 are where the Fux mode pays off: invertible counterpoint and stretto are two-voice
+counterpoint problems that the existing engine can already judge.
+
+## 4. Judging
+
+As in the chorale mode (C4), the masters' choices are the feedback. A choice is set beside Bach's
+and beside his habit across the 48, with examples. Only what Bach virtually never does counts as
+an error, and the owner decides those boundaries.
+
+The WTC harmonic reader (`tools/wtc/harmony.py`) shows how far computed judgement goes. Measured
+against the When in Rome analyses (31 pieces, 3,679 segments), it finds the analyst's root in
+83.3% of segments, with each piece read on parameters fitted to the other 30. Reading the bass as
+the root gets 48.3%. Some of the remaining disagreements are rival theories of the fundamental
+(six-four chords, diminished sevenths, leading-tone chords), not errors. So computed harmony can
+inform the comparison, but it should not decide right and wrong.
+
+## 5. Sources and rights: the owner's decision
+
+- The Humdrum edition (`humdrum-tools/bach-wtc`) reserves "derivative electronic formats", so its
+  notes stay local (`data/local/`, git-ignored). Only facts derived from it are committed:
+  subjects as pitch names, entries by bar, counts.
+- For notes the game plays and shows, the public-domain Mutopia editions are used.
+  - Prelude 1 is vendored (`data/wtc/sources/mutopia/`), and its 32 chord bars match the Humdrum
+    edition pitch for pitch.
+  - Mutopia's coverage of the 48 still has to be surveyed piece by piece.
+- Options for the rest, for the owner to choose:
+  1. Mutopia only, levels built where it has the piece.
+  2. Ask CCARH or the Humdrum editors for permission.
+  3. Encode from the Bach-Gesellschaft edition (public domain). The scans are raster images, not
+     vector glyphs, so the Kittel extractor does not apply, and the cost is high.
+  4. Fugue levels use subjects and answers only: short, and transcribable from any public-domain
+     print.

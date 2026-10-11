@@ -1,0 +1,721 @@
+{
+ "source": "David Ledbetter, Bach's Well-tempered Clavier: The 48 Preludes and Fugues (Yale, 2002), Part Two, via the per-piece digest checked against the score (data/wtc/ledbetter-claims.txt); Bach's bars, as the encoding numbers them",
+ "pieces": {
+  "wtc1f01": [
+   {
+    "from": 1,
+    "to": 7,
+    "label": "exposition"
+   },
+   {
+    "from": 7,
+    "to": 14,
+    "label": "close stretto"
+   },
+   {
+    "from": 14,
+    "to": 19,
+    "label": "triple and quadruple stretto"
+   },
+   {
+    "from": 19,
+    "to": 27,
+    "label": "stretti over pedals"
+   }
+  ],
+  "wtc1f02": [
+   {
+    "from": 1,
+    "to": 15,
+    "label": ""
+   },
+   {
+    "from": 15,
+    "to": 31,
+    "label": "second section"
+   }
+  ],
+  "wtc1f03": [
+   {
+    "from": 1,
+    "to": 12,
+    "label": "first section"
+   },
+   {
+    "from": 42,
+    "to": 55,
+    "label": "reprise"
+   }
+  ],
+  "wtc1f04": [
+   {
+    "from": 94,
+    "to": 115,
+    "label": "stretto"
+   }
+  ],
+  "wtc1f05": [
+   {
+    "from": 1,
+    "to": 6,
+    "label": "exposition"
+   }
+  ],
+  "wtc1f06": [
+   {
+    "from": 1,
+    "to": 21,
+    "label": ""
+   },
+   {
+    "from": 21,
+    "to": 44,
+    "label": "inversion"
+   }
+  ],
+  "wtc1f07": [
+   {
+    "from": 1,
+    "to": 17,
+    "label": "first half"
+   }
+  ],
+  "wtc1f09": [
+   {
+    "from": 19,
+    "to": 29,
+    "label": "reprise"
+   }
+  ],
+  "wtc1f10": [
+   {
+    "from": 1,
+    "to": 19,
+    "label": "first half"
+   },
+   {
+    "from": 20,
+    "to": 38,
+    "label": "second half"
+   }
+  ],
+  "wtc1f11": [
+   {
+    "from": 1,
+    "to": 46,
+    "label": "first section"
+   },
+   {
+    "from": 46,
+    "to": 56,
+    "label": "stretto"
+   },
+   {
+    "from": 56,
+    "to": 72,
+    "label": ""
+   }
+  ],
+  "wtc1f12": [
+   {
+    "from": 1,
+    "to": 30,
+    "label": "first half"
+   }
+  ],
+  "wtc1f13": [
+   {
+    "from": 1,
+    "to": 7,
+    "label": "exposition"
+   },
+   {
+    "from": 7,
+    "to": 23,
+    "label": ""
+   },
+   {
+    "from": 23,
+    "to": 35,
+    "label": ""
+   }
+  ],
+  "wtc1f15": [
+   {
+    "from": 20,
+    "to": 31,
+    "label": "exposition inverso"
+   }
+  ],
+  "wtc1f17": [
+   {
+    "from": 27,
+    "to": 35,
+    "label": "reprise"
+   }
+  ],
+  "wtc1f18": [
+   {
+    "from": 1,
+    "to": 20,
+    "label": ""
+   }
+  ],
+  "wtc1f19": [
+   {
+    "from": 1,
+    "to": 20,
+    "label": ""
+   },
+   {
+    "from": 23,
+    "to": 42,
+    "label": ""
+   },
+   {
+    "from": 42,
+    "to": 54,
+    "label": "reprise"
+   }
+  ],
+  "wtc1f20": [
+   {
+    "from": 1,
+    "to": 14.5,
+    "label": "exposition recto"
+   },
+   {
+    "from": 14,
+    "to": 27,
+    "label": "inversion"
+   },
+   {
+    "from": 27,
+    "to": 48,
+    "label": "stretto"
+   },
+   {
+    "from": 48,
+    "to": 64.5,
+    "label": "stretto inverso"
+   }
+  ],
+  "wtc1f22": [
+   {
+    "from": 1,
+    "to": 25,
+    "label": "exposition"
+   },
+   {
+    "from": 25,
+    "to": 37,
+    "label": ""
+   },
+   {
+    "from": 37,
+    "to": 55,
+    "label": ""
+   },
+   {
+    "from": 55,
+    "to": 75,
+    "label": ""
+   }
+  ],
+  "wtc1f23": [
+   {
+    "from": 1,
+    "to": 9,
+    "label": "exposition"
+   }
+  ],
+  "wtc1p03": [
+   {
+    "from": 63,
+    "to": 72,
+    "label": ""
+   },
+   {
+    "from": 87,
+    "to": 96,
+    "label": ""
+   }
+  ],
+  "wtc1p04": [
+   {
+    "from": 15,
+    "to": 18,
+    "label": "two-bar periodicity"
+   },
+   {
+    "from": 19,
+    "to": 35,
+    "label": "build-up"
+   }
+  ],
+  "wtc1p05": [
+   {
+    "from": 19,
+    "to": 26,
+    "label": "subdominant reprise"
+   },
+   {
+    "from": 30,
+    "to": 34,
+    "label": "concert ending"
+   }
+  ],
+  "wtc1p07": [
+   {
+    "from": 10,
+    "to": 24,
+    "label": "section 2"
+   }
+  ],
+  "wtc1p12": [
+   {
+    "from": 1,
+    "to": 9,
+    "label": "first period"
+   }
+  ],
+  "wtc1p17": [
+   {
+    "from": 35,
+    "to": 44,
+    "label": "reprise"
+   }
+  ],
+  "wtc1p21": [
+   {
+    "from": 1,
+    "to": 10,
+    "label": "motoric"
+   }
+  ],
+  "wtc2f04": [
+   {
+    "from": 16,
+    "to": 24,
+    "label": "exposition"
+   },
+   {
+    "from": 24,
+    "to": 35,
+    "label": "inversion"
+   },
+   {
+    "from": 48,
+    "to": 71,
+    "label": ""
+   }
+  ],
+  "wtc2f05": [
+   {
+    "from": 1,
+    "to": 10,
+    "label": "exposition"
+   },
+   {
+    "from": 10,
+    "to": 16,
+    "label": "section two"
+   },
+   {
+    "from": 20,
+    "to": 27,
+    "label": "section three"
+   }
+  ],
+  "wtc2f09": [
+   {
+    "from": 9,
+    "to": 15,
+    "label": "stretti of subject and countersubject"
+   },
+   {
+    "from": 16,
+    "to": 22,
+    "label": "two new subjects"
+   },
+   {
+    "from": 23,
+    "to": 34,
+    "label": "low stretti"
+   },
+   {
+    "from": 35,
+    "to": 43,
+    "label": "final section"
+   }
+  ],
+  "wtc2f10": [
+   {
+    "from": 1,
+    "to": 18,
+    "label": "tonic exposition"
+   }
+  ],
+  "wtc2f12": [
+   {
+    "from": 24,
+    "to": 31,
+    "label": "relative major"
+   }
+  ],
+  "wtc2f13": [
+   {
+    "from": 1,
+    "to": 12,
+    "label": "exposition"
+   },
+   {
+    "from": 32,
+    "to": 44,
+    "label": "exposition"
+   },
+   {
+    "from": 64,
+    "to": 84,
+    "label": "final exposition"
+   }
+  ],
+  "wtc2f14": [
+   {
+    "from": 1,
+    "to": 20,
+    "label": "first exposition"
+   }
+  ],
+  "wtc2f17": [
+   {
+    "from": 1,
+    "to": 10,
+    "label": "entries T-D-T-D"
+   },
+   {
+    "from": 13,
+    "to": 24,
+    "label": "entries T-D-T-T"
+   }
+  ],
+  "wtc2f18": [
+   {
+    "from": 1,
+    "to": 61,
+    "label": "section 1"
+   },
+   {
+    "from": 61,
+    "to": 97,
+    "label": "section 2"
+   },
+   {
+    "from": 97,
+    "to": 143,
+    "label": "double fugue"
+   }
+  ],
+  "wtc2f21": [
+   {
+    "from": 1,
+    "to": 32,
+    "label": "first half"
+   }
+  ],
+  "wtc2f22": [
+   {
+    "from": 27,
+    "to": 37,
+    "label": "stretto recto exposition"
+   },
+   {
+    "from": 42,
+    "to": 63,
+    "label": "inverted-subject exposition"
+   },
+   {
+    "from": 80,
+    "to": 93,
+    "label": "stretto inverso exposition"
+   },
+   {
+    "from": 96,
+    "to": 101,
+    "label": "stretto inverso exposition at the 10th"
+   }
+  ],
+  "wtc2p01": [
+   {
+    "from": 1,
+    "to": 5,
+    "label": "opening tonic sentence"
+   },
+   {
+    "from": 5.5,
+    "to": 14,
+    "label": "tonally diffuse stretch"
+   },
+   {
+    "from": 14,
+    "to": 19,
+    "label": "bridge"
+   },
+   {
+    "from": 20,
+    "to": 28,
+    "label": "reprise in subdominant"
+   },
+   {
+    "from": 28,
+    "to": 30,
+    "label": "bridge recalled"
+   }
+  ],
+  "wtc2p02": [
+   {
+    "from": 1,
+    "to": 5,
+    "label": "closed tonic period"
+   }
+  ],
+  "wtc2p03": [
+   {
+    "from": 1,
+    "to": 6,
+    "label": "chordal decoration of cliché"
+   },
+   {
+    "from": 14,
+    "to": 19,
+    "label": "dissonant climax"
+   },
+   {
+    "from": 21,
+    "to": 23,
+    "label": "minor tinge"
+   },
+   {
+    "from": 25,
+    "to": 30,
+    "label": "fugal working of cliché"
+   }
+  ],
+  "wtc2p05": [
+   {
+    "from": 1,
+    "to": 4,
+    "label": "closed opening phrase"
+   },
+   {
+    "from": 5,
+    "to": 12,
+    "label": "modulating sequence to dominant"
+   },
+   {
+    "from": 13,
+    "to": 16,
+    "label": "closing theme"
+   },
+   {
+    "from": 27,
+    "to": 29,
+    "label": "semiquaver climax"
+   },
+   {
+    "from": 33,
+    "to": 40,
+    "label": "expanded closing theme"
+   },
+   {
+    "from": 41,
+    "to": 56,
+    "label": "reprise"
+   }
+  ],
+  "wtc2p06": [
+   {
+    "from": 1,
+    "to": 5,
+    "label": "opening formula"
+   },
+   {
+    "from": 9,
+    "to": 12,
+    "label": "circle-of-5ths transition"
+   },
+   {
+    "from": 13,
+    "to": 17,
+    "label": "development"
+   }
+  ],
+  "wtc2p07": [
+   {
+    "from": 1,
+    "to": 12,
+    "label": "opening section"
+   }
+  ],
+  "wtc2p08": [
+   {
+    "from": 3,
+    "to": 9,
+    "label": "tonic to relative major"
+   }
+  ],
+  "wtc2p10": [
+   {
+    "from": 80,
+    "to": 108,
+    "label": "reprise"
+   }
+  ],
+  "wtc2p13": [
+   {
+    "from": 1,
+    "to": 8,
+    "label": "opening period"
+   },
+   {
+    "from": 8,
+    "to": 14,
+    "label": "modulating phrase"
+   },
+   {
+    "from": 15,
+    "to": 17,
+    "label": "closing phrase"
+   },
+   {
+    "from": 17,
+    "to": 45,
+    "label": "dominant to relative minor"
+   },
+   {
+    "from": 57,
+    "to": 68,
+    "label": "reprise"
+   }
+  ],
+  "wtc2p15": [
+   {
+    "from": 1,
+    "to": 16,
+    "label": ""
+   }
+  ],
+  "wtc2p17": [
+   {
+    "from": 1,
+    "to": 7,
+    "label": "opening period"
+   },
+   {
+    "from": 17,
+    "to": 33,
+    "label": "section 2"
+   },
+   {
+    "from": 34,
+    "to": 49,
+    "label": "section 3"
+   },
+   {
+    "from": 50,
+    "to": 62,
+    "label": "section 4"
+   },
+   {
+    "from": 64,
+    "to": 77,
+    "label": "coda"
+   }
+  ],
+  "wtc2p18": [
+   {
+    "from": 5,
+    "to": 8,
+    "label": "modulating phase"
+   },
+   {
+    "from": 8,
+    "to": 15,
+    "label": "motivic working"
+   }
+  ],
+  "wtc2p19": [
+   {
+    "from": 22,
+    "to": 33,
+    "label": "reprise"
+   }
+  ],
+  "wtc2p21": [
+   {
+    "from": 1,
+    "to": 32,
+    "label": ""
+   },
+   {
+    "from": 33,
+    "to": 48,
+    "label": ""
+   },
+   {
+    "from": 49,
+    "to": 87,
+    "label": "reprise"
+   }
+  ],
+  "wtc2p22": [
+   {
+    "from": 1,
+    "to": 41,
+    "label": "first section"
+   },
+   {
+    "from": 55,
+    "to": 83,
+    "label": "reprise"
+   }
+  ],
+  "wtc2p24": [
+   {
+    "from": 1,
+    "to": 8,
+    "label": "opening period"
+   },
+   {
+    "from": 9,
+    "to": 12,
+    "label": "sequential passage"
+   },
+   {
+    "from": 13,
+    "to": 16,
+    "label": "closing idea"
+   },
+   {
+    "from": 33,
+    "to": 36,
+    "label": "sequential passage"
+   },
+   {
+    "from": 41,
+    "to": 44,
+    "label": "reprise in f#"
+   },
+   {
+    "from": 45,
+    "to": 48,
+    "label": "sequential passage"
+   },
+   {
+    "from": 49,
+    "to": 52,
+    "label": "closing idea"
+   }
+  ]
+ }
+}

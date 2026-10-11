@@ -17,7 +17,7 @@ import { stepStudy } from "../src/ui/study.ts";
 
 const repo = loadFuxRepository();
 const TRIO = trioSteps(data as never);
-const CHAPTERS = buildCourse({ repo, trio: TRIO });
+const CHAPTERS = buildCourse({ repo, trio: TRIO, trioData: data });
 const LESSONS = lessonsOf(CHAPTERS).map((x) => x.lesson);
 const lesson = (id: string): Lesson => {
   const l = LESSONS.find((x) => x.id === id);
@@ -107,6 +107,20 @@ test("three voices: Fux's answer passes, the open cells are blank", () => {
   const cad = lesson("three.cadence").trio!;
   const plain = cad.answer.map((line, i) => line.map((n, b) => (i === 1 && b === 9 ? "C4" : n)));
   assert.ok(judgeTrio(cad, plain).errors.some((e) => e.ruleId === "t1.cadence"));
+});
+
+test("three and four voices (D154): writing in the moving voice and in four parts, judged as in the game", () => {
+  const ids = ["three.minims", "three.crotchets", "three.ligatures", "four.double", "four.moving", "four.game"];
+  for (const id of ids) assert.ok(lesson(id), id);
+  // The ligature lesson: resolving the seventh upward is a fault of the species.
+  const lig = lesson("three.ligatures").trio!;
+  const up = lig.answer.map((line, i) => line.map((n, k) => (i === lig.movingIndex && k === 11 ? "F5" : n)));
+  assert.ok(judgeTrio(lig, up).errors.some((e) => e.ruleId === "t4.resolution"));
+  // Four voices: an octave on top in bar 5 as well as bar 6 runs into parallel octaves.
+  const four = lesson("four.double").trio!;
+  assert.equal(four.answer.length, 4);
+  const par = four.answer.map((line, i) => line.map((n, k) => (i === 0 && k === 4 ? "E5" : n)));
+  assert.ok(judgeTrio(four, par).errors.length > 0);
 });
 
 test("the fifth-species choice: the engine agrees with the right answer and with each reason given", () => {
@@ -231,9 +245,20 @@ test("the game's exercises unlock in the book's order in the real setup (D142)",
   const { GAME_ORDER, exerciseOpen, furthestOpen } = await import("../src/game/unlock.ts");
   const { ALL_STEPS } = await import("../src/counterpoint/curriculum/index.ts");
   const { TRIO_SPECIES } = await import("../src/game/trio.ts");
-  const trioAll = TRIO_SPECIES.flatMap((n) => trioSteps(data as never, n));
-  assert.equal(GAME_ORDER.length, ALL_STEPS.length + trioAll.length);
-  assert.equal(GAME_ORDER[GAME_ORDER.length - 1], trioAll[trioAll.length - 1].id, "three voices, fifth species, last");
+  const { trioTasks } = await import("../src/game/trio.ts");
+  const { QUARTET_SPECIES, QUARTET_ALL, TRIO_COMBINED } = await import("../src/game/quartet.ts");
+  // D152: three voices with the tasks of private study, and the species combined after the third.
+  const trioAll = TRIO_SPECIES.flatMap((n) => [...trioTasks(data as never, n), ...(n === 3 ? TRIO_COMBINED : [])]);
+  assert.equal(trioAll.length, 45 - 1 + 50 + 18);
+  const third = trioTasks(data as never, 3);
+  assert.equal(GAME_ORDER[GAME_ORDER.indexOf(third[third.length - 1].id) + 1], "fux-mode.t6.01", "Fig. 134 after the third species");
+  const quartetAll = QUARTET_SPECIES.flatMap((n) => QUARTET_ALL[n]);
+  assert.equal(GAME_ORDER.length, ALL_STEPS.length + trioAll.length + quartetAll.length);
+  // D148: four voices after three, the species combined last.
+  assert.equal(GAME_ORDER[ALL_STEPS.length + trioAll.length], "fux-mode.q1.01", "four voices follow three");
+  assert.ok(exerciseOpen("fux-mode.q1.01", [trioAll[trioAll.length - 1].id], false));
+  assert.equal(GAME_ORDER[GAME_ORDER.length - 1], "fux-mode.q6.01", "the species combined, last");
+  assert.equal(quartetAll.length, 32 + 88);
   assert.equal(GAME_ORDER[0], "fux-mode.s1.01");
   assert.equal(GAME_ORDER[ALL_STEPS.length], "fux-mode.t1.01", "three voices follow two");
   assert.ok(GAME_ORDER.every((id) => exerciseOpen(id, [], true)), "BETA: all open");
@@ -280,4 +305,16 @@ test("three voices, species two to five: Fux's first examples, all on the D cant
       for (let k = 1; k < mine.length; k++) assert.ok(mine[k].at >= mine[k - 1].at + mine[k - 1].len - 1e-9, `species ${n} voice ${v}: no overlap`);
     }
   }
+});
+
+test("tutorial: every quiz's computed answer is among its choices, and the harmony chapter comes before the end (D150)", () => {
+  for (const { lesson } of lessonsOf(CHAPTERS)) {
+    if (lesson.task.kind !== "quiz") continue;
+    const { choices, items } = lesson.task;
+    for (const it of items) assert.ok(choices.includes(it.answer), `${lesson.id}: ${it.answer} not among ${choices}`);
+    // Every choice is used at least once, so no option is a dead end.
+    if (lesson.id.startsWith("harmony.")) for (const c of choices) assert.ok(items.some((it) => it.answer === c), `${lesson.id}: no item answers ${c}`);
+  }
+  const ids = CHAPTERS.map((c) => c.id);
+  assert.equal(ids.indexOf("harmony"), ids.indexOf("end") - 1);
 });

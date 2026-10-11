@@ -75,3 +75,12 @@ test("player solution is separate from Fux's and need not match it", () => {
   // Fux's original is untouched by player edits.
   assert.equal(repo.getSolution(ex.id)!.counterpoint.notes[0].pitch, "A4");
 });
+
+test("the game's slim copy is the dataset less the notes' MusicXML locators, and is up to date", async () => {
+  const { readFileSync } = await import("node:fs");
+  const full = JSON.parse(readFileSync(new URL("../data/fux/two-voice/fux-two-voice.json", import.meta.url), "utf8"));
+  const slim = JSON.parse(readFileSync(new URL("../data/fux/two-voice/fux-two-voice.game.json", import.meta.url), "utf8"));
+  const drop = (x: unknown, inNotes = false): unknown =>
+    Array.isArray(x) ? x.map((v) => drop(v, inNotes)) : x && typeof x === "object" ? Object.fromEntries(Object.entries(x).filter(([k]) => !(inNotes && k === "musicxml")).map(([k, v]) => [k, drop(v, k === "notes")])) : x;
+  assert.deepEqual(slim, drop(full), "run python3 tools/fux_import/slim_two_voice.py");
+});

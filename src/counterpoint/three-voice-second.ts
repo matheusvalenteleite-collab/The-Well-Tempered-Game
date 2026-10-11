@@ -25,7 +25,7 @@
 import { harmonic, interval, isConsonant, isPerfectConsonance, motion } from "./interval.ts";
 import { parsePitch } from "../music/pitch.ts";
 import type { ModalFinal } from "../music/fux/types.ts";
-import { REST } from "./layout.ts";
+import { HOLD, REST } from "./layout.ts";
 import {
   analyseTrio,
   consonanceWithBass,
@@ -55,6 +55,8 @@ export interface Trio2Input {
    * has the second-species slots (two per bar, one in the last; the first may be a rest, "r").
    */
   voices: string[][];
+  /** Four voices, the species combined (D148): another part's note on the second half of a bar, where it changes. */
+  halves?: (string | null)[][];
 }
 
 const midi = (p: string) => parsePitch(p).midi;
@@ -84,22 +86,24 @@ const viol = (id: string, severity: "error" | "warning", messageKey: string, pos
 
 function analyse(input: Trio2Input): Trio2Analysis {
   const m = input.minimIndex;
-  const other = [0, 1, 2].find((x) => x !== m)!;
+  const all = input.voices.map((_, x) => x);
+  const other = all.find((x) => x !== m)!;
   const bars = input.voices[other].length;
   const line = input.voices[m];
   if (line.length !== 2 * bars - 1) throw new Error("the minim voice needs two notes a bar and one in the last");
   const down = Array.from({ length: bars }, (_, b) => (line[2 * b] === REST ? null : line[2 * b]));
-  const up = Array.from({ length: bars }, (_, b) => (b < bars - 1 ? line[2 * b + 1] : null));
+  // A held second half (four voices, the penultimate semibreve, D148) sounds no new upbeat.
+  const up = Array.from({ length: bars }, (_, b) => (b < bars - 1 && line[2 * b + 1] !== HOLD ? line[2 * b + 1] : null));
   const pen = bars - 2;
   const tie = pen >= 1 && down[pen] !== null && up[pen - 1] === down[pen];
   // The skeleton takes the downbeat; in the first bar (a rest) the first note sung; at a cadence
   // tie that does not agree with the bass, the note it resolves to (a suspension).
   const skel = down.map((d, b) => d ?? up[b] ?? "");
-  const skeleton = [0, 1, 2].map((x) => (x === m ? skel : input.voices[x]));
+  const skeleton = all.map((x) => (x === m ? skel : input.voices[x]));
   if (tie) {
     const probe = analyseTrio({ modalFinal: input.modalFinal, cantusIndex: input.cantusIndex, voices: skeleton });
     const bass = probe.bass[pen];
-    const dissonant = bass !== m ? !isConsonant(harmonic(skeleton[bass][pen], down[pen]!)) : [0, 1, 2].some((x) => x !== m && !isConsonant(harmonic(down[pen]!, skeleton[x][pen])));
+    const dissonant = bass !== m ? !isConsonant(harmonic(skeleton[bass][pen], down[pen]!)) : all.some((x) => x !== m && !isConsonant(harmonic(down[pen]!, skeleton[x][pen])));
     if (dissonant && up[pen]) skel[pen] = up[pen]!;
   }
   return { input, bars, m, down, up, tie, skeleton };
@@ -130,7 +134,7 @@ function upbeats(a: Trio2Analysis): TrioViolation[] {
   for (let b = 0; b < a.bars - 1; b++) {
     const u = a.up[b];
     if (!u) continue;
-    const others = [0, 1, 2].filter((x) => x !== m).map((x) => ({ x, p: a.input.voices[x][b] }));
+    const others = a.input.voices.map((_, x) => x).filter((x) => x !== m).map((x) => ({ x, p: a.input.halves?.[x]?.[b] ?? a.input.voices[x][b] }));
     const lowest = others.reduce((lo, o) => (midi(o.p) < midi(lo.p) ? o : lo));
     const minimIsBass = midi(u) < midi(lowest.p);
     const bad = others.filter(({ x, p }) => {
@@ -146,7 +150,7 @@ function upbeats(a: Trio2Analysis): TrioViolation[] {
     const next = a.down[b + 1] ?? (b + 1 === a.bars - 1 ? a.input.voices[m][2 * (b + 1)] : null);
     const passing =
       prev !== null && next !== null && interval(prev, u).number === 2 && interval(u, next).number === 2 && interval(prev, u).direction === interval(u, next).direction;
-    if (!passing) for (const { x } of bad) out.push(viol("t2.passing-dissonance", "error", "rule.ss.passing-dissonance", [b], [m, x], { interval: harmonic(u, a.input.voices[x][b]).name }));
+    if (!passing) for (const { x } of bad) out.push(viol("t2.passing-dissonance", "error", "rule.ss.passing-dissonance", [b], [m, x], { interval: harmonic(u, a.input.halves?.[x]?.[b] ?? a.input.voices[x][b]).name }));
   }
   return out;
 }
@@ -163,11 +167,11 @@ function successions(a: Trio2Analysis): TrioViolation[] {
   const s = a.skeleton;
   // The two semibreves (and the cantus) between themselves.
   out.push(...parallelPerfect.check(analyseTrio({ modalFinal: a.input.modalFinal, cantusIndex: a.input.cantusIndex, voices: s })).filter((v) => !v.voices.includes(m)));
-  for (const x of [0, 1, 2].filter((y) => y !== m)) {
+  for (const x of a.input.voices.map((_, y) => y).filter((y) => y !== m)) {
     for (let b = 0; b < a.bars - 1; b++) {
       const u = a.up[b];
       const d1 = a.down[b + 1] ?? null;
-      const o0 = a.input.voices[x][b];
+      const o0 = a.input.halves?.[x]?.[b] ?? a.input.voices[x][b];
       const o1 = a.input.voices[x][b + 1];
       if (!d1) continue;
       const tiedHere = a.tie && b + 1 === a.bars - 2;
@@ -194,11 +198,11 @@ function successions(a: Trio2Analysis): TrioViolation[] {
       // Downbeat to downbeat.
       const d0 = a.down[b];
       if (!d0 || !u) continue;
-      const i0 = harmonic(d0, o0);
+      const i0 = harmonic(d0, a.input.voices[x][b]);
       const i1 = harmonic(d1, o1);
       if (!isPerfectConsonance(i0) || !isPerfectConsonance(i1) || i0.simple !== i1.simple) continue;
       if (interval(d0, u).number >= 3) continue; // saved by the leap (p. 94)
-      const mv = motion(o0, d0, o1, d1);
+      const mv = motion(a.input.voices[x][b], d0, o1, d1);
       if (mv === "parallel" || mv === "similar") out.push(viol("t2.downbeat-succession", "error", "rule.t2.downbeat-succession", [b, b + 1], [m, x], { from: i0.name, to: i1.name }));
     }
   }
@@ -210,12 +214,15 @@ function minimMelody(a: Trio2Analysis): TrioViolation[] {
   const out: TrioViolation[] = [];
   const { m } = a;
   const seq: { p: string; bar: number; slot: number }[] = [];
-  a.input.voices[m].forEach((p, k) => p !== REST && seq.push({ p, bar: Math.floor(k / 2), slot: k }));
+  a.input.voices[m].forEach((p, k) => p !== REST && p !== HOLD && seq.push({ p, bar: Math.floor(k / 2), slot: k }));
   for (let k = 1; k < seq.length; k++) {
     const x = seq[k - 1];
     const y = seq[k];
     const i = interval(x.p, y.p);
     if (i.semitones === 0 && x.p === y.p) {
+      // Four voices (D148): a penultimate semibreve (p. 123) is a semibreve: it may repeat into the final, as Fig. 173.
+      const wholePenultimate = x.bar === a.bars - 2 && a.input.voices[m][x.slot + 1] === HOLD;
+      if (wholePenultimate) continue;
       const cadenceTie = a.tie && y.bar === a.bars - 2 && y.slot % 2 === 0;
       if (!cadenceTie) out.push(viol("t2.repeated", "error", "rule.t2.repeated", [x.bar, y.bar], [m]));
       continue;
@@ -230,12 +237,13 @@ function minimMelody(a: Trio2Analysis): TrioViolation[] {
 /** The close: one voice reaches the final by a semitone (p. 90); the minim voice from its last upbeat. */
 function cadence(a: Trio2Analysis): TrioViolation[] {
   const k = a.bars - 1;
-  const ok = [0, 1, 2].some((x) => {
+  const all = a.input.voices.map((_, x) => x);
+  const ok = all.some((x) => {
     const last = x === a.m ? a.input.voices[x][2 * k] : a.input.voices[x][k];
-    const before = x === a.m ? a.up[k - 1] : a.input.voices[x][k - 1];
+    const before = x === a.m ? (a.up[k - 1] ?? a.down[k - 1]) : a.input.voices[x][k - 1];
     return !!before && pc(last) === a.input.modalFinal && interval(before, last).semitones === 1;
   });
-  return ok ? [] : [viol("t1.cadence", "error", "rule.t1.cadence", [k - 1, k], [0, 1, 2])];
+  return ok ? [] : [viol("t1.cadence", "error", "rule.t1.cadence", [k - 1, k], all)];
 }
 
 export const TRIO2_ATTRIBUTION = {

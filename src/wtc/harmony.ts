@@ -243,3 +243,28 @@ export function figurationChanges(notes: FullNote[], bar: number): number[] {
   }
   return out;
 }
+
+/**
+ * The share of bars that repeat the bar before's figure (D135): the same onsets, and the same contour
+ * (at each onset the highest note, rising or falling from the one before) — near 1 for a prelude made of one
+ * figuration on changing harmonies (C major I), low for one of independent lines.
+ */
+export function figurationShare(notes: FullNote[], bar: number): number {
+  const end = Math.max(...notes.map((n) => n.at + n.dur));
+  const bars = Math.ceil(end / bar - 1e-6);
+  const sig: string[] = [];
+  for (let b = 0; b < bars; b++) {
+    const ns = notes.filter((n) => n.at >= b * bar - 1e-6 && n.at < (b + 1) * bar - 1e-6).sort((x, y) => x.at - y.at || x.midi - y.midi);
+    // The figure's contour: at each onset the highest note struck, and whether it rose or fell from the last.
+    const tops: { at: number; midi: number }[] = [];
+    for (const n of ns) {
+      const t = tops[tops.length - 1];
+      if (t && Math.abs(t.at - n.at) < 1e-6) t.midi = Math.max(t.midi, n.midi);
+      else tops.push({ at: n.at, midi: n.midi });
+    }
+    sig.push(tops.map((x, k) => `${Math.round((x.at - b * bar) * 24)}${k ? Math.sign(x.midi - tops[k - 1].midi) : ""}`).join(","));
+  }
+  let same = 0;
+  for (let b = 1; b < bars; b++) if (sig[b] === sig[b - 1]) same++;
+  return bars > 1 ? same / (bars - 1) : 0;
+}

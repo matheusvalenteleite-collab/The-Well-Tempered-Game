@@ -113,7 +113,9 @@ function Item({ vs, ...p }: { vs: Violation[] } & Omit<Props, "result">) {
     return b.length > 1 ? `${b[0]}–${b[b.length - 1]}` : String(b[0]);
   });
   const bars = [...new Set(bars0)];
-  const details = [...new Set(vs.filter((x) => x.detail).map((x) => Object.entries(x.detail!).map(([k, d]) => `${k}: ${simplifyDetail(d)}`).join(" · ")))];
+  // Keys read as words (D149: "contraryOrOblique" -> "contrary or oblique").
+  const words = (k: string) => k.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
+  const details = [...new Set(vs.filter((x) => x.detail).map((x) => Object.entries(x.detail!).map(([k, d]) => `${words(k)}: ${simplifyDetail(d)}`).join(" · ")))];
   return (
     <li className={v.severity}>
       <div className="text">

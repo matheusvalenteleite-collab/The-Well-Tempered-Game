@@ -76,3 +76,57 @@ export function formatTime(s: number): string {
   const m = Math.floor(s / 60);
   return `${m}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 }
+
+/**
+ * A piece in three or four voices (D155): the parts as written, one line per staff (the cantus's
+ * staff empty), with the sound settings that shape what is heard. Kept in "wtg.savedParts".
+ */
+export interface PartsPiece {
+  id: string;
+  name: string;
+  savedAt: string;
+  stepId: string;
+  parts: (string | null)[][];
+  sound: SoundState;
+  drums: boolean;
+  drumKit: DrumSettings;
+  continuo: boolean;
+  continuoSettings: ContinuoSettings;
+  tuning: TemperamentId;
+  tempo: number;
+  volume: number;
+}
+
+export type PartsSetup = Omit<PartsPiece, "id" | "name" | "savedAt">;
+
+export function makePartsPiece(setup: PartsSetup, name: string, now = new Date()): PartsPiece {
+  return { ...structuredClone(setup), id: `${now.getTime().toString(36)}-${Math.random().toString(36).slice(2, 7)}`, name, savedAt: now.toISOString() };
+}
+
+const isLine = (l: unknown): l is (string | null)[] => Array.isArray(l) && l.every((n) => n === null || typeof n === "string");
+
+/** Restore stored pieces in three or four voices, dropping anything malformed. */
+export function restorePartsPieces(raw: unknown, validDrums: (d: unknown) => DrumSettings): PartsPiece[] {
+  if (!Array.isArray(raw)) return [];
+  const out: PartsPiece[] = [];
+  for (const r of raw as Record<string, unknown>[]) {
+    if (typeof r !== "object" || r === null) continue;
+    if (typeof r.id !== "string" || typeof r.stepId !== "string" || !Array.isArray(r.parts) || !r.parts.every(isLine)) continue;
+    out.push({
+      id: r.id,
+      name: typeof r.name === "string" ? r.name : "",
+      savedAt: typeof r.savedAt === "string" ? r.savedAt : new Date(0).toISOString(),
+      stepId: r.stepId,
+      parts: r.parts as (string | null)[][],
+      sound: restoreSound(r.sound),
+      drums: r.drums === true,
+      drumKit: validDrums(r.drumKit),
+      continuo: r.continuo === true,
+      continuoSettings: validContinuoSettings(r.continuoSettings),
+      tuning: TEMPERAMENTS.includes(r.tuning as TemperamentId) ? (r.tuning as TemperamentId) : "equal",
+      tempo: typeof r.tempo === "number" && r.tempo >= 30 && r.tempo <= 240 ? r.tempo : 60,
+      volume: typeof r.volume === "number" && r.volume >= 0 && r.volume <= 100 ? r.volume : 70,
+    });
+  }
+  return out;
+}

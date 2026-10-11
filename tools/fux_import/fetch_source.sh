@@ -22,6 +22,13 @@ cp "$WORK/species/LICENSE" "$WORK/species/README.md" "$WORK/species/corpus.json"
 # Part-level public-facing files (Exercises / Solutions / Annotations / Distinct) + the TSV index.
 cp "$WORK/species/I/"I-*.mxl "$WORK/species/I/data.tsv" "$DEST/I/"
 # Per-exercise canonical files (krn = version of record, json = metadata) and derived mxl.
+# Part III (four voices, D148): the TSV index and the per-exercise krn + json.
+mkdir -p "$DEST/III"
+cp "$WORK/species/III/data.tsv" "$DEST/III/"
+for sp in sp1 sp2 sp3 sp4 sp5; do
+  mkdir -p "$DEST/III/$sp"
+  cp "$WORK/species/III/$sp/"gap_*.krn "$WORK/species/III/$sp/"gap_*.json "$DEST/III/$sp/"
+done
 for sp in sp1 sp2 sp3 sp4 sp5; do
   mkdir -p "$DEST/I/$sp"
   cp "$WORK/species/I/$sp/"gap_*.krn "$WORK/species/I/$sp/"gap_*.json "$WORK/species/I/$sp/"gap_*.mxl "$DEST/I/$sp/"

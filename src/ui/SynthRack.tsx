@@ -69,7 +69,7 @@ export function SynthRack({ title, value, onChange }: Props) {
       defaultValue={firstPreset(shown.model).settings[k] ?? DEFAULT_SYNTH[k]} format={fmt(k)} onChange={(v) => set({ ...shown, [k]: v })} />
   );
   const choice = (label: React.ReactNode, onClick: () => void) => (
-    <button className="chipbtn" tabIndex={-1} onClick={onClick}>
+    <button className="chipbtn" onClick={onClick}>
       {label}
     </button>
   );
@@ -89,16 +89,16 @@ export function SynthRack({ title, value, onChange }: Props) {
         <div className="rack-head">
           <span className="rack-title">{title}</span>
           <span className="stepper">
-            <button className="chipbtn" tabIndex={-1} onClick={() => setModel(cycle(SYNTH_MODELS, shown.model, -1))} aria-label={t("ui.synth.prevModel")}>‹</button>
+            <button className="chipbtn" onClick={() => setModel(cycle(SYNTH_MODELS, shown.model, -1))} aria-label={t("ui.synth.prevModel")}>‹</button>
             <select className="model" aria-label={t("ui.synth.modelHelp")} value={shown.model} title={t("ui.synth.modelHelp")} onChange={(e) => setModel(e.target.value as SynthModel)}>
               {SYNTH_MODELS.map((m) => (
                 <option key={m} value={m}>{t(`ui.synth.model.${m}`)}</option>
               ))}
             </select>
-            <button className="chipbtn" tabIndex={-1} onClick={() => setModel(cycle(SYNTH_MODELS, shown.model, 1))} aria-label={t("ui.synth.nextModel")}>›</button>
+            <button className="chipbtn" onClick={() => setModel(cycle(SYNTH_MODELS, shown.model, 1))} aria-label={t("ui.synth.nextModel")}>›</button>
           </span>
           <span className="stepper">
-            <button className="chipbtn" tabIndex={-1} onClick={() => stepPreset(-1)} aria-label={t("ui.synth.prevPreset")}>‹</button>
+            <button className="chipbtn" onClick={() => stepPreset(-1)} aria-label={t("ui.synth.prevPreset")}>‹</button>
             <select
               className="model preset"
               aria-label={t("ui.synth.presets")}
@@ -114,7 +114,7 @@ export function SynthRack({ title, value, onChange }: Props) {
                 <option key={q.id} value={q.id}>{t(`ui.synth.preset.${q.id}`)}</option>
               ))}
             </select>
-            <button className="chipbtn" tabIndex={-1} onClick={() => stepPreset(1)} aria-label={t("ui.synth.nextPreset")}>›</button>
+            <button className="chipbtn" onClick={() => stepPreset(1)} aria-label={t("ui.synth.nextPreset")}>›</button>
           </span>
           {shown.model === "subtractive" && choice(<><WaveIcon wave={shown.waveform} /> {t(`ui.synth.wave.${shown.waveform}`)}</>, () => set({ ...shown, waveform: cycle(WAVEFORMS, shown.waveform) }))}
         </div>

@@ -5,7 +5,8 @@
  */
 import data from "../../data/fux/three-voice/fux-three-voice.json" with { type: "json" };
 import { ALL_STEPS } from "../counterpoint/curriculum/index.ts";
-import { TRIO_SPECIES, trioSteps } from "./trio.ts";
+import { TRIO_SPECIES, trioTasks } from "./trio.ts";
+import { QUARTET_ALL, QUARTET_SPECIES, TRIO_COMBINED } from "./quartet.ts";
 
 export function openInOrder(ids: readonly string[], done: readonly string[], k: number, beta: boolean): boolean {
   if (beta || k <= 0) return true;
@@ -14,9 +15,21 @@ export function openInOrder(ids: readonly string[], done: readonly string[], k: 
 
 /**
  * Every exercise of the game in the book's order (D142): two voices, species one to five, then
- * three voices, species one to five. A star on an exercise opens the next, across species and voices.
+ * three voices, species one to five, then four (D148): species one to five, each with the tasks of
+ * private study after Fux's own, and the species combined. A star on an exercise opens the next,
+ * across species and voices.
  */
-export const GAME_ORDER: readonly string[] = [...ALL_STEPS.map((s) => s.id), ...TRIO_SPECIES.flatMap((n) => trioSteps(data as never, n).map((s) => s.id))];
+export const GAME_ORDER: readonly string[] = [
+  ...ALL_STEPS.map((s) => s.id),
+  // Three voices: the species combined (Fig. 134, D152) where Fux puts it, after the third species.
+  ...TRIO_SPECIES.flatMap((n) => [...trioTasks(data as never, n).map((s) => s.id), ...(n === 3 ? TRIO_COMBINED.map((s) => s.id) : [])]),
+  ...QUARTET_SPECIES.flatMap((n) => QUARTET_ALL[n].map((s) => s.id)),
+];
+
+/** The first three-voice exercise: "3 voices" opens with it. */
+export const FIRST_TRIO = GAME_ORDER[ALL_STEPS.length];
+/** The first four-voice exercise (Fig. 160): "4 voices" opens with it. */
+export const FIRST_QUARTET = QUARTET_ALL[1][0].id;
 
 export function exerciseOpen(id: string, stars: readonly string[], beta: boolean): boolean {
   const k = GAME_ORDER.indexOf(id);

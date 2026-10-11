@@ -1,17 +1,17 @@
+import type { Mode } from "./Root.tsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { repository } from "../music/fux/load-browser.ts";
 import { ALL_STEPS, COURSES, courseOf, rulesForStep, validateCurriculum } from "../counterpoint/curriculum/index.ts";
-import { HOLD, REST, slotLength, sounding, timeline } from "../counterpoint/layout.ts";
+import { HOLD, REST, slotLength, sounding } from "../counterpoint/layout.ts";
 import { evaluate, type Evaluation } from "../counterpoint/engine.ts";
 import { exerciseView } from "../game/exercise-view.ts";
 import { applyAccidental, clear, clearSpan, holdSelected, initialState, letterNote, moveNote, onsetOf, place, repeatPrevious, select, setRest, spanFromSelected, stepNote, type SessionState } from "../game/session.ts";
-import { AudioEngine, renderLevel, SYNTH_PRESETS, type AudioStatus } from "../audio/engine.ts";
+import type { AudioStatus } from "../audio/engine.ts";
 import { restoreSound, setMix as changeMix, shiftOctave, type SoundState } from "../audio/sound.ts";
 import { encode, EXPORT_FORMATS, saveFile, type ExportFormat } from "../audio/export.ts";
-import { loadSamples } from "../audio/voice.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
 import { SoundDesk, trackOrder } from "./SoundDesk.tsx";
-import { DEFAULT_DRUMS, DRUM_PATTERNS, DRUM_KITS, DrumMachine, validLoopLength, type DrumSettings } from "../audio/drums.ts";
+import { DEFAULT_DRUMS, type DrumSettings } from "../audio/drums.ts";
 import { ExerciseNotes, RuleBasics } from "./Hints.tsx";
 import { Study } from "./Study.tsx";
 import { stepStudy } from "./study.ts";
@@ -22,12 +22,14 @@ import { Systems, ZOOM_MAX, ZOOM_MIN } from "./notation/Systems.tsx";
 import { buildOverlay, neutralOverlay } from "./notation/overlay.ts";
 import { Credits } from "./Credits.tsx";
 import { QuickStart } from "./QuickStart.tsx";
+import { ModeSelect } from "./ModeSelect.tsx";
+import { keyBelongsToControl, trackKey } from "./keys.ts";
 import { HintBar } from "./HintBar.tsx";
 import { hintContext, hintsAvailable } from "../game/hints-context.ts";
 import { applyStyle, type StyleId } from "../audio/styles.ts";
 import { FuxComparison } from "./FuxComparison.tsx";
 import { realizeContinuo } from "../continuo/realize.ts";
-import { playContinuo, preloadContinuo } from "../continuo/audio.ts";
+import { preloadContinuo } from "../continuo/audio.ts";
 import { continuoInput, continuoKey, continuoOptions, type PlayMode } from "../game/continuo-input.ts";
 import { activeVersions, deriveVersion, heardLines, validVersions, VERSION_IDS, type VersionId, type Versions } from "../game/versions.ts";
 import { trioFindings, trioVerdict } from "../game/trio-verdict.ts";
@@ -45,7 +47,7 @@ import { useHighlight } from "./highlight.ts";
 import { ScoreTools } from "./ScoreTools.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 import { useBeta } from "./beta.ts";
-import { exerciseOpen, furthestOpen, GAME_ORDER } from "../game/unlock.ts";
+import { exerciseOpen, furthestOpen } from "../game/unlock.ts";
 import { tt } from "../tutorial/text.ts";
 import type { NameStyle } from "../music/names.ts";
 import { audio, store, stored, validDrumKit } from "./shared.ts";
@@ -91,7 +93,7 @@ export interface GameLink {
   onTutorial?: (lessonId?: string) => void;
 }
 
-export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 2 | 3 | "wtc"): void } & GameLink) {
+export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: Mode): void } & GameLink) {
   const [stepIndex, setStepIndex] = useState(() => {
     const id = stored<string>("wtg.stepId", STEPS[0].id, (v) => typeof v === "string" && stepIndexOf(v) >= 0);
     return stepIndexOf(id);
@@ -157,13 +159,14 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
   const [hintOn, setHintOn] = useState(() => stored("wtg.hints", false, (v) => typeof v === "boolean"));
   useEffect(() => store("wtg.hints", hintOn), [hintOn]);
   // The quick start opens by itself on the first visit, and on HOW TO PLAY (D108).
-  const [showQuick, setShowQuick] = useState(() => !stored("wtg.quickSeen", false, (v) => typeof v === "boolean"));
+  // D149: not under the welcome; after it, only through its "I know the basics" door.
+  const [showQuick, setShowQuick] = useState(() => !stored("wtg.quickSeen", false, (v) => typeof v === "boolean") && stored("wtg.welcomed", false, (v) => typeof v === "boolean"));
   useEffect(() => { if (showQuick) store("wtg.quickSeen", true); }, [showQuick]);
   const [result, setResult] = useState<Evaluation | null>(null);
   const [showFux, setShowFux] = useState(false);
   /** The study area below: the rules of this exercise, or the Lectio (Fux's text and commentary). */
   /** The dock's tab (D94): the mixer, the evaluation, the rules, the lectio. */
-  const [tab, setTab] = useState<string>(() => { const v: string = stored<string>("wtg.dock", "mixer", (x) => typeof x === "string"); return v === "rules" ? "guide" : v; });
+  const [tab, setTab] = useState<string>(() => { const v: string = stored<string>("wtg.dock", "guide", (x) => typeof x === "string"); return v === "rules" ? "guide" : v; });
   useEffect(() => store("wtg.dock", tab), [tab]);
   const [nameStyle, setNameStyle] = useState<NameStyle>(() => stored("wtg.nameStyle2", "solfege" as NameStyle, (v) => v === "letters" || v === "solfege"));
   useEffect(() => store("wtg.nameStyle2", nameStyle), [nameStyle]);
@@ -316,19 +319,6 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
   (window as unknown as { wtgFux: string[] | null }).wtgFux = VIEW.fux;
 
   /** Judge a line for step k (the same evaluation as the Evaluate button). */
-  const judge = (k: number, notes: (string | null)[]) => {
-    const v = VIEWS[k];
-    return evaluate(
-      {
-        species: v.species,
-        modalFinal: v.modalFinal,
-        cantusVoice: v.cantusVoice,
-        cantus: v.cantus.map((p) => ({ pitch: p, duration: "1/1" })),
-        counterpoint: notes.map((p, i) => ({ pitch: p === HOLD ? HOLD : sounding(p) ? p : null, duration: v.layout[i].duration })),
-      },
-      rulesForStep(STEPS[k].id),
-    );
-  };
   const missing = session.notes.filter((n, k) => n === null && !VIEW.layout[k].restAllowed).length;
   const toggleEvaluation = () => {
     if (result) {
@@ -405,7 +395,6 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
   // The lines heard and shown: the written one (if on) and its active versions (D47).
   const lines = useMemo(() => heardLines(versions, session.notes, VIEW.modalFinal), [versions, session.notes, VIEW.modalFinal]);
   const heard = useMemo(() => lines.map((l) => l.notes), [lines]);
-  const derived = (ln: typeof lines) => Object.fromEntries(ln.filter((l) => l.id !== "original").map((l) => [l.id, l.notes]));
   const shownLines = lines;
   /** The written line is on the score (switched on, or nothing else is): it can be edited. */
   const editable = shownLines[0].id === "original";
@@ -414,7 +403,6 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
   /** A pitch clicked on the drawn (moved) line, back to where it is written. */
   const unmove = (natural: string) => (sound.counterpointOctave ? shiftOctave(natural, -sound.counterpointOctave) : natural);
   const moved = <T extends string | null>(notes: T[], n: number): T[] => (n ? notes.map((q) => (sounding(q) ? (shiftOctave(q, n) as T) : q)) : notes);
-  const originalHeard = versions.original ? session.notes : session.notes.map(() => null);
   const continuoAllowed = CONTINUO_DEMO_MODE || Boolean(result?.passed);
   const continuoAvailable = continuo && continuoAllowed;
   const continuoMode: PlayMode = playMode !== "player" && fuxOpen ? playMode : "player";
@@ -426,11 +414,6 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
     return { input, realization: realizeContinuo(input, cOpts) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [continuoAvailable, cKey]);
-  const realizationFor = (mode: PlayMode) => {
-    if (mode === continuoMode) return continuoPlan;
-    const input = continuoInput(VIEW, mode === "fux" ? VIEW.fux! : heard, mode);
-    return { input, realization: realizeContinuo(input, continuoOptions(mode, continuoSettings)) };
-  };
 
   // Saved pieces (D49). A saved piece plays with its own sound set on the engine; the live
   // setup is put back when it stops.
@@ -733,9 +716,10 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
         return;
       }
     }
-    // F1-F9 switch the numbered tracks on and off, as Ableton's F1-F8 switch its track activators (D85).
-    if (/^F[1-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey && !showCredits && !showSaved && !showQuick && exportPhase === null) {
-      const track = trackOrder(advanced)[Number(e.key.slice(1)) - 1];
+    // Alt + 1-9 switch the numbered tracks on and off (D85; F1-F9 until D149).
+    const digit = trackKey(e);
+    if (digit !== null && !showCredits && !showSaved && !showQuick && exportPhase === null) {
+      const track = trackOrder(advanced)[digit - 1];
       const n = track === undefined ? 0 : track === "cantus" ? 1 : track === "counterpoint" ? 2 : track === "fux" ? 3 : track === "drums" ? 8 : track === "continuo" ? 9 : 4 + VERSION_IDS.indexOf(track as VersionId);
       if (n === 1) setSound(changeMix(sound, "cantus", { mute: !sound.mix.cantus.mute }));
       else if (n === 2) {
@@ -752,6 +736,7 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
       e.preventDefault();
       return;
     }
+    if (keyBelongsToControl(e)) return;
     if (showCredits || showSaved || showQuick || (exportPhase !== null && (exportPhase !== "recording" || ["p", "P", " "].includes(e.key))) || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
     const k = e.key;
     const s = session;
@@ -851,7 +836,7 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
   );
   const summary = result && (
     <div className={result.passed ? "eval-summary ok" : "eval-summary bad"} role="status">
-      <span className="verdict">{result.passed ? `✓ ${t("ui.summary.passed")}` : `✗ ${t("ui.summary.failed", { n: result.errors.length })}`}</span>
+      <span className="verdict">{result.passed ? `✓ ${t("ui.summary.passed")}` : `✗ ${t("ui.summary.failed", { n: new Set(result.errors.map((v) => v.ruleId)).size })}`}</span>
       {result.errors.slice(0, 2).map((v, i) => (
         <span key={i} className="summary-item">
           {" · "}
@@ -871,34 +856,7 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
           <h1 className="brand">{t("ui.title")}</h1>
           <nav className="exercise-nav" aria-label={t("ui.nav.label")}>
           <button className="icon" onClick={() => goTo(stepIndex - 1)} disabled={stepIndex === 0} aria-label={t("ui.nav.prev")}>‹</button>
-          <select
-            id="voices"
-            className="sel sel-voices"
-            value={COURSE.voices}
-            aria-label={t("ui.nav.voices")}
-            onChange={(e) => {
-              if (e.target.value === "wtc") {
-                audio.stop();
-                onVoices("wtc");
-                return;
-              }
-              if (Number(e.target.value) === 3) {
-                audio.stop();
-                onVoices(3);
-                return;
-              }
-              const c = COURSES.find((x) => x.voices === Number(e.target.value) && x.steps.length > 0);
-              if (c) goTo(stepIndexOf(c.steps[0].id));
-            }}
-          >
-            {[2, 3, 4].map((n) => (
-              <option key={n} value={n} disabled={n === 3 ? !exerciseOpen(GAME_ORDER[STEPS.length], stars, beta) : !COURSES.some((c) => c.voices === n && c.steps.length > 0)}>
-                {n === 3 && !exerciseOpen(GAME_ORDER[STEPS.length], stars, beta) ? "🔒 " : ""}
-                {t("ui.nav.voicesN", { n })}
-              </option>
-            ))}
-            <option value="wtc">{t("ui.wtc.mode")}</option>
-          </select>
+          <ModeSelect value={2} stars={stars} onMode={(m) => { audio.stop(); onVoices(m); }} />
           <select
             id="species"
             className="sel sel-species"

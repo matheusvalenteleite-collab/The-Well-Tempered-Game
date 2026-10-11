@@ -4,7 +4,7 @@
   "commit_date": "2026-10-07T20:48:51+01:00",
   "latest_tag": "v1.0.0",
   "fetched": "2026-10-08T12:39:55Z",
-  "scope": "Part I (two voices) only: I/I-{Exercises,Solutions,Annotations,Distinct}.mxl, I/data.tsv, I/sp*/gap_*.{krn,json,mxl}",
+  "scope": "Part I (two voices) only: I/I-{Exercises,Solutions,Annotations,Distinct}.mxl, I/data.tsv, I/sp*/gap_*.{krn,json,mxl}; Part III (four voices, D148): III/data.tsv, III/sp*/gap_*.{krn,json} (vendored 10 October 2026 from the same commit)",
   "file_last_commits": {
     "I/I-Annotations.mxl": "e0d0db8 2026-10-05T20:50:31+01:00",
     "I/I-Distinct.mxl": "e0d0db8 2026-10-05T20:50:31+01:00",

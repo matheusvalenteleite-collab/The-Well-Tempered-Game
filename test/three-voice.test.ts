@@ -53,3 +53,16 @@ test("three voices: a fourth against the bass is a dissonance, a fourth between 
 test("three voices: a leap of a seventh in an added voice is an error; the cantus is not judged", () => {
   assert.ok(ids(D([["D4", "C5", "D5"], ["D4", "E4", "D4"], ["D3", "C3", "D3"]])).includes("t1.melodic"));
 });
+
+test("three voices (D152): the cantus in the octave of its part's 1725 clef places all of Fux's first-species cantus firmi", async () => {
+  const { trioCantus } = await import("../src/game/trio.ts");
+  for (const e of first) assert.deepEqual(trioCantus(e.modal_final, e.clefs_1725[e.cantus_index]), e.voices[e.cantus_index].notes.map((n: { pitch: string }) => n.pitch), `Fig. ${e.figure}`);
+});
+
+test("three voices (D152): the modes left to private study, as many as Fux's D set of each species", async () => {
+  const { trioTasks, TRIO_SPECIES } = await import("../src/game/trio.ts");
+  const counts = TRIO_SPECIES.map((n) => trioTasks(data as never, n).filter((s) => s.fux === null).length);
+  assert.deepEqual(counts, [0, 9, 20, 9, 12]);
+  const ids = TRIO_SPECIES.flatMap((n) => trioTasks(data as never, n).map((s) => s.id));
+  assert.equal(new Set(ids).size, ids.length);
+});

@@ -1,5 +1,6 @@
 /** The study content (Fux's text, commentary, Mann's notes) per exercise and per mode. */
 import study from "../content/study.en.json" with { type: "json" };
+import lectio34 from "../content/lectio34.en.json" with { type: "json" };
 
 export type Block =
   | { type: "heading"; text: string }
@@ -28,4 +29,13 @@ export function modeStudy(final: string) {
   const m = S.modes[final];
   if (!m) throw new Error(`no study content for the mode on ${final}`);
   return m;
+}
+
+const L = lectio34 as unknown as Record<"three" | "four", Record<string, { name: string; pages: string; study: Block[] }>>;
+
+/** The lesson of a species in three or four voices (D153): "1"-"5", "c" (three voices combined), "6" (four voices combined). */
+export function lectioFor(voices: 3 | 4, lesson: string) {
+  const l = L[voices === 3 ? "three" : "four"][lesson];
+  if (!l) throw new Error(`no lectio for ${voices} voices, lesson ${lesson}`);
+  return l;
 }

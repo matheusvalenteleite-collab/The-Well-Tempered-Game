@@ -63,7 +63,9 @@
     "quickTutorial": "New to music? The full tutorial ›",
     "openStudy": "Open the Well-Tempered Clavier study ›",
     "rollLabel": "The fugue as a picture: each note a bar, each voice a colour",
-    "rollHelp": "How to read it: time runs left to right, pitch goes up the page; each short bar is a note, each colour a voice (blue the highest, then red, green and purple). A box marked S is an entry of the subject. What you are listening to is shaded."
+    "rollHelp": "How to read it: time runs left to right, pitch goes up the page; each short bar is a note, each colour a voice (blue the highest, then red, green and purple). A box marked S is an entry of the subject. What you are listening to is shaded.",
+    "openChorales": "Open the Chorales",
+    "openPreludes": "Open the preludes"
   },
   "chapters": {
     "welcome": {
@@ -112,11 +114,15 @@
     },
     "four": {
       "title": "Four voices",
-      "blurb": "A look ahead: what changes with a fourth voice."
+      "blurb": "Three voices against the cantus: doubling, spacing, and what Fux tolerates."
     },
     "fugue": {
       "title": "Listening to a fugue",
       "blurb": "Bach's Well-Tempered Clavier: subject, answer, entries, stretto — and the way into the study."
+    },
+    "harmony": {
+      "title": "Chords and harmony",
+      "blurb": "Triads, their degrees in a key, figures over the bass, cadences: what Bach's chorales and preludes ask for."
     },
     "end": {
       "title": "Playing the game",
@@ -129,16 +135,16 @@
       "text": [
         "In 1725 the Viennese court composer Johann Joseph Fux published **Gradus ad Parnassum**, a course in composition written as a conversation between a master, Aloysius, and his pupil, Josephus. For two hundred years composers learned from it; Haydn is said to have worked through every exercise, and it is still used to teach today.",
         "This game is that course. You play Josephus: Aloysius gives you a melody, you write a second melody against it, and the game judges your line by rules read from Fux's own pages.",
-        "You need **no musical knowledge** to start. This tutorial teaches you everything the game asks for: how to read a note, what an interval is, how two voices may move, and then each of Fux's five 'species', one after another, until you can write in three voices. Every example you will hear is Fux's own."
+        "You need **no musical knowledge** to start. This tutorial teaches you everything the game asks for: how to read a note, what an interval is, how two voices may move, and then each of Fux's five 'species', one after another, until you can write in three and four voices; and, last, the chords and figures that Bach's modes ask for. Every example you will hear is Fux's own."
       ]
     },
     "welcome.goal": {
       "title": "Where you are going",
       "text": [
         "Here is what you will be writing by the end of the first-species chapter. Below: a plain, slow melody that never changes, the **cantus firmus**. Above: Fux's answer to it, one note against each of the cantus's notes.",
-        "Press Listen. Notice how the two lines are each singable on their own, and how together they never clash. That double demand is what 'counterpoint' means."
+        "Press ▶ under the score. Notice how the two lines are each singable on their own, and how together they never clash. That double demand is what 'counterpoint' means."
       ],
-      "prompt": "Press Listen to hear Fux's first example (Fig. 5 of the Gradus).",
+      "prompt": "Press ▶ to hear Fux's first example (Fig. 5 of the Gradus).",
       "clips": {
         "fig5": "Fux, Fig. 5"
       },
@@ -712,22 +718,90 @@
       },
       "done": "One cantus, two companions, one of them dancing."
     },
+    "three.minims": {
+      "title": "Minims against two whole notes",
+      "text": [
+        "Second species in three voices (Exercitium II, Lectio II, pp. 94–99): one voice moves in **minims**, two hold whole notes, the cantus among them. Each minim must agree with **both** whole notes, and on the downbeat the three voices make the harmony of first species: the triad where it can be had.",
+        "Fux grants one freedom two voices did not have: for the triad's sake, a minim may **save two fifths by the leap of a third** (p. 94). Listen to Fig. 125, bars 3–4 (the mode on E, the cantus in the bass): A a fifth over D, a leap down to F, then G a fifth over C. Between the two fifths stands the third; in two voices that was not enough.",
+        "Here, in Fux's first example on the D cantus (Fig. 121), the minims of bars 4 and 5 are empty."
+      ],
+      "prompt": "Write the four minims of bars 4 and 5 in the middle voice.",
+      "hint": "Bar 4: B, the third above the bass G (with the cantus's D, the full triad), then A, passing down by step to bar 5. Bar 5: G, a third above E, then a leap up to B, the fifth, which fills the triad E–G–B.",
+      "clips": {
+        "fig125": "Fig. 125, bars 3–4: two fifths saved by a third"
+      },
+      "done": "Fux's minims: a passing note, then a leap to fill the chord."
+    },
+    "three.crotchets": {
+      "title": "Crotchets against two whole notes",
+      "text": [
+        "Third species in three voices (Lectio III, pp. 99–103): four crotchets against the two whole notes. The rules of crotchets in two voices hold against each of them: the downbeat consonant, a dissonance only passing by step (or Fux's cambiata).",
+        "And the triad: Fux asks for it on the downbeat, but grants that where the **first** crotchet cannot make it, the **second or the third** should (p. 100).",
+        "In his first example (Fig. 130) the cantus is in the middle and the crotchets on top; bars 4 and 7 are empty."
+      ],
+      "prompt": "Write the crotchets of bars 4 and 7.",
+      "hint": "Bar 4: B, a third over the bass G (the cantus's D completes the triad), then C, D, and back to B. Bar 7: C, the fifth over F (with the cantus's A, the triad again), then A, C, D, climbing to the E that opens bar 8.",
+      "done": "Fux's crotchets: the triad on the downbeat, steps between."
+    },
+    "three.ligatures": {
+      "title": "Ligatures in three voices",
+      "text": [
+        "Fourth species in three voices (Lectio IV, pp. 103–111). The ligature is made as in two voices: a consonant upbeat, held over the bar line; if it becomes a dissonance there, it falls by step to a consonance.",
+        "Fux adds a paradox: a ligature is only the **delay** of the next note, so the third voice takes the concord it would have taken **without** the ligature (p. 103). Hear the resolution in your head, and set the other voices to it.",
+        "In his first example (Fig. 141) the ligatures are on top. Two of them are empty: from the second half of bar 5 into bar 6, and from bar 7 into bar 8. (In bar 3 Josephus begins a ligature with a fourth, not a consonance; he marks it himself with a sign of doubt, p. 106.)"
+      ],
+      "prompt": "Write the two ligatures: the upbeats of bars 5 and 7, and the bars they are held into.",
+      "hint": "Bar 5's second half: E, an octave above the bass. Held into bar 6, it is a seventh above F, and falls to D, the sixth. Bar 7's second half: F, an octave above F; held into bar 8, it is a fourth above C, and falls to E, the third.",
+      "done": "7–6 and 4–3: each dissonance held over the bar line, then down a step."
+    },
     "three.game": {
       "title": "Three voices in the game",
       "text": [
-        "Choose **3 voices** in the first menu. You write both voices that are not the cantus, in any order: clicking a staff writes there and makes it the active voice; with the keyboard, **Tab** switches between your two voices. All five species are there, Fux's exercises in his order: in species two to five one of your voices takes the new rhythm while the other keeps to whole notes. The two-voice rules of each species hold for the moving voice, and the three-voice rules for the harmony on the downbeats.",
+        "Choose **3 voices** in the first menu. You write both voices that are not the cantus, in any order: clicking a staff writes there and makes it the active voice; with the keyboard, **V** switches between your two voices. All five species are there, Fux's exercises in his order: in species two to five one of your voices takes the new rhythm while the other keeps to whole notes. The two-voice rules of each species hold for the moving voice, and the three-voice rules for the harmony on the downbeats.",
         "What the game checks besides: begin and end with the final as the lowest note; in the last bar the other voices take its octave, its fifth or its major third — never the minor third (in D, no F♮ over the final D); and in your voices no tritone, major sixth or seventh leaps."
       ],
-      "prompt": "Try Fux's first three-voice exercise, or read ahead about four voices."
+      "prompt": "Try Fux's first three-voice exercise, or go on to four voices."
     },
     "four.preview": {
-      "title": "A look at four voices",
+      "title": "Four voices",
       "text": [
-        "The Gradus goes on to four voices. The game does not have them yet, so this lesson is only a preview: there is nothing to write or judge here.",
-        "What changes is mostly arithmetic. A triad has three different notes, so with four voices one of them must be **doubled** — sung by two voices at once. The voices also have to share the space: four ranges (from high to low, the names still used today: soprano, alto, tenor, bass), each kept singable and not too far from its neighbours.",
-        "And the more voices, the harder it is to avoid every hidden fifth and octave; the rules relax as the texture thickens — already in three voices the game tolerates a fifth or octave reached by similar motion when the upper of the two voices moves by step.",
-        "When the four-voice screen is built, its rules will be read from Fux's own pages, as everything else in the game is."
+        "The Gradus ends its course in four voices (Exercitium III), and so does the game. Against the cantus you write three voices, species by species: Fux's own exercises first, then the modes he leaves to private study, without a solution of his, and last the species combined, each voice in its own rhythm.",
+        "What changes is mostly arithmetic. A triad has three different notes, so with four voices one of them must be **doubled**, sung by two voices at once. Fux says which: the octave of the bass first; where that would give faulty progressions, the third, more rarely the sixth (p. 114). The voices also share the space: from high to low, soprano, alto, tenor, bass, each kept singable and, Fux adds, the closer together the fuller the harmony."
       ]
+    },
+    "four.double": {
+      "title": "Doubling a note",
+      "text": [
+        "Four voices, first species: Fux's first example (Fig. 160, p. 115), the cantus second from the top. A triad has three notes; the fourth voice must **double** one of them. Fux's order: the octave of the bass first; where it would bring faulty progressions, the third; more rarely the sixth (p. 114).",
+        "Bars 5 and 6 of the top voice and the tenor are empty. Check every pair of voices, not only against the bass: six pairs now."
+      ],
+      "prompt": "Write the top voice and the tenor in bars 5 and 6.",
+      "hint": "Bar 5, over E (the cantus has G): G in the tenor and B on top, the triad E–G–B with its third doubled. Bar 6, over D (the cantus has F): A in the tenor and D on top, the triad with the bass's octave.",
+      "done": "In bar 5 Fux doubles the third, in bar 6 the octave: the order bends to the progressions."
+    },
+    "four.moving": {
+      "title": "Four voices, one or more moving",
+      "text": [
+        "Species two to five in four voices (Lectiones II–V, pp. 121–138): one voice moves, the other two hold whole notes with the cantus, and must now agree with three of them. In the fourth and fifth species Fux lets the whole notes be **divided** into two minims where a ligature's resolution would otherwise clash (pp. 132–133): 'the rigour of the three semibreves cannot be held very strictly in this species.'",
+        "Last, the species **combined** (p. 138): minims, crotchets and ligatures together over one cantus, each voice its own motion. Listen to Fux's first example of each."
+      ],
+      "prompt": "Listen to at least one of Fux's examples.",
+      "clips": {
+        "q2": "2nd species, four voices (Fig. 173)",
+        "q3": "3rd species, four voices (Fig. 177)",
+        "q4": "4th species, four voices (Fig. 193)",
+        "q5": "5th species, four voices (Fig. 200)",
+        "q6": "The species combined (Fig. 204)"
+      },
+      "done": "Four voices, each with a line of its own."
+    },
+    "four.game": {
+      "title": "Four voices in the game",
+      "text": [
+        "Choose **4 voices** in the first menu. You write the three voices that are not the cantus, in any order (**V** switches between them). Fux's exercises come first in each species, then the modes he leaves to private study, then the species combined. Hidden fifths and octaves are noted as advice, not faults, as Fux tolerates them by necessity (p. 115); in the fourth and fifth species, tap the right half of a whole note's bar to divide it.",
+        "The **Lectio** tab beside the evaluation has what Fux says of each species, in his Latin and in English, with the pages of the 1725 print."
+      ],
+      "prompt": "Try Fux's first four-voice exercise."
     },
     "fugue.what": {
       "title": "What a fugue is",
@@ -826,11 +900,163 @@
       ],
       "prompt": "Open the study."
     },
+    "harmony.triad": {
+      "title": "The triad",
+      "text": [
+        "Fux's counterpoint is built note by note, but its sonorities are already chords: the 'harmonic triad' Aloysius asks for in three voices is a **third and a fifth above the bass**. Take any note, add the note a third above it and the note a third above that: a **triad**. Its lowest note in that stack is the **root**; the others are its **third** and its **fifth**.",
+        "The third decides its colour. A **major** triad has a major third (four semitones) under a perfect fifth; a **minor** triad a minor third (three semitones) under a perfect fifth; a **diminished** triad a minor third under a diminished fifth, the tense one."
+      ],
+      "prompt": "Listen to the three kinds.",
+      "clips": {
+        "major": "Major: C–E–G",
+        "minor": "Minor: A–C–E",
+        "diminished": "Diminished: B–D–F"
+      },
+      "done": "Major, minor, diminished: the three triads that a major scale makes from its own notes."
+    },
+    "harmony.degrees": {
+      "title": "Degrees: the Roman numerals",
+      "text": [
+        "Build a triad on each note of the C major scale, using only the scale's notes, and you get seven chords. They are named by the **degree** of their root, counted from the key note (the **tonic**) in Roman numerals: I on C, II on D, and so on to VII on B.",
+        "Upper case for a major triad, lower case for a minor one, a small circle for the diminished: in any major key **I, ii, iii, IV, V, vi, vii°**. The three major ones carry the key: **I** the tonic, **V** the dominant, **IV** the subdominant."
+      ],
+      "prompt": "Listen to the triads of C major, I to the octave.",
+      "clips": {
+        "scale": "I ii iii IV V vi vii° I"
+      },
+      "done": "Those numerals are the ones the Chorales mode asks for, and the ones the study writes above the music."
+    },
+    "harmony.degreesQuiz": {
+      "title": "Name the degree",
+      "text": [
+        "Find the root (the note with the others a third and a fifth above it), count from C to it, and choose upper or lower case by the third."
+      ],
+      "prompt": "In C major: which degree is this chord?",
+      "hint": "Root on C is I, on D ii, on E iii, on F IV, on G V, on A vi, on B vii°.",
+      "choices": {
+        "I": "I",
+        "ii": "ii",
+        "iii": "iii",
+        "IV": "IV",
+        "V": "V",
+        "vi": "vi",
+        "vii°": "vii°"
+      },
+      "done": "Seven degrees, one key."
+    },
+    "harmony.minor": {
+      "title": "Minor keys",
+      "text": [
+        "In a minor key the numerals change case: in A minor the tonic chord is **i** (A–C–E), the subdominant **iv** (D–F–A), and **VI** (F–A–C) and **III** (C–E–G) are major.",
+        "The dominant is the exception. A minor's own seventh note is G, which gives a minor v (E–G–B); but to lead into the tonic the seventh is raised a semitone, **G♯**, and the dominant becomes major: **V** (E–G♯–B). It is the same semitone Fux demands at every close, the raised seventh rising to the final."
+      ],
+      "prompt": "Listen to i, iv, V, VI, V, i in A minor; hear the G♯ pull towards A.",
+      "clips": {
+        "minor": "i iv V VI V i"
+      },
+      "done": "Major V, minor tonic: the sound of a minor key."
+    },
+    "harmony.figures": {
+      "title": "Inversions and figures",
+      "text": [
+        "A triad need not stand on its root. Whatever note is lowest is the **bass**, and the chord is named by the intervals above it, the **figures** that Baroque players read under a bass line (the 'thoroughbass').",
+        "Root in the bass: a third and a fifth above it, **5/3** (root position). Third in the bass: a third and a sixth, **6/3**, written simply 6 (first inversion; Fux's six-three). Fifth in the bass: a fourth and a sixth, **6/4** (second inversion), unstable, used mostly on the way to a cadence. The same chord, three basses."
+      ],
+      "prompt": "Listen to C–E–G over C, over E, over G, and read the figures under the bass staff.",
+      "clips": {
+        "inversions": "5/3, 6/3, 6/4"
+      },
+      "done": "Figures count from the bass, whatever the root."
+    },
+    "harmony.figuresQuiz": {
+      "title": "Read the figures",
+      "text": [
+        "Find the lowest note, then count up to each of the others (an octave and more reduced): 3 and 5, 3 and 6, or 4 and 6."
+      ],
+      "prompt": "Which figures stand over the bass?",
+      "hint": "A fourth above the bass means 6/4; a sixth with a third means 6/3.",
+      "choices": {
+        "53": "5/3 — root in the bass",
+        "63": "6/3 — third in the bass",
+        "64": "6/4 — fifth in the bass"
+      },
+      "done": "Root position, first inversion, second inversion."
+    },
+    "harmony.sevenths": {
+      "title": "Seventh chords",
+      "text": [
+        "Add one more third above the fifth and the triad becomes a **seventh chord**: on G, G–B–D–F, the **dominant seventh** (V7), whose F wants to fall to E and whose B wants to rise to C.",
+        "With four notes there are four basses, and four sets of figures, each named by its most telling intervals: root in the bass **7**; third in the bass **6/5**; fifth in the bass **4/3**; seventh in the bass **4/2** (written 2, and in full 6/4/2, as the Preludes mode prints it).",
+        "Under the bass staff the game lists every interval above the bass (6, d5, 3 for the second chord); the figure names only the telling ones (6/5), the rest being understood."
+      ],
+      "prompt": "Listen to G–B–D–F over each of its notes.",
+      "clips": {
+        "sevenths": "7, 6/5, 4/3, 4/2"
+      },
+      "done": "The seventh in the bass, 4/2, must fall a step: Bach's preludes are full of it."
+    },
+    "harmony.seventhsQuiz": {
+      "title": "Seventh chords by their figures",
+      "text": [
+        "Find the bass, then look for the second (two neighbouring letters) inside the chord: where it lies decides the figures."
+      ],
+      "prompt": "Which figures?",
+      "hint": "A second right above the bass: 4/2. A second at the top of a third: 4/3. A fifth and a sixth over the bass: 6/5. Bass, third, fifth, seventh stacked: 7.",
+      "choices": {
+        "7": "7 — root in the bass",
+        "65": "6/5 — third in the bass",
+        "43": "4/3 — fifth in the bass",
+        "42": "4/2 — seventh in the bass"
+      },
+      "done": "Four basses, four figures."
+    },
+    "harmony.cadences": {
+      "title": "Cadences",
+      "text": [
+        "A phrase ends on a **cadence**: two chords that close it. The four kinds have names (later ones than Fux's):",
+        "• **authentic**: V to I, the full close (Fux's clausula, the raised seventh rising to the final, sounds inside it);",
+        "• **half**: a phrase that stops on V, a comma rather than a full stop;",
+        "• **plagal**: IV to I, the 'Amen';",
+        "• **deceptive**: V that goes, not to I, but to vi."
+      ],
+      "prompt": "Listen to the four, in C.",
+      "clips": {
+        "authentic": "Authentic: V–I",
+        "half": "Half: I–V",
+        "plagal": "Plagal: IV–I",
+        "deceptive": "Deceptive: V–vi"
+      },
+      "done": "Where a chorale's phrases end, and on which of these chords, is the first level of the Chorales mode."
+    },
+    "harmony.cadenceQuiz": {
+      "title": "Name the cadence",
+      "text": [
+        "Name the two chords as degrees of the key, then the cadence: V–I, IV–I, V–vi, or a phrase ending on V."
+      ],
+      "prompt": "Which cadence?",
+      "hint": "Find the root of each chord and count from the tonic.",
+      "choices": {
+        "authentic": "Authentic (V–I)",
+        "half": "Half (ends on V)",
+        "plagal": "Plagal (IV–I)",
+        "deceptive": "Deceptive (V–vi)"
+      },
+      "done": "That is the harmony the chorales and preludes ask for."
+    },
+    "harmony.modes": {
+      "title": "Harmony in the game",
+      "text": [
+        "Three places in the game use what this chapter taught. **Chorales**: at each fermata of a chorale melody, choose the chord the phrase cadences on (I, V, vi …), then compare with Kittel's basses and Bach's own settings. **WTC · preludes and harmony**: over Bach's bass in the C major prelude, choose each bar's chord by its figures (5/3, 6/3, 6/4/2 …) and compare with Bach's plan. **The Well-Tempered Clavier** study writes the Roman numerals of the chords above the music.",
+        "Neither mode marks anything wrong: Bach's choices are the comparison."
+      ],
+      "prompt": "Open the Chorales."
+    },
     "end.path": {
       "title": "The road to the end",
       "text": [
-        "This is the whole game, in order. Each exercise cleared earns a ★, and a gold 🌟 if no advice was broken either; the menus count them for each species. Clearing one of Fux's worked exercises also opens his own solution, to see, hear and compare with yours. Some exercises (the C cantus in first species; the G, A and C cantus in third and fourth) are ones he left to private study: there is no solution of his to compare.",
-        "When an exercise defeats you: open **How to play → Rules of this exercise** for the rules in force, read the **Lectio** for what Fux says about it, and look at the marks after **Evaluate** — each tells you which bar breaks which rule and why. Then come back here: every species has its chapter."
+        "This is the whole game, in order: two voices, then three, then four, each through the five species. Each exercise cleared earns a ★, and a gold 🌟 if no advice was broken either; the menus count them for each species. Clearing one of Fux's worked exercises also opens his own solution, to see, hear and compare with yours. Some exercises (the C cantus in first species; the G, A and C cantus in third and fourth) are ones he left to private study: there is no solution of his to compare.",
+        "When an exercise defeats you: open **How to play → Rules of this exercise** for the rules in force, read the **Lectio** for what Fux says about it, and look at the marks after **Evaluate** — each tells you which bar breaks which rule and why. Then come back here: every species has its chapter.",
+        "Beyond Fux lie Bach's modes: the **Well-Tempered Clavier** (listening and fugue exercises; the tutorial's fugue chapter prepares it), and the **Chorales** and **WTC · preludes and harmony**, which ask for the chords and figures of the harmony chapter."
       ]
     },
     "end.tour": {
@@ -889,7 +1115,23 @@
     "up": "goes up",
     "down": "goes down",
     "stays": "stays",
-    "play": "▶"
+    "play": "▶",
+    "degree": "In {key}: which degree?",
+    "figure": "Which figures stand over the bass?",
+    "cadence": "In {key}: which cadence?",
+    "keyMajor": "{tonic} major",
+    "keyMinor": "{tonic} minor",
+    "member.0": "root",
+    "member.2": "third",
+    "member.4": "fifth",
+    "member.6": "seventh",
+    "quality.major": "major",
+    "quality.minor": "minor",
+    "quality.diminished": "diminished",
+    "quality.augmented": "augmented",
+    "why.degree": "The root is {root}, a {quality} triad: {degree}.",
+    "why.figure": "{bass} is in the bass, the chord's {member} (its root is {root}).",
+    "why.cadence": "{a} then {b}."
   },
   "road": {
     "head": "{voices} voices",

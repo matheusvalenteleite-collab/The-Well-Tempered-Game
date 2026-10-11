@@ -1,0 +1,297 @@
+{
+ "wtc.cp.dissonance|P4": {
+  "count": 11,
+  "fugues": [
+   "wtc2.01",
+   "wtc1.07",
+   "wtc2.07",
+   "wtc2.14",
+   "wtc2.15",
+   "wtc2.20",
+   "wtc2.22",
+   "wtc1.24"
+  ],
+  "places": [
+   {
+    "id": "wtc2.01",
+    "bar": 78,
+    "voice": 0
+   },
+   {
+    "id": "wtc1.07",
+    "bar": 31,
+    "voice": 0
+   },
+   {
+    "id": "wtc2.07",
+    "bar": 10,
+    "voice": 2
+   },
+   {
+    "id": "wtc2.14",
+    "bar": 15,
+    "voice": 1
+   },
+   {
+    "id": "wtc2.15",
+    "bar": 59,
+    "voice": 0
+   }
+  ]
+ },
+ "wtc.cp.appoggiatura|d7": {
+  "count": 2,
+  "fugues": [
+   "wtc1.03",
+   "wtc1.06"
+  ],
+  "places": [
+   {
+    "id": "wtc1.03",
+    "bar": 13,
+    "voice": 0
+   },
+   {
+    "id": "wtc1.06",
+    "bar": 23,
+    "voice": 0
+   }
+  ]
+ },
+ "wtc.cp.appoggiatura|m7": {
+  "count": 3,
+  "fugues": [
+   "wtc1.03",
+   "wtc2.22"
+  ],
+  "places": [
+   {
+    "id": "wtc1.03",
+    "bar": 38,
+    "voice": 0
+   },
+   {
+    "id": "wtc2.22",
+    "bar": 83,
+    "voice": 0
+   }
+  ]
+ },
+ "wtc.cp.parallel|fifths": {
+  "count": 1,
+  "fugues": [
+   "wtc1.03"
+  ],
+  "places": [
+   {
+    "id": "wtc1.03",
+    "bar": 39,
+    "voice": 0
+   }
+  ]
+ },
+ "wtc.cp.dissonance|A2": {
+  "count": 2,
+  "fugues": [
+   "wtc1.03",
+   "wtc2.12"
+  ],
+  "places": [
+   {
+    "id": "wtc1.03",
+    "bar": 29,
+    "voice": 1
+   },
+   {
+    "id": "wtc2.12",
+    "bar": 73,
+    "voice": 0
+   }
+  ]
+ },
+ "wtc.cp.dissonance|A4": {
+  "count": 1,
+  "fugues": [
+   "wtc2.03"
+  ],
+  "places": [
+   {
+    "id": "wtc2.03",
+    "bar": 22,
+    "voice": 0
+   }
+  ]
+ },
+ "wtc.cp.dissonance|M7": {
+  "count": 1,
+  "fugues": [
+   "wtc2.03"
+  ],
+  "places": [
+   {
+    "id": "wtc2.03",
+    "bar": 29,
+    "voice": 0
+   }
+  ]
+ },
+ "wtc.cp.parallel|octaves": {
+  "count": 29,
+  "fugues": [
+   "wtc2.03",
+   "wtc1.10",
+   "wtc1.18"
+  ],
+  "places": [
+   {
+    "id": "wtc2.03",
+    "bar": 14,
+    "voice": 0
+   },
+   {
+    "id": "wtc1.10",
+    "bar": 19,
+    "voice": 0
+   },
+   {
+    "id": "wtc1.18",
+    "bar": 35,
+    "voice": 2
+   }
+  ]
+ },
+ "wtc.cp.appoggiatura|P4": {
+  "count": 2,
+  "fugues": [
+   "wtc1.06"
+  ],
+  "places": [
+   {
+    "id": "wtc1.06",
+    "bar": 6,
+    "voice": 0
+   }
+  ]
+ },
+ "wtc.cp.dissonance|M2": {
+  "count": 2,
+  "fugues": [
+   "wtc1.06",
+   "wtc1.07"
+  ],
+  "places": [
+   {
+    "id": "wtc1.06",
+    "bar": 27,
+    "voice": 0
+   },
+   {
+    "id": "wtc1.07",
+    "bar": 16,
+    "voice": 0
+   }
+  ]
+ },
+ "wtc.cp.unresolved|m7": {
+  "count": 4,
+  "fugues": [
+   "wtc1.07",
+   "wtc2.12",
+   "wtc2.17",
+   "wtc2.18"
+  ],
+  "places": [
+   {
+    "id": "wtc1.07",
+    "bar": 20,
+    "voice": 1
+   },
+   {
+    "id": "wtc2.12",
+    "bar": 55,
+    "voice": 0
+   },
+   {
+    "id": "wtc2.17",
+    "bar": 17,
+    "voice": 1
+   },
+   {
+    "id": "wtc2.18",
+    "bar": 117,
+    "voice": 1
+   }
+  ]
+ },
+ "wtc.cp.unresolved|M7": {
+  "count": 1,
+  "fugues": [
+   "wtc1.15"
+  ],
+  "places": [
+   {
+    "id": "wtc1.15",
+    "bar": 67,
+    "voice": 1
+   }
+  ]
+ },
+ "wtc.cp.appoggiatura|d5": {
+  "count": 1,
+  "fugues": [
+   "wtc1.17"
+  ],
+  "places": [
+   {
+    "id": "wtc1.17",
+    "bar": 9,
+    "voice": 0
+   }
+  ]
+ },
+ "wtc.cp.dissonance|d7": {
+  "count": 2,
+  "fugues": [
+   "wtc1.20",
+   "wtc2.20"
+  ],
+  "places": [
+   {
+    "id": "wtc1.20",
+    "bar": 78,
+    "voice": 0
+   },
+   {
+    "id": "wtc2.20",
+    "bar": 26,
+    "voice": 0
+   }
+  ]
+ },
+ "wtc.cp.dissonance|d5": {
+  "count": 1,
+  "fugues": [
+   "wtc2.21"
+  ],
+  "places": [
+   {
+    "id": "wtc2.21",
+    "bar": 90,
+    "voice": 1
+   }
+  ]
+ },
+ "wtc.cp.dissonance|m7": {
+  "count": 1,
+  "fugues": [
+   "wtc2.24"
+  ],
+  "places": [
+   {
+    "id": "wtc2.24",
+    "bar": 35,
+    "voice": 1
+   }
+  ]
+ }
+}
