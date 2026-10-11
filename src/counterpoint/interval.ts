@@ -120,16 +120,19 @@ export function simpleName(i: Interval): string {
   return `${i.quality === "P" ? "" : i.quality}${reduced}`;
 }
 
+const SUB = "₀₁₂₃₄₅₆₇₈₉";
+/** Digits as subscripts ("19" → "₁₉"). */
+const sub = (n: number) => String(n).replace(/\d/g, (d) => SUB[Number(d)]);
+
 /**
- * P9 (owner, superseding D16's reduction on screen): an interval as shown. A compound interval keeps
- * its number, with the octave(s) and the simple interval it adds beside it, so that its consonance
- * reads at once: m10 [8+m3], 12 [8+5]. (`simpleName` stays the reduced name the game reasons with.)
+ * P9, revised (owner: "no clutter but informative"): an interval as shown. The simple interval is the
+ * protagonist; a compound one carries its real number small beside it, as an appendix: m3₁₀, 5₁₉, 8₁₅.
+ * (`simpleName` stays the reduced name the game reasons with.)
  */
 export function intervalLabel(i: Interval): string {
   const q = i.quality === "P" ? "" : i.quality;
   if (i.number <= 8) return `${q}${i.number}`;
-  const [octave, simple] = compoundParts(i.number);
-  return `${q}${i.number} [${octave}+${q}${simple}]`;
+  return `${q}${compoundParts(i.number)[1]}${sub(i.number)}`;
 }
 
 /**
@@ -144,7 +147,16 @@ export function compoundParts(n: number): number[] {
   return [7 * octaves + 1, simple];
 }
 
-/** A figure as figured basses print it ("9", "6/4", "#10") with each compound number written so: "9 [8+2]". */
+/** An interval number in the same style (P9): the simple number, the compound one small beside it. */
+export function intervalNumber(n: number): string {
+  return n <= 8 ? String(n) : `${compoundParts(n)[1]}${sub(n)}`;
+}
+
+/**
+ * A figure as figured basses print it ("9", "6/4"): left as printed. A figured bass's 9 is its own
+ * sign (the ninth that resolves to the octave), not a second, so P9's reading of intervals does not
+ * apply to it.
+ */
 export function figureLabel(figure: string): string {
-  return figure.replace(/\d+/g, (d) => (Number(d) > 8 ? `${d} [${compoundParts(Number(d)).join("+")}]` : d));
+  return figure;
 }

@@ -13,7 +13,7 @@ import { Accidental, ClefNote, Dot, ModifierContext, Renderer, Stave, StaveConne
 import { fifthGlyphs, HOLD as HOLD_MARK, REST, slotLayout } from "../../counterpoint/layout.ts";
 import { parsePitch } from "../../music/pitch.ts";
 import { noteName, type NameStyle } from "../../music/names.ts";
-import { figureLabel, harmonic } from "../../counterpoint/interval.ts";
+import { harmonic, intervalNumber } from "../../counterpoint/interval.ts";
 import { harmonyOf } from "../../counterpoint/choices/harmony.ts";
 import type { ModalFinal } from "../../music/fux/types.ts";
 import { pitchAtPosition, VEXFLOW_CLEF, type ClefId } from "./clefs.ts";
@@ -271,6 +271,18 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     // The bar numbers in their band (P10): a tap there selects the bar; the selected one stands out.
     for (let j = 0; j < n; j++) {
       const sel = p.from + j === p.selected;
+      // Each bar's cell in the band: subtle, but bounded, so it is clear where a tap selects only.
+      const cx = columns[j].left + 2;
+      const cw = columns[j].right - columns[j].left - 4;
+      ctx.save();
+      ctx.setFillStyle(sel ? "var(--selection, rgba(60, 100, 160, .12))" : "var(--ruler-cell, rgba(120, 110, 90, .06))");
+      ctx.fillRect(cx, staffY(0) - 16, cw, 20);
+      ctx.setStrokeStyle(sel ? "var(--selection-ink, #2a56d6)" : "var(--ruler-edge, rgba(120, 110, 90, .28))");
+      ctx.setLineWidth(sel ? 1 : 0.6);
+      ctx.beginPath();
+      ctx.rect(cx, staffY(0) - 16, cw, 20);
+      ctx.stroke();
+      ctx.restore();
       ctx.setFillStyle(sel ? "var(--selection-ink, #2a56d6)" : "var(--bar-number)");
       ctx.setFont("Inter, system-ui, sans-serif", sel ? 11 : 9, sel ? "700" : "400");
       ctx.fillText(String(p.from + j + 1), columns[j].left + 4, staffY(0) - 2);
@@ -374,7 +386,7 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
             .sort((a, b) => parsePitch(b.q).midi - parsePitch(a.q).midi)
             .map(({ q }) => {
               const f = harmonic(ps[bass]!, q);
-              return figureLabel(`${f.quality === "A" || f.quality === "d" ? f.quality : ""}${f.number}`);
+              return `${f.quality === "A" || f.quality === "d" ? f.quality : ""}${intervalNumber(f.number)}`;
             });
           ctx.save();
           ctx.setFont("'EB Garamond', Garamond, Georgia, serif", 12);
@@ -448,11 +460,30 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     const ruler = y < g.staves[0].top - 3.2 * g.staves[0].spacing;
     const onStaff = !ruler && y >= s.top - 5 * s.spacing && y <= s.bottom + 5 * s.spacing;
     const position = Math.round((s.bottom - y) / (s.spacing / 2));
-    const voice = tapVoice(p.voices, staff, p.active, lastOnStaff.current);
     const c = g.columns[column];
+    const bar = p.from + column;
+    const natural = pitchAtPosition(clefOfBar(staff, bar), position);
+    // P10: a tap on a note already written (within a step) in another of the player's voices on this
+    // staff takes that voice; else the active voice, or the one last used on the staff.
+    const frac = (x - c.left) / (c.right - c.left);
+    const tapped = parsePitch(natural).diatonic;
+    const near = p.voices
+      .map((v, i) => ({ v, i }))
+      .filter(({ v }) => v.staff === staff && v.editable)
+      .map(({ v, i }) => {
+        const per = v.per ?? 1;
+        let k = per === 1 || bar >= bars0 - 1 ? (per === 1 ? bar : per * bar) : per * bar + Math.max(0, Math.min(per - 1, Math.floor(frac * per)));
+        while (k > 0 && v.notes[k] === HOLD_MARK) k--;
+        const q = v.notes[k];
+        return { i, d: q && q !== REST && q !== HOLD_MARK ? Math.abs(parsePitch(q).diatonic - tapped) : Infinity };
+      })
+      .filter((x) => x.d <= 1)
+      // The nearest note; on a tie the active voice keeps the tap.
+      .sort((a, b) => a.d - b.d || (a.i === p.active ? -1 : b.i === p.active ? 1 : 0))[0];
+    const voice = near ? near.i : tapVoice(p.voices, staff, p.active, lastOnStaff.current);
     const per = voice !== null ? (p.voices[voice].per ?? 1) : 1;
     const part = Math.max(0, Math.min(per - 1, Math.floor(((x - c.left) / (c.right - c.left)) * per)));
-    return { bar: p.from + column, voice: ruler ? null : voice, onStaff, part, natural: pitchAtPosition(clefOfBar(staff, p.from + column), position) };
+    return { bar, voice: ruler ? null : voice, onStaff, part, natural };
   };
   /** The clef in force on a staff in a bar, as last drawn (P6). */
   const clefOfBar = (staff: number, bar: number): ClefId => {

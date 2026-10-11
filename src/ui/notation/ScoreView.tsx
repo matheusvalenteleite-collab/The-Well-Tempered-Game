@@ -560,6 +560,26 @@ export function ScoreView(props: ScoreProps) {
     ctx.setFillStyle("var(--bar-number)");
     // P10: high above the top staff, in a band of their own, where a tap selects the bar.
     const numberY = STAFF_Y[0] + 8;
+    // Each bar's cell in the band (P10): subtle but bounded; the selected bar's filled.
+    const selBar = layout[props.selected]?.bar;
+    const barCells = new Map<number, { left: number; right: number }>();
+    columns.forEach((c, k) => {
+      const b = layout[k].bar;
+      const cell = barCells.get(b);
+      barCells.set(b, cell ? { left: Math.min(cell.left, c.left), right: Math.max(cell.right, c.right) } : { left: c.left, right: c.right });
+    });
+    for (const [b, c] of barCells) {
+      const sel = b === selBar;
+      ctx.save();
+      ctx.setFillStyle(sel ? "var(--selection, rgba(60, 100, 160, .12))" : "var(--ruler-cell, rgba(120, 110, 90, .06))");
+      ctx.fillRect(c.left + 2, numberY - 12, c.right - c.left - 4, 17);
+      ctx.setStrokeStyle(sel ? "var(--selection-ink, #2a56d6)" : "var(--ruler-edge, rgba(120, 110, 90, .28))");
+      ctx.setLineWidth(sel ? 1 : 0.6);
+      ctx.beginPath();
+      ctx.rect(c.left + 2, numberY - 12, c.right - c.left - 4, 17);
+      ctx.stroke();
+      ctx.restore();
+    }
     columns.forEach((c, k) => {
       if (layout[k].beat !== 0) return;
       const label = String((props.firstBar ?? 1) + layout[k].bar - firstSlotBar);
