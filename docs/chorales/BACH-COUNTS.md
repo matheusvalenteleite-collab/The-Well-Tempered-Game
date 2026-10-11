@@ -48,9 +48,9 @@ These are counts of derived facts, not rules. The figures are read off Bach's fo
 | class | count |
 |---|---|
 | authentic, perfect | 1062 |
-| half | 298 |
+| half | 290 |
 | authentic, imperfect | 183 |
-| close on the local tonic, not from its dominant | 162 |
+| close on the local tonic, not from its dominant | 170 |
 | half, in the local key | 124 |
 | authentic, dominant inverted (leading tone in the bass) | 114 |
 | other: bass repeated | 79 |

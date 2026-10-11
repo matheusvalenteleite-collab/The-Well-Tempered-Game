@@ -1188,7 +1188,7 @@
    "position": "first",
    "melody": "1-7",
    "chord": "V",
-   "class": "half"
+   "class": "close on the local tonic, not from its dominant"
   },
   {
    "bach": 19,
@@ -10168,7 +10168,7 @@
    "position": "inner",
    "melody": "2-5",
    "chord": "V",
-   "class": "half"
+   "class": "close on the local tonic, not from its dominant"
   },
   {
    "bach": 169,
@@ -11018,7 +11018,7 @@
    "position": "inner",
    "melody": "1-7",
    "chord": "V",
-   "class": "half"
+   "class": "close on the local tonic, not from its dominant"
   },
   {
    "bach": 185,
@@ -13368,7 +13368,7 @@
    "position": "inner",
    "melody": "1-7",
    "chord": "V",
-   "class": "half"
+   "class": "close on the local tonic, not from its dominant"
   },
   {
    "bach": 218,
@@ -16238,7 +16238,7 @@
    "position": "first",
    "melody": "2-2",
    "chord": "V",
-   "class": "half"
+   "class": "close on the local tonic, not from its dominant"
   },
   {
    "bach": 264,
@@ -18488,7 +18488,7 @@
    "position": "first",
    "melody": "b3-2",
    "chord": "V",
-   "class": "half"
+   "class": "close on the local tonic, not from its dominant"
   },
   {
    "bach": 300,
@@ -20678,7 +20678,7 @@
    "position": "inner",
    "melody": "b3-2",
    "chord": "V",
-   "class": "half"
+   "class": "close on the local tonic, not from its dominant"
   },
   {
    "bach": 336,
@@ -22118,7 +22118,7 @@
    "position": "inner",
    "melody": "2-2",
    "chord": "V",
-   "class": "half"
+   "class": "close on the local tonic, not from its dominant"
   },
   {
    "bach": 360,
