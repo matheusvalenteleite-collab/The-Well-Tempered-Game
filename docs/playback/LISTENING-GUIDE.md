@@ -46,6 +46,20 @@ The research, with each source's URL and the cautions, is in `CHORALE-COMMENTARY
   - The research's "chromatic rising bass" in No. 279: the notes do not show it.
 - **Shown:** the notes join the observations in the captions, the markers and the Guide tab, each with its citation.
 
+## Written notes, round 2 (P27)
+
+29 more notes on 25 chorales, from two sources read in full view: research in `CHORALE-COMMENTARY-RESEARCH-2.md`.
+- **C. M. von Weber (1810), on Nos. 1–8 and 10–12.** He was 23 and arguing for his teacher Vogler's reharmonisations, so his remarks are fault-finding and the notes present them as his objections:
+  - clashing passing notes;
+  - closes on the third;
+  - fifths covered by decoration;
+  - monotonous cadences;
+  - crossing voices.
+
+  His bar numbers count the written-out repeat; they were converted and checked against the cadences.
+- **E. Prout, *Harmony* (1889).** Rare chords, suspensions, anticipations and Picardy thirds in Bach's two-bar extracts, identified note by note.
+- **Left out:** Prout's "Siehe welch' eine Liebe" extract, which matches No. 51 rather than the setting he names; Weber's unmapped bars in No. 11; and his "audible fifths" in No. 2, where the voices could not be identified.
+
 ## Not yet
 
 - More written notes: Terry's *Bach's Chorals* I could not be downloaded, and no open modern analyses were found.

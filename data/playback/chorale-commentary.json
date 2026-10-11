@@ -1,40 +1,407 @@
 {
-  "source": "P22: notes written for the listening guide, each resting on a published commentary read in full view (archive.org); bars are the measures of data/chorales/bach (the upbeat is bar 0). Research notes: docs/playback/LISTENING-GUIDE.md.",
+  "source": "P22: notes written for the listening guide, each resting on a published commentary read in full view (archive.org); bars are the measures of data/chorales/bach (the upbeat is bar 0). Research notes: docs/playback/CHORALE-COMMENTARY-RESEARCH.md and -2.md.",
   "works": {
     "pirro": "André Pirro, L'esthétique de Jean-Sébastien Bach (Paris: Fischbacher, 1907)",
     "spitta2": "Philipp Spitta, Johann Sebastian Bach, tr. C. Bell and J. A. Fuller-Maitland, vol. II (London: Novello, 1884)",
     "spitta3": "Philipp Spitta, Johann Sebastian Bach, tr. C. Bell and J. A. Fuller-Maitland, vol. III (London: Novello, 1885)",
     "schweitzer2": "Albert Schweitzer, J. S. Bach, tr. Ernest Newman, vol. II (Leipzig: Breitkopf & Härtel, 1911)",
     "whittaker": "W. G. Whittaker, Fugitive Notes on Certain Cantatas and the Motets of J. S. Bach (London: Oxford University Press, 1924)",
-    "parry": "C. Hubert H. Parry, Johann Sebastian Bach (New York and London: Putnam, 1909)"
+    "parry": "C. Hubert H. Parry, Johann Sebastian Bach (New York and London: Putnam, 1909)",
+    "weber": "Carl Maria von Weber, “Zwölf Choräle von Seb. Bach, umgearbeitet von Vogler, zergliedert” (1810), in Sämtliche Schriften, ed. G. Kaiser (Berlin: Schuster & Loeffler, 1908)",
+    "prout": "Ebenezer Prout, Harmony: Its Theory and Practice, 12th ed. (London: Augener, preface 1889)"
   },
   "notes": [
-    { "n": 216, "bar": 12, "work": "pirro", "page": "138", "text": "“Ich fahre sicher hin mit Frieden”: going in peace, set by a smooth, gently moving figure in the bass (Pirro: “un motif uni et doucement animé de la basse”)." },
-    { "n": 216, "bar": 15, "work": "pirro", "page": "137–138", "text": "The last line, “Mein großer Jammer bleibt danieden”: the bass sinks by half steps (A, G♯, G, F♯, F, E, D♯). Pirro cites this as a chromatic theme “called up by words of painful meaning”, producing “a bold harmonic succession, full of surprises”." },
-    { "n": 26, "bar": 7, "work": "pirro", "page": "137", "text": "“Dann wird sich enden diese Pein”: under these threatening words the bass falls chromatically (E, E♭, D, C♯). Pirro: the harmonic disturbance “comes from chromatic figures in the bass”." },
-    { "n": 142, "bar": 5, "work": "pirro", "page": "137", "text": "“Was erneu’rst du deinen Stich?”, words to the old serpent: the bass creeps up by half steps (F, F♯, G, G♯, A) under a sharply altered chord, one of Pirro’s examples of Bach’s harmonic disturbance." },
-    { "n": 321, "bar": 0, "work": "pirro", "page": "136", "text": "“Die Sünd macht Leid”: Pirro’s example of how, in Bach’s chorales, “words of affliction are clothed in the dark finery of doubtful or biting sonorities”. Listen to the harshness of the opening chords." },
-    { "n": 105, "bar": 3, "work": "pirro", "page": "136", "text": "The word “Strafe” (punishment), at the first fermata: another of Pirro’s examples of dark, biting harmony laid on a word of affliction (St Matthew Passion)." },
-    { "n": 63, "bar": 2, "work": "pirro", "page": "136", "text": "“Wer hat dich so geschlagen”: the bass reaches up through E♯ on “geschlagen”, and at the cadence on “Plagen” (torments) rises B, B♯, C♯: Pirro’s example of biting harmony on words of suffering (St John Passion)." },
-    { "n": 80, "bar": 7, "work": "pirro", "page": "138", "text": "“Der Wolken, Luft und Winden gibt Wege, Lauf und Bahn”: the bass walks in steady quavers (G, F♯, E, D♯, E, F♯, G, A), a “discreet allusion” (Pirro) to the one who gives the clouds and winds their paths." },
-    { "n": 80, "bar": 0, "work": "spitta2", "page": "549", "text": "Spitta found the choice of Gerhardt’s gentle hymn at this point of the St Matthew Passion, as Jesus silently accepts the verdict, “one of the few passages in this incomparable work to which perhaps exception might be taken”: Bach, he thought, chiefly wanted the melody back." },
-    { "n": 89, "bar": 11, "work": "spitta2", "page": "550", "text": "The last chorale of the St Matthew Passion, after Jesus’ death. Where Bach elsewhere treats this melody in the major, here he “worked out the solemn and twilight effects of the Phrygian”: the close lands on the dominant chord, F♯, not the tonic. Spitta: “one of the most thrilling of the whole work”." },
-    { "n": 345, "bar": 0, "work": "spitta2", "page": "583", "text": "The Passion melody “O Haupt voll Blut und Wunden”, sung at the start of the Christmas Oratorio, and harmonised “in the Phrygian mode” (Spitta): it ends on E, the dominant of A minor. Spitta hears in the mode “the character of fervent humility”." },
-    { "n": 139, "bar": 2, "work": "spitta2", "page": "583", "text": "The F naturals in a G-major chorale: Mixolydian chords “strongly stamped” on it (Spitta). The old church mode gives this Christmas chorale its colour of fervent humility." },
-    { "n": 187, "bar": 0, "work": "spitta3", "page": "132", "text": "A setting “strictly in accordance with the rules of its mode” (Spitta): the Mixolydian, the major with a lowered seventh, which Bach here keeps to." },
-    { "n": 222, "bar": 0, "work": "spitta3", "page": "132", "text": "A Mixolydian melody harmonised in the “mixed” style (Spitta, after Kittel): the modulations proper to the mode given more or less weight among the major keys." },
-    { "n": 34, "bar": 0, "work": "spitta3", "page": "132", "text": "A Phrygian melody in the “mixed” style (Spitta): listen for the old mode’s half-step fall to the final, among the cadences of the major and minor keys." },
-    { "n": 279, "bar": 6, "work": "schweitzer2", "page": "31", "text": "From here A♭, D♭ and G♭ darken a B♭ chorale. Schweitzer’s showpiece of Bach following the words: “as pure music” it “is indeed intolerable”, Bach’s purpose being “to express all the wild grief for sin that is suggested in the words”." },
-    { "n": 263, "bar": 0, "work": "whittaker", "page": "204–205", "text": "The first and last verses of the motet Jesu, meine Freude are this same plain harmonisation; for the longing of these lines “simplicity” was “clearly the object of the composer” (Whittaker)." },
-    { "n": 283, "bar": 7, "work": "whittaker", "page": "214–215", "text": "“Elend, Not, Kreuz, Schmach und Tod”: the lower voices answer each word with a little two-note figure, “so beloved by Johann Sebastian” (Whittaker), the voices “intensifying the meaning of the words”." },
-    { "n": 262, "bar": 0, "work": "whittaker", "page": "40", "text": "“The lovely harmonies of the concluding chorale are a never-ending delight” (Whittaker, on the close of Cantata 2)." },
-    { "n": 253, "bar": 17, "work": "whittaker", "page": "33", "text": "“An exceedingly fine harmonisation, with a surprising final bar” (Whittaker): it stops on D major, the dominant, and does not return to G minor." },
-    { "n": 371, "bar": 12, "work": "whittaker", "page": "132", "text": "“Exceptionally bold part-writing” (Whittaker), above all in this last bar." },
-    { "n": 261, "bar": 1, "work": "whittaker", "page": "132–133", "text": "Four F♯s high in the tenor: in the second verse sung to these bars, Whittaker hears them as the line “Das ist hoch an des Kreuzes Stamm” (high on the Cross)." },
-    { "n": 184, "bar": 0, "work": "whittaker", "page": "145", "text": "After seven verses worked out in every way, Cantata 4 ends with the hymn in plain four parts: “Bach is content to end with the plain tune” (Whittaker)." },
-    { "n": 179, "bar": 0, "work": "whittaker", "page": "63", "text": "Cantata 140 ends with the chorale “in its unadorned form, harmonised in a simple and direct way”; “no more imposing finish can be conceived” (Whittaker)." },
-    { "n": 87, "bar": 0, "work": "whittaker", "page": "128", "text": "“Quietly and reverently the cantata closes with a soft, tenderly harmonised four-part chorale, in which Death is likened to the Brother of Sleep” (Whittaker, on Cantata 56)." },
-    { "n": 38, "bar": 1, "work": "whittaker", "page": "157–158", "text": "A plain setting with “one point of technical development”: the little four-note figure that opens the bass (E♭, D, C, E♭) and keeps returning (Whittaker)." },
-    { "n": 69, "bar": 3, "work": "parry", "page": "286", "text": "Very short phrases, each followed by a pause: “each little phrase comes to represent a short ejaculation with a pause of reflection after it” (Parry, quoted by Whittaker, p. 229)." }
+    {
+      "n": 216,
+      "bar": 12,
+      "work": "pirro",
+      "page": "138",
+      "text": "“Ich fahre sicher hin mit Frieden”: going in peace, set by a smooth, gently moving figure in the bass (Pirro: “un motif uni et doucement animé de la basse”)."
+    },
+    {
+      "n": 216,
+      "bar": 15,
+      "work": "pirro",
+      "page": "137–138",
+      "text": "The last line, “Mein großer Jammer bleibt danieden”: the bass sinks by half steps (A, G♯, G, F♯, F, E, D♯). Pirro cites this as a chromatic theme “called up by words of painful meaning”, producing “a bold harmonic succession, full of surprises”."
+    },
+    {
+      "n": 26,
+      "bar": 7,
+      "work": "pirro",
+      "page": "137",
+      "text": "“Dann wird sich enden diese Pein”: under these threatening words the bass falls chromatically (E, E♭, D, C♯). Pirro: the harmonic disturbance “comes from chromatic figures in the bass”."
+    },
+    {
+      "n": 142,
+      "bar": 5,
+      "work": "pirro",
+      "page": "137",
+      "text": "“Was erneu’rst du deinen Stich?”, words to the old serpent: the bass creeps up by half steps (F, F♯, G, G♯, A) under a sharply altered chord, one of Pirro’s examples of Bach’s harmonic disturbance."
+    },
+    {
+      "n": 321,
+      "bar": 0,
+      "work": "pirro",
+      "page": "136",
+      "text": "“Die Sünd macht Leid”: Pirro’s example of how, in Bach’s chorales, “words of affliction are clothed in the dark finery of doubtful or biting sonorities”. Listen to the harshness of the opening chords."
+    },
+    {
+      "n": 105,
+      "bar": 3,
+      "work": "pirro",
+      "page": "136",
+      "text": "The word “Strafe” (punishment), at the first fermata: another of Pirro’s examples of dark, biting harmony laid on a word of affliction (St Matthew Passion)."
+    },
+    {
+      "n": 63,
+      "bar": 2,
+      "work": "pirro",
+      "page": "136",
+      "text": "“Wer hat dich so geschlagen”: the bass reaches up through E♯ on “geschlagen”, and at the cadence on “Plagen” (torments) rises B, B♯, C♯: Pirro’s example of biting harmony on words of suffering (St John Passion)."
+    },
+    {
+      "n": 80,
+      "bar": 7,
+      "work": "pirro",
+      "page": "138",
+      "text": "“Der Wolken, Luft und Winden gibt Wege, Lauf und Bahn”: the bass walks in steady quavers (G, F♯, E, D♯, E, F♯, G, A), a “discreet allusion” (Pirro) to the one who gives the clouds and winds their paths."
+    },
+    {
+      "n": 80,
+      "bar": 0,
+      "work": "spitta2",
+      "page": "549",
+      "text": "Spitta found the choice of Gerhardt’s gentle hymn at this point of the St Matthew Passion, as Jesus silently accepts the verdict, “one of the few passages in this incomparable work to which perhaps exception might be taken”: Bach, he thought, chiefly wanted the melody back."
+    },
+    {
+      "n": 89,
+      "bar": 11,
+      "work": "spitta2",
+      "page": "550",
+      "text": "The last chorale of the St Matthew Passion, after Jesus’ death. Where Bach elsewhere treats this melody in the major, here he “worked out the solemn and twilight effects of the Phrygian”: the close lands on the dominant chord, F♯, not the tonic. Spitta: “one of the most thrilling of the whole work”."
+    },
+    {
+      "n": 345,
+      "bar": 0,
+      "work": "spitta2",
+      "page": "583",
+      "text": "The Passion melody “O Haupt voll Blut und Wunden”, sung at the start of the Christmas Oratorio, and harmonised “in the Phrygian mode” (Spitta): it ends on E, the dominant of A minor. Spitta hears in the mode “the character of fervent humility”."
+    },
+    {
+      "n": 139,
+      "bar": 2,
+      "work": "spitta2",
+      "page": "583",
+      "text": "The F naturals in a G-major chorale: Mixolydian chords “strongly stamped” on it (Spitta). The old church mode gives this Christmas chorale its colour of fervent humility."
+    },
+    {
+      "n": 187,
+      "bar": 0,
+      "work": "spitta3",
+      "page": "132",
+      "text": "A setting “strictly in accordance with the rules of its mode” (Spitta): the Mixolydian, the major with a lowered seventh, which Bach here keeps to."
+    },
+    {
+      "n": 222,
+      "bar": 0,
+      "work": "spitta3",
+      "page": "132",
+      "text": "A Mixolydian melody harmonised in the “mixed” style (Spitta, after Kittel): the modulations proper to the mode given more or less weight among the major keys."
+    },
+    {
+      "n": 34,
+      "bar": 0,
+      "work": "spitta3",
+      "page": "132",
+      "text": "A Phrygian melody in the “mixed” style (Spitta): listen for the old mode’s half-step fall to the final, among the cadences of the major and minor keys."
+    },
+    {
+      "n": 279,
+      "bar": 6,
+      "work": "schweitzer2",
+      "page": "31",
+      "text": "From here A♭, D♭ and G♭ darken a B♭ chorale. Schweitzer’s showpiece of Bach following the words: “as pure music” it “is indeed intolerable”, Bach’s purpose being “to express all the wild grief for sin that is suggested in the words”."
+    },
+    {
+      "n": 263,
+      "bar": 0,
+      "work": "whittaker",
+      "page": "204–205",
+      "text": "The first and last verses of the motet Jesu, meine Freude are this same plain harmonisation; for the longing of these lines “simplicity” was “clearly the object of the composer” (Whittaker)."
+    },
+    {
+      "n": 283,
+      "bar": 7,
+      "work": "whittaker",
+      "page": "214–215",
+      "text": "“Elend, Not, Kreuz, Schmach und Tod”: the lower voices answer each word with a little two-note figure, “so beloved by Johann Sebastian” (Whittaker), the voices “intensifying the meaning of the words”."
+    },
+    {
+      "n": 262,
+      "bar": 0,
+      "work": "whittaker",
+      "page": "40",
+      "text": "“The lovely harmonies of the concluding chorale are a never-ending delight” (Whittaker, on the close of Cantata 2)."
+    },
+    {
+      "n": 253,
+      "bar": 17,
+      "work": "whittaker",
+      "page": "33",
+      "text": "“An exceedingly fine harmonisation, with a surprising final bar” (Whittaker): it stops on D major, the dominant, and does not return to G minor."
+    },
+    {
+      "n": 371,
+      "bar": 12,
+      "work": "whittaker",
+      "page": "132",
+      "text": "“Exceptionally bold part-writing” (Whittaker), above all in this last bar."
+    },
+    {
+      "n": 261,
+      "bar": 1,
+      "work": "whittaker",
+      "page": "132–133",
+      "text": "Four F♯s high in the tenor: in the second verse sung to these bars, Whittaker hears them as the line “Das ist hoch an des Kreuzes Stamm” (high on the Cross)."
+    },
+    {
+      "n": 184,
+      "bar": 0,
+      "work": "whittaker",
+      "page": "145",
+      "text": "After seven verses worked out in every way, Cantata 4 ends with the hymn in plain four parts: “Bach is content to end with the plain tune” (Whittaker)."
+    },
+    {
+      "n": 179,
+      "bar": 0,
+      "work": "whittaker",
+      "page": "63",
+      "text": "Cantata 140 ends with the chorale “in its unadorned form, harmonised in a simple and direct way”; “no more imposing finish can be conceived” (Whittaker)."
+    },
+    {
+      "n": 87,
+      "bar": 0,
+      "work": "whittaker",
+      "page": "128",
+      "text": "“Quietly and reverently the cantata closes with a soft, tenderly harmonised four-part chorale, in which Death is likened to the Brother of Sleep” (Whittaker, on Cantata 56)."
+    },
+    {
+      "n": 38,
+      "bar": 1,
+      "work": "whittaker",
+      "page": "157–158",
+      "text": "A plain setting with “one point of technical development”: the little four-note figure that opens the bass (E♭, D, C, E♭) and keeps returning (Whittaker)."
+    },
+    {
+      "n": 69,
+      "bar": 3,
+      "work": "parry",
+      "page": "286",
+      "text": "Very short phrases, each followed by a pause: “each little phrase comes to represent a short ejaculation with a pause of reflection after it” (Parry, quoted by Whittaker, p. 229)."
+    },
+    {
+      "n": 1,
+      "bar": 3,
+      "work": "weber",
+      "page": "232",
+      "text": "Under the walking bass the alto and tenor rub against it (D and B over C, then E and C over B). Weber (1810, arguing for his teacher Vogler’s reharmonisation against Bach’s) called it “an unpleasant combination”: what he heard as a fault is the friction of independent lines."
+    },
+    {
+      "n": 1,
+      "bar": 13,
+      "work": "weber",
+      "page": "232",
+      "text": "At the cadence the bass’s G with its seventh makes the soprano’s B a leading note that “should” rise to C; instead the melody falls to G. Weber (1810, arguing for his teacher Vogler’s reharmonisation against Bach’s): “a striking harshness”."
+    },
+    {
+      "n": 1,
+      "bar": 17,
+      "work": "weber",
+      "page": "232–233",
+      "text": "The bass walks down in quavers (E, D, C, B, A, G) against moving inner voices. Weber (1810, arguing for his teacher Vogler’s reharmonisation against Bach’s) found the bar “full of badly colliding passing notes”."
+    },
+    {
+      "n": 2,
+      "bar": 2,
+      "work": "weber",
+      "page": "233",
+      "text": "The first line closes on E (through E minor, B7, E major, in A major). Five closes on E in this chorale: Weber (1810, arguing for his teacher Vogler’s reharmonisation against Bach’s) heard “monotony”, those of bars 2 and 6 (the repeat) “rather hard”."
+    },
+    {
+      "n": 2,
+      "bar": 12,
+      "work": "weber",
+      "page": "233",
+      "text": "The soprano’s B passes over the alto’s held A and the bass’s G♯: three neighbouring notes at once, “very unpleasant” to Weber (1810, arguing for his teacher Vogler’s reharmonisation against Bach’s)."
+    },
+    {
+      "n": 3,
+      "bar": 3,
+      "work": "weber",
+      "page": "238",
+      "text": "“One of Bach’s most beautiful and flowing chorales”, wrote Weber (1810, arguing for his teacher Vogler’s reharmonisation against Bach’s), “except bar 3”: on the last beat F, D and E collide so that the bass can sing its line."
+    },
+    {
+      "n": 4,
+      "bar": 3,
+      "work": "weber",
+      "page": "238",
+      "text": "The upper voices hold an E-major chord while the bass passes underneath (F♯, then G♯): “a quite different harmony from the one the bass leads you to expect”. Bach, Weber (1810, arguing for his teacher Vogler’s reharmonisation against Bach’s) concluded, “often sacrificed the harmony to keep the course of individual voices”."
+    },
+    {
+      "n": 5,
+      "bar": 2,
+      "work": "weber",
+      "page": "239",
+      "text": "The first line closes with the melody on the third of the chord (B over G), not on its root: “against chorale practice”, said Weber (1810, arguing for his teacher Vogler’s reharmonisation against Bach’s). Listen to how open that close sounds."
+    },
+    {
+      "n": 5,
+      "bar": 8,
+      "work": "weber",
+      "page": "239",
+      "text": "Tenor and bass meet in unison and the bass climbs above the tenor: Weber (1810, arguing for his teacher Vogler’s reharmonisation against Bach’s) heard the passage “loaded with unpleasant collisions of tenor and bass”."
+    },
+    {
+      "n": 6,
+      "bar": 5,
+      "work": "weber",
+      "page": "240",
+      "text": "Two quick notes in the alto (C, B♭) step between G and A. Without them, alto and bass would move in parallel fifths; Weber (1810, arguing for his teacher Vogler’s reharmonisation against Bach’s), who called the chorale “otherwise very beautifully written”, thought they disturbed the alto’s flow."
+    },
+    {
+      "n": 7,
+      "bar": 4,
+      "work": "weber",
+      "page": "239",
+      "text": "The first line closes with the melody on the third (C♯ over A), which Weber (1810, arguing for his teacher Vogler’s reharmonisation against Bach’s) objected to again: he wanted the root in the melody at a close."
+    },
+    {
+      "n": 7,
+      "bar": 13,
+      "work": "weber",
+      "page": "239",
+      "text": "On the second beat only A and E sound, all four voices on two notes: “only two-part”, as Weber (1810, arguing for his teacher Vogler’s reharmonisation against Bach’s) put it. A bare, open sonority in the middle of the hymn."
+    },
+    {
+      "n": 8,
+      "bar": 2,
+      "work": "weber",
+      "page": "240",
+      "text": "At the ends of bars 2, 8, 14, 16 and 20 the last two beats strike the same chord twice. Weber (1810, arguing for his teacher Vogler’s reharmonisation against Bach’s) heard “a certain monotony”; Vogler put a dissonance there each time."
+    },
+    {
+      "n": 8,
+      "bar": 3,
+      "work": "prout",
+      "page": "69–70",
+      "text": "A rare chord: the diminished triad on the leading note with its fifth in the bass (G–B♭ over D♭), “only very rarely to be found in four-part harmony” (Prout). In the next bar soprano and tenor move in fifths, excused because the soprano’s A♭ anticipates the next chord."
+    },
+    {
+      "n": 10,
+      "bar": 3,
+      "work": "weber",
+      "page": "241",
+      "text": "The first lines close on E major again and again (four times, with the repeat). Weber (1810, arguing for his teacher Vogler’s reharmonisation against Bach’s): “The four cadences on E sound monotonous.” In this Phrygian hymn the close on E is the mode’s own."
+    },
+    {
+      "n": 11,
+      "bar": 2,
+      "work": "weber",
+      "page": "241–242",
+      "text": "In a C-major chorale the very first line closes on B♭ major: a surprise Weber (1810, arguing for his teacher Vogler’s reharmonisation against Bach’s) pointed out (“In the key of C, Bach makes the very first cadence on B♭”)."
+    },
+    {
+      "n": 12,
+      "bar": 4,
+      "work": "weber",
+      "page": "241",
+      "text": "Two lines in a row close on C major in this A-minor chorale (bars 4 and 7). Weber (1810, arguing for his teacher Vogler’s reharmonisation against Bach’s) found it “conspicuous in this already short chorale”."
+    },
+    {
+      "n": 26,
+      "bar": 3,
+      "work": "prout",
+      "page": "217–218",
+      "text": "A chain of seventh chords before the cadence: a seventh on the mediant, prepared, resolving onto another seventh chord, whose root rises only a step (Prout). Each dissonance leans into the next."
+    },
+    {
+      "n": 85,
+      "bar": 1,
+      "work": "prout",
+      "page": "119–120",
+      "text": "The soprano’s quick E arrives before the alto’s: the note the alto is about to take is anticipated in another voice, a rare case Prout singles out."
+    },
+    {
+      "n": 95,
+      "bar": 1,
+      "work": "prout",
+      "page": "218",
+      "text": "A seventh chord on the sixth degree (G–D–B♭–F) at the end of bar 1; in bar 3 a seventh on the third degree whose dissonance is decorated before it resolves onto E♭ major (Prout: “an ornamental resolution”)."
+    },
+    {
+      "n": 111,
+      "bar": 10,
+      "work": "prout",
+      "page": "93",
+      "text": "A Picardy third: this A-minor setting ends on A major. Prout points also to “Bach’s partiality” for letting the leading note in an inner voice fall to the fifth of the final chord (the tenor’s G♯ to E), and, just before, a diminished chord standing in for the dominant."
+    },
+    {
+      "n": 113,
+      "bar": 3,
+      "work": "prout",
+      "page": "152",
+      "text": "A minor ninth on the tonic (D–F–A♭–C♭ over D: the B♭-minor ninth without its root). The tenor’s C♭ sinks to B♭; Prout insists the key is “unquestionably B flat minor”. A dark, rare sonority."
+    },
+    {
+      "n": 117,
+      "bar": 10,
+      "work": "prout",
+      "page": "224",
+      "text": "The alto holds G as a ninth over F minor, and it resolves to F just as the bass moves up to A♭ (Prout): a suspension whose resolution arrives with a new bass note."
+    },
+    {
+      "n": 122,
+      "bar": 13,
+      "work": "prout",
+      "page": "81",
+      "text": "Near the end, a chord with the major sixth of the scale (A♮ in C minor: D–F–A♮), then a Picardy third on C major. Prout gave these “because of their historical importance, and not for the imitation of the student”."
+    },
+    {
+      "n": 135,
+      "bar": 10,
+      "work": "prout",
+      "page": "230",
+      "text": "A chain of suspensions in the alto (Prout figures them 7 6, 9 8, 7 6, 5 6, 9 8): “very rich in suspensions”. One chord that looks like a triad is in fact a suspension of the next note."
+    },
+    {
+      "n": 156,
+      "bar": 8,
+      "work": "prout",
+      "page": "137–138",
+      "text": "A chromatic seventh chord on the second degree (B–D♯–F♯–A over D♯) resolving not to the tonic but to the dominant seventh: “an unusual resolution” (Prout)."
+    },
+    {
+      "n": 308,
+      "bar": 8,
+      "work": "prout",
+      "page": "137–138",
+      "text": "A chromatic seventh chord on the second degree (B–D♯–F♯–A over D♯) resolving not to the tonic but to the dominant seventh: “an unusual resolution” (Prout). (The same setting as No. 156.)"
+    },
+    {
+      "n": 179,
+      "bar": 14,
+      "work": "prout",
+      "page": "230",
+      "text": "The dominant’s root suspended from a whole tone below: the alto’s F rises to G, where a semitone would be usual (Prout)."
+    },
+    {
+      "n": 301,
+      "bar": 3,
+      "work": "prout",
+      "page": "175–176",
+      "text": "A chord of the eleventh on the second degree, “even rarer than that on the tonic” (Prout), between a dominant minor ninth and the leading-note triad: three dense harmonies in two beats."
+    }
   ]
 }
