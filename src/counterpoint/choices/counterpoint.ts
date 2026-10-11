@@ -154,6 +154,45 @@ function stepCost(o: CounterpointOptions, layout: Slot[], line: string[], k: num
   return (o.counselWeight ?? DEFAULT_COUNSEL_WEIGHT) * counsel + habit;
 }
 
+/**
+ * Can the line, written up to `prefix.length`, still be finished without breaking a rule (the
+ * cadence included)? A depth-first search over the remaining slots, pruned as the generator prunes
+ * (the local prefilter, the rules that judge a prefix at each downbeat). True or false, or null when
+ * the search ran out of budget (undecided). Meant for the last bars, where few slots remain.
+ */
+export function completes(o: Omit<CounterpointOptions, "habits" | "seed">, prefix: string[], budget = 3000): boolean | null {
+  const opts = o as CounterpointOptions;
+  const layout = slotLayout(o.species, o.cantus.length);
+  const finalCf = o.cantus[o.cantus.length - 1];
+  const prefixRules = o.rules.filter((x) => !DEFERRED.test(x.id));
+  let left = budget;
+  const walk = (line: string[]): boolean | null => {
+    const k = line.length;
+    if (k === layout.length) {
+      left--;
+      return judge(opts, o.cantus, line, o.rules).passed;
+    }
+    let undecided = false;
+    for (const p of o.vocabulary) {
+      if (left < 0) return null;
+      if (!prefilter(opts, layout, line, k, p)) continue;
+      if (k === layout.length - 1 && harmonic(finalCf, p).simple !== 1) continue;
+      const next = [...line, p];
+      const s = layout[k];
+      if (s.beat === 0 && s.bar >= 1 && k < layout.length - 1) {
+        left--;
+        // The prefix ends on this downbeat, judged as if it were the last note: its own errors wait.
+        if (judge(opts, o.cantus.slice(0, s.bar + 1), next, prefixRules).errors.some((v) => !v.positions.includes(k))) continue;
+      }
+      const got = walk(next);
+      if (got) return true;
+      if (got === null) undecided = true;
+    }
+    return undecided ? null : false;
+  };
+  return walk(prefix);
+}
+
 /** Depth-first completion of the last two bars from each state, best states first; full judgement only. */
 function completeCadence(o: CounterpointOptions, layout: Slot[], states: State[], from: number): GeneratedLine | null {
   let budget = 2500;

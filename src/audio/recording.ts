@@ -33,6 +33,13 @@ export function secondsAt(t: Track, q: number, barQ: number): number {
   return t.bars[b] + f * (t.bars[b + 1] - t.bars[b]);
 }
 
+/** Seconds in the recording → quarters from the first bar (linear within a bar). */
+export function quartersAt(t: Track, s: number, barQ: number): number {
+  const b = barAt(t, s);
+  const len = t.bars[b + 1] - t.bars[b];
+  return (b + Math.max(0, Math.min(1, len > 0 ? (s - t.bars[b]) / len : 0))) * barQ;
+}
+
 /** Seconds in the recording → the bar (0-based) being played. */
 export function barAt(t: Track, s: number): number {
   let b = 0;
@@ -45,6 +52,11 @@ class Player {
   private el: HTMLAudioElement | null = null;
   private raf = 0;
   private token = 0;
+
+  /** The time in the track while it plays, else null. */
+  time(): number | null {
+    return this.el && !this.el.paused ? this.el.currentTime : null;
+  }
 
   stop() {
     this.token++;
@@ -75,6 +87,13 @@ class Player {
   }
 
   /** Play [from, to) seconds of each stretch in turn; `onTime` gets the time while it plays, `onEnd` once at the end (or never, if stopped). */
+  /** The speed (1 = as recorded), the pitch kept; changes at once while it plays. */
+  setRate(rate: number) {
+    this.rate = Math.max(0.25, Math.min(2, rate));
+    if (this.el) this.el.playbackRate = this.rate;
+  }
+  private rate = 1;
+
   async play(urls: string[], stretches: [number, number][], onTime: (s: number) => void, onEnd: () => void, volume = 1) {
     this.stop();
     const token = this.token;
@@ -84,6 +103,8 @@ class Player {
       return;
     }
     el.volume = Math.max(0, Math.min(1, volume));
+    el.preservesPitch = true;
+    el.playbackRate = this.rate;
     for (const [from, to] of stretches) {
       if (token !== this.token) return;
       el.currentTime = from;

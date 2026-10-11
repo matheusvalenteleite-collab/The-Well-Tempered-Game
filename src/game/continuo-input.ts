@@ -6,7 +6,7 @@ import type { ModalFinal, Staff } from "../music/fux/types.ts";
 import type { SpeciesId, Slot } from "../counterpoint/layout.ts";
 import { HOLD, sounding } from "../counterpoint/layout.ts";
 import type { VoiceNote } from "../counterpoint/rules/types.ts";
-import type { ContinuoInput, ContinuoOptions } from "../continuo/types.ts";
+import type { ContinuoInput, ContinuoOptions, MultiVoiceInput } from "../continuo/types.ts";
 import type { ContinuoSettings } from "./continuo-settings.ts";
 
 export type PlayMode = "player" | "fux" | "trio";
@@ -55,6 +55,38 @@ export function continuoInput(view: ContinuoView, notes: (string | null)[] | (st
   const cp = mode === "fux" ? view.fux : lines[0];
   if (!cp) throw new Error("Fux's solution is not available for this exercise");
   return { species: view.species, modalFinal: view.modalFinal, cantusVoice: view.cantusVoice, cantus, counterpoint: line(view.layout, cp) };
+}
+
+/**
+ * Three voices (D152): the cantus, and the player's two lines as sung, the moving voice in its own
+ * rhythm (`per` notes a bar, the last bar one; a HOLD lengthens the note before it), so the continuo
+ * reads each bar as the voices make it (a suspension from its resolution) rather than its downbeat.
+ * `lines[j]` is the line of voice `voices[j]`.
+ */
+export function trioContinuoInput(
+  step: { modalFinal: ModalFinal; cantus: string[]; movingIndex: number | null; per: number },
+  voices: number[],
+  lines: (string | null)[][],
+): MultiVoiceInput {
+  const n = step.cantus.length;
+  const sung = (l: (string | null)[], voice: number): VoiceNote[] => {
+    if (voice !== step.movingIndex) return Array.from({ length: n }, (_, k) => ({ pitch: sounding(l[k] ?? null) ? l[k] : null, duration: "1/1" }));
+    const out: { pitch: string | null; len: number }[] = [];
+    for (let k = 0; k < n; k++) {
+      const last = k === n - 1;
+      for (let j = 0; j < (last ? 1 : step.per); j++) {
+        const v = l[step.per * k + j] ?? null;
+        const len = last ? 8 : 8 / step.per;
+        if (v === HOLD && out.length) out[out.length - 1].len += len;
+        else out.push({ pitch: sounding(v) ? v : null, len });
+      }
+    }
+    return out.map((x) => ({ pitch: x.pitch, duration: `${x.len}/8` }));
+  };
+  return {
+    modalFinal: step.modalFinal,
+    voices: [{ id: "cantus", notes: step.cantus.map((p) => ({ pitch: p, duration: "1/1" })) }, ...lines.map((l, j) => ({ id: j === 0 ? "counterpoint" : `counterpoint${j + 1}`, notes: sung(l, voices[j]) }))],
+  };
 }
 
 /** Realization options for a play mode and the panel's settings (presets only change the sound). */

@@ -65,12 +65,14 @@ test("writing tasks: Fux's answer passes the rules of the exercise, and only the
   assert.ok(n >= 15);
 });
 
-test("writing tasks: the rules are those of the game's exercise", async () => {
+test("writing tasks: the rules are those of the game's exercise (the whole line: all the chapter's)", async () => {
   const { rulesForStep } = await import("../src/counterpoint/curriculum/index.ts");
+  const { FIRST_SPECIES_FUX_STRICT } = await import("../src/counterpoint/rules/first-species.ts");
   for (const l of LESSONS) {
     const s = l.scene;
     if (l.task.kind !== "judge" || !s?.stepId) continue;
-    assert.deepEqual(s.rules!.map((r) => r.id), rulesForStep(s.stepId).map((r) => r.id), l.id);
+    const want = l.id === "first.whole" ? FIRST_SPECIES_FUX_STRICT : rulesForStep(s.stepId);
+    assert.deepEqual(s.rules!.map((r) => r.id), want.map((r) => r.id), l.id);
   }
 });
 
@@ -280,4 +282,12 @@ test("three voices, species two to five: Fux's first examples, all on the D cant
       for (let k = 1; k < mine.length; k++) assert.ok(mine[k].at >= mine[k - 1].at + mine[k - 1].len - 1e-9, `species ${n} voice ${v}: no overlap`);
     }
   }
+});
+
+test("first.whole: the melodic rules just taught are judged (thirds above this cantus leap F to B)", () => {
+  const s = lesson("first.whole").scene!;
+  // D F E D G F A G F E D: thirds above, with the cadence (C♯ D) and an opening fifth.
+  const thirds = ["A4", "A4", "G4", "F4", "B4", "A4", "C5", "B4", "A4", "C#5", "D5"];
+  const ev = judge(s, thirds);
+  assert.ok(ev.errors.some((v) => v.ruleId === "fs.melodic-tritone"), JSON.stringify(ev.errors.map((v) => v.ruleId)));
 });

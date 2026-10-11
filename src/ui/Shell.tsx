@@ -80,6 +80,10 @@ export function Shell(p: {
   /** What the info bar says when nothing is pointed at (the source of the exercise). */
   idle: string;
   overlays?: ReactNode;
+  /** The score alone: the bottom panel folded away (D147, listening with the page of music). */
+  focus?: boolean;
+  /** A screen's own panel height (where it is remembered, its first height, its least): the study's music wants more room. */
+  panel?: { key: string; first: number; min: number };
 }) {
   const [win, setWin] = useState({ w: window.innerWidth, h: window.innerHeight });
   useEffect(() => {
@@ -95,12 +99,15 @@ export function Shell(p: {
   const h = win.h / zoom;
   const layout = w < STANDARD.w || h < STANDARD.h ? "compact" : w < WIDE ? "standard" : "wide";
 
-  const [panelH, setPanelH] = useState(() => stored("wtg.panelH", PANEL_H, (v) => typeof v === "number" && v >= PANEL_MIN && v <= 1000));
+  const panelKey = p.panel?.key ?? "wtg.panelH";
+  const panelFirst = p.panel?.first ?? PANEL_H;
+  const panelMin = p.panel?.min ?? PANEL_MIN;
+  const [panelH, setPanelH] = useState(() => stored(panelKey, panelFirst, (v) => typeof v === "number" && v >= panelMin && v <= 1000));
   const [textW, setTextW] = useState(() => stored("wtg.textW", TEXT_W, (v) => typeof v === "number" && v >= 320 && v <= 1400));
-  useEffect(() => store("wtg.panelH", panelH), [panelH]);
+  useEffect(() => store(panelKey, panelH), [panelKey, panelH]);
   useEffect(() => store("wtg.textW", textW), [textW]);
   // Dragged sizes are kept within what the window allows (the score keeps at least 180 units).
-  const shownPanelH = Math.max(PANEL_MIN, Math.min(panelH, h - 40 - 44 - 42 - 180));
+  const shownPanelH = Math.max(panelMin, Math.min(panelH, h - 40 - 44 - 42 - 180));
   const shownTextW = Math.max(320, Math.min(textW, w - 24 - MIXER_MIN));
 
   const texts = p.tabs.filter((x) => x.text);
@@ -129,7 +136,7 @@ export function Shell(p: {
 
   return (
     <div
-      className={`shell layout-${layout}`}
+      className={`shell layout-${layout}${p.focus ? " focus" : ""}`}
       style={zoom !== 1 ? { width: w, height: layout === "compact" ? undefined : h, minHeight: layout === "compact" ? h : undefined, transform: `scale(${zoom})`, transformOrigin: "0 0", maxWidth: "none", margin: 0 } : undefined}
     >
       <header className="topbar">
@@ -141,10 +148,10 @@ export function Shell(p: {
       <div className="score-area">{p.score}</div>
       <div className="transport-row">{p.transport}</div>
       {p.summary}
-      {layout !== "compact" && (
-        <Divider dir="row" zoom={zoom} label={t("ui.divider.panel")} onDrag={(d) => setPanelH((x) => Math.max(PANEL_MIN, Math.min(1000, Math.round(Math.min(x, shownPanelH) - d))))} onReset={() => setPanelH(PANEL_H)} />
+      {layout !== "compact" && !p.focus && (
+        <Divider dir="row" zoom={zoom} label={t("ui.divider.panel")} onDrag={(d) => setPanelH((x) => Math.max(panelMin, Math.min(1000, Math.round(Math.min(x, shownPanelH) - d))))} onReset={() => setPanelH(panelFirst)} />
       )}
-      <div className="panel" style={layout !== "compact" ? { height: shownPanelH } : undefined}>
+      <div className="panel" hidden={p.focus} style={layout !== "compact" ? { height: shownPanelH } : undefined}>
         <section className="dock">
           {dock.length > 1 && strip(dock, dockTab)}
           <div className={`dock-body${dockTab?.text ? "" : " fit"}`} role="tabpanel">{dockTab?.content}</div>

@@ -18,7 +18,7 @@ import { restoreSound, setMix as changeMix, type SoundState } from "../audio/sou
 import { DEFAULT_DRUMS, type DrumSettings } from "../audio/drums.ts";
 import { TEMPERAMENTS, type TemperamentId } from "../audio/temperament.ts";
 import { DEFAULT_CONTINUO_SETTINGS, validContinuoSettings, type ContinuoSettings } from "../game/continuo-settings.ts";
-import { continuoInput, continuoOptions } from "../game/continuo-input.ts";
+import { continuoOptions, trioContinuoInput } from "../game/continuo-input.ts";
 import { realizeContinuo } from "../continuo/realize.ts";
 import { playContinuo } from "../continuo/audio.ts";
 import { DEFAULT_VERSIONS, type Versions } from "../game/versions.ts";
@@ -29,7 +29,7 @@ import { applyStyle, type StyleId } from "../audio/styles.ts";
 import { ZOOM_MAX, ZOOM_MIN } from "./notation/zoom.ts";
 import { SoundDesk, trackOrder } from "./SoundDesk.tsx";
 import { HFader } from "./HFader.tsx";
-import { audio, store, stored, validDrumKit } from "./shared.ts";
+import { audio, store, stored, validDrumKit, storedVolume } from "./shared.ts";
 import { t } from "./i18n.ts";
 import { Shell } from "./Shell.tsx";
 import { Guide } from "./Guide.tsx";
@@ -103,7 +103,7 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
 
   // Settings shared with the two-voice screen.
   const [tempo, setTempo] = useState(() => stored("wtg.tempo", 60, (v) => typeof v === "number" && v >= 30 && v <= 240));
-  const [volume, setVolume] = useState(() => stored("wtg.volume", 70, (v) => typeof v === "number" && v >= 0 && v <= 100));
+  const [volume, setVolume] = useState(() => storedVolume());
   const [sound, setSound] = useState<SoundState>(() => restoreSound(stored<unknown>("wtg.sound3", null)));
   const [look, setLook] = useState<"retro" | "classic">(() => stored("wtg.look", "retro", (v) => v === "retro" || v === "classic"));
   const [theme, setTheme] = useState<"auto" | "light" | "dark">(() => stored("wtg.theme", "auto", (v) => v === "auto" || v === "light" || v === "dark"));
@@ -376,11 +376,10 @@ export function TrioApp({ onVoices, suspended, command, onTutorial }: { onVoices
     let onCycle: ((startTime: number, fromBeat: number) => void) | undefined;
     if (continuo) {
       const fuxOnly = !versions.original && fuxHeard && fuxOpen;
-      // The continuo harmonises the downbeats (the minim voice's thesis notes).
-      const heard = (fuxOnly ? fuxLines : mine.map((i) => sessions[i].notes)).map((line, j) => Array.from({ length: n }, (_, k) => downOf(line, mine[j], k)));
+      // The continuo hears the voices as sung, the moving one in its rhythm (a suspension read from its resolution).
+      const heard = fuxOnly ? fuxLines : mine.map((i) => sessions[i].notes);
       try {
-        const view = { species: "first" as const, modalFinal: STEP.modalFinal, cantusVoice: "upper" as const, cantus: STEP.cantus, layout: slotLayout("first", n), fux: null };
-        const input = continuoInput(view, heard, "player");
+        const input = trioContinuoInput(STEP, mine, heard);
         const realization = realizeContinuo(input, continuoOptions("player", continuoSettings));
         onCycle = (startTime, fromBeat) => {
           const graph = audio.graph;

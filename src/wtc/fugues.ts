@@ -88,6 +88,12 @@ export function transpose(pitch: string, steps: number, semitones: number): stri
 /** Diatonic steps of a transposition by `semitones` (7 -> 4, a fifth; -5 -> -3, a fourth down; 19 -> 11). */
 export const stepsOf = (semitones: number) => Math.round((semitones * 7) / 12);
 
+/**
+ * The notes the entries are searched by (D122): the subject, but for Book II no. 23, whose later
+ * entries keep the five-note head and vary what follows (D152).
+ */
+export const searchHead = (f: WtcFugue): WtcNote[] => (f.id === "wtc2.23" ? f.subject.slice(0, 5) : f.subject);
+
 /** The real answer: the subject moved by the answer's interval, spelled. */
 export const realAnswer = (f: WtcFugue) => f.subject.map((n) => transpose(n.pitch, stepsOf(f.answerShift), f.answerShift));
 

@@ -9,7 +9,7 @@
  * every key sounds as itself (Werckmeister III, Kirnberger III, Vallotti, or equal).
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { FUGUES, KEY_ORDER, keyName, keySignature, isMinor, realAnswer, transpose, type WtcFugue, type WtcNote } from "../wtc/fugues.ts";
+import { FUGUES, KEY_ORDER, keyName, keySignature, isMinor, realAnswer, searchHead, transpose, type WtcFugue, type WtcNote } from "../wtc/fugues.ts";
 import { degree, evaluateAnswer, type AnswerEvaluation } from "../wtc/answer.ts";
 import { beatOf, evaluateCounterpoint, type CpEvaluation } from "../wtc/counterpoint.ts";
 import { counterHint } from "../wtc/hints.ts";
@@ -24,7 +24,7 @@ import { frequency, WELL, type TemperamentId } from "../audio/temperament.ts";
 import type { PlayEvent } from "../counterpoint/layout.ts";
 import { ZOOM_MAX, ZOOM_MIN } from "./notation/zoom.ts";
 import { HFader } from "./HFader.tsx";
-import { audio, store, stored } from "./shared.ts";
+import { audio, store, stored, storedVolume } from "./shared.ts";
 import { t } from "./i18n.ts";
 import { Shell } from "./Shell.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
@@ -121,7 +121,7 @@ export function WtcApp({ onVoices, onStudy, onTutorial }: { onVoices(n: 2 | 3 | 
     audio.tempo = tempo;
     store("wtg.wtcTempo", tempo);
   }, [tempo]);
-  const [volume, setVolume] = useState(() => stored("wtg.volume", 70, (v) => typeof v === "number"));
+  const [volume, setVolume] = useState(() => storedVolume());
   useEffect(() => audio.setVolume(volume / 100), [volume]);
   const [tuning, setTuning] = useState<TemperamentId>(() => stored("wtg.wtcTuning", "werckmeister3" as TemperamentId, (v) => WELL.includes(v as TemperamentId)));
   useEffect(() => {
@@ -166,7 +166,7 @@ export function WtcApp({ onVoices, onStudy, onTutorial }: { onVoices(n: 2 | 3 | 
   const signature = useMemo(() => keySignature(F.key), [F.key]);
   const flats = Object.values(signature).some((x) => x < 0);
   const allNotes: FullNote[] = useMemo(() => (FULL[F.id] ?? []).map(([m, o, d]) => ({ midi: m, at: o / 96, dur: d / 96 })), [F.id]);
-  const entries: Entry[] = useMemo(() => findEntries(allNotes, F.subject.map((n) => ({ midi: parsePitch(n.pitch).midi, at: n.at, dur: n.dur }))), [allNotes, F]);
+  const entries: Entry[] = useMemo(() => findEntries(allNotes, searchHead(F).map((n) => ({ midi: parsePitch(n.pitch).midi, at: n.at, dur: n.dur }))), [allNotes, F]);
   const showWhole = ((exercise === "study" && whole) || exercise === "hunt") && allNotes.length > 0;
   const marks = hunts[F.id] ?? [];
   /** Which entry a marked note finds: its first note, or a note within a beat and a tone of it. */

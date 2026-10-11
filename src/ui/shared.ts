@@ -46,3 +46,9 @@ export function validDrumKit(raw: unknown): DrumSettings {
     (v.parts === undefined || (typeof v.parts === "object" && v.parts !== null && Object.values(v.parts).every((k) => typeof k === "number" && k >= 1)));
   return ok ? v : { ...DEFAULT_DRUMS };
 }
+
+/**
+ * The master volume (0..100, fractions kept: the master fader's lowest steps are below 1%). A
+ * silence saved by a fader pulled to the bottom is not restored: the game opens audible again.
+ */
+export const storedVolume = (): number => stored("wtg.volume", 70, (v) => typeof v === "number" && v >= 1 && v <= 100);

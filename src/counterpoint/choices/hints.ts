@@ -16,6 +16,7 @@ import { judgeLine, scoreCandidate, type Candidate, type ChoiceContext } from ".
 import { compareTiers, TIER_NAMES, type TierName } from "./score.ts";
 import { choiceUnits } from "./corpus.ts";
 import { REST, slotLayout, sounding } from "../layout.ts";
+import { completes } from "./counterpoint.ts";
 import { parsePitch } from "../../music/pitch.ts";
 
 export interface HintCandidate extends Candidate {
@@ -119,7 +120,9 @@ function withLookahead(ctx: ChoiceContext, line: (string | null)[], unit: number
   const gaps: number[] = [];
   for (let k = last + 1; k <= end; k++) if (!filled(ctx, line, k)) gaps.push(k);
   const base = line.map((q, k) => (unit.includes(k) ? p : q));
-  const touches = (v: Violation) => v.positions.some((x) => unit.includes(x));
+  // What the choice is answerable for: an error at the choice or in the continuation after it (a
+  // continuation that can only err is a dead end, not a stand-in).
+  const touches = (v: Violation) => v.positions.some((x) => x >= unit[0]);
   const m = (x: string) => parsePitch(x).midi;
   let budget = 80;
   let best: { trial: (string | null)[]; ev: { errors: Violation[]; warnings: Violation[] }; w: NonNullable<ReturnType<typeof windowFor>> } | null = null;
@@ -141,7 +144,8 @@ function withLookahead(ctx: ChoiceContext, line: (string | null)[], unit: number
     const dir = sounding(prev) && sounding(before) ? Math.sign(m(prev) - m(before)) : 0;
     const near = sounding(prev)
       ? ctx.vocabulary
-          .filter((x) => x !== prev && !x.includes("#"))
+          // No chromatic stand-ins, except the raised leading note of the cadence.
+          .filter((x) => x !== prev && (!x.includes("#") || L[gaps[i]].bar >= ctx.cantus.length - 2))
           .sort((a, b) => {
             const cost = (x: string) => Math.abs(m(x) - m(prev)) + (Math.sign(m(x) - m(prev)) === dir ? 0 : 0.5);
             return cost(a) - cost(b);
@@ -183,14 +187,28 @@ export function hintAt(ctx: ChoiceContext, line: (string | null)[], unit: number
     return got ? [{ p, trial: line.map((q, k) => (unit.includes(k) ? p : q)), ev: got.ev }] : [];
   });
   if (!judged.length) return null;
+  // The last bars: the line written to the choice and nothing after it.
+  const endgame = s.bar >= ctx.cantus.length - 4 && line.every((q, k) => (k < unit[0] ? filled(ctx, line, k) : k > last ? !sounding(q) : true));
   // What the line breaks away from this choice whatever is written here is not the candidate's doing.
   const away = (vs: Violation[]) => new Set(vs.filter((v) => !touches(v)).map(key));
   const sets = judged.map((j) => away([...j.ev.errors, ...j.ev.warnings]));
   const had = new Set([...(sets[0] ?? [])].filter((k) => sets.every((x) => x.has(k))));
   const cands: HintCandidate[] = judged.map(({ p, trial, ev }) => {
-    // With a continuation, only what touches the choice is its doing (the continuation is a stand-in).
-    const mine = (v: Violation) => touches(v) || (!ahead && !had.has(key(v)));
-    const caused = ev.errors.filter(mine);
+    // Its doing: what touches the choice; what it brings about in the notes before it (a passing
+    // dissonance left unresolved: those rules mark the dissonance, not the note after it); and,
+    // judged with a continuation, an error the best continuation could not avoid (a dead end).
+    const before = (v: Violation) => !had.has(key(v)) && v.positions.every((x) => x < unit[0] || unit.includes(x));
+    const mine = (v: Violation) => touches(v) || (!ahead && !had.has(key(v))) || (ahead && (before(v) || v.positions.some((x) => x > last)));
+    let caused = ev.errors.filter(mine);
+    // Near the end, written up to here and nothing after, the search for a whole line decides: a
+    // note is good if the line can still be finished, cadence and all (the short lookahead may have
+    // missed the way), and not if it cannot (else the hint walks the player into a corner).
+    const ending = (v: Violation) => ENDING.test(v.ruleId) || v.positions.some((x) => x > last);
+    if (endgame && caused.every(ending)) {
+      const done = completes(ctx, trial.slice(0, last + 1) as string[], 30000);
+      if (done === true) caused = [];
+      else if (done === false && !caused.length) caused.push({ ruleId: "hint.no-ending", positions: unit, severity: "error", messageKey: "hint.noEnding" });
+    }
     const causedWarnings = ev.warnings.filter(mine);
     const c = scoreCandidate(ctx, trial as string[], unit, p, p === written, ev);
     return {

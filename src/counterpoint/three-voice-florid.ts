@@ -190,8 +190,8 @@ export function evaluateTrioFlorid(input: TrioFloridInput): TrioEvaluation {
       if (midi(n.p) > midi(low)) {
         const prep = harmonic(sem(lowX, n.bar - 1), notes[i - 1].p);
         const now = harmonic(low, n.p);
-        if ((prep.simple === 8 || prep.number === 1) && now.simple === 2) out.push(viol("t4.ligature-kinds", "error", "rule.fos.ligature-kinds", [n.bar - 1, n.bar], [m]));
-      } else if (os.some((o) => harmonic(n.p, o).simple === 7 && notes[i + 1] && harmonic(notes[i + 1].p, o).simple === 8))
+        if (prep.simple === 1 && now.simple === 2) out.push(viol("t4.ligature-kinds", "error", "rule.fos.ligature-kinds", [n.bar - 1, n.bar], [m]));
+      } else if (os.some((o) => harmonic(n.p, o).simple === 7 && notes[i + 1] && harmonic(notes[i + 1].p, o).simple === 1))
         out.push(viol("t4.ligature-kinds", "error", "rule.fos.ligature-kinds", [n.bar], [m]));
     });
 

@@ -13,7 +13,9 @@ licence (non-commercial, with attribution, share-alike). Bach's music itself is 
 
 Made by `tools/wtc-extract.py` (D119): the notes alone decide the lines (the encodings' voice
 numbers are not reliable); written-out trills beside their main note are dropped; the subject
-lasts as long as the answer repeats it at a fixed transposition, mutations at the head aside.
+lasts as long as the answer repeats it at a fixed transposition, mutations at the head aside, and
+never less than the dux alone before the answer enters (D152: four long subjects, Book I nos. 11
+and 20, Book II nos. 15 and 23, had been cut short, their continuation counted as countersubject).
 Missing keys (ASAP has no fugue in them): C minor, D sharp / E flat minor, E minor.
 
 `preludes-full.json` (D125) holds every note of the 29 preludes that go with these fugues, from the

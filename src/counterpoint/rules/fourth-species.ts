@@ -85,8 +85,8 @@ export const ligatureKinds: Rule = {
       const now = simple(vert(e));
       if (a.input.cantusVoice === "lower") {
         const from = prep ? vert(prep) : null;
-        if (from && from.simple === 8 && now === 2) out.push(v(this, [prep!.slot, e.slot], { from: from.name, to: vert(e).name }));
-        if (from && from.number === 1 && now === 2) out.push(v(this, [prep!.slot, e.slot], { from: from.name, to: vert(e).name }));
+        // The unison or the octave (any octave: `simple` is 1 for all of them) to the second or the ninth.
+        if (from && from.simple === 1 && now === 2) out.push(v(this, [prep!.slot, e.slot], { from: from.name, to: vert(e).name }));
       } else if (now === 7) out.push(v(this, [e.slot], { interval: vert(e).name }));
     }
     return out;
@@ -148,7 +148,7 @@ export function ligaturePossible(a: Analysis, b: number): boolean {
       if (!isConsonant(prep)) continue;
       const held = harmonic(cf1, x);
       if (isConsonant(held)) return true;
-      if (below && held.simple === 2 && (prep.simple === 8 || prep.number === 1)) continue;
+      if (below && held.simple === 2 && prep.simple === 1) continue;
       if (!below && held.simple === 7) continue;
       if (spellings(k - 1).some((r) => isConsonant(harmonic(cf1, r)))) return true;
     }

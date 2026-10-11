@@ -684,7 +684,9 @@ export function FugueRoll({ fugueId, clips, player }: { fugueId: string; clips: 
         cursor={own ? player.cursor : -1}
         span={span}
         extra={[]}
-        onBar={() => undefined}
+        onSeek={() => undefined}
+        follow={false}
+        marker={null}
         label={tt("ui.rollLabel")}
         firstBar={1 - F.pickup}
       />
