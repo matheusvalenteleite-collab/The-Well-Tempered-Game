@@ -26,7 +26,7 @@ import { playContinuo } from "../continuo/audio.ts";
 import { DEFAULT_VERSIONS, type Versions } from "../game/versions.ts";
 import { parsePitch, type Step } from "../music/pitch.ts";
 import { TrioScore, type TrioVoice } from "./notation/TrioScore.tsx";
-import { quartetStaves, trioStaves } from "./notation/trio-staves.ts";
+import { quartetStaves, satbOf, trioStaves } from "./notation/trio-staves.ts";
 import data3 from "../../data/fux/three-voice/fux-three-voice.json" with { type: "json" };
 import { clefMiddle, TRIO_SPECIES, trioTasks } from "../game/trio.ts";
 import { applyStyle, type StyleId } from "../audio/styles.ts";
@@ -63,7 +63,6 @@ const stepLabel = (s: QuartetStep) =>
 /** The player's three parts: Contra I, II, III on the counterpoint, second and third channels. */
 const CHANNELS = ["counterpoint", "second", "third"] as const;
 const INK = ["var(--trk-counterpoint)", "var(--trk-second)", "var(--trk-third)"];
-const NAMES = ["ui.mixer.contra1", "ui.mixer.second", "ui.mixer.third"];
 const MOVING: PartKind[] = ["minims", "crotchets", "ligatures", "florid"];
 
 type Sessions = Record<number, SessionState>;
@@ -572,13 +571,15 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
     };
   });
   // P10: in four voices the parts are named by their place, soprano to bass; the cantus too ("CF (tenor)").
-  const satb = N === 4;
-  const partName = (i: number) => (satb ? (i === STEP.cantusIndex ? t("ui.satb.cf", { part: t(`ui.satb.${i}`) }) : t(`ui.satb.${i}`)) : i === STEP.cantusIndex ? t("ui.trio3.chip.cantus") : t(NAMES[mine.indexOf(i)]));
+  const satb = true;
+  // P12: three voices named by their register too (four voices: by their place, soprano to bass).
+  const reg = N === 4 ? [0, 1, 2, 3] : satbOf(means);
+  const partName = (i: number) => (i === STEP.cantusIndex ? t("ui.satb.cf", { part: t(`ui.satb.${reg[i]}`) }) : t(`ui.satb.${reg[i]}`));
   const placeName = (i: number) => (satb ? "" : t(N === 4 ? `ui.quartet.voice.${i}` : `ui.trio3.voice.${i}`));
   const voiceName = (i: number) => (satb ? partName(i) : `${partName(i)} (${placeName(i)})`);
   /** Each part's mixer strip; the strips in the parts' order, top voice first (P10). */
   const stripOf = (i: number) => (i === STEP.cantusIndex ? "cantus" : CHANNELS[mine.indexOf(i)]);
-  const stripNames = satb ? Object.fromEntries(PARTS.map((i) => [stripOf(i), i === STEP.cantusIndex ? t("ui.satb.cf", { part: t(`ui.satb.short.${i}`) }) : t(`ui.satb.strip.${i}`)])) : undefined;
+  const stripNames = satb ? Object.fromEntries(PARTS.map((i) => [stripOf(i), i === STEP.cantusIndex ? t("ui.satb.cf", { part: t(`ui.satb.short.${reg[i]}`) }) : t(`ui.satb.strip.${reg[i]}`)])) : undefined;
   const chooseStyle = (id: StyleId) => {
     const next = applyStyle(id, { sound, drumsOn: drums, drumKit, continuoOn: continuo, continuo: continuoSettings, tuning, tempo }, staves.staff[STEP.cantusIndex] === 0, {
       counterpointHigh: staves.staff[mine[0]] === 0,

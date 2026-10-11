@@ -29,7 +29,7 @@ import { playContinuo } from "../continuo/audio.ts";
 import { DEFAULT_VERSIONS, type Versions } from "../game/versions.ts";
 import { parsePitch, type Step } from "../music/pitch.ts";
 import { TrioScore, type TrioVoice } from "./notation/TrioScore.tsx";
-import { trioStaves } from "./notation/trio-staves.ts";
+import { satbOf, trioStaves } from "./notation/trio-staves.ts";
 import { applyStyle, type StyleId } from "../audio/styles.ts";
 import { ZOOM_MAX, ZOOM_MIN } from "./notation/zoom.ts";
 import { SoundDesk, trackOrder } from "./SoundDesk.tsx";
@@ -630,8 +630,10 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
     ...(i !== STEP.cantusIndex && showFux && fuxOpen && FUX ? { fux: FUX[i] } : {}),
   }));
   /** "Contra I", "Contra II" or "Cantus", with the voice's place (upper, middle, lower). */
-  const partName = (i: number) => (i === STEP.cantusIndex ? t("ui.trio3.chip.cantus") : t(mine.indexOf(i) === 0 ? "ui.mixer.contra1" : "ui.mixer.second"));
-  const voiceName = (i: number) => `${partName(i)} (${t(`ui.trio3.voice.${i}`)})`;
+  // P12: the voices named by their register (soprano, alto, tenor, bass), the cantus "CF (Tenor)".
+  const reg = satbOf(means);
+  const partName = (i: number) => (i === STEP.cantusIndex ? t("ui.satb.cf", { part: t(`ui.satb.${reg[i]}`) }) : t(`ui.satb.${reg[i]}`));
+  const voiceName = (i: number) => partName(i);
   const chooseStyle = (id: StyleId) => {
     const next = applyStyle(id, { sound, drumsOn: drums, drumKit, continuoOn: continuo, continuo: continuoSettings, tuning, tempo }, layoutTwo.staff[STEP.cantusIndex] === 0, { counterpointHigh: layoutTwo.staff[mine[0]] === 0, secondHigh: layoutTwo.staff[mine[1]] === 0 });
     setSound(next.sound);
@@ -733,7 +735,7 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
             return (
               <button key={i} role="radio" className={`voice-chip${isCantus ? " cantus" : ""}`} aria-checked={i === activeStaff} disabled={isCantus} style={{ ["--chip" as string]: colour }} onClick={() => setActive(i)} title={isCantus ? t("ui.trio3.chip.cantusHelp") : t("ui.trio3.chip.help", { voice: voiceName(i) })}>
                 <span className="dot" aria-hidden="true" />
-                {partName(i)} <span className="where">{t(`ui.trio3.voice.${i}`)}{i === STEP.movingIndex ? ` · ${t(`ui.trio3.moving${STEP.species}`)}` : ""}</span>
+                {partName(i)} <span className="where">{i === STEP.movingIndex ? t(`ui.trio3.moving${STEP.species}`) : ""}</span>
               </button>
             );
           })}
@@ -828,6 +830,7 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
           onTuning={setTuning}
           onStyle={chooseStyle}
           trio={{ secondOn, onSecond: setSecondOn }}
+          names={Object.fromEntries([0, 1, 2].map((i) => [i === STEP.cantusIndex ? "cantus" : mine.indexOf(i) === 0 ? "counterpoint" : "second", i === STEP.cantusIndex ? t("ui.satb.cf", { part: t(`ui.satb.short.${reg[i]}`) }) : t(`ui.satb.strip.${reg[i]}`)]))}
           // P10: the voices' strips top voice first; picking one makes it the voice being written.
           voiceOrder={[0, 1, 2].map((i) => (i === STEP.cantusIndex ? "cantus" : mine.indexOf(i) === 0 ? "counterpoint" : "second"))}
           onStripSelect={(x) => {

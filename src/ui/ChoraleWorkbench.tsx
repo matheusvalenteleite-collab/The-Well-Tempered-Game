@@ -14,9 +14,9 @@ import { HFader } from "./HFader.tsx";
 import { TransportButtons } from "./TransportButtons.tsx";
 import { EnsembleSelect } from "./EnsembleSelect.tsx";
 import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
-import { playChoraleEvents, prepareChoraleAudio } from "../audio/chorale-performance.ts";
+import { playChorale, playChoraleEvents, prepareChoraleAudio, type ChoraleNote } from "../audio/chorale-performance.ts";
 import { Shell } from "./Shell.tsx";
-import { WtcPage, type WtcScoreVoice } from "./notation/WtcScore.tsx";
+import { WtcPage, planClefs, type WtcScoreVoice } from "./notation/WtcScore.tsx";
 import { pageRows, useRowBars } from "./notation/page-rows.ts";
 import { audio, store, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
@@ -295,7 +295,9 @@ export function ChoraleWorkbench({ onMode, onTutorial, stage, onStage, stageSele
     }
     const bars = Math.ceil((c5.length + shift) / barUnits);
     const rows = pageRows({ voices, under, barQ: barUnits / 8, bars, rowBars, cursor, key: `${cmpKey}-${bachShown}`, label: (a, z) => t("chorale.wb.scoreLabel", { n: ch.number, title: ch.title, a: a + 1, b: z }) });
-    return { rows, bars };
+    // P15: one clef plan for the whole piece in the open score.
+    const clefPlan = openScore ? planClefs(voices, CHORALE_CLEFS, barUnits / 8) : undefined;
+    return { rows, bars, clefPlan };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage, ch, l2, l3, c5, b4, B, openScore, JSON.stringify([mine1, mine2, mine4, voices5]), myBass, lines6, base6, aug6, worst, showCompare, bach, rowBars, cursor, verdicts]);
 
@@ -371,10 +373,24 @@ export function ChoraleWorkbench({ onMode, onTutorial, stage, onStage, stageSele
       setPlaying(false);
       return setPausedAt(Math.max(0, cursor));
     }
+    // Stages 5 and 6: four voices, performed (P14: fermatas and phrase ends as the reading chosen
+    // beside the ensemble); stages 1-4 strictly in time, the harmony as plain chords.
+    if (stage >= 5) {
+      const four: ChoraleNote[][] =
+        stage === 6 && lines6.length
+          ? (lines6 as ChoraleNote[][])
+          : bach
+            ? [c5.melody as ChoraleNote[], ...([0, 1, 2] as const).map((v) => c5.melody.flatMap(([at, dur], i) => (bach.inner[i] ? [[at, dur, bach.inner[i]![v]] as ChoraleNote] : [])))]
+            : [c5.melody as ChoraleNote[], ...(["alto", "tenor"] as const).map((v) => B.slots.flatMap((sl, i) => (voices5[v][i] ? [[sl.at, sl.dur, voices5[v][i]!] as ChoraleNote] : []))), B.bass as ChoraleNote[]];
+      prepareChoraleAudio(audio);
+      setPlaying(true);
+      setPausedAt(null);
+      playChorale(audio, { voices: four, barUnits, pickup: c5.pickup }, (b) => (b < 0 ? stop() : setCursor(b)), from);
+      return;
+    }
     const events: PlayEvent[] = [];
     const ev = (at: number, dur: number, extra: NonNullable<PlayEvent["extra"]>) => extra.length && events.push({ slot: barOfUnits(at), at: at / UNIT, length: dur / UNIT, cantus: null, counterpoint: null, extra });
-    const melody = stage === 6 && lines6.length ? lines6[0] : (c5.melody as Note[]);
-    for (const [at, dur, pitch] of melody) ev(at, dur, [{ channel: "counterpoint", pitch }]);
+    for (const [at, dur, pitch] of c5.melody) ev(at, dur, [{ channel: "counterpoint", pitch }]);
     const noteAt = (u: number) => c5.melody.find(([at]) => at === u);
     if (stage <= 2) {
       const chords: [number, string][] = stage === 1 ? ch.phrases.map((ph, k) => [unitsOf(ph.offset), mine1[k]] as [number, string | null]).filter((x): x is [number, string] => !!x[1]) : l2.notes.map((n, i) => [unitsOf(n.offset), mine2[i]] as [number, string | null]).filter((x): x is [number, string] => !!x[1]);
@@ -391,24 +407,6 @@ export function ChoraleWorkbench({ onMode, onTutorial, stage, onStage, stageSele
         const inner = mine4[i] ? realiseFigure(mine4[i]!, b.pitch, l4.tonic, l4.mode) : [];
         ev(b.at, b.dur, [{ channel: "fux", pitch: b.pitch }, ...inner.map((pitch) => ({ channel: "third" as const, pitch }))]);
       });
-    if (stage === 5) {
-      if (bach)
-        c5.melody.forEach(([at, dur], i) => {
-          const x = bach.inner[i];
-          if (x) ev(at, dur, [{ channel: "second", pitch: x[0] }, { channel: "third", pitch: x[1] }, { channel: "fux", pitch: x[2] }]);
-        });
-      else {
-        for (const [at, dur, pitch] of B.bass) ev(at, dur, [{ channel: "fux", pitch }]);
-        B.slots.forEach((s, i) => {
-          const extra = [voices5.alto[i] && { channel: "second" as const, pitch: voices5.alto[i]! }, voices5.tenor[i] && { channel: "third" as const, pitch: voices5.tenor[i]! }].filter((x): x is { channel: "second" | "third"; pitch: string } => !!x);
-          ev(s.at, s.dur, extra);
-        });
-      }
-    }
-    if (stage === 6 && lines6.length) {
-      const ch6 = ["second", "third", "fux"] as const;
-      [1, 2, 3].forEach((v) => lines6[v].forEach(([at, dur, pitch]) => ev(at, dur, [{ channel: ch6[v - 1], pitch }])));
-    }
     prepareChoraleAudio(audio);
     setPlaying(true);
     setPausedAt(null);
@@ -604,7 +602,7 @@ export function ChoraleWorkbench({ onMode, onTutorial, stage, onStage, stageSele
               <button className="primary" onClick={() => onStage(5)}>{t("chorale.l6w.go5")}</button>
             </div>
           ) : (
-            <WtcPage fitWidth clefs={openScore ? CHORALE_CLEFS : undefined} autoClefs={openScore} rows={view.rows} keySig={MAJOR_BY_SIG[c5.sig] ?? "C"} signature={signatureOf(c5.sig)} time={c5.meter} barQuarters={barUnits / 8} selected={selected} onSlot={onSlot} />
+            <WtcPage fitWidth clefs={openScore ? CHORALE_CLEFS : undefined} clefPlan={view.clefPlan} rows={view.rows} keySig={MAJOR_BY_SIG[c5.sig] ?? "C"} signature={signatureOf(c5.sig)} time={c5.meter} barQuarters={barUnits / 8} selected={selected} onSlot={onSlot} />
           )}
         </div>
       }

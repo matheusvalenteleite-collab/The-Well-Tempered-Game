@@ -34,7 +34,7 @@ type Section = Omit<StudySection, "kind"> & { kind: StudySection["kind"] | "toKe
 const ORDINAL = ["", "first", "second", "third", "fourth"];
 import { parsePitch, type Step } from "../music/pitch.ts";
 import { VoiceRoll, type RollExtra } from "./notation/VoiceRoll.tsx";
-import { WtcPage, WtcScore, type WtcScoreVoice } from "./notation/WtcScore.tsx";
+import { planClefs, WtcPage, WtcScore, type WtcScoreVoice } from "./notation/WtcScore.tsx";
 import { ZOOM_MAX, ZOOM_MIN } from "./notation/zoom.ts";
 import { restoreSound, type SoundState } from "../audio/sound.ts";
 import { SYNTH_PRESETS } from "../audio/synth-settings.ts";
@@ -939,11 +939,17 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
     for (let r = pageTop; r < pageTop + 3 && r * rowBars < bars; r++) {
       const a = r * rowBars;
       const z = Math.min(bars - 1, a + rowBars - 1);
-      out.push({ key: `${L.id}${isPrelude}${r}`, bars: z - a + 1, voices: voicesFor(a, z), cursor: cursor >= a && cursor <= z ? cursor - a : -1, label: `${fugueLabel(F)}, ${t("ui.study.bars", { a: a + firstBar, b: z + firstBar })}` });
+      out.push({ key: `${L.id}${isPrelude}${r}`, from: a, bars: z - a + 1, voices: voicesFor(a, z), cursor: cursor >= a && cursor <= z ? cursor - a : -1, label: `${fugueLabel(F)}, ${t("ui.study.bars", { a: a + firstBar, b: z + firstBar })}` });
     }
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageTop, rowBars, bars, cursor, P, entries, staffOf, gameUntil, sig, flats, ornaments]);
+  // P15: one clef plan for the whole fugue in open score, so that the clefs hold across rows and pages.
+  const clefPlan = useMemo(
+    () => (openScore ? planClefs(voicesFor(0, bars - 1), openClefList, barQ) : undefined),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [openScore, P, bars, barQ, openClefList, staffOf],
+  );
   const rollHidden = useMemo(() => {
     if (gameUntil === null) return hidden;
     const h = new Set(hidden);
@@ -982,11 +988,12 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
             </div>
           )}
           {view === "page" ? (
-            <WtcPage rows={pageRows} clefs={openScore ? openClefList : undefined} autoClefs={openScore} keySig={vexKey(F.key)} signature={sig} time={timeSig} barQuarters={barQ} selected={null} onSlot={() => undefined} />
+            <WtcPage rows={pageRows} clefs={openScore ? openClefList : undefined} clefPlan={clefPlan} keySig={vexKey(F.key)} signature={sig} time={timeSig} barQuarters={barQ} selected={null} onSlot={() => undefined} />
           ) : view === "score" ? (
             <WtcScore
               voices={scoreVoices}
-              clefs={openScore ? openClefList : undefined} autoClefs={openScore}
+              clefs={openScore ? openClefList : undefined}
+              clefPlan={clefPlan?.map((st) => st.slice(scoreFrom, scoreTo + 1))}
               keySig={vexKey(F.key)}
               signature={sig}
               time={timeSig}

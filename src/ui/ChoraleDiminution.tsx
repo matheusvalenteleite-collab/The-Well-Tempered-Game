@@ -13,9 +13,9 @@ import { HFader } from "./HFader.tsx";
 import { TransportButtons } from "./TransportButtons.tsx";
 import { EnsembleSelect } from "./EnsembleSelect.tsx";
 import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
-import { playChorale, prepareChoraleAudio } from "../audio/chorale-performance.ts";
+import { fermataWordsOf, playChorale, prepareChoraleAudio } from "../audio/chorale-performance.ts";
 import { Shell } from "./Shell.tsx";
-import { WtcPage, type WtcScoreVoice } from "./notation/WtcScore.tsx";
+import { WtcPage, type WtcScoreVoice, planClefs } from "./notation/WtcScore.tsx";
 import { pageRows, useRowBars } from "./notation/page-rows.ts";
 import { audio, store, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
@@ -115,7 +115,9 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
     });
     const bars = Math.ceil((ch.length + shift) / barUnits);
     const rows = pageRows({ voices, barQ: barUnits / 8, bars, rowBars, cursor, key: `${ch.n}-${showBach}`, label: (a, z) => t("chorale.l6.rowLabel", { n: ch.n, title: ch.title, a: a + (ch.pickup ? 0 : 1), b: z - (ch.pickup ? 1 : 0) }) });
-    return { rows, barUnits, shift };
+    // P15: one clef plan for the whole chorale, so that the clefs hold across the rows.
+    const clefPlan = openScore ? planClefs(voices, CHORALE_CLEFS, barUnits / 8) : undefined;
+    return { rows, barUnits, shift, clefPlan };
   }, [ch, red, lines, showBach, errors, rowBars, cursor, openScore]);
 
   const sel = selected === null || !red ? null : { v: Math.floor(selected / 1000), i: selected % 1000 };
@@ -139,7 +141,7 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
     prepareChoraleAudio(audio);
     setPlaying(true);
     setPausedAt(null);
-    playChorale(audio, { voices: showBach ? ch.voices : lines, barUnits: view.barUnits, pickup: ch.pickup }, (b) => {
+    playChorale(audio, { voices: showBach ? ch.voices : lines, barUnits: view.barUnits, pickup: ch.pickup, cadences: ch.cadences, fermataWords: fermataWordsOf(ch.n) }, (b) => {
       if (b < 0) return stop();
       setCursor(b);
     }, from);
@@ -206,7 +208,7 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
       score={
         <div className="score-wrap chorale-score">
           {ch && view ? (
-            <WtcPage fitWidth clefs={openScore ? CHORALE_CLEFS : undefined} autoClefs={openScore} rows={view.rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={view.barUnits / 8} selected={selected} onSlot={(s) => !showBach && setSelected(s)} />
+            <WtcPage fitWidth clefs={openScore ? CHORALE_CLEFS : undefined} clefPlan={view.clefPlan} rows={view.rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={view.barUnits / 8} selected={selected} onSlot={(s) => !showBach && setSelected(s)} />
           ) : (
             <p className="help">{t("ui.loading")}</p>
           )}
