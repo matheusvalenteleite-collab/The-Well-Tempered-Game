@@ -10,19 +10,21 @@ import { ModeSelect } from "./ModeSelect.tsx";
 import type { Mode } from "./Root.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 import { HFader } from "./HFader.tsx";
+import { TransportButtons } from "./TransportButtons.tsx";
+import { EnsembleSelect } from "./EnsembleSelect.tsx";
+import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
+import { fermataWordsOf, playChorale, prepareChoraleAudio } from "../audio/chorale-performance.ts";
 import { Shell } from "./Shell.tsx";
-import { WtcPage, type WtcScoreVoice } from "./notation/WtcScore.tsx";
+import { WtcPage, type WtcScoreVoice, planClefs } from "./notation/WtcScore.tsx";
 import { pageRows, useRowBars } from "./notation/page-rows.ts";
 import { audio, store, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
 import { useStudyData } from "../chorale/study-data.ts";
 import { augmentedSeconds, bachAs, options, realise, reduce, type Embellishment, type Note } from "../chorale/level6.ts";
-import type { PlayEvent } from "../counterpoint/layout.ts";
 import type { Step } from "../music/pitch.ts";
 
 const UNIT = 32;
 const VOICES = ["soprano", "alto", "tenor", "bass"] as const;
-const CHANNEL = ["counterpoint", "second", "third", "fux"] as const;
 const INK = { given: "#1d1b17", mine: "#c2410c", bach: "#1e6fd8", grave: "#c4473a" };
 const MAJOR_BY_SIG: Record<number, string> = { [-7]: "Cb", [-6]: "Gb", [-5]: "Db", [-4]: "Ab", [-3]: "Eb", [-2]: "Bb", [-1]: "F", 0: "C", 1: "G", 2: "D", 3: "A", 4: "E", 5: "B", 6: "F#", 7: "C#" };
 const signatureOf = (n: number): Record<Step, number> => {
@@ -66,14 +68,20 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
   const [playing, setPlaying] = useState(false);
   const [cursor, setCursor] = useState(-1);
   const timer = useRef<number | null>(null);
+  /** The bar a pause left the playback at (P2, P5): ▶ goes on from there. */
+  const [pausedAt, setPausedAt] = useState<number | null>(null);
   const stop = () => {
     audio.stop();
     if (timer.current) window.clearInterval(timer.current);
     timer.current = null;
     setPlaying(false);
     setCursor(-1);
+    setPausedAt(null);
   };
   useEffect(() => () => stop(), []);
+  // P5: the engine as the chorales need it, whatever the last screen left.
+  useEffect(() => prepareChoraleAudio(audio), []);
+  const openScore = useStaffLayout() === "open";
 
   const list = data ? data.chorales.filter((c) => !onlyKittel || c.kittel) : [];
   const ch = data ? data.chorales.find((c) => c.n === number) ?? data.chorales[0] : null;
@@ -93,7 +101,7 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
     const voices: WtcScoreVoice[] = shown.map((notes, v) => {
       const base = red.voices[v];
       return {
-        staff: v < 2 ? 0 : 1,
+        staff: openScore ? v : v < 2 ? 0 : 1,
         ink: v === 0 ? INK.given : showBach ? INK.bach : INK.given,
         editable: v > 0 && !showBach,
         notes: notes.map(([at, dur, pitch, f]) => {
@@ -101,14 +109,16 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
           const i = base.findIndex((b) => b[0] === at);
           const added = !showBach && v > 0 && i < 0;
           const bad = errors.some((e) => e.v === v && e.at === at);
-          return { pitch, at: quarters(at), dur: dur / 8, fermata: Boolean(f) && (v === 0 || v === 3), ...(i >= 0 && v > 0 && !showBach ? { slot: slotOf(v, i) } : {}), ...(bad ? { ink: INK.grave } : added ? { ink: INK.mine } : {}) };
+          return { pitch, at: quarters(at), dur: dur / 8, fermata: Boolean(f) && (openScore || v === 0 || v === 3), ...(i >= 0 && v > 0 && !showBach ? { slot: slotOf(v, i) } : {}), ...(bad ? { ink: INK.grave } : added ? { ink: INK.mine } : {}) };
         }),
       };
     });
     const bars = Math.ceil((ch.length + shift) / barUnits);
     const rows = pageRows({ voices, barQ: barUnits / 8, bars, rowBars, cursor, key: `${ch.n}-${showBach}`, label: (a, z) => t("chorale.l6.rowLabel", { n: ch.n, title: ch.title, a: a + (ch.pickup ? 0 : 1), b: z - (ch.pickup ? 1 : 0) }) });
-    return { rows, barUnits, shift };
-  }, [ch, red, lines, showBach, errors, rowBars, cursor]);
+    // P15: one clef plan for the whole chorale, so that the clefs hold across the rows.
+    const clefPlan = openScore ? planClefs(voices, CHORALE_CLEFS, barUnits / 8) : undefined;
+    return { rows, barUnits, shift, clefPlan };
+  }, [ch, red, lines, showBach, errors, rowBars, cursor, openScore]);
 
   const sel = selected === null || !red ? null : { v: Math.floor(selected / 1000), i: selected % 1000 };
   const opts = sel && red ? options(red.voices[sel.v], sel.i) : [];
@@ -119,19 +129,31 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
     else delete forVoice[sel.i];
     setAll({ ...all, [ch.n]: { ...mine, [sel.v]: forVoice } });
   };
-  const play = () => {
-    if (playing || !ch || !view) return stop();
-    const events: PlayEvent[] = [];
-    (showBach ? ch.voices : lines).forEach((notes, v) => {
-      for (const [at, dur, pitch] of notes) events.push({ slot: 0, at: at / UNIT, length: dur / UNIT, cantus: null, counterpoint: null, extra: [{ channel: CHANNEL[v], pitch }] });
-    });
-    events.sort((a, b) => a.at - b.at);
-    const whole = audio.barSeconds;
+  // P5: through the live loop (tempo applies at once), with a pause; a choice made while it plays,
+  // or Bach's original shown, restarts it from the bar under the cursor.
+  const play = (from = pausedAt ?? 0, fresh = false) => {
+    if (!ch || !view) return;
+    if (playing && !fresh) {
+      audio.stop();
+      setPlaying(false);
+      return setPausedAt(Math.max(0, cursor));
+    }
+    prepareChoraleAudio(audio);
     setPlaying(true);
-    const t0 = performance.now();
-    timer.current = window.setInterval(() => setCursor(Math.floor((((performance.now() - t0) / 1000 / whole) * UNIT + view.shift) / view.barUnits)), 60);
-    void audio.playSequence(events, whole).then(() => stop());
+    setPausedAt(null);
+    playChorale(audio, { voices: showBach ? ch.voices : lines, barUnits: view.barUnits, pickup: ch.pickup, cadences: ch.cadences, fermataWords: fermataWordsOf(ch.n) }, (b) => {
+      if (b < 0) return stop();
+      setCursor(b);
+    }, from);
   };
+  const liveKey = JSON.stringify([ch?.n, showBach, mine]);
+  const lastLive = useRef(liveKey);
+  useEffect(() => {
+    if (lastLive.current === liveKey) return;
+    lastLive.current = liveKey;
+    if (playing) play(Math.max(0, cursor), true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveKey]);
   const goTo = (n: number) => {
     stop();
     setNumber(n);
@@ -186,7 +208,7 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
       score={
         <div className="score-wrap chorale-score">
           {ch && view ? (
-            <WtcPage fitWidth rows={view.rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={view.barUnits / 8} selected={selected} onSlot={(s) => !showBach && setSelected(s)} />
+            <WtcPage fitWidth clefs={openScore ? CHORALE_CLEFS : undefined} clefPlan={view.clefPlan} rows={view.rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={view.barUnits / 8} selected={selected} onSlot={(s) => !showBach && setSelected(s)} />
           ) : (
             <p className="help">{t("ui.loading")}</p>
           )}
@@ -211,12 +233,18 @@ export function ChoraleDiminution({ onMode, onTutorial, levelSelect }: { onMode(
           <div className="group judge">
             <button className="primary" aria-pressed={showCompare} disabled={!ch} onClick={() => { if (ch) setCompared(showCompare ? null : ch.n); setTab("compare"); }}>{t("chorale.l6.compare")}</button>
             <label className="check">
-              <input type="checkbox" checked={showBach} onChange={(e) => { stop(); setShowBach(e.target.checked); setSelected(null); }} /> {t("chorale.l6.showBach")}
+              <input type="checkbox" checked={showBach} onChange={(e) => { setShowBach(e.target.checked); setSelected(null); }} /> {t("chorale.l6.showBach")}
             </label>
             <button className="btn-edit" onClick={() => { if (ch) setAll({ ...all, [ch.n]: {} }); setCompared(null); }}>{t("ui.clearAll")}</button>
           </div>
           <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
-            <button className="icon play" onClick={play} disabled={!ch} aria-label={t("chorale.play")} title={t("chorale.play")}>{playing ? "■" : "▶"}</button>
+            <span className="play-split">
+              <TransportButtons playing={playing} pausedAt={pausedAt} onPlay={() => play()} onStop={stop} label={t("chorale.play")} />
+            </span>
+            <EnsembleSelect />
+            <label className="check" title={t("ui.view.staves.open.help")}>
+              <input type="checkbox" checked={openScore} onChange={(e) => setStaffLayout(e.target.checked ? "open" : "compact")} /> {t("ui.view.staves.open")}
+            </label>
             <label className="check">
               <input type="checkbox" checked={onlyKittel} onChange={(e) => setOnlyKittel(e.target.checked)} /> {t("chorale.study.onlyKittel")}
             </label>

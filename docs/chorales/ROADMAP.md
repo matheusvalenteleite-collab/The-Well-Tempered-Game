@@ -25,11 +25,12 @@ Four directions were weighed:
 
 1. **Consolidate.**
    - One chorale workbench instead of seven views: one melody, the levels as stages, the player's
-     choices carried forward, missing stages filled from Bach or Kittel.
+     choices carried forward, missing stages filled from Bach or Kittel. Done: the stages carry the
+     answers forward (C26), on one screen whose score grows stage by stage (C27).
    - D, the readings the judgments use: Kirnberger's categories against his text (done for
      *Kunst* I, C22; *Kunst* II and *Die wahren Grundsätze* remain); the cadences classed "other"
      (249 read by the fundamental bass, C22; 45 remain); Kittel's basses proofread against the
-     print where the machine check flagged them; the owner's C10-C12 confirmations.
+     print where the machine check flagged them (done, C25); the owner's C10-C12 confirmations.
    - `level5.ts` split into per-chord and chord-to-chord checks for the generator to share.
 2. **The path.** Melodies ordered by measured difficulty (phrases, cadences leaving the key,
    chromaticism; Kittel's 24 first, then Bach's tunes); progress and unlocking as in the Fux mode;

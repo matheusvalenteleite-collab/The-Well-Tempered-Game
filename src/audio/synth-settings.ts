@@ -28,7 +28,9 @@ export type SampleSet =
   | "grand" | "organ" | "sackbut" | "cello" | "violin" | "flute" | "bassoon" | "horn" | "trumpet" | "harp" | "contrabass" | "harmonium" | "guitar"
   | "eguitar" | "ebass" | "sax" | "xylophone"
   // D109: for the continuo's ensembles (VSCO 2 CE, Karoryfer; CC0).
-  | "violinStac" | "violinPizz" | "violaSus" | "violaStac" | "violaPizz" | "celloStac" | "celloPizz" | "bassPizz" | "bassStac" | "oboe" | "clarinet" | "timpani" | "rickBass" | "cleanGuitar";
+  | "violinStac" | "violinPizz" | "violaSus" | "violaStac" | "violaPizz" | "celloStac" | "celloPizz" | "bassPizz" | "bassStac" | "oboe" | "clarinet" | "timpani" | "rickBass" | "cleanGuitar"
+  // P13: the chorale choirs (Sonatina Symphonic Orchestra's chorus; FluidR3_GM's choir aahs).
+  | "choirUpper" | "choirLower" | "choirAahs";
 export const SAMPLE_SETS: SampleSet[] = ["grand", "organ", "sackbut", "cello", "violin", "flute", "bassoon", "horn", "trumpet", "harp", "contrabass", "harmonium", "guitar", "eguitar", "ebass", "sax", "xylophone"];
 /** Is this a recorded-instrument model (classic or modern)? */
 export const isSampled = (m: SynthModel) => m === "sampled" || m === "sampledModern";

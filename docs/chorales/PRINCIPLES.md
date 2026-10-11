@@ -8,14 +8,14 @@ Kirnberger's as applied in `KIRNBERGER.md`, still to be checked against his text
 
 ## 1. The fundamental bass
 
-From beat to beat, where the root changes (14374 changes), it moves:
+From beat to beat, where the root changes (14371 changes), it moves:
 
-- down a fifth: 5877 (41%)
-- up a fifth: 2647 (18%)
-- up a step: 2488 (17%)
-- down a third: 1427 (10%)
-- down a step: 1284 (9%)
-- up a third: 651 (5%)
+- down a fifth: 5895 (41%)
+- up a fifth: 2645 (18%)
+- up a step: 2472 (17%)
+- down a third: 1419 (10%)
+- down a step: 1291 (9%)
+- up a third: 649 (5%)
 
 Falling fifths dominate (about two to one over rising fifths); rising fifths and rising steps follow.
 Falling thirds outnumber rising thirds by about two to one; falling steps are half as common as rising ones.
@@ -26,14 +26,14 @@ Rising thirds and falling steps are the rarer motions:
 
 ## 2. The seventh (essential dissonance)
 
-Sevenths of seventh chords on the beat (2204):
+Sevenths of seventh chords on the beat (2203):
 
-- prepared, resolves down, the bass moves: 1278 (58%). E.g. no. 1 (BWV 269), bar 5: soprano D5 over G2 (E minor seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 1 (BWV 269), bar 6: alto G4 over C3 (A minor seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5)
-- free, resolves down, the bass moves: 244 (11%). E.g. no. 3 (BWV 153/1), bar 2: soprano D5 over B2 (E dominant seventh, minor ninth for the root) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12); no. 4 (BWV 86/6), bar 4: alto E4 over F#3 (F# seventh chord, third not sounding (minor seventh)) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12)
-- prepared, resolves down, over the same bass: 238 (11%). E.g. no. 2 (BWV 347), bar 7: tenor B3 over C#3 (C# seventh chord, third not sounding (minor seventh)) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=11); no. 2 (BWV 347), bar 11: soprano E5 over A3 (F# minor seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=11)
-- prepared, does not resolve down: 229 (10%). E.g. no. 5 (BWV 267), bar 10: alto B4 over A3 (C major seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=13); no. 5 (BWV 267), bar 16: alto G4 over C3 (A minor seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=13)
-- free, does not resolve down: 199 (9%). E.g. no. 3 (BWV 153/1), bar 3: tenor D4 over E3 (E seventh chord, third not sounding (minor seventh)) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12); no. 3 (BWV 153/1), bar 10: alto A4 over D#3 (B dominant seventh, minor ninth for the root) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12)
-- free, resolves down, over the same bass: 16 (1%). E.g. no. 17 (BWV 145/5), bar 17: tenor A3 over B2 (B seventh chord, third not sounding (minor seventh)) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=19); no. 37 (BWV 352), bar 11: soprano D5 over E3 (E dominant seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=27)
+- prepared, resolves down, the bass moves: 1280 (58%). E.g. no. 1 (BWV 269), bar 5: soprano D5 over G2 (E minor seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5); no. 1 (BWV 269), bar 6: alto G4 over C3 (A minor seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11137805?page=5)
+- free, resolves down, the bass moves: 249 (11%). E.g. no. 3 (BWV 153/1), bar 2: soprano D5 over B2 (E dominant seventh, minor ninth for the root) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12); no. 4 (BWV 86/6), bar 4: alto E4 over F#3 (F# seventh chord, third not sounding (minor seventh)) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12)
+- prepared, does not resolve down: 235 (11%). E.g. no. 5 (BWV 267), bar 10: alto B4 over A3 (C major seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=13); no. 5 (BWV 267), bar 16: alto G4 over C3 (A minor seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=13)
+- prepared, resolves down, over the same bass: 222 (10%). E.g. no. 2 (BWV 347), bar 7: tenor B3 over C#3 (C# seventh chord, third not sounding (minor seventh)) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=11); no. 2 (BWV 347), bar 11: soprano E5 over A3 (F# minor seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=11)
+- free, does not resolve down: 200 (9%). E.g. no. 3 (BWV 153/1), bar 3: tenor D4 over E3 (E seventh chord, third not sounding (minor seventh)) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12); no. 3 (BWV 153/1), bar 10: alto A4 over D#3 (B dominant seventh, minor ninth for the root) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12)
+- free, resolves down, over the same bass: 17 (1%). E.g. no. 17 (BWV 145/5), bar 17: tenor A3 over B2 (B seventh chord, third not sounding (minor seventh)) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=19); no. 37 (BWV 352), bar 11: soprano D5 over E3 (E dominant seventh) — [Breitkopf 1784](https://www.digitale-sammlungen.de/en/view/bsb11108042?page=27)
 
 Most sevenths are prepared and resolve down as the harmony moves (the strict treatment).
 A smaller share enters free and resolves; these are the free style's sevenths, to be compared with Kirnberger.
@@ -75,7 +75,7 @@ The third of a dominant moving to its tonic (root down a fifth):
 
 | voice | rises to the root | falls to the fifth | other |
 |---|---|---|---|
-| soprano | 527 | 87 | 68 |
+| soprano | 527 | 87 | 69 |
 | alto | 543 | 566 | 56 |
 | tenor | 425 | 247 | 104 |
 

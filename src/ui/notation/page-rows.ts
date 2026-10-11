@@ -14,6 +14,8 @@ export interface PageRow {
   label: string;
   voices: WtcScoreVoice[];
   under?: Under;
+  /** The row's first bar in the piece (P15: to take its part of a clef plan for the whole piece). */
+  from?: number;
 }
 
 export function pageRows(o: { voices: WtcScoreVoice[]; under?: Under; barQ: number; bars: number; rowBars: number; cursor: number; key: string; label(a: number, z: number): string }): PageRow[] {
@@ -24,6 +26,7 @@ export function pageRows(o: { voices: WtcScoreVoice[]; under?: Under; barQ: numb
     const q1 = z * o.barQ;
     rows.push({
       key: `${o.key}-${a}`,
+      from: a,
       bars: z - a,
       cursor: o.cursor >= a && o.cursor < z ? o.cursor - a : -1,
       label: o.label(a, z),

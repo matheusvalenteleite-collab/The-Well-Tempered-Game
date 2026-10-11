@@ -8,7 +8,7 @@
  * Data: data/chorales/level4.json, written by tools/chorales/figure_plans.py.
  */
 import raw from "../../data/chorales/level4.json" with { type: "json" };
-import type { Chorale, MelodyNote, Phrase } from "./level1.ts";
+import type { Phrase } from "./level1.ts";
 import { fromRow, withHabit } from "./habits.ts";
 
 export interface L4Note {
@@ -34,24 +34,6 @@ export const POSITIONS = DATA.positions;
 export const LEVEL4: Record<number, L4Chorale> = Object.fromEntries(
   DATA.chorales.map((c) => [c.number, { ...c, basses: c.basses.map((b) => ({ label: b.label, notes: b.notes.map((r) => withHabit(fromRow<L4Note>(DATA.noteFields, r), DATA.habits)) })) }]),
 );
-
-/** The bass as a chorale for the score (its notes in place of the melody). */
-export function bassChorale(ch: Chorale, notes: L4Note[]): Chorale {
-  const melody: MelodyNote[] = notes.map((n, i) => {
-    const next = notes[i + 1];
-    const end = next ? next.offset : ch.length;
-    const [a, b] = n.offset.split("/").map(Number);
-    const [c, d] = end.split("/").map(Number);
-    const dur = (c / (d || 1)) - (a / (b || 1));
-    return { pitch: n.pitch, offset: n.offset, duration: toFrac(dur), measure: n.measure };
-  });
-  return { ...ch, melody };
-}
-
-const toFrac = (x: number): string => {
-  for (const den of [1, 2, 4, 8, 16, 32]) if (Math.abs(x * den - Math.round(x * den)) < 1e-9) return `${Math.round(x * den)}/${den}`;
-  return `${Math.round(x * 64)}/64`;
-};
 
 /** The points of the comparison, in level 1's shape: Kittel's chord (with his printed figure), no
  * Bach setting of this bass, Bach's habit. */

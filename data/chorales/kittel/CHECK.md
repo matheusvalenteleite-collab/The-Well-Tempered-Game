@@ -5,7 +5,7 @@ note sounding is tested against the chord that the bass and its figure imply. Ea
 melody note outside that chord, classed by what the melody does there. Only the last two kinds are
 candidates for extraction errors.
 
-**All: 8923/9046 onsets agree (98.6%)**
+**All: 8925/9047 onsets agree (98.7%)**
 
 | kind | count | reading |
 |---|---|---|
@@ -16,10 +16,16 @@ candidates for extraction errors.
 | neighbour | 5 | music: melodic neighbour note |
 | appoggiatura (leap, then step) | 5 | music |
 | passing harmony on a weak crotchet under a held melody | 4 | music |
-| unexplained | 2 | to look at |
 | anticipation | 2 | music |
 | suspension (tied) | 1 | music |
+| unexplained | 1 | to look at |
 | held melody against a new bass note | 1 | to look at |
+
+**Proofread against the print (C25).** The lines left "to look at" were compared with the PDF:
+
+- No. 9, [8] m.12: no error in the extraction; the check carried a held figure across the page break (fixed, C25)
+- No. 24, [7] m.11: as printed: the melody's A, the fifth, is held over the 6/4 before the 5/3 at the fermata; Kittel's text
+- No. 24, [8] m.13: as printed: the melody's G is held over F#2 figured 6 and rises to A; Kittel's text
 
 ## No.  1: melody in the figured chord at 276/276 onsets (100.0%)
 
@@ -91,12 +97,11 @@ candidates for extraction errors.
 - [neighbour] [8] m.21 t=20: melody Bb4 over Db3 figure (none)
 - [accidental supplied by the melody] [5] m.21 t=20: melody Bb4 over C#3
 
-## No.  9: melody in the figured chord at 334/338 onsets (98.8%)
+## No.  9: melody in the figured chord at 336/339 onsets (99.1%)
 
 - [inner voices move under held melody and bass] [2] m.3 t=9/4: melody A4 over C#3 figure 5
 - [inner voices move under held melody and bass] [4] m.3 t=9/4: melody A4 over C#3 figure 5
 - [suspension in the melody (held, resolving down by step)] [7] m.8 t=29/4: melody D5 over B2 figure 4
-- [unexplained] [8] m.12 t=11: melody D5 over F#3 figure 6
 - [accidental supplied by the melody] [6] m.8 t=15/2: melody C#5 over E3
 - [accidental supplied by the melody] [7] m.17 t=33/2: melody F#4 over A2
 

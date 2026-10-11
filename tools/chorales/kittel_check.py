@@ -217,9 +217,13 @@ def harmonies(b: dict):
             continue
         new_note = F(bn["offset"]) == t
         if t in fig_at:
-            st = fig_at[t]["stack"]
+            st = [dict(r, _page=fig_at[t].get("page")) for r in fig_at[t]["stack"]]
             x = fig_at[t]["x"]
-            held = {hy: r for hy, r in held.items() if r.get("extender_to_x", 1e9) >= x - 2}
+            # An extender or a held row ends at the end of its system: each page is one system, and
+            # x positions start again on the next page.
+            page = fig_at[t].get("page")
+            held = {hy: r for hy, r in held.items() if r.get("extender_to_x", 1e9) >= x - 2 and r.get("_page", page) == page}
+            last = {ly: r for ly, r in last.items() if r.get("_page", page) == page}
             if all(r.get("continuation") for r in st):
                 pass  # dashes alone: the previous chord holds over this bass note
             else:
@@ -247,7 +251,7 @@ def harmonies(b: dict):
             # it carries a plain triad.
             if (t * 2).denominator != 1 and chord_bass is not None:
                 continue
-            if held and bn.get("_x") is not None and any(r.get("extender_to_x", 0) > bn["_x"] for r in held.values()):
+            if held and bn.get("_x") is not None and any(r.get("extender_to_x", 0) > bn["_x"] and r.get("_page", bn.get("_page")) == bn.get("_page") for r in held.values()):
                 continue  # an extender line runs over this note: the figured chord holds
             current = {k: dict(r, _bass=bn["pitch"]) for k, r in expand([], {}).items()}
             held = {}
@@ -273,6 +277,14 @@ def chord_spelling(bass: str, full: dict[int, dict], ks: dict[str, int]) -> list
             a += 1
         out.append(st + ("#" * a if a > 0 else "b" * -a))
     return out
+
+
+# The flagged places, read in the print (data/sources/kittel-24/kittel-24-chorale-bass.pdf).
+PROOFREAD = {
+    (9, "[8]", 12): "no error in the extraction; the check carried a held figure across the page break (fixed, C25)",
+    (24, "[7]", 11): "as printed: the melody's A, the fifth, is held over the 6/4 before the 5/3 at the fermata; Kittel's text",
+    (24, "[8]", 13): "as printed: the melody's G is held over F#2 figured 6 and rises to A; Kittel's text",
+}
 
 
 def check(c: dict) -> tuple[int, int, list[str]]:
@@ -350,6 +362,8 @@ def main() -> None:
         }
         for k, v in kinds.most_common():
             summary.append(f"| {k} | {v} | {notes.get(k, '')} |")
+        summary += ["", "**Proofread against the print (C25).** The lines left \"to look at\" were compared with the PDF:", ""]
+        summary += [f"- No. {n}, {lab} m.{m}: {v}" for (n, lab, m), v in PROOFREAD.items()]
         lines[7:7] = summary + [""]
         if not want:
             (DIR / "CHECK.md").write_text("\n".join(lines) + "\n")
