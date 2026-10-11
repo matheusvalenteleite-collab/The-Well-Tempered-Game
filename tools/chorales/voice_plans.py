@@ -31,6 +31,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from cadence_plans import pcn  # noqa: E402
 from figure_plans import printed, sounding  # noqa: E402
 from harmony_plans import merged, nw_pairs  # noqa: E402
+import kirnberger as K  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 BACH = ROOT / "data" / "chorales" / "bach"
@@ -38,7 +39,7 @@ KIT = ROOT / "data" / "chorales" / "kittel"
 OUT = ROOT / "data" / "chorales" / "level5.json"
 LETTERS = "CDEFGAB"
 VOICES = ["soprano", "alto", "tenor", "bass"]
-TRIADS = {"major", "minor", "diminished", "augmented"}
+TRIADS = {"major", "minor", "diminished"}
 EXAMPLES = 3
 
 
@@ -115,7 +116,7 @@ def bach_habits() -> dict:
                             bass = "bass moves" if change["pitches"]["bass"] != P["bass"] else "bass holds"
                             seventh.add(f"{x}|{prepared}|{bass}", motion(P[x], change["pitches"][x]), no, bar)
             # The leading tone: the third of a dominant whose root then falls a fifth.
-            if nxt and v.get("chord") in ("major", "dominant seventh") and v.get("root") and nxt.get("root") and nxt["root"] != v["root"]:
+            if nxt and v.get("chord") in K.DOMINANTS and v.get("root") and nxt.get("root") and nxt["root"] != v["root"]:
                 if (pcn(v["root"]) - pcn(nxt["root"])) % 12 == 7:
                     for x in ("alto", "tenor"):
                         if L.get(x) == "third":

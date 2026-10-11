@@ -48,6 +48,9 @@ const CADENCE_SHORT: Record<string, string> = {
   deceptive: "dec",
   "bass up a fifth: plagal, or a half cadence in another key": "up5",
   "other: bass repeated": "rep",
+  "authentic, penultimate inverted": "chg",
+  "resting point on a major triad (a half cadence in the key reached?)": "restMaj",
+  "resting point on a minor triad": "restMin",
   other: "other",
 };
 

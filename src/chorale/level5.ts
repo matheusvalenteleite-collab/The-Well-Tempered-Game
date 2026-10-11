@@ -41,6 +41,8 @@ export interface L5Chorale {
 export interface HabitTable {
   [ctx: string]: { n: number; options: [string, number, [number, number][]][] };
 }
+/** The chords whose third leads up when the root falls a fifth (tools/chorales/kirnberger.py DOMINANTS). */
+const DOMINANTS = ["major", "dominant seventh", "dominant seventh, diminished fifth", "dominant seventh, minor ninth for the root"];
 const DATA = raw as unknown as { slotFields: string[]; habits: Record<"doubling" | "seventh" | "leading" | "spacing", HabitTable>; chorales: (Omit<L5Chorale, "basses"> & { basses: { label: string; bass: [number, number, string][]; slots: unknown[][] }[] })[] };
 const asSlot = (r: unknown[]): Slot => Object.fromEntries(DATA.slotFields.map((f, i) => [f, r[i]])) as unknown as Slot;
 export const LEVEL5: Record<number, L5Chorale> = Object.fromEntries(DATA.chorales.map((c) => [c.number, { ...c, basses: c.basses.map((b) => ({ ...b, slots: b.slots.map(asSlot) })) }]));
@@ -102,7 +104,7 @@ export function findingsAt(i: number, s: Slot, c: Column): Finding[] {
     for (const [l, role] of s.above) if (!have.has(pc(l))) out.push({ gravity: role === "fifth" ? 1 : 3, slots: [i], key: role === "fifth" ? "noFifth" : "missing", vars: { letter: l, role, figure: s.printed || "5/3" } });
     for (const [v, p] of [["alto", alto], ["tenor", tenor]] as const) if (!allowed.has(pc(letter(p)))) out.push({ gravity: 3, slots: [i], key: "foreign", vars: { voice: v, pitch: letter(p), figure: s.printed || "5/3" } });
     // Doubling, in a triad whose every voice is a chord member.
-    if (["major", "minor", "diminished", "augmented"].includes(s.kind)) {
+    if (["major", "minor", "diminished"].includes(s.kind)) {
       const role = (p: string) => (pc(letter(p)) === pc(s.root) ? "root" : s.above.find(([l]) => pc(l) === pc(letter(p)))?.[1] ?? (pc(letter(p)) === pc(letter(s.bass)) ? s.bassRole : "other"));
       const roles = c.map((p) => role(p!));
       if (roles.every((r) => r === "root" || r === "third" || r === "fifth")) {
@@ -180,7 +182,7 @@ export function judge(slots: Slot[], alto: (string | null)[], tenor: (string | n
         const sh = share("seventh", ctx, outcome);
         if (sh && sh.k / sh.n < RARE) out.push({ gravity: 1, slots: [i, j], key: "seventh", vars: { voice: v, prepared, how: outcome, k: sh.k, n: sh.n }, habit: { ctx, table: "seventh", outcome } });
       }
-      const dominant = (s.kind === "major" || s.kind === "dominant seventh") && ((pc(s.root) - pc(slots[j].root) + 12) % 12) === 7;
+      const dominant = DOMINANTS.includes(s.kind) && ((pc(s.root) - pc(slots[j].root) + 12) % 12) === 7;
       if (dominant && role === "third") {
         const d = midi(q) - midi(p);
         const outcome = d === 1 ? "rises a semitone" : d === -3 || d === -4 ? "falls a third" : d === 0 ? "held" : "other";

@@ -114,7 +114,7 @@ def main() -> None:
                         susp_ex[iv].append(ex(c, v["measure"], f"{voice} {v['pitches'][voice]} over {v['pitches']['bass']}"))
         # the leading tone, by voice (as in BACH-COUNTS, with examples of the alto falling)
         for v1, v2 in zip(beats, beats[1:]):
-            if v1["chord"] not in ("major", "dominant seventh") or not v2["root"]:
+            if v1["chord"] not in K.DOMINANTS or not v2["root"]:
                 continue
             p1 = (K.PC[v1["root"][0]] + v1["root"][1:].count("#") - v1["root"][1:].count("b")) % 12
             p2 = (K.PC[v2["root"][0]] + v2["root"][1:].count("#") - v2["root"][1:].count("b")) % 12
