@@ -4,6 +4,7 @@
  * D113: the voices on two staves by register, voice chips (Cantus, Contra I, Contra II) in the
  * track colours, one mixer strip per written voice, the styles, and a comparison with Fux.
  */
+import { LectioVoices } from "./Study.tsx";
 import { QuartetApp } from "./QuartetApp.tsx";
 import { TRIO_COMBINED } from "../game/quartet.ts";
 import { ModeSelect } from "./ModeSelect.tsx";
@@ -774,6 +775,7 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
           {!FUX && <p className="help">{t("ui.quartet.private", { page: STEP.page })}</p>}
           </>
         ) },
+        { id: "lectio", text: true, label: t("ui.study"), content: <LectioVoices voices={3} lesson={String(species)} final={STEP.modalFinal} /> },
         { id: "guide", text: true, label: t("ui.howtoTab"), content: (
           <Guide exercise={<>
             <blockquote className="tutor" lang="en">

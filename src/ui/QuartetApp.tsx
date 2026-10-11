@@ -6,6 +6,7 @@
  * voice in two voices (D82): a tap writes the part's value (a semibreve, a minim, a crotchet; the
  * florid part the value chosen), Hold (T) carries a note on.
  */
+import { LectioVoices } from "./Study.tsx";
 import { ModeSelect } from "./ModeSelect.tsx";
 import type { Mode } from "./Root.tsx";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -734,6 +735,7 @@ export function QuartetApp({ onVoices, suspended, command, onTutorial, trio }: {
             {!hasFux && <p className="help">{t("ui.quartet.private", { page: STEP.page })}</p>}
           </>
         ) },
+        { id: "lectio", text: true, label: t("ui.study"), content: <LectioVoices voices={trio ? 3 : 4} lesson={trio ? "c" : String(species)} final={STEP.modalFinal} /> },
         { id: "guide", text: true, label: t("ui.howtoTab"), content: (
           <Guide exercise={<>
             <blockquote className="tutor" lang="en">

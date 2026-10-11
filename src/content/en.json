@@ -621,6 +621,7 @@
     "scan.title": "Gradus ad Parnassum (Vienna, 1725), p. {page}",
     "scan.prev": "Previous page",
     "scan.next": "Next page",
+    "scan.offline": "This page could not be loaded here. Open it on the game's site:",
     "scan.source": "Scans from the Four Score and More / Open Music Theory dataset (Mark Gotham). ← → turn the page; Esc closes.",
     "howto": "HOW TO PLAY",
     "howtoTab": "How to play",
@@ -1477,7 +1478,8 @@
     "fuxCite": "Fux, Gradus ad Parnassum (1725), p. {page}; our translation",
     "mannCite": "Alfred Mann (translator's note), The Study of Counterpoint, p. {page}",
     "mannCiteNote": "Alfred Mann (translator's note), The Study of Counterpoint, p. {page}, n. {note}",
-    "paraphrase": "The dialogue, paraphrased:"
+    "paraphrase": "The dialogue, paraphrased:",
+    "intro34": "Fux's Latin is quoted from the Vienna print of 1725 with our translation; the dialogue is paraphrased. Tap a page to read the print."
   },
   "help": {
     "howto": "You are Josephus, Fux's pupil. Against each cantus firmus — the given melody in whole notes — write a line of your own that obeys the rules of the species, then press Evaluate. Aloysius marks what breaks a rule; a clean result earns the star and opens Fux's own solution, to see, hear and compare. Point at anything on the screen to read what it does in the bar at the foot.",

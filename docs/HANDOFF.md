@@ -1,7 +1,7 @@
 # Handoff (10 October 2026, night)
 
 Read this first in a new session. The decisions log (`docs/DECISIONS.md`: D1–D139 and D147 on for the game,
-D140–D146 for the tutorial (the next free number is D153), C1–C14 for the chorale mode) has the details; `docs/MORNING.md` has
+D140–D146 for the tutorial (the next free number is D154), C1–C14 for the chorale mode) has the details; `docs/MORNING.md` has
 older notes and the owner's open questions.
 
 ## How we work from now on (the owner's choice, after a usage warning)
@@ -17,7 +17,7 @@ older notes and the owner's open questions.
 
 ## Publishing
 
-- Tests: `npm test` (253). Builds: `npm run build` (Pages, split into chunks) and
+- Tests: `npm test` (254). Builds: `npm run build` (Pages, split into chunks) and
   `npm run build:artifact` then `node tools/build-artifact.mjs <out.html>` (one file, 16.67 MB of a
   16.8 MB ceiling: the artifact must not grow much more without splitting data out).
 - claude.ai artifact: https://claude.ai/artifact/NvkaBGCHrtDebE85H7udTX (private). It holds 501 of
@@ -55,8 +55,9 @@ older notes and the owner's open questions.
    print and every task it sets (three voices: the modes left to private study and the species
    combined, Fig. 134; four voices: Exercitium III). For the owner to confirm: the readings beyond the
    text listed in D148 and D152; p. 139 (after Fig. 204, outside the vendored pages); Fig. 110's
-   B flat (D116). Not built for three and four voices (two voices has them): the Lectio panel
-   (Fux's text with the scans), undo, saving pieces, export.
+   B flat (D116). The Lectio for three and four voices is built (D153; its scans pp. 91-138 load in
+   the artifact only once the site carries this branch). Not built for three and four voices (two
+   voices has them): undo, saving pieces, export.
 5. **Learnability and accessibility (D149)**: the audit's first two items are done (keyboard, orientation).
    The harmony chapter is in the tutorial (D150); contrast and signs beside colour are done (D151).
    Left, in order: a spoken account of the score (live region: bar, note written, cantus) and a text

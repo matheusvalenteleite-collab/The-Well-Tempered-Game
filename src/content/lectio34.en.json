@@ -1,0 +1,478 @@
+{
+ "three": {
+  "1": {
+   "name": "Note against note in three voices",
+   "pages": "81-93",
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "fux",
+     "latin": "Tricinii Compositionem omnium perfectissimam esse, vel ex eo constat, quòd in illa sinè adjumento alterius partis perfecta harmoniae Trias haberi possit.",
+     "english": "Composition in three parts is the most perfect of all: in it the harmonic triad can be had complete, without the help of any further part.",
+     "page": "81"
+    },
+    {
+     "type": "fux",
+     "latin": "Ubi primùm notandum, in omni Hypothesi, sive tactu, nisi alia ratio impediat, Triadem harmonicam adhibendam esse.",
+     "english": "Here it must first be noted that in every setting, or bar, unless some other reason prevents it, the harmonic triad is to be used.",
+     "page": "82"
+    },
+    {
+     "type": "fux",
+     "latin": "Est Sistema Tertiâ & Quintâ constans.",
+     "english": "It is a system made of a third and a fifth.",
+     "page": "82"
+    },
+    {
+     "type": "text",
+     "text": "The triad is counted from the lowest part. What may displace it is named at once: the line's better singing, for whose sake a sixth or an octave takes the fifth's place, and, more often, the need to avoid two perfect consonances in a row (p. 82)."
+    },
+    {
+     "type": "fux",
+     "latin": "Est subinde concinnioris Cantûs ratio, cujus gratiâ nonnunquam locò Triadis alia Consonantia, vel Sexta, vel Octava adhiberi solet: saepiùs etiam immediatam duarum perfectarum consecutionem evitandi necessitas postulat, ut relictâ Triade, aut Sextâ locò Quintae, aut Octavâ, aut utrâque utendum sit",
+     "english": "There is sometimes the reason of a more graceful line, for whose sake another consonance, the sixth or the octave, is often used in place of the triad; still more often the need to avoid two perfect consonances in a row demands that the triad be left and a sixth be used in place of the fifth, or an octave, or both",
+     "page": "82"
+    },
+    {
+     "type": "heading",
+     "text": "The close"
+    },
+    {
+     "type": "text",
+     "text": "At the end the triad may lose its fifth. Josephus's first close has the cantus in the bass; he doubts the last bar, since a third would have filled the triad. Aloysius asks which third: a minor third cannot end a piece, and a major third in a mode whose whole course has the minor third would strike the ear as foreign. Better to leave the third out altogether (p. 89)."
+    },
+    {
+     "type": "fux",
+     "latin": "Ideò consultiùs erit Tertiam omnino omittere.",
+     "english": "So it will be wiser to leave out the third altogether.",
+     "page": "89"
+    },
+    {
+     "type": "text",
+     "text": "In the mode on E the close cannot be made as usual, since the semitone lies differently, and Josephus ends with a major third over the final. Aloysius approves: what was said of leaving out the third is to be understood where it can be done; where the fifth would bring two fifths in a row, the major third replaces it, the minor being less fit to close for its greater imperfection (p. 90)."
+    },
+    {
+     "type": "heading",
+     "text": "Then the other modes"
+    },
+    {
+     "type": "fux",
+     "latin": "Nunc ad reliqua quinque superstitum tonorum exempla componenda progredere, eâ ratione, ut Cantus firmus in omnibus tribus partibus, ùt jam dixi, & feci, statuatur",
+     "english": "Now go on to compose the examples of the five remaining modes, in such a way that the cantus firmus is placed in all three parts, as I have said and done",
+     "page": "89"
+    }
+   ]
+  },
+  "2": {
+   "name": "Two minims against two semibreves",
+   "pages": "94-99",
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "fux",
+     "latin": "Hîc loci in memoriam revocanda, observandaque sunt, quae de hac Specie in Bicinio praecepimus, quaeque ratione Triadis harmonicae de Semibrevi contra Semibrevem in Tricinio diximus; cum hac tamen relaxatione, quòd in hac Tricinii Specie in gratiam Triadis harmonicae Minima per saltum Tertiae nonnunquam duas Quintas salvare queat.",
+     "english": "Here recall and observe what we prescribed for this species in two voices, and what we said of the harmonic triad for semibreve against semibreve in three; with this relaxation, that in this species of three voices, for the sake of the harmonic triad, a minim may sometimes save two fifths by the leap of a third.",
+     "page": "94"
+    },
+    {
+     "type": "text",
+     "text": "The minims must agree with both semibreves, and the leap of a third by which a minim saves two fifths is allowed here, for the triad's sake, where in two voices it was forbidden (pp. 94-95)."
+    },
+    {
+     "type": "fux",
+     "latin": "Quae Hypothesis in Bicinio prohibita, in Tricinio in gratiam Triadis harmonicae, ùt dixi, toleratur.",
+     "english": "This setting, forbidden in two voices, is tolerated in three for the sake of the harmonic triad, as I said.",
+     "page": "95"
+    },
+    {
+     "type": "heading",
+     "text": "Josephus's question"
+    },
+    {
+     "type": "dialogue",
+     "lines": [
+      {
+       "who": "Josephus",
+       "text": "You told me in two voices never to set two minims on the same degree, so there is no place for the ligature; yet all three of your examples close with a ligature, and the last ends with a major third, which I remember was no less forbidden."
+      },
+      {
+       "who": "Aloysius",
+       "text": "You remember well. But hardly any rule is without exception: one must understand that a way of doing is allowed where the need for it is found, as always in two voices but not always in three. With two free minims at the close one would get a faulty unison, or an octave empty of harmony. The major third in the last example is excused by necessity: the fifth has no place there, since it would make two fifths in a row."
+      }
+     ]
+    },
+    {
+     "type": "fux",
+     "latin": "Ex istis exemplis constat in una partium per totum Cantûs firmi cursum Minimas, in reliquis autem duabus meras Semibreves constituendas esse, ità ut Minimae cum duabus Semibrevibus ritè semper concordent, habitâ aliàs motuum, regularumque ratione, quoad fieri potest.",
+     "english": "From these examples it is plain that in one of the parts minims are to be set through the whole course of the cantus firmus, and in the other two only semibreves, so that the minims always agree properly with both semibreves, regard being had otherwise to the motions and the rules, as far as possible.",
+     "page": "96"
+    },
+    {
+     "type": "fux",
+     "latin": "Age nunc sis reliquorum tenorum confice exempla, observatâ triplici mutatione à me monstratâ.",
+     "english": "Now make the examples of the other modes, keeping the threefold change I have shown.",
+     "page": "96"
+    }
+   ]
+  },
+  "3": {
+   "name": "Four crotchets against two semibreves",
+   "pages": "99-102",
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "fux",
+     "latin": "Cùm idem progrediendi ordo in hac Tricinii Compositione nobis propositus sit, quo in dandis Bicinii Lectionibus usi sumus, per se patet, hanc Lectionem esse Compositionem, quatuor Semiminimis contra Semibrevem positis constantem; cum hac tamen differentiali observatione, ut quemadmodum Semiminimae in Bicinii compositione cum unius duntaxat partis Semibrevi, ità in hac Tricinii compositione cum duarum partium Semibrevibus consonare debeant.",
+     "english": "Since the same order of proceeding is set for us in three-part composition as we used in the lessons for two parts, this lesson is plainly the composition of four crotchets against a semibreve; with this distinction, that as in two voices the crotchets had to agree with the semibreve of one part only, so here they must agree with the semibreves of two parts.",
+     "page": "99"
+    },
+    {
+     "type": "text",
+     "text": "The triad is sought on the downbeat; where the first crotchet cannot make it, let the second or the third (p. 100)."
+    },
+    {
+     "type": "fux",
+     "latin": "si primâ Semiminimâ Triadem harmonicam constituere non possis, id secundâ vel tertiâ efficere procures.",
+     "english": "if you cannot make the harmonic triad with the first crotchet, see that you make it with the second or the third.",
+     "page": "99-100"
+    },
+    {
+     "type": "heading",
+     "text": "After the exercises"
+    },
+    {
+     "type": "fux",
+     "latin": "Ex his haud malè factis exemplis intelligo, te jam haud mediocri quadam cognitione imbutum esse. Unde caeterorum tonorum Cantuumque firmorum exempla privato studio domi tuae persolvenda tibi commendo. Quibus peractis si lubet, omnes sex tonorum Cantus firmi denuò resumi, atque perfici poterunt, ità ut in una partium Semiminimae, in altera Minimae, tertiâ Semibreves ponantur ad sequentis exempli tenorem.",
+     "english": "From these examples, not badly made, I see that you are already imbued with no mean knowledge. So I commend to you the examples of the other modes and cantus firmi, to be worked out in private study at home. When they are done, if you like, the cantus firmi of all six modes may be taken up again and completed, so that crotchets are set in one of the parts, minims in another, semibreves in the third, after the manner of the following example.",
+     "page": "102"
+    }
+   ]
+  },
+  "c": {
+   "name": "The species combined in three voices",
+   "pages": "102",
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "fux",
+     "latin": "Ex his haud malè factis exemplis intelligo, te jam haud mediocri quadam cognitione imbutum esse. Unde caeterorum tonorum Cantuumque firmorum exempla privato studio domi tuae persolvenda tibi commendo. Quibus peractis si lubet, omnes sex tonorum Cantus firmi denuò resumi, atque perfici poterunt, ità ut in una partium Semiminimae, in altera Minimae, tertiâ Semibreves ponantur ad sequentis exempli tenorem.",
+     "english": "From these examples, not badly made, I see that you are already imbued with no mean knowledge. So I commend to you the examples of the other modes and cantus firmi, to be worked out in private study at home. When they are done, if you like, the cantus firmi of all six modes may be taken up again and completed, so that crotchets are set in one of the parts, minims in another, semibreves in the third, after the manner of the following example.",
+     "page": "102"
+    },
+    {
+     "type": "text",
+     "text": "Fux shows one example (Fig. 134): crotchets in one part, minims in another, semibreves in the third, on the same cantus. Each pair keeps the rules of its own species; the bar's opening sonority keeps those of note against note in three voices."
+    }
+   ]
+  },
+  "4": {
+   "name": "The ligature in three voices",
+   "pages": "103-111",
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "fux",
+     "latin": "Hîc in mentem revocanda sunt, quae de Ligaturis in Bicinio dicta sunt, quarum efficiendi ratio in Tricinio minimè mutanda, sed ad amussim observanda est. Ad rem pertinebit modò docere, quemadmodum accedente parte tertiâ socialis illius concordantia instituenda sit. Refert quoque hîc meminisse, quod suprà dictum est; Ligaturam nempe aliud non esse, quàm retardationem Notae sequentis. Unde Paradoxum fit: eandem tertiae parti tribui oportere concordantiam, quae omissâ Ligaturâ adhibenda fuisset.",
+     "english": "Here recall what was said of ligatures in two voices: the way of making them is hardly to be changed in three, but to be observed to the letter. It remains only to teach how the concord of the third part is to be added. Remember too what was said above: that a ligature is nothing but the retardation of the following note. Hence the paradox: the third part must be given the same concord it would have needed had the ligature been left out.",
+     "page": "103"
+    },
+    {
+     "type": "text",
+     "text": "Take the ligature away and see what the third part would need: that concord it keeps with the ligature in place, whether the ligature is above or in the bass (pp. 103-104). A faulty example shows why the paradox holds: without the ligatures it would be a string of fifths."
+    },
+    {
+     "type": "fux",
+     "latin": "concordantiarum rationem à Ligaturis minimè immutari; sed prorsus eandem permanere.",
+     "english": "the account of the concords is not changed at all by ligatures, but stays exactly the same.",
+     "page": "104"
+    },
+    {
+     "type": "heading",
+     "text": "Josephus's objection"
+    },
+    {
+     "type": "dialogue",
+     "lines": [
+      {
+       "who": "Josephus",
+       "text": "If ligatures change nothing, the good example and the faulty one are equally faulty: take the ligatures away and both are a string of fifths."
+      },
+      {
+       "who": "Aloysius",
+       "text": "When I said the ligatures change nothing, I meant the nature and essence of the concords, which is the same in both. But who doubts that ligatures have great power to save and to change?"
+      },
+      {
+       "who": "Josephus",
+       "text": "Yet in two voices you rejected a ligature as powerless to save two octaves; why should it save two fifths?"
+      },
+      {
+       "who": "Aloysius",
+       "text": "Much is forbidden in the high part, being more audible, that is tolerated in the low, where gravity dulls it. And the more perfect the consonance into which a dissonance resolves, the less harmony it has: a dissonance resolving into the fifth is more tolerable than one resolving into the octave. So the first example is rejected by good authors and the second approved."
+      }
+     ]
+    },
+    {
+     "type": "fux",
+     "latin": "quò magis Consonantia perfecta, in quam Dissonantia resolvitur, ad Consonantiae imperfectae accedit naturam, eò faciliore excusatione, indulgentiaque prosequenda erit resolutio.",
+     "english": "the more the perfect consonance into which the dissonance resolves comes near the nature of an imperfect consonance, the more readily the resolution is to be excused and indulged.",
+     "page": "106"
+    },
+    {
+     "type": "heading",
+     "text": "Josephus's exercise"
+    },
+    {
+     "type": "dialogue",
+     "lines": [
+      {
+       "who": "Aloysius",
+       "text": "Why did you put a sign of error, or rather of doubt, over the third bar?"
+      },
+      {
+       "who": "Josephus",
+       "text": "I had not forgotten that the first note of a ligature must be consonant; I used a fourth instead, partly because, with two semibreves to set, I could find no other way, partly because I remember seeing such examples in good authors."
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": "Where no ligature can be had in the bass at the start, Josephus opens with a rest of a whole bar; Aloysius does not object, though he shows how it could have been done otherwise (p. 108)."
+    }
+   ]
+  },
+  "5": {
+   "name": "Florid counterpoint in three voices",
+   "pages": "111-114",
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "fux",
+     "latin": "Quid, & qualis haec species sit, ex iis, quae de ea in Bicinio diximus, constare tibi suppono: esse nempè Compositionem omnium quinque specierum, pulchrâ concinnaque canendi ratione ordinatam. Quomodo autem reliquarum duarum partium semibrevibus constantium, instituendae sint concordantiae, ex Tricinii exercitationibus hucusque ventilatis tibi jam innotescere minimè dubito: adeò ut his ulteriùs explicandis hîc immorari supervacaneum existimem. Unde sinè mora ad exempla procedamus.",
+     "english": "What this species is, and of what kind, I suppose is plain to you from what we said of it in two voices: a composition of all five species, ordered by a beautiful and elegant manner of singing. How the concords of the other two parts, made of semibreves, are to be set, I hardly doubt you already know from the three-voice exercises worked through so far; so that I think it superfluous to linger here explaining them further. Let us therefore go on to the examples without delay.",
+     "page": "111-112"
+    },
+    {
+     "type": "text",
+     "text": "Nothing new: the florid part keeps the rules of the five species against the bass, and the two semibreve parts make with it the triad as in the earlier lessons. Fux's examples (pp. 112-114) are the model."
+    }
+   ]
+  }
+ },
+ "four": {
+  "1": {
+   "name": "Note against note in four voices",
+   "pages": "114-121",
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "fux",
+     "latin": "Perfectam Triadis harmonicae rationem Tricinio, sive trium partium Compositione contineri jam suprà dictum est. Inde patet, accedenti parti quartae locum aliter non esse, nisi per duplicationem cujusdam Consonantiae in Tricinio jam positae exceptis quibusdam dissonantiarum Hypothesibus, alio loco demonstrandis.",
+     "english": "It was said above that the complete harmonic triad is contained in the tricinium, composition in three parts. Hence it is plain that a fourth part, when added, has no place except by doubling one of the consonances already present in the three parts, apart from some cases of dissonance to be shown elsewhere.",
+     "page": "114"
+    },
+    {
+     "type": "text",
+     "text": "The rules of motion hold as far as possible, not only of the parts against the bass but of the parts among themselves; and where necessity, the line, imitation or the rigour of the subject asks for it, a hidden succession of fifths or octaves is tolerated (pp. 114-115)."
+    },
+    {
+     "type": "fux",
+     "latin": "habito respectu non solùm partium ad fundamentum, verùm etiam partium ad partes inter se. Dixi: quoad fieri poterit, quia nonnunquam necessitas feret, aut ratio canendi, aut imitatio, aut subjecti rigor, ut Quintarum, vel Octavarum cooperta consecutio toleranda sit.",
+     "english": "regard being had not only to the parts against the foundation, but also to the parts among themselves. I said: as far as can be done, because sometimes necessity, or the manner of singing, or imitation, or the rigour of the subject will make a hidden succession of fifths or octaves tolerable.",
+     "page": "115"
+    },
+    {
+     "type": "fux",
+     "latin": "Interim quò minùs à communibus regulis aberrare contigerit, eò perfectior resultabit Quatricinii Compositio.",
+     "english": "Meanwhile, the less one strays from the common rules, the more perfect the four-part composition will turn out.",
+     "page": "115"
+    },
+    {
+     "type": "heading",
+     "text": "The fourth between the inner parts"
+    },
+    {
+     "type": "dialogue",
+     "lines": [
+      {
+       "who": "Josephus",
+       "text": "In your four-part example I found a fourth between the middle parts now and then, which you established as a dissonance and forbade in composition of semibreves only."
+      },
+      {
+       "who": "Aloysius",
+       "text": "Rightly. But remember that the nature of consonances and dissonances is measured against the bass; whatever arises between the middle parts from that is nothing absurd, provided only that two fifths or two octaves in a row are avoided."
+      }
+     ]
+    },
+    {
+     "type": "fux",
+     "latin": "Caeterùm attendendum est, quò contractiores in angustum partes, eò perfectiorem resultare Harmoniam, juxta illud: Vis unita fortior.",
+     "english": "Note besides that the more closely the parts are drawn together, the more perfect the harmony, according to the saying: strength united is the stronger.",
+     "page": "117"
+    },
+    {
+     "type": "fux",
+     "latin": "ut non solùm partes cum Basso, sive parte fundamentali, verùm etiam partes mediae inter se ad regularum tenorem ritè concordent.",
+     "english": "that not only the parts agree properly with the bass, or foundational part, but the middle parts too among themselves, according to the rules.",
+     "page": "117"
+    }
+   ]
+  },
+  "2": {
+   "name": "Two minims against three semibreves",
+   "pages": "121-123",
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "fux",
+     "latin": "Hîc in memoriam revocare necesse est, quae suprà de hac Contrapuncti specie in Tricinio diximus; quae omnia in hac Quatricinii compositione quoque tenenda sunt: neque alia differentia est, quàm quòd ibi duae Minimae cum duabus semibrevibus, hîc verò cum tribus concordare debeant.",
+     "english": "Here you must recall what we said above of this species of counterpoint in three voices: all of it is to be kept in this four-part composition too, and the only difference is that there two minims had to agree with two semibreves, here with three.",
+     "page": "121"
+    },
+    {
+     "type": "text",
+     "text": "Where two minims cannot be had in the penultimate bar, Josephus sets a semibreve, and Aloysius accepts it (p. 123)."
+    }
+   ]
+  },
+  "3": {
+   "name": "Four crotchets against three semibreves",
+   "pages": "123-131",
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "fux",
+     "latin": "Quae hujus Speciei requisita sint, ex iis, quae de hac in compositione duarum, triumque partium dicta sunt, petantur: adeò ut hîc nihil aliud addendum sit, praeter Concordantiae disparitatem. Quemadmodum enim in Bicinio Concordantia cum una Semibrevi, in Tricinio cum duabus instituenda est: ita in hac Quatricinii Compositione quatuor Semiminimae cum tribus Semibrevibus juxta Harmoniae regulas aliunde tibi notas concordandae sunt.",
+     "english": "What this species requires is to be sought in what was said of it in the composition of two and three parts, so that nothing need be added here but the difference in the concord: as in two voices the concord was made with one semibreve, and in three with two, so in this four-part composition four crotchets must agree with three semibreves, by the rules of harmony known to you from elsewhere.",
+     "page": "123-124"
+    },
+    {
+     "type": "text",
+     "text": "Faults the semibreves force are tolerated 'ob Semibrevium necessitatem', for the semibreves' necessity (pp. 125, 127, 128, 131); the fullest harmony on the downbeat, third and fifth, is a counsel (p. 126)."
+    }
+   ]
+  },
+  "4": {
+   "name": "The ligature in four voices",
+   "pages": "131-136",
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "fux",
+     "latin": "Nunc explanandum restat, quasnam Concordantiarum comites in Quatricinio ligaturae sibi adsciscant: de quo nonnihil dictum est in Tricinii compositione; eas nempe concordantias, quas sublatâ ligaturâ petunt, sibi postulare; ob rationem ibi dictam, quòd ligatura nil aliud sit, quàm retardatio sequentis Notae, quae quoad concordantias nihil immutat.",
+     "english": "It remains to explain what consonances the ligatures take as companions in four voices. Something was said of this in three-part composition: they ask for the consonances they would ask for with the ligature taken away, for the reason given there, that a ligature is nothing but the retardation of the following note, which changes nothing in the consonances.",
+     "page": "131"
+    },
+    {
+     "type": "text",
+     "text": "Here, for the first time, a semibreve part may be divided into two minims, where the ligature's resolution would otherwise clash with it."
+    },
+    {
+     "type": "dialogue",
+     "lines": [
+      {
+       "who": "Josephus",
+       "text": "But this species does not admit the division of the semibreve."
+      },
+      {
+       "who": "Aloysius",
+       "text": "So it is, where it can be done. But many cases will arise, as you will learn from the examples below, where necessity demands it and you cannot do without the division."
+      }
+     ]
+    },
+    {
+     "type": "fux",
+     "latin": "Quamobrem trium Semibrevium rigor hac in Specie non admodum strictè teneri potest.",
+     "english": "Therefore the rigour of the three semibreves cannot be held very strictly in this species.",
+     "page": "133"
+    },
+    {
+     "type": "dialogue",
+     "lines": [
+      {
+       "who": "Josephus",
+       "text": "A seventh accompanied by the octave would not need the semibreve divided, as your first example shows."
+      },
+      {
+       "who": "Aloysius",
+       "text": "True in that case, where nothing prevents the octave from taking the fifth's place; but in the settings, and they are most, where the octave has no place because of the notes before and after, the fifth must be used, and then the semibreve is to be divided, as in many other cases."
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": "A fourth between inner parts counts as nothing, or as an imperfect consonance (p. 134)."
+    }
+   ]
+  },
+  "5": {
+   "name": "Florid counterpoint in four voices",
+   "pages": "136-138",
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "fux",
+     "latin": "Speciem hanc, Josephe, Contrapuncto florido contineri, non ignoras. Quid sit, qua ratione fiat, ex praecedentibus, & exemplis, & dictis nota tibi fore suppono: maximè ex Tricinii speciei hujus exercitio: ut adeò nihil hîc novi addendum sit, praeter quartam partem, Semibrevi constantem, juxtaque Quatricinii regulas intexendam.",
+     "english": "You know, Joseph, that this species is florid counterpoint. What it is and how it is made I suppose you know from what precedes, from the examples and from what was said, above all from the exercise of this species in three voices: so that nothing new need be added here but a fourth part of semibreves, woven in by the rules of four-part writing.",
+     "page": "136"
+    },
+    {
+     "type": "text",
+     "text": "The semibreve parts are kept whole 'de possibilitate', where possible, and divided where needed (p. 138)."
+    }
+   ]
+  },
+  "6": {
+   "name": "The species combined in four voices",
+   "pages": "138",
+   "study": [
+    {
+     "type": "heading",
+     "text": "The lesson"
+    },
+    {
+     "type": "fux",
+     "latin": "Absolutis jam quinque Speciebus, ubique seorsum exercitatis, id conjunctim nunc ut facias, quàm maximè te cohortor; servato eodem Cantu firmo, conjungas E. G. Minimas, Semiminimas, & Ligaturas; quo facto, quâlibet partium peculiarem motum nactâ, mira Compositioni varietas accedet.",
+     "english": "Now that the five species are finished, each practised on its own, I urge you most strongly to do the same together: keeping the same cantus firmus, join, for example, minims, crotchets and ligatures; so, each part having its own motion, a wonderful variety will come to the composition.",
+     "page": "138"
+    },
+    {
+     "type": "text",
+     "text": "Fux's example (Fig. 204) joins minims, crotchets and ligatures over the same cantus. Each pair keeps the rules of its species; the downbeat sonority those of four voices."
+    }
+   ]
+  }
+ }
+}
