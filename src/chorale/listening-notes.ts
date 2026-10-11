@@ -9,7 +9,7 @@ import { t } from "../ui/i18n.ts";
 
 export type ListeningKind =
   | "picardy" | "phrygian" | "deceptive" | "foreignClose" | "dim7" | "improperSeventh" | "unpreparedSeventh"
-  | "suspensionChain" | "chromaticLine" | "crossRelation" | "crossing" | "peak";
+  | "suspensionChain" | "chromaticLine" | "crossRelation" | "crossing" | "neapolitan" | "borrowed" | "pedal" | "peak";
 type Row = [number, number | null, number[], ListeningKind, Record<string, string | number>];
 export interface ListeningData {
   chorales: Record<string, Row[]>;
@@ -46,6 +46,7 @@ export function notesFor(data: ListeningData, n: number): ListeningNote[] {
     const v: Record<string, string | number> = {};
     for (const [k, x] of Object.entries(vars)) v[k] = VOICE_WORDS.has(k) && typeof x === "string" ? t(`chorale.guide.voice.${x}`) : x;
     if (kind === "chromaticLine") v.dir = t(`chorale.guide.dir.${vars.dir}`);
+    if (kind === "borrowed") v.chord = t(`chorale.guide.quality.${vars.chord}`);
     return { at, ...(end !== null ? { end } : {}), voices, kind, text: t(`chorale.guide.${kind}`, v) };
   });
 }

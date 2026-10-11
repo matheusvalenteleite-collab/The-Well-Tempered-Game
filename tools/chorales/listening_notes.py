@@ -10,7 +10,9 @@ grid of study.json), voices 0 soprano .. 3 bass. The kinds:
   picardy            a chorale in minor ending on the major triad of its tonic
   phrygian           a Phrygian half cadence (the bass falling a semitone to the dominant)
   deceptive          a deceptive cadence (Kirnberger's Inganno, Kunst I pp. 97-98)
-  foreignClose       a full close in another key than the chorale's (Kunst I pp. 95-96)
+  foreignClose       a full close in another key than the chorale's (Kunst I pp. 95-96), only where
+                     that close is rare in the mode (under 2% of Bach's full closes in it: a close on
+                     V in major is the commonest after I, and no listener's surprise), once a degree
   dim7               a diminished seventh chord, read as the dominant seventh with the minor ninth
                      held for its root (Kunst I p. 90; C22)
   improperSeventh    a seventh that is the ninth of a root a third lower (Die wahren Grundsaetze
@@ -23,6 +25,9 @@ grid of study.json), voices 0 soprano .. 3 bass. The kinds:
   crossRelation      a letter altered in one voice right after another voice sang it unaltered
                      (or the reverse): the false relation
   crossing           two voices crossed on the beat
+  neapolitan         the major triad on the lowered second degree
+  borrowed           in major, a chord of the minor mode (minor IV, major bVI or bIII)
+  pedal              the bass holding one pitch over three beats or more while the harmony changes
   peak               the melody's highest note (where it first comes)
 
 Each kind is kept to a few per chorale (the rarer first), so that the guide points, not lists.
@@ -45,7 +50,7 @@ STUDY = ROOT / "data/chorales/study.json"
 OUT = ROOT / "data/chorales/listening.json"
 VOICES = ["soprano", "alto", "tenor", "bass"]
 LIMIT = {"dim7": 3, "improperSeventh": 2, "unpreparedSeventh": 2, "suspensionChain": 2, "chromaticLine": 3, "crossRelation": 2, "crossing": 2,
-         "foreignClose": 3, "deceptive": 3, "phrygian": 3}
+         "foreignClose": 3, "deceptive": 3, "phrygian": 3, "neapolitan": 2, "borrowed": 2, "pedal": 2}
 PC = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
 
 
@@ -55,6 +60,30 @@ def q(x: str) -> int:
 
 def pc_name(name: str) -> int:
     return (PC[name[0]] + name.count("#") - name[1:].count("b")) % 12
+
+
+RARE_CLOSE = 0.02
+CLOSES: dict[tuple, int] = {}
+CLOSES_N: dict[str, int] = {}
+
+
+def close_key(mode: str, tonic: str, fin: dict) -> tuple:
+    return (mode, (pc_name(fin["root"]) - pc_name(tonic)) % 12, fin.get("chord") or "")
+
+
+def count_closes(analyses: list[dict]) -> None:
+    """Bach's full closes by mode, the final root's distance from the tonic and the chord's kind."""
+    for a in analyses:
+        for cd in a["cadences"]:
+            fin = cd["final"]
+            if fin and fin.get("root") and cd["class"].startswith("authentic"):
+                k = close_key(a["key"]["mode"], a["key"]["tonic"], fin)
+                CLOSES[k] = CLOSES.get(k, 0) + 1
+                CLOSES_N[k[0]] = CLOSES_N.get(k[0], 0) + 1
+
+
+def close_share(mode: str, tonic: str, fin: dict) -> float:
+    return CLOSES.get(close_key(mode, tonic, fin), 0) / max(1, CLOSES_N.get(mode, 0))
 
 
 def observations(study: dict, a: dict) -> list[list]:
@@ -77,7 +106,7 @@ def observations(study: dict, a: dict) -> list[list]:
             out.append([at, None, [3], "phrygian", {"bass": fin["bass"][:-1]}])
         elif cd["class"] == "deceptive":
             out.append([at, None, [3], "deceptive", {"root": fin.get("root") or ""}])
-        elif cd["class"].startswith("authentic") and fin.get("root") and pc_name(fin["root"]) != pc_name(tonic):
+        elif cd["class"].startswith("authentic") and fin.get("root") and pc_name(fin["root"]) != pc_name(tonic) and close_share(mode, tonic, fin) < RARE_CLOSE:
             out.append([at, None, [], "foreignClose", {"root": fin["root"], "chord": fin.get("chord") or "", "degree": cd.get("final_bass_degree") or ""}])
 
     # Chords and sevenths, on the beat.
@@ -97,6 +126,32 @@ def observations(study: dict, a: dict) -> list[list]:
         if pairs:  # two voices crossed (the analysis' `crossing` flag looks only at the bass)
             i, j = pairs[0]
             out.append([at, None, [i, j], "crossing", {"upper": VOICES[i], "lower": VOICES[j], "bar": bar(v)}])
+
+    # Chords from elsewhere, on the beat: the Neapolitan (the major triad on the lowered second
+    # degree) and, in major, chords borrowed from the minor (the minor fourth degree, the major
+    # triads on the lowered sixth and third).
+    t0 = pc_name(tonic)
+    for v in beats:
+        if not v.get("root") or v.get("chord") not in ("major", "minor"):
+            continue
+        d = (pc_name(v["root"]) - t0) % 12
+        at = q(v["t"])
+        if d == 1 and v["chord"] == "major" and mode in ("major", "minor"):  # in the Phrygian mode it is the mode's own
+            out.append([at, None, [3], "neapolitan", {"root": v["root"], "bar": bar(v), "inversion": "sixth" if v.get("bass_role") == "third" else "root"}])
+        elif mode == "major" and ((d == 5 and v["chord"] == "minor") or (d in (8, 3) and v["chord"] == "major")):
+            out.append([at, None, [], "borrowed", {"root": v["root"], "chord": v["chord"], "bar": bar(v)}])
+
+    # Pedal points: the bass holding one pitch for three beats or more while the harmony above it
+    # changes twice or more.
+    i = 0
+    while i < len(beats):
+        j = i
+        while j + 1 < len(beats) and beats[j + 1]["pitches"].get("bass") == beats[i]["pitches"].get("bass"):
+            j += 1
+        roots = {b.get("root") for b in beats[i:j + 1] if b.get("root")}
+        if j - i >= 2 and len(roots) >= 3 and beats[i]["pitches"].get("bass"):
+            out.append([q(beats[i]["t"]), q(beats[j]["t"]), [3], "pedal", {"pitch": beats[i]["pitches"]["bass"][:-1], "bar": bar(beats[i])}])
+        i = j + 1
 
     # Suspension chains: three or more beats in a row with a suspension.
     run: list[dict] = []
@@ -155,6 +210,9 @@ def observations(study: dict, a: dict) -> list[list]:
         first = next(n for n in sop if K.midi(n[2]) == top)
         out.append([first[0], None, [0], "peak", {"pitch": first[2]}])
 
+    # A full close away from home once for each place it goes.
+    seen: set = set()
+    out = [o for o in out if o[3] != "foreignClose" or not ((o[4]["root"], o[4]["chord"]) in seen or seen.add((o[4]["root"], o[4]["chord"])))]
     # A few of each kind, in time order.
     out.sort(key=lambda o: (o[0], o[3]))
     kept, count = [], {}
@@ -167,6 +225,7 @@ def observations(study: dict, a: dict) -> list[list]:
 
 def main() -> None:
     study = {c["n"]: c for c in json.loads(STUDY.read_text())["chorales"]}
+    count_closes([json.loads(f.read_text()) for f in sorted((BACH / "analysis").glob("bach_*.json"))])
     data = {}
     totals: dict[str, int] = {}
     for f in sorted((BACH / "analysis").glob("bach_*.json")):

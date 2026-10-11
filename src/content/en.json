@@ -1815,7 +1815,7 @@
     "guide.picardy": "The chorale is in minor, but its last chord is major: the \"Picardy\" third, the brighter close the older practice preferred (Kirnberger, Kunst I, p. 34).",
     "guide.phrygian": "A Phrygian cadence: the bass falls a semitone to {bass}, and the phrase stops on the dominant, open rather than closed.",
     "guide.deceptive": "A deceptive cadence: everything prepares the tonic, and the bass moves up instead, to a chord on {root} (Kirnberger's Inganno, Kunst I, pp. 97-98).",
-    "guide.foreignClose": "A full close away from home: the phrase ends on {root} ({degree} of the chorale's key), as if for a moment it were the key.",
+    "guide.foreignClose": "A full close in a far place: the phrase ends on {root} ({degree} of the chorale's key), where fewer than one in fifty of Bach's full closes in this mode go.",
     "guide.dim7": "Bar {bar}: a diminished seventh chord. Kirnberger hears it as the seventh chord on {root} with its minor ninth held in place of the root (Kunst I, p. 90).",
     "guide.improperSeventh": "Bar {bar}: a seventh that is not what it seems. It is the ninth of {root}, held over and resolving late (Kirnberger's improper seventh, Die wahren Grundsätze).",
     "guide.unpreparedSeventh": "Bar {bar}: the {voice} strikes a seventh without preparing it, a licence of the free style that Bach allows himself here (Kirnberger, Kunst I, pp. 80-81).",
@@ -1829,7 +1829,12 @@
     "guide.voice.soprano": "soprano",
     "guide.voice.alto": "alto",
     "guide.voice.tenor": "tenor",
-    "guide.voice.bass": "bass"
+    "guide.voice.bass": "bass",
+    "guide.neapolitan": "Bar {bar}: a major chord on {root}, a semitone above the tonic, the \"Neapolitan\" chord, dark and sudden before the cadence.",
+    "guide.borrowed": "Bar {bar}: a chord borrowed from the minor ({root} {chord}) shadows the major key for a moment.",
+    "guide.pedal": "From bar {bar}: the bass holds {pitch} while the harmony above it moves: a pedal point.",
+    "guide.quality.major": "major",
+    "guide.quality.minor": "minor"
   },
   "wtcp": {
     "piece.p1": "Prelude 1 in C (BWV 846) · harmonic plan",
