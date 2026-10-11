@@ -1113,9 +1113,6 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .wtc-chords .chipbtn { padding: 1px 5px; min-width: 0; }
 .wtc-chords .barno { opacity: 0.55; font-size: 0.75em; margin-left: 6px; align-self: center; }
 /* D127: the score as a page that follows the music. */
-.wtc-page { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; padding: 4px; }
-.wtc-sys { border-left: 3px solid transparent; }
-.wtc-sys.playing { border-left-color: var(--accent, #e07b00); }
 /* D143: the gold star. */
 .star.gold { filter: drop-shadow(0 0 3px rgba(240, 190, 40, 0.8)); }
 /* D140 after D106: the scores fit their box, so the tutorial's boxes have a height of their own. */
@@ -1133,3 +1130,99 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .tut-roll .pianoroll { max-height: 260px; overflow: auto; }
 .tut-roll .help-line { padding: 4px 8px; }
 :root[data-look="retro"] .tut-roll { border: 2px solid var(--edge); box-shadow: 3px 3px 0 var(--edge); }
+
+/* D147: the page of music that follows the playing, the keyboard under it, the notes lit as they sound. */
+.score-wrap.wtc { display: flex; flex-direction: column; overflow: hidden; }
+.score-wrap.wtc .wtc-view { position: relative; flex: 1 1 auto; min-height: 0; }
+.wtc-sheet { position: absolute; inset: 0; overflow-y: scroll; scrollbar-gutter: stable; overflow-x: hidden; background: #fbf8ef; --sheet-ink: #1f1d1a; --bar-number: #9a948a; --sheet-harmony: #7a5a22; color-scheme: light; overscroll-behavior: contain; }
+.sheet-page { position: relative; cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: pan-y; padding-bottom: 40px; }
+.sheet-music svg { display: block; }
+.sheet-over { position: absolute; inset: 0; pointer-events: none; }
+.sheet-span { position: absolute; background: rgba(42, 86, 214, 0.07); border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(42, 86, 214, 0.25); }
+.sheet-drag { position: absolute; background: rgba(42, 86, 214, 0.16); border-radius: 3px; }
+.sheet-marker { position: absolute; width: 2px; margin-left: -1px; background: #2a56d6; opacity: 0.75; border-radius: 1px; }
+.sheet-marker::before { content: ""; position: absolute; top: -6px; left: -4px; border: 5px solid transparent; border-top-color: #2a56d6; }
+.sheet-cursor { position: absolute; left: 0; top: 0; width: 3px; margin-left: -1px; background: rgba(224, 123, 0, 0.8); border-radius: 2px; box-shadow: 0 0 8px rgba(224, 123, 0, 0.45); will-change: transform; }
+.sheet-music[data-faint~="v0"] .v0, .sheet-music[data-faint~="v1"] .v1, .sheet-music[data-faint~="v2"] .v2, .sheet-music[data-faint~="v3"] .v3,
+.sheet-music[data-faint~="v4"] .v4, .sheet-music[data-faint~="v5"] .v5, .sheet-music[data-faint~="v6"] .v6, .sheet-music[data-faint~="v7"] .v7 { opacity: 0.22; }
+/* A note struck: the head swells and glows in its voice's colour; held: a softer glow until it ends. */
+.sheet-music .vf-notehead { transition: filter 0.45s ease-out; }
+.sheet-music .vf-notehead path { transform-box: fill-box; transform-origin: center; transition: transform 0.35s ease-out; }
+.sheet-music .vf-notehead.hl-hit { filter: drop-shadow(0 0 2px var(--hl)) drop-shadow(0 0 5px var(--hl)); transition: filter 0.03s; }
+.sheet-music .vf-notehead.hl-hit path { transform: scale(1.5); transition: transform 0.03s; }
+.sheet-music .vf-notehead.hl-on { filter: drop-shadow(0 0 2.5px var(--hl)); }
+.sheet-music .vf-notehead.hl-on path { transform: scale(1.18); }
+.keystrip { position: relative; flex: 0 0 46px; height: 46px; background: #1c1b19; border-top: 1px solid var(--line); user-select: none; -webkit-user-select: none; overflow: hidden; }
+.keystrip .key { position: absolute; top: 0; cursor: pointer; transition: background-color 0.3s ease-out, box-shadow 0.3s ease-out, transform 0.3s ease-out; }
+.keystrip .key.white { bottom: 0; background: linear-gradient(#ffffff, #efebe1); border-right: 1px solid #a9a397; border-radius: 0 0 3px 3px; }
+.keystrip .key.black { height: 60%; background: linear-gradient(#3a3835, #121110); border-radius: 0 0 2px 2px; z-index: 1; box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4); }
+.keystrip .key span { position: absolute; bottom: 2px; left: 0; right: 0; text-align: center; font: 9px var(--ui-font); color: #8c867a; pointer-events: none; }
+.keystrip .key.white.on { background: color-mix(in srgb, var(--kc) 38%, #ffffff); }
+.keystrip .key.black.on { background: color-mix(in srgb, var(--kc) 65%, #111111); }
+.keystrip .key.hit { background: var(--kc); box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.28), 0 0 10px var(--kc); transform: translateY(1px); transition: none; }
+.voiceroll rect[data-i] { transition: filter 0.4s ease-out; }
+.voiceroll rect.hl-hit { filter: brightness(1.35) drop-shadow(0 0 3px rgba(0, 0, 0, 0.55)); stroke: #000; stroke-width: 1.2; transition: none; }
+.voiceroll rect.hl-on { filter: brightness(1.15); stroke: rgba(0, 0, 0, 0.55); stroke-width: 0.8; }
+.roll-playhead { stroke: rgba(224, 123, 0, 0.9); stroke-width: 2; }
+.roll-marker { stroke: #2a56d6; stroke-width: 1.5; stroke-dasharray: 4 2; }
+.wtc-pos { font: 12px var(--ui-font); font-variant-numeric: tabular-nums; color: var(--muted); min-width: 8.5em; white-space: nowrap; }
+.shell .panel[hidden] { display: none; }
+.shell.layout-compact .score-wrap.wtc { height: 64vh; min-height: 280px; }
+.shell.layout-compact.focus .score-wrap.wtc { height: 82vh; }
+/* D147: the navigator, the whole piece at a glance under the music. */
+.navigator { position: relative; flex: 0 0 34px; height: 34px; background: var(--bg); border-top: 1px solid var(--line); cursor: pointer; user-select: none; -webkit-user-select: none; overflow: hidden; touch-action: none; }
+.nav-sec { position: absolute; top: 0; bottom: 0; border-right: 1px solid var(--line); opacity: 0.55; }
+.nav-sec.nav-exposition { background: rgba(42, 86, 214, 0.12); }
+.nav-sec.nav-entries { background: rgba(46, 139, 87, 0.10); }
+.nav-sec.nav-episode { background: rgba(184, 134, 11, 0.13); }
+.nav-sec.nav-close { background: rgba(155, 63, 198, 0.10); }
+.nav-sec.nav-toKey, .nav-sec.nav-figure { background: rgba(127, 127, 127, 0.07); }
+.nav-sec:hover { opacity: 1; }
+.nav-bar { position: absolute; top: 0; font: 9px var(--ui-font); color: var(--muted); padding-left: 2px; border-left: 1px solid var(--line); line-height: 10px; pointer-events: none; }
+.nav-entry { position: absolute; height: 3px; border-radius: 2px; opacity: 0.9; }
+.nav-entry.inv { opacity: 0.55; background-image: repeating-linear-gradient(90deg, transparent 0 3px, rgba(255, 255, 255, 0.7) 3px 5px); }
+.nav-span { position: absolute; top: 0; bottom: 0; background: rgba(42, 86, 214, 0.18); box-shadow: inset 0 0 0 1px rgba(42, 86, 214, 0.5); pointer-events: none; }
+.nav-marker { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #2a56d6; pointer-events: none; }
+.nav-head { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -1px; background: rgba(224, 123, 0, 0.9); pointer-events: none; }
+.sheet-bracket { position: absolute; border-radius: 5px; background: color-mix(in srgb, var(--bc) 9%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bc) 35%, transparent); }
+.sheet-bracket.inv { box-shadow: none; outline: 1px dashed color-mix(in srgb, var(--bc) 45%, transparent); outline-offset: -1px; }
+.sheet-music[data-dim~="v0"] .v0, .sheet-music[data-dim~="v1"] .v1, .sheet-music[data-dim~="v2"] .v2, .sheet-music[data-dim~="v3"] .v3,
+.sheet-music[data-dim~="v4"] .v4, .sheet-music[data-dim~="v5"] .v5, .sheet-music[data-dim~="v6"] .v6, .sheet-music[data-dim~="v7"] .v7 { opacity: 0.4; }
+.wtc-now { flex: 0 0 auto; display: block; padding: 3px 10px; font: 12px var(--ui-font); color: var(--ink); background: var(--bg); border-top: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; min-height: 22px; }
+.shell.layout-compact .score-area:has(.score-wrap.wtc) { height: auto; max-height: none; overflow: visible; }
+.sheet-note { position: absolute; pointer-events: auto; min-width: 0; min-height: 0; padding: 0 4px; height: 18px; line-height: 16px; font-size: 12px; border-radius: 9px; background: #fff3c4; border: 1px solid #d9b84a; color: #6b5310; cursor: pointer; }
+.nav-note { position: absolute; bottom: 0; width: 7px; height: 7px; margin-left: -3px; border-radius: 50%; background: #e0b733; border: 1px solid #8a6d12; }
+.wtc-note-edit { width: 100%; font: inherit; font-size: 0.95rem; padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper); color: var(--ink); resize: vertical; }
+.wtc-notes .note-text { flex: 1 1 auto; white-space: pre-wrap; }
+.wtc-viewmenu { position: relative; display: inline-block; }
+.wtc-viewpop { position: absolute; z-index: 20; top: auto; bottom: 100%; left: 0; margin-bottom: 4px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18); min-width: 15em; font: 13px var(--ui-font); white-space: nowrap; }
+.wtc-viewpop label { display: flex; align-items: center; gap: 6px; }
+.wtc-viewpop kbd { margin-left: auto; font: 10px var(--ui-font); color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; }
+.wtc-viewpop .row { display: flex; align-items: center; gap: 6px; }
+.sheet-mark { position: absolute; font: italic 11px var(--serif, Georgia, serif); color: #7a5a22; background: rgba(251, 248, 239, 0.85); padding: 0 3px; border-radius: 3px; white-space: nowrap; pointer-events: auto; }
+/* Printing the study prints its score: every system, with its colours and bands, nothing else. */
+@media print {
+  .shell .topbar, .shell .transport-row, .shell .panel, .shell .divider, .infobar, .navigator, .keystrip, .wtc-now, .sheet-cursor, .sheet-marker, .sheet-drag, .sheet-note { display: none !important; }
+  html, body, .shell, .score-area, .score-wrap.wtc, .wtc-view, .wtc-sheet { position: static !important; height: auto !important; max-height: none !important; overflow: visible !important; border: none !important; box-shadow: none !important; background: #fff !important; }
+  .sheet-sys { break-inside: avoid; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+.voiceroll, .voiceroll svg { user-select: none; -webkit-user-select: none; }
+.roll-drag { fill: rgba(42, 86, 214, 0.16); }
+/* D150: the study on a phone: the piece and its arrows on one line, the rest on a second; the score
+   scrolls into the page; nothing hidden under the info bar. */
+@media (max-width: 599px) {
+  .shell .topbar .exercise-nav.wtc-nav { display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 100%; }
+  .shell .topbar .exercise-nav.wtc-nav .values { display: inline-flex; flex-wrap: nowrap; }
+  .shell .topbar .exercise-nav.wtc-nav > button.icon { display: inline-flex; flex: 0 0 34px; justify-content: center; }
+  .shell .topbar .exercise-nav.wtc-nav > button.icon:first-child { order: 0; }
+  .shell .topbar .exercise-nav.wtc-nav #exercise { order: 1; flex: 1 1 calc(100% - 84px); }
+  .shell .topbar .exercise-nav.wtc-nav > button.icon:nth-of-type(2) { order: 2; }
+  .shell .topbar .exercise-nav.wtc-nav #voices { order: 3; flex: 0 1 34%; }
+  .shell .topbar .exercise-nav.wtc-nav .values { order: 4; }
+  .shell .topbar .exercise-nav.wtc-nav > button.chipbtn { display: inline-flex; order: 5; }
+  .shell:has(.wtc-nav) .topbar .header-tools { width: auto; flex: 1 1 auto; justify-content: flex-end; gap: 3px; }
+  .shell:has(.wtc-nav) .topbar .header-tools button { font-size: 0.7rem; padding: 2px 6px; min-height: 26px; }
+  .shell.layout-compact:has(.wtc-nav) { padding-bottom: 52px; }
+  .shell.layout-compact .wtc-sheet, .shell.layout-compact .voiceroll { overscroll-behavior: auto; }
+}
