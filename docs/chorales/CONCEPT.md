@@ -68,18 +68,20 @@ Bach's: the four voices written out and embellished. The mode leads from the fir
 
 Three layers, each with its own place in the feedback.
 
-### a. Boundaries (few)
+### a. Warnings, never errors (C21)
 
-What Bach virtually never does, counted over the corpus and cited:
+The owner (C21, replacing C16's two errors): **the chorale mode has no errors, only warnings of
+varying gravity.**
 
-- consecutive fifths and octaves on successive beats (Bach: 1 in 370 chorales, no. 320, bar 8,
-  to be checked in the Breitkopf print; 17 more inside phrases pass through notes off the beat,
-  which are not errors);
-- the augmented second in a line (Bach: none in 82,424 melodic steps).
+- **Grave**: what Bach (virtually) never writes, and the figure not realised. Consecutive fifths or
+  octaves by similar motion (Bach: one on the beat in 370 chorales, no. 320, bar 8, confirmed in the
+  later Breitkopf print; 17 more inside phrases through notes off the beat); the augmented second in
+  a line (none in 82,424 melodic steps); a letter the figure asks for missing, a note outside its chord.
+- **Warning**: what a careful setting avoids. Fifths or octaves by contrary motion; voices crossing,
+  too far apart, out of their range.
+- **Note**: a choice Bach rarely makes in the same context (below), and a missing fifth.
 
-Only these are reported as errors (owner, C16). A candidate becomes a boundary only by the owner's
-decision, with its count in front of them (as in D39). The unprepared seventh is not one: 354 of
-Bach's 2,335 sevenths on the beat enter free.
+A gravity is set by the owner's decision, with Bach's count in front of them (as in D39).
 
 ### b. Idiom
 
