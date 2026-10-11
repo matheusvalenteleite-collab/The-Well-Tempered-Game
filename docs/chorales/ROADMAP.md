@@ -6,7 +6,7 @@ Agreed with the owner on 11 October 2026, after levels 0-6 had been built as sep
 
 **A course in harmonizing a chorale from the top down, for a learner coming from the Fux mode.**
 The Fux mode is the strict discipline and the prerequisite; the chorale mode teaches harmony
-through Bach's practice (C16: one style, two errors, everything else idiom in context).
+through Bach's practice (C16: one style, Bach's; C21: no errors, warnings of three gravities).
 
 Four directions were weighed:
 
