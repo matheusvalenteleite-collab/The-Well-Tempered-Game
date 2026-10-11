@@ -253,6 +253,13 @@ if (SETTINGS.choices) {
 }
 const KEYS = Object.fromEntries([...document.querySelectorAll(".choice")].map((c, k) => [String(k + 1), c.dataset.r]));
 if (SETTINGS.flag) $("flag-row").hidden = false;
+// a blind page (listening): no facts, no moment to play, no surprise in the list
+if (SETTINGS.blind) {
+  document.querySelector(".facts").hidden = true;
+  for (const id of ["play-moment", "d-moment", "mk"]) $(id).hidden = true;
+  $("solo").closest("label").hidden = true;
+  $("score").setAttribute("aria-label", "Score");
+}
 
 function visible() { return MOMENTS.map((m, i) => i).filter((i) => filter === "all" || !ratings[MOMENTS[i].id]?.rating); }
 
@@ -278,10 +285,10 @@ function renderList() {
     if (ratings[m.id]?.rating) dot.dataset.r = ratings[m.id].rating;
     const t = document.createElement("span");
     t.className = "t";
-    t.textContent = `No. ${m.no}, bar ${m.bar}: ${m.title}`;
+    t.textContent = m.name || `No. ${m.no}, bar ${m.bar}: ${m.title}`;
     const bits = document.createElement("span");
     bits.className = "b";
-    bits.textContent = `${m.bits} b`;
+    bits.textContent = SETTINGS.blind ? "" : `${m.bits} b`;
     b.append(dot, t, bits);
     b.addEventListener("click", () => { show(i); if (narrow.matches) { openList(false); $("moment").scrollIntoView({ block: "start" }); } });
     box.append(b);
@@ -315,16 +322,16 @@ function show(i) {
   stop();
   index = Math.max(0, Math.min(MOMENTS.length - 1, i));
   const m = MOMENTS[index];
-  $("m-title").textContent = `No. ${m.no}, bar ${m.bar}`;
+  $("m-title").textContent = m.name || `No. ${m.no}, bar ${m.bar}`;
   $("m-level").textContent = LEVELS[m.level];
   const meta = $("m-meta");
   meta.textContent = "";
-  for (const s of [m.title, `BWV ${m.bwv}`, m.key, m.voice === null ? "the whole chord" : `voice: ${VOICE[m.voice]}`]) {
+  for (const s of SETTINGS.blind ? [m.key] : [m.title, `BWV ${m.bwv}`, m.key, m.voice === null ? "the whole chord" : `voice: ${VOICE[m.voice]}`]) {
     const span = document.createElement("span");
     span.textContent = s;
     meta.append(span);
   }
-  if (m.scan) {
+  if (m.scan && !SETTINGS.blind) {
     const a = document.createElement("a");
     a.href = m.scan;
     a.target = "_blank";
@@ -381,7 +388,7 @@ async function persist(m) {
   const r = ratings[m.id] || {};
   try {
     $("saved").textContent = "Saving…";
-    await db.collection(COLLECTION).doc(m.id).set({ rating: r.rating || null, note: r.note || "", flag: !!r.flag, no: m.no, bar: m.bar, level: m.level, bits: m.bits, updated: new Date().toISOString() });
+    await db.collection(COLLECTION).doc(m.id).set({ rating: r.rating || null, note: r.note || "", flag: !!r.flag, no: m.no ?? null, bar: m.bar ?? null, level: m.level, bits: m.bits ?? null, updated: new Date().toISOString() });
     $("saved").textContent = "Saved";
   } catch (e) {
     $("saved").textContent = "Not saved to the shared record (kept in this browser): " + (e && e.code ? e.code : "error");

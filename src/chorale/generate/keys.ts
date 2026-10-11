@@ -130,11 +130,11 @@ function spellTonic(homeTonic: string, pc: number): string {
   return letter + (a > 0 ? "#".repeat(a) : "b".repeat(-a));
 }
 
-const cache = new Map<number, LocalKey[]>();
+const cache = new WeakMap<BachChorale, LocalKey[]>();
 
 /** The local key of every event of a chorale (Viterbi over the 24 keys). */
 export function localKeys(c: BachChorale, w = WEIGHTS): LocalKey[] {
-  if (w === WEIGHTS && cache.has(c.no)) return cache.get(c.no)!;
+  if (w === WEIGHTS && cache.has(c)) return cache.get(c)!;
   const home = mod(midiOf(`${c.tonic}4`), 12);
   const homeIndex = STATES.findIndex((s) => s.pc === home && s.mode === c.mode);
   const homeFifths = fifths(home, c.mode);
@@ -224,7 +224,7 @@ export function localKeys(c: BachChorale, w = WEIGHTS): LocalKey[] {
     }
     return k;
   });
-  if (w === WEIGHTS) cache.set(c.no, out);
+  if (w === WEIGHTS) cache.set(c, out);
   return out;
 }
 

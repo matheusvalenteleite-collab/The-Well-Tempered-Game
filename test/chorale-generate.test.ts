@@ -280,11 +280,52 @@ test("local keys: every chorale ends at home, phrase ends mostly on the local to
     });
   }
   assert.ok(good / ends > 0.9, `${good}/${ends}`);
-  // no. 132 bar 23: VI of D minor, not the flat second of A minor; no. 205 bar 7: the Phrygian second, IV of C
+  // no. 132 bar 23: in D minor, not the flat second of A minor; no. 205 bar 7: the Phrygian second, IV of C
   const c132 = BACH.find((c) => c.no === 132)!;
   const k132 = localKeys(c132)[c132.notes.findIndex((n) => n.t === "22/1")];
-  assert.deepEqual([k132.tonic, k132.mode, k132.chord, k132.diatonic], ["D", "minor", "bVI", true]);
+  // (VI7 of D minor, or iv6/5 as the analysis now reads it: in D minor either way)
+  assert.deepEqual([k132.tonic, k132.mode, k132.diatonic], ["D", "minor", true]);
   const c205 = BACH.find((c) => c.no === 205)!;
   const k205 = localKeys(c205)[c205.notes.findIndex((n) => n.t === "27/4")];
   assert.equal(k205.chord, "IV");
+});
+
+test("the diminished seventh as a position: figured as its own inversions, its members the rootless dominant's", () => {
+  const C = { tonic: "C", mode: "major" as const };
+  assert.equal(figureText(figure("6/5°", "#4", "II", C)), "b7");
+  assert.equal(figureText(figure("4/3°", "2", "V", C)), "6/b5");
+  assert.equal(figureText(figure("4/2°", "4", "V", C)), "4/b3");
+  assert.equal(figureText(figure("9°", "b6", "V", C)), "4/2");
+});
+
+test("licences: every category read on all 370, the Neapolitan rare once read in local keys", async () => {
+  const { licencesOf, LICENCES } = await import("../src/chorale/generate/licences.ts");
+  const count = new Map<string, number>();
+  for (const c of BACH) for (const l of licencesOf(c)) for (const k of l) count.set(k, (count.get(k) ?? 0) + 1);
+  for (const l of LICENCES) assert.ok((count.get(l.key) ?? 0) > 0, l.key);
+  assert.ok(count.get("neapolitan")! < 10);
+});
+
+test("daring with every weight 0 is the plain generator; with weights, it is reproducible", async () => {
+  const { Daring } = await import("../src/chorale/generate/daring.ts");
+  const lex = new Daring(BACH.filter((c) => c.no % 7 === 0));
+  const zero = { weights: { "chromatic-bass": 0, mixture: 0, "diminished-seventh": 0, "evaded-dominant": 0, "distant-close": 0, "open-close": 0 }, lex };
+  const plain = diverseSettings(models, m, key, 3, rng(5), { pool: 30 });
+  const z = diverseSettings(models, m, key, 3, rng(5), { pool: 30, daring: zero });
+  assert.deepEqual(z.map((s) => s.chords), plain.map((s) => s.chords));
+  const bold = { ...zero, weights: { ...zero.weights, "chromatic-bass": 4, "diminished-seventh": 4 } };
+  assert.deepEqual(diverseSettings(models, m, key, 3, rng(5), { pool: 30, daring: bold }), diverseSettings(models, m, key, 3, rng(5), { pool: 30, daring: bold }));
+});
+
+test("motives: a figure answered by another voice is found, at its distance and interval", async () => {
+  const { figures, imitations, chromaticLines } = await import("../src/chorale/generate/motives.ts");
+  type N = [number, number, string];
+  const up: N[] = [[0, 4, "C4"], [4, 4, "E4"], [8, 4, "D4"], [12, 8, "G4"], [20, 8, "G4"]];
+  const answer: N[] = [[0, 8, "G3"], [8, 4, "G3"], [12, 4, "B3"], [16, 4, "A3"], [20, 8, "D4"]];
+  const voices = [up, answer, [[0, 28, "C3"]] as N[], [[0, 8, "C2"], [8, 8, "C#2"], [16, 8, "D2"], [24, 4, "D#2"]] as N[]];
+  assert.ok(figures(voices).some((f) => f.tonal === "4,4,4|2,-1,3" && f.quick));
+  const im = imitations(voices, 32);
+  assert.equal(im.length, 1);
+  assert.deepEqual([im[0].lag, im[0].interval], [8, 4]);
+  assert.equal(chromaticLines(voices).length, 1);
 });

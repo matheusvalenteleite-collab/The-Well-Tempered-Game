@@ -36,9 +36,10 @@ export const degreePc = (deg: string) => parseDegree(deg).pc;
 const signaturePc = (k: Key, step: number) => (k.mode === "major" ? MAJOR : MINOR)[mod(step, 7)];
 
 export interface ChordMembers {
-  /** Steps over the tonic of root, third, fifth, seventh. */
+  /** Steps over the tonic of root, third, fifth, seventh, ninth. */
   steps: number[];
-  /** Pitch classes over the tonic of root, third, fifth, seventh (the seventh as the key signature gives it). */
+  /** Pitch classes over the tonic of root, third, fifth, seventh (the seventh as the key signature
+   *  gives it), and the minor ninth (the diminished seventh chord's top, read on its dominant). */
   pcs: number[];
 }
 
@@ -52,7 +53,7 @@ export function chordMembers(label: string, k: Key): ChordMembers {
   const third = root + (minor || dim ? 3 : 4);
   const fifth = root + (dim ? 6 : 7);
   const seventh = signaturePc(k, step + 6);
-  return { steps: [step, step + 2, step + 4, step + 6].map((s) => mod(s, 7)), pcs: [root, third, fifth, seventh].map((p) => mod(p, 12)) };
+  return { steps: [step, step + 2, step + 4, step + 6, step + 1].map((s) => mod(s, 7)), pcs: [root, third, fifth, seventh, root + 1].map((p) => mod(p, 12)) };
 }
 
 /** Intervals over the bass in each position, the numbers the period's abbreviation shows, and how
@@ -65,7 +66,16 @@ const POSITION: Record<string, { all: number[]; shown: number[]; root: number }>
   "6/5": { all: [6, 5, 3], shown: [6, 5], root: 2 },
   "4/3": { all: [6, 4, 3], shown: [4, 3], root: 4 },
   "4/2": { all: [6, 4, 2], shown: [4, 2], root: 6 },
+  // the diminished seventh chord, read as a dominant seventh with a minor ninth, its root unsounded
+  // (Kirnberger; tools/chorales/kirnberger.py): named by the dominant's member in the bass, figured as
+  // the diminished seventh chord's own positions (7 over the leading tone, 6/5, 4/3, 4/2)
+  "6/5°": { all: [7, 5, 3], shown: [7], root: 2 },
+  "4/3°": { all: [6, 5, 3], shown: [6, 5], root: 4 },
+  "4/2°": { all: [6, 4, 3], shown: [4, 3], root: 6 },
+  "9°": { all: [6, 4, 2], shown: [4, 2], root: 1 },
 };
+/** The positions of the diminished seventh chord (rootless: the root of their reading does not sound). */
+export const ROOTLESS_POSITIONS = new Set(["6/5°", "4/3°", "4/2°", "9°"]);
 export const POSITIONS = Object.keys(POSITION);
 
 export interface FigureRow {
@@ -82,7 +92,7 @@ export function figure(pos: string, bassDeg: string, chord: string, k: Key): Fig
   if (!P) return [];
   const bass = parseDegree(bassDeg).step;
   const rootStep = mod(bass - P.root, 7);
-  const ch = { pcs: chordMembers(chord, k).pcs, steps: [0, 2, 4, 6].map((x) => mod(rootStep + x, 7)) };
+  const ch = { pcs: chordMembers(chord, k).pcs, steps: [0, 2, 4, 6, 1].map((x) => mod(rootStep + x, 7)) };
   const rows: FigureRow[] = [];
   for (const iv of P.all) {
     const step = mod(bass + iv - 1, 7);
@@ -129,7 +139,7 @@ export function degreePitches(deg: string, k: Key, lo: number, hi: number): { na
   return out;
 }
 
-const ROLES = ["root", "third", "fifth", "seventh"] as const;
+const ROLES = ["root", "third", "fifth", "seventh", "ninth"] as const;
 const SEVENTH_POSITIONS = new Set(["7", "6/5", "4/3", "4/2"]);
 
 /** Spell a pitch class over the tonic on a step of the key ("F#", "Bb"). */
@@ -155,6 +165,12 @@ export function chordTones(pos: string, bassDeg: string, chord: string, k: Key):
   const P = POSITION[pos] ?? POSITION["5/3"];
   const rootStep = mod(parseDegree(bassDeg).step - P.root, 7);
   const pcs = chordMembers(chord, k).pcs;
+  if (ROOTLESS_POSITIONS.has(pos)) {
+    // the diminished seventh: third, fifth, seventh and minor ninth of the unsounded root
+    const members = [1, 2, 3, 4].map((j) => [spell(k, rootStep + [0, 2, 4, 6, 1][j], pcs[j]), ROLES[j]] as [string, string]);
+    const bassRole = ROLES[[0, 2, 4, 6, 1].indexOf(P.root)];
+    return { root: spell(k, rootStep, pcs[0]), kind: "dominant seventh, minor ninth for the root", bassRole, above: members.filter(([, r]) => r !== bassRole) };
+  }
   const seventh = SEVENTH_POSITIONS.has(pos);
   const n = seventh ? 4 : 3;
   const names = [0, 1, 2, 3].slice(0, n).map((j) => spell(k, rootStep + 2 * j, pcs[j]));

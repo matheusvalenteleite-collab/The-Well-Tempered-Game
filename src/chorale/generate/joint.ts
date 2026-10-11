@@ -13,6 +13,7 @@ import type { Melody } from "./corpus.ts";
 import type { Fixed, HarmonyModel } from "./harmony.ts";
 import type { BassModel } from "./bass.ts";
 import { draw } from "./model.ts";
+import { bits, type DaringOption } from "./daring.ts";
 
 const SEP = "|";
 const unzip = (xs: string[]) => ({ chords: xs.map((x) => x.split(SEP)[0]), chain: xs.map((x) => x.split(SEP)[1]) });
@@ -28,13 +29,16 @@ export class Joint {
   private readonly m: Melody;
   private readonly T: number;
   private readonly lineWeight: number;
+  private readonly daring?: DaringOption;
 
-  constructor(h: HarmonyModel, b: BassModel, m: Melody, T = 1, lineWeight = 0) {
+  /** With `daring`, the chords and bass moves that are Bach's licences are raised (daring.ts). */
+  constructor(h: HarmonyModel, b: BassModel, m: Melody, T = 1, lineWeight = 0, daring?: DaringOption) {
     this.h = h;
     this.b = b;
     this.m = m;
     this.T = T;
     this.lineWeight = lineWeight;
+    this.daring = daring;
   }
 
   private hRow(i: number, prevChord: string, f: string | null) {
@@ -59,7 +63,12 @@ export class Joint {
       if (out) return out;
       const [pc, pb] = prev === "start" ? ["start", "start"] : [prev.slice(0, prev.indexOf(SEP)), prev.slice(prev.indexOf(SEP) + 1)];
       out = new Map();
-      for (const [c, p] of this.hRow(i, pc, f)) for (const [x, q] of this.bRow(i, c, pb)) out.set(`${c}${SEP}${x}`, p * q);
+      const dx = this.daring;
+      const from = pb === "start" ? "start" : pb.slice(0, pb.indexOf(":"));
+      // with daring, each pair tilted by 2^(its licences' weighted shares): the chain then draws
+      // settings in proportion to their probability times the tilt of all their choices
+      for (const [c, p] of this.hRow(i, pc, f))
+        for (const [x, q] of this.bRow(i, c, pb)) out.set(`${c}${SEP}${x}`, dx ? p * q * 2 ** bits(dx.weights, dx.lex.step(this.m.mode, this.m.notes[i].deg, pc, c, x, from)) : p * q);
       this.rows.set(k, out);
       return out;
     };
@@ -129,4 +138,4 @@ export const sampleJoint = (h: HarmonyModel, b: BassModel, m: Melody, fixed: Fix
   new Joint(h, b, m, T, lineWeight).sample(fixed, r);
 
 /** The most likely chords and bass together under the fixed chords. */
-export const bestJoint = (h: HarmonyModel, b: BassModel, m: Melody, fixed: Fixed, lineWeight = 0) => new Joint(h, b, m, 1, lineWeight).best(fixed);
+export const bestJoint = (h: HarmonyModel, b: BassModel, m: Melody, fixed: Fixed, lineWeight = 0, daring?: DaringOption) => new Joint(h, b, m, 1, lineWeight, daring).best(fixed);

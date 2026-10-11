@@ -15,9 +15,9 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { BACH } from "../../src/chorale/generate/corpus.ts";
 import { VoiceModel } from "../../src/chorale/generate/voices.ts";
-import { DiminutionModel, STUDY, bachRows, diminish, surfaceCost, type StudyChorale } from "../../src/chorale/generate/diminution.ts";
+import { DiminutionModel, RESTRAINT, STUDY, bachAligned, bachRows, diminish, surfaceCost, type StudyChorale } from "../../src/chorale/generate/diminution.ts";
 import { midiOf } from "../../src/chorale/generate/theory.ts";
-import { bachAs, options, reduce, type Embellishment, type Note } from "../../src/chorale/level6.ts";
+import { options, type Embellishment, type Note } from "../../src/chorale/level6.ts";
 import { LEVEL5 } from "../../src/chorale/level5.ts";
 import { rng } from "../../src/counterpoint/choices/cantus.ts";
 
@@ -32,42 +32,11 @@ const VOICE = ["alto", "tenor", "bass"];
 
 const vm = new VoiceModel(BACH);
 const costs = { parallel: vm.parallel, augSecond: vm.augSecond };
-const thirty = (t: string) => {
-  const [a, b] = t.split("/").map(Number);
-  return Math.round((32 * a) / (b ?? 1));
-};
 
-/** One of Bach's chorales reduced and read one chord per on-beat melody attack (as the generator
- *  writes), with his embellishments placed on those chords. */
-function aligned(c: StudyChorale): { lines: Note[][]; bach: Record<number, Embellishment>[] } | null {
+const aligned = (c: StudyChorale) => {
   const b = BACH.find((x) => x.no === c.n);
-  if (!b) return null;
-  const { voices, bach } = reduce(c, STUDY.kinds);
-  const times = b.notes.map((n) => thirty(n.t));
-  const end = c.length;
-  const sounding = (line: Note[], t: number) => line.find((n) => n[0] <= t && t < n[0] + n[1]);
-  const fermata = times.map((t) => !!sounding(c.voices[0], t)?.[3]);
-  const lines: Note[][] = [];
-  for (let v = 0; v < 4; v++) {
-    const line: Note[] = [];
-    for (let k = 0; k < times.length; k++) {
-      const n = sounding(v === 0 ? c.voices[0] : voices[v], times[k]);
-      if (!n) return null;
-      const dur = (times[k + 1] ?? end) - times[k];
-      line.push(fermata[k] ? [times[k], dur, n[2], 1] : [times[k], dur, n[2]]);
-    }
-    lines.push(line);
-  }
-  const chosen: Record<number, Embellishment>[] = [{}, {}, {}, {}];
-  for (const p of bach) {
-    const note = voices[p.voice][p.index];
-    const kind = bachAs(p, voices[p.voice]);
-    if (!kind) continue;
-    const last = times.reduce((best, t, k) => (t < note[0] + note[1] ? k : best), -1);
-    if (last >= 0 && options(lines[p.voice], last).includes(kind)) chosen[p.voice][last] = kind;
-  }
-  return { lines, bach: chosen };
-}
+  return b ? bachAligned(c, b) : null;
+};
 
 // ---- 1. Bach held out ----
 const tuneOf = new Map(BACH.map((b) => [b.no, b.tune]));
@@ -80,6 +49,7 @@ type Stat = { notes: number[]; emb: number[]; kinds: Record<string, number>[]; s
 const stat = (): Stat => ({ notes: [0, 0, 0], emb: [0, 0, 0], kinds: [{}, {}, {}], same: 0, surface: 0, chords: 0 });
 const sBach = stat(),
   sDraw = stat(),
+  sFree = stat(),
   sBest = stat();
 let used = 0,
   skipped = 0;
@@ -94,10 +64,12 @@ for (const [t, cs] of byTune) {
     used++;
     const sig = c.sig;
     const draw = diminish(dm, a.lines, sig, rng(c.n), 1);
-    const best = diminish(dm, a.lines, sig);
+    const free = diminish(dm, a.lines, sig, rng(c.n), 1, [true, true, true], [0, 0, 0]);
+    const best = diminish(dm, a.lines, sig, undefined, 1, [true, true, true], [0, 0, 0]);
     for (const [s, chosen] of [
       [sBach, a.bach],
       [sDraw, draw.chosen],
+      [sFree, free.chosen],
       [sBest, best.chosen],
     ] as const) {
       s.chords += a.lines[0].length;
@@ -140,12 +112,17 @@ say(`On his own reduced voices (each voice in its own rhythm), Bach embellishes 
 say(`embellishment, ${own("tenor")} of the tenor's, ${own("bass")} of the bass's. Read one chord per beat, as below, some of his are lost (an`);
 say("embellishment after a note held over two beats, for instance), so his row below understates him a little.");
 say();
+say(`Drawn as learnt, the chain embellishes more than Bach, and its surplus figures repeat generically through the chorale`);
+say(`(docs/chorales/MOTIVES.md); a restraint (leaving a note plain 2^r times as likely: alto ${RESTRAINT[0]}, tenor ${RESTRAINT[1]}, bass ${RESTRAINT[2]} bits),`);
+say("calibrated on the tunes held out, brings it to Bach's density; it is the default.");
+say();
 say("| | alto embellished | tenor | bass | the same kind where Bach has one | surface rarities per 100 chords |");
 say("|---|---|---|---|---|---|");
 const row = (name: string, s: Stat) =>
   say(`| ${name} | ${pct(s.emb[0], s.notes[0])} | ${pct(s.emb[1], s.notes[1])} | ${pct(s.emb[2], s.notes[2])} | ${s === sBach ? "" : pct(s.same, sBach.emb.reduce((a, b) => a + b, 0))} | ${((100 * s.surface) / s.chords).toFixed(1)} |`);
 row("*Bach*", sBach);
-row("**generator, drawn** (as often as Bach)", sDraw);
+row("**generator, drawn, with restraint** (the default)", sDraw);
+row("generator, drawn as learnt (each choice as often as Bach makes it in its context)", sFree);
 row("generator, the most likely choice at every note", sBest);
 say();
 say("Kinds, by voice (share of the embellishments):");
@@ -154,7 +131,8 @@ say(`| | ${VOICE.flatMap((v) => KINDS.map((k) => `${v} ${k}`)).join(" | ")} |`);
 say(`|---|${VOICE.flatMap(() => KINDS.map(() => "---")).join("|")}|`);
 const kindRow = (name: string, s: Stat) => say(`| ${name} | ${[0, 1, 2].flatMap((v) => KINDS.map((k) => pct(s.kinds[v][k] ?? 0, s.emb[v]))).join(" | ")} |`);
 kindRow("*Bach*", sBach);
-kindRow("**generator, drawn**", sDraw);
+kindRow("**generator, drawn, with restraint**", sDraw);
+kindRow("generator, drawn as learnt", sFree);
 say();
 say("*Surface rarities*: the surface cost in units of one pair of parallel fifths/octaves (a clash of two incidental notes");
 say("counts half). Bach's own row is measured the same way on his reduced and re-embellished voices.");

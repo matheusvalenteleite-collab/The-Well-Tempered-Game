@@ -17,6 +17,7 @@
  */
 import studyRaw from "../../../data/chorales/study.json" with { type: "json" };
 import { bachAs, options, realise, reduce, type Embellishment, type Note, type StudyLike } from "../level6.ts";
+import type { BachChorale } from "./corpus.ts";
 import { Backoff, temper, type Ctx } from "./model.ts";
 import { bestChain, sampleChain, type Step } from "./chain.ts";
 import { augmentedSecond } from "./voices.ts";
@@ -166,21 +167,39 @@ export interface Diminished {
   count: number[];
 }
 
+/** The restraint (bits; alto, tenor, bass) that brings the drawn chain's density of embellishment to
+ *  Bach's, each tune held out (11 October 2026: alto 11.8% against Bach's 11.7%, tenor 11.4% against
+ *  11.1%, bass 11.7% against 11.3%, of the notes that can take one, read one chord per beat). */
+export const RESTRAINT = [1, 1.25, 2.75];
+
 /**
  * The lower voices of a four-part setting embellished. `lines`: soprano, alto, tenor, bass, one note
  * per chord in each (the same onsets), [onset, length, pitch, fermata?] in 32nds; `sig`: the key
  * signature (sharps positive). Drawn with `r` at temperature T; without `r`, the cheapest (few
  * embellishments). Settings in minims are read as Bach's crotchets (and written back in minims).
  * `free`: which of alto, tenor, bass may be embellished (a given bass, Kittel's, is not).
+ * `restraint` (bits, one per voice: alto, tenor, bass): leaving a note plain made 2^restraint times as
+ * likely; the drawn chain embellishes more than Bach (GENERATOR-DIMINUTION.md), and its excess figures
+ * repeat generically (docs/chorales/MOTIVES.md). The default, RESTRAINT, is calibrated on Bach; [0, 0, 0]
+ * is the chain as learnt.
  */
-export function diminish(dm: DiminutionModel, input: Note[][], sig: number, r?: () => number, T = 1, free: boolean[] = [true, true, true]): Diminished {
+export function diminish(dm: DiminutionModel, input: Note[][], sig: number, r?: () => number, T = 1, free: boolean[] = [true, true, true], restraint: number[] = RESTRAINT): Diminished {
   const lens = input[1].map((n) => n[1]).sort((a, b) => a - b);
   // a power of two, so that every time stays a whole number of 32nds
   const scale = 2 ** Math.max(0, Math.floor(Math.log2(lens[Math.floor(lens.length / 2)] / 8)));
   const lines = input.map((l) => l.map((n) => scaled(n, 1 / scale)));
   const n = lines[1].length;
   const opts: Map<Kind, number>[][] = [[], [], [], []];
-  for (let v = 1; v < 4; v++) for (let i = 0; i < n - 1; i++) opts[v][i] = free[v - 1] ? dm.choices(lines[v], i, v, T) : new Map<Kind, number>([["none", 1]]);
+  for (let v = 1; v < 4; v++)
+    for (let i = 0; i < n - 1; i++) {
+      const o = free[v - 1] ? dm.choices(lines[v], i, v, T) : new Map<Kind, number>([["none", 1]]);
+      if (restraint[v - 1] && o.has("none") && o.size > 1) {
+        let z = 0;
+        for (const [k, p] of o) z += k === "none" ? p * 2 ** restraint[v - 1] : p;
+        for (const [k, p] of o) o.set(k, (k === "none" ? p * 2 ** restraint[v - 1] : p) / z);
+      }
+      opts[v][i] = o;
+    }
   // a state is the three voices' choices on one note
   const states = (i: number): string[] => {
     if (i >= n - 1) return ["none|none|none"];
@@ -255,4 +274,38 @@ export function surfaceCost(dm: DiminutionModel, input: Note[][], chosen: Record
     cost += surface(dm, lines, i, kinds(i - 1), ck, inc);
   }
   return cost;
+}
+
+/** One of Bach's chorales reduced and read one chord per on-beat melody attack (as the generator
+ *  writes), with his embellishments placed on those chords. */
+export function bachAligned(c: StudyChorale, b: BachChorale): { lines: Note[][]; bach: Record<number, Embellishment>[] } | null {
+  const { voices, bach } = reduce(c, STUDY.kinds);
+  const thirty = (t: string) => {
+    const [x, y] = t.split("/").map(Number);
+    return Math.round((32 * x) / (y ?? 1));
+  };
+  const times = b.notes.map((n) => thirty(n.t));
+  const end = c.length;
+  const sounding = (line: Note[], t: number) => line.find((n) => n[0] <= t && t < n[0] + n[1]);
+  const fermata = times.map((t) => !!sounding(c.voices[0], t)?.[3]);
+  const lines: Note[][] = [];
+  for (let v = 0; v < 4; v++) {
+    const line: Note[] = [];
+    for (let k = 0; k < times.length; k++) {
+      const n = sounding(v === 0 ? c.voices[0] : voices[v], times[k]);
+      if (!n) return null;
+      const dur = (times[k + 1] ?? end) - times[k];
+      line.push(fermata[k] ? [times[k], dur, n[2], 1] : [times[k], dur, n[2]]);
+    }
+    lines.push(line);
+  }
+  const chosen: Record<number, Embellishment>[] = [{}, {}, {}, {}];
+  for (const p of bach) {
+    const note = voices[p.voice][p.index];
+    const kind = bachAs(p, voices[p.voice]);
+    if (!kind) continue;
+    const last = times.reduce((best, t, k) => (t < note[0] + note[1] ? k : best), -1);
+    if (last >= 0 && options(lines[p.voice], last).includes(kind)) chosen[p.voice][last] = kind;
+  }
+  return { lines, bach: chosen };
 }

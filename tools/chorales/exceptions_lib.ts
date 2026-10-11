@@ -70,11 +70,12 @@ function values(d: number): number[] {
 }
 const len = (v: number) => (v === 1 ? "" : String(v));
 
-export function excerpt(c: BachChorale, s: StudyChorale, x: Spot) {
+/** An excerpt from the bar before the moment to the bar after (`whole`: the whole chorale). */
+export function excerpt(c: BachChorale, s: StudyChorale, x: Spot, whole = false) {
   const starts = barStarts(c, s);
-  const first = Math.max(Math.min(...starts.keys()), x.bar - 1);
-  const from = starts.get(first)!;
-  const to = Math.min(starts.get(x.bar + 2) ?? s.length, s.length);
+  const first = whole ? Math.min(...starts.keys()) : Math.max(Math.min(...starts.keys()), x.bar - 1);
+  const from = whole ? 0 : starts.get(first)!;
+  const to = whole ? s.length : Math.min(starts.get(x.bar + 2) ?? s.length, s.length);
   const lines = [...starts.entries()].filter(([, t]) => t > from && t < to).map(([, t]) => t);
   const cuts = [...new Set([...lines, x.at])].sort((a, b) => a - b);
   const play: [number, number, number, number][] = [];

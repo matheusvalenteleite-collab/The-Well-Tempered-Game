@@ -64,6 +64,14 @@ export function placeOf(m: Melody, i: number): string {
   return "mid";
 }
 
+/** The position the generator names a chord by: Bach's position, or for the diminished seventh chord
+ *  (read as a dominant with a minor ninth, its root unsounded) its own, by the member in the bass
+ *  (theory.ts). */
+export function positionOf(n: { pos?: string; kind: string; role: string | null }): string | undefined {
+  if (/minor ninth/.test(n.kind)) return ({ third: "6/5°", fifth: "4/3°", seventh: "4/2°", ninth: "9°" } as Record<string, string>)[n.role ?? ""];
+  return n.pos;
+}
+
 /** The bass model's context, coarsest first (backoff order); measured in docs/chorales/GENERATOR.md. */
 export const BASS_FIELDS = ["mode", "place", "chord", "deg", "prev"];
 
@@ -82,10 +90,11 @@ export class BassModel {
       let prev = "start";
       const m: Melody = melodyOf(c);
       c.notes.forEach((n, i) => {
-        if (n.pos) {
-          rows.push({ mode: c.mode, modal: m.modal, place: placeOf(m, i), chord: n.chord, deg: n.deg, prev, target: `${n.bass}:${n.pos}` });
+        const pos = positionOf(n);
+        if (pos) {
+          rows.push({ mode: c.mode, modal: m.modal, place: placeOf(m, i), chord: n.chord, deg: n.deg, prev, target: `${n.bass}:${pos}` });
           const k = `${c.mode}|${n.chord}`;
-          this.byChord.set(k, (this.byChord.get(k) ?? new Set()).add(`${n.bass}:${n.pos}`));
+          this.byChord.set(k, (this.byChord.get(k) ?? new Set()).add(`${n.bass}:${pos}`));
         }
         prev = n.bass;
         if (i) leaps.push(Math.abs(n.bm - c.notes[i - 1].bm));

@@ -1,0 +1,104 @@
+{
+ "generated_by": "tools/chorales/motives_report.ts",
+ "imitation": {
+  "imit": {
+   "shaped": {
+    "figures": 22555,
+    "near": 386,
+    "far": 247
+   },
+   "quick": {
+    "figures": 14800,
+    "near": 321,
+    "far": 173
+   },
+   "shaped, no quick": {
+    "figures": 7755,
+    "near": 65,
+    "far": 74
+   }
+  },
+  "answers": {
+   "alto → tenor": 42,
+   "bass → soprano": 16,
+   "bass → tenor": 82,
+   "tenor → bass": 82,
+   "soprano → alto": 13,
+   "alto → bass": 57,
+   "alto → soprano": 14,
+   "tenor → alto": 41,
+   "tenor → soprano": 19,
+   "bass → alto": 61,
+   "soprano → tenor": 10,
+   "soprano → bass": 18
+  },
+  "intervals": {
+   "0": 90,
+   "1": 56,
+   "2": 43,
+   "3": 82,
+   "4": 57,
+   "5": 72,
+   "6": 55
+  }
+ },
+ "preImitation": {
+  "phrases": 1907,
+  "pre": 263,
+  "preBase": 261,
+  "voices": {
+   "1": 102,
+   "2": 119,
+   "3": 72
+  }
+ },
+ "unity": {
+  "all": {
+   "tokens": 34202,
+   "within": 14318,
+   "across": 8985,
+   "better": 289,
+   "chorales": 364
+  },
+  "shaped": {
+   "tokens": 13836,
+   "within": 3245,
+   "across": 1193,
+   "better": 252,
+   "chorales": 361
+  }
+ },
+ "chromatic": {
+  "lines": 139,
+  "answered": 10,
+  "voices": {
+   "0": 2,
+   "1": 18,
+   "2": 11,
+   "3": 108
+  }
+ },
+ "generator": {
+  "Bach": [
+   681,
+   4776,
+   74,
+   12,
+   4776
+  ],
+  "generator, as learnt": [
+   1230,
+   6793,
+   97,
+   52,
+   6793
+  ],
+  "generator, with restraint (default)": [
+   804,
+   5200,
+   66,
+   43,
+   5200
+  ]
+ }
+}
