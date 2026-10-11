@@ -1,13 +1,14 @@
 /**
  * Orientation for a learner on their own (D149, after the learnability audit):
- *  - Welcome: the first visit says what the game is and offers two doors — the tutorial for those
- *    who do not read music, the first exercise for those who do — or everything open to explore.
+ *  - StartScreen (D157, in place of the first-visit welcome): the three modes at every launch; for
+ *    a newcomer, what the game is, the tutorial, or everything open to explore.
  *  - ModeIntro: the first time a mode is opened, what it is, what one does there and what one must
  *    know first, with the tutorial lesson that teaches it (where there is one).
- * Both are dialogs: Escape closes, focus starts on the main action and returns where it was.
+ * ModeIntro is a dialog: Escape closes, focus starts on the main action and returns where it was.
  */
 import { useEffect, useRef } from "react";
 import { t } from "./i18n.ts";
+import type { Family } from "./ModeSelect.tsx";
 
 function Dialog({ label, onClose, children }: { label: string; onClose(): void; children: React.ReactNode }) {
   const back = useRef<Element | null>(document.activeElement);
@@ -34,26 +35,35 @@ function Dialog({ label, onClose, children }: { label: string; onClose(): void; 
   );
 }
 
-export function Welcome({ onTutorial, onFirst, onExplore }: { onTutorial(): void; onFirst(): void; onExplore(): void }) {
+/**
+ * The start screen (D157): at every launch, the three modes of the game as three doors (Fux's
+ * Gradus ad Parnassum, Bach's chorales, the Well-Tempered Clavier), and for a newcomer what the
+ * game is and the way into the tutorial (what the first-visit welcome of D149 said).
+ */
+export function StartScreen({ newcomer, onMode, onTutorial, onExplore }: { newcomer: boolean; onMode(f: Family): void; onTutorial(): void; onExplore(): void }) {
+  const door = (f: Family) => (
+    <button key={f} className={`start-door mode-${f}`} onClick={() => onMode(f)} autoFocus={!newcomer && f === "fux"}>
+      <span className="start-kicker">{t(`ui.start.${f}.kicker`)}</span>
+      <strong>{t(`ui.start.${f}.title`)}</strong>
+      <span>{t(`ui.start.${f}.sub`)}</span>
+    </button>
+  );
   return (
-    <Dialog label={t("ui.welcome.title")} onClose={onFirst}>
-      <h2>{t("ui.welcome.title")}</h2>
-      <p>{t("ui.welcome.what")}</p>
-      <p>{t("ui.welcome.how")}</p>
-      <div className="welcome-doors">
-        <button className="primary tutorial-btn" onClick={onTutorial} autoFocus>
-          <strong>{t("ui.welcome.tutorial")}</strong>
-          <span>{t("ui.welcome.tutorialSub")}</span>
+    <main className="start-screen" aria-label={t("ui.start.label")}>
+      <h1 className="brand start-brand">{t("ui.title")}</h1>
+      <p className="start-what">{t(newcomer ? "ui.welcome.what" : "ui.start.choose")}</p>
+      <div className="start-doors">{(["fux", "chorale", "wtc"] as Family[]).map(door)}</div>
+      <div className="start-more">
+        <button className={newcomer ? "primary tutorial-btn" : "tutorial-btn"} onClick={onTutorial} autoFocus={newcomer}>
+          <strong>{t("ui.welcome.tutorial")}</strong> <span>{t("ui.start.tutorialSub")}</span>
         </button>
-        <button onClick={onFirst}>
-          <strong>{t("ui.welcome.first")}</strong>
-          <span>{t("ui.welcome.firstSub")}</span>
-        </button>
+        {newcomer && (
+          <p className="help">
+            {t("ui.welcome.how")} <button className="link" onClick={onExplore}>{t("ui.welcome.explore")}</button> {t("ui.welcome.exploreSub")}
+          </p>
+        )}
       </div>
-      <p className="help welcome-explore">
-        <button className="link" onClick={onExplore}>{t("ui.welcome.explore")}</button> {t("ui.welcome.exploreSub")}
-      </p>
-    </Dialog>
+    </main>
   );
 }
 

@@ -5,7 +5,8 @@ import { t } from "./i18n.ts";
 import { Tour } from "./Tour.tsx";
 import { store, stored } from "./shared.ts";
 import { FUGUE_ID } from "../tutorial/fugue-id.ts";
-import { ModeIntro, Welcome, INTRO_LESSON } from "./Orientation.tsx";
+import { ModeIntro, StartScreen, INTRO_LESSON } from "./Orientation.tsx";
+import { HomeContext, type Family } from "./ModeSelect.tsx";
 import { setBeta } from "./beta.ts";
 
 // Loaded when first opened (the first download on a phone was one 10 MB file): the Well-Tempered
@@ -68,33 +69,53 @@ export function Root() {
   useEffect(() => {
     if (command) setCommand(null);
   }, [command]);
-  // D149: the first visit says what the game is (only to a newcomer: no stars, no tutorial yet).
-  const [welcome, setWelcome] = useState(() => !stored("wtg.welcomed", false, (v) => typeof v === "boolean") && stored<string[]>("wtg.stars", [], (v) => Array.isArray(v)).length === 0 && stored<unknown>("wtg.tutorial", null) === null);
-  /** Remounts the two-voice screen after the welcome, so that it reads the learner's choice. */
+  // D157: every launch opens on the start screen, the three modes; a newcomer (no stars, no
+  // tutorial yet) is also told what the game is (D149's welcome).
+  const [home, setHome] = useState(true);
+  /** The game is mounted from the first choice on, and kept (hidden) under the start screen after. */
+  const [started, setStarted] = useState(false);
+  const newcomer = () => !stored("wtg.welcomed", false, (v) => typeof v === "boolean") && stored<string[]>("wtg.stars", [], (v) => Array.isArray(v)).length === 0 && stored<unknown>("wtg.tutorial", null) === null;
+  const [welcome] = useState(newcomer);
+  /** Remounts the two-voice screen after the start screen, so that it reads the learner's choice. */
   const [welcomeKey, setWelcomeKey] = useState(0);
-  const closeWelcome = (beta: boolean) => {
-    setBeta(beta);
+  const leaveHome = (beta?: boolean) => {
+    // A newcomer's first choice sets the real setup (D142) unless they asked to explore everything.
+    if (newcomer()) {
+      setBeta(beta ?? false);
+      setWelcomeKey((k) => k + 1);
+    }
     store("wtg.welcomed", true);
-    setWelcome(false);
-    setWelcomeKey((k) => k + 1);
+    setHome(false);
+    setStarted(true);
+    // The start screen may have been scrolled (on a phone): the game opens at the top.
+    window.scrollTo(0, 0);
+  };
+  /** A mode from the start screen: Fux on the number of voices last used, the WTC on its study. */
+  const openFamily = (f: Family) => {
+    if (f === "fux") setVoices(typeof voices === "number" ? voices : 2);
+    else if (f === "chorale") setVoices("chorale");
+    else setVoices(voices === "preludes" ? "preludes" : "wtc");
+    leaveHome();
   };
   // D149: the first time a mode opens, what it is and what it asks of the learner.
   const [introSeen, setIntroSeen] = useState<string[]>(() => stored<string[]>("wtg.introSeen", [], (v) => Array.isArray(v)));
-  const intro = !welcome && screen === "game" && String(voices) in INTRO_LESSON && !introSeen.includes(String(voices)) ? String(voices) : null;
+  const intro = !home && screen === "game" && String(voices) in INTRO_LESSON && !introSeen.includes(String(voices)) ? String(voices) : null;
   const closeIntro = () => {
     if (!intro) return;
     const next = [...introSeen, intro];
     setIntroSeen(next);
     store("wtg.introSeen", next);
   };
-  const link = { suspended: screen !== "game", command, onTutorial: openTutorial };
+  const link = { suspended: screen !== "game" || home, command, onTutorial: openTutorial };
+  // The Well-Tempered Clavier and chorale screens have no pause: they close under the tutorial and the start screen.
+  const shown = screen === "game" && !home;
   const game =
     voices === "chorale" ? (
-      screen === "game" && <ChoraleApp onMode={setVoices} onTutorial={openTutorial} />
+      shown && <ChoraleApp onMode={setVoices} onTutorial={openTutorial} />
     ) : voices === "preludes" ? (
-      screen === "game" && <WtcRoot onMode={setVoices} onTutorial={openTutorial} />
+      shown && <WtcRoot onMode={setVoices} onTutorial={openTutorial} />
     ) : voices === "wtc" ? (
-      screen === "game" &&
+      shown &&
       (wtcView === "study" ? <WtcStudy onVoices={setVoices} onExercises={() => setWtcView("exercises")} onTutorial={openTutorial} /> : <WtcApp onVoices={setVoices} onStudy={() => setWtcView("study")} onTutorial={openTutorial} />)
     ) : voices === 4 ? (
       <QuartetApp onVoices={setVoices} {...link} />
@@ -103,11 +124,29 @@ export function Root() {
     ) : (
       <App key={welcomeKey} onVoices={setVoices} {...link} />
     );
+  const start = home && screen === "game" && (
+      <StartScreen
+        newcomer={welcome}
+        onMode={openFamily}
+        onTutorial={() => {
+          store("wtg.quickSeen", true); // the tutorial teaches what the quick start would
+          leaveHome();
+          openTutorial();
+        }}
+        onExplore={() => {
+          store("wtg.quickSeen", true);
+          leaveHome(true);
+        }}
+      />
+  );
   return (
-    <>
-      <div className="game-layer" hidden={screen !== "game"}>
-        <Suspense fallback={<Loading />}>{game}</Suspense>
-      </div>
+    <HomeContext.Provider value={() => setHome(true)}>
+      {start}
+      {started && (
+        <div className="game-layer" hidden={screen !== "game" || home}>
+          <Suspense fallback={<Loading />}>{game}</Suspense>
+        </div>
+      )}
       {screen === "tutorial" && (
         <Suspense fallback={<Loading />}>
         <Tutorial
@@ -121,23 +160,6 @@ export function Root() {
           }}
         />
         </Suspense>
-      )}
-      {welcome && screen === "game" && (
-        <Welcome
-          onTutorial={() => {
-            store("wtg.quickSeen", true); // the tutorial teaches what the quick start would
-            closeWelcome(false);
-            openTutorial();
-          }}
-          onFirst={() => {
-            closeWelcome(false);
-            setVoices(2);
-          }}
-          onExplore={() => {
-            store("wtg.quickSeen", true);
-            closeWelcome(true);
-          }}
-        />
       )}
       {intro && (
         <ModeIntro
@@ -158,6 +180,6 @@ export function Root() {
           }}
         />
       )}
-    </>
+    </HomeContext.Provider>
   );
 }

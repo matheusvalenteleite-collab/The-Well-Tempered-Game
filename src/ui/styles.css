@@ -505,8 +505,8 @@ body { overflow: hidden; }
 :root[data-look="retro"] .topbar .brand { font-size: 0.72rem; }
 .topbar .exercise-nav { display: flex; align-items: center; gap: 4px; min-width: 0; flex: 0 1 auto; margin: 0; }
 .topbar .exercise-nav select { min-width: 0; max-width: 260px; }
-.sel-voices { background: #dce6f6 !important; } .sel-species { background: #e1f0d9 !important; } .sel-exercise { background: #f6e7cd !important; }
-:root[data-theme="dark"] .sel-voices, :root[data-theme="dark"] .sel-species, :root[data-theme="dark"] .sel-exercise { color: #121212; }
+.sel-species { background: #e1f0d9 !important; } .sel-exercise { background: #f6e7cd !important; }
+:root[data-theme="dark"] .sel-species, :root[data-theme="dark"] .sel-exercise { color: #121212; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .sel { color: #121212; } }
 .topbar .header-tools { margin-left: auto; display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
 .header-tools .tool { min-width: 28px; min-height: 28px; padding: 0 5px; font-size: 0.95rem; position: relative; }
@@ -1200,3 +1200,40 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 .nct-legend li { margin: 2px 0; }
 .nct-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: baseline; }
 .chorale-controls label.check { display: inline-flex; align-items: center; gap: 3px; margin-right: 8px; font-size: 0.85rem; }
+
+/* D157: the mode switcher, the app's main menu, drawn apart: a pill in the colour of its mode
+   (Fux crimson, the chorales green, the Well-Tempered Clavier blue), white bold text, its own arrow.
+   The start screen's doors carry the same colours. */
+:root { --mode-fux: #8c1d18; --mode-chorale: #1f5e3a; --mode-wtc: #1d3f8c; }
+.mode-fux { --mode: var(--mode-fux); } .mode-chorale { --mode: var(--mode-chorale); } .mode-wtc { --mode: var(--mode-wtc); }
+.exercise-nav select.sel-mode, .shell .topbar .exercise-nav select.sel-mode {
+  -webkit-appearance: none; appearance: none;
+  background: var(--mode) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23fff'/%3E%3C/svg%3E") no-repeat right 9px center !important;
+  color: #fff !important; font-weight: 700; letter-spacing: 0.02em;
+  border: 2px solid color-mix(in srgb, var(--mode) 70%, #000); border-radius: 999px;
+  padding: 2px 26px 2px 12px; height: 30px; flex: 0 0 auto; max-width: 48vw;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.18); cursor: pointer;
+}
+.exercise-nav select.sel-mode:focus-visible { outline: 3px solid color-mix(in srgb, var(--mode) 45%, #fff); outline-offset: 1px; }
+.exercise-nav select.sel-mode option, .exercise-nav select.sel-mode optgroup { color: #121212; background: #fff; font-weight: normal; }
+.exercise-nav select.sel-mode optgroup { font-weight: 700; }
+:root[data-look="retro"] .exercise-nav select.sel-mode { border-radius: 4px; box-shadow: 2px 2px 0 var(--edge, #000); }
+
+.start-screen { min-height: 100vh; min-height: 100dvh; box-sizing: border-box; overflow-y: auto; height: 100%; padding: max(16px, env(safe-area-inset-top)) 16px 24px; display: flex; flex-direction: column; align-items: center; background: var(--paper); color: var(--ink); }
+.start-brand { font-size: clamp(1.1rem, 4.5vw, 1.8rem); margin: 10px 0 4px; text-align: center; letter-spacing: 0.05em; }
+.start-what { max-width: 760px; text-align: center; margin: 4px 0 14px; line-height: 1.45; }
+.start-doors { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; width: 100%; max-width: 1000px; }
+.start-door { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left; white-space: normal; padding: 16px 16px 18px; min-height: 150px; border: 2px solid var(--mode); border-top-width: 10px; border-radius: 8px; background: color-mix(in srgb, var(--mode) 6%, var(--paper)); color: var(--ink); cursor: pointer; }
+.start-door:hover, .start-door:focus-visible { background: color-mix(in srgb, var(--mode) 14%, var(--paper)); }
+.start-door strong { font-size: 1.15rem; color: var(--mode); }
+.start-door .start-kicker { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.75; }
+.start-door span:last-child { font-size: 0.9rem; line-height: 1.4; }
+.start-more { width: 100%; max-width: 1000px; margin-top: 16px; display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+.start-more .tutorial-btn { white-space: normal; text-align: left; padding: 10px 14px; }
+.start-more .tutorial-btn span { font-weight: normal; opacity: 0.9; }
+@media (max-width: 720px) {
+  .start-doors { grid-template-columns: 1fr; }
+  .start-door { min-height: 0; padding: 12px 14px 14px; border-top-width: 2px; border-left-width: 10px; }
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --mode-fux: #c0473f; --mode-chorale: #3f9a64; --mode-wtc: #4f78d0; } }
+:root[data-theme="dark"] { --mode-fux: #c0473f; --mode-chorale: #3f9a64; --mode-wtc: #4f78d0; }
