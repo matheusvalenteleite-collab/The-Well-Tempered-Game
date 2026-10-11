@@ -16,17 +16,19 @@
  * Run:  node tools/chorales/surprise_report.ts
  */
 import { writeFileSync } from "node:fs";
-import { BACH, melodyOf, type BachChorale } from "../../src/chorale/generate/corpus.ts";
+import { BACH, melodyOf } from "../../src/chorale/generate/corpus.ts";
 import { phraseEnds, trainModels } from "../../src/chorale/generate/index.ts";
 import { placeOf } from "../../src/chorale/generate/bass.ts";
-import { VoiceModel, voiceSurprise } from "../../src/chorale/generate/voices.ts";
-import { DiminutionModel, STUDY, type StudyChorale } from "../../src/chorale/generate/diminution.ts";
+import { CALIBRATED, VoiceModel, voiceSurprise } from "../../src/chorale/generate/voices.ts";
+import { Backoff, type Ctx } from "../../src/chorale/generate/model.ts";
+import { DiminutionModel, STUDY } from "../../src/chorale/generate/diminution.ts";
 import { bachSlots } from "../../src/chorale/generate/slots.ts";
 import { midiOf } from "../../src/chorale/generate/theory.ts";
-import { bachAs, options, reduce, type Note } from "../../src/chorale/level6.ts";
+import { bachAs, options, reduce } from "../../src/chorale/level6.ts";
+import { barAt, excerpt, thirty, writePage } from "./exceptions_lib.ts";
 
-type Level = "cadence" | "chord" | "bass" | "voices" | "embellishment";
-const LEVELS: Level[] = ["cadence", "chord", "bass", "voices", "embellishment"];
+type Level = "cadence" | "chord" | "bass" | "sonority" | "voices" | "embellishment";
+const LEVELS: Level[] = ["cadence", "chord", "bass", "sonority", "voices", "embellishment"];
 interface Moment {
   id: string;
   no: number;
@@ -41,12 +43,10 @@ interface Moment {
   expected: string;
   /** What kind of choice it is, so that the moments chosen for rating are not all of one kind. */
   pattern: string;
+  /** The chorale's modal context where it is not plain major or minor (a modal idiom may be at work). */
+  modal: string | null;
 }
 
-const thirty = (t: string) => {
-  const [a, b] = t.split("/").map(Number);
-  return Math.round((32 * a) / (b ?? 1));
-};
 const bitsOf = (p: number | undefined) => -Math.log2(Math.max(p ?? 0, 1e-6));
 const pc = (p: number) => (p < 0.005 ? "<1%" : `${Math.round(100 * p)}%`);
 /** Bach's choice, marked where the model has not seen it at all without this tune. */
@@ -55,6 +55,15 @@ const top = (d: Map<string, number>, n = 3) => [...d].sort((a, b) => b[1] - a[1]
 const POS: Record<string, string> = { "5/3": "5/3", "6": "6", "6/4": "6/4", "7": "7", "6/5": "6/5", "4/3": "4/3", "4/2": "4/2" };
 const deg = (d: string) => d.replace("#", "♯").replace("b", "♭");
 const chordName = (c: string) => c.replace(/^b/, "♭").replace(/^#/, "♯");
+const acc = (n: string) => n.replace(/#/g, "♯").replace(/b/g, "♭");
+/** A chord as heard: its spelled root and kind, beside the label by pitch class. */
+const spelled = (n: { chord: string; root: string; kind: string }) => `${chordName(n.chord)} (${acc(n.root)} ${n.kind})`;
+/** A sonority counts as dissonant when it holds a second, fourth, seventh or ninth over the bass, a
+ *  tritone (♯4, ♭5), an augmented sixth (♯6), or an incidental note. */
+/** A sonority's distinct intervals over the bass, plain octaves and unisons (doublings) left out:
+ *  "8/#6/3" and "#6/3" are one sonority. */
+const sonorityOf = (lit: string) => [...new Set(lit.split("/").filter((x) => !/^(8|1)$/.test(x)))].join("/") || "8";
+const dissonant = (n: { lit: string; inc: string }) => !!n.inc || /(^|\/)([#bn]?[2479]|#[46]|b5)(\/|$)/.test(n.lit);
 const KIND: Record<string, string> = { passing: "a passing note", neighbourUp: "an upper neighbour", neighbourDown: "a lower neighbour", suspension: "a suspension", anticipation: "an anticipation", none: "no embellishment" };
 const VOICES = ["soprano", "alto", "tenor", "bass"];
 
@@ -69,6 +78,17 @@ for (const t of tunes) {
   const models = trainModels(train);
   const vm = new VoiceModel(train);
   const trainNos = new Set(train.map((c) => c.no));
+  // the sonority: the bass degree and every distinct interval over it (accidentals against the key),
+  // given the mode, the place in the phrase and the melody degree
+  const sonorityRows: Ctx[] = [];
+  for (const c of train) {
+    const cm = melodyOf(c);
+    c.notes.forEach((n, i) => {
+      if (dissonant(n)) sonorityRows.push({ mode: c.mode, place: placeOf(cm, i), deg: n.deg, s: `${n.bass}:${sonorityOf(n.lit)}` });
+    });
+  }
+  // among Bach's dissonant sonorities only: how rare this one is among his dissonances there
+  const sonority = new Backoff(sonorityRows, ["mode", "place", "deg"], "s");
   const dm = new DiminutionModel(
     STUDY.chorales.filter((c) => trainNos.has(c.n)),
     { parallel: vm.parallel, augSecond: vm.augSecond },
@@ -78,8 +98,9 @@ for (const t of tunes) {
     if (!s) continue;
     const m = melodyOf(c);
     const at = (i: number) => thirty(c.notes[i].t);
+    const modal = m.modal !== m.mode ? m.modal : null;
     const add = (level: Level, i: number, bits: number, voice: number | null, did: string, expected: string, pattern: string, time = at(i)) =>
-      moments.push({ id: `${c.no}-${level}-${time}-${voice ?? "c"}`, no: c.no, level, at: time, bar: barAt(c, time), bits, voice, did, expected, pattern });
+      moments.push({ id: `${c.no}-${level}-${time}-${voice ?? "c"}`, no: c.no, level, at: time, bar: barAt(c, time), bits, voice, did, expected, pattern, modal });
     // the time base: Bach's events against the study's soprano
     for (let i = 0; i < c.notes.length; i++) {
       checked++;
@@ -88,18 +109,28 @@ for (const t of tunes) {
     }
     // cadence
     for (const e of phraseEnds(m)) {
-      const d = models.plan.model.dist({ mode: m.mode, close: e.close, position: e.position });
+      const d = models.plan.model.dist({ mode: m.mode, modal: m.modal, close: e.close, position: e.position });
       const ch = c.notes[e.index].chord;
-      add("cadence", e.index, bitsOf(d.get(ch)), null, `the ${e.position} phrase ends on ${chordName(ch)} (melody ${e.close.split("-").map(deg).join("–")})${never(d, ch)}`, top(d).map(([k, p]) => `${chordName(k)} ${pc(p)}`).join(", "), ch);
+      add("cadence", e.index, bitsOf(d.get(ch)), null, `the ${e.position} phrase ends on ${spelled(c.notes[e.index])} (melody ${e.close.split("-").map(deg).join("–")})${never(d, ch)}`, top(d).map(([k, p]) => `${chordName(k)} ${pc(p)}`).join(", "), ch);
     }
     // chord, bass
     c.notes.forEach((n, i) => {
       const prev = i ? c.notes[i - 1].chord : "start";
-      const d = models.harmony.model.dist({ mode: m.mode, deg: n.deg, prev });
-      add("chord", i, bitsOf(d.get(n.chord)), null, `${chordName(n.chord)} under melody degree ${deg(n.deg)}${i ? `, after ${chordName(prev)}` : ""}${never(d, n.chord)}`, top(d).map(([k, p]) => `${chordName(k)} ${pc(p)}`).join(", "), n.chord);
+      const d = models.harmony.model.dist({ mode: m.mode, modal: m.modal, deg: n.deg, prev });
+      add("chord", i, bitsOf(d.get(n.chord)), null, `${spelled(n)} under melody degree ${deg(n.deg)}${i ? `, after ${chordName(prev)}` : ""}${never(d, n.chord)}`, top(d).map(([k, p]) => `${chordName(k)} ${pc(p)}`).join(", "), n.chord);
+      if (dissonant(n)) {
+        const ds = sonority.dist({ mode: m.mode, place: placeOf(m, i), deg: n.deg });
+        const k = `${n.bass}:${sonorityOf(n.lit)}`;
+        const name = (x: string) => {
+          const [b, l] = x.split(":");
+          return `${acc(l)} over bass degree ${deg(b)}`;
+        };
+        const inc = [...n.inc].map((v) => ({ S: "soprano", A: "alto", T: "tenor", B: "bass" })[v as "S"]).join(", ");
+        add("sonority", i, bitsOf(ds.get(k)), null, `${name(k)}: ${spelled(n)}${inc ? `, incidental in the ${inc}` : ""}${never(ds, k)}`, top(ds).map(([x, p]) => `${name(x)} ${pc(p)}`).join(", "), sonorityOf(n.lit));
+      }
       if (!n.pos) return;
       const prevBass = i ? c.notes[i - 1].bass : "start";
-      const db = models.bass.model.dist({ mode: m.mode, place: placeOf(m, i), chord: n.chord, deg: n.deg, prev: prevBass });
+      const db = models.bass.model.dist({ mode: m.mode, modal: m.modal, place: placeOf(m, i), chord: n.chord, deg: n.deg, prev: prevBass });
       const name = (x: string) => {
         const [b, p] = x.split(":");
         return `${deg(b)} with ${POS[p] ?? p}`;
@@ -113,7 +144,7 @@ for (const t of tunes) {
       const A = c.notes.map((n) => n.a),
         T = c.notes.map((n) => n.tn);
       for (let i = 1; i < slots.length; i++) {
-        const v = voiceSurprise(vm, slots, i, A, T);
+        const v = voiceSurprise(vm, slots, i, A, T, CALIBRATED);
         if (v) add("voices", i, v.bits, null, `alto ${A[i]}, tenor ${T[i]} (from ${A[i - 1]}, ${T[i - 1]})`, `alto ${v.expected.alto}, tenor ${v.expected.tenor} ${pc(v.expected.p)}`, `${Math.sign(midiOf(A[i]!) - midiOf(A[i - 1]!))}${Math.sign(midiOf(T[i]!) - midiOf(T[i - 1]!))}`);
       }
     }
@@ -135,22 +166,18 @@ for (const t of tunes) {
         voice: p.voice,
         did: `${VOICES[p.voice]}: ${KIND[kind]} on ${note[2]}`,
         pattern: kind,
+        modal: m.modal !== m.mode ? m.modal : null,
         expected: top(d as Map<string, number>).map(([k, q]) => `${KIND[k]} ${pc(q)}`).join(", "),
       });
     }
   }
 }
 
-function barAt(c: BachChorale, time: number): number {
-  let bar = c.notes[0].m;
-  for (const n of c.notes) if (thirty(n.t) <= time) bar = n.m;
-  return bar;
-}
 
 // ---- choosing the moments to rate: the most surprising at each level, at most one per chorale per
 // level and two per chorale in all, and at most two of one pattern (the same chord, position, kind)
 // per level, so that one rare kind does not fill a level ----
-const PER_LEVEL: Record<Level, number> = { cadence: 10, chord: 12, bass: 10, voices: 12, embellishment: 10 };
+const PER_LEVEL: Record<Level, number> = { cadence: 10, chord: 12, bass: 10, sonority: 10, voices: 12, embellishment: 10 };
 const chosen: Moment[] = [];
 const perChorale = new Map<number, number>();
 for (const level of LEVELS) {
@@ -166,121 +193,10 @@ for (const level of LEVELS) {
   }
 }
 
-// ---- excerpts: from the bar before to the bar after, in ABC notation and as notes to play ----
-const LETTERS = "CDEFGAB";
-const ORDER = ["Cb", "Gb", "Db", "Ab", "Eb", "Bb", "F", "C", "G", "D", "A", "E", "B", "F#", "C#"];
-function sigAlter(sig: number, letter: string) {
-  const order = sig > 0 ? "FCGDAEB" : "BEADGCF";
-  return order.slice(0, Math.abs(sig)).includes(letter) ? Math.sign(sig) : 0;
-}
-function barStarts(c: BachChorale, s: StudyChorale): Map<number, number> {
-  const out = new Map<number, number>();
-  for (const n of c.notes) if (!out.has(n.m)) out.set(n.m, thirty(n.t));
-  // bars where no melody note starts (a held note over the bar line) are filled from the meter
-  const [num, den] = s.meter.split("/").map(Number);
-  const len = (32 * num) / den;
-  const bars = [...out.keys()].sort((a, b) => a - b);
-  for (let k = bars[0]; k <= bars[bars.length - 1] + 1; k++) if (!out.has(k)) out.set(k, (out.get(k - 1) ?? 0) + len);
-  return out;
-}
-function abcPitch(p: string, state: Map<string, number>, sig: number): string {
-  const m = /^([A-G])([#b]*)(-?\d+)$/.exec(p)!;
-  const alter = [...m[2]].reduce((a, ch) => a + (ch === "#" ? 1 : -1), 0);
-  const key = m[1] + m[3];
-  const current = state.has(key) ? state.get(key)! : sigAlter(sig, m[1]);
-  let acc = "";
-  if (current !== alter) {
-    acc = alter === 0 ? "=" : alter > 0 ? "^".repeat(alter) : "_".repeat(-alter);
-    state.set(key, alter);
-  }
-  const oct = Number(m[3]);
-  const letter = oct >= 5 ? m[1].toLowerCase() + "'".repeat(oct - 5) : m[1] + ",".repeat(4 - oct);
-  return acc + letter;
-}
-/** A length in 32nds as written note values (dotted where they fit), largest first. */
-function values(d: number): number[] {
-  const out: number[] = [];
-  for (const v of [32, 28, 24, 16, 14, 12, 8, 7, 6, 4, 3, 2, 1])
-    while (d >= v) {
-      out.push(v);
-      d -= v;
-    }
-  return out;
-}
-const len = (v: number) => (v === 1 ? "" : String(v));
-
-function excerpt(c: BachChorale, s: StudyChorale, x: Moment) {
-  const starts = barStarts(c, s);
-  const first = Math.max(Math.min(...starts.keys()), x.bar - 1);
-  const from = starts.get(first)!;
-  const to = Math.min(starts.get(x.bar + 2) ?? s.length, s.length);
-  const lines = [...starts.entries()].filter(([, t]) => t > from && t < to).map(([, t]) => t);
-  const cuts = [...new Set([...lines, x.at])].sort((a, b) => a - b);
-  const play: [number, number, number, number][] = [];
-  const voiceAbc = s.voices.map((line: Note[], v) => {
-    let out = "";
-    let t = from;
-    let state = new Map<string, number>();
-    const notes = line.filter((n) => n[0] + n[1] > from && n[0] < to);
-    const piece = (start: number, end: number, body: string, tie: boolean) => {
-      // split at bar lines and at the moment, tied
-      let a = start;
-      const bounds = cuts.filter((u) => u > start && u < end);
-      for (const b of [...bounds, end]) {
-        if (lines.includes(a) && a !== from) {
-          out += " | ";
-          state = new Map();
-        }
-        const mark = a === x.at && (x.voice === null ? v === 0 : x.voice === v) ? '"^▼"' : "";
-        out += mark + values(b - a).map((v) => body.replace("@", len(v))).join(" ") + (b < end || tie ? "-" : "") + " ";
-        a = b;
-      }
-    };
-    for (const n of notes) {
-      const on = Math.max(n[0], from),
-        off = Math.min(n[0] + n[1], to);
-      if (on > t) piece(t, on, "z@", false);
-      const head = (n[3] && v === 0 ? "!fermata!" : "") + abcPitch(n[2], state, s.sig);
-      // a new note after a bar line re-reads its accidental: written per piece
-      let a = on;
-      const bounds = cuts.filter((u) => u > on && u < off);
-      for (const b of [...bounds, off]) {
-        if (lines.includes(a) && a !== from) {
-          out += " | ";
-          state = new Map();
-        }
-        const mark = a === x.at && (x.voice === null ? v === 0 : x.voice === v) ? '"^▼"' : "";
-        const ph = a === on ? head : abcPitch(n[2], state, s.sig);
-        const plain = ph.replace("!fermata!", "");
-        out += mark + values(b - a).map((v, k) => (k ? plain : ph) + len(v)).join("- ") + (b < off ? "-" : "") + " ";
-        a = b;
-      }
-      play.push([v, on - from, off - on, midiOf(n[2])]);
-      t = off;
-    }
-    if (t < to) piece(t, to, "z@", false);
-    return out.trim() + " |]";
-  });
-  const key = ORDER[s.sig + 7] ?? "C";
-  const abc = [
-    "X:1",
-    `M:${s.meter}`,
-    "L:1/32",
-    `K:${key}`,
-    "%%score (S A) (T B)",
-    "V:S clef=treble stem=up",
-    "V:A clef=treble stem=down",
-    "V:T clef=bass stem=up",
-    "V:B clef=bass stem=down",
-    ...["S", "A", "T", "B"].map((name, v) => `[V:${name}] ${voiceAbc[v]}`),
-  ].join("\n");
-  return { abc, play, mark: x.at - from, length: to - from, fromBar: first };
-}
-
 const out = chosen.map((x) => {
   const c = BACH.find((y) => y.no === x.no)!;
   const s = study.get(x.no)!;
-  return { ...x, bits: Number(x.bits.toFixed(1)), title: s.title, bwv: s.bwv, key: `${s.tonic} ${s.mode}`, scan: (s as unknown as { scan?: string }).scan ?? null, ...excerpt(c, s, x) };
+  return { ...x, bits: Number(x.bits.toFixed(1)), title: s.title, bwv: s.bwv, key: `${s.tonic} ${s.mode}`, scan: s.scan ?? null, ...excerpt(c, s, x) };
 });
 writeFileSync(new URL("../../data/chorales/generator/exceptions-moments.json", import.meta.url), JSON.stringify({ generated_by: "tools/chorales/surprise_report.ts", unit: "1/32 whole note", moments: out }) + "\n");
 writeFileSync(
@@ -317,7 +233,11 @@ for (const level of LEVELS) {
   say(`| ${level} | ${b.length} | ${q(0.5)} | ${q(0.9)} | ${q(0.99)} | ${b[b.length - 1].toFixed(1)} |`);
 }
 say();
-say("Embellishments are measured only where Bach embellishes (how surprising his choice of kind and place is).");
+say("Embellishments are measured only where Bach embellishes (how surprising his choice of kind and place is); sonorities");
+say("only where the sonority is dissonant (a second, fourth, seventh or ninth over the bass, a tritone, an augmented sixth,");
+say("or an incidental note), and against Bach's dissonant sonorities only: the whole stack over the bass (its distinct intervals),");
+say("given the melody degree and the place in the phrase. The inner voices");
+say("are measured with the search's calibrated weights (src/chorale/generate/voices.ts CALIBRATED).");
 say();
 say("## The chorales with the most surprise");
 say();
@@ -349,7 +269,8 @@ say("|---|---|---|---|---|---|---|");
 out.forEach((x, k) => say(`| ${k + 1} | ${x.no} | ${x.bar} | ${x.level} | ${x.bits} | ${x.did} | ${x.expected} |`));
 writeFileSync(new URL("../../docs/chorales/EXCEPTIONS.md", import.meta.url), lines.join("\n") + "\n");
 
-// ---- the rating page: the template with the moments filled in ----
-const template = (await import("node:fs")).readFileSync(new URL("./exceptions-page.html", import.meta.url), "utf8");
-const page = template.replace("/*__MOMENTS__*/[]", JSON.stringify(out.map(({ abc, play, mark, length, id, no, bar, level, bits, voice, did, expected, title, bwv, key, scan }) => ({ id, no, bar, level, bits, voice, did, expected, title, bwv, key, scan, abc, play, mark, length }))));
-writeFileSync(new URL("../../data/chorales/generator/exceptions.html", import.meta.url), page);
+// ---- the rating page ----
+writePage(
+  new URL("../../data/chorales/generator/exceptions.html", import.meta.url),
+  out.map(({ abc, play, mark, length, id, no, bar, level, bits, voice, did, expected, title, bwv, key, scan }) => ({ id, no, bar, level, bits, voice, did, expected, title, bwv, key, scan, abc, play, mark, length })),
+);

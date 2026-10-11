@@ -14,7 +14,7 @@
  */
 import { Backoff, temper, type Ctx } from "./model.ts";
 import { bestChain, chainLogProb, sampleChain } from "./chain.ts";
-import type { BachChorale, Melody } from "./corpus.ts";
+import { melodyOf, type BachChorale, type Melody } from "./corpus.ts";
 import { degreePc, degreePitches, figure, parseDegree, type FigureRow, type Key } from "./theory.ts";
 
 export interface Bass {
@@ -80,10 +80,10 @@ export class BassModel {
       register: number[] = [];
     for (const c of train) {
       let prev = "start";
-      const m: Melody = { mode: c.mode, notes: c.notes.map((n) => ({ deg: n.deg, end: !!n.end })) };
+      const m: Melody = melodyOf(c);
       c.notes.forEach((n, i) => {
         if (n.pos) {
-          rows.push({ mode: c.mode, place: placeOf(m, i), chord: n.chord, deg: n.deg, prev, target: `${n.bass}:${n.pos}` });
+          rows.push({ mode: c.mode, modal: m.modal, place: placeOf(m, i), chord: n.chord, deg: n.deg, prev, target: `${n.bass}:${n.pos}` });
           const k = `${c.mode}|${n.chord}`;
           this.byChord.set(k, (this.byChord.get(k) ?? new Set()).add(`${n.bass}:${n.pos}`));
         }
@@ -117,7 +117,7 @@ export class BassModel {
       const ok = allowed.filter((s) => !parallel(m.notes[i - 1].deg, prevDeg, m.notes[i].deg, split(s).deg));
       if (ok.length) allowed = ok;
     }
-    const p = temper(this.model.dist({ mode: m.mode, place: placeOf(m, i), chord, deg: m.notes[i].deg, prev: prevDeg }), f && !allowed.includes(f) ? [...allowed, f] : allowed, T);
+    const p = temper(this.model.dist({ mode: m.mode, modal: m.modal, place: placeOf(m, i), chord, deg: m.notes[i].deg, prev: prevDeg }), f && !allowed.includes(f) ? [...allowed, f] : allowed, T);
     if (lineWeight && prevDeg !== "start") {
       const from = parseDegree(prevDeg).step;
       let z = 0;

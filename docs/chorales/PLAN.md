@@ -214,3 +214,19 @@ against Bach's profile of surprise and by blind listening; X7 the Atlas's "Bach 
   `data/chorales/generator/surprise.json` (every choice's surprise, each tune held out), and the
   rating page for X3 (`tools/chorales/exceptions-page.html` → `data/chorales/generator/exceptions.html`,
   published as an artifact whose ratings Claude reads back).
+- X3, first round rated (`docs/chorales/EXCEPTIONS-RATINGS.md`): Bach's licences are harmonic; surprise at
+  the inner voices and embellishments was the models' miscalibration. Ratings are first impressions.
+- Round 2 (11 October 2026):
+  - the modal context tried in the plan, chord and bass models (the edition's mode and the melody's last
+    degree) made every level worse on unseen tunes, the modal chorales included, and is not used; a
+    surprise in a modal chorale is marked as a possible modal idiom instead;
+  - the voice search's costs split into three weighted groups and calibrated on Bach (surprise at his
+    voicings 1.70 -> 1.31 bits on held-out chorales; `voices.ts` CALIBRATED, for measuring; the
+    generator keeps its stricter weights for writing);
+  - X1 gains a level for dissonant sonorities (the whole stack over the bass, among Bach's dissonances);
+    the chord the owner pointed out (no. 295, bar 5, a diminished seventh of F♯ minor) is among its most
+    surprising; chords are now described by their spelled root and kind;
+  - X4, a first catalogue of licences (`docs/chorales/LICENCES.md`, `tools/chorales/licences_report.ts`):
+    eight categories over the 370 chorales with their occasions; the augmented sixth is absent from the
+    chorales as a chord; the second rating page "Bach's Licences" (34 examples) asks: immediately special,
+    or beautiful in an ordinary way.

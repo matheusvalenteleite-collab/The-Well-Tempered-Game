@@ -8,35 +8,46 @@
  */
 import { Backoff, temper, type Ctx } from "./model.ts";
 import { bestChain, chainLogProb, sampleChain } from "./chain.ts";
-import type { BachChorale, Melody } from "./corpus.ts";
+import { melodyOf, type BachChorale, type Melody } from "./corpus.ts";
+
+/** The chord model's context, coarsest first: the mode, the melody degree, the chord before. Measured on unseen tunes (11 October 2026), adding the modal context ("modal": the edition's mode and
+ *  the melody's last degree) made every level worse, for the modal chorales too (too few of them to
+ *  learn from; a level re-applying almost the same counts sharpens the model), so it is not used. */
+export const HARMONY_FIELDS = ["mode", "deg", "prev"];
 
 export class HarmonyModel {
   readonly model: Backoff;
+  /** The chords Bach puts over each (mode, melody degree). */
+  private readonly attested = new Map<string, Set<string>>();
 
-  constructor(train: BachChorale[]) {
+  constructor(train: BachChorale[], fields = HARMONY_FIELDS) {
     const rows: Ctx[] = [];
     for (const c of train) {
       let prev = "start";
+      const modal = melodyOf(c).modal;
       for (const n of c.notes) {
-        rows.push({ mode: c.mode, deg: n.deg, prev, chord: n.chord });
+        rows.push({ mode: c.mode, modal, deg: n.deg, prev, chord: n.chord });
+        const k = `${c.mode}|${n.deg}`;
+        this.attested.set(k, (this.attested.get(k) ?? new Set()).add(n.chord));
         prev = n.chord;
       }
     }
-    this.model = new Backoff(rows, ["mode", "deg", "prev"], "chord");
+    this.model = new Backoff(rows, fields, "chord");
   }
 
   /** The chords Bach puts over this melody degree in this mode (all chords if the degree is unseen). */
   allowed(mode: string, deg: string): string[] {
-    const cnt = this.model.counts({ mode, deg }, 1);
-    return cnt ? [...cnt.keys()].sort() : this.model.vocab;
+    const s = this.attested.get(`${mode}|${deg}`);
+    return s ? [...s].sort() : this.model.vocab;
   }
 
   /** The next chord's distribution over the allowed chords, at temperature T. With `only` (a chord
    *  fixed by the plan), that chord alone, keeping its probability: not renormalized, so that the
    *  chord before is judged by how well it leads to the fixed one. */
-  step(mode: string, deg: string, prev: string, T = 1, only?: string | null): Map<string, number> {
+  step(key: { mode: string; modal?: string }, deg: string, prev: string, T = 1, only?: string | null): Map<string, number> {
+    const mode = key.mode;
     const allowed = this.allowed(mode, deg);
-    const p = temper(this.model.dist({ mode, deg, prev }), only && !allowed.includes(only) ? [...allowed, only] : allowed, T);
+    const p = temper(this.model.dist({ mode, modal: key.modal ?? mode, deg, prev }), only && !allowed.includes(only) ? [...allowed, only] : allowed, T);
     return only ? new Map([[only, p.get(only)!]]) : p;
   }
 }
@@ -51,7 +62,7 @@ export function fixedFromPlan(m: Melody, ends: { index: number }[], plan: string
   return f;
 }
 
-const stepper = (h: HarmonyModel, m: Melody, fixed: Fixed, T: number) => (i: number, prev: string) => h.step(m.mode, m.notes[i].deg, prev, T, fixed[i]);
+const stepper = (h: HarmonyModel, m: Melody, fixed: Fixed, T: number) => (i: number, prev: string) => h.step(m, m.notes[i].deg, prev, T, fixed[i]);
 const statesOf = (h: HarmonyModel, m: Melody, fixed: Fixed) => (i: number) => (fixed[i] ? [fixed[i]!] : h.allowed(m.mode, m.notes[i].deg));
 
 /** A chord sequence drawn from the chain at temperature T, exactly under the fixed chords. */

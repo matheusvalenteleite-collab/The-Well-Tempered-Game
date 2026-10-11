@@ -95,9 +95,14 @@ def split_notes(measures: list[dict], notes: list[tuple[F, F, str]], fermata_las
 
 def write_mxl(path: Path, xml: str) -> None:
     """Compressed MusicXML: the score and the container that points to it, zipped."""
+    # a fixed date in the archive, so that a file changes only when its music does
+    def entry(name: str) -> zipfile.ZipInfo:
+        info = zipfile.ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0))
+        info.compress_type = zipfile.ZIP_DEFLATED
+        return info
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
-        z.writestr("META-INF/container.xml", '<?xml version="1.0" encoding="UTF-8"?><container><rootfiles><rootfile full-path="score.musicxml"/></rootfiles></container>')
-        z.writestr("score.musicxml", xml)
+        z.writestr(entry("META-INF/container.xml"), '<?xml version="1.0" encoding="UTF-8"?><container><rootfiles><rootfile full-path="score.musicxml"/></rootfiles></container>')
+        z.writestr(entry("score.musicxml"), xml)
 
 
 def satb_xml(c: dict, verses: list[dict], title: str) -> str:

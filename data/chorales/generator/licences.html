@@ -1,0 +1,436 @@
+<title>Bach's Exceptions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: a rater's desk — the list of moments in a narrow column, the moment itself (score, sound, verdict) beside it. */
+  :root {
+    --bg: #f3f4f6;
+    --panel: #ffffff;
+    --ink: #1c2230;
+    --muted: #5d6576;
+    --rule: #d9dde5;
+    --accent: #2f5d62;
+    --accent-soft: #e2ecec;
+    --mark: #b4442f;
+    --beautiful: #a8730c;
+    --idiomatic: #2c5f9e;
+    --slip: #a33636;
+    --unsure: #6a6f7c;
+    --font-display: "Spectral", "Iowan Old Style", Georgia, serif;
+    --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14171d; --panel: #1c2028; --ink: #e6e8ee; --muted: #9aa1b0; --rule: #2e3440;
+      --accent: #7fb6b9; --accent-soft: #243437; --mark: #e2775f;
+      --beautiful: #e0ae4a; --idiomatic: #7aa7e0; --slip: #e07a7a; --unsure: #9aa1b0;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14171d; --panel: #1c2028; --ink: #e6e8ee; --muted: #9aa1b0; --rule: #2e3440;
+    --accent: #7fb6b9; --accent-soft: #243437; --mark: #e2775f;
+    --beautiful: #e0ae4a; --idiomatic: #7aa7e0; --slip: #e07a7a; --unsure: #9aa1b0;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
+  .wrap { padding-inline: 16px; padding-block: 20px 40px; max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; }
+  @media (max-width: 860px) { .wrap { grid-template-columns: minmax(0, 1fr); } .list { max-height: 260px; } }
+  header.top { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; }
+  h1 { font-family: var(--font-display); font-weight: 600; font-size: 1.9rem; margin: 0; letter-spacing: 0.005em; text-wrap: balance; }
+  .lede { color: var(--muted); max-width: 70ch; margin: 4px 0 0; }
+  .progress { font-family: var(--font-data); font-size: 0.85rem; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+  .bar { width: 160px; height: 6px; background: var(--rule); border-radius: 3px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+  .notice { grid-column: 1 / -1; font-size: 0.85rem; color: var(--muted); border-left: 3px solid var(--rule); padding: 2px 10px; }
+
+  .list { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; overflow-y: auto; max-height: calc(100vh - 140px); position: sticky; top: env(safe-area-inset-top, 0px); }
+  .filters { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; border-bottom: 1px solid var(--rule); position: sticky; top: 0; background: var(--panel); z-index: 1; }
+  .chip { font: inherit; font-size: 0.78rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--rule); background: transparent; color: var(--muted); cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--accent-soft); color: var(--ink); border-color: var(--accent); }
+  .level-head { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding: 10px 12px 4px; }
+  .item { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 8px; align-items: center; width: 100%; text-align: left; font: inherit; color: inherit; background: none; border: 0; border-top: 1px solid var(--rule); padding: 7px 12px; cursor: pointer; }
+  .item:hover { background: var(--accent-soft); }
+  .item[aria-current="true"] { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+  .item .dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--rule); }
+  .item .dot[data-r="beautiful"] { background: var(--beautiful); border-color: var(--beautiful); }
+  .item .dot[data-r="idiomatic"] { background: var(--idiomatic); border-color: var(--idiomatic); }
+  .item .dot[data-r="slip"] { background: var(--slip); border-color: var(--slip); }
+  .item .dot[data-r="unsure"] { background: var(--unsure); border-color: var(--unsure); }
+  .item .dot[data-r="special"] { background: var(--beautiful); border-color: var(--beautiful); }
+  .item .dot[data-r="ordinary"] { background: var(--idiomatic); border-color: var(--idiomatic); }
+  .item .t { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.86rem; }
+  .item .b { font-family: var(--font-data); font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .moment { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 18px 20px 20px; min-width: 0; display: grid; gap: 14px; }
+  .mhead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 16px; }
+  .mhead h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.45rem; margin: 0; text-wrap: balance; }
+  .meta { font-size: 0.85rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+  .meta a { color: var(--accent); }
+  .level { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 8px; border-radius: 4px; background: var(--accent-soft); color: var(--ink); }
+  .facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; margin: 0; }
+  .facts dt { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding-top: 2px; }
+  .facts dd { margin: 0; }
+  .facts dd.bach { font-weight: 500; }
+  .bits { font-family: var(--font-data); }
+  .bits small { color: var(--muted); font-family: var(--font-body); }
+  .score { overflow-x: auto; border: 1px solid var(--rule); border-radius: 6px; padding: 6px 4px; background: var(--panel); }
+  .score svg { max-width: none; }
+  .play { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+  button.act { font: inherit; font-size: 0.9rem; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: var(--panel); cursor: pointer; }
+  button.act.ghost { background: transparent; color: var(--accent); }
+  button:focus-visible, .chip:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .tempo { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--muted); }
+  .tempo output { font-family: var(--font-data); min-width: 3ch; }
+  .lane { position: relative; height: 8px; background: var(--rule); border-radius: 4px; flex: 1 1 200px; min-width: 120px; }
+  .lane .head { position: absolute; top: 0; bottom: 0; left: 0; width: 0; background: var(--accent); border-radius: 4px; }
+  .lane .m { position: absolute; top: -4px; bottom: -4px; width: 3px; background: var(--mark); border-radius: 2px; }
+  label.inline { font-size: 0.85rem; color: var(--muted); display: inline-flex; gap: 6px; align-items: center; }
+
+  .verdict { display: grid; gap: 10px; border-top: 1px solid var(--rule); padding-top: 14px; }
+  .verdict h3 { margin: 0; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 500; }
+  .choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; }
+  .choice { font: inherit; text-align: left; padding: 10px 12px; border-radius: 8px; border: 1.5px solid var(--rule); background: transparent; color: var(--ink); cursor: pointer; display: grid; gap: 2px; }
+  .choice b { font-weight: 600; display: flex; justify-content: space-between; gap: 8px; }
+  .choice kbd { font-family: var(--font-data); font-size: 0.75rem; color: var(--muted); border: 1px solid var(--rule); border-radius: 3px; padding: 0 4px; }
+  .choice span { font-size: 0.8rem; color: var(--muted); }
+  .choice[data-r="beautiful"][aria-pressed="true"] { border-color: var(--beautiful); box-shadow: inset 0 0 0 1px var(--beautiful); }
+  .choice[data-r="idiomatic"][aria-pressed="true"] { border-color: var(--idiomatic); box-shadow: inset 0 0 0 1px var(--idiomatic); }
+  .choice[data-r="slip"][aria-pressed="true"] { border-color: var(--slip); box-shadow: inset 0 0 0 1px var(--slip); }
+  .choice[data-r="unsure"][aria-pressed="true"] { border-color: var(--unsure); box-shadow: inset 0 0 0 1px var(--unsure); }
+  .choice[data-r="special"][aria-pressed="true"] { border-color: var(--beautiful); box-shadow: inset 0 0 0 1px var(--beautiful); }
+  .choice[data-r="ordinary"][aria-pressed="true"] { border-color: var(--idiomatic); box-shadow: inset 0 0 0 1px var(--idiomatic); }
+  textarea { font: inherit; width: 100%; min-height: 64px; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink); resize: vertical; }
+  .nav { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .saved { font-size: 0.8rem; color: var(--muted); }
+  .keys { font-size: 0.8rem; color: var(--muted); }
+  @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1 id="page-title">Bach's Exceptions</h1>
+      <p class="lede" id="page-lede">The choices in Bach's 370 chorales that surprise the generator most, measured by models that never saw the tune. Listen, read, and say what kind of rarity each one is.</p>
+    </div>
+    <div class="progress" aria-live="polite"><span id="count">0 of 0 rated</span><div class="bar"><i id="bar"></i></div></div>
+  </header>
+  <p class="notice" id="notice" hidden></p>
+
+  <nav class="list" aria-label="Moments">
+    <div class="filters" role="group" aria-label="Show">
+      <button class="chip" data-f="all" aria-pressed="true">All</button>
+      <button class="chip" data-f="unrated" aria-pressed="false">Unrated</button>
+    </div>
+    <div id="items"></div>
+  </nav>
+
+  <main class="moment" id="moment">
+    <div class="mhead">
+      <h2 id="m-title">Loading moments…</h2>
+      <span class="level" id="m-level"></span>
+    </div>
+    <div class="meta" id="m-meta"></div>
+    <dl class="facts">
+      <dt>Bach</dt><dd class="bach" id="m-did"></dd>
+      <dt>Expected</dt><dd id="m-exp"></dd>
+      <dt>Surprise</dt><dd class="bits" id="m-bits"></dd>
+    </dl>
+    <div class="score" id="score" aria-label="Score excerpt; the moment is marked ▼"></div>
+    <div class="play">
+      <button class="act" id="play-all" type="button">Play excerpt</button>
+      <button class="act ghost" id="play-moment" type="button">Play the moment</button>
+      <button class="act ghost" id="stop" type="button">Stop</button>
+      <div class="lane" aria-hidden="true"><div class="head" id="head"></div><div class="m" id="mk"></div></div>
+      <label class="tempo" for="tempo">♩ = <output id="tempo-out">72</output><input id="tempo" type="range" min="40" max="110" value="72"></label>
+      <label class="inline" for="solo"><input type="checkbox" id="solo"> Bring out the voice</label>
+    </div>
+    <section class="verdict" aria-labelledby="v-h">
+      <h3 id="v-h">What kind of rarity is it?</h3>
+      <div class="choices" id="choices">
+        <button class="choice" data-r="beautiful" type="button" aria-pressed="false"><b>Beautiful, expressive <kbd>1</kbd></b><span>A deliberate licence worth learning</span></button>
+        <button class="choice" data-r="idiomatic" type="button" aria-pressed="false"><b>Idiomatic <kbd>2</kbd></b><span>Ordinary Bach; the model misses why</span></button>
+        <button class="choice" data-r="slip" type="button" aria-pressed="false"><b>Slip or doubtful <kbd>3</kbd></b><span>An error, a misreading, or not convincing</span></button>
+        <button class="choice" data-r="unsure" type="button" aria-pressed="false"><b>Not sure <kbd>4</kbd></b><span>Come back to it</span></button>
+      </div>
+      <label class="inline" for="flag" id="flag-row" hidden><input type="checkbox" id="flag"> The reading or the description looks wrong</label>
+      <label for="note" class="keys">A note (what you hear, the text, a better reading)</label>
+      <textarea id="note" placeholder="Optional"></textarea>
+      <div class="nav">
+        <button class="act ghost" id="prev" type="button">← Previous</button>
+        <span class="saved" id="saved" aria-live="polite"></span>
+        <button class="act" id="next" type="button">Next →</button>
+      </div>
+      <p class="keys">Keys: 1–4 rate · space plays · M plays the moment · ← → move between moments.</p>
+    </section>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min.js"></script>
+<script>
+const MOMENTS = [{"id":"132-flat-second-704","no":132,"bar":23,"level":"flat-second","bits":16.6,"voice":null,"did":"♭II (B♭ major seventh) with 7 · in a modal chorale (minor/5)","expected":"iv 48%, ♭VI 16%, i 16% (the chord model, without this tune)","title":"Kyrie! Gott Vater in Ewigkeit","bwv":"371","key":"A minor","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=68","abc":"X:1\nM:4/4\nL:1/32\nK:C\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] !fermata!D16 D8 A8  | \"^▼\"A8 G8 A8 B8  | c8 B8 A16 |]\n[V:A] A,16 A,8 D2 E2 F4  | F12 E6 D2 E2 G2 F2 E2 ^F2 A2  | G4 D4 D4 G8 ^F2 E2 F8 |]\n[V:T] F,16 F,4 G,4 A,4 D4  | D4 B,4 G,4 C2 B,2 A,12 G,2 ^F,2  | E,4 A,4 B,4 E8 C4 A,4 D2 C2 |]\n[V:B] D,,16 D,4 E,4 F,4 D,4  | _B,,4 B,,4 C,12 ^C,4 D,4 ^D,4  | E,4 ^F,4 G,4 E,4 C,4 A,,4 D,8 |]","play":[[0,0,16,62],[0,16,8,62],[0,24,8,69],[0,32,8,69],[0,40,8,67],[0,48,8,69],[0,56,8,71],[0,64,8,72],[0,72,8,71],[0,80,16,69],[1,0,16,57],[1,16,8,57],[1,24,2,62],[1,26,2,64],[1,28,4,65],[1,32,12,65],[1,44,6,64],[1,50,2,62],[1,52,2,64],[1,54,2,67],[1,56,2,65],[1,58,2,64],[1,60,2,66],[1,62,2,69],[1,64,4,67],[1,68,4,62],[1,72,4,62],[1,76,8,67],[1,84,2,66],[1,86,2,64],[1,88,8,66],[2,0,16,53],[2,16,4,53],[2,20,4,55],[2,24,4,57],[2,28,4,62],[2,32,4,62],[2,36,4,59],[2,40,4,55],[2,44,2,60],[2,46,2,59],[2,48,12,57],[2,60,2,55],[2,62,2,54],[2,64,4,52],[2,68,4,57],[2,72,4,59],[2,76,8,64],[2,84,4,60],[2,88,4,57],[2,92,2,62],[2,94,2,60],[3,0,16,38],[3,16,4,50],[3,20,4,52],[3,24,4,53],[3,28,4,50],[3,32,4,46],[3,36,4,47],[3,40,12,48],[3,52,4,49],[3,56,4,50],[3,60,4,51],[3,64,4,52],[3,68,4,54],[3,72,4,55],[3,76,4,52],[3,80,4,48],[3,84,4,45],[3,88,8,50]],"mark":32,"length":96,"fromBar":22},{"id":"205-flat-second-216","no":205,"bar":7,"level":"flat-second","bits":10.7,"voice":null,"did":"♭II (F major) with 5/3 · in a modal chorale (phrygian)","expected":"iv 37%, ♭VII 19%, IV 16% (the chord model, without this tune)","title":"Herr Gott, dich loben wir","bwv":"328","key":"E phrygian","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=104","abc":"X:1\nM:4/4\nL:1/32\nK:C\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] B8 A8 !fermata!A8 A8  | A8 G8 \"^▼\"A8 B8  | c8 A8 !fermata!G8 E8 |]\n[V:A] D4 G8 ^F2 E2 F8 E4 G4-  | G4 F8 E2 D2 C8 D2 E2 F4  | E2 ^F2 G8 F4 D8 C8 |]\n[V:T] B,4 E2 D2 ^C8 D8 E8  | D12 C2 B,2 A,4 G,4 F,8  | G,4 E4 D6 C2 B,8 G,8 |]\n[V:B] G,4 E,4 A,8 D,8 ^C,8  | D,8 E,8 F,4 E,4 D,8  | C,8 D,8 G,,8 C,8 |]","play":[[0,0,8,71],[0,8,8,69],[0,16,8,69],[0,24,8,69],[0,32,8,69],[0,40,8,67],[0,48,8,69],[0,56,8,71],[0,64,8,72],[0,72,8,69],[0,80,8,67],[0,88,8,64],[1,0,4,62],[1,4,8,67],[1,12,2,66],[1,14,2,64],[1,16,8,66],[1,24,4,64],[1,28,8,67],[1,36,8,65],[1,44,2,64],[1,46,2,62],[1,48,8,60],[1,56,2,62],[1,58,2,64],[1,60,4,65],[1,64,2,64],[1,66,2,66],[1,68,8,67],[1,76,4,66],[1,80,8,62],[1,88,8,60],[2,0,4,59],[2,4,2,64],[2,6,2,62],[2,8,8,61],[2,16,8,62],[2,24,8,64],[2,32,12,62],[2,44,2,60],[2,46,2,59],[2,48,4,57],[2,52,4,55],[2,56,8,53],[2,64,4,55],[2,68,4,64],[2,72,6,62],[2,78,2,60],[2,80,8,59],[2,88,8,55],[3,0,4,55],[3,4,4,52],[3,8,8,57],[3,16,8,50],[3,24,8,49],[3,32,8,50],[3,40,8,52],[3,48,4,53],[3,52,4,52],[3,56,8,50],[3,64,8,48],[3,72,8,50],[3,80,8,43],[3,88,8,48]],"mark":48,"length":96,"fromBar":6},{"id":"262-flat-second-64","no":262,"bar":2,"level":"flat-second","bits":7.3,"voice":null,"did":"♭II (A♭ major) with 6 · in a modal chorale (dorian/2)","expected":"V 19%, IV 18%, I 16% (the chord model, without this tune)","title":"Ach Gott, vom Himmel sieh darein","bwv":"2/6","key":"G dorian","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=136","abc":"X:1\nM:4/4\nL:1/32\nK:F\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] B8 A8 G8 d8  | d4 c4 B8 !fermata!A8 \"^▼\"c8  | B8 A8 G8 c8 |]\n[V:A] G8 ^F8 G8 B8  | A8 G8 ^F8 _A8  | G8 ^F8 ^C8 D8 |]\n[V:T] D8 C8 D8 G8  | D8 D8 D8 _E8  | =E8 D4 C4 B,8 A,8 |]\n[V:B] G,8 A,8 B,8 A,4 G,4  | ^F,8 G,8 D,8 C,8  | ^C,8 D,8 E,8 ^F,8 |]","play":[[0,0,8,70],[0,8,8,69],[0,16,8,67],[0,24,8,74],[0,32,4,74],[0,36,4,72],[0,40,8,70],[0,48,8,69],[0,56,8,72],[0,64,8,70],[0,72,8,69],[0,80,8,67],[0,88,8,72],[1,0,8,67],[1,8,8,66],[1,16,8,67],[1,24,8,70],[1,32,8,69],[1,40,8,67],[1,48,8,66],[1,56,8,68],[1,64,8,67],[1,72,8,66],[1,80,8,61],[1,88,8,62],[2,0,8,62],[2,8,8,60],[2,16,8,62],[2,24,8,67],[2,32,8,62],[2,40,8,62],[2,48,8,62],[2,56,8,63],[2,64,8,64],[2,72,4,62],[2,76,4,60],[2,80,8,58],[2,88,8,57],[3,0,8,55],[3,8,8,57],[3,16,8,58],[3,24,4,57],[3,28,4,55],[3,32,8,54],[3,40,8,55],[3,48,8,50],[3,56,8,48],[3,64,8,49],[3,72,8,50],[3,80,8,52],[3,88,8,54]],"mark":56,"length":96,"fromBar":1},{"id":"227-flat-second-432","no":227,"bar":14,"level":"flat-second","bits":7,"voice":null,"did":"♭II (E♭ major) with 5/3","expected":"iv 66%, IV 18%, ♭VII 8% (the chord model, without this tune)","title":"Lobet den Herren, denn er ist freundlich","bwv":"374","key":"D minor","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=117","abc":"X:1\nM:4/4\nL:1/32\nK:F\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] B8 d8 c8 B8  | A8 \"^▼\"G8 A16  | !fermata!G16 z8 G8 |]\n[V:A] F12 G2 F2 E4 ^F4 G8-  | G4 ^F4 G8 G8 F8  | D16 z8 D8 |]\n[V:T] D4 _E4 D4 B,4 G,4 A,4 B,2 C2 D4  | E4 D2 C2 B,4 C2 D2 _E8 D6 C2  | B,16 z8 B,4 A,4 |]\n[V:B] D,4 C,4 B,,12 A,,4 G,,4 B,,4  | C,4 D,4 _E,4 D,4 C,4 A,,4 D,8  | G,,16 z8 G,,4 A,,4 |]","play":[[0,0,8,70],[0,8,8,74],[0,16,8,72],[0,24,8,70],[0,32,8,69],[0,40,8,67],[0,48,16,69],[0,64,16,67],[0,88,8,67],[1,0,12,65],[1,12,2,67],[1,14,2,65],[1,16,4,64],[1,20,4,66],[1,24,12,67],[1,36,4,66],[1,40,8,67],[1,48,8,67],[1,56,8,66],[1,64,16,62],[1,88,8,62],[2,0,4,62],[2,4,4,63],[2,8,4,62],[2,12,4,58],[2,16,4,55],[2,20,4,57],[2,24,2,58],[2,26,2,60],[2,28,4,62],[2,32,4,63],[2,36,2,62],[2,38,2,60],[2,40,4,58],[2,44,2,60],[2,46,2,62],[2,48,8,63],[2,56,6,62],[2,62,2,60],[2,64,16,58],[2,88,4,58],[2,92,4,57],[3,0,4,50],[3,4,4,48],[3,8,12,46],[3,20,4,45],[3,24,4,43],[3,28,4,46],[3,32,4,48],[3,36,4,50],[3,40,4,51],[3,44,4,50],[3,48,4,48],[3,52,4,45],[3,56,8,50],[3,64,16,43],[3,88,4,43],[3,92,4,45]],"mark":40,"length":96,"fromBar":13},{"id":"202-mixture-200","no":202,"bar":7,"level":"mixture","bits":14.8,"voice":null,"did":"♭VII (C major seventh)","expected":"ii 31%, IV 28%, II 11% (the chord model, without this tune)","title":"O wir armen Sünder","bwv":"407","key":"D major","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=102","abc":"X:1\nM:4/4\nL:1/32\nK:D\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] B16 !fermata!G16  | B8 \"^▼\"B8 =c8 B8  | !fermata!A32 |]\n[V:A] F4 G4 F8 E16  | G8 ^G8 A12 G4  | E32 |]\n[V:T] F,4 E,4 B,8 B,16  | E8 E8 E4 A,4 =F4 E4  | C32 |]\n[V:B] ^D,4 E,8 D,4 E,16  | E,4 D,4 =C,4 B,,4 A,,4 =F,,4 D,,4 E,,4  | A,,32 |]","play":[[0,0,16,71],[0,16,16,67],[0,32,8,71],[0,40,8,71],[0,48,8,72],[0,56,8,71],[0,64,32,69],[1,0,4,66],[1,4,4,67],[1,8,8,66],[1,16,16,64],[1,32,8,67],[1,40,8,68],[1,48,12,69],[1,60,4,68],[1,64,32,64],[2,0,4,54],[2,4,4,52],[2,8,8,59],[2,16,16,59],[2,32,8,64],[2,40,8,64],[2,48,4,64],[2,52,4,57],[2,56,4,65],[2,60,4,64],[2,64,32,61],[3,0,4,51],[3,4,8,52],[3,12,4,51],[3,16,16,52],[3,32,4,52],[3,36,4,50],[3,40,4,48],[3,44,4,47],[3,48,4,45],[3,52,4,41],[3,56,4,38],[3,60,4,40],[3,64,32,45]],"mark":40,"length":96,"fromBar":6},{"id":"61-mixture-344","no":61,"bar":11,"level":"mixture","bits":14.6,"voice":null,"did":"♭III (G♭ major)","expected":"I 60%, V 25%, iii 6% (the chord model, without this tune)","title":"Jesu Leiden, Pein und Tod","bwv":"159/5","key":"Eb major","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=36","abc":"X:1\nM:4/4\nL:1/32\nK:Eb\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] F8 !fermata!G16  | F8 F8 G4 =A4 \"^▼\"B8  | B8 =A8 !fermata!B16 |]\n[V:A] C4 D4 =E16  | C8 C4 D4 E8 _D4 E4  | F16 F16 |]\n[V:T] A,8 G,16  | A,4 B,4 C4 B,4 B,8- B,4 C4  | _D8 C8 D16 |]\n[V:B] F,8 C,16  | F,4 G,4 A,8 G,8 _G,8  | F,4 E,4 F,8 B,,16 |]","play":[[0,0,8,65],[0,8,16,67],[0,24,8,65],[0,32,8,65],[0,40,4,67],[0,44,4,69],[0,48,8,70],[0,56,8,70],[0,64,8,69],[0,72,16,70],[1,0,4,60],[1,4,4,62],[1,8,16,64],[1,24,8,60],[1,32,4,60],[1,36,4,62],[1,40,8,63],[1,48,4,61],[1,52,4,63],[1,56,16,65],[1,72,16,65],[2,0,8,56],[2,8,16,55],[2,24,4,56],[2,28,4,58],[2,32,4,60],[2,36,4,58],[2,40,12,58],[2,52,4,60],[2,56,8,61],[2,64,8,60],[2,72,16,62],[3,0,8,53],[3,8,16,48],[3,24,4,53],[3,28,4,55],[3,32,8,56],[3,40,8,55],[3,48,8,54],[3,56,4,53],[3,60,4,51],[3,64,8,53],[3,72,16,46]],"mark":48,"length":88,"fromBar":10},{"id":"290-mixture-48","no":290,"bar":2,"level":"mixture","bits":14.1,"voice":null,"did":"♭III (G major)","expected":"I 42%, V 40%, iii 9% (the chord model, without this tune)","title":"Es ist das Heil uns kommen her","bwv":"917","key":"E major","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=149","abc":"X:1\nM:4/4\nL:1/32\nK:E\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] B8 B8 B4 c4 =d8  | c8 \"^▼\"B8 !fermata!A8 B4 A4  | G4 F4 E4 F4 G8 ^A8 |]\n[V:A] F4 G4 A8 G4 A4 B8  | B4 A4 =D4 E4 F8 F8  | E8 B,8 E8 C8 |]\n[V:T] B,8 F8 E8 E8  | E4 F4 =G8 =D8 B,8  | B,4 A,4 G,8 C8 F,8 |]\n[V:B] E,8 D,8 E,8 G,,8  | A,,8 B,,4 C,4 =D,8 ^D,8  | E,12 D,4 C,4 D,4 E,4 F,4 |]","play":[[0,0,8,71],[0,8,8,71],[0,16,4,71],[0,20,4,73],[0,24,8,74],[0,32,8,73],[0,40,8,71],[0,48,8,69],[0,56,4,71],[0,60,4,69],[0,64,4,68],[0,68,4,66],[0,72,4,64],[0,76,4,66],[0,80,8,68],[0,88,8,70],[1,0,4,66],[1,4,4,68],[1,8,8,69],[1,16,4,68],[1,20,4,69],[1,24,8,71],[1,32,4,71],[1,36,4,69],[1,40,4,62],[1,44,4,64],[1,48,8,66],[1,56,8,66],[1,64,8,64],[1,72,8,59],[1,80,8,64],[1,88,8,61],[2,0,8,59],[2,8,8,66],[2,16,8,64],[2,24,8,64],[2,32,4,64],[2,36,4,66],[2,40,8,67],[2,48,8,62],[2,56,8,59],[2,64,4,59],[2,68,4,57],[2,72,8,56],[2,80,8,61],[2,88,8,54],[3,0,8,52],[3,8,8,51],[3,16,8,52],[3,24,8,44],[3,32,8,45],[3,40,4,47],[3,44,4,49],[3,48,8,50],[3,56,8,51],[3,64,12,52],[3,76,4,51],[3,80,4,49],[3,84,4,51],[3,88,4,52],[3,92,4,54]],"mark":40,"length":96,"fromBar":1},{"id":"246-mixture-280","no":246,"bar":9,"level":"mixture","bits":11.3,"voice":null,"did":"v (D minor)","expected":"V 39%, ii 37%, II 11% (the chord model, without this tune)","title":"Singt dem Herrn ein neues Lied","bwv":"411","key":"G major","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=128","abc":"X:1\nM:4/4\nL:1/32\nK:G\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] A8 B8 c8 c8  | !fermata!B16 G8 \"^▼\"A8 B8  | c8 c8 B8 |]\n[V:A] E8 E8 E8 E8  | E16 E8- E4 D2 C2 D4 G4-  | G4 =F2 E2 A8 G8 |]\n[V:T] C8 B,12 A,2 ^G,2 A,8-  | A,8 ^G,8 B,4 C2 B,2 A,8 =G,4 B,4  | A,2 B,2 C4 D12 =F4 |]\n[V:B] C,4 B,,4 A,,4 ^G,,4 A,,4 B,,4 C,4 D,4  | E,16 E,4 C,4 =F,12 E,4  | A,4 G,4 =F,4 D,4 G,8 |]","play":[[0,0,8,69],[0,8,8,71],[0,16,8,72],[0,24,8,72],[0,32,16,71],[0,48,8,67],[0,56,8,69],[0,64,8,71],[0,72,8,72],[0,80,8,72],[0,88,8,71],[1,0,8,64],[1,8,8,64],[1,16,8,64],[1,24,8,64],[1,32,16,64],[1,48,12,64],[1,60,2,62],[1,62,2,60],[1,64,4,62],[1,68,8,67],[1,76,2,65],[1,78,2,64],[1,80,8,69],[1,88,8,67],[2,0,8,60],[2,8,12,59],[2,20,2,57],[2,22,2,56],[2,24,16,57],[2,40,8,56],[2,48,4,59],[2,52,2,60],[2,54,2,59],[2,56,8,57],[2,64,4,55],[2,68,4,59],[2,72,2,57],[2,74,2,59],[2,76,4,60],[2,80,12,62],[2,92,4,65],[3,0,4,48],[3,4,4,47],[3,8,4,45],[3,12,4,44],[3,16,4,45],[3,20,4,47],[3,24,4,48],[3,28,4,50],[3,32,16,52],[3,48,4,52],[3,52,4,48],[3,56,12,53],[3,68,4,52],[3,72,4,57],[3,76,4,55],[3,80,4,53],[3,84,4,50],[3,88,8,55]],"mark":56,"length":96,"fromBar":8},{"id":"174-remote-diminished-48","no":174,"bar":2,"level":"remote-diminished","bits":19.6,"voice":null,"did":"the diminished seventh of VI's key: E rootless · in a modal chorale (dorian)","expected":"♭VII 62%, v 32%, i 3% (the chord model, without this tune)","title":"Jesus Christus, unser Heiland","bwv":"364","key":"G dorian","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=88","abc":"X:1\nM:4/4\nL:1/32\nK:F\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] G8 F8 F8 G8  | A8 G8 \"^▼\"F8 E8  | !fermata!D16 z8 F8 |]\n[V:A] D8 D8 D12 C4  | C4 F8 E4 D12 ^C4  | A,16 z8 D8 |]\n[V:T] B,8 B,8 A,4 B,4 G,8  | F,4 A,4 B,8 =B,8 E,4 A,2 G,2  | F,16 z8 A,8 |]\n[V:B] G,,4 A,,4 B,,4 C,4 D,8 E,8  | F,8 G,8 ^G,8 A,4 A,,4  | D,16 z8 D,4 C,4 |]","play":[[0,0,8,67],[0,8,8,65],[0,16,8,65],[0,24,8,67],[0,32,8,69],[0,40,8,67],[0,48,8,65],[0,56,8,64],[0,64,16,62],[0,88,8,65],[1,0,8,62],[1,8,8,62],[1,16,12,62],[1,28,4,60],[1,32,4,60],[1,36,8,65],[1,44,4,64],[1,48,12,62],[1,60,4,61],[1,64,16,57],[1,88,8,62],[2,0,8,58],[2,8,8,58],[2,16,4,57],[2,20,4,58],[2,24,8,55],[2,32,4,53],[2,36,4,57],[2,40,8,58],[2,48,8,59],[2,56,4,52],[2,60,2,57],[2,62,2,55],[2,64,16,53],[2,88,8,57],[3,0,4,43],[3,4,4,45],[3,8,4,46],[3,12,4,48],[3,16,8,50],[3,24,8,52],[3,32,8,53],[3,40,8,55],[3,48,8,56],[3,56,4,57],[3,60,4,45],[3,64,16,50],[3,88,4,50],[3,92,4,48]],"mark":48,"length":96,"fromBar":1},{"id":"303-remote-diminished-224","no":303,"bar":7,"level":"remote-diminished","bits":13.9,"voice":null,"did":"the diminished seventh of VII's key: E rootless","expected":"I 77%, vi 12%, IV 8% (the chord model, without this tune)","title":"Herr Christ, der ein'ge Gotts Sohn","bwv":"96/6","key":"F major","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=156","abc":"X:1\nM:4/4\nL:1/32\nK:F\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] c16 !fermata!G8 c8  | A8 A8 G8 \"^▼\"F8  | E16 !fermata!D8 A8 |]\n[V:A] G8 F8 E8 G8  | F8 _E8 D8 D8  | D8 ^C8 D8 ^F8 |]\n[V:T] C16 C8 C8  | C8 C8 B,8 =B,8  | E,4 F,4 G,8 F,8 C8 |]\n[V:B] A,,12 B,,4 C,8 E,8  | F,8 ^F,8 G,8 ^G,8  | A,8 A,,8 B,,8 A,,8 |]","play":[[0,0,16,72],[0,16,8,67],[0,24,8,72],[0,32,8,69],[0,40,8,69],[0,48,8,67],[0,56,8,65],[0,64,16,64],[0,80,8,62],[0,88,8,69],[1,0,8,67],[1,8,8,65],[1,16,8,64],[1,24,8,67],[1,32,8,65],[1,40,8,63],[1,48,8,62],[1,56,8,62],[1,64,8,62],[1,72,8,61],[1,80,8,62],[1,88,8,66],[2,0,16,60],[2,16,8,60],[2,24,8,60],[2,32,8,60],[2,40,8,60],[2,48,8,58],[2,56,8,59],[2,64,4,52],[2,68,4,53],[2,72,8,55],[2,80,8,53],[2,88,8,60],[3,0,12,45],[3,12,4,46],[3,16,8,48],[3,24,8,52],[3,32,8,53],[3,40,8,54],[3,48,8,55],[3,56,8,56],[3,64,8,57],[3,72,8,45],[3,80,8,46],[3,88,8,45]],"mark":56,"length":96,"fromBar":6},{"id":"340-remote-diminished-80","no":340,"bar":3,"level":"remote-diminished","bits":12.7,"voice":null,"did":"the diminished seventh of VI's key: B rootless","expected":"V 44%, v 43%, ♭III 11% (the chord model, without this tune)","title":"Befiehl du deine Wege","bwv":"272","key":"D minor","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=172","abc":"X:1\nM:4/4\nL:1/32\nK:F\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] A16 !fermata!A8 c8  | =B8 \"^▼\"A8 A8 ^G8  | !fermata!A24 A8 =B8 |]\n[V:A] C16 C8 C8  | F8 ^F8 E8 E8  | E24 E4 ^F4 ^G8 |]\n[V:T] F,16 F,8 G,8  | ^G,8 C8 =B,4 C4 D8  | C24 C8 D8 |]\n[V:B] F,,16 F,,8 E,8  | D,8 ^D,8 E,8 E,,8  | A,,24 A,16 |]","play":[[0,0,16,69],[0,16,8,69],[0,24,8,72],[0,32,8,71],[0,40,8,69],[0,48,8,69],[0,56,8,68],[0,64,24,69],[0,88,8,69],[0,96,8,71],[1,0,16,60],[1,16,8,60],[1,24,8,60],[1,32,8,65],[1,40,8,66],[1,48,8,64],[1,56,8,64],[1,64,24,64],[1,88,4,64],[1,92,4,66],[1,96,8,68],[2,0,16,53],[2,16,8,53],[2,24,8,55],[2,32,8,56],[2,40,8,60],[2,48,4,59],[2,52,4,60],[2,56,8,62],[2,64,24,60],[2,88,8,60],[2,96,8,62],[3,0,16,41],[3,16,8,41],[3,24,8,52],[3,32,8,50],[3,40,8,51],[3,48,8,52],[3,56,8,40],[3,64,24,45],[3,88,16,57]],"mark":40,"length":104,"fromBar":2},{"id":"236-remote-diminished-160","no":236,"bar":5,"level":"remote-diminished","bits":11.1,"voice":null,"did":"the diminished seventh of VI's key: C♯ rootless · in a modal chorale (minor/5)","expected":"V 49%, ♭III 16%, I 13% (the chord model, without this tune)","title":"O Jesu, du mein Bräutigam","bwv":"335","key":"E minor","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=122","abc":"X:1\nM:4/4\nL:1/32\nK:G\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] d8 ^c8 !fermata!B8 B8  | e8 f8 e8 \"^▼\"B8  | ^c8 B8 !fermata!A8 A4 B4 |]\n[V:A] F8 F6 E2 ^D8 E8  | E8 D8 E8 ^E8  | F12 ^E4 F8 F4 ^G4 |]\n[V:T] B,12 ^A,4 F,8 G,8  | =A,8 A,4 B,4 ^C8 D8  | C8 ^G,4 ^C4 C8 D8 |]\n[V:B] B,,8 F,8 B,,8 E,4 D,4  | ^C,8 D,8 A,8 ^G,8  | A,4 B,4 ^C8 F,8 D,8 |]","play":[[0,0,8,74],[0,8,8,73],[0,16,8,71],[0,24,8,71],[0,32,8,76],[0,40,8,78],[0,48,8,76],[0,56,8,71],[0,64,8,73],[0,72,8,71],[0,80,8,69],[0,88,4,69],[0,92,4,71],[1,0,8,66],[1,8,6,66],[1,14,2,64],[1,16,8,63],[1,24,8,64],[1,32,8,64],[1,40,8,62],[1,48,8,64],[1,56,8,65],[1,64,12,66],[1,76,4,65],[1,80,8,66],[1,88,4,66],[1,92,4,68],[2,0,12,59],[2,12,4,58],[2,16,8,54],[2,24,8,55],[2,32,8,57],[2,40,4,57],[2,44,4,59],[2,48,8,61],[2,56,8,62],[2,64,8,61],[2,72,4,56],[2,76,4,61],[2,80,8,61],[2,88,8,62],[3,0,8,47],[3,8,8,54],[3,16,8,47],[3,24,4,52],[3,28,4,50],[3,32,8,49],[3,40,8,50],[3,48,8,57],[3,56,8,56],[3,64,4,57],[3,68,4,59],[3,72,8,61],[3,80,8,54],[3,88,8,50]],"mark":56,"length":96,"fromBar":4},{"id":"310-chromatic-bass-192","no":310,"bar":6,"level":"chromatic-bass","bits":11.9,"voice":null,"did":"the bass rises by semitones from B2 to E3 (5 steps)","expected":"I 43%, V 36%, iii 14% (the chord model, without this tune)","title":"Mach's mit mir, Gott, nach deiner Güt","bwv":"245/22","key":"E major","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=159","abc":"X:1\nM:4/4\nL:1/32\nK:E\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] e8 d4 c4 c8 B8  | A8 G4 F4 !fermata!F8 \"^▼\"B8  | A8 G8 F4 G4 A8 |]\n[V:A] c8 B12 A8 G4-  | G4 F4 E8 D8 =D8  | =C8 B,8 A,4 B,4 =C8 |]\n[V:T] G8 G8 G4 F4 F4 D4  | E4 B,4 B,8 B,8 G,4 F,4  | E,8 ^E,8 F,8 F,8 |]\n[V:B] C,8 G,,8 A,,8 B,,8  | C,4 D,4 E,8 B,,8 B,,8  | =C,8 C,8 =D,8 ^D,8 |]","play":[[0,0,8,76],[0,8,4,75],[0,12,4,73],[0,16,8,73],[0,24,8,71],[0,32,8,69],[0,40,4,68],[0,44,4,66],[0,48,8,66],[0,56,8,71],[0,64,8,69],[0,72,8,68],[0,80,4,66],[0,84,4,68],[0,88,8,69],[1,0,8,73],[1,8,12,71],[1,20,8,69],[1,28,8,68],[1,36,4,66],[1,40,8,64],[1,48,8,63],[1,56,8,62],[1,64,8,60],[1,72,8,59],[1,80,4,57],[1,84,4,59],[1,88,8,60],[2,0,8,68],[2,8,8,68],[2,16,4,68],[2,20,4,66],[2,24,4,66],[2,28,4,63],[2,32,4,64],[2,36,4,59],[2,40,8,59],[2,48,8,59],[2,56,4,56],[2,60,4,54],[2,64,8,52],[2,72,8,53],[2,80,8,54],[2,88,8,54],[3,0,8,49],[3,8,8,44],[3,16,8,45],[3,24,8,47],[3,32,4,49],[3,36,4,51],[3,40,8,52],[3,48,8,47],[3,56,8,47],[3,64,8,48],[3,72,8,49],[3,80,8,50],[3,88,8,51]],"mark":56,"length":96,"fromBar":5},{"id":"67-chromatic-bass-344","no":67,"bar":11,"level":"chromatic-bass","bits":7,"voice":null,"did":"the bass rises by semitones from B2 to D3 (3 steps)","expected":"V 53%, I 24%, iii 16% (the chord model, without this tune)","title":"Freu dich sehr, o meine Seele","bwv":"39/7","key":"G major","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=39","abc":"X:1\nM:4/4\nL:1/32\nK:G\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] G8 A8 B16  | !fermata!G16 B4 c4 \"^▼\"d8  | c8 B8 A8 B8 |]\n[V:A] E4 D4 C8 B,4 ^C4 ^D8  | E16 E8 =F8  | E4 F4 G8 F4 E4 D8 |]\n[V:T] E,8 F,8 G,8 F,8  | E,16 G,8 ^G,8  | A,8 E,8 F,8 G,8 |]\n[V:B] C,4 B,,4 A,,8 G,,4 A,,4 B,,8  | E,,16 E,8 B,,8  | C,8 ^C,8 D,4 =C,4 B,,4 G,,4 |]","play":[[0,0,8,67],[0,8,8,69],[0,16,16,71],[0,32,16,67],[0,48,4,71],[0,52,4,72],[0,56,8,74],[0,64,8,72],[0,72,8,71],[0,80,8,69],[0,88,8,71],[1,0,4,64],[1,4,4,62],[1,8,8,60],[1,16,4,59],[1,20,4,61],[1,24,8,63],[1,32,16,64],[1,48,8,64],[1,56,8,65],[1,64,4,64],[1,68,4,66],[1,72,8,67],[1,80,4,66],[1,84,4,64],[1,88,8,62],[2,0,8,52],[2,8,8,54],[2,16,8,55],[2,24,8,54],[2,32,16,52],[2,48,8,55],[2,56,8,56],[2,64,8,57],[2,72,8,52],[2,80,8,54],[2,88,8,55],[3,0,4,48],[3,4,4,47],[3,8,8,45],[3,16,4,43],[3,20,4,45],[3,24,8,47],[3,32,16,40],[3,48,8,52],[3,56,8,47],[3,64,8,48],[3,72,8,49],[3,80,4,50],[3,84,4,48],[3,88,4,47],[3,92,4,43]],"mark":56,"length":96,"fromBar":10},{"id":"360-chromatic-bass-240","no":360,"bar":8,"level":"chromatic-bass","bits":5.8,"voice":null,"did":"the bass rises by semitones from D♯3 to F♯3 (3 steps)","expected":"i 67%, ♭III 19%, ♭VII 5% (the chord model, without this tune)","title":"Wir Christenleut","bwv":"248/35","key":"F# minor","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=183","abc":"X:1\nM:4/4\nL:1/32\nK:A\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] B8 A4 G4 !fermata!G8 c8  | B8 \"^▼\"A8 !fermata!G8 G8  | A8 A8 B8 B8 |]\n[V:A] F4 ^E4 F8 E8 F4 =E4  | ^D4 E4 F4 ^D4 E8 G4 ^E4  | F8 A4 F4 D8 B4 G4 |]\n[V:T] B,4 C4 ^D8 C8 C8  | F,8 B,8 B,8 C8  | C4 A,4 D8 D4 B,4 E8 |]\n[V:B] D,4 C,4 ^B,,8 C,8 A,,8  | =B,,4 C,4 ^D,4 B,,4 E,8 ^E,4 C,4  | F,8 F,4 D,4 =G,8 ^G,4 E,4 |]","play":[[0,0,8,71],[0,8,4,69],[0,12,4,68],[0,16,8,68],[0,24,8,73],[0,32,8,71],[0,40,8,69],[0,48,8,68],[0,56,8,68],[0,64,8,69],[0,72,8,69],[0,80,8,71],[0,88,8,71],[1,0,4,66],[1,4,4,65],[1,8,8,66],[1,16,8,65],[1,24,4,66],[1,28,4,64],[1,32,4,63],[1,36,4,64],[1,40,4,66],[1,44,4,63],[1,48,8,64],[1,56,4,68],[1,60,4,65],[1,64,8,66],[1,72,4,69],[1,76,4,66],[1,80,8,62],[1,88,4,71],[1,92,4,68],[2,0,4,59],[2,4,4,61],[2,8,8,63],[2,16,8,61],[2,24,8,61],[2,32,8,54],[2,40,8,59],[2,48,8,59],[2,56,8,61],[2,64,4,61],[2,68,4,57],[2,72,8,62],[2,80,4,62],[2,84,4,59],[2,88,8,64],[3,0,4,50],[3,4,4,49],[3,8,8,48],[3,16,8,49],[3,24,8,45],[3,32,4,47],[3,36,4,49],[3,40,4,51],[3,44,4,47],[3,48,8,52],[3,56,4,53],[3,60,4,49],[3,64,8,54],[3,72,4,54],[3,76,4,50],[3,80,8,55],[3,88,4,56],[3,92,4,52]],"mark":40,"length":96,"fromBar":7},{"id":"142-chromatic-bass-392","no":142,"bar":13,"level":"chromatic-bass","bits":5.7,"voice":null,"did":"the bass rises by semitones from B2 to D3 (3 steps)","expected":"i 34%, ♭III 31%, ♭VI 29% (the chord model, without this tune)","title":"Schwing dich auf zu deinem Gott","bwv":"40/6","key":"D minor","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=74","abc":"X:1\nM:4/4\nL:1/32\nK:F\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] d8 ^c8 !fermata!d16  | f8 \"^▼\"f8 e8 e8  | d8 e8 !fermata!^c16 |]\n[V:A] A12 G4 F16  | A8 G8 G8 G8  | F8 G8 E16 |]\n[V:T] E16 D16  | C8 D8 C4 B,4 A,8  | A,8 B,8 A,16 |]\n[V:B] A,8 A,,8 B,,16  | A,,8 =B,,8 C,8 ^C,8  | D,8 G,,8 G,16 |]","play":[[0,0,8,74],[0,8,8,73],[0,16,16,74],[0,32,8,77],[0,40,8,77],[0,48,8,76],[0,56,8,76],[0,64,8,74],[0,72,8,76],[0,80,16,73],[1,0,12,69],[1,12,4,67],[1,16,16,65],[1,32,8,69],[1,40,8,67],[1,48,8,67],[1,56,8,67],[1,64,8,65],[1,72,8,67],[1,80,16,64],[2,0,16,64],[2,16,16,62],[2,32,8,60],[2,40,8,62],[2,48,4,60],[2,52,4,58],[2,56,8,57],[2,64,8,57],[2,72,8,58],[2,80,16,57],[3,0,8,57],[3,8,8,45],[3,16,16,46],[3,32,8,45],[3,40,8,47],[3,48,8,48],[3,56,8,49],[3,64,8,50],[3,72,8,43],[3,80,16,55]],"mark":40,"length":96,"fromBar":12},{"id":"127-remote-cadence-248","no":127,"bar":8,"level":"remote-cadence","bits":11.8,"voice":null,"did":"the phrase ends on i (G minor) · in a modal chorale (mixolydian)","expected":"♭III 50%, I 15%, V 11% (the chord model, without this tune)","title":"Dies sind die heil'gen zehn Gebot","bwv":"298","key":"G mixolydian","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=66","abc":"X:1\nM:4/4\nL:1/32\nK:C\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] A8 B8 !fermata!c16  | _B4 A4 G4 A4 \"^▼\"!fermata!_B8 A8  | G8 G8 !fermata!G16 |]\n[V:A] F8 F4 E4 E16  | ^F8 G4 D4 D8 F8  | F8 E8 D16 |]\n[V:T] C4 D4 D8 C16  | D4 C4 _B,4 A,4 G,8 A,8  | D12 C8 B,2 A,2 B,8 |]\n[V:B] A,,4 A,8 ^G,4 A,16  | D,8 E,4 ^F,4 G,8 D,4 C,4  | B,,4 G,,4 C,8 G,,16 |]","play":[[0,0,8,69],[0,8,8,71],[0,16,16,72],[0,32,4,70],[0,36,4,69],[0,40,4,67],[0,44,4,69],[0,48,8,70],[0,56,8,69],[0,64,8,67],[0,72,8,67],[0,80,16,67],[1,0,8,65],[1,8,4,65],[1,12,4,64],[1,16,16,64],[1,32,8,66],[1,40,4,67],[1,44,4,62],[1,48,8,62],[1,56,8,65],[1,64,8,65],[1,72,8,64],[1,80,16,62],[2,0,4,60],[2,4,4,62],[2,8,8,62],[2,16,16,60],[2,32,4,62],[2,36,4,60],[2,40,4,58],[2,44,4,57],[2,48,8,55],[2,56,8,57],[2,64,12,62],[2,76,8,60],[2,84,2,59],[2,86,2,57],[2,88,8,59],[3,0,4,45],[3,4,8,57],[3,12,4,56],[3,16,16,57],[3,32,8,50],[3,40,4,52],[3,44,4,54],[3,48,8,55],[3,56,4,50],[3,60,4,48],[3,64,4,47],[3,68,4,43],[3,72,8,48],[3,80,16,43]],"mark":48,"length":96,"fromBar":7},{"id":"216-remote-cadence-32","no":216,"bar":2,"level":"remote-cadence","bits":7,"voice":null,"did":"the phrase ends on VII (G♯ dominant seventh)","expected":"II 94%, ♯IV° 4%, VII 1% (the chord model, without this tune)","title":"Es ist genug! so nimm Herr","bwv":"60/5","key":"A major","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=112","abc":"X:1\nM:4/4\nL:1/32\nK:A\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] A16 B8 c8  | \"^▼\"!fermata!^d16 z8 ^d8  | e8 B8 B8 d8 |]\n[V:A] E16 E8 D4 C4  | G16 z8 G8  | G12 A4 G4 F4 G4 E4 |]\n[V:T] C16 B,8 F8  | F16 z8 ^B,8  | C4 ^D4 E8 E8 E8 |]\n[V:B] A,16 G,8 ^A,8  | ^B,16 z8 G,8  | C4 B,2 A,2 G,4 F,4 E,4 D,4 C,4 B,,4 |]","play":[[0,0,16,69],[0,16,8,71],[0,24,8,73],[0,32,16,75],[0,56,8,75],[0,64,8,76],[0,72,8,71],[0,80,8,71],[0,88,8,74],[1,0,16,64],[1,16,8,64],[1,24,4,62],[1,28,4,61],[1,32,16,68],[1,56,8,68],[1,64,12,68],[1,76,4,69],[1,80,4,68],[1,84,4,66],[1,88,4,68],[1,92,4,64],[2,0,16,61],[2,16,8,59],[2,24,8,66],[2,32,16,66],[2,56,8,60],[2,64,4,61],[2,68,4,63],[2,72,8,64],[2,80,8,64],[2,88,8,64],[3,0,16,57],[3,16,8,56],[3,24,8,58],[3,32,16,60],[3,56,8,56],[3,64,4,61],[3,68,2,59],[3,70,2,57],[3,72,4,56],[3,76,4,54],[3,80,4,52],[3,84,4,50],[3,88,4,49],[3,92,4,47]],"mark":32,"length":96,"fromBar":1},{"id":"200-remote-cadence-96","no":200,"bar":4,"level":"remote-cadence","bits":6.8,"voice":null,"did":"the phrase ends on v (G minor)","expected":"V 45%, II 26%, I 19% (the chord model, without this tune)","title":"Christus ist erstanden, hat überwunden","bwv":"284","key":"C major","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=100","abc":"X:1\nM:4/4\nL:1/32\nK:C\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] c8 _B8 A16  | \"^▼\"!fermata!G16 G8 A8  | _B8 c8 _B8 A8 |]\n[V:A] E4 ^F4 G8 G8 F8  | D16 D4 _E8 D4-  | D4 _B4 A4 G4 ^F4 G8 F4 |]\n[V:T] C8 D8 _E8 D4 C4  | _B,16 _B,8 C8  | B,4 G,4 _E8 D14 C2 |]\n[V:B] A,8 G,8 C,8 D,8  | G,,16 G,8 ^F,8  | G,8 C,8 D,8 D,,8 |]","play":[[0,0,8,72],[0,8,8,70],[0,16,16,69],[0,32,16,67],[0,48,8,67],[0,56,8,69],[0,64,8,70],[0,72,8,72],[0,80,8,70],[0,88,8,69],[1,0,4,64],[1,4,4,66],[1,8,8,67],[1,16,8,67],[1,24,8,66],[1,32,16,62],[1,48,4,62],[1,52,8,63],[1,60,8,62],[1,68,4,70],[1,72,4,69],[1,76,4,67],[1,80,4,66],[1,84,8,67],[1,92,4,66],[2,0,8,60],[2,8,8,62],[2,16,8,63],[2,24,4,62],[2,28,4,60],[2,32,16,58],[2,48,8,58],[2,56,8,60],[2,64,4,58],[2,68,4,55],[2,72,8,63],[2,80,14,62],[2,94,2,60],[3,0,8,57],[3,8,8,55],[3,16,8,48],[3,24,8,50],[3,32,16,43],[3,48,8,55],[3,56,8,54],[3,64,8,55],[3,72,8,48],[3,80,8,50],[3,88,8,38]],"mark":32,"length":96,"fromBar":3},{"id":"70-remote-cadence-408","no":70,"bar":13,"level":"remote-cadence","bits":6.2,"voice":null,"did":"the phrase ends on v (D minor) · in a modal chorale (mixolydian)","expected":"V 93%, iii 3%, I 2% (the chord model, without this tune)","title":"Gott sei gelobet und gebenedeiet","bwv":"322","key":"G mixolydian","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=41","abc":"X:1\nM:4/4\nL:1/32\nK:C\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] d8 d8 d8 A8  | G8 E8 \"^▼\"!fermata!D16  | E8 ^F8 G4 =F4 E8 |]\n[V:A] G8 G12 ^F2 E2 F4 =F4  | E4 D4 D4 ^C4 A,16  | =C8 C8 D8 C8 |]\n[V:T] D4 C4 B,8 C8 D4 C4  | _B,8 A,6 G,2 F,16  | G,8 A,8 G,8 G,8 |]\n[V:B] B,,12 E,4 A,,8 D,8  | G,,8 A,,8 D,16  | C,4 B,,4 A,,8 B,,8 C,4 B,,4 |]","play":[[0,0,8,74],[0,8,8,74],[0,16,8,74],[0,24,8,69],[0,32,8,67],[0,40,8,64],[0,48,16,62],[0,64,8,64],[0,72,8,66],[0,80,4,67],[0,84,4,65],[0,88,8,64],[1,0,8,67],[1,8,12,67],[1,20,2,66],[1,22,2,64],[1,24,4,66],[1,28,4,65],[1,32,4,64],[1,36,4,62],[1,40,4,62],[1,44,4,61],[1,48,16,57],[1,64,8,60],[1,72,8,60],[1,80,8,62],[1,88,8,60],[2,0,4,62],[2,4,4,60],[2,8,8,59],[2,16,8,60],[2,24,4,62],[2,28,4,60],[2,32,8,58],[2,40,6,57],[2,46,2,55],[2,48,16,53],[2,64,8,55],[2,72,8,57],[2,80,8,55],[2,88,8,55],[3,0,12,47],[3,12,4,52],[3,16,8,45],[3,24,8,50],[3,32,8,43],[3,40,8,45],[3,48,16,50],[3,64,4,48],[3,68,4,47],[3,72,8,45],[3,80,8,47],[3,88,4,48],[3,92,4,47]],"mark":48,"length":96,"fromBar":12},{"id":"338-dissonance-cluster-160","no":338,"bar":6,"level":"dissonance-cluster","bits":16.7,"voice":null,"did":"8/6/4 over the bass, incidental in tenor and soprano","expected":"I 76%, vi 12%, IV 8% (the chord model, without this tune)","title":"Jesus, meine Zuversicht","bwv":"145/8","key":"D major","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=171","abc":"X:1\nM:4/4\nL:1/32\nK:D\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] F8 ^G8 ^A8 B4 c4  | \"^▼\"d8 c8 !fermata!B16  | c8 d8 e8 f8 |]\n[V:A] B,4 F8 E4 F8 F4 E4  | F8 F8 F16  | G8 A8 A8 A8 |]\n[V:T] B,8 B,8 C8 B,8  | B,8 ^A,4 E4 D16  | E8 F8 E8 D8 |]\n[V:B] ^D,8 E,12 =D,4 G,8  | F,4 E,4 F,8 B,,16  | E,8 D,8 D,4 C,4 D,8 |]","play":[[0,0,8,66],[0,8,8,68],[0,16,8,70],[0,24,4,71],[0,28,4,73],[0,32,8,74],[0,40,8,73],[0,48,16,71],[0,64,8,73],[0,72,8,74],[0,80,8,76],[0,88,8,78],[1,0,4,59],[1,4,8,66],[1,12,4,64],[1,16,8,66],[1,24,4,66],[1,28,4,64],[1,32,8,66],[1,40,8,66],[1,48,16,66],[1,64,8,67],[1,72,8,69],[1,80,8,69],[1,88,8,69],[2,0,8,59],[2,8,8,59],[2,16,8,61],[2,24,8,59],[2,32,8,59],[2,40,4,58],[2,44,4,64],[2,48,16,62],[2,64,8,64],[2,72,8,66],[2,80,8,64],[2,88,8,62],[3,0,8,51],[3,8,12,52],[3,20,4,50],[3,24,8,55],[3,32,4,54],[3,36,4,52],[3,40,8,54],[3,48,16,47],[3,64,8,52],[3,72,8,50],[3,80,4,50],[3,84,4,49],[3,88,8,50]],"mark":32,"length":96,"fromBar":5},{"id":"312-dissonance-cluster-416","no":312,"bar":13,"level":"dissonance-cluster","bits":15.5,"voice":null,"did":"9/5 over the bass, incidental in tenor and soprano","expected":"V 40%, III 24%, VII° 15% (the chord model, without this tune)","title":"O Gott, du frommer Gott","bwv":"398","key":"D major","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=160","abc":"X:1\nM:4/4\nL:1/32\nK:D\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] !fermata!c16 z8 A8  | B8 A8 B8 \"^▼\"c8  | !fermata!d16 z8 A8 |]\n[V:A] A16 z8 D8  | G8 F8 F8 F8  | F16 z8 F4 E4 |]\n[V:T] E16 z8 D8  | D8 D8 D8 C8  | B,16 z8 D4 C4 |]\n[V:B] A,16 z8 F,,8  | G,,4 B,,4 D,4 E,4 D,4 C,4 B,,4 ^A,,4  | B,,16 z8 F,8 |]","play":[[0,0,16,73],[0,24,8,69],[0,32,8,71],[0,40,8,69],[0,48,8,71],[0,56,8,73],[0,64,16,74],[0,88,8,69],[1,0,16,69],[1,24,8,62],[1,32,8,67],[1,40,8,66],[1,48,8,66],[1,56,8,66],[1,64,16,66],[1,88,4,66],[1,92,4,64],[2,0,16,64],[2,24,8,62],[2,32,8,62],[2,40,8,62],[2,48,8,62],[2,56,8,61],[2,64,16,59],[2,88,4,62],[2,92,4,61],[3,0,16,57],[3,24,8,42],[3,32,4,43],[3,36,4,47],[3,40,4,50],[3,44,4,52],[3,48,4,50],[3,52,4,49],[3,56,4,47],[3,60,4,46],[3,64,16,47],[3,88,8,54]],"mark":56,"length":96,"fromBar":12},{"id":"213-dissonance-cluster-8","no":213,"bar":1,"level":"dissonance-cluster","bits":14.3,"voice":null,"did":"9/5 over the bass, incidental in tenor and soprano","expected":"i 53%, ♭VI 15%, IV 10% (the chord model, without this tune)","title":"O wie selig ihr doch, ihr Frommen","bwv":"405","key":"D minor","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=109","abc":"X:1\nM:4/4\nL:1/32\nK:F\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] A8 \"^▼\"d8 c8 B4 A4  | B8 A8 G8 A4 B4 |]\n[V:A] F8 G8 G8 F8-  | F4 E4 F12 E4 F8 |]\n[V:T] D8 D8 E8 D8  | D4 B,4 C8 C8 C8 |]\n[V:B] D,8 C,4 B,,4 A,,8 D,8  | G,,8 A,,4 B,,4 C,8 F,8 |]","play":[[0,0,8,69],[0,8,8,74],[0,16,8,72],[0,24,4,70],[0,28,4,69],[0,32,8,70],[0,40,8,69],[0,48,8,67],[0,56,4,69],[0,60,4,70],[1,0,8,65],[1,8,8,67],[1,16,8,67],[1,24,12,65],[1,36,4,64],[1,40,12,65],[1,52,4,64],[1,56,8,65],[2,0,8,62],[2,8,8,62],[2,16,8,64],[2,24,8,62],[2,32,4,62],[2,36,4,58],[2,40,8,60],[2,48,8,60],[2,56,8,60],[3,0,8,50],[3,8,4,48],[3,12,4,46],[3,16,8,45],[3,24,8,50],[3,32,8,43],[3,40,4,45],[3,44,4,46],[3,48,8,48],[3,56,8,53]],"mark":8,"length":64,"fromBar":1},{"id":"220-dissonance-cluster-304","no":220,"bar":13,"level":"dissonance-cluster","bits":14.1,"voice":null,"did":"9/5/2 over the bass, incidental in tenor and soprano","expected":"♭III 82%, V 10%, I 3% (the chord model, without this tune)","title":"Sollt ich meinem Gott nicht singen","bwv":"413","key":"D minor","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=114","abc":"X:1\nM:3/4\nL:1/32\nK:F\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] G16 !fermata!G8  | G16 \"^▼\"A8  | B16 c8 |]\n[V:A] F8 E4 D4 E8  | E8 D8 D8  | D8 G4 ^F4 G8 |]\n[V:T] C16 C8  | C8 D8 A,8-  | A,8 G,8 C4 D4 |]\n[V:B] C16 C,8  | C8 B,4 A,4 G,4 ^F,4  | G,4 F,4 _E,4 D,4 E,4 D,4 |]","play":[[0,0,16,67],[0,16,8,67],[0,24,16,67],[0,40,8,69],[0,48,16,70],[0,64,8,72],[1,0,8,65],[1,8,4,64],[1,12,4,62],[1,16,8,64],[1,24,8,64],[1,32,8,62],[1,40,8,62],[1,48,8,62],[1,56,4,67],[1,60,4,66],[1,64,8,67],[2,0,16,60],[2,16,8,60],[2,24,8,60],[2,32,8,62],[2,40,16,57],[2,56,8,55],[2,64,4,60],[2,68,4,62],[3,0,16,60],[3,16,8,48],[3,24,8,60],[3,32,4,58],[3,36,4,57],[3,40,4,55],[3,44,4,54],[3,48,4,55],[3,52,4,53],[3,56,4,51],[3,60,4,50],[3,64,4,51],[3,68,4,50]],"mark":40,"length":72,"fromBar":12},{"id":"295-remote-diminished-160","no":295,"bar":5,"level":"remote-diminished","bits":11.1,"voice":null,"did":"the diminished seventh of VI's key: C♯ rootless · in a modal chorale (minor/5)","expected":"V 49%, ♭III 16%, I 13% (the chord model, without this tune)","title":"Herr Jesu Christ, mein's Lebens Licht","bwv":"335","key":"E minor","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=151","abc":"X:1\nM:4/4\nL:1/32\nK:G\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] d8 ^c8 !fermata!B8 B8  | e8 f8 e8 \"^▼\"B8  | ^c8 B8 !fermata!A8 A4 B4 |]\n[V:A] F8 F4 E4 D8 E8  | E8 D8 E8 ^E8  | F8 F4 ^E4 F8 F4 ^G4 |]\n[V:T] B,12 ^A,4 F,8 G,8  | =A,8 A,4 B,4 ^C8 D8  | C8 ^G,4 ^C4 C8 D8 |]\n[V:B] B,,8 F,8 B,,8 E,4 D,4  | ^C,8 D,8 A,8 ^G,8  | A,4 B,4 ^C8 F,8 D,8 |]","play":[[0,0,8,74],[0,8,8,73],[0,16,8,71],[0,24,8,71],[0,32,8,76],[0,40,8,78],[0,48,8,76],[0,56,8,71],[0,64,8,73],[0,72,8,71],[0,80,8,69],[0,88,4,69],[0,92,4,71],[1,0,8,66],[1,8,4,66],[1,12,4,64],[1,16,8,62],[1,24,8,64],[1,32,8,64],[1,40,8,62],[1,48,8,64],[1,56,8,65],[1,64,8,66],[1,72,4,66],[1,76,4,65],[1,80,8,66],[1,88,4,66],[1,92,4,68],[2,0,12,59],[2,12,4,58],[2,16,8,54],[2,24,8,55],[2,32,8,57],[2,40,4,57],[2,44,4,59],[2,48,8,61],[2,56,8,62],[2,64,8,61],[2,72,4,56],[2,76,4,61],[2,80,8,61],[2,88,8,62],[3,0,8,47],[3,8,8,54],[3,16,8,47],[3,24,4,52],[3,28,4,50],[3,32,8,49],[3,40,8,50],[3,48,8,57],[3,56,8,56],[3,64,4,57],[3,68,4,59],[3,72,8,61],[3,80,8,54],[3,88,8,50]],"mark":56,"length":96,"fromBar":4},{"id":"2-sonority-208-c","no":2,"level":"sonority","at":208,"bar":7,"bits":19.9,"voice":null,"did":"7/n5 over bass degree 3: III (C♯ seventh chord, third not sounding (minor seventh)) (found nowhere else in the chorales)","expected":"9/5/3 over bass degree 1 20%, 6/4 over bass degree 5 13%, 9/7/4 over bass degree 2 5%","pattern":"7/n5","modal":null,"title":"Ich dank dir, lieber Herre","bwv":"347","key":"A major","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=11","abc":"X:1\nM:4/4\nL:1/32\nK:A\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] A4 B4 c8 !fermata!B8 c8  | d8 \"^▼\"c8 B8 ^A8  | !fermata!B24 E8 |]\n[V:A] F4 G4 A8 G8 ^A8  | B4 A4 =G8 F4 E4 F8  | F24 E4 D4 |]\n[V:T] D8 E8 E8 E8  | F4 B,4- B,4 ^A,4 B,8 C8  | D24 G,8 |]\n[V:B] D,8 C,4 D,4 E,8 C,8  | B,,8 C,8 D,4 =G,4 F,8  | B,,24 C,8 |]","play":[[0,0,4,69],[0,4,4,71],[0,8,8,73],[0,16,8,71],[0,24,8,73],[0,32,8,74],[0,40,8,73],[0,48,8,71],[0,56,8,70],[0,64,24,71],[0,88,8,64],[1,0,4,66],[1,4,4,68],[1,8,8,69],[1,16,8,68],[1,24,8,70],[1,32,4,71],[1,36,4,69],[1,40,8,67],[1,48,4,66],[1,52,4,64],[1,56,8,66],[1,64,24,66],[1,88,4,64],[1,92,4,62],[2,0,8,62],[2,8,8,64],[2,16,8,64],[2,24,8,64],[2,32,4,66],[2,36,8,59],[2,44,4,58],[2,48,8,59],[2,56,8,61],[2,64,24,62],[2,88,8,56],[3,0,8,50],[3,8,4,49],[3,12,4,50],[3,16,8,52],[3,24,8,49],[3,32,8,47],[3,40,8,49],[3,48,4,50],[3,52,4,55],[3,56,8,54],[3,64,24,47],[3,88,8,49]],"mark":40,"length":96,"fromBar":6},{"id":"272-sonority-96-c","no":272,"level":"sonority","at":96,"bar":3,"bits":19.9,"voice":null,"did":"6/4 over bass degree ♯4: vii (A minor) (found nowhere else in the chorales)","expected":"6/4/2 over bass degree 4 16%, 9/5/3 over bass degree 5 15%, 6/4 over bass degree 2 10%","pattern":"6/4","modal":null,"title":"Ich dank' dir, lieber Herre","bwv":"348","key":"Bb major","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=141","abc":"X:1\nM:4/4\nL:1/32\nK:Bb\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] _A8 G8 !fermata!F8 c8  | d8 c8 B8 \"^▼\"A4 G4  | A8 G8 !fermata!F8 B8 |]\n[V:A] G4 F8 =E4 F8 F8  | F8 =E8 F8 C8-  | C4 F8 =E4 C8 F8 |]\n[V:T] C8 B,8 A,8 C8  | B,4 A,4 G,8 F,8 C8  | C8 B,8 A,8 B,8 |]\n[V:B] F,8 C,8 F,,8 A,,8  | B,,8 C,8 D,8 =E,8  | F,8 C,8 F,,8 D,8 |]","play":[[0,0,8,68],[0,8,8,67],[0,16,8,65],[0,24,8,72],[0,32,8,74],[0,40,8,72],[0,48,8,70],[0,56,4,69],[0,60,4,67],[0,64,8,69],[0,72,8,67],[0,80,8,65],[0,88,8,70],[1,0,4,67],[1,4,8,65],[1,12,4,64],[1,16,8,65],[1,24,8,65],[1,32,8,65],[1,40,8,64],[1,48,8,65],[1,56,12,60],[1,68,8,65],[1,76,4,64],[1,80,8,60],[1,88,8,65],[2,0,8,60],[2,8,8,58],[2,16,8,57],[2,24,8,60],[2,32,4,58],[2,36,4,57],[2,40,8,55],[2,48,8,53],[2,56,8,60],[2,64,8,60],[2,72,8,58],[2,80,8,57],[2,88,8,58],[3,0,8,53],[3,8,8,48],[3,16,8,41],[3,24,8,45],[3,32,8,46],[3,40,8,48],[3,48,8,50],[3,56,8,52],[3,64,8,53],[3,72,8,48],[3,80,8,41],[3,88,8,50]],"mark":56,"length":96,"fromBar":2},{"id":"3-sonority-64-c","no":3,"level":"sonority","at":64,"bar":2,"bits":19.9,"voice":null,"did":"♯6/n5/3 over bass degree 2: V (E dominant seventh, minor ninth for the root) (found nowhere else in the chorales)","expected":"5/4 over bass degree ♭7 9%, 7/3 over bass degree 2 8%, ♯6/3 over bass degree 2 7%","pattern":"#6/n5/3","modal":"dorian/2","title":"Ach Gott, vom Himmel sieh darein","bwv":"153/1","key":"A dorian","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=12","abc":"X:1\nM:4/4\nL:1/32\nK:G\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] c8 B8 A8 e8  | e4 d4 c8 !fermata!B8 \"^▼\"d8  | c8 B8 A8 B4 c2 d2 |]\n[V:A] A8 ^G8 A8 G4 A4  | B8 E4 F4 ^G8 G8  | A8 ^G8 A4 =G4 =F8 |]\n[V:T] E8 D8 E8 D4 C4  | B,8 C4 D4 E8 =F8  | E8 E4 D4 C8 D8 |]\n[V:B] A,8 B,8 C8 B,4 A,4  | ^G,8 A,8 E,8 B,,8  | C,4 D,4 E,8 =F,8 E,4 D,4 |]","play":[[0,0,8,72],[0,8,8,71],[0,16,8,69],[0,24,8,76],[0,32,4,76],[0,36,4,74],[0,40,8,72],[0,48,8,71],[0,56,8,74],[0,64,8,72],[0,72,8,71],[0,80,8,69],[0,88,4,71],[0,92,2,72],[0,94,2,74],[1,0,8,69],[1,8,8,68],[1,16,8,69],[1,24,4,68],[1,28,4,69],[1,32,8,71],[1,40,4,64],[1,44,4,66],[1,48,8,68],[1,56,8,68],[1,64,8,69],[1,72,8,68],[1,80,4,69],[1,84,4,67],[1,88,8,65],[2,0,8,64],[2,8,8,62],[2,16,8,64],[2,24,4,62],[2,28,4,60],[2,32,8,59],[2,40,4,60],[2,44,4,62],[2,48,8,64],[2,56,8,65],[2,64,8,64],[2,72,4,64],[2,76,4,62],[2,80,8,60],[2,88,8,62],[3,0,8,57],[3,8,8,59],[3,16,8,60],[3,24,4,59],[3,28,4,57],[3,32,8,56],[3,40,8,57],[3,48,8,52],[3,56,8,47],[3,64,4,48],[3,68,4,50],[3,72,8,52],[3,80,8,53],[3,88,4,52],[3,92,4,50]],"mark":56,"length":96,"fromBar":1},{"id":"5-sonority-424-c","no":5,"level":"sonority","at":424,"bar":14,"bits":19.9,"voice":null,"did":"9/5/n3 over bass degree 5: v (D minor), incidental in the alto (found nowhere else in the chorales)","expected":"9/5/3 over bass degree 5 21%, 9/5/♭3 over bass degree 5 20%, 6/n5/3 over bass degree 3 10%","pattern":"9/5/n3","modal":null,"title":"An Wasserflüssen Babylon","bwv":"267","key":"G major","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=13","abc":"X:1\nM:4/4\nL:1/32\nK:G\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] B8 A8 G8 A4 G4  | \"^▼\"=F8 E8 !fermata!D8 D8  | G8 A8 B12 c4 |]\n[V:A] D4 E4 =F8 E4 D4 E8-  | E4 D4 D4 ^C4 D8 D4 =C4  | B,4 A,4 G,4 F,4 G,8 G8 |]\n[V:T] G,8 D4 C4 _B,8 A,8  | A,8 G,8 F,8 F,8  | G,8 D8 D8 E8 |]\n[V:B] B,,4 ^C,4 D,16 C,8  | D,8 A,,8 D,8 B,,8  | E,8 D,8 G,4 F,4 E,8 |]","play":[[0,0,8,71],[0,8,8,69],[0,16,8,67],[0,24,4,69],[0,28,4,67],[0,32,8,65],[0,40,8,64],[0,48,8,62],[0,56,8,62],[0,64,8,67],[0,72,8,69],[0,80,12,71],[0,92,4,72],[1,0,4,62],[1,4,4,64],[1,8,8,65],[1,16,4,64],[1,20,4,62],[1,24,12,64],[1,36,4,62],[1,40,4,62],[1,44,4,61],[1,48,8,62],[1,56,4,62],[1,60,4,60],[1,64,4,59],[1,68,4,57],[1,72,4,55],[1,76,4,54],[1,80,8,55],[1,88,8,67],[2,0,8,55],[2,8,4,62],[2,12,4,60],[2,16,8,58],[2,24,8,57],[2,32,8,57],[2,40,8,55],[2,48,8,54],[2,56,8,54],[2,64,8,55],[2,72,8,62],[2,80,8,62],[2,88,8,64],[3,0,4,47],[3,4,4,49],[3,8,16,50],[3,24,8,49],[3,32,8,50],[3,40,8,45],[3,48,8,50],[3,56,8,47],[3,64,8,52],[3,72,8,50],[3,80,4,55],[3,84,4,54],[3,88,8,52]],"mark":32,"length":96,"fromBar":13},{"id":"309-sonority-352-c","no":309,"level":"sonority","at":352,"bar":11,"bits":19.9,"voice":null,"did":"♭9/7/4 over bass degree 6: v (E♭ minor), incidental in the bass (found nowhere else in the chorales)","expected":"6/4/2 over bass degree 4 11%, 7/5/3 over bass degree 6 6%, 5/4 over bass degree 1 6%","pattern":"b9/7/4","modal":null,"title":"Ein Lämmelein geht und trägt die Schuld","bwv":"267","key":"Ab major","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=159","abc":"X:1\nM:4/4\nL:1/32\nK:Ab\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] d16 !fermata!c8 f8  | f8 f8 B8 \"^▼\"e8  | d8 c8 !fermata!B8 d8 |]\n[V:A] c4 =A4 B8 A8 c8  | B8 F4 D4 E4 F4 _G8  | F8 E8 D8 B8 |]\n[V:T] F16 F8 F4 E4  | D4 C4 B,12 =A,4 B,4 C4  | A,4 B,8 =A,4 B,8 F,4 G,4 |]\n[V:B] B,8 B,,8 F,8 =A,,8  | B,,4 C,4 D,4 B,,4 _G,8 F,4 E,4  | F,8 F,,8 B,,8 B,,8 |]","play":[[0,0,16,73],[0,16,8,72],[0,24,8,77],[0,32,8,77],[0,40,8,77],[0,48,8,70],[0,56,8,75],[0,64,8,73],[0,72,8,72],[0,80,8,70],[0,88,8,73],[1,0,4,72],[1,4,4,69],[1,8,8,70],[1,16,8,69],[1,24,8,72],[1,32,8,70],[1,40,4,65],[1,44,4,61],[1,48,4,63],[1,52,4,65],[1,56,8,66],[1,64,8,65],[1,72,8,63],[1,80,8,61],[1,88,8,70],[2,0,16,65],[2,16,8,65],[2,24,4,65],[2,28,4,63],[2,32,4,61],[2,36,4,60],[2,40,12,58],[2,52,4,57],[2,56,4,58],[2,60,4,60],[2,64,4,57],[2,68,8,58],[2,76,4,57],[2,80,8,58],[2,88,4,53],[2,92,4,55],[3,0,8,58],[3,8,8,46],[3,16,8,53],[3,24,8,45],[3,32,4,46],[3,36,4,48],[3,40,4,49],[3,44,4,46],[3,48,8,54],[3,56,4,53],[3,60,4,51],[3,64,8,53],[3,72,8,41],[3,80,8,46],[3,88,8,46]],"mark":56,"length":96,"fromBar":10},{"id":"251-voices-112-c","no":251,"level":"voices","at":112,"bar":4,"bits":11.8,"voice":null,"did":"alto C5, tenor G3 (from F4, Bb3)","expected":"alto G4, tenor G3 34%","pattern":"1-1","modal":null,"title":"Ich bin ja, Herr, in deiner Macht","bwv":"345","key":"G minor","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=130","abc":"X:1\nM:4/4\nL:1/32\nK:Bb\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] B8 c4 d2 e2 d4 B4 f12 =e2 d2  | \"^▼\"c4 B4 !fermata!A8 d8  | ^c8 d8 =e4 f2 g2 f4 e4 |]\n[V:A] G8 F8 F12 F4 B8  | c4 =E4 F8 F8  | G8 F8 =E8 D8 |]\n[V:T] D8 C8 B,12 C4 D8  | G,4 C4 C8 B,8  | B,8 A,8 A,8 A,4 D4 |]\n[V:B] G,8 A,8 B,12 A,4 G,4 F,4  | =E,4 C,4 F,8 B,8  | =E,8 F,8 ^C,8 D,8 |]","play":[[0,0,8,70],[0,8,4,72],[0,12,2,74],[0,14,2,75],[0,16,4,74],[0,20,4,70],[0,24,12,77],[0,36,2,76],[0,38,2,74],[0,40,4,72],[0,44,4,70],[0,48,8,69],[0,56,8,74],[0,64,8,73],[0,72,8,74],[0,80,4,76],[0,84,2,77],[0,86,2,79],[0,88,4,77],[0,92,4,76],[1,0,8,67],[1,8,8,65],[1,16,12,65],[1,28,4,65],[1,32,8,70],[1,40,4,72],[1,44,4,64],[1,48,8,65],[1,56,8,65],[1,64,8,67],[1,72,8,65],[1,80,8,64],[1,88,8,62],[2,0,8,62],[2,8,8,60],[2,16,12,58],[2,28,4,60],[2,32,8,62],[2,40,4,55],[2,44,4,60],[2,48,8,60],[2,56,8,58],[2,64,8,58],[2,72,8,57],[2,80,8,57],[2,88,4,57],[2,92,4,62],[3,0,8,55],[3,8,8,57],[3,16,12,58],[3,28,4,57],[3,32,4,55],[3,36,4,53],[3,40,4,52],[3,44,4,48],[3,48,8,53],[3,56,8,58],[3,64,8,52],[3,72,8,53],[3,80,8,49],[3,88,8,50]],"mark":40,"length":96,"fromBar":3},{"id":"88-voices-312-c","no":88,"level":"voices","at":312,"bar":10,"bits":11.3,"voice":null,"did":"alto D4, tenor B3 (from A4, D4)","expected":"alto G4, tenor D4 98%","pattern":"-1-1","modal":null,"title":"Helft mir Gotts Güte preisen","bwv":"28/6","key":"A minor","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=49","abc":"X:1\nM:4/4\nL:1/32\nK:C\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] c8 d8 e8 c8  | d12 c4 \"^▼\"!fermata!B8 e8  | c4 B4 A8 B8 B8 |]\n[V:A] G8 F8 E8 A8  | A4 G4 ^F4 E4 D8 E8  | E8 A8 A8 ^G8 |]\n[V:T] G,8 A,4 B,4 C4 D4 E8  | D8 A,8 B,8 B,8  | A,4 B,4 C8 F8 E4 D4 |]\n[V:B] E,8 D,8 C,8 B,,4 A,,4  | B,,4 C,4 D,8 G,,8 ^G,8  | A,4 G,4 F,4 E,4 D,8 E,8 |]","play":[[0,0,8,72],[0,8,8,74],[0,16,8,76],[0,24,8,72],[0,32,12,74],[0,44,4,72],[0,48,8,71],[0,56,8,76],[0,64,4,72],[0,68,4,71],[0,72,8,69],[0,80,8,71],[0,88,8,71],[1,0,8,67],[1,8,8,65],[1,16,8,64],[1,24,8,69],[1,32,4,69],[1,36,4,67],[1,40,4,66],[1,44,4,64],[1,48,8,62],[1,56,8,64],[1,64,8,64],[1,72,8,69],[1,80,8,69],[1,88,8,68],[2,0,8,55],[2,8,4,57],[2,12,4,59],[2,16,4,60],[2,20,4,62],[2,24,8,64],[2,32,8,62],[2,40,8,57],[2,48,8,59],[2,56,8,59],[2,64,4,57],[2,68,4,59],[2,72,8,60],[2,80,8,65],[2,88,4,64],[2,92,4,62],[3,0,8,52],[3,8,8,50],[3,16,8,48],[3,24,4,47],[3,28,4,45],[3,32,4,47],[3,36,4,48],[3,40,8,50],[3,48,8,43],[3,56,8,56],[3,64,4,57],[3,68,4,55],[3,72,4,53],[3,76,4,52],[3,80,8,50],[3,88,8,52]],"mark":48,"length":96,"fromBar":9},{"id":"354-voices-120-c","no":354,"level":"voices","at":120,"bar":4,"bits":10.4,"voice":null,"did":"alto F#4, tenor D4 (from G4, D4)","expected":"alto F#4, tenor A3 96%","pattern":"-10","modal":null,"title":"Sei Lob und Ehr dem höchsten Gut","bwv":"117/4","key":"G major","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=180","abc":"X:1\nM:4/4\nL:1/32\nK:G\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] B4 A4 G4 A4 B8 ^c8  | d8 e8 \"^▼\"!fermata!d8 d8  | g8 f8 e8 f8 |]\n[V:A] G8 D8 G4 F4 E8  | A4 F4 G8 F8 B8  | B8 A4 B4 ^c8 c8 |]\n[V:T] D4 C4 B,4 A,4 G,8 A,8  | A,4 D8 ^C4 D8 D8  | D4 E4 F4 G4 A4 G4 F4 E4 |]\n[V:B] G,,12 F,,4 E,,4 F,,4 G,,4 A,,4  | F,,4 D,,4 A,,8 D,,8 G,4 A,4  | B,4 ^C4 D8 A,8 ^A,8 |]","play":[[0,0,4,71],[0,4,4,69],[0,8,4,67],[0,12,4,69],[0,16,8,71],[0,24,8,73],[0,32,8,74],[0,40,8,76],[0,48,8,74],[0,56,8,74],[0,64,8,79],[0,72,8,78],[0,80,8,76],[0,88,8,78],[1,0,8,67],[1,8,8,62],[1,16,4,67],[1,20,4,66],[1,24,8,64],[1,32,4,69],[1,36,4,66],[1,40,8,67],[1,48,8,66],[1,56,8,71],[1,64,8,71],[1,72,4,69],[1,76,4,71],[1,80,8,73],[1,88,8,73],[2,0,4,62],[2,4,4,60],[2,8,4,59],[2,12,4,57],[2,16,8,55],[2,24,8,57],[2,32,4,57],[2,36,8,62],[2,44,4,61],[2,48,8,62],[2,56,8,62],[2,64,4,62],[2,68,4,64],[2,72,4,66],[2,76,4,67],[2,80,4,69],[2,84,4,67],[2,88,4,66],[2,92,4,64],[3,0,12,43],[3,12,4,42],[3,16,4,40],[3,20,4,42],[3,24,4,43],[3,28,4,45],[3,32,4,42],[3,36,4,38],[3,40,8,45],[3,48,8,38],[3,56,4,55],[3,60,4,57],[3,64,4,59],[3,68,4,61],[3,72,8,62],[3,80,8,57],[3,88,8,58]],"mark":48,"length":96,"fromBar":3},{"id":"280-voices-592-c","no":280,"level":"voices","at":592,"bar":23,"bits":10.2,"voice":null,"did":"alto D4, tenor D4 (from E4, A3)","expected":"alto D4, tenor A3 90%","pattern":"-11","modal":null,"title":"Eins ist not, ach Herr, dies eine","bwv":"304","key":"D major","scan":"https://www.digitale-sammlungen.de/en/view/bsb11108042?page=144","abc":"X:1\nM:4/4\nL:1/32\nK:D\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] B12 A4 G8  | A12 G4 \"^▼\"F8  | G8 F8 E8 |]\n[V:A] D8 G4 F4 E8-  | E4 G4 F4 E4 D4 A,4  | D12 E4 C8 |]\n[V:T] D4 C4 B,12 B,4  | A,12 C4 D8  | D,8 A,8 A,4 G,4 |]\n[V:B] B,,8 E,8 E,4 D,4  | C,4 A,,4 D,8- D,4 C,4  | B,,8 A,,4 G,,4 A,,8 |]","play":[[0,0,12,71],[0,12,4,69],[0,16,8,67],[0,24,12,69],[0,36,4,67],[0,40,8,66],[0,48,8,67],[0,56,8,66],[0,64,8,64],[1,0,8,62],[1,8,4,67],[1,12,4,66],[1,16,12,64],[1,28,4,67],[1,32,4,66],[1,36,4,64],[1,40,4,62],[1,44,4,57],[1,48,12,62],[1,60,4,64],[1,64,8,61],[2,0,4,62],[2,4,4,61],[2,8,12,59],[2,20,4,59],[2,24,12,57],[2,36,4,61],[2,40,8,62],[2,48,8,50],[2,56,8,57],[2,64,4,57],[2,68,4,55],[3,0,8,47],[3,8,8,52],[3,16,4,52],[3,20,4,50],[3,24,4,49],[3,28,4,45],[3,32,12,50],[3,44,4,49],[3,48,8,47],[3,56,4,45],[3,60,4,43],[3,64,8,45]],"mark":40,"length":72,"fromBar":22}];
+const SETTINGS = {"title":"Bach's Licences","lede":"Examples of each kind of licence in Bach's chorales, the most surprising first. All of them are beautiful in some sense: say which strike you as immediately special.","question":"How does it strike you?","choices":[{"key":"special","label":"Immediately special","hint":"It stands out at once"},{"key":"ordinary","label":"Beautiful, in an ordinary way","hint":"Lovely, but not remarkable"},{"key":"unsure","label":"Not sure","hint":"Come back to it"}],"flag":true,"levels":{"flat-second":"The flat second (the Neapolitan's chord)","mixture":"Mixture: the minor mode's chords in a major key","remote-diminished":"Diminished sevenths of distant keys","augmented-sixth":"Augmented sixths","chromatic-bass":"Chromatic bass lines","remote-cadence":"Remote cadences","diminished-cadence":"Phrases that end on a diminished chord","dissonance-cluster":"Two incidental dissonances at once","owner":"Pointed out by you","sonority":"Dissonant sonority (X1, new)","voices":"Inner voices (X1, recalibrated)"},"collection":"licences","storeKey":"bach-licences"};
+const LEVELS = Object.assign({ cadence: "Cadence", chord: "Chord", bass: "Bass", sonority: "Sonority", voices: "Inner voices", embellishment: "Embellishment" }, SETTINGS.levels || {});
+const COLLECTION = SETTINGS.collection || "ratings";
+const STORE_KEY = SETTINGS.storeKey || "bach-exceptions";
+const VOICE = ["soprano", "alto", "tenor", "bass"];
+const ratings = {};
+let index = 0, filter = "all", db = null, local = true;
+
+const $ = (id) => document.getElementById(id);
+const store = {
+  load() { try { return JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); } catch { return {}; } },
+  save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(ratings)); } catch {} },
+};
+Object.assign(ratings, store.load());
+if (SETTINGS.title) { $("page-title").textContent = SETTINGS.title; document.title = SETTINGS.title; }
+if (SETTINGS.lede) $("page-lede").textContent = SETTINGS.lede;
+if (SETTINGS.question) $("v-h").textContent = SETTINGS.question;
+if (SETTINGS.choices) {
+  const box = $("choices");
+  box.textContent = "";
+  SETTINGS.choices.forEach((c, k) => {
+    const b = document.createElement("button");
+    b.className = "choice";
+    b.type = "button";
+    b.dataset.r = c.key;
+    b.setAttribute("aria-pressed", "false");
+    const t = document.createElement("b");
+    t.textContent = c.label + " ";
+    const kb = document.createElement("kbd");
+    kb.textContent = String(k + 1);
+    t.append(kb);
+    const sp = document.createElement("span");
+    sp.textContent = c.hint || "";
+    b.append(t, sp);
+    box.append(b);
+  });
+}
+const KEYS = Object.fromEntries([...document.querySelectorAll(".choice")].map((c, k) => [String(k + 1), c.dataset.r]));
+if (SETTINGS.flag) $("flag-row").hidden = false;
+
+function visible() { return MOMENTS.map((m, i) => i).filter((i) => filter === "all" || !ratings[MOMENTS[i].id]?.rating); }
+
+function renderList() {
+  const box = $("items");
+  box.textContent = "";
+  let level = null;
+  for (const i of visible()) {
+    const m = MOMENTS[i];
+    if (m.level !== level) {
+      level = m.level;
+      const h = document.createElement("div");
+      h.className = "level-head";
+      h.textContent = LEVELS[level];
+      box.append(h);
+    }
+    const b = document.createElement("button");
+    b.className = "item";
+    b.type = "button";
+    if (i === index) b.setAttribute("aria-current", "true");
+    const dot = document.createElement("span");
+    dot.className = "dot";
+    if (ratings[m.id]?.rating) dot.dataset.r = ratings[m.id].rating;
+    const t = document.createElement("span");
+    t.className = "t";
+    t.textContent = `No. ${m.no}, bar ${m.bar}: ${m.title}`;
+    const bits = document.createElement("span");
+    bits.className = "b";
+    bits.textContent = `${m.bits} b`;
+    b.append(dot, t, bits);
+    b.addEventListener("click", () => show(i));
+    box.append(b);
+  }
+  const n = MOMENTS.filter((m) => ratings[m.id]?.rating).length;
+  $("count").textContent = `${n} of ${MOMENTS.length} rated`;
+  $("bar").style.width = `${(100 * n) / Math.max(1, MOMENTS.length)}%`;
+}
+
+function ink() { return getComputedStyle(document.documentElement).getPropertyValue("--ink").trim() || "#000"; }
+
+function show(i) {
+  stop();
+  index = Math.max(0, Math.min(MOMENTS.length - 1, i));
+  const m = MOMENTS[index];
+  $("m-title").textContent = `No. ${m.no}, bar ${m.bar}`;
+  $("m-level").textContent = LEVELS[m.level];
+  const meta = $("m-meta");
+  meta.textContent = "";
+  for (const s of [m.title, `BWV ${m.bwv}`, m.key, m.voice === null ? "the whole chord" : `voice: ${VOICE[m.voice]}`]) {
+    const span = document.createElement("span");
+    span.textContent = s;
+    meta.append(span);
+  }
+  if (m.scan) {
+    const a = document.createElement("a");
+    a.href = m.scan;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = "Breitkopf print ↗";
+    meta.append(a);
+  }
+  $("m-did").textContent = m.did;
+  $("m-exp").textContent = m.expected;
+  $("m-bits").innerHTML = "";
+  const b = document.createElement("span");
+  b.textContent = `${m.bits} bits `;
+  const sm = document.createElement("small");
+  sm.textContent = `(about 1 in ${m.bits > 30 ? "a billion" : Math.round(2 ** m.bits).toLocaleString()})`;
+  $("m-bits").append(b, sm);
+  $("solo").disabled = m.voice === null;
+  $("solo").checked = false;
+  $("mk").style.left = `${(100 * m.mark) / m.length}%`;
+  $("head").style.width = "0";
+  if (window.ABCJS) {
+    ABCJS.renderAbc("score", m.abc, { responsive: "resize", foregroundColor: ink(), add_classes: true, paddingtop: 4, paddingbottom: 4 });
+  } else {
+    $("score").textContent = "The score could not load; the sound still plays.";
+  }
+  const r = ratings[m.id] || {};
+  for (const c of document.querySelectorAll(".choice")) c.setAttribute("aria-pressed", String(c.dataset.r === r.rating));
+  $("note").value = r.note || "";
+  $("flag").checked = !!r.flag;
+  $("saved").textContent = r.rating ? "Saved" : "";
+  renderList();
+}
+
+async function rate(value) {
+  const m = MOMENTS[index];
+  const prev = ratings[m.id] || {};
+  ratings[m.id] = { ...prev, rating: value, note: $("note").value };
+  store.save();
+  for (const c of document.querySelectorAll(".choice")) c.setAttribute("aria-pressed", String(c.dataset.r === value));
+  renderList();
+  await persist(m);
+}
+
+let noteTimer = null;
+$("note").addEventListener("input", () => {
+  const m = MOMENTS[index];
+  ratings[m.id] = { ...(ratings[m.id] || {}), note: $("note").value };
+  store.save();
+  clearTimeout(noteTimer);
+  noteTimer = setTimeout(() => persist(m), 800);
+});
+
+async function persist(m) {
+  if (!db) { $("saved").textContent = "Saved in this browser"; return; }
+  const r = ratings[m.id] || {};
+  try {
+    $("saved").textContent = "Saving…";
+    await db.collection(COLLECTION).doc(m.id).set({ rating: r.rating || null, note: r.note || "", flag: !!r.flag, no: m.no, bar: m.bar, level: m.level, bits: m.bits, updated: new Date().toISOString() });
+    $("saved").textContent = "Saved";
+  } catch (e) {
+    $("saved").textContent = "Not saved to the shared record (kept in this browser): " + (e && e.code ? e.code : "error");
+  }
+}
+
+// ---- sound: a small organ, one note per scheduled event ----
+let ctx = null, playing = [], raf = null;
+function audio() {
+  if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+  if (ctx.state === "suspended") ctx.resume();
+  return ctx;
+}
+function tone(ac, midi, start, dur, gain) {
+  const f = 440 * Math.pow(2, (midi - 69) / 12);
+  const g = ac.createGain();
+  g.gain.setValueAtTime(0, start);
+  g.gain.linearRampToValueAtTime(gain, start + 0.02);
+  g.gain.setValueAtTime(gain, start + Math.max(0.03, dur - 0.05));
+  g.gain.linearRampToValueAtTime(0, start + dur);
+  g.connect(ac.destination);
+  for (const [mult, amp] of [[1, 1], [2, 0.35], [3, 0.12], [4, 0.06]]) {
+    const o = ac.createOscillator();
+    o.type = "sine";
+    o.frequency.value = f * mult;
+    const og = ac.createGain();
+    og.gain.value = amp;
+    o.connect(og).connect(g);
+    o.start(start);
+    o.stop(start + dur + 0.02);
+    playing.push(o);
+  }
+}
+function play(from, to) {
+  stop();
+  const m = MOMENTS[index];
+  const ac = audio();
+  const bpm = Number($("tempo").value);
+  const unit = 60 / bpm / 8; // one 32nd
+  const t0 = ac.currentTime + 0.08;
+  const solo = $("solo").checked && m.voice !== null;
+  for (const [v, on, dur, midi] of m.play) {
+    const a = Math.max(on, from), b = Math.min(on + dur, to);
+    if (b <= a) continue;
+    const gain = solo ? (v === m.voice ? 0.16 : 0.035) : 0.07;
+    tone(ac, midi, t0 + (a - from) * unit, (b - a) * unit, gain);
+  }
+  const total = (to - from) * unit;
+  const lane = () => {
+    const x = Math.min(1, (ac.currentTime - t0) / total);
+    $("head").style.width = `${100 * ((from + Math.max(0, x) * (to - from)) / m.length)}%`;
+    if (x < 1) raf = requestAnimationFrame(lane);
+  };
+  raf = requestAnimationFrame(lane);
+}
+function stop() {
+  for (const o of playing) { try { o.stop(); } catch {} }
+  playing = [];
+  if (raf) cancelAnimationFrame(raf);
+}
+$("play-all").addEventListener("click", () => play(0, MOMENTS[index].length));
+$("play-moment").addEventListener("click", () => {
+  const m = MOMENTS[index];
+  play(Math.max(0, m.mark - 16), Math.min(m.length, m.mark + 24));
+});
+$("stop").addEventListener("click", stop);
+$("tempo").addEventListener("input", () => ($("tempo-out").textContent = $("tempo").value));
+for (const c of document.querySelectorAll(".choice")) c.addEventListener("click", () => rate(c.dataset.r));
+$("flag").addEventListener("change", () => {
+  const m = MOMENTS[index];
+  ratings[m.id] = { ...(ratings[m.id] || {}), flag: $("flag").checked };
+  store.save();
+  persist(m);
+});
+$("prev").addEventListener("click", () => show(index - 1));
+$("next").addEventListener("click", () => show(index + 1));
+for (const c of document.querySelectorAll(".chip")) c.addEventListener("click", () => {
+  filter = c.dataset.f;
+  for (const d of document.querySelectorAll(".chip")) d.setAttribute("aria-pressed", String(d === c));
+  renderList();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.target.closest && e.target.closest("textarea, input")) return;
+  if (KEYS[e.key]) { rate(KEYS[e.key]); e.preventDefault(); }
+  else if (e.key === " ") { play(0, MOMENTS[index].length); e.preventDefault(); }
+  else if (e.key === "m" || e.key === "M") { $("play-moment").click(); }
+  else if (e.key === "ArrowRight") show(index + 1);
+  else if (e.key === "ArrowLeft") show(index - 1);
+});
+
+show(0);
+
+// the shared record: ratings the owner (and Claude) can read back
+(async () => {
+  try {
+    db = window.claude?.use ? await window.claude.use("db") : null;
+  } catch { db = null; }
+  if (!db) {
+    $("notice").hidden = false;
+    $("notice").textContent = "Ratings are kept in this browser only here: open the page signed in to claude.ai to keep them in the shared record.";
+    return;
+  }
+  try {
+    const snap = await db.collection(COLLECTION).get();
+    for (const d of snap.docs) {
+      const x = d.data();
+      if (x) ratings[d.id] = { rating: x.rating || undefined, note: x.note || "", flag: !!x.flag };
+    }
+    store.save();
+    show(index);
+  } catch {}
+})();
+</script>

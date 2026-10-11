@@ -6,7 +6,12 @@
  * that every chord of a plan holds the melody's note.
  */
 import { Backoff, draw, temper, type Ctx } from "./model.ts";
-import type { BachChorale, Melody } from "./corpus.ts";
+import { melodyOf, type BachChorale, type Melody } from "./corpus.ts";
+
+/** The cadence model's context, coarsest first. Measured on unseen tunes (11 October 2026), adding the modal context ("modal": the edition's mode and
+ *  the melody's last degree) made every level worse, for the modal chorales too (too few of them to
+ *  learn from; a level re-applying almost the same counts sharpens the model), so it is not used. */
+export const PLAN_FIELDS = ["mode", "close", "position"];
 
 export interface PhraseEnd {
   /** The note's index in the melody. */
@@ -34,25 +39,26 @@ export class PlanModel {
   /** Cadence chords attested over each (mode, last melody degree). */
   private readonly attested = new Map<string, Set<string>>();
 
-  constructor(train: BachChorale[]) {
+  constructor(train: BachChorale[], fields = PLAN_FIELDS) {
     const rows: Ctx[] = [];
     for (const c of train) {
-      for (const e of phraseEnds({ mode: c.mode, notes: c.notes.map((n) => ({ deg: n.deg, end: !!n.end, close: n.close })) })) {
+      const cm = melodyOf(c);
+      for (const e of phraseEnds(cm)) {
         const chord = c.notes[e.index].chord;
-        rows.push({ mode: c.mode, close: e.close, position: e.position, chord });
+        rows.push({ mode: c.mode, modal: cm.modal, close: e.close, position: e.position, chord });
         const k = `${c.mode}|${e.deg}`;
         const s = this.attested.get(k) ?? new Set<string>();
         s.add(chord);
         this.attested.set(k, s);
       }
     }
-    this.model = new Backoff(rows, ["mode", "close", "position"], "chord");
+    this.model = new Backoff(rows, fields, "chord");
   }
 
   /** The chords to choose from at a phrase end, most likely first, with their probabilities. */
   options(m: Melody, e: PhraseEnd, T = 1): { chord: string; p: number }[] {
     const allowed = this.attested.get(`${m.mode}|${e.deg}`) ?? new Set(this.model.vocab);
-    const p = temper(this.model.dist({ mode: m.mode, close: e.close, position: e.position }), allowed, T);
+    const p = temper(this.model.dist({ mode: m.mode, modal: m.modal, close: e.close, position: e.position }), allowed, T);
     return [...p].map(([chord, q]) => ({ chord, p: q })).sort((a, b) => b.p - a.p || (a.chord < b.chord ? -1 : 1));
   }
 

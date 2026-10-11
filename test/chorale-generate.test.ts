@@ -36,7 +36,7 @@ test("phrase ends: every fermata and the last note; first, inner, last", () => {
   assert.equal(ends[ends.length - 1].position, "last");
   assert.equal(ends[0].close, `${m.notes[ends[0].index - 1].deg}-${m.notes[ends[0].index].deg}`);
   // a melody without a final fermata still ends a phrase on its last note
-  const open = { mode: m.mode, notes: m.notes.slice(0, 5).map((n) => ({ ...n, end: false })) };
+  const open = { mode: m.mode, modal: m.modal, notes: m.notes.slice(0, 5).map((n) => ({ ...n, end: false })) };
   assert.deepEqual(
     phraseEnds(open).map((e) => [e.index, e.position]),
     [[4, "last"]],

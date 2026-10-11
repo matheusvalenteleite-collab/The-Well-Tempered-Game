@@ -3,7 +3,14 @@
 The owner rated all 54 moments of X1 (`docs/chorales/EXCEPTIONS.md`) on the rating page, 11 October 2026.
 The ratings and notes are in `data/chorales/generator/exceptions-ratings.json`.
 
-| level | beautiful | idiomatic (the model misses why) | slip | 
+**How to read them (the owner, afterwards):** first impressions, neither definitive nor consistent. All
+54 moments are beautiful in some sense; "beautiful" marks those with an immediately special character,
+"idiomatic" does not mean plain or unremarkable. And none of the excerpts holds a misprint: where a
+moment's description is wrong, the reading is ours (a label, the modal reading), not the source. The
+second round (`docs/chorales/LICENCES.md`, the page "Bach's Licences") asks the question in these terms:
+immediately special, or beautiful in an ordinary way.
+
+| level | beautiful (immediately special) | idiomatic | slip |
 |---|---|---|---|
 | chord | 11 | 1 | 0 |
 | cadence | 6 | 4 | 0 |
@@ -28,7 +35,7 @@ The ratings and notes are in `data/chorales/generator/exceptions-ratings.json`.
   None of the twelve inner-voice moments is a licence: the voice search's costs are too steep, so
   ordinary leaps, exchanges and unisons in Bach's inner voices look improbable to it. The only
   beautiful embellishments are two suspensions in the bass at the opening of nos. 131 and 328.
-- **No slips.** At these 54 places the encoding and the readings hold.
+- **No slips**, and the owner confirms none of the excerpts holds a misprint.
 
 ## Consequences
 

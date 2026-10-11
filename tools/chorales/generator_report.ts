@@ -158,7 +158,7 @@ for (const [ci, c] of KITTEL.entries()) {
   measure(c, [bestSetting(models, m, key).chords], top);
   measure(c, Array.from({ length: nb }, (_, k) => c.notes.map((n) => n.kittel[k].chord)), kit, true);
   const r = rng(2000 + c.number);
-  const ind = Array.from({ length: nb }, () => m.notes.map((n) => draw(models.harmony.step(m.mode, n.deg, "start"), r())));
+  const ind = Array.from({ length: nb }, () => m.notes.map((n) => draw(models.harmony.step(m, n.deg, "start"), r())));
   measure(c, ind, indep);
   if (c.number === 1 || c.number === 7) examples.push({ c, sets });
 }

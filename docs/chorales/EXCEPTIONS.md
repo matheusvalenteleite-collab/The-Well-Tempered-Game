@@ -13,10 +13,15 @@ Time base checked: Bach's on-beat events and the study's soprano agree at 100% o
 | cadence | 2277 | 0.4 | 3.2 | 10.2 | 19.9 |
 | chord | 16511 | 1.3 | 4.3 | 10.2 | 19.9 |
 | bass | 16184 | 0.3 | 2.6 | 11.9 | 19.9 |
-| voices | 13972 | 0.2 | 5.7 | 14.2 | 30.2 |
+| sonority | 3644 | 5.0 | 13.3 | 19.9 | 19.9 |
+| voices | 13972 | 0.6 | 3.6 | 7.6 | 15.0 |
 | embellishment | 5337 | 0.5 | 3.3 | 7.0 | 19.9 |
 
-Embellishments are measured only where Bach embellishes (how surprising his choice of kind and place is).
+Embellishments are measured only where Bach embellishes (how surprising his choice of kind and place is); sonorities
+only where the sonority is dissonant (a second, fourth, seventh or ninth over the bass, a tritone, an augmented sixth,
+or an incidental note), and against Bach's dissonant sonorities only: the whole stack over the bass (its distinct intervals),
+given the melody degree and the place in the phrase. The inner voices
+are measured with the search's calibrated weights (src/chorale/generate/voices.ts CALIBRATED).
 
 ## The chorales with the most surprise
 
@@ -24,28 +29,28 @@ Mean bits per melody note over the chord and bass levels: the chorales where Bac
 
 | chorale | title | key | mean bits (chord) | mean bits (bass) | moments over 7 bits |
 |---|---|---|---|---|---|
-| 205 | Herr Gott, dich loben wir | E phrygian | 3.42 | 2.38 | 52 |
-| 127 | Dies sind die heil'gen zehn Gebot | G mixolydian | 2.85 | 2.42 | 12 |
-| 216 | Es ist genug! so nimm Herr | A major | 2.69 | 2.53 | 16 |
-| 279 | Ach Gott und Herr | Bb major | 2.41 | 2.49 | 8 |
-| 284 | Herr Jesu Christ, wahr Mensch und Gott | C mixolydian | 2.56 | 2.24 | 9 |
-| 113 | Christus, der uns selig macht | F dorian | 2.99 | 1.80 | 13 |
-| 339 | Wer nur den lieben Gott laßt walten | A minor | 2.83 | 1.74 | 6 |
-| 310 | Mach's mit mir, Gott, nach deiner Güt | E major | 2.70 | 1.81 | 3 |
-| 21 | Herzlich tut mich verlangen | A minor | 2.74 | 1.71 | 7 |
-| 139 | Warum sollt ich mich denn grämen | G major | 2.14 | 2.29 | 6 |
-| 200 | Christus ist erstanden, hat überwunden | C major | 2.68 | 1.62 | 8 |
+| 205 | Herr Gott, dich loben wir | E phrygian | 3.42 | 2.38 | 70 |
+| 127 | Dies sind die heil'gen zehn Gebot | G mixolydian | 2.85 | 2.42 | 14 |
+| 216 | Es ist genug! so nimm Herr | A major | 2.69 | 2.53 | 26 |
+| 279 | Ach Gott und Herr | Bb major | 2.41 | 2.49 | 12 |
+| 284 | Herr Jesu Christ, wahr Mensch und Gott | C mixolydian | 2.56 | 2.24 | 14 |
+| 113 | Christus, der uns selig macht | F dorian | 2.99 | 1.80 | 24 |
+| 339 | Wer nur den lieben Gott laßt walten | A minor | 2.83 | 1.74 | 11 |
+| 310 | Mach's mit mir, Gott, nach deiner Güt | E major | 2.70 | 1.81 | 8 |
+| 21 | Herzlich tut mich verlangen | A minor | 2.74 | 1.71 | 10 |
+| 139 | Warum sollt ich mich denn grämen | G major | 2.14 | 2.29 | 9 |
+| 200 | Christus ist erstanden, hat überwunden | C major | 2.68 | 1.62 | 13 |
 | 89 | O Haupt voll Blut und Wunden | B minor | 2.44 | 1.78 | 9 |
-| 81 | Christus, der uns delig macht | A minor | 2.54 | 1.67 | 9 |
-| 132 | Kyrie! Gott Vater in Ewigkeit | A minor | 2.34 | 1.86 | 27 |
-| 123 | Helft mir Gotts Güte preisen | A minor | 2.14 | 2.04 | 10 |
-| 59 | Herzliebster Jesu, was hast du verbrochen | G minor | 2.31 | 1.77 | 4 |
-| 338 | Jesus, meine Zuversicht | D major | 2.84 | 1.23 | 5 |
-| 61 | Jesu Leiden, Pein und Tod | Eb major | 2.02 | 2.04 | 8 |
-| 203 | O Mensch, schau Jesum Christum an | G dorian | 2.34 | 1.70 | 8 |
-| 35 | Gott des Himmels und der Erden | A major | 2.00 | 2.04 | 5 |
+| 81 | Christus, der uns delig macht | A minor | 2.54 | 1.67 | 16 |
+| 132 | Kyrie! Gott Vater in Ewigkeit | A minor | 2.34 | 1.86 | 33 |
+| 123 | Helft mir Gotts Güte preisen | A minor | 2.14 | 2.04 | 15 |
+| 59 | Herzliebster Jesu, was hast du verbrochen | G minor | 2.31 | 1.77 | 6 |
+| 338 | Jesus, meine Zuversicht | D major | 2.84 | 1.23 | 7 |
+| 61 | Jesu Leiden, Pein und Tod | Eb major | 2.02 | 2.04 | 12 |
+| 203 | O Mensch, schau Jesum Christum an | G dorian | 2.34 | 1.70 | 12 |
+| 35 | Gott des Himmels und der Erden | A major | 2.00 | 2.04 | 8 |
 
-## The 54 moments chosen for rating
+## The 64 moments chosen for rating
 
 The most surprising at each level, at most one per chorale per level, two per chorale in all, and two of one pattern
 (the same chord, bass position or kind of embellishment) per level; on the rating page,
@@ -53,28 +58,28 @@ each with its excerpt to read and hear.
 
 | # | chorale | bar | level | bits | Bach | the model expected |
 |---|---|---|---|---|---|---|
-| 1 | 267 | 10 | cadence | 19.9 | the inner phrase ends on VII (melody 4–♭3) | ♭III 97%, i 2%, ♭VI 2% |
-| 2 | 200 | 11 | cadence | 19.9 | the inner phrase ends on ♭III (melody 6–5) | V 90%, iii 5%, I 4% |
-| 3 | 216 | 7 | cadence | 19.9 | the inner phrase ends on ♯IV° (melody 3–♯4) (found nowhere else in the chorales) | I 43%, V 30%, vi 7% |
-| 4 | 236 | 6 | cadence | 18.5 | the inner phrase ends on ii (melody 5–4) | iv 69%, ♭VII 25%, IV 5% |
-| 5 | 295 | 6 | cadence | 18.5 | the inner phrase ends on ii (melody 5–4) | iv 69%, ♭VII 25%, IV 5% |
-| 6 | 7 | 22 | cadence | 17.8 | the inner phrase ends on II (melody 3–2) | V 77%, ii 23%, I <1% |
-| 7 | 187 | 6 | cadence | 16.4 | the inner phrase ends on v (melody ♯4–5) | V 91%, iii 6%, I 2% |
-| 8 | 133 | 23 | cadence | 15.7 | the inner phrase ends on v (melody ♭3–2) | V 78%, ♭VII 22%, I <1% |
-| 9 | 113 | 10 | cadence | 15.5 | the inner phrase ends on ♭II (melody 4–4) | ♭VII 85%, iv 7%, IV 6% |
-| 10 | 145 | 8 | cadence | 14.5 | the inner phrase ends on ♭VI (melody 4–♭3) | ♭III 97%, i 2%, VII 2% |
-| 11 | 310 | 7 | chord | 19.9 | iv under melody degree 4, after III° | IV 53%, ii 39%, V 5% |
-| 12 | 267 | 10 | chord | 19.9 | VII under melody degree ♭3, after iv | i 41%, ♭III 35%, ♭VI 8% |
-| 13 | 58 | 4 | chord | 19.9 | ♯iv under melody degree 6, after IV | IV 50%, ii 31%, II 11% |
-| 14 | 59 | 5 | chord | 19.9 | ♭vi under melody degree ♭6, after ♭VI (found nowhere else in the chorales) | iv 63%, ♭VI 19%, ♭II 10% |
-| 15 | 79 | 23 | chord | 19.9 | vii under melody degree ♯4, after II | II 97%, i 1%, ♭III <1% |
-| 16 | 90 | 8 | chord | 19.9 | VII under melody degree 4, after I | IV 55%, ii 24%, VII° 10% |
-| 17 | 106 | 13 | chord | 19.9 | V° under melody degree 5, after V | I 43%, V 36%, iii 15% |
-| 18 | 139 | 2 | chord | 19.9 | ♭vii under melody degree 4, after ii | ii 43%, V 18%, VII° 9% |
-| 19 | 205 | 32 | chord | 19.9 | I° under melody degree ♭3, after ♭VI (found nowhere else in the chorales) | ♭III 48%, i 23%, ♭VI 17% |
-| 20 | 211 | 7 | chord | 19.9 | ♯iv under melody degree 7, after VII | III 71%, V 19%, VII° 4% |
-| 21 | 216 | 16 | chord | 19.9 | II° under melody degree 2, after VI | ii 68%, II 8%, V 8% |
-| 22 | 290 | 7 | chord | 19.9 | ♭ii under melody degree 3, after VI (found nowhere else in the chorales) | VI 37%, vi 30%, I 24% |
+| 1 | 267 | 10 | cadence | 19.9 | the inner phrase ends on VII (D♭ major) (melody 4–♭3) | ♭III 97%, i 2%, ♭VI 2% |
+| 2 | 200 | 11 | cadence | 19.9 | the inner phrase ends on ♭III (E♭ major) (melody 6–5) | V 90%, iii 5%, I 4% |
+| 3 | 216 | 7 | cadence | 19.9 | the inner phrase ends on ♯IV° (D♯ diminished) (melody 3–♯4) (found nowhere else in the chorales) | I 43%, V 30%, vi 7% |
+| 4 | 236 | 6 | cadence | 18.5 | the inner phrase ends on ii (F♯ minor) (melody 5–4) | iv 69%, ♭VII 25%, IV 5% |
+| 5 | 295 | 6 | cadence | 18.5 | the inner phrase ends on ii (F♯ minor) (melody 5–4) | iv 69%, ♭VII 25%, IV 5% |
+| 6 | 7 | 22 | cadence | 17.8 | the inner phrase ends on II (B major) (melody 3–2) | V 77%, ii 23%, I <1% |
+| 7 | 187 | 6 | cadence | 16.4 | the inner phrase ends on v (D minor) (melody ♯4–5) | V 91%, iii 6%, I 2% |
+| 8 | 133 | 23 | cadence | 15.7 | the inner phrase ends on v (A minor) (melody ♭3–2) | V 78%, ♭VII 22%, I <1% |
+| 9 | 113 | 10 | cadence | 15.5 | the inner phrase ends on ♭II (G♭ major) (melody 4–4) | ♭VII 85%, iv 7%, IV 6% |
+| 10 | 145 | 8 | cadence | 14.5 | the inner phrase ends on ♭VI (F major) (melody 4–♭3) | ♭III 97%, i 2%, VII 2% |
+| 11 | 310 | 7 | chord | 19.9 | iv (A minor) under melody degree 4, after III° | IV 53%, ii 39%, V 5% |
+| 12 | 267 | 10 | chord | 19.9 | VII (D♭ major) under melody degree ♭3, after iv | i 41%, ♭III 35%, ♭VI 8% |
+| 13 | 58 | 4 | chord | 19.9 | ♯iv (G♯ minor seventh) under melody degree 6, after IV | IV 50%, ii 31%, II 11% |
+| 14 | 59 | 5 | chord | 19.9 | ♭vi (E♭ minor) under melody degree ♭6, after ♭VI (found nowhere else in the chorales) | iv 63%, ♭VI 19%, ♭II 10% |
+| 15 | 79 | 23 | chord | 19.9 | vii (G♯ minor) under melody degree ♯4, after II | II 97%, i 1%, ♭III <1% |
+| 16 | 90 | 8 | chord | 19.9 | VII (A seventh chord, third not sounding (minor seventh)) under melody degree 4, after I | IV 55%, ii 24%, VII° 10% |
+| 17 | 106 | 13 | chord | 19.9 | V° (E diminished) under melody degree 5, after V | I 43%, V 36%, iii 15% |
+| 18 | 139 | 2 | chord | 19.9 | ♭vii (F minor) under melody degree 4, after ii | ii 43%, V 18%, VII° 9% |
+| 19 | 205 | 32 | chord | 19.9 | I° (E diminished) under melody degree ♭3, after ♭VI (found nowhere else in the chorales) | ♭III 48%, i 23%, ♭VI 17% |
+| 20 | 211 | 7 | chord | 19.9 | ♯iv (F♯ minor seventh) under melody degree 7, after VII | III 71%, V 19%, VII° 4% |
+| 21 | 216 | 16 | chord | 19.9 | II° (B half-diminished seventh) under melody degree 2, after VI | ii 68%, II 8%, V 8% |
+| 22 | 290 | 7 | chord | 19.9 | ♭ii (E♯ minor) under melody degree 3, after VI (found nowhere else in the chorales) | VI 37%, vi 30%, I 24% |
 | 23 | 341 | 5 | bass | 19.9 | bass on degree ♭3 with 6/4 under VI° | 5 with 4/2 42%, 1 with 6 39%, ♭3 with 4/3 6% |
 | 24 | 327 | 16 | bass | 19.9 | bass on degree 7 with 4/3 under III | 3 with 5/3 82%, ♯5 with 6 8%, 5 with 5/3 3% |
 | 25 | 359 | 10 | bass | 19.9 | bass on degree 2 with 4/2 under ♭III | ♭3 with 5/3 98%, ♭3 with 7 2%, 5 with 6 <1% |
@@ -85,25 +90,35 @@ each with its excerpt to read and hear.
 | 30 | 59 | 5 | bass | 19.9 | bass on degree ♭1 with 6 under ♭vi (found nowhere else in the chorales) | 1 with 5/3 19%, ♭3 with 5/3 10%, 5 with 5/3 8% |
 | 31 | 61 | 2 | bass | 19.9 | bass on degree 3 with 6/5 under I | 1 with 5/3 91%, 3 with 6 5%, 5 with 6/4 5% |
 | 32 | 119 | 7 | bass | 19.9 | bass on degree ♭2 with 6/4 under V° (found nowhere else in the chorales) | ♭7 with 6 51%, 4 with 4/2 37%, 5 with 7 5% |
-| 33 | 194 | 6 | voices | 30.2 | alto F#4, tenor B3 (from D4, G3) | alto D4, tenor F#3 100% |
-| 34 | 9 | 9 | voices | 29 | alto B4, tenor G4 (from G4, D4) | alto G4, tenor D4 97% |
-| 35 | 252 | 27 | voices | 25.8 | alto F4, tenor Bb3 (from G4, C4) | alto Bb4, tenor F4 89% |
-| 36 | 23 | 10 | voices | 25 | alto D4, tenor B3 (from A4, D4) | alto G4, tenor D4 100% |
-| 37 | 123 | 10 | voices | 23.7 | alto C5, tenor A3 (from G#4, E4) | alto A4, tenor E4 100% |
-| 38 | 207 | 2 | voices | 23.6 | alto A4, tenor D3 (from E4, A3) | alto D4, tenor A3 74% |
-| 39 | 358 | 17 | voices | 22 | alto C5, tenor C4 (from Bb4, C4) | alto A4, tenor E4 83% |
-| 40 | 241 | 24 | voices | 20.5 | alto D4, tenor D4 (from A4, A3) | alto G4, tenor D4 70% |
-| 41 | 56 | 12 | voices | 20.2 | alto F#4, tenor F#4 (from F#4, D4) | alto D4, tenor A3 81% |
-| 42 | 315 | 1 | voices | 18 | alto F#4, tenor D4 (from G4, B3) | alto F#4, tenor A3 84% |
-| 43 | 116 | 6 | voices | 17.1 | alto F#4, tenor D4 (from A4, D4) | alto B4, tenor D4 93% |
-| 44 | 197 | 11 | voices | 16.4 | alto A4, tenor C4 (from G4, C4) | alto F4, tenor C4 99% |
-| 45 | 52 | 9 | embellishment | 19.9 | tenor: an anticipation on A3 | no embellishment 89%, a suspension 11%, an anticipation <1% |
-| 46 | 144 | 12 | embellishment | 19.9 | alto: an anticipation on G#4 | a passing note 63%, no embellishment 37%, an anticipation <1% |
-| 47 | 331 | 6 | embellishment | 14.1 | bass: an upper neighbour on A3 | no embellishment 83%, a lower neighbour 17%, an upper neighbour <1% |
-| 48 | 370 | 12 | embellishment | 13.7 | tenor: an upper neighbour on G#3 | no embellishment 95%, a lower neighbour 5%, an upper neighbour <1% |
-| 49 | 131 | 1 | embellishment | 10.3 | bass: a suspension on G3 | no embellishment 100%, a suspension <1%, an anticipation <1% |
-| 50 | 328 | 1 | embellishment | 10.3 | bass: a suspension on G3 | no embellishment 100%, a suspension <1%, an anticipation <1% |
-| 51 | 133 | 5 | embellishment | 6.5 | tenor: a lower neighbour on F3 | no embellishment 98%, an upper neighbour 1%, a lower neighbour 1% |
-| 52 | 200 | 7 | embellishment | 6 | tenor: a lower neighbour on E4 | no embellishment 97%, a lower neighbour 2%, an upper neighbour 1% |
-| 53 | 270 | 4 | embellishment | 3.8 | tenor: a passing note on F3 | no embellishment 93%, a passing note 7%, an anticipation <1% |
-| 54 | 332 | 6 | embellishment | 2.4 | tenor: a passing note on G#3 | no embellishment 82%, a passing note 18%, an anticipation <1% |
+| 33 | 2 | 7 | sonority | 19.9 | 7/n5 over bass degree 3: III (C♯ seventh chord, third not sounding (minor seventh)) (found nowhere else in the chorales) | 9/5/3 over bass degree 1 20%, 6/4 over bass degree 5 13%, 9/7/4 over bass degree 2 5% |
+| 34 | 272 | 3 | sonority | 19.9 | 6/4 over bass degree ♯4: vii (A minor) (found nowhere else in the chorales) | 6/4/2 over bass degree 4 16%, 9/5/3 over bass degree 5 15%, 6/4 over bass degree 2 10% |
+| 35 | 3 | 2 | sonority | 19.9 | ♯6/n5/3 over bass degree 2: V (E dominant seventh, minor ninth for the root) (found nowhere else in the chorales) | 5/4 over bass degree ♭7 9%, 7/3 over bass degree 2 8%, ♯6/3 over bass degree 2 7% |
+| 36 | 5 | 14 | sonority | 19.9 | 9/5/n3 over bass degree 5: v (D minor), incidental in the alto (found nowhere else in the chorales) | 9/5/3 over bass degree 5 21%, 9/5/♭3 over bass degree 5 20%, 6/n5/3 over bass degree 3 10% |
+| 37 | 309 | 11 | sonority | 19.9 | ♭9/7/4 over bass degree 6: v (E♭ minor), incidental in the bass (found nowhere else in the chorales) | 6/4/2 over bass degree 4 11%, 7/5/3 over bass degree 6 6%, 5/4 over bass degree 1 6% |
+| 38 | 116 | 13 | sonority | 19.9 | 7/6/3 over bass degree 3: iii (F♯ minor seventh), incidental in the soprano (found nowhere else in the chorales) | 9/5/3 over bass degree 6 16%, 7/3 over bass degree 6 12%, 6/4 over bass degree 5 5% |
+| 39 | 8 | 15 | sonority | 19.9 | 7/n5/3 over bass degree ♭6: ♭VI (D♭ major seventh), incidental in the tenor (found nowhere else in the chorales) | 9/5/3 over bass degree ♭3 14%, 6/4 over bass degree ♭7 5%, 6/♯4/2 over bass degree 4 4% |
+| 40 | 11 | 9 | sonority | 19.9 | 7/♯5/3 over bass degree 1: I (C major seventh), incidental in the alto (found nowhere else in the chorales) | 9/5/3 over bass degree 5 15%, 6/4/2 over bass degree 4 15%, 6/4 over bass degree 2 12% |
+| 41 | 327 | 2 | sonority | 19.9 | 6/4/n2 over bass degree 6: ♭VII (C major), incidental in the bass (found nowhere else in the chorales) | 5/4 over bass degree 5 18%, 6/4/2 over bass degree 4 12%, 7/3 over bass degree 7 6% |
+| 42 | 52 | 9 | sonority | 19.9 | 5/2 over bass degree 6: VI (F♯ triad, third not sounding), incidental in the tenor (found nowhere else in the chorales) | 9/5/3 over bass degree 1 20%, 6/4 over bass degree 5 13%, 9/7/4 over bass degree 2 5% |
+| 43 | 358 | 17 | voices | 15 | alto C5, tenor C4 (from Bb4, C4) | alto A4, tenor E4 77% |
+| 44 | 9 | 9 | voices | 14.9 | alto B4, tenor G4 (from G4, D4) | alto G4, tenor D4 78% |
+| 45 | 56 | 12 | voices | 13.9 | alto F#4, tenor F#4 (from F#4, D4) | alto D4, tenor A3 67% |
+| 46 | 290 | 7 | voices | 13.3 | alto G#4, tenor E#4 (from E#4, C#4) | alto E#4, tenor B#3 98% |
+| 47 | 251 | 4 | voices | 11.8 | alto C5, tenor G3 (from F4, Bb3) | alto G4, tenor G3 34% |
+| 48 | 207 | 2 | voices | 11.8 | alto A4, tenor D3 (from E4, A3) | alto D4, tenor A3 53% |
+| 49 | 23 | 10 | voices | 11.3 | alto D4, tenor B3 (from A4, D4) | alto G4, tenor D4 98% |
+| 50 | 88 | 10 | voices | 11.3 | alto D4, tenor B3 (from A4, D4) | alto G4, tenor D4 98% |
+| 51 | 354 | 4 | voices | 10.4 | alto F#4, tenor D4 (from G4, D4) | alto F#4, tenor A3 96% |
+| 52 | 280 | 23 | voices | 10.2 | alto D4, tenor D4 (from E4, A3) | alto D4, tenor A3 90% |
+| 53 | 250 | 4 | voices | 10.1 | alto D4, tenor F#3 (from A3, F#3) | alto A3, tenor F#3 100% |
+| 54 | 241 | 24 | voices | 9.9 | alto D4, tenor D4 (from A4, A3) | alto G4, tenor D4 51% |
+| 55 | 52 | 9 | embellishment | 19.9 | tenor: an anticipation on A3 | no embellishment 89%, a suspension 11%, an anticipation <1% |
+| 56 | 144 | 12 | embellishment | 19.9 | alto: an anticipation on G#4 | a passing note 63%, no embellishment 37%, an anticipation <1% |
+| 57 | 331 | 6 | embellishment | 14.1 | bass: an upper neighbour on A3 | no embellishment 83%, a lower neighbour 17%, an upper neighbour <1% |
+| 58 | 370 | 12 | embellishment | 13.7 | tenor: an upper neighbour on G#3 | no embellishment 95%, a lower neighbour 5%, an upper neighbour <1% |
+| 59 | 131 | 1 | embellishment | 10.3 | bass: a suspension on G3 | no embellishment 100%, a suspension <1%, an anticipation <1% |
+| 60 | 328 | 1 | embellishment | 10.3 | bass: a suspension on G3 | no embellishment 100%, a suspension <1%, an anticipation <1% |
+| 61 | 133 | 5 | embellishment | 6.5 | tenor: a lower neighbour on F3 | no embellishment 98%, an upper neighbour 1%, a lower neighbour 1% |
+| 62 | 200 | 7 | embellishment | 6 | tenor: a lower neighbour on E4 | no embellishment 97%, a lower neighbour 2%, an upper neighbour 1% |
+| 63 | 270 | 4 | embellishment | 3.8 | tenor: a passing note on F3 | no embellishment 93%, a passing note 7%, an anticipation <1% |
+| 64 | 332 | 6 | embellishment | 2.4 | tenor: a passing note on G#3 | no embellishment 82%, a passing note 18%, an anticipation <1% |

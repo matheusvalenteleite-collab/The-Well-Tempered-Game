@@ -125,11 +125,24 @@ interface Pair {
   cost: number;
 }
 
-/** How much Bach's habits count (1: as measured; 0: only the voices' moves and the two gravest
- *  warnings, a baseline of smooth voice-leading). */
+/** The weights of the three groups of costs: Bach's habits in a chord and at a chord's change (doubling,
+ *  spacing, a missing fifth, the seventh, the leading tone), the size of each voice's move, and the
+ *  warnings (parallel fifths/octaves, fifths/octaves by contrary motion, the augmented second, and the
+ *  relaxations where no strict voicing exists). WEIGHTS holds the values fitted so that the search's
+ *  probabilities match how often Bach writes each voicing (GENERATOR-VOICES.md); `habits: 0` leaves
+ *  only smooth voice-leading and the warnings, a baseline. */
 export interface VoiceOptions {
   habits?: number;
+  moves?: number;
+  warnings?: number;
 }
+export const WEIGHTS: Required<VoiceOptions> = { habits: 1, moves: 1, warnings: 1 };
+/** The weights that make the search's probabilities match how often Bach writes each voicing, fitted on
+ *  a sixth of the chorales and tested on another (mean surprise at Bach's voicings 1.70 -> 1.31 bits,
+ *  11 October 2026): for measuring surprise (X1). Read beat by beat, Bach's inner voices hold more
+ *  parallel fifths and octaves than the warnings assume (a passing note between the beats hides them),
+ *  so the fitted warnings weigh little; for writing, the generator keeps WEIGHTS. */
+export const CALIBRATED: Required<VoiceOptions> = { habits: 0.65, moves: 0.5, warnings: 0.25 };
 
 /** Every (alto, tenor) under a slot, with its cost in the chord. Where there is none (a melody note
  *  too low to leave room under it, a note the figure adds that cannot be placed), the constraints are
@@ -145,7 +158,8 @@ export function pairs(vm: VoiceModel, s: Slot, o: VoiceOptions = {}): Pair[] {
 }
 
 function pairsAt(vm: VoiceModel, s: Slot, o: VoiceOptions, relax: number): Pair[] {
-  const w = o.habits ?? 1;
+  const w = o.habits ?? WEIGHTS.habits;
+  const ww = o.warnings ?? WEIGHTS.warnings;
   const S = midiOf(s.soprano),
     B = midiOf(s.bass);
   // the bass's letter is a chord member unless the bass is an incidental note (a passing bass)
@@ -167,8 +181,8 @@ function pairsAt(vm: VoiceModel, s: Slot, o: VoiceOptions, relax: number): Pair[
       if (needed.some((p) => !pcs.has(p))) continue;
       let cost = 0;
       // the relaxations: as grave as the rarest warnings
-      cost += (a.midi > S ? vm.parallel : 0) + (t.midi < B ? vm.parallel : 0);
-      cost += optional.filter((p) => !pcs.has(p)).length * vm.parallel;
+      let warn = (a.midi > S ? vm.parallel : 0) + (t.midi < B ? vm.parallel : 0);
+      warn += optional.filter((p) => !pcs.has(p)).length * vm.parallel;
       if (fifth && !pcs.has(pcOf(fifth[0]))) cost += vm.noFifth;
       // doubling, in a triad whose every voice is a chord member (as level5.ts reads it)
       if (["major", "minor", "diminished", "augmented"].includes(s.kind)) {
@@ -183,7 +197,7 @@ function pairsAt(vm: VoiceModel, s: Slot, o: VoiceOptions, relax: number): Pair[
       } else if (s.kind.includes("seventh")) {
         // a doubled seventh is not a habit of Bach's
         const sev = s.above.find(([, r]) => r === "seventh") ?? (s.bassRole === "seventh" ? [letterOf(s.bass), "seventh"] : null);
-        if (sev && col.filter((m) => m % 12 === pcOf(sev[0])).length > 1) cost += vm.parallel / 2;
+        if (sev && col.filter((m) => m % 12 === pcOf(sev[0])).length > 1) warn += vm.parallel / 2;
       }
       const sp = (pair: string, over: boolean) => {
         const h = HABITS.spacing[pair];
@@ -193,7 +207,7 @@ function pairsAt(vm: VoiceModel, s: Slot, o: VoiceOptions, relax: number): Pair[
       cost += sp("soprano-alto", S - a.midi > 12) + sp("alto-tenor", a.midi - t.midi > 12) + sp("tenor-bass", t.midi - B > 19);
       if (a.midi === S) cost += 3;
       if (t.midi === a.midi) cost += 3;
-      out.push({ alto: a.name, tenor: t.name, a: a.midi, t: t.midi, cost: w * cost });
+      out.push({ alto: a.name, tenor: t.name, a: a.midi, t: t.midi, cost: w * cost + ww * warn });
     }
   return out;
 }
@@ -203,11 +217,13 @@ const keyOf = (p: Pair) => `${p.alto}${KEY}${p.tenor}`;
 
 /** The cost of moving from one pair to the next (slots i-1 and i). */
 function moveCost(vm: VoiceModel, s0: Slot, s1: Slot, p: Pair, q: Pair, o: VoiceOptions = {}): number {
-  const w = o.habits ?? 1;
-  let cost = vm.move.alto[Math.min(13, Math.abs(q.a - p.a))] + vm.move.tenor[Math.min(13, Math.abs(q.t - p.t))];
+  const w = o.habits ?? WEIGHTS.habits;
+  const wm = o.moves ?? WEIGHTS.moves;
+  const ww = o.warnings ?? WEIGHTS.warnings;
+  let cost = wm * (vm.move.alto[Math.min(13, Math.abs(q.a - p.a))] + vm.move.tenor[Math.min(13, Math.abs(q.t - p.t))]);
   // the game's own chord-to-chord check (level5.ts), each finding costed by its rarity in Bach
   for (const f of findingsBetween(1, [s0.soprano, p.alto, p.tenor, s0.bass], [s1.soprano, q.alto, q.tenor, s1.bass]))
-    cost += f.key === "parallel" ? vm.parallel : f.key === "contrary" ? vm.contrary : f.key === "augSecond" ? vm.augSecond : 0;
+    cost += ww * (f.key === "parallel" ? vm.parallel : f.key === "contrary" ? vm.contrary : f.key === "augSecond" ? vm.augSecond : 0);
   const changes = s1.root !== s0.root || s1.kind !== s0.kind;
   if (changes) {
     for (const [v, x, y] of [["alto", p.alto, q.alto], ["tenor", p.tenor, q.tenor]] as const) {
@@ -275,12 +291,12 @@ export function innerVoices(vm: VoiceModel, slots: Slot[], r?: () => number, T =
  *  probability among every pair the search would consider there, and the pair it would have chosen.
  *  Null where his pair is not among them (an incidental note on the beat, a voice out of range or
  *  crossing) or where the slot before has no pair of his. */
-export function voiceSurprise(vm: VoiceModel, slots: Slot[], i: number, alto: (string | null)[], tenor: (string | null)[]): { bits: number; expected: { alto: string; tenor: string; p: number } } | null {
+export function voiceSurprise(vm: VoiceModel, slots: Slot[], i: number, alto: (string | null)[], tenor: (string | null)[], o: VoiceOptions = {}): { bits: number; expected: { alto: string; tenor: string; p: number } } | null {
   if (i < 1 || !alto[i] || !tenor[i] || !alto[i - 1] || !tenor[i - 1]) return null;
   const prev: Pair = { alto: alto[i - 1]!, tenor: tenor[i - 1]!, a: midiOf(alto[i - 1]!), t: midiOf(tenor[i - 1]!), cost: 0 };
-  const layer = pairs(vm, slots[i]);
+  const layer = pairs(vm, slots[i], o);
   const same = (p: Pair) => midiOf(p.alto) === midiOf(alto[i]!) && midiOf(p.tenor) === midiOf(tenor[i]!) && letterOf(p.alto) === letterOf(alto[i]!) && letterOf(p.tenor) === letterOf(tenor[i]!);
-  const w = layer.map((q) => Math.pow(2, -(q.cost + moveCost(vm, slots[i - 1], slots[i], prev, q))));
+  const w = layer.map((q) => Math.pow(2, -(q.cost + moveCost(vm, slots[i - 1], slots[i], prev, q, o))));
   const z = w.reduce((a, b) => a + b, 0);
   const k = layer.findIndex(same);
   if (k < 0 || z <= 0) return null;

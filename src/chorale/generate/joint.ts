@@ -40,7 +40,7 @@ export class Joint {
   private hRow(i: number, prevChord: string, f: string | null) {
     const k = `${i}${SEP}${prevChord}${SEP}${f ?? ""}`;
     let r = this.hRows.get(k);
-    if (!r) this.hRows.set(k, (r = this.h.step(this.m.mode, this.m.notes[i].deg, prevChord, this.T, f)));
+    if (!r) this.hRows.set(k, (r = this.h.step(this.m, this.m.notes[i].deg, prevChord, this.T, f)));
     return r;
   }
 

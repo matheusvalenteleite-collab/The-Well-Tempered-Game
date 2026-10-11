@@ -31,9 +31,16 @@ const diatonic = (p: string) => LETTERS.indexOf(p[0]) + 7 * Number(p.replace(/^[
 
 export interface StudyChorale extends StudyLike {
   n: number;
+  bwv: string;
   title: string;
   tonic: string;
   mode: string;
+  meter: string;
+  pickup: number;
+  /** In 32nds of a whole note. */
+  length: number;
+  /** The Breitkopf print's page (a link), where the study has it. */
+  scan?: string;
 }
 export const STUDY = studyRaw as unknown as { kinds: string[]; chorales: StudyChorale[] };
 

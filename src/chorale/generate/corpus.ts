@@ -24,6 +24,10 @@ export interface BachEvent {
   /** Bass and soprano MIDI numbers. */
   bm: number;
   sm: number;
+  /** Every interval over the bass ("9/7/4"), and the voices whose note is incidental here (suspension,
+   *  appoggiatura, passing note on the beat...: "S", "A", "T", "B" as letters, "" for none). */
+  lit: string;
+  inc: string;
   /** Soprano and bass, spelled. */
   sp: string;
   bp: string;
@@ -51,19 +55,27 @@ export interface BachChorale {
   tune: string;
   tonic: string;
   mode: Mode;
+  /** The edition's mode (major, minor, dorian, mixolydian, phrygian). */
+  edition_mode: string;
   notes: BachEvent[];
 }
 
 /** What the generator is given: a melody as scale degrees, with its phrase ends. */
 export interface Melody {
   mode: Mode;
+  /** The modal context: the edition's mode where known (else the mode), and the melody's last degree
+   *  where it is not the tonic ("minor/5": a chorale that ends on the dominant, the Phrygian ending). */
+  modal: string;
   /** `close`: the melody's last two degrees at a phrase end, where notes between the beats count. */
   notes: { deg: string; end: boolean; close?: string; midi?: number }[];
 }
 
 export const BACH: BachChorale[] = (bachRaw as unknown as { chorales: BachChorale[] }).chorales;
 
-export const melodyOf = (c: BachChorale): Melody => ({ mode: c.mode, notes: c.notes.map((n) => ({ deg: n.deg, end: !!n.end, close: n.close, midi: n.sm })) });
+/** The modal context of a melody (see Melody.modal). */
+export const modalOf = (mode: string, lastDeg: string) => (lastDeg === "1" ? mode : `${mode}/${lastDeg}`);
+
+export const melodyOf = (c: BachChorale): Melody => ({ mode: c.mode, modal: modalOf(c.edition_mode, c.notes[c.notes.length - 1].deg), notes: c.notes.map((n) => ({ deg: n.deg, end: !!n.end, close: n.close, midi: n.sm })) });
 
 export interface KittelNote {
   offset: string;
@@ -106,7 +118,7 @@ export const KITTEL: KittelChorale[] = (l2Raw as unknown as { chorales: Omit<Kit
   };
 });
 
-export const kittelMelody = (c: KittelChorale): Melody => ({ mode: c.mode, notes: c.notes.map((n) => ({ deg: n.degree, end: n.fermata, midi: midiOf(n.pitch) })) });
+export const kittelMelody = (c: KittelChorale): Melody => ({ mode: c.mode, modal: modalOf(c.mode, c.notes[c.notes.length - 1].degree), notes: c.notes.map((n) => ({ deg: n.degree, end: n.fermata, midi: midiOf(n.pitch) })) });
 
 /** The number of Kittel's basses for a chorale (8, or 9 in Nos. 23-24). */
 export const kittelBasses = (c: KittelChorale) => c.notes[0].kittel.length;

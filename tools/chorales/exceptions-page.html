@@ -59,6 +59,8 @@
   .item .dot[data-r="idiomatic"] { background: var(--idiomatic); border-color: var(--idiomatic); }
   .item .dot[data-r="slip"] { background: var(--slip); border-color: var(--slip); }
   .item .dot[data-r="unsure"] { background: var(--unsure); border-color: var(--unsure); }
+  .item .dot[data-r="special"] { background: var(--beautiful); border-color: var(--beautiful); }
+  .item .dot[data-r="ordinary"] { background: var(--idiomatic); border-color: var(--idiomatic); }
   .item .t { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.86rem; }
   .item .b { font-family: var(--font-data); font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 
@@ -98,6 +100,8 @@
   .choice[data-r="idiomatic"][aria-pressed="true"] { border-color: var(--idiomatic); box-shadow: inset 0 0 0 1px var(--idiomatic); }
   .choice[data-r="slip"][aria-pressed="true"] { border-color: var(--slip); box-shadow: inset 0 0 0 1px var(--slip); }
   .choice[data-r="unsure"][aria-pressed="true"] { border-color: var(--unsure); box-shadow: inset 0 0 0 1px var(--unsure); }
+  .choice[data-r="special"][aria-pressed="true"] { border-color: var(--beautiful); box-shadow: inset 0 0 0 1px var(--beautiful); }
+  .choice[data-r="ordinary"][aria-pressed="true"] { border-color: var(--idiomatic); box-shadow: inset 0 0 0 1px var(--idiomatic); }
   textarea { font: inherit; width: 100%; min-height: 64px; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink); resize: vertical; }
   .nav { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
   .saved { font-size: 0.8rem; color: var(--muted); }
@@ -108,8 +112,8 @@
 <div class="wrap">
   <header class="top">
     <div>
-      <h1>Bach's Exceptions</h1>
-      <p class="lede">The choices in Bach's 370 chorales that surprise the generator most, measured by models that never saw the tune. Listen, read, and say what kind of rarity each one is.</p>
+      <h1 id="page-title">Bach's Exceptions</h1>
+      <p class="lede" id="page-lede">The choices in Bach's 370 chorales that surprise the generator most, measured by models that never saw the tune. Listen, read, and say what kind of rarity each one is.</p>
     </div>
     <div class="progress" aria-live="polite"><span id="count">0 of 0 rated</span><div class="bar"><i id="bar"></i></div></div>
   </header>
@@ -151,6 +155,7 @@
         <button class="choice" data-r="slip" type="button" aria-pressed="false"><b>Slip or doubtful <kbd>3</kbd></b><span>An error, a misreading, or not convincing</span></button>
         <button class="choice" data-r="unsure" type="button" aria-pressed="false"><b>Not sure <kbd>4</kbd></b><span>Come back to it</span></button>
       </div>
+      <label class="inline" for="flag" id="flag-row" hidden><input type="checkbox" id="flag"> The reading or the description looks wrong</label>
       <label for="note" class="keys">A note (what you hear, the text, a better reading)</label>
       <textarea id="note" placeholder="Optional"></textarea>
       <div class="nav">
@@ -166,17 +171,45 @@
 <script src="https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min.js"></script>
 <script>
 const MOMENTS = /*__MOMENTS__*/[];
-const LEVELS = { cadence: "Cadence", chord: "Chord", bass: "Bass", voices: "Inner voices", embellishment: "Embellishment" };
+const SETTINGS = /*__SETTINGS__*/{};
+const LEVELS = Object.assign({ cadence: "Cadence", chord: "Chord", bass: "Bass", sonority: "Sonority", voices: "Inner voices", embellishment: "Embellishment" }, SETTINGS.levels || {});
+const COLLECTION = SETTINGS.collection || "ratings";
+const STORE_KEY = SETTINGS.storeKey || "bach-exceptions";
 const VOICE = ["soprano", "alto", "tenor", "bass"];
 const ratings = {};
 let index = 0, filter = "all", db = null, local = true;
 
 const $ = (id) => document.getElementById(id);
 const store = {
-  load() { try { return JSON.parse(localStorage.getItem("bach-exceptions") || "{}"); } catch { return {}; } },
-  save() { try { localStorage.setItem("bach-exceptions", JSON.stringify(ratings)); } catch {} },
+  load() { try { return JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); } catch { return {}; } },
+  save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(ratings)); } catch {} },
 };
 Object.assign(ratings, store.load());
+if (SETTINGS.title) { $("page-title").textContent = SETTINGS.title; document.title = SETTINGS.title; }
+if (SETTINGS.lede) $("page-lede").textContent = SETTINGS.lede;
+if (SETTINGS.question) $("v-h").textContent = SETTINGS.question;
+if (SETTINGS.choices) {
+  const box = $("choices");
+  box.textContent = "";
+  SETTINGS.choices.forEach((c, k) => {
+    const b = document.createElement("button");
+    b.className = "choice";
+    b.type = "button";
+    b.dataset.r = c.key;
+    b.setAttribute("aria-pressed", "false");
+    const t = document.createElement("b");
+    t.textContent = c.label + " ";
+    const kb = document.createElement("kbd");
+    kb.textContent = String(k + 1);
+    t.append(kb);
+    const sp = document.createElement("span");
+    sp.textContent = c.hint || "";
+    b.append(t, sp);
+    box.append(b);
+  });
+}
+const KEYS = Object.fromEntries([...document.querySelectorAll(".choice")].map((c, k) => [String(k + 1), c.dataset.r]));
+if (SETTINGS.flag) $("flag-row").hidden = false;
 
 function visible() { return MOMENTS.map((m, i) => i).filter((i) => filter === "all" || !ratings[MOMENTS[i].id]?.rating); }
 
@@ -258,6 +291,7 @@ function show(i) {
   const r = ratings[m.id] || {};
   for (const c of document.querySelectorAll(".choice")) c.setAttribute("aria-pressed", String(c.dataset.r === r.rating));
   $("note").value = r.note || "";
+  $("flag").checked = !!r.flag;
   $("saved").textContent = r.rating ? "Saved" : "";
   renderList();
 }
@@ -286,7 +320,7 @@ async function persist(m) {
   const r = ratings[m.id] || {};
   try {
     $("saved").textContent = "Saving…";
-    await db.collection("ratings").doc(m.id).set({ rating: r.rating || null, note: r.note || "", no: m.no, bar: m.bar, level: m.level, bits: m.bits, updated: new Date().toISOString() });
+    await db.collection(COLLECTION).doc(m.id).set({ rating: r.rating || null, note: r.note || "", flag: !!r.flag, no: m.no, bar: m.bar, level: m.level, bits: m.bits, updated: new Date().toISOString() });
     $("saved").textContent = "Saved";
   } catch (e) {
     $("saved").textContent = "Not saved to the shared record (kept in this browser): " + (e && e.code ? e.code : "error");
@@ -355,6 +389,12 @@ $("play-moment").addEventListener("click", () => {
 $("stop").addEventListener("click", stop);
 $("tempo").addEventListener("input", () => ($("tempo-out").textContent = $("tempo").value));
 for (const c of document.querySelectorAll(".choice")) c.addEventListener("click", () => rate(c.dataset.r));
+$("flag").addEventListener("change", () => {
+  const m = MOMENTS[index];
+  ratings[m.id] = { ...(ratings[m.id] || {}), flag: $("flag").checked };
+  store.save();
+  persist(m);
+});
 $("prev").addEventListener("click", () => show(index - 1));
 $("next").addEventListener("click", () => show(index + 1));
 for (const c of document.querySelectorAll(".chip")) c.addEventListener("click", () => {
@@ -364,8 +404,7 @@ for (const c of document.querySelectorAll(".chip")) c.addEventListener("click", 
 });
 document.addEventListener("keydown", (e) => {
   if (e.target.closest && e.target.closest("textarea, input")) return;
-  const map = { "1": "beautiful", "2": "idiomatic", "3": "slip", "4": "unsure" };
-  if (map[e.key]) { rate(map[e.key]); e.preventDefault(); }
+  if (KEYS[e.key]) { rate(KEYS[e.key]); e.preventDefault(); }
   else if (e.key === " ") { play(0, MOMENTS[index].length); e.preventDefault(); }
   else if (e.key === "m" || e.key === "M") { $("play-moment").click(); }
   else if (e.key === "ArrowRight") show(index + 1);
@@ -385,10 +424,10 @@ show(0);
     return;
   }
   try {
-    const snap = await db.collection("ratings").get();
+    const snap = await db.collection(COLLECTION).get();
     for (const d of snap.docs) {
       const x = d.data();
-      if (x) ratings[d.id] = { rating: x.rating || undefined, note: x.note || "" };
+      if (x) ratings[d.id] = { rating: x.rating || undefined, note: x.note || "", flag: !!x.flag };
     }
     store.save();
     show(index);
