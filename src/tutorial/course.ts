@@ -10,7 +10,8 @@ import { ALL_STEPS, ruleById, rulesForStep } from "../counterpoint/curriculum/in
 import { exerciseView } from "../game/exercise-view.ts";
 import { playerStaves, TRIO_SPECIES, trioSteps, type TrioStep } from "../game/trio.ts";
 import { LIBRARY } from "../wtc/library.ts";
-import { fugueFacts, fugueNotes, trioNotes } from "./poly.ts";
+import { fugueFacts, fugueNotes, quartetNotes, trioNotes } from "./poly.ts";
+import { QUARTET_ALL, type QuartetStep } from "../game/quartet.ts";
 import { parsePitch } from "../music/pitch.ts";
 import { HOLD, REST } from "../counterpoint/layout.ts";
 import { cadenceOf, degreeOf, figuresOf } from "./harmony.ts";
@@ -136,15 +137,39 @@ export { FUGUE_ID };
 /** A whole note of the fugue, in seconds (a quarter at about 72). */
 const FUGUE_WHOLE = 3.3;
 
+/** A scene from a three-voice exercise; `open` holds [staff, slot] (the bar, or the moving staff's slot). */
 export function trioScene(step: TrioStep, open: [number, number][]): TrioScene {
   return {
     modalFinal: step.modalFinal,
     cantusIndex: step.cantusIndex,
     clefs: step.clefs,
-    start: step.fux.map((line, staff) => line.map((p, bar) => (open.some(([s, b]) => s === staff && b === bar) ? null : p))),
+    start: step.fux.map((line, staff) => line.map((p, k) => (open.some(([s, b]) => s === staff && b === k) ? null : p))),
     open,
     answer: step.fux,
     stepId: step.id,
+    species: step.species === 5 ? undefined : step.species,
+    movingIndex: step.movingIndex,
+    per: step.per === 8 ? undefined : step.per,
+    untied: step.untied,
+  };
+}
+
+/** The moving voice's slots in some bars (0-based), as open cells (D154). */
+const movingCells = (step: TrioStep, bars: number[]): [number, number][] =>
+  bars.flatMap((b) => Array.from({ length: step.per }, (_, j) => [step.movingIndex!, b * step.per + j] as [number, number]));
+
+/** A scene from a four-voice exercise in first species (D154). */
+export function quartetScene(step: QuartetStep, open: [number, number][]): TrioScene {
+  const fux = step.fux!;
+  return {
+    modalFinal: step.modalFinal,
+    cantusIndex: step.cantusIndex,
+    clefs: step.clefs,
+    start: fux.map((line, staff) => line.map((p, k) => (open.some(([s, b]) => s === staff && b === k) ? null : p))),
+    open,
+    answer: fux,
+    stepId: step.id,
+    kinds: step.kinds,
   };
 }
 
@@ -183,6 +208,12 @@ export function buildCourse({ repo, trio, trioData }: TutorialData): Chapter[] {
 
   // Three voices, species two to five: Fux's first example of each, again on the D cantus.
   const moving = trioData ? TRIO_SPECIES.filter((n) => n > 1).map((n) => trioSteps(trioData as never, n)[0]) : [];
+  const [t2, t3, t4] = moving;
+  // Fig. 125, bars 3-4: a minim saves two fifths with the bass by the leap of a third (p. 94).
+  const fig125 = trioData ? trioSteps(trioData as never, 2).find((x) => x.figure === "125") : undefined;
+  const saved: Clip | null = fig125 ? { id: "fig125", kind: "poly", notes: trioNotes(fig125).filter((n) => n.at >= 2 && n.at < 4).map((n) => ({ ...n, at: n.at - 2, bar: Math.floor(n.at) - 2 })), seconds: 2.4 } : null;
+  const q1 = QUARTET_ALL[1][0];
+  const QUARTET_SPECIES_FUX = ([2, 3, 4, 5, 6] as const).map((n) => QUARTET_ALL[n].find((q) => q.fux)!);
   // The fugue chapter: Bach's C major fugue, Book I.
   const F = LIBRARY.find((x) => x.id === FUGUE_ID)!.fugue();
   const facts = fugueFacts(F);
@@ -397,12 +428,27 @@ export function buildCourse({ repo, trio, trioData }: TutorialData): Chapter[] {
           id: "three.moving",
           task: { kind: "listen", clips: moving.map((s) => ({ id: `t${s.species}`, kind: "poly" as const, notes: trioNotes(s), seconds: 2.4 })), need: 1 },
         },
+        // D154: write in the moving voice, species two to four, in Fux's first example of each.
+        ...(t2 && t3 && t4
+          ? [
+              { id: "three.minims", trio: trioScene(t2, movingCells(t2, [3, 4])), clips: saved ? [saved] : [], task: { kind: "trio" as const } },
+              { id: "three.crotchets", trio: trioScene(t3, movingCells(t3, [3, 6])), task: { kind: "trio" as const } },
+              // The preparation on the upbeat, the dissonance held over the bar line, its resolution.
+              { id: "three.ligatures", trio: trioScene(t4, [9, 10, 11, 13, 14, 15].map((k) => [t4.movingIndex!, k] as [number, number])), task: { kind: "trio" as const } },
+            ]
+          : []),
         { id: "three.game", task: { kind: "game", voices: 3, stepId: STEP_IDS.trio } },
       ],
     },
     {
       id: "four",
-      lessons: [{ id: "four.preview", task: { kind: "read" } }],
+      lessons: [
+        { id: "four.preview", task: { kind: "read" } },
+        // D154: the inner voice and the top in two bars of Fux's first four-voice exercise (Fig. 160).
+        { id: "four.double", trio: quartetScene(q1, [[0, 4], [0, 5], [2, 4], [2, 5]]), task: { kind: "trio" } },
+        { id: "four.moving", task: { kind: "listen", clips: QUARTET_SPECIES_FUX.map((q) => ({ id: `q${q.species}`, kind: "poly" as const, notes: quartetNotes(q), seconds: 2.4 })), need: 1 } },
+        { id: "four.game", task: { kind: "game", voices: 4, stepId: q1.id } },
+      ],
     },
     {
       id: "fugue",

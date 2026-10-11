@@ -6,6 +6,7 @@
  */
 import { HOLD, REST } from "../counterpoint/layout.ts";
 import type { TrioStep } from "../game/trio.ts";
+import type { QuartetStep } from "../game/quartet.ts";
 import type { LibFugue } from "../wtc/library.ts";
 import type { PolyNote } from "./model.ts";
 
@@ -14,7 +15,7 @@ export function trioNotes(s: TrioStep, lines: string[][] = s.fux): PolyNote[] {
   const out: PolyNote[] = [];
   lines.forEach((line, voice) => {
     if (voice !== s.movingIndex) {
-      line.forEach((pitch, bar) => out.push({ pitch, at: bar, len: 1, voice }));
+      line.forEach((pitch, bar) => out.push({ pitch, at: bar, len: 1, voice, bar }));
       return;
     }
     const per = s.per;
@@ -27,7 +28,27 @@ export function trioNotes(s: TrioStep, lines: string[][] = s.fux): PolyNote[] {
       // Fourth species: the upbeat tied into the downbeat (the same pitch over the bar line) sounds once.
       if (s.species === 4 && last && k % per === 0 && x === last.pitch && Math.abs(last.at + last.len - at(k)) < 1e-9) return void (last.len += len);
       if (x === REST || x === HOLD || !x) return void (last = null);
-      last = { pitch: x, at: at(k), len, voice };
+      last = { pitch: x, at: at(k), len, voice, bar: Math.floor(at(k) + 1e-9) };
+      out.push(last);
+    });
+  });
+  return out.sort((a, b) => a.at - b.at || a.voice - b.voice);
+}
+
+/**
+ * A four-voice exercise of Fux's as notes (D154): the cantus one a bar; every other part in quaver
+ * slots (eight a bar, one in the last), HOLD carrying a note on, over the bar line too.
+ */
+export function quartetNotes(q: QuartetStep): PolyNote[] {
+  const out: PolyNote[] = [];
+  (q.fux ?? []).forEach((line, voice) => {
+    if (q.species === 1 || voice === q.cantusIndex) return void line.forEach((pitch, bar) => out.push({ pitch, at: bar, len: 1, voice, bar }));
+    let last: PolyNote | null = null;
+    line.forEach((x, k) => {
+      const len = k === line.length - 1 ? 1 : 1 / 8;
+      if (x === HOLD && last) return void (last.len += len);
+      if (x === REST || x === HOLD || !x) return void (last = null);
+      last = { pitch: x, at: k / 8, len, voice, bar: Math.floor(k / 8) };
       out.push(last);
     });
   });

@@ -718,21 +718,90 @@
       },
       "done": "One cantus, two companions, one of them dancing."
     },
+    "three.minims": {
+      "title": "Minims against two whole notes",
+      "text": [
+        "Second species in three voices (Exercitium II, Lectio II, pp. 94–99): one voice moves in **minims**, two hold whole notes, the cantus among them. Each minim must agree with **both** whole notes, and on the downbeat the three voices make the harmony of first species: the triad where it can be had.",
+        "Fux grants one freedom two voices did not have: for the triad's sake, a minim may **save two fifths by the leap of a third** (p. 94). Listen to Fig. 125, bars 3–4 (the mode on E, the cantus in the bass): A a fifth over D, a leap down to F, then G a fifth over C. Between the two fifths stands the third; in two voices that was not enough.",
+        "Here, in Fux's first example on the D cantus (Fig. 121), the minims of bars 4 and 5 are empty."
+      ],
+      "prompt": "Write the four minims of bars 4 and 5 in the middle voice.",
+      "hint": "Bar 4: B, the third above the bass G (with the cantus's D, the full triad), then A, passing down by step to bar 5. Bar 5: G, a third above E, then a leap up to B, the fifth, which fills the triad E–G–B.",
+      "clips": {
+        "fig125": "Fig. 125, bars 3–4: two fifths saved by a third"
+      },
+      "done": "Fux's minims: a passing note, then a leap to fill the chord."
+    },
+    "three.crotchets": {
+      "title": "Crotchets against two whole notes",
+      "text": [
+        "Third species in three voices (Lectio III, pp. 99–103): four crotchets against the two whole notes. The rules of crotchets in two voices hold against each of them: the downbeat consonant, a dissonance only passing by step (or Fux's cambiata).",
+        "And the triad: Fux asks for it on the downbeat, but grants that where the **first** crotchet cannot make it, the **second or the third** should (p. 100).",
+        "In his first example (Fig. 130) the cantus is in the middle and the crotchets on top; bars 4 and 7 are empty."
+      ],
+      "prompt": "Write the crotchets of bars 4 and 7.",
+      "hint": "Bar 4: B, a third over the bass G (the cantus's D completes the triad), then C, D, and back to B. Bar 7: C, the fifth over F (with the cantus's A, the triad again), then A, C, D, climbing to the E that opens bar 8.",
+      "done": "Fux's crotchets: the triad on the downbeat, steps between."
+    },
+    "three.ligatures": {
+      "title": "Ligatures in three voices",
+      "text": [
+        "Fourth species in three voices (Lectio IV, pp. 103–111). The ligature is made as in two voices: a consonant upbeat, held over the bar line; if it becomes a dissonance there, it falls by step to a consonance.",
+        "Fux adds a paradox: a ligature is only the **delay** of the next note, so the third voice takes the concord it would have taken **without** the ligature (p. 103). Hear the resolution in your head, and set the other voices to it.",
+        "In his first example (Fig. 141) the ligatures are on top. Two of them are empty: from the second half of bar 5 into bar 6, and from bar 7 into bar 8. (In bar 3 Josephus begins a ligature with a fourth, not a consonance; he marks it himself with a sign of doubt, p. 106.)"
+      ],
+      "prompt": "Write the two ligatures: the upbeats of bars 5 and 7, and the bars they are held into.",
+      "hint": "Bar 5's second half: E, an octave above the bass. Held into bar 6, it is a seventh above F, and falls to D, the sixth. Bar 7's second half: F, an octave above F; held into bar 8, it is a fourth above C, and falls to E, the third.",
+      "done": "7–6 and 4–3: each dissonance held over the bar line, then down a step."
+    },
     "three.game": {
       "title": "Three voices in the game",
       "text": [
         "Choose **3 voices** in the first menu. You write both voices that are not the cantus, in any order: clicking a staff writes there and makes it the active voice; with the keyboard, **V** switches between your two voices. All five species are there, Fux's exercises in his order: in species two to five one of your voices takes the new rhythm while the other keeps to whole notes. The two-voice rules of each species hold for the moving voice, and the three-voice rules for the harmony on the downbeats.",
         "What the game checks besides: begin and end with the final as the lowest note; in the last bar the other voices take its octave, its fifth or its major third — never the minor third (in D, no F♮ over the final D); and in your voices no tritone, major sixth or seventh leaps."
       ],
-      "prompt": "Try Fux's first three-voice exercise, or read ahead about four voices."
+      "prompt": "Try Fux's first three-voice exercise, or go on to four voices."
     },
     "four.preview": {
       "title": "Four voices",
       "text": [
-        "The Gradus ends its course in four voices (Exercitium III), and so does the game: choose **4 voices** in the first menu. Against the cantus you write three voices, species by species: Fux's own exercises first, then the modes he leaves to private study, without a solution of his, and last the species combined, each voice in its own rhythm.",
-        "What changes is mostly arithmetic. A triad has three different notes, so with four voices one of them must be **doubled**, sung by two voices at once. Fux says which: the octave of the bass first; where that would give faulty progressions, the third, more rarely the sixth (p. 114). The voices also share the space: from high to low, soprano, alto, tenor, bass, each kept singable and, Fux adds, the closer together the fuller the harmony.",
-        "And the more voices, the harder it is to avoid every hidden fifth and octave: Fux tolerates them where necessity forces them (p. 115), and so the game notes them as advice, not as faults. In species two to five one voice moves and two hold semibreves, which in the fourth and fifth species may be divided into two minims where a clash would otherwise be unavoidable (pp. 132–133)."
+        "The Gradus ends its course in four voices (Exercitium III), and so does the game. Against the cantus you write three voices, species by species: Fux's own exercises first, then the modes he leaves to private study, without a solution of his, and last the species combined, each voice in its own rhythm.",
+        "What changes is mostly arithmetic. A triad has three different notes, so with four voices one of them must be **doubled**, sung by two voices at once. Fux says which: the octave of the bass first; where that would give faulty progressions, the third, more rarely the sixth (p. 114). The voices also share the space: from high to low, soprano, alto, tenor, bass, each kept singable and, Fux adds, the closer together the fuller the harmony."
       ]
+    },
+    "four.double": {
+      "title": "Doubling a note",
+      "text": [
+        "Four voices, first species: Fux's first example (Fig. 160, p. 115), the cantus second from the top. A triad has three notes; the fourth voice must **double** one of them. Fux's order: the octave of the bass first; where it would bring faulty progressions, the third; more rarely the sixth (p. 114).",
+        "Bars 5 and 6 of the top voice and the tenor are empty. Check every pair of voices, not only against the bass: six pairs now."
+      ],
+      "prompt": "Write the top voice and the tenor in bars 5 and 6.",
+      "hint": "Bar 5, over E (the cantus has G): G in the tenor and B on top, the triad E–G–B with its third doubled. Bar 6, over D (the cantus has F): A in the tenor and D on top, the triad with the bass's octave.",
+      "done": "In bar 5 Fux doubles the third, in bar 6 the octave: the order bends to the progressions."
+    },
+    "four.moving": {
+      "title": "Four voices, one or more moving",
+      "text": [
+        "Species two to five in four voices (Lectiones II–V, pp. 121–138): one voice moves, the other two hold whole notes with the cantus, and must now agree with three of them. In the fourth and fifth species Fux lets the whole notes be **divided** into two minims where a ligature's resolution would otherwise clash (pp. 132–133): 'the rigour of the three semibreves cannot be held very strictly in this species.'",
+        "Last, the species **combined** (p. 138): minims, crotchets and ligatures together over one cantus, each voice its own motion. Listen to Fux's first example of each."
+      ],
+      "prompt": "Listen to at least one of Fux's examples.",
+      "clips": {
+        "q2": "2nd species, four voices (Fig. 173)",
+        "q3": "3rd species, four voices (Fig. 177)",
+        "q4": "4th species, four voices (Fig. 193)",
+        "q5": "5th species, four voices (Fig. 200)",
+        "q6": "The species combined (Fig. 204)"
+      },
+      "done": "Four voices, each with a line of its own."
+    },
+    "four.game": {
+      "title": "Four voices in the game",
+      "text": [
+        "Choose **4 voices** in the first menu. You write the three voices that are not the cantus, in any order (**V** switches between them). Fux's exercises come first in each species, then the modes he leaves to private study, then the species combined. Hidden fifths and octaves are noted as advice, not faults, as Fux tolerates them by necessity (p. 115); in the fourth and fifth species, tap the right half of a whole note's bar to divide it.",
+        "The **Lectio** tab beside the evaluation has what Fux says of each species, in his Latin and in English, with the pages of the 1725 print."
+      ],
+      "prompt": "Try Fux's first four-voice exercise."
     },
     "fugue.what": {
       "title": "What a fugue is",

@@ -16,7 +16,8 @@ import { buildOverlay, neutralOverlay } from "./notation/overlay.ts";
 import { audio, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
 import { stepStudy } from "./study.ts";
-import { HOLD, sounding, type PlayEvent, type Slot } from "../counterpoint/layout.ts";
+import { HOLD, REST, sounding, type PlayEvent, type Slot } from "../counterpoint/layout.ts";
+import { quartetNotes, trioNotes } from "../tutorial/poly.ts";
 import { harmonic, interval } from "../counterpoint/interval.ts";
 import { applyAccidental, initialState, place, select, type Accidental, type SessionState } from "../game/session.ts";
 import { parsePitch } from "../music/pitch.ts";
@@ -398,55 +399,75 @@ export function TrioPane(p: {
   cursorClip?: string;
 }) {
   const s = p.scene;
+  const n = s.answer.length;
+  const per = s.per ?? 1;
+  const moving = s.movingIndex ?? null;
   const [voices, setVoices] = useState<(string | null)[][]>(() => s.start.map((l) => [...l]));
+  // The selection: [staff, slot] (the bar, or on the moving staff its slot).
   const [sel, setSel] = useState<[number, number] | null>(s.open[0] ?? null);
   const [pending, setPending] = useState<Accidental | null>(null);
   const [showHint, setShowHint] = useState(false);
-  const isOpen = (staff: number, bar: number) => s.open.some(([a, b]) => a === staff && b === bar);
-  const full = voices.every((l) => l.every((n) => n !== null));
+  const isOpen = (staff: number, k: number) => s.open.some(([a, b]) => a === staff && b === k);
+  const barOf = (staff: number, k: number) => (staff === moving ? Math.floor(k / per) : k);
+  const full = voices.every((l) => l.every((x) => x !== null));
   const result = useMemo(() => (p.writable && full ? judgeTrio(s, voices) : null), [voices, full, p.writable, s]);
   const done = Boolean(result && result.errors.length === 0);
   useEffect(() => p.onDone?.(done), [done]);
 
+  /** What sounds at a bar's downbeat (the moving voice's first note of the bar). */
   const audition = (bar: number, vs: (string | null)[][]) => {
-    const col = vs.map((l) => l[bar]).filter((n): n is string => n !== null);
+    const col = vs.map((l, i) => (i === moving ? l[Math.min(l.length - 1, bar * per)] : l[bar])).filter((x): x is string => !!x && x !== REST && x !== HOLD);
     const { events } = clipEvents({ id: "col", kind: "columns", columns: [col] });
     p.player.audition(events, 1);
   };
-  const write = (staff: number, bar: number, pitch: string) => {
-    const next = voices.map((l, i) => (i === staff ? l.map((n, b) => (b === bar ? pitch : n)) : l));
+  const write = (staff: number, k: number, pitch: string) => {
+    const next = voices.map((l, i) => (i === staff ? l.map((x, b) => (b === k ? pitch : x)) : l));
     setVoices(next);
-    setSel([staff, bar]);
-    audition(bar, next);
+    setSel([staff, k]);
+    audition(barOf(staff, k), next);
   };
   const accidental = (a: Accidental) => {
     const cur = sel ? voices[sel[0]][sel[1]] : null;
-    if (sel && cur) {
+    if (sel && cur && cur !== REST && cur !== HOLD) {
       const q = parsePitch(cur);
       write(sel[0], sel[1], withAccidental(`${q.step}${q.octave}`, q.alter === a ? null : a));
     } else setPending(pending === a ? null : a);
   };
+  const bars = s.answer[s.cantusIndex].length;
   const playAll = () => {
-    const events: PlayEvent[] = s.answer[0].map((_, k) => {
-      const col = voices.map((l) => l[k]).filter((n): n is string => n !== null).sort((a, b) => parsePitch(a).midi - parsePitch(b).midi);
+    const lines = voices.map((l) => l.map((x) => x ?? REST));
+    const notes =
+      moving === null && !s.kinds
+        ? null
+        : s.kinds
+          ? quartetNotes({ species: 1, cantusIndex: s.cantusIndex, fux: lines } as never)
+          : trioNotes({ movingIndex: moving, per, species: s.species ?? 1 } as never, lines);
+    if (notes) {
+      const { events, whole } = clipEvents({ id: "trio", kind: "poly", notes: notes.filter((x) => x.pitch !== REST), seconds: audio.barSeconds });
+      return p.player.play("trio", events, whole);
+    }
+    const events: PlayEvent[] = Array.from({ length: bars }, (_, k) => {
+      const col = voices.map((l) => l[k]).filter((x): x is string => x !== null).sort((a, b) => parsePitch(a).midi - parsePitch(b).midi);
       return { slot: k, at: k, length: 1, cantus: col[0] ?? null, counterpoint: col[1] ?? null, extra: col.slice(2).map((x) => ({ channel: "counterpoint" as const, pitch: x })) };
     });
     p.player.play("trio", events, audio.barSeconds);
   };
-  const playerStaves = [0, 1, 2].filter((x) => x !== s.cantusIndex);
-  // Two staves, as in the game (D113): each voice by the register of Fux's line, the player's in their colours.
+  const playerStaves = Array.from({ length: n }, (_, i) => i).filter((x) => x !== s.cantusIndex);
+  // Two staves, as in the game (D113, D148): each voice by the register of Fux's line, the player's in their colours.
   const mean = (line: (string | null)[]) => {
-    const ms = line.filter((x): x is string => !!x).map((x) => parsePitch(x).midi);
+    const ms = line.filter((x): x is string => !!x && x !== REST && x !== HOLD).map((x) => parsePitch(x).midi);
     return ms.reduce((a, b) => a + b, 0) / Math.max(1, ms.length);
   };
-  const staves = trioStaves(s.answer.map(mean));
-  const INK = ["var(--trk-counterpoint)", "var(--trk-second)"];
+  const staves = n === 4 ? quartetStaves(s.answer.map(mean)) : trioStaves(s.answer.map(mean));
+  const INK = ["var(--trk-counterpoint)", "var(--trk-second)", "var(--trk-third)"];
   const drawn: TrioVoice[] = voices.map((notes, i) => ({
     notes,
     editable: p.writable && s.open.some(([a]) => a === i),
     staff: staves.staff[i],
+    ...(i === moving && per > 1 ? { per: per as 2 | 4 } : {}),
     ...(i === s.cantusIndex ? {} : { ink: INK[playerStaves.indexOf(i)] }),
   }));
+  const selBar = sel ? barOf(sel[0], sel[1]) : -1;
   return (
     <div className="tut-write">
       <div className="tut-score trio">
@@ -454,20 +475,26 @@ export function TrioPane(p: {
           voices={drawn}
           clefs={staves.clefs}
           active={sel?.[0] ?? playerStaves[0]}
-          selected={sel?.[1] ?? -1}
+          selected={selBar}
+          selectedPart={sel && sel[0] === moving ? sel[1] - selBar * per : null}
           cursor={p.player.playing === "trio" || p.player.playing === p.cursorClip ? p.player.cursor : -1}
           marks={result ? result.violations.flatMap((v) => v.positions.map((bar) => ({ bar, severity: v.severity }))) : undefined}
-          pulse={p.pulse ?? (p.writable ? [...new Set(s.open.filter(([a, b]) => voices[a][b] === null).map(([, b]) => b))] : undefined)}
+          pulse={p.pulse ?? (p.writable ? [...new Set(s.open.filter(([a, b]) => voices[a][b] === null).map(([a, b]) => barOf(a, b)))] : undefined)}
           figures
           names={p.names}
           nameStyle="letters"
           label={p.label}
-          onPlace={(staff, bar, natural) => {
-            if (!p.writable || !isOpen(staff, bar)) return;
-            write(staff, bar, withAccidental(natural, pending));
+          onPlace={(staff, bar, natural, part) => {
+            const k = staff === moving ? Math.min(voices[staff].length - 1, bar * per + part) : bar;
+            if (!p.writable || !isOpen(staff, k)) return;
+            write(staff, k, withAccidental(natural, pending));
             setPending(null);
           }}
-          onSelect={(staff, bar) => staff !== null && isOpen(staff, bar) && setSel([staff, bar])}
+          onSelect={(staff, bar) => {
+            if (staff === null) return;
+            const k = staff === moving ? bar * per : bar;
+            if (isOpen(staff, k)) setSel([staff, k]);
+          }}
           zoom={1}
           onZoom={() => undefined}
           zoomLabels={{ in: t("ui.zoom.in"), out: t("ui.zoom.out"), reset: t("ui.zoom.reset") }}

@@ -17,7 +17,7 @@ import { stepStudy } from "../src/ui/study.ts";
 
 const repo = loadFuxRepository();
 const TRIO = trioSteps(data as never);
-const CHAPTERS = buildCourse({ repo, trio: TRIO });
+const CHAPTERS = buildCourse({ repo, trio: TRIO, trioData: data });
 const LESSONS = lessonsOf(CHAPTERS).map((x) => x.lesson);
 const lesson = (id: string): Lesson => {
   const l = LESSONS.find((x) => x.id === id);
@@ -107,6 +107,20 @@ test("three voices: Fux's answer passes, the open cells are blank", () => {
   const cad = lesson("three.cadence").trio!;
   const plain = cad.answer.map((line, i) => line.map((n, b) => (i === 1 && b === 9 ? "C4" : n)));
   assert.ok(judgeTrio(cad, plain).errors.some((e) => e.ruleId === "t1.cadence"));
+});
+
+test("three and four voices (D154): writing in the moving voice and in four parts, judged as in the game", () => {
+  const ids = ["three.minims", "three.crotchets", "three.ligatures", "four.double", "four.moving", "four.game"];
+  for (const id of ids) assert.ok(lesson(id), id);
+  // The ligature lesson: resolving the seventh upward is a fault of the species.
+  const lig = lesson("three.ligatures").trio!;
+  const up = lig.answer.map((line, i) => line.map((n, k) => (i === lig.movingIndex && k === 11 ? "F5" : n)));
+  assert.ok(judgeTrio(lig, up).errors.some((e) => e.ruleId === "t4.resolution"));
+  // Four voices: an octave on top in bar 5 as well as bar 6 runs into parallel octaves.
+  const four = lesson("four.double").trio!;
+  assert.equal(four.answer.length, 4);
+  const par = four.answer.map((line, i) => line.map((n, k) => (i === 0 && k === 4 ? "E5" : n)));
+  assert.ok(judgeTrio(four, par).errors.length > 0);
 });
 
 test("the fifth-species choice: the engine agrees with the right answer and with each reason given", () => {
