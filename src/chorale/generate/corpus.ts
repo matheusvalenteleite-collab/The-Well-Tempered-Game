@@ -47,6 +47,10 @@ export interface BachEvent {
   end?: 1;
   /** At a phrase end: the melody's last two degrees ("2-1"). */
   close?: string;
+  /** At a phrase end: the root and kind of the last on-beat chord of another root before it, whether
+   *  or not the soprano attacks there (a held soprano over the dominant leaves no event of its own). */
+  pr?: string;
+  pk?: string;
 }
 
 export interface BachChorale {

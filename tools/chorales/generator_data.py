@@ -96,6 +96,12 @@ def chorale_events(c: dict, a: dict) -> dict:
         last_seen = vi
         if n.get("fermata"):
             e["end"] = 1
+            # the last on-beat chord before the close, whether or not the soprano moves there (a held
+            # soprano over the dominant leaves no event of its own)
+            pre = next((u for u in reversed(a["verticalities"][:vi]) if u["on_beat"] and u["root"] and u["root"] != v["root"]), None)
+            if pre:
+                e["pr"] = pre["root"]
+                e["pk"] = pre["chord"]
             if i > 0:
                 e["close"] = f"{degree(sop[i - 1]['pitch'], tonic_name)}-{degree(n['pitch'], tonic_name)}"
         notes.append(e)
@@ -112,7 +118,7 @@ def main() -> None:
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({
         "generated_by": "tools/chorales/generator_data.py",
-        "note": "On-beat soprano attacks of Bach's chorales. deg: melody degree; chord: Kirnberger's fundamental as a degree of the key (upper case major, lower case minor, ° diminished); bass: bass degree; fig: figure in period abbreviation; bm, sm: bass and soprano MIDI; sp, bp: soprano and bass spelled; lit: every interval over the bass; inc: the voices (S, A, T, B) whose note is incidental at the onset; root, kind, role: Kirnberger's fundamental (root, chord kind, the bass's member or 'passing'); a, tn: alto and tenor, spelled (null where resting); pos: the chord's position over the bass (5/3, 6, 6/4, 7, 6/5, 4/3, 4/2; absent where the bass is not a chord tone); direct: no onset in any voice since the event before; end: soprano fermata; close: the melody's last two degrees at a phrase end.",
+        "note": "On-beat soprano attacks of Bach's chorales. deg: melody degree; chord: Kirnberger's fundamental as a degree of the key (upper case major, lower case minor, ° diminished); bass: bass degree; fig: figure in period abbreviation; bm, sm: bass and soprano MIDI; sp, bp: soprano and bass spelled; lit: every interval over the bass; inc: the voices (S, A, T, B) whose note is incidental at the onset; root, kind, role: Kirnberger's fundamental (root, chord kind, the bass's member or 'passing'); a, tn: alto and tenor, spelled (null where resting); pos: the chord's position over the bass (5/3, 6, 6/4, 7, 6/5, 4/3, 4/2; absent where the bass is not a chord tone); direct: no onset in any voice since the event before; end: soprano fermata; close: the melody's last two degrees at a phrase end; pr, pk: at a phrase end, the root and kind of the last on-beat chord of another root before it (a soprano attack or not).",
         "chorales": chorales,
     }, ensure_ascii=False, separators=(",", ":")) + "\n")
     n = sum(len(c["notes"]) for c in chorales)

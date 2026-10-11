@@ -12,11 +12,11 @@ ending off its tonic, where a modal idiom may be at work rather than a licence.
 | category | instances | chorales | at a phrase end | in the last phrase | modal | median surprise (bits) | again in another setting |
 |---|---|---|---|---|---|---|---|
 | Chromatic bass lines | 71 | 62 | 3% | 15% | 10% | 1.5 | 10 of 17 |
-| The Neapolitan: the flat second in its local key | 2 | 2 | 0% | 50% | 50% | 7.3 | – |
-| Mixture: the minor mode's chords in a major region | 51 | 37 | 2% | 10% | 35% | 5.2 | 11 of 14 |
+| The Neapolitan: the flat second in its local key | 4 | 4 | 0% | 25% | 25% | 7.4 | 2 of 2 |
+| Mixture: the minor mode's chords in a major region | 52 | 37 | 2% | 12% | 40% | 4.2 | 9 of 13 |
 | Diminished sevenths of another degree | 87 | 71 | 0% | 25% | 25% | 4.8 | 16 of 24 |
-| Applied dominants that go elsewhere | 143 | 103 | 10% | 30% | 19% | 3.5 | 21 of 37 |
-| Closes in distant keys | 34 | 26 | 100% | 0% | 44% | 2.9 | 2 of 9 |
+| Applied dominants that go elsewhere | 130 | 95 | 11% | 32% | 21% | 3.6 | 17 of 30 |
+| Closes in distant keys | 43 | 34 | 100% | 0% | 40% | 2.4 | 4 of 13 |
 | Phrases that end on a dissonant chord | 14 | 13 | 100% | 0% | 14% | 2.1 | – |
 
 ## Chromatic bass lines
@@ -24,24 +24,24 @@ ending off its tonic, where a modal idiom may be at work rather than a licence.
 Three or more semitone steps in a row in the bass, the same way (the start of the run). 71 instances in 62 chorales.
 
 - Melody degree above it: 5 23%, 2 21%, 1 18%, 3 11%.
-- The chord before (in the local key): I 25%, vi 21%, V 11%, i 11%; after: I 30%, V 20%, IV 17%, ♭VI 6%.
+- The chord before (in the local key): I 25%, vi 20%, i 13%, V 11%; after: I 30%, V 20%, IV 14%, ♭VI 8%.
 - In the bars rated in the first round: no. 332 bar 6 idiomatic.
 - The most surprising: no. 310 bar 6, no. 67 bar 11, no. 360 bar 8, no. 142 bar 13, no. 117 bar 7, no. 94 bar 8.
 
 ## The Neapolitan: the flat second in its local key
 
-The major chord on the lowered second degree of the local key (not the Phrygian second: a Phrygian chorale's own second degree in its home region). 2 instances in 2 chorales.
+The major chord on the lowered second degree of the local key (not the Phrygian second: a Phrygian chorale's own second degree in its home region). 4 instances in 4 chorales.
 
-- Melody degree above it: 4 100%.
-- The chord before (in the local key): V 50%, ♭VI 50%; after: V 50%, ♭VII 50%.
-- The most surprising: no. 262 bar 2, no. 360 bar 9.
+- Melody degree above it: 2 50%, 4 50%.
+- The chord before (in the local key): i 50%, V 25%, ♭VI 25%; after: ♭III 50%, V 25%, ♭VII 25%.
+- The most surprising: no. 201 bar 12, no. 306 bar 12, no. 262 bar 2, no. 360 bar 9.
 
 ## Mixture: the minor mode's chords in a major region
 
-♭III, ♭VI, ♭VII, i, iv, v or ii° in a region in a major key, the chord outside the key and not applied to a degree. 51 instances in 37 chorales.
+♭III, ♭VI, ♭VII, i, iv, v or ii° in a region in a major key, the chord outside the key and not applied to a degree. 52 instances in 37 chorales.
 
-- Melody degree above it: ♭7 33%, 5 20%, 2 16%, 4 14%.
-- The chord before (in the local key): I 29%, V 18%, IV 12%, ii 10%; after: V 37%, IV 24%, I 10%, vi 8%.
+- Melody degree above it: ♭7 33%, 5 21%, 4 13%, 2 12%.
+- The chord before (in the local key): I 31%, V 17%, IV 15%, ii 10%; after: V 37%, IV 27%, vi 8%, ii 8%.
 - In the bars rated in the first round: no. 310 bar 7 beautiful; no. 139 bar 2 beautiful; no. 341 bar 5 idiomatic; no. 61 bar 2 beautiful.
 - The most surprising: no. 139 bar 2, no. 310 bar 7, no. 357 bar 9, no. 284 bar 11, no. 61 bar 11, no. 341 bar 5.
 
@@ -50,25 +50,25 @@ The major chord on the lowered second degree of the local key (not the Phrygian 
 The diminished seventh chord (read as a dominant with a minor ninth, its root unsounded) other than the local key's own, or the own of a region distant from home. 87 instances in 71 chorales.
 
 - Melody degree above it: ♭3 21%, 1 18%, 5 17%, 6 10%.
-- The chord before (in the local key): i 16%, I 11%, iv 10%, IV 8%; after: V 34%, vi 11%, v 10%, i 7%.
+- The chord before (in the local key): i 17%, I 13%, iv 10%, IV 8%; after: V 34%, vi 11%, v 8%, iv 7%.
 - In the bars rated in the first round: no. 59 bar 5 beautiful.
 - The most surprising: no. 174 bar 2, no. 303 bar 7, no. 340 bar 3, no. 236 bar 5, no. 295 bar 5, no. 58 bar 13.
 
 ## Applied dominants that go elsewhere
 
-A dominant of a degree (major, dominant seventh, diminished seventh) outside the local key that does not go to the degree it points to. 143 instances in 103 chorales.
+A dominant of a degree (major, dominant seventh, diminished seventh) outside the local key that does not go to the degree it points to. 130 instances in 95 chorales.
 
-- Melody degree above it: 2 36%, 3 16%, 1 12%, 7 10%.
-- The chord before (in the local key): I 24%, V 17%, vi 16%, i 10%; after: I 23%, IV 14%, iii 14%, vi 8%.
+- Melody degree above it: 2 32%, 3 18%, 1 11%, 7 11%.
+- The chord before (in the local key): I 25%, vi 17%, V 13%, i 12%; after: I 25%, IV 15%, iii 13%, III 8%.
 - In the bars rated in the first round: no. 310 bar 7 beautiful; no. 90 bar 8 beautiful; no. 211 bar 7 idiomatic.
 - The most surprising: no. 90 bar 8, no. 162 bar 10, no. 346 bar 10, no. 128 bar 7, no. 77 bar 4, no. 108 bar 9.
 
 ## Closes in distant keys
 
-A phrase that closes on the tonic of a region not closely related to home (near: the keys of the home scale's triads, by the edition's mode, and in minor the major dominant and subdominant). 34 instances in 26 chorales.
+A phrase that closes on the tonic of a region not closely related to home (near: the keys of the home scale's triads, by the edition's mode, and in minor the major dominant and subdominant). 43 instances in 34 chorales.
 
-- Melody degree above it: 2 21%, 5 21%, 1 21%, 4 21%.
-- The chord before (in the local key): V 62%, ii 9%, I 6%, iv 6%; after: V 26%, I 24%, iii 9%, ♭VI 9%.
+- Melody degree above it: 1 21%, 5 21%, 2 16%, 4 16%.
+- The chord before (in the local key): V 49%, i 9%, vi 7%, ii 7%; after: V 28%, I 21%, vi 9%, ii 9%.
 - In the bars rated in the first round: no. 267 bar 10 beautiful; no. 236 bar 6 idiomatic; no. 295 bar 6 idiomatic; no. 7 bar 22 beautiful; no. 113 bar 10 beautiful; no. 270 bar 4 idiomatic.
 - The most surprising: no. 267 bar 10, no. 127 bar 8, no. 200 bar 4, no. 200 bar 6, no. 200 bar 13, no. 290 bar 2.
 

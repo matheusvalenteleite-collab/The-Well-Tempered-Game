@@ -245,8 +245,9 @@ The owner asked for all four steps in order, without conferring.
    `data/chorales/generator/local-keys.json`): regions confirmed by phrase closes (an HMM over the 24
    keys), applied chords inside them; a full close (V-I at a phrase end) establishes its key, as
    Kirnberger reads it (Kunst I, pp. 95-96; the chorale session's C31 divergence, resolved this way);
-   every chorale ends at home. 94% of phrase ends fall on the local tonic or dominant; 726 of 734 full
-   closes on the local tonic. The owner's two flags read right. The chorale session imports the
+   every chorale ends at home. 95% of phrase ends fall on the local tonic or dominant; 1207 of 1233 full
+   closes on the local tonic (the chord before the close taken from every on-beat chord, the soprano
+   holding or not: the chorale session's residue). The owner's two flags read right. The chorale session imports the
    export (C31) to decide its open cadence classes.
 2. **The catalogue narrowed** (`docs/chorales/LICENCES.md`, tests in `src/chorale/generate/licences.ts`):
    chromatic bass lines, the Neapolitan (2: the 57 flat seconds were home-key and Phrygian misreadings),

@@ -180,7 +180,9 @@ export function localKeys(c: BachChorale, w = WEIGHTS): LocalKey[] {
     }
     if (n.end) {
       const r = mod(rq[i].root - pc, 12);
-      const fromDominant = i > 0 && isDominant(c.notes[i - 1]) && mod(rq[i - 1].root - rq[i].root, 12) === 7;
+      // the chord before the close: the last on-beat chord of another root, where the export has it
+      const pre = n.pr && n.pk ? { root: mod(midiOf(`${n.pr}4`), 12), dom: /^(major$|dominant)/.test(n.pk) || n.pk === "seventh chord, third not sounding (minor seventh)" } : i > 0 ? { root: rq[i - 1].root, dom: isDominant(c.notes[i - 1]) } : null;
+      const fromDominant = !!pre && pre.dom && mod(pre.root - rq[i].root, 12) === 7;
       if (r === 0 && (rq[i].q === "o" || rq[i].q === (mode === "major" ? "M" : "m") || (mode === "minor" && rq[i].q === "M" && i === N - 1))) x += w.tonicEnd + (fromDominant ? w.fullClose : 0);
       // a half close on the key's dominant, unless that dominant is reached from its own dominant: then
       // the phrase closes in the dominant's key (Kirnberger, Kunst I, pp. 95-96), not on its dominant
