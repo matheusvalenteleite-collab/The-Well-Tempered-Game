@@ -11,7 +11,9 @@ notes sound at once), two lines until the third entry (three at once), separated
 answer is the line that repeats the subject's rhythm; the subject lasts as long as it does so at a
 fixed transposition (a fifth up or a fourth down), but for the tonal answer's mutations (a step of
 one or two semitones off the transposition, which the following notes correct). Overrides
-(SUBJECT_NOTES) fix the length where the rhythm runs on past the subject's end. Fails loudly.
+(SUBJECT_NOTES) fix the length where the rhythm runs on past the subject's end. The subject is
+never shorter than the dux alone before the answer enters (the answer's notes then found by
+onset). Fails loudly.
 """
 import json, sys, os
 from fractions import Fraction as F
@@ -138,6 +140,22 @@ for d in sorted(os.listdir(ROOT)):
     late = [i for i, x in enumerate(shifts[:k]) if x != common and i > 4]
     if late: k = late[0]
     subject, answer = dux[:k], comes[:k]
+    # The subject is at least the dux alone, before the answer enters: a departure from the
+    # transposition there (a tonal mutation at the tail, a turn Bach adapts) does not end it. The
+    # answer's notes are found by onset (the comes may have picked up a note of the other line);
+    # only its last note may be shorter or longer.
+    alone = [n for n in dux if n["on"] < t2]
+    if len(alone) > k:
+        by_on = {n["on"] - t2: n for n in comes}
+        pairs = [(a, by_on.get(a["on"] - t1)) for a in alone]
+        follows = all(b is not None and (b["dur"] == a["dur"] or i == len(pairs) - 1) for i, (a, b) in enumerate(pairs))
+        # ... and most of the added notes are answered a fifth or a fourth away (else they are a link).
+        fifths = follows and sum((b["midi"] - a["midi"]) % 12 in (5, 7) for a, b in pairs[k:]) * 2 > len(pairs) - k
+        if fifths:
+            k = len(alone)
+            subject, answer = alone, [b for _, b in pairs]
+            shifts = [b["midi"] - a["midi"] for a, b in pairs]
+            common = max(set(shifts), key=shifts.count)
     muts = [i for i, s in enumerate(shifts[:k]) if s != common]
     end = answer[-1]["on"] + answer[-1]["dur"] if answer else t2
     cs = [n for n in dux[k:] if n["on"] < end]
@@ -153,7 +171,7 @@ for d in sorted(os.listdir(ROOT)):
     # Every note of the fugue (D121), for listening and for finding the subject's entries:
     # [MIDI, onset, length] in 96ths of a quarter from the start of the first full bar.
     full[fid] = [[n["midi"], int(round((n["on"] + pad) * 96)), int(round(n["dur"] * 96))] for n in ns]
-    if common % 12 not in (5, 7) or [m for m in muts if m > 4] or k < 4: problems.append(f"{fid} shift {common} muts {muts} k {k}")
+    if common % 12 not in (5, 7) or k < 4: problems.append(f"{fid} shift {common} muts {muts} k {k}")
     results.append(rec)
 
 os.makedirs(os.path.dirname(OUT) or ".", exist_ok=True)

@@ -4,7 +4,8 @@
  * answer copies the subject a fifth higher (or a fourth lower); a tonal answer changes a note or
  * two at the head (the mutation), so that the dominant is answered by the tonic and the answer
  * stays in the key, as Fux teaches for the modes: the fifth of the mode is answered by its fourth,
- * the octave being divided into a fifth and a fourth. Each note is judged against Bach's: right;
+ * the octave being divided into a fifth and a fourth (in two long subjects, Book I no. 11 and Book
+ * II no. 15, Bach also adapts a later turn). Each note is judged against Bach's: right;
  * the same sound spelled otherwise; the real transposition where Bach mutates (with the degrees
  * named); a mutation where Bach's answer is real; or not the subject at all (with the interval the
  * subject makes there).

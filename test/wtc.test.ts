@@ -25,8 +25,13 @@ test("D119: 29 fugue expositions, 21 of the 24 keys, each answer the subject at 
     const real = realAnswer(f);
     const off = f.answer.map((n, i) => (n.pitch === real[i] ? -1 : i)).filter((i) => i >= 0);
     assert.deepEqual(off, f.mutations, f.id);
-    assert.ok(f.mutations.every((i) => i <= 4), `${f.id}: mutations at the head only`);
+    // Mutations at the head; later only where Bach adapts a turn of a long subject (D152).
+    const late = f.mutations.filter((i) => i > 4);
+    assert.ok(!late.length || ["wtc1.11", "wtc2.15"].includes(f.id), `${f.id}: mutations at the head only`);
+    // The subject runs to the answer's entry: what the dux sings before it, beyond the subject, is a short link at most.
+    assert.ok(f.countersubject.filter((n) => n.at < 0).length <= 3, `${f.id}: the subject cut short`);
   }
+  assert.deepEqual(["wtc1.11", "wtc1.20", "wtc2.15", "wtc2.23"].map((id) => FUGUES.find((f) => f.id === id)!.subject.length), [18, 31, 42, 11]);
 });
 
 test("D119: key signatures and degrees", () => {

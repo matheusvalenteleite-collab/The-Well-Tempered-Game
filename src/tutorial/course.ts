@@ -321,7 +321,7 @@ export function buildCourse({ repo, trio, trioData }: TutorialData): Chapter[] {
         { id: "first.hint", task: { kind: "read" } },
         // Judged by every rule of the chapter, the melodic ones just taught included (the game's first
         // exercise raises them later).
-        { id: "first.whole", scene: { ...stepScene(repo, STEP_IDS.first, all(first)), rules: FIRST_SPECIES_FUX_STRICT }, task: { kind: "judge" } },
+        { id: "first.whole", scene: { ...stepScene(repo, STEP_IDS.first, all(first)), rules: [...FIRST_SPECIES_FUX_STRICT] }, task: { kind: "judge" } },
         { id: "first.below", scene: stepScene(repo, STEP_IDS.firstBelow, [0, 9, 10]), intervals: true, task: { kind: "judge" } },
         { id: "first.game", task: { kind: "game", voices: 2, stepId: STEP_IDS.first } },
       ],
