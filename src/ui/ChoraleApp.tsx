@@ -18,6 +18,8 @@ import type { PlayEvent } from "../counterpoint/layout.ts";
 import type { Mode } from "./Root.tsx";
 import { MelodyScore, type MarkerState } from "./notation/MelodyScore.tsx";
 import { HFader } from "./HFader.tsx";
+import { TransportButtons } from "./TransportButtons.tsx";
+import { playChoraleEvents, prepareChoraleAudio } from "../audio/chorale-performance.ts";
 import { HeaderTools } from "./HeaderTools.tsx";
 import { Shell } from "./Shell.tsx";
 import { audio, store, stored } from "./shared.ts";
@@ -90,6 +92,11 @@ function ChoraleLevels({ onMode, onTutorial, level, levelSelect }: { onMode(mode
     store("wtg.tempo", tempo);
   }, [tempo]);
   useEffect(() => () => stop(), []);
+  // P5: the engine as the chorales need it, whatever the last screen left.
+  useEffect(() => prepareChoraleAudio(audio), []);
+  /** Where a pause left the playback (in whole notes), and whether it played the chords (P2, P5). */
+  const [pausedAt, setPausedAt] = useState<number | null>(null);
+  const withChordsRef = useRef(true);
 
   const showCompare = compared === pickKey;
   const verdicts = useMemo(() => comparePoints(points, mine), [points, mine]);
@@ -116,10 +123,17 @@ function ChoraleLevels({ onMode, onTutorial, level, levelSelect }: { onMode(mode
     timer.current = null;
     setPlaying(false);
     setCursor(null);
+    setPausedAt(null);
   }
   /** The melody, with the chosen chord sounding under each fermata (a plain root-position chord). */
-  function play(withChords = true) {
-    if (playing) return stop();
+  function play(withChords = withChordsRef.current, from = pausedAt ?? 0, fresh = false) {
+    if (playing && !fresh) {
+      // Pause (P2): silence, the place kept.
+      audio.stop();
+      setPlaying(false);
+      return setPausedAt(cursor ?? 0);
+    }
+    withChordsRef.current = withChords;
     const mel = soundingMelody(ch.melody);
     const events: PlayEvent[] = mel.map((n, i) => ({ slot: i, at: n.at, length: n.length, cantus: null, counterpoint: n.pitch }));
     if (withChords && level === 4) {
@@ -153,13 +167,21 @@ function ChoraleLevels({ onMode, onTutorial, level, levelSelect }: { onMode(mode
         else if (bass) events.push({ slot: 1000 + i, at: end.at, length: end.length, cantus: null, counterpoint: null, extra: [{ channel: "fux" as const, pitch: bass }, ...inner.map((pitch) => ({ channel: "counterpoint" as const, pitch }))] });
       });
     }
-    events.sort((a, b) => a.at - b.at);
-    const whole = audio.barSeconds;
+    // P5: through the live loop (tempo applies at once); the cursor follows each note as it sounds.
+    prepareChoraleAudio(audio);
     setPlaying(true);
-    const t0 = performance.now();
-    timer.current = window.setInterval(() => setCursor((performance.now() - t0) / 1000 / whole), 60);
-    void audio.playSequence(events, whole).then(() => stop());
+    setPausedAt(null);
+    playChoraleEvents(audio, events, (at) => (at < 0 ? stop() : setCursor(at)), from, (e) => e.at);
   }
+  // A choice made while it plays restarts it from the note under the cursor (D57).
+  const liveKey = JSON.stringify([ch.number, level, mine, bassIdx]);
+  const lastLive = useRef(liveKey);
+  useEffect(() => {
+    if (lastLive.current === liveKey) return;
+    lastLive.current = liveKey;
+    if (playing) play(withChordsRef.current, cursor ?? 0, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveKey]);
 
   const p = level === 1 ? ch.phrases[Math.min(selected, ch.phrases.length - 1)] : null;
   const q = level === 2 || level === 3 ? l2.notes[Math.min(selected, l2.notes.length - 1)] : null;
@@ -278,8 +300,10 @@ function ChoraleLevels({ onMode, onTutorial, level, levelSelect }: { onMode(mode
             <button className="btn-edit" onClick={() => { setPicks({ ...picks, [pickKey]: points.map(() => null) }); setCompared(null); setSelected(0); }}>{t("ui.clearAll")}</button>
           </div>
           <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
-            <button className="icon play" onClick={() => play(true)} aria-label={t("chorale.play")} title={t("chorale.play")}>{playing ? "■" : "▶"}</button>
-            <button onClick={() => play(false)} disabled={playing} title={t("chorale.playMelody")}>{t("chorale.melodyOnly")}</button>
+            <span className="play-split">
+              <TransportButtons playing={playing} pausedAt={pausedAt === null ? null : Math.floor(pausedAt)} onPlay={() => play(playing || pausedAt !== null ? withChordsRef.current : true)} onStop={stop} label={t("chorale.play")} />
+            </span>
+            <button onClick={() => play(false, 0)} disabled={playing} title={t("chorale.playMelody")}>{t("chorale.melodyOnly")}</button>
             <div className="hfaders">
               <HFader label={t("ui.tempo")} help={t("ui.tempo.help")} value={tempo} min={30} max={120} defaultValue={60} format={(v) => String(Math.round(v))} onChange={(v) => setTempo(Math.round(v))} />
             </div>

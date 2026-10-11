@@ -12,13 +12,15 @@ import { ModeSelect } from "./ModeSelect.tsx";
 import type { Mode } from "./Root.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 import { HFader } from "./HFader.tsx";
+import { TransportButtons } from "./TransportButtons.tsx";
+import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
+import { choraleGates, playChorale, prepareChoraleAudio } from "../audio/chorale-performance.ts";
 import { Shell } from "./Shell.tsx";
 import { WtcPage, type WtcScoreVoice } from "./notation/WtcScore.tsx";
 import { pageRows, useRowBars } from "./notation/page-rows.ts";
 import { useStudyData } from "../chorale/study-data.ts";
 import { audio, store, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
-import type { PlayEvent } from "../counterpoint/layout.ts";
 import type { Step } from "../music/pitch.ts";
 
 /** 32nds of a whole note, as the data counts. */
@@ -28,7 +30,6 @@ const VOICE_NAMES = ["soprano", "alto", "tenor", "bass"] as const;
 const INK = ["var(--trk-counterpoint)", "var(--trk-second)", "var(--trk-third)", "var(--trk-fux)"];
 const NOTE_INK = "#1d1b17";
 
-const CHANNEL = ["counterpoint", "second", "third", "fux"] as const;
 /** The incidental notes' colours, by kind (in the order of the data's `kinds`). */
 const KIND_INK = ["#1f8a4c", "#2a7fb8", "#c0392b", "#d35400", "#8e44ad", "#b7950b", "#7f8c8d", "#5d4037"];
 const MAJOR_BY_SIG: Record<number, string> = { [-7]: "Cb", [-6]: "Gb", [-5]: "Db", [-4]: "Ab", [-3]: "Eb", [-2]: "Bb", [-1]: "F", 0: "C", 1: "G", 2: "D", 3: "A", 4: "E", 5: "B", 6: "F#", 7: "C#" };
@@ -87,14 +88,22 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
   const list = data ? data.chorales.filter((c) => !onlyKittel || c.kittel) : [];
   const ch = data ? data.chorales.find((c) => c.n === number) ?? data.chorales[0] : null;
 
+  /** The bar a pause left the playback at (P2, P5): ▶ goes on from there. */
+  const [pausedAt, setPausedAt] = useState<number | null>(null);
   const stop = () => {
     audio.stop();
     if (timer.current) window.clearInterval(timer.current);
     timer.current = null;
     setPlaying(false);
     setCursor(-1);
+    setPausedAt(null);
   };
   useEffect(() => () => stop(), []);
+  // P5: the engine as the chorales need it (whatever the last screen left), the voices as gates.
+  useEffect(() => prepareChoraleAudio(audio, heard), []);
+  useEffect(() => audio.setGates(choraleGates(heard)), [heard]);
+  const staffLayout = useStaffLayout();
+  const openScore = staffLayout === "open";
 
   const view = useMemo(() => {
     if (!ch || !data) return null;
@@ -107,7 +116,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
     for (const h of ch.harmony) for (const [v, k] of h[4] ?? []) struck.set(`${v}|${h[0]}`, k);
     const cadAt = new Map(ch.cadences.map((c) => [c[0], c]));
     const voices: WtcScoreVoice[] = ch.voices.map((notes, v) => ({
-      staff: v < 2 ? 0 : 1,
+      staff: openScore ? v : v < 2 ? 0 : 1,
       ink: NOTE_INK,
       editable: false,
       notes: notes.map(([at, dur, pitch, fermata]) => {
@@ -119,7 +128,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
           at: quarters(at),
           dur: dur / 8,
           // On the outer voices only: on all four they crowd between the staves.
-          fermata: Boolean(fermata) && (v === 0 || v === 3),
+          fermata: Boolean(fermata) && (openScore || v === 0 || v === 3),
           ...(kind !== undefined ? { ink: KIND_INK[kind] } : {}),
           ...(cad ? { label: `${t(`chorale.study.cad.${CADENCE_SHORT[cad[1]] ?? "other"}`)} ${cad[2]}`.trim() } : {}),
         };
@@ -137,22 +146,24 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
     const bars = Math.ceil((ch.length + shift) / barUnits);
     const rows = pageRows({ voices, under, barQ, bars, rowBars, cursor, key: String(ch.n), label: (a, z) => t("chorale.study.rowLabel", { n: ch.n, title: ch.title, a: a + (ch.pickup ? 0 : 1), b: z - (ch.pickup ? 1 : 0) }) });
     return { rows, barQ, barUnits, shift };
-  }, [ch, data, layers, cursor, rowBars]);
+  }, [ch, data, layers, cursor, rowBars, openScore]);
 
+  // P5: through the live loop (tempo and the voices heard apply at once), with a pause.
   const play = () => {
-    if (playing || !ch || !view) return stop();
-    const events: PlayEvent[] = [];
-    ch.voices.forEach((notes, v) => {
-      if (!heard[v]) return;
-      for (const [at, dur, pitch] of notes) events.push({ slot: Math.floor((at + view.shift) / view.barUnits), at: at / UNIT, length: dur / UNIT, cantus: null, counterpoint: null, extra: [{ channel: CHANNEL[v], pitch }] });
-    });
-    events.sort((a, b) => a.at - b.at);
-    if (!events.length) return;
-    const whole = audio.barSeconds;
+    if (!ch || !view) return;
+    if (playing) {
+      audio.stop();
+      setPlaying(false);
+      return setPausedAt(Math.max(0, cursor));
+    }
+    prepareChoraleAudio(audio, heard);
     setPlaying(true);
-    const t0 = performance.now();
-    timer.current = window.setInterval(() => setCursor(Math.floor((((performance.now() - t0) / 1000 / whole) * UNIT + view.shift) / view.barUnits)), 60);
-    void audio.playSequence(events, whole).then(() => stop());
+    const from = pausedAt ?? 0;
+    setPausedAt(null);
+    playChorale(audio, { voices: ch.voices, barUnits: view.barUnits, pickup: ch.pickup }, (b) => {
+      if (b < 0) return stop();
+      setCursor(b);
+    }, from);
   };
 
   // The row playing kept in sight.
@@ -191,7 +202,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
       score={
         <div className="score-wrap chorale-score chorale-study">
           {ch && view ? (
-            <WtcPage fitWidth rows={view.rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={view.barQ} selected={null} onSlot={() => undefined} />
+            <WtcPage fitWidth clefs={openScore ? CHORALE_CLEFS : undefined} rows={view.rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={view.barQ} selected={null} onSlot={() => undefined} />
           ) : (
             <p className="help">{t("ui.loading")}</p>
           )}
@@ -209,12 +220,17 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
           <div className="group" role="group" aria-label={t("chorale.study.voices")}>
             {VOICE_NAMES.map((v, i) => (
               <label key={v} className="check" style={{ color: INK[i] }}>
-                <input type="checkbox" checked={heard[i]} onChange={(e) => { stop(); setHeard(heard.map((x, j) => (j === i ? e.target.checked : x))); }} /> {t(`chorale.study.voice.${v}`)}
+                <input type="checkbox" checked={heard[i]} onChange={(e) => setHeard(heard.map((x, j) => (j === i ? e.target.checked : x)))} /> {t(`chorale.study.voice.${v}`)}
               </label>
             ))}
           </div>
           <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
-            <button className="icon play" onClick={play} disabled={!ch} aria-label={t("chorale.play")} title={t("chorale.play")}>{playing ? "■" : "▶"}</button>
+            <span className="play-split">
+              <TransportButtons playing={playing} pausedAt={pausedAt} onPlay={play} onStop={stop} label={t("chorale.play")} />
+            </span>
+            <label className="check" title={t("ui.view.staves.open.help")}>
+              <input type="checkbox" checked={openScore} onChange={(e) => setStaffLayout(e.target.checked ? "open" : "compact")} /> {t("ui.view.staves.open")}
+            </label>
             <label className="check">
               <input
                 type="checkbox"

@@ -33,3 +33,9 @@ export function useStaffLayout(): StaffLayout {
  * C, F below, as D30 has it for the two-voice staves.
  */
 export const openClefs = (means: number[]): ClefId[] => means.map((m) => (m >= 60 ? "treble" : "bass"));
+
+/**
+ * The chorales' open score (owner, through the chorale session): soprano and alto in G, the tenor in
+ * G with an 8 below, the bass in F. G and F clefs only (with their octave forms), never a C clef.
+ */
+export const CHORALE_CLEFS: ClefId[] = ["treble", "treble", "treble_8vb", "bass"];

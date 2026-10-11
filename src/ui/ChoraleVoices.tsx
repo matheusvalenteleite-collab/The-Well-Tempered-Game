@@ -10,6 +10,9 @@ import { ModeSelect } from "./ModeSelect.tsx";
 import type { Mode } from "./Root.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 import { HFader } from "./HFader.tsx";
+import { TransportButtons } from "./TransportButtons.tsx";
+import { CHORALE_CLEFS, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
+import { playChoraleEvents, prepareChoraleAudio } from "../audio/chorale-performance.ts";
 import { Shell } from "./Shell.tsx";
 import { WtcPage, type WtcScoreVoice } from "./notation/WtcScore.tsx";
 import { pageRows, useRowBars } from "./notation/page-rows.ts";
@@ -73,14 +76,20 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
   const [playing, setPlaying] = useState(false);
   const [cursor, setCursor] = useState(-1);
   const timer = useRef<number | null>(null);
+  /** The bar a pause left the playback at (P2, P5): ▶ goes on from there. */
+  const [pausedAt, setPausedAt] = useState<number | null>(null);
   const stop = () => {
     audio.stop();
     if (timer.current) window.clearInterval(timer.current);
     timer.current = null;
     setPlaying(false);
     setCursor(-1);
+    setPausedAt(null);
   };
   useEffect(() => () => stop(), []);
+  // P5: the engine as the chorales need it, whatever the last screen left.
+  useEffect(() => prepareChoraleAudio(audio), []);
+  const openScore = useStaffLayout() === "open";
 
   const [num, den] = ch.meter.split("/").map(Number);
   const barUnits = (UNIT * num) / den;
@@ -97,20 +106,22 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
   const voices: WtcScoreVoice[] = useMemo(() => {
     const slotNotes = (line: (string | null)[], base: number, ink: string) =>
       B.slots.map((s, i) => ({ pitch: line[i], at: quarters(s.at), dur: s.dur / 8, slot: base + i, ...(worst.has(i) && line[i] ? { ink: GRAVE_INK[worst.get(i)!] } : {}) }));
-    const melody = { staff: 0 as const, ink: INK.given, editable: false, notes: ch.melody.map(([at, dur, pitch, f]) => ({ pitch, at: quarters(at), dur: dur / 8, fermata: Boolean(f) })) };
+    // P4: one staff a voice (soprano, alto, tenor, bass), or the two staves.
+    const [A, T, Bs] = openScore ? [1, 2, 3] : [0, 1, 1];
+    const melody = { staff: 0, ink: INK.given, editable: false, notes: ch.melody.map(([at, dur, pitch, f]) => ({ pitch, at: quarters(at), dur: dur / 8, fermata: Boolean(f) })) };
     if (bach) {
       // Bach's alto, tenor and bass, one chord to each melody note his setting matches.
       const part = (v: 0 | 1 | 2) => ch.melody.flatMap(([at, dur], i) => (bach.inner[i] ? [{ pitch: bach.inner[i]![v], at: quarters(at), dur: dur / 8 }] : []));
-      return [melody, { staff: 0, ink: INK.bach, editable: false, notes: part(0) }, { staff: 1, ink: INK.bach, editable: false, notes: part(1) }, { staff: 1, ink: INK.bach, editable: false, notes: part(2) }];
+      return [melody, { staff: A, ink: INK.bach, editable: false, notes: part(0) }, { staff: T, ink: INK.bach, editable: false, notes: part(1) }, { staff: Bs, ink: INK.bach, editable: false, notes: part(2) }];
     }
     return [
       melody,
-      { staff: 0, ink: INK.alto, editable: true, notes: slotNotes(mine.alto, 0, INK.alto) },
-      { staff: 1, ink: INK.tenor, editable: true, notes: slotNotes(mine.tenor, n, INK.tenor) },
-      { staff: 1, ink: INK.given, editable: false, notes: B.bass.map(([at, dur, pitch]) => ({ pitch, at: quarters(at), dur: dur / 8 })) },
+      { staff: A, ink: INK.alto, editable: true, notes: slotNotes(mine.alto, 0, INK.alto) },
+      { staff: T, ink: INK.tenor, editable: true, notes: slotNotes(mine.tenor, n, INK.tenor) },
+      { staff: Bs, ink: INK.given, editable: false, notes: B.bass.map(([at, dur, pitch]) => ({ pitch, at: quarters(at), dur: dur / 8 })) },
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [B, ch, mine, worst, shift, bach]);
+  }, [B, ch, mine, worst, shift, bach, openScore]);
   const under = useMemo(() => (bach ? [] : B.slots.filter((s) => s.printed).map((s) => ({ at: quarters(s.at), lines: s.printed.split("/") }))), [B, shift, bach]);
   const bars = Math.ceil((ch.length + shift) / barUnits);
   const rows = useMemo(
@@ -128,7 +139,9 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
     line[i] = pitch;
     setWritten({ ...written, [key]: { ...mine, [voice]: line } });
     const col = [B.slots[i].soprano, voice === "alto" ? pitch : mine.alto[i], voice === "tenor" ? pitch : mine.tenor[i], B.slots[i].bass].filter((x): x is string => !!x);
-    void audio.playSequence([{ slot: 0, at: 0, length: 0.5, cantus: null, counterpoint: null, extra: col.map((p) => ({ channel: "counterpoint" as const, pitch: p })) }], audio.barSeconds);
+    // While the chorale plays, the note is heard in it (P5: the playback restarts from its bar); a
+    // one-off chord would stop it.
+    if (!playing) void audio.playSequence([{ slot: 0, at: 0, length: 0.5, cantus: null, counterpoint: null, extra: col.map((p) => ({ channel: "counterpoint" as const, pitch: p })) }], audio.barSeconds);
     // On to the next empty slot of the same voice.
     if (i + 1 < n) setSelected(slot + 1);
   };
@@ -150,27 +163,44 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
     line[selected % n] = null;
     setWritten({ ...written, [key]: { ...mine, [voice]: line } });
   };
-  const play = () => {
-    if (playing) return stop();
+  const barOfUnits = (at: number) => Math.floor((at + shift) / barUnits);
+  // P5: through the live loop (tempo applies at once), with a pause; a note written while it plays
+  // restarts it from the bar under the cursor.
+  const play = (from = pausedAt ?? 0, fresh = false) => {
+    if (playing && !fresh) {
+      audio.stop();
+      setPlaying(false);
+      return setPausedAt(Math.max(0, cursor));
+    }
     const events: PlayEvent[] = [];
-    for (const [at, dur, pitch] of ch.melody) events.push({ slot: 0, at: at / UNIT, length: dur / UNIT, cantus: null, counterpoint: null, extra: [{ channel: "counterpoint", pitch }] });
+    const ev = (at: number, dur: number, extra: PlayEvent["extra"]) => events.push({ slot: barOfUnits(at), at: at / UNIT, length: dur / UNIT, cantus: null, counterpoint: null, extra });
+    for (const [at, dur, pitch] of ch.melody) ev(at, dur, [{ channel: "counterpoint", pitch }]);
     if (bach)
       ch.melody.forEach(([at, dur], i) => {
         const b = bach.inner[i];
-        if (b) events.push({ slot: 0, at: at / UNIT, length: dur / UNIT, cantus: null, counterpoint: null, extra: [{ channel: "second", pitch: b[0] }, { channel: "third", pitch: b[1] }, { channel: "fux", pitch: b[2] }] });
+        if (b) ev(at, dur, [{ channel: "second", pitch: b[0] }, { channel: "third", pitch: b[1] }, { channel: "fux", pitch: b[2] }]);
       });
-    else for (const [at, dur, pitch] of B.bass) events.push({ slot: 0, at: at / UNIT, length: dur / UNIT, cantus: null, counterpoint: null, extra: [{ channel: "fux", pitch }] });
+    else for (const [at, dur, pitch] of B.bass) ev(at, dur, [{ channel: "fux", pitch }]);
     if (!bach) B.slots.forEach((s, i) => {
       const extra = [mine.alto[i] && { channel: "second" as const, pitch: mine.alto[i]! }, mine.tenor[i] && { channel: "third" as const, pitch: mine.tenor[i]! }].filter((x): x is { channel: "second" | "third"; pitch: string } => !!x);
-      if (extra.length) events.push({ slot: 0, at: s.at / UNIT, length: s.dur / UNIT, cantus: null, counterpoint: null, extra });
+      if (extra.length) ev(s.at, s.dur, extra);
     });
-    events.sort((a, b) => a.at - b.at);
-    const whole = audio.barSeconds;
+    prepareChoraleAudio(audio);
     setPlaying(true);
-    const t0 = performance.now();
-    timer.current = window.setInterval(() => setCursor(Math.floor((((performance.now() - t0) / 1000 / whole) * UNIT + shift) / barUnits)), 60);
-    void audio.playSequence(events, whole).then(() => stop());
+    setPausedAt(null);
+    playChoraleEvents(audio, events, (b) => {
+      if (b < 0) return stop();
+      setCursor(b);
+    }, from);
   };
+  const liveKey = JSON.stringify([key, mine, bachShown]);
+  const lastLive = useRef(liveKey);
+  useEffect(() => {
+    if (lastLive.current === liveKey) return;
+    lastLive.current = liveKey;
+    if (playing) play(Math.max(0, cursor), true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveKey]);
   const goTo = (num: number) => {
     stop();
     setNumber(num);
@@ -233,7 +263,7 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
       }
       score={
         <div className="score-wrap chorale-score">
-          <WtcPage fitWidth rows={rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={barUnits / 8} selected={selected} onSlot={write} />
+          <WtcPage fitWidth clefs={openScore ? CHORALE_CLEFS : undefined} rows={rows} keySig={MAJOR_BY_SIG[ch.sig] ?? "C"} signature={signatureOf(ch.sig)} time={ch.meter} barQuarters={barUnits / 8} selected={selected} onSlot={write} />
         </div>
       }
       transport={
@@ -253,9 +283,14 @@ export function ChoraleVoices({ onMode, onTutorial, levelSelect }: { onMode(mode
             <button className="btn-edit" onClick={() => { setWritten({ ...written, [key]: { alto: Array(n).fill(null), tenor: Array(n).fill(null) } }); setChecked(null); setSelected(0); }}>{t("ui.clearAll")}</button>
           </div>
           <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
-            <button className="icon play" onClick={play} aria-label={t("chorale.play")} title={t("chorale.play")}>{playing ? "■" : "▶"}</button>
+            <span className="play-split">
+              <TransportButtons playing={playing} pausedAt={pausedAt} onPlay={() => play()} onStop={stop} label={t("chorale.play")} />
+            </span>
+            <label className="check" title={t("ui.view.staves.open.help")}>
+              <input type="checkbox" checked={openScore} onChange={(e) => setStaffLayout(e.target.checked ? "open" : "compact")} /> {t("ui.view.staves.open")}
+            </label>
             {ch.bach.length > 0 && (
-              <select className="sel" value={bachShown ?? ""} aria-label={t("chorale.l5.bachShow")} title={t("chorale.l5.bachShowHelp")} onChange={(e) => { stop(); setBachShown(e.target.value === "" ? null : Number(e.target.value)); }}>
+              <select className="sel" value={bachShown ?? ""} aria-label={t("chorale.l5.bachShow")} title={t("chorale.l5.bachShowHelp")} onChange={(e) => { setBachShown(e.target.value === "" ? null : Number(e.target.value)); }}>
                 <option value="">{t("chorale.l5.yours")}</option>
                 {ch.bach.map((b, k) => (
                   <option key={b.no} value={k}>{t("chorale.l5.bachN", { no: b.no, bwv: b.bwv })}</option>
