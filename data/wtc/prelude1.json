@@ -1,0 +1,5186 @@
+{
+ "source": "Mutopia Project, BWV 846 Prelude (public domain); tools/wtc/prelude1.py",
+ "figuration": {
+  "meter": "4/4",
+  "half_bar": [
+   {
+    "voice": 0,
+    "onset": "0",
+    "duration": "1/2"
+   },
+   {
+    "voice": 1,
+    "onset": "1/16",
+    "duration": "7/16"
+   },
+   {
+    "voice": 2,
+    "onset": "1/8",
+    "duration": "1/16"
+   },
+   {
+    "voice": 3,
+    "onset": "3/16",
+    "duration": "1/16"
+   },
+   {
+    "voice": 4,
+    "onset": "1/4",
+    "duration": "1/16"
+   },
+   {
+    "voice": 2,
+    "onset": "5/16",
+    "duration": "1/16"
+   },
+   {
+    "voice": 3,
+    "onset": "3/8",
+    "duration": "1/16"
+   },
+   {
+    "voice": 4,
+    "onset": "7/16",
+    "duration": "1/16"
+   }
+  ],
+  "repeat": "each bar plays the half bar twice"
+ },
+ "check": "Humdrum edition: 32 of 32 bars have the same pitches",
+ "bars": [
+  {
+   "bar": 1,
+   "pitches": [
+    "C4",
+    "E4",
+    "G4",
+    "C5",
+    "E5"
+   ],
+   "figures": [
+    8,
+    5,
+    3
+   ],
+   "fundamental": {
+    "root": "C",
+    "chord": "major"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "G4",
+      "C5",
+      "E5"
+     ],
+     "figures": [
+      8,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "G4",
+      "D5",
+      "F5"
+     ],
+     "figures": [
+      5,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "minor seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "A4",
+      "D5",
+      "F5"
+     ],
+     "figures": [
+      6,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "minor seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "A4",
+      "E5",
+      "A5"
+     ],
+     "figures": [
+      6,
+      3
+     ],
+     "fundamental": {
+      "root": "A",
+      "chord": "minor"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [],
+   "realisations": [
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "G4",
+      "C5",
+      "E5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "G4",
+      "C5",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "G4",
+      "E5",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "C5",
+      "E5",
+      "G5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 4
+  },
+  {
+   "bar": 2,
+   "pitches": [
+    "C4",
+    "D4",
+    "A4",
+    "D5",
+    "F5"
+   ],
+   "figures": [
+    6,
+    4,
+    2
+   ],
+   "fundamental": {
+    "root": "D",
+    "chord": "minor seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "G4",
+      "C5",
+      "E5"
+     ],
+     "figures": [
+      8,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "G4",
+      "D5",
+      "F5"
+     ],
+     "figures": [
+      5,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "minor seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "A4",
+      "D5",
+      "F5"
+     ],
+     "figures": [
+      6,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "minor seventh"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "A4",
+      "E5",
+      "A5"
+     ],
+     "figures": [
+      6,
+      3
+     ],
+     "fundamental": {
+      "root": "A",
+      "chord": "minor"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "4",
+    "2"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "F4",
+      "A4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "F4",
+      "A4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "F4",
+      "A4",
+      "F5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "A4",
+      "C5",
+      "F5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "A4",
+      "D5",
+      "F5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "A4",
+      "F5",
+      "A5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 8
+  },
+  {
+   "bar": 3,
+   "pitches": [
+    "B3",
+    "D4",
+    "G4",
+    "D5",
+    "F5"
+   ],
+   "figures": [
+    6,
+    5,
+    3
+   ],
+   "fundamental": {
+    "root": "G",
+    "chord": "dominant seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "B3",
+      "E4",
+      "G4",
+      "C5",
+      "E5"
+     ],
+     "figures": [
+      6,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "G4",
+      "D5",
+      "F5"
+     ],
+     "figures": [
+      6,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "A4",
+      "D5",
+      "F5"
+     ],
+     "figures": [
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "B",
+      "chord": "half-diminished seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "E4",
+      "A4",
+      "E5",
+      "A5"
+     ],
+     "figures": [
+      7,
+      4
+     ],
+     "fundamental": {
+      "root": "E",
+      "chord": "major"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "6",
+    "5"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "F4",
+      "G4",
+      "B4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "F4",
+      "G4",
+      "F5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "F4",
+      "B4",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "F4",
+      "F5",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "G4",
+      "D5",
+      "F5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "G4",
+      "F5",
+      "G5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 12
+  },
+  {
+   "bar": 4,
+   "pitches": [
+    "C4",
+    "E4",
+    "G4",
+    "C5",
+    "E5"
+   ],
+   "figures": [
+    8,
+    5,
+    3
+   ],
+   "fundamental": {
+    "root": "C",
+    "chord": "major"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "G4",
+      "C5",
+      "E5"
+     ],
+     "figures": [
+      8,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "G4",
+      "D5",
+      "F5"
+     ],
+     "figures": [
+      5,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "minor seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "A4",
+      "D5",
+      "F5"
+     ],
+     "figures": [
+      6,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "minor seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "A4",
+      "E5",
+      "A5"
+     ],
+     "figures": [
+      6,
+      3
+     ],
+     "fundamental": {
+      "root": "A",
+      "chord": "minor"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [],
+   "realisations": [
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "G4",
+      "C5",
+      "E5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "G4",
+      "C5",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "G4",
+      "E5",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "C5",
+      "E5",
+      "G5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 4
+  },
+  {
+   "bar": 5,
+   "pitches": [
+    "C4",
+    "E4",
+    "A4",
+    "E5",
+    "A5"
+   ],
+   "figures": [
+    6,
+    3
+   ],
+   "fundamental": {
+    "root": "A",
+    "chord": "minor"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "F#4",
+      "A4",
+      "D5"
+     ],
+     "figures": [
+      6,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "G4",
+      "C5",
+      "E5"
+     ],
+     "figures": [
+      8,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "G4",
+      "D5",
+      "F5"
+     ],
+     "figures": [
+      5,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "minor seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "A4",
+      "E5",
+      "A5"
+     ],
+     "figures": [
+      6,
+      3
+     ],
+     "fundamental": {
+      "root": "A",
+      "chord": "minor"
+     },
+     "bach": true
+    }
+   ],
+   "figured": [
+    "6"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "A4",
+      "C5",
+      "E5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "A4",
+      "C5",
+      "A5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "A4",
+      "E5",
+      "A5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "C5",
+      "E5",
+      "A5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 4
+  },
+  {
+   "bar": 6,
+   "pitches": [
+    "C4",
+    "D4",
+    "F#4",
+    "A4",
+    "D5"
+   ],
+   "figures": [
+    6,
+    4,
+    2
+   ],
+   "fundamental": {
+    "root": "D",
+    "chord": "dominant seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "F#4",
+      "A4",
+      "D5"
+     ],
+     "figures": [
+      6,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "dominant seventh"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "G4",
+      "C5",
+      "E5"
+     ],
+     "figures": [
+      8,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "G4",
+      "D5",
+      "G5"
+     ],
+     "figures": [
+      5,
+      2
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "E4",
+      "A4",
+      "E5",
+      "A5"
+     ],
+     "figures": [
+      6,
+      3
+     ],
+     "fundamental": {
+      "root": "A",
+      "chord": "minor"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "\u266f4",
+    "2"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "F#4",
+      "A4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "F#4",
+      "A4",
+      "D5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "F#4",
+      "A4",
+      "A5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "F#4",
+      "D5",
+      "A5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "A4",
+      "C5",
+      "F#5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C4",
+      "D4",
+      "A4",
+      "F#5",
+      "A5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 12
+  },
+  {
+   "bar": 7,
+   "pitches": [
+    "B3",
+    "D4",
+    "G4",
+    "D5",
+    "G5"
+   ],
+   "figures": [
+    6,
+    3
+   ],
+   "fundamental": {
+    "root": "G",
+    "chord": "major"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "B3",
+      "C4",
+      "E4",
+      "G4",
+      "C5"
+     ],
+     "figures": [
+      6,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "F#4",
+      "A4",
+      "D5"
+     ],
+     "figures": [
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "B",
+      "chord": "minor seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "G4",
+      "D5",
+      "G5"
+     ],
+     "figures": [
+      6,
+      3
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "major"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "B3",
+      "E4",
+      "A4",
+      "E5",
+      "A5"
+     ],
+     "figures": [
+      7,
+      4
+     ],
+     "fundamental": {
+      "root": "E",
+      "chord": "major"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "6"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "G4",
+      "B4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "G4",
+      "B4",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "G4",
+      "D5",
+      "G5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "B4",
+      "D5",
+      "G5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 4
+  },
+  {
+   "bar": 8,
+   "pitches": [
+    "B3",
+    "C4",
+    "E4",
+    "G4",
+    "C5"
+   ],
+   "figures": [
+    6,
+    4,
+    2
+   ],
+   "fundamental": {
+    "root": "C",
+    "chord": "major seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "B3",
+      "C4",
+      "E4",
+      "G4",
+      "C5"
+     ],
+     "figures": [
+      6,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major seventh"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "F#4",
+      "A4",
+      "D5"
+     ],
+     "figures": [
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "B",
+      "chord": "minor seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "G4",
+      "D5",
+      "F5"
+     ],
+     "figures": [
+      6,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "D4",
+      "G4",
+      "D5",
+      "G5"
+     ],
+     "figures": [
+      6,
+      3
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "major"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "4",
+    "2"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "B3",
+      "C4",
+      "E4",
+      "G4",
+      "B4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "C4",
+      "E4",
+      "G4",
+      "C5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "B3",
+      "C4",
+      "E4",
+      "B4",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "C4",
+      "G4",
+      "B4",
+      "E5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "C4",
+      "B4",
+      "E5",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "B3",
+      "E4",
+      "G4",
+      "C5",
+      "E5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 17
+  },
+  {
+   "bar": 9,
+   "pitches": [
+    "A3",
+    "C4",
+    "E4",
+    "G4",
+    "C5"
+   ],
+   "figures": [
+    7,
+    5,
+    3
+   ],
+   "fundamental": {
+    "root": "A",
+    "chord": "minor seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "A3",
+      "B3",
+      "D4",
+      "G4",
+      "B4"
+     ],
+     "figures": [
+      7,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "B",
+      "chord": "minor seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "A3",
+      "C4",
+      "E4",
+      "G4",
+      "C5"
+     ],
+     "figures": [
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "A",
+      "chord": "minor seventh"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "A3",
+      "D4",
+      "G4",
+      "D5",
+      "G5"
+     ],
+     "figures": [
+      7,
+      4
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "major"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "7"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "A3",
+      "C4",
+      "E4",
+      "G4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "A3",
+      "C4",
+      "E4",
+      "G4",
+      "C5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "A3",
+      "C4",
+      "E4",
+      "A4",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "A3",
+      "C4",
+      "G4",
+      "A4",
+      "E5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "A3",
+      "C4",
+      "G4",
+      "E5",
+      "A5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "A3",
+      "E4",
+      "G4",
+      "A4",
+      "C5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 20
+  },
+  {
+   "bar": 10,
+   "pitches": [
+    "D3",
+    "A3",
+    "D4",
+    "F#4",
+    "C5"
+   ],
+   "figures": [
+    8,
+    7,
+    5,
+    3
+   ],
+   "fundamental": {
+    "root": "D",
+    "chord": "dominant seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "D3",
+      "A3",
+      "D4",
+      "F#4",
+      "C5"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "dominant seventh"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "D3",
+      "B3",
+      "D4",
+      "G4",
+      "B4"
+     ],
+     "figures": [
+      8,
+      6,
+      4
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "major"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "D3",
+      "Bb3",
+      "E4",
+      "G4",
+      "C#5"
+     ],
+     "figures": [
+      7,
+      6,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "E",
+      "chord": "half-diminished seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "D3",
+      "C4",
+      "E4",
+      "G4",
+      "C5"
+     ],
+     "figures": [
+      7,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "7",
+    "\u266f"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "D3",
+      "F#3",
+      "A3",
+      "C4",
+      "F#4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "D3",
+      "F#3",
+      "C4",
+      "F#4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "D3",
+      "A3",
+      "C4",
+      "F#4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "D3",
+      "A3",
+      "D4",
+      "F#4",
+      "C5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "D3",
+      "A3",
+      "A4",
+      "C5",
+      "F#5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "D3",
+      "C4",
+      "F#4",
+      "D5",
+      "A5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 39
+  },
+  {
+   "bar": 11,
+   "pitches": [
+    "G3",
+    "B3",
+    "D4",
+    "G4",
+    "B4"
+   ],
+   "figures": [
+    8,
+    5,
+    3
+   ],
+   "fundamental": {
+    "root": "G",
+    "chord": "major"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "G3",
+      "A3",
+      "D4",
+      "F#4",
+      "C5"
+     ],
+     "figures": [
+      7,
+      5,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "A",
+      "chord": "minor seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "B3",
+      "D4",
+      "G4",
+      "B4"
+     ],
+     "figures": [
+      8,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "major"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G3",
+      "Bb3",
+      "E4",
+      "G4",
+      "C#5"
+     ],
+     "figures": [
+      8,
+      6,
+      4,
+      3
+     ],
+     "fundamental": {
+      "root": "C#",
+      "chord": "diminished seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "C4",
+      "E4",
+      "G4",
+      "C5"
+     ],
+     "figures": [
+      8,
+      6,
+      4
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [],
+   "realisations": [
+    {
+     "pitches": [
+      "G3",
+      "B3",
+      "D4",
+      "G4",
+      "B4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G3",
+      "B3",
+      "D4",
+      "G4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "B3",
+      "D4",
+      "B4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "B3",
+      "G4",
+      "B4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "B3",
+      "G4",
+      "D5",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "B3",
+      "B4",
+      "D5",
+      "G5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 9
+  },
+  {
+   "bar": 12,
+   "pitches": [
+    "G3",
+    "Bb3",
+    "E4",
+    "G4",
+    "C#5"
+   ],
+   "figures": [
+    8,
+    6,
+    4,
+    3
+   ],
+   "fundamental": {
+    "root": "C#",
+    "chord": "diminished seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "G3",
+      "A3",
+      "D4",
+      "F#4",
+      "C5"
+     ],
+     "figures": [
+      7,
+      5,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "A",
+      "chord": "minor seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "B3",
+      "D4",
+      "G4",
+      "B4"
+     ],
+     "figures": [
+      8,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "major"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "A3",
+      "D4",
+      "A4",
+      "D5"
+     ],
+     "figures": [
+      5,
+      2
+     ],
+     "fundamental": {
+      "root": "A",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "Bb3",
+      "E4",
+      "G4",
+      "C#5"
+     ],
+     "figures": [
+      8,
+      6,
+      4,
+      3
+     ],
+     "fundamental": {
+      "root": "C#",
+      "chord": "diminished seventh"
+     },
+     "bach": true
+    }
+   ],
+   "figured": [
+    "\u266f4",
+    "\u266d3"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "G3",
+      "Bb3",
+      "C#4",
+      "E4",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "Bb3",
+      "C#4",
+      "G4",
+      "E5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "Bb3",
+      "E4",
+      "G4",
+      "C#5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G3",
+      "Bb3",
+      "E4",
+      "C#5",
+      "E5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "C#4",
+      "E4",
+      "G4",
+      "Bb4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G3",
+      "C#4",
+      "G4",
+      "Bb4",
+      "E5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 23
+  },
+  {
+   "bar": 13,
+   "pitches": [
+    "F3",
+    "A3",
+    "D4",
+    "A4",
+    "D5"
+   ],
+   "figures": [
+    6,
+    3
+   ],
+   "fundamental": {
+    "root": "D",
+    "chord": "minor"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "F3",
+      "Ab3",
+      "D4",
+      "F4",
+      "B4"
+     ],
+     "figures": [
+      8,
+      6,
+      4,
+      3
+     ],
+     "fundamental": {
+      "root": "B",
+      "chord": "diminished seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F3",
+      "B3",
+      "D4",
+      "G4",
+      "B4"
+     ],
+     "figures": [
+      6,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F3",
+      "A3",
+      "D4",
+      "A4",
+      "D5"
+     ],
+     "figures": [
+      6,
+      3
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "minor"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "F3",
+      "Bb3",
+      "E4",
+      "G4",
+      "C#5"
+     ],
+     "figures": [
+      7,
+      5,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "minor seventh"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "6"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "F3",
+      "A3",
+      "D4",
+      "F4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F3",
+      "A3",
+      "D4",
+      "A4",
+      "D5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "F3",
+      "A3",
+      "D4",
+      "A4",
+      "F5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F3",
+      "A3",
+      "F4",
+      "D5",
+      "F5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F3",
+      "D4",
+      "F4",
+      "A4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F3",
+      "D4",
+      "A4",
+      "D5",
+      "A5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 16
+  },
+  {
+   "bar": 14,
+   "pitches": [
+    "F3",
+    "Ab3",
+    "D4",
+    "F4",
+    "B4"
+   ],
+   "figures": [
+    8,
+    6,
+    4,
+    3
+   ],
+   "fundamental": {
+    "root": "B",
+    "chord": "diminished seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "F3",
+      "Ab3",
+      "D4",
+      "F4",
+      "B4"
+     ],
+     "figures": [
+      8,
+      6,
+      4,
+      3
+     ],
+     "fundamental": {
+      "root": "B",
+      "chord": "diminished seventh"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "F3",
+      "G3",
+      "C4",
+      "G4",
+      "C5"
+     ],
+     "figures": [
+      5,
+      2
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F3",
+      "A3",
+      "D4",
+      "A4",
+      "D5"
+     ],
+     "figures": [
+      6,
+      3
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "minor"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F3",
+      "Bb3",
+      "E4",
+      "G4",
+      "C#5"
+     ],
+     "figures": [
+      7,
+      5,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "minor seventh"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "4",
+    "\u266d3"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "F3",
+      "Ab3",
+      "B3",
+      "D4",
+      "F4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F3",
+      "Ab3",
+      "B3",
+      "Ab4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F3",
+      "Ab3",
+      "D4",
+      "F4",
+      "B4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "F3",
+      "Ab3",
+      "F4",
+      "B4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F3",
+      "B3",
+      "D4",
+      "Ab4",
+      "F5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F3",
+      "B3",
+      "Ab4",
+      "D5",
+      "Ab5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 30
+  },
+  {
+   "bar": 15,
+   "pitches": [
+    "E3",
+    "G3",
+    "C4",
+    "G4",
+    "C5"
+   ],
+   "figures": [
+    6,
+    3
+   ],
+   "fundamental": {
+    "root": "C",
+    "chord": "major"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "E3",
+      "F3",
+      "A3",
+      "C4",
+      "F4"
+     ],
+     "figures": [
+      6,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "F",
+      "chord": "major seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "E3",
+      "Ab3",
+      "D4",
+      "F4",
+      "B4"
+     ],
+     "figures": [
+      7,
+      5,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "B",
+      "chord": "diminished seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "E3",
+      "G3",
+      "C4",
+      "G4",
+      "C5"
+     ],
+     "figures": [
+      6,
+      3
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "E3",
+      "A3",
+      "D4",
+      "A4",
+      "D5"
+     ],
+     "figures": [
+      7,
+      4
+     ],
+     "fundamental": {
+      "root": "A",
+      "chord": "major"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "6"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "E3",
+      "G3",
+      "C4",
+      "E4",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "E3",
+      "G3",
+      "C4",
+      "G4",
+      "C5"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "E3",
+      "G3",
+      "E4",
+      "C5",
+      "E5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "E3",
+      "G3",
+      "G4",
+      "C5",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "E3",
+      "C4",
+      "E4",
+      "G4",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "E3",
+      "C4",
+      "G4",
+      "C5",
+      "E5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 20
+  },
+  {
+   "bar": 16,
+   "pitches": [
+    "E3",
+    "F3",
+    "A3",
+    "C4",
+    "F4"
+   ],
+   "figures": [
+    6,
+    4,
+    2
+   ],
+   "fundamental": {
+    "root": "F",
+    "chord": "major seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "E3",
+      "F3",
+      "A3",
+      "C4",
+      "F4"
+     ],
+     "figures": [
+      6,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "F",
+      "chord": "major seventh"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "E3",
+      "Ab3",
+      "D4",
+      "F4",
+      "B4"
+     ],
+     "figures": [
+      7,
+      5,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "B",
+      "chord": "diminished seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "E3",
+      "G3",
+      "C4",
+      "G4",
+      "C5"
+     ],
+     "figures": [
+      6,
+      3
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "4",
+    "2"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "E3",
+      "F3",
+      "A3",
+      "C4",
+      "E4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "E3",
+      "F3",
+      "A3",
+      "C4",
+      "F4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "E3",
+      "F3",
+      "C4",
+      "E4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "E3",
+      "A3",
+      "C4",
+      "F4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "E3",
+      "A3",
+      "F4",
+      "C5",
+      "F5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "E3",
+      "C4",
+      "F4",
+      "A4",
+      "F5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 33
+  },
+  {
+   "bar": 17,
+   "pitches": [
+    "D3",
+    "F3",
+    "A3",
+    "C4",
+    "F4"
+   ],
+   "figures": [
+    7,
+    5,
+    3
+   ],
+   "fundamental": {
+    "root": "D",
+    "chord": "minor seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "D3",
+      "E3",
+      "G3",
+      "C4",
+      "E4"
+     ],
+     "figures": [
+      7,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "E",
+      "chord": "minor seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "D3",
+      "F3",
+      "A3",
+      "C4",
+      "F4"
+     ],
+     "figures": [
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "minor seventh"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "D3",
+      "G3",
+      "C4",
+      "G4",
+      "C5"
+     ],
+     "figures": [
+      7,
+      4
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "major"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "D3",
+      "A3",
+      "D4",
+      "F#4",
+      "C5"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "7"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "D3",
+      "F3",
+      "A3",
+      "C4",
+      "F4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "D3",
+      "F3",
+      "A3",
+      "C4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "D3",
+      "F3",
+      "C4",
+      "F4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "D3",
+      "A3",
+      "C4",
+      "F4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "D3",
+      "A3",
+      "F4",
+      "C5",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "D3",
+      "C4",
+      "F4",
+      "A4",
+      "D5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 34
+  },
+  {
+   "bar": 18,
+   "pitches": [
+    "G2",
+    "D3",
+    "G3",
+    "B3",
+    "F4"
+   ],
+   "figures": [
+    8,
+    7,
+    5,
+    3
+   ],
+   "fundamental": {
+    "root": "G",
+    "chord": "dominant seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "B3",
+      "F4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "E3",
+      "G3",
+      "C4",
+      "E4"
+     ],
+     "figures": [
+      8,
+      6,
+      4
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "F3",
+      "A3",
+      "C4",
+      "F4"
+     ],
+     "figures": [
+      7,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "F",
+      "chord": "major"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "G3",
+      "Bb3",
+      "C4",
+      "E4"
+     ],
+     "figures": [
+      8,
+      6,
+      4,
+      3
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "7"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "G2",
+      "B2",
+      "D3",
+      "F3",
+      "F4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "F3",
+      "B3",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "B3",
+      "F4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "F3",
+      "B3",
+      "D4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "G3",
+      "B3",
+      "F4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "B3",
+      "D4",
+      "D5",
+      "F5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 55
+  },
+  {
+   "bar": 19,
+   "pitches": [
+    "C3",
+    "E3",
+    "G3",
+    "C4",
+    "E4"
+   ],
+   "figures": [
+    8,
+    5,
+    3
+   ],
+   "fundamental": {
+    "root": "C",
+    "chord": "major"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "C3",
+      "D3",
+      "G3",
+      "B3",
+      "F4"
+     ],
+     "figures": [
+      7,
+      5,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "minor seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "E3",
+      "G3",
+      "C4",
+      "E4"
+     ],
+     "figures": [
+      8,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C3",
+      "F3",
+      "A3",
+      "C4",
+      "F4"
+     ],
+     "figures": [
+      8,
+      6,
+      4
+     ],
+     "fundamental": {
+      "root": "F",
+      "chord": "major"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "G3",
+      "Bb3",
+      "C4",
+      "E4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [],
+   "realisations": [
+    {
+     "pitches": [
+      "C3",
+      "E3",
+      "G3",
+      "C4",
+      "E4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C3",
+      "E3",
+      "G3",
+      "C4",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "E3",
+      "E4",
+      "G4",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "G3",
+      "E4",
+      "G4",
+      "E5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "G3",
+      "G4",
+      "E5",
+      "G5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "C4",
+      "G4",
+      "C5",
+      "E5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 32
+  },
+  {
+   "bar": 20,
+   "pitches": [
+    "C3",
+    "G3",
+    "Bb3",
+    "C4",
+    "E4"
+   ],
+   "figures": [
+    8,
+    7,
+    5,
+    3
+   ],
+   "fundamental": {
+    "root": "C",
+    "chord": "dominant seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "C3",
+      "D3",
+      "G3",
+      "B3",
+      "F4"
+     ],
+     "figures": [
+      7,
+      5,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "minor seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "E3",
+      "G3",
+      "C4",
+      "E4"
+     ],
+     "figures": [
+      8,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "F3",
+      "A3",
+      "C4",
+      "E4"
+     ],
+     "figures": [
+      8,
+      6,
+      4,
+      3
+     ],
+     "fundamental": {
+      "root": "F",
+      "chord": "major seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "G3",
+      "Bb3",
+      "C4",
+      "E4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "dominant seventh"
+     },
+     "bach": true
+    }
+   ],
+   "figured": [
+    "\u266d7"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "C3",
+      "E3",
+      "G3",
+      "Bb3",
+      "E4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "E3",
+      "Bb3",
+      "G4",
+      "Bb4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "G3",
+      "Bb3",
+      "C4",
+      "E4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C3",
+      "G3",
+      "C4",
+      "E4",
+      "Bb4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "Bb3",
+      "E4",
+      "G4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C3",
+      "Bb3",
+      "G4",
+      "E5",
+      "G5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 44
+  },
+  {
+   "bar": 21,
+   "pitches": [
+    "F2",
+    "F3",
+    "A3",
+    "C4",
+    "E4"
+   ],
+   "figures": [
+    8,
+    7,
+    5,
+    3
+   ],
+   "fundamental": {
+    "root": "F",
+    "chord": "major seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "F2",
+      "C3",
+      "A3",
+      "C4",
+      "Eb4"
+     ],
+     "figures": [
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "F",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F2",
+      "E3",
+      "G3",
+      "C4",
+      "E4"
+     ],
+     "figures": [
+      7,
+      5,
+      2
+     ],
+     "fundamental": {
+      "root": "F",
+      "chord": "major seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F2",
+      "F3",
+      "A3",
+      "C4",
+      "E4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "F",
+      "chord": "major seventh"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "F2",
+      "G3",
+      "Bb3",
+      "C4",
+      "E4"
+     ],
+     "figures": [
+      7,
+      5,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "minor seventh"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "7"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "F2",
+      "A2",
+      "E3",
+      "C4",
+      "E4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F2",
+      "C3",
+      "A3",
+      "E4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F2",
+      "E3",
+      "C4",
+      "E4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F2",
+      "F3",
+      "A3",
+      "C4",
+      "E4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "F2",
+      "A3",
+      "E4",
+      "F4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F2",
+      "C4",
+      "F4",
+      "A4",
+      "E5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 52
+  },
+  {
+   "bar": 22,
+   "pitches": [
+    "F#2",
+    "C3",
+    "A3",
+    "C4",
+    "Eb4"
+   ],
+   "figures": [
+    7,
+    5,
+    3
+   ],
+   "fundamental": {
+    "root": "F#",
+    "chord": "diminished seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "F#2",
+      "C3",
+      "A3",
+      "C4",
+      "Eb4"
+     ],
+     "figures": [
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "F#",
+      "chord": "diminished seventh"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "F#2",
+      "F3",
+      "A3",
+      "C4",
+      "E4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "F#",
+      "chord": "half-diminished seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F#2",
+      "F3",
+      "B3",
+      "C4",
+      "D4"
+     ],
+     "figures": [
+      8,
+      6,
+      5,
+      4
+     ],
+     "fundamental": {
+      "root": "B",
+      "chord": "minor"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F#2",
+      "G3",
+      "Bb3",
+      "C4",
+      "E4"
+     ],
+     "figures": [
+      7,
+      5,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "\u266d7"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "F#2",
+      "A2",
+      "Eb3",
+      "C4",
+      "F#4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F#2",
+      "C3",
+      "A3",
+      "C4",
+      "Eb4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "F#2",
+      "Eb3",
+      "A3",
+      "C4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F#2",
+      "F#3",
+      "C4",
+      "Eb4",
+      "A4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F#2",
+      "A3",
+      "Eb4",
+      "A4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "F#2",
+      "C4",
+      "A4",
+      "C5",
+      "Eb5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 55
+  },
+  {
+   "bar": 23,
+   "pitches": [
+    "Ab2",
+    "F3",
+    "B3",
+    "C4",
+    "D4"
+   ],
+   "figures": [
+    6,
+    4,
+    3,
+    2
+   ],
+   "fundamental": {
+    "root": "D",
+    "chord": "half-diminished seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "Ab2",
+      "C3",
+      "A3",
+      "C4",
+      "Eb4"
+     ],
+     "figures": [
+      8,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "Ab",
+      "chord": "major"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "Ab2",
+      "F3",
+      "G3",
+      "B3",
+      "D4"
+     ],
+     "figures": [
+      7,
+      6,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "B",
+      "chord": "diminished seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "Ab2",
+      "F3",
+      "A3",
+      "C4",
+      "E4"
+     ],
+     "figures": [
+      8,
+      6,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "F",
+      "chord": "minor"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "Ab2",
+      "F3",
+      "B3",
+      "C4",
+      "D4"
+     ],
+     "figures": [
+      6,
+      4,
+      3,
+      2
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "half-diminished seventh"
+     },
+     "bach": true
+    }
+   ],
+   "figured": [
+    "6",
+    "4",
+    "3",
+    "2"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "Ab2",
+      "B2",
+      "D3",
+      "C4",
+      "F4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "Ab2",
+      "D3",
+      "B3",
+      "C4",
+      "F4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "Ab2",
+      "F3",
+      "B3",
+      "C4",
+      "D4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "Ab2",
+      "F3",
+      "B3",
+      "D4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "Ab2",
+      "F3",
+      "D4",
+      "B4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "Ab2",
+      "B3",
+      "D4",
+      "C5",
+      "F5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 24
+  },
+  {
+   "bar": 24,
+   "pitches": [
+    "G2",
+    "F3",
+    "G3",
+    "B3",
+    "D4"
+   ],
+   "figures": [
+    8,
+    7,
+    5,
+    3
+   ],
+   "fundamental": {
+    "root": "G",
+    "chord": "dominant seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "G2",
+      "C3",
+      "A3",
+      "C4",
+      "Eb4"
+     ],
+     "figures": [
+      6,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "A",
+      "chord": "half-diminished seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "F3",
+      "G3",
+      "B3",
+      "D4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "E3",
+      "G3",
+      "C4",
+      "E4"
+     ],
+     "figures": [
+      8,
+      6,
+      4
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "F3",
+      "B3",
+      "C4",
+      "D4"
+     ],
+     "figures": [
+      7,
+      5,
+      4,
+      3
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "7"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "G2",
+      "B2",
+      "D3",
+      "F3",
+      "F4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "B3",
+      "F4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "F3",
+      "G3",
+      "B3",
+      "D4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "F3",
+      "B3",
+      "F4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "G3",
+      "D4",
+      "B4",
+      "F5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "B3",
+      "F4",
+      "D5",
+      "F5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 55
+  },
+  {
+   "bar": 25,
+   "pitches": [
+    "G2",
+    "E3",
+    "G3",
+    "C4",
+    "E4"
+   ],
+   "figures": [
+    8,
+    6,
+    4
+   ],
+   "fundamental": {
+    "root": "C",
+    "chord": "major"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "G2",
+      "F3",
+      "G3",
+      "B3",
+      "D4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "C4",
+      "F4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      4
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "E3",
+      "G3",
+      "C4",
+      "E4"
+     ],
+     "figures": [
+      8,
+      6,
+      4
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "F3",
+      "B3",
+      "C4",
+      "D4"
+     ],
+     "figures": [
+      7,
+      5,
+      4,
+      3
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "6",
+    "4"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "G2",
+      "C3",
+      "E3",
+      "G3",
+      "E4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "C3",
+      "G3",
+      "E4",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "E3",
+      "G3",
+      "C4",
+      "E4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "E3",
+      "C4",
+      "G4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "G3",
+      "E4",
+      "G4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "C4",
+      "E4",
+      "G4",
+      "G5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 35
+  },
+  {
+   "bar": 26,
+   "pitches": [
+    "G2",
+    "D3",
+    "G3",
+    "C4",
+    "F4"
+   ],
+   "figures": [
+    8,
+    7,
+    5,
+    4
+   ],
+   "fundamental": {
+    "root": "G",
+    "chord": "dominant seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "B3",
+      "F4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "F3",
+      "G3",
+      "B3",
+      "D4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "C4",
+      "F4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      4
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "E3",
+      "G3",
+      "C4",
+      "E4"
+     ],
+     "figures": [
+      8,
+      6,
+      4
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "7",
+    "4"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "G2",
+      "C3",
+      "D3",
+      "F3",
+      "F4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "F3",
+      "C4",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "C4",
+      "F4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "F3",
+      "C4",
+      "D4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "G3",
+      "C4",
+      "F4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "C4",
+      "D4",
+      "D5",
+      "F5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 55
+  },
+  {
+   "bar": 27,
+   "pitches": [
+    "G2",
+    "D3",
+    "G3",
+    "B3",
+    "F4"
+   ],
+   "figures": [
+    8,
+    7,
+    5,
+    3
+   ],
+   "fundamental": {
+    "root": "G",
+    "chord": "dominant seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "B3",
+      "F4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "C4",
+      "F4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      4
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "E3",
+      "G3",
+      "C4",
+      "E4"
+     ],
+     "figures": [
+      8,
+      6,
+      4
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "Eb3",
+      "A3",
+      "C4",
+      "F#4"
+     ],
+     "figures": [
+      7,
+      6,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "A",
+      "chord": "half-diminished seventh"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "7"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "G2",
+      "B2",
+      "D3",
+      "F3",
+      "F4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "F3",
+      "B3",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "B3",
+      "F4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "F3",
+      "B3",
+      "D4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "G3",
+      "B3",
+      "F4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "B3",
+      "D4",
+      "D5",
+      "F5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 55
+  },
+  {
+   "bar": 28,
+   "pitches": [
+    "G2",
+    "Eb3",
+    "A3",
+    "C4",
+    "F#4"
+   ],
+   "figures": [
+    7,
+    6,
+    4,
+    2
+   ],
+   "fundamental": {
+    "root": "A",
+    "chord": "half-diminished seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "B3",
+      "F4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "C4",
+      "F4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      4
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "E3",
+      "G3",
+      "C4",
+      "G4"
+     ],
+     "figures": [
+      8,
+      6,
+      4
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "Eb3",
+      "A3",
+      "C4",
+      "F#4"
+     ],
+     "figures": [
+      7,
+      6,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "A",
+      "chord": "half-diminished seventh"
+     },
+     "bach": true
+    }
+   ],
+   "figured": [
+    "\u266f7",
+    "\u266d6",
+    "4",
+    "2"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "G2",
+      "A2",
+      "Eb3",
+      "C4",
+      "F#4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "Eb3",
+      "A3",
+      "C4",
+      "F#4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "Eb3",
+      "A3",
+      "F#4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "F#3",
+      "Eb4",
+      "A4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "A3",
+      "F#4",
+      "C5",
+      "Eb5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "C4",
+      "A4",
+      "Eb5",
+      "F#5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 26
+  },
+  {
+   "bar": 29,
+   "pitches": [
+    "G2",
+    "E3",
+    "G3",
+    "C4",
+    "G4"
+   ],
+   "figures": [
+    8,
+    6,
+    4
+   ],
+   "fundamental": {
+    "root": "C",
+    "chord": "major"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "B3",
+      "F4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "C4",
+      "F4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      4
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "E3",
+      "G3",
+      "C4",
+      "G4"
+     ],
+     "figures": [
+      8,
+      6,
+      4
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "Eb3",
+      "A3",
+      "C4",
+      "F#4"
+     ],
+     "figures": [
+      7,
+      6,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "A",
+      "chord": "half-diminished seventh"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "6",
+    "4"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "G2",
+      "C3",
+      "E3",
+      "G3",
+      "E4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "C3",
+      "G3",
+      "E4",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "E3",
+      "G3",
+      "C4",
+      "G4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "E3",
+      "C4",
+      "G4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "G3",
+      "E4",
+      "G4",
+      "C5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "C4",
+      "E4",
+      "G4",
+      "G5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 35
+  },
+  {
+   "bar": 30,
+   "pitches": [
+    "G2",
+    "D3",
+    "G3",
+    "C4",
+    "F4"
+   ],
+   "figures": [
+    8,
+    7,
+    5,
+    4
+   ],
+   "fundamental": {
+    "root": "G",
+    "chord": "dominant seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "B3",
+      "F4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "C4",
+      "F4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      4
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "E3",
+      "G3",
+      "C4",
+      "G4"
+     ],
+     "figures": [
+      8,
+      6,
+      4
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "Eb3",
+      "A3",
+      "C4",
+      "F#4"
+     ],
+     "figures": [
+      7,
+      6,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "A",
+      "chord": "half-diminished seventh"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "7",
+    "4"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "G2",
+      "C3",
+      "D3",
+      "F3",
+      "F4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "F3",
+      "C4",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "C4",
+      "F4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "F3",
+      "C4",
+      "D4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "G3",
+      "C4",
+      "F4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "C4",
+      "D4",
+      "D5",
+      "F5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 55
+  },
+  {
+   "bar": 31,
+   "pitches": [
+    "G2",
+    "D3",
+    "G3",
+    "B3",
+    "F4"
+   ],
+   "figures": [
+    8,
+    7,
+    5,
+    3
+   ],
+   "fundamental": {
+    "root": "G",
+    "chord": "dominant seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "G2",
+      "C3",
+      "G3",
+      "Bb3",
+      "E4"
+     ],
+     "figures": [
+      8,
+      6,
+      4,
+      3
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "B3",
+      "F4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "C4",
+      "F4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      4
+     ],
+     "fundamental": {
+      "root": "G",
+      "chord": "dominant seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "E3",
+      "G3",
+      "C4",
+      "G4"
+     ],
+     "figures": [
+      8,
+      6,
+      4
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "major"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "7"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "G2",
+      "B2",
+      "D3",
+      "F3",
+      "F4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "F3",
+      "B3",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "D3",
+      "G3",
+      "B3",
+      "F4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "G2",
+      "F3",
+      "B3",
+      "D4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "G3",
+      "B3",
+      "F4",
+      "D5"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "G2",
+      "B3",
+      "D4",
+      "D5",
+      "F5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 55
+  },
+  {
+   "bar": 32,
+   "pitches": [
+    "C2",
+    "C3",
+    "G3",
+    "Bb3",
+    "E4"
+   ],
+   "figures": [
+    8,
+    7,
+    5,
+    3
+   ],
+   "fundamental": {
+    "root": "C",
+    "chord": "dominant seventh"
+   },
+   "choices": [
+    {
+     "pitches": [
+      "C2",
+      "C3",
+      "G3",
+      "Bb3",
+      "E4"
+     ],
+     "figures": [
+      8,
+      7,
+      5,
+      3
+     ],
+     "fundamental": {
+      "root": "C",
+      "chord": "dominant seventh"
+     },
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C2",
+      "D3",
+      "G3",
+      "B3",
+      "F4"
+     ],
+     "figures": [
+      7,
+      5,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "minor seventh"
+     },
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C2",
+      "D3",
+      "G3",
+      "C4",
+      "F4"
+     ],
+     "figures": [
+      8,
+      5,
+      4,
+      2
+     ],
+     "fundamental": {
+      "root": "D",
+      "chord": "minor seventh"
+     },
+     "bach": false
+    }
+   ],
+   "figured": [
+    "\u266d7"
+   ],
+   "realisations": [
+    {
+     "pitches": [
+      "C2",
+      "E2",
+      "E3",
+      "Bb3",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C2",
+      "Bb2",
+      "G3",
+      "E4",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C2",
+      "C3",
+      "G3",
+      "Bb3",
+      "E4"
+     ],
+     "bach": true
+    },
+    {
+     "pitches": [
+      "C2",
+      "E3",
+      "Bb3",
+      "C4",
+      "G4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C2",
+      "G3",
+      "E4",
+      "G4",
+      "Bb4"
+     ],
+     "bach": false
+    },
+    {
+     "pitches": [
+      "C2",
+      "Bb3",
+      "E4",
+      "E5",
+      "G5"
+     ],
+     "bach": false
+    }
+   ],
+   "realisationCount": 63
+  }
+ ]
+}

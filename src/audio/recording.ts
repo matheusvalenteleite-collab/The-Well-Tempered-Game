@@ -1,43 +1,71 @@
 /**
- * A real recording in place of the game's sounds (D128): Kimiko Ishizaka's Open Well-Tempered
- * Clavier, Book I (2015, CC0 1.0), one track a piece: beside the page where it is published with
- * them (the claude.ai artifact, under recordings/ishizaka/), else streamed from the Internet Archive,
- * which holds the same 48 tracks (archive.org/details/bach-well-tempered-clavier-book-1); never in
- * the repository. Each track's bar lines are timed (tools/align-recording.py:
- * the score's chroma matched to the recording's by dynamic time warping), so a span of the score,
- * in quarters, plays as the matching stretch of the recording, and the bar being played is known.
+ * Real recordings in place of the game's sounds (D128, D131), streamed, never in the repository:
+ *   - Book I: Kimiko Ishizaka, The Open Well-Tempered Clavier (2015, CC0 1.0), one track a piece:
+ *     beside the page where it is published with them (the claude.ai artifact, under
+ *     recordings/ishizaka/), else from the Internet Archive (bach-well-tempered-clavier-book-1);
+ *   - Book II: Arthur Loesser (1964, Internet Archive, CC BY-NC-ND 3.0, streamed unaltered), one
+ *     track a prelude and its fugue.
+ * Each bar line is timed in the order played (tools/align-recording*.py: the score's chroma matched
+ * to the recording's by dynamic time warping; a repeated section appears twice), so a span of the
+ * score, in quarters, plays as the matching stretch of the recording, and the bar playing is known.
  */
-import timing from "../../data/recordings/ishizaka-book1.json" with { type: "json" };
+import ishizaka from "../../data/recordings/ishizaka-book1.json" with { type: "json" };
+import loesser from "../../data/recordings/loesser-book2.json" with { type: "json" };
 
-const DATA = timing as unknown as { archive: string; files: Record<string, string>; bars: Record<string, number[]> };
-const BARS = DATA.bars;
+type Timing = number[] | { t: number[]; b: number[] };
+interface Source {
+  performer: string;
+  licence: string;
+  archive: string;
+  files: Record<string, string>;
+  bars: Record<string, Timing>;
+  /** Where the tracks may also lie beside the page. */
+  local?: string;
+}
+const SOURCES: Source[] = [
+  { ...(ishizaka as unknown as Source), local: "recordings/ishizaka/" },
+  loesser as unknown as Source,
+];
 
 export interface Track {
-  /** Where to fetch it, in turn: beside the page, then the Internet Archive. */
+  performer: string;
+  licence: string;
+  /** Where to fetch it, in turn. */
   urls: string[];
-  /** Seconds of each bar line, the first bar's start to the last bar's end. */
-  bars: number[];
+  /** The bar lines in the order played (seconds), and the bar each begins (0-based). */
+  t: number[];
+  b: number[];
 }
 
-/** The recording of a piece ("wtc1.05", prelude or fugue), if there is one (Book I only). */
+/** The recording of a piece ("wtc1.05", prelude or fugue), if there is one. */
 export function trackOf(id: string, prelude: boolean): Track | null {
   const key = `${id.replace(".", "-")}${prelude ? "p" : "f"}`;
-  const bars = BARS[key];
-  return bars ? { urls: [new URL(`recordings/ishizaka/${key}.mp3`, document.baseURI).href, DATA.archive + encodeURIComponent(DATA.files[key])], bars } : null;
+  for (const s of SOURCES) {
+    const tm = s.bars[key];
+    if (!tm) continue;
+    const t = Array.isArray(tm) ? tm : tm.t;
+    const b = Array.isArray(tm) ? tm.slice(0, -1).map((_, i) => i) : tm.b;
+    const urls = [...(s.local ? [new URL(`${s.local}${key}.mp3`, typeof document === "undefined" ? "http://localhost/" : document.baseURI).href] : []), s.archive + encodeURIComponent(s.files[key])];
+    return { performer: s.performer, licence: s.licence, urls, t, b };
+  }
+  return null;
 }
 
-/** Quarters from the first bar → seconds in the recording (linear within a bar). */
-export function secondsAt(t: Track, q: number, barQ: number): number {
-  const b = Math.max(0, Math.min(t.bars.length - 2, Math.floor(q / barQ + 1e-9)));
-  const f = Math.max(0, Math.min(1, q / barQ - b));
-  return t.bars[b] + f * (t.bars[b + 1] - t.bars[b]);
+/** Quarters from the first bar → seconds in the recording (the bar's first time through; linear within it). The piece's end is the last bar line played. */
+export function secondsAt(tr: Track, q: number, barQ: number, end = Infinity): number {
+  if (q >= end - 1e-6) return tr.t[tr.t.length - 1];
+  const bar = Math.floor(q / barQ + 1e-9);
+  let k = tr.b.indexOf(bar);
+  if (k < 0) k = bar < tr.b[0] ? 0 : tr.b.length - 1;
+  const f = Math.max(0, Math.min(1, q / barQ - tr.b[k]));
+  return tr.t[k] + f * (tr.t[k + 1] - tr.t[k]);
 }
 
 /** Seconds in the recording → the bar (0-based) being played. */
-export function barAt(t: Track, s: number): number {
-  let b = 0;
-  while (b + 1 < t.bars.length - 1 && t.bars[b + 1] <= s) b++;
-  return b;
+export function barAt(tr: Track, s: number): number {
+  let k = 0;
+  while (k + 1 < tr.b.length && tr.t[k + 1] <= s) k++;
+  return tr.b[k];
 }
 
 /** One audio element for the page: plays stretches of a track, one after another, with a breath between. */

@@ -203,3 +203,40 @@ test("D126: the library: all 48 from the corpus, each fugue with its voices as e
   const eight = LIBRARY.find((l) => l.id === "wtc1.08")!;
   assert.deepEqual([eight.preludeKey, eight.key], ["eb", "d#"]);
 });
+
+test("D128/D131: a recording of every prelude and fugue (Ishizaka, Book I; Loesser, Book II), its bar lines in order, every bar played", async () => {
+  const { LIBRARY } = await import("../src/wtc/library.ts");
+  const { trackOf, secondsAt, barAt } = await import("../src/audio/recording.ts");
+  for (const l of LIBRARY) {
+    for (const prelude of [true, false]) {
+      const p = prelude ? l.prelude() : l.fugue();
+      const tr = trackOf(l.id, prelude);
+      assert.ok(tr, `${l.id}${prelude ? "p" : "f"}`);
+      assert.equal(tr!.performer, l.book === 1 ? "Kimiko Ishizaka" : "Arthur Loesser");
+      assert.equal(tr!.t.length, tr!.b.length + 1, l.id);
+      assert.ok(tr!.t.every((x, i) => i === 0 || x >= tr!.t[i - 1]), `${l.id}: times in order`);
+      const bars = Math.ceil(Math.max(...p.notes.map((n) => n.at + n.dur)) / p.barQuarters - 1e-6);
+      assert.deepEqual([...new Set(tr!.b)].sort((a, b) => a - b), Array.from({ length: bars }, (_, i) => i), `${l.id}: every bar played`);
+      const s = secondsAt(tr!, 1.5 * p.barQuarters, p.barQuarters);
+      assert.equal(barAt(tr!, s), 1, l.id);
+    }
+  }
+  // Book II no. 2: Loesser takes both repeats of the prelude.
+  const two = trackOf("wtc2.02", true)!;
+  assert.equal(two.b.length, 2 * new Set(two.b).size);
+});
+
+test("D132: Bach's licences: a fault Bach commits in his own two-voice writing becomes a warning naming where; others stay errors", async () => {
+  const { withLicences, bachPlace } = await import("../src/wtc/licences.ts");
+  const ev = evaluateCounterpoint({
+    line: [{ pitch: "E5", at: 0, dur: 1 }, { pitch: "A4", at: 1, dur: 1 }, { pitch: "B4", at: 2, dur: 1 }],
+    given: [{ pitch: "C4", at: 0, dur: 1 }, { pitch: "D4", at: 1, dur: 1 }, { pitch: "E4", at: 2, dur: 1 }],
+    bar: 4, beat: 1, phase: 0, judged: new Set([0, 1, 2]),
+  });
+  // Parallel fifths: Bach's two-voice writing has one (Book I, C sharp major, bar 39).
+  const lax = withLicences(ev);
+  assert.ok(lax.passed);
+  assert.match(lax.warnings[0].detail!.bach, /Book I, Fugue 3/);
+  // A licence the data never saw stays an error.
+  assert.equal(bachPlace({ ruleId: "wtc.cp.nonexistent", at: 0, note: 0, severity: "error", messageKey: "x" }), null);
+});

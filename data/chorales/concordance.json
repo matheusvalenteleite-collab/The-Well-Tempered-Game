@@ -1,0 +1,1068 @@
+{
+ "generated_by": "tools/chorales/concordance.py",
+ "method": "global alignment of pitch sequences (ties merged, small notes and rests out), all transpositions; substitution 1.0, Bach-only note 0.35, Kittel-only note 1.0; same tune up to 0.2, variant up to 0.3 (cost per Kittel note)",
+ "transposition": "semitones added to Bach's soprano to reach Kittel's",
+ "rows": [
+  {
+   "kittel": 1,
+   "title": "Gott des Himmels und der Erden etc.",
+   "key_signature": 1,
+   "melody_final": "G",
+   "same_tune": [
+    {
+     "bach": 35,
+     "bwv": "248/53",
+     "title": "Gott des Himmels und der Erden",
+     "key": "A major",
+     "cost_per_note": 0.097,
+     "transposition": -2,
+     "title_score": 1.0
+    }
+   ],
+   "variant_of_tune": [],
+   "same_title_other_tune": [],
+   "nearest": []
+  },
+  {
+   "kittel": 2,
+   "title": "Allein Gott in der Höh [etc.]",
+   "key_signature": 1,
+   "melody_final": "G",
+   "same_tune": [
+    {
+     "bach": 125,
+     "bwv": "104/6",
+     "title": "Allein Gott in der Höh sei Ehr",
+     "key": "G major",
+     "cost_per_note": 0.073,
+     "transposition": 0,
+     "title_score": 1.0
+    },
+    {
+     "bach": 249,
+     "bwv": "260",
+     "title": "Allein Gott in der Höh sei Ehr",
+     "key": "G major",
+     "cost_per_note": 0.08,
+     "transposition": 0,
+     "title_score": 1.0
+    },
+    {
+     "bach": 313,
+     "bwv": "112/5",
+     "title": "Allein Gott in der Höh sei Ehr",
+     "key": "G major",
+     "cost_per_note": 0.095,
+     "transposition": 0,
+     "title_score": 1.0
+    },
+    {
+     "bach": 353,
+     "bwv": "112/5",
+     "title": "Der Herr ist mein getreuer Hirt",
+     "key": "G major",
+     "cost_per_note": 0.095,
+     "transposition": 0,
+     "title_score": 0.0
+    },
+    {
+     "bach": 326,
+     "bwv": "104/6",
+     "title": "Allein Gott in der Höh sei Ehr",
+     "key": "A major",
+     "cost_per_note": 0.116,
+     "transposition": -2,
+     "title_score": 1.0
+    }
+   ],
+   "variant_of_tune": [],
+   "same_title_other_tune": [],
+   "nearest": []
+  },
+  {
+   "kittel": 3,
+   "title": "Nun freut euch, liebe Christengemein etc.",
+   "key_signature": 3,
+   "melody_final": "A",
+   "same_tune": [
+    {
+     "bach": 362,
+     "bwv": "248/59",
+     "title": "Es ist gewißlich an der Zeit",
+     "key": "G major",
+     "cost_per_note": 0.041,
+     "transposition": 2,
+     "title_score": 0.0
+    },
+    {
+     "bach": 260,
+     "bwv": "307",
+     "title": "Es ist gewißlich an der Zeit",
+     "key": "Bb major",
+     "cost_per_note": 0.134,
+     "transposition": -1,
+     "title_score": 0.0
+    }
+   ],
+   "variant_of_tune": [],
+   "same_title_other_tune": [
+    {
+     "bach": 183,
+     "bwv": "388",
+     "title": "Nun freut euch, lieben Christen g'mein",
+     "key": "G major",
+     "cost_per_note": 0.547,
+     "transposition": 2,
+     "title_score": 1.0
+    }
+   ],
+   "nearest": []
+  },
+  {
+   "kittel": 4,
+   "title": "Herr Jesu Christ dich zu uns etc.",
+   "key_signature": 1,
+   "melody_final": "G",
+   "same_tune": [
+    {
+     "bach": 136,
+     "bwv": "332",
+     "title": "Herr Jesu Christ, dich zu uns wend",
+     "key": "G major",
+     "cost_per_note": 0.084,
+     "transposition": 0,
+     "title_score": 1.0
+    }
+   ],
+   "variant_of_tune": [],
+   "same_title_other_tune": [],
+   "nearest": []
+  },
+  {
+   "kittel": 5,
+   "title": "Herr Gott, dich loben alle wir etc.",
+   "key_signature": 3,
+   "melody_final": "A",
+   "same_tune": [
+    {
+     "bach": 164,
+     "bwv": "326",
+     "title": "Herr Gott, dich loben alle wir",
+     "key": "Bb major",
+     "cost_per_note": 0.061,
+     "transposition": -1,
+     "title_score": 1.0
+    },
+    {
+     "bach": 334,
+     "bwv": "327",
+     "title": "Für deinen Thron tret ich hiermit",
+     "key": "D major",
+     "cost_per_note": 0.061,
+     "transposition": -5,
+     "title_score": 0.0
+    }
+   ],
+   "variant_of_tune": [],
+   "same_title_other_tune": [],
+   "nearest": []
+  },
+  {
+   "kittel": 6,
+   "title": "Jesus, meine Zuversicht etc.",
+   "key_signature": 0,
+   "melody_final": "C",
+   "same_tune": [
+    {
+     "bach": 175,
+     "bwv": "365",
+     "title": "Jesus, meine Zuversicht",
+     "key": "C major",
+     "cost_per_note": 0.116,
+     "transposition": 0,
+     "title_score": 1.0
+    },
+    {
+     "bach": 338,
+     "bwv": "145/8",
+     "title": "Jesus, meine Zuversicht",
+     "key": "D major",
+     "cost_per_note": 0.117,
+     "transposition": -2,
+     "title_score": 1.0
+    }
+   ],
+   "variant_of_tune": [],
+   "same_title_other_tune": [],
+   "nearest": []
+  },
+  {
+   "kittel": 7,
+   "title": "Nun lasst uns Gott den Herren etc.",
+   "key_signature": 3,
+   "melody_final": "A",
+   "same_tune": [
+    {
+     "bach": 93,
+     "bwv": "194/12",
+     "title": "Wach auf, mein Herz",
+     "key": "Bb major",
+     "cost_per_note": 0.111,
+     "transposition": -1,
+     "title_score": 0.0
+    },
+    {
+     "bach": 257,
+     "bwv": "194/12",
+     "title": "Nun laßt uns Gott, dem Herren",
+     "key": "Bb major",
+     "cost_per_note": 0.111,
+     "transposition": -1,
+     "title_score": 0.67
+    }
+   ],
+   "variant_of_tune": [],
+   "same_title_other_tune": [],
+   "nearest": []
+  },
+  {
+   "kittel": 8,
+   "title": "Nun danket alle Gott etc.",
+   "key_signature": -1,
+   "melody_final": "F",
+   "same_tune": [],
+   "variant_of_tune": [
+    {
+     "bach": 32,
+     "bwv": "386",
+     "title": "Nun danket alle Gott",
+     "key": "A major",
+     "cost_per_note": 0.212,
+     "transposition": -4,
+     "title_score": 1.0
+    },
+    {
+     "bach": 330,
+     "bwv": "252",
+     "title": "Nun danket alle Gott",
+     "key": "G major",
+     "cost_per_note": 0.212,
+     "transposition": -2,
+     "title_score": 1.0
+    }
+   ],
+   "same_title_other_tune": [],
+   "nearest": []
+  },
+  {
+   "kittel": 9,
+   "title": "Mir nach, spricht Christus etc.",
+   "key_signature": 2,
+   "melody_final": "D",
+   "same_tune": [
+    {
+     "bach": 44,
+     "bwv": "377",
+     "title": "Mach's mit mir, Gott, nach deiner Güt",
+     "key": "D major",
+     "cost_per_note": 0.116,
+     "transposition": 0,
+     "title_score": 0.0
+    },
+    {
+     "bach": 310,
+     "bwv": "245/22",
+     "title": "Mach's mit mir, Gott, nach deiner Güt",
+     "key": "E major",
+     "cost_per_note": 0.138,
+     "transposition": -2,
+     "title_score": 0.0
+    }
+   ],
+   "variant_of_tune": [
+    {
+     "bach": 224,
+     "bwv": "290",
+     "title": "Das walt Gott Vater und Gott Sohn",
+     "key": "F major",
+     "cost_per_note": 0.233,
+     "transposition": -3,
+     "title_score": 0.0
+    }
+   ],
+   "same_title_other_tune": [],
+   "nearest": []
+  },
+  {
+   "kittel": 10,
+   "title": "Liebster Jesu, wir sind hier etc.",
+   "key_signature": 1,
+   "melody_final": "G",
+   "same_tune": [
+    {
+     "bach": 131,
+     "bwv": "373",
+     "title": "Liebester Jesu, wir sind hier",
+     "key": "G major",
+     "cost_per_note": 0.147,
+     "transposition": 0,
+     "title_score": 1.0
+    },
+    {
+     "bach": 328,
+     "bwv": "373",
+     "title": "Liebester Jesu, wir sind hier",
+     "key": "G major",
+     "cost_per_note": 0.147,
+     "transposition": 0,
+     "title_score": 1.0
+    }
+   ],
+   "variant_of_tune": [],
+   "same_title_other_tune": [],
+   "nearest": []
+  },
+  {
+   "kittel": 11,
+   "title": "Freu dich sehr, o meine Seele etc.",
+   "key_signature": 1,
+   "melody_final": "G",
+   "same_tune": [
+    {
+     "bach": 298,
+     "bwv": "19/7",
+     "title": "Weg, mein Herz, mit den Gedanken",
+     "key": "C major",
+     "cost_per_note": 0.022,
+     "transposition": -5,
+     "title_score": 0.0
+    },
+    {
+     "bach": 64,
+     "bwv": "194/6",
+     "title": "Freu dich sehr, o meine Seele",
+     "key": "G major",
+     "cost_per_note": 0.03,
+     "transposition": 0,
+     "title_score": 1.0
+    },
+    {
+     "bach": 256,
+     "bwv": "194/6",
+     "title": "Jesu, deine tiefen Wunden",
+     "key": "Bb major",
+     "cost_per_note": 0.03,
+     "transposition": -3,
+     "title_score": 0.0
+    },
+    {
+     "bach": 254,
+     "bwv": "25/6",
+     "title": "Weg, mein Herz, mit den Gedanken",
+     "key": "C major",
+     "cost_per_note": 0.031,
+     "transposition": -5,
+     "title_score": 0.0
+    },
+    {
+     "bach": 282,
+     "bwv": "25/6",
+     "title": "Freu dich sehr, o meine Seele",
+     "key": "C major",
+     "cost_per_note": 0.031,
+     "transposition": -5,
+     "title_score": 1.0
+    },
+    {
+     "bach": 29,
+     "bwv": "32/6",
+     "title": "Freu dich sehr, o meine Seele",
+     "key": "G major",
+     "cost_per_note": 0.038,
+     "transposition": 0,
+     "title_score": 1.0
+    },
+    {
+     "bach": 67,
+     "bwv": "39/7",
+     "title": "Freu dich sehr, o meine Seele",
+     "key": "G major",
+     "cost_per_note": 0.046,
+     "transposition": 0,
+     "title_score": 1.0
+    },
+    {
+     "bach": 76,
+     "bwv": "30/6",
+     "title": "Freu dich sehr, o meine Seele",
+     "key": "G major",
+     "cost_per_note": 0.053,
+     "transposition": 0,
+     "title_score": 1.0
+    }
+   ],
+   "variant_of_tune": [],
+   "same_title_other_tune": [],
+   "nearest": []
+  },
+  {
+   "kittel": 12,
+   "title": "Christus, der ist mein Leben etc.",
+   "key_signature": 2,
+   "melody_final": "D",
+   "same_tune": [
+    {
+     "bach": 316,
+     "bwv": "282",
+     "title": "Christus, der ist mein Leben",
+     "key": "G major",
+     "cost_per_note": 0.106,
+     "transposition": -5,
+     "title_score": 1.0
+    },
+    {
+     "bach": 6,
+     "bwv": "281",
+     "title": "Christus, der ist mein Leben",
+     "key": "F major",
+     "cost_per_note": 0.194,
+     "transposition": -3,
+     "title_score": 1.0
+    }
+   ],
+   "variant_of_tune": [],
+   "same_title_other_tune": [],
+   "nearest": []
+  },
+  {
+   "kittel": 13,
+   "title": "Lobt Gott, ihr Christen, allzugleich",
+   "key_signature": 1,
+   "melody_final": "G",
+   "same_tune": [
+    {
+     "bach": 54,
+     "bwv": "151/5",
+     "title": "Lobt Gott, ihr Christen allzugleich",
+     "key": "G major",
+     "cost_per_note": 0.041,
+     "transposition": 0,
+     "title_score": 1.0
+    },
+    {
+     "bach": 276,
+     "bwv": "375",
+     "title": "Lobt Gott, ihr Christen allzugleich",
+     "key": "G major",
+     "cost_per_note": 0.09,
+     "transposition": 0,
+     "title_score": 1.0
+    },
+    {
+     "bach": 342,
+     "bwv": "376",
+     "title": "Lobt Gott, ihr Christen allzugleich",
+     "key": "A major",
+     "cost_per_note": 0.099,
+     "transposition": -2,
+     "title_score": 1.0
+    }
+   ],
+   "variant_of_tune": [],
+   "same_title_other_tune": [],
+   "nearest": []
+  },
+  {
+   "kittel": 14,
+   "title": "Valet will ich dir geben etc.",
+   "key_signature": 0,
+   "melody_final": "C",
+   "same_tune": [
+    {
+     "bach": 108,
+     "bwv": "245/26",
+     "title": "Valet will ich dir geben",
+     "key": "Eb major",
+     "cost_per_note": 0.06,
+     "transposition": -3,
+     "title_score": 1.0
+    },
+    {
+     "bach": 24,
+     "bwv": "415",
+     "title": "Valet will ich dir geben",
+     "key": "D major",
+     "cost_per_note": 0.069,
+     "transposition": -2,
+     "title_score": 1.0
+    }
+   ],
+   "variant_of_tune": [],
+   "same_title_other_tune": [],
+   "nearest": []
+  },
+  {
+   "kittel": 15,
+   "title": "Es ist das Heil uns kommen her etc.",
+   "key_signature": 2,
+   "melody_final": "D",
+   "same_tune": [
+    {
+     "bach": 4,
+     "bwv": "86/6",
+     "title": "Es ist das Heil uns kommen her",
+     "key": "E major",
+     "cost_per_note": 0.099,
+     "transposition": -2,
+     "title_score": 1.0
+    },
+    {
+     "bach": 248,
+     "bwv": "117/4",
+     "title": "Sei Lob und Ehr dem höchsten Gut",
+     "key": "G major",
+     "cost_per_note": 0.123,
+     "transposition": -5,
+     "title_score": 0.0
+    },
+    {
+     "bach": 354,
+     "bwv": "117/4",
+     "title": "Sei Lob und Ehr dem höchsten Gut",
+     "key": "G major",
+     "cost_per_note": 0.123,
+     "transposition": -5,
+     "title_score": 0.0
+    },
+    {
+     "bach": 290,
+     "bwv": "917",
+     "title": "Es ist das Heil uns kommen her",
+     "key": "E major",
+     "cost_per_note": 0.131,
+     "transposition": -2,
+     "title_score": 1.0
+    },
+    {
+     "bach": 329,
+     "bwv": "251",
+     "title": "Sei Lob und Ehr dem höchsten Gut",
+     "key": "G major",
+     "cost_per_note": 0.139,
+     "transposition": -5,
+     "title_score": 0.0
+    },
+    {
+     "bach": 335,
+     "bwv": "155/5",
+     "title": "Es ist das Heil uns kommen her",
+     "key": "F major",
+     "cost_per_note": 0.139,
+     "transposition": -3,
+     "title_score": 1.0
+    }
+   ],
+   "variant_of_tune": [],
+   "same_title_other_tune": [],
+   "nearest": []
+  },
+  {
+   "kittel": 16,
+   "title": "Ach, wie heilig ist der Ort etc.",
+   "key_signature": -2,
+   "melody_final": "Bb",
+   "same_tune": [],
+   "variant_of_tune": [],
+   "same_title_other_tune": [],
+   "nearest": [
+    {
+     "bach": 164,
+     "bwv": "326",
+     "title": "Herr Gott, dich loben alle wir",
+     "key": "Bb major",
+     "cost_per_note": 0.36,
+     "transposition": 0,
+     "title_score": 0.0
+    },
+    {
+     "bach": 334,
+     "bwv": "327",
+     "title": "Für deinen Thron tret ich hiermit",
+     "key": "D major",
+     "cost_per_note": 0.36,
+     "transposition": -4,
+     "title_score": 0.0
+    },
+    {
+     "bach": 298,
+     "bwv": "19/7",
+     "title": "Weg, mein Herz, mit den Gedanken",
+     "key": "C major",
+     "cost_per_note": 0.39,
+     "transposition": -2,
+     "title_score": 0.0
+    }
+   ]
+  },
+  {
+   "kittel": 17,
+   "title": "Wer nur den lieben Gott lässt walten etc.",
+   "key_signature": 0,
+   "melody_final": "A",
+   "same_tune": [
+    {
+     "bach": 204,
+     "bwv": "166/6",
+     "title": "Wer weiß, wie nahe mir mein Ende",
+     "key": "G minor",
+     "cost_per_note": 0.0,
+     "transposition": 2,
+     "title_score": 0.14
+    },
+    {
+     "bach": 339,
+     "bwv": "179/6",
+     "title": "Wer nur den lieben Gott laßt walten",
+     "key": "A minor",
+     "cost_per_note": 0.01,
+     "transposition": 0,
+     "title_score": 1.0
+    },
+    {
+     "bach": 112,
+     "bwv": "84/5",
+     "title": "Wer nur den lieben Gott läßt walten",
+     "key": "B minor",
+     "cost_per_note": 0.029,
+     "transposition": -2,
+     "title_score": 1.0
+    },
+    {
+     "bach": 104,
+     "bwv": "88/7",
+     "title": "Wer nur den lieben Gott läßt walten",
+     "key": "B minor",
+     "cost_per_note": 0.031,
+     "transposition": -2,
+     "title_score": 1.0
+    },
+    {
+     "bach": 62,
+     "bwv": "197/10",
+     "title": "Wer nur den lieben Gott läßt walten",
+     "key": "B minor",
+     "cost_per_note": 0.04,
+     "transposition": -2,
+     "title_score": 1.0
+    },
+    {
+     "bach": 146,
+     "bwv": "434",
+     "title": "Wer nur den lieben Gott laßt walten",
+     "key": "A minor",
+     "cost_per_note": 0.051,
+     "transposition": 0,
+     "title_score": 1.0
+    }
+   ],
+   "variant_of_tune": [],
+   "same_title_other_tune": [],
+   "nearest": []
+  },
+  {
+   "kittel": 18,
+   "title": "Wie schön leuchtet der Morgenstern etc.",
+   "key_signature": -1,
+   "melody_final": "F",
+   "same_tune": [
+    {
+     "bach": 323,
+     "bwv": "172/6",
+     "title": "Wie schön leuchtet der Morgenstern",
+     "key": "F major",
+     "cost_per_note": 0.015,
+     "transposition": 0,
+     "title_score": 1.0
+    },
+    {
+     "bach": 86,
+     "bwv": "36(1) & 36(2)/4",
+     "title": "Wie schön leuchtet der Morgenstern",
+     "key": "D major",
+     "cost_per_note": 0.066,
+     "transposition": 3,
+     "title_score": 1.0
+    },
+    {
+     "bach": 278,
+     "bwv": "436",
+     "title": "Wie schön leuchtet der Morgenstern",
+     "key": "E major",
+     "cost_per_note": 0.079,
+     "transposition": 1,
+     "title_score": 1.0
+    },
+    {
+     "bach": 195,
+     "bwv": "36(1)/5 & 36(2)/4",
+     "title": "Wie schön leuchtet der Morgenstern",
+     "key": "D major",
+     "cost_per_note": 0.095,
+     "transposition": 3,
+     "title_score": 1.0
+    },
+    {
+     "bach": 305,
+     "bwv": "36.4",
+     "title": "Wie schön leuchtet der Morgenstern",
+     "key": "D major",
+     "cost_per_note": 0.095,
+     "transposition": 3,
+     "title_score": 1.0
+    }
+   ],
+   "variant_of_tune": [],
+   "same_title_other_tune": [],
+   "nearest": []
+  },
+  {
+   "kittel": 19,
+   "title": "Jesu meine Freude etc.",
+   "key_signature": -1,
+   "melody_final": "D",
+   "same_tune": [
+    {
+     "bach": 138,
+     "bwv": "64/8",
+     "title": "Jesu, meine Freude",
+     "key": "E minor",
+     "cost_per_note": 0.141,
+     "transposition": -2,
+     "title_score": 1.0
+    },
+    {
+     "bach": 96,
+     "bwv": "87/7",
+     "title": "Jesu, meine Freude",
+     "key": "D minor",
+     "cost_per_note": 0.143,
+     "transposition": 0,
+     "title_score": 1.0
+    },
+    {
+     "bach": 283,
+     "bwv": "227/7",
+     "title": "Jesu, meine Freude",
+     "key": "E minor",
+     "cost_per_note": 0.159,
+     "transposition": -2,
+     "title_score": 1.0
+    },
+    {
+     "bach": 324,
+     "bwv": "81/7",
+     "title": "Jesu, meine Freude",
+     "key": "E minor",
+     "cost_per_note": 0.159,
+     "transposition": -2,
+     "title_score": 1.0
+    },
+    {
+     "bach": 356,
+     "bwv": "358",
+     "title": "Jesu, meine Freude",
+     "key": "D minor",
+     "cost_per_note": 0.168,
+     "transposition": 0,
+     "title_score": 1.0
+    },
+    {
+     "bach": 263,
+     "bwv": "227/1",
+     "title": "Jesu, meine Freude",
+     "key": "E minor",
+     "cost_per_note": 0.178,
+     "transposition": -2,
+     "title_score": 1.0
+    }
+   ],
+   "variant_of_tune": [],
+   "same_title_other_tune": [
+    {
+     "bach": 350,
+     "bwv": "360",
+     "title": "Jesu, meiner Freuden Freude",
+     "key": "Bb major",
+     "cost_per_note": 0.683,
+     "transposition": -5,
+     "title_score": 1.0
+    }
+   ],
+   "nearest": []
+  },
+  {
+   "kittel": 20,
+   "title": "Was mein Gott will, gescheh’ allzeit etc.",
+   "key_signature": 0,
+   "melody_final": "A",
+   "same_tune": [
+    {
+     "bach": 120,
+     "bwv": "103/6",
+     "title": "Was mein Gott will, das g'scheh allzeit",
+     "key": "B minor",
+     "cost_per_note": 0.063,
+     "transposition": -2,
+     "title_score": 0.67
+    },
+    {
+     "bach": 349,
+     "bwv": "103/6",
+     "title": "Ich hab in Gottes Herz und Sinn",
+     "key": "B minor",
+     "cost_per_note": 0.063,
+     "transposition": -2,
+     "title_score": 0.0
+    },
+    {
+     "bach": 115,
+     "bwv": "244/25",
+     "title": "Was mein Gott will, das g'scheh allzeit",
+     "key": "B minor",
+     "cost_per_note": 0.075,
+     "transposition": -2,
+     "title_score": 0.67
+    },
+    {
+     "bach": 41,
+     "bwv": "65/7",
+     "title": "Was mein Gott will, das g'scheh allzeit",
+     "key": "A minor",
+     "cost_per_note": 0.094,
+     "transposition": 0,
+     "title_score": 0.67
+    },
+    {
+     "bach": 265,
+     "bwv": "144/6",
+     "title": "Was mein Gott will, das g'schen allzeit",
+     "key": "B minor",
+     "cost_per_note": 0.094,
+     "transposition": -2,
+     "title_score": 0.67
+    }
+   ],
+   "variant_of_tune": [],
+   "same_title_other_tune": [],
+   "nearest": []
+  },
+  {
+   "kittel": 21,
+   "title": "O Gott, du frommer Gott etc.",
+   "key_signature": -1,
+   "melody_final": "F",
+   "same_tune": [
+    {
+     "bach": 315,
+     "bwv": "399",
+     "title": "O Gott, du frommer Gott",
+     "key": "G major",
+     "cost_per_note": 0.177,
+     "transposition": -2,
+     "title_score": 1.0
+    }
+   ],
+   "variant_of_tune": [
+    {
+     "bach": 311,
+     "bwv": "287",
+     "title": "Dank sei Gott in der Höhe",
+     "key": "F major",
+     "cost_per_note": 0.22,
+     "transposition": 0,
+     "title_score": 0.0
+    }
+   ],
+   "same_title_other_tune": [
+    {
+     "bach": 337,
+     "bwv": "24/6",
+     "title": "O Gott, du frommer Gott",
+     "key": "F major",
+     "cost_per_note": 0.365,
+     "transposition": 0,
+     "title_score": 1.0
+    },
+    {
+     "bach": 85,
+     "bwv": "45/7",
+     "title": "O Gott, du frommer Gott",
+     "key": "E major",
+     "cost_per_note": 0.523,
+     "transposition": 1,
+     "title_score": 1.0
+    },
+    {
+     "bach": 312,
+     "bwv": "398",
+     "title": "O Gott, du frommer Gott",
+     "key": "D major",
+     "cost_per_note": 0.578,
+     "transposition": 3,
+     "title_score": 1.0
+    }
+   ],
+   "nearest": []
+  },
+  {
+   "kittel": 22,
+   "title": "Das Jesulein soll doch mein Trost etc.",
+   "key_signature": 3,
+   "melody_final": "A",
+   "same_tune": [],
+   "variant_of_tune": [],
+   "same_title_other_tune": [],
+   "nearest": [
+    {
+     "bach": 14,
+     "bwv": "185/5",
+     "title": "O Herre Gott, dein göttlich Wort",
+     "key": "G major",
+     "cost_per_note": 0.383,
+     "transposition": 2,
+     "title_score": 0.0
+    },
+    {
+     "bach": 27,
+     "bwv": "308",
+     "title": "Es spricht der Unweisen Mund",
+     "key": "Bb major",
+     "cost_per_note": 0.409,
+     "transposition": -1,
+     "title_score": 0.0
+    },
+    {
+     "bach": 144,
+     "bwv": "339",
+     "title": "Wer in dem Schutz des Höchsten ist",
+     "key": "A major",
+     "cost_per_note": 0.475,
+     "transposition": 0,
+     "title_score": 0.0
+    }
+   ]
+  },
+  {
+   "kittel": 23,
+   "title": "Ach Herr, mich armen Sünder etc.",
+   "key_signature": 0,
+   "melody_final": "E",
+   "same_tune": [
+    {
+     "bach": 21,
+     "bwv": "153/5",
+     "title": "Herzlich tut mich verlangen",
+     "key": "A minor",
+     "cost_per_note": 0.009,
+     "transposition": 0,
+     "title_score": 0.0
+    },
+    {
+     "bach": 270,
+     "bwv": "161/6",
+     "title": "Befiehl du deine Wege",
+     "key": "A minor",
+     "cost_per_note": 0.027,
+     "transposition": 0,
+     "title_score": 0.0
+    },
+    {
+     "bach": 80,
+     "bwv": "244/44",
+     "title": "O Haupt voll Blut und Wunden",
+     "key": "D major",
+     "cost_per_note": 0.053,
+     "transposition": -2,
+     "title_score": 0.0
+    },
+    {
+     "bach": 98,
+     "bwv": "244/15,17",
+     "title": "O Haupt voll Blut und Wunden",
+     "key": "D major",
+     "cost_per_note": 0.053,
+     "transposition": -2,
+     "title_score": 0.0
+    },
+    {
+     "bach": 74,
+     "bwv": "244/54",
+     "title": "O Haupt voll Blut und Wunden",
+     "key": "F major",
+     "cost_per_note": 0.062,
+     "transposition": -5,
+     "title_score": 0.0
+    },
+    {
+     "bach": 286,
+     "bwv": "270",
+     "title": "Befiehl du deine Wege",
+     "key": "B minor",
+     "cost_per_note": 0.062,
+     "transposition": -2,
+     "title_score": 0.0
+    },
+    {
+     "bach": 367,
+     "bwv": "271",
+     "title": "Befiehl du deine Wege",
+     "key": "B minor",
+     "cost_per_note": 0.062,
+     "transposition": -2,
+     "title_score": 0.0
+    },
+    {
+     "bach": 345,
+     "bwv": "248/5",
+     "title": "O Haupt voll Blut und Wunden",
+     "key": "A minor",
+     "cost_per_note": 0.079,
+     "transposition": 0,
+     "title_score": 0.0
+    },
+    {
+     "bach": 89,
+     "bwv": "244/62",
+     "title": "O Haupt voll Blut und Wunden",
+     "key": "B minor",
+     "cost_per_note": 0.088,
+     "transposition": -2,
+     "title_score": 0.0
+    }
+   ],
+   "variant_of_tune": [],
+   "same_title_other_tune": [],
+   "nearest": []
+  },
+  {
+   "kittel": 24,
+   "title": "Lobe den Herrn, den mächtigen König etc.",
+   "key_signature": 1,
+   "melody_final": "G",
+   "same_tune": [],
+   "variant_of_tune": [
+    {
+     "bach": 90,
+     "bwv": "57/8",
+     "title": "Hast du denn, Jesu, dein Angesicht",
+     "key": "Bb major",
+     "cost_per_note": 0.258,
+     "transposition": -3,
+     "title_score": 0.0
+    }
+   ],
+   "same_title_other_tune": [],
+   "nearest": []
+  }
+ ]
+}

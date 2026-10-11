@@ -240,7 +240,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     // alone, the workshop's subject or entries).
     if (useRec && track && !only && !(through !== "off" && changed) && !(myNotes.length && !game)) {
       setPlaying(true);
-      void recording.play(track.urls, [[secondsAt(track, Math.max(0, from), barQ), secondsAt(track, to, barQ)]], (sec) => setCursor(barAt(track, sec)), () => (setPlaying(false), setCursor(-1)), volume / 100);
+      void recording.play(track.urls, [[secondsAt(track, Math.max(0, from), barQ), secondsAt(track, to, barQ, end)]], (sec) => setCursor(barAt(track, sec)), () => (setPlaying(false), setCursor(-1)), volume / 100);
       return;
     }
     const evs: PlayEvent[] = [];
@@ -870,7 +870,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
             </select>
             <select className="sel" value={useRec ? "recording" : "synth"} onChange={(e) => (stop(), setSource(e.target.value === "recording" ? "recording" : "synth"))} aria-label={t("ui.study.rec.source")} title={t(track ? "ui.study.rec.help" : "ui.study.rec.none")}>
               <option value="synth">{t("ui.study.rec.synth")}</option>
-              <option value="recording" disabled={!track}>{t("ui.study.rec.ishizaka")}</option>
+              <option value="recording" disabled={!track}>{track ? t("ui.study.rec.of", { performer: track.performer }) : t("ui.study.rec.ishizaka")}</option>
             </select>
             <select className="sel" value={instrument} disabled={useRec} onChange={(e) => setInstrument(e.target.value as Instrument)} aria-label={t("ui.wtc.instrument")}>
               {INSTRUMENTS.map((x) => (
@@ -889,7 +889,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
       }
       tab={isPrelude && (tab === "workshop" || tab === "next") ? "guide" : tab}
       onTab={setTab}
-      idle={`${useRec ? "Recording: Kimiko Ishizaka, The Open Well-Tempered Clavier (2015), CC0; bars timed by the game. " : ""}J. S. Bach, Das wohltemperirte Clavier, ${roman(F.book)}, ${isPrelude ? "Praeludium" : "Fuga"} ${F.number} (BWV ${F.bwv}). Encoding: David Huron (Humdrum, 1994, after the Bach-Gesellschaft edition; rights to derivative electronic formats reserved, for study only); ${isPrelude ? "strands, " : "voices as encoded; entries, "}chords and cadences found by the game.`}
+      idle={`${useRec && track ? `Recording: ${track.performer === "Kimiko Ishizaka" ? "Kimiko Ishizaka, The Open Well-Tempered Clavier (2015)" : "Arthur Loesser (1964), via the Internet Archive"}, ${track.licence}; bars timed by the game. ` : ""}J. S. Bach, Das wohltemperirte Clavier, ${roman(F.book)}, ${isPrelude ? "Praeludium" : "Fuga"} ${F.number} (BWV ${F.bwv}). Encoding: David Huron (Humdrum, 1994, after the Bach-Gesellschaft edition; rights to derivative electronic formats reserved, for study only); ${isPrelude ? "strands, " : "voices as encoded; entries, "}chords and cadences found by the game.`}
       tabs={[
         { id: "guide", text: true, label: t("ui.study.tab.guide"), content: guide },
         { id: "voices", label: t("ui.study.tab.voices"), content: voicesPanel },

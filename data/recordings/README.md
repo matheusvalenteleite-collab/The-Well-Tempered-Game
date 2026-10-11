@@ -16,3 +16,11 @@ The audio itself is not in the repository. The game streams it from the Internet
 128 kbps (`wtc1-NN{p,f}.mp3`), it is
 published beside the page under `recordings/ishizaka/`, and for local builds copied into
 `public/recordings/ishizaka/` (ignored by git).
+
+`loesser-book2.json` (D131): Arthur Loesser's Book II (recorded 1964 at the Cleveland Institute of
+Music; Internet Archive item `J.S.BACHTheWell-TemperedClavier-BOOKII-Loesser`, CC BY-NC-ND 3.0:
+non-commercial, streamed unaltered, never copied here). One track holds a prelude and its fugue;
+`tools/align-recording-book2.py` cuts it at the silence nearest a first whole-track alignment, then
+aligns each half alone, trying every order of a prelude's repeated sections (from the Humdrum
+labels) and keeping the cheapest: the bar lines in the order played (`t`) with the bar each begins
+(`b`). Loesser takes both repeats in Nos. 2, 8, 10, 12, 15, 18 and 20, the first only in No. 5.
