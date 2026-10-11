@@ -113,8 +113,8 @@ say(`embellishment, ${own("tenor")} of the tenor's, ${own("bass")} of the bass's
 say("embellishment after a note held over two beats, for instance), so his row below understates him a little.");
 say();
 say(`Drawn as learnt, the chain embellishes more than Bach, and its surplus figures repeat generically through the chorale`);
-say(`(docs/chorales/MOTIVES.md); a restraint (leaving a note plain 2^r times as likely: alto ${RESTRAINT[0]}, tenor ${RESTRAINT[1]}, bass ${RESTRAINT[2]} bits),`);
-say("calibrated on the tunes held out, brings it to Bach's density; it is the default.");
+say(`(docs/chorales/MOTIVES.md); a restraint on the passing note, where its surplus lies (2^-r as likely: alto ${RESTRAINT[0]}, tenor ${RESTRAINT[1]}, bass ${RESTRAINT[2]} bits),`);
+say("calibrated on the tunes held out, brings it to Bach's density with his balance of kinds; it is the default.");
 say();
 say("| | alto embellished | tenor | bass | the same kind where Bach has one | surface rarities per 100 chords |");
 say("|---|---|---|---|---|---|");

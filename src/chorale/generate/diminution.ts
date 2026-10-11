@@ -167,10 +167,15 @@ export interface Diminished {
   count: number[];
 }
 
-/** The restraint (bits; alto, tenor, bass) that brings the drawn chain's density of embellishment to
- *  Bach's, each tune held out (11 October 2026: alto 11.8% against Bach's 11.7%, tenor 11.4% against
- *  11.1%, bass 11.7% against 11.3%, of the notes that can take one, read one chord per beat). */
-export const RESTRAINT = [1, 1.25, 2.75];
+/** The restraint (bits; alto, tenor, bass) on passing notes that brings the drawn chain's density of
+ *  embellishment to Bach's with his balance of kinds, each tune held out (11 October 2026: alto 12% of
+ *  the notes that can take one, 44% of them suspensions, against Bach's 11.7% and 49%; tenor about 11%,
+ *  21% against 23%; bass about 11%; read one chord per beat). Restraining every kind alike (leaving the
+ *  note plain) matched the density but thinned the suspensions, which the chain already writes fewer of. */
+export const RESTRAINT = [2, 1.9, 3.2];
+/** The kind restrained: the chain's surplus over Bach is in passing notes (its suspensions are fewer
+ *  than his already). */
+const RESTRAINED: Kind = "passing";
 
 /**
  * The lower voices of a four-part setting embellished. `lines`: soprano, alto, tenor, bass, one note
@@ -178,8 +183,8 @@ export const RESTRAINT = [1, 1.25, 2.75];
  * signature (sharps positive). Drawn with `r` at temperature T; without `r`, the cheapest (few
  * embellishments). Settings in minims are read as Bach's crotchets (and written back in minims).
  * `free`: which of alto, tenor, bass may be embellished (a given bass, Kittel's, is not).
- * `restraint` (bits, one per voice: alto, tenor, bass): leaving a note plain made 2^restraint times as
- * likely; the drawn chain embellishes more than Bach (GENERATOR-DIMINUTION.md), and its excess figures
+ * `restraint` (bits, one per voice: alto, tenor, bass): a passing note made 2^-restraint times as
+ * likely; the drawn chain embellishes more than Bach, its surplus in passing notes (GENERATOR-DIMINUTION.md), and its excess figures
  * repeat generically (docs/chorales/MOTIVES.md). The default, RESTRAINT, is calibrated on Bach; [0, 0, 0]
  * is the chain as learnt.
  */
@@ -193,10 +198,10 @@ export function diminish(dm: DiminutionModel, input: Note[][], sig: number, r?: 
   for (let v = 1; v < 4; v++)
     for (let i = 0; i < n - 1; i++) {
       const o = free[v - 1] ? dm.choices(lines[v], i, v, T) : new Map<Kind, number>([["none", 1]]);
-      if (restraint[v - 1] && o.has("none") && o.size > 1) {
+      if (restraint[v - 1] && o.has(RESTRAINED) && o.size > 1) {
         let z = 0;
-        for (const [k, p] of o) z += k === "none" ? p * 2 ** restraint[v - 1] : p;
-        for (const [k, p] of o) o.set(k, (k === "none" ? p * 2 ** restraint[v - 1] : p) / z);
+        for (const [k, p] of o) z += k === RESTRAINED ? p * 2 ** -restraint[v - 1] : p;
+        for (const [k, p] of o) o.set(k, (k === RESTRAINED ? p * 2 ** -restraint[v - 1] : p) / z);
       }
       opts[v][i] = o;
     }

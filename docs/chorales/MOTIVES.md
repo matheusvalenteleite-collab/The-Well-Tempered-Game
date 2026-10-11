@@ -64,5 +64,26 @@ figures). Shaped figures of diminution in the alto, tenor and bass.
 |---|---|---|---|---|---|
 | Bach | 4776 | 14.3% | 1.55% | 0.25% | 6.2 |
 | generator, as learnt | 6793 | 18.1% | 1.43% | 0.77% | 1.9 |
-| generator, with restraint (default) | 5200 | 15.5% | 1.27% | 0.83% | 1.5 |
+| generator, with restraint (default) | 5295 | 11.7% | 0.81% | 0.40% | 2.0 |
+
+## What it says
+
+- **Motivic unity is real.** A chorale's shaped figures of diminution recur in it 23.5% of the time, against
+  8.6% in another chorale of the same meter: each chorale has its own small vocabulary of figures.
+- **Imitation is real but local and modest.** A figure of diminution is answered by another voice within two bars 2.2%
+  of the time, against 1.2% as far away; mostly between tenor and bass, and at any interval (the octave and the
+  fourth a little more often than the rest): a figure passed through the texture, not the imitation of a subject at the fifth.
+- **There is no pre-imitation of the melody** in these four-part settings (13.8% of phrases against 13.7% by chance):
+  the chorale preludes' device does not belong to the cantional setting.
+- **Chromatic lines live in the bass** (108 of 139) and are seldom answered by another voice (7.2%): Bach's chromaticism
+  in the chorales is a bass's line under the harmony more than a motive passed between the voices.
+- **The generator** writes too many figures as learnt; with the calibrated restraint (step 5's default) its density and the
+  recurrence of its figures come to Bach's (5295 figures and 11.7% recurring, against 4776 and 14.3%). What it lacks is
+  Bach's *locality*: his figures, when they come back, come back nearby (answered near 6.2 times as often as far), the
+  generator's anywhere (2.0 times). Three simple devices tried in the diminution chain left this unchanged (11
+  October 2026: a preference for the kind another voice made on the chord before; for the same kind on the same move,
+  which is the same figure; a figure of the phrase, one kind favoured through each phrase). Bach's figures belong to
+  passages (a sequence in the melody, a line of the text); a generator that has them will need to plan a passage's
+  figure and its answers, which is the fugue's craft (Phase B: subject, answer, sequence), rather than choose note by
+  note.
 
