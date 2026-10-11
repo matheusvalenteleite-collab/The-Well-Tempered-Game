@@ -1238,3 +1238,6 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --mode-fux: #c0473f; --mode-chorale: #3f9a64; --mode-wtc: #4f78d0; } }
 :root[data-theme="dark"] { --mode-fux: #c0473f; --mode-chorale: #3f9a64; --mode-wtc: #4f78d0; }
 .chorale-verdicts .verdict-empty { border-left: 3px solid var(--line); padding-left: 6px; }
+/* P3: the WTC study's voices heard, and the kinds of spotlight. */
+.wtc-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 6px 0; font-family: var(--ui-font); font-size: 0.85rem; }
+.wtc-heard { display: inline-flex; align-items: center; gap: 3px; font-family: var(--ui-font); font-size: 0.85rem; }
