@@ -1,11 +1,15 @@
 /**
  * Keyboard etiquette for the game's shortcuts (D149). The screens listen on the window so that
  * writing needs no focus; but a key meant for a focused control is the control's: Tab moves focus,
- * Enter and Space press the button, the arrows move a slider, a tab or a radio, and a form field
- * keeps every key. The track activators move from F1-F9 (which took F5 reload and F6 address
- * bar) to Alt with a digit.
+ * Enter and Space press the button, the arrows move a slider, and a form field keeps every key.
+ * The track activators move from F1-F9 (which took F5 reload and F6 address bar) to Alt with a digit.
+ *
+ * P1: the arrows belong only to a control that uses them (a slider, or one marked `data-arrows`).
+ * The tabs, voice chips, value buttons and menu items do not move with the arrows; claiming the
+ * arrows for them silenced the game's ←→↑↓ once any of them had been clicked, so that writing
+ * seemed blocked.
  */
-const OWNS_ARROWS = "[role=tab], [role=slider], [role=radio], [role=menuitem], [role=menuitemcheckbox], [role=menuitemradio], [role=separator]";
+const OWNS_ARROWS = "[role=slider], [data-arrows]";
 const CONTROLS = `button, a[href], summary, ${OWNS_ARROWS}`;
 const ARROWS = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown"];
 

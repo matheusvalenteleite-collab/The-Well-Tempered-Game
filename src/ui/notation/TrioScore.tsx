@@ -7,6 +7,7 @@
  * figured bass. One line, zoomed and scrolled sideways like the two-voice score (D100).
  */
 import { useEffect, useRef } from "react";
+import { tapVoice } from "./tap-voice.ts";
 import { Accidental, Dot, ModifierContext, Renderer, Stave, StaveConnector, StaveNote, StaveTie, TickContext } from "vexflow";
 import { fifthGlyphs, REST, slotLayout } from "../../counterpoint/layout.ts";
 import { parsePitch } from "../../music/pitch.ts";
@@ -374,6 +375,9 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
   const fingers = useRef(new Set<number>());
   const pinched = useRef(false);
   const press = useRef<{ x: number; y: number } | null>(null);
+  /** The voice last active on each staff (P1): a tap on a staff of two voices goes back to it. */
+  const lastOnStaff = useRef(new Map<number, number>());
+  if (p.voices[p.active]?.editable) lastOnStaff.current.set(p.voices[p.active].staff, p.active);
   const locate = (e: React.PointerEvent<HTMLDivElement>) => {
     const g = geo.current;
     const svg = e.currentTarget.querySelector("svg");
@@ -390,9 +394,7 @@ function TrioSystem(p: Props & { from: number; to: number; scale: number; fill?:
     const s = g.staves[staff];
     const onStaff = y >= s.top - 5 * s.spacing && y <= s.bottom + 5 * s.spacing;
     const position = Math.round((s.bottom - y) / (s.spacing / 2));
-    // The active voice if it lives on this staff, else the player's voice that does (if any).
-    const here = p.voices.map((v, i) => ({ v, i })).filter(({ v }) => v.staff === staff && v.editable).map(({ i }) => i);
-    const voice = here.includes(p.active) ? p.active : (here[0] ?? null);
+    const voice = tapVoice(p.voices, staff, p.active, lastOnStaff.current);
     const c = g.columns[column];
     const per = voice !== null ? (p.voices[voice].per ?? 1) : 1;
     const part = Math.max(0, Math.min(per - 1, Math.floor(((x - c.left) / (c.right - c.left)) * per)));
