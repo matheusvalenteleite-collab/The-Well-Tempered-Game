@@ -262,11 +262,32 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   const current = useRef<{ from: number; to: number; only?: Set<number>; replay?: () => void; loopFrom?: number } | null>(null);
   /** Where the music last was (a click, a pause, the end): where notes are written, where Shift+click extends from. */
   const [lastPos, setLastPos] = useState<number | null>(null);
+  /** A bar of what comes before a chosen passage, for its context (the passage stays as chosen). */
+  const [leadIn, setLeadIn] = useState(() => stored("wtg.wtcLeadIn", false, (v) => typeof v === "boolean"));
+  useEffect(() => store("wtg.wtcLeadIn", leadIn), [leadIn]);
+  /** A loop a little faster each time (practice: slow, then up to speed). */
+  const [speedUp, setSpeedUp] = useState(() => stored("wtg.wtcSpeedUp", false, (v) => typeof v === "boolean"));
+  useEffect(() => store("wtg.wtcSpeedUp", speedUp), [speedUp]);
+  const leadRef = useRef(leadIn);
+  leadRef.current = leadIn;
+  const spanRef = useRef(span);
+  spanRef.current = span;
+  /** A tempo set by the loop itself (not to restart the playing). */
+  const tempoQuiet = useRef(false);
   const ended = useRef<() => void>(() => undefined);
   ended.current = () => {
     playhead.stop();
     const c = current.current;
     if (loopRef.current && c) {
+      if (speedUp) {
+        if (useRec) setRecRate(Math.min(1.25, Math.round((recRate + 0.05) * 100) / 100));
+        else {
+          const next = Math.min(120, tempo + 2);
+          audio.tempo = next;
+          tempoQuiet.current = true;
+          setTempo(next);
+        }
+      }
       if (c.replay) c.replay();
       else play(c.loopFrom ?? c.from, c.to, c.only);
     } else {
@@ -330,7 +351,11 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   const play = (from = 0, to = end, only?: Set<number>, goOn = false) => {
     halt();
     // Going on (a resume, a new tempo) keeps where a loop starts again.
-    current.current = { from, to, only, loopFrom: goOn ? (current.current?.loopFrom ?? current.current?.from ?? from) : from };
+    const loopFrom = goOn ? (current.current?.loopFrom ?? current.current?.from ?? from) : from;
+    // The lead-in: a chosen passage begins a bar early (the loop too), the passage itself unchanged.
+    const sp = spanRef.current;
+    if (leadRef.current && !goOn && !only && sp && Math.abs(from - sp.from) < 1e-6) from = barStart(Math.max(0, barOf(from + 1e-6) - 1));
+    current.current = { from, to, only, loopFrom };
     playhead.only = only ?? null;
     setMarker(null);
     setLastPos(from);
@@ -421,6 +446,10 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
   };
   // A new tempo while the music plays: on from where it is, at the new tempo.
   useEffect(() => {
+    if (tempoQuiet.current) {
+      tempoQuiet.current = false;
+      return;
+    }
     if (!playing || useRec) return;
     const id = window.setTimeout(() => {
       const q = playhead.pos();
@@ -829,6 +858,40 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
     if (!text.trim()) delete next[String(b)];
     setAnnotations({ ...annotations, [pieceKey]: next });
   };
+  /** All the notes, every piece, as a file to keep or to take to another device. */
+  const saveNotes = () => {
+    const blob = new Blob([JSON.stringify({ kind: "wtg-wtc-notes", version: 1, notes: annotations }, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "well-tempered-notes.json";
+    a.click();
+    window.setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  const [notesMsg, setNotesMsg] = useState("");
+  /** Notes from such a file, added to these (a bar noted in both keeps both texts). */
+  const loadNotes = (f: File) =>
+    void f.text().then((txt) => {
+      try {
+        const data = JSON.parse(txt) as { kind?: string; notes?: Record<string, Record<string, string>> };
+        if (data.kind !== "wtg-wtc-notes" || typeof data.notes !== "object" || !data.notes) throw new Error("not a notes file");
+        const next: Record<string, Record<string, string>> = { ...annotations };
+        let n = 0;
+        for (const [k, bars] of Object.entries(data.notes)) {
+          if (typeof bars !== "object" || !bars) continue;
+          const mineK: Record<string, string> = { ...(next[k] ?? {}) };
+          for (const [b, text] of Object.entries(bars)) {
+            if (typeof text !== "string" || !text.trim()) continue;
+            mineK[b] = mineK[b] && mineK[b] !== text ? `${mineK[b]}\n${text}` : text;
+            n++;
+          }
+          next[k] = mineK;
+        }
+        setAnnotations(next);
+        setNotesMsg(t("ui.study.notes.loaded", { n }));
+      } catch {
+        setNotesMsg(t("ui.study.notes.bad"));
+      }
+    });
   const notesText = () => [`${isPrelude ? "Prelude" : "Fugue"} ${fugueLabel(F)}`, ...noteBars.map((b) => `${t("ui.study.bar", { a: b + firstBar })}: ${mine2[b]}`)].join("\n");
   const notesPanel = (
     <div className="guide wtc-study wtc-notes">
@@ -847,6 +910,14 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
         <button className="chipbtn" onClick={() => setMarker(barStart(Math.min(bars - 1, noteBar + 1)))} disabled={noteBar >= bars - 1}>{t("ui.study.notes.next")} ›</button>
         <button className="chipbtn" onClick={() => seek(barStart(noteBar))}>▶ {t("ui.study.notes.play")}</button>
         <button className="chipbtn" disabled={!noteBars.length} onClick={() => void navigator.clipboard?.writeText(notesText())}>{t("ui.study.notes.copy")}</button>
+      </div>
+      <div className="row">
+        <button className="chipbtn" onClick={saveNotes} disabled={!Object.values(annotations).some((x) => Object.keys(x).length)} title={t("ui.study.notes.saveHelp")}>{t("ui.study.notes.save")}</button>
+        <label className="chipbtn" title={t("ui.study.notes.loadHelp")}>
+          {t("ui.study.notes.load")}
+          <input type="file" accept="application/json,.json" hidden onChange={(e) => (e.target.files?.[0] && loadNotes(e.target.files[0]), (e.target.value = ""))} />
+        </label>
+        {notesMsg && <span className="help">{notesMsg}</span>}
       </div>
       {noteBars.length > 0 && (
         <ul className="wtc-moments">
@@ -1254,6 +1325,8 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: 2 
                 <label><input type="checkbox" checked={follow} onChange={() => setFollow(!follow)} /> {t("ui.study.follow")} <kbd>F</kbd></label>
                 <label><input type="checkbox" checked={keys} onChange={() => setKeys(!keys)} /> {t("ui.study.keys")} <kbd>K</kbd></label>
                 <label><input type="checkbox" checked={showEntries} onChange={(e) => setShowEntries(e.target.checked)} /> {t("ui.study.outline")}</label>
+                <label title={t("ui.study.leadInHelp")}><input type="checkbox" checked={leadIn} onChange={() => setLeadIn(!leadIn)} /> {t("ui.study.leadIn")}</label>
+                <label title={t("ui.study.speedUpHelp")}><input type="checkbox" checked={speedUp} onChange={() => setSpeedUp(!speedUp)} /> {t("ui.study.speedUp")}</label>
                 {view === "sheet" && (
                   <>
                     <label>
