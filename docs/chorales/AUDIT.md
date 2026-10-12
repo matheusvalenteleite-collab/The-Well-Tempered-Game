@@ -41,4 +41,9 @@ The audit delivered to the owner before C34, kept here for the session that cont
   two conditions (no single grade, per C23; the cadence dimension flagged until the local keys are
   validated); not assigned by the owner.
 - Hymn texts under the soprano: the playback session's `lyric` field and `chorale_texts` syllables;
-  ChoraleStudy to show them when the data exists.
+  ChoraleStudy to show them when the data exists. The data exists on `claude/playback-interface`
+  (a2fe5e2): `data/playback/chorale-lyrics.json`, `{ "chorales": { "chor001": [syllable | null, ...] } }`,
+  keyed like chorale-fermatas.json (chorNNN = study n), one entry per soprano note of study.json in order
+  (all 367 texted chorales match). Syllables as printed ("mei-", "-nes", "1*. Es"); for display strip with
+  `x.replace(/^\d+\*?\.\s*/, "").replace(/^-/, "")`. Set `lyric` on the soprano WtcScoreNotes only; the
+  file is 128 KB, so import it lazily in ChoraleStudy.
