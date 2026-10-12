@@ -18,7 +18,7 @@ decision range: **K** (Kanon), starting at K1.
 | corpus | 29 pieces symbolic (`data/canons/corpus.json`): the Aria and the nine Goldberg canons (and Var. 30), the four Art of Fugue canons, the fourteen canons BWV 1087. The Musical Offering canons as Bach-Gesellschaft page images only (`data/sources/bach-canons/SOURCE.md`) |
 | reading | a canon detector (`tools/canons/detect.py`, candidates in `CANDIDATES.md`) finds the interval each title names in all nine Goldberg canons and the four Art of Fugue canons; the reading by hand (`data/canons/readings.json`, protocol in `READING-PROTOCOL.md`) is settled for the Goldberg canons and the canon at the octave, open for the other three Art of Fugue canons (their second halves) and for the voice roles in BWV 1087 nos. 11-14 |
 | first measurements | `HABITS-1.md`: consonance, dissonance treatment, rhythmic complementarity, sequence and melodic profile in 13 canonic sections; the same measured on the prototype |
-| literature | the review is being compiled (`LITERATURE-REVIEW.md`, K0) |
+| literature | `LITERATURE-REVIEW.md` (K0): 53 references in tiers 1-2, verified; none read yet; the owner chooses |
 
 **The first result, and why it shapes the plan.** On local measures (share of consonances, imperfect consonances first,
 dissonance treated as passing note or suspension, one voice moving while the other holds) the prototype's canons are
