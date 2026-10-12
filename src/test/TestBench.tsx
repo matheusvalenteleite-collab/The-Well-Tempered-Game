@@ -38,6 +38,8 @@ interface Piece {
   lyrics?: (string | null)[];
   /** P30: the Bach piece (its id here) a composer's piece is to be heard blind against. */
   compare?: string;
+  /** P31: the voices given (not the composer's), drawn in grey. */
+  given?: number[];
   about: string;
   /** The ornaments piece: each note's signs and graces, by voice index and onset (32nds). */
   orn?: Map<string, { signs: string; grace: string[] }>;
@@ -65,8 +67,15 @@ interface BenchFile {
   text?: string[];
   lyrics?: (string | null)[];
   plan?: string[];
-  compare?: number | string;
+  compare?: number | string | { n?: number; id?: string; from?: number; to?: number };
   note?: string;
+  part?: string;
+  given?: number[];
+  batch?: string;
+}
+/** A piece cut to the stretch [from, to) in 32nds, its onsets moved to start at 0 (an excerpt to compare). */
+function excerpt(c: Chorale, from: number, to: number): Chorale {
+  return { ...c, pickup: 0, voices: c.voices.map((v) => v.filter((n) => n[0] >= from && n[0] < to).map(([a, d, p, f]): ChoraleNote => (f ? [a - from, Math.min(d, to - a), p, 1] : [a - from, Math.min(d, to - a), p]))) };
 }
 const BENCH = Object.values(import.meta.glob("../../data/playback/bench/*.json", { eager: true, import: "default" })) as BenchFile[];
 
@@ -169,15 +178,31 @@ function pieces(): Piece[] {
     const four = vs.length >= 4 ? vs.slice(0, 4) : [vs[0], vs[1] ?? [], vs.length === 3 ? [] : [], vs[vs.length - 1]];
     out.push({ id: bf.id, group: "Fugues: Bach, to compare", title: bf.title, kind: "fugue", chorale: { voices: four, barUnits: barUnitsOf(bf.meter), pickup: 0 }, sig: 0, meter: bf.meter, clefs: ["treble", "treble", "bass", "bass"], staffOf: [0, 1, 2, 3], about: "Bach's fugue, the composer's piece is heard against." });
   }
-  // The composers' pieces.
+  // The composers' pieces (P31: parts of pieces too, batches, excerpts of Bach to compare).
   for (const b of BENCH) {
     const n = b.voices.length;
-    const voices = b.kind === "chorale" || n >= 4 ? b.voices.slice(0, 4) : [b.voices[0], b.voices[1] ?? [], [], b.voices[n - 1]];
-    const cmp = typeof b.compare === "number" ? `bach-${b.compare}` : b.compare;
+    // A subject (one voice) on the top channel; three voices fill soprano, alto and bass.
+    const voices = b.kind === "chorale" || n >= 4 ? b.voices.slice(0, 4) : n === 1 ? [b.voices[0], [], [], []] : [b.voices[0], b.voices[1] ?? [], [], b.voices[n - 1]];
+    const c = b.compare;
+    const cn = typeof c === "object" && c ? (c.n !== undefined ? `bach-${c.n}` : c.id) : typeof c === "number" ? `bach-${c}` : c;
+    let cmp = cn;
+    if (typeof c === "object" && c && cn && (c.from !== undefined || c.to !== undefined)) {
+      const src = out.find((p) => p.id === cn);
+      if (src) {
+        const from = c.from ?? 0;
+        const to = c.to ?? Infinity;
+        cmp = `${cn}@${from}-${to}`;
+        if (!out.some((p) => p.id === cmp)) out.push({ ...src, id: cmp, group: src.group, title: `${src.title}, excerpt`, chorale: excerpt(src.chorale, from, to), lyrics: undefined });
+      }
+    }
+    const bachLyrics = cn ? out.find((p) => p.id === cn)?.lyrics : undefined;
+    const lyrics = b.lyrics ?? (bachLyrics && bachLyrics.length === voices[0].length ? bachLyrics : undefined);
     out.push({
       id: b.id,
-      group: b.kind === "chorale" ? "Composers: chorales" : "Composers: fugues",
-      title: b.title,
+      group: b.batch ? `Batch: ${b.batch}` : b.kind === "chorale" ? "Composers: chorales" : "Composers: fugues",
+      title: b.part && b.part !== "whole" ? `${b.title} (${b.part})` : b.title,
+      // The file's voice indexes as placed on the four channels (three voices: the third is the bass).
+      given: b.given?.map((i) => (n === 3 && i === 2 ? 3 : i)),
       kind: b.kind,
       chorale: { voices, barUnits: barUnitsOf(b.meter), pickup: b.pickup ?? 0 },
       sig: b.sig,
@@ -185,7 +210,7 @@ function pieces(): Piece[] {
       clefs: b.kind === "chorale" ? ["treble", "bass"] : n >= 4 ? ["treble", "treble", "bass", "bass"] : ["treble", "treble", "bass"],
       staffOf: b.kind === "chorale" ? [0, 0, 1, 1] : n >= 4 ? [0, 1, 2, 3] : [0, 1, 1, 2],
       text: b.text,
-      lyrics: b.lyrics,
+      lyrics,
       ...(cmp && out.some((p) => p.id === cmp) ? { compare: cmp } : {}),
       about: [`By the ${b.by ?? "composer"} session.`, b.note ?? "", b.plan ? `Plan: ${b.plan.join("; ")}.` : ""].filter(Boolean).join(" "),
     });
@@ -334,7 +359,8 @@ export function TestBench() {
     const voices: WtcScoreVoice[] = c.voices
       .map((notes, v) => ({
         staff: piece.staffOf[v],
-        ink: "#1d1b17",
+        // P31: voices given (Bach's, around a generated part) in grey.
+        ink: piece.given?.includes(v) ? "#9a9488" : "#1d1b17",
         editable: false,
         notes: notes.map(([at, dur, pitch, f], k) => {
           const o = piece.orn?.get(`${at}|${pitch}`);
@@ -429,6 +455,7 @@ export function TestBench() {
               <button className="chipbtn" onClick={() => deal(blind.pair)}>Again</button>
             </p>
           )}
+          {[blind.order[0], blind.order[1]].some((x) => all.find((p) => p.id === x)?.given?.length) && <p className="muted">In one of the two, some voices are given (Bach's) and only the rest is generated.</p>}
           <p className="muted">
             {results.length} verdict{results.length === 1 ? "" : "s"} kept in this browser.{" "}
             <button className="link" onClick={() => void navigator.clipboard?.writeText(JSON.stringify(results, null, 1))}>Copy results</button> (to paste to the composer sessions)
