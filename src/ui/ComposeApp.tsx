@@ -34,6 +34,8 @@ import { placings, type PlacingResult } from "../wtc/compose/invertible.ts";
 import { ready, realise, type Part } from "../wtc/compose/plan.ts";
 import { judgeFugue } from "../wtc/compose/judge.ts";
 import { fugueMidi } from "../wtc/compose/midi.ts";
+import { asEvents, type Proposal } from "../wtc/compose/generate.ts";
+import { proposeCodetta, proposeCountersubject, proposeFree } from "../wtc/compose/proposals.ts";
 import { alterPitch, insert, isDotted, lengthen, letterPitch, nearBefore, remove, setDur, setPitch, stepPitch, toggleDot, VALUES, pretty } from "../wtc/compose/edit.ts";
 import type { CpViolation } from "../wtc/counterpoint.ts";
 
@@ -97,6 +99,8 @@ export function ComposeApp({ onVoices, onStudy, onExercises, onTutorial }: { onV
     else document.documentElement.dataset.theme = theme;
     store("wtg.theme", theme);
   }, [theme]);
+  /** The machine's proposals for the line being written (M2), and the player's own line to go back to. */
+  const [offer, setOffer] = useState<{ key: string; seed: number; list: { evs: Ev[]; faults: number }[]; mine: Ev[] } | null>(null);
   /** In the fugue: one section on the staff (the one being written), or the whole. */
   const [whole, setWhole] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -518,6 +522,46 @@ export function ComposeApp({ onVoices, onStudy, onExercises, onTutorial }: { onV
     </div>
   );
 
+  // ---- Proposals (M2): for the countersubject, the codetta, a free passage.
+  const offerKey = target ? (target.kind === "free" || target.kind === "entry" ? target.slot : target.kind) : "";
+  const canOffer = !!target && (target.kind === "cs" || target.kind === "free");
+  const ask = () => {
+    if (!target || !canOffer) return;
+    const seed = offer && offer.key === offerKey ? offer.seed + 1 : 1;
+    let list: Proposal[] = [];
+    let from = 0;
+    if (target.kind === "cs") list = proposeCountersubject(d, seed);
+    else if (target.kind === "free" && target.slot === codettaSlot && d.answer && d.answer.at > lengthOf(d.subject) + EPS) {
+      list = proposeCodetta(d, seed);
+      from = lengthOf(d.subject);
+    } else if (target.kind === "free" && realised) {
+      const part = freePart(target.slot);
+      if (part) {
+        list = proposeFree(d, realised, part, seed);
+        from = part.from;
+      }
+    }
+    const mine = offer && offer.key === offerKey ? offer.mine : eventsOf(target);
+    setOffer({ key: offerKey, seed, list: list.map((p) => ({ evs: asEvents(p.notes, from), faults: p.faults })), mine });
+  };
+  const offerPanel = canOffer && (
+    <div className="compose-offer">
+      <button className="chipbtn" onClick={ask} title={t("ui.compose.proposeHelp")}>{offer && offer.key === offerKey ? t("ui.compose.proposeMore") : t("ui.compose.propose")}</button>{" "}
+      {offer && offer.key === offerKey && (
+        <>
+          {offer.list.map((p, i) => (
+            <button key={i} className="chipbtn" aria-pressed={JSON.stringify(eventsOf(target!)) === JSON.stringify(p.evs)} onClick={() => (writeEvents(target!, p.evs), setSel(0))} title={t("ui.compose.proposalHelp", { n: p.faults })}>
+              {t("ui.compose.proposal", { n: i + 1 })}{p.faults ? ` (${p.faults} ✗)` : " ✓"}
+            </button>
+          ))}{" "}
+          <button className="chipbtn" aria-pressed={JSON.stringify(eventsOf(target!)) === JSON.stringify(offer.mine)} onClick={() => writeEvents(target!, offer.mine)}>{t("ui.compose.yours")}</button>
+          {!offer.list.length && <span className="help"> {t("ui.compose.noProposal")}</span>}
+          <p className="help">{t("ui.compose.proposalNote")}</p>
+        </>
+      )}
+    </div>
+  );
+
   const counterPanel = (
     <div>
       <p>{t("ui.compose.counter.intro")}</p>
@@ -527,6 +571,7 @@ export function ComposeApp({ onVoices, onStudy, onExercises, onTutorial }: { onV
           <button className="chipbtn" aria-pressed={target?.kind === "cs"} onClick={() => (setTarget({ kind: "cs" }), setSel(0))}>{t("ui.wtc.part.countersubject")}</button>
         </p>
       )}
+      {offerPanel}
       {placed.map((p) => (
         <section key={p.placing}>
           <h4>
@@ -578,6 +623,7 @@ export function ComposeApp({ onVoices, onStudy, onExercises, onTutorial }: { onV
           </li>
         ))}
       </ol>
+      {target?.kind === "free" && offerPanel}
       <p className="help">{t("ui.compose.fugue.how")}</p>
     </div>
   );

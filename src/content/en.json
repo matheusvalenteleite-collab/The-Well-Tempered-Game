@@ -1391,7 +1391,15 @@
     "compose.close.leadingNote": "In minor the leading note is raised at the cadence: {pitch} should be sharpened.",
     "compose.close.ok": "A cadence in the tonic: the voices end together, on the downbeat, by the clausulae.",
     "compose.tie": "Tie: lengthen the note by the chosen value (key T)",
-    "wtc.notInSet": "The fugue you were studying ({book}/{n} in {key}) has no exposition in the exercises' set of 29: here is another."
+    "wtc.notInSet": "The fugue you were studying ({book}/{n} in {key}) has no exposition in the exercises' set of 29: here is another.",
+    "compose.propose": "Propose",
+    "compose.proposeMore": "Other proposals",
+    "compose.proposeHelp": "Three lines the machine writes here, by the same rules it judges you by; take one and change it, or go back to yours",
+    "compose.proposal": "Proposal {n}",
+    "compose.proposalHelp": "Faults the judge still finds: {n}",
+    "compose.yours": "Yours",
+    "compose.noProposal": "No line found here under the rules: try other proposals, or write it.",
+    "compose.proposalNote": "A proposal is plain and correct, not Bach: the rhythm moves where the other voice holds, the pitches keep the rules. Take one as a start, and make it yours."
   },
   "tutor": {
     "rule.fos.no-repetition": "In this species each upbeat brings a new note, which is then tied over the bar line; striking the downbeat's note again on its own upbeat is a whole note in disguise.",

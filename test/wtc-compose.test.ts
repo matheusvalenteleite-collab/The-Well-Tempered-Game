@@ -8,6 +8,8 @@ import { placings } from "../src/wtc/compose/invertible.ts";
 import { realise, ready } from "../src/wtc/compose/plan.ts";
 import { judgeFugue } from "../src/wtc/compose/judge.ts";
 import { fugueMidi } from "../src/wtc/compose/midi.ts";
+import { asEvents } from "../src/wtc/compose/generate.ts";
+import { proposeCountersubject, proposeFree } from "../src/wtc/compose/proposals.ts";
 
 const pc = (p: string) => p.replace(/-?\d+$/, "");
 /** Notes (quarters, from 0) as events, the gaps as rests. */
@@ -166,6 +168,44 @@ test("compose: the close, by the clausulae", () => {
   d.free["close:1:0"] = [{ pitch: null, dur: 1 }, { pitch: "F2", dur: 2 }, { pitch: "C3", dur: 4 }];
   const keys = judgeFugue(d, realise(d)).close.map((x) => x.key);
   assert.ok(keys.includes("compose.close.leadingNote") && keys.includes("compose.close.bassNotTonic"), keys.join());
+});
+
+test("compose M2: proposed countersubjects pass the judge where they stand and inverted, against Bach's answers", () => {
+  let clean = 0;
+  let tried = 0;
+  for (const f of FUGUES.filter((x) => Math.abs(x.answerAt / x.barQuarters - Math.round(x.answerAt / x.barQuarters)) < 1e-6).slice(0, 12)) {
+    const d = bachDraft(f);
+    d.countersubject = [];
+    const ps = proposeCountersubject(d, 3);
+    tried++;
+    assert.ok(ps.length >= 2, f.id);
+    // Each fills the answer's span exactly, and they differ.
+    for (const p of ps) {
+      const last = p.notes[p.notes.length - 1];
+      assert.ok(Math.abs(last.at + last.dur - (f.subject[f.subject.length - 1].at + f.subject[f.subject.length - 1].dur - f.subject[0].at)) < 1e-6, f.id);
+    }
+    assert.notDeepEqual(ps[0].notes, ps[1].notes);
+    if (ps[0].faults === 0) {
+      clean++;
+      d.countersubject = asEvents(ps[0].notes, 0);
+      const [written, inverted] = placings(d);
+      assert.deepEqual([...written.violations, ...inverted.violations].filter((v) => v.severity === "error"), [], f.id);
+    }
+  }
+  assert.ok(clean >= tried - 1, `${clean} of ${tried}`);
+  // The same seed, the same proposals.
+  const d = bachDraft(FUGUES.find((x) => x.id === "wtc1.12")!);
+  assert.deepEqual(proposeCountersubject(d, 5)[0].notes, proposeCountersubject(d, 5)[0].notes);
+});
+
+test("compose M2: a free passage proposed against the other voice, filling its room", () => {
+  const d = bachDraft(FUGUES.find((x) => x.id === "wtc1.12")!);
+  const r = realise(d);
+  const ep = r.parts.find((p) => p.section === "ep1" && p.voice === 0)!;
+  const ps = proposeFree(d, r, ep, 2);
+  assert.ok(ps.length >= 1);
+  const n = ps[0].notes;
+  assert.ok(Math.abs(n[0].at - ep.from) < 1e-6 && Math.abs(n[n.length - 1].at + n[n.length - 1].dur - ep.to) < 1e-6);
 });
 
 test("compose: a standard MIDI file, a track per voice", () => {
