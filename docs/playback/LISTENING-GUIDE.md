@@ -60,6 +60,18 @@ The research, with each source's URL and the cautions, is in `CHORALE-COMMENTARY
 - **E. Prout, *Harmony* (1889).** Rare chords, suspensions, anticipations and Picardy thirds in Bach's two-bar extracts, identified note by note.
 - **Left out:** Prout's "Siehe welch' eine Liebe" extract, which matches No. 51 rather than the setting he names; Weber's unmapped bars in No. 11; and his "audible fifths" in No. 2, where the voices could not be identified.
 
+## Written notes, round 3 (P28)
+
+24 more notes on 17 chorales, 12 of them new to the guide, from sources read in full view. The research is in `CHORALE-COMMENTARY-RESEARCH-3.md`.
+- **Prout, *Counterpoint* (1890):** his cadence examples, and his comparison of three Bach settings of "Jesu Leiden, Pein und Tod" (Nos. 106, 83, 61).
+- **Prout, *Musical Form* (1893):** chords that pivot from one key to another.
+- **Goetschius (1902):** the second half of No. 117 newly harmonised.
+- **Chadwick (1897):** Bach's "illumination" of plain chords in No. 96. Chadwick gives no title, so the setting was identified by its notes.
+
+**Left out:**
+- Bussler on "O Haupt", which names no setting.
+- The framing quotations.
+
 ## Not yet
 
 - More written notes: Terry's *Bach's Chorals* I could not be downloaded, and no open modern analyses were found.

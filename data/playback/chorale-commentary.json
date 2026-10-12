@@ -8,7 +8,11 @@
     "whittaker": "W. G. Whittaker, Fugitive Notes on Certain Cantatas and the Motets of J. S. Bach (London: Oxford University Press, 1924)",
     "parry": "C. Hubert H. Parry, Johann Sebastian Bach (New York and London: Putnam, 1909)",
     "weber": "Carl Maria von Weber, “Zwölf Choräle von Seb. Bach, umgearbeitet von Vogler, zergliedert” (1810), in Sämtliche Schriften, ed. G. Kaiser (Berlin: Schuster & Loeffler, 1908)",
-    "prout": "Ebenezer Prout, Harmony: Its Theory and Practice, 12th ed. (London: Augener, preface 1889)"
+    "prout": "Ebenezer Prout, Harmony: Its Theory and Practice, 12th ed. (London: Augener, preface 1889)",
+    "proutCpt": "Ebenezer Prout, Counterpoint: Strict and Free, 3rd ed. (London: Augener, [1890])",
+    "proutForm": "Ebenezer Prout, Musical Form (London: Augener, 1893; eighth impression)",
+    "goetschius": "Percy Goetschius, The Theory and Practice of Tone-Relations, 7th ed. (New York: Schirmer, 1902)",
+    "chadwick": "George W. Chadwick, Harmony: A Course of Study (Boston: B. F. Wood, 1897)"
   },
   "notes": [
     {
@@ -402,6 +406,174 @@
       "work": "prout",
       "page": "175–176",
       "text": "A chord of the eleventh on the second degree, “even rarer than that on the tonic” (Prout), between a dominant minor ninth and the leading-note triad: three dense harmonies in two beats."
+    },
+    {
+      "n": 341,
+      "bar": 8,
+      "work": "proutCpt",
+      "page": "204",
+      "text": "Before the cadence on E, a seventh chord on the subdominant (A–C♯–E–G♯) stands where a plain A-major chord would do: “more rarely” found, says Prout, who quotes this passage. Listen for its soft, unresolved glow."
+    },
+    {
+      "n": 217,
+      "bar": 15,
+      "work": "proutCpt",
+      "page": "204",
+      "text": "A chromatic chord on the second degree (D–F♯–A–C, with F♯ in the bass) goes straight to the dominant before the close on C: one of Prout’s two Bach examples of this brightening approach to a cadence."
+    },
+    {
+      "n": 13,
+      "bar": 2,
+      "work": "proutCpt",
+      "page": "204",
+      "text": "At the first close the chromatic chord on the second degree (D–F♯–A–C over A) moves to the tonic chord over G, while the lower voices move in quavers: Prout’s example of this chord in second inversion."
+    },
+    {
+      "n": 102,
+      "bar": 7,
+      "work": "proutCpt",
+      "page": "205",
+      "text": "The dominant before the final close is approached from the sixth degree (E minor, then D major, then G), a less common approach that Prout illustrates with this passage."
+    },
+    {
+      "n": 51,
+      "bar": 10,
+      "work": "proutCpt",
+      "page": "206",
+      "text": "The plagal close “in its simplest form” (Prout): C major to G major, the “Amen” cadence, at the end of a line."
+    },
+    {
+      "n": 265,
+      "bar": 14,
+      "work": "proutCpt",
+      "page": "207",
+      "text": "At the close the dominant seventh resolves not onto a plain tonic but onto B major with its minor seventh A (a “tonic discord”); then E minor over B, then a B-major chord in this B-minor setting, a Picardy third. Prout: in old music it was “by no means unusual” to add the minor seventh before a plagal close."
+    },
+    {
+      "n": 267,
+      "bar": 10,
+      "work": "proutCpt",
+      "page": "210–211",
+      "text": "An interrupted cadence: the dominant of F leads not to F but to D♭ major (the fermata), and Bach then heads for D minor. Prout: this chord “may or may not induce a modulation”; here it does, and the chorale ends on D major."
+    },
+    {
+      "n": 304,
+      "bar": 6,
+      "work": "proutCpt",
+      "page": "210–211",
+      "text": "An interrupted cadence: the F-major dominant leads not to B♭ but to D major at the fermata, and the music modulates (G minor follows). The ear expects home; the line swerves."
+    },
+    {
+      "n": 106,
+      "bar": 2,
+      "work": "proutCpt",
+      "page": "223",
+      "text": "The melody’s sixth note is sharpened (D♯): “It is not unusual with Bach to make slight alterations of this kind in his chorals.” Prout compares three Bach settings of this melody (Nos. 106, 83, 61); the other two keep the plain note."
+    },
+    {
+      "n": 106,
+      "bar": 4,
+      "work": "proutCpt",
+      "page": "223",
+      "text": "The alto’s leading note G♯ falls to E at the cadence instead of rising: Bach “mostly does this in a cadence when the leading note is in a middle voice”, says Prout, “no doubt for the sake of having the last chord complete”."
+    },
+    {
+      "n": 106,
+      "bar": 6,
+      "work": "proutCpt",
+      "page": "223, 225",
+      "text": "A half close in the relative minor (on C♯ major, the dominant of F♯ minor), with an accented passing note in the bass. Prout: the same line closes the same way in all three of Bach’s settings he compares."
+    },
+    {
+      "n": 106,
+      "bar": 7,
+      "work": "proutCpt",
+      "page": "223",
+      "text": "The melody itself is ornamented here, with an accented auxiliary note in the soprano (Prout): Bach decorating the hymn tune, not only the voices around it."
+    },
+    {
+      "n": 106,
+      "bar": 13,
+      "work": "proutCpt",
+      "page": "223",
+      "text": "A brief turn to the subdominant key (G♮ enters), the music “returning to the tonic at the third crotchet of the same bar” (Prout): a passing shadow."
+    },
+    {
+      "n": 106,
+      "bar": 14,
+      "work": "proutCpt",
+      "page": "223",
+      "text": "The soprano arrives at its last note half a beat early, an anticipation: “Such anticipations are frequently used by Bach” (Prout)."
+    },
+    {
+      "n": 83,
+      "bar": 1,
+      "work": "proutCpt",
+      "page": "224",
+      "text": "The chorale is in A major, yet this setting “clearly begins in F♯ minor” (Prout). His explanation: in the St John Passion it follows a number in F♯ minor, and starting in A would have sounded harsher."
+    },
+    {
+      "n": 83,
+      "bar": 2,
+      "work": "proutCpt",
+      "page": "224",
+      "text": "Lines end on an inverted seventh chord, left hanging and resolved only as the next line begins; at bar 8, the halfway point, too, which Prout calls “especially uncommon”. Bach’s “more contrapuntal” version of the tune: the lines run on into each other."
+    },
+    {
+      "n": 61,
+      "bar": 1,
+      "work": "proutCpt",
+      "page": "224–225",
+      "text": "Held notes clash with the moving bass and then resolve: “the practical use of the fourth species of counterpoint” (Prout), in “the most elaborate” of the three settings of this tune he compares."
+    },
+    {
+      "n": 61,
+      "bar": 5,
+      "work": "proutCpt",
+      "page": "225",
+      "text": "The bass arrives at its next note half a beat early, twice: anticipations in the bass, “seldom met with excepting in the upper part” (Prout)."
+    },
+    {
+      "n": 61,
+      "bar": 6,
+      "work": "proutCpt",
+      "page": "225",
+      "text": "As in Bach’s other two settings of this melody, the third line ends on a half close in the relative minor. And the key (E♭, not A) lowers the melody, which, Prout notes, alters “the whole feeling of the music”."
+    },
+    {
+      "n": 106,
+      "bar": 6,
+      "work": "proutForm",
+      "page": "59",
+      "text": "The chord on the second beat is the hinge of the modulation from A major to F♯ minor: heard first as a chord of the old key, left as a chord of the new (Prout)."
+    },
+    {
+      "n": 122,
+      "bar": 3,
+      "work": "proutForm",
+      "page": "60",
+      "text": "A seventh chord (A♭–C–E♭–G) is the hinge from E♭ major to C minor: “taken as a seventh on the subdominant of E flat, and quitted as a seventh on the submediant of C minor” (Prout)."
+    },
+    {
+      "n": 26,
+      "bar": 7,
+      "work": "proutForm",
+      "page": "61",
+      "text": "Under the chromatic bass, the chord over E♭ is the hinge that turns the music towards G minor: entered as a chord of F, left as one of G minor (Prout)."
+    },
+    {
+      "n": 117,
+      "bar": 6,
+      "work": "goetschius",
+      "page": "172, 174",
+      "text": "Here the second half begins. Its melody almost repeats the first half, but “attention is directed to the remarkable changes in its harmonization”, prompted by “the independent melodic progression of the individual voices” (Goetschius). Compare the cadences with those of bars 2 and 4."
+    },
+    {
+      "n": 96,
+      "bar": 1,
+      "work": "chadwick",
+      "page": "221",
+      "text": "Plain chords made to live: quavers in the bass and tenor, and a C♯ against B♭, run through the harmony. Chadwick prints a plain harmony of this line and Bach’s “illumination” of it side by side (he gives no title; the notes are this setting’s)."
     }
   ]
 }
