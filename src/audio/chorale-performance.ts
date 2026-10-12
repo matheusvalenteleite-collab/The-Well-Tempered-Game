@@ -141,9 +141,9 @@ interface EnsembleSpec {
  * harmonics), the alto clarinet-like (odd harmonics only, the hollow tone that sets it apart from
  * the soprano at the same pitch), the tenor a bright reed (full spectrum), the bass a soft round
  * stop. Steady tone, no vibrato, a quick but unclicked attack: entries and suspensions are heard
- * as such. The levels leave headroom: four voices at their loudest stay at about the limiter's
- * threshold instead of being squeezed by it (the clipping heard on phones), and a slight spread
- * left and right helps tell the lines apart without making any one of them hard to hear.
+ * as such. The levels: four voices at their loudest stay under the limiter's threshold (each
+ * voice's output is 0.18, the master 0.7), and a slight spread left and right helps tell the lines
+ * apart without making any one of them hard to hear.
  */
 const clear = (addBrightness: number, addEven: number, tone: number): SynthSettings => ({
   ...preset("organ"),
@@ -165,7 +165,7 @@ export function ensembleSpec(e: Ensemble): EnsembleSpec {
     case "clear":
       return {
         voices: [clear(0.2, 0.55, 5200), clear(0.5, 0.06, 3400), clear(0.72, 0.9, 2800), clear(0.38, 1, 1500)],
-        mix: { volume: [0.42, 0.34, 0.34, 0.38], pan: [0.3, -0.3, 0.18, -0.12] },
+        mix: { volume: [1, 0.8, 0.8, 0.9], pan: [0.3, -0.3, 0.18, -0.12] },
       };
     case "choir":
       // P13: recorded choirs (Sonatina's chorus for soprano, tenor and bass, FluidR3's choir for the
@@ -229,6 +229,8 @@ export function choraleSound(ensemble: Ensemble | null = null): SoundState {
   } else {
     const spec = ensembleSpec(ensemble);
     CHORALE_CHANNELS.forEach((ch, v) => (s.synth[ch] = { ...spec.voices[v] }));
+    // P32: the unused cantus channel too, or its piano is downloaded and decoded for nothing.
+    s.synth.cantus = { ...spec.voices[0] };
     DOUBLING_CHANNELS.forEach((id, v) => {
       s.versionSynth[id] = { ...(spec.doubling?.[v] ?? spec.voices[v]) };
       s.versionFollows[id] = false;
