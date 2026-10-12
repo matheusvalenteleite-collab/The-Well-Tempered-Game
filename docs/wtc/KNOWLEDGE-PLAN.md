@@ -13,9 +13,14 @@ RESEARCH.md section 2, which keeps the record of what was done (R1-R4 so far).
 2. **A number is never shown without its examples** (piece, bar, voice), as in the chorales' PRINCIPLES.md.
 3. **Observations, not rules.** The owner decides what becomes a precept or a boundary, with Bach's
    counts and examples in front of them (D39, C1, C4).
-4. **The sets are compared, not pooled blindly:** WTC I, WTC II, the Art of Fugue, the Musical Offering,
+4. **The WTC first; the late works for what only they show** (the owner, 12 October). The Art of Fugue and the
+   Musical Offering are used now for one thing above all: many fugues on a single idea (how one subject is varied,
+   inverted, augmented, combined, and how a fugue is built for what its form of the subject can do), which the 48,
+   each fugue independent, cannot teach. Their other peculiarities (countersubjects carried in fragments from one
+   contrapunctus to another) are not a priority. Contrapunctus XIV stays a long-term goal.
+5. **The sets are compared, not pooled blindly:** WTC I, WTC II, the Art of Fugue, the Musical Offering,
    BWV 903. Where they differ the difference is the finding.
-5. **Readings by hand follow a written protocol** (as `data/wtc/subject-readings/PROTOCOL.md`), are kept as
+6. **Readings by hand follow a written protocol** (as `data/wtc/subject-readings/PROTOCOL.md`), are kept as
    data with their reasons, and are reviewed; corrections are recorded, not overwritten.
 
 ## 1. Where we stand (12 October)
@@ -58,11 +63,11 @@ owner's.
 | 9. episodes (extend) | what material (subject head, tail, countersubject, free), which sequences (descending fifths, ascending 5-6, by step), how long, modulating or not, how they lead into the next entry; Fux's suspension chains ("modulatio") as a type |
 | 10. the key plan | the keys reached by cadences (not entry transpositions): order, distance from the tonic, the first key away, the return; by set |
 | 11. cadences | where (after which section), which kind, how prepared; evaded cadences under an entry (Fux's claim 15) |
-| 12. stretto (extend) | interval of the second entry, closeness against place in the fugue (Fux's claim 18: tightening towards the end), stretto by inversion |
+| 12. stretto (extend) | interval of the second entry, closeness against place in the fugue (Fux's claim 18: tightening towards the end), stretto by inversion. **Two kinds of stretto fugue, not one trend** (the owner, 12 October): in some fugues the climax is a succession of gathered, tightening strettos near the end (II/5 the model); in others stretto is spread through the piece (I/1). Classify each stretto fugue, with hand-checked examples, instead of pooling all fugues (pooled, the end-weighting washes out, as in McDonald 2019) |
 | 13. inversion | the axis Bach inverts about (Fux's claim 20), which subjects he inverts |
 | 14. the close | final pedal, final stretto, coda, the Picardy third in minor fugues, how many bars after the last entry |
 | 15. dissonance | Kirnberger's categories counted (passing, neighbour, suspension, anticipation, appoggiatura, échappée) by set and by voice; suspension chains |
-| 16. texture | voices sounding at once (thinning and filling), rests and how a voice re-enters (Fux's claim 13), ranges and crossing |
+| 16. texture | voices sounding at once (thinning and filling), rests and how a voice re-enters (Fux's claim 13), ranges and crossing. **Entries in an inner voice** (the owner, 12 October: Bach seems to treat them with special care, the subject being harder to hear in the middle): compare inner and outer entries (position by register at the entry, not by voice name) for a rest before the entry, the other voices slowing or thinning, the space left around the entering voice, and the countersubject's rhythm against it. Huron & Fantini (Music Perception 7/1, 1989) found inner entries avoided only in five-voice textures; the question here is not whether but how |
 | 17. fugues on several subjects | separate expositions or not, the order of combination, at which intervals they invert |
 | 18. the late works against the 48 | every chapter's differences by set gathered in one place |
 
