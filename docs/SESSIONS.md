@@ -82,9 +82,20 @@ readings), and it takes one of the two active slots, or the owner widens C2 for 
     - Schulenberg's tables 10.2 and 10.3 are its external check.
   - **The owner's guidance:** "conservative" was a reminder not to treat inventions as fugues, not a
     hypothesis to test; teaching methods are not to be overestimated.
-- **Next, if the owner approves:** I1, a written reading protocol on Dreyfus's model, checked against
-  Schulenberg's tables.
-- **Needs:** Schulenberg's printed pp. 189 and 194 (the tables), which the conversion scrambled.
+- **I1 begun (12 October, the owner's "go on"):**
+  - the protocol: `data/inventions/readings/PROTOCOL.md`, on Dreyfus's model;
+  - Schulenberg's tables transcribed (`data/inventions/schulenberg.json`) and checked against the score
+    (`docs/inventions/SCHULENBERG-CHECK.md`):
+    - lengths 30/30;
+    - the first imitation 14/15 (G minor open);
+    - Sinfonia entries 15/15;
+  - tools: `tools/inventions/dump.ts` and `tools/inventions/openings.ts`;
+  - a pilot reading of BWV 772 (`data/inventions/readings/inven01.json`): it reproduces Dreyfus's map and
+    agrees with Schulenberg's row.
+- **Next, for the owner to approve:** the remaining 14 Inventions read under the protocol, then the
+  Sinfonias.
+- **For FUGUE:** `data/wtc/inventions.json` gives Sinfonias 3, 4, 5, 14 as C major (they are D, d, E flat, B
+  flat) and no BWV numbers for the Sinfonias.
 - **Offers:**
   - to FUGUE:
     - Groocock, *Fugal Composition* (2003), on the 48: the owner has a scan;

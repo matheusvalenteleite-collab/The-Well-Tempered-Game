@@ -1,0 +1,54 @@
+{
+ "id": "inven01",
+ "key": "C",
+ "meter": "4/4",
+ "bars": 22,
+ "reader_notes": "Pilot reading, to test the protocol (I1). Read from the note text, bars 1-22. The reader knew Dreyfus's map of this piece (ch. 1), so this reading is not independent of it; the test is whether the protocol's categories reproduce such a map, not whether the reading agrees by chance. x = C D E F D E C (seven sixteenths from 1:1.25 to 1:2.75); x-INV is its melodic inversion; the eighth-note figure G C B C that follows x in the right hand at 1:3 is called y.",
+ "opening": {
+  "leader": {"voice": 0, "from": "1:1.25", "to": "1:4.5", "material": "x then y"},
+  "first_imitation": {"voice": 1, "at": "1:3.25", "interval": "8 below", "distance_beats": 2, "exact": true},
+  "leader_meanwhile": "free counterpoint: the eighths y (G C B C) against x in the bass",
+  "notes": "Bar 2 repeats the pair on G (x in the right hand at 2:1.25, in the bass at 2:3.25)."
+ },
+ "paradigms": [
+  {
+   "name": "alpha",
+   "prime": {"bars": "1:1.25-2:4.5", "voices": {"0": "x, y; x on G, y", "1": "x (8 below, 2 beats later); x on G"}, "key": "C"},
+   "members": [
+    {"bars": "7:1.25-8:4.75", "key": "G", "operations": ["TRANSPOSE G", "EXCHANGE 8"], "reason": "The bass now leads with x on G (7:1.25) and the right hand follows two beats later (7:3.25); bar 8 continues on D in the bass and on A in the right hand. The voices' roles are exchanged."}
+   ]
+  },
+  {
+   "name": "beta",
+   "prime": {"bars": "3:1-6:4.75", "voices": {"0": "a chain of x-INV (eight-note form) falling by step each half bar: A G F E G F A, G F E D C E D F, E D C B A C B D, C B A G F# A G B (bars 3-4); then cadential figuration in G", "1": "eighths rising in tenths under the chain (bars 3-4), x on D (5:1.25), cadential bass D-G"}, "key": "C to G", "ends_with": "PAC in G at 7:1"},
+   "members": [
+    {"bars": "11:1-14:4.75", "key": "d to a", "operations": ["TRANSPOSE", "EXCHANGE 8", "MODESWITCH"], "reason": "The chain of x-INV is in the bass (11:1.25 Bb A G F A G Bb ..., falling to 12:4.75), the eighths in the right hand; minor keys; x on E in the right hand at 13:1.25 where x on D stood in bar 5. Cadence in a at 15:1."},
+    {"bars": "19:1.25-20:2.75", "key": "C", "operations": ["INVERT (the chain is built from x, rising, instead of x-INV, falling)", "ABORT at about 20:3"], "reason": "The right hand chains x upward (C D E F D E C, D E F G E F D … to 20:2.75) over falling eighths in the bass: the mirror of beta. It breaks off in bar 20, where the closing passage takes over."}
+   ]
+  }
+ ],
+ "elaborations": [
+  {"bars": "9:1-10:4.75", "function": "link from G (end of alpha's member) to d (start of beta's member)", "material": "x-INV in both voices, in parallel sixths", "sequence": {"type": "up by step", "unit_beats": 4, "repeats": 2, "imitative": false}},
+  {"bars": "15:1-18:4.75", "function": "link from a back toward C", "material": "x and x-INV in one voice against a held note in the other, alternating every half bar", "sequence": {"type": "down by step", "unit_beats": 4, "repeats": 4, "imitative": true}},
+  {"bars": "20:3-22:1", "function": "closing passage and cadence", "material": "x in the bass (20:3.25), cadential figuration", "sequence": null}
+ ],
+ "statements": [],
+ "cadences": [
+  {"at": "7:1", "key": "G", "kind": "PAC", "bass": "5-1", "reason": "D2 (6:4.5) to G (7:1.25 in the bass's x, the right hand on G4 at 7:1)."},
+  {"at": "15:1", "key": "a", "kind": "PAC", "bass": "5-1", "reason": "E3 (14:4.5) to A3 (15:1), right hand on A4."},
+  {"at": "22:1", "key": "C", "kind": "PAC", "bass": "5-1", "reason": "G2 (21:4.5) to C (22:1), right hand closing on C5 above E4 G4."}
+ ],
+ "layout": {
+  "order": ["alpha C-G (1-2)", "beta C-G (3-6)", "alpha' G (7-8)", "link G-d (9-10)", "beta' d-a (11-14)", "link a-C (15-18)", "beta'' C, aborted (19-20)", "close C (20-22)"],
+  "sections": [{"bars": "1-7:1", "ends": "PAC G"}, {"bars": "7-15:1", "ends": "PAC a"}, {"bars": "15-22", "ends": "PAC C"}],
+  "returns": [
+   {"bar": 7, "what": "the opening (alpha) restated in G, voices exchanged"},
+   {"bar": 11, "what": "beta restated in d-a, voices exchanged"},
+   {"bar": 19, "what": "beta in the tonic, mirrored (the chain built from x rising)"}
+  ],
+  "form": "tripartite"
+ },
+ "kind": {"primary": "motivic-sequential", "also": ["double (the two segments return with voices exchanged)"]},
+ "confidence": "sure",
+ "notes": "About 14 of the 22 bars are members of the two paradigms (1-8 and 11-14, and 19-20 in part); the rest is elaboration and the close. The reading reproduces Dreyfus's map (Fig. 1.2) segment for segment, including the aborted mirror in bars 19-20."
+}

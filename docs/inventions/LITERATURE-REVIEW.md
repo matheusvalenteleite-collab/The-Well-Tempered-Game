@@ -193,7 +193,8 @@ against.** Its two tables classify each of the 30 pieces:
 - **Table 10.3 (p. 194), the Sinfonias:** the same, with the order of the first entries (S, M, B), their
   intervals and the number of countersubjects.
 
-The conversion scrambled both tables, so they must be read from the printed page before use. The claims
+The owner then supplied the two printed pages; the tables are transcribed in `data/inventions/schulenberg.json`
+and checked against the score in `docs/inventions/SCHULENBERG-CHECK.md`. The claims
 that can be read from the prose:
 - **The Clavier-Büchlein order** runs "simple to complex, free to rigorous"; the 1723 order leaves "the
   impression of continuous variety".
@@ -212,7 +213,8 @@ that can be read from the prose:
     upper voices imitate over a non-thematic bass, and the bass enters third.
   - Fewer than half have regular countersubjects. Only the D major presents all six permutations of subject
     and two countersubjects.
-  - Inversion occurs only in the C and E Sinfonias, stretto only in the F and B flat.
+  - Inversion occurs only in the C and E Sinfonias, stretto only in the F and B flat. (The conversion dropped
+    flat signs, so "E" and "B" here may stand for E flat and B flat; to be checked in the score.)
   - Exposition alternating with episode is rare, clearest in the A major.
 - **Precursors:** the Little Preludes BWV 939-942 and BWV 928 and 932, which open with the motive imitated
   in the bass.
