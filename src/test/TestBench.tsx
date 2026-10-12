@@ -10,6 +10,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import data from "../../data/playback/test-pieces.json" with { type: "json" };
 import { audio, store, stored } from "../ui/shared.ts";
 import { t } from "../ui/i18n.ts";
+import { saveVerdict } from "./verdict-store.ts";
 import { EnsembleSelect } from "../ui/EnsembleSelect.tsx";
 import { FermataList, FermataScale, fermataSign, useFermataEdits } from "../ui/FermataEditor.tsx";
 import { HFader } from "../ui/HFader.tsx";
@@ -293,11 +294,42 @@ export function TestBench() {
     ].filter((x) => all.some((p) => p.id === x.a) && all.some((p) => p.id === x.b));
     return [...real, ...practice];
   }, [all]);
-  const [blind, setBlind] = useState<{ pair: number; order: [string, string]; at: 0 | 1; ratings: [number, number]; guess: 0 | 1 | null; revealed: boolean; notes: [string, string, string] } | null>(null);
+  type Blind = { sid: string; pair: number; order: [string, string]; at: 0 | 1; ratings: [number, number]; guess: 0 | 1 | null; revealed: boolean; notes: [string, string, string] };
+  // P36: the test in progress survives a reload (kept in this browser as it is written).
+  const [blind, setBlind] = useState<Blind | null>(() => {
+    const d = stored<Blind | null>("wtg.test.draft", null, (v) => !!v && typeof v === "object" && "sid" in (v as object) && Array.isArray((v as Blind).notes));
+    return d && pairs[d.pair] ? d : null;
+  });
+  const [saved, setSaved] = useState<"" | "saving" | "db" | "local">("");
+  useEffect(() => {
+    if (blind) setId(blind.order[blind.at]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    store("wtg.test.draft", blind);
+    if (!blind) return;
+    setSaved("saving");
+    // P36: each change saved to the bench's record (the database) a moment after it is made.
+    const timer = setTimeout(() => {
+      const bachAt = blind.order.findIndex((x) => x.startsWith("bach-") || /^wtc/.test(x));
+      const rec = {
+        updated: new Date().toISOString(),
+        pair: pairs[blind.pair],
+        heard: blind.order,
+        ratings: { [blind.order[0]]: blind.ratings[0], [blind.order[1]]: blind.ratings[1] },
+        guessedBach: blind.guess === null ? null : blind.order[blind.guess],
+        revealed: blind.revealed,
+        ...(blind.revealed ? { right: blind.guess === bachAt } : {}),
+        comments: { [blind.order[0]]: blind.notes[0], [blind.order[1]]: blind.notes[1], pair: blind.notes[2] },
+      };
+      void saveVerdict(blind.sid, rec).then((ok) => setSaved(ok ? "db" : "local"));
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [blind, pairs]);
   const deal = (pair: number) => {
     const pr = pairs[pair];
     const order: [string, string] = Math.random() < 0.5 ? [pr.a, pr.b] : [pr.b, pr.a];
-    setBlind({ pair, order, at: 0, ratings: [0, 0], guess: null, revealed: false, notes: ["", "", ""] });
+    setBlind({ sid: `${new Date().toISOString().replace(/[:.]/g, "-")}-${Math.random().toString(36).slice(2, 6)}`, pair, order, at: 0, ratings: [0, 0], guess: null, revealed: false, notes: ["", "", ""] });
     setId(order[0]);
   };
   const [results, setResults] = useState<object[]>(() => stored<object[]>("wtg.test.blind", [], (v) => Array.isArray(v)));
@@ -557,6 +589,9 @@ export function TestBench() {
             </p>
           )}
           {[blind.order[0], blind.order[1]].some((x) => all.find((p) => p.id === x)?.given?.length) && <p className="muted">In one of the two, some voices are given (Bach's) and only the rest is generated.</p>}
+          <p className="muted" role="status">
+            {saved === "db" ? "Saved: ratings and commentary are kept in the bench's record, where the playback session reads them." : saved === "local" ? "Kept in this browser only (no bench record here): use Copy results before leaving." : saved === "saving" ? "Saving…" : ""}
+          </p>
           <p className="muted">
             {results.length} verdict{results.length === 1 ? "" : "s"} kept in this browser.{" "}
             <button className="link" onClick={() => void navigator.clipboard?.writeText(JSON.stringify(results, null, 1))}>Copy results</button> (to paste to the composer sessions)
