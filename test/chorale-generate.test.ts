@@ -344,3 +344,20 @@ test("lines re-written one at a time: same length, every note a chord member und
     assert.ok(members.has(midiOf(`${letter(iv.alto[i])}4`) % 12), `alto ${iv.alto[i]} at ${i}`);
   });
 });
+
+test("figures: Bach's beats learnt; a figured setting keeps the beats' chord tones and moves in quavers", async () => {
+  const { FigureModel, figurate, studyPairs } = await import("../src/chorale/generate/figures.ts");
+  const { rng: r } = await import("../src/counterpoint/choices/cantus.ts");
+  const fm = new FigureModel(studyPairs(BACH.filter((c) => c.no % 4 === 0)));
+  // a plain crotchet line C D E F G in the tenor over a held C-major frame
+  const grid = [0, 1, 2, 3].map((v) => [0, 8, 16, 24, 32].map((t, i) => [t, 8, ["C5", "C4", "C3", "C2"][v], ...(i === 4 ? [1] : [])] as [number, number, string, 1?]));
+  grid[2] = ["C3", "D3", "E3", "F3", "G3"].map((p, i) => [i * 8, 8, p, ...(i === 4 ? [1] : [])] as [number, number, string, 1?]);
+  const tones = grid[0].map(() => new Set([0, 4, 7, 2, 5]));
+  const out = figurate(fm, grid, grid[0], tones, r(3));
+  assert.equal(out.length, 4);
+  for (const v of [1, 2, 3]) {
+    const end = out[v].reduce((m, n) => Math.max(m, n[0] + n[1]), 0);
+    assert.equal(end, 40, `voice ${v} ends with the grid`);
+    out[v].forEach((n, i) => i && assert.ok(out[v][i - 1][0] + out[v][i - 1][1] <= n[0], "no overlap"));
+  }
+});

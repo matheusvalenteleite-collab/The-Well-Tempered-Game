@@ -113,3 +113,30 @@ blind against Bach; the owner approved putting the chorales there and retiring t
 ("Could It Be Bach?", "Which Is Better?"). `tools/chorales/bench_report.ts` writes
 `data/playback/bench/gen-chorale-<no>-v1.json`: eight held-out melodies Bach set (four major, four minor), each
 to be heard beside his own setting.
+
+## Bach's surface: figures, not embellishments (12 October 2026)
+
+The owner, hearing the voices alone on the bench: "your generations are of a much lesser quality than Bach's
+chorales". The playback session measured why: the generated lower voices were block crotchets (short notes 11-14%
+of their notes against Bach's 34-54%). The cause was mine: the diminution (diminution.ts) knows five dissonant
+kinds, one per note, and was calibrated against Bach's embellishments as the game's reduction reads them; but
+most of Bach's quavers are not embellishments. Of his short notes, the incidental ones (passing, neighbour,
+suspension...) are a third in the inner voices and a fifth in the bass; the rest are chord tones: a voice moving
+within the chord, the bass's octaves, thirds and walking, a harmony changing on the quaver.
+
+`src/chorale/generate/figures.ts` takes Bach's surface as it is: every beat of every lower voice, from its chord
+tone to the next one, is a *figure* (its notes, with their onsets and distances from the chord tone, a note held
+over), counted by voice, the move to the next chord tone and the beat's length. The generator draws the figures
+(as often as Bach writes them, not the commonest), each voice's whole line at once (looking ahead, so that no
+figure is chosen that leaves no good way on), the bass first, then alto, then tenor, each against the voices
+already written: parallel fifths or octaves, two dissonances struck together, a crossing.
+
+| short notes (v2 bench pieces, against Bach's settings of the same melodies) | alto | tenor | bass |
+|---|---|---|---|
+| Bach | 37% | 34% | 54% |
+| v1 (the old diminution) | 11% | 13% | 14% |
+| v2 (figures) | 34% | 33% | 44% |
+
+Repeated notes and leaps come within a few points of Bach's (the bass still repeats more: 10% against 4%), and
+parallel fifths and octaves on the surface are at his rate (on 30 held-out chorales: 0-2 against his 3). The
+bench has v2 of all fourteen pieces (`tools/chorales/bench_report.ts`).

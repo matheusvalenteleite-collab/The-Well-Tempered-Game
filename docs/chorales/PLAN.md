@@ -282,3 +282,6 @@ The owner asked for all four steps in order, without conferring.
   line shapes, rewards for runs and for alto-tenor contrary motion, the alto rising with the melody's climax, a
   leading voice per passage in the diminution; all calibrated to Bach's rates on held-out melodies. Listening
   moves to the playback session's bench (data/playback/bench/, eight held-out melodies against Bach's settings).
+- The surface (12 October 2026): the lower voices figured beat by beat with Bach's own figures (figures.ts),
+  replacing the five-kind diminution for the generator's settings; short notes now at Bach's rate (v2 on the
+  bench). The old diminution stays for the game's level 6 and its reports.
