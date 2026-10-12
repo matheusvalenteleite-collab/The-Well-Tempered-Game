@@ -139,7 +139,10 @@ export function parseKern(text: string): KernPiece {
       }
       continue;
     }
-    if (line.startsWith("=")) {
+    // A bar line record: every spine a bar line. A record mixing a bar line in one spine with notes
+    // in others (Sapp's Musical Offering: "=." in one spine mid-bar) is a data line, the bar line
+    // token read as a null (D160).
+    if (line.startsWith("=") && f.every((x) => x.startsWith("=") || x === ".")) {
       const n = /^=(\d+)/.exec(f[0]);
       const t = Math.max(...spines.filter((s) => s.voice >= 0).map((s) => s.t));
       now = t;
@@ -151,7 +154,7 @@ export function parseKern(text: string): KernPiece {
       const s = spines[i];
       if (!s || s.voice < 0) continue;
       const tok = f[i];
-      if (tok === ".") continue;
+      if (tok === "." || tok.startsWith("=")) continue;
       let dur: number | null = null;
       for (const sub of tok.split(" ")) {
         const d = kernDuration(sub);

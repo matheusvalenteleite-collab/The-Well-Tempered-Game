@@ -1,0 +1,238 @@
+[
+ {
+  "id": "aof01",
+  "subject_end": 11,
+  "subject_end_at": "5:1",
+  "subject_last_pitch": "D4",
+  "answer": "tonal",
+  "answer_end": 11,
+  "answer_end_at": "9:1",
+  "mutated": [
+   1,
+   10
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 0,
+  "confidence": "sure",
+  "reason": "The 12-note subject D-A-F-D-C#-D-E-F-G-F-E closes on D4 (^1) on the downbeat of bar 5, exactly where the soprano answer enters; the alto's stepwise quarters after that are the countersubject.",
+  "note": "Entry order alto, soprano, bass, tenor, each 4 bars apart with no links. In the answer, the opening ^5 is answered by ^1 (D5 instead of E5, index 1). Index 10 is Bb instead of B, a modal adjustment."
+ },
+ {
+  "id": "aof02",
+  "subject_end": 11,
+  "subject_end_at": "5:1",
+  "subject_last_pitch": "D3",
+  "answer": "tonal",
+  "answer_end": 11,
+  "answer_end_at": "9:1",
+  "mutated": [
+   1,
+   10
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 0,
+  "confidence": "sure",
+  "reason": "This is the subject of Contrapunctus I with a dotted tail, ending on D3 (^1) at 5:1 where the tenor answer enters; the dotted-rhythm run after that is the countersubject.",
+  "note": "Entry order bass, tenor, alto, soprano, each 4 bars apart. The tonal answer is the same as in Contrapunctus I: D for E at index 1, and Bb (modal) at index 10."
+ },
+ {
+  "id": "aof03",
+  "subject_end": 11,
+  "subject_end_at": "5:1",
+  "subject_last_pitch": "D4",
+  "answer": "tonal",
+  "answer_end": 11,
+  "answer_end_at": "9:1",
+  "mutated": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   9,
+   10
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 0,
+  "confidence": "sure",
+  "reason": "The inverted subject D-A-C-E-F-E-D-C#-A-B-C#-D ends on D4 (^1) at 5:1, where the alto answer enters; the chromatic C-B-Bb-A-G# line after that is the countersubject.",
+  "note": "The subject is in inversion. The answer is A-D-F-A-Bb-A-G-F-E-F-G-A: notes 1-6 are at the fourth (the ^1-^5 head is answered by ^5-^1), index 7 is F rather than F#, and the tail is at the fifth with modal F and G. Entry order tenor, alto, soprano, bass. There is a 2-bar link (bars 13-14, 4 beats) before the 4th entry at 15:1."
+ },
+ {
+  "id": "aof04",
+  "subject_end": 11,
+  "subject_end_at": "5:1",
+  "subject_last_pitch": "A4",
+  "answer": "tonal",
+  "answer_end": 11,
+  "answer_end_at": "9:1",
+  "mutated": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   9,
+   10
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 4,
+  "confidence": "sure",
+  "reason": "The inverted subject starting on A (A-D-F-A-Bb-A-G-F-E-F-G-A) ends on A4 (^5) at 5:1, where the alto answer enters; the A-Bb-A-G# turns after that are the countersubject.",
+  "note": "Entry order soprano, alto, tenor, bass. The answer, D-A-C-E-F-E-D-C#-A-B-C#-D, is the partner form of Contrapunctus III with the roles reversed. There is a 2-bar codetta (bars 9-10) before the tenor at 11:1. The bass follows at 15:1 with no link."
+ },
+ {
+  "id": "aof05",
+  "subject_end": 13,
+  "subject_end_at": "5:1",
+  "subject_last_pitch": "A4",
+  "answer": "inverted",
+  "answer_end": 13,
+  "answer_end_at": "8:1",
+  "mutated": [],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 0,
+  "confidence": "sure",
+  "reason": "The varied subject, with dotted passing notes, is A-D-E-F-G-A-Bb-A-G-F-E-F-G-A and ends on A4 at 5:1. The bass answers it at 4:1 with its exact mirror inversion D-A-G-F-E-D-C#-D-E-F-G-F-E-D, which ends at 8:1.",
+  "note": "Stretto exposition by inversion. Entries come at 1:1 (alto, rising form), 4:1 (bass, mirror), 7:1 (soprano, falling form on D5) and 10:1 (tenor), each entering 2 beats before the previous one ends. Subject_end is given for the alto's full statement. The soprano entry has A5 at index 10 where G5 is expected; this is either a free variant or a dump slip. Answer recorded as 'inverted' (stretto exposition: the second entry is the subject inverted)."
+ },
+ {
+  "id": "aof06",
+  "subject_end": 13,
+  "subject_end_at": "5:1",
+  "subject_last_pitch": "D3",
+  "answer": "inverted",
+  "answer_end": 13,
+  "answer_end_at": "4:1",
+  "mutated": [],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 0,
+  "confidence": "sure",
+  "reason": "The bass states the dotted subject D-A-G-F-E-D-C#-D-E-F-G-F-E-D at normal values, ending on D3 at 5:1. The soprano enters at 2:1 with the exact mirror inversion in diminution (A5 ... A5 at 4:1).",
+  "note": "Stretto exposition in the French style: bass in normal values from 1:1, soprano with the inversion in diminution from 2:1, alto with the subject in diminution from 3:2 (ends D4 at 5:2), and tenor with the inversion on D from 7:1. Subject_end is given for the bass's own statement. Answer recorded as 'inverted' (stretto exposition: the second entry is the subject inverted)."
+ },
+ {
+  "id": "aof07",
+  "subject_end": 13,
+  "subject_end_at": "3:1",
+  "subject_last_pitch": "D4",
+  "answer": "inverted",
+  "answer_end": 13,
+  "answer_end_at": "6:1",
+  "mutated": [],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 0,
+  "confidence": "sure",
+  "reason": "The tenor's diminished dotted subject D-A-G-F-E-D-C#-D-E-F-G-F-E-D ends on D4 at 3:1. The soprano enters at 2:1 with the inversion in augmentation (A5-D5-E5-F5-G5-A5-Bb5-A5-G5-F5-E5-F5-G5), whose final A5 falls at 6:1.",
+  "note": "Stretto exposition by augmentation and inversion. Entries: tenor (diminution) at 1:1, soprano (augmented inversion) at 2:1, alto (inversion on D5, normal speed) at 3:1, bass (augmentation) at 5:1. The dump stops entry 2 at index 12 (G5 at 5:4.5), so its last note A5 (index 13, 6:1) is not listed. Answer recorded as 'inverted' (stretto exposition: the second entry is the subject inverted)."
+ },
+ {
+  "id": "aof08",
+  "subject_end": 13,
+  "subject_end_at": "5:1",
+  "subject_last_pitch": "D3",
+  "answer": "real",
+  "answer_end": 13,
+  "answer_end_at": "10:1",
+  "mutated": [],
+  "codetta_before_answer_beats": 3,
+  "codetta_before_third_beats": 3,
+  "confidence": "unsure",
+  "reason": "The bass answers exactly at the fifth through index 13 (A2 at 10:1, matching D3 at 5:1, a ^5-^1 cadence on the downbeat) and breaks transposition at the very next note (G3 instead of A3). This suggests the 4-bar subject ends there and that the 1.5-bar chromatic rise to E (D-C-B-C-F-E-D#-E) is a modulating link, which the bass also repeats a fifth lower before the soprano.",
+  "note": "Three voices. This is the new first subject; the main theme comes later. The entries come every 5 bars on beat 2 (1:2, 6:2, 11:2), and each overlaps the previous voice's chromatic cadence to E (or A). Alternative reading: the subject runs to E4 at 7:1 (index 21), with entry 2 overlapping it and a tonal tail (indices 14-21 a fifth lower instead of a fourth). In that reading the answer is tonal and there are no codettas."
+ },
+ {
+  "id": "aof09",
+  "subject_end": 45,
+  "subject_end_at": "8:1",
+  "subject_last_pitch": "D4",
+  "answer": "real",
+  "answer_end": 45,
+  "answer_end_at": "15:1",
+  "mutated": [
+   44
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 0,
+  "confidence": "sure",
+  "reason": "The soprano copies the octave-leap subject exactly at the twelfth through index 43. Its approach note is bent (Bb4 for B4, index 44) so that it arrives on A4 at 15:1, matching the subject's arrival on D4 (^1) at 8:1. Each following entry comes one beat later (8:2, 15:2, 22:2), so the 7-bar subject is closed by those arrivals.",
+  "note": "This is the exposition of the new subject; the main theme joins later in augmentation. Each entry starts on beat 2, immediately after the previous voice's arrival, so there are no links. Entry order alto, soprano (at the twelfth), bass, tenor. The machine reading of 49 notes ending at 8:2.5 runs 3 notes too far."
+ },
+ {
+  "id": "aof10",
+  "subject_end": 18,
+  "subject_end_at": "4:4",
+  "subject_last_pitch": "G4",
+  "answer": "real",
+  "answer_end": 18,
+  "answer_end_at": "7:2",
+  "mutated": [
+   11,
+   13,
+   16,
+   17,
+   18
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 0,
+  "confidence": "unsure",
+  "reason": "The tenor answers a fifth lower, keeping the subject's rhythm through index 18 (exact pitches through 15, with E natural for Eb at 11 and 13). The subject's run turns to G minor and arrives on G4 at 4:4 after F#; the answer bends its tail (Bb-A-D) to cadence on D4 at 7:2, where the bass enters. However, the answer enters at 3:4 on the subject's C5 (index 12), which is not a cadence, so the end point is uncertain.",
+  "note": "Stretto exposition of the new subject, which begins after a rest with C#-D-A | F-E-A. Alto (rectus) at 1:2 and tenor (rectus, lower fifth) at 3:4 form one pair; bass at 7:2 and soprano at 8:4, both with the inversion (F-E-A | C#-D-A), form the other. The voice copying the rhythm, as here, is typical of stretto; 12 (C5, under the answer's entry) is the main alternative for subject_end."
+ },
+ {
+  "id": "mo3",
+  "subject_end": 20,
+  "subject_end_at": "9:1",
+  "subject_last_pitch": "C5",
+  "answer": "tonal",
+  "answer_end": 20,
+  "answer_end_at": "18:1",
+  "mutated": [
+   2
+  ],
+  "codetta_before_answer_beats": 4,
+  "codetta_before_third_beats": 20,
+  "confidence": "sure",
+  "reason": "The Thema Regium (C-Eb-G-Ab-B, rest, chromatic descent G...C, then B-A-G-C-F-Eb-D-C) ends on C5 (^1) at 9:1. The middle voice answers it exactly at the fifth from 10:1 to G4 at 18:1, except for C5 in place of D5 at index 2.",
+  "note": "There is a 1-bar codetta (bar 9) before the answer, and a 5-bar episode (bars 18-22) before the bass enters at 23:1. Index 14 (A4) is a passing eighth inside the subject. The machine reading agrees."
+ },
+ {
+  "id": "mo6",
+  "subject_end": 19,
+  "subject_end_at": "5:1",
+  "subject_last_pitch": "C4",
+  "answer": "tonal",
+  "answer_end": 19,
+  "answer_end_at": "8:2.5",
+  "mutated": [
+   2
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 0.5,
+  "confidence": "sure",
+  "reason": "The Thema Regium in half notes (2/1 metre) ends on C4 at 5:1; bass entry 3 repeats it exactly at 9:1-13:1. The answer's notes after the head run exactly a fifth higher but half a beat (a half note) early, ending on G4 at 8:2.5. This shows the answer actually enters at 4:2.5, under the subject's penultimate D4.",
+  "note": "Corrected on review (D160): the dump the reader saw lacked the answer's C5 (a Humdrum reader fault, fixed: a mid-bar '=.' token in one spine dropped the notes of the others). The answer enters at 5:1: G Bb C Eb F#..., tonal (C for the real D), ending on G4 at 9:1. "
+ },
+ {
+  "id": "bwv903f",
+  "subject_end": 26,
+  "subject_end_at": "8:1",
+  "subject_last_pitch": "D4",
+  "answer": "tonal",
+  "answer_end": 27,
+  "answer_end_at": "16:1",
+  "mutated": [
+   0,
+   1
+  ],
+  "codetta_before_answer_beats": 3,
+  "codetta_before_third_beats": 9,
+  "confidence": "sure",
+  "reason": "The 8-bar chromatic subject (A-Bb-B-C, E-F-F#-G, Bb-A-G-F, E-A-C# into D) ends on D4 (^1) at 8:1 after A-C#. The scalar run in bar 8 is a link into the held C5 that starts the countersubject under the answer at 9:1.",
+  "note": "The answer is at the fifth, but its head is tonal: the opening A (^5) is answered by D with a dotted passing E (D-E-F-F#-G), so from index 2 on entry 2 corresponds to subject index k-1. The answer also repeats the bar-8 link run (A-B-C-...-G) into the held G at 17:1. There is a 3-bar codetta (bars 16-18) before the bass at 19:1. Entry order top, middle, bass."
+ }
+]

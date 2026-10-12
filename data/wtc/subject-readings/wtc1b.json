@@ -1,0 +1,195 @@
+[
+ {
+  "id": "wtc1f13",
+  "subject_end": 15,
+  "subject_end_at": "3:1",
+  "subject_last_pitch": "A#4",
+  "answer": "tonal",
+  "answer_end": 15,
+  "mutated": [
+   0
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 0,
+  "confidence": "sure",
+  "reason": "Ends on A#4 (^3) on the downbeat of bar 3, half a beat before the answer enters; the answer matches through its own index 15 (E#4, ^3 of C#) and the sixteenths from 3:1.5 on are the countersubject (the answer's continuation already differs at its index 17).",
+  "note": "The answer's head C#->F# becomes F#->C# (^5 answered by ^1). Entries come every two bars, each starting on an off-beat eighth, with no links between them."
+ },
+ {
+  "id": "wtc1f14",
+  "subject_end": 17,
+  "subject_end_at": "4:1",
+  "subject_last_pitch": "F#3",
+  "answer": "real",
+  "answer_end": 17,
+  "mutated": [],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 6.5,
+  "confidence": "sure",
+  "reason": "Ends on the tonic F#3 (dotted half) at 4:1 after G#3 (^2->^1); the answer, a real transposition at the fifth, enters at 4:2 under it and matches exactly through its index 17 (C#4 at 7:1, shortened).",
+  "note": "The answer is real despite the ^1-^2-^3 opening. There is about a bar-long link before the third entry (bass, 8:2). The fourth entry (soprano) does not come until 15:2, after a long episode."
+ },
+ {
+  "id": "wtc1f15",
+  "subject_end": 30,
+  "subject_end_at": "5:1",
+  "subject_last_pitch": "F#4",
+  "answer": "real",
+  "answer_end": 30,
+  "mutated": [],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 11,
+  "confidence": "sure",
+  "reason": "The four-bar subject arrives on F#4 at 5:1 (the third of the D chord, a half cadence), exactly where the answer enters on D4. The answer is an exact transposition through its index 30 (C#4 at 9:1) and diverges straight after.",
+  "note": "The answer is real. A two-bar link (11 eighth-beats) separates the answer from the bass entry at 11:1."
+ },
+ {
+  "id": "wtc1f16",
+  "subject_end": 10,
+  "subject_end_at": "2:3",
+  "subject_last_pitch": "Bb3",
+  "answer": "tonal",
+  "answer_end": 10,
+  "mutated": [
+   0
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 4,
+  "confidence": "sure",
+  "reason": "Ends on Bb3 (^3) at 2:3; the answer enters at 2:3.5 under it and imitates through its index 10 (F4 at 4:1). The following G3 (a D in the answer) is already countersubject.",
+  "note": "The head D-Eb is answered G-Bb (^5 answered by ^1). The four entries come in close succession: alto, soprano 2:3.5, bass 5:1.5, tenor 6:3.5."
+ },
+ {
+  "id": "wtc1f17",
+  "subject_end": 6,
+  "subject_end_at": "2:1",
+  "subject_last_pitch": "Eb4",
+  "answer": "tonal",
+  "answer_end": 6,
+  "mutated": [
+   1
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 8.5,
+  "confidence": "sure",
+  "reason": "A short arpeggio subject ending on Eb4 (^5) at 2:1; the answer enters at 2:2 under that held note, and it imitates only through its index 6 (Bb3 at 3:1). Entries 3 and 4 also break off after Eb.",
+  "note": "The answer is tonal (Eb4 answered by Ab3, ^5 answered by ^1). The sixteenth runs that follow are countersubject or free counterpoint. A link of about two bars comes before the soprano entry at 5:2, and the tenor follows at 6:2."
+ },
+ {
+  "id": "wtc1f18",
+  "subject_end": 14,
+  "subject_end_at": "3:1",
+  "subject_last_pitch": "D#3",
+  "answer": "tonal",
+  "answer_end": 14,
+  "mutated": [
+   0
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 0,
+  "confidence": "sure",
+  "reason": "The subject modulates to the dominant (C## and F natural) and ends on D#3 at 3:1. The answer enters at 3:2 and matches through its index 14 (G#3 at 5:1); the subject's E#3-F#3 continuation is countersubject.",
+  "note": "Because the subject modulates, the answer is at the fourth above (back to the tonic) for indices 1-14. Only its head D# (G# answered at the fifth) departs from that level. Measured against a strict transposition at the fifth, notes 1-14 would all count as mutated. Entries arrive every two bars on beat 2."
+ },
+ {
+  "id": "wtc1f19",
+  "subject_end": 12,
+  "subject_end_at": "2:8",
+  "subject_last_pitch": "C#5",
+  "answer": "tonal",
+  "answer_end": 12,
+  "mutated": [
+   1,
+   2
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 0,
+  "confidence": "unsure",
+  "reason": "Corrected on review (D160): the answer imitates exactly through index 12; the next note (D#, answered by B, not A#) already departs, so the subject ends on C#5; the 14-note reading lost the bass entry at b. 33 that Ledbetter names. The answer enters at 2:1 in close overlap and imitates through subject index 12 (exactly) and 13 (D# answered by B). The subject has no cadential arrival before the answer, so its end has to be set by where the imitation stops; D#5 (the leading tone of E) is the last imitated note.",
+  "note": "Stretto-like exposition: the answer enters after one bar, while the subject is still running. Subject G#-C# is answered C#-F# (tonal head). Entry 3 (voice 2, 4:1) breaks off after index 13. Its continuation from 6:1 (E3...) restates the answer form in the same voice, so the subject and answer seem to come in overlapping pairs."
+ },
+ {
+  "id": "wtc1f20",
+  "subject_end": 30,
+  "subject_end_at": "4:1",
+  "subject_last_pitch": "A3",
+  "answer": "real",
+  "answer_end": 30,
+  "mutated": [],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 4,
+  "confidence": "sure",
+  "reason": "Ends on the tonic A3 at 4:1 (B-E-A cadence); the answer enters at 4:1.5 under it, is an exact transposition at the fifth through its index 30 (E4 at 7:1), and the scale from 4:2 is countersubject.",
+  "note": "The subject is long (three bars) and the answer is real. Entry 3 (bass, 8:1.5) alters the subject toward D minor (C# at 10:2). Entry 4 (tenor, 11:1.5) completes the exposition in the order S A S A."
+ },
+ {
+  "id": "wtc1f21",
+  "subject_end": 37,
+  "subject_end_at": "5:1",
+  "subject_last_pitch": "D5",
+  "answer": "tonal",
+  "answer_end": 37,
+  "mutated": [
+   0,
+   2
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 0,
+  "confidence": "sure",
+  "reason": "Voice 0 is alone for four bars and arrives on D5 (^3) at 5:1; the answer enters at 5:1.5 under it, matching through its index 37 (A4 at 9:1). Afterwards both voices move to countersubject material, which first differs at index 40 (Eb4 for E).",
+  "note": "The answer is tonal: the two F's of the head (^5) are answered by Bb (^1). The subject is long and sequential. The three entries are each four bars apart, with no links."
+ },
+ {
+  "id": "wtc1f22",
+  "subject_end": 9,
+  "subject_end_at": "4:1",
+  "subject_last_pitch": "F5",
+  "answer": "tonal",
+  "answer_end": 9,
+  "mutated": [
+   1
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 6.5,
+  "confidence": "sure",
+  "reason": "The subject Bb-F | Gb-F-Eb | Db-C-Db-Eb | F arrives on F5 (^5) at 4:1. The answer, already entered at 3:1, matches through its index 9 (C5 at 6:1). What follows (E-F-G, rising suspensions) is countersubject.",
+  "note": "The answer overlaps the subject by a bar. The F at its index 1 becomes Bb (tonal). The entries come in overlapping pairs (bars 1 and 3, then 10 and 12) with a long link between the pairs. Entry 5 (15:1) has no notes in the file."
+ },
+ {
+  "id": "wtc1f23",
+  "subject_end": 13,
+  "subject_end_at": "3:1",
+  "subject_last_pitch": "B3",
+  "answer": "tonal",
+  "answer_end": 13,
+  "mutated": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 0,
+  "confidence": "sure",
+  "reason": "Ends on the tonic B3 (dotted quarter) at 3:1 after D#-C#; the answer enters at 3:1.5 under it and matches through its index 13 (F#4 at 5:1). The descending sixteenths after are countersubject, which voice 1 also takes up against entry 3.",
+  "note": "The tonal answer puts the head A#-B-C#-F# at the fourth (D#-E-F#-B) rather than the fifth. The entries are every two bars, with no links."
+ },
+ {
+  "id": "wtc1f24",
+  "subject_end": 20,
+  "subject_end_at": "4:1",
+  "subject_last_pitch": "F#4",
+  "answer": "tonal",
+  "answer_end": 20,
+  "mutated": [
+   1,
+   2,
+   3
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 8,
+  "confidence": "sure",
+  "reason": "The chromatic subject moves to the dominant and arrives on F#4 at 4:1 (G#-F#, ^1 of F# minor); the answer enters at 4:1.5 under it and matches through its index 20 (B3 at 7:1).",
+  "note": "Because the subject modulates, the answer lies a fifth below (F#->B) for indices 0 and 4-20. The head D-B-G is answered A-F#-D, at the fourth below (indices 1-3), so the answer ends back in the tonic. A two-bar link precedes the bass entry at 9:1.5."
+ }
+]

@@ -14,7 +14,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 | | fugues | preludes |
 |---|---|---|
 | entry | 157 of 173 (91%) | none |
-| stretto | 39 of 47 (83%) | none |
+| stretto | 40 of 47 (85%) | none |
 | pedal | 7 of 12 (58%) | 3 of 3 (100%) |
 | cadence | 8 of 35 (23%) | 4 of 29 (14%) |
 | section | 56 of 68 (82%) | 49 of 63 (78%) |
@@ -931,8 +931,8 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc2f24
 
-0 of 3 hold.
+1 of 3 hold.
 
-- ✗ `stretto b.70 alto/bass (score; alto i, bass iv one bar later; L.: bb.69ff, unclear until b.73)`: not found
+- ✓ `stretto b.70 alto/bass (score; alto i, bass iv one bar later; L.: bb.69ff, unclear until b.73)`: found at bar 69
 - ✗ `stretto b.97 alto/bass (score; alto 97, bass 98; L.: three-part play middle/bass/cantus from b.97; cantus only echoes the A#–B close in b.99)`: not found
 - ✗ `cadence b.28 f# (score; L.: b.28 F#)`: not found

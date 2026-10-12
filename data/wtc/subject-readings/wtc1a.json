@@ -1,0 +1,193 @@
+[
+ {
+  "id": "wtc1f01",
+  "subject_end": 13,
+  "subject_end_at": "2:3",
+  "subject_last_pitch": "E4",
+  "answer": "real",
+  "answer_end": 13,
+  "mutated": [],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 0,
+  "confidence": "sure",
+  "reason": "Ends on E4 (^3) on beat 3 of bar 2, half a beat before the answer enters on G4; the answer is an exact transposition up a fifth through B4 at 4:1, and voice 1 then continues with free counterpoint (G4 A3 F#4 G4...).",
+  "note": "Entries come in quick succession (alto, soprano, tenor, bass) with no links between them. Entry 3 (tenor, 4:1.5) is in answer form on G and entry 4 (bass, 5:3.5) is the subject on C."
+ },
+ {
+  "id": "wtc1f02",
+  "subject_end": 19,
+  "subject_end_at": "3:1",
+  "subject_last_pitch": "Eb4",
+  "answer": "tonal",
+  "answer_end": 19,
+  "mutated": [
+   3
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 8,
+  "confidence": "sure",
+  "reason": "Ends on Eb4 (^3) on the downbeat of bar 3, where the answer enters half a beat later; the answer matches through Bb4 at 5:1 except G4->C5 (not D5) at index 3, and the sixteenth scale that follows in voice 1 is the countersubject.",
+  "note": "A two-bar codetta (5:1.5-7:1.5) built from the subject's head separates the answer from the bass entry."
+ },
+ {
+  "id": "wtc1f03",
+  "subject_end": 16,
+  "subject_end_at": "3:1",
+  "subject_last_pitch": "C#4",
+  "answer": "tonal",
+  "answer_end": 16,
+  "mutated": [
+   0
+  ],
+  "codetta_before_answer_beats": 1,
+  "codetta_before_third_beats": 1,
+  "confidence": "unsure",
+  "reason": "The descending sequence closes on C#4 (^1) on the downbeat of bar 3, but the rising sixteenth scale after it (C#5 to E#5, indices 17-21) is copied by the answer and by entry 3 up to the next entry. So the subject could also be read as running to E#5 at 3:2.5, the note under which the answer enters.",
+  "note": "The answer is at the fourth below (G# major), with the head G#->C# (^5->^1) as the only mutation. The rising-scale tail works as a link that leads into each new entry."
+ },
+ {
+  "id": "wtc1f04",
+  "subject_end": 4,
+  "subject_end_at": "4:1",
+  "subject_last_pitch": "C#3",
+  "answer": "real",
+  "answer_end": 4,
+  "mutated": [],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 1,
+  "confidence": "sure",
+  "reason": "Corrected on review (D160): the answer (tenor) enters under C#3 at 4:1, so by the protocol the subject ends on that C#, the head C#-B#-E-D# returning to the tonic; the four-note reading matched passages throughout the fugue (27 strettos no claim names). The four-note cross-shaped subject C#3-B#2-E3-D#3 ends on the whole-note D#3 that reaches to the answer's entry at 4:1; the answer G#-F##-B-A# is an exact transposition, and the quarters C#3-D#3-E3 under it are already counterpoint (the answer does not imitate them).",
+  "note": "A five-voice triple fugue: this is the first subject, in long values. The entries rise from bass to soprano (bass, tenor, alto, mezzo at 12:2 in answer form, soprano at 14:2)."
+ },
+ {
+  "id": "wtc1f05",
+  "subject_end": 12,
+  "subject_end_at": "2:1",
+  "subject_last_pitch": "F#3",
+  "answer": "real",
+  "answer_end": 12,
+  "mutated": [],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 4,
+  "confidence": "sure",
+  "reason": "The thirty-second-note flourish and the dotted descent close on F#3 (^3) on the downbeat of bar 2; the answer copies this up a fifth and ends on C#4 at 3:1 (lengthened to a quarter), then breaks off.",
+  "note": "Dotted, French-overture rhythm. Entries go from bass up to soprano. A four-beat link comes before entry 3, and entry 3 (alto) bends its tail toward A major."
+ },
+ {
+  "id": "wtc1f06",
+  "subject_end": 11,
+  "subject_end_at": "3:1",
+  "subject_last_pitch": "A4",
+  "answer": "real",
+  "answer_end": 11,
+  "mutated": [],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 2.25,
+  "confidence": "sure",
+  "reason": "The subject rises to Bb4-G4 and arrives on the long A4 (^5) on the downbeat of bar 3, the note under which the answer enters; the descending sixteenths that follow (G F E G F E D) go with the answer as counterpoint.",
+  "note": "The answer is at the fourth below, in the middle voice. Every entry is followed by the same falling sixteenth tail (adapted with C# in the answer). This is why the machine reads the subject 7 notes longer."
+ },
+ {
+  "id": "wtc1f07",
+  "subject_end": 23,
+  "subject_end_at": "3:1",
+  "subject_last_pitch": "G4",
+  "answer": "tonal",
+  "answer_end": 23,
+  "mutated": [
+   0,
+   10,
+   11,
+   12,
+   13,
+   14,
+   15,
+   16,
+   17,
+   22
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 3.75,
+  "confidence": "unsure",
+  "reason": "The head (to C5 at 2:2) and its broken-chord sixteenth tail land on G4 (^3) on the downbeat of bar 3, under the answer's entry, and the bass entry repeats all 24 notes exactly. The answer copies the tail only with tonal adjustments, so the tail might instead be heard as a link.",
+  "note": "The subject modulates (A natural) toward Bb. In the answer, the head is a fourth below with Bb->Eb at the start, the middle section (from A4 at 1:4.5) is answered a fifth below to return to the tonic, and the tail goes back to the dominant level."
+ },
+ {
+  "id": "wtc1f08",
+  "subject_end": 12,
+  "subject_end_at": "3:3",
+  "subject_last_pitch": "D#4",
+  "answer": "tonal",
+  "answer_end": 12,
+  "mutated": [
+   1
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 7.5,
+  "confidence": "sure",
+  "reason": "Ends on D#4 (^1) on beat 3 of bar 3, exactly where the answer enters; the answer is exact a fifth up except A#4->D#5 (^5->^1) at index 1, and changes rhythm after its last note A#4 at 6:1.",
+  "note": "The answer starts in the soprano at 3:3, mid-bar. A long link (about two bars) follows before the bass enters at 8:1."
+ },
+ {
+  "id": "wtc1f09",
+  "subject_end": 13,
+  "subject_end_at": "2:3",
+  "subject_last_pitch": "E4",
+  "answer": "real",
+  "answer_end": 13,
+  "mutated": [],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 1.25,
+  "confidence": "sure",
+  "reason": "After the answer enters at 2:2.5, the subject's run closes on E4 (^1) on beat 3; the turn figure D#-E-F#-E-D#... that follows is the countersubject (the soprano plays it a fourth higher against the bass entry), and the answer stops being exact right there (A natural for A#).",
+  "note": "Short subject, and the answer overlaps the subject's last half beat. The continuous sixteenths hide the joins, and the bass entry happens to repeat voice 1's continuation for a while longer."
+ },
+ {
+  "id": "wtc1f10",
+  "subject_end": 24,
+  "subject_end_at": "3:1",
+  "subject_last_pitch": "D4",
+  "answer": "real",
+  "answer_end": 24,
+  "mutated": [
+   24
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": null,
+  "confidence": "unsure",
+  "reason": "The two-bar broken-chord subject reaches D4 on the downbeat of bar 3, under which the bass answer enters; the answer copies it with the last note bent (A#2), and also copies the following B4 (ending at 3:1.5 before a rest), so the subject could end there.",
+  "note": "A two-voice fugue, so there is no third entry. After its first eight notes, voice 0's continuation in bars 3-4 is repeated by the bass at the same pitch, not transposed, so it is free continuation and not subject. That is why the machine's 41-note reading is far too long."
+ },
+ {
+  "id": "wtc1f11",
+  "subject_end": 20,
+  "subject_end_at": "5:1",
+  "subject_last_pitch": "C4",
+  "answer": "tonal",
+  "answer_end": 20,
+  "mutated": [
+   0
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 1,
+  "confidence": "sure",
+  "reason": "The rising sixteenths arrive on C4 (^5) on the downbeat of bar 5, just after the answer enters at 4:3; the answer copies them to G4 at 9:1 (made an eighth), and the scale that follows in voice 1 is the countersubject.",
+  "note": "Opens with an upbeat in 3/8. The head C->F (^5->^1) is the only mutation."
+ },
+ {
+  "id": "wtc1f12",
+  "subject_end": 10,
+  "subject_end_at": "4:1",
+  "subject_last_pitch": "F3",
+  "answer": "tonal",
+  "answer_end": 10,
+  "mutated": [
+   0
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 0,
+  "confidence": "sure",
+  "reason": "The chromatic quarter-note line C-Db-C-B-E-F-Bb-A-Ab-G resolves to F3 (^1) on the downbeat of bar 4, a beat before the answer. The answer matches through C4 at 7:1, and the dotted-sixteenth figure that follows (F-G-Ab..., E natural in the answer) is the countersubject.",
+  "note": "Entries go tenor, alto, bass, then soprano at 13:2 after an episode. The subject uses nine different pitch classes."
+ }
+]

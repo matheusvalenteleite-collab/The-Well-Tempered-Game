@@ -18,6 +18,7 @@ import preludesData from "../../data/wtc/preludes.json" with { type: "json" };
 import laterData from "../../data/wtc/later-subjects.json" with { type: "json" };
 import sectionsData from "../../data/wtc/ledbetter-sections.json" with { type: "json" };
 import { laterSubjects } from "./subjects.ts";
+import { settled } from "./settled.ts";
 import type { WtcPiece } from "./corpus.ts";
 import { findEntriesByHead, findTransformed, line, subjectAndAnswer, TPQ } from "./fugue.ts";
 import { findEntries, type Entry, type FullNote } from "./entries.ts";
@@ -95,7 +96,11 @@ function base(p: WtcPiece): { piece: LibPiece; index: Map<string, number>; pad: 
 
 function fugueOf(p: WtcPiece): LibFugue {
   const { piece, index, pad } = base(p);
-  const { subject, answer } = subjectAndAnswer(p);
+  // The subject settled by hand where there is one (D160), else the machine's reading.
+  const machine = subjectAndAnswer(p);
+  const fixed = settled(p.id);
+  const subject = fixed?.subject ?? machine.subject;
+  const answer = fixed?.answer ?? machine.answer;
   const sMidi = subject.map((n) => parsePitch(n.pitch).midi);
   const s0 = subject[0].on;
   const asEntry = (e: { voice: number; at: number; length: number; form: string }): Entry => {
