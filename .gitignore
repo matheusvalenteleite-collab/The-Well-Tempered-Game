@@ -6,3 +6,5 @@ public/samples/*/pack.mp3
 public/recordings/
 dist-artifact/
 data/local/
+# Screenshots taken while working (the docs keep theirs under docs/)
+/*.png

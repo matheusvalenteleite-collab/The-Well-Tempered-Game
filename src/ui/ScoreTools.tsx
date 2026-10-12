@@ -5,6 +5,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { NameStyle } from "../music/names.ts";
 import { t } from "./i18n.ts";
+import { setStaffLayout, useStaffLayout } from "./staff-layout.ts";
 
 export interface ViewSettings {
   names: "off" | NameStyle;
@@ -17,10 +18,13 @@ export function ScoreTools(p: {
   view: ViewSettings;
   onView(v: ViewSettings): void;
   fux?: { open: boolean; shown: boolean; onShow(show: boolean): void };
+  /** P4: offer the choice of one staff a voice or two staves (music in three voices or more). */
+  staffChoice?: boolean;
   /** The hint for the note being written (D115); unavailable in fifth species. */
   hint?: { on: boolean; available: boolean; onToggle(on: boolean): void };
 }) {
   const [menu, setMenu] = useState(false);
+  const staffLayout = useStaffLayout();
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!menu) return;
@@ -53,6 +57,16 @@ export function ScoreTools(p: {
               <button role="menuitemcheckbox" aria-checked={v.harmony} aria-pressed={v.harmony} onClick={() => p.onView({ ...v, harmony: !v.harmony })} title={t("ui.view.harmonyHelp")}>
                 {t("ui.view.harmony")}
               </button>
+            )}
+            {p.staffChoice && (
+              <>
+                <p className="view-head">{t("ui.view.stavesHead")}</p>
+                {(["open", "compact"] as const).map((k) => (
+                  <button key={k} role="menuitemradio" aria-checked={staffLayout === k} aria-pressed={staffLayout === k} onClick={() => setStaffLayout(k)} title={t(`ui.view.staves.${k}.help`)}>
+                    {t(`ui.view.staves.${k}`)}
+                  </button>
+                ))}
+              </>
             )}
           </div>
         )}

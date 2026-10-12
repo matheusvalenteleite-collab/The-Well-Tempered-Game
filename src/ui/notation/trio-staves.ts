@@ -29,3 +29,24 @@ export function quartetStaves(means: number[]): { staff: (0 | 1)[]; clefs: [Clef
   const lower: ClefId = on(1).every((m) => m >= 62) ? "treble" : "bass";
   return { staff, clefs: [upper, lower] };
 }
+
+/**
+ * P12: each voice's name by its register (owner: three voices named like four): the nearest of
+ * soprano, alto, tenor, bass to its average pitch (centres G4, E4, A#3, D3: PART_CENTRE), kept in
+ * order from the top, each name once. `means` top down; returns 0 (soprano) to 3 (bass) per voice.
+ */
+export function satbOf(means: number[]): number[] {
+  const CENTRE = [67, 64, 58, 50];
+  const n = means.length;
+  const out: number[] = [];
+  let next = 0;
+  means.forEach((m, i) => {
+    // Leave room below for the voices still to name.
+    const last = 3 - (n - 1 - i);
+    let best = next;
+    for (let k = next; k <= last; k++) if (Math.abs(CENTRE[k] - m) < Math.abs(CENTRE[best] - m)) best = k;
+    out.push(best);
+    next = best + 1;
+  });
+  return out;
+}

@@ -24,7 +24,29 @@ const SET_GAIN: Record<SampleSet, number> = {
   // D109: normalised to about -1 dBFS at the loudest note of each set; matched in the continuo's mix.
   violinStac: 1.6, violinPizz: 3.2, violaSus: 1.6, violaStac: 1.6, violaPizz: 3.2, celloStac: 1.6, celloPizz: 3.2, bassPizz: 3.2, bassStac: 1.6,
   oboe: 1.4, clarinet: 1.4, timpani: 1.6, rickBass: 1.6, cleanGuitar: 1.6,
+  // P13: the choirs (Sonatina's chorus, FluidR3's choir aahs).
+  choirUpper: 1.5, choirLower: 1.5, choirAahs: 1.7,
+  // P16: the soloists (each note at one level when cut; matched to the choirs).
+  soloSoprano: 1.6, soloAlto: 1.6, soloTenor: 1.6, soloBass: 1.7,
 };
+
+/**
+ * P13: sets whose samples are looped over a steady stretch (seconds), so that a held chord sustains
+ * as long as it is written (the choirs' recordings last about 7 s, FluidR3's about 3 s).
+ */
+const LOOPS: Partial<Record<SampleSet, [number, number]>> = { choirUpper: [1.6, 5.4], choirLower: [1.6, 5.4], choirAahs: [0.9, 2.5],
+  // P16: the soloists' notes are cut so that 1.0-3.0 s is one seamless loop.
+  soloSoprano: [1.0, 3.0], soloAlto: [1.0, 3.0], soloTenor: [1.0, 3.0], soloBass: [1.0, 3.0],
+};
+/**
+ * P13: sets kept on the website only (the owner: "load from website"; the claude.ai page has no room
+ * for them): fetched from the site when the page itself does not have them.
+ */
+const REMOTE = new Set<SampleSet>(["choirUpper", "choirLower", "choirAahs", "soloSoprano", "soloAlto", "soloTenor", "soloBass"]);
+const SITE = "https://matheusvalenteleite-collab.github.io/The-Well-Tempered-Game/";
+/** Sets that could not be loaded: their notes are sung by the formant synthesizer instead (P13). */
+const failed = new Set<SampleSet>();
+export const sampleSetFailed = (set: SampleSet) => failed.has(set);
 
 /** Fetch and decode an instrument's samples (once); notes before it arrives are skipped. */
 export function loadSamples(ctx: BaseAudioContext, set: SampleSet): Promise<void> {
@@ -33,14 +55,18 @@ export function loadSamples(ctx: BaseAudioContext, set: SampleSet): Promise<void
     const m = SAMPLE_MANIFEST[set];
     const files = m.layers.length ? m.notes.flatMap((n) => m.layers.map((l) => ({ n, l, f: `${n}-v${l}.mp3` }))) : m.notes.map((n) => ({ n, l: 0, f: `${n}.mp3` }));
     // D112: one request for the whole instrument (its pack); the single files if there is none.
-    const pack = fetch(new URL(`samples/${set}/pack.mp3`, document.baseURI))
-      .then((r) => (r.ok ? r.arrayBuffer() : null))
-      .catch(() => null);
+    const fromSite = (base: string) =>
+      fetch(new URL(`samples/${set}/pack.mp3`, base))
+        .then((r) => (r.ok ? r.arrayBuffer() : null))
+        .catch(() => null);
+    const pack = fromSite(document.baseURI).then((x) => x ?? (REMOTE.has(set) ? fromSite(SITE) : null));
     const bytes = async (f: string): Promise<ArrayBuffer> => {
       const all = await pack;
       const at = m.pack?.[f];
       if (all && at && at[0] + at[1] <= all.byteLength) return all.slice(at[0], at[0] + at[1]);
-      const res = await fetch(new URL(`samples/${set}/${f}`, document.baseURI));
+      let res = await fetch(new URL(`samples/${set}/${f}`, document.baseURI)).catch(() => null);
+      if ((!res || !res.ok) && REMOTE.has(set)) res = await fetch(new URL(`samples/${set}/${f}`, SITE)).catch(() => null);
+      if (!res) throw new Error(`sample ${set}/${f}: unreachable`);
       if (!res.ok) throw new Error(`sample ${set}/${f}: ${res.status}`);
       return res.arrayBuffer();
     };
@@ -52,7 +78,10 @@ export function loadSamples(ctx: BaseAudioContext, set: SampleSet): Promise<void
     ).then((list) => {
       banks.set(set, list);
     });
-    p.catch(() => loading.delete(set)); // a failed load is retried at the next note
+    p.catch(() => {
+      loading.delete(set); // a failed load is retried at the next note
+      if (REMOTE.has(set)) failed.add(set);
+    });
     loading.set(set, p);
   }
   return p;
@@ -259,12 +288,23 @@ export class Synth implements Instrument {
     // Within a layer, velocity still shades the level (about ±6 dB around the neutral 0.75).
     g.gain.value = (SET_GAIN[set] ?? 1.6) * (0.2 + 1.07 * velocity) * (layers.length > 1 && layer === layers[0] ? 1.35 : 1);
     src.connect(g).connect(out);
+    const loop = LOOPS[set];
+    if (loop && best.buffer.duration > loop[1]) {
+      // Held as long as written: the steady middle repeats (P13).
+      src.loop = true;
+      src.loopStart = loop[0];
+      src.loopEnd = loop[1];
+      src.start(time);
+      src.stop(end);
+      return;
+    }
     src.start(time);
     src.stop(Math.min(end, time + best.buffer.duration / src.playbackRate.value));
   }
 
   start(note: string, time: number, duration: number, velocity = 0.75) {
-    const st = this.settings;
+    // P13: a choir whose samples could not be loaded (the claude.ai page, offline) sings by the formant synthesizer.
+    const st = isSampled(this.settings.model) && failed.has(this.settings.sampleSet) ? { ...this.settings, model: "formant" as const } : this.settings;
     const ctx = this.ctx;
     const freq = frequency(note, this.tuning());
     // A detached touch lets the key up before the written length (Gould's articulation).

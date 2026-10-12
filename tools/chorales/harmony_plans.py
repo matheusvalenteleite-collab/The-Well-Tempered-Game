@@ -34,17 +34,24 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from habits import share_habits  # noqa: E402
 from cadence_plans import MINORISH, ROMAN, chord_label, degree, pcn, quality  # noqa: E402
 from concordance import GAP_BACH, GAP_KITTEL, SUBST  # noqa: E402
+import local_numerals as LN  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 BACH = ROOT / "data" / "chorales" / "bach"
 KIT = ROOT / "data" / "chorales" / "kittel"
 OUT_JSON = ROOT / "data" / "chorales" / "level2.json"
 OUT_MD = ROOT / "docs" / "chorales" / "LEVEL2.md"
+LOCAL = LN.bach_local()
 ORDER = [r for pc in range(12) for r in (ROMAN[pc], ROMAN[pc].lower(), ROMAN[pc].lower() + "°", ROMAN[pc] + "°")]
 
 
-def order_key(label: str) -> int:
-    return ORDER.index(label) if label in ORDER else len(ORDER)
+def order_key(label: str) -> tuple:
+    """Diatonic order (I, ii, iii ...), the altered after the plain, the applied chords last."""
+    applied = "/" in label
+    head = label.split("/")[-1] if applied else label
+    core = head.lstrip("b#").rstrip("°7")
+    i = LN.NUMERALS.index(core.upper()) if core.upper() in LN.NUMERALS else 9
+    return (applied, i, head != head.lstrip("b#"), label)
 
 
 def tune_key(soprano: list[dict]) -> str:
@@ -61,14 +68,15 @@ def bach_events() -> list[dict]:
     for e in index["catalogue"]:
         c = json.loads((BACH / e["file"]).read_text())
         a = json.loads((BACH / "analysis" / f"{c['id']}.json").read_text())
-        tonic_name = c["key"]["tonic"]
-        tonic = pcn(tonic_name)
-        mode = "minor" if c["key"]["mode"] in MINORISH else "major"
+        home = (c["key"]["tonic"], "minor" if c["key"]["mode"] in MINORISH else "major")
+        local = LOCAL.get(c["number"], {})
         prev = "start"
         for v in a["verticalities"]:
             if not v["on_beat"] or "soprano" not in v["struck"] or not v["root"]:
                 continue
-            ch = chord_label(pcn(v["root"]), tonic, quality(v["chord"]))
+            # C33: in the local key, in the textbooks' convention (local_numerals.py).
+            tonic_name, mode = local.get(v["t"], home)
+            ch = LN.in_key(pcn(v["root"]), quality(v["chord"]), pcn(tonic_name), mode)
             out.append({"no": c["number"], "tune": tune_key(c["voices"]["soprano"]), "mode": mode, "measure": v["measure"], "t": v["t"],
                         "deg": degree(v["pitches"]["soprano"], tonic_name), "chord": ch, "prev": prev})
             prev = ch
@@ -168,36 +176,40 @@ def kittel_level2(events: list[dict]) -> list[dict]:
         a = json.loads((KIT / "analysis" / p.name).read_text())
         mel = merged(c["melody"]["notes"])
         hs1 = [h for h in a["basses"][0]["harmonies"] if h.get("root")]
-        tonic_name = hs1[-1]["root"] if hs1 else "C"
-        tonic = pcn(tonic_name)
-        mode = "major" if tonic == (7 * c["key_signature"]) % 12 else "minor"
-        # Bach's settings of the tune, aligned note by note
-        bach_at: dict[int, list[dict]] = defaultdict(list)
+        home_name = hs1[-1]["root"] if hs1 else "C"
+        home_mode = "major" if pcn(home_name) == (7 * c["key_signature"]) % 12 else "minor"
+        # Bach's settings of the tune, aligned note by note; the local key of each note from them (C33).
+        settings = []
         for s in conc.get(c["number"], {}).get("same_tune", []):
             bc = json.loads((BACH / "chorales" / f"bach_{s['bach']:03d}.json").read_text())
             ba = json.loads((BACH / "analysis" / f"bach_{s['bach']:03d}.json").read_text())
-            sop = merged(bc["voices"]["soprano"])
-            vt = {v["t"]: v for v in ba["verticalities"]}
-            btonic = bc["key"]["tonic"]
-            for i, j in nw_pairs([n["midi"] for n in mel], [n["midi"] + s["transposition"] for n in sop]):
-                key_t = str(F(sop[j]["offset"]))
-                v = vt.get(key_t)
+            settings.append({"no": s["bach"], "sop": merged(bc["voices"]["soprano"]), "verts": ba["verticalities"], "transposition": s["transposition"],
+                             "local": LOCAL.get(s["bach"], {})})
+        regions = LN.kittel_regions(mel, settings, (home_name, home_mode), nw_pairs)
+        bach_at: dict[int, list[dict]] = defaultdict(list)
+        for s in settings:
+            vt = {v["t"]: v for v in s["verts"]}
+            for i, j in nw_pairs([n["midi"] for n in mel], [n["midi"] + s["transposition"] for n in s["sop"]]):
+                v = vt.get(str(F(s["sop"][j]["offset"])))
                 if v is None:
                     # the last verticality at or before the note
-                    cands = [x for x in ba["verticalities"] if F(x["t"]) <= F(sop[j]["offset"])]
+                    cands = [x for x in s["verts"] if F(x["t"]) <= F(s["sop"][j]["offset"])]
                     v = cands[-1] if cands else None
                 if v and v["root"]:
-                    bach_at[i].append({"no": s["bach"], "chord": chord_label(pcn(v["root"]), pcn(btonic), quality(v["chord"])), "bar": v["measure"]})
+                    lt, lm = regions[i]
+                    bach_at[i].append({"no": s["no"], "chord": LN.in_key((pcn(v["root"]) + s["transposition"]) % 12, quality(v["chord"]), pcn(lt), lm), "bar": v["measure"]})
         notes = []
         for i, n in enumerate(mel):
             t = F(n["offset"])
+            tonic_name, mode = regions[i]
+            tonic = pcn(tonic_name)
             kit = []
             for b in a["basses"]:
                 h = None
                 for x in b["harmonies"]:
                     if F(x["t"]) <= t and x.get("root"):
                         h = x
-                kit.append({"bass": b["label"], "chord": chord_label(pcn(h["root"]), tonic, quality(h["kind"])) if h else "?"})
+                kit.append({"bass": b["label"], "chord": LN.in_key(pcn(h["root"]), quality(h["kind"]), tonic, mode) if h else "?"})
             deg = degree(n["pitch"], tonic_name)
             dist = habit.dist({"mode": mode, "deg": deg})
             cnt = habit.counts[1].get((mode, deg), Counter())
@@ -207,11 +219,12 @@ def kittel_level2(events: list[dict]) -> list[dict]:
             options = sorted(set(top) | used, key=lambda c: (order_key(c), c))
             notes.append({
                 "offset": n["offset"], "measure": n["measure"], "pitch": n["pitch"], "degree": deg, "fermata": bool(n.get("fermata")),
+                "key": [tonic_name, mode],
                 "options": options, "kittel": kit, "bach": bach_at[i],
                 "habit": {"n": total, "options": [{"chord": ch, "count": k, "examples": examples[(mode, deg, ch)]} for ch, k in cnt.most_common(6)]},
                 "predicted": max(dist, key=dist.get) if dist else None,
             })
-        out.append({"number": c["number"], "title": c["title"], "tonic": tonic_name, "mode": mode, "notes": notes})
+        out.append({"number": c["number"], "title": c["title"], "tonic": home_name, "mode": home_mode, "notes": notes})
     return out
 
 
@@ -227,7 +240,7 @@ def main() -> None:
     kit = kittel_level2(events)
     shared, habits = share_habits(kit, lambda c: c["notes"])
     OUT_JSON.write_text(json.dumps({"generated_by": "tools/chorales/harmony_plans.py", "level": 2,
-                                    "note": "Chords as degrees of the chorale's key (Roman numerals; lower case minor, ° diminished), Kirnberger's fundamentals as tools/chorales/kirnberger.py reads them.",
+                                    "note": "Chords as degrees of the local key in the textbooks' convention (C33, tools/chorales/local_numerals.py: lower case minor, ° diminished, V/x and vii°/x applied; each note's key in `key`), Kirnberger's fundamentals as tools/chorales/kirnberger.py reads them.",
                                     "chorales": shared, "habits": habits}, ensure_ascii=False, separators=(",", ":")) + "\n")
     n_notes = sum(len(c["notes"]) for c in kit)
     with_bach = sum(1 for c in kit for n in c["notes"] if n["bach"])

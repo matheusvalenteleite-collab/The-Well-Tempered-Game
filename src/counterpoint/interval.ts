@@ -119,3 +119,44 @@ export function simpleName(i: Interval): string {
   const reduced = i.number <= 8 ? i.number : ((i.number - 1) % 7) + 1 === 1 ? 8 : ((i.number - 1) % 7) + 1;
   return `${i.quality === "P" ? "" : i.quality}${reduced}`;
 }
+
+const SUB = "₀₁₂₃₄₅₆₇₈₉";
+/** Digits as subscripts ("19" → "₁₉"). */
+const sub = (n: number) => String(n).replace(/\d/g, (d) => SUB[Number(d)]);
+
+/**
+ * P9, revised (owner: "no clutter but informative"): an interval as shown. The simple interval is the
+ * protagonist; a compound one carries its real number small beside it, as an appendix: m3₁₀, 5₁₉, 8₁₅.
+ * (`simpleName` stays the reduced name the game reasons with.)
+ */
+export function intervalLabel(i: Interval): string {
+  const q = i.quality === "P" ? "" : i.quality;
+  if (i.number <= 8) return `${q}${i.number}`;
+  return `${q}${compoundParts(i.number)[1]}${sub(i.number)}`;
+}
+
+/**
+ * The parts of a compound interval number (P9): the octave (or double octave) and the simple
+ * interval above it, in interval arithmetic: 10 = 8 + 3, 12 = 8 + 5, 15 = 8 + 8, 17 = 15 + 3.
+ */
+export function compoundParts(n: number): number[] {
+  if (n <= 8) return [n];
+  let octaves = Math.floor((n - 1) / 7);
+  let simple = n - 7 * octaves;
+  if (simple === 1) (octaves -= 1), (simple = 8);
+  return [7 * octaves + 1, simple];
+}
+
+/** An interval number in the same style (P9): the simple number, the compound one small beside it. */
+export function intervalNumber(n: number): string {
+  return n <= 8 ? String(n) : `${compoundParts(n)[1]}${sub(n)}`;
+}
+
+/**
+ * A figure as figured basses print it ("9", "6/4"): left as printed. A figured bass's 9 is its own
+ * sign (the ninth that resolves to the octave), not a second, so P9's reading of intervals does not
+ * apply to it.
+ */
+export function figureLabel(figure: string): string {
+  return figure;
+}

@@ -19,6 +19,15 @@ export interface KernNote {
   pitch: string;
   /** Sub-spine within the voice (0 = the main line; >0 = a split, chord or divisi). */
   sub: number;
+  /** P8: the ornament signs written on it (kern: T t trill, M m mordent, W w inverted mordent, S turn, $ inverted turn, R ending turn, O any), if any. */
+  orn?: string;
+  /** P8: grace notes written before it (kern q/Q, no time of their own), in order. */
+  grace?: { pitch: string; kind: "q" | "Q" }[];
+}
+
+/** P8: the ornament signs of a kern token (its pitch, duration, ties, beams and so on left out). */
+export function kernOrnaments(tok: string): string {
+  return tok.replace(/[a-gA-G]+(#+|-+|n)?/, "").replace(/[^TtMmWwS$RO]/g, "");
 }
 
 export interface KernPiece {
@@ -84,6 +93,8 @@ export function parseKern(text: string): KernPiece {
   let kernMask: boolean[] = [];
   let nVoices = 0;
   const raw: KernNote[][] = [];
+  /** Grace notes waiting for the next note of their spine (P8). */
+  const graces = new Map<Spine, { pitch: string; kind: "q" | "Q" }[]>();
   let key: string | null = null;
   let meter: string | null = null;
   const bars: { n: number; on: number }[] = [];
@@ -155,7 +166,12 @@ export function parseKern(text: string): KernPiece {
       let dur: number | null = null;
       for (const sub of tok.split(" ")) {
         const d = kernDuration(sub);
-        if (d === null) continue;
+        if (d === null) {
+          // A grace note: kept for the note that follows it in this spine (P8).
+          const gp = kernPitch(sub.replace(/\d+\.*/, ""));
+          if (gp) (graces.get(s) ?? graces.set(s, []).get(s)!).push({ pitch: gp, kind: sub.includes("Q") ? "Q" : "q" });
+          continue;
+        }
         dur = dur === null ? d : Math.max(dur, d);
         const p = kernPitch(sub);
         if (p === null) continue;
@@ -166,7 +182,10 @@ export function parseKern(text: string): KernPiece {
           voice[open].dur += d;
           if (sub.includes("]")) s.ties.delete(p);
         } else {
-          voice.push({ on: s.t, dur: d, pitch: p, sub: s.sub });
+          const orn = kernOrnaments(sub);
+          const g = graces.get(s);
+          graces.delete(s);
+          voice.push({ on: s.t, dur: d, pitch: p, sub: s.sub, ...(orn ? { orn } : {}), ...(g?.length ? { grace: g } : {}) });
           if (sub.includes("[")) s.ties.set(p, voice.length - 1);
         }
       }

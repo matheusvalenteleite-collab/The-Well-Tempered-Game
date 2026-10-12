@@ -7,7 +7,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Accidental, Dot, ModifierContext, Renderer, Stave, StaveConnector, StaveNote, StaveTie, TickContext } from "vexflow";
 import { parsePitch } from "../../music/pitch.ts";
 import { noteName, type NameStyle } from "../../music/names.ts";
-import { harmonic, simpleName } from "../../counterpoint/interval.ts";
+import { harmonic, intervalLabel } from "../../counterpoint/interval.ts";
 import type { Staff } from "../../music/fux/types.ts";
 import { pitchAtPosition, VEXFLOW_CLEF, type ClefId } from "./clefs.ts";
 import type { Overlay, Status } from "./overlay.ts";
@@ -473,7 +473,7 @@ export function ScoreView(props: ScoreProps) {
         layout.forEach((sl, k) => {
           const p = line.notes[k];
           if (!p || p === REST || p === HOLD) return;
-          const text = simpleName(harmonic(props.cantus[sl.bar - firstSlotBar], p));
+          const text = intervalLabel(harmonic(props.cantus[sl.bar - firstSlotBar], p));
           ctx.fillText(text, columns[k].x - ctx.measureText(text).width / 2, LABEL_Y - 13 * (i + 1));
         });
         ctx.restore();
@@ -558,7 +558,28 @@ export function ScoreView(props: ScoreProps) {
     ctx.save();
     ctx.setFont(UI_FONT, 8, "normal");
     ctx.setFillStyle("var(--bar-number)");
-    const numberY = STAFF_Y[0] + 22;
+    // P10: high above the top staff, in a band of their own, where a tap selects the bar.
+    const numberY = STAFF_Y[0] + 8;
+    // Each bar's cell in the band (P10): subtle but bounded; the selected bar's filled.
+    const selBar = layout[props.selected]?.bar;
+    const barCells = new Map<number, { left: number; right: number }>();
+    columns.forEach((c, k) => {
+      const b = layout[k].bar;
+      const cell = barCells.get(b);
+      barCells.set(b, cell ? { left: Math.min(cell.left, c.left), right: Math.max(cell.right, c.right) } : { left: c.left, right: c.right });
+    });
+    for (const [b, c] of barCells) {
+      const sel = b === selBar;
+      ctx.save();
+      ctx.setFillStyle(sel ? "var(--selection, rgba(60, 100, 160, .12))" : "var(--ruler-cell, rgba(120, 110, 90, .06))");
+      ctx.fillRect(c.left + 2, numberY - 12, c.right - c.left - 4, 17);
+      ctx.setStrokeStyle(sel ? "var(--selection-ink, #2a56d6)" : "var(--ruler-edge, rgba(120, 110, 90, .28))");
+      ctx.setLineWidth(sel ? 1 : 0.6);
+      ctx.beginPath();
+      ctx.rect(c.left + 2, numberY - 12, c.right - c.left - 4, 17);
+      ctx.stroke();
+      ctx.restore();
+    }
     columns.forEach((c, k) => {
       if (layout[k].beat !== 0) return;
       const label = String((props.firstBar ?? 1) + layout[k].bar - firstSlotBar);
@@ -652,7 +673,9 @@ export function ScoreView(props: ScoreProps) {
     const cpStaff = props.cantusVoice === "upper" ? 1 : 0;
     const s = g.staves[cpStaff];
     const margin = 5 * s.spacing; // ledger-line zone above and below the staff
-    const onStaff = y >= s.top - margin && y <= s.bottom + margin;
+    // The bar numbers' band above the top staff selects only (P10).
+    const ruler = y < g.staves[0].top - 2.6 * g.staves[0].spacing;
+    const onStaff = !ruler && y >= s.top - margin && y <= s.bottom + margin;
     const position = Math.round((s.bottom - y) / (s.spacing / 2));
     return {
       column,

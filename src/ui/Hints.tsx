@@ -1,6 +1,6 @@
 import { introductionsUpTo, ruleById, type CurriculumStep } from "../counterpoint/curriculum/index.ts";
 import { cadenceFifth, cadenceNote } from "../counterpoint/cadence.ts";
-import { harmonic, simpleName } from "../counterpoint/interval.ts";
+import { harmonic, intervalLabel } from "../counterpoint/interval.ts";
 import { stepStudy } from "./study.ts";
 import { fifthIsDiminished } from "../counterpoint/rules/second-species.ts";
 import { parsePitch } from "../music/pitch.ts";
@@ -234,7 +234,7 @@ export function ExerciseNotes({ step, cantus }: { step: CurriculumStep; cantus: 
               const pen = cantus[n - 2];
               const fifthNote = cadenceFifth(pen, step.cantus_voice);
               const name = (x: string) => x.replace(/\d+$/, "").replace("#", "♯").replace(/^([A-G])b$/, "$1♭");
-              return <li>{t("hints.cadence2", { bar: n - 1, fifth: simpleName(harmonic(pen, fifthNote)), fifthNote: name(fifthNote), sixth: below ? "M6" : "m3", sixthNote: name(cad) })}</li>;
+              return <li>{t("hints.cadence2", { bar: n - 1, fifth: intervalLabel(harmonic(pen, fifthNote)), fifthNote: name(fifthNote), sixth: below ? "M6" : "m3", sixthNote: name(cad) })}</li>;
             })()}
           </ul>
           {second && step.ordinal >= 2 && (

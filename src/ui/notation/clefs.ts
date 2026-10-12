@@ -4,12 +4,13 @@
  */
 import { parsePitch, type Step } from "../../music/pitch.ts";
 
-export type ClefId = "treble" | "treble_8vb" | "bass" | "soprano" | "mezzo_soprano" | "alto" | "tenor" | "baritone_c" | "baritone_f";
+export type ClefId = "treble" | "treble_8vb" | "bass" | "bass_8va" | "soprano" | "mezzo_soprano" | "alto" | "tenor" | "baritone_c" | "baritone_f";
 
 const BOTTOM_LINE: Record<ClefId, string> = {
   treble: "E4",
   treble_8vb: "E3",
   bass: "G2",
+  bass_8va: "G3",
   soprano: "C4",
   mezzo_soprano: "A3",
   alto: "F3",
@@ -23,6 +24,7 @@ export const VEXFLOW_CLEF: Record<ClefId, { clef: string; annotation?: string }>
   treble: { clef: "treble" },
   treble_8vb: { clef: "treble", annotation: "8vb" },
   bass: { clef: "bass" },
+  bass_8va: { clef: "bass", annotation: "8va" },
   soprano: { clef: "soprano" },
   mezzo_soprano: { clef: "mezzo-soprano" },
   alto: { clef: "alto" },

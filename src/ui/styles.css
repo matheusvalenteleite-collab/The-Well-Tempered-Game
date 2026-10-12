@@ -919,6 +919,12 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
   .shell .topbar { height: auto; flex: 0 0 auto; flex-wrap: wrap; padding: 4px 8px; row-gap: 4px; }
   .shell .topbar .exercise-nav { flex: 1 1 100%; }
   .shell .topbar .exercise-nav select { flex: 1 1 0; max-width: none; }
+  /* On a phone the menus take two rows (the mode and its level or stage; the piece, and the
+     chorale's bass from stage 4), so that none is cut to "Stag…"; the size button joins the tools' row. */
+  .shell .topbar .exercise-nav { flex-wrap: wrap; row-gap: 4px; }
+  .shell .topbar .exercise-nav:has(> select:nth-of-type(3)) select.sel-exercise { flex: 1 1 55%; }
+  .shell .topbar .exercise-nav select.sel-exercise ~ select { flex: 0 0 auto; }
+  .shell .topbar .header-tools { flex: 1 1 0; min-width: 0; }
 }
 
 /* The score: stretches into whatever height is left. */
@@ -971,7 +977,7 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 
 /* The transport, compact. */
 .play-split .play { min-width: 36px; min-height: 36px; font-size: 0.95rem; }
-.play-split .from-bar, .play-split .loop { min-height: 36px; min-width: 30px; font-size: 0.85rem; }
+.play-split .from-bar, .play-split .loop, .play-split .stop { min-height: 36px; min-width: 30px; font-size: 0.85rem; }
 .shell .controls { gap: 6px; }
 .shell.layout-compact .dock .sound .editor { flex: 0 0 auto; }
 /* D106: the music sits in the middle of its box when the box is taller than the music. */
@@ -1237,3 +1243,37 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --mode-fux: #c0473f; --mode-chorale: #3f9a64; --mode-wtc: #4f78d0; } }
 :root[data-theme="dark"] { --mode-fux: #c0473f; --mode-chorale: #3f9a64; --mode-wtc: #4f78d0; }
+.chorale-verdicts .verdict-empty { border-left: 3px solid var(--line); padding-left: 6px; }
+/* P3: the WTC study's voices heard, and the kinds of spotlight. */
+.wtc-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 6px 0; font-family: var(--ui-font); font-size: 0.85rem; }
+.wtc-heard { display: inline-flex; align-items: center; gap: 3px; font-family: var(--ui-font); font-size: 0.85rem; }
+/* C21: the chorale mode's warnings by gravity. */
+.chorale-verdicts .verdict-grave3 { border-left: 3px solid #c4473a; padding-left: 6px; }
+.chorale-verdicts .verdict-grave2 { border-left: 3px solid #d35400; padding-left: 6px; }
+.chorale-verdicts .verdict-grave1 { border-left: 3px solid #b7950b; padding-left: 6px; }
+/* P8: ornament marks on the WTC roll. */
+.roll-orn { font: italic 700 9px var(--ui-font); pointer-events: none; }
+
+/* P17: the chorales' listening guide: the caption kept in sight under the score while it plays. */
+.guide-caption { flex: 1 0 100%; margin: 0 0 4px; padding: 8px 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; font-size: 15px; line-height: 1.45; }
+.guide-caption.idle { opacity: 0.7; font-size: 13px; }
+.guide-line { font-style: italic; opacity: 0.8; margin-bottom: 4px; }
+.guide-mark { font-weight: 700; }
+.guide-moment { animation: guide-in 0.4s ease-out; }
+@keyframes guide-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.guide-words { font-style: italic; }
+
+/* P20: the fermatas' list: each row with its choice and its length. */
+.fermata-row { cursor: pointer; padding: 2px 4px; border-radius: 4px; }
+.fermata-row.selected { background: var(--selection); }
+.fermata-sign { font-weight: 700; font-family: var(--ui-font); }
+.fermata-controls { display: inline-flex; align-items: center; gap: 6px; margin-left: 8px; flex-wrap: wrap; }
+.fermata-scale { min-width: 3.2em; text-align: center; font-family: var(--ui-font); font-size: 0.85rem; }
+.guide-cite { font-size: 0.85em; opacity: 0.7; font-style: italic; }
+
+/* P26: with their controls folded on a phone, the chorale screens give the score the room (two systems
+   in view instead of one; the tabs below scroll). */
+.fold-btn { white-space: nowrap; }
+@media (max-width: 599px) {
+  .shell.layout-compact .score-area:has(.chorale-score) { height: min(62vh, 560px); }
+}

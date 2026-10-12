@@ -17,6 +17,7 @@ import { Study } from "./Study.tsx";
 import { stepStudy } from "./study.ts";
 import { Feedback } from "./Feedback.tsx";
 import { HFader } from "./HFader.tsx";
+import { TransportButtons } from "./TransportButtons.tsx";
 import { NoteIcon } from "./NoteIcon.tsx";
 import { Systems, ZOOM_MAX, ZOOM_MIN } from "./notation/Systems.tsx";
 import { buildOverlay, neutralOverlay } from "./notation/overlay.ts";
@@ -142,6 +143,9 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
   const [tuning, setTuning] = useState<TemperamentId>(() => stored<TemperamentId>("wtg.tuning", "equal", (v) => TEMPERAMENTS.includes(v as TemperamentId)));
   const [cursor, setCursor] = useState(-1);
   const [playing, setPlaying] = useState(false);
+  /** The bar a pause left the playback at (P2): ▶ goes on from there; ■ forgets it. */
+  const [pausedAt, setPausedAt] = useState<number | null>(null);
+  useEffect(() => setPausedAt(null), [STEP.id, suspended]);
   const [audioStatus, setAudioStatus] = useState<AudioStatus>("idle");
   /** D111: a master style sets every track; Fux follows the player's line once he is unlocked. */
   const chooseStyle = (id: StyleId) => {
@@ -493,21 +497,33 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
   };
 
   /** Play all, or from slot `from` to the end (Space: from the selected bar, D93); loops start again at bar 1. */
-  const play = (from = 0) => {
+  const play = (from = pausedAt === null ? 0 : Math.max(0, VIEW.layout.findIndex((sl) => sl.bar === pausedAt))) => {
     if (savedPlaying) stopSaved();
     if (playing) {
+      // Pause (P2): silence, the cursor kept; ▶ goes on from that bar.
       audio.stop();
       setPlaying(false);
-      setCursor(-1);
+      setPausedAt(VIEW.layout[Math.max(0, cursor)]?.bar ?? 0);
       return;
     }
+    setPausedAt(null);
     setPlaying(true);
     startPlayback(audio, VIEW, { notes: session.notes, versions, mode: "player", continuo: continuoAllowed, continuoOn: continuo, continuoSettings, tuning, fuxAlong: fuxOpen, fuxHeard }, onLiveSlot, from, liveSetup);
   };
   function onLiveSlot(k: number) {
     setCursor(k);
-    if (k < 0) setPlaying(false);
+    if (k < 0) {
+      setPlaying(false);
+      setPausedAt(null);
+    }
   }
+  /** Stop (■): silence, and the next ▶ starts from the top. */
+  const stopPlay = () => {
+    audio.stop();
+    setPlaying(false);
+    setCursor(-1);
+    setPausedAt(null);
+  };
 
   // Mix mode (D77): the export plays N loops in succession, each with its own setup (sounds and
   // mix, versions, line, drums, continuo, tempo, and which lines play), as one
@@ -1022,9 +1038,7 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
           </div>
           <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
             <div className="play-split">
-              <button className="icon play" onClick={() => play()} aria-label={t("ui.play.player")} title={t("ui.play.player")}>
-                {playing ? "■" : "▶"}
-              </button>
+              <TransportButtons playing={playing} pausedAt={pausedAt} onPlay={() => play()} onStop={stopPlay} label={t("ui.play.player")} />
               <button className="from-bar" onClick={() => play(VIEW.layout.findIndex((sl) => sl.bar === VIEW.layout[session.selected].bar))} aria-label={t("ui.play.fromBar")} title={t("ui.play.fromBar")}>
                 ▶|
               </button>

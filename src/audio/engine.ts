@@ -6,6 +6,7 @@
  * (smplr Soundfont, fetched over the network; hidden in the UI for now, decision D15).
  * The AudioContext is created on the first user gesture (browser autoplay policy).
  */
+import { shapeEvents } from "./dynamics.ts";
 import { Soundfont } from "smplr";
 import { DEFAULT_DRUMS, DrumMachine, isSampled, kitOf, type DrumCue, type DrumSettings, type DrumVoice } from "./drums.ts";
 import { DEFAULT_SYNTH, type SynthSettings } from "./synth-settings.ts";
@@ -30,13 +31,23 @@ export type { PlayEvent };
 
 type Voices = Record<Channel, Instrument>;
 
+/**
+ * P19: the velocity (0..1, 0.75 neutral) that sounds `db` decibels above the neutral loudness, the
+ * voices' level being 0.2 + 1.07 velocity (src/audio/voice.ts); undefined for 0 or none.
+ */
+export function velocityOfDb(db: number | undefined): number | undefined {
+  if (!db) return undefined;
+  return Math.max(0, Math.min(1, ((0.2 + 1.07 * 0.75) * 10 ** (db / 20) - 0.2) / 1.07));
+}
+
 class SampledPiano implements Instrument {
   private sf: Soundfont;
   constructor(sf: Soundfont) {
     this.sf = sf;
   }
-  start(note: string, time: number, duration: number) {
-    this.sf.start({ note, time, duration, velocity: 80 });
+  start(note: string, time: number, duration: number, velocity = 0.75) {
+    // MIDI velocity 80 at the neutral 0.75 (P19: a note's level shades it).
+    this.sf.start({ note, time, duration, velocity: Math.max(1, Math.min(127, Math.round(80 * (velocity / 0.75)))) });
   }
   stop() {
     this.sf.stop();
@@ -77,6 +88,8 @@ registerProcessor("wtg-recorder", WtgRecorder);
 `;
 
 export class AudioEngine {
+  /** P25: shape the Fux and WTC playback (arch, dissonances a little louder); off: every note as set. */
+  dynamics = true;
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   /** The last node before the speakers: what an export captures (D74). */
@@ -344,28 +357,30 @@ export class AudioEngine {
 
   /** Start the notes of one event; a cantus note always lasts the whole bar. */
   private soundEvent(voices: Voices, e: PlayEvent, time: number, whole: number) {
+    // P19: a note's own level (dB) as the voice's velocity (0.75 the neutral loudness).
+    const vel = (ch: string) => velocityOfDb(e.db?.[ch]);
     if (e.cantus) {
-      voices.cantus.start(shiftOctave(e.cantus, this.mix.cantusOctave ?? 0), time, whole * 0.97);
+      voices.cantus.start(shiftOctave(e.cantus, this.mix.cantusOctave ?? 0), time, whole * 0.97, vel("cantus"));
       this.notesStarted++;
     }
     if (e.counterpoint) {
-      voices.counterpoint.start(shiftOctave(e.counterpoint, this.mix.counterpointOctave ?? 0), time, (e.lengths?.counterpoint ?? e.length) * whole * 0.95);
+      voices.counterpoint.start(shiftOctave(e.counterpoint, this.mix.counterpointOctave ?? 0), time, (e.lengths?.counterpoint ?? e.length) * whole * 0.95, vel("counterpoint"));
       this.notesStarted++;
     }
     for (const [id, pitch] of Object.entries(e.versions ?? {})) {
       if (!pitch) continue;
       // Each version may sound in another octave too (D66).
-      this.versionVoice(id as VersionId)?.start(shiftOctave(pitch, this.mix.versionOctave?.[id as VersionId] ?? 0), time, (e.lengths?.[id] ?? e.length) * whole * 0.95);
+      this.versionVoice(id as VersionId)?.start(shiftOctave(pitch, this.mix.versionOctave?.[id as VersionId] ?? 0), time, (e.lengths?.[id] ?? e.length) * whole * 0.95, vel(id));
       this.notesStarted++;
     }
     for (const x of e.extra ?? []) {
       const oct = x.channel === "fux" ? this.mix.fuxOctave : (this.mix.counterpointOctave ?? 0);
-      voices[x.channel].start(shiftOctave(x.pitch, oct), time, e.length * whole * 0.95);
+      voices[x.channel].start(shiftOctave(x.pitch, oct), time, e.length * whole * 0.95, vel(x.channel));
       this.notesStarted++;
     }
     if (e.fux) {
       // Fux's line may sound in another octave (listening only; the score is unchanged).
-      voices.fux.start(shiftOctave(e.fux, this.mix.fuxOctave), time, (e.lengths?.fux ?? e.length) * whole * 0.95);
+      voices.fux.start(shiftOctave(e.fux, this.mix.fuxOctave), time, (e.lengths?.fux ?? e.length) * whole * 0.95, vel("fux"));
       this.notesStarted++;
     }
   }
@@ -421,6 +436,8 @@ export class AudioEngine {
     // Mix mode (D77): each pass brings its own events and accompaniment, and sets the engine up.
     let pass = 0;
     if (passes) ({ events, onCycle } = passes.prepare(0));
+    // P25: the phrase arch and the dissonances' accent (events that carry their own levels kept).
+    if (this.dynamics) events = shapeEvents(events);
     if (!inst || !ctx || events.length === 0) {
       onSlot(-1);
       return;
@@ -466,6 +483,7 @@ export class AudioEngine {
           if (passes) {
             pass++;
             ({ events, onCycle } = passes.prepare(pass));
+            if (this.dynamics) events = shapeEvents(events);
             bars = Math.ceil(Math.max(...events.map((e) => e.at + e.length)));
           }
         } else {

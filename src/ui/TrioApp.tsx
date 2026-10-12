@@ -29,11 +29,13 @@ import { playContinuo } from "../continuo/audio.ts";
 import { DEFAULT_VERSIONS, type Versions } from "../game/versions.ts";
 import { parsePitch, type Step } from "../music/pitch.ts";
 import { TrioScore, type TrioVoice } from "./notation/TrioScore.tsx";
-import { trioStaves } from "./notation/trio-staves.ts";
+import { satbOf, trioStaves } from "./notation/trio-staves.ts";
 import { applyStyle, type StyleId } from "../audio/styles.ts";
 import { ZOOM_MAX, ZOOM_MIN } from "./notation/zoom.ts";
 import { SoundDesk, trackOrder } from "./SoundDesk.tsx";
 import { HFader } from "./HFader.tsx";
+import { openClefs, useStaffLayout } from "./staff-layout.ts";
+import { TransportButtons } from "./TransportButtons.tsx";
 import { audio, store, stored, validDrumKit } from "./shared.ts";
 import { t } from "./i18n.ts";
 import { Shell } from "./Shell.tsx";
@@ -171,7 +173,12 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
   /** Contra II's activator on the mixer (D113); Contra I's is the Contrapunctus's (versions.original). */
   const [secondOn, setSecondOn] = useState(true);
   const [playing, setPlaying] = useState(false);
+  const playingRef = useRef(false);
+  playingRef.current = playing;
   const [cursor, setCursor] = useState(-1);
+  /** The bar a pause left the playback at (P2): ▶ goes on from there; ■ forgets it. */
+  const [pausedAt, setPausedAt] = useState<number | null>(null);
+  useEffect(() => setPausedAt(null), [STEP.id, suspended]);
 
   useEffect(() => {
     audio.tempo = tempo;
@@ -232,7 +239,7 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
     audio.drums = drums;
     audio.setDrums(drumKit, STEP.modalFinal);
     audio.loop = loop;
-    audio.setGates({ counterpoint: versions.original, fux: fuxHeard && fuxOpen, continuo });
+    audio.setGates({ counterpoint: versions.original, second: secondOn, fux: fuxHeard && fuxOpen, continuo });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [suspended]);
 
@@ -316,6 +323,8 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
     setResult(null);
   };
   const audition = (k: number, override?: { staff: number; pitch: string | null }) => {
+    // While the piece plays, the change is heard in it (P2): a one-off chord would stop it.
+    if (playingRef.current) return;
     const ps = lines(k).map((p, i) => (override && i === override.staff ? (override.pitch === REST ? null : override.pitch) : p));
     const [a, b] = mine.map((i) => ps[i]);
     void audio.playSequence([{ slot: k, at: 0, length: 1, cantus: STEP.cantus[k], counterpoint: a ?? null, extra: b ? [{ channel: "second", pitch: b }] : [] }]);
@@ -359,13 +368,22 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
     setSessions(Object.fromEntries(mine.map((i) => [i, select(sessions[i], entry(i, bar))])));
   };
 
-  const play = (from = 0, fresh = false) => {
-    if (playing && !fresh) {
-      audio.stop();
-      setPlaying(false);
-      setCursor(-1);
-      return;
-    }
+  /** Stop (■): silence, and the next ▶ starts from the top. */
+  const stopPlay = () => {
+    audio.stop();
+    setPlaying(false);
+    setCursor(-1);
+    setPausedAt(null);
+  };
+  /** Pause (P2): silence, the cursor kept; ▶ goes on from that bar. */
+  const pausePlay = () => {
+    audio.stop();
+    setPlaying(false);
+    setPausedAt(Math.max(0, cursor));
+  };
+  const play = (from = pausedAt ?? 0, fresh = false) => {
+    if (playing && !fresh) return pausePlay();
+    setPausedAt(null);
     const n = STEP.cantus.length;
     const fuxLines = mine.map((i) => FUX?.[i] ?? []);
     // One event a bar for the semibreves; the moving voice (D114, D116) on its own events,
@@ -417,33 +435,54 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
         });
       }
     }
+    // The engine schedules in order of time (P2): fifth species appended the moving voice's notes
+    // after the bars, so that they sounded at once at the end of the first pass.
+    events.sort((a, b) => a.at - b.at);
     // The continuo plays under the lines heard: the player's two, or Fux's when only his are on.
-    let onCycle: ((startTime: number, fromBeat: number) => void) | undefined;
-    if (continuo) {
-      const fuxOnly = !versions.original && fuxHeard && fuxOpen;
-      // The continuo harmonises the downbeats (the minim voice's thesis notes).
-      const heard = (fuxOnly ? fuxLines : mine.map((i) => sessions[i].notes)).map((line, j) => Array.from({ length: n }, (_, k) => downOf(line, mine[j], k)));
+    // It is always scheduled and heard through its gate (D78), and realized at each pass (P2).
+    const onCycle = (startTime: number, fromBeat: number) => {
+      const now = liveRef.current;
+      const fuxOnly = !now.original && now.fuxHeard && fuxOpen;
+      const heard = (fuxOnly ? fuxLines : mine.map((i) => now.sessions[i].notes)).map((line, j) => Array.from({ length: n }, (_, k) => downOf(line, mine[j], k)));
+      const graph = audio.graph;
+      const destination = audio.continuoInput();
+      if (!graph || !destination) return;
       try {
         const view = { species: "first" as const, modalFinal: STEP.modalFinal, cantusVoice: "upper" as const, cantus: STEP.cantus, layout: slotLayout("first", n), fux: null };
         const input = continuoInput(view, heard, "player");
-        const realization = realizeContinuo(input, continuoOptions("player", continuoSettings));
-        onCycle = (startTime, fromBeat) => {
-          const graph = audio.graph;
-          const destination = audio.continuoInput();
-          if (!graph || !destination) return;
-          audio.attach(playContinuo(input, realization, { preset: continuoSettings.preset, audio: { ctx: graph.ctx, destination }, includeSungVoices: false, startTime, fromBeat, getTempo: () => audio.tempo, temperament: tuning, inegal: continuoSettings.inegal && continuoSettings.preset !== "stileAntico", figuration: continuoSettings.figure ? continuoSettings.figuration : null }));
-        };
+        const cs = now.continuoSettings;
+        const realization = realizeContinuo(input, continuoOptions("player", cs));
+        audio.attach(playContinuo(input, realization, { preset: cs.preset, audio: { ctx: graph.ctx, destination }, includeSungVoices: false, startTime, fromBeat, getTempo: () => audio.tempo, temperament: now.tuning, inegal: cs.inegal && cs.preset !== "stileAntico", figuration: cs.figure ? cs.figuration : null }));
       } catch {
-        onCycle = undefined;
+        // an incomplete line has no continuo yet
       }
-    }
+    };
     audio.setGates({ counterpoint: versions.original, second: secondOn, fux: fuxHeard && fuxOpen, continuo });
     setPlaying(true);
+    const start = Math.max(0, events.findIndex((e) => e.at >= from));
     void audio.playAll(events, (k) => {
       setCursor(k);
-      if (k < 0) setPlaying(false);
-    }, onCycle, from);
+      if (k < 0) {
+        setPlaying(false);
+        setPausedAt(null);
+      }
+    }, onCycle, start);
   };
+  // What the continuo reads at each pass (P2).
+  const liveRef = useRef({ sessions, original: versions.original, fuxHeard, continuoSettings, tuning });
+  liveRef.current = { sessions, original: versions.original, fuxHeard, continuoSettings, tuning };
+  // Live changes (D57 as in two voices, P2): a change of the notes, of the continuo's settings, of
+  // the tuning or of Fux's line restarts the playback at once from the bar under the cursor;
+  // switches (voices, Fux heard, continuo on/off) only open or close channels (D78).
+  const liveKey = JSON.stringify([STEP.id, mine.map((i) => sessions[i].notes), { ...continuoSettings, display: null }, tuning, fuxOpen]);
+  const lastLiveKey = useRef(liveKey);
+  useEffect(() => {
+    if (lastLiveKey.current === liveKey) return;
+    lastLiveKey.current = liveKey;
+    if (!playing || exporter.phase === "recording") return;
+    play(Math.max(0, cursor), true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveKey]);
 
   const evaluateNow = () => {
     if (result) return setResult(null);
@@ -497,7 +536,7 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
     setShowSaved(false);
     setToast(t("ui.saved.opened", { name: x.name }));
   };
-  const exporter = usePartsExport({ start: () => play(0, true), stop: () => { audio.stop(); setPlaying(false); setCursor(-1); }, playing, loop, fileBase: `Fux three voices ${STEP.figure ?? ""} ${STEP.modalFinal}`, onToast: setToast });
+  const exporter = usePartsExport({ start: () => play(0, true), stop: stopPlay, playing, loop, fileBase: `Fux three voices ${STEP.figure ?? ""} ${STEP.modalFinal}`, onToast: setToast });
 
   // Keys (as in two voices), plus V for the next voice and Alt + 1-6 for the tracks (D149).
   const onKey = (e: KeyboardEvent) => {
@@ -517,7 +556,7 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
     const digit = trackKey(e);
     const s = session;
     if (digit !== null) {
-      const track = trackOrder(false, true)[digit - 1];
+      const track = trackOrder(false, true, false, [0, 1, 2].map((i) => (i === STEP.cantusIndex ? "cantus" : mine.indexOf(i) === 0 ? "counterpoint" : "second")))[digit - 1];
       if (track === "cantus") setSound(changeMix(sound, "cantus", { mute: !sound.mix.cantus.mute }));
       else if (track === "counterpoint") setVersions({ ...versions, original: !versions.original });
       else if (track === "second") setSecondOn(!secondOn);
@@ -542,7 +581,7 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
     else if (k === "-") update(activeStaff, applyAccidental(s, -1));
     else if (k === "n") update(activeStaff, applyAccidental(s, 0));
     else if (k === "Delete" || k === "Backspace") update(activeStaff, FLORID && activeStaff === STEP.movingIndex ? clearSpan(s) : clear(s));
-    else if (k === " ") play(s.selected);
+    else if (k === " ") play(activeBar);
     else if (k === "p" || k === "P") play();
     else return;
     e.preventDefault();
@@ -571,6 +610,9 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
   // Placed by Fux's own lines (and the cantus), so that the staves do not change as the player writes.
   const means = [0, 1, 2].map((i) => (i === STEP.cantusIndex ? mean(STEP.cantus) : FUX ? mean(FUX[i]) : clefMiddle(STEP.clefs1725[i])));
   const layoutTwo = trioStaves(means);
+  // P4: the score as the player chose it, one staff a voice or the two staves.
+  const staffLayout = useStaffLayout();
+  const drawn = staffLayout === "open" ? { staff: [0, 1, 2], clefs: openClefs(means) } : layoutTwo;
   /** The moving voice's stems: up for the upper of two voices on a staff, down for the lower; alone, by register. */
   const stemOf = (i: number): 1 | -1 => {
     const mates = [0, 1, 2].filter((x) => x !== i && layoutTwo.staff[x] === layoutTwo.staff[i]);
@@ -582,14 +624,16 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
   const voices: TrioVoice[] = [0, 1, 2].map((i) => ({
     notes: i === STEP.cantusIndex ? STEP.cantus : sessions[i].notes,
     editable: i !== STEP.cantusIndex,
-    staff: layoutTwo.staff[i],
+    staff: drawn.staff[i],
     ...(i === STEP.movingIndex ? { per: STEP.per as 2 | 4 | 8, stem: stemOf(i) } : {}),
     ...(i === STEP.cantusIndex ? {} : { ink: INK[mine.indexOf(i)] }),
     ...(i !== STEP.cantusIndex && showFux && fuxOpen && FUX ? { fux: FUX[i] } : {}),
   }));
   /** "Contra I", "Contra II" or "Cantus", with the voice's place (upper, middle, lower). */
-  const partName = (i: number) => (i === STEP.cantusIndex ? t("ui.trio3.chip.cantus") : t(mine.indexOf(i) === 0 ? "ui.mixer.contra1" : "ui.mixer.second"));
-  const voiceName = (i: number) => `${partName(i)} (${t(`ui.trio3.voice.${i}`)})`;
+  // P12: the voices named by their register (soprano, alto, tenor, bass), the cantus "CF (Tenor)".
+  const reg = satbOf(means);
+  const partName = (i: number) => (i === STEP.cantusIndex ? t("ui.satb.cf", { part: t(`ui.satb.${reg[i]}`) }) : t(`ui.satb.${reg[i]}`));
+  const voiceName = (i: number) => partName(i);
   const chooseStyle = (id: StyleId) => {
     const next = applyStyle(id, { sound, drumsOn: drums, drumKit, continuoOn: continuo, continuo: continuoSettings, tuning, tempo }, layoutTwo.staff[STEP.cantusIndex] === 0, { counterpointHigh: layoutTwo.staff[mine[0]] === 0, secondHigh: layoutTwo.staff[mine[1]] === 0 });
     setSound(next.sound);
@@ -651,7 +695,8 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
           <TrioScore
             pulse={highlight ?? undefined}
             voices={voices}
-            clefs={layoutTwo.clefs}
+            clefs={drawn.clefs}
+            autoClefs={staffLayout === "open"}
             active={activeStaff}
             selected={activeBar}
             selectedPart={activePart}
@@ -676,7 +721,7 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
             zoom={zoom}
             onZoom={setZoom}
             zoomLabels={{ in: t("ui.zoom.in"), out: t("ui.zoom.out"), reset: t("ui.zoom.reset") }}
-            tools={<ScoreTools view={{ names: names ? nameStyle : "off", intervals: figures, harmony }} onView={(v) => { setNames(v.names !== "off"); if (v.names !== "off") setNameStyle(v.names); setFigures(v.intervals); setHarmony(!!v.harmony); }} fux={{ open: fuxOpen, shown: showFux, onShow: setShowFux }} />}
+            tools={<ScoreTools view={{ names: names ? nameStyle : "off", intervals: figures, harmony }} onView={(v) => { setNames(v.names !== "off"); if (v.names !== "off") setNameStyle(v.names); setFigures(v.intervals); setHarmony(!!v.harmony); }} fux={{ open: fuxOpen, shown: showFux, onShow: setShowFux }}  staffChoice />}
           />
         </div>
       }
@@ -690,7 +735,7 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
             return (
               <button key={i} role="radio" className={`voice-chip${isCantus ? " cantus" : ""}`} aria-checked={i === activeStaff} disabled={isCantus} style={{ ["--chip" as string]: colour }} onClick={() => setActive(i)} title={isCantus ? t("ui.trio3.chip.cantusHelp") : t("ui.trio3.chip.help", { voice: voiceName(i) })}>
                 <span className="dot" aria-hidden="true" />
-                {partName(i)} <span className="where">{t(`ui.trio3.voice.${i}`)}{i === STEP.movingIndex ? ` · ${t(`ui.trio3.moving${STEP.species}`)}` : ""}</span>
+                {partName(i)} <span className="where">{i === STEP.movingIndex ? t(`ui.trio3.moving${STEP.species}`) : ""}</span>
               </button>
             );
           })}
@@ -724,7 +769,8 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
           </div>
           <div className="group listen transport" role="group" aria-label={t("ui.group.listen")}>
             <div className="play-split">
-              <button className="icon play" onClick={() => play()} aria-label={t("ui.play.player")} title={t("ui.play.player")}>{playing ? "■" : "▶"}</button>
+              <TransportButtons playing={playing} pausedAt={pausedAt} onPlay={() => play()} onStop={stopPlay} />
+                <button className="from-bar" onClick={() => play(activeBar, true)} aria-label={t("ui.play.fromBar")} title={`${t("ui.play.fromBar")}: ${activeBar + 1}`}>▶|</button>
               <button className="loop" aria-pressed={loop} onClick={() => setLoop(!loop)} aria-label={t("ui.loop")} title={t(loop ? "ui.loop.on" : "ui.loop.off")}>⟲</button>
             </div>
             <div className="hfaders">
@@ -784,6 +830,13 @@ function TrioCore({ onVoices, suspended, command, onTutorial, onCombined }: { on
           onTuning={setTuning}
           onStyle={chooseStyle}
           trio={{ secondOn, onSecond: setSecondOn }}
+          names={Object.fromEntries([0, 1, 2].map((i) => [i === STEP.cantusIndex ? "cantus" : mine.indexOf(i) === 0 ? "counterpoint" : "second", i === STEP.cantusIndex ? t("ui.satb.cf", { part: t(`ui.satb.short.${reg[i]}`) }) : t(`ui.satb.strip.${reg[i]}`)]))}
+          // P10: the voices' strips top voice first; picking one makes it the voice being written.
+          voiceOrder={[0, 1, 2].map((i) => (i === STEP.cantusIndex ? "cantus" : mine.indexOf(i) === 0 ? "counterpoint" : "second"))}
+          onStripSelect={(x) => {
+            const i = mine.find((k) => (mine.indexOf(k) === 0 ? "counterpoint" : "second") === x);
+            if (i !== undefined) setActive(i);
+          }}
         />
         ) },
         { id: "evaluation", text: true, label: t("ui.dock.evaluation"), content: (

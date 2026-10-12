@@ -3,6 +3,7 @@
  * Rhythm comes from the realization's events: a bar is one whole-note chord when nothing moves,
  * otherwise two half-note chords, with ties for the notes held through the bar.
  */
+import { figureLabel } from "../../counterpoint/interval.ts";
 import { conventionalFigure } from "../../continuo/figures.ts";
 import type { ContinuoRealization, EventRole } from "../../continuo/types.ts";
 
@@ -68,7 +69,8 @@ export function cueChords(r: ContinuoRealization, staff: "bass" | "rh"): CueChor
  */
 export function drawFigureLine(ctx: { fillText(t: string, x: number, y: number): unknown; measureText(t: string): { width: number }; beginPath(): unknown; moveTo(x: number, y: number): unknown; lineTo(x: number, y: number): unknown; stroke(): unknown; setLineWidth(w: number): unknown }, line: string, x: number, y: number): number {
   const stroke = line.endsWith("\\");
-  const text = stroke ? line.slice(0, -1) : line;
+  // P9: a compound figure with its octave and simple interval beside it ("9 [8+2]").
+  const text = figureLabel(stroke ? line.slice(0, -1) : line);
   ctx.fillText(text, x, y);
   const w = ctx.measureText(text).width;
   if (stroke) {

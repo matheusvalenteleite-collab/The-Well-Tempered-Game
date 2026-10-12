@@ -6,9 +6,10 @@
  * written); a tap selects a slot and places the note under the pointer, with the key signature.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Accidental, Articulation, Beam, Dot, Formatter, Renderer, Stave, StaveConnector, StaveNote, StaveTie, Tuplet, Voice, type StemmableNote } from "vexflow";
+import { Accidental, Articulation, Beam, GraceNote, GraceNoteGroup, Ornament, Dot, Formatter, Renderer, Stave, StaveConnector, StaveNote, StaveTie, Tuplet, Voice, type StemmableNote } from "vexflow";
 import { parsePitch, type Step } from "../../music/pitch.ts";
 import { pitchAtPosition, type ClefId } from "./clefs.ts";
+import { chooseClefs } from "./clef-chooser.ts";
 import { Viewport } from "./Viewport.tsx";
 
 export interface WtcScoreNote {
@@ -29,11 +30,43 @@ export interface WtcScoreNote {
   chord?: string[];
   /** A fermata over (or under) it (the chorales, C15). */
   fermata?: boolean;
+  /** P8: its ornament signs as the kern encoding writes them (T t trill, M m mordent, W w short trill, S turn, $ inverted turn), and the grace notes before it. */
+  orn?: string;
+  grace?: string[];
+}
+
+/**
+ * P15: one clef plan for a whole piece (to pass as `clefPlan`): each staff's clef bar by bar from its
+ * voices' notes (`chooseClefs`), `clefs` giving the staves and the clef each should rather start in.
+ */
+export function planClefs(voices: WtcScoreVoice[], clefs: ClefId[], barQuarters: number): ClefId[][] {
+  const end = Math.max(0, ...voices.flatMap((v) => v.notes.map((n) => n.at + n.dur)));
+  const bars = Math.max(1, Math.ceil(end / barQuarters - EPS));
+  return chooseClefs(
+    clefs.map((_, st) =>
+      Array.from({ length: bars }, (_, b) =>
+        voices.filter((v) => v.staff === st).flatMap((v) => v.notes.filter((n) => n.pitch && n.at < (b + 1) * barQuarters - EPS && n.at + n.dur > b * barQuarters + EPS).flatMap((n) => [n.pitch!, ...(n.chord ?? [])])),
+      ),
+    ),
+    { prefer: clefs.map((c) => (c === "treble" || c === "bass" ? c : undefined)) },
+  );
+}
+
+/** P8: the sign drawn for kern ornament signs (VexFlow's names). */
+function ornamentGlyph(signs: string): string | null {
+  if (/[Tt]/.test(signs)) return "tr";
+  if (/[Mm]/.test(signs)) return "mordent";
+  if (/[Ww]/.test(signs)) return "mordent_inverted";
+  if (signs.includes("$")) return "turn_inverted";
+  if (signs.includes("S")) return "turn";
+  if (signs.includes("O")) return "tr";
+  return null;
 }
 
 export interface WtcScoreVoice {
   notes: WtcScoreNote[];
-  staff: 0 | 1;
+  /** The staff it is drawn on, from the top (P4: as many as `clefs`; two by default). */
+  staff: number;
   ink: string;
   editable: boolean;
 }
@@ -60,14 +93,33 @@ interface Props {
    * (the chorales' figures and fundamental bass, C15); `ink` colours them.
    */
   under?: { at: number; lines: string[]; ink?: string }[];
+  /** P4: the clefs of the staves, top down (default a grand staff, treble and bass); one a voice for an open score. */
+  clefs?: ClefId[];
+  /**
+   * P6: each staff's clef chosen bar by bar from its notes (G and F, and their octave forms), a
+   * change marked by a small clef at the bar; `clefs` then gives only the number of staves.
+   */
+  autoClefs?: boolean;
+  /**
+   * P15: a clef plan for the whole piece, clefs[staff][bar] (e.g. `chooseClefs` over every bar, so
+   * that the clefs hold across the rows of a page); it takes the place of `autoClefs`. On the page,
+   * each row takes the bars from its `from`.
+   */
+  clefPlan?: ClefId[][];
 }
 
 const EPS = 1e-6;
-const CLEFS: [ClefId, ClefId] = ["treble", "bass"];
-const STAFF_Y = [40, 170];
+const GRAND: ClefId[] = ["treble", "bass"];
+/** The staves' places (P4: any number of them, 130 apart). */
+const STAFF_GAP = 130;
+const staffY = (i: number) => 40 + i * STAFF_GAP;
 const HEIGHT = 300;
-/** Room for the lines of text under the staves (C15). */
-const heightOf = (under?: unknown[]) => HEIGHT + (under?.length ? 56 : 0);
+/** Room for the staves beyond two (P4) and for the lines of text under them (C15). */
+const heightOf = (under?: unknown[], staves = 2) => HEIGHT + Math.max(0, staves - 2) * STAFF_GAP + (under?.length ? 56 : 0);
+/** A treble clef with an 8 below is written an octave above the sound; a bass clef with an 8 above, below it. */
+const written = (clef: ClefId) => (clef === "treble_8vb" ? 1 : clef === "bass_8va" ? -1 : 0);
+/** VexFlow's clef name and its octave mark. */
+const vexClef = (clef: ClefId): [string, string | undefined] => (clef === "treble_8vb" ? ["treble", "8vb"] : clef === "bass_8va" ? ["bass", "8va"] : [clef, undefined]);
 const LEAD = 120;
 /** VexFlow durations by length in quarters, longest first. */
 const DURS: [number, string, number][] = [
@@ -143,7 +195,7 @@ export function WtcScore(p: Props) {
   const natural = LEAD + widths.reduce((a, b) => a + b, 0) + 24;
   const playingX = p.cursor >= 0 && p.cursor < bars ? lefts[p.cursor] : null;
   return (
-    <Viewport natural={natural} naturalHeight={heightOf(p.under)} zoom={p.zoom} onZoom={p.onZoom} zoomLabels={p.zoomLabels} tools={p.tools} playingX={playingX}>
+    <Viewport natural={natural} naturalHeight={heightOf(p.under, (p.clefs ?? GRAND).length)} zoom={p.zoom} onZoom={p.onZoom} zoomLabels={p.zoomLabels} tools={p.tools} playingX={playingX}>
       {(scale) => <WtcSystem {...p} bars={bars} widths={widths} lefts={lefts} natural={natural} scale={scale} />}
     </Viewport>
   );
@@ -153,7 +205,7 @@ export function WtcScore(p: Props) {
  * A page of systems, one under the other (D127, the owner: "see the sheet music playing", as in
  * Gerubach's videos): each row a few bars, fitted to the page's width; the row playing on top.
  */
-export function WtcPage(p: Omit<Props, "voices" | "cursor" | "label" | "zoom" | "onZoom" | "zoomLabels" | "tools" | "under"> & { rows: { voices: WtcScoreVoice[]; bars: number; cursor: number; label: string; key: string; under?: Props["under"] }[] }) {
+export function WtcPage(p: Omit<Props, "voices" | "cursor" | "label" | "zoom" | "onZoom" | "zoomLabels" | "tools" | "under"> & { rows: { voices: WtcScoreVoice[]; bars: number; cursor: number; label: string; key: string; under?: Props["under"]; from?: number }[]; fitWidth?: boolean }) {
   const host = useRef<HTMLDivElement>(null);
   const [w, setW] = useState(0);
   const [h, setH] = useState(0);
@@ -175,10 +227,11 @@ export function WtcPage(p: Omit<Props, "voices" | "cursor" | "label" | "zoom" | 
           const lefts = widths.reduce<number[]>((acc, x, i) => (acc.push(i === 0 ? LEAD : acc[i - 1] + widths[i - 1]), acc), []);
           const natural = LEAD + widths.reduce((a, b) => a + b, 0) + 24;
           // Fitted to the width, and small enough that two systems fit the page's height (reading ahead, as in a printed score).
-          const scale = Math.min(1.1, (w - 8) / natural, h > 100 ? (h - 12) / 2 / heightOf(r.under) : Infinity);
+          // `fitWidth` (the chorales, C17): rows as wide as the page, scrolled, large enough to write on.
+          const scale = Math.min(1.1, (w - 8) / natural, !p.fitWidth && h > 100 ? (h - 12) / 2 / heightOf(r.under, (p.clefs ?? GRAND).length) : Infinity);
           return (
             <div key={r.key} className={r.cursor >= 0 ? "wtc-sys playing" : "wtc-sys"}>
-              <WtcSystem {...p} voices={voices} cursor={r.cursor} label={r.label} under={r.under} zoom={1} onZoom={() => undefined} zoomLabels={{ in: "", out: "", reset: "" }} bars={bars} widths={widths} lefts={lefts} natural={natural} scale={scale} bothStaves />
+              <WtcSystem {...p} voices={voices} cursor={r.cursor} label={r.label} under={r.under} clefPlan={p.clefPlan?.map((st) => st.slice(r.from ?? 0, (r.from ?? 0) + r.bars))} zoom={1} onZoom={() => undefined} zoomLabels={{ in: "", out: "", reset: "" }} bars={bars} widths={widths} lefts={lefts} natural={natural} scale={scale} bothStaves />
             </div>
           );
         })}
@@ -190,6 +243,8 @@ interface Hit {
   slot: number;
   x: number;
   staff: number;
+  /** The clef in force where the slot stands (P6). */
+  clef: ClefId;
 }
 
 function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[]; natural: number; scale: number; bothStaves?: boolean }) {
@@ -202,7 +257,9 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
     if (!host) return;
     host.innerHTML = "";
     const renderer = new Renderer(host, Renderer.Backends.SVG);
-    renderer.resize(Math.ceil(p.natural * p.scale), Math.ceil(heightOf(p.under) * p.scale));
+    const CLEFS = p.clefs ?? GRAND;
+    const ALL = CLEFS.map((_, i) => i);
+    renderer.resize(Math.ceil(p.natural * p.scale), Math.ceil(heightOf(p.under, CLEFS.length) * p.scale));
     const ctx = renderer.getContext();
     ctx.scale(p.scale, p.scale);
     const svg = host.querySelector("svg")!;
@@ -211,8 +268,14 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
     const [num, den] = p.time.split("/").map(Number);
     hits.current = [];
     // Only the staves the voices use (two voices on one staff, as Bach writes them, need one).
-    const used = p.bothStaves ? [0, 1] : [0, 1].filter((i) => p.voices.some((v) => v.staff === i));
-    const yOf = (i: number) => (used.length === 1 ? STAFF_Y[0] : STAFF_Y[i]);
+    // P6: the clef of each staff in each bar.
+    const plan: ClefId[][] = p.clefPlan
+      ? ALL.map((st) => Array.from({ length: p.bars }, (_, b) => p.clefPlan![st]?.[b] ?? p.clefPlan![st]?.[p.clefPlan![st].length - 1] ?? CLEFS[st]))
+      : p.autoClefs
+      ? chooseClefs(ALL.map((st) => Array.from({ length: p.bars }, (_, b) => p.voices.filter((v) => v.staff === st).flatMap((v) => v.notes.filter((n) => n.pitch && n.at < (b + 1) * p.barQuarters - EPS && n.at + n.dur > b * p.barQuarters + EPS).flatMap((n) => [n.pitch!, ...(n.chord ?? [])])))), { prefer: CLEFS.map((c) => (c === "treble" || c === "bass" ? c : undefined)) })
+      : ALL.map((st) => Array.from({ length: p.bars }, () => CLEFS[st]));
+    const used = p.bothStaves ? ALL : ALL.filter((i) => p.voices.some((v) => v.staff === i));
+    const yOf = (i: number) => staffY(Math.max(0, used.indexOf(i)));
     const drawnBySrc = new Map<WtcScoreNote, StaveNote[]>();
     const lastPiece = new Map<number, { note: StaveNote; tieNext: boolean }>(); // by voice, across bars
     const ties: [StaveNote, StaveNote][] = [];
@@ -222,13 +285,16 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
     for (let b = 0; b < p.bars; b++) {
       const x = b === 0 ? 8 : p.lefts[b];
       const w = b === 0 ? p.lefts[0] - 8 + p.widths[0] : p.widths[b];
-      const staves = CLEFS.map((clef, i) => {
+      const staves = CLEFS.map((_, i) => {
         const s = new Stave(x, yOf(i), w);
+        const clef = plan[i][b];
         if (b === 0) {
-          s.addClef(clef);
+          s.addClef(vexClef(clef)[0], "default", vexClef(clef)[1]);
           s.addKeySignature(p.keySig);
           s.addTimeSignature(p.time);
         }
+        // A change of clef, marked small at the start of the bar.
+        else if (clef !== plan[i][b - 1]) s.addClef(vexClef(clef)[0], "small", vexClef(clef)[1]);
         if (b === p.bars - 1) s.setEndBarType(1);
         s.setContext(ctx);
         return s;
@@ -242,15 +308,17 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
         ctx.restore();
       }
       used.forEach((i) => staves[i].draw());
-      if (used.length === 2) {
+      if (used.length >= 2) {
+        const [top, bottom] = [staves[used[0]], staves[used[used.length - 1]]];
         if (b === 0) {
-          new StaveConnector(staves[0], staves[1]).setType("brace").setContext(ctx).draw();
-          new StaveConnector(staves[0], staves[1]).setType("singleLeft").setContext(ctx).draw();
+          // A keyboard's brace over two staves; a choir's bracket over more (P4).
+          new StaveConnector(top, bottom).setType(used.length === 2 ? "brace" : "bracket").setContext(ctx).draw();
+          new StaveConnector(top, bottom).setType("singleLeft").setContext(ctx).draw();
         }
-        new StaveConnector(staves[0], staves[1]).setType("singleRight").setContext(ctx).draw();
+        new StaveConnector(top, bottom).setType("singleRight").setContext(ctx).draw();
       }
       // Accidentals by the bar and the staff: the signature's, then what the bar has altered.
-      const state = [new Map<string, number>(), new Map<string, number>()];
+      const state = CLEFS.map(() => new Map<string, number>());
       const voices: Voice[] = [];
       const perVoice: { vi: number; v: WtcScoreVoice; tick: StaveNote[]; pieces: Piece[]; stem: 1 | -1 | 0 }[] = [];
       p.voices.forEach((v, vi) => {
@@ -263,7 +331,7 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
       // Accidentals in time order across the voices of a staff, for every note of a chord.
       const keysOf = (q: Piece) => [q.pitch!, ...(q.src?.chord ?? [])].sort((a, c) => parsePitch(a).midi - parsePitch(c).midi);
       const accOf = new Map<Piece, (string | null)[]>();
-      for (const st of [0, 1]) {
+      for (const st of ALL) {
         const all = perVoice.filter((x) => x.v.staff === st).flatMap((x) => x.pieces).filter((q) => !q.rest && q.pitch).sort((a, c) => a.at - c.at);
         for (const q of all) {
           const continued = q.src && q.src.at < q.at - EPS; // a tied continuation shows no accidental
@@ -280,22 +348,40 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
         }
       }
       for (const pv of perVoice) {
-        const clef = CLEFS[pv.v.staff];
+        const clefId = plan[pv.v.staff][b];
+        const clef = clefId.startsWith("bass") ? "bass" : "treble";
+        const up = written(clefId);
         const middle = clef === "treble" ? "b/4" : "d/3";
         for (const q of pv.pieces) {
           let n: StaveNote;
           if (q.rest) {
             n = new StaveNote({ keys: [pv.stem === -1 ? (clef === "treble" ? "g/4" : "b/2") : pv.stem === 1 ? (clef === "treble" ? "d/5" : "f/3") : middle], duration: `${q.d}r`, clef });
           } else if (!q.pitch) {
-            n = new StaveNote({ keys: [middle], duration: q.d, clef, ...(pv.stem ? { stem_direction: pv.stem } : { auto_stem: false }) });
+            // An empty slot where its voice lives: low on the staff for the lower of two voices, high for the upper (C17).
+            const home = pv.stem === -1 ? (clef === "treble" ? "e/4" : "g/2") : pv.stem === 1 ? (clef === "treble" ? "e/5" : "a/3") : middle;
+            n = new StaveNote({ keys: [home], duration: q.d, clef, ...(pv.stem ? { stem_direction: pv.stem } : { auto_stem: false }) });
             n.setStyle({ fillStyle: "var(--slot-ink, #b9b2a0)", strokeStyle: "var(--slot-ink, #b9b2a0)" });
           } else {
             const keys = keysOf(q).map((x) => {
               const pp = parsePitch(x);
-              return `${pp.step.toLowerCase()}/${pp.octave}`;
+              return `${pp.step.toLowerCase()}/${pp.octave + up}`;
             });
             n = new StaveNote({ keys, duration: q.d, clef, ...(pv.stem ? { stem_direction: pv.stem } : { auto_stem: true }) });
             (accOf.get(q) ?? []).forEach((acc, i) => acc && n.addModifier(new Accidental(acc), i));
+            // P8: the ornament over the note's first piece, its grace notes before it.
+            if (q.src && q.src.at >= q.at - EPS) {
+              const glyph = q.src.orn ? ornamentGlyph(q.src.orn) : null;
+              if (glyph) n.addModifier(new Ornament(glyph).setPosition(pv.stem === -1 ? 4 : 3), 0);
+              if (q.src.grace?.length) {
+                const gs = q.src.grace.map((g) => {
+                  const gp = parsePitch(g);
+                  const gn = new GraceNote({ keys: [`${gp.step.toLowerCase()}/${gp.octave + up}`], duration: "8", slash: q.src!.grace!.length === 1, clef });
+                  if (gp.alter) gn.addModifier(new Accidental(VEX_ACC(gp.alter)), 0);
+                  return gn;
+                });
+                n.addModifier(new GraceNoteGroup(gs, q.src.grace.length > 1), 0);
+              }
+            }
             const ink = q.src?.ink ?? pv.v.ink;
             n.setStyle({ fillStyle: ink, strokeStyle: ink });
           }
@@ -319,7 +405,7 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
       }
       if (!voices.length) continue;
       const fmt = new Formatter();
-      for (const st of [0, 1]) {
+      for (const st of ALL) {
         const vs = perVoice.map((pv, i) => (pv.v.staff === st ? voices[i] : null)).filter((x): x is Voice => !!x);
         if (vs.length) fmt.joinVoices(vs);
       }
@@ -366,7 +452,7 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
             onsetX.set(key, Math.min(onsetX.get(key) ?? Infinity, nx));
           }
           if (q.src.slot !== undefined && q.src.at >= q.at - EPS) {
-            if (pv.v.editable) hits.current.push({ slot: q.src.slot, x: nx, staff: pv.v.staff });
+            if (pv.v.editable) hits.current.push({ slot: q.src.slot, x: nx, staff: pv.v.staff, clef: plan[pv.v.staff][b] });
             if (pv.v.editable && p.selected === q.src.slot) {
               ctx.save();
               ctx.setFillStyle("var(--selection)");
@@ -403,7 +489,8 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
     // The selection is drawn after the notes: redraw nothing; it sits under them as a translucent band.
     geo.current = { staves: staves0.map((s, i) => (used.includes(i) ? { top: s.getYForLine(0), bottom: s.getYForLine(4), spacing: s.getSpacingBetweenLines() } : { top: -1e6, bottom: -1e6, spacing: 10 })) };
     host.dataset.geometry = JSON.stringify(geo.current);
-  }, [p.voices, p.keySig, p.signature, p.time, p.barQuarters, p.selected, p.cursor, p.label, p.bars, p.widths, p.lefts, p.natural, p.scale, p.under]);
+    host.dataset.clefs = JSON.stringify(plan);
+  }, [p.voices, p.keySig, p.signature, p.time, p.barQuarters, p.selected, p.cursor, p.label, p.bars, p.widths, p.lefts, p.natural, p.scale, p.under, p.clefs, p.autoClefs, p.clefPlan]);
 
   const press = useRef<{ x: number; y: number } | null>(null);
   const locate = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -414,13 +501,20 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
     const k = p.scale * (r.width / (svg.width.baseVal.value || r.width));
     const x = (e.clientX - r.left) / k;
     const y = (e.clientY - r.top) / k;
-    const best = hits.current.reduce((a, h) => (Math.abs(h.x + 5 - x) < Math.abs(a.x + 5 - x) ? h : a));
+    // The staff tapped first (two editable voices, one on each staff: the chorales' alto and tenor, C17), then the nearest slot on it.
+    const near = (i: number) => {
+      const st = g.staves[i];
+      return st ? Math.abs((st.top + st.bottom) / 2 - y) : Infinity;
+    };
+    const tapped = g.staves.map((_, i) => i).reduce((a, i) => (near(i) < near(a) ? i : a), 0);
+    const pool = hits.current.some((h) => h.staff === tapped) ? hits.current.filter((h) => h.staff === tapped) : hits.current;
+    const best = pool.reduce((a, h) => (Math.abs(h.x + 5 - x) < Math.abs(a.x + 5 - x) ? h : a));
     if (Math.abs(best.x + 5 - x) > 40) return null;
     const s = g.staves[best.staff];
     const onStaff = y >= s.top - 5 * s.spacing && y <= s.bottom + 5 * s.spacing;
     if (!onStaff) return { slot: best.slot, pitch: null };
     const position = Math.round((s.bottom - y) / (s.spacing / 2));
-    const natural = pitchAtPosition(CLEFS[best.staff], position);
+    const natural = pitchAtPosition(best.clef, position);
     const step = natural[0] as Step;
     const alter = p.signature[step];
     const pitch = `${step}${alter > 0 ? "#".repeat(alter) : "b".repeat(-alter)}${natural.slice(1)}`;
