@@ -98,3 +98,8 @@ answered one by one.
 - **R2, the blind spots (12 October):** entries in a changed rhythm found (AoF VI's diminutions, VII's
   augmentations, rhythmically varied entries), the later subjects of AoF VIII-XI read in the score and
   tracked, the 48's agreement with Ledbetter kept. Left: ornamented entries, cadences (HABITS.md, limits).
+- **KNOWLEDGE-PLAN A1-A2 done (12 October):** eight fugues read completely by hand (I/11, I/12, II/13, II/17,
+  AoF VI, AoF IX, the Ricercar a 3, BWV 903: `data/wtc/gold/`, 116 entries, 109 cadences); the analysis
+  measured on them (`docs/wtc/READING.md`): precision 98%, recall 93%, after two fixes the reading prompted
+  (later subjects grown back to their head; tonal heads in AoF VI's diminutions). The readers agree with 27 of
+  Ledbetter's 28 entry claims there. A tool fault found and fixed: dumps from bar 1 dropped a pickup bar.

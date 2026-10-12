@@ -1,0 +1,342 @@
+{
+ "id": "wtc1f12",
+ "reader_notes": "Read from /tmp/claude-0/sp/gold/wtc1f12.txt (bars 1-58, 4/4, beats = quarters), with small scripts to search for the subject's interval shape (neighbour figure, rising fourth, falling fifth, chromatic descent) in all forms and transpositions, every hit then read in context with the other voices. Subject from SUBJECTS.md: C Db C B E F Bb A Ab G F, 11 quarter-note-length notes from beat 2, ending on F (^1) at the downbeat of the fourth bar. Voices: 0 soprano, 1 alto, 2 tenor, 3 bass. The project's own entry/cadence analysis was not consulted.",
+ "entries": [
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 1,
+   "beat": 2,
+   "first": "C4",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 4,
+   "beat": 2,
+   "first": "F4",
+   "form": "answer",
+   "degree": "V",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Tonal answer: the subject's opening ^5 (C) is answered by ^1 (F); from the second note on it is a real transposition to C minor (Ab G F# B C F E Eb D), ending on C4 at 7:1."
+  },
+  {
+   "subject": 1,
+   "voice": 3,
+   "bar": 7,
+   "beat": 2,
+   "first": "C3",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 13,
+   "beat": 2,
+   "first": "C5",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Fourth exposition entry, after a three-bar link; it is the subject again on the tonic, not a second answer (order S-A-S-S). Last note F4 is delayed by the suspended G4 to 16:1.5."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 19,
+   "beat": 2,
+   "first": "G3",
+   "form": "subject",
+   "degree": "V",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Exact (real) transposition of the dux to C minor (G Ab G F# B C F E Eb D C), not the tonal answer form; ends C3 at 22:1."
+  },
+  {
+   "subject": 1,
+   "voice": 3,
+   "bar": 27,
+   "beat": 4,
+   "first": "C3",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Metrically displaced: begins on beat 4 instead of beat 2, so the neighbour Db falls on the downbeat; ends F2 at 30:3."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 34,
+   "beat": 2,
+   "first": "Eb4",
+   "form": "subject",
+   "degree": "III",
+   "complete": "altered",
+   "stretto_with": null,
+   "reason": "In Ab major: Eb F Eb D G Ab Db C Cb Bb Ab. Index 1 is F (a whole step) instead of the exact Fb; everything else, including D natural (the subject's raised ^4) and Cb, is exact. Ends Ab3 at 37:1, harmonised by a C7-f progression that turns back to F minor."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 40,
+   "beat": 4,
+   "first": "Bb3",
+   "form": "subject",
+   "degree": "VII",
+   "complete": "altered",
+   "stretto_with": null,
+   "reason": "In Eb major: Bb C Bb A D Eb Ab G Gb F Eb. Index 1 is C instead of Cb (major-mode neighbour, as in the Ab entry); otherwise exact. Displaced to beat 4 like the bass entry of bar 27. Ends Eb3 at 43:3 on a V-I in Eb."
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 47,
+   "beat": 2,
+   "first": "G5",
+   "form": "subject",
+   "degree": "V",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Real transposition to C minor after a half cadence on G; last note C5 delayed by the suspended D5 to 50:1.5."
+  },
+  {
+   "subject": 1,
+   "voice": 3,
+   "bar": 53,
+   "beat": 2,
+   "first": "C3",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Final entry, bass, tonic; ends F2 at 56:1."
+  }
+ ],
+ "cadences": [
+  {
+   "bar": 10,
+   "beat": 1,
+   "key": "f",
+   "kind": "IAC",
+   "bass": "^2-^1",
+   "reason": "End of the bass's exposition entry: G2 under E4/Bb3 (viio6 / V4/3 without root) to F2-Ab3-F4. Inverted dominant, so imperfect; closes the three-voice part of the exposition before the link."
+  },
+  {
+   "bar": 16,
+   "beat": 1,
+   "key": "f",
+   "kind": "IAC",
+   "bass": "^7-^1",
+   "reason": "End of the soprano entry and of the exposition: C7 in first inversion (E3 bass at 15:4) to F minor, with the soprano G4 suspended over the arrival and resolving to F4 at 16:1.5. Inverted dominant."
+  },
+  {
+   "bar": 19,
+   "beat": 1,
+   "key": "c",
+   "kind": "IAC",
+   "bass": "^5-^1",
+   "reason": "Close of the first episode: G2 (with B4, A4 above) at 18:4, bass passing A2-B2 to C3; soprano F5 suspended over C, resolving to Eb5 (^3) at 19:1.5. The tenor's C-minor entry starts the next beat."
+  },
+  {
+   "bar": 22,
+   "beat": 1,
+   "key": "c",
+   "kind": "IAC",
+   "bass": "^2-^1",
+   "reason": "End of the tenor's C-minor entry: G7 over D3 (V4/3) to C3 with C6 on top (soprano B5-C6). Root of dominant not in the bass, hence imperfect; the bass voice then stays silent until 27:4."
+  },
+  {
+   "bar": 27,
+   "beat": 1,
+   "key": "f",
+   "kind": "IAC",
+   "bass": "^5-^1",
+   "reason": "End of the sequential episode: C7 (tenor E3-C3 as the lowest voice) to F3 with Ab4 (^3) in the alto; the soprano's G5 hangs over the downbeat and then leaps away. Prepares the bass entry at 27:4."
+  },
+  {
+   "bar": 30,
+   "beat": 3,
+   "key": "f",
+   "kind": "IAC",
+   "bass": "^2-^1",
+   "reason": "End of the bass entry: viio7 over G2 (E4, Bb4, Db5) to F minor (F2, F4, Ab4, C5). Weak, contrapuntal cadence; the episode starts at once."
+  },
+  {
+   "bar": 37,
+   "beat": 1,
+   "key": "f",
+   "kind": "IAC",
+   "bass": "^5-^1",
+   "reason": "The Ab-major entry ends on Ab3, but the harmony under it moves Eb (36:3) to C7 (E3, G3, Bb3, C3 at 36:4) and lands on F minor: an arrival in f, not in Ab. Could be heard as a deceptive turn from Ab (V-vi); recorded as V-i in f."
+  },
+  {
+   "bar": 43,
+   "beat": 3,
+   "key": "Eb",
+   "kind": "IAC",
+   "bass": "^5-^1",
+   "reason": "End of the Eb-major entry: Bb7 (Bb2, F3, D4, Ab4) to Eb (Eb3, Eb3, G4); root position, but the top voice lands on G4 (^3)."
+  },
+  {
+   "bar": 47,
+   "beat": 1,
+   "key": "c",
+   "kind": "HC",
+   "bass": "^6-#^6-^5",
+   "reason": "After the descending sequence: Ab2 under F3/C3/F4 (iv6 of c, a phrygian approach) with chromatic A2 and F#3 (V4/3 of V) to G major (G2 D3 G3 B3). The soprano's C-minor entry follows on beat 2."
+  },
+  {
+   "bar": 50,
+   "beat": 1,
+   "key": "c",
+   "kind": "IAC",
+   "bass": "^4-^3",
+   "reason": "End of the soprano C-minor entry, three voices only: V4/2 (F4 in the tenor, the lowest voice) to i6 (Eb4), soprano D5 suspended to C5 at 50:1.5. Very weak; possibly better heard as not a cadence at all, since the episode runs straight on."
+  },
+  {
+   "bar": 53,
+   "beat": 1,
+   "key": "f",
+   "kind": "IAC",
+   "bass": "^5-^1",
+   "reason": "End of the last episode: C major (C3 in the tenor, E4, Bb4) to F3-C4 with the soprano Bb4 suspended to Ab4 (^3). The bass enters with the final subject on beat 2."
+  },
+  {
+   "bar": 56,
+   "beat": 1,
+   "key": "f",
+   "kind": "evaded",
+   "bass": "^2-^1",
+   "reason": "End of the final entry: C7 over G2 (V4/3) goes to bass F2, but the upper voices sound Db3 and Bb4 (iv6/4 over F) rather than the tonic triad; the arrival is coloured subdominantly and the cadence is postponed to bar 58."
+  },
+  {
+   "bar": 58,
+   "beat": 1,
+   "key": "f",
+   "kind": "PAC",
+   "bass": "^5-^1",
+   "reason": "Final cadence: whole-bar C in bass and alto (bar 57) under the soprano's figure to E4, then F major (Picardy third, A3 in the tenor) with F4 (^1) on top."
+  }
+ ],
+ "sections": [
+  {
+   "from": 1,
+   "to": 16,
+   "name": "exposition",
+   "reason": "Entries tenor (1:2, I), alto (4:2, answer V), bass (7:2, I), soprano (13:2, I). Bars 10-13 are a link inside the exposition, on the countersubject's dotted-sixteenth figure in three-voice imitation, moving sequentially through Db/Bb harmonies (iv area) and back to f; it does not modulate away for good. Closes 16:1 in f."
+  },
+  {
+   "from": 16,
+   "to": 19,
+   "name": "episode",
+   "material": "countersubject head in descending (inverted) form imitated between bass and alto, under rising suspensions (long notes) in the soprano",
+   "modulates": "f to c"
+  },
+  {
+   "from": 19,
+   "to": 22,
+   "name": "middle entries",
+   "reason": "Tenor, C minor (V); three voices, bass silent."
+  },
+  {
+   "from": 22,
+   "to": 27,
+   "name": "episode",
+   "material": "canonic descending sequence on the dotted-sixteenth countersubject figure between soprano and tenor, alto in tied suspensions; three voices",
+   "modulates": "c through Bb/Eb and Ab/Db harmonies to f"
+  },
+  {
+   "from": 27,
+   "to": 30,
+   "name": "middle entries",
+   "reason": "Bass, F minor (I), entering on beat 4."
+  },
+  {
+   "from": 30,
+   "to": 34,
+   "name": "episode",
+   "material": "free descending sixteenth scales in soprano and bass in parallel, countersubject head in the tenor; three voices (alto silent)",
+   "modulates": "f through bb to Ab"
+  },
+  {
+   "from": 34,
+   "to": 37,
+   "name": "middle entries",
+   "reason": "Alto, Ab major (III), altered head."
+  },
+  {
+   "from": 37,
+   "to": 40,
+   "name": "episode",
+   "material": "countersubject figures: descending dotted figure in the bass, rising sixteenth groups (countersubject second half) in the soprano, sequential",
+   "modulates": "f to Eb"
+  },
+  {
+   "from": 40,
+   "to": 43,
+   "name": "middle entries",
+   "reason": "Tenor, Eb major (VII), altered head, entering on beat 4."
+  },
+  {
+   "from": 43,
+   "to": 47,
+   "name": "episode",
+   "material": "descending sequence in four voices: sixteenth scales (from the bar-31 episode) in soprano/alto/tenor, countersubject head in the bass",
+   "modulates": "Eb to c (HC 47:1)"
+  },
+  {
+   "from": 47,
+   "to": 50,
+   "name": "middle entries",
+   "reason": "Soprano, C minor (V); bass silent from 47:2 to 53:2."
+  },
+  {
+   "from": 50,
+   "to": 53,
+   "name": "episode",
+   "material": "countersubject head (descending dotted form) in sequence in tenor and alto, soprano in tied suspensions; three voices",
+   "modulates": "c (through Bb, c) to f"
+  },
+  {
+   "from": 53,
+   "to": 56,
+   "name": "final section",
+   "reason": "Bass, F minor (I), the last entry."
+  },
+  {
+   "from": 56,
+   "to": 58,
+   "name": "coda",
+   "reason": "Subdominant-coloured close over F, then a bar of dominant (C in bass and alto) and the Picardy-third ending."
+  }
+ ],
+ "countersubject": {
+  "regular": true,
+  "first": {
+   "voice": 2,
+   "bar": 4,
+   "beat": 1
+  },
+  "description": "Begins as the subject ends: a rising figure in eighth + two sixteenths (F F G Ab | Ab Bb C), then groups of three rising sixteenths leading to a quarter (C D Eb F, Eb F G Ab, G A B C). Present with every entry: alto 7:1 (vs bass), bass 13:1 (vs soprano), alto 19:1 (vs tenor), soprano 35:1 (second half only, vs Ab entry), alto 47:1 (vs soprano), soprano 54:1 (second half, vs bass). A second recurring line (tenor 7:1-8:3: C G C Bb Ab F Eb | D Eb F G F E D C) returns with several entries (alto 13-14, alto 20, alto/soprano 28, tenor 48, alto 42) and can be counted as a second, freer countersubject.",
+  "inversion": "octave (double counterpoint at the octave/fifteenth): below the subject in 4-6 and 13-15, above it in 7-9 and 19-21; sixths become thirds/tenths"
+ },
+ "pedals": [
+  {
+   "from": 57,
+   "to": 57,
+   "voice": 3,
+   "degree": "V",
+   "reason": "Only a one-bar held C in bass (and alto) before the final chord; no extended pedal in the fugue."
+  }
+ ],
+ "notes": "No stretto: every entry begins after the previous one has ended. The fugue has ten complete subject statements; no isolated head entries were found. Entries in major keys (Ab 34:2, Eb 40:4) change the opening semitone neighbour into a whole tone; the two entries in bars 27 and 40 are displaced to beat 4. The bass drops out for long stretches (19-27, 47-53), so several episodes and the middle entries in c are in three voices. Cadences are almost all imperfect and often contrapuntal (dominant in inversion under the subject's tail ^2-^1), which keeps the fugue continuous; only the last cadence is a PAC. Key plan: f - c - f - Ab - f - Eb - c - f."
+}

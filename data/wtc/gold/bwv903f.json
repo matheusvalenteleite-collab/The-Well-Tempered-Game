@@ -1,0 +1,439 @@
+{
+ "id": "bwv903f",
+ "reader_notes": "Read bar by bar from /tmp/claude-0/sp/gold/bwv903f.txt (bars 1-161, 3/4, 3 voices) against the settled subject row in docs/wtc/SUBJECTS.md; a small script only listed bars side by side and flagged runs of three rising semitones; every call below was checked by reading the passage. The project's own entry/cadence analysis was not consulted. Subject = bars 1-8 (A Bb B C | C B C | E F F# | G G F# G A | Bb A G | F G F E D | E A C# | D). Answer (comes) = bars 9-16, tonal head D(e.)-E-F-F# | G G F# G ..., closing on A. Keyboard-encoding caveat: the middle voice (v1) was reassembled from two staves; places where notes look like they belong to another voice are flagged in the entry reasons and in notes (bars 48-49, 94-97, 111, 114, 134-136, 158).",
+ "entries": [
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 1,
+   "beat": 1,
+   "first": "A4",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 9,
+   "beat": 1,
+   "first": "D4",
+   "form": "answer",
+   "degree": "V",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Tonal answer: the opening A (^5) answered by D with a dotted passing E; the rest a fifth above the subject, closing B3-E3-G#3-A3 into a minor at 16:1."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 19,
+   "beat": 1,
+   "first": "A3",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Bass entry after a 3-bar codetta (16-18); closes E3-A2-C#3-D3 at 26:1."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 41,
+   "beat": 3,
+   "first": "E4",
+   "form": "answer",
+   "degree": "V",
+   "complete": "altered",
+   "stretto_with": null,
+   "reason": "Answer in a minor. Head changed: instead of D(e.)-E the voice runs down B4-A4-G#4-F#4 onto a held E4 (41:3), then F4 F#4 | G4 G F# G as in the answer. Bars 46-47 decorated (F F-E E-D for F E D; D C D C B A for C D C B A). The answer's last note A3 at 49:1 is not in v1 (which rests and jumps to A4 at 49:1.25) but in v2, which crosses v1 in bar 48 (v1 B3 E3 G#3 / v2 A3 G#3 E3): probably a staff-reassembly artefact, the line B3-E3-G#3-A3 belongs together."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 60,
+   "beat": 1,
+   "first": "A4",
+   "form": "subject",
+   "degree": "I",
+   "complete": "head",
+   "stretto_with": null,
+   "reason": "Enters on the a-minor arrival at 60:1 but the pitches are the dux at the original level (d minor). Bars 60-63 exact; 64-65 decorated (G A Bb Bb A A G; G F G F E D); reaches the E of bar 7 at 66:1, then leaps to E5 and continues in countersubject-like held notes and runs; the closing A-C#-D is not stated in this voice (the bass run supplies C#-D at 67:1). Six and a quarter of eight bars, so counted as head. The top voice imitates bars 5-6 of the subject an octave higher at 66-67 (Bb A G | G F G F E D)."
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 90,
+   "beat": 1,
+   "first": "B4",
+   "form": "subject",
+   "degree": "ii",
+   "complete": "altered",
+   "stretto_with": null,
+   "reason": "Subject a step higher, in e minor (B C C# | D D C# D | F# G G# | A A G# A | C B A | G A G F# E). The ending F#-B-D#-E is dissolved: v0 runs up from F#4 through B4 and lands on G4 at 97:1, while D#4 (96:3) -> E4 (97:1.25) is in v1. In bar 94 v1 suddenly moves in quarters A4 G4 F#4 in parallel thirds under the subject, then holds E4: these look like right-hand doublings assigned to the middle voice."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 107,
+   "beat": 1,
+   "first": "G4",
+   "form": "answer",
+   "degree": "I",
+   "complete": "altered",
+   "stretto_with": null,
+   "reason": "Comes form with the tonal dotted head (G(e.) A Bb B | C C B C), over a G pedal right after the g-minor cadence, so it begins in g; transposed a fourth above the exposition answer it continues as the subject's own bars 3-8 in d and closes on D at 114:1. Degree uncertain: by its close and transposition level I (d), by its opening IV (g). Altered: bar 109 has Eb4(e.)-E4 dotted upbeat for E F F#; bar 111 is encoded B4 A4 G4 where the subject has Bb (B natural against Bb3 in the bass and C#5 above is suspect, Bb expected; the top voice's imitation at 113 has Bb4); bar 113 the E-A-C# is broken into sixteenths (E4 G F E F G E C# D E C#) and 114:1 is A3 then D4, again a likely reassembly artefact. The top voice imitates bars 5-6 at the unison at 113-114."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 131,
+   "beat": 1,
+   "first": "D4",
+   "form": "subject",
+   "degree": "iv",
+   "complete": "head",
+   "stretto_with": null,
+   "reason": "Subject a fourth up, in g minor, over a D pedal: D Eb E | F F E F | A Bb B | C C B C exact in v1. The continuation (bars 5-6: Eb D C | Bb C Bb A G) appears an octave higher in v0 at 135-136 while v1 jumps to C5 and doubles it a third below; either a hand-over or a staff/voice swap in the encoding. The cadential bars 7-8 never come in g: at 137-138 v1 states bars 5-6 back in d (Bb A G | F G F E D) and the passage turns to the half cadence in d at 140."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 140,
+   "beat": 1,
+   "first": "A2",
+   "form": "subject",
+   "degree": "I",
+   "complete": "altered",
+   "stretto_with": null,
+   "reason": "Bass, at the tonic, starting on the half-cadence A. Bars 140-143 exact; 144 Bb A A G G F, 145 F E G F E D (bars 5-6 decorated in eighths), 146 E2 then a run E F G A G A (the A of bar 7 inside it, C# omitted), D2 at 147:1. Upper voices recall the countersubject's held C#-D (v1 144-146) and descending runs."
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 154,
+   "beat": 1,
+   "first": "A5",
+   "form": "subject",
+   "degree": "I",
+   "complete": "altered",
+   "stretto_with": null,
+   "reason": "Final entry in the top voice over an A pedal (155-157). Exact through bar 159 (F G F E D); bar 160 E5 then C#5(e.)-D5 into D5 at 161:1, the A of bar 7 omitted from this voice (v1 has A4 at 160:3.5). v1 doubles bars 158-159 in thirds below (G5 F5 E5 | D5 ...)."
+  }
+ ],
+ "cadences": [
+  {
+   "bar": 16,
+   "beat": 1,
+   "key": "a",
+   "kind": "IAC",
+   "bass": "7-1",
+   "reason": "End of the answer: G#3 -> A3 in the lower voice (two-voice texture), upper voice C5 (^3). Elided into the codetta."
+  },
+  {
+   "bar": 26,
+   "beat": 1,
+   "key": "d",
+   "kind": "IAC",
+   "bass": "7-1",
+   "reason": "End of the bass entry: E3 A2 C#3 -> D3 (V6 -> i), top voice E5 suspended over the arrival, resolving to F5 on 26:1.5; closes the exposition."
+  },
+  {
+   "bar": 36,
+   "beat": 1,
+   "key": "F",
+   "kind": "PAC",
+   "bass": "5-1",
+   "reason": "C3 (held half) -> F3, top G4 with trill -> F4; ends the first sequential episode in the relative major."
+  },
+  {
+   "bar": 41,
+   "beat": 1,
+   "key": "a",
+   "kind": "HC",
+   "bass": "2-5",
+   "reason": "Bass B3 -> E3 with D5 held above (V7 of a); prepares the answer that enters at 41:3."
+  },
+  {
+   "bar": 49,
+   "beat": 1,
+   "key": "a",
+   "kind": "IAC",
+   "bass": "5-1",
+   "reason": "End of the a-minor answer: E3 -> A3, top voice B4 -> C5 (^3)."
+  },
+  {
+   "bar": 53,
+   "beat": 1,
+   "key": "d",
+   "kind": "IAC",
+   "bass": "5-1",
+   "reason": "Arpeggiated A7 (C#4, A3 in the lowest sounding voice, v1; the bass voice is silent) -> D4 with F5 held seven beats above (^3). Ends the broken-chord passage."
+  },
+  {
+   "bar": 60,
+   "beat": 1,
+   "key": "a",
+   "kind": "IAC",
+   "bass": "5-1",
+   "reason": "E2 -> A2, top G#5 area -> C5 (^3); elided with the entry on A in v1."
+  },
+  {
+   "bar": 71,
+   "beat": 1,
+   "key": "d",
+   "kind": "PAC",
+   "bass": "5-1",
+   "reason": "Bass E3-A3-A2 -> D3, top C#5 -> D5. Closes the d-minor middle entry."
+  },
+  {
+   "bar": 83,
+   "beat": 1,
+   "key": "b",
+   "kind": "IAC",
+   "bass": "5-1",
+   "reason": "F#2/A#2 -> B2, top run E G F# F# E D D C# -> D5 (^3). End of the imitative head-fragment episode."
+  },
+  {
+   "bar": 97,
+   "beat": 1,
+   "key": "e",
+   "kind": "IAC",
+   "bass": "5-1",
+   "reason": "B1 -> E2, top G4 (^3); end of the e-minor entry, D#4 -> E4 in v1."
+  },
+  {
+   "bar": 101,
+   "beat": 1,
+   "key": "a",
+   "kind": "IAC",
+   "bass": "5-1",
+   "reason": "Arpeggiated E7 (lowest E3 in v1) -> A3 in the bass, top C5 held (^3); parallel to the d cadence at 53."
+  },
+  {
+   "bar": 107,
+   "beat": 1,
+   "key": "g",
+   "kind": "IAC",
+   "bass": "5-1",
+   "reason": "D2 -> G2, top Bb4 (^3); the G becomes a pedal under the next entry."
+  },
+  {
+   "bar": 114,
+   "beat": 1,
+   "key": "d",
+   "kind": "IAC",
+   "bass": "5-1",
+   "reason": "Bass A2/C#3 -> D3 closing the entry from 107; top voice on F4 inside its imitation of bars 5-6, so the arrival is weak and the music runs on."
+  },
+  {
+   "bar": 116,
+   "beat": 1,
+   "key": "g",
+   "kind": "HC",
+   "bass": "2-5",
+   "reason": "Bass E3 G3 A3 A2 -> D3 held, top F#4: D major chord sustained as V of g (D pedal 116-117). Could also be heard as a d-minor close with tierce de Picardie that is immediately reinterpreted; the dominant before it has C natural, so I read it as a half cadence in g."
+  },
+  {
+   "bar": 126,
+   "beat": 1,
+   "key": "g",
+   "kind": "IAC",
+   "bass": "5-1",
+   "reason": "End of the descending sequence 118-125: bass A3 F#3 E3 D3 -> G3, top D5/A4 -> Bb4 (^3), v1 F#4 -> G4."
+  },
+  {
+   "bar": 140,
+   "beat": 1,
+   "key": "d",
+   "kind": "HC",
+   "bass": "5-5",
+   "reason": "Bass run E2 ... A2 G#2 -> A2, top F5 E5 D5 -> C#5: arrival on V of d, elided with the bass entry starting on that A."
+  },
+  {
+   "bar": 147,
+   "beat": 1,
+   "key": "d",
+   "kind": "IAC",
+   "bass": "5-1",
+   "reason": "End of the bass entry: A2 -> D2, top F4 (^3)."
+  },
+  {
+   "bar": 154,
+   "beat": 1,
+   "key": "d",
+   "kind": "IAC",
+   "bass": "5-1",
+   "reason": "Bass arpeggiates A7 (E3 D3 C#3 ... G3 F3 E3) -> D3, v1 G5 -> F5 (^3); the final entry enters on A5 at the same moment, so the arrival is overlapped."
+  },
+  {
+   "bar": 161,
+   "beat": 1,
+   "key": "d",
+   "kind": "PAC",
+   "bass": "5-1",
+   "reason": "Final cadence: G2 ... A2 -> D3, top C#5-D5 -> D5, v1 rapid scale; ends on D minor (A4 D5 D3)."
+  }
+ ],
+ "sections": [
+  {
+   "from": 1,
+   "to": 26,
+   "name": "exposition",
+   "reason": "Subject v0 (1), answer v1 (9), codetta 16-18 with the countersubject's link runs (a -> back toward d), subject bass (19); closes 26:1 in d."
+  },
+  {
+   "from": 27,
+   "to": 41,
+   "name": "episode",
+   "material": "countersubject (held notes over descending sixteenth scales in the bass; top voice climbing by fourths G-C-F-Bb), then free",
+   "modulates": {
+    "from": "d",
+    "to": "a"
+   },
+   "reason": "Sequence 27-31, PAC in F at 36, then 36-41 toward a (HC 41)."
+  },
+  {
+   "from": 41,
+   "to": 49,
+   "name": "middle entries",
+   "reason": "Answer in a minor (v1), countersubject partly in v0; IAC a 49."
+  },
+  {
+   "from": 49,
+   "to": 60,
+   "name": "episode",
+   "material": "free: broken-chord arpeggios 49-53 (a, G, F, d), then two-voice sixteenth-note sequence 54-59",
+   "modulates": {
+    "from": "a",
+    "to": "a"
+   },
+   "reason": "Touches d (53) and returns to a (IAC 60)."
+  },
+  {
+   "from": 60,
+   "to": 71,
+   "name": "middle entries",
+   "reason": "Subject at the original pitch in v1 over countersubject-type held notes and runs in the bass; tail imitated by v0 66-67; PAC d 71."
+  },
+  {
+   "from": 71,
+   "to": 90,
+   "name": "episode",
+   "material": "subject/answer head (rising tetrachord + neighbour figure) in sequential imitation 72-79 (v0 on C, v1 on G, bass chromatic on F and C), then free and countersubject-type runs 80-89",
+   "modulates": {
+    "from": "d",
+    "to": "e"
+   },
+   "reason": "g (73) - d (75) - a (77) - e (79) - b (IAC 83) - toward e (D# in bass 90)."
+  },
+  {
+   "from": 90,
+   "to": 97,
+   "name": "middle entries",
+   "reason": "Subject in e minor (ii), top voice; IAC e 97."
+  },
+  {
+   "from": 97,
+   "to": 107,
+   "name": "episode",
+   "material": "free: the broken-chord passage and sixteenth sequence of 49-59 transposed",
+   "modulates": {
+    "from": "e",
+    "to": "g"
+   },
+   "reason": "e - D - C - a (101) - sequence 102-106 - IAC g 107."
+  },
+  {
+   "from": 107,
+   "to": 116,
+   "name": "middle entries",
+   "reason": "Answer-form entry over G pedal beginning in g and ending in d (114); tail imitation in v0 113-114; cadential extension to HC g 116."
+  },
+  {
+   "from": 116,
+   "to": 131,
+   "name": "episode",
+   "material": "free: D pedal 116-117, descending sequence 118-125 (v1 falling four-note groups + half note, outer voices in sixteenths), then 126-130 a chain of held notes in v0 (G5 F5 Eb5 D5 C5, countersubject-like) over bass sixteenths",
+   "modulates": {
+    "from": "g",
+    "to": "g"
+   },
+   "reason": "Passes through d (122) and returns to g (IAC 126), ends on D (V of g) for the next entry."
+  },
+  {
+   "from": 131,
+   "to": 140,
+   "name": "middle entries",
+   "reason": "Subject in g (iv) over D pedal, abandoned after bar 6 of the subject; v1 restates bars 5-6 in d (137-138); HC d 140."
+  },
+  {
+   "from": 140,
+   "to": 147,
+   "name": "final section",
+   "reason": "Return of the subject in the bass at the tonic (recapitulatory), IAC 147."
+  },
+  {
+   "from": 147,
+   "to": 154,
+   "name": "episode",
+   "material": "free: the descending sequence of 118-125 transposed",
+   "modulates": {
+    "from": "d",
+    "to": "d"
+   },
+   "reason": "d - g - F - d; arrival 154 overlapped with the last entry."
+  },
+  {
+   "from": 154,
+   "to": 161,
+   "name": "final section",
+   "reason": "Last entry in the top voice over a dominant pedal 155-157, PAC 161."
+  }
+ ],
+ "countersubject": {
+  "present": true,
+  "regular": false,
+  "first": {
+   "voice": 0,
+   "bar": 9,
+   "beat": 1,
+   "reason": "Held C5 (prepared by the bar-8 link run) then rising/falling sixteenth scales into held G5, G#5, A5: a 'held note + scale run' line against the answer."
+  },
+  "returns": "Strictly with entry 3 (v1 19-26, transposed with the subject and at the same vertical interval: 11:1 G5 over B3 and 21:1 C5 over E3 are both a compound minor sixth). Partly with entry 4 (v0 43-45 exact, then free) and in fragments with entry 9 (v1 held C#4-D4 at 144-146 against bars 5-6, as at 23-24, plus descending runs). With the other entries the accompaniment is free (sixteenth figuration), or only the type returns (held note + scale run, e.g. bass 60-66) with different pitches.",
+  "inversions": [],
+  "reason": "Always above the subject where it is literal; no inversion at the octave, tenth or twelfth observed. It is better described as a characteristic counter-figure kept through the exposition than as a regular invertible countersubject."
+ },
+ "pedals": [
+  {
+   "from": 107,
+   "to": 110,
+   "voice": 2,
+   "degree": "G (i of g = IV of d)",
+   "reason": "G2 re-struck each bar under the answer-form entry."
+  },
+  {
+   "from": 116,
+   "to": 117,
+   "voice": 2,
+   "degree": "D (V of g)",
+   "reason": "D3 whole note, short dominant pedal after the HC in g."
+  },
+  {
+   "from": 132,
+   "to": 134,
+   "voice": 2,
+   "degree": "D (V of g)",
+   "reason": "D3 dotted halves under the g-minor entry."
+  },
+  {
+   "from": 155,
+   "to": 157,
+   "voice": 2,
+   "degree": "A (V of d)",
+   "reason": "Dominant pedal under the final entry."
+  }
+ ],
+ "notes": "10 entries, no stretto between full entries; but the subject's bars 5-6 (Bb A G | F G F E D) are repeatedly imitated two bars later in another voice, a close tail-stretto: v0 66-67 after v1 64-65, v0 113-114 after v1 111-112 (unison), v1 137-138 after v0 135-136 (a fourth lower, back in d). Not counted as entries (tail only, under half the subject). The episode 72-79 imitates the head shape (dotted or eighth upbeat, rising tetrachord, neighbour-note figure) in sequence: v0 72 C-D-E-F#|G, v1 74 G-A-B-C#|D (both with the answer's dotted rhythm but diatonic intervals), bass 76 F-F#-G-G#|A A G# A and 78 C-C#-D-D#|E E D# E (chromatic, like bars 3-4); judged episodic head fragments, not entries (uncertain call). Two passages recur as episodes: the broken-chord + sixteenth-sequence block (49-59 = 97-106 transposed) and the descending sequence (118-125 = 147-153). Encoding issues in the reassembled middle voice: 48-49 (answer's final A3 found in v2, voice crossing), 94-96 (quarter-note thirds doubling the subject assigned to v1), 111:1 B4 natural where Bb is expected, 113-114 (A3 at 114:1 out of line), 134-136 (subject's continuation and v1 both jump an octave; possible staff swap), 158 (bass run starting at A4, two octaves above its A2 pedal, with v1 in parallel thirds with v0: the upper staff in thirds, the run probably the left hand). The minor cadence at 75:1 (d, inside the imitative sequence) and the V-I at 137-138 were not counted as phrase-closing cadences."
+}

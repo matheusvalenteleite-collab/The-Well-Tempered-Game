@@ -1,0 +1,246 @@
+{
+ "id": "wtc2f13",
+ "reader_notes": "Read from the note dump (bars 0-84, 2/2, beats are half notes; the subject's anacrusis is the second half of bar 0, which the dump prints as 0:0 and is recorded here as bar 0 beat 2, consistent with the answer at 4:2). Subject taken from SUBJECTS.md (II/13): upbeat E#4 (q. s s ornament) to F#3 at 4:2, 23 notes, real answer. Entries found by interval search on the subject from its first downbeat note and then each read in context; harmony read by hand from the three voices. The project's own entry/cadence analysis was not consulted.",
+ "entries": [
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 0,
+   "beat": 2,
+   "first": "E#4",
+   "form": "subject",
+   "degree": "I",
+   "complete": true
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 4,
+   "beat": 2,
+   "first": "B#4",
+   "form": "answer",
+   "degree": "V",
+   "complete": true,
+   "reason": "Real answer: exact fifth transposition (B#-C#-G#...), ending C#4 at 8:2 where the bass enters."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 8,
+   "beat": 2,
+   "first": "E#3",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "reason": "Ends F#2 at 12:2."
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 20,
+   "beat": 2,
+   "first": "E#5",
+   "form": "subject",
+   "degree": "I",
+   "complete": "altered",
+   "reason": "Upbeat written out as an ornament (E#5 e F#5-E#5 s D#5 e E#5 e). Exact through B4-A#4 (24:1-1.5); the last two notes G#, F# are not stated in place: the voice leaps to F#5 at 24:2 and the descent A#-G#-F# is spun out in the suspension chain of the next episode (25:1.5 G#4, 26:1.5 F#4)."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 32,
+   "beat": 2,
+   "first": "B#3",
+   "form": "answer",
+   "degree": "V",
+   "complete": true,
+   "reason": "At the answer's level (C#); since the answer is real, 'answer' only names the level. All pitches present; the tail is rhythmically changed (F#3 q E#3 e D#3 e C#3 e at 36:1-2 for q e e q). Ends C#3 at 36:2 where the alto enters, as in the exposition."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 36,
+   "beat": 2,
+   "first": "E#4",
+   "form": "subject",
+   "degree": "I",
+   "complete": "altered",
+   "reason": "Exact at pitch of bar 0 through B3-A#3 (40:1-1.5); the G# comes an octave high and late (G#4 at 40:2.5, tied, beginning the countersubject against the next entry) and the final F# is omitted."
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 40,
+   "beat": 2,
+   "first": "C##5",
+   "form": "subject",
+   "degree": "vi",
+   "complete": "altered",
+   "reason": "Subject transposed to D#. In bar 42 it keeps the subject's own intervals (lower neighbour F##4, so a major-mode colouring; C#5 natural = the subject's lowered 7th), but the close is turned to d# minor: G#4 F#4(natural, not F##) E#4 at 44:1-1.75 and the final D# is replaced by F#4 (44:2), the third of the d# chord reached by the IAC at 44:1."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 52,
+   "beat": 2,
+   "first": "A#4",
+   "form": "subject",
+   "degree": "IV",
+   "complete": "altered",
+   "reason": "In B major (lowered 7th = A natural at 54:1). Exact through E4-D#4 (56:1-1.5); the last two notes (C#, B) are replaced by the leap to B4 that starts the suspension-chain episode."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 64,
+   "beat": 2,
+   "first": "E#3",
+   "form": "subject",
+   "degree": "I",
+   "complete": "altered",
+   "reason": "Same pitch and much the same texture as entry 2 (bars 8-12; the soprano's countersubject in 65-66 is identical to 9-10). Exact through B2-A#2 (68:1-1.5); the voice then leaps to A#3 and the final G#-F# are dropped."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 70,
+   "beat": 2,
+   "first": "B#4",
+   "form": "answer",
+   "degree": "V",
+   "complete": "altered",
+   "reason": "Two-voice texture (soprano silent 68-76). Ornamented upbeat (B#4 e C#5-B#4 s A#4 e B#4 e), same pitch as the exposition answer. Exact through F#4-E#4 (74:1-1.5); final D#-C# replaced by C#5 at 74:2 (suspension chain)."
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 76,
+   "beat": 2,
+   "first": "E#5",
+   "form": "subject",
+   "degree": "I",
+   "complete": "altered",
+   "reason": "Final entry, at the pitch of entry 4 (bar 20) but with plain upbeat. Exact through B4-A#4 (80:1-1.5); the voice leaps to A#5 and the closing G#-F# are left to the final cadence."
+  }
+ ],
+ "cadences": [
+  {
+   "bar": 20,
+   "beat": 1,
+   "key": "F#",
+   "kind": "IAC",
+   "bass": "5-1",
+   "reason": "End of episode 1: V7 at 19:2.5 (bass C#4, E#4 and B4 above) to I at 20:1 (F#3, F#4, A#4); top voice on ^3. The soprano's subject upbeat follows at 20:2."
+  },
+  {
+   "bar": 44,
+   "beat": 1,
+   "key": "d#",
+   "kind": "IAC",
+   "bass": "5-1",
+   "reason": "Close of the entry in vi: V7 of d# at 43:2.5-2.75 (A#3, C##4, E#5/G#4) to D#3 at 44:1; soprano G#4 suspended over the arrival and resolving to F#4 (^3), alto D#4. The subject's last note is replaced to make this cadence."
+  },
+  {
+   "bar": 52,
+   "beat": 1,
+   "key": "B",
+   "kind": "PAC",
+   "bass": "5-1",
+   "reason": "End of episode 3: F#7 (bass F#3 at 51:2.5, A#5, C#5/E5) to B at 52:1 (B3 bass, B5 soprano, D#5 alto). The alto's entry in IV begins at 52:2."
+  },
+  {
+   "bar": 77,
+   "beat": 1,
+   "key": "F#",
+   "kind": "PAC",
+   "bass": "5-1",
+   "reason": "Unsure, elided: the link 74-76 arrives on V (bass C#3-E#3-G#3-C#4 at 76:2) and on F#3 at 77:1 with the soprano on F#5, but the soprano's final entry already started at 76:2 and the alto's countersubject holds B4 (a 4th) over the arrival, so the phrase does not really close."
+  },
+  {
+   "bar": 84,
+   "beat": 1,
+   "key": "F#",
+   "kind": "PAC",
+   "bass": "5-1",
+   "reason": "Final cadence: C#4/C#3 at 83:2 (soprano E#5, alto G#4) to F#2, A#4, F#5."
+  }
+ ],
+ "sections": [
+  {
+   "from": 0,
+   "to": 12,
+   "name": "exposition",
+   "reason": "Alto I (0:2), soprano V (4:2), bass I (8:2); each entry starts on the previous entry's last note; ends with the bass's F#2 at 12:2. No cadence closes it."
+  },
+  {
+   "from": 12,
+   "to": 20,
+   "name": "episode",
+   "material": "free: a new motive (rising 4th to a dotted quarter, then e e e turn: soprano 13:1.5, bass 14:1.5 and 15:1.5, alto 17:1.5, soprano 19:1.5) imitated at the half bar, a rising eighth-note scale (soprano 14) and half-note ascent (soprano 15)",
+   "modulates": "touches d# (14:1) and g# (16:2) and returns to F# (IAC 20:1)"
+  },
+  {
+   "from": 20,
+   "to": 24,
+   "name": "middle entries",
+   "reason": "Single tonic entry in the soprano (20:2), countersubject in the bass."
+  },
+  {
+   "from": 24,
+   "to": 32,
+   "name": "episode",
+   "material": "countersubject-type syncopated suspension chain in the two upper voices (B-A#, A#-G#, G#-F# with octave leaps) over bass running eighths built on the subject's lower-neighbour figure; rising sequence by step",
+   "modulates": "F# to C#, through d# (26:1), G# (28:1), e# (30:1), a# (32:1)"
+  },
+  {
+   "from": 32,
+   "to": 44,
+   "name": "middle entries",
+   "reason": "Chain of three entries, each beginning on the previous one's end as in the exposition: bass V (32:2), alto I (36:2), soprano vi (40:2), each with the countersubject; closes with IAC in d# at 44:1."
+  },
+  {
+   "from": 44,
+   "to": 52,
+   "name": "episode",
+   "material": "the material of episode 1 recomposed (bars 45-47 = 15-17, voices exchanged; bar 47 soprano identical to 17)",
+   "modulates": "d# to B (IV), through C# (48:2) and F#7 (50); PAC in B at 52:1"
+  },
+  {
+   "from": 52,
+   "to": 56,
+   "name": "middle entries",
+   "reason": "Alto in IV (52:2), countersubject in the soprano."
+  },
+  {
+   "from": 56,
+   "to": 64,
+   "name": "episode",
+   "material": "episode 2 (bars 24-32) restated a fifth lower in 56-61 with the voices redistributed, rejoining the pitch of 25-26 in 63-64",
+   "modulates": "B to F#, through g# and C#; arrives on d# at 64:1 before the bass entry"
+  },
+  {
+   "from": 64,
+   "to": 84,
+   "name": "final section",
+   "reason": "Reprise of the exposition's entries in reverse voice order: bass I (64:2, restating bars 8-12), short link (68-70: bass rising sequence B2-A#2 / C#3-B2 / D#3-C#3 under alto eighths), alto V (70:2, two voices), link (74-76, suspension chain of episode 2), soprano I (76:2) with countersubject; bars 80-84 a short coda (entry diverted, cadential run, PAC 84:1)."
+  }
+ ],
+ "countersubject": {
+  "regular": true,
+  "first": {
+   "voice": 1,
+   "bar": 4,
+   "beat": 2.5,
+   "pitch": "F#4",
+   "against_entry": 1
+  },
+  "description": "Syncopated chromatic descent in tied quarters (F#-F#-E#-E-E-D#-D#, at the subject level B-B-A#-A-A-G#-G#) then rising A#-B-D#-E#(h)-F#; about 4:2.5-8:1. Present with entries 1, 2, 3, 4, 5, 6, 7, 8, 10; absent from entry 9 (two-voice passage).",
+  "inversions": [
+   "octave (fifth below the subject's tonic note becomes a fourth/eleventh above, e.g. 5:1 C#5 over F#4 vs 9:1 B4 over F#3)",
+   "double octave / fifteenth (entry 3: twelfth below, 21:1 F#5 over B3)"
+  ],
+  "reason": "The countersubject lies below the subject in entries 1, 3, 5, 6, 10 and above it in 2, 4, 7, 8, always a fifth below or a fourth above at the subject's first downbeat: invertible at the octave."
+ },
+ "pedals": [],
+ "notes": "No stretto: every entry begins after the previous one has ended (exposition and the 32-44 group link end-to-start). No pedal points (longest held tones are the alto's C#4 at 8:2 and 23:2, about one bar). After the exposition and the bar-32 bass entry, every entry drops or displaces its last two notes (the cadential descent to ^1), handing them to the following episode or cadence; this is a consistent habit of the fugue, not fragmentation. The written-out ornamented upbeat (E# F#-E# D# E#) appears at 20:2 and 70:2. The episodes come in two pairs: 12-20 / 44-52 (imitative 'q. e e e' motive with rising scale) and 24-32 / 56-64 (suspension chain over running bass, rising sequence). Sequence links landing V-i on d# (26:1, 64:1), G# (28:1), C# (60:1) are not counted as cadences; nor are 12:2, 32:2-33:1 and 36:2, where entries arrive on or start from a chord without a phrase close (36:2 C# is heard at once as V of F# for the alto entry). The g# chord at 16:2 is reached by bass ^7-^1 and is passing."
+}

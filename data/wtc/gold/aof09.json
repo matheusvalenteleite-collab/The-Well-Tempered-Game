@@ -1,0 +1,492 @@
+{
+ "id": "aof09",
+ "reader_notes": "Read from the full note text (bars 1-130) with small interval searches. Subject 1 is the 46-note subject of bars 1:2-8:1 (D4 octave leap, then a run of eighths). Every statement is complete and exact in its intervals. The script matched all 46 diatonic steps 11 times, and no other place matched even 8. Subject 2 is the work's principal theme in augmentation (whole notes D A F D C#, halves D E, then F 5 beats, G F E quarters, D), first heard in v0 at b.35. It is recorded with form 'subject' because whole notes are its normal form in this fugue (relative to the AoF principal theme it is augmented). From b.35 each subject-2 entry is paired with a subject-1 entry starting one beat later. These pairs are simultaneous combinations, not strettos, so I leave stretto_with null and give the partner in 'combined_with'. No subject is ever in stretto with itself, and neither subject is inverted. Subject-1 entries that start on ^5 of their key (45, 73, 89, 99) are the twelfth position of the invertible counterpoint, not answers. They take the key of the theme they sit on, so their degree is that key's.",
+ "entries": [
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 1,
+   "beat": 2,
+   "first": "D4",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 8,
+   "beat": 2,
+   "first": "A4",
+   "form": "answer",
+   "degree": "V",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Real answer in A minor (A A G# F# E D C B A G# ...). The only change is the last-but-one note: Bb4 at 14:4.5 instead of B, which turns the close back towards D minor (ends A4 15:1 as ^5 of d)."
+  },
+  {
+   "subject": 1,
+   "voice": 3,
+   "bar": 15,
+   "beat": 2,
+   "first": "D3",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 22,
+   "beat": 2,
+   "first": "A3",
+   "form": "answer",
+   "degree": "V",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Real answer again. C#4 at 28:4 instead of C leads back to d (IAC 29:1)."
+  },
+  {
+   "subject": 2,
+   "voice": 0,
+   "bar": 35,
+   "beat": 1,
+   "first": "D5",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null,
+   "combined_with": 5,
+   "reason": "First appearance of the principal theme in whole notes (augmentation). It enters over a deceptive arrival (bass A2-Bb2)."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 35,
+   "beat": 2,
+   "first": "D3",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null,
+   "combined_with": 4,
+   "reason": "First combination. Subject 1 lies two octaves below the theme (the 'original' position)."
+  },
+  {
+   "subject": 2,
+   "voice": 2,
+   "bar": 45,
+   "beat": 1,
+   "first": "F3",
+   "form": "subject",
+   "degree": "III",
+   "complete": true,
+   "stretto_with": null,
+   "combined_with": 7
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 45,
+   "beat": 2,
+   "first": "C4",
+   "form": "subject",
+   "degree": "III",
+   "complete": true,
+   "stretto_with": null,
+   "combined_with": 6,
+   "reason": "In F major, starting on ^5 (C), a twelfth above the theme (F3-C4). This is the inversion at the twelfth: the subject is now above the theme. The major mode changes the semitones (Bb, E natural, A natural), not the intervals."
+  },
+  {
+   "subject": 2,
+   "voice": 1,
+   "bar": 59,
+   "beat": 1,
+   "first": "D4",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null,
+   "combined_with": 9
+  },
+  {
+   "subject": 1,
+   "voice": 3,
+   "bar": 59,
+   "beat": 2,
+   "first": "D2",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null,
+   "combined_with": 8,
+   "reason": "Subject 1 in the bass two octaves below the theme. This is the original octave position, the same as b.35."
+  },
+  {
+   "subject": 2,
+   "voice": 2,
+   "bar": 73,
+   "beat": 1,
+   "first": "A3",
+   "form": "subject",
+   "degree": "v",
+   "complete": "altered",
+   "stretto_with": null,
+   "combined_with": 11,
+   "reason": "In A minor. The 9th note is E4 (80:2) instead of D (C-E-C-B-A for C-D-C-B-A). The bass doubles the opening A3 at the unison (73:1)."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 73,
+   "beat": 2,
+   "first": "E4",
+   "form": "subject",
+   "degree": "v",
+   "complete": true,
+   "stretto_with": null,
+   "combined_with": 10,
+   "reason": "On ^5 of a, a twelfth above the theme (A3-E4). Melodic-minor inflections (D natural, F#, G#)."
+  },
+  {
+   "subject": 2,
+   "voice": 3,
+   "bar": 89,
+   "beat": 1,
+   "first": "D3",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null,
+   "combined_with": 13
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 89,
+   "beat": 2,
+   "first": "A4",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null,
+   "combined_with": 12,
+   "reason": "Starts on A but stays in D minor (G natural, C#, B natural; Bb at 95:4.5). It is the twelfth position, plus an octave (a 19th above the bass theme), not an answer."
+  },
+  {
+   "subject": 2,
+   "voice": 2,
+   "bar": 99,
+   "beat": 1,
+   "first": "G3",
+   "form": "subject",
+   "degree": "iv",
+   "complete": "altered",
+   "stretto_with": null,
+   "combined_with": 15,
+   "reason": "In G minor. The 11th note is Ab3 (106:4) instead of A, which bends the close towards Eb (arrival Eb 107:1)."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 99,
+   "beat": 2,
+   "first": "D4",
+   "form": "subject",
+   "degree": "iv",
+   "complete": "altered",
+   "stretto_with": null,
+   "combined_with": 14,
+   "reason": "On ^5 of g, a twelfth above the theme (G3-D4). The tail is coloured by Ab4 (105:2, 105:3) and Eb4 (105:4.5) in place of A and E."
+  },
+  {
+   "subject": 2,
+   "voice": 1,
+   "bar": 119,
+   "beat": 1,
+   "first": "D4",
+   "form": "subject",
+   "degree": "I",
+   "complete": "altered",
+   "stretto_with": null,
+   "combined_with": 17,
+   "reason": "The 11th note is Eb4 (126:4) instead of E (phrygian colouring before the close)."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 119,
+   "beat": 2,
+   "first": "D3",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null,
+   "combined_with": 16,
+   "reason": "An octave below the theme (octave position) in the final section."
+  }
+ ],
+ "cadences": [
+  {
+   "bar": 22,
+   "beat": 1,
+   "key": "d",
+   "kind": "IAC",
+   "bass": "2-1",
+   "reason": "End of the bass subject. C#4/E3/G4 (vii°6, a rootless V7) to d, soprano on F4 (^3). Elided with the tenor answer at 22:2."
+  },
+  {
+   "bar": 24,
+   "beat": 1,
+   "key": "a",
+   "kind": "PAC",
+   "bass": "5-1",
+   "reason": "E3 (E with G#4 in soprano) to A2, soprano G#4-A4 (^7-^1). The soprano then holds A4 for two bars. It falls inside the tenor answer, but it is a clear phrase close."
+  },
+  {
+   "bar": 29,
+   "beat": 1,
+   "key": "d",
+   "kind": "IAC",
+   "bass": "5-1",
+   "reason": "A7 (A2, C#4, G4) to d (D3, A3, F4). Soprano G4-F4 ends on ^3. Close of the exposition (end of the tenor answer)."
+  },
+  {
+   "bar": 31,
+   "beat": 1,
+   "key": "F",
+   "kind": "IAC",
+   "bass": "5-1",
+   "reason": "C7 (E3 then C3, G4, Bb3) to F3 with A4 above. A passing tonicization of F in the episode; weak because the eighths run straight through it (unsure whether it closes a phrase)."
+  },
+  {
+   "bar": 35,
+   "beat": 1,
+   "key": "d",
+   "kind": "deceptive",
+   "bass": "5-6",
+   "reason": "A major (A2/A3, C#5) at 34:3-4 moves to Bb2 under D5/D4: V-VI. The deceptive arrival is where the augmented theme enters."
+  },
+  {
+   "bar": 45,
+   "beat": 1,
+   "key": "F",
+   "kind": "IAC",
+   "bass": "7-1",
+   "reason": "C-major harmony over E3 (bar 44) to F3/A4. Soprano on ^3. Opens the F-major combination."
+  },
+  {
+   "bar": 59,
+   "beat": 1,
+   "key": "d",
+   "kind": "IAC",
+   "bass": "7-1",
+   "reason": "A7 in first inversion (C#3, E4) to D3/D4/F4. Soprano E4-F4 (^2-^3). Elided with the theme (v1) and subject 1 (bass) entering."
+  },
+  {
+   "bar": 67,
+   "beat": 1,
+   "key": "d",
+   "kind": "IAC",
+   "bass": "2-1",
+   "reason": "Two-voice arrival: A4/E4 to F4/D4 while the bass rests. It closes the alto theme. Weak (unsure)."
+  },
+  {
+   "bar": 73,
+   "beat": 1,
+   "key": "a",
+   "kind": "IAC",
+   "bass": "7-1",
+   "reason": "End of the circle-of-fifths episode. E7 (E2 rising E3 F#3 G#3, D5 above) to A3 with C5 (^3). Elided with the theme in a."
+  },
+  {
+   "bar": 81,
+   "beat": 1,
+   "key": "a",
+   "kind": "IAC",
+   "bass": "7-1",
+   "reason": "E chord over G#2 (80:4.5) to A2. Soprano B4-C5 (^2-^3). Close of the a-minor combination (theme ends A3 81:1)."
+  },
+  {
+   "bar": 89,
+   "beat": 1,
+   "key": "d",
+   "kind": "IAC",
+   "bass": "7-1",
+   "reason": "A7 (C#5 top, G3 then C#4 lowest in bar 88) to d, with the bass entering on D3 with the theme. The dominant is inverted, so IAC though the soprano is on D5."
+  },
+  {
+   "bar": 97,
+   "beat": 1,
+   "key": "d",
+   "kind": "IAC",
+   "bass": "2-1",
+   "reason": "A7 over E3 (V4/3: C#4, G3, A4) to D3/A3/D4/F4. Soprano on ^3. The bass theme ends here."
+  },
+  {
+   "bar": 99,
+   "beat": 1,
+   "key": "g",
+   "kind": "IAC",
+   "bass": "7-1",
+   "reason": "D7 (F#3, A2) to g in first inversion (Bb2, G3, D4) at the start of the g-minor combination. The bass rises A2-Bb2, so the arrival chord is inverted."
+  },
+  {
+   "bar": 107,
+   "beat": 1,
+   "key": "Eb",
+   "kind": "IAC",
+   "bass": "7-1",
+   "reason": "Bb7 colour (F4, Ab3, D3) to Eb3/G3/Bb3. The theme in g ends on G3 here, reinterpreted as ^3 of Eb, which deflects the expected close in g (could also be heard as a deceptive V-VI of g; unsure)."
+  },
+  {
+   "bar": 112,
+   "beat": 1,
+   "key": "g",
+   "kind": "PAC",
+   "bass": "5-1",
+   "reason": "D major (D3, A3, F#4) to G2/Bb3/G4. Upper voice (alto, the soprano resting) F#4-G4. The strongest close in the middle of the piece."
+  },
+  {
+   "bar": 119,
+   "beat": 1,
+   "key": "d",
+   "kind": "IAC",
+   "bass": "5-1",
+   "reason": "A7 (A2, C#3, G4/A4) to D3/D4/F4. Soprano on ^3. Elided with the final combination (theme v1, subject 1 v2)."
+  },
+  {
+   "bar": 126,
+   "beat": 1,
+   "key": "d",
+   "kind": "deceptive",
+   "bass": "5-6",
+   "reason": "A7 (A2, C#5) to Bb2 with D5/D3. Subject 1 ends (D3) over VI while the theme continues, which postpones the final close."
+  },
+  {
+   "bar": 130,
+   "beat": 1,
+   "key": "d",
+   "kind": "PAC",
+   "bass": "5-1",
+   "reason": "Cadential 6/4 (129:1 A3 bass, D4 F4) to V (129:3 A, C#4, E4) to D major (Picardy third F#3). Bass A2-D3, soprano E4-D4."
+  }
+ ],
+ "sections": [
+  {
+   "from": 1,
+   "to": 29,
+   "name": "exposition",
+   "reason": "Subject 1 alone, in the order alto D, soprano A (real answer), bass D, tenor A. It closes with the IAC in d at 29:1. There is no regular countersubject."
+  },
+  {
+   "from": 29,
+   "to": 35,
+   "name": "episode",
+   "material": "subject 1 tail figures (eighth groups such as F A G F G F E D) in soprano, then alto and bass. In 31-34 the soprano's whole notes F5 E5 D5 C#5 foreshadow the augmented theme",
+   "modulates": "d -> F (31) -> d (deceptive 35)"
+  },
+  {
+   "from": 35,
+   "to": 43,
+   "name": "middle entries",
+   "reason": "First combination: theme (S2) in the soprano in d, subject 1 in the tenor two octaves below."
+  },
+  {
+   "from": 43,
+   "to": 45,
+   "name": "episode",
+   "material": "subject 1 eighth figures (head run and tail)",
+   "modulates": "d -> F"
+  },
+  {
+   "from": 45,
+   "to": 53,
+   "name": "middle entries",
+   "reason": "Combination in F: theme in the tenor, subject 1 in the alto a twelfth above (inversion at the twelfth)."
+  },
+  {
+   "from": 53,
+   "to": 59,
+   "name": "episode",
+   "material": "a rising sequence of long syncopated notes in the soprano, with subject-1 eighth figures (bars 3-4 shape) in the alto and quarters in the tenor, then subject-1 tail figures (55-58)",
+   "modulates": "F -> a (56) -> d (IAC 59)"
+  },
+  {
+   "from": 59,
+   "to": 67,
+   "name": "middle entries",
+   "reason": "Combination in d: theme in the alto, subject 1 in the bass two octaves below."
+  },
+  {
+   "from": 67,
+   "to": 73,
+   "name": "episode",
+   "material": "a circle-of-fifths sequence (G-C-F-B-E-A in the bass) with tied long notes, broken by subject-1 tail figures in the soprano and alto",
+   "modulates": "d -> a"
+  },
+  {
+   "from": 73,
+   "to": 81,
+   "name": "middle entries",
+   "reason": "Combination in a: theme in the tenor (bass doubles its first note), subject 1 in the alto a twelfth above. Head imitation by the soprano at 75:2 (see notes). Closes with the IAC at 81:1."
+  },
+  {
+   "from": 81,
+   "to": 89,
+   "name": "episode",
+   "material": "subject 1 bar-3 figure (A G# A B C A B C) in sequence in the tenor. Soprano and alto take the theme's tail rhythm (long note, then three quarters: 81-84). Then subject-1 tail figures (85-88)",
+   "modulates": "a -> G (83) -> F (85) -> a (87) -> d (89)"
+  },
+  {
+   "from": 89,
+   "to": 97,
+   "name": "middle entries",
+   "reason": "Combination in d: theme in the bass, subject 1 in the soprano a twelfth plus an octave above. Closes with the IAC at 97:1."
+  },
+  {
+   "from": 97,
+   "to": 99,
+   "name": "episode",
+   "material": "a short link in tenor and bass eighths (subject-1 tail figures)",
+   "modulates": "d -> g"
+  },
+  {
+   "from": 99,
+   "to": 107,
+   "name": "middle entries",
+   "reason": "Combination in g (subdominant): theme in the tenor, subject 1 in the alto a twelfth above. Flattened inflections lead to Eb."
+  },
+  {
+   "from": 107,
+   "to": 119,
+   "name": "episode",
+   "material": "107-111: subject-1 tail figures descending in sequence (bass, then tenor) under long notes, like the 67-72 episode. 112-118: subject 1's rising bar-3/4 figure in imitation (soprano 112, alto 114, bass 115, tenor 116 inverted)",
+   "modulates": "Eb -> c (108) -> g (PAC 112) -> d (IAC 119)"
+  },
+  {
+   "from": 119,
+   "to": 130,
+   "name": "final section",
+   "reason": "Last combination in d: theme in the alto, subject 1 in the tenor an octave below. A deceptive cadence at 126 and the cadential 6/4 at 129 lead to the PAC with Picardy third at 130."
+  }
+ ],
+ "countersubject": {
+  "regular": false,
+  "first": null,
+  "reason": "In the exposition the voice that has just finished subject 1 goes on freely, and its material differs at each entry (compare the alto 9-15 with the soprano 16-22 and the alto 16-22). From b.35 the augmented principal theme (subject 2) is the fixed counterpart of every subject-1 entry. In that sense it acts as the countersubject of the second half, but it is a subject in its own right.",
+  "inversion": "Subject 1 against subject 2 is invertible at the twelfth (and the octave). Subject 1 sits below the theme at the octave or double octave (35, 59, 119) or above it at the twelfth (45, 73, 99) or twelfth plus an octave (89), always entering one beat after the theme."
+ },
+ "pedals": [
+  {
+   "from": 24,
+   "to": 25,
+   "voice": 0,
+   "degree": "^5 of d (A4)",
+   "reason": "Held breve A4 in the soprano over the cadence in a and the turn back towards d (bass F3 D3 B2 G#2). An inverted pedal of short span (unsure it deserves the name)."
+  }
+ ],
+ "notes": "Heads and partial entries left out: at 75:2 the soprano imitates the subject-1 head (E4 octave leap to E5 after a rest), two bars after the alto entry at 73:2. It continues D#5 D#5 E5 instead of the falling scale, so it is only an echo of the head, not an entry. No other octave-leap-plus-run head appears outside the 11 complete entries. Every subject-2 entry is exactly 8 bars long, and every subject-1 entry is 6 3/4 bars (46 notes). The theme's ending is often harmonized evasively rather than cadentially: at 43:1 it ends over G minor (iv), at 107:1 it is redirected to Eb, and at 127:1 it ends over iv6. The cadences that matter are 24 (a), 29 (d), 59 (d), 81 (a), 97 (d), 112 (g, PAC) and 130 (PAC, Picardy). At 122-123 the soprano holds G4 over the theme/subject-1 combination, as the seventh of A7 at 123; it is a held note, not a pedal. Unsure: the cadences at 31 (F) and 67 (d) are weak and may be passing tonicizations; 107 could be read as a deceptive close in g instead of an IAC in Eb. The episode 81-88 also contains sequential V-I links into G (83:1) and F (85:1), which I did not list as phrase cadences."
+}

@@ -308,7 +308,10 @@ export function findByContour(p: WtcPiece, subject: Note[], scale: number): (Ent
           const iv = diatonic(l[s + i + 1].pitch) - diatonic(l[s + i].pitch);
           const want = form === "subject" ? sInt[i] : -sInt[i];
           if (iv !== want) {
-            if (form === "subject" && i < 3 && changed === 0 && scale === 1) changed++;
+            // A tonal change: among the first three intervals at its own speed; augmented or diminished,
+            // only the first interval and only in a long subject (AoF VI's answers in diminution, their
+            // head shrunk to a fourth; a short subject so freed matches episodes, I/16).
+            if (form === "subject" && changed === 0 && (scale === 1 ? i < 3 : i === 0 && n >= 12)) changed++;
             else ok = false;
           }
         }

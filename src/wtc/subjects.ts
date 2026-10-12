@@ -77,6 +77,24 @@ export function figures(p: WtcPiece, subject: Note[], answer: Note[], K = 8): { 
       k++;
       occ = grown;
     }
+    // And backwards (D160): while every occurrence is preceded by the same interval and rhythm, the
+    // figure begins earlier (a subject found from its second note: AoF IX's theme, a bar late).
+    while (true) {
+      const prevKey = ([v, s]: [number, number]) => {
+        if (s < 1) return null;
+        const l = lines[v];
+        return `${D(l[s].pitch) - D(l[s - 1].pitch)}|${l[s].on - l[s - 1].on}`;
+      };
+      const tally = new Map<string, number>();
+      for (const o of occ) {
+        const kk = prevKey(o);
+        if (kk) tally.set(kk, (tally.get(kk) ?? 0) + 1);
+      }
+      const best = [...tally.entries()].sort((a, b) => b[1] - a[1])[0];
+      if (!best || best[1] < occ.length) break;
+      occ = occ.map((o) => [o[0], o[1] - 1] as [number, number]);
+      k++;
+    }
     picked.push({ k, occ });
     if (picked.length >= 12) break;
   }

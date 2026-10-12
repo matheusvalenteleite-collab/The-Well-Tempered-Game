@@ -1,0 +1,346 @@
+{
+ "id": "wtc2f17",
+ "reader_notes": "Read bar by bar from the note text (bars 1-50); a letter-interval search for the head (x, up a 4th, down a 5th, three steps up) located candidates, each then checked by reading. Subject = 24 notes, Eb5 at 1:1.5 to Eb5 (q) at 3:2 (SUBJECTS.md). 'head' below means the entry runs intact at least through index 18 (the end of the sixteenth run after the long note) and then drops the cadential tail C-Bb-C-D-Eb, which Bach almost never keeps after the exposition. Degrees are from Ab major.",
+ "entries": [
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 1,
+   "beat": 1.5,
+   "first": "Eb5",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 3,
+   "beat": 1.5,
+   "first": "Ab5",
+   "form": "answer",
+   "degree": "V",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Tonal answer: Eb head answered Ab, D-naturals (idx 5, 22) become Ab; ends Bb5 at 5:2. Enters under the subject's last eighth."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 6,
+   "beat": 1.5,
+   "first": "Eb4",
+   "form": "subject",
+   "degree": "I",
+   "complete": "altered",
+   "stretto_with": null,
+   "reason": "Db4 for D at idx 5 (6:3.75) and idx 22 (8:1.75), so the entry stays in Ab instead of leaning to Eb; ends Eb4 at 8:2."
+  },
+  {
+   "subject": 1,
+   "voice": 3,
+   "bar": 8,
+   "beat": 1.5,
+   "first": "Ab3",
+   "form": "answer",
+   "degree": "V",
+   "complete": "altered",
+   "stretto_with": null,
+   "reason": "Exact through idx 18 (Bb3 9:4.75); the closing turn G-F-G-Ab-Bb is shifted a third down to Eb-D-Eb-F-G, the Eb3 at 10:1 making the cadence in Eb, and the bass runs on in sixteenths. Starts half a beat before entry 3 ends (not a stretto)."
+  },
+  {
+   "subject": 1,
+   "voice": 3,
+   "bar": 13,
+   "beat": 3.5,
+   "first": "Eb3",
+   "form": "subject",
+   "degree": "I",
+   "complete": "head",
+   "stretto_with": null,
+   "reason": "Displaced by two beats (starts on 3.5); original D-natural kept; intact through idx 18 (Eb3 15:2.75), then the tail becomes cadential bass Ab2-C3-Db3-Ab2... leading to the f-minor PAC at 16:3. Its entry evades the cadence in Ab at 13:3-4."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 16,
+   "beat": 3.5,
+   "first": "Ab4",
+   "form": "answer",
+   "degree": "V",
+   "complete": "head",
+   "stretto_with": null,
+   "reason": "Answer form starting right on the f-minor cadence; intact through idx 18 (Bb4 18:2.75), then G4 q, Ab4 q and the alto goes on into the chromatic countersubject (19:1)."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 18,
+   "beat": 3.5,
+   "first": "Eb4",
+   "form": "subject",
+   "degree": "I",
+   "complete": "head",
+   "stretto_with": null,
+   "reason": "Db version (idx 5 Db4); intact through idx 18 (Eb4 20:2.75), then C4-Db4-C4 and episode. Starts as entry 6 is ending (no stretto)."
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 22,
+   "beat": 1.5,
+   "first": "Eb5",
+   "form": "subject",
+   "degree": "I",
+   "complete": "head",
+   "stretto_with": null,
+   "reason": "Soprano returns after resting since 8:1. Db version; intact through idx 19 (C5 24:1), then E5-F5 turns the music to f minor for the next entry."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 24,
+   "beat": 1.5,
+   "first": "C5",
+   "form": "subject",
+   "degree": "vi",
+   "complete": "head",
+   "stretto_with": null,
+   "reason": "Subject form transposed to f minor (C Ab Db G Ab Bb C C F...), the raised 4th answered by Bb; intact through idx 19 (Ab4 26:1), then continues as a sixteenth sequence (episode). Begins just after entry 8's last notes."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 32,
+   "beat": 1.5,
+   "first": "Bb3",
+   "form": "subject",
+   "degree": "v",
+   "complete": "head",
+   "stretto_with": null,
+   "reason": "Eb minor (Bb Gb Cb F Gb Ab Bb Bb Eb...), follows the IAC in eb at 32:1; intact through idx 19 (Gb3 34:1), then free sixteenths. Bass silent 32:2-37:2."
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 35,
+   "beat": 1.5,
+   "first": "F5",
+   "form": "subject",
+   "degree": "ii",
+   "complete": "head",
+   "stretto_with": null,
+   "reason": "Bb minor (F Db Gb C Db Eb F F Bb...); intact through idx 18 (F5 36:4.75), then Bb4 q C5 q Db5 h instead of the tail."
+  },
+  {
+   "subject": 1,
+   "voice": 3,
+   "bar": 37,
+   "beat": 2.5,
+   "first": "Ab3",
+   "form": "subject",
+   "degree": "IV",
+   "complete": "head",
+   "stretto_with": null,
+   "reason": "Starts in Db major (F3, Gb3) on beat 2.5; Fb3 replaces F at idx 13 (38:4.5) and idx 16 (39:1.25), turning it to db minor; intact to idx 18 (Ab3 39:1.75), then a descending sixteenth scale to the HC on Eb2 at 40:2."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 41,
+   "beat": 1.5,
+   "first": "Eb4",
+   "form": "subject",
+   "degree": "I",
+   "complete": "altered",
+   "stretto_with": null,
+   "reason": "Tonic return after the HC at 40:2, original D-natural (idx 5, 41:3.75); complete through idx 20 but the tail is broadened: C4 q, Bb3 h, then Ab3 (43:4) instead of C-D-Eb."
+  },
+  {
+   "subject": 1,
+   "voice": 3,
+   "bar": 42,
+   "beat": 3.5,
+   "first": "Ab3",
+   "form": "answer",
+   "degree": "V",
+   "complete": "head",
+   "stretto_with": null,
+   "reason": "Bass re-enters (rest since 40:2). It starts after entry 13 is more than half over (that one runs 41:1.5 to 43:2), so it overlaps but is not a stretto by the protocol's rule; a listener may hear it as close imitation. Minor-coloured: Gb3 (idx 13, 16), Fb3 (idx 15), Bbb3 (idx 18) for G, F, Bb (44:1.25-44:2.75); then the sequence goes on, leading to the Neapolitan in bar 45."
+  }
+ ],
+ "cadences": [
+  {
+   "bar": 10,
+   "beat": 1,
+   "key": "Eb",
+   "kind": "IAC",
+   "bass": "5-1",
+   "reason": "Bb7 (9:4.5, bass Bb3 at 9:4.75) to Eb (bass Eb3); the top sounding voice (alto, the soprano is silent) is on G4 (^3), Eb5 only at 10:2. Ends the exposition."
+  },
+  {
+   "bar": 13,
+   "beat": 4,
+   "key": "Ab",
+   "kind": "evaded",
+   "bass": "5-3",
+   "reason": "Dominant at 13:3 (bass Eb4, alto's cadential G-Ab-F-G-Ab-G figure); instead of Ab the bass drops to Eb3 and begins the subject (13:3.5), and the alto's Ab4 (13:4.5) resolves over C3, i.e. I6. Unsure: could be called IAC."
+  },
+  {
+   "bar": 16,
+   "beat": 3,
+   "key": "f",
+   "kind": "PAC",
+   "bass": "5-1",
+   "reason": "Bass G2-Ab2-Bb2-C3 then F2; alto E4-F4 (top voice, soprano silent), tenor G3-Ab3. Alto enters with the answer immediately at 16:3.5."
+  },
+  {
+   "bar": 27,
+   "beat": 3,
+   "key": "c",
+   "kind": "PAC",
+   "bass": "5-1",
+   "reason": "Bass G2 (27:2.5) to C3, top B4 to C5, alto Eb4; closes the f-minor entry's continuation."
+  },
+  {
+   "bar": 29,
+   "beat": 1,
+   "key": "f",
+   "kind": "IAC",
+   "bass": "4-3",
+   "reason": "Bass sixteenths outline C7 ending Bb3, then Ab3 under F5 (V4/2 to i6). Light, inside the sequence; unsure whether it closes a phrase."
+  },
+  {
+   "bar": 30,
+   "beat": 3,
+   "key": "bb",
+   "kind": "IAC",
+   "bass": "5-1",
+   "reason": "F7 (bass F3 30:1, alto A4) to Bb minor at 30:3 with soprano Db5 (^3), alto Bb4; the bass rests on the downbeat and touches Bb2 at 30:3.5. Unsure, weak."
+  },
+  {
+   "bar": 32,
+   "beat": 1,
+   "key": "eb",
+   "kind": "IAC",
+   "bass": "2-1",
+   "reason": "Bb7 over D3/F3 (bar 31 beat 4) to eb minor (bass Eb3, soprano Bb4 ^5); the tenor's eb-minor entry follows at 32:1.5."
+  },
+  {
+   "bar": 40,
+   "beat": 2,
+   "key": "Ab",
+   "kind": "HC",
+   "bass": "2-5",
+   "reason": "Bass descending scale ends Bb2-Eb2 and then rests; upper voices Eb5-Fb5 / Gb4 (dominant with minor-mode b9 and b3 colour). Prepares the tonic return at 41:1.5."
+  },
+  {
+   "bar": 47,
+   "beat": 1,
+   "key": "Ab",
+   "kind": "IAC",
+   "bass": "7-1",
+   "reason": "After the Neapolitan (Bbb major, bar 45), diminished seventh G-Bb-Db-Fb (46:1) becomes V6/5 at 46:3 (bass G2, upper Bb5, Eb5, Db5, Bb4) resolves to Ab (bass Ab3, top C5 ^3). Unsure whether it closes a phrase or is the climax pushing on."
+  },
+  {
+   "bar": 50,
+   "beat": 3,
+   "key": "Ab",
+   "kind": "PAC",
+   "bass": "5-1",
+   "reason": "Final cadence: bass Eb2 (50:2) to Ab2, soprano Bb4-Ab4-G4-Ab4 (^1)."
+  }
+ ],
+ "sections": [
+  {
+   "from": 1,
+   "to": 10,
+   "name": "exposition",
+   "material": "Entries alto (I), soprano (V), tenor (I), bass (V); chromatic countersubject from 3:2; IAC in Eb at 10:1."
+  },
+  {
+   "from": 10,
+   "to": 13,
+   "name": "episode 1",
+   "material": "Bass rising sixteenth sequence (the subject's sixteenth figure), alto descending scale (11) and chain-of-fifths eighths Db-F-Bb-Eb-Ab (12, from the head's leaps), tenor chromatic fragment (G-Gb, 12:2); soprano silent.",
+   "modulates": {
+    "from": "Eb",
+    "to": "Ab"
+   }
+  },
+  {
+   "from": 13,
+   "to": 20,
+   "name": "counter-exposition",
+   "material": "Three voices only (soprano silent until 22:1.5): bass I (13:3.5), alto answer V (16:3.5), tenor I (18:3.5); PAC in f at 16:3 between the first two. Could equally be called a first middle-entry group; called counter-exposition because the entries keep tonic/dominant levels."
+  },
+  {
+   "from": 20,
+   "to": 22,
+   "name": "episode 2",
+   "material": "Alto and tenor imitate the subject's middle figure (long note plus sixteenth turn) rising by step; bass in eighths by fourths/fifths; ends on V7 of Ab at 22:1.",
+   "modulates": {
+    "from": "Ab",
+    "to": "Ab (dominant)"
+   }
+  },
+  {
+   "from": 22,
+   "to": 26,
+   "name": "middle entries",
+   "material": "Soprano I (22:1.5) turning to f, alto vi (24:1.5); countersubject in bass (22) and soprano (24)."
+  },
+  {
+   "from": 26,
+   "to": 29,
+   "name": "episode 3",
+   "material": "Sixteenth sequence from the subject's turning figure (C-Bb-C-D) rising by step in the soprano, alto sixteenths; PAC in c at 27:3.",
+   "modulates": {
+    "from": "f",
+    "to": "f (via c)"
+   }
+  },
+  {
+   "from": 29,
+   "to": 32,
+   "name": "episode 4",
+   "material": "Restatement of episode 1 a whole step higher (soprano descending scale 30 = 11, chain-of-fifths eighths 30:4.5-31:3 = 11:4.5-12:3, chromatic A-Ab fragment 31:2 = 12:2, rising bass sixteenths 30-31).",
+   "modulates": {
+    "from": "f",
+    "to": "eb (via bb, IAC 30:3)"
+   }
+  },
+  {
+   "from": 32,
+   "to": 40,
+   "name": "middle entries",
+   "material": "Flat-side entries: tenor v (eb, 32:1.5), soprano ii (bb, 35:1.5, after a one-bar free link at 34), bass IV (Db turning db, 37:2.5); the bass entry runs into a descending scale to the HC in Ab at 40:2."
+  },
+  {
+   "from": 41,
+   "to": 44,
+   "name": "final section",
+   "material": "Tonic return: tenor I (41:1.5), bass answer V in minor colour (42:3.5), countersubject decorated in soprano and alto."
+  },
+  {
+   "from": 44,
+   "to": 50,
+   "name": "coda",
+   "material": "Continuation of the bass's minor-coloured sequence into the Neapolitan Bbb major (bar 45), diminished/dominant b9 at 46:3, IAC 47:1, soprano sixteenth run, chromatic countersubject lines in parallel over V (bar 49), PAC 50:3. No further subject entry."
+  }
+ ],
+ "countersubject": {
+  "kept": true,
+  "regular": true,
+  "first": {
+   "voice": 1,
+   "bar": 3,
+   "beat": 2
+  },
+  "description": "Chromatic descending quarters from ^5 (Eb5-D-Db-C-Cb-Bb, then Bb(e)-Eb(q)-D(e)-Eb), continuing the subject's last note. Present with entries 2, 3, 4, 5 (tenor 13:4), 7 (alto 19:1), 8 (bass 22:2), 9 (soprano 24:2), 11 (alto 35:2), 12 (soprano 37:3); decorated (eighths with sixteenth turns) with entries 13-14 (soprano/alto 41:4-44:1); absent with entries 6 and 10.",
+  "inversion": "invertible at the octave (double/triple octave): CS below the answer at a 3rd (3:2), above the subject at a (compound) 6th (6:2, 8:2), below again at a 10th (22:2)."
+ },
+ "pedals": [],
+ "notes": "Soprano is silent from 8:1 to 22:1.5 and the bass from 32:2 to 37:2.5, so bars 9-21 and 32-37 are three-voice. Only entries 1, 5 and 13 keep the subject's D-natural (tonicising Eb); the others use Db and stay in key. At 5:1.5 the alto states the head shape Bb4-G4-C5-F4-G4-Ab4-Bb4 straight after the answer, without a rest and without continuation: a codetta-like echo, not counted as an entry. The soprano's eighth figure at 30:4.5-31:3 (Db-Eb-Gb-C-F-Bb) and alto's at 11:4.5-12:3 allude to the head's leaps but are episode material. The voice assignment of the source looks unreliable at 26:1.5-27:2.5 (octave-leaping eighths labelled voice 0 below the alto, probably the tenor) and at 46:3 (two simultaneous notes in voice 1). No pedal points of structural weight (only held upper notes, e.g. Bb4 32:1, Eb5 42:3). No stretto in the protocol's sense; the closest overlap is entries 13-14 (bass enters 42:3.5 while the tenor's entry is still sounding). The chromatic countersubject becomes the material of the close: in bar 49 alto (Bb-Bbb-Ab) and tenor (G-Gb-F-Fb) descend chromatically together over the dominant."
+}

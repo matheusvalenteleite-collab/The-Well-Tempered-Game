@@ -274,7 +274,7 @@ The augmented and diminished entries: I/8 (aug. b. 62, aug. b. 67, aug. b. 77); 
 - II/18: 2 subjects; subject 2 from b. 61 (9 entries)
 - II/23: 2 subjects; subject 2 from b. 28 (16 entries)
 - AoF VIII: 3 subjects; subject 2 from b. 40 (19 entries), subject 3 from b. 94 (8 entries)
-- AoF IX: 2 subjects; subject 2 from b. 36 (6 entries)
+- AoF IX: 2 subjects; subject 2 from b. 35 (6 entries)
 - AoF X: 2 subjects; subject 2 from b. 23 (12 entries)
 - AoF XI: 3 subjects; subject 2 from b. 28 (10 entries), subject 3 from b. 90 (11 entries)
 - AoF XIV: 3 subjects; subject 2 from b. 114 (9 entries), subject 3 from b. 193 (9 entries)
@@ -289,18 +289,18 @@ The augmented and diminished entries: I/8 (aug. b. 62, aug. b. 67, aug. b. 77); 
 - Musical Offering: 0 of 2
 - BWV 903: 0 of 1
 
-**How close** (the second entry after the first, in quarters; 178 strettos):
+**How close** (the second entry after the first, in quarters; 180 strettos):
 
 - **a beat or less**: 52 (29%): I/1 b. 7, I/1 b. 10, I/1 b. 14, I/1 b. 16, I/1 b. 19 … (52)
-- **up to two beats**: 65 (37%): I/1 b. 16, I/1 b. 17, I/1 b. 24, I/4 b. 44, I/4 b. 72 … (65)
-- **up to a bar (four beats)**: 50 (28%): I/4 b. 34, I/6 b. 13, I/6 b. 17, I/6 b. 21, I/6 b. 22 … (50)
+- **up to two beats**: 65 (36%): I/1 b. 16, I/1 b. 17, I/1 b. 24, I/4 b. 44, I/4 b. 72 … (65)
+- **up to a bar (four beats)**: 52 (29%): I/4 b. 34, I/6 b. 13, I/6 b. 17, I/6 b. 21, I/6 b. 22 … (52)
 - **more than a bar**: 11 (6%): I/8 b. 62, I/8 b. 67, I/15 b. 77, I/20 b. 83, II/21 b. 25 … (11)
 
-**Where in the fugue** (the stretto's place, as a share of the piece): in the first third 36, the middle third 72, the last third 70.
+**Where in the fugue** (the stretto's place, as a share of the piece): in the first third 36, the middle third 72, the last third 72.
 
 ## 6. Episodes
 
-**Episodes** (a bar or more without an entry): 586 in the 61; per fugue from 2 to 21.
+**Episodes** (a bar or more without an entry): 584 in the 61; per fugue from 2 to 21.
 
 **The share of the fugue in episodes**, by set:
 
@@ -338,12 +338,13 @@ and paired in strettos; entries varied in rhythm at their own speed are found; t
 AoF VIII-XI and XIV are tracked (read in the score: data/wtc/subject-readings/later-aof.json). The 48's
 agreement with Ledbetter is kept (entries 158 of 173, strettos 40 of 47, no new unclaimed). What remains:
 
-- **Ornamented entries** (notes added to the subject, the Thema Regium decorated in the Ricercar a 3) are
-  missed; the Musical Offering's and BWV 903's entry densities are lower bounds, their episode shares upper
-  bounds.
-- **Later subjects are found as recurring eight-note figures:** an entry may be found a note or two after
-  its head (a bar later at most); counts hold, bar numbers may be one late. Strettos are counted among the
-  first subject's statements only.
+- **Altered entries** (the ending changed to cadence or to lead on) are the analysis's commonest miss on the
+  hand-read gold standard (docs/wtc/READING.md: 93% of 116 entries found, 98% of those found confirmed).
+  The Musical Offering's Ricercar a 3 has no ornamented statements of the theme, as was supposed here before
+  the hand reading: its low density of entries is real (10 entries in 185 bars, long free episodes).
+- **Later subjects are found as recurring figures,** grown back to their head where every occurrence agrees
+  (AoF IX's theme was found a bar late before); strettos are counted among the first subject's statements
+  only.
 - **An episode here is any bar or more without a found entry** of any subject, codettas included; the
   structure study's 44% (docs/wtc/structure-study.md) used another boundary. The comparison between sets
   holds; the level is a convention.

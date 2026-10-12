@@ -1,0 +1,625 @@
+{
+ "id": "aof06",
+ "reader_notes": "Read from /tmp/claude-0/sp/gold/aof06.txt. Entries found with a scripted search that sampled the sounding pitch at the subject's template onsets (normal, diminished and augmented; upright and inverted; head a fourth or fifth). Each hit and every cadence was then checked by reading the passage and the vertical sonorities. Beats are half notes (2/2). The subject is D A G F E D C# D E F G F E D (4 bars normal, 2 bars diminished); the inverted form on A is A D E F G A Bb A G F E F G A. Degrees are Roman numerals from D minor (v = A minor). stretto_with follows the protocol literally (begins strictly before the earlier entry's midpoint); several entries begin exactly at a midpoint and are marked so in their reason.",
+ "entries": [
+  {
+   "subject": 1,
+   "voice": 3,
+   "bar": 1,
+   "beat": 1,
+   "first": "D3",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Bass, normal values (4 bars), ends D3 at 5:1."
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 2,
+   "beat": 1,
+   "first": "A5",
+   "form": "inverted+diminished",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": 0,
+   "reason": "Exact mirror inversion (A D E F G A Bb A G F E F G A) in half values, ends A5 at 4:1; stays in d minor."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 3,
+   "beat": 2,
+   "first": "D4",
+   "form": "diminished",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Subject in half values on D, ends D4 at 5:2. Overlaps entry 0 but begins after its midpoint (3:1), so stretto_with is left empty."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 7,
+   "beat": 1,
+   "first": "D4",
+   "form": "answer+inverted+diminished",
+   "degree": "V",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Inversion in diminution in A minor (B, C natural), ends E4 at 9:1. Tonal head: D-A (a fourth) instead of E-A (^1 of d answers ^5): the comes of the inverted form. Bars 5-6 are a free codetta before it."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 8,
+   "beat": 1,
+   "first": "A4",
+   "form": "subject",
+   "degree": "v",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Real transposition to A minor in normal values (A E D C B A G# ...), ends A4 at 12:1. Enters exactly at the midpoint of entry 3, so not counted as stretto; with 10:2 it forms an extra pair in the dominant closing the exposition."
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 10,
+   "beat": 2,
+   "first": "A4",
+   "form": "diminished",
+   "degree": "v",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "A minor, half values, ends A4 at 12:2; enters on the deceptive resolution (F chord) at 10:2. Begins just after the midpoint of entry 4 (10:1)."
+  },
+  {
+   "subject": 1,
+   "voice": 3,
+   "bar": 15,
+   "beat": 1,
+   "first": "A3",
+   "form": "inverted+diminished",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Bass re-enters after a rest; its head A3-D3 makes the V-i at 15:1.5. Ends A3 at 17:1."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 16,
+   "beat": 1,
+   "first": "D4",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Normal values, ends D4 at 20:1. Begins exactly at the midpoint of entry 6 (16:1), so not counted as stretto."
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 16,
+   "beat": 2,
+   "first": "A5",
+   "form": "inverted+diminished",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": 7,
+   "reason": "Ends A5 at 18:2."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 20,
+   "beat": 2,
+   "first": "C4",
+   "form": "inverted",
+   "degree": "III",
+   "complete": "altered",
+   "stretto_with": null,
+   "reason": "Inversion in normal values on C, F major (D natural at index 6, where the d-minor mirror would give Db). Index 12 is B natural for Bb (leading tone to C); ends C4 at 24:2."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 25,
+   "beat": 1,
+   "first": "F4",
+   "form": "subject",
+   "degree": "III",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Normal values in F major (F C Bb A G F E F ...), ends F4 at 29:1 over a D-minor chord."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 26,
+   "beat": 1,
+   "first": "C4",
+   "form": "inverted+diminished",
+   "degree": "III",
+   "complete": true,
+   "stretto_with": 10,
+   "reason": "Inversion in diminution on C with Db at index 6 (the exact mirror semitone above ^5) but A natural; F major/minor mixture. Ends C4 at 28:1."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 31,
+   "beat": 1,
+   "first": "D3",
+   "form": "subject",
+   "degree": "I",
+   "complete": "altered",
+   "stretto_with": null,
+   "reason": "Normal values over the A2 pedal; index 12 is Eb3 for E3, turning toward G minor. Ends D3 at 35:1."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 32,
+   "beat": 1,
+   "first": "A4",
+   "form": "inverted+diminished",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": 12,
+   "reason": "Ends A4 at 34:1."
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 35,
+   "beat": 1,
+   "first": "D5",
+   "form": "inverted",
+   "degree": "iv",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Inversion in normal values in G minor (D G A Bb C D Eb D C Bb A Bb C D), ends D5 at 39:1."
+  },
+  {
+   "subject": 1,
+   "voice": 3,
+   "bar": 36,
+   "beat": 1,
+   "first": "G2",
+   "form": "diminished",
+   "degree": "iv",
+   "complete": true,
+   "stretto_with": 14,
+   "reason": "G minor (F#), ends G2 at 38:1."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 37,
+   "beat": 2,
+   "first": "D4",
+   "form": "inverted+diminished",
+   "degree": "iv",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "G minor, ends D4 at 39:2. Begins after the midpoints of entries 14 and 15 (both 37:1), so stretto_with is empty although three statements sound together."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 42,
+   "beat": 1,
+   "first": "F4",
+   "form": "inverted+diminished",
+   "degree": "VI",
+   "complete": "altered",
+   "stretto_with": null,
+   "reason": "Bb major (F Bb C D Eb F G F Eb D C D E F): index 12 is E natural for Eb, leading to F. Ends F4 at 44:1."
+  },
+  {
+   "subject": 1,
+   "voice": 3,
+   "bar": 47,
+   "beat": 1,
+   "first": "A2",
+   "form": "inverted",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Bass inversion in normal values after the evaded cadence; ends A2 at 51:1."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 48,
+   "beat": 1,
+   "first": "D3",
+   "form": "diminished",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": 18,
+   "reason": "Ends D3 at 50:1. The alto's E4 A4 G4 F4 E4 D4 C#4 D4 at 47:1 anticipates this head in the tonal shape (see notes)."
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 57,
+   "beat": 1,
+   "first": "E5",
+   "form": "answer+diminished",
+   "degree": "I",
+   "complete": "altered",
+   "stretto_with": null,
+   "reason": "D-minor body (G F E D C# D E F G F E D, ends D5 at 59:1) but the head is E5-A5 (a fourth) instead of D-A: the tonal shape. Called 'answer' for the shrunken head; could also be read as the subject with its first note altered."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 58,
+   "beat": 1,
+   "first": "A4",
+   "form": "inverted",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Normal values, ends A4 at 62:1. Begins exactly at the midpoint of entry 20 (58:1)."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 58,
+   "beat": 2,
+   "first": "D4",
+   "form": "diminished",
+   "degree": "I",
+   "complete": "altered",
+   "stretto_with": 21,
+   "reason": "Indices 0-9 exact (D A G F E D C# D E F); the tail is ornamented and stretched (A4 G4 F4 E4 F4 E4 D4 C#4 at 60:1.6-60:2.5) to cadence on D4 at 61:1 instead of 60:2."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 63,
+   "beat": 2,
+   "first": "F3",
+   "form": "diminished",
+   "degree": "III",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "F major, ends F3 at 65:2."
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 64,
+   "beat": 2,
+   "first": "A4",
+   "form": "inverted",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Normal values, ends A4 at 68:2 over F#2 (the HC in g). Begins exactly at the midpoint of entry 23 (64:2)."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 65,
+   "beat": 2,
+   "first": "D4",
+   "form": "diminished",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": 24,
+   "reason": "Ends D4 at 67:2."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 74,
+   "beat": 2,
+   "first": "A3",
+   "form": "answer+diminished",
+   "degree": "iv",
+   "complete": "altered",
+   "stretto_with": null,
+   "reason": "Over the tonic pedal. G-minor body (D C Bb A G F# G A Bb C Bb A G) but head A3-D4 (a fourth) instead of G-D: the same tonal shape as 57:1. Ends G3 at 76:2."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 76,
+   "beat": 2,
+   "first": "G4",
+   "form": "diminished",
+   "degree": "iv",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Over the tonic pedal, G minor, ends G4 at 78:2; the last entry."
+  }
+ ],
+ "cadences": [
+  {
+   "bar": 10,
+   "beat": 2,
+   "key": "a",
+   "kind": "deceptive",
+   "bass": "^5-^6",
+   "reason": "E7 at 10:1 (bass E3, G#4 in the alto) resolves to an F-major chord (bass F3) at 10:2, where the soprano's diminished subject in A minor enters."
+  },
+  {
+   "bar": 12,
+   "beat": 1,
+   "key": "a",
+   "kind": "IAC",
+   "bass": "^5-^1",
+   "reason": "V (E3 in bass, C5 suspension) to i at 12:1: the bass drops out and the tenor takes A3; soprano rises to C5 (^3). Closes the exposition and its dominant pair; the tirata episode follows."
+  },
+  {
+   "bar": 15,
+   "beat": 1.5,
+   "key": "d",
+   "kind": "IAC",
+   "bass": "^5-^1",
+   "reason": "A7 at 15:1 (soprano G5, tenor C#4) to d at 15:1.5 with the soprano on F5 (^3) and an E5 suspension in the alto. The bass's A3-D3 is the head of its own inverted entry, so the cadence is elided into the new group. Unsure whether to count it as a phrase close."
+  },
+  {
+   "bar": 26,
+   "beat": 1,
+   "key": "F",
+   "kind": "IAC",
+   "bass": "^7-^1",
+   "reason": "C7/E (bass E3, alto Bb4) to F at 26:1, soprano on F4; first inversion dominant, so imperfect. Soprano rests after it; the tenor's diminished inversion starts on the arrival."
+  },
+  {
+   "bar": 29,
+   "beat": 1,
+   "key": "F",
+   "kind": "deceptive",
+   "bass": "^7-^6",
+   "reason": "The alto's F-major entry ends on F4 at 29:1, but the bass goes E3-D3 under C/E, giving a D-minor chord (vi) that starts the descending-fifths sequence. Unsure: the dominant is inverted, and this may be better heard as no cadence."
+  },
+  {
+   "bar": 33,
+   "beat": 2,
+   "key": "d",
+   "kind": "deceptive",
+   "bass": "^5-^6",
+   "reason": "The dominant pedal A2 (31:2-33:1) with C#3 in the tenor resolves to Bb2/D3: a Bb chord (VI) at 33:2, which turns the music toward G minor."
+  },
+  {
+   "bar": 38,
+   "beat": 1,
+   "key": "g",
+   "kind": "IAC",
+   "bass": "^2-^1",
+   "reason": "D7/A (bass A2, C5, F#4) to g at 38:1, soprano Bb4 (^3). The alto drops out here, but the arrival falls inside the soprano's inverted statement (index 9), so the close is weak. Unsure."
+  },
+  {
+   "bar": 47,
+   "beat": 1,
+   "key": "d",
+   "kind": "evaded",
+   "bass": "^5-^5",
+   "reason": "Bb (46:1), then a diminished chord over Bb3, then A7 at 46:2. The upper voices resolve to d at 46:2.5 while the bass rests, and the bass re-enters on A2 with the inverted subject at 47:1 instead of supplying the tonic."
+  },
+  {
+   "bar": 56,
+   "beat": 1,
+   "key": "d",
+   "kind": "IAC",
+   "bass": "^5-^1",
+   "reason": "Three-voice passage (bass resting): A7 with Bb4 at 55:2, then A at 55:2.5, to d at 56:1 with the tenor's run A3-D3 as bass and the soprano on F4 (^3). Lightly marked: the soprano at once starts a rising chromatic line to the 57:1 entry."
+  },
+  {
+   "bar": 61,
+   "beat": 1,
+   "key": "d",
+   "kind": "IAC",
+   "bass": "^5-^1",
+   "reason": "A7 (C#3 at 60:2, then a sixteenth-note descent from A3) to D3 at 61:1. The top sounding voice (alto, soprano resting) is on F4 (^3), and the tenor's altered diminished subject closes on D4."
+  },
+  {
+   "bar": 68,
+   "beat": 2,
+   "key": "g",
+   "kind": "HC",
+   "bass": "^1-^7",
+   "reason": "Bb2 (68:1) and G2 lead to F#2 under D and A: V6 of g at 68:2, where the soprano's inversion ends on A4. The bass rests and the upper voices move to g at 69:1, starting the closing sequence. Arrival on an inverted V, so it is a weak HC."
+  },
+  {
+   "bar": 73,
+   "beat": 2,
+   "key": "d",
+   "kind": "IAC",
+   "bass": "^5-^1",
+   "reason": "A7/C# at 73:1, then a general pause (all voices rest at 73:1.5), then a French-overture upbeat (A2, C#5, tirata in the soprano) to D3 at 73:2 with the soprano on F5 (^3), descending to D5 at 73:2.5. A dramatic cadence that the following bar confirms."
+  },
+  {
+   "bar": 74,
+   "beat": 2,
+   "key": "d",
+   "kind": "PAC",
+   "bass": "^5-^1",
+   "reason": "Cadential 6/4 (d/A at 74:1), V (A, C#5) at 74:1.5, then I at 74:2 on D3 with the soprano on D5; the alto's G4 suspension resolves to F#4 (major third). The bass holds this D to the end: the tonic pedal."
+  },
+  {
+   "bar": 79,
+   "beat": 2,
+   "key": "d",
+   "kind": "plagal",
+   "bass": "^1-^1",
+   "reason": "Not one of the protocol's kinds. Over the tonic pedal, D7 to g (77-78), then an E-G sonority, to a D-major chord at 79:2 (tierce de Picardie). The dominant-to-tonic close was already made at 74:2; this is the final plagal close."
+  }
+ ],
+ "sections": [
+  {
+   "from_bar": 1,
+   "to_bar": 12,
+   "name": "exposition",
+   "notes": "Stretto exposition by inversion and diminution: bass (normal, 1:1), soprano (inverted, diminished, 2:1), alto (diminished, 3:2), tenor (inverted, diminished, tonal, in a, 7:1). Bars 5-6 are a free codetta (bass dotted scales). It continues with an extra pair in the dominant (alto normal 8:1, soprano diminished 10:2), then a deceptive cadence (10:2) and an IAC in a (12:1)."
+  },
+  {
+   "from_bar": 12,
+   "to_bar": 15,
+   "name": "episode",
+   "material": "free: thirty-second-note tiratas leading to long notes (soprano A4, D5, G5 rising by fourths; alto F4, Bb4) over dotted falling scale figures in the tenor; bass silent",
+   "modulates": true,
+   "from_key": "a",
+   "to_key": "d",
+   "notes": "Passes through Bb and g to A7 at 15:1."
+  },
+  {
+   "from_bar": 15,
+   "to_bar": 20,
+   "name": "middle entries",
+   "key": "d",
+   "notes": "Three entries in stretto: bass inverted and diminished (15:1), tenor in normal values (16:1), soprano inverted and diminished (16:2)."
+  },
+  {
+   "from_bar": 20,
+   "to_bar": 29,
+   "name": "middle entries",
+   "key": "F",
+   "notes": "Tenor inverted in normal values on C (20:2), alto upright in normal values on F (25:1), tenor inverted and diminished on C (26:1); IAC F 26:1, deceptive F 29:1."
+  },
+  {
+   "from_bar": 29,
+   "to_bar": 31,
+   "name": "episode",
+   "material": "free: descending-fifths sequence (D-G-C-F-Bb) with bass tiratas and dotted suspensions in the upper voices",
+   "modulates": true,
+   "from_key": "F",
+   "to_key": "d",
+   "notes": "It reaches V of d at 31:2, where the dominant pedal begins."
+  },
+  {
+   "from_bar": 31,
+   "to_bar": 35,
+   "name": "middle entries",
+   "key": "d",
+   "notes": "Tenor in normal values (31:1; Eb at index 12) and alto inverted and diminished (32:1) over the A2 pedal; deceptive cadence at 33:2 turns to g."
+  },
+  {
+   "from_bar": 35,
+   "to_bar": 39,
+   "name": "middle entries",
+   "key": "g",
+   "notes": "Soprano inverted in normal values (35:1), bass diminished (36:1), tenor inverted and diminished (37:2); IAC g at 38:1."
+  },
+  {
+   "from_bar": 39,
+   "to_bar": 42,
+   "name": "episode",
+   "material": "free: three voices (alto resting) with sixteenth-note scale runs in soprano and bass and dotted figures",
+   "modulates": true,
+   "from_key": "g",
+   "to_key": "Bb"
+  },
+  {
+   "from_bar": 42,
+   "to_bar": 44,
+   "name": "middle entries",
+   "key": "Bb",
+   "notes": "Single entry: alto inverted and diminished on F (42:1), E natural at index 12."
+  },
+  {
+   "from_bar": 44,
+   "to_bar": 47,
+   "name": "episode",
+   "material": "free: descending bass in dotted figures and leaps (F-Eb-C-Bb-G ...), upper voices in dotted suspension figures with tiratas",
+   "modulates": true,
+   "from_key": "F",
+   "to_key": "d",
+   "notes": "The cadence on d is evaded at 47:1 by the bass entry."
+  },
+  {
+   "from_bar": 47,
+   "to_bar": 51,
+   "name": "middle entries",
+   "key": "d",
+   "notes": "Bass inverted in normal values (47:1) and tenor diminished (48:1), with an alto head-anticipation at 47:1."
+  },
+  {
+   "from_bar": 51,
+   "to_bar": 57,
+   "name": "episode",
+   "material": "suspension chain over a falling bass with thirty-second-note tiratas (as in bars 12-14) in alto and tenor (51-54); then three voices (bass resting) with sixteenth-note runs in the tenor and a rising chromatic soprano line (54-57)",
+   "modulates": false,
+   "from_key": "d",
+   "to_key": "d",
+   "notes": "Touches a minor and g along the way; IAC d at 56:1."
+  },
+  {
+   "from_bar": 57,
+   "to_bar": 61,
+   "name": "stretto section",
+   "key": "d",
+   "notes": "Soprano diminished, tonal head (57:1), alto inverted in normal values (58:1), tenor diminished (58:2); the bass returns with sixteenth-note runs; IAC d at 61:1."
+  },
+  {
+   "from_bar": 61,
+   "to_bar": 63,
+   "name": "episode",
+   "material": "free: sixteenth-note sequences in bass and alto",
+   "modulates": true,
+   "from_key": "d",
+   "to_key": "F"
+  },
+  {
+   "from_bar": 63,
+   "to_bar": 68,
+   "name": "stretto section",
+   "key": "d",
+   "notes": "Tenor diminished in F (63:2), soprano inverted in normal values in d (64:2), alto diminished in d (65:2); it ends with an HC in g at 68:2."
+  },
+  {
+   "from_bar": 68,
+   "to_bar": 74,
+   "name": "episode",
+   "material": "free: descending sequence (sustained notes approached by tiratas in soprano, dotted figures below), then parallel dotted runs in outer voices (70-72)",
+   "modulates": true,
+   "from_key": "g",
+   "to_key": "d",
+   "notes": "Closes with the general pause and cadence at 73:2 and the PAC at 74:2."
+  },
+  {
+   "from_bar": 74,
+   "to_bar": 79,
+   "name": "final section",
+   "key": "d",
+   "notes": "Over the tonic pedal D3: tenor diminished in g with tonal head (74:2) and alto diminished in g (76:2), then a plagal close to D major."
+  }
+ ],
+ "countersubject": {
+  "regular": false,
+  "first": null,
+  "inversions": [],
+  "notes": "No regular countersubject. The counterpoint to each statement is mostly another statement of the subject in a different form: upright against inverted, normal against diminished (e.g. 1:1+2:1, 16:1+16:2, 31:1+32:1, 47:1+48:1, 58:1+58:2, 64:2+65:2). Free voices use recurring stock figures (dotted scale runs, thirty-second-note tiratas, sixteenth-note runs) that do not form a fixed line."
+ },
+ "pedals": [
+  {
+   "from_bar": 7,
+   "to_bar": 9,
+   "voice": 3,
+   "degree": "^5 (A3; becomes ^1 of a)",
+   "note": "Short pedal, 7:2-9:1.375, under the tenor's tonal inverted entry; arguably just a held note."
+  },
+  {
+   "from_bar": 31,
+   "to_bar": 33,
+   "voice": 3,
+   "degree": "^5 (A2)",
+   "note": "31:2-33:2, dominant pedal under the tenor subject and alto inversion; resolves deceptively to Bb2."
+  },
+  {
+   "from_bar": 74,
+   "to_bar": 79,
+   "voice": 3,
+   "degree": "^1 (D3)",
+   "note": "74:2 to the end; tonic pedal under the two last entries (in g) and the plagal close."
+  }
+ ],
+ "notes": "Counter-fugue in the French style: there are no augmentations here (augmentation belongs to VII), only normal and half values, upright and inverted. 28 entries in all: 18 in diminution, 10 in normal values, 13 inverted. Twice the subject appears with a shrunken head, a fourth instead of a fifth (soprano 57:1 E-A, tenor 74:2 A-D); with the exposition's tenor answer (7:1 D-A for E-A) these are the only tonally adjusted forms. Other statements are exact or alter one note at index 6 or 12 to tonicize (20:2 B natural, 26:1 Db, 31:1 Eb, 42:1 E natural). Alto 47:1 (E4 A4 G4 F4 E4 D4 C#4 D4, then free) is a head-fragment anticipating the tenor's diminished subject at 48:1. It is not counted as an entry: it continues from the alto's previous line without a rest. The A2 at 33:1.75, the C3 held 34:2-35:2 under the soprano's g-minor entry, and the D3 held 67:1-67:2.6 are short sustained bass notes, not listed as pedals. The general pause at 73:1.5 and the following dotted upbeat to 73:2 are a deliberate French-overture gesture before the final cadences. The piece ends on a D-major chord (tierce de Picardie). Unsure: whether 15:1.5, 29:1, 38:1 and 56:1 count as phrase-closing cadences; the label 'answer' for 57:1 and 74:2; the section boundaries 8-12 (extra dominant pair, kept in the exposition) and 44-47 (episode, starting from F, the arrival of the alto's Bb entry)."
+}

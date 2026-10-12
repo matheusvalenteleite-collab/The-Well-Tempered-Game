@@ -1,0 +1,471 @@
+{
+ "id": "mo3",
+ "reader_notes": "Read from the full note text (mo3.txt) and dump.ts, bar by bar, with small scripts only to search for the subject (exact interval search, a pitch-class template matched against the subject's rhythm at normal and halved speed, and searches for chromatic descents and for the head's +3 +4 +1 intervals). Every entry below was checked note by note against the dux. Ten statements were found (seven exact, three with altered endings); I found no complete statement elsewhere whose notes are ornamented or rhythmically varied. Where the theme is varied, the changes come at the end of an entry (entries 5, 6, 7) or in fragments (bars 105-108, 122-127, 180-185). Those fragments are described under notes; none is long or clearly enough presented to count as an entry. The project's own entry/cadence analysis was not consulted.",
+ "entries": [
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 1,
+   "beat": 1,
+   "first": "C5",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "reason": "Thema Regium in half notes, ending on C5 at 9:1; bar 9 is a one-bar codetta (C6 F#5 A5 Bb4...) leading to the answer."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 10,
+   "beat": 1,
+   "first": "G4",
+   "form": "answer",
+   "degree": "V",
+   "complete": true,
+   "reason": "Tonal answer: G Bb C Eb F# (C5 instead of the real D5 as the third note), then exactly a fifth above the subject to G4 at 18:1."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 23,
+   "beat": 1,
+   "first": "C3",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "reason": "Exact subject in the bass, ending on C3 at 31:1, which turns at once into running eighths."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 46,
+   "beat": 1,
+   "first": "G2",
+   "form": "subject",
+   "degree": "V",
+   "complete": true,
+   "reason": "Real (not tonal) transposition to g: G Bb D Eb F#, with D3 at 47:1 where the answer had C, so it is the dux form at V. It ends on G2 at 54:1."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 59,
+   "beat": 1,
+   "first": "C4",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "reason": "Exact subject in the alto, ending on C4 at 67:1. Its last note is harmonised as C major (bass E3), which turns towards f."
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 72,
+   "beat": 1,
+   "first": "F5",
+   "form": "subject",
+   "degree": "iv",
+   "complete": "altered",
+   "reason": "Exact in f minor until the last note: the expected F5 at 80:1 becomes F#5 over a D3 bass (V of g). The theme's close is chromatically deflected, and an episode follows at once."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 95,
+   "beat": 1,
+   "first": "C3",
+   "form": "subject",
+   "degree": "I",
+   "complete": "altered",
+   "reason": "Exact until the last note: the expected C3 at 103:1 becomes C#3 (vii7 of d, which moves to D as V of g). The bass then descends chromatically F#-F-E-Eb to the D pedal at 105."
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 141,
+   "beat": 1,
+   "first": "C5",
+   "form": "subject",
+   "degree": "I",
+   "complete": "altered",
+   "reason": "Exact through Eb5 at 147:1. At the end the D5 is shortened to a quarter (148:3), a chromatic passing Db5 is added at 148:4, and the final C5 becomes an eighth at 149:1 that runs on. The ending is ornamented, not changed in pitch."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 153,
+   "beat": 1,
+   "first": "G4",
+   "form": "answer",
+   "degree": "V",
+   "complete": true,
+   "reason": "Same tonal answer as at bar 10 (C5 for D5), ending on G4 at 161:1."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 169,
+   "beat": 1,
+   "first": "C3",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "reason": "Exact subject in the bass. Its final C3 at 177:1 is held for six quarters as the start of the coda."
+  }
+ ],
+ "cadences": [
+  {
+   "bar": 18,
+   "beat": 1,
+   "key": "g",
+   "kind": "IAC",
+   "bass": "^2-^1 (lowest of two voices: A4-G4)",
+   "reason": "End of the answer, in two voices only. The D-major harmony (A4 under F#5) moves to G (G4/G5). With no real bass and no root-position dominant, I call it imperfect; the episode starts at once."
+  },
+  {
+   "bar": 23,
+   "beat": 1,
+   "key": "c",
+   "kind": "IAC",
+   "bass": "(none)-^1",
+   "reason": "The upper voices close a G7 (B4 A4, F4) onto c with G4 on top. The F4 is held as a 4-3 suspension. The bass enters with the subject on the arrival, so the cadence is elided with that entry."
+  },
+  {
+   "bar": 31,
+   "beat": 1,
+   "key": "c",
+   "kind": "IAC",
+   "bass": "^2-^1",
+   "reason": "V6/5-V4/3 (B3 in the alto, D3 in the bass) to i. Eb4 is on top. This is the end of the bass entry and of the exposition."
+  },
+  {
+   "bar": 38,
+   "beat": 1,
+   "key": "c",
+   "kind": "HC",
+   "bass": "b^6-^5",
+   "reason": "Augmented-sixth approach: Ab2 in the bass against F#3 in the alto resolves to G2/G3/B3. It ends the chromatic episode before the triplet episode."
+  },
+  {
+   "bar": 46,
+   "beat": 1,
+   "key": "g",
+   "kind": "IAC",
+   "bass": "^7-^1",
+   "reason": "The rising stepwise bass of the triplet episode arrives at G (F#2 to G2) under Bb4 on top. The bass entry in g begins on the arrival."
+  },
+  {
+   "bar": 54,
+   "beat": 1,
+   "key": "g",
+   "kind": "IAC",
+   "bass": "^2-^1",
+   "reason": "End of the bass entry in g: Bb2-A2 under F#3 (V4/3) to G2, with Bb4 on top."
+  },
+  {
+   "bar": 59,
+   "beat": 1,
+   "key": "c",
+   "kind": "IAC",
+   "bass": "^2-^3",
+   "reason": "V7 (G3, B4, Ab5) resolves to an inverted tonic (Eb3) as the alto enters with the subject. The upper G arrives late, after a 6-5 suspension. Unsure: it is a weak, inverted close."
+  },
+  {
+   "bar": 72,
+   "beat": 1,
+   "key": "f",
+   "kind": "IAC",
+   "bass": "^7-^1",
+   "reason": "E3 rises to F3 in the bass (reached at 71:3), and the upper voices resolve E5-F5 and G3-Ab3 on the downbeat where the soprano entry in f begins. The bass moves leading tone to tonic, so the cadence is imperfect."
+  },
+  {
+   "bar": 80,
+   "beat": 1,
+   "key": "f",
+   "kind": "evaded",
+   "bass": "^5-^3 of g (D3)",
+   "reason": "The f-minor entry should close on F. Instead the soprano goes on to F#5 over D3 (V of g), and the episode moves on to g."
+  },
+  {
+   "bar": 87,
+   "beat": 1,
+   "key": "c",
+   "kind": "IAC",
+   "bass": "^7-^1",
+   "reason": "The bass rises B3-C4 and drops to C3 on the downbeat. Upper voices: D5-Eb5 and B4-C5. Eb is on top, and the triplet episode begins."
+  },
+  {
+   "bar": 95,
+   "beat": 1,
+   "key": "c",
+   "kind": "IAC",
+   "bass": "^7-^1",
+   "reason": "vii7 (B2, Ab4, F4) to i as the bass enters with the subject. G4 is on top."
+  },
+  {
+   "bar": 103,
+   "beat": 1,
+   "key": "c",
+   "kind": "evaded",
+   "bass": "^2-#^1",
+   "reason": "The bass entry's expected final C3 is replaced by C#3. The close in c is avoided and redirected towards g/d."
+  },
+  {
+   "bar": 105,
+   "beat": 1,
+   "key": "g",
+   "kind": "HC",
+   "bass": "^6-^5",
+   "reason": "The chromatic bass descent F#3-F3-E3-Eb3 ends on D3, which becomes a dominant pedal (D7 with F#4 and C5)."
+  },
+  {
+   "bar": 109,
+   "beat": 1,
+   "key": "g",
+   "kind": "IAC",
+   "bass": "^5-^7-^1",
+   "reason": "After the D pedal and the chromatic stretto, the bass goes D3-F#3 to G2. The upper voices arrive with appoggiaturas (C5-Bb4, A4-G4), so Bb is on top. The close is light, and the music continues at once."
+  },
+  {
+   "bar": 122,
+   "beat": 1,
+   "key": "c",
+   "kind": "HC",
+   "bass": "b^6-^5",
+   "reason": "The chromatic bass descent F-E-Eb-D-(Bb)-A-Ab reaches G2, with F#4 against Ab2 (augmented sixth) resolving to G4."
+  },
+  {
+   "bar": 125,
+   "beat": 1,
+   "key": "c",
+   "kind": "IAC",
+   "bass": "^2-^1",
+   "reason": "The bass plays the subject's chromatic tail ...B2 A2 G2 C3 F3 Eb3 D3 and closes on C3. V4/3 (D3, B3, F4) goes to i, with Eb4 on top."
+  },
+  {
+   "bar": 128,
+   "beat": 1,
+   "key": "f",
+   "kind": "IAC",
+   "bass": "^5-^3",
+   "reason": "C7 (C3 bass, E3 in the alto) resolves to f with Ab2 in the bass (inverted), then F2 at 128:3. Unsure whether this is a phrase close or only a cadential step inside the episode."
+  },
+  {
+   "bar": 141,
+   "beat": 1,
+   "key": "c",
+   "kind": "IAC",
+   "bass": "^2-^3",
+   "reason": "V (D3, G3, B3/B4) resolves to i6 (Eb3) as the soprano enters with the subject. The cadence is elided with that entry."
+  },
+  {
+   "bar": 153,
+   "beat": 1,
+   "key": "g",
+   "kind": "IAC",
+   "bass": "^7-^1",
+   "reason": "After a long D4 in the bass (150-151), the bass falls A3 G3 F#3 to G3. The upper voices go A4-Bb4 and D4-G4, so Bb is on top. The alto answer begins on the arrival."
+  },
+  {
+   "bar": 161,
+   "beat": 1,
+   "key": "g",
+   "kind": "PAC",
+   "bass": "^5-^1",
+   "reason": "End of the alto answer. The bass descends to D3 and leaps to G2, and the soprano goes F#5 to G5 over root-position V and i. This is the clearest full close in the middle of the piece."
+  },
+  {
+   "bar": 169,
+   "beat": 1,
+   "key": "c",
+   "kind": "IAC",
+   "bass": "^7-^1",
+   "reason": "The bass descends C3 B2 to C3 as it enters with the subject. The soprano's F4 is held as a suspension and resolves to Eb4 only at 169:4.5."
+  },
+  {
+   "bar": 185,
+   "beat": 1,
+   "key": "c",
+   "kind": "PAC",
+   "bass": "^5-^1",
+   "reason": "Final cadence. Over the bass C3 Ab2 F2 G2 C2 (after the G pedal), the soprano B4 goes to C5. The final chord is major, with a Picardy E4."
+  }
+ ],
+ "sections": [
+  {
+   "from": 1,
+   "to": 17,
+   "name": "exposition",
+   "material": "subject (soprano), codetta bar 9, tonal answer (alto) with the countersubject in the soprano"
+  },
+  {
+   "from": 18,
+   "to": 22,
+   "name": "episode",
+   "material": "free, built on countersubject eighth figures (Bb A Bb A G F type) and a rising quarter-note line",
+   "modulates": "g -> c"
+  },
+  {
+   "from": 23,
+   "to": 30,
+   "name": "exposition",
+   "material": "subject in the bass; the alto takes the countersubject (bars 24-30 = soprano 11-17, transposed)"
+  },
+  {
+   "from": 31,
+   "to": 38,
+   "name": "episode",
+   "material": "subject (chromatic segment): sequential chromatically descending quarter lines in the upper voices over bass eighth figures",
+   "modulates": "c -> (Bb, Ab touched) -> c, HC at 38"
+  },
+  {
+   "from": 39,
+   "to": 45,
+   "name": "episode",
+   "material": "free: triplet arpeggio figure (rising triad, then a descending scale) passed between the upper voices over a sequence of descending fifths and then a rising stepwise bass",
+   "modulates": "c -> F -> Bb -> Eb -> g"
+  },
+  {
+   "from": 46,
+   "to": 53,
+   "name": "middle entries",
+   "material": "subject in the bass, real transposition to g"
+  },
+  {
+   "from": 54,
+   "to": 58,
+   "name": "episode",
+   "material": "free: imitation of an eighth-note turn figure (D Eb F Eb D C Bb type) between voices",
+   "modulates": "g -> c"
+  },
+  {
+   "from": 59,
+   "to": 66,
+   "name": "middle entries",
+   "material": "subject in the alto (c), with two new counterpoints: a running eighth-note line in the bass and a quarter/half line in the soprano"
+  },
+  {
+   "from": 67,
+   "to": 71,
+   "name": "episode",
+   "material": "free: sequence of eighth figures in the upper voices over a rising bass",
+   "modulates": "c -> f"
+  },
+  {
+   "from": 72,
+   "to": 79,
+   "name": "middle entries",
+   "material": "subject in the soprano in f, its last note deflected to F#"
+  },
+  {
+   "from": 80,
+   "to": 86,
+   "name": "episode",
+   "material": "subject (chromatic descent C6-B-Bb-A-Ab in the soprano at 80-81) and free eighth figures; descending-fifth sequence",
+   "modulates": "f -> g -> Bb -> c"
+  },
+  {
+   "from": 87,
+   "to": 94,
+   "name": "episode",
+   "material": "free: the triplet episode of bars 39-45 returns, now led by the alto, and the rising stepwise bass leads back to C",
+   "modulates": "c -> f -> Bb -> Eb -> c"
+  },
+  {
+   "from": 95,
+   "to": 102,
+   "name": "middle entries",
+   "material": "subject in the bass (c), its last note deflected to C#"
+  },
+  {
+   "from": 103,
+   "to": 108,
+   "name": "episode",
+   "material": "subject (the chromatic descent D-C#-C-B-A...) in close imitation in all three voices, one bar apart, over a D pedal",
+   "modulates": "c -> g"
+  },
+  {
+   "from": 109,
+   "to": 121,
+   "name": "episode",
+   "material": "free: the upper voices move in parallel thirds/sixths in short broken phrases over a bass in arpeggiated quarters and eighth turns; then chromatic lines (117-121) over a chromatically descending bass",
+   "modulates": "g -> f -> Eb -> c (HC 122)"
+  },
+  {
+   "from": 122,
+   "to": 127,
+   "name": "episode",
+   "material": "subject tail: the bass gives the chromatic descent and cadential tail (G F# F E Eb D C B A G C F Eb D C) in shortened values, then the soprano imitates it (125-127)",
+   "modulates": "c (cadence 125) -> f"
+  },
+  {
+   "from": 128,
+   "to": 140,
+   "name": "episode",
+   "material": "subject (chromatic fourths in sequence in the alto and soprano, 129-134) over an arpeggio/scale bass; then a descending-fifth sequence (135-140)",
+   "modulates": "f -> bb -> f -> c"
+  },
+  {
+   "from": 141,
+   "to": 148,
+   "name": "final section",
+   "material": "subject in the soprano (c), its ending ornamented; the alto has the running eighth-note counterpoint of bars 61-64"
+  },
+  {
+   "from": 149,
+   "to": 152,
+   "name": "episode",
+   "material": "free eighth figures over a held D in the bass",
+   "modulates": "c -> g"
+  },
+  {
+   "from": 153,
+   "to": 160,
+   "name": "final section",
+   "material": "tonal answer in the alto (g)"
+  },
+  {
+   "from": 161,
+   "to": 168,
+   "name": "episode",
+   "material": "free: a varied return of the exposition's episode (bars 18-22: G Bb E G / C D E F / Ab ... figures)",
+   "modulates": "g -> c"
+  },
+  {
+   "from": 169,
+   "to": 176,
+   "name": "final section",
+   "material": "subject in the bass (c); the soprano and alto take the two counterpoints of bars 61-64 with the voices exchanged"
+  },
+  {
+   "from": 177,
+   "to": 185,
+   "name": "coda",
+   "material": "tonic held, bass descending C-Bb-Ab to a G pedal; the chromatic tail of the subject imitated between alto and bass (180-184); PAC with Picardy third"
+  }
+ ],
+ "countersubject": {
+  "regular": false,
+  "first_appearance": "Soprano 10-17 against the answer: Bb4 D6 G5 Bb5 | Eb5 G5 C5 C6 | Bb A Bb A G F | E D E. F# | G D G A G F Eb D | C. D Eb C | D C6 Bb A | D6 G5. F# | G",
+  "returns": "Once only: in the alto against the bass entry (bars 24-30 = soprano bars 11-17, a twelfth lower). It stays above the subject both times, so it is only transposed, not inverted. It is not heard with later entries.",
+  "later_counterpoints": "From the alto entry at 59 there are two recurring counterpoints against the subject's bars 3-6: (a) a running eighth-note line, D Eb F Eb D C Bb | A C D Eb D C B A | G B C D C Bb A G | F#..., in the bass at 61-64, the alto at 143-146 and the soprano at 171-174; (b) a quarter/half line, G G C D Eb(h) | A B C D(h) | G A Bb C. | A Bb C Bb A G F# | G, in the soprano at 61-65 and the alto at 171-175. In 169-175 the two lines change voices relative to 59-65, which is invertible counterpoint at the octave/fifteenth. Entry 95 has a freer, embellished relative of (b) (alto 97-101). The entries at 46, 72 and 153 have free counterpoint.",
+  "inversions": "exposition CS: not inverted (above the subject both times); later counterpoints (a)/(b): exchanged between voices, invertible at the octave/fifteenth (59-65 vs 169-175)"
+ },
+ "pedals": [
+  {
+   "from": 105,
+   "to": 107,
+   "voice": 2,
+   "degree": "V of g (D3)",
+   "note": "105:1 to 107:2, under chromatic fragments in stretto; it acts as V/V in c"
+  },
+  {
+   "from": 180,
+   "to": 182,
+   "voice": 2,
+   "degree": "V (G2)",
+   "note": "180:1 to 182:2 dominant pedal in the coda, after the tonic C3 at 177 and the descent Bb2 Ab2"
+  }
+ ],
+ "notes": "Ten statements of the Thema Regium, in three groups: an exposition (S c, A g tonal answer, B c); middle entries in g (real), c, f and c; and a final group that repeats the exposition's order and keys (S c 141, A g answer 153, B c 169). No strettos: every entry starts after the previous one has finished. The long free episodes are the piece's defining feature. Among them, two triplet episodes (39-45, 87-94) recur almost literally, and the exposition's episode (18-22) returns varied at 161-168. The varied treatment of the theme mostly happens at entry endings: 72 (F becomes F#), 95 (C becomes C#) and 141 (chromatic Db added, rhythm shortened). There are also fragments of the theme's second half that are not counted as entries: (i) 105-108, the chromatic descent from D (D C# C B A Bb...) in imitation one bar apart (alto 105, soprano 106, bass 107) over the D pedal; (ii) 122:2-125:1, the bass states the whole second half of the subject (G F# F E Eb D C B A G C F Eb D C) in shortened, uneven values without Db and without the head, and the soprano imitates it at 125-127; (iii) 129-134, chromatic fourths in sequence; (iv) 180-185, the chromatic tail (G F# F E D Eb C ...) in the alto (180-181), then the bass (182-183), with the soprano (181-182). The head (C Eb G Ab B) does not appear except in the ten entries. I searched for ornamented complete statements, including in diminution and with semitone tolerance, and found none. If such a statement is expected, the bass passage at 122-125 is the nearest candidate, but it is a tail only. The triplet figure of 39-45/87-94 opens with a rising minor triad that may recall the head; this is not counted. Unsure calls: the cadences at 18 (two voices), 59 and 128 (weak, inverted); the description of 109-121 as one episode; the key labels of the passing modulations inside episodes."
+}

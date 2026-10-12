@@ -98,6 +98,16 @@ for (const g of golds) {
     detail.push(`The readers against Ledbetter's entry claims: ${hit.length} of ${mine.length}.${hit.length < mine.length ? ` Not in the reading: ${mine.filter((c) => !hit.includes(c)).map((c) => c.replace(/^\S+ /, "")).join("; ")}.` : ""}`, "");
   }
 }
+out.push(
+  "",
+  "**What it shows (12 October, eight fugues).** The entries the analysis finds are almost all real (precision",
+  "98%); it misses about one in fourteen. The misses are of one kind above all: entries whose ending Bach",
+  "changes, to cadence or to lead into what follows (II/13's later entries, I/11's last, BWV 903's answer at",
+  "b. 41), and a few transformed entries in AoF VI. Fixed along the way: later subjects found a bar late (AoF IX's",
+  "theme: recall 61% before, 94% after), and AoF VI's answers in diminution with a tonal head. The readers agree",
+  "with 27 of Ledbetter's 28 entry claims in the four fugues of the 48; the 28th (II/17 b. 48) is, by the score check",
+  "of his claim itself, the chromatic countersubject, not the subject.",
+);
 out.push("", `All: ${tg} entries read by hand, ${tf} found, ${tm} matched: precision ${Math.round((100 * tm) / Math.max(1, tf))}%, recall ${Math.round((100 * tm) / Math.max(1, tg))}%.`, "", "## By fugue", "", ...detail);
 writeFileSync("docs/wtc/READING.md", out.join("\n") + "\n");
 console.log(out.slice(8, 20).join("\n"));

@@ -1,0 +1,338 @@
+{
+ "id": "wtc1f11",
+ "reader_notes": "Read from the note text (bars 1-72, 3/8, beats in eighths). The encoding has no anacrusis: in the score the subject begins with an upbeat eighth C4 in the alto (bar 0, beat 3), and the text begins with D4 at 1:1. Entry 0 is placed at 1:1 to match the data, with the score's upbeat recorded under score_start. Subject (per SUBJECTS.md): [C] | D C Bb | C E F G A | Bb C Bb A G | A G F G A Bb | C, about 4 1/3 bars long. The tonal answer changes only the head (C becomes F). Later statements often swap the last bar for a cadential turn (A C Bb A G F | E, which is the shape of the countersubject's second bar). In g minor, bar 4 of the subject becomes C Bb D C Bb A. Entries were found by searching for the head figure (upbeat, neighbour descent, a falling sixth and four rising sixteenths) and checked by reading each passage.",
+ "entries": [
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 0,
+   "beat": 3,
+   "first": "D4",
+   "score_start": "0:3 C4 (upbeat missing from encoding)",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Opening alto statement. It ends on C4 at 5:1, just after the answer enters at 4:3. Corrected on review (D160): the encoding has the upbeat C4 (bar 0, beat 3); the dump the reader saw had dropped the pickup bar (a tool fault, fixed)."
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 4,
+   "beat": 3,
+   "first": "F4",
+   "form": "answer",
+   "degree": "V",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Tonal answer: the upbeat C->F (^5->^1) is answered F rather than G, and the rest is at the fifth in C major (B natural). It ends on G4 at 9:1."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 9,
+   "beat": 3,
+   "first": "C3",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 17,
+   "beat": 3,
+   "first": "C5",
+   "form": "subject",
+   "degree": "I",
+   "complete": true,
+   "stretto_with": null,
+   "reason": "Enters as the C-major cadence at 17:1-2 resolves. It ends on C5 at 22:1 and runs on into the countersubject figure, as the bass did at 14."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 21,
+   "beat": 3,
+   "first": "F4",
+   "form": "answer",
+   "degree": "V",
+   "complete": "altered",
+   "stretto_with": null,
+   "reason": "Answer form with B natural at 23. The last two notes are changed: E D C D E C | F (25:3.5 C4, 26:1 F4) instead of E D C D E F | G, which turns it back to F. It starts as the soprano's subject is ending (past its half), so it is not a stretto."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 25,
+   "beat": 3,
+   "first": "C4",
+   "form": "subject",
+   "degree": "I",
+   "complete": "altered",
+   "stretto_with": null,
+   "reason": "Exact through 28. The last bar becomes A C Bb A G F | E (29-30) instead of A G F G A Bb | C, the cadential variant leading to F at 31:1."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 27,
+   "beat": 3,
+   "first": "C5",
+   "form": "subject",
+   "degree": "I",
+   "complete": "head",
+   "stretto_with": 5,
+   "reason": "Two bars after the bass, before its half: a stretto. Exact through the A4 at 31:1, which is held as a suspension. The line then becomes the suspension chain of the episode (about 15 of 21 notes)."
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 36,
+   "beat": 3,
+   "first": "A5",
+   "form": "subject",
+   "degree": "vi",
+   "complete": "altered",
+   "stretto_with": null,
+   "reason": "Real transposition into d minor (C# for the subject's E), over the A pedal. The last bar is the cadential variant F A G F E D | C# (40-41) instead of F E D E F G | A."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 38,
+   "beat": 3,
+   "first": "A4",
+   "form": "subject",
+   "degree": "vi",
+   "complete": "head",
+   "stretto_with": 7,
+   "reason": "Two bars after the soprano. Exact through G A G F E (41), then it stops on F4 at 42:1 and is held as C#4 at 43."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 40,
+   "beat": 3,
+   "first": "A3",
+   "form": "subject",
+   "degree": "vi",
+   "complete": "altered",
+   "stretto_with": 8,
+   "reason": "Comes off the end of the A pedal, two bars after the alto (third voice of the d-minor stretto). The last bar is reshaped into the cadence F. G F E | D G A A2 | D2 (44-46), the PAC at 46:1."
+  },
+  {
+   "subject": 1,
+   "voice": 2,
+   "bar": 46,
+   "beat": 3,
+   "first": "D3",
+   "form": "subject",
+   "degree": "ii",
+   "complete": "head",
+   "stretto_with": null,
+   "reason": "In g minor: D | Eb D C | D F# G A Bb | C Bb D C Bb A (bar 4 varied as C-Bb-D for C-D-C) | Bb2 at 50:1, then rests."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 48,
+   "beat": 3,
+   "first": "D4",
+   "form": "subject",
+   "degree": "ii",
+   "complete": "altered",
+   "stretto_with": 10,
+   "reason": "Two bars after the bass. Bar 4 is varied as C Bb D C Bb A (51), and the last bar is the cadential variant Bb D C Bb A G | F# (52-53)."
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 50,
+   "beat": 3.5,
+   "first": "D5",
+   "form": "subject",
+   "degree": "ii",
+   "complete": "altered",
+   "stretto_with": 11,
+   "reason": "The upbeat is a sixteenth, the top of the scale G A Bb C D that grows out of the held A4. Bar 4 is varied as C Bb D C Bb A (53), and the last bar is Bb F# G A Bb C# | D (54-55:1). This third g-minor entry is two bars after the alto."
+  },
+  {
+   "subject": 1,
+   "voice": 0,
+   "bar": 64,
+   "beat": 3.5,
+   "first": "C5",
+   "form": "subject",
+   "degree": "I",
+   "complete": "altered",
+   "stretto_with": null,
+   "reason": "Final entry, ornamented in sixteenths: C | D C Eb D C Bb (65, the head with an upper-neighbour fill) | C E F G A (66, exact) | Bb A C Bb A G | A G Bb A C Bb | D5 (69), then it rises to G5 at 70 instead of closing on C. Unsure: the first and last bars are figured, but the octave-drop scale at 66 makes it a clear statement."
+  },
+  {
+   "subject": 1,
+   "voice": 1,
+   "bar": 65,
+   "beat": 3,
+   "first": "G3",
+   "form": "answer",
+   "degree": "V",
+   "complete": "head",
+   "stretto_with": 13,
+   "reason": "Unsure. The tenor comes in after a rest (D3 G3 at 65:2-3) and imitates the soprano one bar later at the lower twelfth in answer form: G | (F) Bb A G F | G Bb2 C D E | F3, held at 68. This is about half the subject, with Bb so it stays in F rather than C (transposition level V, harmonic key I). It is counted because it is a clear imitation after a rest."
+  }
+ ],
+ "cadences": [
+  {
+   "bar": 17,
+   "beat": 1,
+   "key": "C",
+   "kind": "IAC",
+   "bass": "^7-^1",
+   "reason": "Ends the exposition and the link after it. V6/5 (B2 in the bass at 16) goes to I in C, with D5 suspended over the C and resolving to C5 at 17:2. Inverted dominant, so not perfect."
+  },
+  {
+   "bar": 25,
+   "beat": 1,
+   "key": "C",
+   "kind": "IAC",
+   "bass": "^4-^3",
+   "reason": "Light close in two voices while the bass rests: soprano B4 (q., the third bar of the countersubject figure) to C5, alto F4 to E4 under it. It ends the phrase of the soprano's subject plus countersubject before the bass entry at 25:3. Unsure whether it counts as a phrase close; it falls inside the alto's answer."
+  },
+  {
+   "bar": 31,
+   "beat": 1,
+   "key": "F",
+   "kind": "IAC",
+   "bass": "^7-^1",
+   "reason": "The bass's cadential variant (A C Bb A G F | E) closes on F over V6/5-I, with G5 held over as a suspension. It is immediately taken into the descending suspension sequence, so it is weak and elided."
+  },
+  {
+   "bar": 36,
+   "beat": 1,
+   "key": "d",
+   "kind": "phrygian",
+   "bass": "^6-^5",
+   "reason": "The bass falls D4 C4 Bb3 to A3 (35-36), Bb with D and G above (iv6) going to an A-major chord with C#5 on top. This half cadence in d becomes the dominant pedal under the d-minor stretto. A plain HC is also a defensible label; there is a passing V6/5-i into 35:1 (C#3 to D4) just before."
+  },
+  {
+   "bar": 46,
+   "beat": 1,
+   "key": "d",
+   "kind": "PAC",
+   "bass": "^5-^1",
+   "reason": "A2 to D2, root-position V-i, with D4 on top in both upper voices. It closes the d-minor stretto."
+  },
+  {
+   "bar": 56,
+   "beat": 1,
+   "key": "g",
+   "kind": "PAC",
+   "bass": "^5-^1",
+   "reason": "D3 to G2, with the soprano and alto on G (G4, G3). It closes the g-minor stretto."
+  },
+  {
+   "bar": 64,
+   "beat": 1,
+   "key": "F",
+   "kind": "IAC",
+   "bass": "^7-^1",
+   "reason": "Same shape as 30-31: E2 (q, V6/5) to F2 with G5 held over. It ends the episode's rising scales and the final entry follows at once. Weak, unsure whether it counts as a phrase close."
+  },
+  {
+   "bar": 72,
+   "beat": 1,
+   "key": "F",
+   "kind": "PAC",
+   "bass": "^5-^1",
+   "reason": "Final cadence: IV-V (Bb2 C3 C2 at 71) to I, with F4 on top."
+  }
+ ],
+ "sections": [
+  {
+   "from": 1,
+   "to": 14,
+   "name": "exposition",
+   "material": "alto I, soprano answer V, bass I; the countersubject comes in at 5",
+   "modulates": null
+  },
+  {
+   "from": 14,
+   "to": 17,
+   "name": "episode",
+   "material": "the bass continues past its subject with the countersubject figure (C B A B C D | E G F E D C | B). The upper voices rise in a sequence of leaps (F-A, G-C, B-E)",
+   "modulates": "stays in the dominant: C to C, cadence at 17:1"
+  },
+  {
+   "from": 17,
+   "to": 31,
+   "name": "counter-exposition",
+   "material": "soprano I (17:3), alto answer (21:3), bass I (25:3), then an extra alto I in stretto with the bass (27:3). The countersubject is kept (split alto/bass at 18-20, soprano 22-24, soprano 26-28 varied)",
+   "modulates": "F, touching C at 25"
+  },
+  {
+   "from": 31,
+   "to": 36,
+   "name": "episode",
+   "material": "free descending suspension chain in soprano and alto (G5-F5, F5-E5 ...) over a bass moving in steps and leaps (F G A | D | E F G | C#). It ends with a hint of the subject head in the bass (C#4 D4 C4 Bb3, 34:3-35)",
+   "modulates": "F to d, half cadence at 36:1"
+  },
+  {
+   "from": 36,
+   "to": 46,
+   "name": "stretto section (middle entries in vi)",
+   "material": "three-voice stretto at two-bar distance, soprano 36:3, alto 38:3, bass 40:3, over an A pedal (36-40)",
+   "modulates": "d minor throughout, PAC at 46:1"
+  },
+  {
+   "from": 46,
+   "to": 56,
+   "name": "stretto section (middle entries in ii)",
+   "material": "three-voice stretto at two-bar distance, bass 46:3, alto 48:3, soprano 50:3.5",
+   "modulates": "d to g, PAC at 56:1"
+  },
+  {
+   "from": 56,
+   "to": 64,
+   "name": "episode",
+   "material": "the countersubject's second-bar figure (leap up, scale down: G D G F E D, G C Bb A G ...) imitated between alto and soprano over a bass rising in eighths (G A Bb C ... Bb). Then parallel rising eighth scales in soprano and alto over the countersubject's scale figure in the bass (60-63)",
+   "modulates": "g to F (via C, with Eb as a passing flat-seventh colour), arrival at 64:1"
+  },
+  {
+   "from": 64,
+   "to": 72,
+   "name": "final section",
+   "material": "ornamented final soprano entry (64:3.5) with an answer-form head in the tenor in stretto (65:3), over a falling bass Bb-A-G-F. A short cadential extension (69-71) leads to the PAC",
+   "modulates": "F (tonic)"
+  }
+ ],
+ "countersubject": {
+  "kept": "partly: regular through the exposition and counter-exposition, absent from the strettos in d and g and from the final section",
+  "first": {
+   "bar": 5,
+   "beat": 1,
+   "voice": 1,
+   "material": "C Bb A Bb C D | E G F E D C | B (q.), growing straight out of the subject's last note"
+  },
+  "appearances": [
+   "5-7 alto, below the answer",
+   "10-12 soprano, above the bass subject",
+   "18-20 split: alto bar 18, then the bass at 19-20 (A C Bb A G F | E)",
+   "22-24 soprano, above the alto answer",
+   "26-28 soprano, varied (the first bar comes in as a rising scale) above the bass subject"
+  ],
+  "inversion": "invertible at the octave (compound, double octave). At 5 it lies a sixth below the answer; at 10 it lies a (compound) tenth above the subject; at 18 it is a sixth below the subject; at 22 a third above the answer.",
+  "notes": "The same figure also serves as the subject's own continuation (bass 14-16, soprano 22-24). Its second bar (leap up, scale down to the leading tone) becomes the subject's cadential ending in later entries (bass 29-30, soprano 40-41, alto 52-53) and drives the episode at 56-59."
+ },
+ "pedals": [
+  {
+   "from": 36,
+   "to": 40,
+   "voice": 2,
+   "degree": "^5 in d (A3)",
+   "reason": "A3 held 36:1-40:2 under the soprano and alto stretto entries; the bass then takes up the subject from A3 at 40:3"
+  }
+ ],
+ "notes": "A cheerful 3/8 gigue-like fugue whose subject is a dance-like turn followed by running sixteenths. Structure: exposition (1-14), a dominant link, counter-exposition with a first two-voice stretto (25:3/27:3), a suspension episode to d minor, then two parallel three-voice strettos at two-bar distance in d (vi) and g (ii), each closed by a PAC. A rising episode returns to F and an ornamented final entry follows. The strettos keep the same order of distance and pitch (each voice two bars later, same pitch class) but reverse the voice order (top-down in d, bottom-up in g). Head allusions not counted as entries: the bass C#4 D4 C4 Bb3 at 34:3-35 (subject head in d before the pedal), and the eighth-note figures at 56-59. Missing-upbeat caveat: entry 0's true first note is C4 at 0:3, which is absent from the encoding."
+}
