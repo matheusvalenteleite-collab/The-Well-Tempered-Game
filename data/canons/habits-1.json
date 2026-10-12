@@ -1,0 +1,1426 @@
+{
+ "gv03:1-16": {
+  "piece": "gv03",
+  "title": "Goldberg Var. 3, Canone all'Unisuono",
+  "section": "1-16",
+  "interval": "unison",
+  "motion": "rectus",
+  "lag": "1 bar (4 dotted quarters)",
+  "verticals": 192,
+  "consonant": 0.609375,
+  "strong_consonant": 0.627906976744186,
+  "iv_hist": {
+   "3": 39,
+   "6": 45,
+   "5": 22,
+   "8": 11
+  },
+  "diss_kinds": {
+   "neighbour": 11,
+   "passing": 34,
+   "suspension resolving up (retardation)": 3,
+   "other": 3,
+   "neighbour (on the beat)": 3,
+   "suspension (resolves down)": 5,
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": 7,
+   "held, other": 4,
+   "appoggiatura / leapt-to, resolved by step": 4,
+   "passing (on the beat)": 1
+  },
+  "diss_examples": {
+   "neighbour": [
+    2,
+    3,
+    3,
+    3
+   ],
+   "passing": [
+    2,
+    2,
+    2,
+    2
+   ],
+   "suspension resolving up (retardation)": [
+    2,
+    10,
+    13
+   ],
+   "other": [
+    5,
+    5,
+    14
+   ],
+   "neighbour (on the beat)": [
+    6,
+    14,
+    15
+   ],
+   "suspension (resolves down)": [
+    7,
+    10,
+    14,
+    15
+   ],
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": [
+    8,
+    10,
+    11,
+    12
+   ],
+   "held, other": [
+    10,
+    14,
+    14,
+    15
+   ],
+   "appoggiatura / leapt-to, resolved by step": [
+    11,
+    11,
+    12,
+    14
+   ],
+   "passing (on the beat)": [
+    11
+   ]
+  },
+  "one_voice_moves": 0.703125,
+  "sequence": [
+   3,
+   38,
+   [
+    13,
+    14,
+    16
+   ],
+   "beat"
+  ],
+  "melody": {
+   "repeat": 7,
+   "step": 115,
+   "fourth/fifth": 18,
+   "sixth+": 9,
+   "third": 19
+  }
+ },
+ "gv03:bass": {
+  "piece": "gv03",
+  "bass": [
+   11,
+   32,
+   [
+    "3.1",
+    "3.2",
+    "4.1",
+    "4.2",
+    "5.1",
+    "5.2",
+    "6.1",
+    "7.1",
+    "7.2",
+    "8.1",
+    "9.2",
+    "10.1",
+    "10.2",
+    "11.1",
+    "11.2",
+    "12.1",
+    "12.2",
+    "13.2",
+    "14.1",
+    "15.2",
+    "16.1"
+   ]
+  ]
+ },
+ "gv06:1-32": {
+  "piece": "gv06",
+  "title": "Goldberg Var. 6, Canone alla Seconda",
+  "section": "1-32",
+  "interval": "second above",
+  "motion": "rectus",
+  "lag": "1 bar",
+  "verticals": 149,
+  "consonant": 0.6241610738255033,
+  "strong_consonant": 0.5609756097560976,
+  "iv_hist": {
+   "3": 41,
+   "5": 17,
+   "6": 26,
+   "1": 8,
+   "8": 1
+  },
+  "diss_kinds": {
+   "appoggiatura / leapt-to, resolved by step": 10,
+   "passing": 7,
+   "passing (on the beat)": 13,
+   "neighbour": 4,
+   "held, other": 6,
+   "suspension (resolves down)": 8,
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": 6,
+   "other": 1,
+   "neighbour (on the beat)": 1
+  },
+  "diss_examples": {
+   "appoggiatura / leapt-to, resolved by step": [
+    2,
+    3,
+    4,
+    5
+   ],
+   "passing": [
+    2,
+    4,
+    6,
+    8
+   ],
+   "passing (on the beat)": [
+    3,
+    4,
+    5,
+    7
+   ],
+   "neighbour": [
+    8,
+    14,
+    22,
+    30
+   ],
+   "held, other": [
+    9,
+    14,
+    22,
+    26
+   ],
+   "suspension (resolves down)": [
+    12,
+    12,
+    18,
+    19
+   ],
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": [
+    14,
+    22,
+    26,
+    27
+   ],
+   "other": [
+    29
+   ],
+   "neighbour (on the beat)": [
+    30
+   ]
+  },
+  "one_voice_moves": 0.6912751677852349,
+  "sequence": [
+   15,
+   40,
+   [
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    15,
+    18
+   ],
+   "beat"
+  ],
+  "melody": {
+   "repeat": 8,
+   "step": 78,
+   "third": 13,
+   "sixth+": 3,
+   "fourth/fifth": 2
+  }
+ },
+ "gv06:bass": {
+  "piece": "gv06",
+  "bass": [
+   10,
+   32,
+   [
+    "1",
+    "2",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "10",
+    "12",
+    "13",
+    "17",
+    "18",
+    "19",
+    "20",
+    "21",
+    "22",
+    "23",
+    "25",
+    "26",
+    "28",
+    "29",
+    "31"
+   ]
+  ]
+ },
+ "gv09:1-16": {
+  "piece": "gv09",
+  "title": "Goldberg Var. 9, Canone alla Terza",
+  "section": "1-16",
+  "interval": "third below",
+  "motion": "rectus",
+  "lag": "1 bar",
+  "verticals": 131,
+  "consonant": 0.6870229007633588,
+  "strong_consonant": 0.7115384615384616,
+  "iv_hist": {
+   "3": 23,
+   "6": 35,
+   "8": 4,
+   "5": 26,
+   "1": 2
+  },
+  "diss_kinds": {
+   "passing": 20,
+   "suspension (resolves down)": 8,
+   "appoggiatura / leapt-to, resolved by step": 2,
+   "neighbour (on the beat)": 1,
+   "neighbour": 1,
+   "passing (on the beat)": 3,
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": 4,
+   "held, other": 2
+  },
+  "diss_examples": {
+   "passing": [
+    2,
+    2,
+    3,
+    3
+   ],
+   "suspension (resolves down)": [
+    4,
+    6,
+    10,
+    11
+   ],
+   "appoggiatura / leapt-to, resolved by step": [
+    5,
+    13
+   ],
+   "neighbour (on the beat)": [
+    7
+   ],
+   "neighbour": [
+    7
+   ],
+   "passing (on the beat)": [
+    8,
+    8,
+    11
+   ],
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": [
+    10,
+    14,
+    14,
+    16
+   ],
+   "held, other": [
+    14,
+    16
+   ]
+  },
+  "one_voice_moves": 0.5954198473282443,
+  "sequence": [
+   0,
+   1,
+   [],
+   "bar"
+  ],
+  "melody": {
+   "step": 83,
+   "fourth/fifth": 16,
+   "third": 10,
+   "sixth+": 1,
+   "repeat": 1
+  }
+ },
+ "gv09:bass": {
+  "piece": "gv09",
+  "bass": [
+   10,
+   32,
+   [
+    "1.2",
+    "2.1",
+    "3.1",
+    "3.2",
+    "4.1",
+    "5.1",
+    "5.2",
+    "6.1",
+    "6.2",
+    "7.1",
+    "7.2",
+    "8.1",
+    "9.2",
+    "10.1",
+    "11.1",
+    "11.2",
+    "12.1",
+    "13.2",
+    "14.1",
+    "14.2",
+    "15.2",
+    "16.1"
+   ]
+  ]
+ },
+ "gv12:1-16": {
+  "piece": "gv12",
+  "title": "Goldberg Var. 12, Canone alla Quarta (in moto contrario)",
+  "section": "1-16",
+  "interval": "fourth below",
+  "motion": "inversus",
+  "lag": "1 bar",
+  "verticals": 112,
+  "consonant": 0.6875,
+  "strong_consonant": 0.6785714285714286,
+  "iv_hist": {
+   "6": 27,
+   "8": 12,
+   "3": 27,
+   "5": 10,
+   "1": 1
+  },
+  "diss_kinds": {
+   "passing": 14,
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": 6,
+   "passing (on the beat)": 4,
+   "other": 3,
+   "appoggiatura / leapt-to, resolved by step": 3,
+   "suspension resolving up (retardation)": 1,
+   "neighbour": 4
+  },
+  "diss_examples": {
+   "passing": [
+    2,
+    2,
+    2,
+    3
+   ],
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": [
+    6,
+    6,
+    6,
+    12
+   ],
+   "passing (on the beat)": [
+    6,
+    7,
+    12,
+    15
+   ],
+   "other": [
+    6,
+    7,
+    13
+   ],
+   "appoggiatura / leapt-to, resolved by step": [
+    11,
+    15,
+    16
+   ],
+   "suspension resolving up (retardation)": [
+    12
+   ],
+   "neighbour": [
+    12,
+    13,
+    14,
+    16
+   ]
+  },
+  "one_voice_moves": 0.5267857142857143,
+  "sequence": [
+   1,
+   32,
+   [
+    10
+   ],
+   "beat"
+  ],
+  "melody": {
+   "step": 92,
+   "fourth/fifth": 6,
+   "repeat": 7,
+   "sixth+": 8,
+   "third": 6
+  }
+ },
+ "gv12:17-32": {
+  "piece": "gv12",
+  "title": "Goldberg Var. 12, Canone alla Quarta (in moto contrario)",
+  "section": "17-32",
+  "interval": "fourth above",
+  "motion": "inversus",
+  "lag": "1 bar",
+  "verticals": 121,
+  "consonant": 0.5785123966942148,
+  "strong_consonant": 0.6875,
+  "iv_hist": {
+   "3": 34,
+   "6": 16,
+   "5": 9,
+   "8": 9,
+   "1": 2
+  },
+  "diss_kinds": {
+   "suspension resolving up (retardation)": 1,
+   "passing (on the beat)": 4,
+   "suspension (resolves down)": 2,
+   "neighbour": 14,
+   "held, other": 4,
+   "passing": 16,
+   "other": 1,
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": 5,
+   "appoggiatura / leapt-to, resolved by step": 2,
+   "neighbour (on the beat)": 2
+  },
+  "diss_examples": {
+   "suspension resolving up (retardation)": [
+    18
+   ],
+   "passing (on the beat)": [
+    18,
+    24,
+    29,
+    29
+   ],
+   "suspension (resolves down)": [
+    18,
+    29
+   ],
+   "neighbour": [
+    19,
+    19,
+    20,
+    20
+   ],
+   "held, other": [
+    19,
+    22,
+    22,
+    24
+   ],
+   "passing": [
+    20,
+    20,
+    20,
+    20
+   ],
+   "other": [
+    22
+   ],
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": [
+    22,
+    24,
+    26,
+    28
+   ],
+   "appoggiatura / leapt-to, resolved by step": [
+    22,
+    24
+   ],
+   "neighbour (on the beat)": [
+    27,
+    27
+   ]
+  },
+  "one_voice_moves": 0.7024793388429752,
+  "sequence": [
+   2,
+   30,
+   [
+    20,
+    26
+   ],
+   "beat"
+  ],
+  "melody": {
+   "step": 76,
+   "sixth+": 4,
+   "third": 11,
+   "repeat": 7,
+   "fourth/fifth": 3
+  }
+ },
+ "gv12:bass": {
+  "piece": "gv12",
+  "bass": [
+   16,
+   32,
+   [
+    "7",
+    "8",
+    "10",
+    "11",
+    "13",
+    "17",
+    "18",
+    "19",
+    "22",
+    "23",
+    "24",
+    "25",
+    "26",
+    "28",
+    "30",
+    "31"
+   ]
+  ]
+ },
+ "gv15:1-32": {
+  "piece": "gv15",
+  "title": "Goldberg Var. 15, Canone alla Quinta (in moto contrario), andante, G minor",
+  "section": "1-32",
+  "interval": "fifth above",
+  "motion": "inversus",
+  "lag": "1 bar",
+  "verticals": 188,
+  "consonant": 0.574468085106383,
+  "strong_consonant": 0.7631578947368421,
+  "iv_hist": {
+   "8": 9,
+   "3": 34,
+   "5": 26,
+   "6": 36,
+   "1": 3
+  },
+  "diss_kinds": {
+   "held, other": 10,
+   "appoggiatura / leapt-to, resolved by step": 1,
+   "passing": 37,
+   "suspension resolving up (retardation)": 5,
+   "neighbour": 11,
+   "suspension (resolves down)": 7,
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": 5,
+   "other": 1,
+   "passing (on the beat)": 1,
+   "neighbour (on the beat)": 2
+  },
+  "diss_examples": {
+   "held, other": [
+    2,
+    6,
+    7,
+    9
+   ],
+   "appoggiatura / leapt-to, resolved by step": [
+    2
+   ],
+   "passing": [
+    2,
+    2,
+    2,
+    3
+   ],
+   "suspension resolving up (retardation)": [
+    3,
+    3,
+    3,
+    12
+   ],
+   "neighbour": [
+    3,
+    4,
+    4,
+    6
+   ],
+   "suspension (resolves down)": [
+    4,
+    10,
+    11,
+    18
+   ],
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": [
+    5,
+    9,
+    14,
+    16
+   ],
+   "other": [
+    12
+   ],
+   "passing (on the beat)": [
+    18
+   ],
+   "neighbour (on the beat)": [
+    20,
+    27
+   ]
+  },
+  "one_voice_moves": 0.6436170212765957,
+  "sequence": [
+   0,
+   1,
+   [],
+   "bar"
+  ],
+  "melody": {
+   "repeat": 17,
+   "step": 117,
+   "fourth/fifth": 15,
+   "third": 8,
+   "sixth+": 7
+  }
+ },
+ "gv15:bass": {
+  "piece": "gv15",
+  "bass": [
+   7,
+   32,
+   [
+    "2",
+    "4",
+    "5",
+    "6",
+    "7",
+    "9",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "18",
+    "19",
+    "20",
+    "21",
+    "22",
+    "23",
+    "25",
+    "26",
+    "27",
+    "28",
+    "29",
+    "30",
+    "31"
+   ]
+  ]
+ },
+ "gv18:1-32": {
+  "piece": "gv18",
+  "title": "Goldberg Var. 18, Canone alla Sesta",
+  "section": "1-32",
+  "interval": "sixth above",
+  "motion": "rectus",
+  "lag": "half a bar (1 minim)",
+  "verticals": 134,
+  "consonant": 0.6194029850746269,
+  "strong_consonant": 0.5892857142857143,
+  "iv_hist": {
+   "6": 48,
+   "5": 20,
+   "8": 8,
+   "3": 6,
+   "1": 1
+  },
+  "diss_kinds": {
+   "neighbour (on the beat)": 7,
+   "passing (on the beat)": 1,
+   "passing": 11,
+   "suspension (resolves down)": 9,
+   "neighbour": 9,
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": 5,
+   "held, other": 7,
+   "appoggiatura / leapt-to, resolved by step": 2
+  },
+  "diss_examples": {
+   "neighbour (on the beat)": [
+    2,
+    7,
+    10,
+    18
+   ],
+   "passing (on the beat)": [
+    3
+   ],
+   "passing": [
+    3,
+    3,
+    10,
+    11
+   ],
+   "suspension (resolves down)": [
+    4,
+    8,
+    12,
+    15
+   ],
+   "neighbour": [
+    5,
+    6,
+    7,
+    11
+   ],
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": [
+    6,
+    13,
+    14,
+    29
+   ],
+   "held, other": [
+    8,
+    12,
+    13,
+    14
+   ],
+   "appoggiatura / leapt-to, resolved by step": [
+    15,
+    31
+   ]
+  },
+  "one_voice_moves": 0.9701492537313433,
+  "sequence": [
+   2,
+   22,
+   [
+    13,
+    29
+   ],
+   "bar"
+  ],
+  "melody": {
+   "step": 57,
+   "third": 5,
+   "repeat": 4,
+   "fourth/fifth": 6,
+   "sixth+": 1
+  }
+ },
+ "gv18:bass": {
+  "piece": "gv18",
+  "bass": [
+   9,
+   32,
+   [
+    "2",
+    "3",
+    "5",
+    "6",
+    "7",
+    "9",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "18",
+    "19",
+    "20",
+    "22",
+    "23",
+    "25",
+    "26",
+    "27",
+    "28",
+    "29",
+    "30",
+    "31"
+   ]
+  ]
+ },
+ "gv21:1-16": {
+  "piece": "gv21",
+  "title": "Goldberg Var. 21, Canone alla Settima, G minor",
+  "section": "1-16",
+  "interval": "seventh above",
+  "motion": "rectus",
+  "lag": "half a bar (2 quarters)",
+  "verticals": 164,
+  "consonant": 0.6585365853658537,
+  "strong_consonant": 0.6829268292682927,
+  "iv_hist": {
+   "8": 15,
+   "5": 21,
+   "6": 35,
+   "3": 37
+  },
+  "diss_kinds": {
+   "neighbour (on the beat)": 3,
+   "held, other": 3,
+   "passing": 27,
+   "neighbour": 4,
+   "suspension resolving up (retardation)": 4,
+   "passing (on the beat)": 5,
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": 2,
+   "suspension (resolves down)": 8
+  },
+  "diss_examples": {
+   "neighbour (on the beat)": [
+    1,
+    5,
+    7
+   ],
+   "held, other": [
+    2,
+    4,
+    16
+   ],
+   "passing": [
+    2,
+    2,
+    3,
+    3
+   ],
+   "neighbour": [
+    2,
+    11,
+    13,
+    16
+   ],
+   "suspension resolving up (retardation)": [
+    3,
+    5,
+    9,
+    10
+   ],
+   "passing (on the beat)": [
+    4,
+    6,
+    8,
+    13
+   ],
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": [
+    4,
+    16
+   ],
+   "suspension (resolves down)": [
+    5,
+    8,
+    10,
+    13
+   ]
+  },
+  "one_voice_moves": 0.524390243902439,
+  "sequence": [
+   0,
+   1,
+   [],
+   "bar"
+  ],
+  "melody": {
+   "step": 117,
+   "fourth/fifth": 11,
+   "repeat": 5,
+   "sixth+": 9,
+   "third": 9
+  }
+ },
+ "gv21:bass": {
+  "piece": "gv21",
+  "bass": [
+   16,
+   32,
+   [
+    "3.1",
+    "3.2",
+    "4.1",
+    "4.2",
+    "5.2",
+    "6.1",
+    "6.2",
+    "7.1",
+    "8.1",
+    "9.2",
+    "10.1",
+    "11.2",
+    "12.1",
+    "14.1",
+    "15.2",
+    "16.1"
+   ]
+  ]
+ },
+ "gv24:1-16": {
+  "piece": "gv24",
+  "title": "Goldberg Var. 24, Canone all'Ottava",
+  "section": "1-16",
+  "interval": "octave below",
+  "motion": "rectus",
+  "lag": "2 bars",
+  "verticals": 104,
+  "consonant": 0.625,
+  "strong_consonant": 0.7142857142857143,
+  "iv_hist": {
+   "8": 10,
+   "3": 28,
+   "6": 16,
+   "5": 11
+  },
+  "diss_kinds": {
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": 1,
+   "neighbour": 9,
+   "appoggiatura / leapt-to, resolved by step": 1,
+   "passing": 18,
+   "passing (on the beat)": 5,
+   "suspension resolving up (retardation)": 1,
+   "neighbour (on the beat)": 1,
+   "other": 2,
+   "suspension (resolves down)": 1
+  },
+  "diss_examples": {
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": [
+    3
+   ],
+   "neighbour": [
+    3,
+    5,
+    11,
+    12
+   ],
+   "appoggiatura / leapt-to, resolved by step": [
+    4
+   ],
+   "passing": [
+    4,
+    4,
+    4,
+    5
+   ],
+   "passing (on the beat)": [
+    6,
+    11,
+    13,
+    13
+   ],
+   "suspension resolving up (retardation)": [
+    11
+   ],
+   "neighbour (on the beat)": [
+    12
+   ],
+   "other": [
+    13,
+    15
+   ],
+   "suspension (resolves down)": [
+    14
+   ]
+  },
+  "one_voice_moves": 0.5480769230769231,
+  "sequence": [
+   3,
+   29,
+   [
+    6,
+    16
+   ],
+   "beat"
+  ],
+  "melody": {
+   "step": 85,
+   "third": 8,
+   "fourth/fifth": 9,
+   "repeat": 2,
+   "sixth+": 2
+  }
+ },
+ "gv24:17-32": {
+  "piece": "gv24",
+  "title": "Goldberg Var. 24, Canone all'Ottava",
+  "section": "17-32",
+  "interval": "octave above",
+  "motion": "rectus",
+  "lag": "2 bars",
+  "verticals": 95,
+  "consonant": 0.6842105263157895,
+  "strong_consonant": 0.7666666666666667,
+  "iv_hist": {
+   "3": 22,
+   "5": 12,
+   "6": 20,
+   "8": 10,
+   "1": 1
+  },
+  "diss_kinds": {
+   "appoggiatura / leapt-to, resolved by step": 1,
+   "suspension (resolves down)": 2,
+   "passing": 15,
+   "neighbour": 4,
+   "neighbour (on the beat)": 1,
+   "other": 3,
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": 1,
+   "held, other": 1,
+   "passing (on the beat)": 2
+  },
+  "diss_examples": {
+   "appoggiatura / leapt-to, resolved by step": [
+    19
+   ],
+   "suspension (resolves down)": [
+    19,
+    19
+   ],
+   "passing": [
+    19,
+    19,
+    19,
+    19
+   ],
+   "neighbour": [
+    20,
+    27,
+    30,
+    30
+   ],
+   "neighbour (on the beat)": [
+    20
+   ],
+   "other": [
+    21,
+    30,
+    31
+   ],
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": [
+    21
+   ],
+   "held, other": [
+    28
+   ],
+   "passing (on the beat)": [
+    29,
+    31
+   ]
+  },
+  "one_voice_moves": 0.5263157894736842,
+  "sequence": [
+   5,
+   25,
+   [
+    19,
+    29,
+    32
+   ],
+   "beat"
+  ],
+  "melody": {
+   "step": 64,
+   "third": 10,
+   "sixth+": 5,
+   "fourth/fifth": 5,
+   "repeat": 9
+  }
+ },
+ "gv24:bass": {
+  "piece": "gv24",
+  "bass": [
+   11,
+   32,
+   [
+    "1",
+    "2",
+    "5",
+    "6",
+    "7",
+    "10",
+    "13",
+    "14",
+    "18",
+    "19",
+    "20",
+    "21",
+    "22",
+    "23",
+    "25",
+    "26",
+    "27",
+    "28",
+    "29",
+    "30",
+    "31"
+   ]
+  ]
+ },
+ "gv27:1-16": {
+  "piece": "gv27",
+  "title": "Goldberg Var. 27, Canone alla Nona",
+  "section": "1-16",
+  "interval": "ninth above",
+  "motion": "rectus",
+  "lag": "1 bar",
+  "verticals": 123,
+  "consonant": 0.6747967479674797,
+  "strong_consonant": 0.7,
+  "iv_hist": {
+   "3": 43,
+   "6": 19,
+   "8": 8,
+   "5": 13
+  },
+  "diss_kinds": {
+   "passing": 16,
+   "neighbour": 5,
+   "appoggiatura / leapt-to, resolved by step": 1,
+   "other": 1,
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": 5,
+   "suspension resolving up (retardation)": 1,
+   "passing (on the beat)": 1,
+   "held, other": 4,
+   "neighbour (on the beat)": 3,
+   "suspension (resolves down)": 3
+  },
+  "diss_examples": {
+   "passing": [
+    2,
+    7,
+    7,
+    8
+   ],
+   "neighbour": [
+    3,
+    4,
+    5,
+    7
+   ],
+   "appoggiatura / leapt-to, resolved by step": [
+    4
+   ],
+   "other": [
+    7
+   ],
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": [
+    7,
+    9,
+    9,
+    10
+   ],
+   "suspension resolving up (retardation)": [
+    8
+   ],
+   "passing (on the beat)": [
+    9
+   ],
+   "held, other": [
+    10,
+    10,
+    11,
+    12
+   ],
+   "neighbour (on the beat)": [
+    10,
+    15,
+    15
+   ],
+   "suspension (resolves down)": [
+    14,
+    14,
+    16
+   ]
+  },
+  "one_voice_moves": 0.5609756097560976,
+  "sequence": [
+   2,
+   15,
+   [
+    6,
+    13
+   ],
+   "bar"
+  ],
+  "melody": {
+   "step": 86,
+   "sixth+": 7,
+   "repeat": 2,
+   "fourth/fifth": 6,
+   "third": 17
+  }
+ },
+ "gv27:17-32": {
+  "piece": "gv27",
+  "title": "Goldberg Var. 27, Canone alla Nona",
+  "section": "17-32",
+  "interval": "ninth below",
+  "motion": "rectus",
+  "lag": "1 bar",
+  "verticals": 136,
+  "consonant": 0.7573529411764706,
+  "strong_consonant": 0.8214285714285714,
+  "iv_hist": {
+   "3": 38,
+   "6": 36,
+   "5": 12,
+   "8": 17
+  },
+  "diss_kinds": {
+   "neighbour": 9,
+   "passing": 17,
+   "neighbour (on the beat)": 2,
+   "suspension (resolves down)": 4,
+   "passing (on the beat)": 1
+  },
+  "diss_examples": {
+   "neighbour": [
+    19,
+    19,
+    20,
+    20
+   ],
+   "passing": [
+    20,
+    20,
+    20,
+    24
+   ],
+   "neighbour (on the beat)": [
+    21,
+    24
+   ],
+   "suspension (resolves down)": [
+    22,
+    30,
+    32,
+    32
+   ],
+   "passing (on the beat)": [
+    24
+   ]
+  },
+  "one_voice_moves": 0.47794117647058826,
+  "sequence": [
+   1,
+   24,
+   [
+    19
+   ],
+   "beat"
+  ],
+  "melody": {
+   "step": 97,
+   "sixth+": 5,
+   "fourth/fifth": 10,
+   "third": 17,
+   "repeat": 2
+  }
+ },
+ "gv27:bass": {
+  "piece": "gv27",
+  "bass": null
+ },
+ "aof-oct:1-103": {
+  "piece": "aof-oct",
+  "title": "Art of Fugue, Canon alla Ottava",
+  "section": "1-103",
+  "interval": "octave below",
+  "motion": "rectus",
+  "lag": "4 bars",
+  "verticals": 739,
+  "consonant": 0.6792963464140731,
+  "strong_consonant": 0.7878787878787878,
+  "iv_hist": {
+   "8": 55,
+   "3": 197,
+   "5": 64,
+   "6": 186
+  },
+  "diss_kinds": {
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": 15,
+   "neighbour": 53,
+   "appoggiatura / leapt-to, resolved by step": 21,
+   "passing (on the beat)": 11,
+   "passing": 79,
+   "other": 11,
+   "neighbour (on the beat)": 11,
+   "suspension resolving up (retardation)": 20,
+   "suspension (resolves down)": 6,
+   "held, other": 10
+  },
+  "diss_examples": {
+   "leapt-to, resolved by step (\u00e9chapp\u00e9e/cambiata family)": [
+    5,
+    9,
+    9,
+    9
+   ],
+   "neighbour": [
+    5,
+    5,
+    6,
+    6
+   ],
+   "appoggiatura / leapt-to, resolved by step": [
+    7,
+    8,
+    12,
+    13
+   ],
+   "passing (on the beat)": [
+    7,
+    14,
+    17,
+    19
+   ],
+   "passing": [
+    7,
+    8,
+    8,
+    8
+   ],
+   "other": [
+    9,
+    10,
+    10,
+    31
+   ],
+   "neighbour (on the beat)": [
+    11,
+    33,
+    37,
+    43
+   ],
+   "suspension resolving up (retardation)": [
+    13,
+    13,
+    13,
+    13
+   ],
+   "suspension (resolves down)": [
+    21,
+    52,
+    56,
+    56
+   ],
+   "held, other": [
+    40,
+    58,
+    58,
+    68
+   ]
+  },
+  "one_voice_moves": 0.42219215155615697,
+  "sequence": [
+   60,
+   214,
+   [
+    1,
+    2,
+    7,
+    8,
+    9,
+    10,
+    15,
+    25
+   ],
+   "beat"
+  ],
+  "melody": {
+   "fourth/fifth": 72,
+   "step": 437,
+   "sixth+": 59,
+   "repeat": 22,
+   "third": 74
+  }
+ }
+}
