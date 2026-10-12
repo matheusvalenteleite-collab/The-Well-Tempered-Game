@@ -73,8 +73,19 @@ readings), and it takes one of the two active slots, or the owner widens C2 for 
 
 ### INVENTIONS (opened 12 October)
 
-- **First task:** a literature review (see the session's charter); then I1-I6 as it proposes and the owner
-  approves.
+- **Done: I0, the literature review (12 October).**
+  - 60-odd references, each checked by search, are in `docs/LITERATURE.md` (section INVENTIONS) with tier,
+    question and access; leads that could not be checked are listed apart.
+  - The narrative is `docs/inventions/LITERATURE-REVIEW.md`: what is established, the disagreements, the
+    owner's "conservative" hypothesis split into pedagogical precedence (documented) and technical
+    conservatism (untested), and the gaps.
+  - **Waiting for the owner** to choose what is read first. Nothing beyond I0 has started.
+- **Needs:** the owner's library access for Derr 1981, Väisälä 2009, Dreyfus 1996 and Schulenberg 2006
+  (not open).
+- **Offers:**
+  - to FUGUE: Dreyfus 1996, Walker 2000 and Giraud et al. 2015 are listed for both sessions; Gingras 2008 is
+    listed as FUGUE's.
+  - to CHORALES: Remeš 2019 (both ZGMTH articles, open) on thoroughbass and chorales in Bach's teaching.
 
 ### ANALYSIS CORE
 
