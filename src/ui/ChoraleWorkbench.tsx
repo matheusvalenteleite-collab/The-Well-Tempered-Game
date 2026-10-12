@@ -1,5 +1,5 @@
 /**
- * The chorale workbench (C26, C27): one of Kittel's melodies harmonized from the top down on one
+ * The chorale workbench (C26, C27): one of Kittel's melodies harmonized, from the melody down or (C34) from the bass up, on one
  * screen, in six stages whose answers stay in the score as it grows: the chord each phrase ends on
  * (1) and the chord under every note (2), written under the melody; the bass (3); Kittel's bass
  * nearest the player's, figured (4); the alto and tenor (5); their diminution (6). Each stage starts

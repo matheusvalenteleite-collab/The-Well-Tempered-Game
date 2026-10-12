@@ -4,7 +4,7 @@ Agreed with the owner on 11 October 2026, after levels 0-6 had been built as sep
 
 ## The objective
 
-**A course in harmonizing a chorale from the top down, for a learner coming from the Fux mode.**
+**A course in harmonizing a chorale, for a learner coming from the Fux mode,** from the melody down or from the bass up (C34: the owner never asked for one direction only).
 The Fux mode is the strict discipline and the prerequisite; the chorale mode teaches harmony
 through Bach's practice (C16: one style, Bach's; C21: no errors, warnings of three gravities).
 

@@ -1,5 +1,5 @@
 /**
- * The chorale workbench (C26): one of Kittel's melodies harmonized from the top down in six stages
+ * The chorale workbench (C26): one of Kittel's melodies harmonized in six stages (from the melody down, or from the bass up, C34)
  * (cadences, harmony, bass, figures, inner voices, diminution), each starting from the player's
  * answers to the stages before.
  */
