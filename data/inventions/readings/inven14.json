@@ -1,0 +1,55 @@
+{
+ "id": "inven14",
+ "key": "Bb",
+ "meter": "4/4",
+ "bars": 20,
+ "reader_notes": "Independent reading from the note text (dump.ts, bars 0-20), under PROTOCOL.md; no published analysis consulted. x = one half-bar unit: a thirty-second turn Bb C D C + Bb (1:1.25-1:1.75) and a broken chord F D Bb F (sixteenths) landing on D at 1:3. x-INV = the same unit inverted (turn falling first, broken chord the other way): 1:3.25 F Eb D Eb F Bb D F Ab -> G, an inversion by scale steps (tonal). The opening line is a chain of six such units, x and x-INV alternating (1:1.25-4:1). y = the bass's eighth-note arpeggios with a held quarter (1:1.5 Bb2 D3 F3 Bb3), a continuo-like line. 'Head' = the turn alone.",
+ "opening": {
+  "leader": {"voice": 0, "from": "1:1.25", "to": "4:1", "material": "the x chain (x, x-INV, x, x-INV, x varied, x): Bb to F"},
+  "first_imitation": {"voice": 1, "at": "6:1.25", "interval": "5 above / 4 below", "distance_beats": 20, "exact": true},
+  "leader_meanwhile": "exchange: the right hand takes over the bass's line y (6:1.5 F4 A4 C5 F5, 7:1.5 F Bb D F, 8:1.5 G Bb C E) while the bass plays the whole x chain in F (an 11th below)",
+  "notes": "The bass begins as a non-thematic continuo line (y, bars 1-3). Between the statement and the answer, bars 4-5 imitate x's head (the turn) at one beat in contrary motion; the first of these, bass 4:1.25 Bb C D C Bb, is a head-only imitation 8 below and is not counted as the first imitation. The answer at 6:1.25 is exact for the whole three-bar chain (to 9:1). Not a canon."
+ },
+ "paradigms": [
+  {
+   "name": "alpha",
+   "prime": {"bars": "1:1-4:1", "voices": {"0": "the x chain, Bb - F7 - Eb - c - F7 - F", "1": "y: eighth arpeggios with a quarter, one per bar (Bb, Eb, F7/C)"}, "key": "Bb to F (dominant)"},
+   "members": [
+    {"bars": "6:1-9:1", "key": "F (to C)", "operations": ["TRANSPOSE F", "EXCHANGE 8"], "reason": "Bass: the x chain exactly, a fifth higher/fourth lower (6:1.25 F G A G F C A F C ... to A3 at 9:1). Right hand: y transposed (F A C F, F Bb D F, G Bb C E). The chain moves 11th down, y a 12th up: inversion at the compound octave. VARY: one note of y (8:1.5 G4 for F4)."}
+   ]
+  }
+ ],
+ "elaborations": [
+  {"bars": "4:1-5:3", "function": "link, closing on the dominant (HC) before alpha in F", "material": "x's head (the turn plus a leap of a fourth to an eighth) imitated at one beat: rising turns in the bass (Bb, A, G), falling turns (x-INV head) in the right hand (G, F, Eb); at 5:2.25 both voices turn at once in contrary motion", "sequence": {"type": "down by step", "unit_beats": 2, "repeats": 3, "imitative": true}},
+  {"bars": "9:1-12:1", "function": "link from F to c, through g and Eb", "material": "x (with x-INV as second half) one bar at a time, alternating voices: right hand 9:1.25 (F, to D7), bass 10:1.25 (g, to Bb7), right hand 11:1.25 (c, to G7); the other voice in continuous eighth-note broken chords (related to y but not its shape)", "sequence": {"type": "other: a one-bar unit (tonic, then dominant seventh of the next key), goals g, Eb, c: down by third", "unit_beats": 4, "repeats": 3, "imitative": true}},
+  {"bars": "12:1-14:1", "function": "link from c toward Eb / Bb", "material": "canon at one beat at the double octave (bass leads 12:1.25, right hand 12:2.25): x's rising turn plus a dotted-eighth figure (C3 e. Bb2 A2); strict to 13:4, where the right hand's last turn is inverted (Bb Ab G Ab Bb)", "sequence": {"type": "descending fifths", "unit_beats": 2, "repeats": 4, "imitative": true}},
+  {"bars": "14:1-16:3", "function": "approach to the IAC in Bb", "material": "x's head (turn plus a leap) on every beat in both voices together, in parallel tenths and thirds, the direction of the turn alternating", "sequence": {"type": "down by step", "unit_beats": 2, "repeats": 4, "imitative": false}},
+  {"bars": "16:3-20:1", "function": "return and close", "material": "the x chain in the tonic in the bass (16:3.25), with the right hand in stretto one beat later (16:4.25); see statements. From 18:3 the bass continues the chain on F (V7) to the cadence while the right hand turns to cadential figuration (dotted-eighth figure, turns)", "sequence": null}
+ ],
+ "statements": [
+  {"voice": 1, "at": "4:1.25", "key": "Bb", "form": "prime", "extent": "head only", "note": "first of the turn imitations of bars 4-5"},
+  {"voice": 0, "at": "9:1.25", "key": "F to g", "form": "x then x-INV, varied (landings displaced, F#)", "extent": "one bar (two units)"},
+  {"voice": 1, "at": "10:1.25", "key": "g to Eb", "form": "x then x-INV", "extent": "one bar (two units)"},
+  {"voice": 0, "at": "11:1.25", "key": "c", "form": "x then x-INV, varied (B natural)", "extent": "one bar (two units)"},
+  {"voice": 1, "at": "16:3.25", "key": "Bb", "form": "prime (the chain)", "extent": "complete: exact for four units to 18:2.75 (last unit Eb G Bb D for Eb G C Eb), then two more units on F7 to the cadence (18:3.25-19:3), head at 19:3.25"},
+  {"voice": 0, "at": "16:4.25", "key": "Bb", "form": "prime (the chain), in stretto 8 above, one beat after the bass", "extent": "strict to 17:2.75; 17:3 varied (Bb Eb Bb Eb G for Bb D F Ab G); strict again 17:4.25-18:2.75; then breaks off into the cadence"}
+ ],
+ "cadences": [
+  {"at": "5:3", "key": "Bb", "kind": "HC", "bass": "2-5", "reason": "C (5:2, with the turn C D Eb D C) to F3 (5:3); the right hand's Eb5 leaps to A4: F7 over C moving to F. F is then held (5:3-6:1) and alpha begins on it. Unsure: it may be read as an arrival in F, but no dominant of F precedes it and the Eb keeps F as V of Bb."},
+  {"at": "12:1", "key": "c", "kind": "IAC", "bass": "5-1", "reason": "G2 (11:4.5, over B3 in the right hand) to C3; the right hand lands on Eb4 (third), not C."},
+  {"at": "16:3", "key": "Bb", "kind": "IAC", "bass": "7-1", "reason": "A2 (16:2, F7 over A, V6/5) to Bb2; right hand to D4. The tonic return begins on it (bass x at 16:3.25)."},
+  {"at": "20:1", "key": "Bb", "kind": "PAC", "bass": "5-1", "reason": "F3 F2 (19:4) to Bb2; right hand C5 A4 to Bb4."}
+ ],
+ "layout": {
+  "order": ["alpha Bb-F (1-4:1)", "link, head imitation, to HC (4-5:3)", "alpha' F-C, voices exchanged (6-9:1)", "sequence on x, g-Eb-c (9-12:1)", "canon on the head, descending fifths (12-14:1)", "parallel turns to Bb (14-16:3)", "return: x chain in Bb in stretto, and close (16:3-20)"],
+  "sections": [{"bars": "1-5:3", "ends": "HC Bb"}, {"bars": "5:3-12:1", "ends": "IAC c"}, {"bars": "12:1-20", "ends": "PAC Bb (IAC Bb at 16:3 inside)"}],
+  "returns": [
+   {"bar": 6, "what": "the opening (alpha) restated in F, voices exchanged"},
+   {"bar": 16, "what": "the opening line (x chain) in the tonic in the bass at 16:3.25, in stretto with the right hand"}
+  ],
+  "form": "tripartite"
+ },
+ "kind": {"primary": "motivic-sequential", "also": []},
+ "confidence": "sure",
+ "notes": "Unsure calls: (1) the half cadence at 5:3 (alternative: an arrival in F without a cadence); (2) the form: tripartite (1-5:3, 6-12:1 beginning with alpha in F, 12-20 with the tonic return at 16:3), but the sections are of 5, 6.5 and 8 bars and the strongest internal cadence is only an IAC in c; (3) the return at 16:3 is not counted as a member of alpha because y is absent: the right hand imitates the chain in stretto instead (STRETTO, rare here), so it is recorded as two statements. Fugal traits (a long solo statement over a continuo bass, an exact answer at the dominant with the leader taking the bass's line, a stretto at the return) are present but the piece is mostly built from x's half-bar unit and its head in sequence, imitation and inversion, so motivic-sequential is the primary label. The arrival at 9:1 (C7 to F over A) is an inverted tonic, not a cadence. About 3 of 20 bars are a paradigm member (6-8); the return in bars 16-19 adds another 3 if counted."
+}

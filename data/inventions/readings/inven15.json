@@ -1,0 +1,59 @@
+{
+ "id": "inven15",
+ "key": "b",
+ "meter": "4/4",
+ "bars": 22,
+ "reader_notes": "Independent reading from the note text (dump.ts, bars 0-22), under PROTOCOL.md; no published analysis consulted. x = the subject, 1:1.5-3:1: B A# B (sixteenth, sixteenth, eighth), F# G F# B F# (eighths) | F# E C# E (eighths), E D C# D E F# E (eighth then sixteenths), landing on F# at 3:1 (the dominant). y = the countersubject in sixteenths, first in the right hand 3:2.25-4:2.75 (A G# A B C# B G# A B A F# | G# A G# F# E# G# F# E#). x and y are stated together and exchanged throughout.",
+ "opening": {
+  "leader": {"voice": 0, "from": "1:1.5", "to": "3:1", "material": "x, over a continuo bass in eighths on the beats (B D E D | C# A# B G | F#)"},
+  "first_imitation": {"voice": 1, "at": "3:1.5", "interval": "5 above / 4 below", "distance_beats": 8, "exact": false},
+  "leader_meanwhile": "free counterpoint that becomes a countersubject: y (3:2.25-4:2.75) against the answer, then cadential figuration to f#; the follower does not go on copying the leader. At 5:3.5 the leader takes x again in f# with y in the bass (exchange)",
+  "notes": "The answer is real (F# E# F# C# D C# F# C# | C# B G# B B A G# A ...), an 11th below, exact to 4:3.75; its last beat is varied (eighths A2 B2 for the sixteenths) and it lands on C#3 at 5:1. The bass is a non-thematic continuo line until its own entry. The end of the solo subject at 3:1 (bass G2 to F#2 under the right hand's F#4) is a half close on V, but it is the subject's own ending, not counted as a cadence."
+ },
+ "paradigms": [
+  {
+   "name": "alpha",
+   "prime": {"bars": "3:1.5-5:3", "voices": {"0": "y (3:2.25), then cadential figuration (C#5 F# E# F# A G# B A B C# D G#. F#)", "1": "x (the answer, in f#)"}, "key": "f#", "ends_with": "PAC in f# at 5:3"},
+   "members": [
+    {"bars": "5:3.5-7:3", "key": "f#", "operations": ["EXCHANGE 8", "VARY"], "reason": "x in the right hand (5:3.5 F#5 E#5 F#5 C#5 ...), y in the bass, exact from 5:4.75 (A2 B2 C#3 B2 G#2 ... E#2, to F#2 at 7:1). VARY: y's first notes (F#2 e. G#2 A2 B2 G#2); x's tail (A B A E# -> F#) ends on the tonic f# instead of on its dominant."},
+    {"bars": "12:1.5-14:1", "key": "D", "operations": ["TRANSPOSE D", "MODESWITCH", "VARY"], "reason": "x in the bass (12:1.5 D4 C#4 D4 A3 B3 A3 D4 A3 | A3 G3 E4 G3 G3 F#3 E3 F#3 G#3 A3 G#3 -> A3), y in the right hand (12:2.25 F# E F# G A G E F# G F# D | E F# E D C# E D C#); same layout as the prime. VARY: G# in x's tail (to reach A, the dominant, as a key); y ends on D4 (13:3) by step, not by the prime's leap."},
+    {"bars": "14:1.5-16:1", "key": "A (toward e)", "operations": ["TRANSPOSE A", "MODESWITCH", "EXCHANGE 8", "VARY"], "reason": "x in the right hand (14:1.5 A G# A E F# E A E | E D B D D C# B C# D# E D#), y in the bass, exact from 14:2.75 (A2 ... D3 E3 D3 B2 C#3 D3 C#3 A2 B2 C#3 B2 A2 G#2 B2 A2 G#2, to A2 at 15:3). VARY: D# for D in x's tail, turning toward e; x's expected landing (E) is replaced at 16:1 by the start of the next sequence; y's first notes (D3 C#3 B2 A2)."},
+    {"bars": "18:1.5-19:3.5", "key": "b", "operations": ["TRANSPOSE b", "VARY"], "reason": "Tonic return: x in the bass at the prime's layout (18:1.5 B3 A#3 B3 F#3 G3 F#3 B3 F#3 | F#3 E3 C#4 E3 E3 D3 C#3 D3), y in the right hand (from 18:3 E F# E C#, D E D B, C# D C# B, then A# B C# A# for A# C# B A#). VARY: y's head (18:1 G5 E5 F#5 C#5 D5 E5 F#5 D5) and last group; x's tail (19:3.5 D C# D B C# D) runs straight into y in the bass."},
+    {"bars": "19:3.5-21:1", "key": "b", "operations": ["EXCHANGE 8", "VARY"], "reason": "x in the right hand (19:3.5 B4 A#4 B4 F#4 G4 F#4 B4 F#4 | F#4 E4 C#5 E4 E4 D4 C#4 D4 F#4 E4 G4 -> F#4), y in the bass exactly (20:1 E F# E C# D E D B C# D C# B A# C# B A# -> B2). VARY: x's tail (F# E G for E F# E) bent toward the final cadence. Six beats after the bass's x (the prime distance is eight): the two tonic entries overlap."}
+   ]
+  }
+ ],
+ "elaborations": [
+  {"bars": "7:1-8:1", "function": "link from f# toward b / e", "material": "x's head imitated: bass 7:1.5 F#3 E#3 F#3 C#3 D3 (f#), right hand 7:3.5 F#5 E5 F#5 C#5 -> D5 (E natural); against it the bass's 7:3.5 D4 C#4 D4 E4 D4 A#3 -> B3, the cell of x's second bar", "sequence": null},
+  {"bars": "8:1-10:1", "function": "link (episode) from b/e toward D", "material": "right hand: sixteenth cells, a neighbour figure and broken chord around a repeated note (8:1 D E D B E B F# B); bass: falling scales in eighths with an octave drop (B A G F# E, E2 F#2 G2 | A2 G3 F#3 E3 D3, D2 E2 F#2 | G2 ...). Free, the neighbour cell recalls x's head", "sequence": {"type": "descending fifths", "unit_beats": 2, "repeats": 4, "imitative": false}},
+  {"bars": "10:1-12:1", "function": "approach to the PAC in D", "material": "the same cells one per beat over a bass alternating step and fourth (G2 G3, F#3 B3, E3 A3, D3 D4); then (11) the right hand's eighths in broken sixths (G4 E5 F#4 D5 E4 C#5) over sixteenths in the bass", "sequence": {"type": "descending fifths", "unit_beats": 1, "repeats": 4, "imitative": false}},
+  {"bars": "15:3-18:1", "function": "link (episode) from A / e back to b", "material": "right hand: two-beat cells of a falling third then rising sixteenths with a chromatic neighbour (16:1 A F# G A G# A# B A#; 16:3 E C# D E D# E# F# E#; 17:1 B G# A B4 C# D# E D#; 17:3 A F# G A4 B C# D C#), first rising by fifth then falling by step; bass: the falling eighth-note scales of the first episode", "sequence": {"type": "other: chain of dominant-seventh cells (C#7, B7, A7 and so on), rising then falling by step; read loosely as descending fifths", "unit_beats": 2, "repeats": 4, "imitative": false}},
+  {"bars": "21:1-22:1", "function": "final cadence", "material": "x's tail in the right hand (D C# D F# E G F#. D5 A#. B); x's head in the bass (21:1.5 B3 A#3 B3 G3), then D F# E G F# and F#3 F#2 to B2", "sequence": null}
+ ],
+ "statements": [
+  {"voice": 0, "at": "1:1.5", "key": "b", "form": "prime", "extent": "complete", "note": "the subject alone over a continuo bass"},
+  {"voice": 1, "at": "7:1.5", "key": "f#", "form": "prime", "extent": "head only"},
+  {"voice": 0, "at": "7:3.5", "key": "b (E natural)", "form": "prime", "extent": "head only"},
+  {"voice": 1, "at": "21:1.5", "key": "b", "form": "varied (B A# B G)", "extent": "head only", "note": "in the close"}
+ ],
+ "cadences": [
+  {"at": "5:3", "key": "f#", "kind": "PAC", "bass": "5-1", "reason": "C#3 C#2 (5:2) to F#2 (5:3); right hand G#4 (dotted) F#4 to F#4."},
+  {"at": "12:1", "key": "D", "kind": "PAC", "bass": "5-1", "reason": "A3 (11:4.75, after G3 F#3 G3) to D3 (12:1); right hand C#5 to D5."},
+  {"at": "14:1", "key": "A", "kind": "IAC", "bass": "7-1", "reason": "G#3 (13:4.75) to A3 at the end of the subject in D; the right hand comes down C#5 B4 A4 G#4 to A4 at 14:2. Unsure: it is the subject's own ending, overlapped by the next entry, and could be left uncounted like the subject's end at 3:1."},
+  {"at": "18:1", "key": "D", "kind": "IAC", "bass": "5-1", "reason": "A2 (17:4.5, A7 in the right hand) to D2 (18:1, an eighth); the right hand's G5 is an appoggiatura resolving to F#5 at 18:1.5. Unsure: the arrival is fleeting, and the bass turns at once to x in b (18:1.5); it may be read as the last link of the sequence rather than a cadence."},
+  {"at": "22:1", "key": "b", "kind": "PAC", "bass": "5-1", "reason": "F#3 F#2 (21:4) to B2; right hand D5 A#4 B4 to B4."}
+ ],
+ "layout": {
+  "order": ["x solo, b-f# (1-3:1)", "alpha f# (answer + y) (3:1.5-5:3)", "alpha' f#, exchanged (5:3.5-7:3)", "link, heads (7-8:1)", "episode, descending fifths (8-12:1)", "alpha'' D (12:1.5-14:1)", "alpha''' A, exchanged (14:1.5-16:1)", "episode (15:3-18:1)", "alpha'''' b (18:1.5-19:3.5)", "alpha''''' b, exchanged (19:3.5-21:1)", "close (21-22)"],
+  "sections": [{"bars": "1-5:3", "ends": "PAC f#"}, {"bars": "5:3-12:1", "ends": "PAC D"}, {"bars": "12:1-22", "ends": "PAC b"}],
+  "returns": [
+   {"bar": 3, "what": "x in f# (the answer) at 3:1.5; the first combined x+y segment"},
+   {"bar": 12, "what": "x+y in D (relative major) at 12:1.5, after the central PAC"},
+   {"bar": 18, "what": "x+y in the tonic at 18:1.5 (bass), then exchanged at 19:3.5 (right hand)"}
+  ],
+  "form": "rounded bipartite"
+ },
+ "kind": {"primary": "fugal", "also": ["double (x and y are always stated together and exchanged)"]},
+ "confidence": "sure",
+ "notes": "Fugal in layout: a subject alone over a continuo bass, a real answer at the dominant with a countersubject, a third entry (right hand, f#) exchanging the pair, an episode, entries in D and A, an episode, and two entries in the tonic in overlap, with the countersubject kept throughout (invertible at the octave). Form call unsure: rounded bipartite reads the PAC in D at 12:1 as the central cadence (III) with the tonic return at 18:1.5; the alternative is tripartite (1-5:3, 5:3-12:1, 12:1-22; the second section begins with x in f#), with sections of 4.5, 6.5 and 10 bars. The arrival on e at 16:1 (B7 over F# to E in the bass, with A in the right hand) is not counted as a cadence: the expected landing of x is replaced by the episode. About 12 of 22 bars are paradigm members, plus the opening solo statement."
+}
