@@ -21,6 +21,8 @@ the stile antico (Ricercar a 6); BWV 903 a chromatic subject and the free keyboa
 
 ## 2. The steps
 
+*Superseded as a plan by `docs/wtc/KNOWLEDGE-PLAN.md` (12 October); kept as the record of R1-R4.*
+
 1. **Settled subjects (R1).** The subject of every fugue, its end decided by hand from the score
    (the machine's reading doubtful in 22 of the 48), its answer (real or tonal, which notes mutated),
    the codettas of the exposition. Every later count rests on this. Read by five readers on one
