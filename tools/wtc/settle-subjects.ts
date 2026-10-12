@@ -22,7 +22,7 @@ interface Reading {
 }
 const pieces = [...(JSON.parse(readFileSync("data/wtc/fugues.json", "utf8")) as WtcPiece[]), ...(JSON.parse(readFileSync("data/wtc/more.json", "utf8")) as WtcPiece[])];
 const dir = "data/wtc/subject-readings";
-const readings: Reading[] = readdirSync(dir).filter((f) => f.endsWith(".json")).flatMap((f) => JSON.parse(readFileSync(`${dir}/${f}`, "utf8")));
+const readings: Reading[] = readdirSync(dir).filter((f) => f.endsWith(".json")).flatMap((f) => JSON.parse(readFileSync(`${dir}/${f}`, "utf8"))).filter((r) => r && typeof r.id === "string" && "subject_end" in r);
 const out: Record<string, unknown> = {};
 for (const r of readings) {
   const p = pieces.find((x) => x.id === r.id);

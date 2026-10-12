@@ -89,11 +89,11 @@
  },
  {
   "id": "wtc1f07",
-  "subject_end": 23,
-  "subject_end_at": "3:1",
-  "subject_last_pitch": "G4",
+  "subject_end": 15,
+  "subject_end_at": "2:3",
+  "subject_last_pitch": "Bb4",
   "answer": "tonal",
-  "answer_end": 23,
+  "answer_end": 15,
   "mutated": [
    0,
    10,
@@ -101,16 +101,35 @@
    12,
    13,
    14,
-   15,
-   16,
-   17,
-   22
+   15
   ],
-  "codetta_before_answer_beats": 0,
-  "codetta_before_third_beats": 3.75,
-  "confidence": "unsure",
-  "reason": "The head (to C5 at 2:2) and its broken-chord sixteenth tail land on G4 (^3) on the downbeat of bar 3, under the answer's entry, and the bass entry repeats all 24 notes exactly. The answer copies the tail only with tonal adjustments, so the tail might instead be heard as a link.",
-  "note": "The subject modulates (A natural) toward Bb. In the answer, the head is a fourth below with Bb->Eb at the start, the middle section (from A4 at 1:4.5) is answered a fifth below to return to the tonic, and the tail goes back to the dominant level."
+  "codetta_before_answer_beats": 1.75,
+  "codetta_before_third_beats": 5.75,
+  "confidence": "sure",
+  "reason": "D163 (criterion (a), what later statements keep): The head and its fall Eb5-D5-C5 to Bb4 (^5) at 2:3 is kept by every statement. The broken-chord sixteenths after it are kept only in the exposition (answer 3:1, bass 6:1, soprano 10:4.5). The five later statements (17:3, 20:3, 25:4.5, 28:4, 33:4.5) all reach that Bb, or its equivalent C4/G3/Eb3/Bb4/Eb4, and then leave the arpeggio: 17:3 and 20:3 move to free sixteenths, 25:4.5 to an eighth-note scale, 28:4 to the arpeggio in eighths, 33:4.5 holds the arrival note. Others: Groocock (ends at the 4th note of bar 2, the arpeggio is a codetta re-establishing I); Algomus S is 1.5 bars, the same end. Keller (2 bars) agrees with the old reading.",
+  "note": "The subject modulates (A natural) toward Bb. In the answer, the head is a fourth below with Bb->Eb at the start, the middle section (from A4 at 1:4.5) is answered a fifth below to return to the tonic, and the tail goes back to the dominant level.",
+  "previous": {
+   "subject_end": 23,
+   "subject_end_at": "3:1",
+   "subject_last_pitch": "G4",
+   "answer_end": 23,
+   "mutated": [
+    0,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    22
+   ],
+   "codetta_before_answer_beats": 0,
+   "codetta_before_third_beats": 3.75,
+   "confidence": "unsure",
+   "reason": "The head (to C5 at 2:2) and its broken-chord sixteenth tail land on G4 (^3) on the downbeat of bar 3, under the answer's entry, and the bass entry repeats all 24 notes exactly. The answer copies the tail only with tonal adjustments, so the tail might instead be heard as a link."
+  }
  },
  {
   "id": "wtc1f08",
@@ -160,19 +179,32 @@
  },
  {
   "id": "wtc1f11",
-  "subject_end": 20,
-  "subject_end_at": "5:1",
-  "subject_last_pitch": "C4",
+  "subject_end": 14,
+  "subject_end_at": "4:1",
+  "subject_last_pitch": "A3",
   "answer": "tonal",
-  "answer_end": 20,
+  "answer_end": 14,
   "mutated": [
    0
   ],
-  "codetta_before_answer_beats": 0,
-  "codetta_before_third_beats": 1,
+  "codetta_before_answer_beats": 1.5,
+  "codetta_before_third_beats": 4.5,
   "confidence": "sure",
-  "reason": "The rising sixteenths arrive on C4 (^5) on the downbeat of bar 5, just after the answer enters at 4:3; the answer copies them to G4 at 9:1 (made an eighth), and the scale that follows in voice 1 is the countersubject.",
-  "note": "Opens with an upbeat in 3/8. The head C->F (^5->^1) is the only mutation."
+  "reason": "D163 (criterion (a), what later statements keep): Every statement keeps the subject to A3 (^3) on the downbeat of bar 4. After that the rising sixteenths to C4 at 5:1 survive only in the answer, the bass at 9:3, the soprano at 17:3, and partly the middle voice at 21:3. The later entries at 25:3, 27:3, 36:3, 38:3 and 40:3 all leave right after the downbeat note (C4/A2/A5 on a different turn, or a held note), and the stretti at 46-50 alter it even earlier. Others: Groocock and Keller (first note of bar 4, then a codetta); Algomus 3 bars, with Keller's alternative +1/8 to this note. Riemann and Busoni end two notes later; Czaczkes, Bruhn and Dürr start the countersubject at the 2nd note of bar 4.",
+  "note": "Opens with an upbeat in 3/8. The head C->F (^5->^1) is the only mutation.",
+  "previous": {
+   "subject_end": 20,
+   "subject_end_at": "5:1",
+   "subject_last_pitch": "C4",
+   "answer_end": 20,
+   "mutated": [
+    0
+   ],
+   "codetta_before_answer_beats": 0,
+   "codetta_before_third_beats": 1,
+   "confidence": "sure",
+   "reason": "The rising sixteenths arrive on C4 (^5) on the downbeat of bar 5, just after the answer enters at 4:3; the answer copies them to G4 at 9:1 (made an eighth), and the scale that follows in voice 1 is the countersubject."
+  }
  },
  {
   "id": "wtc1f12",

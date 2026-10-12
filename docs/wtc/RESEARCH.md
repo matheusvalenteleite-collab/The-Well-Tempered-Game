@@ -113,3 +113,11 @@ answered one by one.
   precision 92%, recall 86%; Book II 87% and 88%. Weakest: II/3 (10 of his 31 entries: he counts the four-note head
   as the subject in most entries), I/4 and II/14 (later subjects). His subject ends differ from the settled ones in
   I/7, I/11, II/15, II/23 (his shorter, the rest a codetta) and II/7 (disputed by him): for the owner.
+- **D163 applied (12 October):** the owner's criterion (a), the subject is what later statements keep. Measured for
+  all 63 (`docs/wtc/KEPT.md`), the candidates read against Bach's statements: seven subjects shortened (I/7, I/11,
+  II/3, II/15, II/17, II/20, II/23; the old readings kept under `previous`), seven kept (I/22, II/6, II/7, II/16,
+  AoF III, IV, BWV 903). Analysis fixes: heads spun in sequence no longer entries; later subjects found in a varied
+  rhythm. Groocock: Book I precision 93%, recall 88% (was 92/86); Book II 88/91 (was 87/88); II/3 15 of 31 (was 10:
+  its inversions, augmentations and four-note heads still missed); the gold standard unchanged (98/93); Ledbetter's
+  entries 159 of 173. One cost: I/11's stretto at b. 46 (entries two bars apart) is no longer a stretto under D137's
+  "before the first is half over", the subject being shorter; Groocock and Ledbetter call it one.

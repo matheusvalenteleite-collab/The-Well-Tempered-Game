@@ -18,11 +18,11 @@ An entry matches when it is in the same voice and begins within a beat, as in `R
 | I/4 | 13 | 12 | +1 |  |
 | I/5 | 3.75 | 4 | -0.25 | [length 0.5] ## Charlier |
 | I/6 | 6.75 | 6 | +0.75 |  |
-| I/7 | 8.5 | 6 | +2.5 | [length 2] ## Keller |
+| I/7 | 6.25 | 6 | +0.25 | [length 2] ## Keller |
 | I/8 | 11.5 | 10 | +1.5 |  |
 | I/9 | 4.75 | 2 | +2.75 | [length 1] ## Prout; [length 1.5] ## Keller |
 | I/10 | 6.5 | 6 | +0.5 | [end 0] ## Prout |
-| I/11 | 6.75 | 4.5 | +2.25 | [end +1/8] ## Keller |
+| I/11 | 5.25 | 4.5 | +0.75 | [end +1/8] ## Keller |
 | I/12 | 11.5 | 12 | -0.5 |  |
 | I/13 | 8 | 8 | = |  |
 | I/14 | 20 | 18 | +2 |  |
@@ -37,7 +37,7 @@ An entry matches when it is in the same voice and begins within a beat, as in `R
 | I/23 | 9 | 8 | +1 |  |
 | I/24 | 12.25 | 12 | +0.25 |  |
 
-The settled subject's length within an eighth note of the reference's in 13 of 24. The reference measures a subject from its first note to where the next pattern takes over, in fractions of a bar, so a difference of an eighth or less is a difference of convention (whether the last note is counted whole), not of reading.
+The settled subject's length within an eighth note of the reference's in 14 of 24. The reference measures a subject from its first note to where the next pattern takes over, in fractions of a bar, so a difference of an eighth or less is a difference of convention (whether the last note is counted whole), not of reading.
 
 ## 2. Entries: the study's analysis against the reference
 
@@ -49,7 +49,7 @@ The settled subject's length within an eighth note of the reference's in 13 of 2
 | I/4 | 44 | 65 | 31 | 48% | 70% | S2 v0 b.36; S2 v0 b.47; S2 v0 b.82; S2 v1 b.60; S2 v1 b.79; S2 v2 b.52; S2 v2 b.55; S2 v2 b.74; S2 v3 b.92; S2 v4 b.45; S2 v4 b.67; S2 v4 b.77; S3 v3 b.99 | S1 v1 19:2.5 subject; S1 v4 34:2 subject; S1 v0 44:1 subject; S1 v0 54:2 subject; S1 v0 70:2.75 subject; S1 v1 72:2 subject; S1 v0 94:1 subject; S1 v1 94:2 subject; S1 v0 101:2 subject; S2 v0 36:1.25 subject; S2 v4 45:1.25 subject; S2 v0 47:1.25 subject; S2 v1 49:1.25 subject; S2 v2 52:1.25 subject; S3 v0 52:1.5 subject; S2 v2 55:1.25 subject; S3 v1 57:1.5 subject; S2 v0 58:1.25 subject; S2 v1 60:1.25 subject; S3 v0 62:1.5 subject; S2 v4 67:1.25 subject; S3 v1 67:1.5 subject; S2 v0 69:1.25 subject; S3 v2 69:1.5 subject; S2 v2 74:1.25 subject; S2 v4 77:1.25 subject; S2 v1 79:1.25 subject; S3 v4 79:1.5 subject; S2 v0 82:1.25 subject; S3 v3 84:1.5 subject; S3 v1 85:1.5 subject; S2 v3 92:1.25 subject; S3 v2 107:1 subject; S3 v1 107:1.5 subject |
 | I/5 | 11 | 17 | 11 | 65% | 100% | – | S1 v3 11:1 subject; S1 v3 13:1 subject; S1 v0 20:1 subject; S1 v1 20:2 subject; S1 v3 22:3 subject; S1 v3 24:4 subject |
 | I/6 | 17 | 18 | 17 | 94% | 100% | – | S1 v0 35:1.5 subject |
-| I/7 | 9 | 9 | 9 | 100% | 100% | – | – |
+| I/7 | 9 | 11 | 9 | 82% | 100% | – | S1 v0 14:3.5 subject; S1 v2 32:3.5 subject |
 | I/8 | 26 | 34 | 24 | 71% | 92% | S-inv v1 b.36; S-inv v2 b.39 (varied) | S1 v2 17:1 subject; S1 v2 24:3 subject; S1 v1 33:1 subject; S1 v2 52:1 subject; S1 v1 52:2 subject; S1 v0 52:3 subject; S1 v2 54:1 inverted; S1 v1 54:2 inverted; S1 v0 54:3 inverted; S1 v1 77:2.5 subject |
 | I/9 | 12 | 12 | 11 | 92% | 92% | S v2 b.28.25 | S1 v0 12:2 subject |
 | I/10 | 8 | 8 | 8 | 100% | 100% | – | – |
@@ -68,7 +68,7 @@ The settled subject's length within an eighth note of the reference's in 13 of 2
 | I/23 | 12 | 11 | 11 | 100% | 92% | S-inv v1 b.20 | – |
 | I/24 | 13 | 12 | 12 | 100% | 92% | S v3 b.47.5 | – |
 
-All: 343 complete statements in the reference, 394 found by the analysis (heads the reference lists as incomplete statements left out of both counts), 322 matched: precision 82%, recall 94%. Of the reference's 38 incomplete statements, the analysis reports 22 as entries.
+All: 343 complete statements in the reference, 396 found by the analysis (heads the reference lists as incomplete statements left out of both counts), 322 matched: precision 81%, recall 94%. Of the reference's 38 incomplete statements, the analysis reports 22 as entries.
 
 ### Each disagreement judged from the notes
 
@@ -82,7 +82,7 @@ A reader judged all 95 disagreements from the notes, with neither analysis in vi
 - **The reference is reliable on what it lists** (19 of its 21 statements our analysis missed are real), **but not exhaustive**: 12 real statements found only by the analysis (besides I/4's second subject, below) (I/15 v1 43:1; altered: I/4 v0 54:2, I/4 v1 94:2, I/4 v1 49:1.25, I/8 v1 77:2.5): late statements compressed by a bar in I/15, inversions in I/15, a statement in C♯ minor in I/9, stretto partners in I/4.
 - **The analysis's errors are over-detection:** 33 heads, mostly figures in episodes (I/3 bb. 22-24 and 35-41, I/5's demisemiquaver run, I/15's coda), and 14 false entries (cadential basses and free lines in I/4, countersubject ends in I/18, the chain of fourths in I/19's episodes). Some heads are real stretto entries the reference leaves out (I/8 bb. 52-54).
 - **Its misses** are statements with a varied head or a changed ending (I/8's inversions, I/22 b. 48, I/23 b. 20, I/24 b. 47), and in I/4 the second subject begun an eighth too late: the reference, rightly, starts it on its three-crotchet anacrusis (12 statements on each side, the same ones).
-- **Measured on the notes** (the reference corrected by the reader: its 343 statements less 1 head, plus the 12 it omits): precision 85% (88% counting I/4's late-begun second subject as found); 8% of what the analysis reports is a head, 4% no statement at all; recall 94% (98%).
+- **Measured on the notes** (the reference corrected by the reader: its 343 statements less 1 head, plus the 12 it omits): precision 84% (87% counting I/4's late-begun second subject as found); 8% of what the analysis reports is a head, 4% no statement at all; recall 94% (98%).
 
 ## 3. The project's hand readings (the gold standard) against the reference
 

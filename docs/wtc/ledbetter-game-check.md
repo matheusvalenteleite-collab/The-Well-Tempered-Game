@@ -14,7 +14,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 | | fugues | preludes |
 |---|---|---|
 | entry | 159 of 173 (92%) | none |
-| stretto | 40 of 47 (85%) | none |
+| stretto | 39 of 47 (83%) | none |
 | pedal | 7 of 12 (58%) | 3 of 3 (100%) |
 | cadence | 8 of 35 (23%) | 4 of 29 (14%) |
 | section | 56 of 68 (82%) | 49 of 63 (78%) |
@@ -24,7 +24,6 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 - wtc1f01: strettos the study shows that no claim names, at bars 17, 19, 24
 - wtc1f04: strettos the study shows that no claim names, at bars 19, 34, 44, 54, 72
 - wtc1f08: strettos the study shows that no claim names, at bars 24, 44, 52, 54, 61, 62, 67
-- wtc1f11: strettos the study shows that no claim names, at bars 25, 36, 38, 48
 - wtc1f15: strettos the study shows that no claim names, at bars 60, 77, 78
 - wtc1f18: strettos the study shows that no claim names, at bars 24
 - wtc1f20: strettos the study shows that no claim names, at bars 17, 27, 31, 32, 36, 43, 53, 57, 62
@@ -34,6 +33,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 - wtc2f06: strettos the study shows that no claim names, at bars 5, 21
 - wtc2f08: strettos the study shows that no claim names, at bars 43
 - wtc2f09: strettos the study shows that no claim names, at bars 9, 10, 30, 35, 39
+- wtc2f15: strettos the study shows that no claim names, at bars 23, 25
 - wtc2f21: strettos the study shows that no claim names, at bars 25, 62
 - wtc2f22: strettos the study shows that no claim names, at bars 33, 67, 73
 
@@ -210,7 +210,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc1f11
 
-9 of 10 hold.
+8 of 10 hold.
 
 - · `section b.1-8 passepied first section`: the opening
 - ✓ `entry b.1 alto`: found
@@ -220,7 +220,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 - ✓ `entry b.25 bass`: found
 - · `section b.1-46 first section`: the opening
 - ✗ `cadence b.46 d`: not found
-- ✓ `stretto b.46 voices?`: found at bar 46
+- ✗ `stretto b.46 voices?`: not found
 - ✓ `entry b.47 bass g (score; variant: continuous semiquavers with échappée at b.49; L.: variant at b.49)`: found, on g
 - ✓ `section b.46-56 stretto`: a section starts at bar 46
 - ✓ `section b.56-72`: a section starts at bar 56
