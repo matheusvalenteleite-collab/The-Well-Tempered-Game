@@ -15,4 +15,9 @@ the files' notes, not corrected.
 
 `appendix-a.json`: Appendix A (pp. 185-192), the 215 episodes of the 48 and four fugal preludes, by bars and material; `appendix-b.json`: Appendix B (pp. 193-194), the share of bars with the subject, entries and episodes per fugue, with the misprints noted.
 
+`notes.json`: the 394 endnotes (pp. 195-220, mostly the editor's), each with its chapter, fugue, kind (disagreement 246,
+correction 31, source 24, reference 47, other 46) and a paraphrase naming the scholars and their readings; the
+assignment of notes to fugues was made from page ranges and content (a few boundaries noted in the file).
+`bibliography.json`: the annotated bibliography (49 entries).
+
 Used by `tools/wtc/groocock-check.ts` (docs/wtc/GROOCOCK.md).

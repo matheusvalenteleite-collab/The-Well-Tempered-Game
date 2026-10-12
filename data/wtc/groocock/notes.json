@@ -1,0 +1,3551 @@
+{
+ "source": "J. Groocock, Fugal Composition, ed. Y. Tomita (Greenwood 2003), Notes pp.195-219 (pdf 208-232); notes by the editor Yo Tomita. 'page' = book page of the note. Fugue assignment from note-call positions in the main text (checked against page images at fugue boundaries) and content. Note: Chapter 14's fugue order in the book is II.4, II.18, II.23, II.14, I.Pr.7, I.Pr.19.",
+ "notes": [
+  {
+   "chapter": 1,
+   "chapter_title": "Fugal Style",
+   "fugue": null,
+   "number": 1,
+   "page": 195,
+   "kind": "reference",
+   "summary": "Cites A New Dictionary of Music (Penguin, 1958), p.139."
+  },
+  {
+   "chapter": 1,
+   "chapter_title": "Fugal Style",
+   "fugue": null,
+   "number": 2,
+   "page": 195,
+   "kind": "reference",
+   "summary": "Cites Grove's Dictionary, 5th ed. (1954), iii:513."
+  },
+  {
+   "chapter": 1,
+   "chapter_title": "Fugal Style",
+   "fugue": null,
+   "number": 3,
+   "page": 195,
+   "kind": "other",
+   "summary": "Episode is sometimes also called 'link' or 'bridge'; see note 5."
+  },
+  {
+   "chapter": 1,
+   "chapter_title": "Fugal Style",
+   "fugue": null,
+   "number": 4,
+   "page": 195,
+   "kind": "other",
+   "summary": "German writers (Riemann, Keller) use 'Durchführung' differently, treating every fugue as a series of 'expositions' (i.e. sections)."
+  },
+  {
+   "chapter": 1,
+   "chapter_title": "Fugal Style",
+   "fugue": null,
+   "number": 5,
+   "page": 195,
+   "kind": "other",
+   "summary": "Editor's discussion of codetta vs episode: Bruhn does not distinguish them; Schulenberg calls episodes the longer, articulated passages; Czaczkes/Dürr use 'Zwischentakt'; Prout classes those within the exposition as codettas. Groocock requires episodes to develop material or modulate; a codetta merely refocuses the key; he also uses 'extension' for passages prolonging a key toward a cadence."
+  },
+  {
+   "chapter": 1,
+   "chapter_title": "Fugal Style",
+   "fugue": null,
+   "number": 6,
+   "page": 196,
+   "kind": "other",
+   "summary": "The term (development/section sense) has several other meanings in other contexts."
+  },
+  {
+   "chapter": 2,
+   "chapter_title": "Answering a Fugue Subject",
+   "fugue": null,
+   "number": 1,
+   "page": 196,
+   "kind": "reference",
+   "summary": "Prout 1891: 18-71 on answers."
+  },
+  {
+   "chapter": 2,
+   "chapter_title": "Answering a Fugue Subject",
+   "fugue": null,
+   "number": 2,
+   "page": 196,
+   "kind": "reference",
+   "summary": "Oldroyd: 52-98; Nalden recommended as fuller study of answers."
+  },
+  {
+   "chapter": 2,
+   "chapter_title": "Answering a Fugue Subject",
+   "fugue": null,
+   "number": 3,
+   "page": 196,
+   "kind": "reference",
+   "summary": "Quotes Nalden: 38 that a distinctive subject often gets a real rather than tonal answer for reasons of character and shape."
+  },
+  {
+   "chapter": 2,
+   "chapter_title": "Answering a Fugue Subject",
+   "fugue": null,
+   "number": 4,
+   "page": 196,
+   "kind": "reference",
+   "summary": "Discussion clearer if the subject is treated as modulating V to I and answer I to V (author pp.7-9); long-running debate summarized in Nalden: 32, 155-156."
+  },
+  {
+   "chapter": 2,
+   "chapter_title": "Answering a Fugue Subject",
+   "fugue": null,
+   "number": 5,
+   "page": 196,
+   "kind": "reference",
+   "summary": "Cf. Higgs: 23 and Prout 1891: 56."
+  },
+  {
+   "chapter": 2,
+   "chapter_title": "Answering a Fugue Subject",
+   "fugue": null,
+   "number": 6,
+   "page": 196,
+   "kind": "reference",
+   "summary": "Simpler if subject seen as modulating; Nalden: 139-140, 154 shows pitfalls into which Prout, Bairstow, Gédalge, Macpherson fell."
+  },
+  {
+   "chapter": 2,
+   "chapter_title": "Answering a Fugue Subject",
+   "fugue": null,
+   "number": 7,
+   "page": 196,
+   "kind": "disagreement",
+   "summary": "Macpherson (Studies in the Art of Counterpoint, 1927, 103) says the first half of the answer is in the dominant; Tomita agrees with Nalden: 140 that Macpherson is wrong."
+  },
+  {
+   "chapter": 2,
+   "chapter_title": "Answering a Fugue Subject",
+   "fugue": null,
+   "number": 8,
+   "page": 196,
+   "kind": "reference",
+   "summary": "See Riemann i: 116."
+  },
+  {
+   "chapter": 2,
+   "chapter_title": "Answering a Fugue Subject",
+   "fugue": null,
+   "number": 9,
+   "page": 196,
+   "kind": "reference",
+   "summary": "Nalden: 134-136 relates the answer to binary form, interesting structurally and harmonically."
+  },
+  {
+   "chapter": 3,
+   "chapter_title": "Countersubjects",
+   "fugue": "wtc1f17",
+   "number": 1,
+   "page": 196,
+   "kind": "reference",
+   "summary": "See main discussion of I.17 on pp.104-105."
+  },
+  {
+   "chapter": 4,
+   "chapter_title": "The Exposition",
+   "fugue": null,
+   "number": 1,
+   "page": 196,
+   "kind": "correction",
+   "summary": "Editor's corrections to exposition-type tables: II.18 (Type 1b) lacks the countersubject in the third entry; II.24 (Type 2b) has the countersubject in the alto in the third entry."
+  },
+  {
+   "chapter": 4,
+   "chapter_title": "The Exposition",
+   "fugue": null,
+   "number": 2,
+   "page": 196,
+   "kind": "correction",
+   "summary": "Further corrections: I.18 (Type 2c) lacks CII from the fourth entry; I.20 (Type 3b) has C in the alto, not bass, in the fourth entry; II.22 has C in the alto, not soprano, in the third entry; in I.12 the positions of CI and CII in the fourth entry are revised by the editor."
+  },
+  {
+   "chapter": 6,
+   "chapter_title": "Group 1: Fugues for Two Voices",
+   "fugue": "wtc1f10",
+   "number": 1,
+   "page": 197,
+   "kind": "disagreement",
+   "summary": "Riemann i: 66-67 and Prout 1910: 31 end the subject at the first note of bar 3 (differing from the author)."
+  },
+  {
+   "chapter": 6,
+   "chapter_title": "Group 1: Fugues for Two Voices",
+   "fugue": "wtc1f10",
+   "number": 2,
+   "page": 197,
+   "kind": "other",
+   "summary": "A tonal answer was possible by lowering the 17th note onward by a tone; Bach avoided it to keep the chromatic descent and diminished fifth, and in a two-part fugue no tonic return was needed."
+  },
+  {
+   "chapter": 6,
+   "chapter_title": "Group 1: Fugues for Two Voices",
+   "fugue": "wtc1f10",
+   "number": 3,
+   "page": 197,
+   "kind": "other",
+   "summary": "Editor adds: the second half of the subject appears in the soprano from beat 2 of bar 41."
+  },
+  {
+   "chapter": 6,
+   "chapter_title": "Group 1: Fugues for Two Voices",
+   "fugue": "wtc1f10",
+   "number": 4,
+   "page": 197,
+   "kind": "other",
+   "summary": "Bach stresses its significance by homophonic texture in bars 19-20 and 39."
+  },
+  {
+   "chapter": 6,
+   "chapter_title": "Group 1: Fugues for Two Voices",
+   "fugue": "wtc1f10",
+   "number": 5,
+   "page": 197,
+   "kind": "disagreement",
+   "summary": "Formal division: Perrachio: 96 and Dürr: 154 share the author's; others: 4+34+4 (Morgan, Iliffe), 10+28+4 (Prout 1910: 31-2), 19+23 (Sampson, Czaczkes 1982 i:145, H. T. David 1971, Schulenberg: 181)."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc1f03",
+   "number": 1,
+   "page": 197,
+   "kind": "disagreement",
+   "summary": "The redundant entry at bar 10 (author: answer): Czaczkes 1982 i:63 and Dürr: 114 call it a subject; Iliffe: 9, Sampson: 36 and Dickinson: 61 agree with the author."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc1f03",
+   "number": 2,
+   "page": 197,
+   "kind": "disagreement",
+   "summary": "Countersubjects: Iliffe and Bruhn count three (the third being the variant of CII at bars 10-11 and 52-53); Knorr ignores CII at bars 10-12, 19-20, 51-53."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc1f03",
+   "number": 3,
+   "page": 197,
+   "kind": "disagreement",
+   "summary": "Prout 1910: 16-17, Oldroyd: 47 and Horsley: 69-70 take the first run of six semiquavers (start of the countersubject, bar 3) as a codetta; Kitson 1929: 36-37 argues for the author's view."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc1f07",
+   "number": 4,
+   "page": 197,
+   "kind": "disagreement",
+   "summary": "Episodes: Dürr: 139-140 agrees with the author's seven; Iliffe and Morgan count only five (episodes 1 and 4 taken as codettas); Czaczkes 1982 i:121f. and Bruhn ii:73 count every subject-free passage, nine in all."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc1f09",
+   "number": 5,
+   "page": 197,
+   "kind": "disagreement",
+   "summary": "Where the subject ends (author: merges into the countersubject at beat 3 of bar 2) has been disputed for over a century: supported by Prout 1891: 20, Iliffe, Morgan, Dürr: 148; others end it at the first note of bar 2 (Brandts Buys, Bruhn ii:131, Czaczkes 1982 i:135), beat 2 of bar 2 (Stade i:33, Knorr) or first note of bar 3 (Keller: 81); see Renwick: 21-22."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc1f09",
+   "number": 6,
+   "page": 197,
+   "kind": "other",
+   "summary": "All answers are real, so subject and answer are hard to tell apart: Czaczkes specifies the form only in the exposition; Bruhn and Dürr do not distinguish them."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc1f09",
+   "number": 7,
+   "page": 197,
+   "kind": "other",
+   "summary": "Editor adds that Bach rounds off the piece with an incomplete off-beat bass entry."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc1f09",
+   "number": 8,
+   "page": 198,
+   "kind": "disagreement",
+   "summary": "Bruhn ii:134 counts all seven subject-free passages as episodes; Iliffe: 33 and Sampson: 52 regard episode 1 as a codetta."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc1f09",
+   "number": 9,
+   "page": 198,
+   "kind": "disagreement",
+   "summary": "Iliffe and Sampson regard this portion of the episode as a codetta."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc1f09",
+   "number": 10,
+   "page": 198,
+   "kind": "disagreement",
+   "summary": "Iliffe and Sampson see a subject entry (distorted head) in the soprano from beat 2 of bar 12, so their first episode starts at beat 3 of bar 13; Keller: 81 agrees and proposes an 'untenable' theory that bars 13-16 form a middle section."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc1f21",
+   "number": 11,
+   "page": 198,
+   "kind": "disagreement",
+   "summary": "End of the first period: author bar 17 (with Iliffe: 72); Schachter (Music Forum 3, 1973) bar 19; Czaczkes and Dürr bar 22."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc1f21",
+   "number": 12,
+   "page": 198,
+   "kind": "disagreement",
+   "summary": "Schachter: 243, 259f. (Schenkerian) begins the final section at bar 37."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc1f21",
+   "number": 13,
+   "page": 198,
+   "kind": "reference",
+   "summary": "See Schachter: 251."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc1f21",
+   "number": 14,
+   "page": 198,
+   "kind": "disagreement",
+   "summary": "Schachter calls this passage an 'extension', not part of the episode; Schulenberg: 192 likewise excludes it from the episode."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc1f21",
+   "number": 15,
+   "page": 198,
+   "kind": "source",
+   "summary": "An earlier reading of bars 45-47 has a different interchange of the upper voices (Macpherson i:94; Dürr: 217)."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f13",
+   "number": 16,
+   "page": 198,
+   "kind": "disagreement",
+   "summary": "Iliffe: 141 starts the counterexposition only after episode 2 (bars 32-40), against the author's bars 20-40."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f13",
+   "number": 17,
+   "page": 198,
+   "kind": "disagreement",
+   "summary": "Fétis (Traité du contrepoint et de la fugue, 1824, ii:53) 'corrects' Bach's real answer into a tonal one to fit his theory."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f13",
+   "number": 18,
+   "page": 198,
+   "kind": "disagreement",
+   "summary": "The author rejects this idea as a countersubject (it would make parallel fifths); Stade, Morgan, Czaczkes 1982 ii:138, Keller: 169, Schulenberg: 217, Bruhn iii:86 and Dürr: 343 call it the second countersubject. Editor adds a variant at bars 33-35; Czaczkes' further variants (bass 40-44, 76-80) are too remote; Stade calls them a third countersubject."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f13",
+   "number": 19,
+   "page": 198,
+   "kind": "reference",
+   "summary": "Daniel Harrison (JMT 1998) on group properties of triple counterpoint shows Bach's economy."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f13",
+   "number": 20,
+   "page": 198,
+   "kind": "other",
+   "summary": "Episode harmony: two-bar phrases in a circle of fifths I-vi-ii-V-I (F#-d#-g#-C#-F#)."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f13",
+   "number": 21,
+   "page": 198,
+   "kind": "other",
+   "summary": "Similar episode harmony but modulating to V via vi, ii, vii, iii."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f13",
+   "number": 22,
+   "page": 198,
+   "kind": "other",
+   "summary": "Harmony shifts vi, ii, V, I, IV."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f13",
+   "number": 23,
+   "page": 199,
+   "kind": "other",
+   "summary": "Harmony shifts IV-ii-V-iii-vi-I."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc1f02",
+   "number": 24,
+   "page": 199,
+   "kind": "disagreement",
+   "summary": "Overall design disputed: Herford (Bach 1973) sees a tonal ternary plan (final section at bar 20, as Prout 1910: 15 and Morgan) but hears a binary one (bars 1-17, 17-31); Dürr: 110 also binary, with episode 3 as pivot (1-12, 15-31)."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc1f02",
+   "number": 25,
+   "page": 199,
+   "kind": "disagreement",
+   "summary": "Iliffe: 6 and Prout 1910: 14-15 do not recognize the second countersubject."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc1f02",
+   "number": 26,
+   "page": 199,
+   "kind": "disagreement",
+   "summary": "Author's reading of this passage (bars 5-6) as an episode is supported by Tovey, Macpherson: 11, Dickinson; most (Higgs, Iliffe, Prout 1891, Kitson 1929, Oldroyd, Bullivant, Schulenberg) call it a codetta. Siegele (Bach Studies 1989) thinks it was added at a later conceptual stage to balance thematic and non-thematic sections."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc1f02",
+   "number": 27,
+   "page": 199,
+   "kind": "other",
+   "summary": "Episode modulates i-iv-VII-III (c-f-Bb-Eb)."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc1f02",
+   "number": 28,
+   "page": 199,
+   "kind": "other",
+   "summary": "Unlike episode 2 this one does not modulate."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f10",
+   "number": 29,
+   "page": 199,
+   "kind": "source",
+   "summary": "The final section is a later extension; the London autograph (BL Add. MS 35021) has a 71-bar version without it."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f10",
+   "number": 30,
+   "page": 199,
+   "kind": "source",
+   "summary": "The author presumably means Bach's staccato dots on all untied crotchets in bars 1-4."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f10",
+   "number": 31,
+   "page": 199,
+   "kind": "disagreement",
+   "summary": "German scholars (Knorr, Czaczkes, Dürr) ignore the codetta and start the countersubject at the 8th note of bar 3 [as printed]; Stade ii:36 starts it with the answer (11th note of bar 3)."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f10",
+   "number": 32,
+   "page": 199,
+   "kind": "disagreement",
+   "summary": "Czaczkes 1982 ii:125 finds a second countersubject in free variant form from bar 14 (soprano); editor finds it insignificant."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f10",
+   "number": 33,
+   "page": 199,
+   "kind": "other",
+   "summary": "Rhythm altered at this point for keyboard reasons (the note d' is struck by the alto answer)."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f20",
+   "number": 34,
+   "page": 199,
+   "kind": "disagreement",
+   "summary": "Keller: 187 lets the subject last to the 5th note of bar 3 (author: first note of bar 3)."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f20",
+   "number": 35,
+   "page": 199,
+   "kind": "disagreement",
+   "summary": "Stade ii:90 and Czaczkes 1984 have the countersubject follow the subject immediately, with no codetta."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f20",
+   "number": 36,
+   "page": 199,
+   "kind": "disagreement",
+   "summary": "Prout 1891: 110 calls the doubtful bar-9 entry the subject in answer form; see also Macpherson ii:64."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f20",
+   "number": 37,
+   "page": 200,
+   "kind": "source",
+   "summary": "The alternative reading e' comes from Bach's earlier 'Fughetta' version copied by Altnickol."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f20",
+   "number": 38,
+   "page": 200,
+   "kind": "disagreement",
+   "summary": "Iliffe: 173 considers the countersubject absent here."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f20",
+   "number": 39,
+   "page": 200,
+   "kind": "disagreement",
+   "summary": "Prout 1892: 107-111, Iliffe: 173, Gray and Fuller-Maitland do not mention this device (the second countersubject)."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f20",
+   "number": 40,
+   "page": 200,
+   "kind": "disagreement",
+   "summary": "Earlier writers (Prout, Iliffe, Sampson, Morgan) call episode 1 a codetta; the alto syncopation in bar 6 is a revision of a figure in Altnickol's copy with clearer thematic reference."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f20",
+   "number": 41,
+   "page": 200,
+   "kind": "source",
+   "summary": "In the early version the distance was only two octaves."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f01",
+   "number": 42,
+   "page": 200,
+   "kind": "source",
+   "summary": "This section was added when Bach compiled WTC II, c.1742."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f01",
+   "number": 43,
+   "page": 200,
+   "kind": "reference",
+   "summary": "Renwick: 192 explains it as a back-relating dominant at a deeper level."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f01",
+   "number": 44,
+   "page": 200,
+   "kind": "disagreement",
+   "summary": "Stade ii:4, Knorr, Schulenberg: 203, Bruhn i:87 and Dürr: 255-256 call this section a coda; Keller: 137 calls it 'the fourth exposition'."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f01",
+   "number": 45,
+   "page": 200,
+   "kind": "reference",
+   "summary": "Riemann ii:7 notes the running passage decorates the head motive; see Renwick: 30, 193."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f01",
+   "number": 46,
+   "page": 200,
+   "kind": "disagreement",
+   "summary": "Czaczkes 1984 ignores it; Knorr recognizes it only in the soprano at bar 39."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f01",
+   "number": 47,
+   "page": 200,
+   "kind": "disagreement",
+   "summary": "Iliffe: 87 seems the only writer explicitly to deny a countersubject in this fugue."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f11",
+   "number": 48,
+   "page": 200,
+   "kind": "disagreement",
+   "summary": "Czaczkes 1982 ii:128-129 and Dürr: 330 are a minority in calling this entry an answer; Renwick: 155-156 shows how subject and episode unite at the end."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f15",
+   "number": 49,
+   "page": 200,
+   "kind": "source",
+   "summary": "Reworked c.1738/39 from the 60-bar Fughetta BWV 902/2 (NBA V/6.2): Bach added the final section and revitalized the texture (Dürr: 358-359)."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f15",
+   "number": 50,
+   "page": 200,
+   "kind": "disagreement",
+   "summary": "Subject length: the author's (shortest) reading is shared by Bruyck, Iliffe, Knorr, Prout 1910, Morgan, Gray, Macpherson, Czaczkes; Riemann ii:130 and Souchay: 65 end it at the 3rd note of bar 6, Dürr: 360 at the first note of bar 7, Keller: 175 at the first note of bar 8."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f15",
+   "number": 51,
+   "page": 200,
+   "kind": "disagreement",
+   "summary": "Stade, Sampson, Knorr, Czaczkes, Bruhn and Dürr treat this idea as a countersubject (author: fugue without countersubject)."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f15",
+   "number": 52,
+   "page": 200,
+   "kind": "other",
+   "summary": "Iliffe takes the same view, without reasons."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f19",
+   "number": 53,
+   "page": 200,
+   "kind": "source",
+   "summary": "Bar 16: the London autograph has the leap (involving notes below bottom C), Altnickol's copies the plain version; not simply a revision, it concerns keyboard compass."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f19",
+   "number": 54,
+   "page": 201,
+   "kind": "source",
+   "summary": "The idea goes back to bar 4 (alto); the accidentals in bars 21 and 28 were later additions in the autograph (Tomita 1993, i:118)."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f19",
+   "number": 55,
+   "page": 201,
+   "kind": "correction",
+   "summary": "Editor endorses Czaczkes 1982 ii:219-220: two countersubjects, condensed into one jerky line below the answer (bars 2-4), separating in bars 5-6 (author treats fugue as without countersubject)."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f19",
+   "number": 56,
+   "page": 201,
+   "kind": "disagreement",
+   "summary": "Iliffe: 169, Prout 1910: 80-81 and Morgan count only bars 13, 17, 21 and 25 as episodes, the rest as codettas."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f12",
+   "number": 57,
+   "page": 201,
+   "kind": "disagreement",
+   "summary": "Author implies (diagram) the subject ends at the first note of bar 4 (with Iliffe, Prout 1891, Knorr, Brandts Buys); most (Bruyck, Boekelman, Souchay, Macpherson, Czaczkes, Bruhn, Dürr) end it at the 5th note, citing most entries and the rhythmic character."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f12",
+   "number": 58,
+   "page": 201,
+   "kind": "other",
+   "summary": "Refers to the mordent on the first strong beat at bars 1 and 25."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f12",
+   "number": 59,
+   "page": 201,
+   "kind": "correction",
+   "summary": "Editor: the effect is so slight that it is not heard as a stretto."
+  },
+  {
+   "chapter": 7,
+   "chapter_title": "Group 2: Fugues for Three Voices, without Stretto",
+   "fugue": "wtc2f12",
+   "number": 60,
+   "page": 201,
+   "kind": "disagreement",
+   "summary": "Kennan: 213 calls bar 8 a 'link' (codetta) and starts the episode ('bridge') at bar 9."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f11",
+   "number": 1,
+   "page": 201,
+   "kind": "disagreement",
+   "summary": "Riemann i:72 and Busoni end the subject at the 3rd note of bar 4, followed at once by the countersubject (author: first note of bar 4 plus codetta)."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f11",
+   "number": 2,
+   "page": 201,
+   "kind": "disagreement",
+   "summary": "Countersubject start: Stade i:38 and Sampson: 110 at the 5th note of bar 4 (with the answer); Czaczkes, Bruhn, Dürr at the 2nd note of bar 4 (no codetta). Editor infers the author has the codetta to end of bar 4 and the countersubject from bar 5, sensible since its head and tail figures grow from the codetta."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f11",
+   "number": 3,
+   "page": 201,
+   "kind": "correction",
+   "summary": "Iliffe: 39, Sampson: 60 and Dürr: 159 note an entry the author omits: incomplete, middle voice, bar 65, in stretto with the decorated soprano entry (64-68); added in square brackets to the diagram."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f11",
+   "number": 4,
+   "page": 202,
+   "kind": "other",
+   "summary": "See note 2."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f15",
+   "number": 5,
+   "page": 202,
+   "kind": "disagreement",
+   "summary": "Author in the minority on the start of the final section: Iliffe bar 79; the great majority (Prout 1910: 39, Morgan, Macpherson, Czaczkes 1982 i:165, Bruhn, Dürr: 182) bar 69."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f15",
+   "number": 6,
+   "page": 202,
+   "kind": "disagreement",
+   "summary": "Sampson: 111 starts the countersubject at bar 6; Iliffe: 52 later still, taking bar 5 (2nd note) to bar 6 (4th note) as codetta."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f15",
+   "number": 7,
+   "page": 202,
+   "kind": "correction",
+   "summary": "Editor adds a further subject entry in the middle voice at bar 79, a third below the soprano, incomplete but at the tonic pitch."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f15",
+   "number": 8,
+   "page": 202,
+   "kind": "reference",
+   "summary": "See p.16."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f06",
+   "number": 9,
+   "page": 202,
+   "kind": "disagreement",
+   "summary": "Dehn: 1 ends the subject at the first note of bar 3."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f06",
+   "number": 10,
+   "page": 202,
+   "kind": "reference",
+   "summary": "Clarity of the exposition's tonal structure; see Schenker, Free Composition 143f., Daverio (1992), Renwick: 109."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f06",
+   "number": 11,
+   "page": 202,
+   "kind": "disagreement",
+   "summary": "Iliffe: 20 calls the inverted entries at bars 14, 22, 27, 29 answers."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f06",
+   "number": 12,
+   "page": 202,
+   "kind": "correction",
+   "summary": "Iliffe counts the bass at bar 26 as a subject in G minor; editor: clearly a false entry (false entries not shown in diagram)."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f06",
+   "number": 13,
+   "page": 202,
+   "kind": "other",
+   "summary": "Explains why the author reads the entries at bars 13-14, 21-22 and 34-35 as starting in the dominant rather than tonic."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f06",
+   "number": 14,
+   "page": 202,
+   "kind": "other",
+   "summary": "See note 13."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f06",
+   "number": 15,
+   "page": 202,
+   "kind": "other",
+   "summary": "See note 13."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f06",
+   "number": 16,
+   "page": 202,
+   "kind": "reference",
+   "summary": "Tovey: 144 rightly says the variation avoids octaves with the soprano."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f06",
+   "number": 17,
+   "page": 202,
+   "kind": "disagreement",
+   "summary": "Boekelman ignores this incomplete entry."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f06",
+   "number": 18,
+   "page": 202,
+   "kind": "disagreement",
+   "summary": "Knorr does not recognize a countersubject in this fugue."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f06",
+   "number": 19,
+   "page": 202,
+   "kind": "correction",
+   "summary": "The countersubject at bars 13 and 30 has been supplied in the diagram by the editor."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f06",
+   "number": 20,
+   "page": 202,
+   "kind": "disagreement",
+   "summary": "Boekelman ignores the partial countersubject forms at bars 17, 24 and 39."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f06",
+   "number": 21,
+   "page": 202,
+   "kind": "disagreement",
+   "summary": "See note 20."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f06",
+   "number": 22,
+   "page": 202,
+   "kind": "disagreement",
+   "summary": "See note 20."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f06",
+   "number": 23,
+   "page": 202,
+   "kind": "other",
+   "summary": "The dominant cadence at the midpoint suggests binary design, hinting at early sonata form."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f06",
+   "number": 24,
+   "page": 203,
+   "kind": "disagreement",
+   "summary": "Keller: 70 goes further: the semiquaver passage of the previous bar is the first half of a 'veiled subject entry'."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc2f06",
+   "number": 25,
+   "page": 203,
+   "kind": "disagreement",
+   "summary": "Souchay: 58 ends the subject at the 3rd note of bar 3."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc2f06",
+   "number": 26,
+   "page": 203,
+   "kind": "disagreement",
+   "summary": "Iliffe: 110 and Sampson: 55 do not count it as a subject entry."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc2f06",
+   "number": 27,
+   "page": 203,
+   "kind": "disagreement",
+   "summary": "Iliffe calls it an answer."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc2f06",
+   "number": 28,
+   "page": 203,
+   "kind": "disagreement",
+   "summary": "Iliffe and Sampson take this view, treating the section as stretto."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc2f06",
+   "number": 29,
+   "page": 203,
+   "kind": "disagreement",
+   "summary": "Stade ii:20 starts it at the first note of bar 3; Knorr does not recognize it."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc2f06",
+   "number": 30,
+   "page": 203,
+   "kind": "disagreement",
+   "summary": "Iliffe and Sampson do not call it stretto, since they see no entry in this bar (cf. note 26)."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc2f06",
+   "number": 31,
+   "page": 203,
+   "kind": "disagreement",
+   "summary": "Czaczkes 1982 ii:69 extends the episode to bar 25 (beat 3)."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc2f06",
+   "number": 32,
+   "page": 203,
+   "kind": "source",
+   "summary": "Early version (Agricola copy, P 595, c.1738): the three fragmentary soprano motives were originally plain rising triads; replaced by thematic references."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc2f06",
+   "number": 33,
+   "page": 203,
+   "kind": "source",
+   "summary": "The leaping quavers in the middle voice are an afterthought; originally a simple descending line (bars 19-20)."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc2f06",
+   "number": 34,
+   "page": 203,
+   "kind": "disagreement",
+   "summary": "Stade ii:22, Knorr and Czaczkes 1982 ii:71 do not count the first two entries as such, and so read this section differently as regards stretto."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc2p03",
+   "number": 35,
+   "page": 203,
+   "kind": "disagreement",
+   "summary": "Iliffe: 93 ends the subject at the first note of bar 28."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc2p03",
+   "number": 36,
+   "page": 203,
+   "kind": "source",
+   "summary": "The chromaticism was introduced when revising the early C-major version (P 226, copied by Anna Magdalena c.1738); originally a diatonic descent."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc2f03",
+   "number": 37,
+   "page": 203,
+   "kind": "correction",
+   "summary": "Iliffe: 94 agrees with the author, but the editor sides with Czaczkes 1982 ii:36 and Dürr: 270 that this entry is an answer."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc2f03",
+   "number": 38,
+   "page": 203,
+   "kind": "disagreement",
+   "summary": "Subject length: author 12 notes (with Tovey, David, Kennan, Schulenberg); 4 notes (Iliffe: 94, Brandts Buys); 6 notes (Riemann, Stade [7-12 a 'Nachsatz'], Sampson, Macpherson, Knorr, Czaczkes [7-12 a countersubject], Bruhn, Dürr); 8 (Keller); 11 (Busoni); possibly 13 (Dickinson, 'two bars')."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc2f03",
+   "number": 39,
+   "page": 204,
+   "kind": "reference",
+   "summary": "Busoni derives the 'new theme' from the four-note motive; Czaczkes sees an intermediate stage in bar 2; Bach added the demisemiquavers later (Tomita, Musical Times 1998)."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc2f03",
+   "number": 40,
+   "page": 204,
+   "kind": "disagreement",
+   "summary": "Iliffe: 94 calls the middle voice the answer and the bass the subject."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc2f03",
+   "number": 41,
+   "page": 204,
+   "kind": "disagreement",
+   "summary": "Iliffe calls the bass the subject."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc2f03",
+   "number": 42,
+   "page": 204,
+   "kind": "source",
+   "summary": "The demisemiquaver flourishes were first inverted subject in diminution in the early autograph version."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc2f03",
+   "number": 43,
+   "page": 204,
+   "kind": "disagreement",
+   "summary": "Countersubject depends on subject length: six-note readers call the bar-2 semiquaver figure a countersubject; four-note readers (Iliffe) say there is none."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc2f03",
+   "number": 44,
+   "page": 204,
+   "kind": "source",
+   "summary": "The augmentations belong to the extension Bach added to the semifinal (London autograph) version while compiling WTC II; see Tomita 'Analysing Bach's Ink'."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f08",
+   "number": 45,
+   "page": 204,
+   "kind": "disagreement",
+   "summary": "Start of final section disputed: bar 57 (Prout 1910: 29), bar 61 (Dürr: 145-146); Morgan: theoretically 57, musically 61; the author takes bar 61."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f08",
+   "number": 46,
+   "page": 204,
+   "kind": "reference",
+   "summary": "Renwick: 42 on the harmonic basis of the tonal answer and the inversion."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f08",
+   "number": 47,
+   "page": 204,
+   "kind": "disagreement",
+   "summary": "Keller: 77 says there is no countersubject; Stade i:29f. notes its concluding figure recurs often (bars 10, 22, 29, 69, 74, 80, 82)."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f08",
+   "number": 48,
+   "page": 204,
+   "kind": "disagreement",
+   "summary": "Bullivant: 96-97 and Bruhn i:103-104 treat these as episodes; Macpherson i:36 counts two episodes (bars 15-19, 33-36)."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f08",
+   "number": 49,
+   "page": 204,
+   "kind": "disagreement",
+   "summary": "Dickinson: 67 begins the counterexposition (bars 12-30) with this entry."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f08",
+   "number": 50,
+   "page": 204,
+   "kind": "reference",
+   "summary": "Badura-Skoda: 227 on why Bach 'evaded' the expected modulation to F#."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f08",
+   "number": 51,
+   "page": 204,
+   "kind": "disagreement",
+   "summary": "Iliffe: 29 calls it an answer; Schulenberg: 179 rightly sees the quasi-augmented entries (bars 24, 48) anticipating the true augmentation, culminating in the stretto at bar 77."
+  },
+  {
+   "chapter": 9,
+   "chapter_title": "Group 3: Fugues for Three Voices, with Stretto",
+   "fugue": "wtc1f08",
+   "number": 52,
+   "page": 204,
+   "kind": "reference",
+   "summary": "Renwick: 168-169 on the harmony of this stretto."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f23",
+   "number": 1,
+   "page": 205,
+   "kind": "disagreement",
+   "summary": "Many (Knorr, Prout 1910, Morgan, Gray, Kennan, Bruhn) fail to notice the second countersubject."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f23",
+   "number": 2,
+   "page": 205,
+   "kind": "disagreement",
+   "summary": "Czaczkes 1984 finds a fragment of CI in the bass."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f23",
+   "number": 3,
+   "page": 205,
+   "kind": "disagreement",
+   "summary": "Czaczkes 1982 i:216 and Dürr: 219 call this entry a subject; Czaczkes 1984 also finds a CII variant in the bass."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f23",
+   "number": 4,
+   "page": 205,
+   "kind": "disagreement",
+   "summary": "Czaczkes 1982 i:217 and Dürr: 219 call it an answer."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f23",
+   "number": 5,
+   "page": 205,
+   "kind": "disagreement",
+   "summary": "Czaczkes 1984 finds CI (anticipated in the soprano) and CII (alto)."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f23",
+   "number": 6,
+   "page": 205,
+   "kind": "disagreement",
+   "summary": "Czaczkes 1982 i:218 finds CII in the bass in the second half of bar 30."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f23",
+   "number": 7,
+   "page": 205,
+   "kind": "disagreement",
+   "summary": "Prout 1910: 50 and Morgan call it a codetta."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f17",
+   "number": 8,
+   "page": 205,
+   "kind": "source",
+   "summary": "Early version BWV 901/2, c.1720 (NBA V/6.2, 326-327)."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f17",
+   "number": 9,
+   "page": 205,
+   "kind": "disagreement",
+   "summary": "Dürr: 380 calls this a subject."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f17",
+   "number": 10,
+   "page": 205,
+   "kind": "disagreement",
+   "summary": "Because its shape changes so much, Iliffe: 160, Sampson and Knorr do not call it a countersubject; Bruhn iii:201 drops the label from bar 18."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f17",
+   "number": 11,
+   "page": 205,
+   "kind": "source",
+   "summary": "Henle (Irmer 1970) follows the Berlin autograph (P 274), with different upper-voice treatment here and a tenor-alto exchange at bar 10; most editions and the diagram follow London autograph/Altnickol (ABRSM 1994, NBA 1995)."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f17",
+   "number": 12,
+   "page": 205,
+   "kind": "disagreement",
+   "summary": "Stade ii:74, Czaczkes 1982 ii:189 and Bruhn iii:210 see a flowing variant of CI in the bass."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f17",
+   "number": 13,
+   "page": 205,
+   "kind": "disagreement",
+   "summary": "See note 10."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f17",
+   "number": 14,
+   "page": 205,
+   "kind": "disagreement",
+   "summary": "Dürr: 375 hears the alto as a semiquaver resolution of CI."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f17",
+   "number": 15,
+   "page": 205,
+   "kind": "disagreement",
+   "summary": "Subject or answer: Iliffe, Sampson, Riemann agree with the author; Stade ii:77, Macpherson ii:53, Czaczkes, Dürr: 380 call it an answer."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f17",
+   "number": 16,
+   "page": 205,
+   "kind": "source",
+   "summary": "Some editions (e.g. Henle) omit the first note of CI here."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f12",
+   "number": 17,
+   "page": 205,
+   "kind": "disagreement",
+   "summary": "Prout 1910: 34 and Morgan start the final section at bar 47."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f12",
+   "number": 18,
+   "page": 205,
+   "kind": "disagreement",
+   "summary": "Knorr, Iliffe: 42, Prout 1910, Morgan and Macpherson do not recognize a third countersubject."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f12",
+   "number": 19,
+   "page": 205,
+   "kind": "correction",
+   "summary": "Editor revises the voice-crossing of the inner voices (end of bar 13), following Bach's two-stave layout; Stade, Iliffe, Sampson, Czaczkes and Renwick render the texture wrongly."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f12",
+   "number": 20,
+   "page": 206,
+   "kind": "disagreement",
+   "summary": "Prout 1910: 34 sees a partial, irregular counterexposition in these entries."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f12",
+   "number": 21,
+   "page": 206,
+   "kind": "disagreement",
+   "summary": "Controversial: Riemann i:81 and Sampson agree with the author; Iliffe: 42 and Dürr: 163 call it a subject."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f12",
+   "number": 22,
+   "page": 206,
+   "kind": "disagreement",
+   "summary": "Iliffe: 42 calls this entry a real answer."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f12",
+   "number": 23,
+   "page": 206,
+   "kind": "disagreement",
+   "summary": "Sampson, Riemann and Prout 1910 call this a real answer."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f12",
+   "number": 24,
+   "page": 206,
+   "kind": "disagreement",
+   "summary": "Prout 1910: 34 and Morgan call this episode a codetta."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f12",
+   "number": 25,
+   "page": 206,
+   "kind": "reference",
+   "summary": "Imitation less obvious than in episode 1; see Bullivant: 104 on four-part developmental episodes."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f14",
+   "number": 26,
+   "page": 206,
+   "kind": "disagreement",
+   "summary": "Prout 1910: 37 and Morgan start the final section with the tenor entry of bar 29."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f14",
+   "number": 27,
+   "page": 206,
+   "kind": "correction",
+   "summary": "Against the author's 'free part', recent scholars (Czaczkes 1982 i:158, Bruhn iii:100, Dürr: 74) agree the tenor (bars 8-11) is a second countersubject, recurring altered in bars 15-18 and 29-32."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f14",
+   "number": 28,
+   "page": 206,
+   "kind": "disagreement",
+   "summary": "Iliffe: 49, Prout 1891: 95, Sampson: 90 call episode 1 a codetta."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f14",
+   "number": 29,
+   "page": 206,
+   "kind": "other",
+   "summary": "The subject form here is made possible by the preceding episode."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f14",
+   "number": 30,
+   "page": 206,
+   "kind": "disagreement",
+   "summary": "Iliffe and Sampson end the opening section before this episode; Dürr: 176 agrees with the author but reads a binary form (1-20, 20-40)."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f14",
+   "number": 31,
+   "page": 206,
+   "kind": "disagreement",
+   "summary": "Iliffe calls this (inverted) entry an answer."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f14",
+   "number": 32,
+   "page": 206,
+   "kind": "disagreement",
+   "summary": "Iliffe, Prout 1891 and Macpherson i:58 call it an episode, not an extension."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f14",
+   "number": 33,
+   "page": 206,
+   "kind": "disagreement",
+   "summary": "Iliffe considers the countersubject absent here."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f14",
+   "number": 34,
+   "page": 206,
+   "kind": "other",
+   "summary": "A rare quadruple canon in an episode with all voices taking part."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f18",
+   "number": 35,
+   "page": 206,
+   "kind": "disagreement",
+   "summary": "Prout 1910: 48 and Morgan see an irregular counterexposition in bars 11-19, so the middle section starts at bar 21."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f18",
+   "number": 36,
+   "page": 206,
+   "kind": "reference",
+   "summary": "First discussed by Marpurg 1753 i:30; see Riemann i:116 and Nalden: 139-140 on the answer."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f18",
+   "number": 37,
+   "page": 206,
+   "kind": "disagreement",
+   "summary": "Iliffe does not recognize the second countersubject."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f18",
+   "number": 38,
+   "page": 206,
+   "kind": "disagreement",
+   "summary": "Czaczkes 1982 i:183 finds a CI variant in the alto (where the author has CII missing)."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f18",
+   "number": 39,
+   "page": 206,
+   "kind": "disagreement",
+   "summary": "Earlier writers (Iliffe: 62, Sampson) call it a real answer."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f18",
+   "number": 40,
+   "page": 206,
+   "kind": "disagreement",
+   "summary": "Czaczkes i:184 finds CI and CII present in very free form (bass, soprano)."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f18",
+   "number": 41,
+   "page": 206,
+   "kind": "disagreement",
+   "summary": "Czaczkes i:185: countersubjects present in very free form (alto, tenor)."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f18",
+   "number": 42,
+   "page": 206,
+   "kind": "disagreement",
+   "summary": "Czaczkes i:186: countersubjects present in varied form (soprano, alto)."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f18",
+   "number": 43,
+   "page": 207,
+   "kind": "other",
+   "summary": "Presumably to avoid a false relation, though another problem follows in the soprano."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f18",
+   "number": 44,
+   "page": 207,
+   "kind": "disagreement",
+   "summary": "This 'real' entry: Stade i:66, Macpherson i:76, Czaczkes, Dürr: 199 agree it is a subject (author); Riemann i:119, Iliffe: 62, Sampson: 78 call it an answer."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f24",
+   "number": 45,
+   "page": 207,
+   "kind": "disagreement",
+   "summary": "Prout 1910: 52 and Morgan start the middle section at bar 24."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f24",
+   "number": 46,
+   "page": 207,
+   "kind": "disagreement",
+   "summary": "Prout 1910: 52 and Morgan start the (next) section at bar 60."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f24",
+   "number": 47,
+   "page": 207,
+   "kind": "disagreement",
+   "summary": "Since Bach uses this part separately, Prout 1891: 76, Sampson: 114 and Czaczkes 1982 i:224 exclude it from the countersubject."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f24",
+   "number": 48,
+   "page": 207,
+   "kind": "disagreement",
+   "summary": "Iliffe: 82, Sampson: 80-81 and Oldroyd: 50 call this short episode a codetta."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f24",
+   "number": 49,
+   "page": 207,
+   "kind": "disagreement",
+   "summary": "The remaining alto segment is a sequential variant, which Czaczkes calls the second countersubject."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f24",
+   "number": 50,
+   "page": 207,
+   "kind": "disagreement",
+   "summary": "Iliffe and Sampson also call this episode a codetta."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f24",
+   "number": 51,
+   "page": 207,
+   "kind": "source",
+   "summary": "An intermediate version tested a real answer here; the autograph P 415 shows the final (post correcturam) reading (NBA KB V/6.1: 141-142; Jones: 163)."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f24",
+   "number": 52,
+   "page": 207,
+   "kind": "disagreement",
+   "summary": "False entry: Keller: 127 sees it as anticipation; Schulenberg: 195 as originating in a compositional slip. The editor has added all false entries to the diagram."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f24",
+   "number": 53,
+   "page": 207,
+   "kind": "disagreement",
+   "summary": "Episodes 5 and 6: Iliffe and Riemann i:167 call them stretto sections (supported by Prout 1891: 119 on bars 33-41); Sampson: 81 rejects 'stretti' as not canonic; the author's episode reading is endorsed by Tovey, Czaczkes 1982 i:226-227 and Dürr: 239."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f24",
+   "number": 54,
+   "page": 207,
+   "kind": "disagreement",
+   "summary": "Some see bars 41-46 as a second stretto (see note 53)."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f24",
+   "number": 55,
+   "page": 207,
+   "kind": "disagreement",
+   "summary": "Iliffe: 82 overlooks this short episode; Sampson calls it a codetta."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f24",
+   "number": 56,
+   "page": 207,
+   "kind": "correction",
+   "summary": "Iliffe calls this entry a third stretto; Dürr: 239 calls it a false entry, which the editor finds more logical than the author's reading."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f08",
+   "number": 57,
+   "page": 207,
+   "kind": "disagreement",
+   "summary": "Stade and Knorr exclude the initial falling steps from the countersubject."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f08",
+   "number": 58,
+   "page": 207,
+   "kind": "disagreement",
+   "summary": "Iliffe: 118, Sampson: 79 and Macpherson ii:22 call episode 1 a codetta."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f08",
+   "number": 59,
+   "page": 207,
+   "kind": "disagreement",
+   "summary": "Iliffe calls this entry an answer."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f08",
+   "number": 60,
+   "page": 207,
+   "kind": "disagreement",
+   "summary": "Czaczkes 1982 ii:85 reads the bass as a countersubject variant."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f08",
+   "number": 61,
+   "page": 208,
+   "kind": "disagreement",
+   "summary": "Knorr sees no countersubject; Czaczkes ii:86 calls the alto a 'branch' (Nebenarm) of it; editor: its role is uncertain compared with the bass at bars 21-23."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f08",
+   "number": 62,
+   "page": 208,
+   "kind": "disagreement",
+   "summary": "Czaczkes 1984 sees the countersubject in varied form in later entries (bass 27-29, alto 43-45) and a second countersubject (descending scale) in the bass; editor: merely the last segment of the subject used as a free part."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f16",
+   "number": 63,
+   "page": 208,
+   "kind": "disagreement",
+   "summary": "Prout 1910: 76 and Morgan begin the 'middle section' with episode 2 (bars 24-28)."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f16",
+   "number": 64,
+   "page": 208,
+   "kind": "reference",
+   "summary": "Classic example of invertible counterpoint (Kirnberger marked '10' and '12' in his copy); see Bullivant: 117-119, Kennan: 116-117, Renwick: 103-105; Bullivant treats the doubled entries (bar 45ff.) differently from the author."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f16",
+   "number": 65,
+   "page": 208,
+   "kind": "reference",
+   "summary": "Another instance at the end of II.22 (bar 96f.); see p.121f."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f16",
+   "number": 66,
+   "page": 208,
+   "kind": "disagreement",
+   "summary": "Czaczkes 1982 ii:173-174 calls this the second countersubject, with variants at bars 28-32, 32-36 (tenor) and 36-40 (alto)."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f16",
+   "number": 67,
+   "page": 208,
+   "kind": "other",
+   "summary": "Rapid modulation to the relative major at the climax; second half of the episode in hemiola (bars 73-74)."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f16",
+   "number": 68,
+   "page": 208,
+   "kind": "disagreement",
+   "summary": "Author presumably treats the alto as free; Czaczkes ii:173-174 calls it a third countersubject (tenor, bar 36)."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f16",
+   "number": 69,
+   "page": 208,
+   "kind": "disagreement",
+   "summary": "Czaczkes ii:176-177 makes the alto the chief voice; others (Stade, Knorr, Bruhn, Dürr) do not distinguish."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f16",
+   "number": 70,
+   "page": 208,
+   "kind": "correction",
+   "summary": "Editor adds an entry to the diagram, from a variant in the bass at bar 79 (autograph vs. Altnickol's P 430) which he reconstructs as part of Bach's revision process."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc2f16",
+   "number": 71,
+   "page": 209,
+   "kind": "reference",
+   "summary": "Salzer, Structural Hearing ii:240-241 (Schenkerian)."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f05",
+   "number": 72,
+   "page": 209,
+   "kind": "disagreement",
+   "summary": "Some (Stade i:20f., Bruhn i:201-202, Dürr: 126) count up to three countersubjects; editor explains the author's view: the passage recurs 8 times, 7 in the bass, so Czaczkes 1982 i:107 rightly calls it a 'fixed bass'; Riemann i:35 agrees."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f05",
+   "number": 73,
+   "page": 209,
+   "kind": "reference",
+   "summary": "Riemann i:36-37 shares the view that it has the importance of a real countersubject."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f05",
+   "number": 74,
+   "page": 209,
+   "kind": "disagreement",
+   "summary": "Iliffe: 17 calls this entry an answer."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f05",
+   "number": 75,
+   "page": 209,
+   "kind": "disagreement",
+   "summary": "Iliffe and Keller: 67 wrongly take the bass (beat 1) as the entry instead of the soprano from beat 2; the bass derives from episode 1."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f05",
+   "number": 76,
+   "page": 209,
+   "kind": "disagreement",
+   "summary": "Iliffe also calls this entry an answer."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f17",
+   "number": 77,
+   "page": 209,
+   "kind": "disagreement",
+   "summary": "Except Prout 1910: 41 and the author, everyone hears this entry in V; Kitson 1929: 18 says the answer 'should have been real'."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f17",
+   "number": 78,
+   "page": 209,
+   "kind": "disagreement",
+   "summary": "Stade i:59, Tovey, Czaczkes 1982 i:177 and Dürr: 192 cautiously accept it as a countersubject; Iliffe: 59 calls it a 'free countersubject'."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f17",
+   "number": 79,
+   "page": 209,
+   "kind": "disagreement",
+   "summary": "Iliffe sees fragments of subject (alto) and answer (treble) here."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f17",
+   "number": 80,
+   "page": 209,
+   "kind": "disagreement",
+   "summary": "Iliffe calls the alto entry an answer."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f17",
+   "number": 81,
+   "page": 209,
+   "kind": "disagreement",
+   "summary": "Iliffe calls all the mixed-shape entries (bars 28-30) answers."
+  },
+  {
+   "chapter": 11,
+   "chapter_title": "Group 4: Fugues for Four Voices, without Stretto",
+   "fugue": "wtc1f17",
+   "number": 82,
+   "page": 209,
+   "kind": "disagreement",
+   "summary": "Prout 1910: 42 and Morgan treat this as part of the coda (bars 31-35)."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f07",
+   "number": 1,
+   "page": 209,
+   "kind": "disagreement",
+   "summary": "More common than the author's ending (bar 6) is to end the subject at the first note of bar 7 (Dehn: 7, Higgs, Boekelman, Iliffe: 114, Sampson, Knorr, Macpherson ii:21, Bruhn ii:85f., Dürr: 298); the author is supported by Jadassohn: 18, Riemann ii:48-9, Stade ii:23 ('connecting bar') and Czaczkes 1982 ii:72."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f07",
+   "number": 2,
+   "page": 209,
+   "kind": "disagreement",
+   "summary": "Boekelman, Iliffe: 114, Knorr and Gray: 100 recognize no countersubject."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f07",
+   "number": 3,
+   "page": 209,
+   "kind": "disagreement",
+   "summary": "Dürr: 299 also splits it into a variable and a fixed segment; Stade and Czaczkes 1984 simply start the countersubject at bar 7, which is misleading."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f07",
+   "number": 4,
+   "page": 210,
+   "kind": "disagreement",
+   "summary": "Jadassohn, Iliffe, Sampson and Dürr: 301 call this extension an episode; Macpherson ii:21 a codetta."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f07",
+   "number": 5,
+   "page": 210,
+   "kind": "disagreement",
+   "summary": "Iliffe: 114 starts the episode at the 2nd note of bar 44."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f07",
+   "number": 6,
+   "page": 210,
+   "kind": "disagreement",
+   "summary": "Other scholars find more than one episode (see note 4)."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f07",
+   "number": 7,
+   "page": 210,
+   "kind": "source",
+   "summary": "The early D-major version (Agricola, P 595) shows the bass quaver runs of bars 47, 49, 51 were first the codetta figure, revised when transposed to Eb for WTC II."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f07",
+   "number": 8,
+   "page": 210,
+   "kind": "correction",
+   "summary": "As Knorr: 29 and Dürr: 301 point out, the alto is an incomplete entry lacking its beginning; so every entry after the counterexposition is in stretto."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f09",
+   "number": 9,
+   "page": 210,
+   "kind": "disagreement",
+   "summary": "Sampson: 69 calls it a codetta; Jadassohn, Iliffe: 122 and Dürr: 316 an episode."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f09",
+   "number": 10,
+   "page": 210,
+   "kind": "disagreement",
+   "summary": "Sampson calls it a codetta."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f09",
+   "number": 11,
+   "page": 210,
+   "kind": "disagreement",
+   "summary": "Dürr: 316 calls it an episode; Sampson a codetta."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f09",
+   "number": 12,
+   "page": 210,
+   "kind": "disagreement",
+   "summary": "Sampson calls it a codetta."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f09",
+   "number": 13,
+   "page": 210,
+   "kind": "disagreement",
+   "summary": "Iliffe, Sampson and Dürr: 317 call it an episode."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f09",
+   "number": 14,
+   "page": 210,
+   "kind": "disagreement",
+   "summary": "Countersubject start: many say the last crotchet of bar 2; Knorr sees none; the author the 3rd note of bar 2 (overlapping the subject); see Kitson 1929: 33. Higgs, Prout 1891, Iliffe, Czaczkes 1984 and Bruhn call the tenor at bars 11-12 (Prout also bar 8) countersubject; editor: free voice derived from it."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f09",
+   "number": 15,
+   "page": 210,
+   "kind": "other",
+   "summary": "In bars 35-38 the free segment of the countersubject turns into the inverted subject in diminution (first developed in 30-33); not separated in the diagram."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f09",
+   "number": 16,
+   "page": 210,
+   "kind": "disagreement",
+   "summary": "Sampson: 155 and Bruhn ii:150f. call the two soggetti the second and third countersubjects; Dehn: 25 shows the stretto interchanges quadruple counterpoint."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f09",
+   "number": 17,
+   "page": 210,
+   "kind": "disagreement",
+   "summary": "Iliffe: 122 calls bars 22-26 an episode (entries not in original form, modulation F# minor to C# minor); Knorr ignores the two entries of bars 25-26."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f09",
+   "number": 18,
+   "page": 211,
+   "kind": "disagreement",
+   "summary": "Kirkpatrick: 103 reads the harmony as vi of V."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f09",
+   "number": 19,
+   "page": 211,
+   "kind": "correction",
+   "summary": "Iliffe, Riemann ii:74f., Stade ii:35 and Czaczkes ii:110-112 read the soprano figure in bar 35 as inverted subject in diminution; if so, the related tenor figures in bars 30-32 should count too, and the editor adds them to the diagram."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f09",
+   "number": 20,
+   "page": 211,
+   "kind": "other",
+   "summary": "As Tovey notes, the first two notes are put down an octave for playability."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f16",
+   "number": 21,
+   "page": 211,
+   "kind": "disagreement",
+   "summary": "Boekelman and Czaczkes start the countersubject immediately after the subject (g, beat 4 of bar 2), a portion often absent later."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f16",
+   "number": 22,
+   "page": 211,
+   "kind": "correction",
+   "summary": "As Kennan: 226 notes, there is a false entry in the alto at bar 7 forming a 'mock stretto'."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f16",
+   "number": 23,
+   "page": 211,
+   "kind": "disagreement",
+   "summary": "Riemann i:105, Czaczkes 1982 i:172-173 and Dürr: 186 call this entry a subject."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f16",
+   "number": 24,
+   "page": 211,
+   "kind": "disagreement",
+   "summary": "Czaczkes and Dürr: 186 call this entry a subject."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f16",
+   "number": 25,
+   "page": 211,
+   "kind": "disagreement",
+   "summary": "Sampson: 84 calls it an episode."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f20",
+   "number": 26,
+   "page": 211,
+   "kind": "other",
+   "summary": "Scholars agree there is no firm countersubject; Dürr: 221 shows its three elements all derive from the subject."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f20",
+   "number": 27,
+   "page": 211,
+   "kind": "correction",
+   "summary": "Iliffe: 68 keeps distinguishing answers throughout, and indeed it is possible to do so."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f20",
+   "number": 28,
+   "page": 211,
+   "kind": "other",
+   "summary": "The inflected f#'' aids the modulation."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f20",
+   "number": 29,
+   "page": 211,
+   "kind": "disagreement",
+   "summary": "The author extends Tovey's classification of stretti by devices; Sampson: 85 and Fuller-Maitland: 32 count fourteen separate stretti."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f20",
+   "number": 30,
+   "page": 211,
+   "kind": "other",
+   "summary": "Bach keeps the exposition's key relation i-v-i up to here."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f20",
+   "number": 31,
+   "page": 211,
+   "kind": "other",
+   "summary": "Its fluid character helps establish the relative major."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f20",
+   "number": 32,
+   "page": 211,
+   "kind": "other",
+   "summary": "Stretto entries of the second half of the subject in the inner voices; the only such case in the fugue."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f20",
+   "number": 33,
+   "page": 211,
+   "kind": "correction",
+   "summary": "Editor finds this imitation significant, preparing the truncated entries prevailing from bar 76."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f20",
+   "number": 34,
+   "page": 211,
+   "kind": "reference",
+   "summary": "Harmony over the subdominant pedal (Neapolitan sixth, V7 in six voices) leading to dominant pedal (bar 81) and Picardy cadence (bar 83); see Bullivant: 153-154."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f02",
+   "number": 35,
+   "page": 211,
+   "kind": "correction",
+   "summary": "The author presumably follows Tovey's (p.27) criticism of Kroll, which is a false accusation; Jadassohn, Iliffe and Stade take the 'bass at bar 7' view; the distinction is academic."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f02",
+   "number": 36,
+   "page": 212,
+   "kind": "source",
+   "summary": "Refers to Anna Magdalena's copy in the London autograph, probably from Bach's lost autograph and close to his notation."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f02",
+   "number": 37,
+   "page": 212,
+   "kind": "disagreement",
+   "summary": "Countersubject disappears after the exposition; Czaczkes 1982 ii:26 claims it continues in modified form as the running theme until bar 16."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f02",
+   "number": 38,
+   "page": 212,
+   "kind": "disagreement",
+   "summary": "Jadassohn: 9 calls bar 10 the subject and bar 11 the answer."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f02",
+   "number": 39,
+   "page": 212,
+   "kind": "correction",
+   "summary": "The editorial supplement (in the diagram) is also proposed by Sampson: 53, 183, Czaczkes ii:28 and Dürr: 261."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f02",
+   "number": 40,
+   "page": 212,
+   "kind": "disagreement",
+   "summary": "Author follows Tovey's stretto numbering; Iliffe: 90 groups them as stretto I (=1+2) and II (=3+4)."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f02",
+   "number": 41,
+   "page": 212,
+   "kind": "disagreement",
+   "summary": "Sampson: 53 splits this stretto into two (3 entries + 2)."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f02",
+   "number": 42,
+   "page": 212,
+   "kind": "correction",
+   "summary": "Editor sees an inverted subject in the soprano at bar 19 (as Iliffe and Czaczkes ii:29), which Bruhn, Dürr and the author do not recognize."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f02",
+   "number": 43,
+   "page": 212,
+   "kind": "disagreement",
+   "summary": "Macpherson ii:7 and Keller: 140 call this section a coda."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f02",
+   "number": 44,
+   "page": 212,
+   "kind": "disagreement",
+   "summary": "Czaczkes ii:32 sees a variant subject entry in the soprano at the last note of bar 26."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f22",
+   "number": 45,
+   "page": 212,
+   "kind": "correction",
+   "summary": "More precisely iii# to i of the dominant key; the countersubject almost vanishes after bar 60 (brief return bar 82)."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f22",
+   "number": 46,
+   "page": 212,
+   "kind": "disagreement",
+   "summary": "Iliffe: 183, Sampson: 87, Prout 1910: 85 and Morgan call this episode a codetta."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f22",
+   "number": 47,
+   "page": 212,
+   "kind": "disagreement",
+   "summary": "Many (Riemann, Keller: 193, Czaczkes ii:259, Bruhn iv:176, Dürr: 418) call this idea the second countersubject, recurring at bars 19, 29-30, 35-36, 44, 48, 54, 60, 75, 91."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f22",
+   "number": 48,
+   "page": 212,
+   "kind": "disagreement",
+   "summary": "Iliffe, Sampson, Prout 1910 and Morgan call this episode a codetta."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f22",
+   "number": 49,
+   "page": 212,
+   "kind": "reference",
+   "summary": "Renwick: 146-147 harmonic analysis."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f22",
+   "number": 50,
+   "page": 212,
+   "kind": "disagreement",
+   "summary": "Iliffe divides this section into two stretti; see Renwick: 177-178, 199-202."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f22",
+   "number": 51,
+   "page": 212,
+   "kind": "disagreement",
+   "summary": "Iliffe calls all second entries of the stretti answers."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f22",
+   "number": 52,
+   "page": 212,
+   "kind": "reference",
+   "summary": "Renwick: 148."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f22",
+   "number": 53,
+   "page": 212,
+   "kind": "reference",
+   "summary": "Renwick: 158."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f22",
+   "number": 54,
+   "page": 212,
+   "kind": "reference",
+   "summary": "Renwick: 177-179."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f22",
+   "number": 55,
+   "page": 212,
+   "kind": "disagreement",
+   "summary": "Iliffe, Riemann: 186 and Dickinson: 92 call the second entries of the stretti answers."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f22",
+   "number": 56,
+   "page": 212,
+   "kind": "reference",
+   "summary": "Renwick: 159."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f22",
+   "number": 57,
+   "page": 212,
+   "kind": "reference",
+   "summary": "Renwick: 177-179."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f22",
+   "number": 58,
+   "page": 213,
+   "kind": "reference",
+   "summary": "Renwick: 178-180."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f01",
+   "number": 59,
+   "page": 213,
+   "kind": "disagreement",
+   "summary": "Not 'exceptional' or rule-defying, as many (e.g. Bullivant: 32) said: a procedure known from Froberger, Fischer and Fux."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f01",
+   "number": 60,
+   "page": 213,
+   "kind": "other",
+   "summary": "The semiquaver figure grows from the subject's tail, itself an inverted diminution of its first four notes."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f01",
+   "number": 61,
+   "page": 213,
+   "kind": "reference",
+   "summary": "Boekelman's theory that the subject turns into a kind of countersubject at bar 7, explaining the many strettos."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f01",
+   "number": 62,
+   "page": 213,
+   "kind": "disagreement",
+   "summary": "Iliffe: 3, Prout 1910, Morgan, Macpherson i:8, Dickinson see bars 7-10 as a counterexposition (only three voices); Fuller-Maitland i:13 says there is none."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f01",
+   "number": 63,
+   "page": 213,
+   "kind": "disagreement",
+   "summary": "Iliffe and Gedalge go on specifying subject/answer throughout, with some differences."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f01",
+   "number": 64,
+   "page": 213,
+   "kind": "disagreement",
+   "summary": "Dürr: 103 gives D as the key here: correct for the melody alone but invalid for the actual harmony."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f01",
+   "number": 65,
+   "page": 213,
+   "kind": "disagreement",
+   "summary": "Dürr: 103 gives E minor (see note 64)."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc1f01",
+   "number": 66,
+   "page": 213,
+   "kind": "disagreement",
+   "summary": "Dürr: 103 gives G major; editor disagrees."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f05",
+   "number": 67,
+   "page": 213,
+   "kind": "disagreement",
+   "summary": "Riemann i:35, Stade ii:16, Fuller-Maitland ii:12 and Gedalge: 223 call this figure a countersubject."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f05",
+   "number": 68,
+   "page": 213,
+   "kind": "disagreement",
+   "summary": "Macpherson ii:15 calls it a codetta."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f05",
+   "number": 69,
+   "page": 213,
+   "kind": "disagreement",
+   "summary": "The author's observation is unique and compelling; others (Iliffe: 106, Bruhn i:219) start the episode after the subject entry."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f05",
+   "number": 70,
+   "page": 213,
+   "kind": "disagreement",
+   "summary": "Prout 1891: 150 calls it an episode."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f05",
+   "number": 71,
+   "page": 213,
+   "kind": "disagreement",
+   "summary": "Dürr: 285 gives A major (cf. note 64)."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f05",
+   "number": 72,
+   "page": 213,
+   "kind": "disagreement",
+   "summary": "Iliffe and Dürr: 285 give B minor for the tenor entry at bar 21."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f05",
+   "number": 73,
+   "page": 213,
+   "kind": "disagreement",
+   "summary": "Iliffe, Prout 1891: 150 and Gedalge: 221 call this entry an answer."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f05",
+   "number": 74,
+   "page": 213,
+   "kind": "correction",
+   "summary": "The author wrote 'subject' for these entries; the editor amended them to 'answer'."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f05",
+   "number": 75,
+   "page": 213,
+   "kind": "disagreement",
+   "summary": "Prout 1891: 151, Macpherson ii:16 and Dürr: 283 begin the final section with this entry."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f05",
+   "number": 76,
+   "page": 213,
+   "kind": "correction",
+   "summary": "Iliffe, Prout 1891: 152 and Gedalge: 223 call this entry an answer, and the editor tends to agree."
+  },
+  {
+   "chapter": 12,
+   "chapter_title": "Group 5: Fugues for Four Voices, with Stretto",
+   "fugue": "wtc2f05",
+   "number": 77,
+   "page": 214,
+   "kind": "correction",
+   "summary": "The soprano entry at bar 44 is more likely an answer (Iliffe, Sampson)."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc1f19",
+   "number": 1,
+   "page": 214,
+   "kind": "other",
+   "summary": "The author's 'one commentator' who thought the subject only one note long is unidentified; the editor could not trace the source."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc1f19",
+   "number": 2,
+   "page": 214,
+   "kind": "disagreement",
+   "summary": "Subject end: author's view (ends on the c#'' just before the end of bar 2) is shared by the majority: Riemann i:125, Macpherson i:79, Gray, Perrachio, David, Czaczkes i:189, Bruhn iv:63, Dürr: 205; next most common is the 5th note of bar 2 (Iliffe: 65, Sampson: 41, Prout 1910: 44, Morgan); Stade i:67 the 2nd note of bar 2 plus 'Nachsatz'; Keller: 109 and Souchay: 58 the first note of bar 3."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc1f19",
+   "number": 3,
+   "page": 214,
+   "kind": "disagreement",
+   "summary": "Iliffe and Sampson call this section a codetta."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc1f19",
+   "number": 4,
+   "page": 214,
+   "kind": "disagreement",
+   "summary": "Iliffe and Sampson call this section an episode."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc1f19",
+   "number": 5,
+   "page": 214,
+   "kind": "disagreement",
+   "summary": "Iliffe and Sampson take bars 17(18)-23 as an episode."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc1f19",
+   "number": 6,
+   "page": 214,
+   "kind": "disagreement",
+   "summary": "Iliffe does not call it a countersubject but a 'new and more rapid passage'."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc1f19",
+   "number": 7,
+   "page": 214,
+   "kind": "source",
+   "summary": "Iliffe calls this voice alto; Bach's autograph (P 415) did not distinguish the voice crossing, writing the soprano down-stemmed below the alto in bars 25-26."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc1f19",
+   "number": 8,
+   "page": 214,
+   "kind": "disagreement",
+   "summary": "Iliffe starts the episode at bar 34 rather than bar 36."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc1f19",
+   "number": 9,
+   "page": 214,
+   "kind": "disagreement",
+   "summary": "Bruhn iv:67-69 supports this alternative theory."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc1f19",
+   "number": 10,
+   "page": 214,
+   "kind": "disagreement",
+   "summary": "Iliffe and Sampson start the coda as early as bar 46."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc2f21",
+   "number": 11,
+   "page": 214,
+   "kind": "correction",
+   "summary": "Bruhn iv:142-143 cautiously calls this the first countersubject, with a second (soprano 14-17, middle 22-25); the editor prefers Riemann: 176 and Gray: 139: the crotchet motive (later revised to quavers) develops into the true first countersubject, first in the soprano at bar 33."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc2f21",
+   "number": 12,
+   "page": 214,
+   "kind": "disagreement",
+   "summary": "Iliffe: 178, Sampson: 59, Prout 1910: 83, Morgan and Macpherson ii:68 call this a codetta."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc2f21",
+   "number": 13,
+   "page": 214,
+   "kind": "reference",
+   "summary": "Renwick: 127 on the exposition (bars 1-17)."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc2f21",
+   "number": 14,
+   "page": 214,
+   "kind": "disagreement",
+   "summary": "German scholars (Riemann ii:177, Czaczkes ii:242, Dürr: 411) call this entry a subject."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc2f21",
+   "number": 15,
+   "page": 214,
+   "kind": "disagreement",
+   "summary": "Likewise Riemann, Czaczkes and Dürr call this entry a subject."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc2f21",
+   "number": 16,
+   "page": 214,
+   "kind": "disagreement",
+   "summary": "Iliffe and Sampson downplay this section, starting a new modulating section at bar 44 and positing a counterexposition: Iliffe from bar 32, Sampson and Fuller-Maitland ii:79 from bar 21."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc2f21",
+   "number": 17,
+   "page": 215,
+   "kind": "other",
+   "summary": "See note 11."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc2f21",
+   "number": 18,
+   "page": 215,
+   "kind": "reference",
+   "summary": "Renwick: 158-160, Schenkerian harmonic analysis."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc2f21",
+   "number": 19,
+   "page": 215,
+   "kind": "source",
+   "summary": "Iliffe: 178 and Riemann ii:178 call it an answer; the last quaver of bar 78 decides real vs tonal: Altnickol sources c'' (real), London autograph ambiguous (b-flat'/c'') after correction; Jones: 192 reads b-flat' (tonal), supported by Dürr: 408."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc2f21",
+   "number": 20,
+   "page": 215,
+   "kind": "source",
+   "summary": "The two bars before the last four were revised by Bach; earlier version in the London autograph."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc2f24",
+   "number": 21,
+   "page": 215,
+   "kind": "disagreement",
+   "summary": "Prout 1910: 89 starts the final section at bar 69."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc2f24",
+   "number": 22,
+   "page": 215,
+   "kind": "disagreement",
+   "summary": "This controversial countersubject: Iliffe: 193 denies it; most accept it but start it at the 2nd semiquaver of bar 7 (author, Czaczkes ii:301, Bruhn iv:248) or the 5th (Macpherson ii:77, Dürr: 434); it is in quasi-stretto with the subject (bars 15-17, 26-28), later real stretto (69-71, 97-100)."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc2f24",
+   "number": 23,
+   "page": 215,
+   "kind": "disagreement",
+   "summary": "Iliffe, Prout 1910: 89 and Morgan call this a codetta, not an episode."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc2f24",
+   "number": 24,
+   "page": 215,
+   "kind": "source",
+   "summary": "Author's text is the Altnickol tradition (NBA 'Fassung B'); the London autograph differs here, keeping the original shape of the first countersubject."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc2f24",
+   "number": 25,
+   "page": 215,
+   "kind": "disagreement",
+   "summary": "Stade ii:113 calls it a variant of the subject's head; Czaczkes and Knorr ignore it."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc2f24",
+   "number": 26,
+   "page": 215,
+   "kind": "disagreement",
+   "summary": "Iliffe: 193 and Sampson: 48 call this entry a real answer."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc2f24",
+   "number": 27,
+   "page": 215,
+   "kind": "disagreement",
+   "summary": "Bruhn calls this the first countersubject."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc2f24",
+   "number": 28,
+   "page": 215,
+   "kind": "other",
+   "summary": "This subject entry first sounds like the first countersubject before proving (from bar 72) a true entry."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc2f24",
+   "number": 29,
+   "page": 215,
+   "kind": "disagreement",
+   "summary": "Bruhn iv:255 reads the bass (bars 97-99) as the first countersubject."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc1f13",
+   "number": 30,
+   "page": 215,
+   "kind": "reference",
+   "summary": "Renwick: 118, 195-196 on the exposition."
+  },
+  {
+   "chapter": 13,
+   "chapter_title": "Group 6: Fugues with Countersubjects Introduced after the Exposition",
+   "fugue": "wtc1f13",
+   "number": 31,
+   "page": 215,
+   "kind": "disagreement",
+   "summary": "Part of the countersubject (from beat 3 of bar 15) is inverted at the twelfth; the soprano free part recurs in bars 32-35 and Czaczkes 1982 i:156 labels it 'countersubject 2b'."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f04",
+   "number": 1,
+   "page": 216,
+   "kind": "disagreement",
+   "summary": "Subject end: last note of bar 2 (author, Taylor: 57, Riemann ii:29, Gray: 91, Keller: 144, Dürr: 278) or 7th note of bar 2 (Higgs, Iliffe: 100, Stade ii:11, Sampson, Brandts Buys, Knorr, Macpherson ii:12, Czaczkes ii:47, Bruhn i:183)."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f04",
+   "number": 2,
+   "page": 216,
+   "kind": "disagreement",
+   "summary": "Iliffe denies any subsidiary subjects and so 'seriously' misjudges the fugue; the second subject grows by metamorphosis from the countersubject (endorsed by Macpherson ii:13, Bruhn i:185, Dürr: 277)."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f04",
+   "number": 3,
+   "page": 216,
+   "kind": "disagreement",
+   "summary": "Bruhn does not consider this a countersubject."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f04",
+   "number": 4,
+   "page": 216,
+   "kind": "other",
+   "summary": "The countersubject, further modified, is in the soprano."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f04",
+   "number": 5,
+   "page": 216,
+   "kind": "disagreement",
+   "summary": "Iliffe: 100 calls the counterexposition incomplete, excluding the bass entry (bars 20-21)."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f04",
+   "number": 6,
+   "page": 216,
+   "kind": "disagreement",
+   "summary": "Iliffe and Sampson do not recognize this section, absorbing it into a large episodic section (episodes 2-3); Knorr calls the second subject a countersubject (from bar 48, as at bar 38)."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f04",
+   "number": 7,
+   "page": 216,
+   "kind": "disagreement",
+   "summary": "Czaczkes ii:50 and Dürr: 278 give the key here as 'fis-gis'."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f18",
+   "number": 8,
+   "page": 216,
+   "kind": "disagreement",
+   "summary": "Bruhn iv:191 does not see SII here."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f18",
+   "number": 9,
+   "page": 216,
+   "kind": "disagreement",
+   "summary": "Knorr finds no countersubjects in this fugue."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f18",
+   "number": 10,
+   "page": 216,
+   "kind": "disagreement",
+   "summary": "Iliffe: 165 and Sampson: 45 call this episode a codetta (cf. episodes 5, 7)."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f18",
+   "number": 11,
+   "page": 216,
+   "kind": "reference",
+   "summary": "As in II.4, the second subject derives from the countersubject of bar 5 (Riemann ii:154, Gray: 130-131, Dürr: 384-385)."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f18",
+   "number": 12,
+   "page": 216,
+   "kind": "other",
+   "summary": "The episode touches III (bar 41) before settling in v."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f18",
+   "number": 13,
+   "page": 216,
+   "kind": "other",
+   "summary": "Briefly modulates to III again (bar 51) before returning to i."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f18",
+   "number": 14,
+   "page": 216,
+   "kind": "disagreement",
+   "summary": "Iliffe and Sampson call this extension a 'codetta'."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f18",
+   "number": 15,
+   "page": 216,
+   "kind": "disagreement",
+   "summary": "Iliffe calls this a countersubject (cf. II.4) and ignores the second countersubject."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f18",
+   "number": 16,
+   "page": 216,
+   "kind": "disagreement",
+   "summary": "Iliffe and Sampson call this episode a codetta (cf. episodes 1, 7)."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f18",
+   "number": 17,
+   "page": 216,
+   "kind": "disagreement",
+   "summary": "Iliffe calls this entry an answer."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f18",
+   "number": 18,
+   "page": 216,
+   "kind": "disagreement",
+   "summary": "Iliffe and Sampson call this episode a codetta (cf. episodes 1, 5)."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f23",
+   "number": 19,
+   "page": 216,
+   "kind": "disagreement",
+   "summary": "Iliffe: 187 and Knorr do not recognize this device (see p.15)."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f23",
+   "number": 20,
+   "page": 216,
+   "kind": "disagreement",
+   "summary": "Riemann ii:196, Iliffe: 187 and Sampson call this entry an answer."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f23",
+   "number": 21,
+   "page": 216,
+   "kind": "disagreement",
+   "summary": "Second subject (author, with Riemann ii:197, Tovey, Fuller-Maitland ii:36, Macpherson ii:73) or a 'new' countersubject (wider support: Dickinson, Prout 1891: 79, Iliffe, Sampson, Morgan, Czaczkes ii:283, Bullivant: 134, Bruhn iv:208, Dürr: 426)? Unlike II.4 and II.18 it has no real exposition (bars 28-35 arguably) and is used freely."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f23",
+   "number": 22,
+   "page": 217,
+   "kind": "disagreement",
+   "summary": "Iliffe: 187 and Sampson call this an episode lasting until bar 35, as they do not recognize the second subject."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f23",
+   "number": 23,
+   "page": 217,
+   "kind": "disagreement",
+   "summary": "Riemann ii:197 calls this soprano entry an answer."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f23",
+   "number": 24,
+   "page": 217,
+   "kind": "other",
+   "summary": "Tenor accompanies the alto entry then passes its role to the bass (shown in brackets); same at bars 48 and 75."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f23",
+   "number": 25,
+   "page": 217,
+   "kind": "disagreement",
+   "summary": "Riemann, Iliffe and Sampson call this soprano entry an answer."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f23",
+   "number": 26,
+   "page": 217,
+   "kind": "reference",
+   "summary": "Renwick: 151, 161 on this episode."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f23",
+   "number": 27,
+   "page": 217,
+   "kind": "disagreement",
+   "summary": "Riemann ii:202, Iliffe and Sampson call this tenor entry an answer."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f14",
+   "number": 28,
+   "page": 217,
+   "kind": "disagreement",
+   "summary": "Czaczkes ii:149 calls it a countersubject recurring in variants at bars 9 (soprano) and 17 (bass)."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f14",
+   "number": 29,
+   "page": 217,
+   "kind": "disagreement",
+   "summary": "Iliffe: 145 and Sampson: 49 take the bass phrase from the 3rd note of bar 14 as a real answer; Prout 1910: 72 adds a soprano stretto subject at bar 16, giving a partial counterexposition (14-16)."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f14",
+   "number": 30,
+   "page": 217,
+   "kind": "other",
+   "summary": "The walking bass begins as a sequence of the inverted first four notes (idea of bar 11), preparing the new subject at bar 20."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f14",
+   "number": 31,
+   "page": 217,
+   "kind": "disagreement",
+   "summary": "Iliffe: 145, not recognizing the second and third subjects, reads bars 19-28 as an episode."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f14",
+   "number": 32,
+   "page": 217,
+   "kind": "disagreement",
+   "summary": "Length of this (second) subject: Fuller-Maitland i:25 four notes; Prout 1910: 73 and Macpherson ii:45 six; Dürr: 352 nine (to the 2nd note of bar 22)."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f14",
+   "number": 33,
+   "page": 217,
+   "kind": "disagreement",
+   "summary": "Iliffe: 145 calls this part of an episode (bars 36-51); Czaczkes ii:153-158 and Dürr: 353-354 treat it as part of a 'fourth exposition' in three rounds (bars 36-40, 40-43, 43-51), whose entries the editor added to the diagram."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f14",
+   "number": 34,
+   "page": 217,
+   "kind": "disagreement",
+   "summary": "Czaczkes ii:159 and Dürr: 353 call this entry an answer."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc2f14",
+   "number": 35,
+   "page": 217,
+   "kind": "reference",
+   "summary": "Renwick: 94-95 on how each subject keeps its melodic structure under the harmony."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc1p07",
+   "number": 36,
+   "page": 218,
+   "kind": "disagreement",
+   "summary": "Iliffe: 23 and Bruhn ii:64 reverse the naming of the two subjects; Riemann i:48 calls them 'theme' and 'countersubject'."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc1p07",
+   "number": 37,
+   "page": 218,
+   "kind": "other",
+   "summary": "The toccata theme (head of the second subject) is also used freely as a motive."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc1p07",
+   "number": 38,
+   "page": 218,
+   "kind": "disagreement",
+   "summary": "Iliffe: 24 and Bruhn ii:69 do not count this as a subject entry."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc1p07",
+   "number": 39,
+   "page": 218,
+   "kind": "other",
+   "summary": "Begins with a tonal deflection like the previous episode."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc1p07",
+   "number": 40,
+   "page": 218,
+   "kind": "disagreement",
+   "summary": "Dürr: 136 begins the final section at the bass entry of bar 61; Bruhn ii:69 at bar 58."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc1p07",
+   "number": 41,
+   "page": 218,
+   "kind": "disagreement",
+   "summary": "Iliffe: 25 and Bruhn ii:69 do not see a variant of the subject here."
+  },
+  {
+   "chapter": 14,
+   "chapter_title": "Group 7: Fugues with Subsidiary Subjects",
+   "fugue": "wtc1p19",
+   "number": 42,
+   "page": 218,
+   "kind": "disagreement",
+   "summary": "Iliffe: 63 divides it into two sections: bars 1-14(1) and 14(2)-24."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f04",
+   "number": 1,
+   "page": 218,
+   "kind": "disagreement",
+   "summary": "Prout 1910: 21 and Morgan begin the final section at bar 73."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f04",
+   "number": 2,
+   "page": 218,
+   "kind": "disagreement",
+   "summary": "Bruhn i:165 argues for a countersubject in bars 4-9 (giving the falling-scale and suspension motives); see also Stade i:14, Dürr: 119."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f04",
+   "number": 3,
+   "page": 218,
+   "kind": "disagreement",
+   "summary": "Riemann, Jadassohn and Iliffe: 134 keep distinguishing them (subject/answer) in their analyses."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f04",
+   "number": 4,
+   "page": 218,
+   "kind": "disagreement",
+   "summary": "Czaczkes 1984: 'preparatory motives' of the second countersubject [i.e. SII] first appear in the bass at bar 6."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f04",
+   "number": 5,
+   "page": 218,
+   "kind": "disagreement",
+   "summary": "Boekelman: 5 excludes the four notes from the 2nd quaver of bar 38 (and parallel places, bars 62, 84) from the second subject."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f04",
+   "number": 6,
+   "page": 218,
+   "kind": "disagreement",
+   "summary": "Gray: 26 sees SIII hinted at in the tenors at bars 39-41; Czaczkes 1984 earlier still (bass bar 4, tenor bar 7)."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f04",
+   "number": 7,
+   "page": 218,
+   "kind": "other",
+   "summary": "This is a stretto between the two highest voices."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f04",
+   "number": 8,
+   "page": 218,
+   "kind": "correction",
+   "summary": "All commentators examined miss this alto entry of SI except Knorr, who says it stays in the alto."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f04",
+   "number": 9,
+   "page": 218,
+   "kind": "disagreement",
+   "summary": "Boekelman misses the second subject here; Prout 1910: 21 takes bars 57-58 as the second episode."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f04",
+   "number": 10,
+   "page": 218,
+   "kind": "disagreement",
+   "summary": "Prout 1910 and Morgan take bars 62-65 as the third episode."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f04",
+   "number": 11,
+   "page": 218,
+   "kind": "disagreement",
+   "summary": "Prout 1910 and Morgan take bars 69-72 as the fourth episode."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f04",
+   "number": 12,
+   "page": 218,
+   "kind": "disagreement",
+   "summary": "Iliffe takes bars 62-65 as the second episode, modulating i to V."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f04",
+   "number": 13,
+   "page": 218,
+   "kind": "disagreement",
+   "summary": "Iliffe takes bars 84-86 as the third episode (i to iv); Morgan's fifth."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f04",
+   "number": 14,
+   "page": 218,
+   "kind": "disagreement",
+   "summary": "Prout 1910: 22 calls this the fifth and last episode; Morgan's sixth."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f04",
+   "number": 15,
+   "page": 218,
+   "kind": "disagreement",
+   "summary": "Start of the final section: Iliffe: 14 bar 97; Czaczkes i:98, Bruhn i:173, Dürr: 122 bar 94; Prout (per Macpherson i:19) bar 73."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f04",
+   "number": 16,
+   "page": 219,
+   "kind": "disagreement",
+   "summary": "Prout 1910: 22 begins the coda at bar 100."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f22",
+   "number": 17,
+   "page": 219,
+   "kind": "reference",
+   "summary": "Riemann i:146-147 explains how the chain of syncopations acts as a countersubject traceable 'pretty well throughout'."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f22",
+   "number": 18,
+   "page": 219,
+   "kind": "disagreement",
+   "summary": "Iliffe: 75, Sampson: 92, Prout 1910: 48 and Morgan call it a codetta, not episode; Schulenberg: 193 allows only two 'sequential bridges' (bars 6f., 42f.), the severe style permitting no real episodes."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f22",
+   "number": 19,
+   "page": 219,
+   "kind": "disagreement",
+   "summary": "Iliffe: 75 calls this bass entry an answer."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f22",
+   "number": 20,
+   "page": 219,
+   "kind": "correction",
+   "summary": "Dürr: 225 gives the key of this entry as bVII (Ab), imprecise and misleading: the harmony and resulting key is Db."
+  },
+  {
+   "chapter": 15,
+   "chapter_title": "Group 8: Fugues for Five Voices",
+   "fugue": "wtc1f22",
+   "number": 21,
+   "page": 219,
+   "kind": "disagreement",
+   "summary": "These irregular entries are often missed: Stade i:86, Czaczkes i:211 and Dürr: 225 ignore the alto; Boekelman, Knorr and Bruhn iv:158-159, 165 ignore both."
+  },
+  {
+   "chapter": 16,
+   "chapter_title": "Episodes (2)",
+   "fugue": null,
+   "number": 1,
+   "page": 219,
+   "kind": "reference",
+   "summary": "See note 5 to Chapter 1."
+  },
+  {
+   "chapter": 16,
+   "chapter_title": "Episodes (2)",
+   "fugue": null,
+   "number": 2,
+   "page": 219,
+   "kind": "reference",
+   "summary": "See note 19 to Chapter 7."
+  },
+  {
+   "chapter": 17,
+   "chapter_title": "Tonality in the \"48\"",
+   "fugue": null,
+   "number": 1,
+   "page": 219,
+   "kind": "correction",
+   "summary": "Editor: I.12 should be classified outside this category, since its tonal answer's first note is harmonized in the tonic."
+  },
+  {
+   "chapter": 17,
+   "chapter_title": "Tonality in the \"48\"",
+   "fugue": null,
+   "number": 2,
+   "page": 219,
+   "kind": "correction",
+   "summary": "II.7, II.9 and II.22 might be better classified elsewhere: their entries start new sections of a larger plan and are in stretto."
+  },
+  {
+   "chapter": 17,
+   "chapter_title": "Tonality in the \"48\"",
+   "fugue": null,
+   "number": 3,
+   "page": 219,
+   "kind": "correction",
+   "summary": "II.16 may belong in a different category (e.g. with I.10); it does not strictly fit this group."
+  },
+  {
+   "chapter": 17,
+   "chapter_title": "Tonality in the \"48\"",
+   "fugue": null,
+   "number": 4,
+   "page": 219,
+   "kind": "reference",
+   "summary": "See note 23 to Chapter 13."
+  }
+ ]
+}
