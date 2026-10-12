@@ -643,7 +643,7 @@ export function WtcApp({ onVoices, onStudy, onCompose, onTutorial }: { onVoices(
             </select>
             <button className="icon" onClick={() => step(1)} disabled={ORDER.indexOf(index) === ORDER.length - 1} aria-label={t("ui.nav.next")}>›</button>
             {onStudy && <button className="chipbtn" onClick={() => (audio.stop(), onStudy())} title={t("ui.study.studyHelp")}>{t("ui.study.study")}</button>}
-            {onCompose && <button className="chipbtn" onClick={() => (audio.stop(), onCompose())} title={t("ui.compose.openHelp")}>{t("ui.compose.open")}</button>}
+            {onCompose && <button className="link compose-link" onClick={() => (audio.stop(), onCompose())} title={t("ui.compose.openHelp")}>{t("ui.compose.open")}</button>}
           </nav>
           <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("guide")} onTutorial={onTutorial} />
         </>

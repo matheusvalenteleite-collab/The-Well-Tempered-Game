@@ -882,7 +882,7 @@ export function WtcStudy({ onVoices, onExercises, onCompose, onTutorial }: { onV
               <button className="chipbtn" role="radio" aria-checked={!isPrelude} aria-pressed={!isPrelude} onClick={() => choosePiece("fugue")}>{t("ui.study.fugue")}</button>
             </span>
             <button className="chipbtn" onClick={() => (stop(), onExercises())} title={t("ui.study.exercisesHelp")}>{t("ui.study.exercises")}</button>
-            {onCompose && <button className="chipbtn" onClick={() => (stop(), onCompose())} title={t("ui.compose.openHelp")}>{t("ui.compose.open")}</button>}
+            {onCompose && <button className="link compose-link" onClick={() => (stop(), onCompose())} title={t("ui.compose.openHelp")}>{t("ui.compose.open")}</button>}
           </nav>
           <HeaderTools look={look} onLook={() => setLook(look === "retro" ? "classic" : "retro")} theme={theme} onTheme={() => setTheme(theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto")} onHelp={() => setTab("guide")} onTutorial={onTutorial} />
         </>
