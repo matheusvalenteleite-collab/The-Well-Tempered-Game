@@ -102,5 +102,23 @@ above. XIV is tracked (docs/wtc/XIV.md), and its prerequisites are this plan's p
 
 ## 4. The order of work
 
-A1 → A2 → A3 → A4 (with Kirnberger, C2) → A5 → A6, with C1 (Ledbetter) as each reading is measured; then B and C2 side by side, chapter by chapter; D as layers
-become measured; E whenever a decision is ripe. Each step ends with a commit and a line in RESEARCH.md.
+Revised 12 October (D161, the owner's option D1), now that several sessions work together
+(`docs/SESSIONS.md`):
+
+1. **C0, the literature review** on Bach's fugues (the WTC, the Art of Fugue, the Musical Offering, Bach's
+   writing), in `docs/LITERATURE.md`, for the owner to choose from. It starts from what others have
+   already established rather than reinventing it, and decides what C2 reads.
+2. **A5,** countersubjects, measured on the gold standard.
+3. **C1,** Ledbetter, for every claim the project can read without cadences.
+4. **B,** the chapters that need no cadences: 3, 8, 12, 13, 16, 17.
+5. **A3 and A4** come from the ANALYSIS CORE session: the cadence finder and the fundamental bass in
+   counterpoint are shared readers, built once for fugues, inventions and chorales, and measured on each
+   repertory's gold standard. This session supplies its gold standard (109 cadences) and Ledbetter's
+   claims, then adopts the readers. Then the chapters that need them: 9, 10, 11, 14, 15.
+6. **A6,** one pipeline.
+7. **C2** as the review chose; **D** as layers become measured; **E** whenever a decision is ripe.
+
+Each step ends with a commit, a line in RESEARCH.md and this session's section of `docs/SESSIONS.md`.
+
+*Superseded order (A1-A6 in sequence, this session building the cadence finder):* A1 → A2 → A3 → A4 →
+A5 → A6, with C1 as each reading was measured; then B and C2 side by side.
