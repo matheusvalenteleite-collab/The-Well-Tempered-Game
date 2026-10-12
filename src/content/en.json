@@ -1414,7 +1414,20 @@
     "compose.stretto.iv.4down": "a fourth below",
     "compose.stretto.iv.4up": "a fourth above",
     "compose.stretto.iv.5down": "a fifth below",
-    "compose.stretto.iv.1": "at the unison"
+    "compose.stretto.iv.1": "at the unison",
+    "compose.seq.title": "The episode from a sequence",
+    "compose.seq.source": "Fragment",
+    "compose.seq.subjectHead": "the subject's head",
+    "compose.seq.subjectTail": "the subject's tail",
+    "compose.seq.csHead": "the countersubject's head",
+    "compose.seq.step": "Each time",
+    "compose.seq.step-1": "a step lower",
+    "compose.seq.step1": "a step higher",
+    "compose.seq.step-2": "a third lower",
+    "compose.seq.lead": "In the",
+    "compose.seq.proposal": "Sequence {n}",
+    "compose.seq.reps": "The fragment and its companion {n} times, then a free tail into the next entry",
+    "compose.seq.how": "As Bach spins most of his episodes: a fragment in one voice, a line against it in the other, the pair repeated lower (or higher) in the key the episode leaves; then both voices led into the next entry, in the key it reaches. Both voices of the episode are written; change them as you like."
   },
   "tutor": {
     "rule.fos.no-repetition": "In this species each upbeat brings a new note, which is then tied over the bar line; striking the downbeat's note again on its own upbeat is a whole note in disguise.",

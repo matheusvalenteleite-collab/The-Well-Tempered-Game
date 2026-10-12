@@ -36,6 +36,7 @@ import { judgeFugue } from "../wtc/compose/judge.ts";
 import { fugueMidi } from "../wtc/compose/midi.ts";
 import { asEvents, type Proposal } from "../wtc/compose/generate.ts";
 import { fitsPlan, strettoTable, type StrettoRow } from "../wtc/compose/stretto.ts";
+import { proposeEpisode, type EpisodeChoice, type EpisodeProposal } from "../wtc/compose/episode.ts";
 import { proposeCodetta, proposeCountersubject, proposeFree } from "../wtc/compose/proposals.ts";
 import { alterPitch, insert, isDotted, lengthen, letterPitch, nearBefore, remove, setDur, setPitch, stepPitch, toggleDot, VALUES, pretty } from "../wtc/compose/edit.ts";
 import type { CpViolation } from "../wtc/counterpoint.ts";
@@ -547,6 +548,47 @@ export function ComposeApp({ onVoices, onStudy, onExercises, onTutorial }: { onV
     const mine = offer && offer.key === offerKey ? offer.mine : eventsOf(target);
     setOffer({ key: offerKey, seed, list: list.map((p) => ({ evs: asEvents(p.notes, from), faults: p.faults })), mine });
   };
+  // An episode from a sequence: both voices of the section at once.
+  const [seq, setSeq] = useState<EpisodeChoice>({ source: "subjectHead", step: -1, lead: 0 });
+  const [seqOffer, setSeqOffer] = useState<{ section: string; seed: number; list: EpisodeProposal[]; mine: [Ev[], Ev[]] } | null>(null);
+  const episodeOf = target?.kind === "free" ? realised?.sections.find((x) => x.id === freePart(target.slot)?.section && x.kind === "episode") : undefined;
+  const askSequence = () => {
+    if (!episodeOf || !realised) return;
+    const same = seqOffer && seqOffer.section === episodeOf.id;
+    const seed = same ? seqOffer!.seed + 1 : 1;
+    const slots = [`${episodeOf.id}:0:0`, `${episodeOf.id}:1:0`];
+    const mine = same ? seqOffer!.mine : ([d.free[slots[0]] ?? [], d.free[slots[1]] ?? []] as [Ev[], Ev[]]);
+    setSeqOffer({ section: episodeOf.id, seed, list: proposeEpisode(d, realised, episodeOf.id, seq, seed), mine });
+  };
+  const takeSequence = (voices: [Ev[], Ev[]]) => episodeOf && change({ ...d, free: { ...d.free, [`${episodeOf.id}:0:0`]: voices[0], [`${episodeOf.id}:1:0`]: voices[1] } });
+  const sequencePanel = episodeOf && (
+    <div className="compose-offer">
+      <h4>{t("ui.compose.seq.title")}</h4>
+      <label>{t("ui.compose.seq.source")} <select className="sel" value={seq.source} onChange={(e) => setSeq({ ...seq, source: e.target.value as EpisodeChoice["source"] })}>
+        {(["subjectHead", "subjectTail", "csHead"] as const).map((x) => <option key={x} value={x}>{t(`ui.compose.seq.${x}`)}</option>)}
+      </select></label>{" "}
+      <label>{t("ui.compose.seq.step")} <select className="sel" value={seq.step} onChange={(e) => setSeq({ ...seq, step: Number(e.target.value) })}>
+        {[-1, 1, -2].map((x) => <option key={x} value={x}>{t(`ui.compose.seq.step${x}`)}</option>)}
+      </select></label>{" "}
+      <label>{t("ui.compose.seq.lead")} <select className="sel" value={seq.lead} onChange={(e) => setSeq({ ...seq, lead: Number(e.target.value) as 0 | 1 })}>
+        <option value={0}>{t("ui.compose.upper")}</option>
+        <option value={1}>{t("ui.compose.lower")}</option>
+      </select></label>{" "}
+      <button className="chipbtn" onClick={askSequence}>{seqOffer && seqOffer.section === episodeOf.id ? t("ui.compose.proposeMore") : t("ui.compose.propose")}</button>
+      {seqOffer && seqOffer.section === episodeOf.id && (
+        <p>
+          {seqOffer.list.map((p, i) => (
+            <button key={i} className="chipbtn" onClick={() => takeSequence(p.voices)} title={t("ui.compose.seq.reps", { n: p.repetitions })}>
+              {t("ui.compose.seq.proposal", { n: i + 1 })}{p.faults ? ` (${p.faults} ✗)` : " ✓"}
+            </button>
+          ))}{" "}
+          <button className="chipbtn" onClick={() => takeSequence(seqOffer.mine)}>{t("ui.compose.yours")}</button>
+          {!seqOffer.list.length && <span className="help"> {t("ui.compose.noProposal")}</span>}
+        </p>
+      )}
+      <p className="help">{t("ui.compose.seq.how")}</p>
+    </div>
+  );
   const offerPanel = canOffer && (
     <div className="compose-offer">
       <button className="chipbtn" onClick={ask} title={t("ui.compose.proposeHelp")}>{offer && offer.key === offerKey ? t("ui.compose.proposeMore") : t("ui.compose.propose")}</button>{" "}
@@ -638,6 +680,7 @@ export function ComposeApp({ onVoices, onStudy, onExercises, onTutorial }: { onV
         ))}
       </ol>
       {target?.kind === "free" && offerPanel}
+      {sequencePanel}
       <p className="help">{t("ui.compose.fugue.how")}</p>
     </div>
   );

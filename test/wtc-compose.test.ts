@@ -11,6 +11,9 @@ import { fugueMidi } from "../src/wtc/compose/midi.ts";
 import { asEvents } from "../src/wtc/compose/generate.ts";
 import { proposeCountersubject, proposeFree } from "../src/wtc/compose/proposals.ts";
 import { fitsPlan, strettoTable } from "../src/wtc/compose/stretto.ts";
+import { fragmentLength, proposeEpisode } from "../src/wtc/compose/episode.ts";
+import { toNotes } from "../src/wtc/compose/model.ts";
+import { parsePitch } from "../src/music/pitch.ts";
 
 const pc = (p: string) => p.replace(/-?\d+$/, "");
 /** Notes (quarters, from 0) as events, the gaps as rests. */
@@ -224,6 +227,25 @@ test("compose M2: the stretto table, and a last entry in stretto heard as two en
   assert.equal(fin[1].from - fin[0].from, clean.delay);
   const rep = judgeFugue(d, r);
   assert.deepEqual(rep.missed.map((p) => p.slot), []);
+});
+
+test("compose M2: an episode from a sequence: the fragment repeated a step lower, both voices filling the episode", () => {
+  const d = bachDraft(FUGUES.find((x) => x.id === "wtc1.01")!);
+  const r = realise(d);
+  const ep = r.sections.find((x) => x.id === "ep1")!;
+  const ps = proposeEpisode(d, r, "ep1", { source: "subjectHead", step: -1, lead: 0 }, 1);
+  assert.ok(ps.length >= 1);
+  const p = ps[0];
+  assert.equal(p.repetitions, 3);
+  for (const v of p.voices) assert.ok(Math.abs(v.reduce((a, e) => a + e.dur, 0) - (ep.to - ep.from)) < 1e-6);
+  // The lead voice: each repetition the first one a scale step lower.
+  const len = fragmentLength(d.time);
+  const lead = toNotes(p.voices[0], ep.from);
+  const rep = (i: number) => lead.filter((n) => n.at >= ep.from + i * len - 1e-6 && n.at < ep.from + (i + 1) * len - 1e-6).map((n) => parsePitch(n.pitch).diatonic);
+  const a = rep(0);
+  const b = rep(1);
+  assert.equal(a.length, b.length);
+  assert.ok(a.every((x, i) => x - b[i] === 1));
 });
 
 test("compose: a standard MIDI file, a track per voice", () => {
