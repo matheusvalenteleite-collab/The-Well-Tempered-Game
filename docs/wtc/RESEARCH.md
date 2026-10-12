@@ -103,3 +103,8 @@ answered one by one.
   measured on them (`docs/wtc/READING.md`): precision 98%, recall 93%, after two fixes the reading prompted
   (later subjects grown back to their head; tonal heads in AoF VI's diminutions). The readers agree with 27 of
   Ledbetter's 28 entry claims there. A tool fault found and fixed: dumps from bar 1 dropped a pickup bar.
+- **C0 and the Algomus reference (12 October):** the literature reviewed (`docs/wtc/LITERATURE-REVIEW.md`, 76
+  references, proposed to the owner); the Algomus reference analysis of WTC I imported (ODbL, `data/wtc/algomus.json`)
+  and the analysis measured on it, every disagreement judged from the notes (`docs/wtc/ALGOMUS.md`): precision 85%,
+  recall 94%; the errors are mostly heads in episodes counted as entries; the reference omits a dozen real statements
+  (late compressed ones in I/15, strettos in I/8). I/11's settled subject is likely too long (for the owner).

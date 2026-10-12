@@ -102,6 +102,34 @@ out.push(
   "",
 );
 
+// 2b. Every disagreement judged from the notes (data/wtc/algomus-adjudicated.json).
+const adj = (JSON.parse(readFileSync("data/wtc/algomus-adjudicated.json", "utf8")) as { items: { id: string; side: string; voice: number; at: string; where: string; verdict: string; detail: string }[] }).items;
+const count = (side: string, v: string) => adj.filter((x) => x.side === side && x.verdict === v).length;
+const ao = (v: string) => count("analysis only", v);
+const ro = (v: string) => count("reference only", v);
+// In I/4 the reference starts the second subject on its anacrusis, the analysis an eighth into the run: the same
+// statements on both sides ("twins"), counted once, as found late.
+const twin = (x: { id: string; side: string; at: string; verdict: string }) => x.id === "wtc1f04" && x.side === "analysis only" && x.at.startsWith("S2") && /complete|elsewhere/.test(x.verdict);
+const twins = adj.filter(twin).length;
+const realExtra = adj.filter((x) => x.side === "analysis only" && /complete|altered/.test(x.verdict) && !twin(x)).length;
+const pick = (side: string, v: string, k = 4) => adj.filter((x) => x.side === side && x.verdict === v && !twin(x)).slice(0, k).map((x) => `${name(x.id)} v${x.voice} ${x.where}`).join(", ");
+out.push(
+  "### Each disagreement judged from the notes",
+  "",
+  `A reader judged all ${adj.length} disagreements from the notes, with neither analysis in view (\`data/wtc/algomus-adjudicated.json\`, with a reason for each).`,
+  "",
+  "| | complete | altered | head | begins elsewhere | none |",
+  "|---|---|---|---|---|---|",
+  `| found by the analysis only (${adj.filter((x) => x.side === "analysis only").length}) | ${ao("complete")} | ${ao("altered")} | ${ao("head")} | ${ao("elsewhere")} | ${ao("none")} |`,
+  `| in the reference only (${adj.filter((x) => x.side === "reference only").length}) | ${ro("complete")} | ${ro("altered")} | ${ro("head")} | ${ro("elsewhere")} | ${ro("none")} |`,
+  "",
+  `- **The reference is reliable on what it lists** (${ro("complete") + ro("altered")} of its ${adj.filter((x) => x.side === "reference only").length} statements our analysis missed are real), **but not exhaustive**: ${realExtra} real statements found only by the analysis (besides I/4's second subject, below) (${pick("analysis only", "complete")}; altered: ${pick("analysis only", "altered")}): late statements compressed by a bar in I/15, inversions in I/15, a statement in C♯ minor in I/9, stretto partners in I/4.`,
+  `- **The analysis's errors are over-detection:** ${ao("head")} heads, mostly figures in episodes (I/3 bb. 22-24 and 35-41, I/5's demisemiquaver run, I/15's coda), and ${ao("none")} false entries (cadential basses and free lines in I/4, countersubject ends in I/18, the chain of fourths in I/19's episodes). Some heads are real stretto entries the reference leaves out (I/8 bb. 52-54).`,
+  `- **Its misses** are statements with a varied head or a changed ending (I/8's inversions, I/22 b. 48, I/23 b. 20, I/24 b. 47), and in I/4 the second subject begun an eighth too late: the reference, rightly, starts it on its three-crotchet anacrusis (${twins} statements on each side, the same ones).`,
+  `- **Measured on the notes** (the reference corrected by the reader: its ${tr} statements less ${ro("head")} head, plus the ${realExtra} it omits): precision ${pct(tm + realExtra, tf)} (${pct(tm + realExtra + twins, tf)} counting I/4's late-begun second subject as found); ${pct(ao("head"), tf)} of what the analysis reports is a head, ${pct(ao("none"), tf)} no statement at all; recall ${pct(tm + realExtra, tr - ro("head") + realExtra)} (${pct(tm + realExtra + twins, tr - ro("head") + realExtra)}).`,
+  "",
+);
+
 // 3. The project's hand readings against the reference, where both exist.
 out.push("## 3. The project's hand readings (the gold standard) against the reference", "");
 for (const id of ["wtc1f11", "wtc1f12"]) {
@@ -138,6 +166,19 @@ out.push(
   `- **Countersubjects (A5).** The reference names countersubjects in ${cs.filter((x) => x.n).length} of 24 fugues (${cs.reduce((a, x) => a + x.occ, 0)} occurrences; two or more in ${cs.filter((x) => x.n >= 2).length}): ${cs.filter((x) => x.n).map((x) => `${name(x.id)} ${x.n}`).join(", ")}. The test for A5.`,
   `- **Cadences (ANALYSIS CORE).** ${algo.reduce((a, f) => a + f.cadences.length, 0)} conclusive cadences with key and kind over the 24 fugues: a test set for the cadence finder, beside our gold standard's 109 phrase closes. The two count different things (the reference only the conclusive ones), and the finder is to be measured on each separately.`,
   `- **Pedal points.** ${algo.reduce((a, f) => a + f.pedals.length, 0)} pedals with degree and length.`,
+  "",
+  "## 5. What follows (12 October)",
+  "",
+  "- **I/11's subject, for the owner (KNOWLEDGE-PLAN E1).** The settled subject runs to C4 at 5:1, the rising sixteenths",
+  "  included; the reference ends it three bars after the upbeat (Keller an eighth later). The reader finds that the",
+  "  statements at bb. 27, 38 and 46 keep the subject through the reference's ending and leave the sixteenths (at 31:1,",
+  "  42:1, 50:1): what Bach keeps when he restates it argues for the shorter subject. Our gold reading called those three",
+  "  heads because it measured them against the longer one.",
+  "- **The entries analysis (fixes to weigh):** heads in episodes reported as entries (I/3, I/5: a head restarted in",
+  "  sequence is not an entry); statements with a varied head missed (I/8, I/22-24); I/4's second subject to begin on",
+  "  its anacrusis (data/wtc/later-subjects.json).",
+  "- **Book II has no such reference.** Prout (1910) and Sampson (1900), both open on the Internet Archive, analyse all 48",
+  "  and could be typed in as a second opinion for Book II.",
   "",
 );
 if (process.argv[2]) writeFileSync(process.argv[2], JSON.stringify(disagreements, null, 1));

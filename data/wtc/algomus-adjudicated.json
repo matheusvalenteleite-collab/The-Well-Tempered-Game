@@ -1,0 +1,860 @@
+{
+ "about": "Every disagreement between the study's analysis (and the gold readings of I/11) and the Algomus reference, judged from the notes by a reader on 12 October 2026 (tools/wtc/algomus-check.ts lists them). verdict: complete, altered (whole subject, changed notes or ending), head, elsewhere (the statement begins at another place or in another voice), none.",
+ "items": [
+  {
+   "id": "wtc1f03",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "22:4.5",
+   "verdict": "head",
+   "detail": "Episode sequence (bars 22-24), not an entry: E#5 e, then B4-A#4-G#4-A#4 s, E#5-C##5 e, G#4 e, F#4-E#4 s, F#4 e: the head figure only. A new sequence link starts at 23:4.5 (D#5); the falling-sixth tail (D#-B#-C#) is missing. The real entry follows in v0 at 24:4.5-25 (E#5-D#5-C#5-D#5, B#5-G#5 ... down to G#4)."
+  },
+  {
+   "id": "wtc1f03",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "23:4.5",
+   "verdict": "head",
+   "detail": "Second link of the same descending sequence: D#5 e, then A4-G#4-F#4-G#4 s, D#5-B#4 e, F#4 e, E#4-D#4 s. It runs into the 16th lead-in (24:4 E#4-G#4-C#5-D#5) to the real entry at 25. Episode figure."
+  },
+  {
+   "id": "wtc1f03",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "34:4.75",
+   "verdict": "head",
+   "detail": "Episode, bars 35-37, in a descending sequence: A#4 s, then B4-A#4-G#4-A#4 s, F#5-C#5 e, A#4 e, G#4-F#4 s, G#4. The head figure stops after 3.5 beats and is restarted a step lower each bar; no falling-sixth tail."
+  },
+  {
+   "id": "wtc1f03",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "35:4.75",
+   "verdict": "head",
+   "detail": "Same episode sequence: G#4, then A#4-G#4-F#4-G#4, E#5-C#5, G#4, F#4-E#4, F#4. A head figure only, restarted the next bar."
+  },
+  {
+   "id": "wtc1f03",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "36:4.75",
+   "verdict": "head",
+   "detail": "Last link of the episode sequence: F#4, then G#4-F#4-E#4-F#4, D#5-B#4, F#4, E#4-D#4, E#4. It then breaks into a 16th scale up to C#5 (38:1); no tail."
+  },
+  {
+   "id": "wtc1f03",
+   "side": "analysis only",
+   "voice": 2,
+   "at": "S1 subject",
+   "where": "38:4.75",
+   "verdict": "head",
+   "detail": "The same sequence in the tenor under the soprano's G#5 pedal (38:3): E#4, then F#4-E#4-D#4-E#4, C#5-G#4, E#4, D#4-C#4, D#4. Head figure only, restarted a step lower at 39:4.75."
+  },
+  {
+   "id": "wtc1f03",
+   "side": "analysis only",
+   "voice": 2,
+   "at": "S1 subject",
+   "where": "39:4.75",
+   "verdict": "head",
+   "detail": "Tenor sequence link: D#4, then E#4-D#4-C#4-D#4, B#4-G#4, D#4, C#4-B#3, C#4. Head only."
+  },
+  {
+   "id": "wtc1f03",
+   "side": "analysis only",
+   "voice": 2,
+   "at": "S1 subject",
+   "where": "40:4.75",
+   "verdict": "head",
+   "detail": "Last tenor link: C#4, then D#4-C#4-B#3-C#4, A#4-F##4, C#4, B#3-A#3, B#3, before the 42 return. Head only, an episode figure."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "reference only",
+   "voice": 0,
+   "at": "S2 v0 b.36",
+   "where": "35:1.5",
+   "verdict": "complete",
+   "detail": "S2 in v0: rising anacrusis D#5-E5-F#5 (crotchets from 35:1.5), then the eighth-note run G#5-F#5-G#5-A5-G#5-F#5-E5-G#5 | F#5-E5-F#5-G#5-F#5-E5-D#5-F#5. The reference's onset is right. This is the same statement as item 30, which our analysis starts 3.5 crotchets late (36:1.25)."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "reference only",
+   "voice": 0,
+   "at": "S2 v0 b.47",
+   "where": "46:1.5",
+   "verdict": "complete",
+   "detail": "S2 in v0 with a varied anacrusis: B#4-A#4 e, B#4 q, D#5 q (46:1.5). Run from 47:1: G#5-F#5-G#5-A5... | F#5-E5-...-F#5. Same statement as item 32."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "reference only",
+   "voice": 0,
+   "at": "S2 v0 b.82",
+   "where": "81:1.5",
+   "verdict": "complete",
+   "detail": "S2 in v0: C#5-D#5 e, E5-F#5 q (81:1.5), then the run G#5-F#5-G#5-A5... (82-83). Same statement as item 42."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "reference only",
+   "voice": 1,
+   "at": "S2 v1 b.60",
+   "where": "59:1.5",
+   "verdict": "complete",
+   "detail": "S2 in v1: C#4-D#4 e, E4-F#4 q (59:1.5), then the run G#4-F#4-G#4-A4-G#4-F#4-E4-G#4 | F#4-E4-...-F#4 (60-61). Same statement as item 37."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "reference only",
+   "voice": 1,
+   "at": "S2 v1 b.79",
+   "where": "78:1.5",
+   "verdict": "complete",
+   "detail": "S2 in v1, growing out of the S3 head G#4-C#5-C#5-C#5 (77:1.5). Eighth-note anacrusis B#4-A#4-B#4-C#5-D#5-B#4 (78:1.5), then the run G#4-F#4-G#4-A4... (79-80). Same statement as item 41."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "reference only",
+   "voice": 2,
+   "at": "S2 v2 b.52",
+   "where": "51:1.5",
+   "verdict": "complete",
+   "detail": "S2 in v2: F#3-G#3 e, A3-B3 q (51:1.5), then the run C#4-B3-C#4-D4-C#4-B3-A3-C#4 | B3-A3-B3-C#4-B3-A3-G#3-B3. Same statement as item 34."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "reference only",
+   "voice": 2,
+   "at": "S2 v2 b.55",
+   "where": "54:1.25",
+   "verdict": "complete",
+   "detail": "S2 in v2 inside a continuous eighth-note run. The rising A3-B3-C#4-D4 (54:2) acts as anacrusis to E4-D4-E4-F#4-E4-D4-C#4-E4 | D4-C#4-D4-E4-D4-C#4-B3-D4 (55-56). The reference's 54:1.25 onset is arbitrary. Same statement as item 35."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "reference only",
+   "voice": 2,
+   "at": "S2 v2 b.74",
+   "where": "73:1.25",
+   "verdict": "complete",
+   "detail": "S2 in v2 at the top of a continuous rising run (72-73): G#4-F#4-G#4-A4-G#4-F#4-E4-G#4 | F#4-E4-F#4-G#4-F#4-E4-D#4-F#4 | E4... (74-76). Same statement as item 39."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "reference only",
+   "voice": 3,
+   "at": "S2 v3 b.92",
+   "where": "91:2",
+   "verdict": "complete",
+   "detail": "S2 in v3, the run E3-D#3-E3-F#3-E3-D#3-C#3-E3 | D#3-C#3-D#3-E3-D#3-C#3-B#2-D#3 | C#3 (92-94). It is preceded by F#3-D#3 minims rather than the usual rising anacrusis, so it effectively begins at 92:1. Same statement as item 43."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "reference only",
+   "voice": 4,
+   "at": "S2 v4 b.45",
+   "where": "44:1.5",
+   "verdict": "complete",
+   "detail": "S2 in v4: C#3-D#3 e, E3-F#3 q (44:1.5), then the run G#3-F#3-G#3-A3... | F#3-E3-...-F#3 (45-46). Same statement as item 31."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "reference only",
+   "voice": 4,
+   "at": "S2 v4 b.67",
+   "where": "66:1.5",
+   "verdict": "complete",
+   "detail": "S2 in v4, growing out of the S3 head G#2-C#3-C#3-C#3 (65:1.5). Eighth-note anacrusis B2-A#2-B2-A#2-G#2-B2 (66:1.5), then the run A#2-G#2-A#2-B2-A#2-G#2-F#2-A#2 | G#2-F#2-G#2-A#2-G#2-B2-A#2-G#2. Same statement as item 38."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "reference only",
+   "voice": 4,
+   "at": "S2 v4 b.77",
+   "where": "76:1.5",
+   "verdict": "complete",
+   "detail": "S2 in v4: C#2-D#2 e, E2-F#2 q (76:1.5), then the run G#2-F#2-G#2-A2... | F#2-E2-...-F#2 (77-78). Same statement as item 40."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "reference only",
+   "voice": 3,
+   "at": "S3 v3 b.99",
+   "where": "99:1.5",
+   "verdict": "elsewhere",
+   "detail": "There is no S3 start at 99:1.5 in v3; that note is the second of its repeated D#4s. The v3 statement begins half a bar earlier, at 98:2.5: G#3 q, D#4-D#4-D#4 q, C#4-B#3 e, C#4 w (head leap a fifth). The statement that does begin at 99:1.5 is in v0: B#4, F#5-F#5-F#5, E5-D#5, E5. This is part of an S3 stretto in all voices: v3 96:1.5, v2 97:1.5, v1 98:1.5, v3 98:2.5, v0 99:1.5, v4 100:1.5."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 1,
+   "at": "S1 subject",
+   "where": "19:2.5",
+   "verdict": "none",
+   "detail": "Free counterpoint: E4 q, D#4, G#4-G#4, F##4, G#4 (no S1 shape, it ends rising). S1 is in v3 at 19:2: G#3, F##3, B3, A#3 w, G#3."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 4,
+   "at": "S1 subject",
+   "where": "34:2",
+   "verdict": "none",
+   "detail": "Cadential bass to the III cadence at 35: B2 h, E3, A3, G#3, C#4 w. S1 is in v3 at 35:2: C#4, B#3, E4, D#4 w, C#4."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "44:1",
+   "verdict": "none",
+   "detail": "Descending suspension line against the entry: E5 held, then D#5, C#5, B#4. S1 is in v1 at 44:2: C#5, B#4, E5, D#5 w., C#5."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "54:2",
+   "verdict": "altered",
+   "detail": "An S1-shaped statement in S1's rhythm at the fourth above v1's simultaneous version (the reference's A 54, which has a shortened head). Pitches: D5 w, C#5 h, F#5 h, E5 (h, struck again at 57:1). Rising perfect fourth and falling whole tone, as in v1's A4-G#4-C#5-B4. The final D arrives only at 58:1 through eighths. A stretto pair, not a mere fragment."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "70:2.75",
+   "verdict": "none",
+   "detail": "Chromatic descending line: C#5 (70:2.75), B#4, B4, A#4, A4, G#4 in minims. It follows the S2 run in v0 at 69-70. Not S1, which would have to rise C#-B#-E."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 1,
+   "at": "S1 subject",
+   "where": "72:2",
+   "verdict": "none",
+   "detail": "The F#4 semibreve at 72:2 is the end of S3 in v1 (71:1.5 D#4-G#4-G#4, F#4-E#4-F#4). It is followed by E4-D#4-C#4 descending. No S1."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "94:1",
+   "verdict": "head",
+   "detail": "S1 head with exact intervals: E5 w, D#5 h, G5 h, F#5. But F#5 is only a minim, then drops an octave into a sequence F#4-E#4-A4-G#4; no closing E. This is the leader of a stretto whose complete partner is v1 at 95:1."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 1,
+   "at": "S1 subject",
+   "where": "94:2",
+   "verdict": "altered",
+   "detail": "S1 in v1 from 95:1, one beat after the analysis's 94:2 (C#5 is the preceding note): B4 (struck as two minims), A#4 h, D5 h, C#5 w. The final B is missing; the voice drops out and returns with S3 at 98:1.5. It answers v0's head at 94:1 in stretto."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "101:2",
+   "verdict": "none",
+   "detail": "Chromatic lament descent: C#5 w., B#4, B4, A#4, A4, G#4 w. Not S1. S1 does come in v0 later, at 107:1 (C#5 w, B#4, E5)."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S2 subject",
+   "where": "36:1.25",
+   "verdict": "elsewhere",
+   "detail": "Same S2 statement as item 8. It begins at 35:1.5 with the D#5-E5-F#5 anacrusis; the run starts 36:1. The analysis's onset is one eighth into the run."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 4,
+   "at": "S2 subject",
+   "where": "45:1.25",
+   "verdict": "elsewhere",
+   "detail": "Same S2 statement as item 17. It begins at 44:1.5 (C#3-D#3, E3-F#3), with the run from 45:1."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S2 subject",
+   "where": "48:1.25",
+   "verdict": "elsewhere",
+   "detail": "The v0 S2 statement begins at 46:1.5 (anacrusis B#4-A#4 e, B#4, D#5), with the run on 47:1. Bar 48 is its second bar. Same as item 9."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 1,
+   "at": "S2 subject",
+   "where": "49:1.25",
+   "verdict": "altered",
+   "detail": "The S2 run is complete in v1 (B4-C#5-D5-C#5-B4-A4-C#5 | B4-A4-B4-C#5-B4-A4-G#4-B4, then A4 at 51:1). It has no rising anacrusis: it enters off a tied B4 (48:2.5). Combined with S3 in v2 (49:1.5). Not in the reference."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 2,
+   "at": "S2 subject",
+   "where": "52:1.25",
+   "verdict": "elsewhere",
+   "detail": "Same S2 statement as item 13. It begins at 51:1.5 (F#3-G#3, A3-B3), with the run from 52:1."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 2,
+   "at": "S2 subject",
+   "where": "55:1.25",
+   "verdict": "complete",
+   "detail": "Same statement as item 14. The run downbeat is 55:1 with no detached anacrusis, so 55:1.25 is within a beat."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S2 subject",
+   "where": "58:1.25",
+   "verdict": "none",
+   "detail": "Not an S2 entry. A held E5 (57:1), then F#5-E5-D5-C#5-E5 | D5-C#5-D5-E5-D5-C#5-B4-D5 | C#5 w: the latter half of the S2 run figure, used as counterpoint to S3 in v1 (57:1.5). No anacrusis, no first half of the run."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 1,
+   "at": "S2 subject",
+   "where": "60:1.25",
+   "verdict": "elsewhere",
+   "detail": "Same S2 statement as item 11. It begins at 59:1.5 (C#4-D#4, E4-F#4), with the run from 60:1."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 4,
+   "at": "S2 subject",
+   "where": "67:1.25",
+   "verdict": "elsewhere",
+   "detail": "Same S2 statement as item 18. It begins at 66:1.5 with the eighth-note anacrusis after the S3 head; the run is on 67:1."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 2,
+   "at": "S2 subject",
+   "where": "74:1.25",
+   "verdict": "complete",
+   "detail": "Same statement as item 15. Continuous run whose S2 shape begins at the 74:1 downbeat, within a beat of 74:1.25."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 4,
+   "at": "S2 subject",
+   "where": "77:1.25",
+   "verdict": "elsewhere",
+   "detail": "Same S2 statement as item 19. It begins at 76:1.5 (C#2-D#2, E2-F#2), with the run from 77:1."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 1,
+   "at": "S2 subject",
+   "where": "79:1.25",
+   "verdict": "elsewhere",
+   "detail": "Same S2 statement as item 12. Anacrusis from 78:1.5 (B#4-A#4-B#4-C#5-D#5-B#4), run from 79:1."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S2 subject",
+   "where": "82:1.25",
+   "verdict": "elsewhere",
+   "detail": "Same S2 statement as item 10. It begins at 81:1.5 (C#5-D#5, E5-F#5), with the run from 82:1."
+  },
+  {
+   "id": "wtc1f04",
+   "side": "analysis only",
+   "voice": 3,
+   "at": "S2 subject",
+   "where": "92:1.25",
+   "verdict": "complete",
+   "detail": "Same statement as item 16. The run begins at 92:1; 92:1.25 is within a beat."
+  },
+  {
+   "id": "wtc1f05",
+   "side": "analysis only",
+   "voice": 3,
+   "at": "S1 subject",
+   "where": "11:1",
+   "verdict": "head",
+   "detail": "The demisemiquaver run G2-A2-B2-C3-B2-A2-B2-G2 plus a sixth leap to E3 e., then D3 s, C3 q, D3 q. No repeated note and no stepwise dotted descent. A bass sequence on the head with 10:1 (A2 run to F#3), set on beat 1, inside the episode."
+  },
+  {
+   "id": "wtc1f05",
+   "side": "analysis only",
+   "voice": 3,
+   "at": "S1 subject",
+   "where": "13:1",
+   "verdict": "head",
+   "detail": "Run B2-C#3-D3-E3-D3-C#3-D3-B2, then an octave leap to B3 e., A3 s, G3 e., E3 s, A3 e., A2 s. A cadential bass figure under the real entry in v0 at 13:2 (D5 run, B5-B5, A5-G5, F#5)."
+  },
+  {
+   "id": "wtc1f05",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "20:1",
+   "verdict": "head",
+   "detail": "Run F#4-G4-A4-B4-A4-G4-A4-F#4 and the sixth leap with repeated note (D5 e., D5 s). Then D5 e., E5 s, C#5 instead of the descent C#-B-A. In sequence with 19:1 (G4 run to E5): an episode figure displaced to beat 1."
+  },
+  {
+   "id": "wtc1f05",
+   "side": "analysis only",
+   "voice": 1,
+   "at": "S1 subject",
+   "where": "20:2",
+   "verdict": "head",
+   "detail": "Run B3-C#4-D4-E4-D4-C#4-D4-B3, then G4 held (minim). Only the run and the sixth leap: imitation inside the bar 19-20 episode."
+  },
+  {
+   "id": "wtc1f05",
+   "side": "analysis only",
+   "voice": 3,
+   "at": "S1 subject",
+   "where": "22:3",
+   "verdict": "none",
+   "detail": "Cadential bass flourish into the tonic cadence at 23: B2-C#3-D3-C#3-B2-A2-B2-G2 (not the subject's run shape), then A2 e., A2 s, D2."
+  },
+  {
+   "id": "wtc1f05",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "24:2",
+   "verdict": "head",
+   "detail": "Chain of runs rising by fourths in v0: G4 run (24:2), C#5 run (24:3), F#5 run (24:4), over rising runs in v3. Run only, no dotted continuation; the closing episode."
+  },
+  {
+   "id": "wtc1f05",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "24:4",
+   "verdict": "head",
+   "detail": "Run F#5-G5-A5-B5-A5-G5-A5-F#5, then B5 e., C#5 s, D5 e., E5 s, F#5: a rising dotted scale, not B-B-A-G-F#. Closing figure."
+  },
+  {
+   "id": "wtc1f05",
+   "side": "analysis only",
+   "voice": 3,
+   "at": "S1 subject",
+   "where": "24:4",
+   "verdict": "head",
+   "detail": "The exact subject run D4-E4-F#4-G4-F#4-E4-F#4-D4. Then G4 e., G3 s, F#3 e., E3 s, D3 e., C3 s, B2 e., A2 s: the leap is a fourth (not a sixth) with octave displacement, and the dotted descent runs a full octave. A cadential coda figure, not a statement."
+  },
+  {
+   "id": "wtc1f06",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "35:1.5",
+   "verdict": "head",
+   "detail": "Head F#4-G4-A4-Bb4-G4 (eighths) right after v2's entry (34:1.5). It continues A4-C5-Eb5 into a sequence (36-38) instead of the turn D-C#-D, Bb-G-A. Episode imitation."
+  },
+  {
+   "id": "wtc1f08",
+   "side": "reference only",
+   "voice": 1,
+   "at": "S-inv v1 b.36",
+   "where": "36:1",
+   "verdict": "complete",
+   "detail": "Inversion in v1 with tonal adjustment: G#4 q, D#4 q. (down a fourth), C##4-D#4-E#4-F#4-E#4 e, D#4 q, A#4 q (up a fifth), D#4 q. (down a fifth), E#4 e, F#4 q, G#4 h (38:3). Complete; our analysis misses it."
+  },
+  {
+   "id": "wtc1f08",
+   "side": "reference only",
+   "voice": 2,
+   "at": "S-inv v2 b.39 (varied)",
+   "where": "39:1",
+   "verdict": "altered",
+   "detail": "Varied inversion in v2. The head is ornamented in semiquavers (D#3-D#4-C#4-B3), landing on A#3 q. The first quaver is F#3 instead of G#3. Then G#3-A#3-B3-A#3, G#3 q, D#4 q (up a fifth), A#3 q. (down a fourth), B#3-C##4-D#4 (to 41:3). The whole contour is present, varied as the reference says."
+  },
+  {
+   "id": "wtc1f08",
+   "side": "analysis only",
+   "voice": 2,
+   "at": "S1 subject",
+   "where": "17:1",
+   "verdict": "none",
+   "detail": "Cadential bass: F#2 q, F#3 q. (an octave, not a fifth), then a stepwise descent E#3-D#3-C#3-B#2-A#2-G##2-E#2 toward the cadence at 19. No turn, no fifth leap."
+  },
+  {
+   "id": "wtc1f08",
+   "side": "analysis only",
+   "voice": 2,
+   "at": "S1 subject",
+   "where": "24:3",
+   "verdict": "head",
+   "detail": "Free imitation of the head two beats after v0's entry (24:1), after a rest: F#3 q, B3 q. (rising fourth), C#4-B3-A#3-G#3-F##3-G#3-A#3-B#3 eighths. It then departs at 26:1, with no falling fifth and no G#-F#-E#-D# close."
+  },
+  {
+   "id": "wtc1f08",
+   "side": "analysis only",
+   "voice": 1,
+   "at": "S1 subject",
+   "where": "33:1",
+   "verdict": "none",
+   "detail": "Free counterpoint: G#4 q, A#4 q. (a step, not a fifth), then G#4-F#4-E#4-D#4, F#4-B4 q., A#4-G#4-F##4, G#4. Only the subject's rhythm. The nearby statement is the inversion in v0 at 30."
+  },
+  {
+   "id": "wtc1f08",
+   "side": "analysis only",
+   "voice": 2,
+   "at": "S1 subject",
+   "where": "52:1",
+   "verdict": "head",
+   "detail": "Three-voice stretto at one-beat intervals (v2 52:1, v1 52:2, v0 52:3). v2: A#2 q, D#3 q. (fourth, tonal), E3-D#3-C#3-B2-C#3 e, D#3 q, then G#2-A#2-B2-C#3 rising. It departs at 53:3.5 (no falling-fifth / rising-fourth close) and turns into the inversion stretto at 54. Presented as an entry."
+  },
+  {
+   "id": "wtc1f08",
+   "side": "analysis only",
+   "voice": 1,
+   "at": "S1 subject",
+   "where": "52:2",
+   "verdict": "head",
+   "detail": "Stretto entry: A#3 q (after A#4 52:1), D#4 q., E4-D#4-C#4-B3-C#4, D#4 q, G#3 e (falling fifth). Then F#3 e, E#3 q, C#4: the rising fourth and the stepwise close are missing. It departs at 53:4.5 and passes into the inversion at 54:2."
+  },
+  {
+   "id": "wtc1f08",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "52:3",
+   "verdict": "head",
+   "detail": "Stretto entry after a rest: A#4 q, D#5 q., E5-D#5-C#5-B4-C#5, D#5 q, G#4 e. Then A#4-B4 s, A#4-B4 e, C#5 q. It departs at 54:1.5 and passes into the inversion at 54:3."
+  },
+  {
+   "id": "wtc1f08",
+   "side": "analysis only",
+   "voice": 2,
+   "at": "S1 inverted",
+   "where": "54:1",
+   "verdict": "head",
+   "detail": "Inversion stretto (v2 54:1, v1 54:2, v0 54:3). v2: C#3 q, F#2 q. (down a fifth), E#2, F#2-G#2-A#2, G#2, F#2. Then E3 (55:2.5) and D#3 held instead of C#3 q (up a fifth) and the down-fourth close. First half only."
+  },
+  {
+   "id": "wtc1f08",
+   "side": "analysis only",
+   "voice": 1,
+   "at": "S1 inverted",
+   "where": "54:2",
+   "verdict": "head",
+   "detail": "Inversion head: C#4 q, F#3 q., E#3, F#3-G#3-A#3, G#3, F#3 q. Then B3 e (55:4) instead of the leap up a fifth to C#4; free continuation."
+  },
+  {
+   "id": "wtc1f08",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 inverted",
+   "where": "54:3",
+   "verdict": "head",
+   "detail": "Inversion head: C#5 q, F#4 q., E#4, F#4-G#4-A#4, G#4, F#4 q. Then E5 held (56:1) instead of C#5 q; free continuation."
+  },
+  {
+   "id": "wtc1f08",
+   "side": "analysis only",
+   "voice": 1,
+   "at": "S1 subject",
+   "where": "77:2.5",
+   "verdict": "altered",
+   "detail": "All the subject's pitches are present in v1, rhythmically recast with the turn partly augmented: E#4 e, A#4 q., B4 e, A#4 q., G#4 e, F#4 q., G#4 e, A#4 h, D#4 q, G#4 q., F#4 e, E#4 q. The ending is changed: F##4 (80:3) instead of D#4, leading into the next entry at 80:3.5. It sits in stretto with v2 (77:1.5, the reference's T 77) and the v0 augmentation (77:3)."
+  },
+  {
+   "id": "wtc1f09",
+   "side": "reference only",
+   "voice": 2,
+   "at": "S v2 b.28.25",
+   "where": "28:1.5",
+   "verdict": "head",
+   "detail": "Closing gesture in the tenor: B3 e, C#4 q, F#3-G#3-A3 s, B3 e. This is the half-bar head, which is the whole subject by the reference's Bruhn length. It is followed by the final cadence B2-E2, not the 16th continuation of the settled (longer) subject. Presented as an entry: a closing imitation."
+  },
+  {
+   "id": "wtc1f09",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "12:2",
+   "verdict": "altered",
+   "detail": "The subject's exact pitches transposed to C# minor: C#5-D#5, G#4-A#4-B#4, then C#5-B#4-C#5-D#5-E5-F#5-G#5-E5 | C#5-B4-C#5-D#5-C#5-B4-C#5-D#5 (to 13:4.75). The head rhythm is changed: q. e e s s instead of e q (rest) s s s. The tail is exact. Not in the reference."
+  },
+  {
+   "id": "wtc1f15",
+   "side": "analysis only",
+   "voice": 2,
+   "at": "S1 inverted",
+   "where": "28:1",
+   "verdict": "altered",
+   "detail": "Inversion in v2, bars 1-3 exact: D3-C3-D3-E3-D3 C3-B2-C3-D3-C3 | B2-C3-D3-G3-A2 q | B2-C3-D3-E3-F#2 q. Bar 4 departs at 31:2 (B2 held, then a falling 16th sequence) and there is no final note. Not in the reference."
+  },
+  {
+   "id": "wtc1f15",
+   "side": "analysis only",
+   "voice": 1,
+   "at": "S1 inverted",
+   "where": "43:1",
+   "verdict": "complete",
+   "detail": "Inversion in v1 in E minor, 43:1 to 47:1: G4, F#4-G4-A4-G4, F#4, E4-F#4-G4-F#4 | E4-F#4-G4-C5-D#4 q | E4-F#4-G4-A4-B3 q | C4-B3-A3-B3-C4-D4-E4-D#4-E4-F#4-G4-A4 | B4 h. Same shape as the reference's inversion at 20 (v1). The reference omits it."
+  },
+  {
+   "id": "wtc1f15",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "51:1.5",
+   "verdict": "altered",
+   "detail": "Compressed statement in B minor. Head on the second 16th (B4 at 51:1.5, under a tied F#4), bar 1 exact (B4-C#5-B4-A#4-B4-C#5-D5-C#5-B4-C#5). The subject's bar 2 is omitted: 52 D5-C#5-B4-A#4-G5 q is bar 3. Then bar 4 exact (F#5-G5-F#5-E5-D5-C#5-E5-D5-C#5-B4) and the final A#4 (54:1)."
+  },
+  {
+   "id": "wtc1f15",
+   "side": "analysis only",
+   "voice": 2,
+   "at": "S1 subject",
+   "where": "52:1",
+   "verdict": "head",
+   "detail": "Stretto one bar after v0: B2-C#3-B2-A#2-B2-C#3-D3-C#3-B2-C#3 | D3-C#3-B2-A#2-G3 q. Then 54:1 F#3-G#3-A#3-F#3-B3-F#3...: broken-chord sequence instead of the 16th close. About half the subject."
+  },
+  {
+   "id": "wtc1f15",
+   "side": "analysis only",
+   "voice": 1,
+   "at": "S1 subject",
+   "where": "60:4",
+   "verdict": "altered",
+   "detail": "Compressed statement in D, starting mid-bar (60:4) like 51. Bar 1 (D3-E3-D3-C#3-D3-E3-F#3-E3-D3-E3), bar 3 (F#3-E3-D3-C#3-B3 q), bar 4 (A3-B3-A3-G3-F#3-E3-G3-F#3-E3-D3), final C#3 q (63:4). Bar 2 omitted."
+  },
+  {
+   "id": "wtc1f15",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "61:4",
+   "verdict": "altered",
+   "detail": "Stretto at the octave, one bar after v1. Bar 1 exact (D5-E5-D5-C#5-D5-E5-F#5-E5-D5-E5). Bar 3 ornamented: F#5, G5-F#5-E5-D5 s, C#5, then B5 held. Bar 4 cut after A5-B5-A5-G5-F#5: E5 held (64:1), with no D-C# close."
+  },
+  {
+   "id": "wtc1f15",
+   "side": "analysis only",
+   "voice": 1,
+   "at": "S1 inverted",
+   "where": "77:1",
+   "verdict": "head",
+   "detail": "Inversion bar 1 (D4-C4-D4-E4-D4-C4-B3-C4-D4-C4) and bar 3 (B3-C4-D4-E4-F#3 q). At 79:1 it turns to G3 and the subject's own head (A4-G4-F#4-G4-A4-B4-A4-G4-A4, in thirds with v0). Head plus a fragment only."
+  },
+  {
+   "id": "wtc1f15",
+   "side": "analysis only",
+   "voice": 2,
+   "at": "S1 inverted",
+   "where": "78:4",
+   "verdict": "head",
+   "detail": "Descending sequence of the inverted head cell in the coda: tied D2, then D3-C3-D3-E3-D3 | C3 e, B2-C3-D3-C3 | B2... | A2... | G2 (80:1). The cell is never continued as the inversion's bars 2-4; 78:4 is mid-figure. Episode/coda figure."
+  },
+  {
+   "id": "wtc1f15",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "79:1",
+   "verdict": "altered",
+   "detail": "Closing statement in v0. Bar 1 exact (B4-C5-B4-A4-B4-C5-D5-C5-B4-C5). Bar 2 has a step instead of the fourth (D5-C5-B4-A4-G5 q). Bar 3 is sequenced up a third (F#5-E5-D5-C#5-Bb5 q). Bar 4 is cut to A5-G5-F#5-E5, D5 e (82:3) into the cadence. v1 doubles bar 1 in thirds."
+  },
+  {
+   "id": "wtc1f18",
+   "side": "analysis only",
+   "voice": 2,
+   "at": "S1 subject",
+   "where": "24:2.5",
+   "verdict": "head",
+   "detail": "Parallel doubling, a third below, of v0's entry at 24:2 for five notes: B#3, A#3, B#3-C##4, D#4. It then goes free (E#4, F#4 held, a descending 16th scale). Not an independent entry."
+  },
+  {
+   "id": "wtc1f18",
+   "side": "analysis only",
+   "voice": 1,
+   "at": "S1 inverted",
+   "where": "33:4",
+   "verdict": "none",
+   "detail": "Close of the countersubject: C##4-D#4, C#4-B3 s, A#3, B3, C#4. Compare CS1's ending at 4:4 (F##3-G#3-F#3-E3-D#3); the reference lists CS1 alto at 32, varied. Then the subject's repeated-note tail figure B3-B3-C#4-C#4-D#4-D#4 as an episode sequence. No inversion of the subject."
+  },
+  {
+   "id": "wtc1f19",
+   "side": "reference only",
+   "voice": 0,
+   "at": "S-var v0 b.25",
+   "where": "25:1",
+   "verdict": "altered",
+   "detail": "Head E4 e (25:1), then a 6-eighth rest instead of 3. The body joins at its second note: C#5-A4-D5-B4-E5-C#5-F#5-E5-A5 (G# omitted). It ends F#5 q (26:8) instead of D5 q-C#5, then a 16th run. It moves in parallel thirds above v1's body (25:5)."
+  },
+  {
+   "id": "wtc1f19",
+   "side": "reference only",
+   "voice": 2,
+   "at": "S-var v2 b.16",
+   "where": "16:1",
+   "verdict": "altered",
+   "detail": "B2 e, rest, then from 16:5 the chain of rising fourths E3-A3, G#3-C#4, A3-D#4, B3-E4. The head-to-chain interval is up a fourth (the subject has a step down), and the close is changed to A3 h (17:4), B3-F#3, G#3 h. Varied, as the reference says."
+  },
+  {
+   "id": "wtc1f19",
+   "side": "analysis only",
+   "voice": 1,
+   "at": "S1 subject",
+   "where": "21:1",
+   "verdict": "none",
+   "detail": "Episode: the chain-of-fourths body with no detached head note (G#4 q at 21:1 ends the previous figure): E4-A4, F#4-B4, G#4-C#5, A4-D5 q., C#5-F#5, B4. It imitates v0 (21:2 B4-E5, C#5-F#5, D5-G#5, E5-A5)."
+  },
+  {
+   "id": "wtc1f19",
+   "side": "analysis only",
+   "voice": 1,
+   "at": "S1 subject",
+   "where": "25:4",
+   "verdict": "altered",
+   "detail": "The answer's body (as v1 2:5-3:3) from 25:5: C#4-F#4-E4-A4-F#4-B4-G#4-C#5, extended by a further pair A4-D5 and C#5-F#5, ending D#5 q-E5 (27:1) instead of A q-G#. There is no detached head note (25:4 C#5 ends a 16th run). It leads the parallel-third passage that v0 (25:8) and v2 (25:8) join."
+  },
+  {
+   "id": "wtc1f19",
+   "side": "analysis only",
+   "voice": 2,
+   "at": "S1 subject",
+   "where": "39:4",
+   "verdict": "none",
+   "detail": "Bass episode: C#2 followed at once (no rests) by seven ascending fourth-pairs A2-D3, C#3-F#3, D#3-G#3, E#3-A3, F#3-B3, G#3-C#4, A3-D4. Then a 16th descent to the F# minor cadence (42:1). Sequence on the body figure, not a statement."
+  },
+  {
+   "id": "wtc1f20",
+   "side": "analysis only",
+   "voice": 1,
+   "at": "S1 inverted",
+   "where": "17:3.5",
+   "verdict": "head",
+   "detail": "Inverted head, two cells: D5-E5 s, D5-C5-B4 e | B4-C5 s, B4-A4 e, G4 q (18:3). Then free (A4-B4-C5 q...). Imitated in stretto by v2's incomplete inversion at 18:1.5, the reference's S-invinc T 18."
+  },
+  {
+   "id": "wtc1f20",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "32:3.5",
+   "verdict": "head",
+   "detail": "Stretto head: E5-D#5 s, E5-F#5-G5 e | G5-F#5 s, G5-A5 e, then B4 held (33:3). The full statements are v1 31:3.5 and v3 32:1.5, which the reference lists."
+  },
+  {
+   "id": "wtc1f20",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "80:3.5",
+   "verdict": "head",
+   "detail": "Final-stretto entry after a rest, first two bars: A4-G#4 s, A4-B4-C5 | C5-B4 s, C5-D5, E5-D5-C5-D5, E5-F5 | G#4-E4, (rest), A4. Then B4 q (82:3) instead of the 16th continuation. This is the reference's incomplete statement (S-inc, listed as S 81 / A 80.5): an offset or voice mismatch, not a disagreement."
+  },
+  {
+   "id": "wtc1f20",
+   "side": "analysis only",
+   "voice": 2,
+   "at": "S1 inverted",
+   "where": "83:3.5",
+   "verdict": "head",
+   "detail": "Incomplete inversion: A3-Bb3 s, A3-G3-F3 | F3-G3 s, F3-E3, D3-E3-F3-E3, D3-C#3. Then D3 (85:1) and free continuation. About 1.5 bars: the reference's S-invinccc 'B 83.5 [length 1.5]', with its B mapping to our v2 because v3 holds the A pedal."
+  },
+  {
+   "id": "wtc1f20",
+   "side": "analysis only",
+   "voice": 0,
+   "at": "S1 subject",
+   "where": "85:1.5",
+   "verdict": "head",
+   "detail": "Last entry after a rest: A4-G4 s, A4-B4-C#5 | C#5-B4 s, C#5-D5, E5-D5-C#5-D5, E5-F5 | G#4 q (86:3), then D5 q into the final chord. The reference's incomplete statement (S-inc S 84.5 / A 85, length 1.5)."
+  },
+  {
+   "id": "wtc1f22",
+   "side": "reference only",
+   "voice": 4,
+   "at": "S v4 b.48",
+   "where": "48:1",
+   "verdict": "altered",
+   "detail": "Answer form in v4, exact through A3: F3 h, Bb2 h, (rest), Db4-C4-Bb3-A3 (as v3 12:1). Then a chromatic extension Ab3 h, Gb3-F3 e, and a rise Gb3-Ab3-Bb3 h ending on Bb3 (51:2), instead of the stepwise close. The reference counts it complete."
+  },
+  {
+   "id": "wtc1f22",
+   "side": "analysis only",
+   "voice": 3,
+   "at": "S1 subject",
+   "where": "36:1",
+   "verdict": "none",
+   "detail": "Counterpoint: Fb3 h, Eb3 h. (a step, not the falling fourth/fifth), then Ab3-Gb3-F3-Eb3-Db3, Bb3 h. The entry here is v1 at 37:1 (Ab4, Db4, then F5-Eb5-Db5-C5...), which the reference lists as A 37."
+  },
+  {
+   "id": "wtc1f23",
+   "side": "reference only",
+   "voice": 1,
+   "at": "S-inv v1 b.20",
+   "where": "20:1",
+   "verdict": "altered",
+   "detail": "Inversion in v1 from 20:1.5: B4, D#5, C#5, B4 q, F#5 e (up a fifth), E#5-D#5 s, C#5 e, B4-A#4 s, G#4 e, A#4 e, B4 h. The second note is D#5 instead of C#5 (a third instead of a step). The last rising step to C#5 is withheld (B4 held, the reference's 'resolution +1/4'). Otherwise complete."
+  },
+  {
+   "id": "wtc1f24",
+   "side": "reference only",
+   "voice": 3,
+   "at": "S v3 b.47.5",
+   "where": "47:3.5",
+   "verdict": "altered",
+   "detail": "Varied head: D3-C#3-A2 | F#3-D3 instead of the falling-third triad and sixth leap. From 48:1.5 the rest of the subject is exact: D3-G3-F#3, C3-B2, A3-G#3, D3-C#3, Bb3-A3-G#3-A3, F#3-D3, E3 h, D3 q (50:3). The reference's B 47.5 is a real statement."
+  },
+  {
+   "id": "wtc1f11",
+   "side": "gold says head, reference says complete",
+   "voice": 1,
+   "at": "S",
+   "where": "27:3",
+   "verdict": "complete",
+   "detail": "The reference's 3-bar subject (and Keller's ending on the A) is complete: C5 e, D5-C5-Bb4 | C5, E4-F4-G4-A4 s | Bb4, C5-Bb4-A4-G4 s | A4 (31:1). It departs from the settled (longer) subject only at 31:1: A4 is held as a minim instead of the 16th tail A-G-F-G-A-Bb-C. A 'female ending', not a head."
+  },
+  {
+   "id": "wtc1f11",
+   "side": "gold says head, reference says complete",
+   "voice": 1,
+   "at": "S",
+   "where": "38:3",
+   "verdict": "complete",
+   "detail": "Complete in D minor through its ending: A4, Bb4-A4-G4 | A4, C#4-D4-E4-F4 | G4, A4-G4-F4-E4 | F4 (42:1). It departs from the settled subject's 16th tail at 42:1 (F4 crotchet, rest)."
+  },
+  {
+   "id": "wtc1f11",
+   "side": "gold says head, reference says complete",
+   "voice": 2,
+   "at": "S",
+   "where": "46:3",
+   "verdict": "complete",
+   "detail": "Complete in G minor: D3, Eb3-D3-C3 | D3, F#2-G2-A2-Bb2 | C3-Bb2-D3-C3-Bb2-A2 | Bb2 e (50:1). The eighth C3 in bar 49 is ornamented as C3-Bb2 semiquavers. It departs from the settled subject's tail at 50:1 (Bb2 then rest), in stretto with v1 (48:3) and v0."
+  }
+ ]
+}

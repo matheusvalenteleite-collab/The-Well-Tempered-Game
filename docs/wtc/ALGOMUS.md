@@ -70,6 +70,20 @@ The settled subject's length within an eighth note of the reference's in 13 of 2
 
 All: 343 complete statements in the reference, 393 found by the analysis (heads the reference lists as incomplete statements left out of both counts), 322 matched: precision 82%, recall 94%. Of the reference's 38 incomplete statements, the analysis reports 22 as entries.
 
+### Each disagreement judged from the notes
+
+A reader judged all 95 disagreements from the notes, with neither analysis in view (`data/wtc/algomus-adjudicated.json`, with a reason for each).
+
+| | complete | altered | head | begins elsewhere | none |
+|---|---|---|---|---|---|
+| found by the analysis only (71) | 4 | 11 | 33 | 9 | 14 |
+| in the reference only (21) | 13 | 6 | 1 | 1 | 0 |
+
+- **The reference is reliable on what it lists** (19 of its 21 statements our analysis missed are real), **but not exhaustive**: 12 real statements found only by the analysis (besides I/4's second subject, below) (I/15 v1 43:1; altered: I/4 v0 54:2, I/4 v1 94:2, I/4 v1 49:1.25, I/8 v1 77:2.5): late statements compressed by a bar in I/15, inversions in I/15, a statement in C♯ minor in I/9, stretto partners in I/4.
+- **The analysis's errors are over-detection:** 33 heads, mostly figures in episodes (I/3 bb. 22-24 and 35-41, I/5's demisemiquaver run, I/15's coda), and 14 false entries (cadential basses and free lines in I/4, countersubject ends in I/18, the chain of fourths in I/19's episodes). Some heads are real stretto entries the reference leaves out (I/8 bb. 52-54).
+- **Its misses** are statements with a varied head or a changed ending (I/8's inversions, I/22 b. 48, I/23 b. 20, I/24 b. 47), and in I/4 the second subject begun an eighth too late: the reference, rightly, starts it on its three-crotchet anacrusis (12 statements on each side, the same ones).
+- **Measured on the notes** (the reference corrected by the reader: its 343 statements less 1 head, plus the 12 it omits): precision 85% (88% counting I/4's late-begun second subject as found); 8% of what the analysis reports is a head, 4% no statement at all; recall 94% (98%).
+
 ## 3. The project's hand readings (the gold standard) against the reference
 
 ### I/11
@@ -87,4 +101,17 @@ All: 343 complete statements in the reference, 393 found by the analysis (heads 
 - **Countersubjects (A5).** The reference names countersubjects in 17 of 24 fugues (171 occurrences; two or more in 9): I/2 2, I/3 3, I/5 3, I/6 1, I/7 1, I/9 1, I/10 2, I/11 1, I/12 3, I/13 2, I/14 1, I/16 1, I/18 2, I/19 1, I/21 2, I/23 1, I/24 2. The test for A5.
 - **Cadences (ANALYSIS CORE).** 106 conclusive cadences with key and kind over the 24 fugues: a test set for the cadence finder, beside our gold standard's 109 phrase closes. The two count different things (the reference only the conclusive ones), and the finder is to be measured on each separately.
 - **Pedal points.** 20 pedals with degree and length.
+
+## 5. What follows (12 October)
+
+- **I/11's subject, for the owner (KNOWLEDGE-PLAN E1).** The settled subject runs to C4 at 5:1, the rising sixteenths
+  included; the reference ends it three bars after the upbeat (Keller an eighth later). The reader finds that the
+  statements at bb. 27, 38 and 46 keep the subject through the reference's ending and leave the sixteenths (at 31:1,
+  42:1, 50:1): what Bach keeps when he restates it argues for the shorter subject. Our gold reading called those three
+  heads because it measured them against the longer one.
+- **The entries analysis (fixes to weigh):** heads in episodes reported as entries (I/3, I/5: a head restarted in
+  sequence is not an entry); statements with a varied head missed (I/8, I/22-24); I/4's second subject to begin on
+  its anacrusis (data/wtc/later-subjects.json).
+- **Book II has no such reference.** Prout (1910) and Sampson (1900), both open on the Internet Archive, analyse all 48
+  and could be typed in as a second opinion for Book II.
 
