@@ -13,4 +13,6 @@ countersubjects, orders of entry, four-part proportions, the eight groups, stret
 numbers them (an upbeat bar is bar 0); voices as he names them. Inconsistencies inside the book are recorded in
 the files' notes, not corrected.
 
+`appendix-a.json`: Appendix A (pp. 185-192), the 215 episodes of the 48 and four fugal preludes, by bars and material; `appendix-b.json`: Appendix B (pp. 193-194), the share of bars with the subject, entries and episodes per fugue, with the misprints noted.
+
 Used by `tools/wtc/groocock-check.ts` (docs/wtc/GROOCOCK.md).
