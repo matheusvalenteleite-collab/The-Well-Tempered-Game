@@ -87,3 +87,24 @@ figures). Shaped figures of diminution in the alto, tenor and bass.
   figure and its answers, which is the fugue's craft (Phase B: subject, answer, sequence), rather than choose note by
   note.
 
+
+## Does each voice get its moment? (the owner's question, 12 October 2026)
+
+*A voice's moment*: a bar in which one voice has at least two more notes than every other (it moves while the
+others hold). 1003 such bars in the 370 chorales: soprano 3%, alto 16%, tenor 29%, bass 52%.
+
+- **They do not go round.** In the 238 chorales with two or more, the next moment goes to a different voice 52% of
+  the time, against 62% if each were given at random by the voices' overall shares; all three lower voices get one
+  in 51 chorales, against 58 by chance (with a margin of three notes: 1 against 4.8). The movement stays with a
+  voice for a while: a passage, often a chorale, has its moving voice (most often the bass), as the motivic study
+  found its figures local.
+- **The high points come together, not in turn.** The soprano's, alto's and tenor's highest notes fall within 5% of
+  the chorale's length of each other two to three times as often as between different chorales: the upper voices
+  rise together to the melody's climax.
+- **Where they do go round** (all three lower voices, moments changing hands): no. 233 *Werde munter* (bars 4-12:
+  tenor, bass, tenor, bass, alto, bass, tenor), no. 183, 226, 345 *O Haupt voll Blut und Wunden*, 124, 142, 339,
+  364. These are the owner's impression's best witnesses; they are a minority.
+- **The generator** almost never gives a lower voice its bar: in round 2's eighteen generated settings 6 moments,
+  two thirds of them the soprano's (Bach's own melody with its passing notes); Bach's settings of the same six
+  melodies, 11, all in the lower voices. Its embellishments are spread thin, one here and one there; Bach's take a
+  voice and let it lead for a bar or a passage. (Small samples; the direction is plain.)
