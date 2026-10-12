@@ -1,0 +1,62 @@
+{
+ "id": "inven05",
+ "key": "E flat",
+ "meter": "4/4",
+ "bars": 32,
+ "reader_notes": "Independent reading from the note text (tools/inventions/dump.ts, bars 1-32), checked bar by bar against transpositions of the opening worked out by hand; no published analysis consulted. x = the four-bar subject in the right hand, 1:1.5-4:4.5 (Eb D Eb F G Ab | F Eb F G Ab Bb | G C Bb Ab G Ab Bb Ab G F | Eb G Bb Eb5. C D Eb F Eb), whose first two bars are one rising unit stated twice a step apart (the 'head'). y = the continuous sixteenth-note countermotive that enters in the bass at 1:3.25 (Eb D Eb C D Bb C | Ab C Bb C Ab Bb G Ab | F Eb D C D Eb C D | ...) and runs to 4:4.75. The bass's two quarters Eb3 Eb2 at 1:1-1:2 are a plain harmonic support before y.",
+ "opening": {
+  "leader": {"voice": 0, "from": "1:1.5", "to": "4:4.5", "material": "x (the whole four-bar subject); the bass meanwhile y from 1:3.25"},
+  "first_imitation": {"voice": 1, "at": "5:1.5", "interval": "5 below", "distance_beats": 16, "exact": false, "changes": "exact (a twelfth below, in B flat) to 8:2.5; at 8:2.5 Ab replaces Bb and the last notes F G Ab Bb Ab fall a step lower than the transposition, so the line resolves to G3 (I6 of E flat) at 9:1 instead of staying in B flat"},
+  "leader_meanwhile": "exchange: the right hand takes over y at 5:3.25 (Bb5 A Bb G A F G ..., y a fifth higher / twelfth), exact except Ab for A at 7:3.5 (tonal, turning back to E flat); 5:1-5:2.75 is a half bar of the same figuration in place of the bass's quarter notes of bar 1",
+  "notes": "The pair x + y is stated, then exchanged: a double-counterpoint opening (Dreyfus's ROTATE), not a canon. The exchange shifts the two lines by three octaves in all (x down 17 semitones, y up 19): invertible at the octave (compound)."
+ },
+ "paradigms": [
+  {
+   "name": "alpha",
+   "prime": {"bars": "1:1.5-4:4.75", "voices": {"0": "x (four bars), ending on D5 at 5:1 over V of B flat", "1": "Eb3 Eb2 (quarters), then y from 1:3.25 to 4:4.75"}, "key": "E flat to B flat", "ends_with": "arrival in B flat at 5:1 (bass A3-Bb3, see cadences)"},
+   "members": [
+    {"bars": "5:1-8:4.75", "key": "B flat to E flat", "operations": ["TRANSPOSE B flat", "EXCHANGE 8", "VARY"], "reason": "x in the bass from 5:1.5 (Bb2), y in the right hand from 5:3.25 (Bb5). VARY: Ab for A at 7:3.5 (right hand) and the end of x in bar 8 (Ab at 8:2.5, F G Ab Bb Ab for G A Bb C Bb), turning the segment back to E flat (I6 at 9:1)."},
+    {"bars": "12:1-15:4.75", "key": "c to f", "operations": ["TRANSPOSE c", "EXCHANGE 8", "MODESWITCH", "VARY"], "reason": "x in the bass from 12:1.5 (C3 B2 C D Eb F | D C D Eb F G | Eb Ab G F E F G F Eb D | C E G Bb. G Ab Bb C Bb), y in the right hand from 12:3.25 (C6 Bb C Ab Bb G Ab ...), the same disposition and registral spread as bars 5-8. Minor-mode inflections throughout (Eb, Ab; E natural as leading note of f). VARY: the end of x leaps to the seventh (Bb) and falls to Ab at 16:1 (as in bar 8), so the segment moves on to f (i6) instead of closing in G; the right hand's last half bar is G4 F E D E F D E, leading to F5."},
+    {"bars": "16:1-19:4.75", "key": "f to b flat", "operations": ["TRANSPOSE f (up a step)", "MODESWITCH", "VARY"], "reason": "The prime's disposition again: x in the right hand from 16:1.5 (F4 E F G Ab Bb | G F G Ab Bb C | Ab Db C Bb A Bb C Bb A G | F A C Eb. C Db Eb F Eb), y in the bass from 16:3.25 (F4 Eb F Db Eb C Db ...), both a whole tone above the prime. VARY: Eb for E and Db for D in y (16:3.25, 17:1, 18:1, minor and subdominant colour); in bar 19 x leaps to Eb (seventh) and y's last half bar stays at the prime's pitch (C3 Bb A G A Bb G A), so the segment ends in b flat (20:1) instead of c."},
+    {"bars": "27:1-31:4.75", "key": "E flat", "operations": ["VARY (last one and a half bars transposed up a fourth)"], "reason": "Tonic return of the prime at pitch: x from 27:1.5 (Eb4), y from 27:3.25 (Eb4), exact to 30:2.75. From 30:1.5 (right hand) and 30:3 (bass) both lines continue a fourth higher (F5 Eb Db C Db Eb Db C Bb | Ab C Eb Ab. F G Ab Bb Ab; bass Eb Ab G F Eb F Db Eb | C F Eb Db ... | F2 Eb3 D C D Eb C D), so the segment closes in E flat (32:1) instead of moving to B flat. 27:1-27:2.75 bass figuration replaces the prime's quarters."}
+   ]
+  }
+ ],
+ "elaborations": [
+  {"bars": "9:1-11:4.75", "function": "link from E flat to c (IAC c at 12:1)", "material": "x's head unit (six notes, rising a fourth) in the right hand on Bb, C, D (with Db at 9:3, tilting toward A flat), against y's figure in the bass", "sequence": {"type": "up by step", "unit_beats": 4, "repeats": 3, "imitative": false}},
+  {"bars": "20:1-22:4.75", "function": "link from b flat to f (PAC f at 23:1)", "material": "x's head unit in the bass on Bb, Ab, G against y's figure in the right hand: the link of bars 9-11 with the voices exchanged and the sequence reversed in direction", "sequence": {"type": "down by step", "unit_beats": 4, "repeats": 3, "imitative": false}},
+  {"bars": "23:1-26:4.75", "function": "link from f back to E flat (through A flat), preparing the tonic return", "material": "x's head (two units, as in bars 1-2) in the right hand on A flat (23:1.5-24:4), then in the bass on E flat at pitch (25:1.5-26:4); y's figure in the other voice", "sequence": {"type": "other: a two-bar unit (the head) rising by step within itself, restated a fifth lower in the other voice", "unit_beats": 8, "repeats": 2, "imitative": true}},
+  {"bars": "32:1-32:4", "function": "close", "material": "cadential figuration (ornamented suspension in the right hand; bass Eb G Ab Bb Eb)", "sequence": null}
+ ],
+ "statements": [
+  {"voice": 0, "at": "9:1.5", "key": "E flat to A flat (Bb Ab Bb C Db Eb)", "form": "prime, head unit", "complete": false},
+  {"voice": 0, "at": "10:1.5", "key": "B flat region (C Bb C D Eb F)", "form": "prime, head unit", "complete": false},
+  {"voice": 0, "at": "11:1.5", "key": "c / E flat (D C D Eb F G)", "form": "prime, head unit", "complete": false},
+  {"voice": 1, "at": "20:1.5", "key": "b flat (Bb A Bb C Db Eb)", "form": "prime, head unit", "complete": false},
+  {"voice": 1, "at": "21:1.5", "key": "A flat / f (Ab G Ab Bb C Db)", "form": "prime, head unit", "complete": false},
+  {"voice": 1, "at": "22:1.5", "key": "f (G F G Ab Bb C)", "form": "prime, head unit", "complete": false},
+  {"voice": 0, "at": "23:1.5", "key": "A flat (Ab G Ab Bb C Db | Bb Ab Bb C Db Eb)", "form": "prime, head (two units, as bars 1-2)", "complete": false},
+  {"voice": 1, "at": "25:1.5", "key": "E flat, at the prime's pitch classes (Eb D Eb F G Ab | F Eb F G Ab Bb)", "form": "prime, head (two units)", "complete": false}
+ ],
+ "cadences": [
+  {"at": "5:1", "key": "B flat", "kind": "IAC", "bass": "7-1", "reason": "Bass C3 ... A3 (4:4.75) to Bb3 under F5 Eb5 to D5: V6(5)-I in B flat at the end of x. Unsure: it is a contrapuntal arrival inside continuous motion; could be read as a half cadence in E flat (the next segment is in B flat but returns at once)."},
+  {"at": "12:1", "key": "c", "kind": "IAC", "bass": "5-1", "reason": "Bass G3 (11:3, under F5: V7 of c) decorated G Ab F G Eb F D Eb, to C3; right hand G5 to Eb5 (top on the third). Ends the rising link. Unsure as to weight: the bass reaches C by step through D and the motion does not stop."},
+  {"at": "20:1", "key": "b flat", "kind": "IAC", "bass": "7-1", "reason": "Same end as bar 5: bass C3 ... A3 to Bb3, right hand F Eb to Db5 (V6(5)-i). Unsure, as at 5:1."},
+  {"at": "23:1", "key": "f", "kind": "PAC", "bass": "5-1", "reason": "Bass Bb2 (22:3) C3 (22:4) to F2, right hand E5 to F5 (leading note to tonic). The clearest internal cadence; the motion still continues without a break."},
+  {"at": "32:3", "key": "E flat", "kind": "PAC", "bass": "5-1", "reason": "Bass Ab2 Bb2 (32:2-32:2.5) to Eb2, right hand F5 to Eb5. Prepared by the arrival on Eb3 at 32:1 under a suspended Ab5."}
+ ],
+ "layout": {
+  "order": ["alpha E flat-B flat (1-4)", "alpha' B flat-E flat, exchanged (5-8)", "link E flat-c, head rising in the right hand (9-11)", "alpha'' c-f, exchanged (12-15)", "alpha''' f-b flat (16-19)", "link b flat-f, head falling in the bass (20-22)", "link f-A flat-E flat, head in both voices (23-26)", "alpha'''' E flat, varied end (27-31)", "close (32)"],
+  "sections": [{"bars": "1-12:1", "ends": "IAC c (weak)"}, {"bars": "12-23:1", "ends": "PAC f"}, {"bars": "23-32", "ends": "PAC E flat"}],
+  "returns": [
+   {"bar": 5, "what": "the opening (alpha) restated in B flat, voices exchanged"},
+   {"bar": 12, "what": "alpha in c (to f), voices exchanged: the second section begins with the opening in a new key"},
+   {"bar": 25, "what": "x's head in the bass at the tonic pitch (two bars), anticipating the return"},
+   {"bar": 27, "what": "alpha in the tonic at pitch, original disposition (x above, y below), ending varied to close in E flat"}
+  ],
+  "form": "tripartite"
+ },
+ "kind": {"primary": "double (invertible pair)", "also": []},
+ "confidence": "sure (paradigm and members); unsure (section boundaries and cadence weights)",
+ "notes": "The piece is made of one paradigm, a four-bar pair x + y, stated five times (Eb, Bb, c, f, Eb), alternately in its original and exchanged disposition, plus three links built from x's head over y's figure. About 21 of 32 bars are members (1-8, 12-19, 27-31). The ending of x is varied in every member after the prime (leap to the seventh and fall a step) so that each segment hands on to the next key. Form: I divide at 12:1 and 23:1, giving three sections of 11, 11 and 10 bars, the second beginning with alpha in c: tripartite. The internal cadences are weak (only 23:1 is a clear PAC), so the division is unsure. Alternative: a ternary shape A (1-8, Eb-Bb-Eb) B (9-26) A' (27-32), i.e. rounded bipartite if one takes 23:1 (f) as the main internal cadence. The links 9-11 and 20-22 mirror each other (head rising above vs. falling below) but do not reproduce each other line for line, so they are not recorded as a paradigm. No canon: the imitation at bar 5 comes only after the whole subject, with the leader taking the follower's line."
+}

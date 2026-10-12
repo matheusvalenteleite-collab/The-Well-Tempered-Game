@@ -1,0 +1,61 @@
+{
+ "id": "inven06",
+ "key": "E",
+ "meter": "3/8",
+ "bars": 62,
+ "reader_notes": "Independent reading from the note text (tools/inventions/dump.ts, bars 1-62; beats are eighths, so 1:1.5 is the off-beat sixteenth). No published analysis consulted. x = the bass's rising scale with turn, 1:1-4:2 (E3 F# G# | A B C# | D# E D# C# B | E4 E3). y = the right hand's syncopated chromatic descent with its ornamental tail, 1:1.5-4:3.75 (E5 D# D | C# B A | G# F# G#-A | G# B-A B G#-F# G# E-D#), entering half an eighth after x. The tail figure (a note, its upper neighbour pair, the note again: G# B A B ...) is called 'the turn figure'. The note text carries no repeat signs; the division at bar 20 is clear from the music (cadence in B, codetta, restart), but the presence of repeats is not checked here.",
+ "opening": {
+  "leader": {"voice": 1, "from": "1:1", "to": "4:2", "material": "x; the right hand begins y half an eighth later (1:1.5), so both lines start together as a pair"},
+  "first_imitation": {"voice": 0, "at": "5:1", "interval": "8 above", "distance_beats": 12, "exact": true},
+  "leader_meanwhile": "exchange: the bass takes y at 5:1.5 (E3 D# D | C# B A ..., two octaves below the prime), exact to 9:1",
+  "notes": "Bars 1-8 are the pair x + y stated and then exchanged (double counterpoint at the octave; x up 12 semitones, y down 24). Not a canon: the follower copies x only and the leader takes over the follower's line."
+ },
+ "paradigms": [
+  {
+   "name": "alpha",
+   "prime": {"bars": "1:1-4:3.75", "voices": {"0": "y (syncopated chromatic descent E5 to G#4, then the turn figure ending E4 D#4)", "1": "x (rising scale E3 to E4 with the turn D# E D# C# B, then E4 E3)"}, "key": "E"},
+   "members": [
+    {"bars": "5:1-8:3.75", "key": "E", "operations": ["EXCHANGE 8"], "reason": "x in the right hand (E4 ... E5 E4), y in the bass (E3 ... E2 D#2), exact."},
+    {"bars": "21:1-24:3.75", "key": "B", "operations": ["TRANSPOSE B", "EXCHANGE 8"], "reason": "x in the right hand (B3 C# D# | E F# G# | A# B A# G# F# | B4 B3), y in the bass (B3 A# A | G# F# E | D# C# D#-E | D# F#-E ...), exact. The disposition of bars 5-8."},
+    {"bars": "25:1-28:3.75", "key": "B", "operations": ["TRANSPOSE B"], "reason": "y in the right hand from B5 (25:1.5), x in the bass from B2 (25:1), exact. The prime's disposition (an octave wider)."},
+    {"bars": "43:1-46:3.75", "key": "E", "operations": ["EXCHANGE 8", "VARY"], "reason": "Tonic return at the pitch of bars 5-8: x in the right hand from E4 (43:1), y in the bass from E3 (43:1.5). VARY in bar 46: the right hand holds E5 (dotted eighth) and then plays the turn figure B4 A B G# F# into G#4 (47:1), in place of E5 E4."},
+    {"bars": "47:1-50:3.75", "key": "E", "operations": ["VARY (bass an octave lower)"], "reason": "y in the right hand at the prime's pitch (E5, 47:1.5), x in the bass an octave below the prime (E2, 47:1). VARY in bar 50: the bass holds E3 and plays the turn figure B3 A B G# F# into G#3 (51:1), as the right hand did in bar 46, instead of E E."}
+   ]
+  },
+  {
+   "name": "beta",
+   "prime": {"bars": "9:1-17:3", "voices": {"0": "syncopated broken chords with the turn figure (G#5 E C# | E-D# E C#-A# F# ...), then syncopated eighths falling E5 C# A# | G# F# E | D# C# B (y's rhythm), turn figure on A#4 and the approach to B", "1": "eighth-note broken chords on the beat (E2 C#3 E3 | F#3 A#3 C#4 ...), then rising eighths C# ... B (x's rhythm), cadential bass F#3 D# E F# to B"}, "key": "E to B", "ends_with": "PAC in B at 18:1"},
+   "members": [
+    {"bars": "51:1-59:3", "key": "E (through A) to E", "operations": ["TRANSPOSE down a fifth", "EXCHANGE 8", "VARY"], "reason": "The right hand's syncopated arpeggios of bars 9-12 are in the bass (51:1.5 C#4 A F# | A-G# A F# D# B ...), the bass's on-beat eighths in the right hand (E4 F# A | B D# F# ...), down a fifth so that the link that went to B now returns to E. VARY: the first eighth of each two-bar unit in the right hand (E4 at 51:1, D#4 at 53:1, C#4 at 55:1 for A, G#, F#); bars 58-59: the right hand holds F#5 and descends E D# C# B A, the bass plays the turn figure on D#3 and rises G# A B, reaching E at 60:1 (IAC)."}
+   ]
+  }
+ ],
+ "elaborations": [
+  {"bars": "9:1-12:3", "function": "first part of beta: link from E toward B", "material": "broken chords, turn figure", "sequence": {"type": "down by step", "unit_beats": 6, "repeats": 2, "imitative": false}, "note": "Inside beta's prime; recorded here for the sequence. Harmonies c#-F#7 | B-E; bar 13 breaks the pattern."},
+  {"bars": "18:1-20:3", "function": "codetta in B closing the first half", "material": "B major arpeggios in the right hand (B4 . B D# F# | B5 . B F# D# | B4 F# D# B3), the turn figure in the bass, bass to B1 at 20:3", "sequence": null},
+  {"bars": "29:1-32:3", "function": "link: B to g#, prolonging g# (i V i V)", "material": "the turn figure (y's tail) chained in the right hand rising through the chord (29-32), on-beat broken chords in the bass", "sequence": {"type": "other: a one-bar unit alternating i and V of g#", "unit_beats": 3, "repeats": 4, "imitative": false}},
+  {"bars": "33:1-38:3", "function": "link: c# - B - g#", "material": "the heads of alpha combined: y's syncopated three-eighth descent plus turn figure in the right hand (33:1.5 A G# F#, 35:1.5 G# F# E, 37:1.5 E D# C#), x's rising three eighths in the bass (B# C# D#, A# B C#, F## G# A#), then broken chords", "sequence": {"type": "down by step", "unit_beats": 6, "repeats": 3, "imitative": false}, "note": "The third unit (37-38) falls a third rather than a step (VARY), landing in g#. 32 to 33 turns V of g# into vii7 of c# (A natural at 33:1.5)."},
+  {"bars": "39:1-42:1", "function": "approach to the cadence in g#", "material": "turn figure and broken chords; bass C#3 (iv) - A#3 F##3 (vii7) - G#3 C#3 D#3", "sequence": null},
+  {"bars": "42:1-42:3", "function": "link back to E (dominant of E reached in the bass G#3 F#3 to E3)", "material": "free (broken G# chord, bass G#2 G#3 F#3)", "sequence": null},
+  {"bars": "60:1-62:3", "function": "codetta in E (counterpart of bars 18-20 with the roles exchanged: turn figure above, arpeggios below)", "material": "turn figure in the right hand, falling E major arpeggios in the bass over a tonic pedal; right hand ends D#5 E5 (61:3.5-62:1)", "sequence": null}
+ ],
+ "statements": [],
+ "cadences": [
+  {"at": "18:1", "key": "B", "kind": "PAC", "bass": "5-1", "reason": "Bass D#3 E3 F#3 (17:1-17:3) to B2, right hand A#4 to B4."},
+  {"at": "42:1", "key": "g#", "kind": "PAC", "bass": "5-1", "reason": "Bass iv (C#3, bar 39) - vii7 (bar 40) - C#3 D#3 (41:2-41:3) to G#2, right hand F##4 to G#4."},
+  {"at": "60:1", "key": "E", "kind": "IAC", "bass": "5-1", "reason": "Bass G#3 A3 B3 (59) to E3, right hand A4 to G#4 (top on the third). The only V-I of the close; the codetta that follows (60-62) prolongs the tonic over an arpeggiated pedal and the right hand reaches E5 at 62:1 by D#5-E5. Unsure: if the right hand's E5 at 62:1 is taken as the goal of the cadence, it would be read as a PAC."}
+ ],
+ "layout": {
+  "order": ["alpha E (1-4)", "alpha' E, exchanged (5-8)", "beta E-B (9-17)", "codetta B (18-20)", "alpha'' B, exchanged (21-24)", "alpha''' B (25-28)", "link B-g#, turn figure (29-32)", "sequence c#-B-g# on the heads of alpha (33-38)", "approach and PAC g# (39-42)", "alpha'''' E, exchanged (43-46)", "alpha''''' E (47-50)", "beta' E-A-E, exchanged, down a fifth (51-59)", "codetta E (60-62)"],
+  "sections": [{"bars": "1-20", "ends": "PAC B (18:1) and codetta"}, {"bars": "21-42:1", "ends": "PAC g#"}, {"bars": "42-62", "ends": "IAC E (60:1) and codetta"}],
+  "returns": [
+   {"bar": 21, "what": "the opening (alpha) restated in B, beginning with the exchanged form (as bars 5-8) and followed by the original disposition: the order of bars 1-8 reversed"},
+   {"bar": 43, "what": "alpha in the tonic, at the pitch of bars 5-8 (exchanged form first, then the original at 47)"},
+   {"bar": 51, "what": "beta in the tonic region, transposed down a fifth and exchanged, so the link that led to B now closes in E"}
+  ],
+  "form": "sonata"
+ },
+ "kind": {"primary": "double (invertible pair)", "also": []},
+ "confidence": "sure",
+ "notes": "Two halves: 1-20 (E to B) and 21-62 (B, g#, then E). The second half restates the first half's material in the tonic after a move away: alpha at 43-50, beta down a fifth at 51-59, the codetta at 60-62. That is the sonata shape of the protocol; the protocol's definition also asks for repeat signs, which the note text does not record (unsure only on that point; without them the form is rounded bipartite). About 42 of 62 bars are paradigm members (alpha 24, beta 18). Every member of alpha is exact apart from the bridging bars 46 and 50. Each restatement in a new key begins with the exchanged form (bars 21, 43), whereas the opening began with the original: the second half reverses the order of the pair."
+}
