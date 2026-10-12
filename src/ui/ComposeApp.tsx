@@ -132,6 +132,14 @@ export function ComposeApp({ onVoices, onStudy, onExercises, onTutorial }: { onV
   const realised = useMemo(() => (ready(d) ? realise(d) : null), [d]);
   const report = useMemo(() => (realised ? judgeFugue(d, realised) : null), [d, realised]);
   const allowed = (s: StepId) => s === "subject" || (s === "answer" && subjectOk) || (s === "counter" && subjectOk && !!d.answer) || (s === "fugue" && ready(d));
+  // A step the draft no longer allows (a stored step, a changed subject): back to the last it does.
+  useEffect(() => {
+    if (allowed(step)) return;
+    const back = [...STEPS].reverse().find((x) => allowed(x)) ?? "subject";
+    setStep(back);
+    setTarget(back === "subject" ? { kind: "subject" } : back === "counter" ? { kind: "cs" } : null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, d]);
 
   /** Change the draft; a changed subject carries its answer along (or drops it). */
   const change = (next: FugueDraft) => {
