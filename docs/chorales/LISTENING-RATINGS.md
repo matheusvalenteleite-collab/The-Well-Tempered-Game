@@ -140,3 +140,39 @@ already written: parallel fifths or octaves, two dissonances struck together, a 
 Repeated notes and leaps come within a few points of Bach's (the bass still repeats more: 10% against 4%), and
 parallel fifths and octaves on the surface are at his rate (on 30 held-out chorales: 0-2 against his 3). The
 bench has v2 of all fourteen pieces (`tools/chorales/bench_report.ts`).
+
+## v3: every figure licensed (12 October 2026)
+
+The owner on v2, after many blind tests (relayed by the playback session): "it was always obvious which
+harmonisations were of your own doing and which were Bach's. the quality difference is vast ... your ALTO and TENOR
+are full of wrong notes, weird counterpoint, oddities which are not earned, simply bad contrapuntal writing with
+oddities that come out of the blue, less variety in movement and flow". The playback session's count, per 100 inner
+notes, v2 against Bach: augmented seconds 1.1 / 0.0, dissonances unresolved 3.4 / 1.7, leapt into 4.8 / 2.0.
+
+The cause: v2 drew Bach's figures by their frequency, but a figure is right only where its context licenses it, and
+it copied his semitones into other harmonies (an A-flat where the key has G-sharp). v3 admits a figure only if a
+counterpoint teacher would pass every note (`figures.ts` licensed): a chord tone; or a dissonance reached and left by
+step; or a suspension prepared as a chord tone of the beat before, making a fourth, seventh or ninth over the bass,
+resolved down by step; an anticipation reached by step; spelled as the key or the chord spells it (the figure keeps
+Bach's shape in letters and takes this context's notes); no augmented second, fourth or fifth in a line.
+
+On 30 held-out chorales, inner voices between Bach's outer voices, per 100 inner notes (this session's checker; Bach's
+own figures are its noise floor):
+
+| | v3 | Bach |
+|---|---|---|
+| augmented seconds | 0.0 | 0.0 |
+| dissonances unresolved | 0.0 | 2.4 |
+| dissonances leapt into | 0.0 | 1.0 |
+| suspensions | 1.7 | 2.1 |
+| anticipations | 1.0 | 0.7 |
+| neighbour notes | 2.1 | 3.2 |
+| passing notes | 8.9 | 12.2 |
+| short notes (all) | 30% | 40% |
+
+Checked by hand, every dissonance of the alto and tenor in two pieces (nos. 233 and 88): before the last two rules,
+three suspensions prepared by a passing note (no. 233, t76-80, t100-104, t268-272) and a held sixth over the bass
+falling to a fifth (t256); after them, every dissonance a passing note between chord tones, a neighbour returning, or
+a suspension prepared on a consonance and resolved down; one doubtful passage left (no. 88, tenor t68: B-C natural-D
+rising in semiquavers over E major in A minor, where Bach would more often raise the sixth). The cost: fewer passing
+and neighbour notes than Bach (the lines are a little plainer than v2's). v3 of the fourteen bench pieces replaces v2.

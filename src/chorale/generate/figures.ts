@@ -43,6 +43,24 @@ function from(p: string, letters: number, semis: number): string {
   return `${letter}${a > 0 ? "#".repeat(a) : "b".repeat(-a)}${oct}`;
 }
 
+/** The note `letters` from a pitch, spelled as the key or the chord spells that letter (of two spellings, the
+ *  nearer to Bach's `semis`): Bach's figure keeps its shape and takes this context's notes. */
+function respell(a: string, letters: number, semis: number, names: Set<string>): string {
+  const d = diatonic(a) + letters;
+  const letter = LETTERS[mod(d, 7)];
+  const oct = Math.floor(d / 7);
+  const target = midiOf(a) + semis;
+  let best = "",
+    gap = Infinity;
+  for (const nm of names) {
+    if (nm[0] !== letter) continue;
+    const p = `${nm}${oct}`;
+    const g = Math.abs(midiOf(p) - target);
+    if (g < gap) [best, gap] = [p, g];
+  }
+  return best || from(a, letters, semis);
+}
+
 const moveOf = (a: string, b: string) => Math.max(-5, Math.min(5, diatonic(b) - diatonic(a)));
 const ctxKeys = (v: number, move: number, len: number, held: boolean) => [`${v}|${move}|${len}|${held ? 1 : 0}`, `${v}|${move}|${len}`, `${v}|${len}`, `${v}`];
 
@@ -102,7 +120,7 @@ export class FigureModel {
 
 /** A figure written out from the chord tone `a` at `t0`: its notes (the held-over first note's pitch is the
  *  one before, `prev`), or null where a pitch cannot be spelled or a held note does not match. */
-function realise(f: Figure, a: string, t0: number, t1: number, prev: string | null): Note[] | null {
+function realise(f: Figure, a: string, t0: number, t1: number, prev: string | null, names?: Set<string>): Note[] | null {
   const out: Note[] = [];
   for (let k = 0; k < f.length; k++) {
     const [on, letters, semis, held] = f[k];
@@ -115,7 +133,7 @@ function realise(f: Figure, a: string, t0: number, t1: number, prev: string | nu
       // the held note is the note before: its distance from this beat's tone must be what Bach's was
       if (diatonic(p) - diatonic(a) !== letters || midiOf(p) - midiOf(a) !== semis) return null;
     } else {
-      p = from(a, letters, semis);
+      p = names ? respell(a, letters, semis, names) : from(a, letters, semis);
       if (!p) return null;
     }
     out.push([t0 + on, end - on, p]);
@@ -162,6 +180,62 @@ function against(notes: Note[], v: number, fixed: Note[][], tones: Set<number>, 
   return cost;
 }
 
+/**
+ * Whether a beat's notes are licensed, as a counterpoint teacher would check them (the owner on v2: "wrong
+ * notes, weird counterpoint, oddities which are not earned"). Each note is a chord tone of its beat, or a
+ * dissonance that is earned: reached and left by step (a passing or neighbour note), or held over from a
+ * chord tone and resolved down by step (a suspension). No note outside the key unless a chord tone or a
+ * chromatic step between two notes a semitone either side; no augmented second, fourth or fifth in the line.
+ * `prev`: the note before (the last of the beat before), `next`: the chord tone that follows on the next beat.
+ */
+export function licensed(notes: Note[], prev: string | null, next: string | null, tones: Set<number>, nextTones: Set<number>, key: Set<number>, heldFirst: boolean, names?: Set<string>): boolean {
+  const pc = (p: string) => mod(midiOf(p), 12);
+  const name = (p: string) => p.replace(/-?\d+$/, "");
+  // spelled as the key or the chord spells it (no A-flat where the key has G-sharp): `names` holds both
+  if (names) for (const n of notes) if (!names.has(name(n[2]))) {
+    const k = notes.indexOf(n);
+    const before = k ? notes[k - 1][2] : prev,
+      after = k + 1 < notes.length ? notes[k + 1][2] : next;
+    // a chromatic step between two notes a semitone either side, spelled by the direction it moves in
+    const chromatic = before && after && Math.abs(midiOf(n[2]) - midiOf(before)) === 1 && Math.abs(midiOf(after) - midiOf(n[2])) === 1 && diatonic(n[2]) !== diatonic(before) === (diatonic(after) !== diatonic(n[2]));
+    if (!chromatic) return false;
+  }
+  const seq: (string | null)[] = [prev, ...notes.map((n) => n[2]), next];
+  for (let k = 1; k < seq.length; k++) {
+    const a = seq[k - 1],
+      b = seq[k];
+    if (!a || !b) continue;
+    const steps = Math.abs(diatonic(b) - diatonic(a)),
+      semis = Math.abs(midiOf(b) - midiOf(a));
+    // augmented intervals in the line: the second (3 semitones on a step), fourth (6 on 3 steps), fifth (8 on 4)
+    if ((steps === 1 && semis === 3) || (steps === 3 && semis === 6) || (steps === 4 && semis === 8)) return false;
+  }
+  for (let k = 0; k < notes.length; k++) {
+    const p = notes[k][2];
+    if (tones.has(pc(p))) continue;
+    const before = seq[k],
+      after = seq[k + 2];
+    const stepFrom = (x: string | null) => !!x && Math.abs(diatonic(p) - diatonic(x)) === 1;
+    const inKey = key.has(pc(p)) || (before && after && Math.abs(midiOf(p) - midiOf(before)) === 1 && Math.abs(midiOf(after) - midiOf(p)) === 1);
+    if (!inKey) return false;
+    // a suspension: the first note held over from the beat before, resolved down by step
+    if (k === 0 && heldFirst) {
+      if (!after || diatonic(after) - diatonic(p) !== -1) return false;
+      continue;
+    }
+    // the last note of the beat may be a chord tone of the next beat (an anticipation), reached by step and held
+    if (k === notes.length - 1 && nextTones.has(pc(p)) && after && midiOf(after) === midiOf(p) && stepFrom(before)) continue;
+    // otherwise reached and left by step
+    if (!stepFrom(before) || !stepFrom(after)) return false;
+  }
+  return true;
+}
+
+/** How often a suspension is taken where it can be (a share of the other choices' weight: one in five). */
+const SUSPEND = 0.18;
+/** The weight of an anticipation against Bach's share of it (see figurate). */
+const ANTICIPATE = 0.4;
+
 export interface FigureOptions {
   /** Cost (bits) of one unit of `against` (a pair of parallels). */
   parallel?: number;
@@ -169,6 +243,12 @@ export interface FigureOptions {
   T?: number;
   /** The order the lower voices are drawn in (3 bass, 2 tenor, 1 alto); each against those before it. */
   order?: number[];
+  /** The key's pitch classes (the scale, in minor with the raised sixth and seventh too): a dissonant note
+   *  outside it is not licensed. Absent, every note's pitch class is allowed. */
+  key?: Set<number>;
+  /** The spellings allowed at each beat: the key's (its letters with their accidentals) and the chord's.
+   *  A note spelled otherwise (A-flat where the key has G-sharp) is a wrong note unless a chromatic step. */
+  names?: Set<string>[];
 }
 
 /**
@@ -181,6 +261,7 @@ export interface FigureOptions {
  */
 export function figurate(fm: FigureModel, grid: Note[][], surface: Note[], tones: Set<number>[], r: () => number, o: FigureOptions = {}, free = [true, true, true], given: (Note[] | null)[] = []): Note[][] {
   const { parallel = 6, T = 1, order = [3, 1, 2] } = o;
+  const keyPcs = o.key ?? new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
   const n = grid[0].length;
   const out: Note[][] = [surface, [], [], []];
   for (const v of order) {
@@ -201,16 +282,41 @@ export function figurate(fm: FigureModel, grid: Note[][], surface: Note[], tones
         t1 = i + 1 < n ? line[i + 1][0] : t0 + line[i][1];
       const res: { notes: Note[]; w: number; last: string; held: boolean }[] = [];
       const last = i + 1 >= n || line[i][3];
+      // a note held over into this beat must be earned: prepared as a chord tone of the beat before, and
+      // making a dissonance over the bass here (a fourth, seventh or ninth: 4-3, 7-6, 9-8; never a sixth
+      // or third, which Bach almost never suspends)
+      const bassNow = (fixed[3] ?? []).find((nt) => nt[0] <= t0 && t0 < nt[0] + nt[1])?.[2] ?? grid[3][i][2];
+      const holdable =
+        !!prev && i > 0 && tones[i - 1].has(mod(midiOf(prev), 12)) && [2, 4, 7].includes(mod(diatonic(prev) - diatonic(v === 3 ? line[i][2] : bassNow), 7) + 1);
       if (last) {
         // the last note of a phrase (a fermata) or of the piece: held
         const nt: Note[] = [[t0, t1 - t0, line[i][2], ...(line[i][3] ? [1 as const] : [])] as Note];
         res.push({ notes: nt, w: 2 ** (-parallel * against(nt, v, fixed, tones[i], prev ? [t0 - 1, 1, prev] : null)), last: line[i][2], held: false });
       } else {
         for (const { f, p } of fm.options(v, line[i][2], line[i + 1][2], t1 - t0, null)) {
-          const notes = realise(f, line[i][2], t0, t1, f[0][3] ? prev : null);
+          if (f[0][3] && !holdable) continue;
+          const notes = realise(f, line[i][2], t0, t1, f[0][3] ? prev : null, o.names?.[i]);
           if (!notes) continue;
+          if (!licensed(notes, f[0][3] ? null : prev, line[i + 1][2], tones[i], tones[i + 1] ?? tones[i], keyPcs, f[0][3] === 1, o.names?.[i])) continue;
           const c = against(notes, v, fixed, tones[i], prev && !f[0][3] ? [t0 - 1, 1, prev] : null);
-          res.push({ notes, w: Math.pow(p * 2 ** (-parallel * c), 1 / T), last: notes[notes.length - 1][2], held: f[0][3] === 1 });
+          // an anticipation (the beat's last note the next beat's tone, struck early) is licensed but the
+          // generator offers it more often than Bach writes it (1.8 against 0.7 in a hundred inner notes)
+          const lastN = notes[notes.length - 1][2];
+          const antic = notes.length > 1 && midiOf(lastN) === midiOf(line[i + 1][2]) && !tones[i].has(mod(midiOf(lastN), 12)) ? ANTICIPATE : 1;
+          res.push({ notes, w: Math.pow(antic * p * 2 ** (-parallel * c), 1 / T), last: notes[notes.length - 1][2], held: f[0][3] === 1 });
+        }
+        // a suspension wherever it can be earned: the note before a step above this beat's tone and dissonant
+        // over it (a fourth, seventh or ninth over the bass, or a second against a voice): held over half the
+        // beat, then resolved down to the tone. Bach takes such a chance about one time in five (MOTIVES.md,
+        // DiminutionModel's measures); his figures alone rarely fit it exactly, so it is offered here.
+        if (holdable && prev && diatonic(prev) - diatonic(line[i][2]) === 1 && !tones[i].has(mod(midiOf(prev), 12)) && t1 - t0 >= 8) {
+          const half = Math.max(4, Math.floor((t1 - t0) / 2 / 4) * 4);
+          const sus: Note[] = [[t0, half, prev], [t0 + half, t1 - t0 - half, line[i][2]]];
+          if (licensed(sus, null, line[i + 1][2], tones[i], tones[i + 1] ?? tones[i], keyPcs, true, o.names?.[i])) {
+            const c = against(sus, v, fixed, tones[i]);
+            const z = res.reduce((a, x) => a + x.w, 0) || 1;
+            res.push({ notes: sus, w: SUSPEND * z * 2 ** (-parallel * c), last: line[i][2], held: true });
+          }
         }
         if (!res.length) {
           const nt: Note[] = [[t0, t1 - t0, line[i][2]]];
@@ -272,3 +378,30 @@ export const studyPairs = (bach: BachChorale[]) => {
   const st = new Map(STUDY.chorales.map((s) => [s.n, s]));
   return bach.filter((b) => st.has(b.no)).map((b) => ({ study: st.get(b.no)!, bach: b }));
 };
+
+/** The spellings of a key: its scale's letters with their accidentals (in minor the raised sixth and seventh
+ *  too), as names without octave ("F#"). */
+export function keyNames(tonic: string, mode: string): Set<string> {
+  const t = LETTERS.indexOf(tonic[0]);
+  const tpc = mod(midiOf(`${tonic}4`), 12);
+  const steps = mode === "major" ? [0, 2, 4, 5, 7, 9, 11] : [0, 2, 3, 5, 7, 8, 10];
+  const out = new Set<string>();
+  const spell = (step: number, semis: number) => {
+    const letter = LETTERS[mod(t + step, 7)];
+    const a = mod(tpc + semis - NATURAL[LETTERS.indexOf(letter)] + 6, 12) - 6;
+    out.add(letter + (a > 0 ? "#".repeat(a) : "b".repeat(-a)));
+  };
+  steps.forEach((x, k) => spell(k, x));
+  if (mode !== "major") {
+    spell(5, 9);
+    spell(6, 11);
+  }
+  return out;
+}
+
+/** The pitch classes of a key: its scale, in minor with the raised sixth and seventh too. */
+export function keyPcs(tonic: string, mode: string): Set<number> {
+  const t = mod(midiOf(`${tonic}4`), 12);
+  const steps = mode === "major" ? [0, 2, 4, 5, 7, 9, 11] : [0, 2, 3, 5, 7, 8, 10, 9, 11];
+  return new Set(steps.map((x) => mod(t + x, 12)));
+}

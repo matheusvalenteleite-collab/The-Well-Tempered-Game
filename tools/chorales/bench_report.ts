@@ -15,20 +15,20 @@ import { diverseSettings, trainModels } from "../../src/chorale/generate/index.t
 import { VoiceModel, writeVoices } from "../../src/chorale/generate/voices.ts";
 import { bachSlots, settingSlots } from "../../src/chorale/generate/slots.ts";
 import { STUDY } from "../../src/chorale/generate/diminution.ts";
-import { FigureModel, figurate, studyPairs } from "../../src/chorale/generate/figures.ts";
+import { FigureModel, figurate, keyNames, keyPcs, studyPairs } from "../../src/chorale/generate/figures.ts";
 import { chordTones, midiOf } from "../../src/chorale/generate/theory.ts";
 import type { Key } from "../../src/chorale/generate/theory.ts";
 import type { Note } from "../../src/chorale/level6.ts";
 import { rng } from "../../src/counterpoint/choices/cantus.ts";
 import { thirty } from "./exceptions_lib.ts";
 
-const VERSION = "v2";
+const VERSION = "v3";
 const NOTE =
-  "v2 (chorale-generation, 12 October 2026): as v1 (cadence plan, chords and bass from Bach's habits; alto and tenor re-written " +
-  "as whole lines), but the lower voices' surface is now Bach's own figures beat by beat (figures.ts): every note he writes " +
-  "between two chord tones, chord tones in quavers (the bass's octaves and walking, the inner voices moving within the " +
-  "chord), passing and neighbour notes, suspensions; drawn as often as he writes them, bass first, each voice against those " +
-  "already written. Short notes: alto 32%, tenor 36%, bass 45% (Bach 36%, 40%, 43%; v1 11-14%). Bach's soprano.";
+  "v3 (chorale-generation, 12 October 2026): as v2 (Bach's own figures beat by beat), but every figure licensed as a " +
+  "counterpoint teacher would check it: each note a chord tone, or a dissonance reached and left by step, or a suspension " +
+  "prepared as a chord tone on the beat before, making a fourth, seventh or ninth over the bass and resolved down by step; " +
+  "notes spelled as the key or the chord spells them (Bach's figure keeps its shape, takes this context's notes); no " +
+  "augmented second, fourth or fifth in a line; anticipations reached by step. Bach's soprano.";
 
 const tunes = [...new Set(BACH.map((c) => c.tune))].sort();
 const held = new Set(tunes.filter((_, i) => i % 5 === 2));
@@ -61,7 +61,12 @@ for (const c of pick) {
     const t = chordTones(g.bass.positions[i], g.bass.degrees[i], ch, k);
     return new Set([t.root, ...t.above.map(([l]) => l), g.bass.pitches[i].replace(/-?\d+$/, "")].map(pcOf));
   });
-  const d = figurate(fm, [line(c.notes.map((n) => n.sp)), line(iv.alto), line(iv.tenor), line(g.bass.pitches)], s.voices[0] as Note[], tones, rng(7000 + c.no));
+  const kn = keyNames(c.tonic, c.mode);
+  const names = g.chords.map((ch, i) => {
+    const t = chordTones(g.bass.positions[i], g.bass.degrees[i], ch, k);
+    return new Set([...kn, t.root, ...t.above.map(([l]) => l), g.bass.pitches[i].replace(/-?\d+$/, "")]);
+  });
+  const d = figurate(fm, [line(c.notes.map((n) => n.sp)), line(iv.alto), line(iv.tenor), line(g.bass.pitches)], s.voices[0] as Note[], tones, rng(7000 + c.no), { key: keyPcs(c.tonic, c.mode), names });
   const voices = [s.voices[0], d[1], d[2], d[3]].map((l) => l.map((n) => (n[3] ? [n[0], n[1], n[2], 1] : [n[0], n[1], n[2]])));
   const piece = {
     id: `gen-chorale-${c.no}-${VERSION}`,
@@ -97,12 +102,14 @@ for (const c of inner) {
   const dur = (i: number) => (times[i + 1] ?? s.length) - times[i];
   const line = (ps: string[]): Note[] => ps.map((p, i) => (c.notes[i].end || i === ps.length - 1 ? [times[i], dur(i), p, 1] : [times[i], dur(i), p]));
   const tones = slots.map((sl) => new Set([sl.root, ...sl.above.map(([l]) => l), sl.bass.replace(/-?\d+$/, "")].map(pcOf)));
-  const d = figurate(fm, [line(c.notes.map((n) => n.sp)), line(iv.alto), line(iv.tenor), line(c.notes.map((n) => n.bp))], s.voices[0] as Note[], tones, rng(7100 + c.no), {}, [true, true, false], [null, null, null, s.voices[3] as Note[]]);
+  const kn = keyNames(c.tonic, c.mode);
+  const names = slots.map((sl) => new Set([...kn, sl.root, ...sl.above.map(([l]) => l), sl.bass.replace(/-?\d+$/, "")]));
+  const d = figurate(fm, [line(c.notes.map((n) => n.sp)), line(iv.alto), line(iv.tenor), line(c.notes.map((n) => n.bp))], s.voices[0] as Note[], tones, rng(7100 + c.no), { key: keyPcs(c.tonic, c.mode), names }, [true, true, false], [null, null, null, s.voices[3] as Note[]]);
   const voices = [s.voices[0], d[1], d[2], s.voices[3]].map((l) => l.map((n) => (n[3] ? [n[0], n[1], n[2], 1] : [n[0], n[1], n[2]])));
   const id = `gen-chorale-inner-${c.no}-${VERSION}`;
   writeFileSync(
     new URL(`${id}.json`, dir),
-    JSON.stringify({ id, title: s.title, kind: "chorale", by: "chorale-generation", part: "inner", given: [0, 3], tonic: s.tonic, mode: s.mode, sig: s.sig, meter: s.meter, pickup: s.pickup, voices, compare: c.no, note: "v2: inner voices only (alto and tenor) between Bach's soprano and bass over his chords: lines re-written whole, then figured beat by beat with Bach's own figures (quavers within the chord, passing and neighbour notes, suspensions), drawn as often as he writes them, against his outer voices as written. Short notes alto 32%, tenor 31% (Bach 36%, 40%)." }) + "\n",
+    JSON.stringify({ id, title: s.title, kind: "chorale", by: "chorale-generation", part: "inner", given: [0, 3], tonic: s.tonic, mode: s.mode, sig: s.sig, meter: s.meter, pickup: s.pickup, voices, compare: c.no, note: "v3: inner voices only (alto and tenor) between Bach's soprano and bass over his chords: lines re-written whole, then figured beat by beat with Bach's own figures (quavers within the chord, passing and neighbour notes, suspensions), drawn as often as he writes them, against his outer voices as written, and each licensed: chord tones, dissonances reached and left by step, suspensions prepared and resolved down, spelled in the key; no augmented intervals." }) + "\n",
   );
   written++;
   console.log(`${id}: ${s.title}, inner voices between Bach's outer voices (no. ${c.no})`);
