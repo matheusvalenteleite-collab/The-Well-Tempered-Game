@@ -207,3 +207,132 @@ The leaps: I/4 d4; I/7 A4; I/10 d5, A4, A2; I/18 A4; I/20 d7; I/24 A4, d7, d7; I
 - **MBT**: 1 (2%): AoF VIII
 - **MMMMTB**: 1 (2%): MO a 6
 
+## 4. Entries through the fugue
+
+From the study's analysis (src/wtc/library.ts, the entries found by the subject's head and its whole, in every voice), run with the settled subjects. Entries are found, not certified: Ledbetter's entries are found at 91% (docs/wtc/ledbetter-game-check.md).
+
+**How many entries.** From 7 to 38 (median 13). Most: I/20 (38), I/4 (32), I/8 (29), II/22 (24), I/1 (23), II/5 (23). Fewest: II/11 (7), AoF III (7), I/2 (8), I/13 (8), I/14 (8), I/21 (8).
+
+**Entries per bar of music** (how densely the subject is present), by set:
+
+- WTC I: 0.33 entries a bar on average
+- WTC II: 0.25 entries a bar on average
+- Art of Fugue: 0.16 entries a bar on average
+- Musical Offering: 0.09 entries a bar on average
+- BWV 903: 0.06 entries a bar on average
+
+**The subject inverted** (at least one inverted entry), by set:
+
+- WTC I: 7 of 24 (I/6, I/8, I/14, I/15, I/18, I/20 …)
+- WTC II: 5 of 24 (II/3, II/4, II/6, II/8, II/22)
+- Art of Fugue: 4 of 10 (AoF V, AoF VI, AoF VII, AoF X)
+- Musical Offering: 0 of 2
+- BWV 903: 0 of 1
+
+**Augmentation or diminution** found, by set:
+
+- WTC I: 1 of 24 (I/8)
+- WTC II: 2 of 24 (II/2, II/9)
+- Art of Fugue: 1 of 10 (AoF VII)
+- Musical Offering: 0 of 2
+- BWV 903: 0 of 1
+
+The augmented and diminished entries: I/8 (aug. b. 62, aug. b. 67, aug. b. 77); II/2 (aug. b. 14, aug. b. 19); II/9 (dim. b. 23, dim. b. 25, dim. b. 26, dim. b. 27 …); AoF VII (aug. b. 2, aug. b. 36).
+
+**The degrees of the later entries** (after the exposition), in major (235 entries; the transposition from the first entry, so an answer counts as V):
+
+- **I**: 74 (31%): I/1 b. 7, I/1 b. 14, I/1 b. 16, I/1 b. 24, I/3 b. 22 … (74)
+- **V**: 64 (27%): I/1 b. 7, I/1 b. 9, I/1 b. 10, I/1 b. 14, I/1 b. 15 … (64)
+- **VI**: 35 (15%): I/1 b. 17, I/1 b. 19, I/3 b. 14, I/3 b. 38, I/5 b. 8 … (35)
+- **IV**: 24 (10%): I/1 b. 24, I/3 b. 40, I/5 b. 11, I/5 b. 11, I/5 b. 14 … (24)
+- **II**: 19 (8%): I/1 b. 10, I/1 b. 17, I/3 b. 34, I/5 b. 15, I/11 b. 46 … (19)
+- **III**: 13 (6%): I/1 b. 12, I/1 b. 19, I/3 b. 19, I/7 b. 17, I/15 b. 51 … (13)
+- **♭VII**: 3 (1%): I/1 b. 21, I/3 b. 36, II/19 b. 26
+- **♭III**: 3 (1%): I/5 b. 20, I/5 b. 24, I/15 b. 79
+
+**The degrees of the later entries** (after the exposition), in minor (354 entries; the transposition from the first entry, so an answer counts as V):
+
+- **I**: 136 (38%): I/2 b. 20, I/2 b. 26, I/2 b. 29, I/4 b. 25, I/4 b. 35 … (136)
+- **V**: 59 (17%): I/2 b. 15, I/4 b. 19, I/4 b. 38, I/4 b. 70, I/4 b. 94 … (59)
+- **IV**: 58 (16%): I/4 b. 22, I/4 b. 34, I/4 b. 48, I/4 b. 51, I/8 b. 52 … (58)
+- **III**: 34 (10%): I/2 b. 11, I/4 b. 19, I/4 b. 32, I/4 b. 94, I/6 b. 35 … (34)
+- **VII**: 25 (7%): I/4 b. 29, I/4 b. 72, I/8 b. 26, I/10 b. 13, I/10 b. 30 … (25)
+- **VI**: 17 (5%): I/4 b. 54, I/8 b. 69, I/18 b. 26, II/8 b. 19, II/8 b. 30 … (17)
+- **II**: 10 (3%): I/4 b. 66, I/6 b. 8, I/8 b. 24, I/22 b. 36, II/16 b. 45 … (10)
+- **♮VI**: 8 (2%): I/4 b. 44, I/8 b. 33, I/22 b. 68, II/14 b. 30, II/22 b. 80 … (8)
+- **♭II**: 2 (1%): I/4 b. 54, AoF X b. 103
+- **♮III**: 2 (1%): I/18 b. 24, AoF VIII b. 147
+- **♮VII**: 2 (1%): AoF IV b. 111, AoF VIII b. 152
+- **♯IV**: 1 (0%): I/8 b. 17
+
+## 5. Stretto
+
+**At least one stretto**, by set:
+
+- WTC I: 12 of 24 (I/1, I/4, I/5, I/6, I/8, I/11 …)
+- WTC II: 14 of 24 (II/2, II/3, II/4, II/5, II/6, II/7 …)
+- Art of Fugue: 4 of 10 (AoF V, AoF VII, AoF VIII, AoF X)
+- Musical Offering: 0 of 2
+- BWV 903: 0 of 1
+
+**How close** (the second entry after the first, in quarters; 155 strettos):
+
+- **a beat or less**: 47 (30%): I/1 b. 7, I/1 b. 10, I/1 b. 14, I/1 b. 16, I/1 b. 19 … (47)
+- **up to two beats**: 64 (41%): I/1 b. 16, I/1 b. 17, I/1 b. 24, I/4 b. 44, I/4 b. 72 … (64)
+- **up to a bar (four beats)**: 37 (24%): I/4 b. 34, I/6 b. 13, I/6 b. 17, I/6 b. 21, I/6 b. 22 … (37)
+- **more than a bar**: 7 (5%): I/8 b. 62, I/8 b. 67, I/15 b. 77, I/20 b. 83, II/21 b. 25 … (7)
+
+**Where in the fugue** (the stretto's place, as a share of the piece): in the first third 26, the middle third 67, the last third 62.
+
+## 6. Episodes
+
+**Episodes** (a bar or more without an entry): 543 in the 61; per fugue from 2 to 20.
+
+**The share of the fugue in episodes**, by set:
+
+- WTC I: 54% on average
+- WTC II: 55% on average
+- Art of Fugue: 56% on average
+- Musical Offering: 69% on average
+- BWV 903: 78% on average
+
+Longest: MO a 3 b. 100 (40.5 bars), BWV 903 b. 94 (37 bars), AoF VIII b. 90 (34.7 bars), II/11 b. 24 (28.3 bars), AoF X b. 17 (27.3 bars), AoF IV b. 80 (26.3 bars).
+
+## 7. Pedal points
+
+**Pedal points** (a note held or repeated two bars or more, in the bass or an outer voice): 108, in 40 of the 61 fugues.
+
+- **on I**: 44, 33 of them in the last quarter: I/1 b. 24, I/2 b. 29, I/2 b. 29, I/4 b. 112, I/4 b. 112, I/5 b. 27 … (44)
+- **on V**: 35, 19 of them in the last quarter: I/1 b. 21, I/4 b. 105, I/4 b. 110, I/12 b. 57, I/12 b. 57, I/16 b. 8 … (35)
+- **on III**: 8, 0 of them in the last quarter: I/11 b. 36, I/24 b. 44, AoF V b. 51, AoF IX b. 45, AoF IX b. 48, AoF IX b. 76 … (8)
+- **on II**: 7, 1 of them in the last quarter: I/15 b. 62, AoF VII b. 8, AoF VII b. 27, AoF IX b. 49, AoF IX b. 77, MO a 3 b. 105 … (7)
+- **on VII**: 6, 3 of them in the last quarter: I/20 b. 76, AoF VII b. 11, AoF IX b. 46, MO a 3 b. 77, MO a 3 b. 164, MO a 3 b. 178
+- **on IV**: 5, 2 of them in the last quarter: I/13 b. 28, AoF VIII b. 31, AoF X b. 101, BWV 903 b. 107, MO a 6 b. 72
+- **on ♮VII**: 1, 0 of them in the last quarter: AoF IX b. 93
+- **on VI**: 1, 1 of them in the last quarter: AoF IX b. 121
+- **on ♮VI**: 1, 0 of them in the last quarter: BWV 903 b. 91
+
+Pedal points are found at 58% of Ledbetter's (docs/wtc/ledbetter-game-check.md): these counts are a lower bound.
+
+## Limits of part 2 (to be removed as R2 is done)
+
+Parts 4-7 count what the study's analysis finds. Where it is blind, the counts are low, and the late works
+suffer most:
+
+- **Strettos are counted between ordinary entries only.** Entries in augmentation or diminution are found
+  apart and not paired: AoF VI (a counter-fugue in diminution, stretto throughout) shows none, AoF VII
+  too few. Inverted entries are paired.
+- **Augmentation and diminution are found only where the rhythm is the subject's scaled exactly:** AoF
+  VI's dotted French diminution is missed.
+- **Later subjects are known only for the 48** (data/wtc/later-subjects.json, from Ledbetter): the second
+  and third subjects of AoF VIII-X and their combinations are not yet counted.
+- **Varied entries** (a changed head, an ornamented statement, the Thema Regium decorated in the Ricercar
+  a 3) are missed; the Musical Offering's and BWV 903's entry densities are lower bounds, and their
+  episode shares upper bounds.
+- **An episode here is any bar or more without a found entry,** codettas included; the structure study's
+  44% (docs/wtc/structure-study.md) used another boundary. The comparison between sets holds; the level
+  is a convention.
+- **The degrees of later entries are transpositions from the first entry,** not keys: an answer counts
+  as V, an entry in the relative minor of a major fugue as VI. They agree with the key-plan study (I 30%,
+  V 27%, vi 14%, IV 10% in major) where they overlap.
+

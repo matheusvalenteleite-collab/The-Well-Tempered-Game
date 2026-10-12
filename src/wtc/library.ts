@@ -94,7 +94,8 @@ function base(p: WtcPiece): { piece: LibPiece; index: Map<string, number>; pad: 
   return { piece: { time: p.meter, barQuarters: barQ, pickup: pad > 0 ? 1 : 0, notes, spelled, voice, count: p.voices.length, given }, index, pad };
 }
 
-function fugueOf(p: WtcPiece): LibFugue {
+/** The study's analysis of a fugue (the 48's, or another piece in the corpus format: D160). */
+export function fugueOf(p: WtcPiece): LibFugue {
   const { piece, index, pad } = base(p);
   // The subject settled by hand where there is one (D160), else the machine's reading.
   const machine = subjectAndAnswer(p);

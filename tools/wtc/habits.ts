@@ -9,6 +9,9 @@ import { parsePitch } from "../../src/music/pitch.ts";
 import { entryOrder, TPQ } from "../../src/wtc/fugue.ts";
 import { place } from "../../src/wtc/compose/model.ts";
 import { settled, type Settled } from "../../src/wtc/settled.ts";
+import { fugueOf } from "../../src/wtc/library.ts";
+import { degreeOf, studyMoments } from "../../src/wtc/study.ts";
+import { beatOf } from "../../src/wtc/counterpoint.ts";
 
 const pieces = [...(JSON.parse(readFileSync("data/wtc/fugues.json", "utf8")) as WtcPiece[]), ...(JSON.parse(readFileSync("data/wtc/more.json", "utf8")) as WtcPiece[])];
 const TITLE: Record<string, string> = {
@@ -99,6 +102,16 @@ for (const p of pieces) {
 }
 
 const out: string[] = [];
+/** A feature of the whole-fugue analysis, by set (defined below, used in part 2). */
+function bySetA(title: string, f: (a: (typeof A)[number]) => boolean) {
+  out.push(`${title}, by set:`, "");
+  for (const set of SETS) {
+    const as = A.filter((a) => a.r.set === set);
+    const yes = as.filter(f);
+    out.push(`- ${set}: ${yes.length} of ${as.length}${yes.length && yes.length < as.length ? ` (${yes.slice(0, 6).map((a) => name(a.r.id)).join(", ")}${yes.length > 6 ? " …" : ""})` : ""}`);
+  }
+  out.push("");
+}
 const pct = (a: number, b: number) => (b ? `${Math.round((100 * a) / b)}%` : "–");
 const list = (rs: Row[], k = 8) => rs.slice(0, k).map((r) => name(r.id)).join(", ") + (rs.length > k ? ` … (${rs.length})` : "");
 /** A distribution of a feature, with the pieces of each value. */
@@ -208,5 +221,99 @@ dist("**A link before the third entry**", (r) => (r.s.codettaBeforeThird === nul
 const order = (r: Row) => entryOrder(r.p).map(([v]) => pos(r, v)[0].toUpperCase()).join("");
 dist("**The order of entry** (T top, M middle, B bottom)", order);
 
+// ---- Part 2: the whole fugue, from the study's analysis run with the settled subjects (R2).
+const A = rows.map((r) => {
+  const lf = fugueOf(r.p);
+  const minor = r.p.mode === "minor";
+  const tonicPc = ((parsePitch(`${r.p.key}4`).midi % 12) + 12) % 12;
+  const sj = lf.subject;
+  const m = studyMoments(lf.notes, lf.voice, lf.count, lf.entries, lf.barQuarters, minor, { beat: beatOf(lf.time), tonicPc, later: lf.later, transformed: lf.transformed, subjectLength: sj[sj.length - 1].at + sj[sj.length - 1].dur });
+  const end = Math.max(...lf.notes.map((n) => n.at + n.dur));
+  return { r, lf, m: m.moments, end, minor };
+});
+const barAt = (a: (typeof A)[number], q: number) => Math.floor(q / a.lf.barQuarters + 1e-6) + 1 - a.lf.pickup;
+const ex = (xs: { a: (typeof A)[number]; at: number }[], k = 8) => xs.slice(0, k).map((x) => `${name(x.a.r.id)} b. ${barAt(x.a, x.at)}`).join(", ") + (xs.length > k ? ` … (${xs.length})` : "");
+out.push("## 4. Entries through the fugue", "", "From the study's analysis (src/wtc/library.ts, the entries found by the subject's head and its whole, in every voice), run with the settled subjects. Entries are found, not certified: Ledbetter's entries are found at 91% (docs/wtc/ledbetter-game-check.md).", "");
+const counts = A.map((a) => ({ a, n: a.lf.entries.length, inv: a.lf.entries.filter((e) => e.inverted).length, tr: a.lf.transformed.length }));
+out.push(`**How many entries.** From ${Math.min(...counts.map((c) => c.n))} to ${Math.max(...counts.map((c) => c.n))} (median ${med(counts.map((c) => c.n))}). Most: ${[...counts].sort((x, y) => y.n - x.n).slice(0, 6).map((c) => `${name(c.a.r.id)} (${c.n})`).join(", ")}. Fewest: ${[...counts].sort((x, y) => x.n - y.n).slice(0, 6).map((c) => `${name(c.a.r.id)} (${c.n})`).join(", ")}.`, "");
+out.push("**Entries per bar of music** (how densely the subject is present), by set:", "");
+for (const set of SETS) {
+  const cs = counts.filter((c) => c.a.r.set === set);
+  const dens = cs.map((c) => c.n / (c.a.end / c.a.lf.barQuarters));
+  out.push(`- ${set}: ${(dens.reduce((x, y) => x + y, 0) / Math.max(1, dens.length)).toFixed(2)} entries a bar on average`);
+}
+out.push("");
+bySetA("**The subject inverted** (at least one inverted entry)", (a) => a.lf.entries.some((e) => e.inverted));
+bySetA("**Augmentation or diminution** found", (a) => a.lf.transformed.length > 0);
+out.push(`The augmented and diminished entries: ${A.filter((a) => a.lf.transformed.length).map((a) => `${name(a.r.id)} (${a.lf.transformed.map((e) => `${(e.scale ?? 2) > 1 ? "aug." : "dim."} b. ${barAt(a, e.at)}`).slice(0, 4).join(", ")}${a.lf.transformed.length > 4 ? " …" : ""})`).join("; ")}.`, "");
+// The degrees of the entries after the exposition (the transposition from the first entry).
+const middle = A.flatMap((a) => {
+  const voices = new Set<number>();
+  let k = 0;
+  for (; k < a.lf.entries.length; k++) {
+    const v = a.lf.voice[a.lf.entries[k].notes[0]];
+    if (voices.has(v)) break;
+    voices.add(v);
+  }
+  return a.lf.entries.slice(k).filter((e) => !e.inverted).map((e) => ({ a, at: e.at, deg: degreeOf(e.shift - a.lf.entries[0].shift, a.minor) }));
+});
+for (const mode of ["major", "minor"]) {
+  const ms = middle.filter((x) => (mode === "minor") === x.a.minor);
+  const t = new Map<string, typeof ms>();
+  for (const x of ms) t.set(x.deg, [...(t.get(x.deg) ?? []), x]);
+  out.push(`**The degrees of the later entries** (after the exposition), in ${mode} (${ms.length} entries; the transposition from the first entry, so an answer counts as V):`, "");
+  for (const [d, xs] of [...t.entries()].sort((x, y) => y[1].length - x[1].length)) out.push(`- **${d}**: ${xs.length} (${pct(xs.length, ms.length)}): ${ex(xs, 5)}`);
+  out.push("");
+}
+out.push("## 5. Stretto", "");
+const st = A.flatMap((a) => a.m.filter((x) => x.kind === "stretto").map((x) => ({ a, at: x.from, d: Number(x.detail.distance) })));
+bySetA("**At least one stretto**", (a) => a.m.some((x) => x.kind === "stretto"));
+out.push(`**How close** (the second entry after the first, in quarters; ${st.length} strettos):`, "");
+const bins: [string, (d: number) => boolean][] = [["a beat or less", (d) => d <= 1.0001], ["up to two beats", (d) => d > 1.0001 && d <= 2.0001], ["up to a bar (four beats)", (d) => d > 2.0001 && d <= 4.0001], ["more than a bar", (d) => d > 4.0001]];
+for (const [l, f] of bins) { const xs = st.filter((x) => f(x.d)); out.push(`- **${l}**: ${xs.length} (${pct(xs.length, st.length)}): ${ex(xs, 5)}`); }
+out.push("");
+const where = (x: { a: (typeof A)[number]; at: number }) => x.at / x.a.end;
+out.push(`**Where in the fugue** (the stretto's place, as a share of the piece): in the first third ${st.filter((x) => where(x) < 1 / 3).length}, the middle third ${st.filter((x) => where(x) >= 1 / 3 && where(x) < 2 / 3).length}, the last third ${st.filter((x) => where(x) >= 2 / 3).length}.`, "");
+out.push("## 6. Episodes", "");
+const eps = A.flatMap((a) => a.m.filter((x) => x.kind === "episode").map((x) => ({ a, at: x.from, bars: Number(x.detail.bars) })));
+out.push(`**Episodes** (a bar or more without an entry): ${eps.length} in the 61; per fugue from ${Math.min(...A.map((a) => a.m.filter((x) => x.kind === "episode").length))} to ${Math.max(...A.map((a) => a.m.filter((x) => x.kind === "episode").length))}.`, "");
+out.push("**The share of the fugue in episodes**, by set:", "");
+for (const set of SETS) {
+  const as = A.filter((a) => a.r.set === set);
+  const share = as.map((a) => a.m.filter((x) => x.kind === "episode").reduce((s, x) => s + x.to - x.from, 0) / a.end);
+  out.push(`- ${set}: ${Math.round((100 * share.reduce((x, y) => x + y, 0)) / Math.max(1, share.length))}% on average`);
+}
+out.push("", `Longest: ${[...eps].sort((x, y) => y.bars - x.bars).slice(0, 6).map((x) => `${name(x.a.r.id)} b. ${barAt(x.a, x.at)} (${x.bars} bars)`).join(", ")}.`, "");
+out.push("## 7. Pedal points", "");
+const pedals = A.flatMap((a) => a.m.filter((x) => x.kind === "pedal").map((x) => ({ a, at: x.from, deg: degreeOf((Number(x.detail.pc) - (((parsePitch(`${a.r.p.key}4`).midi % 12) + 12) % 12) + 12) % 12, a.minor), place: String(x.detail.place ?? "bass"), late: x.from / a.end > 0.75 })));
+out.push(`**Pedal points** (a note held or repeated two bars or more, in the bass or an outer voice): ${pedals.length}, in ${new Set(pedals.map((x) => x.a.r.id)).size} of the 61 fugues.`, "");
+const pd = new Map<string, typeof pedals>();
+for (const x of pedals) pd.set(x.deg, [...(pd.get(x.deg) ?? []), x]);
+for (const [d, xs] of [...pd.entries()].sort((x, y) => y[1].length - x[1].length)) out.push(`- **on ${d}**: ${xs.length}, ${xs.filter((x) => x.late).length} of them in the last quarter: ${ex(xs, 6)}`);
+out.push("", "Pedal points are found at 58% of Ledbetter's (docs/wtc/ledbetter-game-check.md): these counts are a lower bound.", "");
+out.push(
+  "## Limits of part 2 (to be removed as R2 is done)",
+  "",
+  "Parts 4-7 count what the study's analysis finds. Where it is blind, the counts are low, and the late works",
+  "suffer most:",
+  "",
+  "- **Strettos are counted between ordinary entries only.** Entries in augmentation or diminution are found",
+  "  apart and not paired: AoF VI (a counter-fugue in diminution, stretto throughout) shows none, AoF VII",
+  "  too few. Inverted entries are paired.",
+  "- **Augmentation and diminution are found only where the rhythm is the subject's scaled exactly:** AoF",
+  "  VI's dotted French diminution is missed.",
+  "- **Later subjects are known only for the 48** (data/wtc/later-subjects.json, from Ledbetter): the second",
+  "  and third subjects of AoF VIII-X and their combinations are not yet counted.",
+  "- **Varied entries** (a changed head, an ornamented statement, the Thema Regium decorated in the Ricercar",
+  "  a 3) are missed; the Musical Offering's and BWV 903's entry densities are lower bounds, and their",
+  "  episode shares upper bounds.",
+  "- **An episode here is any bar or more without a found entry,** codettas included; the structure study's",
+  "  44% (docs/wtc/structure-study.md) used another boundary. The comparison between sets holds; the level",
+  "  is a convention.",
+  "- **The degrees of later entries are transpositions from the first entry,** not keys: an answer counts",
+  "  as V, an entry in the relative minor of a major fugue as VI. They agree with the key-plan study (I 30%,",
+  "  V 27%, vi 14%, IV 10% in major) where they overlap.",
+  "",
+);
 writeFileSync("docs/wtc/HABITS.md", out.join("\n") + "\n");
 console.log(out.slice(0, 40).join("\n"));
