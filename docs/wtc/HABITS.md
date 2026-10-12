@@ -265,6 +265,20 @@ The augmented and diminished entries: I/8 (aug. b. 62, aug. b. 67, aug. b. 77); 
 - **♮III**: 2 (1%): I/18 b. 24, AoF VIII b. 147
 - **♯IV**: 1 (0%): I/8 b. 17
 
+**Fugues on several subjects** (later subjects as read in the score or given by Ledbetter): 11 of the 63.
+
+- I/4: 3 subjects; subject 2 from b. 36 (14 entries), subject 3 from b. 49 (8 entries)
+- II/4: 2 subjects; subject 2 from b. 35 (7 entries)
+- II/9: 2 subjects; subject 2 from b. 16 (3 entries)
+- II/14: 3 subjects; subject 2 from b. 20 (3 entries), subject 3 from b. 36 (13 entries)
+- II/18: 2 subjects; subject 2 from b. 61 (9 entries)
+- II/23: 2 subjects; subject 2 from b. 28 (16 entries)
+- AoF VIII: 3 subjects; subject 2 from b. 40 (19 entries), subject 3 from b. 94 (8 entries)
+- AoF IX: 2 subjects; subject 2 from b. 36 (6 entries)
+- AoF X: 2 subjects; subject 2 from b. 23 (12 entries)
+- AoF XI: 3 subjects; subject 2 from b. 28 (10 entries), subject 3 from b. 90 (11 entries)
+- AoF XIV: 3 subjects; subject 2 from b. 114 (9 entries), subject 3 from b. 193 (9 entries)
+
 ## 5. Stretto
 
 **At least one stretto**, by set:
@@ -286,17 +300,17 @@ The augmented and diminished entries: I/8 (aug. b. 62, aug. b. 67, aug. b. 77); 
 
 ## 6. Episodes
 
-**Episodes** (a bar or more without an entry): 577 in the 61; per fugue from 2 to 20.
+**Episodes** (a bar or more without an entry): 586 in the 61; per fugue from 2 to 21.
 
 **The share of the fugue in episodes**, by set:
 
 - WTC I: 53% on average
 - WTC II: 55% on average
-- Art of Fugue: 54% on average
+- Art of Fugue: 48% on average
 - Musical Offering: 69% on average
 - BWV 903: 78% on average
 
-Longest: AoF XI b. 25 (46.3 bars), MO a 3 b. 100 (40.5 bars), BWV 903 b. 94 (37 bars), AoF VIII b. 90 (34.7 bars), II/11 b. 24 (28.3 bars), AoF XI b. 104 (28.3 bars).
+Longest: MO a 3 b. 100 (40.5 bars), BWV 903 b. 94 (37 bars), II/11 b. 24 (28.3 bars), AoF IV b. 80 (26.3 bars), BWV 903 b. 64 (26 bars), AoF III b. 18 (24.4 bars).
 
 ## 7. Pedal points
 
@@ -316,25 +330,26 @@ Longest: AoF XI b. 25 (46.3 bars), MO a 3 b. 100 (40.5 bars), BWV 903 b. 94 (37 
 
 Pedal points are found at 58% of Ledbetter's (docs/wtc/ledbetter-game-check.md): these counts are a lower bound.
 
-## Limits of part 2 (to be removed as R2 is done)
+## Limits of part 2
 
-Parts 4-7 count what the study's analysis finds. Where it is blind, the counts are low, and the late works
-suffer most:
+Parts 4-7 count what the study's analysis finds. Fixed on 12 October (D160): entries in augmentation and
+diminution are found in a changed rhythm too (AoF VI's dotted French diminution, VII's augmentations),
+and paired in strettos; entries varied in rhythm at their own speed are found; the later subjects of
+AoF VIII-XI and XIV are tracked (read in the score: data/wtc/subject-readings/later-aof.json). The 48's
+agreement with Ledbetter is kept (entries 158 of 173, strettos 40 of 47, no new unclaimed). What remains:
 
-- **Strettos are counted between ordinary entries only.** Entries in augmentation or diminution are found
-  apart and not paired: AoF VI (a counter-fugue in diminution, stretto throughout) shows none, AoF VII
-  too few. Inverted entries are paired.
-- **Augmentation and diminution are found only where the rhythm is the subject's scaled exactly:** AoF
-  VI's dotted French diminution is missed.
-- **Later subjects are known only for the 48** (data/wtc/later-subjects.json, from Ledbetter): the second
-  and third subjects of AoF VIII-X and their combinations are not yet counted.
-- **Varied entries** (a changed head, an ornamented statement, the Thema Regium decorated in the Ricercar
-  a 3) are missed; the Musical Offering's and BWV 903's entry densities are lower bounds, and their
-  episode shares upper bounds.
-- **An episode here is any bar or more without a found entry,** codettas included; the structure study's
-  44% (docs/wtc/structure-study.md) used another boundary. The comparison between sets holds; the level
-  is a convention.
-- **The degrees of later entries are transpositions from the first entry,** not keys: an answer counts
-  as V, an entry in the relative minor of a major fugue as VI. They agree with the key-plan study (I 30%,
-  V 27%, vi 14%, IV 10% in major) where they overlap.
+- **Ornamented entries** (notes added to the subject, the Thema Regium decorated in the Ricercar a 3) are
+  missed; the Musical Offering's and BWV 903's entry densities are lower bounds, their episode shares upper
+  bounds.
+- **Later subjects are found as recurring eight-note figures:** an entry may be found a note or two after
+  its head (a bar later at most); counts hold, bar numbers may be one late. Strettos are counted among the
+  first subject's statements only.
+- **An episode here is any bar or more without a found entry** of any subject, codettas included; the
+  structure study's 44% (docs/wtc/structure-study.md) used another boundary. The comparison between sets
+  holds; the level is a convention.
+- **The degrees of later entries are transpositions from the first entry,** not keys: an answer counts as
+  V, an entry in the relative minor of a major fugue as VI. They agree with the key-plan study (I 30%, V
+  27%, vi 14%, IV 10% in major) where they overlap.
+- **Cadences** are not yet counted: the harmonic reader finds Ledbetter's cadences at 23% (it reports
+  changes of key, not cadences), the next thing to mend.
 

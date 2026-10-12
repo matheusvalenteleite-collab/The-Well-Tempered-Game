@@ -265,6 +265,14 @@ for (const mode of ["major", "minor"]) {
   for (const [d, xs] of [...t.entries()].sort((x, y) => y[1].length - x[1].length)) out.push(`- **${d}**: ${xs.length} (${pct(xs.length, ms.length)}): ${ex(xs, 5)}`);
   out.push("");
 }
+// Fugues on several subjects.
+const multi = A.filter((a) => a.lf.later.length);
+out.push(`**Fugues on several subjects** (later subjects as read in the score or given by Ledbetter): ${multi.length} of the ${A.length}.`, "");
+for (const a of multi) {
+  const ns = [...new Set(a.lf.later.map((e) => e.subject ?? 2))].sort();
+  out.push(`- ${name(a.r.id)}: ${ns.length + 1} subjects; ${ns.map((n) => { const L = a.lf.later.filter((e) => (e.subject ?? 2) === n); return `subject ${n} from b. ${barAt(a, L[0].at)} (${L.length} entries)`; }).join(", ")}`);
+}
+out.push("");
 out.push("## 5. Stretto", "");
 const st = A.flatMap((a) => a.m.filter((x) => x.kind === "stretto").map((x) => ({ a, at: x.from, d: Number(x.detail.distance) })));
 bySetA("**At least one stretto**", (a) => a.m.some((x) => x.kind === "stretto"));
@@ -292,27 +300,28 @@ for (const x of pedals) pd.set(x.deg, [...(pd.get(x.deg) ?? []), x]);
 for (const [d, xs] of [...pd.entries()].sort((x, y) => y[1].length - x[1].length)) out.push(`- **on ${d}**: ${xs.length}, ${xs.filter((x) => x.late).length} of them in the last quarter: ${ex(xs, 6)}`);
 out.push("", "Pedal points are found at 58% of Ledbetter's (docs/wtc/ledbetter-game-check.md): these counts are a lower bound.", "");
 out.push(
-  "## Limits of part 2 (to be removed as R2 is done)",
+  "## Limits of part 2",
   "",
-  "Parts 4-7 count what the study's analysis finds. Where it is blind, the counts are low, and the late works",
-  "suffer most:",
+  "Parts 4-7 count what the study's analysis finds. Fixed on 12 October (D160): entries in augmentation and",
+  "diminution are found in a changed rhythm too (AoF VI's dotted French diminution, VII's augmentations),",
+  "and paired in strettos; entries varied in rhythm at their own speed are found; the later subjects of",
+  "AoF VIII-XI and XIV are tracked (read in the score: data/wtc/subject-readings/later-aof.json). The 48's",
+  "agreement with Ledbetter is kept (entries 158 of 173, strettos 40 of 47, no new unclaimed). What remains:",
   "",
-  "- **Strettos are counted between ordinary entries only.** Entries in augmentation or diminution are found",
-  "  apart and not paired: AoF VI (a counter-fugue in diminution, stretto throughout) shows none, AoF VII",
-  "  too few. Inverted entries are paired.",
-  "- **Augmentation and diminution are found only where the rhythm is the subject's scaled exactly:** AoF",
-  "  VI's dotted French diminution is missed.",
-  "- **Later subjects are known only for the 48** (data/wtc/later-subjects.json, from Ledbetter): the second",
-  "  and third subjects of AoF VIII-X and their combinations are not yet counted.",
-  "- **Varied entries** (a changed head, an ornamented statement, the Thema Regium decorated in the Ricercar",
-  "  a 3) are missed; the Musical Offering's and BWV 903's entry densities are lower bounds, and their",
-  "  episode shares upper bounds.",
-  "- **An episode here is any bar or more without a found entry,** codettas included; the structure study's",
-  "  44% (docs/wtc/structure-study.md) used another boundary. The comparison between sets holds; the level",
-  "  is a convention.",
-  "- **The degrees of later entries are transpositions from the first entry,** not keys: an answer counts",
-  "  as V, an entry in the relative minor of a major fugue as VI. They agree with the key-plan study (I 30%,",
-  "  V 27%, vi 14%, IV 10% in major) where they overlap.",
+  "- **Ornamented entries** (notes added to the subject, the Thema Regium decorated in the Ricercar a 3) are",
+  "  missed; the Musical Offering's and BWV 903's entry densities are lower bounds, their episode shares upper",
+  "  bounds.",
+  "- **Later subjects are found as recurring eight-note figures:** an entry may be found a note or two after",
+  "  its head (a bar later at most); counts hold, bar numbers may be one late. Strettos are counted among the",
+  "  first subject's statements only.",
+  "- **An episode here is any bar or more without a found entry** of any subject, codettas included; the",
+  "  structure study's 44% (docs/wtc/structure-study.md) used another boundary. The comparison between sets",
+  "  holds; the level is a convention.",
+  "- **The degrees of later entries are transpositions from the first entry,** not keys: an answer counts as",
+  "  V, an entry in the relative minor of a major fugue as VI. They agree with the key-plan study (I 30%, V",
+  "  27%, vi 14%, IV 10% in major) where they overlap.",
+  "- **Cadences** are not yet counted: the harmonic reader finds Ledbetter's cadences at 23% (it reports",
+  "  changes of key, not cadences), the next thing to mend.",
   "",
 );
 writeFileSync("docs/wtc/HABITS.md", out.join("\n") + "\n");

@@ -1,0 +1,52 @@
+{
+  "aof08": [
+    {"n": 2, "bar": 39, "beat": 2.5, "voice": 1,
+     "notes": "Bb G# A A A F# G G G E F F F E D C# D",
+     "what": "new chromatic subject: dotted-quarter head, then eighth-note groups of a note repeated three times (approached by a leap down a third and a semitone step up), descending by sequence (A, G, F) to a cadence on D",
+     "combined_from_bar": 39,
+     "combinations": "with subject 1 from its first entry: v0 39:2 D5 C5 F5 B4 Bb4 A4 D5 G4 F4 G4 A4 G4 A4 D4 (subject 1) against v1 39:2.5 subject 2; answer v0 43:2.5 Eb5 q. C#5 D5 D5 D5 B4 C5 C5 ...; later entries v2 49:2.5, v1 61:2.5, v1 81:2.5, v1 131:2.5, v1 170:2.5, v1 182:2.5",
+     "confidence": "sure",
+     "reason": "Before b.39 nothing in any voice has this figure. After it, the complete figure returns as an exposition through all three voices and then at least 8 more times as whole entries with the dotted head (v1 39, v0 43, v2 49, v1 61/81/131/170/182). It is not only an episode sequence. From its first entry it sounds against subject 1."},
+    {"n": 3, "bar": 94, "beat": 1.5, "voice": 1,
+     "notes": "A D E | F G A | Bb A G | F E F G | A  (each group starts after a quarter rest: 94:1.5 A4 D4 E4, 95:1.5 F4 G4 A4, 96:1.5 Bb4 A4 G4, 97:1.5 F4 E4 F4 G4, 98:1 A4 h)",
+     "what": "the principal theme inverted (A D F A Bb A G F E F G A), with the opening leap filled in by step. The pitches are exactly the Contrapunctus V subject. Here it is broken by quarter rests on each downbeat",
+     "combined_from_bar": 147,
+     "combinations": "exposition alone (with free counterpoint): v1 94, v2 99:1.5 (D A B C D E F E D C B C D E), v0 105:1.5 (E A B C D E F E D C B C D E). First triple combination 147-148: v0 147:2 subject 1 (F5 E5 A5 D#5 D5 C5 F5 Bb4 A4 Bb4 C5 Bb4 C5 F4), v1 147:2.75 subject 2 (D5 B4 C5 C5 C5 A#4 B4 B4 B4 G#4 A4 A4 A4 ..., head without the dotted quarter), v2 148:1.5 subject 3 (C4 F#3 G#3 | A3 Bb3 C4 | D4 C4 Bb3 | A3 G3 A3 B3 | C4, same contour with chromatic inflection). Repeated at 158-159 (v0 S2, v1 S3 159:1.5 D G A Bb C D Eb D C Bb A Bb C D, v2 S1 tail), 170-171 (v2 S1, v1 S2, v0 S3 171:1.5) and 182-183 (v0 S1, v1 S2, v2 S3 183:1.5)",
+     "confidence": "sure",
+     "reason": "A new rhythmic profile (rests on the downbeats, quarter-note steps) is set out in all three voices in turn (94, 99, 105). It then returns four times stacked against both earlier subjects. No subject-1 or subject-2 entry overlaps it before 147, so 147-148 is the first combination. The 147-148 bass form is only contour-equal (C-F# instead of a perfect fifth), so the exact entry beat there is a little uncertain."}
+  ],
+  "aof09": [
+    {"n": 2, "bar": 35, "beat": 1, "voice": 0,
+     "notes": "D A F D C# (whole notes) D E (halves) F (long) G F E (quarters) D",
+     "what": "the principal theme (D A F D C# D E F G F E D) in augmentation: whole notes where Contrapunctus I has half notes",
+     "combined_from_bar": 35,
+     "combinations": "v2 enters with subject 1 at 35:2 (D3 D4 C#4 B3 A3 G3 F3 E3 D3 ...) under the first theme entry. Theme entries follow at v2 45 (F), v1 59 (D), v2 73 (A), v3 89 (D), v2 99 (G) and v1 119 (D)",
+     "confidence": "sure",
+     "reason": "There is an exact interval match for the theme head in whole notes in seven entries, the first being v0 b.35. Earlier whole notes in v0 (31-34: F E D C#) are a held line, not the theme head. From the start the theme is set against subject 1, which enters at 35:2."}
+  ],
+  "aof10": [
+    {"n": 2, "bar": 23, "beat": 1, "voice": 0,
+     "notes": "A D E F G A Bb A G F E F# G# A  (A5 h, D5 q. E5 e, F5 q. G5 e, A5 h, Bb5 h, A5 q. G5 e, F5 ..., E5 F#5 G#5 A5)",
+     "what": "the principal theme inverted with stepwise fill-in (the Contrapunctus V pitch line A D E F G A Bb A G F E F G A), in the dotted rhythm of Contrapuncti VI/VII",
+     "combined_from_bar": 44,
+     "combinations": "exposition without subject 1: v0 23, v1 24 (D A B C# D E, cut short), v2 26 (D A B C D E F E D C# ...), v3 31, v1 34. First combination at b.44: v1 44:1 subject 2 (A4 D4 E4 F4 G4 A4 Bb4 A4 G4 F4 ...) against v2 44:2 subject 1 (F#3 G3 D3 Bb3 A3 D4 G3 A3 Bb3 C4 D4 E4 F4 ...). Later pairings at 66, 75, 85, 103, 115",
+     "confidence": "sure",
+     "reason": "Before b.23 only a passing pre-echo appears (v0 15:4-17 in eighths, not the half/dotted rhythm). From 23 the line has its own four-voice exposition with tonal answers (D A B ...). A search for subject 1 (C# D A F E A D E F G ...) finds no entry between b.8 and b.44, so b.44 is the first time the two sound together."}
+  ],
+  "aof11": [
+    {"n": 2, "bar": 27, "beat": 2, "voice": 1,
+     "notes": "A Bb F C C# D A E F E D E D A  (A3 h, Bb3 F3 C4 C#4 D4 A3 q, E4 h, F4 E4 q, D4 E4 e, D4 q, A4)",
+     "what": "Contrapunctus VIII's subject 1 (D C F B Bb A D G F G A G A D) inverted, with the same rhythm. Its intervals are the exact mirror (+1,-3,+4,chromatic,+1,-3,+4,+1,-1,-1,+1,-1,+4), with tonal adjustment of the fifth F-C. From 28:1.5 it brings a new chromatic countersubject (v0 D4 Eb4 E4 F4 F#4 G4 G#4 A4)",
+     "combined_from_bar": 145,
+     "combinations": "entries v1 27, v2 34 (E), v3 43, v3 89, v1 93, v0 113, v2 136, v0 145, v3 174, v2 179. It first sounds against subject 1 at 145-146: v0 145:2.5 (B4 C5 G4 D5 D#5 E5 B4 F#5 ...) with v2 146:1.5 subject 1 (E3 B3 A3 G3 F#3 E3 D#3 E3 F#3 G3 A3 G3 F#3 E3), where subject 3 is also present (v1 from 145:2). Again 174-175 (v3 A2 ... with v1 175:1.5 D4 A4 G4 ...) and 179-180 (all three)",
+     "confidence": "sure",
+     "reason": "The interval pattern is the exact inversion of VIII's subject 1 in the same rhythm, and it returns as complete entries in all four voices. The chromatic fourth line that starts with it returns with most entries (30 v3, 35 v3, 44 v2) and is also worked alone in stretto at 54-60. I count it as a countersubject of subject 2, not a separate subject. That count is open to debate (unsure only on that point)."},
+    {"n": 3, "bar": 89, "beat": 2.5, "voice": 2,
+     "notes": "Eb D F F F E G G G F# A A A G# B B B A B C# D  (Eb3 q. then eighths)",
+     "what": "Contrapunctus VIII's subject 2 (Bb G# A A A F# G G G ... dotted head + repeated-note groups) in inversion: the groups climb (F, G, A, B) instead of falling. In this first form each group is step-down + leap-up-a-third. The strict mirror (head, up a third, step down, repeat x3: e.g. v3 141:1.5 D3 q. F3 E3 E3 E3 G3 F#3 F#3 F#3 A3 G3 G3 G3) appears later. From 97:2.5 (v1 D5 q. B4 C5 C5 C5 A4 B4 B4 ...) the right-way-up VIII form is also used",
+     "combined_from_bar": 89,
+     "combinations": "with subject 2 at once: v3 89:2 subject 2 (A2 Bb2 F2 C3 C#3 D3 A2 E3 ...) against v2 89:2.5 subject 3. Stretto answers v1 90:2.5 (Bb3 q. A3 C4 C4 C4 B3 D4 D4) and v0 93:2.5 (Bb4 q. A4 C5 C5 C5 B4 D5 D5 ...), with v1 93:2.5 subject 2. With subject 1 from 100-101: v3 100:1.5 (A3 q. F#3 G3 G3 G3 E3 F3 F3 F3 ...) against v1 101:1.5 subject 1 (D4 A4 G4 F4 E4 D4 C#4 D4 E4 F4 ...). All three first at 145-146 (v1 S3 from 145:2, v0 S2 145:2.5, v2 S1 146:1.5); again 179-180 (v3 S3 179:2.5 + v2 S2 179:2.5 + v0 S1 180:1.5)",
+     "confidence": "sure",
+     "reason": "Nothing with this dotted head and these repeated-note groups appears before 89:2.5. From there it gets a three-voice stretto exposition (v2 89, v1 90, v0 93) and many full later entries (97, 98, 100, 105, 113, 116-117, 122, 130-131, 136, 141, 145, 152, 167-171, 179). It is clearly a subject, not an episode figure. Its link to VIII's subject 2 (dotted head, triple-repeated eighths, chromatic neighbours) is plain, but the 89 form is a free inversion, not a strict mirror."}
+  ]
+}

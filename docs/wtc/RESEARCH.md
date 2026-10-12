@@ -93,3 +93,6 @@ answered one by one.
   future goal; Mutopia has it as "Contrapunctus XIX" (the Bach-Gesellschaft's numbering), and XI too. 63
   fugues. `docs/wtc/XIV.md`: the fragment as read (three subjects, b. 1, 115, 193) and the road to a
   completion, knowledge first.
+- **R2, the blind spots (12 October):** entries in a changed rhythm found (AoF VI's diminutions, VII's
+  augmentations, rhythmically varied entries), the later subjects of AoF VIII-XI read in the score and
+  tracked, the 48's agreement with Ledbetter kept. Left: ornamented entries, cadences (HABITS.md, limits).
