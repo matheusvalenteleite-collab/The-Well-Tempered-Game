@@ -1,0 +1,203 @@
+{
+ "id": "inven08",
+ "key": "F",
+ "meter": "3/4",
+ "bars": 34,
+ "reader_notes": "Read by hand from the note text (dump.ts, bars 0-34), independently: no published analysis consulted. Correspondences between passages were checked note by note with a throwaway comparison script (semitone offsets of aligned notes) and by reading. x = the opening statement, 1:1.5-3:1: a head of five eighths arpeggiating the tonic (F A F C F) and a tail of sixteenths falling stepwise in turns from F5 (2:1 F5, then E D C D C Bb A Bb A G, to F4 at 3:1). y = the sixteenth figure circling a held upper note (A5 C6 Bb5 C6, three times, bar 4) that follows. The bass is silent in bar 1.",
+ "opening": {
+  "leader": {
+   "voice": 0,
+   "from": "1:1.5",
+   "to": "3:1",
+   "material": "x (head arpeggio and sixteenth tail)"
+  },
+  "first_imitation": {
+   "voice": 1,
+   "at": "2:1.5",
+   "interval": "8 below",
+   "distance_beats": 3,
+   "exact": true
+  },
+  "leader_meanwhile": "canon: the right hand goes on with new material (tonic arpeggio F A C A F C in bar 3, y in bar 4, the same on F and D in bars 5-6, B G D B F D in bar 7, falling sixteenth scales in bars 8-10) and the bass copies all of it one bar later",
+  "canon_strict_to": "8:1.5 at the octave; from 8:2 the bass departs, and from 9:1 to 11:1.75 it again follows the right hand one bar later, now a ninth below (bass bars 9-11 = right hand bars 8-10 a ninth lower); the canon ends with the cadence in C at 12:1",
+  "notes": "So the canon lasts from 2:1.5 to about 11:2, nearly the whole first section. The machine's 'strict to 8:2' is the octave canon only."
+ },
+ "paradigms": [
+  {
+   "name": "alpha",
+   "prime": {
+    "bars": "1:1.5-4:1",
+    "voices": {
+     "0": "x (head 1:1.5, tail bar 2), tonic arpeggio (bar 3)",
+     "1": "rest; x one bar later, 8 below (head 2:1.5, tail bar 3)"
+    },
+    "key": "F"
+   },
+   "members": [
+    {
+     "bars": "12:1.5-15:1",
+     "key": "C",
+     "operations": [
+      "TRANSPOSE C",
+      "EXCHANGE 8",
+      "ABORT at 15:1"
+     ],
+     "reason": "The bass leads with x in C (12:1.5, C3 E3 C3 G3 C3; tail bar 13; arpeggio bar 14), every note the prime's right hand a fourth below an octave lower; the right hand follows one bar later two octaves above (13:1.5 head, 14 tail). ABORT: at bar 15, where y should come, the bass alternates Eb4 and F#3 (vii7 of g) and the right hand circles a held A5 instead; the passage turns to g."
+    },
+    {
+     "bars": "16:1-19:1",
+     "key": "g",
+     "operations": [
+      "TRANSPOSE g",
+      "MODESWITCH",
+      "VARY",
+      "ABORT at 19:1"
+     ],
+     "reason": "Right hand leads with x's head on G (16:1.5, after a Bb4 upbeat), tail (bar 17), arpeggio (bar 18); bass follows one bar later 8 below (head 17:1.5 after G2, tail bar 18): the prime's layout a step higher, in minor. VARY: in bar 16, where the bass rested in the prime, it already plays x's tail (16:1.5 F3 Eb3 D3 ...), so the tail sounds in alternate voices in three successive bars. ABORT: y does not follow in bar 19; the passage moves to d."
+    }
+   ]
+  },
+  {
+   "name": "beta",
+   "prime": {
+    "bars": "4:1-12:1",
+    "voices": {
+     "0": "y on A (4), F (5), D (6); B G D B F D eighths (7); stepwise sixteenth scales in turns (8-10); cadential eighths (10-11)",
+     "1": "the same one bar later: tonic arpeggio (4), y (5-7) and the eighths (8) 8 below to 8:1.5; then the scales a ninth below (9-11:1.75); cadence G3 G2 to C"
+    },
+    "key": "F to C",
+    "ends_with": "PAC in C at 12:1"
+   },
+   "members": [
+    {
+     "bars": "26:1-34:1",
+     "key": "Bb to F",
+     "operations": [
+      "TRANSPOSE (a fifth lower: Bb to F)"
+     ],
+     "reason": "Bars 26-33 are bars 4-11 a perfect fifth lower in both voices, every note (checked note by note); bar 34 is the tonic chord over F2 where bar 12 had C5 alone. The canon of the first section returns from its fourth bar, starting in IV and closing in I: a tonal rhyme of the end of the first section."
+    }
+   ]
+  }
+ ],
+ "elaborations": [
+  {
+   "bars": "15:1-16:1",
+   "function": "link from C to g (end of the aborted alpha member)",
+   "material": "right hand circling a held A5 (C5 Bb4 C5 A5 ... in y's manner); bass alternating Eb4 and F#3 (diminished seventh of g)",
+   "sequence": null
+  },
+  {
+   "bars": "19:1-21:1",
+   "function": "link from g to d",
+   "material": "bass in sixteenths alternating with a held upper note (E4 in bar 19, D4 in bar 20); right hand eighths alternating Bb5 and C#5 (bar 19), then d arpeggio D A F D A F (bar 20); free (the alternating sixteenths derive from y)",
+   "sequence": {
+    "type": "down by step (the bass only; the right hand changes from alternating eighths to an arpeggio)",
+    "unit_beats": 3,
+    "repeats": 2,
+    "imitative": false
+   }
+  },
+  {
+   "bars": "21:1-24:1",
+   "function": "sequence in d leading to its cadence",
+   "material": "right hand: sixteenths alternating with a held upper note (Bb5, A5, G5) under which a short scale rises (y's manner); bass: falling broken chords in eighths (Bb G E G C E, A F D F B D, G E C# E A C#)",
+   "sequence": {
+    "type": "down by step",
+    "unit_beats": 3,
+    "repeats": 3,
+    "imitative": false
+   }
+  },
+  {
+   "bars": "24:1-26:1",
+   "function": "link from d to Bb, preparing the return",
+   "material": "bass sixteenths alternating with a held D3 then C3 (pedal-like), its lower line D C G A Bb G / C Bb F G A F; right hand broken-chord eighths; harmonies D g C F7 to Bb",
+   "sequence": {
+    "type": "down by step (bar 25 = bar 24 a step lower in both voices, Eb5 at 25:3.5 excepted); harmonically descending fifths D g C F7 to Bb",
+    "unit_beats": 3,
+    "repeats": 2,
+    "imitative": false
+   }
+  }
+ ],
+ "statements": [],
+ "cadences": [
+  {
+   "at": "12:1",
+   "key": "C",
+   "kind": "PAC",
+   "bass": "5-1",
+   "reason": "G3 G2 (11:3) to C (12:1.5 in the bass's new x; C5 in the right hand at 12:1 over B4 at 11:3.5). Closes the first section; the bass at once begins x in C."
+  },
+  {
+   "at": "24:1",
+   "key": "d",
+   "kind": "IAC",
+   "bass": "5-1",
+   "reason": "A2 C#3 (23:3, V) to D2 (24:1); the right hand lands on F5 (the third), from G5. Ends the sequence in d."
+  },
+  {
+   "at": "26:1",
+   "key": "Bb",
+   "kind": "IAC",
+   "bass": "5-1",
+   "reason": "F2 (25:3.5, under F7 with Eb5 in the right hand) to Bb2 (26:1), right hand Eb5 to D5. Unsure: the arrival in IV is also simply the start of the return (beta transposed); it may be heard as a link into the return rather than a cadence."
+  },
+  {
+   "at": "34:1",
+   "key": "F",
+   "kind": "PAC",
+   "bass": "5-1",
+   "reason": "C3 C2 (33:3) to F2 (34:1); right hand E4 to F4, tonic chord."
+  }
+ ],
+ "layout": {
+  "order": [
+   "alpha F (1-4)",
+   "beta F-C, canon continued (4-12)",
+   "alpha' C, voices exchanged, aborted (12-15)",
+   "link C-g (15)",
+   "alpha'' g, aborted (16-18)",
+   "link g-d (19-20)",
+   "sequence to d (21-24:1)",
+   "link d-Bb (24-25)",
+   "beta' Bb-F, a fifth lower (26-34)"
+  ],
+  "sections": [
+   {
+    "bars": "1-12:1",
+    "ends": "PAC C"
+   },
+   {
+    "bars": "12-24:1",
+    "ends": "IAC d"
+   },
+   {
+    "bars": "24-34",
+    "ends": "PAC F"
+   }
+  ],
+  "returns": [
+   {
+    "bar": 12,
+    "what": "the opening (alpha) restated in C, voices exchanged (bass leads)"
+   },
+   {
+    "bar": 16,
+    "what": "alpha in g, right hand leading as at the start"
+   },
+   {
+    "bar": 26,
+    "what": "beta (bars 4-12, the second half of the opening canon) transposed a fifth lower, Bb to F, through to the end: a return in the tonic of the opening section's continuation, not of its head"
+   }
+  ],
+  "form": "bipartite"
+ },
+ "kind": {
+  "primary": "canonic",
+  "also": []
+ },
+ "confidence": "sure",
+ "notes": "Canonic by the protocol's test: the octave canon at one bar runs from 2:1.5 to 8:1.5 and continues at the ninth to 11:2, and the canon returns in bars 12-14 (exchanged), 16-18 and 26-33 (about 25 of 34 bars in canon). Form call (unsure): the main division is the cadence in C at 12; the second half takes the head through C, g and d and then rhymes bars 4-12 a fifth lower (26-34). Because the head itself never returns in the tonic, the form is called bipartite; if the return of the canon from its fourth bar at 26 (in IV, closing in I) counts as a return of the opening, the form is rounded bipartite. The three sections listed treat the IAC in d at 24:1 as a second division; it is weaker than the cadence at 12, so the piece reads as two halves (1-12, 12-34). No y-independent second subject: y is part of the canon. No inversion, augmentation or stretto."
+}

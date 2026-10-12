@@ -1,0 +1,57 @@
+{
+ "id": "inven02",
+ "key": "c",
+ "meter": "4/4",
+ "bars": 27,
+ "reader_notes": "Read from the note text, bars 1-27, with dump.ts for the whole piece and a throwaway comparison script (voice against voice, shifted in time and pitch) to confirm the extent of the canons and of the transposed restatement; every call below was then checked by reading the passage. No published analysis was consulted. x = the right hand's first two bars, C B C D Eb G Ab Bb Ab F F Eb D C | B Ab G F Eb D C B C D C D D. C D (1:1.5-2:4.875). y = what the leader plays next, bars 3-4, against x in the bass: Eb D C D Eb F G G F . F | F Eb . D Eb Ab. F Bb F (3:1-4:4.75). The leader's bars 5-8 are further new lines, all copied by the follower; they are not named separately but given as bar numbers of the prime.",
+ "opening": {
+  "leader": {"voice": 0, "from": "1:1.5", "to": "2:4.875", "material": "x, alone (the bass is silent in bars 1-2), then y and the rest of the canon's leading line"},
+  "first_imitation": {"voice": 1, "at": "3:1.5", "interval": "8 below", "distance_beats": 8, "exact": true},
+  "leader_meanwhile": "canon: the leader goes on with new material (y in bars 3-4, then further lines in bars 5-8) and the follower copies all of it, an octave lower and two bars later",
+  "canon_strict_until": "follower strict from 3:1.5 to 10:4.75 (it copies the leader's 1:1.5-8:4.75); the only change is a rhythm at 6:3.5-6:4 (Ab3 e + Ab3 s where the leader had Ab4 e. at 4:3.5). The leader is free from 9:1.",
+  "notes": "A two-voice canon at the octave at two bars' distance. The machine's 'strict for 44 notes, to 6:4.25' stops at the small rhythmic change in 6:4; reading on, the copy is exact to 10:4.75."
+ },
+ "paradigms": [
+  {
+   "name": "alpha",
+   "prime": {
+    "bars": "1:1.5-10:4.75 (to 11:1)",
+    "voices": {
+     "0": "x (1-2), y (3-4), new lines (5-8: 5 G Eb. D Eb Bb C Eb Ab G F Eb D C, 6 a descending sixteenth line to D. D, 7 Eb Bb C Bb against held G5 and Ab5 (7-8:1), 8 Bb Eb D G F Ab G C Bb Ab G F Bb Ab Bb), then free (9-10: sixteenth runs in Eb, D5 held over 10:4-11:1)",
+     "1": "silent (1-2), then the leader's 1:1.5-8:4.75 an octave lower (3-10)"
+    },
+    "key": "c to Eb",
+    "ends_with": "no full cadence: an inverted-V7-to-I arrival in Eb at 9:1 (listed), then Bb7 (10:4) passing to Eb at 11:1-2 with the upper D held over"
+   },
+   "members": [
+    {"bars": "11:1.5-20:4.75 (to 21:1)", "key": "g to Bb", "operations": ["TRANSPOSE g (up a fifth)", "EXCHANGE 8", "VARY head"], "reason": "The bass now leads with the whole of the prime's leading line a twelfth lower (11:1.5-20:4.75), and the right hand follows two bars later, an octave above the bass's line (13:1.5-20:4.75), copying it strictly: the canon is restated in the dominant with the voices exchanged (leader below, follower above; the two lines shifted -17 and +7 semitones, two octaves apart, so the counterpoint is at the octave). The leader's free bars 9-10 return as the bass's bars 19-20, exact. Changes: the bass's first two notes are Eb3 F3 (then G A Bb ...) instead of G F# (the head enters from the Eb harmony that ends the prime); and the right hand, silent in the prime's bars 1-2, has free counterpoint in bars 11-12 (D5 G5 D5 Eb5 C5 D5 Bb4 C5 ..., leading to the D7 of g)."},
+    {"bars": "23:1.5-26:3", "key": "c", "operations": ["VARY (the solo bars become a pair: x in the right hand against y in the bass)", "EXCHANGE 8 (bars 23-24 only)", "ABORT at 26:3"], "reason": "The right hand restates the leader's line from the beginning in the tonic, note for note (23:1.5-26:1.25 = 1:1.5-4:1.25). Where the prime had the bass silent, the bass now plays y (23:1 C3 e. D3 Eb3 F3 G3 G3 F3 . F3 | F3 Eb3. ..., head varied: C e. for Eb D C), so bars 23-24 are the prime's bars 3-4 with the voices exchanged; then the bass enters with x at 25:1.5 an octave below (= 3:1.5, an octave lower), exactly as in the prime, against y in the right hand. Both lines leave the prime at 26:1.5-26:3 for the final cadence."}
+   ]
+  }
+ ],
+ "elaborations": [
+  {"bars": "21:1-23:1", "function": "link from Bb (end of alpha') through g back to c, and approach to the IAC in c at 23:1", "material": "the sixteenth figure of the leader's bar 8 (step down, leap up: Bb Eb D G F Ab G C ...), varied, in the bass in g (21:1.25 D3 G3 F#3 Bb3 A3 C4 Bb3 Eb4 D4 ...) then in the right hand in c (22:1.25 G4 C5 B4 Eb5 D5 F5 Eb5 Ab5 G5 ...); against it a falling line ending in a long note (21: D5 C5 Bb4 A4 D5 C5 Eb5 D5 C5 Bb4 A4 C5 F5, like the end of the leader's bar 10) and a descending sixteenth scale in the bass (22: F4 down to C3, then G3 G2)", "sequence": {"type": "descending fifths (g to c)", "unit_beats": 4, "repeats": 2, "imitative": true}}
+ ],
+ "statements": [],
+ "cadences": [
+  {"at": "9:1", "key": "Eb", "kind": "IAC", "bass": "7-1", "reason": "ii (8:3, Ab C F in both voices) - V6/5 (8:4: bass D4, right hand F5 Bb5 Ab5 Bb5) - I (9:1: Eb4 below G5). Inside the canon (the leader goes free here, the follower runs on to 10:4.75): a weak, inverted-dominant arrival, not a section close. In the exchanged restatement the corresponding moment (19:1) is an inverted tonic (Bb/D) and so not a cadence."},
+  {"at": "23:1", "key": "c", "kind": "IAC", "bass": "5-1", "reason": "G7 (22:1 bass B3 under F5) ... bass G3 G2 (22:4) to C3 (23:1), right hand G5 to Eb5: root-position V-I with the third on top. It ends the link and the right hand starts the tonic return of x at once (23:1.5)."},
+  {"at": "27:1", "key": "c", "kind": "PAC", "bass": "5-1", "reason": "Bass G2 G2 (26:4) to C2 (27:1), right hand D5 e. C5 s (26:4-4.75) to C5."}
+ ],
+ "layout": {
+  "order": ["alpha: canon, right hand leading, c-Eb (1-10)", "alpha': the same canon in g-Bb, bass leading, voices exchanged (11-20)", "link Bb-g-c, imitative figure from bar 8 (21-22)", "alpha'': opening in c, x against y then y against x, aborted for the cadence (23-26)", "final cadence (26-27)"],
+  "sections": [
+   {"bars": "1-11:1", "ends": "arrival in Eb (V7-I, upper D held over; no full cadence); the IAC at 9:1 is inside it"},
+   {"bars": "11-21:1", "ends": "arrival in Bb (F7 over A3), turning at once to g; no cadence"},
+   {"bars": "21-27", "ends": "PAC c (after an IAC in c at 23:1)"}
+  ],
+  "returns": [
+   {"bar": 11, "what": "the opening (alpha, the whole canon) restated in g, voices exchanged"},
+   {"bar": 23, "what": "the opening in the tonic: the leader's first four bars in the right hand, with y added below and the bass's x following at 25"}
+  ],
+  "form": "tripartite (unsure: rounded bipartite with the division at bar 11 is the alternative; there is no strong cadence at 11 or 21, the sections are marked by the restatements, not by cadences)"
+ },
+ "kind": {"primary": "canonic", "also": []},
+ "confidence": "sure (paradigm and canon extents); unsure (form label, and whether 9:1 should count as a cadence)",
+ "notes": "Bars 1-20 are two statements of one ten-bar canon (c-Eb, then g-Bb with the voices exchanged), i.e. 20 of 27 bars are strict canon at the octave; the remaining bars are a two-bar link and a shortened tonic return. Because the second canon is the first transposed and exchanged, the piece is also invertible throughout bars 1-20, but this follows from the canon rather than from a separate countersubject, so 'double' is not given as a second kind. The texture leaves almost no room for cadences: the only root-position V-I arrivals in the tonic are at 23:1 and 27:1."
+}

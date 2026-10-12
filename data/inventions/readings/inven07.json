@@ -1,0 +1,81 @@
+{
+ "id": "inven07",
+ "key": "e",
+ "meter": "4/4",
+ "bars": 23,
+ "reader_notes": "Read by hand from the note text (dump.ts, bars 0-23), independently: no published analysis consulted. Motive searches were made with a throwaway contour script and every hit checked by reading the passage. x = the six sixteenths B A G F# G E (1:1.5-1:2.75: three steps down, a step up, a third down). y = the eighth-note countermotive that follows x in the right hand, B B E(dotted) F# D# (1:3-2:1.5); later it comes back only freely (dotted variants, e.g. C. B C. D at 10:1, G E C. C at 20:3, D# F# B. C A at 22:3). z = a dotted eighth followed by five sixteenths running down a scale (first at 3:3, C6 B A G F# E). The bass opens with a non-thematic octave leap on the tonic (E3 E2 at 1:1), a gesture it repeats before each of its x entries and at the cadences (V-V, I-I in octaves). No x-INV occurs.",
+ "opening": {
+  "leader": {"voice": 0, "from": "1:1.5", "to": "2:1.5", "material": "x then y"},
+  "first_imitation": {"voice": 1, "at": "1:3.5", "interval": "8 below", "distance_beats": 2, "exact": true},
+  "leader_meanwhile": "free counterpoint: y (B B E. F# D#) against x in the bass; the bass does not go on to copy y (it plays octave eighths B3 B2 at 2:1), so it is head imitation, not canon",
+  "notes": "Bar 2 repeats the pattern a fifth higher: x on F# in the right hand (2:1.5, with D natural), x on F# in the bass two beats later (2:3.5, with D#: one note changed), the right hand meanwhile with a varied y (B5 A G F#. E F#). Bars 3-4 keep the same alternation (right hand x at beat 1.5, bass x at beat 3.5) but the bass now enters a twelfth below (x on B over x on E; x on A over x on D). The bass is non-thematic only for its first beat (E3 E2)."
+ },
+ "paradigms": [
+  {
+   "name": "alpha",
+   "prime": {"bars": "1:1-3:1", "voices": {"0": "x on B, y; x on F#, y varied", "1": "octave eighths E3 E2, x on B (8 below, 2 beats later); octave eighths B3 B2, x on F#"}, "key": "e (moving to its dominant)"},
+   "members": [
+    {"bars": "9:3-10:3", "key": "D (turning toward e/b)", "operations": ["TRANSPOSE D", "VARY", "ABORT at 10:3"], "reason": "Same layout as 1:1-1:4, two beats displaced: bass octave eighths D3 D2 (9:3), right hand x on A (9:3.5), bass x on A 8 below two beats later (10:1.5). VARY: y is replaced by a dotted figure C5. B4 C5. D5 (10:1). ABORT: at 10:3 the bass goes straight on with x on G (10:3.5) instead of the octave eighths and the right hand plays y's head (B B E. E) in e, displaced; the passage then turns into the stretto link of bars 11-13. Unsure whether this is a member or only a statement of x with the opening's bass gesture."}
+   ]
+  },
+  {
+   "name": "beta",
+   "prime": {"bars": "15:3-17:4", "voices": {"0": "figuration over the pedal: F# E D# C# B A, then a neighbour-and-arpeggio figure falling by step each half bar (G F# G B E B A G | F# E F# A D# A G F# | E D# E G C G F# E | D# C# D# F# B B)", "1": "held B2 (dominant pedal, 15:3-17:4.25)"}, "key": "e (on V)"},
+   "members": [
+    {"bars": "17:4.25-19:3", "key": "e (on V)", "operations": ["EXCHANGE 8", "VARY", "ABORT at 19:3"], "reason": "The bass takes the right hand's figuration an octave lower (18:1 G3 F#3 G3 B3 E4 ... = 16:1 G4 F#4 G4 B4 E5 ..., through 19:2.75). VARY: the right hand does not take over the pedal; it holds B4, A4, G4 (1.25 quarters each, falling by step) each followed by a rising arpeggio, then rising sixteenths (19:3-19:4.75). ABORT: the bass breaks off at 19:3 with D# B eighths (cf. 17:3 in the prime)."}
+   ]
+  }
+ ],
+ "elaborations": [
+  {"bars": "3:1-5:1", "function": "continuation of the opening, moving off the tonic", "material": "x in the right hand (on B, A) answered two beats later by x in the bass a twelfth below (on E, D); z in the right hand", "sequence": {"type": "down by step", "unit_beats": 4, "repeats": 2, "imitative": true}},
+  {"bars": "5:1-7:1", "function": "approach to the cadence in G", "material": "z in the bass (C4 at 5:1, A3 at 5:3, taking over the right hand's z of 3:3 and 4:3) under running sixteenths; cadential figure G. G G F# E F# F#. G in the right hand", "sequence": {"type": "other: z restated a third lower (C, A), two units of 2 beats", "unit_beats": 2, "repeats": 2, "imitative": true}},
+  {"bars": "7:1-9:3", "function": "link from G to D", "material": "x on D in the right hand (7:1.5), then a held D5 (7:3-9:1.75); in the bass a turn figure (G A B A B G, then D C# D E F# E F# D, G F# G A B A B F#) ending in x's tail; octave eighths A A, D D at the cadence", "sequence": {"type": "other: turn figure rising by a fourth (D, G)", "unit_beats": 2, "repeats": 2, "imitative": false}},
+  {"bars": "10:3-13:3", "function": "link to b and cadence", "material": "x in close imitation: bass on G (10:3.5), right hand on F# (11:1.5 and 11:3.5), bass on B (11:4.5), right hand on B (12:1.5), bass on G (12:3.5); y's dotted tail in the bass (D. E C#, 12:2); dominant arpeggio of b in the right hand (12:3)", "sequence": null},
+  {"bars": "13:3-15:3", "function": "link from b back to e, reaching V", "material": "x in the bass, each entry preceded by an upper neighbour, on B (13:3.5), A (14:1.5), G (14:3.5); leaping eighths in the right hand (a compound two-part line)", "sequence": {"type": "down by step (x entries); harmonically descending fifths, about one chord per beat (E7 a D7 G ... B7 e)", "unit_beats": 2, "repeats": 3, "imitative": false}},
+  {"bars": "19:3-22:1", "function": "closing approach, ending in a deceptive cadence", "material": "x in the bass on F# (20:1.5), C (20:3.5), G (21:1.5), then running sixteenths; in the right hand eighths in y's rhythm (G E C. C, C B G. G) and the cadential figure G. G G A G F# F#. E (cf. 6:2-7:1)", "sequence": {"type": "other: x entries every 2 beats on F#, C, G (falling a fourth/fifth), not strict", "unit_beats": 2, "repeats": 3, "imitative": false}},
+  {"bars": "22:1-23:4", "function": "final cadence", "material": "x on C in the right hand over a held C3 (22:1.5); x in the bass at its original pitch (B3 A3 G3 F#3 G3 E3, 22:3.5) under a free variant of y (D# F# B. C A); octave eighths B3 B2, E2", "sequence": null}
+ ],
+ "statements": [
+  {"voice": 0, "at": "3:1.5", "key": "e", "form": "prime", "extent": "head only (x)"},
+  {"voice": 1, "at": "3:3.5", "key": "e (on E, a twelfth below)", "form": "prime", "extent": "head only (x)"},
+  {"voice": 0, "at": "4:1.5", "key": "D/b (on A)", "form": "prime", "extent": "head only (x)"},
+  {"voice": 1, "at": "4:3.5", "key": "D/G (on D)", "form": "prime", "extent": "head only (x)"},
+  {"voice": 0, "at": "7:1.5", "key": "G (on D)", "form": "prime", "extent": "head only (x)"},
+  {"voice": 1, "at": "7:3.5", "key": "G", "form": "varied (G A B A B G: the first three intervals turned upward)", "extent": "head only; unsure whether it is x at all"},
+  {"voice": 1, "at": "10:3.5", "key": "e/b (on G)", "form": "prime", "extent": "head only (x)"},
+  {"voice": 0, "at": "11:1.5", "key": "b (on F#)", "form": "prime", "extent": "head only (x)"},
+  {"voice": 0, "at": "11:3.5", "key": "b (on F#)", "form": "prime", "extent": "head only (x)"},
+  {"voice": 1, "at": "11:4.5", "key": "b (on B)", "form": "prime", "extent": "head only (x)"},
+  {"voice": 0, "at": "12:1.5", "key": "b (on B)", "form": "prime", "extent": "head only (x)"},
+  {"voice": 1, "at": "12:3.5", "key": "b (on G)", "form": "prime", "extent": "head only (x)"},
+  {"voice": 1, "at": "13:3.5", "key": "a/E (on B, G#)", "form": "prime", "extent": "head only (x)"},
+  {"voice": 1, "at": "14:1.5", "key": "on A", "form": "prime", "extent": "head only (x)"},
+  {"voice": 1, "at": "14:3.5", "key": "on G", "form": "prime", "extent": "head only (x)"},
+  {"voice": 1, "at": "20:1.5", "key": "e (on F#, over V)", "form": "prime", "extent": "head only (x)"},
+  {"voice": 1, "at": "20:3.5", "key": "e/a (on C)", "form": "prime", "extent": "head only (x)"},
+  {"voice": 1, "at": "21:1.5", "key": "e (on G)", "form": "prime", "extent": "head only (x)"},
+  {"voice": 0, "at": "22:1.5", "key": "e (on C, over VI)", "form": "prime", "extent": "head only (x)"},
+  {"voice": 1, "at": "22:3.5", "key": "e (original pitch, B3)", "form": "prime", "extent": "head only (x), under a free variant of y"}
+ ],
+ "cadences": [
+  {"at": "7:1", "key": "G", "kind": "PAC", "bass": "5-1", "reason": "D3 D2 octave eighths (6:4) to G2 (7:1); right hand F#5 to G5."},
+  {"at": "9:3", "key": "D", "kind": "PAC", "bass": "5-1", "reason": "A3 A2 (9:2) to D3 D2 (9:3); the held D5 is ornamented E5 C#5 D5 and lands on D5. A local cadence in VII, ending the link; it opens the varied alpha in D."},
+  {"at": "13:3", "key": "b", "kind": "PAC", "bass": "5-1", "reason": "F#4 F#3 (13:2) to B3 (13:3); right hand C#5 to B4. Closes the second section."},
+  {"at": "15:3", "key": "e", "kind": "HC", "bass": "1-5", "reason": "After V6-i (15:1-15:2) the bass falls E3 E2 to B2 and holds it as a dominant pedal to 17:4. Unsure: an arrival on a dominant pedal rather than a phrase-ending half cadence."},
+  {"at": "22:1", "key": "e", "kind": "deceptive", "bass": "5-6", "reason": "B2 A2 B2 G2 (21:4) to C3 (22:1, held); right hand F#5 to E5 over VI."},
+  {"at": "23:3", "key": "e", "kind": "PAC", "bass": "5-1", "reason": "B3 B2 (23:2) to E2 (23:3); right hand F#4 to E4."}
+ ],
+ "layout": {
+  "order": ["alpha e (1-2)", "sequence e, x in both voices (3-4)", "approach to G, z in the bass (5-7:1)", "link G-D over a held D (7-9:3)", "alpha' D, varied and aborted (9:3-10:3)", "link to b, x in close imitation (10:3-13:3)", "sequence b-e, x in the bass falling by step (13:3-15:3)", "beta e over the dominant pedal (15:3-17:4)", "beta' e, voices exchanged, varied (17:4-19:3)", "closing approach, x in the bass, deceptive cadence (19:3-22:1)", "final cadence, x at its original pitch in the bass (22:1-23)"],
+  "sections": [{"bars": "1-7:1", "ends": "PAC G"}, {"bars": "7-13:3", "ends": "PAC b"}, {"bars": "13:3-23", "ends": "PAC e"}],
+  "returns": [
+   {"bar": 7, "what": "x (head only) in G, right hand, at the start of section 2"},
+   {"bar": 9, "what": "the opening layout (bass octave eighths, x in the right hand, x in the bass 8 below two beats later) in D, beat 3; the first restatement of alpha in another key"},
+   {"bar": 22, "what": "x in the bass at its original pitch (22:3.5) under a varied y, inside the final cadence; not a return of alpha as a whole. No tonic return of alpha before the final cadence."}
+  ],
+  "form": "tripartite"
+ },
+ "kind": {"primary": "motivic-sequential", "also": []},
+ "confidence": "unsure",
+ "notes": "The piece is made almost entirely of x: about thirty statements, always in its prime form, alternating between the hands (usually two beats apart) and carried through sequences; y is not a fixed countermotive and returns only as a rhythm. Only two segments recur as complete two-voice units, and both recurrences are varied: alpha (bars 1-2, recurring in D at 9:3 and soon aborted) and beta (the dominant-pedal figuration of 15:3-17, exchanged at the octave in 18-19). Unsure calls: (1) the member at 9:3 (perhaps only a statement of x with the opening's bass gesture); (2) the form: tripartite is chosen because sections 1 and 2 are equal (6 bars each) and section 2 begins with x in a new key (7:1.5), with the full opening layout following in D (9:3), but section 3 is longer (10 bars) and has no tonic return of the opening except x in the bass in the last cadence, so 'through-composed' is the alternative; (3) whether 15:3 counts as a half cadence; (4) the bass at 7:3.5 (G A B A B G) as a varied x. The cadence in D (9:3) is a local one inside section 2."
+}

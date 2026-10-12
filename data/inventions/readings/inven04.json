@@ -1,0 +1,82 @@
+{
+ "id": "inven04",
+ "key": "d",
+ "meter": "3/8",
+ "bars": 52,
+ "reader_notes": "Read from the note text, bars 1-52, with dump.ts for the whole piece and a throwaway comparison script to confirm the exchange at bars 5-6 and the tonic return at 44-47; every call was then checked by reading the passage. No published analysis was consulted. Beats are eighths. x = D E F G A Bb | C# Bb A G F E (1:1-2:3.5): a six-note rising scale, a drop of a diminished seventh to the leading tone, then a falling scale. y = the leader's eighth-note arpeggios against x in the bass, F A D | G C# E (3:1-4:3). x is used throughout in diatonic transpositions (e.g. starting on the third degree: F G A B C# D | E D C# B A G at 42) and with its first note changed (Bb G A Bb C D | E D ... at 11 and 40).",
+ "opening": {
+  "leader": {"voice": 0, "from": "1:1", "to": "2:3.5", "material": "x"},
+  "first_imitation": {"voice": 1, "at": "3:1", "interval": "8 below", "distance_beats": 6, "exact": true},
+  "leader_meanwhile": "exchange: the leader plays y against x in the bass (3-4); then the leader takes x again an octave higher (5:1, D5) while the bass takes y (5:1 F3 A3 D4 | E3 G3 C#4): the two lines exchange at the octave",
+  "notes": "x is copied exactly (3:1-4:3.5). y in the bass is varied in its second bar: E3 G3 C#4 where the right hand had G4 C#5 E5 (the same diminished chord in another position, so that the bass does not lie a tritone below C#5). The imitation is not a canon: the bass's eighths from bar 7 are no longer the leader's."
+ },
+ "paradigms": [
+  {
+   "name": "alpha",
+   "prime": {
+    "bars": "1:1-6:3.5 (to 7:1)",
+    "voices": {"0": "x (1-2), y (3-4), x an octave higher (5-6)", "1": "silent (1-2), x 8 below (3-4), y varied (5-6)"},
+    "key": "d",
+    "ends_with": "vii-diminished-seventh (C# E G Bb) to i at 7:1, not counted as a cadence"
+   },
+   "members": [
+    {"bars": "42:1-48:1", "key": "d", "operations": ["VARY (bars 42-43)", "ABORT/extend: one more exchange (46-47), then the cadence"], "reason": "42-43: bass x on the third degree, F G A B C# D | E D C# B A G (a diatonic transposition of x inside d, melodic minor), against a varied y in the right hand (A4 F5 E5 F5 | G4 E5): the prime's bars 3-4, varied. 44-45 = bars 5-6 exactly, both voices (right hand x on D5, bass y F3 A3 D4 | E3 G3 C#4). 46-47: bass x on D3 = bars 3-4 exactly, right hand freely varied (F5 D5 G4 | D5 C#5 E5 A4 C#5) instead of y. Then the cadence (48)."},
+    {"bars": "38:1-42:1", "key": "g to F", "operations": ["TRANSPOSE (g, then F)", "VARY"], "reason": "Unsure; the alternative is to count these bars as two statements of x in a link. Bass x in g (38:1 A3 A2 Bb2 C3 D3 Eb3 | F#2 Eb3 D3 C3 Bb2 A2, first note changed to A) against right-hand eighths ending in an arpeggio (39 D4 F#4 A4, like y's second bar); then x in the right hand in F (40:1 Bb4 G4 A4 Bb4 C5 D5 | E4 D5 C5 Bb4 A4 G4, first note changed) against bass eighths (G2 e. G2 A2 Bb2 | C2 G2 C3). The alternation of x between the voices against eighths reproduces alpha's exchange, but y is only partly present and the second statement is a step lower (F), not in the same key."}
+   ]
+  },
+  {
+   "name": "beta",
+   "prime": {
+    "bars": "18:1-22:1",
+    "voices": {"0": "F4 C5 C5, then C5 held (18:3-22:1.5): a dominant pedal above", "1": "x in F (18:1 F2 G2 A2 Bb2 C3 D3 | E2 D3 C3 Bb2 A2 G2), then x on the third degree (20:1 A2 Bb2 C3 D3 E3 F3 | G2 F3 E3 D3 C3 Bb2)"},
+    "key": "F"
+   },
+   "members": [
+    {"bars": "29:1-36:1", "key": "a", "operations": ["TRANSPOSE a", "EXCHANGE (the held dominant moves to the bass, x to the right hand; the interval is not fixed because one line is a held note)", "VARY (three statements of x instead of two, on C, E and G#)"], "reason": "Bass holds E3 (29:1-34:2); the right hand plays x rising by thirds as in beta's bass: 30:1 C4 D4 E4 F#4 G#4 A4 | D4 C5 B4 A4 G#4 F#4, 32:1 E4 F#4 G#4 A4 B4 C5 | F#4 E5 D5 C5 B4 A4, 34:1 G#4 A4 B4 C5 D5 E5 | A4 F5 E5 D5 C5 B4 (bar 29 a lead-in: G#4 A4 G#4 F#4 E4 D4)."}
+   ]
+  }
+ ],
+ "elaborations": [
+  {"bars": "7:1-11:1", "function": "link from d towards F", "material": "x varied in the right hand, falling by step every two bars (7 F5 D5 E5 F5 G5 A5 | 8 Bb4 A5 G5 F5 E5 D5; 9 E5 C5 D5 E5 F5 G5 | 10 A4 G5 F5 E5 D5 C5); bass eighths in y's manner (D3 D4 F3 | G3 A3 Bb3 | C3 C4 E3 | F3 G3 A3)", "sequence": {"type": "descending fifths (d, g, C, F, one per bar)", "unit_beats": 3, "repeats": 4, "imitative": false}},
+  {"bars": "11:1-18:1", "function": "approach to the cadence in F", "material": "x in the bass with its first note changed, falling by step (11 Bb3 G3 A3 Bb3 C4 D4 | E3 D4 ...; 13 A3 F3 G3 ... | D3 C4 ...; 15 E3 C3 D3 ... | A2 G3 ...); right hand D5 E5 F5 D5 E5 F5 | G4 and C5 D5 E5 C5 D5 E5 | F4, then a chain of suspensions (14:3 Bb4, 15:2 A4, 15:3 G4) and x's falling half (16)", "sequence": {"type": "down by step", "unit_beats": 6, "repeats": 3, "imitative": false}},
+  {"bars": "22:1-29:1", "function": "link from F through g to a", "material": "bass A2 Bb2 C3 A2 Bb2 C3 | F#2 and G2 A2 Bb2 G2 A2 Bb2 | E2 (a figure like the right hand's in bar 11), right hand x-forms: 23:1 x on D in g (D4 E4 F#4 G4 A4 | Bb4 A4 G4 F4 E4 D4), 25:1 x in a with the rise extended over two bars (Bb4 C4 D4 E4 F4 G4 | A4 B4 C5 D5 E5 F5 | G#4 F5 E5 D5 C5 B4); bass arpeggios in y's manner (26 F2 F3 D3 | 27 B2 G#2 E2), 28 cadential turn to the E pedal", "sequence": {"type": "down by step (V of g, then V of a/d)", "unit_beats": 6, "repeats": 2, "imitative": false}},
+  {"bars": "36:1-38:1", "function": "approach to the cadence in a", "material": "free cadential figuration; bass D4 E4 F4 | D4 E4 E3", "sequence": null},
+  {"bars": "48:1-52:1", "function": "close: deceptive cadence, then a coda", "material": "right hand falling scale D5-F4 (49), then C#4 rising D4-G4 (50) and A4 D5 F4 E4 D4 (51); bass Bb2 e. C3 Bb2 A2 | G2 Bb3 A3 G3 F3 E3 (x's falling half) | F3 G3 A3 A2", "sequence": null}
+ ],
+ "statements": [
+  {"voice": 0, "at": "7:1", "key": "d (sequence)", "form": "varied (first note F for D, low note Bb4 for C#)", "complete": "complete shape"},
+  {"voice": 0, "at": "9:1", "key": "C (sequence)", "form": "varied", "complete": "complete shape"},
+  {"voice": 1, "at": "11:1", "key": "F", "form": "varied (diatonic, first note changed)", "complete": "complete shape"},
+  {"voice": 1, "at": "13:1", "key": "F (sequence)", "form": "varied", "complete": "complete shape"},
+  {"voice": 1, "at": "15:1", "key": "F (sequence)", "form": "varied", "complete": "complete shape"},
+  {"voice": 0, "at": "23:1", "key": "g", "form": "varied (no drop: Bb4 continues the rise, then falls)", "complete": "complete shape"},
+  {"voice": 0, "at": "25:1", "key": "a", "form": "varied (rise extended to eleven notes)", "complete": "complete"},
+  {"voice": 1, "at": "38:1", "key": "g", "form": "prime, first note changed (A for G)", "complete": "complete (also listed under alpha's unsure member)"},
+  {"voice": 0, "at": "40:1", "key": "F", "form": "prime shape, first note changed (Bb G A for F G A)", "complete": "complete (also listed under alpha's unsure member)"}
+ ],
+ "cadences": [
+  {"at": "18:1", "key": "F", "kind": "PAC", "bass": "5-1", "reason": "Bass C3 C2 (17:2-3) to F2, right hand G4 e. F4 to F4."},
+  {"at": "38:1", "key": "a", "kind": "PAC", "bass": "5-1", "reason": "Bass E4 E3 (37:2-3) to A3, right hand B4 e. A4 to A4."},
+  {"at": "42:1", "key": "F", "kind": "IAC", "bass": "5-1", "reason": "Bass C2 G2 C3 (41) to F3, right hand G4 to A4 (third on top). Weak and brief: the F chord is at once heard as III of d (B natural and C# in the bass's x from 42:1)."},
+  {"at": "49:1", "key": "d", "kind": "deceptive", "bass": "5-6", "reason": "Bass A3 A2 (48:2-3) to Bb2, right hand C#5 e. D5 to D5."},
+  {"at": "52:1", "key": "d", "kind": "PAC", "bass": "5-1", "reason": "Bass A3 A2 (51:2-3) to D2, right hand E4 D4 to D4."}
+ ],
+ "layout": {
+  "order": ["alpha d: x, then x/y exchanged (1-6)", "descending-fifths link d-F (7-10)", "x in the bass by step, cadence F (11-18)", "beta F: x in the bass rising by thirds under a held C (18-21)", "link F-g-a with x in the right hand (22-28)", "beta' a: x in the right hand rising by thirds over a held E, exchanged (29-35)", "cadence a (36-38)", "x alternating, g and F (38-41; alpha member, unsure)", "alpha' d, varied then exact (42-47)", "deceptive cadence and coda (48-52)"],
+  "sections": [
+   {"bars": "1-18:1", "ends": "PAC F"},
+   {"bars": "18-38:1", "ends": "PAC a"},
+   {"bars": "38-52", "ends": "PAC d (after a deceptive cadence at 49)"}
+  ],
+  "returns": [
+   {"bar": 18, "what": "x in F (bass), opening beta and the second section"},
+   {"bar": 29, "what": "beta in a, voices exchanged"},
+   {"bar": 38, "what": "x in g (bass), opening the third section; the first restatement of alpha's exchange outside the tonic (unsure)"},
+   {"bar": 42, "what": "the opening exchange (alpha) in the tonic; bars 44-47 = 5-6 and 3-4 exactly"}
+  ],
+  "form": "tripartite: three sections of 17, 20 and 14 bars, the second and third beginning with x in a new key (F, g), the third returning to the opening in the tonic"
+ },
+ "kind": {"primary": "motivic-sequential", "also": ["double (the x/y pair is exchanged at the opening and at the tonic return), unsure"]},
+ "confidence": "sure for the opening, the cadences, the sections and beta; unsure for 38-41 as a member of alpha and for the primary kind",
+ "notes": "Almost everything is made from x, in whole or as its rising or falling half, in sequences against eighth-note accompaniment or a held note. y appears only in the opening exchange and its tonic return (and in arpeggios like it at 7-10 and 26-27), so the exchange of x and y frames the piece rather than driving it. x is two bars of 3/8 (twelve sixteenths), longer than the protocol's half-bar motive; it is still treated as a motive (cut into halves, transposed diatonically, sequenced), which is why motivic-sequential is chosen over double. The two long pedals (C above x in 18-22, E below x in 29-34) are the clearest paired segments in the piece."
+}

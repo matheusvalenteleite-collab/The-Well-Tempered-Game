@@ -1,0 +1,59 @@
+{
+ "id": "inven13",
+ "key": "a",
+ "meter": "4/4",
+ "bars": 25,
+ "reader_notes": "Independent reading from the note text (dump.ts, bars 0-25), under PROTOCOL.md; no published analysis consulted. x = E A C B E B D (seven sixteenths, 1:1.25-1:2.75) landing on C at 1:3: a rising broken chord with a neighbour turn. y = the eighths that follow x in the same voice, C E G# E (1:3-1:4.5); y' = its variant C A G# E (bass 2:1). z = a descending broken-chord figure of seven or eight sixteenths landing on the next beat (first at 3:1.25, E C E A C E G -> F). z mirrors x's direction (falling arpeggio against rising) but is not an exact inversion of it, so it is named separately; read as a free inversion of x it would be x-INV. Notes were searched with small scripts only to confirm alignments; every call below was read in the passage.",
+ "opening": {
+  "leader": {"voice": 0, "from": "1:1.25", "to": "1:4.5", "material": "x then y"},
+  "first_imitation": {"voice": 1, "at": "1:3.25", "interval": "8 below", "distance_beats": 2, "exact": true},
+  "leader_meanwhile": "free counterpoint: the eighths y (C E G# E) against x in the bass; at 2:1 the leader takes x again (same pitch) while the bass takes y' (C A G# E), so the pair x/y is exchanged at once within bars 1-2 (an exchange reading is also possible; the pilot inven01 calls the same pattern free counterpoint)",
+  "notes": "Before its entry the bass plays a short continuo line (A2 A3 G#3, 1:1-1:2.5). Bar 2 repeats the pair at the same pitch (x in the right hand at 2:1.25, in the bass at 2:3.25), not on another degree as in inven01. Not a canon: the follower does not copy y."
+ },
+ "paradigms": [
+  {
+   "name": "alpha",
+   "prime": {"bars": "1:1-3:1", "voices": {"0": "x, y; x, then C A (eighths)", "1": "continuo A A G#; x (8 below, 2 beats later); y'; x"}, "key": "a"},
+   "members": [
+    {"bars": "6:3-8:3", "key": "C", "operations": ["TRANSPOSE C", "MODESWITCH", "EXCHANGE 15"], "reason": "The bass now leads with x on G (6:3.25 G C E D G D F -> E) and the right hand follows two beats later (7:1.25); y' in the bass at 7:1 (E C B G), y in the right hand at 7:3 (E G B G), second x in each voice (bass 7:3.25, right hand 8:1.25). Four x's as in the prime. The leader's line drops a sixth and the follower's rises a tenth: inversion at the double octave. VARY: the prime's continuo notes are replaced by a rest in the right hand (6:3.25-7:1)."},
+    {"bars": "18:1-19:1", "key": "a", "operations": ["VARY", "ABORT at 19:1"], "reason": "Tonic return of the opening: x in the right hand at 18:1.25, then y' (C A G# E); the bass has y' at 18:1 (in place of the continuo notes) and x at 18:3.25, 8 below, 2 beats later. Only the first bar: at 19:1 the arpeggio passage of the close takes over instead of the second pair of x's."}
+   ]
+  },
+  {
+   "name": "beta",
+   "prime": {"bars": "3:1-6:3", "voices": {"0": "z on a (3:1.25), rising eighths F A D F; z on G7 (4:1.25), eighths E G C E; then (5:2-6:3) a cadential figure in two-beat units (low eighth, high dotted eighth, three sixteenths: F4 D5 B G B, E4 C5 A F A, D4 B4 C5)", "1": "eighths C A C A; z on d (3:3); eighths B D G B; z on C (4:3.25); then broken eighths and sixteenths, one chord per beat (a d G C F G), to C at 6:3"}, "key": "a to C", "ends_with": "PAC in C at 6:3"},
+   "members": [
+    {"bars": "8:3-13:3", "key": "C to e", "operations": ["TRANSPOSE e (the goal only: the chain of z begins at the prime's own pitch level, a D G C)", "MODESWITCH (d replaced by D; the goal is minor e instead of major C)", "VARY"], "reason": "Same layout of the voices as the prime (right hand z on a at 9:1 and on G at 10:1, bass z on D at 9:3 and on C at 10:3, rising eighths in the other voice), not exchanged. Lengthened at both ends: an extra unit before (bass z on C at 8:3.25 against eighths E C G E in the right hand) and two after (right hand z on B7 at 11:1, bass z at 11:3.25). The cadential figure of 5:2-6:3 returns in the right hand (11:3 G4 G5 E C E, 12:1 A4 F#5 D B D, 12:3 G4 E5 C A C) over z-like sixteenths in the bass instead of the prime's broken eighths. z's chord positions differ in detail from the prime (e.g. 9:1 C6 A5 E5 A5 C5 E5 A4 C5)."}
+   ]
+  }
+ ],
+ "elaborations": [
+  {"bars": "13:3-14:1", "function": "link from the PAC in e to the sequence", "material": "z in the bass (13:3.25 E4 B3 G3 E3 B2 G2 B2 -> E2)", "sequence": null},
+  {"bars": "14:1-18:1", "function": "link from e (via d, C) back to a; the return of the opening at 18", "material": "right hand: diminished-seventh broken chords in sixteenths (14:1.25 G Bb G E G C# E G E C# E A); bass: octave leap and rising eighths (E2 E3 G3 Bb3, C#3), then three falling sixteenths into the next bar. Free (the bass's rising eighths recall y)", "sequence": {"type": "down by step", "unit_beats": 4, "repeats": 4, "imitative": false}},
+  {"bars": "19:1-22:3", "function": "approach to the half cadence in a", "material": "both voices in sixteenth broken chords in parallel (bar 19: a, D#dim7), then the right hand alone in sixteenths over eighths in the bass (bar 20, E7); bars 21-22:1 repeat bars 19-20 an octave lower in the right hand", "sequence": {"type": "other: a two-bar unit (a - D#dim7 - E) restated an octave lower", "unit_beats": 8, "repeats": 2, "imitative": false}},
+  {"bars": "22:3-25:4", "function": "coda and final cadence", "material": "x in the right hand (22:3.25) with y in the bass (C E G# E); then the right hand rises in one-beat cells (C A C E, D B D F, E C E G) over a chromatically rising bass in eighths (A F# B G# C A D Bb), and cadential figuration", "sequence": {"type": "up by step", "unit_beats": 1, "repeats": 3, "imitative": false}}
+ ],
+ "statements": [
+  {"voice": 0, "at": "22:3.25", "key": "a", "form": "prime", "extent": "complete", "note": "with y in the bass against it (the combination of 2:1, exchanged); not imitated: the bass goes on with a rising chromatic line"}
+ ],
+ "cadences": [
+  {"at": "6:3", "key": "C", "kind": "PAC", "bass": "5-1", "reason": "G2 (6:2, with G3 F3 G3) to C3 (6:3); right hand B4 to C5. Mid-bar; the bass begins x at once (6:3.25)."},
+  {"at": "13:3", "key": "e", "kind": "PAC", "bass": "5-1", "reason": "B3 B2 (13:2) to E3 (13:3); right hand D#5 to E5. The central cadence, exactly at mid-piece."},
+  {"at": "22:1", "key": "a", "kind": "HC", "bass": "#4-5", "reason": "D#2 (21:4, D#dim7) to an E major chord at 22:1. Unsure: the bass rests on 22:1 and enters with B3 G#3 E3 at 22:1.25, so the lowest note on the beat is the right hand's G#3 (the voices cross)."},
+  {"at": "25:3", "key": "a", "kind": "PAC", "bass": "5-1", "reason": "E2 E3 (25:2) to A2 (25:3); right hand G#4 A4 at 25:2.75-25:3, closing on A3 at 25:4."}
+ ],
+ "layout": {
+  "order": ["alpha a (1-3:1)", "beta a-C (3-6:3)", "alpha' C, voices exchanged (6:3-8:3)", "beta' C-e, lengthened (8:3-13:3)", "link (13:3-14:1)", "sequence e-d-C-a (14-18:1)", "alpha'' a, first bar only (18-19:1)", "approach to HC a (19-22:1)", "coda with x in a (22:3-25)"],
+  "sections": [{"bars": "1-6:3", "ends": "PAC C"}, {"bars": "6:3-13:3", "ends": "PAC e"}, {"bars": "13:3-25", "ends": "PAC a (HC a at 22:1 inside)"}],
+  "returns": [
+   {"bar": 6, "what": "the opening (alpha) restated in C at 6:3, voices exchanged"},
+   {"bar": 8, "what": "beta restated at 8:3, now going to e"},
+   {"bar": 18, "what": "the opening (alpha) in the tonic, one bar only"},
+   {"bar": 22, "what": "x in the tonic in the right hand with y in the bass (22:3.25)"}
+  ],
+  "form": "rounded bipartite"
+ },
+ "kind": {"primary": "motivic-sequential", "also": ["double (alpha returns with its voices exchanged)"]},
+ "confidence": "sure",
+ "notes": "Form call unsure: the PAC in e at 13:3 falls exactly at mid-piece and the second half has a tonic return of alpha at 18, which is rounded bipartite; but the first half is itself two parallel sections (alpha+beta to C, alpha'+beta' to e), and the second section begins with the opening material in a new key (C at 6:3), so tripartite (1-6:3, 6:3-13:3, 13:3-25) is the alternative; its sections are unequal (5.5, 7, 12 bars). The arrival at 18:1 is not a cadence (diminished seventh to a over C in the bass). About 12 of 25 bars are paradigm members. The piece is made almost entirely of broken chords; z's relation to x (free inversion) is the reader's naming, unsure. The bass at 23:1-24:1 rises chromatically (A F# B G# C A D Bb): worth hearing."
+}
