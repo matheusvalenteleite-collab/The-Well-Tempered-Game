@@ -75,3 +75,19 @@ for f in sorted(glob.glob("data/playback/bench/gen-chorale-*-v[0-9]*.json")):
     for who, vs in (("gen", d["voices"]), ("bach", b["voices"])):
         a, s = early_resolution(vs); er[who][0] += a; er[who][1] += s
 print("suspensions whose resolution note sounds early in another upper voice:", {k: f"{a} of {s}" for k, (a, s) in er.items()})
+
+# P39: spacing — the soprano and alto, or the alto and tenor, more than an octave apart (sampled at every onset).
+def spacing(voices):
+    times = sorted({n[0] for v in voices for n in v}); bad = [0, 0]
+    for t in times:
+        s = [next((parse(n[2])[0] for n in v if n[0] <= t < n[0] + n[1]), None) for v in voices[:3]]
+        if None in s: continue
+        if s[0] - s[1] > 12: bad[0] += 1
+        if s[1] - s[2] > 12: bad[1] += 1
+    return bad, len(times)
+sp = {"gen": [0, 0, 0], "bach": [0, 0, 0]}
+for f in sorted(glob.glob("data/playback/bench/gen-chorale-*-v[0-9]*.json")):
+    d = json.load(open(f)); b = study[d["compare"]]
+    for who, vs in (("gen", d["voices"]), ("bach", b["voices"])):
+        (x, y), n = spacing(vs); sp[who][0] += x; sp[who][1] += y; sp[who][2] += n
+print("onsets with S-A over an octave / A-T over an octave, per 100 onsets:", {k: f"{100*x/n:.1f} / {100*y/n:.1f}" for k, (x, y, n) in sp.items()})
