@@ -101,9 +101,11 @@ export type AnswerRule = "real" | "tonal-first-five" | "tonal-head" | "tonal-hea
  * The answer is placed in the octave of `start`'s pitch (Bach's first answer note), so that only
  * the pitch classes and their spelling are compared.
  */
-export function predictAnswer(subject: Note[], tonic: string, mode: "major" | "minor", rule: AnswerRule): string[] {
+export function predictAnswer(subject: Note[], tonic: string, mode: "major" | "minor", rule: AnswerRule, meter = "4/4"): string[] {
   const degs = subject.map((n) => degree(n.pitch, tonic, mode));
-  const barLen = 4 * TPQ;
+  // The head lies within the subject's first bar (of the fugue's metre, D158).
+  const [mn, md] = meter.split("/").map(Number);
+  const barLen = (mn * 4 * TPQ) / md;
   const t0 = subject[0].on;
   let head = subject.length;
   for (let i = 0; i < subject.length; i++) {

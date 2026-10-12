@@ -64,7 +64,7 @@ interface Analysis {
 function analyse(p: WtcPiece): Analysis | null {
   if (p.kind === "prelude") return null;
   const sa = subjectAndAnswer(p);
-  const real = predictAnswer(sa.subject, p.key, p.mode, "real");
+  const real = predictAnswer(sa.subject, p.key, p.mode, "real", p.meter);
   const departures = real.map((x, i) => (x[0] !== sa.answer[i].pitch[0] ? i : -1)).filter((i) => i >= 0);
   const entries = findEntriesByHead(p, sa.subject).entries;
   return { ...sa, entries, departures, episodes: episodes(p, entries, sa.subject), stretto: new Set(strettos(p, entries, sa.subject).map(([, b]) => b)) };
@@ -195,7 +195,7 @@ function AnswerExercise({ p, a, tuning }: { p: WtcPiece; a: Analysis; tuning: Tu
   const bach = a.answer.map((n) => n.pitch);
   const wrong = mine.map((m, i) => m[0] !== bach[i][0]);
   const nWrong = wrong.filter(Boolean).length;
-  const ruled = predictAnswer(a.subject, p.key, p.mode, "bach");
+  const ruled = predictAnswer(a.subject, p.key, p.mode, "bach", p.meter);
   const degs = a.subject.map((n) => degree(n.pitch, p.key, p.mode));
   return (
     <fieldset className="lab-panel">

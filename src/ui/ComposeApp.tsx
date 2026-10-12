@@ -34,7 +34,7 @@ import { placings, type PlacingResult } from "../wtc/compose/invertible.ts";
 import { ready, realise, type Part } from "../wtc/compose/plan.ts";
 import { judgeFugue } from "../wtc/compose/judge.ts";
 import { fugueMidi } from "../wtc/compose/midi.ts";
-import { alterPitch, insert, isDotted, letterPitch, nearBefore, remove, setDur, setPitch, stepPitch, toggleDot, VALUES, pretty } from "../wtc/compose/edit.ts";
+import { alterPitch, insert, isDotted, lengthen, letterPitch, nearBefore, remove, setDur, setPitch, stepPitch, toggleDot, VALUES, pretty } from "../wtc/compose/edit.ts";
 import type { CpViolation } from "../wtc/counterpoint.ts";
 
 type StepId = "subject" | "answer" | "counter" | "fugue";
@@ -238,6 +238,7 @@ export function ComposeApp({ onVoices, onStudy, onExercises, onTutorial }: { onV
       else return;
     } else if (/^[1-5]$/.test(k)) chooseValue(VALUES[Number(k) - 1]);
     else if (k === ".") editAt(sel, (x) => toggleDot(x, sel));
+    else if (k === "t" || k === "T") editAt(sel, (x) => lengthen(x, sel, dur));
     else if (k === "r" || k === "R") editAt(sel, (x) => setPitch(x, sel, null, dur), true);
     else if (k === "i" || k === "I") editAt(sel, (x) => insert(x, sel));
     else if (k === "Backspace") editAt(Math.max(0, sel - (sel >= evs.length ? 1 : 0)), (x) => remove(x, sel >= evs.length ? evs.length - 1 : sel));
@@ -446,6 +447,7 @@ export function ComposeApp({ onVoices, onStudy, onExercises, onTutorial }: { onV
       ))}
       <button className="chipbtn" aria-pressed={sel < evs.length && isDotted(evs[sel]?.dur ?? 0)} onClick={() => editAt(sel, (x) => toggleDot(x, sel))} title={t("ui.compose.dot")}>·</button>
       <button className="chipbtn" onClick={() => editAt(sel, (x) => setPitch(x, sel, null, dur), true)} title={t("ui.compose.rest")}>𝄽</button>
+      <button className="chipbtn" onClick={() => editAt(sel, (x) => lengthen(x, sel, dur))} title={t("ui.compose.tie")}>⁀</button>
     </span>
   );
   const editTools = target && (
@@ -598,6 +600,12 @@ export function ComposeApp({ onVoices, onStudy, onExercises, onTutorial }: { onV
               </li>
             ))}
           </ul>
+          {report.close.length > 0 && (
+            <>
+              <h4>{t("ui.compose.close.title")}</h4>
+              <ul>{report.close.map(remark)}</ul>
+            </>
+          )}
           {report.empty.length > 0 && <p className="warn">{t("ui.compose.report.empty", { n: report.empty.length })}</p>}
           {report.overflow.length > 0 && <p className="warn">{t("ui.compose.report.overflow", { n: report.overflow.length })}</p>}
           <h4>{t("ui.compose.report.heard")}</h4>

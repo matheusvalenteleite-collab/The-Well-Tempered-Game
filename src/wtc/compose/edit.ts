@@ -65,6 +65,11 @@ export function toggleDot(evs: Ev[], i: number): Ev[] {
   return setDur(evs, i, isDotted(d) ? d / 1.5 : d * 1.5);
 }
 
+/** Event i lengthened by `by` quarters (a tie: the note held on). */
+export function lengthen(evs: Ev[], i: number, by: number): Ev[] {
+  return i < evs.length ? setDur(evs, i, evs[i].dur + by) : evs;
+}
+
 export const remove = (evs: Ev[], i: number) => evs.filter((_, k) => k !== i);
 /** A copy of event i inserted before it. */
 export const insert = (evs: Ev[], i: number) => (i < evs.length ? [...evs.slice(0, i), { ...evs[i] }, ...evs.slice(i)] : evs);

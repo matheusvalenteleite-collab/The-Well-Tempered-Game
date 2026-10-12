@@ -34,7 +34,7 @@ for (const t of theirs) {
   if (exact) sameSubject++;
   else if (common) prefix++;
   // Mutated notes: where the answer's letter is not the real transposition's.
-  const real = predictAnswer(subject, p.key, p.mode, "real");
+  const real = predictAnswer(subject, p.key, p.mode, "real", p.meter);
   const myMut = real.map((x, i) => (x[0] !== answer[i].pitch[0] ? i : -1)).filter((i) => i >= 0 && i < n);
   const theirMut = (t.mutations ?? []).filter((i) => i < n);
   const mutAgree = myMut.length === theirMut.length && myMut.every((x, i) => x === theirMut[i]);

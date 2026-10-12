@@ -16,6 +16,7 @@ import { FUGUES, KEY_ORDER, keyName, keySignature, isMinor, realAnswer, transpos
 import { degree, evaluateAnswer, type AnswerEvaluation } from "../wtc/answer.ts";
 import { beatOf, evaluateCounterpoint, type CpEvaluation } from "../wtc/counterpoint.ts";
 import { withLicences } from "../wtc/licences.ts";
+import { LIBRARY } from "../wtc/library.ts";
 import { counterHint } from "../wtc/hints.ts";
 import { findEntries, type Entry, type FullNote } from "../wtc/entries.ts";
 import full from "../../data/bach/wtc/fugues-full.json" with { type: "json" };
@@ -86,7 +87,19 @@ const COURSE = FUGUES.map((_, i) => i).sort((a, b) => difficulty(FUGUES[a]) - di
 const mean = (xs: WtcNote[]) => xs.reduce((a, n) => a + parsePitch(n.pitch).midi, 0) / Math.max(1, xs.length);
 
 export function WtcApp({ onVoices, onStudy, onCompose, onTutorial }: { onVoices(n: Mode): void; onStudy?(): void; onCompose?(): void; onTutorial?: (lessonId?: string) => void }) {
-  const [index, setIndex] = useState(() => Math.max(0, FUGUES.findIndex((f) => f.id === stored("wtg.wtcFugue", FUGUES[0].id))));
+  // The study's fugue, if its exposition is in this set; else one in the same key (or the first), and
+  // the player told so, rather than the first fugue shown silently (D158).
+  const [missingFrom] = useState(() => {
+    const id = stored("wtg.wtcFugue", FUGUES[0].id);
+    return FUGUES.some((f) => f.id === id) ? null : LIBRARY.find((e) => e.id === id) ?? null;
+  });
+  const [index, setIndex] = useState(() => {
+    const id = stored("wtg.wtcFugue", FUGUES[0].id);
+    const k = FUGUES.findIndex((f) => f.id === id);
+    if (k >= 0) return k;
+    const lib = LIBRARY.find((e) => e.id === id);
+    return Math.max(0, lib ? FUGUES.findIndex((f) => f.key === lib.key) : 0);
+  });
   const F = FUGUES[index];
   useEffect(() => store("wtg.wtcFugue", F.id), [F.id]);
   const [exercise, setExercise] = useState<Exercise>(() => stored<Exercise>("wtg.wtcExercise", "answer", (v) => EXERCISES.includes(v as Exercise)));
@@ -761,6 +774,7 @@ export function WtcApp({ onVoices, onStudy, onCompose, onTutorial }: { onVoices(
           content: (
             <div className="guide wtc-guide">
               <h3>{fugueLabel(F)}</h3>
+              {missingFrom && <p className="help">{t("ui.wtc.notInSet", { book: roman(missingFrom.book), n: missingFrom.number, key: keyName(missingFrom.key) })}</p>}
               {facts}
               <p>{t(`ui.wtc.intro.${ex}`)}</p>
               <p className="help">{t(`ui.wtc.how.${ex}`)}</p>

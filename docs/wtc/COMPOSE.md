@@ -286,6 +286,13 @@ does not yet do, against the M1 list above:
 - **Not yet**: the answer entering a fifth below in the lower voice is placed by register only;
   codettas are written only in the exposition; no comparison passages from the 48 (M2).
 
+M1 completed (12 October): the close is judged by the two-voice clausulae (the last sonority
+together, on the downbeat, the tonic in the lower voice, ^1 or ^3 above, the approaches, the raised
+leading note in minor); ties in the editor (T: a note held on by the chosen value); audit fault 7
+(the exercises name the study's fugue they cannot show, and open one in its key) and fault 2
+(`predictAnswer` reads the head in the fugue's metre) fixed. Faults 1 and 6 belong to three voices
+(M3); fault 5 (duplicated helpers) is left: the composer does not use them.
+
 ## 6. For the owner to decide
 
 1. **The first milestone.** Choose one:

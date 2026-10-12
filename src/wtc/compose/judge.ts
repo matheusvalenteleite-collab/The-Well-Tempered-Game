@@ -7,7 +7,10 @@
  */
 import { findEntries, type Note } from "../fugue.ts";
 import { judgePair } from "./invertible.ts";
-import { dominantOf, lengthOf, toTicks, toNotes, EPS, type FugueDraft } from "./model.ts";
+import { barQuarters, dominantOf, lengthOf, modeOf, place, toTicks, toNotes, EPS, type FugueDraft } from "./model.ts";
+import { parsePitch } from "../../music/pitch.ts";
+import type { WtcNote } from "../fugues.ts";
+import type { Remark } from "./subject.ts";
 import { asPiece, type Part, type Realised } from "./plan.ts";
 import { TPQ } from "../corpus.ts";
 import type { CpViolation } from "../counterpoint.ts";
@@ -37,6 +40,53 @@ export interface Report {
   heard: Heard[];
   /** Planned entries the analysis does not hear. */
   missed: Part[];
+  /** The close: how the fugue ends (empty until both voices have written their close). */
+  close: Remark[];
+}
+
+/**
+ * The close, by the clausulae of the two-voice cadence (Fux's, which Bach's two-voice fugue keeps,
+ * I/10 b. 42): the last sonority on a strong beat, the lower voice on ^1 and the upper on ^1 or ^3;
+ * the lower voice reaching ^1 from ^5 (a leap: the bass's clausula) or by step from ^2 or ^7, the
+ * upper by step (^7 rising, ^2 falling, or to ^3 from ^2 or ^4); in minor the leading note raised.
+ */
+export function judgeClose(d: FugueDraft, r: Realised): Remark[] {
+  const out: Remark[] = [];
+  const close = r.sections.find((s) => s.id === "close")!;
+  const lines = r.voices.map((v) => v.filter((n) => n.at >= close.from - EPS));
+  if (lines.some((l) => l.length < 2)) return out;
+  const bar = barQuarters(d.time);
+  const lastOf = (l: WtcNote[]) => l[l.length - 1];
+  const [a, b] = lines.map(lastOf);
+  const mean = (n: WtcNote) => parsePitch(n.pitch).midi;
+  const lower = mean(a) <= mean(b) ? 0 : 1;
+  const lo = lines[lower];
+  const hi = lines[1 - lower];
+  const deg = (n: WtcNote) => place(n.pitch, d.key);
+  const name = (n: WtcNote) => {
+    const p = deg(n);
+    return `${p.alter > 0 || p.raised ? "♯" : p.alter < 0 ? "♭" : ""}${p.deg + 1}`;
+  };
+  const end = Math.max(lastOf(lo).at, lastOf(hi).at);
+  const err = (key: string, vars: Record<string, string | number> = {}) => out.push({ severity: "error", key, vars, examples: [] });
+  const adv = (key: string, vars: Record<string, string | number> = {}) => out.push({ severity: "advice", key, vars, examples: [] });
+  if (Math.abs(lastOf(lo).at - lastOf(hi).at) > EPS) adv("compose.close.together");
+  if (Math.abs(((end % bar) + bar) % bar) > EPS) adv("compose.close.weak");
+  const bl = deg(lastOf(lo));
+  const ul = deg(lastOf(hi));
+  if (bl.deg !== 0 || bl.alter !== 0) err("compose.close.bassNotTonic", { deg: name(lastOf(lo)) });
+  if (!(ul.deg === 0 && ul.alter === 0) && ul.deg !== 2) err("compose.close.upperNotTonic", { deg: name(lastOf(hi)) });
+  const bp = deg(lo[lo.length - 2]);
+  if (bl.deg === 0 && ![4, 1, 6].includes(bp.deg)) adv("compose.close.bassApproach", { deg: name(lo[lo.length - 2]) });
+  const up = hi[hi.length - 2];
+  const upStep = Math.abs(parsePitch(up.pitch).diatonic - parsePitch(lastOf(hi).pitch).diatonic) === 1;
+  if (!upStep) adv("compose.close.upperLeap", { deg: name(up) });
+  if (modeOf(d.key) === "minor") {
+    const lead = [lo[lo.length - 2], up].find((n) => deg(n).deg === 6);
+    if (lead && !deg(lead).raised) err("compose.close.leadingNote", { pitch: lead.pitch });
+  }
+  if (!out.some((x) => x.severity !== "info")) out.push({ severity: "info", key: "compose.close.ok", vars: {}, examples: [] });
+  return out;
 }
 
 export function judgeFugue(d: FugueDraft, r: Realised): Report {
@@ -72,5 +122,5 @@ export function judgeFugue(d: FugueDraft, r: Realised): Report {
       })
     : [];
   const missed = planned.filter((p) => !heard.some((h) => h.voice === p.voice && Math.abs(h.at - p.from) < EPS));
-  return { faults, empty, overflow, heard, missed };
+  return { faults, empty, overflow, heard, missed, close: judgeClose(d, r) };
 }

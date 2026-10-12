@@ -153,6 +153,21 @@ test("compose: the plan of a two-voice fugue from Bach's exposition; the analysi
   assert.equal(judgeFugue(d, r2).overflow.length, 1);
 });
 
+test("compose: the close, by the clausulae", () => {
+  const f = FUGUES.find((x) => x.id === "wtc1.12")!;
+  const d = bachDraft(f);
+  assert.deepEqual(judgeFugue(d, realise(d)).close, []);
+  // The upper voice ^7 rising to ^1, the lower ^5 to ^1, the last sonority on the downbeat.
+  d.free["close:0:0"] = [{ pitch: null, dur: 1 }, { pitch: "E4", dur: 2 }, { pitch: "F4", dur: 4 }];
+  d.free["close:1:0"] = [{ pitch: null, dur: 1 }, { pitch: "C3", dur: 2 }, { pitch: "F2", dur: 4 }];
+  assert.deepEqual(judgeFugue(d, realise(d)).close.map((x) => x.key), ["compose.close.ok"]);
+  // The leading note left unraised in minor; the bass ending on ^5.
+  d.free["close:0:0"] = [{ pitch: null, dur: 1 }, { pitch: "Eb4", dur: 2 }, { pitch: "F4", dur: 4 }];
+  d.free["close:1:0"] = [{ pitch: null, dur: 1 }, { pitch: "F2", dur: 2 }, { pitch: "C3", dur: 4 }];
+  const keys = judgeFugue(d, realise(d)).close.map((x) => x.key);
+  assert.ok(keys.includes("compose.close.leadingNote") && keys.includes("compose.close.bassNotTonic"), keys.join());
+});
+
 test("compose: a standard MIDI file, a track per voice", () => {
   const bytes = fugueMidi([[{ pitch: "C4", at: 0, dur: 1 }], [{ pitch: "G4", at: 1, dur: 1 }]], { key: "c", time: "4/4", tempo: 80, title: "Fugue" });
   assert.equal(String.fromCharCode(...bytes.slice(0, 4)), "MThd");
