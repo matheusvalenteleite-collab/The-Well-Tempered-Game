@@ -306,6 +306,18 @@ export function shapeBucket(d: number): number {
   return size + (d > 0 ? 0 : 1);
 }
 
+/** A chord member's spelling at a MIDI number (its letter from the slot's spelled members), or "". */
+function degreeName(m: number, pc: number, sl: Slot): string {
+  const names = [sl.root, ...sl.above.map(([l]) => l), letterOf(sl.bass)];
+  const nm = names.find((l) => pcOf(l) === pc);
+  if (!nm) return "";
+  for (let oct = 1; oct <= 6; oct++) if (midiOf(`${nm}${oct}`) === m) return `${nm}${oct}`;
+  return "";
+}
+
+/** The cost (bits) of an inner voice sounding the resolution of the soprano's dissonance under it. */
+const EARLY = 8;
+
 const KEY = "|";
 const keyOf = (p: Pair) => `${p.alto}${KEY}${p.tenor}`;
 
@@ -435,7 +447,40 @@ export function refineLines(vm: VoiceModel, slots: Slot[], start: InnerVoices, o
       const peak = sop.indexOf(Math.max(...sop));
       const base = pitch(cands[0].find((p) => same(v === "alto" ? p.alto : p.tenor, v === "alto" ? alto[0] : tenor[0])) ?? cands[0][0]);
       const lift = (i: number, y: number) => (v === "alto" && o.climax && Math.abs(i - peak) <= 2 ? (o.climax * (pitch(cands[i][y]) - base)) / 12 : 0);
-      const step = (i: number, x: number, y: number) => cands[i][y].cost - lift(i, y) + moveCost(vm, slots[i - 1], slots[i], cands[i - 1][x], cands[i][y], o);
+      // the soprano's dissonance and its resolution: where the soprano's note is not a member of the chord and
+      // falls a step to its next note, an inner voice does not sound that next note under it (the resolution
+      // heard before it comes: no. 105's first bar)
+      const early = slots.map((sl, i) => {
+        const nx = slots[i + 1]?.soprano;
+        const members = new Set([sl.root, ...sl.above.map(([l]) => l), letterOf(sl.bass)].map((l) => pcOf(l)));
+        if (!nx || members.has(pcOf(letterOf(sl.soprano))) || diatonic(nx) - diatonic(sl.soprano) !== -1) return null;
+        return pcOf(letterOf(nx));
+      });
+      // at such a beat the voice holding the resolution's note may take the root or fifth instead (Bach leaves
+      // the third out while the soprano suspends it): the variants added to the candidates
+      early.forEach((pcE, i) => {
+        if (pcE === null) return;
+        const sl = slots[i];
+        const others = [sl.root, ...sl.above.filter(([, r]) => r === "fifth" || r === "root").map(([l]) => l)].map((l) => pcOf(l));
+        const add: Pair[] = [];
+        for (const c of cands[i]) {
+          const mine = v === "alto" ? c.alto : c.tenor;
+          if (pcOf(letterOf(mine)) !== pcE) continue;
+          for (const pc of others)
+            for (const d of [-4, -3, -2, -1, 1, 2, 3, 4]) {
+              const m = (v === "alto" ? c.a : c.t) + d;
+              if (((m % 12) + 12) % 12 !== pc) continue;
+              const name = degreeName(m, pc, sl);
+              if (!name) continue;
+              const q = v === "alto" ? { ...c, alto: name, a: m, cost: c.cost + 1 } : { ...c, tenor: name, t: m, cost: c.cost + 1 };
+              if (q.a <= q.t || q.a >= midiOf(sl.soprano) || q.t <= midiOf(sl.bass)) continue;
+              add.push(q);
+            }
+        }
+        cands[i].push(...add);
+      });
+      const cost0 = (i: number, y: number) => cands[i][y].cost - lift(i, y) + (early[i] !== null && ((pitch(cands[i][y]) % 12) + 12) % 12 === early[i] ? EARLY : 0);
+      const step = (i: number, x: number, y: number) => cost0(i, y) + moveCost(vm, slots[i - 1], slots[i], cands[i - 1][x], cands[i][y], o);
       // state at position i: the candidates at i-2, i-1, i (h, j, k); its best cost and the candidate at i-3
       type St = { c: number; g: number };
       const key = (h: number, j: number, k: number) => `${h},${j},${k}`;
@@ -443,7 +488,7 @@ export function refineLines(vm: VoiceModel, slots: Slot[], start: InnerVoices, o
       for (let h = 0; h < cands[0].length; h++)
         for (let j = 0; j < cands[1].length; j++)
           for (let k = 0; k < cands[2].length; k++)
-            dp.set(key(h, j, k), { c: cands[0][h].cost - lift(0, h) + step(1, h, j) + step(2, j, k) + w * vm.shape[v][mv(1, h, j)][mv(2, j, k)] - (o.run && (mv(1, h, j) === 1 || mv(1, h, j) === 2) && mv(2, j, k) === mv(1, h, j) ? o.run : 0), g: -1 });
+            dp.set(key(h, j, k), { c: cost0(0, h) + step(1, h, j) + step(2, j, k) + w * vm.shape[v][mv(1, h, j)][mv(2, j, k)] - (o.run && (mv(1, h, j) === 1 || mv(1, h, j) === 2) && mv(2, j, k) === mv(1, h, j) ? o.run : 0), g: -1 });
       const backs: Map<string, St>[] = [dp];
       for (let i = 3; i < n; i++) {
         const nd = new Map<string, St>();

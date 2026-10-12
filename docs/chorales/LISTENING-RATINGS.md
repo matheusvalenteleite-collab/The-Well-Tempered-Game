@@ -204,3 +204,12 @@ augmented seconds, dissonances leapt into or unresolved 0, 0, 0.1. Checked by ha
 tenor of nos. 195 and 350 (36): passing notes, neighbours, anticipations reached by step, suspensions prepared and
 resolved down. On the v5 bench files: no augmented second; early resolutions 4 of 31 (Bach 4 of 67). A new
 imbalance: the inner lines leap less than Bach's (whole settings, alto 13% of moves against 22%).
+
+## v6: the soprano's suspension (12 October 2026)
+
+The playback session's check of v5: early resolutions 4 of 31, one audible in no. 105's first bar (the soprano
+suspends B4 over an F-sharp chord and resolves to A-sharp; the alto had sung A-sharp under it). The cause was at the
+beat level: a complete chord needs its third, which is the soprano's resolution. The line re-writing (`voices.ts`
+refineLines) now costs an inner voice that sounds the resolution of the soprano's dissonance (a note not of the
+chord, falling a step next), and offers it the root or the fifth instead, as Bach leaves the third out under a 4-3
+in the soprano. Early resolutions 2 of 31 (Bach 4 of 67); the other measures unchanged.
