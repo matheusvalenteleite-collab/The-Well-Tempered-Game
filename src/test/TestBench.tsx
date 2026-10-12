@@ -293,18 +293,31 @@ export function TestBench() {
     ].filter((x) => all.some((p) => p.id === x.a) && all.some((p) => p.id === x.b));
     return [...real, ...practice];
   }, [all]);
-  const [blind, setBlind] = useState<{ pair: number; order: [string, string]; at: 0 | 1; ratings: [number, number]; guess: 0 | 1 | null; revealed: boolean } | null>(null);
+  const [blind, setBlind] = useState<{ pair: number; order: [string, string]; at: 0 | 1; ratings: [number, number]; guess: 0 | 1 | null; revealed: boolean; notes: [string, string, string] } | null>(null);
   const deal = (pair: number) => {
     const pr = pairs[pair];
     const order: [string, string] = Math.random() < 0.5 ? [pr.a, pr.b] : [pr.b, pr.a];
-    setBlind({ pair, order, at: 0, ratings: [0, 0], guess: null, revealed: false });
+    setBlind({ pair, order, at: 0, ratings: [0, 0], guess: null, revealed: false, notes: ["", "", ""] });
     setId(order[0]);
   };
   const [results, setResults] = useState<object[]>(() => stored<object[]>("wtg.test.blind", [], (v) => Array.isArray(v)));
+  /** P35: the owner's written commentary, by piece (A's and B's) and on the pair. */
+  const commentary = (order: [string, string], notes: [string, string, string]) => ({ comments: { [order[0]]: notes[0].trim(), [order[1]]: notes[1].trim(), pair: notes[2].trim() } });
+  const setNote = (k: 0 | 1 | 2, text: string) => {
+    if (!blind) return;
+    const notes = blind.notes.map((x, i) => (i === k ? text : x)) as [string, string, string];
+    setBlind({ ...blind, notes });
+    // After the answer, the verdict already kept follows the commentary as it is written.
+    if (blind.revealed && results.length) {
+      const next = [...results.slice(0, -1), { ...results[results.length - 1], ...commentary(blind.order, notes) }];
+      setResults(next);
+      store("wtg.test.blind", next);
+    }
+  };
   const reveal = () => {
     if (!blind) return;
     const bachAt = blind.order.findIndex((x) => x.startsWith("bach-") || /^wtc/.test(x));
-    const r = { when: new Date().toISOString(), pair: pairs[blind.pair], heard: blind.order, ratings: { [blind.order[0]]: blind.ratings[0], [blind.order[1]]: blind.ratings[1] }, guessedBach: blind.guess === null ? null : blind.order[blind.guess], right: blind.guess === bachAt };
+    const r = { when: new Date().toISOString(), pair: pairs[blind.pair], heard: blind.order, ratings: { [blind.order[0]]: blind.ratings[0], [blind.order[1]]: blind.ratings[1] }, guessedBach: blind.guess === null ? null : blind.order[blind.guess], right: blind.guess === bachAt, ...commentary(blind.order, blind.notes) };
     const next = [...results, r];
     setResults(next);
     store("wtg.test.blind", next);
@@ -526,6 +539,14 @@ export function TestBench() {
               <label className="check"><input type="radio" name="bach" checked={blind.guess === k} disabled={blind.revealed} onChange={() => setBlind({ ...blind, guess: k })} /> this is Bach</label>
             </div>
           ))}
+          <div className="blind-notes">
+            {(["A", "B", "Both"] as const).map((n, k) => (
+              <label key={n}>
+                <span>{k < 2 ? `Commentary on ${n}` : "On the comparison"}</span>
+                <textarea rows={3} value={blind.notes[k]} onChange={(e) => setNote(k as 0 | 1 | 2, e.target.value)} placeholder={k < 2 ? "What works, what fails, where (phrase, bar, voice)…" : "Which is better and why…"} />
+              </label>
+            ))}
+          </div>
           {!blind.revealed ? (
             <button className="primary" disabled={!blind.ratings[0] || !blind.ratings[1] || blind.guess === null} onClick={reveal}>Reveal</button>
           ) : (

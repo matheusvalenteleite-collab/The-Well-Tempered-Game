@@ -26,3 +26,7 @@
 .parts-row .chipbtn { min-width: 2.2em; }
 .bench-melody { height: 320px; min-height: 0; }
 @media (max-width: 600px) { .bench-melody { height: 260px; } }
+.blind-notes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 8px 0; }
+.blind-notes label { display: flex; flex-direction: column; gap: 2px; font-family: var(--ui-font); font-size: .8rem; color: var(--muted); }
+.blind-notes textarea { font: inherit; font-size: .9rem; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 4px 6px; resize: vertical; }
+@media (max-width: 600px) { .blind-notes { grid-template-columns: 1fr; } }

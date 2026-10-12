@@ -17,7 +17,8 @@ hearing is appended to `hearings`.
       "rating": 3,
       "bachRating": 4,
       "guessedBach": "correct",
-      "remarks": "the owner's words, verbatim"
+      "remarks": "the owner's words, verbatim",
+      "comments": { "piece": "the bench's commentary box on this piece", "pair": "the box on the comparison" }
     }
   ]
 }
@@ -27,3 +28,4 @@ hearing is appended to `hearings`.
 - `blind`: whether the pair was heard without knowing which was Bach's.
 - `guessedBach`: `"correct"`, `"wrong"`, or absent if not guessed.
 - `remarks`: quoted as given, never paraphrased.
+- `comments` (P35): what the owner wrote in the blind test's three boxes (on A, on B, on the comparison), as "Copy results" gives them.
