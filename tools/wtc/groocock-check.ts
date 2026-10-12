@@ -107,6 +107,24 @@ out.push("");
 for (const [b, s] of Object.entries(sets)) out.push(`- **Book ${b}:** Groocock ${s.g} entries, the analysis ${s.f}, matched ${s.m}: precision ${pct(s.m, s.f)}, recall ${pct(s.m, s.g)}.`);
 out.push(`- **Groocock against Algomus (Book I):** ${ga} of Groocock's ${gaAll} entries are in the Algomus reference (${pct(ga, gaAll)}).`, "");
 out.push("Precision here is a lower bound: Groocock lists the entries that matter to his account of the form, and an entry the analysis finds that he does not list is not thereby false (`ALGOMUS.md` judged such cases from the notes).", "");
+// Where the subject ends: Groocock's words beside the settled subject's last note.
+const settledAll = (JSON.parse(readFileSync("data/wtc/subjects-settled.json", "utf8")) as { fugues: Record<string, { voice: number; subject: [number, number, string][] }> }).fugues;
+out.push("## Where the subject ends: Groocock and the settled subjects", "", "Where Groocock states the end. Ours: the settled subject's last note, as bar, beat and its place among the notes of that bar in the subject's voice.", "", "| fugue | Groocock | ours |", "|---|---|---|");
+for (const g of gs) {
+  const ends = (g as unknown as { subject?: { ends?: string | null } }).subject?.ends;
+  const st = settledAll[g.id];
+  const p = pieces.find((x) => x.id === g.id);
+  if (!ends || !st || !p) continue;
+  const [n, d] = p.meter.split("/").map(Number);
+  const bar = (n * 4 * TPQ) / d;
+  const beat = (4 * TPQ) / d;
+  const first = p.bars.find((b) => b.n === 1)?.on ?? 0;
+  const last = st.subject.at(-1)!;
+  const b = Math.floor((last[0] - first) / bar) + 1;
+  const k = p.voices[st.voice].filter((x) => x[0] >= first + (b - 1) * bar && x[0] <= last[0]).length;
+  out.push(`| ${name(g.id)} | ${ends.replace(/\|/g, "/").slice(0, 140)} | ${last[2]}, bar ${b} beat ${+(1 + (last[0] - first - (b - 1) * bar) / beat).toFixed(2)} (note ${k} of the bar) |`);
+}
+out.push("");
 out.push("## The differences, fugue by fugue", "", ...detail, "");
 writeFileSync("docs/wtc/GROOCOCK.md", out.join("\n") + "\n");
 console.log(out.filter((l) => l.startsWith("- **Book") || l.startsWith("- **Groocock against")).join("\n"));

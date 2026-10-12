@@ -108,3 +108,8 @@ answered one by one.
   and the analysis measured on it, every disagreement judged from the notes (`docs/wtc/ALGOMUS.md`): precision 85%,
   recall 94%; the errors are mostly heads in episodes counted as entries; the reference omits a dozen real statements
   (late compressed ones in I/15, strettos in I/8). I/11's settled subject is likely too long (for the owner).
+- **Groocock (12 October):** his *Fugal Composition* (2003; the owner's scan, parts 1-2 of 3) read and his tables of all
+  48 fugues turned into data (`data/wtc/groocock/`); the analysis measured on them (`docs/wtc/GROOCOCK.md`): Book I
+  precision 92%, recall 86%; Book II 87% and 88%. Weakest: II/3 (10 of his 31 entries: he counts the four-note head
+  as the subject in most entries), I/4 and II/14 (later subjects). His subject ends differ from the settled ones in
+  I/7, I/11, II/15, II/23 (his shorter, the rest a codetta) and II/7 (disputed by him): for the owner.

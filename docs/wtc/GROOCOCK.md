@@ -63,6 +63,34 @@ Book I can be set beside the Algomus reference (`ALGOMUS.md`), Book II only besi
 
 Precision here is a lower bound: Groocock lists the entries that matter to his account of the form, and an entry the analysis finds that he does not list is not thereby false (`ALGOMUS.md` judged such cases from the notes).
 
+## Where the subject ends: Groocock and the settled subjects
+
+Where Groocock states the end. Ours: the settled subject's last note, as bar, beat and its place among the notes of that bar in the subject's voice.
+
+| fugue | Groocock | ours |
+|---|---|---|
+| I/3 | first note of bar 3 | C#4, bar 3 beat 1 (note 1 of the bar) |
+| I/6 | lasts two bars; ends on the dominant without modulating | A4, bar 3 beat 1 (note 1 of the bar) |
+| I/7 | fourth note of bar 2 | G4, bar 3 beat 1 (note 1 of the bar) |
+| I/10 | second note of bar 3 | D4, bar 3 beat 1 (note 1 of the bar) |
+| I/11 | first note of bar 4 | C4, bar 5 beat 1 (note 1 of the bar) |
+| I/15 | first note of bar 5 | F#4, bar 5 beat 1 (note 1 of the bar) |
+| I/16 | with the bb (except where overlapped by the answer, bars 2 and 6) | Bb3, bar 2 beat 3 (note 6 of the bar) |
+| I/17 | on the dominant but not in the dominant key (like I.6) | Eb4, bar 2 beat 1 (note 1 of the bar) |
+| I/19 | uncertain: one commentator says one note; could end at first note of bar 2 (like I.17, on dominant not in dominant key); Groocock prefers en | C#5, bar 2 beat 8 (note 7 of the bar) |
+| I/20 | at the first note of bar 4 | A3, bar 4 beat 1 (note 1 of the bar) |
+| II/1 | seems to last until the first note of bar 5 (implied cadence) | E4, bar 5 beat 1 (note 1 of the bar) |
+| II/3 | 1 1/2 bars long | C#3, bar 2 beat 2.75 (note 6 of the bar) |
+| II/4 | presumed at last note of bar 2, so the answer overlaps its last four notes | C#3, bar 2 beat 10 (note 10 of the bar) |
+| II/6 | presumably first note of bar 3, overlapped by the answer | F4, bar 3 beat 1 (note 1 of the bar) |
+| II/7 | disputed: simpler analysis ends it at first note of bar 7 (then only codettas are bars 13 and 20); but cadence feeling of bars 5-6 and the m | Eb3, bar 7 beat 1 (note 1 of the bar) |
+| II/10 | seventh note of bar 6 | E4, bar 6 beat 2 (note 7 of the bar) |
+| II/15 | first note of bar 6 | F#5, bar 8 beat 1 (note 1 of the bar) |
+| II/20 | first note of bar 3 | E3, bar 3 beat 3 (note 5 of the bar) |
+| II/22 | on the mediant (d-flat), answered with tierce de Picardie (a-natural) | Db4, bar 5 beat 1 (note 1 of the bar) |
+| II/23 | at the first note of bar 4 | B2, bar 6 beat 1 (note 1 of the bar) |
+| II/24 | on the first note of bar 6 | D4, bar 6 beat 1 (note 1 of the bar) |
+
 ## The differences, fugue by fugue
 
 - **I/1.** Groocock's entries not found: soprano b. 16-17 (subject); bass b. 20-21 (subject (incomplete); first three notes); soprano b. 24-25 (subject (incomplete); first four notes).
