@@ -6,7 +6,15 @@ import json
 path = "data/playback/test-pieces.json"
 data = json.load(open(path))
 study = {c["n"]: c for c in json.load(open("data/chorales/study.json"))["chorales"]}
-data["bach"] = [{"n": n, "title": study[n]["title"], "bwv": study[n]["bwv"], "tonic": study[n]["tonic"], "mode": study[n]["mode"], "sig": study[n]["sig"], "meter": study[n]["meter"], "pickup": study[n]["pickup"], "voices": study[n]["voices"], "cadences": study[n]["cadences"], "harmony": study[n]["harmony"]} for n in (216, 89)]
+import glob
+lyrics = json.load(open("data/playback/chorale-lyrics.json"))["chorales"]
+# P30: Bach's chorales and fugues that the composer sessions' pieces ask to be compared with.
+bench = [json.load(open(f)) for f in sorted(glob.glob("data/playback/bench/*.json"))]
+wanted = sorted({216, 89} | {b["compare"] for b in bench if isinstance(b.get("compare"), int)})
+fugue_ids = sorted({b["compare"] for b in bench if isinstance(b.get("compare"), str)})
+fugues = {f["id"]: f for f in json.load(open("data/wtc/fugues.json"))} if fugue_ids else {}
+data["bachFugues"] = [{"id": i, "title": f"Fugue {fugues[i]['key']} {fugues[i]['mode']}, WTC {fugues[i]['book']} (BWV {fugues[i]['bwv']})", "meter": fugues[i]["meter"], "tpq": 1920, "voices": fugues[i]["voices"]} for i in fugue_ids if i in fugues]
+data["bach"] = [{"n": n, "lyrics": lyrics.get(f"chor{n:03d}"), "title": study[n]["title"], "bwv": study[n]["bwv"], "tonic": study[n]["tonic"], "mode": study[n]["mode"], "sig": study[n]["sig"], "meter": study[n]["meter"], "pickup": study[n]["pickup"], "voices": study[n]["voices"], "cadences": study[n]["cadences"], "harmony": study[n]["harmony"]} for n in wanted]
 pre = next(p for p in json.load(open("data/wtc/preludes.json")) if p["id"] == "wtc2p04")
 TPQ = 1920
 num, den = map(int, pre["meter"].split("/"))

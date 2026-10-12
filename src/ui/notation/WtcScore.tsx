@@ -33,6 +33,8 @@ export interface WtcScoreNote {
   /** P8: its ornament signs as the kern encoding writes them (T t trill, M m mordent, W w short trill, S turn, $ inverted turn), and the grace notes before it. */
   orn?: string;
   grace?: string[];
+  /** P30: the syllable sung on it, drawn under its staff (the hymn's words under the soprano). */
+  lyric?: string;
 }
 
 /**
@@ -459,6 +461,18 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
               ctx.fillRect(nx - 6, staves[pv.v.staff].getYForLine(0) - 22, 24, staves[pv.v.staff].getYForLine(4) - staves[pv.v.staff].getYForLine(0) + 44);
               ctx.restore();
             }
+          }
+          if (q.src.lyric && q.src.at >= q.at - EPS) {
+            ctx.save();
+            ctx.setFont("Georgia, serif", 12, "normal", "italic");
+            // On a light backing, so that the words read across the inner voices' stems between the staves.
+            const ly = staves[pv.v.staff].getYForLine(4) + 44;
+            const w = q.src.lyric.length * 6.4 + 4;
+            ctx.setFillStyle("rgba(251, 248, 241, 0.92)");
+            ctx.fillRect(nx - 4, ly - 11, w, 15);
+            ctx.setFillStyle("#1d1b17");
+            ctx.fillText(q.src.lyric, nx - 2, ly);
+            ctx.restore();
           }
           if (q.src.at >= q.at - EPS && (q.src.label || q.src.mark)) {
             ctx.save();

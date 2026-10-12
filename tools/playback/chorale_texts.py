@@ -93,6 +93,7 @@ pieces = sorted(os.path.basename(p)[: -len(".notes.tsv")] for p in glob.glob(C +
 cso = {p: csop(p) for p in pieces}
 civ = {p: iv([m for m, _ in cso[p]]) for p in pieces}
 out = {}
+lyrics = {}
 for kf in sorted(glob.glob(K + "/chor*.krn")):
     c = os.path.basename(kf)[:-4]
     ks = ksop(kf)
@@ -121,6 +122,18 @@ for kf in sorted(glob.glob(K + "/chor*.krn")):
             sung = {}
             fermatas.append({"punct": [punct(x) if x else None for x in lines], "word": next((x for x in lines if x), ""), "line": text})
     out[c] = {"piece": piece, "match": round(score, 3), "fermatas": fermatas}
+    # P30: the syllable on each soprano note (ties merged, as the game's voices hold them), for the
+    # words under the score: in each line, the first stanza line that sings it.
+    sylls, phrase = [], []
+    for i, (m, ferm) in enumerate(ks):
+        j = mp.get(i)
+        phrase.append(cs[j][1] if j is not None else [])
+        if ferm or i == len(ks) - 1:
+            cols = max((len(x) for x in phrase), default=0)
+            col = next((k for k in range(cols) if any(len(x) > k and x[k].strip() for x in phrase)), None)
+            sylls += [(x[col].strip() or None) if col is not None and len(x) > col else None for x in phrase]
+            phrase = []
+    lyrics[c] = sylls
 os.makedirs("data/playback", exist_ok=True)
 json.dump(
     {
@@ -129,6 +142,12 @@ json.dump(
         "chorales": out,
     },
     open("data/playback/chorale-fermatas.json", "w", encoding="utf-8"),
+    ensure_ascii=False,
+    separators=(",", ":"),
+)
+json.dump(
+    {"source": "Chorale-Corpus, Bach_JS (Gertim Alberda's transcription), CC BY-NC-SA 4.0", "note": "Per chorale, the syllable on each soprano note (ties merged), null where none is sung.", "chorales": lyrics},
+    open("data/playback/chorale-lyrics.json", "w", encoding="utf-8"),
     ensure_ascii=False,
     separators=(",", ":"),
 )

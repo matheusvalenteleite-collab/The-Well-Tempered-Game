@@ -242,6 +242,11 @@ def plan(lines_of_notes, pickup=8, final_len=16):
             t += d
     return onsets, durs, ferm
 
+# P30: one syllable to each melody note (a hyphen ends a word's inner syllable).
+LYRICS = {'hymn-morning': 'The night has spent its si- lent store, the dawn is kin- dled at the door; O Light that ne- ver knows a close, be with us as the day- light grows.',
+    'hymn-evening': 'When sha- dows length- en on the hill and all the bu- sy roads are still, then keep, O Lord, our hearts a- wake to watch with Thee till mor- ning break.',
+    'hymn-spring': "Lift up your songs, you hills and streams, the hid- den spring has burst its seams; the win- ter's bond is loosed and gone, and all things wake to praise the One."}
+
 PIECES = [
     {
         "id": "hymn-morning",
@@ -307,7 +312,9 @@ if __name__ == "__main__":
         p["onsets"], p["durs"], p["fermatas"] = plan(p["lines"])
         voices, bad = build(p)
         print(p["id"], "consecutives:", bad)
-        out.append({"id": p["id"], "title": p["title"], "text": p["text"], "tonic": p["tonic"], "mode": p["mode"], "sig": p["sig"], "meter": "4/4", "pickup": 8, "voices": voices})
+        lyrics = LYRICS[p["id"]].split()
+        assert len(lyrics) == len(p["melody"]), p["id"]
+        out.append({"id": p["id"], "title": p["title"], "text": p["text"], "lyrics": lyrics, "tonic": p["tonic"], "mode": p["mode"], "sig": p["sig"], "meter": "4/4", "pickup": 8, "voices": voices})
     os.makedirs("data/playback", exist_ok=True)
     path = "data/playback/test-pieces.json"
     data = json.load(open(path)) if os.path.exists(path) else {}
