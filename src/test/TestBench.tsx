@@ -298,7 +298,9 @@ export function TestBench() {
   // P36: the test in progress survives a reload (kept in this browser as it is written).
   const [blind, setBlind] = useState<Blind | null>(() => {
     const d = stored<Blind | null>("wtg.test.draft", null, (v) => !!v && typeof v === "object" && "sid" in (v as object) && Array.isArray((v as Blind).notes));
-    return d && pairs[d.pair] ? d : null;
+    // A draft whose pieces have since been replaced (a newer version on the bench) is dropped.
+    const same = d && pairs[d.pair] && [pairs[d.pair].a, pairs[d.pair].b].sort().join() === [...d.order].sort().join();
+    return same ? d : null;
   });
   const [saved, setSaved] = useState<"" | "saving" | "db" | "local">("");
   useEffect(() => {
