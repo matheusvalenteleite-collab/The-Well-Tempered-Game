@@ -41,7 +41,7 @@ the stile antico (Ricercar a 6); BWV 903 a chromatic subject and the free keyboa
    differ.
 4. **The theory of the period as a check (R4).** Not as authority over Bach but as what he and his
    pupils could have said:
-   - **Fux, *Gradus* (1725), Exercitium V *De Fugis*** (pp. 143 ff.: in general; in two, three, four
+   - **Fux, *Gradus* (1725), Exercitium V *De Fugis*** (pp. 143 ff.: in general; in two, three, three
      voices; fugues on several subjects): the modal fugue Bach's tonal fugue departs from. Read from
      the 1725 print (Internet Archive `gradusadparnassu00fuxj_0`, UNC copy; the project's own scans
      stop at p. 138).
@@ -72,8 +72,10 @@ the stile antico (Ricercar a 6); BWV 903 a chromatic subject and the free keyboa
 ## 4. Status
 
 - **R1 done (12 October):** 61 subjects settled (`docs/wtc/SUBJECTS.md`, `data/wtc/subjects-settled.json`):
-  50 sure, 11 with a named alternative end. Read by five readers on one protocol; reviewed by hand, four
+  50 sure, 11 with a named alternative end. Read by five readers on one protocol; reviewed by hand, three
   readings corrected (I/4 and I/19 against the protocol, both confirmed by Ledbetter's entries;
   the Ricercar a 6's answer after a reader fault was found and fixed in the Humdrum reader: a mid-bar `=.`
   in one spine dropped the other spines' notes). The study screen uses them: its entries agree with
   Ledbetter as before (157 of 173), one more of his strettos found (40 of 47), no new unclaimed ones.
+- **R3 begun (12 October):** `docs/wtc/HABITS.md`, part 1 (the subject, the answer, the opening of the
+  exposition), from the settled subjects alone. The head rule holds in all 20 subjects that begin on ^5.
