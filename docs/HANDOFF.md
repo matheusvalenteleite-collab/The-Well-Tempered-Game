@@ -1,7 +1,7 @@
 # Handoff (10 October 2026, night)
 
 Read this first in a new session. The decisions log (`docs/DECISIONS.md`: D1–D139 and D147 on for the game,
-D140–D146 for the tutorial (the next free number is D158), C1–C34 for the chorale mode (next C35)) has the details; `docs/MORNING.md` has
+D140–D146 for the tutorial (the next free number is D158), C1–C35 for the chorale mode (next C36)) has the details; `docs/MORNING.md` has
 older notes and the owner's open questions.
 
 ## How we work from now on (the owner's choice, after a usage warning)
@@ -14,6 +14,11 @@ older notes and the owner's open questions.
 - The owner merges `claude/continuo-integration` into the default branch
   `claude/fux-gradus-two-voice-dataset-ouu87h` by pull request; GitHub Pages
   (https://matheusvalenteleite-collab.github.io/The-Well-Tempered-Game/) rebuilds from it.
+
+## Chorale mode: where the analysis session left it (C35)
+
+The chorale analysis session closed on 12 October 2026. Its audit, recommendations and open offers are in
+`docs/chorales/AUDIT.md`; the data regenerates with `sh tools/chorales/regen.sh`. Nothing is half-done.
 
 ## Publishing
 
