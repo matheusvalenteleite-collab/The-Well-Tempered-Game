@@ -115,7 +115,8 @@ const STAFF_GAP = 130;
 const staffY = (i: number) => 40 + i * STAFF_GAP;
 const HEIGHT = 300;
 /** Room for the staves beyond two (P4) and for the lines of text under them (C15). */
-const heightOf = (under?: unknown[], staves = 2) => HEIGHT + Math.max(0, staves - 2) * STAFF_GAP + (under?.length ? 56 : 0);
+// P34: one staff (a melody alone) takes one staff's room.
+const heightOf = (under?: unknown[], staves = 2) => HEIGHT + Math.max(-1, staves - 2) * STAFF_GAP + (under?.length ? 56 : 0);
 /** A treble clef with an 8 below is written an octave above the sound; a bass clef with an 8 above, below it. */
 const written = (clef: ClefId) => (clef === "treble_8vb" ? 1 : clef === "bass_8va" ? -1 : 0);
 /** VexFlow's clef name and its octave mark. */

@@ -17,7 +17,7 @@ import { TransportButtons } from "../ui/TransportButtons.tsx";
 import { WtcPage, planClefs, type WtcScoreVoice } from "../ui/notation/WtcScore.tsx";
 import { pageRows, useRowBars } from "../ui/notation/page-rows.ts";
 import { CHORALE_CLEFS } from "../ui/staff-layout.ts";
-import { barOf, choraleEvents, currentReading, fermataLinesOf, fermataWordsOf, planFermatas, playChorale, playChoraleEvents, prepareChoraleAudio, setPerformanceDynamics, type Chorale, type ChoraleNote } from "../audio/chorale-performance.ts";
+import { barOf, choraleEvents, currentReading, fermataLinesOf, fermataWordsOf, planFermatas, playChorale, playChoraleEvents, prepareChoraleAudio, choraleGates, setPerformanceDynamics, type Chorale, type ChoraleNote } from "../audio/chorale-performance.ts";
 import { keySteps, ornamentUnit, ORNAMENT_STYLES, realise, type OrnamentStyle } from "../music/ornaments.ts";
 import { parsePitch, type Step } from "../music/pitch.ts";
 import type { ClefId } from "../ui/notation/clefs.ts";
@@ -72,7 +72,36 @@ interface BenchFile {
 }
 /** A piece cut to the stretch [from, to) in 32nds, its onsets moved to start at 0 (an excerpt to compare). */
 function excerpt(c: Chorale, from: number, to: number): Chorale {
-  return { ...c, pickup: 0, voices: c.voices.map((v) => v.filter((n) => n[0] >= from && n[0] < to).map(([a, d, p, f]): ChoraleNote => (f ? [a - from, Math.min(d, to - a), p, 1] : [a - from, Math.min(d, to - a), p]))) };
+  // P34: the excerpt keeps its place in the bar (an upbeat stays an upbeat), and the cadences,
+  // suspensions, fermata words and the player's fermata choices that fall inside it.
+  const shift = c.pickup ? c.barUnits - c.pickup : 0;
+  const pos = (from + shift) % c.barUnits;
+  const before = (c.voices[0] ?? []).filter((n) => n[3] && n[0] < from).length;
+  const inside = (c.voices[0] ?? []).filter((n) => n[3] && n[0] >= from && n[0] < to).length;
+  return {
+    ...c,
+    pickup: pos ? c.barUnits - pos : 0,
+    voices: c.voices.map((v) => v.filter((n) => n[0] >= from && n[0] < to).map(([a, d, p, f]): ChoraleNote => (f ? [a - from, Math.min(d, to - a), p, 1] : [a - from, Math.min(d, to - a), p]))),
+    cadences: c.cadences?.filter((x) => x[0] >= from && x[0] < to).map(([a, k, d]) => [a - from, k, d] as const),
+    suspensions: c.suspensions?.filter(([a]) => a >= from && a < to).map(([a, v]) => [a - from, v] as const),
+    fermataWords: c.fermataWords?.slice(before, before + inside),
+    fermataEdits: c.fermataEdits?.slice(before, before + inside),
+  };
+}
+
+/** P34: a piece's segments to hear one at a time: a chorale's phrases (each up to its soprano fermata), otherwise four bars at a time. */
+function segmentsOf(c: Chorale): { from: number; to: number; label: string }[] {
+  const end = Math.max(0, ...c.voices.flatMap((v) => v.map((n) => n[0] + n[1])));
+  const shown = (at: number) => barOf(c, at) + (c.pickup ? 0 : 1);
+  const cuts = (c.voices[0] ?? []).filter((n) => n[3]).map((n) => n[0] + n[1]);
+  if (!cuts.length) {
+    const out = [];
+    for (let a = 0; a < end; a += 4 * c.barUnits) out.push({ from: a, to: Math.min(end, a + 4 * c.barUnits), label: "" });
+    return out.map((x) => ({ ...x, label: `bars ${shown(x.from)}-${shown(x.to - 1)}` }));
+  }
+  if (end - cuts[cuts.length - 1] >= 8) cuts.push(end);
+  else cuts[cuts.length - 1] = end;
+  return cuts.map((to, k) => ({ from: k ? cuts[k - 1] : 0, to, label: "" })).map((x) => ({ ...x, label: `bars ${shown(x.from)}-${shown(x.to - 1)}` }));
 }
 const BENCH = Object.values(import.meta.glob("../../data/playback/bench/*.json", { eager: true, import: "default" })) as BenchFile[];
 
@@ -229,6 +258,27 @@ const CHECKS: Record<Kind, string[]> = {
   ornaments: ["Trills, mordents and appoggiaturas: Bach's Explication against C. P. E. Bach; off for the plain notes.", "Speed of the ornaments at different tempos."],
 };
 
+/** P34: the chorale's melody alone, on one staff (the soprano as the piece has it). */
+function MelodyScore({ piece, rowBars }: { piece: Piece; rowBars: number }) {
+  const view = useMemo(() => {
+    const c = piece.chorale;
+    const shift = c.pickup ? c.barUnits - c.pickup : 0;
+    const voices: WtcScoreVoice[] = [{ staff: 0, ink: "#1d1b17", editable: false, notes: (c.voices[0] ?? []).map(([at, dur, pitch, f]) => ({ pitch, at: (at + shift) / 8, dur: dur / 8, fermata: Boolean(f) })) }];
+    const end = Math.max(...(c.voices[0] ?? []).map((n) => n[0] + n[1]));
+    const bars = Math.ceil((end + shift) / c.barUnits);
+    const barQ = c.barUnits / 8;
+    const rows = pageRows({ voices, barQ, bars, rowBars: rowBars * 2, cursor: -1, key: `${piece.id}-melody`, label: (a, z) => `Melody, bars ${a + (c.pickup ? 0 : 1)}-${z - (c.pickup ? 1 : 0)}` });
+    return { rows, barQ, clefPlan: planClefs(voices, ["treble"], barQ) };
+  }, [piece, rowBars]);
+  return (
+    <div className="bench-score bench-melody">
+      <WtcPage fitWidth clefs={["treble"]} clefPlan={view.clefPlan} rows={view.rows} keySig={MAJOR_BY_SIG[piece.sig] ?? "C"} signature={signatureOf(piece.sig)} time={piece.meter} barQuarters={view.barQ} selected={null} onSlot={() => undefined} />
+    </div>
+  );
+}
+
+const VOICE_NAMES = ["S", "A", "T", "B"];
+
 export function TestBench() {
   const all = useMemo(pieces, []);
   const [id, setId] = useState(() => stored("wtg.test.piece", all[0].id, (v) => typeof v === "string" && all.some((p) => p.id === v)));
@@ -274,6 +324,12 @@ export function TestBench() {
     setPerformanceDynamics(dynamics);
     store("wtg.test.dynamics", dynamics);
   }, [dynamics]);
+  // P34: the voices heard (any of S, A, T, B), applied at once while playing.
+  const [heard, setHeard] = useState<boolean[]>(() => stored<boolean[]>("wtg.test.heard", [true, true, true, true], (v) => Array.isArray(v) && v.length === 4));
+  useEffect(() => {
+    store("wtg.test.heard", heard);
+    audio.setGates(choraleGates(heard));
+  }, [heard]);
   const [ornOn, setOrnOn] = useState(true);
   const [style, setStyle] = useState<OrnamentStyle>(() => stored<OrnamentStyle>("wtg.ornamentStyle", "explication", (v) => ORNAMENT_STYLES.includes(v as OrnamentStyle)));
   useEffect(() => store("wtg.ornamentStyle", style), [style]);
@@ -301,24 +357,47 @@ export function TestBench() {
     return { ...c, voices };
   }, [piece, edits, ornOn, style, tempo]);
 
+  // P34: a part heard on its own (a phrase of A or B, the melody alone): its key while it plays.
+  const [part, setPart] = useState<string | null>(null);
   const stop = () => {
     audio.stop();
     setPlaying(false);
     setCursor(-1);
     setPausedAt(null);
+    setPart(null);
   };
   useEffect(() => () => audio.stop(), []);
   const start = (from: number) => {
-    prepareChoraleAudio(audio);
+    prepareChoraleAudio(audio, heard);
     audio.dynamics = dynamics;
     setPlaying(true);
     setPausedAt(null);
+    setPart(null);
     const onBar = (b: number) => (b < 0 ? stop() : setCursor(b));
     // Chorales: the performance (fermatas, phrase arch); the others as the Fux and WTC screens play them (P25 shaping).
     if (piece.kind === "chorale") playChorale(audio, sounding, onBar, from);
     else playChoraleEvents(audio, choraleEvents(sounding), onBar, from);
   };
+  /** P34: one piece's segment (or the whole) on its own; `melody`: the soprano alone. Pressed again, it stops. */
+  const hearPart = (key: string, pieceId: string, seg: { from: number; to: number } | null, melody = false) => {
+    const was = part;
+    stop();
+    if (was === key) return;
+    const p = all.find((x) => x.id === pieceId);
+    if (!p) return;
+    const base: Chorale = p.id === piece.id ? sounding : p.chorale;
+    let c = seg ? excerpt(base, seg.from, seg.to) : base;
+    if (melody) c = { ...c, voices: [c.voices[0] ?? []] };
+    prepareChoraleAudio(audio, melody ? [true, true, true, true] : heard);
+    audio.dynamics = dynamics;
+    setPlaying(true);
+    setPart(key);
+    const onBar = (b: number) => b < 0 && stop();
+    if (p.kind === "chorale") playChorale(audio, c, onBar, 0);
+    else playChoraleEvents(audio, choraleEvents(c), onBar, 0);
+  };
   const play = () => {
+    if (part) return stop();
     if (playing) {
       audio.stop();
       setPlaying(false);
@@ -329,7 +408,7 @@ export function TestBench() {
   // A change while playing goes on from the bar it is in.
   const live = useRef<() => void>(() => undefined);
   live.current = () => {
-    if (playing) start(Math.max(0, cursor));
+    if (playing && !part) start(Math.max(0, cursor));
   };
   useEffect(() => {
     live.current();
@@ -403,8 +482,16 @@ export function TestBench() {
       </header>
       <section className="bench-controls">
         <TransportButtons playing={playing} pausedAt={pausedAt} onPlay={play} onStop={stop} label="Play" />
-        <EnsembleSelect storeKey="wtg.test.ensemble" fallback="clear" onReading={() => setReplan((x) => x + 1)} />
+        <EnsembleSelect heard={heard} storeKey="wtg.test.ensemble" fallback="clear" onReading={() => setReplan((x) => x + 1)} />
         <label className="check"><input type="checkbox" checked={dynamics} onChange={(e) => setDynamics(e.target.checked)} /> Dynamics</label>
+        <span className="bench-voices" role="group" aria-label="Voices heard">
+          {VOICE_NAMES.map((v, k) => (
+            <label key={v} className="check" title={`Hear the ${["soprano", "alto", "tenor", "bass"][k]}`}>
+              <input type="checkbox" checked={heard[k]} onChange={(e) => setHeard(heard.map((x, i) => (i === k ? e.target.checked : x)))} /> {v}
+            </label>
+          ))}
+          <button className="link" onClick={() => setHeard([true, true, true, true])} disabled={heard.every(Boolean)}>all</button>
+        </span>
         {piece.kind === "ornaments" && (
           <>
             <label className="check"><input type="checkbox" checked={ornOn} onChange={(e) => setOrnOn(e.target.checked)} /> Ornaments</label>
@@ -420,6 +507,14 @@ export function TestBench() {
           {piece.kind === "chorale" && <FermataScale onChange={() => setReplan((x) => x + 1)} />}
         </div>
       </section>
+      <PartsPanel
+        rows={blind ? (["A", "B"] as const).map((n, k) => ({ name: n, pieceId: blind.order[k] })) : [{ name: "Piece", pieceId: piece.id }]}
+        all={all}
+        part={part}
+        onHear={hearPart}
+        showMelody={blind !== null && !blind.revealed}
+        rowBars={rowBars}
+      />
       {blind && (
         <section className="blind-panel">
           {([0, 1] as const).map((k) => (
@@ -475,5 +570,45 @@ export function TestBench() {
         )}
       </section>}
     </div>
+  );
+}
+
+/**
+ * P34 (the owner: "buttons which allow you to listen to only certain segments of the chorale in
+ * both versions … the melody … in sheet music notation, with the possibility of listening to it in
+ * isolation"): each version's phrases (up to each soprano fermata; four bars at a time in a fugue)
+ * to hear one at a time, the whole, and the melody alone, phrase by phrase too. In the blind test,
+ * before the answer, the melody is drawn (the score itself stays hidden).
+ */
+function PartsPanel({ rows, all, part, onHear, showMelody, rowBars }: { rows: { name: string; pieceId: string }[]; all: Piece[]; part: string | null; onHear(key: string, pieceId: string, seg: { from: number; to: number } | null, melody?: boolean): void; showMelody: boolean; rowBars: number }) {
+  const found = rows.map((r) => ({ ...r, piece: all.find((p) => p.id === r.pieceId)! })).filter((r) => r.piece);
+  if (!found.length) return null;
+  const sopranoKey = (p: Piece) => JSON.stringify((p.chorale.voices[0] ?? []).map((n) => [n[0], n[2]]));
+  // One melody row when the versions share it (a generated setting of Bach's melody); else one each.
+  const melodies = found.filter((r, k) => found.findIndex((x) => sopranoKey(x.piece) === sopranoKey(r.piece)) === k);
+  const chorale = found[0].piece.kind === "chorale";
+  const btn = (key: string, label: string, title: string, go: () => void) => (
+    <button key={key} className={part === key ? "chipbtn on" : "chipbtn"} aria-pressed={part === key} title={title} onClick={go}>
+      {part === key ? "■" : label}
+    </button>
+  );
+  const line = (name: string, pieceId: string, piece: Piece, melody: boolean) => {
+    const segs = segmentsOf(piece.chorale);
+    const tag = melody ? `${name} melody` : name;
+    return (
+      <div key={tag} className="parts-row">
+        <strong>{melody ? (melodies.length > 1 ? `Melody ${name}` : "Melody") : name}</strong>
+        {btn(`${tag}|all`, "whole", `${tag}: the whole`, () => onHear(`${tag}|all`, pieceId, null, melody))}
+        {segs.map((sg, k) => btn(`${tag}|${k}`, String(k + 1), `${tag}: ${chorale ? "phrase" : "segment"} ${k + 1} (${sg.label})`, () => onHear(`${tag}|${k}`, pieceId, sg, melody)))}
+      </div>
+    );
+  };
+  return (
+    <section className="parts-panel">
+      <p className="muted">{chorale ? "Phrase by phrase (each up to its fermata)" : "Four bars at a time"}; pressed again, a button stops.</p>
+      {found.map((r) => line(r.name, r.pieceId, r.piece, false))}
+      {chorale && melodies.map((r) => line(r.name, r.pieceId, r.piece, true))}
+      {showMelody && chorale && melodies.map((r) => <MelodyScore key={r.pieceId} piece={r.piece} rowBars={rowBars} />)}
+    </section>
   );
 }

@@ -18,3 +18,11 @@
 .bench-star { background: none; border: none; font-size: 1.5rem; color: var(--line); cursor: pointer; padding: 0 2px; min-width: 32px; min-height: 32px; }
 .bench-star.on { color: #c99a1a; }
 .blind-answer { margin: 8px 0; }
+.bench-voices { display: inline-flex; gap: 8px; align-items: center; }
+.parts-panel { margin: 12px 0; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); }
+.parts-panel > p { margin: 0 0 6px; }
+.parts-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 4px 0; }
+.parts-row strong { min-width: 5.5em; font-family: var(--ui-font); }
+.parts-row .chipbtn { min-width: 2.2em; }
+.bench-melody { height: 320px; min-height: 0; }
+@media (max-width: 600px) { .bench-melody { height: 260px; } }
