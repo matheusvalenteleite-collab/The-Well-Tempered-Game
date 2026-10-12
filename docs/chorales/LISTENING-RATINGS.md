@@ -186,3 +186,21 @@ another voice holds and steps down from (tied continuations seen through), and a
 voice sounds: v4 4 of 30 (13%, Bach 6%). Still open: the inner voices are plainer than Bach's (alto 29% short notes
 against 37%); the licence is not the cause (it rejects 5% of Bach's moving figures); the penalties against the other
 voices and the look-ahead favour the plain note, to be measured. And the lines' direction (the owner's "static").
+
+## v5: movement and flow (12 October 2026)
+
+v4 was plainer than Bach (alto 29% short notes against 37%) and "static". Measured where the movement was lost:
+not in the beat-level lines (their moves give the same contexts as Bach's, 30% of his figures there moving) nor in
+one filter, but a little in each (the licence, the suspension's preparation, the costs against the other voices,
+the look-ahead). `figures.ts` MOTION (2) favours moving figures after the licence, so that nothing unearned comes
+back; SUSPEND (0.5) restores suspensions where they are earned. "Static", measured on the sounding surface: moves
+inside runs of three steps or more one way, Bach 23.6%, v4 16.2% (distance travelled and pitches a phrase were his).
+The line's state now holds the direction of its last step, and a figure continuing it is worth FLOW (2.5) more: a
+scale passage carried across the beat.
+
+On 30 held-out chorales, inner voices between Bach's outer voices: runs 24.2% (Bach 23.6%), short notes 41% (40%),
+per 100 notes passing 11.8 (12.2), neighbours 4.4 (3.2), suspensions 1.6 (2.1), anticipations 1.0 (0.7);
+augmented seconds, dissonances leapt into or unresolved 0, 0, 0.1. Checked by hand: every dissonance of the alto and
+tenor of nos. 195 and 350 (36): passing notes, neighbours, anticipations reached by step, suspensions prepared and
+resolved down. On the v5 bench files: no augmented second; early resolutions 4 of 31 (Bach 4 of 67). A new
+imbalance: the inner lines leap less than Bach's (whole settings, alto 13% of moves against 22%).

@@ -22,9 +22,9 @@ import type { Note } from "../../src/chorale/level6.ts";
 import { rng } from "../../src/counterpoint/choices/cantus.ts";
 import { thirty } from "./exceptions_lib.ts";
 
-const VERSION = "v4";
+const VERSION = "v5";
 const NOTE =
-  "v4 (chorale-generation, 12 October 2026): as v3, and no voice sounds the resolution of a suspension held in another (early resolutions 4 of 30 suspensions, Bach 4 of 67; v3 10 of 32). v3: as v2 (Bach's own figures beat by beat), but every figure licensed as a " +
+  "v5 (chorale-generation, 12 October 2026): as v4, and the inner voices move as Bach's do: moving figures restored where the licence allows them (short notes 41%, Bach 40%), suspensions taken where earned (1.6 a hundred notes, Bach 2.1), a step carried across the beat into a scale passage (moves in runs of three steps or more 24%, Bach 24%; v4 16%). v4: as v3, and no voice sounds the resolution of a suspension held in another (early resolutions 4 of 30 suspensions, Bach 4 of 67; v3 10 of 32). v3: as v2 (Bach's own figures beat by beat), but every figure licensed as a " +
   "counterpoint teacher would check it: each note a chord tone, or a dissonance reached and left by step, or a suspension " +
   "prepared as a chord tone on the beat before, making a fourth, seventh or ninth over the bass and resolved down by step; " +
   "notes spelled as the key or the chord spells them (Bach's figure keeps its shape, takes this context's notes); no " +
@@ -109,7 +109,7 @@ for (const c of inner) {
   const id = `gen-chorale-inner-${c.no}-${VERSION}`;
   writeFileSync(
     new URL(`${id}.json`, dir),
-    JSON.stringify({ id, title: s.title, kind: "chorale", by: "chorale-generation", part: "inner", given: [0, 3], tonic: s.tonic, mode: s.mode, sig: s.sig, meter: s.meter, pickup: s.pickup, voices, compare: c.no, note: "v4: inner voices only (alto and tenor) between Bach's soprano and bass over his chords: lines re-written whole, then figured beat by beat with Bach's own figures (quavers within the chord, passing and neighbour notes, suspensions), drawn as often as he writes them, against his outer voices as written, and each licensed: chord tones, dissonances reached and left by step, suspensions prepared and resolved down, spelled in the key; no augmented intervals." }) + "\n",
+    JSON.stringify({ id, title: s.title, kind: "chorale", by: "chorale-generation", part: "inner", given: [0, 3], tonic: s.tonic, mode: s.mode, sig: s.sig, meter: s.meter, pickup: s.pickup, voices, compare: c.no, note: "v5: inner voices only (alto and tenor) between Bach's soprano and bass over his chords: lines re-written whole, then figured beat by beat with Bach's own figures (quavers within the chord, passing and neighbour notes, suspensions), drawn as often as he writes them, against his outer voices as written, and each licensed: chord tones, dissonances reached and left by step, suspensions prepared and resolved down, spelled in the key; no augmented intervals." }) + "\n",
   );
   written++;
   console.log(`${id}: ${s.title}, inner voices between Bach's outer voices (no. ${c.no})`);

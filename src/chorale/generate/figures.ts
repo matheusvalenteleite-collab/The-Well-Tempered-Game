@@ -246,7 +246,12 @@ export function licensed(notes: Note[], prev: string | null, next: string | null
 }
 
 /** How often a suspension is taken where it can be (a share of the other choices' weight: one in five). */
-const SUSPEND = 0.18;
+const SUSPEND = 0.5;
+/** The factor for moving figures (FigureOptions.motion), calibrated so that the inner voices move as often as
+ *  Bach's on held-out chorales. */
+export let MOTION = 2;
+/** The factor for continuing a step across the beat (FigureOptions.flow), calibrated on Bach's runs. */
+export let FLOW = 2.5;
 /** The weight of an anticipation against Bach's share of it (see figurate). */
 const ANTICIPATE = 0.4;
 
@@ -255,6 +260,12 @@ export interface FigureOptions {
   parallel?: number;
   /** Temperature of the draw (1: each figure as often as Bach writes it). */
   T?: number;
+  /** A factor for figures that move (more than one note), applied to licensed figures only: the licence, the
+   *  suspension's preparation and the costs against the other voices each remove some of Bach's moving
+   *  figures for good reasons, and together leave the inner voices plainer than his (MOTION restores it). */
+  motion?: number;
+  /** A factor for a figure whose first move continues the line's last step the same way (see figurate). */
+  flow?: number;
   /** The order the lower voices are drawn in (3 bass, 2 tenor, 1 alto); each against those before it. */
   order?: number[];
   /** The key's pitch classes (the scale, in minor with the raised sixth and seventh too): a dissonant note
@@ -274,7 +285,7 @@ export interface FigureOptions {
  * its surface, where it has one, else its notes on the grid).
  */
 export function figurate(fm: FigureModel, grid: Note[][], surface: Note[], tones: Set<number>[], r: () => number, o: FigureOptions = {}, free = [true, true, true], given: (Note[] | null)[] = []): Note[][] {
-  const { parallel = 6, T = 1, order = [3, 1, 2] } = o;
+  const { parallel = 6, T = 1, order = [3, 1, 2], motion = MOTION, flow = FLOW } = o;
   const keyPcs = o.key ?? new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
   const n = grid[0].length;
   const out: Note[][] = [surface, [], [], []];
@@ -317,7 +328,7 @@ export function figurate(fm: FigureModel, grid: Note[][], surface: Note[], tones
           // generator offers it more often than Bach writes it (1.8 against 0.7 in a hundred inner notes)
           const lastN = notes[notes.length - 1][2];
           const antic = notes.length > 1 && midiOf(lastN) === midiOf(line[i + 1][2]) && !tones[i].has(mod(midiOf(lastN), 12)) ? ANTICIPATE : 1;
-          res.push({ notes, w: Math.pow(antic * p * 2 ** (-parallel * c), 1 / T), last: notes[notes.length - 1][2], held: f[0][3] === 1 });
+          res.push({ notes, w: Math.pow(antic * (notes.length > 1 ? motion : 1) * p * 2 ** (-parallel * c), 1 / T), last: notes[notes.length - 1][2], held: f[0][3] === 1 });
         }
         // a suspension wherever it can be earned: the note before a step above this beat's tone and dissonant
         // over it (a fourth, seventh or ninth over the bass, or a second against a voice): held over half the
@@ -340,33 +351,63 @@ export function figurate(fm: FigureModel, grid: Note[][], surface: Note[], tones
       cache.set(key, res);
       return res;
     };
-    // the whole line drawn at once: a state is the figure's last pitch at a beat; each beat's figures are
-    // weighed by what the rest of the line can still do after them (backward filtering), then drawn forward
-    const lastsAt: Set<string | null>[] = [new Set([null])];
+    // the whole line drawn at once: a state is the line's last pitch at a beat and the direction of its last
+    // step (up, down, or none after a leap or a repeat); a figure whose first move continues that step is
+    // worth `flow` more (a scale passage carried across the beat: Bach's inner lines run three steps or more
+    // one way in 24% of their moves, the beat-by-beat draw in 16%). Each beat's figures are weighed by what
+    // the rest of the line can still do after them (backward filtering), then drawn forward.
+    const stepDir = (x: string, y: string) => {
+      const d = midiOf(y) - midiOf(x);
+      return Math.abs(d) >= 1 && Math.abs(d) <= 2 ? Math.sign(d) : 0;
+    };
+    type Cand = { notes: Note[]; w: number; last: string; held: boolean };
+    const dirOut = (c: Cand, prev: string | null) => {
+      const ns = c.notes;
+      if (ns.length > 1) return stepDir(ns[ns.length - 2][2], ns[ns.length - 1][2]);
+      return prev ? stepDir(prev, ns[0][2]) : 0;
+    };
+    const weigh = (c: Cand, prev: string | null, dir: number) => {
+      const first = c.held ? (c.notes[1]?.[2] ?? null) : c.notes[0][2];
+      const from0 = c.held ? c.notes[0][2] : prev;
+      const cont = dir !== 0 && from0 && first && stepDir(from0, first) === dir;
+      return cont ? c.w * flow : c.w;
+    };
+    const keyOf = (p: string | null, d: number) => `${p}|${d}`;
+    const parse = (k: string): [string | null, number] => {
+      const j = k.lastIndexOf("|");
+      const p = k.slice(0, j);
+      return [p === "null" ? null : p, Number(k.slice(j + 1))];
+    };
+    const statesAt: Set<string>[] = [new Set([keyOf(null, 0)])];
     for (let i = 0; i < n; i++) {
-      const next = new Set<string | null>();
-      for (const p of lastsAt[i]) for (const c of cands(i, p)) next.add(c.last);
-      lastsAt.push(next);
+      const next = new Set<string>();
+      for (const k of statesAt[i]) {
+        const [p] = parse(k);
+        for (const c of cands(i, p)) next.add(keyOf(c.last, dirOut(c, p)));
+      }
+      statesAt.push(next);
     }
-    const beta: Map<string | null, number>[] = new Array(n + 1);
-    beta[n] = new Map([...lastsAt[n]].map((p) => [p, 1]));
+    const beta: Map<string, number>[] = new Array(n + 1);
+    beta[n] = new Map([...statesAt[n]].map((k) => [k, 1]));
     for (let i = n - 1; i >= 0; i--) {
-      const m = new Map<string | null, number>();
+      const m = new Map<string, number>();
       let z = 0;
-      for (const p of lastsAt[i]) {
+      for (const k of statesAt[i]) {
+        const [p, d] = parse(k);
         let x = 0;
-        for (const c of cands(i, p)) x += c.w * (beta[i + 1].get(c.last) ?? 0);
-        m.set(p, x);
+        for (const c of cands(i, p)) x += weigh(c, p, d) * (beta[i + 1].get(keyOf(c.last, dirOut(c, p))) ?? 0);
+        m.set(k, x);
         z += x;
       }
-      if (z > 0) for (const [p, x] of m) m.set(p, x / z);
+      if (z > 0) for (const [k, x] of m) m.set(k, x / z);
       beta[i] = m;
     }
     const notes: Note[] = [];
-    let prev: string | null = null;
+    let prev: string | null = null,
+      dir = 0;
     for (let i = 0; i < n; i++) {
       const cs = cands(i, prev);
-      const ws = cs.map((c) => c.w * (beta[i + 1].get(c.last) ?? 0));
+      const ws = cs.map((c) => weigh(c, prev, dir) * (beta[i + 1].get(keyOf(c.last, dirOut(c, prev))) ?? 0));
       const z = ws.reduce((a, b) => a + b, 0);
       let u = r() * (z > 0 ? z : cs.length),
         k = 0;
@@ -379,6 +420,7 @@ export function figurate(fm: FigureModel, grid: Note[][], surface: Note[], tones
         if (j === 0 && pick.held && lastNote) lastNote[1] += nt[1];
         else notes.push([...nt] as Note);
       });
+      dir = dirOut(pick, prev);
       prev = pick.last;
     }
     // keep the fermatas where the grid has them
