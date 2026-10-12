@@ -1,0 +1,229 @@
+{
+ "id": "wtc2f10",
+ "title": "II.10: Fugue in E minor",
+ "voices": 3,
+ "groocock": {
+  "group": 2,
+  "chapter": "7 Group 2: Fugues for Three Voices, without Stretto",
+  "pages": "45-48",
+  "pdf_pages": "58-61"
+ },
+ "entries": [
+  {
+   "bars": "1-6",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "7-12",
+   "voice": "middle",
+   "form": "answer",
+   "key": "v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "real answer"
+  },
+  {
+   "bars": "13-17",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS leaps shared between soprano and middle"
+  },
+  {
+   "bars": "23-29",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "III",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": "first major-key entry; CS changed"
+  },
+  {
+   "bars": "29-35",
+   "voice": "middle",
+   "form": "answer",
+   "key": "bVII",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS drastically changed"
+  },
+  {
+   "bars": "41-47",
+   "voice": "bass",
+   "form": "answer",
+   "key": "v",
+   "section": "entries in the keys of the exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "49-55",
+   "voice": "middle",
+   "form": "subject",
+   "key": "i",
+   "section": "entries in the keys of the exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS in original form (bar 50), ending altered 54-55"
+  },
+  {
+   "bars": "59-65",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "iv",
+   "section": "entries in other keys, continued",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "71-77",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "final and most important entry; new treatment of CS with upward tenths"
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "18-23",
+   "from_key": "i",
+   "to_key": "III",
+   "material": "18-20 last bar of subject in bass with jerky ending of CS in two-part imitation; 20-23 new version of first CS figure, rising/falling scales",
+   "sequence": "rising then falling sequence"
+  },
+  {
+   "number": 2,
+   "bars": "35-41",
+   "from_key": "bVII",
+   "to_key": "V (diagram bVII-v)",
+   "material": "35-37 new version of first section of ep.1, chromatic bass; 37-41 codetta figure in bass, freely imitated",
+   "sequence": "sequence falling by thirds (37-41)"
+  },
+  {
+   "number": 3,
+   "bars": "47-49",
+   "from_key": "v",
+   "to_key": "i",
+   "material": "repeats first section of episode 1",
+   "sequence": null
+  },
+  {
+   "number": 4,
+   "bars": "55-59",
+   "from_key": "i",
+   "to_key": "iv",
+   "material": "altered CS ending in rising scale; soprano repeats bass of ep.1 rising by ninths; jerky rhythm in middle",
+   "sequence": "rising"
+  },
+  {
+   "number": 5,
+   "bars": "65-70",
+   "from_key": "iv",
+   "to_key": "i",
+   "material": "last bar of subject in middle and bass (distribution of bass of ep.1); allusions; stops abruptly on a pause on the dominant (bar 70)",
+   "sequence": null
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "6 (from seventh note)",
+   "notes": "repeats end of bar 5 a third higher, joins subject to CS"
+  },
+  {
+   "bars": "12",
+   "notes": "same codetta, approached by a seventh"
+  },
+  {
+   "bars": "18, 29, 35, 47, 55, 65, 77",
+   "notes": "codetta used at end of other entries to lead into episodes/coda"
+  }
+ ],
+ "coda": "77-86 (dominant pedal)",
+ "cadences": [
+  {
+   "bar": "23",
+   "key": "III",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "29",
+   "key": "bVII",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "55",
+   "key": "i",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "65",
+   "key": "iv",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "70",
+   "key": "V",
+   "kind": "pause on the dominant",
+   "source": "text"
+  },
+  {
+   "bar": "86",
+   "key": "i",
+   "kind": "perfect",
+   "source": "diagram"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "bar 7",
+  "interchange": "fifteenth",
+  "notes": "does not occur again in original form until bar 50; drastically changed in its six other appearances (13, 24, 30, 42, 60, 72); broken-chord figures spread over two voices (p.16)"
+ },
+ "subject": {
+  "ends": "seventh note of bar 6",
+  "answer": "real",
+  "notes": "dominant strongly accented at beginning of bar 2 but approached by upward steps, so a tonal answer is impossible"
+ },
+ "key_plan": "Group 2 table: Exp i v i | Dev EP III bVII EP v EP i EP iv | Final EP i",
+ "claims": [
+  {
+   "claim": "Exposition entries delayed by codettas at bars 6 and 12.",
+   "page": 32
+  },
+  {
+   "claim": "Codetta joins subject to CS; approached by octave (6, 29, 77), seventh (12, 18, 35, 47, 65) or minor ninth (55).",
+   "page": 46
+  },
+  {
+   "claim": "CS appears in original form only at bar 50 after the exposition; drastically changed in six other appearances.",
+   "page": 46
+  },
+  {
+   "claim": "Episode 5 stops abruptly on a pause on the dominant (bar 70).",
+   "page": 48
+  }
+ ],
+ "extensions": []
+}

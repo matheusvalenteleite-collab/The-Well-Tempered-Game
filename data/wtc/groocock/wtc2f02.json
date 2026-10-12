@@ -1,0 +1,375 @@
+{
+ "id": "wtc2f02",
+ "groocock": {
+  "group": 5,
+  "pages": "119-121"
+ },
+ "entries": [
+  {
+   "bars": "1-2",
+   "voice": "alto",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "2-3",
+   "voice": "soprano",
+   "form": "answer [tonal]",
+   "key": "v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS in alto"
+  },
+  {
+   "bars": "4-5",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS recurs"
+  },
+  {
+   "bars": "7-8",
+   "voice": "tenor",
+   "form": "answer",
+   "key": "i",
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "some editors read this as the bass; harmonized in i (bb)"
+  },
+  {
+   "bars": "8-9",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "first and third notes shortened"
+  },
+  {
+   "bars": "10-11",
+   "voice": "alto",
+   "form": "answer",
+   "key": null,
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "11-12",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "iv",
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "14-15",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "development",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "14-16",
+   "voice": "alto",
+   "form": "subject (augmented)",
+   "key": "i",
+   "section": "development",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "15-16",
+   "voice": "tenor",
+   "form": "answer (inverted)",
+   "key": "i",
+   "section": "development",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": "altered at two points for euphony"
+  },
+  {
+   "bars": "16-17",
+   "voice": "alto",
+   "form": "answer",
+   "key": "v",
+   "section": "development",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "16-17",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "v-i",
+   "section": "development",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "17-18",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "i-iv",
+   "section": "development",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "17-18",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "iv-bVII",
+   "section": "development",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "18-19",
+   "voice": "alto",
+   "form": "subject",
+   "key": "bVII-III",
+   "section": "development",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": "decoration of first intervals"
+  },
+  {
+   "bars": "19-21",
+   "voice": "bass",
+   "form": "subject (augmented)",
+   "key": "i",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "long-delayed bass entry; CS in alto"
+  },
+  {
+   "bars": "21-22",
+   "voice": "bass",
+   "form": "answer (inverted)",
+   "key": "i",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "22-23",
+   "voice": "bass",
+   "form": "answer (direct)",
+   "key": "i",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "23-24",
+   "voice": "alto",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "23-24",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "i",
+   "section": "final section",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "24-25",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "iv",
+   "section": "final section",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "25-26",
+   "voice": "alto",
+   "form": "subject",
+   "key": "iv",
+   "section": "final section",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "25-26",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "iv",
+   "section": "final section",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "26-27",
+   "voice": "bass",
+   "form": "answer (inverted)",
+   "key": "iv-i",
+   "section": "final section",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": "ending altered to lead into coda"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "5-7",
+   "name": "episode",
+   "from_key": null,
+   "to_key": null,
+   "material": "tenor makes new running theme adding a scale to intervals of the subject in diminution; soprano in tenths, then imitates by inversion",
+   "sequence": null
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "3-4"
+  },
+  {
+   "bars": "11"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "9-10",
+   "to": "falling sequence, modulating to iv"
+  },
+  {
+   "bars": "12-14",
+   "to": "quasi sequence to cadence in V"
+  },
+  {
+   "bars": "23",
+   "to": "cadence in i"
+  }
+ ],
+ "cadences": [
+  {
+   "bar": "14",
+   "key": "v",
+   "kind": "cadence (diagram 'v/')"
+  },
+  {
+   "bar": "23",
+   "key": "i",
+   "kind": "cadence"
+  },
+  {
+   "bar": "28",
+   "key": "i",
+   "kind": "final (diagram)"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "2-3 (alto)",
+  "interchange": null,
+  "notes": "'the simplest of countersubjects'"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "tonal (subject starts on dominant)",
+  "notes": "fugue regarded (after Tovey) as three-voice until bass entry at 19"
+ },
+ "stretti": [
+  {
+   "name": "Stretto 1",
+   "bars": "14-16",
+   "voices": [
+    "soprano (S)",
+    "alto (S aug)",
+    "tenor (A inv)"
+   ],
+   "interval": null,
+   "timing": null,
+   "notes": null
+  },
+  {
+   "name": "Stretto 2",
+   "bars": "16-19",
+   "voices": [
+    "alto",
+    "soprano",
+    "tenor",
+    "soprano",
+    "alto"
+   ],
+   "interval": null,
+   "timing": "overlapping by four notes",
+   "notes": "five entries"
+  },
+  {
+   "name": "Stretto 3",
+   "bars": "23-24",
+   "voices": [
+    "alto (S)",
+    "soprano (A)"
+   ],
+   "interval": null,
+   "timing": "overlap after two notes",
+   "notes": null
+  },
+  {
+   "name": "Stretto 4",
+   "bars": "24-27",
+   "voices": [
+    "soprano",
+    "alto",
+    "tenor",
+    "bass (A inv)"
+   ],
+   "interval": null,
+   "timing": "alto two notes later, tenor four notes later",
+   "notes": "reverses previous order"
+  }
+ ],
+ "claims": [
+  {
+   "page": 119,
+   "claim": "Fugue in three voices until bar 19 (following Tovey); manuscript ambiguous"
+  },
+  {
+   "page": 120,
+   "claim": "Development = two stretti and a chain of bass entries (augmented, inverted, direct)"
+  },
+  {
+   "page": 120,
+   "claim": "Final section consists of two more stretti; stretto 3 overlaps after two notes instead of four"
+  }
+ ]
+}

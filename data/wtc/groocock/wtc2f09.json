@@ -1,0 +1,461 @@
+{
+ "id": "wtc2f09",
+ "groocock": {
+  "group": 5,
+  "pages": "111-114"
+ },
+ "entries": [
+  {
+   "bars": "1-2",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "2-4",
+   "voice": "tenor",
+   "form": "answer [real]",
+   "key": "V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "countersubject in bass"
+  },
+  {
+   "bars": "4-5",
+   "voice": "alto",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "5-7",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "a# could be ornamenting dominant rather than modulating"
+  },
+  {
+   "bars": "9-10",
+   "voice": "alto",
+   "form": "answer",
+   "key": "I",
+   "section": "counterexposition",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "9-11",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "I",
+   "section": "counterexposition",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": "follows after one note"
+  },
+  {
+   "bars": "10-12",
+   "voice": "bass",
+   "form": "answer",
+   "key": "I",
+   "section": "counterexposition",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": "arrives at fourth note of tenor subject"
+  },
+  {
+   "bars": "11-12",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "counterexposition",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": "chromatic alteration of final note"
+  },
+  {
+   "bars": "16-17",
+   "voice": "alto",
+   "form": "subject",
+   "key": "vi",
+   "section": "development",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "17-18",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "I-V",
+   "section": "development",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "19-20",
+   "voice": "bass",
+   "form": "subject",
+   "key": "V",
+   "section": "development",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "20-21",
+   "voice": "tenor",
+   "form": "answer",
+   "key": "V-ii",
+   "section": "development",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "23-24",
+   "voice": "soprano",
+   "form": "subject (ornamented)",
+   "key": "ii-vi",
+   "section": "development",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": "extra step between 2nd and 3rd notes, highest note lengthened"
+  },
+  {
+   "bars": "23-24",
+   "voice": "alto",
+   "form": "answer (ornamented)",
+   "key": "ii-vi",
+   "section": "development",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": "one beat later"
+  },
+  {
+   "bars": "25-26",
+   "voice": "bass",
+   "form": "subject (ornamented)",
+   "key": "vi",
+   "section": "development",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "25-26",
+   "voice": "tenor",
+   "form": "answer (ornamented)",
+   "key": "vi",
+   "section": "development",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": "one beat later; starts on supertonic of vi"
+  },
+  {
+   "bars": "26-27",
+   "voice": "soprano",
+   "form": "subject (diminished)",
+   "key": "vi-V",
+   "section": "development",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": "overlaps previous stretto by one note"
+  },
+  {
+   "bars": "27-28",
+   "voice": "alto",
+   "form": "answer (diminished)",
+   "key": "vi-V",
+   "section": "development",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "28-29",
+   "voice": "tenor",
+   "form": "subject (diminished)",
+   "key": "V-I",
+   "section": "development",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "28-29",
+   "voice": "bass",
+   "form": "answer (diminished)",
+   "key": "V-I",
+   "section": "development",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "30-31",
+   "voice": "bass",
+   "form": "answer (diminished)",
+   "key": "V",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "'almost concealed' by the interrupted cadence; altered final note; printed in text as 'diminished subject [answer]'"
+  },
+  {
+   "bars": "30-32",
+   "voice": "alto",
+   "form": "subject",
+   "key": "I",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "35-36",
+   "voice": "alto",
+   "form": "answer",
+   "key": "I",
+   "section": "final section",
+   "stretto": "Stretto 5",
+   "redundant": false,
+   "notes": "countersubject in soprano"
+  },
+  {
+   "bars": "35-37",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": "Stretto 5",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "36-38",
+   "voice": "bass",
+   "form": "answer",
+   "key": "I",
+   "section": "final section",
+   "stretto": "Stretto 5",
+   "redundant": false,
+   "notes": "CS in alto at 37"
+  },
+  {
+   "bars": "37-39",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": "Stretto 5",
+   "redundant": false,
+   "notes": "delayed until bass has almost finished; CS in tenor"
+  },
+  {
+   "bars": "40-41",
+   "voice": "bass",
+   "form": "answer",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "final entry, CS in alto"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "12-16",
+   "name": "episode",
+   "from_key": "I",
+   "to_key": "vi",
+   "material": "bass extends falling steps of answer; soprano allusion to CS followed in canon at fourth by alto, bass, tenor",
+   "sequence": null
+  }
+ ],
+ "codettas": [],
+ "extensions": [
+  {
+   "bars": "7-9",
+   "to": "cadence on dominant of I"
+  },
+  {
+   "bars": "18",
+   "to": "half-bar extension"
+  },
+  {
+   "bars": "21-23",
+   "to": "cadence in ii"
+  },
+  {
+   "bars": "29-30",
+   "to": "interrupted cadence in I"
+  },
+  {
+   "bars": "32-35",
+   "to": "free rising sequence recalling bar 22, to cadence in iii"
+  },
+  {
+   "bars": "39",
+   "to": "downward sequential extension"
+  }
+ ],
+ "cadences": [
+  {
+   "bar": "9",
+   "key": "dominant of I",
+   "kind": "end of exposition"
+  },
+  {
+   "bar": "16",
+   "key": "vi",
+   "kind": "cadence ending episode (diagram)"
+  },
+  {
+   "bar": "23",
+   "key": "ii",
+   "kind": "cadence"
+  },
+  {
+   "bar": "27-28",
+   "key": "V",
+   "kind": "diagram 'V/' (uncertain reading)"
+  },
+  {
+   "bar": "30",
+   "key": "I",
+   "kind": "interrupted cadence"
+  },
+  {
+   "bar": "35",
+   "key": "iii",
+   "kind": "cadence"
+  },
+  {
+   "bar": "43",
+   "key": "I",
+   "kind": "final (diagram)"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "2-3 (bass)",
+  "interchange": null,
+  "notes": "never again used in full; absent after exposition until final section; its beginning used as accompanying figure; stretto 2 accompanied by a pair of themes developed from it"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "real; subject uses only four scale notes without leading note, so answer can be heard as lower tetrachord in V or upper tetrachord in I",
+  "notes": "whole exposition more in E than B"
+ },
+ "stretti": [
+  {
+   "name": "Stretto 1",
+   "bars": "9-12",
+   "voices": [
+    "alto (A)",
+    "tenor (S)",
+    "bass (A)",
+    "soprano (S)"
+   ],
+   "interval": "answer-subject",
+   "timing": "subject after one note; next answer at 4th note of subject",
+   "notes": "counterexposition in stretto, as in II.7"
+  },
+  {
+   "name": "Stretto 2",
+   "bars": "16-23",
+   "voices": [
+    "alto (S)",
+    "soprano (A)",
+    "bass (S)",
+    "tenor (A)"
+   ],
+   "interval": "subject-answer pairs",
+   "timing": "one bar within each pair",
+   "notes": "modulating; accompanied by pair of themes from CS"
+  },
+  {
+   "name": "Stretto 3",
+   "bars": "23-26",
+   "voices": [
+    "soprano (S)",
+    "alto (A)",
+    "bass (S)",
+    "tenor (A)"
+   ],
+   "interval": "subject-answer",
+   "timing": "one beat",
+   "notes": "ornamented subject makes closer subject-answer stretto possible"
+  },
+  {
+   "name": "Stretto 4",
+   "bars": "26-30",
+   "voices": [
+    "soprano (S)",
+    "alto (A)",
+    "tenor (S)",
+    "bass (A)"
+   ],
+   "interval": "subject-answer pairs",
+   "timing": null,
+   "notes": "in diminution; tonality shifting throughout"
+  },
+  {
+   "name": "Stretto 5",
+   "bars": "35-39",
+   "voices": [
+    "alto (A)",
+    "tenor (S)",
+    "bass (A)",
+    "soprano (S)"
+   ],
+   "interval": "answer-subject",
+   "timing": null,
+   "notes": "recapitulates stretto 1 with countersubject; soprano entry delayed"
+  }
+ ],
+ "claims": [
+  {
+   "page": 112,
+   "claim": "Countersubject never again used in full and absent after the exposition until the final section"
+  },
+  {
+   "page": 112,
+   "claim": "Counterexposition is in stretto, as in II.7"
+  },
+  {
+   "page": 113,
+   "claim": "Stretti use answer-subject (close) and subject-answer (more distant); ornamentation allows a closer subject-answer"
+  },
+  {
+   "page": 113,
+   "claim": "Extra diminished entry at 30 is almost concealed by the interrupted cadence"
+  },
+  {
+   "page": 114,
+   "claim": "Order of voice pairs varies in every stretto (table: exposition B,T:A,S; Str1 A,T:B,S; Str2 A,S:B,T; Str3 S,A:B,T; Str4 S,A:T,B; Str5 A,T:B,S)"
+  }
+ ],
+ "voice_order_table": {
+  "exposition": "bass, tenor: alto, soprano",
+  "Stretto 1": "alto, tenor: bass, soprano",
+  "Stretto 2": "alto, soprano: bass, tenor",
+  "Stretto 3": "soprano, alto: bass, tenor",
+  "Stretto 4": "soprano, alto: tenor, bass",
+  "Stretto 5": "alto, tenor: bass, soprano"
+ }
+}

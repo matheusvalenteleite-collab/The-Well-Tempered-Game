@@ -1,0 +1,188 @@
+{
+ "id": "wtc2f11",
+ "title": "II.11: Fugue in F major",
+ "voices": 3,
+ "groocock": {
+  "group": 2,
+  "chapter": "7 Group 2: Fugues for Three Voices, without Stretto",
+  "pages": "52-54",
+  "pdf_pages": "65-67"
+ },
+ "entries": [
+  {
+   "bars": "1-5",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "5-9",
+   "voice": "middle",
+   "form": "answer",
+   "key": "I-V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "tonal; tonic retained until second half of bar 7; accompanied by leaping fifths/fourths figure"
+  },
+  {
+   "bars": "14-18",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "enters as if on third beat of a 6/8 bar because of the canon cross-rhythm"
+  },
+  {
+   "bars": "21-25",
+   "voice": "bass",
+   "form": "answer",
+   "key": "V",
+   "section": "extension of exposition",
+   "stretto": null,
+   "redundant": true,
+   "notes": "redundant entry; uses B-natural so it is entirely in the dominant (OCR \"Bk\")"
+  },
+  {
+   "bars": "52-56",
+   "voice": "middle",
+   "form": "subject",
+   "key": "I",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "66-70",
+   "voice": "bass",
+   "form": "subject",
+   "key": "IV",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "only entry outside the keys of the exposition"
+  },
+  {
+   "bars": "85-89",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "diagram key i-I"
+  },
+  {
+   "bars": "89-95",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "suggests answer at its beginning; extended by sequence to six bars; new demisemiquaver accompaniment"
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "9-14",
+   "from_key": null,
+   "to_key": null,
+   "material": "second figure of bar 3 and first figure of bar 4 linked by tied note; two-part canon at the fourth below after one bar (or sixth above after one beat); soprano alone in 3/4 cross-rhythm",
+   "sequence": "canon"
+  },
+  {
+   "number": 2,
+   "bars": "18-21",
+   "from_key": null,
+   "to_key": null,
+   "material": "bar 4 in three-part imitation with jerky rhythm of bars 6-7",
+   "sequence": "imitation"
+  },
+  {
+   "number": 3,
+   "bars": "25-52",
+   "from_key": "V",
+   "to_key": "I (transient modulations to vi, ii, v)",
+   "material": "four sections: 25-29 rising sequence in bass with ep.2 material; 29-37 develops ep.2 (V to vi and ii); 37-45 canon of ep.1 in duple time; 45-52 return to 25-29 material with transient modulations",
+   "sequence": "rising sequence"
+  },
+  {
+   "number": 4,
+   "bars": "56-66",
+   "from_key": "I",
+   "to_key": "IV",
+   "material": "56-61 development of ep.1, new canon at the sixth above at one beat; 61-66 decorated suspensions above a dominant pedal in IV",
+   "sequence": "canon"
+  },
+  {
+   "number": 5,
+   "bars": "70-85",
+   "from_key": "IV",
+   "to_key": "i",
+   "material": "70-76 new canon (soprano leads, middle a seventh below) IV-bVII-dominant of I; 76-85 recalls 61-65 over dominant pedal in I minor",
+   "sequence": "canon"
+  }
+ ],
+ "coda": "95-99",
+ "cadences": [
+  {
+   "bar": "29",
+   "key": "V",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "89",
+   "key": "I",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "99",
+   "key": "I",
+   "kind": "perfect",
+   "source": "diagram"
+  }
+ ],
+ "countersubjects": {
+  "count": 0,
+  "first": null,
+  "interchange": null,
+  "notes": "no regular countersubject; accompaniment different each time; recurring figures mainly rhythmic; only recognizable melodic line soprano 16-18 used again 23-25"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "tonal (special case: diatonic auxiliary)",
+  "notes": "subject begins with tonic ornamented by lower auxiliary (semitone); answer begins with dominant ornamented by a tone; fourth note dominant answered by tonic; p.6: semitone f-e-f answered by whole tone c-bb-c (diatonic auxiliary principle in reverse); II.21 treated similarly"
+ },
+ "key_plan": "Group 2 table: Exp I V EP I | EP V | Dev EP I EP IV | Final EP I I",
+ "claims": [
+  {
+   "claim": "Exposition has an episode (bars 9-14) before the third entry; redundant answer at bar 21.",
+   "page": 32
+  },
+  {
+   "claim": "Only fugue in Group 2 with no entry in the relative minor/major; only one entry (IV) outside exposition keys.",
+   "page": 53
+  },
+  {
+   "claim": "Introducing fresh material (demisemiquavers) in the last bars is unlike Bach's usual practice; foreshadowed by run in bar 45.",
+   "page": 53
+  },
+  {
+   "claim": "No countersubject, but the exposition provides melodic or rhythmic figures for later development (with II.12, II.19).",
+   "page": 15
+  }
+ ],
+ "codettas": [],
+ "extensions": []
+}

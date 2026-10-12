@@ -1,0 +1,197 @@
+{
+ "id": "wtc2f20",
+ "title": "II.20: Fugue in A minor",
+ "voices": 3,
+ "groocock": {
+  "group": 2,
+  "chapter": "7 Group 2: Fugues for Three Voices, without Stretto",
+  "pages": "48-50",
+  "pdf_pages": "61-63"
+ },
+ "entries": [
+  {
+   "bars": "1-3",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "3-5",
+   "voice": "middle",
+   "form": "answer",
+   "key": "v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "tonal; codetta forces it immediately into the dominant; with C1"
+  },
+  {
+   "bars": "6-8",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "with C1 and C2"
+  },
+  {
+   "bars": "9-11",
+   "voice": "bass",
+   "form": "subject (answer)",
+   "key": "III",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": "doubtful: subject form with inserted passing note or answer with shortened first note"
+  },
+  {
+   "bars": "13-15",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "v",
+   "section": "entries in the keys of the exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "clearly the answer, an octave above the original"
+  },
+  {
+   "bars": "17-19",
+   "voice": "middle",
+   "form": "subject (answer)",
+   "key": "i",
+   "section": "entries in the keys of the exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "in tonic but answer form (alternative text makes it like bar 9)"
+  },
+  {
+   "bars": "21-23",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "iv",
+   "section": "entries in other keys, continued",
+   "stretto": null,
+   "redundant": false,
+   "notes": "C1 with extra notes; followed by extension (diagram \"ext\" bar 23)"
+  },
+  {
+   "bars": "25-27",
+   "voice": "bass",
+   "form": "subject (answer)",
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "repeats the doubtful form of bar 9; C1 transformed into running semiquavers"
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "5-6",
+   "from_key": null,
+   "to_key": null,
+   "material": "grows out of final figure of answer, combining subject and codetta figures, with runs from C1",
+   "sequence": "falling sequence"
+  },
+  {
+   "number": 2,
+   "bars": "8-10",
+   "from_key": "i",
+   "to_key": "III",
+   "material": "repeats ep.1 with added bass notes, then runs of ep.1 in two-part imitation overlapping the bass entry (table prints 8-9)",
+   "sequence": null
+  },
+  {
+   "number": 3,
+   "bars": "11-13",
+   "from_key": "III",
+   "to_key": "v",
+   "material": "final figure of bass entry joined to final figure of C1 and imitated a fifth higher: effect of three-part canon",
+   "sequence": "canon"
+  },
+  {
+   "number": 4,
+   "bars": "15-17",
+   "from_key": "v",
+   "to_key": "i",
+   "material": "repeats first half of ep.1 (three octaves apart), then interchange; three-part imitation of bar 9 material",
+   "sequence": null
+  },
+  {
+   "number": 5,
+   "bars": "19-21",
+   "from_key": "i",
+   "to_key": "iv",
+   "material": "end of C1 repeated five times as ornamented rising scale; upper voices imitate first figure of C1",
+   "sequence": "total effect a falling sequence"
+  },
+  {
+   "number": 6,
+   "bars": "23-25",
+   "from_key": "iv",
+   "to_key": "i",
+   "material": "repeat of ep.1 with added sixths; bar 25 develops beginning of bar 13",
+   "sequence": null
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "3",
+   "notes": "four-note codetta linking subject to C1"
+  }
+ ],
+ "coda": "27-28",
+ "cadences": [
+  {
+   "bar": "8",
+   "key": "i",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "15",
+   "key": "v",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "28",
+   "key": "i",
+   "kind": "perfect",
+   "source": "diagram"
+  }
+ ],
+ "countersubjects": {
+  "count": 2,
+  "first": "bar 3 (C1, downward run, ends first note of bar 5); C2 bass bars 7-8",
+  "interchange": "fifteenth",
+  "notes": "C1 same form with every entry until bar 21; transformed at 25. C2 reappears bass 14-15; altered ending middle 10-11, soprano 18, middle 22"
+ },
+ "subject": {
+  "ends": "first note of bar 3",
+  "answer": "tonal",
+  "notes": "subject begins on dominant; codetta forces answer immediately into the dominant"
+ },
+ "key_plan": "Group 2 table: Exp i v EP i | Dev EP III EP v EP i EP iv | Final EP i",
+ "claims": [
+  {
+   "claim": "Exposition has an episode (bars 5-6) before the third entry.",
+   "page": 32
+  },
+  {
+   "claim": "Order of entry bass-middle-soprano with two countersubjects.",
+   "page": 20
+  },
+  {
+   "claim": "Coda (bars 27-28) \"a model of economy\".",
+   "page": 49
+  }
+ ],
+ "extensions": []
+}

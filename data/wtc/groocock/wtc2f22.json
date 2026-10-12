@@ -1,0 +1,412 @@
+{
+ "id": "wtc2f22",
+ "groocock": {
+  "group": 5,
+  "pages": "121-124"
+ },
+ "entries": [
+  {
+   "bars": "1-5",
+   "voice": "alto",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition of direct subject",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "5-9",
+   "voice": "soprano",
+   "form": "answer [real]",
+   "key": "v",
+   "section": "exposition of direct subject",
+   "stretto": null,
+   "redundant": false,
+   "notes": "d-flats at end of subject answered by a-naturals (tierce de Picardie); CS in alto"
+  },
+  {
+   "bars": "11-15",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition of direct subject",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS alto; soprano adds significant counterpoint"
+  },
+  {
+   "bars": "17-21",
+   "voice": "tenor",
+   "form": "answer",
+   "key": "v-III",
+   "section": "exposition of direct subject",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS bass"
+  },
+  {
+   "bars": "27-31",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "i",
+   "section": "stretto of direct subject",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "27-31",
+   "voice": "alto",
+   "form": "subject",
+   "key": "i",
+   "section": "stretto of direct subject",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": "one beat later, a seventh higher"
+  },
+  {
+   "bars": "33-37",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "III",
+   "section": "stretto of direct subject",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "33-37",
+   "voice": "bass",
+   "form": "subject",
+   "key": "III",
+   "section": "stretto of direct subject",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": "one beat later, a ninth lower; above and below a dominant pedal in III"
+  },
+  {
+   "bars": "42-46",
+   "voice": "tenor",
+   "form": "subject (inverted)",
+   "key": "i",
+   "section": "exposition of inverted subject",
+   "stretto": null,
+   "redundant": false,
+   "notes": "inverted CS in alto (as far as held note); all four voices"
+  },
+  {
+   "bars": "46-50",
+   "voice": "alto",
+   "form": "subject (inverted)",
+   "key": "iv",
+   "section": "exposition of inverted subject",
+   "stretto": null,
+   "redundant": false,
+   "notes": "inverted CS tenor; soprano drops out"
+  },
+  {
+   "bars": "52-56",
+   "voice": "soprano",
+   "form": "subject (inverted)",
+   "key": "III-VI",
+   "section": "exposition of inverted subject",
+   "stretto": null,
+   "redundant": false,
+   "notes": "inverted CS alto"
+  },
+  {
+   "bars": "58-62",
+   "voice": "bass",
+   "form": "subject (inverted)",
+   "key": "bvii",
+   "section": "exposition of inverted subject",
+   "stretto": null,
+   "redundant": false,
+   "notes": "inverted CS (lacking opening bar) soprano; four-part texture reestablished"
+  },
+  {
+   "bars": "67-71",
+   "voice": "tenor",
+   "form": "subject (inverted)",
+   "key": "i",
+   "section": "stretto of inverted subject",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": "on decorated tonic pedal"
+  },
+  {
+   "bars": "67-71",
+   "voice": "soprano",
+   "form": "subject (inverted)",
+   "key": "i",
+   "section": "stretto of inverted subject",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": "one beat later, a ninth higher"
+  },
+  {
+   "bars": "73-77",
+   "voice": "alto",
+   "form": "subject (inverted)",
+   "key": "v",
+   "section": "stretto of inverted subject",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "73-77",
+   "voice": "bass",
+   "form": "subject (inverted)",
+   "key": "v",
+   "section": "stretto of inverted subject",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": "one beat later, a seventh lower"
+  },
+  {
+   "bars": "80-84",
+   "voice": "soprano",
+   "form": "subject (inverted)",
+   "key": "bVII",
+   "section": "stretto of direct and inverted subject",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "80-84",
+   "voice": "tenor",
+   "form": "subject (direct)",
+   "key": "bVII",
+   "section": "stretto of direct and inverted subject",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": "one beat later, a sixth lower"
+  },
+  {
+   "bars": "89-93",
+   "voice": "bass",
+   "form": "subject (direct)",
+   "key": "i",
+   "section": "stretto of direct and inverted subject",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "89-93",
+   "voice": "alto",
+   "form": "subject (inverted)",
+   "key": "i",
+   "section": "stretto of direct and inverted subject",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": "one beat later, a sixth higher"
+  },
+  {
+   "bars": "96-101",
+   "voice": "soprano and alto",
+   "form": "subject (direct, in sixths)",
+   "key": "i",
+   "section": "stretto of direct and inverted subject, with added thirds and sixths (final section)",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": "simultaneous entry starting on chord VI; continuation in thirds after the rest"
+  },
+  {
+   "bars": "96-101",
+   "voice": "tenor and bass",
+   "form": "subject (inverted, in thirds)",
+   "key": "i",
+   "section": "stretto of direct and inverted subject, with added thirds and sixths (final section)",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": "closely following; lower voices omit the final figures of the subject"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "9-11",
+   "name": "episode 1",
+   "from_key": null,
+   "to_key": null,
+   "material": "final figure of answer and countersubject",
+   "sequence": "falling sequence"
+  },
+  {
+   "bars": "15-17",
+   "name": "episode 2",
+   "from_key": null,
+   "to_key": null,
+   "material": "interchange of bass and alto of episode 1; soprano continues figures of bar 14",
+   "sequence": "quasi sequence"
+  },
+  {
+   "bars": "21-27",
+   "name": "episode 3",
+   "from_key": "v",
+   "to_key": "III and i",
+   "material": "tenor and alto imitate final figure of answer; bass falling sequence from soprano figure of bar 15 and chromatic CS steps; after cadence in III at 25 soprano and alto imitate final figure of subject",
+   "sequence": "falling sequence"
+  },
+  {
+   "bars": "37-42",
+   "name": "episode 4",
+   "from_key": "III",
+   "to_key": "i",
+   "material": "final figure of subject in bass; soprano alludes to detached crotchets of bar 13; alto part of CS",
+   "sequence": "freely interchanged"
+  },
+  {
+   "bars": "62-67",
+   "name": "episode 5",
+   "from_key": "bvii",
+   "to_key": "i",
+   "material": "new development of final subject figure, alto imitated by soprano; ornamental figure later used by bass",
+   "sequence": "rising sequence"
+  },
+  {
+   "bars": "77-80",
+   "name": "episode 6",
+   "from_key": "v",
+   "to_key": "bVII",
+   "material": "final figure of inverted subject; soprano and bass in tenths imitated by alto and tenor in tenths",
+   "sequence": "rising sequence"
+  },
+  {
+   "bars": "84-89",
+   "name": "episode 7",
+   "from_key": "bVII",
+   "to_key": "i",
+   "material": "end of subject developed into a four-beat theme repeated across three-beat bars, partial imitation in tenor and bass",
+   "sequence": "rising sequence, peak at 86, then regular bar rhythm"
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "31-33"
+  },
+  {
+   "bars": "50-51"
+  },
+  {
+   "bars": "56-57"
+  },
+  {
+   "bars": "71-72"
+  },
+  {
+   "bars": "93-95"
+  }
+ ],
+ "extensions": [],
+ "cadences": [
+  {
+   "bar": "25",
+   "key": "III",
+   "kind": "cadence"
+  },
+  {
+   "bar": "46",
+   "key": "i",
+   "kind": "perfect cadence"
+  },
+  {
+   "bar": "52",
+   "key": "v?",
+   "kind": "diagram '/' near bar 52; text speaks of 'the cadence in the dominant' around the soprano entry (uncertain)"
+  },
+  {
+   "bar": "101",
+   "key": "i",
+   "kind": "final (diagram)"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "5-9 (alto)",
+  "interchange": null,
+  "notes": "introduces an almost complete rising chromatic scale; its quaver figure anticipates by inversion the answer's final figure; inverted CS used with inverted subject"
+ },
+ "subject": {
+  "ends": "on the mediant (d-flat), answered with tierce de Picardie (a-natural)",
+  "answer": "real; of the ten minor-key fugues whose subjects end on the mediant only I.10 also uses tierce de Picardie for the first answer",
+  "notes": null
+ },
+ "stretti": [
+  {
+   "name": "Stretto 1",
+   "bars": "27-37",
+   "voices": [
+    "tenor",
+    "alto",
+    "soprano",
+    "bass"
+   ],
+   "interval": "seventh higher; ninth lower",
+   "timing": "one beat",
+   "notes": "direct subject; codetta transforms canon at upper seventh into canon at lower fifth"
+  },
+  {
+   "name": "Stretto 2",
+   "bars": "67-77",
+   "voices": [
+    "tenor",
+    "soprano",
+    "alto",
+    "bass"
+   ],
+   "interval": "ninth higher; seventh lower",
+   "timing": "one beat",
+   "notes": "inverted subject"
+  },
+  {
+   "name": "Stretto 3",
+   "bars": "80-96",
+   "voices": [
+    "soprano (inv)",
+    "tenor (dir)",
+    "bass (dir)",
+    "alto (inv)"
+   ],
+   "interval": "sixth lower; sixth higher",
+   "timing": "one beat",
+   "notes": "direct and inverted"
+  },
+  {
+   "name": "Stretto 4",
+   "bars": "96-101",
+   "voices": [
+    "S+A (dir, sixths)",
+    "T+B (inv, thirds)"
+   ],
+   "interval": null,
+   "timing": "simultaneous pairs, closely followed",
+   "notes": "effectively the final section; powerful climax"
+  }
+ ],
+ "claims": [
+  {
+   "page": 122,
+   "claim": "Only I.10 among ten minor fugues with mediant-ending subjects also uses tierce de Picardie in the first answer"
+  },
+  {
+   "page": 122,
+   "claim": "Countersubject introduces an almost complete rising chromatic scale"
+  },
+  {
+   "page": 122,
+   "claim": "Stretti are at one beat's distance, at seventh/ninth (direct and inverted) and sixth (direct vs inverted)"
+  },
+  {
+   "page": 124,
+   "claim": "Stretto 4 is effectively the final section; apparent tierce de Picardie in alto bar 97 is a doubled leading-note to the subdominant chord"
+  },
+  {
+   "page": 124,
+   "claim": "The ear hardly notices that the lower voices omit the final figures of the subject in the climax"
+  }
+ ]
+}

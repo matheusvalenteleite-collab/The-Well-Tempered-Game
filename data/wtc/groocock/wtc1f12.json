@@ -1,0 +1,228 @@
+{
+ "id": "wtc1f12",
+ "groocock": {
+  "group": 4,
+  "pages": "89-91"
+ },
+ "entries": [
+  {
+   "bars": "1-4",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "4-7",
+   "voice": "alto",
+   "form": "answer [tonal]",
+   "key": "i-v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "first countersubject in tenor"
+  },
+  {
+   "bars": "7-10",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "first countersubject (modified) in alto; second countersubject in tenor, mostly above the alto"
+  },
+  {
+   "bars": "13-16",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "subject instead of expected answer; CS1 bass, CS2 tenor, third countersubject added by alto"
+  },
+  {
+   "bars": "19-22",
+   "voice": "tenor",
+   "form": "answer [real]",
+   "key": "v",
+   "section": "extension of exposition",
+   "stretto": null,
+   "redundant": true,
+   "notes": "redundant entry; CS1 and CS2"
+  },
+  {
+   "bars": "27-30",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "extension of exposition",
+   "stretto": null,
+   "redundant": true,
+   "notes": "redundant; all three countersubjects (CS1 tenor, CS2 soprano, CS3 alto)"
+  },
+  {
+   "bars": "34-37",
+   "voice": "alto",
+   "form": "subject",
+   "key": "III",
+   "section": "entries in other keys, linked by episodes",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS1 in soprano lacking its first upward run; CS2 in tenor considerably altered; bass free; CS3 never appears again"
+  },
+  {
+   "bars": "40-43",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "bVII",
+   "section": "entries in other keys, linked by episodes",
+   "stretto": null,
+   "redundant": false,
+   "notes": "accompanied by countersubject figures; part of CS2 in soprano bar 41 echoed in alto bar 42"
+  },
+  {
+   "bars": "47-50",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "v",
+   "section": "entries in other keys, linked by episodes",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS1 alto, CS2 tenor (starting above alto)"
+  },
+  {
+   "bars": "53-56",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS1 soprano lacking opening run; other voices allude to other countersubjects; extended into coda"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "10-13",
+   "name": "episode 1",
+   "from_key": "i",
+   "to_key": "i",
+   "material": "imitative treatment of first figure of CS1, with falling figure of CS2",
+   "sequence": "falling sequence"
+  },
+  {
+   "bars": "16-19",
+   "name": "episode 2",
+   "from_key": "i",
+   "to_key": "v",
+   "material": "imitation of first figure of CS1, now falling as well as rising",
+   "sequence": "rising sequence"
+  },
+  {
+   "bars": "22-27",
+   "name": "episode 3",
+   "from_key": null,
+   "to_key": null,
+   "material": "adapts and develops material of episode 2",
+   "sequence": "falling sequence"
+  },
+  {
+   "bars": "30-34",
+   "name": "episode 4",
+   "from_key": "i",
+   "to_key": "III",
+   "material": "interchange and adornment of episode 1 (bass = soprano+alto of ep.1)",
+   "sequence": "falling sequence"
+  },
+  {
+   "bars": "37-40",
+   "name": "episode 5",
+   "from_key": "III",
+   "to_key": "bVII",
+   "material": "last bar of CS1 repeated, imitated in alto; bass develops figures of episode 2",
+   "sequence": "falling sequence by thirds"
+  },
+  {
+   "bars": "43-47",
+   "name": "episode 6",
+   "from_key": "bVII",
+   "to_key": "dominant of v",
+   "material": "partial interchange and ornamentation of episode 1",
+   "sequence": "falling sequence, extended to cadence on dominant of v"
+  },
+  {
+   "bars": "50-53",
+   "name": "episode 7",
+   "from_key": "v",
+   "to_key": "i",
+   "material": "fuller version of episode 2",
+   "sequence": "rising sequence"
+  }
+ ],
+ "codettas": [],
+ "extensions": [],
+ "cadences": [
+  {
+   "bar": "43",
+   "key": "bVII/v",
+   "kind": "diagram '/' near bar 43 (bass)"
+  },
+  {
+   "bar": "47",
+   "key": "dominant of v",
+   "kind": "cadence at end of episode 6 (text)"
+  },
+  {
+   "bar": "57-58",
+   "key": "i",
+   "kind": "final cadence (diagram)"
+  }
+ ],
+ "countersubjects": {
+  "count": 3,
+  "first": "4-7 (tenor, with answer)",
+  "interchange": null,
+  "notes": "CS1 modified at 7-10 to fit subject; CS2 added by tenor at 7; CS3 added by alto at 13, 'making this fugue unique among the 48'; CS3 last appears 27-30"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "tonal: subject has dominant as 1st and 3rd notes (like I.21) but, because of the chromatic downward step to the 4th note, only the 1st note is answered by the tonic",
+  "notes": null
+ },
+ "stretti": [],
+ "claims": [
+  {
+   "page": 90,
+   "claim": "The tonal answer answers only the first note with the tonic (unlike I.21), because of the chromatic step to the fourth note"
+  },
+  {
+   "page": 90,
+   "claim": "Three countersubjects: unique among the 48"
+  },
+  {
+   "page": 90,
+   "claim": "Soprano enters at 13 with subject instead of expected answer"
+  },
+  {
+   "page": 90,
+   "claim": "Exposition extended by two redundant entries (real answer at 19, subject at 27)"
+  },
+  {
+   "page": 90,
+   "claim": "The third countersubject never appears after bar 30"
+  },
+  {
+   "page": 90,
+   "claim": "Episodes 1, 4, 6 are related (4 and 6 interchange/adorn 1); episodes 2, 3, 7 related (7 is a fuller version of 2)"
+  },
+  {
+   "page": 91,
+   "claim": "Episode 5 repeats the last bar of CS1 in sequence falling by thirds"
+  }
+ ]
+}

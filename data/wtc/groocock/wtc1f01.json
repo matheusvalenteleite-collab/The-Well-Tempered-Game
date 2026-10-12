@@ -1,0 +1,460 @@
+{
+ "id": "wtc1f01",
+ "groocock": {
+  "group": 5,
+  "pages": "124-126"
+ },
+ "entries": [
+  {
+   "bars": "1-2",
+   "voice": "alto",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "2-4",
+   "voice": "soprano",
+   "form": "answer [real]",
+   "key": "I-V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "4-5",
+   "voice": "tenor",
+   "form": "answer",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "begins and ends in I because of the f-naturals in the alto"
+  },
+  {
+   "bars": "5-7",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "7-8",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "development",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "7-8",
+   "voice": "tenor",
+   "form": "answer",
+   "key": "I",
+   "section": "development",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "9-10",
+   "voice": "alto",
+   "form": "answer",
+   "key": "V",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "single entry, harmonized more definitely in V"
+  },
+  {
+   "bars": "10-12",
+   "voice": "bass",
+   "form": "subject",
+   "key": "V-vi",
+   "section": "development",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "10-12",
+   "voice": "alto",
+   "form": "subject",
+   "key": "V-vi",
+   "section": "development",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": "enters on dominant of V; final figure altered to modulate to vi"
+  },
+  {
+   "bars": "12-13",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "vi",
+   "section": "development",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "14-15",
+   "voice": "alto",
+   "form": "subject",
+   "key": "I-V",
+   "section": "development",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "14-15",
+   "voice": "tenor",
+   "form": "subject (incomplete)",
+   "key": "I-V",
+   "section": "development",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "15-16",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I-V",
+   "section": "development",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "15-16",
+   "voice": "soprano",
+   "form": "subject (incomplete)",
+   "key": "I-V",
+   "section": "development",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "16-17",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "development",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "16-18",
+   "voice": "alto",
+   "form": "subject",
+   "key": "I",
+   "section": "development",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "17-18",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "ii",
+   "section": "development",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "17-19",
+   "voice": "bass",
+   "form": "subject",
+   "key": "ii",
+   "section": "development",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "19-20",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "ii-V",
+   "section": "development",
+   "stretto": "Stretto 5",
+   "redundant": false,
+   "notes": "starts on a as dominant of D minor"
+  },
+  {
+   "bars": "19-20",
+   "voice": "alto",
+   "form": "subject",
+   "key": "ii-V",
+   "section": "development",
+   "stretto": "Stretto 5",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "20-21",
+   "voice": "bass",
+   "form": "subject (incomplete)",
+   "key": "ii-V",
+   "section": "development",
+   "stretto": "Stretto 5",
+   "redundant": false,
+   "notes": "first three notes"
+  },
+  {
+   "bars": "20-22",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "V-I",
+   "section": "development",
+   "stretto": "Stretto 5",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "21-23",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "V-I",
+   "section": "development",
+   "stretto": "Stretto 5",
+   "redundant": false,
+   "notes": "from the leading-note over dominant pedal"
+  },
+  {
+   "bars": "24-25",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "I-IV",
+   "section": "final section (coda)",
+   "stretto": "Stretto 6",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "24-26",
+   "voice": "alto",
+   "form": "subject",
+   "key": "I-IV",
+   "section": "final section (coda)",
+   "stretto": "Stretto 6",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "24-25",
+   "voice": "soprano",
+   "form": "subject (incomplete)",
+   "key": "I",
+   "section": "final section (coda)",
+   "stretto": "Stretto 6",
+   "redundant": false,
+   "notes": "first four notes"
+  }
+ ],
+ "episodes": [],
+ "codettas": [],
+ "extensions": [
+  {
+   "bars": "13-14",
+   "to": "cadence in vi"
+  },
+  {
+   "bars": "23-24",
+   "to": "cadence in I"
+  }
+ ],
+ "cadences": [
+  {
+   "bar": "14",
+   "key": "vi",
+   "kind": "cadence"
+  },
+  {
+   "bar": "19",
+   "key": "ii",
+   "kind": "cadence with tierce de Picardie"
+  },
+  {
+   "bar": "24",
+   "key": "I",
+   "kind": "final cadence before tonic-pedal coda (no more cadences after)"
+  },
+  {
+   "bar": "27",
+   "key": "I",
+   "kind": "end"
+  }
+ ],
+ "countersubjects": {
+  "count": 0,
+  "first": null,
+  "interchange": null,
+  "notes": "continuation of opening voice is not a regular countersubject though its figures are used throughout"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "real; subject uses only first six scale degrees without leading-note, so tonality flexible",
+  "notes": "after bar 9 the subject/answer distinction disappears; all later entries called subject"
+ },
+ "stretti": [
+  {
+   "name": "Stretto 1",
+   "bars": "7-8",
+   "voices": [
+    "soprano",
+    "tenor"
+   ],
+   "interval": "subject-answer",
+   "timing": "1 beat (per later table)",
+   "notes": null
+  },
+  {
+   "name": "Stretto 2",
+   "bars": "10-14",
+   "voices": [
+    "bass",
+    "alto",
+    "tenor"
+   ],
+   "interval": "new subject-answer relationship",
+   "timing": null,
+   "notes": "interchange of stretto 1"
+  },
+  {
+   "name": "Stretto 3",
+   "bars": "14-16",
+   "voices": [
+    "alto",
+    "tenor",
+    "bass",
+    "soprano"
+   ],
+   "interval": "subject-answer pattern of bar 7 in closer position",
+   "timing": null,
+   "notes": null
+  },
+  {
+   "name": "Stretto 4",
+   "bars": "16-19",
+   "voices": [
+    "soprano",
+    "alto",
+    "tenor",
+    "bass"
+   ],
+   "interval": "subject-answer then answer-subject",
+   "timing": "alto one beat after soprano",
+   "notes": null
+  },
+  {
+   "name": "Stretto 5",
+   "bars": "19-24",
+   "voices": [
+    "tenor",
+    "alto",
+    "bass",
+    "soprano",
+    "tenor"
+   ],
+   "interval": "various",
+   "timing": null,
+   "notes": "five entries at various intervals"
+  },
+  {
+   "name": "Stretto 6",
+   "bars": "24",
+   "voices": [
+    "tenor",
+    "alto",
+    "soprano"
+   ],
+   "interval": null,
+   "timing": "alto after two beats, soprano one beat later",
+   "notes": "on tonic pedal"
+  }
+ ],
+ "claims": [
+  {
+   "page": 125,
+   "claim": "Order of voice entry A.S.T.B. disregards the normal cyclic order; exposition S-A-A-S"
+  },
+  {
+   "page": 125,
+   "claim": "Whole exposition effectively in the tonic key"
+  },
+  {
+   "page": 125,
+   "claim": "Continuation of opening voice is not a regular countersubject"
+  },
+  {
+   "page": 126,
+   "claim": "Final section is all a coda on a tonic pedal including one more stretto"
+  },
+  {
+   "page": 126,
+   "claim": "Analysis of every pair of entries: subject-answer (fifth higher/fourth lower, 1 beat) 6 pairs; answer-subject (fifth lower/fourth higher, 4 beats) 2; octave lower 3 beats 1; octave higher 2 beats 1; octave higher 3 beats 1; seventh lower 5 beats 2; seventh lower 2 beats 1; third lower 3 beats 1; sixth lower 3 beats 1"
+  }
+ ],
+ "stretto_pair_table": [
+  {
+   "interval": "subject-answer: fifth higher or fourth lower",
+   "timing": "1 beat",
+   "pairs": 6
+  },
+  {
+   "interval": "answer-subject: fifth lower or fourth higher",
+   "timing": "4 beats",
+   "pairs": 2
+  },
+  {
+   "interval": "octave lower",
+   "timing": "3 beats",
+   "pairs": 1
+  },
+  {
+   "interval": "octave higher",
+   "timing": "2 beats",
+   "pairs": 1
+  },
+  {
+   "interval": "octave higher",
+   "timing": "3 beats",
+   "pairs": 1
+  },
+  {
+   "interval": "seventh lower",
+   "timing": "5 beats",
+   "pairs": 2
+  },
+  {
+   "interval": "seventh lower",
+   "timing": "2 beats",
+   "pairs": 1
+  },
+  {
+   "interval": "third lower",
+   "timing": "3 beats",
+   "pairs": 1
+  },
+  {
+   "interval": "sixth lower",
+   "timing": "3 beats",
+   "pairs": 1
+  }
+ ]
+}

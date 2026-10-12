@@ -1,0 +1,1092 @@
+{
+ "id": "wtc1f04",
+ "groocock": {
+  "group": 8,
+  "pages": "160-163"
+ },
+ "entries": [
+  {
+   "bars": "1-4",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "4-7",
+   "voice": "tenor",
+   "form": "answer [real]",
+   "subject_no": 1,
+   "key": "v",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "overlaps subject by one note"
+  },
+  {
+   "bars": "7-10",
+   "voice": "alto",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "12-14",
+   "voice": "soprano 2",
+   "form": "answer",
+   "subject_no": 1,
+   "key": "iv-i",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "altered: drop of minor third suggests iv"
+  },
+  {
+   "bars": "14-17",
+   "voice": "soprano 1",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "19-22",
+   "voice": "tenor",
+   "form": "answer",
+   "subject_no": 1,
+   "key": "v",
+   "section": "counterexposition of S i",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "22-25",
+   "voice": "tenor",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "iv",
+   "section": "counterexposition of S i",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "25-28",
+   "voice": "alto",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "counterexposition of S i",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "29-32",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "bVII",
+   "section": "counterexposition of S i",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "32-35",
+   "voice": "alto",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "III",
+   "section": "counterexposition of S i",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "35-38",
+   "voice": "tenor",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "entrance of second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "35-38",
+   "voice": "soprano 1",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "entrance of second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "38-41",
+   "voice": "alto",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "v",
+   "section": "entrance of second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "38-41",
+   "voice": "soprano 1",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "v",
+   "section": "entrance of second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "44-47",
+   "voice": "soprano 2",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "entrance of second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "44-47",
+   "voice": "bass",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "entrance of second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "47-49",
+   "voice": "soprano 1",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i-iv",
+   "section": "entrance of second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "48-51",
+   "voice": "soprano 1",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "iv",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "48-51",
+   "voice": "soprano 2",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "iv",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "48-51",
+   "voice": "alto",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "iv",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "51-54",
+   "voice": "tenor",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "iv",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "51-54",
+   "voice": "alto",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "iv",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "51-54",
+   "voice": "soprano 1",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "iv",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "54-57",
+   "voice": "soprano 2",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "VI",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "54-57",
+   "voice": "alto",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "VI",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "54-57",
+   "voice": "bass",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "VI",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "59-62",
+   "voice": "soprano 1",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "59-62",
+   "voice": "soprano 2",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "59-62",
+   "voice": "tenor",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "66-69",
+   "voice": "soprano 1",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "ii",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "66-69",
+   "voice": "bass",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "ii",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "66-69",
+   "voice": "soprano 2",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "ii",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "73-76",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "73-76",
+   "voice": "alto",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "73-76",
+   "voice": "tenor",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "76-79",
+   "voice": "soprano 1",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "76-79",
+   "voice": "bass",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "76-79",
+   "voice": "soprano 2",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "81-84",
+   "voice": "tenor",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "81-84",
+   "voice": "soprano 1",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "81-84",
+   "voice": "alto",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "57-59",
+   "voice": "soprano 1",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "VI",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "57-59",
+   "voice": "soprano 2",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "VI",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "62-64",
+   "voice": "soprano 2",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i-iv",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "62-64",
+   "voice": "soprano 1",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "i-iv",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "64-66",
+   "voice": "alto",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "i-v",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": "Stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "64-66",
+   "voice": "bass",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "i-v",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": "Stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "69-71",
+   "voice": "soprano 1",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "v-i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "69-71",
+   "voice": "alto",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "v-i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "71-73",
+   "voice": "soprano 2",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "79-81",
+   "voice": "soprano 2",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "79-81",
+   "voice": "bass",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "84-88",
+   "voice": "soprano 1",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i-iv",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "84-88",
+   "voice": "tenor",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "i-iv",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": "Stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "84-88",
+   "voice": "soprano 2",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "i-iv",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": "Stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "84-88",
+   "voice": "bass",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "i-iv",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": "Stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "85-88",
+   "voice": "alto -> soprano 2",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "iv",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "89-92",
+   "voice": "soprano 1",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "89-92",
+   "voice": "bass",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "92-94",
+   "voice": "tenor",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "92-94",
+   "voice": "soprano 1",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": "Stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "92-94",
+   "voice": "soprano 2",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "i",
+   "section": "entrance of third subject (S iii) and combination of S i, S ii, and S iii",
+   "stretto": "Stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "94",
+   "voice": "soprano 1",
+   "form": "subject",
+   "subject_no": 1,
+   "key": null,
+   "section": "simultaneous stretto of S i and S iii",
+   "stretto": "simultaneous stretto",
+   "redundant": false,
+   "notes": "lacks final note"
+  },
+  {
+   "bars": "95",
+   "voice": "soprano 2",
+   "form": "subject",
+   "subject_no": 1,
+   "key": null,
+   "section": "simultaneous stretto of S i and S iii",
+   "stretto": "simultaneous stretto",
+   "redundant": false,
+   "notes": "lacks final note"
+  },
+  {
+   "bars": "96",
+   "voice": "soprano 1",
+   "form": "subject",
+   "subject_no": 1,
+   "key": null,
+   "section": "simultaneous stretto of S i and S iii",
+   "stretto": "simultaneous stretto",
+   "redundant": false,
+   "notes": "lacks final note"
+  },
+  {
+   "bars": "97",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 1,
+   "key": null,
+   "section": "simultaneous stretto of S i and S iii",
+   "stretto": "simultaneous stretto",
+   "redundant": false,
+   "notes": "only complete S i of this passage"
+  },
+  {
+   "bars": "100",
+   "voice": "tenor",
+   "form": "subject",
+   "subject_no": 1,
+   "key": null,
+   "section": "simultaneous stretto of S i and S iii",
+   "stretto": "simultaneous stretto",
+   "redundant": false,
+   "notes": "hardly part of stretto; first three notes only"
+  },
+  {
+   "bars": "94",
+   "voice": "soprano 2 (bracketed)",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": null,
+   "section": "simultaneous stretto of S i and S iii",
+   "stretto": "simultaneous stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "94",
+   "voice": "tenor",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": null,
+   "section": "simultaneous stretto of S i and S iii",
+   "stretto": "simultaneous stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "95",
+   "voice": "alto",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": null,
+   "section": "simultaneous stretto of S i and S iii",
+   "stretto": "simultaneous stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "96",
+   "voice": "tenor",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": null,
+   "section": "simultaneous stretto of S i and S iii",
+   "stretto": "simultaneous stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "97",
+   "voice": "alto",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": null,
+   "section": "simultaneous stretto of S i and S iii",
+   "stretto": "simultaneous stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "98",
+   "voice": "soprano 2",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": null,
+   "section": "simultaneous stretto of S i and S iii",
+   "stretto": "simultaneous stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "98",
+   "voice": "tenor",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": null,
+   "section": "simultaneous stretto of S i and S iii",
+   "stretto": "simultaneous stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "99",
+   "voice": "soprano 1",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": null,
+   "section": "simultaneous stretto of S i and S iii",
+   "stretto": "simultaneous stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "100",
+   "voice": "bass",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": null,
+   "section": "simultaneous stretto of S i and S iii",
+   "stretto": "simultaneous stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "102",
+   "voice": "tenor",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": null,
+   "section": "further stretto of S iii",
+   "stretto": "Stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "103",
+   "voice": "alto",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": null,
+   "section": "further stretto of S iii",
+   "stretto": "Stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "104",
+   "voice": "soprano 2",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": null,
+   "section": "further stretto of S iii",
+   "stretto": "Stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "105",
+   "voice": "tenor",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": null,
+   "section": "further stretto of S iii",
+   "stretto": "Stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "107-112",
+   "voice": "soprano 1",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "on dominant pedal"
+  },
+  {
+   "bars": "107",
+   "voice": "soprano 2 and alto",
+   "form": "third subject (simultaneous)",
+   "subject_no": 3,
+   "key": "i",
+   "section": "final section",
+   "stretto": "Stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "108",
+   "voice": "tenor",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "i",
+   "section": "final section",
+   "stretto": "Stretto",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "112-114",
+   "voice": "soprano 2",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "coda",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "113",
+   "voice": "alto",
+   "form": "third subject (last notes augmented)",
+   "subject_no": 3,
+   "key": "i",
+   "section": "coda",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "41-44",
+   "name": "episode (single)",
+   "from_key": null,
+   "to_key": null,
+   "material": "soprano alludes to S i; alto figures of bars 5-6; tenor inverts S ii figures in rising semitone sequence",
+   "sequence": "rising sequence"
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "10-12"
+  },
+  {
+   "bars": "17-19"
+  },
+  {
+   "bars": "28-29"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "105-107",
+   "to": "sequential extension of tenor S iii into final section"
+  }
+ ],
+ "cadences": [
+  {
+   "bar": "22",
+   "key": "v",
+   "kind": "perfect cadence"
+  },
+  {
+   "bar": "35",
+   "key": "III",
+   "kind": "perfect cadence"
+  },
+  {
+   "bar": "112",
+   "key": "i",
+   "kind": "final cadence, decorated with suspension and appoggiatura"
+  }
+ ],
+ "countersubjects": {
+  "count": 0,
+  "first": null,
+  "interchange": null,
+  "notes": "no countersubject; texture unified by falling scale figure of bar 7"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "real; overlaps subject by one note",
+  "notes": "very short subject using four scale notes"
+ },
+ "stretti": [
+  {
+   "name": "S iii stretto",
+   "bars": "64-66",
+   "voices": [
+    "alto",
+    "bass"
+   ],
+   "interval": null,
+   "timing": null,
+   "notes": null
+  },
+  {
+   "name": "S iii stretto",
+   "bars": "84-88",
+   "voices": [
+    "tenor",
+    "soprano 2",
+    "bass"
+   ],
+   "interval": null,
+   "timing": null,
+   "notes": null
+  },
+  {
+   "name": "S iii stretto",
+   "bars": "92-94",
+   "voices": [
+    "soprano 1",
+    "soprano 2"
+   ],
+   "interval": null,
+   "timing": null,
+   "notes": null
+  },
+  {
+   "name": "simultaneous stretto of S i and S iii",
+   "bars": "94-100",
+   "voices": [
+    "S i: S1, S2, S1, B, (T)",
+    "S iii: S2?, T, A, T, A, S2, T, S1, B"
+   ],
+   "interval": null,
+   "timing": "S iii at one-bar intervals until bar 98, then half a bar",
+   "notes": "S ii disappears from bar 94"
+  },
+  {
+   "name": "further stretto of S iii",
+   "bars": "102-105",
+   "voices": [
+    "tenor",
+    "alto",
+    "soprano 2",
+    "tenor"
+   ],
+   "interval": null,
+   "timing": null,
+   "notes": null
+  },
+  {
+   "name": "final stretto",
+   "bars": "107-108",
+   "voices": [
+    "S2+A (simultaneous)",
+    "tenor"
+   ],
+   "interval": null,
+   "timing": "a bar later",
+   "notes": "over dominant pedal with S i"
+  }
+ ],
+ "claims": [
+  {
+   "page": 161,
+   "claim": "Answer overlaps subject by one note; answer at 12 altered toward iv to balance the dominant"
+  },
+  {
+   "page": 161,
+   "claim": "No countersubject; falling scale figure of bar 7 unifies texture"
+  },
+  {
+   "page": 162,
+   "claim": "Five of six permutations of three subjects used"
+  },
+  {
+   "page": 162,
+   "claim": "From bar 94 S ii disappears; simultaneous stretto of S i and S iii"
+  },
+  {
+   "page": 163,
+   "claim": "Fugue lacks many perfect cadences"
+  }
+ ]
+}

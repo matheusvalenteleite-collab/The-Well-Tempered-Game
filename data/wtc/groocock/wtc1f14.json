@@ -1,0 +1,202 @@
+{
+ "id": "wtc1f14",
+ "groocock": {
+  "group": 4,
+  "pages": "91-92"
+ },
+ "entries": [
+  {
+   "bars": "1-4",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "4-7",
+   "voice": "alto",
+   "form": "answer [real]",
+   "key": "v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "countersubject in tenor; answer in dominant key from its beginning"
+  },
+  {
+   "bars": "8-11",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "alto lengthens beginning of CS; tenor free part"
+  },
+  {
+   "bars": "15-18",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "subject instead of expected answer; CS in bass, beginning lengthened"
+  },
+  {
+   "bars": "20-23",
+   "voice": "alto",
+   "form": "subject (inverted)",
+   "key": "i",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "starts on c#'' as keynote of v but harmonized almost immediately as iv, modulating to i; bass alludes to CS, inverting its main figure"
+  },
+  {
+   "bars": "25-28",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "v",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "quavers replace first two crotchets; CS in alto exactly as 4-7; independent bass"
+  },
+  {
+   "bars": "29-32",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "i",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS soprano, free alto, almost exactly repeating 8-11"
+  },
+  {
+   "bars": "32-35",
+   "voice": "bass",
+   "form": "subject (inverted)",
+   "key": "i",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "starts on keynote; CS in soprano 'in essence' but drastically altered"
+  },
+  {
+   "bars": "37-40",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "extends to the end; altered CS with added sixths; mostly on dominant pedal"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "11-15",
+   "name": "episode 1",
+   "from_key": null,
+   "to_key": null,
+   "material": "three-part development of the codetta of bar 7",
+   "sequence": null
+  },
+  {
+   "bars": "18-20",
+   "name": "episode 2",
+   "from_key": "i",
+   "to_key": "v",
+   "material": "repeats codetta with added voice, then main CS figure in two-part imitation with added thirds/sixths",
+   "sequence": null
+  },
+  {
+   "bars": "35-37",
+   "name": "episode 3",
+   "from_key": null,
+   "to_key": null,
+   "material": "main figure of CS in two-part imitation",
+   "sequence": "falling sequence"
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "7"
+  },
+  {
+   "bars": "28-29"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "23-25",
+   "to": "falling sequence leading to answer at 25"
+  }
+ ],
+ "cadences": [
+  {
+   "bar": "20",
+   "key": "v",
+   "kind": "cadence ending episode 2 (text; diagram '/')"
+  },
+  {
+   "bar": "25",
+   "key": "v",
+   "kind": "diagram '/'"
+  },
+  {
+   "bar": "40",
+   "key": "i",
+   "kind": "final (diagram)"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "4-7 (tenor)",
+  "interchange": "never exceeds an octave from the answer, so interchangeable at the octave",
+  "notes": "follows the rising steps of the answer with falling steps ornamented by anticipations, then rises in canon a fourth below the answer before leaping to its cadence formula"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "real, in the dominant key from its beginning",
+  "notes": null
+ },
+ "stretti": [],
+ "claims": [
+  {
+   "page": 91,
+   "claim": "Real answer is in the dominant key from its beginning"
+  },
+  {
+   "page": 91,
+   "claim": "Countersubject is interchangeable at the octave since the two voices never exceed an octave"
+  },
+  {
+   "page": 91,
+   "claim": "Bar 7 codetta continues in rising sequence the canon of bars 5-6"
+  },
+  {
+   "page": 92,
+   "claim": "Soprano enters at 15 with subject instead of expected answer"
+  },
+  {
+   "page": 92,
+   "claim": "Bar 17 has apparently three 6/4 chords in succession with leaping bass (only real 6/4 on C#)"
+  },
+  {
+   "page": 92,
+   "claim": "Episode 2 may be regarded as finishing the exposition"
+  },
+  {
+   "page": 92,
+   "claim": "Bars 25-32 are an almost exact repetition of bars 4-11 an octave higher, plus a bass in 25-28"
+  },
+  {
+   "page": 92,
+   "claim": "Final entry 37-40 is mostly on a dominant pedal"
+  }
+ ]
+}

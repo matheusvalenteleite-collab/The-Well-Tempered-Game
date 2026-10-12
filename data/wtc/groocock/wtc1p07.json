@@ -1,0 +1,540 @@
+{
+ "id": "wtc1p07",
+ "groocock": {
+  "group": 7,
+  "pages": "154-156"
+ },
+ "piece": "Prelude in Eb major, WTC I, bars 25-70 (fugal section)",
+ "entries": [
+  {
+   "bars": "25-27",
+   "voice": "bass",
+   "form": "answer",
+   "subject_no": 1,
+   "key": "V-I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "'answers' in Eb because fugato ends on Bb chord (V); fugue technically starts with its two answers"
+  },
+  {
+   "bars": "25-27",
+   "voice": "alto",
+   "form": "answer",
+   "subject_no": 2,
+   "key": "V-I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "27-28",
+   "voice": "tenor",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "27-28",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 2,
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "30-31",
+   "voice": "tenor",
+   "form": "answer",
+   "subject_no": 1,
+   "key": "V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "30-31",
+   "voice": "bass",
+   "form": "answer",
+   "subject_no": 2,
+   "key": "V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "beginning altered"
+  },
+  {
+   "bars": "35-36",
+   "voice": "alto",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I-ii",
+   "section": "development",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "35-36",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I-ii",
+   "section": "development",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": "two beats later, subject-answer relation"
+  },
+  {
+   "bars": "38-40",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "ii-vi",
+   "section": "development",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "39-40",
+   "voice": "tenor",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "ii-vi",
+   "section": "development",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "39-40",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "ii-vi",
+   "section": "development",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "41-43",
+   "voice": "alto",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "IV-I",
+   "section": "development",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "42-43",
+   "voice": "tenor",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "IV-I",
+   "section": "development",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "42-43",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 2,
+   "key": "IV-I",
+   "section": "development",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": "leaps up an eleventh instead of a fourth"
+  },
+  {
+   "bars": "46-47",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I",
+   "section": "development",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "47-48",
+   "voice": "tenor",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I",
+   "section": "development",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "47-48",
+   "voice": "alto",
+   "form": "subject",
+   "subject_no": 2,
+   "key": "I",
+   "section": "development",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": "interchanged at fifteenth and again at twelfth"
+  },
+  {
+   "bars": "49-50",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "49-50",
+   "voice": "alto",
+   "form": "subject",
+   "subject_no": 2,
+   "key": "I",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "53-54",
+   "voice": "tenor",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "IV-vi",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "53-54",
+   "voice": "alto -> soprano -> bass",
+   "form": "subject",
+   "subject_no": 2,
+   "key": "IV-vi",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "divided between three voices; interchanged at fifteenth then tenth"
+  },
+  {
+   "bars": "54-55",
+   "voice": "alto",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "vi-ii",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "56-57",
+   "voice": "alto",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "ii-IV",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "56-57",
+   "voice": "tenor -> bass",
+   "form": "subject",
+   "subject_no": 2,
+   "key": "ii-IV",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "58-60",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "IV-I",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "unexpected high entry"
+  },
+  {
+   "bars": "58-60",
+   "voice": "alto",
+   "form": "subject (altered)",
+   "subject_no": 2,
+   "key": "IV-I",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "60-61",
+   "voice": "alto",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "beginning disguised"
+  },
+  {
+   "bars": "60-61",
+   "voice": "soprano",
+   "form": "subject (altered)",
+   "subject_no": 2,
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "61-62",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "original pitch of bar 25"
+  },
+  {
+   "bars": "61-62",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 2,
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "64-65",
+   "voice": "alto",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I",
+   "section": "final section",
+   "stretto": "Stretto 5",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "64-66",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I",
+   "section": "final section",
+   "stretto": "Stretto 5",
+   "redundant": false,
+   "notes": "extra diminished-fourth leap"
+  },
+  {
+   "bars": "66-67",
+   "voice": "alto",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I",
+   "section": "final section",
+   "stretto": "Stretto 5",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "68-70",
+   "voice": "tenor",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I",
+   "section": "coda",
+   "stretto": null,
+   "redundant": false,
+   "notes": "tonic pedal"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "31-35",
+   "name": "episode 1",
+   "from_key": "V",
+   "to_key": "iii",
+   "material": "first figure of S ii in imitation",
+   "sequence": "falling then rising sequence"
+  },
+  {
+   "bars": "44-45",
+   "name": "episode 2",
+   "from_key": "dominant of ii",
+   "to_key": "ii",
+   "material": "imitation of first figure of S ii; rising scale passage",
+   "sequence": null
+  },
+  {
+   "bars": "51-52",
+   "name": "episode 3",
+   "from_key": "I",
+   "to_key": "IV",
+   "material": "fragmented S ii opening; rising scale split",
+   "sequence": null
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "29"
+  },
+  {
+   "bars": "49"
+  },
+  {
+   "bars": "57-58"
+  },
+  {
+   "bars": "63"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "37-38",
+   "to": "cadence in ii"
+  },
+  {
+   "bars": "40-41",
+   "to": "cadence in vi"
+  }
+ ],
+ "cadences": [
+  {
+   "bar": "35",
+   "key": "iii",
+   "kind": "diagram 'iii/'"
+  },
+  {
+   "bar": "38",
+   "key": "ii",
+   "kind": "cadence"
+  },
+  {
+   "bar": "41",
+   "key": "vi",
+   "kind": "cadence"
+  },
+  {
+   "bar": "68",
+   "key": "I",
+   "kind": "tonic pedal (diagram)"
+  }
+ ],
+ "countersubjects": {
+  "count": 0,
+  "first": null,
+  "interchange": "S i/S ii relationships altered at 47 and 53",
+  "notes": "double fugue: two subjects combined from the beginning"
+ },
+ "subject": {
+  "ends": null,
+  "answer": null,
+  "notes": "main subject from fugato (10-25), second from toccata theme of bar 1"
+ },
+ "stretti": [
+  {
+   "name": "Stretto 1",
+   "bars": "35-36",
+   "voices": [
+    "alto",
+    "soprano"
+   ],
+   "interval": "subject-answer",
+   "timing": "two beats",
+   "notes": null
+  },
+  {
+   "name": "Stretto 2",
+   "bars": "38-40",
+   "voices": [
+    "soprano",
+    "tenor",
+    "bass"
+   ],
+   "interval": null,
+   "timing": "two beats",
+   "notes": null
+  },
+  {
+   "name": "Stretto 3",
+   "bars": "41-43",
+   "voices": [
+    "alto",
+    "tenor"
+   ],
+   "interval": null,
+   "timing": "two beats",
+   "notes": null
+  },
+  {
+   "name": "Stretto 4",
+   "bars": "46-48",
+   "voices": [
+    "bass",
+    "tenor"
+   ],
+   "interval": null,
+   "timing": null,
+   "notes": null
+  },
+  {
+   "name": "Stretto 5",
+   "bars": "64-67",
+   "voices": [
+    "alto",
+    "soprano",
+    "alto"
+   ],
+   "interval": null,
+   "timing": null,
+   "notes": "final stretto"
+  }
+ ],
+ "claims": [
+  {
+   "page": 155,
+   "claim": "Fugue starts technically with its two answers before the subjects"
+  },
+  {
+   "page": 155,
+   "claim": "Development begins with pairs of S i entries in stretto"
+  },
+  {
+   "page": 156,
+   "claim": "No clear demarcation between development and final section; assumed at 60"
+  }
+ ]
+}

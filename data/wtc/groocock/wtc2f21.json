@@ -1,0 +1,248 @@
+{
+ "id": "wtc2f21",
+ "groocock": {
+  "group": 6,
+  "pages": "134-138"
+ },
+ "entries": [
+  {
+   "bars": "1-5",
+   "voice": "middle",
+   "form": "subject",
+   "key": "I",
+   "section": "opening section",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "5-9",
+   "voice": "soprano",
+   "form": "answer [tonal]",
+   "key": "I-V",
+   "section": "opening section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "continuation of middle voice not a countersubject; cadence formula of bar 8 important later"
+  },
+  {
+   "bars": "13-17",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "opening section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "soprano accompanies in alternating sixths and thirds"
+  },
+  {
+   "bars": "21-25",
+   "voice": "bass",
+   "form": "answer [real]",
+   "key": "V",
+   "section": "opening section",
+   "stretto": null,
+   "redundant": true,
+   "notes": "again with thirds or sixths"
+  },
+  {
+   "bars": "32-36",
+   "voice": "middle",
+   "form": "answer [real]",
+   "key": "V",
+   "section": "entrance of two countersubjects and development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "solo appearance; C1 soprano (three-note figure in rising sequence), C2 bass (long notes in rising steps): triple counterpoint"
+  },
+  {
+   "bars": "40-44",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "entrance of two countersubjects and development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "C1 bass, C2 middle; S/C1 at twelfth, C1/C2 at fourteenth, S/C2 at fourteenth then twelfth"
+  },
+  {
+   "bars": "47-51",
+   "voice": "bass",
+   "form": "subject",
+   "key": "vi",
+   "section": "entrance of two countersubjects and development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "from 2nd note; C1 middle, C2 soprano (partial); S/C1 original but octave closer; C1/C2 at twelfth; S/C2 at twelfth"
+  },
+  {
+   "bars": "54-58",
+   "voice": "middle",
+   "form": "subject",
+   "key": "IV",
+   "section": "entrance of two countersubjects and development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "in imitation of soprano, semblance of stretto; C1 bass, C2 soprano partial; S/C1 at octave; C1/C2 twelfth; S/C2 twelfth"
+  },
+  {
+   "bars": "63-67",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "ii",
+   "section": "entrance of two countersubjects and development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "C1 middle, C2 bass; S/C1 at octave; C1/C2 original but octave closer; S/C2 original"
+  },
+  {
+   "bars": "78-82",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "V-I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "starts in V, soon harmonized in I; final a' is leading-note of I; S/C1 octave; C1/C2 a third closer (14th then 12th); S/C2 likewise"
+  },
+  {
+   "bars": "82-",
+   "voice": null,
+   "form": "subject (partial)",
+   "key": "I",
+   "section": "coda",
+   "stretto": null,
+   "redundant": false,
+   "notes": "with both CS: S/C1 original; C1/C2 and S/C2 doubly interchanged as in bar 80"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "9-13",
+   "name": "episode 1",
+   "from_key": null,
+   "to_key": null,
+   "material": "variant of first figure of subject in two-part imitation",
+   "sequence": null
+  },
+  {
+   "bars": "17-21",
+   "name": "episode 2",
+   "from_key": null,
+   "to_key": null,
+   "material": "bass continues rising sequence of 2nd subject figure, middle voice in sixths",
+   "sequence": "rising sequence"
+  },
+  {
+   "bars": "25-32",
+   "name": "episode 3",
+   "from_key": null,
+   "to_key": "V",
+   "material": "soprano treats first figure of subject, imitated two bars later by bass",
+   "sequence": "falling sequence, to cadence in V at 32"
+  },
+  {
+   "bars": "36-40",
+   "name": "episode 4",
+   "from_key": "V",
+   "to_key": "I",
+   "material": "2nd subject figure in two-part imitation middle/bass; soprano crotchet rhythm of 5-7",
+   "sequence": null
+  },
+  {
+   "bars": "44-47",
+   "name": "episode 5",
+   "from_key": "I",
+   "to_key": "vi",
+   "material": "bass continues C1 rising sequence with first subject figure; soprano and bass in tenths",
+   "sequence": null
+  },
+  {
+   "bars": "51-54",
+   "name": "episode 6",
+   "from_key": "vi",
+   "to_key": "IV",
+   "material": "middle repeats second half of subject in ii; soprano alludes to C1",
+   "sequence": null
+  },
+  {
+   "bars": "58-63",
+   "name": "episode 7",
+   "from_key": "IV",
+   "to_key": "ii",
+   "material": "both subject figures in imitation between outer voices; C1 figure once in each voice",
+   "sequence": null
+  },
+  {
+   "bars": "67-78",
+   "name": "episode 8",
+   "from_key": "ii",
+   "to_key": "V",
+   "material": "both subject figures in imitation and sequence; soprano from 70 makes extended falling sequence of cadence formula of bar 8",
+   "sequence": "falling sequence"
+  }
+ ],
+ "codettas": [],
+ "extensions": [],
+ "cadences": [
+  {
+   "bar": "32",
+   "key": "V",
+   "kind": "strong cadence ending first section"
+  },
+  {
+   "bar": "53-54",
+   "key": "IV",
+   "kind": "diagram '/'"
+  },
+  {
+   "bar": "67",
+   "key": "ii",
+   "kind": "diagram '/' (uncertain)"
+  },
+  {
+   "bar": "78",
+   "key": "V",
+   "kind": "cadence"
+  },
+  {
+   "bar": "93",
+   "key": "I",
+   "kind": "final; bars 90-93 = 29-32"
+  }
+ ],
+ "countersubjects": {
+  "count": 2,
+  "first": "32 (both introduced together, after the exposition)",
+  "interchange": "different interval for each pair at each entry (octave, twelfth, fourteenth, double interchange); detailed per entry",
+  "notes": "type 2 of Group 6: none in exposition, two introduced later"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "tonal: 5th note (dominant) answered by tonic; third note treated as lower auxiliary to tonic so answer uses eb'' not e''",
+  "notes": "subject unique among the 48 in starting on the supertonic; two figures provide material of all episodes"
+ },
+ "stretti": [],
+ "claims": [
+  {
+   "page": 135,
+   "claim": "Shares with I.19: first section longer than exposition ending with strong cadence in V; second section introduces countersubject(s); final section recapitulates the cadence passage"
+  },
+  {
+   "page": 135,
+   "claim": "Subject unique in the 48 in starting on the supertonic"
+  },
+  {
+   "page": 136,
+   "claim": "Bar 40 conceals 'one of the most complex pieces of counterpoint in the whole of the 48': each pair of voices interchanged at a different interval"
+  },
+  {
+   "page": 137,
+   "claim": "Episode 8 makes an extended falling sequence out of the cadence formula of bar 8"
+  },
+  {
+   "page": 138,
+   "claim": "Coda ends with recapitulation in the tonic of the end of episode 3 (29-32)"
+  }
+ ]
+}

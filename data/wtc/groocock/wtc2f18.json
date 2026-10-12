@@ -1,0 +1,400 @@
+{
+ "id": "wtc2f18",
+ "groocock": {
+  "group": 7,
+  "pages": "146-148"
+ },
+ "entries": [
+  {
+   "bars": "1-5",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "5-9",
+   "voice": "middle",
+   "form": "answer [real]",
+   "subject_no": 1,
+   "key": "v",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS in soprano"
+  },
+  {
+   "bars": "13-17",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "free counterpoint; harmony of 16-17 suggests III"
+  },
+  {
+   "bars": "19-23",
+   "voice": "middle",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": true,
+   "notes": "bass joins into CS"
+  },
+  {
+   "bars": "33-37",
+   "voice": "bass",
+   "form": "answer",
+   "subject_no": 1,
+   "key": "v",
+   "section": "counterexposition of first subject",
+   "stretto": null,
+   "redundant": false,
+   "notes": "figures from previous episode"
+  },
+  {
+   "bars": "45-49",
+   "voice": "soprano",
+   "form": "answer",
+   "subject_no": 1,
+   "key": "v",
+   "section": "counterexposition of first subject",
+   "stretto": null,
+   "redundant": false,
+   "notes": "free counterpoint incl. chromatic falling five-note steps in bass 47-48, foreshadowing S ii"
+  },
+  {
+   "bars": "55-59",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "counterexposition of first subject",
+   "stretto": null,
+   "redundant": false,
+   "notes": "altered CS in middle voices"
+  },
+  {
+   "bars": "61-65",
+   "voice": "soprano",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "v",
+   "section": "exposition of second subject (S ii)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "with its own new countersubject"
+  },
+  {
+   "bars": "66-70",
+   "voice": "middle",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "exposition of second subject (S ii)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "second CS in soprano"
+  },
+  {
+   "bars": "71-75",
+   "voice": "bass",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "iv",
+   "section": "exposition of second subject (S ii)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "second CS in middle, ornamented"
+  },
+  {
+   "bars": "79-83",
+   "voice": "soprano",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "exposition of second subject (S ii)",
+   "stretto": null,
+   "redundant": true,
+   "notes": null
+  },
+  {
+   "bars": "97-101",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "97-101",
+   "voice": "middle",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "103-107",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "v",
+   "section": "combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "103-107",
+   "voice": "middle",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "v",
+   "section": "combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "111-115",
+   "voice": "middle",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "VI",
+   "section": "combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": "only major-key entry"
+  },
+  {
+   "bars": "111-115",
+   "voice": "soprano",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "VI",
+   "section": "combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "125-129",
+   "voice": "middle",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "125-129",
+   "voice": "bass",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "135-139",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": "'in close position'"
+  },
+  {
+   "bars": "135-139",
+   "voice": "middle",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "9-13",
+   "name": "episode 1",
+   "from_key": null,
+   "to_key": null,
+   "material": "rising chromatic steps of CS echoed by diatonic steps; figures from subject",
+   "sequence": "falling sequence; free interchange"
+  },
+  {
+   "bars": "23-33",
+   "name": "episode 2",
+   "from_key": null,
+   "to_key": null,
+   "material": "codetta 17-19 material; five-note scale steps in bass; suspension figure in three-part imitation",
+   "sequence": null
+  },
+  {
+   "bars": "37-45",
+   "name": "episode 3",
+   "from_key": null,
+   "to_key": null,
+   "material": "middle alludes to CS; figures of episode 2",
+   "sequence": null
+  },
+  {
+   "bars": "49-55",
+   "name": "episode 4",
+   "from_key": null,
+   "to_key": null,
+   "material": "interchange of episode 1 then episode 2 material",
+   "sequence": null
+  },
+  {
+   "bars": "75-79",
+   "name": "episode 5",
+   "from_key": "iv",
+   "to_key": "i",
+   "material": "ornamented suspension figure imitated in all voices; falling steps of 17-19",
+   "sequence": null
+  },
+  {
+   "bars": "83-97",
+   "name": "episode 6",
+   "from_key": null,
+   "to_key": null,
+   "material": "second half of S ii and suspension figure; dominant pedal",
+   "sequence": null
+  },
+  {
+   "bars": "107-111",
+   "name": "episode 7",
+   "from_key": "v",
+   "to_key": "VI",
+   "material": "bass develops codetta of bar 17; decorated suspension in falling sequence; chromatic steps of S ii",
+   "sequence": null
+  },
+  {
+   "bars": "115-125",
+   "name": "episode 8",
+   "from_key": "VI",
+   "to_key": "i",
+   "material": "free interchange of episode 7, then figures of episode 6",
+   "sequence": null
+  },
+  {
+   "bars": "129-135",
+   "name": "episode 9",
+   "from_key": null,
+   "to_key": null,
+   "material": "final figures of S i imitated; dominant pedal",
+   "sequence": null
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "17-19"
+  },
+  {
+   "bars": "65-66"
+  },
+  {
+   "bars": "70-71"
+  },
+  {
+   "bars": "101-102"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "59-61",
+   "to": "imperfect cadence in tonic"
+  }
+ ],
+ "cadences": [
+  {
+   "bar": "45",
+   "key": "v",
+   "kind": "diagram '/'"
+  },
+  {
+   "bar": "55",
+   "key": "i",
+   "kind": "diagram '/'"
+  },
+  {
+   "bar": "61",
+   "key": "i",
+   "kind": "imperfect cadence"
+  },
+  {
+   "bar": "97",
+   "key": "i",
+   "kind": "diagram '/'"
+  },
+  {
+   "bar": "107",
+   "key": "v",
+   "kind": "diagram '/'"
+  },
+  {
+   "bar": "143",
+   "key": "i",
+   "kind": "final"
+  }
+ ],
+ "countersubjects": {
+  "count": 2,
+  "first": "with answer at 5 (soprano); S ii has its own new countersubject from 61",
+  "interchange": null,
+  "notes": null
+ },
+ "subject": {
+  "ends": null,
+  "answer": "real",
+  "notes": "subject's second half a replica of first half a step higher; ornamentation of rising steps g#-a#-b"
+ },
+ "stretti": [],
+ "claims": [
+  {
+   "page": 147,
+   "claim": "Illustrates more than any other fugue Bach's skill in building a large structure from small figures"
+  },
+  {
+   "page": 147,
+   "claim": "Exposition does not sound as ending at 17 because harmony suggests III"
+  },
+  {
+   "page": 147,
+   "claim": "Five-note rising steps of 18-19 and chromatic falling steps of 47-48 foreshadow the second subject"
+  },
+  {
+   "page": 148,
+   "claim": "Second subject, though made of previously heard figures, has the air of a fresh theme"
+  },
+  {
+   "page": 148,
+   "claim": "Bar 111 is the only major-key entry"
+  }
+ ]
+}

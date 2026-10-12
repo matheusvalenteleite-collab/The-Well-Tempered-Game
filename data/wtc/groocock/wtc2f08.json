@@ -1,0 +1,280 @@
+{
+ "id": "wtc2f08",
+ "groocock": {
+  "group": 4,
+  "pages": "98-100"
+ },
+ "entries": [
+  {
+   "bars": "1-3",
+   "voice": "alto",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "3-5",
+   "voice": "tenor",
+   "form": "answer [real]",
+   "key": "v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "countersubject in alto"
+  },
+  {
+   "bars": "7-9",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "tenor varies beginning of CS; alto semiquaver counterpoint 'not a second countersubject' but important later"
+  },
+  {
+   "bars": "9-11",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS in bass"
+  },
+  {
+   "bars": "15-17",
+   "voice": "bass",
+   "form": "subject",
+   "key": "iv",
+   "section": "entries in other keys, framed by episodes",
+   "stretto": null,
+   "redundant": false,
+   "notes": "drop of a third to 4th note; CS in soprano starting with chromatic steps"
+  },
+  {
+   "bars": "17-19",
+   "voice": "alto",
+   "form": "subject",
+   "key": "III",
+   "section": "entries in other keys, framed by episodes",
+   "stretto": null,
+   "redundant": false,
+   "notes": "as bar 15; without CS"
+  },
+  {
+   "bars": "19-21",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "VI",
+   "section": "entries in other keys, framed by episodes",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS partial in bass"
+  },
+  {
+   "bars": "21-23",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "entries in other keys, framed by episodes",
+   "stretto": null,
+   "redundant": false,
+   "notes": "original form; CS in tenor starting with rising chromatic steps, imitated by bass"
+  },
+  {
+   "bars": "23-25",
+   "voice": "alto",
+   "form": "subject",
+   "key": "iv",
+   "section": "entries in other keys, framed by episodes",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS absent from here on"
+  },
+  {
+   "bars": "24",
+   "voice": "tenor",
+   "form": "subject (incomplete)",
+   "key": null,
+   "section": "entries in other keys, framed by episodes",
+   "stretto": null,
+   "redundant": false,
+   "notes": "partial entry following closely"
+  },
+  {
+   "bars": "25-27",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "entries in other keys, framed by episodes",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "27-29",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "bvii",
+   "section": "entries in other keys, framed by episodes",
+   "stretto": null,
+   "redundant": false,
+   "notes": "extended toward cadence in III"
+  },
+  {
+   "bars": "30-32",
+   "voice": "alto",
+   "form": "subject",
+   "key": "VI",
+   "section": "entries in other keys, framed by episodes",
+   "stretto": null,
+   "redundant": false,
+   "notes": "overlaps the cadence"
+  },
+  {
+   "bars": "32-34",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "i",
+   "section": "entries in other keys, framed by episodes",
+   "stretto": null,
+   "redundant": false,
+   "notes": "starting on d#', harmonized at first in iv, ending in i; extended to perfect cadence in v at 35"
+  },
+  {
+   "bars": "40-42",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "accompanied by detached chords"
+  },
+  {
+   "bars": "43-46",
+   "voice": "soprano",
+   "form": "subject",
+   "key": null,
+   "section": "coda",
+   "stretto": null,
+   "redundant": false,
+   "notes": "simultaneous with inverted subject in tenor"
+  },
+  {
+   "bars": "43-46",
+   "voice": "tenor",
+   "form": "subject (inverted)",
+   "key": null,
+   "section": "coda",
+   "stretto": null,
+   "redundant": false,
+   "notes": "simultaneous with direct subject in soprano"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "5-7",
+   "name": "episode 1",
+   "from_key": null,
+   "to_key": null,
+   "material": "alto alludes to upward steps and leaps of subject; tenor extends final figure of answer and repeats it a step higher in augmentation",
+   "sequence": null
+  },
+  {
+   "bars": "11-15",
+   "name": "episode 2",
+   "from_key": null,
+   "to_key": null,
+   "material": "adaptation and development of episode 1; bass grows out of end of CS, partially imitated by tenor",
+   "sequence": null
+  },
+  {
+   "bars": "35-40",
+   "name": "episode 3",
+   "from_key": null,
+   "to_key": null,
+   "material": "development of episodes 1-2 with allusions to counterpoint of bar 8",
+   "sequence": null
+  }
+ ],
+ "codettas": [],
+ "extensions": [
+  {
+   "bars": "23",
+   "to": "short extension leading to alto entry"
+  },
+  {
+   "bars": "27",
+   "to": "similar short extension leading to soprano entry"
+  },
+  {
+   "bars": "29-30",
+   "to": "toward cadence in III"
+  },
+  {
+   "bars": "34-35",
+   "to": "toward perfect cadence in v"
+  },
+  {
+   "bars": "42-43",
+   "to": "toward cadence"
+  }
+ ],
+ "cadences": [
+  {
+   "bar": "29-30",
+   "key": "III",
+   "kind": "cadence (diagram 'III/')"
+  },
+  {
+   "bar": "35",
+   "key": "v",
+   "kind": "perfect cadence"
+  },
+  {
+   "bar": "43",
+   "key": "i",
+   "kind": "cadence before coda"
+  },
+  {
+   "bar": "46",
+   "key": "i",
+   "kind": "final (diagram)"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "3-5 (alto)",
+  "interchange": null,
+  "notes": "after first falling steps becomes fourfold repetition of a three-note figure in rising sequence; absent from bar 23 onward"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "real",
+  "notes": null
+ },
+ "stretti": [],
+ "claims": [
+  {
+   "page": 99,
+   "claim": "Between episodes 2 and 3 there are nine subject entries (ten counting the partial one at 24) with little or no connecting matter"
+  },
+  {
+   "page": 99,
+   "claim": "Alto counterpoint at bar 7 is not a second countersubject but important for later development"
+  },
+  {
+   "page": 99,
+   "claim": "Countersubject is absent from bar 23 and does not reappear"
+  },
+  {
+   "page": 100,
+   "claim": "The coda has simultaneous direct and inverted subject entries (soprano and tenor)"
+  }
+ ]
+}

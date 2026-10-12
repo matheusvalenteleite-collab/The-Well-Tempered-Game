@@ -1,0 +1,230 @@
+{
+ "id": "wtc2f24",
+ "groocock": {
+  "group": 6,
+  "pages": "138-140"
+ },
+ "entries": [
+  {
+   "bars": "1-6",
+   "voice": "middle",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "ends on first note of bar 6"
+  },
+  {
+   "bars": "6-12",
+   "voice": "soprano",
+   "form": "answer [tonal]",
+   "key": "v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "C1 in middle voice (appears complete only twice)"
+  },
+  {
+   "bars": "15-21",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "C1 in middle, with upward run substituted for figure of bar 7"
+  },
+  {
+   "bars": "26-32",
+   "voice": "middle",
+   "form": "answer [real]",
+   "key": "v",
+   "section": "entrance of CII, and development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "beginning of C1 in soprano; C2 introduced by bass at 29"
+  },
+  {
+   "bars": "35-41",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "III",
+   "section": "entrance of CII, and development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "overlaps bass of episode; codetta allusion in bass; C2 middle"
+  },
+  {
+   "bars": "44-50",
+   "voice": "bass",
+   "form": "subject",
+   "key": "bVII",
+   "section": "entrance of CII, and development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "overlaps end of episode; C2 soprano from 47"
+  },
+  {
+   "bars": "54-60",
+   "voice": "middle",
+   "form": "subject",
+   "key": "v",
+   "section": "entrance of CII, and development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "codetta figure in bass; C2 soprano from 57"
+  },
+  {
+   "bars": "69-72",
+   "voice": "middle",
+   "form": "subject (partial)",
+   "key": "i",
+   "section": "entrance of CII, and development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "decorated version of beginning of subject from last imitative figure of episode"
+  },
+  {
+   "bars": "70-76",
+   "voice": "bass",
+   "form": "subject",
+   "key": "iv",
+   "section": "entrance of CII, and development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "using the figure by inversion, completed; C2 soprano from 73"
+  },
+  {
+   "bars": "81-87",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "C2 middle from 84, transferred to bass 86"
+  },
+  {
+   "bars": "96-98",
+   "voice": "middle, bass, soprano",
+   "form": "allusions to first five notes of subject",
+   "key": "i",
+   "section": "coda",
+   "stretto": null,
+   "redundant": false,
+   "notes": "middle bar 96 third beat, bass one bar later, soprano one bar later (ornamented like codetta figure)"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "12-15",
+   "name": "episode 1",
+   "from_key": null,
+   "to_key": null,
+   "material": "final two figures of answer in falling sequence; middle voice rising scale-steps then CS figure higher",
+   "sequence": "falling sequence (displaced sequence of falling thirds)"
+  },
+  {
+   "bars": "21-26",
+   "name": "episode 2",
+   "from_key": null,
+   "to_key": null,
+   "material": "bass adapts C1 figures of bars 10-11; soprano in canon at twelfth",
+   "sequence": "rising sequence"
+  },
+  {
+   "bars": "32-35",
+   "name": "episode 3",
+   "from_key": "v",
+   "to_key": "III",
+   "material": "rising steps of bar 12 into rising/falling theme imitated a fourth higher; bass combines C2 pattern with rising steps",
+   "sequence": null
+  },
+  {
+   "bars": "41-44",
+   "name": "episode 4",
+   "from_key": "III",
+   "to_key": "bVII",
+   "material": "codetta figure direct and inverted; theme of ep.3; C2 figure; rising semitones in bass",
+   "sequence": null
+  },
+  {
+   "bars": "50-54",
+   "name": "episode 5",
+   "from_key": "bVII",
+   "to_key": "v",
+   "material": "material of episode 3; bass alternates C2 variant and codetta figure; chromatic falling steps in middle",
+   "sequence": "rising sequence"
+  },
+  {
+   "bars": "60-69",
+   "name": "episode 6",
+   "from_key": "v",
+   "to_key": "i",
+   "material": "codetta figure imitated by all three voices",
+   "sequence": "falling sequence"
+  },
+  {
+   "bars": "76-81",
+   "name": "episode 7",
+   "from_key": "iv",
+   "to_key": "i",
+   "material": "bass repeats end of previous entry; soprano develops end of C2",
+   "sequence": "falling sequence"
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "6"
+  }
+ ],
+ "extensions": [],
+ "cadences": [
+  {
+   "bar": "28",
+   "key": "v",
+   "kind": "diagram '/'"
+  },
+  {
+   "bar": "41",
+   "key": "III",
+   "kind": "diagram '/'"
+  },
+  {
+   "bar": "100",
+   "key": "i",
+   "kind": "final (diagram)"
+  }
+ ],
+ "countersubjects": {
+  "count": 2,
+  "first": "C1 with answer at 6 (middle voice), complete only twice; C2 introduced by bass at 29",
+  "interchange": null,
+  "notes": "type 3 of Group 6: one CS in exposition, later replaced by a new one (C2 accompanies every later entry)"
+ },
+ "subject": {
+  "ends": "on the first note of bar 6",
+  "answer": "tonal (subject starts on dominant)",
+  "notes": null
+ },
+ "stretti": [],
+ "claims": [
+  {
+   "page": 139,
+   "claim": "Subject ends on first note of bar 6; codetta leads without break into C1, which appears complete only twice"
+  },
+  {
+   "page": 139,
+   "claim": "Episode 1 may at first sound like a codetta"
+  },
+  {
+   "page": 139,
+   "claim": "From bar 29 the second countersubject accompanies every entry"
+  },
+  {
+   "page": 140,
+   "claim": "Coda extends episode 3 material with upper voices interchanged, then recapitulates episode 5"
+  }
+ ]
+}

@@ -1,0 +1,408 @@
+{
+ "id": "wtc2f04",
+ "groocock": {
+  "group": 7,
+  "pages": "144-146"
+ },
+ "entries": [
+  {
+   "bars": "1-2",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "ends at last note of bar 2; answer overlaps its last four notes"
+  },
+  {
+   "bars": "2-4",
+   "voice": "soprano",
+   "form": "answer [real]",
+   "subject_no": 1,
+   "key": "v",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "countersubject in bass, usually modified later"
+  },
+  {
+   "bars": "5-6",
+   "voice": "middle",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "at first seems part of an inverted interrupted cadence in III"
+  },
+  {
+   "bars": "16-17",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "17-19",
+   "voice": "middle",
+   "form": "answer",
+   "subject_no": 1,
+   "key": "v",
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "modified CS in bass"
+  },
+  {
+   "bars": "20-21",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "III",
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "in III instead of expected i"
+  },
+  {
+   "bars": "24-25",
+   "voice": "soprano",
+   "form": "subject (inverted)",
+   "subject_no": 1,
+   "key": "bVII",
+   "section": "exposition of inverted subject",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "26-27",
+   "voice": "middle",
+   "form": "subject (inverted)",
+   "subject_no": 1,
+   "key": "iv",
+   "section": "exposition of inverted subject",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "28-29",
+   "voice": "bass",
+   "form": "subject (inverted)",
+   "subject_no": 1,
+   "key": "i",
+   "section": "exposition of inverted subject",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "30-31",
+   "voice": "middle",
+   "form": "subject (direct)",
+   "subject_no": 1,
+   "key": "i",
+   "section": "exposition of inverted subject",
+   "stretto": null,
+   "redundant": false,
+   "notes": "modified CS in bass"
+  },
+  {
+   "bars": "35-36",
+   "voice": "soprano",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "iv",
+   "section": "exposition of second subject (S ii)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "foreshadowed in soprano bar 20 and bar 27"
+  },
+  {
+   "bars": "36-37",
+   "voice": "middle",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "exposition of second subject (S ii)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "follows in stretto"
+  },
+  {
+   "bars": "37-39",
+   "voice": "bass",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "v",
+   "section": "exposition of second subject (S ii)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "from last note of 37"
+  },
+  {
+   "bars": "48-49",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "combination of S i and S ii subjects",
+   "stretto": null,
+   "redundant": false,
+   "notes": "with S ii in bass"
+  },
+  {
+   "bars": "48-49",
+   "voice": "bass",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "combination of S i and S ii subjects",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "53-54",
+   "voice": "middle",
+   "form": "subject (inverted)",
+   "subject_no": 1,
+   "key": "VI",
+   "section": "combination of S i and S ii subjects",
+   "stretto": null,
+   "redundant": false,
+   "notes": "allusion to beginning of S ii in bass"
+  },
+  {
+   "bars": "55-56",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "combination of S i and S ii subjects",
+   "stretto": null,
+   "redundant": false,
+   "notes": "interchange at twelfth of bar 48"
+  },
+  {
+   "bars": "55-56",
+   "voice": "soprano",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "combination of S i and S ii subjects",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "61-62",
+   "voice": "middle",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "v",
+   "section": "combination of S i and S ii subjects",
+   "stretto": null,
+   "redundant": false,
+   "notes": "as bar 48 but an octave closer"
+  },
+  {
+   "bars": "61-62",
+   "voice": "bass",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "v",
+   "section": "combination of S i and S ii subjects",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "66-67",
+   "voice": "middle",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "combination of S i and S ii subjects",
+   "stretto": null,
+   "redundant": false,
+   "notes": "interchanging bar 48 at the octave; bass dominant pedal"
+  },
+  {
+   "bars": "66-67",
+   "voice": "soprano",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "combination of S i and S ii subjects",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "67-69",
+   "voice": "bass",
+   "form": "answer (listed as S i)",
+   "subject_no": 1,
+   "key": "i",
+   "section": "combination of S i and S ii subjects",
+   "stretto": null,
+   "redundant": false,
+   "notes": "pedal quitted from a 6/4, becomes final entry of the answer harmonized in i"
+  },
+  {
+   "bars": "67-69",
+   "voice": "middle",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "combination of S i and S ii subjects",
+   "stretto": null,
+   "redundant": false,
+   "notes": "two beats later, imitated in chromatic steps by soprano"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "6-16",
+   "name": "episode 1",
+   "from_key": "i",
+   "to_key": "III then i",
+   "material": "three-part version of codetta of bar 4, imitation of final figures of subject, suspension figure of CS; new soprano figure bar 13",
+   "sequence": null
+  },
+  {
+   "bars": "31-34",
+   "name": "episode 2",
+   "from_key": "i",
+   "to_key": "iv",
+   "material": "extends end of subject; upper voices imitate figure of bar 13",
+   "sequence": "sequence"
+  },
+  {
+   "bars": "39-47",
+   "name": "episode 3",
+   "from_key": "v",
+   "to_key": "bVII and i",
+   "material": "material of episode 1",
+   "sequence": null
+  },
+  {
+   "bars": "49-52",
+   "name": "episode 4",
+   "from_key": "i",
+   "to_key": "VI",
+   "material": "figure of bar 13; first-subject figures, chromatic steps of S ii, final figure in bass",
+   "sequence": "falling sequence"
+  },
+  {
+   "bars": "56-61",
+   "name": "episode 5",
+   "from_key": null,
+   "to_key": null,
+   "material": "material of episode 2; dominant pedal 59-60",
+   "sequence": null
+  },
+  {
+   "bars": "62-65",
+   "name": "episode 6",
+   "from_key": null,
+   "to_key": null,
+   "material": "canonic/imitative final figures of S i in upper voices; bass repeats in falling fifths figure of bar 1",
+   "sequence": null
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "4"
+  },
+  {
+   "bars": "19"
+  },
+  {
+   "bars": "21-23"
+  }
+ ],
+ "extensions": [],
+ "cadences": [
+  {
+   "bar": "13",
+   "key": "III",
+   "kind": "cadence"
+  },
+  {
+   "bar": "16",
+   "key": "i",
+   "kind": "diagram '/'"
+  },
+  {
+   "bar": "20",
+   "key": "III",
+   "kind": "diagram 'III/'"
+  },
+  {
+   "bar": "44",
+   "key": "bVII",
+   "kind": "cadence"
+  },
+  {
+   "bar": "71",
+   "key": "i",
+   "kind": "final"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "2-4 (bass)",
+  "interchange": null,
+  "notes": "usually modified later"
+ },
+ "subject": {
+  "ends": "presumed at last note of bar 2, so the answer overlaps its last four notes",
+  "answer": "real",
+  "notes": "voice order bass-soprano-middle used only here and in II.3"
+ },
+ "stretti": [
+  {
+   "name": "S ii exposition",
+   "bars": "35-37",
+   "voices": [
+    "soprano",
+    "middle"
+   ],
+   "interval": null,
+   "timing": null,
+   "notes": "middle voice follows in stretto"
+  }
+ ],
+ "claims": [
+  {
+   "page": 144,
+   "claim": "Voice order bass-soprano-middle used only in II.4 and II.3"
+  },
+  {
+   "page": 144,
+   "claim": "Subject presumed to end at last note of bar 2; answer overlaps its last four notes"
+  },
+  {
+   "page": 145,
+   "claim": "Bass entry at 20 in III instead of expected i"
+  },
+  {
+   "page": 145,
+   "claim": "Second subject foreshadowed in soprano at 20 and 27"
+  },
+  {
+   "page": 145,
+   "claim": "Combination entries at 55, 61, 66 are interchanges of bar 48 at twelfth, octave-closer, octave"
+  }
+ ]
+}

@@ -1,0 +1,284 @@
+{
+ "id": "wtc1f19",
+ "groocock": {
+  "group": 6,
+  "pages": "132-134"
+ },
+ "entries": [
+  {
+   "bars": "1-2",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "opening section (incl. exposition, redundant entries, and partial development)",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "2-3",
+   "voice": "middle",
+   "form": "answer [tonal]",
+   "key": "I-V",
+   "section": "opening section (incl. exposition, redundant entries, and partial development)",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "4-5",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "opening section (incl. exposition, redundant entries, and partial development)",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "6-7",
+   "voice": "bass",
+   "form": "answer",
+   "key": "I",
+   "section": "opening section (incl. exposition, redundant entries, and partial development)",
+   "stretto": null,
+   "redundant": true,
+   "notes": null
+  },
+  {
+   "bars": "9-10",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "opening section (incl. exposition, redundant entries, and partial development)",
+   "stretto": null,
+   "redundant": true,
+   "notes": null
+  },
+  {
+   "bars": "13-14",
+   "voice": "bass",
+   "form": "subject",
+   "key": "vi",
+   "section": "opening section (incl. exposition, redundant entries, and partial development)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "ending altered to lead into ii"
+  },
+  {
+   "bars": "16-17",
+   "voice": "bass",
+   "form": "answer",
+   "key": "ii-V",
+   "section": "opening section (incl. exposition, redundant entries, and partial development)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "ear accepts as an entry; large pitch displacement, uncertain ending"
+  },
+  {
+   "bars": "23-24",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "entrance of countersubject and continued development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "countersubject in middle voice, 'of completely unexpected nature'"
+  },
+  {
+   "bars": "25-26",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "I",
+   "section": "entrance of countersubject and continued development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "below the middle voice, sounds like a middle voice until bar 27; altered at 2nd beat of 26"
+  },
+  {
+   "bars": "27-28",
+   "voice": "middle",
+   "form": "answer [real]",
+   "key": "V",
+   "section": "entrance of countersubject and continued development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "starts an octave too high, ending altered; CS in bass"
+  },
+  {
+   "bars": "31-32",
+   "voice": "soprano then middle",
+   "form": "subject",
+   "key": "IV",
+   "section": "entrance of countersubject and continued development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "starts with high soprano d'' and continues in middle voice; variant of CS in bass"
+  },
+  {
+   "bars": "33-34",
+   "voice": "bass",
+   "form": "subject",
+   "key": "IV-ii",
+   "section": "entrance of countersubject and continued development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "chromatic alterations bring it into vi; CS altered in middle"
+  },
+  {
+   "bars": "39-40",
+   "voice": "bass",
+   "form": "answer",
+   "key": "vi",
+   "section": "entrance of countersubject and continued development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "lacking first note, lengthened; alternatively bars 39-42 part of episode; CS altered in soprano"
+  },
+  {
+   "bars": "42-43",
+   "voice": "middle",
+   "form": "subject",
+   "key": "vi-I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "begins on f#' then goes on as if begun on a"
+  },
+  {
+   "bars": "44-45",
+   "voice": "bass",
+   "form": "answer",
+   "key": "V-I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "altered ending"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "29-31",
+   "name": "episode 1",
+   "from_key": "V",
+   "to_key": "IV",
+   "material": "bass develops subject figure (fourths become sixths, thirds become fifths); soprano run from CS",
+   "sequence": "voices interchanged in following bar; V-I-IV"
+  },
+  {
+   "bars": "36-39",
+   "name": "episode 2",
+   "from_key": "ii",
+   "to_key": "vi",
+   "material": "upper voices refer to subject figure in two-part imitation; bass develops CS",
+   "sequence": null
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "20-23"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "7-9",
+   "to": "cadence, I"
+  },
+  {
+   "bars": "10-13",
+   "to": "cadence, vi"
+  },
+  {
+   "bars": "14-16",
+   "to": "cadence, ii"
+  },
+  {
+   "bars": "17-20",
+   "to": "cadence, V"
+  },
+  {
+   "bars": "34-36",
+   "to": "cadence, ii"
+  },
+  {
+   "bars": "41-42",
+   "to": "cadence, vi"
+  },
+  {
+   "bars": "45-49",
+   "to": "cadence, I (= bars 17-20)"
+  }
+ ],
+ "cadences": [
+  {
+   "bar": "8-9",
+   "key": "I",
+   "kind": "cadence"
+  },
+  {
+   "bar": "13",
+   "key": "vi",
+   "kind": "cadence"
+  },
+  {
+   "bar": "16",
+   "key": "ii",
+   "kind": "cadence"
+  },
+  {
+   "bar": "20",
+   "key": "V",
+   "kind": "cadence ending opening section"
+  },
+  {
+   "bar": "36",
+   "key": "ii",
+   "kind": "cadence"
+  },
+  {
+   "bar": "42",
+   "key": "vi",
+   "kind": "cadence"
+  },
+  {
+   "bar": "49",
+   "key": "I",
+   "kind": "cadence (recapitulating 17-20)"
+  },
+  {
+   "bar": "54",
+   "key": "I",
+   "kind": "final"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "23 (middle voice), after the exposition",
+  "interchange": null,
+  "notes": "no countersubject in exposition; one introduced later (type 1 of Group 6)"
+ },
+ "subject": {
+  "ends": "uncertain: one commentator says one note; could end at first note of bar 2 (like I.17, on dominant not in dominant key); Groocock prefers ending with the c#'' just before end of bar 2 (mediant), since the pattern of rising fourths and falling thirds continues; seven of fifteen entries support this",
+  "answer": "tonal (discussed in ch. 2); a real answer would sound like a sudden move to V and prevent the interval pattern continuing into bar 2",
+  "notes": null
+ },
+ "stretti": [],
+ "claims": [
+  {
+   "page": 132,
+   "claim": "Four main divisions: opening section in triplets ending in V at bar 20; new beginning with running countersubject; return of opening material reduced to one-third; return of second section reduced to one-third"
+  },
+  {
+   "page": 133,
+   "claim": "Subject regarded as ending with c#'' before end of bar 2 (mediant); seven of fifteen entries support this"
+  },
+  {
+   "page": 133,
+   "claim": "Bars 20-22 codetta or introduction to the 'chief event', the countersubject at 23"
+  },
+  {
+   "page": 134,
+   "claim": "Bars 45-49 almost exactly recapitulate 17-20 in the tonic; coda starts by repeating episode 1 (29-30); from 51 upper voices interchange upper voices of 46-48 (after Tovey)"
+  }
+ ]
+}

@@ -1,0 +1,223 @@
+{
+ "id": "wtc1f07",
+ "title": "I.7: Fugue in Eb major",
+ "voices": 3,
+ "groocock": {
+  "group": 2,
+  "chapter": "7 Group 2: Fugues for Three Voices, without Stretto",
+  "pages": "34-37",
+  "pdf_pages": "47-50"
+ },
+ "entries": [
+  {
+   "bars": "1-2",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I-V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "modulating subject"
+  },
+  {
+   "bars": "3-4",
+   "voice": "middle",
+   "form": "answer",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "tonal answer to a modulating subject; drop of a tone at the rest; whole answer in the tonic key"
+  },
+  {
+   "bars": "6-7",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I-V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "countersubject in middle modified during the semiquaver run of bar 6"
+  },
+  {
+   "bars": "10-12",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "I",
+   "section": "extension of exposition",
+   "stretto": null,
+   "redundant": true,
+   "notes": "begins at last note of bar 10; retains original tonality"
+  },
+  {
+   "bars": "17-19",
+   "voice": "middle",
+   "form": "answer",
+   "key": "vi",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "20-22",
+   "voice": "bass",
+   "form": "subject",
+   "key": "vi-iii",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": "beginning of CS in middle slightly varied (diagram shows (C))"
+  },
+  {
+   "bars": "25-27",
+   "voice": "bass",
+   "form": "answer",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "enters at last note of bar 25; restores tonic"
+  },
+  {
+   "bars": "28-30",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I-V",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "begins at end of bar 28 as if answer in IV; after the rest in bar 29 proves to be subject; combines shapes of subject and answer and incorporates the tied note of the CS"
+  },
+  {
+   "bars": "33-35",
+   "voice": "middle",
+   "form": "answer",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "enters end of bar 33; chromatic adornment in bar 34"
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "4-5",
+   "from_key": null,
+   "to_key": null,
+   "material": "main idea (not exact notes) of the codetta; soprano alludes to subject leaps and CS tied-note rhythm",
+   "sequence": "falling sequence"
+  },
+  {
+   "number": 2,
+   "bars": "7-10",
+   "from_key": null,
+   "to_key": null,
+   "material": "codetta figure in imitation bass/soprano, middle by augmentation; bar 10 bass develops codetta figure, upper voices allude to CS by diminution",
+   "sequence": "falling sequence"
+  },
+  {
+   "number": 3,
+   "bars": "12-17",
+   "from_key": "I",
+   "to_key": "vi",
+   "material": "begins with interchange of most of episode 2; from bar 15 soprano develops codetta figure",
+   "sequence": null
+  },
+  {
+   "number": 4,
+   "bars": "19-20",
+   "from_key": null,
+   "to_key": null,
+   "material": "free interchange of episode 1",
+   "sequence": null
+  },
+  {
+   "number": 5,
+   "bars": "22-25",
+   "from_key": "iii",
+   "to_key": "I",
+   "material": "variant of first half of subject in soprano, allusions to subject and codetta; pattern changes to rising sequence (text says \"at bar 21\"); CS material in bars 24-25",
+   "sequence": "falling then rising sequence"
+  },
+  {
+   "number": 6,
+   "bars": "27-28",
+   "from_key": null,
+   "to_key": null,
+   "material": "continues pattern of second half of episode 5",
+   "sequence": null
+  },
+  {
+   "number": 7,
+   "bars": "30-33",
+   "from_key": null,
+   "to_key": null,
+   "material": "varied repetition of episode 2 with upper voices interchanged",
+   "sequence": null
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "2 (second half)",
+   "notes": "modulates back from V to I; its figure is the main material of the fugue"
+  }
+ ],
+ "coda": "35-37",
+ "cadences": [
+  {
+   "bar": "17",
+   "key": "vi",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "30",
+   "key": "V",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "37",
+   "key": "I",
+   "kind": "perfect",
+   "source": "diagram"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "second note of bar 3 (soprano), ends with last note of the answer",
+  "interchange": "fifteenth",
+  "notes": "must be moved up a tone to fit the subject (done in the semiquaver run of bar 6); one or other form used with all but two later entries; free part (not a second CS) at bar 6, different in each of four later entries. Interchange interval from list p.13"
+ },
+ "subject": {
+  "ends": "fourth note of bar 2",
+  "answer": "tonal; answer to a modulating subject (drop of a tone at the rest; semitone becomes minor third)",
+  "notes": "subject starts on dominant and modulates I-V; whole answer in tonic because codetta re-establishes I, answer is tonal, and CS uses notes of tonic key (pp.8, 35)"
+ },
+ "key_plan": "Group 2 table: Exp I-V I EP I-V | EP I | Dev EP vi EP vi-iii | Final EP I EP I-V EP I",
+ "claims": [
+  {
+   "claim": "About 65% of the fugue is not directly concerned with subject or answer but with development of figures from subject, CS and especially the codetta of bar 2.",
+   "page": 36
+  },
+  {
+   "claim": "Choice of subject or answer form controls tonality: subject form at bar 20 modulates vi-iii; answer at 25 restores tonic.",
+   "page": 35
+  },
+  {
+   "claim": "Exposition has a codetta (bar 2) and an episode before the third entry (bars 4-5).",
+   "page": 32
+  },
+  {
+   "claim": "Redundant entry of the answer at bar 10.",
+   "page": 32
+  },
+  {
+   "claim": "Entry at bar 28 combines shapes of subject and answer and incorporates the tied note of the CS.",
+   "page": 36
+  }
+ ],
+ "extensions": []
+}

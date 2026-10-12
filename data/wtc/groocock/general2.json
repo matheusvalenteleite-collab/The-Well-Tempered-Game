@@ -1,0 +1,594 @@
+{
+ "source": "Groocock, Fugal Composition (ed. Tomita, 2003), pdf pp. 101-178 = book pp. 88-165 (pdf 179 blank; endnotes not in this part)",
+ "groups": {
+  "4": {
+   "title": "Fugues for Four Voices, without Stretto",
+   "fugues_in_this_part": [
+    "wtc2f17",
+    "wtc1f12",
+    "wtc1f14",
+    "wtc1f18",
+    "wtc1f24",
+    "wtc2f08",
+    "wtc2f16",
+    "wtc1f05",
+    "wtc1f17"
+   ],
+   "also_in_group": [
+    "wtc1f23 (in part 1)"
+   ],
+   "review": {
+    "pages": "106-107",
+    "claims": [
+     {
+      "page": 106,
+      "claim": "All ten fugues follow the general plan of Group 2: exposition etc.; entries in related keys and episodes; final section"
+     },
+     {
+      "page": 106,
+      "claim": "Group 4 shows more clearly than Group 2 that a fugue may keep a general plan yet differ widely in details of form"
+     },
+     {
+      "page": 106,
+      "claim": "A certain stamp is given by order of voice entry; they vary even in the exposition the succession of subject-answer relationships"
+     },
+     {
+      "page": 106,
+      "claim": "Countersubjects: four fugues have one, three have two, one has three, two have none"
+     },
+     {
+      "page": 106,
+      "claim": "Wider range of keys in middle section (up to five related keys in one); increasing tendency in four-voice fugues to use I and V for middle entries"
+     },
+     {
+      "page": 106,
+      "claim": "Harder to judge exactly where the middle section begins"
+     },
+     {
+      "page": 106,
+      "claim": "Four-voice fugues do not always make the relative-key modulation their first after the exposition, unlike most three-voice fugues"
+     }
+    ],
+    "key_scheme_table_pdf120": {
+     "page": 107,
+     "with_countersubject": {
+      "major": [
+       "wtc1f23",
+       "wtc2f17"
+      ],
+      "minor": [
+       "wtc1f12",
+       "wtc1f14",
+       "wtc1f18",
+       "wtc1f24",
+       "wtc2f08",
+       "wtc2f16"
+      ]
+     },
+     "without_countersubject": {
+      "major": [
+       "wtc1f05",
+       "wtc1f17"
+      ]
+     },
+     "rows": {
+      "wtc1f23": [
+       "I I-V I I-V",
+       "EP I EP I-V",
+       "I V I ii",
+       "EP I V-I"
+      ],
+      "wtc2f17": [
+       "I I-V I I-V",
+       "EP I I-V I I",
+       "vi EP v ii IV",
+       "I I I"
+      ],
+      "wtc1f12": [
+       "i i-v i EP i",
+       "EP v EP i",
+       "EP III EP bVII EP v",
+       "EP i"
+      ],
+      "wtc1f14": [
+       "i v i EP i EP",
+       "",
+       "i v i i",
+       "EP i"
+      ],
+      "wtc1f18": [
+       "i-v v-i i-v v-i",
+       "",
+       "EP v-i EP iv-i i-v v-i EP v III",
+       "EP i-v EP iv-i"
+      ],
+      "wtc1f24": [
+       "i-v v-i EP i-v EP v-i",
+       "",
+       "EP i-v EP iv-i EP i-v EP III-bVII III EP v-ii EP IV-i i-v",
+       "EP i iv-i"
+      ],
+      "wtc2f08": [
+       "i v EP i v",
+       "",
+       "EP IV III VI I IV I-IV bvii VI [sic: printed]",
+       "EP i i"
+      ],
+      "wtc2f16": [
+       "i v i v",
+       "EP i EP v",
+       "III bVII EP bVII EP iv EP VI",
+       "EP i i [i]"
+      ],
+      "wtc1f05": [
+       "I V I V",
+       "I",
+       "vi EP IV I I IV IV ii",
+       "EP I"
+      ],
+      "wtc1f17": [
+       "I I I I-V",
+       "EP I",
+       "EP vi EP ii ii EP I IV",
+       "EP I vi-iii I IV EP I"
+      ]
+     },
+     "columns": [
+      "Exposition",
+      "Counterexposition (or redundant entries)",
+      "Development",
+      "Final section"
+     ],
+     "note": "rotated table; transcribed from the image; II.8 development row printed 'IV III VI I IV I-IV bvii VI' (the IV may be a misprint for iv)"
+    }
+   }
+  },
+  "5": {
+   "title": "Fugues for Four Voices, with Stretto",
+   "pages": "109-130",
+   "classification": {
+    "page": 109,
+    "with_countersubject": {
+     "major": [
+      "wtc2f07",
+      "wtc2f09"
+     ],
+     "minor": [
+      "wtc1f16",
+      "wtc1f20",
+      "wtc2f02",
+      "wtc2f22"
+     ]
+    },
+    "without_countersubject": {
+     "major": [
+      "wtc1f01",
+      "wtc2f05"
+     ]
+    }
+   },
+   "review": {
+    "pages": "130",
+    "claims": [
+     {
+      "page": 130,
+      "claim": "Bach often alters intervals in one voice of a stretto for euphony"
+     },
+     {
+      "page": 130,
+      "claim": "Where possible each voice completes the subject, but the stretto effect survives incomplete voices"
+     },
+     {
+      "page": 130,
+      "claim": "Unlike textbook advice that the last entry of a stretto be complete, Bach leaves the final voice incomplete, normally to lead to a better climax"
+     },
+     {
+      "page": 130,
+      "claim": "Subject-answer / answer-subject is the commonest stretto relationship, but these eight fugues use every other interval as well"
+     }
+    ],
+    "stretto_interval_table_pdf143": {
+     "page": 130,
+     "read_from": "page image",
+     "rows": {
+      "up an octave (or down)": [
+       "wtc1f01",
+       "wtc1f16",
+       "wtc1f20",
+       "wtc2f05"
+      ],
+      "up a ninth (or down a seventh)": [
+       "wtc1f01",
+       "wtc2f05",
+       "wtc2f22"
+      ],
+      "up a third (or down a sixth)": [
+       "wtc1f01",
+       "wtc2f22"
+      ],
+      "up a fourth (or down a fifth)": [
+       "wtc1f01",
+       "wtc1f20",
+       "wtc2f02",
+       "wtc2f05",
+       "wtc2f07",
+       "wtc2f09"
+      ],
+      "up a fifth (or down a fourth)": [
+       "wtc1f01",
+       "wtc1f16",
+       "wtc1f20",
+       "wtc2f02",
+       "wtc2f05",
+       "wtc2f09"
+      ],
+      "up a sixth (or down a third)": [
+       "wtc1f01",
+       "wtc2f05"
+      ],
+      "up a seventh (or down a ninth)": [
+       "wtc1f20",
+       "wtc2f22"
+      ]
+     }
+    },
+    "per_fugue_pair_tables": {
+     "wtc1f01": "p.126 (see wtc1f01.json stretto_pair_table)",
+     "wtc2f05": "p.129-130 (see wtc2f05.json)"
+    }
+   }
+  },
+  "6": {
+   "title": "Fugues with Countersubjects Introduced after the Exposition",
+   "pages": "131-142",
+   "intro": {
+    "page": 131,
+    "claims": [
+     "Most fugues in Groups 1-5 have a countersubject, some two, one (I.12) three; some none; type always evident before end of exposition",
+     "The four fugues here each show a unique experiment with countersubjects"
+    ]
+   },
+   "typology": [
+    {
+     "type": 1,
+     "description": "no countersubject in exposition; one introduced later",
+     "fugues": [
+      "wtc1f19"
+     ],
+     "page": 131
+    },
+    {
+     "type": 2,
+     "description": "no countersubject in exposition; two introduced later",
+     "fugues": [
+      "wtc2f21"
+     ],
+     "page": 131
+    },
+    {
+     "type": 3,
+     "description": "one countersubject in exposition, later replaced by a new one",
+     "fugues": [
+      "wtc2f24"
+     ],
+     "page": 131
+    },
+    {
+     "type": 4,
+     "description": "one countersubject in exposition; one additional introduced later",
+     "fugues": [
+      "wtc1f13"
+     ],
+     "page": 131
+    }
+   ],
+   "review": {
+    "page": 142,
+    "claims": [
+     "The four fugues enlarge the concept of variable form; two fugues may differ widely in form and both be excellent"
+    ],
+    "outline_table": {
+     "wtc1f19": "S S S S S S S S S S(C) Ep S(C) S(C) Ep S(C) S S Cod  [C marks over entries 8,10,12,13,15 approx.]",
+     "wtc2f21": "S S Ep S Ep S Ep S Ep S Ep S Ep S Ep S Ep S Cod; CI+CII with the last six entries",
+     "wtc2f24": "S S Ep S Ep S Ep S Ep S Ep S Ep S Ep S Cod; CI with entries 2-4, CII from entry 4 to the end",
+     "wtc1f13": "S S S Ep S Ep S Ep S Ep S Ep S Cod; CI with entries 2,3,4,5,6,8; CII with entries 4,6,7",
+     "note": "column alignment of C marks approximate"
+    }
+   }
+  },
+  "7": {
+   "title": "Fugues with Subsidiary Subjects",
+   "pages": "143-158",
+   "intro": {
+    "page": 143,
+    "claims": [
+     "Sometimes described as having extra countersubjects, but new themes are more important: they get their own exposition as well as combination with the original subject"
+    ]
+   },
+   "one_subsidiary_subject": [
+    "wtc2f04",
+    "wtc2f18",
+    "wtc2f23"
+   ],
+   "two_subsidiary_subjects": [
+    "wtc2f14"
+   ],
+   "also": {
+    "wtc1f04": "also has two subsidiary subjects; treated with five-voice fugues (ch. 15)"
+   },
+   "fugal_preludes": {
+    "wtc1p07": "fugue on two subjects (bars 25-70)",
+    "wtc1p19": "fugue on three subjects"
+   },
+   "plan_table_pdf171": {
+    "page": 158,
+    "columns": {
+     "wtc2f04": [
+      "1",
+      "1",
+      "1",
+      "EP",
+      "1",
+      "1",
+      "1",
+      "1 (inv)",
+      "1 (inv)",
+      "1 (inv)",
+      "1",
+      "EP",
+      "2",
+      "2",
+      "2",
+      "EP",
+      "1+2",
+      "EP",
+      "1 (inv)",
+      "1+2",
+      "EP",
+      "1+2",
+      "EP",
+      "1+2",
+      "1+2",
+      "Coda"
+     ],
+     "wtc2f18": [
+      "1",
+      "1",
+      "EP",
+      "1",
+      "1",
+      "EP",
+      "1",
+      "EP",
+      "1",
+      "EP",
+      "1",
+      "2",
+      "2",
+      "2",
+      "EP",
+      "2",
+      "EP",
+      "1+2",
+      "1+2",
+      "EP",
+      "1+2",
+      "EP",
+      "1+2",
+      "EP",
+      "1+2",
+      "Coda"
+     ],
+     "wtc2f23": [
+      "1",
+      "1",
+      "1",
+      "1",
+      "1",
+      "EP",
+      "1+2",
+      "2",
+      "2",
+      "1+2",
+      "EP",
+      "1+2",
+      "EP",
+      "1+2",
+      "1+2",
+      "EP",
+      "1+2",
+      "EP",
+      "1",
+      "EP",
+      "1+2",
+      "EP",
+      "1+2",
+      "Coda"
+     ],
+     "wtc2f14": [
+      "1",
+      "1",
+      "1",
+      "EP",
+      "1",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "1+2",
+      "EP",
+      "1",
+      "3",
+      "3",
+      "3",
+      "EP",
+      "1",
+      "1+2+3",
+      "EP",
+      "1+2+3",
+      "EP",
+      "2",
+      "1+2+3",
+      "Coda"
+     ],
+     "wtc1p07": [
+      "1+2",
+      "1+2",
+      "1+2",
+      "EP",
+      "1 (stretto)",
+      "1 (stretto)",
+      "1 (stretto)",
+      "1 (stretto)",
+      "1 (stretto)",
+      "1 (stretto)",
+      "1+2 (stretto)",
+      "EP",
+      "1 (stretto)",
+      "1+2 (stretto)",
+      "1+2",
+      "EP",
+      "1+2",
+      "1",
+      "1+2",
+      "1+2",
+      "1+2",
+      "1+2",
+      "1 (stretto)",
+      "1 (stretto)",
+      "1 (stretto)",
+      "Coda"
+     ],
+     "wtc1p19": [
+      "1+2+3",
+      "1+2+3",
+      "EP",
+      "1+2+3",
+      "1+2+3",
+      "Ep",
+      "1+2+3",
+      "1+2+3",
+      "Coda"
+     ]
+    },
+    "note": "transcribed from image; I.Pr.7 stretto brackets grouped approximately"
+   }
+  },
+  "8": {
+   "title": "Fugues for Five Voices",
+   "pages": "159-165",
+   "fugues": [
+    "wtc1f04",
+    "wtc1f22"
+   ],
+   "intro": {
+    "page": 159,
+    "claims": [
+     "Only similarity is that both are for five voices",
+     "I.4: first entries in ascending order; main subject later joined by two subsidiary subjects (as in II.14); chief events are permutations of the three subjects and stretti of two of them",
+     "I.22: first entries in descending order; single subject dominates almost to exclusion of other material; chief events two stretti involving all five voices"
+    ]
+   },
+   "wtc1f04_permutations": {
+    "page": 162,
+    "used": {
+     "Si/Sii/Siii (top to bottom)": "48-51, 54-57, 59-62",
+     "Siii/Sii/Si": "51-54",
+     "Si/Siii/Sii": "66-69, 76-79",
+     "Sii/Siii/Si": "73-76, 81-84",
+     "Sii/Si/Siii": "85-88"
+    },
+    "not_used": "Siii/Si/Sii",
+    "claim": "five of six permutations used"
+   }
+  }
+ },
+ "cross_group_claims": [
+  {
+   "page": 113,
+   "claim": "II.9 and II.7 both have counterexposition in stretto (answer leading)",
+   "fugues": [
+    "wtc2f09",
+    "wtc2f07"
+   ]
+  },
+  {
+   "page": 126,
+   "claim": "Basic stretto pattern of I.1, II.9, II.7 is subject-answer or answer-subject",
+   "fugues": [
+    "wtc1f01",
+    "wtc2f09",
+    "wtc2f07"
+   ]
+  },
+  {
+   "page": 129,
+   "claim": "II.5 basic pattern answer-subject (as II.9) varied by subject-answer",
+   "fugues": [
+    "wtc2f05",
+    "wtc2f09"
+   ]
+  },
+  {
+   "page": 122,
+   "claim": "Of ten minor-key fugues with mediant-ending subjects, only I.10 and II.22 use tierce de Picardie in first answer",
+   "fugues": [
+    "wtc2f22",
+    "wtc1f10"
+   ]
+  },
+  {
+   "page": 110,
+   "claim": "More than half the fugues of the 48 have subjects ending on the mediant",
+   "fugues": []
+  },
+  {
+   "page": 104,
+   "claim": "I.17 and I.6 subjects end on the dominant but not in the dominant key; I.19 alternatively likewise",
+   "fugues": [
+    "wtc1f17",
+    "wtc1f06",
+    "wtc1f19"
+   ]
+  },
+  {
+   "page": 144,
+   "claim": "Voice order bass-soprano-middle only in II.4 and II.3",
+   "fugues": [
+    "wtc2f04",
+    "wtc2f03"
+   ]
+  },
+  {
+   "page": 135,
+   "claim": "II.21 subject unique in starting on the supertonic",
+   "fugues": [
+    "wtc2f21"
+   ]
+  },
+  {
+   "page": 90,
+   "claim": "I.12 is unique in having three countersubjects",
+   "fugues": [
+    "wtc1f12"
+   ]
+  },
+  {
+   "page": 133,
+   "claim": "Subjects of uncertain length: I.19, Prelude II.3 fughetta, II.3 (answer enters with effect of stretto)",
+   "fugues": [
+    "wtc1f19",
+    "wtc2f03"
+   ]
+  },
+  {
+   "page": 127,
+   "claim": "II.5 is 'without question the most close-knit fugue of the entire collection'",
+   "fugues": [
+    "wtc2f05"
+   ]
+  }
+ ],
+ "not_found_in_this_part": "No repetition of four-part writing proportions in this part (only I.24: four parts reserved for climaxes, about one-fifth of length, p.96)."
+}

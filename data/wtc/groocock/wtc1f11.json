@@ -1,0 +1,271 @@
+{
+ "id": "wtc1f11",
+ "title": "I.11: Fugue in F major",
+ "voices": 3,
+ "bar_numbering": "upbeat bar counted as 0 (table \"0-4: subject in middle voice\")",
+ "groocock": {
+  "group": 3,
+  "chapter": "9 Group 3: Fugues for Three Voices, with Stretto",
+  "pages": "64-65",
+  "pdf_pages": "77-78"
+ },
+ "entries": [
+  {
+   "bars": "0-4",
+   "voice": "middle",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "followed by codetta (bar 4) leading to CS in bar 5"
+  },
+  {
+   "bars": "4-8",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "I-V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "tonal; harmonized in tonic until bar 6; followed by codetta (bar 8)"
+  },
+  {
+   "bars": "9-13",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "followed by codetta and CS in episode 1"
+  },
+  {
+   "bars": "17-21",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "counterexposition and first stretto; codetta links to CS in bar 21"
+  },
+  {
+   "bars": "21-25",
+   "voice": "middle",
+   "form": "answer",
+   "key": "I-V",
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "one of only two answer-form entries out of fourteen"
+  },
+  {
+   "bars": "25-29",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "counterexposition",
+   "stretto": "Str.1",
+   "redundant": false,
+   "notes": "codetta in varied form (bar 25 area); leads to abbreviated CS 29-31"
+  },
+  {
+   "bars": "27-31",
+   "voice": "middle",
+   "form": "subject",
+   "key": "I",
+   "section": "counterexposition",
+   "stretto": "Str.1",
+   "redundant": false,
+   "notes": "repeats the bass entry two bars later, an octave higher"
+  },
+  {
+   "bars": "36-40",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "vi",
+   "section": "entries in other keys",
+   "stretto": "Str.2",
+   "redundant": false,
+   "notes": "leads into abbreviated CS"
+  },
+  {
+   "bars": "38-42",
+   "voice": "middle",
+   "form": "subject",
+   "key": "vi",
+   "section": "entries in other keys",
+   "stretto": "Str.2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "40-44",
+   "voice": "bass",
+   "form": "subject",
+   "key": "vi",
+   "section": "entries in other keys",
+   "stretto": "Str.2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "46-50",
+   "voice": "bass",
+   "form": "subject",
+   "key": "ii",
+   "section": "entries in other keys",
+   "stretto": "Str.3",
+   "redundant": false,
+   "notes": "voices in reverse order to stretto 2"
+  },
+  {
+   "bars": "48-52",
+   "voice": "middle",
+   "form": "subject",
+   "key": "ii",
+   "section": "entries in other keys",
+   "stretto": "Str.3",
+   "redundant": false,
+   "notes": "leads into abbreviated CS"
+  },
+  {
+   "bars": "50-54",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "ii",
+   "section": "entries in other keys",
+   "stretto": "Str.3",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "64-68",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "diagram also shows a bracketed [S] in the middle voice at bars 66-67, not listed in the table"
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "13-17",
+   "from_key": "I",
+   "to_key": "V",
+   "material": "bass continues with codetta and CS after its subject; upper voices new leaping figure in two-part imitation",
+   "sequence": "imitation"
+  },
+  {
+   "number": 2,
+   "bars": "31-36",
+   "from_key": "I",
+   "to_key": "dominant of vi",
+   "material": "middle repeats last subject figure, imitated by soprano (making it identical with CS figure of bar 6); bass develops first part of subject (inverted)",
+   "sequence": "falling sequence"
+  },
+  {
+   "number": 3,
+   "bars": "56-64",
+   "from_key": "ii",
+   "to_key": "I",
+   "material": "56-59 upper voices: variant of last subject figure in two-part imitation (canon at the fourth), bass inverted subject figure as rising scale; 60-63 free interchange; 63-65 repeat with upper voices interchanged",
+   "sequence": "canon at the fourth / rising scale"
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "4",
+   "notes": "incorporates the rising scale of bar 2; leads to CS in bar 5"
+  },
+  {
+   "bars": "8",
+   "notes": "with first figure of subject, interchanged in bar 9"
+  },
+  {
+   "bars": "13",
+   "notes": "diagram \"cod.C\" in bass"
+  },
+  {
+   "bars": "21",
+   "notes": "links subject with CS"
+  },
+  {
+   "bars": "25",
+   "notes": "varied form"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "44-46",
+   "to": "cadence in vi"
+  },
+  {
+   "bars": "54-56",
+   "to": "cadence in ii"
+  }
+ ],
+ "coda": "68-72",
+ "cadences": [
+  {
+   "bar": "46",
+   "key": "vi",
+   "kind": "perfect",
+   "source": "diagram + review table p.79"
+  },
+  {
+   "bar": "56",
+   "key": "ii",
+   "kind": "perfect",
+   "source": "diagram + review table"
+  },
+  {
+   "bar": "72",
+   "key": "I",
+   "kind": "perfect",
+   "source": "diagram"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "bar 5",
+  "interchange": "octave",
+  "notes": "first repeats the codetta of bar 4 a third higher, then inverts its rising scale; crosses over the answer so complete interchange impossible; full in soprano 10-13 and 22-25; transferred middle->bass at bar 19; abbreviated after bass 25, soprano 36, middle 48 entries. Octave from list p.13"
+ },
+ "subject": {
+  "ends": "first note of bar 4",
+  "answer": "tonal",
+  "notes": "subject begins on the dominant; answer begins on tonic, harmonized in tonic until bar 6; only bars 4 and 21 use the answer form. Ch.2 p.6 lists I.11 among subjects beginning on the dominant whose answer begins on the tonic and is otherwise real. (The diatonic-auxiliary remark on p.6 concerns II.11, not I.11; the OCR reads it as I.11.)"
+ },
+ "key_plan": "Review table p.79: Exp S S S (I I-V I) EP | Counterexp S S STR (I I-V I) EP | Dev STR/ (vi) STR/ (ii) | Final EP S/ (I)",
+ "claims": [
+  {
+   "claim": "The subject ends at the first note of bar 4; a codetta incorporating the rising scale of bar 2 leads to the CS in bar 5 (bar numbering starts at 0 for the upbeat).",
+   "page": 64
+  },
+  {
+   "claim": "The subject can be used in canon with itself at the octave after two bars; all three stretti are of this type.",
+   "page": 65
+  },
+  {
+   "claim": "Stretto 1 prolongs the counterexposition; stretto 2 in vi (soprano 36, middle 38, bass 40); stretto 3 in ii in reverse order (bass 46, middle 48, soprano 50); both extended toward cadences.",
+   "page": 65
+  },
+  {
+   "claim": "Of fourteen entries only two (bars 4 and 21) use the answer form.",
+   "page": 64
+  },
+  {
+   "claim": "Not radically different in form from Group 2 fugues; uses groups of stretto entries in place of single entries.",
+   "page": 79
+  },
+  {
+   "claim": "I.11 and I.15 subjects combine with themselves in canon at the octave; Bach used only this type of stretto in them.",
+   "page": 80
+  }
+ ]
+}

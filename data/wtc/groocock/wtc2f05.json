@@ -1,0 +1,482 @@
+{
+ "id": "wtc2f05",
+ "groocock": {
+  "group": 5,
+  "pages": "127-130"
+ },
+ "entries": [
+  {
+   "bars": "1-2",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "2-4",
+   "voice": "alto",
+   "form": "answer [real]",
+   "key": "I-V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "5-6",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "6-7",
+   "voice": "bass",
+   "form": "answer",
+   "key": "I-V",
+   "section": "exposition",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "10-11",
+   "voice": "alto",
+   "form": "subject",
+   "key": "V-ii",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "new harmony, cadencing in ii on a 6/4"
+  },
+  {
+   "bars": "11-13",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "vi",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "14-15",
+   "voice": "alto",
+   "form": "answer",
+   "key": "I",
+   "section": "development",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": "harmonized in [the dominant of] I"
+  },
+  {
+   "bars": "14-16",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "development",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": "two crotchet-beats later"
+  },
+  {
+   "bars": "21-22",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "ii-vi",
+   "section": "development",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": "starts on dominant of ii, ends on its leading-note"
+  },
+  {
+   "bars": "22-23",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "ii-vi",
+   "section": "development",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": "one bar later"
+  },
+  {
+   "bars": "22-24",
+   "voice": "alto",
+   "form": "subject",
+   "key": "vi",
+   "section": "development",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": "two crotchet-beats later"
+  },
+  {
+   "bars": "25-26",
+   "voice": "bass",
+   "form": "subject",
+   "key": "iii",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "single entry on tonic of iii; afterwards subject/answer distinction discontinued"
+  },
+  {
+   "bars": "27-29",
+   "voice": "bass",
+   "form": "answer",
+   "key": "I",
+   "section": "development",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "27-29",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "I",
+   "section": "development",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": "two octaves higher after one crotchet"
+  },
+  {
+   "bars": "27-29",
+   "voice": "alto",
+   "form": "answer (first four notes)",
+   "key": "I",
+   "section": "development",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": "[A] bracketed in diagram; return in bar 29 accepted as virtual completion"
+  },
+  {
+   "bars": "33-34",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "I",
+   "section": "development",
+   "stretto": "Stretto 5",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "33-34",
+   "voice": "alto",
+   "form": "subject",
+   "key": "I",
+   "section": "development",
+   "stretto": "Stretto 5",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "33-35",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I-IV",
+   "section": "development",
+   "stretto": "Stretto 5",
+   "redundant": false,
+   "notes": "three upper voices at one-crotchet intervals at the upper sixth"
+  },
+  {
+   "bars": "40-41",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "I",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "single entry; such rich harmony it might serve as the final entry"
+  },
+  {
+   "bars": "43-44",
+   "voice": "bass",
+   "form": "subject",
+   "key": "V",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "two chromatic alterations; sounds like V minor ending with tierce de Picardie; dominant preparation"
+  },
+  {
+   "bars": "44-46",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": "Stretto 6",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "44-46",
+   "voice": "alto",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": "Stretto 6",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "45-46",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": "Stretto 6",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "45-47",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": "Stretto 6",
+   "redundant": false,
+   "notes": "all four voices; interchange and extension of stretto of bar 33 (upper sixth now lower third)"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "7-10",
+   "name": "episode 1",
+   "from_key": "I",
+   "to_key": "V",
+   "material": "alto echoes second half of answer in quasi canon at octave; tenor imitates at lower fifth echoed by soprano",
+   "sequence": "ends with inverted cadence in V"
+  },
+  {
+   "bars": "16-21",
+   "name": "episode 2",
+   "from_key": "I",
+   "to_key": "V",
+   "material": "development of episode 1; subject figure in quasi canon between pairs of voices",
+   "sequence": "cadence in V at 20"
+  },
+  {
+   "bars": "29-33",
+   "name": "episode 3",
+   "from_key": "IV",
+   "to_key": "IV",
+   "material": "new presentation of episodes 1-2, in IV",
+   "sequence": "ends with inverted cadence"
+  },
+  {
+   "bars": "35-40",
+   "name": "episode 4",
+   "from_key": "IV",
+   "to_key": "I",
+   "material": "quasi canons; chromatic bass 35-36; ends with two-octave descending scale",
+   "sequence": null
+  },
+  {
+   "bars": "41-43",
+   "name": "episode 5",
+   "from_key": null,
+   "to_key": "V (dominant pedal)",
+   "material": "brief, might be called a codetta; bass overlaps end of subject with quasi-canonic alto imitation",
+   "sequence": null
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "4-5"
+  },
+  {
+   "bars": "13-14"
+  },
+  {
+   "bars": "24-25"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "26-27",
+   "to": "cadence in iii"
+  }
+ ],
+ "cadences": [
+  {
+   "bar": "10",
+   "key": "V",
+   "kind": "inverted cadence"
+  },
+  {
+   "bar": "11",
+   "key": "ii",
+   "kind": "cadence on a 6/4"
+  },
+  {
+   "bar": "16",
+   "key": "I",
+   "kind": "cadence (diagram 'I/')"
+  },
+  {
+   "bar": "20",
+   "key": "V",
+   "kind": "cadence"
+  },
+  {
+   "bar": "27",
+   "key": "iii",
+   "kind": "emphatic cadence"
+  },
+  {
+   "bar": "43",
+   "key": "I",
+   "kind": "final cadence deflected"
+  },
+  {
+   "bar": "50",
+   "key": "I",
+   "kind": "final perfect cadence"
+  }
+ ],
+ "countersubjects": {
+  "count": 0,
+  "first": null,
+  "interchange": null,
+  "notes": "no countersubject; figure of bar 2 repeated a step higher accompanies the answer"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "real",
+  "notes": "second half supplies a figure present in every bar except 3, 27, 43, recurring over 100 times"
+ },
+ "stretti": [
+  {
+   "name": "Stretto 1",
+   "bars": "5-7",
+   "voices": [
+    "soprano (S)",
+    "bass (A)"
+   ],
+   "interval": "subject-answer",
+   "timing": null,
+   "notes": null
+  },
+  {
+   "name": "Stretto 2",
+   "bars": "14-16",
+   "voices": [
+    "alto (A)",
+    "soprano (S)"
+   ],
+   "interval": "answer-subject",
+   "timing": "two crotchet-beats",
+   "notes": null
+  },
+  {
+   "name": "Stretto 3",
+   "bars": "21-24",
+   "voices": [
+    "tenor (S)",
+    "soprano (A)",
+    "alto (S)"
+   ],
+   "interval": null,
+   "timing": "one bar; two crotchet-beats",
+   "notes": null
+  },
+  {
+   "name": "Stretto 4",
+   "bars": "27-29",
+   "voices": [
+    "bass",
+    "soprano",
+    "alto"
+   ],
+   "interval": "two octaves higher",
+   "timing": "one crotchet-beat each",
+   "notes": null
+  },
+  {
+   "name": "Stretto 5",
+   "bars": "33-35",
+   "voices": [
+    "tenor",
+    "alto",
+    "soprano"
+   ],
+   "interval": "upper sixth",
+   "timing": "one crotchet-beat",
+   "notes": null
+  },
+  {
+   "name": "Stretto 6",
+   "bars": "44-47",
+   "voices": [
+    "soprano",
+    "alto",
+    "tenor",
+    "bass"
+   ],
+   "interval": "upper sixth now lower third",
+   "timing": null,
+   "notes": "all four voices; tour de force"
+  }
+ ],
+ "claims": [
+  {
+   "page": 127,
+   "claim": "'Without question the most close-knit fugue of the entire collection': 23 complete entries, all episodes and codettas from the second half of the subject"
+  },
+  {
+   "page": 127,
+   "claim": "Subject figure present in every bar except 3, 27, 43"
+  },
+  {
+   "page": 128,
+   "claim": "From bar 27 the subject-answer relationship is discontinued"
+  },
+  {
+   "page": 129,
+   "claim": "Bar 40 entry might serve as the final entry"
+  },
+  {
+   "page": 129,
+   "claim": "All previous stretti use two or three voices; stretto 6 uses all four"
+  },
+  {
+   "page": 129,
+   "claim": "Basic pattern answer-subject (as II.9) varied by subject-answer; 14 overlapping pairs: fifth lower/fourth higher 2 crotchets 5; fifth higher/fourth lower 4 crotchets 2; octave higher 1 crotchet 1; sixth higher/third lower 1 crotchet 5; seventh lower 3 crotchets 1"
+  }
+ ],
+ "stretto_pair_table": [
+  {
+   "interval": "fifth lower or fourth higher",
+   "timing": "2 crotchet-beats",
+   "pairs": 5
+  },
+  {
+   "interval": "fifth higher or fourth lower",
+   "timing": "4 crotchet-beats",
+   "pairs": 2
+  },
+  {
+   "interval": "octave higher",
+   "timing": "1 crotchet-beat",
+   "pairs": 1
+  },
+  {
+   "interval": "sixth higher or third lower",
+   "timing": "1 crotchet-beat",
+   "pairs": 5
+  },
+  {
+   "interval": "seventh lower",
+   "timing": "3 crotchet-beats",
+   "pairs": 1
+  }
+ ]
+}

@@ -1,0 +1,261 @@
+{
+ "id": "wtc1p14",
+ "title": "I.Pr.14: Prelude in F# minor (fugal)",
+ "voices": 2,
+ "groocock": {
+  "group": 1,
+  "pages": "28-30",
+  "pdf_pages": "41-43",
+  "chapter": "6 Group 1"
+ },
+ "entries": [
+  {
+   "bars": "1-2",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "announced above a tonic pedal; countersubject outline (C) in the \"middle voice\"/bass"
+  },
+  {
+   "bars": "2-3",
+   "voice": "bass",
+   "form": "answer",
+   "key": "i-v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "tonal answer; leap at start retains tonic for a few notes"
+  },
+  {
+   "bars": "4",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": true,
+   "notes": "redundant entry; starts with a semiquaver instead of quaver; soprano has full countersubject"
+  },
+  {
+   "bars": "6",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "III",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "A major; beginning varied, leaping up from c#"
+  },
+  {
+   "bars": "7",
+   "voice": "bass",
+   "form": "answer",
+   "key": "bVII",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "identified as answer by harmonic context; beginning changed"
+  },
+  {
+   "bars": "9",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "v",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "beginning changed by inserted note(s)"
+  },
+  {
+   "bars": "12",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "v",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "\"middle voice\" upper pedal in dominant key; apparent rhythmic displacement"
+  },
+  {
+   "bars": "13",
+   "voice": "bass",
+   "form": "subject",
+   "key": "v",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "shortened first note approached by step; apparent rhythmic displacement"
+  },
+  {
+   "bars": "14-15",
+   "voice": "bass",
+   "form": "subject (inverted)",
+   "key": "iv",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "15-16",
+   "voice": "soprano",
+   "form": "subject (inverted)",
+   "key": "III",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "19",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "diagram key i"
+  },
+  {
+   "bars": "20",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "after the rest in bar 20, subject in tenths between soprano and bass (bass shown as (S)); inserted notes at start"
+  },
+  {
+   "bars": "22",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "\"middle voice\", upper pedal, pattern of bar 1; shortened first note"
+  },
+  {
+   "bars": "23",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "full countersubject for the first time since bar 13; shortened first note"
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "3-4",
+   "from_key": null,
+   "to_key": null,
+   "material": "upward leap and subject figure in two-part canon; bass continues falling sequence of the answer",
+   "sequence": "canon"
+  },
+  {
+   "number": 2,
+   "bars": "5-6",
+   "from_key": null,
+   "to_key": null,
+   "material": "variant of episode 1; soprano uses the inverted subject figure",
+   "sequence": "bass falling then rising sequence"
+  },
+  {
+   "number": 3,
+   "bars": "8-9",
+   "from_key": null,
+   "to_key": null,
+   "material": "variant of episode 2, same bass; soprano fresh material",
+   "sequence": null
+  },
+  {
+   "number": 4,
+   "bars": "10-12",
+   "from_key": null,
+   "to_key": null,
+   "material": "development of previous material; bass inverted subject figure, free inversion of quaver figure of bar 2",
+   "sequence": null
+  },
+  {
+   "number": 5,
+   "bars": "16-19",
+   "from_key": "III",
+   "to_key": "i (diagram III-i)",
+   "material": "allusion to inverted subject and countersubject figures in bass; soprano downward scale over two octaves with two upward leaps of a seventh",
+   "sequence": null
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "21",
+   "to": "cadence (phrase extension)"
+  }
+ ],
+ "coda": "24",
+ "cadences": [
+  {
+   "bar": "12",
+   "key": "v",
+   "kind": "perfect",
+   "source": "text+diagram"
+  },
+  {
+   "bar": "19",
+   "key": "?",
+   "kind": "imperfect",
+   "source": "text"
+  },
+  {
+   "bar": "24",
+   "key": "i",
+   "kind": "perfect",
+   "source": "text+diagram"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "bar 1 (outline in \"middle voice\"); bar 2 soprano (partially filled)",
+  "interchange": "fifteenth",
+  "notes": "appears in three forms: outline (bars 1, 12-13, 22; felt in chords 14-16, 19), partially filled (bar 2, bass of bar 9), complete form in contrary motion to subject (bars 4, 7, 13-14, 23 soprano; 6 bass)"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "tonal",
+  "notes": "subject begins on the dominant; 10 of 14 entries differ slightly from subject/answer of bars 1-2"
+ },
+ "key_plan": "Group-1 table: Exposition i v EP i EP | Development III bVII EP v EP v, v iv III EP | Final i i i i",
+ "claims": [
+  {
+   "claim": "In all but name a two-voice fugue; entries in i, v, III, bVII, iv.",
+   "page": 28
+  },
+  {
+   "claim": "Two almost equal sections bounded by perfect cadences in v (bar 12) and i (bar 24).",
+   "page": 28
+  },
+  {
+   "claim": "Ten of the fourteen entries differ slightly from bars 1-2.",
+   "page": 28
+  },
+  {
+   "claim": "One bar of common time treated as two bars of 2/4; the third beat can be as strong as the first.",
+   "page": 29
+  },
+  {
+   "claim": "Ten of 24 bars not directly concerned with subject/answer; episodes bind rather than separate.",
+   "page": 29
+  },
+  {
+   "claim": "Imperfect cadence in bar 19 marks end of development; bar 21 a phrase extension; bar 24 miniature coda.",
+   "page": 30
+  }
+ ],
+ "codettas": []
+}

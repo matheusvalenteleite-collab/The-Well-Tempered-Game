@@ -1,0 +1,294 @@
+{
+ "id": "wtc1f15",
+ "title": "I.15: Fugue in G major",
+ "voices": 3,
+ "groocock": {
+  "group": 3,
+  "chapter": "9 Group 3: Fugues for Three Voices, with Stretto",
+  "pages": "66-68",
+  "pdf_pages": "79-81"
+ },
+ "entries": [
+  {
+   "bars": "1-5",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "5-9",
+   "voice": "middle",
+   "form": "answer",
+   "key": "V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "real answer although subject ends on leading-note"
+  },
+  {
+   "bars": "11-15",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS altered (first bar in outline only)"
+  },
+  {
+   "bars": "20-24",
+   "voice": "middle",
+   "form": "subject (inverted)",
+   "key": "I",
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "with inverted CS"
+  },
+  {
+   "bars": "24-28",
+   "voice": "soprano",
+   "form": "answer (inverted)",
+   "key": "V",
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "with inverted CS"
+  },
+  {
+   "bars": "28-31",
+   "voice": "bass",
+   "form": "subject (inverted)",
+   "key": "I",
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "lacking final bar, joins the following episode"
+  },
+  {
+   "bars": "38-42",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "vi",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS at first missing, represented by semiquaver run in bar 40"
+  },
+  {
+   "bars": "43-47",
+   "voice": "middle",
+   "form": "subject (inverted)",
+   "key": "vi",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "final bar altered; full inverted CS with octave leap bar 44"
+  },
+  {
+   "bars": "51-54",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "iii",
+   "section": "development",
+   "stretto": "Str.1",
+   "redundant": false,
+   "notes": "abbreviated (omits second bar of subject)"
+  },
+  {
+   "bars": "52-54",
+   "voice": "bass",
+   "form": "subject",
+   "key": "iii",
+   "section": "development",
+   "stretto": "Str.1",
+   "redundant": false,
+   "notes": "abbreviated; two octaves below the soprano"
+  },
+  {
+   "bars": "60-63",
+   "voice": "middle",
+   "form": "answer",
+   "key": "V",
+   "section": "development",
+   "stretto": "Str.2",
+   "redundant": false,
+   "notes": "abbreviated"
+  },
+  {
+   "bars": "61-64",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "V",
+   "section": "development",
+   "stretto": "Str.2",
+   "redundant": false,
+   "notes": "abbreviated"
+  },
+  {
+   "bars": "69-72",
+   "voice": "bass",
+   "form": "subject (inverted)",
+   "key": "I (review table)",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "joins itself to the following episode like bar 28; CS from bar 70"
+  },
+  {
+   "bars": "77-78",
+   "voice": "middle",
+   "form": "subject (inverted)",
+   "key": "I",
+   "section": "final section",
+   "stretto": "Str.3",
+   "redundant": false,
+   "notes": "two bars long"
+  },
+  {
+   "bars": "78-79",
+   "voice": "bass",
+   "form": "subject (inverted)",
+   "key": "I",
+   "section": "final section",
+   "stretto": "Str.3",
+   "redundant": false,
+   "notes": "one bar long"
+  },
+  {
+   "bars": "79-83",
+   "voice": "soprano",
+   "form": "subject (altered)",
+   "key": "I",
+   "section": "final section",
+   "stretto": "Str.3",
+   "redundant": false,
+   "notes": "transformed version of the subject; diagram also shows bracketed [S] in middle 79-80"
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "17-19",
+   "from_key": "I",
+   "to_key": "I (via V)",
+   "material": "bass repeats soprano of bar 9 in falling sequence; soprano inverts CS figure; triple interchangeable counterpoint",
+   "sequence": "falling sequence"
+  },
+  {
+   "number": 2,
+   "bars": "31-37",
+   "from_key": "I",
+   "to_key": "vi",
+   "material": "31-33 interchange of ep.1; 34-37 development of codetta figures with interchange every other bar",
+   "sequence": null
+  },
+  {
+   "number": 3,
+   "bars": "48-50",
+   "from_key": "vi",
+   "to_key": "iii",
+   "material": "interchange of episode 1",
+   "sequence": null
+  },
+  {
+   "number": 4,
+   "bars": "54-60",
+   "from_key": "iii",
+   "to_key": "V",
+   "material": "development of codetta figures",
+   "sequence": null
+  },
+  {
+   "number": 5,
+   "bars": "65-69",
+   "from_key": null,
+   "to_key": null,
+   "material": "interchange of episode 1 extended toward a cadence",
+   "sequence": null
+  },
+  {
+   "number": 6,
+   "bars": "73-76",
+   "from_key": null,
+   "to_key": null,
+   "material": "73-74 interchange of 34-35; 75 repeats pattern of 74, interchanged in 76",
+   "sequence": null
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "9-10",
+   "notes": "\"of enormous importance\" for development; falling fifth steps, upper pedal; bar 10 inverts and interchanges bar 9"
+  },
+  {
+   "bars": "15-16",
+   "notes": "variant of 9-10"
+  },
+  {
+   "bars": "42",
+   "notes": "repeat of bar 9 with voices interchanged"
+  },
+  {
+   "bars": "47",
+   "notes": "ornamental version of bar 16"
+  }
+ ],
+ "coda": "83-86 (tonic pedal)",
+ "cadences": [
+  {
+   "bar": "38",
+   "key": "vi",
+   "kind": "perfect",
+   "source": "diagram (slash under bar 38); review table places slash between S (38) and S (43)"
+  },
+  {
+   "bar": "69",
+   "key": "I",
+   "kind": "perfect",
+   "source": "diagram \"/S(inv)\" + review"
+  },
+  {
+   "bar": "83",
+   "key": "I",
+   "kind": "perfect",
+   "source": "diagram"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "bar 5 (recurrent part begins with last four notes of bar 6, p.16)",
+  "interchange": "fifteenth",
+  "notes": "altered at bar 11 (outline only until semiquavers of bar 12); complete and inverted with inverted entries 20 and 24; missing at 38 except run bar 40; full, inverted, with octave leap at 43-44; final appearance with bar 69 entry from bar 70"
+ },
+ "subject": {
+  "ends": "first note of bar 5",
+  "answer": "real",
+  "notes": "subject ends on leading-note and answer begins immediately in dominant, but subject not treated as modulating"
+ },
+ "key_plan": "Review table: Exp S S S (I V I) EP | Counterexp S S S (I V I) EP | Dev S / S EP STR EP STR EP / S (vi vi iii V I) | Final EP STR / (printed \"i\")",
+ "claims": [
+  {
+   "claim": "Two-part stretto at bars 51-52 (bass two octaves below) and 60-61; both pairs omit the second bar of the subject.",
+   "page": 67
+  },
+  {
+   "claim": "Final section a three-part stretto of inverted entries (77, 78) giving place to the transformed subject (79).",
+   "page": 67
+  },
+  {
+   "claim": "Only canon at the octave used for stretto (with I.11).",
+   "page": 80
+  },
+  {
+   "claim": "Counterexposition uses inverted subject and answer (20-31).",
+   "page": 66
+  }
+ ],
+ "extensions": [],
+ "notes": "Entry keys mostly read from the key line under the diagram; their alignment with individual entries is approximate where several entries start close together."
+}

@@ -1,0 +1,263 @@
+{
+ "id": "wtc1f03",
+ "title": "I.3: Fugue in C# major",
+ "voices": 3,
+ "groocock": {
+  "group": 2,
+  "chapter": "7 Group 2: Fugues for Three Voices, without Stretto",
+  "pages": "32-34",
+  "pdf_pages": "45-47"
+ },
+ "entries": [
+  {
+   "bars": "1-3",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "3-5",
+   "voice": "middle",
+   "form": "answer",
+   "key": "I-V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "tonal; with first countersubject"
+  },
+  {
+   "bars": "5-7",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "with first and second countersubjects"
+  },
+  {
+   "bars": "10-12",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "V",
+   "section": "extension of exposition",
+   "stretto": null,
+   "redundant": true,
+   "notes": "redundant entry of answer; shape that of an ornamented subject; diagram shows (CII) in bass"
+  },
+  {
+   "bars": "14-16",
+   "voice": "bass",
+   "form": "answer",
+   "key": "vi",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": "distinctive shape of the answer recurs"
+  },
+  {
+   "bars": "19-21",
+   "voice": "middle",
+   "form": "subject",
+   "key": "iii",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "24-26",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "V",
+   "section": "entries in the keys of the exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "shape partially concealed by additional notes"
+  },
+  {
+   "bars": "26-28",
+   "voice": "middle",
+   "form": "subject",
+   "key": "I",
+   "section": "entries in the keys of the exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "table prints \"26-26\"; diagram shows bars 26-28"
+  },
+  {
+   "bars": "42-44",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "recapitulation of exposition (42-48), from diagram"
+  },
+  {
+   "bars": "44-46",
+   "voice": "middle",
+   "form": "answer",
+   "key": "V",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "recapitulation; additional notes conceal shape (diagram)"
+  },
+  {
+   "bars": "46-48",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "recapitulation (diagram)"
+  },
+  {
+   "bars": "51-53",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "same ornamentation as the redundant entry of bar 10"
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "7-10",
+   "from_key": "I",
+   "to_key": "V",
+   "material": "bass repeats middle part of bar 5 then semiquaver figure (inversion of main CS figure); upper voices imitate a leaping figure from the subject",
+   "sequence": "falling sequence, whole bar repeated a step lower"
+  },
+  {
+   "number": 2,
+   "bars": "12-14",
+   "from_key": "V",
+   "to_key": "ii",
+   "material": "free interchange of episode 1 (soprano now uses CS figure direct)",
+   "sequence": null
+  },
+  {
+   "number": 3,
+   "bars": "16-19",
+   "from_key": "vi",
+   "to_key": "iii",
+   "material": "virtually a repeat of episode 1, same bass, upper voices ornament continuously",
+   "sequence": null
+  },
+  {
+   "number": 4,
+   "bars": "22-24",
+   "from_key": "iii",
+   "to_key": "I",
+   "material": "first half of the subject in soprano; middle develops the bass of episode 1",
+   "sequence": "falling sequence"
+  },
+  {
+   "number": 5,
+   "bars": "28-42",
+   "from_key": "I",
+   "to_key": "I (via v; pedals in main key)",
+   "material": "four divisions: 28-30 interchange of ep.2 with allusion to end of subject (to v); 30-34 free interchange/development of ep.1; 34-38 first half of subject in sequence over tonic and dominant pedals; 38-42 interchange of 34-38",
+   "sequence": "sequence"
+  },
+  {
+   "number": 6,
+   "bars": "48-51",
+   "from_key": null,
+   "to_key": null,
+   "material": "new point of imitation leading at bar 49 to a recapitulation of episode 1",
+   "sequence": null
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "21-22",
+   "to": "cadence in iii (phrase extension; bar 21 is a free interchange of bar 20, not an episode)"
+  }
+ ],
+ "coda": "53-55",
+ "cadences": [
+  {
+   "bar": "12",
+   "key": "V (end of redundant answer)",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "14",
+   "key": "ii or vi (diagram slash before bass answer in vi; key ambiguous)",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "22",
+   "key": "iii",
+   "kind": "perfect",
+   "source": "text+diagram"
+  },
+  {
+   "bar": "28",
+   "key": "I",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "46",
+   "key": "I or V (slash at end of recapitulated answer; key not printed at slash)",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "55",
+   "key": "I",
+   "kind": "perfect",
+   "source": "diagram"
+  }
+ ],
+ "countersubjects": {
+  "count": 2,
+  "first": "bar 3 (C1, directly after subject); C2 bar 5 soprano",
+  "interchange": "fifteenth",
+  "notes": "C1 recurs with every entry but never exactly as in bar 3 (opening run altered bars 5,14,19,24,26,42,46; absent bars 10,51; semitone/tone steps changed). C2 = syncopated theme of soprano bars 5-6; same form in four of its seven later appearances; loses first note bar 25; rhythm altered (loses syncopation) bars 10-12 and 51-53. Interchange: themes not interchanged until the redundant entry of bar 10 (p.12); fifteenth from list p.13"
+ },
+ "subject": {
+  "ends": "first note of bar 3",
+  "answer": "tonal",
+  "notes": "subject begins on the dominant; answer begins on tonic and moves to the dominant key from its second note (like I.Pr.14)"
+ },
+ "key_plan": "Group 2 table: Exp I V I | redundant EP V | Dev EP vi EP iii EP V I | Final EP I V I EP I",
+ "claims": [
+  {
+   "claim": "About 56% of the fugue is occupied by the six episodes, all interrelated, developing figures from subject and countersubject.",
+   "page": 34
+  },
+  {
+   "claim": "Order of entry soprano-middle-bass; countersubject above answer in bar 3 and above subject in bar 5; themes not interchanged until the redundant entry in bar 10.",
+   "page": 12
+  },
+  {
+   "claim": "The redundant answer at bar 10 has the shape of an ornamented subject; the final entry (bar 51) uses the same ornamentation.",
+   "page": 33
+  },
+  {
+   "claim": "Exposition simple (no codetta), extended by a redundant entry of the answer at bar 10.",
+   "page": 31
+  },
+  {
+   "claim": "Final section is a recapitulation of the exposition (42-48) capped by another subject entry in I (bar 51).",
+   "page": 33
+  }
+ ],
+ "codettas": []
+}

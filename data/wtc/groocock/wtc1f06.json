@@ -1,0 +1,312 @@
+{
+ "id": "wtc1f06",
+ "title": "I.6: Fugue in D minor",
+ "voices": 3,
+ "groocock": {
+  "group": 3,
+  "chapter": "9 Group 3: Fugues for Three Voices, with Stretto",
+  "pages": "68-71",
+  "pdf_pages": "81-84"
+ },
+ "entries": [
+  {
+   "bars": "1-3",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "3-5",
+   "voice": "middle",
+   "form": "answer",
+   "key": "v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "real; starts immediately in the dominant"
+  },
+  {
+   "bars": "6-8",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "8-10",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "extension of exposition",
+   "stretto": null,
+   "redundant": true,
+   "notes": "altered: starts on e as supertonic, leaps f-bb, flattened supertonic"
+  },
+  {
+   "bars": "13-15",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "V of i",
+   "section": "development",
+   "stretto": "Str.1",
+   "redundant": false,
+   "notes": "starts on a as dominant"
+  },
+  {
+   "bars": "14-16",
+   "voice": "middle",
+   "form": "subject (inverted)",
+   "key": "i",
+   "section": "development",
+   "stretto": "Str.1",
+   "redundant": false,
+   "notes": "starts on e as supertonic; falling fifth instead of sixth"
+  },
+  {
+   "bars": "17-19",
+   "voice": "bass",
+   "form": "subject",
+   "key": "v",
+   "section": "development",
+   "stretto": "Str.2",
+   "redundant": false,
+   "notes": "starts on A as tonic of A minor, sharpens third in second bar"
+  },
+  {
+   "bars": "18-20",
+   "voice": "middle",
+   "form": "subject",
+   "key": "v",
+   "section": "development",
+   "stretto": "Str.2",
+   "redundant": false,
+   "notes": "starts on a as dominant of D minor, flattens third"
+  },
+  {
+   "bars": "21-23",
+   "voice": "bass",
+   "form": "subject",
+   "key": "V of i",
+   "section": "development",
+   "stretto": "Str.3",
+   "redundant": false,
+   "notes": "starts on A as dominant of D minor"
+  },
+  {
+   "bars": "22-24",
+   "voice": "soprano",
+   "form": "subject (inverted)",
+   "key": "i",
+   "section": "development",
+   "stretto": "Str.3",
+   "redundant": false,
+   "notes": "starts on e as supertonic"
+  },
+  {
+   "bars": "23-25",
+   "voice": "bass",
+   "form": "subject (inverted)",
+   "key": "i",
+   "section": "development",
+   "stretto": "Str.3",
+   "redundant": false,
+   "notes": "starts on f as mediant"
+  },
+  {
+   "bars": "27-29",
+   "voice": "soprano",
+   "form": "subject (inverted)",
+   "key": "i",
+   "section": "development",
+   "stretto": "Str.4",
+   "redundant": false,
+   "notes": "starts on a as dominant"
+  },
+  {
+   "bars": "28-30",
+   "voice": "middle",
+   "form": "subject",
+   "key": "i",
+   "section": "development",
+   "stretto": "Str.4",
+   "redundant": false,
+   "notes": "the only post-exposition direct entry exactly like the opening"
+  },
+  {
+   "bars": "29-31",
+   "voice": "bass",
+   "form": "subject (inverted)",
+   "key": "i-iv",
+   "section": "development",
+   "stretto": "Str.4",
+   "redundant": false,
+   "notes": "starts on a, becomes supertonic in G minor; falling fifth"
+  },
+  {
+   "bars": "34-36",
+   "voice": "bass",
+   "form": "subject",
+   "key": "V of iv",
+   "section": "development",
+   "stretto": "Str.5",
+   "redundant": false,
+   "notes": "starts on d, sharpens the third (to G minor); ending altered"
+  },
+  {
+   "bars": "35-36",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "iv",
+   "section": "development",
+   "stretto": "Str.5",
+   "redundant": false,
+   "notes": "incomplete; starts on f# as leading-note of G minor; ending altered"
+  },
+  {
+   "bars": "39-41",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": "Str.6",
+   "redundant": false,
+   "notes": "same alterations as bar 17, starting on D"
+  },
+  {
+   "bars": "40-42",
+   "voice": "middle",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": "Str.6",
+   "redundant": false,
+   "notes": "same alterations as bar 18, starting on D"
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "10-13",
+   "from_key": null,
+   "to_key": null,
+   "material": "upper voices repeat end of subject in sixths, bass end of CS; bar 12 hints inverted subject (false entry)",
+   "sequence": "falling sequence"
+  },
+  {
+   "number": 2,
+   "bars": "25-27",
+   "from_key": null,
+   "to_key": null,
+   "material": "first half of inverted subject in middle imitated by bass; soprano rising sequence from inverted last figure of subject",
+   "sequence": "rising sequence"
+  },
+  {
+   "number": 3,
+   "bars": "31-34",
+   "from_key": null,
+   "to_key": null,
+   "material": "free interchange of episode 1 (rising thirds); false entry of direct subject in middle at bar 33",
+   "sequence": null
+  },
+  {
+   "number": 4,
+   "bars": "36-39",
+   "from_key": null,
+   "to_key": null,
+   "material": "soprano repeats main figure of first CS bar; lower voices in thirds repeat first half of inverted subject",
+   "sequence": "threefold rising sequence (third bar a third higher than expected)"
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "5",
+   "notes": "freely interchanges the voices of bar 4"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "16-17",
+   "to": "quasi-sequence"
+  },
+  {
+   "bars": "20-21",
+   "to": "cadence in v"
+  },
+  {
+   "bars": "42",
+   "to": "cadence"
+  }
+ ],
+ "coda": "43-44 (tonic pedal)",
+ "cadences": [
+  {
+   "bar": "20-21",
+   "key": "v",
+   "kind": "perfect",
+   "source": "text + diagram"
+  },
+  {
+   "bar": "43",
+   "key": "i",
+   "kind": "perfect",
+   "source": "diagram"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "bar 3",
+  "interchange": "fifteenth",
+  "notes": "never reappears in original form; felt through allusions to semiquaver figure of bar 3 or bar 4 (list of 14 places p.69-70); unaltered with subject entry (p.15)"
+ },
+ "subject": {
+  "ends": "lasts two bars; ends on the dominant without modulating",
+  "answer": "real",
+  "notes": "answer enters a fourth lower (p.5); subject-answer relationship lost after the exposition, later entries called subject"
+ },
+ "key_plan": "Review table: Exp S S S R (i v i i) EP | Dev STR STR / STR EP STR EP STR (i v i i iv) | Final EP STR / (i)",
+ "stretto_pairs": [
+  "direct followed by direct an octave higher: bars 17-18, 39-40",
+  "direct followed by direct a tenth higher: bars 34-35",
+  "direct followed by inverted a fourth lower: bars 13-14, 28-29",
+  "direct followed by inverted a twelfth higher: bars 21-22",
+  "inverted followed by direct a twelfth lower: bars 27-28",
+  "inverted followed by inverted a seventh lower: bars 22-23"
+ ],
+ "claims": [
+  {
+   "claim": "After episode 1 almost all entries are in stretto, always at one bar's distance.",
+   "page": 70
+  },
+  {
+   "claim": "Six stretti include eight separate pairs of overlapping entries (list of intervals).",
+   "page": 71
+  },
+  {
+   "claim": "Only modulation is to v (cadence 20-21); bars 34-37 suggest iv; no major-key entries.",
+   "page": 70
+  },
+  {
+   "claim": "No new thematic material after bar 4; one of the most unified fugues of the 48.",
+   "page": 70
+  },
+  {
+   "claim": "Of ten direct entries after the exposition only bar 28 is exactly like the opening.",
+   "page": 69
+  },
+  {
+   "claim": "Stretto 1: soprano at 13 imitates (by contrary motion) middle voice of bar 12 without overlap; stretto proper begins at 14.",
+   "page": 70
+  },
+  {
+   "claim": "Review p.80: All four combinations of direct and inverted subject are equally effective; stretto entries always after one beat's interval, pitch interval greatly varied. NB p.70 says \"always at one bar's distance\" (internal inconsistency; checked on both page images).",
+   "page": 80
+  }
+ ]
+}

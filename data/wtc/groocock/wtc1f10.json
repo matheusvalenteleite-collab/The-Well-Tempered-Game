@@ -1,0 +1,218 @@
+{
+ "id": "wtc1f10",
+ "title": "I.10: Fugue in E minor",
+ "voices": 2,
+ "groocock": {
+  "group": 1,
+  "pages": "25-28",
+  "pdf_pages": "38-41",
+  "chapter": "6 Group 1: Fugues for Two Voices"
+ },
+ "entries": [
+  {
+   "bars": "1-3",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "modulates to the dominant; diagram key i then v"
+  },
+  {
+   "bars": "3-5",
+   "voice": "bass",
+   "form": "answer",
+   "key": "v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "real answer; overlaps the subject; ends with tierce de Picardie treated as V of B minor (diagram key v, v-III)"
+  },
+  {
+   "bars": "11-13",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "III",
+   "section": "middle section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "diagram key III-bVII; G major modulating to D major (text p.26)"
+  },
+  {
+   "bars": "13-15",
+   "voice": "bass",
+   "form": "answer",
+   "key": "bVII",
+   "section": "middle section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "D major, ending on its dominant chord"
+  },
+  {
+   "bars": "20-22",
+   "voice": "bass",
+   "form": "subject",
+   "key": "iv",
+   "section": "middle section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "A minor modulating to E minor; bars 20-38 are an interchange of bars 1-19"
+  },
+  {
+   "bars": "22-24",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "i",
+   "section": "middle section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "E minor, ending on its dominant chord"
+  },
+  {
+   "bars": "30-32",
+   "voice": "bass",
+   "form": "subject",
+   "key": "bvii",
+   "section": "middle section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "D minor modulating to A minor; text: \"the more distant key of bVII minor [d] (bar 30)\""
+  },
+  {
+   "bars": "32-34",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "iv",
+   "section": "middle section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "diagram labels it A (answer); text p.26 calls bars 32-33 \"the last complete entry of the subject ... in the subdominant key\""
+  },
+  {
+   "bars": "39-40",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "first half of the subject only"
+  },
+  {
+   "bars": "40-41",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "first half of the subject, slightly altered"
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "5-11",
+   "from_key": "v (diagram v-III)",
+   "to_key": "III",
+   "material": "soprano leaping and scalic figures; bass an altered form of the countersubject",
+   "sequence": "two-bar pattern repeated in falling sequence (roots falling by fifths); diagram shades bars 5-10"
+  },
+  {
+   "number": 2,
+   "bars": "15-20",
+   "from_key": "bVII",
+   "to_key": "iv",
+   "material": "soprano scalic figure, bass leaping figure",
+   "sequence": "one-bar pattern interchanged at every bar, falling sequence"
+  },
+  {
+   "number": 3,
+   "bars": "24-30",
+   "from_key": "i",
+   "to_key": "bvii",
+   "material": "interchange of episode 1 (adjusted in bar 29)",
+   "sequence": "falling sequence"
+  },
+  {
+   "number": 4,
+   "bars": "34-39",
+   "from_key": "iv",
+   "to_key": "i",
+   "material": "interchange of episode 2",
+   "sequence": "falling sequence"
+  }
+ ],
+ "codettas": [],
+ "extensions": [],
+ "coda": "41-42",
+ "cadences": [
+  {
+   "bar": "12-13",
+   "key": "bVII (D major)",
+   "kind": "perfect",
+   "source": "text+diagram"
+  },
+  {
+   "bar": "41-42",
+   "key": "i (E minor)",
+   "kind": "perfect",
+   "source": "text+diagram"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "second beat of bar 3",
+  "interchange": "fifteenth",
+  "notes": "used with every entry until the final section (bar 39), where it occurs only in partial form; interchange interval from the general list p.13"
+ },
+ "subject": {
+  "ends": "second note of bar 3",
+  "answer": "real (to a modulating subject)",
+  "notes": "subject modulates to the dominant; the answer overlaps the subject; answer made with tierce de Picardie treated as dominant chord of B minor, avoiding modulation to a third key (pp.7, 25)"
+ },
+ "key_plan": "i - v - III - bVII - iv (and bvii, bar 30); group-1 key table: Exposition i v EP | Development III, bVII EP iv i EP bvii iv EP | Final i i",
+ "claims": [
+  {
+   "claim": "The answer is real even though the subject modulates to the dominant; the only fugue of the 48 where a modulating subject gets a real answer (works because it is two-part).",
+   "page": 7
+  },
+  {
+   "claim": "Only two perfect cadences: D major (bars 12-13) and E minor (bars 41-42).",
+   "page": 25
+  },
+  {
+   "claim": "Until the final section the entries are grouped in pairs, each echoing the subject-answer relationship at different pitches (e-b, G-D, a-e, d-a).",
+   "page": 26
+  },
+  {
+   "claim": "Bars 20-38 are an exact interchanged repetition of bars 1-19 (apart from pitch adjustment in bar 29); form in three divisions 1-19, 20-38, 39-42.",
+   "page": 27
+  },
+  {
+   "claim": "Episode 3 = interchange of episode 1; episode 4 = interchange of episode 2, at different pitch.",
+   "page": 26
+  },
+  {
+   "claim": "All episodes use falling sequences on roots falling by fifths; chord changes every bar except bars 10 and 29 (two chords each).",
+   "page": 27
+  },
+  {
+   "claim": "Root progression by falling fifths is used in almost three-quarters of the 200+ episodes in the 48.",
+   "page": 28
+  },
+  {
+   "claim": "Episode chord series: Ep1 F#, b, E, a, D, G, D; Ep3 B, e, A, d, G, C, A; Ep2 A, D, G, C, E; Ep4 E, A, D, G, B.",
+   "page": 28
+  },
+  {
+   "claim": "Three key areas: exposition bars 1-5 (i, v), middle bars 5-38, final section bars 39-42 (tonic).",
+   "page": 27
+  },
+  {
+   "claim": "The last complete entry is bars 32-33 in iv; final section has only half-subject entries.",
+   "page": 26
+  }
+ ]
+}

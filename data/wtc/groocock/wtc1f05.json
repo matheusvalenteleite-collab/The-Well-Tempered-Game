@@ -1,0 +1,218 @@
+{
+ "id": "wtc1f05",
+ "groocock": {
+  "group": 4,
+  "pages": "102-104"
+ },
+ "entries": [
+  {
+   "bars": "1-2",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "2-3",
+   "voice": "tenor",
+   "form": "answer [real]",
+   "key": "I-V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "beginning harmonized as if still in I; continuation of bass is free counterpoint, not a countersubject"
+  },
+  {
+   "bars": "4-5",
+   "voice": "alto",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "5-6",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "now explicitly in V (g# in alto)"
+  },
+  {
+   "bars": "7-8",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "extension of exposition",
+   "stretto": null,
+   "redundant": true,
+   "notes": null
+  },
+  {
+   "bars": "8-9",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "vi",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "11-12",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "IV",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "12-13",
+   "voice": "alto",
+   "form": "subject",
+   "key": "I",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "13-14",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": "coloured by harmony of IV"
+  },
+  {
+   "bars": "14-15",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "IV",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "15-16",
+   "voice": "bass",
+   "form": "subject",
+   "key": "ii",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": "extended to perfect cadence at 17"
+  },
+  {
+   "bars": "24-25",
+   "voice": "bass",
+   "form": "subject (altered)",
+   "key": "I",
+   "section": "final section: coda",
+   "stretto": null,
+   "redundant": false,
+   "notes": "final entry at last beat of 24, altered ending extended to final cadence"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "9-11",
+   "name": "episode 1",
+   "from_key": "vi",
+   "to_key": "IV",
+   "material": "first nine notes of subject repeated in bass each bar, leading to sequential repetition of last figure of bar 3 ('a sequence within a sequence')",
+   "sequence": "falling sequence"
+  },
+  {
+   "bars": "17-23",
+   "name": "episode 2",
+   "from_key": "ii",
+   "to_key": "I",
+   "material": "free interchange and extension of episode 1; bar 20 imitates first figure of subject in falling fifths; bar 21 refers to ep.1",
+   "sequence": null
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "3-4"
+  },
+  {
+   "bars": "6-7"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "23-24",
+   "to": "sequential introduction to subject; subject figure ascends by fourths; movement in tenths has climactic effect"
+  },
+  {
+   "bars": "25-27",
+   "to": "extension of subject to cadence"
+  }
+ ],
+ "cadences": [
+  {
+   "bar": "6",
+   "key": "V",
+   "kind": "diagram '/'"
+  },
+  {
+   "bar": "8-9",
+   "key": "vi",
+   "kind": "diagram '/'"
+  },
+  {
+   "bar": "17",
+   "key": "ii",
+   "kind": "perfect cadence"
+  },
+  {
+   "bar": "23",
+   "key": "I",
+   "kind": "cadence (text; diagram '/')"
+  },
+  {
+   "bar": "27",
+   "key": "I",
+   "kind": "final cadence"
+  }
+ ],
+ "countersubjects": {
+  "count": 0,
+  "first": null,
+  "interchange": null,
+  "notes": "continuation of the bass under the answer is free counterpoint, not a countersubject"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "real; beginning harmonized in I with implied modulation to V at last beat of bar 2",
+  "notes": "codetta bar 3: last beat is an augmentation of part of the subject's first figure (5th-8th demisemiquavers)"
+ },
+ "stretti": [],
+ "claims": [
+  {
+   "page": 103,
+   "claim": "Codetta bar 3 features partial imitation, falling fifths, and an augmentation of part of the subject's first figure; these affect the whole fugue"
+  },
+  {
+   "page": 103,
+   "claim": "Five entries (11-15) follow without connecting episodes"
+  },
+  {
+   "page": 103,
+   "claim": "Final entry prepared by a sequential introduction with climactic tenths; compare II.11 bar 89"
+  }
+ ]
+}

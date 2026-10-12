@@ -1,0 +1,276 @@
+{
+ "id": "wtc1f17",
+ "groocock": {
+  "group": 4,
+  "pages": "104-106"
+ },
+ "entries": [
+  {
+   "bars": "1-2",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "2-3",
+   "voice": "bass",
+   "form": "answer [tonal]",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "harmonized entirely in tonic; sounds like dominant pedal in Ab"
+  },
+  {
+   "bars": "5-6",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "6-7",
+   "voice": "alto",
+   "form": "answer",
+   "key": "I-V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "10-11",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "I",
+   "section": "extension of exposition",
+   "stretto": null,
+   "redundant": true,
+   "notes": null
+  },
+  {
+   "bars": "13-14",
+   "voice": "alto",
+   "form": "subject",
+   "key": "vi",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "17-18",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "ii",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "18-19",
+   "voice": "alto",
+   "form": "subject",
+   "key": "ii",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "starts as if answer but reverts to subject shape ('mixed shape')"
+  },
+  {
+   "bars": "23-24",
+   "voice": "alto",
+   "form": "subject (altered)",
+   "key": "I",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "rising sixth enlarged to seventh; true entry"
+  },
+  {
+   "bars": "24-25",
+   "voice": "soprano",
+   "form": "subject (altered)",
+   "key": "IV",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "rising sixth enlarged to seventh"
+  },
+  {
+   "bars": "27-28",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "bass silent for eight bars before"
+  },
+  {
+   "bars": "28-29",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "vi to iii",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "mixed shape of bar 18"
+  },
+  {
+   "bars": "29-30",
+   "voice": "alto",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "mixed shape"
+  },
+  {
+   "bars": "30-31",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "IV",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "mixed shape; I modulating to IV"
+  },
+  {
+   "bars": "33-35",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "coda",
+   "stretto": null,
+   "redundant": false,
+   "notes": "extended toward cadence, balancing that of 23"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "7-10",
+   "name": "episode 1",
+   "from_key": null,
+   "to_key": null,
+   "material": "alto repeats bass run of 5-6; soprano alludes to falling steps of 3-4; bass recalls range of subject",
+   "sequence": "material freely interchanged each bar"
+  },
+  {
+   "bars": "11-13",
+   "name": "episode 2",
+   "from_key": "I",
+   "to_key": "vi",
+   "material": "triple interchangeable counterpoint from beginning of codetta (bar 3) with 'countersubject' figures",
+   "sequence": "falling sequence"
+  },
+  {
+   "bars": "14-17",
+   "name": "episode 3",
+   "from_key": "vi",
+   "to_key": "ii",
+   "material": "interchange of episode 2, cadence in vi at 16, then material of ep.1",
+   "sequence": null
+  },
+  {
+   "bars": "19-23",
+   "name": "episode 4",
+   "from_key": "ii",
+   "to_key": "V",
+   "material": "interchange of episode 2 then different material: tenor semiquaver run, alto alludes to subject opening imitated by soprano",
+   "sequence": null
+  },
+  {
+   "bars": "25-27",
+   "name": "episode 5",
+   "from_key": "IV",
+   "to_key": "I",
+   "material": "tenor of 24 repeated; soprano and alto extend last figure",
+   "sequence": "falling sequence"
+  },
+  {
+   "bars": "31-33",
+   "name": "episode 6",
+   "from_key": "IV",
+   "to_key": "I",
+   "material": "similar to episode 5",
+   "sequence": "harmonic sequence rising to 32, then falling to interrupted cadence at 33"
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "3-5"
+  }
+ ],
+ "extensions": [],
+ "cadences": [
+  {
+   "bar": "16",
+   "key": "vi",
+   "kind": "cadence"
+  },
+  {
+   "bar": "18",
+   "key": "ii",
+   "kind": "diagram '/'"
+  },
+  {
+   "bar": "23",
+   "key": "V",
+   "kind": "cadence"
+  },
+  {
+   "bar": "33",
+   "key": "I",
+   "kind": "interrupted cadence"
+  },
+  {
+   "bar": "35",
+   "key": "I",
+   "kind": "final"
+  }
+ ],
+ "countersubjects": {
+  "count": 0,
+  "first": null,
+  "interchange": null,
+  "notes": "continuation of bar 2 is not a countersubject; entries accompanied by varied combinations of some ten semiquaver figures, six also inverted"
+ },
+ "subject": {
+  "ends": "on the dominant but not in the dominant key (like I.6)",
+  "answer": "tonal; tonal change at second note; can be harmonized entirely in the tonic since no leading-note in the subject",
+  "notes": "seven-note subject; table of harmonizations of the subject (pdf 119)"
+ },
+ "stretti": [],
+ "claims": [
+  {
+   "page": 104,
+   "claim": "Subject ends on the dominant but not in the dominant key, like I.6"
+  },
+  {
+   "page": 104,
+   "claim": "Continuation of bar 2 is not a countersubject; some ten semiquaver figures in varied combination accompany later entries"
+  },
+  {
+   "page": 105,
+   "claim": "Entries at 23 and 24 enlarge the rising sixth to a seventh 'with marvelous effect'"
+  },
+  {
+   "page": 105,
+   "claim": "Final section: four entries in close succession from 27, three with the mixed shape of bar 18"
+  },
+  {
+   "page": 106,
+   "claim": "Extraordinary variety of harmony attached to the seven-note subject (table of 13 harmonizations)"
+  }
+ ]
+}

@@ -1,0 +1,148 @@
+{
+ "id": "wtc2f15",
+ "title": "II.15: Fugue in G major",
+ "voices": 3,
+ "groocock": {
+  "group": 2,
+  "chapter": "7 Group 2: Fugues for Three Voices, without Stretto",
+  "pages": "55-56",
+  "pdf_pages": "68-69"
+ },
+ "entries": [
+  {
+   "bars": "1-6",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "with codetta (6-8) modulating to V"
+  },
+  {
+   "bars": "8-13",
+   "voice": "middle",
+   "form": "answer",
+   "key": "V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "tonal; starts with effect of an unessential note (chord I in key V); with codetta 13-15 leading back to I"
+  },
+  {
+   "bars": "15-20",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "with extension toward cadence in V (development of the codetta); accompanied by 7-6 suspension pattern (C1+C2)"
+  },
+  {
+   "bars": "33-38",
+   "voice": "bass",
+   "form": "subject",
+   "key": "vi",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": "original codetta follows (38-40), modulating vi to iii; suspension pattern above"
+  },
+  {
+   "bars": "40-45",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "iii",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": "suspension pattern interchanged below"
+  },
+  {
+   "bars": "65-70",
+   "voice": "middle",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "preceded by rapid three-octave scale recalling the first codetta"
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "23-33",
+   "from_key": "V",
+   "to_key": "vi",
+   "material": "first two bars of the subject in two-part imitation with added harmony",
+   "sequence": "imitation"
+  },
+  {
+   "number": 2,
+   "bars": "45-62",
+   "from_key": "iii",
+   "to_key": "dominant of I",
+   "material": "arpeggio figure from the subject treated imitatively by three voices, then bass, leading to a dominant pedal on which soprano repeats the figure",
+   "sequence": "falling sequence"
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "6-8",
+   "notes": "two bars, modulating to V"
+  },
+  {
+   "bars": "13-15",
+   "notes": "modified to lead back to tonic"
+  },
+  {
+   "bars": "38-40",
+   "notes": "original codetta reused, vi to iii"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "20-23",
+   "to": "cadence in V (development of the codetta)"
+  }
+ ],
+ "coda": "70-72",
+ "cadences": [
+  {
+   "bar": "23",
+   "key": "V",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "72",
+   "key": "I",
+   "kind": "perfect",
+   "source": "diagram"
+  }
+ ],
+ "countersubjects": {
+  "count": 0,
+  "first": "bar 15 (7-6 suspension pattern, \"combination of first and second countersubjects\"; diagram marks (CI) (CII))",
+  "interchange": null,
+  "notes": "accompaniment of first answer (8-13) looks like a CS but cannot be one, since interchange would produce disconnected six-four chords; listed without countersubject; II.15 also cited (p.15) for bass entry 15-20 accompanied by two-part structure 16-19 repeated 34-37, interchanged 41-44"
+ },
+ "subject": {
+  "ends": "first note of bar 6",
+  "answer": "tonal",
+  "notes": "subject begins on the dominant (OCR reads \"bar 65\"; table 1-6 and diagram confirm bar 6, footnote 50)"
+ },
+ "key_plan": "Group 2 table: Exp I V I | Dev EP vi iii | Final EP I",
+ "claims": [
+  {
+   "claim": "Codettas delay the second and third entries (bars 6-8 and 13-15).",
+   "page": 32
+  },
+  {
+   "claim": "The coda (70-72) \"must be one of the most simple and effective of all codas\".",
+   "page": 56
+  }
+ ]
+}

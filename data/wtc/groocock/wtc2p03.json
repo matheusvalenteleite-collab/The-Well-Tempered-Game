@@ -1,0 +1,128 @@
+{
+ "id": "wtc2p03",
+ "title": "II.Pr.3: Prelude in C# major (final fugal section)",
+ "voices": 3,
+ "groocock": {
+  "group": 3,
+  "chapter": "9 Group 3: Fugues for Three Voices, with Stretto",
+  "pages": "74",
+  "pdf_pages": "87"
+ },
+ "partial": false,
+ "entries": [
+  {
+   "bars": "25-28",
+   "voice": "?",
+   "form": "subject",
+   "key": null,
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "no definite ending; may be considered to last until bar 28; voice not stated in text (review table p.81 shows exposition \"STR S /\" keys I, I-V I)"
+  },
+  {
+   "bars": null,
+   "voice": "?",
+   "form": "answer",
+   "key": null,
+   "section": "exposition",
+   "stretto": "STR",
+   "redundant": false,
+   "notes": "in close stretto with the subject; bars not given"
+  },
+  {
+   "bars": "30",
+   "voice": "bass",
+   "form": "subject (altered)",
+   "key": null,
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "starts a note too high, reverts to subject intervals with the quaver leaps"
+  },
+  {
+   "bars": "37",
+   "voice": "bass",
+   "form": "answer",
+   "key": "V (review table)",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "38",
+   "voice": "soprano",
+   "form": "subject figure (inverted)",
+   "key": null,
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "followed a bar later by the inverted subject figure"
+  },
+  {
+   "bars": "41",
+   "voice": "middle",
+   "form": "subject",
+   "key": "I (review table)",
+   "section": "final section",
+   "stretto": "STR",
+   "redundant": false,
+   "notes": "culminates in falling chromatic scale passage bars 44-46"
+  },
+  {
+   "bars": "41",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "V-I (review)",
+   "section": "final section",
+   "stretto": "STR",
+   "redundant": false,
+   "notes": "in stretto as at the opening, positions interchanged"
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "34-37",
+   "from_key": null,
+   "to_key": null,
+   "material": "bass uses inverted subject figure, imitated by upper voices",
+   "sequence": null
+  }
+ ],
+ "coda": "after bar 46 (allusions to inverted subject figure)",
+ "cadences": [
+  {
+   "bar": null,
+   "key": "I-V",
+   "kind": "perfect",
+   "source": "review table only (after exposition S)"
+  },
+  {
+   "bar": null,
+   "key": "V",
+   "kind": "perfect",
+   "source": "review table only (development S /)"
+  }
+ ],
+ "countersubjects": {
+  "count": 0,
+  "first": null,
+  "interchange": null,
+  "notes": "listed among fugues without countersubject (p.11, bars 25-50)"
+ },
+ "subject": {
+  "ends": "no definite ending; may be considered to last until bar 28",
+  "answer": null,
+  "notes": "three-part fugato ending the prelude; ch.2 p.5 lists II.Pr.3 (bars 25-50) among answers entering a perfect fourth lower; it is not in the answer-type table p.10"
+ },
+ "claims": [
+  {
+   "claim": "Short three-part fugato; answer in close stretto; single episode bars 34-37.",
+   "page": 74
+  }
+ ],
+ "codettas": [],
+ "extensions": []
+}

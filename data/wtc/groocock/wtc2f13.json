@@ -1,0 +1,228 @@
+{
+ "id": "wtc2f13",
+ "title": "II.13: Fugue in F# major",
+ "voices": 3,
+ "bar_numbering": "upbeat bar counted as 0",
+ "groocock": {
+  "group": 2,
+  "chapter": "7 Group 2: Fugues for Three Voices, without Stretto",
+  "pages": "40-42",
+  "pdf_pages": "53-55"
+ },
+ "entries": [
+  {
+   "bars": "0-4",
+   "voice": "middle",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "4-8",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "real answer; starts at once in the dominant"
+  },
+  {
+   "bars": "8-12",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "20-24",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "decorated with a written-out turn instead of a trill"
+  },
+  {
+   "bars": "32-36",
+   "voice": "bass",
+   "form": "answer",
+   "key": "V",
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "36-40",
+   "voice": "middle",
+   "form": "subject",
+   "key": "I",
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "40-44",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "vi",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "52-56",
+   "voice": "middle",
+   "form": "subject",
+   "key": "IV",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "64-70",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "with two-bar extension (rising sequence)"
+  },
+  {
+   "bars": "70-76",
+   "voice": "middle",
+   "form": "answer",
+   "key": "V",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "with two-bar extension (recalls falling sequence of episodes)"
+  },
+  {
+   "bars": "76-80",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "written-out turn instead of trill; CS altered in bar 79"
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "12-20",
+   "from_key": null,
+   "to_key": null,
+   "material": "rising scale steps of bars 1-2 by augmentation with other subject figures, direct and inverted, in three-part interchangeable counterpoint (bars 13,15,17,19 cyclic interchange)",
+   "sequence": "rising scale of an octave and a fifth across registers"
+  },
+  {
+   "number": 2,
+   "bars": "24-32",
+   "from_key": null,
+   "to_key": null,
+   "material": "end of subject entry repeated, middle voice adds thirds, then soprano sixths; first half repeated a tone higher; running bass formed from rising steps of ep.1 (harmonic minor steps)",
+   "sequence": "falling sequence"
+  },
+  {
+   "number": 3,
+   "bars": "44-52",
+   "from_key": "vi",
+   "to_key": "IV",
+   "material": "complex interchange of episode 1 (cyclic order in the opposite direction); virtually same bass as ep.1 with upper voices interchanged",
+   "sequence": null
+  },
+  {
+   "number": 4,
+   "bars": "56-64",
+   "from_key": "IV",
+   "to_key": "I",
+   "material": "repeat of episode 2 with almost the same bass and upper voices interchanged",
+   "sequence": null
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "68-70",
+   "to": "two-bar extension of subject (rising sequence)"
+  },
+  {
+   "bars": "74-76",
+   "to": "two-bar extension of answer (falling sequence)"
+  }
+ ],
+ "coda": "80-84",
+ "cadences": [
+  {
+   "bar": "20",
+   "key": "I",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "52",
+   "key": "IV",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "84",
+   "key": "I",
+   "kind": "perfect",
+   "source": "diagram"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "bar 4 (joined to subject by octave leap)",
+  "interchange": "fifteenth (octave possible only up to first note of bar 7)",
+  "notes": "joined to subject by octave leap (bar 4) or seventh (8, 20); given a different ending on four occasions (35, 55, 67, 79); middle voice continuation at bar 8 could have been a second CS (returns 33-36 soprano, 65-68 middle) but never used as bass. Listed among fifteenth interchange p.13; CS unaltered with subject entry p.15"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "real",
+  "notes": "unique in the 48 in starting on the leading-note; real answer chosen because a tonal answer would spoil the sequential shape (p.6); every entry exactly like the opening except bars 20 and 76 (turn written out)"
+ },
+ "key_plan": "Group 2 table: Exp I V I | Counterexp EP I EP V I | Dev vi EP IV | Final EP I V I",
+ "claims": [
+  {
+   "claim": "Gavotte rhythm in four-bar phrases throughout, except two places in the final section.",
+   "page": 41
+  },
+  {
+   "claim": "Counterexposition bars 20-40.",
+   "page": 32
+  },
+  {
+   "claim": "Simple exposition, each voice entering without delay.",
+   "page": 31
+  },
+  {
+   "claim": "Episode 1 uses three-part interchangeable counterpoint in cyclic order (bars 13, 15, 17, 19).",
+   "page": 42
+  },
+  {
+   "claim": "Episode 3 is a complex interchange of episode 1, cyclic order reversed.",
+   "page": 42
+  },
+  {
+   "claim": "Real answer used because a tonal answer would spoil the sequential pattern of the subject.",
+   "page": 6
+  }
+ ],
+ "codettas": []
+}

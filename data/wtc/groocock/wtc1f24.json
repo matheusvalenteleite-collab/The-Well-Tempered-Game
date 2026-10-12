@@ -1,0 +1,363 @@
+{
+ "id": "wtc1f24",
+ "groocock": {
+  "group": 4,
+  "pages": "95-98"
+ },
+ "entries": [
+  {
+   "bars": "1-4",
+   "voice": "alto",
+   "form": "subject",
+   "key": "i-v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "4-7",
+   "voice": "tenor",
+   "form": "answer [tonal]",
+   "key": "v-i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "countersubject in alto"
+  },
+  {
+   "bars": "9-12",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i-v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "opening run of CS inverted, in alto; tenor adds falling crotchets and final semiquavers"
+  },
+  {
+   "bars": "13-16",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "v-i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "tenor inverts beginning of CS; falling crotchets and final run in bass; variant readings of 5th note"
+  },
+  {
+   "bars": "21-24",
+   "voice": "alto",
+   "form": "subject",
+   "key": "i-v",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS fragmented (soprano -> bass -> soprano); ends with perfect cadence in v"
+  },
+  {
+   "bars": "30-33",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "iv-i",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "from 5th note identical with original answer; CS in soprano (momentarily alto bar 32)"
+  },
+  {
+   "bars": "38-41",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i-v",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "starts as if answer to bar 30, reverts to subject intervals from 2nd note"
+  },
+  {
+   "bars": "44-47",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "III-bVII",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "times arrival like the false entries; continues circle of fifths; CS soprano -> alto -> soprano"
+  },
+  {
+   "bars": "47-50",
+   "voice": "bass",
+   "form": "answer",
+   "key": "III",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "harmonized to begin and end in III"
+  },
+  {
+   "bars": "53-56",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "v-ii",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS shared alto/soprano; texture three-part from bar 53"
+  },
+  {
+   "bars": "57-60",
+   "voice": "bass",
+   "form": "subject",
+   "key": "IV to i",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS alto then soprano"
+  },
+  {
+   "bars": "60-63",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "i-v",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS missing apart from final figure in soprano bar 63"
+  },
+  {
+   "bars": "69-70",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "only a partial entry, similar to the false entries; begins at second tenor note of 69"
+  },
+  {
+   "bars": "70-73",
+   "voice": "bass",
+   "form": "subject",
+   "key": "iv-i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "four-part texture resumed"
+  },
+  {
+   "bars": "73-76",
+   "voice": "alto, soprano",
+   "form": "subject (allusions)",
+   "key": "i",
+   "section": "final section (coda)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "coda 'including subject in alto and soprano'; on dominant pedal"
+  },
+  {
+   "bars": "19",
+   "voice": "alto",
+   "form": "false entry (first three notes)",
+   "key": null,
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "in episode 3"
+  },
+  {
+   "bars": "28",
+   "voice": "tenor",
+   "form": "false entry",
+   "key": null,
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "in episode 4"
+  },
+  {
+   "bars": "34",
+   "voice": "alto",
+   "form": "false entry (first nine notes)",
+   "key": "v",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "in episode 5"
+  },
+  {
+   "bars": "35",
+   "voice": "soprano",
+   "form": "false entry (first nine notes)",
+   "key": "i",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "in episode 5"
+  },
+  {
+   "bars": "41",
+   "voice": "soprano",
+   "form": "false entry",
+   "key": "i",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "episode 6"
+  },
+  {
+   "bars": "42",
+   "voice": "alto",
+   "form": "false entry",
+   "key": "iv",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "episode 6"
+  },
+  {
+   "bars": "43",
+   "voice": "bass",
+   "form": "false entry",
+   "key": "bVII [A]",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "episode 6"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "7-9",
+   "name": "episode 1",
+   "from_key": null,
+   "to_key": null,
+   "material": "tenor imitates end of CS; alto quaver figure (variant of semitone steps of bar 1) followed by tenor in canon at fourth",
+   "sequence": null
+  },
+  {
+   "bars": "12-13",
+   "name": "episode 2",
+   "from_key": null,
+   "to_key": null,
+   "material": "bass imitates final run of CS",
+   "sequence": "quasi sequence"
+  },
+  {
+   "bars": "16-21",
+   "name": "episode 3",
+   "from_key": null,
+   "to_key": "i",
+   "material": "soprano imitates final run of CS; new figure (foreshadowed in prelude bars 23-24) followed by tenor in canon at fifth; false entry bar 19",
+   "sequence": "falling sequence touching bVII, v, III, i"
+  },
+  {
+   "bars": "24-30",
+   "name": "episode 4",
+   "from_key": "v",
+   "to_key": "iv",
+   "material": "bass imitates final run of CS; soprano and alto in thirds allude to quaver figure of ep.1; then canonic material of ep.3",
+   "sequence": "canonic sequence touching III, i, VI, iv"
+  },
+  {
+   "bars": "33-38",
+   "name": "episode 5",
+   "from_key": null,
+   "to_key": null,
+   "material": "imitation of final figure of CS; two longer false entries (first nine notes)",
+   "sequence": null
+  },
+  {
+   "bars": "41-44",
+   "name": "episode 6",
+   "from_key": "i",
+   "to_key": "III",
+   "material": "interchange and extension of bars 34-35; three false entries",
+   "sequence": "circle of fifths i-iv-bVII"
+  },
+  {
+   "bars": "50-53",
+   "name": "episode 7",
+   "from_key": "III",
+   "to_key": "v",
+   "material": "final figure of CS in four-part imitation",
+   "sequence": null
+  },
+  {
+   "bars": "56-57",
+   "name": "episode 8",
+   "from_key": "ii",
+   "to_key": "dominant of IV",
+   "material": "imitation of final CS figure in soprano",
+   "sequence": null
+  },
+  {
+   "bars": "63-69",
+   "name": "episode 9",
+   "from_key": "v",
+   "to_key": "i",
+   "material": "returns to canonic sequence of episodes 3 and 4, interrupted at 67 by final CS figure",
+   "sequence": "canonic sequence"
+  }
+ ],
+ "codettas": [],
+ "extensions": [],
+ "cadences": [
+  {
+   "bar": "24",
+   "key": "v",
+   "kind": "perfect cadence ending alto entry (text; diagram '/')"
+  },
+  {
+   "bar": "76",
+   "key": "i",
+   "kind": "final (diagram)"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "4-7 (alto)",
+  "interchange": null,
+  "notes": "contains three ideas: opening semiquaver run, falling crotchet steps, final semiquaver run; opening run inverted at 9 and 13 because answer and subject differ in first five notes; frequently fragmented between voices"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "tonal: first five notes treated as non-modulating (dominant f# answered by tonic b), then all intervals of the subject from this lowered pitch, so the answer ends in the tonic",
+  "notes": "subject modulates to dominant and uses every note of the chromatic scale"
+ },
+ "stretti": [],
+ "claims": [
+  {
+   "page": 96,
+   "claim": "Subject uses every note of the chromatic scale"
+  },
+  {
+   "page": 96,
+   "claim": "Most of the fugue is in three parts; four parts reserved for climactic passages, about one-fifth of the total length"
+  },
+  {
+   "page": 96,
+   "claim": "Answer treats the first five notes as non-modulating; unlike I.18"
+  },
+  {
+   "page": 96,
+   "claim": "Countersubject contains three ideas"
+  },
+  {
+   "page": 97,
+   "claim": "Episodes contain 'false entries' of the subject (bars 19, 28, 34, 35, 41, 42, 43)"
+  },
+  {
+   "page": 97,
+   "claim": "Tenor entry at 44 times its arrival like the false entries but is a complete subject"
+  },
+  {
+   "page": 98,
+   "claim": "From bar 53 texture is three-part; four-part resumes at bar 70, five-part before the end"
+  },
+  {
+   "page": 98,
+   "claim": "Final section presumed to begin at 69 though it is only a partial entry"
+  }
+ ]
+}

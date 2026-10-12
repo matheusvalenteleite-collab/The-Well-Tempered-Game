@@ -1,0 +1,236 @@
+{
+ "id": "wtc2f07",
+ "groocock": {
+  "group": 5,
+  "pages": "109-111"
+ },
+ "entries": [
+  {
+   "bars": "1-6",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "7-12",
+   "voice": "tenor",
+   "form": "answer [tonal]",
+   "key": "I-V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "countersubject proper from 2nd note of bar 9 in bass"
+  },
+  {
+   "bars": "14-19",
+   "voice": "alto",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS from bar 16"
+  },
+  {
+   "bars": "21-26",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "I-V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS from halfway through bar 23"
+  },
+  {
+   "bars": "30-35",
+   "voice": "tenor",
+   "form": "answer",
+   "key": "I",
+   "section": "counterexposition",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "31-36",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "counterexposition",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "37-42",
+   "voice": "alto",
+   "form": "answer",
+   "key": "I",
+   "section": "counterexposition",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": "interchange of first stretto; bar 38 cannot be played as written on one keyboard"
+  },
+  {
+   "bars": "38-43",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "counterexposition",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "53-58",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "IV",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "starts as if answer, continues with subject intervals; alto imitates tenor"
+  },
+  {
+   "bars": "59-64",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "I",
+   "section": "final section",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": "[S in alto 54-58 bracketed in diagram]"
+  },
+  {
+   "bars": "60-65",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": "restores original length of opening note; alto and tenor imitative figures give illusion of taking part"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "43-53",
+   "name": "episode",
+   "from_key": "I",
+   "to_key": "IV",
+   "material": "codetta figure, octave leaps of bars 12-13, figures from first part of subject; soprano followed by alto in canon at the fifth",
+   "sequence": "suggests vi, ii, V, I before moving to IV"
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "6-7"
+  },
+  {
+   "bars": "12-14"
+  },
+  {
+   "bars": "19-21"
+  },
+  {
+   "bars": "36-37"
+  },
+  {
+   "bars": "58"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "26-30",
+   "to": "cadence in V"
+  }
+ ],
+ "cadences": [
+  {
+   "bar": "30",
+   "key": "V",
+   "kind": "cadence ending extension of exposition"
+  },
+  {
+   "bar": "69-70",
+   "key": "I",
+   "kind": "final (diagram)"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "apparent CS starts with imitation of codetta figure; CS proper from 2nd note of bar 9 to end of answer at 12",
+  "interchange": "interchangeable at the octave with subject, but never appears above subject or answer",
+  "notes": null
+ },
+ "subject": {
+  "ends": "disputed: simpler analysis ends it at first note of bar 7 (then only codettas are bars 13 and 20); but cadence feeling of bars 5-6 and the many 48 subjects ending on the mediant suggest it ends at bar 6, with a bar of codetta",
+  "answer": "tonal (2nd note, the dominant, answered by tonic at bar 8); rest in bars 2 and 8 'all-important'; without the tonal answer the three stretti would have been impossible",
+  "notes": null
+ },
+ "stretti": [
+  {
+   "name": "Stretto 1",
+   "bars": "30-36",
+   "voices": [
+    "tenor (answer)",
+    "bass (subject)"
+   ],
+   "interval": "answer-subject",
+   "timing": "one bar",
+   "notes": "counterexposition in stretto instead of modulating episode; 'one of the most natural-sounding and harmonious partnerships' in the 48; from bar 33 two voices without supporting parts"
+  },
+  {
+   "name": "Stretto 2",
+   "bars": "37-43",
+   "voices": [
+    "alto (answer)",
+    "soprano (subject)"
+   ],
+   "interval": "answer-subject",
+   "timing": "one bar",
+   "notes": "interchange of stretto 1 with harmony added by lower voices"
+  },
+  {
+   "name": "Stretto 3",
+   "bars": "59-65",
+   "voices": [
+    "soprano (answer)",
+    "bass (subject)"
+   ],
+   "interval": "answer-subject",
+   "timing": "one bar",
+   "notes": "first stretto repeated 'with maximum effect' in final section"
+  }
+ ],
+ "claims": [
+  {
+   "page": 110,
+   "claim": "Subject length disputed: end at first note of bar 7 or at bar 6 (mediant ending, cadence feeling)"
+  },
+  {
+   "page": 110,
+   "claim": "Tonal answer was necessary for the three stretti"
+  },
+  {
+   "page": 110,
+   "claim": "Countersubject never appears above the subject/answer"
+  },
+  {
+   "page": 110,
+   "claim": "Exposition occupies almost half the fugue; instead of modulating, a counterexposition in stretto follows"
+  },
+  {
+   "page": 111,
+   "claim": "Single episode (43-53) compensates for extended use of I and V by suggesting vi, ii, V, I before IV"
+  },
+  {
+   "page": 111,
+   "claim": "Tenor entry at 53 starts as answer but continues as subject, 'quite common'"
+  }
+ ]
+}

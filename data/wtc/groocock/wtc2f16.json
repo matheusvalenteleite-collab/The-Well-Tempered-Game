@@ -1,0 +1,272 @@
+{
+ "id": "wtc2f16",
+ "groocock": {
+  "group": 4,
+  "pages": "100-102"
+ },
+ "entries": [
+  {
+   "bars": "1-5",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "5-9",
+   "voice": "alto",
+   "form": "answer [tonal]",
+   "key": "v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS in tenor"
+  },
+  {
+   "bars": "9-13",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS in alto slightly altered; tenor free part with leaping figure used in episodes"
+  },
+  {
+   "bars": "13-17",
+   "voice": "bass",
+   "form": "answer",
+   "key": "v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS in soprano; bars 5-9 interchanged at the fifteenth"
+  },
+  {
+   "bars": "20-24",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "i",
+   "section": "extension of exposition",
+   "stretto": null,
+   "redundant": true,
+   "notes": "CS in bass in original relationship"
+  },
+  {
+   "bars": "28-32",
+   "voice": "alto",
+   "form": "answer [real]",
+   "key": "v",
+   "section": "extension of exposition",
+   "stretto": null,
+   "redundant": true,
+   "notes": "CS in soprano interchanging 5-9 at twelfth; tenor continuous semiquavers"
+  },
+  {
+   "bars": "32-36",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "III",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS in alto a third higher (interchanged at tenth then octave)"
+  },
+  {
+   "bars": "36-40",
+   "voice": "bass",
+   "form": "answer",
+   "key": "bVII",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS soprano, interchanged at tenth"
+  },
+  {
+   "bars": "45-49",
+   "voice": "tenor",
+   "form": "subject (with added thirds in alto)",
+   "key": "bVII",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS in bass original relationship"
+  },
+  {
+   "bars": "51-55",
+   "voice": "soprano",
+   "form": "subject (with added sixths in alto)",
+   "key": "iv",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "soprano chief voice after two bars' silence; alternatively alto leads with soprano adding sixths"
+  },
+  {
+   "bars": "59-63",
+   "voice": "bass",
+   "form": "subject (with added thirds in tenor)",
+   "key": "VI",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS alto doubled by soprano in thirds"
+  },
+  {
+   "bars": "67-69",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "solitary note after much four-part writing; CS alto interchanging 5-6 at twelfth"
+  },
+  {
+   "bars": "69-73",
+   "voice": "soprano",
+   "form": "subject (with added tenths in tenor)",
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "'as if in stretto'; CS in bass with added tenths from alto; ending altered"
+  },
+  {
+   "bars": "79-83",
+   "voice": "bass",
+   "form": "subject (transformed)",
+   "key": null,
+   "section": "coda",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "17-20",
+   "name": "episode 1",
+   "from_key": null,
+   "to_key": null,
+   "material": "two-part imitation of leaping figure of bar 9 with main CS figure in bass",
+   "sequence": "mainly falling sequence"
+  },
+  {
+   "bars": "24-28",
+   "name": "episode 2",
+   "from_key": null,
+   "to_key": null,
+   "material": "bass repeats leaping figure; tenor and soprano imitate main CS figure",
+   "sequence": "irregular sequence"
+  },
+  {
+   "bars": "40-45",
+   "name": "episode 3",
+   "from_key": null,
+   "to_key": "iv",
+   "material": "figures from CS",
+   "sequence": "free rising sequence to perfect cadence in iv at 45"
+  },
+  {
+   "bars": "49-51",
+   "name": "episode 4",
+   "from_key": "bVII",
+   "to_key": "iv",
+   "material": "figures from CS",
+   "sequence": "free rising sequence"
+  },
+  {
+   "bars": "55-59",
+   "name": "episode 5",
+   "from_key": "iv",
+   "to_key": "dominant of VI",
+   "material": "altered end of subject imitates falling passage of CS",
+   "sequence": "falling sequence"
+  },
+  {
+   "bars": "63-67",
+   "name": "episode 6",
+   "from_key": "VI",
+   "to_key": "dominant of i",
+   "material": "altered subject ending lets tenor imitate CS falling passage",
+   "sequence": null
+  }
+ ],
+ "codettas": [],
+ "extensions": [
+  {
+   "bars": "73-75",
+   "to": "altered ending to perfect cadence at 75"
+  }
+ ],
+ "cadences": [
+  {
+   "bar": "19-20",
+   "key": "[III]",
+   "kind": "diagram"
+  },
+  {
+   "bar": "28",
+   "key": "v",
+   "kind": "diagram '/'"
+  },
+  {
+   "bar": "45",
+   "key": "iv",
+   "kind": "perfect cadence"
+  },
+  {
+   "bar": "67",
+   "key": "dominant of i",
+   "kind": "cadence"
+  },
+  {
+   "bar": "75",
+   "key": "i",
+   "kind": "perfect cadence"
+  },
+  {
+   "bar": "84",
+   "key": "i",
+   "kind": "final (diagram)"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "5-9 (tenor)",
+  "interchange": "interchangeable with subject/answer at tenth, twelfth and fifteenth, hence subject or CS can be doubled in thirds or sixths",
+  "notes": "relationship specified for each entry"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "tonal (subject begins on dominant, answer on tonic); real answer used at 28",
+  "notes": null
+ },
+ "stretti": [],
+ "claims": [
+  {
+   "page": 101,
+   "claim": "Countersubject is interchangeable at the tenth, twelfth and fifteenth, making doubling in thirds/sixths possible"
+  },
+  {
+   "page": 101,
+   "claim": "At 32 the CS is a third higher than its original relation: interchanged at tenth then octave"
+  },
+  {
+   "page": 102,
+   "claim": "Bar 51 soprano with added sixths could alternatively be heard as alto subject in iv with soprano adding sixths"
+  },
+  {
+   "page": 102,
+   "claim": "Final soprano entry at 69 enters 'as if in stretto'"
+  },
+  {
+   "page": 102,
+   "claim": "Coda includes a final transformed entry of the subject in the bass"
+  }
+ ]
+}

@@ -1,0 +1,288 @@
+{
+ "id": "wtc1f16",
+ "groocock": {
+  "group": 5,
+  "pages": "114-115"
+ },
+ "entries": [
+  {
+   "bars": "1-2",
+   "voice": "alto",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "2-4",
+   "voice": "soprano",
+   "form": "answer [tonal]",
+   "key": "i-v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "overlaps the subject"
+  },
+  {
+   "bars": "5-6",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "6-8",
+   "voice": "tenor",
+   "form": "answer",
+   "key": "i-v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "half-beat overlap in bar 6 is the only claim to a four-voice exposition"
+  },
+  {
+   "bars": "12-13",
+   "voice": "alto",
+   "form": "subject",
+   "key": "III",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS in tenor"
+  },
+  {
+   "bars": "13-15",
+   "voice": "bass",
+   "form": "answer",
+   "key": "bVII",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "tonal answer; CS tenor"
+  },
+  {
+   "bars": "15-16",
+   "voice": "soprano",
+   "form": "answer [real]",
+   "key": "bVII",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS bass"
+  },
+  {
+   "bars": "17-18",
+   "voice": "bass",
+   "form": "subject",
+   "key": "III",
+   "section": "development",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "17-19",
+   "voice": "alto",
+   "form": "answer",
+   "key": "bVII-VI",
+   "section": "development",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": "after four notes; altered at two points (eb' for e', repeated f')"
+  },
+  {
+   "bars": "20-21",
+   "voice": "bass",
+   "form": "subject",
+   "key": "iv",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS alto"
+  },
+  {
+   "bars": "21-23",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "iv",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS bass"
+  },
+  {
+   "bars": "23-24",
+   "voice": "alto",
+   "form": "answer",
+   "key": "i",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "answer in iv modulating to i; CS in soprano marks important cadence at 24"
+  },
+  {
+   "bars": "28-29",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": "last note altered; alto CS with second half altered"
+  },
+  {
+   "bars": "28-29",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": "shape intact"
+  },
+  {
+   "bars": "29-30",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": "only first four notes, ends by inverting second half (or alto bar 30 completes it on wrong degree)"
+  },
+  {
+   "bars": "31-33",
+   "voice": "alto",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "33-34",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "harmonized with added fifth voice"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "8-12",
+   "name": "episode 1",
+   "from_key": "v",
+   "to_key": "III",
+   "material": "extends end of answer in rising sequence (as codetta bar 4), imitated by bass and soprano; soprano introduces upward semiquaver run",
+   "sequence": "rising sequence"
+  },
+  {
+   "bars": "24-28",
+   "name": "episode 2",
+   "from_key": "i",
+   "to_key": "dominant of i",
+   "material": "bass repeats second half of subject; upper voices develop semiquaver figure of ep.1 direct and inverted in two-part imitation",
+   "sequence": "unusual sequence: chords alternately falling a fourth and rising a second"
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "4-5"
+  },
+  {
+   "bars": "19-20"
+  },
+  {
+   "bars": "30-31"
+  }
+ ],
+ "extensions": [],
+ "cadences": [
+  {
+   "bar": "10-11",
+   "key": null,
+   "kind": "diagram '/' in episode 1"
+  },
+  {
+   "bar": "24",
+   "key": "i",
+   "kind": "important cadence"
+  },
+  {
+   "bar": "34",
+   "key": "i",
+   "kind": "final (diagram)"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "after 4th note of answer (alto, bar 2)",
+  "interchange": null,
+  "notes": "uses no fresh material: inverts second half of subject, ends inverting first half of tonal answer"
+ },
+ "subject": {
+  "ends": "with the bb (except where overlapped by the answer, bars 2 and 6)",
+  "answer": "tonal",
+  "notes": null
+ },
+ "stretti": [
+  {
+   "name": "Stretto 1",
+   "bars": "17-19",
+   "voices": [
+    "bass (S, III)",
+    "alto (A)"
+   ],
+   "interval": "twelfth",
+   "timing": "after four notes",
+   "notes": "answer altered at two points"
+  },
+  {
+   "name": "Stretto 2",
+   "bars": "28-30",
+   "voices": [
+    "soprano",
+    "tenor",
+    "bass"
+   ],
+   "interval": "octave",
+   "timing": null,
+   "notes": "three voices in bar 28 enter at the octave; bass incomplete"
+  }
+ ],
+ "claims": [
+  {
+   "page": 114,
+   "claim": "Subject treated as ending with the bb, except where overlapped by answer (bars 2, 6)"
+  },
+  {
+   "page": 114,
+   "claim": "Countersubject uses no fresh material"
+  },
+  {
+   "page": 114,
+   "claim": "Exposition's only claim to four voices is the half-beat overlap in bar 6"
+  },
+  {
+   "page": 115,
+   "claim": "Next five entries after episode 1 are all in major keys"
+  },
+  {
+   "page": 115,
+   "claim": "Stretto 1 entries a twelfth apart; stretto 2 at the octave"
+  },
+  {
+   "page": 115,
+   "claim": "Eight of the seventeen entries are subject entries in the tonic key"
+  }
+ ]
+}

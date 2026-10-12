@@ -1,0 +1,251 @@
+{
+ "id": "wtc1f18",
+ "groocock": {
+  "group": 4,
+  "pages": "93-95"
+ },
+ "entries": [
+  {
+   "bars": "1-3",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "i-v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "3-5",
+   "voice": "alto",
+   "form": "answer [tonal]",
+   "key": "v-iv-i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS1 in tenor"
+  },
+  {
+   "bars": "5-7",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i-v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS1 alto; tenor adds CS2 from 3rd note"
+  },
+  {
+   "bars": "7-9",
+   "voice": "bass",
+   "form": "answer",
+   "key": "v-iv-i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS1 soprano; CS2 missing"
+  },
+  {
+   "bars": "11-13",
+   "voice": "tenor",
+   "form": "answer",
+   "key": "v-i",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "as bar 3, with both countersubjects"
+  },
+  {
+   "bars": "15-17",
+   "voice": "bass",
+   "form": "subject",
+   "key": "iv-i",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "identical with original answer except first note; regarded as subject because of that note and context of iv; CS1 alto, CS2 soprano"
+  },
+  {
+   "bars": "17-19",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "i-v",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "first note suggests answer but continues like opening subject; both CS missing"
+  },
+  {
+   "bars": "19-21",
+   "voice": "alto",
+   "form": "answer",
+   "key": "v-i",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "both CS return"
+  },
+  {
+   "bars": "24-26",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "v",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "overlaps end of sequence; goes v -> ii [d# -> a#]; implied cadence changed to end on first inversion of v"
+  },
+  {
+   "bars": "26-28",
+   "voice": "bass",
+   "form": "answer",
+   "key": "III",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "only major-key entry; unlike other answers harmonized in one key throughout"
+  },
+  {
+   "bars": "32-34",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "i-v",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "both CS; remarkable sharpening of 3rd degree (b#); ends without cadential effect, followed by apparent cadence on III"
+  },
+  {
+   "bars": "37-39",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "iv-i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "final entry; first note shortened (or repeated); mostly on pedal, dominant in iv becoming tonic in i; avoids cadence"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "9-11",
+   "name": "episode 1",
+   "from_key": "i",
+   "to_key": "v",
+   "material": "repeats second half of bar 8",
+   "sequence": "upward sequence rising by thirds with apparent cadences on i, III, v"
+  },
+  {
+   "bars": "13-15",
+   "name": "episode 2",
+   "from_key": "i",
+   "to_key": "iv",
+   "material": "end of answer and altered end of CS1; falling steps of CS2 continued by chain of suspensions",
+   "sequence": "downward sequence falling by thirds, apparent cadences on i, VI, iv"
+  },
+  {
+   "bars": "21-24",
+   "name": "episode 3",
+   "from_key": "i",
+   "to_key": "ii (with tierce de Picardie, = dominant of v)",
+   "material": "new theme in bass, variant of subject notes 5-9, followed in canon at the twelfth by alto; tenor alludes to final figure of subject",
+   "sequence": "rising sequence; suggestions of v and VI"
+  },
+  {
+   "bars": "28-32",
+   "name": "episode 4",
+   "from_key": "III",
+   "to_key": "i",
+   "material": "interchange of episode 3 (alto and soprano), then repeat of episode 2",
+   "sequence": "rising, changing at bar 30 to falling"
+  },
+  {
+   "bars": "34-37",
+   "name": "episode 5",
+   "from_key": "v",
+   "to_key": "iv",
+   "material": "subtle variant of episode 2; falling steps of CS2 continued, doubled in tenths, transferred to bass",
+   "sequence": "pattern of falling thirds broken: cadence on VI then (not full close) iv"
+  }
+ ],
+ "codettas": [],
+ "extensions": [],
+ "cadences": [
+  {
+   "bar": "10",
+   "key": "v",
+   "kind": "true perfect cadence endorsed by soprano detail and silence of bass (apparent cadences also on i, III)"
+  },
+  {
+   "bar": "15",
+   "key": "iv",
+   "kind": "regarded as true perfect cadence (apparent cadences also on i, VI)"
+  },
+  {
+   "bar": "24",
+   "key": "ii (tierce de Picardie)",
+   "kind": "more convincing perfect cadence; acts as dominant of v"
+  },
+  {
+   "bar": "34",
+   "key": "III",
+   "kind": "apparent cadence after tenor entry"
+  },
+  {
+   "bar": "35-37",
+   "key": "VI then iv",
+   "kind": "cadence on VI then cadence (not full close) on iv"
+  },
+  {
+   "bar": "41",
+   "key": "i",
+   "kind": "final (diagram)"
+  }
+ ],
+ "countersubjects": {
+  "count": 2,
+  "first": "3-5 (tenor)",
+  "interchange": null,
+  "notes": "CS1 unchanged at 5-7; CS2 added by tenor at bar 5 with subject's third note; CS2 missing at 7 and 17; [CS2 indicated in brackets at 37-39 in diagram]"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "subject modulates (first seven notes in i, rest in v); answer drops a tone after the first note and then keeps the subject's intervals, so it is in iv for six notes before returning to i: 'the only possible answer that makes musical sense'",
+  "notes": null
+ },
+ "stretti": [],
+ "claims": [
+  {
+   "page": 93,
+   "claim": "Fugue on a modulating subject, half in g# and half in d#; in 41 bars there are fourteen apparent perfect cadences on i, ii (tierce de Picardie), III, iv, v and VI"
+  },
+  {
+   "page": 93,
+   "claim": "The tonal answer drops a tone after the first note and is then in iv for six notes"
+  },
+  {
+   "page": 93,
+   "claim": "Episode 1 rises by thirds with apparent cadences on i, III, v; the last is a true cadence"
+  },
+  {
+   "page": 94,
+   "claim": "Bass entry at 15 is the subject, not the answer, because of its first note and iv context"
+  },
+  {
+   "page": 94,
+   "claim": "Bass entry at 26 in III is the only major-key entry and is harmonized in one key throughout"
+  },
+  {
+   "page": 94,
+   "claim": "Tenor entry at 32 sharpens the third degree (b#) and ends without cadential effect"
+  },
+  {
+   "page": 95,
+   "claim": "Episode 5 breaks the falling-thirds pattern by a 'bold stroke', cadencing on VI then iv"
+  },
+  {
+   "page": 95,
+   "claim": "The coda is 'one of the most effective of all short codas', alluding to episode 1"
+  }
+ ]
+}

@@ -1,0 +1,205 @@
+{
+ "id": "wtc1f02",
+ "title": "I.2: Fugue in C minor",
+ "voices": 3,
+ "groocock": {
+  "group": 2,
+  "chapter": "7 Group 2: Fugues for Three Voices, without Stretto",
+  "pages": "43-45",
+  "pdf_pages": "56-58"
+ },
+ "entries": [
+  {
+   "bars": "1-3",
+   "voice": "middle",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "3-5",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "i-v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "tonal; with first countersubject"
+  },
+  {
+   "bars": "7-9",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "with first and second countersubjects"
+  },
+  {
+   "bars": "11-13",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "III",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "only major-key entry"
+  },
+  {
+   "bars": "15-17",
+   "voice": "middle",
+   "form": "answer",
+   "key": "v",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS leaps up a third instead of a tenth (octave interchange for the latter part)"
+  },
+  {
+   "bars": "20-22",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "interchange of bar 7; subdominant colour"
+  },
+  {
+   "bars": "26-29",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "extended to cadence; first chord of bar 27 is VI instead of iv"
+  },
+  {
+   "bars": "29-31",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "in the coda over tonic pedal, tierce de Picardie at end"
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "5-7",
+   "from_key": null,
+   "to_key": null,
+   "material": "first five notes of the subject (fourth widened to a sixth) with upward scale inverting the C1 opening",
+   "sequence": "rising sequence"
+  },
+  {
+   "number": 2,
+   "bars": "9-11",
+   "from_key": "i",
+   "to_key": "III",
+   "material": "two-part canon on the opening subject figure, running bass developing falling scale of C1",
+   "sequence": "falling sequence"
+  },
+  {
+   "number": 3,
+   "bars": "13-15",
+   "from_key": "III",
+   "to_key": "v",
+   "material": "inverts bass of ep.2 in the soprano; thirds in lower voices from C2 (bar 8); suggestion of bVII and iv on the way",
+   "sequence": "rising sequence"
+  },
+  {
+   "number": 4,
+   "bars": "17-20",
+   "from_key": "v",
+   "to_key": "i",
+   "material": "17-18 interchange at the twelfth of episode 1 with subject figure in tenths; 18-20 interchange at the fifteenth",
+   "sequence": "sequence"
+  },
+  {
+   "number": 5,
+   "bars": "22-26",
+   "from_key": null,
+   "to_key": null,
+   "material": "22-25 repeat of episode 2 with upper voices interchanged; 25-26 allusion to episode 1",
+   "sequence": "falling sequence in bass intersecting rising sequence in soprano"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "28-29",
+   "to": "cadence (subject extended to cadence)"
+  }
+ ],
+ "coda": "29-31 (tonic pedal)",
+ "cadences": [
+  {
+   "bar": "17",
+   "key": "v",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "22",
+   "key": "i",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "29",
+   "key": "i",
+   "kind": "perfect",
+   "source": "diagram"
+  }
+ ],
+ "countersubjects": {
+  "count": 2,
+  "first": "bar 3 (C1, middle voice)",
+  "interchange": "fifteenth (latter part also at octave, bar 15)",
+  "notes": "C1 downward scale affects tonality of every entry; C2 first in middle voice bars 7-8, could be mistaken for a free part; its figure (first four notes of bar 8) provides material for the episode at bar 13; five of six permutations of the three lines used (not C1 bass / subject middle / C2 soprano)"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "tonal",
+  "notes": "dominant occurs shortly after the opening; subject unvaried in all six entries; differs in one small detail from subject (p.2)"
+ },
+ "key_plan": "Group 2 table: Exp i v EP i | Dev EP III EP v EP i | Final EP i i",
+ "claims": [
+  {
+   "claim": "Episodic fugue without stretto, contrasted with I.1 (stretto fugue without episodes).",
+   "page": 2
+  },
+  {
+   "claim": "Very minimum of modulation: apart from two bars in III, everything in i or v.",
+   "page": 43
+  },
+  {
+   "claim": "C1 scale forms the basis of all five episodes, direct or inverted.",
+   "page": 12
+  },
+  {
+   "claim": "Second CS figure in bar 8 supplies the two lower voices for the whole episode beginning at bar 13.",
+   "page": 14
+  },
+  {
+   "claim": "Episode 4: interchange at the twelfth then at the fifteenth.",
+   "page": 44
+  },
+  {
+   "claim": "Bach uses five of the six permutations of subject and two CS.",
+   "page": 44
+  },
+  {
+   "claim": "Exposition contains an episode (bars 5-6) before the third entry.",
+   "page": 32
+  }
+ ],
+ "codettas": []
+}

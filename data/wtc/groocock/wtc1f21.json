@@ -1,0 +1,168 @@
+{
+ "id": "wtc1f21",
+ "title": "I.21: Fugue in Bb major",
+ "voices": 3,
+ "groocock": {
+  "group": 2,
+  "chapter": "7 Group 2: Fugues for Three Voices, without Stretto",
+  "pages": "38-40",
+  "pdf_pages": "51-53"
+ },
+ "entries": [
+  {
+   "bars": "1-5",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "5-9",
+   "voice": "middle",
+   "form": "answer",
+   "key": "I-V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "tonal (first and third notes); remains in tonic for all of bar 5, modulates with e-naturals of bar 6; with C1"
+  },
+  {
+   "bars": "9-13",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "with C1 and C2"
+  },
+  {
+   "bars": "13-17",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "I-V",
+   "section": "extension of exposition",
+   "stretto": null,
+   "redundant": true,
+   "notes": "follows immediately without episode, giving impression of a fourth voice; countersubjects below"
+  },
+  {
+   "bars": "22-26",
+   "voice": "middle",
+   "form": "subject",
+   "key": "vi",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "26-30",
+   "voice": "bass",
+   "form": "answer",
+   "key": "vi-ii",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": "starts as answer but continues with intervals of the subject (diagram \"S(A)\")"
+  },
+  {
+   "bars": "35-37",
+   "voice": "middle",
+   "form": "answer",
+   "key": "ii-IV",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": "incomplete; modulates to IV instead of back to vi"
+  },
+  {
+   "bars": "37-41",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "IV",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "41-44",
+   "voice": "middle",
+   "form": "answer",
+   "key": "IV-I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "17-22",
+   "from_key": "V",
+   "to_key": "vi",
+   "material": "17-18 virtually a repeat of bars 15-16 a second higher with lower voices interchanged; 19-22 variant of the fourth bar of the subject with free inversion of its first bar",
+   "sequence": "falling sequence (19-22)"
+  },
+  {
+   "number": 2,
+   "bars": "30-35",
+   "from_key": "ii",
+   "to_key": "ii",
+   "material": "30-32 free interchange of bars 19-21 with added third part; 33-35 interchange of 30-32",
+   "sequence": null
+  }
+ ],
+ "coda": "45-48",
+ "cadences": [
+  {
+   "bar": "17",
+   "key": "V",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "48",
+   "key": "I",
+   "kind": "perfect",
+   "source": "diagram"
+  }
+ ],
+ "countersubjects": {
+  "count": 2,
+  "first": "bar 5 (C1, middle); C2 bar 9 soprano",
+  "interchange": null,
+  "notes": "I.21 is not in either interchange list on p.13. C1 same from its second bar on; its first bar unaltered with answers at bars 13 and 41, modified with subject (bar 9), combined shapes at 22, completely different at 26 and 37. C2 not a free part; same form at 13 and 26 in upper voices, altered when in the bass (22, 35, 37, 41); diagram marks it CII(inv) in the bass at 35 and 41"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "tonal (first and third notes answered tonally)",
+  "notes": "subject starts on the dominant and has the dominant as third note"
+ },
+ "key_plan": "Group 2 table: Exp I V I | V | Dev EP vi ii EP IV IV | Final I",
+ "claims": [
+  {
+   "claim": "Of 48 bars, 34 are occupied by subject or answer together with the two countersubjects (greatest economy of material).",
+   "page": 40
+  },
+  {
+   "claim": "Simple exposition (no codetta/episode); redundant answer at bar 13.",
+   "page": 31
+  },
+  {
+   "claim": "Bass entry at 26 begins as answer but modulates vi-ii by continuing with subject intervals; answer at 35 modulates to IV instead of vi.",
+   "page": 39
+  },
+  {
+   "claim": "Coda (45-48) repeats bars 43-44 with interchange of outer voices.",
+   "page": 40
+  }
+ ],
+ "codettas": [],
+ "extensions": []
+}

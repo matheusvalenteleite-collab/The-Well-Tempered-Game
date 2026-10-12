@@ -1,0 +1,594 @@
+{
+ "id": "wtc1f20",
+ "groocock": {
+  "group": 5,
+  "pages": "116-119"
+ },
+ "entries": [
+  {
+   "bars": "1-4",
+   "voice": "alto",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "ends at first note of bar 4; alto immediately adds CS"
+  },
+  {
+   "bars": "4-7",
+   "voice": "soprano",
+   "form": "answer [real]",
+   "key": "v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "in v from beginning, ends on dominant of i"
+  },
+  {
+   "bars": "8-11",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "CS soprano then alto; material of 4-5 interchanged at twelfth"
+  },
+  {
+   "bars": "11-14",
+   "voice": "tenor",
+   "form": "answer",
+   "key": "v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "interchange of 4-5 at fifteenth; CS abbreviated, never appears again"
+  },
+  {
+   "bars": "14-17",
+   "voice": "soprano",
+   "form": "subject (inverted)",
+   "key": "i-bVII",
+   "section": "exposition of inverted subject",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "17",
+   "voice": "alto",
+   "form": "subject (inverted, first bar only)",
+   "key": null,
+   "section": "exposition of inverted subject",
+   "stretto": null,
+   "redundant": false,
+   "notes": "false entry overlapping cadence"
+  },
+  {
+   "bars": "18-20",
+   "voice": "tenor",
+   "form": "subject (inverted)",
+   "key": "III-iv",
+   "section": "exposition of inverted subject",
+   "stretto": null,
+   "redundant": false,
+   "notes": "virtually complete; soprano imitates an octave above"
+  },
+  {
+   "bars": "21-23",
+   "voice": "bass",
+   "form": "subject (inverted)",
+   "key": "iv-III",
+   "section": "exposition of inverted subject",
+   "stretto": null,
+   "redundant": false,
+   "notes": "alto imitates at octave"
+  },
+  {
+   "bars": "24-26",
+   "voice": "alto",
+   "form": "subject (inverted)",
+   "key": "i",
+   "section": "exposition of inverted subject",
+   "stretto": null,
+   "redundant": false,
+   "notes": "starts on 6th degree; imitated a fifth lower by tenor"
+  },
+  {
+   "bars": "27-30",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "entries in stretto",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "28-31",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "i",
+   "section": "entries in stretto",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "31-34",
+   "voice": "alto",
+   "form": "subject",
+   "key": "v",
+   "section": "entries in stretto",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "32-35",
+   "voice": "bass",
+   "form": "subject",
+   "key": "v",
+   "section": "entries in stretto",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "36-39",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "i",
+   "section": "entries in stretto",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "37-40",
+   "voice": "alto",
+   "form": "subject",
+   "key": "i",
+   "section": "entries in stretto",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "43-46",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "III",
+   "section": "entries in stretto",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "43-46",
+   "voice": "bass",
+   "form": "subject",
+   "key": "III",
+   "section": "entries in stretto",
+   "stretto": "Stretto 1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "48-51",
+   "voice": "alto",
+   "form": "subject (inverted)",
+   "key": "iv-III",
+   "section": "entries in stretto",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": "preceded by false entry (5 notes) of inverted subject in soprano"
+  },
+  {
+   "bars": "49-52",
+   "voice": "tenor",
+   "form": "subject (inverted)",
+   "key": "iv-III",
+   "section": "entries in stretto",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "53-56",
+   "voice": "bass",
+   "form": "subject (inverted)",
+   "key": "bVII",
+   "section": "entries in stretto",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "53-56",
+   "voice": "soprano",
+   "form": "subject (inverted)",
+   "key": "bVII",
+   "section": "entries in stretto",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "57-60",
+   "voice": "soprano",
+   "form": "subject (inverted)",
+   "key": "i",
+   "section": "entries in stretto",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "58-60",
+   "voice": "alto",
+   "form": "subject (inverted)",
+   "key": "i",
+   "section": "entries in stretto",
+   "stretto": "Stretto 2",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "64-67",
+   "voice": "bass",
+   "form": "subject",
+   "key": "iv-i",
+   "section": "entries in stretto",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "65-68",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "iv-i",
+   "section": "entries in stretto",
+   "stretto": "Stretto 3",
+   "redundant": false,
+   "notes": "upper fifth"
+  },
+  {
+   "bars": "67-70",
+   "voice": "soprano",
+   "form": "subject (inverted)",
+   "key": "i-iv",
+   "section": "entries in stretto",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": "begins before end of tenor entry"
+  },
+  {
+   "bars": "68-71",
+   "voice": "alto",
+   "form": "subject (inverted)",
+   "key": "i-iv",
+   "section": "entries in stretto",
+   "stretto": "Stretto 4",
+   "redundant": false,
+   "notes": "lower fifth"
+  },
+  {
+   "bars": "73-75",
+   "voice": "bass",
+   "form": "subject (inverted)",
+   "key": "VI-bvii",
+   "section": "entries in stretto",
+   "stretto": "Stretto 2 (recapitulation)",
+   "redundant": false,
+   "notes": "incomplete"
+  },
+  {
+   "bars": "73-76",
+   "voice": "alto",
+   "form": "subject (inverted)",
+   "key": "VI-bvii",
+   "section": "entries in stretto",
+   "stretto": "Stretto 2 (recapitulation)",
+   "redundant": false,
+   "notes": "incomplete"
+  },
+  {
+   "bars": "76-77",
+   "voice": "tenor",
+   "form": "subject (inverted, incomplete)",
+   "key": "iv",
+   "section": "entries in stretto",
+   "stretto": "Stretto 5",
+   "redundant": false,
+   "notes": "on a pedal"
+  },
+  {
+   "bars": "77-78",
+   "voice": "alto",
+   "form": "subject (direct, incomplete)",
+   "key": "iv",
+   "section": "entries in stretto",
+   "stretto": "Stretto 5",
+   "redundant": false,
+   "notes": "a bar later, a ninth higher"
+  },
+  {
+   "bars": "77-78",
+   "voice": "soprano",
+   "form": "subject (direct, incomplete)",
+   "key": "iv",
+   "section": "entries in stretto",
+   "stretto": "Stretto 5",
+   "redundant": false,
+   "notes": "half a bar later, a fifth above alto"
+  },
+  {
+   "bars": "80-82",
+   "voice": "alto",
+   "form": "subject (incomplete)",
+   "key": null,
+   "section": "coda",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "81-83",
+   "voice": "soprano",
+   "form": "subject (incomplete)",
+   "key": null,
+   "section": "coda",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "83-84",
+   "voice": "tenor",
+   "form": "subject (inverted, incomplete)",
+   "key": null,
+   "section": "coda",
+   "stretto": null,
+   "redundant": false,
+   "notes": "tonic pedal"
+  },
+  {
+   "bars": "84-85",
+   "voice": "alto",
+   "form": "subject (inverted, incomplete)",
+   "key": null,
+   "section": "coda",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "84-86",
+   "voice": "soprano",
+   "form": "subject (direct, incomplete)",
+   "key": null,
+   "section": "coda",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "85-86",
+   "voice": "alto",
+   "form": "subject (direct, incomplete)",
+   "key": null,
+   "section": "coda",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "40-43",
+   "name": "episode 1",
+   "from_key": "i",
+   "to_key": "III",
+   "material": "extends last figure of soprano entry with CS figure of bar 6; scale passages recall codetta bar 7",
+   "sequence": "falling sequence"
+  },
+  {
+   "bars": "71-73",
+   "name": "episode 2",
+   "from_key": "iv",
+   "to_key": "VI",
+   "material": "soprano and tenor in canon at ninth develop free inversion of falling figures of bar 40",
+   "sequence": "rising sequence"
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "7"
+  },
+  {
+   "bars": "35-36"
+  },
+  {
+   "bars": "52-53"
+  },
+  {
+   "bars": "56-57"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "14",
+   "to": "cadence in V"
+  },
+  {
+   "bars": "46-48",
+   "to": "cadence in III"
+  },
+  {
+   "bars": "61-64",
+   "to": "cadence in iv (dominant pedal, then bass/tenor recall inverted subject)"
+  },
+  {
+   "bars": "78-80",
+   "to": "cadence on dominant seventh in i"
+  }
+ ],
+ "cadences": [
+  {
+   "bar": "14",
+   "key": "v",
+   "kind": "strong perfect cadence"
+  },
+  {
+   "bar": "17",
+   "key": "bVII",
+   "kind": "cadence (diagram)"
+  },
+  {
+   "bar": "27",
+   "key": "i",
+   "kind": "cadence (diagram)"
+  },
+  {
+   "bar": "48",
+   "key": "III",
+   "kind": "cadence"
+  },
+  {
+   "bar": "64",
+   "key": "iv",
+   "kind": "cadence in middle of bar 64"
+  },
+  {
+   "bar": "80",
+   "key": "i (dominant seventh)",
+   "kind": "cadence"
+  },
+  {
+   "bar": "87",
+   "key": "i",
+   "kind": "final (diagram)"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "4-5 (alto)",
+  "interchange": "interchanged at the twelfth (bar 8) and fifteenth (bar 11)",
+  "notes": "abbreviated at 8 and 11 and never appears again, though its figures appear constantly"
+ },
+ "subject": {
+  "ends": "at the first note of bar 4",
+  "answer": "real, in v from beginning, ending on dominant of i",
+  "notes": null
+ },
+ "stretti": [
+  {
+   "name": "Stretto 1",
+   "bars": "27-48",
+   "voices": [
+    "S/T",
+    "A/B",
+    "T/A",
+    "S/B"
+   ],
+   "interval": "octave or fifteenth",
+   "timing": "half-bar",
+   "notes": "four pairs of direct entries"
+  },
+  {
+   "name": "Stretto 2",
+   "bars": "48-60",
+   "voices": [
+    "A/T",
+    "B/S",
+    "S/A"
+   ],
+   "interval": "octave or fifteenth",
+   "timing": null,
+   "notes": "three pairs of inverted entries"
+  },
+  {
+   "name": "Stretto 3",
+   "bars": "64-68",
+   "voices": [
+    "bass",
+    "tenor"
+   ],
+   "interval": "upper fifth",
+   "timing": null,
+   "notes": "direct"
+  },
+  {
+   "name": "Stretto 4",
+   "bars": "67-71",
+   "voices": [
+    "soprano",
+    "alto"
+   ],
+   "interval": "lower fifth",
+   "timing": null,
+   "notes": "inverted"
+  },
+  {
+   "name": "Stretto 2 recapitulation",
+   "bars": "73-76",
+   "voices": [
+    "bass",
+    "alto"
+   ],
+   "interval": null,
+   "timing": null,
+   "notes": "inverted, neither complete"
+  },
+  {
+   "name": "Stretto 5",
+   "bars": "76-78",
+   "voices": [
+    "tenor (inv)",
+    "alto (direct)",
+    "soprano (direct)"
+   ],
+   "interval": "ninth higher; then fifth above alto",
+   "timing": "one bar; half a bar",
+   "notes": "none of the entries complete"
+  },
+  {
+   "name": "coda stretti",
+   "bars": "80-86",
+   "voices": [
+    "alto",
+    "soprano",
+    "tenor",
+    "alto"
+   ],
+   "interval": null,
+   "timing": null,
+   "notes": "partial entries direct and inverted"
+  }
+ ],
+ "claims": [
+  {
+   "page": 117,
+   "claim": "Countersubject never appears again after the exposition, though its figures appear constantly"
+  },
+  {
+   "page": 117,
+   "claim": "Exposition of inverted subject is a counterexposition with irregular keys"
+  },
+  {
+   "page": 117,
+   "claim": "False entries in 17-18 anticipate the two stretto intervals used later (octave and fifth)"
+  },
+  {
+   "page": 117,
+   "claim": "Entries in stretto are in effect the development section"
+  },
+  {
+   "page": 119,
+   "claim": "Coda includes more partial entries in stretto, direct and inverted, on a tonic pedal"
+  }
+ ]
+}

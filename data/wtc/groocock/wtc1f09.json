@@ -1,0 +1,238 @@
+{
+ "id": "wtc1f09",
+ "title": "I.9: Fugue in E major",
+ "voices": 3,
+ "groocock": {
+  "group": 2,
+  "chapter": "7 Group 2: Fugues for Three Voices, without Stretto",
+  "pages": "37-38",
+  "pdf_pages": "50-51"
+ },
+ "entries": [
+  {
+   "bars": "1-2",
+   "voice": "middle",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "merges into the countersubject at the third beat of bar 2"
+  },
+  {
+   "bars": "2-3",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "I-V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "real answer; leads via codetta (beats 3-4 of bar 3) to CS at bar 4"
+  },
+  {
+   "bars": "3-5",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "extended toward the inverted cadence in the middle of bar 5 (end of exposition)"
+  },
+  {
+   "bars": "6-8",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "begins at end of bar 6"
+  },
+  {
+   "bars": "7-9",
+   "voice": "middle",
+   "form": "answer",
+   "key": "V",
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "begins at end of bar 7; followed by codetta (diagram \"cod\")"
+  },
+  {
+   "bars": "9-11",
+   "voice": "bass",
+   "form": "answer",
+   "key": "I",
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "begins at end of bar 9; answer once more, with a-natural instead of a-sharp; leads via lengthened codetta into episode 2; diagram key I"
+  },
+  {
+   "bars": "16-17",
+   "voice": "middle",
+   "form": "subject",
+   "key": "vi",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "leads into CS as part of episode 3"
+  },
+  {
+   "bars": "19-20",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "recapitulation of exposition (19-22)"
+  },
+  {
+   "bars": "20-21",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "I-V",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "recapitulation; via codetta"
+  },
+  {
+   "bars": "21-22",
+   "voice": "middle",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "recapitulation; leads into CS as part of episode 4"
+  },
+  {
+   "bars": "25-26",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "leads into CS at altered pitch as part of coda; diagram also shows a bracketed [S] in bass in the coda (bar 28)"
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "5-6",
+   "from_key": null,
+   "to_key": null,
+   "material": "bass moves from CS figure into figures from the subject; new leaping figure in two-part imitation",
+   "sequence": "rising sequence"
+  },
+  {
+   "number": 2,
+   "bars": "11-16",
+   "from_key": "vi",
+   "to_key": "vi",
+   "material": "11-12 bass develops bass of ep.1 alternating subject and CS figures, upper voices allude to descending scale of bar 7 and leaping figures of ep.1; 13-16 free interchange of 11-12",
+   "sequence": null
+  },
+  {
+   "number": 3,
+   "bars": "17-19",
+   "from_key": "vi",
+   "to_key": "I",
+   "material": "begins before middle voice finishes its entry; soprano develops leaping figure of ep.1 by inversion",
+   "sequence": null
+  },
+  {
+   "number": 4,
+   "bars": "22-25",
+   "from_key": null,
+   "to_key": null,
+   "material": "virtually a repeat of latter part of episode 2 with upper voices interchanged",
+   "sequence": null
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "3 (beats 3-4)",
+   "notes": "simple variant of the CS (tone instead of semitone), starting a sequence that pervades the fugue"
+  },
+  {
+   "bars": "8",
+   "notes": "diagram \"cod\" after middle-voice answer"
+  },
+  {
+   "bars": "9-11 (lengthened codetta)",
+   "notes": "varied/lengthened codetta leading into episode"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "4-5",
+   "to": "inverted cadence in middle of bar 5"
+  }
+ ],
+ "coda": "26-29",
+ "cadences": [
+  {
+   "bar": "5 (middle)",
+   "key": "I",
+   "kind": "inverted cadence",
+   "source": "text"
+  },
+  {
+   "bar": "8",
+   "key": "V",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "17",
+   "key": "vi",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "29",
+   "key": "I",
+   "kind": "perfect",
+   "source": "diagram"
+  }
+ ],
+ "countersubjects": {
+  "count": 1,
+  "first": "third beat of bar 2 (subject merges into it)",
+  "interchange": "octave",
+  "notes": "with later entries consists of the repeated figure alone or with part of the following rising scale; interchange interval from list p.13"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "real",
+  "notes": "no obvious ending; presumably overlapped by the answer in bar 2; moto perpetuo from the third note; dominant occurs among first notes but without emphasis, so real answer (p.6)"
+ },
+ "key_plan": "Group 2 table: Exp I V I | Counterexp EP I V I | Dev EP vi | Final EP I V I EP I",
+ "claims": [
+  {
+   "claim": "Counterexposition bars 6-10 (soprano subject, middle answer, bass answer).",
+   "page": 32
+  },
+  {
+   "claim": "Codetta in exposition at bar 3.",
+   "page": 32
+  },
+  {
+   "claim": "The subject has no obvious ending and is presumably overlapped by the answer in bar 2.",
+   "page": 37
+  },
+  {
+   "claim": "Answer enters just before the subject has finished (I.9 listed among overlapping answers).",
+   "page": 5
+  },
+  {
+   "claim": "From its third note the fugue is a moto perpetuo of semiquavers.",
+   "page": 37
+  }
+ ]
+}

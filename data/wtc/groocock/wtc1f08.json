@@ -1,0 +1,533 @@
+{
+ "id": "wtc1f08",
+ "title": "I.8: Fugue in D# minor (Eb minor)",
+ "voices": 3,
+ "groocock": {
+  "group": 3,
+  "chapter": "9 Group 3: Fugues for Three Voices, with Stretto",
+  "pages": "77-79",
+  "pdf_pages": "90-92"
+ },
+ "entries": [
+  {
+   "bars": "1-3",
+   "voice": "middle",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "3-6",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "i-v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "tonal (second note of subject is the dominant)"
+  },
+  {
+   "bars": "8-10",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "12-15",
+   "voice": "bass",
+   "form": "answer",
+   "key": "i-III",
+   "section": "extension of exposition",
+   "stretto": null,
+   "redundant": true,
+   "notes": null
+  },
+  {
+   "bars": "19-22",
+   "voice": "middle",
+   "form": "subject",
+   "key": "v",
+   "section": "development",
+   "stretto": "Str.1",
+   "redundant": false,
+   "notes": "rhythm altered before end"
+  },
+  {
+   "bars": "20-22",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "v",
+   "section": "development",
+   "stretto": "Str.1",
+   "redundant": false,
+   "notes": "an octave higher, two beats later; canon continued through extension"
+  },
+  {
+   "bars": "24-26",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "v-IV",
+   "section": "development",
+   "stretto": "Str.2",
+   "redundant": false,
+   "notes": "starts like answer, continues like subject; altered chromatically"
+  },
+  {
+   "bars": "26-27",
+   "voice": "middle",
+   "form": "subject (part. aug.)",
+   "key": "IV",
+   "section": "development",
+   "stretto": "Str.2",
+   "redundant": false,
+   "notes": "table bars 26-27 (diagram shows S(p.aug) from bar 24); complete except last note; partly augmented rhythm"
+  },
+  {
+   "bars": "24-25",
+   "voice": "bass",
+   "form": "subject (incomplete)",
+   "key": null,
+   "section": "development",
+   "stretto": "Str.2",
+   "redundant": false,
+   "notes": "a mere fragment"
+  },
+  {
+   "bars": "27-29",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "iv-III",
+   "section": "development",
+   "stretto": "Str.3",
+   "redundant": false,
+   "notes": "two beats apart"
+  },
+  {
+   "bars": "27-30",
+   "voice": "middle",
+   "form": "subject",
+   "key": "iv-III",
+   "section": "development",
+   "stretto": "Str.3",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "30-33",
+   "voice": "soprano",
+   "form": "subject (inverted)",
+   "key": "III",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "extended 33-36 to perfect cadence"
+  },
+  {
+   "bars": "36-38",
+   "voice": "middle",
+   "form": "subject (inverted)",
+   "key": "i",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "39-41",
+   "voice": "bass",
+   "form": "answer (inverted)",
+   "key": "i",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "ornamented beginning; extended to imperfect cadence at 43"
+  },
+  {
+   "bars": "44-47",
+   "voice": "bass",
+   "form": "subject (inverted)",
+   "key": "i-iv",
+   "section": "development",
+   "stretto": "Str.4",
+   "redundant": false,
+   "notes": "inverted form of stretto 1"
+  },
+  {
+   "bars": "45-47",
+   "voice": "soprano",
+   "form": "subject (inverted)",
+   "key": "i-iv",
+   "section": "development",
+   "stretto": "Str.4",
+   "redundant": false,
+   "notes": "two beats later"
+  },
+  {
+   "bars": "47-50",
+   "voice": "middle",
+   "form": "subject (inverted)",
+   "key": "iv",
+   "section": "development",
+   "stretto": "Str.5",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "47-50",
+   "voice": "soprano",
+   "form": "subject (inv, part. aug.)",
+   "key": "iv",
+   "section": "development",
+   "stretto": "Str.5",
+   "redundant": false,
+   "notes": "one beat later; partly augmented as in stretto 2"
+  },
+  {
+   "bars": "52-53",
+   "voice": "bass",
+   "form": "subject",
+   "key": "iv",
+   "section": "development",
+   "stretto": "Str.6",
+   "redundant": false,
+   "notes": "abbreviated version; three-part stretto at one beat"
+  },
+  {
+   "bars": "52-53",
+   "voice": "middle",
+   "form": "subject",
+   "key": "iv",
+   "section": "development",
+   "stretto": "Str.6",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "52-53",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "iv",
+   "section": "development",
+   "stretto": "Str.6",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "54-55",
+   "voice": "bass",
+   "form": "subject (inverted)",
+   "key": "III",
+   "section": "development",
+   "stretto": "Str.7",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "54-55",
+   "voice": "middle",
+   "form": "subject (inverted)",
+   "key": "III",
+   "section": "development",
+   "stretto": "Str.7",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "54-55",
+   "voice": "soprano",
+   "form": "subject (inverted)",
+   "key": "III",
+   "section": "development",
+   "stretto": "Str.7",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "57-60",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "single entry, extended to imperfect cadence"
+  },
+  {
+   "bars": "61-63",
+   "voice": "middle",
+   "form": "subject",
+   "key": "iv",
+   "section": "development",
+   "stretto": "Str.8",
+   "redundant": false,
+   "notes": "starts without accompaniment"
+  },
+  {
+   "bars": "62-66",
+   "voice": "bass",
+   "form": "subject (augmented)",
+   "key": "iv",
+   "section": "development",
+   "stretto": "Str.8",
+   "redundant": false,
+   "notes": "fully augmented"
+  },
+  {
+   "bars": "64-67",
+   "voice": "soprano",
+   "form": "answer (inverted)",
+   "key": "iv",
+   "section": "development",
+   "stretto": "Str.8",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "67-69",
+   "voice": "bass",
+   "form": "subject",
+   "key": "III-VI",
+   "section": "development",
+   "stretto": "Str.9",
+   "redundant": false,
+   "notes": "last note of augmented entry serves as first note"
+  },
+  {
+   "bars": "67-72",
+   "voice": "middle",
+   "form": "subject (augmented)",
+   "key": null,
+   "section": "development",
+   "stretto": "Str.9",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "69-72",
+   "voice": "soprano",
+   "form": "subject",
+   "key": null,
+   "section": "development",
+   "stretto": "Str.9",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "72-75",
+   "voice": "middle",
+   "form": "answer",
+   "key": "iv",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "altered version; extended to imperfect cadence at 77"
+  },
+  {
+   "bars": "77-79",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": "Str.10",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "77-80",
+   "voice": "middle",
+   "form": "subject (part. aug.)",
+   "key": "i",
+   "section": "final section",
+   "stretto": "Str.10",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "77-83",
+   "voice": "soprano",
+   "form": "subject (augmented)",
+   "key": "i",
+   "section": "final section",
+   "stretto": "Str.10",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "80-83",
+   "voice": "middle",
+   "form": "subject",
+   "key": "iv",
+   "section": "final section",
+   "stretto": "Str.10",
+   "redundant": false,
+   "notes": null
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "15-19",
+   "from_key": "iv",
+   "to_key": "v",
+   "material": "free rising sequence on scalic steps, modulating iv, i, III to v",
+   "sequence": "rising sequence"
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "6-7",
+   "notes": "delays bass entry; would be an episode in an episodic fugue"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "10-12",
+   "to": "imperfect cadence"
+  },
+  {
+   "bars": "22-24",
+   "to": "imperfect cadence"
+  },
+  {
+   "bars": "33-36",
+   "to": "perfect cadence"
+  },
+  {
+   "bars": "41-44",
+   "to": "imperfect cadence at 43, then link recalling codetta"
+  },
+  {
+   "bars": "50-52",
+   "to": "imperfect cadence"
+  },
+  {
+   "bars": "56-57",
+   "to": "imperfect cadence"
+  },
+  {
+   "bars": "60-61",
+   "to": "imperfect cadence"
+  },
+  {
+   "bars": "75-77",
+   "to": "imperfect cadence"
+  }
+ ],
+ "coda": "83-87",
+ "cadences": [
+  {
+   "bar": "19",
+   "key": "v",
+   "kind": "perfect",
+   "source": "diagram + review"
+  },
+  {
+   "bar": "30",
+   "key": "III",
+   "kind": "perfect",
+   "source": "diagram + review"
+  },
+  {
+   "bar": "36",
+   "key": "iv/i (diagram \"iv/\" then key i)",
+   "kind": "perfect",
+   "source": "text + diagram"
+  },
+  {
+   "bar": "39?",
+   "key": "i",
+   "kind": "perfect",
+   "source": "review table only shows a further \"/\" after the single S of bar 36; not in diagram"
+  },
+  {
+   "bar": "12",
+   "key": "?",
+   "kind": "imperfect",
+   "source": "text"
+  },
+  {
+   "bar": "24",
+   "key": "?",
+   "kind": "imperfect",
+   "source": "text"
+  },
+  {
+   "bar": "43",
+   "key": "?",
+   "kind": "imperfect",
+   "source": "text"
+  },
+  {
+   "bar": "52",
+   "key": "?",
+   "kind": "imperfect",
+   "source": "text"
+  },
+  {
+   "bar": "57",
+   "key": "?",
+   "kind": "imperfect",
+   "source": "text"
+  },
+  {
+   "bar": "61-62",
+   "key": "?",
+   "kind": "imperfect",
+   "source": "text"
+  },
+  {
+   "bar": "77",
+   "key": "?",
+   "kind": "imperfect",
+   "source": "text"
+  },
+  {
+   "bar": "87",
+   "key": "i",
+   "kind": "perfect",
+   "source": "diagram + review"
+  }
+ ],
+ "countersubjects": {
+  "count": 0,
+  "first": null,
+  "interchange": null,
+  "notes": "continuation of middle voice in bars 3-6 is free counterpoint, not a countersubject; rhythmic figure of bar 5 and syncopated suspension reused"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "tonal",
+  "notes": "second note of the subject is the dominant; most of the 36 entries start like the answer and continue like the subject"
+ },
+ "key_plan": "Review table: Exp S S S R (i i-v i i-III) EP / | Dev STR STR STR / S / S / S STR STR STR STR S STR STR S (v IV III III i i i-iv iv iv III i iv III-VI iv) | Final STR / (i, iv i)",
+ "claims": [
+  {
+   "claim": "\"Anything but an episodic fugue\": only one passage (15-19) counts as an episode; short passages between entries called extensions; bars 6-7 a codetta.",
+   "page": 78
+  },
+  {
+   "claim": "Thirty-six entries; most start like the answer and go on like the subject.",
+   "page": 78
+  },
+  {
+   "claim": "Stretto 1 at two beats, octave above; stretto 2 at one beat; stretto 3 two beats; stretto 4 inverted form of stretto 1; stretto 5 one beat.",
+   "page": 78
+  },
+  {
+   "claim": "Subject combines with itself at various pitch and time intervals, direct and inverted, plain, partly augmented, fully augmented.",
+   "page": 80
+  },
+  {
+   "claim": "Coda (83-87) divides the falling fifths of the subject into thirds in falling sequence.",
+   "page": 79
+  }
+ ],
+ "notes": "Entry keys mostly read from the key line under the diagram; their alignment with individual entries is approximate where several entries start close together."
+}

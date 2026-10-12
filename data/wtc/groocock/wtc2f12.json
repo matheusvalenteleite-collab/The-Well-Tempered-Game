@@ -1,0 +1,199 @@
+{
+ "id": "wtc2f12",
+ "title": "II.12: Fugue in F minor",
+ "voices": 3,
+ "bar_numbering": "upbeat bar counted as 0",
+ "groocock": {
+  "group": 2,
+  "chapter": "7 Group 2: Fugues for Three Voices, without Stretto",
+  "pages": "58-59",
+  "pdf_pages": "71-72"
+ },
+ "entries": [
+  {
+   "bars": "0-4",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "diagram shows \"cod\" after the subject"
+  },
+  {
+   "bars": "4-8",
+   "voice": "middle",
+   "form": "answer",
+   "key": "v",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "tonal; in the dominant key from its beginning"
+  },
+  {
+   "bars": "11-15",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "extension 15-17"
+  },
+  {
+   "bars": "24-28",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "III",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": "diagram \"cod\" after it"
+  },
+  {
+   "bars": "28-32",
+   "voice": "middle",
+   "form": "answer",
+   "key": "bVII",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": "only other use of answer form; extension 32-33"
+  },
+  {
+   "bars": "40-44",
+   "voice": "bass",
+   "form": "subject",
+   "key": "i",
+   "section": "entries in the tonic key",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "50-54",
+   "voice": "middle",
+   "form": "subject",
+   "key": "i",
+   "section": "entries in the tonic key",
+   "stretto": null,
+   "redundant": false,
+   "notes": "mainly on a dominant pedal"
+  },
+  {
+   "bars": "71-75",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "iv",
+   "section": "entries in other keys, continued",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "74-78",
+   "voice": "middle",
+   "form": "subject",
+   "key": "i",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "overlaps previous entry by one bar"
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "8-11",
+   "from_key": null,
+   "to_key": null,
+   "material": "development of bar 7: subject figures in middle, quasi-sequential quaver figure in soprano",
+   "sequence": "quasi-sequence"
+  },
+  {
+   "number": 2,
+   "bars": "17-24",
+   "from_key": "i",
+   "to_key": "dominant of III",
+   "material": "repeated-note figure of bar 1 in thirds with suspensions; inversion of first figure of bar 3; bass develops quavers of bars 8-9 partly by diminution",
+   "sequence": "falling sequence"
+  },
+  {
+   "number": 3,
+   "bars": "33-40",
+   "from_key": "v",
+   "to_key": "v",
+   "material": "basically a repeat of episode 2 with varied ending and upper voices interchanged (table: \"episode 3, in v\")",
+   "sequence": null
+  },
+  {
+   "number": 4,
+   "bars": "44-50",
+   "from_key": null,
+   "to_key": null,
+   "material": "44-47 variant of ep.1; 47-50 bass repeats bar 47 twice lower (decorated falling scale) to a dominant pedal, upper voices in tenths",
+   "sequence": "falling"
+  },
+  {
+   "number": 5,
+   "bars": "54-71",
+   "from_key": "i",
+   "to_key": "iv",
+   "material": "five sections: 54-55 imitation of figure from end of ep.4; 56-59 first subject figure in bass at various pitches with suspensions; 58-62 three-part imitation of bars 3-4 figures; 62-65 variant of 56-59; 66-71 repeat of ep.3",
+   "sequence": null
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "3-4 and 27-28",
+   "notes": "marked \"cod\" in diagram only"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "15-17",
+   "to": "extension of subject"
+  },
+  {
+   "bars": "32-33",
+   "to": "extension of answer"
+  }
+ ],
+ "coda": "78-85 (basically a repeat of episode 2)",
+ "cadences": [
+  {
+   "bar": "40",
+   "key": "i",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "85",
+   "key": "i",
+   "kind": "perfect",
+   "source": "diagram"
+  }
+ ],
+ "countersubjects": {
+  "count": 0,
+  "first": null,
+  "interchange": null,
+  "notes": "soprano of bars 5-8 not a CS but provides material; its basic shape c-db-bb-c traceable in later accompaniments"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "tonal",
+  "notes": "first note is the dominant; answer starts on tonic and is in the dominant from its beginning; all other entries use subject form"
+ },
+ "key_plan": "Group 2 table: Exp i v EP i | Dev EP III bVII EP i EP i EP iv | Final i",
+ "claims": [
+  {
+   "claim": "Exposition has an episode (bars 8-11) before the third entry.",
+   "page": 32
+  },
+  {
+   "claim": "Answer form occurs only once more (bar 28, pair III/bVII).",
+   "page": 58
+  }
+ ]
+}

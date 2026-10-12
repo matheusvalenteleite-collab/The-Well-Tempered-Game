@@ -1,0 +1,399 @@
+{
+ "id": "wtc2f14",
+ "groocock": {
+  "group": 7,
+  "pages": "151-153"
+ },
+ "entries": [
+  {
+   "bars": "1-4",
+   "voice": "middle",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "4-7",
+   "voice": "soprano",
+   "form": "answer [tonal]",
+   "subject_no": 1,
+   "key": "v",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "accompaniment appears designed as a CS but does not recur"
+  },
+  {
+   "bars": "8-11",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "16-19",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": true,
+   "notes": "extended to perfect cadence in III at 20"
+  },
+  {
+   "bars": "20-21",
+   "voice": "bass",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "exposition of second subject (S ii)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "seven notes; complete eight-note form only in final section; many apparent stretto imitations of first four notes"
+  },
+  {
+   "bars": "21-22",
+   "voice": "soprano",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "iv",
+   "section": "exposition of second subject (S ii)",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "22-23",
+   "voice": "middle",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "bVII",
+   "section": "exposition of second subject (S ii)",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "23-24",
+   "voice": "bass",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "III",
+   "section": "exposition of second subject (S ii)",
+   "stretto": null,
+   "redundant": true,
+   "notes": null
+  },
+  {
+   "bars": "27-28",
+   "voice": "middle",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "iv",
+   "section": "exposition of second subject (S ii)",
+   "stretto": null,
+   "redundant": true,
+   "notes": null
+  },
+  {
+   "bars": "28-31",
+   "voice": "middle",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "iv",
+   "section": "combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "30",
+   "voice": "bass",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "iv",
+   "section": "combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": "real entry combining two subjects"
+  },
+  {
+   "bars": "34-37",
+   "voice": "bass",
+   "form": "subject [real answer]",
+   "subject_no": 1,
+   "key": "v",
+   "section": "combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "36-37",
+   "voice": "middle",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "v",
+   "section": "exposition of third subject (S iii)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "before bass entry finishes"
+  },
+  {
+   "bars": "37-38",
+   "voice": "soprano",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "i",
+   "section": "exposition of third subject (S iii)",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "38-39",
+   "voice": "bass",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "iv",
+   "section": "exposition of third subject (S iii)",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "51-54",
+   "voice": "middle",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "iv",
+   "section": "exposition of third subject (S iii)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "S iii figures in bass"
+  },
+  {
+   "bars": "54-57",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": "ornamented opening"
+  },
+  {
+   "bars": "54-57",
+   "voice": "middle",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": "at 56, complete eight-note form"
+  },
+  {
+   "bars": "54-57",
+   "voice": "bass",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "i",
+   "section": "combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "60-63",
+   "voice": "bass",
+   "form": "subject [answer]",
+   "subject_no": 1,
+   "key": "v",
+   "section": "combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "60-63",
+   "voice": "middle",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "v",
+   "section": "combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": "bar 61"
+  },
+  {
+   "bars": "60-63",
+   "voice": "soprano",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "v",
+   "section": "combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "65-67",
+   "voice": "bass",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": "merges from running bass"
+  },
+  {
+   "bars": "65-69",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "i",
+   "section": "combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "65-69",
+   "voice": "bass",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "i",
+   "section": "combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": "bar 68"
+  },
+  {
+   "bars": "65-69",
+   "voice": "middle",
+   "form": "third subject",
+   "subject_no": 3,
+   "key": "i",
+   "section": "combination of S i, S ii, and S iii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "11-16",
+   "name": "episode 1",
+   "from_key": null,
+   "to_key": null,
+   "material": "grows out of bass entry; bass steps with subject allusions",
+   "sequence": "rising by thirds in six-beat groups"
+  },
+  {
+   "bars": "31-34",
+   "name": "episode 2",
+   "from_key": "iv",
+   "to_key": "v",
+   "material": "imitation of figures of S i and S ii",
+   "sequence": null
+  },
+  {
+   "bars": "39-51",
+   "name": "episode 3",
+   "from_key": "iv",
+   "to_key": "ii then VI",
+   "material": "figures of S iii by imitation, with S i figures; codetta allusion 46; rising steps 47-48",
+   "sequence": null
+  },
+  {
+   "bars": "57-60",
+   "name": "episode 4",
+   "from_key": "i",
+   "to_key": "v",
+   "material": "bass running rhythm of S iii; inversion of S i opening",
+   "sequence": null
+  },
+  {
+   "bars": "63-65",
+   "name": "episode 5",
+   "from_key": "v",
+   "to_key": "i",
+   "material": "material of episode 4",
+   "sequence": "regular falling sequence"
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "7-8"
+  },
+  {
+   "bars": "24-27"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "19-20",
+   "to": "cadence in III"
+  }
+ ],
+ "cadences": [
+  {
+   "bar": "20",
+   "key": "III",
+   "kind": "perfect cadence"
+  },
+  {
+   "bar": "43",
+   "key": "ii",
+   "kind": "perfect cadence"
+  },
+  {
+   "bar": "51",
+   "key": "VI",
+   "kind": "cadence"
+  },
+  {
+   "bar": "70",
+   "key": "i",
+   "kind": "final"
+  }
+ ],
+ "countersubjects": {
+  "count": 0,
+  "first": null,
+  "interchange": null,
+  "notes": "accompaniment to answer appears designed as a CS but does not recur as such"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "tonal",
+  "notes": null
+ },
+ "stretti": [],
+ "claims": [
+  {
+   "page": 152,
+   "claim": "From bar 20 the ear hears many apparent stretto entries; most are imitations of the first four notes of S ii"
+  },
+  {
+   "page": 152,
+   "claim": "S ii has seven notes; complete eight-note form only in final section"
+  },
+  {
+   "page": 153,
+   "claim": "All three subjects combined first at 54"
+  }
+ ]
+}

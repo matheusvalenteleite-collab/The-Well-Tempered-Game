@@ -1,0 +1,263 @@
+{
+ "id": "wtc2f17",
+ "title": "II.17: Fugue in Ab major",
+ "voices": 4,
+ "partial": true,
+ "partial_note": "analysis begins on pdf 100 (book p.87) and continues beyond the scanned range; table and diagram complete, discussion cut off after the codetta paragraph",
+ "groocock": {
+  "group": 4,
+  "chapter": "11 Group 4: Fugues for Four Voices, without Stretto",
+  "pages": "87- (continues beyond scan)",
+  "pdf_pages": "100-"
+ },
+ "entries": [
+  {
+   "bars": "1-3",
+   "voice": "alto",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "3-5",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "I-V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "tonal; harmonized seemingly in V but chromatic steps keep tonic until end of bar 4"
+  },
+  {
+   "bars": "6-8",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "8-10",
+   "voice": "bass",
+   "form": "answer",
+   "key": "I-V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "13-15",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "extension of exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "\"slightly irregular counterexposition\" (original fughetta to bar 24)"
+  },
+  {
+   "bars": "16-18",
+   "voice": "alto",
+   "form": "answer",
+   "key": "I-V",
+   "section": "extension of exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "18-20",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "I",
+   "section": "extension of exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "22-24",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "extension of exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "24-26",
+   "voice": "alto",
+   "form": "subject",
+   "key": "vi",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "32-34",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "v",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "35-37",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "ii",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "37-39",
+   "voice": "bass",
+   "form": "subject",
+   "key": "IV (iv)",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": "diagram IV-iv"
+  },
+  {
+   "bars": "41-43",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "42-44",
+   "voice": "bass",
+   "form": "answer",
+   "key": "I (iv)",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "diagram I-iv"
+  },
+  {
+   "bars": "48-50",
+   "voice": "first tenor",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "within the coda; diagram adds second tenor (T2) with C1"
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "10-13",
+   "from_key": null,
+   "to_key": null,
+   "material": null,
+   "sequence": null
+  },
+  {
+   "number": 2,
+   "bars": "27-32",
+   "from_key": "iii",
+   "to_key": "v",
+   "material": null,
+   "sequence": null
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "5-6",
+   "notes": "first seven notes of an illusory re-entry of a real answer, with semiquaver run above; provides episode material"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "15-16",
+   "to": "cadence in vi"
+  },
+  {
+   "bars": "20-22",
+   "to": null
+  },
+  {
+   "bars": "26-27",
+   "to": "cadence in iii"
+  },
+  {
+   "bars": "34-35",
+   "to": null
+  },
+  {
+   "bars": "39-41",
+   "to": null
+  },
+  {
+   "bars": "44-46",
+   "to": null
+  }
+ ],
+ "coda": "46-50",
+ "cadences": [
+  {
+   "bar": "10",
+   "key": "V",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "16",
+   "key": "vi",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "27",
+   "key": "iii",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "50",
+   "key": "I",
+   "kind": "perfect",
+   "source": "diagram"
+  }
+ ],
+ "countersubjects": {
+  "count": 2,
+  "first": "bar 3 (C1 = chromatic steps, alto)",
+  "interchange": "octave",
+  "notes": "C2 from bar 5 (alto, diagram); II.17 listed with two CS in exposition and octave interchange (pp.11, 13); exposition order alto-soprano-tenor-bass, non-cyclic"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "tonal",
+  "notes": "starts on the dominant"
+ },
+ "claims": [
+  {
+   "claim": "Enlargement of an early fughetta in F that ended at bar 24 with entries only in I or V; now serves as exposition and slightly irregular counterexposition.",
+   "page": 87
+  },
+  {
+   "claim": "30% four-part writing.",
+   "page": 84
+  }
+ ]
+}

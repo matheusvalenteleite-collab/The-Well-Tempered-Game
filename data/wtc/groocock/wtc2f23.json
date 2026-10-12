@@ -1,0 +1,416 @@
+{
+ "id": "wtc2f23",
+ "groocock": {
+  "group": 7,
+  "pages": "149-151"
+ },
+ "entries": [
+  {
+   "bars": "1-4",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "ends at first note of bar 4"
+  },
+  {
+   "bars": "5-8",
+   "voice": "tenor",
+   "form": "answer [real]",
+   "subject_no": 1,
+   "key": "I-V",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "C1 in bass"
+  },
+  {
+   "bars": "10-13",
+   "voice": "alto",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "C1 tenor, C2 bass"
+  },
+  {
+   "bars": "14-17",
+   "voice": "soprano",
+   "form": "answer",
+   "subject_no": 1,
+   "key": "I-V",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": false,
+   "notes": "C1 alto, C2 tenor, bass silent"
+  },
+  {
+   "bars": "19-22",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I",
+   "section": "exposition of first subject (S i)",
+   "stretto": null,
+   "redundant": true,
+   "notes": "C1 soprano, no C2"
+  },
+  {
+   "bars": "27-30",
+   "voice": "tenor",
+   "form": "subject [answer]",
+   "subject_no": 1,
+   "key": "V",
+   "section": "entrance of the second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "27-30",
+   "voice": "soprano",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "V",
+   "section": "entrance of the second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": "after S i's third note; developed from C2 and codetta"
+  },
+  {
+   "bars": "31-33",
+   "voice": "bass",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "I",
+   "section": "entrance of the second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "33-35",
+   "voice": "soprano",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "I",
+   "section": "entrance of the second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "35-38",
+   "voice": "alto",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I-vi",
+   "section": "entrance of the second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "35-38",
+   "voice": "bass",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "I-vi",
+   "section": "entrance of the second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": "interchange of 27-30 at twelfth"
+  },
+  {
+   "bars": "42-45",
+   "voice": "soprano",
+   "form": "subject [answer]",
+   "subject_no": 1,
+   "key": "V-iii",
+   "section": "entrance of the second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "42-45",
+   "voice": "alto",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "V-iii",
+   "section": "entrance of the second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": "as 35-38 an octave closer"
+  },
+  {
+   "bars": "48-51",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "vi",
+   "section": "entrance of the second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "48-51",
+   "voice": "soprano",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "vi",
+   "section": "entrance of the second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "53-56",
+   "voice": "tenor",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "IV-ii",
+   "section": "entrance of the second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "53-56",
+   "voice": "alto",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "IV-ii",
+   "section": "entrance of the second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": "a fifth closer than originally"
+  },
+  {
+   "bars": "60-63",
+   "voice": "tenor",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "IV-vi",
+   "section": "entrance of the second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": "starts on mediant of IV"
+  },
+  {
+   "bars": "60-63",
+   "voice": "soprano",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "IV-vi",
+   "section": "entrance of the second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": "half a bar earlier than before"
+  },
+  {
+   "bars": "75-78",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I",
+   "section": "entrance of the second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": "bass silent since 60; brief allusion to S ii in tenor"
+  },
+  {
+   "bars": "85-88",
+   "voice": "tenor",
+   "form": "subject [answer]",
+   "subject_no": 1,
+   "key": "iii-V",
+   "section": "entrance of the second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "85-88",
+   "voice": "alto",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "iii-V",
+   "section": "entrance of the second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": "octave closer than bar 27"
+  },
+  {
+   "bars": "93-96",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I",
+   "section": "entrance of the second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": "climactic entry"
+  },
+  {
+   "bars": "93-96",
+   "voice": "tenor",
+   "form": "second subject",
+   "subject_no": 2,
+   "key": "I",
+   "section": "entrance of the second subject (S ii) and combination of S i and S ii",
+   "stretto": null,
+   "redundant": false,
+   "notes": "interchange at twelfth as 35-38"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "22-27",
+   "name": "episode 1",
+   "from_key": null,
+   "to_key": "V",
+   "material": "figures from codettas and both CS; new alto figure (used again only in coda)",
+   "sequence": "quasi sequence; strong cadence in V"
+  },
+  {
+   "bars": "38-42",
+   "name": "episode 2",
+   "from_key": "I",
+   "to_key": "V",
+   "material": "soprano figure of codetta bar 30",
+   "sequence": null
+  },
+  {
+   "bars": "45-48",
+   "name": "episode 3",
+   "from_key": "iii",
+   "to_key": "vi",
+   "material": "two-part version of episode 1",
+   "sequence": null
+  },
+  {
+   "bars": "56-60",
+   "name": "episode 4",
+   "from_key": "ii",
+   "to_key": "IV",
+   "material": "irregular sequence on main figure of S ii",
+   "sequence": null
+  },
+  {
+   "bars": "63-75",
+   "name": "episode 5",
+   "from_key": "vi",
+   "to_key": "I",
+   "material": "main figure of S ii; new semiquaver figure",
+   "sequence": "falling thirds, rising thirds from 68, falling again 71-74"
+  },
+  {
+   "bars": "78-85",
+   "name": "episode 6",
+   "from_key": "I",
+   "to_key": "iii",
+   "material": "four-part treatment of episode 2",
+   "sequence": null
+  },
+  {
+   "bars": "88-93",
+   "name": "episode 7",
+   "from_key": "V",
+   "to_key": "I",
+   "material": "S ii figure in falling sequence in bass; codetta allusions",
+   "sequence": "falling sequence"
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "4-5"
+  },
+  {
+   "bars": "8-10"
+  },
+  {
+   "bars": "13"
+  },
+  {
+   "bars": "17-19"
+  },
+  {
+   "bars": "30"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "51-53",
+   "to": "cadence in IV"
+  }
+ ],
+ "cadences": [
+  {
+   "bar": "27",
+   "key": "V",
+   "kind": "strong perfect cadence"
+  },
+  {
+   "bar": "33",
+   "key": "I",
+   "kind": "diagram '/'"
+  },
+  {
+   "bar": "53",
+   "key": "IV",
+   "kind": "cadence"
+  },
+  {
+   "bar": "60",
+   "key": "IV",
+   "kind": "cadence"
+  },
+  {
+   "bar": "85",
+   "key": "iii",
+   "kind": "cadence"
+  },
+  {
+   "bar": "104",
+   "key": "I",
+   "kind": "final"
+  }
+ ],
+ "countersubjects": {
+  "count": 2,
+  "first": "C1 at 5 (bass); C2 at 10 (bass)",
+  "interchange": null,
+  "notes": "S ii developed out of C2 and codetta"
+ },
+ "subject": {
+  "ends": "at the first note of bar 4",
+  "answer": "real",
+  "notes": null
+ },
+ "stretti": [],
+ "claims": [
+  {
+   "page": 150,
+   "claim": "Exposition theoretically finishes at 22, rounded off by episode 1"
+  },
+  {
+   "page": 150,
+   "claim": "Second subject developed from the second countersubject (bar 11) and codetta (bar 9)"
+  },
+  {
+   "page": 150,
+   "claim": "Combinations use interchange at twelfth, octave closer, fifth closer, etc."
+  },
+  {
+   "page": 151,
+   "claim": "Bar 93 climactic entry; coda asserts mordent-like figure of episode 1"
+  }
+ ]
+}

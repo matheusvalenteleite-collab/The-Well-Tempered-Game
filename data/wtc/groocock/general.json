@@ -1,0 +1,1097 @@
+{
+ "source": "Joseph Groocock, Fugal Composition: A Guide to the Study of Bach's \"48\", ed. Yo Tomita (Greenwood, 2003); scanned copy pdf pp.1-100 (book page = pdf page - 13)",
+ "id_convention": "wtc1f10 = Book I fugue 10; wtc1p14 = Book I prelude 14; wtc2p03 = Book II prelude 3 (fugal section); wtc1p07 = I.Pr.7 (double fugue), wtc1p19 = I.Pr.19",
+ "verification": "All lists below were checked against the page images (OCR interleaves two-column lists and confuses I/II).",
+ "chapter1_fugal_style": {
+  "pages": "1-3",
+  "claims": [
+   {
+    "claim": "I.1 and I.2 are of two distinct types: I.1 a stretto fugue without episodes (real answer, free counterpoint, subject in almost every bar, nearly always in stretto after the exposition); I.2 an episodic fugue without stretto (tonal answer, countersubject, entries separated by episodes).",
+    "page": 2
+   },
+   {
+    "claim": "Most fugues tend to be of one or the other type, though stretto and episodic principles are not necessarily opposed: some fugues effectively blend both.",
+    "page": 2
+   },
+   {
+    "claim": "Common features of I.1 and I.2: single-voice opening; imitative entries at dominant or tonic pitch; later entries incl. at least one in a key other than I/V; return to tonic toward the end; coda on tonic pedal.",
+    "page": 2
+   },
+   {
+    "claim": "Definitions: answer = first entry of second voice at dominant pitch; codetta = short connecting passage between entries; countersubject = secondary theme accompanying the answer and recurring; redundant entry = extra entry after the exposition in tonic or dominant before modulating; counterexposition = second set of entries in all voices, usually in I/V, often in opposite subject/answer order; episode = passage between entries, figure development, often modulating; stretto = overlapping of entries; coda = rounding-off passage, often on a tonic pedal.",
+    "page": "2-3"
+   },
+   {
+    "claim": "A fugue is defined by style rather than form (quotes Benjamin and Vaughan Williams).",
+    "page": 1
+   }
+  ]
+ },
+ "chapter2_answers": {
+  "pages": "5-10",
+  "table_p10": {
+   "page": 10,
+   "real": [
+    "wtc1f01",
+    "wtc1f04",
+    "wtc1f05",
+    "wtc1f06",
+    "wtc1f09",
+    "wtc1f14",
+    "wtc1f15",
+    "wtc1f20",
+    "wtc2f04",
+    "wtc2f05",
+    "wtc2f06",
+    "wtc2f08",
+    "wtc2f09",
+    "wtc2f10",
+    "wtc2f13",
+    "wtc2f18",
+    "wtc2f19",
+    "wtc2f22",
+    "wtc2f23",
+    "Pr.19 (printed in the Book II column; Group 7 lists Pr.19 under Book I, so probably wtc1p19)"
+   ],
+   "tonal": [
+    "wtc1f02",
+    "wtc1f03",
+    "wtc1f07",
+    "wtc1f08",
+    "wtc1f11",
+    "wtc1f12",
+    "wtc1f13",
+    "wtc1f16",
+    "wtc1f17",
+    "wtc1f21",
+    "wtc1f22",
+    "wtc1f24",
+    "wtc1p14",
+    "wtc2f02",
+    "wtc2f07",
+    "wtc2f12",
+    "wtc2f14",
+    "wtc2f15",
+    "wtc2f16",
+    "wtc2f17",
+    "wtc2f20",
+    "wtc2f24"
+   ],
+   "tonal_note": "I.7 and I.24 marked dagger: answers to modulating subjects",
+   "answers_to_modulating_subjects": [
+    "wtc1f07",
+    "wtc1f10",
+    "wtc1f18",
+    "wtc1f24"
+   ],
+   "modulating_note": "I.7 and I.24 marked double dagger: also tonal answers",
+   "special_cases_of_tonal": [
+    "wtc1f19",
+    "wtc1f23",
+    "wtc2f01",
+    "wtc2f11",
+    "wtc2f21"
+   ],
+   "subdominant": [
+    "wtc1p07 (bars 25-70)",
+    "wtc2f03",
+    "wtc2f04 (second subject, bars 35-36)",
+    "wtc2f14 (second subject bars 20-22; third subject bars 36-38)",
+    "wtc2f18 (second subject, bars 61-70)",
+    "wtc2f23 (second subject, bars 28-33)"
+   ],
+   "note": "II.10 and II.13 real; I.10 listed only under modulating subjects; I.11 tonal."
+  },
+  "text_lists": [
+   {
+    "category": "real answer a perfect fifth higher, entering immediately",
+    "ids": [
+     "wtc1f01",
+     "wtc1f05",
+     "wtc1f14",
+     "wtc1f20",
+     "wtc2f05",
+     "wtc2f13",
+     "wtc2f19",
+     "wtc2f22",
+     "wtc2f23"
+    ],
+    "page": 5
+   },
+   {
+    "category": "answer a perfect fourth lower",
+    "ids": [
+     "wtc1f06",
+     "wtc2p03 (bars 25-50)",
+     "wtc2f08",
+     "wtc2f10",
+     "wtc2f18"
+    ],
+    "page": 5
+   },
+   {
+    "category": "answer a twelfth higher",
+    "ids": [
+     "wtc2f04"
+    ],
+    "page": 5
+   },
+   {
+    "category": "answer an eleventh lower",
+    "ids": [
+     "wtc1f10"
+    ],
+    "page": 5
+   },
+   {
+    "category": "answer overlaps end of subject",
+    "ids": [
+     "wtc1f04",
+     "wtc1f09",
+     "wtc1f15",
+     "wtc2f06",
+     "wtc2f09"
+    ],
+    "page": 5
+   },
+   {
+    "category": "codetta needed before answer (examples)",
+    "ids": [
+     "wtc2f10",
+     "wtc2f23"
+    ],
+    "page": 6,
+    "note": "II.10 subject ends seventh note of bar 6; II.23 subject ends at first note of bar 4 (same wording Groocock uses for I.11 on p.64)"
+   },
+   {
+    "category": "tonal: subject begins on dominant, answer begins on tonic, otherwise real",
+    "ids": [
+     "wtc1f03",
+     "wtc1f11",
+     "wtc1f12",
+     "wtc1f13",
+     "wtc1f16",
+     "wtc1f21",
+     "wtc1p14",
+     "wtc2f02",
+     "wtc2f12",
+     "wtc2f14",
+     "wtc2f15",
+     "wtc2f16",
+     "wtc2f17",
+     "wtc2f20",
+     "wtc2f24"
+    ],
+    "page": 6,
+    "note": "I.21 tonal change on first and third notes"
+   },
+   {
+    "category": "tonal: dominant among first few notes answered by tonic",
+    "ids": [
+     "wtc1f02",
+     "wtc1f08",
+     "wtc1f17",
+     "wtc1f22",
+     "wtc2f07"
+    ],
+    "page": 6
+   },
+   {
+    "category": "real although dominant among first notes (without emphasis)",
+    "ids": [
+     "wtc1f09",
+     "wtc1f10",
+     "wtc2f18"
+    ],
+    "page": 6
+   },
+   {
+    "category": "real: dominant some distance from beginning",
+    "ids": [
+     "wtc1f01",
+     "wtc1f05",
+     "wtc1f06",
+     "wtc1f14",
+     "wtc1f15",
+     "wtc1f20",
+     "wtc2f04",
+     "wtc2f05",
+     "wtc2f06",
+     "wtc2f08",
+     "wtc2f10",
+     "wtc2f19",
+     "wtc2f22"
+    ],
+    "page": 6
+   },
+   {
+    "category": "real: tonal answer would spoil shape (sequence)",
+    "ids": [
+     "wtc2f13",
+     "wtc2f18"
+    ],
+    "page": 6,
+    "note": "II.18 in square brackets (editorial)"
+   },
+   {
+    "category": "diatonic auxiliary note special case",
+    "ids": [
+     "wtc2f01",
+     "wtc2f11",
+     "wtc2f21"
+    ],
+    "page": 6,
+    "note": "OCR misreads II.11 as I.11 here"
+   },
+   {
+    "category": "implied dominant chord near beginning (special)",
+    "ids": [
+     "wtc1f23",
+     "wtc1f19"
+    ],
+    "page": "6-7"
+   },
+   {
+    "category": "modulating subject: real answer (only case)",
+    "ids": [
+     "wtc1f10"
+    ],
+    "page": 7
+   },
+   {
+    "category": "modulating subject: modified answers (cases 1-3)",
+    "ids": [
+     "wtc1f07",
+     "wtc1f18",
+     "wtc1f24"
+    ],
+    "page": "8-9"
+   },
+   {
+    "category": "subsidiary subjects always given subdominant answer",
+    "ids": [
+     "wtc2f04",
+     "wtc2f14",
+     "wtc2f18",
+     "wtc2f23"
+    ],
+    "page": 9
+   }
+  ]
+ },
+ "chapter3_countersubjects": {
+  "pages": "11-17",
+  "patterns": {
+   "page": 11,
+   "introduced_in_exposition_and_recurring": [
+    "wtc1f02",
+    "wtc1f03",
+    "wtc1f06",
+    "wtc1f07",
+    "wtc1f09",
+    "wtc1f10",
+    "wtc1f11",
+    "wtc1f12",
+    "wtc1f13",
+    "wtc1f14",
+    "wtc1f15",
+    "wtc1f16",
+    "wtc1f21",
+    "wtc1f24",
+    "wtc1p14",
+    "wtc2f04",
+    "wtc2f06",
+    "wtc2f08",
+    "wtc2f09",
+    "wtc2f10",
+    "wtc2f13",
+    "wtc2f16",
+    "wtc2f17",
+    "wtc2f18",
+    "wtc2f20",
+    "wtc2f22"
+   ],
+   "exposition_only": [
+    "wtc1f18",
+    "wtc1f20",
+    "wtc1f23",
+    "wtc2f02",
+    "wtc2f07",
+    "wtc2f23",
+    "wtc2f24"
+   ],
+   "introduced_after_exposition": [
+    "wtc1f13 (in addition to the original C)",
+    "wtc1f19 (no C in exp.)",
+    "wtc2f21 (no C in exp.)",
+    "wtc2f24 (replacing original C)"
+   ],
+   "two_in_exposition": [
+    "wtc1f02",
+    "wtc1f03",
+    "wtc1f18",
+    "wtc1f21",
+    "wtc1f23",
+    "wtc2f17",
+    "wtc2f20"
+   ],
+   "three_in_exposition": [
+    "wtc1f12"
+   ],
+   "without_countersubject": [
+    "wtc1f01",
+    "wtc1f04",
+    "wtc1f05",
+    "wtc1f08",
+    "wtc1f17",
+    "wtc1f22",
+    "wtc2f01",
+    "wtc2f03",
+    "wtc2f05",
+    "wtc2f11",
+    "wtc2f12",
+    "wtc2f14",
+    "wtc2f15",
+    "wtc2f19",
+    "wtc2p03 (bars 25-50)"
+   ]
+  },
+  "interchange": {
+   "page": 13,
+   "octave": [
+    "wtc1f09",
+    "wtc1f11",
+    "wtc1f13",
+    "wtc1f14",
+    "wtc1f18",
+    "wtc2f07",
+    "wtc2f08",
+    "wtc2f09",
+    "wtc2f17",
+    "wtc2f22"
+   ],
+   "fifteenth": [
+    "wtc1f02",
+    "wtc1f03",
+    "wtc1f06",
+    "wtc1f07",
+    "wtc1f10",
+    "wtc1f12",
+    "wtc1f15",
+    "wtc1f16",
+    "wtc1f20",
+    "wtc1f23",
+    "wtc1f24",
+    "wtc1p14",
+    "wtc2f02",
+    "wtc2f04",
+    "wtc2f06",
+    "wtc2f10",
+    "wtc2f13",
+    "wtc2f16",
+    "wtc2f18",
+    "wtc2f20",
+    "wtc2f23",
+    "wtc2f24"
+   ],
+   "other": "II.16: answer and CS interchangeable at the tenth or twelfth as well as the fifteenth; other intervals used, but not as a rule for the first CS",
+   "not_listed_note": "I.21 (two CS) is in neither list"
+  },
+  "cs_unaltered_with_third_entry_real_answer": {
+   "ids": [
+    "wtc1f06",
+    "wtc1f09",
+    "wtc1f14",
+    "wtc2f06",
+    "wtc2f13",
+    "wtc2f22"
+   ],
+   "page": 15
+  },
+  "cs_modified_examples_real_answer": {
+   "ids": [
+    "wtc2f08",
+    "wtc2f04",
+    "wtc2f09",
+    "wtc2f23"
+   ],
+   "page": 15
+  },
+  "cs_late_start": {
+   "ids": [
+    "wtc2f07",
+    "wtc1f15"
+   ],
+   "page": 16,
+   "note": "II.7 CS proper from tied note of bar 9; I.15 from last four notes of bar 6"
+  },
+  "tonal_answer_cs_unmodified": {
+   "ids": [
+    "wtc1f16",
+    "wtc2f17",
+    "wtc2f20"
+   ],
+   "page": 16
+  },
+  "cs_modified_at_tonal_change": {
+   "ids": [
+    "wtc1f03",
+    "wtc1f12",
+    "wtc1f13",
+    "wtc1f21",
+    "wtc2f16"
+   ],
+   "page": 16
+  },
+  "cs_modified_elsewhere": {
+   "ids": [
+    "wtc1f23",
+    "wtc1f11",
+    "wtc2f24"
+   ],
+   "page": 16,
+   "note": "I.23 for harmonic reasons; I.11 semitone positions changed; II.24 alters the beginning"
+  },
+  "no_cs_reasons": {
+   "page": "14-15",
+   "items": [
+    {
+     "reason": "stretto is the main element",
+     "ids": [
+      "wtc1f01",
+      "wtc1f08",
+      "wtc2f03"
+     ]
+    },
+    {
+     "reason": "masterly stretti but unity preserved otherwise",
+     "ids": [
+      "wtc1f22",
+      "wtc2f05"
+     ]
+    },
+    {
+     "reason": "subsidiary subjects later",
+     "ids": [
+      "wtc1f04",
+      "wtc2f14"
+     ]
+    },
+    {
+     "reason": "a counterpoint repeated after exposition as a type of CS",
+     "ids": [
+      "wtc1f01",
+      "wtc2f15"
+     ]
+    },
+    {
+     "reason": "CS added after exposition",
+     "ids": [
+      "wtc2f21",
+      "wtc1f19"
+     ]
+    },
+    {
+     "reason": "exposition provides figures for development",
+     "ids": [
+      "wtc2f11",
+      "wtc2f12",
+      "wtc2f19",
+      "wtc1f17"
+     ]
+    },
+    {
+     "reason": "dominated by its subject, purely harmonic",
+     "ids": [
+      "wtc1f05"
+     ]
+    }
+   ]
+  },
+  "claims": [
+   {
+    "claim": "Fugues without a countersubject amount to almost one-third of the collection.",
+    "page": 14
+   },
+   {
+    "claim": "Slightly more fugues without CS in Book II than Book I.",
+    "page": 17
+   }
+  ]
+ },
+ "chapter4_exposition": {
+  "pages": "19-21",
+  "two_voice": {
+   "order": "soprano-bass (S then A)",
+   "ids": [
+    "wtc1f10",
+    "wtc1p14"
+   ]
+  },
+  "three_voice_orders": [
+   {
+    "order": "soprano-middle-bass",
+    "no_cs": [
+     "wtc1f19",
+     "wtc2p03",
+     "wtc2f11",
+     "wtc2f12",
+     "wtc2f15"
+    ],
+    "one_cs": [
+     "wtc1f06",
+     "wtc1f07",
+     "wtc1f13",
+     "wtc1f15",
+     "wtc2f10",
+     "wtc2f18"
+    ],
+    "two_cs": [
+     "wtc1f03",
+     "wtc1f21"
+    ]
+   },
+   {
+    "order": "middle-soprano-bass",
+    "no_cs": [
+     "wtc1f08",
+     "wtc2f01",
+     "wtc2f14",
+     "wtc2f21"
+    ],
+    "one_cs": [
+     "wtc1f09",
+     "wtc1f11",
+     "wtc2f02",
+     "wtc2f06",
+     "wtc2f13",
+     "wtc2f24"
+    ],
+    "two_cs": [
+     "wtc1f02"
+    ]
+   },
+   {
+    "order": "bass-middle-soprano",
+    "no_cs": [
+     "wtc2f19"
+    ],
+    "one_cs": [],
+    "two_cs": [
+     "wtc2f20"
+    ]
+   },
+   {
+    "order": "bass-soprano-middle",
+    "no_cs": [
+     "wtc2f03"
+    ],
+    "one_cs": [
+     "wtc2f04"
+    ],
+    "two_cs": []
+   }
+  ],
+  "three_voice_note": "Bach used four of six orders, preferring the first two",
+  "four_voice_orders": [
+   {
+    "order": "bass-tenor-alto-soprano (cyclic)",
+    "no_cs": [
+     "(box printed without fugue label)"
+    ],
+    "one_cs": [
+     "wtc2f07",
+     "wtc2f09"
+    ],
+    "two_cs": [
+     "wtc2f23"
+    ]
+   },
+   {
+    "order": "tenor-alto-soprano-bass (cyclic)",
+    "no_cs": [
+     "(box printed without fugue label)"
+    ],
+    "one_cs": [
+     "wtc2f16"
+    ],
+    "two_cs": [
+     "wtc1f18",
+     "wtc1f23"
+    ]
+   },
+   {
+    "order": "alto-soprano-bass-tenor (cyclic)",
+    "one_cs": [
+     "wtc1f16",
+     "wtc1f20",
+     "wtc2f22"
+    ]
+   },
+   {
+    "order": "alto-tenor-bass-soprano (cyclic)",
+    "one_cs": [
+     "wtc1f24",
+     "wtc2f08"
+    ]
+   },
+   {
+    "order": "tenor-bass-soprano-alto (cyclic)",
+    "one_cs": [
+     "wtc1f17"
+    ],
+    "note": "CS in parentheses"
+   },
+   {
+    "order": "alto-soprano-tenor-bass (non-cyclic; S-A-A-S for I.1)",
+    "no_cs": [
+     "wtc1f01"
+    ],
+    "two_cs": [
+     "wtc2f17"
+    ]
+   },
+   {
+    "order": "tenor-alto-bass-soprano (non-cyclic; S-A-S-S)",
+    "one_cs": [
+     "wtc1f14"
+    ],
+    "three_cs": [
+     "wtc1f12"
+    ]
+   }
+  ],
+  "four_voice_note": "Seven of 24 orders used, five cyclic. In 6 and 7 the subject-answer sequence is irregular and in one fugue the CI-CII sequence. Box rows read top=soprano. Two no-countersubject boxes carry no fugue labels in the print; ch.10 counts imply they hold one fugue each (I.5, II.2, II.5 are the four-voice fugues missing from these tables; which two belong there is not stated).",
+  "five_voice": [
+   {
+    "order": "bass upward (S A S A S from bottom)",
+    "ids": [
+     "wtc1f04"
+    ]
+   },
+   {
+    "order": "soprano downward",
+    "ids": [
+     "wtc1f22"
+    ]
+   }
+  ]
+ },
+ "chapter5_classification": {
+  "pages": "23-24",
+  "groups": {
+   "1": {
+    "title": "two voices",
+    "minor": [
+     "wtc1f10",
+     "wtc1p14"
+    ]
+   },
+   "2": {
+    "title": "three voices, without stretto",
+    "with_cs_major": [
+     "wtc1f03",
+     "wtc1f07",
+     "wtc1f09",
+     "wtc1f21",
+     "wtc2f13"
+    ],
+    "with_cs_minor": [
+     "wtc1f02",
+     "wtc2f10",
+     "wtc2f20"
+    ],
+    "without_cs_major": [
+     "wtc2f01",
+     "wtc2f11",
+     "wtc2f15",
+     "wtc2f19"
+    ],
+    "without_cs_minor": [
+     "wtc2f12"
+    ]
+   },
+   "3": {
+    "title": "three voices, with stretto",
+    "with_cs_major": [
+     "wtc1f11",
+     "wtc1f15"
+    ],
+    "with_cs_minor": [
+     "wtc1f06",
+     "wtc2f06"
+    ],
+    "without_cs_major": [
+     "wtc2f03",
+     "wtc2p03"
+    ],
+    "without_cs_minor": [
+     "wtc1f08"
+    ]
+   },
+   "4": {
+    "title": "four voices, without stretto",
+    "with_cs_major": [
+     "wtc1f23",
+     "wtc2f17"
+    ],
+    "with_cs_minor": [
+     "wtc1f12",
+     "wtc1f14",
+     "wtc1f18",
+     "wtc1f24",
+     "wtc2f08",
+     "wtc2f16"
+    ],
+    "without_cs_major": [
+     "wtc1f05",
+     "wtc1f17"
+    ]
+   },
+   "5": {
+    "title": "four voices, with stretto",
+    "with_cs_major": [
+     "wtc2f07",
+     "wtc2f09"
+    ],
+    "with_cs_minor": [
+     "wtc1f16",
+     "wtc1f20",
+     "wtc2f02",
+     "wtc2f22"
+    ],
+    "without_cs_major": [
+     "wtc1f01",
+     "wtc2f05"
+    ]
+   },
+   "6": {
+    "title": "three voices, (new) countersubject introduced after the exposition",
+    "major": [
+     "wtc1f13",
+     "wtc1f19",
+     "wtc2f21"
+    ],
+    "minor": [
+     "wtc2f24"
+    ]
+   },
+   "7": {
+    "title": "three or four voices with subsidiary subjects",
+    "major": [
+     "wtc1p07",
+     "wtc1p19",
+     "wtc2f23"
+    ],
+    "minor": [
+     "wtc2f04",
+     "wtc2f14",
+     "wtc2f18"
+    ]
+   },
+   "8": {
+    "title": "five voices",
+    "minor": [
+     "wtc1f04",
+     "wtc1f22"
+    ]
+   }
+  }
+ },
+ "group1_key_schemes": {
+  "page": 30,
+  "wtc1f10": "Exp: i v EP | Dev: III, bVII EP iv i EP bvii iv EP | Final: i i",
+  "wtc1p14": "Exp: i v EP i EP | Dev: III bVII EP v EP v, v iv III EP | Final: i i i i"
+ },
+ "group2_chapter_intro": {
+  "pages": "31-32",
+  "orders": {
+   "note": "as printed (p.31)",
+   "soprano_middle_bass": 8,
+   "middle_soprano_bass": 3,
+   "bass_middle_soprano": 2,
+   "discrepancy": "By the ch.4 table and the individual analyses the Group 2 split is 7 (I.3, I.7, I.21, II.10, II.11, II.12, II.15) / 4 (I.2, I.9, II.1, II.13) / 2 (II.19, II.20)"
+  },
+  "simple_exposition": [
+   "wtc1f03",
+   "wtc1f21",
+   "wtc2f01",
+   "wtc2f13"
+  ],
+  "codetta_delays_entry": [
+   "wtc1f07 (bar 2)",
+   "wtc1f09 (bar 3)",
+   "wtc2f10 (bars 6 and 12)",
+   "wtc2f15 (bars 6-8 and 13-15)"
+  ],
+  "episode_within_exposition": [
+   "wtc1f02 (bars 5-6)",
+   "wtc1f07 (bars 4-5)",
+   "wtc2f11 (bars 9-14)",
+   "wtc2f12 (bars 8-11)",
+   "wtc2f19 (bar 4)",
+   "wtc2f20 (bars 5-6)"
+  ],
+  "redundant_answer": [
+   "wtc1f03 (bar 10)",
+   "wtc1f07 (bar 10)",
+   "wtc1f21 (bar 13)",
+   "wtc2f11 (bar 21)",
+   "wtc2f19 (bar 7)"
+  ],
+  "counterexposition": [
+   "wtc1f09 (bars 6-10)",
+   "wtc2f13 (bars 20-40)"
+  ],
+  "middle_section": "all have at least one entry in a related key; six use two related keys; four use three",
+  "basic_plan": "Exposition; episodes and entries in related keys; entry(ies) in main key; all end with a coda"
+ },
+ "group2_key_schemes": {
+  "page": 60,
+  "columns": "Exposition | Counterexposition (or redundant entries) | Development | Final section",
+  "wtc1f03": "I V I | EP V | EP vi EP iii EP V I | EP I V I EP I",
+  "wtc1f07": "I-V I EP I-V | EP I | EP vi EP vi-iii | EP I EP I-V EP I",
+  "wtc1f09": "I V I | EP I V I | EP vi | EP I V I EP I",
+  "wtc1f21": "I V I | V | EP vi ii EP IV IV | I",
+  "wtc2f13": "I V I | EP I EP V I | vi EP IV | EP I V I",
+  "wtc1f02": "i v EP i | - | EP III EP v EP i | EP i i",
+  "wtc2f10": "i v i | - | EP III bVII EP v EP i EP iv | EP i",
+  "wtc2f20": "i v EP i | - | EP III EP v EP i EP iv | EP i",
+  "wtc2f01": "I V I | - | EP ii vi EP V EP I V | EP I I I",
+  "wtc2f11": "I V EP I | EP V | EP I EP IV | EP I I",
+  "wtc2f15": "I V I | - | EP vi iii | EP I",
+  "wtc2f19": "I V EP I | V | EP vi EP iii EP vi EP IV EP V | EP I",
+  "wtc2f12": "i v EP i | - | EP III bVII EP i EP i EP iv | i",
+  "common_basic_forms": {
+   "major": "I V I | EP vi | EP I",
+   "minor": "i v i | EP III | EP i"
+  }
+ },
+ "chapter8_episodes_1": {
+  "pages": "61-62",
+  "claims": [
+   {
+    "claim": "Groups 1 and 2 have more than seventy episodes; episodes occupy from one-third to two-thirds of a fugue (see Appendix A).",
+    "page": 61
+   },
+   {
+    "claim": "All episodes develop thematic material (subject, CS, codetta); new figures subordinate; some melodic sequence virtually a necessity.",
+    "page": 61
+   },
+   {
+    "claim": "Less frequent progressions: roots falling a third and rising a second; rising a second and falling a fifth; falling a third. In rising sequences: roots rising a fourth and falling a third.",
+    "page": "61-62"
+   },
+   {
+    "claim": "About four in five of the sequences are falling sequences on roots falling a fifth and rising a fourth.",
+    "page": 62,
+    "note": "cf. p.28: falling fifths in almost three-quarters of all 200+ episodes of the 48"
+   },
+   {
+    "claim": "With only two episodes, the second is normally a development or interchanged restatement of the first; with more, partial contrast more common than complete contrast.",
+    "page": 62
+   },
+   {
+    "claim": "Episodes are the chief means of modulation; they both separate and join entries (dovetailing).",
+    "page": 62
+   }
+  ]
+ },
+ "group3_review": {
+  "pages": "79-81",
+  "intro": {
+   "page": 63,
+   "claim": "In Group 3 stretto becomes an element of formal organization; episodes may be fewer and of secondary importance. Orders: middle-soprano-bass 3, soprano-middle-bass 3, bass-soprano-middle 1."
+  },
+  "stretto_typology": [
+   {
+    "type": "episodic plan of Group 2 with stretto groups replacing single entries; subject combines with itself in canon at the octave only (natural point of entry an octave higher/lower)",
+    "ids": [
+     "wtc1f11",
+     "wtc1f15"
+    ],
+    "page": "79-80"
+   },
+   {
+    "type": "canon at the octave or the upper fifth, direct or inverted, and direct with inverted",
+    "ids": [
+     "wtc2f06"
+    ],
+    "page": 80
+   },
+   {
+    "type": "short subject combinable in many ways; all four direct/inverted combinations; entries always one beat apart, pitch interval varied",
+    "ids": [
+     "wtc1f06"
+    ],
+    "page": 80,
+    "note": "p.70 says \"always at one bar's distance\""
+   },
+   {
+    "type": "stretto at various pitch and time intervals, direct and inverted, plain, partly augmented, fully augmented; stretto groups contrasted with single entries",
+    "ids": [
+     "wtc1f08"
+    ],
+    "page": 80
+   },
+   {
+    "type": "exposition itself in stretto with an inverted entry; every mixture of direct/inverted, plain, augmented, diminished; stretto groups contrasted with single entries",
+    "ids": [
+     "wtc2f03"
+    ],
+    "page": 80
+   }
+  ],
+  "general": [
+   {
+    "claim": "Stretto is not a \"device\" applicable to any subject: only to subjects designed for it or found to have the possibility (unlike inversion, augmentation, diminution).",
+    "page": "79-80"
+   },
+   {
+    "claim": "Most stretto fugues start with an orthodox exposition before revealing stretto possibilities.",
+    "page": 80
+   }
+  ],
+  "table": {
+   "page": 81,
+   "legend": "STR stretto group, S single entry, R redundant, EP episode, / perfect cadence",
+   "wtc1f11": "Exp S S S (I I-V I) EP | Counterexp S S STR (I I-V I) EP | Dev STR/ (vi) STR/ (ii) | Final EP S/ (I)",
+   "wtc1f15": "Exp S S S (I V I) EP | Counterexp S S S (I V I) EP | Dev S / S EP STR EP STR EP / S (vi vi iii V I) | Final EP STR / (printed \"i\")",
+   "wtc1f06": "Exp S S S R (i v i i) EP | Dev STR STR / STR EP STR EP STR (i v i i iv) | Final EP STR / (i)",
+   "wtc2f06": "Exp S S S (i v i) EP / | Dev STR EP STR STR (i i i) | Final EP STR / (i)",
+   "wtc2p03": "Exp STR S / (I, I-V I) EP | Dev S / (V) | Final STR (I, V-I)",
+   "wtc2f03": "Exp STR / (I) | Counterexp STR / (I, ii-V) | Dev STR STR STR EP STR S EP S STR S S S S (V-ii ii-I I vi-V I I I I I I I) | Final S / (I)",
+   "wtc1f08": "Exp S S S R (i i-v i i-III) EP / | Dev STR STR STR / S / S / S STR STR STR STR S STR STR S (v IV III III i i i-iv iv iv III i iv III-VI iv) | Final STR / (i, iv i)"
+  },
+  "review_text_I11_I15": {
+   "page": 79,
+   "wtc1f11": "Exp. EP Co-Exp(stretto) EP vi ii EP I Coda, with stretto groups",
+   "wtc1f15": "Exp. EP Co-Exp. EP vi EP iii EP V EP I EP I Coda"
+  }
+ },
+ "chapter10_four_voices": {
+  "pages": "83-84",
+  "orders": [
+   {
+    "order": "tenor-bass-soprano-alto",
+    "cyclic": true,
+    "count": 1
+   },
+   {
+    "order": "tenor-alto-soprano-bass",
+    "cyclic": true,
+    "count": 4
+   },
+   {
+    "order": "bass-tenor-alto-soprano",
+    "cyclic": true,
+    "count": 4
+   },
+   {
+    "order": "alto-soprano-bass-tenor",
+    "cyclic": true,
+    "count": 3
+   },
+   {
+    "order": "alto-tenor-bass-soprano",
+    "cyclic": true,
+    "count": 2
+   },
+   {
+    "order": "tenor-alto-bass-soprano",
+    "cyclic": false,
+    "count": 2
+   },
+   {
+    "order": "alto-soprano-tenor-bass",
+    "cyclic": false,
+    "count": 2
+   }
+  ],
+  "orders_note": "counts total 18; four-voice fugues are the 18 of Groups 4-5 plus II.23 (Group 7) = 19, so one is unaccounted for",
+  "irregular_subject_answer": {
+   "SAAS": [
+    "wtc1f01"
+   ],
+   "SASS": [
+    "wtc1f12",
+    "wtc1f14"
+   ],
+   "page": 83
+  },
+  "exposition_types": {
+   "page": 84,
+   "simple": [
+    "wtc1f18",
+    "wtc1f23",
+    "wtc2f07",
+    "wtc2f09",
+    "wtc2f16"
+   ],
+   "codetta_before_third_entry": [
+    "wtc1f05",
+    "wtc1f16",
+    "wtc1f17",
+    "wtc1f20",
+    "wtc2f05",
+    "wtc2f08",
+    "wtc2f17"
+   ],
+   "episode_before_fourth_entry": [
+    "wtc1f12",
+    "wtc1f14"
+   ],
+   "episodes_before_third_and_fourth": [
+    "wtc1f24",
+    "wtc2f22"
+   ]
+  },
+  "four_part_proportion": {
+   "page": 84,
+   "basis": "bars with four real parts",
+   "values": {
+    "wtc1f24": 20,
+    "wtc1f16": 23,
+    "wtc1f14": 30,
+    "wtc2f17": 30,
+    "wtc1f12": 31,
+    "wtc1f17": 34,
+    "wtc2f02": 34,
+    "wtc1f23": 36,
+    "wtc2f07": 46,
+    "wtc2f08": 48,
+    "wtc1f18": 51,
+    "wtc2f22": 51,
+    "wtc1f05": 52,
+    "wtc1f20": 53,
+    "wtc2f16": 57,
+    "wtc1f01": 67,
+    "wtc2f05": 78,
+    "wtc2f09": 82
+   },
+   "note": "II.7 = 46% (OCR read 40%); II.9 most active (four-fifths), I.24 least (one-fifth); the 18 fugues of Groups 4-5 (II.23 not listed)"
+  },
+  "claims": [
+   {
+    "claim": "Bach prefers cyclic order even in keyboard fugues and avoids soprano-middle-bass descending order in four-part fugues.",
+    "page": 83
+   },
+   {
+    "claim": "After the exposition a four-part fugue does not differ basically from a three-part one; texture reduced to three or two voices, four reserved for climaxes.",
+    "page": 84
+   }
+  ]
+ },
+ "inconsistencies_found": [
+  "p.31 Group 2 order counts 8/3/2 vs 7/4/2 by p.19-20 table and analyses",
+  "I.6: stretto entries \"always at one bar's distance\" (p.70) vs \"always after one beat's interval\" (p.80)",
+  "falling-fifth sequences: almost three-quarters of all 200+ episodes (p.28) vs about four in five sequences (p.62, Groups 1-2 only)",
+  "I.23 listed as \"countersubjects in the exposition only\" (p.11) but analysis (p.86) has C1/C2 with later entries",
+  "I.21 has two CS but appears in neither interchange list (p.13)",
+  "I.11 listed under octave interchange (p.13) but p.65 says the CS crosses the answer so complete interchange is impossible",
+  "I.15 review table prints final key \"i\" for a major-key fugue",
+  "I.10 bars 32-33: diagram A (answer), text p.26 \"last complete entry of the subject\"",
+  "I.3 table prints \"26-26: subject in middle\"; diagram shows 26-28",
+  "Four-voice order table p.20: two boxes without fugue labels"
+ ]
+}

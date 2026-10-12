@@ -1,0 +1,195 @@
+{
+ "id": "wtc1f13",
+ "groocock": {
+  "group": 6,
+  "pages": "140-142"
+ },
+ "entries": [
+  {
+   "bars": "1-3",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "3-5",
+   "voice": "middle",
+   "form": "answer [tonal]",
+   "key": "I-V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "C1 in soprano"
+  },
+  {
+   "bars": "5-7",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "C1 middle; last note altered A# -> F#"
+  },
+  {
+   "bars": "11-13",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "entrance of second countersubject and development",
+   "stretto": null,
+   "redundant": true,
+   "notes": "redundant (per text); C1 middle, C2 bass (inversion/extension of episode 1 figure on tonic pedal)"
+  },
+  {
+   "bars": "15-17",
+   "voice": "middle",
+   "form": "answer [real]",
+   "key": "V",
+   "section": "entrance of second countersubject and development",
+   "stretto": null,
+   "redundant": true,
+   "notes": "redundant (per text); C1 bass"
+  },
+  {
+   "bars": "20-22",
+   "voice": "bass",
+   "form": "subject",
+   "key": "vi",
+   "section": "entrance of second countersubject and development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "C1 partial middle, C2 soprano; unusual harmonies from reiterated D#"
+  },
+  {
+   "bars": "28-30",
+   "voice": "middle",
+   "form": "subject",
+   "key": "IV",
+   "section": "entrance of second countersubject and development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "continues imitations of episode; second half on tonic pedal in IV; C2 soprano"
+  },
+  {
+   "bars": "31-33",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "recapitulation of 15-17 with upper voices interchanged; C1 bass"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "7-11",
+   "name": "episode 1",
+   "from_key": "I",
+   "to_key": "V",
+   "material": "new theme ornamenting last notes of subject, imitated by all voices (middle inverting), developed in falling sequence by bass; upper voices decorated suspensions",
+   "sequence": "falling sequence; begins and ends after perfect cadences"
+  },
+  {
+   "bars": "13-15",
+   "name": "episode 2",
+   "from_key": "I",
+   "to_key": "V",
+   "material": "first four notes of subject imitated by upper voices; bass develops figure of bar 7",
+   "sequence": "falling sequence"
+  },
+  {
+   "bars": "17-20",
+   "name": "episode 3",
+   "from_key": "V",
+   "to_key": "vi",
+   "material": "variant of episode 1",
+   "sequence": null
+  },
+  {
+   "bars": "23-28",
+   "name": "episode 4",
+   "from_key": "vi",
+   "to_key": "I",
+   "material": "material of episode 2, imitation at lower third; free interchange at 26",
+   "sequence": "falling sequence"
+  },
+  {
+   "bars": "30-31",
+   "name": "episode 5",
+   "from_key": "IV",
+   "to_key": "I",
+   "material": "recapitulation of episode 2 with upper voices interchanged",
+   "sequence": null
+  }
+ ],
+ "codettas": [],
+ "extensions": [
+  {
+   "bars": "22-23",
+   "to": "cadence in vi"
+  }
+ ],
+ "cadences": [
+  {
+   "bar": "7",
+   "key": "I",
+   "kind": "perfect cadence"
+  },
+  {
+   "bar": "11",
+   "key": "V",
+   "kind": "perfect cadence"
+  },
+  {
+   "bar": "17",
+   "key": "V",
+   "kind": "diagram 'V/'"
+  },
+  {
+   "bar": "23",
+   "key": "vi",
+   "kind": "cadence"
+  },
+  {
+   "bar": "35",
+   "key": "I",
+   "kind": "final"
+  }
+ ],
+ "countersubjects": {
+  "count": 2,
+  "first": "C1 immediately after end of subject (3-5, soprano); C2 introduced at 11 in bass",
+  "interchange": null,
+  "notes": "type 4 of Group 6: one CS in exposition, one more added later"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "tonal (begins on dominant); tonal answer not used after the exposition",
+  "notes": null
+ },
+ "stretti": [],
+ "claims": [
+  {
+   "page": 141,
+   "claim": "Tonal answer not used after exposition"
+  },
+  {
+   "page": 141,
+   "claim": "Second countersubject formed by inverting and extending the main figure of episode 1 on a tonic pedal"
+  },
+  {
+   "page": 141,
+   "claim": "Entry at 28 in IV has the effect of continuing the episode's imitations"
+  },
+  {
+   "page": 142,
+   "claim": "Final entry recapitulates 15-17 with upper voices interchanged; coda alludes to episode 1"
+  }
+ ]
+}

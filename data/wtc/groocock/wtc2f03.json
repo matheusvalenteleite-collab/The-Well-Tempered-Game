@@ -1,0 +1,419 @@
+{
+ "id": "wtc2f03",
+ "title": "II.3: Fugue in C# major",
+ "voices": 3,
+ "groocock": {
+  "group": 3,
+  "chapter": "9 Group 3: Fugues for Three Voices, with Stretto",
+  "pages": "75-76",
+  "pdf_pages": "88-89"
+ },
+ "entries": [
+  {
+   "bars": "1-2",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": "Str.1",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "1-3",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "I (effectively I-IV)",
+   "section": "exposition",
+   "stretto": "Str.1",
+   "redundant": false,
+   "notes": "tonal answer continuing at lowered pitch: effectively modulates I to IV (subdominant answer)"
+  },
+  {
+   "bars": "2-3",
+   "voice": "middle",
+   "form": "subject (inverted)",
+   "key": "I",
+   "section": "exposition",
+   "stretto": "Str.1",
+   "redundant": false,
+   "notes": "restores I; extension to cadence at bar 4 (diagram \"ext\")"
+  },
+  {
+   "bars": "4-5",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I-ii (diagram ii-V)",
+   "section": "counterexposition",
+   "stretto": "Str.2",
+   "redundant": false,
+   "notes": "followed by entry by diminution (d--)"
+  },
+  {
+   "bars": "4-5",
+   "voice": "middle",
+   "form": "answer",
+   "key": null,
+   "section": "counterexposition",
+   "stretto": "Str.2",
+   "redundant": false,
+   "notes": "altered ending; followed by diminution"
+  },
+  {
+   "bars": "5-6",
+   "voice": "bass",
+   "form": "subject (?)",
+   "key": null,
+   "section": "counterexposition",
+   "stretto": "Str.2",
+   "redundant": false,
+   "notes": "table \"subject (?) in bass\" with footnote 37; altered ending; followed by diminution \"(i+d)\"; phrase extended to cadence in V"
+  },
+  {
+   "bars": "7-8",
+   "voice": "bass",
+   "form": "answer",
+   "key": "V-ii",
+   "section": "development",
+   "stretto": "Str.3",
+   "redundant": false,
+   "notes": "begins like tonal answer, continues differently, evolving the \"new theme\""
+  },
+  {
+   "bars": "7-8",
+   "voice": "middle",
+   "form": "answer",
+   "key": "V-ii",
+   "section": "development",
+   "stretto": "Str.3",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "8-9",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "V-ii",
+   "section": "development",
+   "stretto": "Str.3",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "9-10",
+   "voice": "bass",
+   "form": "subject (inverted)",
+   "key": "ii-I",
+   "section": "development",
+   "stretto": "Str.4",
+   "redundant": false,
+   "notes": "first four notes only"
+  },
+  {
+   "bars": "9-10",
+   "voice": "middle",
+   "form": "subject (inverted)",
+   "key": "ii-I",
+   "section": "development",
+   "stretto": "Str.4",
+   "redundant": false,
+   "notes": "first four notes only"
+  },
+  {
+   "bars": "9-10",
+   "voice": "soprano",
+   "form": "subject (inverted)",
+   "key": "ii-I",
+   "section": "development",
+   "stretto": "Str.4",
+   "redundant": false,
+   "notes": "first four notes only"
+  },
+  {
+   "bars": "10-11",
+   "voice": "bass",
+   "form": "subject (inverted)",
+   "key": "I",
+   "section": "development",
+   "stretto": "Str.5",
+   "redundant": false,
+   "notes": "shortened; enters last note of bar 10"
+  },
+  {
+   "bars": "11",
+   "voice": "soprano",
+   "form": "subject (inverted)",
+   "key": "I",
+   "section": "development",
+   "stretto": "Str.5",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "11",
+   "voice": "middle",
+   "form": "subject",
+   "key": "I",
+   "section": "development",
+   "stretto": "Str.5",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "11-12",
+   "voice": "bass",
+   "form": "answer",
+   "key": "I",
+   "section": "development",
+   "stretto": "Str.5",
+   "redundant": false,
+   "notes": "leads straight into episode 1"
+  },
+  {
+   "bars": "14-16",
+   "voice": "bass",
+   "form": "answer",
+   "key": "vi[-II]",
+   "section": "development",
+   "stretto": "Str.6",
+   "redundant": false,
+   "notes": "complete answer"
+  },
+  {
+   "bars": "14-16",
+   "voice": "soprano",
+   "form": "subject (inverted)",
+   "key": null,
+   "section": "development",
+   "stretto": "Str.6",
+   "redundant": false,
+   "notes": "\"false entry\" of the shortened inverted subject"
+  },
+  {
+   "bars": "14-16",
+   "voice": "middle",
+   "form": "answer",
+   "key": "II-V",
+   "section": "development",
+   "stretto": "Str.6",
+   "redundant": false,
+   "notes": "complete; leads to sequential allusion to \"new theme\" (bar 16)"
+  },
+  {
+   "bars": "14-16",
+   "voice": "soprano",
+   "form": "subject (inverted)",
+   "key": null,
+   "section": "development",
+   "stretto": "Str.6",
+   "redundant": false,
+   "notes": "complete inverted subject; end extended by falling sequence"
+  },
+  {
+   "bars": "17-18",
+   "voice": "bass",
+   "form": "subject",
+   "key": "-I",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "altered rhythm, first six notes spread over two bars"
+  },
+  {
+   "bars": "18-20",
+   "voice": "middle, bass, middle, bass",
+   "form": "subject (diminution)",
+   "key": null,
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "series of entries by diminution"
+  },
+  {
+   "bars": "24",
+   "voice": "bass",
+   "form": "answer",
+   "key": "I",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "tonal answer accompanied by \"new theme\", now like a countersubject"
+  },
+  {
+   "bars": "25-27",
+   "voice": "soprano",
+   "form": "subject (inverted)",
+   "key": "I",
+   "section": "development",
+   "stretto": "Str.7",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "25-27",
+   "voice": "middle",
+   "form": "answer (augmentation)",
+   "key": "I",
+   "section": "development",
+   "stretto": "Str.7",
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "25-27",
+   "voice": "bass",
+   "form": "answer",
+   "key": "I",
+   "section": "development",
+   "stretto": "Str.7",
+   "redundant": false,
+   "notes": "at original speed; followed by codetta"
+  },
+  {
+   "bars": "27-28",
+   "voice": "bass",
+   "form": "answer (augmentation)",
+   "key": "I",
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "ends in dominant pedal 28-29"
+  },
+  {
+   "bars": "28",
+   "voice": "soprano",
+   "form": "subject (inverted)",
+   "key": null,
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "over dominant pedal"
+  },
+  {
+   "bars": "28",
+   "voice": "soprano",
+   "form": "answer",
+   "key": null,
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "29",
+   "voice": "middle",
+   "form": "answer",
+   "key": null,
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "30-31",
+   "voice": "middle",
+   "form": "subject (inverted; table: \"subject in middle, repeated in sequence\")",
+   "key": null,
+   "section": "development",
+   "stretto": null,
+   "redundant": false,
+   "notes": "three repetitions in falling sequence of the inverted subject, last partially diminished (text p.76)"
+  },
+  {
+   "bars": "31-32",
+   "voice": "bass",
+   "form": "answer",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "then dominant pedal resumed 32-33"
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "12-14",
+   "from_key": "I",
+   "to_key": "dominant of vi",
+   "material": "bass develops main shape of inverted subject with ornamented suspensions",
+   "sequence": "falling sequence"
+  },
+  {
+   "number": 2,
+   "bars": "19-24",
+   "from_key": null,
+   "to_key": null,
+   "material": "figure of the \"new theme\" by inversion; bar 21 recapitulates bars 12-13 compressed; rising sequence 22-23 alludes to subject by diminution",
+   "sequence": "falling then rising sequence"
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "25-27 (end)",
+   "notes": "\"new theme\" and allusions to inverted answer form a codetta leading to augmented answer (27)"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "3-4",
+   "to": "cadence at bar 4"
+  },
+  {
+   "bars": "6-7",
+   "to": "cadence in V"
+  }
+ ],
+ "coda": "33-35 (tonic pedal)",
+ "cadences": [
+  {
+   "bar": "4",
+   "key": "I",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "7",
+   "key": "V",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "33",
+   "key": "I",
+   "kind": "perfect",
+   "source": "diagram"
+  }
+ ],
+ "countersubjects": {
+  "count": 0,
+  "first": null,
+  "interchange": null,
+  "notes": "no countersubject; the \"new theme\" evolved in stretto 3 (bars 8-9) later takes on the property of a countersubject (bar 24)"
+ },
+ "subject": {
+  "ends": "1 1/2 bars long",
+  "answer": "tonal; subdominant answer (if subject reckoned longer than four notes)",
+  "notes": "if subject reckoned as four notes the answer is a normal tonal answer (p.9); only subdominant answer to an opening subject in the 48"
+ },
+ "key_plan": "Review table: Exp STR / (I) | Counterexp STR / (I, ii-V) | Dev STR STR STR EP STR S EP S STR S S S S (V-ii, ii-I, I, vi-V I, I I, I I I I) | Final S / (I)",
+ "claims": [
+  {
+   "claim": "Exposition itself is in stretto and includes an inverted entry; most stretto fugues start with an orthodox exposition.",
+   "page": 80
+  },
+  {
+   "claim": "Subject capable of every mixture of direct and inverted, plain, augmented and diminished.",
+   "page": 80
+  },
+  {
+   "claim": "Groups of stretto entries contrasted with single entries (with I.8).",
+   "page": 80
+  },
+  {
+   "claim": "Counterexposition (4-7) also in stretto, each voice leading to an entry by diminution.",
+   "page": 75
+  }
+ ],
+ "notes": "Entry keys mostly read from the key line under the diagram; their alignment with individual entries is approximate where several entries start close together."
+}

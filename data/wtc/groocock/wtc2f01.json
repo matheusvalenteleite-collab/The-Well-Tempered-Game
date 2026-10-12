@@ -1,0 +1,223 @@
+{
+ "id": "wtc2f01",
+ "title": "II.1: Fugue in C major",
+ "voices": 3,
+ "groocock": {
+  "group": 2,
+  "chapter": "7 Group 2: Fugues for Three Voices, without Stretto",
+  "pages": "50-52",
+  "pdf_pages": "63-65",
+  "note": "heading \"II.1: FUGUE IN C MAJOR\" on pdf 63 (book p.50); OCR lost it"
+ },
+ "entries": [
+  {
+   "bars": "1-5",
+   "voice": "middle",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "5-9",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "I-V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "tonal; harmonized at first in I, modulating to V in bar 7"
+  },
+  {
+   "bars": "9-13",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "subdominant colouring from soprano bar 10"
+  },
+  {
+   "bars": "21-25",
+   "voice": "middle",
+   "form": "subject",
+   "key": "V-ii",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": "overlaps end of episode 1, arriving as part of perfect cadence in V; melodically D major then D minor, harmonically G major then D minor"
+  },
+  {
+   "bars": "25-29",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "ii-vi",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "39-43",
+   "voice": "bass",
+   "form": "answer",
+   "key": "I-V",
+   "section": "entries in the keys of the exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "47-51",
+   "voice": "middle",
+   "form": "subject",
+   "key": "I",
+   "section": "entries in the keys of the exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "subdominant colouring from bass of bar 47; soprano tonic pedal, bass dominant pedal (diagram)"
+  },
+  {
+   "bars": "51-55",
+   "voice": "soprano",
+   "form": "answer",
+   "key": "I-V",
+   "section": "entries in the keys of the exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "68-72",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "not completed in original form; sequential-like second half replaces running passage; tonic pedal in middle (diagram)"
+  },
+  {
+   "bars": "72-76",
+   "voice": "middle",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "ending altered further"
+  },
+  {
+   "bars": "76-80",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "repeats form of bass entry; decorated tonic pedal in bass 76-80"
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "13-22",
+   "from_key": "I",
+   "to_key": "V",
+   "material": "bass repeats end of subject and beginning of \"countersubject\"; upper voices use subject opening in two-part imitation; led to strong perfect cadence at bar 22, overlapping subject entry of bar 21",
+   "sequence": "rising sequence"
+  },
+  {
+   "number": 2,
+   "bars": "29-39",
+   "from_key": "vi",
+   "to_key": "I (text: vi to ii)",
+   "material": "29-33 middle uses bass figures of ep.1, soprano variant of subject beginning; 33-39 figures of bars 3 and 5 combined with interchange every bar",
+   "sequence": "falling sequence (29-33)"
+  },
+  {
+   "number": 3,
+   "bars": "43-47",
+   "from_key": "V",
+   "to_key": "I",
+   "material": "bass repeats final figure of the answer; upper voices leaping figure alternately rising and falling",
+   "sequence": "rising sequence"
+  },
+  {
+   "number": 4,
+   "bars": "55-68",
+   "from_key": "V",
+   "to_key": "I",
+   "material": "55-60 repeat of rising sequence of ep.1; 60-68 varied; upper voices allude to suspension of bar 19 toward interrupted cadence at bar 68",
+   "sequence": "rising then falling sequence"
+  }
+ ],
+ "coda": "80-83",
+ "cadences": [
+  {
+   "bar": "22",
+   "key": "V",
+   "kind": "perfect",
+   "source": "text+diagram"
+  },
+  {
+   "bar": "25",
+   "key": "ii (diagram slash at bar 25; key line ii-vi)",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "55",
+   "key": "V (diagram, key line V-I)",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "68",
+   "key": "I",
+   "kind": "interrupted",
+   "source": "text"
+  },
+  {
+   "bar": "83",
+   "key": "I",
+   "kind": "perfect",
+   "source": "diagram"
+  }
+ ],
+ "countersubjects": {
+  "count": 0,
+  "first": "bar 5 (quasi-countersubject, recognizable from rising scale of bar 7)",
+  "interchange": null,
+  "notes": "\"countersubject\" recurs below answers at 25 and 51 but parallel fourths in bar 8 would become fifths if inverted; drastically modified above (39-41) so regarded as free part; \"generally classified as one without a countersubject, though it can be regarded as being of a hybrid type\""
+ },
+ "subject": {
+  "ends": "seems to last until the first note of bar 5 (implied cadence)",
+  "answer": "tonal (special case: diatonic auxiliary note)",
+  "notes": "first three notes decorate the dominant by lower diatonic mordent (a tone); answer starts on tonic decorated by a semitone mordent; p.6: dominant is first and third note, both answered by tonic (as in I.21), whole tone g-f-g answered by semitone c-b-c, second note treated as diatonic auxiliary; listed under special cases of tonal answers (p.10)"
+ },
+ "key_plan": "Group 2 table: Exp I V I | Dev EP ii vi EP V EP I V | Final EP I I I",
+ "claims": [
+  {
+   "claim": "Subject entry at bar 21 implies one key melodically and another harmonically.",
+   "page": 51
+  },
+  {
+   "claim": "Final section has three subject entries, none completed in original form.",
+   "page": 51
+  },
+  {
+   "claim": "Tonic and dominant pedals frequent in second half in every voice; decorated tonic pedal 76-80.",
+   "page": 52
+  },
+  {
+   "claim": "Hybrid: generally classified as without countersubject.",
+   "page": 52
+  }
+ ],
+ "codettas": [],
+ "extensions": []
+}

@@ -1,0 +1,272 @@
+{
+ "id": "wtc1p19",
+ "groocock": {
+  "group": 7,
+  "pages": "156-157"
+ },
+ "piece": "Prelude in A major, WTC I",
+ "entries": [
+  {
+   "bars": "1-3",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "1-3",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 2,
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "1-3",
+   "voice": "middle",
+   "form": "subject",
+   "subject_no": 3,
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "4-6",
+   "voice": "bass",
+   "form": "answer",
+   "subject_no": 1,
+   "key": "V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "4-6",
+   "voice": "middle",
+   "form": "answer",
+   "subject_no": 2,
+   "key": "V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "altered toward ending"
+  },
+  {
+   "bars": "4-6",
+   "voice": "soprano",
+   "form": "answer",
+   "subject_no": 3,
+   "key": "V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "enters last quaver of bar 4; altered"
+  },
+  {
+   "bars": "8-11",
+   "voice": "middle",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "8-11",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 2,
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "8-11",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 3,
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "12-14",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "vi",
+   "section": "entries in related key",
+   "stretto": null,
+   "redundant": false,
+   "notes": "falls a third instead of rising a sixth"
+  },
+  {
+   "bars": "12-14",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 2,
+   "key": "vi",
+   "section": "entries in related key",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "12-14",
+   "voice": "middle",
+   "form": "subject",
+   "subject_no": 3,
+   "key": "vi",
+   "section": "entries in related key",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "17-20",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "17-20",
+   "voice": "middle",
+   "form": "subject",
+   "subject_no": 2,
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "17-20",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 3,
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "20-22",
+   "voice": "soprano",
+   "form": "subject",
+   "subject_no": 1,
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "20-22",
+   "voice": "middle",
+   "form": "subject",
+   "subject_no": 2,
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "20-22",
+   "voice": "bass",
+   "form": "subject",
+   "subject_no": 3,
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "6-8",
+   "name": "episode 1",
+   "from_key": null,
+   "to_key": null,
+   "material": "codetta figure in bass; first and suspension figures of S ii",
+   "sequence": "falling sequence"
+  },
+  {
+   "bars": "14-17",
+   "name": "episode 2",
+   "from_key": "vi",
+   "to_key": "I",
+   "material": "inverted codetta figure; suspension figure of S ii",
+   "sequence": null
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "3"
+  }
+ ],
+ "extensions": [
+  {
+   "bars": "11-12",
+   "to": "cadence in vi"
+  }
+ ],
+ "cadences": [
+  {
+   "bar": "4",
+   "key": "V",
+   "kind": "diagram '/'"
+  },
+  {
+   "bar": "12",
+   "key": "vi",
+   "kind": "cadence"
+  },
+  {
+   "bar": "24",
+   "key": "I",
+   "kind": "final"
+  }
+ ],
+ "countersubjects": {
+  "count": 0,
+  "first": null,
+  "interchange": null,
+  "notes": "fugue on three subjects"
+ },
+ "subject": {
+  "ends": "all three subjects end at third beat of bar 3",
+  "answer": null,
+  "notes": "only four of six permutations used"
+ },
+ "stretti": [],
+ "claims": [
+  {
+   "page": 157,
+   "claim": "Bach used only four of the six possible permutations of the three subjects"
+  }
+ ]
+}

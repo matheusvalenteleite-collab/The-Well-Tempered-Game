@@ -1,0 +1,231 @@
+{
+ "id": "wtc2f19",
+ "title": "II.19: Fugue in A major",
+ "voices": 3,
+ "groocock": {
+  "group": 2,
+  "chapter": "7 Group 2: Fugues for Three Voices, without Stretto",
+  "pages": "56-57",
+  "pdf_pages": "69-70"
+ },
+ "entries": [
+  {
+   "bars": "1-2",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": null
+  },
+  {
+   "bars": "2-4",
+   "voice": "middle",
+   "form": "answer",
+   "key": "I-V",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "real; harmonized so the tonic is kept until the final figure"
+  },
+  {
+   "bars": "5-6",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "exposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "entirely in tonic; (C) in middle voice; followed by codetta (6) modulating to V"
+  },
+  {
+   "bars": "7-8",
+   "voice": "bass",
+   "form": "answer",
+   "key": "V",
+   "section": "extension of exposition",
+   "stretto": null,
+   "redundant": true,
+   "notes": "started in E but ends with implication of A"
+  },
+  {
+   "bars": "9-11",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "vi",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": "begins with an extra step"
+  },
+  {
+   "bars": "12-13",
+   "voice": "middle",
+   "form": "subject",
+   "key": "iii",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": "begins with a leap to the first note"
+  },
+  {
+   "bars": "16-17",
+   "voice": "bass",
+   "form": "subject",
+   "key": "I",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": "leap to first note; chromatic decoration; keys I-IV"
+  },
+  {
+   "bars": "20-21",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "IV",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": "extra step; chromatic decoration"
+  },
+  {
+   "bars": "23-25",
+   "voice": "middle",
+   "form": "answer",
+   "key": "V",
+   "section": "entries in other keys",
+   "stretto": null,
+   "redundant": false,
+   "notes": "leap to first note; g-natural chromatic decoration; part of extended dominant preparation"
+  },
+  {
+   "bars": "27-29",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "I",
+   "section": "final section",
+   "stretto": null,
+   "redundant": false,
+   "notes": "extra step; chromatic note; extended (diagram \"ext\")"
+  }
+ ],
+ "episodes": [
+  {
+   "number": 1,
+   "bars": "4-5",
+   "from_key": null,
+   "to_key": null,
+   "material": "middle repeats last figure of the answer, with jerky-rhythm figure",
+   "sequence": "falling sequence"
+  },
+  {
+   "number": 2,
+   "bars": "8-9",
+   "from_key": null,
+   "to_key": "vi",
+   "material": "bass repeats last figure of answer; upper voices allude to bass of ep.1 in two-part imitation",
+   "sequence": "imitation"
+  },
+  {
+   "number": 3,
+   "bars": "11-12",
+   "from_key": "vi",
+   "to_key": "iii",
+   "material": "upper voices treat last figure of subject in two-part imitation; bass develops bass of ep.1",
+   "sequence": "imitation"
+  },
+  {
+   "number": 4,
+   "bars": "13-16",
+   "from_key": "iii",
+   "to_key": "I",
+   "material": "develops ep.3, including inversion of the last subject figure",
+   "sequence": null
+  },
+  {
+   "number": 5,
+   "bars": "17-20",
+   "from_key": "I, ii",
+   "to_key": "I",
+   "material": "17-18 repeat of ep.2 with upper voices interchanged; 18-20 last subject figure direct and inverted",
+   "sequence": null
+  },
+  {
+   "number": 6,
+   "bars": "21-23",
+   "from_key": "IV, I",
+   "to_key": "V",
+   "material": "last subject figure in two-part imitation with added sixths or tenths",
+   "sequence": "imitation"
+  },
+  {
+   "number": 7,
+   "bars": "25-27",
+   "from_key": "V",
+   "to_key": "I",
+   "material": "last subject figure simultaneously direct and inverted",
+   "sequence": null
+  }
+ ],
+ "codettas": [
+  {
+   "bars": "6",
+   "notes": "modulating to V"
+  }
+ ],
+ "coda": null,
+ "cadences": [
+  {
+   "bar": "4",
+   "key": "V",
+   "kind": "perfect",
+   "source": "text: \"continuation of the opening subject toward the cadence in V at bar 4\""
+  },
+  {
+   "bar": "11",
+   "key": "vi",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "16",
+   "key": "I",
+   "kind": "perfect",
+   "source": "diagram"
+  },
+  {
+   "bar": "29",
+   "key": "I",
+   "kind": "perfect",
+   "source": "diagram"
+  }
+ ],
+ "countersubjects": {
+  "count": 0,
+  "first": "bars 5-6 middle voice (rising scale steps) \"may be regarded as a countersubject\"",
+  "interchange": null,
+  "notes": "classified without countersubject; continuation of subject toward cadence in bar 4 not a CS; rising steps in middle 5-6 regarded as a CS, increasingly clear at bars 9, 20, 23, 27; diagram also marks bracketed [CII] in bass"
+ },
+ "subject": {
+  "ends": null,
+  "answer": "real",
+  "notes": "uses every scale note except the leading-note, allowing subdominant colouring; dominant far from start, so real answer (p.6)"
+ },
+ "key_plan": "Group 2 table: Exp I V EP I | V | Dev EP vi EP iii EP vi EP IV EP V | Final EP I",
+ "claims": [
+  {
+   "claim": "Exposition has an episode before the third entry (bar 4); redundant answer at bar 7.",
+   "page": 32
+  },
+  {
+   "claim": "Four of nine accompanied entries start as resolutions of a suspension.",
+   "page": 56
+  },
+  {
+   "claim": "Last four entries decorated with a chromatic note.",
+   "page": 57
+  }
+ ],
+ "extensions": []
+}

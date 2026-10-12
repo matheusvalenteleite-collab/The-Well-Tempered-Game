@@ -1,0 +1,262 @@
+{
+ "id": "wtc2f17-part2",
+ "groocock": {
+  "group": 4,
+  "pages": "88-89"
+ },
+ "partial": true,
+ "partial_note": "Continuation only: the analysis of II.17 begins on pdf 100 (part 1); table/diagram and exposition are there.",
+ "entries": [
+  {
+   "bars": "6",
+   "voice": "tenor",
+   "form": "subject",
+   "key": null,
+   "section": null,
+   "stretto": null,
+   "redundant": false,
+   "notes": "first countersubject in full in soprano; alto develops semiquavers of bar 5 into a second countersubject"
+  },
+  {
+   "bars": "8",
+   "voice": "bass",
+   "form": "subject or answer (not specified in this part)",
+   "key": null,
+   "section": null,
+   "stretto": null,
+   "redundant": false,
+   "notes": "tenor has first countersubject, alto second countersubject"
+  },
+  {
+   "bars": "13-14",
+   "voice": null,
+   "form": "subject",
+   "key": null,
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "first entry of what 'we may now regard as a counterexposition'; chromatic alteration in the subject at bar 14; voice not stated in this part"
+  },
+  {
+   "bars": "16",
+   "voice": "alto",
+   "form": "answer",
+   "key": null,
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "accompanied by falling scales instead of the countersubjects"
+  },
+  {
+   "bars": "18",
+   "voice": "tenor",
+   "form": "subject",
+   "key": null,
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "first countersubject above it; bass evolves a new version of the second countersubject"
+  },
+  {
+   "bars": "22-24",
+   "voice": "soprano",
+   "form": "subject",
+   "key": null,
+   "section": "counterexposition",
+   "stretto": null,
+   "redundant": false,
+   "notes": "climactic passage; all four voices heard together for the first time; both countersubjects plus an inconspicuous free part"
+  },
+  {
+   "bars": "24",
+   "voice": "alto",
+   "form": "subject or answer (not specified)",
+   "key": "vi [f]",
+   "section": null,
+   "stretto": null,
+   "redundant": false,
+   "notes": "modulation begins immediately after the 'original final cadence' at bar 24"
+  },
+  {
+   "bars": "32",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "v [eb]",
+   "section": null,
+   "stretto": null,
+   "redundant": false,
+   "notes": "'distant key'"
+  },
+  {
+   "bars": "35",
+   "voice": "soprano",
+   "form": "subject",
+   "key": "ii [bb]",
+   "section": null,
+   "stretto": null,
+   "redundant": false,
+   "notes": "soprano first alludes to the beginning of the answer to lead in"
+  },
+  {
+   "bars": "37",
+   "voice": "bass",
+   "form": "subject",
+   "key": "IV to iv",
+   "section": null,
+   "stretto": null,
+   "redundant": false,
+   "notes": "normal accents reversed; 'one of the masterstrokes of the fugue'"
+  },
+  {
+   "bars": "41",
+   "voice": "tenor",
+   "form": "subject",
+   "key": "I",
+   "section": null,
+   "stretto": null,
+   "redundant": false,
+   "notes": "return of main key; ornamented first countersubject in soprano"
+  },
+  {
+   "bars": "43?",
+   "voice": "bass",
+   "form": "answer",
+   "key": "I to bII",
+   "section": null,
+   "stretto": null,
+   "redundant": false,
+   "notes": "arrives before the tenor entry is finished; avoids expected ending in V, modulating to the Neapolitan (bII); exact bar not printed"
+  },
+  {
+   "bars": "46-",
+   "voice": null,
+   "form": "subject (starting like the answer)",
+   "key": "I",
+   "section": "coda",
+   "stretto": null,
+   "redundant": false,
+   "notes": "final entry in the coda, with the first countersubject; coda adds a fifth part"
+  }
+ ],
+ "episodes": [
+  {
+   "bars": "10-13",
+   "name": "episode 1",
+   "from_key": null,
+   "to_key": null,
+   "material": "bass forms continuous upward sequence from the semiquavers of bar 5; alto recalls chromatic steps of first countersubject and the downward run of bar 5 (altered accentuation); tenor alludes to opening leaps of subject",
+   "sequence": "upper voices interchanged at middle of bar 11; real measure is 3/2"
+  },
+  {
+   "bars": "27-32",
+   "name": "episode 2",
+   "from_key": "iii [c]",
+   "to_key": "v [eb]",
+   "material": "complete interchange and extension of episode 1 (original bass in soprano, soprano in bass, alto stays)",
+   "sequence": "voices interchanged after 1 1/2 bars and again halfway through bar 30"
+  }
+ ],
+ "codettas": [],
+ "extensions": [
+  {
+   "bars": "15",
+   "to": "cadence in vi [f] by free interchange of voices"
+  },
+  {
+   "bars": "20",
+   "to": "as bar 15, interchanging only upper voices; bass repeats cadential figure"
+  },
+  {
+   "bars": "24-27",
+   "to": "falling sequence to cadence in iii [c]"
+  },
+  {
+   "bars": "after 32",
+   "to": "first as if falling sequence, then rising sequence leading to soprano entry at 35"
+  },
+  {
+   "bars": "35-37",
+   "to": "short extension avoiding exact sequence, introducing bar 37"
+  },
+  {
+   "bars": "39-41",
+   "to": "moves into i and v [ab -> eb]; tierce de Picardie in v as dominant for return at 41"
+  },
+  {
+   "bars": "45-46",
+   "to": "bass run with leaping figures recalling subject, culminating in a dominant seventh"
+  }
+ ],
+ "cadences": [
+  {
+   "bar": "15-16",
+   "key": "vi",
+   "kind": "cadence (after extension)"
+  },
+  {
+   "bar": "24",
+   "key": "I",
+   "kind": "'original final cadence', adorned by suspended seventh"
+  },
+  {
+   "bar": "27",
+   "key": "iii",
+   "kind": "cadence after falling sequence"
+  },
+  {
+   "bar": "40-41",
+   "key": "v",
+   "kind": "tierce de Picardie; dominant for return of main key"
+  }
+ ],
+ "countersubjects": {
+  "count": 2,
+  "first": "present in exposition (begins before this part)",
+  "interchange": null,
+  "notes": "second countersubject developed by alto from the semiquavers of bar 5 at bar 6; later the ear accepts variants of the semiquaver run as equivalent to it; bass at 18 evolves a new version"
+ },
+ "subject": {
+  "ends": null,
+  "answer": null,
+  "notes": "subject/answer discussion is in part 1 (pdf 100)"
+ },
+ "stretti": [],
+ "claims": [
+  {
+   "page": 88,
+   "claim": "At bar 6 the alto develops the semiquavers of bar 5 into a second countersubject; thereafter variants of the semiquaver run count as that countersubject"
+  },
+  {
+   "page": 88,
+   "claim": "After episode 1 (10-13) there is a counterexposition, with chromatic alteration of the subject at bar 14"
+  },
+  {
+   "page": 88,
+   "claim": "All four voices sound together for the first time in the climactic passage 22-24"
+  },
+  {
+   "page": 88,
+   "claim": "Bar 24 is the 'original final cadence', adorned by a suspended seventh; modulation begins immediately with the alto in vi"
+  },
+  {
+   "page": 88,
+   "claim": "Episode 2 modulates from iii to v; tenor enters with the subject in v at 32"
+  },
+  {
+   "page": 88,
+   "claim": "Bass entry at 37 has its accents reversed, a latent possibility of this subject; it begins in IV and ends in iv"
+  },
+  {
+   "page": 88,
+   "claim": "At 41-43 the bass answer arrives before the tenor subject has finished, and is harmonized toward the Neapolitan (bII) instead of V"
+  },
+  {
+   "page": 89,
+   "claim": "The coda from bar 46 adds a fifth part and includes a final subject entry starting like the answer, with the first countersubject"
+  },
+  {
+   "page": 89,
+   "claim": "Episode 2 (27-32) is a complete interchange and extension of episode 1"
+  }
+ ]
+}
