@@ -21,7 +21,7 @@ its role says so and the chord's members all stand above it.
 
 | | alto is Bach's | tenor is Bach's | alto and tenor sound Bach's two notes (any octave) |
 |---|---|---|---|
-| **search, Bach's habits on** | 59% | 56% | 69% |
+| **search, Bach's habits on** | 59% | 55% | 67% |
 | search, habits off (smooth voice-leading only) | 31% | 33% | 35% |
 
 ## 2. The judge's findings, per 100 chords
@@ -33,10 +33,10 @@ chorales of section 1, read by the same judge.
 | | parallel | contrary | augSecond | missing | foreign | noFifth | doubling | spacing | crossing | range | seventh | leading |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | *Bach's own inner voices* (16379 chords) | 3.6 | 1.0 | 0.1 | 2.2 | 11.4 | 4.7 | 2.7 | 2.2 | 2.0 | 0.2 | 2.3 | 0.5 |
-| search on Bach's chorales (16379) | 0.4 | 0.1 | 0.0 | 0.0 | 0.0 | 2.3 | 0.7 | 0.3 | 0.0 | 0.0 | 2.1 | 0.2 |
-| **search on Kittel's basses** (9074) | 0.1 | 0.0 | 0.0 | 0.7 | 0.0 | 3.0 | 0.4 | 0.3 | 0.1 | 0.0 | 0.7 | 0.3 |
+| search on Bach's chorales (16379) | 0.5 | 0.1 | 0.0 | 0.0 | 0.0 | 3.1 | 1.0 | 0.4 | 0.0 | 0.0 | 2.0 | 0.2 |
+| **search on Kittel's basses** (9074) | 0.1 | 0.0 | 0.0 | 0.8 | 0.0 | 4.1 | 0.7 | 0.3 | 0.1 | 0.0 | 0.6 | 0.3 |
 | search on Kittel's basses, habits off | 0.2 | 0.0 | 0.0 | 3.4 | 0.0 | 27.6 | 19.7 | 20.0 | 0.1 | 0.0 | 2.1 | 0.8 |
-| **search on the generator's settings** (7224) | 0.3 | 0.3 | 0.0 | 0.0 | 0.0 | 1.2 | 0.6 | 0.1 | 0.0 | 0.0 | 1.5 | 0.3 |
+| **search on the generator's settings** (7224) | 0.4 | 0.2 | 0.0 | 0.0 | 0.0 | 2.1 | 1.0 | 0.2 | 0.0 | 0.0 | 1.5 | 0.3 |
 
 Keys (level5.ts, C21; gravity 3 grave, 2 warning, 1 note): *parallel* parallel fifths/octaves (3),
 *contrary* fifths/octaves by contrary motion (2); *augSecond* in an inner line; *missing*, *foreign* the chord the
@@ -50,15 +50,15 @@ Kittel's, do the generated alto and tenor sound Bach's two notes (level5.ts `com
 
 | | chords compared | same two notes as Bach |
 |---|---|---|
-| **search, habits on** | 9135 | 55% |
+| **search, habits on** | 9135 | 53% |
 | search, habits off | 9135 | 24% |
 
 ## Reading
 
 - **Bach's habits are what make the voices his.** With them, the generated alto and tenor are Bach's own notes
-  59% and 56% of the time, and sound his two notes 69% of the time; without them (the
+  59% and 55% of the time, and sound his two notes 67% of the time; without them (the
   smoothest voice-leading alone) about a third. Under Kittel's basses they sound the notes of Bach's own settings of the
-  tune 55% of the time (habits off: 24%).
+  tune 53% of the time (habits off: 24%).
 - **The judge has little to say about them**: under 1 parallel fifth or octave per 100 chords, no augmented second,
   the figure's chord complete; what remains is mostly a left-out fifth (which Bach also does) and the occasional rare
   doubling or seventh. Where a voicing must break something (a melody note too low to leave room under it, a note the

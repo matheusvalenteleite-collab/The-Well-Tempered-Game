@@ -77,3 +77,39 @@ generated cadence to A♭: "cool, but nothing like anything written by Bach".
 - An A/B page (`tools/chorales/pairs_report.ts`, https://claude.ai/artifact/CnmUBaKuDp7w1Kyp8CK1Px, collection
   "pairs", key in `data/chorales/generator/pairs-key.json`): eight held-out melodies, the same chords set
   twice, before and after, in random order.
+
+## Lines with direction, a voice that leads, the bench (12 October 2026)
+
+The owner on the A/B page: the inner voices "quite poor in conception and independence... would you sing these
+lines?" Beat by beat the generator already matched Bach (held notes, steps, leaps, motion against the outer
+voices); over several beats it did not: Bach's inner voices run three or more steps one way twice as often, his
+alto and tenor move against each other twice as often, his alto rises with the melody's climax, and his movement
+stays with one voice for a passage (MOTIVES.md). Four changes, each calibrated on held-out melodies against Bach's
+settings of them (`voices.ts` VOICING; `diminution.ts` LEADER, STAY, RESTRAINT):
+
+| | Bach | before | now |
+|---|---|---|---|
+| moves inside runs of 3+ steps one way | 4.7% | 2.5% | 4.8% |
+| alto and tenor in contrary motion | 15% | 8% | 16% |
+| alto's high point with the soprano's (of 60) | 26 | 17 | 22 |
+| bars where one lower voice moves alone, a chorale | 0.55 | 0.38 | 0.53 |
+| the next such bar the same voice's | 74% | 56% | 79% |
+
+1. **A longer line memory**: each line re-written with Bach's shapes over three moves, exactly (the search
+   remembers three notes), and a reward for a step continuing a step (2.5 bits).
+2. **Alto against tenor**: a reward for contrary motion (1.3 bits). (Costing their motion by its frequency in
+   Bach made contrary motion rarer: the cheapest path then avoids the rarer option. Every rate here had to be
+   brought to Bach's by a calibrated bias, not by a cost from his frequencies.)
+3. **The alto's contour**: a reward for height within two beats of the soprano's high point (4 bits an octave).
+4. **One voice leads**: in the diminution each phrase has a leading voice (drawn: bass about half the time), its
+   embellishments made likelier and the others' less; the lead stays from one phrase to the next three times in
+   four; the restraint on passing notes recalibrated (alto 1.5, tenor 1.6, bass 3.8 bits) for Bach's density.
+
+What it costs: chords without their fifth 2.1 per 100 (from 1.2; the search on Bach's own chorales 2.3), unusual
+doublings 1.0 (from 0.6), and agreement with Bach's own voicings down a point or two (alto 59%, tenor 55%).
+
+**The bench.** The playback session now runs the listening room where the owner judges all generated music
+blind against Bach; the owner approved putting the chorales there and retiring this session's own pages
+("Could It Be Bach?", "Which Is Better?"). `tools/chorales/bench_report.ts` writes
+`data/playback/bench/gen-chorale-<no>-v1.json`: eight held-out melodies Bach set (four major, four minor), each
+to be heard beside his own setting.

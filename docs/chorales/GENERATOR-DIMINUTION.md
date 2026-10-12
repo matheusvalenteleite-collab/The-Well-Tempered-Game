@@ -19,14 +19,14 @@ embellishment, 15% of the tenor's, 16% of the bass's. Read one chord per beat, a
 embellishment after a note held over two beats, for instance), so his row below understates him a little.
 
 Drawn as learnt, the chain embellishes more than Bach, and its surplus figures repeat generically through the chorale
-(docs/chorales/MOTIVES.md); a restraint on the passing note, where its surplus lies (2^-r as likely: alto 2, tenor 1.9, bass 3.2 bits),
+(docs/chorales/MOTIVES.md); a restraint on the passing note, where its surplus lies (2^-r as likely: alto 1.5, tenor 1.6, bass 3.8 bits),
 calibrated on the tunes held out, brings it to Bach's density with his balance of kinds; it is the default.
 
 | | alto embellished | tenor | bass | the same kind where Bach has one | surface rarities per 100 chords |
 |---|---|---|---|---|---|
 | *Bach* | 12% | 11% | 11% |  | 0.4 |
-| **generator, drawn, with restraint** (the default) | 11% | 10% | 11% | 31% | 0.1 |
-| generator, drawn as learnt (each choice as often as Bach makes it in its context) | 15% | 14% | 22% | 54% | 0.1 |
+| **generator, drawn, with restraint** (the default) | 10% | 11% | 12% | 30% | 0.1 |
+| generator, drawn as learnt (each choice as often as Bach makes it in its context) | 13% | 15% | 24% | 52% | 0.2 |
 | generator, the most likely choice at every note | 7% | 16% | 25% | 58% | 0.1 |
 
 Kinds, by voice (share of the embellishments):
@@ -34,8 +34,8 @@ Kinds, by voice (share of the embellishments):
 | | alto passing | alto neighbourUp | alto neighbourDown | alto suspension | alto anticipation | tenor passing | tenor neighbourUp | tenor neighbourDown | tenor suspension | tenor anticipation | bass passing | bass neighbourUp | bass neighbourDown | bass suspension | bass anticipation |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | *Bach* | 41% | 4% | 6% | 49% | 1% | 71% | 3% | 3% | 22% | 1% | 94% | 3% | 3% | 0% | 0% |
-| **generator, drawn, with restraint** | 41% | 1% | 11% | 46% | 1% | 70% | 2% | 6% | 21% | 1% | 85% | 8% | 7% | 0% | 0% |
-| generator, drawn as learnt | 59% | 1% | 7% | 33% | 1% | 81% | 1% | 3% | 14% | 0% | 92% | 4% | 4% | 0% | 0% |
+| **generator, drawn, with restraint** | 46% | 1% | 11% | 41% | 0% | 69% | 2% | 7% | 21% | 2% | 77% | 11% | 11% | 1% | 0% |
+| generator, drawn as learnt | 58% | 1% | 8% | 33% | 0% | 78% | 2% | 5% | 15% | 1% | 90% | 5% | 5% | 0% | 0% |
 
 *Surface rarities*: the surface cost in units of one pair of parallel fifths/octaves (a clash of two incidental notes
 counts half). Bach's own row is measured the same way on his reduced and re-embellished voices.
@@ -48,8 +48,8 @@ embellishments then move in crotchets, as his basses' passing notes do.
 
 | | alto embellished (per note) | tenor | bass |
 |---|---|---|---|
-| generator's settings | 8% | 6% | 8% |
-| Kittel's basses | 4% | 4% | (his own) |
+| generator's settings | 6% | 7% | 8% |
+| Kittel's basses | 5% | 5% | (his own) |
 
 The bass moves by step in 49% of its moves once embellished (36% before);
 Kittel's basses, with their own passing notes, in 57%.

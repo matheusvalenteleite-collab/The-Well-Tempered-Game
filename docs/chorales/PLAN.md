@@ -278,3 +278,7 @@ The owner asked for all four steps in order, without conferring.
   harmony instead of the argmax (which collapses into I-V), inner-voice moves learnt from every beat, and a
   calibrated cost for holding a note (voices.ts LINE): on the beats the inner voices now match Bach's rates
   of holding, steps and leaps. Round 2 page published with new melodies.
+- Lines with direction and a leading voice (12 October 2026, docs/chorales/LISTENING-RATINGS.md): three-move
+  line shapes, rewards for runs and for alto-tenor contrary motion, the alto rising with the melody's climax, a
+  leading voice per passage in the diminution; all calibrated to Bach's rates on held-out melodies. Listening
+  moves to the playback session's bench (data/playback/bench/, eight held-out melodies against Bach's settings).

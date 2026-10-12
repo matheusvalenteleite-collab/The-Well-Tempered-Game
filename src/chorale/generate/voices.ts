@@ -67,6 +67,14 @@ export class VoiceModel {
    *  the move before it, over its cost alone: -log2 P(move | move before) + log2 P(move), moves bucketed by
    *  direction and size (SHAPE_BUCKETS). Learnt from every beat-to-beat succession. */
   readonly shape: Record<"alto" | "tenor", number[][]>;
+  /** Three moves at a time: the surplus cost of a move given the two before it, over its cost given the one
+   *  before: -log2 P(move | two before) + log2 P(move | one before). A run of steps one way, a leap recovered
+   *  over two notes: the longer shapes of Bach's inner lines. */
+  readonly shape3: Record<"alto" | "tenor", number[][][]>;
+  /** The alto's and tenor's motion against each other (0 both hold, 1 oblique, 2 similar, 3 contrary): the
+   *  cost of each (bits), from Bach's successions. Contrary motion between the inner voices is half as common
+   *  in the joint search as in Bach (8% against 15%). */
+  readonly together: number[];
   readonly counts: { pairsMoved: number; parallel: number; contrary: number; innerMoves: number; augSecond: number; triads: number; noFifth: number };
 
   constructor(train: BachChorale[]) {
@@ -123,6 +131,30 @@ export class VoiceModel {
       });
     };
     this.shape = { alto: surplus(two.alto), tenor: surplus(two.tenor) };
+    const three = { alto: [...Array(9)].map(() => [...Array(9)].map(() => new Array(9).fill(0))), tenor: [...Array(9)].map(() => [...Array(9)].map(() => new Array(9).fill(0))) };
+    const tog = [0, 0, 0, 0];
+    for (const c of train)
+      for (let i = 1; i < c.notes.length; i++) {
+        const [b, d] = [c.notes[i - 1], c.notes[i]];
+        if (b.a && b.tn && d.a && d.tn) tog[motionKind(midiOf(d.a) - midiOf(b.a), midiOf(d.tn) - midiOf(b.tn))]++;
+        if (i < 3) continue;
+        const a0 = c.notes[i - 3], a1 = c.notes[i - 2];
+        for (const [v, w, x, y, z] of [["alto", a0.a, a1.a, b.a, d.a], ["tenor", a0.tn, a1.tn, b.tn, d.tn]] as const)
+          if (w && x && y && z) three[v][shapeBucket(midiOf(x) - midiOf(w))][shapeBucket(midiOf(y) - midiOf(x))][shapeBucket(midiOf(z) - midiOf(y))]++;
+      }
+    const surplus3 = (t: number[][][]) =>
+      t.map((plane) => {
+        // P(next | one before), from the same counts
+        return plane.map((r, j) => {
+          const two = t.reduce((acc, pl) => acc.map((x, k) => x + pl[j][k]), new Array(9).fill(0));
+          const n2 = two.reduce((a, b) => a + b, 0);
+          const n = r.reduce((a, b) => a + b, 0);
+          return r.map((k, m) => bits(k, n) - bits(two[m], n2));
+        });
+      });
+    this.shape3 = { alto: surplus3(three.alto), tenor: surplus3(three.tenor) };
+    const tz = tog.reduce((a, b) => a + b, 0);
+    this.together = tog.map((k) => bits(k, tz));
     this.parallel = bits(cons, pairs);
     this.contrary = bits(contra, pairs);
     this.augSecond = bits(aug, inner);
@@ -165,14 +197,26 @@ export interface VoiceOptions {
    *  on 46% of chord changes and 84% of repeated chords against Bach's 30% and 46%, with runs of 22
    *  beats (docs/chorales/LISTENING-RATINGS.md). LINE is calibrated on Bach; absent, no cost. */
   line?: { change: [number, number]; same: [number, number] };
+  /** Weight of the alto's and tenor's motion against each other (VoiceModel.together); absent, 0. */
+  together?: number;
+  /** A reward (bits) for the alto and tenor moving in contrary motion. The cheapest path chooses the commoner
+   *  similar motion: unrewarded, they move against each other half as often as Bach's (8% against 15%). */
+  contrary?: number;
+  /** A reward (bits, in the re-writing of a line) for a step continuing a step the same way: Bach's inner
+   *  lines run three or more steps one way twice as often as the cheapest path (4.7% of moves against 2.5%). */
+  run?: number;
+  /** A reward (bits per octave above the line's start, in the re-writing of the alto) for height within two
+   *  beats of the soprano's high point: Bach's alto rises with the melody's climax (its high point there in 26
+   *  of 60 held-out chorales; the generator's, 17). */
+  climax?: number;
 }
-export const WEIGHTS: Required<Omit<VoiceOptions, "line">> = { habits: 1, moves: 1, warnings: 1 };
+export const WEIGHTS: Required<Pick<VoiceOptions, "habits" | "moves" | "warnings">> = { habits: 1, moves: 1, warnings: 1 };
 /** The weights that make the search's probabilities match how often Bach writes each voicing, fitted on
  *  a sixth of the chorales and tested on another (mean surprise at Bach's voicings 1.70 -> 1.31 bits,
  *  11 October 2026): for measuring surprise (X1). Read beat by beat, Bach's inner voices hold more
  *  parallel fifths and octaves than the warnings assume (a passing note between the beats hides them),
  *  so the fitted warnings weigh little; for writing, the generator keeps WEIGHTS. */
-export const CALIBRATED: Required<Omit<VoiceOptions, "line">> = { habits: 0.65, moves: 0.5, warnings: 0.25 };
+export const CALIBRATED: Required<Pick<VoiceOptions, "habits" | "moves" | "warnings">> = { habits: 0.65, moves: 0.5, warnings: 0.25 };
 /** The line (12 October 2026): with drawn harmony, held-out melodies, these bring the generated inner
  *  voices to Bach's on the beats: alto held on 30% of chord changes and 50% of repeated chords (Bach 30%,
  *  49%), steps 36% (37%), leaps 31% (30%); tenor 22%, 50%, 38%, 35% (Bach 24%, 45%, 37%, 37%). */
@@ -248,6 +292,13 @@ function pairsAt(vm: VoiceModel, s: Slot, o: VoiceOptions, relax: number): Pair[
 
 /** Moves by direction and size: held; step up, down (1-2 semitones); third up, down (3-4); fourth or fifth
  *  up, down (5-7); larger up, down. */
+/** The alto's and tenor's motion against each other: 0 both hold, 1 oblique, 2 similar, 3 contrary. */
+export function motionKind(da: number, dt: number): number {
+  if (!da && !dt) return 0;
+  if (!da || !dt) return 1;
+  return Math.sign(da) === Math.sign(dt) ? 2 : 3;
+}
+
 export function shapeBucket(d: number): number {
   const a = Math.abs(d);
   if (!a) return 0;
@@ -268,6 +319,8 @@ function moveCost(vm: VoiceModel, s0: Slot, s1: Slot, p: Pair, q: Pair, o: Voice
   for (const f of findingsBetween(1, [s0.soprano, p.alto, p.tenor, s0.bass], [s1.soprano, q.alto, q.tenor, s1.bass]))
     cost += ww * (f.key === "parallel" ? vm.parallel : f.key === "contrary" ? vm.contrary : f.key === "augSecond" ? vm.augSecond : 0);
   const changes = s1.root !== s0.root || s1.kind !== s0.kind;
+  if (o.together) cost += o.together * vm.together[motionKind(q.a - p.a, q.t - p.t)];
+  if (o.contrary && motionKind(q.a - p.a, q.t - p.t) === 3) cost -= o.contrary;
   if (o.line) {
     const l = changes ? o.line.change : o.line.same;
     if (q.a === p.a) cost += l[0];
@@ -353,17 +406,20 @@ export function voiceSurprise(vm: VoiceModel, slots: Slot[], i: number, alto: (s
 }
 
 /**
- * The lines re-written one at a time (the owner's "none of the voices sound artificial"): the alto as a
- * whole melody against the soprano, tenor and bass held fixed, then the tenor against the rest, `rounds`
- * times. Each voice is the cheapest path under the pair's costs (in the chord, its moves, the warnings, the
- * line) plus its shape two moves at a time (VoiceModel.shape, weight `w`), which the joint search over
- * both voices cannot afford to see. Each re-writing keeps the other voice, so the total cost never rises.
+ * The lines re-written one at a time (the owner's "none of the voices sound artificial"; "would you sing
+ * these lines?"): the alto as a whole melody against the soprano, tenor and bass held fixed, then the tenor
+ * against the rest, `rounds` times. Each voice is the cheapest path under the pair's costs (in the chord,
+ * its moves, the warnings, the line, the inner voices' motion) plus its shape over two moves (weight `w`)
+ * and three (weight `w3`) learnt from Bach (VoiceModel.shape, shape3), which the joint search over both
+ * voices cannot afford to see. Exact: the search remembers the last three notes of the line.
  */
-export function refineLines(vm: VoiceModel, slots: Slot[], start: InnerVoices, o: VoiceOptions = {}, rounds = 2, w = 1): InnerVoices {
+export function refineLines(vm: VoiceModel, slots: Slot[], start: InnerVoices, o: VoiceOptions = {}, rounds = 2, w = 1, w3 = 1): InnerVoices {
   let alto = [...start.alto],
     tenor = [...start.tenor];
   const layers = slots.map((s) => pairs(vm, s, o));
   const same = (x: string, y: string) => midiOf(x) === midiOf(y) && letterOf(x) === letterOf(y);
+  const n = slots.length;
+  if (n < 4) return start;
   for (let r = 0; r < rounds; r++)
     for (const v of ["alto", "tenor"] as const) {
       const other = v === "alto" ? tenor : alto;
@@ -373,45 +429,57 @@ export function refineLines(vm: VoiceModel, slots: Slot[], start: InnerVoices, o
       });
       if (cands.some((c) => !c.length)) continue;
       const pitch = (p: Pair) => (v === "alto" ? p.a : p.t);
-      const n = slots.length;
-      // dp over (candidate at i-1, candidate at i)
-      let dp: number[][] = cands[0].map(() => cands[0].map(() => Infinity));
-      cands[0].forEach((p, k) => (dp[0][k] = p.cost));
-      const back: number[][][] = [];
-      let prevSize = 1; // at i = 0 the "previous" index is a dummy 0
-      for (let i = 1; i < n; i++) {
-        const nd = cands[i - 1].map(() => cands[i].map(() => Infinity));
-        const bk = cands[i - 1].map(() => cands[i].map(() => 0));
-        for (let j = 0; j < cands[i - 1].length; j++)
+      const mv = (i: number, x: number, y: number) => shapeBucket(pitch(cands[i][y]) - pitch(cands[i - 1][x]));
+      // the alto's reward for height near the soprano's high point
+      const sop = slots.map((sl) => midiOf(sl.soprano));
+      const peak = sop.indexOf(Math.max(...sop));
+      const base = pitch(cands[0].find((p) => same(v === "alto" ? p.alto : p.tenor, v === "alto" ? alto[0] : tenor[0])) ?? cands[0][0]);
+      const lift = (i: number, y: number) => (v === "alto" && o.climax && Math.abs(i - peak) <= 2 ? (o.climax * (pitch(cands[i][y]) - base)) / 12 : 0);
+      const step = (i: number, x: number, y: number) => cands[i][y].cost - lift(i, y) + moveCost(vm, slots[i - 1], slots[i], cands[i - 1][x], cands[i][y], o);
+      // state at position i: the candidates at i-2, i-1, i (h, j, k); its best cost and the candidate at i-3
+      type St = { c: number; g: number };
+      const key = (h: number, j: number, k: number) => `${h},${j},${k}`;
+      let dp = new Map<string, St>();
+      for (let h = 0; h < cands[0].length; h++)
+        for (let j = 0; j < cands[1].length; j++)
+          for (let k = 0; k < cands[2].length; k++)
+            dp.set(key(h, j, k), { c: cands[0][h].cost - lift(0, h) + step(1, h, j) + step(2, j, k) + w * vm.shape[v][mv(1, h, j)][mv(2, j, k)] - (o.run && (mv(1, h, j) === 1 || mv(1, h, j) === 2) && mv(2, j, k) === mv(1, h, j) ? o.run : 0), g: -1 });
+      const backs: Map<string, St>[] = [dp];
+      for (let i = 3; i < n; i++) {
+        const nd = new Map<string, St>();
+        for (const [kk, st] of dp) {
+          const [g, h, j] = kk.split(",").map(Number);
+          const b1 = mv(i - 2, g, h),
+            b2 = mv(i - 1, h, j);
           for (let k = 0; k < cands[i].length; k++) {
-            const step = cands[i][k].cost + moveCost(vm, slots[i - 1], slots[i], cands[i - 1][j], cands[i][k], o);
-            const b1 = shapeBucket(pitch(cands[i][k]) - pitch(cands[i - 1][j]));
-            let best = Infinity,
-              arg = 0;
-            for (let h = 0; h < prevSize; h++) {
-              const base = dp[h]?.[j];
-              if (base === undefined || base === Infinity) continue;
-              const sh = i >= 2 ? w * vm.shape[v][shapeBucket(pitch(cands[i - 1][j]) - pitch(cands[i - 2][h]))][b1] : 0;
-              if (base + sh < best) [best, arg] = [base + sh, h];
-            }
-            nd[j][k] = best + step;
-            bk[j][k] = arg;
+            const b3 = mv(i, j, k);
+            const run = o.run && (b2 === 1 || b2 === 2) && b3 === b2 ? o.run : 0;
+            const c = st.c + step(i, j, k) + w * vm.shape[v][b2][b3] + w3 * vm.shape3[v][b1][b2][b3] - run;
+            const id = key(h, j, k);
+            const cur = nd.get(id);
+            if (!cur || c < cur.c) nd.set(id, { c, g });
           }
-        back.push(bk);
+        }
         dp = nd;
-        prevSize = cands[i - 1].length;
+        backs.push(dp);
       }
-      // the best final (j, k), then back
-      let bj = 0,
-        bkk = 0,
-        bv = Infinity;
-      dp.forEach((row, j) => row.forEach((x, k) => x < bv && ([bv, bj, bkk] = [x, j, k])));
-      if (bv === Infinity) continue;
+      let best = "",
+        bc = Infinity;
+      for (const [kk, st] of dp) if (st.c < bc) [bc, best] = [st.c, kk];
+      if (bc === Infinity) continue;
       const pick = new Array<number>(n);
-      pick[n - 1] = bkk;
-      pick[n - 2] = bj;
-      for (let i = n - 1; i >= 2; i--) pick[i - 2] = back[i - 1][pick[i - 1]][pick[i]];
-      const line = pick.map((k, i) => (v === "alto" ? cands[i][k].alto : cands[i][k].tenor));
+      let [h, j, k] = best.split(",").map(Number);
+      for (let i = n - 1; i >= 2; i--) {
+        pick[i] = k;
+        if (i === 2) {
+          pick[1] = j;
+          pick[0] = h;
+          break;
+        }
+        const g = backs[i - 2].get(key(h, j, k))!.g;
+        [h, j, k] = [g, h, j];
+      }
+      const line = pick.map((x, i) => (v === "alto" ? cands[i][x].alto : cands[i][x].tenor));
       if (v === "alto") alto = line;
       else tenor = line;
     }
@@ -420,7 +488,13 @@ export function refineLines(vm: VoiceModel, slots: Slot[], start: InnerVoices, o
 
 /** The generator's inner voices: the joint search over both, then each line re-written against the rest
  *  (refineLines). Null where a slot has no voicing. */
-export function writeVoices(vm: VoiceModel, slots: Slot[], o: VoiceOptions = { habits: 1, line: LINE }): InnerVoices | null {
+/** The generator's voice options (12 October 2026, 40 held-out melodies against Bach's settings of them):
+ *  held 29% (Bach 29%), moves inside runs of three steps or more 4.8% (4.7%), alto and tenor in contrary
+ *  motion 16% (15%), two leaps the same way 25% (22%), with the three-move shapes in the re-writing; the
+ *  alto's high point with the soprano's in 22 of 60 chorales (Bach 26, without the climax reward 17). */
+export const VOICING: VoiceOptions = { habits: 1, line: LINE, contrary: 1.3, run: 2.5, climax: 4 };
+
+export function writeVoices(vm: VoiceModel, slots: Slot[], o: VoiceOptions = VOICING): InnerVoices | null {
   const iv = innerVoices(vm, slots, undefined, 1, o);
   return iv && refineLines(vm, slots, iv, o);
 }

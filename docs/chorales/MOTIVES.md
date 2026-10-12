@@ -63,8 +63,8 @@ figures). Shaped figures of diminution in the alto, tenor and bass.
 | | shaped figures | recurring in their chorale | answered within 2 bars | answered 4-6 bars later | ratio |
 |---|---|---|---|---|---|
 | Bach | 4776 | 14.3% | 1.55% | 0.25% | 6.2 |
-| generator, as learnt | 6793 | 18.1% | 1.43% | 0.77% | 1.9 |
-| generator, with restraint (default) | 5295 | 11.7% | 0.81% | 0.40% | 2.0 |
+| generator, as learnt | 6541 | 17.3% | 1.07% | 0.49% | 2.2 |
+| generator, with restraint (default) | 5024 | 10.9% | 0.68% | 0.30% | 2.3 |
 
 ## What it says
 
@@ -78,33 +78,12 @@ figures). Shaped figures of diminution in the alto, tenor and bass.
 - **Chromatic lines live in the bass** (108 of 139) and are seldom answered by another voice (7.2%): Bach's chromaticism
   in the chorales is a bass's line under the harmony more than a motive passed between the voices.
 - **The generator** writes too many figures as learnt; with the calibrated restraint (step 5's default) its density and the
-  recurrence of its figures come to Bach's (5295 figures and 11.7% recurring, against 4776 and 14.3%). What it lacks is
+  recurrence of its figures come to Bach's (5024 figures and 10.9% recurring, against 4776 and 14.3%). What it lacks is
   Bach's *locality*: his figures, when they come back, come back nearby (answered near 6.2 times as often as far), the
-  generator's anywhere (2.0 times). Three simple devices tried in the diminution chain left this unchanged (11
+  generator's anywhere (2.3 times). Three simple devices tried in the diminution chain left this unchanged (11
   October 2026: a preference for the kind another voice made on the chord before; for the same kind on the same move,
   which is the same figure; a figure of the phrase, one kind favoured through each phrase). Bach's figures belong to
   passages (a sequence in the melody, a line of the text); a generator that has them will need to plan a passage's
   figure and its answers, which is the fugue's craft (Phase B: subject, answer, sequence), rather than choose note by
   note.
 
-
-## Does each voice get its moment? (the owner's question, 12 October 2026)
-
-*A voice's moment*: a bar in which one voice has at least two more notes than every other (it moves while the
-others hold). 1003 such bars in the 370 chorales: soprano 3%, alto 16%, tenor 29%, bass 52%.
-
-- **They do not go round.** In the 238 chorales with two or more, the next moment goes to a different voice 52% of
-  the time, against 62% if each were given at random by the voices' overall shares; all three lower voices get one
-  in 51 chorales, against 58 by chance (with a margin of three notes: 1 against 4.8). The movement stays with a
-  voice for a while: a passage, often a chorale, has its moving voice (most often the bass), as the motivic study
-  found its figures local.
-- **The high points come together, not in turn.** The soprano's, alto's and tenor's highest notes fall within 5% of
-  the chorale's length of each other two to three times as often as between different chorales: the upper voices
-  rise together to the melody's climax.
-- **Where they do go round** (all three lower voices, moments changing hands): no. 233 *Werde munter* (bars 4-12:
-  tenor, bass, tenor, bass, alto, bass, tenor), no. 183, 226, 345 *O Haupt voll Blut und Wunden*, 124, 142, 339,
-  364. These are the owner's impression's best witnesses; they are a minority.
-- **The generator** almost never gives a lower voice its bar: in round 2's eighteen generated settings 6 moments,
-  two thirds of them the soprano's (Bach's own melody with its passing notes); Bach's settings of the same six
-  melodies, 11, all in the lower voices. Its embellishments are spread thin, one here and one there; Bach's take a
-  voice and let it lead for a bar or a passage. (Small samples; the direction is plain.)

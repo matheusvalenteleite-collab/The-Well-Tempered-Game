@@ -234,7 +234,15 @@ export interface Diminished {
  *  the notes that can take one, 44% of them suspensions, against Bach's 11.7% and 49%; tenor about 11%,
  *  21% against 23%; bass about 11%; read one chord per beat). Restraining every kind alike (leaving the
  *  note plain) matched the density but thinned the suspensions, which the chain already writes fewer of. */
-export const RESTRAINT = [2, 1.9, 3.2];
+export const RESTRAINT = [1.5, 1.6, 3.8];
+/** The leading voice's weight (bits; diminish's `leader`), with RESTRAINT and STAY calibrated together on
+ *  held-out chorales against Bach's own embellishment of the same chords (12 October 2026): bars where one
+ *  lower voice moves alone 0.53 a chorale (Bach 0.55; alto 10, tenor 15, bass 51 against his 7, 15, 56), the
+ *  next such bar the same voice's 79% (his 74%), embellished notes 11%, 11%, 12% (his 12%, 11%, 10%). */
+export const LEADER = 1.5;
+/** How often the leading voice keeps the lead from one phrase to the next (diminish's `leader`). */
+export let STAY = 0.75;
+export const setStay = (x: number) => (STAY = x);
 /** The kind restrained: the chain's surplus over Bach is in passing notes (its suspensions are fewer
  *  than his already). */
 const RESTRAINED: Kind = "passing";
@@ -251,7 +259,7 @@ const RESTRAINED: Kind = "passing";
  * is the chain as learnt. `bassAware`: an inner voice's embellishments weighed by what their incidental
  * note makes over the bass (DiminutionModel.choices); false for the earlier behaviour.
  */
-export function diminish(dm: DiminutionModel, input: Note[][], sig: number, r?: () => number, T = 1, free: boolean[] = [true, true, true], restraint: number[] = RESTRAINT, bassAware = true): Diminished {
+export function diminish(dm: DiminutionModel, input: Note[][], sig: number, r?: () => number, T = 1, free: boolean[] = [true, true, true], restraint: number[] = RESTRAINT, bassAware = true, leader = LEADER): Diminished {
   const lens = input[1].map((n) => n[1]).sort((a, b) => a - b);
   // a power of two, so that every time stays a whole number of 32nds
   const scale = 2 ** Math.max(0, Math.floor(Math.log2(lens[Math.floor(lens.length / 2)] / 8)));
@@ -268,6 +276,31 @@ export function diminish(dm: DiminutionModel, input: Note[][], sig: number, r?: 
       }
       opts[v][i] = o;
     }
+  // a leading voice for each phrase (drawn by Bach's shares of the bars where one lower voice moves alone:
+  // alto 16%, tenor 29%, bass 52%; docs/chorales/MOTIVES.md): its embellishments 2^leader times as likely,
+  // the others' 2^-leader/2, so that the movement stays with a voice for a passage, as Bach's does
+  if (leader && r) {
+    const SHARE = [0.17, 0.3, 0.53];
+    const pickLeader = () => {
+      let u = r(),
+        v = 0;
+      while (v < 2 && u > SHARE[v]) u -= SHARE[v++];
+      return v + 1;
+    };
+    let lead = pickLeader();
+    for (let i = 0; i < n - 1; i++) {
+      // at a phrase end the lead passes on, or stays with its voice (STAY: Bach keeps it for a while)
+      if (i > 0 && lines[0][i - 1][3] && r() > STAY) lead = pickLeader();
+      for (let v = 1; v < 4; v++) {
+        const o = opts[v][i];
+        if (o.size < 2) continue;
+        const f = v === lead ? 2 ** leader : 2 ** (-leader / 2);
+        let z = 0;
+        for (const [k, p] of o) z += k === "none" ? p : p * f;
+        for (const [k, p] of o) o.set(k, (k === "none" ? p : p * f) / z);
+      }
+    }
+  }
   // a state is the three voices' choices on one note
   const states = (i: number): string[] => {
     if (i >= n - 1) return ["none|none|none"];
