@@ -278,7 +278,10 @@ export class AudioEngine {
   /** Resolve the selected instruments; must first be called from a user gesture. */
   private async instrument(): Promise<Voices | null> {
     if (!this.ctx) {
-      this.ctx = new AudioContext();
+      // P32: a phone gets larger audio buffers ("balanced"): a few milliseconds more before a tapped
+      // note sounds, fewer underruns, which crackle like clipping when many voices sound at once.
+      const coarse = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
+      this.ctx = new AudioContext(coarse ? { latencyHint: "balanced" } : undefined);
       this.master = this.ctx.createGain();
       this.master.gain.value = this.volume;
       // A safety limiter before the speakers: voices, drums and continuo together never clip.

@@ -34,8 +34,6 @@ interface Piece {
   clefs: ClefId[];
   staffOf: number[];
   text?: string[];
-  /** P30: one syllable to each soprano note (null: none sung), drawn under the score. */
-  lyrics?: (string | null)[];
   /** P30: the Bach piece (its id here) a composer's piece is to be heard blind against. */
   compare?: string;
   /** P31: the voices given (not the composer's), drawn in grey. */
@@ -46,10 +44,10 @@ interface Piece {
 }
 
 const D = data as unknown as {
-  chorales: { id: string; title: string; text: string[]; lyrics?: string[]; sig: number; meter: string; pickup: number; voices: ChoraleNote[][] }[];
+  chorales: { id: string; title: string; text: string[]; sig: number; meter: string; pickup: number; voices: ChoraleNote[][] }[];
   fugue: { title: string; sig: number; meter: string; voices: ChoraleNote[][]; plan: string[] };
   fux: { title: string; cantus: string[]; voices: string[][]; mode: string };
-  bach: { n: number; lyrics?: (string | null)[]; title: string; bwv: string; sig: number; meter: string; pickup: number; voices: ChoraleNote[][]; cadences: [number, string, string][]; harmony: [number, string, string, string, [number, number][]?][] }[];
+  bach: { n: number; title: string; bwv: string; sig: number; meter: string; pickup: number; voices: ChoraleNote[][]; cadences: [number, string, string][]; harmony: [number, string, string, string, [number, number][]?][] }[];
   bachFugues?: { id: string; title: string; meter: string; tpq: number; voices: [number, number, string][][] }[];
   ornaments: { title: string; bwv: string; meter: string; tpq: number; end: number; voices: [number, number, string, number?][][]; orn: [number, number, string, string, string[]?][] };
 };
@@ -65,7 +63,6 @@ interface BenchFile {
   pickup?: number;
   voices: ChoraleNote[][];
   text?: string[];
-  lyrics?: (string | null)[];
   plan?: string[];
   compare?: number | string | { n?: number; id?: string; from?: number; to?: number };
   note?: string;
@@ -98,7 +95,6 @@ function pieces(): Piece[] {
       clefs: ["treble", "bass"],
       staffOf: [0, 0, 1, 1],
       text: c.text,
-      lyrics: c.lyrics,
       about: "The retired baseline (the playback session's first attempt): original words and melody; harmony chosen by hand, voiced under the part-writing rules. The composers' pieces have to beat it.",
     });
   for (const b of D.bach)
@@ -120,7 +116,6 @@ function pieces(): Piece[] {
       clefs: ["treble", "bass"],
       staffOf: [0, 0, 1, 1],
       text: (fermataLinesOf(b.n) ?? []).filter((x): x is string => !!x),
-      lyrics: b.lyrics,
       about: `Bach's setting (No. ${b.n} of the game's chorales), with its words read at the fermatas.`,
     });
   const f = D.fugue;
@@ -192,11 +187,9 @@ function pieces(): Piece[] {
         const from = c.from ?? 0;
         const to = c.to ?? Infinity;
         cmp = `${cn}@${from}-${to}`;
-        if (!out.some((p) => p.id === cmp)) out.push({ ...src, id: cmp, group: src.group, title: `${src.title}, excerpt`, chorale: excerpt(src.chorale, from, to), lyrics: undefined });
+        if (!out.some((p) => p.id === cmp)) out.push({ ...src, id: cmp, group: src.group, title: `${src.title}, excerpt`, chorale: excerpt(src.chorale, from, to) });
       }
     }
-    const bachLyrics = cn ? out.find((p) => p.id === cn)?.lyrics : undefined;
-    const lyrics = b.lyrics ?? (bachLyrics && bachLyrics.length === voices[0].length ? bachLyrics : undefined);
     out.push({
       id: b.id,
       group: b.batch ? `Batch: ${b.batch}` : b.kind === "chorale" ? "Composers: chorales" : "Composers: fugues",
@@ -210,16 +203,12 @@ function pieces(): Piece[] {
       clefs: b.kind === "chorale" ? ["treble", "bass"] : n >= 4 ? ["treble", "treble", "bass", "bass"] : ["treble", "treble", "bass"],
       staffOf: b.kind === "chorale" ? [0, 0, 1, 1] : n >= 4 ? [0, 1, 2, 3] : [0, 1, 1, 2],
       text: b.text,
-      lyrics,
       ...(cmp && out.some((p) => p.id === cmp) ? { compare: cmp } : {}),
       about: [`By the ${b.by ?? "composer"} session.`, b.note ?? "", b.plan ? `Plan: ${b.plan.join("; ")}.` : ""].filter(Boolean).join(" "),
     });
   }
   return out;
 }
-
-/** A syllable as printed under the note: the edition's stanza number and a word's leading hyphen dropped. */
-const syllable = (x: string | null | undefined) => (x ? x.replace(/^\d+\*?\.\s*/, "").replace(/^-/, "") : "");
 
 const MAJOR_BY_SIG: Record<number, string> = { [-3]: "Eb", [-2]: "Bb", [-1]: "F", 0: "C", 1: "G", 2: "D", 3: "A", 4: "E" };
 const signatureOf = (n: number): Record<Step, number> => {
@@ -286,8 +275,6 @@ export function TestBench() {
     store("wtg.test.dynamics", dynamics);
   }, [dynamics]);
   const [ornOn, setOrnOn] = useState(true);
-  const [lyricsOn, setLyricsOn] = useState(() => stored("wtg.test.lyrics", true, (v) => typeof v === "boolean"));
-  useEffect(() => store("wtg.test.lyrics", lyricsOn), [lyricsOn]);
   const [style, setStyle] = useState<OrnamentStyle>(() => stored<OrnamentStyle>("wtg.ornamentStyle", "explication", (v) => ORNAMENT_STYLES.includes(v as OrnamentStyle)));
   useEffect(() => store("wtg.ornamentStyle", style), [style]);
   const [edits, setEdit] = useFermataEdits(`test-${piece.id}`);
@@ -362,11 +349,10 @@ export function TestBench() {
         // P31: voices given (Bach's, around a generated part) in grey.
         ink: piece.given?.includes(v) ? "#9a9488" : "#1d1b17",
         editable: false,
-        notes: notes.map(([at, dur, pitch, f], k) => {
+        notes: notes.map(([at, dur, pitch, f]) => {
           const o = piece.orn?.get(`${at}|${pitch}`);
-          const lyric = v === 0 && lyricsOn ? syllable(piece.lyrics?.[k]) : "";
           const sign = v === 0 && f ? fermataSign(plans.find((p) => p.at === at)) : "";
-          return { pitch, at: q(at), dur: dur / 8, fermata: Boolean(f), ...(sign ? { label: sign } : {}), ...(lyric ? { lyric } : {}), ...(o && ornOn ? { orn: o.signs, grace: o.grace.map((g) => g.slice(1)) } : {}) };
+          return { pitch, at: q(at), dur: dur / 8, fermata: Boolean(f), ...(sign ? { label: sign } : {}), ...(o && ornOn ? { orn: o.signs, grace: o.grace.map((g) => g.slice(1)) } : {}) };
         }),
       }))
       .filter((v) => v.notes.length);
@@ -378,7 +364,7 @@ export function TestBench() {
     const fermataRows = (c.voices[0] ?? []).filter((n) => n[3]).map((n, k) => ({ plan: plans.find((p) => p.at === n[0]), bar: barOf(c, n[0]) + (c.pickup ? 0 : 1), word: piece.text?.[k]?.split(/\s+/).pop() ?? null }));
     return { rows, barQ, clefPlan, fermataRows };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [piece, edits, cursor, rowBars, ornOn, replan, lyricsOn]);
+  }, [piece, edits, cursor, rowBars, ornOn, replan]);
 
   const groups = [...new Set(all.map((p) => p.group))];
   return (
@@ -417,9 +403,8 @@ export function TestBench() {
       </header>
       <section className="bench-controls">
         <TransportButtons playing={playing} pausedAt={pausedAt} onPlay={play} onStop={stop} label="Play" />
-        <EnsembleSelect onReading={() => setReplan((x) => x + 1)} />
+        <EnsembleSelect storeKey="wtg.test.ensemble" fallback="clear" onReading={() => setReplan((x) => x + 1)} />
         <label className="check"><input type="checkbox" checked={dynamics} onChange={(e) => setDynamics(e.target.checked)} /> Dynamics</label>
-        {piece.lyrics && <label className="check"><input type="checkbox" checked={lyricsOn} onChange={(e) => setLyricsOn(e.target.checked)} /> Words</label>}
         {piece.kind === "ornaments" && (
           <>
             <label className="check"><input type="checkbox" checked={ornOn} onChange={(e) => setOrnOn(e.target.checked)} /> Ornaments</label>

@@ -1819,6 +1819,7 @@
     "ensemble.reeds": "Reed quartet (oboes, bassoons)",
     "ensemble.winds": "Wind quartet (flute, oboe, clarinet, bassoon)",
     "ensemble.choirOrchestra": "Choir and orchestra (colla parte)",
+    "ensemble.clear": "Clear (light, each voice its own colour)",
     "guide.picardy": "The chorale is in minor, but its last chord is major: the \"Picardy\" third, the brighter close the older practice preferred (Kirnberger, Kunst I, p. 34).",
     "guide.phrygian": "A Phrygian cadence: the bass falls a semitone to {bass}, and the phrase stops on the dominant, open rather than closed.",
     "guide.deceptive": "A deceptive cadence: everything prepares the tonic, and the bass moves up instead, to a chord on {root} (Kirnberger's Inganno, Kunst I, pp. 97-98).",

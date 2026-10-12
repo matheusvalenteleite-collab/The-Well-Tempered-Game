@@ -32,10 +32,11 @@ function ReadingSelect({ onChange }: { onChange?(): void }) {
   );
 }
 
-export function EnsembleSelect({ heard, onReading }: { heard?: readonly boolean[]; onReading?(): void }) {
-  const [value, setValue] = useState<string>(() => stored<string>(KEY, "piano", valid));
+/** P32: `storeKey` and `fallback` let the test bench keep its own choice and start on the light "clear" sound. */
+export function EnsembleSelect({ heard, onReading, storeKey = KEY, fallback = "piano" }: { heard?: readonly boolean[]; onReading?(): void; storeKey?: string; fallback?: "piano" | Ensemble }) {
+  const [value, setValue] = useState<string>(() => stored<string>(storeKey, fallback, valid));
   useEffect(() => {
-    store(KEY, value);
+    store(storeKey, value);
     prepareChoraleAudio(audio, heard, value === "piano" ? null : (value as Ensemble));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);

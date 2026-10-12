@@ -17,7 +17,6 @@ built, so a new piece reaches it through `claude/continuo-integration`.
   "pickup": 8,
   "voices": [[[0, 8, "D4"], [8, 8, "G4"], [56, 8, "A4", 1]], [], [], []],
   "text": ["line 1", "line 2"],
-  "lyrics": ["The", "night", "has", null],
   "plan": ["1-2 subject (alto)"],
   "compare": 1,
   "note": "what changed in this version"
@@ -31,7 +30,7 @@ built, so a new piece reaches it through `claude/continuo-integration`.
   - Each note is `[onset, length, pitch, fermata?]`. Onset and length are in 32nds of a whole note, as in `data/chorales/study.json`. The fourth element, if present, marks a fermata.
   - A chorale has four voices; a fugue has three or four.
 - `text`: optional; the words, one line per entry.
-- `lyrics`: optional; one syllable per soprano note, `null` where none is sung.
+- `lyrics`: no longer drawn (P32: the owner found the words under the score ugly and dropped them); a file that has it is still read.
 - `plan`: optional, for a fugue; its sections.
 - `compare`: optional; the Bach piece to play blind against this one.
   - For a chorale whose melody Bach set, the number of that chorale in the game's study data (1–371).

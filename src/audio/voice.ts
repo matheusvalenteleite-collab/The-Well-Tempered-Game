@@ -80,8 +80,10 @@ export function loadSamples(ctx: BaseAudioContext, set: SampleSet): Promise<void
       banks.set(set, list);
     });
     p.catch(() => {
-      loading.delete(set); // a failed load is retried at the next note
-      if (REMOTE.has(set)) failed.add(set);
+      loading.delete(set);
+      // P32: every set that cannot be loaded is played by a synthesizer instead (the piano was
+      // silent on phones whose download or decoding failed); a reload of the page tries it again.
+      failed.add(set);
     });
     loading.set(set, p);
   }
@@ -305,7 +307,8 @@ export class Synth implements Instrument {
 
   start(note: string, time: number, duration: number, velocity = 0.75) {
     // P13: a choir whose samples could not be loaded (the claude.ai page, offline) sings by the formant synthesizer.
-    const st = isSampled(this.settings.model) && failed.has(this.settings.sampleSet) ? { ...this.settings, model: "formant" as const } : this.settings;
+    // P32: any other set falls back to its nearest synthesizer (the grand to the modelled piano).
+    const st = isSampled(this.settings.model) && failed.has(this.settings.sampleSet) ? { ...this.settings, model: REMOTE.has(this.settings.sampleSet) ? ("formant" as const) : this.settings.sampleSet === "grand" ? ("piano" as const) : ("additive" as const) } : this.settings;
     const ctx = this.ctx;
     const freq = frequency(note, this.tuning());
     // A detached touch lets the key up before the written length (Gould's articulation).

@@ -97,7 +97,7 @@ export function doubled(events: PlayEvent[]): PlayEvent[] {
 
 // ---- Ensembles (P7, the owner's presets): the instrument of each voice, soprano to bass.
 
-export const ENSEMBLES = ["choir", "soloists", "organ", "strings", "synth", "reeds", "winds", "choirOrchestra"] as const;
+export const ENSEMBLES = ["clear", "choir", "soloists", "organ", "strings", "synth", "reeds", "winds", "choirOrchestra"] as const;
 export type Ensemble = (typeof ENSEMBLES)[number];
 
 const preset = (id: string) => ({ ...SYNTH_PRESETS.find((x) => x.id === id)!.settings });
@@ -129,10 +129,44 @@ interface EnsembleSpec {
   /** Instruments doubling each voice (colla parte), on its second channel; and their level. */
   doubling?: [SynthSettings, SynthSettings, SynthSettings, SynthSettings];
   doublingLevel?: number;
+  /** P32: each voice's level and balance (otherwise the soprano at full, the others 3 dB under, centred). */
+  mix?: { volume: [number, number, number, number]; pan: [number, number, number, number] };
 }
+
+/**
+ * P32: the test sound (the owner: "lightweight and great for hearing polyphony and counterpoint …
+ * load instantly and not clip"). One oscillator a note with a fixed spectrum (the additive model):
+ * nothing to download or decode, no noise, filters or reverb to compute, so a phone keeps up. Each
+ * voice its own colour, as in an organ's registration for a trio: the soprano flute-like (few, soft
+ * harmonics), the alto clarinet-like (odd harmonics only, the hollow tone that sets it apart from
+ * the soprano at the same pitch), the tenor a bright reed (full spectrum), the bass a soft round
+ * stop. Steady tone, no vibrato, a quick but unclicked attack: entries and suspensions are heard
+ * as such. The levels leave headroom: four voices at their loudest stay at about the limiter's
+ * threshold instead of being squeezed by it (the clipping heard on phones), and a slight spread
+ * left and right helps tell the lines apart without making any one of them hard to hear.
+ */
+const clear = (addBrightness: number, addEven: number, tone: number): SynthSettings => ({
+  ...preset("organ"),
+  model: "additive",
+  addBrightness,
+  addEven,
+  tone,
+  attack: 0.018,
+  decay: 0.05,
+  sustain: 1,
+  release: 0.1,
+  vibrato: 0,
+  detune: 0,
+  reverbMode: "off",
+});
 
 export function ensembleSpec(e: Ensemble): EnsembleSpec {
   switch (e) {
+    case "clear":
+      return {
+        voices: [clear(0.2, 0.55, 5200), clear(0.5, 0.06, 3400), clear(0.72, 0.9, 2800), clear(0.38, 1, 1500)],
+        mix: { volume: [0.42, 0.34, 0.34, 0.38], pan: [0.3, -0.3, 0.18, -0.12] },
+      };
     case "choir":
       // P13: recorded choirs (Sonatina's chorus for soprano, tenor and bass, FluidR3's choir for the
       // alto, whose range Sonatina's upper choir does not reach), the formant voices kept underneath
@@ -203,6 +237,8 @@ export function choraleSound(ensemble: Ensemble | null = null): SoundState {
   }
   // The melody forward (P14): the lower voices about 3 dB under the soprano.
   for (const ch of ["second", "third", "fux"] as const) s.mix[ch].volume = 0.71;
+  const m = ensemble ? ensembleSpec(ensemble).mix : undefined;
+  if (m) CHORALE_CHANNELS.forEach((ch, v) => Object.assign(s.mix[ch], { volume: m.volume[v], pan: m.pan[v] }));
   s.fuxOctave = 0;
   for (const k of ["cantusOctave", "counterpointOctave"] as const) if (k in s) (s as unknown as Record<string, number>)[k] = 0;
   return s;
