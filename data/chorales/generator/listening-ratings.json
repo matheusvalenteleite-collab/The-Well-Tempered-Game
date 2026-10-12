@@ -1,0 +1,197 @@
+{
+ "rated": "2026-10-12",
+ "ratings": {
+  "m1-A": {
+   "no": 18,
+   "version": "3",
+   "licences": 0,
+   "rating": "not",
+   "flag": false,
+   "note": ""
+  },
+  "m1-B": {
+   "no": 18,
+   "version": "0",
+   "licences": 0,
+   "rating": "bach",
+   "flag": false,
+   "note": ""
+  },
+  "m1-C": {
+   "no": 18,
+   "version": "1",
+   "licences": 0,
+   "rating": "unsure",
+   "flag": false,
+   "note": ""
+  },
+  "m1-D": {
+   "no": 18,
+   "version": "Bach",
+   "licences": 0,
+   "rating": "bach",
+   "flag": false,
+   "note": ""
+  },
+  "m2-A": {
+   "no": 35,
+   "version": "Bach",
+   "licences": 1,
+   "rating": "bach",
+   "flag": false,
+   "note": ""
+  },
+  "m2-B": {
+   "no": 35,
+   "version": "1",
+   "licences": 0,
+   "rating": null,
+   "flag": false,
+   "note": ""
+  },
+  "m2-C": {
+   "no": 35,
+   "version": "3",
+   "licences": 5,
+   "rating": "not",
+   "flag": false,
+   "note": ""
+  },
+  "m2-D": {
+   "no": 35,
+   "version": "0",
+   "licences": 0,
+   "rating": "not",
+   "flag": false,
+   "note": ""
+  },
+  "m3-A": {
+   "no": 42,
+   "version": "3",
+   "licences": 5,
+   "rating": "not",
+   "flag": false,
+   "note": "lots of mindless repetitions; also weird passage there right after first fermata (bar3 last beat and bar 4 first beat, for example."
+  },
+  "m3-B": {
+   "no": 42,
+   "version": "1",
+   "licences": 0,
+   "rating": "not",
+   "flag": false,
+   "note": "alto repeats the same note for an incredible amount of time. nope, sounds off."
+  },
+  "m3-C": {
+   "no": 42,
+   "version": "0",
+   "licences": 0,
+   "rating": "not",
+   "flag": false,
+   "note": ""
+  },
+  "m3-D": {
+   "no": 42,
+   "version": "Bach",
+   "licences": 0,
+   "rating": "bach",
+   "flag": false,
+   "note": ""
+  },
+  "m4-A": {
+   "no": 10,
+   "version": "Bach",
+   "licences": 0,
+   "rating": "bach",
+   "flag": false,
+   "note": ""
+  },
+  "m4-B": {
+   "no": 10,
+   "version": "1",
+   "licences": 9,
+   "rating": "not",
+   "flag": false,
+   "note": "lots of repetitions in some voices which sound off"
+  },
+  "m4-C": {
+   "no": 10,
+   "version": "0",
+   "licences": 0,
+   "rating": "not",
+   "flag": false,
+   "note": ""
+  },
+  "m4-D": {
+   "no": 10,
+   "version": "3",
+   "licences": 10,
+   "rating": "not",
+   "flag": false,
+   "note": "the voices don't sound interesting by themselves."
+  },
+  "m5-A": {
+   "no": 23,
+   "version": "1",
+   "licences": 0,
+   "rating": "not",
+   "flag": false,
+   "note": ""
+  },
+  "m5-B": {
+   "no": 23,
+   "version": "Bach",
+   "licences": 0,
+   "rating": "bach",
+   "flag": false,
+   "note": ""
+  },
+  "m5-C": {
+   "no": 23,
+   "version": "3",
+   "licences": 5,
+   "rating": "not",
+   "flag": false,
+   "note": ""
+  },
+  "m5-D": {
+   "no": 23,
+   "version": "0",
+   "licences": 0,
+   "rating": "not",
+   "flag": false,
+   "note": ""
+  },
+  "m6-A": {
+   "no": 53,
+   "version": "3",
+   "licences": 1,
+   "rating": "not",
+   "flag": false,
+   "note": ""
+  },
+  "m6-B": {
+   "no": 53,
+   "version": "0",
+   "licences": 0,
+   "rating": "not",
+   "flag": false,
+   "note": ""
+  },
+  "m6-C": {
+   "no": 53,
+   "version": "1",
+   "licences": 0,
+   "rating": "not",
+   "flag": false,
+   "note": ""
+  },
+  "m6-D": {
+   "no": 53,
+   "version": "Bach",
+   "licences": 1,
+   "rating": "bach",
+   "flag": false,
+   "note": ""
+  }
+ }
+}
