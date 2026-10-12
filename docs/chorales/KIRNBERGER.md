@@ -273,9 +273,9 @@ on the root a third lower while reading F-A-C-E going to G on F would be inconsi
 
   | class | count |
   |---|---|
-  | half, in the local key | 124 |
-  | plagal, in the local key | 35 |
-  | close on the local tonic, not from its dominant | 162 |
+  | half, in the local key | 119 |
+  | plagal, in the local key | 37 |
+  | close on the local tonic, not from its dominant | 180 |
   | resting point on a major triad (undecided) | 27 |
   | resting point on a minor triad | 28 |
   | other | 5 |

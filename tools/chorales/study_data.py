@@ -19,10 +19,13 @@ Usage: python3 tools/chorales/study_data.py
 from __future__ import annotations
 
 import json
+import sys
 from fractions import Fraction as F
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import local_numerals as LN  # noqa: E402
 BACH = ROOT / "data/chorales/bach"
 OUT = ROOT / "data/chorales/study.json"
 VOICES = ["soprano", "alto", "tenor", "bass"]
@@ -79,6 +82,38 @@ def kittel_tunes() -> dict[int, list[int]]:
     return out
 
 
+# Roman numerals in the convention of the textbooks (C32, C33): each chord as a degree of the key its
+# passage is in (the local keys, C31), named by local_numerals.py as levels 2-4 name theirs: a
+# tonicisation as an applied chord (V/V, vii°/ii); a modulation by a label of the new key where its
+# region begins ("D: I"), its pivot chord, a chord of both keys, read in both: the old key's numeral
+# above, the new key's below.
+LOCAL_KEYS = LN.bach_local()
+
+
+def numerals(n: int, verts: list[dict]) -> list[list]:
+    """[[onset, line, line?], ...] at the onsets the local keys read (the on-beat soprano attacks)."""
+    local = LOCAL_KEYS.get(n, {})
+    out, prev = [], None
+    for v in verts:
+        if v["t"] not in local or not v.get("root"):
+            continue
+        tonic, mode = local[v["t"]]
+        tpc, root, kind = LN.pcn(tonic), LN.pcn(v["root"]), LN.quality(v.get("chord"))
+        lab = LN.in_key(root, kind, tpc, mode)
+        name = LN.key_name(tpc, mode, tonic)
+        if prev is None or (tonic, mode) == prev[0]:
+            out.append([q(v["t"]), lab])
+        else:
+            out.append([q(v["t"]), f"{name}: {lab}"])
+            # The pivot: the last chord of the old region, if it belongs to the new key too.
+            pr, pq, pt = prev[1]
+            if out[-2][0] == q(pt) and len(out[-2]) == 2 and LN.diatonic(pr, pq, tpc, mode):
+                out[-2] = [q(pt), out[-2][1], f"{name}: {LN.label(pr, pq, tpc, mode)}"]
+                out[-1] = [q(v["t"]), lab]
+        prev = ((tonic, mode), (root, kind, v["t"]))
+    return out
+
+
 def main() -> None:
     kittel = kittel_tunes()
     index = []
@@ -99,6 +134,7 @@ def main() -> None:
             "sig": acc, "meter": c["meters"][0]["meter"], "pickup": q(m[1]["offset"]) if m and m[0]["number"] == 0 and len(m) > 1 else 0,
             "length": q(c["length"]), "scan": scan(c["references"]), **({"kittel": sorted(set(kittel[c["number"]]))} if c["number"] in kittel else {}),
             "voices": [voice(c["voices"][x]) for x in VOICES], "harmony": harmony, "cadences": cad,
+            **({"rn": numerals(c["number"], a["verticalities"])} if LOCAL_KEYS else {}),
         })
     OUT.write_text(json.dumps({"generated_by": "tools/chorales/study_data.py", "unit": "1/32 whole note", "voices": VOICES, "kinds": KINDS,
                                "chorales": index}, ensure_ascii=False, separators=(",", ":")) + "\n")

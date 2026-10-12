@@ -69,7 +69,7 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
   const data = useStudyData();
   const [number, setNumber] = useState(() => stored("wtg.choraleStudy", 1, (v) => typeof v === "number"));
   useEffect(() => store("wtg.choraleStudy", number), [number]);
-  const [layers, setLayers] = useState(() => stored("wtg.choraleLayers", { cadences: true, figures: true, fundamental: false, incidental: true }, (v) => typeof v === "object" && v !== null));
+  const [layers, setLayers] = useState(() => stored<{ cadences: boolean; figures: boolean; fundamental: boolean; incidental: boolean; numerals?: boolean }>("wtg.choraleLayers", { cadences: true, figures: true, fundamental: false, incidental: true, numerals: true }, (v) => typeof v === "object" && v !== null));
   useEffect(() => store("wtg.choraleLayers", layers), [layers]);
   const [heard, setHeard] = useState([true, true, true, true]);
   const [tempo, setTempo] = useState(() => stored("wtg.tempo", 60, (v) => typeof v === "number" && v >= 30 && v <= 240));
@@ -185,11 +185,15 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
         };
       }),
     }));
-    const under = layers.figures || layers.fundamental
+    // C32: the Roman numerals in the textbooks' convention (local keys, applied chords, pivots read in both keys).
+    const showRn = layers.numerals ?? true;
+    const rnAt = new Map((ch.rn ?? []).map(([at, ...lines]) => [at, lines]));
+    const under = layers.figures || layers.fundamental || showRn
       ? ch.harmony.map(([at, root, chord, figure]) => {
-          // The figures stacked as a continuo part prints them (the highest on top), the root below on its own line.
+          // The figures stacked as a continuo part prints them (the highest on top), the root below on its own line, the numerals below it.
           const fig = layers.figures && figure ? figure.split("/").map(figureLabel) : [];
-          return { at: quarters(at), lines: [...fig, ...Array(3 - Math.min(3, fig.length)).fill(""), layers.fundamental && root ? `${root}${chord}` : ""] };
+          const rn = showRn ? rnAt.get(at) ?? [] : [];
+          return { at: quarters(at), lines: [...fig, ...Array(3 - Math.min(3, fig.length)).fill(""), layers.fundamental && root ? `${root}${chord}` : "", ...rn] };
         })
       : undefined;
     // The page: rows of a few bars.
@@ -283,9 +287,9 @@ export function ChoraleStudy({ onMode, onTutorial, levelSelect }: { onMode(mode:
           {fold.show && (
             <>
           <div className="group" role="group" aria-label={t("chorale.study.layers")}>
-            {(["cadences", "figures", "fundamental", "incidental"] as const).map((k) => (
+            {(["cadences", "figures", "fundamental", "numerals", "incidental"] as const).map((k) => (
               <label key={k} className="check" title={t(`chorale.study.layer.${k}.help`)}>
-                <input type="checkbox" checked={layers[k]} onChange={(e) => setLayers({ ...layers, [k]: e.target.checked })} /> {t(`chorale.study.layer.${k}`)}
+                <input type="checkbox" checked={k === "numerals" ? layers.numerals ?? true : layers[k]} onChange={(e) => setLayers({ ...layers, [k]: e.target.checked })} /> {t(`chorale.study.layer.${k}`)}
               </label>
             ))}
           </div>

@@ -24,6 +24,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from habits import share_habits  # noqa: E402
 from cadence_plans import MINORISH, degree, pcn  # noqa: E402
+import local_numerals as LN  # noqa: E402
 from harmony_plans import Model, merged, nw_pairs, tune_key  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -32,6 +33,10 @@ KIT = ROOT / "data" / "chorales" / "kittel"
 OUT_JSON = ROOT / "data" / "chorales" / "level3.json"
 OUT_MD = ROOT / "docs" / "chorales" / "LEVEL3.md"
 DEGREES = ["1", "#1", "b2", "2", "#2", "b3", "3", "4", "#4", "b5", "5", "#5", "b6", "6", "#6", "b7", "7"]
+
+
+LOCAL = LN.bach_local()
+KEYS = LN.kittel_keys()
 
 
 def order_key(d: str) -> int:
@@ -44,13 +49,14 @@ def bach_events() -> list[dict]:
     for e in index["catalogue"]:
         c = json.loads((BACH / e["file"]).read_text())
         a = json.loads((BACH / "analysis" / f"{c['id']}.json").read_text())
-        tonic = c["key"]["tonic"]
-        mode = "minor" if c["key"]["mode"] in MINORISH else "major"
+        home = (c["key"]["tonic"], "minor" if c["key"]["mode"] in MINORISH else "major")
+        local = LOCAL.get(c["number"], {})
         tune = tune_key(c["voices"]["soprano"])
         prev = "start"
         for v in a["verticalities"]:
             if not v["on_beat"] or "soprano" not in v["struck"]:
                 continue
+            tonic, mode = local.get(v["t"], home)  # C33: degrees of the local key
             b = degree(v["pitches"]["bass"], tonic)
             out.append({"no": c["number"], "tune": tune, "mode": mode, "measure": v["measure"],
                         "deg": degree(v["pitches"]["soprano"], tonic), "chord": b, "prev": prev})
@@ -90,11 +96,13 @@ def kittel_level3(events: list[dict]) -> list[dict]:
         a = json.loads((KIT / "analysis" / p.name).read_text())
         mel = merged(c["melody"]["notes"])
         hs1 = [h for h in a["basses"][0]["harmonies"] if h.get("root")]
-        tonic_name = hs1[-1]["root"] if hs1 else "C"
-        mode = "major" if pcn(tonic_name) == (7 * c["key_signature"]) % 12 else "minor"
+        home_name = hs1[-1]["root"] if hs1 else "C"
+        mode = "major" if pcn(home_name) == (7 * c["key_signature"]) % 12 else "minor"
+        keys = KEYS.get(c["number"], [])
         bach_at: dict[int, list[dict]] = defaultdict(list)
         for s in conc.get(c["number"], {}).get("same_tune", []):
             bc = json.loads((BACH / "chorales" / f"bach_{s['bach']:03d}.json").read_text())
+            blocal = LOCAL.get(s["bach"], {})
             sop = merged(bc["voices"]["soprano"])
             bass = [n for n in bc["voices"]["bass"] if not n.get("rest") and n.get("midi") is not None]
             for i, j in nw_pairs([n["midi"] for n in mel], [n["midi"] + s["transposition"] for n in sop]):
@@ -104,10 +112,13 @@ def kittel_level3(events: list[dict]) -> list[dict]:
                     if F(x["offset"]) <= t:
                         bn = x
                 if bn:
-                    bach_at[i].append({"no": s["bach"], "chord": degree(bn["pitch"], bc["key"]["tonic"]), "bar": bn["measure"]})
+                    btonic = blocal.get(str(t), (bc["key"]["tonic"], ""))[0]
+                    bach_at[i].append({"no": s["bach"], "chord": degree(bn["pitch"], btonic), "bar": bn["measure"]})
         notes = []
+        home_mode = mode
         for i, n in enumerate(mel):
             t = F(n["offset"])
+            tonic_name, mode = LN.key_at(keys, t, (home_name, home_mode))
             kit = []
             for b in c["basses"]:
                 bn = None
@@ -119,10 +130,10 @@ def kittel_level3(events: list[dict]) -> list[dict]:
             cnt = habit.counts[1].get((mode, deg), Counter())
             used = {x["chord"] for x in kit if x["chord"] != "?"} | {x["chord"] for x in bach_at[i]}
             options = sorted({d for d, _ in cnt.most_common(4)} | used, key=lambda d: (order_key(d), d))
-            notes.append({"offset": n["offset"], "measure": n["measure"], "pitch": n["pitch"], "degree": deg, "fermata": bool(n.get("fermata")),
+            notes.append({"offset": n["offset"], "measure": n["measure"], "pitch": n["pitch"], "degree": deg, "fermata": bool(n.get("fermata")), "key": [tonic_name, mode],
                           "options": options, "kittel": kit, "bach": bach_at[i],
                           "habit": {"n": sum(cnt.values()), "options": [{"chord": d, "count": k, "examples": examples[(mode, deg, d)]} for d, k in cnt.most_common(6)]}})
-        out.append({"number": c["number"], "title": c["title"], "tonic": tonic_name, "mode": mode, "notes": notes})
+        out.append({"number": c["number"], "title": c["title"], "tonic": home_name, "mode": home_mode, "notes": notes})
     return out
 
 

@@ -22,7 +22,7 @@ The chorale differs on every one of these points.
 |---|---|---|
 | answers | one model solution | a space of correct solutions: Kittel's 8-9 basses to one melody; Bach's several settings of one tune share the root under only 69% of the melody notes |
 | the main question | is it wrong? | which choice is it, and how idiomatic is it here? |
-| order of decisions | bottom-up, note against note | top-down: where the phrases go, then the bass, then the voices |
+| order of decisions | bottom-up, note against note | either way (C34): from the melody down (where the phrases go, then the bass, then the voices) or from the bass up (a given bass figured and realised, then a melody or the inner voices over it) |
 | the given voice | a cantus firmus, an equal partner | a tune in the soprano, tonally loaded, to be *interpreted* |
 | rules | absolute prohibitions | norms that depend on position, voice and style. The leading tone rises in the soprano and is free in the alto; parallels occur through passing notes; the seventh is mostly prepared, but enters free in particular places (over a moving bass, in certain voices and positions) |
 | feedback | "error in bar 4" | "here Bach goes to the relative minor; Kittel's basses [3] and [6] reach the same cadence another way; your choice is rare in the corpus, and this is why" |
@@ -49,7 +49,7 @@ Any chorale melody becomes an exercise: the player receives the tune, and the le
 
 ## 3. The levels of a harmonization
 
-A harmonization is a set of nested decisions. The mode trains them level by level, top-down.
+A harmonization is a set of nested decisions. The mode trains them level by level, from the melody down or from the bass up (C34).
 At each level the levels above may be given (as scaffolding) or chosen by the player.
 
 | level | the decision | what the player makes | what the library gives to judge it |
