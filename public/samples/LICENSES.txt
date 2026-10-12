@@ -50,3 +50,21 @@ Processing: stereo mixed to mono; leading silence removed (onset at about 1 ms);
 one gain per set so its loudest note peaks at about -1 dBFS; mono 44.1 kHz 80 kbit/s MP3. Notes more than 20 cents off their name
 (and every timpani hit, to the nearest semitone of its principal tone) were retuned by resampling; one clarinet sample filed as F#
 sounds F and is named F6.
+
+Choirs for the chorales (P13; kept on the website, not in the claude.ai page):
+choirUpper/ choirLower/  Sonatina Symphonic Orchestra (Mattias Westlund; github.com/peastman/sso), Chorus: female (G4-C6) and male
+         (G2-F#4) choir samples, one about every whole tone. Creative Commons Sampling Plus 1.0
+         (https://creativecommons.org/licenses/sampling+/1.0/): non-commercial redistribution of the samples; credit.
+         choirUpper/D4.mp3 and F4.mp3 are FluidR3's (below), for the soprano's lowest notes.
+choirAahs/  FluidR3_GM "Choir Aahs" (Frank Wen; MIT licence), as rendered per note by gleitz/midi-js-soundfonts (CC BY 3.0),
+         every minor third F3-F5.
+All: leading silence removed, 7 s with a 1 s fade (FluidR3's 3.2 s as rendered), mono 96 kbit/s MP3; looped over their steady middle when held.
+
+Four soloists for the chorales (P16; kept on the website, not in the claude.ai page):
+soloSoprano/ soloAlto/ soloTenor/ soloBass/  VocalSet (Julia Wilkins, Prem Seetharaman, Alison Wahl, Bryan Pardo,
+         "VocalSet: A Singing Voice Dataset", ISMIR 2018; zenodo.org/records/1442513). CC BY 4.0
+         (https://creativecommons.org/licenses/by/4.0/). Singers f2 (soprano), f5 (mezzo-soprano), m11 (tenor), m8 (bass),
+         vowel "a". Changed: single notes cut from long tones, scales and arpeggios by pitch tracking; retuned to
+         equal temperament and levelled; sustained by crossfaded repetition into a 2 s loop; the alto's F3-A3, the
+         bass's D2-A2 and the tenor's A4 pitch-shifted (formant preserved) from the nearest sung note. Scripts:
+         tools/playback/vocalset/.
