@@ -17,10 +17,10 @@ import fuguesData from "../../data/wtc/fugues.json" with { type: "json" };
 import preludesData from "../../data/wtc/preludes.json" with { type: "json" };
 import laterData from "../../data/wtc/later-subjects.json" with { type: "json" };
 import sectionsData from "../../data/wtc/ledbetter-sections.json" with { type: "json" };
-import { laterSubjects } from "./subjects.ts";
+import { laterByContour, laterSubjects } from "./subjects.ts";
 import { settled } from "./settled.ts";
 import type { WtcPiece } from "./corpus.ts";
-import { findByContour, findEntriesByHead, findTransformed, line, subjectAndAnswer, TPQ } from "./fugue.ts";
+import { findByContour, findEntriesByHead, findTransformed, keptLength, line, subjectAndAnswer, TPQ } from "./fugue.ts";
 import { findEntries, type Entry, type FullNote } from "./entries.ts";
 import { separateVoices } from "./voices.ts";
 import { parsePitch } from "../music/pitch.ts";
@@ -127,7 +127,27 @@ export function fugueOf(p: WtcPiece): LibFugue {
   const varied = findByContour(p, subject, 1).map((e) => asEntry({ voice: e.voice, at: e.at, length: e.length, form: e.form }));
   const kept: Entry[] = [];
   for (const e of [...lab.sort((a, b) => a.at - b.at), ...more.sort((a, b) => a.at - b.at), ...varied.sort((a, b) => a.at - b.at)]) if (!kept.some((x) => voiceOf(x) === voiceOf(e) && x.at < e.end - 1e-6 && e.at < x.end - 1e-6)) kept.push(e);
-  const entries = kept.sort((a, b) => a.at - b.at);
+  // A head begun again in the same voice before a subject's length has passed is a sequence spun from the
+  // head (an episode), not two entries (Algomus and Groocock against the analysis: I/3, I/5): both go, unless
+  // the first keeps the whole subject (or answer) in its intervals (D163).
+  const span = (subject[subject.length - 1].on + subject[subject.length - 1].dur - s0) / TPQ;
+  const sRef = subject.map((n) => n.pitch);
+  const aRef = answer.map((n) => n.pitch);
+  const whole = (e: Entry) => {
+    const v = voiceOf(e);
+    const l = line(p.voices[v]).filter((n) => n.on >= Math.round((e.at - pad) * TPQ) - TPQ / 8).map((n) => n.pitch);
+    return Math.max(keptLength(sRef, l), keptLength(aRef, l)) >= Math.ceil(0.9 * sRef.length);
+  };
+  kept.sort((a, b) => a.at - b.at);
+  const spun = new Set<Entry>();
+  for (const e of kept) {
+    const next = kept.find((x) => x !== e && voiceOf(x) === voiceOf(e) && x.inverted === e.inverted && x.at > e.at && x.at - e.at < 0.75 * span);
+    if (next && !whole(e)) {
+      spun.add(e);
+      if (!whole(next)) spun.add(next);
+    }
+  }
+  const entries = kept.filter((e) => !spun.has(e));
   // The later subjects, each from the bar where Ledbetter has it enter; its entries' notes as encoded.
   const later: Entry[] = [];
   for (const { n, bar } of (laterData as { fugues: Record<string, { n: number; bar: number }[]> }).fugues[p.id] ?? []) {
@@ -139,6 +159,19 @@ export function fugueOf(p: WtcPiece): LibFugue {
       if (!ids.length) continue;
       if (first < 0) first = piece.notes[ids[0]].midi;
       later.push({ at: o.on / TPQ + pad, end: o.end / TPQ + pad, shift: piece.notes[ids[0]].midi - first, inverted: false, notes: ids, subject: n });
+    }
+    // Statements in a varied rhythm (D163), where no exact one of this subject lies in the same voice, nor an
+    // entry of the first subject.
+    // Not before the subject has entered (b. 41 in Book I no. 4 foreshadows the third subject of b. 49).
+    for (const o of laterByContour(p, ls.notes).filter((x) => x.on >= ls.occurrences[0].on)) {
+      const at = o.on / TPQ + pad;
+      const end = o.end / TPQ + pad;
+      // (an entry's last note may be the statement's first: Book I no. 4, b. 57)
+      const busy = (x: Entry) => voiceOf(x) === o.voice && x.at < end - 1e-6 && at < x.end - piece.notes[x.notes[x.notes.length - 1]].dur - 1e-6;
+      if (later.some((x) => x.subject === n && busy(x)) || entries.some(busy)) continue;
+      const ids = p.voices[o.voice].filter(([on, dur, , sub]) => sub === 0 && dur > 0 && on >= o.on && on < o.end).map(([on, , pitch]) => index.get(`${o.voice}:0:${on}:${pitch}`)!).filter((i) => i !== undefined);
+      if (!ids.length) continue;
+      later.push({ at, end, shift: first < 0 ? 0 : piece.notes[ids[0]].midi - first, inverted: false, notes: ids, subject: n });
     }
   }
   // Within a voice, occurrences do not overlap (the first kept), and a figure carried on in sequence

@@ -126,3 +126,44 @@ export function laterSubjects(p: WtcPiece, subject: Note[], answer: Note[], bars
   }
   return out;
 }
+
+/**
+ * Further occurrences of a later subject whose rhythm Bach varies (D163: Groocock counts 35 statements of Book I
+ * no. 4's third subject, the exact-rhythm search finds 8: its repeated notes are re-divided). The figure with its
+ * repeated notes merged, matched by its intervals (by letter, exactly) in a rhythm that may differ note by note
+ * (each time-span between a third and three times the figure's), the whole lasting the figure's length within
+ * half again either way; the last interval free (the end is bent to the harmony: b. 52, D-E for D#-E#-F#). Freeing
+ * two found more of no. 4's final section (b. 95) but doubled Book II no. 4's second subject with false ones.
+ * Figures of fewer than five distinct notes are not searched (too common).
+ */
+export function laterByContour(p: WtcPiece, notes: Note[]): Occurrence[] {
+  const merge = (l: Note[]) => l.filter((n, i) => i === 0 || n.pitch !== l[i - 1].pitch);
+  const fig = merge(notes);
+  const n = fig.length;
+  if (n < 5) return [];
+  const fInt = fig.slice(1).map((x, i) => D(x.pitch) - D(fig[i].pitch));
+  const fIoi = fig.slice(1).map((x, i) => x.on - fig[i].on);
+  const last = notes[notes.length - 1];
+  const span = last.on + last.dur - notes[0].on;
+  const out: Occurrence[] = [];
+  p.voices.forEach((v, voice) => {
+    const l = merge(line(v));
+    for (let s = 0; s + n <= l.length; s++) {
+      let ok = true;
+      for (let i = 0; i < n - 1 && ok; i++) {
+        if (i < n - 2 && D(l[s + i + 1].pitch) - D(l[s + i].pitch) !== fInt[i]) ok = false;
+        else {
+          const r = (l[s + i + 1].on - l[s + i].on) / fIoi[i];
+          if (r < 1 / 3 - 1e-9 || r > 3 + 1e-9) ok = false;
+        }
+      }
+      if (!ok) continue;
+      // The occurrence ends where its last merged note ends (the next different pitch).
+      const end = l[s + n] ? l[s + n].on : l[s + n - 1].on + l[s + n - 1].dur;
+      const len = end - l[s].on;
+      if (len < span / 1.5 || len > span * 1.5) continue;
+      out.push({ voice, on: l[s].on, end });
+    }
+  });
+  return out;
+}

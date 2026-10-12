@@ -10,9 +10,9 @@ Book I can be set beside the Algomus reference (`ALGOMUS.md`), Book II only besi
 |---|---|---|---|---|---|---|---|
 | I/1 | 5 | 26 | 23 | 23 | 100% | 88% | 25 of 26 (Algomus 25) |
 | I/2 | 2 | 8 | 8 | 8 | 100% | 100% | 8 of 8 (Algomus 8) |
-| I/3 | 2 | 12 | 20 | 12 | 60% | 100% | 12 of 12 (Algomus 12) |
-| I/4 | 8 | 82 | 54 | 48 | 89% | 59% | 44 of 82 (Algomus 44) |
-| I/5 | 4 | 12 | 19 | 12 | 63% | 100% | 11 of 12 (Algomus 11) |
+| I/3 | 2 | 12 | 12 | 12 | 100% | 100% | 12 of 12 (Algomus 12) |
+| I/4 | 8 | 82 | 65 | 56 | 86% | 68% | 44 of 82 (Algomus 44) |
+| I/5 | 4 | 12 | 17 | 12 | 71% | 100% | 11 of 12 (Algomus 11) |
 | I/6 | 3 | 18 | 18 | 18 | 100% | 100% | 17 of 18 (Algomus 17) |
 | I/7 | 2 | 9 | 9 | 9 | 100% | 100% | 9 of 9 (Algomus 9) |
 | I/8 | 3 | 36 | 34 | 32 | 94% | 89% | 27 of 36 (Algomus 26) |
@@ -35,7 +35,7 @@ Book I can be set beside the Algomus reference (`ALGOMUS.md`), Book II only besi
 | II/1 | 2 | 11 | 11 | 11 | 100% | 100% | – |
 | II/2 | 5 | 24 | 21 | 21 | 100% | 88% | – |
 | II/3 | 3 | 31 | 10 | 10 | 100% | 32% | – |
-| II/4 | 7 | 24 | 22 | 22 | 100% | 92% | – |
+| II/4 | 7 | 24 | 23 | 23 | 100% | 96% | – |
 | II/5 | 5 | 24 | 23 | 23 | 100% | 96% | – |
 | II/6 | 3 | 13 | 18 | 13 | 72% | 100% | – |
 | II/7 | 5 | 11 | 11 | 11 | 100% | 100% | – |
@@ -45,20 +45,20 @@ Book I can be set beside the Algomus reference (`ALGOMUS.md`), Book II only besi
 | II/11 | 2 | 8 | 7 | 6 | 86% | 75% | – |
 | II/12 | 2 | 9 | 9 | 9 | 100% | 100% | – |
 | II/13 | 2 | 11 | 9 | 9 | 100% | 82% | – |
-| II/14 | 7 | 26 | 27 | 18 | 67% | 69% | – |
-| II/15 | 2 | 6 | 10 | 6 | 60% | 100% | – |
+| II/14 | 7 | 26 | 33 | 22 | 67% | 85% | – |
+| II/15 | 2 | 6 | 7 | 6 | 86% | 100% | – |
 | II/16 | 4 | 14 | 15 | 12 | 80% | 86% | – |
 | II/17 | 4 | 15 | 15 | 15 | 100% | 100% | – |
 | II/18 | 7 | 21 | 21 | 21 | 100% | 100% | – |
-| II/19 | 2 | 10 | 13 | 10 | 77% | 100% | – |
+| II/19 | 2 | 10 | 11 | 10 | 91% | 100% | – |
 | II/20 | 2 | 8 | 8 | 8 | 100% | 100% | – |
 | II/21 | 6 | 10 | 14 | 10 | 71% | 100% | – |
 | II/22 | 5 | 20 | 24 | 20 | 83% | 100% | – |
 | II/23 | 7 | 24 | 30 | 24 | 80% | 100% | – |
 | II/24 | 6 | 10 | 10 | 10 | 100% | 100% | – |
 
-- **Book I:** Groocock 443 entries, the analysis 415, matched 382: precision 92%, recall 86%.
-- **Book II:** Groocock 383 entries, the analysis 386, matched 337: precision 87%, recall 88%.
+- **Book I:** Groocock 443 entries, the analysis 416, matched 390: precision 94%, recall 88%.
+- **Book II:** Groocock 383 entries, the analysis 388, matched 342: precision 88%, recall 89%.
 - **Groocock against Algomus (Book I):** 376 of Groocock's 443 entries are in the Algomus reference (85%).
 
 Precision here is a lower bound: Groocock lists the entries that matter to his account of the form, and an entry the analysis finds that he does not list is not thereby false (`ALGOMUS.md` judged such cases from the notes).
@@ -94,9 +94,8 @@ Where Groocock states the end. Ours: the settled subject's last note, as bar, be
 ## The differences, fugue by fugue
 
 - **I/1.** Groocock's entries not found: soprano b. 16-17 (subject); bass b. 20-21 (subject (incomplete); first three notes); soprano b. 24-25 (subject (incomplete); first four notes).
-- **I/3.** Found, not in Groocock: v0 b. 22, v0 b. 24, v0 b. 34, v0 b. 35, v0 b. 36, v2 b. 38, v2 b. 39, v2 b. 40.
-- **I/4.** Groocock's entries not found: soprano 1 b. 38-41 (second subject); soprano 1 b. 51-54 (third subject); soprano 2 b. 66-69 (third subject); soprano 2 b. 76-79 (third subject); soprano 2 b. 57-59 (third subject); soprano 2 b. 62-64 (second subject); soprano 1 b. 62-64 (third subject); bass b. 64-66 (third subject); alto b. 69-71 (third subject); bass b. 79-81 (third subject); soprano 1 b. 84-88 (second subject); tenor b. 84-88 (third subject); soprano 2 b. 84-88 (third subject); bass b. 84-88 (third subject); bass b. 89-92 (third subject); soprano 1 b. 92-94 (third subject); soprano 2 b. 92-94 (third subject); soprano 1 b. 96 (subject; lacks final note); tenor b. 100 (subject; hardly part of stretto; first three notes only); tenor b. 94 (third subject); alto b. 95 (third subject); tenor b. 96 (third subject); soprano 2 b. 98 (third subject); tenor b. 98 (third subject); soprano 1 b. 99 (third subject); bass b. 100 (third subject); tenor b. 102 (third subject); alto b. 103 (third subject); soprano 2 b. 104 (third subject); tenor b. 105 (third subject); soprano 1 b. 107-112 (subject; on dominant pedal); tenor b. 108 (third subject); soprano 2 b. 112-114 (subject); alto b. 113 (third subject (last notes augmented)). Found, not in Groocock: v1 b. 19, v4 b. 34, v0 b. 44, v0 b. 54, v0 b. 101, v4 b. 86.
-- **I/5.** Found, not in Groocock: v3 b. 11, v3 b. 13, v0 b. 20, v1 b. 20, v3 b. 22, v0 b. 24, v0 b. 24.
+- **I/4.** Groocock's entries not found: soprano 1 b. 38-41 (second subject); soprano 2 b. 76-79 (third subject); soprano 2 b. 62-64 (second subject); bass b. 64-66 (third subject); soprano 1 b. 84-88 (second subject); bass b. 84-88 (third subject); bass b. 89-92 (third subject); soprano 1 b. 92-94 (third subject); soprano 2 b. 92-94 (third subject); soprano 1 b. 96 (subject; lacks final note); tenor b. 100 (subject; hardly part of stretto; first three notes only); tenor b. 94 (third subject); alto b. 95 (third subject); tenor b. 96 (third subject); soprano 2 b. 98 (third subject); tenor b. 98 (third subject); soprano 1 b. 99 (third subject); bass b. 100 (third subject); tenor b. 102 (third subject); alto b. 103 (third subject); soprano 2 b. 104 (third subject); tenor b. 105 (third subject); soprano 1 b. 107-112 (subject; on dominant pedal); tenor b. 108 (third subject); soprano 2 b. 112-114 (subject); alto b. 113 (third subject (last notes augmented)). Found, not in Groocock: v1 b. 19, v4 b. 34, v0 b. 44, v0 b. 54, v0 b. 101, v0 b. 69, v4 b. 86, v2 b. 107, v1 b. 107.
+- **I/5.** Found, not in Groocock: v3 b. 11, v3 b. 13, v0 b. 20, v1 b. 20, v3 b. 22.
 - **I/8.** Groocock's entries not found: middle b. 27-30 (subject); middle b. 36-38 (subject (inverted)); bass b. 39-41 (answer (inverted); ornamented beginning; extended to imperfect cadence at 43); soprano b. 47-50 (subject (inv, part. aug.); one beat later; partly augmented as in stretto 2). Found, not in Groocock: v2 b. 17, v1 b. 33.
 - **I/9.** Found, not in Groocock: v0 b. 12.
 - **I/10.** Groocock's entries not found: bass b. 40-41 (subject; first half of the subject, slightly altered).
@@ -111,18 +110,18 @@ Where Groocock states the end. Ours: the settled subject's last note, as bar, be
 - **I/24.** Groocock's entries not found: bass b. 47-50 (answer; harmonized to begin and end in III); alto b. 19 (false entry (first three notes); in episode 3); tenor b. 28 (false entry; in episode 4).
 - **II/2.** Groocock's entries not found: tenor b. 15-16 (answer (inverted); altered at two points for euphony); bass b. 22-23 (answer (direct)); bass b. 26-27 (answer (inverted); ending altered to lead into coda).
 - **II/3.** Groocock's entries not found: middle b. 4-5 (answer; altered ending; followed by diminution); bass b. 5-6 (subject (?); table "subject (?) in bass" with footnote 37; altered ending); bass b. 9-10 (subject (inverted); first four notes only); middle b. 9-10 (subject (inverted); first four notes only); soprano b. 9-10 (subject (inverted); first four notes only); bass b. 10-11 (subject (inverted); shortened; enters last note of bar 10); soprano b. 11 (subject (inverted)); middle b. 11 (subject); bass b. 11-12 (answer; leads straight into episode 1); soprano b. 14-16 (subject (inverted); complete inverted subject; end extended by falling sequence); bass b. 17-18 (subject; altered rhythm, first six notes spread over two bars); bass b. 24 (answer; tonal answer accompanied by "new theme", now like a counters); soprano b. 25-27 (subject (inverted)); middle b. 25-27 (answer (augmentation)); bass b. 25-27 (answer; at original speed; followed by codetta); bass b. 27-28 (answer (augmentation); ends in dominant pedal 28-29); soprano b. 28 (subject (inverted); over dominant pedal); soprano b. 28 (answer); middle b. 29 (answer); middle b. 30-31 (subject (inverted; table: "subject in middle, repeated in sequence"); three repetitions in falling sequence of the inverted subjec); bass b. 31-32 (answer; then dominant pedal resumed 32-33).
-- **II/4.** Groocock's entries not found: middle b. 36-37 (second subject; follows in stretto); middle b. 53-54 (subject (inverted); allusion to beginning of S ii in bass).
+- **II/4.** Groocock's entries not found: middle b. 53-54 (subject (inverted); allusion to beginning of S ii in bass).
 - **II/5.** Groocock's entries not found: alto b. 27-29 (answer (first four notes); [A] bracketed in diagram; return in bar 29 accepted as virtu).
 - **II/6.** Found, not in Groocock: v0 b. 5, v2 b. 18, v0 b. 18, v0 b. 21, v2 b. 21.
 - **II/8.** Groocock's entries not found: tenor b. 24 (subject (incomplete); partial entry following closely).
 - **II/9.** Groocock's entries not found: soprano b. 23-24 (subject (ornamented); extra step between 2nd and 3rd notes, highest note lengthene); alto b. 23-24 (answer (ornamented); one beat later); bass b. 25-26 (subject (ornamented)); tenor b. 25-26 (answer (ornamented); one beat later; starts on supertonic of vi). Found, not in Groocock: v3 b. 20, v0 b. 31, v3 b. 23, v0 b. 26, v1 b. 28, v1 b. 32, v0 b. 39, v2 b. 16, v1 b. 17, v0 b. 19.
 - **II/11.** Groocock's entries not found: soprano b. 85-89 (subject; diagram key i-I); bass b. 89-95 (subject; suggests answer at its beginning; extended by sequence to si). Found, not in Groocock: v2 b. 91.
 - **II/13.** Groocock's entries not found: soprano b. 20-24 (subject; decorated with a written-out turn instead of a trill); middle b. 70-76 (answer; with two-bar extension (recalls falling sequence of episodes).
-- **II/14.** Groocock's entries not found: bass b. 23-24 (second subject); middle b. 28-31 (subject); soprano b. 54-57 (subject; ornamented opening); middle b. 54-57 (second subject; at 56, complete eight-note form); middle b. 60-63 (second subject; bar 61); bass b. 65-67 (second subject; merges from running bass); bass b. 65-69 (second subject; bar 68); middle b. 65-69 (third subject). Found, not in Groocock: v1 b. 17, v1 b. 39, v2 b. 41, v1 b. 42, v0 b. 44, v2 b. 45, v0 b. 46, v0 b. 49, v1 b. 67.
-- **II/15.** Found, not in Groocock: v2 b. 23, v0 b. 25, v2 b. 27, v2 b. 31.
+- **II/14.** Groocock's entries not found: middle b. 28-31 (subject); soprano b. 54-57 (subject; ornamented opening); middle b. 54-57 (second subject; at 56, complete eight-note form); bass b. 65-69 (second subject; bar 68). Found, not in Groocock: v1 b. 17, v1 b. 39, v2 b. 41, v1 b. 42, v0 b. 44, v2 b. 45, v0 b. 46, v0 b. 49, v1 b. 56, v1 b. 67, v2 b. 68.
+- **II/15.** Found, not in Groocock: v0 b. 25.
 - **II/16.** Groocock's entries not found: tenor b. 67-69 (subject; solitary note after much four-part writing; CS alto intercha); bass b. 79-83 (subject (transformed)). Found, not in Groocock: v1 b. 45, v1 b. 51, v2 b. 59.
-- **II/19.** Found, not in Groocock: v1 b. 24, v0 b. 25, v0 b. 27.
+- **II/19.** Found, not in Groocock: v1 b. 24.
 - **II/21.** Found, not in Groocock: v0 b. 25, v2 b. 27, v1 b. 62, v0 b. 85.
 - **II/22.** Found, not in Groocock: v0 b. 96, v1 b. 96, v2 b. 96, v3 b. 96.
-- **II/23.** Found, not in Groocock: v3 b. 56, v2 b. 71, v2 b. 73, v3 b. 89, v3 b. 91, v0 b. 100.
+- **II/23.** Found, not in Groocock: v3 b. 54, v2 b. 71, v2 b. 73, v3 b. 89, v3 b. 91, v0 b. 100.
 

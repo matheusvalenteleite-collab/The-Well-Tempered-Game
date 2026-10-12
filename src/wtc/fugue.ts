@@ -241,6 +241,26 @@ function bachAnswer(subject: Note[], degs: { deg: number; alter: number }[]): st
 }
 
 /**
+ * How many notes of `ref` (spelled pitches) the line `l` follows from its first note, interval by interval in
+ * diatonic steps (an octave's displacement allowed; one mismatch among the first three intervals, for a tonal
+ * head). D163: the subject is what later statements keep.
+ */
+export function keptLength(ref: string[], l: string[]): number {
+  let miss = 0;
+  let k = 1;
+  for (let i = 0; i + 1 < ref.length && i + 1 < l.length; i++) {
+    const a = diatonic(ref[i + 1]) - diatonic(ref[i]);
+    const b = diatonic(l[i + 1]) - diatonic(l[i]);
+    if (a !== b && Math.abs(a - b) !== 7) {
+      if (i < 3 && miss === 0) miss++;
+      else break;
+    }
+    k = i + 2;
+  }
+  return k;
+}
+
+/**
  * Entries found with the subject's head where later entries vary its tail: the subject is
  * shortened a note at a time (down to half its length, and never below eight notes) as long as the
  * number of entries found does not jump (more than half again, plus two, at a step; or beyond two

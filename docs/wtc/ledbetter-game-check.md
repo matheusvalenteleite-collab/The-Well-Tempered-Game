@@ -13,7 +13,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 | | fugues | preludes |
 |---|---|---|
-| entry | 158 of 173 (91%) | none |
+| entry | 159 of 173 (92%) | none |
 | stretto | 40 of 47 (85%) | none |
 | pedal | 7 of 12 (58%) | 3 of 3 (100%) |
 | cadence | 8 of 35 (23%) | 4 of 29 (14%) |
@@ -34,8 +34,6 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 - wtc2f06: strettos the study shows that no claim names, at bars 5, 21
 - wtc2f08: strettos the study shows that no claim names, at bars 43
 - wtc2f09: strettos the study shows that no claim names, at bars 9, 10, 30, 35, 39
-- wtc2f15: strettos the study shows that no claim names, at bars 23, 25
-- wtc2f19: strettos the study shows that no claim names, at bars 24
 - wtc2f21: strettos the study shows that no claim names, at bars 25, 62
 - wtc2f22: strettos the study shows that no claim names, at bars 33, 67, 73
 
@@ -116,11 +114,11 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc1f04
 
-5 of 10 hold.
+6 of 10 hold.
 
 - ✓ `entry b.35 voice? (S2)`: found, subject 2 in the soprano I at bar 36
 - ✓ `entry b.49 voice? (S3)`: found, subject 3 in the alto at bar 49
-- ✗ `entry b.67 voice? (S3)`: subject 3 found, but not here
+- ✓ `entry b.67 voice? (S3)`: found, subject 3 in the soprano II at bar 67
 - ✗ `entry b.71 voice? (S3)`: subject 3 found, but not here
 - ✓ `stretto b.94 voices?`: found at bar 94
 - ✓ `entry b.94 soprano (S1)`: found

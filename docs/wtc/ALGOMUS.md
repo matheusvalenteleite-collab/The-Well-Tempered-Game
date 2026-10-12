@@ -45,9 +45,9 @@ The settled subject's length within an eighth note of the reference's in 13 of 2
 |---|---|---|---|---|---|---|---|
 | I/1 | 22 | 22 | 22 | 100% | 100% | – | – |
 | I/2 | 8 | 8 | 8 | 100% | 100% | – | – |
-| I/3 | 12 | 20 | 12 | 60% | 100% | – | S1 v0 22:4.5 subject; S1 v0 23:4.5 subject; S1 v0 34:4.75 subject; S1 v0 35:4.75 subject; S1 v0 36:4.75 subject; S1 v2 38:4.75 subject; S1 v2 39:4.75 subject; S1 v2 40:4.75 subject |
-| I/4 | 44 | 54 | 31 | 57% | 70% | S2 v0 b.36; S2 v0 b.47; S2 v0 b.82; S2 v1 b.60; S2 v1 b.79; S2 v2 b.52; S2 v2 b.55; S2 v2 b.74; S2 v3 b.92; S2 v4 b.45; S2 v4 b.67; S2 v4 b.77; S3 v3 b.99 | S1 v1 19:2.5 subject; S1 v4 34:2 subject; S1 v0 44:1 subject; S1 v0 54:2 subject; S1 v0 70:2.75 subject; S1 v1 72:2 subject; S1 v0 94:1 subject; S1 v1 94:2 subject; S1 v0 101:2 subject; S2 v0 36:1.25 subject; S2 v4 45:1.25 subject; S2 v0 48:1.25 subject; S2 v1 49:1.25 subject; S2 v2 52:1.25 subject; S2 v2 55:1.25 subject; S2 v0 58:1.25 subject; S2 v1 60:1.25 subject; S2 v4 67:1.25 subject; S2 v2 74:1.25 subject; S2 v4 77:1.25 subject; S2 v1 79:1.25 subject; S2 v0 82:1.25 subject; S2 v3 92:1.25 subject |
-| I/5 | 11 | 19 | 11 | 58% | 100% | – | S1 v3 11:1 subject; S1 v3 13:1 subject; S1 v0 20:1 subject; S1 v1 20:2 subject; S1 v3 22:3 subject; S1 v0 24:2 subject; S1 v0 24:4 subject; S1 v3 24:4 subject |
+| I/3 | 12 | 12 | 12 | 100% | 100% | – | – |
+| I/4 | 44 | 65 | 31 | 48% | 70% | S2 v0 b.36; S2 v0 b.47; S2 v0 b.82; S2 v1 b.60; S2 v1 b.79; S2 v2 b.52; S2 v2 b.55; S2 v2 b.74; S2 v3 b.92; S2 v4 b.45; S2 v4 b.67; S2 v4 b.77; S3 v3 b.99 | S1 v1 19:2.5 subject; S1 v4 34:2 subject; S1 v0 44:1 subject; S1 v0 54:2 subject; S1 v0 70:2.75 subject; S1 v1 72:2 subject; S1 v0 94:1 subject; S1 v1 94:2 subject; S1 v0 101:2 subject; S2 v0 36:1.25 subject; S2 v4 45:1.25 subject; S2 v0 47:1.25 subject; S2 v1 49:1.25 subject; S2 v2 52:1.25 subject; S3 v0 52:1.5 subject; S2 v2 55:1.25 subject; S3 v1 57:1.5 subject; S2 v0 58:1.25 subject; S2 v1 60:1.25 subject; S3 v0 62:1.5 subject; S2 v4 67:1.25 subject; S3 v1 67:1.5 subject; S2 v0 69:1.25 subject; S3 v2 69:1.5 subject; S2 v2 74:1.25 subject; S2 v4 77:1.25 subject; S2 v1 79:1.25 subject; S3 v4 79:1.5 subject; S2 v0 82:1.25 subject; S3 v3 84:1.5 subject; S3 v1 85:1.5 subject; S2 v3 92:1.25 subject; S3 v2 107:1 subject; S3 v1 107:1.5 subject |
+| I/5 | 11 | 17 | 11 | 65% | 100% | – | S1 v3 11:1 subject; S1 v3 13:1 subject; S1 v0 20:1 subject; S1 v1 20:2 subject; S1 v3 22:3 subject; S1 v3 24:4 subject |
 | I/6 | 17 | 18 | 17 | 94% | 100% | – | S1 v0 35:1.5 subject |
 | I/7 | 9 | 9 | 9 | 100% | 100% | – | – |
 | I/8 | 26 | 34 | 24 | 71% | 92% | S-inv v1 b.36; S-inv v2 b.39 (varied) | S1 v2 17:1 subject; S1 v2 24:3 subject; S1 v1 33:1 subject; S1 v2 52:1 subject; S1 v1 52:2 subject; S1 v0 52:3 subject; S1 v2 54:1 inverted; S1 v1 54:2 inverted; S1 v0 54:3 inverted; S1 v1 77:2.5 subject |
@@ -68,7 +68,7 @@ The settled subject's length within an eighth note of the reference's in 13 of 2
 | I/23 | 12 | 11 | 11 | 100% | 92% | S-inv v1 b.20 | – |
 | I/24 | 13 | 12 | 12 | 100% | 92% | S v3 b.47.5 | – |
 
-All: 343 complete statements in the reference, 393 found by the analysis (heads the reference lists as incomplete statements left out of both counts), 322 matched: precision 82%, recall 94%. Of the reference's 38 incomplete statements, the analysis reports 22 as entries.
+All: 343 complete statements in the reference, 394 found by the analysis (heads the reference lists as incomplete statements left out of both counts), 322 matched: precision 82%, recall 94%. Of the reference's 38 incomplete statements, the analysis reports 22 as entries.
 
 ### Each disagreement judged from the notes
 
