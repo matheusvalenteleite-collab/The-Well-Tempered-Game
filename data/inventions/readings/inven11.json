@@ -1,0 +1,65 @@
+{
+ "id": "inven11",
+ "key": "g",
+ "meter": "4/4",
+ "bars": 23,
+ "reader_notes": "Read by hand from the note text (dump.ts, bars 1-23), independently: no external analysis consulted. x = the right hand's sixteenth line 1:1.25-3:2.75 (D4 E4 F#4 G4 A4 Bb4 G4 A4, G4 F#4 E4 D4, the seventh leap to C5, falling to G4; then the falling one-beat sequence D5 C5 Bb4 D5 / C5 Bb4 A4 C5 and the rising Bb4 ... E5): ten beats. y = the bass's counterline from 1:1 to 2:4.5: G2, then a chromatic descent G3 F#3 F3 E3 Eb3 D3 decorated by neighbour sixteenths (F#3 G3 A3 G3; E3 F3 G3 F3), ending D3 G3 F#3. y-INV = its exact (real) melodic inversion, first in the right hand 3:4.5-5:1 (D5 Eb5 E5 F5 F#5 G5 rising, with Eb5 D5 C5 D5 and F5 E5 D5 E5 as neighbour groups). 'x-body' = x from its second beat (G A Bb G A G F# E D, seventh leap, C Bb A), used on its own in sequences. openings.ts found the canon at 3:1.25 correctly.",
+ "opening": {
+  "leader": {"voice": 0, "from": "1:1.25", "to": "3:2.75", "material": "x (against y in the bass from 1:1: the piece starts with the two lines together)"},
+  "first_imitation": {"voice": 1, "at": "3:1.25", "interval": "8 below", "distance_beats": 8, "exact": false, "changes": "modal: F3 for F#4 (3:3.5) and Eb3 for E4 (4:1.5), the lowered seventh and sixth; the last note Bb3 (5:2.75) for E5, turning to the cadence. Otherwise exact to 5:2.5."},
+  "leader_meanwhile": "exchange with inversion: the leader takes over the bass's counterline y, but melodically inverted (y-INV, real), from 3:4.5; it stands two beats later against x than y did, so the pair is not a strict double-counterpoint exchange.",
+  "canon_strict_to": "5:2.5 (the follower copies x only; it is not a canon beyond the first statement)",
+  "notes": "Two-voice texture from the first beat: x and y are stated together, so the bass is the follower for x but itself a thematic line from 1:1."
+ },
+ "paradigms": [
+  {
+   "name": "alpha",
+   "prime": {"bars": "1:1-2:4.75", "voices": {"0": "x", "1": "y"}, "key": "g"},
+   "members": [
+    {"bars": "7:1-8:4.75", "key": "d", "operations": ["TRANSPOSE d", "EXCHANGE 8 (15)"], "reason": "x in the bass from 7:1.25 (A2 B2 C#3 D3 ...), y in the right hand from 7:2.75 (C#5 D5 E5 D5, C#5 C5, B4 C5 D5 C5, B4 Bb4, A4 D5 C#5), exact; y's first note G is replaced by F5 held and a run G5 A5 Bb5. Thirds become sixths: invertible at the octave. Continued in bars 9-10 (see elaborations)."},
+    {"bars": "18:3-20:4.75", "key": "g", "operations": ["VARY", "displaced by two beats (x begins at beat 3.25, not 1.25)"], "reason": "Tonic return, voices as in the prime: x in the right hand at 18:3.25 at the original pitch (D4 E4 F#4 ...), y in the bass at its original pitch with F#3 G3 A3 G3 at 19:1 aligned with x as in bar 1. Changes: y's head is Bb3 held and a run C4 D4 Eb4 instead of G2 and G3; x has Eb4 for E4 (19:3.5); x's falling sequence is extended by one unit (20:3-20:4.75) and its last rising figure becomes a scale to the cadence (bar 21)."}
+   ]
+  },
+  {
+   "name": "beta",
+   "prime": {"bars": "3:1-6:4.75", "voices": {"0": "end of x (3:1-3:2.75), y-INV (3:3-5:1), then x-body on Bb (5:1.5, varied head D5 C5) and on F/d (6:1.25, up a third, seventh leap C#5-Bb5)", "1": "x (canon, 8 below, 3:1.25-5:2.75), then cadential leaping eighths C4 Eb3 F3 F2 Bb2 Bb3 A3 D4 Bb3 G3 A3 A2"}, "key": "g to d (passing Bb at 6:1)", "ends_with": "IAC in d at 7:1"},
+   "members": [
+    {"bars": "13:1-16:3", "key": "c", "operations": ["TRANSPOSE c", "EXCHANGE 8 (15)", "VARY", "ABORT the second sequence unit"], "reason": "x in the right hand at 13:1.25 (G4 A4 B4 C5 D5 Eb5 ..., complete to 15:2.75 with Bb4 and Ab4 for the raised degrees, as in the prime's follower), y-INV in the bass from 13:3 (B2 G2 . G2, Ab2 G2 F2 G2 Ab2 A2, Bb2 A2 G2 A2 Bb2 B2, C3), placed against x exactly as in the prime. The bass's 13:1-2.75 (Eb3 D3 C3 D3 Eb3 F3 G3 Ab3) is the end-of-x figure the prime has in the right hand at 3:1. Then the bass takes x itself in c (15:1.25, true head, seventh leap G2-F3) where the prime's right hand had the varied x-body, against cadential leaping eighths in the right hand; the prime's second unit (to d) is cut and the member closes with a PAC in c at 16:3."}
+   ]
+  }
+ ],
+ "elaborations": [
+  {"bars": "9:1-10:4.75", "function": "extension of alpha' and approach to the cadence in d", "material": "bass: x's falling one-beat sequence carried on past x's end (F3 E3 D3 F3, E3 D3 C#3 E3 ...); right hand: y's closing figure (eighth, leap, quarter) repeated rising by thirds (A4 D5 C#5, A4 F5 E5, A4 A5 G5)", "sequence": {"type": "down by step (bass, one-beat units) against up by third (right hand, two-beat units)", "unit_beats": 1, "repeats": 4, "imitative": false}},
+  {"bars": "11:1-12:4.75", "function": "link from d to c", "material": "x-body in the right hand (11:1.5, head varied D5 C5 Bb4) then in the bass a bar later and a step lower (12:1.5, c), the other voice holding long notes or the head of x (bass 11:2.25 D3 E3 F3 G3 A3 Bb3 G3)", "sequence": {"type": "down by step", "unit_beats": 4, "repeats": 2, "imitative": true}},
+  {"bars": "16:3-18:2.75", "function": "link from c back to g", "material": "bass: x's first bar on D in c-minor colour (16:3.25, D3 Eb3 F3 G3 Ab3 Bb3 ...) and on F in g (17:3.25, F3 G3 A3 Bb3 C4 D4 ... F#3 Eb4); right hand free, rising in long notes (C5 ... Eb5, F5, G5) then a falling scale", "sequence": {"type": "up by third", "unit_beats": 4, "repeats": 2, "imitative": false}},
+  {"bars": "21:1-23:4", "function": "closing passage and final cadence", "material": "right hand: x's last rising figure turned into a scale G4-A5; bass: y's closing figure, then cadential bass", "sequence": null}
+ ],
+ "statements": [
+  {"voice": 0, "at": "5:1.5", "key": "Bb (in g)", "form": "x-body, head varied (D5 C5 D5)", "complete": false},
+  {"voice": 0, "at": "6:1.25", "key": "d (on F)", "form": "x's first bar, prime shape, diminished-seventh leap C#5-Bb5", "complete": false},
+  {"voice": 0, "at": "11:1.5", "key": "d", "form": "x-body, head varied (D5 C5 Bb4)", "complete": false},
+  {"voice": 1, "at": "11:2.25", "key": "d toward c", "form": "head of x (D3 E3 F3 G3 A3 Bb3 G3)", "complete": false},
+  {"voice": 1, "at": "12:1.5", "key": "c", "form": "x-body", "complete": false},
+  {"voice": 1, "at": "16:3.25", "key": "c (toward g)", "form": "x's first bar, modal (Eb, Ab)", "complete": false},
+  {"voice": 1, "at": "17:3.25", "key": "g", "form": "x's first bar, on F (seventh leap F#3-Eb4)", "complete": false}
+ ],
+ "cadences": [
+  {"at": "7:1", "key": "d", "kind": "IAC", "bass": "5-1", "reason": "Bass A3 A2 (6:4-6:4.5) to D2 at 7:1; right hand G5 to F5 (third). Closes beta; the bass starts alpha' on the arrival. Unsure: could be read as a passing arrival."},
+  {"at": "11:1", "key": "d", "kind": "PAC", "bass": "5-1", "reason": "Bass A3 A2 (10:4-10:4.5) to D3; right hand E5 D5 to D5."},
+  {"at": "16:3", "key": "c", "kind": "PAC", "bass": "5-1", "reason": "Bass F2 G2 (16:2.5-2.75) to C2; right hand B4 (16:2.5) to C5."},
+  {"at": "23:3", "key": "g", "kind": "PAC", "bass": "5-1", "reason": "Bass D3 D2 (23:2-2.5) to G2; right hand F#4 to G4."}
+ ],
+ "layout": {
+  "order": ["alpha g (1-2)", "beta g-d: canon of x with y-INV, x-body sequence (3-6)", "alpha' d, exchanged (7-8)", "extension and cadence d (9-10)", "link d-c (11-12)", "beta' c, exchanged, cut short (13-16:3)", "link c-g (16:3-18:2)", "alpha'' g, displaced by two beats (18:3-20)", "close g (21-23)"],
+  "sections": [{"bars": "1-11:1", "ends": "PAC d"}, {"bars": "11-16:3", "ends": "PAC c"}, {"bars": "16:3-23", "ends": "PAC g"}],
+  "returns": [
+   {"bar": 7, "what": "the opening pair (alpha) in d, voices exchanged"},
+   {"bar": 13, "what": "beta (x against y-INV) in c, voices exchanged"},
+   {"bar": 18, "what": "alpha in the tonic, voices as at the start, two beats later in the bar"}
+  ],
+  "form": "rounded bipartite (first part 1-11 ends with a PAC in the minor dominant; the second goes to c and returns to alpha in the tonic at 18:3). Alternative: tripartite 1-7 / 7-16 / 16-23, taking the IAC at 7:1 as the first division, since bar 7 begins with alpha in a new key."
+ },
+ "kind": {"primary": "double (invertible pair)", "also": ["canonic opening (bars 3-5 only, too short for the canonic kind)"]},
+ "confidence": "sure",
+ "notes": "Sure: x and y stated together from bar 1; the canon of x at the octave below; y-INV as the leader's counterpoint; the exchanged returns of alpha (d, 7) and beta (c, 13); the tonic return at 18:3; the four cadences at 7, 11, 16, 23 (7:1 less sure). Unsure: whether bars 5-6 belong to beta's prime or are elaboration (they are kept in beta because their pattern, x-body against leaping eighths, returns exchanged in 15-16); the form (rounded bipartite vs tripartite). Passing arrival on Bb (III) at 6:1 (bass F2-Bb2, right hand on D5, mid-sequence) is not counted as a cadence. The answer's Eb and F naturals give the canon a subdominant colour; the tonic return keeps one of them (Eb4 at 19:3.5)."
+}

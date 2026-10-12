@@ -1,0 +1,68 @@
+{
+ "id": "inven12",
+ "key": "A",
+ "meter": "12/8",
+ "bars": 21,
+ "reader_notes": "Read by hand from the note text (dump.ts, bars 1-21), independently: no external analysis consulted. Beats are eighths, twelve to the bar. x = the right hand's 1:1-2:12.5: a head of repeated notes (A4 q, A4 e, A4 q, A4 e) and a held B4, then a sixteenth run (A4 G#4 A4 B4 C#5 D5 C#5 D5 F#5 E5 D5 C#5, then broken chords A4 C#5 E5 A5 and F#5 D#5 B4 D#5 F#5 A5 F#5, i.e. V/V) that leads to E. y = the bass's line under it, 1:1-2:7: a sixteenth turn-and-scale A3 B3 C#4 B3 A3 G#3 F#3 G#3 A3 G#3 F#3 E3, broken chords D3 F#3 A3 F#3 D3 F#3 / B2 D3 F#3 D3 B2 D3, and a closing figure in eighths G#2 B2 G#2 E2 F#2 G#2 A2. 'y-head' = its first half-bar. openings.ts found the answer at 3:1 (bass, E3) correctly and flagged the exchange.",
+ "opening": {
+  "leader": {"voice": 0, "from": "1:1", "to": "2:12.5", "material": "x (with y in the bass from 1:1: the two lines start together)"},
+  "first_imitation": {"voice": 1, "at": "3:1", "interval": "5 above / 4 below (an 11th below: A4 -> E3)", "distance_beats": 24, "exact": false, "changes": "tonal: the head and the first half of the run are exact on E; the run's broken chords stay on E7 (E3 G#3 B3 E4 B3 G#3 E3 G#3 B3 D4 B3, 4:7.5) instead of moving to V/V of E, so the answer returns to A (C#4 at 5:1)."},
+  "leader_meanwhile": "exchange: the leader takes the bass's line y, transposed to E (3:1, G#5 A5 G#5 F#5 E5 D#5 ...; first two notes changed), its broken chords (3:7, A4 C#5 E5 ...) and, varied and extended into a sixteenth arpeggio, its closing figure (4:1-4:10). Double counterpoint at the octave.",
+  "canon_strict_to": null,
+  "notes": "No canon. The head and y return together every time, always exchanged or in their original order."
+ },
+ "paradigms": [
+  {
+   "name": "alpha",
+   "prime": {"bars": "1:1-2:12.5", "voices": {"0": "x (head and run)", "1": "y"}, "key": "A to E (V/V at the end)"},
+   "members": [
+    {"bars": "3:1-4:12.5", "key": "E back to A", "operations": ["TRANSPOSE E", "EXCHANGE 8 (15)", "VARY"], "reason": "The answer: x in the bass on E, y in the right hand; tonal change in the run (stays on E7), y's first two notes and its closing figure varied (4:1-4:10)."},
+    {"bars": "9:1-10:12.5", "key": "f#", "operations": ["TRANSPOSE f#", "MODESWITCH", "VARY"], "reason": "Voices as in the prime: x in the right hand (head varied: six eighths F#4 F#5 F#4 F#4 C#4 F#4 instead of the repeated quarter-eighth notes, then G#4 held), the run exact in the minor (F#4 E#4 F#4 G#4 A4 B4 ..., to V/V D#5 B#4 G#4); y in the bass (9:1, first notes A3 B3 A3 instead of the scale's start, natural-minor E3 D3), its broken chords exact, its closing figure exact (E#2 G#2 E#2 C#2 D#2 E#2 F#2)."},
+    {"bars": "11:1-12:12.5", "key": "c# to F# (V of b)", "operations": ["TRANSPOSE c#", "EXCHANGE 8 (15)", "MODESWITCH", "VARY"], "reason": "The answer in the minor: head on C#3 in the bass (held D#3), run exact; y in the right hand on c# (E5 F#5 E5 D#5 C#5 B4 ...), its closing figure varied into rising eighths B#3 D#4 F#4 A4 G#4 B#4. As in the prime answer the run stays on the chord (C#3 E3 G#3 C#4 ... B3) and falls a fifth, here to F# major at 13:1."},
+    {"bars": "18:1-20:3", "key": "A", "operations": ["EXCHANGE 8 (15)", "VARY", "ABORT at 20:4"], "reason": "Tonic return, exchanged: head on A2 in the bass (B2 held), run at the original pitch two octaves down (19:1.5); y in the right hand: its first half-bar replaced by a rising A-major arpeggio (18:1-6), its broken chords exact two octaves up (18:7), its closing figure in eighths (bar 19). The run turns back to A instead of going to V/V and breaks off into the closing passage over a D pedal (20:4)."}
+   ]
+  },
+  {
+   "name": "beta",
+   "prime": {"bars": "5:1-6:12.5", "voices": {"0": "the head's repeated notes (E5 q e q e, then D5) and broken chords in sixteenths", "1": "y-head (on C#4, then B3) and broken chords in eighths"}, "key": "A (I6 - vi7 - ii - V7)", "ends_with": "IAC in A at 7:1"},
+   "members": [
+    {"bars": "14:7-16:6.5", "key": "A to D", "operations": ["TRANSPOSE (the right hand a fifth lower, the bass at the same pitch)", "VARY"], "reason": "Right hand: repeated A4 (14:7), broken chord, repeated G4 (15:7), broken chord: the same step-down sequence a fifth lower, the G natural making V7 of D. Bass: y-head on C#4 at the same pitch as bar 5 (14:7), then y-head on E4 (15:7, up a third instead of down a step), broken eighths (16:1 A3 E3 C#3 A2 as 6:7 E3 B2 G#2 E2). The voices now stand a sixth apart where they stood a tenth apart. Ends IAC in D at 16:7. Unsure as a member: the second unit's bass is changed."}
+   ]
+  },
+  {
+   "name": "gamma",
+   "prime": {"bars": "7:1-8:12.5", "voices": {"0": "the figure 'rising broken chord, two steps down' entering at 7:4.5 (D), 7:10.5 (C#), 8:4.5 (B), then running sixteenths to the C#7 chord", "1": "the same figure at 7:1.5 (A), 7:7.5 (G#), 8:1.5 (F#), 8:7.5 (B), then C#3 E#3 G#3 C#4 B3"}, "key": "A to f# (reached over its third at 9:1)"},
+   "members": [
+    {"bars": "16:7-17:12.5", "key": "D to A", "operations": ["TRANSPOSE (entered one link later in the chain)", "ABORT (six entries instead of seven, without the closing run)"], "reason": "The same imitative chain, bass first at 16:7.5 (D), right hand at 16:10.5 (G#), bass 17:1.5 (C#), right hand 17:4.5 (F#), bass 17:7.5 (B), right hand 17:10.5 (E), arriving on A at 18:1. Unsure whether this sequence should be a paradigm; the alternative is to list both passages as elaborations."}
+   ]
+  }
+ ],
+ "elaborations": [
+  {"bars": "5:1-6:12.5", "function": "(beta's prime) prolongation of A toward its cadence", "material": "head's repeated notes, y-head", "sequence": {"type": "down by step", "unit_beats": 12, "repeats": 2, "imitative": false}},
+  {"bars": "7:1-8:12.5", "function": "(gamma's prime) link from A to f#", "material": "free figure: rising broken chord and two falling steps", "sequence": {"type": "descending fifths (A D G# C# F# B, then C#7 to f#)", "unit_beats": 6, "repeats": 6, "imitative": true}},
+  {"bars": "13:1-14:6.5", "function": "link from F# (V of b) back to A", "material": "right hand: neighbour-note figure over broken chords (C#5 E5 F#5 E5 ...); bass: rising arpeggios", "sequence": {"type": "descending fifths (F#7 - b - E7 - A)", "unit_beats": 6, "repeats": 3, "imitative": false}},
+  {"bars": "16:7-17:12.5", "function": "(gamma's member) link from D back to A", "material": "as 7-8", "sequence": {"type": "descending fifths (D G# C# F# B E, to A)", "unit_beats": 6, "repeats": 6, "imitative": true}},
+  {"bars": "20:4-21:12", "function": "closing passage and final cadence", "material": "bass held D3 (IV, under V7 arpeggios in the right hand), then a falling scale and cadential bass", "sequence": null}
+ ],
+ "statements": [],
+ "cadences": [
+  {"at": "7:1", "key": "A", "kind": "IAC", "bass": "5-1", "reason": "E7 (6:7-12, bass E3 B2 G#2 E2) to A: bass A3 at 7:1.5 after a sixteenth's rest, right hand D5 to C#5. Closes beta. Unsure: it is also the first link of the gamma chain."},
+  {"at": "11:1", "key": "c#", "kind": "IAC", "bass": "5-1", "reason": "Bass G#3 (10:12) to C#3, the head of the answer; right hand D#5 to E5 at the end of the run. Unsure: the run and the answer run on without a break; in the prime the corresponding arrival on E (3:1) has no V-I in the bass."},
+  {"at": "16:7", "key": "D", "kind": "IAC", "bass": "5-1", "reason": "Bass A2 (16:4) to D3 (16:7.5), right hand G4 to F#4. Closes beta' as 7:1 closes beta. Unsure for the same reason (it begins the gamma chain)."},
+  {"at": "21:10", "key": "A", "kind": "PAC", "bass": "5-1", "reason": "Bass E3 E2 (21:8-9) to A2; right hand B4 A4 to A4."}
+ ],
+ "layout": {
+  "order": ["alpha A-E (1-2)", "alpha' E-A, exchanged (3-4)", "beta A (5-6)", "gamma A-f# (7-8)", "alpha f# (9-10)", "alpha' c#-F#, exchanged (11-12)", "link F#-A, descending fifths (13-14:6)", "beta' A-D (14:7-16:6)", "gamma' D-A (16:7-17)", "alpha A, exchanged (18-20:3)", "close A (20:4-21)"],
+  "sections": [{"bars": "1-8", "ends": "IAC A at 7:1, then the chain to f#"}, {"bars": "9-14:6", "ends": "arrival on A at 14:7 (no cadence: I6)"}, {"bars": "14:7-21", "ends": "PAC A"}],
+  "returns": [
+   {"bar": 3, "what": "alpha answered on E, exchanged (part of the opening pair)"},
+   {"bar": 9, "what": "alpha in f# (with its exchanged answer in c# at 11): the opening pair restated in the relative minor"},
+   {"bar": 14, "what": "beta in the tonic (14:7), then gamma"},
+   {"bar": 18, "what": "alpha in the tonic, exchanged (bass leads)"}
+  ],
+  "form": "tripartite (1-8 / 9-14 / 14:7-21; the second part begins with the opening pair in f#, the third brings beta, gamma and alpha back in reversed order and in the tonic). Unsure: only the final cadence is a PAC, so the division rests on the returns; alternative: rounded bipartite with the division at 9 and the tonic return at 18."
+ },
+ "kind": {"primary": "double (invertible pair)", "also": ["fugal (tonal answer at the dominant at the opening, the pair restated in f#/c#, tonic return)"]},
+ "confidence": "sure",
+ "notes": "Sure: x and y as an invertible pair, stated four times as answer pairs (A/E, f#/c#) and once in the tonic exchanged; the tonal answer; beta and gamma returning in 14-17; the final PAC. Unsure: the three IACs (7:1, 11:1, 16:7), all of which run straight into new material; whether gamma (an imitative descending-fifths chain) is a paradigm or only elaboration; the form. Not cadences: the arrival on A at 2:7 inside the run (bass E2 F#2 G#2 A2 under the right hand's run), f# reached over its third at 9:1 (bass C#3 ... B3 to A3), A at 14:7 as I6. The elaborations list repeats beta's and gamma's primes and gamma's member so that their sequences can be counted; they are not extra segments."
+}
