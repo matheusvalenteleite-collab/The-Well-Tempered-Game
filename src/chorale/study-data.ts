@@ -22,6 +22,8 @@ export interface StudyChorale {
   voices: Note[][];
   harmony: Onset[];
   cadences: [number, string, string][];
+  /** C32: Roman numerals at the on-beat soprano attacks, in the local key: [onset, line, line?] (a pivot has two). */
+  rn?: [number, string, string?][];
 }
 export interface StudyData {
   kinds: string[];

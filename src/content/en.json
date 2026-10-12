@@ -1846,7 +1846,9 @@
     "l5.licence.unresolved": "the {voice}'s seventh goes on by a {how}, not falling by step: the free style allows \"the passing over of the resolution, and a resolution of the dissonance in another voice\" (Kirnberger, Kunst I, p. 81).",
     "study.cad.halfLocal": "HC (local key)",
     "study.cad.plagal": "plagal",
-    "study.cad.localTonic": "on the local I"
+    "study.cad.localTonic": "on the local I",
+    "study.layer.numerals": "Roman numerals",
+    "study.layer.numerals.help": "Under the bass, each chord as a degree of the key its passage is in: a tonicisation as an applied chord (V/V), a modulation by the new key's name (\"D: I\"), its pivot chord read in both keys (the old key above, the new below). Local keys after the generator's reading (C31)."
   },
   "wtcp": {
     "piece.p1": "Prelude 1 in C (BWV 846) · harmonic plan",
