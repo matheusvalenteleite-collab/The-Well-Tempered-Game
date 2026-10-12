@@ -30,7 +30,7 @@ RESEARCH.md section 2, which keeps the record of what was done (R1-R4 so far).
 | pedal points | 58% |
 | harmony | the reader finds the analyst's root in 83% of segments on homophonic music (When in Rome); unmeasured on fugues |
 | habits | HABITS.md parts 1-7: subject, answer, exposition, entries, stretto, episodes, pedals |
-| theory | Fux's doctrine of fugue read (docs/fux/fugue.md, 29 claims to test); Kirnberger 1773 and Marpurg located, not read |
+| literature | Ledbetter's claims checked (docs/wtc/ledbetter-game-check.md); Kirnberger 1773 and Marpurg located, not read; Fux's doctrine read (background) |
 
 ## 2. The phases
 
@@ -42,7 +42,7 @@ owner's.
 
 | step | what | done when |
 |---|---|---|
-| A1 | **A gold standard by hand.** Eight fugues read completely by hand, every entry (voice, bar, beat, form, key) and every cadence (bar, kind, key): two from each book of the 48 (one three-voice, one four-voice), two from the Art of Fugue (I, VI), the Ricercar a 3, BWV 903. Same protocol as the subjects. | `data/wtc/gold/*.json` with reasons; reviewed |
+| A1 | **A gold standard by hand.** Eight fugues read completely by hand, every entry (voice, bar, beat, form, key) and every cadence (bar, kind, key): I/11 (F major, 3 voices) and I/12 (F minor, 4), II/13 (F♯ major, 3) and II/17 (A♭ major, 4), chosen among the fugues Ledbetter says most about (11-15 claims each); Art of Fugue VI (counter-fugue in diminution) and IX (double fugue at the twelfth); the Ricercar a 3; BWV 903. Same protocol as the subjects. | `data/wtc/gold/*.json` with reasons; reviewed |
 | A2 | **Entries measured on the gold standard** (precision and recall, by set), not only on Ledbetter's sampled claims; the misses classified (ornamented, altered head, voice crossing). | a table in `docs/wtc/READING.md`; fixes where a class of misses is common |
 | A3 | **A cadence finder.** Cadences as the chorale mode classes them (perfect, imperfect, half, Phrygian, deceptive, evaded), read from the bass's clausula and the upper voices' (the leading note, the 7-6/4-3 suspension), not from a change of key. Measured on the gold standard and Ledbetter's 35 claims. | cadences at 70% or better of Ledbetter's (a target, to be agreed), measured on the gold |
 | A4 | **The fundamental bass in a fugue.** The chorale mode's Kirnberger reading adapted to two- to four-voice counterpoint (harmony implied by fewer voices, more incidental notes). Measured against Kirnberger's own analysis of a Bach fugue (1773, Fig. 95; first identify the fugue from the plate) and on the gold standard. | the agreement with Kirnberger stated, chord by chord |
@@ -69,14 +69,16 @@ owner's.
 Done when each chapter has its counts with examples, and HABITS.md's "What stands out" is rewritten
 from the whole.
 
-### C. The theory of the period, as a check
+### C. The literature on Bach's fugues, as a check
+
+The owner (12 October): focus on Ledbetter; other reading only where it is specifically about fugue,
+the WTC, or Bach's writing. General treatises (Fux's) are background, not a check.
 
 | step | what | done when |
 |---|---|---|
-| C1 | **Fux's 29 claims answered** one by one from the counts (docs/fux/fugue.md section 12): where Bach follows, where he departs, with examples | `docs/wtc/FUX-AND-BACH.md` |
-| C2 | **Marpurg, *Abhandlung von der Fuge*** read (the chapters on Führer and Gefährte, the answer, Gegensatz, Zwischenspiel, Engführung, the plan): his rules and his examples from Bach, stated as claims and tested like Fux's | `docs/wtc/marpurg.md` and the tests |
-| C3 | **Kirnberger 1773**: the fugue of Fig. 95 identified, his fundamental bass transcribed, set beside ours (A4) | `docs/wtc/kirnberger.md` |
-| C4 | **Ledbetter's remaining claims** (sections, cadences) re-run once A3 is done; his disagreements with the project listed for the owner | ledbetter-game-check.md regenerated |
+| C1 | **Ledbetter first**: his remaining claims (sections, cadences) re-run once A3 is done; every disagreement between his reading and the project's listed for the owner, with the score | ledbetter-game-check.md regenerated, disagreements listed |
+| C2 | **Readings specifically on Bach's fugues**, where they can be read legally: Marpurg's *Abhandlung von der Fuge* (1753-54, built on Bach's fugues; Internet Archive) for its examples from Bach and its terms; Kirnberger's fundamental-bass analysis of a Bach fugue (1773, Fig. 95), set beside ours (A4); modern studies of the WTC or the Art of Fugue as they are found (sources to be listed before they are used) | `docs/wtc/literature.md`: what each says about Bach's fugues, tested against the counts |
+| C3 | **Fux's claims** (docs/fux/fugue.md section 12): background only, answered where the counts already speak, not pursued | a short section in HABITS.md |
 
 ### D. Hear and read (the study screen)
 
@@ -100,5 +102,5 @@ above. XIV is tracked (docs/wtc/XIV.md), and its prerequisites are this plan's p
 
 ## 4. The order of work
 
-A1 → A2 → A3 → A4 (with C3) → A5 → A6; then B and C1-C2 side by side, chapter by chapter; D as layers
+A1 → A2 → A3 → A4 (with Kirnberger, C2) → A5 → A6, with C1 (Ledbetter) as each reading is measured; then B and C2 side by side, chapter by chapter; D as layers
 become measured; E whenever a decision is ripe. Each step ends with a commit and a line in RESEARCH.md.
