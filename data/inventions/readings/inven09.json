@@ -5,56 +5,244 @@
  "bars": 34,
  "reader_notes": "Read by hand from the note text (dump.ts, bars 1-34), independently: no published analysis consulted. Correspondences between passages were checked note by note with a throwaway comparison script (semitone offsets of aligned notes) and by reading. The piece has two subjects that begin together at 1:1 and run four bars. x (right hand, 1:1-4:3.75): C Bb Ab G Ab F, then Db5 tied over the bar; C Bb A Bb G, E5 tied; F G Ab Bb G E Db C; Bb Ab G Ab Bb Db C Bb Ab G F E: falling sixteenths with syncopated tied notes, each bar a step or so higher, over a dominant prolongation. y (bass, 1:1-4:3.75): an octave leap F2 F3 (dotted), then sixteenths G Ab G F Eb Db C; the same from Bb2/G3 (bar 2); a rising scale C D E F G Ab Bb G F E F E (bar 3); F3, then C D E F G Ab Bb rising (bar 4). The first eighth of y (the lower note of the leap) changes at nearly every later statement (Ab, B, Eb, F#, A ...).",
  "opening": {
-  "leader": {"voice": 0, "from": "1:1", "to": "4:3.75", "material": "x, with y in the bass at the same moment (two subjects together; no single leader)"},
-  "first_imitation": {"voice": 1, "at": "5:1", "interval": "8 below", "distance_beats": 12, "exact": true},
+  "leader": {
+   "voice": 0,
+   "from": "1:1",
+   "to": "4:3.75",
+   "material": "x, with y in the bass at the same moment (two subjects together; no single leader)"
+  },
+  "first_imitation": {
+   "voice": 1,
+   "at": "5:1",
+   "interval": "8 below",
+   "distance_beats": 12,
+   "exact": true
+  },
   "leader_meanwhile": "exchange: at 5:1 the bass takes x an octave lower (exact through 8:3.75) while the right hand takes y two octaves higher (5:1.5 F5 G5 Ab5 ..., exact through 8:1); invertible counterpoint, the voices simply trade lines",
   "notes": "No imitation in the usual sense: nothing is answered before bar 5. The lines are invertible at the octave (x down 8, y up 15: three octaves in all). y's first note is Ab4 at 5:1, not F. The machine's '[exchange] v1 at 5:1' is right."
  },
  "paradigms": [
   {
    "name": "alpha",
-   "prime": {"bars": "1:1-5:1", "voices": {"0": "x", "1": "y"}, "key": "f (over i - V7 - i)"},
+   "prime": {
+    "bars": "1:1-5:1",
+    "voices": {
+     "0": "x",
+     "1": "y"
+    },
+    "key": "f (over i - V7 - i)"
+   },
    "members": [
-    {"bars": "5:1-9:1", "key": "f", "operations": ["EXCHANGE 8", "VARY"], "reason": "Bass: x an octave lower, every note. Right hand: y two octaves higher from 5:1.5 to 8:1. VARY: y's first eighth is Ab4 (5:1); in bar 8 the right hand falls (F5 C5. Bb Ab G F E Ab G) instead of y's rising scale of bar 4."},
-    {"bars": "9:1-12:1", "key": "f to c", "operations": ["TRANSPOSE c (from the middle of bar 9)", "VARY", "ABORT at 12:1"], "reason": "Same arrangement as the prime (x right hand, y bass). Bar 9 begins at the prime's pitch (x to 9:2.5, y to 9:3.75, with D natural at 9:3.5); then the tied note is Ab5 (9:3) and bars 10-11 are bars 2-3 a fifth higher, in c. VARY: y's first notes in bars 9 and 10 (Ab3; B2 Ab3. G, falling at once instead of circling). ABORT: the prime's bar 4 is left out; a new member starts at 12."},
-    {"bars": "12:1-15:1", "key": "c to g (arriving on G, V of c)", "operations": ["TRANSPOSE (bar 12 in c, bars 13-14 in g)", "VARY", "ABORT at 15:1"], "reason": "The previous member a fifth higher: x's first bar in c (12:1.25 F Eb D Eb C) and y's in c (12:1 Eb3 C4. D Eb D C Bb A G), then bars 2-3 of both a step above the prime, in g (13-14). VARY: x leaps C4 to Eb5 (12:3) instead of a sixth; y's opening notes in bar 13 (F#3 Eb4. D C ...). ABORT: bar 4 is replaced by a dominant extension (15-16); the arrival at 15:1 has B natural."},
-    {"bars": "17:1-21:1", "key": "c", "operations": ["TRANSPOSE c", "EXCHANGE 8", "VARY"], "reason": "Bass: x in c (17:1.25 F3 Eb D Eb C Ab3, bar 18 G F E F D B3, bar 19, bar 20), a twelfth below the prime's x shifted to c, exact from 17:1.25 to 20:3.5. Right hand: y in c, a twelfth above (17:2.25 D5 Eb D C Bb Ab G; 18 F4 D5. Eb F Eb D C B A; 19 G A B C D Eb F D C B C B). VARY: x's first note is Eb4 (17:1) not G; the right hand holds C5 through y's octave leap (17:1-17:2.25); bar 20 is changed in both voices (right hand G5 held, F Eb D, C5 held; bass Bb2 for B at 20:3.75, turning toward bb)."},
-    {"bars": "29:1-33:1", "key": "f", "operations": ["VARY"], "reason": "The return in the tonic, voices as in the prime. Right hand: x at its original pitch, every note (29:1-32:3.75). Bass: y, bars 30-32 an octave lower. VARY: y's openings in bars 29 and 30 (Ab3 Bb3 C4. Bb Ab G ... and Bb2 C3 Db3. C Bb ...: rising into the dotted note instead of the octave leap, then falling at once); bar 32's rising scale bends back (C D E F E F G) to reach the cadence."}
+    {
+     "bars": "5:1-9:1",
+     "key": "f",
+     "operations": [
+      "EXCHANGE 8",
+      "VARY"
+     ],
+     "reason": "Bass: x an octave lower, every note. Right hand: y two octaves higher from 5:1.5 to 8:1. VARY: y's first eighth is Ab4 (5:1); in bar 8 the right hand falls (F5 C5. Bb Ab G F E Ab G) instead of y's rising scale of bar 4."
+    },
+    {
+     "bars": "9:1-12:1",
+     "key": "f to c",
+     "operations": [
+      "TRANSPOSE c (from the middle of bar 9)",
+      "VARY",
+      "ABORT at 12:1"
+     ],
+     "reason": "Same arrangement as the prime (x right hand, y bass). Bar 9 begins at the prime's pitch (x to 9:2.5, y to 9:3.75, with D natural at 9:3.5); then the tied note is Ab5 (9:3) and bars 10-11 are bars 2-3 a fifth higher, in c. VARY: y's first notes in bars 9 and 10 (Ab3; B2 Ab3. G, falling at once instead of circling). ABORT: the prime's bar 4 is left out; a new member starts at 12."
+    },
+    {
+     "bars": "12:1-15:1",
+     "key": "c to g (arriving on G, V of c)",
+     "operations": [
+      "TRANSPOSE (bar 12 in c, bars 13-14 in g)",
+      "VARY",
+      "ABORT at 15:1"
+     ],
+     "reason": "The previous member a fifth higher: x's first bar in c (12:1.25 F Eb D Eb C) and y's in c (12:1 Eb3 C4. D Eb D C Bb A G), then bars 2-3 of both a step above the prime, in g (13-14). VARY: x leaps C4 to Eb5 (12:3) instead of a sixth; y's opening notes in bar 13 (F#3 Eb4. D C ...). ABORT: bar 4 is replaced by a dominant extension (15-16); the arrival at 15:1 has B natural."
+    },
+    {
+     "bars": "17:1-21:1",
+     "key": "c",
+     "operations": [
+      "TRANSPOSE c",
+      "EXCHANGE 8",
+      "VARY"
+     ],
+     "reason": "Bass: x in c (17:1.25 F3 Eb D Eb C Ab3, bar 18 G F E F D B3, bar 19, bar 20), a twelfth below the prime's x shifted to c, exact from 17:1.25 to 20:3.5. Right hand: y in c, a twelfth above (17:2.25 D5 Eb D C Bb Ab G; 18 F4 D5. Eb F Eb D C B A; 19 G A B C D Eb F D C B C B). VARY: x's first note is Eb4 (17:1) not G; the right hand holds C5 through y's octave leap (17:1-17:2.25); bar 20 is changed in both voices (right hand G5 held, F Eb D, C5 held; bass Bb2 for B at 20:3.75, turning toward bb)."
+    },
+    {
+     "bars": "29:1-33:1",
+     "key": "f",
+     "operations": [
+      "VARY"
+     ],
+     "reason": "The return in the tonic, voices as in the prime. Right hand: x at its original pitch, every note (29:1-32:3.75). Bass: y, bars 30-32 an octave lower. VARY: y's openings in bars 29 and 30 (Ab3 Bb3 C4. Bb Ab G ... and Bb2 C3 Db3. C Bb ...: rising into the dotted note instead of the octave leap, then falling at once); bar 32's rising scale bends back (C D E F E F G) to reach the cadence."
+    }
    ]
   }
  ],
  "elaborations": [
-  {"bars": "15:1-17:1", "function": "dominant extension in c, closing section 1 into the exchanged member", "material": "right hand: held notes in suspension (B4, C5, D5, C5); bass: rising scales and turns over G7 (G A B C D Eb F D Eb C D Eb, F G Ab F G D Eb F, G3 F4 Eb4 D4), derived from y's bar 3", "sequence": null},
-  {"bars": "21:1-25:1", "function": "link from c through bb to Ab", "material": "alpha's first bar, varied: x's opening shape (21:1.25 Bb A G Ab F, Eb5 tied) against y's leap and falling scale (A2 C4. Bb A G F Eb Db C) at almost the prime's pitch, now as V7 of bb; then x's tail in the right hand rising and falling over a bass arpeggio (22, bb). Bars 23-24 are 21-22 a step lower with the voices exchanged (y's head in the right hand at 23:1, x's shape in the bass at 23:1.25; tail in the bass at 24, arpeggio in the right hand), in Ab", "sequence": {"type": "down by step", "unit_beats": 6, "repeats": 2, "imitative": true}},
-  {"bars": "25:1-28:1", "function": "link from Ab back toward f", "material": "bass: y's head with its octave leap (F3 F4., Eb3 Eb4., Db3 Db4.) and falling scale; right hand: falling sixteenths with tied syncopations (x's manner)", "sequence": {"type": "down by step", "unit_beats": 3, "repeats": 3, "imitative": false}},
-  {"bars": "28:1-29:1", "function": "dominant preparation of the return", "material": "bass C3 held, then y's rising scale D E F G Ab Bb G; right hand rising sixteenths to C5 (x's first note)", "sequence": null},
-  {"bars": "33:1-34:1", "function": "final cadence", "material": "free: right hand C5. Db5 G4 F4; bass Ab3 G3 Ab3 Bb3 C4 Bb3 C4 C3, F2", "sequence": null}
+  {
+   "bars": "15:1-17:1",
+   "function": "dominant extension in c, closing section 1 into the exchanged member",
+   "material": "right hand: held notes in suspension (B4, C5, D5, C5); bass: rising scales and turns over G7 (G A B C D Eb F D Eb C D Eb, F G Ab F G D Eb F, G3 F4 Eb4 D4), derived from y's bar 3",
+   "sequence": null
+  },
+  {
+   "bars": "21:1-25:1",
+   "function": "link from c through bb to Ab",
+   "material": "alpha's first bar, varied: x's opening shape (21:1.25 Bb A G Ab F, Eb5 tied) against y's leap and falling scale (A2 C4. Bb A G F Eb Db C) at almost the prime's pitch, now as V7 of bb; then x's tail in the right hand rising and falling over a bass arpeggio (22, bb). Bars 23-24 are 21-22 a step lower with the voices exchanged (y's head in the right hand at 23:1, x's shape in the bass at 23:1.25; tail in the bass at 24, arpeggio in the right hand), in Ab",
+   "sequence": {
+    "type": "down by step",
+    "unit_beats": 6,
+    "repeats": 2,
+    "imitative": true
+   }
+  },
+  {
+   "bars": "25:1-28:1",
+   "function": "link from Ab back toward f",
+   "material": "bass: y's head with its octave leap (F3 F4., Eb3 Eb4., Db3 Db4.) and falling scale; right hand: falling sixteenths with tied syncopations (x's manner)",
+   "sequence": {
+    "type": "down by step",
+    "unit_beats": 3,
+    "repeats": 3,
+    "imitative": false
+   }
+  },
+  {
+   "bars": "28:1-29:1",
+   "function": "dominant preparation of the return",
+   "material": "bass C3 held, then y's rising scale D E F G Ab Bb G; right hand rising sixteenths to C5 (x's first note)",
+   "sequence": null
+  },
+  {
+   "bars": "33:1-34:1",
+   "function": "final cadence",
+   "material": "free: right hand C5. Db5 G4 F4; bass Ab3 G3 Ab3 Bb3 C4 Bb3 C4 C3, F2",
+   "sequence": null
+  }
  ],
  "statements": [
-  {"voice": 0, "at": "21:1.25", "key": "bb (on V7)", "form": "x varied (Bb A G Ab F, leap to Eb5)", "extent": "first bar only"},
-  {"voice": 1, "at": "21:1", "key": "bb (on V7)", "form": "y varied (A2 C4. then falling scale)", "extent": "first bar only"},
-  {"voice": 1, "at": "23:1.25", "key": "Ab (on V7)", "form": "x varied", "extent": "first bar only"},
-  {"voice": 0, "at": "23:1", "key": "Ab (on V7)", "form": "y varied (G4 Bb5. then falling scale)", "extent": "first bar only"},
-  {"voice": 1, "at": "25:1", "key": "Bb/Eb region (on F)", "form": "y's head with octave leap, falling scale", "extent": "head only"},
-  {"voice": 1, "at": "26:1", "key": "on Eb", "form": "y's head with octave leap", "extent": "head only"},
-  {"voice": 1, "at": "27:1", "key": "on Db", "form": "y's head with octave leap", "extent": "head only"}
+  {
+   "voice": 0,
+   "at": "21:1.25",
+   "key": "bb (on V7)",
+   "form": "x varied (Bb A G Ab F, leap to Eb5)",
+   "extent": "first bar only"
+  },
+  {
+   "voice": 1,
+   "at": "21:1",
+   "key": "bb (on V7)",
+   "form": "y varied (A2 C4. then falling scale)",
+   "extent": "first bar only"
+  },
+  {
+   "voice": 1,
+   "at": "23:1.25",
+   "key": "Ab (on V7)",
+   "form": "x varied",
+   "extent": "first bar only"
+  },
+  {
+   "voice": 0,
+   "at": "23:1",
+   "key": "Ab (on V7)",
+   "form": "y varied (G4 Bb5. then falling scale)",
+   "extent": "first bar only"
+  },
+  {
+   "voice": 1,
+   "at": "25:1",
+   "key": "Bb/Eb region (on F)",
+   "form": "y's head with octave leap, falling scale",
+   "extent": "head only"
+  },
+  {
+   "voice": 1,
+   "at": "26:1",
+   "key": "on Eb",
+   "form": "y's head with octave leap",
+   "extent": "head only"
+  },
+  {
+   "voice": 1,
+   "at": "27:1",
+   "key": "on Db",
+   "form": "y's head with octave leap",
+   "extent": "head only"
+  }
  ],
  "cadences": [
-  {"at": "15:1", "key": "c", "kind": "HC", "bass": "#4-5", "reason": "Bar 14 is x and y's third bar on D (D7); the bass reaches G3 at 15:1 with B4 above, and G7 is then prolonged for two bars. Unsure: read in g (where bars 13-14 point) it is a PAC in g with a major third; it is called a half cadence in c because the G chord is at once treated as V7 of c (F and Eb in the bass's scales, 15:2.5-16:4) and resolves to c at 17:1."},
-  {"at": "34:1", "key": "f", "kind": "PAC", "bass": "5-1", "reason": "C4 C3 (33:3) to F2 (34:1); right hand G4 F4 (33:2-33:3.5), ending on F4."}
+  {
+   "at": "15:1",
+   "key": "c",
+   "kind": "HC",
+   "bass": "#4-5",
+   "reason": "Bar 14 is x and y's third bar on D (D7); the bass reaches G3 at 15:1 with B4 above, and G7 is then prolonged for two bars. Unsure: read in g (where bars 13-14 point) it is a PAC in g with a major third; it is called a half cadence in c because the G chord is at once treated as V7 of c (F and Eb in the bass's scales, 15:2.5-16:4) and resolves to c at 17:1."
+  },
+  {
+   "at": "34:1",
+   "key": "f",
+   "kind": "PAC",
+   "bass": "5-1",
+   "reason": "C4 C3 (33:3) to F2 (34:1); right hand G4 F4 (33:2-33:3.5), ending on F4."
+  }
  ],
  "layout": {
-  "order": ["alpha f (1-4)", "alpha' f, exchanged (5-8)", "alpha'' f-c (9-11)", "alpha''' c-g/V of c (12-14)", "dominant extension in c (15-16)", "alpha'''' c, exchanged (17-20)", "sequence bb-Ab, alpha's first bar with exchange (21-24)", "sequence toward f, y's head in the bass (25-27)", "dominant preparation (28)", "alpha f, return (29-32)", "close f (33-34)"],
-  "sections": [{"bars": "1-17:1", "ends": "HC c at 15:1, prolonged and resolved to c at 17:1"}, {"bars": "17-34", "ends": "PAC f"}],
+  "order": [
+   "alpha f (1-4)",
+   "alpha' f, exchanged (5-8)",
+   "alpha'' f-c (9-11)",
+   "alpha''' c-g/V of c (12-14)",
+   "dominant extension in c (15-16)",
+   "alpha'''' c, exchanged (17-20)",
+   "sequence bb-Ab, alpha's first bar with exchange (21-24)",
+   "sequence toward f, y's head in the bass (25-27)",
+   "dominant preparation (28)",
+   "alpha f, return (29-32)",
+   "close f (33-34)"
+  ],
+  "sections": [
+   {
+    "bars": "1-17:1",
+    "ends": "HC c at 15:1, prolonged and resolved to c at 17:1"
+   },
+   {
+    "bars": "17-34",
+    "ends": "PAC f"
+   }
+  ],
   "returns": [
-   {"bar": 5, "what": "alpha in the tonic with voices exchanged"},
-   {"bar": 9, "what": "alpha beginning in the tonic and moving to c (the first restatement reaching another key); 12, the same a fifth higher"},
-   {"bar": 17, "what": "alpha in c, voices exchanged, opening section 2"},
-   {"bar": 29, "what": "alpha in the tonic, voices as at the start (x at its original pitch)"}
+   {
+    "bar": 5,
+    "what": "alpha in the tonic with voices exchanged"
+   },
+   {
+    "bar": 9,
+    "what": "alpha beginning in the tonic and moving to c (the first restatement reaching another key); 12, the same a fifth higher"
+   },
+   {
+    "bar": 17,
+    "what": "alpha in c, voices exchanged, opening section 2"
+   },
+   {
+    "bar": 29,
+    "what": "alpha in the tonic, voices as at the start (x at its original pitch)"
+   }
   ],
   "form": "rounded bipartite"
  },
- "kind": {"primary": "double (invertible pair)", "also": []},
+ "kind": {
+  "primary": "double (invertible pair)",
+  "also": []
+ },
  "confidence": "sure",
- "notes": "Over 20 of the 34 bars are members of the single paradigm, and x and y are never separated for long: it is the clearest double invention of my three. Cadences are deliberately avoided until the end: every arrival within the piece falls on an inverted tonic or is reached with the bass 7-1, so is not a cadence by the protocol: f at 4:1 (bass E-F, right hand Bb4 appoggiatura), f6/4 at 5:1, f6 at 9:1, c6 at 12:1 and at 17:1, bb at 22:1 (bass C-Bb under V7), Ab6 at 24:1, f6 at 29:1. Only 15:1 (unsure, see there) and 34:1 are counted. Form: the division at 15-17 (V of c, then c) splits the piece 16 + 18 bars; the tonic return of alpha at 29 makes it rounded bipartite. The alternative, tripartite (1-16, 17-28, 29-34), is rejected because the last part is too short to be a section of comparable length. The members at 9 and 12 are each one bar of the subjects in one key and two bars a fifth higher, so together they form a rising-fifths sequence (f-c, c-g), unit 9 beats, twice; they are recorded as members because both lines are present in full for three bars."
+ "notes": "Over 20 of the 34 bars are members of the single paradigm, and x and y are never separated for long: it is the clearest double invention of my three. Cadences are deliberately avoided until the end: every arrival within the piece falls on an inverted tonic or is reached with the bass 7-1, so is not a cadence by the protocol: f at 4:1 (bass E-F, right hand Bb4 appoggiatura), f6/4 at 5:1, f6 at 9:1, c6 at 12:1 and at 17:1, bb at 22:1 (bass C-Bb under V7), Ab6 at 24:1, f6 at 29:1. Only 15:1 (unsure, see there) and 34:1 are counted. Form: the division at 15-17 (V of c, then c) splits the piece 16 + 18 bars; the tonic return of alpha at 29 makes it rounded bipartite. The alternative, tripartite (1-16, 17-28, 29-34), is rejected because the last part is too short to be a section of comparable length. The members at 9 and 12 are each one bar of the subjects in one key and two bars a fifth higher, so together they form a rising-fifths sequence (f-c, c-g), unit 9 beats, twice; they are recorded as members because both lines are present in full for three bars.",
+ "review": [
+  "Session lead, 12 October: the reader's exclusion of arrivals on an inverted tonic (V7 to i6 at 9:1, 12:1, 17:1, 29:1) is confirmed. The protocol (section 5) does not count an arrival on an inverted tonic as a cadence; 'an inverted chord' in an IAC means an inverted dominant (V6-I, V4/3-I) resolving to a root-position tonic. A revision adding these arrivals as IACs was made on request and withdrawn after this check."
+ ]
 }

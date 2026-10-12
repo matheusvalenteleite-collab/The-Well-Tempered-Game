@@ -99,3 +99,73 @@ this tests the protocol's categories rather than giving an independent confirmat
 
 So the two external readings, one a map of operations and the other a formal table, coincide on this piece.
 The protocol produces both from the same reading.
+
+## The 15 Inventions read under the protocol, then compared (12 October)
+
+**How the readings were made.**
+- Five readers each read two or three pieces from the notes alone, without Schulenberg, the literature or
+  this file. The readings are in `data/inventions/readings/inven02.json` … `inven15.json`.
+- The session lead then reviewed them:
+  - every recorded cadence was checked against the bass and the top voice
+    (`node tools/inventions/cadences-check.ts`): 61 cadences; three calls checked by hand and two corrected (Inventions 5, 10,
+    13), each noted in the file's `review` field;
+  - one ambiguity was settled and written into the protocol. An IAC's "inverted chord" is an inverted
+    dominant (V6-I, V4/3-I) resolving to a root-position tonic. A dominant resolving to an inverted tonic is
+    an arrival, not a cadence. The reader of Invention 9 had applied this already; a revision that added
+    such arrivals was withdrawn.
+- Only after the review were the readings set beside Schulenberg's rows.
+
+| piece | kind (reading / Schulenberg) | form (reading / Schulenberg) | returns (reading / Schulenberg) |
+|---|---|---|---|
+| C | motivic-sequential, also double / free | tripartite / tripartite | 7, 11, 19 / 7, 11, 19 |
+| c | canonic / canonic | tripartite (alt. rounded bipartite) / rounded bipartite | 11, 23 / 13, 23 |
+| D | motivic-sequential / — | rounded bipartite (alt. four sections) / multipartite | 43 / 43 |
+| d | motivic-sequential, also double / — | tripartite / tripartite | 18, 42 / 18, 42 |
+| E flat | double / double fugue | tripartite / tripartite | 12, 27 / 12, 27 |
+| E | double / chromatic | sonata / sonata | 21, 43 / 21, 43 |
+| e | motivic-sequential / free | tripartite / multipartite | 7 / 7 |
+| F | canonic / canonic | bipartite (alt. rounded) / rounded bipartite | 12, 26 (β, not α) / 12, 26 ("other than the opening") |
+| f | double / legato | rounded bipartite / rounded bipartite | 17, 29 / 17, 29 |
+| G | fugal, also motivic-sequential / gigue | rounded bipartite / rounded bipartite | 14, 27 / 14 |
+| g | double / — | rounded bipartite (alt. tripartite) / tripartite | 7, 18:3 / 7, 16b |
+| A | double, also fugal / double fugue | tripartite (alt. rounded bipartite) / through-composed | 14:7 (β), 18 / 14b ("other than the opening") |
+| a | motivic-sequential, also double / free | rounded bipartite (alt. tripartite) / tripartite | 6:3, 18 / 6b, 18 |
+| B flat | motivic-sequential / double fugue | tripartite / through-composed | 6, 16 / — |
+| b | fugal, also double / double fugue | rounded bipartite / rounded bipartite | 18 / 5b, 18 |
+
+**What agrees.**
+- **The bars of the returns: 23 of the 25 bars Schulenberg gives.**
+  - The two that differ are the C minor's middle return (11 against 13) and the G minor's final one (18:3
+    against 16b).
+  - In two pieces (F, A) the readers independently found that the return is not of the opening but of the
+    second segment β. This is exactly what Schulenberg's asterisk "recapitulation is of other than opening
+    passage" says.
+- **The opening imitation: 14 of 15.**
+  - The G minor reader independently confirms the octave at b. 3, with the bass's countermotive taken back
+    in melodic inversion. Schulenberg's "5" stays a disagreement; possibly he describes the
+    Clavier-Büchlein version.
+  - In the B flat the reader also counts the first full imitation at the fifth (b. 6), not the head
+    fragment at b. 4.
+- **Kind.**
+  - Canonic: 2 of 2 (c, F).
+  - His "free" pieces (C, e, a) are the readers' motivic-sequential.
+  - Of his six pieces with two subjects in invertible counterpoint, five are read as double (E flat, E, f,
+    A, and b as fugal-and-double).
+- **Form.** The first choice agrees in 7 of 15. With the reader's stated alternative it agrees in 12.
+
+**What disagrees, and why.**
+- **The B flat (kind and form).** The reader finds the opening chain exchanged at the fifth at b. 6. But
+  the reader calls the lower line continuo-like rather than a second subject, hence motivic-sequential, and
+  counts a tonic return at 16 (the chain in stretto). Schulenberg calls it a double fugue, through-composed.
+  It is a real difference of reading: whether the lower line is a subject. Left open for a second reader.
+- **The A and B flat forms.** Schulenberg's "through-composed" for these two double fugues does not count
+  their tonic returns (A at 18, B flat at 16). The protocol's definition does. The difference is in the
+  definition, not in what is heard.
+- **The E minor form** (tripartite against multipartite). A short piece with six cadences; the reader was
+  unsure.
+
+**What this says about the method.** Independent readings under the protocol reproduce an expert's table in
+most of what can be located in the score: the returns, the opening imitation, the canonic and double pieces.
+They disagree mainly on labels whose definitions differ (the form names). The protocol's definitions are
+stricter than Schulenberg's and are written down, so these differences are now explicit rather than
+hidden.

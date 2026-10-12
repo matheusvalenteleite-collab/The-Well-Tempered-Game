@@ -92,6 +92,9 @@ Fugal terms (subject, answer, countersubject, episode) are used only where a pie
      deceptive, evaded. This keeps the two repertories comparable for the ANALYSIS CORE.
    - Arrivals that are not cadences (an inverted tonic, a key reached without V-I) are not cadences;
      mention them under 6 if they matter.
+   - An IAC's "inverted chord" is an inverted dominant (V6 or V4/3, bass 7-1 or 2-1) resolving to a
+     root-position tonic. A dominant resolving to an inverted tonic (bass 7-3, 2-3) is an arrival, not a
+     cadence (settled in review, 12 October).
 6. **The layout (dispositio) and the form.**
    - The piece as an ordered list of its segments (paradigm members and elaborations) with their keys.
    - The main sections, divided by the main cadences.

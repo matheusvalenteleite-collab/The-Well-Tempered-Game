@@ -92,8 +92,15 @@ readings), and it takes one of the two active slots, or the owner widens C2 for 
   - tools: `tools/inventions/dump.ts` and `tools/inventions/openings.ts`;
   - a pilot reading of BWV 772 (`data/inventions/readings/inven01.json`): it reproduces Dreyfus's map and
     agrees with Schulenberg's row.
-- **Next, for the owner to approve:** the remaining 14 Inventions read under the protocol, then the
-  Sinfonias.
+- **The 15 Inventions read (12 October):**
+  - five readers, then reviewed; `data/inventions/readings/`;
+  - set against Schulenberg in `docs/inventions/SCHULENBERG-CHECK.md`:
+    - returns 23/25 bars;
+    - opening imitation 14/15;
+    - canonic 2/2;
+    - form 7/15 (12/15 with the readers' alternatives);
+  - open: the B flat Invention's kind, and the G minor's opening interval.
+- **Next, for the owner to approve:** the Sinfonias (I5) under the same protocol, then the habits (I4).
 - **For FUGUE:** `data/wtc/inventions.json` gives Sinfonias 3, 4, 5, 14 as C major (they are D, d, E flat, B
   flat) and no BWV numbers for the Sinfonias.
 - **Offers:**
