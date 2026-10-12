@@ -71,7 +71,7 @@ readings), and it takes one of the two active slots, or the owner widens C2 for 
   - `tools/wtc/dump.ts` (any piece as text by bar and beat);
   - `tools/wtc/habits.ts` (the format of counts with examples).
 
-### INVENTIONS (opened 12 October)
+### INVENTIONS (opened 12 October, session `session_01LgXi2Y2WbX4CuQDuZiRCxV`, title "INVENTIONS generator")
 
 - **First task:** a literature review (see the session's charter); then I1-I6 as it proposes and the owner
   approves.
