@@ -63,10 +63,21 @@ export class VoiceModel {
   /** Cost of leaving out the fifth of a triad. */
   readonly noFifth: number;
   /** The counts behind these, for the report. */
+  /** The line's shape, two moves at a time: for each inner voice, the surplus cost (bits) of a move given
+   *  the move before it, over its cost alone: -log2 P(move | move before) + log2 P(move), moves bucketed by
+   *  direction and size (SHAPE_BUCKETS). Learnt from every beat-to-beat succession. */
+  readonly shape: Record<"alto" | "tenor", number[][]>;
   readonly counts: { pairsMoved: number; parallel: number; contrary: number; innerMoves: number; augSecond: number; triads: number; noFifth: number };
 
   constructor(train: BachChorale[]) {
     const mv = { alto: new Array(14).fill(0), tenor: new Array(14).fill(0) };
+    const two = { alto: [...Array(9)].map(() => new Array(9).fill(0)), tenor: [...Array(9)].map(() => new Array(9).fill(0)) };
+    for (const c of train)
+      for (let i = 2; i < c.notes.length; i++) {
+        const [a, b, d] = [c.notes[i - 2], c.notes[i - 1], c.notes[i]];
+        for (const [v, x, y, z] of [["alto", a.a, b.a, d.a], ["tenor", a.tn, b.tn, d.tn]] as const)
+          if (x && y && z) two[v][shapeBucket(midiOf(y) - midiOf(x))][shapeBucket(midiOf(z) - midiOf(y))]++;
+      }
     let pairs = 0,
       cons = 0,
       contra = 0,
@@ -103,6 +114,15 @@ export class VoiceModel {
       return c.map((k) => bits(k, z));
     };
     this.move = { alto: table(mv.alto), tenor: table(mv.tenor) };
+    const surplus = (t: number[][]) => {
+      const col = t[0].map((_, j) => t.reduce((a, r) => a + r[j], 0));
+      const all = col.reduce((a, b) => a + b, 0);
+      return t.map((r) => {
+        const n = r.reduce((a, b) => a + b, 0);
+        return r.map((k, j) => bits(k, n) - bits(col[j], all));
+      });
+    };
+    this.shape = { alto: surplus(two.alto), tenor: surplus(two.tenor) };
     this.parallel = bits(cons, pairs);
     this.contrary = bits(contra, pairs);
     this.augSecond = bits(aug, inner);
@@ -146,13 +166,13 @@ export interface VoiceOptions {
    *  beats (docs/chorales/LISTENING-RATINGS.md). LINE is calibrated on Bach; absent, no cost. */
   line?: { change: [number, number]; same: [number, number] };
 }
-export const WEIGHTS: Required<VoiceOptions> = { habits: 1, moves: 1, warnings: 1 };
+export const WEIGHTS: Required<Omit<VoiceOptions, "line">> = { habits: 1, moves: 1, warnings: 1 };
 /** The weights that make the search's probabilities match how often Bach writes each voicing, fitted on
  *  a sixth of the chorales and tested on another (mean surprise at Bach's voicings 1.70 -> 1.31 bits,
  *  11 October 2026): for measuring surprise (X1). Read beat by beat, Bach's inner voices hold more
  *  parallel fifths and octaves than the warnings assume (a passing note between the beats hides them),
  *  so the fitted warnings weigh little; for writing, the generator keeps WEIGHTS. */
-export const CALIBRATED: Required<VoiceOptions> = { habits: 0.65, moves: 0.5, warnings: 0.25 };
+export const CALIBRATED: Required<Omit<VoiceOptions, "line">> = { habits: 0.65, moves: 0.5, warnings: 0.25 };
 /** The line (12 October 2026): with drawn harmony, held-out melodies, these bring the generated inner
  *  voices to Bach's on the beats: alto held on 30% of chord changes and 50% of repeated chords (Bach 30%,
  *  49%), steps 36% (37%), leaps 31% (30%); tenor 22%, 50%, 38%, 35% (Bach 24%, 45%, 37%, 37%). */
@@ -224,6 +244,15 @@ function pairsAt(vm: VoiceModel, s: Slot, o: VoiceOptions, relax: number): Pair[
       out.push({ alto: a.name, tenor: t.name, a: a.midi, t: t.midi, cost: w * cost + ww * warn });
     }
   return out;
+}
+
+/** Moves by direction and size: held; step up, down (1-2 semitones); third up, down (3-4); fourth or fifth
+ *  up, down (5-7); larger up, down. */
+export function shapeBucket(d: number): number {
+  const a = Math.abs(d);
+  if (!a) return 0;
+  const size = a <= 2 ? 1 : a <= 4 ? 3 : a <= 7 ? 5 : 7;
+  return size + (d > 0 ? 0 : 1);
 }
 
 const KEY = "|";
@@ -321,4 +350,77 @@ export function voiceSurprise(vm: VoiceModel, slots: Slot[], i: number, alto: (s
   if (k < 0 || z <= 0) return null;
   const best = w.indexOf(Math.max(...w));
   return { bits: -Math.log2(w[k] / z), expected: { alto: layer[best].alto, tenor: layer[best].tenor, p: w[best] / z } };
+}
+
+/**
+ * The lines re-written one at a time (the owner's "none of the voices sound artificial"): the alto as a
+ * whole melody against the soprano, tenor and bass held fixed, then the tenor against the rest, `rounds`
+ * times. Each voice is the cheapest path under the pair's costs (in the chord, its moves, the warnings, the
+ * line) plus its shape two moves at a time (VoiceModel.shape, weight `w`), which the joint search over
+ * both voices cannot afford to see. Each re-writing keeps the other voice, so the total cost never rises.
+ */
+export function refineLines(vm: VoiceModel, slots: Slot[], start: InnerVoices, o: VoiceOptions = {}, rounds = 2, w = 1): InnerVoices {
+  let alto = [...start.alto],
+    tenor = [...start.tenor];
+  const layers = slots.map((s) => pairs(vm, s, o));
+  const same = (x: string, y: string) => midiOf(x) === midiOf(y) && letterOf(x) === letterOf(y);
+  for (let r = 0; r < rounds; r++)
+    for (const v of ["alto", "tenor"] as const) {
+      const other = v === "alto" ? tenor : alto;
+      const cands = layers.map((l, i) => {
+        const c = l.filter((p) => same(v === "alto" ? p.tenor : p.alto, other[i]));
+        return c.length ? c : l.filter((p) => same(p.alto, alto[i]) && same(p.tenor, tenor[i]));
+      });
+      if (cands.some((c) => !c.length)) continue;
+      const pitch = (p: Pair) => (v === "alto" ? p.a : p.t);
+      const n = slots.length;
+      // dp over (candidate at i-1, candidate at i)
+      let dp: number[][] = cands[0].map(() => cands[0].map(() => Infinity));
+      cands[0].forEach((p, k) => (dp[0][k] = p.cost));
+      const back: number[][][] = [];
+      let prevSize = 1; // at i = 0 the "previous" index is a dummy 0
+      for (let i = 1; i < n; i++) {
+        const nd = cands[i - 1].map(() => cands[i].map(() => Infinity));
+        const bk = cands[i - 1].map(() => cands[i].map(() => 0));
+        for (let j = 0; j < cands[i - 1].length; j++)
+          for (let k = 0; k < cands[i].length; k++) {
+            const step = cands[i][k].cost + moveCost(vm, slots[i - 1], slots[i], cands[i - 1][j], cands[i][k], o);
+            const b1 = shapeBucket(pitch(cands[i][k]) - pitch(cands[i - 1][j]));
+            let best = Infinity,
+              arg = 0;
+            for (let h = 0; h < prevSize; h++) {
+              const base = dp[h]?.[j];
+              if (base === undefined || base === Infinity) continue;
+              const sh = i >= 2 ? w * vm.shape[v][shapeBucket(pitch(cands[i - 1][j]) - pitch(cands[i - 2][h]))][b1] : 0;
+              if (base + sh < best) [best, arg] = [base + sh, h];
+            }
+            nd[j][k] = best + step;
+            bk[j][k] = arg;
+          }
+        back.push(bk);
+        dp = nd;
+        prevSize = cands[i - 1].length;
+      }
+      // the best final (j, k), then back
+      let bj = 0,
+        bkk = 0,
+        bv = Infinity;
+      dp.forEach((row, j) => row.forEach((x, k) => x < bv && ([bv, bj, bkk] = [x, j, k])));
+      if (bv === Infinity) continue;
+      const pick = new Array<number>(n);
+      pick[n - 1] = bkk;
+      pick[n - 2] = bj;
+      for (let i = n - 1; i >= 2; i--) pick[i - 2] = back[i - 1][pick[i - 1]][pick[i]];
+      const line = pick.map((k, i) => (v === "alto" ? cands[i][k].alto : cands[i][k].tenor));
+      if (v === "alto") alto = line;
+      else tenor = line;
+    }
+  return { alto, tenor, cost: start.cost };
+}
+
+/** The generator's inner voices: the joint search over both, then each line re-written against the rest
+ *  (refineLines). Null where a slot has no voicing. */
+export function writeVoices(vm: VoiceModel, slots: Slot[], o: VoiceOptions = { habits: 1, line: LINE }): InnerVoices | null {
+  const iv = innerVoices(vm, slots, undefined, 1, o);
+  return iv && refineLines(vm, slots, iv, o);
 }

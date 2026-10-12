@@ -55,6 +55,22 @@ function context(line: Note[], i: number, v: number): Ctx {
   return { voice: VOICES[v], move, place, len: a[1] > 8 ? "long" : "short" };
 }
 
+/** The interval (in letters, 1-7: 2 a second or ninth, 4 a fourth, 7 a seventh) that an embellishment's
+ *  incidental note makes over the bass sounding then: the held note over the next bass (suspension), the
+ *  passing or neighbour note, or the anticipated note, on the note's last quaver. Null without a bass. */
+export function overBass(line: Note[], i: number, kind: Embellishment, bass: Note[]): number | null {
+  const a = line[i],
+    b = line[i + 1];
+  if (!a || !b) return null;
+  const t = kind === "suspension" ? b[0] : b[0] - 4;
+  const under = bass.find((n) => n[0] <= t && t < n[0] + n[1]);
+  if (!under) return null;
+  const d = diatonic(b[2]) - diatonic(a[2]);
+  const note =
+    kind === "suspension" ? diatonic(a[2]) : kind === "passing" ? diatonic(a[2]) + Math.sign(d) : kind === "neighbourUp" ? diatonic(a[2]) + 1 : kind === "neighbourDown" ? diatonic(a[2]) - 1 : diatonic(b[2]);
+  return ((((note - diatonic(under[2])) % 7) + 7) % 7) + 1;
+}
+
 /** Bach's choices, note by note, in his reduced chorales: the training rows. */
 export function bachRows(chorales: StudyChorale[]): (Ctx & { kind: string })[] {
   const rows: (Ctx & { kind: string })[] = [];
@@ -84,17 +100,63 @@ export class DiminutionModel {
   readonly clash: number;
   readonly augSecond: number;
 
+  /** How often Bach takes each embellishment where it is open, by voice and by the interval its
+   *  incidental note makes over the bass, and by voice alone: [taken, open]. */
+  private readonly over = new Map<string, [number, number]>();
+
   constructor(chorales: StudyChorale[], costs: { parallel: number; augSecond: number }) {
     this.model = new Backoff(bachRows(chorales), ["voice", "move", "place", "len"], "kind");
+    for (const c of chorales) {
+      const { voices, bach } = reduce(c, STUDY.kinds);
+      for (const v of [1, 2]) {
+        const line = voices[v];
+        const at = new Map(bach.filter((p) => p.voice === v).map((p) => [p.index, p]));
+        for (let i = 0; i + 1 < line.length; i++) {
+          const p = at.get(i);
+          const taken = p ? bachAs(p, line) : null;
+          for (const k of options(line, i)) {
+            const iv = overBass(line, i, k, voices[3]);
+            if (iv === null) continue;
+            for (const key of [`${v}|${k}|${iv}`, `${v}|${k}`]) {
+              const x = this.over.get(key) ?? [0, 0];
+              x[1]++;
+              if (taken === k) x[0]++;
+              this.over.set(key, x);
+            }
+          }
+        }
+      }
+    }
     this.parallel = costs.parallel;
     this.augSecond = costs.augSecond;
     this.clash = costs.parallel / 2;
   }
 
-  /** The choices a voice's note can take, with Bach's probabilities in its context (at temperature T). */
-  choices(line: Note[], i: number, v: number, T = 1): Map<Kind, number> {
+  /** The choices a voice's note can take, with Bach's probabilities in its context (at temperature T).
+   *  With the bass, an inner voice's embellishments are weighed by what their incidental note makes over
+   *  it: Bach suspends where the held note makes a fourth, seventh or ninth over the new bass (a fifth of
+   *  the time) and seldom where it makes a sixth or a third (3-5%), which the line alone cannot tell. */
+  choices(line: Note[], i: number, v: number, T = 1, bass?: Note[]): Map<Kind, number> {
     const opts: Kind[] = ["none", ...options(line, i)];
-    return temper(this.model.dist(context(line, i, v)), opts, T) as Map<Kind, number>;
+    const p = temper(this.model.dist(context(line, i, v)), opts, T) as Map<Kind, number>;
+    if (!bass || v > 2) return p;
+    let z = 0;
+    for (const [k, q] of p) {
+      let f = 1;
+      const iv = k === "none" ? null : overBass(line, i, k, bass);
+      if (iv !== null && k !== "none") {
+        const all = this.over.get(`${v}|${k}`);
+        const one = this.over.get(`${v}|${k}|${iv}`) ?? [0, 0];
+        if (all && all[0] > 0) {
+          const base = all[0] / all[1];
+          f = (one[0] + 10 * base) / (one[1] + 10) / base;
+        }
+      }
+      p.set(k, q * f);
+      z += q * f;
+    }
+    for (const [k, q] of p) p.set(k, q / z);
+    return p;
   }
 }
 
@@ -186,9 +248,10 @@ const RESTRAINED: Kind = "passing";
  * `restraint` (bits, one per voice: alto, tenor, bass): a passing note made 2^-restraint times as
  * likely; the drawn chain embellishes more than Bach, its surplus in passing notes (GENERATOR-DIMINUTION.md), and its excess figures
  * repeat generically (docs/chorales/MOTIVES.md). The default, RESTRAINT, is calibrated on Bach; [0, 0, 0]
- * is the chain as learnt.
+ * is the chain as learnt. `bassAware`: an inner voice's embellishments weighed by what their incidental
+ * note makes over the bass (DiminutionModel.choices); false for the earlier behaviour.
  */
-export function diminish(dm: DiminutionModel, input: Note[][], sig: number, r?: () => number, T = 1, free: boolean[] = [true, true, true], restraint: number[] = RESTRAINT): Diminished {
+export function diminish(dm: DiminutionModel, input: Note[][], sig: number, r?: () => number, T = 1, free: boolean[] = [true, true, true], restraint: number[] = RESTRAINT, bassAware = true): Diminished {
   const lens = input[1].map((n) => n[1]).sort((a, b) => a - b);
   // a power of two, so that every time stays a whole number of 32nds
   const scale = 2 ** Math.max(0, Math.floor(Math.log2(lens[Math.floor(lens.length / 2)] / 8)));
@@ -197,7 +260,7 @@ export function diminish(dm: DiminutionModel, input: Note[][], sig: number, r?: 
   const opts: Map<Kind, number>[][] = [[], [], [], []];
   for (let v = 1; v < 4; v++)
     for (let i = 0; i < n - 1; i++) {
-      const o = free[v - 1] ? dm.choices(lines[v], i, v, T) : new Map<Kind, number>([["none", 1]]);
+      const o = free[v - 1] ? dm.choices(lines[v], i, v, T, bassAware ? lines[3] : undefined) : new Map<Kind, number>([["none", 1]]);
       if (restraint[v - 1] && o.has(RESTRAINED) && o.size > 1) {
         let z = 0;
         for (const [k, p] of o) z += k === RESTRAINED ? p * 2 ** -restraint[v - 1] : p;

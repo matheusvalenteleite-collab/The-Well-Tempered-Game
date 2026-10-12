@@ -16,7 +16,7 @@
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { BACH, KITTEL } from "../../src/chorale/generate/corpus.ts";
-import { VoiceModel, innerVoices, type VoiceOptions, LINE } from "../../src/chorale/generate/voices.ts";
+import { VoiceModel, innerVoices, type VoiceOptions, LINE, writeVoices } from "../../src/chorale/generate/voices.ts";
 import { bachSlots, settingSlots } from "../../src/chorale/generate/slots.ts";
 import { midiOf, type FigureRow } from "../../src/chorale/generate/theory.ts";
 import { LEVEL5, compareBach, judge, type Finding, type Slot } from "../../src/chorale/level5.ts";
@@ -56,7 +56,7 @@ for (const t of tunes) {
       bachRes.skipped++;
       continue;
     }
-    const on = innerVoices(vm, sl, undefined, 1, ON),
+    const on = writeVoices(vm, sl, ON),
       off = innerVoices(vm, sl, undefined, 1, OFF);
     if (!on || !off) {
       bachRes.failed++;
@@ -115,7 +115,7 @@ for (const c of Object.values(LEVEL5)) {
   const verses: { label: string; alto: string[]; tenor: string[] }[] = [];
   for (const b of c.basses) {
     kBasses++;
-    const on = innerVoices(vmAll, b.slots, undefined, 1, ON),
+    const on = writeVoices(vmAll, b.slots, ON),
       off = innerVoices(vmAll, b.slots, undefined, 1, OFF);
     if (!on || !off) {
       kFail++;
@@ -155,7 +155,7 @@ for (const g of settings.chorales) {
       bass: { degrees: st.notes.map((n) => n.degree), positions: st.notes.map((n) => n.position), pitches: st.notes.map((n) => n.pitch), figures: st.notes.map((n) => n.figure), midi: [] },
     } as unknown as Setting;
     const slots = settingSlots(s, k, c.notes.map((n) => ({ pitch: n.pitch, offset: n.offset })), end);
-    const v = innerVoices(vmAll, slots, undefined, 1, ON);
+    const v = writeVoices(vmAll, slots, ON);
     if (!v) {
       gFail++;
       continue;

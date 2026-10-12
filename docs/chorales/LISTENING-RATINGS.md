@@ -56,3 +56,24 @@ On the surface (embellishments included), the six melodies of round 2: the alto 
 (Bach 17%; before 59%), longest run 7 (Bach 5; before 15); what remains is in the diminution, where Bach fills
 more thirds with passing notes. Round 2 of the page, new melodies: https://claude.ai/artifact/2gjUkarYtje3j17VFXNED2
 (collection "listening2", key `data/chorales/generator/listening2-key.json`).
+
+## Earned dissonance and whole lines (12 October 2026)
+
+Round 2 (partial: 9 of 24 rated): Bach 2 "could be Bach" and 1 unsure; the generator 5 "off" and 1 unsure. The
+owner on Bach: "every dissonance is earned; none of the voices sound artificial; all are fluid and natural"; on a
+generated cadence to A♭: "cool, but nothing like anything written by Bach".
+
+- **Earned dissonance.** The diminution chose its suspensions from the voice's own line, never the bass. Where
+  the held note makes a fourth, seventh or ninth over the new bass Bach suspends a fifth of the time; where it
+  makes a sixth or a third, 3-5%; the generator did the latter at 16-20%. The embellishments are now weighed by
+  what their incidental note makes over the bass (`DiminutionModel.choices`): the consonant "suspensions" fall
+  to Bach's rate (6-5: 5% against his 3%), the real ones kept. The voicings already gave as many chances to
+  suspend as Bach's (15.1 per 100 inner moves against 15.9), so the voice search needs no bonus for them.
+- **Whole lines.** The joint search over alto and tenor sees each move alone. Each line is now re-written as a
+  whole melody against the other three voices, with its shape two moves at a time learnt from Bach
+  (`voices.ts` refineLines, VoiceModel.shape): two leaps the same way fall from 33% of leap pairs to 22%
+  (Bach 22%), and the judge's parallel fifths and octaves halve (0.7 to 0.3 per 100 chords on the generator's
+  settings); agreement with Bach's own alto rises from 58% to 59%.
+- An A/B page (`tools/chorales/pairs_report.ts`, https://claude.ai/artifact/CnmUBaKuDp7w1Kyp8CK1Px, collection
+  "pairs", key in `data/chorales/generator/pairs-key.json`): eight held-out melodies, the same chords set
+  twice, before and after, in random order.

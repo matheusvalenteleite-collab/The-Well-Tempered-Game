@@ -329,3 +329,18 @@ test("motives: a figure answered by another voice is found, at its distance and 
   assert.deepEqual([im[0].lag, im[0].interval], [8, 4]);
   assert.equal(chromaticLines(voices).length, 1);
 });
+
+test("lines re-written one at a time: same length, every note a chord member under its slot", async () => {
+  const { writeVoices, VoiceModel: VM } = await import("../src/chorale/generate/voices.ts");
+  const vm2 = new VM(BACH.filter((c) => c.no % 3 === 0));
+  const c = BACH.find((x) => x.no === 141)!;
+  const s = bestSetting(models, melodyOf(c), { tonic: c.tonic, mode: c.mode });
+  const slots = settingSlots(s, { tonic: c.tonic, mode: c.mode }, c.notes.map((n) => ({ pitch: n.sp, offset: n.t })), "1000/32");
+  const iv = writeVoices(vm2, slots)!;
+  assert.equal(iv.alto.length, slots.length);
+  const letter = (p: string) => p.replace(/-?\d+$/, "");
+  slots.forEach((sl, i) => {
+    const members = new Set([sl.root, ...sl.above.map(([l]) => l), letter(sl.bass), letter(sl.soprano)].map((l) => midiOf(`${l}4`) % 12));
+    assert.ok(members.has(midiOf(`${letter(iv.alto[i])}4`) % 12), `alto ${iv.alto[i]} at ${i}`);
+  });
+});

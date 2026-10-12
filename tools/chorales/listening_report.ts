@@ -12,7 +12,7 @@
 import { writeFileSync } from "node:fs";
 import { BACH, melodyOf, type BachChorale } from "../../src/chorale/generate/corpus.ts";
 import { Daring, DARING_LEVELS, diverseSettings, trainModels, type Setting } from "../../src/chorale/generate/index.ts";
-import { LINE, VoiceModel, innerVoices } from "../../src/chorale/generate/voices.ts";
+import { VoiceModel, writeVoices } from "../../src/chorale/generate/voices.ts";
 import { settingSlots } from "../../src/chorale/generate/slots.ts";
 import { DiminutionModel, STUDY, diminish, type StudyChorale } from "../../src/chorale/generate/diminution.ts";
 import { licencesOf, settingAsChorale as asChorale } from "../../src/chorale/generate/licences.ts";
@@ -35,7 +35,7 @@ const study = new Map(STUDY.chorales.map((s) => [s.n, s]));
 function fourParts(c: BachChorale, s: StudyChorale, k: Key, g: Setting): Note[][] | null {
   const notes = c.notes.map((n) => ({ pitch: n.sp, offset: n.t }));
   const slots = settingSlots(g, k, notes, `${s.length}/32`);
-  const iv = innerVoices(vm, slots, undefined, 1, { habits: 1, line: LINE });
+  const iv = writeVoices(vm, slots);
   if (!iv) return null;
   const times = c.notes.map((n) => thirty(n.t));
   const dur = (i: number) => (times[i + 1] ?? s.length) - times[i];

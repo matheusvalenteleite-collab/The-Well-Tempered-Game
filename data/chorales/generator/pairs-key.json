@@ -1,0 +1,45 @@
+{
+ "generated_by": "tools/chorales/pairs_report.ts",
+ "key": {
+  "p1": {
+   "no": 141,
+   "first": "before",
+   "second": "after"
+  },
+  "p2": {
+   "no": 156,
+   "first": "after",
+   "second": "before"
+  },
+  "p3": {
+   "no": 165,
+   "first": "after",
+   "second": "before"
+  },
+  "p4": {
+   "no": 217,
+   "first": "before",
+   "second": "after"
+  },
+  "p5": {
+   "no": 88,
+   "first": "after",
+   "second": "before"
+  },
+  "p6": {
+   "no": 96,
+   "first": "before",
+   "second": "after"
+  },
+  "p7": {
+   "no": 99,
+   "first": "before",
+   "second": "after"
+  },
+  "p8": {
+   "no": 104,
+   "first": "before",
+   "second": "after"
+  }
+ }
+}

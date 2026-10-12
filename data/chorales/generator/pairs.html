@@ -1,0 +1,534 @@
+<title>Bach's Exceptions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: a rater's desk — the list of moments in a narrow column, the moment itself (score, sound, verdict) beside it. */
+  :root {
+    --bg: #f3f4f6;
+    --panel: #ffffff;
+    --ink: #1c2230;
+    --muted: #5d6576;
+    --rule: #d9dde5;
+    --accent: #2f5d62;
+    --accent-soft: #e2ecec;
+    --mark: #b4442f;
+    --beautiful: #a8730c;
+    --idiomatic: #2c5f9e;
+    --slip: #a33636;
+    --unsure: #6a6f7c;
+    --font-display: "Spectral", "Iowan Old Style", Georgia, serif;
+    --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14171d; --panel: #1c2028; --ink: #e6e8ee; --muted: #9aa1b0; --rule: #2e3440;
+      --accent: #7fb6b9; --accent-soft: #243437; --mark: #e2775f;
+      --beautiful: #e0ae4a; --idiomatic: #7aa7e0; --slip: #e07a7a; --unsure: #9aa1b0;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14171d; --panel: #1c2028; --ink: #e6e8ee; --muted: #9aa1b0; --rule: #2e3440;
+    --accent: #7fb6b9; --accent-soft: #243437; --mark: #e2775f;
+    --beautiful: #e0ae4a; --idiomatic: #7aa7e0; --slip: #e07a7a; --unsure: #9aa1b0;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
+  .wrap { padding-inline: 16px; padding-block: 20px 40px; max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; }
+  @media (max-width: 860px) { .wrap { grid-template-columns: minmax(0, 1fr); } .list { max-height: 260px; } }
+  header.top { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; }
+  h1 { font-family: var(--font-display); font-weight: 600; font-size: 1.9rem; margin: 0; letter-spacing: 0.005em; text-wrap: balance; }
+  .lede { color: var(--muted); max-width: 70ch; margin: 4px 0 0; }
+  .progress { font-family: var(--font-data); font-size: 0.85rem; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+  .bar { width: 160px; height: 6px; background: var(--rule); border-radius: 3px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+  .notice { grid-column: 1 / -1; font-size: 0.85rem; color: var(--muted); border-left: 3px solid var(--rule); padding: 2px 10px; }
+
+  .list { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; overflow-y: auto; max-height: calc(100vh - 140px); position: sticky; top: env(safe-area-inset-top, 0px); }
+  .filters { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; border-bottom: 1px solid var(--rule); position: sticky; top: 0; background: var(--panel); z-index: 1; }
+  .chip { font: inherit; font-size: 0.78rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--rule); background: transparent; color: var(--muted); cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--accent-soft); color: var(--ink); border-color: var(--accent); }
+  .level-head { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding: 10px 12px 4px; }
+  .item { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 8px; align-items: center; width: 100%; text-align: left; font: inherit; color: inherit; background: none; border: 0; border-top: 1px solid var(--rule); padding: 7px 12px; cursor: pointer; }
+  .item:hover { background: var(--accent-soft); }
+  .item[aria-current="true"] { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+  .item .dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--rule); }
+  .item .dot[data-r="beautiful"] { background: var(--beautiful); border-color: var(--beautiful); }
+  .item .dot[data-r="idiomatic"] { background: var(--idiomatic); border-color: var(--idiomatic); }
+  .item .dot[data-r="slip"] { background: var(--slip); border-color: var(--slip); }
+  .item .dot[data-r="unsure"] { background: var(--unsure); border-color: var(--unsure); }
+  .item .dot[data-r="special"] { background: var(--beautiful); border-color: var(--beautiful); }
+  .item .dot[data-r="ordinary"] { background: var(--idiomatic); border-color: var(--idiomatic); }
+  .item .t { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.86rem; }
+  .item .b { font-family: var(--font-data); font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .moment { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 18px 20px 20px; min-width: 0; display: grid; gap: 14px; }
+  .mhead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 16px; }
+  .mhead h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.45rem; margin: 0; text-wrap: balance; }
+  .meta { font-size: 0.85rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+  .meta a { color: var(--accent); }
+  .level { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 8px; border-radius: 4px; background: var(--accent-soft); color: var(--ink); }
+  .facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; margin: 0; }
+  .facts dt { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding-top: 2px; }
+  .facts dd { margin: 0; }
+  .facts dd.bach { font-weight: 500; }
+  .bits { font-family: var(--font-data); }
+  .bits small { color: var(--muted); font-family: var(--font-body); }
+  .score { overflow-x: auto; border: 1px solid var(--rule); border-radius: 6px; padding: 6px 4px; background: var(--panel); }
+  .score svg { max-width: none; }
+  .play { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+  button.act { font: inherit; font-size: 0.9rem; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: var(--panel); cursor: pointer; }
+  button.act.ghost { background: transparent; color: var(--accent); }
+  button:focus-visible, .chip:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .tempo { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--muted); }
+  .tempo output { font-family: var(--font-data); min-width: 3ch; }
+  .lane { position: relative; height: 8px; background: var(--rule); border-radius: 4px; flex: 1 1 200px; min-width: 120px; }
+  .lane .head { position: absolute; top: 0; bottom: 0; left: 0; width: 0; background: var(--accent); border-radius: 4px; }
+  .lane .m { position: absolute; top: -4px; bottom: -4px; width: 3px; background: var(--mark); border-radius: 2px; }
+  label.inline { font-size: 0.85rem; color: var(--muted); display: inline-flex; gap: 6px; align-items: center; }
+
+  .verdict { display: grid; gap: 10px; border-top: 1px solid var(--rule); padding-top: 14px; }
+  .verdict h3 { margin: 0; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 500; }
+  .choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; }
+  .choice { font: inherit; text-align: left; padding: 10px 12px; border-radius: 8px; border: 1.5px solid var(--rule); background: transparent; color: var(--ink); cursor: pointer; display: grid; gap: 2px; }
+  .choice b { font-weight: 600; display: flex; justify-content: space-between; gap: 8px; }
+  .choice kbd { font-family: var(--font-data); font-size: 0.75rem; color: var(--muted); border: 1px solid var(--rule); border-radius: 3px; padding: 0 4px; }
+  .choice span { font-size: 0.8rem; color: var(--muted); }
+  .choice[data-r="beautiful"][aria-pressed="true"] { border-color: var(--beautiful); box-shadow: inset 0 0 0 1px var(--beautiful); }
+  .choice[data-r="idiomatic"][aria-pressed="true"] { border-color: var(--idiomatic); box-shadow: inset 0 0 0 1px var(--idiomatic); }
+  .choice[data-r="slip"][aria-pressed="true"] { border-color: var(--slip); box-shadow: inset 0 0 0 1px var(--slip); }
+  .choice[data-r="unsure"][aria-pressed="true"] { border-color: var(--unsure); box-shadow: inset 0 0 0 1px var(--unsure); }
+  .choice[data-r="special"][aria-pressed="true"] { border-color: var(--beautiful); box-shadow: inset 0 0 0 1px var(--beautiful); }
+  .choice[data-r="ordinary"][aria-pressed="true"] { border-color: var(--idiomatic); box-shadow: inset 0 0 0 1px var(--idiomatic); }
+  textarea { font: inherit; width: 100%; min-height: 64px; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink); resize: vertical; }
+  .nav { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .saved { font-size: 0.8rem; color: var(--muted); }
+  .keys { font-size: 0.8rem; color: var(--muted); }
+  @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
+
+  /* Phones: the list folds away behind a button, the score wraps onto several systems at a readable
+     size, and the sound and the way between moments stay at the thumb in a bar at the bottom. */
+  .list-toggle, .dock { display: none; }
+  @media (max-width: 860px) {
+    body { font-size: 16px; padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+    .wrap { padding-block: 12px 24px; gap: 12px; }
+    h1 { font-size: 1.45rem; }
+    .lede { font-size: 0.9rem; }
+    .progress { width: 100%; justify-content: space-between; }
+    .bar { flex: 1 1 auto; width: auto; }
+    .list-toggle { display: inline-flex; justify-content: space-between; align-items: center; width: 100%; font: inherit; font-size: 0.95rem; padding: 11px 14px; border-radius: 8px; border: 1px solid var(--rule); background: var(--panel); color: var(--ink); cursor: pointer; }
+    .list { position: static; max-height: 60vh; display: none; }
+    .wrap.open .list { display: block; }
+    .item { padding: 11px 12px; }
+    .item .t { font-size: 0.92rem; }
+    .chip { font-size: 0.9rem; padding: 6px 14px; }
+    .moment { padding: 14px 12px 16px; gap: 12px; }
+    .mhead h2 { font-size: 1.25rem; }
+    .facts { grid-template-columns: minmax(0, 1fr); gap: 0; }
+    .facts dd { margin-bottom: 6px; }
+    .score { padding: 4px 0; border: 0; }
+    .play .act { display: none; }
+    .play { gap: 10px 14px; }
+    .lane { flex-basis: 100%; }
+    .tempo { flex: 1 1 auto; }
+    .tempo input { flex: 1 1 auto; }
+    .choices { grid-template-columns: minmax(0, 1fr); }
+    .choice { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px; min-height: 52px; }
+    .choice span { text-align: right; }
+    .choice kbd { display: none; }
+    .verdict .nav .act { display: none; }
+    .dock { display: grid; grid-template-columns: auto 1fr 1fr auto; gap: 8px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--panel); border-top: 1px solid var(--rule); }
+    .dock button { min-height: 46px; padding: 0 14px; font-size: 1rem; }
+  }
+  @media (hover: none) { .hint { display: none; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1 id="page-title">Bach's Exceptions</h1>
+      <p class="lede" id="page-lede">The choices in Bach's 370 chorales that surprise the generator most, measured by models that never saw the tune. Listen, read, and say what kind of rarity each one is.</p>
+    </div>
+    <div class="progress" aria-live="polite"><span id="count">0 of 0 rated</span><div class="bar"><i id="bar"></i></div></div>
+    <button class="list-toggle" id="list-toggle" type="button" aria-expanded="false"><span>All moments</span><span aria-hidden="true">▾</span></button>
+  </header>
+  <p class="notice" id="notice" hidden></p>
+
+  <nav class="list" aria-label="Moments">
+    <div class="filters" role="group" aria-label="Show">
+      <button class="chip" data-f="all" aria-pressed="true">All</button>
+      <button class="chip" data-f="unrated" aria-pressed="false">Unrated</button>
+    </div>
+    <div id="items"></div>
+  </nav>
+
+  <main class="moment" id="moment">
+    <div class="mhead">
+      <h2 id="m-title">Loading moments…</h2>
+      <span class="level" id="m-level"></span>
+    </div>
+    <div class="meta" id="m-meta"></div>
+    <dl class="facts">
+      <dt>Bach</dt><dd class="bach" id="m-did"></dd>
+      <dt>Expected</dt><dd id="m-exp"></dd>
+      <dt>Surprise</dt><dd class="bits" id="m-bits"></dd>
+    </dl>
+    <div class="score" id="score" aria-label="Score excerpt; the moment is marked ▼"></div>
+    <div class="play">
+      <button class="act" id="play-all" type="button">Play excerpt</button>
+      <button class="act ghost" id="play-moment" type="button">Play the moment</button>
+      <button class="act ghost" id="stop" type="button">Stop</button>
+      <div class="lane" aria-hidden="true"><div class="head" id="head"></div><div class="m" id="mk"></div></div>
+      <label class="tempo" for="tempo">♩ = <output id="tempo-out">72</output><input id="tempo" type="range" min="40" max="110" value="72"></label>
+      <label class="inline" for="solo"><input type="checkbox" id="solo"> Bring out the voice</label>
+    </div>
+    <section class="verdict" aria-labelledby="v-h">
+      <h3 id="v-h">What kind of rarity is it?</h3>
+      <div class="choices" id="choices">
+        <button class="choice" data-r="beautiful" type="button" aria-pressed="false"><b>Beautiful, expressive <kbd>1</kbd></b><span>A deliberate licence worth learning</span></button>
+        <button class="choice" data-r="idiomatic" type="button" aria-pressed="false"><b>Idiomatic <kbd>2</kbd></b><span>Ordinary Bach; the model misses why</span></button>
+        <button class="choice" data-r="slip" type="button" aria-pressed="false"><b>Slip or doubtful <kbd>3</kbd></b><span>An error, a misreading, or not convincing</span></button>
+        <button class="choice" data-r="unsure" type="button" aria-pressed="false"><b>Not sure <kbd>4</kbd></b><span>Come back to it</span></button>
+      </div>
+      <label class="inline" for="flag" id="flag-row" hidden><input type="checkbox" id="flag"> The reading or the description looks wrong</label>
+      <label for="note" class="keys">A note (what you hear, the text, a better reading)</label>
+      <textarea id="note" placeholder="Optional"></textarea>
+      <div class="nav">
+        <button class="act ghost" id="prev" type="button">← Previous</button>
+        <span class="saved" id="saved" aria-live="polite"></span>
+        <button class="act" id="next" type="button">Next →</button>
+      </div>
+      <p class="keys hint">Keys: 1–4 rate · space plays · M plays the moment · ← → move between moments.</p>
+    </section>
+  </main>
+</div>
+<div class="dock" aria-label="Sound and moments">
+  <button class="act ghost" id="d-prev" type="button" aria-label="Previous moment">←</button>
+  <button class="act" id="d-play" type="button">▶ Excerpt</button>
+  <button class="act ghost" id="d-moment" type="button">▶ Moment</button>
+  <button class="act ghost" id="d-next" type="button" aria-label="Next moment">→</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min.js"></script>
+<script>
+const MOMENTS = [{"id":"p1","name":"Melody 1: first and second setting","level":"pairs","key":"A major","voice":null,"title":"","bwv":"","scan":null,"did":"","expected":"","abc":"X:1\nM:4/4\nL:1/32\nK:A\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] A8 A8 G8 A8  | !fermata!B16 A8 B8  | c8 B8 !fermata!A16  | c8 d8 e8 d8  | c8 B8 c16  | !fermata!B16 A8 B8  | c8 B8 A8 G8  | A12 G4 !fermata!G16  | A8 A8 G8 A8  | !fermata!B16 A8 B8  | c8 B4 A4 !fermata!A16  | \"^▼\"A8 A8 G8 A8  | !fermata!B16 A8 B8  | c8 B8 !fermata!A16  | c8 d8 e8 d8  | c8 B8 c16  | !fermata!B16 A8 B8  | c8 B8 A8 G8  | A12 G4 !fermata!G16  | A8 A8 G8 A8  | !fermata!B16 A8 B8  | c8 B4 A4 !fermata!A16 |]\n[V:A] C8 D8 D8 E8  | E16 E14 D2-  | D4 C4 F16 E8  | A8 A8 A12 G4  | E8 E8 E16  | E16 E8 F8  | E8 E8 E8 E8  | E16 E16  | E8 F8 ^E8 F8  | F16 E8 E8  | E8 E8 C16  | C8 D8 D8 E8  | E16 E8 F8-  | F4 E4 F16 E8  | F8 F8 E4 F4 G8  | E8 E8 E16  | E16 E8 F8  | E8 E8 E8 E8  | E16 E16  | E8 F8 ^E8 F8  | F16 E8 E8  | E8 E8 C16 |]\n[V:T] E,8 F,8 B,12 A,4  | G,16 A,8 F,8  | A,8 A,8 C16  | F8 F8 E8 B,8  | A,8 G,8 A,16  | G,16 A,8 A,8  | G,8 G,8 A,8 B,8  | C12 B,4 B,16  | C4 B,4 C8 C8 C8  | D16 C8 G,8  | A,8 G,4 F,4 E,16  | E,8 F,8 B,12 A,4  | G,16 A,4 G,4 F,8  | A,8 A,8 C16  | A,8 A,8 A,8 B,8  | A,8 G,8 A,16  | G,16 A,8 A,8  | G,8 G,8 A,8 B,8  | C16 B,16  | C4 B,4 C8 C8 C8  | D16 A,8 G,8  | A,8 G,4 F,4 E,16 |]\n[V:B] A,,8 D,8 B,,8 C,8  | E,16 C,8 D,8  | E,8 D,8 A,16  | F,8 F,8 C,8 B,,8  | C,4 D,4 E,8 A,16  | E,16 C,8 ^D,8  | E,8 E,8 C,8 B,,8  | A,,16 E,16  | C,8 F,8 C,8 F,8  | B,,16 C,8 E,8  | A,8 E,8 A,,16  | A,,8 D,8 B,,8 C,8  | E,16 C,8 D,8  | E,8 D,8 A,16  | F,8 F,8 C,8 B,,8  | C,4 D,4 E,8 A,16  | E,16 C,8 ^D,8  | E,8 E,8 C,8 B,,8  | A,,16 E,16  | C,8 F,8 C,8 F,8  | B,,16 C,8 E,8  | A,8 E,8 A,,16 |]","play":[[0,0,8,69],[0,8,8,69],[0,16,8,68],[0,24,8,69],[0,32,16,71],[0,48,8,69],[0,56,8,71],[0,64,8,73],[0,72,8,71],[0,80,16,69],[0,96,8,73],[0,104,8,74],[0,112,8,76],[0,120,8,74],[0,128,8,73],[0,136,8,71],[0,144,16,73],[0,160,16,71],[0,176,8,69],[0,184,8,71],[0,192,8,73],[0,200,8,71],[0,208,8,69],[0,216,8,68],[0,224,12,69],[0,236,4,68],[0,240,16,68],[0,256,8,69],[0,264,8,69],[0,272,8,68],[0,280,8,69],[0,288,16,71],[0,304,8,69],[0,312,8,71],[0,320,8,73],[0,328,4,71],[0,332,4,69],[0,336,16,69],[0,352,8,69],[0,360,8,69],[0,368,8,68],[0,376,8,69],[0,384,16,71],[0,400,8,69],[0,408,8,71],[0,416,8,73],[0,424,8,71],[0,432,16,69],[0,448,8,73],[0,456,8,74],[0,464,8,76],[0,472,8,74],[0,480,8,73],[0,488,8,71],[0,496,16,73],[0,512,16,71],[0,528,8,69],[0,536,8,71],[0,544,8,73],[0,552,8,71],[0,560,8,69],[0,568,8,68],[0,576,12,69],[0,588,4,68],[0,592,16,68],[0,608,8,69],[0,616,8,69],[0,624,8,68],[0,632,8,69],[0,640,16,71],[0,656,8,69],[0,664,8,71],[0,672,8,73],[0,680,4,71],[0,684,4,69],[0,688,16,69],[1,0,8,61],[1,8,8,62],[1,16,8,62],[1,24,8,64],[1,32,16,64],[1,48,14,64],[1,62,6,62],[1,68,4,61],[1,72,16,66],[1,88,8,64],[1,96,8,69],[1,104,8,69],[1,112,12,69],[1,124,4,68],[1,128,8,64],[1,136,8,64],[1,144,16,64],[1,160,16,64],[1,176,8,64],[1,184,8,66],[1,192,8,64],[1,200,8,64],[1,208,8,64],[1,216,8,64],[1,224,16,64],[1,240,16,64],[1,256,8,64],[1,264,8,66],[1,272,8,65],[1,280,8,66],[1,288,16,66],[1,304,8,64],[1,312,8,64],[1,320,8,64],[1,328,8,64],[1,336,16,61],[1,352,8,61],[1,360,8,62],[1,368,8,62],[1,376,8,64],[1,384,16,64],[1,400,8,64],[1,408,12,66],[1,420,4,64],[1,424,16,66],[1,440,8,64],[1,448,8,66],[1,456,8,66],[1,464,4,64],[1,468,4,66],[1,472,8,68],[1,480,8,64],[1,488,8,64],[1,496,16,64],[1,512,16,64],[1,528,8,64],[1,536,8,66],[1,544,8,64],[1,552,8,64],[1,560,8,64],[1,568,8,64],[1,576,16,64],[1,592,16,64],[1,608,8,64],[1,616,8,66],[1,624,8,65],[1,632,8,66],[1,640,16,66],[1,656,8,64],[1,664,8,64],[1,672,8,64],[1,680,8,64],[1,688,16,61],[2,0,8,52],[2,8,8,54],[2,16,12,59],[2,28,4,57],[2,32,16,56],[2,48,8,57],[2,56,8,54],[2,64,8,57],[2,72,8,57],[2,80,16,61],[2,96,8,66],[2,104,8,66],[2,112,8,64],[2,120,8,59],[2,128,8,57],[2,136,8,56],[2,144,16,57],[2,160,16,56],[2,176,8,57],[2,184,8,57],[2,192,8,56],[2,200,8,56],[2,208,8,57],[2,216,8,59],[2,224,12,61],[2,236,4,59],[2,240,16,59],[2,256,4,61],[2,260,4,59],[2,264,8,61],[2,272,8,61],[2,280,8,61],[2,288,16,62],[2,304,8,61],[2,312,8,56],[2,320,8,57],[2,328,4,56],[2,332,4,54],[2,336,16,52],[2,352,8,52],[2,360,8,54],[2,368,12,59],[2,380,4,57],[2,384,16,56],[2,400,4,57],[2,404,4,56],[2,408,8,54],[2,416,8,57],[2,424,8,57],[2,432,16,61],[2,448,8,57],[2,456,8,57],[2,464,8,57],[2,472,8,59],[2,480,8,57],[2,488,8,56],[2,496,16,57],[2,512,16,56],[2,528,8,57],[2,536,8,57],[2,544,8,56],[2,552,8,56],[2,560,8,57],[2,568,8,59],[2,576,16,61],[2,592,16,59],[2,608,4,61],[2,612,4,59],[2,616,8,61],[2,624,8,61],[2,632,8,61],[2,640,16,62],[2,656,8,57],[2,664,8,56],[2,672,8,57],[2,680,4,56],[2,684,4,54],[2,688,16,52],[3,0,8,45],[3,8,8,50],[3,16,8,47],[3,24,8,49],[3,32,16,52],[3,48,8,49],[3,56,8,50],[3,64,8,52],[3,72,8,50],[3,80,16,57],[3,96,8,54],[3,104,8,54],[3,112,8,49],[3,120,8,47],[3,128,4,49],[3,132,4,50],[3,136,8,52],[3,144,16,57],[3,160,16,52],[3,176,8,49],[3,184,8,51],[3,192,8,52],[3,200,8,52],[3,208,8,49],[3,216,8,47],[3,224,16,45],[3,240,16,52],[3,256,8,49],[3,264,8,54],[3,272,8,49],[3,280,8,54],[3,288,16,47],[3,304,8,49],[3,312,8,52],[3,320,8,57],[3,328,8,52],[3,336,16,45],[3,352,8,45],[3,360,8,50],[3,368,8,47],[3,376,8,49],[3,384,16,52],[3,400,8,49],[3,408,8,50],[3,416,8,52],[3,424,8,50],[3,432,16,57],[3,448,8,54],[3,456,8,54],[3,464,8,49],[3,472,8,47],[3,480,4,49],[3,484,4,50],[3,488,8,52],[3,496,16,57],[3,512,16,52],[3,528,8,49],[3,536,8,51],[3,544,8,52],[3,552,8,52],[3,560,8,49],[3,568,8,47],[3,576,16,45],[3,592,16,52],[3,608,8,49],[3,616,8,54],[3,624,8,49],[3,632,8,54],[3,640,16,47],[3,656,8,49],[3,664,8,52],[3,672,8,57],[3,680,8,52],[3,688,16,45]],"mark":352,"length":704,"fromBar":1},{"id":"p2","name":"Melody 2: first and second setting","level":"pairs","key":"A major","voice":null,"title":"","bwv":"","scan":null,"did":"","expected":"","abc":"X:1\nM:4/4\nL:1/32\nK:A\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] A8  | A8 A8 F4 G4 A8  | B4 A4 G8 !fermata!F8 F8  | G8 A8 B8 E4 F4  | G4 A4 F8 !fermata!E8 B8  | c8 c8 A4 B4 c8  | d8 c8 !fermata!B8 A8  | B8 c8 B8 A8  | A8 G8 !fermata!A8  | \"^▼\"A8  | A8 A8 F4 G4 A8  | B4 A4 G8 !fermata!F8 F8  | G8 A8 B8 E4 F4  | G4 A4 F8 !fermata!E8 B8  | c8 c8 A4 B4 c8  | d8 c8 !fermata!B8 A8  | B8 c8 B8 A8  | A8 G8 !fermata!A8 |]\n[V:A] E8  | F8 F8 F8 F8  | F8 C8 C8 ^D8  | E8 E8 E8 E8  | C4 B,4 A,8 B,8 B,8  | E8 E8 C8 E8  | F12 E4 E8 E8  | D8 F8 F12 E4  | D8 D8 E8  | E8  | F8 F8 F8 F8  | F8 C8 C8 ^D8  | E8 E8 E8 E8  | C4 B,4 A,8 B,8 B,8  | E8 E8 C8 E8  | D8 E8 E8 E8  | D8 F8 F12 E4  | D8 D8 E8 |]\n[V:T] C8  | C8 C8 D8 D8  | D8 ^E,8 A,8 B,8  | B,8 C8 G,8 A,8  | E,8 F,8 G,8 F,8  | A,8 A,8 E,8 A,8  | A,8 A,12 G,4 A,8  | F,8 ^A,8 B,8 C8  | F,8 B,8 C8  | C8  | C8 C8 D8 D8  | D8 ^E,8 A,8 B,8  | B,8 C8 G,8 A,8  | E,12 D,4 G,8 F,8  | A,8 A,8 E,8 A,8  | A,8 A,12 G,4 A,8  | F,8 ^A,8 B,8 C8  | F,8 B,8 C8 |]\n[V:B] A,8  | F,8 F,8 D,8 D,8  | D,8 C,8 F,8 B,,8  | D,8 C,8 E,8 C,8  | C,8 D,8 D,8 ^D,8  | C,8 A,,8 A,,8 A,8  | F,4 G,4 A,8 E,8 C,8  | B,,8 F,4 E,4 D,8 C,8  | D,8 B,,8 A,,8  | A,8  | F,8 F,8 D,8 D,8  | D,8 C,8 F,8 B,,8  | D,8 C,8 E,8 C,8  | C,8 D,8 D,8 ^D,8  | C,8 A,,8 A,,8 A,8  | F,4 G,4 A,8 E,8 C,8  | B,,8 F,4 E,4 D,12 C,4  | D,8 B,,8 A,,8 |]","play":[[0,0,8,69],[0,8,8,69],[0,16,8,69],[0,24,4,66],[0,28,4,68],[0,32,8,69],[0,40,4,71],[0,44,4,69],[0,48,8,68],[0,56,8,66],[0,64,8,66],[0,72,8,68],[0,80,8,69],[0,88,8,71],[0,96,4,64],[0,100,4,66],[0,104,4,68],[0,108,4,69],[0,112,8,66],[0,120,8,64],[0,128,8,71],[0,136,8,73],[0,144,8,73],[0,152,4,69],[0,156,4,71],[0,160,8,73],[0,168,8,74],[0,176,8,73],[0,184,8,71],[0,192,8,69],[0,200,8,71],[0,208,8,73],[0,216,8,71],[0,224,8,69],[0,232,8,69],[0,240,8,68],[0,248,8,69],[0,256,8,69],[0,264,8,69],[0,272,8,69],[0,280,4,66],[0,284,4,68],[0,288,8,69],[0,296,4,71],[0,300,4,69],[0,304,8,68],[0,312,8,66],[0,320,8,66],[0,328,8,68],[0,336,8,69],[0,344,8,71],[0,352,4,64],[0,356,4,66],[0,360,4,68],[0,364,4,69],[0,368,8,66],[0,376,8,64],[0,384,8,71],[0,392,8,73],[0,400,8,73],[0,408,4,69],[0,412,4,71],[0,416,8,73],[0,424,8,74],[0,432,8,73],[0,440,8,71],[0,448,8,69],[0,456,8,71],[0,464,8,73],[0,472,8,71],[0,480,8,69],[0,488,8,69],[0,496,8,68],[0,504,8,69],[1,0,8,64],[1,8,8,66],[1,16,8,66],[1,24,8,66],[1,32,8,66],[1,40,8,66],[1,48,8,61],[1,56,8,61],[1,64,8,63],[1,72,8,64],[1,80,8,64],[1,88,8,64],[1,96,8,64],[1,104,4,61],[1,108,4,59],[1,112,8,57],[1,120,8,59],[1,128,8,59],[1,136,8,64],[1,144,8,64],[1,152,8,61],[1,160,8,64],[1,168,12,66],[1,180,4,64],[1,184,8,64],[1,192,8,64],[1,200,8,62],[1,208,8,66],[1,216,12,66],[1,228,4,64],[1,232,8,62],[1,240,8,62],[1,248,8,64],[1,256,8,64],[1,264,8,66],[1,272,8,66],[1,280,8,66],[1,288,8,66],[1,296,8,66],[1,304,8,61],[1,312,8,61],[1,320,8,63],[1,328,8,64],[1,336,8,64],[1,344,8,64],[1,352,8,64],[1,360,4,61],[1,364,4,59],[1,368,8,57],[1,376,8,59],[1,384,8,59],[1,392,8,64],[1,400,8,64],[1,408,8,61],[1,416,8,64],[1,424,8,62],[1,432,8,64],[1,440,8,64],[1,448,8,64],[1,456,8,62],[1,464,8,66],[1,472,12,66],[1,484,4,64],[1,488,8,62],[1,496,8,62],[1,504,8,64],[2,0,8,61],[2,8,8,61],[2,16,8,61],[2,24,8,62],[2,32,8,62],[2,40,8,62],[2,48,8,53],[2,56,8,57],[2,64,8,59],[2,72,8,59],[2,80,8,61],[2,88,8,56],[2,96,8,57],[2,104,8,52],[2,112,8,54],[2,120,8,56],[2,128,8,54],[2,136,8,57],[2,144,8,57],[2,152,8,52],[2,160,8,57],[2,168,8,57],[2,176,12,57],[2,188,4,56],[2,192,8,57],[2,200,8,54],[2,208,8,58],[2,216,8,59],[2,224,8,61],[2,232,8,54],[2,240,8,59],[2,248,8,61],[2,256,8,61],[2,264,8,61],[2,272,8,61],[2,280,8,62],[2,288,8,62],[2,296,8,62],[2,304,8,53],[2,312,8,57],[2,320,8,59],[2,328,8,59],[2,336,8,61],[2,344,8,56],[2,352,8,57],[2,360,12,52],[2,372,4,50],[2,376,8,56],[2,384,8,54],[2,392,8,57],[2,400,8,57],[2,408,8,52],[2,416,8,57],[2,424,8,57],[2,432,12,57],[2,444,4,56],[2,448,8,57],[2,456,8,54],[2,464,8,58],[2,472,8,59],[2,480,8,61],[2,488,8,54],[2,496,8,59],[2,504,8,61],[3,0,8,57],[3,8,8,54],[3,16,8,54],[3,24,8,50],[3,32,8,50],[3,40,8,50],[3,48,8,49],[3,56,8,54],[3,64,8,47],[3,72,8,50],[3,80,8,49],[3,88,8,52],[3,96,8,49],[3,104,8,49],[3,112,8,50],[3,120,8,50],[3,128,8,51],[3,136,8,49],[3,144,8,45],[3,152,8,45],[3,160,8,57],[3,168,4,54],[3,172,4,56],[3,176,8,57],[3,184,8,52],[3,192,8,49],[3,200,8,47],[3,208,4,54],[3,212,4,52],[3,216,8,50],[3,224,8,49],[3,232,8,50],[3,240,8,47],[3,248,8,45],[3,256,8,57],[3,264,8,54],[3,272,8,54],[3,280,8,50],[3,288,8,50],[3,296,8,50],[3,304,8,49],[3,312,8,54],[3,320,8,47],[3,328,8,50],[3,336,8,49],[3,344,8,52],[3,352,8,49],[3,360,8,49],[3,368,8,50],[3,376,8,50],[3,384,8,51],[3,392,8,49],[3,400,8,45],[3,408,8,45],[3,416,8,57],[3,424,4,54],[3,428,4,56],[3,432,8,57],[3,440,8,52],[3,448,8,49],[3,456,8,47],[3,464,4,54],[3,468,4,52],[3,472,12,50],[3,484,4,49],[3,488,8,50],[3,496,8,47],[3,504,8,45]],"mark":256,"length":512,"fromBar":0},{"id":"p3","name":"Melody 3: first and second setting","level":"pairs","key":"F major","voice":null,"title":"","bwv":"","scan":null,"did":"","expected":"","abc":"X:1\nM:4/4\nL:1/32\nK:F\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] F8  | F8 F8 c8 c8  | d16 !fermata!c8 c8  | F8 G8 A8 B8  | A8 G4 F4 !fermata!F8 A8 A8  | A8 G8 A8  | F4 E4 D8 !fermata!C8 c8  | d8 c8 c8 A4 B4 c8  | B8 !fermata!A8 d8  | c4 B4 A8 G8 A8  | c8 A8 G16  | !fermata!F24  | \"^▼\"F8  | F8 F8 c8 c8  | d16 !fermata!c8 c8  | F8 G8 A8 B8  | A8 G4 F4 !fermata!F8 A8 A8  | A8 G8 A8  | F4 E4 D8 !fermata!C8 c8  | d8 c8 c8 A4 B4 c8  | B8 !fermata!A8 d8  | c4 B4 A8 G8 A8  | c8 A8 G16  | !fermata!F24 |]\n[V:A] C8  | D8 F4 G4 G8 F8  | F16 F8 F4 E4  | D8 D8 D8 G4 F4  | E8 F8 C8 F8 F8  | F12 E4 F8  | C8 B,8 G,8 G8  | G8 G8 E8 C8 F8  | D4 E4 F8 F8  | F8 C8 C8 C8  | C8 F16 E8  | C24  | C8  | D8 A,4 B,4 C8 F8  | F16 F8 F4 E4  | D8 D8 D8 G4 F4  | E8 F8 C8 F8 F8  | F12 E4 F8  | C8 B,8 G,8 C8  | G8 G4 F4 E8 C8 F8  | D4 E4 F8 F8  | F8 C8 C8 C8  | C8 D8 G16  | C24 |]\n[V:T] A,8  | A,8 A,8 G,8 A,8  | B,16 A,8 C8  | B,8 B,8 ^F,8 D8  | A,8 D8 A,8 C8 C8  | C8 C8 C8  | F,8 F,8 E,8 G,8  | =B,8 C8 G,8 F,8 A,8  | G,8 C8 B,8  | C8 F,8 G,8 F,8  | G,12 F,4 C16  | A,24  | A,8  | A,8 A,12 G,4 A,8  | B,16 A,8 C8  | B,8 B,8 ^F,8 D8  | ^C8 D8 A,8 C8 C8  | C8 C8 C4 B,4  | A,8 F,8 E,8 G,8  | =B,8 C8 G,8 F,8 A,8  | G,8 C8 B,8  | C8 F,8 G,8 F,8  | G,12 F,4 C16  | A,24 |]\n[V:B] F,8  | D,8 C,8 E,8 F,8  | D,12 E,4 F,8 A,,8  | B,,8 B,,8 D,8 B,8  | ^C,8 B,8 F,8 F,8 F,8  | F,8 C,8 F,8  | A,,8 B,,8 C,8 E,8  | G,4 F,4 E,4 F,4 E,8 F,8 F,8  | G,8 F,8 B,8  | A,8 F,8 E,8 F,8  | E,8 D,8 E,16  | F,24  | F,8  | D,8 C,4 D,4 E,8 F,8  | D,12 E,4 F,8 A,,8  | B,,8 B,,8 D,8 B,8  | ^C,8 B,8 F,8 F,8 F,8  | F,8 C,8 F,8  | A,,8 B,,8 C,8 E,8  | G,4 F,4 E,8 E,8 F,8 F,8  | G,8 F,8 B,8  | A,8 F,8 E,8 F,8  | E,8 D,8 E,16  | F,24 |]","play":[[0,0,8,65],[0,8,8,65],[0,16,8,65],[0,24,8,72],[0,32,8,72],[0,40,16,74],[0,56,8,72],[0,64,8,72],[0,72,8,65],[0,80,8,67],[0,88,8,69],[0,96,8,70],[0,104,8,69],[0,112,4,67],[0,116,4,65],[0,120,8,65],[0,128,8,69],[0,136,8,69],[0,144,8,69],[0,152,8,67],[0,160,8,69],[0,168,4,65],[0,172,4,64],[0,176,8,62],[0,184,8,60],[0,192,8,72],[0,200,8,74],[0,208,8,72],[0,216,8,72],[0,224,4,69],[0,228,4,70],[0,232,8,72],[0,240,8,70],[0,248,8,69],[0,256,8,74],[0,264,4,72],[0,268,4,70],[0,272,8,69],[0,280,8,67],[0,288,8,69],[0,296,8,72],[0,304,8,69],[0,312,16,67],[0,328,24,65],[0,352,8,65],[0,360,8,65],[0,368,8,65],[0,376,8,72],[0,384,8,72],[0,392,16,74],[0,408,8,72],[0,416,8,72],[0,424,8,65],[0,432,8,67],[0,440,8,69],[0,448,8,70],[0,456,8,69],[0,464,4,67],[0,468,4,65],[0,472,8,65],[0,480,8,69],[0,488,8,69],[0,496,8,69],[0,504,8,67],[0,512,8,69],[0,520,4,65],[0,524,4,64],[0,528,8,62],[0,536,8,60],[0,544,8,72],[0,552,8,74],[0,560,8,72],[0,568,8,72],[0,576,4,69],[0,580,4,70],[0,584,8,72],[0,592,8,70],[0,600,8,69],[0,608,8,74],[0,616,4,72],[0,620,4,70],[0,624,8,69],[0,632,8,67],[0,640,8,69],[0,648,8,72],[0,656,8,69],[0,664,16,67],[0,680,24,65],[1,0,8,60],[1,8,8,62],[1,16,4,65],[1,20,4,67],[1,24,8,67],[1,32,8,65],[1,40,16,65],[1,56,8,65],[1,64,4,65],[1,68,4,64],[1,72,8,62],[1,80,8,62],[1,88,8,62],[1,96,4,67],[1,100,4,65],[1,104,8,64],[1,112,8,65],[1,120,8,60],[1,128,8,65],[1,136,8,65],[1,144,12,65],[1,156,4,64],[1,160,8,65],[1,168,8,60],[1,176,8,58],[1,184,8,55],[1,192,8,67],[1,200,8,67],[1,208,8,67],[1,216,8,64],[1,224,8,60],[1,232,8,65],[1,240,4,62],[1,244,4,64],[1,248,8,65],[1,256,8,65],[1,264,8,65],[1,272,8,60],[1,280,8,60],[1,288,8,60],[1,296,8,60],[1,304,16,65],[1,320,8,64],[1,328,24,60],[1,352,8,60],[1,360,8,62],[1,368,4,57],[1,372,4,58],[1,376,8,60],[1,384,8,65],[1,392,16,65],[1,408,8,65],[1,416,4,65],[1,420,4,64],[1,424,8,62],[1,432,8,62],[1,440,8,62],[1,448,4,67],[1,452,4,65],[1,456,8,64],[1,464,8,65],[1,472,8,60],[1,480,8,65],[1,488,8,65],[1,496,12,65],[1,508,4,64],[1,512,8,65],[1,520,8,60],[1,528,8,58],[1,536,8,55],[1,544,8,60],[1,552,8,67],[1,560,4,67],[1,564,4,65],[1,568,8,64],[1,576,8,60],[1,584,8,65],[1,592,4,62],[1,596,4,64],[1,600,8,65],[1,608,8,65],[1,616,8,65],[1,624,8,60],[1,632,8,60],[1,640,8,60],[1,648,8,60],[1,656,8,62],[1,664,16,67],[1,680,24,60],[2,0,8,57],[2,8,8,57],[2,16,8,57],[2,24,8,55],[2,32,8,57],[2,40,16,58],[2,56,8,57],[2,64,8,60],[2,72,8,58],[2,80,8,58],[2,88,8,54],[2,96,8,62],[2,104,8,57],[2,112,8,62],[2,120,8,57],[2,128,8,60],[2,136,8,60],[2,144,8,60],[2,152,8,60],[2,160,8,60],[2,168,8,53],[2,176,8,53],[2,184,8,52],[2,192,8,55],[2,200,8,59],[2,208,8,60],[2,216,8,55],[2,224,8,53],[2,232,8,57],[2,240,8,55],[2,248,8,60],[2,256,8,58],[2,264,8,60],[2,272,8,53],[2,280,8,55],[2,288,8,53],[2,296,12,55],[2,308,4,53],[2,312,16,60],[2,328,24,57],[2,352,8,57],[2,360,8,57],[2,368,12,57],[2,380,4,55],[2,384,8,57],[2,392,16,58],[2,408,8,57],[2,416,8,60],[2,424,8,58],[2,432,8,58],[2,440,8,54],[2,448,8,62],[2,456,8,61],[2,464,8,62],[2,472,8,57],[2,480,8,60],[2,488,8,60],[2,496,8,60],[2,504,8,60],[2,512,4,60],[2,516,4,58],[2,520,8,57],[2,528,8,53],[2,536,8,52],[2,544,8,55],[2,552,8,59],[2,560,8,60],[2,568,8,55],[2,576,8,53],[2,584,8,57],[2,592,8,55],[2,600,8,60],[2,608,8,58],[2,616,8,60],[2,624,8,53],[2,632,8,55],[2,640,8,53],[2,648,12,55],[2,660,4,53],[2,664,16,60],[2,680,24,57],[3,0,8,53],[3,8,8,50],[3,16,8,48],[3,24,8,52],[3,32,8,53],[3,40,12,50],[3,52,4,52],[3,56,8,53],[3,64,8,45],[3,72,8,46],[3,80,8,46],[3,88,8,50],[3,96,8,58],[3,104,8,49],[3,112,8,58],[3,120,8,53],[3,128,8,53],[3,136,8,53],[3,144,8,53],[3,152,8,48],[3,160,8,53],[3,168,8,45],[3,176,8,46],[3,184,8,48],[3,192,8,52],[3,200,4,55],[3,204,4,53],[3,208,4,52],[3,212,4,53],[3,216,8,52],[3,224,8,53],[3,232,8,53],[3,240,8,55],[3,248,8,53],[3,256,8,58],[3,264,8,57],[3,272,8,53],[3,280,8,52],[3,288,8,53],[3,296,8,52],[3,304,8,50],[3,312,16,52],[3,328,24,53],[3,352,8,53],[3,360,8,50],[3,368,4,48],[3,372,4,50],[3,376,8,52],[3,384,8,53],[3,392,12,50],[3,404,4,52],[3,408,8,53],[3,416,8,45],[3,424,8,46],[3,432,8,46],[3,440,8,50],[3,448,8,58],[3,456,8,49],[3,464,8,58],[3,472,8,53],[3,480,8,53],[3,488,8,53],[3,496,8,53],[3,504,8,48],[3,512,8,53],[3,520,8,45],[3,528,8,46],[3,536,8,48],[3,544,8,52],[3,552,4,55],[3,556,4,53],[3,560,8,52],[3,568,8,52],[3,576,8,53],[3,584,8,53],[3,592,8,55],[3,600,8,53],[3,608,8,58],[3,616,8,57],[3,624,8,53],[3,632,8,52],[3,640,8,53],[3,648,8,52],[3,656,8,50],[3,664,16,52],[3,680,24,53]],"mark":352,"length":704,"fromBar":0},{"id":"p4","name":"Melody 4: first and second setting","level":"pairs","key":"C major","voice":null,"title":"","bwv":"","scan":null,"did":"","expected":"","abc":"X:1\nM:3/4\nL:1/32\nK:C\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] c8 c8 c8  | A8 B8 c8  | d8 c8 B8  | !fermata!A24  | A8 B8 c8  | d16 c8  | B8 A16  | !fermata!G24  | e8 e8 e8  | c8 d8 e8  | f8 e16  | !fermata!d24  | c8 d8 e8  | d16 c8  | c8 B16  | !fermata!c24  | \"^▼\"c8 c8 c8  | A8 B8 c8  | d8 c8 B8  | !fermata!A24  | A8 B8 c8  | d16 c8  | B8 A16  | !fermata!G24  | e8 e8 e8  | c8 d8 e8  | f8 e16  | !fermata!d24  | c8 d8 e8  | d16 c8  | c8 B16  | !fermata!c24 |]\n[V:A] G8 G8 A8  | ^F8 G8 G8  | G8 G8 G8  | E24  | ^F8 G8 E8  | E12 F4 E8  | E8 E16  | D24  | E8 G8 c4 B4  | A8 A4 B4 c8  | c8 G16-  | G8 F16  | G8 G8 G8  | A16 G8-  | G4 F4 F16  | G24  | G8 G8 A8  | ^F8 G8 G8  | G8 G8 G8  | E24  | ^F8 G4 F4 E8  | E12 F4 E8  | E8 E16  | D24  | E8 G8 c4 B4  | A8 A4 B4 c8  | F8 G16-  | G8 F16  | G8 G8 G8  | A16 G8-  | G4 F4 F16  | G24 |]\n[V:T] E8 E8 E8  | D8 D8 E8  | D8 E8 D8  | C24  | D8 D8 A,8  | B,16 A,8  | ^G,8 G,16  | B,24  | C8 C8 G8  | F8 F8 G8  | C8 C12 B,4  | A,24  | G,4 A,4 B,8 C8  | C16 C8  | A,8 D16  | E24  | E8 E8 E8  | D8 D8 E8  | D8 E8 D8  | C24  | D8 D8 A,8  | B,16 A,8  | ^G,8 G,16  | B,24  | C8 C8 G8  | F8 F8 G8  | C8 C12 B,4  | A,24  | C8 B,8 C8  | C16 C8  | A,8 D16  | E24 |]\n[V:B] C,8 E,8 A,8  | D,4 E,4 F,8 E,8  | B,,8 E,8 G,8  | A,24  | D,8 G,8 A,8  | ^G,16 A,8  | E,8 C,16  | G,,24  | C,8 C,8 E,8  | F,8 D,8 C,8  | A,,4 B,,4 C,16  | D,24  | E,8 G,8 C,8  | F,16 E,8  | F,8 D,16  | C,24  | C,8 E,8 A,8  | D,4 E,4 F,8 E,8  | B,,8 E,8 G,8  | A,24  | D,8 G,8 A,8  | ^G,16 A,8  | E,8 C,16  | G,,24  | C,8 C,8 E,8  | F,4 E,4 D,8 C,8  | A,,4 B,,4 C,16  | D,24  | E,8 G,8 C,8  | F,16 E,8  | F,8 D,16  | C,24 |]","play":[[0,0,8,72],[0,8,8,72],[0,16,8,72],[0,24,8,69],[0,32,8,71],[0,40,8,72],[0,48,8,74],[0,56,8,72],[0,64,8,71],[0,72,24,69],[0,96,8,69],[0,104,8,71],[0,112,8,72],[0,120,16,74],[0,136,8,72],[0,144,8,71],[0,152,16,69],[0,168,24,67],[0,192,8,76],[0,200,8,76],[0,208,8,76],[0,216,8,72],[0,224,8,74],[0,232,8,76],[0,240,8,77],[0,248,16,76],[0,264,24,74],[0,288,8,72],[0,296,8,74],[0,304,8,76],[0,312,16,74],[0,328,8,72],[0,336,8,72],[0,344,16,71],[0,360,24,72],[0,384,8,72],[0,392,8,72],[0,400,8,72],[0,408,8,69],[0,416,8,71],[0,424,8,72],[0,432,8,74],[0,440,8,72],[0,448,8,71],[0,456,24,69],[0,480,8,69],[0,488,8,71],[0,496,8,72],[0,504,16,74],[0,520,8,72],[0,528,8,71],[0,536,16,69],[0,552,24,67],[0,576,8,76],[0,584,8,76],[0,592,8,76],[0,600,8,72],[0,608,8,74],[0,616,8,76],[0,624,8,77],[0,632,16,76],[0,648,24,74],[0,672,8,72],[0,680,8,74],[0,688,8,76],[0,696,16,74],[0,712,8,72],[0,720,8,72],[0,728,16,71],[0,744,24,72],[1,0,8,67],[1,8,8,67],[1,16,8,69],[1,24,8,66],[1,32,8,67],[1,40,8,67],[1,48,8,67],[1,56,8,67],[1,64,8,67],[1,72,24,64],[1,96,8,66],[1,104,8,67],[1,112,8,64],[1,120,12,64],[1,132,4,65],[1,136,8,64],[1,144,8,64],[1,152,16,64],[1,168,24,62],[1,192,8,64],[1,200,8,67],[1,208,4,72],[1,212,4,71],[1,216,8,69],[1,224,4,69],[1,228,4,71],[1,232,8,72],[1,240,8,72],[1,248,24,67],[1,272,16,65],[1,288,8,67],[1,296,8,67],[1,304,8,67],[1,312,16,69],[1,328,12,67],[1,340,4,65],[1,344,16,65],[1,360,24,67],[1,384,8,67],[1,392,8,67],[1,400,8,69],[1,408,8,66],[1,416,8,67],[1,424,8,67],[1,432,8,67],[1,440,8,67],[1,448,8,67],[1,456,24,64],[1,480,8,66],[1,488,4,67],[1,492,4,65],[1,496,8,64],[1,504,12,64],[1,516,4,65],[1,520,8,64],[1,528,8,64],[1,536,16,64],[1,552,24,62],[1,576,8,64],[1,584,8,67],[1,592,4,72],[1,596,4,71],[1,600,8,69],[1,608,4,69],[1,612,4,71],[1,616,8,72],[1,624,8,65],[1,632,24,67],[1,656,16,65],[1,672,8,67],[1,680,8,67],[1,688,8,67],[1,696,16,69],[1,712,12,67],[1,724,4,65],[1,728,16,65],[1,744,24,67],[2,0,8,64],[2,8,8,64],[2,16,8,64],[2,24,8,62],[2,32,8,62],[2,40,8,64],[2,48,8,62],[2,56,8,64],[2,64,8,62],[2,72,24,60],[2,96,8,62],[2,104,8,62],[2,112,8,57],[2,120,16,59],[2,136,8,57],[2,144,8,56],[2,152,16,55],[2,168,24,59],[2,192,8,60],[2,200,8,60],[2,208,8,67],[2,216,8,65],[2,224,8,65],[2,232,8,67],[2,240,8,60],[2,248,12,60],[2,260,4,59],[2,264,24,57],[2,288,4,55],[2,292,4,57],[2,296,8,59],[2,304,8,60],[2,312,16,60],[2,328,8,60],[2,336,8,57],[2,344,16,62],[2,360,24,64],[2,384,8,64],[2,392,8,64],[2,400,8,64],[2,408,8,62],[2,416,8,62],[2,424,8,64],[2,432,8,62],[2,440,8,64],[2,448,8,62],[2,456,24,60],[2,480,8,62],[2,488,8,62],[2,496,8,57],[2,504,16,59],[2,520,8,57],[2,528,8,56],[2,536,16,55],[2,552,24,59],[2,576,8,60],[2,584,8,60],[2,592,8,67],[2,600,8,65],[2,608,8,65],[2,616,8,67],[2,624,8,60],[2,632,12,60],[2,644,4,59],[2,648,24,57],[2,672,8,60],[2,680,8,59],[2,688,8,60],[2,696,16,60],[2,712,8,60],[2,720,8,57],[2,728,16,62],[2,744,24,64],[3,0,8,48],[3,8,8,52],[3,16,8,57],[3,24,4,50],[3,28,4,52],[3,32,8,53],[3,40,8,52],[3,48,8,47],[3,56,8,52],[3,64,8,55],[3,72,24,57],[3,96,8,50],[3,104,8,55],[3,112,8,57],[3,120,16,56],[3,136,8,57],[3,144,8,52],[3,152,16,48],[3,168,24,43],[3,192,8,48],[3,200,8,48],[3,208,8,52],[3,216,8,53],[3,224,8,50],[3,232,8,48],[3,240,4,45],[3,244,4,47],[3,248,16,48],[3,264,24,50],[3,288,8,52],[3,296,8,55],[3,304,8,48],[3,312,16,53],[3,328,8,52],[3,336,8,53],[3,344,16,50],[3,360,24,48],[3,384,8,48],[3,392,8,52],[3,400,8,57],[3,408,4,50],[3,412,4,52],[3,416,8,53],[3,424,8,52],[3,432,8,47],[3,440,8,52],[3,448,8,55],[3,456,24,57],[3,480,8,50],[3,488,8,55],[3,496,8,57],[3,504,16,56],[3,520,8,57],[3,528,8,52],[3,536,16,48],[3,552,24,43],[3,576,8,48],[3,584,8,48],[3,592,8,52],[3,600,4,53],[3,604,4,52],[3,608,8,50],[3,616,8,48],[3,624,4,45],[3,628,4,47],[3,632,16,48],[3,648,24,50],[3,672,8,52],[3,680,8,55],[3,688,8,48],[3,696,16,53],[3,712,8,52],[3,720,8,53],[3,728,16,50],[3,744,24,48]],"mark":384,"length":768,"fromBar":1},{"id":"p5","name":"Melody 5: first and second setting","level":"pairs","key":"A minor","voice":null,"title":"","bwv":"","scan":null,"did":"","expected":"","abc":"X:1\nM:4/4\nL:1/32\nK:C\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] A8  | A8 B8 c8 d8  | B12 c4 !fermata!d8 e8  | c8 A8 B8 B8  | !fermata!A24 e8  | d8 c8 B8 A8  | !fermata!B16 z8 B8  | c8 d8 e8 c8  | d12 c4 !fermata!B8 B8  | c8 d8 e8 c8  | d12 c4 !fermata!B8 e8  | c4 B4 A8 B8 B8  | !fermata!A24  | \"^▼\"A8  | A8 B8 c8 d8  | B12 c4 !fermata!d8 e8  | c8 A8 B8 B8  | !fermata!A24 e8  | d8 c8 B8 A8  | !fermata!B16 z8 B8  | c8 d8 e8 c8  | d12 c4 !fermata!B8 B8  | c8 d8 e8 c8  | d12 c4 !fermata!B8 e8  | c4 B4 A8 B8 B8  | !fermata!A24 |]\n[V:A] E8  | F8 F8 G8 F8-  | F8 E8 ^G8 A8  | =G8 F8 F8 E8  | E24 A8  | ^F8 E8 D8 D8  | D24 D8  | E8 F8 G8 A8  | A16- A4 ^G4 G8  | A8 A8 G8 E8  | G16 B8 ^G8  | =G12 F4 F8 F8  | E24  | E8  | F8 F8 G8 F8-  | F8 E8 ^G8 A8  | =G8 F8 F8 E8  | E24 A8  | ^F8 E8 D8 D8  | D24 D8-  | D4 C4 F8 G8 A8  | A16- A4 ^G4 G8  | A8 A8 G8 E8  | G16 B8 ^G8  | =G12 F4 F8 F8  | E24 |]\n[V:T] C8  | C8 D8 C8- C2 B,2 A,4  | ^G,16 B,8 C8  | C8 C8 D8 ^G,8  | C24 C8  | B,4 A,4 G,8 G,8 ^F,8  | G,24 G,8  | G,8 A,4 B,4 C8 E8  | D16 E8 E8  | E8 F8 C8 G,4 A,4  | B,16 E8 B,8  | C8 C4 B,4 A,8 A,8  | ^C24  | C8  | C8 D8 C8- C2 B,2 A,4  | ^G,16 B,8 C8  | C8 C8 D8 ^G,8  | C24 C8  | B,4 A,4 G,8 G,8 ^F,8  | G,24 G,8  | G,8 A,4 B,4 C8 E8  | D16 E8 E8  | E8 F8 C8 G,4 A,4  | B,16 E8 B,8  | C8 C4 B,4 A,8 A,8  | ^C24 |]\n[V:B] A,8  | F,4 E,4 D,8 E,8 D,8  | E,16 E,8 A,8  | E,8 F,8 D,8 E,8  | A,24 C8  | A,8 E,8 G,8 D,8  | G,24 G,4 F,4  | E,8 D,8 C,8 A,8  | F,16 E,8 E,8  | A,,8 B,,8 C,8 C,8  | G,16 ^G,8 E,8  | E,8 F,8 E,8 D,8  | A,,24  | A,8  | F,4 E,4 D,8 E,8 D,8  | E,16 E,8 A,8  | E,8 F,8 D,8 E,8  | A,24 C8  | A,8 E,8 G,8 D,8  | G,24 G,8  | E,8 D,8 C,8 A,8  | F,16 E,8 E,8  | A,,8 B,,8 C,8 C,8  | G,16 ^G,8 E,8  | E,8 F,8 E,8 D,8  | A,,24 |]","play":[[0,0,8,69],[0,8,8,69],[0,16,8,71],[0,24,8,72],[0,32,8,74],[0,40,12,71],[0,52,4,72],[0,56,8,74],[0,64,8,76],[0,72,8,72],[0,80,8,69],[0,88,8,71],[0,96,8,71],[0,104,24,69],[0,128,8,76],[0,136,8,74],[0,144,8,72],[0,152,8,71],[0,160,8,69],[0,168,16,71],[0,192,8,71],[0,200,8,72],[0,208,8,74],[0,216,8,76],[0,224,8,72],[0,232,12,74],[0,244,4,72],[0,248,8,71],[0,256,8,71],[0,264,8,72],[0,272,8,74],[0,280,8,76],[0,288,8,72],[0,296,12,74],[0,308,4,72],[0,312,8,71],[0,320,8,76],[0,328,4,72],[0,332,4,71],[0,336,8,69],[0,344,8,71],[0,352,8,71],[0,360,24,69],[0,384,8,69],[0,392,8,69],[0,400,8,71],[0,408,8,72],[0,416,8,74],[0,424,12,71],[0,436,4,72],[0,440,8,74],[0,448,8,76],[0,456,8,72],[0,464,8,69],[0,472,8,71],[0,480,8,71],[0,488,24,69],[0,512,8,76],[0,520,8,74],[0,528,8,72],[0,536,8,71],[0,544,8,69],[0,552,16,71],[0,576,8,71],[0,584,8,72],[0,592,8,74],[0,600,8,76],[0,608,8,72],[0,616,12,74],[0,628,4,72],[0,632,8,71],[0,640,8,71],[0,648,8,72],[0,656,8,74],[0,664,8,76],[0,672,8,72],[0,680,12,74],[0,692,4,72],[0,696,8,71],[0,704,8,76],[0,712,4,72],[0,716,4,71],[0,720,8,69],[0,728,8,71],[0,736,8,71],[0,744,24,69],[1,0,8,64],[1,8,8,65],[1,16,8,65],[1,24,8,67],[1,32,16,65],[1,48,8,64],[1,56,8,68],[1,64,8,69],[1,72,8,67],[1,80,8,65],[1,88,8,65],[1,96,8,64],[1,104,24,64],[1,128,8,69],[1,136,8,66],[1,144,8,64],[1,152,8,62],[1,160,8,62],[1,168,24,62],[1,192,8,62],[1,200,8,64],[1,208,8,65],[1,216,8,67],[1,224,8,69],[1,232,20,69],[1,252,4,68],[1,256,8,68],[1,264,8,69],[1,272,8,69],[1,280,8,67],[1,288,8,64],[1,296,16,67],[1,312,8,71],[1,320,8,68],[1,328,12,67],[1,340,4,65],[1,344,8,65],[1,352,8,65],[1,360,24,64],[1,384,8,64],[1,392,8,65],[1,400,8,65],[1,408,8,67],[1,416,16,65],[1,432,8,64],[1,440,8,68],[1,448,8,69],[1,456,8,67],[1,464,8,65],[1,472,8,65],[1,480,8,64],[1,488,24,64],[1,512,8,69],[1,520,8,66],[1,528,8,64],[1,536,8,62],[1,544,8,62],[1,552,24,62],[1,576,12,62],[1,588,4,60],[1,592,8,65],[1,600,8,67],[1,608,8,69],[1,616,20,69],[1,636,4,68],[1,640,8,68],[1,648,8,69],[1,656,8,69],[1,664,8,67],[1,672,8,64],[1,680,16,67],[1,696,8,71],[1,704,8,68],[1,712,12,67],[1,724,4,65],[1,728,8,65],[1,736,8,65],[1,744,24,64],[2,0,8,60],[2,8,8,60],[2,16,8,62],[2,24,10,60],[2,34,2,59],[2,36,4,57],[2,40,16,56],[2,56,8,59],[2,64,8,60],[2,72,8,60],[2,80,8,60],[2,88,8,62],[2,96,8,56],[2,104,24,60],[2,128,8,60],[2,136,4,59],[2,140,4,57],[2,144,8,55],[2,152,8,55],[2,160,8,54],[2,168,24,55],[2,192,8,55],[2,200,8,55],[2,208,4,57],[2,212,4,59],[2,216,8,60],[2,224,8,64],[2,232,16,62],[2,248,8,64],[2,256,8,64],[2,264,8,64],[2,272,8,65],[2,280,8,60],[2,288,4,55],[2,292,4,57],[2,296,16,59],[2,312,8,64],[2,320,8,59],[2,328,8,60],[2,336,4,60],[2,340,4,59],[2,344,8,57],[2,352,8,57],[2,360,24,61],[2,384,8,60],[2,392,8,60],[2,400,8,62],[2,408,10,60],[2,418,2,59],[2,420,4,57],[2,424,16,56],[2,440,8,59],[2,448,8,60],[2,456,8,60],[2,464,8,60],[2,472,8,62],[2,480,8,56],[2,488,24,60],[2,512,8,60],[2,520,4,59],[2,524,4,57],[2,528,8,55],[2,536,8,55],[2,544,8,54],[2,552,24,55],[2,576,8,55],[2,584,8,55],[2,592,4,57],[2,596,4,59],[2,600,8,60],[2,608,8,64],[2,616,16,62],[2,632,8,64],[2,640,8,64],[2,648,8,64],[2,656,8,65],[2,664,8,60],[2,672,4,55],[2,676,4,57],[2,680,16,59],[2,696,8,64],[2,704,8,59],[2,712,8,60],[2,720,4,60],[2,724,4,59],[2,728,8,57],[2,736,8,57],[2,744,24,61],[3,0,8,57],[3,8,4,53],[3,12,4,52],[3,16,8,50],[3,24,8,52],[3,32,8,50],[3,40,16,52],[3,56,8,52],[3,64,8,57],[3,72,8,52],[3,80,8,53],[3,88,8,50],[3,96,8,52],[3,104,24,57],[3,128,8,60],[3,136,8,57],[3,144,8,52],[3,152,8,55],[3,160,8,50],[3,168,24,55],[3,192,4,55],[3,196,4,53],[3,200,8,52],[3,208,8,50],[3,216,8,48],[3,224,8,57],[3,232,16,53],[3,248,8,52],[3,256,8,52],[3,264,8,45],[3,272,8,47],[3,280,8,48],[3,288,8,48],[3,296,16,55],[3,312,8,56],[3,320,8,52],[3,328,8,52],[3,336,8,53],[3,344,8,52],[3,352,8,50],[3,360,24,45],[3,384,8,57],[3,392,4,53],[3,396,4,52],[3,400,8,50],[3,408,8,52],[3,416,8,50],[3,424,16,52],[3,440,8,52],[3,448,8,57],[3,456,8,52],[3,464,8,53],[3,472,8,50],[3,480,8,52],[3,488,24,57],[3,512,8,60],[3,520,8,57],[3,528,8,52],[3,536,8,55],[3,544,8,50],[3,552,24,55],[3,576,8,55],[3,584,8,52],[3,592,8,50],[3,600,8,48],[3,608,8,57],[3,616,16,53],[3,632,8,52],[3,640,8,52],[3,648,8,45],[3,656,8,47],[3,664,8,48],[3,672,8,48],[3,680,16,55],[3,696,8,56],[3,704,8,52],[3,712,8,52],[3,720,8,53],[3,728,8,52],[3,736,8,50],[3,744,24,45]],"mark":384,"length":768,"fromBar":0},{"id":"p6","name":"Melody 6: first and second setting","level":"pairs","key":"D minor","voice":null,"title":"","bwv":"","scan":null,"did":"","expected":"","abc":"X:1\nM:4/4\nL:1/32\nK:F\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] A8 A8 G8 F8  | E16 !fermata!D16  | A8 A8 =B8 ^c8  | d16 !fermata!^c16  | d4 e4 f8 e8 e8  | !fermata!d32  | A8 A8 B8 A8  | G4 A2 B2 G8 !fermata!F16  | A8 =B8 c8 A8  | d8 c4 =B4 B16  | !fermata!A16 A8 d8  | G8 F4 E4 E16  | !fermata!D32  | \"^▼\"A8 A8 G8 F8  | E16 !fermata!D16  | A8 A8 =B8 ^c8  | d16 !fermata!^c16  | d4 e4 f8 e8 e8  | !fermata!d32  | A8 A8 B8 A8  | G4 A2 B2 G8 !fermata!F16  | A8 =B8 c8 A8  | d8 c4 =B4 B16  | !fermata!A16 A8 d8  | G8 F4 E4 E16  | !fermata!D32 |]\n[V:A] F8 F8 F8 E8  | ^C16 A,16  | D8 D4 E4 F8 E8  | F16 E16  | B8 c8 c8 B8-  | B8 A24  | F8 F8 F8 F8  | G4 F4 E8 C16  | E4 ^F4 ^G8 A8 A8  | A8 G8 G16  | E16 E8 F8  | D8 D8 ^C16  | A,32  | F8 F8 F8 E8  | ^C16 A,16  | D8 D8 F8 E8  | F16 E16  | B8 c8 c8 B8-  | B8 A24  | F8 F8 F8 F8  | D8 E8 C16  | E4 ^F4 ^G8 A8 A8  | A8 G8 G16  | E16 E8 F8  | D8 D8 ^C16  | A,32 |]\n[V:T] D8 D8 D8 ^C4 =B,4  | A,16 F,16  | F,8 ^F,8 G,8 ^C4 =B,4  | A,16 A,16  | F8 F8 G8 G8-  | G8 F24  | D8 D8 D8 D8  | D8 C8 A,16  | C8 E8 E8 F8  | F8 C8 D16  | ^C16 A,8 A,8  | G,8 A,8 A,16  | ^F,32  | D8 D8 D8 ^C4 =B,4  | A,16 F,16  | F,8 ^F,8 D8 A,8  | A,16 ^C16  | F8 F8 G8 G8  | F32  | D8 D8 D8 D8  | D12 C4 A,16  | C8 E8 E8 F8  | F8 C8 D16  | ^C16 A,8 A,8  | G,8 A,8 A,16  | ^F,32 |]\n[V:B] D,4 E,4 D,8 B,,8 A,,8  | A,,16 D,16  | D,4 C,4 D,8 G,8 A,8  | D,16 A,16  | B,8 A,8 C,8 ^C,8  | D,32  | F,8 D,8 B,,8 D,8  | B,,8 C,8 F,16  | G,8 E,8 A,4 G,4 F,8  | F,8 E,8 G,16  | A,,16 ^C,8 D,8  | =B,,8 D,8 A,,16  | D,32  | D,4 E,4 D,8 B,,8 A,,8  | A,,16 D,16  | D,4 C,4 D,8 G,8 A,8  | D,16 A,16  | B,8 A,8 C,8 ^C,8  | D,32  | F,8 D,8 B,,8 D,8  | B,,8 C,8 F,16  | G,8 E,8 A,4 G,4 F,8  | F,8 E,8 G,16  | A,,16 ^C,8 D,8  | =B,,8 D,8 A,,16  | D,32 |]","play":[[0,0,8,69],[0,8,8,69],[0,16,8,67],[0,24,8,65],[0,32,16,64],[0,48,16,62],[0,64,8,69],[0,72,8,69],[0,80,8,71],[0,88,8,73],[0,96,16,74],[0,112,16,73],[0,128,4,74],[0,132,4,76],[0,136,8,77],[0,144,8,76],[0,152,8,76],[0,160,32,74],[0,192,8,69],[0,200,8,69],[0,208,8,70],[0,216,8,69],[0,224,4,67],[0,228,2,69],[0,230,2,70],[0,232,8,67],[0,240,16,65],[0,256,8,69],[0,264,8,71],[0,272,8,72],[0,280,8,69],[0,288,8,74],[0,296,4,72],[0,300,4,71],[0,304,16,71],[0,320,16,69],[0,336,8,69],[0,344,8,74],[0,352,8,67],[0,360,4,65],[0,364,4,64],[0,368,16,64],[0,384,32,62],[0,416,8,69],[0,424,8,69],[0,432,8,67],[0,440,8,65],[0,448,16,64],[0,464,16,62],[0,480,8,69],[0,488,8,69],[0,496,8,71],[0,504,8,73],[0,512,16,74],[0,528,16,73],[0,544,4,74],[0,548,4,76],[0,552,8,77],[0,560,8,76],[0,568,8,76],[0,576,32,74],[0,608,8,69],[0,616,8,69],[0,624,8,70],[0,632,8,69],[0,640,4,67],[0,644,2,69],[0,646,2,70],[0,648,8,67],[0,656,16,65],[0,672,8,69],[0,680,8,71],[0,688,8,72],[0,696,8,69],[0,704,8,74],[0,712,4,72],[0,716,4,71],[0,720,16,71],[0,736,16,69],[0,752,8,69],[0,760,8,74],[0,768,8,67],[0,776,4,65],[0,780,4,64],[0,784,16,64],[0,800,32,62],[1,0,8,65],[1,8,8,65],[1,16,8,65],[1,24,8,64],[1,32,16,61],[1,48,16,57],[1,64,8,62],[1,72,4,62],[1,76,4,64],[1,80,8,65],[1,88,8,64],[1,96,16,65],[1,112,16,64],[1,128,8,70],[1,136,8,72],[1,144,8,72],[1,152,16,70],[1,168,24,69],[1,192,8,65],[1,200,8,65],[1,208,8,65],[1,216,8,65],[1,224,4,67],[1,228,4,65],[1,232,8,64],[1,240,16,60],[1,256,4,64],[1,260,4,66],[1,264,8,68],[1,272,8,69],[1,280,8,69],[1,288,8,69],[1,296,8,67],[1,304,16,67],[1,320,16,64],[1,336,8,64],[1,344,8,65],[1,352,8,62],[1,360,8,62],[1,368,16,61],[1,384,32,57],[1,416,8,65],[1,424,8,65],[1,432,8,65],[1,440,8,64],[1,448,16,61],[1,464,16,57],[1,480,8,62],[1,488,8,62],[1,496,8,65],[1,504,8,64],[1,512,16,65],[1,528,16,64],[1,544,8,70],[1,552,8,72],[1,560,8,72],[1,568,16,70],[1,584,24,69],[1,608,8,65],[1,616,8,65],[1,624,8,65],[1,632,8,65],[1,640,8,62],[1,648,8,64],[1,656,16,60],[1,672,4,64],[1,676,4,66],[1,680,8,68],[1,688,8,69],[1,696,8,69],[1,704,8,69],[1,712,8,67],[1,720,16,67],[1,736,16,64],[1,752,8,64],[1,760,8,65],[1,768,8,62],[1,776,8,62],[1,784,16,61],[1,800,32,57],[2,0,8,62],[2,8,8,62],[2,16,8,62],[2,24,4,61],[2,28,4,59],[2,32,16,57],[2,48,16,53],[2,64,8,53],[2,72,8,54],[2,80,8,55],[2,88,4,61],[2,92,4,59],[2,96,16,57],[2,112,16,57],[2,128,8,65],[2,136,8,65],[2,144,8,67],[2,152,16,67],[2,168,24,65],[2,192,8,62],[2,200,8,62],[2,208,8,62],[2,216,8,62],[2,224,8,62],[2,232,8,60],[2,240,16,57],[2,256,8,60],[2,264,8,64],[2,272,8,64],[2,280,8,65],[2,288,8,65],[2,296,8,60],[2,304,16,62],[2,320,16,61],[2,336,8,57],[2,344,8,57],[2,352,8,55],[2,360,8,57],[2,368,16,57],[2,384,32,54],[2,416,8,62],[2,424,8,62],[2,432,8,62],[2,440,4,61],[2,444,4,59],[2,448,16,57],[2,464,16,53],[2,480,8,53],[2,488,8,54],[2,496,8,62],[2,504,8,57],[2,512,16,57],[2,528,16,61],[2,544,8,65],[2,552,8,65],[2,560,8,67],[2,568,8,67],[2,576,32,65],[2,608,8,62],[2,616,8,62],[2,624,8,62],[2,632,8,62],[2,640,12,62],[2,652,4,60],[2,656,16,57],[2,672,8,60],[2,680,8,64],[2,688,8,64],[2,696,8,65],[2,704,8,65],[2,712,8,60],[2,720,16,62],[2,736,16,61],[2,752,8,57],[2,760,8,57],[2,768,8,55],[2,776,8,57],[2,784,16,57],[2,800,32,54],[3,0,4,50],[3,4,4,52],[3,8,8,50],[3,16,8,46],[3,24,8,45],[3,32,16,45],[3,48,16,50],[3,64,4,50],[3,68,4,48],[3,72,8,50],[3,80,8,55],[3,88,8,57],[3,96,16,50],[3,112,16,57],[3,128,8,58],[3,136,8,57],[3,144,8,48],[3,152,8,49],[3,160,32,50],[3,192,8,53],[3,200,8,50],[3,208,8,46],[3,216,8,50],[3,224,8,46],[3,232,8,48],[3,240,16,53],[3,256,8,55],[3,264,8,52],[3,272,4,57],[3,276,4,55],[3,280,8,53],[3,288,8,53],[3,296,8,52],[3,304,16,55],[3,320,16,45],[3,336,8,49],[3,344,8,50],[3,352,8,47],[3,360,8,50],[3,368,16,45],[3,384,32,50],[3,416,4,50],[3,420,4,52],[3,424,8,50],[3,432,8,46],[3,440,8,45],[3,448,16,45],[3,464,16,50],[3,480,4,50],[3,484,4,48],[3,488,8,50],[3,496,8,55],[3,504,8,57],[3,512,16,50],[3,528,16,57],[3,544,8,58],[3,552,8,57],[3,560,8,48],[3,568,8,49],[3,576,32,50],[3,608,8,53],[3,616,8,50],[3,624,8,46],[3,632,8,50],[3,640,8,46],[3,648,8,48],[3,656,16,53],[3,672,8,55],[3,680,8,52],[3,688,4,57],[3,692,4,55],[3,696,8,53],[3,704,8,53],[3,712,8,52],[3,720,16,55],[3,736,16,45],[3,752,8,49],[3,760,8,50],[3,768,8,47],[3,776,8,50],[3,784,16,45],[3,800,32,50]],"mark":416,"length":832,"fromBar":1},{"id":"p7","name":"Melody 7: first and second setting","level":"pairs","key":"A minor","voice":null,"title":"","bwv":"","scan":null,"did":"","expected":"","abc":"X:1\nM:4/4\nL:1/32\nK:C\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] A8  | A8 B8 c8 d8  | B12 c4 !fermata!d8 e8  | c8 A8 B8 B8  | !fermata!A24 e8  | d8 c8 B8 A8  | !fermata!B24 B8  | c8 d8 e8 e8  | d16 !fermata!B8 B8  | c8 d8 e8 e8  | d12 c4 !fermata!B8 e8  | d4 c4 B4 A4 B8 B8  | !fermata!A24  | \"^▼\"A8  | A8 B8 c8 d8  | B12 c4 !fermata!d8 e8  | c8 A8 B8 B8  | !fermata!A24 e8  | d8 c8 B8 A8  | !fermata!B24 B8  | c8 d8 e8 e8  | d16 !fermata!B8 B8  | c8 d8 e8 e8  | d12 c4 !fermata!B8 e8  | d4 c4 B4 A4 B8 B8  | !fermata!A24 |]\n[V:A] E8  | E8 E8 E8 D8  | F16 G8 G8  | G8 E8 E8 E8  | C24 E8  | F8 G8 D8 D8  | D24 D8-  | D4 C4 G8 G8 c8  | B16 G8 G8  | G12 F4 G8 c8  | ^G12 ^F4 ^G8 B8  | A8 ^G8 E8 E8  | E24  | E8  | E8 E8 E8 ^F8  | =F16 G8 G4 F4  | E8 E8 E8 E8  | C24 E8  | F12 E4 D8 D8  | D24 D8  | G8 G8 G8 c8  | B16 G8 G8  | G12 F4 G8 c8  | ^G12 ^F4 ^G8 E8  | A8 ^G8 E8 E8  | E24 |]\n[V:T] C8  | C8 B,8 A,8 A,8  | A,16 B,8 C4 B,4  | C8 C8 ^G,8 G,8  | E,24 A,8  | A,8 G,8 G,8 ^F,8  | G,24 G,8  | G,4 A,4 B,8 C8 G8  | G16 D8 D8  | C8 B,8 C8 G8  | F16 E8 B,8  | D8 E8 B,4 C4 D8  | C24  | C8  | C8 B,8 A,8 A,8  | A,16 B,8 C8  | G,8 C8 ^G,8 G,8  | E,24 A,8  | A,8 G,8 G,8 ^F,8  | G,24 G,8  | G,4 A,4 B,8 C8 G8  | G16 D8 D8  | E8 B,8 C8 G8  | F16 E8 B,8  | D8 E8 B,4 C4 D8  | C24 |]\n[V:B] A,,8  | A,8 ^G,8 A,4 =G,4 ^F,8  | D,16 G,8 E,8  | E,8 C,8 E,8 E,8  | A,,24 C,8  | D,8 E,8 G,8 D,8  | G,24 G,4 F,4  | E,8 G,8 C,8 C,8  | G,16 G,8 G,8  | E,8 D,8 C,8 C,8  | D,16 E,8 ^G,,8  | F,8 E,8 ^G,8 G,8  | A,24  | A,,8  | A,8 ^G,8 A,8 ^F,8  | D,16 G,8 E,8  | E,8 C,8 E,8 E,8  | A,,24 C,8  | D,8 E,8 G,8 D,8  | G,24 G,4 F,4  | E,8 G,8 C,8 C,8  | G,16 G,8 G,8  | E,8 D,8 C,8 C,8  | D,16 E,8 ^G,,8  | F,8 E,8 ^G,8 G,8  | A,24 |]","play":[[0,0,8,69],[0,8,8,69],[0,16,8,71],[0,24,8,72],[0,32,8,74],[0,40,12,71],[0,52,4,72],[0,56,8,74],[0,64,8,76],[0,72,8,72],[0,80,8,69],[0,88,8,71],[0,96,8,71],[0,104,24,69],[0,128,8,76],[0,136,8,74],[0,144,8,72],[0,152,8,71],[0,160,8,69],[0,168,24,71],[0,192,8,71],[0,200,8,72],[0,208,8,74],[0,216,8,76],[0,224,8,76],[0,232,16,74],[0,248,8,71],[0,256,8,71],[0,264,8,72],[0,272,8,74],[0,280,8,76],[0,288,8,76],[0,296,12,74],[0,308,4,72],[0,312,8,71],[0,320,8,76],[0,328,4,74],[0,332,4,72],[0,336,4,71],[0,340,4,69],[0,344,8,71],[0,352,8,71],[0,360,24,69],[0,384,8,69],[0,392,8,69],[0,400,8,71],[0,408,8,72],[0,416,8,74],[0,424,12,71],[0,436,4,72],[0,440,8,74],[0,448,8,76],[0,456,8,72],[0,464,8,69],[0,472,8,71],[0,480,8,71],[0,488,24,69],[0,512,8,76],[0,520,8,74],[0,528,8,72],[0,536,8,71],[0,544,8,69],[0,552,24,71],[0,576,8,71],[0,584,8,72],[0,592,8,74],[0,600,8,76],[0,608,8,76],[0,616,16,74],[0,632,8,71],[0,640,8,71],[0,648,8,72],[0,656,8,74],[0,664,8,76],[0,672,8,76],[0,680,12,74],[0,692,4,72],[0,696,8,71],[0,704,8,76],[0,712,4,74],[0,716,4,72],[0,720,4,71],[0,724,4,69],[0,728,8,71],[0,736,8,71],[0,744,24,69],[1,0,8,64],[1,8,8,64],[1,16,8,64],[1,24,8,64],[1,32,8,62],[1,40,16,65],[1,56,8,67],[1,64,8,67],[1,72,8,67],[1,80,8,64],[1,88,8,64],[1,96,8,64],[1,104,24,60],[1,128,8,64],[1,136,8,65],[1,144,8,67],[1,152,8,62],[1,160,8,62],[1,168,24,62],[1,192,12,62],[1,204,4,60],[1,208,8,67],[1,216,8,67],[1,224,8,72],[1,232,16,71],[1,248,8,67],[1,256,8,67],[1,264,12,67],[1,276,4,65],[1,280,8,67],[1,288,8,72],[1,296,12,68],[1,308,4,66],[1,312,8,68],[1,320,8,71],[1,328,8,69],[1,336,8,68],[1,344,8,64],[1,352,8,64],[1,360,24,64],[1,384,8,64],[1,392,8,64],[1,400,8,64],[1,408,8,64],[1,416,8,66],[1,424,16,65],[1,440,8,67],[1,448,4,67],[1,452,4,65],[1,456,8,64],[1,464,8,64],[1,472,8,64],[1,480,8,64],[1,488,24,60],[1,512,8,64],[1,520,12,65],[1,532,4,64],[1,536,8,62],[1,544,8,62],[1,552,24,62],[1,576,8,62],[1,584,8,67],[1,592,8,67],[1,600,8,67],[1,608,8,72],[1,616,16,71],[1,632,8,67],[1,640,8,67],[1,648,12,67],[1,660,4,65],[1,664,8,67],[1,672,8,72],[1,680,12,68],[1,692,4,66],[1,696,8,68],[1,704,8,64],[1,712,8,69],[1,720,8,68],[1,728,8,64],[1,736,8,64],[1,744,24,64],[2,0,8,60],[2,8,8,60],[2,16,8,59],[2,24,8,57],[2,32,8,57],[2,40,16,57],[2,56,8,59],[2,64,4,60],[2,68,4,59],[2,72,8,60],[2,80,8,60],[2,88,8,56],[2,96,8,56],[2,104,24,52],[2,128,8,57],[2,136,8,57],[2,144,8,55],[2,152,8,55],[2,160,8,54],[2,168,24,55],[2,192,8,55],[2,200,4,55],[2,204,4,57],[2,208,8,59],[2,216,8,60],[2,224,8,67],[2,232,16,67],[2,248,8,62],[2,256,8,62],[2,264,8,60],[2,272,8,59],[2,280,8,60],[2,288,8,67],[2,296,16,65],[2,312,8,64],[2,320,8,59],[2,328,8,62],[2,336,8,64],[2,344,4,59],[2,348,4,60],[2,352,8,62],[2,360,24,60],[2,384,8,60],[2,392,8,60],[2,400,8,59],[2,408,8,57],[2,416,8,57],[2,424,16,57],[2,440,8,59],[2,448,8,60],[2,456,8,55],[2,464,8,60],[2,472,8,56],[2,480,8,56],[2,488,24,52],[2,512,8,57],[2,520,8,57],[2,528,8,55],[2,536,8,55],[2,544,8,54],[2,552,24,55],[2,576,8,55],[2,584,4,55],[2,588,4,57],[2,592,8,59],[2,600,8,60],[2,608,8,67],[2,616,16,67],[2,632,8,62],[2,640,8,62],[2,648,8,64],[2,656,8,59],[2,664,8,60],[2,672,8,67],[2,680,16,65],[2,696,8,64],[2,704,8,59],[2,712,8,62],[2,720,8,64],[2,728,4,59],[2,732,4,60],[2,736,8,62],[2,744,24,60],[3,0,8,45],[3,8,8,57],[3,16,8,56],[3,24,4,57],[3,28,4,55],[3,32,8,54],[3,40,16,50],[3,56,8,55],[3,64,8,52],[3,72,8,52],[3,80,8,48],[3,88,8,52],[3,96,8,52],[3,104,24,45],[3,128,8,48],[3,136,8,50],[3,144,8,52],[3,152,8,55],[3,160,8,50],[3,168,24,55],[3,192,4,55],[3,196,4,53],[3,200,8,52],[3,208,8,55],[3,216,8,48],[3,224,8,48],[3,232,16,55],[3,248,8,55],[3,256,8,55],[3,264,8,52],[3,272,8,50],[3,280,8,48],[3,288,8,48],[3,296,16,50],[3,312,8,52],[3,320,8,44],[3,328,8,53],[3,336,8,52],[3,344,8,56],[3,352,8,56],[3,360,24,57],[3,384,8,45],[3,392,8,57],[3,400,8,56],[3,408,8,57],[3,416,8,54],[3,424,16,50],[3,440,8,55],[3,448,8,52],[3,456,8,52],[3,464,8,48],[3,472,8,52],[3,480,8,52],[3,488,24,45],[3,512,8,48],[3,520,8,50],[3,528,8,52],[3,536,8,55],[3,544,8,50],[3,552,24,55],[3,576,4,55],[3,580,4,53],[3,584,8,52],[3,592,8,55],[3,600,8,48],[3,608,8,48],[3,616,16,55],[3,632,8,55],[3,640,8,55],[3,648,8,52],[3,656,8,50],[3,664,8,48],[3,672,8,48],[3,680,16,50],[3,696,8,52],[3,704,8,44],[3,712,8,53],[3,720,8,52],[3,728,8,56],[3,736,8,56],[3,744,24,57]],"mark":384,"length":768,"fromBar":0},{"id":"p8","name":"Melody 8: first and second setting","level":"pairs","key":"B minor","voice":null,"title":"","bwv":"","scan":null,"did":"","expected":"","abc":"X:1\nM:4/4\nL:1/32\nK:D\n%%score (S A) (T B)\nV:S clef=treble stem=up\nV:A clef=treble stem=down\nV:T clef=bass stem=up\nV:B clef=bass stem=down\n[V:S] F8  | B8 c8 d8 c8  | B8 c8 ^A16  | !fermata!F8 A8 A8 G8  | F8 B8 B8 ^A8  | !fermata!B24 c8  | d8 e8 f4 e4 f4 g4  | e8 e8 !fermata!d8 f8  | e8 d8 c8 B4 c4  | d4 e4 c8 !fermata!B8  | \"^▼\"F8  | B8 c8 d8 c8  | B8 c8 ^A16  | !fermata!F8 A8 A8 G8  | F8 B8 B8 ^A8  | !fermata!B24 c8  | d8 e8 f4 e4 f4 g4  | e8 e8 !fermata!d8 f8  | e8 d8 c8 B4 c4  | d4 e4 c8 !fermata!B8 |]\n[V:A] B,8  | E8 ^A8 F8 E8  | F8 F8 C16  | C8 C8 C8 B,8  | A,8 G8 G8 F8  | F24 A8  | A8 A8 A8 A8-  | A4 G4 G12 F4 B8  | B8 B8 F8 G8  | A8 ^A8 F8  | D8  | E8 F8 F8 E8  | F8 F8 C16  | C8 C8 C8 D8  | A,8 G8 G8 F8  | F24 A8  | A8 A8 A8 A8-  | A4 G4 G12 F4 B8  | B8 B8 F8 G8  | A8 ^A8 F8 |]\n[V:T] D,8  | G,8 C8 B,8 G,8  | F,4 ^G,4 ^A,8 F,16  | A,8 F,8 F,8 D,8  | D,8 D8 E8 C8  | ^D24 E8  | D8 C8 D8 =C8  | B,8 C8 A,8 D8  | E8 F4 E4 ^D8 =D8  | D4 E4 F8 D8  | B,8  | B,8 ^A,8 B,8 G,8  | B,8 ^A,8 F,16  | A,8 F,8 F,8 D,8  | D,8 D8 E8 C8  | ^D24 E8  | F8 C8 D8 =C8  | B,8 C8 A,8 D8  | E8 F4 E4 ^D8 =D8  | F8 F8 D8 |]\n[V:B] B,,8  | G,8 F,8 B,,8 E,8  | D,8 F,8 F,16  | F,8 F,4 E,4 F,8 B,,8  | D,8 G,8 E,8 F,8  | B,24 A,4 G,4  | F,8 A,8 A,8 ^D,8  | E,8 A,8 D,8 B,8  | G,8 F,8 B,8 G,8  | F,8 F,8 B,,8  | B,,8  | G,8 F,8 B,,8 E,8  | D,8 F,8 F,16  | F,8 F,4 E,4 F,8 B,,8  | D,8 G,8 E,8 F,8  | B,24 A,8  | F,8 A,8 A,8 ^D,8  | E,8 A,8 D,8 B,8  | G,8 F,8 B,8 G,8  | F,4 E,4 F,8 B,,8 |]","play":[[0,0,8,66],[0,8,8,71],[0,16,8,73],[0,24,8,74],[0,32,8,73],[0,40,8,71],[0,48,8,73],[0,56,16,70],[0,72,8,66],[0,80,8,69],[0,88,8,69],[0,96,8,67],[0,104,8,66],[0,112,8,71],[0,120,8,71],[0,128,8,70],[0,136,24,71],[0,160,8,73],[0,168,8,74],[0,176,8,76],[0,184,4,78],[0,188,4,76],[0,192,4,78],[0,196,4,79],[0,200,8,76],[0,208,8,76],[0,216,8,74],[0,224,8,78],[0,232,8,76],[0,240,8,74],[0,248,8,73],[0,256,4,71],[0,260,4,73],[0,264,4,74],[0,268,4,76],[0,272,8,73],[0,280,8,71],[0,288,8,66],[0,296,8,71],[0,304,8,73],[0,312,8,74],[0,320,8,73],[0,328,8,71],[0,336,8,73],[0,344,16,70],[0,360,8,66],[0,368,8,69],[0,376,8,69],[0,384,8,67],[0,392,8,66],[0,400,8,71],[0,408,8,71],[0,416,8,70],[0,424,24,71],[0,448,8,73],[0,456,8,74],[0,464,8,76],[0,472,4,78],[0,476,4,76],[0,480,4,78],[0,484,4,79],[0,488,8,76],[0,496,8,76],[0,504,8,74],[0,512,8,78],[0,520,8,76],[0,528,8,74],[0,536,8,73],[0,544,4,71],[0,548,4,73],[0,552,4,74],[0,556,4,76],[0,560,8,73],[0,568,8,71],[1,0,8,59],[1,8,8,64],[1,16,8,70],[1,24,8,66],[1,32,8,64],[1,40,8,66],[1,48,8,66],[1,56,16,61],[1,72,8,61],[1,80,8,61],[1,88,8,61],[1,96,8,59],[1,104,8,57],[1,112,8,67],[1,120,8,67],[1,128,8,66],[1,136,24,66],[1,160,8,69],[1,168,8,69],[1,176,8,69],[1,184,8,69],[1,192,12,69],[1,204,4,67],[1,208,12,67],[1,220,4,66],[1,224,8,71],[1,232,8,71],[1,240,8,71],[1,248,8,66],[1,256,8,67],[1,264,8,69],[1,272,8,70],[1,280,8,66],[1,288,8,62],[1,296,8,64],[1,304,8,66],[1,312,8,66],[1,320,8,64],[1,328,8,66],[1,336,8,66],[1,344,16,61],[1,360,8,61],[1,368,8,61],[1,376,8,61],[1,384,8,62],[1,392,8,57],[1,400,8,67],[1,408,8,67],[1,416,8,66],[1,424,24,66],[1,448,8,69],[1,456,8,69],[1,464,8,69],[1,472,8,69],[1,480,12,69],[1,492,4,67],[1,496,12,67],[1,508,4,66],[1,512,8,71],[1,520,8,71],[1,528,8,71],[1,536,8,66],[1,544,8,67],[1,552,8,69],[1,560,8,70],[1,568,8,66],[2,0,8,50],[2,8,8,55],[2,16,8,61],[2,24,8,59],[2,32,8,55],[2,40,4,54],[2,44,4,56],[2,48,8,58],[2,56,16,54],[2,72,8,58],[2,80,8,54],[2,88,8,54],[2,96,8,50],[2,104,8,50],[2,112,8,62],[2,120,8,64],[2,128,8,61],[2,136,24,63],[2,160,8,64],[2,168,8,62],[2,176,8,61],[2,184,8,62],[2,192,8,60],[2,200,8,59],[2,208,8,61],[2,216,8,57],[2,224,8,62],[2,232,8,64],[2,240,4,66],[2,244,4,64],[2,248,8,63],[2,256,8,62],[2,264,4,62],[2,268,4,64],[2,272,8,66],[2,280,8,62],[2,288,8,59],[2,296,8,59],[2,304,8,58],[2,312,8,59],[2,320,8,55],[2,328,8,59],[2,336,8,58],[2,344,16,54],[2,360,8,58],[2,368,8,54],[2,376,8,54],[2,384,8,50],[2,392,8,50],[2,400,8,62],[2,408,8,64],[2,416,8,61],[2,424,24,63],[2,448,8,64],[2,456,8,66],[2,464,8,61],[2,472,8,62],[2,480,8,60],[2,488,8,59],[2,496,8,61],[2,504,8,57],[2,512,8,62],[2,520,8,64],[2,528,4,66],[2,532,4,64],[2,536,8,63],[2,544,8,62],[2,552,8,66],[2,560,8,66],[2,568,8,62],[3,0,8,47],[3,8,8,55],[3,16,8,54],[3,24,8,47],[3,32,8,52],[3,40,8,50],[3,48,8,54],[3,56,16,54],[3,72,8,54],[3,80,4,54],[3,84,4,52],[3,88,8,54],[3,96,8,47],[3,104,8,50],[3,112,8,55],[3,120,8,52],[3,128,8,54],[3,136,24,59],[3,160,4,57],[3,164,4,55],[3,168,8,54],[3,176,8,57],[3,184,8,57],[3,192,8,51],[3,200,8,52],[3,208,8,57],[3,216,8,50],[3,224,8,59],[3,232,8,55],[3,240,8,54],[3,248,8,59],[3,256,8,55],[3,264,8,54],[3,272,8,54],[3,280,8,47],[3,288,8,47],[3,296,8,55],[3,304,8,54],[3,312,8,47],[3,320,8,52],[3,328,8,50],[3,336,8,54],[3,344,16,54],[3,360,8,54],[3,368,4,54],[3,372,4,52],[3,376,8,54],[3,384,8,47],[3,392,8,50],[3,400,8,55],[3,408,8,52],[3,416,8,54],[3,424,24,59],[3,448,8,57],[3,456,8,54],[3,464,8,57],[3,472,8,57],[3,480,8,51],[3,488,8,52],[3,496,8,57],[3,504,8,50],[3,512,8,59],[3,520,8,55],[3,528,8,54],[3,536,8,59],[3,544,8,55],[3,552,4,54],[3,556,4,52],[3,560,8,54],[3,568,8,47]],"mark":288,"length":576,"fromBar":0}];
+const SETTINGS = {"title":"Which Is Better?","lede":"Each melody is harmonised twice in a row, the same chords both times; only the inner voices and their embellishments differ. Listen to both and say which is better.","question":"Which setting is better?","choices":[{"key":"first","label":"The first","hint":"Up to the ▼"},{"key":"second","label":"The second","hint":"From the ▼ on"},{"key":"same","label":"No difference","hint":"Or none worth naming"}],"blind":true,"item":"Melody","items":"melodies","levels":{"pairs":"Pairs"},"collection":"pairs","storeKey":"bach-pairs"};
+const LEVELS = Object.assign({ cadence: "Cadence", chord: "Chord", bass: "Bass", sonority: "Sonority", voices: "Inner voices", embellishment: "Embellishment" }, SETTINGS.levels || {});
+const COLLECTION = SETTINGS.collection || "ratings";
+const STORE_KEY = SETTINGS.storeKey || "bach-exceptions";
+const VOICE = ["soprano", "alto", "tenor", "bass"];
+const ratings = {};
+let index = 0, filter = "all", db = null, local = true;
+
+const $ = (id) => document.getElementById(id);
+const store = {
+  load() { try { return JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); } catch { return {}; } },
+  save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(ratings)); } catch {} },
+};
+Object.assign(ratings, store.load());
+if (SETTINGS.title) { $("page-title").textContent = SETTINGS.title; document.title = SETTINGS.title; }
+if (SETTINGS.lede) $("page-lede").textContent = SETTINGS.lede;
+if (SETTINGS.question) $("v-h").textContent = SETTINGS.question;
+if (SETTINGS.choices) {
+  const box = $("choices");
+  box.textContent = "";
+  SETTINGS.choices.forEach((c, k) => {
+    const b = document.createElement("button");
+    b.className = "choice";
+    b.type = "button";
+    b.dataset.r = c.key;
+    b.setAttribute("aria-pressed", "false");
+    const t = document.createElement("b");
+    t.textContent = c.label + " ";
+    const kb = document.createElement("kbd");
+    kb.textContent = String(k + 1);
+    t.append(kb);
+    const sp = document.createElement("span");
+    sp.textContent = c.hint || "";
+    b.append(t, sp);
+    box.append(b);
+  });
+}
+const KEYS = Object.fromEntries([...document.querySelectorAll(".choice")].map((c, k) => [String(k + 1), c.dataset.r]));
+if (SETTINGS.flag) $("flag-row").hidden = false;
+// a blind page (listening): no facts, no moment to play, no surprise in the list
+if (SETTINGS.blind) {
+  document.querySelector(".facts").hidden = true;
+  for (const id of ["play-moment", "d-moment", "mk"]) $(id).hidden = true;
+  $("solo").closest("label").hidden = true;
+  $("score").setAttribute("aria-label", "Score");
+}
+
+function visible() { return MOMENTS.map((m, i) => i).filter((i) => filter === "all" || !ratings[MOMENTS[i].id]?.rating); }
+
+function renderList() {
+  const box = $("items");
+  box.textContent = "";
+  let level = null;
+  for (const i of visible()) {
+    const m = MOMENTS[i];
+    if (m.level !== level) {
+      level = m.level;
+      const h = document.createElement("div");
+      h.className = "level-head";
+      h.textContent = LEVELS[level];
+      box.append(h);
+    }
+    const b = document.createElement("button");
+    b.className = "item";
+    b.type = "button";
+    if (i === index) b.setAttribute("aria-current", "true");
+    const dot = document.createElement("span");
+    dot.className = "dot";
+    if (ratings[m.id]?.rating) dot.dataset.r = ratings[m.id].rating;
+    const t = document.createElement("span");
+    t.className = "t";
+    t.textContent = m.name || `No. ${m.no}, bar ${m.bar}: ${m.title}`;
+    const bits = document.createElement("span");
+    bits.className = "b";
+    bits.textContent = SETTINGS.blind ? "" : `${m.bits} b`;
+    b.append(dot, t, bits);
+    b.addEventListener("click", () => { show(i); if (narrow.matches) { openList(false); $("moment").scrollIntoView({ block: "start" }); } });
+    box.append(b);
+  }
+  const n = MOMENTS.filter((m) => ratings[m.id]?.rating).length;
+  $("count").textContent = `${n} of ${MOMENTS.length} rated`;
+  $("list-toggle").firstElementChild.textContent = `${SETTINGS.item || "Moment"} ${index + 1} of ${MOMENTS.length}: all ${SETTINGS.items || "moments"}`;
+  $("bar").style.width = `${(100 * n) / Math.max(1, MOMENTS.length)}%`;
+}
+
+function ink() { return getComputedStyle(document.documentElement).getPropertyValue("--ink").trim() || "#000"; }
+
+const narrow = window.matchMedia("(max-width: 860px)");
+let drawnWidth = 0;
+function drawScore(m) {
+  const opts = { responsive: "resize", foregroundColor: ink(), add_classes: true, paddingtop: 4, paddingbottom: 4 };
+  drawnWidth = $("score").clientWidth;
+  if (narrow.matches) {
+    // a phone: lay the excerpt out at the screen's width, two bars or so a system, rather than shrink it
+    Object.assign(opts, { staffwidth: Math.max(240, drawnWidth - 16), wrap: { minSpacing: 1.6, maxSpacing: 2.6, preferredMeasuresPerLine: 2 }, paddingleft: 0, paddingright: 0 });
+  }
+  ABCJS.renderAbc("score", m.abc, opts);
+}
+let resizeTimer = null;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { if (window.ABCJS && Math.abs($("score").clientWidth - drawnWidth) > 24) drawScore(MOMENTS[index]); }, 200);
+});
+
+function show(i) {
+  stop();
+  index = Math.max(0, Math.min(MOMENTS.length - 1, i));
+  const m = MOMENTS[index];
+  $("m-title").textContent = m.name || `No. ${m.no}, bar ${m.bar}`;
+  $("m-level").textContent = LEVELS[m.level];
+  const meta = $("m-meta");
+  meta.textContent = "";
+  for (const s of SETTINGS.blind ? [m.key] : [m.title, `BWV ${m.bwv}`, m.key, m.voice === null ? "the whole chord" : `voice: ${VOICE[m.voice]}`]) {
+    const span = document.createElement("span");
+    span.textContent = s;
+    meta.append(span);
+  }
+  if (m.scan && !SETTINGS.blind) {
+    const a = document.createElement("a");
+    a.href = m.scan;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = "Breitkopf print ↗";
+    meta.append(a);
+  }
+  $("m-did").textContent = m.did;
+  $("m-exp").textContent = m.expected;
+  $("m-bits").innerHTML = "";
+  const b = document.createElement("span");
+  b.textContent = `${m.bits} bits `;
+  const sm = document.createElement("small");
+  sm.textContent = `(about 1 in ${m.bits > 30 ? "a billion" : Math.round(2 ** m.bits).toLocaleString()})`;
+  $("m-bits").append(b, sm);
+  $("solo").disabled = m.voice === null;
+  $("solo").checked = false;
+  $("mk").style.left = `${(100 * m.mark) / m.length}%`;
+  $("head").style.width = "0";
+  if (window.ABCJS) {
+    drawScore(m);
+  } else {
+    $("score").textContent = "The score could not load; the sound still plays.";
+  }
+  const r = ratings[m.id] || {};
+  for (const c of document.querySelectorAll(".choice")) c.setAttribute("aria-pressed", String(c.dataset.r === r.rating));
+  $("note").value = r.note || "";
+  $("flag").checked = !!r.flag;
+  $("saved").textContent = r.rating ? "Saved" : "";
+  renderList();
+}
+
+async function rate(value) {
+  const m = MOMENTS[index];
+  const prev = ratings[m.id] || {};
+  ratings[m.id] = { ...prev, rating: value, note: $("note").value };
+  store.save();
+  for (const c of document.querySelectorAll(".choice")) c.setAttribute("aria-pressed", String(c.dataset.r === value));
+  renderList();
+  await persist(m);
+}
+
+let noteTimer = null;
+$("note").addEventListener("input", () => {
+  const m = MOMENTS[index];
+  ratings[m.id] = { ...(ratings[m.id] || {}), note: $("note").value };
+  store.save();
+  clearTimeout(noteTimer);
+  noteTimer = setTimeout(() => persist(m), 800);
+});
+
+async function persist(m) {
+  if (!db) { $("saved").textContent = "Saved in this browser"; return; }
+  const r = ratings[m.id] || {};
+  try {
+    $("saved").textContent = "Saving…";
+    await db.collection(COLLECTION).doc(m.id).set({ rating: r.rating || null, note: r.note || "", flag: !!r.flag, no: m.no ?? null, bar: m.bar ?? null, level: m.level, bits: m.bits ?? null, updated: new Date().toISOString() });
+    $("saved").textContent = "Saved";
+  } catch (e) {
+    $("saved").textContent = "Not saved to the shared record (kept in this browser): " + (e && e.code ? e.code : "error");
+  }
+}
+
+// ---- sound: a small organ, one note per scheduled event ----
+let ctx = null, playing = [], raf = null;
+function audio() {
+  if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+  if (ctx.state === "suspended") ctx.resume();
+  return ctx;
+}
+function tone(ac, midi, start, dur, gain) {
+  const f = 440 * Math.pow(2, (midi - 69) / 12);
+  const g = ac.createGain();
+  g.gain.setValueAtTime(0, start);
+  g.gain.linearRampToValueAtTime(gain, start + 0.02);
+  g.gain.setValueAtTime(gain, start + Math.max(0.03, dur - 0.05));
+  g.gain.linearRampToValueAtTime(0, start + dur);
+  g.connect(ac.destination);
+  for (const [mult, amp] of [[1, 1], [2, 0.35], [3, 0.12], [4, 0.06]]) {
+    const o = ac.createOscillator();
+    o.type = "sine";
+    o.frequency.value = f * mult;
+    const og = ac.createGain();
+    og.gain.value = amp;
+    o.connect(og).connect(g);
+    o.start(start);
+    o.stop(start + dur + 0.02);
+    playing.push(o);
+  }
+}
+function play(from, to) {
+  stop();
+  const m = MOMENTS[index];
+  const ac = audio();
+  const bpm = Number($("tempo").value);
+  const unit = 60 / bpm / 8; // one 32nd
+  const t0 = ac.currentTime + 0.08;
+  const solo = $("solo").checked && m.voice !== null;
+  for (const [v, on, dur, midi] of m.play) {
+    const a = Math.max(on, from), b = Math.min(on + dur, to);
+    if (b <= a) continue;
+    const gain = solo ? (v === m.voice ? 0.16 : 0.035) : 0.07;
+    tone(ac, midi, t0 + (a - from) * unit, (b - a) * unit, gain);
+  }
+  const total = (to - from) * unit;
+  const lane = () => {
+    const x = Math.min(1, (ac.currentTime - t0) / total);
+    $("head").style.width = `${100 * ((from + Math.max(0, x) * (to - from)) / m.length)}%`;
+    if (x < 1) raf = requestAnimationFrame(lane);
+    else dockReset();
+  };
+  raf = requestAnimationFrame(lane);
+}
+function stop() {
+  for (const o of playing) { try { o.stop(); } catch {} }
+  playing = [];
+  if (raf) cancelAnimationFrame(raf);
+  dockReset();
+}
+function dockReset() {
+  dockPlaying = null;
+  $("d-play").textContent = SETTINGS.blind ? "▶ Play" : "▶ Excerpt";
+  $("d-moment").textContent = "▶ Moment";
+}
+$("play-all").addEventListener("click", () => play(0, MOMENTS[index].length));
+$("play-moment").addEventListener("click", () => {
+  const m = MOMENTS[index];
+  play(Math.max(0, m.mark - 16), Math.min(m.length, m.mark + 24));
+});
+$("stop").addEventListener("click", stop);
+function openList(on) {
+  document.querySelector(".wrap").classList.toggle("open", on);
+  $("list-toggle").setAttribute("aria-expanded", String(on));
+  $("list-toggle").lastElementChild.textContent = on ? "▴" : "▾";
+}
+$("list-toggle").addEventListener("click", () => openList(!document.querySelector(".wrap").classList.contains("open")));
+// the bottom bar on phones: a play button that stops when pressed again, and the way between moments
+let dockPlaying = null;
+function dock(which, from, to) {
+  if (dockPlaying === which) { stop(); return; }
+  play(from, to);
+  dockPlaying = which;
+  $("d-play").textContent = which === "all" ? "■ Stop" : SETTINGS.blind ? "▶ Play" : "▶ Excerpt";
+  $("d-moment").textContent = which === "moment" ? "■ Stop" : "▶ Moment";
+}
+$("d-play").addEventListener("click", () => dock("all", 0, MOMENTS[index].length));
+$("d-moment").addEventListener("click", () => {
+  const m = MOMENTS[index];
+  dock("moment", Math.max(0, m.mark - 16), Math.min(m.length, m.mark + 24));
+});
+function move(i) { show(i); $("moment").scrollIntoView({ block: "start", behavior: "smooth" }); }
+$("d-prev").addEventListener("click", () => move(index - 1));
+$("d-next").addEventListener("click", () => move(index + 1));
+$("tempo").addEventListener("input", () => ($("tempo-out").textContent = $("tempo").value));
+for (const c of document.querySelectorAll(".choice")) c.addEventListener("click", () => rate(c.dataset.r));
+$("flag").addEventListener("change", () => {
+  const m = MOMENTS[index];
+  ratings[m.id] = { ...(ratings[m.id] || {}), flag: $("flag").checked };
+  store.save();
+  persist(m);
+});
+$("prev").addEventListener("click", () => show(index - 1));
+$("next").addEventListener("click", () => show(index + 1));
+for (const c of document.querySelectorAll(".chip")) c.addEventListener("click", () => {
+  filter = c.dataset.f;
+  for (const d of document.querySelectorAll(".chip")) d.setAttribute("aria-pressed", String(d === c));
+  renderList();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.target.closest && e.target.closest("textarea, input")) return;
+  if (KEYS[e.key]) { rate(KEYS[e.key]); e.preventDefault(); }
+  else if (e.key === " ") { play(0, MOMENTS[index].length); e.preventDefault(); }
+  else if (e.key === "m" || e.key === "M") { $("play-moment").click(); }
+  else if (e.key === "ArrowRight") show(index + 1);
+  else if (e.key === "ArrowLeft") show(index - 1);
+});
+
+show(0);
+
+// the shared record: ratings the owner (and Claude) can read back
+(async () => {
+  try {
+    db = window.claude?.use ? await window.claude.use("db") : null;
+  } catch { db = null; }
+  if (!db) {
+    $("notice").hidden = false;
+    $("notice").textContent = "Ratings are kept in this browser only here: open the page signed in to claude.ai to keep them in the shared record.";
+    return;
+  }
+  try {
+    const snap = await db.collection(COLLECTION).get();
+    for (const d of snap.docs) {
+      const x = d.data();
+      if (x) ratings[d.id] = { rating: x.rating || undefined, note: x.note || "", flag: !!x.flag };
+    }
+    store.save();
+    show(index);
+  } catch {}
+})();
+</script>
