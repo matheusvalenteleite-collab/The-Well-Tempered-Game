@@ -162,6 +162,20 @@ function against(notes: Note[], v: number, fixed: Note[][], tones: Set<number>, 
       // a second, seventh or ninth struck together, neither a chord tone
       const iv = mod(x - y, 12);
       if ((iv === 1 || iv === 2 || iv === 10 || iv === 11) && !tones.has(mod(x, 12)) && !tones.has(mod(y, 12)) && o[0] === n[0]) cost += 0.5;
+      // an early resolution: another voice holds a note into a new harmony and resolves it down by step
+      // (a suspension), and this note sounds the resolution while it is held (the playback session's check:
+      // v3 10 of 32 suspensions, Bach 4 of 67). Whichever voice holds, the resolution is heard before it comes.
+      const holds = line.filter((x) => x[0] < n[0] + n[1] && n[0] < x[0] + x[1]);
+      for (const x of holds) {
+        // the note x and its tied continuations, then the note it moves to
+        let j = line.indexOf(x);
+        while (j + 1 < line.length && midiOf(line[j + 1][2]) === midiOf(x[2])) j++;
+        const res = line[j + 1];
+        if (!res || diatonic(res[2]) - diatonic(x[2]) !== -1) continue;
+        if (mod(midiOf(res[2]), 12) === mod(midiOf(n[2]), 12) && n[0] < res[0] && v !== 3 && u !== 3 && [1, 2, 10, 11].includes(mod(midiOf(x[2]) - midiOf(n[2]), 12) === 0 ? 0 : Math.abs(midiOf(x[2]) - midiOf(n[2])) % 12)) cost += 1;
+      }
+      if (k + 1 < notes.length && diatonic(notes[k + 1][2]) - diatonic(n[2]) === -1 && !tones.has(mod(midiOf(n[2]), 12)) && o && mod(midiOf(o[2]), 12) === mod(midiOf(notes[k + 1][2]), 12) && u !== 3)
+        cost += 1;
       // parallels from the note before this one (in this voice) to this one
       const prevT = n[0] - 1;
       const p0 = k > 0 ? notes[k - 1] : before;

@@ -176,3 +176,13 @@ falling to a fifth (t256); after them, every dissonance a passing note between c
 a suspension prepared on a consonance and resolved down; one doubtful passage left (no. 88, tenor t68: B-C natural-D
 rising in semiquavers over E major in A minor, where Bach would more often raise the sixth). The cost: fewer passing
 and neighbour notes than Bach (the lines are a little plainer than v2's). v3 of the fourteen bench pieces replaces v2.
+
+## v4: no early resolutions (12 October 2026)
+
+The playback session's check (tools/playback/inner_voice_check.py, early_resolution, on claude/playback-interface):
+a suspension whose resolution already sounds in another upper voice while the dissonance is held, heard before it
+comes. v3: 10 of 32 suspensions; Bach 4 of 67. `figures.ts` now costs a note that sounds the resolution of a note
+another voice holds and steps down from (tied continuations seen through), and a held note whose resolution another
+voice sounds: v4 4 of 30 (13%, Bach 6%). Still open: the inner voices are plainer than Bach's (alto 29% short notes
+against 37%); the licence is not the cause (it rejects 5% of Bach's moving figures); the penalties against the other
+voices and the look-ahead favour the plain note, to be measured. And the lines' direction (the owner's "static").
