@@ -35,6 +35,7 @@ import { ready, realise, type Part } from "../wtc/compose/plan.ts";
 import { judgeFugue } from "../wtc/compose/judge.ts";
 import { fugueMidi } from "../wtc/compose/midi.ts";
 import { asEvents, type Proposal } from "../wtc/compose/generate.ts";
+import { fitsPlan, strettoTable, type StrettoRow } from "../wtc/compose/stretto.ts";
 import { proposeCodetta, proposeCountersubject, proposeFree } from "../wtc/compose/proposals.ts";
 import { alterPitch, insert, isDotted, lengthen, letterPitch, nearBefore, remove, setDur, setPitch, stepPitch, toggleDot, VALUES, pretty } from "../wtc/compose/edit.ts";
 import type { CpViolation } from "../wtc/counterpoint.ts";
@@ -121,6 +122,7 @@ export function ComposeApp({ onVoices, onStudy, onExercises, onTutorial }: { onV
   const bar = barQuarters(d.time);
   const subject = useMemo(() => toNotes(d.subject), [d.subject]);
   const remarks = useMemo(() => judgeSubject(d), [d]);
+  const strettos = useMemo<StrettoRow[]>(() => (step === "subject" || step === "fugue" ? strettoTable(d) : []), [d.subject, d.key, d.time, d.phase, step]);
   const subjectOk = !remarks.some((r) => r.severity === "error");
   const options = useMemo<AnswerOption[]>(() => (subjectOk ? answerOptions(subject, d.key, d.time) : []), [subjectOk, subject, d.key, d.time]);
   const points = useMemo(() => entryPoints(d), [d]);
@@ -437,6 +439,7 @@ export function ComposeApp({ onVoices, onStudy, onExercises, onTutorial }: { onV
     const f = FUGUES.find((x) => x.id === id);
     return f ? `${f.book === 1 ? "I" : "II"}/${f.number} (${keyName(f.key)})` : id;
   };
+  const strettoName = (r: StrettoRow) => t("ui.compose.stretto.row", { q: r.delay, interval: t(`ui.compose.stretto.iv.${r.interval.id}`) });
   const remark = (r: Remark, i: number) => (
     <li key={i} className={r.severity === "error" ? "bad" : r.severity === "advice" ? "warn" : undefined}>
       {r.severity === "error" ? "✗ " : r.severity === "advice" ? "! " : "· "}
@@ -604,6 +607,17 @@ export function ComposeApp({ onVoices, onStudy, onExercises, onTutorial }: { onV
         {realised.sections.map((s) => (
           <li key={s.id}>
             <strong>{t(`ui.compose.section.${s.id}`, { key: keyName(s.key) })}</strong> <span className="help">{t("ui.compose.bars", { a: barNo(s.from), b: barNo(s.to - EPS) })}</span>
+            {s.id === "final" && (
+              <select className="sel" aria-label={t("ui.compose.stretto.choose")} value={d.stretto ? `${d.stretto.delay}|${d.stretto.interval}` : ""} onChange={(e) => {
+                const [delay, interval] = e.target.value.split("|");
+                change({ ...d, stretto: e.target.value ? { delay: Number(delay), interval } : null });
+              }}>
+                <option value="">{t("ui.compose.stretto.plain")}</option>
+                {strettos.filter((r) => fitsPlan(d, r.interval)).slice(0, 12).map((r) => (
+                  <option key={`${r.delay}|${r.interval.id}`} value={`${r.delay}|${r.interval.id}`}>{`${t("ui.compose.stretto.inStretto")}: ${strettoName(r)}${r.faults ? ` (${r.faults} ✗)` : ""}`}</option>
+                ))}
+              </select>
+            )}
             {(s.id === "ep1" || s.id === "ep2" || s.id === "close") && (
               <select className="sel" value={s.id === "ep1" ? d.lengths.episode1 : s.id === "ep2" ? d.lengths.episode2 : d.lengths.close} aria-label={t("ui.compose.length")} onChange={(e) => change({ ...d, lengths: { ...d.lengths, [s.id === "ep1" ? "episode1" : s.id === "ep2" ? "episode2" : "close"]: Number(e.target.value) } })}>
                 {[1, 2, 3, 4, 5, 6].map((n) => <option key={n} value={n}>{t("ui.compose.nBars", { n })}</option>)}
@@ -631,6 +645,21 @@ export function ComposeApp({ onVoices, onStudy, onExercises, onTutorial }: { onV
   const evaluation = (
     <div className="feedback">
       {step === "subject" && <ul>{remarks.map(remark)}</ul>}
+      {step === "subject" && subjectOk && (
+        <>
+          <h4>{t("ui.compose.stretto.title")}</h4>
+          <p className="help">{t("ui.compose.stretto.how", { clean: strettos.filter((r) => r.faults === 0).length, n: strettos.length })}</p>
+          <ul>
+            {strettos.filter((r) => r.faults === 0).slice(0, 10).map((r, i) => (
+              <li key={i}>
+                {strettoName(r)}{r.licences ? ` · ${t("ui.compose.stretto.licences", { n: r.licences })}` : ""}{" "}
+                <button className="chipbtn" onClick={() => playLines([toNotes(d.subject, d.phase), r.follower.map((n) => ({ ...n, at: n.at + d.phase }))])}>{t("ui.compose.hear")}</button>
+              </li>
+            ))}
+            {!strettos.some((r) => r.faults === 0) && <li>{t("ui.compose.stretto.none")}</li>}
+          </ul>
+        </>
+      )}
       {step === "answer" && answerPanel}
       {step === "counter" && counterPanel}
       {step === "fugue" && report && (

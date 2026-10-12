@@ -10,6 +10,7 @@ import { judgeFugue } from "../src/wtc/compose/judge.ts";
 import { fugueMidi } from "../src/wtc/compose/midi.ts";
 import { asEvents } from "../src/wtc/compose/generate.ts";
 import { proposeCountersubject, proposeFree } from "../src/wtc/compose/proposals.ts";
+import { fitsPlan, strettoTable } from "../src/wtc/compose/stretto.ts";
 
 const pc = (p: string) => p.replace(/-?\d+$/, "");
 /** Notes (quarters, from 0) as events, the gaps as rests. */
@@ -206,6 +207,23 @@ test("compose M2: a free passage proposed against the other voice, filling its r
   assert.ok(ps.length >= 1);
   const n = ps[0].notes;
   assert.ok(Math.abs(n[0].at - ep.from) < 1e-6 && Math.abs(n[n.length - 1].at + n[n.length - 1].dur - ep.to) < 1e-6);
+});
+
+test("compose M2: the stretto table, and a last entry in stretto heard as two entries", () => {
+  const d = bachDraft(FUGUES.find((x) => x.id === "wtc1.12")!);
+  const rows = strettoTable(d);
+  assert.ok(rows.length > 20);
+  // Sorted: the fault-free first; a stretto at the unison right on the first note's heels is not clean.
+  assert.equal(rows[0].faults, 0);
+  for (let i = 1; i < rows.length; i++) assert.ok(rows[i - 1].faults <= rows[i].faults);
+  const clean = rows.find((r) => r.faults === 0 && fitsPlan(d, r.interval))!;
+  d.stretto = { delay: clean.delay, interval: clean.interval.id };
+  const r = realise(d);
+  const fin = r.parts.filter((p) => p.section === "final" && p.kind === "subject");
+  assert.equal(fin.length, 2);
+  assert.equal(fin[1].from - fin[0].from, clean.delay);
+  const rep = judgeFugue(d, r);
+  assert.deepEqual(rep.missed.map((p) => p.slot), []);
 });
 
 test("compose: a standard MIDI file, a track per voice", () => {

@@ -1399,7 +1399,22 @@
     "compose.proposalHelp": "Faults the judge still finds: {n}",
     "compose.yours": "Yours",
     "compose.noProposal": "No line found here under the rules: try other proposals, or write it.",
-    "compose.proposalNote": "A proposal is plain and correct, not Bach: the rhythm moves where the other voice holds, the pitches keep the rules. Take one as a start, and make it yours."
+    "compose.proposalNote": "A proposal is plain and correct, not Bach: the rhythm moves where the other voice holds, the pitches keep the rules. Take one as a start, and make it yours.",
+    "compose.stretto.title": "Strettos",
+    "compose.stretto.how": "Your subject against itself, the second entry a beat later, two beats …, at the octave, fifth, fourth or unison: {clean} of the {n} ways have no fault where the entries overlap. A stretto is found before it is written; the last entry can take one.",
+    "compose.stretto.row": "after {q} ♩, {interval}",
+    "compose.stretto.licences": "{n} licences",
+    "compose.stretto.none": "None without a fault: the subject does not stretto (as in 16 of Bach's 48).",
+    "compose.stretto.choose": "The last entry",
+    "compose.stretto.plain": "The last entry: with the countersubject",
+    "compose.stretto.inStretto": "In stretto",
+    "compose.stretto.iv.8up": "an octave above",
+    "compose.stretto.iv.8down": "an octave below",
+    "compose.stretto.iv.5up": "a fifth above",
+    "compose.stretto.iv.4down": "a fourth below",
+    "compose.stretto.iv.4up": "a fourth above",
+    "compose.stretto.iv.5down": "a fifth below",
+    "compose.stretto.iv.1": "at the unison"
   },
   "tutor": {
     "rule.fos.no-repetition": "In this species each upbeat brings a new note, which is then tied over the bar line; striking the downbeat's note again on its own upbeat is a whole note in disguise.",

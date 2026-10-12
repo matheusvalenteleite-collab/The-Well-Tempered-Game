@@ -45,6 +45,10 @@ export interface FugueDraft {
   touched: Record<string, (string | null)[]>;
   /** Bars of each episode and of the close. */
   lengths: { episode1: number; episode2: number; close: number };
+  /** The last entry in stretto (M2): the second voice entering after `delay` quarters at an interval of stretto.ts. */
+  stretto?: { delay: number; interval: string } | null;
+  /** The key of the middle entry (M2), a Roman numeral from the home key ("vi", "III" ...); the relative by default. */
+  middle?: string;
 }
 
 export const EPS = 1e-6;

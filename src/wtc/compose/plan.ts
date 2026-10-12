@@ -14,6 +14,7 @@ import { TPQ, type WtcPiece } from "../corpus.ts";
 import type { WtcNote } from "../fugues.ts";
 import { answerNotes } from "./answer.ts";
 import { across } from "./invertible.ts";
+import { follower, STRETTO_INTERVALS } from "./stretto.ts";
 import { barQuarters, dominantOf, EPS, lengthOf, modeOf, octave, relativeOf, toKey, toNotes, tonicOf, type Ev, type FugueDraft } from "./model.ts";
 
 export type SectionKind = "exposition" | "episode" | "entry" | "close";
@@ -86,7 +87,10 @@ export function realise(d: FugueDraft): Realised {
   add("ep1", "episode", relative, d.lengths.episode1 * bar);
   add("mid", "entry", relative, sBars * bar);
   add("ep2", "episode", d.key, d.lengths.episode2 * bar);
-  add("final", "entry", d.key, sBars * bar);
+  // In stretto the last entry lasts until the second voice's entry ends.
+  const st = d.stretto ? STRETTO_INTERVALS.find((x) => x.id === d.stretto!.interval) : undefined;
+  const finalLen = st ? Math.max(sBars, Math.ceil((d.stretto!.delay + lengthOf(d.subject) - EPS) / bar)) * bar : sBars * bar;
+  add("final", "entry", d.key, finalLen);
   // The close ends on a bar line: an upbeat's time is taken from its last bar.
   add("close", "close", d.key, Math.max(1, d.lengths.close) * bar - d.phase);
 
@@ -123,8 +127,17 @@ export function realise(d: FugueDraft): Realised {
   };
   // The middle entry in the first voice (the countersubject changes voice: inverted).
   entry(S("mid"), first);
-  // The last entry in the voice that answered, the countersubject where it was in the exposition.
-  entry(S("final"), other);
+  // The last entry in the voice that answered, the countersubject where it was in the exposition;
+  // or in stretto, the first voice entering with the subject after the chosen delay.
+  if (st) {
+    const sec = S("final");
+    const lead = near(subject, register(other));
+    derived(sec, other, "subject", shift(lead, sec.from));
+    const f = follower(lead, d.stretto!.delay, st);
+    // The interval as chosen (the table judged it so): the second voice lies above when the first
+    // voice is the upper one (the screen offers those intervals only).
+    if (f) derived(sec, first, "subject", shift(f, sec.from));
+  } else entry(S("final"), other);
 
   // Free passages: every stretch of a voice within a section not taken by the plan.
   for (const sec of sections) {
