@@ -84,7 +84,11 @@ const nameOf = (midi: number) => `${SHARP_NAMES[midi % 12]}${Math.floor(midi / 1
 /** A plain four-part chord for listening: the root in the bass, two chord tones under the melody. */
 export function voiceChord(label: string, tonic: string, melodyPitch: string): string[] {
   const c = parseChord(label, tonic);
-  if (!c) return [];
+  return c ? voiceTriad(c, melodyPitch) : [];
+}
+
+/** The same for a chord given by its root and quality (C33: the local key's numerals are parsed by convention.ts). */
+export function voiceTriad(c: { root: number; quality: "major" | "minor" | "diminished" }, melodyPitch: string): string[] {
   const third = c.quality === "major" ? 4 : 3;
   const fifth = c.quality === "diminished" ? 6 : 7;
   const pcs = [c.root, (c.root + third) % 12, (c.root + fifth) % 12];

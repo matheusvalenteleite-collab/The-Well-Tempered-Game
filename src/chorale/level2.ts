@@ -20,6 +20,8 @@ export interface L2Note {
   bach: Phrase["bach"];
   habit: Phrase["habit"];
   predicted: string | null;
+  /** C33: the local key of this note (from Bach's settings of the tune), in which its chords are named. */
+  key?: [string, "major" | "minor"];
 }
 export interface L2Chorale {
   number: number;

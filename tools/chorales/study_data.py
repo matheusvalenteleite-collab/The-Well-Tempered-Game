@@ -19,10 +19,13 @@ Usage: python3 tools/chorales/study_data.py
 from __future__ import annotations
 
 import json
+import sys
 from fractions import Fraction as F
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import local_numerals as LN  # noqa: E402
 BACH = ROOT / "data/chorales/bach"
 OUT = ROOT / "data/chorales/study.json"
 VOICES = ["soprano", "alto", "tenor", "bass"]
@@ -79,81 +82,35 @@ def kittel_tunes() -> dict[int, list[int]]:
     return out
 
 
-# Roman numerals in the convention of the textbooks (C32): each chord as a degree of the key its
-# passage is in (the local keys, C31); a tonicisation as an applied chord in that key (V/V, vii°/ii);
-# a modulation by a label of the new key where its region begins ("D: I"), and its pivot chord, a
-# chord of both keys, read in both: the old key's numeral above, the new key's below.
-LOCAL = ROOT / "data/chorales/local-keys.json"
-LOCAL_KEYS = json.loads(LOCAL.read_text())["chorales"] if LOCAL.exists() else {}
-LETTERS = "CDEFGAB"
-PCS = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
-MAJOR, MINOR = [0, 2, 4, 5, 7, 9, 11], [0, 2, 3, 5, 7, 8, 10]
-NUMERALS = ["I", "II", "III", "IV", "V", "VI", "VII"]
-
-
-def pcn(name: str) -> int:
-    return (PCS[name[0]] + name.count("#") - name[1:].count("b")) % 12
-
-
-def triad_pcs(root: str, kind: str) -> list[int] | None:
-    r = pcn(root)
-    if kind.startswith("major") or kind == "dominant seventh":
-        return [r, (r + 4) % 12, (r + 7) % 12]
-    if kind.startswith("minor"):
-        return [r, (r + 3) % 12, (r + 7) % 12]
-    if kind.startswith("diminished") or kind.startswith("half-diminished"):
-        return [r, (r + 3) % 12, (r + 6) % 12]
-    return None
-
-
-def numeral_in(root: str, kind: str, tonic: str, mode: str) -> str | None:
-    """A chord as a diatonic degree of a key, or None where it is not one (the minor's raised
-    leading tone allowed)."""
-    pcs = triad_pcs(root, kind)
-    if pcs is None:
-        return None
-    t = pcn(tonic)
-    scale = {(t + x) % 12 for x in (MAJOR if mode == "major" else MINOR)} | ({(t + 11) % 12} if mode != "major" else set())
-    if not set(pcs) <= scale:
-        return None
-    deg = (LETTERS.index(root[0]) - LETTERS.index(tonic[0])) % 7
-    n = NUMERALS[deg]
-    if kind.startswith("minor"):
-        n = n.lower()
-    elif kind.startswith("diminished") or kind.startswith("half-diminished"):
-        n = n.lower() + "°"
-    return n + ("7" if "seventh" in kind else "")
-
-
-def applied(local: str, status: str) -> str:
-    """An applied chord in the textbooks' form: its function towards the degree it is applied to."""
-    target = status[2:]
-    dim = local.endswith("°") or "°" in local
-    seventh = "7" in local
-    return f"{'vii°' if dim else 'V'}{'7' if seventh else ''}/{target}"
+# Roman numerals in the convention of the textbooks (C32, C33): each chord as a degree of the key its
+# passage is in (the local keys, C31), named by local_numerals.py as levels 2-4 name theirs: a
+# tonicisation as an applied chord (V/V, vii°/ii); a modulation by a label of the new key where its
+# region begins ("D: I"), its pivot chord, a chord of both keys, read in both: the old key's numeral
+# above, the new key's below.
+LOCAL_KEYS = LN.bach_local()
 
 
 def numerals(n: int, verts: list[dict]) -> list[list]:
     """[[onset, line, line?], ...] at the onsets the local keys read (the on-beat soprano attacks)."""
-    rows = LOCAL_KEYS.get(str(n), [])
-    by_t = {v["t"]: v for v in verts}
+    local = LOCAL_KEYS.get(n, {})
     out, prev = [], None
-    for k, (t, tonic, mode, chord, status) in enumerate(rows):
-        label = applied(chord, status) if status.startswith("a:") else (chord.lower() if "°" in chord or "ø" in chord else chord)
-        key = (tonic, mode)
-        name = tonic + ("" if mode == "major" else "m")
-        if prev is None or key == prev[0]:
-            out.append([q(t), label])
+    for v in verts:
+        if v["t"] not in local or not v.get("root"):
+            continue
+        tonic, mode = local[v["t"]]
+        tpc, root, kind = LN.pcn(tonic), LN.pcn(v["root"]), LN.quality(v.get("chord"))
+        lab = LN.in_key(root, kind, tpc, mode)
+        name = LN.key_name(tpc, mode, tonic)
+        if prev is None or (tonic, mode) == prev[0]:
+            out.append([q(v["t"]), lab])
         else:
-            out.append([q(t), f"{name}: {label}"])
+            out.append([q(v["t"]), f"{name}: {lab}"])
             # The pivot: the last chord of the old region, if it belongs to the new key too.
-            pt, pv = prev[1], by_t.get(prev[1])
-            if pv and pv.get("root") and pv.get("chord"):
-                new = numeral_in(pv["root"], pv["chord"], tonic, mode)
-                if new and out and out[-2][0] == q(pt) and len(out[-2]) == 2:
-                    out[-2] = [q(pt), out[-2][1], f"{name}: {new}"]
-                    out[-1] = [q(t), label]
-        prev = (key, t)
+            pr, pq, pt = prev[1]
+            if out[-2][0] == q(pt) and len(out[-2]) == 2 and LN.diatonic(pr, pq, tpc, mode):
+                out[-2] = [q(pt), out[-2][1], f"{name}: {LN.label(pr, pq, tpc, mode)}"]
+                out[-1] = [q(v["t"]), lab]
+        prev = ((tonic, mode), (root, kind, v["t"]))
     return out
 
 

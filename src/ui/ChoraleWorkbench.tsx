@@ -25,7 +25,8 @@ import { t } from "./i18n.ts";
 import { figureLabel } from "../counterpoint/interval.ts";
 import type { PlayEvent } from "../counterpoint/layout.ts";
 import { parsePitch, type Step } from "../music/pitch.ts";
-import { BACH_REFS, CHORALES, comparePoints, frac, parseChord, pcOf, voiceChord, type Phrase, type PhraseVerdict } from "../chorale/level1.ts";
+import { BACH_REFS, CHORALES, comparePoints, frac, parseChord, voiceChord, voiceTriad, type Phrase, type PhraseVerdict } from "../chorale/level1.ts";
+import { inKey, keyName, parse as parseLocal, pcOf, pivot, type Key } from "../chorale/convention.ts";
 import { LEVEL2 } from "../chorale/level2.ts";
 import { LEVEL3, bassPitch } from "../chorale/level3.ts";
 import { LEVEL4, POSITIONS, points as points4, realise as realiseFigure } from "../chorale/level4.ts";
@@ -82,12 +83,18 @@ export function ChoraleWorkbench({ onMode, onTutorial, stage, onStage, stageSele
   const [dim, setDim] = useStored<Dim>("wtg.choraleDim", {});
 
   const mine1 = ch.phrases.map((_, k) => p1[ch.number]?.[k] ?? null);
+  // C33: stages 2-4 name chords and degrees in the local key of each note (from Bach's settings of the tune).
+  const home: Key = { tonic: ch.tonic, mode: ch.mode };
+  const keyOf = (n?: { key?: [string, "major" | "minor"] }): Key => (n?.key ? { tonic: n.key[0], mode: n.key[1] } : home);
+  const keyAtUnits = (u: number): Key => keyOf([...l2.notes].reverse().find((n) => unitsOf(n.offset) <= u));
   // Stage 2 starts from the cadence plan: the chord chosen at each phrase end stands under its note.
   const carried = useMemo(() => {
     const out = new Map<number, string>();
     ch.phrases.forEach((ph, k) => {
       const i = l2.notes.findIndex((n) => n.offset === ph.offset);
-      if (i >= 0 && mine1[k]) out.set(i, mine1[k]!);
+      // The cadence plan is in the home key (choosing the closes is choosing the keys); stage 2 names the chord in the note's key.
+      const c = i >= 0 && mine1[k] ? parseChord(mine1[k]!, ch.tonic) : null;
+      if (c) out.set(i, inKey(c.root, c.quality, keyOf(l2.notes[i])));
     });
     return out;
   }, [ch, l2, mine1]);
@@ -153,7 +160,7 @@ export function ChoraleWorkbench({ onMode, onTutorial, stage, onStage, stageSele
       const at = unitsOf(n.offset);
       const end = i + 1 < l3.notes.length ? unitsOf(l3.notes[i + 1].offset) : c5.length;
       if (!d) return { at, dur: end - at, pitch: null as string | null };
-      const p = bassPitch(d, l3.tonic, prev);
+      const p = bassPitch(d, keyOf(n).tonic, prev);
       prev = parsePitch(p).midi;
       return { at, dur: end - at, pitch: p };
     });
@@ -253,19 +260,36 @@ export function ChoraleWorkbench({ onMode, onTutorial, stage, onStage, stageSele
     if (stage === 1) ch.phrases.forEach((ph, k) => pointAt.set(unitsOf(ph.offset), k));
     if (stage === 2 || stage === 3) (stage === 2 ? l2 : l3).notes.forEach((n, i) => pointAt.set(unitsOf(n.offset), i));
     const melodySrc = stage === 6 && lines6.length ? lines6[0] : (c5.melody as Note[]);
+    // C33: at stages 2-4 the key of each region named over its first note.
+    const keyStart = new Map<number, string>();
+    if (stage >= 2 && stage <= 4)
+      l2.notes.forEach((n, i) => {
+        const k = keyOf(n);
+        const before = i > 0 ? keyOf(l2.notes[i - 1]) : null;
+        if (i === 0 ? k.tonic !== home.tonic || k.mode !== home.mode : before!.tonic !== k.tonic || before!.mode !== k.mode) keyStart.set(unitsOf(n.offset), `${keyName(k)}:`);
+      });
     voices.push({
       staff: S,
       ink: INK.given,
       editable: stage <= 3,
       notes: melodySrc.map(([at, dur, pitch, f]) => {
         const k = pointAt.get(at);
-        return { pitch, at: quarters(at), dur: dur / 8, fermata: Boolean(f), ...(k !== undefined ? { slot: k, ...(pointInk(k) ? { ink: pointInk(k) } : {}) } : {}) };
+        return { pitch, at: quarters(at), dur: dur / 8, fermata: Boolean(f), ...(keyStart.has(at) ? { label: keyStart.get(at) } : {}), ...(k !== undefined ? { slot: k, ...(pointInk(k) ? { ink: pointInk(k) } : {}) } : {}) };
       }),
     });
     // The chords under the melody (stages 1-3): the harmony, or at phrase ends the cadence plan.
     if (stage <= 3) {
       if (stage === 1) ch.phrases.forEach((ph, k) => mine1[k] && under.push({ at: quarters(unitsOf(ph.offset)), lines: [mine1[k]!], ink: INK.mine }));
-      else l2.notes.forEach((n, i) => mine2[i] && under.push({ at: quarters(unitsOf(n.offset)), lines: [mine2[i]!], ink: stage === 2 ? INK.mine : INK.muted }));
+      else
+        l2.notes.forEach((n, i) => {
+          if (!mine2[i]) return;
+          // The pivot: the last chord before a change of key read in the new key too, if it belongs to it.
+          const next = l2.notes[i + 1];
+          const k = keyOf(n);
+          const nk = next ? keyOf(next) : k;
+          const both = nk.tonic !== k.tonic || nk.mode !== k.mode ? pivot(mine2[i]!, k, nk) : null;
+          under.push({ at: quarters(unitsOf(n.offset)), lines: both ? [mine2[i]!, `${keyName(nk)}: ${both}`] : [mine2[i]!], ink: stage === 2 ? INK.mine : INK.muted });
+        });
     }
     // The bass: the player's (stage 3), then Kittel's nearest it.
     if (stage === 3) {
@@ -422,14 +446,16 @@ export function ChoraleWorkbench({ onMode, onTutorial, stage, onStage, stageSele
       for (const [u, label] of chords) {
         const m = noteAt(u);
         if (!m) continue;
-        const [bass, ...inner] = voiceChord(label, ch.tonic, m[2]);
+        const local = stage === 2 ? parseLocal(label, keyAtUnits(u)) : null;
+        const [bass, ...inner] = stage === 2 ? (local ? voiceTriad(local, m[2]) : []) : voiceChord(label, ch.tonic, m[2]);
         if (bass) ev(u, m[1], [{ channel: "fux", pitch: bass }, ...inner.map((pitch) => ({ channel: "third" as const, pitch }))]);
       }
     }
     if (stage === 3) for (const b of myBass) if (b.pitch) ev(b.at, b.dur, [{ channel: "fux", pitch: b.pitch }]);
     if (stage === 4)
       kittelBass.forEach((b, i) => {
-        const inner = mine4[i] ? realiseFigure(mine4[i]!, b.pitch, l4.tonic, l4.mode) : [];
+        const k = keyAtUnits(b.at);
+        const inner = mine4[i] ? realiseFigure(mine4[i]!, b.pitch, k.tonic, k.mode) : [];
         ev(b.at, b.dur, [{ channel: "fux", pitch: b.pitch }, ...inner.map((pitch) => ({ channel: "third" as const, pitch }))]);
       });
     prepareChoraleAudio(audio);
@@ -459,10 +485,11 @@ export function ChoraleWorkbench({ onMode, onTutorial, stage, onStage, stageSele
     return j >= 0 ? mine2[j] : null;
   })() : null;
   const fitsChord = (deg: string) => {
-    const c = chordHere ? parseChord(chordHere, ch.tonic) : null;
+    const k = keyOf(l3.notes[idx]);
+    const c = chordHere ? parseLocal(chordHere, k) : null;
     if (!c) return false;
     const pcs = [c.root, (c.root + (c.quality === "major" ? 4 : 3)) % 12, (c.root + (c.quality === "diminished" ? 6 : 7)) % 12];
-    return pcs.includes(pcOf(bassPitch(deg, l3.tonic, null).replace(/\d+$/, "")));
+    return pcs.includes(pcOf(bassPitch(deg, k.tonic, null).replace(/\d+$/, "")));
   };
   const offered: string[] = (() => {
     if (stage === 1) return ch.phrases[idx]?.choices ?? [];

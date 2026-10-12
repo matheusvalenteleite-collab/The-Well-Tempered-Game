@@ -24,6 +24,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from habits import share_habits  # noqa: E402
 from cadence_plans import MINORISH, degree, pcn  # noqa: E402
+import local_numerals as LN  # noqa: E402
 from harmony_plans import Model, merged, tune_key  # noqa: E402
 from bass_plans import evaluate  # noqa: E402
 
@@ -61,18 +62,23 @@ def printed(stack: list[dict]) -> str:
     return "/".join(rows)
 
 
+LOCAL = LN.bach_local()
+KEYS = LN.kittel_keys()
+
+
 def bach_events() -> list[dict]:
     index = json.loads((BACH / "index.json").read_text())
     out = []
     for e in index["catalogue"]:
         c = json.loads((BACH / e["file"]).read_text())
         a = json.loads((BACH / "analysis" / f"{c['id']}.json").read_text())
-        tonic = c["key"]["tonic"]
-        mode = "minor" if c["key"]["mode"] in MINORISH else "major"
+        home = (c["key"]["tonic"], "minor" if c["key"]["mode"] in MINORISH else "major")
+        local = LOCAL.get(c["number"], {})
         tune = tune_key(c["voices"]["soprano"])
         for v in a["verticalities"]:
             if not v["on_beat"] or "bass" not in v["struck"] or not v["pitches"].get("soprano") or not v["pitches"].get("bass"):
                 continue
+            tonic, mode = LN.bach_key_at(local, v["t"], home)  # C33: degrees of the local key
             pos = position(v.get("bass_role"), v.get("chord"))
             if pos is None:
                 continue
@@ -102,8 +108,9 @@ def kittel_level4(events: list[dict]) -> list[dict]:
         c = json.loads(p.read_text())
         a = json.loads((KIT / "analysis" / p.name).read_text())
         hs1 = [h for h in a["basses"][0]["harmonies"] if h.get("root")]
-        tonic = hs1[-1]["root"] if hs1 else "C"
-        mode = "major" if pcn(tonic) == (7 * c["key_signature"]) % 12 else "minor"
+        home_tonic = hs1[-1]["root"] if hs1 else "C"
+        home_mode = "major" if pcn(home_tonic) == (7 * c["key_signature"]) % 12 else "minor"
+        keys = KEYS.get(c["number"], [])
         mel = merged(c["melody"]["notes"])
         basses = []
         for b, ab in zip(c["basses"], a["basses"]):
@@ -116,6 +123,7 @@ def kittel_level4(events: list[dict]) -> list[dict]:
                 t = F(n["offset"])
                 h = harms.get(t)
                 m = sounding(mel, t)
+                tonic, mode = LN.key_at(keys, t, (home_tonic, home_mode))
                 bdeg = degree(n["pitch"], tonic)
                 mdeg = degree(m["pitch"], tonic) if m and m.get("pitch") else None
                 cnt = habit.counts[2].get((mode, bdeg, mdeg), Counter()) if mdeg else Counter()
@@ -126,7 +134,7 @@ def kittel_level4(events: list[dict]) -> list[dict]:
                               "kittel": kpos,
                               "habit": {"n": sum(cnt.values()), "options": [{"chord": d, "count": k, "examples": examples[(mode, bdeg, mdeg, d)]} for d, k in cnt.most_common(5)]}})
             basses.append({"label": b["label"], "notes": notes})
-        out.append({"number": c["number"], "title": c["title"], "tonic": tonic, "mode": mode, "basses": basses})
+        out.append({"number": c["number"], "title": c["title"], "tonic": home_tonic, "mode": home_mode, "basses": basses})
     return out
 
 
