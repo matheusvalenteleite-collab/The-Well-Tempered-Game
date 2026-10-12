@@ -234,5 +234,35 @@
   "confidence": "sure",
   "reason": "The 8-bar chromatic subject (A-Bb-B-C, E-F-F#-G, Bb-A-G-F, E-A-C# into D) ends on D4 (^1) at 8:1 after A-C#. The scalar run in bar 8 is a link into the held C5 that starts the countersubject under the answer at 9:1.",
   "note": "The answer is at the fifth, but its head is tonal: the opening A (^5) is answered by D with a dotted passing E (D-E-F-F#-G), so from index 2 on entry 2 corresponds to subject index k-1. The answer also repeats the bar-8 link run (A-B-C-...-G) into the held G at 17:1. There is a 3-bar codetta (bars 16-18) before the bass at 19:1. Entry order top, middle, bass."
+ },
+ {
+  "id": "aof11",
+  "subject_end": 13,
+  "subject_end_at": "5:1",
+  "subject_last_pitch": "D4",
+  "answer": "real",
+  "answer_end": 13,
+  "mutated": [],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 0,
+  "confidence": "sure",
+  "reason": "Read on review (D160): D A G | F E D | C# D E | F G F E | D, the main theme in its varied, broken form, closing on D4 (^1) at 5:1; the answer (soprano) enters at 5:1.5 a fifth above, exactly (A E D C B A G# ...): real.",
+  "note": "Contrapunctus XI is the inversion-based companion of VIII; its later subjects are not yet tracked."
+ },
+ {
+  "id": "aof14",
+  "subject_end": 6,
+  "subject_end_at": "6:1",
+  "subject_last_pitch": "D3",
+  "answer": "tonal",
+  "answer_end": 6,
+  "mutated": [
+   1
+  ],
+  "codetta_before_answer_beats": 0,
+  "codetta_before_third_beats": 0,
+  "confidence": "sure",
+  "reason": "Read on review (D160): the first subject, in long notes in the bass, D A G F G A D, closing on D3 (^1) at 6:1; the tenor answers at 6:3 (A D D C D E A), the subject's A (^5, after the leap from ^1) answered by D (^1): tonal at the second note. Each entry follows the last after five bars (6:3, 11:3, 16:3).",
+  "note": "Unfinished (D160): the second subject enters in the alto at b. 115 (eighth notes), the third, B-A-C-H, in the tenor at b. 193; the autograph breaks off at b. 239."
  }
 ]

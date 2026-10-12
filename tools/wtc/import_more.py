@@ -15,7 +15,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 from lily import read  # noqa: E402
 
 SRC = Path("data/sources/bach-fugues-more/mutopia")
-PIECES = [(f"aof{i:02d}", f"contrapunctus{r}.ly", "d", None) for i, r in enumerate("I II III IV V VI VII VIII IX X".split(), 1)]
+PIECES = [(f"aof{i:02d}", f"contrapunctus{r}.ly", "d", None) for i, r in enumerate("I II III IV V VI VII VIII IX X XI".split(), 1)]
+# The unfinished fugue (Contrapunctus XIV in the modern numbering) is Mutopia's "Contrapunctus XIX, Fuga a 3
+# Soggetti", after the Bach-Gesellschaft's numbering (the canons there are XII-XV).
+PIECES.append(("aof14", "contrapunctusXIX.ly", "d", None))
 PIECES.append(("bwv903f", "bwv903fug.ly", "d", [["upper:1"], ["upper:2", "lower:1"], ["lower:2"]]))
 
 

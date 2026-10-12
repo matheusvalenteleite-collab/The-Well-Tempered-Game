@@ -18,6 +18,8 @@ export const TITLES: Record<string, { title: string; bwv: string }> = {
   aof08: { title: "Art of Fugue, Contrapunctus VIII (a 3)", bwv: "1080/8" },
   aof09: { title: "Art of Fugue, Contrapunctus IX (alla duodecima)", bwv: "1080/9" },
   aof10: { title: "Art of Fugue, Contrapunctus X (alla decima)", bwv: "1080/10" },
+  aof11: { title: "Art of Fugue, Contrapunctus XI", bwv: "1080/11" },
+  aof14: { title: "Art of Fugue, Contrapunctus XIV (Fuga a 3 soggetti, unfinished)", bwv: "1080/19" },
   mo3: { title: "Musical Offering, Ricercar a 3", bwv: "1079/1" },
   mo6: { title: "Musical Offering, Ricercar a 6", bwv: "1079/5" },
   bwv903f: { title: "Chromatic Fantasia and Fugue, the fugue", bwv: "903" },

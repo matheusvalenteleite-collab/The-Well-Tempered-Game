@@ -15,7 +15,7 @@ import { beatOf } from "../../src/wtc/counterpoint.ts";
 
 const pieces = [...(JSON.parse(readFileSync("data/wtc/fugues.json", "utf8")) as WtcPiece[]), ...(JSON.parse(readFileSync("data/wtc/more.json", "utf8")) as WtcPiece[])];
 const TITLE: Record<string, string> = {
-  aof01: "AoF I", aof02: "AoF II", aof03: "AoF III", aof04: "AoF IV", aof05: "AoF V", aof06: "AoF VI", aof07: "AoF VII", aof08: "AoF VIII", aof09: "AoF IX", aof10: "AoF X", mo3: "MO a 3", mo6: "MO a 6", bwv903f: "BWV 903",
+  aof01: "AoF I", aof02: "AoF II", aof03: "AoF III", aof04: "AoF IV", aof05: "AoF V", aof06: "AoF VI", aof07: "AoF VII", aof08: "AoF VIII", aof09: "AoF IX", aof10: "AoF X", aof11: "AoF XI", aof14: "AoF XIV", mo3: "MO a 3", mo6: "MO a 6", bwv903f: "BWV 903",
 };
 const name = (id: string) => TITLE[id] ?? `${id[3] === "1" ? "I" : "II"}/${Number(id.slice(5))}`;
 const setOf = (id: string) => (id.startsWith("wtc1") ? "WTC I" : id.startsWith("wtc2") ? "WTC II" : id.startsWith("aof") ? "Art of Fugue" : id.startsWith("mo") ? "Musical Offering" : "BWV 903");

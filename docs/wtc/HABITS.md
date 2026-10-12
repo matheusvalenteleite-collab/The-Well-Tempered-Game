@@ -39,30 +39,30 @@ A first reading of the counts below; each point is to be checked in the pieces n
 
 **Length in bars**, rounded up:
 
-- **5 bars**: 15 (25%): I/11, I/15, I/21, II/13, II/16, II/18, II/21, II/22 … (15)
-- **2 bars**: 14 (23%): I/1, I/2, I/3, I/9, I/13, I/16, I/17, I/18 … (14)
+- **5 bars**: 16 (25%): I/11, I/15, I/21, II/13, II/16, II/18, II/21, II/22 … (16)
+- **2 bars**: 14 (22%): I/1, I/2, I/3, I/9, I/13, I/16, I/17, I/18 … (14)
 - **3 bars**: 13 (21%): I/6, I/7, I/8, I/10, I/12, I/23, II/4, II/6 … (13)
-- **4 bars**: 10 (16%): I/4, I/14, I/20, I/22, I/24, II/1, II/11, II/12 … (10)
+- **4 bars**: 11 (17%): I/4, I/14, I/20, I/22, I/24, II/1, II/11, II/12 … (11)
 - **7 bars**: 3 (5%): II/7, II/15, AoF IX
 - **6 bars**: 3 (5%): II/10, II/23, II/24
 - **1 bar**: 1 (2%): I/5
 - **8 bars**: 1 (2%): BWV 903
 - **9 bars**: 1 (2%): MO a 3
 
-**Range.** From 4 semitones to 17 (median 12); within an octave (12 or fewer) in 37 of 61. Wider than an octave: I/3, I/7, I/10, I/15, I/19, I/20, I/21, I/22, I/24, II/10, II/11, II/13, II/15, II/17, II/18, II/20, II/21, II/24, AoF VIII, AoF IX … (24).
+**Range.** From 4 semitones to 17 (median 11); within an octave (12 or fewer) in 39 of 63. Wider than an octave: I/3, I/7, I/10, I/15, I/19, I/20, I/21, I/22, I/24, II/10, II/11, II/13, II/15, II/17, II/18, II/20, II/21, II/24, AoF VIII, AoF IX … (24).
 
 **The first note**, as a degree of the key:
 
-- **^1**: 38 (62%): I/1, I/2, I/4, I/5, I/6, I/8, I/9, I/10 … (38)
-- **^5**: 20 (33%): I/3, I/7, I/11, I/12, I/13, I/16, I/21, I/24 … (20)
+- **^1**: 40 (63%): I/1, I/2, I/4, I/5, I/6, I/8, I/9, I/10 … (40)
+- **^5**: 20 (32%): I/3, I/7, I/11, I/12, I/13, I/16, I/21, I/24 … (20)
 - **^7**: 1 (2%): II/13
 - **^2**: 1 (2%): II/21
 - **^7↑**: 1 (2%): AoF X
 
 **The last note**:
 
-- **^1**: 28 (46%): I/3, I/4, I/8, I/9, I/12, I/14, I/20, I/23 … (28)
-- **^3**: 19 (31%): I/1, I/2, I/5, I/7, I/13, I/16, I/19, I/21 … (19)
+- **^1**: 30 (48%): I/3, I/4, I/8, I/9, I/12, I/14, I/20, I/23 … (30)
+- **^3**: 19 (30%): I/1, I/2, I/5, I/7, I/13, I/16, I/19, I/21 … (19)
 - **^5**: 10 (16%): I/6, I/11, I/17, I/18, I/22, I/24, II/17, II/20 … (10)
 - **^7**: 3 (5%): I/10, I/15, II/15
 - **^4**: 1 (2%): AoF X
@@ -71,7 +71,7 @@ A first reading of the counts below; each point is to be checked in the pieces n
 
 - WTC I: 17 of 24 (I/1, I/2, I/3, I/5, I/6, I/9 … (17))
 - WTC II: 17 of 24 (II/1, II/2, II/3, II/5, II/8, II/10 … (17))
-- Art of Fugue: 3 of 10 (AoF VIII, AoF IX, AoF X)
+- Art of Fugue: 5 of 12 (AoF VIII, AoF IX, AoF X, AoF XI, AoF XIV)
 - Musical Offering: 0 of 2
 - BWV 903: 0 of 1
 
@@ -79,7 +79,7 @@ A first reading of the counts below; each point is to be checked in the pieces n
 
 - WTC I: 2 of 24 (I/14, I/18)
 - WTC II: 3 of 24 (II/15, II/17, II/20)
-- Art of Fugue: 0 of 10
+- Art of Fugue: 0 of 12
 - Musical Offering: 0 of 2
 - BWV 903: 0 of 1
 
@@ -87,7 +87,7 @@ A first reading of the counts below; each point is to be checked in the pieces n
 
 - WTC I: 6 of 24 (I/7, I/10, I/12, I/14, I/18, I/24)
 - WTC II: 4 of 24 (II/13, II/15, II/17, II/20)
-- Art of Fugue: 2 of 10 (AoF IX, AoF X)
+- Art of Fugue: 2 of 12 (AoF IX, AoF X)
 - Musical Offering: 2 of 2
 - BWV 903: 1 of 1
 
@@ -97,7 +97,7 @@ Most chromatic: I/14 (4), I/24 (4), MO a 3 (3), MO a 6 (3), I/10 (2), I/12 (2).
 
 - WTC I: 6 of 24 (I/4, I/7, I/10, I/18, I/20, I/24)
 - WTC II: 5 of 24 (II/10, II/12, II/15, II/20, II/22)
-- Art of Fugue: 1 of 10 (AoF VIII)
+- Art of Fugue: 1 of 12 (AoF VIII)
 - Musical Offering: 2 of 2
 - BWV 903: 0 of 1
 
@@ -105,11 +105,11 @@ The leaps: I/4 d4; I/7 A4; I/10 d5, A4, A2; I/18 A4; I/20 d7; I/24 A4, d7, d7; I
 
 **The widest leap**:
 
-- **a fifth**: 22 (36%): I/1, I/8, I/9, I/10, I/12, I/19, I/23, II/2 … (22)
-- **a sixth**: 15 (25%): I/2, I/5, I/6, I/11, I/16, I/17, I/18, I/21 … (15)
-- **a seventh**: 9 (15%): I/3, I/7, I/15, I/20, I/24, II/10, II/20, MO a 3 … (9)
+- **a fifth**: 24 (38%): I/1, I/8, I/9, I/10, I/12, I/19, I/23, II/2 … (24)
+- **a sixth**: 15 (24%): I/2, I/5, I/6, I/11, I/16, I/17, I/18, I/21 … (15)
+- **a seventh**: 9 (14%): I/3, I/7, I/15, I/20, I/24, II/10, II/20, MO a 3 … (9)
 - **a fourth**: 8 (13%): I/4, I/13, II/6, II/8, II/16, II/19, II/21, AoF III
-- **an octave**: 4 (7%): II/17, II/18, II/24, AoF IX
+- **an octave**: 4 (6%): II/17, II/18, II/24, AoF IX
 - **a third**: 2 (3%): I/14, II/9
 - **beyond the octave**: 1 (2%): I/22
 
@@ -117,7 +117,7 @@ The leaps: I/4 d4; I/7 A4; I/10 d5, A4, A2; I/18 A4; I/20 d7; I/24 A4, d7, d7; I
 
 - WTC I: 0 of 24
 - WTC II: 3 of 24 (II/8, II/16, II/23)
-- Art of Fugue: 3 of 10 (AoF I, AoF II, AoF III)
+- Art of Fugue: 3 of 12 (AoF I, AoF II, AoF III)
 - Musical Offering: 0 of 2
 - BWV 903: 0 of 1
 
@@ -125,15 +125,15 @@ The leaps: I/4 d4; I/7 A4; I/10 d5, A4, A2; I/18 A4; I/20 d7; I/24 A4, d7, d7; I
 
 **Real or tonal**:
 
-- **tonal**: 35 (57%): I/2, I/3, I/7, I/8, I/11, I/12, I/13, I/16 … (35)
-- **real**: 23 (38%): I/1, I/4, I/5, I/6, I/9, I/10, I/14, I/15 … (23)
+- **tonal**: 36 (57%): I/2, I/3, I/7, I/8, I/11, I/12, I/13, I/16 … (36)
+- **real**: 24 (38%): I/1, I/4, I/5, I/6, I/9, I/10, I/14, I/15 … (24)
 - **inverted**: 3 (5%): AoF V, AoF VI, AoF VII
 
 **Tonal**, by set:
 
 - WTC I: 15 of 24 (I/2, I/3, I/7, I/8, I/11, I/12 … (15))
 - WTC II: 13 of 24 (II/1, II/2, II/3, II/7, II/11, II/12 … (13))
-- Art of Fugue: 4 of 10 (AoF I, AoF II, AoF III, AoF IV)
+- Art of Fugue: 5 of 12 (AoF I, AoF II, AoF III, AoF IV, AoF XIV)
 - Musical Offering: 2 of 2
 - BWV 903: 1 of 1
 
@@ -141,16 +141,16 @@ The leaps: I/4 d4; I/7 A4; I/10 d5, A4, A2; I/18 A4; I/20 d7; I/24 A4, d7, d7; I
 
 **Where the tonal answer departs** (the first mutated note: 1st, 2nd …):
 
-- **note 1**: 18 (51%): I/3, I/7, I/11, I/12, I/13, I/16, I/18, I/21 … (18)
-- **note 2**: 12 (34%): I/8, I/17, I/19, I/22, I/23, I/24, II/7, II/11 … (12)
-- **note 3**: 3 (9%): II/21, MO a 3, MO a 6
+- **note 1**: 18 (50%): I/3, I/7, I/11, I/12, I/13, I/16, I/18, I/21 … (18)
+- **note 2**: 13 (36%): I/8, I/17, I/19, I/22, I/23, I/24, II/7, II/11 … (13)
+- **note 3**: 3 (8%): II/21, MO a 3, MO a 6
 - **note 4**: 2 (6%): I/2, II/3
 
 **The answer's interval** (from the subject, mutated notes aside):
 
-- **a fifth above**: 33 (54%): I/1, I/2, I/4, I/5, I/8, I/9, I/11, I/12 … (33)
-- **a fourth below**: 17 (28%): I/3, I/6, I/7, I/13, I/15, I/17, I/19, I/21 … (17)
-- **a fifth below**: 4 (7%): I/24, AoF IV, AoF X, BWV 903
+- **a fifth above**: 35 (56%): I/1, I/2, I/4, I/5, I/8, I/9, I/11, I/12 … (35)
+- **a fourth below**: 17 (27%): I/3, I/6, I/7, I/13, I/15, I/17, I/19, I/21 … (17)
+- **a fifth below**: 4 (6%): I/24, AoF IV, AoF X, BWV 903
 - **inverted (a stretto exposition)**: 3 (5%): AoF V, AoF VI, AoF VII
 - **a twelfth above**: 2 (3%): II/3, II/4
 - **an eleventh below**: 1 (2%): I/10
@@ -160,11 +160,11 @@ The leaps: I/4 d4; I/7 A4; I/10 d5, A4, A2; I/18 A4; I/20 d7; I/24 A4, d7, d7; I
 
 **The voice that begins**:
 
-- **middle (of 4)**: 21 (34%): I/1, I/12, I/14, I/16, I/17, I/18, I/20, I/23 … (21)
-- **top (of 3)**: 14 (23%): I/3, I/6, I/7, I/13, I/15, I/19, I/21, II/10 … (14)
-- **middle (of 3)**: 11 (18%): I/2, I/8, I/9, I/11, II/1, II/6, II/13, II/14 … (11)
-- **bottom (of 4)**: 6 (10%): I/5, II/7, II/9, II/23, AoF II, AoF VI
-- **bottom (of 3)**: 4 (7%): II/3, II/4, II/19, II/20
+- **middle (of 4)**: 22 (35%): I/1, I/12, I/14, I/16, I/17, I/18, I/20, I/23 … (22)
+- **top (of 3)**: 14 (22%): I/3, I/6, I/7, I/13, I/15, I/19, I/21, II/10 … (14)
+- **middle (of 3)**: 11 (17%): I/2, I/8, I/9, I/11, II/1, II/6, II/13, II/14 … (11)
+- **bottom (of 4)**: 7 (11%): I/5, II/7, II/9, II/23, AoF II, AoF VI, AoF XIV
+- **bottom (of 3)**: 4 (6%): II/3, II/4, II/19, II/20
 - **bottom (of 5)**: 1 (2%): I/4
 - **top (of 2)**: 1 (2%): I/10
 - **top (of 5)**: 1 (2%): I/22
@@ -173,29 +173,29 @@ The leaps: I/4 d4; I/7 A4; I/10 d5, A4, A2; I/18 A4; I/20 d7; I/24 A4, d7, d7; I
 
 **The answer above or below the subject**:
 
-- **above**: 38 (62%): I/1, I/2, I/4, I/5, I/8, I/9, I/11, I/12 … (38)
-- **below**: 23 (38%): I/3, I/6, I/7, I/10, I/13, I/15, I/17, I/19 … (23)
+- **above**: 40 (63%): I/1, I/2, I/4, I/5, I/8, I/9, I/11, I/12 … (40)
+- **below**: 23 (37%): I/3, I/6, I/7, I/10, I/13, I/15, I/17, I/19 … (23)
 
 **A link (codetta) between subject and answer**:
 
-- **no**: 53 (87%): I/1, I/2, I/4, I/5, I/6, I/7, I/8, I/9 … (53)
+- **no**: 55 (87%): I/1, I/2, I/4, I/5, I/6, I/7, I/8, I/9 … (55)
 - **yes**: 8 (13%): I/3, II/10, II/12, II/14, II/24, AoF VIII, BWV 903, MO a 3
 
 **A link before the third entry**:
 
-- **yes**: 37 (61%): I/2, I/3, I/4, I/5, I/6, I/7, I/8, I/9 … (37)
-- **no**: 23 (38%): I/1, I/12, I/13, I/18, I/19, I/21, I/23, II/1 … (23)
+- **yes**: 37 (59%): I/2, I/3, I/4, I/5, I/6, I/7, I/8, I/9 … (37)
+- **no**: 25 (40%): I/1, I/12, I/13, I/18, I/19, I/21, I/23, II/1 … (25)
 - **two voices**: 1 (2%): I/10
 
 **The order of entry** (T top, M middle, B bottom):
 
-- **TMB**: 14 (23%): I/3, I/6, I/7, I/13, I/15, I/19, I/21, II/10 … (14)
+- **TMB**: 14 (22%): I/3, I/6, I/7, I/13, I/15, I/19, I/21, II/10 … (14)
 - **MTB**: 10 (16%): I/2, I/8, I/9, I/11, II/1, II/6, II/13, II/14 … (10)
-- **BMMT**: 5 (8%): I/5, II/7, II/9, II/23, AoF II
+- **BMMT**: 6 (10%): I/5, II/7, II/9, II/23, AoF II, AoF XIV
+- **MTBM**: 6 (10%): I/16, I/20, II/22, AoF I, AoF IX, AoF XI
 - **MMBT**: 5 (8%): I/12, I/14, I/24, II/8, AoF X
-- **MTBM**: 5 (8%): I/16, I/20, II/22, AoF I, AoF IX
 - **MMTB**: 5 (8%): I/18, I/23, II/5, II/16, AoF III
-- **MTMB**: 4 (7%): I/1, II/2, II/17, AoF VII
+- **MTMB**: 4 (6%): I/1, II/2, II/17, AoF VII
 - **MBTM**: 2 (3%): I/17, AoF V
 - **BTM**: 2 (3%): II/3, II/4
 - **BMT**: 2 (3%): II/19, II/20
@@ -211,13 +211,13 @@ The leaps: I/4 d4; I/7 A4; I/10 d5, A4, A2; I/18 A4; I/20 d7; I/24 A4, d7, d7; I
 
 From the study's analysis (src/wtc/library.ts, the entries found by the subject's head and its whole, in every voice), run with the settled subjects. Entries are found, not certified: Ledbetter's entries are found at 91% (docs/wtc/ledbetter-game-check.md).
 
-**How many entries.** From 7 to 38 (median 13). Most: I/20 (38), I/4 (32), I/8 (29), II/22 (24), I/1 (23), II/5 (23). Fewest: II/11 (7), AoF III (7), I/2 (8), I/13 (8), I/14 (8), I/21 (8).
+**How many entries.** From 7 to 38 (median 14). Most: I/20 (38), I/4 (32), I/8 (29), AoF XIV (27), II/22 (24), I/1 (23). Fewest: II/11 (7), AoF III (7), I/2 (8), I/13 (8), I/14 (8), I/21 (8).
 
 **Entries per bar of music** (how densely the subject is present), by set:
 
 - WTC I: 0.33 entries a bar on average
 - WTC II: 0.25 entries a bar on average
-- Art of Fugue: 0.16 entries a bar on average
+- Art of Fugue: 0.15 entries a bar on average
 - Musical Offering: 0.09 entries a bar on average
 - BWV 903: 0.06 entries a bar on average
 
@@ -225,7 +225,7 @@ From the study's analysis (src/wtc/library.ts, the entries found by the subject'
 
 - WTC I: 7 of 24 (I/6, I/8, I/14, I/15, I/18, I/20 …)
 - WTC II: 5 of 24 (II/3, II/4, II/6, II/8, II/22)
-- Art of Fugue: 4 of 10 (AoF V, AoF VI, AoF VII, AoF X)
+- Art of Fugue: 6 of 12 (AoF V, AoF VI, AoF VII, AoF X, AoF XI, AoF XIV)
 - Musical Offering: 0 of 2
 - BWV 903: 0 of 1
 
@@ -233,7 +233,7 @@ From the study's analysis (src/wtc/library.ts, the entries found by the subject'
 
 - WTC I: 1 of 24 (I/8)
 - WTC II: 2 of 24 (II/2, II/9)
-- Art of Fugue: 1 of 10 (AoF VII)
+- Art of Fugue: 1 of 12 (AoF VII)
 - Musical Offering: 0 of 2
 - BWV 903: 0 of 1
 
@@ -250,19 +250,19 @@ The augmented and diminished entries: I/8 (aug. b. 62, aug. b. 67, aug. b. 77); 
 - **♭VII**: 3 (1%): I/1 b. 21, I/3 b. 36, II/19 b. 26
 - **♭III**: 3 (1%): I/5 b. 20, I/5 b. 24, I/15 b. 79
 
-**The degrees of the later entries** (after the exposition), in minor (354 entries; the transposition from the first entry, so an answer counts as V):
+**The degrees of the later entries** (after the exposition), in minor (380 entries; the transposition from the first entry, so an answer counts as V):
 
-- **I**: 136 (38%): I/2 b. 20, I/2 b. 26, I/2 b. 29, I/4 b. 25, I/4 b. 35 … (136)
-- **V**: 59 (17%): I/2 b. 15, I/4 b. 19, I/4 b. 38, I/4 b. 70, I/4 b. 94 … (59)
-- **IV**: 58 (16%): I/4 b. 22, I/4 b. 34, I/4 b. 48, I/4 b. 51, I/8 b. 52 … (58)
-- **III**: 34 (10%): I/2 b. 11, I/4 b. 19, I/4 b. 32, I/4 b. 94, I/6 b. 35 … (34)
-- **VII**: 25 (7%): I/4 b. 29, I/4 b. 72, I/8 b. 26, I/10 b. 13, I/10 b. 30 … (25)
-- **VI**: 17 (5%): I/4 b. 54, I/8 b. 69, I/18 b. 26, II/8 b. 19, II/8 b. 30 … (17)
-- **II**: 10 (3%): I/4 b. 66, I/6 b. 8, I/8 b. 24, I/22 b. 36, II/16 b. 45 … (10)
+- **I**: 150 (39%): I/2 b. 20, I/2 b. 26, I/2 b. 29, I/4 b. 25, I/4 b. 35 … (150)
+- **IV**: 63 (17%): I/4 b. 22, I/4 b. 34, I/4 b. 48, I/4 b. 51, I/8 b. 52 … (63)
+- **V**: 60 (16%): I/2 b. 15, I/4 b. 19, I/4 b. 38, I/4 b. 70, I/4 b. 94 … (60)
+- **III**: 36 (9%): I/2 b. 11, I/4 b. 19, I/4 b. 32, I/4 b. 94, I/6 b. 35 … (36)
+- **VII**: 26 (7%): I/4 b. 29, I/4 b. 72, I/8 b. 26, I/10 b. 13, I/10 b. 30 … (26)
+- **VI**: 18 (5%): I/4 b. 54, I/8 b. 69, I/18 b. 26, II/8 b. 19, II/8 b. 30 … (18)
+- **II**: 11 (3%): I/4 b. 66, I/6 b. 8, I/8 b. 24, I/22 b. 36, II/16 b. 45 … (11)
 - **♮VI**: 8 (2%): I/4 b. 44, I/8 b. 33, I/22 b. 68, II/14 b. 30, II/22 b. 80 … (8)
+- **♮VII**: 3 (1%): AoF IV b. 111, AoF VIII b. 152, AoF XI b. 154
 - **♭II**: 2 (1%): I/4 b. 54, AoF X b. 103
 - **♮III**: 2 (1%): I/18 b. 24, AoF VIII b. 147
-- **♮VII**: 2 (1%): AoF IV b. 111, AoF VIII b. 152
 - **♯IV**: 1 (0%): I/8 b. 17
 
 ## 5. Stretto
@@ -271,22 +271,22 @@ The augmented and diminished entries: I/8 (aug. b. 62, aug. b. 67, aug. b. 77); 
 
 - WTC I: 12 of 24 (I/1, I/4, I/5, I/6, I/8, I/11 …)
 - WTC II: 14 of 24 (II/2, II/3, II/4, II/5, II/6, II/7 …)
-- Art of Fugue: 4 of 10 (AoF V, AoF VII, AoF VIII, AoF X)
+- Art of Fugue: 6 of 12 (AoF V, AoF VII, AoF VIII, AoF X, AoF XI, AoF XIV)
 - Musical Offering: 0 of 2
 - BWV 903: 0 of 1
 
-**How close** (the second entry after the first, in quarters; 155 strettos):
+**How close** (the second entry after the first, in quarters; 163 strettos):
 
-- **a beat or less**: 47 (30%): I/1 b. 7, I/1 b. 10, I/1 b. 14, I/1 b. 16, I/1 b. 19 … (47)
-- **up to two beats**: 64 (41%): I/1 b. 16, I/1 b. 17, I/1 b. 24, I/4 b. 44, I/4 b. 72 … (64)
-- **up to a bar (four beats)**: 37 (24%): I/4 b. 34, I/6 b. 13, I/6 b. 17, I/6 b. 21, I/6 b. 22 … (37)
-- **more than a bar**: 7 (5%): I/8 b. 62, I/8 b. 67, I/15 b. 77, I/20 b. 83, II/21 b. 25 … (7)
+- **a beat or less**: 49 (30%): I/1 b. 7, I/1 b. 10, I/1 b. 14, I/1 b. 16, I/1 b. 19 … (49)
+- **up to two beats**: 64 (39%): I/1 b. 16, I/1 b. 17, I/1 b. 24, I/4 b. 44, I/4 b. 72 … (64)
+- **up to a bar (four beats)**: 40 (25%): I/4 b. 34, I/6 b. 13, I/6 b. 17, I/6 b. 21, I/6 b. 22 … (40)
+- **more than a bar**: 10 (6%): I/8 b. 62, I/8 b. 67, I/15 b. 77, I/20 b. 83, II/21 b. 25 … (10)
 
-**Where in the fugue** (the stretto's place, as a share of the piece): in the first third 26, the middle third 67, the last third 62.
+**Where in the fugue** (the stretto's place, as a share of the piece): in the first third 30, the middle third 68, the last third 65.
 
 ## 6. Episodes
 
-**Episodes** (a bar or more without an entry): 543 in the 61; per fugue from 2 to 20.
+**Episodes** (a bar or more without an entry): 577 in the 61; per fugue from 2 to 20.
 
 **The share of the fugue in episodes**, by set:
 
@@ -296,20 +296,22 @@ The augmented and diminished entries: I/8 (aug. b. 62, aug. b. 67, aug. b. 77); 
 - Musical Offering: 69% on average
 - BWV 903: 78% on average
 
-Longest: MO a 3 b. 100 (40.5 bars), BWV 903 b. 94 (37 bars), AoF VIII b. 90 (34.7 bars), II/11 b. 24 (28.3 bars), AoF X b. 17 (27.3 bars), AoF IV b. 80 (26.3 bars).
+Longest: AoF XI b. 25 (46.3 bars), MO a 3 b. 100 (40.5 bars), BWV 903 b. 94 (37 bars), AoF VIII b. 90 (34.7 bars), II/11 b. 24 (28.3 bars), AoF XI b. 104 (28.3 bars).
 
 ## 7. Pedal points
 
-**Pedal points** (a note held or repeated two bars or more, in the bass or an outer voice): 108, in 40 of the 61 fugues.
+**Pedal points** (a note held or repeated two bars or more, in the bass or an outer voice): 157, in 42 of the 61 fugues.
 
-- **on I**: 44, 33 of them in the last quarter: I/1 b. 24, I/2 b. 29, I/2 b. 29, I/4 b. 112, I/4 b. 112, I/5 b. 27 … (44)
-- **on V**: 35, 19 of them in the last quarter: I/1 b. 21, I/4 b. 105, I/4 b. 110, I/12 b. 57, I/12 b. 57, I/16 b. 8 … (35)
-- **on III**: 8, 0 of them in the last quarter: I/11 b. 36, I/24 b. 44, AoF V b. 51, AoF IX b. 45, AoF IX b. 48, AoF IX b. 76 … (8)
+- **on I**: 51, 34 of them in the last quarter: I/1 b. 24, I/2 b. 29, I/2 b. 29, I/4 b. 112, I/4 b. 112, I/5 b. 27 … (51)
+- **on V**: 49, 22 of them in the last quarter: I/1 b. 21, I/4 b. 105, I/4 b. 110, I/12 b. 57, I/12 b. 57, I/16 b. 8 … (49)
+- **on IV**: 16, 4 of them in the last quarter: I/13 b. 28, AoF VIII b. 31, AoF X b. 101, AoF XIV b. 4, AoF XIV b. 31, AoF XIV b. 34 … (16)
+- **on III**: 14, 1 of them in the last quarter: I/11 b. 36, I/24 b. 44, AoF V b. 51, AoF IX b. 45, AoF IX b. 48, AoF IX b. 76 … (14)
+- **on VII**: 12, 4 of them in the last quarter: I/20 b. 76, AoF VII b. 11, AoF IX b. 46, AoF XIV b. 23, AoF XIV b. 47, AoF XIV b. 67 … (12)
 - **on II**: 7, 1 of them in the last quarter: I/15 b. 62, AoF VII b. 8, AoF VII b. 27, AoF IX b. 49, AoF IX b. 77, MO a 3 b. 105 … (7)
-- **on VII**: 6, 3 of them in the last quarter: I/20 b. 76, AoF VII b. 11, AoF IX b. 46, MO a 3 b. 77, MO a 3 b. 164, MO a 3 b. 178
-- **on IV**: 5, 2 of them in the last quarter: I/13 b. 28, AoF VIII b. 31, AoF X b. 101, BWV 903 b. 107, MO a 6 b. 72
+- **on VI**: 4, 1 of them in the last quarter: AoF IX b. 121, AoF XIV b. 24, AoF XIV b. 29, AoF XIV b. 46
 - **on ♮VII**: 1, 0 of them in the last quarter: AoF IX b. 93
-- **on VI**: 1, 1 of them in the last quarter: AoF IX b. 121
+- **on ♭II**: 1, 0 of them in the last quarter: AoF XIV b. 92
+- **on ♮III**: 1, 1 of them in the last quarter: AoF XIV b. 224
 - **on ♮VI**: 1, 0 of them in the last quarter: BWV 903 b. 91
 
 Pedal points are found at 58% of Ledbetter's (docs/wtc/ledbetter-game-check.md): these counts are a lower bound.

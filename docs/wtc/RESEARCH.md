@@ -10,11 +10,11 @@ checked against the period's theory, the owner deciding which become precepts.
 | set | pieces | source | status |
 |---|---|---|---|
 | The Well-Tempered Clavier, I and II | 48 fugues | Humdrum (Huron 1994), `data/wtc/fugues.json` | in use since D119-D138 |
-| The Art of Fugue | Contrapuncti I-X | Mutopia (public domain), `data/wtc/more.json` | imported (D160); XI, XII-XIII (mirror), XIV not found in an open encoding |
+| The Art of Fugue | Contrapuncti I-XI and XIV (the unfinished fugue) | Mutopia (public domain), `data/wtc/more.json` | imported (D160); the mirror fugues (XII-XIII) not found in an open encoding; XIV tracked towards a completion (docs/wtc/XIV.md) |
 | The Musical Offering | Ricercar a 3, Ricercar a 6 | Sapp's Humdrum (2024) | imported (D160); the canons left out, as the owner asked |
 | Chromatic Fantasia and Fugue | the fugue, BWV 903 | Mutopia (public domain) | imported (D160) |
 
-61 fugues. The Art of Fugue and the Musical Offering bring what the 48 have little of: one subject
+63 fugues. The Art of Fugue and the Musical Offering bring what the 48 have little of: one subject
 treated in many ways (inversion, augmentation, diminution, stretto, combination with new subjects),
 invertible counterpoint at the tenth and twelfth named in the titles (IX, X), the six-voice texture,
 the stile antico (Ricercar a 6); BWV 903 a chromatic subject and the free keyboard fugue.
@@ -89,3 +89,7 @@ the stile antico (Ricercar a 6); BWV 903 a chromatic subject and the free keyboa
 Next: R2 proper (transformed entries in strettos, later subjects for the Art of Fugue, cadences), then the
 remaining habits (countersubject, cadences, dissonance by Kirnberger's categories) and Fux's 29 claims
 answered one by one.
+- **Contrapunctus XI and XIV added (12 October):** the owner asks that XIV be tracked, a completion being a
+  future goal; Mutopia has it as "Contrapunctus XIX" (the Bach-Gesellschaft's numbering), and XI too. 63
+  fugues. `docs/wtc/XIV.md`: the fragment as read (three subjects, b. 1, 115, 193) and the road to a
+  completion, knowledge first.

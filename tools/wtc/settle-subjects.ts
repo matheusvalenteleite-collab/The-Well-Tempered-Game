@@ -53,7 +53,7 @@ console.log(Object.keys(out).length, "settled");
 
 // The document: every subject, its notes, the answer, the reader's reason (docs/wtc/SUBJECTS.md).
 const TITLE: Record<string, string> = {
-  aof01: "AoF I", aof02: "AoF II", aof03: "AoF III", aof04: "AoF IV", aof05: "AoF V", aof06: "AoF VI", aof07: "AoF VII", aof08: "AoF VIII", aof09: "AoF IX", aof10: "AoF X", mo3: "MO ricercar a 3", mo6: "MO ricercar a 6", bwv903f: "BWV 903 fugue",
+  aof01: "AoF I", aof02: "AoF II", aof03: "AoF III", aof04: "AoF IV", aof05: "AoF V", aof06: "AoF VI", aof07: "AoF VII", aof08: "AoF VIII", aof09: "AoF IX", aof10: "AoF X", aof11: "AoF XI", aof14: "AoF XIV", mo3: "MO ricercar a 3", mo6: "MO ricercar a 6", bwv903f: "BWV 903 fugue",
 };
 const nameOf = (id: string) => TITLE[id] ?? `${id[3] === "1" ? "I" : "II"}/${Number(id.slice(5))}`;
 const pc = (p: string) => p.replace(/-?\d+$/, "").replace("##", "𝄪").replace("#", "♯").replace("bb", "𝄫").replace(/(?<=.)b/, "♭");
