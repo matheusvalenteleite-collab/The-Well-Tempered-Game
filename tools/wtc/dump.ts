@@ -12,9 +12,14 @@ const [n, d] = p.meter.split("/").map(Number);
 const bar = (n * 4 * TPQ) / d;
 const beat = (4 * TPQ) / d;
 const first = p.bars.find((x) => x.n === 1)?.on ?? 0;
-const from = first + (Number(a) - 1) * bar;
+// From bar 1, the pickup bar (bar 0) is included: an upbeat is part of the music asked for.
+const from = Number(a) <= 1 ? 0 : first + (Number(a) - 1) * bar;
 const to = first + Number(b) * bar;
-const where = (t: number) => `${Math.floor((t - first) / bar) + 1}:${+(1 + ((t - first) % bar) / beat).toFixed(3)}`;
+// A pickup is bar 0, its beats counted as if it were a whole bar (an upbeat quarter in 4/4 is 0:4).
+const where = (t: number) => {
+  const k = Math.floor((t - first) / bar);
+  return `${k + 1}:${+(1 + (t - first - k * bar) / beat).toFixed(3)}`;
+};
 const VAL: Record<number, string> = { 8: "b", 6: "w.", 4: "w", 3: "h.", 2: "h", 1.5: "q.", 1: "q", 0.75: "e.", 0.5: "e", 0.375: "s.", 0.25: "s", 0.125: "t" };
 console.log(`# ${id} bars ${a}-${b}, metre ${p.meter}, ${p.voices.length} voices (0 = top)`);
 p.voices.forEach((v, k) => {
