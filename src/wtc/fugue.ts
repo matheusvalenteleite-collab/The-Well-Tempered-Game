@@ -281,6 +281,53 @@ function apart(p: WtcPiece, entries: Entry[]): Entry[] {
  * subject searched for at those rhythms. Subjects of fewer than six notes are skipped (diminished,
  * they turn up in ordinary figuration).
  */
+/**
+ * Entries whose rhythm Bach changes (D160): the subject's intervals by letter, exactly (a tonal change
+ * allowed among the first three, the last interval free), in a rhythm that may differ note by note (each
+ * time-span between the subject's notes between a third and three times the subject's; scaled, between
+ * half and double, and no tonal change), so long
+ * as the whole lasts the subject's length scaled within a fifth either way. With `scale` 0.5 or 2: the
+ * diminutions and augmentations a dotted or otherwise varied rhythm hides from `findTransformed` (Art of
+ * Fugue VI, in the French style); with 1, entries varied in rhythm at their own speed. Inversion exact.
+ */
+export function findByContour(p: WtcPiece, subject: Note[], scale: number): (Entry & { scale: number })[] {
+  const n = subject.length;
+  // Intervals without the rhythm are too weak a sign under eight notes (II/9's six notes match an episode).
+  if (n < 8) return [];
+  const sInt = subject.slice(1).map((x, i) => diatonic(x.pitch) - diatonic(subject[i].pitch));
+  const sIoi = subject.slice(1).map((x, i) => x.on - subject[i].on);
+  const span = subject[n - 1].on - subject[0].on;
+  const out: (Entry & { scale: number })[] = [];
+  p.voices.forEach((v, voice) => {
+    const l = line(v);
+    for (let s = 0; s + n <= l.length; s++) {
+      for (const form of ["subject", "inversion"] as const) {
+        let changed = 0;
+        let ok = true;
+        for (let i = 0; i < n - 2 && ok; i++) {
+          const iv = diatonic(l[s + i + 1].pitch) - diatonic(l[s + i].pitch);
+          const want = form === "subject" ? sInt[i] : -sInt[i];
+          if (iv !== want) {
+            if (form === "subject" && i < 3 && changed === 0 && scale === 1) changed++;
+            else ok = false;
+          }
+        }
+        if (!ok) continue;
+        const lspan = l[s + n - 1].on - l[s].on;
+        if (lspan < 0.8 * scale * span || lspan > 1.25 * scale * span) continue;
+        for (let i = 0; i < n - 1 && ok; i++) {
+          const r = (l[s + i + 1].on - l[s + i].on) / (scale * sIoi[i]);
+          // A changed speed admits the dotted pairs of a French diminution, no more (half to double).
+          const [lo, hi] = scale === 1 ? [1 / 3, 3] : [0.5, 2];
+          if (r < lo - 1e-9 || r > hi + 1e-9) ok = false;
+        }
+        if (ok) out.push({ voice, on: l[s].on, at: s, length: n, pitch: l[s].pitch, degree: degree(l[s].pitch, p.key, p.mode), form, changed, scale });
+      }
+    }
+  });
+  return out.sort((a, b) => a.on - b.on || a.voice - b.voice).filter((e, i, a) => !a.slice(0, i).some((x) => x.voice === e.voice && x.at === e.at));
+}
+
 export function findTransformed(p: WtcPiece, subject: Note[]): (Entry & { scale: 2 | 0.5 })[] {
   if (subject.length < 6) return [];
   const out: (Entry & { scale: 2 | 0.5 })[] = [];

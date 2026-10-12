@@ -13,7 +13,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 | | fugues | preludes |
 |---|---|---|
-| entry | 157 of 173 (91%) | none |
+| entry | 158 of 173 (91%) | none |
 | stretto | 40 of 47 (85%) | none |
 | pedal | 7 of 12 (58%) | 3 of 3 (100%) |
 | cadence | 8 of 35 (23%) | 4 of 29 (14%) |
@@ -274,7 +274,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 
 ### wtc1f14
 
-5 of 8 hold.
+6 of 8 hold.
 
 - ✗ `section b.11-14 episode`: no section starts here
 - ✓ `entry b.15 soprano`: found
@@ -283,7 +283,7 @@ analysis on the same claims see docs/wtc/ledbetter-check.md.
 - ✓ `entry b.37 soprano`: found
 - ✗ `cadence b.20 c# (score; L.: b.20 C#)`: not found
 - ✓ `entry b.20 alto f# (inverso, starting on C#; c# also possible) [check]`: found (inverted)
-- ✗ `entry b.25 soprano c# (head varied; L. gives the starting note)`: not found
+- ✓ `entry b.25 soprano c# (head varied; L. gives the starting note)`: found, on c#
 
 ### wtc1p14
 

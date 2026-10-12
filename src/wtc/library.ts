@@ -20,7 +20,7 @@ import sectionsData from "../../data/wtc/ledbetter-sections.json" with { type: "
 import { laterSubjects } from "./subjects.ts";
 import { settled } from "./settled.ts";
 import type { WtcPiece } from "./corpus.ts";
-import { findEntriesByHead, findTransformed, line, subjectAndAnswer, TPQ } from "./fugue.ts";
+import { findByContour, findEntriesByHead, findTransformed, line, subjectAndAnswer, TPQ } from "./fugue.ts";
 import { findEntries, type Entry, type FullNote } from "./entries.ts";
 import { separateVoices } from "./voices.ts";
 import { parsePitch } from "../music/pitch.ts";
@@ -123,8 +123,10 @@ export function fugueOf(p: WtcPiece): LibFugue {
   // findEntries' shift is from the subject's first note as found in the piece; the lab's from the subject itself (the same, the first entry being the subject).
   // Within a voice entries do not overlap (a subject of even notes matches a few notes on, in sequences):
   // the lab's kept first, then mine in time order.
+  // Entries varied in rhythm at their own speed (D160), after the exact ones.
+  const varied = findByContour(p, subject, 1).map((e) => asEntry({ voice: e.voice, at: e.at, length: e.length, form: e.form }));
   const kept: Entry[] = [];
-  for (const e of [...lab.sort((a, b) => a.at - b.at), ...more.sort((a, b) => a.at - b.at)]) if (!kept.some((x) => voiceOf(x) === voiceOf(e) && x.at < e.end - 1e-6 && e.at < x.end - 1e-6)) kept.push(e);
+  for (const e of [...lab.sort((a, b) => a.at - b.at), ...more.sort((a, b) => a.at - b.at), ...varied.sort((a, b) => a.at - b.at)]) if (!kept.some((x) => voiceOf(x) === voiceOf(e) && x.at < e.end - 1e-6 && e.at < x.end - 1e-6)) kept.push(e);
   const entries = kept.sort((a, b) => a.at - b.at);
   // The later subjects, each from the bar where Ledbetter has it enter; its entries' notes as encoded.
   const later: Entry[] = [];
@@ -156,7 +158,9 @@ export function fugueOf(p: WtcPiece): LibFugue {
   // Augmentation and diminution: kept where no ordinary entry in the same voice overlaps them, nor an
   // earlier one of these (the last note may be shared: an entry often begins on it, Book II no. 2, b. 16).
   const transformed: Entry[] = [];
-  for (const e of findTransformed(p, subject)) {
+  // Exact augmentations and diminutions first, then those in a changed rhythm (D160: Art of Fugue VI).
+  const scaled = [...findTransformed(p, subject), ...findByContour(p, subject, 0.5), ...findByContour(p, subject, 2)].map((e) => ({ ...e, scale: e.scale as 2 | 0.5 }));
+  for (const e of scaled) {
     const t = { ...asEntry(e), scale: e.scale };
     const v = piece.voice[t.notes[0]];
     const lastOn = piece.notes[t.notes[t.notes.length - 1]].at;

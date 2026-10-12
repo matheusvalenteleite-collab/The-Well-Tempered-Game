@@ -211,7 +211,7 @@ The leaps: I/4 d4; I/7 A4; I/10 d5, A4, A2; I/18 A4; I/20 d7; I/24 A4, d7, d7; I
 
 From the study's analysis (src/wtc/library.ts, the entries found by the subject's head and its whole, in every voice), run with the settled subjects. Entries are found, not certified: Ledbetter's entries are found at 91% (docs/wtc/ledbetter-game-check.md).
 
-**How many entries.** From 7 to 38 (median 14). Most: I/20 (38), I/4 (32), I/8 (29), AoF XIV (27), II/22 (24), I/1 (23). Fewest: II/11 (7), AoF III (7), I/2 (8), I/13 (8), I/14 (8), I/21 (8).
+**How many entries.** From 7 to 38 (median 14). Most: I/20 (38), I/4 (32), I/8 (31), AoF XIV (27), II/22 (24), I/1 (23). Fewest: II/11 (7), AoF III (7), I/2 (8), I/13 (8), I/21 (8), II/20 (8).
 
 **Entries per bar of music** (how densely the subject is present), by set:
 
@@ -233,33 +233,33 @@ From the study's analysis (src/wtc/library.ts, the entries found by the subject'
 
 - WTC I: 1 of 24 (I/8)
 - WTC II: 2 of 24 (II/2, II/9)
-- Art of Fugue: 1 of 12 (AoF VII)
+- Art of Fugue: 2 of 12 (AoF VI, AoF VII)
 - Musical Offering: 0 of 2
 - BWV 903: 0 of 1
 
-The augmented and diminished entries: I/8 (aug. b. 62, aug. b. 67, aug. b. 77); II/2 (aug. b. 14, aug. b. 19); II/9 (dim. b. 23, dim. b. 25, dim. b. 26, dim. b. 27 …); AoF VII (aug. b. 2, aug. b. 36).
+The augmented and diminished entries: I/8 (aug. b. 62, aug. b. 67, aug. b. 77); II/2 (aug. b. 14, aug. b. 19); II/9 (dim. b. 23, dim. b. 25, dim. b. 26, dim. b. 27 …); AoF VI (dim. b. 2, dim. b. 3, dim. b. 10, dim. b. 15 …); AoF VII (aug. b. 2, aug. b. 14, aug. b. 36, aug. b. 38).
 
-**The degrees of the later entries** (after the exposition), in major (235 entries; the transposition from the first entry, so an answer counts as V):
+**The degrees of the later entries** (after the exposition), in major (236 entries; the transposition from the first entry, so an answer counts as V):
 
 - **I**: 74 (31%): I/1 b. 7, I/1 b. 14, I/1 b. 16, I/1 b. 24, I/3 b. 22 … (74)
 - **V**: 64 (27%): I/1 b. 7, I/1 b. 9, I/1 b. 10, I/1 b. 14, I/1 b. 15 … (64)
-- **VI**: 35 (15%): I/1 b. 17, I/1 b. 19, I/3 b. 14, I/3 b. 38, I/5 b. 8 … (35)
+- **VI**: 36 (15%): I/1 b. 17, I/1 b. 19, I/3 b. 14, I/3 b. 38, I/5 b. 8 … (36)
 - **IV**: 24 (10%): I/1 b. 24, I/3 b. 40, I/5 b. 11, I/5 b. 11, I/5 b. 14 … (24)
 - **II**: 19 (8%): I/1 b. 10, I/1 b. 17, I/3 b. 34, I/5 b. 15, I/11 b. 46 … (19)
 - **III**: 13 (6%): I/1 b. 12, I/1 b. 19, I/3 b. 19, I/7 b. 17, I/15 b. 51 … (13)
 - **♭VII**: 3 (1%): I/1 b. 21, I/3 b. 36, II/19 b. 26
 - **♭III**: 3 (1%): I/5 b. 20, I/5 b. 24, I/15 b. 79
 
-**The degrees of the later entries** (after the exposition), in minor (380 entries; the transposition from the first entry, so an answer counts as V):
+**The degrees of the later entries** (after the exposition), in minor (385 entries; the transposition from the first entry, so an answer counts as V):
 
-- **I**: 150 (39%): I/2 b. 20, I/2 b. 26, I/2 b. 29, I/4 b. 25, I/4 b. 35 … (150)
-- **IV**: 63 (17%): I/4 b. 22, I/4 b. 34, I/4 b. 48, I/4 b. 51, I/8 b. 52 … (63)
-- **V**: 60 (16%): I/2 b. 15, I/4 b. 19, I/4 b. 38, I/4 b. 70, I/4 b. 94 … (60)
+- **I**: 153 (40%): I/2 b. 20, I/2 b. 26, I/2 b. 29, I/4 b. 25, I/4 b. 35 … (153)
+- **IV**: 63 (16%): I/4 b. 22, I/4 b. 34, I/4 b. 48, I/4 b. 51, I/8 b. 52 … (63)
+- **V**: 61 (16%): I/2 b. 15, I/4 b. 19, I/4 b. 38, I/4 b. 70, I/4 b. 94 … (61)
 - **III**: 36 (9%): I/2 b. 11, I/4 b. 19, I/4 b. 32, I/4 b. 94, I/6 b. 35 … (36)
 - **VII**: 26 (7%): I/4 b. 29, I/4 b. 72, I/8 b. 26, I/10 b. 13, I/10 b. 30 … (26)
 - **VI**: 18 (5%): I/4 b. 54, I/8 b. 69, I/18 b. 26, II/8 b. 19, II/8 b. 30 … (18)
 - **II**: 11 (3%): I/4 b. 66, I/6 b. 8, I/8 b. 24, I/22 b. 36, II/16 b. 45 … (11)
-- **♮VI**: 8 (2%): I/4 b. 44, I/8 b. 33, I/22 b. 68, II/14 b. 30, II/22 b. 80 … (8)
+- **♮VI**: 9 (2%): I/4 b. 44, I/8 b. 33, I/22 b. 68, II/14 b. 30, II/22 b. 80 … (9)
 - **♮VII**: 3 (1%): AoF IV b. 111, AoF VIII b. 152, AoF XI b. 154
 - **♭II**: 2 (1%): I/4 b. 54, AoF X b. 103
 - **♮III**: 2 (1%): I/18 b. 24, AoF VIII b. 147
@@ -271,18 +271,18 @@ The augmented and diminished entries: I/8 (aug. b. 62, aug. b. 67, aug. b. 77); 
 
 - WTC I: 12 of 24 (I/1, I/4, I/5, I/6, I/8, I/11 …)
 - WTC II: 14 of 24 (II/2, II/3, II/4, II/5, II/6, II/7 …)
-- Art of Fugue: 6 of 12 (AoF V, AoF VII, AoF VIII, AoF X, AoF XI, AoF XIV)
+- Art of Fugue: 8 of 12 (AoF IV, AoF V, AoF VI, AoF VII, AoF VIII, AoF X …)
 - Musical Offering: 0 of 2
 - BWV 903: 0 of 1
 
-**How close** (the second entry after the first, in quarters; 163 strettos):
+**How close** (the second entry after the first, in quarters; 178 strettos):
 
-- **a beat or less**: 49 (30%): I/1 b. 7, I/1 b. 10, I/1 b. 14, I/1 b. 16, I/1 b. 19 … (49)
-- **up to two beats**: 64 (39%): I/1 b. 16, I/1 b. 17, I/1 b. 24, I/4 b. 44, I/4 b. 72 … (64)
-- **up to a bar (four beats)**: 40 (25%): I/4 b. 34, I/6 b. 13, I/6 b. 17, I/6 b. 21, I/6 b. 22 … (40)
-- **more than a bar**: 10 (6%): I/8 b. 62, I/8 b. 67, I/15 b. 77, I/20 b. 83, II/21 b. 25 … (10)
+- **a beat or less**: 52 (29%): I/1 b. 7, I/1 b. 10, I/1 b. 14, I/1 b. 16, I/1 b. 19 … (52)
+- **up to two beats**: 65 (37%): I/1 b. 16, I/1 b. 17, I/1 b. 24, I/4 b. 44, I/4 b. 72 … (65)
+- **up to a bar (four beats)**: 50 (28%): I/4 b. 34, I/6 b. 13, I/6 b. 17, I/6 b. 21, I/6 b. 22 … (50)
+- **more than a bar**: 11 (6%): I/8 b. 62, I/8 b. 67, I/15 b. 77, I/20 b. 83, II/21 b. 25 … (11)
 
-**Where in the fugue** (the stretto's place, as a share of the piece): in the first third 30, the middle third 68, the last third 65.
+**Where in the fugue** (the stretto's place, as a share of the piece): in the first third 36, the middle third 72, the last third 70.
 
 ## 6. Episodes
 
@@ -290,9 +290,9 @@ The augmented and diminished entries: I/8 (aug. b. 62, aug. b. 67, aug. b. 77); 
 
 **The share of the fugue in episodes**, by set:
 
-- WTC I: 54% on average
+- WTC I: 53% on average
 - WTC II: 55% on average
-- Art of Fugue: 56% on average
+- Art of Fugue: 54% on average
 - Musical Offering: 69% on average
 - BWV 903: 78% on average
 
