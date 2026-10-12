@@ -1,0 +1,1352 @@
+<title>Canon at the Octave</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one engraved score sheet as the working surface; stage rail and canon map above it, the contextual control desk and transport below. */
+:root {
+  --paper: #eef1ee;
+  --sheet: #fbfcfa;
+  --ink: #18212b;
+  --muted: #59636e;
+  --rule: #cfd6d1;
+  --accent: #0d6c66;
+  --accent-ink: #f4fbfa;
+  --accent-soft: #d6ebe8;
+  --play: #95306a;
+  --warn: #9a5200;
+  --faint: #98a2ab;
+  --display: "Alegreya SC", "Palatino Linotype", Palatino, Georgia, serif;
+  --body: "Alegreya Sans", "Gill Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #101418; --sheet: #171d23; --ink: #e2e7ec; --muted: #9ba5b0; --rule: #2c353e;
+    --accent: #5cc3b8; --accent-ink: #082522; --accent-soft: #173836; --play: #e48bbf; --warn: #e3a35a; --faint: #5d6873;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #101418; --sheet: #171d23; --ink: #e2e7ec; --muted: #9ba5b0; --rule: #2c353e;
+  --accent: #5cc3b8; --accent-ink: #082522; --accent-soft: #173836; --play: #e48bbf; --warn: #e3a35a; --faint: #5d6873;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.5; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 64px; display: grid; gap: 22px; }
+@media (max-width: 520px) { .wrap { padding-inline: 16px; } }
+
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0; }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(34px, 6vw, 54px); line-height: 1; margin: 0; letter-spacing: .01em; text-wrap: balance; }
+.lede { margin: 4px 0 0; max-width: 66ch; color: var(--muted); }
+
+.stages { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--rule); }
+.stages li { padding: 10px 10px 0 0; display: grid; gap: 2px; color: var(--faint); border-top: 3px solid transparent; margin-top: -2px; min-width: 0; }
+.stages li .n { font-family: var(--mono); font-size: 12px; }
+.stages li .t { font-family: var(--display); font-size: 17px; line-height: 1.15; }
+.stages li .b { font-family: var(--mono); font-size: 11px; letter-spacing: .04em; }
+.stages li.done { color: var(--muted); border-top-color: var(--muted); }
+.stages li.now { color: var(--ink); border-top-color: var(--accent); }
+.stages li.now .n { color: var(--accent); }
+@media (max-width: 560px) { .stages li .b { display: none; } .stages li .t { font-size: 15px; } }
+
+.map { display: grid; grid-template-columns: auto repeat(4, minmax(0, 1fr)); gap: 4px; align-items: stretch; font-size: 13px; }
+.map .lab { font-family: var(--mono); font-size: 11px; color: var(--muted); padding-right: 8px; align-self: center; white-space: nowrap; }
+.map .cell { border: 1px solid var(--rule); border-radius: 3px; padding: 4px 8px; min-height: 30px; display: flex; align-items: center; justify-content: space-between; gap: 6px; color: var(--faint); background: transparent; min-width: 0; }
+.map .cell b { font-weight: 500; font-family: var(--body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.map .cell i { font-family: var(--mono); font-style: normal; font-size: 10px; white-space: nowrap; }
+.map .cell.have { color: var(--ink); background: var(--sheet); }
+.map .cell.cand { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.map .cell.ghost { border-style: dashed; }
+.map .cell.on { outline: 2px solid var(--play); outline-offset: -2px; }
+.map .head { font-family: var(--mono); font-size: 11px; color: var(--muted); text-align: left; padding-left: 9px; }
+@media (max-width: 560px) { .map .cell i { display: none; } .map .lab { font-size: 10px; } }
+
+.sheet { background: var(--sheet); border: 1px solid var(--rule); border-radius: 4px; padding: 14px 10px 6px; position: relative; }
+#score { position: relative; width: 100%; min-height: 200px; touch-action: manipulation; }
+#score svg { display: block; }
+#score.writing { cursor: crosshair; }
+#ghost { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--muted); padding: 6px 6px 4px; border-top: 1px solid var(--rule); margin-top: 6px; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; background: currentColor; }
+.legend .l-ink { color: var(--ink); } .legend .l-acc { color: var(--accent); } .legend .l-play { color: var(--play); } .legend .l-faint { color: var(--faint); }
+.legend span { color: var(--muted); }
+.legend span.l-ink::before { background: var(--ink); } .legend span.l-acc::before { background: var(--accent); } .legend span.l-play::before { background: var(--play); } .legend span.l-faint::before { background: var(--faint); }
+
+.desk { display: grid; gap: 14px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 4px; padding: 18px; }
+.desk h2 { font-family: var(--display); font-size: 24px; font-weight: 500; margin: 0; line-height: 1.15; text-wrap: balance; }
+.desk p { margin: 0; max-width: 70ch; }
+.desk .note { color: var(--muted); font-size: 15px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.group { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.group + .group { padding-left: 10px; border-left: 1px solid var(--rule); }
+.glab { font-family: var(--mono); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-right: 4px; }
+
+button, select { font: inherit; color: var(--ink); }
+.btn { border: 1px solid var(--rule); background: var(--paper); border-radius: 4px; padding: 7px 14px; cursor: pointer; font-size: 15px; line-height: 1.2; }
+.btn:hover:not(:disabled) { border-color: var(--muted); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
+.btn.big { padding: 10px 20px; font-size: 16px; }
+.tool { min-width: 42px; height: 42px; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; border: 1px solid var(--rule); background: var(--paper); border-radius: 4px; cursor: pointer; font-size: 16px; }
+.tool svg { width: 22px; height: 30px; }
+.tool[aria-pressed="true"] { background: var(--ink); color: var(--sheet); border-color: var(--ink); }
+.tool:disabled { opacity: .3; cursor: not-allowed; }
+.tool .k { font-family: var(--mono); font-size: 10px; opacity: .65; }
+button:focus-visible, select:focus-visible { outline: 2px solid var(--play); outline-offset: 2px; }
+select { background: var(--paper); border: 1px solid var(--rule); border-radius: 4px; padding: 7px 10px; }
+.fill { font-family: var(--mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.meter { display: inline-grid; grid-template-columns: repeat(32, 1fr); gap: 1px; width: 180px; height: 8px; vertical-align: middle; margin-left: 8px; }
+.meter i { background: var(--rule); }
+.meter i.f { background: var(--ink); }
+.meter i.bar { margin-left: 3px; }
+.warn { color: var(--warn); }
+.keys { font-size: 13px; color: var(--muted); }
+.keys kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 3px; padding: 0 4px; background: var(--paper); color: var(--ink); }
+
+.transport { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.transport .play { width: 52px; height: 52px; border-radius: 50%; border: none; background: var(--ink); color: var(--sheet); cursor: pointer; display: grid; place-items: center; }
+.transport .play svg { width: 20px; height: 20px; fill: currentColor; }
+.switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 15px; user-select: none; }
+.switch input { appearance: none; width: 36px; height: 20px; border-radius: 10px; background: var(--rule); position: relative; cursor: pointer; margin: 0; transition: background .15s; }
+.switch input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--sheet); transition: transform .15s; }
+.switch input:checked { background: var(--accent); }
+.switch input:checked::after { transform: translateX(16px); }
+.switch input:focus-visible { outline: 2px solid var(--play); outline-offset: 2px; }
+.tempo { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; }
+.tempo input { width: 120px; accent-color: var(--accent); }
+.tempo output { font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; min-width: 6ch; }
+.pos { font-family: var(--mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.busy { display: inline-flex; gap: 10px; align-items: center; color: var(--muted); }
+.busy::before { content: ""; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--rule); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .busy::before { animation: none; } .switch input, .switch input::after { transition: none; } }
+footer { font-size: 13px; color: var(--muted); max-width: 80ch; }
+footer p { margin: 0 0 6px; }
+</style>
+
+<main class="wrap">
+  <header>
+    <p class="eyebrow">Perpetual canon · 2 voices · at the octave below · entry after 2 bars</p>
+    <h1>Canon at the Octave</h1>
+    <p class="lede">Write a two-bar subject in the treble. The bass imitates it an octave lower, two bars later, while the treble keeps going against it. You accept or refuse each new pair of bars. The last pair also has to sit under the subject, so the canon can repeat without end.</p>
+  </header>
+
+  <ol class="stages" id="stages" aria-label="Stages"></ol>
+
+  <div class="map" id="map" aria-label="Canon plan"></div>
+
+  <section class="sheet" aria-label="Score">
+    <div id="score"></div>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <section class="transport" aria-label="Playback">
+    <button class="play" id="playBtn" aria-label="Play"></button>
+    <label class="switch"><input type="checkbox" id="loopSw" checked> Loop</label>
+    <label class="tempo">Tempo <input type="range" id="tempo" min="40" max="160" step="2" value="80"> <output id="tempoOut">♩ = 80</output></label>
+    <label class="switch" title="Figures between the staves; dissonances in bold"><input type="checkbox" id="intSw"> Show intervals</label>
+    <span class="pos" id="pos"></span>
+  </section>
+
+  <section class="desk" id="desk" aria-live="polite"></section>
+
+  <footer>
+    <p>The continuations follow two-voice florid counterpoint. Notes that start together, and every beat 1 and 3, must form consonances (3rds, 5ths, 6ths, 8ves, and their compounds; the 4th counts as a dissonance). Dissonances are allowed as passing or neighbour notes on weak parts of the beat, or as prepared suspensions that resolve down by step. Parallel 5ths and 8ves are not allowed, and the voices may not cross. Melodic leaps are limited to consonant intervals, and a large leap must be followed by a step back.</p>
+    <p>On the first pass the bass is silent in bars 1–2. When the canon repeats, the bass plays bars 7–8 there, under the subject.</p>
+  </footer>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.5/build/cjs/vexflow.js"></script>
+<script>
+/* ===== Canon engine: pitch, key, interval rules, generator (no DOM) ===== */
+const Engine = (() => {
+  const SEG = 32, BAR = 16, FULL = 128;
+  const LETTER_PC = [0, 2, 4, 5, 7, 9, 11];
+  const LETTERS = "CDEFGAB";
+
+  const KEYS = {
+    "C": { t: 0, a: 0, mode: "major", vf: "C", label: "C major" },
+    "G": { t: 4, a: 0, mode: "major", vf: "G", label: "G major" },
+    "D": { t: 1, a: 0, mode: "major", vf: "D", label: "D major" },
+    "A": { t: 5, a: 0, mode: "major", vf: "A", label: "A major" },
+    "F": { t: 3, a: 0, mode: "major", vf: "F", label: "F major" },
+    "Bb": { t: 6, a: -1, mode: "major", vf: "Bb", label: "B♭ major" },
+    "Eb": { t: 2, a: -1, mode: "major", vf: "Eb", label: "E♭ major" },
+    "Am": { t: 5, a: 0, mode: "minor", vf: "Am", label: "A minor" },
+    "Em": { t: 2, a: 0, mode: "minor", vf: "Em", label: "E minor" },
+    "Dm": { t: 1, a: 0, mode: "minor", vf: "Dm", label: "D minor" },
+    "Gm": { t: 4, a: 0, mode: "minor", vf: "Gm", label: "G minor" },
+    "Cm": { t: 0, a: 0, mode: "minor", vf: "Cm", label: "C minor" },
+  };
+
+  function keyInfo(id) {
+    const k = KEYS[id];
+    const steps = k.mode === "major" ? [0, 2, 4, 5, 7, 9, 11] : [0, 2, 3, 5, 7, 8, 10];
+    const tonicPc = (LETTER_PC[k.t] + k.a + 12) % 12;
+    const alts = new Array(7).fill(0);
+    for (let d = 0; d < 7; d++) {
+      const letter = (k.t + d) % 7;
+      let alt = ((tonicPc + steps[d]) - LETTER_PC[letter]) % 12;
+      if (alt > 6) alt -= 12;
+      if (alt < -6) alt += 12;
+      alts[letter] = alt;
+    }
+    return { id, ...k, tonicLetter: k.t, tonicPc, alts };
+  }
+
+  const letterOf = (step) => ((step % 7) + 7) % 7;
+  const octOf = (step) => Math.floor(step / 7);
+  const midiOf = (p) => (octOf(p.step) + 1) * 12 + LETTER_PC[letterOf(p.step)] + p.alt;
+  const down = (p) => ({ step: p.step - 7, alt: p.alt });
+  const degreeOf = (p, key) => (letterOf(p.step) - key.tonicLetter + 7) % 7;
+  const isRaisedLT = (p, key) => key.mode === "minor" && degreeOf(p, key) === 6 && p.alt === key.alts[letterOf(p.step)] + 1;
+  const ACC = { "-2": "♭♭", "-1": "♭", "0": "", "1": "♯", "2": "×" };
+  const nameOf = (p) => LETTERS[letterOf(p.step)] + ACC[p.alt] + octOf(p.step);
+  const pitchKey = (p) => p ? p.step + ":" + p.alt : "r";
+
+  /** Harmonic interval, u above l. */
+  function hInt(u, l) {
+    const gen = u.step - l.step, semis = midiOf(u) - midiOf(l);
+    if (gen < 0 || semis < 0) return { cross: true, gen, semis };
+    const g = gen % 7, s = semis - 12 * Math.floor(gen / 7);
+    const cons = (g === 0 && s === 0) || (g === 2 && (s === 3 || s === 4)) || (g === 4 && s === 7) || (g === 5 && (s === 8 || s === 9));
+    const perfect = cons && (g === 0 || g === 4);
+    return { gen, semis, g, s, cons, perfect, unison: gen === 0 && semis === 0 };
+  }
+
+  /** Melodic interval legality (absolute size). */
+  function melodicOk(a, b) {
+    const g = Math.abs(b.step - a.step), s = Math.abs(midiOf(b) - midiOf(a));
+    if (g === 0) return s === 0;
+    if (g === 1) return s === 1 || s === 2;
+    if (g === 2) return s === 3 || s === 4;
+    if (g === 3) return s === 5;
+    if (g === 4) return s === 7;
+    if (g === 5) return s === 8 || s === 9;
+    if (g === 7) return s === 12;
+    return false;
+  }
+  const isStep = (a, b) => Math.abs(b.step - a.step) === 1 && Math.abs(midiOf(b) - midiOf(a)) <= 2;
+  const isStepDown = (a, b) => b.step - a.step === -1 && midiOf(a) - midiOf(b) <= 2;
+
+  /* ---------- the canon model: everything is read from the upper line U ----------
+     lower(t) = upper(t - 32) an octave down. Cyclic: period 128 and bars 1-2 of the
+     lower voice carry the last segment (on repeat). */
+  class Model {
+    constructor(key, cyclic) {
+      this.key = key; this.cyclic = cyclic;
+      this.U = []; this.idx = new Int16Array(FULL).fill(-1);
+      this.complete = false;
+    }
+    push(n) { const i = this.U.length; this.U.push(n); for (let t = n.s; t < n.s + n.d; t++) this.idx[t] = i; return i; }
+    pop() { const n = this.U.pop(); for (let t = n.s; t < n.s + n.d; t++) this.idx[t] = -1; }
+    wrap(t) { return this.cyclic ? ((t % FULL) + FULL) % FULL : t; }
+    /** index of upper note sounding at t: undefined unknown, null nothing. */
+    uAt(t) {
+      t = this.wrap(t);
+      if (t < 0 || t >= FULL) return null;
+      const i = this.idx[t];
+      return i < 0 ? undefined : i;
+    }
+    lAt(t) {
+      const j = t - SEG;
+      if (!this.cyclic && j < 0) return null;
+      return this.uAt(j);
+    }
+    start(i, v) { return v === "u" ? this.U[i].s : this.wrap(this.U[i].s + SEG); }
+    pitch(i, v) { const p = this.U[i].p; return p && v === "l" ? down(p) : p; }
+    next(i) { if (i + 1 < this.U.length) return i + 1; if (this.cyclic && this.complete) return 0; return undefined; }
+    prev(i) { if (i > 0) return i - 1; if (this.cyclic && this.complete) return this.U.length - 1; return this.cyclic ? undefined : null; }
+  }
+
+  /** Evaluate the vertical at time t. Returns {skip}|{fail,reason}|{ok,iv,ui,li,pend:[{i,type}]}. */
+  function vertical(M, t, relaxed) {
+    const ui = M.uAt(t), li = M.lAt(t);
+    if (ui === undefined || li === undefined) return { skip: true, unknown: true };
+    if (ui === null || li === null) return { skip: true, silent: true };
+    const up = M.pitch(ui, "u"), lp = M.pitch(li, "l");
+    if (!up || !lp) return { skip: true, silent: true };
+    const tm = M.wrap(t);
+    const uAtt = M.start(ui, "u") === tm, lAtt = M.start(li, "l") === tm;
+    if (!uAtt && !lAtt) return { skip: true };
+    const iv = hInt(up, lp);
+    const base = { ui, li, up, lp, iv, uAtt, lAtt, t: tm };
+    if (iv.cross) return { ...base, fail: true, reason: "voices cross" };
+    if (iv.cons) return { ...base, ok: true, pend: [] };
+    // dissonance: look for a licence
+    let pendStep = null, pendDown = null, kind = null;
+    const weak = (tm % 8) !== 0;
+    const tryPassing = (i, v) => {
+      const n = M.U[i];
+      if (!weak || n.d > 4) return;
+      const pi = M.prev(i);
+      if (pi === undefined || pi === null) return;
+      const pp = M.pitch(pi, v), p = M.pitch(i, v);
+      if (!pp || !isStep(pp, p)) return;
+      const ni = M.next(i);
+      if (ni === undefined) { pendStep = pendStep || { i, type: "step" }; return; }
+      const np = M.pitch(ni, v);
+      if (np && isStep(p, np)) kind = kind || "passing";
+    };
+    const trySusp = (i, v, otherV) => {
+      const n = M.U[i];
+      const st = M.start(i, v);
+      const off = M.cyclic ? ((tm - st) + FULL) % FULL : tm - st;
+      if (n.d - off > 8) return;
+      // preparation: consonant (or alone) at its own onset
+      const oi = otherV === "u" ? M.uAt(st) : M.lAt(st);
+      if (oi === undefined) return;
+      if (oi !== null) {
+        const op = M.pitch(oi, otherV), p = M.pitch(i, v);
+        if (op) { const piv = v === "u" ? hInt(p, op) : hInt(op, p); if (!piv.cons) return; }
+      }
+      const ni = M.next(i);
+      if (ni === undefined) { pendDown = pendDown || { i, type: "down" }; return; }
+      const np = M.pitch(ni, v);
+      if (np && isStepDown(M.pitch(i, v), np)) kind = kind || "suspension";
+    };
+    if (uAtt) tryPassing(ui, "u");
+    if (lAtt) tryPassing(li, "l");
+    if (!uAtt && lAtt) trySusp(ui, "u", "l");
+    if (!lAtt && uAtt) trySusp(li, "l", "u");
+    if (kind) return { ...base, ok: true, diss: kind, pend: [] };
+    if (pendStep) return { ...base, ok: true, diss: "passing?", pend: [pendStep] };
+    if (pendDown) return { ...base, ok: true, diss: "suspension?", pend: [pendDown] };
+    if (relaxed) return { ...base, ok: true, diss: "free", pend: [], bad: true };
+    return { ...base, fail: true, reason: "unprepared dissonance" };
+  }
+
+  /** previous evaluated vertical before t (within 40 units), or null. */
+  function prevVertical(M, t) {
+    for (let k = 1; k <= 40; k++) {
+      const tt = t - k;
+      if (!M.cyclic && tt < 0) return null;
+      const v = vertical(M, tt, true);
+      if (v.unknown) return null;
+      if (v.silent) return null;
+      if (!v.skip) return v;
+    }
+    return null;
+  }
+
+  /** Motion between two verticals: returns {fail, hidden, motion}. */
+  function motion(a, b) {
+    if (!a || !b || a.fail || b.fail) return {};
+    const du = midiOf(b.up) - midiOf(a.up), dl = midiOf(b.lp) - midiOf(a.lp);
+    const bothMove = du !== 0 && dl !== 0;
+    let m = "oblique";
+    if (du === 0 && dl === 0) m = "static";
+    else if (bothMove) m = (du > 0) === (dl > 0) ? (du === dl ? "parallel" : "similar") : "contrary";
+    let fail = false, hidden = false;
+    if (bothMove && a.iv.perfect && b.iv.perfect && a.iv.g === b.iv.g) fail = true;
+    if (bothMove && b.iv.perfect && (m === "similar" || m === "parallel") && Math.abs(b.up.step - a.up.step) > 1) hidden = true;
+    return { fail, hidden, m };
+  }
+
+  /* ---------- rhythm ---------- */
+  function durOptions(pos) {
+    if (pos % 2 === 1) return [1];
+    const o = [];
+    if (pos === 0) o.push(16, 12);
+    if (pos % 8 === 0 || pos === 4) o.push(8);
+    if (pos % 4 === 0) o.push(6, 4, 3);
+    if (pos % 4 === 2) o.push(4);
+    o.push(2, 1);
+    return o.filter((d) => pos + d <= BAR);
+  }
+  const DUR_BASE = { 16: 0.25, 12: 0.35, 8: 1.3, 6: 0.8, 4: 2.6, 3: 0.55, 2: 2.0, 1: 0.7 };
+
+  function weightedOrder(items, weights, rnd) {
+    const a = items.map((x, i) => ({ x, k: Math.pow(rnd(), 1 / Math.max(weights[i], 1e-6)) }));
+    a.sort((p, q) => q.k - p.k);
+    return a.map((e) => e.x);
+  }
+
+  function profile(subject) {
+    const hist = {}; let n = 0;
+    for (const x of subject) { hist[x.d] = (hist[x.d] || 0) + 1; n++; }
+    for (const d in hist) hist[d] /= n;
+    const notes = subject.filter((x) => x.p);
+    const steps = notes.map((x) => x.p.step);
+    const ints = [];
+    for (let i = 1; i < notes.length; i++) ints.push(notes[i].p.step - notes[i - 1].p.step);
+    const motifs = new Set();
+    for (let i = 1; i < ints.length; i++) motifs.add(ints[i - 1] + "," + ints[i]);
+    const halves = new Set();
+    for (let h = 0; h < SEG; h += 8) halves.add(halfMask(subject, h));
+    return { hist, density: subject.length / 2, lo: Math.min(...steps), hi: Math.max(...steps), motifs, halves };
+  }
+  function halfMask(seg, h) {
+    let m = "";
+    for (let t = h; t < h + 8; t++) m += seg.some((x) => x.s === t) ? "1" : "0";
+    return m;
+  }
+
+  /* ---------- generation ---------- */
+  /**
+   * segs: [S, C1, ...] segments known so far (relative notes {p,s,d}); k = index to generate (1..3).
+   * Returns array of candidates {notes, score, strict, issues}.
+   */
+  function generate(keyId, segs, k, opts = {}) {
+    const key = keyInfo(keyId);
+    const final = k === 3;
+    const rnd = opts.rnd || Math.random;
+    const budgetMs = opts.ms || 900;
+    const want = opts.want || 40;
+    const prof = profile(segs[0]);
+    const lo = Math.max(prof.lo - 3, 31), hi = Math.min(prof.hi + 4, 42); // steps: G3=32.. B5=41, C6=42
+    const loMidi = 55, hiMidi = 84;
+    const tStart = SEG * k;
+    const seen = new Set(opts.exclude || []);
+    const out = [];
+    const t0 = Date.now();
+    let relaxed = false, attempts = 0;
+
+    const build = () => {
+      const M = new Model(key, final);
+      for (let j = 0; j < k; j++) for (const n of segs[j]) M.push({ p: n.p, s: n.s + SEG * j, d: n.d, fixed: true });
+      return M;
+    };
+
+    while (Date.now() - t0 < budgetMs && out.length < want) {
+      attempts++;
+      if (!relaxed && !opts.strictOnly && attempts > 40 && out.length === 0 && Date.now() - t0 > budgetMs * 0.6) relaxed = true;
+      const M = build();
+      let nodes = 0;
+      const firstGen = M.U.length;
+
+      const lastPitched = (i) => { for (let j = i; j >= 0; j--) if (M.U[j].p) return j; return -1; };
+
+      const place = (s, d, p) => {
+        const i = M.push({ p, s, d, pend: [] });
+        const fail = () => { M.pop(); return null; };
+        // 1. previous note's requirements and melody
+        const pi = i - 1;
+        const prevN = M.U[pi];
+        if (prevN && prevN.p) {
+          for (const r of prevN.pend || []) {
+            if (r.type === "step" && !isStep(prevN.p, p)) return fail();
+            if (r.type === "down" && !isStepDown(prevN.p, p)) return fail();
+            if (r.type === "lt" && !(p.step - prevN.p.step === 1 && degreeOf(p, key) === 0)) return fail();
+          }
+          if (!melodicOk(prevN.p, p)) return fail();
+          const ppi = lastPitched(pi - 1);
+          if (ppi >= 0) {
+            const a = M.U[ppi].p, b = prevN.p;
+            const g1 = b.step - a.step, g2 = p.step - b.step;
+            if (Math.abs(g1) >= 4 && (Math.sign(g1) === Math.sign(g2) || Math.abs(g2) > 2)) return fail();
+            if (Math.abs(g1) >= 2 && Math.abs(g2) >= 2 && Math.sign(g1) === Math.sign(g2)) {
+              const tot = Math.abs(p.step - a.step), ts = Math.abs(midiOf(p) - midiOf(a));
+              if (tot > 7 || tot === 6 || ts === 6) return fail();
+            }
+            if (g1 === 0 && g2 === 0) return fail();
+          }
+        }
+        const m = midiOf(p);
+        if (m < loMidi || m > hiMidi) return fail();
+        const pend = [];
+        if (isRaisedLT(p, key)) pend.push({ i, type: "lt" });
+        // 2. verticals: as upper voice (and, in the final segment, as lower voice under the subject)
+        const ranges = [[s, s + d]];
+        if (final) ranges.push([s - 96, s + d - 96]);
+        for (const [a, b] of ranges) {
+          let prevV = null, havePrev = false;
+          for (let t = a; t < b; t++) {
+            const v = vertical(M, t, relaxed);
+            if (v.skip) { if (v.silent) { prevV = null; havePrev = true; } continue; }
+            if (v.fail) return fail();
+            if (!havePrev) { prevV = prevVertical(M, t); havePrev = true; }
+            const mo = motion(prevV, v);
+            if (mo.fail && !relaxed) return fail();
+            prevV = v;
+            for (const r of v.pend) {
+              if (r.i !== i) return fail();
+              pend.push(r);
+            }
+          }
+        }
+        M.U[i].pend = pend;
+        return i;
+      };
+
+      const rec = (r) => {
+        if (++nodes > 2500) return false;
+        if (r === SEG) {
+          const last = M.U[M.U.length - 1];
+          if (final) {
+            M.complete = true;
+            const first = M.U.find((n) => n.p);
+            let ok = true;
+            if (first && first.s === M.U[0].s) {
+              for (const q of last.pend) {
+                if (q.type === "step" && !isStep(last.p, first.p)) ok = false;
+                if (q.type === "down" && !isStepDown(last.p, first.p)) ok = false;
+                if (q.type === "lt" && !(first.p.step - last.p.step === 1 && degreeOf(first.p, key) === 0)) ok = false;
+              }
+              if (!melodicOk(last.p, first.p)) ok = false;
+            }
+            if (ok) {
+              const res = validate(M, key, k, relaxed);
+              if (res.ok || relaxed) return res;
+            }
+            M.complete = false;
+            return false;
+          }
+          if (last.pend.length) return false;
+          const res = validate(M, key, k, relaxed);
+          return res.ok || relaxed ? res : false;
+        }
+        const s = tStart + r, pos = r % BAR;
+        const dOpts = durOptions(pos);
+        const dW = dOpts.map((d) => {
+          let w = DUR_BASE[d] * (1 + 5 * (prof.hist[d] || 0));
+          let busy = 0;
+          for (let t = s + 1; t < s + d; t++) { const li = M.lAt(t); if (li != null && M.start(li, "l") === M.wrap(t)) busy++; }
+          if (d >= 8 && busy >= 3) w *= 1.6;
+          if (d <= 2 && busy >= 1) w *= 0.6;
+          const li0 = M.lAt(s);
+          if (d <= 2 && li0 != null && M.U[li0].d >= 8) w *= 1.5;
+          return w;
+        });
+        const durs = weightedOrder(dOpts, dW, rnd);
+        const lpI = lastPitched(M.U.length - 1);
+        const ref = lpI >= 0 ? M.U[lpI].p : { step: Math.round((lo + hi) / 2), alt: 0 };
+        let g1 = 0;
+        const lp2 = lpI > 0 ? lastPitched(lpI - 1) : -1;
+        if (lp2 >= 0) g1 = ref.step - M.U[lp2].p.step;
+        const cands = [], cw = [];
+        for (let g = -7; g <= 7; g++) {
+          const step = ref.step + g;
+          if (step < lo || step > hi) continue;
+          const ag = Math.abs(g);
+          let w = { 0: 0.2, 1: 6, 2: 3, 3: 1.1, 4: 0.9, 5: 0.3, 6: 0, 7: 0.35 }[ag];
+          if (!w) continue;
+          if (Math.abs(g1) >= 2 && g !== 0) w *= Math.sign(g) !== Math.sign(g1) ? 2.5 : 0.4;
+          const mid = (lo + hi) / 2;
+          if ((step - mid) * g > 0 && Math.abs(step - mid) > 3) w *= 0.6;
+          const letter = letterOf(step);
+          cands.push({ step, alt: key.alts[letter] }); cw.push(w);
+          if (key.mode === "minor" && degreeOf({ step }, key) === 6) { cands.push({ step, alt: key.alts[letter] + 1 }); cw.push(w * 1.3); }
+        }
+        for (const d of durs) {
+          const pitches = weightedOrder(cands, cw, rnd);
+          for (const p of pitches) {
+            const i = place(s, d, p);
+            if (i === null) continue;
+            const res = rec(r + d);
+            if (res) return res;
+            M.pop();
+            if (nodes > 2500) return false;
+          }
+        }
+        return false;
+      };
+
+      const res = rec(0);
+      if (!res) continue;
+      const notes = M.U.slice(firstGen).map((n) => ({ p: n.p, s: n.s - tStart, d: n.d }));
+      const sig = notes.map((n) => n.s + "/" + n.d + "/" + pitchKey(n.p)).join(" ");
+      if (seen.has(sig)) continue;
+      seen.add(sig);
+      const sc = score(M, key, k, notes, prof, res) - (res.issues.length * 6);
+      out.push({ notes, sig, score: sc, strict: !relaxed && res.ok, issues: res.issues });
+    }
+    out.sort((a, b) => b.score - a.score);
+    return out;
+  }
+
+  /** Full check of the new segment's verticals (both contexts) and its boundary melody. */
+  function validate(M, key, k, relaxed) {
+    const final = k === 3;
+    const issues = [];
+    const windows = [[SEG * k, SEG * k + SEG]];
+    if (final) windows.push([0, SEG]);
+    const verts = [];
+    for (const [a, b] of windows) {
+      let prevV = prevVertical(M, a);
+      for (let t = a; t < b; t++) {
+        const v = vertical(M, t, false);
+        if (v.skip) { if (v.silent) prevV = null; continue; }
+        if (v.fail) { issues.push({ t, reason: v.reason }); prevV = null; continue; }
+        if (v.pend && v.pend.length) issues.push({ t, reason: "unresolved dissonance" });
+        const mo = motion(prevV, v);
+        if (mo.fail) issues.push({ t, reason: "parallel perfect consonances" });
+        verts.push({ v, mo, t });
+        prevV = v;
+      }
+    }
+    return { ok: issues.length === 0, issues, verts };
+  }
+
+  function score(M, key, k, notes, prof, res) {
+    let sc = 0;
+    // melody
+    const ps = notes.map((n) => n.p);
+    const prevSegLast = M.U[M.U.length - notes.length - 1];
+    const seq = (prevSegLast && prevSegLast.p ? [prevSegLast.p] : []).concat(ps);
+    for (let i = 1; i < seq.length; i++) {
+      const g = seq[i].step - seq[i - 1].step, ag = Math.abs(g);
+      sc += { 0: -1.5, 1: 1, 2: 0.2, 3: -0.4, 4: -0.8, 5: -1.8, 7: -1.2 }[ag] ?? -2;
+      if (i >= 2) {
+        const g0 = seq[i - 1].step - seq[i - 2].step;
+        if (Math.abs(g0) >= 3) sc += Math.sign(g) === -Math.sign(g0) && ag === 1 ? 1 : -1;
+      }
+    }
+    const top = Math.max(...ps.map((p) => p.step));
+    if (ps.filter((p) => p.step === top).length === 1) sc += 1;
+    // verticals
+    let par = 0;
+    for (const { v, mo } of res.verts) {
+      const strong = v.t % 8 === 0;
+      if (v.diss === "suspension") sc += 1.2;
+      else if (v.diss === "passing") sc += 0.2;
+      else if (v.diss === "free") sc -= 3;
+      if (v.iv.cons) {
+        if (v.iv.unison) sc -= 2;
+        else if (strong) sc += v.iv.perfect ? 0.2 : 1.2;
+        if (v.iv.semis > 21) sc -= 0.4;
+      }
+      if (mo.m === "contrary") sc += 0.6;
+      else if (mo.m === "oblique") sc += 0.25;
+      if (mo.hidden) sc -= 1.5;
+      if (mo.m === "parallel" || mo.m === "similar") { par++; if (par > 3) sc -= 0.6; } else par = 0;
+    }
+    // rhythm: density near the subject, complementary onsets, shared half-bar figures
+    sc -= Math.abs(notes.length / 2 - prof.density) * 0.5;
+    const tStart = SEG * k;
+    let comp = 0;
+    for (let r = 0; r < SEG; r++) {
+      const uOn = notes.some((n) => n.s === r);
+      const li = M.lAt(tStart + r);
+      const lOn = li != null && M.start(li, "l") === M.wrap(tStart + r);
+      if (uOn !== lOn) comp++;
+    }
+    sc += comp * 0.12;
+    let fig = 0;
+    for (let h = 0; h < SEG; h += 8) if (prof.halves.has(halfMask(notes, h))) fig++;
+    sc += Math.min(fig, 3) * 0.9;
+    let mot = 0;
+    for (let i = 2; i < ps.length; i++) if (prof.motifs.has((ps[i - 1].step - ps[i - 2].step) + "," + (ps[i].step - ps[i - 1].step))) mot++;
+    sc += Math.min(mot, 4) * 0.5;
+    // tonal anchoring on the downbeats of each bar
+    for (const n of notes) if (n.s % 16 === 0 && [0, 2, 4].includes(degreeOf(n.p, key))) sc += 0.4;
+    if (k === 3) {
+      const first = M.U.find((n) => n.p);
+      const last = ps[ps.length - 1];
+      if (first && isStep(last, first.p)) sc += 1.5;
+    }
+    return sc + Math.random() * 0.8;
+  }
+
+  /** Interval figures for display: every attack in the given segment window. */
+  function figures(keyId, segs, cyclic) {
+    const M = new Model(keyInfo(keyId), cyclic);
+    segs.forEach((seg, j) => { for (const n of seg) M.push({ p: n.p, s: n.s + SEG * j, d: n.d }); });
+    M.complete = true;
+    const len = cyclic ? FULL : SEG * segs.length;
+    const out = [];
+    for (let t = 0; t < len; t++) {
+      const v = vertical(M, t, false);
+      if (v.skip) continue;
+      let num = "";
+      if (v.iv && !v.iv.cross) {
+        const g = v.iv.gen;
+        num = g === 0 ? "1" : g % 7 === 0 ? "8" : String((g % 7) + 1);
+      } else num = "×";
+      out.push({ t, num, diss: !!(v.fail || v.diss), fail: !!v.fail, firstPassSilent: cyclic && t < SEG });
+    }
+    return out;
+  }
+
+  /** Can a strict closing segment follow these segments (S, C1, C2)? */
+  function closable(keyId, segs, ms = 400) {
+    const c = generate(keyId, segs, 3, { ms, want: 1, strictOnly: true });
+    return c.some((x) => x.strict);
+  }
+
+  return { closable, SEG, BAR, FULL, KEYS, keyInfo, midiOf, down, nameOf, letterOf, octOf, degreeOf, hInt, generate, figures, profile, durOptions };
+})();
+if (typeof module !== "undefined") module.exports = Engine;
+/* ===== Page: state, score drawing, input, playback ===== */
+(() => {
+  const VF = Vex.Flow;
+  const { SEG, BAR } = Engine;
+  const $ = (id) => document.getElementById(id);
+
+  const STAGES = [
+    { t: "Subject", b: "bars 1–2 · you write" },
+    { t: "Continuation", b: "bars 3–4 · over the subject" },
+    { t: "Continuation", b: "bars 5–6" },
+    { t: "Closing", b: "bars 7–8 · loops to bar 1" },
+  ];
+  const DUR = { 16: ["w", 0], 12: ["h", 1], 8: ["h", 0], 6: ["q", 1], 4: ["q", 0], 3: ["8", 1], 2: ["8", 0], 1: ["16", 0] };
+  const DUR_NAME = { 16: "whole note", 12: "dotted half", 8: "half note", 6: "dotted quarter", 4: "quarter", 3: "dotted eighth", 2: "eighth", 1: "sixteenth" };
+  const BASE_DURS = [16, 8, 4, 2, 1];
+  const KEYDIGIT = { 7: 16, 6: 8, 5: 4, 4: 2, 3: 1 };
+
+  const S = {
+    key: "C", subject: [], segs: [], phase: "write", k: 0,
+    cand: null, pool: [], seen: [null, new Set(), new Set(), new Set()], version: 0,
+    dur: 4, dotted: false, rest: false, acc: "key",
+    showInt: false, loop: true, tempo: 80, busy: false, msg: "",
+    play: null, // {unit, pass}
+  };
+
+  try {
+    const saved = JSON.parse(localStorage.getItem("canon-subject") || "null");
+    if (saved && Engine.KEYS[saved.key] && Array.isArray(saved.subject)) { S.key = saved.key; S.subject = saved.subject; }
+  } catch (e) { /* storage unavailable */ }
+  const save = () => { try { localStorage.setItem("canon-subject", JSON.stringify({ key: S.key, subject: S.subject })); } catch (e) { /* ignore */ } };
+
+  const key = () => Engine.keyInfo(S.key);
+  const filled = () => S.subject.reduce((a, n) => a + n.d, 0);
+  const curDur = () => (S.dotted ? S.dur * 1.5 : S.dur);
+  const roomInBar = () => { const f = filled(); return f >= SEG ? 0 : BAR - (f % BAR); };
+
+  /** segments currently shown: accepted ones plus the candidate under review. */
+  function shown() {
+    const d = [S.phase === "write" ? S.subject : S.segs[0]];
+    for (let j = 1; j < 4; j++) {
+      if (S.segs[j]) d[j] = S.segs[j];
+      else if (S.phase === "review" && S.k === j && S.cand) d[j] = S.cand.notes;
+    }
+    return d;
+  }
+  const closed = () => shown().length === 4 && !!shown()[3];
+
+  /* ---------------- score drawing ---------------- */
+  let layout = null;
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+  function vfKey(p) {
+    const L = "cdefgab"[Engine.letterOf(p.step)];
+    const acc = { "-2": "bb", "-1": "b", 0: "", 1: "#", 2: "##" }[p.alt];
+    return L + acc + "/" + Engine.octOf(p.step);
+  }
+  function mkNote(n, clef, color) {
+    const [code, dot] = DUR[n.d];
+    let sn;
+    if (!n.p) sn = new VF.StaveNote({ clef, keys: [clef === "treble" ? "b/4" : "d/3"], duration: code + (dot ? "d" : "") + "r" });
+    else sn = new VF.StaveNote({ clef, keys: [vfKey(n.p)], duration: code + (dot ? "d" : ""), auto_stem: true });
+    if (dot) VF.Dot.buildAndAttach([sn], { all: true });
+    sn.__color = color;
+    return sn;
+  }
+  function ghosts(units) {
+    const out = [];
+    for (const d of [16, 8, 4, 2, 1]) while (units >= d) { out.push(new VF.GhostNote({ duration: DUR[d][0] })); units -= d; }
+    return out;
+  }
+  function inBar(notes, b) { return notes.filter((n) => n.s >= b * BAR && n.s < (b + 1) * BAR); }
+
+  function render() {
+    const host = $("score");
+    const W = Math.max(280, host.clientWidth);
+    const ink = css("--ink"), acc = css("--accent"), faint = css("--faint"), play = css("--play"), muted = css("--muted");
+    const segs = shown();
+    const kInfo = key();
+    const nAcc = Math.abs(kInfo.alts.reduce((a, x) => a + x, 0));
+    const bps = W >= 760 ? 4 : 2;
+    const nSys = 8 / bps;
+
+    // bar contents
+    const bars = [];
+    for (let b = 0; b < 8; b++) {
+      const j = Math.floor(b / 2), off = j * SEG;
+      const up = segs[j] ? inBar(segs[j].map((n) => ({ ...n, s: n.s })), b - 2 * j).map((n, i) => ({ n, seg: j })) : null;
+      let lo = null, loFaint = false;
+      if (j >= 1 && segs[j - 1]) lo = inBar(segs[j - 1], b - 2 * j).map((n) => ({ n: { ...n, p: n.p && Engine.down(n.p) }, seg: j - 1 }));
+      if (j === 0 && segs[3]) { lo = inBar(segs[3], b).map((n) => ({ n: { ...n, p: n.p && Engine.down(n.p) }, seg: 3 })); loFaint = true; }
+      bars.push({ b, j, off, up, lo, loFaint });
+    }
+    const need = bars.map((x) => 46 + 26 * Math.max(x.up ? x.up.length : 1, x.lo ? x.lo.length : 1, 2));
+    const leadFirst = 62 + nAcc * 11, leadTime = 30;
+    let scale = 1;
+    for (let s = 0; s < nSys; s++) {
+      let w = 14 + leadFirst + (s === 0 ? leadTime : 0);
+      for (let i = 0; i < bps; i++) w += need[s * bps + i];
+      scale = Math.min(scale, W / w);
+    }
+    scale = Math.max(scale, 0.5);
+    const LW = W / scale;
+    const sysH = 232, top = 10, H = top + nSys * sysH;
+
+    host.innerHTML = "";
+    const div = document.createElement("div");
+    host.appendChild(div);
+    const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
+    renderer.resize(LW, H);
+    const ctx = renderer.getContext();
+    ctx.setFillStyle(ink); ctx.setStrokeStyle(ink);
+    const svg = div.querySelector("svg");
+    svg.setAttribute("viewBox", `0 0 ${LW} ${H}`);
+    svg.setAttribute("width", W); svg.setAttribute("height", H * scale);
+    svg.style.width = W + "px"; svg.style.height = H * scale + "px";
+
+    const st = { fillStyle: ink, strokeStyle: ink };
+    const playing = S.play;
+    const isActive = (seg, n, voice) => {
+      if (!playing) return false;
+      const t = playing.unit;
+      if (voice === "u") return seg * SEG + n.s <= t && t < seg * SEG + n.s + n.d;
+      const base = seg === 3 ? 0 : (seg + 1) * SEG;
+      if (seg === 3 && playing.pass === 0) return false;
+      return base + n.s <= t && t < base + n.s + n.d;
+    };
+    const candSeg = S.phase === "review" ? S.k : -1;
+    const colorFor = (seg, faintLo) => faintLo ? faint : seg === candSeg ? acc : ink;
+
+    const lay = { scale, LW, H, staves: [], notes: [] };
+    for (let s = 0; s < nSys; s++) {
+      const y = top + s * sysH;
+      const idxs = []; for (let i = 0; i < bps; i++) idxs.push(s * bps + i);
+      const lead = leadFirst + (s === 0 ? leadTime : 0);
+      const totalNeed = idxs.reduce((a, b) => a + need[b], 0);
+      const avail = LW - 14 - lead;
+      let x = 6;
+      for (const bi of idxs) {
+        const bar = bars[bi];
+        const first = bi === idxs[0];
+        const w = (first ? lead : 0) + avail * need[bi] / totalNeed;
+        const sT = new VF.Stave(x, y + 18, w), sB = new VF.Stave(x, y + 118, w);
+        for (const sv of [sT, sB]) sv.setStyle(st);
+        if (first) {
+          sT.addClef("treble").addKeySignature(kInfo.vf); sB.addClef("bass").addKeySignature(kInfo.vf);
+          if (bi === 0) { sT.addTimeSignature("4/4"); sB.addTimeSignature("4/4"); }
+        }
+        if (bi === 0 && closed()) { sT.setBegBarType(VF.Barline.type.REPEAT_BEGIN); sB.setBegBarType(VF.Barline.type.REPEAT_BEGIN); }
+        if (bi === 7 && closed()) { sT.setEndBarType(VF.Barline.type.REPEAT_END); sB.setEndBarType(VF.Barline.type.REPEAT_END); }
+        sT.setMeasure(bi + 1);
+        const nx = Math.max(sT.getNoteStartX(), sB.getNoteStartX());
+        sT.setNoteStartX(nx); sB.setNoteStartX(nx);
+        sT.setContext(ctx).draw(); sB.setContext(ctx).draw();
+        if (first) {
+          const br = new VF.StaveConnector(sT, sB).setType(VF.StaveConnector.type.BRACE); br.setStyle(st); br.setContext(ctx).draw();
+          const ln = new VF.StaveConnector(sT, sB).setType(VF.StaveConnector.type.SINGLE_LEFT); ln.setStyle(st); ln.setContext(ctx).draw();
+        }
+        const rc = new VF.StaveConnector(sT, sB).setType(bi === 7 && closed() ? VF.StaveConnector.type.BOLD_DOUBLE_RIGHT : VF.StaveConnector.type.SINGLE_RIGHT);
+        if (!(bi === 7 && closed())) { rc.setStyle(st); rc.setContext(ctx).draw(); }
+
+        // voices
+        const uNotes = [], lNotes = [], uRefs = [], lRefs = [];
+        if (bar.up) {
+          for (const { n, seg } of bar.up) {
+            const c = isActive(seg, n, "u") ? play : colorFor(seg, false);
+            const sn = mkNote(n, "treble", c); uNotes.push(sn); uRefs.push({ sn, t: bi * BAR + (n.s % BAR), n, voice: "u" });
+          }
+          if (S.phase === "write" && bar.j === 0) {
+            const used = bar.up.reduce((a, x) => a + x.n.d, 0);
+            if (used < BAR) uNotes.push(...ghosts(BAR - used));
+          }
+        } else uNotes.push(...ghosts(BAR));
+        if (bar.lo) {
+          for (const { n, seg } of bar.lo) {
+            const c = isActive(seg, n, "l") ? play : colorFor(seg, bar.loFaint);
+            const sn = mkNote(n, "bass", c); lNotes.push(sn); lRefs.push({ sn, t: bi * BAR + (n.s % BAR), n, voice: "l" });
+          }
+        } else if (bi < 2) lNotes.push(new VF.StaveNote({ clef: "bass", keys: ["d/3"], duration: "wr" }));
+        else lNotes.push(...ghosts(BAR));
+        if (!uNotes.length) uNotes.push(...ghosts(BAR));
+
+        const mkVoice = (notes) => new VF.Voice({ num_beats: 4, beat_value: 4 }).setMode(VF.Voice.Mode.SOFT).addTickables(notes);
+        const vU = mkVoice(uNotes), vL = mkVoice(lNotes);
+        try { VF.Accidental.applyAccidentals([vU], kInfo.vf); } catch (e) { /* tolerate */ }
+        try { VF.Accidental.applyAccidentals([vL], kInfo.vf); } catch (e) { /* tolerate */ }
+        const styleAll = (notes) => notes.forEach((sn) => {
+          if (!(sn instanceof VF.StaveNote)) return;
+          const c = sn.__color || ink;
+          const sty = { fillStyle: c, strokeStyle: c };
+          sn.setStyle(sty); sn.setLedgerLineStyle(sty);
+          sn.getModifiers().forEach((m) => m.setStyle && m.setStyle(sty));
+        });
+        styleAll(uNotes); styleAll(lNotes);
+        const beams = [];
+        const grp = [new VF.Fraction(1, 4)];
+        for (const [notes] of [[uNotes], [lNotes]]) {
+          const real = notes.filter((n) => n instanceof VF.StaveNote);
+          if (real.length < 2) continue;
+          try {
+            VF.Beam.generateBeams(notes.filter((n) => !(n instanceof VF.GhostNote)), { groups: grp, beam_rests: false }).forEach((bm) => {
+              const c = bm.getNotes()[0].__color || ink; bm.setStyle({ fillStyle: c, strokeStyle: c }); beams.push(bm);
+            });
+          } catch (e) { /* tolerate */ }
+        }
+        const fw = Math.max(40, sT.getX() + sT.getWidth() - nx - 18);
+        new VF.Formatter().joinVoices([vU]).joinVoices([vL]).format([vU, vL], fw);
+        vU.draw(ctx, sT); vL.draw(ctx, sB);
+        beams.forEach((bm) => bm.setContext(ctx).draw());
+
+        // remember geometry
+        lay.staves.push({ bi, sT, sB, x, w, y });
+
+        for (const r of uRefs.concat(lRefs)) { try { r.x = r.sn.getAbsoluteX(); } catch (e) { r.x = x; } lay.notes.push(r); }
+
+        if (bi === 0 && bar.loFaint) {
+          ctx.save(); ctx.setFont("IBM Plex Mono", 10, ""); ctx.setFillStyle(faint);
+          ctx.fillText("on repeat", nx, y + 118 + 96);
+          ctx.restore();
+        }
+        x += w;
+      }
+    }
+
+    // interval figures between the staves
+    if (S.showInt && S.phase !== "write") {
+      const figs = Engine.figures(S.key, segs.filter(Boolean), closed());
+      ctx.save();
+      for (const f of figs) {
+        if (f.firstPassSilent && !closed()) continue;
+        const refs = lay.notes.filter((r) => r.t === f.t);
+        if (!refs.length) continue;
+        const st0 = lay.staves.find((q) => q.bi === Math.floor(f.t / BAR));
+        const xx = Math.min(...refs.map((r) => r.x)) + 3;
+        const yy = st0.sB.getYForLine(0) - 24;
+        ctx.setFont("IBM Plex Mono", 11, f.diss ? "bold" : "");
+        ctx.setFillStyle(f.fail ? css("--warn") : f.diss ? ink : muted);
+        ctx.fillText(f.num, xx, yy);
+      }
+      ctx.restore();
+    }
+
+    // ghost layer for input
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    g.id = "ghost"; g.setAttribute("viewBox", `0 0 ${LW} ${H}`);
+    g.setAttribute("width", W); g.setAttribute("height", H * scale);
+    host.appendChild(g);
+    host.classList.toggle("writing", S.phase === "write");
+    layout = lay;
+  }
+
+  /* ---------------- pitch input on the staff ---------------- */
+  function staffPos(ev) {
+    if (!layout || S.phase !== "write") return null;
+    const host = $("score"), r = host.getBoundingClientRect();
+    const x = (ev.clientX - r.left) / layout.scale, y = (ev.clientY - r.top) / layout.scale;
+    const st = layout.staves.find((q) => q.bi === 0);
+    if (!st) return null;
+    const sT = st.sT;
+    const topY = sT.getYForLine(0), sp = sT.getSpacingBetweenLines();
+    if (y < topY - 5.5 * sp || y > topY + 8 * sp) return null;
+    const st1 = layout.staves.find((q) => q.bi === 1);
+    if (x < st.x || x > st1.x + st1.w) return null;
+    let pos = Math.round((y - topY) / (sp / 2));
+    let step = 38 - pos; // F5 on the top line
+    step = Math.max(27, Math.min(44, step));
+    pos = 38 - step;
+    return { x, y: topY + pos * sp / 2, step, topY, sp };
+  }
+  function altFor(step) {
+    if (S.acc === "nat") return 0;
+    if (S.acc === "sharp") return 1;
+    if (S.acc === "flat") return -1;
+    return key().alts[Engine.letterOf(step)];
+  }
+  function drawGhost(h) {
+    const g = $("ghost");
+    if (!g) return;
+    g.innerHTML = "";
+    if (!h || filled() >= SEG) return;
+    const c = css("--accent");
+    const ns = "http://www.w3.org/2000/svg";
+    const add = (tag, attrs) => { const e = document.createElementNS(ns, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); g.appendChild(e); return e; };
+    const bottom = h.topY + 4 * h.sp;
+    for (let ly = h.topY - h.sp; ly >= h.y - 0.1; ly -= h.sp) add("line", { x1: h.x - 11, x2: h.x + 11, y1: ly, y2: ly, stroke: c, "stroke-width": 1.2 });
+    for (let ly = bottom + h.sp; ly <= h.y + 0.1; ly += h.sp) add("line", { x1: h.x - 11, x2: h.x + 11, y1: ly, y2: ly, stroke: c, "stroke-width": 1.2 });
+    add("ellipse", { cx: h.x, cy: h.y, rx: 6.5, ry: 4.6, fill: S.rest ? "none" : c, stroke: c, "stroke-width": 1.2, transform: `rotate(-20 ${h.x} ${h.y})`, opacity: 0.75 });
+    const p = { step: h.step, alt: altFor(h.step) };
+    const t = add("text", { x: h.x + 12, y: h.y - 8, fill: c, "font-family": "IBM Plex Mono, monospace", "font-size": 12 });
+    t.textContent = S.rest ? DUR_NAME[curDur()] + " rest" : Engine.nameOf(p) + " · " + DUR_NAME[curDur()];
+  }
+  function addNote(p) {
+    const d = curDur();
+    if (filled() >= SEG) { flash("The subject is complete. Remove a note to change it."); return; }
+    if (d > roomInBar()) { flash(`A ${DUR_NAME[d]} does not fit: ${roomInBar()} sixteenth${roomInBar() > 1 ? "s" : ""} left in bar ${Math.floor(filled() / BAR) + 1}.`); return; }
+    S.subject.push({ p: S.rest ? null : p, s: filled(), d });
+    S.example = false;
+    S.msg = "";
+    save(); stop(); render(); renderDesk();
+    if (p && !S.rest) previewNote(p);
+  }
+  function flash(m) { S.msg = m; renderDesk(); }
+
+  const host = $("score");
+  host.addEventListener("pointermove", (ev) => drawGhost(staffPos(ev)));
+  host.addEventListener("pointerleave", () => drawGhost(null));
+  let downAt = null;
+  host.addEventListener("pointerdown", (ev) => { downAt = { x: ev.clientX, y: ev.clientY }; });
+  host.addEventListener("pointerup", (ev) => {
+    if (!downAt || Math.hypot(ev.clientX - downAt.x, ev.clientY - downAt.y) > 8) { downAt = null; return; }
+    downAt = null;
+    const h = staffPos(ev);
+    if (!h) return;
+    addNote({ step: h.step, alt: altFor(h.step) });
+    drawGhost(staffPos(ev));
+  });
+
+  document.addEventListener("keydown", (ev) => {
+    if (S.phase !== "write" || ev.metaKey || ev.ctrlKey || ev.altKey) return;
+    const tag = (ev.target.tagName || "").toLowerCase();
+    if (tag === "select" || (tag === "input" && ev.target.type !== "checkbox")) return;
+    const k = ev.key;
+    if (KEYDIGIT[k]) { setDur(KEYDIGIT[k]); ev.preventDefault(); return; }
+    if (k === ".") { S.dotted = !S.dotted; renderDesk(); return; }
+    if (k === "0") { S.rest = !S.rest; renderDesk(); return; }
+    if (k === "Backspace") { undo(); ev.preventDefault(); return; }
+    if ((k === "ArrowUp" || k === "ArrowDown") && S.subject.length) {
+      const last = S.subject[S.subject.length - 1];
+      if (last.p) {
+        const step = Math.max(27, Math.min(44, last.p.step + (k === "ArrowUp" ? 1 : -1)));
+        last.p = { step, alt: key().alts[Engine.letterOf(step)] }; S.example = false;
+        save(); render(); renderDesk(); previewNote(last.p);
+      }
+      ev.preventDefault(); return;
+    }
+    const L = "cdefgab".indexOf(k.toLowerCase());
+    if (L >= 0 && k.length === 1) {
+      const prev = [...S.subject].reverse().find((n) => n.p);
+      const ref = prev ? prev.p.step : 34; // B4
+      let best = null;
+      for (let st = ref - 4; st <= ref + 4; st++) if (Engine.letterOf(st) === L) best = st;
+      best = Math.max(27, Math.min(44, best));
+      const wasRest = S.rest; S.rest = false;
+      addNote({ step: best, alt: altFor(best) });
+      S.rest = wasRest;
+    }
+  });
+
+  function setDur(d) {
+    S.dur = d;
+    if (d === 1) S.dotted = false;
+    renderDesk();
+  }
+  function undo() {
+    if (!S.subject.length) return;
+    S.subject.pop(); S.example = false; S.msg = ""; save(); render(); renderDesk();
+  }
+
+  /* ---------------- generation flow ---------------- */
+  const wait = () => new Promise((r) => setTimeout(r, 30));
+
+  async function propose() {
+    const k = S.k;
+    S.busy = true; S.cand = null; renderAll();
+    await wait();
+    const seen = S.seen[k];
+    let found = null, guard = 0, recycled = false;
+    while (!found && guard++ < 12) {
+      if (!S.pool.length) {
+        S.pool = Engine.generate(S.key, S.segs, k, { ms: k === 3 ? 1600 : 700, want: 30, exclude: [...seen] });
+        if (!S.pool.length) {
+          if (seen.size && !recycled) { seen.clear(); recycled = true; S.msg = "No new continuation turned up under these rules, so earlier ones may come back."; continue; }
+          break;
+        }
+      }
+      const strict = S.pool.filter((c) => c.strict);
+      const from = strict.length ? strict : S.pool;
+      const c = from[Math.floor(Math.random() * Math.min(5, from.length))];
+      S.pool.splice(S.pool.indexOf(c), 1);
+      seen.add(c.sig);
+      if (k === 2 && c.strict && guard < 8) {
+        await wait();
+        if (!Engine.closable(S.key, [...S.segs, c.notes], 350)) continue;
+      }
+      found = c;
+    }
+    S.busy = false;
+    if (found) { S.cand = found; S.version++; }
+    else S.msg = "No continuation could be found for this subject. Try changing a note or two in the subject.";
+    renderAll();
+  }
+
+  function startCanon() {
+    if (filled() !== SEG || !S.subject.some((n) => n.p)) return;
+    stop();
+    S.segs = [S.subject.map((n) => ({ ...n }))];
+    S.phase = "review"; S.k = 1; S.pool = []; S.version = 0; S.msg = "";
+    S.seen = [null, new Set(), new Set(), new Set()];
+    propose();
+  }
+  function accept() {
+    if (!S.cand) return;
+    stop();
+    S.segs[S.k] = S.cand.notes; S.cand = null; S.pool = []; S.msg = "";
+    if (S.k === 3) { S.phase = "done"; renderAll(); return; }
+    S.k++; S.version = 0;
+    S.seen[S.k] = new Set();
+    propose();
+  }
+  function refuse() { stop(); S.msg = ""; propose(); }
+  function back() {
+    stop(); S.msg = "";
+    if (S.phase === "done") { S.phase = "review"; S.k = 3; S.cand = { notes: S.segs.pop(), strict: true, issues: [] }; S.pool = []; renderAll(); return; }
+    if (S.k === 1) { S.phase = "write"; S.segs = []; S.cand = null; renderAll(); return; }
+    S.k--; S.cand = { notes: S.segs.pop(), strict: true, issues: [] }; S.pool = []; renderAll();
+  }
+  function editSubject() { stop(); S.phase = "write"; S.segs = []; S.cand = null; S.k = 0; S.msg = ""; renderAll(); }
+
+  /* ---------------- desk (contextual controls) ---------------- */
+  const ICON = {
+    16: '<svg viewBox="0 0 22 30"><ellipse cx="11" cy="20" rx="6" ry="4" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+    8: '<svg viewBox="0 0 22 30"><ellipse cx="9" cy="22" rx="5.2" ry="3.6" transform="rotate(-20 9 22)" fill="none" stroke="currentColor" stroke-width="1.8"/><line x1="13.6" y1="21" x2="13.6" y2="3" stroke="currentColor" stroke-width="1.6"/></svg>',
+    4: '<svg viewBox="0 0 22 30"><ellipse cx="9" cy="22" rx="5.2" ry="3.6" transform="rotate(-20 9 22)" fill="currentColor"/><line x1="13.6" y1="21" x2="13.6" y2="3" stroke="currentColor" stroke-width="1.6"/></svg>',
+    2: '<svg viewBox="0 0 22 30"><ellipse cx="7" cy="22" rx="5.2" ry="3.6" transform="rotate(-20 7 22)" fill="currentColor"/><line x1="11.6" y1="21" x2="11.6" y2="3" stroke="currentColor" stroke-width="1.6"/><path d="M11.6 3 C13 8 19 9 17 16 C17 11 14 10 11.6 9 Z" fill="currentColor"/></svg>',
+    1: '<svg viewBox="0 0 22 30"><ellipse cx="7" cy="23" rx="5.2" ry="3.6" transform="rotate(-20 7 23)" fill="currentColor"/><line x1="11.6" y1="22" x2="11.6" y2="2" stroke="currentColor" stroke-width="1.6"/><path d="M11.6 2 C13 6 19 7 17 13 C17 9 14 8 11.6 7.5 Z" fill="currentColor"/><path d="M11.6 8 C13 12 19 13 17 19 C17 15 14 14 11.6 13.5 Z" fill="currentColor"/></svg>',
+  };
+  const DKEY = { 16: 7, 8: 6, 4: 5, 2: 4, 1: 3 };
+
+  function renderDesk() {
+    const d = $("desk");
+    const msg = S.msg ? `<p class="note warn">${S.msg}</p>` : "";
+    if (S.phase === "write") {
+      const f = filled(), room = roomInBar();
+      const meter = Array.from({ length: 32 }, (_, i) => `<i class="${i < f ? "f" : ""}${i === 16 ? " bar" : ""}"></i>`).join("");
+      const keyOpts = Object.entries(Engine.KEYS).map(([id, k]) => `<option value="${id}"${id === S.key ? " selected" : ""}>${k.label}</option>`).join("");
+      const durBtns = BASE_DURS.map((b) => {
+        const real = S.dotted ? b * 1.5 : b;
+        const dis = (S.dotted && b === 1) || real > room;
+        return `<button class="tool" data-dur="${b}" aria-pressed="${S.dur === b}" ${dis ? "disabled" : ""} title="${DUR_NAME[b]} (${DKEY[b]})" aria-label="${DUR_NAME[b]}">${ICON[b]}<span class="k">${DKEY[b]}</span></button>`;
+      }).join("");
+      const accBtns = [["key", "key", "From the key signature"], ["flat", "♭", "Flat"], ["nat", "♮", "Natural"], ["sharp", "♯", "Sharp"]]
+        .map(([v, l, t]) => `<button class="tool" data-acc="${v}" aria-pressed="${S.acc === v}" title="${t}" aria-label="${t}">${v === "key" ? '<span style="font-size:13px">key</span>' : l}</button>`).join("");
+      d.innerHTML = `
+        <h2>Write the subject: two bars in the treble</h2>
+        <p class="note">Pick a duration, then click or tap the treble staff at the pitch you want. Notes are added left to right. Every note has to fit inside its bar.</p>
+        ${S.example ? '<p class="note"><b>An example subject is loaded.</b> Press Clear to write your own, or build the canon from it to see how the page works.</p>' : ""}
+        <div class="row">
+          <div class="group"><span class="glab">Key</span><select id="keySel" aria-label="Key">${keyOpts}</select></div>
+          <div class="group"><span class="glab">Duration</span>${durBtns}
+            <button class="tool" id="dotBtn" aria-pressed="${S.dotted}" title="Dotted (.)" aria-label="Dotted">•<span class="k">.</span></button>
+            <button class="tool" id="restBtn" aria-pressed="${S.rest}" title="Rest (0)" aria-label="Rest"><span style="font-size:13px">rest</span><span class="k">0</span></button>
+          </div>
+          <div class="group"><span class="glab">Accidental</span>${accBtns}</div>
+        </div>
+        <div class="row">
+          <span class="fill">${(f / 4).toFixed(f % 4 ? 2 : 0)} of 8 beats<span class="meter" aria-hidden="true">${meter}</span></span>
+          <button class="btn" id="undoBtn" ${S.subject.length ? "" : "disabled"}>Remove last note</button>
+          <button class="btn" id="clearBtn" ${S.subject.length ? "" : "disabled"}>Clear</button>
+          <button class="btn" id="exBtn">Load an example</button>
+        </div>
+        ${msg}
+        <div class="row"><button class="btn primary big" id="goBtn" ${f === SEG && S.subject.some((n) => n.p) ? "" : "disabled"}>Build the canon</button>
+          <span class="note">${f === SEG ? "The subject fills both bars." : `${SEG - f} sixteenths to go.`}</span></div>
+        <p class="keys">Keyboard: <kbd>A</kbd>–<kbd>G</kbd> add the nearest note of that name · <kbd>3</kbd>–<kbd>7</kbd> sixteenth to whole · <kbd>.</kbd> dot · <kbd>0</kbd> rest · <kbd>↑</kbd><kbd>↓</kbd> move the last note · <kbd>⌫</kbd> remove it</p>`;
+      d.querySelectorAll("[data-dur]").forEach((b) => b.onclick = () => setDur(+b.dataset.dur));
+      d.querySelectorAll("[data-acc]").forEach((b) => b.onclick = () => { S.acc = b.dataset.acc; renderDesk(); });
+      $("dotBtn").onclick = () => { S.dotted = !S.dotted; if (S.dur === 1) S.dur = 2; renderDesk(); };
+      $("restBtn").onclick = () => { S.rest = !S.rest; renderDesk(); };
+      $("undoBtn").onclick = undo;
+      $("clearBtn").onclick = () => { S.subject = []; S.example = false; S.msg = ""; save(); stop(); renderAll(); };
+      $("exBtn").onclick = loadExample;
+      $("goBtn").onclick = startCanon;
+      $("keySel").onchange = (e) => {
+        S.key = e.target.value;
+        S.subject.forEach((n) => { if (n.p) n.p.alt = key().alts[Engine.letterOf(n.p.step)]; });
+        save(); renderAll();
+      };
+      return;
+    }
+    if (S.phase === "review") {
+      const b0 = 2 * S.k + 1, b1 = b0 + 1;
+      if (S.busy || !S.cand) {
+        d.innerHTML = S.busy ? `<span class="busy">Composing bars ${b0}–${b1}…</span>` : `${msg}<div class="row"><button class="btn" id="backBtn">Back</button><button class="btn" id="retryBtn">Try again</button></div>`;
+        if (!S.busy) { $("backBtn").onclick = back; $("retryBtn").onclick = refuse; }
+        return;
+      }
+      const loose = !S.cand.strict;
+      const head = S.k === 3 ? `Do you like the closing bars ${b0}–${b1}?` : `Do you like this continuation for bars ${b0}–${b1}?`;
+      const expl = S.k === 1
+        ? "The bass now plays your subject an octave lower. The new treble line in bars 3–4 is written against it."
+        : S.k === 2
+          ? "The bass now plays bars 3–4 an octave lower, and the treble continues against it."
+          : "These bars sit over the bass of bars 5–6. On the repeat they also go into the bass of bars 1–2, an octave lower, under your subject. Turn Loop on to hear the join.";
+      d.innerHTML = `
+        <h2>${head}</h2>
+        <p class="note">${expl} Version ${S.version}.</p>
+        ${loose ? `<p class="note warn">No version that obeys every rule was found, so this one breaks ${S.cand.issues.length} of them. Interval figures in the warning colour show where.</p>` : ""}
+        ${msg}
+        <div class="row">
+          <button class="btn primary big" id="yesBtn">Yes, I like it</button>
+          <button class="btn big" id="noBtn">No, write another</button>
+          <button class="btn" id="backBtn">${S.k === 1 ? "Back to the subject" : `Back to bars ${b0 - 2}–${b1 - 2}`}</button>
+        </div>`;
+      $("yesBtn").onclick = accept; $("noBtn").onclick = refuse; $("backBtn").onclick = back;
+      return;
+    }
+    d.innerHTML = `
+      <h2>The canon is complete</h2>
+      <p class="note">Eight bars. On the repeat, the bass takes bars 7–8 under the subject, so the canon runs without end. Press play with Loop on.</p>
+      <div class="row">
+        <button class="btn primary big" id="loopPlay">Play the loop</button>
+        <button class="btn" id="backBtn">Rework bars 7–8</button>
+        <button class="btn" id="editBtn">Write a new subject</button>
+      </div>`;
+    $("loopPlay").onclick = () => { S.loop = true; $("loopSw").checked = true; start(); };
+    $("backBtn").onclick = back; $("editBtn").onclick = editSubject;
+  }
+
+  function renderStages() {
+    const cur = S.phase === "write" ? 0 : S.phase === "done" ? 4 : S.k;
+    $("stages").innerHTML = STAGES.map((s, i) => `<li class="${i < cur ? "done" : i === cur ? "now" : ""}"${i === cur ? ' aria-current="step"' : ""}><span class="n">${i + 1}</span><span class="t">${s.t}</span><span class="b">${s.b}</span></li>`).join("");
+  }
+  function renderMap() {
+    const segs = shown();
+    const names = ["Subject", "Cont. 1", "Cont. 2", "Closing"];
+    const pb = S.play ? Math.floor(S.play.unit / SEG) : -1;
+    const cell = (seg, col, isLower) => {
+      const have = !!segs[seg];
+      const cand = S.phase === "review" && S.k === seg && have;
+      const ghost = isLower && col === 0;
+      const on = pb === col && (!isLower || col > 0 || (S.play && S.play.pass > 0));
+      const label = have ? names[seg] : "…";
+      const extra = isLower ? (col === 0 ? "on repeat" : "8vb") : "";
+      return `<div class="cell${have ? (cand ? " cand" : " have") : ""}${ghost ? " ghost" : ""}${on && have ? " on" : ""}"><b>${label}</b><i>${extra}</i></div>`;
+    };
+    let h = `<span></span>` + [0, 1, 2, 3].map((c) => `<span class="head">bars ${2 * c + 1}–${2 * c + 2}</span>`).join("");
+    h += `<span class="lab">treble</span>` + [0, 1, 2, 3].map((c) => cell(c, c, false)).join("");
+    h += `<span class="lab">bass</span>` + [3, 0, 1, 2].map((sg, c) => cell(sg, c, true)).join("");
+    $("map").innerHTML = h;
+  }
+  function renderLegend() {
+    const items = [`<span class="l-ink">accepted</span>`];
+    if (S.phase === "review") items.push(`<span class="l-acc">proposed</span>`);
+    if (closed()) items.push(`<span class="l-faint">bass on the repeat</span>`);
+    items.push(`<span class="l-play">sounding</span>`);
+    $("legend").innerHTML = items.join("");
+  }
+  function renderAll() { render(); renderDesk(); renderStages(); renderMap(); renderLegend(); updatePlayBtn(); }
+
+  function loadExample() {
+    stop();
+    const k = key();
+    let t = 28 + k.tonicLetter; if (t < 30) t += 7; // tonic between D4 and C5
+    const degs = [[0, 4], [1, 2], [2, 2], [3, 4], [4, 4], [5, 6], [4, 2], [3, 2], [2, 2], [1, 4]];
+    let s = 0;
+    S.subject = degs.map(([dg, d]) => { const step = t + dg; const n = { p: { step, alt: k.alts[Engine.letterOf(step)] }, s, d }; s += d; return n; });
+    S.example = true; S.msg = ""; save(); renderAll();
+  }
+
+  /* ---------------- audio ---------------- */
+  let AC = null, master = null;
+  function audio() {
+    if (!AC) {
+      AC = new (window.AudioContext || window.webkitAudioContext)();
+      const comp = AC.createDynamicsCompressor();
+      master = AC.createGain(); master.gain.value = 0.55;
+      master.connect(comp); comp.connect(AC.destination);
+    }
+    if (AC.state === "suspended") AC.resume();
+    return AC;
+  }
+  function tone(midi, when, dur, voice) {
+    const f = 440 * Math.pow(2, (midi - 69) / 12);
+    const o1 = AC.createOscillator(), o2 = AC.createOscillator(), g = AC.createGain(), g2 = AC.createGain(), lp = AC.createBiquadFilter();
+    const pan = AC.createStereoPanner ? AC.createStereoPanner() : null;
+    o1.type = "triangle"; o1.frequency.value = f;
+    o2.type = "sine"; o2.frequency.value = f * 2; g2.gain.value = voice === "u" ? 0.22 : 0.12;
+    lp.type = "lowpass"; lp.frequency.value = voice === "u" ? 3200 : 2200;
+    const peak = voice === "u" ? 0.30 : 0.36;
+    const end = when + Math.max(0.06, dur - 0.025);
+    g.gain.setValueAtTime(0, when);
+    g.gain.linearRampToValueAtTime(peak, when + 0.012);
+    g.gain.exponentialRampToValueAtTime(peak * 0.6, when + 0.25);
+    g.gain.setValueAtTime(peak * 0.6, Math.max(when + 0.012, end - 0.001));
+    g.gain.linearRampToValueAtTime(0, end + 0.06);
+    o1.connect(g); o2.connect(g2); g2.connect(g); g.connect(lp);
+    if (pan) { pan.pan.value = voice === "u" ? 0.22 : -0.22; lp.connect(pan); pan.connect(master); } else lp.connect(master);
+    o1.start(when); o2.start(when); o1.stop(end + 0.1); o2.stop(end + 0.1);
+  }
+  function previewNote(p) {
+    try { audio(); tone(Engine.midiOf(p), AC.currentTime + 0.01, 0.35, "u"); } catch (e) { /* no audio */ }
+  }
+
+  let sched = null, raf = 0;
+  function events(pass) {
+    const segs = shown();
+    let n = 0; while (n < 4 && segs[n]) n++;
+    const ev = [];
+    for (let j = 0; j < n; j++) for (const x of segs[j]) if (x.p) {
+      ev.push({ t: j * SEG + x.s, d: x.d, midi: Engine.midiOf(x.p), v: "u" });
+      if (j + 1 < n) ev.push({ t: (j + 1) * SEG + x.s, d: x.d, midi: Engine.midiOf(x.p) - 12, v: "l" });
+    }
+    if (pass > 0 && n === 4) for (const x of segs[3]) if (x.p) ev.push({ t: x.s, d: x.d, midi: Engine.midiOf(x.p) - 12, v: "l" });
+    return { L: Math.max(1, n) * SEG, ev };
+  }
+  function start() {
+    if (S.phase === "write" && filled() === 0) return;
+    stop();
+    audio();
+    const spu = 60 / S.tempo / 4;
+    let pass = 0, unit = 0, t0 = AC.currentTime + 0.08;
+    let cur = events(0);
+    const marks = [];
+    let nextTime = t0;
+    S.playing = true;
+    const pump = () => {
+      while (nextTime < AC.currentTime + 0.2) {
+        for (const e of cur.ev) if (e.t === unit) tone(e.midi, nextTime, e.d * spu, e.v);
+        marks.push({ time: nextTime, unit, pass });
+        unit++; nextTime += spu;
+        if (unit >= cur.L) {
+          if (S.loop) { pass++; unit = 0; cur = events(pass); }
+          else { clearInterval(sched); sched = null; marks.push({ time: nextTime + 0.05, end: true }); break; }
+        }
+      }
+    };
+    pump();
+    sched = setInterval(pump, 25);
+    const frame = () => {
+      const now = AC.currentTime;
+      let m = null;
+      while (marks.length && marks[0].time <= now) m = marks.shift();
+      if (m) {
+        if (m.end) { stop(); return; }
+        if (!S.play || S.play.unit !== m.unit || S.play.pass !== m.pass) {
+          S.play = { unit: m.unit, pass: m.pass };
+          render(); renderMap();
+          $("pos").textContent = `bar ${Math.floor(m.unit / BAR) + 1} · beat ${Math.floor((m.unit % BAR) / 4) + 1}${m.pass ? ` · repeat ${m.pass}` : ""}`;
+        }
+      }
+      raf = requestAnimationFrame(frame);
+    };
+    raf = requestAnimationFrame(frame);
+    updatePlayBtn();
+  }
+  function stop() {
+    if (sched) clearInterval(sched);
+    sched = null;
+    if (raf) cancelAnimationFrame(raf);
+    raf = 0;
+    const was = S.playing || S.play;
+    S.playing = false; S.play = null;
+    if (master && AC) { // cut hanging notes
+      const old = master; const g = old.gain;
+      g.cancelScheduledValues(AC.currentTime); g.setValueAtTime(g.value, AC.currentTime); g.linearRampToValueAtTime(0, AC.currentTime + 0.05);
+      const comp = AC.createDynamicsCompressor();
+      master = AC.createGain(); master.gain.value = 0.55; master.connect(comp); comp.connect(AC.destination);
+      setTimeout(() => { try { old.disconnect(); } catch (e) { /* ignore */ } }, 200);
+    }
+    $("pos").textContent = "";
+    if (was) { render(); renderMap(); }
+    updatePlayBtn();
+  }
+  function updatePlayBtn() {
+    const b = $("playBtn");
+    b.innerHTML = S.playing ? '<svg viewBox="0 0 20 20"><rect x="4" y="4" width="12" height="12"/></svg>' : '<svg viewBox="0 0 20 20"><path d="M5 3 L17 10 L5 17 Z"/></svg>';
+    b.setAttribute("aria-label", S.playing ? "Stop" : "Play");
+  }
+  $("playBtn").onclick = () => (S.playing ? stop() : start());
+  $("loopSw").onchange = (e) => { S.loop = e.target.checked; };
+  $("intSw").onchange = (e) => { S.showInt = e.target.checked; render(); };
+  $("tempo").oninput = (e) => { S.tempo = +e.target.value; $("tempoOut").textContent = `♩ = ${S.tempo}`; if (S.playing) { stop(); start(); } };
+
+  let rz = 0;
+  new ResizeObserver(() => { cancelAnimationFrame(rz); rz = requestAnimationFrame(render); }).observe($("score"));
+  if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", render);
+  new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  if (!S.subject.length) loadExample(); else renderAll();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(render);
+})();
+</script>
