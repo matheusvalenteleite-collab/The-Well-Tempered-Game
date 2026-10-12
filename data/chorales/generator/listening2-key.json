@@ -1,0 +1,133 @@
+{
+ "generated_by": "tools/chorales/listening_report.ts",
+ "chorales": [
+  54,
+  95,
+  124,
+  55,
+  56,
+  59
+ ],
+ "key": {
+  "m1-A": {
+   "no": 54,
+   "version": "0",
+   "licences": 2
+  },
+  "m1-B": {
+   "no": 54,
+   "version": "3",
+   "licences": 6
+  },
+  "m1-C": {
+   "no": 54,
+   "version": "1",
+   "licences": 0
+  },
+  "m1-D": {
+   "no": 54,
+   "version": "Bach",
+   "licences": 1
+  },
+  "m2-A": {
+   "no": 95,
+   "version": "Bach",
+   "licences": 0
+  },
+  "m2-B": {
+   "no": 95,
+   "version": "1",
+   "licences": 1
+  },
+  "m2-C": {
+   "no": 95,
+   "version": "0",
+   "licences": 1
+  },
+  "m2-D": {
+   "no": 95,
+   "version": "3",
+   "licences": 1
+  },
+  "m3-A": {
+   "no": 124,
+   "version": "0",
+   "licences": 1
+  },
+  "m3-B": {
+   "no": 124,
+   "version": "Bach",
+   "licences": 0
+  },
+  "m3-C": {
+   "no": 124,
+   "version": "3",
+   "licences": 8
+  },
+  "m3-D": {
+   "no": 124,
+   "version": "1",
+   "licences": 2
+  },
+  "m4-A": {
+   "no": 55,
+   "version": "0",
+   "licences": 1
+  },
+  "m4-B": {
+   "no": 55,
+   "version": "1",
+   "licences": 4
+  },
+  "m4-C": {
+   "no": 55,
+   "version": "Bach",
+   "licences": 0
+  },
+  "m4-D": {
+   "no": 55,
+   "version": "3",
+   "licences": 4
+  },
+  "m5-A": {
+   "no": 56,
+   "version": "Bach",
+   "licences": 0
+  },
+  "m5-B": {
+   "no": 56,
+   "version": "3",
+   "licences": 3
+  },
+  "m5-C": {
+   "no": 56,
+   "version": "0",
+   "licences": 2
+  },
+  "m5-D": {
+   "no": 56,
+   "version": "1",
+   "licences": 5
+  },
+  "m6-A": {
+   "no": 59,
+   "version": "3",
+   "licences": 3
+  },
+  "m6-B": {
+   "no": 59,
+   "version": "Bach",
+   "licences": 8
+  },
+  "m6-C": {
+   "no": 59,
+   "version": "0",
+   "licences": 1
+  },
+  "m6-D": {
+   "no": 59,
+   "version": "1",
+   "licences": 2
+  }
+ }
+}

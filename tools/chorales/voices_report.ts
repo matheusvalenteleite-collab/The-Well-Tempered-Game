@@ -16,7 +16,7 @@
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { BACH, KITTEL } from "../../src/chorale/generate/corpus.ts";
-import { VoiceModel, innerVoices, type VoiceOptions } from "../../src/chorale/generate/voices.ts";
+import { VoiceModel, innerVoices, type VoiceOptions, LINE } from "../../src/chorale/generate/voices.ts";
 import { bachSlots, settingSlots } from "../../src/chorale/generate/slots.ts";
 import { midiOf, type FigureRow } from "../../src/chorale/generate/theory.ts";
 import { LEVEL5, compareBach, judge, type Finding, type Slot } from "../../src/chorale/level5.ts";
@@ -28,7 +28,7 @@ const say = (s = "") => {
   out.push(s);
   console.log(s);
 };
-const ON: VoiceOptions = { habits: 1 };
+const ON: VoiceOptions = { habits: 1, line: LINE };
 const OFF: VoiceOptions = { habits: 0 };
 
 // What the judge says, per 100 slots, by kind of finding.

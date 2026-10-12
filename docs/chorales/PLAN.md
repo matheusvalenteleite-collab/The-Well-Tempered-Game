@@ -273,3 +273,8 @@ The owner asked for all four steps in order, without conferring.
    lines live in the bass. The diminution's density brought to Bach's with his balance of kinds (a
    restraint on passing notes); what the generator still lacks is Bach's locality of figures, which
    three note-by-note devices did not give: a passage must be planned (Phase B's craft).
+- X6, blind listening round 1 (docs/chorales/LISTENING-RATINGS.md, 12 October 2026): Bach recognised 6 of 6,
+  the generator passing once in 18, at any daring; the giveaway the inner voices as lines. Fixed: drawn
+  harmony instead of the argmax (which collapses into I-V), inner-voice moves learnt from every beat, and a
+  calibrated cost for holding a note (voices.ts LINE): on the beats the inner voices now match Bach's rates
+  of holding, steps and leaps. Round 2 page published with new melodies.

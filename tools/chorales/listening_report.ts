@@ -7,12 +7,12 @@
  *
  * Output: data/chorales/generator/listening.html (the page; versions labelled A-D only) and
  * data/chorales/generator/listening-key.json (which version is which; not on the page).
- * Run:  node tools/chorales/listening_report.ts
+ * Run:  node tools/chorales/listening_report.ts [round]   (1: the first page; 2, the default: new melodies)
  */
 import { writeFileSync } from "node:fs";
 import { BACH, melodyOf, type BachChorale } from "../../src/chorale/generate/corpus.ts";
-import { Daring, DARING_LEVELS, bestSetting, trainModels, type Setting } from "../../src/chorale/generate/index.ts";
-import { VoiceModel, innerVoices } from "../../src/chorale/generate/voices.ts";
+import { Daring, DARING_LEVELS, diverseSettings, trainModels, type Setting } from "../../src/chorale/generate/index.ts";
+import { LINE, VoiceModel, innerVoices } from "../../src/chorale/generate/voices.ts";
 import { settingSlots } from "../../src/chorale/generate/slots.ts";
 import { DiminutionModel, STUDY, diminish, type StudyChorale } from "../../src/chorale/generate/diminution.ts";
 import { licencesOf, settingAsChorale as asChorale } from "../../src/chorale/generate/licences.ts";
@@ -35,7 +35,7 @@ const study = new Map(STUDY.chorales.map((s) => [s.n, s]));
 function fourParts(c: BachChorale, s: StudyChorale, k: Key, g: Setting): Note[][] | null {
   const notes = c.notes.map((n) => ({ pitch: n.sp, offset: n.t }));
   const slots = settingSlots(g, k, notes, `${s.length}/32`);
-  const iv = innerVoices(vm, slots, undefined, 1, { habits: 1 });
+  const iv = innerVoices(vm, slots, undefined, 1, { habits: 1, line: LINE });
   if (!iv) return null;
   const times = c.notes.map((n) => thirty(n.t));
   const dur = (i: number) => (times[i + 1] ?? s.length) - times[i];
@@ -49,7 +49,11 @@ function fourParts(c: BachChorale, s: StudyChorale, k: Key, g: Setting): Note[][
 const byTune = new Map<string, number>();
 for (const c of BACH) byTune.set(c.tune, (byTune.get(c.tune) ?? 0) + 1);
 const pool = BACH.filter((c) => held.has(c.tune) && c.edition_mode === c.mode && c.notes.length >= 28 && c.notes.length <= 44 && study.has(c.no) && thirty(c.notes[0].t) === 0);
-const pick = [...pool.filter((c) => c.mode === "major").slice(0, 3), ...pool.filter((c) => c.mode === "minor").slice(0, 3)];
+// round 1 (rated 12 October 2026: docs/chorales/LISTENING-RATINGS.md) the first three of each mode;
+// round 2, after the line model, the next three: new melodies
+const ROUND = Number(process.argv[2] ?? 2);
+const suffix = ROUND === 1 ? "" : String(ROUND);
+const pick = [...pool.filter((c) => c.mode === "major").slice(3 * (ROUND - 1), 3 * ROUND), ...pool.filter((c) => c.mode === "minor").slice(3 * (ROUND - 1), 3 * ROUND)];
 
 const VERSIONS = ["Bach", "0", "1", "3"];
 const moments: Record<string, unknown>[] = [];
@@ -64,7 +68,9 @@ pick.forEach((c, mi) => {
       versions.push({ version: v, voices: s.voices as Note[][], licences: licencesOf(c).flat().length });
       continue;
     }
-    const g = bestSetting(models, m, k, undefined, v === "0" ? undefined : { weights: DARING_LEVELS[v], lex });
+    // a drawn setting (the second of two diverse ones), not the single most likely: the argmax path
+    // collapses into tonic and dominant in turn (the first round's lesson)
+    const g = diverseSettings(models, m, k, 2, rng(800 + c.no), { pool: 60, daring: v === "0" ? undefined : { weights: DARING_LEVELS[v], lex } })[1];
     const four = fourParts(c, s, k, g);
     if (four) versions.push({ version: v, voices: four, licences: licencesOf(asChorale(c, k, g)).flat().length });
   }
@@ -80,8 +86,8 @@ pick.forEach((c, mi) => {
   });
 });
 const levels = Object.fromEntries(pick.map((c, mi) => [`melody${mi + 1}`, `Melody ${mi + 1}`]));
-writePage(new URL("../../data/chorales/generator/listening.html", import.meta.url), moments, {
-  title: "Could It Be Bach?",
+writePage(new URL(`../../data/chorales/generator/listening${suffix}.html`, import.meta.url), moments, {
+  title: ROUND === 1 ? "Could It Be Bach?" : `Could It Be Bach? Round ${ROUND}`,
   lede: "Six chorale melodies, each harmonised four ways: some by Bach, some by the generator at different degrees of daring. Listen, and say whether each could be Bach's.",
   question: "Could this be Bach's?",
   choices: [
@@ -93,8 +99,8 @@ writePage(new URL("../../data/chorales/generator/listening.html", import.meta.ur
   item: "Version",
   items: "versions",
   levels,
-  collection: "listening",
-  storeKey: "bach-listening",
+  collection: `listening${suffix}`,
+  storeKey: `bach-listening${suffix}`,
 });
-writeFileSync(new URL("../../data/chorales/generator/listening-key.json", import.meta.url), JSON.stringify({ generated_by: "tools/chorales/listening_report.ts", chorales: pick.map((c) => c.no), key }, null, 1) + "\n");
+writeFileSync(new URL(`../../data/chorales/generator/listening${suffix}-key.json`, import.meta.url), JSON.stringify({ generated_by: "tools/chorales/listening_report.ts", chorales: pick.map((c) => c.no), key }, null, 1) + "\n");
 console.log(`${moments.length} versions of ${pick.length} melodies`, Object.entries(key).map(([id, x]) => `${id}=${x.version}(${x.licences})`).join(" "));

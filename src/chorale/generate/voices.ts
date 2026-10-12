@@ -6,8 +6,8 @@
  * completes the chord in the voices' ranges (level5.ts RANGE), without crossing; the fifth may be left
  * out. Each pair and each move between pairs has a cost in bits, -log2 of how often Bach does it:
  *  - in a chord: the doubling (by chord kind and bass member), the spacing, a missing fifth;
- *  - between chords: each inner voice's move (its size, as Bach's alto and tenor move from chord to
- *    chord where nothing sounds between), the seventh's
+ *  - between chords: each inner voice's move (its size, as Bach's alto and tenor move from beat to
+ *    beat), the seventh's
  *    and the leading tone's continuation (by voice), and what the game's own chord-to-chord check
  *    (level5.ts findingsBetween) finds: parallel fifths or octaves in a pair with an inner voice (grave), fifths
  *    or octaves by contrary motion (a warning) and the augmented second in an inner line.
@@ -76,11 +76,15 @@ export class VoiceModel {
       for (let i = 1; i < c.notes.length; i++) {
         const p = c.notes[i - 1],
           n = c.notes[i];
-        if (!n.direct || !p.a || !p.tn || !n.a || !n.tn) continue;
+        if (!p.a || !p.tn || !n.a || !n.tn) continue;
+        // each inner voice's move from beat to beat, whatever sounds between: a third Bach fills with a
+        // passing note is a third on the beats, which step 5 fills again (counted only where nothing
+        // sounds between, the moves leaned to the held note and against the third)
+        for (const [v, x, y] of [["alto", p.a, n.a], ["tenor", p.tn, n.tn]] as const) mv[v][Math.min(13, Math.abs(midiOf(y) - midiOf(x)))]++;
+        if (!n.direct) continue;
         const col0 = [p.sm, midiOf(p.a), midiOf(p.tn), p.bm],
           col1 = [n.sm, midiOf(n.a), midiOf(n.tn), n.bm];
-        for (const [v, x, y] of [["alto", p.a, n.a], ["tenor", p.tn, n.tn]] as const) {
-          mv[v][Math.min(13, Math.abs(midiOf(y) - midiOf(x)))]++;
+        for (const [x, y] of [[p.a, n.a], [p.tn, n.tn]] as const) {
           inner++;
           if (augmentedSecond(x, y)) aug++;
         }
@@ -135,6 +139,12 @@ export interface VoiceOptions {
   habits?: number;
   moves?: number;
   warnings?: number;
+  /** The line (bits): the cost of an inner voice holding its note, [alto, tenor], where the chord changes
+   *  and where it repeats. The cheapest path over-chooses the single commonest move, holding, since
+   *  Bach's moving options are spread over many sizes and directions: unchecked, the generated alto holds
+   *  on 46% of chord changes and 84% of repeated chords against Bach's 30% and 46%, with runs of 22
+   *  beats (docs/chorales/LISTENING-RATINGS.md). LINE is calibrated on Bach; absent, no cost. */
+  line?: { change: [number, number]; same: [number, number] };
 }
 export const WEIGHTS: Required<VoiceOptions> = { habits: 1, moves: 1, warnings: 1 };
 /** The weights that make the search's probabilities match how often Bach writes each voicing, fitted on
@@ -143,6 +153,10 @@ export const WEIGHTS: Required<VoiceOptions> = { habits: 1, moves: 1, warnings: 
  *  parallel fifths and octaves than the warnings assume (a passing note between the beats hides them),
  *  so the fitted warnings weigh little; for writing, the generator keeps WEIGHTS. */
 export const CALIBRATED: Required<VoiceOptions> = { habits: 0.65, moves: 0.5, warnings: 0.25 };
+/** The line (12 October 2026): with drawn harmony, held-out melodies, these bring the generated inner
+ *  voices to Bach's on the beats: alto held on 30% of chord changes and 50% of repeated chords (Bach 30%,
+ *  49%), steps 36% (37%), leaps 31% (30%); tenor 22%, 50%, 38%, 35% (Bach 24%, 45%, 37%, 37%). */
+export const LINE: NonNullable<VoiceOptions["line"]> = { change: [1, 0], same: [2.5, 1.5] };
 
 /** Every (alto, tenor) under a slot, with its cost in the chord. Where there is none (a melody note
  *  too low to leave room under it, a note the figure adds that cannot be placed), the constraints are
@@ -225,6 +239,11 @@ function moveCost(vm: VoiceModel, s0: Slot, s1: Slot, p: Pair, q: Pair, o: Voice
   for (const f of findingsBetween(1, [s0.soprano, p.alto, p.tenor, s0.bass], [s1.soprano, q.alto, q.tenor, s1.bass]))
     cost += ww * (f.key === "parallel" ? vm.parallel : f.key === "contrary" ? vm.contrary : f.key === "augSecond" ? vm.augSecond : 0);
   const changes = s1.root !== s0.root || s1.kind !== s0.kind;
+  if (o.line) {
+    const l = changes ? o.line.change : o.line.same;
+    if (q.a === p.a) cost += l[0];
+    if (q.t === p.t) cost += l[1];
+  }
   if (changes) {
     for (const [v, x, y] of [["alto", p.alto, q.alto], ["tenor", p.tenor, q.tenor]] as const) {
       const role = s0.above.find(([l]) => pcOf(l) === pcOf(letterOf(x)))?.[1];

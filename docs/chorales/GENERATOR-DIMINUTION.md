@@ -48,10 +48,10 @@ embellishments then move in crotchets, as his basses' passing notes do.
 
 | | alto embellished (per note) | tenor | bass |
 |---|---|---|---|
-| generator's settings | 8% | 7% | 8% |
-| Kittel's basses | 5% | 4% | (his own) |
+| generator's settings | 9% | 8% | 8% |
+| Kittel's basses | 5% | 5% | (his own) |
 
-The bass moves by step in 49% of its moves once embellished (36% before);
+The bass moves by step in 48% of its moves once embellished (36% before);
 Kittel's basses, with their own passing notes, in 57%.
 
 ## Reading
