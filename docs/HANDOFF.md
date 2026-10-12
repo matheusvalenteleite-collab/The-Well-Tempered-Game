@@ -1,7 +1,7 @@
 # Handoff (10 October 2026, night)
 
 Read this first in a new session. The decisions log (`docs/DECISIONS.md`: D1–D139 and D147 on for the game,
-D140–D146 for the tutorial (the next free number is D159), C1–C15 for the chorale mode (next C16)) has the details; `docs/MORNING.md` has
+D140–D146 for the tutorial (the next free number is D160), C1–C15 for the chorale mode (next C16)) has the details; `docs/MORNING.md` has
 older notes and the owner's open questions.
 
 ## How we work from now on (the owner's choice, after a usage warning)
@@ -36,8 +36,9 @@ older notes and the owner's open questions.
   entries) on 29 ASAP fugues.
 - **Compose (D158, docs/wtc/COMPOSE.md)**: a two-voice fugue on the player's own subject, in four
   steps (subject, answer, countersubject, the fugue), judged and read back; branch
-  `claude/wtc-fugue-composition-1hbjfb`. Next by the plan: M2 (proposals: a free-rhythm tonal
-  generator for countersubjects, episodes and codettas; the stretto table; key plans from the 48).
+  `claude/wtc-fugue-composition-1hbjfb`. M1 done; M2 mostly done (D159: generator,
+  proposals, stretto table, sequences, key of the middle entry). Next: comparison passages from the
+  48 (COMPOSE.md 5b), then M3 (three voices).
 - Also in the game: Fux species in two, three and four voices, continuo, tutorial (tutorial session),
   chorale mode and "WTC · preludes and harmony" (chorale session).
 

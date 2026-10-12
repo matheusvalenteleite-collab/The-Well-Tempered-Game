@@ -12,6 +12,7 @@ import { asEvents } from "../src/wtc/compose/generate.ts";
 import { proposeCountersubject, proposeFree } from "../src/wtc/compose/proposals.ts";
 import { fitsPlan, strettoTable } from "../src/wtc/compose/stretto.ts";
 import { fragmentLength, proposeEpisode } from "../src/wtc/compose/episode.ts";
+import { keyOfRoman } from "../src/wtc/compose/keys.ts";
 import { toNotes } from "../src/wtc/compose/model.ts";
 import { parsePitch } from "../src/music/pitch.ts";
 
@@ -246,6 +247,21 @@ test("compose M2: an episode from a sequence: the fragment repeated a step lower
   const b = rep(1);
   assert.equal(a.length, b.length);
   assert.ok(a.every((x, i) => x - b[i] === 1));
+});
+
+test("compose M2: the middle entry's key, from Bach's first keys away", () => {
+  assert.equal(keyOfRoman("C", "vi"), "a");
+  assert.equal(keyOfRoman("C", "IV"), "F");
+  assert.equal(keyOfRoman("c", "III"), "Eb");
+  assert.equal(keyOfRoman("c", "iv"), "f");
+  assert.equal(keyOfRoman("f#", "VII"), "E");
+  const d = bachDraft(FUGUES.find((x) => x.id === "wtc1.12")!);
+  d.middle = "iv";
+  const r = realise(d);
+  assert.equal(r.sections.find((s) => s.id === "mid")!.key, "bb");
+  assert.equal(r.sections.find((s) => s.id === "ep1")!.key, "bb");
+  const rep = judgeFugue(d, r);
+  assert.deepEqual(rep.missed, []);
 });
 
 test("compose: a standard MIDI file, a track per voice", () => {

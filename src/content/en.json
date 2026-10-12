@@ -1427,7 +1427,9 @@
     "compose.seq.lead": "In the",
     "compose.seq.proposal": "Sequence {n}",
     "compose.seq.reps": "The fragment and its companion {n} times, then a free tail into the next entry",
-    "compose.seq.how": "As Bach spins most of his episodes: a fragment in one voice, a line against it in the other, the pair repeated lower (or higher) in the key the episode leaves; then both voices led into the next entry, in the key it reaches. Both voices of the episode are written; change them as you like."
+    "compose.seq.how": "As Bach spins most of his episodes: a fragment in one voice, a line against it in the other, the pair repeated lower (or higher) in the key the episode leaves; then both voices led into the next entry, in the key it reaches. Both voices of the episode are written; change them as you like.",
+    "compose.middle.choose": "The key of the middle entry",
+    "compose.middle.option": "{roman} ({key}): Bach's first key away in {share}% of his fugues in this mode"
   },
   "tutor": {
     "rule.fos.no-repetition": "In this species each upbeat brings a new note, which is then tied over the bar line; striking the downbeat's note again on its own upbeat is a whole note in disguise.",

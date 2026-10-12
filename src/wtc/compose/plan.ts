@@ -15,6 +15,7 @@ import type { WtcNote } from "../fugues.ts";
 import { answerNotes } from "./answer.ts";
 import { across } from "./invertible.ts";
 import { follower, STRETTO_INTERVALS } from "./stretto.ts";
+import { keyOfRoman } from "./keys.ts";
 import { barQuarters, dominantOf, EPS, lengthOf, modeOf, octave, relativeOf, toKey, toNotes, tonicOf, type Ev, type FugueDraft } from "./model.ts";
 
 export type SectionKind = "exposition" | "episode" | "entry" | "close";
@@ -75,7 +76,8 @@ export function realise(d: FugueDraft): Realised {
   const cs = toNotes(d.countersubject);
   const first = d.first;
   const other = (1 - first) as 0 | 1;
-  const relative = relativeOf(d.key);
+  // The middle entry's key: the player's choice among Bach's first keys away (keys.ts), else the relative.
+  const relative = d.middle ? keyOfRoman(d.key, d.middle) : relativeOf(d.key);
   const sections: Section[] = [];
   let t = 0;
   const add = (id: Section["id"], kind: SectionKind, key: string, len: number) => {

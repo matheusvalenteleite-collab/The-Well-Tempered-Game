@@ -293,6 +293,36 @@ leading note in minor); ties in the editor (T: a note held on by the chosen valu
 (`predictAnswer` reads the head in the fugue's metre) fixed. Faults 1 and 6 belong to three voices
 (M3); fault 5 (duplicated helpers) is left: the composer does not use them.
 
+## 5b. M2 status (12 October 2026)
+
+Built (D159):
+
+- **The generator** (`src/wtc/compose/generate.ts`): rhythm sampled against the other voice's motion
+  (holding where it moves, moving where it holds); a beam over the key's degrees (in minor both
+  forms of ^6 and ^7), each note costed by local rules (consonance on the beat, an imperfect one
+  preferred, a fifth costly where the line must invert; dissonance only passing, neighbouring or
+  suspended; no consecutives; steps, recovered leaps, no augmented or diminished leap, no false
+  relation in the line, no circling; the leading note rising; the line on its side; the last note
+  leading on); Gumbel noise for variety; every candidate verified by the player's own judge (and, for
+  a countersubject, inverted too), the fewest faults first. Seeded: the same request gives the same
+  proposals.
+- **Proposals** for the countersubject (25 of Bach's expositions tried: every first proposal passes
+  where it stands and inverted), the codetta, and any free passage of the plan; the player's own
+  line is kept and can be restored.
+- **The stretto table** (`stretto.ts`): the subject against itself at every beat of delay and seven
+  intervals, judged where the entries overlap; the last entry can be set in stretto.
+- **Episodes from a sequence** (`episode.ts`): a fragment (the subject's head or tail, the
+  countersubject's head) with a proposed companion, repeated a step lower, a step higher or a third
+  lower in the key the episode leaves, then a free tail into the next entry.
+- **The middle entry's key** from Bach's first keys away in the 48 (`keys.ts`: in major vi 54%,
+  ii 17%, IV 13%, iii 8%; in minor III 50%, iv 32%, VI and VII 5%).
+
+Not yet: **comparison passages from the 48** (a Bach episode between the same keys, a Bach
+countersubject of the same rhythmic profile, played beside the player's). This is the part of M2
+that makes "like Bach's" mean something, and it is next. Also left: proposals for the close (a
+cadence formula), a harmonic skeleton under the generator (it reads harmony only through the
+judge), and a habit model fitted on the 48 in place of hand-set costs.
+
 ## 6. For the owner to decide
 
 1. **The first milestone.** Choose one:

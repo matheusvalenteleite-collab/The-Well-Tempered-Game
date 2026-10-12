@@ -36,6 +36,7 @@ import { judgeFugue } from "../wtc/compose/judge.ts";
 import { fugueMidi } from "../wtc/compose/midi.ts";
 import { asEvents, type Proposal } from "../wtc/compose/generate.ts";
 import { fitsPlan, strettoTable, type StrettoRow } from "../wtc/compose/stretto.ts";
+import { choicesFor, keyOfRoman } from "../wtc/compose/keys.ts";
 import { proposeEpisode, type EpisodeChoice, type EpisodeProposal } from "../wtc/compose/episode.ts";
 import { proposeCodetta, proposeCountersubject, proposeFree } from "../wtc/compose/proposals.ts";
 import { alterPitch, insert, isDotted, lengthen, letterPitch, nearBefore, remove, setDur, setPitch, stepPitch, toggleDot, VALUES, pretty } from "../wtc/compose/edit.ts";
@@ -649,6 +650,11 @@ export function ComposeApp({ onVoices, onStudy, onExercises, onTutorial }: { onV
         {realised.sections.map((s) => (
           <li key={s.id}>
             <strong>{t(`ui.compose.section.${s.id}`, { key: keyName(s.key) })}</strong> <span className="help">{t("ui.compose.bars", { a: barNo(s.from), b: barNo(s.to - EPS) })}</span>
+            {s.id === "mid" && (
+              <select className="sel" aria-label={t("ui.compose.middle.choose")} value={d.middle ?? choicesFor(d.key)[0].roman} onChange={(e) => change({ ...d, middle: e.target.value, touched: Object.fromEntries(Object.entries(d.touched).filter(([k]) => !k.startsWith("mid:"))) })}>
+                {choicesFor(d.key).map((c) => <option key={c.roman} value={c.roman}>{t("ui.compose.middle.option", { roman: c.roman, key: keyName(keyOfRoman(d.key, c.roman)), share: c.share })}</option>)}
+              </select>
+            )}
             {s.id === "final" && (
               <select className="sel" aria-label={t("ui.compose.stretto.choose")} value={d.stretto ? `${d.stretto.delay}|${d.stretto.interval}` : ""} onChange={(e) => {
                 const [delay, interval] = e.target.value.split("|");
