@@ -53,6 +53,9 @@ export interface FermataEdit {
   /** Longer or shorter: the hold's added time, the breath and the silence after it, multiplied (0.25-3). */
   scale?: number;
 }
+/** P29: the phrase dynamics on or off (the test page compares them); on by default. */
+let dynamicsNow = true;
+export const setPerformanceDynamics = (on: boolean) => (dynamicsNow = on);
 /** P20: all fermatas longer or shorter (the screens' "Fermatas" slider), multiplying each one's own scale. */
 let fermataScaleNow = 1;
 export const currentFermataScale = () => fermataScaleNow;
@@ -410,8 +413,9 @@ export function performChorale(c: Chorale, reading: Reading, practice: Practice 
   };
   const breathAt = new Map(plans.filter((f) => f.breath).map((f) => [f.end, f.breath * (factor[Math.max(0, Math.floor(f.end) - 1)] ?? 1)]));
   const lift = (0.045 / wholeSeconds) * 32; // a re-struck note's lift, about 45 ms, in 32nds
-  const level = practice === "organ" ? () => 0 : phraseLevels(c);
-  const susp = new Set((practice === "organ" ? [] : c.suspensions ?? []).map(([a, v]) => `${a}|${v}`));
+  const shaped = practice !== "organ" && dynamicsNow;
+  const level = shaped ? phraseLevels(c) : () => 0;
+  const susp = new Set((shaped ? c.suspensions ?? [] : []).map(([a, v]) => `${a}|${v}`));
   const events: PlayEvent[] = [];
   c.voices.forEach((notes, v) => {
     const channel = CHORALE_CHANNELS[Math.min(v, CHORALE_CHANNELS.length - 1)];

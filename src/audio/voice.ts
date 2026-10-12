@@ -59,13 +59,14 @@ export function loadSamples(ctx: BaseAudioContext, set: SampleSet): Promise<void
       fetch(new URL(`samples/${set}/pack.mp3`, base))
         .then((r) => (r.ok ? r.arrayBuffer() : null))
         .catch(() => null);
-    const pack = fromSite(document.baseURI).then((x) => x ?? (REMOTE.has(set) ? fromSite(SITE) : null));
+    // P29: any set the page itself lacks (the claude.ai page carries none) comes from the website.
+    const pack = fromSite(document.baseURI).then((x) => x ?? fromSite(SITE));
     const bytes = async (f: string): Promise<ArrayBuffer> => {
       const all = await pack;
       const at = m.pack?.[f];
       if (all && at && at[0] + at[1] <= all.byteLength) return all.slice(at[0], at[0] + at[1]);
       let res = await fetch(new URL(`samples/${set}/${f}`, document.baseURI)).catch(() => null);
-      if ((!res || !res.ok) && REMOTE.has(set)) res = await fetch(new URL(`samples/${set}/${f}`, SITE)).catch(() => null);
+      if (!res || !res.ok) res = await fetch(new URL(`samples/${set}/${f}`, SITE)).catch(() => null);
       if (!res) throw new Error(`sample ${set}/${f}: unreachable`);
       if (!res.ok) throw new Error(`sample ${set}/${f}: ${res.status}`);
       return res.arrayBuffer();

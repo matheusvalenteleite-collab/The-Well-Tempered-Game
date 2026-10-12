@@ -20,6 +20,7 @@
     "report:m1": "node tools/m1/report.ts",
     "dev": "vite",
     "build": "node tools/sample-manifest.mjs && tsc --noEmit && vite build",
+    "build:bench": "node tools/sample-manifest.mjs && tsc --noEmit && vite build --mode bench",
     "build:artifact": "node tools/sample-manifest.mjs && tsc --noEmit && vite build --mode artifact",
     "preview": "vite preview",
     "chorales:concordance": "python3 tools/chorales/concordance.py",

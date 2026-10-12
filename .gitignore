@@ -8,3 +8,4 @@ dist-artifact/
 data/local/
 # Screenshots taken while working (the docs keep theirs under docs/)
 /*.png
+dist-bench/
