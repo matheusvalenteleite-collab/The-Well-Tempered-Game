@@ -12,7 +12,7 @@ RESEARCH.md section 2, which keeps the record of what was done (R1-R4 so far).
    a reading by hand) and its accuracy stated. A count resting on an unmeasured reading is marked so.
 2. **A number is never shown without its examples** (piece, bar, voice), as in the chorales' PRINCIPLES.md.
 3. **Observations, not rules.** The owner decides what becomes a precept or a boundary, with Bach's
-   counts and examples in front of him (D39, C1, C4).
+   counts and examples in front of them (D39, C1, C4).
 4. **The sets are compared, not pooled blindly:** WTC I, WTC II, the Art of Fugue, the Musical Offering,
    BWV 903. Where they differ the difference is the finding.
 5. **Readings by hand follow a written protocol** (as `data/wtc/subject-readings/PROTOCOL.md`), are kept as
