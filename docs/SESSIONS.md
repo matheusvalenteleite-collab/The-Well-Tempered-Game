@@ -10,10 +10,9 @@ needs from the other sessions, and what it offers them.
    what others have already found, not reinventing the wheel. Then readings by hand, under a written
    protocol, follow; then counts with examples (never a number alone). Generation comes last, and only
    when the owner says so. The owner decides what becomes a precept.
-2. **Two study sessions active at a time.** The owner's choice C2, for the usage budget.
-   - Now: FUGUE and INVENTIONS.
-   - CHORALES resumes when the owner pauses one of them.
-   - ANALYSIS CORE and PRELUDES each take a slot when opened.
+2. **At most four sessions active at a time.** The owner, 12 October (D162), replacing the earlier limit of two.
+   Active now: FUGUE, INVENTIONS. The owner decides which others are active (CHORALES, ANALYSIS CORE,
+   PLAYBACK, later PRELUDES) within the four.
 3. **Each session has its own branch.** The owner merges each branch by pull request into the default
    branch (`claude/fux-gradus-two-voice-dataset-ouu87h`), as HANDOFF.md describes. Before asking for a merge,
    a session merges the default branch into its own branch and runs `npm test`.
@@ -50,7 +49,7 @@ needs from the other sessions, and what it offers them.
 all of them use. The core builds each reader once, measures it on every session's gold standard, and
 publishes its accuracy by repertory. Study sessions request changes; they do not fork the reader. It is
 opened when the first shared reader is due (the cadence finder: once INVENTIONS has its first gold
-readings), and it takes one of the two active slots, or the owner widens C2 for it.
+readings), within the limit of four active sessions.
 
 ## State, needs and offers
 
