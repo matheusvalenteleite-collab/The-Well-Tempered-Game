@@ -3,8 +3,8 @@
 The INVENTIONS session's literature review, 12 October 2026. The references, with tier, question and
 access, are in `docs/LITERATURE.md` (section INVENTIONS); this note says what they establish, where they
 disagree, and what is left for a corpus study. A claim is attributed to a work only where its text, its
-abstract, or a citing author's report of it was seen; the row in LITERATURE.md says which. Derr (1981), the
-one systematic article on the two-part set, has **not** been seen: nothing below rests on it.
+abstract, or a citing author's report of it was seen; the row in LITERATURE.md says which. Sections 1-5
+were written from the search; section 6 records the first texts read (Dreyfus, Derr, Schulenberg, Väisälä).
 
 ## 1. What the literature establishes
 
@@ -86,43 +86,27 @@ cited by printed page; the book's ch. 6, "Bach as Teacher", is not yet digested.
    (2005) read Bach rhetorically. Williams (1983) and Vickers (1984) attack such readings as
    anachronistic or loose. Mattheson himself, the period's authority on *Erfindung*, says he sets little
    store by the *loci topici*.
-4. **Whether analysis of the pieces shows Bach's teaching.** Remeš (2019) argues that it does not. Bach's
-   teaching, he says, ran through thoroughbass and chorales over many basses, and modern analysis of
-   finished works (the Inventions, the WTC, Dreyfus's book included) is no window into it. This is the
-   strongest objection to the project's premise, and the study should meet it rather than ignore it. A
-   corpus study can say what the pieces *contain*; it cannot by itself say what Bach *taught*. The claim
-   that a habit counted in the Inventions was a lesson needs the documentary witnesses (title page, Gerber,
-   C. P. E. Bach) behind it.
+4. **Whether analysis of the pieces shows Bach's teaching.** Remeš (2019) argues that it does not: the
+   teaching ran through thoroughbass and chorales. The study does not depend on this question. It asks what
+   the pieces contain, not what Bach taught with them, so the point is noted and set aside (the owner, 12
+   October: teaching is worth knowing about but not to be overestimated).
 5. **What the fair copy was for.** Wolff proposes that the 1723 copy (with WTC I) served Bach's application
    for the Leipzig cantorate. The Henle preface reports this as a hypothesis; it does not contradict the
    pedagogical purpose.
 
-## 3. The owner's hypothesis in the light of the review
+## 3. Inventions are not fugues
 
-"The Inventions are more conservative than the WTC and the Art of Fugue" runs together three claims that
-the literature treats differently.
+The owner's remark that the Inventions are "more conservative" than the fugues was a reminder, not a
+hypothesis to test (owner, 12 October): the study must not read an invention as if it were a fugue. The
+literature bears this out:
+- Schulenberg calls the Inventions and Sinfonias "a new genre that in individual cases may resemble a fugue
+  or a sonata movement". The alternation of expositions and episodes is rare in both sets (clearest in the
+  A major pieces).
+- Many Inventions open with imitation at the octave, not at the fifth, so there is no answer, real or tonal.
+- Dreyfus's unit is a whole two-voice segment, not a subject (section 6).
 
-- **Pedagogical precedence: documented.** Gerber's course and the Clavier-Büchlein put the Inventions
-  before the WTC, and Ledbetter grades WTC preludes against them. "Stepping stone" is the period's own
-  order.
-- **Chronological precedence: false for WTC I.** The Inventions and WTC I are both of 1722-23. Against the
-  Art of Fugue and WTC II it holds, but only trivially.
-- **Stylistic or technical conservatism: nowhere tested, and partly against the evidence.** No author found
-  measures it.
-  - The detailed studies point the other way for at least some pieces: Sinfonia 3 exhausts triple
-    counterpoint; Sinfonia 9 bends dissonance rules; Invention 8 is stricter than most fugues.
-  - Ledbetter calls the Inventions *more* mature than the two-part fugue scheme.
-  - "Conservative" is therefore the claim the study must make precise before it can count. It could mean:
-    - fewer kinds of imitation (the octave rather than the fifth, a fixed distance);
-    - stricter dissonance;
-    - a narrower key plan;
-    - simpler forms;
-    - less variety of invertible counterpoint.
-
-  Each is countable in both repertories; they need not agree.
-
-I propose to treat the hypothesis as **pedagogical precedence (granted)** plus a set of **technical
-comparisons (to be measured)**. "Conservative" stays a summary that the counts may or may not earn.
+Fugal categories (subject, answer, countersubject, episode) are therefore used only where a piece earns them.
+No comparison with the fugues is planned for now.
 
 ## 4. What a corpus study can add
 
@@ -148,19 +132,120 @@ The Sinfonias are almost untouched. Concretely, the gaps are:
    - the concerto openings (Wagner);
    - the free forms against the sectional ones (Schulenberg);
    - the enlargement of figures (Väisälä).
-3. **The comparison with the fugues** that the owner's hypothesis needs, under the definitions in section
-   3. No study compares the two repertories musically; the voice-separation papers only pool them as test
-   data.
+3. **A comparison with the fugues**, if it is ever wanted: no study compares the two repertories
+   musically; the voice-separation papers only pool them as test data. Not planned now (section 3).
 4. **A gold standard**, read by hand (I2), which would be the first such annotation of these pieces. It
    would also be the ANALYSIS CORE's second repertory for measuring the cadence finder.
 
 ## 5. What this changes in the plan sketched for I1-I6
 
-- **I1 has to choose its unit before it counts.** It should take Dreyfus's (the motive with its
-  countermotive, as a combination) or say why not, and it should record the imitation interval and
-  distance, the invertible counterpoint, and the form type, so that Wagner's, Schulenberg's and the
-  graded order's claims can be tested from the same readings.
-- **I4 states which sense of "conservative" each count tests** (section 3), and sets the Inventions against
-  WTC I first: the fair comparison, the same years.
-- **I1 records the Clavier-Büchlein order beside the 1723 order,** so that the graded-course claim can be
-  checked.
+- **I1 takes Dreyfus's unit** (section 6): a piece is read as a few whole two-voice segments, each
+  recurring under named operations. The imitation interval and distance, the invertible counterpoint, the
+  form and the cadences are recorded on those segments. Where his model fails a piece (one that is mostly
+  canon, say), the reading says so.
+- **Schulenberg's tables 10.2 and 10.3 are the external check,** as Ledbetter was for the fugues. They
+  classify each piece by imitation interval, kind, form, and restatement and return bars.
+- **I1 records the Clavier-Büchlein order beside the 1723 order,** at no cost, so that Derr's and
+  Schulenberg's claims about the original order can be looked at later if wanted.
+
+## 6. The first readings (12 October)
+
+The owner supplied Markdown conversions of Dreyfus 1996, Derr 1981, Schulenberg 2006 chs. 10-12 and 18, and
+Väisälä 2009. The conversions lost almost every music example and garbled the tables, so claims that rest on
+an example are not used. Page numbers below are the printed ones. The books are not in the repository.
+
+**Dreyfus 1996, ch. 1 "What Is an Invention?" (pp. 1-32): the most useful text for I1.** It gives a method,
+demonstrated on one piece, the C major Invention.
+- **The invention.** An "invention" is not the seven-note subject but a *complete two-voice segment* built
+  from it: the opening α and the sequential, modulating β.
+- **Paradigms.** Each segment recurs as a paradigm, its members related by definable operations:
+  - ROTATE: voice exchange, i.e. invertible counterpoint at the octave;
+  - INVERT: melodic inversion;
+  - MODESWITCH;
+  - MODULATE: transposition.
+- **Dispositio** is the order and keys of the segments.
+- **Elaboratio** is the connecting passages between them, mostly stepwise sequences. These are made to
+  *resemble* the inventions without deriving from them.
+- **Failure is data.** A transformation that cannot be carried through is abandoned mid-segment, and the
+  abandonment tells us something.
+- **The map of BWV 772** (Fig. 1.2) accounts for 14 of its 22 bars as inventions before any elaboration.
+
+This translates almost directly into a reading protocol:
+- segments, with their operations and keys;
+- the residue as elaboration, with its sequence type;
+- the cadences that close the segments.
+
+Two limits:
+- Dreyfus analyses only BWV 772, and says that "permutational invention" is not characteristic of every
+  genre.
+- The rest of the book is on concertos, genre, fugue and style, not on the Inventions.
+
+For the FUGUE session: ch. 5 "Matters of Kind" is on fugue as a genre, and ch. 6 on Schenker's analysis of
+WTC I/2.
+
+**Schulenberg 2006, ch. 10 "The Clavier-Büchlein vor Wilhelm Friedemann Bach and Related Works", pp.
+185-198 on the Inventions and Sinfonias: the most useful survey, and an external reading to check I1
+against.** Its two tables classify each of the 30 pieces:
+- **Table 10.2 (p. 189), the Inventions:** meter, length of subject, interval of the first imitation
+  (octave or fifth), kind (free, canonic, gigue, double fugue, chromatic, and others), form (tripartite,
+  rounded bipartite, sonata, through-composed, multipartite), and the bars of restatement, medial cadence
+  and return.
+- **Table 10.3 (p. 194), the Sinfonias:** the same, with the order of the first entries (S, M, B), their
+  intervals and the number of countersubjects.
+
+The conversion scrambled both tables, so they must be read from the printed page before use. The claims
+that can be read from the prose:
+- **The Clavier-Büchlein order** runs "simple to complex, free to rigorous"; the 1723 order leaves "the
+  impression of continuous variety".
+- **Which Inventions came first:** probably those with short (half-bar) subjects and free forms. Some treat
+  their subject "more in the manner of free sonata-style development than in fugal fashion"; "one or two"
+  are so strictly imitative that they resemble canons.
+- **Forms:**
+  - C major and A minor are tripartite (three nearly equal phrases; the second restates the opening in a new
+    key in inverted counterpoint; the third recapitulates part of the first);
+  - F minor is bipartite, with the dominant cadence at the exact centre (b. 17) and a return at b. 29;
+  - E major is a true sonata form.
+  - Bach broke the nearly exact threefold symmetry of the early versions of E minor and A minor by expanding
+    the third section.
+- **The Sinfonias:**
+  - 11 of 15 (C, D, d, E, e, F, f, G, A, a, and the B flat) follow the fugal allegro of the trio sonata: the
+    upper voices imitate over a non-thematic bass, and the bass enters third.
+  - Fewer than half have regular countersubjects. Only the D major presents all six permutations of subject
+    and two countersubjects.
+  - Inversion occurs only in the C and E Sinfonias, stretto only in the F and B flat.
+  - Exposition alternating with episode is rare, clearest in the A major.
+- **Precursors:** the Little Preludes BWV 939-942 and BWV 928 and 932, which open with the motive imitated
+  in the bass.
+
+Chs. 11 and 12 (the WTC) serve the invention-like preludes later (E2) and the FUGUE session; ch. 18 (Musical
+Offering and Art of Fugue) is FUGUE's.
+
+**Derr 1981 (pp. 26-48): thin, as the owner found, and mostly about the order.**
+- Derr reads the Clavier-Büchlein order of the Praeambula as a designed course: five triptychs, X Y Z Y' X',
+  symmetrical about the centre, with a palindromic distribution of metres.
+- The course runs from ricercar-like treatment of a short subject, through its "metamorphosis", to pairs of
+  subject and countersubject, invertible counterpoint, and "the emergence and development of canonic
+  procedures".
+- He calls the 1723 reordering Bach's "folly".
+
+His examples are lost in the conversion. Since the order is no longer a question for the study, what remains
+of use is a handful of piece-level claims to check when the pieces are read:
+- concatenation of the subject in sequence;
+- "metric relocation";
+- canonic imitation, e.g. at the fifth below in Praeambulum 6 (the A minor);
+- long invertible counterpoint replacing canon in the later pieces.
+
+**Väisälä 2009 (pp. 101-152): a Schenkerian reading of all 15; consult, do not adopt.**
+- Its own criteria are surface ones (figuration, register, metre, gestural emphasis), and they bear on things
+  I1 and I2 must read anyway:
+  - where the recapitulation gestures and retransitions fall;
+  - auxiliary cadences;
+  - the gap between key areas and prolongational spans;
+  - registral extremes.
+- Its conclusions are Urlinie readings: ten pieces read as descents from 5, four from 3. These are not
+  readings a corpus study can reproduce or count. The notes show why: Väisälä departs from earlier Schenkerian
+  graphs of the same pieces (Schenker, Forte and Gilbert, Wintle, Petty, Wen) in almost every case.
+- Dreyfus (ch. 6) argues further that in genres built on invertible counterpoint, local voice-leading is a
+  by-product of the contrapuntal operations rather than their motor. The Inventions are such a genre.
+
+So it is tier 2: read per piece when that piece's form and cadences are read by hand.

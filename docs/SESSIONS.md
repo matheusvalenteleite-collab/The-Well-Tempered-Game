@@ -76,16 +76,22 @@ readings), and it takes one of the two active slots, or the owner widens C2 for 
 - **Done: I0, the literature review (12 October).**
   - 60-odd references, each checked by search, are in `docs/LITERATURE.md` (section INVENTIONS) with tier,
     question and access; leads that could not be checked are listed apart.
-  - The narrative is `docs/inventions/LITERATURE-REVIEW.md`: what is established, the disagreements, the
-    owner's "conservative" hypothesis split into pedagogical precedence (documented) and technical
-    conservatism (untested), and the gaps.
-  - **Waiting for the owner** to choose what is read first. Nothing beyond I0 has started.
-- **Needs:** the owner's library access for Derr 1981, Väisälä 2009, Dreyfus 1996 and Schulenberg 2006
-  (not open).
+  - The narrative is `docs/inventions/LITERATURE-REVIEW.md`.
+  - **First readings done:** Dreyfus ch. 1, Schulenberg ch. 10, Derr, Väisälä (section 6 of the review).
+    - Dreyfus gives I1 its unit: whole two-voice segments under named operations.
+    - Schulenberg's tables 10.2 and 10.3 are its external check.
+  - **The owner's guidance:** "conservative" was a reminder not to treat inventions as fugues, not a
+    hypothesis to test; teaching methods are not to be overestimated.
+- **Next, if the owner approves:** I1, a written reading protocol on Dreyfus's model, checked against
+  Schulenberg's tables.
+- **Needs:** Schulenberg's printed pp. 189 and 194 (the tables), which the conversion scrambled.
 - **Offers:**
-  - to FUGUE: Dreyfus 1996, Walker 2000 and Giraud et al. 2015 are listed for both sessions; Gingras 2008 is
-    listed as FUGUE's.
-  - to CHORALES: Remeš 2019 (both ZGMTH articles, open) on thoroughbass and chorales in Bach's teaching.
+  - to FUGUE:
+    - Groocock, *Fugal Composition* (2003), on the 48: the owner has a scan;
+    - Dreyfus chs. 5-6 (fugue as genre; Schenker on WTC I/2);
+    - Schulenberg chs. 11-12 and 18;
+    - Walker 2000; Giraud et al. 2015.
+  - to CHORALES: Remeš 2019 (ZGMTH, open).
 
 ### ANALYSIS CORE
 
