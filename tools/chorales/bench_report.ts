@@ -6,13 +6,14 @@
  * ("compare"), blind, in random order.
  *
  * Output: data/playback/bench/gen-chorale-<no>.json (format: the playback session's, 12 October 2026).
- * Run:  node tools/chorales/bench_report.ts [count per mode, default 4]
+ * Also the inner voices alone between Bach's outer voices (part "inner", his voices "given").
+ * Run:  node tools/chorales/bench_report.ts [whole settings per mode, default 4] [inner-voice pieces, default 6]
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { BACH, melodyOf, type BachChorale } from "../../src/chorale/generate/corpus.ts";
 import { diverseSettings, trainModels } from "../../src/chorale/generate/index.ts";
 import { VoiceModel, writeVoices } from "../../src/chorale/generate/voices.ts";
-import { settingSlots } from "../../src/chorale/generate/slots.ts";
+import { bachSlots, settingSlots } from "../../src/chorale/generate/slots.ts";
 import { DiminutionModel, STUDY, diminish } from "../../src/chorale/generate/diminution.ts";
 import type { Key } from "../../src/chorale/generate/theory.ts";
 import type { Note } from "../../src/chorale/level6.ts";
@@ -71,5 +72,30 @@ for (const c of pick) {
   writeFileSync(new URL(`gen-chorale-${c.no}-${VERSION}.json`, dir), JSON.stringify(piece) + "\n");
   written++;
   console.log(`gen-chorale-${c.no}-${VERSION}: ${s.title} (${s.tonic} ${s.mode}), against Bach's no. ${c.no}`);
+}
+// ---- the inner voices alone: alto and tenor written between Bach's soprano and bass, over his chords
+// (Kirnberger's reading of them), embellished with his bass as it stands; the bench draws his voices in grey
+// ("given") and compares with his own alto and tenor. Melodies drawn at random among the held-out ones. ----
+const r = rng(4242);
+const rest = BACH.filter((c) => held.has(c.tune) && study.has(c.no) && !pick.includes(c) && c.notes.every((n) => n.a && n.tn));
+const inner: BachChorale[] = [];
+while (inner.length < Number(process.argv[3] ?? 6) && rest.length) inner.push(rest.splice(Math.floor(r() * rest.length), 1)[0]);
+for (const c of inner) {
+  const s = study.get(c.no)!;
+  const slots = bachSlots(c);
+  const iv = slots && writeVoices(vm, slots);
+  if (!iv) continue;
+  const times = c.notes.map((n) => thirty(n.t));
+  const dur = (i: number) => (times[i + 1] ?? s.length) - times[i];
+  const line = (ps: string[]): Note[] => ps.map((p, i) => (c.notes[i].end || i === ps.length - 1 ? [times[i], dur(i), p, 1] : [times[i], dur(i), p]));
+  const d = diminish(dm, [line(c.notes.map((n) => n.sp)), line(iv.alto), line(iv.tenor), line(c.notes.map((n) => n.bp))], s.sig, rng(7100 + c.no), 1, [true, true, false]);
+  const voices = [s.voices[0], d.lines[1], d.lines[2], s.voices[3]].map((l) => l.map((n) => (n[3] ? [n[0], n[1], n[2], 1] : [n[0], n[1], n[2]])));
+  const id = `gen-chorale-inner-${c.no}-${VERSION}`;
+  writeFileSync(
+    new URL(`${id}.json`, dir),
+    JSON.stringify({ id, title: s.title, kind: "chorale", by: "chorale-generation", part: "inner", given: [0, 3], tonic: s.tonic, mode: s.mode, sig: s.sig, meter: s.meter, pickup: s.pickup, voices, compare: c.no, note: "Inner voices only (alto and tenor), written between Bach's soprano and bass over his chords: lines re-written whole with Bach's shapes over three moves, runs, contrary motion between alto and tenor, the alto rising with the climax; embellished with the bass as given, one voice leading a passage." }) + "\n",
+  );
+  written++;
+  console.log(`${id}: ${s.title}, inner voices between Bach's outer voices (no. ${c.no})`);
 }
 console.log(`${written} pieces in data/playback/bench/`);
