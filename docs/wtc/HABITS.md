@@ -137,7 +137,7 @@ The leaps: I/4 d4; I/7 A4; I/10 d5, A4, A2; I/18 A4; I/20 d7; I/24 A4, d7, d7; I
 - Musical Offering: 2 of 2
 - BWV 903: 1 of 1
 
-**The head rule.** Of the 20 subjects beginning on ^5, 20 are answered from ^1 (the tonic answering the dominant): I/3, I/7, I/11, I/12, I/13, I/16, I/21, I/24, II/1, II/2, II/12, II/14, II/15, II/16, II/17, II/20, II/24, AoF IV, AoF V, BWV 903. Fux states the same exchange of the mode's fifth and fourth (Exercitium V; docs/fux/fugue.md when read).
+**The head rule.** Of the 20 subjects beginning on ^5, 20 are answered from ^1 (the tonic answering the dominant): I/3, I/7, I/11, I/12, I/13, I/16, I/21, I/24, II/1, II/2, II/12, II/14, II/15, II/16, II/17, II/20, II/24, AoF IV, AoF V, BWV 903. Fux prescribes the exchange of fifth and fourth that keeps the answer within the mode's octave (a leap ^1-^5 answered by ^5-^1, *Gradus* 1725, p. 144), not a mapping of degrees; and he prefers, where the two conflict, keeping the subject's intervals ("potior est enim ratio Cantus, quam Modi", p. 232; docs/fux/fugue.md). Bach's practice is the degree rule: in the 20 subjects beginning on ^5 the first note is answered by ^1, whether it is left by a leap or by a step (I/3: G♯ A♯, answered C♯ D♯).
 
 **Where the tonal answer departs** (the first mutated note: 1st, 2nd …):
 

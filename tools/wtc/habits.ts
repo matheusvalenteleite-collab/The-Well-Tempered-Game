@@ -197,7 +197,7 @@ bySet("**Tonal**", (r) => r.s.answerKind === "tonal");
 const onFive = rows.filter((r) => r.first === "5");
 const fiveToOne = onFive.filter((r) => r.s.answer[0] && place(r.s.answer[0].pitch, r.key).deg === 0);
 out.push(
-  `**The head rule.** Of the ${onFive.length} subjects beginning on ^5, ${fiveToOne.length} are answered from ^1 (the tonic answering the dominant): ${list(fiveToOne, 30)}.${onFive.length > fiveToOne.length ? ` Not: ${list(onFive.filter((r) => !fiveToOne.includes(r)), 10)}.` : ""} Fux states the same exchange of the mode's fifth and fourth (Exercitium V; docs/fux/fugue.md when read).`,
+  `**The head rule.** Of the ${onFive.length} subjects beginning on ^5, ${fiveToOne.length} are answered from ^1 (the tonic answering the dominant): ${list(fiveToOne, 30)}.${onFive.length > fiveToOne.length ? ` Not: ${list(onFive.filter((r) => !fiveToOne.includes(r)), 10)}.` : ""} Fux prescribes the exchange of fifth and fourth that keeps the answer within the mode's octave (a leap ^1-^5 answered by ^5-^1, *Gradus* 1725, p. 144), not a mapping of degrees; and he prefers, where the two conflict, keeping the subject's intervals (\"potior est enim ratio Cantus, quam Modi\", p. 232; docs/fux/fugue.md). Bach's practice is the degree rule: in the 20 subjects beginning on ^5 the first note is answered by ^1, whether it is left by a leap or by a step (I/3: G♯ A♯, answered C♯ D♯).`,
   "",
 );
 const tonal = rows.filter((r) => r.s.answerKind === "tonal");

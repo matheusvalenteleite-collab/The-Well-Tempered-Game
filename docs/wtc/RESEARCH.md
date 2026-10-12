@@ -79,3 +79,13 @@ the stile antico (Ricercar a 6); BWV 903 a chromatic subject and the free keyboa
   Ledbetter as before (157 of 173), one more of his strettos found (40 of 47), no new unclaimed ones.
 - **R3 begun (12 October):** `docs/wtc/HABITS.md`, part 1 (the subject, the answer, the opening of the
   exposition), from the settled subjects alone. The head rule holds in all 20 subjects that begin on ^5.
+- **R3 part 2 (12 October):** entries, their degrees, inversion and augmentation, stretto, episodes, pedal
+  points over the 61, with the analysis's blind spots named (the late works suffer most: strettos with
+  transformed entries, later subjects of AoF VIII-X, varied entries).
+- **R4 begun (12 October):** Fux's doctrine of fugue read from the 1725 print (`docs/fux/fugue.md`, pp.
+  143-238, with 29 claims to test against Bach). Kirnberger 1773 located (the fugue of Fig. 95 still to be
+  identified from the plate); Marpurg located (Internet Archive, 1806 printing), not yet read.
+
+Next: R2 proper (transformed entries in strettos, later subjects for the Art of Fugue, cadences), then the
+remaining habits (countersubject, cadences, dissonance by Kirnberger's categories) and Fux's 29 claims
+answered one by one.
