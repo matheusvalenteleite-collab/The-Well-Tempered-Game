@@ -347,3 +347,15 @@ judge), and a habit model fitted on the 48 in place of hand-set costs.
    branch) is the replacement.
 5. **The duplicate answer exercises** (fault 8): merge them, or keep the one the composer's S2 will
    share.
+
+## When generation resumes: the bench (noted 12 October)
+
+From the playback session, relaying the owner: this session owns fugue generation; the playback
+session's bench (`data/playback/bench/`, format in its README there) is where the owner judges
+generated music blind against Bach. Generation need not produce whole fugues: a part alone can be
+judged on its own ("part": subject, answer, countersubject, exposition, episode, middle-entry,
+stretto, close, whole), with Bach's surrounding voices "given" (drawn grey), files grouped in a
+"batch" to rank side by side, and "compare" naming a stretch of a Bach fugue to play blind against
+it. Its suggestions: subjects in batches of five or six in one key against Bach's subjects in that
+key; an exposition on one of Bach's subjects against his exposition; episodes between two of Bach's
+entries against his own. Nothing is sent until the owner resumes generation (D160).
