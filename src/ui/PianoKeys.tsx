@@ -1,21 +1,33 @@
 /**
- * P41: an on-screen piano, played with the mouse or the computer's keys (the owner's idea). The
- * bottom letter row and the row above it are laid out as a keyboard's white and black keys (Z S X
- * D C V G B H N J M , then L . ; /: seventeen semitones); clicking a key on screen sets where the
- * row begins, sliding it chromatically: the clicked note lands on Z if it is white, on S if black.
+ * P41: an on-screen piano, played with the mouse or the computer's keys (the owner's idea). P42
+ * (the owner: "the key mapping ought to follow the keyboard white and black keys layout"): the
+ * bottom letter row plays consecutive white keys from the one clicked (Z X C V B N M , . /), and
+ * each key of the row above, between two of them, the black key between those two where a piano
+ * has one (S between Z and X, D between X and C, F between C and V …; silent where there is none,
+ * as between E and F). A black key clicked puts the white key below it on Z and itself on S.
  * [ and ] move the row an octave. The keys are read by position (`KeyboardEvent.code`), so any
  * layout works. For now it only sounds (play along with a piece); writing notes with it is to come.
  */
 import { useEffect, useRef, useState } from "react";
 import { audio } from "./shared.ts";
 
-const ROW: Record<string, number> = { KeyZ: 0, KeyS: 1, KeyX: 2, KeyD: 3, KeyC: 4, KeyV: 5, KeyG: 6, KeyB: 7, KeyH: 8, KeyN: 9, KeyJ: 10, KeyM: 11, Comma: 12, KeyL: 13, Period: 14, Semicolon: 15, Slash: 16 };
-const LABEL: Record<string, string> = { KeyZ: "Z", KeyS: "S", KeyX: "X", KeyD: "D", KeyC: "C", KeyV: "V", KeyG: "G", KeyB: "B", KeyH: "H", KeyN: "N", KeyJ: "J", KeyM: "M", Comma: ",", KeyL: "L", Period: ".", Semicolon: ";", Slash: "/" };
+const WHITE_ROW = ["KeyZ", "KeyX", "KeyC", "KeyV", "KeyB", "KeyN", "KeyM", "Comma", "Period", "Slash"];
+const BLACK_ROW = ["KeyS", "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ", "KeyK", "KeyL", "Semicolon"];
+const LABEL: Record<string, string> = { KeyZ: "Z", KeyX: "X", KeyC: "C", KeyV: "V", KeyB: "B", KeyN: "N", KeyM: "M", Comma: ",", Period: ".", Slash: "/", KeyS: "S", KeyD: "D", KeyF: "F", KeyG: "G", KeyH: "H", KeyJ: "J", KeyK: "K", KeyL: "L", Semicolon: ";" };
 const NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const black = (m: number) => [1, 3, 6, 8, 10].includes(((m % 12) + 12) % 12);
 export const pitchName = (m: number) => `${NAMES[((m % 12) + 12) % 12]}${Math.floor(m / 12) - 1}`;
 /** The note Z plays, given the key clicked. */
 const baseOf = (anchor: number) => (black(anchor) ? anchor - 1 : anchor);
+/** The note each computer key plays when Z plays the white key `base` (null: no black key there). */
+function keyMap(base: number): Map<string, number | null> {
+  const whites: number[] = [];
+  for (let m = base; whites.length < WHITE_ROW.length; m++) if (!black(m)) whites.push(m);
+  const map = new Map<string, number | null>();
+  WHITE_ROW.forEach((code, i) => map.set(code, whites[i]));
+  BLACK_ROW.forEach((code, i) => map.set(code, black(whites[i] + 1) ? whites[i] + 1 : null));
+  return map;
+}
 
 const LOW = 36; // C2
 const HIGH = 84; // C6
@@ -73,11 +85,10 @@ export function PianoKeys({ storeKey = "wtg.piano.anchor" }: { storeKey?: string
         e.preventDefault();
         return;
       }
-      const off = ROW[e.code];
-      if (off === undefined) return;
+      if (!keyMap(baseRef.current).has(e.code)) return;
       e.preventDefault();
-      if (e.repeat || playing.has(e.code)) return;
-      const m = baseRef.current + off;
+      const m = keyMap(baseRef.current).get(e.code);
+      if (m === null || m === undefined || e.repeat || playing.has(e.code)) return;
       playing.set(e.code, m);
       press(e.code, m);
     };
@@ -103,14 +114,14 @@ export function PianoKeys({ storeKey = "wtg.piano.anchor" }: { storeKey?: string
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const keyFor = new Map<number, string>(Object.entries(ROW).map(([code, off]) => [base + off, LABEL[code]]));
+  const keyFor = new Map<number, string>([...keyMap(base)].filter((x): x is [string, number] => x[1] !== null).map(([code, m]) => [m, LABEL[code]]));
   const whites: number[] = [];
   for (let m = LOW; m <= HIGH; m++) if (!black(m)) whites.push(m);
   const W = 24;
   return (
     <div className="piano">
       <p className="muted piano-help">
-        Click a key to set where <kbd>Z</kbd> begins (now {pitchName(base)}); play with <kbd>Z S X D C V G B H N J M ,</kbd> and on with <kbd>L . ; /</kbd>; <kbd>[</kbd> <kbd>]</kbd> an octave down or up.
+        Click a key to set where <kbd>Z</kbd> begins (now {pitchName(base)}); the bottom row <kbd>Z X C V B N M , . /</kbd> plays the white keys from there, the row above (<kbd>S D F G H J K L ;</kbd>) the black keys between them; <kbd>[</kbd> <kbd>]</kbd> an octave down or up.
       </p>
       <div className="piano-scroll">
         <div className="piano-keys" style={{ width: whites.length * W }} role="group" aria-label="Piano">
