@@ -21,6 +21,7 @@
     "dev": "vite",
     "build": "node tools/sample-manifest.mjs && tsc --noEmit && vite build",
     "build:bench": "node tools/sample-manifest.mjs && tsc --noEmit && vite build --mode bench",
+    "build:aotf": "node tools/sample-manifest.mjs && tsc --noEmit && vite build --mode aotf",
     "build:artifact": "node tools/sample-manifest.mjs && tsc --noEmit && vite build --mode artifact",
     "preview": "vite preview",
     "chorales:concordance": "python3 tools/chorales/concordance.py",

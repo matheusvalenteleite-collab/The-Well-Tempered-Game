@@ -9,3 +9,4 @@ data/local/
 # Screenshots taken while working (the docs keep theirs under docs/)
 /*.png
 dist-bench/
+dist-aotf/

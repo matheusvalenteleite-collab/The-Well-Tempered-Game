@@ -33,6 +33,8 @@ export interface WtcScoreNote {
   /** P8: its ornament signs as the kern encoding writes them (T t trill, M m mordent, W w short trill, S turn, $ inverted turn), and the grace notes before it. */
   orn?: string;
   grace?: string[];
+  /** P44: an articulation sign ("." detached, "-" leaned on, as VexFlow's a. and a-). */
+  artic?: "." | "-";
 }
 
 /**
@@ -390,6 +392,8 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
           // The fermata on the note's last written piece (the one not tied on).
           if (!q.rest && q.src?.fermata && !q.tieNext)
             n.addModifier(new Articulation("a@a").setPosition(pv.stem === -1 ? 4 : 3));
+          if (!q.rest && q.src?.artic && q.src.at >= q.at - EPS)
+            n.addModifier(new Articulation(q.src.artic === "." ? "a." : "a-").setPosition(pv.stem === -1 ? 3 : 4));
           pv.tick.push(n);
           if (!q.rest && q.src) {
             const xs = drawnBySrc.get(q.src) ?? [];
