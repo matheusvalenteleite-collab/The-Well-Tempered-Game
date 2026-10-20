@@ -351,7 +351,17 @@ export class AudioEngine {
     return 120 / this.tempo;
   }
 
-  /** Sound one vertical sonority for a full bar (a note placed, or a bar auditioned). */
+  /** P41: a note held on a channel until the returned function releases it (the on-screen piano). */
+  async hold(pitch: string, channel: Channel = "cantus"): Promise<() => void> {
+    const inst = await this.instrument();
+    const v = inst?.[channel];
+    if (!v || !this.ctx) return () => undefined;
+    if (v instanceof Synth) return v.hold(pitch);
+    v.start(pitch, this.ctx.currentTime + 0.01, 1.5);
+    return () => undefined;
+  }
+
+    /** Sound one vertical sonority for a full bar (a note placed, or a bar auditioned). */
   async playColumn(col: PlaybackColumn, seconds = this.barSeconds): Promise<void> {
     const inst = await this.instrument();
     if (!inst || !this.ctx) return;

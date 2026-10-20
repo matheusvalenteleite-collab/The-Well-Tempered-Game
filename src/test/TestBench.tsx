@@ -11,6 +11,7 @@ import data from "../../data/playback/test-pieces.json" with { type: "json" };
 import { audio, store, stored } from "../ui/shared.ts";
 import { t } from "../ui/i18n.ts";
 import { saveVerdict } from "./verdict-store.ts";
+import { PianoKeys } from "../ui/PianoKeys.tsx";
 import { EnsembleSelect } from "../ui/EnsembleSelect.tsx";
 import { FermataList, FermataScale, fermataSign, useFermataEdits } from "../ui/FermataEditor.tsx";
 import { HFader } from "../ui/HFader.tsx";
@@ -377,6 +378,8 @@ export function TestBench() {
     store("wtg.test.heard", heard);
     audio.setGates(choraleGates(heard));
   }, [heard]);
+  const [pianoOpen, setPianoOpen] = useState(() => stored("wtg.test.piano", false, (v) => typeof v === "boolean"));
+  useEffect(() => store("wtg.test.piano", pianoOpen), [pianoOpen]);
   const [ornOn, setOrnOn] = useState(true);
   const [style, setStyle] = useState<OrnamentStyle>(() => stored<OrnamentStyle>("wtg.ornamentStyle", "explication", (v) => ORNAMENT_STYLES.includes(v as OrnamentStyle)));
   useEffect(() => store("wtg.ornamentStyle", style), [style]);
@@ -562,6 +565,10 @@ export function TestBench() {
         showMelody={blind !== null && !blind.revealed}
         rowBars={rowBars}
       />
+      <details className="bench-piano" open={pianoOpen} onToggle={(e) => setPianoOpen((e.target as HTMLDetailsElement).open)}>
+        <summary>Piano (play along with the mouse or the computer keys)</summary>
+        {pianoOpen && <PianoKeys storeKey="wtg.test.pianoAnchor" />}
+      </details>
       {blind && (
         <section className="blind-panel">
           {([0, 1] as const).map((k) => (

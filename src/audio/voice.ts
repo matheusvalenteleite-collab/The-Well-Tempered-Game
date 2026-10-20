@@ -116,6 +116,8 @@ export class Synth implements Instrument {
   private curves = new Map<string, Float32Array<ArrayBuffer>>();
   private noise: AudioBuffer | null = null;
   settings: SynthSettings;
+  /** P41: the envelope of the note started last (for `hold`). */
+  private lastEnv: GainNode | null = null;
   tuning: () => TemperamentId;
 
   constructor(ctx: BaseAudioContext, destination: AudioNode, settings: SynthSettings, tuning: () => TemperamentId = () => "equal") {
@@ -266,6 +268,36 @@ export class Synth implements Instrument {
     this.noiseSource(time, time + 0.08).connect(lp).connect(thump).connect(out);
   }
 
+  /**
+   * P41: a note held until the returned function lets it go (the on-screen piano and the computer
+   * keys): started as a long note, released early with the instrument's own release.
+   */
+  hold(note: string, velocity = 0.75): () => void {
+    const before = new Set(this.live);
+    this.lastEnv = null;
+    this.start(note, this.ctx.currentTime + 0.005, 60, velocity);
+    const env = this.lastEnv as GainNode | null;
+    const nodes = [...this.live].filter((n) => !before.has(n));
+    let done = false;
+    return () => {
+      if (done) return;
+      done = true;
+      const now = this.ctx.currentTime;
+      const r = Math.max(0.04, this.settings.release);
+      if (env) {
+        env.gain.cancelScheduledValues(now);
+        env.gain.setTargetAtTime(0, now, r / 3);
+      }
+      for (const n of nodes) {
+        try {
+          n.stop(now + r + 0.1);
+        } catch {
+          // already stopped
+        }
+      }
+    };
+  }
+
   /** Begin loading the recorded instrument if the settings use one. */
   preload() {
     if (isSampled(this.settings.model)) void loadSamples(this.ctx, this.settings.sampleSet);
@@ -318,6 +350,7 @@ export class Synth implements Instrument {
     filter.type = "lowpass";
     filter.frequency.value = st.tone;
     filter.connect(env).connect(this.out);
+    this.lastEnv = env;
     const a = Math.max(0.003, st.attack);
     const off = time + Math.max(duration, a);
     const end = off + st.release + 0.1;
