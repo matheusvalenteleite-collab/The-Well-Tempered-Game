@@ -1,0 +1,170 @@
+/* One screen, portrait: the music box over the play area, halves of the height.
+   A deliberately single dark look: an 8-bit console screen. */
+:root {
+  --tg-bg: #0b0d18;
+  --tg-box: #121530;
+  --tg-roll: #0e1126;
+  --tg-grid: #1d2246;
+  --tg-barline: #353d78;
+  --tg-fg: #ecead9;
+  --tg-muted: #7d84b3;
+  --tg-shine: #fff3a6;
+  --tg-playhead: #fff3a6;
+  --tg-left: #b9a4ff;
+  --tg-right: #ff7fbf;
+  --tg-pixel: "Press Start 2P", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+  height: 100%;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--tg-bg);
+  overscroll-behavior: none;
+}
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--tg-bg);
+  color: var(--tg-fg);
+  font: 14px/1.4 system-ui, sans-serif;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#root { height: 100%; }
+
+.tg-app {
+  height: 100%;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  touch-action: none;
+}
+
+/* The music box */
+.tg-box {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background: var(--tg-box);
+  border-bottom: 4px solid var(--tg-barline);
+  padding: 8px max(8px, env(safe-area-inset-left, 0px)) 6px max(8px, env(safe-area-inset-right, 0px));
+  gap: 6px;
+}
+
+.tg-hud, .tg-legend {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: var(--tg-pixel);
+  font-size: 8px;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.tg-hud-title { color: var(--tg-fg); overflow: hidden; text-overflow: ellipsis; }
+.tg-hud-bar { color: var(--tg-shine); }
+.tg-legend { justify-content: flex-start; gap: 14px; }
+
+.tg-roll {
+  min-height: 0;
+  overflow: hidden;
+  background: var(--tg-roll);
+  box-shadow: inset 0 0 0 2px var(--tg-grid);
+}
+
+.tg-roll canvas {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* The play area */
+.tg-play {
+  position: relative;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.tg-half {
+  display: grid;
+  place-items: center;
+  background: var(--tg-bg);
+  transition: background-color 60ms linear;
+}
+
+.tg-half-left { border-right: 2px dashed var(--tg-grid); }
+
+.tg-half-label {
+  font-family: var(--tg-pixel);
+  font-size: 40px;
+  color: var(--tg-grid);
+}
+
+.tg-half-left.tg-half-on { background: color-mix(in srgb, var(--tg-left) 14%, var(--tg-bg)); }
+.tg-half-right.tg-half-on { background: color-mix(in srgb, var(--tg-right) 14%, var(--tg-bg)); }
+.tg-half-left.tg-half-on .tg-half-label { color: color-mix(in srgb, var(--tg-left) 45%, var(--tg-bg)); }
+.tg-half-right.tg-half-on .tg-half-label { color: color-mix(in srgb, var(--tg-right) 45%, var(--tg-bg)); }
+
+.tg-status {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--tg-pixel);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--tg-muted);
+  pointer-events: none;
+}
+
+.tg-status-both { color: var(--tg-shine); }
+
+/* A thumb: a square pixel ring centred on the touch */
+.tg-thumb {
+  position: absolute;
+  top: -36px;
+  left: -36px;
+  width: 72px;
+  height: 72px;
+  pointer-events: none;
+  border: 6px solid currentColor;
+  box-shadow: 0 0 0 4px var(--tg-bg), 0 0 0 8px color-mix(in srgb, currentColor 35%, transparent);
+  will-change: transform;
+}
+
+.tg-thumb-left { color: var(--tg-left); }
+.tg-thumb-right { color: var(--tg-right); }
+
+/* Landscape on a phone: ask for portrait */
+.tg-upright {
+  display: none;
+  position: fixed;
+  inset: 0;
+  place-items: center;
+  background: var(--tg-bg);
+  font-family: var(--tg-pixel);
+  font-size: 12px;
+  color: var(--tg-shine);
+  text-align: center;
+  padding: 24px;
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .tg-upright { display: grid; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tg-half { transition: none; }
+}
