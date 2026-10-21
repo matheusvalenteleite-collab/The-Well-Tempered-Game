@@ -69,9 +69,38 @@ export function shapeFits(want: -1 | 0 | 1 | null, dy: number | null, anchor: nu
   return dy * want >= (cornered ? -SAME : MOVE);
 }
 
-/** The way the line moves into note i: 1 up, -1 down, 0 the same (the first note: null, anything goes). */
+/** The notes struck together with note i (D165: the final chords put two notes in one voice). */
+export function chordOf(notes: readonly LaneNote[], i: number): number[] {
+  const out: number[] = [];
+  notes.forEach((n, j) => n.on === notes[i].on && out.push(j));
+  return out;
+}
+
+/** The top and the bottom of the notes struck at a tick. */
+const topAt = (notes: readonly LaneNote[], on: number) => Math.max(...notes.filter((n) => n.on === on).map((n) => n.lane));
+const bottomAt = (notes: readonly LaneNote[], on: number) => Math.min(...notes.filter((n) => n.on === on).map((n) => n.lane));
+const prevOnset = (notes: readonly LaneNote[], i: number) => {
+  const before = notes.filter((n) => n.on < notes[i].on);
+  return before.length ? Math.max(...before.map((n) => n.on)) : null;
+};
+
+/**
+ * The way the line moves into note i: 1 up, -1 down, 0 the same (the first note: null, anything goes);
+ * chords by their top notes.
+ */
 export function stepInto(notes: readonly LaneNote[], i: number): -1 | 0 | 1 | null {
-  return i === 0 ? null : (Math.sign(notes[i].lane - notes[i - 1].lane) as -1 | 0 | 1);
+  const prev = prevOnset(notes, i);
+  return prev === null ? null : (Math.sign(topAt(notes, notes[i].on) - topAt(notes, prev)) as -1 | 0 | 1);
+}
+
+/** The ways into note i a player may follow: the top line's, and where chords meet, the bottom line's too. */
+export function stepsInto(notes: readonly LaneNote[], i: number): (-1 | 0 | 1)[] | null {
+  const prev = prevOnset(notes, i);
+  if (prev === null) return null;
+  const on = notes[i].on;
+  const top = Math.sign(topAt(notes, on) - topAt(notes, prev)) as -1 | 0 | 1;
+  const bottom = Math.sign(bottomAt(notes, on) - bottomAt(notes, prev)) as -1 | 0 | 1;
+  return top === bottom ? [top] : [top, bottom];
 }
 
 /**
@@ -81,7 +110,8 @@ export function stepInto(notes: readonly LaneNote[], i: number): -1 | 0 | 1 | nu
 export function fits(level: Level, notes: readonly LaneNote[], i: number, lane: number, dy: number | null, o: LaneOptions, anchor: number | null = null): boolean {
   if (level === "rhythm") return true;
   if (level === "notes") return Math.abs(notes[i].lane - lane) <= o.reach;
-  return shapeFits(stepInto(notes, i), dy, anchor);
+  const ways = stepsInto(notes, i);
+  return ways === null || ways.some((w) => shapeFits(w, dy, anchor));
 }
 
 /** The lanes: every pitch of the notes, low to high. */
@@ -114,7 +144,8 @@ export function strike(notes: LaneNote[], lane: number, t: number, o: LaneOption
     const cost = Math.abs(t - n.on) + d * o.late;
     if (cost < bestCost) (best = i), (bestCost = cost);
   });
-  if (best >= 0) Object.assign(notes[best], { state: "hit", at: t });
+  // A chord is struck whole.
+  if (best >= 0) for (const j of chordOf(notes, best)) if (notes[j].state === "pending") Object.assign(notes[j], { state: "hit", at: t });
   return best;
 }
 

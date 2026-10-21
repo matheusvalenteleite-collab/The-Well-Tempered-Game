@@ -214,3 +214,13 @@ test("the engine: a full run in rhythm, every note tapped on time, scores everyt
   assert.equal(r.got, r.of);
   assert.equal(g.maxCombo, lv.notes.length);
 });
+
+test("a chord within a voice is struck whole by one tap (the bass's octave C at bar 29)", () => {
+  const lv = level(FUGUE, 5, 2);
+  const i = lv.notes.findIndex((n, j) => j > 0 && lv.notes[j - 1].on === n.on) - 1;
+  assert.ok(i >= 0);
+  const hit = strike(lv.notes, 0, lv.notes[i].on, opt, () => true);
+  assert.ok(hit === i || hit === i + 1);
+  assert.equal(lv.notes[i].state, "hit");
+  assert.equal(lv.notes[i + 1].state, "hit");
+});

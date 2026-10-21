@@ -17,7 +17,21 @@ Page: `touch.html` (`npm run dev`, then `/touch.html`). Single file for claude.a
 `npx vite build -c vite.touch.config.ts && node tools/touch/build-artifact.mjs <out.html>`.
 Data: `node tools/touch/extract.ts` cuts the fugue from `data/wtc/fugues.json`.
 
-## SHAPE made fluid (D162: built, to be tried)
+## Done while the owner was away (21 October, D163-D165)
+
+- **The whole fugue**, in six sections (bars 1–9, 9–13, 13–17, 17–22, 22–29, 29–31), each ending where
+  an entry lands; ◀ ▶ on the title.
+- **Two voices, one per thumb**: choose a second voice. Lower voice left, higher right. Opens only when
+  both are earned alone in that section at that level (the owner's rule: the counterpoint is first
+  heard when first played); "open everything (for testing)" bypasses it. RHYTHM and SHAPE.
+- **Feedback**: PERFECT (≤ 70 ms) / GOOD early or late / MISS / ✕, combo from 5, max combo on the result.
+- **Timbres**: soprano a thin pulse, alto a fuller pulse, bass a triangle (as on the NES).
+- **Sync**: tap along with 12 clicks; the game allows for your lag (phone screens and Bluetooth add some).
+- **The map**: tap the section's name; sections by voices and pairs, stars, ◆ where the subject enters.
+- **Chords** in a voice (the final cadence) are one tap; found by a difficulty audit (`docs/touch/AUDIT.md`).
+- Not touched (the owner's to decide): episodes, the thumbs' "dance", contextual NOTES, the loom.
+
+## SHAPE made fluid (D162: built)
 
 After "too hard: the pitch separation must be less strict, more fluid, contextual": SHAPE has no
 lanes. Each touch is judged against the player's own previous touch, with overlapping zones (a

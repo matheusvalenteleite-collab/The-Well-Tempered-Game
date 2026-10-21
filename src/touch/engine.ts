@@ -7,7 +7,7 @@
  */
 import type { Chip } from "./chip.ts";
 import { keyAt, type TouchFugue } from "./fugue.ts";
-import { easyLanes, fits, laneAt, points, release, SLIDE, stepInto, strike, sweep, type LaneNote, type LaneOptions, type Level as Difficulty } from "./lanes.ts";
+import { chordOf, easyLanes, fits, laneAt, points, release, SLIDE, stepsInto, strike, sweep, type LaneNote, type LaneOptions, type Level as Difficulty } from "./lanes.ts";
 import type { Frame } from "./MusicBox.tsx";
 import type { Side } from "./thumbs.ts";
 import type { Level } from "./voice-mode.ts";
@@ -33,8 +33,10 @@ export interface Grade {
 interface Held {
   track: number;
   lane: number;
+  /** The note played (-1: none), and with it the rest of its chord. */
   note: number;
-  sound?: { stop: (at?: number) => void };
+  chord: number[];
+  sounds: { stop: (at?: number) => void }[];
 }
 
 /** The voices low to high (the left thumb's first). */
@@ -223,15 +225,16 @@ export class Game {
     const notes = tr.lv.notes;
     const t = this.tickOf(ts);
     const dy = at === null ? keyDir * 0.1 : tr.anchor === null ? null : tr.anchor - at.y;
-    const i = strike(notes, at?.lane ?? 0, t, this.opt, (j) => (!slide || stepInto(notes, j) !== 0) && fits(this.difficulty, notes, j, at?.lane ?? notes[j].lane, dy, this.opt, at ? tr.anchor : null));
+    const i = strike(notes, at?.lane ?? 0, t, this.opt, (j) => (!slide || (stepsInto(notes, j) ?? [1]).some((w) => w !== 0)) && fits(this.difficulty, notes, j, at?.lane ?? notes[j].lane, dy, this.opt, at ? tr.anchor : null));
     if (slide && i < 0) return;
     if (slide) this.letGo(id, ts);
     if (at) tr.anchor = at.y;
     const lane = at?.lane ?? (i >= 0 ? notes[i].lane : 0);
-    const held: Held = { track: k, lane, note: i };
+    const chord = i >= 0 ? chordOf(notes, i) : [];
+    const held: Held = { track: k, lane, note: i, chord, sounds: [] };
     if (i >= 0) {
       const n = notes[i];
-      held.sound = this.chip.note(n.midi, this.chip.ctx.currentTime, Math.max(0.05, (n.on + n.dur - t) / this.tps), tr.lv.voice);
+      for (const j of chord) held.sounds.push(this.chip.note(notes[j].midi, this.chip.ctx.currentTime, Math.max(0.05, (notes[j].on + notes[j].dur - t) / this.tps), tr.lv.voice));
       const offMs = ((t - n.on) / this.tps) * 1000;
       const perfect = Math.abs(offMs) <= PERFECT_MS;
       if (perfect) this.perfect++;
@@ -248,12 +251,13 @@ export class Game {
   private letGo(id: number, ts: number) {
     const cur = this.held.get(id);
     if (!cur) return;
-    cur.sound?.stop();
-    if (cur.note >= 0) release(this.tracks[cur.track].lv.notes, cur.note, this.tickOf(ts));
+    for (const sd of cur.sounds) sd.stop();
+    const t = this.tickOf(ts);
+    for (const j of cur.chord) release(this.tracks[cur.track].lv.notes, j, t);
   }
 
   stopAll() {
-    for (const h of this.held.values()) h.sound?.stop();
+    for (const h of this.held.values()) for (const sd of h.sounds) sd.stop();
     this.held.clear();
   }
 
