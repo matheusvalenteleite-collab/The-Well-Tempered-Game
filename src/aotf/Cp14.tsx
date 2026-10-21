@@ -14,6 +14,7 @@ import { audio } from "../ui/shared.ts";
 import { WtcPage, planClefs, type WtcScoreVoice } from "../ui/notation/WtcScore.tsx";
 import { pageRows } from "../ui/notation/page-rows.ts";
 import { HFader } from "../ui/HFader.tsx";
+import { ScrollMode } from "../ui/ScrollMode.tsx";
 import { choraleEvents, choraleGates, ENSEMBLES, playChoraleEvents, prepareChoraleAudio, setPerformanceDynamics, type Chorale, type ChoraleNote, type Ensemble } from "../audio/chorale-performance.ts";
 import { t } from "../ui/i18n.ts";
 import type { PlayEvent } from "../counterpoint/layout.ts";
@@ -102,6 +103,7 @@ export function Cp14() {
   const [tempo, setTempo] = useStored("tempo", 48, (v) => typeof v === "number" && v >= 20 && v <= 90);
   const [ensemble, setEnsemble] = useStored<string>("ensemble", "clear", (v) => v === "piano" || ENSEMBLES.includes(v as Ensemble));
   const [tab, setTab] = useStored<"guide" | "entries" | "encounters" | "editing">("tab", "guide", (v) => ["guide", "entries", "encounters", "editing"].includes(v as string));
+  const [mode, setMode] = useStored<"scroll" | "study">("mode", "scroll", (v) => v === "scroll" || v === "study");
   const [loop, setLoop] = useState<{ a: number; b: number } | null>(null);
   const [fromBar, setFromBar] = useState(1);
   const [playing, setPlaying] = useState(false);
@@ -204,11 +206,48 @@ export function Cp14() {
   }, [showFingers, showArtic, showDyn, showSubjects, rowBars, cursor]);
   const shown = view.rows.slice(page * 3, page * 3 + 3);
 
+  // P45: the gerubach layout by default; the study page behind the corner button.
+  const scrollVoices = useMemo((): WtcScoreVoice[] => {
+    const LETTERS = ["B", "A", "C", "H"];
+    return P.voices.map((v, vi) => ({
+      staff: vi,
+      ink: "#111",
+      editable: false,
+      notes: v.map(([at, dur, pitch], k) => {
+        const e = entryOf[vi][k];
+        const ent = e >= 0 ? A.entries[e] : null;
+        const labelInk = ent?.form === "inverted" ? "#2b5fd9" : "#d22";
+        let label: string | undefined;
+        if (ent?.subject === "III" && k - ent.from < 4) label = LETTERS[k - ent.from];
+        else if (ent && ent.from === k) label = ent.subject === "I" ? "①" : "②";
+        return { pitch, at: at / 8, dur: dur / 8, ...(label ? { label, labelInk } : {}) };
+      }),
+    }));
+  }, []);
+  const scrollClefs = useMemo(() => planClefs(scrollVoices, ["treble", "treble", "bass", "bass"], 4), [scrollVoices]);
+  if (mode === "scroll")
+    return (
+      <ScrollMode
+        card={{ above: "Johann Sebastian Bach", title: "Contrapunctus XIV", below: "Die Kunst der Fuge, BWV 1080 · for four hands, unfinished" }}
+        score={{ voices: scrollVoices, clefs: ["treble", "treble", "bass", "bass"], clefPlan: scrollClefs, keySig: "F", signature: { C: 0, D: 0, E: 0, F: 0, G: 0, A: 0, B: -1 }, time: "4/4", barQuarters: 4, bars: P.bars, systemBars: 4, after: <p>Here the manuscript breaks off.</p> }}
+        start={(from, onBar) => {
+          prepareChoraleAudio(audio, heard, ensemble === "piano" ? null : (ensemble as Ensemble));
+          audio.dynamics = false;
+          audio.tempo = tempo;
+          playChoraleEvents(audio, events({ barUnits: BAR, pickup: 0, voices: P.voices }, 0), onBar, from);
+        }}
+        stop={() => audio.stop()}
+        modes={[{ id: "study", label: "Study view" }]}
+        onMode={(m) => setMode(m as "scroll" | "study")}
+      />
+    );
+
   const playerRole = heard.every(Boolean) ? "all" : heard[0] && heard[1] && !heard[2] && !heard[3] ? "primo" : !heard[0] && !heard[1] && heard[2] && heard[3] ? "secondo" : "custom";
   const section = [...A.sections].reverse().find((s) => s.bar <= (cursor >= 0 ? cursor + 1 : page * perPage + 1));
 
   return (
     <div className="cp14">
+      <button className="cp14-mode" onClick={() => { stop(); setMode("scroll"); }} title="The scrolling score (gerubach)">▭ scrolling score</button>
       <header className="cp14-head">
         <h1>Contrapunctus XIV <span className="muted">for four hands</span></h1>
         <p className="muted">J. S. Bach, Die Kunst der Fuge, BWV 1080: the unfinished fugue on three subjects. One voice to each hand.</p>

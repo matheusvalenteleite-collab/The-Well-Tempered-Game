@@ -1277,3 +1277,24 @@ html:has(.shell.layout-compact), html:has(.shell.layout-compact) body { height: 
 @media (max-width: 599px) {
   .shell.layout-compact .score-area:has(.chorale-score) { height: min(62vh, 560px); }
 }
+
+/* P45: the gerubach layout (ScrollScore). */
+.scroll-score { position: relative; overflow: hidden; background: #fff; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.scroll-score-strip { position: absolute; top: 0; left: 0; height: 100%; display: flex; align-items: center; will-change: transform; }
+.wtc-strip { display: flex; align-items: center; }
+.wtc-strip-sys { flex: none; }
+.wtc-strip-sys .score-box { overflow: visible; }
+.scroll-score-head { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #d22; opacity: .8; pointer-events: none; }
+.scroll-score-after { flex: none; width: 60vw; padding: 40px 24px; color: #555; font-style: italic; }
+.scroll-mode { position: fixed; inset: 0; background: #fff; display: flex; flex-direction: column; justify-content: center; z-index: 10; }
+.scroll-mode .scroll-score { height: min(78vh, 640px, 100vw); }
+.scroll-mode-card { position: absolute; inset: 0; background: #000; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; font-family: Georgia, "EB Garamond", serif; pointer-events: none; }
+.scroll-mode-card h1 { font-family: var(--ui-font); font-weight: 400; letter-spacing: .18em; text-transform: uppercase; font-size: clamp(1.1rem, 3.2vw, 2rem); margin: 10px 0; }
+.scroll-mode-card .above, .scroll-mode-card .below { margin: 4px 0; font-size: clamp(.9rem, 2vw, 1.15rem); opacity: .9; }
+.scroll-mode-card .hint { position: absolute; bottom: 24px; font-family: var(--ui-font); font-size: .75rem; opacity: .55; }
+.scroll-mode-corner { position: absolute; top: 8px; right: 8px; z-index: 2; }
+.scroll-mode-btn { min-width: 28px; min-height: 28px; padding: 0 6px; border: none; background: rgba(255,255,255,.12); color: #999; border-radius: 4px; font-size: 1.1rem; line-height: 1; cursor: pointer; }
+.scroll-mode-btn:hover { color: #333; background: rgba(0,0,0,.06); }
+.scroll-mode-menu { position: absolute; right: 0; top: 32px; display: flex; flex-direction: column; background: #fff; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 14px rgba(0,0,0,.12); min-width: 140px; }
+.scroll-mode-menu button { border: none; background: none; text-align: left; padding: 8px 12px; font-family: var(--ui-font); font-size: .85rem; cursor: pointer; color: #222; }
+.scroll-mode-menu button:hover { background: #f2f2f2; }

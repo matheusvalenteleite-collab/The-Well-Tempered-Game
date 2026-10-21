@@ -30,3 +30,4 @@
 .blind-notes label { display: flex; flex-direction: column; gap: 2px; font-family: var(--ui-font); font-size: .8rem; color: var(--muted); }
 .blind-notes textarea { font: inherit; font-size: .9rem; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 4px 6px; resize: vertical; }
 @media (max-width: 600px) { .blind-notes { grid-template-columns: 1fr; } }
+.bench-mode { font-size: .75rem; font-weight: 400; margin-left: 10px; }

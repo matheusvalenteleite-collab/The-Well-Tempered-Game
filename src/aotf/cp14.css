@@ -38,3 +38,4 @@ body { background: var(--bg); }
   .cp14-table td { border: none; padding: 1px 0; }
   .cp14-table td:nth-child(4) { min-width: 0; }
 }
+.cp14 { position: relative; } .cp14-mode { position: absolute; top: 8px; right: 16px; border: none; background: none; color: var(--muted); font-family: var(--ui-font); font-size: .75rem; cursor: pointer; }

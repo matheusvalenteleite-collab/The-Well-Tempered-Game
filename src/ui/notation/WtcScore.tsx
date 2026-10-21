@@ -33,6 +33,8 @@ export interface WtcScoreNote {
   /** P8: its ornament signs as the kern encoding writes them (T t trill, M m mordent, W w short trill, S turn, $ inverted turn), and the grace notes before it. */
   orn?: string;
   grace?: string[];
+  /** P45: the colour of its label (otherwise the note's). */
+  labelInk?: string;
   /** P44: an articulation sign ("." detached, "-" leaned on, as VexFlow's a. and a-). */
   artic?: "." | "-";
 }
@@ -238,6 +240,49 @@ export function WtcPage(p: Omit<Props, "voices" | "cursor" | "label" | "zoom" | 
             </div>
           );
         })}
+    </div>
+  );
+}
+
+/**
+ * P45 (the owner: the gerubach layout, the default way to watch and hear a piece): the systems of
+ * a piece side by side in one horizontal strip, all as tall as `height`, to be scrolled under a
+ * fixed playhead. `onLayout` gives where each bar lies on the strip (left edge and width, pixels).
+ */
+export function WtcStrip(
+  p: Omit<Props, "voices" | "cursor" | "label" | "zoom" | "onZoom" | "zoomLabels" | "tools" | "under" | "selected" | "onSlot"> & {
+    rows: { voices: WtcScoreVoice[]; bars: number; key: string; from?: number }[];
+    height: number;
+    onLayout?(bars: { x: number; w: number }[], total: number): void;
+  },
+) {
+  const staves = (p.clefs ?? GRAND).length;
+  const scale = Math.max(0.3, Math.min(1.25, (p.height - 8) / heightOf(undefined, staves)));
+  const laid = p.rows.map((r) => {
+    const widths = Array.from({ length: r.bars }, (_, b) => Math.max(150, 46 + Math.max(1, ...r.voices.map((v) => piecesInBar(v, b, p.barQuarters).length)) * 30));
+    const lefts = widths.reduce<number[]>((acc, x, i) => (acc.push(i === 0 ? LEAD : acc[i - 1] + widths[i - 1]), acc), []);
+    const natural = LEAD + widths.reduce((a, b) => a + b, 0) + 8;
+    return { r, widths, lefts, natural };
+  });
+  const onLayout = p.onLayout;
+  useLayoutEffect(() => {
+    if (!onLayout) return;
+    const bars: { x: number; w: number }[] = [];
+    let x0 = 0;
+    for (const l of laid) {
+      l.widths.forEach((w, i) => bars.push({ x: x0 + l.lefts[i] * scale, w: w * scale }));
+      x0 += l.natural * scale;
+    }
+    onLayout(bars, x0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p.rows, scale]);
+  return (
+    <div className="wtc-strip">
+      {laid.map(({ r, widths, lefts, natural }) => (
+        <div key={r.key} className="wtc-strip-sys" style={{ width: Math.ceil(natural * scale) }}>
+          <WtcSystem {...p} voices={r.voices} cursor={-1} label="" selected={null} onSlot={() => undefined} clefPlan={p.clefPlan?.map((st) => st.slice(r.from ?? 0, (r.from ?? 0) + r.bars))} zoom={1} onZoom={() => undefined} zoomLabels={{ in: "", out: "", reset: "" }} bars={r.bars} widths={widths} lefts={lefts} natural={natural} scale={scale} bothStaves />
+        </div>
+      ))}
     </div>
   );
 }
@@ -468,7 +513,7 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
           if (q.src.at >= q.at - EPS && (q.src.label || q.src.mark)) {
             ctx.save();
             ctx.setFont("Inter, system-ui, sans-serif", 10);
-            ctx.setFillStyle(q.src.ink ?? pv.v.ink);
+            ctx.setFillStyle(q.src.labelInk ?? q.src.ink ?? pv.v.ink);
             // Above a fermata, clear of it.
             const y = pv.stem === -1 ? staves[pv.v.staff].getYForLine(4) + 62 : staves[pv.v.staff].getYForLine(0) - (q.src.fermata ? 38 : 26);
             if (q.src.label) ctx.fillText(q.src.label, nx - 2, y);
@@ -490,7 +535,15 @@ function WtcSystem(p: Props & { bars: number; widths: number[]; lefts: number[];
       }
       ctx.restore();
     }
-    for (const [a, c] of ties) new StaveTie({ first_note: a, last_note: c, first_indices: [0], last_indices: [0] }).setContext(ctx).draw();
+    // A tie whose notes were not laid out (NaN places, seen in the strip, P45) is left out.
+    const placed = (n: StaveNote) => {
+      try {
+        return Number.isFinite(n.getAbsoluteX()) && Number.isFinite(n.getTieRightX()) && Number.isFinite(n.getTieLeftX());
+      } catch {
+        return false;
+      }
+    };
+    for (const [a, c] of ties) if (placed(a) && placed(c)) new StaveTie({ first_note: a, last_note: c, first_indices: [0], last_indices: [0] }).setContext(ctx).draw();
     // The selection is drawn after the notes: redraw nothing; it sits under them as a translucent band.
     geo.current = { staves: staves0.map((s, i) => (used.includes(i) ? { top: s.getYForLine(0), bottom: s.getYForLine(4), spacing: s.getSpacingBetweenLines() } : { top: -1e6, bottom: -1e6, spacing: 10 })) };
     host.dataset.geometry = JSON.stringify(geo.current);

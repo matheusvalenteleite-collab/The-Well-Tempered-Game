@@ -22,6 +22,7 @@ import { barOf, choraleEvents, currentReading, fermataLinesOf, fermataWordsOf, p
 import { keySteps, ornamentUnit, ORNAMENT_STYLES, realise, type OrnamentStyle } from "../music/ornaments.ts";
 import { parsePitch, type Step } from "../music/pitch.ts";
 import type { ClefId } from "../ui/notation/clefs.ts";
+import { ScrollMode } from "../ui/ScrollMode.tsx";
 
 type Kind = "chorale" | "fugue" | "fux" | "ornaments";
 interface Piece {
@@ -377,6 +378,11 @@ export function TestBench() {
     store("wtg.test.heard", heard);
     audio.setGates(choraleGates(heard));
   }, [heard]);
+  const [mode, setModeState] = useState<"scroll" | "bench">(() => stored("wtg.test.mode", "scroll", (v) => v === "scroll" || v === "bench"));
+  const setMode = (m: "scroll" | "bench") => {
+    setModeState(m);
+    store("wtg.test.mode", m);
+  };
   const [ornOn, setOrnOn] = useState(true);
   const [style, setStyle] = useState<OrnamentStyle>(() => stored<OrnamentStyle>("wtg.ornamentStyle", "explication", (v) => ORNAMENT_STYLES.includes(v as OrnamentStyle)));
   useEffect(() => store("wtg.ornamentStyle", style), [style]);
@@ -493,10 +499,13 @@ export function TestBench() {
   }, [piece, edits, cursor, rowBars, ornOn, replan]);
 
   const groups = [...new Set(all.map((p) => p.group))];
+  // P45: the scrolling score (gerubach) by default; the bench behind the corner button. A blind test
+  // keeps the bench (the strip would show what is being compared).
+  if (mode === "scroll" && !blind) return <BenchScroll piece={piece} sounding={sounding} heard={heard} dynamics={dynamics} onBench={() => setMode("bench")} />;
   return (
     <div className="bench">
       <header className="bench-head">
-        <h1>Playback test bench</h1>
+        <h1>Playback test bench <button className="link bench-mode" onClick={() => { stop(); setMode("scroll"); }} title="The scrolling score (gerubach)">scrolling score</button></h1>
         {blind ? (
           <span className="blind-head">
             <strong>Blind test</strong>
@@ -668,5 +677,39 @@ function PartsPanel({ rows, all, part, onHear, showMelody, rowBars }: { rows: { 
       {chorale && melodies.map((r) => line(r.name, r.pieceId, r.piece, true))}
       {showMelody && chorale && melodies.map((r) => <MelodyScore key={r.pieceId} piece={r.piece} rowBars={rowBars} />)}
     </section>
+  );
+}
+
+/** P45: the bench's piece in the gerubach layout (its notes as written, black, on its staves). */
+function BenchScroll({ piece, sounding, heard, dynamics, onBench }: { piece: Piece; sounding: Chorale; heard: boolean[]; dynamics: boolean; onBench(): void }) {
+  const c = piece.chorale;
+  const shift = c.pickup ? c.barUnits - c.pickup : 0;
+  const voices = useMemo(
+    (): WtcScoreVoice[] =>
+      c.voices
+        .map((notes, v) => ({ staff: piece.staffOf[v], ink: "#111", editable: false, notes: notes.map(([at, dur, pitch, f]) => ({ pitch, at: (at + shift) / 8, dur: dur / 8, fermata: Boolean(f) })) }))
+        .filter((v) => v.notes.length),
+    [piece, c, shift],
+  );
+  const end = Math.max(...c.voices.flatMap((v) => v.map((n) => n[0] + n[1])));
+  const bars = Math.ceil((end + shift) / c.barUnits);
+  const barQ = c.barUnits / 8;
+  const clefPlan = useMemo(() => planClefs(voices, piece.clefs, barQ), [voices, piece.clefs, barQ]);
+  return (
+    <ScrollMode
+      key={piece.id}
+      card={{ above: piece.group, title: piece.title }}
+      score={{ voices, clefs: piece.clefs, clefPlan, keySig: MAJOR_BY_SIG[piece.sig] ?? "C", signature: signatureOf(piece.sig), time: piece.meter, barQuarters: barQ, bars, systemBars: 4 }}
+      steady={piece.kind !== "chorale"}
+      start={(from, onBar) => {
+        prepareChoraleAudio(audio, heard);
+        audio.dynamics = dynamics;
+        if (piece.kind === "chorale") playChorale(audio, sounding, onBar, from);
+        else playChoraleEvents(audio, choraleEvents(sounding), onBar, from);
+      }}
+      stop={() => audio.stop()}
+      modes={[{ id: "bench", label: "Test bench" }]}
+      onMode={onBench}
+    />
   );
 }
