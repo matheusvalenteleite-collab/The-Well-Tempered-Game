@@ -403,3 +403,29 @@ body {
 .tg-title .tg-card-sub { font-size: 7px; }
 /* The keyboard's keys mean nothing on a phone. */
 @media (hover: none) { .tg-keys { display: none; } }
+
+/* D164: the map */
+.tg-map { justify-content: flex-start; overflow-y: auto; gap: 8px; padding-block: 10px; }
+.tg-map .tg-card-sub { font-size: 7px; }
+.tg-grid { display: grid; gap: 3px; align-self: stretch; }
+.tg-grid-head { font-family: var(--tg-pixel); font-size: 7px; padding: 4px 0; color: var(--tg-fg); text-align: center; }
+.tg-grid-voice { display: flex; align-items: center; justify-content: center; gap: 1px; font-family: var(--tg-pixel); font-size: 8px; }
+.tg-grid-voice b { font-weight: 400; }
+.tg-cell {
+  position: relative;
+  min-height: 30px;
+  font-family: var(--tg-pixel);
+  font-size: 8px;
+  color: var(--tg-muted);
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid var(--tg-grid);
+  cursor: pointer;
+  padding: 0;
+}
+.tg-cell-star { color: var(--tg-gold); font-size: 11px; }
+.tg-cell i { position: absolute; top: 1px; left: 2px; font-style: normal; font-size: 7px; color: var(--tg-gold); opacity: 0.8; }
+.tg-cell:focus-visible { outline: 2px solid var(--tg-shine); outline-offset: 1px; }
+.tg-stepper button.tg-stepper-name { font-size: 8px; line-height: 1.5; color: var(--tg-fg); border-color: transparent; text-decoration: underline dotted; flex: 1; }
+/* The pixel font has no stars or diamonds. */
+.tg-sym, .tg-cell-star, .tg-cell i { font-family: system-ui, sans-serif; }
+.tg-cell-star { font-size: 15px; }

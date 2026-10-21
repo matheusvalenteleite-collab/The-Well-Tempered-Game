@@ -4,7 +4,7 @@
  * levels (rhythm, shape, notes) and the keyboard on a computer. D162: SHAPE judged against the
  * player's previous touch. D163: the whole fugue in six sections; two voices at once, one per thumb,
  * once both are earned alone; timing grades and a combo; the voices' own 8-bit timbres; a timing
- * calibration ("sync").
+ * calibration ("sync"). D164: the map of the fugue.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MusicBox, VOICE_INKS, type Frame } from "./MusicBox.tsx";
@@ -16,6 +16,7 @@ import { LEVELS, type Level as Difficulty } from "./lanes.ts";
 import type { Side } from "./thumbs.ts";
 import { EARN, duoOpen, level, recordKey } from "./voice-mode.ts";
 import { lagFrom, SYNC_BEATS, SYNC_BPM } from "./sync.ts";
+import { MapView } from "./MapView.tsx";
 
 const TEMPOS = [48, 60, 72];
 const BEST_KEY = "tg-best-v3";
@@ -59,7 +60,8 @@ type Phase =
   | { kind: "title" }
   | { kind: "play" }
   | { kind: "result"; results: { voice: number; got: number; of: number }[]; maxCombo: number; perfect: number }
-  | { kind: "sync" };
+  | { kind: "sync" }
+  | { kind: "map" };
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -239,7 +241,7 @@ export function TouchApp() {
     down: (id, side, y, h, ts) => {
       if (phase.kind === "sync") return tapSync(ts);
       const g = game.current;
-      if (!g) return start();
+      if (!g) return phase.kind === "map" ? undefined : start();
       g.down(id, side, y / h, ts);
       refresh(g);
     },
@@ -265,7 +267,7 @@ export function TouchApp() {
       if (phase.kind === "sync") return (e.preventDefault(), tapSync(e.timeStamp));
       const g = game.current;
       if (!g) {
-        if (e.code === "Space" && phase.kind !== "play") (e.preventDefault(), start());
+        if (e.code === "Space" && phase.kind !== "play" && phase.kind !== "map") (e.preventDefault(), start());
         return;
       }
       e.preventDefault();
@@ -322,7 +324,20 @@ export function TouchApp() {
             setOpenAll={(v) => (setOpenAll(v), save(OPEN_KEY, v))}
             lag={lag}
             sync={startSync}
+            map={() => setPhase({ kind: "map" })}
             note={note}
+          />
+        )}
+        {phase.kind === "map" && (
+          <MapView
+            best={best}
+            diff={diff}
+            pick={(sec, vs) => {
+              setSection(sec);
+              setVoices(vs);
+              setPhase({ kind: "title" });
+            }}
+            close={() => setPhase({ kind: "title" })}
           />
         )}
         {phase.kind === "result" && <Result phase={phase} voices={voices} again={() => setPhase({ kind: "title" })} />}
@@ -341,7 +356,7 @@ export function TouchApp() {
         anchors={diff === "shape" && playing ? anchors : {}}
         split={duo}
         labels={sides ? { left: { text: voiceName(sides.left), ink: VOICE_INKS[sides.left] }, right: { text: voiceName(sides.right), ink: VOICE_INKS[sides.right] } } : undefined}
-        hint={playing || phase.kind === "sync" ? "" : open ? "TAP HERE OR PRESS SPACE" : "LOCKED"}
+        hint={playing || phase.kind === "sync" || phase.kind === "map" ? "" : open ? "TAP HERE OR PRESS SPACE" : "LOCKED"}
       />
       <div className="tg-upright" role="alert">
         Turn the phone upright
@@ -379,9 +394,10 @@ function Title(p: {
   setOpenAll: (v: boolean) => void;
   lag: number;
   sync: () => void;
+  map: () => void;
   note: string;
 }) {
-  const { section, setSection, voices, setVoices, bpm, setBpm, diff, setDiff, best, open, openAll, setOpenAll, lag, sync, note } = p;
+  const { section, setSection, voices, setVoices, bpm, setBpm, diff, setDiff, best, open, openAll, setOpenAll, lag, sync, map, note } = p;
   const n = FUGUE.sections.length;
   const duo = voices.length === 2;
   const solo = (v: number) => best[recordKey(section, [v], diff)];
@@ -397,9 +413,9 @@ function Title(p: {
         <button type="button" id="section-prev" aria-label="Previous section" onClick={() => setSection((section + n - 1) % n)}>
           ◀
         </button>
-        <span>
-          {bars(section)} · {s.name.toUpperCase()}
-        </span>
+        <button type="button" id="map" className="tg-stepper-name" onClick={map} title="The map of the fugue">
+          {bars(section)} · {s.name.toUpperCase()} · MAP
+        </button>
         <button type="button" id="section-next" aria-label="Next section" onClick={() => setSection((section + 1) % n)}>
           ▶
         </button>
@@ -408,7 +424,10 @@ function Title(p: {
         {FUGUE.voiceNames.map((name, i) => (
           <button key={name} type="button" id={`voice-${i}`} className={voices.includes(i) ? "on" : ""} style={{ color: VOICE_INKS[i] }} onClick={() => toggle(i)} aria-pressed={voices.includes(i)}>
             {name.toUpperCase()}
-            <small>{solo(i) !== undefined ? `${solo(i)}%${solo(i) >= EARN * 100 ? " ★" : ""}` : "—"}</small>
+            <small>
+              {solo(i) !== undefined ? `${solo(i)}%` : "—"}
+              {solo(i) >= EARN * 100 && <span className="tg-sym"> ★</span>}
+            </small>
           </button>
         ))}
       </div>
