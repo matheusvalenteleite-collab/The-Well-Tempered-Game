@@ -2,14 +2,14 @@
  * The touch game. Step 3 (D160), one-voice mode: the player chooses a voice and plays it through the
  * exposition on its lanes (tap, hold, slide), on a steady 8-bit beat, and hears only what they play.
  * D161: three levels (rhythm, shape, notes) and the keyboard on a computer (space for a tap; the
- * arrows for higher and lower in shape).
+ * arrows for higher and lower in shape). D162: SHAPE judged against the player's previous touch.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MusicBox, VOICE_INKS, type Frame } from "./MusicBox.tsx";
 import { PlayArea, type ThumbEvents } from "./PlayArea.tsx";
 import { Chip } from "./chip.ts";
 import { FUGUE, keyAt, keyName } from "./fugue.ts";
-import { easyLanes, fits, laneAt, LEVELS, points, release, strike, sweep, type Level as Difficulty } from "./lanes.ts";
+import { easyLanes, fits, laneAt, LEVELS, points, release, SLIDE, stepInto, strike, sweep, type Level as Difficulty } from "./lanes.ts";
 import { EARN, level, type Level } from "./voice-mode.ts";
 
 const TEMPOS = [48, 60, 72];
@@ -17,7 +17,7 @@ const SECTION = 0;
 const BEST_KEY = "tg-best-v2";
 const DIFFICULTY: Record<Difficulty, { name: string; text: string }> = {
   rhythm: { name: "RHYTHM", text: "Only the time counts: tap anywhere when a note arrives, hold the long ones. Your voice plays its own notes." },
-  shape: { name: "SHAPE", text: "Time and direction: tap higher than your last tap when the line goes up, lower when it goes down, the same lane for a repeat." },
+  shape: { name: "SHAPE", text: "Time and direction: tap a little higher than your last touch when the line goes up, lower when it goes down, about the same for a repeat. Or slide while holding." },
   notes: { name: "NOTES", text: "Each lane is a note of your voice: tap it in time, hold the long ones, slide to the next lane to slur." },
 };
 /** The keyboard on a computer: a tap, or (in shape) a step up or down. */
@@ -50,8 +50,10 @@ interface Live {
   tps: number;
   held: Map<number, Held>;
   flashes: { lane: number; at: number }[];
-  /** The lane of the player's previous event, for the direction in shape. */
+  /** The lane of the player's previous event (for the box). */
   lastLane: number | null;
+  /** SHAPE: the height of the player's previous touch, as a share of the play area (0 at the top). */
+  anchor: number | null;
 }
 
 export function TouchApp() {
@@ -61,6 +63,7 @@ export function TouchApp() {
   const [diff, setDiff] = useState<Difficulty>("rhythm");
   const [best, setBest] = useState<Record<string, number>>(loadBest);
   const [lit, setLit] = useState<number[]>([]);
+  const [anchor, setAnchor] = useState<number | null>(null);
   const [wrong, setWrong] = useState<{ lane: number; id: number } | null>(null);
   const lv = useMemo(() => level(FUGUE, SECTION, voice), [voice, phase.kind === "play"]);
   const frame = useRef<Frame>({ now: 0, tps: 1, key: "c", voice, notes: [], lanes: 0, touched: [], flashes: [] });
@@ -88,7 +91,7 @@ export function TouchApp() {
     const tickAt = (t: number) => lv.start + (t - T0) * tps;
     const timeAt = (tick: number) => T0 + (tick - lv.start) / tps;
     const entry = lv.start + 4 * beat;
-    const g: Live = { lv, tickAt, tps, held: new Map(), flashes: [], lastLane: null };
+    const g: Live = { lv, tickAt, tps, held: new Map(), flashes: [], lastLane: null, anchor: null };
     live.current = g;
     let nextBeat = lv.start;
     let raf = 0;
@@ -169,24 +172,31 @@ export function TouchApp() {
     if (!chip.current) chip.current = new Chip();
     void chip.current.resume();
     if (performance.now() - shownAt.current < 350) return;
+    setAnchor(null);
     setPhase({ kind: "play" });
   };
 
-  // The thumbs: a landing or a slide into a lane is a strike; a lift or a slide away lets go.
+  // The thumbs. NOTES: a landing or a slide into a lane is a strike. SHAPE: a landing is judged against
+  // the anchor (the player's previous touch); a held thumb sliding far enough from it plays the next
+  // note if the line moves that way (a slur). RHYTHM: only landings count.
   const events: ThumbEvents = {
     down: (id, y, h, ts) => {
       const g = live.current;
       if (!g || !chip.current) return start();
-      play(g, id, laneAt(y, h, g.lv.lanes.length), ts);
+      play(g, id, { lane: laneAt(y, h, g.lv.lanes.length), y: y / h }, ts);
     },
     move: (id, y, h, ts) => {
       const g = live.current;
       const cur = g?.held.get(id);
       if (!g || !cur) return;
-      const lane = laneAt(y, h, g.lv.lanes.length);
-      if (lane === cur.lane) return;
-      letGo(g, id, ts);
-      play(g, id, lane, ts);
+      if (diff === "notes") {
+        const lane = laneAt(y, h, g.lv.lanes.length);
+        if (lane === cur.lane) return;
+        letGo(g, id, ts);
+        play(g, id, { lane, y: y / h }, ts);
+      } else if (diff === "shape" && g.anchor !== null && Math.abs(g.anchor - y / h) >= SLIDE) {
+        play(g, id, { lane: cur.lane, y: y / h }, ts, 0, true);
+      }
     },
     up: (id, ts) => {
       const g = live.current;
@@ -198,19 +208,27 @@ export function TouchApp() {
 
   const tickOf = (g: Live, ts: number) => g.tickAt(chip.current!.heard() - (performance.now() - ts) / 1000);
 
-  /** An event: a thumb in `lane`, or a key (lane null) with its direction. */
-  function play(g: Live, id: number, at: number | null, ts: number, keyDir: -1 | 0 | 1 = 0) {
+  /**
+   * An event: a thumb at `at` (its lane, and its height as a share of the play area, 0 at the top), or
+   * a key (at null) with its direction. A slide that plays nothing changes nothing.
+   */
+  function play(g: Live, id: number, at: { lane: number; y: number } | null, ts: number, keyDir: -1 | 0 | 1 = 0, slide = false) {
     const t = tickOf(g, ts);
     const notes = g.lv.notes;
-    const dir = at === null ? keyDir : g.lastLane === null ? null : (Math.sign(at - g.lastLane) as -1 | 0 | 1);
-    const i = strike(notes, at ?? 0, t, opt, (k) => fits(diff, notes, k, at ?? notes[k].lane, dir, opt));
-    const last = g.lastLane ?? Math.floor(g.lv.lanes.length / 2);
-    const lane = at ?? (i >= 0 ? notes[i].lane : Math.max(0, Math.min(g.lv.lanes.length - 1, last + keyDir)));
+    const dy = at === null ? keyDir * 0.1 : g.anchor === null ? null : g.anchor - at.y;
+    const i = strike(notes, at?.lane ?? 0, t, opt, (k) => (!slide || stepInto(notes, k) !== 0) && fits(diff, notes, k, at?.lane ?? notes[k].lane, dy, opt, at ? g.anchor : null));
+    if (slide && i < 0) return;
+    if (slide) letGo(g, id, ts);
+    const n = g.lv.lanes.length;
+    const last = g.lastLane ?? Math.floor(n / 2);
+    const lane = diff === "notes" && at ? at.lane : i >= 0 ? notes[i].lane : Math.max(0, Math.min(n - 1, last + keyDir));
     g.lastLane = lane;
+    if (at) g.anchor = at.y;
+    setAnchor(g.anchor);
     const held: Held = { lane, note: i };
     if (i >= 0) {
-      const n = g.lv.notes[i];
-      held.sound = chip.current!.note(n.midi, chip.current!.ctx.currentTime, Math.max(0.05, (n.on + n.dur - t) / g.tps));
+      const note = notes[i];
+      held.sound = chip.current!.note(note.midi, chip.current!.ctx.currentTime, Math.max(0.05, (note.on + note.dur - t) / g.tps));
     } else {
       g.flashes.push({ lane, at: t });
       setWrong({ lane, id: Math.random() });
@@ -243,7 +261,14 @@ export function TouchApp() {
         {phase.kind === "title" && <Title voice={voice} setVoice={setVoice} bpm={bpm} setBpm={setBpm} diff={diff} setDiff={setDiff} best={best} />}
         {phase.kind === "result" && <Result got={phase.got} of={phase.of} voice={voice} again={() => setPhase({ kind: "title" })} />}
       </MusicBox>
-      <PlayArea events={events} lanes={lv.lanes} lit={lit} wrong={wrong} hint={playing ? "" : "TAP HERE OR PRESS SPACE"} />
+      <PlayArea
+        events={events}
+        lanes={diff === "notes" ? lv.lanes : []}
+        lit={lit}
+        wrong={diff === "notes" ? wrong : null}
+        anchor={diff === "shape" && playing ? anchor : null}
+        hint={playing ? "" : "TAP HERE OR PRESS SPACE"}
+      />
       <div className="tg-upright" role="alert">
         Turn the phone upright
       </div>

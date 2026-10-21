@@ -146,10 +146,10 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, f: TouchFugue, 
     g.fillRect(x1, y, bw, bh);
     g.globalAlpha = 1;
     if (n.state === "hit") {
-      // Hit: a bright cap; let go early: dark from there.
+      // Hit: a bright cap; a long note let go early: dark from there (a short one may be let go at once).
       g.fillStyle = shine;
       g.fillRect(x1, y, Math.max(1, Math.min(bw, 2)), bh);
-      if (n.off !== undefined) {
+      if (n.long && n.off !== undefined) {
         const xo = xOf(n.off);
         g.fillStyle = miss;
         g.fillRect(xo, y, Math.max(0, x1 + bw - xo), bh);

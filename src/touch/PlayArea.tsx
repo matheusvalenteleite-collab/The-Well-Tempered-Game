@@ -1,9 +1,11 @@
 /**
  * The play area: the lower half of the screen, one half for each thumb (thumbs.ts), crossed by the
- * voice's lanes (lanes.ts), lowest at the bottom, each labelled with its note at both edges. The game
+ * voice's lanes (lanes.ts), lowest at the bottom, each labelled with its note at both edges (NOTES),
+ * or showing the player's last touch with its zones, higher, about the same, lower (SHAPE). The game
  * gets every landing, slide and lift with the event's time.
  */
 import { useRef, useState, type PointerEvent } from "react";
+import { SAME } from "./lanes.ts";
 import { onSide, touchDown, touchMove, touchUp, type Side, type Touches } from "./thumbs.ts";
 
 export interface ThumbEvents {
@@ -12,7 +14,17 @@ export interface ThumbEvents {
   up: (id: number, ts: number) => void;
 }
 
-export function PlayArea({ events, lanes, lit, wrong, hint }: { events: ThumbEvents; lanes: string[]; lit: number[]; wrong: { lane: number; id: number } | null; hint: string }) {
+export function PlayArea(p: {
+  events: ThumbEvents;
+  /** The lanes (NOTES); none for the other levels. */
+  lanes: string[];
+  lit: number[];
+  wrong: { lane: number; id: number } | null;
+  /** SHAPE: the height of the player's previous touch (a share, 0 at the top), with its zones. */
+  anchor: number | null;
+  hint: string;
+}) {
+  const { events, lanes, lit, wrong, anchor, hint } = p;
   const area = useRef<HTMLDivElement>(null);
   const [touches, setTouches] = useState<Touches>(new Map());
   const state = useRef<Touches>(new Map());
@@ -73,6 +85,13 @@ export function PlayArea({ events, lanes, lit, wrong, hint }: { events: ThumbEve
               </div>
             );
           })}
+        </div>
+      )}
+      {anchor !== null && (
+        <div className="tg-anchor" style={{ top: `${anchor * 100}%`, ["--same" as string]: `${SAME * 100}cqh` }}>
+          <div className="tg-anchor-same" />
+          <span className="tg-anchor-up">▲ HIGHER</span>
+          <span className="tg-anchor-down">▼ LOWER</span>
         </div>
       )}
       <div className="tg-status">{hint}</div>

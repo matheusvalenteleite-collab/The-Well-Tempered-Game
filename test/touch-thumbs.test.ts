@@ -35,7 +35,7 @@ test("the C minor fugue is in three voices, 31 bars", () => {
   assert.ok(lo >= 36 && hi <= 84, `range ${lo}-${hi}`);
 });
 
-import { easyLanes, fits, laneAt, points, release, stepInto, strike, sweep } from "../src/touch/lanes.ts";
+import { easyLanes, fits, laneAt, points, release, shapeFits, stepInto, strike, sweep } from "../src/touch/lanes.ts";
 import { level } from "../src/touch/voice-mode.ts";
 
 const opt = easyLanes(FUGUE.tpq, 60);
@@ -94,17 +94,30 @@ test("no thumb, no sound: every note missed; a long note let go at once scores h
   assert.equal(points(lv2.notes, opt).got, 0.5);
 });
 
-test("the levels: rhythm takes any lane, shape the direction, notes the lane", () => {
+test("the levels: rhythm takes any lane, shape the movement from the last touch, notes the lane", () => {
   const lv = level(FUGUE, 0, 1);
   const ns = lv.notes;
   // The subject: C5 B4 C5 G4: down, up, down.
   assert.deepEqual([1, 2, 3].map((i) => stepInto(ns, i)), [-1, 1, -1]);
-  assert.equal(fits("rhythm", ns, 1, 0, 1, opt), true);
-  assert.equal(fits("shape", ns, 1, 0, -1, opt), true);
-  assert.equal(fits("shape", ns, 1, 0, 1, opt), false);
-  assert.equal(fits("shape", ns, 0, 0, 1, opt), true);
+  assert.equal(fits("rhythm", ns, 1, 0, 0.5, opt), true);
+  assert.equal(fits("shape", ns, 1, 0, -0.05, opt), true);
+  assert.equal(fits("shape", ns, 1, 0, 0.05, opt), false);
+  assert.equal(fits("shape", ns, 0, 0, 0.5, opt), true);
   assert.equal(fits("notes", ns, 0, ns[0].lane + 1, null, opt), true);
   assert.equal(fits("notes", ns, 0, ns[0].lane + 2, null, opt), false);
+});
+
+test("shape is forgiving: a small move either way can be a repeat, a little movement a step", () => {
+  assert.equal(shapeFits(0, 0.06), true);
+  assert.equal(shapeFits(0, -0.06), true);
+  assert.equal(shapeFits(0, 0.2), false);
+  assert.equal(shapeFits(1, 0.03), true);
+  assert.equal(shapeFits(1, 0.01), false);
+  assert.equal(shapeFits(-1, 0.04), false);
+  assert.equal(shapeFits(null, 0.9), true);
+  // At the top edge, a step up needs only not to go clearly down.
+  assert.equal(shapeFits(1, -0.05, 0.05), true);
+  assert.equal(shapeFits(1, -0.05, 0.5), false);
 });
 
 test("rhythm: a tap anywhere on time plays the next note", () => {

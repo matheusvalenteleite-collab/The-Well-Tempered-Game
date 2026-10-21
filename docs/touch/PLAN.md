@@ -17,7 +17,15 @@ Page: `touch.html` (`npm run dev`, then `/touch.html`). Single file for claude.a
 `npx vite build -c vite.touch.config.ts && node tools/touch/build-artifact.mjs <out.html>`.
 Data: `node tools/touch/extract.ts` cuts the fugue from `data/wtc/fugues.json`.
 
-## Levels (D161: built, to be tried)
+## SHAPE made fluid (D162: built, to be tried)
+
+After "too hard: the pitch separation must be less strict, more fluid, contextual": SHAPE has no
+lanes. Each touch is judged against the player's own previous touch, with overlapping zones (a
+little movement makes a step, roughly the same place a repeat), lenient at the edges; sliding
+while holding slurs. A sloppy scripted player that follows the line scores 97-100%; random
+movement 41%; a still thumb 13%.
+
+## Levels (D161: built)
 
 After "way too hard" (with a mouse): the same gesture at three levels. RHYTHM: only the time (tap
 anywhere; the voice plays its own notes). SHAPE: time and direction (higher, lower, the same).

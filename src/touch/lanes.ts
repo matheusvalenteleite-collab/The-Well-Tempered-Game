@@ -6,6 +6,10 @@
  * let go early and it stops sounding and scores half. Three levels (D161), each asking more of the
  * same gesture: RHYTHM (the time only: any lane plays the right note), SHAPE (the direction too:
  * higher, lower or the same as the last), NOTES (the lane itself, a lane either side forgiven).
+ * D162: SHAPE has no lanes. A touch is judged by how far it lies above or below the player's own
+ * previous one (the anchor), as a share of the play area's height, with overlapping zones: a step
+ * wants a little movement the right way, a repeat wants the thumb roughly where it was, and
+ * between the two either will do. Only a clear move the wrong way fails.
  * Pure: ticks in, states out.
  */
 export type Level = "rhythm" | "shape" | "notes";
@@ -41,20 +45,40 @@ export function easyLanes(tpq: number, bpm: number, level: Level = "notes"): Lan
   return { early: ms * perMs, late: ms * perMs, reach: 1, hold: 0.6 };
 }
 
+/** SHAPE's zones, as shares of the play area's height: a move counts from MOVE on; a repeat holds within SAME. */
+export const MOVE = 0.025;
+export const SAME = 0.09;
+/** A held thumb that slides this far from its anchor plays the next note (a slur). */
+export const SLIDE = 0.03;
+
+/** Near the top or bottom of the play area (a share of its height), a step that has no room counts anyway. */
+export const EDGE = 0.12;
+
+/**
+ * SHAPE: whether a touch `dy` above the anchor (negative: below; null: no anchor yet) fits the way
+ * the line moves (`want`; null for the first note). With the anchor at an edge (`anchor`, 0 at the
+ * top), a step towards that edge only needs not to move clearly away.
+ */
+export function shapeFits(want: -1 | 0 | 1 | null, dy: number | null, anchor: number | null = null): boolean {
+  if (want === null || dy === null) return true;
+  if (want === 0) return Math.abs(dy) <= SAME;
+  const cornered = anchor !== null && (want === 1 ? anchor < EDGE : anchor > 1 - EDGE);
+  return dy * want >= (cornered ? -SAME : MOVE);
+}
+
 /** The way the line moves into note i: 1 up, -1 down, 0 the same (the first note: null, anything goes). */
 export function stepInto(notes: readonly LaneNote[], i: number): -1 | 0 | 1 | null {
   return i === 0 ? null : (Math.sign(notes[i].lane - notes[i - 1].lane) as -1 | 0 | 1);
 }
 
 /**
- * What a player's event must match, by level: `lane` where the thumb is, `dir` the way it moved from
- * the player's previous event (null for the first).
+ * What a player's event must match, by level: `lane` where the thumb is (NOTES), `dy` how far above
+ * the anchor (SHAPE; null for the first).
  */
-export function fits(level: Level, notes: readonly LaneNote[], i: number, lane: number, dir: -1 | 0 | 1 | null, o: LaneOptions): boolean {
+export function fits(level: Level, notes: readonly LaneNote[], i: number, lane: number, dy: number | null, o: LaneOptions, anchor: number | null = null): boolean {
   if (level === "rhythm") return true;
   if (level === "notes") return Math.abs(notes[i].lane - lane) <= o.reach;
-  const want = stepInto(notes, i);
-  return want === null || dir === null || want === dir;
+  return shapeFits(stepInto(notes, i), dy, anchor);
 }
 
 /** The lanes: every pitch of the notes, low to high. */
