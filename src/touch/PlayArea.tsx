@@ -1,7 +1,8 @@
 /**
  * The play area: the lower half of the screen, one half for each thumb (thumbs.ts), crossed by the
  * voice's lanes (lanes.ts), lowest at the bottom, each labelled with its note at both edges (NOTES),
- * or showing the player's last touch with its zones, higher, about the same, lower (SHAPE). The game
+ * or showing the player's last touch with its zones, higher, about the same, lower (SHAPE). With two
+ * voices (D163) each half plays its own, named in its colour, with its own last touch. The game
  * gets every landing, slide and lift with the event's time.
  */
 import { useRef, useState, type PointerEvent } from "react";
@@ -9,7 +10,7 @@ import { SAME } from "./lanes.ts";
 import { onSide, touchDown, touchMove, touchUp, type Side, type Touches } from "./thumbs.ts";
 
 export interface ThumbEvents {
-  down: (id: number, y: number, h: number, ts: number) => void;
+  down: (id: number, side: Side, y: number, h: number, ts: number) => void;
   move: (id: number, y: number, h: number, ts: number) => void;
   up: (id: number, ts: number) => void;
 }
@@ -20,11 +21,14 @@ export function PlayArea(p: {
   lanes: string[];
   lit: number[];
   wrong: { lane: number; id: number } | null;
-  /** SHAPE: the height of the player's previous touch (a share, 0 at the top), with its zones. */
-  anchor: number | null;
+  /** SHAPE: the height of the player's previous touch on each side (a share, 0 at the top), with its zones; `split` when each half plays its own voice. */
+  anchors: Partial<Record<Side, number>>;
+  split: boolean;
+  /** What each half plays (two voices), in its ink. */
+  labels?: Partial<Record<Side, { text: string; ink: string }>>;
   hint: string;
 }) {
-  const { events, lanes, lit, wrong, anchor, hint } = p;
+  const { events, lanes, lit, wrong, anchors, split, labels, hint } = p;
   const area = useRef<HTMLDivElement>(null);
   const [touches, setTouches] = useState<Touches>(new Map());
   const state = useRef<Touches>(new Map());
@@ -41,8 +45,9 @@ export function PlayArea(p: {
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
     const p = local(e);
-    update((s) => touchDown(s, e.pointerId, p.x, p.y, p.width, e.timeStamp));
-    events.down(e.pointerId, p.y, p.height, e.timeStamp);
+    const next = touchDown(state.current, e.pointerId, p.x, p.y, p.width, e.timeStamp);
+    update(() => next);
+    events.down(e.pointerId, next.get(e.pointerId)!.side, p.y, p.height, e.timeStamp);
   };
   const move = (e: PointerEvent<HTMLDivElement>) => {
     if (!state.current.has(e.pointerId)) return;
@@ -70,8 +75,8 @@ export function PlayArea(p: {
       onPointerCancel={up}
       onContextMenu={(e) => e.preventDefault()}
     >
-      <Half side="left" active={left > 0} />
-      <Half side="right" active={right > 0} />
+      <Half side="left" active={left > 0} label={labels?.left} />
+      <Half side="right" active={right > 0} label={labels?.right} />
       {n > 0 && (
         <div className="tg-lanes" style={{ gridTemplateRows: `repeat(${n}, 1fr)` }}>
           {lanes.map((_, row) => {
@@ -87,13 +92,18 @@ export function PlayArea(p: {
           })}
         </div>
       )}
-      {anchor !== null && (
-        <div className="tg-anchor" style={{ top: `${anchor * 100}%`, ["--same" as string]: `${SAME * 100}cqh` }}>
-          <div className="tg-anchor-same" />
-          <span className="tg-anchor-up">▲ HIGHER</span>
-          <span className="tg-anchor-down">▼ LOWER</span>
-        </div>
-      )}
+      {(split ? (["left", "right"] as Side[]) : (["right"] as Side[])).map((side) => {
+        const a = anchors[side];
+        if (a === undefined) return null;
+        const where = split ? (side === "left" ? { left: 0, right: "50%" } : { left: "50%", right: 0 }) : { left: 0, right: 0 };
+        return (
+          <div key={side} className="tg-anchor" style={{ top: `${a * 100}%`, ...where, ["--same" as string]: `${SAME * 100}cqh` }}>
+            <div className="tg-anchor-same" />
+            <span className="tg-anchor-up">▲ HIGHER</span>
+            <span className="tg-anchor-down">▼ LOWER</span>
+          </div>
+        );
+      })}
       <div className="tg-status">{hint}</div>
       {[...touches.values()].map((t) => (
         <div key={t.id} className={`tg-thumb tg-thumb-${t.side}`} style={{ transform: `translate(${t.x}px, ${t.y}px)` }} />
@@ -102,10 +112,16 @@ export function PlayArea(p: {
   );
 }
 
-function Half({ side, active }: { side: Side; active: boolean }) {
+function Half({ side, active, label }: { side: Side; active: boolean; label?: { text: string; ink: string } }) {
   return (
     <div className={`tg-half tg-half-${side}${active ? " tg-half-on" : ""}`}>
-      <span className="tg-half-label">{side === "left" ? "L" : "R"}</span>
+      {label ? (
+        <span className="tg-half-voice" style={{ color: label.ink }}>
+          {label.text}
+        </span>
+      ) : (
+        <span className="tg-half-label">{side === "left" ? "L" : "R"}</span>
+      )}
     </div>
   );
 }

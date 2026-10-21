@@ -124,3 +124,93 @@ test("rhythm: a tap anywhere on time plays the next note", () => {
   const lv = level(FUGUE, 0, 1);
   lv.notes.forEach((n, i) => assert.equal(strike(lv.notes, 0, n.on + 20, opt, (k) => fits("rhythm", lv.notes, k, 0, 0, opt)), i));
 });
+
+import { Game } from "../src/touch/engine.ts";
+import { duoOpen, recordKey, sectionNotes } from "../src/touch/voice-mode.ts";
+import { lagFrom } from "../src/touch/sync.ts";
+import type { Chip } from "../src/touch/chip.ts";
+
+/** A chip with a clock the test moves by hand, and a log of the notes it sounds. */
+function fakeChip() {
+  const clock = { t: 0 };
+  const sounded: { midi: number; voice: number }[] = [];
+  const chip = {
+    ctx: { get currentTime() { return clock.t; }, outputLatency: 0, baseLatency: 0 },
+    heard: () => clock.t,
+    note: (midi: number, _at: number, _dur: number, voice = 1) => (sounded.push({ midi, voice }), { stop: () => {} }),
+    tick: () => {},
+  } as unknown as Chip;
+  return { chip, clock, sounded };
+}
+
+test("six sections cover the fugue, every voice sounding in each", () => {
+  assert.equal(FUGUE.sections.length, 6);
+  assert.equal(FUGUE.sections[0].toBar, 9);
+  assert.equal(FUGUE.sections.at(-1)!.to, FUGUE.length);
+  for (let s = 0; s < 6; s++) for (let v = 0; v < 3; v++) assert.ok(sectionNotes(FUGUE, s, v).length > 0, `section ${s} voice ${v}`);
+});
+
+test("two voices open once each is earned alone, at that level, in that section", () => {
+  const best = { [recordKey(0, [1], "rhythm")]: 85, [recordKey(0, [0], "rhythm")]: 79 };
+  assert.equal(duoOpen(best, 0, [0, 1], "rhythm"), false);
+  best[recordKey(0, [0], "rhythm")] = 80;
+  assert.equal(duoOpen(best, 0, [1, 0], "rhythm"), true);
+  assert.equal(duoOpen(best, 0, [0, 1], "shape"), false);
+  assert.equal(duoOpen(best, 1, [0, 1], "rhythm"), false);
+  assert.equal(recordKey(0, [1, 0], "shape"), "s0-0+1-shape");
+});
+
+test("the sync: the median lag of the taps, outliers left out", () => {
+  const clicks = [0, 0.667, 1.333, 2, 2.667, 3.333, 4];
+  assert.equal(lagFrom(clicks, clicks.map((c) => c + 0.04)), 40);
+  assert.equal(lagFrom(clicks, [...clicks.slice(1).map((c) => c - 0.02), 1.0]), -20);
+  assert.equal(lagFrom(clicks, [0.01, 0.7]), null);
+});
+
+test("two voices: the left thumb plays the lower voice, the right the higher, each sounding its own", () => {
+  const { chip, clock, sounded } = fakeChip();
+  const lvA = level(FUGUE, 0, 1);
+  const lvS = level(FUGUE, 0, 0);
+  const g = new Game(FUGUE, [lvS, lvA], "rhythm", 60, chip);
+  assert.deepEqual(g.tracks.map((t) => [t.lv.voice, t.sides.join()]), [
+    [1, "left"],
+    [0, "right"],
+  ]);
+  const at = (tick: number) => 0.15 + (tick - g.start) / g.tps;
+  // The alto's first note, by the left thumb; the soprano's first, by the right.
+  const a0 = lvA.notes[0];
+  clock.t = at(a0.on);
+  g.step();
+  g.down(1, "left", 0.5, performance.now());
+  g.up(1, performance.now());
+  const s0 = lvS.notes[0];
+  clock.t = at(s0.on);
+  g.step();
+  g.down(2, "right", 0.5, performance.now());
+  assert.deepEqual(sounded, [
+    { midi: a0.midi, voice: 1 },
+    { midi: s0.midi, voice: 0 },
+  ]);
+  assert.equal(g.combo, 1);
+  assert.equal(g.grade?.text, "PERFECT");
+});
+
+test("the engine: a full run in rhythm, every note tapped on time, scores everything", () => {
+  const { chip, clock } = fakeChip();
+  const lv = level(FUGUE, 2, 2);
+  const g = new Game(FUGUE, [lv], "rhythm", 72, chip);
+  const at = (tick: number) => 0.15 + (tick - g.start) / g.tps;
+  let id = 0;
+  for (const n of lv.notes) {
+    clock.t = at(n.on);
+    g.step();
+    g.down(++id, "right", 0.5, performance.now());
+    if (n.long) clock.t = at(n.on + n.dur * 0.9);
+    g.up(id, performance.now());
+  }
+  clock.t = at(g.end + 1);
+  assert.equal(g.step(), true);
+  const [r] = g.results();
+  assert.equal(r.got, r.of);
+  assert.equal(g.maxCombo, lv.notes.length);
+});

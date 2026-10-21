@@ -61,8 +61,26 @@ const spell: Record<number, string> = {};
 for (const v of p.voices) for (const [, , pitch] of v) spell[parsePitch(pitch).midi] ??= pitch;
 
 const barOn = (n: number) => p.bars.find((b) => b.n === n)!.on;
-// The exposition: up to the end of the third voice's entry (the bass, bars 7-8), on the first beat of bar 9.
-const sections = [{ name: "Exposition", fromBar: 1, toBar: 9, from: 0, to: barOn(9) + TPQ }];
+// The sections (D160, D163): bar to bar, each ending where an entry lands. The exposition runs
+// to the end of the third voice's entry (the bass, bars 7-8), the first beat of bar 9; then the
+// entries in E flat (bar 11), g (bar 15), c (bar 20) and the bass's c (bar 26), each with what leads
+// to it; then the last entry, over the tonic, to the end.
+const CUTS: [number, number, string][] = [
+  [1, 9, "Exposition"],
+  [9, 13, "To the E♭ entry"],
+  [13, 17, "To the G minor entry"],
+  [17, 22, "To the C minor entry"],
+  [22, 29, "To the bass entry"],
+  [29, 32, "The last entry"],
+];
+const sections = CUTS.map(([fromBar, toBar, name]) => ({
+  name,
+  fromBar,
+  toBar: Math.min(toBar, p.bars.at(-1)!.n),
+  from: barOn(fromBar),
+  // Each takes in the first beat of its last bar, where the entry lands; the last runs to the end.
+  to: toBar > p.bars.at(-1)!.n ? p.length : barOn(toBar) + TPQ,
+}));
 
 const out = {
   id: p.id,

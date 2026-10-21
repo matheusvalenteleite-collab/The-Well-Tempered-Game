@@ -27,6 +27,9 @@ export interface LaneNote {
   at?: number;
   /** Tick the thumb let go of a hit note (or slid on), if before its end. */
   off?: number;
+  /** The voice, and the row in the music box when several voices share it (engine.ts). */
+  voice?: number;
+  row?: number;
 }
 
 export interface LaneOptions {

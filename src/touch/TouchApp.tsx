@@ -1,135 +1,156 @@
 /**
- * The touch game. Step 3 (D160), one-voice mode: the player chooses a voice and plays it through the
- * exposition on its lanes (tap, hold, slide), on a steady 8-bit beat, and hears only what they play.
- * D161: three levels (rhythm, shape, notes) and the keyboard on a computer (space for a tap; the
- * arrows for higher and lower in shape). D162: SHAPE judged against the player's previous touch.
+ * The touch game. One-voice mode (D160): the player chooses a voice and plays it through a section of
+ * the fugue (tap, hold, slide), on a steady 8-bit beat, and hears only what they play. D161: three
+ * levels (rhythm, shape, notes) and the keyboard on a computer. D162: SHAPE judged against the
+ * player's previous touch. D163: the whole fugue in six sections; two voices at once, one per thumb,
+ * once both are earned alone; timing grades and a combo; the voices' own 8-bit timbres; a timing
+ * calibration ("sync").
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MusicBox, VOICE_INKS, type Frame } from "./MusicBox.tsx";
 import { PlayArea, type ThumbEvents } from "./PlayArea.tsx";
 import { Chip } from "./chip.ts";
-import { FUGUE, keyAt, keyName } from "./fugue.ts";
-import { easyLanes, fits, laneAt, LEVELS, points, release, SLIDE, stepInto, strike, sweep, type Level as Difficulty } from "./lanes.ts";
-import { EARN, level, type Level } from "./voice-mode.ts";
+import { Game, byPitch, previewFrame, type Grade } from "./engine.ts";
+import { FUGUE, keyName } from "./fugue.ts";
+import { LEVELS, type Level as Difficulty } from "./lanes.ts";
+import type { Side } from "./thumbs.ts";
+import { EARN, duoOpen, level, recordKey } from "./voice-mode.ts";
+import { lagFrom, SYNC_BEATS, SYNC_BPM } from "./sync.ts";
 
 const TEMPOS = [48, 60, 72];
-const SECTION = 0;
-const BEST_KEY = "tg-best-v2";
+const BEST_KEY = "tg-best-v3";
+const LAG_KEY = "tg-lag-v1";
+const OPEN_KEY = "tg-open-v1";
 const DIFFICULTY: Record<Difficulty, { name: string; text: string }> = {
-  rhythm: { name: "RHYTHM", text: "Only the time counts: tap anywhere when a note arrives, hold the long ones. Your voice plays its own notes." },
+  rhythm: { name: "RHYTHM", text: "Only the time counts: tap when a note arrives, hold the long ones. Your voice plays its own notes." },
   shape: { name: "SHAPE", text: "Time and direction: tap a little higher than your last touch when the line goes up, lower when it goes down, about the same for a repeat. Or slide while holding." },
   notes: { name: "NOTES", text: "Each lane is a note of your voice: tap it in time, hold the long ones, slide to the next lane to slur." },
 };
-/** The keyboard on a computer: a tap, or (in shape) a step up or down. */
-const KEYS: Record<string, -1 | 0 | 1> = { Space: 0, KeyJ: 0, KeyF: 0, KeyK: 0, KeyD: 0, ArrowRight: 0, ArrowLeft: 0, ArrowUp: 1, ArrowDown: -1 };
 
+/**
+ * The keyboard on a computer: a key is a tap (held for a long note), with a direction in SHAPE, for one
+ * hand when two voices are played (the left hand's keys on the left of the keyboard).
+ */
+const KEYMAP: Record<string, { side: Side; dir: -1 | 0 | 1 }> = {
+  KeyS: { side: "left", dir: 0 },
+  KeyD: { side: "left", dir: 0 },
+  KeyF: { side: "left", dir: 0 },
+  KeyE: { side: "left", dir: 1 },
+  KeyR: { side: "left", dir: 1 },
+  KeyC: { side: "left", dir: -1 },
+  KeyV: { side: "left", dir: -1 },
+  KeyJ: { side: "right", dir: 0 },
+  KeyK: { side: "right", dir: 0 },
+  KeyL: { side: "right", dir: 0 },
+  Space: { side: "right", dir: 0 },
+  ArrowLeft: { side: "right", dir: 0 },
+  ArrowRight: { side: "right", dir: 0 },
+  KeyU: { side: "right", dir: 1 },
+  KeyI: { side: "right", dir: 1 },
+  ArrowUp: { side: "right", dir: 1 },
+  KeyN: { side: "right", dir: -1 },
+  KeyM: { side: "right", dir: -1 },
+  ArrowDown: { side: "right", dir: -1 },
+};
 /** A key's pointer id, clear of the touches'. */
-const keyId = (code: string) => 1000 + Object.keys(KEYS).indexOf(code);
+const keyId = (code: string) => 1000 + Object.keys(KEYMAP).indexOf(code);
 
-type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; got: number; of: number };
+type Phase =
+  | { kind: "title" }
+  | { kind: "play" }
+  | { kind: "result"; results: { voice: number; got: number; of: number }[]; maxCombo: number; perfect: number }
+  | { kind: "sync" };
 
-function loadBest(): Record<string, number> {
+function load<T>(key: string, fallback: T): T {
   try {
-    return JSON.parse(localStorage.getItem(BEST_KEY) ?? "{}");
+    const v = localStorage.getItem(key);
+    return v === null ? fallback : (JSON.parse(v) as T);
   } catch {
-    return {};
+    return fallback;
+  }
+}
+function save(key: string, value: unknown) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* no storage: it stays for this visit */
   }
 }
 
-/** A thumb on a lane: the note it is playing (or -1) and that note's sound. */
-interface Held {
-  lane: number;
-  note: number;
-  sound?: { stop: (at?: number) => void };
-}
+const voiceName = (v: number) => FUGUE.voiceNames[v].toUpperCase();
+const bars = (section: number) => {
+  const s = FUGUE.sections[section];
+  return `BARS ${s.fromBar}–${s.toBar}`;
+};
 
-/** The live game, read by the pointer handlers and the frame loop alike. */
-interface Live {
-  lv: Level;
-  tickAt: (audioTime: number) => number;
-  tps: number;
-  held: Map<number, Held>;
-  flashes: { lane: number; at: number }[];
-  /** The lane of the player's previous event (for the box). */
-  lastLane: number | null;
-  /** SHAPE: the height of the player's previous touch, as a share of the play area (0 at the top). */
-  anchor: number | null;
+/** The sync's clicks and the player's taps, in audio seconds as heard. */
+interface SyncRun {
+  clicks: number[];
+  taps: number[];
 }
 
 export function TouchApp() {
   const [phase, setPhase] = useState<Phase>({ kind: "title" });
-  const [voice, setVoice] = useState(1);
+  const [section, setSection] = useState(0);
+  const [voices, setVoices] = useState<number[]>([1]);
   const [bpm, setBpm] = useState(60);
   const [diff, setDiff] = useState<Difficulty>("rhythm");
-  const [best, setBest] = useState<Record<string, number>>(loadBest);
+  const [best, setBest] = useState<Record<string, number>>(() => load(BEST_KEY, {}));
+  const [lag, setLag] = useState<number>(() => load(LAG_KEY, 0));
+  const [openAll, setOpenAll] = useState<boolean>(() => load(OPEN_KEY, false));
+  const [note, setNote] = useState("");
   const [lit, setLit] = useState<number[]>([]);
-  const [anchor, setAnchor] = useState<number | null>(null);
+  const [anchors, setAnchors] = useState<Partial<Record<Side, number>>>({});
   const [wrong, setWrong] = useState<{ lane: number; id: number } | null>(null);
-  const lv = useMemo(() => level(FUGUE, SECTION, voice), [voice, phase.kind === "play"]);
-  const frame = useRef<Frame>({ now: 0, tps: 1, key: "c", voice, notes: [], lanes: 0, touched: [], flashes: [] });
+  const duo = voices.length === 2;
+  const levels = useMemo(() => byPitch(voices.map((v) => level(FUGUE, section, v))), [voices, section, phase.kind === "play"]);
+  const frame = useRef<Frame>(previewFrame(FUGUE, levels));
   const chip = useRef<Chip | null>(null);
-  const live = useRef<Live | null>(null);
+  const game = useRef<Game | null>(null);
+  const sync = useRef<SyncRun | null>(null);
   const count = useRef<HTMLDivElement>(null);
+  const gradeEl = useRef<HTMLDivElement>(null);
   const shownAt = useRef(0);
-  const opt = easyLanes(FUGUE.tpq, bpm, diff);
-  const bestKey = `${voice}-${diff}`;
+  const open = openAll || duoOpen(best, section, voices, diff);
+  const key = recordKey(section, voices, diff);
 
-  // Away from play, the box shows the voice's opening.
+  // NOTES is one voice's lanes: with two voices, SHAPE.
+  useEffect(() => {
+    if (duo && diff === "notes") setDiff("shape");
+  }, [duo, diff]);
+
+  // Away from play, the box shows the opening of what is chosen.
   useEffect(() => {
     shownAt.current = performance.now();
-    if (phase.kind === "title")
-      frame.current = { now: lv.first - FUGUE.tpq, tps: 1, key: keyAt(FUGUE, lv.first), voice, notes: lv.notes, lanes: lv.lanes.length, touched: [], flashes: [] };
-  }, [phase, lv, voice]);
+    if (phase.kind === "title") frame.current = previewFrame(FUGUE, levels);
+  }, [phase, levels]);
 
-  // Playing: the beat on the audio clock; misses swept and the box drawn every frame.
+  // Playing: the engine steps every frame; at the end, the results and the records.
   useEffect(() => {
     if (phase.kind !== "play" || !chip.current) return;
-    const ch = chip.current;
-    const beat = FUGUE.tpq;
-    const tps = (FUGUE.tpq * bpm) / 60;
-    const T0 = ch.ctx.currentTime + 0.15;
-    const tickAt = (t: number) => lv.start + (t - T0) * tps;
-    const timeAt = (tick: number) => T0 + (tick - lv.start) / tps;
-    const entry = lv.start + 4 * beat;
-    const g: Live = { lv, tickAt, tps, held: new Map(), flashes: [], lastLane: null, anchor: null };
-    live.current = g;
-    let nextBeat = lv.start;
+    const g = new Game(FUGUE, levels, diff, bpm, chip.current, lag);
+    game.current = g;
+    setAnchors({});
     let raf = 0;
     const loop = () => {
-      while (nextBeat <= lv.end && timeAt(nextBeat) < ch.ctx.currentTime + 0.25) {
-        ch.tick(timeAt(nextBeat), nextBeat % (4 * beat) === 0, nextBeat < entry ? 0.16 : 0.05);
-        nextBeat += beat;
-      }
-      const now = tickAt(ch.heard());
-      sweep(lv.notes, now, opt);
-      g.flashes = g.flashes.filter((f) => now - f.at < tps);
-      frame.current = {
-        now,
-        tps,
-        key: keyAt(FUGUE, now),
-        voice: lv.voice,
-        notes: lv.notes,
-        lanes: lv.lanes.length,
-        touched: [...g.held.values()].map((h) => h.lane),
-        flashes: g.flashes,
-      };
-      if (count.current) count.current.textContent = now < entry ? String(Math.min(4, Math.ceil((entry - now) / beat))) : "";
-      if (now > lv.end) {
-        for (const h of g.held.values()) h.sound?.stop();
-        live.current = null;
-        const p = points(lv.notes, opt);
-        const pct = Math.round((100 * p.got) / p.of);
+      const done = g.step();
+      frame.current = g.frame();
+      if (count.current) count.current.textContent = g.countIn() ? String(g.countIn()) : "";
+      showGrade(gradeEl.current, g.grade, g.combo);
+      if (done) {
+        game.current = null;
+        const results = g.results();
+        const got = results.reduce((s, r) => s + r.got, 0);
+        const of = results.reduce((s, r) => s + r.of, 0);
+        const pct = Math.round((100 * got) / of);
         setBest((b) => {
-          const next = { ...b, [bestKey]: Math.max(b[bestKey] ?? 0, pct) };
-          try {
-            localStorage.setItem(BEST_KEY, JSON.stringify(next));
-          } catch {
-            /* no storage: the best stays for this visit */
-          }
+          const next = { ...b, [key]: Math.max(b[key] ?? 0, pct) };
+          save(BEST_KEY, next);
           return next;
         });
         setLit([]);
-        setPhase({ kind: "result", got: p.got, of: p.of });
+        setAnchors({});
+        setPhase({ kind: "result", results, maxCombo: g.maxCombo, perfect: g.perfect });
         return;
       }
       raf = requestAnimationFrame(loop);
@@ -137,27 +158,126 @@ export function TouchApp() {
     raf = requestAnimationFrame(loop);
     return () => {
       cancelAnimationFrame(raf);
-      live.current = null;
+      g.stopAll();
+      game.current = null;
+      if (count.current) count.current.textContent = "";
+      showGrade(gradeEl.current, null, 0);
+    };
+  }, [phase]);
+
+  // The sync: SYNC_BEATS clicks; the player taps along; their lag is the median of the differences.
+  useEffect(() => {
+    if (phase.kind !== "sync" || !chip.current) return;
+    const ch = chip.current;
+    const T0 = ch.ctx.currentTime + 0.6;
+    const beat = 60 / SYNC_BPM;
+    const run: SyncRun = { clicks: [], taps: [] };
+    for (let i = 0; i < SYNC_BEATS; i++) {
+      ch.tick(T0 + i * beat, i % 4 === 0, 0.2);
+      run.clicks.push(T0 + i * beat + (ch.ctx.outputLatency || ch.ctx.baseLatency || 0));
+    }
+    sync.current = run;
+    let raf = 0;
+    const loop = () => {
+      if (count.current) count.current.textContent = String(Math.max(0, SYNC_BEATS - run.taps.length));
+      if (ch.ctx.currentTime > T0 + SYNC_BEATS * beat + 0.4) {
+        const ms = lagFrom(run.clicks, run.taps);
+        if (ms === null) setNote("Not enough taps to tell. Try the sync again, tapping with each click.");
+        else {
+          setLag(ms);
+          save(LAG_KEY, ms);
+          setNote(ms === 0 ? "Your taps land on the click: nothing to allow for." : `Your taps land ${Math.abs(ms)} ms ${ms > 0 ? "late" : "early"}: the game now allows for it.`);
+        }
+        sync.current = null;
+        setPhase({ kind: "title" });
+        return;
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => {
+      cancelAnimationFrame(raf);
+      sync.current = null;
       if (count.current) count.current.textContent = "";
     };
-  }, [phase, lv, bpm, diff]);
+  }, [phase]);
+
+  const ensureChip = () => {
+    // A touch starts the sound: browsers allow audio only after one.
+    if (!chip.current) chip.current = new Chip();
+    void chip.current.resume();
+  };
+
+  const start = () => {
+    ensureChip();
+    if (performance.now() - shownAt.current < 350 || !open) return;
+    setNote("");
+    setPhase({ kind: "play" });
+  };
+
+  const startSync = () => {
+    ensureChip();
+    setNote("");
+    setPhase({ kind: "sync" });
+  };
+
+  const tapSync = (ts: number) => {
+    const ch = chip.current;
+    if (sync.current && ch) sync.current.taps.push(ch.heard() - (performance.now() - ts) / 1000);
+  };
+
+  const refresh = (g: Game) => {
+    setLit(g.lit());
+    setAnchors(g.anchors());
+    if (g.difficulty === "notes" && g.grade?.text === "✕") {
+      const l = g.lit().at(-1);
+      if (l !== undefined) setWrong({ lane: l, id: g.grade.at });
+    }
+  };
+
+  const events: ThumbEvents = {
+    down: (id, side, y, h, ts) => {
+      if (phase.kind === "sync") return tapSync(ts);
+      const g = game.current;
+      if (!g) return start();
+      g.down(id, side, y / h, ts);
+      refresh(g);
+    },
+    move: (id, y, h, ts) => {
+      const g = game.current;
+      if (!g) return;
+      g.move(id, y / h, ts);
+      refresh(g);
+    },
+    up: (id, ts) => {
+      const g = game.current;
+      if (!g) return;
+      g.up(id, ts);
+      refresh(g);
+    },
+  };
 
   // The keyboard: a key down is a landing, a key up a lift; on the title, space starts.
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (!(e.code in KEYS) || e.repeat) return;
-      const g = live.current;
+      const k = KEYMAP[e.code];
+      if (!k || e.repeat) return;
+      if (phase.kind === "sync") return (e.preventDefault(), tapSync(e.timeStamp));
+      const g = game.current;
       if (!g) {
         if (e.code === "Space" && phase.kind !== "play") (e.preventDefault(), start());
         return;
       }
       e.preventDefault();
-      if (diff === "notes") return;
-      play(g, keyId(e.code), null, e.timeStamp, KEYS[e.code]);
+      if (g.difficulty === "notes") return;
+      g.key(keyId(e.code), duo ? k.side : null, g.difficulty === "shape" ? k.dir : 0, e.timeStamp);
+      refresh(g);
     };
     const up = (e: KeyboardEvent) => {
-      if (!(e.code in KEYS)) return;
-      events.up(keyId(e.code), e.timeStamp);
+      const g = game.current;
+      if (!KEYMAP[e.code] || !g) return;
+      g.up(keyId(e.code), e.timeStamp);
+      refresh(g);
     };
     window.addEventListener("keydown", down);
     window.addEventListener("keyup", up);
@@ -167,84 +287,9 @@ export function TouchApp() {
     };
   });
 
-  const start = () => {
-    // A touch starts the sound: browsers allow audio only after one.
-    if (!chip.current) chip.current = new Chip();
-    void chip.current.resume();
-    if (performance.now() - shownAt.current < 350) return;
-    setAnchor(null);
-    setPhase({ kind: "play" });
-  };
-
-  // The thumbs. NOTES: a landing or a slide into a lane is a strike. SHAPE: a landing is judged against
-  // the anchor (the player's previous touch); a held thumb sliding far enough from it plays the next
-  // note if the line moves that way (a slur). RHYTHM: only landings count.
-  const events: ThumbEvents = {
-    down: (id, y, h, ts) => {
-      const g = live.current;
-      if (!g || !chip.current) return start();
-      play(g, id, { lane: laneAt(y, h, g.lv.lanes.length), y: y / h }, ts);
-    },
-    move: (id, y, h, ts) => {
-      const g = live.current;
-      const cur = g?.held.get(id);
-      if (!g || !cur) return;
-      if (diff === "notes") {
-        const lane = laneAt(y, h, g.lv.lanes.length);
-        if (lane === cur.lane) return;
-        letGo(g, id, ts);
-        play(g, id, { lane, y: y / h }, ts);
-      } else if (diff === "shape" && g.anchor !== null && Math.abs(g.anchor - y / h) >= SLIDE) {
-        play(g, id, { lane: cur.lane, y: y / h }, ts, 0, true);
-      }
-    },
-    up: (id, ts) => {
-      const g = live.current;
-      if (g) letGo(g, id, ts);
-      g?.held.delete(id);
-      setLit(g ? [...g.held.values()].map((x) => x.lane) : []);
-    },
-  };
-
-  const tickOf = (g: Live, ts: number) => g.tickAt(chip.current!.heard() - (performance.now() - ts) / 1000);
-
-  /**
-   * An event: a thumb at `at` (its lane, and its height as a share of the play area, 0 at the top), or
-   * a key (at null) with its direction. A slide that plays nothing changes nothing.
-   */
-  function play(g: Live, id: number, at: { lane: number; y: number } | null, ts: number, keyDir: -1 | 0 | 1 = 0, slide = false) {
-    const t = tickOf(g, ts);
-    const notes = g.lv.notes;
-    const dy = at === null ? keyDir * 0.1 : g.anchor === null ? null : g.anchor - at.y;
-    const i = strike(notes, at?.lane ?? 0, t, opt, (k) => (!slide || stepInto(notes, k) !== 0) && fits(diff, notes, k, at?.lane ?? notes[k].lane, dy, opt, at ? g.anchor : null));
-    if (slide && i < 0) return;
-    if (slide) letGo(g, id, ts);
-    const n = g.lv.lanes.length;
-    const last = g.lastLane ?? Math.floor(n / 2);
-    const lane = diff === "notes" && at ? at.lane : i >= 0 ? notes[i].lane : Math.max(0, Math.min(n - 1, last + keyDir));
-    g.lastLane = lane;
-    if (at) g.anchor = at.y;
-    setAnchor(g.anchor);
-    const held: Held = { lane, note: i };
-    if (i >= 0) {
-      const note = notes[i];
-      held.sound = chip.current!.note(note.midi, chip.current!.ctx.currentTime, Math.max(0.05, (note.on + note.dur - t) / g.tps));
-    } else {
-      g.flashes.push({ lane, at: t });
-      setWrong({ lane, id: Math.random() });
-    }
-    g.held.set(id, held);
-    setLit([...g.held.values()].map((x) => x.lane));
-  }
-
-  function letGo(g: Live, id: number, ts: number) {
-    const cur = g.held.get(id);
-    if (!cur) return;
-    cur.sound?.stop();
-    if (cur.note >= 0) release(g.lv.notes, cur.note, tickOf(g, ts));
-  }
-
   const playing = phase.kind === "play";
+  const lanes = !duo && diff === "notes" ? levels[0].lanes : [];
+  const sides = duo ? { left: levels[0].voice, right: levels[1].voice } : null;
   return (
     <div className="tg-app">
       <MusicBox
@@ -252,22 +297,51 @@ export function TouchApp() {
         frame={frame}
         hud={
           <>
-            <span className="tg-hud-title">BARS 1–9 · {FUGUE.voiceNames[voice].toUpperCase()}</span>
+            <span className="tg-hud-title">
+              {bars(section)} · {voices.map(voiceName).join(" + ")}
+            </span>
             <span className="tg-hud-bar">{keyName(frame.current.key)}</span>
           </>
         }
       >
         <div className="tg-count" ref={count} aria-live="polite" />
-        {phase.kind === "title" && <Title voice={voice} setVoice={setVoice} bpm={bpm} setBpm={setBpm} diff={diff} setDiff={setDiff} best={best} />}
-        {phase.kind === "result" && <Result got={phase.got} of={phase.of} voice={voice} again={() => setPhase({ kind: "title" })} />}
+        <div className="tg-grade" ref={gradeEl} aria-live="polite" />
+        {phase.kind === "title" && (
+          <Title
+            section={section}
+            setSection={setSection}
+            voices={voices}
+            setVoices={setVoices}
+            bpm={bpm}
+            setBpm={setBpm}
+            diff={diff}
+            setDiff={setDiff}
+            best={best}
+            open={open}
+            openAll={openAll}
+            setOpenAll={(v) => (setOpenAll(v), save(OPEN_KEY, v))}
+            lag={lag}
+            sync={startSync}
+            note={note}
+          />
+        )}
+        {phase.kind === "result" && <Result phase={phase} voices={voices} again={() => setPhase({ kind: "title" })} />}
+        {phase.kind === "sync" && (
+          <div className="tg-card tg-card-low">
+            <h1>SYNC</h1>
+            <p>Tap below (or press space) with each click.</p>
+          </div>
+        )}
       </MusicBox>
       <PlayArea
         events={events}
-        lanes={diff === "notes" ? lv.lanes : []}
+        lanes={lanes}
         lit={lit}
         wrong={diff === "notes" ? wrong : null}
-        anchor={diff === "shape" && playing ? anchor : null}
-        hint={playing ? "" : "TAP HERE OR PRESS SPACE"}
+        anchors={diff === "shape" && playing ? anchors : {}}
+        split={duo}
+        labels={sides ? { left: { text: voiceName(sides.left), ink: VOICE_INKS[sides.left] }, right: { text: voiceName(sides.right), ink: VOICE_INKS[sides.right] } } : undefined}
+        hint={playing || phase.kind === "sync" ? "" : open ? "TAP HERE OR PRESS SPACE" : "LOCKED"}
       />
       <div className="tg-upright" role="alert">
         Turn the phone upright
@@ -276,59 +350,121 @@ export function TouchApp() {
   );
 }
 
+/** The grade of the last event and the combo, drawn over the box without React. */
+function showGrade(el: HTMLDivElement | null, grade: Grade | null, combo: number) {
+  if (!el) return;
+  const age = grade ? performance.now() - grade.at : Infinity;
+  if (age > 600) {
+    el.textContent = combo >= 5 ? `×${combo}` : "";
+    el.className = "tg-grade";
+    return;
+  }
+  const lean = grade!.lean ? (grade!.lean < 0 ? " EARLY" : " LATE") : "";
+  el.textContent = `${grade!.text}${lean}${combo >= 5 ? ` ×${combo}` : ""}`;
+  el.className = `tg-grade tg-grade-${grade!.text === "PERFECT" ? "perfect" : grade!.text === "GOOD" ? "good" : "miss"}`;
+}
+
 function Title(p: {
-  voice: number;
-  setVoice: (v: number) => void;
+  section: number;
+  setSection: (s: number) => void;
+  voices: number[];
+  setVoices: (v: number[]) => void;
   bpm: number;
   setBpm: (n: number) => void;
   diff: Difficulty;
   setDiff: (d: Difficulty) => void;
   best: Record<string, number>;
+  open: boolean;
+  openAll: boolean;
+  setOpenAll: (v: boolean) => void;
+  lag: number;
+  sync: () => void;
+  note: string;
 }) {
-  const { voice, setVoice, bpm, setBpm, diff, setDiff, best } = p;
-  const b = (i: number) => best[`${i}-${diff}`];
+  const { section, setSection, voices, setVoices, bpm, setBpm, diff, setDiff, best, open, openAll, setOpenAll, lag, sync, note } = p;
+  const n = FUGUE.sections.length;
+  const duo = voices.length === 2;
+  const solo = (v: number) => best[recordKey(section, [v], diff)];
+  const pair = best[recordKey(section, voices, diff)];
+  const toggle = (v: number) => {
+    if (voices.includes(v)) setVoices(voices.length > 1 ? voices.filter((x) => x !== v) : voices);
+    else setVoices(voices.length < 2 ? [...voices, v] : [voices[1], v]);
+  };
+  const s = FUGUE.sections[section];
   return (
-    <div className="tg-card">
-      <h1>{FUGUE.title.toUpperCase()}</h1>
-      <p className="tg-card-sub">THE EXPOSITION · BARS 1–9 · CHOOSE A VOICE</p>
-      <div className="tg-voices" role="group" aria-label="Voice">
+    <div className="tg-card tg-title">
+      <div className="tg-stepper">
+        <button type="button" id="section-prev" aria-label="Previous section" onClick={() => setSection((section + n - 1) % n)}>
+          ◀
+        </button>
+        <span>
+          {bars(section)} · {s.name.toUpperCase()}
+        </span>
+        <button type="button" id="section-next" aria-label="Next section" onClick={() => setSection((section + 1) % n)}>
+          ▶
+        </button>
+      </div>
+      <div className="tg-voices" role="group" aria-label="Voices">
         {FUGUE.voiceNames.map((name, i) => (
-          <button key={name} type="button" id={`voice-${i}`} className={i === voice ? "on" : ""} style={{ color: VOICE_INKS[i] }} onClick={() => setVoice(i)}>
+          <button key={name} type="button" id={`voice-${i}`} className={voices.includes(i) ? "on" : ""} style={{ color: VOICE_INKS[i] }} onClick={() => toggle(i)} aria-pressed={voices.includes(i)}>
             {name.toUpperCase()}
-            <small>{b(i) !== undefined ? `${b(i)}%${b(i) >= EARN * 100 ? " ★" : ""}` : "—"}</small>
+            <small>{solo(i) !== undefined ? `${solo(i)}%${solo(i) >= EARN * 100 ? " ★" : ""}` : "—"}</small>
           </button>
         ))}
       </div>
       <div className="tg-voices" role="group" aria-label="Level">
         {LEVELS.map((d) => (
-          <button key={d} type="button" id={`level-${d}`} className={d === diff ? "on tg-level" : "tg-level"} onClick={() => setDiff(d)}>
+          <button key={d} type="button" id={`level-${d}`} className={d === diff ? "on tg-level" : "tg-level"} disabled={duo && d === "notes"} onClick={() => setDiff(d)}>
             {DIFFICULTY[d].name}
           </button>
         ))}
       </div>
-      <p>{DIFFICULTY[diff].text} You hear only what you play.</p>
-      <p className="tg-card-sub">{diff === "notes" ? "COMPUTER: THE MOUSE ON THE LANES" : diff === "shape" ? "COMPUTER: ↑ HIGHER · ↓ LOWER · SPACE THE SAME" : "COMPUTER: SPACE BAR"}</p>
+      <p>
+        {duo
+          ? open
+            ? `Two voices, one per thumb: the lower on the left, the higher on the right. You hear them together only as you play them.${pair !== undefined ? ` Best ${pair}%.` : ""}`
+            : `Earn the ${voices.map((v) => FUGUE.voiceNames[v].toLowerCase()).join(" and the ")} alone here first (${Math.round(EARN * 100)}% each, ${DIFFICULTY[diff].name.toLowerCase()}): then you can play them together.`
+          : `${DIFFICULTY[diff].text} You hear only what you play. Choose a second voice to play two at once.`}
+      </p>
+      {note && <p className="tg-note">{note}</p>}
       <div className="tg-tempo" role="group" aria-label="Tempo">
         {TEMPOS.map((t) => (
           <button key={t} type="button" id={`tempo-${t}`} className={t === bpm ? "on" : ""} onClick={() => setBpm(t)}>
             <span className="tg-q">♩</span>={t}
           </button>
         ))}
+        <button type="button" id="sync" onClick={sync} title="Tap along with clicks so the game knows your timing">
+          SYNC{lag ? ` ${lag > 0 ? "+" : ""}${lag}` : ""}
+        </button>
       </div>
+      <p className="tg-card-sub tg-keys">
+        {duo ? "COMPUTER: LEFT HAND F (R ↑ V ↓) · RIGHT HAND J (U ↑ N ↓)" : diff === "notes" ? "COMPUTER: THE MOUSE ON THE LANES" : diff === "shape" ? "COMPUTER: SPACE THE SAME · ↑ HIGHER · ↓ LOWER" : "COMPUTER: SPACE BAR"}
+      </p>
+      <label className="tg-open">
+        <input type="checkbox" id="open-all" checked={openAll} onChange={(e) => setOpenAll(e.target.checked)} /> Open everything (for testing)
+      </label>
     </div>
   );
 }
 
-function Result({ got, of, voice, again }: { got: number; of: number; voice: number; again: () => void }) {
+function Result({ phase, voices, again }: { phase: Extract<Phase, { kind: "result" }>; voices: number[]; again: () => void }) {
+  const got = phase.results.reduce((s, r) => s + r.got, 0);
+  const of = phase.results.reduce((s, r) => s + r.of, 0);
   const ok = got >= EARN * of;
+  const names = voices.map(voiceName);
   return (
     <div className="tg-card tg-card-low">
-      <h1 className={ok ? "tg-gold" : ""}>{ok ? `${FUGUE.voiceNames[voice].toUpperCase()} EARNED` : "NOT YET"}</h1>
+      <h1 className={ok ? "tg-gold" : ""}>{ok ? (names.length > 1 ? `${names.join(" & ")} TOGETHER` : `${names[0]} EARNED`) : "NOT YET"}</h1>
+      {phase.results.map((r) => (
+        <p key={r.voice} className="tg-card-sub" style={{ color: VOICE_INKS[r.voice] }}>
+          {voiceName(r.voice)}: {r.got} OF {r.of}
+        </p>
+      ))}
       <p className="tg-card-sub">
-        {got} OF {of} NOTES · {Math.round((100 * got) / of)}% · {Math.round(EARN * 100)}% TO EARN IT
+        {Math.round((100 * got) / of)}% · {Math.round(EARN * 100)}% TO EARN · MAX COMBO {phase.maxCombo} · PERFECT {phase.perfect}
       </p>
       <button type="button" id="again" className="tg-link" onClick={again}>
-        Choose a voice or tempo
+        Choose a section, voices or tempo
       </button>
     </div>
   );

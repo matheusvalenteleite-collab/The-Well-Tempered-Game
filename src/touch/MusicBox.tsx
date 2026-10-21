@@ -28,6 +28,8 @@ export interface Frame {
   tps: number;
   key: string;
   voice: number;
+  /** The voices being played (with two, the box shows both, each in its ink). */
+  voices?: number[];
   notes: LaneNote[];
   /** How many lanes. */
   lanes: number;
@@ -62,7 +64,7 @@ export function MusicBox({ fugue, frame, hud, children }: { fugue: TouchFugue; f
       </div>
       <footer className="tg-legend">
         {fugue.voiceNames.map((name, i) => (
-          <span key={name} style={{ color: VOICE_INKS[i], opacity: i === frame.current.voice ? 1 : 0.35 }}>
+          <span key={name} style={{ color: VOICE_INKS[i], opacity: (frame.current.voices ?? [frame.current.voice]).includes(i) ? 1 : 0.35 }}>
             ■ {name.toUpperCase()}
           </span>
         ))}
@@ -124,15 +126,15 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, f: TouchFugue, 
     g.globalAlpha = 1;
   }
 
-  const ink = VOICE_INKS[fr.voice] ?? VOICE_INKS[0];
   const shine = tok("--tg-shine");
   const miss = tok("--tg-miss");
   const bh = Math.max(1, rowH - 2);
   for (const n of fr.notes) {
+    const ink = VOICE_INKS[n.voice ?? fr.voice] ?? VOICE_INKS[0];
     let x1 = xOf(n.on);
     const x2 = xOf(n.on + n.dur);
     if (x2 < 0 || x1 > w) continue;
-    const y = yOf(n.lane) + 1;
+    const y = yOf(n.row ?? n.lane) + 1;
     const bw = Math.max(1, x2 - x1 - 1);
     if (n.state === "miss") {
       const t = sinceMs(n.at);

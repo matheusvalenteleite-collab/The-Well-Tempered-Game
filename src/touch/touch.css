@@ -361,3 +361,45 @@ body {
 .tg-anchor-up { bottom: calc(var(--same) + 4px); }
 .tg-anchor-down { top: calc(var(--same) + 4px); }
 @media (prefers-reduced-motion: reduce) { .tg-anchor { transition: none; } }
+
+/* D163: grades, the title's choices, two voices */
+.tg-grade {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-family: var(--tg-pixel);
+  font-size: 10px;
+  color: var(--tg-muted);
+  pointer-events: none;
+  text-shadow: 2px 2px 0 var(--tg-bg);
+}
+.tg-grade-perfect { color: var(--tg-gold); }
+.tg-grade-good { color: var(--tg-fg); }
+.tg-grade-miss { color: var(--tg-wrong); }
+
+.tg-title { justify-content: flex-start; overflow-y: auto; gap: 7px; padding-block: 10px; }
+.tg-title p { font-size: 12px; }
+.tg-stepper { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-family: var(--tg-pixel); font-size: 8px; line-height: 1.5; color: var(--tg-fg); }
+.tg-stepper button {
+  font: inherit;
+  font-size: 12px;
+  color: var(--tg-shine);
+  background: transparent;
+  border: 2px solid var(--tg-barline);
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.tg-voices button:disabled { opacity: 0.35; cursor: default; }
+.tg-tempo button { font-family: var(--tg-pixel); font-size: 9px; }
+.tg-note { color: var(--tg-shine); }
+.tg-open { font-size: 11px; color: var(--tg-muted); display: inline-flex; gap: 6px; align-items: center; align-self: center; }
+.tg-stepper button:focus-visible { outline: 2px solid var(--tg-shine); outline-offset: 2px; }
+
+.tg-half-voice {
+  font-family: var(--tg-pixel);
+  font-size: 10px;
+  opacity: 0.6;
+}
+.tg-title .tg-card-sub { font-size: 7px; }
+/* The keyboard's keys mean nothing on a phone. */
+@media (hover: none) { .tg-keys { display: none; } }

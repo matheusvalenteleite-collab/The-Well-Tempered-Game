@@ -1,6 +1,7 @@
 /**
  * One-voice mode (D160): the player plays one voice through a section of the fugue and hears only
  * that voice, as they play it. The level is the voice's notes in the section on its own lanes.
+ * D163: two voices, one per thumb, once both are earned in the section at the level.
  */
 import { barStart, barAt, type TouchFugue } from "./fugue.ts";
 import { lanePitches, laneNotes, type LaneNote } from "./lanes.ts";
@@ -20,9 +21,16 @@ export interface Level {
   first: number;
 }
 
+/** The voice's notes in the section. */
+export function sectionNotes(f: TouchFugue, section: number, voice: number) {
+  const s = f.sections[section];
+  return f.voices[voice].filter(([on]) => on >= s.from && on < s.to);
+}
+
 export function level(f: TouchFugue, section: number, voice: number): Level {
   const s = f.sections[section];
-  const raw = f.voices[voice].filter(([on]) => on >= s.from && on < s.to);
+  const raw = sectionNotes(f, section, voice);
+  if (!raw.length) throw new Error(`voice ${voice} is silent in section ${section}`);
   const pitches = lanePitches(raw);
   const first = raw[0][0];
   return {
@@ -33,4 +41,14 @@ export function level(f: TouchFugue, section: number, voice: number): Level {
     end: s.to + f.tpq,
     first,
   };
+}
+
+/** The record of a play: its section, voices and level ("s0-1-rhythm", "s0-0+1-shape"). */
+export function recordKey(section: number, voices: number[], level: string): string {
+  return `s${section}-${[...voices].sort().join("+")}-${level}`;
+}
+
+/** Two voices are open once each is earned alone in the section at the level. */
+export function duoOpen(best: Record<string, number>, section: number, voices: number[], level: string): boolean {
+  return voices.length < 2 || voices.every((v) => (best[recordKey(section, [v], level)] ?? 0) >= EARN * 100);
 }
