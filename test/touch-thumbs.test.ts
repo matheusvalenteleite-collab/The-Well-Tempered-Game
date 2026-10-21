@@ -35,7 +35,7 @@ test("the C minor fugue is in three voices, 31 bars", () => {
   assert.ok(lo >= 36 && hi <= 84, `range ${lo}-${hi}`);
 });
 
-import { easyLanes, laneAt, points, release, strike, sweep } from "../src/touch/lanes.ts";
+import { easyLanes, fits, laneAt, points, release, stepInto, strike, sweep } from "../src/touch/lanes.ts";
 import { level } from "../src/touch/voice-mode.ts";
 
 const opt = easyLanes(FUGUE.tpq, 60);
@@ -92,4 +92,22 @@ test("no thumb, no sound: every note missed; a long note let go at once scores h
   strike(lv2.notes, lv2.notes[i].lane, lv2.notes[i].on, opt);
   release(lv2.notes, i, lv2.notes[i].on + 50);
   assert.equal(points(lv2.notes, opt).got, 0.5);
+});
+
+test("the levels: rhythm takes any lane, shape the direction, notes the lane", () => {
+  const lv = level(FUGUE, 0, 1);
+  const ns = lv.notes;
+  // The subject: C5 B4 C5 G4: down, up, down.
+  assert.deepEqual([1, 2, 3].map((i) => stepInto(ns, i)), [-1, 1, -1]);
+  assert.equal(fits("rhythm", ns, 1, 0, 1, opt), true);
+  assert.equal(fits("shape", ns, 1, 0, -1, opt), true);
+  assert.equal(fits("shape", ns, 1, 0, 1, opt), false);
+  assert.equal(fits("shape", ns, 0, 0, 1, opt), true);
+  assert.equal(fits("notes", ns, 0, ns[0].lane + 1, null, opt), true);
+  assert.equal(fits("notes", ns, 0, ns[0].lane + 2, null, opt), false);
+});
+
+test("rhythm: a tap anywhere on time plays the next note", () => {
+  const lv = level(FUGUE, 0, 1);
+  lv.notes.forEach((n, i) => assert.equal(strike(lv.notes, 0, n.on + 20, opt, (k) => fits("rhythm", lv.notes, k, 0, 0, opt)), i));
 });

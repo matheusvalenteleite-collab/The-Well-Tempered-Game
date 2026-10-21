@@ -42,6 +42,10 @@ body {
 
 .tg-app {
   height: 100%;
+  /* On a computer, the phone's proportions in the middle of the window. */
+  max-width: 520px;
+  margin: 0 auto;
+  box-shadow: 0 0 0 1px var(--tg-grid);
   display: grid;
   grid-template-rows: 1fr 1fr;
   touch-action: none;
@@ -313,3 +317,6 @@ body {
 .tg-status { z-index: 1; }
 .tg-thumb { z-index: 2; }
 .tg-half-label { opacity: 0.5; }
+.tg-voices button.tg-level { color: var(--tg-fg); padding: 8px 10px; }
+.tg-voices button.tg-level.on { border-color: var(--tg-shine); color: var(--tg-shine); }
+.tg-card { gap: 8px; }

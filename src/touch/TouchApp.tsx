@@ -1,22 +1,34 @@
 /**
  * The touch game. Step 3 (D160), one-voice mode: the player chooses a voice and plays it through the
  * exposition on its lanes (tap, hold, slide), on a steady 8-bit beat, and hears only what they play.
+ * D161: three levels (rhythm, shape, notes) and the keyboard on a computer (space for a tap; the
+ * arrows for higher and lower in shape).
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MusicBox, VOICE_INKS, type Frame } from "./MusicBox.tsx";
 import { PlayArea, type ThumbEvents } from "./PlayArea.tsx";
 import { Chip } from "./chip.ts";
 import { FUGUE, keyAt, keyName } from "./fugue.ts";
-import { easyLanes, laneAt, points, release, strike, sweep } from "./lanes.ts";
+import { easyLanes, fits, laneAt, LEVELS, points, release, strike, sweep, type Level as Difficulty } from "./lanes.ts";
 import { EARN, level, type Level } from "./voice-mode.ts";
 
 const TEMPOS = [48, 60, 72];
 const SECTION = 0;
-const BEST_KEY = "tg-best-v1";
+const BEST_KEY = "tg-best-v2";
+const DIFFICULTY: Record<Difficulty, { name: string; text: string }> = {
+  rhythm: { name: "RHYTHM", text: "Only the time counts: tap anywhere when a note arrives, hold the long ones. Your voice plays its own notes." },
+  shape: { name: "SHAPE", text: "Time and direction: tap higher than your last tap when the line goes up, lower when it goes down, the same lane for a repeat." },
+  notes: { name: "NOTES", text: "Each lane is a note of your voice: tap it in time, hold the long ones, slide to the next lane to slur." },
+};
+/** The keyboard on a computer: a tap, or (in shape) a step up or down. */
+const KEYS: Record<string, -1 | 0 | 1> = { Space: 0, KeyJ: 0, KeyF: 0, KeyK: 0, KeyD: 0, ArrowRight: 0, ArrowLeft: 0, ArrowUp: 1, ArrowDown: -1 };
+
+/** A key's pointer id, clear of the touches'. */
+const keyId = (code: string) => 1000 + Object.keys(KEYS).indexOf(code);
 
 type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; got: number; of: number };
 
-function loadBest(): Record<number, number> {
+function loadBest(): Record<string, number> {
   try {
     return JSON.parse(localStorage.getItem(BEST_KEY) ?? "{}");
   } catch {
@@ -38,13 +50,16 @@ interface Live {
   tps: number;
   held: Map<number, Held>;
   flashes: { lane: number; at: number }[];
+  /** The lane of the player's previous event, for the direction in shape. */
+  lastLane: number | null;
 }
 
 export function TouchApp() {
   const [phase, setPhase] = useState<Phase>({ kind: "title" });
   const [voice, setVoice] = useState(1);
   const [bpm, setBpm] = useState(60);
-  const [best, setBest] = useState<Record<number, number>>(loadBest);
+  const [diff, setDiff] = useState<Difficulty>("rhythm");
+  const [best, setBest] = useState<Record<string, number>>(loadBest);
   const [lit, setLit] = useState<number[]>([]);
   const [wrong, setWrong] = useState<{ lane: number; id: number } | null>(null);
   const lv = useMemo(() => level(FUGUE, SECTION, voice), [voice, phase.kind === "play"]);
@@ -53,7 +68,8 @@ export function TouchApp() {
   const live = useRef<Live | null>(null);
   const count = useRef<HTMLDivElement>(null);
   const shownAt = useRef(0);
-  const opt = easyLanes(FUGUE.tpq, bpm);
+  const opt = easyLanes(FUGUE.tpq, bpm, diff);
+  const bestKey = `${voice}-${diff}`;
 
   // Away from play, the box shows the voice's opening.
   useEffect(() => {
@@ -72,7 +88,7 @@ export function TouchApp() {
     const tickAt = (t: number) => lv.start + (t - T0) * tps;
     const timeAt = (tick: number) => T0 + (tick - lv.start) / tps;
     const entry = lv.start + 4 * beat;
-    const g: Live = { lv, tickAt, tps, held: new Map(), flashes: [] };
+    const g: Live = { lv, tickAt, tps, held: new Map(), flashes: [], lastLane: null };
     live.current = g;
     let nextBeat = lv.start;
     let raf = 0;
@@ -101,7 +117,7 @@ export function TouchApp() {
         const p = points(lv.notes, opt);
         const pct = Math.round((100 * p.got) / p.of);
         setBest((b) => {
-          const next = { ...b, [lv.voice]: Math.max(b[lv.voice] ?? 0, pct) };
+          const next = { ...b, [bestKey]: Math.max(b[bestKey] ?? 0, pct) };
           try {
             localStorage.setItem(BEST_KEY, JSON.stringify(next));
           } catch {
@@ -121,7 +137,32 @@ export function TouchApp() {
       live.current = null;
       if (count.current) count.current.textContent = "";
     };
-  }, [phase, lv, bpm]);
+  }, [phase, lv, bpm, diff]);
+
+  // The keyboard: a key down is a landing, a key up a lift; on the title, space starts.
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (!(e.code in KEYS) || e.repeat) return;
+      const g = live.current;
+      if (!g) {
+        if (e.code === "Space" && phase.kind !== "play") (e.preventDefault(), start());
+        return;
+      }
+      e.preventDefault();
+      if (diff === "notes") return;
+      play(g, keyId(e.code), null, e.timeStamp, KEYS[e.code]);
+    };
+    const up = (e: KeyboardEvent) => {
+      if (!(e.code in KEYS)) return;
+      events.up(keyId(e.code), e.timeStamp);
+    };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    return () => {
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+    };
+  });
 
   const start = () => {
     // A touch starts the sound: browsers allow audio only after one.
@@ -157,9 +198,15 @@ export function TouchApp() {
 
   const tickOf = (g: Live, ts: number) => g.tickAt(chip.current!.heard() - (performance.now() - ts) / 1000);
 
-  function play(g: Live, id: number, lane: number, ts: number) {
+  /** An event: a thumb in `lane`, or a key (lane null) with its direction. */
+  function play(g: Live, id: number, at: number | null, ts: number, keyDir: -1 | 0 | 1 = 0) {
     const t = tickOf(g, ts);
-    const i = strike(g.lv.notes, lane, t, opt);
+    const notes = g.lv.notes;
+    const dir = at === null ? keyDir : g.lastLane === null ? null : (Math.sign(at - g.lastLane) as -1 | 0 | 1);
+    const i = strike(notes, at ?? 0, t, opt, (k) => fits(diff, notes, k, at ?? notes[k].lane, dir, opt));
+    const last = g.lastLane ?? Math.floor(g.lv.lanes.length / 2);
+    const lane = at ?? (i >= 0 ? notes[i].lane : Math.max(0, Math.min(g.lv.lanes.length - 1, last + keyDir)));
+    g.lastLane = lane;
     const held: Held = { lane, note: i };
     if (i >= 0) {
       const n = g.lv.notes[i];
@@ -193,10 +240,10 @@ export function TouchApp() {
         }
       >
         <div className="tg-count" ref={count} aria-live="polite" />
-        {phase.kind === "title" && <Title voice={voice} setVoice={setVoice} bpm={bpm} setBpm={setBpm} best={best} />}
+        {phase.kind === "title" && <Title voice={voice} setVoice={setVoice} bpm={bpm} setBpm={setBpm} diff={diff} setDiff={setDiff} best={best} />}
         {phase.kind === "result" && <Result got={phase.got} of={phase.of} voice={voice} again={() => setPhase({ kind: "title" })} />}
       </MusicBox>
-      <PlayArea events={events} lanes={lv.lanes} lit={lit} wrong={wrong} hint={playing ? "" : "TAP BELOW TO START"} />
+      <PlayArea events={events} lanes={lv.lanes} lit={lit} wrong={wrong} hint={playing ? "" : "TAP HERE OR PRESS SPACE"} />
       <div className="tg-upright" role="alert">
         Turn the phone upright
       </div>
@@ -204,7 +251,17 @@ export function TouchApp() {
   );
 }
 
-function Title({ voice, setVoice, bpm, setBpm, best }: { voice: number; setVoice: (v: number) => void; bpm: number; setBpm: (n: number) => void; best: Record<number, number> }) {
+function Title(p: {
+  voice: number;
+  setVoice: (v: number) => void;
+  bpm: number;
+  setBpm: (n: number) => void;
+  diff: Difficulty;
+  setDiff: (d: Difficulty) => void;
+  best: Record<string, number>;
+}) {
+  const { voice, setVoice, bpm, setBpm, diff, setDiff, best } = p;
+  const b = (i: number) => best[`${i}-${diff}`];
   return (
     <div className="tg-card">
       <h1>{FUGUE.title.toUpperCase()}</h1>
@@ -213,11 +270,19 @@ function Title({ voice, setVoice, bpm, setBpm, best }: { voice: number; setVoice
         {FUGUE.voiceNames.map((name, i) => (
           <button key={name} type="button" id={`voice-${i}`} className={i === voice ? "on" : ""} style={{ color: VOICE_INKS[i] }} onClick={() => setVoice(i)}>
             {name.toUpperCase()}
-            <small>{best[i] !== undefined ? `${best[i]}%${best[i] >= EARN * 100 ? " ★" : ""}` : "—"}</small>
+            <small>{b(i) !== undefined ? `${b(i)}%${b(i) >= EARN * 100 ? " ★" : ""}` : "—"}</small>
           </button>
         ))}
       </div>
-      <p>Each lane is a note of your voice. Tap it to play the note, hold the long ones, slide to the next lane to slur. You hear only what you play.</p>
+      <div className="tg-voices" role="group" aria-label="Level">
+        {LEVELS.map((d) => (
+          <button key={d} type="button" id={`level-${d}`} className={d === diff ? "on tg-level" : "tg-level"} onClick={() => setDiff(d)}>
+            {DIFFICULTY[d].name}
+          </button>
+        ))}
+      </div>
+      <p>{DIFFICULTY[diff].text} You hear only what you play.</p>
+      <p className="tg-card-sub">{diff === "notes" ? "COMPUTER: THE MOUSE ON THE LANES" : diff === "shape" ? "COMPUTER: ↑ HIGHER · ↓ LOWER · SPACE THE SAME" : "COMPUTER: SPACE BAR"}</p>
       <div className="tg-tempo" role="group" aria-label="Tempo">
         {TEMPOS.map((t) => (
           <button key={t} type="button" id={`tempo-${t}`} className={t === bpm ? "on" : ""} onClick={() => setBpm(t)}>

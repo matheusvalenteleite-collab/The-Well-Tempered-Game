@@ -2,10 +2,14 @@
  * One voice on lanes (D160). Each pitch the voice sings in the passage has a lane, lowest at the
  * bottom, the same ladder in the music box and under the thumbs. A note is played by an event: a
  * thumb landing in its lane (a tap: detached, staccato) or sliding into it from the next lane (a
- * slur), within a window around its onset; easy mode forgives a lane either side. A long note (a
- * quarter or more) wants the thumb held: let go early and it stops sounding and scores half.
+ * slur), within a window around its onset. A long note (a quarter or more) wants the thumb held:
+ * let go early and it stops sounding and scores half. Three levels (D161), each asking more of the
+ * same gesture: RHYTHM (the time only: any lane plays the right note), SHAPE (the direction too:
+ * higher, lower or the same as the last), NOTES (the lane itself, a lane either side forgiven).
  * Pure: ticks in, states out.
  */
+export type Level = "rhythm" | "shape" | "notes";
+export const LEVELS: Level[] = ["rhythm", "shape", "notes"];
 export type NoteState = "pending" | "hit" | "miss";
 
 export interface LaneNote {
@@ -31,9 +35,26 @@ export interface LaneOptions {
   hold: number;
 }
 
-export function easyLanes(tpq: number, bpm: number): LaneOptions {
+export function easyLanes(tpq: number, bpm: number, level: Level = "notes"): LaneOptions {
   const perMs = (tpq * bpm) / 60000;
-  return { early: 150 * perMs, late: 150 * perMs, reach: 1, hold: 0.6 };
+  const ms = level === "notes" ? 170 : 200;
+  return { early: ms * perMs, late: ms * perMs, reach: 1, hold: 0.6 };
+}
+
+/** The way the line moves into note i: 1 up, -1 down, 0 the same (the first note: null, anything goes). */
+export function stepInto(notes: readonly LaneNote[], i: number): -1 | 0 | 1 | null {
+  return i === 0 ? null : (Math.sign(notes[i].lane - notes[i - 1].lane) as -1 | 0 | 1);
+}
+
+/**
+ * What a player's event must match, by level: `lane` where the thumb is, `dir` the way it moved from
+ * the player's previous event (null for the first).
+ */
+export function fits(level: Level, notes: readonly LaneNote[], i: number, lane: number, dir: -1 | 0 | 1 | null, o: LaneOptions): boolean {
+  if (level === "rhythm") return true;
+  if (level === "notes") return Math.abs(notes[i].lane - lane) <= o.reach;
+  const want = stepInto(notes, i);
+  return want === null || dir === null || want === dir;
 }
 
 /** The lanes: every pitch of the notes, low to high. */
@@ -53,15 +74,16 @@ export function laneAt(y: number, h: number, n: number): number {
 
 /**
  * A thumb lands in (or slides into) `lane` at tick t. Returns the index of the note it plays, or -1:
- * the pending note nearest in time within the window and within reach, the exact lane first.
+ * the pending note nearest in time within the window that the event fits (fits(); by default the
+ * lane, within reach), the exact lane first.
  */
-export function strike(notes: LaneNote[], lane: number, t: number, o: LaneOptions): number {
+export function strike(notes: LaneNote[], lane: number, t: number, o: LaneOptions, ok: (i: number) => boolean = (i) => Math.abs(notes[i].lane - lane) <= o.reach): number {
   let best = -1;
   let bestCost = Infinity;
   notes.forEach((n, i) => {
     if (n.state !== "pending" || t < n.on - o.early || t > n.on + o.late) return;
-    const d = Math.abs(n.lane - lane);
-    if (d > o.reach) return;
+    if (!ok(i)) return;
+    const d = Math.min(Math.abs(n.lane - lane), o.reach + 1);
     const cost = Math.abs(t - n.on) + d * o.late;
     if (cost < bestCost) (best = i), (bestCost = cost);
   });

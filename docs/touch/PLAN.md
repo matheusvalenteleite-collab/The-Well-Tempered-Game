@@ -17,7 +17,13 @@ Page: `touch.html` (`npm run dev`, then `/touch.html`). Single file for claude.a
 `npx vite build -c vite.touch.config.ts && node tools/touch/build-artifact.mjs <out.html>`.
 Data: `node tools/touch/extract.ts` cuts the fugue from `data/wtc/fugues.json`.
 
-## One voice on lanes (step 3, D160: built, to be tried)
+## Levels (D161: built, to be tried)
+
+After "way too hard" (with a mouse): the same gesture at three levels. RHYTHM: only the time (tap
+anywhere; the voice plays its own notes). SHAPE: time and direction (higher, lower, the same).
+NOTES: the lane itself. Computer: space bar taps; ↑ ↓ in SHAPE; the mouse for NOTES.
+
+## One voice on lanes (step 3, D160: built)
 
 Choose soprano, alto or bass; play it through the exposition (bars 1–9, to the end of the bass
 entry), hearing only that voice. Each pitch of the voice in the passage is a lane, lowest at the
