@@ -168,3 +168,88 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .tg-half { transition: none; }
 }
+
+/* Step 2: subject mode */
+:root {
+  --tg-gold: #ffd23f;
+  --tg-miss: #3b3f5c;
+  --tg-veil: rgba(8, 10, 22, 0.82);
+}
+
+.tg-roll { position: relative; }
+
+.tg-count {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--tg-pixel);
+  font-size: 56px;
+  color: var(--tg-shine);
+  text-shadow: 4px 4px 0 var(--tg-bg);
+  pointer-events: none;
+}
+
+.tg-card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  background: var(--tg-veil);
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+/* Over a card that shows the coming notes, keep the veil to the lower part. */
+.tg-card-low { justify-content: flex-end; background: linear-gradient(to bottom, transparent 20%, var(--tg-veil) 55%); }
+
+.tg-card h1 {
+  margin: 0;
+  font-family: var(--tg-pixel);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-wrap: balance;
+}
+
+.tg-card p { margin: 0; max-width: 34ch; align-self: center; }
+.tg-card-sub { font-family: var(--tg-pixel); font-size: 8px; line-height: 1.6; color: var(--tg-muted); }
+.tg-card-go { font-family: var(--tg-pixel); font-size: 9px; color: var(--tg-shine); animation: tg-blink 1.1s steps(2) infinite; }
+.tg-gold { color: var(--tg-gold); }
+
+.tg-tempo { display: flex; justify-content: center; gap: 8px; }
+.tg-tempo button, .tg-link {
+  font: inherit;
+  color: var(--tg-fg);
+  background: transparent;
+  border: 2px solid var(--tg-barline);
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.tg-tempo button { font-family: var(--tg-pixel); font-size: 9px; }
+.tg-tempo button.on { border-color: var(--tg-shine); color: var(--tg-shine); }
+.tg-link { border: 0; padding: 2px; color: var(--tg-muted); text-decoration: underline; font-size: 12px; align-self: center; }
+.tg-tempo button:focus-visible, .tg-link:focus-visible { outline: 2px solid var(--tg-shine); outline-offset: 2px; }
+
+.tg-golds { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
+.tg-golds span {
+  font-family: var(--tg-pixel);
+  font-size: 9px;
+  padding: 6px 4px;
+  min-width: 2.6em;
+  border: 2px solid var(--tg-miss);
+  color: var(--tg-muted);
+}
+.tg-golds span.gold { border-color: var(--tg-gold); color: var(--tg-gold); }
+
+@keyframes tg-blink { 50% { opacity: 0.35; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .tg-card-go { animation: none; }
+}
+.tg-q { font-family: system-ui, sans-serif; font-size: 15px; vertical-align: -2px; }

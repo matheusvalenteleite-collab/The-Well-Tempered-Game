@@ -17,6 +17,30 @@ Page: `touch.html` (`npm run dev`, then `/touch.html`). Single file for claude.a
 `npx vite build -c vite.touch.config.ts && node tools/touch/build-artifact.mjs <out.html>`.
 Data: `node tools/touch/extract.ts` cuts the fugue from `data/wtc/fugues.json`.
 
+## Subject mode, easy (step 2, D159: built, to be tried for fun)
+
+The player plays only the subject, wherever it enters, and hears only what they play.
+
+1. **The subject** (alto, bar 1) with the notes in view; 80% of the notes to go on.
+2. **The answer** (soprano, bar 3), the same way.
+3. **From memory**: the eight entries in order (bars 1, 3, 7, 11, 15, 20, 26, 29), the notes hidden
+   but for the first and the notes where Bach varies the form. A hit hidden note shows a gold outline;
+   80% of the notes for gold.
+
+Gesture: hold a thumb down (either half) and slide; its height is the pitch over the line's own
+range, and the box zooms to the same range. A note sounds only if the thumb is within 1.5 semitones
+of it, 160 ms either side of its onset. Notes shorter than an eighth ride along with a thumb nearby.
+Tempo ♩=48, 60 or 72, with a bar of count-in; the box takes the key's colour (c, g, E♭).
+
+## The owner's principles (21 October)
+
+- **The player earns what they hear.** A voice sounds only while it is played right; two voices are
+  heard together for the first time when the player first plays them together and gets them right.
+- **Nothing but playing inside the piece**: cards and choices between passages only.
+- The music box takes the colour of the key. Yes.
+- No "hunt" for entries. Episodes: nothing decided; more ideas wanted later.
+- Kept in mind: the thumbs "dancing" to show the subject and countersubject in their changing relations.
+
 ## The owner's ideas for later steps
 
 - A harder level plays two voices at once, one per thumb. How to handle three or four voices is open.
@@ -25,5 +49,4 @@ Data: `node tools/touch/extract.ts` cuts the fugue from `data/wtc/fugues.json`.
 
 ## Next steps (to be agreed one at a time)
 
-2. The beat: the roll scrolls on a steady tempo, with an 8-bit voice sounding the notes.
-3. The first gesture: one thumb follows one voice.
+To be decided after the owner has tried subject mode.
