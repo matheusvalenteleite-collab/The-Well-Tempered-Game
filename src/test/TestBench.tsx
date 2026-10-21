@@ -49,7 +49,7 @@ const D = data as unknown as {
   chorales: { id: string; title: string; text: string[]; sig: number; meter: string; pickup: number; voices: ChoraleNote[][] }[];
   fugue: { title: string; sig: number; meter: string; voices: ChoraleNote[][]; plan: string[] };
   fux: { title: string; cantus: string[]; voices: string[][]; mode: string };
-  bach: { n: number; title: string; bwv: string; sig: number; meter: string; pickup: number; voices: ChoraleNote[][]; cadences: [number, string, string][]; harmony: [number, string, string, string, [number, number][]?][] }[];
+  bach: { n: number; title: string; bwv: string; sig: number; meter: string; pickup: number; voices: ChoraleNote[][]; cadences: [number, string, string][]; suspensions: [number, number][] }[];
   bachFugues?: { id: string; title: string; meter: string; tpq: number; voices: [number, number, string][][] }[];
   ornaments: { title: string; bwv: string; meter: string; tpq: number; end: number; voices: [number, number, string, number?][][]; orn: [number, number, string, string, string[]?][] };
 };
@@ -140,7 +140,7 @@ function pieces(): Piece[] {
         pickup: b.pickup,
         cadences: b.cadences,
         fermataWords: fermataWordsOf(b.n),
-        suspensions: b.harmony.flatMap((h) => (h[4] ?? []).filter(([, k]) => k === 2).map(([v]) => [h[0], v] as [number, number])),
+        suspensions: b.suspensions,
       },
       sig: b.sig,
       meter: b.meter,
@@ -708,7 +708,7 @@ function BenchScroll({ piece, sounding, heard, dynamics, onBench }: { piece: Pie
         else playChoraleEvents(audio, choraleEvents(sounding), onBar, from);
       }}
       stop={() => audio.stop()}
-      modes={[{ id: "bench", label: "Test bench" }]}
+      modes={[{ id: "bench", label: "Bench controls" }]}
       onMode={onBench}
     />
   );

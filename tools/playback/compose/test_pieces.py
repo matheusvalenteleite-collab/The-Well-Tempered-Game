@@ -19,7 +19,7 @@ wanted = sorted({216, 89} | {t for t in targets if isinstance(t, int)})
 fugue_ids = sorted({t for t in targets if isinstance(t, str)})
 fugues = {f["id"]: f for f in json.load(open("data/wtc/fugues.json"))} if fugue_ids else {}
 data["bachFugues"] = [{"id": i, "title": f"Fugue {fugues[i]['key']} {fugues[i]['mode']}, WTC {fugues[i]['book']} (BWV {fugues[i]['bwv']})", "meter": fugues[i]["meter"], "tpq": 1920, "voices": fugues[i]["voices"]} for i in fugue_ids if i in fugues]
-data["bach"] = [{"n": n, "title": study[n]["title"], "bwv": study[n]["bwv"], "tonic": study[n]["tonic"], "mode": study[n]["mode"], "sig": study[n]["sig"], "meter": study[n]["meter"], "pickup": study[n]["pickup"], "voices": study[n]["voices"], "cadences": study[n]["cadences"], "harmony": study[n]["harmony"]} for n in wanted]
+data["bach"] = [{"n": n, "title": study[n]["title"], "bwv": study[n]["bwv"], "tonic": study[n]["tonic"], "mode": study[n]["mode"], "sig": study[n]["sig"], "meter": study[n]["meter"], "pickup": study[n]["pickup"], "voices": study[n]["voices"], "cadences": study[n]["cadences"], "suspensions": [[h[0], v] for h in study[n]["harmony"] for v, k in (h[4] if len(h) > 4 else []) if k == 2]} for n in wanted]
 pre = next(p for p in json.load(open("data/wtc/preludes.json")) if p["id"] == "wtc2p04")
 TPQ = 1920
 num, den = map(int, pre["meter"].split("/"))
