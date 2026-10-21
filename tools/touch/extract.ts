@@ -6,6 +6,8 @@
  * taken in its voice for the subject's whole length, as the subject (bar 1) or as the tonal answer
  * (bar 3), whichever its notes follow more closely; a note neither form has at its place is marked
  * as Bach's variant. The keys of the entries are read from the score by hand (KEYS below).
+ * `spell` names each MIDI pitch as the score spells it (first spelling met), for the lanes' labels;
+ * `sections` are the passages the game plays one at a time (D160).
  * Run: node tools/touch/extract.ts
  */
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
@@ -55,6 +57,13 @@ const entries = raw.map((r, i) => {
   };
 });
 
+const spell: Record<number, string> = {};
+for (const v of p.voices) for (const [, , pitch] of v) spell[parsePitch(pitch).midi] ??= pitch;
+
+const barOn = (n: number) => p.bars.find((b) => b.n === n)!.on;
+// The exposition: up to the end of the third voice's entry (the bass, bars 7-8), on the first beat of bar 9.
+const sections = [{ name: "Exposition", fromBar: 1, toBar: 9, from: 0, to: barOn(9) + TPQ }];
+
 const out = {
   id: p.id,
   title: "Fugue 2 in C minor",
@@ -67,6 +76,8 @@ const out = {
   voiceNames: ["Soprano", "Alto", "Bass"],
   voices,
   entries,
+  spell,
+  sections,
 };
 if (out.voices.length !== out.voiceNames.length) throw new Error(`expected ${out.voiceNames.length} voices, got ${out.voices.length}`);
 const dir = fileURLToPath(new URL("../../data/touch/", import.meta.url));

@@ -1,100 +1,116 @@
 /**
- * The touch game. Step 2 (D159), subject mode in easy: the music box in the upper half, the play area
- * for the thumbs in the lower half; the player learns the subject and the answer with the notes in
- * view, then plays the fugue's eight entries from memory. Only what the player plays sounds.
+ * The touch game. Step 3 (D160), one-voice mode: the player chooses a voice and plays it through the
+ * exposition on its lanes (tap, hold, slide), on a steady 8-bit beat, and hears only what they play.
  */
-import { useEffect, useRef, useState } from "react";
-import { MusicBox, type BoxNote, type Frame } from "./MusicBox.tsx";
-import { PlayArea, type ThumbsRef } from "./PlayArea.tsx";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { MusicBox, VOICE_INKS, type Frame } from "./MusicBox.tsx";
+import { PlayArea, type ThumbEvents } from "./PlayArea.tsx";
 import { Chip } from "./chip.ts";
-import { FUGUE, keyName, type TouchEntry } from "./fugue.ts";
-import { easyOptions, judge, judgedNotes, score, thumbPitch, type JudgedNote } from "./judge.ts";
-import { PASS, shown, stages, type Stage } from "./subject-mode.ts";
+import { FUGUE, keyAt, keyName } from "./fugue.ts";
+import { easyLanes, laneAt, points, release, strike, sweep } from "./lanes.ts";
+import { EARN, level, type Level } from "./voice-mode.ts";
 
 const TEMPOS = [48, 60, 72];
-const STAGES = stages(FUGUE);
-const MEMORY = STAGES.findIndex((s) => s.kind === "memory");
+const SECTION = 0;
+const BEST_KEY = "tg-best-v1";
 
-type Phase =
-  | { kind: "title" }
-  | { kind: "card"; stage: number; pos: number }
-  | { kind: "play"; stage: number; pos: number }
-  | { kind: "result"; stage: number; pos: number; hit: number; of: number }
-  | { kind: "end" };
+type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; got: number; of: number };
 
-const entryOf = (stage: number, pos: number): TouchEntry => FUGUE.entries[STAGES[stage].entries[pos]];
-const where = (e: TouchEntry) => `${FUGUE.voiceNames[e.voice].toUpperCase()} · BAR ${e.bar} · ${keyName(e.key)}`;
-const passed = (hit: number, of: number) => hit >= PASS * of;
-
-const rangeOf = (e: TouchEntry) => ({ lo: Math.min(...e.notes.map((n) => n[2])), hi: Math.max(...e.notes.map((n) => n[2])) });
-
-function boxNotes(e: TouchEntry, kind: Stage["kind"]): (JudgedNote & BoxNote)[] {
-  return judgedNotes(e.notes, FUGUE.tpq).map((n, i) => ({ ...n, shown: shown(kind, i, e.notes[i][3]) }));
+function loadBest(): Record<number, number> {
+  try {
+    return JSON.parse(localStorage.getItem(BEST_KEY) ?? "{}");
+  } catch {
+    return {};
+  }
 }
 
-/** The tick a few beats before the entry: the count-in. */
-const countFrom = (e: TouchEntry) => Math.floor(e.on / FUGUE.tpq) * FUGUE.tpq - 4 * FUGUE.tpq;
+/** A thumb on a lane: the note it is playing (or -1) and that note's sound. */
+interface Held {
+  lane: number;
+  note: number;
+  sound?: { stop: (at?: number) => void };
+}
+
+/** The live game, read by the pointer handlers and the frame loop alike. */
+interface Live {
+  lv: Level;
+  tickAt: (audioTime: number) => number;
+  tps: number;
+  held: Map<number, Held>;
+  flashes: { lane: number; at: number }[];
+}
 
 export function TouchApp() {
   const [phase, setPhase] = useState<Phase>({ kind: "title" });
+  const [voice, setVoice] = useState(1);
   const [bpm, setBpm] = useState(60);
-  const [golds, setGolds] = useState<boolean[]>([]);
-  const frame = useRef<Frame>({ now: 0, tps: 1, key: "c", voice: 1, notes: [], cursor: null });
-  const thumbs = useRef<ThumbsRef>({ touches: new Map(), height: 1 });
+  const [best, setBest] = useState<Record<number, number>>(loadBest);
+  const [lit, setLit] = useState<number[]>([]);
+  const [wrong, setWrong] = useState<{ lane: number; id: number } | null>(null);
+  const lv = useMemo(() => level(FUGUE, SECTION, voice), [voice, phase.kind === "play"]);
+  const frame = useRef<Frame>({ now: 0, tps: 1, key: "c", voice, notes: [], lanes: 0, touched: [], flashes: [] });
   const chip = useRef<Chip | null>(null);
+  const live = useRef<Live | null>(null);
   const count = useRef<HTMLDivElement>(null);
   const shownAt = useRef(0);
+  const opt = easyLanes(FUGUE.tpq, bpm);
 
-  // On a card, the box shows what is coming: the notes in view at the count-in.
+  // Away from play, the box shows the voice's opening.
   useEffect(() => {
     shownAt.current = performance.now();
-    if (phase.kind !== "card") return;
-    const e = entryOf(phase.stage, phase.pos);
-    frame.current = { now: countFrom(e) + 2 * FUGUE.tpq, tps: 1, key: e.key, voice: e.voice, notes: boxNotes(e, STAGES[phase.stage].kind), cursor: null, range: rangeOf(e) };
-  }, [phase]);
+    if (phase.kind === "title")
+      frame.current = { now: lv.first - FUGUE.tpq, tps: 1, key: keyAt(FUGUE, lv.first), voice, notes: lv.notes, lanes: lv.lanes.length, touched: [], flashes: [] };
+  }, [phase, lv, voice]);
 
-  // Playing one entry: the beat on the audio clock, the thumb judged against the line every frame.
+  // Playing: the beat on the audio clock; misses swept and the box drawn every frame.
   useEffect(() => {
     if (phase.kind !== "play" || !chip.current) return;
     const ch = chip.current;
-    const stage = STAGES[phase.stage];
-    const e = entryOf(phase.stage, phase.pos);
     const beat = FUGUE.tpq;
     const tps = (FUGUE.tpq * bpm) / 60;
-    const opt = easyOptions(FUGUE.tpq, bpm);
-    const notes = boxNotes(e, stage.kind);
-    const range = rangeOf(e);
-    const { lo, hi } = range;
-    const start = countFrom(e);
-    const entryBeat = start + 4 * beat;
-    const end = e.end + beat;
     const T0 = ch.ctx.currentTime + 0.15;
-    const tickAt = (t: number) => start + (t - T0) * tps;
-    const timeAt = (tick: number) => T0 + (tick - start) / tps;
-    let nextBeat = start;
+    const tickAt = (t: number) => lv.start + (t - T0) * tps;
+    const timeAt = (tick: number) => T0 + (tick - lv.start) / tps;
+    const entry = lv.start + 4 * beat;
+    const g: Live = { lv, tickAt, tps, held: new Map(), flashes: [] };
+    live.current = g;
+    let nextBeat = lv.start;
     let raf = 0;
-
     const loop = () => {
-      while (nextBeat <= end && timeAt(nextBeat) < ch.ctx.currentTime + 0.25) {
-        ch.tick(timeAt(nextBeat), nextBeat % (4 * beat) === 0, nextBeat < entryBeat ? 0.16 : 0.06);
+      while (nextBeat <= lv.end && timeAt(nextBeat) < ch.ctx.currentTime + 0.25) {
+        ch.tick(timeAt(nextBeat), nextBeat % (4 * beat) === 0, nextBeat < entry ? 0.16 : 0.05);
         nextBeat += beat;
       }
-      const { touches, height } = thumbs.current;
-      let latest = null as null | { y: number; t0: number };
-      for (const t of touches.values()) if (!latest || t.t0 > latest.t0) latest = t;
-      const cursor = latest ? thumbPitch(latest.y, height, lo, hi) : null;
-      // Judged on the clock the player hears, so a thumb in time with the sound is in time.
       const now = tickAt(ch.heard());
-      for (const s of judge(notes, now, cursor, opt)) {
-        const n = notes[s.index];
-        ch.note(n.midi, timeAt(s.start), (n.on + n.dur - s.start) / tps);
-      }
-      frame.current = { now, tps, key: e.key, voice: e.voice, notes, cursor, range };
-      if (count.current) count.current.textContent = now < entryBeat ? String(Math.min(4, Math.ceil((entryBeat - now) / beat))) : "";
-      if (now > end) {
-        const s = score(notes);
-        if (stage.kind === "memory") setGolds((g) => Object.assign([...g], { [phase.pos]: passed(s.hit, s.of) }));
-        setPhase({ kind: "result", stage: phase.stage, pos: phase.pos, hit: s.hit, of: s.of });
+      sweep(lv.notes, now, opt);
+      g.flashes = g.flashes.filter((f) => now - f.at < tps);
+      frame.current = {
+        now,
+        tps,
+        key: keyAt(FUGUE, now),
+        voice: lv.voice,
+        notes: lv.notes,
+        lanes: lv.lanes.length,
+        touched: [...g.held.values()].map((h) => h.lane),
+        flashes: g.flashes,
+      };
+      if (count.current) count.current.textContent = now < entry ? String(Math.min(4, Math.ceil((entry - now) / beat))) : "";
+      if (now > lv.end) {
+        for (const h of g.held.values()) h.sound?.stop();
+        live.current = null;
+        const p = points(lv.notes, opt);
+        const pct = Math.round((100 * p.got) / p.of);
+        setBest((b) => {
+          const next = { ...b, [lv.voice]: Math.max(b[lv.voice] ?? 0, pct) };
+          try {
+            localStorage.setItem(BEST_KEY, JSON.stringify(next));
+          } catch {
+            /* no storage: the best stays for this visit */
+          }
+          return next;
+        });
+        setLit([]);
+        setPhase({ kind: "result", got: p.got, of: p.of });
         return;
       }
       raf = requestAnimationFrame(loop);
@@ -102,34 +118,68 @@ export function TouchApp() {
     raf = requestAnimationFrame(loop);
     return () => {
       cancelAnimationFrame(raf);
+      live.current = null;
       if (count.current) count.current.textContent = "";
     };
-  }, [phase, bpm]);
+  }, [phase, lv, bpm]);
 
-  const begin = (stage: number) => {
-    if (stage === MEMORY) setGolds([]);
-    setPhase({ kind: "card", stage, pos: 0 });
-  };
-
-  const advance = () => {
+  const start = () => {
     // A touch starts the sound: browsers allow audio only after one.
     if (!chip.current) chip.current = new Chip();
     void chip.current.resume();
     if (performance.now() - shownAt.current < 350) return;
-    if (phase.kind === "title") begin(0);
-    else if (phase.kind === "card") setPhase({ kind: "play", stage: phase.stage, pos: phase.pos });
-    else if (phase.kind === "result") {
-      const st = STAGES[phase.stage];
-      if (st.kind === "learn") passed(phase.hit, phase.of) ? begin(phase.stage + 1) : setPhase({ kind: "card", stage: phase.stage, pos: 0 });
-      else if (phase.pos + 1 < st.entries.length) setPhase({ kind: "card", stage: phase.stage, pos: phase.pos + 1 });
-      else setPhase({ kind: "end" });
-    } else if (phase.kind === "end") begin(MEMORY);
+    setPhase({ kind: "play" });
   };
 
-  const stageTitle = phase.kind === "title" || phase.kind === "end" ? "SUBJECT MODE" : STAGES[phase.stage].title;
-  const hudKey = phase.kind === "card" || phase.kind === "play" || phase.kind === "result" ? keyName(entryOf(phase.stage, phase.pos).key) : "EASY";
-  const hint = phase.kind === "play" ? "HOLD · SLIDE" : "TAP";
+  // The thumbs: a landing or a slide into a lane is a strike; a lift or a slide away lets go.
+  const events: ThumbEvents = {
+    down: (id, y, h, ts) => {
+      const g = live.current;
+      if (!g || !chip.current) return start();
+      play(g, id, laneAt(y, h, g.lv.lanes.length), ts);
+    },
+    move: (id, y, h, ts) => {
+      const g = live.current;
+      const cur = g?.held.get(id);
+      if (!g || !cur) return;
+      const lane = laneAt(y, h, g.lv.lanes.length);
+      if (lane === cur.lane) return;
+      letGo(g, id, ts);
+      play(g, id, lane, ts);
+    },
+    up: (id, ts) => {
+      const g = live.current;
+      if (g) letGo(g, id, ts);
+      g?.held.delete(id);
+      setLit(g ? [...g.held.values()].map((x) => x.lane) : []);
+    },
+  };
 
+  const tickOf = (g: Live, ts: number) => g.tickAt(chip.current!.heard() - (performance.now() - ts) / 1000);
+
+  function play(g: Live, id: number, lane: number, ts: number) {
+    const t = tickOf(g, ts);
+    const i = strike(g.lv.notes, lane, t, opt);
+    const held: Held = { lane, note: i };
+    if (i >= 0) {
+      const n = g.lv.notes[i];
+      held.sound = chip.current!.note(n.midi, chip.current!.ctx.currentTime, Math.max(0.05, (n.on + n.dur - t) / g.tps));
+    } else {
+      g.flashes.push({ lane, at: t });
+      setWrong({ lane, id: Math.random() });
+    }
+    g.held.set(id, held);
+    setLit([...g.held.values()].map((x) => x.lane));
+  }
+
+  function letGo(g: Live, id: number, ts: number) {
+    const cur = g.held.get(id);
+    if (!cur) return;
+    cur.sound?.stop();
+    if (cur.note >= 0) release(g.lv.notes, cur.note, tickOf(g, ts));
+  }
+
+  const playing = phase.kind === "play";
   return (
     <div className="tg-app">
       <MusicBox
@@ -137,15 +187,16 @@ export function TouchApp() {
         frame={frame}
         hud={
           <>
-            <span className="tg-hud-title">{stageTitle}</span>
-            <span className="tg-hud-bar">{hudKey}</span>
+            <span className="tg-hud-title">BARS 1–9 · {FUGUE.voiceNames[voice].toUpperCase()}</span>
+            <span className="tg-hud-bar">{keyName(frame.current.key)}</span>
           </>
         }
       >
         <div className="tg-count" ref={count} aria-live="polite" />
-        {phase.kind !== "play" && <Card phase={phase} bpm={bpm} setBpm={setBpm} golds={golds} skip={() => begin(MEMORY)} />}
+        {phase.kind === "title" && <Title voice={voice} setVoice={setVoice} bpm={bpm} setBpm={setBpm} best={best} />}
+        {phase.kind === "result" && <Result got={phase.got} of={phase.of} voice={voice} again={() => setPhase({ kind: "title" })} />}
       </MusicBox>
-      <PlayArea thumbs={thumbs} onTap={advance} hint={hint} />
+      <PlayArea events={events} lanes={lv.lanes} lit={lit} wrong={wrong} hint={playing ? "" : "TAP BELOW TO START"} />
       <div className="tg-upright" role="alert">
         Turn the phone upright
       </div>
@@ -153,71 +204,42 @@ export function TouchApp() {
   );
 }
 
-function Card({ phase, bpm, setBpm, golds, skip }: { phase: Exclude<Phase, { kind: "play" }>; bpm: number; setBpm: (n: number) => void; golds: boolean[]; skip: () => void }) {
-  if (phase.kind === "title")
-    return (
-      <div className="tg-card">
-        <h1>{FUGUE.title.toUpperCase()}</h1>
-        <p className="tg-card-sub">Book I · BWV 847</p>
-        <p>Play the subject wherever it enters. You hear only what you play.</p>
-        <p>Hold a thumb down in the lower half and slide it: higher is higher. Either thumb will do.</p>
-        <div className="tg-tempo" role="group" aria-label="Tempo">
-          {TEMPOS.map((t) => (
-            <button key={t} type="button" id={`tempo-${t}`} className={t === bpm ? "on" : ""} onClick={() => setBpm(t)}>
-              <span className="tg-q">♩</span>={t}
-            </button>
-          ))}
-        </div>
-        <p className="tg-card-go">TAP BELOW TO START</p>
-        <button type="button" id="skip-memory" className="tg-link" onClick={skip}>
-          Skip to the entries from memory
-        </button>
+function Title({ voice, setVoice, bpm, setBpm, best }: { voice: number; setVoice: (v: number) => void; bpm: number; setBpm: (n: number) => void; best: Record<number, number> }) {
+  return (
+    <div className="tg-card">
+      <h1>{FUGUE.title.toUpperCase()}</h1>
+      <p className="tg-card-sub">THE EXPOSITION · BARS 1–9 · CHOOSE A VOICE</p>
+      <div className="tg-voices" role="group" aria-label="Voice">
+        {FUGUE.voiceNames.map((name, i) => (
+          <button key={name} type="button" id={`voice-${i}`} className={i === voice ? "on" : ""} style={{ color: VOICE_INKS[i] }} onClick={() => setVoice(i)}>
+            {name.toUpperCase()}
+            <small>{best[i] !== undefined ? `${best[i]}%${best[i] >= EARN * 100 ? " ★" : ""}` : "—"}</small>
+          </button>
+        ))}
       </div>
-    );
-  if (phase.kind === "end") {
-    const n = golds.filter(Boolean).length;
-    return (
-      <div className="tg-card">
-        <h1>{n} OF {FUGUE.entries.length} IN GOLD</h1>
-        <div className="tg-golds">
-          {FUGUE.entries.map((e, i) => (
-            <span key={i} className={golds[i] ? "gold" : ""} title={where(e)}>
-              {e.bar}
-            </span>
-          ))}
-        </div>
-        <p>Every entry of the subject in the fugue, by bar.</p>
-        <p className="tg-card-go">TAP BELOW TO PLAY THEM AGAIN</p>
+      <p>Each lane is a note of your voice. Tap it to play the note, hold the long ones, slide to the next lane to slur. You hear only what you play.</p>
+      <div className="tg-tempo" role="group" aria-label="Tempo">
+        {TEMPOS.map((t) => (
+          <button key={t} type="button" id={`tempo-${t}`} className={t === bpm ? "on" : ""} onClick={() => setBpm(t)}>
+            <span className="tg-q">♩</span>={t}
+          </button>
+        ))}
       </div>
-    );
-  }
-  const st = STAGES[phase.stage];
-  const e = entryOf(phase.stage, phase.pos);
-  if (phase.kind === "card")
-    return (
-      <div className="tg-card tg-card-low">
-        <h1>{st.kind === "memory" ? `ENTRY ${phase.pos + 1} OF ${st.entries.length}` : st.title}</h1>
-        <p className="tg-card-sub">{where(e)}</p>
-        <p>
-          {st.kind === "memory"
-            ? e.notes.some((n) => n[3])
-              ? "From memory. Bach changes a few notes here: those stay in view."
-              : "From memory. Only the first note is in view."
-            : e.form === "answer"
-              ? "The answer: the subject a fifth higher, with one note changed. Follow the notes."
-              : "Follow the notes. The short ones come by themselves while your thumb is close."}
-        </p>
-        <p className="tg-card-go">TAP BELOW TO PLAY</p>
-      </div>
-    );
-  const ok = passed(phase.hit, phase.of);
+    </div>
+  );
+}
+
+function Result({ got, of, voice, again }: { got: number; of: number; voice: number; again: () => void }) {
+  const ok = got >= EARN * of;
   return (
     <div className="tg-card tg-card-low">
-      <h1 className={ok ? "tg-gold" : ""}>{st.kind === "learn" ? (ok ? "LEARNED" : "AGAIN") : ok ? "GOLD" : "NOT YET"}</h1>
+      <h1 className={ok ? "tg-gold" : ""}>{ok ? `${FUGUE.voiceNames[voice].toUpperCase()} EARNED` : "NOT YET"}</h1>
       <p className="tg-card-sub">
-        {phase.hit} OF {phase.of} NOTES · {Math.round(PASS * 100)}% FOR {st.kind === "learn" ? "THE NEXT STEP" : "GOLD"}
+        {got} OF {of} NOTES · {Math.round((100 * got) / of)}% · {Math.round(EARN * 100)}% TO EARN IT
       </p>
-      <p className="tg-card-go">{st.kind === "learn" && !ok ? "TAP BELOW TO TRY AGAIN" : "TAP BELOW TO GO ON"}</p>
+      <button type="button" id="again" className="tg-link" onClick={again}>
+        Choose a voice or tempo
+      </button>
     </div>
   );
 }

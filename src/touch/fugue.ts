@@ -31,6 +31,10 @@ export interface TouchFugue {
   voiceNames: string[];
   voices: TouchNote[][];
   entries: TouchEntry[];
+  /** Each MIDI pitch as the score spells it ("Eb4"). */
+  spell: Record<string, string>;
+  /** The passages the game plays one at a time, in ticks [from, to). */
+  sections: { name: string; fromBar: number; toBar: number; from: number; to: number }[];
 }
 
 export const FUGUE = data as unknown as TouchFugue;
@@ -46,6 +50,16 @@ export function pitchRange(f: TouchFugue): { lo: number; hi: number } {
 /** The tick where bar n starts (the end of the piece past the last bar). */
 export function barStart(f: TouchFugue, n: number): number {
   return f.bars.find((b) => b.n === n)?.on ?? f.length;
+}
+
+/** The key the music is in at a tick: that of the latest entry begun (c before the first). */
+export function keyAt(f: TouchFugue, tick: number): string {
+  return f.entries.filter((e) => e.on <= tick).at(-1)?.key ?? f.entries[0]?.key ?? "c";
+}
+
+/** The bar a tick falls in. */
+export function barAt(f: TouchFugue, tick: number): number {
+  return f.bars.filter((b) => b.on <= tick).at(-1)?.n ?? 1;
 }
 
 /** "C MINOR", "E♭ MAJOR". */

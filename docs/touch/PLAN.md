@@ -17,7 +17,17 @@ Page: `touch.html` (`npm run dev`, then `/touch.html`). Single file for claude.a
 `npx vite build -c vite.touch.config.ts && node tools/touch/build-artifact.mjs <out.html>`.
 Data: `node tools/touch/extract.ts` cuts the fugue from `data/wtc/fugues.json`.
 
-## Subject mode, easy (step 2, D159: built, to be tried for fun)
+## One voice on lanes (step 3, D160: built, to be tried)
+
+Choose soprano, alto or bass; play it through the exposition (bars 1–9, to the end of the bass
+entry), hearing only that voice. Each pitch of the voice in the passage is a lane, lowest at the
+bottom; the box's rows are the same lanes. Tap = a detached note; hold = sustain (let go and it
+stops); slide into the next lane = slur. 80% earns the voice.
+
+## Subject mode, easy (step 2, D159: tried and dropped)
+
+The owner: the mode "sucks", but the playing was exciting; holding all the time and re-landing at an
+absolute height were not fun. Removed in D160.
 
 The player plays only the subject, wherever it enters, and hears only what they play.
 

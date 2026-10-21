@@ -1,14 +1,13 @@
 /**
- * The music box: the line being played, drawn as an 8-bit roll on a low-resolution canvas (one canvas
- * pixel is PX CSS pixels), time running right to left past a fixed playhead, pitch upwards on one axis
- * for the whole piece. The roll takes the colour of the key the music is in. A hit note shines (a gold
- * outline where the note was hidden); a missed one goes dark and shakes. The thumb's pitch is the
- * square on the playhead. While a line is played the box's pitch axis is the thumb's: the line's range
- * with the same margin, top to bottom.
+ * The music box: the voice being played, drawn as an 8-bit roll on a low-resolution canvas (one canvas
+ * pixel is PX CSS pixels), time running right to left past a fixed playhead. Its rows are the voice's
+ * lanes, the same ladder as under the thumbs (lanes.ts). The roll takes the colour of the key. A hit
+ * note shines; a missed one goes dark and shakes; a long note let go early goes dark from there. The
+ * thumbs' lanes light up on the playhead; a tap that plays nothing flashes its row.
  */
 import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
-import { pitchRange, type TouchFugue } from "./fugue.ts";
-import { MARGIN, type NoteState } from "./judge.ts";
+import type { TouchFugue } from "./fugue.ts";
+import type { LaneNote } from "./lanes.ts";
 
 /** CSS pixels per canvas pixel: the chunkiness of the 8-bit look. */
 const PX = 2;
@@ -22,17 +21,6 @@ export const VOICE_INKS = ["#5cb2ff", "#ff8c4a", "#5fe08a"];
 export const KEY_TINTS: Record<string, string> = { c: "#0f1a40", g: "#082d31", Eb: "#2c1236" };
 const DEFAULT_TINT = "#0e1126";
 
-export interface BoxNote {
-  on: number;
-  dur: number;
-  midi: number;
-  state: NoteState;
-  /** Tick of the hit or miss. */
-  at?: number;
-  /** In view before it is played. */
-  shown: boolean;
-}
-
 export interface Frame {
   /** The tick the ear is at. */
   now: number;
@@ -40,11 +28,13 @@ export interface Frame {
   tps: number;
   key: string;
   voice: number;
-  notes: BoxNote[];
-  /** The thumb's pitch, or null with no thumb down. */
-  cursor: number | null;
-  /** The range of the line being played: the box zooms to it. Absent: the whole piece. */
-  range?: { lo: number; hi: number };
+  notes: LaneNote[];
+  /** How many lanes. */
+  lanes: number;
+  /** The lanes under the thumbs now. */
+  touched: number[];
+  /** Taps that played nothing: their lane and tick. */
+  flashes: { lane: number; at: number }[];
 }
 
 export function MusicBox({ fugue, frame, hud, children }: { fugue: TouchFugue; frame: MutableRefObject<Frame>; hud: ReactNode; children?: ReactNode }) {
@@ -98,79 +88,82 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, f: TouchFugue, 
 
   // The key's colour, eased in over about half a second.
   const target = hex(KEY_TINTS[fr.key] ?? DEFAULT_TINT);
-  tint.rgb = tint.rgb.map((v, i) => v + (target[i] - v) * 0.08);
+  tint.rgb = tint.rgb.map((v, i) => v + (target[i] - v) * 0.06);
   g.fillStyle = `rgb(${tint.rgb.map(Math.round).join(",")})`;
   g.fillRect(0, 0, w, h);
 
-  const { lo, hi } = fr.range ? { lo: fr.range.lo - MARGIN, hi: fr.range.hi + MARGIN } : pitchRange(f);
-  const rows = hi - lo + 1;
-  const rowH = Math.max(1, Math.floor((h - 2) / rows));
+  const rows = Math.max(1, fr.lanes);
+  const rowH = Math.max(2, Math.floor(h / rows));
   const top = Math.floor((h - rowH * rows) / 2);
-  const yOf = (midi: number) => top + (hi - midi) * rowH;
+  const yOf = (lane: number) => top + (rows - 1 - lane) * rowH;
 
   const barTicks = f.tpq * 4;
   const span = BARS_SHOWN * barTicks;
   const t0 = fr.now - PLAYHEAD * span;
   const xOf = (tick: number) => Math.round(((tick - t0) / span) * w);
+  const playX = xOf(fr.now);
 
-  // Each C a faint row line, the octave's floor; beats faint, bar lines brighter.
+  // The lanes' floors faint; beats faint, bar lines brighter.
   g.fillStyle = tok("--tg-grid");
-  for (let m = Math.ceil(lo / 12) * 12; m <= hi; m += 12) g.fillRect(0, yOf(m) + rowH - 1, w, 1);
+  for (let l = 0; l < fr.lanes; l++) g.fillRect(0, yOf(l) + rowH - 1, w, 1);
   for (let t = Math.floor(t0 / f.tpq) * f.tpq; t < t0 + span; t += f.tpq) {
     g.fillStyle = tok(t % barTicks === 0 ? "--tg-barline" : "--tg-grid");
     g.fillRect(xOf(t), 0, 1, h);
   }
 
+  const sinceMs = (at: number | undefined) => (at === undefined ? Infinity : ((fr.now - at) / fr.tps) * 1000);
+  // The thumbs' lanes, lit along the playhead's left.
+  g.fillStyle = tok("--tg-lane-on");
+  for (const l of fr.touched) g.fillRect(0, yOf(l), playX, rowH - 1);
+  g.fillStyle = tok("--tg-wrong");
+  for (const fl of fr.flashes) {
+    const t = sinceMs(fl.at);
+    if (t > 220) continue;
+    g.globalAlpha = 1 - t / 220;
+    g.fillRect(0, yOf(fl.lane), w, rowH - 1);
+    g.globalAlpha = 1;
+  }
+
   const ink = VOICE_INKS[fr.voice] ?? VOICE_INKS[0];
-  const gold = tok("--tg-gold");
   const shine = tok("--tg-shine");
   const miss = tok("--tg-miss");
-  const sinceMs = (at: number | undefined) => (at === undefined ? Infinity : ((fr.now - at) / fr.tps) * 1000);
+  const bh = Math.max(1, rowH - 2);
   for (const n of fr.notes) {
     let x1 = xOf(n.on);
     const x2 = xOf(n.on + n.dur);
     if (x2 < 0 || x1 > w) continue;
-    const y = yOf(n.midi);
+    const y = yOf(n.lane) + 1;
     const bw = Math.max(1, x2 - x1 - 1);
-    const bh = Math.max(1, rowH - (rowH > 2 ? 1 : 0));
-    if (n.state === "pending") {
-      if (!n.shown) continue;
-      g.fillStyle = ink;
-      g.fillRect(x1, y, bw, bh);
-    } else if (n.state === "hit") {
-      const t = sinceMs(n.at);
-      g.fillStyle = ink;
-      g.fillRect(x1, y, bw, bh);
-      if (!n.shown) {
-        // The gold outline: a hidden note brought into view by playing it.
-        g.fillStyle = gold;
-        g.fillRect(x1 - 1, y - 1, bw + 2, 1);
-        g.fillRect(x1 - 1, y + bh, bw + 2, 1);
-        g.fillRect(x1 - 1, y, 1, bh);
-        g.fillRect(x1 + bw, y, 1, bh);
-      }
-      if (t < 260) {
-        g.fillStyle = shine;
-        g.globalAlpha = 1 - t / 260;
-        g.fillRect(x1 - 1, y - 2, bw + 2, bh + 4);
-        g.globalAlpha = 1;
-      }
-    } else {
+    if (n.state === "miss") {
       const t = sinceMs(n.at);
       if (t < 300) x1 += Math.round(Math.sin(t / 22) * 2 * (1 - t / 300));
       g.fillStyle = miss;
       g.fillRect(x1, y, bw, bh);
+      continue;
+    }
+    g.fillStyle = ink;
+    g.globalAlpha = n.state === "hit" ? 1 : 0.8;
+    g.fillRect(x1, y, bw, bh);
+    g.globalAlpha = 1;
+    if (n.state === "hit") {
+      // Hit: a bright cap; let go early: dark from there.
+      g.fillStyle = shine;
+      g.fillRect(x1, y, Math.max(1, Math.min(bw, 2)), bh);
+      if (n.off !== undefined) {
+        const xo = xOf(n.off);
+        g.fillStyle = miss;
+        g.fillRect(xo, y, Math.max(0, x1 + bw - xo), bh);
+      }
+      const t = sinceMs(n.at);
+      if (t < 240) {
+        g.fillStyle = shine;
+        g.globalAlpha = 1 - t / 240;
+        g.fillRect(x1 - 1, y - 1, bw + 2, bh + 2);
+        g.globalAlpha = 1;
+      }
     }
   }
 
-  const playX = xOf(fr.now);
   g.fillStyle = tok("--tg-playhead");
   g.fillRect(playX, 0, 1, h);
-  if (fr.cursor !== null) {
-    const cy = Math.round(top + (hi - fr.cursor) * rowH + rowH / 2);
-    g.fillStyle = tok("--tg-fg");
-    g.fillRect(playX - 2, cy - 2, 5, 5);
-    g.fillStyle = tok("--tg-bg");
-    g.fillRect(playX - 1, cy - 1, 3, 3);
-  }
 }

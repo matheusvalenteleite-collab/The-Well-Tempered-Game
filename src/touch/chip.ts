@@ -30,7 +30,8 @@ export class Chip {
     return this.ctx.currentTime - (this.ctx.outputLatency || this.ctx.baseLatency || 0);
   }
 
-  note(midi: number, at: number, dur: number, gain = 0.22) {
+  /** A note from `at` for `dur` seconds; stop() cuts it short (the thumb let go). */
+  note(midi: number, at: number, dur: number, gain = 0.2): { stop: (at?: number) => void } {
     const t = Math.max(at, this.ctx.currentTime);
     const end = Math.max(t + 0.03, at + dur - 0.012);
     const o = this.ctx.createOscillator();
@@ -44,6 +45,18 @@ export class Chip {
     o.connect(g).connect(this.master);
     o.start(t);
     o.stop(end + 0.01);
+    let stopped = false;
+    return {
+      stop: (when = this.ctx.currentTime) => {
+        if (stopped || when >= end) return;
+        stopped = true;
+        const s = Math.max(when, t + 0.02);
+        g.gain.cancelScheduledValues(s);
+        g.gain.setValueAtTime(gain * 0.8, s);
+        g.gain.linearRampToValueAtTime(0, s + 0.015);
+        o.stop(s + 0.03);
+      },
+    };
   }
 
   /** A metronome tick: higher on the bar's first beat. */

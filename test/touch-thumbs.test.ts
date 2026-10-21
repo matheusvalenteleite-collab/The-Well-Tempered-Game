@@ -35,23 +35,10 @@ test("the C minor fugue is in three voices, 31 bars", () => {
   assert.ok(lo >= 36 && hi <= 84, `range ${lo}-${hi}`);
 });
 
-import { easyOptions, judge, judgedNotes, score, thumbPitch } from "../src/touch/judge.ts";
-import { shown, stages } from "../src/touch/subject-mode.ts";
+import { easyLanes, laneAt, points, release, strike, sweep } from "../src/touch/lanes.ts";
+import { level } from "../src/touch/voice-mode.ts";
 
-const playThrough = (cursorAt: (tick: number) => number | null) => {
-  const e = FUGUE.entries[0];
-  const notes = judgedNotes(e.notes, FUGUE.tpq);
-  const o = easyOptions(FUGUE.tpq, 60);
-  const sounded: number[] = [];
-  for (let t = e.on - 2 * FUGUE.tpq; t < e.end + FUGUE.tpq; t += 30) for (const s of judge(notes, t, cursorAt(t), o)) sounded.push(s.index);
-  return { notes, sounded };
-};
-const lineAt = (tick: number) => {
-  const ns = FUGUE.entries[0].notes;
-  // The thumb arrives on each note a little early, as a player following the box would.
-  const lead = 100;
-  return [...ns].reverse().find((n) => n[0] - lead <= tick)?.[2] ?? ns[0][2];
-};
+const opt = easyLanes(FUGUE.tpq, 60);
 
 test("the eight entries of the subject: alto, soprano, bass in the exposition", () => {
   assert.equal(FUGUE.entries.length, 8);
@@ -63,37 +50,46 @@ test("the eight entries of the subject: alto, soprano, bass in the exposition", 
   assert.equal(FUGUE.entries[3].key, "Eb");
 });
 
-test("a thumb that follows the subject sounds every note", () => {
-  const { notes, sounded } = playThrough(lineAt);
-  assert.equal(sounded.length, notes.length);
-  const s = score(notes);
-  assert.equal(s.hit, s.of);
-  assert.ok(notes.some((n) => n.ride) && notes.some((n) => !n.ride));
+test("the exposition, voice by voice: the alto from bar 1, the soprano from 3, the bass from 7", () => {
+  const [s, a, b] = [0, 1, 2].map((v) => level(FUGUE, 0, v));
+  assert.equal(a.notes[0].midi, 72); // C5, the subject's first note
+  assert.equal(a.lanes[a.notes[0].lane], "C5");
+  assert.ok(s.first === FUGUE.bars[2].on + FUGUE.tpq / 2);
+  assert.ok(b.first === FUGUE.bars[6].on + FUGUE.tpq / 2);
+  for (const l of [s, a, b]) assert.ok(l.lanes.length <= 14 && l.notes.every((n) => n.lane >= 0));
 });
 
-test("no thumb, no sound: every note missed", () => {
-  const { notes, sounded } = playThrough(() => null);
-  assert.equal(sounded.length, 0);
-  assert.ok(notes.every((n) => n.state === "miss"));
+test("lanes run from the bottom of the play area up", () => {
+  assert.equal(laneAt(0, 400, 10), 9);
+  assert.equal(laneAt(399, 400, 10), 0);
+  assert.equal(laneAt(200, 400, 10), 4);
 });
 
-test("a thumb held still on the first note does not pass", () => {
-  const first = FUGUE.entries[0].notes[0][2];
-  const { notes } = playThrough(() => first);
-  const s = score(notes);
-  assert.ok(s.hit < 0.8 * s.of, `${s.hit} of ${s.of}`);
+test("a tap on time in the right lane plays the note; in the wrong lane, nothing", () => {
+  const lv = level(FUGUE, 0, 1);
+  const n0 = lv.notes[0];
+  assert.equal(strike(lv.notes, n0.lane + 3, n0.on, opt), -1);
+  assert.equal(strike(lv.notes, n0.lane, n0.on + 10, opt), 0);
+  assert.equal(lv.notes[0].state, "hit");
+  // The note already played cannot be played twice.
+  assert.equal(strike(lv.notes, n0.lane, n0.on + 20, opt), -1);
 });
 
-test("the thumb's height is the pitch: top high, bottom low", () => {
-  assert.equal(thumbPitch(0, 400, 60, 72), 74);
-  assert.equal(thumbPitch(400, 400, 60, 72), 58);
-  assert.equal(thumbPitch(200, 400, 60, 72), 66);
+test("a perfect player: every note on time, long notes held", () => {
+  const lv = level(FUGUE, 0, 1);
+  lv.notes.forEach((n, i) => assert.equal(strike(lv.notes, n.lane, n.on, opt), i));
+  sweep(lv.notes, lv.end, opt);
+  const p = points(lv.notes, opt);
+  assert.equal(p.got, p.of);
 });
 
-test("learn, then from memory: hidden but the first note and Bach's variants", () => {
-  assert.deepEqual(stages(FUGUE).map((s) => s.kind), ["learn", "learn", "memory"]);
-  assert.equal(shown("learn", 5, 0), true);
-  assert.equal(shown("memory", 0, 0), true);
-  assert.equal(shown("memory", 5, 0), false);
-  assert.equal(shown("memory", 5, 1), true);
+test("no thumb, no sound: every note missed; a long note let go at once scores half", () => {
+  const lv = level(FUGUE, 0, 1);
+  sweep(lv.notes, lv.end, opt);
+  assert.ok(lv.notes.every((n) => n.state === "miss"));
+  const lv2 = level(FUGUE, 0, 1);
+  const i = lv2.notes.findIndex((n) => n.long);
+  strike(lv2.notes, lv2.notes[i].lane, lv2.notes[i].on, opt);
+  release(lv2.notes, i, lv2.notes[i].on + 50);
+  assert.equal(points(lv2.notes, opt).got, 0.5);
 });
