@@ -42,8 +42,25 @@ export class Chip {
     this.master.connect(this.ctx.destination);
   }
 
-  /** Call from a touch: browsers start audio only after the player has touched the page. */
+  private keepAlive: HTMLAudioElement | null = null;
+
+  /**
+   * Call from a finished tap, a click or a key: browsers start audio only then. On an iPhone it also
+   * starts a silent looping <audio>, which moves the page's sound to the media channel, so the ring/
+   * silent switch does not mute the game (older iOS, without audioSession).
+   */
   resume(): Promise<void> {
+    if (!this.keepAlive && typeof Audio !== "undefined" && navigator.maxTouchPoints > 0) {
+      try {
+        const a = new Audio(silentWav());
+        a.loop = true;
+        a.setAttribute("playsinline", "");
+        void a.play().catch(() => {});
+        this.keepAlive = a;
+      } catch {
+        /* no <audio>: the switch may mute the game */
+      }
+    }
     return this.ctx.state === "running" ? Promise.resolve() : this.ctx.resume();
   }
 
@@ -97,4 +114,26 @@ export class Chip {
     o.start(at);
     o.stop(at + 0.06);
   }
+}
+
+/** A tenth of a second of silence as a WAV (16-bit mono, 8 kHz), as a blob URL. */
+function silentWav(): string {
+  const samples = 800;
+  const buf = new ArrayBuffer(44 + samples * 2);
+  const v = new DataView(buf);
+  const str = (o: number, t: string) => [...t].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+  str(0, "RIFF");
+  v.setUint32(4, 36 + samples * 2, true);
+  str(8, "WAVE");
+  str(12, "fmt ");
+  v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true);
+  v.setUint16(22, 1, true);
+  v.setUint32(24, 8000, true);
+  v.setUint32(28, 16000, true);
+  v.setUint16(32, 2, true);
+  v.setUint16(34, 16, true);
+  str(36, "data");
+  v.setUint32(40, samples * 2, true);
+  return URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
 }

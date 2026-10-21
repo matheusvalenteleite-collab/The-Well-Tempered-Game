@@ -1,14 +1,16 @@
 /**
- * The game while it plays (D163): one voice, or two voices one per thumb, on the audio clock. It takes
- * the thumbs' and the keys' events, judges them by the level (lanes.ts), sounds only what is played,
- * grades the timing (PERFECT within 70 ms, else GOOD), counts the combo, and draws the music box's
- * frame. With two voices the lower is the left thumb's and the upper the right's; the box shows both
- * on one ladder of their pitches.
+ * The game while it plays (D163; D166): one voice, or two voices one per thumb, on the audio clock.
+ * It takes the taps (and on a computer the keys), judges them by the level (lanes.ts) against the
+ * targets (targets.ts), sounds only what is played, plays EASY's short notes by themselves after a
+ * hit, grades the timing (PERFECT within 70 ms, else GOOD), counts the combo, and draws the music
+ * box's frame. With two voices the lower is the left thumb's and the upper the right's; the box shows
+ * both on one ladder of their pitches.
  */
 import type { Chip } from "./chip.ts";
 import { keyAt, type TouchFugue } from "./fugue.ts";
-import { chordOf, easyLanes, fits, laneAt, points, release, SLIDE, stepsInto, strike, sweep, type LaneNote, type LaneOptions, type Level as Difficulty } from "./lanes.ts";
+import { chordOf, markRides, options, points, release, strike, sweep, type LaneNote, type LaneOptions, type Level as Difficulty } from "./lanes.ts";
 import type { Frame } from "./MusicBox.tsx";
+import { place, reaches } from "./targets.ts";
 import type { Side } from "./thumbs.ts";
 import type { Level } from "./voice-mode.ts";
 
@@ -18,8 +20,6 @@ export interface Track {
   lv: Level;
   /** The halves of the play area (and the keys' hands) that play it. */
   sides: Side[];
-  /** SHAPE: the height of the previous touch on this track, as a share of the play area (0 at the top). */
-  anchor: number | null;
 }
 
 export interface Grade {
@@ -28,11 +28,13 @@ export interface Grade {
   lean?: -1 | 1;
   /** When (performance.now()), for the fade. */
   at: number;
+  /** Where (shares of the play area), for the burst. */
+  x?: number;
+  y?: number;
 }
 
 interface Held {
   track: number;
-  lane: number;
   /** The note played (-1: none), and with it the rest of its chord. */
   note: number;
   chord: number[];
@@ -50,6 +52,15 @@ export function shareRows(levels: Level[]): number {
   const pitches = [...new Set(levels.flatMap((lv) => lv.notes.map((n) => n.midi)))].sort((a, b) => a - b);
   for (const lv of levels) for (const n of lv.notes) (n.row = pitches.indexOf(n.midi)), (n.voice = lv.voice);
   return pitches.length;
+}
+
+/** Sets the voices up for a level: their targets, and in EASY their riding notes. */
+export function prepare(f: TouchFugue, levels: Level[], difficulty: Difficulty) {
+  const sorted = byPitch(levels);
+  sorted.forEach((lv, i) => {
+    if (difficulty === "easy") markRides(lv.notes, f.tpq);
+    place(lv.notes, sorted.length === 1 ? "both" : i === 0 ? "left" : "right", f.tpq * 4);
+  });
 }
 
 /** The box before play: the voices' opening, a beat before the first of them. */
@@ -79,21 +90,20 @@ export class Game {
   readonly opt: LaneOptions;
   /** The music box's rows: every pitch of the voices played, low to high. */
   readonly rows: number;
+  readonly difficulty: Difficulty;
   combo = 0;
   maxCombo = 0;
   perfect = 0;
   grade: Grade | null = null;
-  private T0: number;
-  private nextBeat: number;
-  private held = new Map<number, Held>();
-  private flashes: { lane: number; at: number }[] = [];
-  private now = 0;
-
-  readonly difficulty: Difficulty;
+  /** The tick the player hears now. */
+  now = 0;
   private f: TouchFugue;
   private chip: Chip;
   /** The player's own lag (calibration), in ms: taken off every event. */
   private lagMs: number;
+  private T0: number;
+  private nextBeat: number;
+  private held = new Map<number, Held>();
 
   constructor(f: TouchFugue, levels: Level[], difficulty: Difficulty, bpm: number, chip: Chip, lagMs = 0) {
     this.f = f;
@@ -101,13 +111,14 @@ export class Game {
     this.chip = chip;
     this.lagMs = lagMs;
     const sorted = byPitch(levels);
-    this.tracks = sorted.map((lv, i) => ({ lv, sides: sorted.length === 1 ? ["left", "right"] : [i === 0 ? "left" : "right"], anchor: null }));
+    prepare(f, sorted, difficulty);
+    this.tracks = sorted.map((lv, i) => ({ lv, sides: sorted.length === 1 ? ["left", "right"] : [i === 0 ? "left" : "right"] }));
     this.rows = shareRows(sorted);
     this.start = Math.min(...sorted.map((lv) => lv.start));
     this.entry = this.start + 4 * f.tpq;
     this.end = Math.max(...sorted.map((lv) => lv.end));
     this.tps = (f.tpq * bpm) / 60;
-    this.opt = easyLanes(f.tpq, bpm, difficulty);
+    this.opt = options(f.tpq, bpm, difficulty);
     this.T0 = chip.ctx.currentTime + 0.15;
     this.nextBeat = this.start;
   }
@@ -123,7 +134,10 @@ export class Game {
     return this.tickAt(this.chip.heard() - (performance.now() - ts) / 1000 - this.lagMs / 1000);
   }
 
-  /** One frame: the beat scheduled ahead, the notes gone by unplayed marked missed. Returns true at the end. */
+  /**
+   * One frame: the beat scheduled ahead, EASY's riding notes sounded (or let pass) as they come, the
+   * notes gone by unplayed marked missed. Returns true at the end.
+   */
   step(): boolean {
     const ch = this.chip;
     const beat = this.f.tpq;
@@ -132,15 +146,27 @@ export class Game {
       this.nextBeat += beat;
     }
     this.now = this.tickAt(ch.heard());
+    const ahead = this.tickAt(ch.ctx.currentTime + 0.05);
     for (const t of this.tracks) {
-      const before = t.lv.notes.filter((n) => n.state === "miss").length;
-      sweep(t.lv.notes, this.now, this.opt);
-      if (t.lv.notes.filter((n) => n.state === "miss").length > before) {
+      const notes = t.lv.notes;
+      notes.forEach((n, i) => {
+        if (!n.ride || n.state !== "pending" || n.on > ahead) return;
+        // A riding note sounds if the last note the player had to play before it was hit.
+        const before = notes.slice(0, i).filter((m) => !m.ride && m.on < n.on).at(-1);
+        if (before && before.state === "hit") {
+          n.state = "hit";
+          n.at = n.on;
+          ch.note(n.midi, this.timeAt(n.on), n.dur / this.tps, t.lv.voice);
+        } else if (!before || before.state === "miss" || n.on <= this.now) {
+          n.state = "miss";
+          n.at = this.now;
+        }
+      });
+      if (sweep(notes, this.now, this.opt)) {
         this.combo = 0;
         this.grade = { text: "MISS", at: performance.now() };
       }
     }
-    this.flashes = this.flashes.filter((fl) => this.now - fl.at < this.tps);
     if (this.now > this.end) {
       this.stopAll();
       return true;
@@ -166,13 +192,8 @@ export class Game {
       notes,
       lanes: this.rows,
       touched,
-      flashes: this.difficulty === "notes" ? this.flashes : [],
+      flashes: [],
     };
-  }
-
-  /** The lanes under the thumbs now (NOTES, one voice). */
-  lit(): number[] {
-    return [...this.held.values()].map((h) => h.lane);
   }
 
   /** The track a half plays (the only one, with one voice). */
@@ -181,26 +202,11 @@ export class Game {
     return i < 0 ? 0 : i;
   }
 
-  /** A thumb lands at height y (a share of the play area, 0 at the top) on a side. */
-  down(id: number, side: Side, y: number, ts: number) {
+  /** A tap lands at (x, y) px in a play area w by h px, on a side. */
+  down(id: number, side: Side, x: number, y: number, w: number, h: number, ts: number) {
     const k = this.trackOf(side);
-    const lane = laneAt(y, 1, this.tracks[k].lv.lanes.length);
-    this.play(id, k, { lane, y }, ts);
-  }
-
-  /** A held thumb moves: in NOTES a new lane is a new note; in SHAPE a slide far enough may slur. */
-  move(id: number, y: number, ts: number) {
-    const cur = this.held.get(id);
-    if (!cur) return;
-    const t = this.tracks[cur.track];
-    if (this.difficulty === "notes") {
-      const lane = laneAt(y, 1, t.lv.lanes.length);
-      if (lane === cur.lane) return;
-      this.letGo(id, ts);
-      this.play(id, cur.track, { lane, y }, ts);
-    } else if (this.difficulty === "shape" && t.anchor !== null && Math.abs(t.anchor - y) >= SLIDE) {
-      this.play(id, cur.track, { lane: cur.lane, y }, ts, 0, true);
-    }
+    const notes = this.tracks[k].lv.notes;
+    this.play(id, k, ts, (j) => this.difficulty === "easy" || reaches(notes[j], x, y, w, h), { x: x / w, y: y / h });
   }
 
   up(id: number, ts: number) {
@@ -208,42 +214,30 @@ export class Game {
     this.held.delete(id);
   }
 
-  /** A key goes down: a tap, with a direction in SHAPE, for one hand (or the only voice). */
-  key(id: number, side: Side | null, dir: -1 | 0 | 1, ts: number) {
-    this.play(id, side ? this.trackOf(side) : this.tracks.length - 1, null, ts, dir);
+  /** A key goes down (EASY): a tap for one hand, or for the only voice. */
+  key(id: number, side: Side | null, ts: number) {
+    if (this.difficulty !== "easy") return;
+    this.play(id, side ? this.trackOf(side) : 0, ts, () => true);
   }
 
-  /** SHAPE: the anchors, by side, for the play area to draw. */
-  anchors(): Partial<Record<Side, number>> {
-    const out: Partial<Record<Side, number>> = {};
-    for (const t of this.tracks) if (t.anchor !== null) for (const s of t.sides) out[s] = t.anchor;
-    return out;
-  }
-
-  private play(id: number, k: number, at: { lane: number; y: number } | null, ts: number, keyDir: -1 | 0 | 1 = 0, slide = false) {
+  private play(id: number, k: number, ts: number, ok: (j: number) => boolean, where?: { x: number; y: number }) {
     const tr = this.tracks[k];
     const notes = tr.lv.notes;
     const t = this.tickOf(ts);
-    const dy = at === null ? keyDir * 0.1 : tr.anchor === null ? null : tr.anchor - at.y;
-    const i = strike(notes, at?.lane ?? 0, t, this.opt, (j) => (!slide || (stepsInto(notes, j) ?? [1]).some((w) => w !== 0)) && fits(this.difficulty, notes, j, at?.lane ?? notes[j].lane, dy, this.opt, at ? tr.anchor : null));
-    if (slide && i < 0) return;
-    if (slide) this.letGo(id, ts);
-    if (at) tr.anchor = at.y;
-    const lane = at?.lane ?? (i >= 0 ? notes[i].lane : 0);
+    const i = strike(notes, t, this.opt, ok);
     const chord = i >= 0 ? chordOf(notes, i) : [];
-    const held: Held = { track: k, lane, note: i, chord, sounds: [] };
+    const held: Held = { track: k, note: i, chord, sounds: [] };
     if (i >= 0) {
-      const n = notes[i];
       for (const j of chord) held.sounds.push(this.chip.note(notes[j].midi, this.chip.ctx.currentTime, Math.max(0.05, (notes[j].on + notes[j].dur - t) / this.tps), tr.lv.voice));
-      const offMs = ((t - n.on) / this.tps) * 1000;
+      const offMs = ((t - notes[i].on) / this.tps) * 1000;
       const perfect = Math.abs(offMs) <= PERFECT_MS;
       if (perfect) this.perfect++;
       this.combo++;
       this.maxCombo = Math.max(this.maxCombo, this.combo);
-      this.grade = perfect ? { text: "PERFECT", at: performance.now() } : { text: "GOOD", lean: offMs < 0 ? -1 : 1, at: performance.now() };
+      const at = performance.now();
+      this.grade = perfect ? { text: "PERFECT", at, x: notes[i].x, y: notes[i].y } : { text: "GOOD", lean: offMs < 0 ? -1 : 1, at, x: notes[i].x, y: notes[i].y };
     } else {
-      this.flashes.push({ lane, at: t });
-      this.grade = { text: "✕", at: performance.now() };
+      this.grade = { text: "✕", at: performance.now(), ...where };
     }
     this.held.set(id, held);
   }
@@ -256,12 +250,18 @@ export class Game {
     for (const j of cur.chord) release(this.tracks[cur.track].lv.notes, j, t);
   }
 
+  /** Whether a note is being held by a thumb now. */
+  holding(track: number, note: number): boolean {
+    for (const h of this.held.values()) if (h.track === track && h.chord.includes(note)) return true;
+    return false;
+  }
+
   stopAll() {
     for (const h of this.held.values()) for (const sd of h.sounds) sd.stop();
     this.held.clear();
   }
 
-  /** Points, voice by voice and in all. */
+  /** Points, voice by voice. */
   results(): { voice: number; got: number; of: number }[] {
     return this.tracks.map((t) => ({ voice: t.lv.voice, ...points(t.lv.notes, this.opt) }));
   }

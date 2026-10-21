@@ -4,13 +4,17 @@
  * levels (rhythm, shape, notes) and the keyboard on a computer. D162: SHAPE judged against the
  * player's previous touch. D163: the whole fugue in six sections; two voices at once, one per thumb,
  * once both are earned alone; timing grades and a combo; the voices' own 8-bit timbres; a timing
- * calibration ("sync"). D164: the map of the fugue.
+ * calibration ("sync"). D164: the map of the fugue. D166: the notes come to the thumbs as squares
+ * to tap (targets.ts); two levels, EASY and NORMAL; the sound (and so the game's clock) starts on a
+ * finished tap, as iPhones require.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MusicBox, VOICE_INKS, type Frame } from "./MusicBox.tsx";
 import { PlayArea, type ThumbEvents } from "./PlayArea.tsx";
 import { Chip } from "./chip.ts";
 import { Game, byPitch, previewFrame, type Grade } from "./engine.ts";
+import { paintTargets } from "./paint-targets.ts";
+import type { Painter } from "./PlayArea.tsx";
 import { FUGUE, keyName } from "./fugue.ts";
 import { LEVELS, type Level as Difficulty } from "./lanes.ts";
 import type { Side } from "./thumbs.ts";
@@ -19,39 +23,24 @@ import { lagFrom, SYNC_BEATS, SYNC_BPM } from "./sync.ts";
 import { MapView } from "./MapView.tsx";
 
 const TEMPOS = [48, 60, 72];
-const BEST_KEY = "tg-best-v3";
+const BEST_KEY = "tg-best-v4";
 const LAG_KEY = "tg-lag-v1";
 const OPEN_KEY = "tg-open-v1";
 const DIFFICULTY: Record<Difficulty, { name: string; text: string }> = {
-  rhythm: { name: "RHYTHM", text: "Only the time counts: tap when a note arrives, hold the long ones. Your voice plays its own notes." },
-  shape: { name: "SHAPE", text: "Time and direction: tap a little higher than your last touch when the line goes up, lower when it goes down, about the same for a repeat. Or slide while holding." },
-  notes: { name: "NOTES", text: "Each lane is a note of your voice: tap it in time, hold the long ones, slide to the next lane to slur." },
+  easy: { name: "EASY", text: "Tap anywhere as each frame closes on its square. Hold the HOLD ones. Little notes play themselves." },
+  normal: { name: "NORMAL", text: "Tap each square as its frame closes on it. Hold the HOLD ones." },
 };
 
-/**
- * The keyboard on a computer: a key is a tap (held for a long note), with a direction in SHAPE, for one
- * hand when two voices are played (the left hand's keys on the left of the keyboard).
- */
-const KEYMAP: Record<string, { side: Side; dir: -1 | 0 | 1 }> = {
-  KeyS: { side: "left", dir: 0 },
-  KeyD: { side: "left", dir: 0 },
-  KeyF: { side: "left", dir: 0 },
-  KeyE: { side: "left", dir: 1 },
-  KeyR: { side: "left", dir: 1 },
-  KeyC: { side: "left", dir: -1 },
-  KeyV: { side: "left", dir: -1 },
-  KeyJ: { side: "right", dir: 0 },
-  KeyK: { side: "right", dir: 0 },
-  KeyL: { side: "right", dir: 0 },
-  Space: { side: "right", dir: 0 },
-  ArrowLeft: { side: "right", dir: 0 },
-  ArrowRight: { side: "right", dir: 0 },
-  KeyU: { side: "right", dir: 1 },
-  KeyI: { side: "right", dir: 1 },
-  ArrowUp: { side: "right", dir: 1 },
-  KeyN: { side: "right", dir: -1 },
-  KeyM: { side: "right", dir: -1 },
-  ArrowDown: { side: "right", dir: -1 },
+/** The keyboard on a computer (EASY): a key is a tap, held for a long note; with two voices, the left hand's keys play the lower. */
+const KEYMAP: Record<string, { side: Side }> = {
+  KeyA: { side: "left" },
+  KeyS: { side: "left" },
+  KeyD: { side: "left" },
+  KeyF: { side: "left" },
+  KeyJ: { side: "right" },
+  KeyK: { side: "right" },
+  KeyL: { side: "right" },
+  Space: { side: "right" },
 };
 /** A key's pointer id, clear of the touches'. */
 const keyId = (code: string) => 1000 + Object.keys(KEYMAP).indexOf(code);
@@ -95,15 +84,12 @@ export function TouchApp() {
   const [phase, setPhase] = useState<Phase>({ kind: "title" });
   const [section, setSection] = useState(0);
   const [voices, setVoices] = useState<number[]>([1]);
-  const [bpm, setBpm] = useState(60);
-  const [diff, setDiff] = useState<Difficulty>("rhythm");
+  const [bpm, setBpm] = useState(48);
+  const [diff, setDiff] = useState<Difficulty>("easy");
   const [best, setBest] = useState<Record<string, number>>(() => load(BEST_KEY, {}));
   const [lag, setLag] = useState<number>(() => load(LAG_KEY, 0));
   const [openAll, setOpenAll] = useState<boolean>(() => load(OPEN_KEY, false));
   const [note, setNote] = useState("");
-  const [lit, setLit] = useState<number[]>([]);
-  const [anchors, setAnchors] = useState<Partial<Record<Side, number>>>({});
-  const [wrong, setWrong] = useState<{ lane: number; id: number } | null>(null);
   const duo = voices.length === 2;
   const levels = useMemo(() => byPitch(voices.map((v) => level(FUGUE, section, v))), [voices, section, phase.kind === "play"]);
   const frame = useRef<Frame>(previewFrame(FUGUE, levels));
@@ -112,14 +98,20 @@ export function TouchApp() {
   const sync = useRef<SyncRun | null>(null);
   const count = useRef<HTMLDivElement>(null);
   const gradeEl = useRef<HTMLDivElement>(null);
+  const paint = useRef<Painter | null>(null);
   const shownAt = useRef(0);
   const open = openAll || duoOpen(best, section, voices, diff);
   const key = recordKey(section, voices, diff);
 
-  // NOTES is one voice's lanes: with two voices, SHAPE.
+  // Phones start a page's sound only on a finished tap (or a click, or a key): every such gesture
+  // anywhere unlocks it, so the first tap on START is never lost.
   useEffect(() => {
-    if (duo && diff === "notes") setDiff("shape");
-  }, [duo, diff]);
+    const unlock = () => ensureChip();
+    for (const ev of ["touchend", "pointerup", "click", "keydown"]) window.addEventListener(ev, unlock, true);
+    return () => {
+      for (const ev of ["touchend", "pointerup", "click", "keydown"]) window.removeEventListener(ev, unlock, true);
+    };
+  }, []);
 
   // Away from play, the box shows the opening of what is chosen.
   useEffect(() => {
@@ -132,7 +124,7 @@ export function TouchApp() {
     if (phase.kind !== "play" || !chip.current) return;
     const g = new Game(FUGUE, levels, diff, bpm, chip.current, lag);
     game.current = g;
-    setAnchors({});
+    paint.current = (ctx, w, h) => paintTargets(ctx, w, h, g, FUGUE.spell);
     let raf = 0;
     const loop = () => {
       const done = g.step();
@@ -150,8 +142,7 @@ export function TouchApp() {
           save(BEST_KEY, next);
           return next;
         });
-        setLit([]);
-        setAnchors({});
+        paint.current = null;
         setPhase({ kind: "result", results, maxCombo: g.maxCombo, perfect: g.perfect });
         return;
       }
@@ -162,6 +153,7 @@ export function TouchApp() {
       cancelAnimationFrame(raf);
       g.stopAll();
       game.current = null;
+      paint.current = null;
       if (count.current) count.current.textContent = "";
       showGrade(gradeEl.current, null, 0);
     };
@@ -210,52 +202,46 @@ export function TouchApp() {
     void chip.current.resume();
   };
 
-  const start = () => {
+  /** Begins once the sound is on: the game runs on the sound's clock, which stands still until then. */
+  const whenSounding = (go: () => void) => {
     ensureChip();
-    if (performance.now() - shownAt.current < 350 || !open) return;
-    setNote("");
-    setPhase({ kind: "play" });
+    const ch = chip.current!;
+    if (ch.ctx.state === "running") return go();
+    ch.resume()
+      .then(() => (ch.ctx.state === "running" ? go() : setNote("The sound is still off: tap once more.")))
+      .catch(() => setNote("The sound is still off: tap once more."));
   };
 
-  const startSync = () => {
-    ensureChip();
-    setNote("");
-    setPhase({ kind: "sync" });
+  const start = () => {
+    if (performance.now() - shownAt.current < 350 || !open) return;
+    whenSounding(() => {
+      setNote("");
+      setPhase({ kind: "play" });
+    });
   };
+
+  const startSync = () =>
+    whenSounding(() => {
+      setNote("");
+      setPhase({ kind: "sync" });
+    });
 
   const tapSync = (ts: number) => {
     const ch = chip.current;
     if (sync.current && ch) sync.current.taps.push(ch.heard() - (performance.now() - ts) / 1000);
   };
 
-  const refresh = (g: Game) => {
-    setLit(g.lit());
-    setAnchors(g.anchors());
-    if (g.difficulty === "notes" && g.grade?.text === "✕") {
-      const l = g.lit().at(-1);
-      if (l !== undefined) setWrong({ lane: l, id: g.grade.at });
-    }
-  };
-
+  // A tap lands: in play, it is judged; in the sync, timed. Away from play, the finished tap (the lift)
+  // starts the game, as phones start sound only then.
   const events: ThumbEvents = {
-    down: (id, side, y, h, ts) => {
+    down: (id, side, x, y, w, h, ts) => {
       if (phase.kind === "sync") return tapSync(ts);
-      const g = game.current;
-      if (!g) return phase.kind === "map" ? undefined : start();
-      g.down(id, side, y / h, ts);
-      refresh(g);
-    },
-    move: (id, y, h, ts) => {
-      const g = game.current;
-      if (!g) return;
-      g.move(id, y / h, ts);
-      refresh(g);
+      game.current?.down(id, side, x, y, w, h, ts);
     },
     up: (id, ts) => {
       const g = game.current;
-      if (!g) return;
-      g.up(id, ts);
-      refresh(g);
+      if (g) return g.up(id, ts);
+      if (phase.kind === "title" || phase.kind === "result") start();
     },
   };
 
@@ -271,15 +257,12 @@ export function TouchApp() {
         return;
       }
       e.preventDefault();
-      if (g.difficulty === "notes") return;
-      g.key(keyId(e.code), duo ? k.side : null, g.difficulty === "shape" ? k.dir : 0, e.timeStamp);
-      refresh(g);
+      g.key(keyId(e.code), duo ? k.side : null, e.timeStamp);
     };
     const up = (e: KeyboardEvent) => {
       const g = game.current;
       if (!KEYMAP[e.code] || !g) return;
       g.up(keyId(e.code), e.timeStamp);
-      refresh(g);
     };
     window.addEventListener("keydown", down);
     window.addEventListener("keyup", up);
@@ -290,7 +273,6 @@ export function TouchApp() {
   });
 
   const playing = phase.kind === "play";
-  const lanes = !duo && diff === "notes" ? levels[0].lanes : [];
   const sides = duo ? { left: levels[0].voice, right: levels[1].voice } : null;
   return (
     <div className="tg-app">
@@ -347,16 +329,13 @@ export function TouchApp() {
             <p>Tap below (or press space) with each click.</p>
           </div>
         )}
+        {phase.kind !== "play" && phase.kind !== "title" && note && <p className="tg-floating-note">{note}</p>}
       </MusicBox>
       <PlayArea
         events={events}
-        lanes={lanes}
-        lit={lit}
-        wrong={diff === "notes" ? wrong : null}
-        anchors={diff === "shape" && playing ? anchors : {}}
-        split={duo}
+        paint={paint}
         labels={sides ? { left: { text: voiceName(sides.left), ink: VOICE_INKS[sides.left] }, right: { text: voiceName(sides.right), ink: VOICE_INKS[sides.right] } } : undefined}
-        hint={playing || phase.kind === "sync" || phase.kind === "map" ? "" : open ? "TAP HERE OR PRESS SPACE" : "LOCKED"}
+        hint={playing || phase.kind === "sync" || phase.kind === "map" ? "" : open ? "TAP HERE TO START" : "LOCKED"}
       />
       <div className="tg-upright" role="alert">
         Turn the phone upright
@@ -433,7 +412,7 @@ function Title(p: {
       </div>
       <div className="tg-voices" role="group" aria-label="Level">
         {LEVELS.map((d) => (
-          <button key={d} type="button" id={`level-${d}`} className={d === diff ? "on tg-level" : "tg-level"} disabled={duo && d === "notes"} onClick={() => setDiff(d)}>
+          <button key={d} type="button" id={`level-${d}`} className={d === diff ? "on tg-level" : "tg-level"} onClick={() => setDiff(d)}>
             {DIFFICULTY[d].name}
           </button>
         ))}
@@ -441,9 +420,9 @@ function Title(p: {
       <p>
         {duo
           ? open
-            ? `Two voices, one per thumb: the lower on the left, the higher on the right. You hear them together only as you play them.${pair !== undefined ? ` Best ${pair}%.` : ""}`
+            ? `Lower voice left thumb, higher right. ${DIFFICULTY[diff].text}${pair !== undefined ? ` Best ${pair}%.` : ""}`
             : `Earn the ${voices.map((v) => FUGUE.voiceNames[v].toLowerCase()).join(" and the ")} alone here first (${Math.round(EARN * 100)}% each, ${DIFFICULTY[diff].name.toLowerCase()}): then you can play them together.`
-          : `${DIFFICULTY[diff].text} You hear only what you play. Choose a second voice to play two at once.`}
+          : DIFFICULTY[diff].text}
       </p>
       {note && <p className="tg-note">{note}</p>}
       <div className="tg-tempo" role="group" aria-label="Tempo">
@@ -457,7 +436,7 @@ function Title(p: {
         </button>
       </div>
       <p className="tg-card-sub tg-keys">
-        {duo ? "COMPUTER: LEFT HAND F (R ↑ V ↓) · RIGHT HAND J (U ↑ N ↓)" : diff === "notes" ? "COMPUTER: THE MOUSE ON THE LANES" : diff === "shape" ? "COMPUTER: SPACE THE SAME · ↑ HIGHER · ↓ LOWER" : "COMPUTER: SPACE BAR"}
+        {diff === "normal" ? "COMPUTER: CLICK THE SQUARES" : duo ? "COMPUTER: F FOR THE LEFT VOICE · J FOR THE RIGHT" : "COMPUTER: SPACE BAR (OR F AND J)"}
       </p>
       <label className="tg-open">
         <input type="checkbox" id="open-all" checked={openAll} onChange={(e) => setOpenAll(e.target.checked)} /> Open everything (for testing)

@@ -1,117 +1,49 @@
 /**
- * One voice on lanes (D160). Each pitch the voice sings in the passage has a lane, lowest at the
- * bottom, the same ladder in the music box and under the thumbs. A note is played by an event: a
- * thumb landing in its lane (a tap: detached, staccato) or sliding into it from the next lane (a
- * slur), within a window around its onset. A long note (a quarter or more) wants the thumb held:
- * let go early and it stops sounding and scores half. Three levels (D161), each asking more of the
- * same gesture: RHYTHM (the time only: any lane plays the right note), SHAPE (the direction too:
- * higher, lower or the same as the last), NOTES (the lane itself, a lane either side forgiven).
- * D162: SHAPE has no lanes. A touch is judged by how far it lies above or below the player's own
- * previous one (the anchor), as a share of the play area's height, with overlapping zones: a step
- * wants a little movement the right way, a repeat wants the thumb roughly where it was, and
- * between the two either will do. Only a clear move the wrong way fails.
- * Pure: ticks in, states out.
+ * Judging one voice (D160; D166). A note is played by a tap within a window around its onset that
+ * fits it (the level says what fits: targets.ts); a long note (a quarter or more) wants the thumb
+ * held: let go early and it stops sounding and scores half. Two levels (D166): EASY, the time only
+ * (a tap anywhere) on the main notes, the short notes riding along after a hit; NORMAL, every note,
+ * each tapped on its square. A chord within a voice is struck whole. Pure: ticks in, states out.
  */
-export type Level = "rhythm" | "shape" | "notes";
-export const LEVELS: Level[] = ["rhythm", "shape", "notes"];
 export type NoteState = "pending" | "hit" | "miss";
+
+export type Level = "easy" | "normal";
+export const LEVELS: Level[] = ["easy", "normal"];
 
 export interface LaneNote {
   on: number;
   dur: number;
   midi: number;
+  /** The note's rank among the voice's pitches in the section, lowest 0 (the box's rows with one voice). */
   lane: number;
   long: boolean;
   state: NoteState;
   /** Tick of the hit or the miss (for the shine and the shake). */
   at?: number;
-  /** Tick the thumb let go of a hit note (or slid on), if before its end. */
+  /** Tick the thumb let go of a hit note, if before its end. */
   off?: number;
   /** The voice, and the row in the music box when several voices share it (engine.ts). */
   voice?: number;
   row?: number;
+  /** EASY: a short note that plays by itself after a hit, and does not score (D166). */
+  ride?: boolean;
+  /** Where its target stands in the play area, as shares of its width and height (targets.ts). */
+  x?: number;
+  y?: number;
 }
 
 export interface LaneOptions {
-  /** How far around the onset an event counts, in ticks. */
+  /** How far around the onset a tap counts, in ticks. */
   early: number;
   late: number;
-  /** Lanes of tolerance either side. */
-  reach: number;
   /** Of a long note, the part that must be held for a full point. */
   hold: number;
 }
 
-export function easyLanes(tpq: number, bpm: number, level: Level = "notes"): LaneOptions {
+export function options(tpq: number, bpm: number, level: Level): LaneOptions {
   const perMs = (tpq * bpm) / 60000;
-  const ms = level === "notes" ? 170 : 200;
-  return { early: ms * perMs, late: ms * perMs, reach: 1, hold: 0.6 };
-}
-
-/** SHAPE's zones, as shares of the play area's height: a move counts from MOVE on; a repeat holds within SAME. */
-export const MOVE = 0.025;
-export const SAME = 0.09;
-/** A held thumb that slides this far from its anchor plays the next note (a slur). */
-export const SLIDE = 0.03;
-
-/** Near the top or bottom of the play area (a share of its height), a step that has no room counts anyway. */
-export const EDGE = 0.12;
-
-/**
- * SHAPE: whether a touch `dy` above the anchor (negative: below; null: no anchor yet) fits the way
- * the line moves (`want`; null for the first note). With the anchor at an edge (`anchor`, 0 at the
- * top), a step towards that edge only needs not to move clearly away.
- */
-export function shapeFits(want: -1 | 0 | 1 | null, dy: number | null, anchor: number | null = null): boolean {
-  if (want === null || dy === null) return true;
-  if (want === 0) return Math.abs(dy) <= SAME;
-  const cornered = anchor !== null && (want === 1 ? anchor < EDGE : anchor > 1 - EDGE);
-  return dy * want >= (cornered ? -SAME : MOVE);
-}
-
-/** The notes struck together with note i (D165: the final chords put two notes in one voice). */
-export function chordOf(notes: readonly LaneNote[], i: number): number[] {
-  const out: number[] = [];
-  notes.forEach((n, j) => n.on === notes[i].on && out.push(j));
-  return out;
-}
-
-/** The top and the bottom of the notes struck at a tick. */
-const topAt = (notes: readonly LaneNote[], on: number) => Math.max(...notes.filter((n) => n.on === on).map((n) => n.lane));
-const bottomAt = (notes: readonly LaneNote[], on: number) => Math.min(...notes.filter((n) => n.on === on).map((n) => n.lane));
-const prevOnset = (notes: readonly LaneNote[], i: number) => {
-  const before = notes.filter((n) => n.on < notes[i].on);
-  return before.length ? Math.max(...before.map((n) => n.on)) : null;
-};
-
-/**
- * The way the line moves into note i: 1 up, -1 down, 0 the same (the first note: null, anything goes);
- * chords by their top notes.
- */
-export function stepInto(notes: readonly LaneNote[], i: number): -1 | 0 | 1 | null {
-  const prev = prevOnset(notes, i);
-  return prev === null ? null : (Math.sign(topAt(notes, notes[i].on) - topAt(notes, prev)) as -1 | 0 | 1);
-}
-
-/** The ways into note i a player may follow: the top line's, and where chords meet, the bottom line's too. */
-export function stepsInto(notes: readonly LaneNote[], i: number): (-1 | 0 | 1)[] | null {
-  const prev = prevOnset(notes, i);
-  if (prev === null) return null;
-  const on = notes[i].on;
-  const top = Math.sign(topAt(notes, on) - topAt(notes, prev)) as -1 | 0 | 1;
-  const bottom = Math.sign(bottomAt(notes, on) - bottomAt(notes, prev)) as -1 | 0 | 1;
-  return top === bottom ? [top] : [top, bottom];
-}
-
-/**
- * What a player's event must match, by level: `lane` where the thumb is (NOTES), `dy` how far above
- * the anchor (SHAPE; null for the first).
- */
-export function fits(level: Level, notes: readonly LaneNote[], i: number, lane: number, dy: number | null, o: LaneOptions, anchor: number | null = null): boolean {
-  if (level === "rhythm") return true;
-  if (level === "notes") return Math.abs(notes[i].lane - lane) <= o.reach;
-  const ways = stepsInto(notes, i);
-  return ways === null || ways.some((w) => shapeFits(w, dy, anchor));
+  const ms = level === "easy" ? 250 : 200;
+  return { early: ms * perMs, late: ms * perMs, hold: 0.6 };
 }
 
 /** The lanes: every pitch of the notes, low to high. */
@@ -123,41 +55,56 @@ export function laneNotes(notes: readonly (readonly [number, number, number, ...
   return notes.map(([on, dur, midi]) => ({ on, dur, midi, lane: pitches.indexOf(midi), long: dur >= tpq, state: "pending" }));
 }
 
-/** The lane under a thumb at height y in an area h high (0 at the top), of n lanes, lowest at the bottom. */
-export function laneAt(y: number, h: number, n: number): number {
-  const f = Math.min(0.9999, Math.max(0, y / Math.max(1, h)));
-  return n - 1 - Math.floor(f * n);
+/**
+ * EASY: a note shorter than an eighth rides along (D166) when a note the player taps comes no more
+ * than a beat before it; a short note with none before it (the subject's head) is tapped.
+ */
+export function markRides(notes: LaneNote[], tpq: number) {
+  let last: number | null = null;
+  for (const n of notes) {
+    n.ride = n.dur < tpq / 2 && last !== null && n.on - last <= tpq && n.on > last;
+    if (!n.ride) last = n.on;
+  }
+}
+
+/** The notes struck together with note i (D165: the final chords put two notes in one voice). */
+export function chordOf(notes: readonly LaneNote[], i: number): number[] {
+  const out: number[] = [];
+  notes.forEach((n, j) => n.on === notes[i].on && out.push(j));
+  return out;
 }
 
 /**
- * A thumb lands in (or slides into) `lane` at tick t. Returns the index of the note it plays, or -1:
- * the pending note nearest in time within the window that the event fits (fits(); by default the
- * lane, within reach), the exact lane first.
+ * A tap at tick t. Returns the index of the note it plays, or -1: the pending scoring note nearest in
+ * time within the window that `ok` accepts. A chord is struck whole.
  */
-export function strike(notes: LaneNote[], lane: number, t: number, o: LaneOptions, ok: (i: number) => boolean = (i) => Math.abs(notes[i].lane - lane) <= o.reach): number {
+export function strike(notes: LaneNote[], t: number, o: LaneOptions, ok: (i: number) => boolean = () => true): number {
   let best = -1;
   let bestCost = Infinity;
   notes.forEach((n, i) => {
-    if (n.state !== "pending" || t < n.on - o.early || t > n.on + o.late) return;
-    if (!ok(i)) return;
-    const d = Math.min(Math.abs(n.lane - lane), o.reach + 1);
-    const cost = Math.abs(t - n.on) + d * o.late;
+    if (n.state !== "pending" || n.ride || t < n.on - o.early || t > n.on + o.late || !ok(i)) return;
+    const cost = Math.abs(t - n.on);
     if (cost < bestCost) (best = i), (bestCost = cost);
   });
-  // A chord is struck whole.
   if (best >= 0) for (const j of chordOf(notes, best)) if (notes[j].state === "pending") Object.assign(notes[j], { state: "hit", at: t });
   return best;
 }
 
-/** The thumb leaves a note it was playing (lifted, or slid on) at tick t. */
+/** The thumb leaves a note it was playing at tick t. */
 export function release(notes: LaneNote[], i: number, t: number) {
   const n = notes[i];
   if (n && n.state === "hit" && t < n.on + n.dur && n.off === undefined) n.off = t;
 }
 
-/** Notes whose window has passed unplayed become misses. */
-export function sweep(notes: LaneNote[], now: number, o: LaneOptions) {
-  for (const n of notes) if (n.state === "pending" && now > n.on + o.late) Object.assign(n, { state: "miss", at: now });
+/** Scoring notes whose window has passed unplayed become misses. Returns how many. */
+export function sweep(notes: LaneNote[], now: number, o: LaneOptions): number {
+  let missed = 0;
+  for (const n of notes)
+    if (n.state === "pending" && !n.ride && now > n.on + o.late) {
+      Object.assign(n, { state: "miss", at: now });
+      missed++;
+    }
+  return missed;
 }
 
 /** A long note held long enough. */
@@ -165,9 +112,14 @@ export function heldEnough(n: LaneNote, o: LaneOptions): boolean {
   return !n.long || n.off === undefined || n.off - n.on >= o.hold * n.dur;
 }
 
-/** Points: a note hit is one, a long note let go too early a half. */
+/** Points: a note hit is one, a long note let go too early a half; riding notes do not count. */
 export function points(notes: readonly LaneNote[], o: LaneOptions): { got: number; of: number } {
   let got = 0;
-  for (const n of notes) if (n.state === "hit") got += heldEnough(n, o) ? 1 : 0.5;
-  return { got, of: notes.length };
+  let of = 0;
+  for (const n of notes) {
+    if (n.ride) continue;
+    of++;
+    if (n.state === "hit") got += heldEnough(n, o) ? 1 : 0.5;
+  }
+  return { got, of };
 }

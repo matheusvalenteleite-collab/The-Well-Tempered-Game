@@ -1,6 +1,6 @@
 /**
- * Difficulty audit (D165): a simulated player, on time within a jitter and moving the thumb roughly
- * the right way, plays every voice of every section at each level and tempo through the game's own
+ * Difficulty audit (D165; D166): a simulated player, on time within a jitter and landing near each
+ * square, plays every voice of every section at each level and tempo through the game's own
  * engine (with a fake clock). Writes docs/touch/AUDIT.md. Run: node tools/touch/audit.ts
  */
 import { writeFileSync } from "node:fs";
@@ -9,7 +9,7 @@ import { Game } from "../../src/touch/engine.ts";
 import { FUGUE } from "../../src/touch/fugue.ts";
 import type { Chip } from "../../src/touch/chip.ts";
 import { level } from "../../src/touch/voice-mode.ts";
-import { stepInto, type Level as Difficulty } from "../../src/touch/lanes.ts";
+import { LEVELS, type Level as Difficulty } from "../../src/touch/lanes.ts";
 
 // A seeded random, so the audit is the same every run.
 let seed = 7;
@@ -27,24 +27,19 @@ function run(section: number, voice: number, diff: Difficulty, bpm: number, jitt
   const lv = level(FUGUE, section, voice);
   const g = new Game(FUGUE, [lv], diff, bpm, chip);
   const at = (tick: number) => 0.15 + (tick - g.start) / g.tps;
-  // performance.now() stands still in this script: events are stamped "now" at the clock's time.
-  const stamp = () => performance.now();
-  let y = 0.5;
+  // A phone's play area, and a thumb that lands within about 20 px of the square's centre.
+  const [w, h] = [390, 400];
   let id = 0;
-  const n = lv.lanes.length;
   lv.notes.forEach((note, i) => {
-    // A chord is one tap.
-    if (i > 0 && lv.notes[i - 1].on === note.on) return;
-    const dir = stepInto(lv.notes, i) ?? 0;
-    if (diff === "notes") y = 1 - (note.lane + 0.5 + gauss() * 0.25) / n;
-    else y += dir * -(0.06 + rnd() * 0.08) + (dir === 0 ? gauss() * 0.02 : 0);
-    y = Math.max(0.02, Math.min(0.98, y));
+    if (note.ride || (i > 0 && lv.notes[i - 1].on === note.on)) return;
     clock.t = at(note.on) + (gauss() * jitterMs) / 1000;
     g.step();
-    g.down(++id, id % 2 ? "left" : "right", y, stamp());
+    const x = note.x! * w + gauss() * 20;
+    const y = note.y! * h + gauss() * 20;
+    g.down(++id, x < w / 2 ? "left" : "right", x, y, w, h, performance.now());
     clock.t += note.long ? (0.8 * note.dur) / g.tps : Math.min(0.08, (0.5 * note.dur) / g.tps);
     g.step();
-    g.up(id, stamp());
+    g.up(id, performance.now());
   });
   clock.t = at(g.end + 1);
   g.step();
@@ -55,12 +50,12 @@ function run(section: number, voice: number, diff: Difficulty, bpm: number, jitt
 const L: string[] = [];
 L.push("# Touch game: difficulty audit (generated)\n");
 L.push("By `tools/touch/audit.ts` (D165). A simulated player plays each voice of each section through the");
-L.push("game's own engine: on time within a random jitter (normal, standard deviation 40 ms or 80 ms), and in");
-L.push("SHAPE moving the thumb 6-14% of the play area's height the right way for each step (repeats within 2%);");
-L.push("in NOTES aiming at the middle of the right lane with a quarter of a lane's wobble. Each figure is the");
+L.push("game's own engine (D166: squares to tap): on time within a random jitter (normal, standard deviation 40 ms");
+L.push("or 80 ms), landing within about 20 px of each square's centre (normal, s.d. 20 px each way) in a 390 by 400 px");
+L.push("play area. EASY counts the time only and lets the short notes ride. Each figure is the");
 L.push("score in %; 80% earns the voice; under 80 in bold. The densest passage is the most notes in any one");
 L.push("second at ♩=60. A chord within a voice (the final cadence) is one tap.\n");
-const DIFFS: Difficulty[] = ["rhythm", "shape", "notes"];
+const DIFFS: Difficulty[] = LEVELS;
 for (const bpm of [60, 72]) {
   for (const jitter of [40, 80]) {
     L.push(`## ♩=${bpm}, timing jitter ${jitter} ms\n`);

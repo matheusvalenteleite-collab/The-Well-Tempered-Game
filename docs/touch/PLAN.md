@@ -17,6 +17,17 @@ Page: `touch.html` (`npm run dev`, then `/touch.html`). Single file for claude.a
 `npx vite build -c vite.touch.config.ts && node tools/touch/build-artifact.mjs <out.html>`.
 Data: `node tools/touch/extract.ts` cuts the fugue from `data/wtc/fugues.json`.
 
+## Squares under the thumbs (D166: built, to be tried on the iPhone)
+
+The owner: no indication where to tap; impossible; and it did not work on the iPhone at all.
+- iPhone: the sound (the game's clock) now starts on a finished tap, as Safari requires; the
+  silent switch no longer mutes it.
+- Each note to tap is a square in the play area, with a frame closing in on it that meets it on the
+  beat; HOLD squares fill while held; a dotted line shows the next one. One voice: squares alternate
+  left and right thumb. Two voices: lower voice left, higher right.
+- EASY: tap anywhere on time; the quick little notes play themselves. NORMAL: tap each square.
+  SHAPE, NOTES and the lanes are gone. Default ♩=48.
+
 ## Done while the owner was away (21 October, D163-D165)
 
 - **The whole fugue**, in six sections (bars 1–9, 9–13, 13–17, 17–22, 22–29, 29–31), each ending where
