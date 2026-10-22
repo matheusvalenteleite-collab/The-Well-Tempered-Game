@@ -138,3 +138,8 @@
 .tb-fcard-voices b.tg-gold { color: var(--tg-gold); }
 /* The seal per voice: not earnable yet (D192), an empty diamond. */
 .tb-seal-pip { margin-left: 3px; opacity: 0.45; }
+
+/* D196: the seal, on the result and the cards. */
+.tb-result-seal { margin: 0; font-family: var(--tg-pixel); font-size: 8px; line-height: 1.5; color: var(--tg-muted); }
+.tb-result-seal.earned { color: var(--tg-gold); }
+.tb-seal-pip.earned { color: var(--tg-gold); opacity: 1; }

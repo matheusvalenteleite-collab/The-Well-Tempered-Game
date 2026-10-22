@@ -32,19 +32,20 @@ test("BWV numbers: Book I 846-869, Book II 870-893 in order, XIV 1080/19", () =>
   assert.ok(!CARDS.some((c) => c.bwv.includes("1080/14")));
 });
 
-test("titles, seals and stars are filled; seals needing data are not ready", () => {
+test("titles, seals and stars are filled; seals needing data are ready once the data has it (D196)", () => {
   for (const c of CARDS) {
     assert.ok(c.title.trim().length > 3, c.id);
     assert.ok(c.why.trim().length > 10, c.id);
     assert.ok(c.seal.line.trim().length > 5, c.id);
     assert.ok(c.seal.kind in SEAL_KINDS, c.id);
-    assert.equal(c.ready, !NEEDS_DATA.has(c.seal.kind), c.id);
+    if (!NEEDS_DATA.has(c.seal.kind)) assert.equal(c.ready, true, c.id);
     assert.ok(Number.isInteger(c.stars) && c.stars >= 1 && c.stars <= TIERS.length, c.id);
     // Nothing marked uncertain in the study reaches the screen.
     assert.ok(!/[~?]/.test(c.title + c.why + c.seal.line), c.id);
   }
   assert.equal(new Set(CARDS.map((c) => c.title)).size, 49, "every title its own");
-  assert.equal(cardById("wtc1f06")!.ready, false); // MIRROR
+  assert.equal(cardById("wtc1f08")!.ready, true); // SLOW GIANT: I/8's augmentations (D189)
+  assert.equal(cardById("wtc1f04")!.ready, false); // SUBJECTS: I/4's later subjects not yet extracted
   assert.equal(cardById("wtc1f01")!.ready, true); // STRETTO
 });
 

@@ -5,6 +5,7 @@
  * scroll-snap underneath, so a phone's own momentum); ↑/↓ or W/S move, ←/→ or A/D change the book,
  * Enter chooses, Escape closes; the mouse wheel moves a card a notch. Fugues only (D188).
  */
+import { readSeals } from "./seals.ts";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { keyTint } from "../touch/MusicBox.tsx";
 import { fugueById } from "../touch/fugue.ts";
@@ -76,6 +77,7 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
   const sel = Math.max(0, Math.min(n - 1, Math.round(pos)));
   const card = cards[sel];
   const best = useMemo(readBest, []);
+  const seals = useMemo(readSeals, []);
 
   // The row's height from the CSS (shorter on a phone held sideways).
   useLayoutEffect(() => {
@@ -263,7 +265,7 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
                   <span key={name} title={`${name}: ${g ? `best ${g}` : "not played"}`}>
                     {name[0]}
                     {name.match(/ (I+)$/)?.[1] ?? ""}:<b className={g === "S" || g === "A" ? "tg-gold" : ""}>{g ?? "·"}</b>
-                    <span className="tb-seal-pip">◇</span>
+                    <span className={`tb-seal-pip${seals[`${card.id}:${v}`] ? " earned" : ""}`}>{seals[`${card.id}:${v}`] ? "◆" : "◇"}</span>
                   </span>
                 );
               })}

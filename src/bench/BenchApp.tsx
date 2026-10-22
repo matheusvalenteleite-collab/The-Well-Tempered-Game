@@ -22,7 +22,8 @@ import { accompaniment, startTick, stepRange, subjectMarks, entrySpans, voicesFr
 import { paintProto } from "./paint-proto.ts";
 import { ProtoGame, type KeyPress } from "./proto-game.ts";
 import { FuguePicker, PieceButton } from "./FuguePicker.tsx";
-import { recordBest } from "./cards.ts";
+import { cardById, recordBest } from "./cards.ts";
+import { judgeSeal, recordSeal } from "./seals.ts";
 import { ARROW_KEYS, arrowOf, EASY_LEVELS, KEY_ROWS, type EasyLevel, keyId, keyRow, midiId, moveOf, PROTOS, protoById, type Platform, type ProtoId } from "./protos.ts";
 
 const PICK_KEY = "tb-pick-v2";
@@ -71,7 +72,7 @@ function sane(p: Pick): Pick {
   return { ...DEFAULT, ...p, piece, share, voice, voice2, proto: protoById(p.proto).id, bpm: saneBpm(p.bpm), legato: !!p.legato, easy: EASY_LEVELS.some(([l]) => l === p.easy) ? p.easy : DEFAULT.easy };
 }
 
-type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number } | { kind: "settings" } | { kind: "help" } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
+type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; seal: { kind: string; earned: boolean; why: string } | null } | { kind: "settings" } | { kind: "help" } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
 
 /** The computer's keys (D182: a computer's prototypes only): PIANO a keyboard's rows (A W S E D F T G Y H U J K O L P ;), Z and X the octave; EASY every row (protos.ts KEY_ROWS) and space, Shift the pedal, the arrows a bend. */
 const PIANO_KEYS = ["KeyA", "KeyW", "KeyS", "KeyE", "KeyD", "KeyF", "KeyT", "KeyG", "KeyY", "KeyH", "KeyU", "KeyJ", "KeyK", "KeyO", "KeyL", "KeyP", "Semicolon"];
@@ -261,7 +262,13 @@ export function BenchApp() {
           setPhase({ kind: "talk", lines: ok ? l.pass : l.again, next: ok ? "advance" : "again" });
         } else {
           recordBest(f.id, played, r.grade);
-          setPhase({ kind: "result", ...r });
+          // D196: the fugue's seal, judged over the whole run.
+          const card = cardById(f.id);
+          const seal = card
+            ? judgeSeal(card, { f, tracks: g.tracks.map((t) => ({ voice: t.voice, notes: t.notes })), entries: g.entries, beat: b.ticks, grade: r.grade, tuning: tuning.id, duo, whole: from === 0 })
+            : null;
+          if (seal?.earned) recordSeal(f.id, played);
+          setPhase({ kind: "result", ...r, seal: card && seal ? { kind: card.seal.kind, ...seal } : null });
         }
         return;
       }
@@ -542,6 +549,11 @@ export function BenchApp() {
             <p className="tg-card-sub">
               ◆ {phase.captured} OF {phase.entries} ENTRIES CAPTURED · BEST RUN {phase.maxStreak}
             </p>
+            {phase.seal && (
+              <p className={`tb-result-seal${phase.seal.earned ? " earned" : ""}`}>
+                {phase.seal.earned ? "◆" : "◇"} SEAL · {phase.seal.kind}: {phase.seal.earned ? "EARNED" : phase.seal.why.toUpperCase()}
+              </p>
+            )}
             <button type="button" id="again" className="tb-menu" onClick={quit}>
               MENU
             </button>
