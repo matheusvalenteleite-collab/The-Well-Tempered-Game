@@ -1,0 +1,372 @@
+/**
+ * A fugue card's picture (D192): a 64 x 40 pixel emblem drawn from the fugue's own data, no assets.
+ * Five layers (fugue-cards.md §3):
+ *  1. the palette from the key (keyTint's hue: the circle of fifths round the hue wheel, minor darker),
+ *     a 4-bit-per-channel ramp, the sky dithered (2 x 2 Bayer) between two of its steps;
+ *  2. the horizon from the subject: the first entry's notes as a ridge (onset across, pitch up, a note's
+ *     length its plateau; a rest a dip), reflected in water where the scene is water or the seal MIRROR;
+ *  3. one figure per voice, standing at the height of its first note;
+ *  4. the devices: a ring per stretto entry over the figures, a glowing band for a final pedal, twelve
+ *     pips for a subject of nine or more pitch classes, and a star in the sky per entry;
+ *  5. the scene's light and props (cards.ts).
+ * Deterministic (a seed from the id), cached per id; `drawEmblem` paints it on any context with fillRect.
+ */
+import { fugueById, type TouchFugue } from "../touch/fugue.ts";
+import { cardById, type Figure, type FugueCard, type Prop, type Scene } from "./cards.ts";
+
+export const EMBLEM_W = 64;
+export const EMBLEM_H = 40;
+/** Where the ridge's foot meets the ground. */
+const HORIZON = 28;
+
+/** The hue keyTint (MusicBox.tsx) gives a key: C 220, each fifth 30 on. */
+export function keyHue(key: string): number {
+  const pcs: Record<string, number> = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 };
+  let pc = pcs[key[0].toLowerCase()] ?? 0;
+  if (key[1] === "#") pc++;
+  if (key[1] === "b") pc--;
+  pc = (pc + 12) % 12;
+  return (220 + ((pc * 7) % 12) * 30) % 360;
+}
+
+/** HSL to a 4-bit-per-channel colour, "#rgb". */
+function hsl(h: number, s: number, l: number): string {
+  const S = Math.max(0, Math.min(1, s / 100));
+  const L = Math.max(0, Math.min(1, l / 100));
+  const k = (n: number) => (n + h / 30) % 12;
+  const a = S * Math.min(L, 1 - L);
+  const f = (n: number) => L - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  const q = (v: number) => Math.round(v * 15).toString(16);
+  return `#${q(f(0))}${q(f(8))}${q(f(4))}`;
+}
+
+/** Hue a little toward warm (the analogue look): a step of the way to amber. */
+function warm(h: number, by: number): number {
+  const d = ((40 - h + 540) % 360) - 180;
+  return (h + d * by + 360) % 360;
+}
+
+interface Palette {
+  sky0: string;
+  sky1: string;
+  far: string;
+  farLit: string;
+  near: string;
+  nearDark: string;
+  ink: string;
+  light: string;
+  cream: string;
+  gold: string;
+  water: string;
+  waterLit: string;
+}
+
+function palette(key: string, scene: Scene): Palette {
+  const minor = key[0] === key[0].toLowerCase();
+  const h = keyHue(key);
+  const s = minor ? 55 : 45;
+  const base = minor ? 13 : 17;
+  const skyL = scene === "noon" ? base + 22 : scene === "night" ? base - 4 : scene === "interior" ? base - 2 : base + 6;
+  // Dusk and dawn: the sky warms toward the horizon.
+  const lowHue = scene === "dusk" ? 18 : scene === "dawn" ? 340 : warm(h, 0.15);
+  const lowL = scene === "dusk" || scene === "dawn" ? skyL + 16 : skyL + 8;
+  return {
+    sky0: hsl(h, s, skyL),
+    sky1: hsl(lowHue, scene === "dusk" || scene === "dawn" ? 60 : s, lowL),
+    far: hsl(warm(h, 0.1), s - 10, base + 12),
+    farLit: hsl(warm(h, 0.25), s, base + 26),
+    near: hsl(warm(h, 0.3), s - 5, base + 4),
+    nearDark: hsl(warm(h, 0.3), s, Math.max(4, base - 4)),
+    ink: hsl(h, s, 6),
+    light: hsl(warm(h, 0.5), 70, 72),
+    cream: "#fec",
+    gold: "#fc4",
+    water: hsl(h, s + 5, base),
+    waterLit: hsl(h, s, base + 18),
+  };
+}
+
+/** A tiny seeded generator (mulberry32), seeded from the id. */
+function rng(seed: string): () => number {
+  let a = 0;
+  for (let i = 0; i < seed.length; i++) a = (Math.imul(a ^ seed.charCodeAt(i), 2654435761) + i) >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Sprites: '.' clear; i ink, n near, f far, F lit far, l light, c cream, g gold. */
+const FIGURES: Record<Figure, string[]> = {
+  tower: ["..g..", "..i..", ".iii.", ".ili.", ".iii.", "iiiii", ".ini.", ".ili.", ".ini.", ".ini.", ".iii."],
+  pillar: ["iiiii", ".nfn.", ".nfn.", ".nfn.", ".nfn.", ".nfn.", ".nfn.", ".nfn.", ".nfn.", ".nfn.", "iiiii"],
+  cypress: ["..i..", "..i..", ".iii.", ".iii.", ".ini.", ".iii.", "iinii", "iiiii", "iiiii", ".iii.", "..i.."],
+  person: ["..c..", ".ccc.", "..c..", ".iii.", "iiiii", "i.i.i", "..i..", ".i.i.", ".i.i.", ".i.i.", "ii.ii"],
+  lantern: [".iii.", "igggi", "igcgi", "igggi", ".iii.", "..i..", "..i..", "..i..", "..i..", "..i..", ".iii."],
+  tree: ["i...i", ".i.i.", "i.i.i", ".iii.", "..i.i", "..i..", "..i..", "..i..", "..i..", "..i..", ".iii."],
+  house: [".....", ".....", ".....", "..i..", ".iii.", "iiiii", ".nnn.", ".ngn.", ".nnn.", ".nin.", ".nin."],
+  pipe: [".iii.", ".nln.", ".nln.", ".nln.", ".nln.", ".nln.", ".nln.", ".i.i.", ".nln.", ".nln.", ".iii."],
+  chess: [".....", ".....", "..c..", ".ccc.", "..c..", ".ccc.", "..c..", "..c..", ".ccc.", "ccccc", "....."],
+  post: ["iiiii", "..i..", "..i..", "..i..", "..i..", "..i..", "..i..", "..i..", "..i..", "..i..", ".iii."],
+};
+
+/** Props and where each goes ([x, y] of its top left). */
+const PROPS: Record<Prop, { at: [number, number]; px: string[] }> = {
+  sun: { at: [52, 3], px: [".g.g.", "..g..", "ggcgg", "..g..", ".g.g."] },
+  suns: { at: [0, 0], px: [] },
+  moon: { at: [53, 3], px: [".cc.", "cc..", "cc..", ".cc."] },
+  boat: { at: [6, 26], px: ["...c....", "..cc....", ".ccc....", "iiiiiiii", ".iiiiii."] },
+  ladder: { at: [2, 16], px: ["i...i", "iiiii", "i...i", "i...i", "iiiii", "i...i", "i...i", "iiiii", "i...i", "i...i", "iiiii", "i...i"] },
+  lantern: { at: [57, 20], px: [".i.", "igi", "gcg", "igi"] },
+  crosswin: { at: [29, 2], px: ["..g..", "..g..", "ggcgg", "..g..", "..g..", "..g.."] },
+  rosewin: { at: [28, 2], px: [".lgl.", "lgcgl", "gcccg", "lgcgl", ".lgl."] },
+  arch: { at: [24, 3], px: ["...nnnnn...", ".nn.....nn.", "n.........n", "n.........n", "n.........n", "n.........n"] },
+  clock: { at: [52, 2], px: [".ccc.", "c.i.c", "c.ii.", "c...c", ".ccc."] },
+  wall: { at: [44, 16], px: ["i.....i...i", "iiiiiiiiii.", "i.....i....", "nnnn.......", "nnnnnn.....", "nnnnnnnn...", "nnnnnnnnnn.", "nnnnnnnnnnn"] },
+  kite: { at: [44, 3], px: [".c.", "cgc", ".c.", "..i", "...i", "....i"] },
+  drum: { at: [2, 31], px: [".ccccc.", "iiiiiii", "igigigi", "iiiiiii"] },
+  mill: { at: [55, 18], px: [".i.i.", "iiiii", ".ini.", "iiiii", ".i.i."] },
+  stair: { at: [51, 18], px: ["......ll", "......nn", "....llnn", "....nnnn", "..llnnnn", "..nnnnnn", "llnnnnnn", "nnnnnnnn"] },
+  flag: { at: [30, 9], px: ["igg.", "iggg", "igg.", "i...", "i...", "i..."] },
+  tent: { at: [2, 18], px: ["....g....", "...lcl...", "..lclcl..", ".lclclcl.", "lclclclcl", "lclc.clcl"] },
+  gem: { at: [30, 3], px: [".ggg.", "gcgcg", ".ggg.", "..g.."] },
+  candle: { at: [59, 30], px: [".g.", ".c.", ".c.", ".c.", "iii"] },
+  bird: { at: [40, 9], px: ["i.i..", ".i...", "....."] },
+  swan: { at: [18, 30], px: ["c.....", "c.....", ".cccc.", "cccccc"] },
+  leaves: { at: [0, 0], px: [] },
+  torch: { at: [3, 14], px: [".g.", "gcg", ".i.", ".i."] },
+  rain: { at: [0, 0], px: [] },
+  key: { at: [27, 5], px: [".gg.......", "g..gggggg.", ".gg...g.g."] },
+  anvil: { at: [2, 30], px: ["iiiiiii", ".iiii..", "..ii...", ".iiii.."] },
+  balls: { at: [0, 0], px: [] },
+  checker: { at: [0, 0], px: [] },
+};
+
+type Pix = string[];
+
+class Canvas {
+  px: Pix;
+  constructor(fill: string) {
+    this.px = new Array(EMBLEM_W * EMBLEM_H).fill(fill);
+  }
+  set(x: number, y: number, c: string) {
+    x = Math.round(x);
+    y = Math.round(y);
+    if (x >= 0 && y >= 0 && x < EMBLEM_W && y < EMBLEM_H) this.px[y * EMBLEM_W + x] = c;
+  }
+  get(x: number, y: number): string {
+    return this.px[y * EMBLEM_W + x];
+  }
+  sprite(rows: string[], x0: number, y0: number, pal: Palette, flip = false) {
+    const map: Record<string, string> = { i: pal.ink, n: pal.near, f: pal.far, F: pal.farLit, l: pal.light, c: pal.cream, g: pal.gold };
+    rows.forEach((row, y) => {
+      for (let x = 0; x < row.length; x++) {
+        const ch = flip ? row[row.length - 1 - x] : row[x];
+        if (ch !== ".") this.set(x0 + x, y0 + y, map[ch]);
+      }
+    });
+  }
+}
+
+const BAYER = [
+  [0, 2],
+  [3, 1],
+];
+
+/** The subject as notes [on, dur, midi] and its span: the first entry, or (Contrapunctus XIV, no entries) the first voice to start, its first notes. */
+function subjectOf(f: TouchFugue): { notes: [number, number, number][]; on: number; end: number } {
+  const e = f.entries[0];
+  if (e) return { notes: e.notes.map(([on, dur, m]) => [on, dur, m]), on: e.on, end: e.end };
+  const first = f.voices.map((v) => v[0]?.[0] ?? Infinity);
+  const v = f.voices[first.indexOf(Math.min(...first))] ?? [];
+  const notes = v.filter(([on]) => on < (v[0]?.[0] ?? 0) + 4 * f.barTicks).map(([on, dur, m]) => [on, dur, m] as [number, number, number]);
+  const end = notes.length ? notes[notes.length - 1][0] + notes[notes.length - 1][1] : 1;
+  return { notes, on: notes[0]?.[0] ?? 0, end };
+}
+
+/** Entries that start before an earlier one has ended (the cards' stretto count). */
+export function strettoCount(f: TouchFugue): number {
+  const e = f.entries;
+  let n = 0;
+  for (let i = 1; i < e.length; i++) if (e.slice(0, i).some((p) => p.end > e[i].on && p.on < e[i].on)) n++;
+  return n;
+}
+
+/** The ridge's top row at each column. */
+function ridge(f: TouchFugue, unfinished: boolean): number[] {
+  const s = subjectOf(f);
+  const top = new Array(EMBLEM_W).fill(HORIZON - 3);
+  if (!s.notes.length) return top;
+  const midis = s.notes.map((n) => n[2]);
+  const lo = Math.min(...midis);
+  const hi = Math.max(...midis);
+  const span = Math.max(1, s.end - s.on);
+  // An unfinished fugue's ridge stops three quarters across, where the music stops.
+  const width = unfinished ? Math.round(EMBLEM_W * 0.72) : EMBLEM_W;
+  const yOf = (m: number) => 12 + Math.round(((hi - m) / Math.max(1, hi - lo)) * 12);
+  for (const [on, dur, m] of s.notes) {
+    const x0 = Math.floor(((on - s.on) / span) * width);
+    const x1 = Math.max(x0 + 1, Math.floor(((on + dur - s.on) / span) * width));
+    for (let x = x0; x < x1 && x < EMBLEM_W; x++) top[x] = yOf(m);
+  }
+  if (unfinished) for (let x = width; x < EMBLEM_W; x++) top[x] = HORIZON;
+  return top;
+}
+
+/** Whether the lowest voice ends on a note held under the others' last half bar or more. */
+export function pedal(f: TouchFugue): boolean {
+  const bass = f.voices[f.voices.length - 1];
+  const last = bass?.[bass.length - 1];
+  if (!last || f.voices.length < 2) return false;
+  const others = Math.max(...f.voices.slice(0, -1).map((v) => v[v.length - 1]?.[0] ?? 0));
+  return others - last[0] >= f.barTicks / 2;
+}
+
+const cache = new Map<string, Pix>();
+
+/** The emblem's pixels, row by row ("#rgb" each), for a piece id. */
+export function emblemPixels(id: string): Pix {
+  const hit = cache.get(id);
+  if (hit) return hit;
+  const f = fugueById(id);
+  const c: FugueCard = cardById(f.id) ?? { id: f.id, book: 0, number: 0, bwv: "", title: "", formal: "", seal: { kind: "NO SLIP", line: "" }, ready: true, why: "", stars: 1, scene: "night", figure: "pillar", props: [] };
+  const pal = palette(f.key, c.scene);
+  const rand = rng(f.id);
+  const cv = new Canvas(pal.sky0);
+  const unfinished = f.id === "bwv1080-14";
+  const water = c.scene === "water" || c.seal.kind === "MIRROR";
+
+  // 1. The sky, dithered from its top colour to its horizon colour.
+  for (let y = 0; y < HORIZON; y++) {
+    const t = (y / HORIZON) * 4;
+    for (let x = 0; x < EMBLEM_W; x++) {
+      const b = BAYER[y % 2][x % 2];
+      if (t - 1 > b + 0.5) cv.set(x, y, pal.sky1);
+    }
+  }
+  // An interior: a vault's ribs instead of open sky.
+  if (c.scene === "interior") for (let x = 4; x < EMBLEM_W; x += 12) for (let y = 0; y < HORIZON; y++) if ((x + y) % 2 === 0) cv.set(x, y, pal.far);
+
+  // 2. The subject's ridge, a lit rim on top; the ground (or water) below it.
+  const top = ridge(f, unfinished);
+  // 4a. Stars: one per entry (up to 40), never on the ridge.
+  const stars = Math.min(40, f.entries.length);
+  const starInk = c.scene === "noon" || c.scene === "field" || c.scene === "dawn" ? pal.light : pal.cream;
+  for (let i = 0, tries = 0; i < stars && tries < 400; tries++) {
+    const x = Math.floor(rand() * EMBLEM_W);
+    const y = Math.floor(rand() * 11);
+    if (y >= top[x] - 2 || cv.get(x, y) === starInk) continue;
+    cv.set(x, y, starInk);
+    i++;
+  }
+  // 4b. A subject of nine or more pitch classes: twelve pips, a clock of the twelve notes.
+  const pcs = new Set(subjectOf(f).notes.map((n) => n[2] % 12)).size;
+  if (pcs >= 9) for (let i = 0; i < 12; i++) cv.set(4 + i * 2, 1, i < pcs ? pal.gold : pal.far);
+
+  for (let x = 0; x < EMBLEM_W; x++) {
+    for (let y = top[x]; y < HORIZON; y++) cv.set(x, y, y === top[x] + 1 && BAYER[y % 2][x % 2] < 2 ? pal.farLit : pal.far);
+    if (top[x] < HORIZON) cv.set(x, top[x], pal.farLit);
+  }
+  for (let y = HORIZON; y < EMBLEM_H; y++) {
+    for (let x = 0; x < EMBLEM_W; x++) {
+      if (water) {
+        // The ridge reflected, darker, broken by ripples.
+        const mirrorY = HORIZON - 1 - (y - HORIZON);
+        const reflected = mirrorY >= top[x] && mirrorY < HORIZON;
+        const ripple = (y + Math.floor(x / 5)) % 4 === 0;
+        cv.set(x, y, reflected ? (ripple ? pal.water : pal.near) : ripple && (x + y) % 3 === 0 ? pal.waterLit : pal.water);
+      } else if (c.props.includes("checker")) cv.set(x, y, (Math.floor(x / 4) + Math.floor((y - HORIZON) / 3)) % 2 ? pal.near : pal.nearDark);
+      else if (c.scene === "field") cv.set(x, y, (y - HORIZON) % 3 === 0 && x % 2 === 0 ? pal.farLit : pal.near);
+      else cv.set(x, y, BAYER[y % 2][x % 2] < (y - HORIZON) / 3 ? pal.nearDark : pal.near);
+    }
+  }
+  for (let x = 0; x < EMBLEM_W; x++) cv.set(x, HORIZON, water ? pal.waterLit : pal.nearDark);
+
+  // 5. The scene's props, behind the figures.
+  for (const p of c.props) {
+    if (p === "suns") for (let i = 0; i < 7; i++) {
+      const x = 4 + i * 9;
+      const y = 2 + (i % 2) * 3;
+      cv.set(x, y, pal.cream);
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) cv.set(x + dx, y + dy, pal.gold);
+    }
+    else if (p === "leaves") for (let i = 0; i < 9; i++) cv.set(Math.floor(rand() * EMBLEM_W), 4 + Math.floor(rand() * 30), i % 2 ? "#c42" : "#e83");
+    else if (p === "rain") for (let i = 0; i < 30; i++) {
+      const x = Math.floor(rand() * EMBLEM_W);
+      const y = Math.floor(rand() * 36);
+      cv.set(x, y, pal.waterLit);
+      cv.set(x, y + 1, pal.waterLit);
+    }
+    else if (p === "balls") for (let i = 0; i < 6; i++) {
+      const a = Math.PI * (0.1 + (0.8 * i) / 5);
+      cv.set(32 - Math.cos(a) * 12, 16 - Math.sin(a) * 10, i % 2 ? pal.gold : pal.cream);
+    }
+    else if (p !== "checker") cv.sprite(PROPS[p].px, PROPS[p].at[0], PROPS[p].at[1], pal);
+  }
+  // A final pedal (the lowest voice's last note held while the others still move on for half a bar
+  // or more): a glowing band at the bottom.
+  if (pedal(f) && !unfinished) for (let x = 0; x < EMBLEM_W; x++) for (let y = EMBLEM_H - 2; y < EMBLEM_H; y++) if (BAYER[y % 2][x % 2] < 3) cv.set(x, y, pal.gold);
+
+  // 3. A figure per voice, at the height of its first note over the piece's range.
+  const n = f.voices.length;
+  const all = f.voices.flatMap((v) => v.map((x) => x[2]));
+  const lo = Math.min(...all);
+  const hi = Math.max(...all);
+  const tops: [number, number][] = [];
+  for (let v = 0; v < n; v++) {
+    const first = f.voices[v][0]?.[2] ?? lo;
+    const x = Math.round(((v + 1) * EMBLEM_W) / (n + 1)) - 2;
+    // Higher voices stand further back (higher up), the bass in front.
+    const base = (water ? HORIZON - 1 : HORIZON + 3) + Math.round(((hi - first) / Math.max(1, hi - lo)) * (water ? 2 : 7));
+    const rows = FIGURES[c.figure];
+    cv.sprite(rows, x, base - rows.length + 1, pal, n === 2 && v === 1);
+    tops.push([x + 2, base - rows.length]);
+  }
+
+  // 4c. Stretto: a dotted bridge between two neighbouring voices per overlapping entry (up to six),
+  // stacked as the entries crowd in; a single voice's ring where there is only one figure.
+  const str = Math.min(6, strettoCount(f));
+  const pairs = Math.max(1, tops.length - 1);
+  for (let i = 0; i < str; i++) {
+    const k = i % pairs;
+    const layer = Math.floor(i / pairs);
+    const [xa, ya] = tops[k];
+    const [xb, yb] = tops[Math.min(k + 1, tops.length - 1)];
+    const cx = (xa + xb) / 2;
+    const rx = Math.max(3, (xb - xa) / 2);
+    const ry = 3 + layer * 2;
+    const cy = Math.min(ya, yb) - 1;
+    for (let a = 0; a <= 24; a += 2) {
+      const ang = Math.PI + (a / 24) * Math.PI;
+      cv.set(cx + Math.cos(ang) * rx, cy + Math.sin(ang) * ry, pal.light);
+    }
+  }
+
+  cache.set(id, cv.px);
+  return cv.px;
+}
+
+/** What drawEmblem needs of a canvas context (a fake one in the tests). */
+export interface PixelTarget {
+  fillStyle: unknown;
+  fillRect(x: number, y: number, w: number, h: number): void;
+}
+
+/** Paints the emblem at `scale` pixels a pixel, a run of one colour at a time. */
+export function drawEmblem(g: PixelTarget, id: string, scale = 1): void {
+  const px = emblemPixels(id);
+  for (let y = 0; y < EMBLEM_H; y++) {
+    let x = 0;
+    while (x < EMBLEM_W) {
+      const col = px[y * EMBLEM_W + x];
+      let end = x + 1;
+      while (end < EMBLEM_W && px[y * EMBLEM_W + end] === col) end++;
+      g.fillStyle = col;
+      g.fillRect(x * scale, y * scale, (end - x) * scale, scale);
+      x = end;
+    }
+  }
+}

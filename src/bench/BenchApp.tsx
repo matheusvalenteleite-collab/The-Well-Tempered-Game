@@ -1,7 +1,7 @@
 /**
  * The testbench (D170; D175; D178; D179-D180): prototypes of the instrument tried on the game itself,
- * judged. ⚙ chooses the prototype (protos.ts), the piece (Contrapunctus XIV, Book I's C minor fugue,
- * and four prelude-and-fugue pairs), the tempo (20 to 200), SIDEWAYS's level, the ensemble
+ * judged. ⚙ chooses the prototype (protos.ts), the piece (D192: a wheel of the fugues' cards,
+ * FuguePicker.tsx), the tempo (20 to 200), SIDEWAYS's level, the ensemble
  * (sound.ts), the tuning (tuning.ts) and the sound's delay; the title the voice (TWO VOICES: two, as
  * an arcade's 1P and 2P) and where to start; ? says how each is played. Each prototype lays the screen
  * out its own way. A computer's keys and a MIDI keyboard play too.
@@ -10,7 +10,7 @@ import { BachTalk } from "./Bach.tsx";
 import { LESSONS, lessonsPassed, passLesson, type Line, type Run } from "./lessons.ts";
 import { defaultBpm } from "../touch/tempi.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { keyTint, ladderGeometry, MusicBox, inkOf, type Frame } from "../touch/MusicBox.tsx";
+import { ladderGeometry, MusicBox, inkOf, type Frame } from "../touch/MusicBox.tsx";
 import { PlayArea, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
 import { BpmSetting, Choice, LagSetting, loadDrums, Panel, saneBpm, SoundSetting, TuningSetting } from "../touch/Panels.tsx";
 import { Chip, voicing } from "../touch/chip.ts";
@@ -21,27 +21,10 @@ import { setTuning } from "../touch/tuning.ts";
 import { accompaniment, startTick, stepRange, subjectMarks, entrySpans, voicesFrom } from "../touch/voice-mode.ts";
 import { paintProto } from "./paint-proto.ts";
 import { ProtoGame, type KeyPress } from "./proto-game.ts";
+import { FuguePicker, PieceButton } from "./FuguePicker.tsx";
+import { recordBest } from "./cards.ts";
 import { ARROW_KEYS, arrowOf, EASY_LEVELS, KEY_ROWS, type EasyLevel, keyId, keyRow, midiId, moveOf, PROTOS, protoById, type Platform, type ProtoId } from "./protos.ts";
 
-/**
- * D181, the piece: four choices, each a button that opens its options: the book (I, II, or the Art of
- * Fugue), the key's tonic, major or minor, prelude or fugue. A key's number in a book is 2 x its
- * tonic's pitch class + 1 for major, + 2 for minor (C major 1, C minor 2, C sharp major 3 …).
- */
-const TONICS = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
-const MINOR_TONICS = ["C", "C♯", "D", "E♭/D♯", "E", "F", "F♯", "G", "G♯", "A", "B♭", "B"];
-interface PieceChoice {
-  book: 0 | 1 | 2;
-  pc: number;
-  minor: boolean;
-  fugue: boolean;
-}
-const idOf = (c: PieceChoice) => (c.book === 0 ? "bwv1080-14" : `wtc${c.book}${c.fugue ? "f" : "p"}${String(2 * c.pc + (c.minor ? 2 : 1)).padStart(2, "0")}`);
-function choiceOf(id: string): PieceChoice {
-  const f = fugueById(id);
-  if (!f.book) return { book: 0, pc: 2, minor: true, fugue: true };
-  return { book: f.book as 1 | 2, pc: Math.floor((f.number - 1) / 2), minor: f.number % 2 === 0, fugue: f.kind === "fugue" };
-}
 const PICK_KEY = "tb-pick-v2";
 const LAG_KEY = "tg-lag";
 const SOUND_KEY = "tg-sound";
@@ -137,6 +120,8 @@ export function BenchApp() {
     if (protoById(pick.proto).platform !== pl) setPick({ proto: PROTOS.find((p) => p.platform === pl)!.id });
   };
   const [note, setNote] = useState("");
+  // D192: the fugue wheel, opened from ⚙.
+  const [wheel, setWheel] = useState(false);
   // D188: a lesson with Herr Bach plays its own passage, on EASY at the lesson's level.
   const [lesson, setLesson] = useState<{ n: number; run: Run } | null>(null);
   const run = lesson?.run;
@@ -259,7 +244,10 @@ export function BenchApp() {
           const ok = r.right / Math.max(1, r.of + r.stray / 2) >= l.passAt;
           if (ok) passLesson(lesson.n);
           setPhase({ kind: "talk", lines: ok ? l.pass : l.again, next: ok ? "advance" : "again" });
-        } else setPhase({ kind: "result", ...r });
+        } else {
+          recordBest(f.id, played, r.grade);
+          setPhase({ kind: "result", ...r });
+        }
         return;
       }
       raf = requestAnimationFrame(loop);
@@ -567,7 +555,7 @@ export function BenchApp() {
           <Choice id="platform" label="PLAY ON" options={[["mobile", "MOBILE"], ["computer", "COMPUTER"]]} value={platform ?? "mobile"} set={(pl) => setPlatform(pl)} />
           {proto.id === "keys" && <Choice id="easy" label="EASY" options={EASY_LEVELS} value={pick.easy} set={(easy) => setPick({ easy })} />}
           {proto.id === "sideways" && <Choice id="level" label="SIDEWAYS" options={[["easy", "EASY"], ["legato", "LEGATO"]]} value={pick.legato ? "legato" : "easy"} set={(v) => setPick({ legato: v === "legato" })} />}
-          <PieceSetting id={pick.piece} set={(piece) => setPick({ piece, share: 0, voice: -1, voice2: -1 })} />
+          <PieceButton id={pick.piece} open={() => setWheel(true)} />
           <BpmSetting bpm={pick.bpm} set={(bpm) => setPick({ bpm })} />
           <SoundSetting value={sound} set={setSound} />
           <TuningSetting id={tuning.id} a={tuning.a} set={changeTuning} />
@@ -577,6 +565,17 @@ export function BenchApp() {
             <span className="tg-panel-val">{midi || "NONE FOUND"}</span>
           </div>
         </Panel>
+      )}
+      {wheel && phase.kind === "settings" && (
+        <FuguePicker
+          current={pick.piece}
+          close={() => setWheel(false)}
+          pick={(piece) => {
+            setPick({ piece, share: 0, voice: -1, voice2: -1 });
+            setWheel(false);
+            quit();
+          }}
+        />
       )}
       {phase.kind === "help" && (
         <Panel title="THE PROTOTYPES" close={quit}>
@@ -686,86 +685,5 @@ function Arcade({ f, pick, setPick, from, note }: { f: TouchFugue; pick: Pick; s
       <p className="tb-arcade-go">PRESS START</p>
       {note && <p className="tg-note">{note}</p>}
     </div>
-  );
-}
-
-/** The piece's four buttons, each opening its options (D181). */
-function PieceSetting({ id, set }: { id: string; set: (id: string) => void }) {
-  const cur = choiceOf(id);
-  const [open, setOpen] = useState<"book" | "key" | "mode" | "kind" | null>(null);
-  const f = fugueById(id);
-  const choose = (c: Partial<PieceChoice>) => {
-    set(idOf({ ...cur, ...c }));
-    setOpen(null);
-  };
-  const aof = cur.book === 0;
-  const tint = keyTint(f.key, 6);
-  const tonic = (cur.minor ? MINOR_TONICS : TONICS)[cur.pc];
-  return (
-    <>
-      <div className="tg-set">
-        <span>PIECE</span>
-        <span className="tg-panel-val">{f.title.toUpperCase()}</span>
-      </div>
-      <div className="tb-piece4">
-        <button type="button" id="pick-book" className="tb-book" onClick={() => setOpen("book")}>
-          {aof ? "ART OF FUGUE" : `BOOK ${cur.book === 1 ? "I" : "II"}`}
-        </button>
-        <button type="button" id="pick-key" className="tb-key" style={{ background: tint }} disabled={aof} onClick={() => setOpen("key")}>
-          {aof ? "D" : tonic}
-        </button>
-        <button type="button" id="pick-mode" className={`tb-mode${cur.minor ? " minor" : ""}`} disabled={aof} onClick={() => setOpen("mode")}>
-          {cur.minor ? "MINOR" : "MAJOR"}
-        </button>
-        <button type="button" id="pick-kind" className="tb-kind" disabled={aof} onClick={() => setOpen("kind")}>
-          {cur.fugue ? "FUGUE" : "PRELUDE"}
-        </button>
-      </div>
-      {open && (
-        <div className="tb-pop" role="dialog" aria-label="Choose" onClick={() => setOpen(null)}>
-          <div className="tb-pop-box" onClick={(e) => e.stopPropagation()}>
-            {open === "book" && (
-              <div className="tb-pop-grid tb-pop-3">
-                {([1, 2, 0] as const).map((b) => (
-                  <button key={b} type="button" id={`book-${b}`} className={b === cur.book ? "on" : ""} onClick={() => choose({ book: b, ...(b === 0 ? {} : cur.book === 0 ? { pc: 0, minor: false, fugue: true } : {}) })}>
-                    {b === 0 ? "ART OF FUGUE · XIV" : `BOOK ${b === 1 ? "I · 1722" : "II · 1742"}`}
-                  </button>
-                ))}
-              </div>
-            )}
-            {open === "key" && (
-              <div className="tb-pop-grid tb-pop-4">
-                {(cur.minor ? MINOR_TONICS : TONICS).map((t, pc) => {
-                  const k = fugueById(idOf({ ...cur, pc })).key;
-                  return (
-                    <button key={t} type="button" id={`key-${pc}`} className={pc === cur.pc ? "on" : ""} style={{ background: keyTint(k, 8) }} onClick={() => choose({ pc })}>
-                      {t}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-            {open === "mode" && (
-              <div className="tb-pop-grid tb-pop-2">
-                {[false, true].map((m) => (
-                  <button key={String(m)} type="button" id={`mode-${m ? "minor" : "major"}`} className={m === cur.minor ? "on" : ""} style={{ background: keyTint(fugueById(idOf({ ...cur, minor: m })).key, 8) }} onClick={() => choose({ minor: m })}>
-                    {m ? "MINOR" : "MAJOR"}
-                  </button>
-                ))}
-              </div>
-            )}
-            {open === "kind" && (
-              <div className="tb-pop-grid tb-pop-2">
-                {[false, true].map((k) => (
-                  <button key={String(k)} type="button" id={`kind-${k ? "fugue" : "prelude"}`} className={k === cur.fugue ? "on" : ""} disabled={!k} onClick={() => choose({ fugue: k })}>
-                    {k ? "FUGUE" : "PRELUDES · SOON"}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </>
   );
 }
