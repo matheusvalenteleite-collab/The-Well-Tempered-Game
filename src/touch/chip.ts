@@ -8,7 +8,24 @@
  */
 export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 
-import { grooveHits, preset, patchFor, type Drum, type Patch, type Wave } from "./sound.ts";
+import { hz } from "./tuning.ts";
+import { grooveHits, preset, patchFor, PATCHES, type Drum, type Patch, type Wave } from "./sound.ts";
+
+/**
+ * D179, the player's voice: whatever the ensemble gives it, it holds while the thumb is down (a plucked
+ * sound keeps half its strength and fades slowly), a little forward of the others, with a second
+ * oscillator a few cents off (chorus) and a vibrato that comes in after a moment.
+ */
+export function leadOf(pt: Patch): Patch {
+  const pluck = pt.amp.s === 0;
+  return {
+    ...pt,
+    osc: [...pt.osc, { ...pt.osc[0], detune: (pt.osc[0].detune ?? 0) + 7, gain: (pt.osc[0].gain ?? 1) * 0.35 }],
+    amp: pluck ? { a: pt.amp.a, d: Math.max(0.6, pt.amp.d), s: 0.55, r: 0.18 } : { ...pt.amp, r: Math.max(0.12, pt.amp.r) },
+    vib: pt.vib ?? { depth: 8, rate: 5.2, delay: 0.35 },
+    level: pt.level * 1.12,
+  };
+}
 
 export interface Voicing {
   timbre: Timbre;
@@ -35,6 +52,8 @@ export interface Play {
   bright?: number;
   soft?: number;
   accent?: number;
+  /** D179: the player's own voice: it never dies away quickly, stands a little forward, has a touch of chorus and vibrato. */
+  lead?: boolean;
 }
 
 export interface Sounding {
@@ -45,6 +64,8 @@ export interface Sounding {
   glide?: (midi: number) => void;
   /** Darken and soften it (a wrong gesture: Bach's note, but muffled). */
   muffle?: () => void;
+  /** D179: the note's dynamic now (1 as struck), changed smoothly while it sounds (a swell, a diminuendo). */
+  dyn?: (level: number) => void;
 }
 
 export class Chip {
@@ -137,6 +158,7 @@ export class Chip {
 
   /** A note from `at` for `dur` seconds; stop() cuts it short (the thumb let go). */
   note(midi: number, at: number, dur: number, v: Voicing, p: Play = {}): Sounding {
+    if (p.lead) return this.patchNote(midi, at, dur, v, leadOf(v.patch ?? PATCHES.nesMid), p);
     if (v.patch) return this.patchNote(midi, at, dur, v, v.patch, p);
     const ctx = this.ctx;
     const t = Math.max(at, ctx.currentTime);
@@ -147,7 +169,7 @@ export class Chip {
     const w = this.wave(v.timbre);
     if (w === "triangle") o.type = "triangle";
     else o.setPeriodicWave(w);
-    o.frequency.value = 440 * 2 ** ((midi - 69) / 12);
+    o.frequency.value = hz(midi);
     // The triangle is quieter than the pulses at the same amplitude.
     const peak = (v.timbre === "triangle" ? 0.36 : v.timbre === "pulse50" ? 0.15 : 0.19) * v.gain * (p.level ?? 1);
     const sustain = peak * 0.72;
@@ -212,7 +234,7 @@ export class Chip {
         if (!stopped) o.detune.setTargetAtTime(cents, ctx.currentTime, 0.02);
       },
       glide: (to: number) => {
-        if (!stopped) o.frequency.setTargetAtTime(440 * 2 ** ((to - 69) / 12), ctx.currentTime, 0.025);
+        if (!stopped) o.frequency.setTargetAtTime(hz(to), ctx.currentTime, 0.025);
       },
       muffle: () => {
         if (stopped || !dull) return;
@@ -274,7 +296,7 @@ export class Chip {
     const pluck = pt.amp.s === 0;
     const tail = pluck || p.envelope === "piano" || p.envelope === "dulcimer";
     const end = Math.max(t + 0.05, at + dur - 0.01);
-    const f0 = 440 * 2 ** ((midi - 69) / 12);
+    const f0 = hz(midi);
     const bright = 2 ** ((p.bright ?? 0) * 1.3);
     const peak = pt.level * v.gain * (p.level ?? 1) * 0.5;
     const mix = ctx.createGain();
@@ -385,10 +407,11 @@ export class Chip {
       lfo.stop(end + 2);
     }
     const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    const dyn = ctx.createGain();
     if (pan) {
       pan.pan.value = Math.max(-1, Math.min(1, v.pan));
-      src.connect(g).connect(pan).connect(this.bus);
-    } else src.connect(g).connect(this.bus);
+      src.connect(g).connect(dyn).connect(pan).connect(this.bus);
+    } else src.connect(g).connect(dyn).connect(this.bus);
     const last = tail ? t + 6 : end + 0.05;
     for (const o of oscs) (o.start(t), o.stop(last));
     if (breath) (breath.start(t), breath.stop(last));
@@ -409,14 +432,80 @@ export class Chip {
       },
       glide: (to: number) => {
         if (stopped) return;
-        const f = 440 * 2 ** ((to - 69) / 12);
+        const f = hz(to);
         for (const [i, o] of oscs.entries()) o.frequency.setTargetAtTime(f * 2 ** (pt.osc[i].octave ?? 0), ctx.currentTime, 0.025);
       },
       muffle: () => {
         if (stopped || !dull) return;
         dull.frequency.setTargetAtTime(500, ctx.currentTime, 0.01);
       },
+      dyn: (level: number) => {
+        if (!stopped) dyn.gain.setTargetAtTime(Math.max(0.05, level), ctx.currentTime, 0.06);
+      },
     };
+  }
+
+  /**
+   * D179, the swoosh: a note flicked upwards as it is let go flies up (its pitch an octave higher, a
+   * filter opening, a breath of air) and comes down bouncing, quicker and quicker, softer and softer,
+   * like a ping-pong ball settling, but faster.
+   */
+  swoosh(midi: number, v: Voicing, level = 1) {
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const f0 = hz(midi);
+    const out = ctx.createGain();
+    out.gain.value = 0.22 * level;
+    const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    if (pan) (pan.pan.value = Math.max(-1, Math.min(1, v.pan)), out.connect(pan).connect(this.bus));
+    else out.connect(this.bus);
+    // The flight: a sawtooth gliding up an octave through an opening filter, and a whoosh of air.
+    const o = ctx.createOscillator();
+    o.type = "sawtooth";
+    o.frequency.setValueAtTime(f0, t);
+    o.frequency.exponentialRampToValueAtTime(f0 * 2, t + 0.18);
+    const fl = ctx.createBiquadFilter();
+    fl.type = "lowpass";
+    fl.Q.value = 6;
+    fl.frequency.setValueAtTime(400, t);
+    fl.frequency.exponentialRampToValueAtTime(7000, t + 0.18);
+    const og = ctx.createGain();
+    og.gain.setValueAtTime(0.9, t);
+    og.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
+    o.connect(fl).connect(og).connect(out);
+    o.start(t);
+    o.stop(t + 0.26);
+    const n = this.noise();
+    const nf = ctx.createBiquadFilter();
+    nf.type = "bandpass";
+    nf.Q.value = 3;
+    nf.frequency.setValueAtTime(800, t);
+    nf.frequency.exponentialRampToValueAtTime(6000, t + 0.2);
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.0001, t);
+    ng.gain.exponentialRampToValueAtTime(0.5, t + 0.06);
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
+    n.connect(nf).connect(ng).connect(out);
+    n.start(t);
+    n.stop(t + 0.26);
+    // The bounces: ever shorter gaps, ever softer.
+    let at = t + 0.24;
+    let gap = 0.11;
+    let gain = 0.7;
+    for (let k = 0; k < 9; k++) {
+      const b = ctx.createOscillator();
+      b.type = "triangle";
+      b.frequency.value = f0 * 2 * (1 + k * 0.01);
+      const bg = ctx.createGain();
+      bg.gain.setValueAtTime(gain, at);
+      bg.gain.exponentialRampToValueAtTime(0.001, at + 0.03);
+      b.connect(bg).connect(out);
+      b.start(at);
+      b.stop(at + 0.035);
+      at += gap;
+      gap *= 0.72;
+      gain *= 0.7;
+    }
   }
 
   /** The rhythm section (D177): a synthesized kit, quiet under the music. */

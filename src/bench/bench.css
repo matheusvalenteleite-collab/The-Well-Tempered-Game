@@ -22,3 +22,14 @@
 .tb-bars .tg-half, .tb-bars .tg-half-on { background: transparent; border: 0; }
 .tb-quit { position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); right: max(8px, env(safe-area-inset-right, 0px)); z-index: 5; background: var(--tg-veil); }
 .tb-bars .tb-quit { right: calc(20% + 8px); }
+/* D180, TWO VOICES: the voices chosen as an old arcade chooses its players. */
+.tb-arcade h1 { color: var(--tg-shine); letter-spacing: 0.12em; text-shadow: 2px 2px 0 #b8322a; }
+.tb-arcade-row { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.tb-arcade-who { font-family: var(--tg-pixel); font-size: 14px; width: 40px; text-shadow: 2px 2px 0 var(--tg-bg); }
+.tb-1p .tb-arcade-who { color: #ff5a4f; }
+.tb-2p .tb-arcade-who { color: #5cb2ff; }
+.tb-arcade-voices { display: flex; flex-wrap: wrap; gap: 6px; }
+.tb-arcade-voices button { font-family: var(--tg-pixel); font-size: 8px; padding: 6px 8px; background: transparent; border: 2px solid transparent; cursor: pointer; }
+.tb-arcade-voices button.on { border-color: currentColor; animation: tg-blink 0.9s steps(2) infinite; }
+.tb-arcade-voices button:disabled { opacity: 0.25; cursor: default; }
+.tb-arcade-go { font-family: var(--tg-pixel); font-size: 9px; color: var(--tg-shine); animation: tg-blink 1.1s steps(2) infinite; }

@@ -13,18 +13,17 @@ import { Chip } from "./chip.ts";
 import { Game, INSTRUMENTS, prepare, type Grade, type Instrument } from "./engine.ts";
 import { paintPiano, pianoView } from "./paint-piano.ts";
 import { paintSynth } from "./paint-synth.ts";
-import { HelpPanel, SettingsPanel } from "./Panels.tsx";
+import { HelpPanel, saneBpm, SettingsPanel } from "./Panels.tsx";
+import { setTuning } from "./tuning.ts";
 import { setPreset } from "./sound.ts";
 import { barAt, beatOf, fugueById, keyAt, keyName, shortName, type TouchFugue } from "./fugue.ts";
 import { LEVELS, type Level as Difficulty } from "./lanes.ts";
 import { accompaniment, level, startTick, stepRange, subjectMarks, voicesFrom } from "./voice-mode.ts";
 
-/** The speeds, as beats per minute of the felt beat (beatOf). */
-const SPEEDS = { slow: 40, medium: 54, fast: 72 } as const;
-type Speed = keyof typeof SPEEDS;
 const PICK_KEY = "tg-pick-v2";
 const LAG_KEY = "tg-lag";
 const SOUND_KEY = "tg-sound";
+const TUNING_KEY = "tg-tuning";
 const HELP: Record<Instrument, string> = {
   synth: "Right thumb: up. Left: down. Hold to sustain. ? for more.",
   piano: "Strike the lit key as its note lands. Hold to let it ring. ? for more.",
@@ -42,11 +41,12 @@ interface Pick {
   voice: number;
   inst: Instrument;
   diff: Difficulty;
-  speed: Speed;
+  /** Beats per minute of the felt beat (beatOf), 20 to 200. */
+  bpm: number;
   /** Where to start, as a share of the piece (0 to 0.99). */
   share: number;
 }
-const DEFAULT_PICK: Pick = { piece: "wtc1f02", voice: 1, inst: "synth", diff: "easy", speed: "medium", share: 0 };
+const DEFAULT_PICK: Pick = { piece: "wtc1f02", voice: 1, inst: "synth", diff: "easy", bpm: 54, share: 0 };
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -70,7 +70,7 @@ function sane(p: Pick): Pick {
   const share = Math.min(0.99, Math.max(0, p.share || 0));
   const singing = voicesFrom(f, startTick(f, share));
   const voice = singing.includes(p.voice) ? p.voice : singing[f.kind === "prelude" ? 0 : Math.min(1, singing.length - 1)];
-  return { ...DEFAULT_PICK, ...p, piece: f.id, share, voice, inst: INSTRUMENTS.includes(p.inst) ? p.inst : "synth", diff: LEVELS.includes(p.diff) ? p.diff : "easy", speed: p.speed in SPEEDS ? p.speed : "medium" };
+  return { ...DEFAULT_PICK, ...p, piece: f.id, share, voice, inst: INSTRUMENTS.includes(p.inst) ? p.inst : "synth", diff: LEVELS.includes(p.diff) ? p.diff : "easy", bpm: saneBpm(p.bpm) };
 }
 
 const voiceName = (f: TouchFugue, v: number) => f.voiceNames[v].toUpperCase();
@@ -87,7 +87,7 @@ export function TouchApp() {
     });
   const [note, setNote] = useState("");
   const f = fugueById(pick.piece);
-  const { voice, diff, speed, share, inst } = pick;
+  const { voice, diff, bpm, share, inst } = pick;
   const [lag, setLagRaw] = useState<number | null>(() => load<number | null>(LAG_KEY, null));
   const setLag = (l: number | null) => {
     setLagRaw(l);
@@ -96,13 +96,21 @@ export function TouchApp() {
   };
   const marks = useMemo(() => subjectMarks(f), [f]);
   // D177: the ensemble, shared with the testbench.
-  const [sound, setSoundRaw] = useState<string>(() => load<string>(SOUND_KEY, "chip"));
+  const [sound, setSoundRaw] = useState<string>(() => load<string>(SOUND_KEY, "bossa"));
   const setSound = (id: string) => {
     setSoundRaw(id);
     save(SOUND_KEY, id);
     setPreset(id);
   };
   useEffect(() => setPreset(sound), []);
+  // D180: the tuning, shared with the testbench.
+  const [tuning, setTuningRaw] = useState<{ id: string; a: number }>(() => load(TUNING_KEY, { id: "equal", a: 440 }));
+  const changeTuning = (id: string, a: number) => {
+    setTuningRaw({ id, a });
+    save(TUNING_KEY, { id, a });
+    setTuning(id, a);
+  };
+  useEffect(() => setTuning(tuning.id, tuning.a), []);
   const from = startTick(f, share);
   const range = useMemo(() => stepRange(f), [f]);
   const lv = useMemo(() => level(f, voice, from), [f, voice, from, phase.kind === "play"]);
@@ -159,7 +167,7 @@ export function TouchApp() {
   // Playing: the engine steps every frame; at the end, the result.
   useEffect(() => {
     if (phase.kind !== "play" || !chip.current) return;
-    const g = new Game(f, [lv], { difficulty: diff, bpm: SPEEDS[speed], instrument: inst }, chip.current);
+    const g = new Game(f, [lv], { difficulty: diff, bpm, instrument: inst }, chip.current);
     game.current = g;
     paint.current = inst === "piano" ? (ctx, w, h) => paintPiano(ctx, w, h, pianoView(g), marks.subject) : (ctx, w, h) => paintSynth(ctx, w, h, g);
     const b = beatOf(f);
@@ -330,7 +338,7 @@ export function TouchApp() {
         />
       )}
       {phase.kind === "settings" && (
-        <SettingsPanel settings={pick} set={(s) => setPick(s)} lag={lag} setLag={setLag} sound={sound} setSound={setSound} chip={ensureChip} close={() => setPhase({ kind: "title" })} />
+        <SettingsPanel settings={pick} set={(s) => setPick(s)} lag={lag} setLag={setLag} sound={sound} setSound={setSound} tuning={tuning} setTuning={changeTuning} chip={ensureChip} close={() => setPhase({ kind: "title" })} />
       )}
       {phase.kind === "help" && <HelpPanel close={() => setPhase({ kind: "title" })} />}
       <div className="tg-upright" role="alert">
@@ -369,7 +377,7 @@ function Title({ f, pick, setPick, from, open, note }: { f: TouchFugue; pick: Pi
         ))}
       </div>
       <p className="tg-card-sub">
-        {pick.inst.toUpperCase()} · {pick.diff.toUpperCase()} · {pick.speed.toUpperCase()}
+        {pick.inst.toUpperCase()} · {pick.diff.toUpperCase()} · {pick.bpm} BPM
       </p>
       <label className="tg-from">
         <span>

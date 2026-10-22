@@ -3,8 +3,8 @@
  * geometry: touches in, places out.
  *   PIANO (sideways): the keyboard of D172, the voice's whole range, the notes falling onto it.
  *   SIDEWAYS (upright, the whole screen): the tune across the width, a column per staff step, higher to
- *   the right; only COLUMNS of them at a time (a thumb's width each), the window following the
- *   passage smoothly; notes fall to a line near the bottom and are touched in their column.
+ *   the right; only COLUMNS of them at a time, the window following the passage smoothly; notes fall
+ *   to a line near the bottom and are touched in their column, anywhere up or down.
  */
 import type { LaneNote } from "../touch/lanes.ts";
 import { keyAt, keyboard, WHITE_ONLY, type Keyboard } from "../touch/piano.ts";
@@ -21,10 +21,9 @@ export function pianoKey(kb: Keyboard, x: number, y: number): number {
   return keyAt(kb, x, y > top + KEYS_SHARE * (1 - WHITE_ONLY));
 }
 
-/** SIDEWAYS: how many columns (staff steps) show at once; the line (share of the height); touches count below TOUCH_FROM. */
-export const COLUMNS = 9;
+/** SIDEWAYS: how many columns (staff steps) show at once (D179: seven, a thumb and a half wide each), and the line (share of the height). */
+export const COLUMNS = 7;
 export const LINE = 0.8;
-export const TOUCH_FROM = 0.35;
 
 /** SIDEWAYS: where the window is aimed: the middle of the voice's next bar (or its next note). */
 export function aim(notes: LaneNote[], now: number, barTicks: number): number | null {
