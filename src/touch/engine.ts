@@ -6,6 +6,9 @@
  * GOOD), counts the combo, and gives the music box and the keys what to draw.
  * Holding a note, the thumb can slide to the next row for the next note (a slur) and wobble sideways
  * to bend it (vibrato). WAIT (D167, as Synthesia's): the music stops at each note until it is played.
+ * D168, legato by substitution: a thumb lifted from a note and tapping the same part's next note within
+ * CARRY_S lets the first note sound on to its end, held in full, as a finger change or the pedal would
+ * (a prelude's hand holds one note under others; one thumb cannot).
  */
 import { voicing, type Chip, type Sounding } from "./chip.ts";
 import { beatOf, keyAt, type TouchFugue } from "./fugue.ts";
@@ -22,6 +25,8 @@ export const REACH_STEPS = 1;
 /** Sideways wobble to bend: pixels for a full bend, and the bend in cents. */
 const BEND_PX = 40;
 const BEND_CENTS = 30;
+/** How soon after a lift the part's next tap carries the lifted note on, in seconds. */
+export const CARRY_S = 0.25;
 
 export interface Track {
   lv: Level;
@@ -104,6 +109,8 @@ export class Game {
   private nextBeat: number;
   private nextOther = 0;
   private held = new Map<number, Held>();
+  /** Lifts not yet final: a tap in the same part soon after carries the note on. */
+  private lifting: { track: number; chord: number[]; sounds: Sounding[]; t: number; until: number }[] = [];
 
   constructor(f: TouchFugue, levels: Level[], o: GameOptions, chip: Chip) {
     this.f = f;
@@ -173,6 +180,13 @@ export class Game {
       const dur = block !== null ? Math.min(n.dur, Math.max(this.beat / 4, block - n.on)) : n.dur;
       ch.note(n.midi, this.timeAt(n.on), dur / this.tps, voicing(n.voice, this.f.voices.length, false));
     }
+    // Lifts that no tap carried on are final: the note stops where the thumb left it.
+    this.lifting = this.lifting.filter((l) => {
+      if (ch.ctx.currentTime < l.until) return true;
+      for (const sd of l.sounds) sd.stop();
+      for (const j of l.chord) release(this.tracks[l.track].lv.notes, j, l.t);
+      return false;
+    });
     const ahead = Math.min(this.tickAt(ch.ctx.currentTime + 0.05), block ?? Infinity);
     this.tracks.forEach((t) => {
       const notes = t.lv.notes;
@@ -280,7 +294,7 @@ export class Game {
       if (cur) cur.row = row;
       return false;
     }
-    if (slide) this.letGo(id, ts);
+    if (slide) this.letGo(id, ts, true);
     const chord = i >= 0 ? chordOf(notes, i) : [];
     const held: Held = { track: k, row: row < 0 ? (i >= 0 ? notes[i].step - win.lo : 0) : row, x0, note: i, chord, sounds: [] };
     if (i >= 0) {
@@ -294,6 +308,8 @@ export class Game {
       const at = performance.now();
       this.grade = perfect ? { text: "PERFECT", at, track: k, row: held.row } : { text: "GOOD", lean: offMs < 0 ? -1 : 1, at, track: k, row: held.row };
       if (this.waiting) this.resume(notes[i].on);
+      // A lift just before, in this part: that note sounds on, held in full.
+      this.lifting = this.lifting.filter((l) => l.track !== k);
     } else if (!slide) {
       this.grade = { text: "✕", at: performance.now(), track: k, row: held.row };
     }
@@ -315,12 +331,19 @@ export class Game {
     return false;
   }
 
-  private letGo(id: number, ts: number) {
+  /** A thumb leaves its note: final unless the part's next tap comes within CARRY_S (a slide is final at once). */
+  private letGo(id: number, ts: number, final = false) {
     const cur = this.held.get(id);
     if (!cur) return;
-    for (const sd of cur.sounds) sd.stop();
     const t = this.tickOf(ts);
-    for (const j of cur.chord) release(this.tracks[cur.track].lv.notes, j, t);
+    const notes = this.tracks[cur.track].lv.notes;
+    const sounding = cur.chord.filter((j) => notes[j].on + notes[j].dur > t);
+    if (final || !sounding.length) {
+      for (const sd of cur.sounds) sd.stop();
+      for (const j of cur.chord) release(notes, j, t);
+      return;
+    }
+    this.lifting.push({ track: cur.track, chord: cur.chord, sounds: cur.sounds, t, until: this.chip.ctx.currentTime + CARRY_S });
   }
 
   /** Whether a note is being held by a thumb now. */
@@ -330,7 +353,9 @@ export class Game {
 
   stopAll() {
     for (const h of this.held.values()) for (const sd of h.sounds) sd.stop();
+    for (const l of this.lifting) for (const sd of l.sounds) sd.stop();
     this.held.clear();
+    this.lifting = [];
   }
 
   /** Points, voice by voice. */

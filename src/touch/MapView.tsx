@@ -1,12 +1,12 @@
 /**
- * The map (D164; D167): a fugue as a grid, its sections across (headed by their first bar, in the
- * colour of the key they reach), its voices down, each cell the voice's best score in the section at the
+ * The map (D164; D167; D168): a piece as a grid, its sections across (headed by their first bar, in
+ * the colour of the key they reach), its parts (voices, or a prelude's hands) down, each cell the voice's best score in the section at the
  * chosen level, a star once earned. A diamond marks a voice carrying an entry of the subject in that
  * section, so the grid shows the fugue's architecture as the player fills it in. A cell opens that
  * section with that voice. The grid scrolls sideways when the fugue has many sections.
  */
 import { inkOf, keyTint } from "./MusicBox.tsx";
-import type { TouchFugue } from "./fugue.ts";
+import { keyAt, type TouchFugue } from "./fugue.ts";
 import type { Level as Difficulty } from "./lanes.ts";
 import { EARN, recordKey, voicesIn } from "./voice-mode.ts";
 
@@ -27,13 +27,19 @@ export function MapView({ f, best, diff, pick, close }: { f: TouchFugue; best: R
         {f.title.toUpperCase()} · {stars} OF {cells.length} <span className="tg-sym">★</span>
       </h1>
       <p className="tg-card-sub">
-        {diff.toUpperCase()} · TAP A SQUARE TO PLAY IT · <span className="tg-sym">◆</span> AN ENTRY OF THE SUBJECT
+        {diff.toUpperCase()} · TAP A SQUARE TO PLAY IT
+        {f.kind === "fugue" && (
+          <>
+            {" "}
+            · <span className="tg-sym">◆</span> AN ENTRY OF THE SUBJECT
+          </>
+        )}
       </p>
       <div className="tg-grid-scroll">
         <div className="tg-grid" style={{ gridTemplateColumns: `3.6em repeat(${n}, minmax(2.2em, 1fr))` }}>
           <span />
           {f.sections.map((s, i) => (
-            <span key={i} className="tg-grid-head" style={{ background: keyTint(sectionEntries(f, i).at(-1)?.key ?? f.key) }}>
+            <span key={i} className="tg-grid-head" style={{ background: keyTint(keyAt(f, s.to - 1)) }}>
               {s.fromBar}
             </span>
           ))}
@@ -50,7 +56,12 @@ export function MapView({ f, best, diff, pick, close }: { f: TouchFugue; best: R
 }
 
 function Row({ f, v, best, diff, pick }: { f: TouchFugue; v: number; best: Record<string, number>; diff: Difficulty; pick: (section: number, voice: number) => void }) {
-  const short = f.voiceNames[v].replace(/^(\w)\w*( ?)(I*)$/, "$1$3").slice(0, 3).toUpperCase();
+  // "S", "SI", "RH": the name's initials.
+  const short = f.voiceNames[v]
+    .split(" ")
+    .map((w) => (/^I+$/.test(w) ? w : w[0]))
+    .join("")
+    .toUpperCase();
   return (
     <>
       <span className="tg-grid-voice" style={{ color: inkOf(v, f.voices.length) }}>

@@ -1,6 +1,7 @@
 /**
- * Writes data/touch/fugues.json: the 48 fugues for the touch game (D167), cut from the study's corpus
- * (data/wtc/fugues.json, Humdrum encoding, true voices). Each voice is a list of [onset, duration,
+ * Writes data/touch/pieces.json: the 96 preludes and fugues for the touch game (D167, D168), in the
+ * book's order (each prelude before its fugue), cut from the study's corpus (data/wtc/fugues.json and
+ * preludes.json, Humdrum encoding). Each voice is a list of [onset, duration,
  * MIDI, staff step] in ticks (the step: the note's letter and octave, 7 per octave, C0 = 0, so the
  * lanes are the staff's lines and spaces).
  * The entries of the subject are the study's (src/wtc/library.ts, found by the subject's head), each
@@ -11,6 +12,13 @@
  * The sections: the exposition (until every voice has had its first entry), then sections of 4 to
  * 10 bars, each ending on the first beat of the bar where an entry lands (8 bars where none does).
  * The C minor fugue keeps the sections read by hand (D163).
+ * The preludes (D168) are played by hands, not voices: most are encoded as one keyboard stream split
+ * in two sub-lines, the upper (sub-line 0) the right hand and the rest the left; those encoded on two
+ * staves take a staff for a hand, the higher the right; the C sharp minor prelude of Book I, written in
+ * four real voices, keeps them. A prelude's sections end on the harmonic map's cadences (4 to 10 bars,
+ * 6 where none falls), and its colours follow the keys those cadences reach.
+ * `keys` is each piece's timeline of keys for the music box's colour: a fugue's entries, a prelude's
+ * cadences.
  * Run: node tools/touch/extract.ts
  */
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
@@ -20,7 +28,10 @@ import { TPQ } from "../../src/wtc/kern.ts";
 import type { WtcPiece } from "../../src/wtc/corpus.ts";
 import { LIBRARY } from "../../src/wtc/library.ts";
 
-const corpus: WtcPiece[] = JSON.parse(readFileSync(fileURLToPath(new URL("../../data/wtc/fugues.json", import.meta.url)), "utf8"));
+const read = (f: string) => JSON.parse(readFileSync(fileURLToPath(new URL(`../../data/wtc/${f}`, import.meta.url)), "utf8"));
+const corpus: WtcPiece[] = read("fugues.json");
+const preludeCorpus: WtcPiece[] = read("preludes.json");
+const maps: { id: string; moments: { kind: string; bar: number; onset: string; to?: string }[] }[] = read("harmonic-maps.json").pieces;
 
 const NAMES: Record<number, string[]> = {
   2: ["Upper", "Lower"],
@@ -56,7 +67,7 @@ const keyName = (k: string) => {
   return `${k[0].toUpperCase()}${k.slice(1).replace("b", "♭").replace("#", "♯")} ${minor ? "minor" : "major"}`;
 };
 
-const out = corpus
+const fugues = corpus
   .filter((p) => p.kind === "fugue")
   .sort((a, b) => a.book - b.book || a.number - b.number)
   .map((p) => {
@@ -155,6 +166,7 @@ const out = corpus
     const minor = p.mode === "minor";
     return {
       id: p.id,
+      kind: "fugue",
       book: p.book,
       number: p.number,
       title: `Fugue ${p.number} in ${p.key.replace("b", "♭").replace("#", "♯")} ${p.mode}`,
@@ -168,14 +180,94 @@ const out = corpus
       voiceNames: NAMES[voices.length] ?? voices.map((_, i) => `Voice ${i + 1}`),
       voices,
       entries,
+      keys: entries.map((e) => ({ on: e.on, key: e.key })),
       spell,
       sections,
     };
   });
 
+/** A cadence's key as the maps give it ("G", "E# minor") in the game's spelling ("G", "e#"). */
+const cadenceKey = (to: string) => (/ minor$/.test(to) ? to.replace(/ minor$/, "").toLowerCase() : to.replace(/ major$/, ""));
+const fraction = (s: string) => {
+  const [a, b] = s.split("/").map(Number);
+  return a / (b || 1);
+};
+
+const preludes = preludeCorpus
+  .sort((a, b) => a.book - b.book || a.number - b.number)
+  .map((p) => {
+    const barQ = (Number(p.meter.split("/")[0]) * 4) / Number(p.meter.split("/")[1]);
+    const b1 = (p.bars.find((b) => b.n === 1)?.on ?? 0) / TPQ;
+    const pad = b1 > 1e-6 ? barQ - b1 : 0;
+    const spell: Record<number, string> = {};
+    // The parts: by sub-line in a one-stream encoding (0 the right hand), else by staff.
+    const groups = new Map<string, Note[]>();
+    p.voices.forEach((v, si) =>
+      v
+        .filter(([, dur]) => dur > 0)
+        .forEach(([on, dur, pitch, sub]) => {
+          const sp = parsePitch(pitch);
+          spell[sp.midi] ??= pitch;
+          const key = p.voices.length === 1 ? (sub === 0 ? "hi" : "lo") : String(si);
+          if (!groups.has(key)) groups.set(key, []);
+          groups.get(key)!.push([on, dur, sp.midi, sp.diatonic]);
+        }),
+    );
+    const mean = (g: Note[]) => g.reduce((t, n) => t + n[2], 0) / g.length;
+    const voices = [...groups.values()].sort((a, b) => mean(b) - mean(a)).map((g) => g.sort((a, b) => a[0] - b[0] || b[2] - a[2]));
+    const voiceNames = voices.length === 2 ? ["Right hand", "Left hand"] : NAMES[voices.length] ?? voices.map((_, i) => `Part ${i + 1}`);
+    const barTicks = barQ * TPQ;
+    const barOn = (n: number) => p.bars.find((b) => b.n === n)?.on ?? p.length;
+    const lastBar = p.bars.at(-1)!.n;
+    const cadences = (maps.find((m) => m.id === p.id)?.moments ?? [])
+      .filter((m) => m.kind === "cadence" && m.to)
+      .map((m) => ({ bar: m.bar, on: Math.round((fraction(m.onset) * 4 - pad) * TPQ), key: cadenceKey(m.to!) }));
+    const cuts: [number, number, string][] = [];
+    const start = p.bars[0].n === 0 ? 0 : 1;
+    for (let from = start; from <= lastBar; ) {
+      const near = (lo: number, hi: number) => cadences.find((c) => c.bar >= from + lo && c.bar <= from + hi);
+      const c = near(4, 8) ?? near(9, 10);
+      let next = c ? c.bar : from + 6;
+      if (lastBar + 1 - next < 3) next = lastBar + 1;
+      const name = from === start ? "Opening" : next > lastBar ? "To the end" : c ? `To the cadence in ${keyName(c.key)}` : "Onwards";
+      cuts.push([from, next, name]);
+      from = next;
+    }
+    const sections = cuts.map(([fromBar, toBar, name]) => ({
+      name,
+      fromBar,
+      toBar: Math.min(toBar, lastBar),
+      from: barOn(fromBar),
+      to: toBar > lastBar ? p.length : barOn(toBar) + TPQ,
+    }));
+    const minor = p.mode === "minor";
+    return {
+      id: p.id,
+      kind: "prelude",
+      book: p.book,
+      number: p.number,
+      title: `Prelude ${p.number} in ${p.key.replace("b", "♭").replace("#", "♯")} ${p.mode}`,
+      key: minor ? p.key.toLowerCase() : p.key,
+      bwv: p.bwv.replace(/[a-z]$/, ""),
+      meter: p.meter,
+      tpq: TPQ,
+      length: p.length,
+      barTicks,
+      bars: p.bars,
+      voiceNames,
+      voices,
+      entries: [],
+      keys: cadences.map((c) => ({ on: c.on, key: c.key })),
+      spell,
+      sections,
+    };
+  });
+
+const out = [...preludes, ...fugues].sort((a, b) => a.book - b.book || a.number - b.number || (a.kind === "prelude" ? -1 : 1));
+
 const dir = fileURLToPath(new URL("../../data/touch/", import.meta.url));
 mkdirSync(dir, { recursive: true });
-writeFileSync(`${dir}fugues.json`, JSON.stringify(out) + "\n");
+writeFileSync(`${dir}pieces.json`, JSON.stringify(out) + "\n");
 const notes = out.reduce((s, f) => s + f.voices.reduce((t, v) => t + v.length, 0), 0);
-console.log(`wrote data/touch/fugues.json: ${out.length} fugues, ${notes} notes, ${out.reduce((s, f) => s + f.sections.length, 0)} sections`);
-for (const f of out.slice(0, 4)) console.log(`  ${f.id} ${f.voices.length} voices; sections ${f.sections.map((s) => `${s.fromBar}-${s.toBar}`).join(" ")}; entry keys ${f.entries.map((e) => e.key).join(" ")}`);
+console.log(`wrote data/touch/pieces.json: ${out.length} pieces, ${notes} notes, ${out.reduce((s, f) => s + f.sections.length, 0)} sections`);
+for (const f of out.slice(0, 4)) console.log(`  ${f.id} ${f.voiceNames.join("/")}; sections ${f.sections.map((s) => `${s.fromBar}-${s.toBar}`).join(" ")}; keys ${f.keys.map((k) => k.key).join(" ")}`);

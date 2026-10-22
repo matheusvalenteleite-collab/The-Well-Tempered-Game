@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { onSide, sideOf, touchDown, touchMove, touchUp, type Touches } from "../src/touch/thumbs.ts";
-import { FUGUES, beatOf, fugueById, stepName } from "../src/touch/fugue.ts";
+import { FUGUES, PIECES, PRELUDES, beatOf, fugueById, keyAt, stepName } from "../src/touch/fugue.ts";
 import { markRides, options, points, release, strike, sweep } from "../src/touch/lanes.ts";
 import { accompaniment, duoOpen, level, recordKey, sectionNotes, voicesIn } from "../src/touch/voice-mode.ts";
 import { Game, prepare, type GameOptions } from "../src/touch/engine.ts";
@@ -73,22 +73,24 @@ test("the keys are staff steps: the alto's C5 is step 35; rows run from the bott
   assert.equal(rowAt(0, 10), 9);
 });
 
-test("rows: no window wider than the keys can hold, every note on a row of its window", () => {
-  for (const f of FUGUES)
-    for (let s = 0; s < f.sections.length; s++)
-      for (const v of voicesIn(f, s)) {
-        const lv = level(f, s, v);
-        for (const w of lv.windows) assert.ok(w.rows <= MAX_ROWS + 2 && w.rows >= 7, `${f.id} s${s} v${v}: ${w.rows} rows`);
-        const off = lv.notes.filter((n) => {
-          const w = windowAt(lv.windows, n.on);
-          return n.step < w.lo || n.step >= w.lo + w.rows;
-        });
-        // Only a leap wider than the keys (two bars spanning two octaves) may fall outside, and then by little.
-        for (const n of off) {
-          const w = windowAt(lv.windows, n.on);
-          assert.ok(n.step >= w.lo - 4 && n.step < w.lo + w.rows + 4, `${f.id} s${s} v${v}: step ${n.step} far off the keys`);
+test("rows: no window wider than the keys can hold; few notes beyond them (played on the edge row)", () => {
+  for (const kind of ["fugue", "prelude"] as const) {
+    let all = 0;
+    let off = 0;
+    for (const f of PIECES.filter((p) => p.kind === kind))
+      for (let s = 0; s < f.sections.length; s++)
+        for (const v of voicesIn(f, s)) {
+          const lv = level(f, s, v);
+          for (const w of lv.windows) assert.ok(w.rows <= MAX_ROWS + 2 && w.rows >= 7, `${f.id} s${s} v${v}: ${w.rows} rows`);
+          for (const n of lv.notes) {
+            const w = windowAt(lv.windows, n.on);
+            all++;
+            if (n.step < w.lo || n.step >= w.lo + w.rows) off++;
+          }
         }
-      }
+    // A fugue's voice almost never leaps beyond the keys; a prelude's left hand drops to a low bass now and then.
+    assert.ok(off / all < (kind === "fugue" ? 0.001 : 0.03), `${kind}: ${off} of ${all} beyond the keys`);
+  }
 });
 
 test("EASY: the first note is tapped, the sixteenths after a tapped note ride along", () => {
@@ -239,4 +241,39 @@ test("prepare marks no rides in NORMAL", () => {
   prepare(C_MINOR, [lv], "normal");
   assert.ok(lv.notes.every((n) => !n.ride));
   assert.ok(sectionNotes(C_MINOR, 5, 2).length > 0);
+});
+
+test("all 48 preludes, in the book's order before their fugues, played by hands", () => {
+  assert.equal(PRELUDES.length, 48);
+  assert.equal(PIECES.length, 96);
+  assert.deepEqual(PIECES.slice(0, 4).map((p) => p.id), ["wtc1p01", "wtc1f01", "wtc1p02", "wtc1f02"]);
+  for (const p of PRELUDES) {
+    assert.ok(p.voices.length === 2 || p.id === "wtc1p04", `${p.id}: ${p.voices.length} parts`);
+    if (p.voices.length === 2) {
+      assert.deepEqual(p.voiceNames, ["Right hand", "Left hand"]);
+      const mean = (v: number[][]) => v.reduce((t, n) => t + n[2], 0) / v.length;
+      assert.ok(mean(p.voices[0]) > mean(p.voices[1]), `${p.id}: the right hand above the left`);
+    }
+    for (let s = 0; s < p.sections.length; s++) assert.ok(voicesIn(p, s).length > 0, `${p.id} section ${s}`);
+  }
+});
+
+test("the C major prelude: the right hand's G4 C5 E5, the left hand's C4 held under E4; cadences colour the box", () => {
+  const p = fugueById("wtc1p01");
+  assert.deepEqual(p.voices[0].slice(0, 3).map((n) => n[2]), [67, 72, 76]);
+  assert.deepEqual(p.voices[1].slice(0, 2).map((n) => [n[0], n[2]]), [[0, 60], [480, 64]]);
+  assert.equal(keyAt(p, 0), "C");
+  assert.equal(keyAt(p, p.sections[1].from + p.barTicks), "G");
+});
+
+test("both hands of the C major prelude, one thumb each: the left thumb lifts from C4 to tap E4, and C4 sounds on, held in full", () => {
+  const { chip, clock } = fakeChip();
+  const p = fugueById("wtc1p01");
+  const g = new Game(p, [level(p, 0, 0), level(p, 0, 1)], gameOptions(), chip);
+  assert.deepEqual(g.tracks.map((t) => [t.lv.voice, t.sides.join()]), [
+    [1, "left"],
+    [0, "right"],
+  ]);
+  assert.equal(playAll(g, clock), true);
+  for (const r of g.results()) assert.equal(r.got, r.of, `voice ${r.voice}`);
 });

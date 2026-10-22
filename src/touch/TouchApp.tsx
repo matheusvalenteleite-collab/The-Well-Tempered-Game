@@ -5,7 +5,8 @@
  * timing calibration ("sync"). D164: the map. D166: EASY and NORMAL; the sound (and so the game's
  * clock) starts on a finished tap, as iPhones require. D167: all 48 fugues; WITH THE OTHERS (the other
  * voices play around the player); WAIT (the music waits at each note); the keys: rows of staff steps
- * under the thumbs, the same rows as the music box's, lighting up as their notes come.
+ * under the thumbs, the same rows as the music box's, lighting up as their notes come. D168: the 48
+ * preludes, played by hands (both hands at once: the left thumb the left hand).
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MusicBox, inkOf, type Band, type Frame } from "./MusicBox.tsx";
@@ -13,7 +14,7 @@ import { PlayArea, type Painter, type ThumbEvents } from "./PlayArea.tsx";
 import { Chip } from "./chip.ts";
 import { Game, byPitch, prepare, type Grade } from "./engine.ts";
 import { paintKeys } from "./paint-keys.ts";
-import { FUGUES, beatOf, fugueById, keyAt, keyName, shortName, type TouchFugue } from "./fugue.ts";
+import { PIECES, beatOf, fugueById, keyAt, keyName, shortName, type TouchFugue } from "./fugue.ts";
 import { LEVELS, type Level as Difficulty } from "./lanes.ts";
 import type { Side } from "./thumbs.ts";
 import { EARN, accompaniment, duoOpen, level, recordKey, voicesIn, type Level } from "./voice-mode.ts";
@@ -121,7 +122,8 @@ function sane(p: Pick): Pick {
   const section = Math.min(Math.max(0, p.section), f.sections.length - 1);
   const singing = voicesIn(f, section);
   let voices = p.voices.filter((v) => singing.includes(v)).slice(0, 2);
-  if (!voices.length) voices = [singing[Math.min(1, singing.length - 1)]];
+  // A fugue opens on its second voice (the first to answer), a prelude on the right hand.
+  if (!voices.length) voices = [singing[f.kind === "prelude" ? 0 : Math.min(1, singing.length - 1)]];
   return { ...DEFAULT_PICK, ...p, fugue: f.id, section, voices, diff: LEVELS.includes(p.diff) ? p.diff : "easy" };
 }
 
@@ -461,8 +463,8 @@ function Title(p: {
 }) {
   const { f, pick, setPick, best, open, openAll, setOpenAll, lag, sync, map, note } = p;
   const { section, voices, bpm, diff, withOthers, wait } = pick;
-  const fi = FUGUES.findIndex((x) => x.id === f.id);
-  const nf = FUGUES.length;
+  const fi = PIECES.findIndex((x) => x.id === f.id);
+  const nf = PIECES.length;
   const ns = f.sections.length;
   const duo = voices.length === 2;
   const singing = voicesIn(f, section);
@@ -472,7 +474,7 @@ function Title(p: {
     else setPick({ voices: voices.length < 2 ? [...voices, v] : [voices[1], v] });
   };
   const s = f.sections[section];
-  const goFugue = (i: number) => setPick({ fugue: FUGUES[(i + nf) % nf].id, section: 0, voices: [] });
+  const goFugue = (i: number) => setPick({ fugue: PIECES[(i + nf) % nf].id, section: 0, voices: [] });
   return (
     <div className="tg-card tg-title">
       <Stepper id="fugue" label={`BOOK ${f.book === 1 ? "I" : "II"} · ${f.title.toUpperCase()}`} onPrev={() => goFugue(fi - 1)} onNext={() => goFugue(fi + 1)} />
@@ -504,7 +506,7 @@ function Title(p: {
       <p>
         {duo && !open
           ? `Earn the ${voices.map((v) => f.voiceNames[v].toLowerCase()).join(" and the ")} alone here first (${Math.round(EARN * 100)}% each), or play with the others.`
-          : `${duo ? "Lower voice left thumb, higher right. " : ""}${DIFFICULTY[diff].text}${withOthers ? " The others play around you." : " You hear only what you play."}${wait ? " The music waits for each note (practice)." : ""}`}
+          : `${duo ? (f.kind === "prelude" ? "Left hand left thumb, right hand right. " : "Lower voice left thumb, higher right. ") : ""}${DIFFICULTY[diff].text}${withOthers ? " The others play around you." : " You hear only what you play."}${wait ? " The music waits for each note (practice)." : ""}`}
       </p>
       {note && <p className="tg-note">{note}</p>}
       <div className="tg-tempo" role="group" aria-label="Tempo">

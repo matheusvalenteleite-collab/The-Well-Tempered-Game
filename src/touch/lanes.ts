@@ -48,13 +48,17 @@ export function laneNotes(notes: readonly (readonly [number, number, number, num
 
 /**
  * EASY: a note shorter than half a beat rides along (D166) when a note the player taps comes no more
- * than a beat before it; a short note with none before it (the subject's head) is tapped.
+ * than a beat before it; a short note with none before it (the subject's head) is tapped. Notes struck
+ * together ride or are tapped together (D168: a prelude's hand strikes a quick note with a long one).
  */
 export function markRides(notes: LaneNote[], beat: number) {
   let last: number | null = null;
-  for (const n of notes) {
-    n.ride = n.dur < beat / 2 && last !== null && n.on - last <= beat && n.on > last;
-    if (!n.ride) last = n.on;
+  const onsets = [...new Set(notes.map((n) => n.on))].sort((a, b) => a - b);
+  for (const on of onsets) {
+    const chord = notes.filter((n) => n.on === on);
+    const ride = chord.every((n) => n.dur < beat / 2) && last !== null && on - last <= beat;
+    for (const n of chord) n.ride = ride;
+    if (!ride) last = on;
   }
 }
 

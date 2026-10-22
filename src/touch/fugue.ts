@@ -1,10 +1,11 @@
 /**
- * The touch game's fugues (D167: all 48), as tools/touch/extract.ts cuts them from the study's corpus:
- * each voice a list of [onset, duration, MIDI, staff step] in ticks (tpq per quarter), top voice first;
- * the entries of the subject, each in its voice, as the subject or as the answer, with its key; the
- * sections the game plays one at a time.
+ * The touch game's pieces (D167: the 48 fugues; D168: and the 48 preludes), in the book's order, as
+ * tools/touch/extract.ts cuts them from the study's corpus: each part (a fugue's voices, a prelude's
+ * hands) a list of [onset, duration, MIDI, staff step] in ticks (tpq per quarter), the highest first; a
+ * fugue's entries of the subject, each in its voice, as the subject or as the answer, with its key; the
+ * keys the music reaches (entries, or a prelude's cadences); the sections the game plays one at a time.
  */
-import data from "../../data/touch/fugues.json" with { type: "json" };
+import data from "../../data/touch/pieces.json" with { type: "json" };
 
 export type TouchNote = [on: number, dur: number, midi: number, step: number];
 
@@ -22,6 +23,7 @@ export interface TouchEntry {
 
 export interface TouchFugue {
   id: string;
+  kind: "prelude" | "fugue";
   book: number;
   number: number;
   title: string;
@@ -36,21 +38,26 @@ export interface TouchFugue {
   voiceNames: string[];
   voices: TouchNote[][];
   entries: TouchEntry[];
+  /** The keys the music reaches, in time: a fugue's entries, a prelude's cadences. */
+  keys: { on: number; key: string }[];
   /** Each MIDI pitch as the score spells it ("Eb4"). */
   spell: Record<string, string>;
   /** The passages the game plays one at a time, in ticks [from, to). */
   sections: { name: string; fromBar: number; toBar: number; from: number; to: number }[];
 }
 
-export const FUGUES = data as unknown as TouchFugue[];
+/** All 96, each prelude before its fugue, Book I then Book II. */
+export const PIECES = data as unknown as TouchFugue[];
+export const FUGUES = PIECES.filter((p) => p.kind === "fugue");
+export const PRELUDES = PIECES.filter((p) => p.kind === "prelude");
 
 export function fugueById(id: string): TouchFugue {
-  return FUGUES.find((f) => f.id === id) ?? FUGUES[0];
+  return PIECES.find((f) => f.id === id) ?? PIECES[0];
 }
 
-/** "I·2". */
+/** "I·2 P", "I·2 F". */
 export function shortName(f: TouchFugue): string {
-  return `${f.book === 1 ? "I" : "II"}·${f.number}`;
+  return `${f.book === 1 ? "I" : "II"}·${f.number} ${f.kind === "prelude" ? "P" : "F"}`;
 }
 
 /**
@@ -68,9 +75,9 @@ export function barStart(f: TouchFugue, n: number): number {
   return f.bars.find((b) => b.n === n)?.on ?? f.length;
 }
 
-/** The key the music is in at a tick: that of the latest entry begun (the fugue's key before the first). */
+/** The key the music is in at a tick: the last reached (an entry begun, a cadence), the piece's own before the first. */
 export function keyAt(f: TouchFugue, tick: number): string {
-  return f.entries.filter((e) => e.on <= tick).at(-1)?.key ?? f.key;
+  return f.keys.filter((k) => k.on <= tick).at(-1)?.key ?? f.key;
 }
 
 /** The bar a tick falls in. */

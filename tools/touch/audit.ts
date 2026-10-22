@@ -1,6 +1,6 @@
 /**
- * Difficulty audit (D165; D166; D167): a simulated player plays every voice of every section of all
- * 48 fugues through the game's own engine (with a fake clock), at both levels: on time within a jitter
+ * Difficulty audit (D165; D166; D167; D168): a simulated player plays every part (a fugue's voice, a
+ * prelude's hand) of every section of all 96 pieces through the game's own engine (with a fake clock), at both levels: on time within a jitter
  * (normal, s.d. 40 ms), landing on the right row within a jitter (normal, s.d. a third of a row), holding
  * long notes. It checks that every passage is fair, not how hard it is for a hand. Writes
  * docs/touch/AUDIT.md. Run: node tools/touch/audit.ts
@@ -8,7 +8,7 @@
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { Game } from "../../src/touch/engine.ts";
-import { FUGUES, type TouchFugue } from "../../src/touch/fugue.ts";
+import { PIECES, type TouchFugue } from "../../src/touch/fugue.ts";
 import type { Chip } from "../../src/touch/chip.ts";
 import { level, voicesIn } from "../../src/touch/voice-mode.ts";
 import { LEVELS, type Level as Difficulty } from "../../src/touch/lanes.ts";
@@ -61,17 +61,17 @@ function run(f: TouchFugue, section: number, voice: number, difficulty: Difficul
 
 const L: string[] = [];
 L.push("# Touch game: difficulty audit (generated)\n");
-L.push("By `tools/touch/audit.ts` (D165-D167). A simulated player plays every voice of every section of the 48");
-L.push("fugues through the game's own engine at the beat 50 (♩=50 in 4/4): on time within a random jitter");
+L.push("By `tools/touch/audit.ts` (D165-D168). A simulated player plays every part (a fugue's voice, a prelude's");
+L.push("hand) of every section of the 96 preludes and fugues through the game's own engine at the beat 50 (♩=50 in 4/4): on time within a random jitter");
 L.push("(normal, s.d. 40 ms), on the right row of the keys within a third of a row (normal), long notes held.");
 L.push("EASY counts the time only and lets the short notes ride; NORMAL wants the row (one off still counts).");
 L.push("80% earns a voice. This checks that each passage is fair, not how hard it is for a hand. Below: the");
 L.push("passages under 80%, and each fugue's lowest score at each level.\n");
 const low: string[] = [];
-L.push(`| fugue | voices | sections | ${LEVELS.map((d) => `lowest ${d}`).join(" | ")} |`);
+L.push(`| piece | parts | sections | ${LEVELS.map((d) => `lowest ${d}`).join(" | ")} |`);
 L.push(`|---|---|---|${LEVELS.map(() => "---").join("|")}|`);
 let runs = 0;
-for (const f of FUGUES) {
+for (const f of PIECES) {
   const lows: Record<string, number> = {};
   f.sections.forEach((s, si) => {
     for (const v of voicesIn(f, si))
@@ -87,7 +87,7 @@ for (const f of FUGUES) {
 L.push("");
 L.push(`## Under 80% (${low.length} of ${runs} runs)\n`);
 if (low.length) {
-  L.push("| fugue | section | voice | level | % |");
+  L.push("| piece | section | part | level | % |");
   L.push("|---|---|---|---|---|");
   L.push(...low);
 } else L.push("None.");

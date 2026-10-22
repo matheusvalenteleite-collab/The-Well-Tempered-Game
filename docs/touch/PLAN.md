@@ -17,7 +17,13 @@ Page: `touch.html` (`npm run dev`, then `/touch.html`). Single file for claude.a
 `npx vite build -c vite.touch.config.ts && node tools/touch/build-artifact.mjs <out.html>`.
 Data: `node tools/touch/extract.ts` cuts the fugue from `data/wtc/fugues.json`.
 
-## All 48 fugues, keys, with the others (D167: built, to be tried)
+## All 48 preludes too (D168: built, to be tried)
+
+- The 96 pieces in the book's order; a prelude is played by hands (both hands: left thumb, right thumb).
+- Prelude sections end on cadences; the box's colour follows the keys they reach.
+- A lifted note carries on if the same hand's next tap follows at once (a held bass under a figure).
+
+## All 48 fugues, keys, with the others (D167: built)
 
 - Every fugue of both books, sections cut automatically (the C minor keeps its hand-read ones).
 - The keys: rows of staff steps under the thumbs, the same rows as in the box; the coming notes
