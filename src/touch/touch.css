@@ -384,3 +384,141 @@ body {
 .tg-hud-bar { flex: none; }
 .tg-legend { flex-wrap: wrap; row-gap: 2px; column-gap: 10px; font-size: 7px; overflow: hidden; }
 .tg-count-wait { font-size: 12px; align-items: start; padding-top: 10px; }
+
+/* D169: pared down. The title: the piece, the voice, two small switches, where to start. */
+.tg-title { justify-content: center; gap: 10px; }
+.tg-piece {
+  font-family: var(--tg-pixel);
+  font-size: 9px;
+  line-height: 1.6;
+  color: var(--tg-fg);
+  background: transparent;
+  border: 2px solid var(--tg-shine);
+  padding: 8px 10px;
+  cursor: pointer;
+  align-self: center;
+  max-width: 100%;
+}
+.tg-row { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.tg-seg { display: inline-flex; border: 1px solid var(--tg-barline); }
+.tg-seg button {
+  font-family: var(--tg-pixel);
+  font-size: 7px;
+  color: var(--tg-muted);
+  background: transparent;
+  border: 0;
+  padding: 6px 7px;
+  cursor: pointer;
+}
+.tg-seg button.on { color: var(--tg-bg); background: var(--tg-shine); }
+.tg-seg button:focus-visible, .tg-piece:focus-visible, .tg-x:focus-visible { outline: 2px solid var(--tg-shine); outline-offset: 2px; }
+.tg-from { display: grid; gap: 4px; justify-items: center; font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-muted); }
+.tg-from input { width: min(260px, 80%); accent-color: var(--tg-shine); touch-action: pan-x; }
+.tg-x {
+  font: 14px/1 system-ui, sans-serif;
+  color: var(--tg-fg);
+  background: transparent;
+  border: 1px solid var(--tg-barline);
+  width: 28px;
+  height: 22px;
+  cursor: pointer;
+  flex: none;
+}
+
+/* The piece picker: the book as Bach laid it out */
+.tg-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
+  background: var(--tg-bg);
+  overflow-y: auto;
+  touch-action: pan-y;
+  max-width: 520px;
+  margin: 0 auto;
+}
+.tg-picker header { display: flex; justify-content: space-between; align-items: start; gap: 10px; }
+.tg-picker h1 { margin: 0; font-family: var(--tg-pixel); font-size: 11px; line-height: 1.5; color: var(--tg-shine); font-weight: 400; letter-spacing: 0.04em; }
+.tg-picker header p { margin: 4px 0 0; font: italic 12px/1.4 Georgia, "Times New Roman", serif; color: var(--tg-muted); }
+.tg-tabs { display: flex; gap: 6px; }
+.tg-tabs button {
+  flex: 1;
+  font-family: var(--tg-pixel);
+  font-size: 7px;
+  padding: 8px 4px;
+  color: var(--tg-muted);
+  background: transparent;
+  border: 1px solid var(--tg-barline);
+  cursor: pointer;
+}
+.tg-tabs button.on { color: var(--tg-bg); background: var(--tg-shine); border-color: var(--tg-shine); }
+.tg-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.tg-tiles-one { grid-template-columns: 1fr; }
+.tg-tile {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  padding: 8px 6px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+}
+.tg-tile-here { outline: 2px solid var(--tg-shine); outline-offset: -2px; }
+.tg-tile-no { position: absolute; top: 4px; left: 5px; font-family: var(--tg-pixel); font-size: 6px; color: rgba(255, 255, 255, 0.45); }
+.tg-tiles-one .tg-tile-no { position: static; font-size: 7px; text-align: center; }
+.tg-tile-key { font-family: var(--tg-pixel); font-size: 15px; text-align: center; color: var(--tg-fg); padding-top: 6px; white-space: nowrap; }
+.tg-tile-key:not(:only-child) { letter-spacing: -0.04em; }
+.tg-tile-pair { display: flex; gap: 4px; }
+.tg-tile-pair button {
+  flex: 1;
+  font-family: var(--tg-pixel);
+  font-size: 8px;
+  padding: 7px 0;
+  color: var(--tg-fg);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+}
+.tg-tile-pair button.on { color: var(--tg-bg); background: var(--tg-shine); }
+.tg-picker-foot { margin: 0; font-size: 11px; color: var(--tg-muted); text-align: center; }
+.tg-tile-key-two { font-size: 9px; padding-top: 10px; }
+
+/* D171-D173: the panels (⚙, ?), the title's help, the piano sideways */
+.tg-hud .tg-x { width: 26px; }
+.tg-panel { gap: 14px; }
+.tg-set { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-muted); }
+.tg-panel-val { color: var(--tg-shine); }
+.tg-panel-note { margin: 0; font-size: 12px; line-height: 1.45; color: var(--tg-muted); }
+.tg-tap-pad {
+  display: grid;
+  gap: 10px;
+  place-items: center;
+  min-height: 180px;
+  font-family: var(--tg-pixel);
+  font-size: 10px;
+  color: var(--tg-shine);
+  background: var(--tg-box);
+  border: 2px dashed var(--tg-shine);
+  touch-action: none;
+  cursor: pointer;
+}
+.tg-tap-pad small { font-size: 7px; color: var(--tg-muted); }
+.tg-help h2 { margin: 14px 0 6px; font-family: var(--tg-pixel); font-size: 8px; font-weight: 400; color: var(--tg-shine); }
+.tg-help p { margin: 0 0 8px; font-size: 13px; line-height: 1.5; }
+.tg-title-help { font-size: 12px; color: var(--tg-muted); }
+.tg-wide { max-width: 1000px; grid-template-rows: 40fr 60fr; }
+.tg-wide .tg-play { grid-template-columns: 1fr; }
+.tg-wide .tg-half-right { display: none; }
+.tg-wide .tg-half-left { border-right: 0; }
+.tg-wide .tg-title { gap: 6px; padding: 8px; }
+.tg-wide .tg-title-help { display: none; }
+.tg-wide .tg-upright { display: none; }
+@media (orientation: portrait) and (max-width: 500px) {
+  .tg-wide .tg-upright { display: grid; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .tg-wide .tg-upright { display: none; }
+}
+.tg-wide.tg-away { grid-template-rows: 72fr 28fr; }

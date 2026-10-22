@@ -1,0 +1,60 @@
+/* The testbench (D170): the game's look, a slim bar between the music box and the instrument. */
+.bench { grid-template-rows: 1fr auto 1fr; }
+.bench-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px max(8px, env(safe-area-inset-left, 0px)) 6px max(8px, env(safe-area-inset-right, 0px));
+  background: var(--tg-box);
+  border-bottom: 2px solid var(--tg-barline);
+}
+.bench-bar button {
+  font-family: var(--tg-pixel);
+  font-size: 9px;
+  min-width: 30px;
+  height: 28px;
+  color: var(--tg-muted);
+  background: transparent;
+  border: 1px solid var(--tg-barline);
+  cursor: pointer;
+}
+.bench-bar button.on, .bench-bar button[aria-pressed="true"] { color: var(--tg-bg); background: var(--tg-shine); border-color: var(--tg-shine); }
+.bench-bar span { flex: 1; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-fg); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bench-take {
+  font-family: var(--tg-pixel);
+  font-size: 7px;
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 3px 4px;
+  cursor: pointer;
+  opacity: 0.6;
+}
+.bench-take.on { border-color: currentColor; opacity: 1; }
+.bench-card { gap: 9px; }
+.bench-card h1 { color: var(--tg-shine); }
+.bench-help {
+  position: fixed;
+  left: 50%;
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  width: min(480px, calc(100% - 24px));
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--tg-fg);
+  background: var(--tg-veil);
+  border: 1px solid var(--tg-barline);
+  pointer-events: none;
+}
+/* Sideways (the keybed): the box above, the keys below; no "turn upright". */
+.bench-wide .tg-upright { display: none !important; }
+@media (orientation: landscape) {
+  .bench { max-width: none; grid-template-rows: 1fr auto 1.1fr; }
+  .bench .tg-upright { display: none; }
+}
+/* Sideways the box is short: the card keeps only what starts the fugue. */
+@media (orientation: landscape) {
+  .bench-card { gap: 4px; padding-block: 4px; justify-content: center; }
+  .bench-card p, .bench-card h1 { display: none; }
+}

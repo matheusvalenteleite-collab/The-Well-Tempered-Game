@@ -19,6 +19,8 @@
  * 6 where none falls), and its colours follow the keys those cadences reach.
  * `keys` is each piece's timeline of keys for the music box's colour: a fugue's entries, a prelude's
  * cadences.
+ * D169: and the unfinished Fuga a 3 soggetti of the Art of Fugue (Contrapunctus XIV), from the Mutopia
+ * Project's public-domain MIDI (data/sources/art-of-fugue/SOURCE.md), spelled as D minor spells.
  * Run: node tools/touch/extract.ts
  */
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
@@ -27,13 +29,14 @@ import { parsePitch } from "../../src/music/pitch.ts";
 import { TPQ } from "../../src/wtc/kern.ts";
 import type { WtcPiece } from "../../src/wtc/corpus.ts";
 import { LIBRARY } from "../../src/wtc/library.ts";
+import { readMidi } from "./midi.ts";
 
 const read = (f: string) => JSON.parse(readFileSync(fileURLToPath(new URL(`../../data/wtc/${f}`, import.meta.url)), "utf8"));
 const corpus: WtcPiece[] = read("fugues.json");
 const preludeCorpus: WtcPiece[] = read("preludes.json");
 const maps: { id: string; moments: { kind: string; bar: number; onset: string; to?: string }[] }[] = read("harmonic-maps.json").pieces;
 
-const NAMES: Record<number, string[]> = {
+const NAMES_BY_COUNT: Record<number, string[]> = {
   2: ["Upper", "Lower"],
   3: ["Soprano", "Alto", "Bass"],
   4: ["Soprano", "Alto", "Tenor", "Bass"],
@@ -177,7 +180,7 @@ const fugues = corpus
       length: p.length,
       barTicks,
       bars: p.bars,
-      voiceNames: NAMES[voices.length] ?? voices.map((_, i) => `Voice ${i + 1}`),
+      voiceNames: NAMES_BY_COUNT[voices.length] ?? voices.map((_, i) => `Voice ${i + 1}`),
       voices,
       entries,
       keys: entries.map((e) => ({ on: e.on, key: e.key })),
@@ -215,7 +218,7 @@ const preludes = preludeCorpus
     );
     const mean = (g: Note[]) => g.reduce((t, n) => t + n[2], 0) / g.length;
     const voices = [...groups.values()].sort((a, b) => mean(b) - mean(a)).map((g) => g.sort((a, b) => a[0] - b[0] || b[2] - a[2]));
-    const voiceNames = voices.length === 2 ? ["Right hand", "Left hand"] : NAMES[voices.length] ?? voices.map((_, i) => `Part ${i + 1}`);
+    const voiceNames = voices.length === 2 ? ["Right hand", "Left hand"] : NAMES_BY_COUNT[voices.length] ?? voices.map((_, i) => `Part ${i + 1}`);
     const barTicks = barQ * TPQ;
     const barOn = (n: number) => p.bars.find((b) => b.n === n)?.on ?? p.length;
     const lastBar = p.bars.at(-1)!.n;
@@ -263,7 +266,50 @@ const preludes = preludeCorpus
     };
   });
 
-const out = [...preludes, ...fugues].sort((a, b) => a.book - b.book || a.number - b.number || (a.kind === "prelude" ? -1 : 1));
+/** Contrapunctus XIV (D169): the four voices of the MIDI, the highest first, on the WTC's ticks. */
+function contrapunctus() {
+  const m = readMidi(readFileSync(fileURLToPath(new URL("../../data/sources/art-of-fugue/contrapunctus-xiv/contrapunctusXIX.mid", import.meta.url))));
+  const k = TPQ / m.division;
+  // D minor's spelling of the twelve pitch classes (both forms of the sixth and seventh, C sharp, F sharp, G sharp, E flat).
+  const NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"];
+  const spell: Record<number, string> = {};
+  const parts = m.tracks
+    .filter((t) => t.notes.length)
+    .map((t) =>
+      t.notes.map(([on, dur, midi]) => {
+        const name = `${NAMES[midi % 12]}${Math.floor(midi / 12) - 1}`;
+        spell[midi] ??= name;
+        return [Math.round(on * k), Math.round(dur * k), midi, parsePitch(name).diatonic] as Note;
+      }),
+    );
+  const mean = (g: Note[]) => g.reduce((t, n) => t + n[2], 0) / g.length;
+  const voices = parts.sort((a, b) => mean(b) - mean(a));
+  const length = Math.max(...voices.flat().map((n) => n[0] + n[1]));
+  const barTicks = 4 * TPQ;
+  const bars = Array.from({ length: Math.ceil(length / barTicks) }, (_, i) => ({ n: i + 1, on: i * barTicks }));
+  return {
+    id: "bwv1080-14",
+    kind: "fugue",
+    book: 0,
+    number: 14,
+    title: "Contrapunctus XIV (unfinished)",
+    key: "d",
+    bwv: "1080",
+    meter: "4/4",
+    tpq: TPQ,
+    length,
+    barTicks,
+    bars,
+    voiceNames: NAMES_BY_COUNT[4],
+    voices,
+    entries: [],
+    keys: [],
+    spell,
+    sections: [{ name: "Whole", fromBar: 1, toBar: bars.length, from: 0, to: length }],
+  };
+}
+
+const out = [...preludes, ...fugues, contrapunctus()].sort((a, b) => (a.book || 9) - (b.book || 9) || a.number - b.number || (a.kind === "prelude" ? -1 : 1));
 
 const dir = fileURLToPath(new URL("../../data/touch/", import.meta.url));
 mkdirSync(dir, { recursive: true });
