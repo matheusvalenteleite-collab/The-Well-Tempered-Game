@@ -11,6 +11,8 @@
  * `ready`; its card says the seal is coming instead of pretending.
  */
 
+import { fugueById } from "../touch/fugue.ts";
+
 export type SealKind = "STRETTO" | "MIRROR" | "SLOW GIANT" | "SUBJECTS" | "PERFECT LINE" | "HOLD" | "NO SLIP" | "DUET" | "TEMPERAMENT";
 
 /** Each seal kind's rule, one line. */
@@ -125,6 +127,12 @@ const BOOK_II: Row[] = [
 
 const XIV: Row = [14, "B-A-C-H, Unfinished", "SUBJECTS", "Play to the last note Bach wrote.", "The fugue on three subjects; the third spells B-A-C-H (B♭, A, C, B♮). It breaks off at bar 239.", 2, "dusk", "pillar", ["wall"]];
 
+/** D196: the entries a seal needs, now in the data (D189): inverted, augmented, later subjects. */
+function hasData(kind: SealKind, id: string): boolean {
+  const es = fugueById(id).entries;
+  return kind === "MIRROR" ? es.some((e) => e.inverted) : kind === "SLOW GIANT" ? es.some((e) => e.scale === 2) : kind === "SUBJECTS" ? es.some((e) => e.theme) : true;
+}
+
 function card(book: 0 | 1 | 2, r: Row): FugueCard {
   const [number, title, kind, line, why, stars, scene, figure, props] = r;
   const aof = book === 0;
@@ -136,7 +144,7 @@ function card(book: 0 | 1 | 2, r: Row): FugueCard {
     title,
     formal: aof ? "Contrapunctus XIV · Fuga a 3 soggetti" : `Fugue ${number} in ${KEYS[number - 1]}`,
     seal: { kind, line },
-    ready: !NEEDS_DATA.has(kind),
+    ready: !NEEDS_DATA.has(kind) || hasData(kind, aof ? "bwv1080-14" : `wtc${book}f${String(number).padStart(2, "0")}`),
     why,
     stars,
     scene,
@@ -159,7 +167,7 @@ export function bookCards(book: 0 | 1 | 2): FugueCard[] {
 
 /**
  * The best grade per piece and voice (D192), kept on this device: recorded from the result screen,
- * only a better one replacing it. Seals are not earned yet (their rules come later).
+ * only a better one replacing it. The seals earned are kept beside them (seals.ts, D196).
  */
 export const BEST_KEY = "tb-best-v1";
 const ORDER = ["S", "A", "B", "C", "D"];
