@@ -9,7 +9,7 @@
 export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 
 import { hz } from "./tuning.ts";
-import { grooveHits, grooveNow, preset, patchFor, PATCHES, type Drum, type Kit, type Patch, type Wave } from "./sound.ts";
+import { grooveHits, grooveNow, layerHits, preset, patchFor, PATCHES, type Drum, type Kit, type Patch, type Wave } from "./sound.ts";
 
 /**
  * D179, the player's voice: whatever the ensemble gives it, it holds while the thumb is down (a plucked
@@ -79,6 +79,10 @@ export class Chip {
   private waves = new Map<string, PeriodicWave>();
   private keepAlive: HTMLAudioElement | null = null;
   private wet: GainNode;
+  /** D186: the master's brightness and its drive (the zones). */
+  private soften: BiquadFilterNode;
+  private drive: GainNode;
+  private zoneNow: "pleno" | "fuoco" | null = null;
   /**
    * The delay between the audio clock and what the player hears and does, in seconds, measured by
    * tapping along (D173: Bluetooth headphones add a fifth of a second or more, which the system often
@@ -100,7 +104,7 @@ export class Chip {
     // D181: lower, and a limiter at the end, so many voices, a band and the room never clip (as they
     // did on an iPhone: the ensembles' voices and the drums add up past full scale).
     this.master.gain.value = 0.4;
-    const soften = ctx.createBiquadFilter();
+    const soften = (this.soften = ctx.createBiquadFilter());
     soften.type = "lowpass";
     soften.frequency.value = 6500;
     soften.Q.value = 0.5;
@@ -124,6 +128,14 @@ export class Chip {
     this.wet = ctx.createGain();
     this.wet.gain.value = 0.16;
     this.master.connect(room).connect(this.wet).connect(squeeze);
+    // A warm drive beside the dry sound, silent until CON FUOCO.
+    const shaper = ctx.createWaveShaper();
+    const curve = new Float32Array(1024);
+    for (let i = 0; i < 1024; i++) curve[i] = Math.tanh(((i / 1023) * 2 - 1) * 3);
+    shaper.curve = curve;
+    this.drive = ctx.createGain();
+    this.drive.gain.value = 0;
+    this.master.connect(shaper).connect(this.drive).connect(squeeze);
     this.bus = this.master;
   }
 
@@ -657,12 +669,32 @@ export class Chip {
   }
 
   /** The rhythm section's hits for one beat (the ensemble's groove), scheduled at `at`, a beat lasting `beatS` seconds. */
-  groove(at: number, beatS: number, b: number, bar: number, per: number, compound: boolean) {
-    this.wet.gain.setTargetAtTime(preset().room ?? 0.16, this.ctx.currentTime, 0.3);
+  groove(at: number, beatS: number, b: number, bar: number, per: number, compound: boolean, extra = 0) {
+    this.roomTo();
     const gr = grooveNow();
+    // D186: the band grows with the player's run: layers over the groove (or over the click).
+    for (const h of layerHits(extra, b, per, compound)) this.drum(h.drum, at + h.at * beatS, h.vel, gr?.kit ?? "analog");
     if (!gr) return false;
     for (const h of grooveHits(gr.groove, b, bar, per, compound)) this.drum(h.drum, at + h.at * beatS, h.vel, gr.kit);
     return true;
+  }
+
+  /**
+   * D186, the zones: ORGANO PLENO opens the room (more of it, brighter), CON FUOCO brighter still,
+   * with a warm drive; out of them, back to the preset's own.
+   */
+  zone(z: "pleno" | "fuoco" | null) {
+    if (z === this.zoneNow) return;
+    this.zoneNow = z;
+    const t = this.ctx.currentTime;
+    this.soften.frequency.setTargetAtTime(z === "fuoco" ? 11000 : z === "pleno" ? 9000 : 6500, t, z ? 0.4 : 0.8);
+    this.drive.gain.setTargetAtTime(z === "fuoco" ? 0.18 : 0, t, 0.5);
+    this.roomTo();
+  }
+  private roomTo() {
+    const base = preset().room ?? 0.16;
+    const room = this.zoneNow === "pleno" ? Math.min(0.45, base * 2.2) : this.zoneNow === "fuoco" ? Math.min(0.4, base * 1.6) : base;
+    this.wet.gain.setTargetAtTime(room, this.ctx.currentTime, 0.4);
   }
 
   /** A metronome tick: a short, soft click, brighter on the bar's first beat. */

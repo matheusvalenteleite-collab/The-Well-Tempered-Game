@@ -4,7 +4,7 @@ import { beatOf, fugueById, inBar } from "../src/touch/fugue.ts";
 import { laneNotes, type LaneNote } from "../src/touch/lanes.ts";
 import type { Chip } from "../src/touch/chip.ts";
 import { ProtoGame, type Contact, type Rows } from "../src/bench/proto-game.ts";
-import { ARROW_KEYS, arrowOf, barDynamic, BAR, KEY_ROWS, keyRow, moveOf, moves, protoById, PROTOS, stepPitch, thumbsVerdict } from "../src/bench/protos.ts";
+import { ARROW_KEYS, arrowOf, barDynamic, contourOk, BAR, KEY_ROWS, keyRow, moveOf, moves, protoById, PROTOS, stepPitch, thumbsVerdict } from "../src/bench/protos.ts";
 import { columnAt, columnX, KEYS_SHARE, LINE } from "../src/bench/placed.ts";
 import { isBlack, keySpan } from "../src/touch/piano.ts";
 import { grooveHits, patchFor, PRESETS, setPreset, slotOf } from "../src/touch/sound.ts";
@@ -374,6 +374,47 @@ test("the downbeat on the barline in triple time; an upbeat played from the star
     assert.ok(after.length >= 2 && after.every((t) => bars.has(Math.round(t * 1000))), `${id}: accents on the barlines`);
     assert.ok(Math.min(...f.voices.flatMap((v) => v.map(([on]) => on))) < f.bars[0].on || id === "wtc1f06", `${id}: an upbeat`);
   }
+});
+
+test("EASY's DIRECTION: following the line along the home row is right; against it, wrong; the walls give", () => {
+  const row = KEY_ROWS[2].codes;
+  for (const leaps of [false, true]) {
+    const clock = { t: 0 };
+    const g = new ProtoGame(C_MINOR, 1, 0, protoById("keys"), { bpm: 54, legato: false, easy: leaps ? "leaps" : "direction" }, fakeChip(clock));
+    let col = 5;
+    let id = 0;
+    for (let i = 0; i < g.notes.length; i++) {
+      if (i > 0 && g.notes[i - 1].on === g.notes[i].on) continue;
+      const m = g.moves[i];
+      if (g.isFree(i)) col = 5;
+      else if (m.dir !== 0 && m.steps !== 0) col = Math.max(0, Math.min(row.length - 1, col + m.dir * (leaps && m.size >= 3 ? 2 : 1)));
+      clock.t = g.timeAt(g.notes[i].on);
+      g.step();
+      g.keyDown(++id, { velocity: 0.5, code: m.dir === 0 && !g.isFree(i) ? "Space" : row[col] }, performance.now());
+      g.keyUp(id, performance.now());
+    }
+    const r = g.results();
+    assert.equal(r.right, r.of, `${leaps ? "leaps" : "direction"}: ${r.right}/${r.of}`);
+  }
+  {
+    // Against the line: every judged note wrong.
+    const clock = { t: 0 };
+    const g = new ProtoGame(C_MINOR, 1, 0, protoById("keys"), { bpm: 54, legato: false, easy: "direction" }, fakeChip(clock));
+    const i = g.moves.findIndex((m, j) => j > 0 && !g.isFree(j) && m.dir > 0 && m.steps > 0);
+    for (let j = 0; j <= i; j++) {
+      if (j > 0 && g.notes[j - 1].on === g.notes[j].on) continue;
+      clock.t = g.timeAt(g.notes[j].on);
+      g.step();
+      g.keyDown(50 + j, { velocity: 0.5, code: j === i ? "KeyA" : "KeyK" }, performance.now());
+      g.keyUp(50 + j, performance.now());
+    }
+    assert.equal(g.notes[i].state, "miss", "up, but a key to the left");
+  }
+  const up = { dir: 1, size: 1, steps: 1, joined: true } as Parameters<typeof contourOk>[0];
+  assert.ok(contourOk(up, "KeyF", "KeyJ", false));
+  assert.ok(!contourOk(up, "KeyJ", "KeyF", false));
+  assert.ok(contourOk(up, "Quote", "Quote", false), "at the wall, the edge key again");
+  assert.ok(contourOk(up, "KeyF", "KeyT", false), "the next row, further right");
 });
 
 test("SIDEWAYS: a column's middle is that column", () => {
