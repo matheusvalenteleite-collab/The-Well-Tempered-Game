@@ -41,6 +41,8 @@ export interface Contact {
 
 /** A key of a computer or a MIDI keyboard: a pitch (MIDI), or a move (the computer's arrows and WASD). */
 export interface KeyPress {
+  /** EASY (computer): a trill on the note. */
+  trill?: boolean;
   /** The hand (TWO VOICES: which voice). */
   side?: Side;
   midi?: number;
@@ -119,6 +121,13 @@ export class ProtoGame {
   now = 0;
   combo = 0;
   grade: Grade | null = null;
+  /** EASY (computer): the keys down now (their codes), for the screen. */
+  readonly keysDown = new Set<string>();
+  /** PIANO on a computer: the typing keys' octave (Z down, X up). */
+  octave = 0;
+  /** EASY (computer): Shift held, the pedal: notes let go ring on until it is lifted. */
+  private pedalled: Sounding[] = [];
+  private pedalDown = false;
   /** LADDER: the touch that played the last note (its thumb, its height). */
   lastTouch: { side: Side; y: number } | null = null;
   /** SIDEWAYS: the window's middle (a staff step, fractional), following the passage. */
@@ -141,6 +150,9 @@ export class ProtoGame {
   readonly entries: { voice: number; k: number; on: number; end: number; ons: number[]; state: "open" | "captured" | "lost" }[] = [];
   /** ORGANO PLENO: until this tick (none: -1). */
   plenoUntil = -1;
+  get pleno() {
+    return this.plenoUntil >= 0 && this.now < this.plenoUntil;
+  }
   /** When a banner was raised (performance.now()), and which. */
   banner: { text: string; at: number } | null = null;
   private chip: Chip;
@@ -318,8 +330,8 @@ export class ProtoGame {
     const prev = this.before(i, k);
     const m = moves[i];
     const asked = (steps: number) => (prev >= 0 ? stepPitch(notes[prev].step + steps, notes[prev]) : undefined);
-    // TWO VOICES: the time only.
-    if (this.proto.id === "duo") return { ok: true };
+    // TWO VOICES and EASY (computer): the time only.
+    if (this.proto.id === "duo" || this.proto.id === "keys") return { ok: true };
     if (at.key?.midi !== undefined) {
       const k = at.key.midi;
       const ok = this.proto.id === "piano" ? chord.some((x) => x.midi === k) : chord.some((x) => Math.abs(stepNear(k, x) - x.step) <= 1);
@@ -370,6 +382,9 @@ export class ProtoGame {
         const key = pianoKey(this.kb, c.x / c.w, c.y / c.h);
         return chord.some((x) => x.midi === key) ? { ok: true } : { ok: false, wrong: key, why: "gesture" };
       }
+      case "arrows":
+        // A click, not a key: the time only.
+        return { ok: true };
     }
   }
 
@@ -401,7 +416,9 @@ export class ProtoGame {
     this.up(id, ts);
   }
 
+  private trillNext = false;
   private strikeWith(id: number, h: Held, ts: number, at: { c?: Contact; key?: KeyPress }, d: number) {
+    this.trillNext = !!at.key?.trill;
     const i = strike(this.tracks[h.k].notes, this.tickOf(ts), this.opt);
     if (i < 0) {
       this.grade = { text: "✕", at: performance.now(), side: h.side, why: "time" };
@@ -477,7 +494,8 @@ export class ProtoGame {
         return;
       }
     }
-    for (const sd of h.sounds) sd.stop();
+    if (this.pedalDown) this.pedalled.push(...h.sounds);
+    else for (const sd of h.sounds) sd.stop();
   }
 
   /** Sounds note i (or what was asked for instead, muffled) and grades it. A slide glides on; the piano strikes again. */
@@ -488,7 +506,7 @@ export class ProtoGame {
     const chord = chordOf(notes, i);
     const fuoco = this.streak >= FUOCO_NOTES;
     const base = dynamic(d);
-    const expr: Play = { ...base, bright: (base.bright ?? 0) + (fuoco ? 0.35 : 0), muffleable: true, lead: true, pleno: v.ok && this.now < this.plenoUntil, envelope: piano ? "piano" : "synth" };
+    const expr: Play = { ...base, trill: this.trillNext, bright: (base.bright ?? 0) + (fuoco ? 0.35 : 0), muffleable: true, lead: true, pleno: v.ok && this.pleno, envelope: piano ? "piano" : "synth" };
     const pitches = v.ok || v.wrong === undefined ? chord.map((j) => notes[j].midi) : [v.wrong];
     if (slide && !piano && h.sounds.length === 1 && pitches.length === 1) {
       h.sounds[0].glide?.(pitches[0]);
@@ -530,7 +548,7 @@ export class ProtoGame {
     this.maxStreak = Math.max(this.maxStreak, this.streak);
     if (this.streak % STEP_NOTES === 0 && this.mult < 4) this.mult++;
     if (this.streak === FUOCO_NOTES) this.banner = { text: "CON FUOCO!", at };
-    h.pts = (perfect ? 2 : 1) * this.mult * (this.now < this.plenoUntil ? 2 : 1);
+    h.pts = (perfect ? 2 : 1) * this.mult * (this.pleno ? 2 : 1);
     this.score += h.pts;
     this.grade = perfect ? { text: "PERFECT", at, side: h.side } : { text: "GOOD", lean: offMs < 0 ? -1 : 1, at, side: h.side };
   }
@@ -586,7 +604,37 @@ export class ProtoGame {
     return acc >= 0.95 && all ? "S" : acc >= 0.9 ? "A" : acc >= 0.8 ? "B" : acc >= 0.7 ? "C" : "D";
   }
 
+  /** EASY (computer): the pedal down or up (up: what rang on stops). */
+  pedal(down: boolean) {
+    this.pedalDown = down;
+    if (!down) {
+      for (const sd of this.pedalled) sd.stop();
+      this.pedalled = [];
+    }
+  }
+  get pedalOn() {
+    return this.pedalDown;
+  }
+
+  /** EASY (computer): Space flings the note sounding now off, with the swoosh. */
+  swooshNow() {
+    for (const h of [...this.held.values()].reverse()) {
+      if (!h.sounds.length) continue;
+      for (const sd of h.sounds) sd.stop(this.chip.ctx.currentTime + 0.02);
+      h.sounds = [];
+      this.chip.swoosh(h.midi, voicing(this.tracks[h.k].voice, this.f.voices.length, true), levelOf(h.d0));
+      return;
+    }
+  }
+
+  /** EASY (computer): the held notes bent (cents). */
+  bendHeld(cents: number) {
+    for (const h of this.held.values()) for (const sd of h.sounds) sd.bend(cents);
+  }
+
   stopAll() {
+    for (const sd of this.pedalled) sd.stop();
+    this.pedalled = [];
     for (const h of this.held.values()) for (const sd of h.sounds) sd.stop();
     this.held.clear();
   }

@@ -19,7 +19,7 @@ import { accompaniment, startTick, stepRange, subjectMarks, voicesFrom } from ".
 import { paintProto } from "./paint-proto.ts";
 import { bossSections } from "./fingering.ts";
 import { ProtoGame, type KeyPress } from "./proto-game.ts";
-import { PROTOS, protoById, type ProtoId } from "./protos.ts";
+import { ARROW_KEYS, arrowOf, KEY_ROWS, keyRow, moveOf, PROTOS, protoById, type Platform, type ProtoId } from "./protos.ts";
 
 /**
  * D181, the piece: four choices, each a button that opens its options: the book (I, II, or the Art of
@@ -86,19 +86,9 @@ function sane(p: Pick): Pick {
 
 type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; right: number; wrong: number; missed: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number } | { kind: "settings" } | { kind: "help" };
 
-/** The computer's keys: PIANO a keyboard's row (A W S E D F T G Y H U J K O L P;), Z and X the octave; the others the hands' moves (WASD the left, the arrows the right; space a repeat). */
+/** The computer's keys (D182: a computer's prototypes only): PIANO a keyboard's rows (A W S E D F T G Y H U J K O L P ;), Z and X the octave; EASY every row (protos.ts KEY_ROWS) and space, Shift the pedal, the arrows a bend. */
 const PIANO_KEYS = ["KeyA", "KeyW", "KeyS", "KeyE", "KeyD", "KeyF", "KeyT", "KeyG", "KeyY", "KeyH", "KeyU", "KeyJ", "KeyK", "KeyO", "KeyL", "KeyP", "Semicolon"];
-const MOVE_KEYS: Record<string, { side: "left" | "right"; dir: number; big: boolean }> = {
-  KeyA: { side: "left", dir: -1, big: false },
-  KeyD: { side: "left", dir: 1, big: false },
-  KeyS: { side: "left", dir: -1, big: true },
-  KeyW: { side: "left", dir: 1, big: true },
-  ArrowLeft: { side: "right", dir: -1, big: false },
-  ArrowRight: { side: "right", dir: 1, big: false },
-  ArrowDown: { side: "right", dir: -1, big: true },
-  ArrowUp: { side: "right", dir: 1, big: true },
-  Space: { side: "right", dir: 0, big: false },
-};
+const PLATFORM_KEY = "tb-platform";
 
 export function BenchApp() {
   const [phase, setPhase] = useState<Phase>({ kind: "title" });
@@ -133,6 +123,13 @@ export function BenchApp() {
     loadDrums();
   }, []);
   const [midi, setMidi] = useState("");
+  // D182: mobile or computer, chosen on the first screen (and in the settings).
+  const [platform, setPlatformRaw] = useState<Platform | null>(() => load<Platform | null>(PLATFORM_KEY, null));
+  const setPlatform = (pl: Platform) => {
+    setPlatformRaw(pl);
+    save(PLATFORM_KEY, pl);
+    if (protoById(pick.proto).platform !== pl) setPick({ proto: PROTOS.find((p) => p.platform === pl)!.id });
+  };
   const [note, setNote] = useState("");
   const f = fugueById(pick.piece);
   const proto = protoById(pick.proto);
@@ -204,6 +201,8 @@ export function BenchApp() {
   useEffect(() => {
     if (phase.kind !== "play" || !chip.current) return;
     const g = new ProtoGame(f, played, from, proto, { bpm: pick.bpm, legato: pick.legato }, chip.current);
+    g.octave = octave.current;
+    const arrows = proto.id === "arrows" ? g.moves.map(arrowOf) : undefined;
     game.current = g;
     paint.current = (ctx, w, h) => paintProto(ctx, w, h, g, marks.subject);
     const b = beatOf(f);
@@ -227,6 +226,7 @@ export function BenchApp() {
         marks: g.marks,
         entryState: new Map(g.entries.map((e) => [`${e.voice}:${e.on}`, e.state])),
         fingers: proto.id === "fingering" ? g.tracks[0].fingers : undefined,
+        arrows,
         bosses: proto.id === "fingering" ? bossSections(f.entries, pick.voice) : undefined,
       };
       if (proto.layout === "bars") g.rows = boxRows(f.barTicks, g.now);
@@ -298,7 +298,8 @@ export function BenchApp() {
   };
   useEffect(() => {
     const nav = navigator as Navigator & { requestMIDIAccess?: () => Promise<MIDIAccess> };
-    if (!nav.requestMIDIAccess) return;
+    // MIDI: a computer's (D182).
+    if (!nav.requestMIDIAccess || platform !== "computer") return;
     let access: MIDIAccess | null = null;
     const listen = () => {
       const names: string[] = [];
@@ -322,11 +323,12 @@ export function BenchApp() {
       })
       .catch(() => setMidi(""));
     return () => access?.inputs.forEach((i) => (i.onmidimessage = null));
-  }, []);
+  }, [platform]);
 
   // The computer's keys; Escape quits.
   useEffect(() => {
     const press = (e: KeyboardEvent): KeyPress | null => {
+      if (proto.platform !== "computer") return e.code === "Space" ? {} : null;
       if (proto.id === "piano") {
         const i = PIANO_KEYS.indexOf(e.code);
         if (i < 0) return null;
@@ -334,19 +336,49 @@ export function BenchApp() {
         const base = g ? g.kb.lo - (((g.kb.lo % 12) + 12) % 12) : 60;
         return { midi: base + 12 * octave.current + i, velocity: 0.6 };
       }
-      const mv = MOVE_KEYS[e.code];
-      return mv ? { side: mv.side, move: { dir: mv.dir, big: mv.big }, velocity: 0.6 } : null;
+      if (proto.id === "arrows") {
+        const a = ARROW_KEYS[e.code];
+        return a ? { side: e.code.startsWith("Key") ? "left" : "right", move: moveOf(a), velocity: 0.6 } : null;
+      }
+      if (e.code === "Space") return { velocity: 0.5 };
+      const r = keyRow(e.code);
+      return r < 0 ? null : { velocity: KEY_ROWS[r].dyn, trill: KEY_ROWS[r].trill };
     };
     const down = (e: KeyboardEvent) => {
       if (e.code === "Escape" && phase.kind === "play") return quit();
-      if (proto.id === "piano" && (e.code === "KeyZ" || e.code === "KeyX")) return void (octave.current += e.code === "KeyZ" ? -1 : 1);
+      const g = game.current;
+      if (proto.id === "piano" && (e.code === "KeyZ" || e.code === "KeyX")) {
+        octave.current += e.code === "KeyZ" ? -1 : 1;
+        if (g) g.octave = octave.current;
+        return;
+      }
+      if (proto.id === "keys" && g) {
+        if (e.code === "ShiftLeft" || e.code === "ShiftRight") return g.pedal(true);
+        if (e.code === "ArrowUp" || e.code === "ArrowDown") return (e.preventDefault(), g.bendHeld(e.code === "ArrowUp" ? 60 : -60));
+        if (e.code === "Space" && phase.kind === "play" && !e.repeat) {
+          e.preventDefault();
+          // Space: a note if none sounds, else the swoosh.
+          if (g.keysDown.size) return g.swooshNow();
+        }
+      }
       const k = press(e);
       if (!k || e.repeat) return;
-      if (!game.current && phase.kind !== "title" && phase.kind !== "result") return;
+      if (!g && phase.kind !== "title" && phase.kind !== "result") return;
       e.preventDefault();
+      // A phone's prototype: the keys only start it.
+      if (proto.platform !== "computer") return void (g ? null : keyDownRef.current(0, k, e.timeStamp));
+      g?.keysDown.add(e.code);
       keyDownRef.current(7000 + e.keyCode, k, e.timeStamp);
     };
-    const up = (e: KeyboardEvent) => game.current?.keyUp(7000 + e.keyCode, e.timeStamp);
+    const up = (e: KeyboardEvent) => {
+      const g = game.current;
+      if (!g) return;
+      if (e.code === "ShiftLeft" || e.code === "ShiftRight") return g.pedal(false);
+      if (e.code === "ArrowUp" || e.code === "ArrowDown") return g.bendHeld(0);
+      g.keysDown.delete(e.code);
+      g.keyUp(7000 + e.keyCode, e.timeStamp);
+    };
+
     window.addEventListener("keydown", down);
     window.addEventListener("keyup", up);
     return () => {
@@ -358,7 +390,7 @@ export function BenchApp() {
   const playing = phase.kind === "play";
   const away = phase.kind === "title" || phase.kind === "result";
   const layout = proto.layout;
-  const wide = layout === "wide" || layout === "bars";
+  const wide = layout === "wide" || layout === "bars" || layout === "desk";
   const own = playing && (layout === "full" || layout === "bars") ? ` tb-${layout}` : "";
 
   return (
@@ -421,13 +453,14 @@ export function BenchApp() {
             <span>PROTOTYPE</span>
           </div>
           <div className="tg-grid3" role="group" aria-label="Prototype">
-            {PROTOS.map((p) => (
+            {PROTOS.filter((p) => p.platform === (platform ?? "mobile")).map((p) => (
               <button key={p.id} type="button" id={`proto-${p.id}`} className={p.id === pick.proto ? "on" : ""} onClick={() => setPick({ proto: p.id })} aria-pressed={p.id === pick.proto}>
                 {p.name}
               </button>
             ))}
           </div>
           <p className="tg-panel-note">{proto.how}</p>
+          <Choice id="platform" label="PLAY ON" options={[["mobile", "MOBILE"], ["computer", "COMPUTER"]]} value={platform ?? "mobile"} set={(pl) => setPlatform(pl)} />
           {proto.id === "sideways" && <Choice id="level" label="SIDEWAYS" options={[["easy", "EASY"], ["legato", "LEGATO"]]} value={pick.legato ? "legato" : "easy"} set={(v) => setPick({ legato: v === "legato" })} />}
           <PieceSetting id={pick.piece} set={(piece) => setPick({ piece, share: 0, voice: -1, voice2: -1 })} />
           <BpmSetting bpm={pick.bpm} set={(bpm) => setPick({ bpm })} />
@@ -445,18 +478,36 @@ export function BenchApp() {
           <section className="tg-help">
             <p>Every note needs its own touch, or a held thumb slid on to it. The time picks the note; the place judges it. Right: Bach's note. Wrong: what you asked for, muffled, not counted: you hear your mistake.</p>
             <p>Everywhere: a note lasts while the thumb is down (a quick tap is staccato); tapping while the other thumb still holds joins the notes (legato); moving a held thumb along the dynamic axis swells or fades the note; flick upwards as you let go: swoosh.</p>
-            {PROTOS.map((p) => (
+            {PROTOS.filter((p) => p.platform === (platform ?? "mobile")).map((p) => (
               <div key={p.id}>
                 <h2>{p.name}</h2>
                 <p>{p.how}</p>
               </div>
             ))}
             <h2>KEYS AND MIDI</h2>
-            <p>A MIDI keyboard plays the pitches (Chrome, Edge or Firefox on a computer). The computer's keys: on the PIANO a keyboard's row (A W S E D F T G Y H U J K O L P), Z and X the octave; elsewhere the left hand A and D a step down and up, S and W a bigger move; the right hand the arrows likewise; space a repeat. TWO VOICES: the left hand plays 1P, the right 2P.</p>
+            <p>A MIDI keyboard plays the pitches (Chrome, Edge or Firefox on a computer). The computer's keys: on the PIANO a keyboard's row (A W S E D F T G Y H U J K O L P), Z and X the octave; on LADDER WASD or the arrows (D or → a step up, A or ← a step down, W or ↑ a leap up, S or ↓ a leap down, space the same note); on EASY every row of keys.</p>
             <h2>SOUND, TUNING, DELAY</h2>
             <p>⚙: an ensemble for the voices (the bands bring a rhythm section); a temperament and the pitch of A; the sound's delay, set by tapping (headphones).</p>
           </section>
         </Panel>
+      )}
+      {!platform && (
+        <div className="tb-platform" role="dialog" aria-label="Play on">
+          <h1>THE WELL-TEMPERED BENCH</h1>
+          <p className="tb-platform-q">PLAY ON</p>
+          <div className="tb-platform-choices">
+            <button type="button" id="platform-mobile" onClick={() => setPlatform("mobile")}>
+              <span className="tb-platform-icon">▯</span>
+              MOBILE
+              <small>TWO THUMBS ON A PHONE</small>
+            </button>
+            <button type="button" id="platform-computer" onClick={() => setPlatform("computer")}>
+              <span className="tb-platform-icon">⌨</span>
+              COMPUTER
+              <small>KEYS · MIDI</small>
+            </button>
+          </div>
+        </div>
       )}
       <div className="tg-upright" role="alert">
         {wide ? "Turn the phone sideways" : "Turn the phone upright"}

@@ -23,8 +23,11 @@ import type { LaneNote } from "../touch/lanes.ts";
 import type { Play } from "../touch/chip.ts";
 import { markShapes } from "../touch/shape.ts";
 import type { Side } from "../touch/thumbs.ts";
+import type { Arrow } from "../touch/MusicBox.tsx";
 
-export type ProtoId = "ladder" | "fingering" | "duo" | "sideways" | "piano";
+export type ProtoId = "ladder" | "fingering" | "duo" | "sideways" | "arrows" | "keys" | "piano";
+/** D182: what the prototype is played on. */
+export type Platform = "mobile" | "computer";
 
 /** A note's move from the note before it. */
 export interface Move {
@@ -48,8 +51,10 @@ export interface Proto {
   name: string;
   /** One line under the name. */
   how: string;
-  /** How the screen is held: the box between two side bars (sideways), the whole screen a field (upright), the box over a keyboard (sideways). */
-  layout: "bars" | "full" | "wide";
+  /** How the screen is held: the box between two side bars (sideways), the whole screen a field (upright), the box over a keyboard (sideways), the box over the computer's keys. */
+  layout: "bars" | "full" | "wide" | "desk";
+  /** D182: a phone's (touch) or a computer's (keys, MIDI). */
+  platform: Platform;
 }
 
 export const PROTOS: Proto[] = [
@@ -58,34 +63,62 @@ export const PROTOS: Proto[] = [
     name: "LADDER",
     how: "Sideways. Touch either bar near the height your note is drawn in the box (the glow shows it), higher than your last touch when the tune goes up, lower when it goes down: the way matters more than the spot. A run is a slide up or down the bar. Across a bar: the middle mf, out to the phone's edge forte, in towards the box piano; slide across while a note sounds to swell or fade.",
     layout: "bars",
+    platform: "mobile",
   },
   {
     id: "fingering",
     name: "FINGERING",
     how: "Sideways. Each note has its thumb (L or R in the box) and its articulation: LEGATO (strike it while the note before still sounds), STACCATO (let go quickly), TENUTO (hold it). The subject's entries are bosses: a SUB BOSS also wants some notes high or low in the bar; the BOSS also wants forte (out) or piano (in).",
     layout: "bars",
+    platform: "mobile",
   },
   {
     id: "duo",
     name: "TWO VOICES",
     how: "Sideways. Choose two voices, 1P and 2P: the left bar plays the first, the right bar the second. Only the time counts. Across a bar: the middle mf, out forte, in piano; slide across while a note sounds to swell or fade; flick up as you let go for a swoosh.",
     layout: "bars",
+    platform: "mobile",
   },
   {
     id: "sideways",
     name: "SIDEWAYS",
     how: "Upright, the whole screen. The tune runs across: higher notes to the right. Touch each note in its column as it lands (one off counts), anywhere up or down: higher is louder. Cross your thumbs on a run, or slide across. LEGATO (⚙): every note joined to the one before.",
     layout: "full",
+    platform: "mobile",
+  },
+  {
+    id: "arrows",
+    name: "LADDER",
+    how: "On a computer. Each note's key is drawn over it in the box. Either hand, WASD or the arrows: → (D) a step up, ← (A) a step down, ↑ (W) a leap up, ↓ (S) a leap down; space the same note again.",
+    layout: "desk",
+    platform: "computer",
+  },
+  {
+    id: "keys",
+    name: "EASY",
+    how: "On a computer. Any key on time plays your note: only the time counts. The rows shape the note: Q W E R… forte, A S D F… (and space) mezzo, Z X C V… piano; the numbers trill it. Hold a key to sustain; strike the next while still holding for legato. Space flings the sounding note off (swoosh); hold Shift as a pedal; ↑ ↓ bend a held note.",
+    layout: "desk",
+    platform: "computer",
   },
   {
     id: "piano",
     name: "PIANO",
-    how: "Sideways. The voice's whole range; the notes fall onto their keys. The key exactly; a wrong key is heard. On a computer: A W S E D F T G Y H U J K O L P are the keys, Z and X the octave; or a MIDI keyboard.",
+    how: "On a computer: a MIDI keyboard, or the computer's keys as a piano (the home row the white keys, the row above the black: A W S E D F T G Y H U J K O L P), Z and X the octave. The notes fall onto their keys; the key exactly; a wrong key is heard.",
     layout: "wide",
+    platform: "computer",
   },
 ];
 
 export const protoById = (id: string) => PROTOS.find((p) => p.id === id) ?? PROTOS[0];
+
+/** D182, EASY on a computer: the keyboard's rows: the numbers a trill, the next forte, the home row mezzo, the bottom piano (after Ableton's velocity keys and the research on PC rhythm games). */
+export const KEY_ROWS: { codes: string[]; dyn: number; mark: string; trill?: boolean }[] = [
+  { codes: ["Backquote", "Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "Digit0", "Minus", "Equal"], dyn: 0.6, mark: "tr", trill: true },
+  { codes: ["KeyQ", "KeyW", "KeyE", "KeyR", "KeyT", "KeyY", "KeyU", "KeyI", "KeyO", "KeyP", "BracketLeft", "BracketRight", "Backslash"], dyn: 0.85, mark: "f" },
+  { codes: ["KeyA", "KeyS", "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ", "KeyK", "KeyL", "Semicolon", "Quote"], dyn: 0.5, mark: "mf" },
+  { codes: ["KeyZ", "KeyX", "KeyC", "KeyV", "KeyB", "KeyN", "KeyM", "Comma", "Period", "Slash"], dyn: 0.2, mark: "p" },
+];
+export const keyRow = (code: string) => KEY_ROWS.findIndex((r) => r.codes.includes(code));
 
 /** LADDER (D181): how many rows either side of where a note is drawn still reach it. */
 export const LADDER_AREA = 3.5;
@@ -142,3 +175,27 @@ export function stepPitch(step: number, near: { step: number; midi: number }): n
 
 /** A pitch's staff step near a note (a MIDI key's step, for the prototypes that judge steps). */
 export const stepNear = (midi: number, near: { step: number; midi: number }) => near.step + Math.round(((midi - near.midi) * 7) / 12);
+
+/** D183, LADDER on a computer: the eight keys (WASD the left hand, the arrows the right, the same moves) and space. */
+export const ARROW_KEYS: Record<string, Arrow> = {
+  KeyW: "up",
+  KeyS: "down",
+  KeyA: "left",
+  KeyD: "right",
+  ArrowUp: "up",
+  ArrowDown: "down",
+  ArrowLeft: "left",
+  ArrowRight: "right",
+  Space: "same",
+};
+/** The key a move asks for (none for the first note: any key); a leap is a third or more, as judged. */
+export function arrowOf(m: Move): Arrow | null {
+  if (m.size < 0) return null;
+  if (m.dir === 0) return "same";
+  const big = m.size >= 2;
+  return m.dir > 0 ? (big ? "up" : "right") : big ? "down" : "left";
+}
+/** And back: the move a key makes. */
+export function moveOf(a: Arrow): { dir: number; big: boolean } {
+  return { dir: a === "up" || a === "right" ? 1 : a === "same" ? 0 : -1, big: a === "up" || a === "down" };
+}

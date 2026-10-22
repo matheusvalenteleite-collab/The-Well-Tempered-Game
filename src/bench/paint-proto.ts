@@ -11,12 +11,14 @@
  *   PIANO: paint-piano.ts.
  * The verdict of the last touch flashes over the field.
  */
-import { inkOf, keyTint } from "../touch/MusicBox.tsx";
+import { ARROW_PIXELS, inkOf, keyTint, type Arrow } from "../touch/MusicBox.tsx";
 import { paintPiano } from "../touch/paint-piano.ts";
 import { stepName } from "../touch/fugue.ts";
 import { columnX, COLUMNS, LINE } from "./placed.ts";
 import { APPROACH_MS, type ProtoGame } from "./proto-game.ts";
-import { BAR, LADDER_AREA, MARKS } from "./protos.ts";
+import { ARROW_KEYS, arrowOf, BAR, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
+import { isBlack, keySpan } from "../touch/piano.ts";
+import { KEYS_SHARE } from "./placed.ts";
 
 const FONT = '"Press Start 2P", ui-monospace, monospace';
 
@@ -40,6 +42,13 @@ export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g:
       break;
     case "piano":
       paintPiano(c, w, h, { kb: g.kb, now: g.now, tps: g.tps, voice: g.voice, count: g.f.voices.length, notes: g.notes, others: g.others, late: g.opt.late, held: g.heldCells(), grade: g.grade }, subject);
+      pianoLetters(c, w, h, g, t);
+      break;
+    case "keys":
+      desk(c, w, h, g, t);
+      break;
+    case "arrows":
+      pads(c, w, h, g, t);
       break;
   }
   verdict(c, w, h, g, t);
@@ -49,11 +58,12 @@ export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g:
 /** D181: the score and the multiplier, the banners (ORGANO PLENO, CON FUOCO), and CON FUOCO's embers. */
 function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
   const bars = g.proto.layout === "bars";
-  const x = bars ? (w * BAR) / 2 : w / 2;
-  const y = bars ? h * 0.12 : g.proto.id === "sideways" ? 30 : 14;
+  const desk = g.proto.layout === "desk";
+  const x = bars ? (w * BAR) / 2 : desk ? w - 90 : w / 2;
+  const y = bars ? h * 0.12 : g.proto.id === "sideways" ? 30 : desk ? 34 : 14;
   label(c, g.score.toLocaleString("en"), x, y, t.fg, 9);
   if (g.mult > 1) label(c, `×${g.mult}`, x, y + 16, g.mult >= 4 ? t.gold : t.shine, 9);
-  if (g.now < g.plenoUntil) label(c, "PLENO ×2", bars ? w - (w * BAR) / 2 : x, bars ? h * 0.12 : y + 32, t.gold, 7);
+  if (g.pleno) label(c, "PLENO ×2", bars ? w - (w * BAR) / 2 : x, bars ? h * 0.12 : y + 32, t.gold, 7);
   // CON FUOCO: embers rising along the edges while the run lasts.
   if (g.streak >= 24) {
     const now = performance.now() / 1000;
@@ -76,6 +86,114 @@ function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoG
       c.globalAlpha = 1;
     }
   }
+}
+
+/** PIANO on a computer: the typing keys' letters on the piano keys they play (the octave as set). */
+function pianoLetters(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
+  const letters = ["A", "W", "S", "E", "D", "F", "T", "G", "Y", "H", "U", "J", "K", "O", "L", "P", ";"];
+  const base = g.kb.lo - (((g.kb.lo % 12) + 12) % 12) + 12 * g.octave;
+  letters.forEach((l, i) => {
+    const m = base + i;
+    if (m < g.kb.lo || m > g.kb.hi) return;
+    const [a, b] = keySpan(g.kb, m);
+    const black = isBlack(m);
+    label(c, l, ((a + b) / 2) * w, black ? h * (1 - KEYS_SHARE) + 20 : h - 22, black ? t.shine : "#2a2216", 7);
+  });
+}
+
+/**
+ * LADDER on a computer (D183): the two hands' keys as on the keyboard, WASD and the arrows, with space
+ * between; the key the next note asks for lit on both as its beat comes, the keys down bright; one line
+ * saying how it goes.
+ */
+function pads(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
+  const ink = inkOf(g.voice, g.f.voices.length);
+  const nx = coming(g);
+  const asked = nx ? arrowOf(g.moves[nx.i]) : null;
+  const key = Math.max(28, Math.min(54, (h - 70) / 2.3));
+  const top = Math.max(14, (h - 40 - 2 * key) / 2);
+  const cap = (code: string, x: number, y: number, kw: number, letter: string) => {
+    const down = g.keysDown.has(code);
+    c.fillStyle = down ? t.shine : "#1d1a24";
+    c.fillRect(x, y, kw - 4, key - 4);
+    c.fillStyle = "rgba(0,0,0,0.4)";
+    c.fillRect(x, y + key - 8, kw - 4, 4);
+    if (nx && !down && asked === ARROW_KEYS[code]) light(c, x, y, kw - 4, key - 8, nx.p, ink, t);
+    const fg = down ? "#1a1408" : t.fg;
+    const s = Math.max(3, Math.floor(key / 12));
+    pixels(c, ARROW_KEYS[code], x + (kw - 4) / 2 - 2.5 * s, y + (key - 8) / 2 - 2.5 * s, s, fg);
+    if (letter) label(c, letter, x + 4, y + 8, down ? fg : t.muted, 7, "left");
+  };
+  const cluster = (cx: number, codes: [string, string, string, string], letters: [string, string, string, string]) => {
+    cap(codes[0], cx - key / 2, top, key, letters[0]);
+    [1, 2, 3].forEach((j) => cap(codes[j], cx - key * 1.5 + (j - 1) * key, top + key, key, letters[j]));
+  };
+  cluster(w * 0.2, ["KeyW", "KeyA", "KeyS", "KeyD"], ["W", "A", "S", "D"]);
+  cluster(w * 0.8, ["ArrowUp", "ArrowLeft", "ArrowDown", "ArrowRight"], ["", "", "", ""]);
+  cap("Space", w * 0.35, top + key, w * 0.3, "SPACE");
+  // How it goes, in one line: each key's arrow and what it does.
+  const parts: [Arrow, string][] = [["right", "STEP UP"], ["left", "STEP DOWN"], ["up", "LEAP UP"], ["down", "LEAP DOWN"], ["same", "SAME NOTE"]];
+  c.font = `8px ${FONT}`;
+  const lead = "WASD OR ARROWS:";
+  const gap = 18;
+  const total = c.measureText(lead).width + parts.reduce((a, [, txt]) => a + gap + 15 + c.measureText(txt).width, 0);
+  let x = (w - total) / 2;
+  const y = h - 14;
+  label(c, lead, x, y, t.muted, 8, "left");
+  x += c.measureText(lead).width;
+  for (const [a, txt] of parts) {
+    x += gap;
+    pixels(c, a, x, y - 5, 2, t.shine);
+    x += 15;
+    label(c, txt, x, y, t.fg, 8, "left");
+    x += c.measureText(txt).width;
+  }
+}
+
+/** A key's arrow (or the same note's dot), 5 by 5 pixels at scale s. */
+function pixels(c: CanvasRenderingContext2D, a: Arrow, x: number, y: number, s: number, color: string) {
+  c.fillStyle = color;
+  ARROW_PIXELS[a].forEach((row, ry) => [...row].forEach((on, rx) => on === "1" && c.fillRect(Math.round(x + rx * s), Math.round(y + ry * s), s, s)));
+}
+
+/** EASY on a computer: the keyboard's four rows (ff to p), the keys down lit; the next note's time as two bars meeting. */
+function desk(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
+  const ink = inkOf(g.voice, g.f.voices.length);
+  const rowH = Math.min(46, (h - 60) / KEY_ROWS.length);
+  const key = Math.min(46, (w - 90) / 13);
+  const top = 16;
+  const nx = coming(g);
+  KEY_ROWS.forEach((r, ri) => {
+    const y = top + ri * rowH;
+    const x0 = 60 + ri * key * 0.35;
+    label(c, r.mark, 30, y + rowH / 2, ri === 0 ? t.gold : t.muted, 9);
+    r.codes.forEach((code, ci) => {
+      const x = x0 + ci * key;
+      const down = g.keysDown.has(code);
+      c.fillStyle = down ? t.shine : "#1d1a24";
+      c.fillRect(x, y + 3, key - 4, rowH - 6);
+      c.fillStyle = "rgba(0,0,0,0.4)";
+      c.fillRect(x, y + rowH - 6, key - 4, 3);
+      if (nx && !down) {
+        c.fillStyle = ink;
+        c.globalAlpha = 0.1 + 0.4 * nx.p * nx.p;
+        c.fillRect(x, y + 3, key - 4, rowH - 6);
+        c.globalAlpha = 1;
+      }
+      const name = code.replace("Key", "").replace("Digit", "").replace("Backquote", "`").replace("Minus", "-").replace("Equal", "=").replace("BracketLeft", "[").replace("BracketRight", "]").replace("Backslash", "\\").replace("Semicolon", ";").replace("Quote", "'").replace("Comma", ",").replace("Period", ".").replace("Slash", "/");
+      label(c, name, x + (key - 4) / 2, y + rowH / 2, down ? "#1a1408" : t.muted, 8);
+    });
+  });
+  // The beat closing in, under the keys.
+  if (nx) {
+    const y = top + KEY_ROWS.length * rowH + 6;
+    const half = (w / 2) * (1 - nx.p);
+    c.fillStyle = t.shine;
+    c.fillRect(0, y, w / 2 - half, 3);
+    c.fillRect(w / 2 + half, y, w / 2 - half, 3);
+    if (g.notes[nx.i].long) label(c, "HOLD", w / 2, y + 14, t.fg, 8);
+  }
+  label(c, `SPACE: A NOTE (A SWOOSH WHILE ONE SOUNDS) · SHIFT: PEDAL${g.pedalOn ? " (DOWN)" : ""} · ↑ ↓: BEND`, w / 2, h - 12, g.pedalOn ? t.gold : t.muted, 7);
 }
 
 /** A voice's next note and how near it is (0 far, 1 on its beat), if it is showing. */
@@ -305,8 +423,9 @@ function verdict(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     const why: Record<string, string> = { legato: "✕ LEGATO", gesture: "✕ WRONG", staccato: "✕ STACCATO", tenuto: "✕ TENUTO", hand: "✕ OTHER THUMB", height: "✕ HIGHER/LOWER", dynamic: "✕ FORTE/PIANO" };
     const text = gr.text === "✕" ? (why[gr.why ?? ""] ?? "✕ OFF TIME") : gr.text;
     const bars = g.proto.layout === "bars";
-    const x = bars ? (gr.side === "left" ? w * BAR * 0.5 : w * (1 - BAR * 0.5)) : w / 2;
-    label(c, text, x, g.proto.id === "sideways" ? h * LINE + 24 : bars ? h * 0.45 : 30, gr.text === "PERFECT" ? t.gold : ok ? t.fg : t.wrong, 8);
+    const desk = g.proto.layout === "desk";
+    const x = bars ? (gr.side === "left" ? w * BAR * 0.5 : w * (1 - BAR * 0.5)) : desk ? w - 90 : w / 2;
+    label(c, text, x, g.proto.id === "sideways" ? h * LINE + 24 : bars ? h * 0.45 : desk ? 14 : 30, gr.text === "PERFECT" ? t.gold : ok ? t.fg : t.wrong, 8);
     c.globalAlpha = 1;
   }
 }

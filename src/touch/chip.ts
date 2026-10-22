@@ -56,6 +56,8 @@ export interface Play {
   lead?: boolean;
   /** D181, ORGANO PLENO: the note doubled an octave above and below, as on an organ's full stops. */
   pleno?: boolean;
+  /** D182: a trill: the note alternating with the step above, about eight times a second. */
+  trill?: boolean;
 }
 
 export interface Sounding {
@@ -424,6 +426,22 @@ export class Chip {
       for (const o of oscs) depth.connect(o.detune);
       lfo.start(t);
       lfo.stop(end + 2);
+    }
+    if (p.trill && ctx.createConstantSource) {
+      // A whole tone above and back: a square wave of 0 or 200 cents.
+      const lfo = ctx.createOscillator();
+      lfo.type = "square";
+      lfo.frequency.value = 7.5;
+      const depth = ctx.createGain();
+      depth.gain.value = 100;
+      const centre = ctx.createConstantSource();
+      centre.offset.value = 100;
+      lfo.connect(depth);
+      for (const o of oscs) (depth.connect(o.detune), centre.connect(o.detune));
+      lfo.start(t + 0.06);
+      centre.start(t + 0.06);
+      lfo.stop(end + 2);
+      centre.stop(end + 2);
     }
     const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
     const dyn = ctx.createGain();

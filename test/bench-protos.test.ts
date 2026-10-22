@@ -4,7 +4,7 @@ import { beatOf, fugueById } from "../src/touch/fugue.ts";
 import { laneNotes, type LaneNote } from "../src/touch/lanes.ts";
 import type { Chip } from "../src/touch/chip.ts";
 import { ProtoGame, type Contact, type Rows } from "../src/bench/proto-game.ts";
-import { barDynamic, BAR, moves, protoById, PROTOS, stepPitch, thumbsVerdict } from "../src/bench/protos.ts";
+import { ARROW_KEYS, arrowOf, barDynamic, BAR, KEY_ROWS, keyRow, moveOf, moves, protoById, PROTOS, stepPitch, thumbsVerdict } from "../src/bench/protos.ts";
 import { columnAt, columnX, KEYS_SHARE, LINE } from "../src/bench/placed.ts";
 import { isBlack, keySpan } from "../src/touch/piano.ts";
 import { grooveHits, patchFor, PRESETS, setPreset, slotOf } from "../src/touch/sound.ts";
@@ -239,7 +239,7 @@ test("a held note swells as the thumb moves out across its bar; a flick upwards 
   assert.deepEqual(swooshes, [n.midi]);
 });
 
-test("keys: a MIDI key plays its pitch (the PIANO exactly); the computer's moves on LADDER", () => {
+test("keys: a MIDI key plays its pitch (the PIANO exactly); WASD and the arrows on the computer's LADDER", () => {
   {
     const clock = { t: 0 };
     const g = new ProtoGame(C_MINOR, 1, 0, protoById("piano"), { bpm: 54, legato: false }, fakeChip(clock));
@@ -251,8 +251,11 @@ test("keys: a MIDI key plays its pitch (the PIANO exactly); the computer's moves
   }
   {
     const clock = { t: 0 };
-    const g = new ProtoGame(C_MINOR, 1, 0, protoById("ladder"), { bpm: 54, legato: false }, fakeChip(clock));
-    for (const [i, mv] of [[0, { dir: 0, big: false }], [1, { dir: -1, big: false }], [2, { dir: 1, big: false }], [3, { dir: -1, big: true }]] as const) {
+    const g = new ProtoGame(C_MINOR, 1, 0, protoById("arrows"), { bpm: 54, legato: false }, fakeChip(clock));
+    // The subject: C (any key), B a step down, C a step up, G a leap down: the keys the box draws.
+    assert.deepEqual(g.moves.slice(0, 4).map(arrowOf), [null, "left", "right", "down"]);
+    for (const [i, code] of [[0, "Space"], [1, "KeyA"], [2, "ArrowRight"], [3, "KeyS"]] as const) {
+      const mv = moveOf(ARROW_KEYS[code]);
       clock.t = 0.15 + (g.notes[i].on - g.start) / g.tps;
       g.step();
       g.keyDown(10 + i, { move: mv }, performance.now());
@@ -260,6 +263,31 @@ test("keys: a MIDI key plays its pitch (the PIANO exactly); the computer's moves
       assert.equal(g.notes[i].state, "hit", `note ${i}`);
     }
   }
+});
+
+test("platforms: the phone's prototypes and the computer's apart; EASY rows and keys", () => {
+  assert.deepEqual(PROTOS.filter((p) => p.platform === "computer").map((p) => p.id), ["arrows", "keys", "piano"]);
+  assert.ok(PROTOS.filter((p) => p.platform === "mobile").every((p) => p.layout !== "desk"));
+  assert.deepEqual(["Digit3", "KeyE", "KeyD", "KeyC", "Space", "Enter"].map(keyRow), [0, 1, 2, 3, -1, -1]);
+  assert.ok(KEY_ROWS[1].dyn > KEY_ROWS[2].dyn && KEY_ROWS[2].dyn > KEY_ROWS[3].dyn, "f above mf above p");
+});
+
+test("EASY: any key on time is right, whatever its row; off time it is a miss", () => {
+  const clock = { t: 0 };
+  const g = new ProtoGame(C_MINOR, 1, 0, protoById("keys"), { bpm: 54, legato: false }, fakeChip(clock));
+  ["KeyQ", "KeyA", "KeyZ", "Digit1"].forEach((code, i) => {
+    clock.t = g.timeAt(g.notes[i].on);
+    g.step();
+    const r = KEY_ROWS[keyRow(code)];
+    g.keyDown(20 + i, { velocity: r.dyn, trill: r.trill }, performance.now());
+    g.keyUp(20 + i, performance.now());
+    assert.equal(g.notes[i].state, "hit", code);
+  });
+  const n = g.notes[6];
+  clock.t = g.timeAt(n.on) - 0.9;
+  g.step();
+  g.keyDown(40, { velocity: 0.5 }, performance.now());
+  assert.notEqual(n.state, "hit");
 });
 
 test("SIDEWAYS: a column's middle is that column", () => {

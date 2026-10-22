@@ -46,6 +46,17 @@ export function keyTint(key: string, light = 0): string {
  * The ladder as paint() lays it out in a roll `cssH` pixels high: each staff step's middle (CSS px from
  * the roll's top), and a row's height (D179: the testbench's side bars line up with it).
  */
+/** A key of LADDER on a computer: a step or a leap, up or down, or the same note. */
+export type Arrow = "up" | "down" | "left" | "right" | "same";
+/** The keys' arrows, 5 by 5. */
+export const ARROW_PIXELS: Record<Arrow, string[]> = {
+  up: ["00100", "01110", "10101", "00100", "00100"],
+  down: ["00100", "00100", "10101", "01110", "00100"],
+  right: ["00100", "00010", "11111", "00010", "00100"],
+  left: ["00100", "01000", "11111", "01000", "00100"],
+  same: ["00000", "00000", "01100", "01100", "00000"],
+};
+
 export function ladderGeometry(lo: number, hi: number, cssH: number): { yOf: (step: number) => number; rowH: number } {
   const h = Math.max(1, Math.floor(cssH / PX));
   const rows = hi - (lo - 1) + 2;
@@ -88,7 +99,8 @@ export interface Frame {
   voice2?: number;
   notes2?: LaneNote[];
   /** The testbench's THUMBS ↔ (D178): each note's move (aligned with `notes`), drawn as the thumb it wants. */
-  arrows?: { dir: number; size: number }[];
+  /** LADDER on a computer (D183): the key each note asks for, drawn over it. */
+  arrows?: (Arrow | null)[];
 }
 
 export function MusicBox({ frame, hud, legend, children }: { frame: MutableRefObject<Frame>; hud: ReactNode; legend: ReactNode; children?: ReactNode }) {
@@ -242,16 +254,14 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
       if (fg.art === "legato") g.fillRect(x - 3, y + bh + 1, Math.max(3, x2 - x + 2), 1);
     });
 
-  // The thumb each coming note wants: ▲ the right, ▼ the left (none: either).
+  // LADDER on a computer: each coming note's key, a small pixel arrow over it (a dot: the same note).
   if (fr.arrows)
     fr.notes.forEach((n, i) => {
-      const m = fr.arrows![i];
+      const a = fr.arrows![i];
       const x = xOf(n.on);
-      if (!m || n.state !== "pending" || x < playX || x > w || m.size < 1 || m.size > 2 || !m.dir) return;
-      const y = yOf(n.step);
+      if (!a || n.state !== "pending" || x < playX || x > w || (i > 0 && fr.notes[i - 1].on === n.on)) return;
       g.fillStyle = edge;
-      if (m.dir > 0) (g.fillRect(x + 1, y - 5, 1, 1), g.fillRect(x, y - 4, 3, 1), g.fillRect(x - 1, y - 3, 5, 1));
-      else (g.fillRect(x - 1, y + bh + 1, 5, 1), g.fillRect(x, y + bh + 2, 3, 1), g.fillRect(x + 1, y + bh + 3, 1, 1));
+      ARROW_PIXELS[a].forEach((row, ry) => [...row].forEach((on, rx) => on === "1" && g.fillRect(x + rx, yOf(n.step) - 7 + ry, 1, 1)));
     });
 
   // The touches: where each landed (the step it asked for), light when right, red when wrong.
