@@ -33,3 +33,35 @@
 .tb-arcade-voices button.on { border-color: currentColor; animation: tg-blink 0.9s steps(2) infinite; }
 .tb-arcade-voices button:disabled { opacity: 0.25; cursor: default; }
 .tb-arcade-go { font-family: var(--tg-pixel); font-size: 9px; color: var(--tg-shine); animation: tg-blink 1.1s steps(2) infinite; }
+
+/* D181: the result: a grade, the score. */
+.tb-grade { font-size: 40px !important; text-shadow: 3px 3px 0 #b8322a; }
+.tb-score { margin: 0; font-family: var(--tg-pixel); font-size: 14px; color: var(--tg-fg); }
+
+/* D181: the piece as four buttons (book, tonic, mode, prelude or fugue), each opening its options. */
+.tb-piece4 { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 6px; }
+.tb-piece4 button, .tb-pop-grid button {
+  font-family: var(--tg-pixel);
+  font-size: 8px;
+  line-height: 1.4;
+  padding: 12px 4px;
+  color: var(--tg-fg);
+  background: var(--tg-box);
+  border: 2px solid var(--tg-barline);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+.tb-piece4 button:disabled { opacity: 0.4; cursor: default; }
+.tb-book { border-color: var(--tg-shine) !important; color: var(--tg-shine) !important; }
+.tb-key { font-size: 12px !important; }
+.tb-mode { background: #e8dfc8 !important; color: #2a2216 !important; }
+.tb-mode.minor { background: #2a2216 !important; color: #e8dfc8 !important; }
+.tb-kind { border-style: dashed !important; }
+.tb-pop { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; background: rgba(8, 10, 22, 0.75); }
+.tb-pop-box { width: min(420px, calc(100% - 32px)); padding: 14px; background: var(--tg-bg); border: 2px solid var(--tg-shine); box-shadow: 4px 4px 0 #b8322a; }
+.tb-pop-grid { display: grid; gap: 8px; }
+.tb-pop-2 { grid-template-columns: 1fr 1fr; }
+.tb-pop-3 { grid-template-columns: 1fr; }
+.tb-pop-4 { grid-template-columns: repeat(4, 1fr); }
+.tb-pop-grid button { font-size: 10px; padding: 16px 4px; }
+.tb-pop-grid button.on { outline: 3px solid var(--tg-shine); outline-offset: -3px; }

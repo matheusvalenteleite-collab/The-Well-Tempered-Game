@@ -9,10 +9,10 @@ import type { Chip } from "./chip.ts";
 import type { Instrument } from "./engine.ts";
 import type { Level as Difficulty } from "./lanes.ts";
 import { CLICKS, lagOf, offsetOf, PERIOD, SKIP } from "./lag.ts";
-import { FAMILIES, presetById } from "./sound.ts";
+import { drums as drumsNow, FAMILIES, presetById, setDrums as setDrumsNow } from "./sound.ts";
 import { PITCHES, TEMPERAMENTS } from "./tuning.ts";
 
-/** D180: the tempo, 20 to 200 beats a minute (the felt beat). */
+/** D180: the tempo, 20 to 200 quarter notes a minute (D181). */
 export const BPM_MIN = 20;
 export const BPM_MAX = 200;
 export const saneBpm = (b: unknown) => (typeof b === "number" && b >= BPM_MIN && b <= BPM_MAX ? Math.round(b) : 54);
@@ -21,7 +21,7 @@ export function BpmSetting({ bpm, set }: { bpm: number; set: (b: number) => void
   return (
     <label className="tg-set tg-bpm">
       <span>TEMPO</span>
-      <span className="tg-panel-val">{bpm} BPM</span>
+      <span className="tg-panel-val">♩ = {bpm}</span>
       <input type="range" id="bpm" min={BPM_MIN} max={BPM_MAX} step={1} value={bpm} onChange={(e) => set(Number(e.target.value))} />
     </label>
   );
@@ -55,7 +55,7 @@ export function TuningSetting({ id, a, set }: { id: string; a: number; set: (id:
 export interface Settings {
   inst: Instrument;
   diff: Difficulty;
-  /** Beats per minute of the felt beat (D180: 20 to 200). */
+  /** Quarter notes a minute (D180; D181: always the quarter note), 20 to 200. */
   bpm: number;
 }
 
@@ -110,7 +110,27 @@ export function SettingsPanel(p: { settings: Settings; set: (s: Partial<Settings
 }
 
 /** The ensemble (D177): a family, then one of its presets. */
+/** D181: CHIP's and MOOG's drums, on or off, kept on the device. */
+const DRUMS_KEY = "tg-drums";
+export function loadDrums() {
+  try {
+    setDrumsNow(localStorage.getItem(DRUMS_KEY) === "true");
+  } catch {
+    /* no storage */
+  }
+}
+
 export function SoundSetting({ value, set }: { value: string; set: (id: string) => void }) {
+  const [drums, setDrumsState] = useState(drumsNow());
+  const setDrums = (on: boolean) => {
+    setDrumsState(on);
+    setDrumsNow(on);
+    try {
+      localStorage.setItem(DRUMS_KEY, String(on));
+    } catch {
+      /* no storage */
+    }
+  };
   const [family, setFamily] = useState(() => FAMILIES.findIndex((f) => f.presets.some((p) => p.id === value)));
   const fam = FAMILIES[Math.max(0, family)];
   return (
@@ -132,6 +152,11 @@ export function SoundSetting({ value, set }: { value: string; set: (id: string) 
             {p.name}
           </button>
         ))}
+        {fam.presets.some((p) => p.drums) && (
+          <button type="button" id="drums" className={`tg-toggle${drums ? " on" : ""}`} onClick={() => setDrums(!drums)} aria-pressed={drums}>
+            DRUMS {drums ? "ON" : "OFF"}
+          </button>
+        )}
       </div>
     </>
   );

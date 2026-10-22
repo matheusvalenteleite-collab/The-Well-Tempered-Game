@@ -18,6 +18,8 @@ export interface Shape {
   hold: number;
   /** Seconds early (negative) or late. */
   nudge: number;
+  /** A note of the subject (it shines whatever the player does). */
+  subject: boolean;
 }
 
 export function phrase(notes: readonly OtherNote[], beat: number, bar: number, subject: Set<string>): Shape[] {
@@ -38,7 +40,8 @@ export function phrase(notes: readonly OtherNote[], beat: number, bar: number, s
   return notes.map((n, i) => {
     const inBar = ((n.on % bar) + bar) % bar;
     const weight = inBar === 0 ? 1.12 : inBar % beat === 0 ? 1.04 : 0.94;
-    const subj = subject.has(`${n.voice}:${n.on}`) ? 1.15 : 1;
+    const inSubject = subject.has(`${n.voice}:${n.on}`);
+    const subj = inSubject ? 1.15 : 1;
     const arch = 0.92 + 0.16 * (local.get(i) ?? 0.5);
     const after = next.get(i);
     let hold = 1;
@@ -51,6 +54,41 @@ export function phrase(notes: readonly OtherNote[], beat: number, bar: number, s
     // A fixed, small unevenness: a hash of the note.
     const h = Math.sin(n.on * 12.9898 + n.midi * 78.233 + n.voice * 37.719) * 43758.5453;
     const nudge = ((h - Math.floor(h)) * 2 - 1) * 0.006;
-    return { level: weight * subj * arch, hold, nudge };
+    return { level: weight * subj * arch, hold, nudge, subject: inSubject };
   });
+}
+
+/**
+ * D181, the accompaniment listening: how the player has been playing (0 pp to 1 ff, a running
+ * average) moves the others a little with them (from 0.88 to 1.12 of their level); the subject's
+ * notes never drop below their own level.
+ */
+export function follow(sh: Shape, feel: number): number {
+  const f = 0.88 + 0.24 * Math.max(0, Math.min(1, feel));
+  return sh.level * (sh.subject ? Math.max(1, f) : f);
+}
+
+/**
+ * D181, the last cadence held back: over the last two bars the tempo slows evenly to RIT_END of
+ * itself. `warp` turns score ticks into ticks of steady time, `unwarp` back.
+ */
+export const RIT_END = 0.78;
+export function ritard(length: number, barTicks: number): { warp: (tick: number) => number; unwarp: (w: number) => number } {
+  const from = Math.max(0, length - 2 * barTicks);
+  const L = length - from;
+  const a = 1 - RIT_END;
+  const end = from - (L / a) * Math.log(1 - a);
+  return {
+    warp: (tick) => {
+      if (tick <= from) return tick;
+      if (tick >= length) return end + (tick - length) / RIT_END;
+      const x = (tick - from) / L;
+      return from - (L / a) * Math.log(1 - a * x);
+    },
+    unwarp: (w) => {
+      if (w <= from) return w;
+      if (w >= end) return length + (w - end) * RIT_END;
+      return from + (L * (1 - Math.exp((-a * (w - from)) / L))) / a;
+    },
+  };
 }

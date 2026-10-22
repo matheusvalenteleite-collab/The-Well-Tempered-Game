@@ -9,8 +9,8 @@
  *     voice's range filling the box), so a note is touched at the height it is drawn, either bar; a
  *     glow runs from the coming note across to the bars. Across a bar: the middle mf, towards the
  *     phone's edge forte, towards the box piano.
- *   THUMBS: the same screen; right bar when the tune goes up, left when it goes down, either for a
- *     repeat or a leap.
+ *   FINGERING (D181): the same screen; each note its thumb and its articulation, the subject's entries
+ *     bosses with more to get right (fingering.ts).
  *   TWO VOICES: the same screen; two voices chosen (1P, 2P), one to each bar; the time only.
  *   SIDEWAYS: upright, the whole screen: the tune across the width, higher to the right, in columns
  *     of a window following the passage; a note is touched in its column anywhere up or down the
@@ -24,7 +24,7 @@ import type { Play } from "../touch/chip.ts";
 import { markShapes } from "../touch/shape.ts";
 import type { Side } from "../touch/thumbs.ts";
 
-export type ProtoId = "ladder" | "thumbs" | "duo" | "sideways" | "piano";
+export type ProtoId = "ladder" | "fingering" | "duo" | "sideways" | "piano";
 
 /** A note's move from the note before it. */
 export interface Move {
@@ -56,13 +56,13 @@ export const PROTOS: Proto[] = [
   {
     id: "ladder",
     name: "LADDER",
-    how: "Sideways. Touch either bar at the height your note is drawn in the box (the glow shows it): a run is a slide up or down the bar. Across a bar: the middle mf, out to the phone's edge forte, in towards the box piano; slide across while a note sounds to swell or fade.",
+    how: "Sideways. Touch either bar near the height your note is drawn in the box (the glow shows it), higher than your last touch when the tune goes up, lower when it goes down: the way matters more than the spot. A run is a slide up or down the bar. Across a bar: the middle mf, out to the phone's edge forte, in towards the box piano; slide across while a note sounds to swell or fade.",
     layout: "bars",
   },
   {
-    id: "thumbs",
-    name: "THUMBS",
-    how: "Sideways. Right bar when the tune goes up (▲), left when it goes down (▼), either for a repeat or a leap. Across a bar: the middle mf, out forte, in piano; slide across while a note sounds to swell or fade.",
+    id: "fingering",
+    name: "FINGERING",
+    how: "Sideways. Each note has its thumb (L or R in the box) and its articulation: LEGATO (strike it while the note before still sounds), STACCATO (let go quickly), TENUTO (hold it). The subject's entries are bosses: a SUB BOSS also wants some notes high or low in the bar; the BOSS also wants forte (out) or piano (in).",
     layout: "bars",
   },
   {
@@ -86,6 +86,9 @@ export const PROTOS: Proto[] = [
 ];
 
 export const protoById = (id: string) => PROTOS.find((p) => p.id === id) ?? PROTOS[0];
+
+/** LADDER (D181): how many rows either side of where a note is drawn still reach it. */
+export const LADDER_AREA = 3.5;
 
 /** The bars' share of the width (each). */
 export const BAR = 0.2;
