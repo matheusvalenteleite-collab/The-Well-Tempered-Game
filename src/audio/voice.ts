@@ -6,6 +6,7 @@ import { FxChain } from "./effects.ts";
 import { frequency, type TemperamentId } from "./temperament.ts";
 import { isSampled, type SampleSet, type SynthSettings } from "./synth-settings.ts";
 import { SAMPLE_MANIFEST } from "./sample-manifest.ts";
+import { SITE } from "./site.ts";
 import { parsePitch } from "../music/pitch.ts";
 
 /** A recorded note: its MIDI pitch, velocity layer (0 if one layer) and audio. */
@@ -43,7 +44,6 @@ const LOOPS: Partial<Record<SampleSet, [number, number]>> = { choirUpper: [1.6, 
  * for them): fetched from the site when the page itself does not have them.
  */
 const REMOTE = new Set<SampleSet>(["choirUpper", "choirLower", "choirAahs", "soloSoprano", "soloAlto", "soloTenor", "soloBass"]);
-const SITE = "https://matheusvalenteleite-collab.github.io/The-Well-Tempered-Game/";
 /** Sets that could not be loaded: their notes are sung by the formant synthesizer instead (P13). */
 const failed = new Set<SampleSet>();
 export const sampleSetFailed = (set: SampleSet) => failed.has(set);

@@ -193,10 +193,24 @@ export function BenchApp() {
     if (!chip.current) {
       chip.current = new Chip();
       chip.current.lag = lag;
+      prepared.current();
     }
     void chip.current.resume();
     return chip.current;
   }
+
+  // D190: a recorded ensemble loads the piece's recordings (every voice's pitches; the player's an
+  // octave either side for ORGANO PLENO) once there is a sound to decode them into.
+  function prepareSound() {
+    void chip.current?.prepare(
+      f.voices.flat().map((n) => n[2]),
+      played.flatMap((v) => (f.voices[v] ?? []).map((n) => n[2])),
+    );
+  }
+  // (ensureChip may run from the first render's listener: it reaches this render's piece through a ref.)
+  const prepared = useRef(prepareSound);
+  prepared.current = prepareSound;
+  useEffect(prepareSound, [sound, f, voice, pick.voice2]);
 
   useEffect(() => {
     if (phase.kind !== "play" || !chip.current) return;
