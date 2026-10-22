@@ -14,7 +14,7 @@ import { keyTint, ladderGeometry, MusicBox, inkOf, type Frame } from "../touch/M
 import { PlayArea, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
 import { BpmSetting, Choice, LagSetting, loadDrums, Panel, saneBpm, SoundSetting, TuningSetting } from "../touch/Panels.tsx";
 import { Chip, voicing } from "../touch/chip.ts";
-import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue } from "../touch/fugue.ts";
+import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
 import { setPreset } from "../touch/sound.ts";
 import { setTuning } from "../touch/tuning.ts";
@@ -79,7 +79,7 @@ function save(key: string, value: unknown) {
 }
 
 function sane(p: Pick): Pick {
-  const piece = fugueById(p.piece).id === p.piece ? p.piece : DEFAULT.piece;
+  const piece = fugueOnly(fugueById(p.piece).id === p.piece ? p.piece : DEFAULT.piece);
   const f = fugueById(piece);
   const share = Math.min(0.99, Math.max(0, p.share || 0));
   const singing = voicesFrom(f, startTick(f, share));
@@ -137,11 +137,11 @@ export function BenchApp() {
     if (protoById(pick.proto).platform !== pl) setPick({ proto: PROTOS.find((p) => p.platform === pl)!.id });
   };
   const [note, setNote] = useState("");
-  // D185: a lesson with Herr Bach plays its own passage, on the computer's LADDER.
+  // D188: a lesson with Herr Bach plays its own passage, on EASY at the lesson's level.
   const [lesson, setLesson] = useState<{ n: number; run: Run } | null>(null);
   const run = lesson?.run;
   const f = fugueById(run?.piece ?? pick.piece);
-  const proto = protoById(run ? "arrows" : pick.proto);
+  const proto = protoById(run ? "keys" : pick.proto);
   const from = run ? run.from : startTick(f, pick.share);
   const voice = run ? run.voice : pick.voice;
   const bpm = run ? run.bpm : pick.bpm;
@@ -153,7 +153,11 @@ export function BenchApp() {
     const steps = f.voices[voice].map((n) => n[3]);
     return { lo: Math.min(...steps) - 1, hi: Math.max(...steps) + 1 };
   }, [f, proto.id, voice]);
-  const marks = useMemo(() => ({ ...subjectMarks(f), spans: entrySpans(f), names: f.voiceNames }), [f]);
+  // A lesson's passage: only the entries it holds (alone: only the voice's own).
+  const marks = useMemo(() => {
+    const spans = entrySpans(f).filter((e) => !run || (e.on < run.until && e.end > run.from && (!run.solo || e.voice === run.voice)));
+    return { ...subjectMarks(f), spans, names: f.voiceNames };
+  }, [f, run]);
   const chip = useRef<Chip | null>(null);
   const game = useRef<ProtoGame | null>(null);
   const paint = useRef<Painter | null>(null);
@@ -211,7 +215,7 @@ export function BenchApp() {
 
   useEffect(() => {
     if (phase.kind !== "play" || !chip.current) return;
-    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: pick.easy, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, keys: run.keys } : {}) }, chip.current);
+    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? pick.easy, ...(run ? { until: run.until, wait: run.wait, solo: run.solo } : {}) }, chip.current);
     g.octave = octave.current;
     const arrows = proto.id === "arrows" ? g.moves.map(arrowOf) : g.cues;
     game.current = g;
@@ -416,8 +420,6 @@ export function BenchApp() {
       }
       if (proto.id === "arrows") {
         const a = ARROW_KEYS[e.code];
-        // A lesson: only the keys taught so far.
-        if (a && run && !run.keys.includes(a)) return null;
         return a ? { side: e.code.startsWith("Key") ? "left" : "right", move: moveOf(a), velocity: 0.6 } : null;
       }
       if (e.code === "Space") return { velocity: 0.5, code: "Space" };
@@ -440,7 +442,7 @@ export function BenchApp() {
         if (e.code === "ShiftLeft" || e.code === "ShiftRight") return g.pedal(true);
         if (e.code === "ArrowUp" || e.code === "ArrowDown") return (e.preventDefault(), g.bendHeld(e.code === "ArrowUp" ? 60 : -60));
         // TIMING: space a note, or the swoosh while one sounds; DIRECTION: space the repeated note.
-        if (e.code === "Space" && phase.kind === "play" && !e.repeat && pick.easy === "timing") {
+        if (e.code === "Space" && phase.kind === "play" && !e.repeat && (run?.easy ?? pick.easy) === "timing") {
           e.preventDefault();
           // Space: a note if none sounds, else the swoosh.
           if (g.keysDown.size) return g.swooshNow();
@@ -509,7 +511,7 @@ export function BenchApp() {
         ))}
       >
         <div className="tg-count" ref={count} aria-live="polite" />
-        {phase.kind === "title" && (duo ? <Arcade f={f} pick={pick} setPick={setPick} from={from} note={note} /> : <Title f={f} pick={pick} setPick={setPick} from={from} note={note} lessons={proto.id === "arrows" ? beginLesson : undefined} />)}
+        {phase.kind === "title" && (duo ? <Arcade f={f} pick={pick} setPick={setPick} from={from} note={note} /> : <Title f={f} pick={pick} setPick={setPick} from={from} note={note} lessons={proto.id === "keys" ? beginLesson : undefined} />)}
         {phase.kind === "talk" && lesson && (
           <BachTalk key={`${lesson.n}-${phase.next}-${phase.lines[0]?.text}`} title={`${LESSONS[lesson.n].title} · ${LESSONS[lesson.n].english}`} lines={phase.lines} onLine={demo} onDone={() => talkDone(phase.next)} />
         )}
@@ -742,8 +744,8 @@ function PieceSetting({ id, set }: { id: string; set: (id: string) => void }) {
             {open === "kind" && (
               <div className="tb-pop-grid tb-pop-2">
                 {[false, true].map((k) => (
-                  <button key={String(k)} type="button" id={`kind-${k ? "fugue" : "prelude"}`} className={k === cur.fugue ? "on" : ""} onClick={() => choose({ fugue: k })}>
-                    {k ? "FUGUE" : "PRELUDE"}
+                  <button key={String(k)} type="button" id={`kind-${k ? "fugue" : "prelude"}`} className={k === cur.fugue ? "on" : ""} disabled={!k} onClick={() => choose({ fugue: k })}>
+                    {k ? "FUGUE" : "PRELUDES · SOON"}
                   </button>
                 ))}
               </div>

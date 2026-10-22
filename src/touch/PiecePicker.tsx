@@ -20,7 +20,7 @@ export function PiecePicker({ current, pick, close }: { current: TouchFugue; pic
   const aof = PIECES.filter((p) => p.book === 0);
   const Piece = ({ p, label }: { p?: TouchFugue; label: string }) =>
     p ? (
-      <button type="button" id={`pick-${p.id}`} className={p.id === current.id ? "on" : ""} onClick={() => pick(p.id)}>
+      <button type="button" id={`pick-${p.id}`} className={p.id === current.id ? "on" : ""} disabled={p.kind === "prelude"} title={p.kind === "prelude" ? "Preludes: soon" : undefined} onClick={() => pick(p.id)}>
         {label}
       </button>
     ) : null;

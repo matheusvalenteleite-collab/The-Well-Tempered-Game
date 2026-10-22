@@ -113,8 +113,6 @@ function pads(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
   const key = Math.max(28, Math.min(54, (h - 70) / 2.3));
   const top = Math.max(14, (h - 40 - 2 * key) / 2);
   const cap = (code: string, x: number, y: number, kw: number, letter: string) => {
-    // A lesson: the keys not yet taught dimmed.
-    c.globalAlpha = g.o.keys && !g.o.keys.includes(ARROW_KEYS[code]) ? 0.25 : 1;
     const down = g.keysDown.has(code);
     c.fillStyle = down ? t.shine : "#1d1a24";
     c.fillRect(x, y, kw - 4, key - 4);
@@ -125,7 +123,6 @@ function pads(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
     const s = Math.max(3, Math.floor(key / 12));
     pixels(c, ARROW_KEYS[code], x + (kw - 4) / 2 - 2.5 * s, y + (key - 8) / 2 - 2.5 * s, s, fg);
     if (letter) label(c, letter, x + 4, y + 8, down ? fg : t.muted, 7, "left");
-    c.globalAlpha = 1;
   };
   const cluster = (cx: number, codes: [string, string, string, string], letters: [string, string, string, string]) => {
     cap(codes[0], cx - key / 2, top, key, letters[0]);

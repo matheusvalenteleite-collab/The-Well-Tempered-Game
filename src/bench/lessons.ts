@@ -1,18 +1,21 @@
 /**
- * LADDER on a computer, the lessons (D185): Bach teaches the keys, one at a time, on his own music.
- * Each lesson's passage is found in the pieces, not chosen by hand: the first stretch of a voice whose
- * moves use only the keys taught so far (with each new key in it), no chords, nothing quicker than a
- * quarter of a second at the lesson's tempo. Lessons 1 and 2 wait for each note (time given, never
- * the note); from lesson 3 the music keeps its time; from lesson 4 the other voices play.
- * What Bach says is in English; the two quotations are his title pages (the Well-Tempered Clavier,
- * 1722; the Inventions and Sinfonias, 1723), in translation; the remark that the instrument plays
- * itself is told as hearsay, as it comes down to us.
+ * EASY on a computer, the lessons (D188): Bach teaches EASY's levels one step at a time, and what a
+ * fugue is on the way: the beat (TIMING); the line (DIRECTION: right for up, left for down); the same
+ * note and the free note; the subject; the answer and the countersubject; the exposition and the
+ * episode; the leap (+ LEAPS); and a whole fugue. Fugues only.
+ * The first lessons' passages are found in the fugues, not chosen by hand: the first stretch of a
+ * voice whose moves hold only what has been taught (with what is new in it), no chords, notes between
+ * a fifth of a second and a second and a half apart, each lesson its own fugue. The lessons on the
+ * fugue itself use the C minor fugue of Book I (alto subject, bar 1; soprano answer in G minor, bar 3;
+ * an episode; bass, bar 7).
+ * Bach's words are in English. His quotations are his title pages (the Well-Tempered Clavier, 1722;
+ * the Inventions and Sinfonias, 1723), in translation; "the instrument plays itself" is told as
+ * hearsay, as it comes down to us.
  */
-import { beatOf, FUGUES, fugueById, PRELUDES, type TouchFugue } from "../touch/fugue.ts";
+import { beatOf, FUGUES, fugueById, type TouchFugue } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
-import type { Arrow } from "../touch/MusicBox.tsx";
 import { defaultBpm } from "../touch/tempi.ts";
-import { arrowOf, moves } from "./protos.ts";
+import { moves, type EasyLevel, type Move } from "./protos.ts";
 
 export interface Run {
   piece: string;
@@ -22,7 +25,7 @@ export interface Run {
   bpm: number;
   wait: boolean;
   solo: boolean;
-  keys: Arrow[];
+  easy: EasyLevel;
 }
 
 /** A line of Bach's; `demo`: the subject played while it shows. */
@@ -43,41 +46,41 @@ export interface Lesson {
   passAt: number;
 }
 
-const STEPS: Arrow[] = ["same", "left", "right"];
-const ALL: Arrow[] = ["same", "left", "right", "up", "down", "rise", "fall"];
+type Kind = "up" | "down" | "same" | "leap";
+const kindOf = (m: Move): Kind => (m.dir === 0 || m.steps === 0 ? "same" : m.size >= 3 ? "leap" : m.dir > 0 ? "up" : "down");
 
 interface Want {
-  keys: Arrow[];
+  allow: Kind[];
   /** Each of these at least once. */
-  need: Arrow[];
+  need: Kind[];
+  /** A free note (after a rest or a long note) inside: needed, allowed, or not. */
+  free: "need" | "allow" | "no";
   heads: number;
-  /** The tempo: the piece's own times this. */
+  /** The tempo: the fugue's own times this. */
   pace: number;
-  /** The quickest note allowed, and the longest wait between two, in seconds. */
-  gap: number;
-  slow?: number;
-  /** Pieces already used by a lesson before (each lesson its own music). */
-  skip?: string[];
 }
 
-/** The first passage that teaches what is wanted (fugues first, in Bach's order; then the preludes). */
-export function findPassage(w: Want): { f: TouchFugue; voice: number; from: number; until: number; bpm: number } {
-  for (const f of [...FUGUES, ...PRELUDES]) {
-    if (w.skip?.includes(f.id)) continue;
+/** The first passage in the fugues that teaches what is wanted (Bach's order; each lesson its own fugue). */
+export function findPassage(w: Want, skip: string[] = []): { f: TouchFugue; voice: number; from: number; until: number; bpm: number } {
+  for (const f of FUGUES) {
+    if (skip.includes(f.id)) continue;
     const beat = beatOf(f).ticks;
     const bpm = Math.max(30, Math.round(defaultBpm(f.id) * w.pace));
     const tps = (f.tpq * bpm) / 60;
     for (let v = 0; v < f.voices.length; v++) {
       const notes = laneNotes(f.voices[v], beat, v);
       const ms = moves(notes, beat);
-      for (let i = 0; i + w.heads <= notes.length; i++) {
+      const free = (i: number) => notes[i - 1].dur >= beat || notes[i].on - (notes[i - 1].on + notes[i - 1].dur) >= beat / 4;
+      for (let i = 1; i + w.heads <= notes.length; i++) {
         const win = notes.slice(i, i + w.heads);
-        if (win.some((n, k) => k > 0 && n.on === win[k - 1].on) || (i > 0 && notes[i - 1].on === win[0].on)) continue;
+        if (win.some((n, k) => k > 0 && n.on === win[k - 1].on) || notes[i - 1].on === win[0].on) continue;
         if (i + w.heads < notes.length && notes[i + w.heads].on === win.at(-1)!.on) continue;
-        if (win.some((n, k) => k > 0 && ((n.on - win[k - 1].on) / tps < w.gap || (n.on - win[k - 1].on) / tps > (w.slow ?? 1.5)))) continue;
-        const arrows = ms.slice(i + 1, i + w.heads).map(arrowOf);
-        if (!arrows.every((a) => a && w.keys.includes(a))) continue;
-        if (!w.need.every((a) => arrows.includes(a))) continue;
+        if (win.some((n, k) => k > 0 && ((n.on - win[k - 1].on) / tps < 0.2 || (n.on - win[k - 1].on) / tps > 1.5))) continue;
+        const inner = Array.from({ length: w.heads - 1 }, (_, k) => i + 1 + k);
+        const frees = inner.filter(free).length;
+        if ((w.free === "no" && frees) || (w.free === "need" && !frees)) continue;
+        const kinds = inner.filter((j) => !free(j)).map((j) => kindOf(ms[j]));
+        if (!kinds.every((k) => w.allow.includes(k)) || !w.need.every((k) => kinds.includes(k))) continue;
         const last = win.at(-1)!;
         return { f, voice: v, from: win[0].on, until: last.on + last.dur, bpm };
       }
@@ -86,23 +89,31 @@ export function findPassage(w: Want): { f: TouchFugue; voice: number; from: numb
   throw new Error(`no passage for ${w.need.join(" ")}`);
 }
 
-function passage(w: Want, wait: boolean, solo: boolean): Run {
-  const p = findPassage(w);
-  return { piece: p.f.id, voice: p.voice, from: p.from, until: p.until, bpm: p.bpm, wait, solo, keys: w.keys };
+function passage(w: Want, easy: EasyLevel, wait: boolean, skip: string[]): Run {
+  const p = findPassage(w, skip);
+  return { piece: p.f.id, voice: p.voice, from: p.from, until: p.until, bpm: p.bpm, wait, solo: true, easy };
 }
 
-/** The C minor fugue (Book I no. 2): its alto, which begins, to the start of its third entry; the exposition, to the bass's entry. */
-function cMinor(upTo: number, voice: number): Run {
-  const f = fugueById("wtc1f02");
+/** The C minor fugue (Book I no. 2): a voice from the start to the start of the entry `upTo` (in order of time). */
+const C_MINOR = "wtc1f02";
+function cMinor(voice: number, upTo: number, solo: boolean): Run {
+  const f = fugueById(C_MINOR);
   const until = f.entries.map((e) => e.on).sort((a, b) => a - b)[upTo] ?? f.length;
-  return { piece: f.id, voice, from: 0, until, bpm: defaultBpm(f.id), wait: false, solo: false, keys: ALL };
+  return { piece: f.id, voice, from: 0, until, bpm: defaultBpm(f.id), wait: false, solo, easy: "direction" };
 }
+/** The C minor fugue's voice that has its first entry (the alto), and its second (the soprano). */
+const entryVoice = (k: number) => [...fugueById(C_MINOR).entries].sort((a, b) => a.on - b.on)[k].voice;
 
-/** The exam: the easiest whole piece by the playability audit (Book I no. 22, B flat minor), its voice with the fewest notes. */
+/** The exam: the B flat minor fugue of Book I (the easiest whole fugue by the playability audit), its voice with the fewest notes. */
 function exam(): Run {
   const f = fugueById("wtc1f22");
   const voice = f.voices.map((v, i) => [v.length, i]).sort((a, b) => a[0] - b[0])[0][1];
-  return { piece: f.id, voice, from: 0, until: f.length, bpm: defaultBpm(f.id), wait: false, solo: false, keys: ALL };
+  return { piece: f.id, voice, from: 0, until: f.length, bpm: defaultBpm(f.id), wait: false, solo: false, easy: "direction" };
+}
+
+/** The fugues the found passages must not take: the C minor (kept for its lessons) and those before. */
+function before(n: number): string[] {
+  return [C_MINOR, "wtc1f22", ...LESSONS.slice(0, n).map((l) => l.run().piece)];
 }
 
 export const LESSONS: Lesson[] = [
@@ -110,100 +121,111 @@ export const LESSONS: Lesson[] = [
     title: "DER TAKT",
     english: "THE BEAT",
     intro: [
-      { text: "So. You wish to play my music. Good: I wrote it, as I put on its title page, for the profit and use of musical youth desirous of learning." },
-      { text: "Music is first of all time. Before you choose a note, learn to strike when the beat falls, and not before." },
-      { text: "Here the line stays on one note. Press SPACE for each, on its beat. Nothing else yet." },
+      { text: "So. You wish to play my fugues. Good: I wrote them, as I put on the title page, for the profit and use of musical youth desirous of learning." },
+      { text: "Music is first of all time. Strike any key at all, but strike it when the note falls: not before, not after." },
+      { text: "You will play one voice alone. Watch the box: when a note reaches the line, strike." },
     ],
     pass: [{ text: "So. They say I once remarked that there is nothing to it: you strike the right key at the right time, and the instrument plays itself. The time, at least, you have." }],
-    again: [{ text: "Early, late. Listen to the beat before you strike. Again." }],
-    run: () => passage({ keys: ["same"], need: ["same"], heads: 6, pace: 0.8, gap: 0.3 }, false, true),
+    again: [{ text: "Early, late. Let the note come to you. Again." }],
+    run: () => passage({ allow: ["up", "down", "same", "leap"], need: [], free: "allow", heads: 8, pace: 0.8 }, "timing", false, before(0)),
     passAt: 0.85,
   },
   {
-    title: "DER SCHRITT",
-    english: "THE STEP",
+    title: "DIE LINIE",
+    english: "THE LINE",
     intro: [
-      { text: "Now the line moves. Most of it moves by step, to the next note above or below." },
-      { text: "A step up: → or D. A step down: ← or A. The same note again: SPACE. The key each note wants is drawn over it in the box." },
-      { text: "I will wait for you at each note. Take your time; but strike the right key." },
+      { text: "Now the keys mean something. Your keyboard is a line, like the music: to the right is higher, to the left is lower." },
+      { text: "When the voice goes up, strike a key to the right of the last one. When it goes down, to the left. How far does not matter yet; only which way." },
+      { text: "The box shows the way over each note: → or ←. Rest your hands on the middle row. I will wait for you at each note." },
     ],
-    pass: [{ text: "Recht. A line that goes by step sings. Remember how it felt under your hand." }],
-    again: [{ text: "You went down; the line went up. Look at the arrow, then strike. Again." }],
-    run: () => passage({ keys: STEPS, need: ["left", "right"], heads: 10, pace: 0.8, gap: 0.25, skip: before(1) }, true, true),
+    pass: [{ text: "Recht. You did not play notes; you played a line. That is the whole art." }],
+    again: [{ text: "You went left; the voice went up. Look at the arrow, then strike. Again." }],
+    run: () => passage({ allow: ["up", "down", "leap"], need: ["up", "down"], free: "no", heads: 10, pace: 0.8 }, "direction", true, before(1)),
     passAt: 0.9,
   },
   {
-    title: "DER SPRUNG",
-    english: "THE LEAP",
+    title: "DIESELBE NOTE",
+    english: "THE SAME NOTE",
     intro: [
-      { text: "A leap is a decision. Make it boldly, or not at all." },
-      { text: "A leap up, a fourth or more: ↑ or W. A leap down: ↓ or S." },
-      { text: "A third lies between: drawn slanting, it takes the step or the leap, as your hand prefers. I will still wait for you." },
+      { text: "Two more things. When a note is struck again, strike the same key again, or the space bar with a thumb." },
+      { text: "And after a rest, or a long note, you are free: strike anywhere. The box draws such a note in a little square. Use it to bring your hands back to the middle." },
+      { text: "At the end of a row there is no further to go: strike the last key again. Now I will not wait." },
     ],
-    pass: [{ text: "So. Now you have all the keys. The rest is practice, and listening." }],
-    again: [{ text: "A step is not a leap, and a leap is not a step. Again." }],
-    run: () => passage({ keys: ALL, need: ["up", "down"], heads: 12, pace: 0.8, gap: 0.25, skip: before(2) }, true, true),
-    passAt: 0.9,
-  },
-  {
-    title: "BEIDE HÄNDE",
-    english: "BOTH HANDS",
-    intro: [
-      { text: "A clavier has two hands; so have you. WASD and the arrows are the same keys: use both." },
-      { text: "Let the left take the descents if you like, the right the ascents. I do not care which hand; I care that the line is right." },
-      { text: "Now I will not wait for you." },
-    ],
-    pass: [{ text: "Recht. Two hands share the work, and neither tires." }],
-    again: [{ text: "One hand alone is too slow for this. Share it between them. Again." }],
-    run: () => passage({ keys: ALL, need: ["left", "right", "up", "down"], heads: 16, pace: 0.9, gap: 0.2, skip: before(3) }, false, true),
+    pass: [{ text: "So. Now nothing in a line can surprise you." }],
+    again: [{ text: "The same note wants the same key. Again." }],
+    run: () => passage({ allow: ["up", "down", "same", "leap"], need: ["same", "up", "down"], free: "need", heads: 12, pace: 0.85 }, "direction", false, before(2)),
     passAt: 0.85,
-  },
-  {
-    title: "MIT DEN ANDEREN",
-    english: "WITH THE OTHERS",
-    intro: [
-      { text: "Now you are not alone. This is my fugue in C minor, from the first book: you take the alto, which begins." },
-      { text: "Listen to the others, and do not shout over them. A note you miss leaves a silence: the others will not fill it for you." },
-    ],
-    pass: [{ text: "So. Three voices, and one of them yours." }],
-    again: [{ text: "You played against them, not with them. Listen first. Again." }],
-    run: () => cMinor(2, 1),
-    passAt: 0.8,
   },
   {
     title: "DAS THEMA",
     english: "THE SUBJECT",
     intro: [
-      { text: "This is the subject. Everything in a fugue is said about it. Listen.", demo: "subject" },
-      { text: "When you hear it again, in another voice, in another key, greet it: the box draws it in gold." },
-      { text: "Now you take the soprano, which answers. Play its entry through without a fault, and the organ will open all its stops for you." },
+      { text: "Now, what is a fugue? A conversation of voices about one melody: the subject. Here is the subject of my fugue in C minor. Listen.", demo: "subject" },
+      { text: "A fugue begins with one voice alone, saying the subject. Then the others come in, one by one, each saying it in turn, while the ones before go on." },
+      { text: "The box draws the subject in gold wherever it is: its shape, its beginning, its end. Play it now, alone, as the alto does at the beginning." },
     ],
-    pass: [{ text: "Organo pleno. That is what a voice earns when it says the subject rightly." }],
-    again: [{ text: "The subject must be said whole. One wrong note and it is someone else's. Again." }],
-    run: () => cMinor(3, 0),
+    pass: [{ text: "That is the subject. You will meet it again many times; greet it each time." }],
+    again: [{ text: "The subject must be said whole, or it is not the subject. Again." }],
+    run: () => cMinor(entryVoice(0), 1, true),
+    passAt: 0.85,
+  },
+  {
+    title: "DIE ANTWORT",
+    english: "THE ANSWER",
+    intro: [
+      { text: "When the first voice has said the subject, a second voice answers it: the same melody, a fifth higher. Here it is in G minor. That is the answer." },
+      { text: "And the first voice does not fall silent: it goes on with a second melody against the answer, the countersubject. Two melodies at once, each its own." },
+      { text: "You take the soprano, which answers. Listen to the alto's subject first; then come in." },
+    ],
+    pass: [{ text: "Recht. Subject, answer, countersubject: you have heard the grammar of a fugue." }],
+    again: [{ text: "Wait for your entry; then answer clearly. Again." }],
+    run: () => cMinor(entryVoice(1), 2, false),
     passAt: 0.8,
+  },
+  {
+    title: "DIE EXPOSITION",
+    english: "THE EXPOSITION",
+    intro: [
+      { text: "When every voice has said the subject once, that is the exposition: here the alto, the soprano, and last the bass." },
+      { text: "Before the bass comes in, there are two bars with no subject at all: an episode. It is made of the subject's pieces, carried through a sequence from key to key." },
+      { text: "You take the alto again, from the beginning: the subject, the countersubject, the episode, and on, against the bass's entry." },
+    ],
+    pass: [{ text: "So. The rest of a fugue is this, again and again: entries, in new keys, and episodes between them." }],
+    again: [{ text: "In the episode, keep your line; it is no less music for having no subject. Again." }],
+    run: () => cMinor(entryVoice(0), 3, false),
+    passAt: 0.8,
+  },
+  {
+    title: "DER SPRUNG",
+    english: "THE LEAP",
+    intro: [
+      { text: "One last rule, for when you are ready: a leap must look like one. A leap of a fourth or more must skip a key." },
+      { text: "This is the level + LEAPS (you will find it under ⚙). The box draws a leap as a double arrow." },
+    ],
+    pass: [{ text: "Good. Your hands now draw the line as it is drawn on the page." }],
+    again: [{ text: "A step is not a leap. Skip a key. Again." }],
+    run: () => ({ ...passage({ allow: ["up", "down", "same", "leap"], need: ["leap", "up", "down"], free: "allow", heads: 12, pace: 0.85 }, "leaps", false, before(6)), easy: "leaps" }),
+    passAt: 0.85,
   },
   {
     title: "DIE PROBE",
     english: "THE EXAM",
     intro: [
       { text: "Now a whole fugue: the B flat minor, from the first book. Five voices; you take the one with the fewest notes, which is not to say the easiest." },
+      { text: "Your voice's entries are your battles; its last is the boss. If an entry comes before the last has ended, the box marks it: a stretto." },
       { text: "I will say nothing until the end." },
     ],
-    pass: [{ text: "…and above all, as I wrote for my Inventions, to acquire a cantabile manner of playing, and with it a strong foretaste of composition." }, { text: "You may go on alone now. Every prelude and fugue is open to you." }],
+    pass: [
+      { text: "…and above all, as I wrote for my Inventions, to acquire a cantabile manner of playing, and with it a strong foretaste of composition." },
+      { text: "You may go on alone now. Every fugue is open to you." },
+    ],
     again: [{ text: "Again. Slower, if you must; but again." }],
     run: exam,
     passAt: 0.9,
   },
 ];
 
-/** The pieces the lessons before lesson n play (so that each has its own music). */
-function before(n: number): string[] {
-  // The C minor fugue kept for lessons 4 and 5.
-  return ["wtc1f02", ...LESSONS.slice(0, n).map((l) => l.run().piece)];
-}
-
-const PROGRESS_KEY = "tb-lessons";
+const PROGRESS_KEY = "tb-lessons-easy";
 /** How many lessons are passed (kept in the browser). */
 export function lessonsPassed(): number {
   try {
