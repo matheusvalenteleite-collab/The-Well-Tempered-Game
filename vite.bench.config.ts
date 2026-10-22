@@ -11,6 +11,8 @@ export default defineConfig({
   publicDir: false,
   build: {
     outDir: "dist/bench",
+    // Everything inlined (the self-hosted font, D195): the single-file page has no folder of assets.
+    assetsInlineLimit: () => true,
     emptyOutDir: true,
     rollupOptions: { input: fileURLToPath(new URL("./bench.html", import.meta.url)), output: { inlineDynamicImports: true } },
   },

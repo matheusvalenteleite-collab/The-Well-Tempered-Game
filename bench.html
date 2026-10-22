@@ -4,11 +4,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="WTC Game" />
+    <meta name="application-name" content="WTC Game" />
     <meta name="theme-color" content="#0b0d18" />
-    <title>Instrument Bench</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" />
+    <link rel="apple-touch-icon" href="./bench-app/icon-180.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="./bench-app/icon-192.png" />
+    <link rel="manifest" href="./bench-app/manifest.webmanifest" />
+    <title>The Well-Tempered Game</title>
+    <!-- D195: the page, its scripts, font and icons cached by bench-sw.js (written by the build) for
+         offline launches from the Home Screen. Production builds only (Vite fills in env.PROD below),
+         over https or on localhost; scoped to bench*, so the other pages and the recordings (Cache
+         Storage, sampled.ts) are left alone. -->
+    <script>
+      if ("%PROD%" === "true" && "serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1"))
+        addEventListener("load", function () {
+          navigator.serviceWorker.register("./bench-sw.js", { scope: "./bench" }).catch(function () {});
+        });
+    </script>
   </head>
   <body>
     <div id="root"></div>
