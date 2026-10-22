@@ -61,6 +61,8 @@ export interface Grade {
   /** Where it was played: the side (the Synth), the key (the Piano). */
   side?: Side;
   key?: number;
+  /** The testbench: a ✕ for a touch off time, or for the wrong gesture. */
+  why?: "time" | "gesture";
 }
 
 interface Held {
@@ -207,8 +209,12 @@ export class Game {
     this.now = now;
     const horizon = Math.min(this.tickAt(ch.ctx.currentTime + 0.25), block ?? Infinity, this.end);
     while (this.nextBeat <= horizon) {
-      const accent = Math.round((this.nextBeat - this.start) / this.beat) % this.perBar === 0;
-      ch.tick(this.timeAt(this.nextBeat), accent, this.nextBeat < this.entry ? 0.12 : 0.02);
+      const n = Math.round((this.nextBeat - this.start) / this.beat);
+      const accent = n % this.perBar === 0;
+      // D177: past the count-in, a band's rhythm section plays the beat instead of the click.
+      const compound = this.beat !== this.f.tpq * (4 / Number(this.f.meter.split("/")[1]));
+      const band = this.nextBeat >= this.entry && ch.groove?.(this.timeAt(this.nextBeat), this.beat / this.tps, n % this.perBar, Math.floor(n / this.perBar), this.perBar, compound);
+      if (!band) ch.tick(this.timeAt(this.nextBeat), accent, this.nextBeat < this.entry ? 0.12 : 0.02);
       this.nextBeat += this.beat;
     }
     while (this.nextOther < this.others.length && this.others[this.nextOther].on <= horizon && !(block !== null && this.others[this.nextOther].on >= block)) {

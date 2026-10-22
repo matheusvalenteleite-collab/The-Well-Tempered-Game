@@ -1,17 +1,18 @@
 /**
- * The testbench (D170; D175): prototypes of the instrument tried on the game itself, judged, on
+ * The testbench (D170; D175; D178): prototypes of the instrument tried on the game itself, judged, on
  * Contrapunctus XIV or the C minor fugue of Book I. ⚙ chooses the prototype (protos.ts), the piece,
- * the speed and the sound's delay; the title the voice and where to start; ? says how each is played.
+ * the speed, the bow's sides, the ensemble (sound.ts) and the sound's delay; the title the voice and
+ * where to start; ? says how each is played. Each prototype lays the screen out its own way.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MusicBox, inkOf, type Frame } from "../touch/MusicBox.tsx";
 import { PlayArea, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
-import { Choice, LagSetting, Panel } from "../touch/Panels.tsx";
+import { Choice, LagSetting, Panel, SoundSetting } from "../touch/Panels.tsx";
+import { setPreset } from "../touch/sound.ts";
 import { Chip } from "../touch/chip.ts";
 import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
 import { accompaniment, startTick, stepRange, subjectMarks, voicesFrom } from "../touch/voice-mode.ts";
-import { paintPlaced } from "./paint-placed.ts";
 import { paintProto } from "./paint-proto.ts";
 import { ProtoGame } from "./proto-game.ts";
 import { PROTOS, protoById, type ProtoId } from "./protos.ts";
@@ -25,16 +26,17 @@ const PIECES = [
 type PieceId = (typeof PIECES)[number][0];
 const PICK_KEY = "tb-pick-v1";
 const LAG_KEY = "tg-lag";
+const SOUND_KEY = "tg-sound";
 
 interface Pick {
   proto: ProtoId;
-  relative: boolean;
+  bowLeftUp: boolean;
   piece: PieceId;
   voice: number;
   speed: Speed;
   share: number;
 }
-const DEFAULT: Pick = { proto: "bow", relative: false, piece: "wtc1f02", voice: 1, speed: "slow", share: 0 };
+const DEFAULT: Pick = { proto: "bow", bowLeftUp: true, piece: "wtc1f02", voice: 1, speed: "slow", share: 0 };
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -86,6 +88,13 @@ export function BenchApp() {
     if (chip.current) chip.current.lag = l;
   };
   const [note, setNote] = useState("");
+  const [sound, setSoundRaw] = useState<string>(() => load<string>(SOUND_KEY, "chip"));
+  const setSound = (id: string) => {
+    setSoundRaw(id);
+    save(SOUND_KEY, id);
+    setPreset(id);
+  };
+  useEffect(() => setPreset(sound), []);
   const f = fugueById(pick.piece);
   const proto = protoById(pick.proto);
   const from = startTick(f, pick.share);
@@ -144,14 +153,14 @@ export function BenchApp() {
 
   useEffect(() => {
     if (phase.kind !== "play" || !chip.current) return;
-    const g = new ProtoGame(f, pick.voice, from, proto, { bpm: SPEEDS[pick.speed], relative: pick.relative }, chip.current);
+    const g = new ProtoGame(f, pick.voice, from, proto, { bpm: SPEEDS[pick.speed], bowLeftUp: pick.bowLeftUp !== false }, chip.current);
     game.current = g;
-    paint.current = proto.placed ? (ctx, w, h) => paintPlaced(ctx, w, h, g, marks.subject) : (ctx, w, h) => paintProto(ctx, w, h, g);
+    paint.current = (ctx, w, h) => paintProto(ctx, w, h, g, marks.subject);
     const b = beatOf(f);
     let raf = 0;
     const loop = () => {
       const done = g.step();
-      frame.current = { now: g.now, tps: g.tps, key: g.keyNow(), barTicks: f.barTicks, beatTicks: b.ticks, count: f.voices.length, lo: range.lo, hi: range.hi, voice: pick.voice, notes: g.notes, others: g.others, ...marks };
+      frame.current = { now: g.now, tps: g.tps, key: g.keyNow(), barTicks: f.barTicks, beatTicks: b.ticks, count: f.voices.length, lo: range.lo, hi: range.hi, voice: pick.voice, notes: g.notes, others: g.others, ...marks, marks: g.marks, arrows: proto.id === "thumbsH" ? g.moves : undefined };
       if (count.current) count.current.textContent = g.countIn() ? String(g.countIn()) : g.combo >= 5 ? `×${g.combo}` : "";
       if (done) {
         game.current = null;
@@ -213,18 +222,17 @@ export function BenchApp() {
 
   const playing = phase.kind === "play";
   const away = phase.kind === "title" || phase.kind === "result";
-  const layout = proto.layout ?? "upright";
-  const wide = layout === "wide" || layout === "full-wide";
-  const full = layout.startsWith("full");
+  const layout = proto.layout;
+  const wide = layout === "wide" || layout === "bars";
+  const own = playing && (layout === "full" || layout === "bars" || layout === "tall") ? ` tb-${layout}` : "";
   return (
-    <div className={`tg-app${wide ? " tg-wide" : ""}${full && playing ? " tb-full" : ""}${playing ? "" : " tg-away"}`}>
+    <div className={`tg-app${wide ? " tg-wide" : ""}${own}${playing ? "" : " tg-away"}`}>
       <MusicBox
         frame={frame}
         hud={
           <>
             <span className="tg-hud-title">
               BENCH · {proto.name}
-              {proto.id === "thumbs" && pick.relative ? " REL" : ""}
             </span>
             <span className="tg-hud-bar">{keyName(frame.current.key)}</span>
             {playing ? (
@@ -255,7 +263,7 @@ export function BenchApp() {
           <div className="tg-card tg-card-low">
             <h1 className={phase.right >= 0.8 * phase.of ? "tg-gold" : ""}>{Math.round((100 * phase.right) / Math.max(1, phase.of))}%</h1>
             <p className="tg-card-sub">
-              {proto.name}: {phase.right} RIGHT · {phase.wrong} WRONG SHAPE · {phase.missed} MISSED · OF {phase.of}
+              {proto.name}: {phase.right} RIGHT · {phase.wrong} WRONG · {phase.missed} MISSED · OF {phase.of}
             </p>
             <button type="button" id="again" className="tg-link" onClick={quit}>
               Back
@@ -264,7 +272,7 @@ export function BenchApp() {
         )}
       </MusicBox>
       <PlayArea events={events} paint={paint} hint={away ? "TAP HERE TO START" : ""} />
-      {full && playing && (
+      {(layout === "full" || layout === "bars") && playing && (
         <button type="button" id="quit-full" className="tg-x tb-quit" aria-label="Quit" onClick={quit}>
           ✕
         </button>
@@ -282,17 +290,19 @@ export function BenchApp() {
             ))}
           </div>
           <p className="tg-panel-note">{proto.how}</p>
-          <Choice id="rule" label="THUMBS RULE" options={[["abs", "RIGHT = UP"], ["rel", "RELATIVE"]]} value={pick.relative ? "rel" : "abs"} set={(v) => setPick({ relative: v === "rel" })} />
+          <Choice id="bowing" label="BOW" options={[["up", "LEFT UP · RIGHT DOWN"], ["down", "LEFT DOWN · RIGHT UP"]]} value={pick.bowLeftUp !== false ? "up" : "down"} set={(v) => setPick({ bowLeftUp: v === "up" })} />
           <Choice id="piece" label="PIECE" options={PIECES.map(([id, name]) => [id, name] as [PieceId, string])} value={pick.piece} set={(piece) => setPick({ piece, share: 0, voice: -1 })} />
           <Choice id="speed" label="SPEED" options={[["slow", "SLOW"], ["medium", "MEDIUM"], ["fast", "FAST"]]} value={pick.speed} set={(speed) => setPick({ speed })} />
+          <SoundSetting value={sound} set={setSound} />
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
         </Panel>
       )}
       {phase.kind === "help" && (
         <Panel title="THE PROTOTYPES" close={quit}>
           <section className="tg-help">
-            <p>Every note needs its own touch, or a held thumb slid on (up or down, about a finger's width: the next note, glided into). The time picks the note; the prototype judges the gesture. Right: Bach's note, clear. Wrong: Bach's note, muffled, not counted.</p>
-            <p>Everywhere: a note lasts while the thumb is down (a quick tap is staccato); tapping while the other thumb still holds joins the notes (legato); wobble sideways for vibrato.</p>
+            <p>Every note needs its own touch, or a held thumb slid on to it. The time picks the note; the prototype judges the gesture. Right: Bach's note. Wrong: what your gesture asked for (the wrong interval, column or key), muffled, not counted: you hear your mistake.</p>
+            <p>Everywhere: a note lasts while the thumb is down (a quick tap is staccato); tapping while the other thumb still holds joins the notes (legato); wobble for vibrato. Each prototype has an expression axis (said below): towards one end louder, brighter, accented; towards the other softer, darker, smoother.</p>
+            <p>⚙ SOUND: an ensemble for the voices; the bands bring a rhythm section.</p>
             {PROTOS.map((p) => (
               <div key={p.id}>
                 <h2>{p.name}</h2>

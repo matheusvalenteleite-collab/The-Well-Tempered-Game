@@ -9,6 +9,7 @@ import type { Chip } from "./chip.ts";
 import type { Instrument } from "./engine.ts";
 import type { Level as Difficulty } from "./lanes.ts";
 import { CLICKS, lagOf, offsetOf, PERIOD, SKIP } from "./lag.ts";
+import { FAMILIES, presetById } from "./sound.ts";
 
 export interface Settings {
   inst: Instrument;
@@ -50,7 +51,7 @@ export function Choice<T extends string>({ id, label, options, value, set }: { i
   );
 }
 
-export function SettingsPanel(p: { settings: Settings; set: (s: Partial<Settings>) => void; lag: number | null; setLag: (s: number | null) => void; chip: () => Chip; close: () => void }) {
+export function SettingsPanel(p: { settings: Settings; set: (s: Partial<Settings>) => void; lag: number | null; setLag: (s: number | null) => void; sound: string; setSound: (id: string) => void; chip: () => Chip; close: () => void }) {
   const { settings: s, set } = p;
   return (
     <Panel title="SETTINGS" close={p.close}>
@@ -58,9 +59,38 @@ export function SettingsPanel(p: { settings: Settings; set: (s: Partial<Settings
       <p className="tg-panel-note">{s.inst === "synth" ? "Upright. The thumb gives the way the tune goes, the height how far." : "Sideways. A keyboard of every semitone; the notes fall onto their keys."}</p>
       <Choice id="level" label="LEVEL" options={[["easy", "EASY"], ["normal", "NORMAL"]]} value={s.diff} set={(diff) => set({ diff })} />
       <Choice id="speed" label="SPEED" options={[["slow", "SLOW"], ["medium", "MEDIUM"], ["fast", "FAST"]]} value={s.speed} set={(speed) => set({ speed })} />
+      <SoundSetting value={p.sound} set={p.setSound} />
       <LagSetting lag={p.lag} setLag={p.setLag} chip={p.chip} />
       <p className="tg-panel-note">With Bluetooth headphones the sound comes late. Set the delay with them on: tap along to the clicks.</p>
     </Panel>
+  );
+}
+
+/** The ensemble (D177): a family, then one of its presets. */
+export function SoundSetting({ value, set }: { value: string; set: (id: string) => void }) {
+  const [family, setFamily] = useState(() => FAMILIES.findIndex((f) => f.presets.some((p) => p.id === value)));
+  const fam = FAMILIES[Math.max(0, family)];
+  return (
+    <>
+      <div className="tg-set">
+        <span>SOUND</span>
+        <span className="tg-panel-val">{presetById(value).name}</span>
+      </div>
+      <div className="tg-tabs" role="group" aria-label="Sound family">
+        {FAMILIES.map((f, i) => (
+          <button key={f.name} type="button" id={`family-${i}`} className={i === family ? "on" : ""} onClick={() => setFamily(i)}>
+            {f.name}
+          </button>
+        ))}
+      </div>
+      <div className="tg-grid3" role="group" aria-label="Sound">
+        {fam.presets.map((p) => (
+          <button key={p.id} type="button" id={`sound-${p.id}`} className={p.id === value ? "on" : ""} onClick={() => set(p.id)} aria-pressed={p.id === value}>
+            {p.name}
+          </button>
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -140,6 +170,8 @@ export function HelpPanel({ close }: { close: () => void }) {
         <p>A note lasts while your thumb stays down: a quick tap is staccato. Hold one thumb and tap with the other: the notes join (legato). Slide a held thumb up or down: the next note, rising or falling, joined. Wobble sideways: vibrato.</p>
         <h2>PIANO (SIDEWAYS)</h2>
         <p>The notes fall onto their keys. EASY: any key on time. NORMAL: the right key, or you hear the wrong one. A key is struck anywhere in its column. The note dies away as you hold it and stops when you let go.</p>
+        <h2>SOUND</h2>
+        <p>⚙ SOUND: an ensemble for the voices, each voice its own instrument: acoustic sets, bands with a rhythm section, chip sets, Moog sets.</p>
         <h2>TIMING</h2>
         <p>Late with headphones? ⚙ → SET BY TAPPING.</p>
         <h2>PUT IT ON THE HOME SCREEN</h2>
