@@ -11,3 +11,7 @@
   cursor: pointer;
 }
 .tb-protos button.on { color: var(--tg-bg); background: var(--tg-shine); border-color: var(--tg-shine); }
+/* D176: a field that takes the whole screen while it plays (SNES, TETRIS). */
+.tb-full, .tg-wide.tb-full { grid-template-rows: 1fr; }
+.tb-full .tg-box { display: none; }
+.tb-quit { position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); right: max(8px, env(safe-area-inset-right, 0px)); z-index: 5; background: var(--tg-veil); }

@@ -11,6 +11,7 @@ import { Chip } from "../touch/chip.ts";
 import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
 import { accompaniment, startTick, stepRange, subjectMarks, voicesFrom } from "../touch/voice-mode.ts";
+import { paintPlaced } from "./paint-placed.ts";
 import { paintProto } from "./paint-proto.ts";
 import { ProtoGame } from "./proto-game.ts";
 import { PROTOS, protoById, type ProtoId } from "./protos.ts";
@@ -145,7 +146,7 @@ export function BenchApp() {
     if (phase.kind !== "play" || !chip.current) return;
     const g = new ProtoGame(f, pick.voice, from, proto, { bpm: SPEEDS[pick.speed], relative: pick.relative }, chip.current);
     game.current = g;
-    paint.current = (ctx, w, h) => paintProto(ctx, w, h, g);
+    paint.current = proto.placed ? (ctx, w, h) => paintPlaced(ctx, w, h, g, marks.subject) : (ctx, w, h) => paintProto(ctx, w, h, g);
     const b = beatOf(f);
     let raf = 0;
     const loop = () => {
@@ -212,8 +213,11 @@ export function BenchApp() {
 
   const playing = phase.kind === "play";
   const away = phase.kind === "title" || phase.kind === "result";
+  const layout = proto.layout ?? "upright";
+  const wide = layout === "wide" || layout === "full-wide";
+  const full = layout.startsWith("full");
   return (
-    <div className="tg-app">
+    <div className={`tg-app${wide ? " tg-wide" : ""}${full && playing ? " tb-full" : ""}${playing ? "" : " tg-away"}`}>
       <MusicBox
         frame={frame}
         hud={
@@ -260,6 +264,11 @@ export function BenchApp() {
         )}
       </MusicBox>
       <PlayArea events={events} paint={paint} hint={away ? "TAP HERE TO START" : ""} />
+      {full && playing && (
+        <button type="button" id="quit-full" className="tg-x tb-quit" aria-label="Quit" onClick={quit}>
+          ✕
+        </button>
+      )}
       {phase.kind === "settings" && (
         <Panel title="TESTBENCH" close={quit}>
           <div className="tg-set">
@@ -296,7 +305,7 @@ export function BenchApp() {
         </Panel>
       )}
       <div className="tg-upright" role="alert">
-        Turn the phone upright
+        {wide ? "Turn the phone sideways" : "Turn the phone upright"}
       </div>
     </div>
   );

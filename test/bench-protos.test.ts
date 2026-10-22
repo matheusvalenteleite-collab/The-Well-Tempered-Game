@@ -7,6 +7,32 @@ import type { Side } from "../src/touch/thumbs.ts";
 import { ProtoGame, type Contact } from "../src/bench/proto-game.ts";
 import { moves, protoById, PROTOS, zone, type Gesture, type Move, type Options } from "../src/bench/protos.ts";
 import { startTick, voicesFrom } from "../src/touch/voice-mode.ts";
+import { KEYS_SHARE, snesY, tetrisX, uprightSpan, TETRIS_LINE } from "../src/bench/placed.ts";
+import { isBlack, keySpan } from "../src/touch/piano.ts";
+import type { LaneNote } from "../src/touch/lanes.ts";
+
+/** Batch 2: a touch on the note's place (string, key, row, column). */
+function place(g: ProtoGame, n: LaneNote): Contact {
+  const c = (x: number, y: number): Contact => ({ side: x < W / 2 ? "left" : "right", x, y, w: W, h: H });
+  switch (g.proto.placed) {
+    case "dulcimer": {
+      const win = g.windowNow();
+      return c(100, (1 - (n.step - win.lo + 0.5) / win.n) * H);
+    }
+    case "upright": {
+      const [a, b] = uprightSpan(g.windowNow(), n.midi);
+      return c(isBlack(n.midi) ? W / 2 : 20, ((a + b) / 2) * H);
+    }
+    case "piano": {
+      const [a, b] = keySpan(g.kb, n.midi);
+      return c(((a + b) / 2) * W, isBlack(n.midi) ? H * (1 - KEYS_SHARE) + 5 : H - 4);
+    }
+    case "snes":
+      return c(W / 2, snesY(n.step, g.range.lo, g.range.hi, H));
+    default:
+      return c(tetrisX(n.step, g.range.lo, g.range.hi, W), H * TETRIS_LINE);
+  }
+}
 
 const C_MINOR = fugueById("wtc1f02");
 const beat = beatOf(C_MINOR).ticks;
@@ -90,7 +116,7 @@ function playThrough(id: string, piece: string, voice: number, o: Options, share
     if (i > 0 && g.notes[i - 1].on === n.on) return;
     runTo(at(n.on));
     g.step();
-    const { c, dy } = give(g.moves[i]);
+    const { c, dy } = g.proto.placed ? { c: place(g, n), dy: 0 } : give(g.moves[i]);
     id0++;
     g.down(id0, c, performance.now());
     if (dy) g.move(id0, { ...c, y: c.y + dy }, performance.now());
@@ -111,6 +137,31 @@ test("every prototype can be played right through, on both pieces, every voice",
           assert.ok(r.right === r.of, `${p.id}${relative ? " rel" : ""} ${piece} v${v}: ${r.right}/${r.of} (wrong ${r.wrong}, missed ${r.missed})`);
         }
       }
+});
+
+test("batch 2: a touch off the note's place: muffled (or, on a keyboard, the key struck sounds)", () => {
+  for (const id of ["dulcimer", "upright", "snes", "tetris"]) {
+    const clock = { t: 0 };
+    const sounded: number[] = [];
+    let muffled = 0;
+    const chip = {
+      ctx: { get currentTime() { return clock.t; } },
+      heard: () => clock.t,
+      note: (m: number) => (sounded.push(m), { stop: () => {}, bend: () => {}, glide: () => {}, muffle: () => muffled++ }),
+      tick: () => {},
+    } as unknown as Chip;
+    const g = new ProtoGame(C_MINOR, 1, 0, protoById(id), { relative: false, bpm: 54 }, chip);
+    const n = g.notes[3];
+    clock.t = 0.15 + (n.on - g.start) / g.tps;
+    g.step();
+    const on = place(g, n);
+    // Far from it: the other end of the strings or keys; across the field.
+    const off = id === "tetris" ? { ...on, x: on.x > W / 2 ? 10 : W - 10 } : { ...on, y: on.y > H / 2 ? 5 : H - 5 };
+    g.down(1, off, performance.now());
+    assert.equal(n.wrong, true, id);
+    if (id === "upright") assert.notEqual(sounded.at(-1), n.midi, "the key struck");
+    else assert.equal(muffled, 1, id);
+  }
 });
 
 test("a wrong gesture still plays the note, muffled, and does not count", () => {

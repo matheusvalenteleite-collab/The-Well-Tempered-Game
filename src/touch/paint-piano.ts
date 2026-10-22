@@ -4,15 +4,38 @@
  * too, dimmer and narrower; the notes of the subject dotted along their top. A key lights in the
  * voice's colour as its note comes down to it; the keys held are pressed; a wrong key flashes red.
  */
-import { APPROACH_MS, KEYS_SHARE, type Game } from "./engine.ts";
+import { APPROACH_MS, KEYS_SHARE, type Game, type Grade } from "./engine.ts";
+import type { LaneNote } from "./lanes.ts";
 import { inkOf } from "./MusicBox.tsx";
-import { isBlack, keySpan, WHITE_ONLY } from "./piano.ts";
+import { isBlack, keySpan, WHITE_ONLY, type Keyboard } from "./piano.ts";
+import type { OtherNote } from "./voice-mode.ts";
+
+/** What the keyboard and its falling notes are drawn from (the game, or the testbench's PIANO). */
+export interface PianoView {
+  kb: Keyboard;
+  now: number;
+  tps: number;
+  /** The voice played, of how many. */
+  voice: number;
+  count: number;
+  notes: LaneNote[];
+  others: OtherNote[];
+  /** The window's late edge, in ticks. */
+  late: number;
+  held: number[];
+  grade: Grade | null;
+}
+
+export function pianoView(game: Game): PianoView {
+  const lv = game.tracks[0].lv;
+  return { kb: game.kb, now: game.now, tps: game.tps, voice: lv.voice, count: game.f.voices.length, notes: lv.notes, others: game.others, late: game.opt.late, held: game.heldKeys(), grade: game.grade };
+}
 
 const FONT = '"Press Start 2P", ui-monospace, monospace';
 /** How long a note takes to fall the height above the keys, as a share of the approach. */
 const FALL = 1.8;
 
-export function paintPiano(g: CanvasRenderingContext2D, w: number, h: number, game: Game, subject: Set<string>) {
+export function paintPiano(g: CanvasRenderingContext2D, w: number, h: number, game: PianoView, subject: Set<string>) {
   const css = getComputedStyle(document.documentElement);
   const tok = (name: string) => css.getPropertyValue(name).trim() || "#fff";
   const shine = tok("--tg-shine");
@@ -22,8 +45,7 @@ export function paintPiano(g: CanvasRenderingContext2D, w: number, h: number, ga
   const grid = tok("--tg-grid");
   const kb = game.kb;
   const now = game.now;
-  const count = game.f.voices.length;
-  const voice = game.tracks[0].lv.voice;
+  const { count, voice } = game;
   const ink = inkOf(voice, count);
   const top = h * (1 - KEYS_SHARE);
   const fall = (APPROACH_MS / 1000) * game.tps * FALL;
@@ -58,16 +80,16 @@ export function paintPiano(g: CanvasRenderingContext2D, w: number, h: number, ga
   g.globalAlpha = 1;
 
   // The voice's notes, falling onto their keys.
-  const notes = game.tracks[0].lv.notes;
+  const notes = game.notes;
   const coming = new Set<number>();
   for (const n of notes) {
     if (n.on > now + fall) break;
-    if (n.on + n.dur < now - game.opt.late) continue;
+    if (n.on + n.dur < now - game.late) continue;
     const [a, b] = keySpan(kb, n.midi);
     const y1 = Math.min(top, yOf(n.on));
     const y0 = Math.max(0, yOf(n.on + n.dur));
     if (y1 <= 0) continue;
-    if (n.state === "pending" && n.on >= now - game.opt.late && n.on - now < (APPROACH_MS / 1000) * game.tps) coming.add(n.midi);
+    if (n.state === "pending" && n.on >= now - game.late && n.on - now < (APPROACH_MS / 1000) * game.tps) coming.add(n.midi);
     g.fillStyle = n.state === "miss" ? tok("--tg-miss") : ink;
     g.globalAlpha = n.ride ? 0.6 : 1;
     g.fillRect(a * w + 1, y0, (b - a) * w - 2, Math.max(2, y1 - y0 - 1));
@@ -85,7 +107,7 @@ export function paintPiano(g: CanvasRenderingContext2D, w: number, h: number, ga
 
   // The keyboard.
   const kh = h - top;
-  const held = new Set(game.heldKeys());
+  const held = new Set(game.held);
   const gr = game.grade;
   const wrongKey = gr && gr.text === "✕" && gr.key !== undefined && performance.now() - gr.at < 300 ? gr.key : null;
   const fill = (m: number, x: number, y: number, ww: number, hh: number, base: string) => {

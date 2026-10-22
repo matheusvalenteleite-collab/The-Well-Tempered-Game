@@ -17,7 +17,7 @@ export interface Voicing {
 }
 
 /** How the player's own note sounds (D171): the Synth holds steady while the thumb stays down; the Piano dies away as it is held and is damped when let go. */
-export type Envelope = "synth" | "piano";
+export type Envelope = "synth" | "piano" | "dulcimer";
 
 export interface Play {
   envelope?: Envelope;
@@ -142,12 +142,12 @@ export class Chip {
     // The triangle is quieter than the pulses at the same amplitude.
     const peak = (v.timbre === "triangle" ? 0.36 : v.timbre === "pulse50" ? 0.15 : 0.19) * v.gain * (p.level ?? 1);
     const sustain = peak * 0.72;
-    const piano = p.envelope === "piano";
+    const piano = p.envelope === "piano" || p.envelope === "dulcimer";
     g.gain.setValueAtTime(0, t);
     if (piano) {
       // Struck: at once loud, then dying away, the low notes slower.
       g.gain.linearRampToValueAtTime(peak * 1.15, t + 0.004);
-      g.gain.setTargetAtTime(0, t + 0.01, 1.4 * 2 ** (-(midi - 60) / 24));
+      g.gain.setTargetAtTime(0, t + 0.01, (p.envelope === "dulcimer" ? 0.45 : 1.4) * 2 ** (-(midi - 60) / 24));
     } else if (p.legato) {
       // Joined: no new attack, the level of the note before.
       g.gain.linearRampToValueAtTime(sustain, t + 0.015);
