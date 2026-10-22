@@ -102,10 +102,50 @@ export const PATCHES = {
   sidPulse: P({ osc: [{ wave: "pulse25" }, { wave: "triangle", gain: 0.5 }], amp: { a: 0.002, d: 0.2, s: 0.7, r: 0.06 }, vib: { depth: 10, rate: 5.5, delay: 0.25 }, level: 0.3 }),
   atari: P({ osc: [{ wave: "pulse50" }], filter: { freq: 3000, hz: true, q: 0.6 }, amp: { a: 0.001, d: 0.3, s: 0.45, r: 0.04 }, drive: 2, level: 0.36 }),
   arcadeBell: P({ osc: [{ wave: "bell" }], amp: { a: 0.002, d: 0.6, s: 0.3, r: 0.08 }, level: 0.5 }),
+  // D200: the fugues' own instruments (fugue-sound.ts), made on the bossa's lines (D193): a sine or
+  // triangle body under any edge, each its own way of speaking, a slow vibrato in the sustained ones.
+  /** A sung "oo" over a soft body: the vocal top of a stile antico consort. */
+  choirOo: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.35 }, { wave: "sine", gain: 0.5 }], vowel: [480, 950], amp: { a: 0.09, d: 0.3, s: 0.85, r: 0.16 }, vib: { depth: 9, rate: 5, delay: 0.3 }, level: 0.6 }),
+  /** The cornett: a lip-blown treble, likened to the voice; soft-edged, a little breath. */
+  cornetto: P({ osc: [{ wave: "triangle", gain: 0.7 }, { wave: "sine", gain: 0.6 }, { wave: "saw", gain: 0.2 }], filter: { freq: 3.4, q: 1, env: 1.6, envDecay: 0.15 }, amp: { a: 0.04, d: 0.3, s: 0.82, r: 0.1 }, vib: { depth: 6, rate: 5, delay: 0.3 }, breath: 0.04, level: 0.33 }),
+  /** The sackbut: the stile antico's tenor and bass brass, round and dark. */
+  sackbut: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }, { wave: "sine", gain: 0.5 }], filter: { freq: 2.2, q: 0.9, env: 1.8, envDecay: 0.25 }, amp: { a: 0.06, d: 0.4, s: 0.82, r: 0.14 }, vib: { depth: 3, rate: 4.6, delay: 0.5 }, level: 0.35 }),
+  /** The viola da gamba: a bowed tenor and bass, sustained, darker than the cello (the bass viol's seventh string reaches A1). */
+  gamba: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.35 }, { wave: "sine", gain: 0.4 }], filter: { freq: 2.8, q: 0.8, env: 1.4, envDecay: 0.2 }, amp: { a: 0.06, d: 0.5, s: 0.72, r: 0.16 }, vib: { depth: 6, rate: 4.6, delay: 0.4 }, level: 0.37 }),
+  /** The violone: the bowed bass, round, slow to speak. */
+  violone: P({ osc: [{ wave: "sine", gain: 0.8 }, { wave: "triangle", gain: 0.6 }, { wave: "saw", gain: 0.22 }], filter: { freq: 2.5, q: 0.7, env: 1.3, envDecay: 0.2 }, amp: { a: 0.07, d: 0.5, s: 0.7, r: 0.18 }, vib: { depth: 5, rate: 4.5, delay: 0.45 }, level: 0.42 }),
+  /** The oboe d'amore: the oboe's darker, sweeter cousin. */
+  oboeDamore: P({ osc: [{ wave: "reed", gain: 0.7 }, { wave: "sine", gain: 0.7 }], filter: { freq: 2.8, q: 0.9, env: 1.3, envDecay: 0.12 }, amp: { a: 0.06, d: 0.2, s: 0.86, r: 0.12 }, vib: { depth: 6, rate: 4.8, delay: 0.35 }, breath: 0.06, level: 0.43 }),
+  /** The basset horn: a dark, breathing clarinet, for the laments' inner voices. */
+  bassetHorn: P({ osc: [{ wave: "square", gain: 0.45 }, { wave: "sine", gain: 0.8 }], filter: { freq: 2.2, q: 0.6 }, amp: { a: 0.07, d: 0.3, s: 0.85, r: 0.14 }, vib: { depth: 4, rate: 4.5, delay: 0.45 }, breath: 0.1, level: 0.32 }),
+  /** The traverso: the baroque flute, breathier and softer than the modern one. */
+  traverso: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.25 }, { wave: "sine", octave: 1, gain: 0.08 }], amp: { a: 0.06, d: 0.15, s: 0.88, r: 0.12 }, vib: { depth: 7, rate: 4.6, delay: 0.35 }, breath: 0.18, level: 0.36 }),
+  /** The theorbo: a plucked bass, long-ringing and round. */
+  theorbo: P({ osc: [{ wave: "triangle" }, { wave: "sine", gain: 0.8 }, { wave: "saw", gain: 0.12 }], filter: { freq: 3, q: 0.9, env: 1.8, envDecay: 0.1 }, amp: { a: 0.003, d: 1.5, s: 0, r: 0.12 }, level: 0.28 }),
+  /** The celesta: a bell-like decay, glassy, without the vibraphone's tremolo. */
+  celesta: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.18 }, { wave: "bell", gain: 0.12 }], amp: { a: 0.002, d: 0.9, s: 0, r: 0.15 }, level: 0.4 }),
+  /** The marimba: wood, struck, short; repeated notes stay crisp. */
+  marimba: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.1 }, { wave: "triangle", gain: 0.2 }], amp: { a: 0.002, d: 0.4, s: 0, r: 0.08 }, level: 0.47 }),
+  /** The natural horn: mellow, sustained. */
+  horn: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.25 }, { wave: "sine", gain: 0.4 }], filter: { freq: 2.2, q: 0.8, env: 2, envDecay: 0.3 }, amp: { a: 0.07, d: 0.4, s: 0.85, r: 0.14 }, vib: { depth: 5, rate: 4.8, delay: 0.4 }, level: 0.33 }),
+  /** The clarino: the baroque trumpet's high register, bright over a sine body. */
+  clarino: P({ osc: [{ wave: "triangle", gain: 0.8 }, { wave: "saw", gain: 0.35 }, { wave: "sine", gain: 0.4 }], filter: { freq: 3.2, q: 1, env: 2.4, envDecay: 0.2 }, amp: { a: 0.03, d: 0.3, s: 0.8, r: 0.1 }, vib: { depth: 6, rate: 5, delay: 0.4 }, level: 0.34 }),
+  /** The harp: plucked, ringing longer and rounder than the lute. */
+  harp: P({ osc: [{ wave: "triangle" }, { wave: "sine", octave: 1, gain: 0.15 }], filter: { freq: 5, q: 0.8, env: 1.5, envDecay: 0.1 }, amp: { a: 0.003, d: 1.1, s: 0, r: 0.12 }, level: 0.48 }),
+  /** The lute-harpsichord (Lautenwerk, gut-strung; Bach owned two): a soft, quick pluck. */
+  lautenwerk: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.2 }, { wave: "pulse25", octave: 1, gain: 0.08 }], filter: { freq: 4, q: 0.9, env: 1.8, envDecay: 0.1 }, amp: { a: 0.003, d: 0.8, s: 0, r: 0.1 }, level: 0.44 }),
+  /** An organ's flute stop (a Gedackt): soft, a little chiff. */
+  organFlute: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 1, gain: 0.3 }, { wave: "triangle", gain: 0.25 }], amp: { a: 0.03, d: 0.1, s: 1, r: 0.06 }, breath: 0.03, level: 0.3 }),
+  /** An organ's reed stop (a soft Trompete): a cantus firmus colour. */
+  organReed: P({ osc: [{ wave: "reed", gain: 0.7 }, { wave: "sine", gain: 0.5 }], filter: { freq: 3, q: 0.8 }, amp: { a: 0.02, d: 0.1, s: 1, r: 0.06 }, level: 0.43 }),
+  /** The organ's pedal: a 16' bourdon under an 8'. */
+  pedalBourdon: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: -1, gain: 0.45 }, { wave: "organ", gain: 0.25 }], amp: { a: 0.03, d: 0.1, s: 1, r: 0.08 }, level: 0.4 }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
-export type Groove = "rock" | "jazz" | "bossa" | "brushes" | "chamber" | "chipMarch" | "chipDrive" | "chipHalf" | "chipArcade" | "cr78" | "funk808" | "analogRock" | "analogSoft";
+export type Groove = "rock" | "jazz" | "bossa" | "brushes" | "chamber" | "chipMarch" | "chipDrive" | "chipHalf" | "chipArcade" | "cr78" | "funk808" | "analogRock" | "analogSoft"
+  // D200: the fugues' own loops (fugue-sound.ts).
+  | "tactus" | "lament" | "toccata" | "gigue" | "passepied" | "minuet" | "sarabande" | "gavotte" | "overture" | "triplet";
 /** The drums' sound: a band's kit, a console's noise channel, an analog drum machine's circuits. */
 export type Kit = "acoustic" | "chip" | "analog";
 
@@ -179,8 +219,9 @@ export function slotOf(voice: number, count: number): number {
 /** The ensemble playing now (set from the settings), and whether CHIP's and MOOG's drums play. */
 let current: Preset = presetById("bossa");
 let drumsOn = true;
-export function setPreset(id: string) {
-  current = presetById(id);
+/** By its id; or (D200) a preset itself, such as a fugue's own (fugue-sound.ts `fugueSound`). */
+export function setPreset(id: string | Preset) {
+  current = typeof id === "string" ? presetById(id) : id;
 }
 export function preset(): Preset {
   return current;
@@ -294,6 +335,80 @@ export function grooveHits(g: Groove, b: number, bar: number, per: number, compo
       if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.6 });
       for (const s of subs) out.push({ drum: "shaker", at: s, vel: s ? 0.25 : 0.4 });
       if (b === per - 1) out.push({ drum: "rim", at: subs[subs.length - 1], vel: 0.45 });
+      break;
+    // D200: the fugues' own loops (fugue-sound.ts), after the bossa's (D193): soft, above the voices;
+    // no snare, no clap, nothing after the downbeat louder than it, so the written metre leads.
+    case "tactus":
+      // The stile antico's beat: a breath of kick on the bar, a soft shaker on each beat.
+      if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.32 });
+      out.push({ drum: "shaker", at: 0, vel: b === 0 ? 0.26 : 0.17 });
+      break;
+    case "lament":
+      // A slow heartbeat on the bar's first beat, and nothing else.
+      if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.36 }, { drum: "kick", at: 0.3, vel: 0.2 });
+      break;
+    case "toccata":
+      // A light motor: the shaker in sixteenths (or the beat's thirds), a soft kick on the bar and its
+      // middle, a rim lifting into the next bar.
+      for (const s of compound ? subs : [0, 0.25, 0.5, 0.75]) out.push({ drum: "shaker", at: s, vel: s === 0 ? 0.34 : s === 0.5 ? 0.24 : 0.16 });
+      if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.48 });
+      else if (per === 4 && b === 2) out.push({ drum: "kick", at: 0, vel: 0.34 });
+      if (b === per - 1 && per > 1) out.push({ drum: "rim", at: subs[subs.length - 1], vel: 0.3 });
+      break;
+    case "gigue":
+      // The long-short lilt: the shaker on the beat and its last third, the kick on the bar (softer on
+      // the bar's middle beat), a rim on the last third of the bar.
+      if (compound) {
+        out.push({ drum: "shaker", at: 0, vel: b === 0 ? 0.38 : 0.28 }, { drum: "shaker", at: 2 / 3, vel: 0.22 });
+        if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.5 });
+        else if (per === 4 && b === 2) out.push({ drum: "kick", at: 0, vel: 0.34 });
+        if (b === per - 1) out.push({ drum: "rim", at: 2 / 3, vel: 0.3 });
+      } else {
+        out.push({ drum: "shaker", at: 0, vel: b === 0 ? 0.36 : 0.24 }, { drum: "shaker", at: 0.75, vel: 0.2 });
+        if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.48 });
+      }
+      break;
+    case "passepied":
+      // Quick triple time felt one in a bar: the kick on the bar, the shaker on each beat, the rim lifting the last.
+      if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.48 });
+      out.push({ drum: "shaker", at: 0, vel: b === 0 ? 0.34 : 0.2 });
+      if (b === per - 1 && per > 1) out.push({ drum: "rim", at: 0, vel: 0.26 });
+      break;
+    case "minuet":
+      // Triple time: the kick on one, the shaker in the halves, a soft rim on the last beat.
+      for (const s of subs) out.push({ drum: "shaker", at: s, vel: s ? 0.18 : b === 0 ? 0.32 : 0.24 });
+      if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.46 });
+      if (b === per - 1 && per > 1) out.push({ drum: "rim", at: 0, vel: 0.28 });
+      break;
+    case "sarabande":
+      // The weight on the second beat of three: a soft kick on one, a brush on two, a breath on three
+      // (in 6/4 the same within each dotted half).
+      if (compound) {
+        if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.42 });
+        out.push({ drum: "shaker", at: 0, vel: 0.2 }, { drum: "brush", at: 1 / 3, vel: 0.34 }, { drum: "shaker", at: 2 / 3, vel: 0.14 });
+      } else {
+        if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.42 }, { drum: "shaker", at: 0, vel: 0.22 });
+        else if (b === 1) out.push({ drum: "brush", at: 0, vel: 0.34 });
+        else out.push({ drum: "shaker", at: 0, vel: 0.14 });
+      }
+      break;
+    case "gavotte":
+      // Two in a bar, phrased from the half bar: the kick on one, a rim on the half bar's upbeat, the shaker in the halves.
+      for (const s of subs) out.push({ drum: "shaker", at: s, vel: s ? 0.18 : 0.3 });
+      if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.46 });
+      if (b === per - 1 && per > 1) out.push({ drum: "rim", at: 0, vel: 0.3 });
+      break;
+    case "overture":
+      // The French overture: a timpani-like kick on one (and, softer, three), the shaker dotted (the beat and its last sixteenth).
+      if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.5 });
+      else if (per === 4 && b === 2) out.push({ drum: "kick", at: 0, vel: 0.38 });
+      out.push({ drum: "shaker", at: 0, vel: b === 0 ? 0.32 : 0.24 }, { drum: "shaker", at: 0.75, vel: 0.2 });
+      break;
+    case "triplet":
+      // A beat in three in simple time: the shaker on the triplets, the kick on one, a rim on the bar's last triplet.
+      for (const s of [0, 1 / 3, 2 / 3]) out.push({ drum: "shaker", at: s, vel: s === 0 ? 0.32 : s > 0.5 ? 0.22 : 0.16 });
+      if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.48 });
+      if (b === per - 1 && per > 1) out.push({ drum: "rim", at: 2 / 3, vel: 0.28 });
       break;
   }
   return out;

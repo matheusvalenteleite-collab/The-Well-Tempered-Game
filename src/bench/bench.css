@@ -147,3 +147,24 @@
 /* D198: the stars, the failed run. */
 .tb-stars { margin: 0; font-size: 22px; letter-spacing: 4px; color: var(--tg-gold); }
 .tb-failed { font-size: 16px; color: var(--tg-wrong); }
+
+/* D202: depth, still 8-bit and spare: the music box sunk into a bevelled frame with a vignette; the
+   buttons raised (a lit top edge, a dark bottom, a hard shadow) and pressed in when held. */
+.tg-box { box-shadow: 0 6px 0 #05060c, 0 10px 24px rgba(0, 0, 0, 0.55); position: relative; z-index: 1; }
+.tg-roll::after { content: ""; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 0 2px #05060c, inset 0 10px 18px rgba(0, 0, 0, 0.5), inset 0 -8px 16px rgba(0, 0, 0, 0.4); background: radial-gradient(ellipse at 50% 45%, transparent 62%, rgba(0, 0, 0, 0.3) 100%); }
+.tg-hud { background: linear-gradient(to bottom, #1a1d33, #10121f); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 0 #05060c; }
+.tg-x, .tg-seg button, .tb-menu, .tb-lessons, .tg-grid3 button, .tb-platform-choices button, .tg-voices button {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), inset 0 -2px 0 rgba(0, 0, 0, 0.35), 0 3px 0 #05060c;
+  transition: transform 60ms, box-shadow 60ms;
+}
+.tg-x:active, .tg-seg button:active, .tb-menu:active, .tb-lessons:active, .tg-grid3 button:active, .tb-platform-choices button:active, .tg-voices button:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -1px 0 rgba(0, 0, 0, 0.35), 0 1px 0 #05060c;
+}
+.tg-card { text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6); }
+.tb-grade, .tb-platform h1 { text-shadow: 0 1px 0 #fff3, 3px 3px 0 #b8322a, 6px 6px 0 rgba(0, 0, 0, 0.5); }
+.tb-bach { box-shadow: 4px 4px 0 #b8322a, 0 12px 28px rgba(0, 0, 0, 0.6); }
+
+/* D203: the fugue's own sound, first in the sound setting. */
+.tg-own { font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-gold); background: transparent; border: 2px solid var(--tg-gold); padding: 9px; min-height: 36px; cursor: pointer; box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 3px 0 #05060c; }
+.tg-own.on { color: #1a1408; background: var(--tg-gold); }
