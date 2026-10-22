@@ -42,6 +42,18 @@ export function keyTint(key: string, light = 0): string {
   return `hsl(${hue} ${minor ? 55 : 45}% ${(minor ? 13 : 17) + light}%)`;
 }
 
+/**
+ * The ladder as paint() lays it out in a roll `cssH` pixels high: each staff step's middle (CSS px from
+ * the roll's top), and a row's height (D179: the testbench's side bars line up with it).
+ */
+export function ladderGeometry(lo: number, hi: number, cssH: number): { yOf: (step: number) => number; rowH: number } {
+  const h = Math.max(1, Math.floor(cssH / PX));
+  const rows = hi - (lo - 1) + 2;
+  const rowH = Math.max(2, Math.floor(h / rows));
+  const top = Math.floor((h - rowH * rows) / 2);
+  return { yOf: (step) => (top + (hi + 1 - step) * rowH + rowH / 2) * PX, rowH: rowH * PX };
+}
+
 export interface Frame {
   /** The tick the ear is at. */
   now: number;
@@ -67,6 +79,9 @@ export interface Frame {
   trace?: { tick: number; step: number; on: boolean }[];
   /** The testbench (D178): each touch, at the step it asked for, right or wrong. */
   marks?: { tick: number; step: number; ok: boolean }[];
+  /** The testbench's TWO VOICES (D180): a second voice played, drawn as the first. */
+  voice2?: number;
+  notes2?: LaneNote[];
   /** The testbench's THUMBS ↔ (D178): each note's move (aligned with `notes`), drawn as the thumb it wants. */
   arrows?: { dir: number; size: number }[];
 }
@@ -145,45 +160,49 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
   }
   g.globalAlpha = 1;
 
-  // The voice played: full, outlined.
-  const ink = inkOf(fr.voice, fr.count);
+  // The voice played (or two): full, outlined.
   const shine = tok("--tg-shine");
   const miss = tok("--tg-miss");
   const edge = tok("--tg-fg");
-  const sinceMs = (at: number | undefined) => (at === undefined ? Infinity : ((fr.now - at) / fr.tps) * 1000);
-  for (const n of fr.notes) {
-    let x1 = xOf(n.on);
-    if (x1 > w) break;
-    const x2 = xOf(n.on + n.dur);
-    if (x2 < 0) continue;
-    const y = yOf(n.step);
-    const bw = Math.max(1, x2 - x1 - 1);
-    if (n.state === "miss") {
-      const t = sinceMs(n.at);
-      if (t < 300) x1 += Math.round(Math.sin(t / 22) * 2 * (1 - t / 300));
-      g.fillStyle = miss;
-      g.fillRect(x1, y, bw, bh - 1);
-      continue;
-    }
-    g.fillStyle = edge;
-    g.fillRect(x1 - 1, y - 1, bw + 2, bh + 1);
-    g.fillStyle = ink;
-    g.fillRect(x1, y, bw, bh - 1);
-    if (fr.subject?.has(`${fr.voice}:${n.on}`)) dots(g, x1, x2, y, edge);
-    if (n.state === "hit") {
-      g.fillStyle = shine;
-      g.fillRect(x1, y, Math.max(1, Math.min(bw, 2)), bh - 1);
-      if (n.long && n.off !== undefined) {
-        const xo = xOf(n.off);
+  const played: [number, LaneNote[]][] = [[fr.voice, fr.notes]];
+  if (fr.notes2 && fr.voice2 !== undefined) played.push([fr.voice2, fr.notes2]);
+  for (const [pv, pnotes] of played) {
+    const ink = inkOf(pv, fr.count);
+    const sinceMs = (at: number | undefined) => (at === undefined ? Infinity : ((fr.now - at) / fr.tps) * 1000);
+    for (const n of pnotes) {
+      let x1 = xOf(n.on);
+      if (x1 > w) break;
+      const x2 = xOf(n.on + n.dur);
+      if (x2 < 0) continue;
+      const y = yOf(n.step);
+      const bw = Math.max(1, x2 - x1 - 1);
+      if (n.state === "miss") {
+        const t = sinceMs(n.at);
+        if (t < 300) x1 += Math.round(Math.sin(t / 22) * 2 * (1 - t / 300));
         g.fillStyle = miss;
-        g.fillRect(xo, y, Math.max(0, x1 + bw - xo), bh - 1);
+        g.fillRect(x1, y, bw, bh - 1);
+        continue;
       }
-      const t = sinceMs(n.at);
-      if (t < 240) {
+      g.fillStyle = edge;
+      g.fillRect(x1 - 1, y - 1, bw + 2, bh + 1);
+      g.fillStyle = ink;
+      g.fillRect(x1, y, bw, bh - 1);
+      if (fr.subject?.has(`${pv}:${n.on}`)) dots(g, x1, x2, y, edge);
+      if (n.state === "hit") {
         g.fillStyle = shine;
-        g.globalAlpha = 1 - t / 240;
-        g.fillRect(x1 - 1, y - 1, bw + 2, bh + 1);
-        g.globalAlpha = 1;
+        g.fillRect(x1, y, Math.max(1, Math.min(bw, 2)), bh - 1);
+        if (n.long && n.off !== undefined) {
+          const xo = xOf(n.off);
+          g.fillStyle = miss;
+          g.fillRect(xo, y, Math.max(0, x1 + bw - xo), bh - 1);
+        }
+        const t = sinceMs(n.at);
+        if (t < 240) {
+          g.fillStyle = shine;
+          g.globalAlpha = 1 - t / 240;
+          g.fillRect(x1 - 1, y - 1, bw + 2, bh + 1);
+          g.globalAlpha = 1;
+        }
       }
     }
   }

@@ -159,7 +159,7 @@ export function slotOf(voice: number, count: number): number {
 }
 
 /** The ensemble playing now (set from the settings). */
-let current: Preset = presetById("chip");
+let current: Preset = presetById("bossa");
 export function setPreset(id: string) {
   current = presetById(id);
 }

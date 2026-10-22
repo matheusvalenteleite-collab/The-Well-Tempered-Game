@@ -10,11 +10,53 @@ import type { Instrument } from "./engine.ts";
 import type { Level as Difficulty } from "./lanes.ts";
 import { CLICKS, lagOf, offsetOf, PERIOD, SKIP } from "./lag.ts";
 import { FAMILIES, presetById } from "./sound.ts";
+import { PITCHES, TEMPERAMENTS } from "./tuning.ts";
+
+/** D180: the tempo, 20 to 200 beats a minute (the felt beat). */
+export const BPM_MIN = 20;
+export const BPM_MAX = 200;
+export const saneBpm = (b: unknown) => (typeof b === "number" && b >= BPM_MIN && b <= BPM_MAX ? Math.round(b) : 54);
+
+export function BpmSetting({ bpm, set }: { bpm: number; set: (b: number) => void }) {
+  return (
+    <label className="tg-set tg-bpm">
+      <span>TEMPO</span>
+      <span className="tg-panel-val">{bpm} BPM</span>
+      <input type="range" id="bpm" min={BPM_MIN} max={BPM_MAX} step={1} value={bpm} onChange={(e) => set(Number(e.target.value))} />
+    </label>
+  );
+}
+
+/** D180: the temperament and the pitch of A. */
+export function TuningSetting({ id, a, set }: { id: string; a: number; set: (id: string, a: number) => void }) {
+  return (
+    <>
+      <div className="tg-set">
+        <span>TUNING</span>
+        <div className="tg-seg" role="group" aria-label="A">
+          {PITCHES.map((p) => (
+            <button key={p} type="button" id={`a-${p}`} className={p === a ? "on" : ""} onClick={() => set(id, p)} aria-pressed={p === a}>
+              A {p}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="tg-grid3" role="group" aria-label="Temperament">
+        {TEMPERAMENTS.map((t) => (
+          <button key={t.id} type="button" id={`temper-${t.id}`} className={t.id === id ? "on" : ""} onClick={() => set(t.id, a)} aria-pressed={t.id === id}>
+            {t.name}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
 
 export interface Settings {
   inst: Instrument;
   diff: Difficulty;
-  speed: "slow" | "medium" | "fast";
+  /** Beats per minute of the felt beat (D180: 20 to 200). */
+  bpm: number;
 }
 
 export function Panel({ title, close, children }: { title: string; close: () => void; children: ReactNode }) {
@@ -51,15 +93,16 @@ export function Choice<T extends string>({ id, label, options, value, set }: { i
   );
 }
 
-export function SettingsPanel(p: { settings: Settings; set: (s: Partial<Settings>) => void; lag: number | null; setLag: (s: number | null) => void; sound: string; setSound: (id: string) => void; chip: () => Chip; close: () => void }) {
+export function SettingsPanel(p: { settings: Settings; set: (s: Partial<Settings>) => void; lag: number | null; setLag: (s: number | null) => void; sound: string; setSound: (id: string) => void; tuning: { id: string; a: number }; setTuning: (id: string, a: number) => void; chip: () => Chip; close: () => void }) {
   const { settings: s, set } = p;
   return (
     <Panel title="SETTINGS" close={p.close}>
       <Choice id="inst" label="INSTRUMENT" options={[["synth", "SYNTH"], ["piano", "PIANO"]]} value={s.inst} set={(inst) => set({ inst })} />
       <p className="tg-panel-note">{s.inst === "synth" ? "Upright. The thumb gives the way the tune goes, the height how far." : "Sideways. A keyboard of every semitone; the notes fall onto their keys."}</p>
       <Choice id="level" label="LEVEL" options={[["easy", "EASY"], ["normal", "NORMAL"]]} value={s.diff} set={(diff) => set({ diff })} />
-      <Choice id="speed" label="SPEED" options={[["slow", "SLOW"], ["medium", "MEDIUM"], ["fast", "FAST"]]} value={s.speed} set={(speed) => set({ speed })} />
+      <BpmSetting bpm={s.bpm} set={(bpm) => set({ bpm })} />
       <SoundSetting value={p.sound} set={p.setSound} />
+      <TuningSetting id={p.tuning.id} a={p.tuning.a} set={p.setTuning} />
       <LagSetting lag={p.lag} setLag={p.setLag} chip={p.chip} />
       <p className="tg-panel-note">With Bluetooth headphones the sound comes late. Set the delay with them on: tap along to the clicks.</p>
     </Panel>

@@ -18,7 +18,8 @@ import { chordOf, options, points, release, strike, sweep, type LaneOptions, typ
 import { keyboard, keyAt as keyUnder, WHITE_ONLY, type Keyboard } from "./piano.ts";
 import { fits, markShapes, SLIDE_PX } from "./shape.ts";
 import type { Side } from "./thumbs.ts";
-import { accompaniment, type Level, type OtherNote } from "./voice-mode.ts";
+import { phrase, type Shape } from "./phrasing.ts";
+import { accompaniment, subjectMarks, type Level, type OtherNote } from "./voice-mode.ts";
 
 export type Instrument = "synth" | "piano";
 export const INSTRUMENTS: Instrument[] = ["synth", "piano"];
@@ -62,7 +63,7 @@ export interface Grade {
   side?: Side;
   key?: number;
   /** The testbench: a ✕ for a touch off time, or for the wrong gesture. */
-  why?: "time" | "gesture";
+  why?: "time" | "gesture" | "legato";
 }
 
 interface Held {
@@ -115,8 +116,9 @@ export class Game {
   readonly opt: LaneOptions;
   readonly o: GameOptions;
   readonly f: TouchFugue;
-  /** The other voices, when they play. */
+  /** The other voices, when they play, and how each note is played (phrasing.ts). */
   readonly others: OtherNote[];
+  private readonly shapes: Shape[];
   readonly instrument: Instrument;
   /** The Piano's keys: the voice's range. */
   readonly kb: Keyboard;
@@ -168,6 +170,7 @@ export class Game {
     });
     // D169: the other voices always play, from where the player starts.
     this.others = accompaniment(f, sorted[0].from, sorted[0].voice);
+    this.shapes = phrase(this.others, this.beat, f.barTicks, subjectMarks(f).subject);
     this.anchorAt = chip.ctx.currentTime + 0.15;
     this.anchorTick = this.start;
     this.nextBeat = this.start;
@@ -222,7 +225,8 @@ export class Game {
       if (n.on < now - this.beat) continue;
       // In WAIT a note of the others is cut where the music may stop.
       const dur = block !== null ? Math.min(n.dur, Math.max(this.beat / 4, block - n.on)) : n.dur;
-      ch.note(n.midi, this.timeAt(n.on), dur / this.tps, voicing(n.voice, this.f.voices.length, false));
+      const sh = this.shapes[this.nextOther - 1];
+      ch.note(n.midi, Math.max(ch.ctx.currentTime, this.timeAt(n.on) + sh.nudge), (dur * sh.hold) / this.tps, voicing(n.voice, this.f.voices.length, false), { level: sh.level });
     }
     // Lifts that no tap carried on are final: the note stops where the thumb left it.
     this.lifting = this.lifting.filter((l) => {
