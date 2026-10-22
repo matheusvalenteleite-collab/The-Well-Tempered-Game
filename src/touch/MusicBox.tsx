@@ -4,8 +4,9 @@
  * ladder of staff steps covers the piece's whole range, so the voices keep their places (the bass
  * always below the soprano) and every note is a block of the same height. The voice played is drawn
  * full and outlined; the others in their colours, dimmer. A hit note shines; a missed one goes dark and
- * shakes; a long note let go early goes dark from there. A bracket on the playhead marks the steps the
- * keys under the thumbs reach now. The roll takes the colour of the key.
+ * shakes; a long note let go early goes dark from there. The roll takes the colour of the key.
+ * D174, the subject: its notes, in whatever voice, are dotted along their top; a ◆ stands over the
+ * first note of each entry as it comes, in the voice's colour, gold when the voice is the player's.
  */
 import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
 import type { LaneNote } from "./lanes.ts";
@@ -59,8 +60,9 @@ export interface Frame {
   notes: LaneNote[];
   /** Every other voice's notes. */
   others: OtherNote[];
-  /** The steps the keys reach now (lowest, how many), if playing. */
-  keys?: { lo: number; rows: number };
+  /** The subject's notes ("voice:onset") and the entries' first notes, if the piece has them. */
+  subject?: Set<string>;
+  entries?: { voice: number; on: number; step: number }[];
   /** What the player has sounded (the testbench, D170): the pitch as a step, fractions allowed, in time. */
   trace?: { tick: number; step: number; on: boolean }[];
 }
@@ -126,14 +128,6 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
     g.fillRect(xOf(t), 0, 1, h);
   }
 
-  // The keys' reach now: a bracket on the playhead.
-  if (fr.keys) {
-    const yTop = yOf(fr.keys.lo + fr.keys.rows - 1);
-    const yBot = yOf(fr.keys.lo) + rowH;
-    g.fillStyle = tok("--tg-lane-on");
-    g.fillRect(0, yTop, playX, yBot - yTop);
-  }
-
   // The other voices: their colours, dimmer.
   for (const o of fr.others) {
     const x1 = xOf(o.on);
@@ -143,6 +137,7 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
     g.globalAlpha = 0.5;
     g.fillStyle = inkOf(o.voice, fr.count);
     g.fillRect(x1, yOf(o.step), Math.max(1, x2 - x1 - 1), bh - 1);
+    if (fr.subject?.has(`${o.voice}:${o.on}`)) dots(g, x1, x2, yOf(o.step), tok("--tg-fg"));
   }
   g.globalAlpha = 1;
 
@@ -170,6 +165,7 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
     g.fillRect(x1 - 1, y - 1, bw + 2, bh + 1);
     g.fillStyle = ink;
     g.fillRect(x1, y, bw, bh - 1);
+    if (fr.subject?.has(`${fr.voice}:${n.on}`)) dots(g, x1, x2, y, edge);
     if (n.state === "hit") {
       g.fillStyle = shine;
       g.fillRect(x1, y, Math.max(1, Math.min(bw, 2)), bh - 1);
@@ -186,6 +182,19 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
         g.globalAlpha = 1;
       }
     }
+  }
+
+  // The entries coming: a diamond over each entry's first note.
+  for (const e of fr.entries ?? []) {
+    const x = xOf(e.on);
+    if (x < playX - 2 || x > w) continue;
+    const y = yOf(e.step) - 6;
+    g.fillStyle = e.voice === fr.voice ? tok("--tg-gold") : inkOf(e.voice, fr.count);
+    g.fillRect(x + 1, y, 1, 1);
+    g.fillRect(x, y + 1, 3, 1);
+    g.fillRect(x - 1, y + 2, 5, 1);
+    g.fillRect(x, y + 3, 3, 1);
+    g.fillRect(x + 1, y + 4, 1, 1);
   }
 
   // The player's own line: what they sounded, against the music.
@@ -210,4 +219,13 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
 
   g.fillStyle = tok("--tg-playhead");
   g.fillRect(playX, 0, 1, h);
+}
+
+/** The subject's texture: dots along a block's top. */
+function dots(g: CanvasRenderingContext2D, x1: number, x2: number, y: number, ink: string) {
+  const a = g.globalAlpha;
+  g.globalAlpha = 0.85;
+  g.fillStyle = ink;
+  for (let x = x1 + 1; x < x2 - 1; x += 2) g.fillRect(x, y, 1, 1);
+  g.globalAlpha = a;
 }

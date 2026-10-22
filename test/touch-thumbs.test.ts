@@ -4,8 +4,11 @@ import { onSide, sideOf, touchDown, touchMove, touchUp, type Touches } from "../
 import { FUGUES, PIECES, PRELUDES, beatOf, fugueById, keyAt, stepName } from "../src/touch/fugue.ts";
 import { markRides, options, points, release, strike, sweep } from "../src/touch/lanes.ts";
 import { accompaniment, level, startTick, stepRange, voicesFrom } from "../src/touch/voice-mode.ts";
-import { Game, prepare, type GameOptions } from "../src/touch/engine.ts";
-import { MAX_ROWS, rowAt, windowAt } from "../src/touch/rows.ts";
+import { Game, KEYS_SHARE, prepare, type Contact, type GameOptions } from "../src/touch/engine.ts";
+import { isBlack, keyAt as keyUnder, keyboard, keySpan } from "../src/touch/piano.ts";
+import { bandOf, fits, markShapes, sideFor } from "../src/touch/shape.ts";
+import { lagOf, offsetOf } from "../src/touch/lag.ts";
+import type { LaneNote } from "../src/touch/lanes.ts";
 import type { Chip } from "../src/touch/chip.ts";
 
 const C_MINOR = fugueById("wtc1f02");
@@ -69,13 +72,48 @@ test("the beat: a quarter in 4/4, a dotted quarter in 6/8, a dotted eighth in 12
   if (twelve16) assert.deepEqual(beatOf(twelve16), { ticks: twelve16.tpq * 0.75, perBar: 4 });
 });
 
-test("the keys are staff steps: the alto's C5 is step 35; rows run from the bottom", () => {
+test("staff steps: the alto's C5 is step 35", () => {
   const lv = level(C_MINOR, 1, 0);
   assert.equal(lv.notes[0].midi, 72);
   assert.equal(lv.notes[0].step, 35);
   assert.equal(stepName(35), "C5");
-  assert.equal(rowAt(0.99, 10), 0);
-  assert.equal(rowAt(0, 10), 9);
+});
+
+test("the Synth's shapes: the subject's C B C G A♭ is free, down a step, up a step, down a leap, up a step", () => {
+  const lv = level(C_MINOR, 1, 0);
+  prepare(C_MINOR, [lv], "normal");
+  assert.deepEqual(lv.notes.slice(0, 5).map((n) => [n.dir, n.size]), [[0, -1], [-1, 1], [1, 1], [-1, 3], [1, 1]]);
+  assert.equal(sideFor(lv.notes[1]), "left");
+  assert.equal(sideFor(lv.notes[2]), "right");
+  assert.equal(bandOf(0, 1), 1, "C to C sharp is a step");
+  // NORMAL: the band, or near it; EASY: the side only.
+  const n = lv.notes[3];
+  assert.ok(fits(n, "left", 0.1, true) && !fits(n, "left", 0.9, true) && fits(n, "left", 0.9, false) && !fits(n, "right", 0.1, false));
+});
+
+test("EASY's shape is that of the notes tapped: a riding note is passed over", () => {
+  const notes: LaneNote[] = [60, 62, 64, 59].map((midi, i) => ({ on: i * 100, dur: 100, midi, step: [35, 36, 37, 34][i], long: false, state: "pending", ride: i === 1 || i === 2 }));
+  markShapes(notes);
+  assert.deepEqual([notes[3].dir, notes[3].size], [-1, 1]);
+});
+
+test("the Piano's keys: the voice's range, white keys at the ends, a black key above its whites", () => {
+  const kb = keyboard([60, 72]);
+  assert.deepEqual(kb, { lo: 59, hi: 76, whites: 11 });
+  for (const m of [59, 60, 61, 63, 66, 72, 73, 76]) {
+    const [a, b] = keySpan(kb, m);
+    assert.equal(keyUnder(kb, (a + b) / 2, false), m);
+  }
+  const [a, b] = keySpan(kb, 61);
+  assert.equal(keyUnder(kb, (a + b) / 2, true), 62, "below the black keys, the white key");
+});
+
+test("the sound's delay by tapping along: the median of the taps' lateness, early taps allowed", () => {
+  const o = offsetOf(10 + 3 * 0.75 + 0.2, 10)!;
+  assert.ok(o.click === 3 && Math.abs(o.off - 0.2) < 1e-9);
+  assert.equal(offsetOf(10 + 3 * 0.75 - 0.05, 10)!.click, 3);
+  assert.equal(lagOf([0.2, 0.21, 0.19, 0.22, 0.2]), null);
+  assert.ok(Math.abs(lagOf([0.2, 0.21, 0.19, 0.22, 0.2, 0.18, 0.25])!.lag - 0.2) < 0.011);
 });
 
 test("where to start: a share of the piece, back to its bar; the voices still singing from there", () => {
@@ -92,25 +130,6 @@ test("where to start: a share of the piece, back to its bar; the voices still si
 test("the music box's ladder: the piece's whole range, the voices in their places", () => {
   const r = stepRange(C_MINOR);
   assert.ok(r.lo <= Math.min(...C_MINOR.voices[2].map((n) => n[3])) && r.hi >= Math.max(...C_MINOR.voices[0].map((n) => n[3])));
-});
-
-test("rows: no window wider than the keys can hold; few notes beyond them (played on the edge row)", () => {
-  for (const kind of ["fugue", "prelude"] as const) {
-    let all = 0;
-    let off = 0;
-    for (const f of PIECES.filter((p) => p.kind === kind))
-      for (const v of voicesFrom(f, 0)) {
-        const lv = level(f, v, 0);
-        for (const w of lv.windows) assert.ok(w.rows <= MAX_ROWS + 2 && w.rows >= 7, `${f.id} v${v}: ${w.rows} rows`);
-        for (const n of lv.notes) {
-          const w = windowAt(lv.windows, n.on);
-          all++;
-          if (n.step < w.lo || n.step >= w.lo + w.rows) off++;
-        }
-      }
-    // A fugue's voice almost never leaps beyond the keys; a prelude's left hand drops to a low bass now and then.
-    assert.ok(off / all < (kind === "fugue" ? 0.001 : 0.03), `${kind}: ${off} of ${all} beyond the keys`);
-  }
 });
 
 test("EASY: the first note is tapped, the sixteenths after a tapped note ride along", () => {
@@ -131,19 +150,30 @@ test("a tap on time plays the note once; a long note let go at once scores half;
   assert.equal(points(lv.notes, opt).got, 1.5);
 });
 
-/** Plays every note to tap of a game, on time, on its row, each held as long as it needs; returns the game's end. */
+/** Where a thumb plays a note: the Synth's side and band, the Piano's key. */
+function contact(g: Game, n: LaneNote): Contact {
+  const [w, h] = [390, 400];
+  if (g.instrument === "piano") {
+    const [a, b] = keySpan(g.kb, n.midi);
+    return { side: "left", x: ((a + b) / 2) * w, y: isBlack(n.midi) ? h * (1 - KEYS_SHARE) + 5 : h - 4, w, h };
+  }
+  const side = sideFor(n) ?? "left";
+  const band = n.size !== undefined && n.size >= 0 ? n.size : 0;
+  return { side, x: side === "left" ? 50 : 300, y: h - (band + 0.5) * (h / 4), w, h };
+}
+
+/** Plays every note to tap of a game, on time, as the instrument wants, each held as long as it needs; returns the game's end. */
 function playAll(g: Game, clock: { t: number }) {
   const at = (tick: number) => 0.15 + (tick - g.start) / g.tps;
-  const [w, h] = [390, 400];
-  type Ev = { t: number; down: boolean; id: number; k: number; step: number };
+  type Ev = { t: number; down: boolean; id: number; n: LaneNote };
   const evs: Ev[] = [];
   let id = 0;
-  g.tracks.forEach((t, k) =>
+  g.tracks.forEach((t) =>
     t.lv.notes.forEach((n, i) => {
       if (n.ride || (i > 0 && t.lv.notes[i - 1].on === n.on)) return;
       id++;
-      evs.push({ t: at(n.on), down: true, id, k, step: n.step });
-      evs.push({ t: n.long ? at(n.on + n.dur * 0.9) : at(n.on) + 0.04, down: false, id, k, step: n.step });
+      evs.push({ t: at(n.on), down: true, id, n });
+      evs.push({ t: n.long ? at(n.on + n.dur * 0.9) : at(n.on) + 0.04, down: false, id, n });
     }),
   );
   evs.sort((a, b) => a.t - b.t || Number(a.down) - Number(b.down));
@@ -155,14 +185,8 @@ function playAll(g: Game, clock: { t: number }) {
   for (const e of evs) {
     runTo(e.t);
     g.step();
-    if (!e.down) {
-      g.up(e.id, performance.now());
-      continue;
-    }
-    const win = g.keys(e.k);
-    const row = Math.max(0, Math.min(win.rows - 1, e.step - win.lo));
-    const side = g.tracks[e.k].sides[0];
-    g.down(e.id, side, side === "left" ? 50 : 300, h - (row + 0.5) * (h / win.rows), w, h, performance.now());
+    if (!e.down) g.up(e.id, performance.now());
+    else g.down(e.id, contact(g, e.n), performance.now());
   }
   runTo(at(g.end + 1));
   return g.step();
@@ -181,27 +205,45 @@ test("EASY, the whole fugue: every main note tapped on time scores everything; t
   assert.ok(sounded.every((s) => s.gain === 1), "the voice played no louder than the others");
 });
 
-test("NORMAL: each note tapped on its row scores everything; tapped two rows off, nothing", () => {
-  {
-    const { chip, clock } = fakeChip();
-    const g = new Game(C_MINOR, [level(C_MINOR, 1, 0)], gameOptions({ difficulty: "normal" }), chip);
-    playAll(g, clock);
-    const [r] = g.results();
-    assert.equal(r.got, r.of);
-  }
-  {
-    const { chip, clock, sounded } = fakeChip();
-    const lv = level(C_MINOR, 1, 0);
-    const g = new Game(C_MINOR, [lv], gameOptions({ difficulty: "normal" }), chip);
-    const n = lv.notes[0];
-    clock.t = 0.15 + (n.on - g.start) / g.tps;
-    g.step();
-    const before = sounded.length;
-    const win = g.keys(0);
-    const wrongRow = n.step - win.lo + (n.step - win.lo + 2 < win.rows ? 2 : -2);
-    g.down(1, "left", 50, 400 - (wrongRow + 0.5) * (400 / win.rows), 390, 400, performance.now());
-    assert.equal(sounded.length, before);
-  }
+for (const instrument of ["synth", "piano"] as const)
+  test(`NORMAL, the ${instrument}: each note played as it wants scores everything; played wrong, nothing`, () => {
+    {
+      const { chip, clock } = fakeChip();
+      const g = new Game(C_MINOR, [level(C_MINOR, 1, 0)], gameOptions({ difficulty: "normal", instrument }), chip);
+      playAll(g, clock);
+      const [r] = g.results();
+      assert.equal(r.got, r.of);
+    }
+    {
+      const { chip, clock, sounded } = fakeChip();
+      const lv = level(C_MINOR, 1, 0);
+      const g = new Game(C_MINOR, [lv], gameOptions({ difficulty: "normal", instrument }), chip);
+      const n = lv.notes[1];
+      clock.t = 0.15 + (n.on - g.start) / g.tps;
+      g.step();
+      const c = contact(g, n);
+      // The B after the C falls: the right thumb is wrong; on the piano, the key beside is wrong and heard.
+      if (instrument === "synth") g.down(1, { ...c, side: "right", x: 300 }, performance.now());
+      else g.down(1, { ...c, x: c.x + 390 / g.kb.whites }, performance.now());
+      assert.equal(n.state, "pending");
+      if (instrument === "piano") assert.notEqual(sounded.at(-1)!.midi, n.midi);
+    }
+  });
+
+test("the Synth: a held thumb slid up plays the next rising note, joined", () => {
+  const { chip, clock, sounded } = fakeChip();
+  const lv = level(C_MINOR, 1, 0);
+  const g = new Game(C_MINOR, [lv], gameOptions({ difficulty: "normal" }), chip);
+  const [, b, c] = lv.notes;
+  clock.t = 0.15 + (b.on - g.start) / g.tps;
+  g.step();
+  g.down(1, contact(g, b), performance.now());
+  clock.t = 0.15 + (c.on - g.start) / g.tps;
+  g.step();
+  const at = contact(g, b);
+  g.move(1, { ...at, y: at.y - 40 }, performance.now());
+  assert.equal(c.state, "hit");
+  assert.equal(sounded.at(-1)!.midi, c.midi);
 });
 
 test("from the middle of the piece: the count-in before the starting bar, the others from there", () => {
@@ -222,7 +264,7 @@ test("WAIT: the music stands at a note until it is played, and nothing is missed
   g.step();
   assert.equal(g.waiting, true);
   assert.equal(g.now, n.on);
-  g.down(1, "left", 50, 200, 390, 400, performance.now());
+  g.down(1, { side: "left", x: 50, y: 200, w: 390, h: 400 }, performance.now());
   assert.equal(lv.notes[0].state, "hit");
   g.up(1, performance.now());
   g.step();
@@ -231,6 +273,7 @@ test("WAIT: the music stands at a note until it is played, and nothing is missed
 
 test("prepare marks no rides in NORMAL", () => {
   const lv = level(C_MINOR, 1, 0);
+  markRides(lv.notes, beat);
   prepare(C_MINOR, [lv], "normal");
   assert.ok(lv.notes.every((n) => !n.ride));
 });

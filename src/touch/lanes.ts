@@ -1,9 +1,9 @@
 /**
  * Judging one voice (D160; D166; D167). A note is played by a tap within a window around its onset
- * that fits it (EASY: any tap; NORMAL: a tap on its row or the next: rows.ts); a long note (a quarter or more) wants the thumb
+ * that fits it (the instrument says what fits: shape.ts, piano.ts); a long note (a quarter or more) wants the thumb
  * held: let go early and it stops sounding and scores half. Two levels (D166): EASY, the time only
- * (a tap anywhere) on the main notes, the short notes riding along after a hit; NORMAL, every note,
- * each on its row. A chord within a voice is struck whole. Pure: ticks in, states out.
+ * (and with the Synth, the direction) on the main notes, the short notes riding along after a hit;
+ * NORMAL, every note, each as the instrument wants it. A chord within a voice is struck whole. Pure: ticks in, states out.
  */
 export type NoteState = "pending" | "hit" | "miss";
 
@@ -26,6 +26,9 @@ export interface LaneNote {
   voice?: number;
   /** EASY: a short note that plays by itself after a hit, and does not score (D166). */
   ride?: boolean;
+  /** The Synth (shape.ts): the move from the note played before, up (1), down (-1) or a repeat (0), and its size band (-1: free). */
+  dir?: number;
+  size?: number;
 }
 
 export interface LaneOptions {

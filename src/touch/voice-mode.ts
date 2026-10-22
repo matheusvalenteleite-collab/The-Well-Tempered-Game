@@ -6,13 +6,10 @@
  */
 import { barAt, barStart, beatOf, type TouchFugue } from "./fugue.ts";
 import { laneNotes, type LaneNote } from "./lanes.ts";
-import { rowWindows, type RowWindow } from "./rows.ts";
 
 export interface Level {
   voice: number;
   notes: LaneNote[];
-  /** The rows of the keys through the piece (rows.ts). */
-  windows: RowWindow[];
   /** From the count-in (four beats before the starting bar) to a beat past the end. */
   start: number;
   end: number;
@@ -39,7 +36,6 @@ export function level(f: TouchFugue, voice: number, from: number): Level {
   return {
     voice,
     notes,
-    windows: rowWindows(notes, from, f.length + beat, f.barTicks),
     start: from - beat * 4,
     end: f.length + beat,
     from,
@@ -72,4 +68,16 @@ export function stepRange(f: TouchFugue): { lo: number; hi: number } {
   let hi = -Infinity;
   for (const v of f.voices) for (const n of v) (lo = Math.min(lo, n[3])), (hi = Math.max(hi, n[3]));
   return { lo, hi };
+}
+
+/** The subject's notes, as "voice:onset", and each entry's first note (D174: the music box marks them). */
+export function subjectMarks(f: TouchFugue): { subject: Set<string>; entries: { voice: number; on: number; step: number }[] } {
+  const subject = new Set<string>();
+  const entries: { voice: number; on: number; step: number }[] = [];
+  for (const e of f.entries) {
+    for (const [on] of e.notes) subject.add(`${e.voice}:${on}`);
+    const first = f.voices[e.voice].find((n) => n[0] === e.on);
+    if (first) entries.push({ voice: e.voice, on: e.on, step: first[3] });
+  }
+  return { subject, entries };
 }

@@ -16,6 +16,15 @@ export interface Voicing {
   gain: number;
 }
 
+/** How the player's own note sounds (D171): the Synth holds steady while the thumb stays down; the Piano dies away as it is held and is damped when let go. */
+export type Envelope = "synth" | "piano";
+
+export interface Play {
+  envelope?: Envelope;
+  /** Joined to the note before without a new attack (that note is still held). */
+  legato?: boolean;
+}
+
 export interface Sounding {
   stop: (at?: number) => void;
   /** Bend the note by some cents (the thumb's sideways wobble). */
@@ -28,6 +37,12 @@ export class Chip {
   private bus: AudioNode;
   private waves = new Map<string, PeriodicWave>();
   private keepAlive: HTMLAudioElement | null = null;
+  /**
+   * The delay between the audio clock and what the player hears and does, in seconds, measured by
+   * tapping along (D173: Bluetooth headphones add a fifth of a second or more, which the system often
+   * does not report). Null: the system's own figure.
+   */
+  lag: number | null = null;
 
   constructor() {
     // iOS: play through the silent switch (Safari 16.4+), as a game should.
@@ -101,11 +116,11 @@ export class Chip {
 
   /** The audio clock as the ear hears it (the output's latency taken off), for drawing in sync. */
   heard(): number {
-    return this.ctx.currentTime - (this.ctx.outputLatency || this.ctx.baseLatency || 0);
+    return this.ctx.currentTime - (this.lag ?? (this.ctx.outputLatency || this.ctx.baseLatency || 0));
   }
 
   /** A note from `at` for `dur` seconds; stop() cuts it short (the thumb let go). */
-  note(midi: number, at: number, dur: number, v: Voicing): Sounding {
+  note(midi: number, at: number, dur: number, v: Voicing, p: Play = {}): Sounding {
     const ctx = this.ctx;
     const t = Math.max(at, ctx.currentTime);
     const end = Math.max(t + 0.04, at + dur - 0.01);
@@ -119,13 +134,25 @@ export class Chip {
     // The triangle is quieter than the pulses at the same amplitude.
     const peak = (v.timbre === "triangle" ? 0.36 : v.timbre === "pulse50" ? 0.15 : 0.19) * v.gain;
     const sustain = peak * 0.72;
+    const piano = p.envelope === "piano";
     g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(peak, t + 0.006);
-    g.gain.setTargetAtTime(sustain, t + 0.01, 0.06);
-    g.gain.setValueAtTime(sustain, Math.max(t + 0.02, end - 0.04));
-    g.gain.linearRampToValueAtTime(0, end);
-    // A gentle vibrato on a long note, after a moment.
-    if (end - t > 0.45) {
+    if (piano) {
+      // Struck: at once loud, then dying away, the low notes slower.
+      g.gain.linearRampToValueAtTime(peak * 1.15, t + 0.004);
+      g.gain.setTargetAtTime(0, t + 0.01, 1.4 * 2 ** (-(midi - 60) / 24));
+    } else if (p.legato) {
+      // Joined: no new attack, the level of the note before.
+      g.gain.linearRampToValueAtTime(sustain, t + 0.015);
+    } else {
+      g.gain.linearRampToValueAtTime(peak, t + 0.006);
+      g.gain.setTargetAtTime(sustain, t + 0.01, 0.06);
+    }
+    if (!piano) {
+      g.gain.setValueAtTime(sustain, Math.max(t + 0.02, end - 0.04));
+      g.gain.linearRampToValueAtTime(0, end);
+    }
+    // A gentle vibrato on a long note, after a moment (not on a piano).
+    if (!piano && end - t > 0.45) {
       const lfo = ctx.createOscillator();
       const depth = ctx.createGain();
       lfo.frequency.value = 5.4;
@@ -148,10 +175,14 @@ export class Chip {
         if (stopped || when >= end) return;
         stopped = true;
         const s = Math.max(when, t + 0.02);
-        g.gain.cancelScheduledValues(s);
-        g.gain.setValueAtTime(sustain, s);
-        g.gain.linearRampToValueAtTime(0, s + 0.04);
-        o.stop(s + 0.06);
+        // Held at its level, then let go (a piano's damper takes a little longer).
+        if (g.gain.cancelAndHoldAtTime) g.gain.cancelAndHoldAtTime(s);
+        else {
+          g.gain.cancelScheduledValues(s);
+          g.gain.setValueAtTime(piano ? peak * 0.3 : sustain, s);
+        }
+        g.gain.linearRampToValueAtTime(0, s + (piano ? 0.07 : p.legato ? 0.02 : 0.04));
+        o.stop(s + 0.1);
       },
       bend: (cents: number) => {
         if (!stopped) o.detune.setTargetAtTime(cents, ctx.currentTime, 0.02);

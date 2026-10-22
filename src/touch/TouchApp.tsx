@@ -1,44 +1,50 @@
 /**
- * The touch game (D158 on). D169, pared down: the player chooses a piece (the picker), a voice, a
- * level and a speed, and where in the piece to start (0 to 99%); plays that voice to the end of the
- * piece while the other voices play around it, every voice in view in the music box; and can quit at
- * any moment. One voice at a time; no sections, map, sync or locks.
+ * The touch game (D158 on). D169, pared down: the player chooses a piece (the picker), a voice, and
+ * where in the piece to start (0 to 99%); plays that voice to the end of the piece while the other
+ * voices play around it, every voice in view in the music box; and can quit at any moment. D173: the
+ * instrument (the Synth upright, the Piano sideways), the level, the speed and the sound's delay are
+ * under ⚙; how to play and how to put the game on the Home Screen under ?.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MusicBox, inkOf, type Frame } from "./MusicBox.tsx";
 import { PlayArea, type Painter, type ThumbEvents } from "./PlayArea.tsx";
 import { PiecePicker } from "./PiecePicker.tsx";
 import { Chip } from "./chip.ts";
-import { Game, prepare, type Grade } from "./engine.ts";
-import { paintKeys } from "./paint-keys.ts";
+import { Game, INSTRUMENTS, prepare, type Grade, type Instrument } from "./engine.ts";
+import { paintPiano } from "./paint-piano.ts";
+import { paintSynth } from "./paint-synth.ts";
+import { HelpPanel, SettingsPanel } from "./Panels.tsx";
 import { barAt, beatOf, fugueById, keyAt, keyName, shortName, type TouchFugue } from "./fugue.ts";
 import { LEVELS, type Level as Difficulty } from "./lanes.ts";
-import { accompaniment, level, startTick, stepRange, voicesFrom } from "./voice-mode.ts";
+import { accompaniment, level, startTick, stepRange, subjectMarks, voicesFrom } from "./voice-mode.ts";
 
 /** The speeds, as beats per minute of the felt beat (beatOf). */
 const SPEEDS = { slow: 40, medium: 54, fast: 72 } as const;
 type Speed = keyof typeof SPEEDS;
 const PICK_KEY = "tg-pick-v2";
-const HELP: Record<Difficulty, string> = {
-  easy: "Tap anywhere when a lit row's bar closes. Hold HOLD notes. Quick notes play themselves.",
-  normal: "Tap the lit row on the beat (one off counts). Hold to sustain; slide a row to slur; wobble to bend.",
+const LAG_KEY = "tg-lag";
+const HELP: Record<Instrument, string> = {
+  synth: "Right thumb: up. Left: down. Hold to sustain. ? for more.",
+  piano: "Strike the lit key as its note lands. Hold to let it ring. ? for more.",
 };
 
-/** The keyboard on a computer (EASY): a key is a tap, held for a long note. */
+/** The keyboard on a computer (EASY): a key is a tap, held for a long note; D and F the left thumb, J and K the right, space either. */
 const KEYS = ["Space", "KeyF", "KeyJ", "KeyD", "KeyK"];
 const keyId = (code: string) => 1000 + KEYS.indexOf(code);
+const keySide = (code: string) => (code === "KeyD" || code === "KeyF" ? "left" : code === "KeyJ" || code === "KeyK" ? "right" : null);
 
-type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; got: number; of: number; maxCombo: number; perfect: number } | { kind: "picker" };
+type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; got: number; of: number; maxCombo: number; perfect: number } | { kind: "picker" } | { kind: "settings" } | { kind: "help" };
 
 interface Pick {
   piece: string;
   voice: number;
+  inst: Instrument;
   diff: Difficulty;
   speed: Speed;
   /** Where to start, as a share of the piece (0 to 0.99). */
   share: number;
 }
-const DEFAULT_PICK: Pick = { piece: "wtc1f02", voice: 1, diff: "easy", speed: "medium", share: 0 };
+const DEFAULT_PICK: Pick = { piece: "wtc1f02", voice: 1, inst: "synth", diff: "easy", speed: "medium", share: 0 };
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -62,7 +68,7 @@ function sane(p: Pick): Pick {
   const share = Math.min(0.99, Math.max(0, p.share || 0));
   const singing = voicesFrom(f, startTick(f, share));
   const voice = singing.includes(p.voice) ? p.voice : singing[f.kind === "prelude" ? 0 : Math.min(1, singing.length - 1)];
-  return { ...DEFAULT_PICK, ...p, piece: f.id, share, voice, diff: LEVELS.includes(p.diff) ? p.diff : "easy", speed: p.speed in SPEEDS ? p.speed : "medium" };
+  return { ...DEFAULT_PICK, ...p, piece: f.id, share, voice, inst: INSTRUMENTS.includes(p.inst) ? p.inst : "synth", diff: LEVELS.includes(p.diff) ? p.diff : "easy", speed: p.speed in SPEEDS ? p.speed : "medium" };
 }
 
 const voiceName = (f: TouchFugue, v: number) => f.voiceNames[v].toUpperCase();
@@ -79,7 +85,14 @@ export function TouchApp() {
     });
   const [note, setNote] = useState("");
   const f = fugueById(pick.piece);
-  const { voice, diff, speed, share } = pick;
+  const { voice, diff, speed, share, inst } = pick;
+  const [lag, setLagRaw] = useState<number | null>(() => load<number | null>(LAG_KEY, null));
+  const setLag = (l: number | null) => {
+    setLagRaw(l);
+    save(LAG_KEY, l);
+    if (chip.current) chip.current.lag = l;
+  };
+  const marks = useMemo(() => subjectMarks(f), [f]);
   const from = startTick(f, share);
   const range = useMemo(() => stepRange(f), [f]);
   const lv = useMemo(() => level(f, voice, from), [f, voice, from, phase.kind === "play"]);
@@ -106,6 +119,7 @@ export function TouchApp() {
       voice,
       notes: lv.notes,
       others: accompaniment(f, from, voice),
+      ...marks,
     };
   }
 
@@ -126,7 +140,7 @@ export function TouchApp() {
 
   // Away from play, the box shows the music from where play would start.
   useEffect(() => {
-    if (phase.kind === "title" || phase.kind === "picker") {
+    if (phase.kind !== "play" && phase.kind !== "result") {
       prepare(f, [lv], diff);
       frame.current = preview();
     }
@@ -135,14 +149,13 @@ export function TouchApp() {
   // Playing: the engine steps every frame; at the end, the result.
   useEffect(() => {
     if (phase.kind !== "play" || !chip.current) return;
-    const g = new Game(f, [lv], { difficulty: diff, bpm: SPEEDS[speed] }, chip.current);
+    const g = new Game(f, [lv], { difficulty: diff, bpm: SPEEDS[speed], instrument: inst }, chip.current);
     game.current = g;
-    paint.current = (ctx, w, h) => paintKeys(ctx, w, h, g);
+    paint.current = inst === "piano" ? (ctx, w, h) => paintPiano(ctx, w, h, g, marks.subject) : (ctx, w, h) => paintSynth(ctx, w, h, g);
     const b = beatOf(f);
     let raf = 0;
     const loop = () => {
       const done = g.step();
-      const keys = g.keys(0);
       frame.current = {
         now: g.now,
         tps: g.tps,
@@ -155,7 +168,7 @@ export function TouchApp() {
         voice,
         notes: lv.notes,
         others: g.others,
-        keys: { lo: keys.lo, rows: keys.rows },
+        ...marks,
       };
       if (count.current) count.current.textContent = g.countIn() ? String(g.countIn()) : "";
       showGrade(gradeEl.current, g.grade, g.combo);
@@ -180,8 +193,12 @@ export function TouchApp() {
   }, [phase]);
 
   function ensureChip() {
-    if (!chip.current) chip.current = new Chip();
+    if (!chip.current) {
+      chip.current = new Chip();
+      chip.current.lag = lag;
+    }
     void chip.current.resume();
+    return chip.current;
   }
 
   /** Begins once the sound is on: the game runs on the sound's clock, which stands still until then. */
@@ -204,8 +221,11 @@ export function TouchApp() {
   // A tap lands: in play it is judged; away from play, the finished tap (the lift) starts the game,
   // as phones start sound only then.
   const events: ThumbEvents = {
-    down: (id, side, x, y, w, h, ts) => game.current?.down(id, side, x, y, w, h, ts),
-    move: (id, x, y, w, h, ts) => game.current?.move(id, x, y, w, h, ts),
+    down: (id, side, x, y, w, h, ts) => game.current?.down(id, { side, x, y, w, h }, ts),
+    move: (id, x, y, w, h, ts) => {
+      const g = game.current;
+      if (g) g.move(id, { side: "left", x, y, w, h }, ts);
+    },
     up: (id, ts) => {
       const g = game.current;
       if (g) return g.up(id, ts);
@@ -224,7 +244,7 @@ export function TouchApp() {
         return;
       }
       e.preventDefault();
-      g.press(keyId(e.code), null, e.timeStamp);
+      g.press(keyId(e.code), keySide(e.code), e.timeStamp);
     };
     const up = (e: KeyboardEvent) => {
       const g = game.current;
@@ -240,8 +260,9 @@ export function TouchApp() {
   });
 
   const playing = phase.kind === "play";
+  const away = phase.kind === "title" || phase.kind === "result";
   return (
-    <div className="tg-app">
+    <div className={`tg-app${inst === "piano" ? " tg-wide" : ""}${playing ? "" : " tg-away"}`}>
       <MusicBox
         frame={frame}
         hud={
@@ -250,10 +271,19 @@ export function TouchApp() {
               {shortName(f)} · {voiceName(f, voice)}
             </span>
             <span className="tg-hud-bar">{keyName(frame.current.key)}</span>
-            {playing && (
+            {playing ? (
               <button type="button" id="quit" className="tg-x" aria-label="Quit" onClick={quit}>
                 ✕
               </button>
+            ) : (
+              <>
+                <button type="button" id="settings" className="tg-x" aria-label="Settings" onClick={() => setPhase({ kind: "settings" })}>
+                  ⚙
+                </button>
+                <button type="button" id="help" className="tg-x" aria-label="How to play" onClick={() => setPhase({ kind: "help" })}>
+                  ?
+                </button>
+              </>
             )}
           </>
         }
@@ -278,7 +308,7 @@ export function TouchApp() {
           </div>
         )}
       </MusicBox>
-      <PlayArea events={events} paint={paint} hint={phase.kind === "title" || phase.kind === "result" ? "TAP HERE TO START" : ""} />
+      <PlayArea events={events} paint={paint} hint={away ? "TAP HERE TO START" : ""} />
       {phase.kind === "picker" && (
         <PiecePicker
           current={f}
@@ -289,8 +319,12 @@ export function TouchApp() {
           close={() => setPhase({ kind: "title" })}
         />
       )}
+      {phase.kind === "settings" && (
+        <SettingsPanel settings={pick} set={(s) => setPick(s)} lag={lag} setLag={setLag} chip={ensureChip} close={() => setPhase({ kind: "title" })} />
+      )}
+      {phase.kind === "help" && <HelpPanel close={() => setPhase({ kind: "title" })} />}
       <div className="tg-upright" role="alert">
-        Turn the phone upright
+        {inst === "piano" ? "Turn the phone sideways for the piano" : "Turn the phone upright"}
       </div>
     </div>
   );
@@ -310,19 +344,6 @@ function showGrade(el: HTMLDivElement | null, grade: Grade | null, combo: number
   el.className = `tg-grade tg-grade-${grade!.text === "PERFECT" ? "perfect" : grade!.text === "GOOD" ? "good" : "miss"}`;
 }
 
-/** A row of choices, one of them on, set in the small pixel type. */
-function Segments<T extends string>({ id, options, value, set }: { id: string; options: [T, string][]; value: T; set: (v: T) => void }) {
-  return (
-    <div className="tg-seg" role="group" aria-label={id}>
-      {options.map(([v, label]) => (
-        <button key={v} type="button" id={`${id}-${v}`} className={v === value ? "on" : ""} onClick={() => set(v)} aria-pressed={v === value}>
-          {label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 function Title({ f, pick, setPick, from, open, note }: { f: TouchFugue; pick: Pick; setPick: (p: Partial<Pick>) => void; from: number; open: () => void; note: string }) {
   const singing = voicesFrom(f, from);
   return (
@@ -337,17 +358,16 @@ function Title({ f, pick, setPick, from, open, note }: { f: TouchFugue; pick: Pi
           </button>
         ))}
       </div>
-      <div className="tg-row">
-        <Segments id="level" options={[["easy", "EASY"], ["normal", "NORMAL"]]} value={pick.diff} set={(d) => setPick({ diff: d })} />
-        <Segments id="speed" options={[["slow", "SLOW"], ["medium", "MEDIUM"], ["fast", "FAST"]]} value={pick.speed} set={(s) => setPick({ speed: s })} />
-      </div>
+      <p className="tg-card-sub">
+        {pick.inst.toUpperCase()} · {pick.diff.toUpperCase()} · {pick.speed.toUpperCase()}
+      </p>
       <label className="tg-from">
         <span>
           FROM {Math.round(pick.share * 100)}% · BAR {barAt(f, from)}
         </span>
         <input type="range" id="from" min={0} max={99} step={1} value={Math.round(pick.share * 100)} onChange={(e) => setPick({ share: Number(e.target.value) / 100 })} />
       </label>
-      <p>{HELP[pick.diff]}</p>
+      <p className="tg-title-help">{HELP[pick.inst]}</p>
       {note && <p className="tg-note">{note}</p>}
     </div>
   );

@@ -484,3 +484,41 @@ body {
 .tg-tile-pair button.on { color: var(--tg-bg); background: var(--tg-shine); }
 .tg-picker-foot { margin: 0; font-size: 11px; color: var(--tg-muted); text-align: center; }
 .tg-tile-key-two { font-size: 9px; padding-top: 10px; }
+
+/* D171-D173: the panels (⚙, ?), the title's help, the piano sideways */
+.tg-hud .tg-x { width: 26px; }
+.tg-panel { gap: 14px; }
+.tg-set { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-muted); }
+.tg-panel-val { color: var(--tg-shine); }
+.tg-panel-note { margin: 0; font-size: 12px; line-height: 1.45; color: var(--tg-muted); }
+.tg-tap-pad {
+  display: grid;
+  gap: 10px;
+  place-items: center;
+  min-height: 180px;
+  font-family: var(--tg-pixel);
+  font-size: 10px;
+  color: var(--tg-shine);
+  background: var(--tg-box);
+  border: 2px dashed var(--tg-shine);
+  touch-action: none;
+  cursor: pointer;
+}
+.tg-tap-pad small { font-size: 7px; color: var(--tg-muted); }
+.tg-help h2 { margin: 14px 0 6px; font-family: var(--tg-pixel); font-size: 8px; font-weight: 400; color: var(--tg-shine); }
+.tg-help p { margin: 0 0 8px; font-size: 13px; line-height: 1.5; }
+.tg-title-help { font-size: 12px; color: var(--tg-muted); }
+.tg-wide { max-width: 1000px; grid-template-rows: 40fr 60fr; }
+.tg-wide .tg-play { grid-template-columns: 1fr; }
+.tg-wide .tg-half-right { display: none; }
+.tg-wide .tg-half-left { border-right: 0; }
+.tg-wide .tg-title { gap: 6px; padding: 8px; }
+.tg-wide .tg-title-help { display: none; }
+.tg-wide .tg-upright { display: none; }
+@media (orientation: portrait) and (max-width: 500px) {
+  .tg-wide .tg-upright { display: grid; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .tg-wide .tg-upright { display: none; }
+}
+.tg-wide.tg-away { grid-template-rows: 72fr 28fr; }

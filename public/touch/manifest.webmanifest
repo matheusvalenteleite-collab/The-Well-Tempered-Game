@@ -1,0 +1,13 @@
+{
+  "name": "Fugue Thumbs",
+  "short_name": "Fugue Thumbs",
+  "start_url": "../touch.html",
+  "scope": "../",
+  "display": "standalone",
+  "background_color": "#0b0d18",
+  "theme_color": "#0b0d18",
+  "icons": [
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
