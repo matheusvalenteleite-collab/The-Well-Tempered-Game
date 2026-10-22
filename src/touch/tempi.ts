@@ -1,112 +1,59 @@
 /**
- * Each piece's tempo (D184), in quarter notes a minute: [the default, the reference]. The reference is
- * the median bar length of the repository's aligned recordings (data/recordings: Ishizaka for Book
- * I, Loesser for Book II; Contrapunctus XIV, with none, about 100). The default aims the busiest
- * voice at about 3 notes a second, kept between 45% and 80% of the reference, within 30 to 120
- * (the playability audit's rule). Doubtful references, to be checked by ear: I/4 F, I/12 P, I/15 P,
- * II/3 P.
+ * D199: each fugue's own tempo, in two versions (no tempo slider): NORMAL, the standard tempo, the
+ * median over many recordings (data/tempi/recordings.csv: every duration turned into an average
+ * quarter-note tempo by the piece's length), and SLOW, the easy mode (62% of NORMAL, lowered further
+ * so that the busiest voice's sustained load stays at about 3 notes a second, never under 45% of
+ * NORMAL or 30). tools/tempi/compute.ts writes data/tempi/tempi.json from the CSV.
+ *
+ * As everywhere in the game (D181), a tempo is quarter notes a minute; `unit` and `unitBpm` give
+ * the same tempo in the meter's conventional beat, for display ("𝅗𝅥 = 40" for an alla breve fugue).
  */
-export const TEMPI: Record<string, [number, number]> = {
-  wtc1p01: [44, 55],
-  wtc1f01: [46, 60],
-  wtc1p02: [46, 100],
-  wtc1f02: [48, 71],
-  wtc1p03: [62, 136],
-  wtc1f03: [46, 91],
-  wtc1p04: [70, 88],
-  wtc1f04: [94, 188],
-  wtc1p05: [50, 109],
-  wtc1f05: [38, 64],
-  wtc1p06: [32, 71],
-  wtc1f06: [48, 65],
-  wtc1p07: [46, 83],
-  wtc1f07: [46, 91],
-  wtc1p08: [52, 64],
-  wtc1f08: [76, 94],
-  wtc1p09: [70, 87],
-  wtc1f09: [44, 94],
-  wtc1p10: [44, 65],
-  wtc1f10: [44, 89],
-  wtc1p11: [48, 107],
-  wtc1f11: [44, 81],
-  wtc1p12: [30, 32],
-  wtc1f12: [50, 62],
-  wtc1p13: [44, 56],
-  wtc1f13: [46, 69],
-  wtc1p14: [46, 101],
-  wtc1f14: [62, 78],
-  wtc1p15: [40, 87],
-  wtc1f15: [46, 103],
-  wtc1p16: [30, 37],
-  wtc1f16: [58, 78],
-  wtc1p17: [46, 93],
-  wtc1f17: [46, 77],
-  wtc1p18: [36, 46],
-  wtc1f18: [60, 76],
-  wtc1p19: [42, 70],
-  wtc1f19: [62, 136],
-  wtc1p20: [48, 95],
-  wtc1f20: [54, 91],
-  wtc1p21: [34, 77],
-  wtc1f21: [44, 81],
-  wtc1p22: [34, 42],
-  wtc1f22: [78, 97],
-  wtc1p23: [44, 88],
-  wtc1f23: [52, 78],
-  wtc1p24: [68, 84],
-  wtc1f24: [32, 39],
-  wtc2p01: [42, 63],
-  wtc2f01: [46, 99],
-  wtc2p02: [46, 101],
-  wtc2f02: [48, 61],
-  wtc2p03: [46, 90],
-  wtc2f03: [44, 88],
-  wtc2p04: [64, 96],
-  wtc2f04: [52, 114],
-  wtc2p05: [46, 100],
-  wtc2f05: [60, 74],
-  wtc2p06: [62, 136],
-  wtc2f06: [46, 102],
-  wtc2p07: [88, 145],
-  wtc2f07: [98, 122],
-  wtc2p08: [40, 81],
-  wtc2f08: [54, 67],
-  wtc2p09: [44, 66],
-  wtc2f09: [88, 111],
-  wtc2p10: [52, 117],
-  wtc2f10: [76, 169],
-  wtc2p11: [88, 148],
-  wtc2f11: [46, 90],
-  wtc2p12: [48, 105],
-  wtc2f12: [50, 110],
-  wtc2p13: [44, 97],
-  wtc2f13: [84, 169],
-  wtc2p14: [34, 67],
-  wtc2f14: [48, 107],
-  wtc2p15: [60, 134],
-  wtc2f15: [44, 87],
-  wtc2p16: [30, 37],
-  wtc2f16: [54, 98],
-  wtc2p17: [40, 86],
-  wtc2f17: [42, 64],
-  wtc2p18: [48, 108],
-  wtc2f18: [90, 120],
-  wtc2p19: [90, 135],
-  wtc2f19: [46, 100],
-  wtc2p20: [42, 77],
-  wtc2f20: [34, 77],
-  wtc2p21: [44, 82],
-  wtc2f21: [84, 127],
-  wtc2p22: [88, 162],
-  wtc2f22: [120, 191],
-  wtc2p23: [46, 102],
-  wtc2f23: [88, 111],
-  wtc2p24: [74, 159],
-  wtc2f24: [44, 97],
-  "bwv1080-14": [80, 100],
+import data from "../../data/tempi/tempi.json" with { type: "json" };
+
+export type TempoVersion = "normal" | "slow";
+
+export interface PieceTempo {
+  /** Quarter notes a minute: the median of the recordings. */
+  normal: number;
+  /** Quarter notes a minute: the easy mode. */
+  slow: number;
+  /** The meter's beat: "♩", "𝅗𝅥" (2/2, 3/2, 4/2), "♩." (3/8, 6/8, 9/8), "𝅗𝅥." (6/4), "♪." (6/16, 12/16). */
+  unit: string;
+  /** Both tempi counted in `unit`. */
+  unitBpm: { normal: number; slow: number };
+  /** How many recordings the median is over. */
+  n: number;
+  /** The middle half of the recordings' tempi (quarter notes), and their whole range. */
+  iqr: [number, number];
+  range: [number, number];
+  /** The busiest voice's sustained load at NORMAL, in notes a second (2 s windows, 90th percentile). */
+  busiest: number;
+  /** Set where the median rests on fewer than 5 recordings. */
+  flag?: string;
+}
+
+/** The 48 fugues and Contrapunctus XIV, by piece id. */
+export const TEMPO: Record<string, PieceTempo> = data as unknown as Record<string, PieceTempo>;
+
+/**
+ * The preludes' default (D184, kept until they get their own NORMAL and SLOW): the playability
+ * audit's tempo, from one aligned recording each (Ishizaka, Loesser).
+ */
+const PRELUDES: Record<string, number> = {
+  wtc1p01: 44, wtc1p02: 46, wtc1p03: 62, wtc1p04: 70, wtc1p05: 50, wtc1p06: 32, wtc1p07: 46, wtc1p08: 52,
+  wtc1p09: 70, wtc1p10: 44, wtc1p11: 48, wtc1p12: 30, wtc1p13: 44, wtc1p14: 46, wtc1p15: 40, wtc1p16: 30,
+  wtc1p17: 46, wtc1p18: 36, wtc1p19: 42, wtc1p20: 48, wtc1p21: 34, wtc1p22: 34, wtc1p23: 44, wtc1p24: 68,
+  wtc2p01: 42, wtc2p02: 46, wtc2p03: 46, wtc2p04: 64, wtc2p05: 46, wtc2p06: 62, wtc2p07: 88, wtc2p08: 40,
+  wtc2p09: 44, wtc2p10: 52, wtc2p11: 88, wtc2p12: 48, wtc2p13: 44, wtc2p14: 34, wtc2p15: 60, wtc2p16: 30,
+  wtc2p17: 40, wtc2p18: 48, wtc2p19: 90, wtc2p20: 42, wtc2p21: 44, wtc2p22: 88, wtc2p23: 46, wtc2p24: 74,
 };
 
-/** A piece's default tempo (46 for one not in the table). */
+/** A piece's tempo in quarter notes a minute (a prelude has one, the same for both). */
+export function tempoOf(id: string, version: TempoVersion): number {
+  return TEMPO[id]?.[version] ?? PRELUDES[id] ?? 46;
+}
+
+/** A piece's default tempo: the SLOW one (46 for a piece not in the tables). */
 export function defaultBpm(id: string): number {
-  return TEMPI[id]?.[0] ?? 46;
+  return tempoOf(id, "slow");
 }
