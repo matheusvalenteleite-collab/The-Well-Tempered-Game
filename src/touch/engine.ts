@@ -14,7 +14,7 @@
  */
 import { voicing, type Chip, type Envelope, type Sounding } from "./chip.ts";
 import { beatOf, keyAt, type TouchFugue } from "./fugue.ts";
-import { chordOf, markRides, options, points, release, strike, sweep, type LaneOptions, type Level as Difficulty } from "./lanes.ts";
+import { chordOf, options, points, release, strike, sweep, type LaneOptions, type Level as Difficulty } from "./lanes.ts";
 import { keyboard, keyAt as keyUnder, WHITE_ONLY, type Keyboard } from "./piano.ts";
 import { fits, markShapes, SLIDE_PX } from "./shape.ts";
 import type { Side } from "./thumbs.ts";
@@ -83,11 +83,10 @@ export function byPitch(levels: Level[]): Level[] {
   return [...levels].sort((a, b) => mean(a) - mean(b));
 }
 
-/** Sets the voices up for a level: in EASY, their riding notes; the moves the Synth wants. */
-export function prepare(f: TouchFugue, levels: Level[], difficulty: Difficulty) {
+/** Sets the voices up: the moves the Synth wants. D175 (owner): no note rides along, at any level; every note is played. */
+export function prepare(_f: TouchFugue, levels: Level[], _difficulty: Difficulty) {
   for (const lv of levels) {
-    if (difficulty === "easy") markRides(lv.notes, beatOf(f).ticks);
-    else for (const n of lv.notes) n.ride = false;
+    for (const n of lv.notes) n.ride = false;
     markShapes(lv.notes);
   }
 }

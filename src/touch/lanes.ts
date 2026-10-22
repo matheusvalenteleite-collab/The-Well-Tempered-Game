@@ -26,6 +26,8 @@ export interface LaneNote {
   voice?: number;
   /** EASY: a short note that plays by itself after a hit, and does not score (D166). */
   ride?: boolean;
+  /** The testbench (D175): played on time but with the wrong gesture. */
+  wrong?: boolean;
   /** The Synth (shape.ts): the move from the note played before, up (1), down (-1) or a repeat (0), and its size band (-1: free). */
   dir?: number;
   size?: number;
