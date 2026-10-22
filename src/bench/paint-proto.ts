@@ -61,6 +61,8 @@ function target(g: ProtoGame, m: Move, w: number, h: number): { rects: Rect[]; g
     }
     case "flick":
       return { rects: full, glyph: free ? "ANY" : m.dir === 0 ? "• NO FLICK" : `${arrow} ${size}` };
+    default:
+      return { rects: full, glyph: "" };
   }
 }
 

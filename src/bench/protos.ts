@@ -11,8 +11,9 @@
 import type { LaneNote } from "../touch/lanes.ts";
 import { markShapes } from "../touch/shape.ts";
 import type { Side } from "../touch/thumbs.ts";
+import type { PlacedId } from "./placed.ts";
 
-export type ProtoId = "bow" | "ladder" | "thumbs" | "trace" | "line" | "flick";
+export type ProtoId = "bow" | "ladder" | "thumbs" | "trace" | "line" | "flick" | PlacedId;
 
 /** A note's move from the note before it. */
 export interface Move {
@@ -55,6 +56,14 @@ export interface Proto {
   fits(m: Move, g: Gesture, last: Gesture | null, o: Options, held?: Move): boolean;
   /** A level for the note (1 as the voice). */
   level?(g: Gesture): number;
+  /** Batch 2 (placed.ts): the pitch is placed on the screen, and the touch counts where it lands. */
+  placed?: PlacedId;
+  /** How the screen is held: upright (the box over the play area), sideways, or the whole screen the play area. */
+  layout?: "upright" | "wide" | "full-upright" | "full-wide";
+  /** The sound: the Synth's (held while the thumb is down), a piano's (dies away, damped on lift), a dulcimer's (rings a little, whatever the thumb does). */
+  sound?: "synth" | "piano" | "dulcimer";
+  /** A wrong place sounds the pitch that is there (a keyboard), not Bach's note muffled. */
+  literal?: boolean;
 }
 
 /** A held thumb slid this far (px) up or down plays the next note. */
@@ -172,6 +181,49 @@ export const PROTOS: Proto[] = [
     },
   },
 ];
+
+/** Batch 2 (D176): the pitch placed on the screen (placed.ts). */
+const placed = (p: Omit<Proto, "fits" | "slides">): Proto => ({ ...p, slides: true, fits: () => true });
+PROTOS.push(
+  placed({
+    id: "dulcimer",
+    name: "DULCIMER",
+    how: "Strings across, low at the bottom, following the passage. Strike the lit string as its note comes (one off still counts); a thumb slid onto the next string plays it. The notes ring a little.",
+    placed: "dulcimer",
+    sound: "dulcimer",
+  }),
+  placed({
+    id: "upright",
+    name: "UPRIGHT PIANO",
+    how: "A keyboard on its end, low at the bottom, following the passage: white keys across, black keys in the middle. The key exactly; a wrong key is heard. Slide onto the next key to play it.",
+    placed: "upright",
+    sound: "piano",
+    literal: true,
+  }),
+  placed({
+    id: "piano",
+    name: "PIANO",
+    how: "Sideways. The voice's whole range; the notes fall onto their keys. The key exactly; a wrong key is heard. Slide onto the next key to play it.",
+    placed: "piano",
+    sound: "piano",
+    literal: true,
+    layout: "wide",
+  }),
+  placed({
+    id: "snes",
+    name: "SNES",
+    how: "Sideways, the whole screen. Every voice scrolls past the line in the middle; touch your notes on their blocks as they cross it. Slide to follow a run.",
+    placed: "snes",
+    layout: "full-wide",
+  }),
+  placed({
+    id: "tetris",
+    name: "TETRIS",
+    how: "The whole screen. Every voice falls, set across as on a keyboard; touch your notes in their column as they reach the line. Slide sideways to follow a run.",
+    placed: "tetris",
+    layout: "full-upright",
+  }),
+);
 
 export const protoById = (id: string) => PROTOS.find((p) => p.id === id) ?? PROTOS[0];
 

@@ -11,7 +11,7 @@ import { PlayArea, type Painter, type ThumbEvents } from "./PlayArea.tsx";
 import { PiecePicker } from "./PiecePicker.tsx";
 import { Chip } from "./chip.ts";
 import { Game, INSTRUMENTS, prepare, type Grade, type Instrument } from "./engine.ts";
-import { paintPiano } from "./paint-piano.ts";
+import { paintPiano, pianoView } from "./paint-piano.ts";
 import { paintSynth } from "./paint-synth.ts";
 import { HelpPanel, SettingsPanel } from "./Panels.tsx";
 import { barAt, beatOf, fugueById, keyAt, keyName, shortName, type TouchFugue } from "./fugue.ts";
@@ -151,7 +151,7 @@ export function TouchApp() {
     if (phase.kind !== "play" || !chip.current) return;
     const g = new Game(f, [lv], { difficulty: diff, bpm: SPEEDS[speed], instrument: inst }, chip.current);
     game.current = g;
-    paint.current = inst === "piano" ? (ctx, w, h) => paintPiano(ctx, w, h, g, marks.subject) : (ctx, w, h) => paintSynth(ctx, w, h, g);
+    paint.current = inst === "piano" ? (ctx, w, h) => paintPiano(ctx, w, h, pianoView(g), marks.subject) : (ctx, w, h) => paintSynth(ctx, w, h, g);
     const b = beatOf(f);
     let raf = 0;
     const loop = () => {
