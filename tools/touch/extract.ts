@@ -81,6 +81,18 @@ const NOT_ENTRIES: Record<string, [bar: number, voice: number][]> = {
   ],
 };
 
+/**
+ * D197: the fugues whose later subjects (data/wtc/later-subjects.json, Ledbetter 2002) are carried
+ * into the touch entries: Book I no. 4 (second subject b. 35, third b. 49), Book II no. 4 (the
+ * chromatic second subject, b. 35), no. 14 (bb. 20 and 36), no. 18 (b. 61) and no. 23 (b. 28).
+ * Not Book II no. 9: Ledbetter's "two new subjects in double counterpoint, bb. 16-22" live only in
+ * those bars (the fugue's later sections are the first subject's, in stretto and diminution), may
+ * as well be read as new counterpoints to the first subject (its head sounds with them, alto
+ * bb. 16-17), and the notes give only one of the two (three statements): a doubtful reading, kept
+ * out of the game (the study screen still shows the library's).
+ */
+const LATER_SUBJECTS = new Set(["wtc1f04", "wtc2f04", "wtc2f14", "wtc2f18", "wtc2f23"]);
+
 const keyName = (k: string) => {
   const minor = k[0] === k[0].toLowerCase();
   return `${k[0].toUpperCase()}${k.slice(1).replace("b", "♭").replace("#", "♯")} ${minor ? "minor" : "major"}`;
@@ -130,11 +142,18 @@ const fugues = corpus
         theme: 1,
       }))
       .filter((r) => !(NOT_ENTRIES[p.id] ?? []).some(([bar, voice]) => bar === barAt(r.on) && voice === r.voice));
+    // D197: the later subjects of the double and triple fugues (the library's: where each first
+    // enters is Ledbetter's, its statements are found in the notes), as theme 2 and 3.
+    if (LATER_SUBJECTS.has(p.id))
+      for (const e of lib.later)
+        raw.push({ voice: lib.voice[e.notes[0]], on: Math.round((e.at - pad) * TPQ), len: Math.round((e.end - e.at) * TPQ), shift: e.shift, inverted: false, scale: 1, theme: e.subject ?? 2 });
     const entries = buildEntries(piece, raw, speller, hand?.keys);
+    // The sections and the countersubject are the first subject's, as before D197.
+    const firstTheme = entries.filter((e) => !e.theme);
     const cadences = findCadences(piece, speller);
     const countersubject = countersubjects(
       p,
-      entries.map((e) => ({ voice: e.voice, on: e.on, plain: !e.inverted && !e.scale })),
+      entries.map((e) => ({ voice: e.voice, on: e.on, plain: !e.inverted && !e.scale && !e.theme })),
     ).map(({ entry, voice, on, end }) => ({ entry, voice, on, end }));
 
     // The bar a section ends with: where the entry lands (its first beat), or the next bar.
@@ -147,14 +166,14 @@ const fugues = corpus
     else {
       cuts = [];
       const firstOf = new Map<number, number>();
-      for (const e of entries) if (!firstOf.has(e.voice)) firstOf.set(e.voice, e.end);
+      for (const e of firstTheme) if (!firstOf.has(e.voice)) firstOf.set(e.voice, e.end);
       const expEnd = Math.max(...firstOf.values());
       const start = p.bars[0].n === 0 ? 0 : 1;
       let from = start;
       let to = Math.max(from + 2, landing(expEnd));
       cuts.push([from, to, "Exposition"]);
       from = to;
-      const lands = entries.map((e) => ({ bar: landing(e.end), e })).filter((x) => x.bar > to);
+      const lands = firstTheme.map((e) => ({ bar: landing(e.end), e })).filter((x) => x.bar > to);
       while (from <= lastBar) {
         const c = lands.find((x) => x.bar >= from + 4 && x.bar <= from + 10);
         let next = c ? c.bar : Math.min(from + 8, lastBar + 1);

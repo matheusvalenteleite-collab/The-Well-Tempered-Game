@@ -45,7 +45,10 @@ test("titles, seals and stars are filled; seals needing data are ready once the 
   }
   assert.equal(new Set(CARDS.map((c) => c.title)).size, 49, "every title its own");
   assert.equal(cardById("wtc1f08")!.ready, true); // SLOW GIANT: I/8's augmentations (D189)
-  assert.equal(cardById("wtc1f04")!.ready, false); // SUBJECTS: I/4's later subjects not yet extracted
+  // SUBJECTS: the later subjects of the double and triple fugues are in the entries (D197).
+  for (const id of ["wtc1f04", "wtc2f04", "wtc2f14", "wtc2f18", "wtc2f23", "bwv1080-14"]) assert.equal(cardById(id)!.ready, true, id);
+  // Every card's seal is judged now.
+  assert.deepEqual(CARDS.filter((c) => !c.ready).map((c) => c.id), []);
   assert.equal(cardById("wtc1f01")!.ready, true); // STRETTO
 });
 
