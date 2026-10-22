@@ -11,7 +11,14 @@
   cursor: pointer;
 }
 .tb-protos button.on { color: var(--tg-bg); background: var(--tg-shine); border-color: var(--tg-shine); }
-/* D176: a field that takes the whole screen while it plays (SNES, TETRIS). */
+/* D178: the layouts while playing. THUMBS ↕: a short box over a tall play area. SIDEWAYS: the whole
+   screen the field. THUMBS ↔: the box between two side bars, the play area over it all. */
+.tb-tall { grid-template-rows: 30fr 70fr; }
 .tb-full, .tg-wide.tb-full { grid-template-rows: 1fr; }
 .tb-full .tg-box { display: none; }
+.tb-bars, .tg-wide.tb-bars { grid-template-rows: 1fr; position: relative; }
+.tb-bars .tg-box { margin: 0 20%; }
+.tb-bars .tg-play { position: absolute; inset: 0; }
+.tb-bars .tg-half, .tb-bars .tg-half-on { background: transparent; border: 0; }
 .tb-quit { position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); right: max(8px, env(safe-area-inset-right, 0px)); z-index: 5; background: var(--tg-veil); }
+.tb-bars .tb-quit { right: calc(20% + 8px); }

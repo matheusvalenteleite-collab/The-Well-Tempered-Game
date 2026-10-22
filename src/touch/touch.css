@@ -522,3 +522,17 @@ body {
   .tg-wide .tg-upright { display: none; }
 }
 .tg-wide.tg-away { grid-template-rows: 72fr 28fr; }
+
+/* D177: the ensembles, three to a row. */
+.tg-grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.tg-grid3 button {
+  font-family: var(--tg-pixel);
+  font-size: 7px;
+  line-height: 1.5;
+  padding: 9px 4px;
+  color: var(--tg-muted);
+  background: transparent;
+  border: 1px solid var(--tg-barline);
+  cursor: pointer;
+}
+.tg-grid3 button.on { color: var(--tg-bg); background: var(--tg-shine); border-color: var(--tg-shine); }

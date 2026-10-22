@@ -14,6 +14,7 @@ import { Game, INSTRUMENTS, prepare, type Grade, type Instrument } from "./engin
 import { paintPiano, pianoView } from "./paint-piano.ts";
 import { paintSynth } from "./paint-synth.ts";
 import { HelpPanel, SettingsPanel } from "./Panels.tsx";
+import { setPreset } from "./sound.ts";
 import { barAt, beatOf, fugueById, keyAt, keyName, shortName, type TouchFugue } from "./fugue.ts";
 import { LEVELS, type Level as Difficulty } from "./lanes.ts";
 import { accompaniment, level, startTick, stepRange, subjectMarks, voicesFrom } from "./voice-mode.ts";
@@ -23,6 +24,7 @@ const SPEEDS = { slow: 40, medium: 54, fast: 72 } as const;
 type Speed = keyof typeof SPEEDS;
 const PICK_KEY = "tg-pick-v2";
 const LAG_KEY = "tg-lag";
+const SOUND_KEY = "tg-sound";
 const HELP: Record<Instrument, string> = {
   synth: "Right thumb: up. Left: down. Hold to sustain. ? for more.",
   piano: "Strike the lit key as its note lands. Hold to let it ring. ? for more.",
@@ -93,6 +95,14 @@ export function TouchApp() {
     if (chip.current) chip.current.lag = l;
   };
   const marks = useMemo(() => subjectMarks(f), [f]);
+  // D177: the ensemble, shared with the testbench.
+  const [sound, setSoundRaw] = useState<string>(() => load<string>(SOUND_KEY, "chip"));
+  const setSound = (id: string) => {
+    setSoundRaw(id);
+    save(SOUND_KEY, id);
+    setPreset(id);
+  };
+  useEffect(() => setPreset(sound), []);
   const from = startTick(f, share);
   const range = useMemo(() => stepRange(f), [f]);
   const lv = useMemo(() => level(f, voice, from), [f, voice, from, phase.kind === "play"]);
@@ -320,7 +330,7 @@ export function TouchApp() {
         />
       )}
       {phase.kind === "settings" && (
-        <SettingsPanel settings={pick} set={(s) => setPick(s)} lag={lag} setLag={setLag} chip={ensureChip} close={() => setPhase({ kind: "title" })} />
+        <SettingsPanel settings={pick} set={(s) => setPick(s)} lag={lag} setLag={setLag} sound={sound} setSound={setSound} chip={ensureChip} close={() => setPhase({ kind: "title" })} />
       )}
       {phase.kind === "help" && <HelpPanel close={() => setPhase({ kind: "title" })} />}
       <div className="tg-upright" role="alert">

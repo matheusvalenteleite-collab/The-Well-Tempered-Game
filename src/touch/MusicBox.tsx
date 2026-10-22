@@ -65,6 +65,10 @@ export interface Frame {
   entries?: { voice: number; on: number; step: number }[];
   /** What the player has sounded (the testbench, D170): the pitch as a step, fractions allowed, in time. */
   trace?: { tick: number; step: number; on: boolean }[];
+  /** The testbench (D178): each touch, at the step it asked for, right or wrong. */
+  marks?: { tick: number; step: number; ok: boolean }[];
+  /** The testbench's THUMBS ↔ (D178): each note's move (aligned with `notes`), drawn as the thumb it wants. */
+  arrows?: { dir: number; size: number }[];
 }
 
 export function MusicBox({ frame, hud, legend, children }: { frame: MutableRefObject<Frame>; hud: ReactNode; legend: ReactNode; children?: ReactNode }) {
@@ -182,6 +186,27 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
         g.globalAlpha = 1;
       }
     }
+  }
+
+  // The thumb each coming note wants: ▲ the right, ▼ the left (none: either).
+  if (fr.arrows)
+    fr.notes.forEach((n, i) => {
+      const m = fr.arrows![i];
+      const x = xOf(n.on);
+      if (!m || n.state !== "pending" || x < playX || x > w || m.size < 1 || m.size > 2 || !m.dir) return;
+      const y = yOf(n.step);
+      g.fillStyle = edge;
+      if (m.dir > 0) (g.fillRect(x + 1, y - 5, 1, 1), g.fillRect(x, y - 4, 3, 1), g.fillRect(x - 1, y - 3, 5, 1));
+      else (g.fillRect(x - 1, y + bh + 1, 5, 1), g.fillRect(x, y + bh + 2, 3, 1), g.fillRect(x + 1, y + bh + 3, 1, 1));
+    });
+
+  // The touches: where each landed (the step it asked for), light when right, red when wrong.
+  for (const mk of fr.marks ?? []) {
+    const x = xOf(mk.tick);
+    if (x < 0 || x > playX + 2) continue;
+    const y = yOf(mk.step) + Math.floor(bh / 2);
+    g.fillStyle = mk.ok ? shine : tok("--tg-wrong");
+    g.fillRect(x - 1, y - 1, 3, 3);
   }
 
   // The entries coming: a diamond over each entry's first note.
