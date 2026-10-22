@@ -10,7 +10,7 @@
  */
 import { voicing, type Chip, type Play, type Sounding } from "../touch/chip.ts";
 import type { Grade } from "../touch/engine.ts";
-import { beatOf, keyAt, type TouchFugue } from "../touch/fugue.ts";
+import { beatOf, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
 import { chordOf, laneNotes, options, strike, sweep, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
 import { follow, phrase, ritard, type Shape } from "../touch/phrasing.ts";
@@ -165,7 +165,7 @@ export class ProtoGame {
   private readonly shapes: Shape[];
   private held = new Map<number, Held>();
   private stepAt = 0;
-  private readonly rit: ReturnType<typeof ritard>;
+  private readonly rit: ReturnType<typeof ritard> = { warp: (t: number) => t, unwarp: (w: number) => w };
   /** How the player has been playing, 0 (pp) to 1 (ff): the others follow, a little. */
   private feel = 0.55;
 
@@ -179,7 +179,7 @@ export class ProtoGame {
     this.perBar = b.perBar;
     this.tracks = (Array.isArray(voices) ? voices : [voices]).map((v) => {
       const notes = laneNotes(
-        f.voices[v].filter(([on]) => on >= from),
+        f.voices[v].filter(([on]) => on >= from && (o.until === undefined || on < o.until)),
         this.beat,
         v,
       );
@@ -188,11 +188,12 @@ export class ProtoGame {
     });
     [{ voice: this.voice, notes: this.notes, moves: this.moves }] = this.tracks;
     const played = this.tracks.map((t) => t.voice);
-    this.others = accompaniment(f, from, played[0]).filter((n) => !played.includes(n.voice));
-    this.shapes = phrase(this.others, this.beat, f.barTicks, subjectMarks(f).subject);
-    this.start = from - 4 * this.beat;
+    this.others = o.solo ? [] : accompaniment(f, from, played[0]).filter((n) => !played.includes(n.voice) && (o.until === undefined || n.on < o.until));
+    this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject);
+    // Waiting (the lessons): no count-in, the clock stops at each note until it is struck.
+    this.start = o.wait ? from - this.beat : countInStart(f, from);
     this.entry = from;
-    this.end = f.length + this.beat;
+    this.end = (o.until ?? f.length) + this.beat;
     // D181: the tempo counts quarter notes, whatever the metre (in 2/2 the beat was a half note: twice as fast).
     this.tps = (f.tpq * o.bpm) / 60;
     this.opt = options(f.tpq, o.bpm, "easy");
@@ -201,7 +202,7 @@ export class ProtoGame {
     this.anchorAt = chip.ctx.currentTime + 0.15;
     this.anchorTick = this.start;
     this.nextBeat = this.start;
-    this.rit = ritard(f.length, f.barTicks);
+    if (o.until === undefined || o.until >= f.length) this.rit = ritard(f.length, f.barTicks);
     this.tracks.forEach((t, k) => {
       for (const e of f.entries) if (e.voice === t.voice && e.on >= from) this.entries.push({ voice: e.voice, k, on: e.on, end: e.end, ons: e.notes.map((x) => x[0]), state: "open" });
     });
@@ -225,13 +226,35 @@ export class ProtoGame {
   step(): boolean {
     const ch = this.chip;
     this.now = this.tickAt(ch.heard());
+    if (this.o.wait) {
+      const nx = this.next();
+      const on = nx >= 0 ? this.notes[nx].on : null;
+      if (on !== null && on >= this.entry && this.now > on) {
+        // Held at the note: time given, not the note.
+        this.anchorTick = on;
+        this.anchorAt = ch.heard();
+        this.now = on;
+      }
+    }
     const horizon = Math.min(this.tickAt(ch.ctx.currentTime + 0.25), this.end);
     while (this.nextBeat <= horizon) {
+      // Beats gone by while the clock ran unwatched (a hidden tab): not played late in a burst.
+      if (this.timeAt(this.nextBeat) < ch.ctx.currentTime - 0.03) {
+        this.nextBeat += this.beat;
+        continue;
+      }
+      // The beat's place in its bar, by the bars as written (D184: counted from the count-in, a bar of
+      // three put the downbeat on its last beat).
       const n = Math.round((this.nextBeat - this.start) / this.beat);
-      const accent = n % this.perBar === 0;
+      const inBarBeat = Math.round(inBar(this.f, this.nextBeat) / this.beat) % this.perBar;
+      const accent = inBarBeat === 0;
       // D177: past the count-in, a band's rhythm section plays the beat instead of the click.
       const compound = this.beat !== this.f.tpq * (4 / Number(this.f.meter.split("/")[1]));
-      const band = this.nextBeat >= this.entry && ch.groove?.(this.timeAt(this.nextBeat), this.beat / this.tps, n % this.perBar, Math.floor(n / this.perBar), this.perBar, compound);
+      if (this.o.wait) {
+        this.nextBeat += this.beat;
+        continue;
+      }
+      const band = this.nextBeat >= this.entry && !this.o.solo && ch.groove?.(this.timeAt(this.nextBeat), this.beat / this.tps, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound);
       if (!band) ch.tick(this.timeAt(this.nextBeat), accent, this.nextBeat < this.entry ? 0.12 : 0.02);
       this.nextBeat += this.beat;
     }
@@ -240,8 +263,11 @@ export class ProtoGame {
       if (n.on < this.now - this.beat) continue;
       const sh = this.shapes[this.nextOther - 1];
       const len = this.timeAt(n.on + n.dur * sh.hold) - this.timeAt(n.on);
-      ch.note(n.midi, Math.max(ch.ctx.currentTime, this.timeAt(n.on) + sh.nudge), len, voicing(n.voice, this.f.voices.length, false), { level: follow(sh, this.feel) });
+      const at = Math.max(ch.ctx.currentTime, this.timeAt(n.on) + sh.nudge);
+      const sd = ch.note(n.midi, at, len, voicing(n.voice, this.f.voices.length, false), { level: follow(sh, this.feel) });
+      if (sd) this.band.push({ sd, until: at + len + 0.6 });
     }
+    if (this.band.length > 64) this.band = this.band.filter((b) => b.until > ch.ctx.currentTime);
     // SIDEWAYS: the window glides towards the passage ahead (on the audio clock), always holding the next note.
     const clock = ch.ctx.currentTime;
     const dt = this.stepAt ? Math.max(0, Math.min(0.1, clock - this.stepAt)) : 0;
@@ -267,7 +293,7 @@ export class ProtoGame {
   }
 
   countIn(): number {
-    return this.now < this.entry ? Math.min(4, Math.ceil((this.entry - this.now) / this.beat)) : 0;
+    return this.now < this.entry ? Math.ceil((this.entry - this.now) / this.beat) : 0;
   }
 
   keyNow(): string {
@@ -340,7 +366,8 @@ export class ProtoGame {
     if (at.key?.move) {
       const mv = at.key.move;
       if (m.size < 0) return { ok: true };
-      const ok = mv.dir === m.dir && (m.dir === 0 || mv.big === m.size >= 2);
+      // A third takes the step or the leap (D184).
+      const ok = mv.dir === m.dir && (m.dir === 0 || m.size === 2 || mv.big === m.size >= 3);
       return ok ? { ok } : { ok, wrong: asked(mv.dir * (mv.big ? 3 : 1)), why: "gesture" };
     }
     const c = at.c!;
@@ -398,6 +425,7 @@ export class ProtoGame {
   }
 
   down(id: number, c: Contact, ts: number) {
+    if (this.held.has(id)) this.up(id, ts);
     const d = this.dynamicAt(c);
     const h: Held = { side: c.side, k: this.trackOf(c.side), x0: c.x, ax: c.x, ay: c.y, note: -1, chord: [], sounds: [], midi: 0, cell: this.cellAt(c), d0: d, trail: [{ t: ts, y: c.y }] };
     this.held.set(id, h);
@@ -406,6 +434,8 @@ export class ProtoGame {
 
   /** A computer key or a MIDI key goes down. */
   keyDown(id: number, k: KeyPress, ts: number) {
+    // The same key again without its release (lost while the window was away): let the first go.
+    if (this.held.has(id)) this.up(id, ts);
     const d = k.velocity ?? 0.6;
     const h: Held = { side: k.side ?? "left", k: this.trackOf(k.side ?? "left"), x0: 0, ax: 0, ay: 0, note: -1, chord: [], sounds: [], midi: 0, cell: k.midi, d0: d, trail: [] };
     this.held.set(id, h);
@@ -419,9 +449,19 @@ export class ProtoGame {
   private trillNext = false;
   private strikeWith(id: number, h: Held, ts: number, at: { c?: Contact; key?: KeyPress }, d: number) {
     this.trillNext = !!at.key?.trill;
-    const i = strike(this.tracks[h.k].notes, this.tickOf(ts), this.opt);
+    const notesK = this.tracks[h.k].notes;
+    const tk = this.tickOf(ts);
+    // A pitched key (PIANO, MIDI): the note of that pitch in the window first, else the nearest in time
+    // (D184: a right key a little late took the next note, and both were lost).
+    const key = at.key?.midi;
+    let i = key !== undefined ? strike(notesK, tk, this.opt, (j) => chordOf(notesK, j).some((x) => notesK[x].midi === key)) : -1;
+    if (i < 0) i = strike(notesK, tk, this.opt);
     if (i < 0) {
       this.grade = { text: "✕", at: performance.now(), side: h.side, why: "time" };
+      // A strike on no note is a slip, and counts against the accuracy (mashing scores nothing).
+      this.stray++;
+      this.combo = 0;
+      this.slip();
       // A keyboard: the key struck is heard all the same. Elsewhere (Hi-Fi Rush: every touch makes
       // music) the voice's nearest note sounds, soft and muffled, and is not used up.
       let key = at.key?.midi ?? (this.proto.id === "piano" ? h.cell : undefined);
@@ -446,6 +486,8 @@ export class ProtoGame {
   move(id: number, c: Contact, ts: number) {
     const h = this.held.get(id);
     if (!h) return;
+    // The thumb is the one that went down (D184: slides were all judged as the left's).
+    c = { ...c, side: h.side };
     h.trail.push({ t: ts, y: c.y });
     while (h.trail.length > 2 && ts - h.trail[0].t > 120) h.trail.shift();
     // Across the dynamic axis while it sounds: a swell or a diminuendo.
@@ -586,11 +628,14 @@ export class ProtoGame {
         e.state = "lost";
         continue;
       }
+      // FINGERING: not before the last note's release is judged (a tenuto let go early loses it).
+      if (this.proto.id === "fingering" && notes.some((n) => n.off === undefined && n.on + n.dur > this.now)) continue;
       if (notes.length && notes.every((n) => n.state === "hit")) {
         e.state = "captured";
         this.score += 20 * this.mult;
         // ORGANO PLENO until the next entry, in any voice.
-        const next = this.f.entries.map((x) => x.on).filter((on) => on > e.on).sort((a, b) => a - b)[0];
+        // (the first entry still to come: the next has often begun before this one ends)
+        const next = this.f.entries.map((x) => x.on).filter((on) => on > this.now).sort((a, b) => a - b)[0];
         this.plenoUntil = next ?? this.f.length;
         this.banner = { text: "ORGANO PLENO!", at: performance.now() };
       }
@@ -598,8 +643,9 @@ export class ProtoGame {
   }
 
   /** The grade, after osu! and the like: S (95% and every entry captured), A, B, C, D. */
-  gradeOf(r: { right: number; of: number }): string {
-    const acc = r.right / Math.max(1, r.of);
+  gradeOf(r: { right: number; of: number; stray?: number }): string {
+    // A stray strike weighs half a note.
+    const acc = r.right / Math.max(1, r.of + (r.stray ?? 0) / 2);
     const all = this.entries.every((e) => e.state === "captured");
     return acc >= 0.95 && all ? "S" : acc >= 0.9 ? "A" : acc >= 0.8 ? "B" : acc >= 0.7 ? "C" : "D";
   }
@@ -632,7 +678,19 @@ export class ProtoGame {
     for (const h of this.held.values()) for (const sd of h.sounds) sd.bend(cents);
   }
 
+  /** The window lost (blur, a hidden tab): every key and the pedal let go, as if released now. */
+  releaseAll(ts: number) {
+    for (const id of [...this.held.keys()]) this.up(id, ts);
+    this.pedal(false);
+    this.keysDown.clear();
+  }
+
+  /** The others' notes sounding or to sound (stopped on quitting; D184). */
+  private band: { sd: Sounding; until: number }[] = [];
+
   stopAll() {
+    for (const b of this.band) b.sd.stop();
+    this.band = [];
     for (const sd of this.pedalled) sd.stop();
     this.pedalled = [];
     for (const h of this.held.values()) for (const sd of h.sounds) sd.stop();
@@ -640,8 +698,10 @@ export class ProtoGame {
   }
 
   /** The notes (a chord once): played right, played wrong, missed; the score, the entries captured. */
-  results(): { right: number; wrong: number; missed: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number } {
-    const r = { right: 0, wrong: 0, missed: 0, of: 0, score: this.score, grade: "", captured: this.entries.filter((e) => e.state === "captured").length, entries: this.entries.length, maxStreak: this.maxStreak };
+  /** Strikes on no note. */
+  stray = 0;
+  results(): { right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number } {
+    const r = { right: 0, wrong: 0, missed: 0, stray: this.stray, of: 0, score: this.score, grade: "", captured: this.entries.filter((e) => e.state === "captured").length, entries: this.entries.length, maxStreak: this.maxStreak };
     for (const { notes } of this.tracks)
       notes.forEach((n, i) => {
         if (i > 0 && notes[i - 1].on === n.on) return;

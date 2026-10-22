@@ -13,7 +13,7 @@
  * WAIT (D167, as Synthesia's): the music stops at each note until it is played (not offered now).
  */
 import { voicing, type Chip, type Envelope, type Sounding } from "./chip.ts";
-import { beatOf, keyAt, type TouchFugue } from "./fugue.ts";
+import { beatOf, inBar, keyAt, type TouchFugue } from "./fugue.ts";
 import { chordOf, options, points, release, strike, sweep, type LaneOptions, type Level as Difficulty } from "./lanes.ts";
 import { keyboard, keyAt as keyUnder, WHITE_ONLY, type Keyboard } from "./piano.ts";
 import { fits, markShapes, SLIDE_PX } from "./shape.ts";
@@ -171,7 +171,7 @@ export class Game {
     });
     // D169: the other voices always play, from where the player starts.
     this.others = accompaniment(f, sorted[0].from, sorted[0].voice);
-    this.shapes = phrase(this.others, this.beat, f.barTicks, subjectMarks(f).subject);
+    this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject);
     if (!o.wait) this.rit = ritard(f.length, f.barTicks);
     this.anchorAt = chip.ctx.currentTime + 0.15;
     this.anchorTick = this.start;
@@ -217,11 +217,14 @@ export class Game {
     this.now = now;
     const horizon = Math.min(this.tickAt(ch.ctx.currentTime + 0.25), block ?? Infinity, this.end);
     while (this.nextBeat <= horizon) {
+      // The beat's place in its bar, by the bars as written (D184: counted from the count-in, a bar of
+      // three put the downbeat on its last beat).
       const n = Math.round((this.nextBeat - this.start) / this.beat);
-      const accent = n % this.perBar === 0;
+      const inBarBeat = Math.round(inBar(this.f, this.nextBeat) / this.beat) % this.perBar;
+      const accent = inBarBeat === 0;
       // D177: past the count-in, a band's rhythm section plays the beat instead of the click.
       const compound = this.beat !== this.f.tpq * (4 / Number(this.f.meter.split("/")[1]));
-      const band = this.nextBeat >= this.entry && ch.groove?.(this.timeAt(this.nextBeat), this.beat / this.tps, n % this.perBar, Math.floor(n / this.perBar), this.perBar, compound);
+      const band = this.nextBeat >= this.entry && ch.groove?.(this.timeAt(this.nextBeat), this.beat / this.tps, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound);
       if (!band) ch.tick(this.timeAt(this.nextBeat), accent, this.nextBeat < this.entry ? 0.12 : 0.02);
       this.nextBeat += this.beat;
     }
@@ -270,7 +273,7 @@ export class Game {
 
   /** The beats left in the count-in (4 … 1), or 0 once the music has begun. */
   countIn(): number {
-    return this.now < this.entry ? Math.min(4, Math.ceil((this.entry - this.now) / this.beat)) : 0;
+    return this.now < this.entry ? Math.ceil((this.entry - this.now) / this.beat) : 0;
   }
 
   /** The key the music is in now. */

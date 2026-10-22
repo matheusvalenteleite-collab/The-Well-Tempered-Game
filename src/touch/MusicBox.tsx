@@ -47,13 +47,15 @@ export function keyTint(key: string, light = 0): string {
  * the roll's top), and a row's height (D179: the testbench's side bars line up with it).
  */
 /** A key of LADDER on a computer: a step or a leap, up or down, or the same note. */
-export type Arrow = "up" | "down" | "left" | "right" | "same";
+export type Arrow = "up" | "down" | "left" | "right" | "rise" | "fall" | "same";
 /** The keys' arrows, 5 by 5. */
 export const ARROW_PIXELS: Record<Arrow, string[]> = {
   up: ["00100", "01110", "10101", "00100", "00100"],
   down: ["00100", "00100", "10101", "01110", "00100"],
   right: ["00100", "00010", "11111", "00010", "00100"],
   left: ["00100", "01000", "11111", "01000", "00100"],
+  rise: ["00111", "00011", "00101", "01000", "10000"],
+  fall: ["10000", "01000", "00101", "00011", "00111"],
   same: ["00000", "00000", "01100", "01100", "00000"],
 };
 

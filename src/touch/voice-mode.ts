@@ -4,7 +4,7 @@
  * its end. The point is a share of the piece (0 to 99%), taken back to the start of its bar; the
  * count-in is the four beats before it.
  */
-import { barAt, barStart, beatOf, type TouchFugue } from "./fugue.ts";
+import { barAt, barStart, countInStart, beatOf, type TouchFugue } from "./fugue.ts";
 import { laneNotes, type LaneNote } from "./lanes.ts";
 
 export interface Level {
@@ -20,6 +20,8 @@ export interface Level {
 
 /** The start of the bar at a share of the piece (0 to 0.99). */
 export function startTick(f: TouchFugue, share: number): number {
+  // From the beginning: the very first note (an upbeat before bar 1 included; D184).
+  if (share <= 0) return 0;
   return barStart(f, barAt(f, Math.max(0, Math.min(0.99, share)) * f.length));
 }
 
@@ -36,7 +38,7 @@ export function level(f: TouchFugue, voice: number, from: number): Level {
   return {
     voice,
     notes,
-    start: from - beat * 4,
+    start: countInStart(f, from),
     end: f.length + beat,
     from,
     first: raw[0][0],

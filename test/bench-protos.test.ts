@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { beatOf, fugueById } from "../src/touch/fugue.ts";
+import { beatOf, fugueById, inBar } from "../src/touch/fugue.ts";
 import { laneNotes, type LaneNote } from "../src/touch/lanes.ts";
 import type { Chip } from "../src/touch/chip.ts";
 import { ProtoGame, type Contact, type Rows } from "../src/bench/proto-game.ts";
@@ -290,6 +290,92 @@ test("EASY: any key on time is right, whatever its row; off time it is a miss", 
   assert.notEqual(n.state, "hit");
 });
 
+test("the computer's LADDER: a third takes the step or the leap", () => {
+  for (const code of ["ArrowRight", "ArrowUp", "KeyD", "KeyW"]) {
+    const clock = { t: 0 };
+    const g = new ProtoGame(C_MINOR, 1, 0, protoById("arrows"), { bpm: 54, legato: false }, fakeChip(clock));
+    const i = g.moves.findIndex((m, j) => j > 0 && m.size === 2 && m.dir > 0);
+    assert.ok(i > 0);
+    assert.equal(arrowOf(g.moves[i]), "rise");
+    for (let j = 0; j <= i; j++) {
+      clock.t = g.timeAt(g.notes[j].on);
+      g.step();
+      const a = j === i ? ARROW_KEYS[code] : (arrowOf(g.moves[j]) ?? "same");
+      const key = a === "rise" ? "right" : a === "fall" ? "left" : a;
+      g.keyDown(30 + j, { move: moveOf(key) }, performance.now());
+      g.keyUp(30 + j, performance.now());
+    }
+    assert.equal(g.notes[i].state, "hit", code);
+  }
+});
+
+test("audit fixes: mashing is no S; ORGANO PLENO sounds on every capture; a lost key is let go", () => {
+  {
+    const clock = { t: 0 };
+    const g = new ProtoGame(C_MINOR, 1, 0, protoById("keys"), { bpm: 54, legato: false }, fakeChip(clock));
+    let id = 0;
+    while (clock.t < g.timeAt(g.end) + 1) {
+      clock.t += 0.06;
+      g.step();
+      g.keyDown(++id, { velocity: 0.5 }, performance.now());
+      g.keyUp(id, performance.now());
+    }
+    const r = g.results();
+    assert.ok(r.stray > 0 && r.grade !== "S" && r.grade !== "A", `mashing: ${r.grade}, ${r.stray} stray`);
+  }
+  for (const voice of voicesFrom(C_MINOR, 0)) {
+    const clock = { t: 0 };
+    const g = new ProtoGame(C_MINOR, voice, 0, protoById("keys"), { bpm: 54, legato: false }, fakeChip(clock));
+    let captured = 0;
+    const heads = g.notes.map((n, i) => (i > 0 && g.notes[i - 1].on === n.on ? -1 : i)).filter((i) => i >= 0);
+    for (const i of heads) {
+      while (clock.t < g.timeAt(g.notes[i].on) - 0.05) (clock.t += 0.05), g.step();
+      clock.t = g.timeAt(g.notes[i].on);
+      g.step();
+      g.keyDown(100 + i, { velocity: 0.5 }, performance.now());
+      g.keyUp(100 + i, performance.now());
+      g.step();
+      const now = g.entries.filter((e) => e.state === "captured").length;
+      if (now > captured) assert.ok(g.pleno, `voice ${voice}: pleno on capture ${now}`);
+      captured = now;
+    }
+    assert.ok(captured > 0);
+  }
+  {
+    const clock = { t: 0 };
+    const log: { midi: number; muffled: boolean }[] = [];
+    const g = new ProtoGame(C_MINOR, 1, 0, protoById("keys"), { bpm: 54, legato: false }, fakeChip(clock, log));
+    clock.t = g.timeAt(g.notes[0].on);
+    g.step();
+    g.keysDown.add("KeyA");
+    g.pedal(true);
+    g.keyDown(1, { velocity: 0.5 }, performance.now());
+    g.releaseAll(performance.now());
+    assert.equal(g.keysDown.size, 0);
+    assert.equal(g.pedalOn, false);
+  }
+});
+
+test("the downbeat on the barline in triple time; an upbeat played from the start", () => {
+  for (const id of ["wtc1f06", "wtc1f11", "wtc2f10", "wtc2f13"]) {
+    const f = fugueById(id);
+    const clock = { t: 0 };
+    const accents: number[] = [];
+    const chip = fakeChip(clock);
+    (chip as unknown as { tick: (t: number, a: boolean) => void }).tick = (t, a) => {
+      if (a) accents.push(t);
+    };
+    const from = startTick(f, 0);
+    assert.equal(from, 0, `${id} starts at its first note`);
+    const g = new ProtoGame(f, voicesFrom(f, 0)[0], from, protoById("keys"), { bpm: 54, legato: false }, chip);
+    while (clock.t < g.timeAt(f.bars[3].on)) (clock.t += 0.05), g.step();
+    const bars = new Set(f.bars.map((b) => Math.round(g.timeAt(b.on) * 1000)));
+    const after = accents.filter((t) => t >= g.timeAt(f.bars[0].on) - 1e-6);
+    assert.ok(after.length >= 2 && after.every((t) => bars.has(Math.round(t * 1000))), `${id}: accents on the barlines`);
+    assert.ok(Math.min(...f.voices.flatMap((v) => v.map(([on]) => on))) < f.bars[0].on || id === "wtc1f06", `${id}: an upbeat`);
+  }
+});
+
 test("SIDEWAYS: a column's middle is that column", () => {
   for (const pan of [30, 33.4, 36.8]) for (const s of [28, 31, 35]) assert.equal(columnAt(columnX(s, pan, W), pan, W), s);
 });
@@ -318,7 +404,7 @@ test("the tunings: A stays put; a well temperament moves the others a few cents"
 
 test("the others are phrased: the subject brought forward, repeated notes detached, timing within a few ms", () => {
   const others = accompaniment(C_MINOR, 0, 1);
-  const sh = phrase(others, beat, C_MINOR.barTicks, subjectMarks(C_MINOR).subject);
+  const sh = phrase(others, beat, (t) => inBar(C_MINOR, t), subjectMarks(C_MINOR).subject);
   assert.equal(sh.length, others.length);
   assert.ok(sh.every((s) => Math.abs(s.nudge) <= 0.006 && s.hold > 0.7 && s.hold <= 1 && s.level > 0.8 && s.level < 1.5));
   const subj = subjectMarks(C_MINOR).subject;

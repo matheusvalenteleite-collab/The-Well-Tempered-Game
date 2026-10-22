@@ -22,7 +22,8 @@ export interface Shape {
   subject: boolean;
 }
 
-export function phrase(notes: readonly OtherNote[], beat: number, bar: number, subject: Set<string>): Shape[] {
+/** `inBar`: where a tick falls in its bar (fugue.ts inBar: by the bars as encoded). */
+export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: number) => number, subject: Set<string>): Shape[] {
   // Each voice's notes in order, to see the note after, and the voice's range around each note.
   const byVoice = new Map<number, number[]>();
   notes.forEach((n, i) => byVoice.set(n.voice, [...(byVoice.get(n.voice) ?? []), i]));
@@ -38,8 +39,8 @@ export function phrase(notes: readonly OtherNote[], beat: number, bar: number, s
       local.set(i, hi > lo ? (notes[i].midi - lo) / (hi - lo) : 0.5);
     });
   return notes.map((n, i) => {
-    const inBar = ((n.on % bar) + bar) % bar;
-    const weight = inBar === 0 ? 1.12 : inBar % beat === 0 ? 1.04 : 0.94;
+    const pos = inBar(n.on);
+    const weight = pos === 0 ? 1.12 : pos % beat === 0 ? 1.04 : 0.94;
     const inSubject = subject.has(`${n.voice}:${n.on}`);
     const subj = inSubject ? 1.15 : 1;
     const arch = 0.92 + 0.16 * (local.get(i) ?? 0.5);

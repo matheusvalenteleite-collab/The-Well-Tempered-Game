@@ -16,7 +16,7 @@ import { paintPiano } from "../touch/paint-piano.ts";
 import { stepName } from "../touch/fugue.ts";
 import { columnX, COLUMNS, LINE } from "./placed.ts";
 import { APPROACH_MS, type ProtoGame } from "./proto-game.ts";
-import { ARROW_KEYS, arrowOf, BAR, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
+import { ARROW_KEYS, arrowOf, BAR, fits, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
 import { isBlack, keySpan } from "../touch/piano.ts";
 import { KEYS_SHARE } from "./placed.ts";
 
@@ -113,16 +113,19 @@ function pads(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
   const key = Math.max(28, Math.min(54, (h - 70) / 2.3));
   const top = Math.max(14, (h - 40 - 2 * key) / 2);
   const cap = (code: string, x: number, y: number, kw: number, letter: string) => {
+    // A lesson: the keys not yet taught dimmed.
+    c.globalAlpha = g.o.keys && !g.o.keys.includes(ARROW_KEYS[code]) ? 0.25 : 1;
     const down = g.keysDown.has(code);
     c.fillStyle = down ? t.shine : "#1d1a24";
     c.fillRect(x, y, kw - 4, key - 4);
     c.fillStyle = "rgba(0,0,0,0.4)";
     c.fillRect(x, y + key - 8, kw - 4, 4);
-    if (nx && !down && asked === ARROW_KEYS[code]) light(c, x, y, kw - 4, key - 8, nx.p, ink, t);
+    if (nx && !down && asked && fits(asked, ARROW_KEYS[code])) light(c, x, y, kw - 4, key - 8, nx.p, ink, t);
     const fg = down ? "#1a1408" : t.fg;
     const s = Math.max(3, Math.floor(key / 12));
     pixels(c, ARROW_KEYS[code], x + (kw - 4) / 2 - 2.5 * s, y + (key - 8) / 2 - 2.5 * s, s, fg);
     if (letter) label(c, letter, x + 4, y + 8, down ? fg : t.muted, 7, "left");
+    c.globalAlpha = 1;
   };
   const cluster = (cx: number, codes: [string, string, string, string], letters: [string, string, string, string]) => {
     cap(codes[0], cx - key / 2, top, key, letters[0]);
@@ -132,7 +135,7 @@ function pads(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
   cluster(w * 0.8, ["ArrowUp", "ArrowLeft", "ArrowDown", "ArrowRight"], ["", "", "", ""]);
   cap("Space", w * 0.35, top + key, w * 0.3, "SPACE");
   // How it goes, in one line: each key's arrow and what it does.
-  const parts: [Arrow, string][] = [["right", "STEP UP"], ["left", "STEP DOWN"], ["up", "LEAP UP"], ["down", "LEAP DOWN"], ["same", "SAME NOTE"]];
+  const parts: [Arrow, string][] = [["right", "STEP UP"], ["left", "STEP DOWN"], ["up", "LEAP UP"], ["down", "LEAP DOWN"], ["rise", "THIRD: EITHER"], ["same", "SAME NOTE"]];
   c.font = `8px ${FONT}`;
   const lead = "WASD OR ARROWS:";
   const gap = 18;

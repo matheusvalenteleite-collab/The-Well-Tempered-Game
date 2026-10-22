@@ -403,8 +403,11 @@ export class Chip {
       g.gain.setValueAtTime(sus, Math.max(t + a + 0.02, end - pt.amp.r));
       g.gain.linearRampToValueAtTime(0, end);
     }
+    // The LFOs, stopped with the note (D184: they ran on 2 s past its end, and past an early stop).
+    const lfos: AudioScheduledSourceNode[] = [];
     if (pt.trem) {
       const lfo = ctx.createOscillator();
+      lfos.push(lfo);
       const depth = ctx.createGain();
       const tg = ctx.createGain();
       lfo.frequency.value = pt.trem.rate;
@@ -413,10 +416,10 @@ export class Chip {
       lfo.connect(depth).connect(tg.gain);
       src = src.connect(tg);
       lfo.start(t);
-      lfo.stop(end + 2);
     }
     if (pt.vib && end - t > pt.vib.delay + 0.1) {
       const lfo = ctx.createOscillator();
+      lfos.push(lfo);
       const depth = ctx.createGain();
       lfo.frequency.value = pt.vib.rate;
       depth.gain.setValueAtTime(0, t);
@@ -425,7 +428,6 @@ export class Chip {
       lfo.connect(depth);
       for (const o of oscs) depth.connect(o.detune);
       lfo.start(t);
-      lfo.stop(end + 2);
     }
     if (p.trill && ctx.createConstantSource) {
       // A whole tone above and back: a square wave of 0 or 200 cents.
@@ -435,13 +437,12 @@ export class Chip {
       const depth = ctx.createGain();
       depth.gain.value = 100;
       const centre = ctx.createConstantSource();
+      lfos.push(lfo, centre);
       centre.offset.value = 100;
       lfo.connect(depth);
       for (const o of oscs) (depth.connect(o.detune), centre.connect(o.detune));
       lfo.start(t + 0.06);
       centre.start(t + 0.06);
-      lfo.stop(end + 2);
-      centre.stop(end + 2);
     }
     const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
     const dyn = ctx.createGain();
@@ -449,7 +450,12 @@ export class Chip {
       pan.pan.value = Math.max(-1, Math.min(1, v.pan));
       src.connect(g).connect(dyn).connect(pan).connect(this.bus);
     } else src.connect(g).connect(dyn).connect(this.bus);
-    const last = tail ? t + 6 : end + 0.05;
+    // D184: a plucked or struck note is damped at its written end (it rang 6 s whatever its length:
+    // fifty voices at once on a phone); a lead note's end is its hold, so it rings as it would.
+    const damp = tail && end + 0.5 < t + 6;
+    if (damp) g.gain.setTargetAtTime(0, Math.max(t + a + 0.01, end), 0.08);
+    const last = tail ? (damp ? end + 0.5 : t + 6) : end + 0.05;
+    for (const l of lfos) l.stop(last + 0.1);
     for (const o of oscs) (o.start(t), o.stop(last));
     if (breath) (breath.start(t), breath.stop(last));
     let stopped = false;
@@ -463,6 +469,7 @@ export class Chip {
         g.gain.linearRampToValueAtTime(0, s + Math.max(0.02, p.legato ? 0.02 : pt.amp.r));
         for (const o of oscs) o.stop(s + pt.amp.r + 0.1);
         if (breath) breath.stop(s + pt.amp.r + 0.1);
+        for (const l of lfos) l.stop(s + pt.amp.r + 0.15);
       },
       bend: (cents: number) => {
         if (!stopped) for (const [i, o] of oscs.entries()) o.detune.setTargetAtTime((pt.osc[i].detune ?? 0) + cents, ctx.currentTime, 0.02);
