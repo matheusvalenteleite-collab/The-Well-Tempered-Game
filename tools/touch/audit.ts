@@ -31,7 +31,7 @@ function run(f: TouchFugue, voice: number, difficulty: Difficulty, instrument: I
     tick: () => {},
   } as unknown as Chip;
   const g = new Game(f, [level(f, voice, 0)], { difficulty, bpm, instrument }, chip);
-  const at = (tick: number) => 0.15 + (tick - g.start) / g.tps;
+  const at = (tick: number) => g.timeAt(tick);
   const notes = g.tracks[0].lv.notes;
   type Ev = { t: number; down: boolean; id: number; i: number };
   const evs: Ev[] = [];

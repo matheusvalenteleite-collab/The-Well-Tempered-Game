@@ -164,7 +164,7 @@ function contact(g: Game, n: LaneNote): Contact {
 
 /** Plays every note to tap of a game, on time, as the instrument wants, each held as long as it needs; returns the game's end. */
 function playAll(g: Game, clock: { t: number }) {
-  const at = (tick: number) => 0.15 + (tick - g.start) / g.tps;
+  const at = (tick: number) => g.timeAt(tick);
   type Ev = { t: number; down: boolean; id: number; n: LaneNote };
   const evs: Ev[] = [];
   let id = 0;

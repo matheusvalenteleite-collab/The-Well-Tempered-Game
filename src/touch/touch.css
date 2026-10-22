@@ -542,3 +542,7 @@ body {
 .tg-bpm input { flex-basis: 100%; accent-color: var(--tg-shine); touch-action: pan-x; }
 /* D180: away from play the "turn the phone" notice stands aside, so the settings stay in reach. */
 .tg-away .tg-upright, .tg-wide.tg-away .tg-upright { display: none !important; }
+
+/* D181: the DRUMS toggle among the sounds. */
+.tg-grid3 button.tg-toggle { border-style: dashed; }
+.tg-grid3 button.tg-toggle.on { border-style: solid; }

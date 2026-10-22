@@ -4,7 +4,7 @@ import { beatOf, fugueById } from "../src/touch/fugue.ts";
 import { laneNotes, type LaneNote } from "../src/touch/lanes.ts";
 import type { Chip } from "../src/touch/chip.ts";
 import { ProtoGame, type Contact, type Rows } from "../src/bench/proto-game.ts";
-import { barDynamic, BAR, moves, protoById, PROTOS, stepPitch, thumbsVerdict } from "../src/bench/protos.ts";
+import { ARROW_KEYS, arrowOf, barDynamic, BAR, KEY_ROWS, keyRow, moveOf, moves, protoById, PROTOS, stepPitch, thumbsVerdict } from "../src/bench/protos.ts";
 import { columnAt, columnX, KEYS_SHARE, LINE } from "../src/bench/placed.ts";
 import { isBlack, keySpan } from "../src/touch/piano.ts";
 import { grooveHits, patchFor, PRESETS, setPreset, slotOf } from "../src/touch/sound.ts";
@@ -47,13 +47,21 @@ test("wrong notes are heard as asked: a staff step's pitch keeps the reference's
 /** Where a thumb plays note i of voice k right, per prototype. */
 function rightTouch(g: ProtoGame, k: number, i: number): Contact {
   const n = g.tracks[k].notes[i];
-  const m = g.tracks[k].moves[i];
   const c = (x: number, y: number): Contact => ({ side: x < W / 2 ? "left" : "right", x, y, w: W, h: H });
   switch (g.proto.id) {
-    case "ladder":
-      return c(W * 0.1, ROWS.yOf(n.step));
-    case "thumbs":
-      return c(m.dir < 0 && m.size > 0 && m.size < 3 ? W * 0.1 : W * 0.9, H / 2);
+    case "ladder": {
+      // A chord is aimed at by its top note.
+      const top = Math.max(...g.tracks[k].notes.filter((x) => x.on === n.on).map((x) => x.step));
+      return c(W * 0.1, ROWS.yOf(top));
+    }
+    case "fingering": {
+      // The thumb written; a boss's height and dynamic.
+      const fg = g.tracks[k].fingers[i];
+      const left = fg.hand === "left";
+      const y = fg.height === "high" ? H * 0.25 : fg.height === "low" ? H * 0.75 : H / 2;
+      const x = fg.dyn === "f" ? (left ? 4 : W - 4) : fg.dyn === "p" ? (left ? W * BAR - 4 : W - W * BAR + 4) : left ? W * 0.1 : W * 0.9;
+      return c(x, y);
+    }
     case "duo":
       return c(k ? W * 0.9 : W * 0.1, H / 2);
     case "sideways":
@@ -83,28 +91,44 @@ function fakeChip(clock: { t: number }, log: { midi: number; muffled: boolean; d
 function playThrough(id: string, piece: string, voices: number[], legato = false) {
   const f = fugueById(piece);
   const clock = { t: 0 };
+  const id_proto = id;
   const g = new ProtoGame(f, voices, startTick(f, 0), protoById(id), { bpm: 54, legato }, fakeChip(clock));
   g.rows = ROWS;
-  const at = (tick: number) => 0.15 + (tick - g.start) / g.tps;
+  const at = (tick: number) => g.timeAt(tick);
   const runTo = (t: number) => {
     while (clock.t < t - 0.05) (clock.t += 0.05), g.step();
     clock.t = Math.max(clock.t, t);
   };
-  const evs: { t: number; k: number; i: number; n: LaneNote }[] = [];
-  g.tracks.forEach((tr, k) => tr.notes.forEach((n, i) => (i > 0 && tr.notes[i - 1].on === n.on ? null : evs.push({ t: at(n.on), k, i, n }))));
-  evs.sort((a, b) => a.t - b.t);
-  const lastId = new Map<number, number>();
-  evs.forEach((e, idx) => {
+  // Each note down at its time; let go at once, or (LEGATO, FINGERING) as written: overlapping the next for legato,
+  // quickly for staccato, most of the way for tenuto.
+  type Ev = { t: number; down: boolean; id: number; k: number; i: number };
+  const evs: Ev[] = [];
+  let nid = 0;
+  g.tracks.forEach((tr, k) => {
+    const heads = tr.notes.map((n, i) => (i > 0 && tr.notes[i - 1].on === n.on ? -1 : i)).filter((i) => i >= 0);
+    heads.forEach((i, h) => {
+      const n = tr.notes[i];
+      const t0 = at(n.on);
+      const nextOn = h + 1 < heads.length ? at(tr.notes[heads[h + 1]].on) : t0 + 0.2;
+      let t1 = t0 + 0.02;
+      {
+        const art = id_proto === "fingering" ? tr.fingers[i].art : legato ? "legato" : "free";
+        const len = at(n.on + n.dur) - t0;
+        if (art === "staccato") t1 = t0 + len * 0.4;
+        else if (art === "tenuto") t1 = t0 + len * 0.9;
+        else if (art === "legato" || id_proto === "fingering") t1 = Math.max(t0 + 0.02, nextOn + 0.02);
+      }
+      nid++;
+      evs.push({ t: t0, down: true, id: nid, k, i }, { t: t1, down: false, id: nid, k, i });
+    });
+  });
+  evs.sort((a, b) => a.t - b.t || Number(a.down) - Number(b.down));
+  for (const e of evs) {
     runTo(e.t);
     g.step();
-    const id = idx + 1;
-    g.down(id, rightTouch(g, e.k, e.i), performance.now());
-    const before = lastId.get(e.k);
-    // Legato: the note before is let go only now; otherwise it was let go at once.
-    if (before !== undefined && legato) g.up(before, performance.now());
-    if (!legato) g.up(id, performance.now());
-    lastId.set(e.k, id);
-  });
+    if (e.down) g.down(e.id, rightTouch(g, e.k, e.i), performance.now());
+    else g.up(e.id, performance.now());
+  }
   runTo(at(g.end + 1));
   g.step();
   return g.results();
@@ -139,13 +163,13 @@ function touchNote(id: string, i: number, place: (g: ProtoGame, n: LaneNote) => 
 
 test("a wrong place sounds what it asked for, muffled (the PIANO's key plain), and does not count", () => {
   {
-    const { n, heard } = touchNote("ladder", 1, (_, n) => ({ side: "left", x: W * 0.1, y: ROWS.yOf(n.step + 3), w: W, h: H }));
+    const { n, heard } = touchNote("ladder", 1, (_, n) => ({ side: "left", x: W * 0.1, y: ROWS.yOf(n.step + 6), w: W, h: H }));
     assert.equal(n.wrong, true);
     assert.equal(heard.muffled, true);
-    assert.ok(heard.midi > n.midi, `three steps up, heard ${heard.midi}`);
+    assert.ok(heard.midi > n.midi, `six steps up, heard ${heard.midi}`);
   }
   {
-    const { n, heard } = touchNote("thumbs", 1, () => ({ side: "right", x: W * 0.9, y: 200, w: W, h: H }));
+    const { n, heard } = touchNote("fingering", 1, () => ({ side: "right", x: W * 0.9, y: 200, w: W, h: H }));
     assert.equal(n.wrong, true);
     assert.ok(heard.midi > 72, `a step up from C5, heard ${heard.midi}`);
   }
@@ -163,6 +187,24 @@ test("a wrong place sounds what it asked for, muffled (the PIANO's key plain), a
     assert.equal(heard.muffled, false);
     assert.equal(heard.midi, n.midi + 2);
   }
+});
+
+test("LADDER is forgiving: near the note and the right way from the touch before counts; the wrong way does not", () => {
+  const clock = { t: 0 };
+  const g = new ProtoGame(C_MINOR, 1, 0, protoById("ladder"), { bpm: 54, legato: false }, fakeChip(clock));
+  g.rows = ROWS;
+  const tap = (i: number, side: "left" | "right", y: number) => {
+    clock.t = g.timeAt(g.notes[i].on);
+    g.step();
+    g.down(i + 1, { side, x: side === "left" ? 40 : W - 40, y, w: W, h: H }, performance.now());
+    g.up(i + 1, performance.now());
+    return g.notes[i].state;
+  };
+  // C5, then B4 two rows lower than the note (the other thumb, a little higher than its last touch): still down enough.
+  assert.equal(tap(0, "left", ROWS.yOf(35) + 30), "hit");
+  assert.equal(tap(1, "right", ROWS.yOf(34) + 10), "hit");
+  // C5 again, but the same right thumb lower still: the wrong way.
+  assert.equal(tap(2, "right", ROWS.yOf(34) + 30), "miss");
 });
 
 test("SIDEWAYS LEGATO: a joined note struck after the one before was let go does not count", () => {
@@ -197,7 +239,7 @@ test("a held note swells as the thumb moves out across its bar; a flick upwards 
   assert.deepEqual(swooshes, [n.midi]);
 });
 
-test("keys: a MIDI key plays its pitch (the PIANO exactly); the computer's moves on LADDER", () => {
+test("keys: a MIDI key plays its pitch (the PIANO exactly); WASD and the arrows on the computer's LADDER", () => {
   {
     const clock = { t: 0 };
     const g = new ProtoGame(C_MINOR, 1, 0, protoById("piano"), { bpm: 54, legato: false }, fakeChip(clock));
@@ -209,8 +251,11 @@ test("keys: a MIDI key plays its pitch (the PIANO exactly); the computer's moves
   }
   {
     const clock = { t: 0 };
-    const g = new ProtoGame(C_MINOR, 1, 0, protoById("ladder"), { bpm: 54, legato: false }, fakeChip(clock));
-    for (const [i, mv] of [[0, { dir: 0, big: false }], [1, { dir: -1, big: false }], [2, { dir: 1, big: false }], [3, { dir: -1, big: true }]] as const) {
+    const g = new ProtoGame(C_MINOR, 1, 0, protoById("arrows"), { bpm: 54, legato: false }, fakeChip(clock));
+    // The subject: C (any key), B a step down, C a step up, G a leap down: the keys the box draws.
+    assert.deepEqual(g.moves.slice(0, 4).map(arrowOf), [null, "left", "right", "down"]);
+    for (const [i, code] of [[0, "Space"], [1, "KeyA"], [2, "ArrowRight"], [3, "KeyS"]] as const) {
+      const mv = moveOf(ARROW_KEYS[code]);
       clock.t = 0.15 + (g.notes[i].on - g.start) / g.tps;
       g.step();
       g.keyDown(10 + i, { move: mv }, performance.now());
@@ -220,12 +265,37 @@ test("keys: a MIDI key plays its pitch (the PIANO exactly); the computer's moves
   }
 });
 
+test("platforms: the phone's prototypes and the computer's apart; EASY rows and keys", () => {
+  assert.deepEqual(PROTOS.filter((p) => p.platform === "computer").map((p) => p.id), ["arrows", "keys", "piano"]);
+  assert.ok(PROTOS.filter((p) => p.platform === "mobile").every((p) => p.layout !== "desk"));
+  assert.deepEqual(["Digit3", "KeyE", "KeyD", "KeyC", "Space", "Enter"].map(keyRow), [0, 1, 2, 3, -1, -1]);
+  assert.ok(KEY_ROWS[1].dyn > KEY_ROWS[2].dyn && KEY_ROWS[2].dyn > KEY_ROWS[3].dyn, "f above mf above p");
+});
+
+test("EASY: any key on time is right, whatever its row; off time it is a miss", () => {
+  const clock = { t: 0 };
+  const g = new ProtoGame(C_MINOR, 1, 0, protoById("keys"), { bpm: 54, legato: false }, fakeChip(clock));
+  ["KeyQ", "KeyA", "KeyZ", "Digit1"].forEach((code, i) => {
+    clock.t = g.timeAt(g.notes[i].on);
+    g.step();
+    const r = KEY_ROWS[keyRow(code)];
+    g.keyDown(20 + i, { velocity: r.dyn, trill: r.trill }, performance.now());
+    g.keyUp(20 + i, performance.now());
+    assert.equal(g.notes[i].state, "hit", code);
+  });
+  const n = g.notes[6];
+  clock.t = g.timeAt(n.on) - 0.9;
+  g.step();
+  g.keyDown(40, { velocity: 0.5 }, performance.now());
+  assert.notEqual(n.state, "hit");
+});
+
 test("SIDEWAYS: a column's middle is that column", () => {
   for (const pan of [30, 33.4, 36.8]) for (const s of [28, 31, 35]) assert.equal(columnAt(columnX(s, pan, W), pan, W), s);
 });
 
 test("the ensembles: every preset gives each voice an instrument; the bands keep a beat; bossa nova by default", () => {
-  assert.ok(PRESETS.length >= 19);
+  assert.ok(PRESETS.length >= 18);
   assert.deepEqual([3, 4, 5].map((n) => Array.from({ length: n }, (_, v) => slotOf(v, n))), [[0, 2, 4], [0, 1, 3, 4], [0, 1, 2, 3, 4]]);
   assert.ok(patchFor(0, 3), "bossa nova");
   setPreset("chip");

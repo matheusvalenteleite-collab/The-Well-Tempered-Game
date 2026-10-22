@@ -13,7 +13,7 @@ import { Chip } from "./chip.ts";
 import { Game, INSTRUMENTS, prepare, type Grade, type Instrument } from "./engine.ts";
 import { paintPiano, pianoView } from "./paint-piano.ts";
 import { paintSynth } from "./paint-synth.ts";
-import { HelpPanel, saneBpm, SettingsPanel } from "./Panels.tsx";
+import { HelpPanel, loadDrums, saneBpm, SettingsPanel } from "./Panels.tsx";
 import { setTuning } from "./tuning.ts";
 import { setPreset } from "./sound.ts";
 import { barAt, beatOf, fugueById, keyAt, keyName, shortName, type TouchFugue } from "./fugue.ts";
@@ -41,7 +41,7 @@ interface Pick {
   voice: number;
   inst: Instrument;
   diff: Difficulty;
-  /** Beats per minute of the felt beat (beatOf), 20 to 200. */
+  /** Quarter notes a minute, 20 to 200 (D181). */
   bpm: number;
   /** Where to start, as a share of the piece (0 to 0.99). */
   share: number;
@@ -110,7 +110,10 @@ export function TouchApp() {
     save(TUNING_KEY, { id, a });
     setTuning(id, a);
   };
-  useEffect(() => setTuning(tuning.id, tuning.a), []);
+  useEffect(() => {
+    setTuning(tuning.id, tuning.a);
+    loadDrums();
+  }, []);
   const from = startTick(f, share);
   const range = useMemo(() => stepRange(f), [f]);
   const lv = useMemo(() => level(f, voice, from), [f, voice, from, phase.kind === "play"]);
@@ -377,7 +380,7 @@ function Title({ f, pick, setPick, from, open, note }: { f: TouchFugue; pick: Pi
         ))}
       </div>
       <p className="tg-card-sub">
-        {pick.inst.toUpperCase()} · {pick.diff.toUpperCase()} · {pick.bpm} BPM
+        {pick.inst.toUpperCase()} · {pick.diff.toUpperCase()} · ♩ = {pick.bpm}
       </p>
       <label className="tg-from">
         <span>

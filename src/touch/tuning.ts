@@ -8,7 +8,6 @@
  *   LEHMAN (2005): Bradley Lehman's reading of the scroll on the title page of the Well-Tempered
  *   Clavier as a tuning recipe; a reading much debated, offered as one possibility.
  *   MEANTONE (quarter-comma): pure thirds; the far keys (and their wolf, G sharp to E flat) sour.
- *   PYTHAGOREAN: pure fifths; wide thirds; a wolf between G sharp and E flat.
  */
 export interface Temperament {
   id: string;
@@ -23,7 +22,6 @@ export const TEMPERAMENTS: Temperament[] = [
   { id: "vallotti", name: "VALLOTTI", cents: [0, -5.9, -3.9, -2, -7.8, 2, -7.8, -2, -3.9, -5.9, 0, -9.8] },
   { id: "lehman", name: "LEHMAN (BACH?)", cents: [5.9, 3.9, 2, 3.9, -2, 7.8, 2, 3.9, 3.9, 0, 3.9, 0] },
   { id: "meantone", name: "MEANTONE ¼", cents: [0, -24, -6.8, 10.3, -13.7, 3.4, -20.5, -3.4, -27.4, -10.3, 6.8, -17.1] },
-  { id: "pythagorean", name: "PYTHAGOREAN", cents: [0, 13.7, 3.9, -5.9, 7.8, -2, 11.7, 2, 15.6, 5.9, -3.9, 9.8] },
 ];
 
 export const PITCHES = [440, 415] as const;

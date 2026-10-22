@@ -18,7 +18,7 @@ import { chordOf, options, points, release, strike, sweep, type LaneOptions, typ
 import { keyboard, keyAt as keyUnder, WHITE_ONLY, type Keyboard } from "./piano.ts";
 import { fits, markShapes, SLIDE_PX } from "./shape.ts";
 import type { Side } from "./thumbs.ts";
-import { phrase, type Shape } from "./phrasing.ts";
+import { phrase, ritard, type Shape } from "./phrasing.ts";
 import { accompaniment, subjectMarks, type Level, type OtherNote } from "./voice-mode.ts";
 
 export type Instrument = "synth" | "piano";
@@ -63,7 +63,7 @@ export interface Grade {
   side?: Side;
   key?: number;
   /** The testbench: a ✕ for a touch off time, or for the wrong gesture. */
-  why?: "time" | "gesture" | "legato";
+  why?: "time" | "gesture" | "legato" | "staccato" | "tenuto" | "hand" | "height" | "dynamic";
 }
 
 interface Held {
@@ -157,8 +157,9 @@ export class Game {
     this.start = Math.min(...sorted.map((lv) => lv.start));
     this.entry = this.start + 4 * this.beat;
     this.end = Math.max(...sorted.map((lv) => lv.end));
-    this.tps = (this.beat * o.bpm) / 60;
-    this.opt = options(this.beat, o.bpm, o.difficulty);
+    // D181: the tempo counts quarter notes, whatever the metre (in 2/2 the beat was a half note: twice as fast).
+    this.tps = (f.tpq * o.bpm) / 60;
+    this.opt = options(f.tpq, o.bpm, o.difficulty);
     this.instrument = o.instrument ?? "synth";
     this.kb = keyboard(sorted[0].notes.map((n) => n.midi));
     this.overlaps = sorted.map((lv) => {
@@ -171,16 +172,20 @@ export class Game {
     // D169: the other voices always play, from where the player starts.
     this.others = accompaniment(f, sorted[0].from, sorted[0].voice);
     this.shapes = phrase(this.others, this.beat, f.barTicks, subjectMarks(f).subject);
+    if (!o.wait) this.rit = ritard(f.length, f.barTicks);
     this.anchorAt = chip.ctx.currentTime + 0.15;
     this.anchorTick = this.start;
     this.nextBeat = this.start;
   }
 
+  /** The clock, with the last cadence held back (D181). */
+  private rit = { warp: (t: number) => t, unwarp: (w: number) => w };
   private tickAt(t: number) {
-    return this.anchorTick + (t - this.anchorAt) * this.tps;
+    return this.rit.unwarp(this.rit.warp(this.anchorTick) + (t - this.anchorAt) * this.tps);
   }
-  private timeAt(tick: number) {
-    return this.anchorAt + (tick - this.anchorTick) / this.tps;
+  /** When a tick sounds, on the audio clock. */
+  timeAt(tick: number) {
+    return this.anchorAt + (this.rit.warp(tick) - this.rit.warp(this.anchorTick)) / this.tps;
   }
   /** An event's tick: its timestamp on the clock the player hears, less their lag; while waiting, the note waited at. */
   private tickOf(ts: number) {
@@ -226,7 +231,7 @@ export class Game {
       // In WAIT a note of the others is cut where the music may stop.
       const dur = block !== null ? Math.min(n.dur, Math.max(this.beat / 4, block - n.on)) : n.dur;
       const sh = this.shapes[this.nextOther - 1];
-      ch.note(n.midi, Math.max(ch.ctx.currentTime, this.timeAt(n.on) + sh.nudge), (dur * sh.hold) / this.tps, voicing(n.voice, this.f.voices.length, false), { level: sh.level });
+      ch.note(n.midi, Math.max(ch.ctx.currentTime, this.timeAt(n.on) + sh.nudge), this.timeAt(n.on + dur * sh.hold) - this.timeAt(n.on), voicing(n.voice, this.f.voices.length, false), { level: sh.level });
     }
     // Lifts that no tap carried on are final: the note stops where the thumb left it.
     this.lifting = this.lifting.filter((l) => {

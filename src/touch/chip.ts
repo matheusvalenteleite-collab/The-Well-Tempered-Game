@@ -9,7 +9,7 @@
 export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 
 import { hz } from "./tuning.ts";
-import { grooveHits, preset, patchFor, PATCHES, type Drum, type Patch, type Wave } from "./sound.ts";
+import { grooveHits, grooveNow, preset, patchFor, PATCHES, type Drum, type Kit, type Patch, type Wave } from "./sound.ts";
 
 /**
  * D179, the player's voice: whatever the ensemble gives it, it holds while the thumb is down (a plucked
@@ -54,6 +54,10 @@ export interface Play {
   accent?: number;
   /** D179: the player's own voice: it never dies away quickly, stands a little forward, has a touch of chorus and vibrato. */
   lead?: boolean;
+  /** D181, ORGANO PLENO: the note doubled an octave above and below, as on an organ's full stops. */
+  pleno?: boolean;
+  /** D182: a trill: the note alternating with the step above, about eight times a second. */
+  trill?: boolean;
 }
 
 export interface Sounding {
@@ -74,6 +78,7 @@ export class Chip {
   private bus: AudioNode;
   private waves = new Map<string, PeriodicWave>();
   private keepAlive: HTMLAudioElement | null = null;
+  private wet: GainNode;
   /**
    * The delay between the audio clock and what the player hears and does, in seconds, measured by
    * tapping along (D173: Bluetooth headphones add a fifth of a second or more, which the system often
@@ -92,21 +97,33 @@ export class Chip {
     this.ctx = new AudioContext({ latencyHint: "interactive" });
     const ctx = this.ctx;
     this.master = ctx.createGain();
-    this.master.gain.value = 0.55;
+    // D181: lower, and a limiter at the end, so many voices, a band and the room never clip (as they
+    // did on an iPhone: the ensembles' voices and the drums add up past full scale).
+    this.master.gain.value = 0.4;
     const soften = ctx.createBiquadFilter();
     soften.type = "lowpass";
     soften.frequency.value = 6500;
     soften.Q.value = 0.5;
     const squeeze = ctx.createDynamicsCompressor();
-    squeeze.threshold.value = -14;
-    squeeze.ratio.value = 3;
-    this.master.connect(soften).connect(squeeze).connect(ctx.destination);
-    // The room: a second of decaying noise, a little of it under everything.
+    squeeze.threshold.value = -18;
+    squeeze.ratio.value = 4;
+    squeeze.attack.value = 0.005;
+    squeeze.release.value = 0.2;
+    const limit = ctx.createDynamicsCompressor();
+    limit.threshold.value = -4;
+    limit.knee.value = 0;
+    limit.ratio.value = 20;
+    limit.attack.value = 0.001;
+    limit.release.value = 0.08;
+    const trim = ctx.createGain();
+    trim.gain.value = 0.85;
+    this.master.connect(soften).connect(squeeze).connect(limit).connect(trim).connect(ctx.destination);
+    // The room: a second of decaying noise, a little of it under everything (more for the bands).
     const room = ctx.createConvolver();
     room.buffer = impulse(ctx, 1.3);
-    const wet = ctx.createGain();
-    wet.gain.value = 0.16;
-    this.master.connect(room).connect(wet).connect(squeeze);
+    this.wet = ctx.createGain();
+    this.wet.gain.value = 0.16;
+    this.master.connect(room).connect(this.wet).connect(squeeze);
     this.bus = this.master;
   }
 
@@ -158,7 +175,11 @@ export class Chip {
 
   /** A note from `at` for `dur` seconds; stop() cuts it short (the thumb let go). */
   note(midi: number, at: number, dur: number, v: Voicing, p: Play = {}): Sounding {
-    if (p.lead) return this.patchNote(midi, at, dur, v, leadOf(v.patch ?? PATCHES.nesMid), p);
+    if (p.lead) {
+      const lead = leadOf(v.patch ?? PATCHES.nesMid);
+      const full = p.pleno ? { ...lead, osc: [...lead.osc, { wave: "organ" as const, octave: 1, gain: 0.3 }, { wave: "organ" as const, octave: -1, gain: 0.35 }] } : lead;
+      return this.patchNote(midi, at, dur, v, full, p);
+    }
     if (v.patch) return this.patchNote(midi, at, dur, v, v.patch, p);
     const ctx = this.ctx;
     const t = Math.max(at, ctx.currentTime);
@@ -406,6 +427,22 @@ export class Chip {
       lfo.start(t);
       lfo.stop(end + 2);
     }
+    if (p.trill && ctx.createConstantSource) {
+      // A whole tone above and back: a square wave of 0 or 200 cents.
+      const lfo = ctx.createOscillator();
+      lfo.type = "square";
+      lfo.frequency.value = 7.5;
+      const depth = ctx.createGain();
+      depth.gain.value = 100;
+      const centre = ctx.createConstantSource();
+      centre.offset.value = 100;
+      lfo.connect(depth);
+      for (const o of oscs) (depth.connect(o.detune), centre.connect(o.detune));
+      lfo.start(t + 0.06);
+      centre.start(t + 0.06);
+      lfo.stop(end + 2);
+      centre.stop(end + 2);
+    }
     const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
     const dyn = ctx.createGain();
     if (pan) {
@@ -508,8 +545,8 @@ export class Chip {
     }
   }
 
-  /** The rhythm section (D177): a synthesized kit, quiet under the music. */
-  drum(d: Drum, at: number, vel: number) {
+  /** The rhythm section (D177; D181): a synthesized kit (a band's, a console's, an analog machine's), quiet under the music. */
+  drum(d: Drum, at: number, vel: number, kit: Kit = "acoustic") {
     const ctx = this.ctx;
     const g = ctx.createGain();
     g.connect(this.master);
@@ -540,7 +577,59 @@ export class Chip {
       o.start(at);
       o.stop(at + len + 0.02);
     };
+    if (kit === "chip") {
+      // A console's noise channel and a pulse dropping in pitch.
+      switch (d) {
+        case "kick":
+          return tone("square", 180, 50, 0.1, lvl * 0.9);
+        case "snare":
+        case "clap":
+          return noise("highpass", 1200, 0.5, 0.09);
+        case "hat":
+        case "shaker":
+        case "ride":
+        case "brush":
+          return noise("highpass", 9000, 0.5, 0.025);
+        case "rim":
+          return tone("square", 1200, 1150, 0.025, lvl * 0.5);
+      }
+    }
+    if (kit === "analog") {
+      // An analog drum machine: a booming sine kick, a snappy snare, metallic hats, a clap.
+      switch (d) {
+        case "kick":
+          return tone("sine", 95, 42, 0.55, lvl * 2.4);
+        case "snare":
+          noise("bandpass", 2200, 0.6, 0.18);
+          return tone("triangle", 190, 170, 0.1, lvl * 0.9);
+        case "clap":
+          for (const k of [0, 0.011, 0.022]) {
+            const n = this.noise();
+            const fl = ctx.createBiquadFilter();
+            fl.type = "bandpass";
+            fl.frequency.value = 1200;
+            const ng = ctx.createGain();
+            ng.gain.setValueAtTime(lvl, at + k);
+            ng.gain.exponentialRampToValueAtTime(0.0001, at + k + (k === 0.022 ? 0.14 : 0.012));
+            n.connect(fl).connect(ng).connect(g);
+            n.start(at + k);
+            n.stop(at + k + 0.16);
+          }
+          return;
+        case "hat":
+        case "ride":
+          noise("highpass", 8000, 1.2, d === "ride" ? 0.3 : 0.04);
+          return tone("square", 540, 540, 0.04, lvl * 0.08);
+        case "rim":
+          return tone("triangle", 820, 800, 0.03, lvl * 0.8);
+        case "shaker":
+        case "brush":
+          return noise("highpass", 6500, 0.8, 0.05, 0.008);
+      }
+    }
     switch (d) {
+      case "clap":
+        return noise("bandpass", 1300, 0.7, 0.12);
       case "kick":
         return tone("sine", 140, 45, 0.3, lvl * 2.2);
       case "snare":
@@ -562,9 +651,10 @@ export class Chip {
 
   /** The rhythm section's hits for one beat (the ensemble's groove), scheduled at `at`, a beat lasting `beatS` seconds. */
   groove(at: number, beatS: number, b: number, bar: number, per: number, compound: boolean) {
-    const gr = preset().groove;
+    this.wet.gain.setTargetAtTime(preset().room ?? 0.16, this.ctx.currentTime, 0.3);
+    const gr = grooveNow();
     if (!gr) return false;
-    for (const h of grooveHits(gr, b, bar, per, compound)) this.drum(h.drum, at + h.at * beatS, h.vel);
+    for (const h of grooveHits(gr.groove, b, bar, per, compound)) this.drum(h.drum, at + h.at * beatS, h.vel, gr.kit);
     return true;
   }
 

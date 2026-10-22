@@ -46,6 +46,17 @@ export function keyTint(key: string, light = 0): string {
  * The ladder as paint() lays it out in a roll `cssH` pixels high: each staff step's middle (CSS px from
  * the roll's top), and a row's height (D179: the testbench's side bars line up with it).
  */
+/** A key of LADDER on a computer: a step or a leap, up or down, or the same note. */
+export type Arrow = "up" | "down" | "left" | "right" | "same";
+/** The keys' arrows, 5 by 5. */
+export const ARROW_PIXELS: Record<Arrow, string[]> = {
+  up: ["00100", "01110", "10101", "00100", "00100"],
+  down: ["00100", "00100", "10101", "01110", "00100"],
+  right: ["00100", "00010", "11111", "00010", "00100"],
+  left: ["00100", "01000", "11111", "01000", "00100"],
+  same: ["00000", "00000", "01100", "01100", "00000"],
+};
+
 export function ladderGeometry(lo: number, hi: number, cssH: number): { yOf: (step: number) => number; rowH: number } {
   const h = Math.max(1, Math.floor(cssH / PX));
   const rows = hi - (lo - 1) + 2;
@@ -79,11 +90,17 @@ export interface Frame {
   trace?: { tick: number; step: number; on: boolean }[];
   /** The testbench (D178): each touch, at the step it asked for, right or wrong. */
   marks?: { tick: number; step: number; ok: boolean }[];
+  /** The testbench's FINGERING (D181): each note's thumb and articulation (aligned with `notes`), and the bosses' spans. */
+  fingers?: { hand: "left" | "right"; art: string; boss?: string }[];
+  bosses?: { from: number; to: number; kind: "sub" | "boss" }[];
+  /** The testbench's score (D181): each entry ("voice:onset") captured (gold) or lost (grey). */
+  entryState?: Map<string, "captured" | "lost" | "open">;
   /** The testbench's TWO VOICES (D180): a second voice played, drawn as the first. */
   voice2?: number;
   notes2?: LaneNote[];
   /** The testbench's THUMBS ↔ (D178): each note's move (aligned with `notes`), drawn as the thumb it wants. */
-  arrows?: { dir: number; size: number }[];
+  /** LADDER on a computer (D183): the key each note asks for, drawn over it. */
+  arrows?: (Arrow | null)[];
 }
 
 export function MusicBox({ frame, hud, legend, children }: { frame: MutableRefObject<Frame>; hud: ReactNode; legend: ReactNode; children?: ReactNode }) {
@@ -147,6 +164,17 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
     g.fillRect(xOf(t), 0, 1, h);
   }
 
+  // FINGERING's bosses: a tinted band over their spans.
+  for (const b of fr.bosses ?? []) {
+    const x1 = xOf(b.from);
+    const x2 = xOf(b.to);
+    if (x2 < 0 || x1 > w) continue;
+    g.fillStyle = b.kind === "boss" ? "rgba(255,80,70,0.13)" : "rgba(199,139,255,0.1)";
+    g.fillRect(x1, 0, x2 - x1, h);
+    g.fillStyle = b.kind === "boss" ? "#ff5a4f" : "#c78bff";
+    g.fillRect(x1, 0, Math.max(1, x2 - x1), 1);
+  }
+
   // The other voices: their colours, dimmer.
   for (const o of fr.others) {
     const x1 = xOf(o.on);
@@ -207,16 +235,33 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
     }
   }
 
-  // The thumb each coming note wants: ▲ the right, ▼ the left (none: either).
+  // FINGERING: L or R over each coming note (pixel letters), its articulation under it.
+  if (fr.fingers)
+    fr.notes.forEach((n, i) => {
+      const fg = fr.fingers![i];
+      const x = xOf(n.on);
+      const x2 = xOf(n.on + n.dur);
+      if (!fg || n.state !== "pending" || x < playX || x > w || (i > 0 && fr.notes[i - 1].on === n.on)) return;
+      const y = yOf(n.step);
+      g.fillStyle = fg.hand === "left" ? "#ff8c4a" : "#5cb2ff";
+      // A 3 by 5 pixel letter, above the block.
+      const L = ["100", "100", "100", "100", "111"];
+      const R = ["110", "101", "110", "101", "101"];
+      (fg.hand === "left" ? L : R).forEach((row, ry) => [...row].forEach((on, rx) => on === "1" && g.fillRect(x + rx, y - 7 + ry, 1, 1)));
+      g.fillStyle = edge;
+      if (fg.art === "staccato") g.fillRect(x + 1, y + bh + 1, 1, 1);
+      if (fg.art === "tenuto") g.fillRect(x, y + bh + 1, Math.max(2, x2 - x - 1), 1);
+      if (fg.art === "legato") g.fillRect(x - 3, y + bh + 1, Math.max(3, x2 - x + 2), 1);
+    });
+
+  // LADDER on a computer: each coming note's key, a small pixel arrow over it (a dot: the same note).
   if (fr.arrows)
     fr.notes.forEach((n, i) => {
-      const m = fr.arrows![i];
+      const a = fr.arrows![i];
       const x = xOf(n.on);
-      if (!m || n.state !== "pending" || x < playX || x > w || m.size < 1 || m.size > 2 || !m.dir) return;
-      const y = yOf(n.step);
+      if (!a || n.state !== "pending" || x < playX || x > w || (i > 0 && fr.notes[i - 1].on === n.on)) return;
       g.fillStyle = edge;
-      if (m.dir > 0) (g.fillRect(x + 1, y - 5, 1, 1), g.fillRect(x, y - 4, 3, 1), g.fillRect(x - 1, y - 3, 5, 1));
-      else (g.fillRect(x - 1, y + bh + 1, 5, 1), g.fillRect(x, y + bh + 2, 3, 1), g.fillRect(x + 1, y + bh + 3, 1, 1));
+      ARROW_PIXELS[a].forEach((row, ry) => [...row].forEach((on, rx) => on === "1" && g.fillRect(x + rx, yOf(n.step) - 7 + ry, 1, 1)));
     });
 
   // The touches: where each landed (the step it asked for), light when right, red when wrong.
@@ -231,9 +276,10 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
   // The entries coming: a diamond over each entry's first note.
   for (const e of fr.entries ?? []) {
     const x = xOf(e.on);
-    if (x < playX - 2 || x > w) continue;
+    if (x < (fr.entryState?.has(`${e.voice}:${e.on}`) ? 0 : playX - 2) || x > w) continue;
     const y = yOf(e.step) - 6;
-    g.fillStyle = e.voice === fr.voice ? tok("--tg-gold") : inkOf(e.voice, fr.count);
+    const st = fr.entryState?.get(`${e.voice}:${e.on}`);
+    g.fillStyle = st === "captured" ? tok("--tg-gold") : st === "lost" ? tok("--tg-miss") : e.voice === fr.voice && !fr.entryState ? tok("--tg-gold") : inkOf(e.voice, fr.count);
     g.fillRect(x + 1, y, 1, 1);
     g.fillRect(x, y + 1, 3, 1);
     g.fillRect(x - 1, y + 2, 5, 1);
