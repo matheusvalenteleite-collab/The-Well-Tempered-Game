@@ -1,0 +1,386 @@
+/* One screen, portrait: the music box over the play area, halves of the height.
+   A deliberately single dark look: an 8-bit console screen. */
+:root {
+  --tg-bg: #0b0d18;
+  --tg-box: #121530;
+  --tg-roll: #0e1126;
+  --tg-grid: #1d2246;
+  --tg-barline: #353d78;
+  --tg-fg: #ecead9;
+  --tg-muted: #7d84b3;
+  --tg-shine: #fff3a6;
+  --tg-playhead: #fff3a6;
+  --tg-left: #b9a4ff;
+  --tg-right: #ff7fbf;
+  --tg-pixel: "Press Start 2P", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+  height: 100%;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--tg-bg);
+  overscroll-behavior: none;
+}
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--tg-bg);
+  color: var(--tg-fg);
+  font: 14px/1.4 system-ui, sans-serif;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#root { height: 100%; }
+
+.tg-app {
+  height: 100%;
+  /* On a computer, the phone's proportions in the middle of the window. */
+  max-width: 520px;
+  margin: 0 auto;
+  box-shadow: 0 0 0 1px var(--tg-grid);
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  touch-action: none;
+}
+
+/* The music box */
+.tg-box {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background: var(--tg-box);
+  border-bottom: 4px solid var(--tg-barline);
+  padding: 8px max(8px, env(safe-area-inset-left, 0px)) 6px max(8px, env(safe-area-inset-right, 0px));
+  gap: 6px;
+}
+
+.tg-hud, .tg-legend {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: var(--tg-pixel);
+  font-size: 8px;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.tg-hud-title { color: var(--tg-fg); overflow: hidden; text-overflow: ellipsis; }
+.tg-hud-bar { color: var(--tg-shine); }
+.tg-legend { justify-content: flex-start; gap: 14px; }
+
+.tg-roll {
+  min-height: 0;
+  overflow: hidden;
+  background: var(--tg-roll);
+  box-shadow: inset 0 0 0 2px var(--tg-grid);
+}
+
+.tg-roll canvas {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* The play area */
+.tg-play {
+  position: relative;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.tg-half {
+  display: grid;
+  place-items: center;
+  background: var(--tg-bg);
+  transition: background-color 60ms linear;
+}
+
+.tg-half-left { border-right: 2px dashed var(--tg-grid); }
+
+.tg-half-label {
+  font-family: var(--tg-pixel);
+  font-size: 40px;
+  color: var(--tg-grid);
+}
+
+.tg-half-left.tg-half-on { background: color-mix(in srgb, var(--tg-left) 14%, var(--tg-bg)); }
+.tg-half-right.tg-half-on { background: color-mix(in srgb, var(--tg-right) 14%, var(--tg-bg)); }
+.tg-half-left.tg-half-on .tg-half-label { color: color-mix(in srgb, var(--tg-left) 45%, var(--tg-bg)); }
+.tg-half-right.tg-half-on .tg-half-label { color: color-mix(in srgb, var(--tg-right) 45%, var(--tg-bg)); }
+
+.tg-status {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--tg-pixel);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--tg-muted);
+  pointer-events: none;
+}
+
+.tg-status-both { color: var(--tg-shine); }
+
+/* A thumb: a square pixel ring centred on the touch */
+.tg-thumb {
+  position: absolute;
+  top: -22px;
+  left: -22px;
+  width: 44px;
+  height: 44px;
+  pointer-events: none;
+  border: 4px solid currentColor;
+  box-shadow: 0 0 0 3px var(--tg-bg), 0 0 0 6px color-mix(in srgb, currentColor 35%, transparent);
+  will-change: transform;
+}
+
+.tg-thumb-left { color: var(--tg-left); }
+.tg-thumb-right { color: var(--tg-right); }
+
+/* Landscape on a phone: ask for portrait */
+.tg-upright {
+  display: none;
+  position: fixed;
+  inset: 0;
+  place-items: center;
+  background: var(--tg-bg);
+  font-family: var(--tg-pixel);
+  font-size: 12px;
+  color: var(--tg-shine);
+  text-align: center;
+  padding: 24px;
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .tg-upright { display: grid; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tg-half { transition: none; }
+}
+
+/* Step 2: subject mode */
+:root {
+  --tg-gold: #ffd23f;
+  --tg-miss: #3b3f5c;
+  --tg-veil: rgba(8, 10, 22, 0.82);
+}
+
+.tg-roll { position: relative; }
+
+.tg-count {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--tg-pixel);
+  font-size: 56px;
+  color: var(--tg-shine);
+  text-shadow: 4px 4px 0 var(--tg-bg);
+  pointer-events: none;
+}
+
+.tg-card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  background: var(--tg-veil);
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+/* Over a card that shows the coming notes, keep the veil to the lower part. */
+.tg-card-low { justify-content: flex-end; background: linear-gradient(to bottom, transparent 20%, var(--tg-veil) 55%); }
+
+.tg-card h1 {
+  margin: 0;
+  font-family: var(--tg-pixel);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-wrap: balance;
+}
+
+.tg-card p { margin: 0; max-width: 34ch; align-self: center; }
+.tg-card-sub { font-family: var(--tg-pixel); font-size: 8px; line-height: 1.6; color: var(--tg-muted); }
+.tg-card-go { font-family: var(--tg-pixel); font-size: 9px; color: var(--tg-shine); animation: tg-blink 1.1s steps(2) infinite; }
+.tg-gold { color: var(--tg-gold); }
+
+.tg-tempo { display: flex; justify-content: center; gap: 8px; }
+.tg-tempo button, .tg-link {
+  font: inherit;
+  color: var(--tg-fg);
+  background: transparent;
+  border: 2px solid var(--tg-barline);
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.tg-tempo button { font-family: var(--tg-pixel); font-size: 9px; }
+.tg-tempo button.on { border-color: var(--tg-shine); color: var(--tg-shine); }
+.tg-link { border: 0; padding: 2px; color: var(--tg-muted); text-decoration: underline; font-size: 12px; align-self: center; }
+.tg-tempo button:focus-visible, .tg-link:focus-visible { outline: 2px solid var(--tg-shine); outline-offset: 2px; }
+
+.tg-golds { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
+.tg-golds span {
+  font-family: var(--tg-pixel);
+  font-size: 9px;
+  padding: 6px 4px;
+  min-width: 2.6em;
+  border: 2px solid var(--tg-miss);
+  color: var(--tg-muted);
+}
+.tg-golds span.gold { border-color: var(--tg-gold); color: var(--tg-gold); }
+
+@keyframes tg-blink { 50% { opacity: 0.35; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .tg-card-go { animation: none; }
+}
+.tg-q { font-family: system-ui, sans-serif; font-size: 15px; vertical-align: -2px; }
+
+/* Step 3 on: the choices on the title */
+:root {
+  --tg-lane-on: rgba(255, 243, 166, 0.16);
+  --tg-wrong: #ff5a7a;
+}
+
+.tg-voices { display: flex; justify-content: center; gap: 8px; }
+.tg-voices button {
+  font-family: var(--tg-pixel);
+  font-size: 8px;
+  background: transparent;
+  border: 2px solid var(--tg-barline);
+  padding: 8px 8px 6px;
+  display: grid;
+  gap: 6px;
+  cursor: pointer;
+}
+.tg-voices button small { font-size: 7px; color: var(--tg-muted); }
+.tg-voices button.on { border-color: currentColor; }
+.tg-voices button:focus-visible { outline: 2px solid var(--tg-shine); outline-offset: 2px; }
+
+.tg-status { z-index: 1; }
+.tg-thumb { z-index: 2; }
+.tg-half-label { opacity: 0.5; }
+.tg-voices button.tg-level { color: var(--tg-fg); padding: 8px 10px; }
+.tg-voices button.tg-level.on { border-color: var(--tg-shine); color: var(--tg-shine); }
+.tg-card { gap: 8px; }
+
+/* D163: grades, the title's choices, two voices */
+.tg-grade {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-family: var(--tg-pixel);
+  font-size: 10px;
+  color: var(--tg-muted);
+  pointer-events: none;
+  text-shadow: 2px 2px 0 var(--tg-bg);
+}
+.tg-grade-perfect { color: var(--tg-gold); }
+.tg-grade-good { color: var(--tg-fg); }
+.tg-grade-miss { color: var(--tg-wrong); }
+
+.tg-title { justify-content: flex-start; overflow-y: auto; gap: 7px; padding-block: 10px; }
+.tg-title p { font-size: 12px; }
+.tg-stepper { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-family: var(--tg-pixel); font-size: 8px; line-height: 1.5; color: var(--tg-fg); }
+.tg-stepper button {
+  font: inherit;
+  font-size: 12px;
+  color: var(--tg-shine);
+  background: transparent;
+  border: 2px solid var(--tg-barline);
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.tg-voices button:disabled { opacity: 0.35; cursor: default; }
+.tg-tempo button { font-family: var(--tg-pixel); font-size: 9px; }
+.tg-note { color: var(--tg-shine); }
+.tg-open { font-size: 11px; color: var(--tg-muted); display: inline-flex; gap: 6px; align-items: center; align-self: center; }
+.tg-stepper button:focus-visible { outline: 2px solid var(--tg-shine); outline-offset: 2px; }
+
+.tg-half-voice {
+  font-family: var(--tg-pixel);
+  font-size: 10px;
+  opacity: 0.6;
+}
+.tg-title .tg-card-sub { font-size: 7px; }
+/* The keyboard's keys mean nothing on a phone. */
+@media (hover: none) { .tg-keys { display: none; } }
+
+/* D164: the map */
+.tg-map { justify-content: flex-start; overflow-y: auto; gap: 8px; padding-block: 10px; }
+.tg-map .tg-card-sub { font-size: 7px; }
+.tg-grid { display: grid; gap: 3px; align-self: stretch; }
+.tg-grid-head { font-family: var(--tg-pixel); font-size: 7px; padding: 4px 0; color: var(--tg-fg); text-align: center; }
+.tg-grid-voice { display: flex; align-items: center; justify-content: center; gap: 1px; font-family: var(--tg-pixel); font-size: 8px; }
+.tg-grid-voice b { font-weight: 400; }
+.tg-cell {
+  position: relative;
+  min-height: 30px;
+  font-family: var(--tg-pixel);
+  font-size: 8px;
+  color: var(--tg-muted);
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid var(--tg-grid);
+  cursor: pointer;
+  padding: 0;
+}
+.tg-cell-star { color: var(--tg-gold); font-size: 11px; }
+.tg-cell i { position: absolute; top: 1px; left: 2px; font-style: normal; font-size: 7px; color: var(--tg-gold); opacity: 0.8; }
+.tg-cell:focus-visible { outline: 2px solid var(--tg-shine); outline-offset: 1px; }
+.tg-stepper button.tg-stepper-name { font-size: 8px; line-height: 1.5; color: var(--tg-fg); border-color: transparent; text-decoration: underline dotted; flex: 1; }
+/* The pixel font has no stars or diamonds. */
+.tg-sym, .tg-cell-star, .tg-cell i { font-family: system-ui, sans-serif; }
+.tg-cell-star { font-size: 15px; }
+
+/* D166: the squares to tap, drawn over the halves */
+.tg-play { container-type: normal; }
+.tg-targets { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.tg-floating-note { position: absolute; left: 12px; right: 12px; bottom: 10px; margin: 0; text-align: center; font-size: 12px; color: var(--tg-shine); }
+
+/* D167: the map scrolls sideways for long fugues; a voice resting is a blank */
+.tg-grid-scroll { overflow-x: auto; align-self: stretch; }
+.tg-cell-rest { background: transparent; border-color: transparent; cursor: default; }
+.tg-voices { flex-wrap: wrap; }
+.tg-voices button.tg-level { font-size: 7px; padding: 7px 8px; }
+.tg-stepper span, .tg-stepper .tg-stepper-name { text-align: center; }
+/* D167: the title fits a phone, and scrolls if it must (the game itself never does) */
+.tg-card { touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+.tg-title { gap: 6px; padding-block: 8px; }
+.tg-title p { font-size: 11px; line-height: 1.35; }
+.tg-title .tg-stepper { font-size: 7px; }
+.tg-title .tg-stepper button { padding: 2px 7px; font-size: 10px; }
+.tg-title .tg-voices { gap: 5px; }
+.tg-title .tg-voices button { padding: 5px 6px 4px; font-size: 7px; gap: 3px; }
+.tg-title .tg-tempo { gap: 5px; flex-wrap: wrap; }
+.tg-title .tg-tempo button { padding: 5px 7px; font-size: 8px; }
+.tg-title .tg-open { font-size: 10px; }
+/* D167: nothing may widen the page past the phone: long voice names and keys shrink or clip */
+.tg-app { width: 100%; grid-template-columns: minmax(0, 1fr); overflow: hidden; }
+.tg-box, .tg-play { min-width: 0; }
+.tg-hud { min-width: 0; }
+.tg-hud-title { min-width: 0; flex: 1; }
+.tg-hud-bar { flex: none; }
+.tg-legend { flex-wrap: wrap; row-gap: 2px; column-gap: 10px; font-size: 7px; overflow: hidden; }
+.tg-count-wait { font-size: 12px; align-items: start; padding-top: 10px; }
