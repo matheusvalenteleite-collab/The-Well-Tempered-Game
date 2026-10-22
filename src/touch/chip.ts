@@ -9,7 +9,8 @@
 export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 
 import { hz } from "./tuning.ts";
-import { grooveHits, grooveNow, layerHits, preset, patchFor, PATCHES, type Drum, type Kit, type Patch, type Wave } from "./sound.ts";
+import { grooveHits, grooveNow, layerHits, preset, patchFor, PATCHES, sampledNow, type Drum, type Kit, type Patch, type Wave } from "./sound.ts";
+import { loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setUnreachable, type Loaded, type SampledInstrument } from "./sampled.ts";
 
 /**
  * D179, the player's voice: whatever the ensemble gives it, it holds while the thumb is down (a plucked
@@ -187,6 +188,15 @@ export class Chip {
 
   /** A note from `at` for `dur` seconds; stop() cuts it short (the thumb let go). */
   note(midi: number, at: number, dur: number, v: Voicing, p: Play = {}): Sounding {
+    // D190: a recorded instrument plays its recording once loaded; until then (or where it cannot be
+    // had) the patch's synthesized sound stands in, so no note is lost.
+    const inst = v.patch?.sample ? SAMPLED[v.patch.sample] : null;
+    if (v.patch && inst && !setUnreachable(inst.set)) {
+      const near = nearestSample(inst.set, midi);
+      const rec = near === null ? undefined : loaded(inst.set, near);
+      if (rec && near !== null) return this.sampledNote(midi, at, dur, v, v.patch, p, inst, near, rec);
+      if (near !== null) loadOne(this.ctx, inst.set, near);
+    }
     if (p.lead) {
       const lead = leadOf(v.patch ?? PATCHES.nesMid);
       const full = p.pleno ? { ...lead, osc: [...lead.osc, { wave: "organ" as const, octave: 1, gain: 0.3 }, { wave: "organ" as const, octave: -1, gain: 0.35 }] } : lead;
@@ -273,6 +283,202 @@ export class Chip {
         if (stopped || !dull) return;
         dull.frequency.setTargetAtTime(600, ctx.currentTime, 0.01);
         o.detune.setTargetAtTime(-35, ctx.currentTime, 0.02);
+      },
+    };
+  }
+
+  /**
+   * D190: load the recordings the ensemble needs for a piece: every voice's pitches, and the player's
+   * own an octave either side (ORGANO PLENO). A phone keeps less (sampled.ts BUDGET). Notes played
+   * before their recording arrives are synthesized.
+   */
+  prepare(pitches: number[], lead: number[] = []): Promise<void> {
+    const phone = typeof navigator !== "undefined" && navigator.maxTouchPoints > 0;
+    const now = sampledNow();
+    // An instrument the ensemble no longer plays lets all its recordings go.
+    const plans = (Object.keys(SAMPLED) as (keyof typeof SAMPLED)[]).map((id) => {
+      const inst = SAMPLED[id];
+      return now.includes(id) ? planFor(inst, pitches, lead) : [inst.set, inst.release, inst.low].filter((s): s is string => !!s).map((set) => ({ set, notes: [] }));
+    });
+    return Promise.all(plans.map((plan) => loadPlan(this.ctx, plan, phone))).then(() => {});
+  }
+
+  /** The recording to play for pitch `m` of a set: its own if loaded (else asked for), or the nearest loaded within an octave, retuned. */
+  private nearestLoaded(set: string, m: number): { set: string; m: number; rec: Loaded } | null {
+    const own = nearestSample(set, m);
+    if (own === null || Math.abs(own - m) > 2) return null;
+    const rec = loaded(set, own);
+    if (rec) return { set, m: own, rec };
+    loadOne(this.ctx, set, own);
+    const alt = nearestSample(set, m, (x) => loadedMidis(set).includes(x) && Math.abs(x - m) <= 12);
+    const altRec = alt === null ? undefined : loaded(set, alt);
+    return alt !== null && altRec ? { set, m: alt, rec: altRec } : null;
+  }
+
+  /**
+   * D190: a note on a recorded instrument: the nearest recording, retuned by its playback rate to the
+   * tuning's pitch (hz(): every temperament, A = 415), through brightness, the muffle, the envelope and
+   * the dynamic. A harpsichord's note dies away by itself; at the written end (or when let go) its
+   * damper stops it over 50-150 ms (the bass slower) and the key-up noise sounds, softer the longer
+   * the note was held; a note that has died away makes none. An organ's note is held on its loop and
+   * stops in 30 ms (the room is the recording's and the reverb's). The harpsichord has no loudness of
+   * touch: an accent is 1.5 dB and nothing else, and dyn() moves it at most 3 dB either way; the organ's
+   * dyn() is a swell box (level and a lowpass from about 2 to 18 kHz).
+   */
+  private sampledNote(midi: number, at: number, dur: number, v: Voicing, pt: Patch, p: Play, inst: SampledInstrument, near: number, rec: Loaded): Sounding {
+    const ctx = this.ctx;
+    const t = Math.max(at, ctx.currentTime);
+    const end = Math.max(t + 0.05, at + dur - 0.01);
+    const plucked = inst.plucked;
+    const peak = pt.level * v.gain * (p.level ?? 1) * 0.5 * inst.gain * (plucked ? 1 + (p.accent ?? 0) * 0.19 : 1) * (p.lead ? 1.12 : 1);
+    const mix = ctx.createGain();
+    const srcs: { src: AudioBufferSourceNode; set: string; m: number; mult: number }[] = [];
+    let baseHz = hz(midi);
+    const play = (set: string, m: number, r: Loaded, mult: number, gain: number) => {
+      const src = ctx.createBufferSource();
+      src.buffer = r.buffer;
+      src.playbackRate.value = rateFor(set, m, baseHz * mult);
+      const loop = noteInfo(set, m)?.loop;
+      if (loop && !plucked) {
+        src.loop = true;
+        src.loopStart = r.onset + loop[0];
+        src.loopEnd = r.onset + loop[1];
+      }
+      const g = ctx.createGain();
+      g.gain.value = gain;
+      src.connect(g).connect(mix);
+      // Joined on the organ (legato): the pipe already speaking, past its attack.
+      src.start(t, r.onset + (p.legato && !plucked ? 0.25 : 0));
+      srcs.push({ src, set, m, mult });
+    };
+    play(inst.set, near, rec, 1, 1);
+    if (p.pleno) {
+      // ORGANO PLENO (D181): the octave above (a 4'), and below (the organ's pedal where it reaches).
+      const up = this.nearestLoaded(inst.set, midi + 12);
+      if (up) play(up.set, up.m, up.rec, 2, 0.45);
+      const down = (inst.low ? this.nearestLoaded(inst.low, midi - 12) : null) ?? this.nearestLoaded(inst.set, midi - 12);
+      if (down) play(down.set, down.m, down.rec, 0.5, 0.5);
+    }
+    let src: AudioNode = mix;
+    const bright = p.bright ?? 0;
+    if (bright < 0) {
+      const tone = ctx.createBiquadFilter();
+      tone.type = "lowpass";
+      tone.frequency.value = 18000 * 2 ** (bright * 2.8);
+      src = src.connect(tone);
+    } else if (bright > 0) {
+      const tone = ctx.createBiquadFilter();
+      tone.type = "highshelf";
+      tone.frequency.value = 2500;
+      tone.gain.value = bright * 5;
+      src = src.connect(tone);
+    }
+    const dull = p.muffleable ? ctx.createBiquadFilter() : null;
+    if (dull) {
+      dull.type = "lowpass";
+      dull.frequency.value = 16000;
+      src = src.connect(dull);
+    }
+    const swellAt = (level: number) => Math.min(18000, 2000 * 2 ** ((level - 0.25) * 3.4));
+    const swell = plucked ? null : ctx.createBiquadFilter();
+    if (swell) {
+      swell.type = "lowpass";
+      swell.frequency.value = swellAt(1);
+      src = src.connect(swell);
+    }
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(peak, t + (plucked ? 0.002 + (p.soft ?? 0) * 0.01 : p.legato ? 0.015 : 0.01 + (p.soft ?? 0) * 0.08));
+    const dyn = ctx.createGain();
+    const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    if (pan) {
+      pan.pan.value = Math.max(-1, Math.min(1, v.pan));
+      src.connect(g).connect(dyn).connect(pan).connect(this.bus);
+    } else src.connect(g).connect(dyn).connect(this.bus);
+    // D182, a trill: the step above and back, about eight times a second (the rate's square wave).
+    const lfos: AudioScheduledSourceNode[] = [];
+    if (p.trill && ctx.createConstantSource) {
+      const lfo = ctx.createOscillator();
+      lfo.type = "square";
+      lfo.frequency.value = 7.5;
+      const centre = ctx.createConstantSource();
+      lfos.push(lfo, centre);
+      for (const x of srcs) {
+        const half = (x.src.playbackRate.value * (2 ** (200 / 1200) - 1)) / 2;
+        const depth = ctx.createGain();
+        depth.gain.value = half;
+        const mid = ctx.createGain();
+        mid.gain.value = half;
+        lfo.connect(depth).connect(x.src.playbackRate);
+        centre.connect(mid).connect(x.src.playbackRate);
+      }
+      lfo.start(t + 0.06);
+      centre.start(t + 0.06);
+    }
+    // The recording's own end, in the context's time (a plucked note dies away by then).
+    const life = (noteInfo(inst.set, near)?.len ?? 4) / Math.max(0.25, srcs[0].src.playbackRate.value) - rec.onset;
+    let thunk: GainNode | null = null;
+    const letGo = (s: number) => {
+      if (g.gain.cancelAndHoldAtTime) g.gain.cancelAndHoldAtTime(s);
+      else (g.gain.cancelScheduledValues(s), g.gain.setValueAtTime(peak, s)); // the envelope is flat after the attack
+      const tau = plucked ? 0.012 + 0.02 * Math.max(0, Math.min(1, (72 - midi) / 36)) : 0.03;
+      g.gain.setTargetAtTime(0, s, tau);
+      for (const x of srcs) x.src.stop(s + tau * 9 + 0.02);
+      for (const l of lfos) l.stop(s + tau * 9 + 0.05);
+      if (thunk) (thunk.disconnect(), (thunk = null));
+      const held = s - t;
+      const r = inst.release ? loaded(inst.release, near) : undefined;
+      if (!r || held > life - 0.3) return;
+      // The jacks falling back and the dampers: softer the longer the string has rung.
+      const rs = ctx.createBufferSource();
+      rs.buffer = r.buffer;
+      rs.playbackRate.value = srcs[0].src.playbackRate.value;
+      thunk = ctx.createGain();
+      thunk.gain.value = peak * 0.9 * Math.max(0.2, Math.exp(-held / Math.max(0.5, life / 3)));
+      rs.connect(thunk).connect(dyn);
+      rs.start(s, r.onset);
+    };
+    // D184: damped at the written end (a lead note's end is its longest hold), unless it has died away first.
+    if (plucked && end > t + life) {
+      for (const x of srcs) x.src.stop(t + life + 0.05);
+      for (const l of lfos) l.stop(t + life + 0.1);
+    } else letGo(end);
+    let stopped = false;
+    let cents = 0;
+    let muffled = false;
+    const retune = (tc: number) => {
+      const off = 2 ** ((cents + (muffled ? -35 : 0)) / 1200);
+      for (const x of srcs) x.src.playbackRate.setTargetAtTime(rateFor(x.set, x.m, baseHz * x.mult) * off, ctx.currentTime, tc);
+    };
+    return {
+      stop: (when = ctx.currentTime) => {
+        if (stopped || when >= end) return;
+        stopped = true;
+        letGo(Math.max(when, t + 0.02));
+      },
+      bend: (c: number) => {
+        if (stopped) return;
+        cents = c;
+        retune(0.02);
+      },
+      glide: (to: number) => {
+        if (stopped) return;
+        baseHz = hz(to);
+        retune(0.025);
+      },
+      muffle: () => {
+        if (stopped || !dull) return;
+        dull.frequency.setTargetAtTime(500, ctx.currentTime, 0.01);
+        muffled = true;
+        retune(0.02);
+      },
+      dyn: (level: number) => {
+        if (stopped) return;
+        const now = ctx.currentTime;
+        if (swell) {
+          dyn.gain.setTargetAtTime(Math.max(0.05, level), now, 0.08);
+          swell.frequency.setTargetAtTime(swellAt(level), now, 0.08);
+        } else dyn.gain.setTargetAtTime(Math.max(0.7, Math.min(1.4, level)), now, 0.06);
       },
     };
   }

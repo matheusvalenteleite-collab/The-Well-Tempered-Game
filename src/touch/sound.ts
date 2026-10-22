@@ -2,9 +2,11 @@
  * The ensembles (D177): presets that give each voice an instrument of its own, chosen together so
  * the voices stand apart and sound well together (some sustained, some plucked and dying away; bright
  * above, round below), in four families: ACOUSTIC, BANDS (with a rhythm section), CHIP and MOOG. All
- * is synthesized (oscillators, filters, envelopes, a little drive, vowel formants): no recordings.
+ * is synthesized (oscillators, filters, envelopes, a little drive, vowel formants); D190 adds two
+ * recorded instruments (sampled.ts), whose patches keep a synthesized sound for any note not loaded yet.
  * A patch is played by chip.ts; the player's own voice takes its patch, shaped by the touch.
  */
+import type { SampledId } from "./sampled.ts";
 
 export type Wave = "saw" | "square" | "triangle" | "sine" | "pulse12" | "pulse25" | "pulse50" | "organ" | "reed" | "bell";
 
@@ -33,6 +35,8 @@ export interface Patch {
   /** Breath noise, 0 to 1. */
   breath?: number;
   level: number;
+  /** D190: played from recordings (sampled.ts) where they are loaded; the rest of the patch is its stand-in until then. */
+  sample?: SampledId;
 }
 
 const P = (p: Patch) => p;
@@ -52,6 +56,10 @@ export const PATCHES = {
   viol: P({ osc: [{ wave: "saw" }, { wave: "pulse25", gain: 0.3 }], filter: { freq: 4.5, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.3, s: 0.7, r: 0.1 }, vib: { depth: 4, rate: 5, delay: 0.5 }, level: 0.48 }),
   harpsichord: P({ osc: [{ wave: "saw" }, { wave: "pulse25", octave: 1, gain: 0.35 }], filter: { freq: 10, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.9, s: 0, r: 0.08 }, level: 0.36 }),
   harpsiBass: P({ osc: [{ wave: "saw" }, { wave: "pulse25", gain: 0.3 }], filter: { freq: 6, q: 1, env: 2, envDecay: 0.2 }, amp: { a: 0.002, d: 1.2, s: 0, r: 0.08 }, level: 0.45 }),
+  // D190: recorded (the synthesized sound above stands in for a note until its recording is loaded).
+  harpsiSampled: P({ osc: [{ wave: "saw" }, { wave: "pulse25", octave: 1, gain: 0.35 }], filter: { freq: 10, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.9, s: 0, r: 0.08 }, level: 0.36, sample: "harpsichord" }),
+  harpsiBassSampled: P({ osc: [{ wave: "saw" }, { wave: "pulse25", gain: 0.3 }], filter: { freq: 6, q: 1, env: 2, envDecay: 0.2 }, amp: { a: 0.002, d: 1.2, s: 0, r: 0.08 }, level: 0.45, sample: "harpsichord" }),
+  organSampled: P({ osc: [{ wave: "organ" }, { wave: "organ", octave: 1, gain: 0.3 }], amp: { a: 0.012, d: 0.1, s: 1, r: 0.06 }, level: 0.3, sample: "organ" }),
   lute: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1.2, env: 2, envDecay: 0.1 }, amp: { a: 0.003, d: 0.7, s: 0, r: 0.1 }, level: 0.42 }),
   // Bands.
   leadGuitar: P({ osc: [{ wave: "saw" }, { wave: "square", detune: 5, gain: 0.5 }], filter: { freq: 2600, hz: true, q: 1.2, env: 1.3, envDecay: 0.2 }, amp: { a: 0.005, d: 0.4, s: 0.75, r: 0.1 }, vib: { depth: 20, rate: 5.5, delay: 0.35 }, drive: 6, level: 0.22 }),
@@ -123,6 +131,9 @@ export const FAMILIES: { name: string; presets: Preset[] }[] = [
       { id: "baroque", name: "BAROQUE BAND", slots: ["oboe", "violin", "harpsichord", "harpsichord", "cello"] },
       { id: "winds", name: "WINDS", slots: ["flute", "oboe", "clarinet", "clarinet", "bassoon"] },
       { id: "consort", name: "CONSORT", slots: ["recorder", "lute", "viol", "viol", "harpsiBass"] },
+      // D190: recorded, every voice on the one instrument (as Bach played his fugues).
+      { id: "harpsichordSampled", name: "HARPSICHORD (SAMPLED)", slots: ["harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiBassSampled"] },
+      { id: "organSampled", name: "ORGAN (SAMPLED)", slots: ["organSampled", "organSampled", "organSampled", "organSampled", "organSampled"], room: 0.24 },
     ],
   },
   {
@@ -182,6 +193,11 @@ export const drums = () => drumsOn;
 export function grooveNow(): { groove: Groove; kit: Kit } | null {
   const g = current.groove ?? (drumsOn ? current.drums : undefined);
   return g ? { groove: g, kit: current.kit ?? "acoustic" } : null;
+}
+
+/** D190: the recorded instruments the ensemble now plays, if any. */
+export function sampledNow(): SampledId[] {
+  return [...new Set((current.slots ?? []).map((id) => PATCHES[id].sample).filter((s): s is SampledId => !!s))];
 }
 
 /** A voice's patch in the ensemble now, or null for the classic chip sound. */
