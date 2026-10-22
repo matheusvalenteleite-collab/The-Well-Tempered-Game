@@ -71,6 +71,13 @@ export function beatOf(f: TouchFugue): { ticks: number; perBar: number } {
   return num % 3 === 0 && num > 3 ? { ticks: unit * 3, perBar: num / 3 } : { ticks: unit, perBar: num };
 }
 
+/** D188: fugues only for now; a prelude asked for gives its fugue. */
+export function fugueOnly(id: string): string {
+  const f = fugueById(id);
+  if (f.kind !== "prelude") return f.id;
+  return FUGUES.find((x) => x.book === f.book && x.number === f.number)?.id ?? FUGUES[0].id;
+}
+
 /** The tick where bar n starts (the end of the piece past the last bar). */
 export function barStart(f: TouchFugue, n: number): number {
   return f.bars.find((b) => b.n === n)?.on ?? f.length;

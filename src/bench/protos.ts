@@ -46,11 +46,10 @@ export interface Options {
   legato: boolean;
   /** EASY (D187): the time only, or the line's direction too, or its leaps as well. */
   easy?: EasyLevel;
-  /** The lessons (D185): the passage ends here (a tick); the music waits for each note; the voice alone; the keys taught so far. */
+  /** The lessons (D185, D188): the passage ends here (a tick); the music waits for each note; the voice alone. */
   until?: number;
   wait?: boolean;
   solo?: boolean;
-  keys?: Arrow[];
 }
 
 export interface Proto {

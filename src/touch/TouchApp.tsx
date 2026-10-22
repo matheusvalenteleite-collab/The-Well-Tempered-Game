@@ -16,7 +16,7 @@ import { paintSynth } from "./paint-synth.ts";
 import { HelpPanel, loadDrums, saneBpm, SettingsPanel } from "./Panels.tsx";
 import { setTuning } from "./tuning.ts";
 import { setPreset } from "./sound.ts";
-import { barAt, beatOf, fugueById, keyAt, keyName, shortName, type TouchFugue } from "./fugue.ts";
+import { barAt, beatOf, fugueById, keyAt, keyName, shortName, type TouchFugue, fugueOnly } from "./fugue.ts";
 import { LEVELS, type Level as Difficulty } from "./lanes.ts";
 import { accompaniment, level, startTick, stepRange, subjectMarks, voicesFrom } from "./voice-mode.ts";
 
@@ -66,6 +66,7 @@ function save(key: string, value: unknown) {
 
 /** A pick made sound: a voice that still sings from the start chosen. */
 function sane(p: Pick): Pick {
+  p = { ...p, piece: fugueOnly(p.piece) };
   const f = fugueById(p.piece);
   const share = Math.min(0.99, Math.max(0, p.share || 0));
   const singing = voicesFrom(f, startTick(f, share));
