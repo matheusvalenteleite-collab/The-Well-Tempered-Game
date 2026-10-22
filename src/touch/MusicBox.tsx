@@ -8,7 +8,7 @@
  * D174, the subject: its notes, in whatever voice, are dotted along their top; a ◆ stands over the
  * first note of each entry as it comes, in the voice's colour, gold when the voice is the player's.
  */
-import { bossBar, ribbons, sparks, zoneGlow, type Burst, type Pop, type Span } from "./box-fx.ts";
+import { bossBar, cadenceMarks, ribbons, sparks, zoneGlow, type Burst, type Pop, type Span } from "./box-fx.ts";
 import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
 import type { LaneNote } from "./lanes.ts";
 import type { OtherNote } from "./voice-mode.ts";
@@ -113,6 +113,8 @@ export interface Frame {
   pops?: Pop[];
   bursts?: Burst[];
   zone?: "pleno" | "fuoco" | null;
+  /** D194: the cadences, named. */
+  cadences?: { on: number; text: string }[];
 }
 
 export function MusicBox({ frame, hud, legend, children }: { frame: MutableRefObject<Frame>; hud: ReactNode; legend: ReactNode; children?: ReactNode }) {
@@ -322,7 +324,8 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
 
   g.fillStyle = tok("--tg-playhead");
   g.fillRect(playX, 0, 1, h);
-  if (fr.spans && fr.bossFight) bossBar(fx, fr.spans, fr.voice, fr.notes);
+  if (fr.cadences) cadenceMarks(fx, fr.cadences);
+  if (fr.spans && fr.bossFight) bossBar(fx, fr.spans.filter((s) => s.form !== "counter"), fr.voice, fr.notes);
   sparks(fx, fr.pops ?? [], fr.bursts ?? []);
   zoneGlow(fx, fr.zone ?? null);
 }

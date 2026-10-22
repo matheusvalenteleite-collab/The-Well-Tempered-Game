@@ -14,7 +14,7 @@ import type { Arrow } from "../touch/MusicBox.tsx";
 import type { Burst, Pop } from "../touch/box-fx.ts";
 import { voicing, type Chip, type Play, type Sounding } from "../touch/chip.ts";
 import type { Grade } from "../touch/engine.ts";
-import { beatOf, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
+import { beatOf, cadenceName, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
 import { chordOf, laneNotes, options, quickRides, strike, sweep, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
 import { follow, phrase, ritard, type Shape } from "../touch/phrasing.ts";
@@ -311,6 +311,7 @@ export class ProtoGame {
       this.grade = { text: "MISS", at: performance.now() };
     }
     this.judgeEntries();
+    this.judgeCadences();
     ch.zone?.(this.zone);
     if (this.now > this.end) {
       this.stopAll();
@@ -743,6 +744,21 @@ export class ProtoGame {
         this.plenoUntil = next ?? this.f.length;
         this.banner = { text: boss ? "BOSS DEFEATED!" : "ORGANO PLENO!", at: performance.now() };
       }
+    }
+  }
+
+  /**
+   * D194: a cadence reached while the player's run holds (no slip since the last one) is a small
+   * bonus, named: the music's own punctuation, rewarded.
+   */
+  private cadenceAt = 0;
+  private judgeCadences() {
+    const cads = this.f.cadences ?? [];
+    while (this.cadenceAt < cads.length && cads[this.cadenceAt].on <= this.now) {
+      const c = cads[this.cadenceAt++];
+      if (c.on < this.entry || c.on > this.end || this.streak < 4) continue;
+      this.score += 10 * this.mult;
+      this.banner = { text: cadenceName(c), at: performance.now() };
     }
   }
 

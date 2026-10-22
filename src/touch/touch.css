@@ -1,3 +1,11 @@
+/* D194: the pixel font has no sharp, flat or note signs; these come from a system font at a size that
+   matches (only for those characters). */
+@font-face {
+  font-family: "TG Accidentals";
+  src: local("DejaVu Sans"), local("Segoe UI Symbol"), local("Apple Symbols"), local("Arial Unicode MS"), local("Noto Sans Symbols 2"), local("Noto Music");
+  unicode-range: U+2669-266F;
+  size-adjust: 140%;
+}
 /* One screen, portrait: the music box over the play area, halves of the height.
    A deliberately single dark look: an 8-bit console screen. */
 :root {
@@ -12,7 +20,7 @@
   --tg-playhead: #fff3a6;
   --tg-left: #b9a4ff;
   --tg-right: #ff7fbf;
-  --tg-pixel: "Press Start 2P", ui-monospace, "SF Mono", Menlo, monospace;
+  --tg-pixel: "TG Accidentals", "Press Start 2P", ui-monospace, "SF Mono", Menlo, monospace;
   color-scheme: dark;
   height: 100%;
   box-sizing: border-box;

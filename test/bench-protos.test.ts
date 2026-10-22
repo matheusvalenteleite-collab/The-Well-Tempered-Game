@@ -10,7 +10,7 @@ import { isBlack, keySpan } from "../src/touch/piano.ts";
 import { grooveHits, patchFor, PRESETS, setPreset, slotOf } from "../src/touch/sound.ts";
 import { hz, setTuning } from "../src/touch/tuning.ts";
 import { phrase } from "../src/touch/phrasing.ts";
-import { accompaniment, startTick, subjectMarks, voicesFrom } from "../src/touch/voice-mode.ts";
+import { accompaniment, entrySpans, startTick, subjectMarks, voicesFrom } from "../src/touch/voice-mode.ts";
 
 const C_MINOR = fugueById("wtc1f02");
 const beat = beatOf(C_MINOR).ticks;
@@ -417,6 +417,32 @@ test("EASY's DIRECTION: following the line along the home row is right; against 
   assert.ok(!contourOk(up, "KeyJ", "KeyF", false));
   assert.ok(contourOk(up, "Quote", "Quote", false), "at the wall, the edge key again");
   assert.ok(contourOk(up, "KeyF", "KeyT", false), "the next row, further right");
+});
+
+test("D194: the countersubject drawn beside its entries; inversions named; a cadence in a run is a bonus", () => {
+  const spans = entrySpans(C_MINOR);
+  assert.ok(spans.some((s) => s.form === "counter" && s.path.length > 4), "I/2's countersubject");
+  assert.ok(entrySpans(fugueById("wtc1f08")).some((s) => s.shape === "AUGMENTATION"), "I/8's augmentations");
+  const clock = { t: 0 };
+  const g = new ProtoGame(C_MINOR, 1, 0, protoById("keys"), { bpm: 54, legato: false, easy: "timing" }, fakeChip(clock));
+  const cad = (C_MINOR.cadences ?? []).find((c) => c.on > g.notes[8].on);
+  assert.ok(cad, "a cadence in the C minor fugue");
+  let id = 0;
+  const banners = new Set<string>();
+  for (let i = 0; i < g.notes.length && g.notes[i].on <= cad!.on + 1; i++) {
+    if (i > 0 && g.notes[i - 1].on === g.notes[i].on) continue;
+    if (g.notes[i].ride) continue;
+    const at = g.timeAt(g.notes[i].on);
+    while (clock.t < at - 0.05) (clock.t += 0.05), g.step();
+    clock.t = Math.max(clock.t, at);
+    g.step();
+    banners.add(g.banner?.text ?? "");
+    g.keyDown(++id, { velocity: 0.5 }, performance.now());
+    g.keyUp(id, performance.now());
+    g.step();
+    banners.add(g.banner?.text ?? "");
+  }
+  assert.ok([...banners].some((b) => /CADENCE/.test(b)), [...banners].join(" | "));
 });
 
 test("SIDEWAYS: a column's middle is that column", () => {

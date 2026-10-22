@@ -20,7 +20,7 @@ import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, KEY_ROWS, LADDER_AREA, MARKS
 import { isBlack, keySpan } from "../touch/piano.ts";
 import { KEYS_SHARE } from "./placed.ts";
 
-const FONT = '"Press Start 2P", ui-monospace, monospace';
+const FONT = '"TG Accidentals", "Press Start 2P", ui-monospace, monospace';
 
 type Tok = ReturnType<typeof tokens>;
 function tokens() {
