@@ -4,7 +4,7 @@
  * its end. The point is a share of the piece (0 to 99%), taken back to the start of its bar; the
  * count-in is the four beats before it.
  */
-import { barAt, barStart, countInStart, beatOf, type TouchFugue } from "./fugue.ts";
+import { barAt, barStart, countInStart, beatOf, type TouchFugue, entryShape } from "./fugue.ts";
 import { laneNotes, type LaneNote } from "./lanes.ts";
 import type { Span } from "./box-fx.ts";
 
@@ -87,11 +87,24 @@ export function subjectMarks(f: TouchFugue): { subject: Set<string>; entries: { 
 
 /** D186: each entry whole, for the box to draw (its notes as staff steps, the top of a chord). */
 export function entrySpans(f: TouchFugue): Span[] {
-  return f.entries.map((e) => {
+  const stepsOf = (voice: number) => {
     const steps = new Map<number, number>();
-    for (const [on, , , step] of f.voices[e.voice]) steps.set(on, Math.max(step, steps.get(on) ?? -Infinity));
+    for (const [on, , , step] of f.voices[voice]) steps.set(on, Math.max(step, steps.get(on) ?? -Infinity));
+    return steps;
+  };
+  const entries: Span[] = f.entries.map((e) => {
+    const steps = stepsOf(e.voice);
     const seen = new Set<number>();
     const path = e.notes.filter(([on]) => steps.has(on) && !seen.has(on) && (seen.add(on), true)).map(([on, dur]) => ({ on, dur, step: steps.get(on)! }));
-    return { voice: e.voice, on: e.on, end: e.end, form: e.form, key: e.key, path };
+    return { voice: e.voice, on: e.on, end: e.end, form: e.form, key: e.key, path, shape: entryShape(e), theme: e.theme };
   });
+  // D194: the countersubjects, drawn beside their entries (silver).
+  const counters: Span[] = (f.countersubject ?? []).map((c) => {
+    const path = f.voices[c.voice]
+      .filter(([on]) => on >= c.on && on < c.end)
+      .filter(([on], i, a) => !(i > 0 && a[i - 1][0] === on))
+      .map(([on, dur, , step]) => ({ on, dur, step }));
+    return { voice: c.voice, on: c.on, end: c.end, form: "counter", key: f.entries[c.entry]?.key ?? f.key, path };
+  });
+  return [...entries, ...counters.filter((c) => c.path.length)];
 }

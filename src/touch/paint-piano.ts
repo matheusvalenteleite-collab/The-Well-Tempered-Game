@@ -31,7 +31,7 @@ export function pianoView(game: Game): PianoView {
   return { kb: game.kb, now: game.now, tps: game.tps, voice: lv.voice, count: game.f.voices.length, notes: lv.notes, others: game.others, late: game.opt.late, held: game.heldKeys(), grade: game.grade };
 }
 
-const FONT = '"Press Start 2P", ui-monospace, monospace';
+const FONT = '"TG Accidentals", "Press Start 2P", ui-monospace, monospace';
 /** How long a note takes to fall the height above the keys, as a share of the approach. */
 const FALL = 1.8;
 

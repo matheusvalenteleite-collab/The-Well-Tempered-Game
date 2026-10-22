@@ -15,7 +15,10 @@ export interface Span {
   voice: number;
   on: number;
   end: number;
-  form: "subject" | "answer";
+  form: "subject" | "answer" | "counter";
+  /** D194: "INVERSION", "AUGMENTATION"…; the later subjects of a double or triple fugue (2, 3). */
+  shape?: string;
+  theme?: number;
   key: string;
   path: { on: number; dur: number; step: number }[];
 }
@@ -91,10 +94,11 @@ export function ribbons(c: Ctx, spans: Span[], player: number[], names: string[]
     if (x2 < 0 || x1 > w) continue;
     const st = state?.get(`${s.voice}:${s.on}`);
     const mine = player.includes(s.voice);
-    const color = st === "lost" ? c.miss : mine || st === "captured" ? c.gold : c.ink(s.voice);
+    const counter = s.form === "counter";
+    const color = counter ? "#c9d1dc" : st === "lost" ? c.miss : mine || st === "captured" ? c.gold : c.ink(s.voice);
     const sounding = now >= s.on && now < s.end;
     // The halo: under each note, a little wider; shimmering while it sounds.
-    g.globalAlpha = sounding ? 0.28 + 0.12 * Math.sin(t / 90) : 0.16;
+    g.globalAlpha = counter ? (sounding ? 0.16 : 0.08) : sounding ? 0.28 + 0.12 * Math.sin(t / 90) : 0.16;
     g.fillStyle = color;
     for (const n of s.path) {
       const a = xOf(n.on);
@@ -123,7 +127,8 @@ export function ribbons(c: Ctx, spans: Span[], player: number[], names: string[]
     if (first) {
       const y = yOf(first.step) - 9;
       const voice = names?.[s.voice]?.toUpperCase() ?? "";
-      const label = `${s.form === "answer" ? "ANSWER" : "SUBJECT"} · ${voice} · ${keyWords(s.key)}`;
+      const what = counter ? "COUNTERSUBJECT" : `${s.form === "answer" ? "ANSWER" : "SUBJECT"}${s.theme ? ` ${s.theme}` : ""}`;
+      const label = counter ? `${what} · ${voice}` : `${what}${s.shape ? ` · ${s.shape}` : ""} · ${voice} · ${keyWords(s.key)}`;
       g.globalAlpha = 0.8;
       g.fillStyle = "#0c0a10";
       g.fillRect(x1 - 1, y - 1, textWidth(label) + 1, 7);
@@ -139,7 +144,7 @@ export function ribbons(c: Ctx, spans: Span[], player: number[], names: string[]
     for (let j = 0; j < spans.length; j++) {
       const a = spans[i];
       const b = spans[j];
-      if (!(b.on > a.on && b.on < a.end) || a.voice === b.voice) continue;
+      if (!(b.on > a.on && b.on < a.end) || a.voice === b.voice || a.form === "counter" || b.form === "counter") continue;
       const x = xOf(b.on) - 3;
       if (x < 0 || x > w) continue;
       const y1 = Math.min(yOf(a.path[0].step), yOf(b.path[0].step));
@@ -219,4 +224,29 @@ export function zoneGlow(c: Ctx, zone: "pleno" | "fuoco" | null) {
     g.fillRect(i, i, 1, h - 2 * i);
     g.fillRect(w - 1 - i, i, 1, h - 2 * i);
   }
+}
+
+/**
+ * D194, the cadences: each coming one a dotted gold line, named at the top ("PERFECT CADENCE · G
+ * MINOR"); as it is reached, the line flares and the name brightens for a moment.
+ */
+export function cadenceMarks(c: Ctx, cadences: { on: number; text: string }[]) {
+  const { g, w, h, xOf, now } = c;
+  for (const cd of cadences) {
+    const x = xOf(cd.on);
+    if (x < -40 || x > w) continue;
+    const since = ((now - cd.on) / c.tps) * 1000;
+    if (since > 1400) continue;
+    const flare = since >= 0 ? 1 - since / 1400 : 0;
+    g.globalAlpha = 0.35 + 0.65 * flare;
+    g.fillStyle = c.gold;
+    for (let y = 10; y < h; y += 3) g.fillRect(x, y, 1, 1);
+    if (flare > 0) {
+      g.globalAlpha = 0.25 * flare;
+      g.fillRect(x - 3, 0, 7, h);
+    }
+    g.globalAlpha = since >= 0 ? flare : 0.7;
+    pixText(g, cd.text, Math.min(x + 2, w - textWidth(cd.text) - 2), h - 8, c.gold);
+  }
+  g.globalAlpha = 1;
 }

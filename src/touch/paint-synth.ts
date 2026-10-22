@@ -10,7 +10,7 @@ import type { LaneNote } from "./lanes.ts";
 import { inkOf } from "./MusicBox.tsx";
 import { BANDS, sideFor } from "./shape.ts";
 
-const FONT = '"Press Start 2P", ui-monospace, monospace';
+const FONT = '"TG Accidentals", "Press Start 2P", ui-monospace, monospace';
 const BAND_LABEL = ["SAME", "STEP", "3RD", "LEAP"];
 
 interface Rect {

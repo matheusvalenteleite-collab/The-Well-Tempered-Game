@@ -14,7 +14,7 @@ import { ladderGeometry, MusicBox, inkOf, type Frame } from "../touch/MusicBox.t
 import { PlayArea, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
 import { BpmSetting, Choice, LagSetting, loadDrums, Panel, saneBpm, SoundSetting, TuningSetting } from "../touch/Panels.tsx";
 import { Chip, voicing } from "../touch/chip.ts";
-import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly } from "../touch/fugue.ts";
+import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, cadenceName } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
 import { setPreset } from "../touch/sound.ts";
 import { setTuning } from "../touch/tuning.ts";
@@ -141,7 +141,8 @@ export function BenchApp() {
   // A lesson's passage: only the entries it holds (alone: only the voice's own).
   const marks = useMemo(() => {
     const spans = entrySpans(f).filter((e) => !run || (e.on < run.until && e.end > run.from && (!run.solo || e.voice === run.voice)));
-    return { ...subjectMarks(f), spans, names: f.voiceNames };
+    const cadences = (f.cadences ?? []).filter((c) => !run || (c.on >= run.from && c.on <= run.until)).map((c) => ({ on: c.on, text: cadenceName(c) }));
+    return { ...subjectMarks(f), spans, names: f.voiceNames, cadences };
   }, [f, run]);
   const chip = useRef<Chip | null>(null);
   const game = useRef<ProtoGame | null>(null);
