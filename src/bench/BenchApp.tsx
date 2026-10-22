@@ -6,6 +6,7 @@
  * an arcade's 1P and 2P) and where to start; ? says how each is played. Each prototype lays the screen
  * out its own way. A computer's keys and a MIDI keyboard play too.
  */
+import { ornamentMark, ornamentsOf } from "../touch/ornament-play.ts";
 import { BachTalk } from "./Bach.tsx";
 import { LESSONS, lessonsPassed, passLesson, type Line, type Run } from "./lessons.ts";
 import { TEMPO, tempoOf } from "../touch/tempi.ts";
@@ -151,7 +152,8 @@ export function BenchApp() {
   const marks = useMemo(() => {
     const spans = entrySpans(f).filter((e) => !run || (e.on < run.until && e.end > run.from && (!run.solo || e.voice === run.voice)));
     const cadences = (f.cadences ?? []).filter((c) => !run || (c.on >= run.from && c.on <= run.until)).map((c) => ({ on: c.on, text: cadenceName(c) }));
-    return { ...subjectMarks(f), spans, names: f.voiceNames, cadences };
+    const ornaments = new Map([...ornamentsOf(f)].map(([k, o]) => [k, ornamentMark(o)]));
+    return { ...subjectMarks(f), spans, names: f.voiceNames, cadences, ornaments };
   }, [f, run]);
   const chip = useRef<Chip | null>(null);
   const game = useRef<ProtoGame | null>(null);

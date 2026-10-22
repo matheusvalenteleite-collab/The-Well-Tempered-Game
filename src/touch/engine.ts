@@ -12,6 +12,7 @@
  * thumb lifted from it and tapping the next within CARRY_S lets it sound on to its end.
  * WAIT (D167, as Synthesia's): the music stops at each note until it is played (not offered now).
  */
+import { ornamentsOf, realiseNote, type Ornament } from "./ornament-play.ts";
 import { voicing, type Chip, type Envelope, type Sounding } from "./chip.ts";
 import { beatOf, inBar, keyAt, type TouchFugue } from "./fugue.ts";
 import { chordOf, options, points, release, strike, sweep, type LaneOptions, type Level as Difficulty } from "./lanes.ts";
@@ -144,6 +145,10 @@ export class Game {
   /** Where the score holds a note on past the next onset in its part (a lift there may carry). */
   private overlaps: Set<number>[];
 
+  /** D205: the ornaments, and each other voice's last note. */
+  private readonly ornaments: Map<string, Ornament>;
+  private lastOther = new Map<number, number>();
+
   constructor(f: TouchFugue, levels: Level[], o: GameOptions, chip: Chip) {
     this.f = f;
     this.o = o;
@@ -159,6 +164,7 @@ export class Game {
     this.end = Math.max(...sorted.map((lv) => lv.end));
     // D181: the tempo counts quarter notes, whatever the metre (in 2/2 the beat was a half note: twice as fast).
     this.tps = (f.tpq * o.bpm) / 60;
+    this.ornaments = ornamentsOf(f);
     this.opt = options(f.tpq, o.bpm, o.difficulty);
     this.instrument = o.instrument ?? "synth";
     this.kb = keyboard(sorted[0].notes.map((n) => n.midi));
@@ -234,7 +240,13 @@ export class Game {
       // In WAIT a note of the others is cut where the music may stop.
       const dur = block !== null ? Math.min(n.dur, Math.max(this.beat / 4, block - n.on)) : n.dur;
       const sh = this.shapes[this.nextOther - 1];
-      ch.note(n.midi, Math.max(ch.ctx.currentTime, this.timeAt(n.on) + sh.nudge), this.timeAt(n.on + dur * sh.hold) - this.timeAt(n.on), voicing(n.voice, this.f.voices.length, false), { level: sh.level });
+      const vv = voicing(n.voice, this.f.voices.length, false);
+      // D205: an ornamented note sounds its ornament, its main note last.
+      const orn = this.ornaments.get(`${n.voice}:${n.on}`);
+      const prev = this.lastOther.get(n.voice);
+      this.lastOther.set(n.voice, n.midi);
+      const parts: [number, number, number][] = orn ? realiseNote(this.f, orn, n.on, dur * sh.hold, n.midi, prev, (this.tps * 60) / this.f.tpq) : [[n.on, dur * sh.hold, n.midi]];
+      for (const [pon, pdur, pmidi] of parts) ch.note(pmidi, Math.max(ch.ctx.currentTime, this.timeAt(pon) + sh.nudge), this.timeAt(pon + pdur) - this.timeAt(pon), vv, { level: sh.level });
     }
     // Lifts that no tap carried on are final: the note stops where the thumb left it.
     this.lifting = this.lifting.filter((l) => {

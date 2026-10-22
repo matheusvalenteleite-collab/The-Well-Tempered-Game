@@ -10,6 +10,7 @@
  * too quick to strike at the tempo played rides after the note before (D191: lanes.ts quickRides):
  * it sounds by itself once that note is played right, and is neither judged nor counted.
  */
+import { ornamentsOf, realiseNote, type Ornament } from "../touch/ornament-play.ts";
 import type { Arrow } from "../touch/MusicBox.tsx";
 import type { Burst, Pop } from "../touch/box-fx.ts";
 import { voicing, type Chip, type Play, type Sounding } from "../touch/chip.ts";
@@ -180,6 +181,7 @@ export class ProtoGame {
   constructor(f: TouchFugue, voices: number | number[], from: number, proto: Proto, o: Options & { bpm: number }, chip: Chip) {
     this.f = f;
     this.proto = proto;
+    this.ornaments = ornamentsOf(f);
     this.o = o;
     this.chip = chip;
     const b = beatOf(f);
@@ -279,8 +281,18 @@ export class ProtoGame {
       const sh = this.shapes[this.nextOther - 1];
       const len = this.timeAt(n.on + n.dur * sh.hold) - this.timeAt(n.on);
       const at = Math.max(ch.ctx.currentTime, this.timeAt(n.on) + sh.nudge);
-      const sd = ch.note(n.midi, at, len, voicing(n.voice, this.f.voices.length, false), { level: follow(sh, this.feel) });
-      if (sd) this.band.push({ sd, until: at + len + 0.6 });
+      const vv = voicing(n.voice, this.f.voices.length, false);
+      const prev = this.lastOther.get(n.voice);
+      this.lastOther.set(n.voice, n.midi);
+      // D205: an ornamented note sounds its ornament (its parts on the audio clock), its main note last.
+      const orn = this.ornaments.get(`${n.voice}:${n.on}`);
+      const parts = orn ? realiseNote(this.f, orn, n.on, n.dur * sh.hold, n.midi, prev, this.bpm) : [[n.on, 0, n.midi] as [number, number, number]];
+      for (const [pon, pdur, pmidi] of parts) {
+        const pat = orn ? Math.max(ch.ctx.currentTime, this.timeAt(pon) + sh.nudge) : at;
+        const plen = orn ? this.timeAt(pon + pdur) - this.timeAt(pon) : len;
+        const sd = ch.note(pmidi, pat, plen, vv, { level: follow(sh, this.feel) });
+        if (sd) this.band.push({ sd, until: pat + plen + 0.6 });
+      }
     }
     if (this.band.length > 64) this.band = this.band.filter((b) => b.until > ch.ctx.currentTime);
     // SIDEWAYS: the window glides towards the passage ahead (on the audio clock), always holding the next note.
@@ -627,7 +639,19 @@ export class ProtoGame {
         for (const sd of o.sounds) sd.stop(this.chip.ctx.currentTime + 0.03);
         o.sounds = [];
       }
-      h.sounds = pitches.map((m) => this.chip.note(m, this.chip.ctx.currentTime, HOLD_MAX, voiceV, { ...expr, legato: legato && !piano }));
+      // D205: an ornamented note, struck right, plays its ornament from the moment it is struck, then holds its main note.
+      const n0 = notes[i];
+      const orn = v.ok && pitches.length === 1 ? this.ornaments.get(`${this.tracks[h.k].voice}:${n0.on}`) : undefined;
+      if (orn) {
+        const t0 = this.chip.ctx.currentTime;
+        const prev = this.before(i, h.k);
+        const parts = realiseNote(this.f, orn, n0.on, n0.dur, n0.midi, prev >= 0 ? notes[prev].midi : undefined, this.bpm);
+        h.sounds = parts.map(([pon, pdur, pmidi], k) => {
+          const at = t0 + (this.timeAt(pon) - this.timeAt(n0.on));
+          const last = k === parts.length - 1;
+          return this.chip.note(pmidi, at, last ? HOLD_MAX : this.timeAt(pon + pdur) - this.timeAt(pon), voiceV, { ...expr, legato: k > 0 || (legato && !piano) });
+        });
+      } else h.sounds = pitches.map((m) => this.chip.note(m, this.chip.ctx.currentTime, HOLD_MAX, voiceV, { ...expr, legato: legato && !piano }));
       if (!v.ok && !(piano && v.wrong !== undefined)) for (const sd of h.sounds) sd.muffle?.();
     }
     // A touch on the screen (not a key) is the next note's reference.
@@ -857,6 +881,10 @@ export class ProtoGame {
     return this.lanesMemo;
   }
   private lanesMemo?: number[];
+
+  /** D205: the piece's ornaments ("voice:onset"), and each other voice's last note (for the snapped trill). */
+  readonly ornaments: Map<string, Ornament>;
+  private lastOther = new Map<number, number>();
 
   /** D186: what the box draws of the player's playing: points, bursts, the zone. */
   readonly pops: Pop[] = [];
