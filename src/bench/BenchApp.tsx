@@ -16,7 +16,7 @@ import { BpmSetting, Choice, LagSetting, loadDrums, Panel, saneBpm, SoundSetting
 import { Chip, voicing } from "../touch/chip.ts";
 import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, cadenceName } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
-import { setPreset } from "../touch/sound.ts";
+import { applyFugueSound, DESIGNATED, fugueSoundInfo } from "../touch/fugue-sound.ts";
 import { setTuning } from "../touch/tuning.ts";
 import { accompaniment, startTick, stepRange, subjectMarks, entrySpans, voicesFrom } from "../touch/voice-mode.ts";
 import { paintProto } from "./paint-proto.ts";
@@ -28,7 +28,8 @@ import { ARROW_KEYS, arrowOf, EASY_LEVELS, KEY_ROWS, type EasyLevel, keyId, keyR
 
 const PICK_KEY = "tb-pick-v2";
 const LAG_KEY = "tg-lag";
-const SOUND_KEY = "tg-sound";
+// D203: a new key, so that every player starts on the fugue's own sound.
+const SOUND_KEY = "tg-sound-v2";
 const TUNING_KEY = "tg-tuning";
 
 interface Pick {
@@ -99,11 +100,10 @@ export function BenchApp() {
     save(LAG_KEY, l);
     if (chip.current) chip.current.lag = l;
   };
-  const [sound, setSoundRaw] = useState<string>(() => load<string>(SOUND_KEY, "bossa"));
+  const [sound, setSoundRaw] = useState<string>(() => load<string>(SOUND_KEY, DESIGNATED));
   const setSound = (id: string) => {
     setSoundRaw(id);
     save(SOUND_KEY, id);
-    setPreset(id);
   };
   const [tuning, setTuningRaw] = useState<{ id: string; a: number }>(() => load(TUNING_KEY, { id: "equal", a: 440 }));
   const changeTuning = (id: string, a: number) => {
@@ -112,7 +112,6 @@ export function BenchApp() {
     setTuning(id, a);
   };
   useEffect(() => {
-    setPreset(sound);
     setTuning(tuning.id, tuning.a);
     loadDrums();
   }, []);
@@ -135,6 +134,11 @@ export function BenchApp() {
   const from = run ? run.from : startTick(f, pick.share);
   const voice = run ? run.voice : pick.voice;
   const bpm = run ? run.bpm : pick.bpm;
+  // D203: each fugue its own designated sound (D200), unless another ensemble is chosen.
+  useEffect(() => {
+    applyFugueSound(f.id, sound);
+  }, [f.id, sound]);
+
   const duo = proto.id === "duo";
   const played = duo ? [voice, pick.voice2] : [voice];
   // LADDER: the box fills its height with the voice's range, so its rows are as tall as can be.
@@ -595,7 +599,7 @@ export function BenchApp() {
           {proto.id === "sideways" && <Choice id="level" label="SIDEWAYS" options={[["easy", "EASY"], ["legato", "LEGATO"]]} value={pick.legato ? "legato" : "easy"} set={(v) => setPick({ legato: v === "legato" })} />}
           <PieceButton id={pick.piece} open={() => setWheel(true)} />
           <BpmSetting bpm={pick.bpm} set={(bpm) => setPick({ bpm })} />
-          <SoundSetting value={sound} set={setSound} />
+          <SoundSetting value={sound} set={setSound} designated={fugueSoundInfo(f.id)?.name} />
           <TuningSetting id={tuning.id} a={tuning.a} set={changeTuning} />
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
           <div className="tg-set">

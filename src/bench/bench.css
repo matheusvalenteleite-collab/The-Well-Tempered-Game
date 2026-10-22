@@ -164,3 +164,7 @@
 .tg-card { text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6); }
 .tb-grade, .tb-platform h1 { text-shadow: 0 1px 0 #fff3, 3px 3px 0 #b8322a, 6px 6px 0 rgba(0, 0, 0, 0.5); }
 .tb-bach { box-shadow: 4px 4px 0 #b8322a, 0 12px 28px rgba(0, 0, 0, 0.6); }
+
+/* D203: the fugue's own sound, first in the sound setting. */
+.tg-own { font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-gold); background: transparent; border: 2px solid var(--tg-gold); padding: 9px; min-height: 36px; cursor: pointer; box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 3px 0 #05060c; }
+.tg-own.on { color: #1a1408; background: var(--tg-gold); }
