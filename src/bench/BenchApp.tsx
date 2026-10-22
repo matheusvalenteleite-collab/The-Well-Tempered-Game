@@ -21,7 +21,7 @@ import { setTuning } from "../touch/tuning.ts";
 import { accompaniment, startTick, stepRange, subjectMarks, entrySpans, voicesFrom } from "../touch/voice-mode.ts";
 import { paintProto } from "./paint-proto.ts";
 import { ProtoGame, type KeyPress } from "./proto-game.ts";
-import { ARROW_KEYS, arrowOf, EASY_LEVELS, KEY_ROWS, type EasyLevel, keyRow, moveOf, PROTOS, protoById, type Platform, type ProtoId } from "./protos.ts";
+import { ARROW_KEYS, arrowOf, EASY_LEVELS, KEY_ROWS, type EasyLevel, keyId, keyRow, midiId, moveOf, PROTOS, protoById, type Platform, type ProtoId } from "./protos.ts";
 
 /**
  * D181, the piece: four choices, each a button that opens its options: the book (I, II, or the Art of
@@ -327,10 +327,11 @@ export function BenchApp() {
   const events: ThumbEvents = {
     down: (id, side, x, y, w, h, ts) => game.current?.down(id, { side, x, y, w, h }, ts),
     move: (id, x, y, w, h, ts) => game.current?.move(id, { side: "left", x, y, w, h }, ts),
-    up: (id, ts) => {
+    up: (id, ts, cancelled) => {
       const g = game.current;
       if (g) return g.up(id, ts);
-      if (phase.kind === "title" || phase.kind === "result") start();
+      // A touch the system took back (pointercancel) starts nothing (D191: nor sound outside a gesture on iOS).
+      if (!cancelled && (phase.kind === "title" || phase.kind === "result")) start();
     },
   };
 
@@ -346,15 +347,19 @@ export function BenchApp() {
     // MIDI: a computer's (D182).
     if (!nav.requestMIDIAccess || platform !== "computer") return;
     let access: MIDIAccess | null = null;
+    // D191: a promise resolving after the effect is gone (StrictMode, a quick switch of platform)
+    // attaches nothing, and a device plugged in later re-attaches nothing.
+    let alive = true;
     const listen = () => {
+      if (!alive) return;
       const names: string[] = [];
       access?.inputs.forEach((input) => {
         names.push(input.name ?? "MIDI");
         input.onmidimessage = (e: MIDIMessageEvent) => {
           const [st, n, vel] = e.data ?? [];
           const kind = st & 0xf0;
-          if (kind === 0x90 && vel > 0) keyDownRef.current(5000 + n, { midi: n, velocity: vel / 127, side: n < 60 ? "left" : "right" }, e.timeStamp);
-          else if (kind === 0x80 || (kind === 0x90 && vel === 0)) game.current?.keyUp(5000 + n, e.timeStamp);
+          if (kind === 0x90 && vel > 0) keyDownRef.current(midiId(n), { midi: n, velocity: vel / 127, side: n < 60 ? "left" : "right" }, e.timeStamp);
+          else if (kind === 0x80 || (kind === 0x90 && vel === 0)) game.current?.keyUp(midiId(n), e.timeStamp);
         };
       });
       setMidi(names.join(", "));
@@ -362,12 +367,18 @@ export function BenchApp() {
     nav
       .requestMIDIAccess()
       .then((a) => {
+        if (!alive) return;
         access = a;
         listen();
         a.onstatechange = listen;
       })
-      .catch(() => setMidi(""));
-    return () => access?.inputs.forEach((i) => (i.onmidimessage = null));
+      .catch(() => alive && setMidi(""));
+    return () => {
+      alive = false;
+      if (!access) return;
+      access.onstatechange = null;
+      access.inputs.forEach((i) => (i.onmidimessage = null));
+    };
   }, [platform]);
 
   // The phone held the wrong way while playing (the notice up): the game paused with its sound, until
@@ -381,7 +392,7 @@ export function BenchApp() {
       if (q.matches) {
         game.current?.releaseAll(performance.now());
         void ch.ctx.suspend();
-      } else if (ch.ctx.state === "suspended" && !document.hidden) void ch.resume();
+      } else if (ch.ctx.state !== "running" && ch.ctx.state !== "closed" && !document.hidden) void ch.resume();
     };
     check();
     q.addEventListener("change", check);
@@ -397,7 +408,7 @@ export function BenchApp() {
       if (document.hidden) {
         away();
         if (ch && phase.kind === "play") void ch.ctx.suspend();
-      } else if (ch && ch.ctx.state === "suspended") void ch.resume();
+      } else if (ch && ch.ctx.state !== "closed") void ch.resume(); // D191: also the iPhone's silent <audio>, paused by an interruption
     };
     window.addEventListener("blur", away);
     document.addEventListener("visibilitychange", shown);
@@ -449,13 +460,15 @@ export function BenchApp() {
         }
       }
       const k = press(e);
-      if (!k || e.repeat) return;
+      if (!k) return;
+      // A key held repeats: nothing more to play, but a game's keys (space, the arrows) must not scroll the page (D191).
+      if (e.repeat) return void (g && e.preventDefault());
       if (!g && phase.kind !== "title" && phase.kind !== "result") return;
       e.preventDefault();
       // A phone's prototype: the keys only start it.
       if (proto.platform !== "computer") return void (g ? null : keyDownRef.current(0, k, e.timeStamp));
       g?.keysDown.add(e.code);
-      keyDownRef.current(7000 + e.keyCode, k, e.timeStamp);
+      keyDownRef.current(keyId(e.keyCode), k, e.timeStamp);
     };
     const up = (e: KeyboardEvent) => {
       const g = game.current;
@@ -463,7 +476,7 @@ export function BenchApp() {
       if (e.code === "ShiftLeft" || e.code === "ShiftRight") return g.pedal(false);
       if (e.code === "ArrowUp" || e.code === "ArrowDown") return g.bendHeld(0);
       g.keysDown.delete(e.code);
-      g.keyUp(7000 + e.keyCode, e.timeStamp);
+      g.keyUp(keyId(e.keyCode), e.timeStamp);
     };
 
     window.addEventListener("keydown", down);

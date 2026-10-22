@@ -176,6 +176,10 @@ export class Chip {
       } catch {
         /* no <audio>: the switch may mute the game */
       }
+    } else if (this.keepAlive?.paused) {
+      // D191: iOS pauses it at an interruption (a call, Siri, the app in the background); played
+      // again from the next gesture, or the switch would mute the game from then on.
+      void this.keepAlive.play().catch(() => {});
     }
     return this.ctx.state === "running" ? Promise.resolve() : this.ctx.resume();
   }

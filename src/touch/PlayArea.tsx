@@ -5,12 +5,13 @@
  * finished tap (lift) is also reported, since phones let a page start its sound only then.
  */
 import { useEffect, useRef, useState, type PointerEvent } from "react";
-import { onSide, touchDown, touchMove, touchUp, type Side, type Touches } from "./thumbs.ts";
+import { cancelled, onSide, touchDown, touchMove, touchUp, type Side, type Touches } from "./thumbs.ts";
 
 export interface ThumbEvents {
   down: (id: number, side: Side, x: number, y: number, w: number, h: number, ts: number) => void;
   move: (id: number, x: number, y: number, w: number, h: number, ts: number) => void;
-  up: (id: number, ts: number) => void;
+  /** A lift; `cancelled` when the system took the touch back (pointercancel: a scroll, a gesture), which is no tap. */
+  up: (id: number, ts: number, cancelled?: boolean) => void;
 }
 
 export type Painter = (g: CanvasRenderingContext2D, w: number, h: number) => void;
@@ -81,7 +82,7 @@ export function PlayArea(p: {
   const up = (e: PointerEvent<HTMLDivElement>) => {
     state.current = touchUp(state.current, e.pointerId);
     setTouches(state.current);
-    events.up(e.pointerId, e.timeStamp);
+    events.up(e.pointerId, e.timeStamp, cancelled(e.type));
   };
 
   const left = onSide(touches, "left").length;

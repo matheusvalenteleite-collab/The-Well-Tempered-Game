@@ -105,7 +105,8 @@ function playThrough(id: string, piece: string, voices: number[], legato = false
   const evs: Ev[] = [];
   let nid = 0;
   g.tracks.forEach((tr, k) => {
-    const heads = tr.notes.map((n, i) => (i > 0 && tr.notes[i - 1].on === n.on ? -1 : i)).filter((i) => i >= 0);
+    // The notes struck: a chord once; the riding notes (D191) are played for the player.
+    const heads = tr.notes.map((n, i) => (n.ride || (i > 0 && tr.notes[i - 1].on === n.on) ? -1 : i)).filter((i) => i >= 0);
     heads.forEach((i, h) => {
       const n = tr.notes[i];
       const t0 = at(n.on);
@@ -115,7 +116,8 @@ function playThrough(id: string, piece: string, voices: number[], legato = false
         const art = id_proto === "fingering" ? tr.fingers[i].art : legato ? "legato" : "free";
         const len = at(n.on + n.dur) - t0;
         if (art === "staccato") t1 = t0 + len * 0.4;
-        else if (art === "tenuto") t1 = t0 + len * 0.9;
+        // A tenuto note slurred into the next (D191: a suspension's resolution) is held to it.
+        else if (art === "tenuto") t1 = h + 1 < heads.length && tr.fingers[heads[h + 1]].art === "legato" ? Math.max(t0 + len * 0.9, nextOn + 0.02) : t0 + len * 0.9;
         else if (art === "legato" || id_proto === "fingering") t1 = Math.max(t0 + 0.02, nextOn + 0.02);
       }
       nid++;

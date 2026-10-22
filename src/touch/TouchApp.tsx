@@ -248,10 +248,10 @@ export function TouchApp() {
       const g = game.current;
       if (g) g.move(id, { side: "left", x, y, w, h }, ts);
     },
-    up: (id, ts) => {
+    up: (id, ts, cancelled) => {
       const g = game.current;
       if (g) return g.up(id, ts);
-      if (phase.kind === "title" || phase.kind === "result") start();
+      if (!cancelled && (phase.kind === "title" || phase.kind === "result")) start();
     },
   };
 
