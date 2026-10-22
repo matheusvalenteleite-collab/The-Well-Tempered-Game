@@ -4,11 +4,14 @@
  * preludes.json, Humdrum encoding). Each voice is a list of [onset, duration,
  * MIDI, staff step] in ticks (the step: the note's letter and octave, 7 per octave, C0 = 0, so the
  * lanes are the staff's lines and spaces).
- * The entries of the subject are the study's (src/wtc/library.ts, found by the subject's head), each
- * taken in its voice for the subject's whole length, as the subject or as the answer (the second
- * entry), whichever its notes follow more closely. An entry's key is the subject's key moved by the
- * entry's transposition, its mode read from the third above that tonic in the entry's notes; for the
- * C minor fugue of Book I the keys were read from the score by hand (D159).
+ * The entries of the subject are the study's (src/wtc/library.ts, found by the subject's head, and,
+ * D189, in augmentation and diminution), each taken in its voice for the subject's whole length
+ * (scaled), less two the library finds wrongly (NOT_ENTRIES). D189: an entry's key is read from its
+ * own notes and the music sounding with it, its level kept unless they contradict it, and spelled
+ * as the score spells; it is the answer where that key is the dominant's (tools/touch/analysis.ts);
+ * for the C minor fugue of Book I the keys were read from the score by hand (D159), and the reading
+ * agrees. D189: each fugue's cadences, and its countersubject against each entry where it has a
+ * regular one (analysis.ts).
  * The sections: the exposition (until every voice has had its first entry), then sections of 4 to
  * 10 bars, each ending on the first beat of the bar where an entry lands (8 bars where none does).
  * The C minor fugue keeps the sections read by hand (D163).
@@ -20,7 +23,8 @@
  * `keys` is each piece's timeline of keys for the music box's colour: a fugue's entries, a prelude's
  * cadences.
  * D169: and the unfinished Fuga a 3 soggetti of the Art of Fugue (Contrapunctus XIV), from the Mutopia
- * Project's public-domain MIDI (data/sources/art-of-fugue/SOURCE.md), spelled as D minor spells.
+ * Project's public-domain MIDI (data/sources/art-of-fugue/SOURCE.md), spelled as D minor spells;
+ * D189: its three subjects' entries and its cadences.
  * Run: node tools/touch/extract.ts
  */
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
@@ -29,7 +33,10 @@ import { parsePitch } from "../../src/music/pitch.ts";
 import { TPQ } from "../../src/wtc/kern.ts";
 import type { WtcPiece } from "../../src/wtc/corpus.ts";
 import { LIBRARY } from "../../src/wtc/library.ts";
+import { findEntriesByHead, subjectAndAnswer } from "../../src/wtc/fugue.ts";
+import { laterSubjects } from "../../src/wtc/subjects.ts";
 import { readMidi } from "./midi.ts";
+import { buildEntries, countersubjects, findCadences, keySpeller, type RawEntry } from "./analysis.ts";
 
 const read = (f: string) => JSON.parse(readFileSync(fileURLToPath(new URL(`../../data/wtc/${f}`, import.meta.url)), "utf8"));
 const corpus: WtcPiece[] = read("fugues.json");
@@ -42,12 +49,6 @@ const NAMES_BY_COUNT: Record<number, string[]> = {
   4: ["Soprano", "Alto", "Tenor", "Bass"],
   5: ["Soprano I", "Soprano II", "Alto", "Tenor", "Bass"],
 };
-const PC: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
-// Key names in the piece's own spelling: sharps in the sharp keys, flats in the flat ones.
-const SHARP_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-const FLAT_NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
-const SHARP_KEYS = new Set(["G", "D", "A", "E", "B", "F#", "C#", "e", "b", "f#", "c#", "g#", "d#"]);
-
 /** Hand readings for the C minor fugue (D159, D163). */
 const HAND: Record<string, { keys: string[]; cuts: [number, number, string][] }> = {
   wtc1f02: {
@@ -64,6 +65,21 @@ const HAND: Record<string, { keys: string[]; cuts: [number, number, string][] }>
 };
 
 type Note = [number, number, number, number];
+
+/**
+ * D189: entries the library finds that are not statements of the subject, by Bach's bar and voice
+ * (0 the highest). Book I no. 8, b. 17, bass (F♯ F♯ E♯ D♯ C♯ B♯…: the subject's rhythm, an octave
+ * leap for its fifth, then a scale) and b. 33, alto (G♯ A♯ G♯ F♯ E♯ D♯…: the rhythm again, not the
+ * intervals): rhythm-only matches of entries.ts's finder, read in the score by the music audit of
+ * 22 October 2026 (item 6); Ledbetter's claims for the fugue (data/wtc/ledbetter-claims.txt) name
+ * no entry at either bar.
+ */
+const NOT_ENTRIES: Record<string, [bar: number, voice: number][]> = {
+  wtc1f08: [
+    [17, 2],
+    [33, 1],
+  ],
+};
 
 const keyName = (k: string) => {
   const minor = k[0] === k[0].toLowerCase();
@@ -95,41 +111,31 @@ const fugues = corpus
     const barAt = (tick: number) => p.bars.filter((b) => b.on <= tick).at(-1)?.n ?? p.bars[0].n;
     const lastBar = p.bars.at(-1)!.n;
 
-    // The entries, in their voices, for the subject's length.
+    // The entries (D189): the library's, in their voices, for the subject's length (scaled in
+    // augmentation and diminution), less those standard analyses do not count; keyed, and told
+    // subject or answer, by tools/touch/analysis.ts.
     const subj = lib.subject;
     const span = Math.round((subj[subj.length - 1].at + subj[subj.length - 1].dur - subj[0].at) * TPQ);
-    const raw = lib.entries.map((e) => {
-      const voice = lib.voice[e.notes[0]];
-      const on = Math.round((e.at - pad) * TPQ);
-      return { voice, on, shift: e.shift, notes: voices[voice].filter((n) => n[0] >= on && n[0] < on + span) };
-    });
-    const shape = (r: (typeof raw)[number]) => new Map(r.notes.map((n) => [n[0] - r.on, n[2] - r.notes[0]?.[2]]));
-    const forms = { subject: raw[0] ? shape(raw[0]) : new Map(), answer: raw[1] ? shape(raw[1]) : new Map() };
-    const fit = (r: (typeof raw)[number], form: Map<number, number>) => r.notes.filter((n) => form.get(n[0] - r.on) === n[2] - r.notes[0][2]).length;
-    const tonicPc = PC[p.key[0]] + (p.key[1] === "#" ? 1 : p.key[1] === "b" ? -1 : 0);
     const hand = HAND[p.id];
-    const entries = raw
-      .filter((r) => r.notes.length)
-      .map((r, i) => {
-        const form = i > 0 && fit(r, forms.answer) > fit(r, forms.subject) ? "answer" : "subject";
-        // The entry's tonic: the subject's moved by the transposition (the answer stands a fifth above).
-        const pc = (((tonicPc + r.shift) % 12) + 12) % 12;
-        const pcs = new Set(r.notes.map((n) => n[2] % 12));
-        const third = pcs.has((pc + 4) % 12) && !pcs.has((pc + 3) % 12) ? "major" : pcs.has((pc + 3) % 12) && !pcs.has((pc + 4) % 12) ? "minor" : p.mode;
-        const names = SHARP_KEYS.has(p.mode === "minor" ? p.key.toLowerCase() : p.key) ? SHARP_NAMES : FLAT_NAMES;
-        const key = hand?.keys[i] ?? (third === "minor" ? names[pc].toLowerCase() : names[pc]);
-        const f = forms[form];
-        return {
-          voice: r.voice,
-          form,
-          key,
-          bar: barAt(r.on),
-          on: r.on,
-          end: r.on + span,
-          notes: r.notes.map((n) => [n[0], n[1], n[2], f.get(n[0] - r.on) === n[2] - r.notes[0][2] ? 0 : 1]),
-        };
-      })
-      .sort((a, b) => a.on - b.on);
+    const speller = keySpeller(p.voices.flatMap((v) => v.map((n) => n[2])));
+    const piece = { tpq: TPQ, meter: p.meter, bars: p.bars, length: p.length, voices, key: p.mode === "minor" ? p.key.toLowerCase() : p.key };
+    const raw: RawEntry[] = [...lib.entries, ...lib.transformed]
+      .map((e) => ({
+        voice: lib.voice[e.notes[0]],
+        on: Math.round((e.at - pad) * TPQ),
+        len: Math.round(span * (e.scale ?? 1)),
+        shift: e.shift,
+        inverted: e.inverted,
+        scale: e.scale ?? 1,
+        theme: 1,
+      }))
+      .filter((r) => !(NOT_ENTRIES[p.id] ?? []).some(([bar, voice]) => bar === barAt(r.on) && voice === r.voice));
+    const entries = buildEntries(piece, raw, speller, hand?.keys);
+    const cadences = findCadences(piece, speller);
+    const countersubject = countersubjects(
+      p,
+      entries.map((e) => ({ voice: e.voice, on: e.on, plain: !e.inverted && !e.scale })),
+    ).map(({ entry, voice, on, end }) => ({ entry, voice, on, end }));
 
     // The bar a section ends with: where the entry lands (its first beat), or the next bar.
     const landing = (end: number) => {
@@ -186,6 +192,8 @@ const fugues = corpus
       keys: entries.map((e) => ({ on: e.on, key: e.key })),
       spell,
       sections,
+      cadences,
+      countersubject,
     };
   });
 
@@ -263,6 +271,8 @@ const preludes = preludeCorpus
       keys: cadences.map((c) => ({ on: c.on, key: c.key })),
       spell,
       sections,
+      cadences: [],
+      countersubject: [],
     };
   });
 
@@ -287,6 +297,7 @@ function contrapunctus() {
   const length = Math.max(...voices.flat().map((n) => n[0] + n[1]));
   const barTicks = 4 * TPQ;
   const bars = Array.from({ length: Math.ceil(length / barTicks) }, (_, i) => ({ n: i + 1, on: i * barTicks }));
+  const { entries, cadences } = contrapunctusAnalysis(voices, spell, bars, length);
   return {
     id: "bwv1080-14",
     kind: "fugue",
@@ -302,11 +313,66 @@ function contrapunctus() {
     bars,
     voiceNames: NAMES_BY_COUNT[4],
     voices,
-    entries: [],
-    keys: [],
+    entries,
+    keys: entries.map((e) => ({ on: e.on, key: e.key })),
     spell,
     sections: [{ name: "Whole", fromBar: 1, toBar: bars.length, from: 0, to: length }],
+    cadences,
+    countersubject: [],
   };
+}
+
+/**
+ * D189: the entries of Contrapunctus XIV's three subjects, found in the notes as the WTC's are
+ * (src/wtc/fugue.ts, src/wtc/subjects.ts). The first subject: the bass's opening as far as the
+ * tenor's answer follows it, its entries found by its head and by the answer's (the answer is
+ * tonal: A D for D A), upright and inverted. The second and third: the recurring figures that
+ * first enter at b. 114 (the running second subject, the alto's F4 on beat 2) and b. 193 (the
+ * third, B-A-C-H, the tenor's B♭3 on beat 3), the bars the music audit of 22 October 2026 gives
+ * (item 6) and the notes confirm; the plan of three sections, each opening with a new subject,
+ * the third combining all three, is the usual description (for one, Wolff, "The Last Fugue:
+ * Unfinished?", 1991). Their shapes and all their statements are read from the notes. In
+ * augmentation or diminution none is found.
+ */
+function contrapunctusAnalysis(voices: Note[][], spell: Record<number, string>, bars: { n: number; on: number }[], length: number) {
+  const wp: WtcPiece = {
+    id: "bwv1080-14",
+    book: 0,
+    number: 14,
+    kind: "fugue",
+    key: "D",
+    mode: "minor",
+    bwv: "1080",
+    meter: "4/4",
+    voices: voices.map((v) => v.map(([on, dur, midi]) => [on, dur, spell[midi], 0])),
+    bars,
+    length,
+  };
+  const { subject, answer } = subjectAndAnswer(wp);
+  const midi = (pitch: string) => parsePitch(pitch).midi;
+  const span = (ns: { on: number; dur: number }[]) => ns[ns.length - 1].on + ns[ns.length - 1].dur - ns[0].on;
+  const answerLevel = midi(answer[0].pitch) - midi(subject[0].pitch);
+  const raw: RawEntry[] = [];
+  for (const [model, level] of [
+    [subject, 0],
+    [answer, answerLevel],
+  ] as const) {
+    for (const e of findEntriesByHead(wp, [...model]).entries) {
+      // An entry found by both the subject's head and the answer's is one entry.
+      if (raw.some((r) => r.voice === e.voice && Math.abs(r.on - e.on) < span(subject))) continue;
+      raw.push({ voice: e.voice, on: e.on, len: span(subject), shift: midi(e.pitch) - midi(model[0].pitch) + level, inverted: e.form === "inversion", scale: 1, theme: 1 });
+    }
+  }
+  laterSubjects(wp, subject, answer, [114, 193]).forEach((ls, k) => {
+    const first = midi(wp.voices[ls.occurrences[0].voice].find((n) => n[0] === ls.occurrences[0].on)![2]);
+    for (const o of ls.occurrences) {
+      const at = wp.voices[o.voice].find((n) => n[0] === o.on);
+      if (at) raw.push({ voice: o.voice, on: o.on, len: o.end - o.on, shift: midi(at[2]) - first, inverted: false, scale: 1, theme: k + 2 });
+    }
+  });
+  const piece = { tpq: TPQ, meter: "4/4", bars, length, voices, key: "d" };
+  const speller = keySpeller(Object.values(spell));
+  return { entries: buildEntries(piece, raw, speller), cadences: findCadences(piece, speller, false) };
 }
 
 const out = [...preludes, ...fugues, contrapunctus()].sort((a, b) => (a.book || 9) - (b.book || 9) || a.number - b.number || (a.kind === "prelude" ? -1 : 1));
