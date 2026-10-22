@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import { Game } from "../../src/touch/engine.ts";
 import { PIECES, type TouchFugue } from "../../src/touch/fugue.ts";
 import type { Chip } from "../../src/touch/chip.ts";
-import { level, voicesIn } from "../../src/touch/voice-mode.ts";
+import { level, voicesFrom } from "../../src/touch/voice-mode.ts";
 import { LEVELS, type Level as Difficulty } from "../../src/touch/lanes.ts";
 
 // A seeded random, so the audit is the same every run.
@@ -18,7 +18,7 @@ let seed = 7;
 const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
 const gauss = () => Math.sqrt(-2 * Math.log(rnd() + 1e-12)) * Math.cos(2 * Math.PI * rnd());
 
-function run(f: TouchFugue, section: number, voice: number, difficulty: Difficulty, bpm: number): number {
+function run(f: TouchFugue, voice: number, difficulty: Difficulty, bpm: number): number {
   const clock = { t: 0 };
   const chip = {
     ctx: { get currentTime() { return clock.t; }, outputLatency: 0, baseLatency: 0 },
@@ -26,7 +26,7 @@ function run(f: TouchFugue, section: number, voice: number, difficulty: Difficul
     note: () => ({ stop: () => {}, bend: () => {} }),
     tick: () => {},
   } as unknown as Chip;
-  const g = new Game(f, [level(f, section, voice)], { difficulty, bpm, withOthers: false, wait: false, lagMs: 0, section }, chip);
+  const g = new Game(f, [level(f, voice, 0)], { difficulty, bpm }, chip);
   const at = (tick: number) => 0.15 + (tick - g.start) / g.tps;
   const notes = g.tracks[0].lv.notes;
   type Ev = { t: number; down: boolean; id: number; step: number };
@@ -61,28 +61,26 @@ function run(f: TouchFugue, section: number, voice: number, difficulty: Difficul
 
 const L: string[] = [];
 L.push("# Touch game: difficulty audit (generated)\n");
-L.push("By `tools/touch/audit.ts` (D165-D168). A simulated player plays every part (a fugue's voice, a prelude's");
-L.push("hand) of every section of the 96 preludes and fugues through the game's own engine at the beat 50 (♩=50 in 4/4): on time within a random jitter");
+L.push("By `tools/touch/audit.ts` (D165-D169). A simulated player plays every part (a fugue's voice, a prelude's");
+L.push("hand) of the 96 preludes and fugues and Contrapunctus XIV, whole, through the game's own engine at MEDIUM (the beat 54): on time within a random jitter");
 L.push("(normal, s.d. 40 ms), on the right row of the keys within a third of a row (normal), long notes held.");
 L.push("EASY counts the time only and lets the short notes ride; NORMAL wants the row (one off still counts).");
 L.push("80% earns a voice. This checks that each passage is fair, not how hard it is for a hand. Below: the");
 L.push("passages under 80%, and each fugue's lowest score at each level.\n");
 const low: string[] = [];
-L.push(`| piece | parts | sections | ${LEVELS.map((d) => `lowest ${d}`).join(" | ")} |`);
+L.push(`| piece | parts | bars | ${LEVELS.map((d) => `lowest ${d}`).join(" | ")} |`);
 L.push(`|---|---|---|${LEVELS.map(() => "---").join("|")}|`);
 let runs = 0;
 for (const f of PIECES) {
   const lows: Record<string, number> = {};
-  f.sections.forEach((s, si) => {
-    for (const v of voicesIn(f, si))
-      for (const d of LEVELS) {
-        const x = run(f, si, v, d, 50);
-        runs++;
-        lows[d] = Math.min(lows[d] ?? 100, x);
-        if (x < 80) low.push(`| ${f.id} | bars ${s.fromBar}–${s.toBar} | ${f.voiceNames[v]} | ${d} | ${x} |`);
-      }
-  });
-  L.push(`| ${f.title} (${f.book === 1 ? "I" : "II"}) | ${f.voices.length} | ${f.sections.length} | ${LEVELS.map((d) => (lows[d] < 80 ? `**${lows[d]}**` : lows[d])).join(" | ")} |`);
+  for (const v of voicesFrom(f, 0))
+    for (const d of LEVELS) {
+      const x = run(f, v, d, 54);
+      runs++;
+      lows[d] = Math.min(lows[d] ?? 100, x);
+      if (x < 80) low.push(`| ${f.id} | whole | ${f.voiceNames[v]} | ${d} | ${x} |`);
+    }
+  L.push(`| ${f.title} (${f.book === 1 ? "I" : "II"}) | ${f.voices.length} | ${f.bars.length} | ${LEVELS.map((d) => (lows[d] < 80 ? `**${lows[d]}**` : lows[d])).join(" | ")} |`);
 }
 L.push("");
 L.push(`## Under 80% (${low.length} of ${runs} runs)\n`);

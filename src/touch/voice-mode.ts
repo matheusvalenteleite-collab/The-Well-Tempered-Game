@@ -1,55 +1,49 @@
 /**
- * Playing a voice (D160; D163; D167): the player plays one voice (or two, one per thumb) through a
- * section of a fugue. Alone, they hear only what they play; with the others (D167), the other voices
- * of the section play by themselves around them, and the count-in starts at the section's start, so a
- * voice that enters late enters into the music as it does in the fugue. Two voices alone open once both
- * are earned alone in the section at the level (D163).
+ * Playing a voice (D160; D167; D169): the player plays one voice of a piece (a fugue's voice, a
+ * prelude's hand) while the others play by themselves around it, from a chosen point in the piece to
+ * its end. The point is a share of the piece (0 to 99%), taken back to the start of its bar; the
+ * count-in is the four beats before it.
  */
 import { barAt, barStart, beatOf, type TouchFugue } from "./fugue.ts";
 import { laneNotes, type LaneNote } from "./lanes.ts";
 import { rowWindows, type RowWindow } from "./rows.ts";
 
-/** Of the points, how many earn the voice. */
-export const EARN = 0.8;
-
 export interface Level {
   voice: number;
   notes: LaneNote[];
-  /** The rows of the keys through the section (rows.ts). */
+  /** The rows of the keys through the piece (rows.ts). */
   windows: RowWindow[];
-  /** From the count-in (four beats before the voice's first note's bar, or the section's) to a beat past the section's end. */
+  /** From the count-in (four beats before the starting bar) to a beat past the end. */
   start: number;
   end: number;
-  /** The tick of the voice's first note. */
+  /** The tick play starts at (a bar's start), and of the voice's first note from there. */
+  from: number;
   first: number;
 }
 
-/** The voice's notes in the section. */
-export function sectionNotes(f: TouchFugue, section: number, voice: number) {
-  const s = f.sections[section];
-  return f.voices[voice].filter(([on]) => on >= s.from && on < s.to);
+/** The start of the bar at a share of the piece (0 to 0.99). */
+export function startTick(f: TouchFugue, share: number): number {
+  return barStart(f, barAt(f, Math.max(0, Math.min(0.99, share)) * f.length));
 }
 
-/** The voices that sing in a section. */
-export function voicesIn(f: TouchFugue, section: number): number[] {
-  return f.voices.map((_, v) => v).filter((v) => sectionNotes(f, section, v).length > 0);
+/** The voices that still sing from a tick on. */
+export function voicesFrom(f: TouchFugue, from: number): number[] {
+  return f.voices.map((_, v) => v).filter((v) => f.voices[v].some(([on]) => on >= from));
 }
 
-export function level(f: TouchFugue, section: number, voice: number, withOthers = false): Level {
-  const s = f.sections[section];
-  const raw = sectionNotes(f, section, voice);
-  if (!raw.length) throw new Error(`voice ${voice} is silent in section ${section} of ${f.id}`);
+export function level(f: TouchFugue, voice: number, from: number): Level {
+  const raw = f.voices[voice].filter(([on]) => on >= from);
+  if (!raw.length) throw new Error(`voice ${voice} of ${f.id} is silent from ${from}`);
   const beat = beatOf(f).ticks;
   const notes = laneNotes(raw, beat, voice);
-  const first = raw[0][0];
-  const from = withOthers ? s.from : barStart(f, barAt(f, first));
   return {
     voice,
     notes,
-    windows: rowWindows(notes, s.from, s.to + beat, f.barTicks),
+    windows: rowWindows(notes, from, f.length + beat, f.barTicks),
     start: from - beat * 4,
-    end: s.to + beat,
-    first,
+    end: f.length + beat,
+    from,
+    first: raw[0][0],
   };
 }
 
@@ -62,22 +56,20 @@ export interface OtherNote {
   voice: number;
 }
 
-/** The other voices' notes in the section, to play by themselves (D167). */
-export function accompaniment(f: TouchFugue, section: number, played: number[]): OtherNote[] {
+/** The other voices' notes from a tick on, to play by themselves (D167). */
+export function accompaniment(f: TouchFugue, from: number, played: number): OtherNote[] {
   const out: OtherNote[] = [];
-  f.voices.forEach((_, v) => {
-    if (played.includes(v)) return;
-    for (const [on, dur, midi, step] of sectionNotes(f, section, v)) out.push({ on, dur, midi, step, voice: v });
+  f.voices.forEach((notes, v) => {
+    if (v === played) return;
+    for (const [on, dur, midi, step] of notes) if (on >= from) out.push({ on, dur, midi, step, voice: v });
   });
   return out.sort((a, b) => a.on - b.on);
 }
 
-/** The record of a play: its fugue, section, voices and level ("wtc1f02-s0-1-easy"). */
-export function recordKey(fugue: string, section: number, voices: number[], level: string): string {
-  return `${fugue}-s${section}-${[...voices].sort().join("+")}-${level}`;
-}
-
-/** Two voices are open once each is earned alone in the section at the level. */
-export function duoOpen(best: Record<string, number>, fugue: string, section: number, voices: number[], level: string): boolean {
-  return voices.length < 2 || voices.every((v) => (best[recordKey(fugue, section, [v], level)] ?? 0) >= EARN * 100);
+/** Every note of the piece, as the music box draws it: the steps' range, for one fixed ladder. */
+export function stepRange(f: TouchFugue): { lo: number; hi: number } {
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (const v of f.voices) for (const n of v) (lo = Math.min(lo, n[3])), (hi = Math.max(hi, n[3]));
+  return { lo, hi };
 }

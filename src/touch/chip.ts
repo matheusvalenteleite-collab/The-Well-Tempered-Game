@@ -12,7 +12,7 @@ export interface Voicing {
   timbre: Timbre;
   /** -1 (left) to 1 (right). */
   pan: number;
-  /** 1: the voice the player plays; less for the others. */
+  /** The voice's level (1 for every voice since D169). */
   gain: number;
 }
 
@@ -170,11 +170,12 @@ export class Chip {
 }
 
 /** The voices' timbres and places (D167): the bass a triangle, the top voice the thinnest pulse, the inner ones fuller; spread left (low) to right (high). */
-export function voicing(voice: number, count: number, played: boolean): Voicing {
+export function voicing(voice: number, count: number, _played = true): Voicing {
   const fromTop = voice;
   const timbre: Timbre = fromTop === count - 1 ? "triangle" : fromTop === 0 ? "pulse12" : fromTop === 1 && count > 3 ? "pulse25" : count > 3 ? "pulse50" : "pulse25";
   const pan = count > 1 ? (0.5 - fromTop / (count - 1)) * 0.9 : 0;
-  return { timbre, pan, gain: played ? 1 : 0.55 };
+  // D169: the voice played is no louder than the others; it stands out by its colour in the box.
+  return { timbre, pan, gain: 1 };
 }
 
 /** A decaying stereo noise, for the room. */

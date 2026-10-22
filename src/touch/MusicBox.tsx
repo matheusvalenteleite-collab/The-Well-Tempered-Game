@@ -1,15 +1,14 @@
 /**
- * The music box: the voice (or the two voices) being played, drawn as an 8-bit roll on a low-resolution
- * canvas (one canvas pixel is PX CSS pixels), time running right to left past a fixed playhead. Its
- * rows are the keys' rows (rows.ts): a band per voice played, the higher voice above, each row a staff
- * step, so a note's height in the box is the row the thumb plays it on (D167). Where the rows are set
- * afresh (every two bars, for a wide voice) a dashed line marks the change. The other voices, when they
- * play, are thin lines behind. The roll takes the colour of the key. A hit note shines; a missed one
- * goes dark and shakes; a long note let go early goes dark from there.
+ * The music box (D169): the whole piece, every voice, drawn as an 8-bit roll on a low-resolution canvas
+ * (one canvas pixel is PX CSS pixels), time running right to left past a fixed playhead. One fixed
+ * ladder of staff steps covers the piece's whole range, so the voices keep their places (the bass
+ * always below the soprano) and every note is a block of the same height. The voice played is drawn
+ * full and outlined; the others in their colours, dimmer. A hit note shines; a missed one goes dark and
+ * shakes; a long note let go early goes dark from there. A bracket on the playhead marks the steps the
+ * keys under the thumbs reach now. The roll takes the colour of the key.
  */
 import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
 import type { LaneNote } from "./lanes.ts";
-import type { RowWindow } from "./rows.ts";
 import type { OtherNote } from "./voice-mode.ts";
 
 /** CSS pixels per canvas pixel: the chunkiness of the 8-bit look. */
@@ -30,7 +29,7 @@ export function inkOf(voice: number, count: number): string {
 }
 
 /** The roll's colour in a key (D167: all 24): the circle of fifths round the hue wheel, minor keys darker. */
-export function keyTint(key: string): string {
+export function keyTint(key: string, light = 0): string {
   const pcs: Record<string, number> = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 };
   let pc = pcs[key[0].toLowerCase()] ?? 0;
   if (key[1] === "#") pc++;
@@ -39,15 +38,7 @@ export function keyTint(key: string): string {
   const fifths = (pc * 7) % 12;
   const minor = key[0] === key[0].toLowerCase();
   const hue = (220 + fifths * 30) % 360;
-  return `hsl(${hue} ${minor ? 55 : 45}% ${minor ? 13 : 17}%)`;
-}
-
-export interface Band {
-  voice: number;
-  notes: LaneNote[];
-  windows: RowWindow[];
-  /** The rows held down now. */
-  held: number[];
+  return `hsl(${hue} ${minor ? 55 : 45}% ${(minor ? 13 : 17) + light}%)`;
 }
 
 export interface Frame {
@@ -58,11 +49,18 @@ export interface Frame {
   key: string;
   barTicks: number;
   beatTicks: number;
-  /** How many voices the fugue has (for the inks). */
+  /** How many voices the piece has (for the inks). */
   count: number;
-  /** The voices played, the higher first. */
-  bands: Band[];
+  /** The piece's range of staff steps: the ladder. */
+  lo: number;
+  hi: number;
+  /** The voice played, and its notes as the game judges them. */
+  voice: number;
+  notes: LaneNote[];
+  /** Every other voice's notes. */
   others: OtherNote[];
+  /** The steps the keys reach now (lowest, how many), if playing. */
+  keys?: { lo: number; rows: number };
 }
 
 export function MusicBox({ frame, hud, legend, children }: { frame: MutableRefObject<Frame>; hud: ReactNode; legend: ReactNode; children?: ReactNode }) {
@@ -112,6 +110,13 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
   const t0 = fr.now - PLAYHEAD * span;
   const xOf = (tick: number) => Math.round(((tick - t0) / span) * w);
   const playX = xOf(fr.now);
+  // The ladder: one row per staff step over the piece's range, a step of room either side.
+  const lo = fr.lo - 1;
+  const rows = fr.hi - lo + 2;
+  const rowH = Math.max(2, Math.floor(h / rows));
+  const top = Math.floor((h - rowH * rows) / 2);
+  const yOf = (step: number) => top + (fr.hi + 1 - step) * rowH;
+  const bh = Math.max(2, rowH);
 
   // Beats faint, bar lines brighter.
   for (let t = Math.floor(t0 / fr.beatTicks) * fr.beatTicks; t < t0 + span; t += fr.beatTicks) {
@@ -119,88 +124,67 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
     g.fillRect(xOf(t), 0, 1, h);
   }
 
+  // The keys' reach now: a bracket on the playhead.
+  if (fr.keys) {
+    const yTop = yOf(fr.keys.lo + fr.keys.rows - 1);
+    const yBot = yOf(fr.keys.lo) + rowH;
+    g.fillStyle = tok("--tg-lane-on");
+    g.fillRect(0, yTop, playX, yBot - yTop);
+  }
+
+  // The other voices: their colours, dimmer.
+  for (const o of fr.others) {
+    const x1 = xOf(o.on);
+    if (x1 > w) break;
+    const x2 = xOf(o.on + o.dur);
+    if (x2 < 0) continue;
+    g.globalAlpha = 0.5;
+    g.fillStyle = inkOf(o.voice, fr.count);
+    g.fillRect(x1, yOf(o.step), Math.max(1, x2 - x1 - 1), bh - 1);
+  }
+  g.globalAlpha = 1;
+
+  // The voice played: full, outlined.
+  const ink = inkOf(fr.voice, fr.count);
   const shine = tok("--tg-shine");
   const miss = tok("--tg-miss");
+  const edge = tok("--tg-fg");
   const sinceMs = (at: number | undefined) => (at === undefined ? Infinity : ((fr.now - at) / fr.tps) * 1000);
-  const n = Math.max(1, fr.bands.length);
-  const bandH = Math.floor(h / n);
-
-  fr.bands.forEach((band, bi) => {
-    const top = bi * bandH;
-    if (bi > 0) {
-      g.fillStyle = tok("--tg-barline");
-      g.fillRect(0, top, w, 1);
+  for (const n of fr.notes) {
+    let x1 = xOf(n.on);
+    if (x1 > w) break;
+    const x2 = xOf(n.on + n.dur);
+    if (x2 < 0) continue;
+    const y = yOf(n.step);
+    const bw = Math.max(1, x2 - x1 - 1);
+    if (n.state === "miss") {
+      const t = sinceMs(n.at);
+      if (t < 300) x1 += Math.round(Math.sin(t / 22) * 2 * (1 - t / 300));
+      g.fillStyle = miss;
+      g.fillRect(x1, y, bw, bh - 1);
+      continue;
     }
-    const ink = inkOf(band.voice, fr.count);
-    for (const win of band.windows) {
-      if (win.to < t0 || win.from > t0 + span) continue;
-      const xa = Math.max(0, xOf(win.from));
-      const xb = Math.min(w, xOf(win.to));
-      const rowH = Math.max(2, Math.floor((bandH - 2) / win.rows));
-      const pad = top + Math.floor((bandH - rowH * win.rows) / 2);
-      const yOf = (step: number) => pad + (win.rows - 1 - (step - win.lo)) * rowH;
-      const inside = (step: number) => step >= win.lo && step < win.lo + win.rows;
-      // The rows' floors; where the rows are set afresh, a dashed line.
-      g.fillStyle = tok("--tg-grid");
-      for (let r = 0; r <= win.rows; r++) g.fillRect(xa, pad + r * rowH - 1, xb - xa, 1);
-      if (win.from > t0) {
-        g.fillStyle = tok("--tg-barline");
-        for (let y = top; y < top + bandH; y += 4) g.fillRect(xa, y, 1, 2);
+    g.fillStyle = edge;
+    g.fillRect(x1 - 1, y - 1, bw + 2, bh + 1);
+    g.fillStyle = ink;
+    g.fillRect(x1, y, bw, bh - 1);
+    if (n.state === "hit") {
+      g.fillStyle = shine;
+      g.fillRect(x1, y, Math.max(1, Math.min(bw, 2)), bh - 1);
+      if (n.long && n.off !== undefined) {
+        const xo = xOf(n.off);
+        g.fillStyle = miss;
+        g.fillRect(xo, y, Math.max(0, x1 + bw - xo), bh - 1);
       }
-      // The rows held down, lit along the playhead's left.
-      if (win.from <= fr.now && fr.now < win.to) {
-        g.fillStyle = tok("--tg-lane-on");
-        for (const r of band.held) if (r >= 0 && r < win.rows) g.fillRect(Math.max(xa, 0), pad + (win.rows - 1 - r) * rowH, Math.max(0, playX - xa), rowH - 1);
-      }
-      // The other voices: thin lines behind.
-      for (const o of fr.others) {
-        if (o.on < win.from || o.on >= win.to || !inside(o.step)) continue;
-        const x1 = xOf(o.on);
-        const x2 = xOf(o.on + o.dur);
-        if (x2 < 0 || x1 > w) continue;
-        g.globalAlpha = 0.45;
-        g.fillStyle = inkOf(o.voice, fr.count);
-        g.fillRect(x1, yOf(o.step) + Math.floor(rowH / 2) - 1, Math.max(1, x2 - x1 - 1), Math.max(1, Math.floor(rowH / 4)));
+      const t = sinceMs(n.at);
+      if (t < 240) {
+        g.fillStyle = shine;
+        g.globalAlpha = 1 - t / 240;
+        g.fillRect(x1 - 1, y - 1, bw + 2, bh + 1);
         g.globalAlpha = 1;
       }
-      const bh = Math.max(1, rowH - 2);
-      for (const note of band.notes) {
-        if (note.on < win.from || note.on >= win.to) continue;
-        let x1 = xOf(note.on);
-        const x2 = xOf(note.on + note.dur);
-        if (x2 < 0 || x1 > w) continue;
-        const y = yOf(Math.max(win.lo, Math.min(win.lo + win.rows - 1, note.step))) + 1;
-        const bw = Math.max(1, x2 - x1 - 1);
-        if (note.state === "miss") {
-          const t = sinceMs(note.at);
-          if (t < 300) x1 += Math.round(Math.sin(t / 22) * 2 * (1 - t / 300));
-          g.fillStyle = miss;
-          g.fillRect(x1, y, bw, bh);
-          continue;
-        }
-        g.fillStyle = ink;
-        g.globalAlpha = note.state === "hit" ? 1 : note.ride ? 0.55 : 0.85;
-        g.fillRect(x1, y, bw, note.ride ? Math.max(1, Math.floor(bh / 2)) : bh);
-        g.globalAlpha = 1;
-        if (note.state === "hit") {
-          g.fillStyle = shine;
-          g.fillRect(x1, y, Math.max(1, Math.min(bw, 2)), bh);
-          if (note.long && note.off !== undefined) {
-            const xo = xOf(note.off);
-            g.fillStyle = miss;
-            g.fillRect(xo, y, Math.max(0, x1 + bw - xo), bh);
-          }
-          const t = sinceMs(note.at);
-          if (t < 240) {
-            g.fillStyle = shine;
-            g.globalAlpha = 1 - t / 240;
-            g.fillRect(x1 - 1, y - 1, bw + 2, bh + 2);
-            g.globalAlpha = 1;
-          }
-        }
-      }
     }
-  });
+  }
 
   g.fillStyle = tok("--tg-playhead");
   g.fillRect(playX, 0, 1, h);

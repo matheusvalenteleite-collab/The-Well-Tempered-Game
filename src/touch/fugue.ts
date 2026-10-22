@@ -55,8 +55,9 @@ export function fugueById(id: string): TouchFugue {
   return PIECES.find((f) => f.id === id) ?? PIECES[0];
 }
 
-/** "I·2 P", "I·2 F". */
+/** "I·2 P", "I·2 F"; the Art of Fugue's "AoF·XIV". */
 export function shortName(f: TouchFugue): string {
+  if (!f.book) return "AoF·XIV";
   return `${f.book === 1 ? "I" : "II"}·${f.number} ${f.kind === "prelude" ? "P" : "F"}`;
 }
 

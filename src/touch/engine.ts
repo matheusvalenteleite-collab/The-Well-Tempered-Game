@@ -71,13 +71,10 @@ export interface GameOptions {
   difficulty: Difficulty;
   /** Beats per minute, the beat as beatOf() counts it. */
   bpm: number;
-  /** The other voices play by themselves. */
-  withOthers: boolean;
-  /** The music waits at each note until it is played. */
-  wait: boolean;
+  /** The music waits at each note until it is played (not offered since D169; kept for practice). */
+  wait?: boolean;
   /** The player's own lag (calibration), in ms: taken off every event. */
-  lagMs: number;
-  section: number;
+  lagMs?: number;
 }
 
 export class Game {
@@ -127,7 +124,8 @@ export class Game {
     this.end = Math.max(...sorted.map((lv) => lv.end));
     this.tps = (this.beat * o.bpm) / 60;
     this.opt = options(this.beat, o.bpm, o.difficulty);
-    this.others = o.withOthers ? accompaniment(f, o.section, sorted.map((lv) => lv.voice)) : [];
+    // D169: the other voices always play, from where the player starts.
+    this.others = accompaniment(f, sorted[0].from, sorted[0].voice);
     this.anchorAt = chip.ctx.currentTime + 0.15;
     this.anchorTick = this.start;
     this.nextBeat = this.start;
@@ -142,7 +140,7 @@ export class Game {
   /** An event's tick: its timestamp on the clock the player hears, less their lag; while waiting, the note waited at. */
   private tickOf(ts: number) {
     if (this.waiting) return this.now;
-    return this.tickAt(this.chip.heard() - (performance.now() - ts) / 1000 - this.o.lagMs / 1000);
+    return this.tickAt(this.chip.heard() - (performance.now() - ts) / 1000 - (this.o.lagMs ?? 0) / 1000);
   }
 
   /** WAIT: the first note still to play (its onset), if any. */
@@ -170,7 +168,7 @@ export class Game {
     const horizon = Math.min(this.tickAt(ch.ctx.currentTime + 0.25), block ?? Infinity, this.end);
     while (this.nextBeat <= horizon) {
       const accent = Math.round((this.nextBeat - this.start) / this.beat) % this.perBar === 0;
-      ch.tick(this.timeAt(this.nextBeat), accent, this.nextBeat < this.entry ? 0.12 : this.o.withOthers ? 0.025 : 0.05);
+      ch.tick(this.timeAt(this.nextBeat), accent, this.nextBeat < this.entry ? 0.12 : 0.02);
       this.nextBeat += this.beat;
     }
     while (this.nextOther < this.others.length && this.others[this.nextOther].on <= horizon && !(block !== null && this.others[this.nextOther].on >= block)) {
