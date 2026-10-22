@@ -1,20 +1,27 @@
 /**
- * The game while it plays (D163; D166): one voice, or two voices one per thumb, on the audio clock.
- * It takes the taps (and on a computer the keys), judges them by the level (lanes.ts) against the
- * targets (targets.ts), sounds only what is played, plays EASY's short notes by themselves after a
- * hit, grades the timing (PERFECT within 70 ms, else GOOD), counts the combo, and draws the music
- * box's frame. With two voices the lower is the left thumb's and the upper the right's; the box shows
- * both on one ladder of their pitches.
+ * The game while it plays (D163; D166; D167): one voice, or two voices one per thumb, on the audio
+ * clock, alone or with the other voices playing by themselves. It takes the taps (and on a computer
+ * the keys), judges them by the level against the keys' rows (rows.ts), sounds only what is played,
+ * plays EASY's short notes by themselves after a hit, grades the timing (PERFECT within 70 ms, else
+ * GOOD), counts the combo, and gives the music box and the keys what to draw.
+ * Holding a note, the thumb can slide to the next row for the next note (a slur) and wobble sideways
+ * to bend it (vibrato). WAIT (D167, as Synthesia's): the music stops at each note until it is played.
  */
-import type { Chip } from "./chip.ts";
-import { keyAt, type TouchFugue } from "./fugue.ts";
-import { chordOf, markRides, options, points, release, strike, sweep, type LaneNote, type LaneOptions, type Level as Difficulty } from "./lanes.ts";
-import type { Frame } from "./MusicBox.tsx";
-import { place, reaches } from "./targets.ts";
+import { voicing, type Chip, type Sounding } from "./chip.ts";
+import { beatOf, keyAt, type TouchFugue } from "./fugue.ts";
+import { chordOf, markRides, options, points, release, strike, sweep, type LaneOptions, type Level as Difficulty } from "./lanes.ts";
+import { rowAt, windowAt, type RowWindow } from "./rows.ts";
 import type { Side } from "./thumbs.ts";
-import type { Level } from "./voice-mode.ts";
+import { accompaniment, type Level, type OtherNote } from "./voice-mode.ts";
 
 export const PERFECT_MS = 70;
+/** How far ahead a note's row starts to light up, in ms. */
+export const APPROACH_MS = 1100;
+/** NORMAL: a tap this many staff steps off its note still plays it. */
+export const REACH_STEPS = 1;
+/** Sideways wobble to bend: pixels for a full bend, and the bend in cents. */
+const BEND_PX = 40;
+const BEND_CENTS = 30;
 
 export interface Track {
   lv: Level;
@@ -28,17 +35,20 @@ export interface Grade {
   lean?: -1 | 1;
   /** When (performance.now()), for the fade. */
   at: number;
-  /** Where (shares of the play area), for the burst. */
-  x?: number;
-  y?: number;
+  /** Where: the track and the row. */
+  track?: number;
+  row?: number;
 }
 
 interface Held {
   track: number;
+  /** The row under the thumb, and where it landed (px), for the bend. */
+  row: number;
+  x0: number;
   /** The note played (-1: none), and with it the rest of its chord. */
   note: number;
   chord: number[];
-  sounds: { stop: (at?: number) => void }[];
+  sounds: Sounding[];
 }
 
 /** The voices low to high (the left thumb's first). */
@@ -47,37 +57,22 @@ export function byPitch(levels: Level[]): Level[] {
   return [...levels].sort((a, b) => mean(a) - mean(b));
 }
 
-/** Puts the voices on one ladder of their pitches: each note's row and voice. Returns the rows. */
-export function shareRows(levels: Level[]): number {
-  const pitches = [...new Set(levels.flatMap((lv) => lv.notes.map((n) => n.midi)))].sort((a, b) => a - b);
-  for (const lv of levels) for (const n of lv.notes) (n.row = pitches.indexOf(n.midi)), (n.voice = lv.voice);
-  return pitches.length;
-}
-
-/** Sets the voices up for a level: their targets, and in EASY their riding notes. */
+/** Sets the voices up for a level: in EASY, their riding notes. */
 export function prepare(f: TouchFugue, levels: Level[], difficulty: Difficulty) {
-  const sorted = byPitch(levels);
-  sorted.forEach((lv, i) => {
-    if (difficulty === "easy") markRides(lv.notes, f.tpq);
-    place(lv.notes, sorted.length === 1 ? "both" : i === 0 ? "left" : "right", f.tpq * 4);
-  });
+  if (difficulty === "easy") for (const lv of levels) markRides(lv.notes, beatOf(f).ticks);
 }
 
-/** The box before play: the voices' opening, a beat before the first of them. */
-export function previewFrame(f: TouchFugue, levels: Level[]): Frame {
-  const rows = shareRows(levels);
-  const first = Math.min(...levels.map((lv) => lv.first));
-  return {
-    now: first - f.tpq,
-    tps: 1,
-    key: keyAt(f, first),
-    voice: levels[levels.length - 1].voice,
-    voices: levels.map((lv) => lv.voice),
-    notes: levels.flatMap((lv) => lv.notes),
-    lanes: rows,
-    touched: [],
-    flashes: [],
-  };
+export interface GameOptions {
+  difficulty: Difficulty;
+  /** Beats per minute, the beat as beatOf() counts it. */
+  bpm: number;
+  /** The other voices play by themselves. */
+  withOthers: boolean;
+  /** The music waits at each note until it is played. */
+  wait: boolean;
+  /** The player's own lag (calibration), in ms: taken off every event. */
+  lagMs: number;
+  section: number;
 }
 
 export class Game {
@@ -88,66 +83,98 @@ export class Game {
   readonly end: number;
   readonly tps: number;
   readonly opt: LaneOptions;
-  /** The music box's rows: every pitch of the voices played, low to high. */
-  readonly rows: number;
-  readonly difficulty: Difficulty;
+  readonly o: GameOptions;
+  readonly f: TouchFugue;
+  /** The other voices, when they play. */
+  readonly others: OtherNote[];
   combo = 0;
   maxCombo = 0;
   perfect = 0;
   grade: Grade | null = null;
   /** The tick the player hears now. */
   now = 0;
-  private f: TouchFugue;
+  /** WAIT: the music is standing at a note. */
+  waiting = false;
   private chip: Chip;
-  /** The player's own lag (calibration), in ms: taken off every event. */
-  private lagMs: number;
-  private T0: number;
+  private beat: number;
+  private perBar: number;
+  /** The clock: at audio time anchorAt the music was at tick anchorTick. */
+  private anchorAt: number;
+  private anchorTick: number;
   private nextBeat: number;
+  private nextOther = 0;
   private held = new Map<number, Held>();
 
-  constructor(f: TouchFugue, levels: Level[], difficulty: Difficulty, bpm: number, chip: Chip, lagMs = 0) {
+  constructor(f: TouchFugue, levels: Level[], o: GameOptions, chip: Chip) {
     this.f = f;
-    this.difficulty = difficulty;
+    this.o = o;
     this.chip = chip;
-    this.lagMs = lagMs;
     const sorted = byPitch(levels);
-    prepare(f, sorted, difficulty);
+    prepare(f, sorted, o.difficulty);
     this.tracks = sorted.map((lv, i) => ({ lv, sides: sorted.length === 1 ? ["left", "right"] : [i === 0 ? "left" : "right"] }));
-    this.rows = shareRows(sorted);
+    const b = beatOf(f);
+    this.beat = b.ticks;
+    this.perBar = b.perBar;
     this.start = Math.min(...sorted.map((lv) => lv.start));
-    this.entry = this.start + 4 * f.tpq;
+    this.entry = this.start + 4 * this.beat;
     this.end = Math.max(...sorted.map((lv) => lv.end));
-    this.tps = (f.tpq * bpm) / 60;
-    this.opt = options(f.tpq, bpm, difficulty);
-    this.T0 = chip.ctx.currentTime + 0.15;
+    this.tps = (this.beat * o.bpm) / 60;
+    this.opt = options(this.beat, o.bpm, o.difficulty);
+    this.others = o.withOthers ? accompaniment(f, o.section, sorted.map((lv) => lv.voice)) : [];
+    this.anchorAt = chip.ctx.currentTime + 0.15;
+    this.anchorTick = this.start;
     this.nextBeat = this.start;
   }
 
   private tickAt(t: number) {
-    return this.start + (t - this.T0) * this.tps;
+    return this.anchorTick + (t - this.anchorAt) * this.tps;
   }
   private timeAt(tick: number) {
-    return this.T0 + (tick - this.start) / this.tps;
+    return this.anchorAt + (tick - this.anchorTick) / this.tps;
   }
-  /** An event's tick: its timestamp on the clock the player hears, less their lag. */
+  /** An event's tick: its timestamp on the clock the player hears, less their lag; while waiting, the note waited at. */
   private tickOf(ts: number) {
-    return this.tickAt(this.chip.heard() - (performance.now() - ts) / 1000 - this.lagMs / 1000);
+    if (this.waiting) return this.now;
+    return this.tickAt(this.chip.heard() - (performance.now() - ts) / 1000 - this.o.lagMs / 1000);
+  }
+
+  /** WAIT: the first note still to play (its onset), if any. */
+  private block(): number | null {
+    if (!this.o.wait) return null;
+    let b: number | null = null;
+    for (const t of this.tracks) for (const n of t.lv.notes) if (!n.ride && n.state === "pending" && (b === null || n.on < b)) b = n.on;
+    return b;
   }
 
   /**
-   * One frame: the beat scheduled ahead, EASY's riding notes sounded (or let pass) as they come, the
-   * notes gone by unplayed marked missed. Returns true at the end.
+   * One frame: the beat and the other voices scheduled ahead (in WAIT, no further than the note waited
+   * for), EASY's riding notes sounded as they come, the notes gone by unplayed marked missed. Returns
+   * true at the end.
    */
   step(): boolean {
     const ch = this.chip;
-    const beat = this.f.tpq;
-    while (this.nextBeat <= this.end && this.timeAt(this.nextBeat) < ch.ctx.currentTime + 0.25) {
-      ch.tick(this.timeAt(this.nextBeat), this.nextBeat % (4 * beat) === 0, this.nextBeat < this.entry ? 0.16 : 0.05);
-      this.nextBeat += beat;
+    const block = this.block();
+    let now = this.tickAt(ch.heard());
+    if (block !== null && now >= block) {
+      if (!this.waiting) this.waiting = true;
+      now = block;
     }
-    this.now = this.tickAt(ch.heard());
-    const ahead = this.tickAt(ch.ctx.currentTime + 0.05);
-    for (const t of this.tracks) {
+    this.now = now;
+    const horizon = Math.min(this.tickAt(ch.ctx.currentTime + 0.25), block ?? Infinity, this.end);
+    while (this.nextBeat <= horizon) {
+      const accent = Math.round((this.nextBeat - this.start) / this.beat) % this.perBar === 0;
+      ch.tick(this.timeAt(this.nextBeat), accent, this.nextBeat < this.entry ? 0.12 : this.o.withOthers ? 0.025 : 0.05);
+      this.nextBeat += this.beat;
+    }
+    while (this.nextOther < this.others.length && this.others[this.nextOther].on <= horizon && !(block !== null && this.others[this.nextOther].on >= block)) {
+      const n = this.others[this.nextOther++];
+      if (n.on < now - this.beat) continue;
+      // In WAIT a note of the others is cut where the music may stop.
+      const dur = block !== null ? Math.min(n.dur, Math.max(this.beat / 4, block - n.on)) : n.dur;
+      ch.note(n.midi, this.timeAt(n.on), dur / this.tps, voicing(n.voice, this.f.voices.length, false));
+    }
+    const ahead = Math.min(this.tickAt(ch.ctx.currentTime + 0.05), block ?? Infinity);
+    this.tracks.forEach((t) => {
       const notes = t.lv.notes;
       notes.forEach((n, i) => {
         if (!n.ride || n.state !== "pending" || n.on > ahead) return;
@@ -156,18 +183,18 @@ export class Game {
         if (before && before.state === "hit") {
           n.state = "hit";
           n.at = n.on;
-          ch.note(n.midi, this.timeAt(n.on), n.dur / this.tps, t.lv.voice);
-        } else if (!before || before.state === "miss" || n.on <= this.now) {
+          ch.note(n.midi, this.timeAt(n.on), n.dur / this.tps, voicing(t.lv.voice, this.f.voices.length, true));
+        } else if (!before || before.state === "miss" || n.on <= now) {
           n.state = "miss";
-          n.at = this.now;
+          n.at = now;
         }
       });
-      if (sweep(notes, this.now, this.opt)) {
+      if (!this.o.wait && sweep(notes, now, this.opt)) {
         this.combo = 0;
         this.grade = { text: "MISS", at: performance.now() };
       }
-    }
-    if (this.now > this.end) {
+    });
+    if (now > this.end) {
       this.stopAll();
       return true;
     }
@@ -176,24 +203,24 @@ export class Game {
 
   /** The beats left in the count-in (4 … 1), or 0 once the music has begun. */
   countIn(): number {
-    return this.now < this.entry ? Math.min(4, Math.ceil((this.entry - this.now) / this.f.tpq)) : 0;
+    return this.now < this.entry ? Math.min(4, Math.ceil((this.entry - this.now) / this.beat)) : 0;
   }
 
-  frame(): Frame {
-    const notes: LaneNote[] = this.tracks.flatMap((t) => t.lv.notes);
-    const touched: number[] = [];
-    for (const h of this.held.values()) if (h.note >= 0) touched.push(this.tracks[h.track].lv.notes[h.note].row ?? 0);
-    return {
-      now: this.now,
-      tps: this.tps,
-      key: keyAt(this.f, this.now),
-      voice: this.tracks[this.tracks.length - 1].lv.voice,
-      voices: this.tracks.map((t) => t.lv.voice),
-      notes,
-      lanes: this.rows,
-      touched,
-      flashes: [],
-    };
+  /** The key the music is in now. */
+  keyNow(): string {
+    return keyAt(this.f, this.now);
+  }
+
+  /** The keys' rows for a track now: those of the next note to play there (or of now). */
+  keys(k: number): RowWindow {
+    const notes = this.tracks[k].lv.notes;
+    const next = notes.find((n) => n.state === "pending" && !n.ride && n.on >= this.now - this.opt.late);
+    return windowAt(this.tracks[k].lv.windows, next && next.on - this.now < (APPROACH_MS / 1000) * this.tps * 2 ? next.on : this.now);
+  }
+
+  /** The rows held down now, by track. */
+  heldRows(k: number): number[] {
+    return [...this.held.values()].filter((h) => h.track === k).map((h) => h.row);
   }
 
   /** The track a half plays (the only one, with one voice). */
@@ -205,8 +232,23 @@ export class Game {
   /** A tap lands at (x, y) px in a play area w by h px, on a side. */
   down(id: number, side: Side, x: number, y: number, w: number, h: number, ts: number) {
     const k = this.trackOf(side);
-    const notes = this.tracks[k].lv.notes;
-    this.play(id, k, ts, (j) => this.difficulty === "easy" || reaches(notes[j], x, y, w, h), { x: x / w, y: y / h });
+    const win = this.keys(k);
+    const row = rowAt(y / h, win.rows);
+    this.play(id, k, row, x, ts, false);
+  }
+
+  /** A held thumb moves: to another row, the next note (a slur); sideways, a bend. */
+  move(id: number, x: number, y: number, w: number, h: number, ts: number) {
+    const cur = this.held.get(id);
+    if (!cur) return;
+    const win = this.keys(cur.track);
+    const row = rowAt(y / h, win.rows);
+    if (row !== cur.row && this.o.difficulty === "normal") {
+      const slurred = this.play(id, cur.track, row, cur.x0, ts, true);
+      if (slurred) return;
+    }
+    const cents = Math.max(-1, Math.min(1, (x - cur.x0) / BEND_PX)) * BEND_CENTS;
+    for (const s of cur.sounds) s.bend(cents);
   }
 
   up(id: number, ts: number) {
@@ -214,32 +256,63 @@ export class Game {
     this.held.delete(id);
   }
 
-  /** A key goes down (EASY): a tap for one hand, or for the only voice. */
-  key(id: number, side: Side | null, ts: number) {
-    if (this.difficulty !== "easy") return;
-    this.play(id, side ? this.trackOf(side) : 0, ts, () => true);
+  /** A computer key goes down (EASY): a tap for one hand, or for the only voice. */
+  press(id: number, side: Side | null, ts: number) {
+    if (this.o.difficulty !== "easy") return;
+    this.play(id, side ? this.trackOf(side) : 0, -1, 0, ts, false);
   }
 
-  private play(id: number, k: number, ts: number, ok: (j: number) => boolean, where?: { x: number; y: number }) {
+  /** Plays what a tap (or a slide into a row) reaches. Returns whether it played a note. */
+  private play(id: number, k: number, row: number, x0: number, ts: number, slide: boolean): boolean {
     const tr = this.tracks[k];
     const notes = tr.lv.notes;
     const t = this.tickOf(ts);
-    const i = strike(notes, t, this.opt, ok);
+    const win = this.keys(k);
+    const step = win.lo + row;
+    // A note beyond the keys (a leap wider than they hold) is played on the nearest edge row.
+    const onKeys = (st: number) => Math.max(win.lo, Math.min(win.lo + win.rows - 1, st));
+    const ok = (j: number) => this.o.difficulty === "easy" || row < 0 || Math.abs(onKeys(notes[j].step) - step) <= REACH_STEPS;
+    // A slide plays a note other than the one the thumb holds.
+    const holdingNow = this.held.get(id)?.chord ?? [];
+    const i = strike(notes, t, this.opt, slide ? (j) => ok(j) && !holdingNow.includes(j) : ok);
+    if (slide && i < 0) {
+      const cur = this.held.get(id);
+      if (cur) cur.row = row;
+      return false;
+    }
+    if (slide) this.letGo(id, ts);
     const chord = i >= 0 ? chordOf(notes, i) : [];
-    const held: Held = { track: k, note: i, chord, sounds: [] };
+    const held: Held = { track: k, row: row < 0 ? (i >= 0 ? notes[i].step - win.lo : 0) : row, x0, note: i, chord, sounds: [] };
     if (i >= 0) {
-      for (const j of chord) held.sounds.push(this.chip.note(notes[j].midi, this.chip.ctx.currentTime, Math.max(0.05, (notes[j].on + notes[j].dur - t) / this.tps), tr.lv.voice));
+      const v = voicing(tr.lv.voice, this.f.voices.length, true);
+      for (const j of chord) held.sounds.push(this.chip.note(notes[j].midi, this.chip.ctx.currentTime, Math.max(0.05, (notes[j].on + notes[j].dur - t) / this.tps), v));
       const offMs = ((t - notes[i].on) / this.tps) * 1000;
       const perfect = Math.abs(offMs) <= PERFECT_MS;
       if (perfect) this.perfect++;
       this.combo++;
       this.maxCombo = Math.max(this.maxCombo, this.combo);
       const at = performance.now();
-      this.grade = perfect ? { text: "PERFECT", at, x: notes[i].x, y: notes[i].y } : { text: "GOOD", lean: offMs < 0 ? -1 : 1, at, x: notes[i].x, y: notes[i].y };
-    } else {
-      this.grade = { text: "✕", at: performance.now(), ...where };
+      this.grade = perfect ? { text: "PERFECT", at, track: k, row: held.row } : { text: "GOOD", lean: offMs < 0 ? -1 : 1, at, track: k, row: held.row };
+      if (this.waiting) this.resume(notes[i].on);
+    } else if (!slide) {
+      this.grade = { text: "✕", at: performance.now(), track: k, row: held.row };
     }
     this.held.set(id, held);
+    return i >= 0;
+  }
+
+  /** WAIT: the note waited for is played; the music goes on from it. */
+  private resume(tick: number) {
+    if (this.block() !== null && this.block()! <= tick) return;
+    this.waiting = false;
+    this.anchorTick = tick;
+    this.anchorAt = this.chip.heard();
+    this.nextBeat = Math.max(this.nextBeat, Math.ceil(tick / this.beat) * this.beat);
+  }
+
+  private holdingNote(track: number, note: number): boolean {
+    for (const h of this.held.values()) if (h.track === track && h.chord.includes(note)) return true;
+    return false;
   }
 
   private letGo(id: number, ts: number) {
@@ -252,8 +325,7 @@ export class Game {
 
   /** Whether a note is being held by a thumb now. */
   holding(track: number, note: number): boolean {
-    for (const h of this.held.values()) if (h.track === track && h.chord.includes(note)) return true;
-    return false;
+    return this.holdingNote(track, note);
   }
 
   stopAll() {

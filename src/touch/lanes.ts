@@ -1,9 +1,9 @@
 /**
- * Judging one voice (D160; D166). A note is played by a tap within a window around its onset that
- * fits it (the level says what fits: targets.ts); a long note (a quarter or more) wants the thumb
+ * Judging one voice (D160; D166; D167). A note is played by a tap within a window around its onset
+ * that fits it (EASY: any tap; NORMAL: a tap on its row or the next: rows.ts); a long note (a quarter or more) wants the thumb
  * held: let go early and it stops sounding and scores half. Two levels (D166): EASY, the time only
  * (a tap anywhere) on the main notes, the short notes riding along after a hit; NORMAL, every note,
- * each tapped on its square. A chord within a voice is struck whole. Pure: ticks in, states out.
+ * each on its row. A chord within a voice is struck whole. Pure: ticks in, states out.
  */
 export type NoteState = "pending" | "hit" | "miss";
 
@@ -14,22 +14,18 @@ export interface LaneNote {
   on: number;
   dur: number;
   midi: number;
-  /** The note's rank among the voice's pitches in the section, lowest 0 (the box's rows with one voice). */
-  lane: number;
+  /** The note's staff step (letter and octave, 7 to the octave). */
+  step: number;
   long: boolean;
   state: NoteState;
   /** Tick of the hit or the miss (for the shine and the shake). */
   at?: number;
   /** Tick the thumb let go of a hit note, if before its end. */
   off?: number;
-  /** The voice, and the row in the music box when several voices share it (engine.ts). */
+  /** The voice. */
   voice?: number;
-  row?: number;
   /** EASY: a short note that plays by itself after a hit, and does not score (D166). */
   ride?: boolean;
-  /** Where its target stands in the play area, as shares of its width and height (targets.ts). */
-  x?: number;
-  y?: number;
 }
 
 export interface LaneOptions {
@@ -46,23 +42,18 @@ export function options(tpq: number, bpm: number, level: Level): LaneOptions {
   return { early: ms * perMs, late: ms * perMs, hold: 0.6 };
 }
 
-/** The lanes: every pitch of the notes, low to high. */
-export function lanePitches(notes: readonly (readonly [number, number, number, ...unknown[]])[]): number[] {
-  return [...new Set(notes.map((n) => n[2]))].sort((a, b) => a - b);
-}
-
-export function laneNotes(notes: readonly (readonly [number, number, number, ...unknown[]])[], pitches: number[], tpq: number): LaneNote[] {
-  return notes.map(([on, dur, midi]) => ({ on, dur, midi, lane: pitches.indexOf(midi), long: dur >= tpq, state: "pending" }));
+export function laneNotes(notes: readonly (readonly [number, number, number, number])[], beat: number, voice: number): LaneNote[] {
+  return notes.map(([on, dur, midi, step]) => ({ on, dur, midi, step, long: dur >= beat, state: "pending", voice }));
 }
 
 /**
- * EASY: a note shorter than an eighth rides along (D166) when a note the player taps comes no more
+ * EASY: a note shorter than half a beat rides along (D166) when a note the player taps comes no more
  * than a beat before it; a short note with none before it (the subject's head) is tapped.
  */
-export function markRides(notes: LaneNote[], tpq: number) {
+export function markRides(notes: LaneNote[], beat: number) {
   let last: number | null = null;
   for (const n of notes) {
-    n.ride = n.dur < tpq / 2 && last !== null && n.on - last <= tpq && n.on > last;
+    n.ride = n.dur < beat / 2 && last !== null && n.on - last <= beat && n.on > last;
     if (!n.ride) last = n.on;
   }
 }

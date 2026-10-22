@@ -17,7 +17,15 @@ Page: `touch.html` (`npm run dev`, then `/touch.html`). Single file for claude.a
 `npx vite build -c vite.touch.config.ts && node tools/touch/build-artifact.mjs <out.html>`.
 Data: `node tools/touch/extract.ts` cuts the fugue from `data/wtc/fugues.json`.
 
-## Squares under the thumbs (D166: built, to be tried on the iPhone)
+## All 48 fugues, keys, with the others (D167: built, to be tried)
+
+- Every fugue of both books, sections cut automatically (the C minor keeps its hand-read ones).
+- The keys: rows of staff steps under the thumbs, the same rows as in the box; the coming notes
+  light their rows. NORMAL: tap the lit row (one off counts); hold, slide a row to slur, wobble to bend.
+- WITH OTHERS (default): the other voices play around you. WAIT: the music waits for each note.
+- Sound: envelope, vibrato on long notes, voices panned, soft filter, a small room.
+
+## Squares under the thumbs (D166: replaced by the keys in D167)
 
 The owner: no indication where to tap; impossible; and it did not work on the iPhone at all.
 - iPhone: the sound (the game's clock) now starts on a finished tap, as Safari requires; the

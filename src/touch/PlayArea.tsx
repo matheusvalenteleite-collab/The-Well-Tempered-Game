@@ -1,15 +1,15 @@
 /**
- * The play area: the lower half of the screen, one half for each thumb (thumbs.ts). The targets are
- * drawn here (D166), on a canvas the game paints every frame, so the thumbs see where and when to
- * tap. With two voices each half is named in its voice's colour. The game gets every tap and lift with
- * the event's time; a finished tap (lift) is also reported, since phones let a page start its sound
- * only then.
+ * The play area: the lower half of the screen, one half for each thumb (thumbs.ts). The keys are
+ * drawn here (D167: paint-keys.ts), on a canvas the game paints every frame. With two voices each half
+ * is named in its voice's colour. The game gets every tap, slide and lift with the event's time; a
+ * finished tap (lift) is also reported, since phones let a page start its sound only then.
  */
 import { useEffect, useRef, useState, type PointerEvent } from "react";
-import { onSide, touchDown, touchUp, type Side, type Touches } from "./thumbs.ts";
+import { onSide, touchDown, touchMove, touchUp, type Side, type Touches } from "./thumbs.ts";
 
 export interface ThumbEvents {
   down: (id: number, side: Side, x: number, y: number, w: number, h: number, ts: number) => void;
+  move: (id: number, x: number, y: number, w: number, h: number, ts: number) => void;
   up: (id: number, ts: number) => void;
 }
 
@@ -69,6 +69,14 @@ export function PlayArea(p: {
     setTouches(state.current);
     events.down(e.pointerId, state.current.get(e.pointerId)!.side, x, y, r.width, r.height, e.timeStamp);
   };
+  const move = (e: PointerEvent<HTMLDivElement>) => {
+    if (!state.current.has(e.pointerId)) return;
+    const r = area.current!.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    state.current = touchMove(state.current, e.pointerId, x, y);
+    events.move(e.pointerId, x, y, r.width, r.height, e.timeStamp);
+  };
   const up = (e: PointerEvent<HTMLDivElement>) => {
     state.current = touchUp(state.current, e.pointerId);
     setTouches(state.current);
@@ -84,6 +92,7 @@ export function PlayArea(p: {
       aria-label="Play area"
       ref={area}
       onPointerDown={down}
+      onPointerMove={move}
       onPointerUp={up}
       onPointerCancel={up}
       onContextMenu={(e) => e.preventDefault()}
@@ -103,9 +112,7 @@ function Half({ side, active, label }: { side: Side; active: boolean; label?: { 
         <span className="tg-half-voice" style={{ color: label.ink }}>
           {label.text}
         </span>
-      ) : (
-        <span className="tg-half-label">{side === "left" ? "L" : "R"}</span>
-      )}
+      ) : null}
     </div>
   );
 }

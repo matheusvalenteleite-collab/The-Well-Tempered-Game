@@ -1,14 +1,16 @@
 /**
- * Difficulty audit (D165; D166): a simulated player, on time within a jitter and landing near each
- * square, plays every voice of every section at each level and tempo through the game's own
- * engine (with a fake clock). Writes docs/touch/AUDIT.md. Run: node tools/touch/audit.ts
+ * Difficulty audit (D165; D166; D167): a simulated player plays every voice of every section of all
+ * 48 fugues through the game's own engine (with a fake clock), at both levels: on time within a jitter
+ * (normal, s.d. 40 ms), landing on the right row within a jitter (normal, s.d. a third of a row), holding
+ * long notes. It checks that every passage is fair, not how hard it is for a hand. Writes
+ * docs/touch/AUDIT.md. Run: node tools/touch/audit.ts
  */
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { Game } from "../../src/touch/engine.ts";
-import { FUGUE } from "../../src/touch/fugue.ts";
+import { FUGUES, type TouchFugue } from "../../src/touch/fugue.ts";
 import type { Chip } from "../../src/touch/chip.ts";
-import { level } from "../../src/touch/voice-mode.ts";
+import { level, voicesIn } from "../../src/touch/voice-mode.ts";
 import { LEVELS, type Level as Difficulty } from "../../src/touch/lanes.ts";
 
 // A seeded random, so the audit is the same every run.
@@ -16,64 +18,80 @@ let seed = 7;
 const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
 const gauss = () => Math.sqrt(-2 * Math.log(rnd() + 1e-12)) * Math.cos(2 * Math.PI * rnd());
 
-function run(section: number, voice: number, diff: Difficulty, bpm: number, jitterMs: number): number {
+function run(f: TouchFugue, section: number, voice: number, difficulty: Difficulty, bpm: number): number {
   const clock = { t: 0 };
   const chip = {
     ctx: { get currentTime() { return clock.t; }, outputLatency: 0, baseLatency: 0 },
     heard: () => clock.t,
-    note: () => ({ stop: () => {} }),
+    note: () => ({ stop: () => {}, bend: () => {} }),
     tick: () => {},
   } as unknown as Chip;
-  const lv = level(FUGUE, section, voice);
-  const g = new Game(FUGUE, [lv], diff, bpm, chip);
+  const g = new Game(f, [level(f, section, voice)], { difficulty, bpm, withOthers: false, wait: false, lagMs: 0, section }, chip);
   const at = (tick: number) => 0.15 + (tick - g.start) / g.tps;
-  // A phone's play area, and a thumb that lands within about 20 px of the square's centre.
-  const [w, h] = [390, 400];
-  let id = 0;
-  lv.notes.forEach((note, i) => {
-    if (note.ride || (i > 0 && lv.notes[i - 1].on === note.on)) return;
-    clock.t = at(note.on) + (gauss() * jitterMs) / 1000;
-    g.step();
-    const x = note.x! * w + gauss() * 20;
-    const y = note.y! * h + gauss() * 20;
-    g.down(++id, x < w / 2 ? "left" : "right", x, y, w, h, performance.now());
-    clock.t += note.long ? (0.8 * note.dur) / g.tps : Math.min(0.08, (0.5 * note.dur) / g.tps);
-    g.step();
-    g.up(id, performance.now());
+  const notes = g.tracks[0].lv.notes;
+  type Ev = { t: number; down: boolean; id: number; step: number };
+  const evs: Ev[] = [];
+  notes.forEach((n, i) => {
+    if (n.ride || (i > 0 && notes[i - 1].on === n.on)) return;
+    const t = at(n.on) + (gauss() * 40) / 1000;
+    evs.push({ t, down: true, id: i + 1, step: n.step });
+    evs.push({ t: n.long ? at(n.on + 0.8 * n.dur) : t + 0.05, down: false, id: i + 1, step: n.step });
   });
-  clock.t = at(g.end + 1);
+  evs.sort((a, b) => a.t - b.t || Number(a.down) - Number(b.down));
+  const runTo = (t: number) => {
+    while (clock.t < t - 0.05) (clock.t += 0.05), g.step();
+    clock.t = Math.max(clock.t, t);
+  };
+  for (const e of evs) {
+    runTo(e.t);
+    g.step();
+    if (!e.down) {
+      g.up(e.id, performance.now());
+      continue;
+    }
+    const win = g.keys(0);
+    const row = Math.max(0, Math.min(win.rows - 1, e.step - win.lo)) + gauss() / 3;
+    g.down(e.id, e.id % 2 ? "left" : "right", 100, 400 - (row + 0.5) * (400 / win.rows), 390, 400, performance.now());
+  }
+  runTo(at(g.end + 1));
   g.step();
   const [r] = g.results();
-  return Math.round((100 * r.got) / r.of);
+  return r.of ? Math.round((100 * r.got) / r.of) : 100;
 }
 
 const L: string[] = [];
 L.push("# Touch game: difficulty audit (generated)\n");
-L.push("By `tools/touch/audit.ts` (D165). A simulated player plays each voice of each section through the");
-L.push("game's own engine (D166: squares to tap): on time within a random jitter (normal, standard deviation 40 ms");
-L.push("or 80 ms), landing within about 20 px of each square's centre (normal, s.d. 20 px each way) in a 390 by 400 px");
-L.push("play area. EASY counts the time only and lets the short notes ride. Each figure is the");
-L.push("score in %; 80% earns the voice; under 80 in bold. The densest passage is the most notes in any one");
-L.push("second at ♩=60. A chord within a voice (the final cadence) is one tap.\n");
-const DIFFS: Difficulty[] = LEVELS;
-for (const bpm of [60, 72]) {
-  for (const jitter of [40, 80]) {
-    L.push(`## ♩=${bpm}, timing jitter ${jitter} ms\n`);
-    L.push(`| section | voice | notes | densest (notes/s at ♩=60) | ${DIFFS.join(" | ")} |`);
-    L.push(`|---|---|---|---|${DIFFS.map(() => "---").join("|")}|`);
-    FUGUE.sections.forEach((s, si) => {
-      for (let v = 0; v < 3; v++) {
-        const lv = level(FUGUE, si, v);
-        const perSec = FUGUE.tpq; // ticks per second at ♩=60
-        let densest = 0;
-        for (const a of lv.notes) densest = Math.max(densest, lv.notes.filter((b) => b.on >= a.on && b.on < a.on + perSec).length);
-        const scores = DIFFS.map((d) => run(si, v, d, bpm, jitter));
-        L.push(`| ${s.fromBar}–${s.toBar} ${s.name} | ${FUGUE.voiceNames[v]} | ${lv.notes.length} | ${densest} | ${scores.map((x) => (x >= 80 ? `${x}` : `**${x}**`)).join(" | ")} |`);
+L.push("By `tools/touch/audit.ts` (D165-D167). A simulated player plays every voice of every section of the 48");
+L.push("fugues through the game's own engine at the beat 50 (♩=50 in 4/4): on time within a random jitter");
+L.push("(normal, s.d. 40 ms), on the right row of the keys within a third of a row (normal), long notes held.");
+L.push("EASY counts the time only and lets the short notes ride; NORMAL wants the row (one off still counts).");
+L.push("80% earns a voice. This checks that each passage is fair, not how hard it is for a hand. Below: the");
+L.push("passages under 80%, and each fugue's lowest score at each level.\n");
+const low: string[] = [];
+L.push(`| fugue | voices | sections | ${LEVELS.map((d) => `lowest ${d}`).join(" | ")} |`);
+L.push(`|---|---|---|${LEVELS.map(() => "---").join("|")}|`);
+let runs = 0;
+for (const f of FUGUES) {
+  const lows: Record<string, number> = {};
+  f.sections.forEach((s, si) => {
+    for (const v of voicesIn(f, si))
+      for (const d of LEVELS) {
+        const x = run(f, si, v, d, 50);
+        runs++;
+        lows[d] = Math.min(lows[d] ?? 100, x);
+        if (x < 80) low.push(`| ${f.id} | bars ${s.fromBar}–${s.toBar} | ${f.voiceNames[v]} | ${d} | ${x} |`);
       }
-    });
-    L.push("");
-  }
+  });
+  L.push(`| ${f.title} (${f.book === 1 ? "I" : "II"}) | ${f.voices.length} | ${f.sections.length} | ${LEVELS.map((d) => (lows[d] < 80 ? `**${lows[d]}**` : lows[d])).join(" | ")} |`);
 }
+L.push("");
+L.push(`## Under 80% (${low.length} of ${runs} runs)\n`);
+if (low.length) {
+  L.push("| fugue | section | voice | level | % |");
+  L.push("|---|---|---|---|---|");
+  L.push(...low);
+} else L.push("None.");
 const out = fileURLToPath(new URL("../../docs/touch/AUDIT.md", import.meta.url));
 writeFileSync(out, L.join("\n") + "\n");
-console.log(L.slice(7, 28).join("\n"));
+console.log(`${runs} runs, ${low.length} under 80%`);
+console.log(low.slice(0, 20).join("\n"));

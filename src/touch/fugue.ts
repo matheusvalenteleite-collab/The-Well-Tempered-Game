@@ -1,16 +1,17 @@
 /**
- * The touch game's fugue (Book I, C minor, BWV 847), as tools/touch/extract.ts cuts it from the
- * study's corpus: each voice a list of [onset, duration, MIDI] in ticks (tpq per quarter), top first,
- * and the entries of the subject, each in its voice, as the subject or as the tonal answer.
+ * The touch game's fugues (D167: all 48), as tools/touch/extract.ts cuts them from the study's corpus:
+ * each voice a list of [onset, duration, MIDI, staff step] in ticks (tpq per quarter), top voice first;
+ * the entries of the subject, each in its voice, as the subject or as the answer, with its key; the
+ * sections the game plays one at a time.
  */
-import data from "../../data/touch/wtc1f02.json" with { type: "json" };
+import data from "../../data/touch/fugues.json" with { type: "json" };
 
-export type TouchNote = [on: number, dur: number, midi: number];
+export type TouchNote = [on: number, dur: number, midi: number, step: number];
 
 export interface TouchEntry {
   voice: number;
   form: "subject" | "answer";
-  /** "c", "g", "Eb": minor in lower case. */
+  /** "c", "g", "Eb", "f#": minor in lower case. */
   key: string;
   bar: number;
   on: number;
@@ -21,12 +22,16 @@ export interface TouchEntry {
 
 export interface TouchFugue {
   id: string;
-  title: string;
   book: number;
+  number: number;
+  title: string;
+  /** The fugue's key, minor in lower case. */
+  key: string;
   bwv: string;
   meter: string;
   tpq: number;
   length: number;
+  barTicks: number;
   bars: { n: number; on: number }[];
   voiceNames: string[];
   voices: TouchNote[][];
@@ -37,14 +42,25 @@ export interface TouchFugue {
   sections: { name: string; fromBar: number; toBar: number; from: number; to: number }[];
 }
 
-export const FUGUE = data as unknown as TouchFugue;
+export const FUGUES = data as unknown as TouchFugue[];
 
-/** The lowest and highest MIDI pitch of the whole piece, so the box's pitch axis never moves. */
-export function pitchRange(f: TouchFugue): { lo: number; hi: number } {
-  let lo = Infinity;
-  let hi = -Infinity;
-  for (const v of f.voices) for (const [, , m] of v) (lo = Math.min(lo, m)), (hi = Math.max(hi, m));
-  return { lo, hi };
+export function fugueById(id: string): TouchFugue {
+  return FUGUES.find((f) => f.id === id) ?? FUGUES[0];
+}
+
+/** "I·2". */
+export function shortName(f: TouchFugue): string {
+  return `${f.book === 1 ? "I" : "II"}·${f.number}`;
+}
+
+/**
+ * The beat the music is counted in (D167): a quarter in 4/4, a half in 2/2, a dotted quarter in 6/8,
+ * a dotted eighth in 12/16. Its length in ticks and how many there are in a bar.
+ */
+export function beatOf(f: TouchFugue): { ticks: number; perBar: number } {
+  const [num, den] = f.meter.split("/").map(Number);
+  const unit = (f.tpq * 4) / den;
+  return num % 3 === 0 && num > 3 ? { ticks: unit * 3, perBar: num / 3 } : { ticks: unit, perBar: num };
 }
 
 /** The tick where bar n starts (the end of the piece past the last bar). */
@@ -52,9 +68,9 @@ export function barStart(f: TouchFugue, n: number): number {
   return f.bars.find((b) => b.n === n)?.on ?? f.length;
 }
 
-/** The key the music is in at a tick: that of the latest entry begun (c before the first). */
+/** The key the music is in at a tick: that of the latest entry begun (the fugue's key before the first). */
 export function keyAt(f: TouchFugue, tick: number): string {
-  return f.entries.filter((e) => e.on <= tick).at(-1)?.key ?? f.entries[0]?.key ?? "c";
+  return f.entries.filter((e) => e.on <= tick).at(-1)?.key ?? f.key;
 }
 
 /** The bar a tick falls in. */
@@ -67,4 +83,9 @@ export function keyName(key: string): string {
   const minor = key[0] === key[0].toLowerCase();
   const tonic = key[0].toUpperCase() + key.slice(1).replace("b", "♭").replace("#", "♯");
   return `${tonic} ${minor ? "MINOR" : "MAJOR"}`;
+}
+
+/** A staff step's letter and octave ("C5"). */
+export function stepName(step: number): string {
+  return `${"CDEFGAB"[((step % 7) + 7) % 7]}${Math.floor(step / 7)}`;
 }

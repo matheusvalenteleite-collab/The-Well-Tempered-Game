@@ -358,3 +358,29 @@ body {
 .tg-play { container-type: normal; }
 .tg-targets { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
 .tg-floating-note { position: absolute; left: 12px; right: 12px; bottom: 10px; margin: 0; text-align: center; font-size: 12px; color: var(--tg-shine); }
+
+/* D167: the map scrolls sideways for long fugues; a voice resting is a blank */
+.tg-grid-scroll { overflow-x: auto; align-self: stretch; }
+.tg-cell-rest { background: transparent; border-color: transparent; cursor: default; }
+.tg-voices { flex-wrap: wrap; }
+.tg-voices button.tg-level { font-size: 7px; padding: 7px 8px; }
+.tg-stepper span, .tg-stepper .tg-stepper-name { text-align: center; }
+/* D167: the title fits a phone, and scrolls if it must (the game itself never does) */
+.tg-card { touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+.tg-title { gap: 6px; padding-block: 8px; }
+.tg-title p { font-size: 11px; line-height: 1.35; }
+.tg-title .tg-stepper { font-size: 7px; }
+.tg-title .tg-stepper button { padding: 2px 7px; font-size: 10px; }
+.tg-title .tg-voices { gap: 5px; }
+.tg-title .tg-voices button { padding: 5px 6px 4px; font-size: 7px; gap: 3px; }
+.tg-title .tg-tempo { gap: 5px; flex-wrap: wrap; }
+.tg-title .tg-tempo button { padding: 5px 7px; font-size: 8px; }
+.tg-title .tg-open { font-size: 10px; }
+/* D167: nothing may widen the page past the phone: long voice names and keys shrink or clip */
+.tg-app { width: 100%; grid-template-columns: minmax(0, 1fr); overflow: hidden; }
+.tg-box, .tg-play { min-width: 0; }
+.tg-hud { min-width: 0; }
+.tg-hud-title { min-width: 0; flex: 1; }
+.tg-hud-bar { flex: none; }
+.tg-legend { flex-wrap: wrap; row-gap: 2px; column-gap: 10px; font-size: 7px; overflow: hidden; }
+.tg-count-wait { font-size: 12px; align-items: start; padding-top: 10px; }

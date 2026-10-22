@@ -1,47 +1,46 @@
 /**
- * The map (D164): the fugue as a grid, its six sections across, the voices and the pairs of voices
- * down, each cell the best score at the chosen level (a star once earned). A diamond marks the voice
- * that carries an entry of the subject in that section, so the grid shows the fugue's architecture as
- * the player fills it in. A cell opens that section with those voices.
+ * The map (D164; D167): a fugue as a grid, its sections across (headed by their first bar, in the
+ * colour of the key they reach), its voices down, each cell the voice's best score in the section at the
+ * chosen level, a star once earned. A diamond marks a voice carrying an entry of the subject in that
+ * section, so the grid shows the fugue's architecture as the player fills it in. A cell opens that
+ * section with that voice. The grid scrolls sideways when the fugue has many sections.
  */
-import { VOICE_INKS, KEY_TINTS } from "./MusicBox.tsx";
-import { FUGUE } from "./fugue.ts";
+import { inkOf, keyTint } from "./MusicBox.tsx";
+import type { TouchFugue } from "./fugue.ts";
 import type { Level as Difficulty } from "./lanes.ts";
-import { EARN, recordKey } from "./voice-mode.ts";
+import { EARN, recordKey, voicesIn } from "./voice-mode.ts";
 
-const ROWS: number[][] = [[0], [1], [2], [0, 1], [1, 2], [0, 2]];
-const SHORT = ["S", "A", "B"];
-
-/** The entries of the subject in a section: their voices and the key of the first. */
-export function sectionEntries(section: number) {
-  const s = FUGUE.sections[section];
-  return FUGUE.entries.filter((e) => e.on >= s.from && e.on < s.to);
+/** The entries of the subject in a section. */
+export function sectionEntries(f: TouchFugue, section: number) {
+  const s = f.sections[section];
+  return f.entries.filter((e) => e.on >= s.from && e.on < s.to);
 }
 
-export function MapView({ best, diff, pick, close }: { best: Record<string, number>; diff: Difficulty; pick: (section: number, voices: number[]) => void; close: () => void }) {
-  const n = FUGUE.sections.length;
-  const earned = (k: string) => (best[k] ?? 0) >= EARN * 100;
-  const total = ROWS.length * n;
-  const stars = ROWS.flatMap((vs) => FUGUE.sections.map((_, s) => earned(recordKey(s, vs, diff)))).filter(Boolean).length;
+export function MapView({ f, best, diff, pick, close }: { f: TouchFugue; best: Record<string, number>; diff: Difficulty; pick: (section: number, voice: number) => void; close: () => void }) {
+  const n = f.sections.length;
+  const earned = (s: number, v: number) => (best[recordKey(f.id, s, [v], diff)] ?? 0) >= EARN * 100;
+  const cells = f.sections.flatMap((_, s) => voicesIn(f, s).map((v) => earned(s, v)));
+  const stars = cells.filter(Boolean).length;
   return (
     <div className="tg-card tg-map">
       <h1>
-        THE FUGUE · {stars} OF {total} <span className="tg-sym">★</span>
+        {f.title.toUpperCase()} · {stars} OF {cells.length} <span className="tg-sym">★</span>
       </h1>
-      <p className="tg-card-sub">{diff.toUpperCase()} · TAP A SQUARE TO PLAY IT · <span className="tg-sym">◆</span> AN ENTRY OF THE SUBJECT</p>
-      <div className="tg-grid" style={{ gridTemplateColumns: `2.6em repeat(${n}, 1fr)` }}>
-        <span />
-        {FUGUE.sections.map((s, i) => {
-          const key = sectionEntries(i)[0]?.key ?? "c";
-          return (
-            <span key={i} className="tg-grid-head" style={{ background: KEY_TINTS[key] }}>
+      <p className="tg-card-sub">
+        {diff.toUpperCase()} · TAP A SQUARE TO PLAY IT · <span className="tg-sym">◆</span> AN ENTRY OF THE SUBJECT
+      </p>
+      <div className="tg-grid-scroll">
+        <div className="tg-grid" style={{ gridTemplateColumns: `3.6em repeat(${n}, minmax(2.2em, 1fr))` }}>
+          <span />
+          {f.sections.map((s, i) => (
+            <span key={i} className="tg-grid-head" style={{ background: keyTint(sectionEntries(f, i).at(-1)?.key ?? f.key) }}>
               {s.fromBar}
             </span>
-          );
-        })}
-        {ROWS.map((vs) => (
-          <Row key={vs.join("+")} vs={vs} best={best} diff={diff} pick={pick} />
-        ))}
+          ))}
+          {f.voiceNames.map((name, v) => (
+            <Row key={name} f={f} v={v} best={best} diff={diff} pick={pick} />
+          ))}
+        </div>
       </div>
       <button type="button" id="map-close" className="tg-link" onClick={close}>
         Back
@@ -50,29 +49,27 @@ export function MapView({ best, diff, pick, close }: { best: Record<string, numb
   );
 }
 
-function Row({ vs, best, diff, pick }: { vs: number[]; best: Record<string, number>; diff: Difficulty; pick: (section: number, voices: number[]) => void }) {
+function Row({ f, v, best, diff, pick }: { f: TouchFugue; v: number; best: Record<string, number>; diff: Difficulty; pick: (section: number, voice: number) => void }) {
+  const short = f.voiceNames[v].replace(/^(\w)\w*( ?)(I*)$/, "$1$3").slice(0, 3).toUpperCase();
   return (
     <>
-      <span className="tg-grid-voice">
-        {vs.map((v) => (
-          <b key={v} style={{ color: VOICE_INKS[v] }}>
-            {SHORT[v]}
-          </b>
-        ))}
+      <span className="tg-grid-voice" style={{ color: inkOf(v, f.voices.length) }}>
+        {short}
       </span>
-      {FUGUE.sections.map((_, s) => {
-        const pct = best[recordKey(s, vs, diff)];
+      {f.sections.map((_, s) => {
+        if (!voicesIn(f, s).includes(v)) return <span key={s} className="tg-cell tg-cell-rest" />;
+        const pct = best[recordKey(f.id, s, [v], diff)];
         const star = pct !== undefined && pct >= EARN * 100;
-        const entry = vs.length === 1 && sectionEntries(s).some((e) => e.voice === vs[0]);
+        const entry = sectionEntries(f, s).some((e) => e.voice === v);
         return (
           <button
             key={s}
             type="button"
-            id={`map-${s}-${vs.join("")}`}
+            id={`map-${s}-${v}`}
             className={`tg-cell${star ? " tg-cell-star" : ""}`}
-            style={{ borderColor: star ? VOICE_INKS[vs[vs.length - 1]] : undefined }}
-            onClick={() => pick(s, vs)}
-            aria-label={`Section ${s + 1}, ${vs.map((v) => FUGUE.voiceNames[v]).join(" and ")}${pct !== undefined ? `, best ${pct}%` : ""}`}
+            style={{ borderColor: star ? inkOf(v, f.voices.length) : undefined }}
+            onClick={() => pick(s, v)}
+            aria-label={`Bars ${f.sections[s].fromBar} to ${f.sections[s].toBar}, ${f.voiceNames[v]}${pct !== undefined ? `, best ${pct}%` : ""}`}
           >
             {entry && <i>◆</i>}
             {star ? "★" : pct !== undefined ? pct : ""}
