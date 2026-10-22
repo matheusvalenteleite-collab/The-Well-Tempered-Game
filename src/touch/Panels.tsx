@@ -16,7 +16,7 @@ export interface Settings {
   speed: "slow" | "medium" | "fast";
 }
 
-function Panel({ title, close, children }: { title: string; close: () => void; children: ReactNode }) {
+export function Panel({ title, close, children }: { title: string; close: () => void; children: ReactNode }) {
   useEffect(() => {
     const esc = (e: KeyboardEvent) => e.code === "Escape" && close();
     window.addEventListener("keydown", esc);
@@ -35,7 +35,7 @@ function Panel({ title, close, children }: { title: string; close: () => void; c
   );
 }
 
-function Choice<T extends string>({ id, label, options, value, set }: { id: string; label: string; options: [T, string][]; value: T; set: (v: T) => void }) {
+export function Choice<T extends string>({ id, label, options, value, set }: { id: string; label: string; options: [T, string][]; value: T; set: (v: T) => void }) {
   return (
     <div className="tg-set">
       <span>{label}</span>
@@ -52,33 +52,42 @@ function Choice<T extends string>({ id, label, options, value, set }: { id: stri
 
 export function SettingsPanel(p: { settings: Settings; set: (s: Partial<Settings>) => void; lag: number | null; setLag: (s: number | null) => void; chip: () => Chip; close: () => void }) {
   const { settings: s, set } = p;
-  const [tapping, setTapping] = useState(false);
   return (
     <Panel title="SETTINGS" close={p.close}>
       <Choice id="inst" label="INSTRUMENT" options={[["synth", "SYNTH"], ["piano", "PIANO"]]} value={s.inst} set={(inst) => set({ inst })} />
       <p className="tg-panel-note">{s.inst === "synth" ? "Upright. The thumb gives the way the tune goes, the height how far." : "Sideways. A keyboard of every semitone; the notes fall onto their keys."}</p>
       <Choice id="level" label="LEVEL" options={[["easy", "EASY"], ["normal", "NORMAL"]]} value={s.diff} set={(diff) => set({ diff })} />
       <Choice id="speed" label="SPEED" options={[["slow", "SLOW"], ["medium", "MEDIUM"], ["fast", "FAST"]]} value={s.speed} set={(speed) => set({ speed })} />
+      <LagSetting lag={p.lag} setLag={p.setLag} chip={p.chip} />
+      <p className="tg-panel-note">With Bluetooth headphones the sound comes late. Set the delay with them on: tap along to the clicks.</p>
+    </Panel>
+  );
+}
+
+/** The sound's delay: what is set, and setting it by tapping along. */
+export function LagSetting({ lag, setLag, chip }: { lag: number | null; setLag: (s: number | null) => void; chip: () => Chip }) {
+  const [tapping, setTapping] = useState(false);
+  return (
+    <>
       <div className="tg-set">
         <span>SOUND DELAY</span>
-        <span className="tg-panel-val">{p.lag === null ? "AS THE PHONE SAYS" : `${Math.round(p.lag * 1000)} MS`}</span>
+        <span className="tg-panel-val">{lag === null ? "AS THE PHONE SAYS" : `${Math.round(lag * 1000)} MS`}</span>
       </div>
       {tapping ? (
-        <Tapper chip={p.chip} done={(lag) => (lag !== null && p.setLag(lag), setTapping(false))} />
+        <Tapper chip={chip} done={(lag) => (lag !== null && setLag(lag), setTapping(false))} />
       ) : (
         <div className="tg-row">
           <button type="button" id="tap-lag" className="tg-piece" onClick={() => setTapping(true)}>
             SET BY TAPPING
           </button>
-          {p.lag !== null && (
-            <button type="button" id="reset-lag" className="tg-link" onClick={() => p.setLag(null)}>
+          {lag !== null && (
+            <button type="button" id="reset-lag" className="tg-link" onClick={() => setLag(null)}>
               Reset
             </button>
           )}
         </div>
       )}
-      <p className="tg-panel-note">With Bluetooth headphones the sound comes late. Set the delay with them on: tap along to the clicks.</p>
-    </Panel>
+    </>
   );
 }
 

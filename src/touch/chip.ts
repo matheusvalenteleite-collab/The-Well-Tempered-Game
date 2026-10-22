@@ -23,12 +23,20 @@ export interface Play {
   envelope?: Envelope;
   /** Joined to the note before without a new attack (that note is still held). */
   legato?: boolean;
+  /** A level for this note alone (1: as the voice). */
+  level?: number;
+  /** The note can be muffled after it starts (the testbench, D175: a gesture judged wrong). */
+  muffleable?: boolean;
 }
 
 export interface Sounding {
   stop: (at?: number) => void;
   /** Bend the note by some cents (the thumb's sideways wobble). */
   bend: (cents: number) => void;
+  /** Glide to another pitch without a new attack (a held thumb slid on: glissando). */
+  glide?: (midi: number) => void;
+  /** Darken and soften it (a wrong gesture: Bach's note, but muffled). */
+  muffle?: () => void;
 }
 
 export class Chip {
@@ -132,7 +140,7 @@ export class Chip {
     else o.setPeriodicWave(w);
     o.frequency.value = 440 * 2 ** ((midi - 69) / 12);
     // The triangle is quieter than the pulses at the same amplitude.
-    const peak = (v.timbre === "triangle" ? 0.36 : v.timbre === "pulse50" ? 0.15 : 0.19) * v.gain;
+    const peak = (v.timbre === "triangle" ? 0.36 : v.timbre === "pulse50" ? 0.15 : 0.19) * v.gain * (p.level ?? 1);
     const sustain = peak * 0.72;
     const piano = p.envelope === "piano";
     g.gain.setValueAtTime(0, t);
@@ -163,10 +171,17 @@ export class Chip {
       lfo.start(t);
       lfo.stop(end + 0.05);
     }
+    let src: AudioNode = o;
+    const dull = p.muffleable ? ctx.createBiquadFilter() : null;
+    if (dull) {
+      dull.type = "lowpass";
+      dull.frequency.value = 12000;
+      src = o.connect(dull);
+    }
     if (pan) {
       pan.pan.value = Math.max(-1, Math.min(1, v.pan));
-      o.connect(g).connect(pan).connect(this.bus);
-    } else o.connect(g).connect(this.bus);
+      src.connect(g).connect(pan).connect(this.bus);
+    } else src.connect(g).connect(this.bus);
     o.start(t);
     o.stop(end + 0.05);
     let stopped = false;
@@ -186,6 +201,14 @@ export class Chip {
       },
       bend: (cents: number) => {
         if (!stopped) o.detune.setTargetAtTime(cents, ctx.currentTime, 0.02);
+      },
+      glide: (to: number) => {
+        if (!stopped) o.frequency.setTargetAtTime(440 * 2 ** ((to - 69) / 12), ctx.currentTime, 0.025);
+      },
+      muffle: () => {
+        if (stopped || !dull) return;
+        dull.frequency.setTargetAtTime(600, ctx.currentTime, 0.01);
+        o.detune.setTargetAtTime(-35, ctx.currentTime, 0.02);
       },
     };
   }

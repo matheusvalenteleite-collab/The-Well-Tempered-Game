@@ -192,14 +192,14 @@ function playAll(g: Game, clock: { t: number }) {
   return g.step();
 }
 
-test("EASY, the whole fugue: every main note tapped on time scores everything; the rides and the others sound", () => {
+test("EASY, the whole fugue: every note tapped on time scores everything; the others sound", () => {
   const { chip, clock, sounded } = fakeChip();
   const lv = level(C_MINOR, 1, 0);
   const g = new Game(C_MINOR, [lv], gameOptions(), chip);
   assert.equal(playAll(g, clock), true);
   const [r] = g.results();
   assert.equal(r.got, r.of);
-  assert.ok(r.of < lv.notes.length);
+  assert.ok(lv.notes.every((n) => !n.ride), "no note rides along (D175)");
   const others = accompaniment(C_MINOR, 0, 1);
   assert.equal(sounded.length, lv.notes.length + others.length);
   assert.ok(sounded.every((s) => s.gain === 1), "the voice played no louder than the others");
@@ -271,10 +271,10 @@ test("WAIT: the music stands at a note until it is played, and nothing is missed
   assert.equal(g.waiting, false);
 });
 
-test("prepare marks no rides in NORMAL", () => {
+test("prepare marks no rides, at any level", () => {
   const lv = level(C_MINOR, 1, 0);
   markRides(lv.notes, beat);
-  prepare(C_MINOR, [lv], "normal");
+  prepare(C_MINOR, [lv], "easy");
   assert.ok(lv.notes.every((n) => !n.ride));
 });
 

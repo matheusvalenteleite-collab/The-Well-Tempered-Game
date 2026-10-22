@@ -1,256 +1,331 @@
 /**
- * The instrument testbench (D170): free play on six two-thumb instruments (instruments.ts), with
- * Contrapunctus XIV in the music box. The fugue plays when started (SLOW, MEDIUM, FAST; from any point);
- * a voice can be taken (tap its name below the box): it falls silent and stays outlined, for the
- * player to play it, or anything else; what the player sounds is traced in the box against the music.
- * Nothing is judged.
+ * The testbench (D170; D175): prototypes of the instrument tried on the game itself, judged, on
+ * Contrapunctus XIV or the C minor fugue of Book I. ⚙ chooses the prototype (protos.ts), the piece,
+ * the speed and the sound's delay; the title the voice and where to start; ? says how each is played.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MusicBox, inkOf, type Frame } from "../touch/MusicBox.tsx";
 import { PlayArea, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
-import { Chip, voicing } from "../touch/chip.ts";
-import { barAt, beatOf, fugueById, keyName } from "../touch/fugue.ts";
+import { Choice, LagSetting, Panel } from "../touch/Panels.tsx";
+import { Chip } from "../touch/chip.ts";
+import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
-import { startTick, stepRange } from "../touch/voice-mode.ts";
-import { INSTRUMENTS, type Instrument, type Touch } from "./instruments.ts";
-import { Mono } from "./mono.ts";
+import { accompaniment, startTick, stepRange, subjectMarks, voicesFrom } from "../touch/voice-mode.ts";
+import { paintProto } from "./paint-proto.ts";
+import { ProtoGame } from "./proto-game.ts";
+import { PROTOS, protoById, type ProtoId } from "./protos.ts";
 
 const SPEEDS = { slow: 40, medium: 54, fast: 72 } as const;
 type Speed = keyof typeof SPEEDS;
-const PIECE = "bwv1080-14";
-const FONT = '"Press Start 2P", ui-monospace, monospace';
+const PIECES = [
+  ["bwv1080-14", "CONTRAPUNCTUS XIV"],
+  ["wtc1f02", "BOOK I · C MINOR"],
+] as const;
+type PieceId = (typeof PIECES)[number][0];
+const PICK_KEY = "tb-pick-v1";
+const LAG_KEY = "tg-lag";
 
-/** A MIDI pitch as a staff step, fractions between (C sharp half way from C to D), for the trace. */
-const STEP_OF_PC = [0, 0.5, 1, 1.5, 2, 3, 3.5, 4, 4.5, 5, 5.5, 6];
-function stepOf(midi: number): number {
-  const m = Math.floor(midi);
-  const f = midi - m;
-  const s = (x: number) => 7 * (Math.floor(x / 12) - 1) + STEP_OF_PC[((x % 12) + 12) % 12];
-  return s(m) + (s(m + 1) - s(m)) * f;
+interface Pick {
+  proto: ProtoId;
+  relative: boolean;
+  piece: PieceId;
+  voice: number;
+  speed: Speed;
+  share: number;
+}
+const DEFAULT: Pick = { proto: "bow", relative: false, piece: "wtc1f02", voice: 1, speed: "slow", share: 0 };
+
+function load<T>(key: string, fallback: T): T {
+  try {
+    const v = localStorage.getItem(key);
+    return v === null ? fallback : (JSON.parse(v) as T);
+  } catch {
+    return fallback;
+  }
+}
+function save(key: string, value: unknown) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* no storage */
+  }
 }
 
-export function BenchApp() {
-  const f = fugueById(PIECE);
-  const [which, setWhich] = useState(0);
-  const [taken, setTaken] = useState(1);
-  const [speed, setSpeed] = useState<Speed>("medium");
-  const [share, setShare] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const [help, setHelp] = useState(true);
-  const [portrait, setPortrait] = useState(() => window.matchMedia("(orientation: portrait)").matches);
-  const chip = useRef<Chip | null>(null);
-  const mono = useRef<Mono | null>(null);
-  const inst = useRef<Instrument | null>(null);
-  const paint = useRef<Painter | null>(null);
-  const touches = useRef(new Map<number, Touch & { last: number }>());
-  const trace = useRef<{ tick: number; step: number; on: boolean }[]>([]);
-  const range = useMemo(() => stepRange(f), [f]);
-  const from = startTick(f, share);
-  const beat = beatOf(f).ticks;
-  const tps = (beat * SPEEDS[speed]) / 60;
-  const voiceRange = useMemo(() => {
-    const ms = f.voices[taken].map((n) => n[2]);
-    return { lo: Math.min(...ms), hi: Math.max(...ms) };
-  }, [taken]);
-  const clock = useRef({ anchorAt: 0, anchorTick: 0, now: 0, next: 0 });
-  const frame = useRef<Frame>(frameAt(from));
+function sane(p: Pick): Pick {
+  const piece = PIECES.some(([id]) => id === p.piece) ? p.piece : DEFAULT.piece;
+  const f = fugueById(piece);
+  const share = Math.min(0.99, Math.max(0, p.share || 0));
+  const singing = voicesFrom(f, startTick(f, share));
+  return {
+    ...DEFAULT,
+    ...p,
+    piece,
+    share,
+    proto: protoById(p.proto).id,
+    speed: p.speed in SPEEDS ? p.speed : "slow",
+    voice: singing.includes(p.voice) ? p.voice : singing[Math.min(1, singing.length - 1)],
+  };
+}
 
-  function frameAt(now: number): Frame {
+type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; right: number; wrong: number; missed: number; of: number } | { kind: "settings" } | { kind: "help" };
+
+export function BenchApp() {
+  const [phase, setPhase] = useState<Phase>({ kind: "title" });
+  const [pick, setPickRaw] = useState<Pick>(() => sane(load(PICK_KEY, DEFAULT)));
+  const setPick = (p: Partial<Pick>) =>
+    setPickRaw((cur) => {
+      const next = sane({ ...cur, ...p });
+      save(PICK_KEY, next);
+      return next;
+    });
+  const [lag, setLagRaw] = useState<number | null>(() => load<number | null>(LAG_KEY, null));
+  const setLag = (l: number | null) => {
+    setLagRaw(l);
+    save(LAG_KEY, l);
+    if (chip.current) chip.current.lag = l;
+  };
+  const [note, setNote] = useState("");
+  const f = fugueById(pick.piece);
+  const proto = protoById(pick.proto);
+  const from = startTick(f, pick.share);
+  const range = useMemo(() => stepRange(f), [f]);
+  const marks = useMemo(() => subjectMarks(f), [f]);
+  const chip = useRef<Chip | null>(null);
+  const game = useRef<ProtoGame | null>(null);
+  const paint = useRef<Painter | null>(null);
+  const frame = useRef<Frame>(preview());
+  const count = useRef<HTMLDivElement>(null);
+  const shownAt = useRef(0);
+
+  function preview(): Frame {
+    const b = beatOf(f);
     return {
-      now,
-      tps,
-      key: "d",
+      now: from - b.ticks,
+      tps: 1,
+      key: keyAt(f, from),
       barTicks: f.barTicks,
-      beatTicks: beat,
+      beatTicks: b.ticks,
       count: f.voices.length,
       lo: range.lo,
       hi: range.hi,
-      voice: taken,
-      notes: laneNotes(f.voices[taken], beat, taken),
-      others: f.voices.flatMap((ns, v) => (v === taken ? [] : ns.map(([on, dur, midi, step]) => ({ on, dur, midi, step, voice: v })))).sort((a, b) => a.on - b.on),
-      trace: trace.current,
+      voice: pick.voice,
+      notes: laneNotes(
+        f.voices[pick.voice].filter(([on]) => on >= from),
+        b.ticks,
+        pick.voice,
+      ),
+      others: accompaniment(f, from, pick.voice),
+      ...marks,
     };
   }
 
   useEffect(() => {
-    const mq = window.matchMedia("(orientation: portrait)");
-    const on = () => setPortrait(mq.matches);
-    mq.addEventListener("change", on);
-    return () => mq.removeEventListener("change", on);
-  }, []);
-
-  // Phones start a page's sound only on a finished tap: every such gesture unlocks it.
-  useEffect(() => {
-    const unlock = () => ensure();
+    const unlock = () => ensureChip();
     for (const ev of ["touchend", "pointerup", "click", "keydown"]) window.addEventListener(ev, unlock, true);
     return () => {
       for (const ev of ["touchend", "pointerup", "click", "keydown"]) window.removeEventListener(ev, unlock, true);
     };
   }, []);
 
-  function ensure() {
-    if (!chip.current) chip.current = new Chip();
+  useEffect(() => {
+    shownAt.current = performance.now();
+    if (phase.kind !== "play" && phase.kind !== "result") frame.current = preview();
+  }, [phase, pick]);
+
+  function ensureChip(): Chip {
+    if (!chip.current) {
+      chip.current = new Chip();
+      chip.current.lag = lag;
+    }
     void chip.current.resume();
-    if (!mono.current) mono.current = new Mono(chip.current, "pulse25");
-    if (!inst.current) build();
+    return chip.current;
   }
 
-  function build() {
-    if (!mono.current) return;
-    mono.current.stop();
-    const i = INSTRUMENTS[which](mono.current, voiceRange);
-    inst.current = i;
-    paint.current = (g, w, h) => {
-      const css = getComputedStyle(document.documentElement);
-      const tok = (n: string) => css.getPropertyValue(n).trim();
-      i.draw(g, w, h, { fg: tok("--tg-fg"), muted: tok("--tg-muted"), grid: tok("--tg-grid"), shine: tok("--tg-shine"), voice: inkOf(taken, f.voices.length), font: FONT });
-    };
-  }
   useEffect(() => {
-    touches.current.clear();
-    inst.current = null;
-    if (mono.current) build();
-    else paint.current = null;
-  }, [which, taken]);
-
-  // Every frame: the instrument's own changes, the fugue scheduled ahead (when it plays), the trace.
-  useEffect(() => {
+    if (phase.kind !== "play" || !chip.current) return;
+    const g = new ProtoGame(f, pick.voice, from, proto, { bpm: SPEEDS[pick.speed], relative: pick.relative }, chip.current);
+    game.current = g;
+    paint.current = (ctx, w, h) => paintProto(ctx, w, h, g);
+    const b = beatOf(f);
     let raf = 0;
-    let last = performance.now();
     const loop = () => {
-      const t = performance.now();
-      const dt = (t - last) / 1000;
-      last = t;
-      inst.current?.tick?.(dt);
-      const ch = chip.current;
-      const c = clock.current;
-      if (playing && ch) {
-        c.now = c.anchorTick + (ch.heard() - c.anchorAt) * tps;
-        const horizon = c.anchorTick + (ch.ctx.currentTime + 0.25 - c.anchorAt) * tps;
-        const others = frame.current.others;
-        while (c.next < others.length && others[c.next].on <= horizon) {
-          const n = others[c.next++];
-          if (n.on < c.now - beat) continue;
-          ch.note(n.midi, c.anchorAt + (n.on - c.anchorTick) / tps, n.dur / tps, voicing(n.voice, f.voices.length));
-        }
-        const m = mono.current;
-        if (m) trace.current.push({ tick: c.now, step: stepOf(m.pitch), on: m.on || m.level > 0.02 });
-        if (trace.current.length > 4000) trace.current.splice(0, 1000);
-        frame.current = { ...frame.current, now: c.now, tps, trace: trace.current };
-        if (c.now > f.length + beat) setPlaying(false);
+      const done = g.step();
+      frame.current = { now: g.now, tps: g.tps, key: g.keyNow(), barTicks: f.barTicks, beatTicks: b.ticks, count: f.voices.length, lo: range.lo, hi: range.hi, voice: pick.voice, notes: g.notes, others: g.others, ...marks };
+      if (count.current) count.current.textContent = g.countIn() ? String(g.countIn()) : g.combo >= 5 ? `×${g.combo}` : "";
+      if (done) {
+        game.current = null;
+        paint.current = null;
+        setPhase({ kind: "result", ...g.results() });
+        return;
       }
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
-  }, [playing, speed]);
-
-  // The box redrawn for what is chosen while stopped.
-  useEffect(() => {
-    if (!playing) frame.current = frameAt(from);
-  }, [taken, share, speed, playing]);
-
-  const play = () => {
-    ensure();
-    const ch = chip.current!;
-    const go = () => {
-      const others = frameAt(from).others;
-      clock.current = { anchorAt: ch.ctx.currentTime + 0.2, anchorTick: from, now: from, next: others.findIndex((n) => n.on >= from) };
-      if (clock.current.next < 0) clock.current.next = others.length;
-      trace.current = [];
-      frame.current = frameAt(from);
-      setHelp(false);
-      setPlaying(true);
+    return () => {
+      cancelAnimationFrame(raf);
+      g.stopAll();
+      game.current = null;
+      paint.current = null;
+      if (count.current) count.current.textContent = "";
     };
-    if (ch.ctx.state === "running") go();
-    else void ch.resume().then(go);
+  }, [phase]);
+
+  const start = () => {
+    if (performance.now() - shownAt.current < 350) return;
+    const ch = ensureChip();
+    const go = () => (setNote(""), setPhase({ kind: "play" }));
+    if (ch.ctx.state === "running") return go();
+    ch.resume()
+      .then(() => (ch.ctx.state === "running" ? go() : setNote("The sound is still off: tap once more.")))
+      .catch(() => setNote("The sound is still off: tap once more."));
   };
+  const quit = () => setPhase({ kind: "title" });
 
   const events: ThumbEvents = {
-    down: (id, _side, x, y, w, h) => {
-      ensure();
-      const t = { x: x / w, y: y / h, x0: x / w, y0: y / h, t0: performance.now() / 1000, last: performance.now() };
-      touches.current.set(id, t);
-      inst.current?.down(id, t);
-    },
-    move: (id, x, y, w, h) => {
-      const t = touches.current.get(id);
-      if (!t) return;
-      const now = performance.now();
-      const dt = (now - t.last) / 1000;
-      t.x = x / w;
-      t.y = y / h;
-      t.last = now;
-      inst.current?.move(id, t, dt);
-    },
-    up: (id) => {
-      const t = touches.current.get(id);
-      touches.current.delete(id);
-      if (t) inst.current?.up(id, t);
+    down: (id, side, x, y, w, h, ts) => game.current?.down(id, { side, x, y, w, h }, ts),
+    move: (id, x, y, w, h, ts) => game.current?.move(id, { side: "left", x, y, w, h }, ts),
+    up: (id, ts) => {
+      const g = game.current;
+      if (g) return g.up(id, ts);
+      if (phase.kind === "title" || phase.kind === "result") start();
     },
   };
 
-  const i = INSTRUMENTS[which];
-  const sample = useMemo(() => i(({ setPitch() {}, attack() {}, setLevel() {}, pluck() {}, release() {}, vibrato() {}, stop() {}, pitch: 0, level: 0, on: false } as unknown) as Mono, voiceRange), [which, voiceRange]);
-  const wrongWay = sample.landscape ? portrait : !portrait;
+  // On a computer: F and J are the left and right thumbs at mid height; Escape quits.
+  useEffect(() => {
+    const keys: Record<string, "left" | "right"> = { KeyF: "left", KeyJ: "right" };
+    const down = (e: KeyboardEvent) => {
+      if (e.code === "Escape" && phase.kind === "play") return quit();
+      const g = game.current;
+      if (!g || !keys[e.code] || e.repeat) return;
+      e.preventDefault();
+      g.down(e.code === "KeyF" ? 9001 : 9002, { side: keys[e.code], x: e.code === "KeyF" ? 90 : 300, y: 200, w: 390, h: 400 }, e.timeStamp);
+    };
+    const up = (e: KeyboardEvent) => keys[e.code] && game.current?.up(e.code === "KeyF" ? 9001 : 9002, e.timeStamp);
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    return () => {
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+    };
+  });
+
+  const playing = phase.kind === "play";
+  const away = phase.kind === "title" || phase.kind === "result";
   return (
-    <div className={`tg-app bench${sample.landscape ? " bench-wide" : ""}`}>
+    <div className="tg-app">
       <MusicBox
         frame={frame}
         hud={
           <>
-            <span className="tg-hud-title">BENCH · CONTRAPUNCTUS XIV</span>
-            <span className="tg-hud-bar">{keyName("d")}</span>
-            <button type="button" id="transport" className="tg-x" aria-label={playing ? "Stop" : "Play"} onClick={() => (playing ? setPlaying(false) : play())}>
-              {playing ? "■" : "▶"}
-            </button>
+            <span className="tg-hud-title">
+              BENCH · {proto.name}
+              {proto.id === "thumbs" && pick.relative ? " REL" : ""}
+            </span>
+            <span className="tg-hud-bar">{keyName(frame.current.key)}</span>
+            {playing ? (
+              <button type="button" id="quit" className="tg-x" aria-label="Quit" onClick={quit}>
+                ✕
+              </button>
+            ) : (
+              <>
+                <button type="button" id="settings" className="tg-x" aria-label="Settings" onClick={() => setPhase({ kind: "settings" })}>
+                  ⚙
+                </button>
+                <button type="button" id="help" className="tg-x" aria-label="How to play" onClick={() => setPhase({ kind: "help" })}>
+                  ?
+                </button>
+              </>
+            )}
           </>
         }
-        legend={f.voiceNames.map((name, v) => (
-          <button key={name} type="button" id={`take-${v}`} className={`bench-take${v === taken ? " on" : ""}`} style={{ color: inkOf(v, f.voices.length) }} onClick={() => setTaken(v)} aria-pressed={v === taken}>
+        legend={f.voiceNames.map((name, i) => (
+          <span key={name} style={{ color: inkOf(i, f.voices.length), opacity: i === pick.voice ? 1 : 0.55 }}>
             ■ {name.toUpperCase()}
-          </button>
+          </span>
         ))}
       >
-        {!playing && (
-          <div className="tg-card bench-card">
-            <h1>{sample.name}</h1>
-            {help && <p>{sample.how}</p>}
-            <p className="tg-card-sub">THE VOICE OUTLINED IS YOURS: TAP A NAME BELOW TO TAKE ANOTHER</p>
-            <div className="tg-row">
-              <div className="tg-seg" role="group" aria-label="Speed">
-                {(Object.keys(SPEEDS) as Speed[]).map((s) => (
-                  <button key={s} type="button" id={`speed-${s}`} className={s === speed ? "on" : ""} onClick={() => setSpeed(s)}>
-                    {s.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-              <button type="button" id="play" className="tg-piece" onClick={play}>
-                ▶ PLAY THE FUGUE
-              </button>
-            </div>
-            <label className="tg-from">
-              <span>
-                FROM {Math.round(share * 100)}% · BAR {barAt(f, from)}
-              </span>
-              <input type="range" id="from" min={0} max={99} value={Math.round(share * 100)} onChange={(e) => setShare(Number(e.target.value) / 100)} />
-            </label>
+        <div className="tg-count" ref={count} aria-live="polite" />
+        {phase.kind === "title" && <Title f={f} pick={pick} setPick={setPick} from={from} note={note} />}
+        {phase.kind === "result" && (
+          <div className="tg-card tg-card-low">
+            <h1 className={phase.right >= 0.8 * phase.of ? "tg-gold" : ""}>{Math.round((100 * phase.right) / Math.max(1, phase.of))}%</h1>
+            <p className="tg-card-sub">
+              {proto.name}: {phase.right} RIGHT · {phase.wrong} WRONG SHAPE · {phase.missed} MISSED · OF {phase.of}
+            </p>
+            <button type="button" id="again" className="tg-link" onClick={quit}>
+              Back
+            </button>
           </div>
         )}
       </MusicBox>
-      <nav className="bench-bar" aria-label="Instrument">
-        {INSTRUMENTS.map((mk, k) => (
-          <button key={k} type="button" id={`inst-${k + 1}`} className={k === which ? "on" : ""} onClick={() => (setWhich(k), setHelp(!playing))}>
-            {k + 1}
+      <PlayArea events={events} paint={paint} hint={away ? "TAP HERE TO START" : ""} />
+      {phase.kind === "settings" && (
+        <Panel title="TESTBENCH" close={quit}>
+          <div className="tg-set">
+            <span>PROTOTYPE</span>
+          </div>
+          <div className="tb-protos" role="group" aria-label="Prototype">
+            {PROTOS.map((p) => (
+              <button key={p.id} type="button" id={`proto-${p.id}`} className={p.id === pick.proto ? "on" : ""} onClick={() => setPick({ proto: p.id })} aria-pressed={p.id === pick.proto}>
+                {p.name}
+              </button>
+            ))}
+          </div>
+          <p className="tg-panel-note">{proto.how}</p>
+          <Choice id="rule" label="THUMBS RULE" options={[["abs", "RIGHT = UP"], ["rel", "RELATIVE"]]} value={pick.relative ? "rel" : "abs"} set={(v) => setPick({ relative: v === "rel" })} />
+          <Choice id="piece" label="PIECE" options={PIECES.map(([id, name]) => [id, name] as [PieceId, string])} value={pick.piece} set={(piece) => setPick({ piece, share: 0, voice: -1 })} />
+          <Choice id="speed" label="SPEED" options={[["slow", "SLOW"], ["medium", "MEDIUM"], ["fast", "FAST"]]} value={pick.speed} set={(speed) => setPick({ speed })} />
+          <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
+        </Panel>
+      )}
+      {phase.kind === "help" && (
+        <Panel title="THE PROTOTYPES" close={quit}>
+          <section className="tg-help">
+            <p>Every note needs its own touch, or a held thumb slid on (up or down, about a finger's width: the next note, glided into). The time picks the note; the prototype judges the gesture. Right: Bach's note, clear. Wrong: Bach's note, muffled, not counted.</p>
+            <p>Everywhere: a note lasts while the thumb is down (a quick tap is staccato); tapping while the other thumb still holds joins the notes (legato); wobble sideways for vibrato.</p>
+            {PROTOS.map((p) => (
+              <div key={p.id}>
+                <h2>{p.name}</h2>
+                <p>{p.how}</p>
+              </div>
+            ))}
+            <h2>SOUND DELAY</h2>
+            <p>Late with headphones? ⚙ → SET BY TAPPING.</p>
+          </section>
+        </Panel>
+      )}
+      <div className="tg-upright" role="alert">
+        Turn the phone upright
+      </div>
+    </div>
+  );
+}
+
+function Title({ f, pick, setPick, from, note }: { f: TouchFugue; pick: Pick; setPick: (p: Partial<Pick>) => void; from: number; note: string }) {
+  const singing = voicesFrom(f, from);
+  const proto = protoById(pick.proto);
+  return (
+    <div className="tg-card tg-title">
+      <h1>{proto.name}</h1>
+      <p className="tg-card-sub">
+        {PIECES.find(([id]) => id === pick.piece)![1]} · {pick.speed.toUpperCase()}
+      </p>
+      <div className="tg-voices" role="group" aria-label="Voice">
+        {f.voiceNames.map((name, i) => (
+          <button key={name} type="button" id={`voice-${i}`} className={i === pick.voice ? "on" : ""} style={{ color: inkOf(i, f.voices.length) }} disabled={!singing.includes(i)} onClick={() => setPick({ voice: i })} aria-pressed={i === pick.voice}>
+            {name.toUpperCase()}
           </button>
         ))}
-        <span>{sample.name}</span>
-        <button type="button" id="help" onClick={() => setHelp(!help)} aria-pressed={help}>
-          ?
-        </button>
-      </nav>
-      <PlayArea events={events} paint={paint} hint={wrongWay ? (sample.landscape ? "TURN THE PHONE SIDEWAYS" : "TURN THE PHONE UPRIGHT") : ""} />
-      {help && playing && <p className="bench-help">{sample.how}</p>}
+      </div>
+      <label className="tg-from">
+        <span>
+          FROM {Math.round(pick.share * 100)}% · BAR {barAt(f, from)}
+        </span>
+        <input type="range" id="from" min={0} max={99} step={1} value={Math.round(pick.share * 100)} onChange={(e) => setPick({ share: Number(e.target.value) / 100 })} />
+      </label>
+      <p className="tg-title-help">{proto.how}</p>
+      {note && <p className="tg-note">{note}</p>}
     </div>
   );
 }
