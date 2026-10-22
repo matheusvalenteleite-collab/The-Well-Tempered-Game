@@ -17,7 +17,15 @@ Page: `touch.html` (`npm run dev`, then `/touch.html`). Single file for claude.a
 `npx vite build -c vite.touch.config.ts && node tools/touch/build-artifact.mjs <out.html>`.
 Data: `node tools/touch/extract.ts` cuts the fugue from `data/wtc/fugues.json`.
 
-## All 48 preludes too (D168: built, to be tried)
+## Pared down; the picker; the instrument bench (D169, D170: built, to be tried)
+
+- One voice, the others always playing (as loud), the whole piece from a chosen point; SLOW, MEDIUM,
+  FAST; quit at any time; a piece picker laid out as the book; Contrapunctus XIV.
+- The box shows every voice in fixed places, blocks one height.
+- `bench.html`: six free-play instruments (theremin, bow, positions, dial, home & ornament, keybed)
+  on Contrapunctus XIV, to choose how the thumbs should play before the game commits to one.
+
+## All 48 preludes too (D168: built)
 
 - The 96 pieces in the book's order; a prelude is played by hands (both hands: left thumb, right thumb).
 - Prelude sections end on cadences; the box's colour follows the keys they reach.

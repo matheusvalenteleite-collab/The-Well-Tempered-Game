@@ -61,6 +61,8 @@ export interface Frame {
   others: OtherNote[];
   /** The steps the keys reach now (lowest, how many), if playing. */
   keys?: { lo: number; rows: number };
+  /** What the player has sounded (the testbench, D170): the pitch as a step, fractions allowed, in time. */
+  trace?: { tick: number; step: number; on: boolean }[];
 }
 
 export function MusicBox({ frame, hud, legend, children }: { frame: MutableRefObject<Frame>; hud: ReactNode; legend: ReactNode; children?: ReactNode }) {
@@ -183,6 +185,26 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
         g.fillRect(x1 - 1, y - 1, bw + 2, bh + 1);
         g.globalAlpha = 1;
       }
+    }
+  }
+
+  // The player's own line: what they sounded, against the music.
+  if (fr.trace?.length) {
+    const ys = (step: number) => top + (fr.hi + 1 - step) * rowH + rowH / 2;
+    g.fillStyle = tok("--tg-fg");
+    let prev: { x: number; y: number } | null = null;
+    for (const p of fr.trace) {
+      const x = xOf(p.tick);
+      if (x < 0 || x > playX) {
+        prev = null;
+        continue;
+      }
+      const y = Math.round(ys(p.step));
+      if (p.on && prev) {
+        const x0 = Math.min(prev.x, x);
+        g.fillRect(x0, Math.min(prev.y, y), Math.max(1, Math.abs(x - prev.x)), Math.max(2, Math.abs(y - prev.y) + 1));
+      }
+      prev = p.on ? { x, y } : null;
     }
   }
 

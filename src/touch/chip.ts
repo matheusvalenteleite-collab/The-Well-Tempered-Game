@@ -58,8 +58,13 @@ export class Chip {
     this.bus = this.master;
   }
 
+  /** Where a voice of one's own joins the sound (the testbench's instruments, D170). */
+  get input(): AudioNode {
+    return this.bus;
+  }
+
   /** A pulse of the given duty (as on the NES), built once. */
-  private wave(timbre: Timbre): PeriodicWave | "triangle" {
+  wave(timbre: Timbre): PeriodicWave | "triangle" {
     if (timbre === "triangle") return "triangle";
     let w = this.waves.get(timbre);
     if (!w) {
