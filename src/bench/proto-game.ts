@@ -6,14 +6,16 @@
  * plays it; a thumb moved across the dynamic axis while its note sounds swells or fades it; a thumb
  * flicked upwards as it lets go sends its note off with a swoosh. The player's voice is the lead
  * (chip.ts leadOf). It can also be played from a computer's keys or a MIDI keyboard. On the audio
- * clock as heard; the others phrased (phrasing.ts); a band's rhythm section keeps the beat.
+ * clock as heard; the others phrased (phrasing.ts); a band's rhythm section keeps the beat. A note
+ * too quick to strike at the tempo played rides after the note before (D191: lanes.ts quickRides):
+ * it sounds by itself once that note is played right, and is neither judged nor counted.
  */
 import type { Arrow } from "../touch/MusicBox.tsx";
 import type { Burst, Pop } from "../touch/box-fx.ts";
 import { voicing, type Chip, type Play, type Sounding } from "../touch/chip.ts";
 import type { Grade } from "../touch/engine.ts";
 import { beatOf, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
-import { chordOf, laneNotes, options, strike, sweep, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
+import { chordOf, laneNotes, options, quickRides, strike, sweep, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
 import { follow, phrase, ritard, type Shape } from "../touch/phrasing.ts";
 import type { Side } from "../touch/thumbs.ts";
@@ -29,6 +31,8 @@ export const FUOCO_NOTES = 24;
 /** How far ahead the next note shows, in ms. */
 export const APPROACH_MS = 1100;
 const HOLD_MAX = 8;
+/** D191: notes gone by are swept as missed this long (s) after their window closes: a frame's grace. */
+export const SWEEP_GRACE_S = 0.035;
 /** A thumb let go moving upwards at least this fast (px per ms), over this far (px): a swoosh. */
 const SWOOSH_V = 0.7;
 const SWOOSH_PX = 30;
@@ -181,14 +185,21 @@ export class ProtoGame {
     const b = beatOf(f);
     this.beat = b.ticks;
     this.perBar = b.perBar;
+    // D181: the tempo counts quarter notes, whatever the metre (in 2/2 the beat was a half note: twice as fast).
+    this.tps = (f.tpq * o.bpm) / 60;
+    if (o.until === undefined || o.until >= f.length) this.rit = ritard(f.length, f.barTicks);
+    // D191: how far apart two ticks sound, in ms (at this tempo, the final ritard included).
+    const msBetween = (a: number, c: number) => ((this.rit.warp(c) - this.rit.warp(a)) / this.tps) * 1000;
     this.tracks = (Array.isArray(voices) ? voices : [voices]).map((v) => {
       const notes = laneNotes(
         f.voices[v].filter(([on]) => on >= from && (o.until === undefined || on < o.until)),
         this.beat,
         v,
       );
+      // D191: the notes too quick to strike ride after the note before.
+      quickRides(notes, this.beat, msBetween);
       const mv = moves(notes, this.beat);
-      return { voice: v, notes, moves: mv, fingers: fingering(notes, mv, f.entries, this.beat) };
+      return { voice: v, notes, moves: mv, fingers: fingering(notes, mv, f.entries, this.beat, f.voices.filter((_, j) => j !== v)) };
     });
     [{ voice: this.voice, notes: this.notes, moves: this.moves }] = this.tracks;
     const played = this.tracks.map((t) => t.voice);
@@ -198,15 +209,12 @@ export class ProtoGame {
     this.start = o.wait ? from - this.beat : countInStart(f, from);
     this.entry = from;
     this.end = (o.until ?? f.length) + this.beat;
-    // D181: the tempo counts quarter notes, whatever the metre (in 2/2 the beat was a half note: twice as fast).
-    this.tps = (f.tpq * o.bpm) / 60;
     this.opt = options(f.tpq, o.bpm, "easy");
     // TWO VOICES: the windows a quarter wider (two lines at once).
     if (proto.id === "duo") this.opt = { ...this.opt, early: this.opt.early * 1.25, late: this.opt.late * 1.25 };
     this.anchorAt = chip.ctx.currentTime + 0.15;
     this.anchorTick = this.start;
     this.nextBeat = this.start;
-    if (o.until === undefined || o.until >= f.length) this.rit = ritard(f.length, f.barTicks);
     this.tracks.forEach((t, k) => {
       for (const e of f.entries) if (e.voice === t.voice && e.on >= from) this.entries.push({ voice: e.voice, k, on: e.on, end: e.end, ons: e.notes.map((x) => x[0]), state: "open" });
     });
@@ -258,7 +266,9 @@ export class ProtoGame {
         this.nextBeat += this.beat;
         continue;
       }
-      const band = this.nextBeat >= this.entry && !this.o.solo && ch.groove?.(this.timeAt(this.nextBeat), this.beat / this.tps, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, this.mult - 1);
+      // The beat's length as it sounds (D191: the final ritard included, the drums' off-beats with it).
+      const beatS = this.timeAt(this.nextBeat + this.beat) - this.timeAt(this.nextBeat);
+      const band = this.nextBeat >= this.entry && !this.o.solo && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, this.mult - 1);
       if (!band) ch.tick(this.timeAt(this.nextBeat), accent, this.nextBeat < this.entry ? 0.12 : 0.02);
       this.nextBeat += this.beat;
     }
@@ -283,9 +293,21 @@ export class ProtoGame {
       const room = COLUMNS / 2 - 1;
       this.pan = Math.max(this.notes[nx].step - room, Math.min(this.notes[nx].step + room, this.pan));
     }
-    if (this.tracks.map((t) => sweep(t.notes, this.now, this.opt)).some(Boolean)) {
+    this.sounding();
+    // Notes gone by unplayed: missed, a frame's grace late (D191: a tap at the window's very end,
+    // handled after the frame, was refused); each one missed (a chord once) a slip.
+    const grace = SWEEP_GRACE_S * this.tps;
+    let missed = 0;
+    for (const t of this.tracks) {
+      const ons = new Set<number>();
+      for (const n of t.notes) if (n.state === "pending" && !n.ride && this.now - grace > n.on + this.opt.late) ons.add(n.on);
+      if (!ons.size) continue;
+      sweep(t.notes, this.now - grace, this.opt);
+      missed += ons.size;
+    }
+    if (missed) {
       this.combo = 0;
-      this.slip();
+      for (let s = 0; s < missed; s++) this.slip();
       this.grade = { text: "MISS", at: performance.now() };
     }
     this.judgeEntries();
@@ -308,7 +330,7 @@ export class ProtoGame {
   /** The next note to play (index) in a voice (the first by default), if any. */
   next(k = 0): number {
     const notes = this.tracks[k].notes;
-    return notes.findIndex((n, i) => n.state === "pending" && n.on >= this.now - this.opt.late && !(i > 0 && notes[i - 1].on === n.on));
+    return notes.findIndex((n, i) => n.state === "pending" && !n.ride && n.on >= this.now - this.opt.late && !(i > 0 && notes[i - 1].on === n.on));
   }
 
   /** The voice a thumb plays. */
@@ -345,11 +367,11 @@ export class ProtoGame {
     return 0.55;
   }
 
-  /** The note before note i (the top of its chord), in a voice. */
+  /** The note struck before note i (the top of its chord; D191: the riding notes passed over), in a voice. */
   private before(i: number, k = 0): number {
     const notes = this.tracks[k].notes;
     let j = i - 1;
-    while (j >= 0 && notes[j].on === notes[i].on) j--;
+    while (j >= 0 && (notes[j].on === notes[i].on || notes[j].ride)) j--;
     return j;
   }
 
@@ -488,6 +510,8 @@ export class ProtoGame {
     const key = at.key?.midi;
     let i = key !== undefined ? strike(notesK, tk, this.opt, (j) => chordOf(notesK, j).some((x) => notesK[x].midi === key)) : -1;
     if (i < 0) i = strike(notesK, tk, this.opt);
+    // D191: a strike on a note that rides (the player striking it anyway) is no slip; it is played for them.
+    if (i < 0 && notesK.some((n) => n.ride && Math.abs(n.on - tk) <= Math.max(this.opt.early, this.opt.late))) return;
     if (i < 0) {
       this.grade = { text: "✕", at: performance.now(), side: h.side, why: "time" };
       // A strike on no note is a slip, and counts against the accuracy (mashing scores nothing).
@@ -615,7 +639,8 @@ export class ProtoGame {
       return;
     }
     this.feel += (d - this.feel) * 0.25;
-    const offMs = (((n.at ?? n.on) - n.on) / this.tps) * 1000;
+    // As heard (D191: the final ritard included; the steady tempo made PERFECT up to 22% wider there).
+    const offMs = (this.timeAt(n.at ?? n.on) - this.timeAt(n.on)) * 1000;
     const perfect = Math.abs(offMs) <= PERFECT_MS;
     this.combo++;
     this.streak++;
@@ -628,6 +653,44 @@ export class ProtoGame {
     this.pops.push({ tick: n.on, step: Math.max(...chord.map((j) => notes[j].step)), text: `+${h.pts}`, at, gold: perfect });
     if (this.pops.length > 40) this.pops.splice(0, 20);
     this.grade = perfect ? { text: "PERFECT", at, side: h.side } : { text: "GOOD", lean: offMs < 0 ? -1 : 1, at, side: h.side };
+    this.ride(h, i, offMs / 1000);
+  }
+
+  /**
+   * D191: the notes riding after note i (too quick to strike) are played for the player: each at its
+   * time, moved by as much as note i was early or late, the note struck giving way to the first.
+   */
+  private ride(h: Held, i: number, offS: number) {
+    const notes = this.tracks[h.k].notes;
+    let j = i + 1;
+    while (j < notes.length && notes[j].on === notes[i].on) j++;
+    const voiceV = voicing(this.tracks[h.k].voice, this.f.voices.length, true);
+    const ch = this.chip;
+    let first = true;
+    for (; j < notes.length && notes[j].ride; j++) {
+      const n = notes[j];
+      if (n.state !== "pending") continue;
+      const at = Math.max(ch.ctx.currentTime, this.timeAt(n.on) + offS);
+      const len = Math.max(0.03, this.timeAt(n.on + n.dur) - this.timeAt(n.on));
+      if (first) for (const sd of h.sounds) sd.stop(at);
+      first = false;
+      const sd = ch.note(n.midi, at, len, voiceV, { lead: true, envelope: this.proto.id === "piano" ? "piano" : "synth" });
+      if (sd) this.band.push({ sd, until: at + len + 0.6 });
+      this.riders.push({ k: h.k, j, at });
+    }
+  }
+
+  /** D191: the riding notes played for the player, shown as they sound. */
+  private riders: { k: number; j: number; at: number }[] = [];
+  private sounding() {
+    if (!this.riders.length) return;
+    const t = this.chip.ctx.currentTime;
+    this.riders = this.riders.filter((r) => {
+      if (r.at > t) return true;
+      const n = this.tracks[r.k].notes[r.j];
+      if (n.state === "pending") Object.assign(n, { state: "hit", at: n.on });
+      return false;
+    });
   }
 
   /** FINGERING: a STACCATO note let go too late, or a TENUTO note too soon, is taken back. */
@@ -658,7 +721,8 @@ export class ProtoGame {
   private judgeEntries() {
     for (const e of this.entries) {
       if (e.state !== "open") continue;
-      const notes = this.tracks[e.k].notes.filter((n) => e.ons.includes(n.on));
+      // D191: the riding notes are not the player's to capture.
+      const notes = this.tracks[e.k].notes.filter((n) => !n.ride && e.ons.includes(n.on));
       if (notes.some((n) => n.state === "miss")) {
         e.state = "lost";
         if (this.isBoss(e)) this.banner = { text: "THE BOSS GOT AWAY", at: performance.now() };
@@ -756,7 +820,8 @@ export class ProtoGame {
     const r = { right: 0, wrong: 0, missed: 0, stray: this.stray, of: 0, score: this.score, grade: "", captured: this.entries.filter((e) => e.state === "captured").length, entries: this.entries.length, maxStreak: this.maxStreak };
     for (const { notes } of this.tracks)
       notes.forEach((n, i) => {
-        if (i > 0 && notes[i - 1].on === n.on) return;
+        // D191: the riding notes are not counted.
+        if ((i > 0 && notes[i - 1].on === n.on) || n.ride) return;
         r.of++;
         if (n.state === "hit") r.right++;
         else if (n.wrong) r.wrong++;

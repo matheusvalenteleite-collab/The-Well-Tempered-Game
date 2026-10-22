@@ -89,7 +89,7 @@ export function paintPiano(g: CanvasRenderingContext2D, w: number, h: number, ga
     const y1 = Math.min(top, yOf(n.on));
     const y0 = Math.max(0, yOf(n.on + n.dur));
     if (y1 <= 0) continue;
-    if (n.state === "pending" && n.on >= now - game.late && n.on - now < (APPROACH_MS / 1000) * game.tps) coming.add(n.midi);
+    if (n.state === "pending" && !n.ride && n.on >= now - game.late && n.on - now < (APPROACH_MS / 1000) * game.tps) coming.add(n.midi);
     g.fillStyle = n.state === "miss" ? tok("--tg-miss") : ink;
     g.globalAlpha = n.ride ? 0.6 : 1;
     g.fillRect(a * w + 1, y0, (b - a) * w - 2, Math.max(2, y1 - y0 - 1));

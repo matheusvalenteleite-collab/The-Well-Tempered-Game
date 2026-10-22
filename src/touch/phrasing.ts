@@ -25,19 +25,30 @@ export interface Shape {
 /** `inBar`: where a tick falls in its bar (fugue.ts inBar: by the bars as encoded). */
 export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: number) => number, subject: Set<string>): Shape[] {
   // Each voice's notes in order, to see the note after, and the voice's range around each note.
+  // (D191: built by pushing; copying the list for every note made it O(n²).)
   const byVoice = new Map<number, number[]>();
-  notes.forEach((n, i) => byVoice.set(n.voice, [...(byVoice.get(n.voice) ?? []), i]));
+  for (let i = 0; i < notes.length; i++) {
+    const v = byVoice.get(notes[i].voice);
+    if (v) v.push(i);
+    else byVoice.set(notes[i].voice, [i]);
+  }
   const next = new Map<number, OtherNote | undefined>();
   const local = new Map<number, number>();
-  for (const idx of byVoice.values())
+  for (const idx of byVoice.values()) {
+    // The note after: the first of the next onset (D191: a chord's partner, struck with it, is not "the next note").
+    let after: number | undefined;
+    for (let k = idx.length - 1; k >= 0; k--) {
+      if (k + 1 < idx.length && notes[idx[k + 1]].on > notes[idx[k]].on) after = idx[k + 1];
+      next.set(idx[k], after === undefined ? undefined : notes[after]);
+    }
     idx.forEach((i, k) => {
-      next.set(i, notes[idx[k + 1]]);
       // Where the note stands between the lowest and highest of its neighbours (0 to 1).
       const near = idx.slice(Math.max(0, k - 6), k + 7).map((j) => notes[j].midi);
       const lo = Math.min(...near);
       const hi = Math.max(...near);
       local.set(i, hi > lo ? (notes[i].midi - lo) / (hi - lo) : 0.5);
     });
+  }
   return notes.map((n, i) => {
     const pos = inBar(n.on);
     const weight = pos === 0 ? 1.12 : pos % beat === 0 ? 1.04 : 0.94;

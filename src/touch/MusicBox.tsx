@@ -215,6 +215,15 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
         g.fillRect(x1, y, bw, bh - 1);
         continue;
       }
+      if (n.ride) {
+        // D191: a note that rides (too quick to strike, played for the player): thin, unoutlined, faint until it sounds.
+        const th = Math.max(1, Math.floor(bh / 2));
+        g.globalAlpha = n.state === "hit" ? 0.9 : 0.5;
+        g.fillStyle = n.state === "hit" ? shine : ink;
+        g.fillRect(x1, y + Math.floor((bh - th) / 2), bw, th);
+        g.globalAlpha = 1;
+        continue;
+      }
       g.fillStyle = edge;
       g.fillRect(x1 - 1, y - 1, bw + 2, bh + 1);
       g.fillStyle = ink;
@@ -245,7 +254,7 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
       const fg = fr.fingers![i];
       const x = xOf(n.on);
       const x2 = xOf(n.on + n.dur);
-      if (!fg || n.state !== "pending" || x < playX || x > w || (i > 0 && fr.notes[i - 1].on === n.on)) return;
+      if (!fg || n.ride || n.state !== "pending" || x < playX || x > w || (i > 0 && fr.notes[i - 1].on === n.on)) return;
       const y = yOf(n.step);
       g.fillStyle = fg.hand === "left" ? "#ff8c4a" : "#5cb2ff";
       // A 3 by 5 pixel letter, above the block.
@@ -263,7 +272,7 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
     fr.notes.forEach((n, i) => {
       const a = fr.arrows![i];
       const x = xOf(n.on);
-      if (!a || n.state !== "pending" || x < playX || x > w || (i > 0 && fr.notes[i - 1].on === n.on)) return;
+      if (!a || n.ride || n.state !== "pending" || x < playX || x > w || (i > 0 && fr.notes[i - 1].on === n.on)) return;
       g.fillStyle = edge;
       ARROW_PIXELS[a].forEach((row, ry) => [...row].forEach((on, rx) => on === "1" && g.fillRect(x + rx, yOf(n.step) - 7 + ry, 1, 1)));
     });

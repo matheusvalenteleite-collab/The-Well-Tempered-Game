@@ -153,7 +153,7 @@ export function ribbons(c: Ctx, spans: Span[], player: number[], names: string[]
 }
 
 /** The player's bosses: while one is near or sounding, its notes as a bar along the top, the box tinted. */
-export function bossBar(c: Ctx, spans: Span[], voice: number, notes: { on: number; state: string }[]) {
+export function bossBar(c: Ctx, spans: Span[], voice: number, notes: { on: number; state: string; ride?: boolean }[]) {
   const mine = spans.filter((s) => s.voice === voice);
   const near = mine.find((s) => c.now >= s.on - (s.end - s.on) * 0.25 && c.now < s.end + 0.0001);
   if (!near) return;
@@ -165,7 +165,7 @@ export function bossBar(c: Ctx, spans: Span[], voice: number, notes: { on: numbe
   g.fillRect(0, 0, w, h);
   g.globalAlpha = 1;
   const ons = new Set(near.path.map((n) => n.on));
-  const heads = notes.filter((n, i) => ons.has(n.on) && !(i > 0 && notes[i - 1].on === n.on));
+  const heads = notes.filter((n, i) => ons.has(n.on) && !n.ride && !(i > 0 && notes[i - 1].on === n.on));
   const label = boss ? "BOSS" : "SUB BOSS";
   const x0 = 4;
   pixText(g, label, x0, 3, color);
