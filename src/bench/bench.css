@@ -143,3 +143,7 @@
 .tb-result-seal { margin: 0; font-family: var(--tg-pixel); font-size: 8px; line-height: 1.5; color: var(--tg-muted); }
 .tb-result-seal.earned { color: var(--tg-gold); }
 .tb-seal-pip.earned { color: var(--tg-gold); opacity: 1; }
+
+/* D198: the stars, the failed run. */
+.tb-stars { margin: 0; font-size: 22px; letter-spacing: 4px; color: var(--tg-gold); }
+.tb-failed { font-size: 16px; color: var(--tg-wrong); }

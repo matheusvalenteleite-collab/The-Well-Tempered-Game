@@ -43,8 +43,12 @@ interface Pick {
   legato: boolean;
   /** EASY's level (D187). */
   easy: EasyLevel;
+  /** D198: a run fails when the crowd is lost. */
+  fail: boolean;
+  /** D201, a trial (off unless chosen): the tempo follows the playing. */
+  follow: boolean;
 }
-const DEFAULT: Pick = { proto: "ladder", piece: "wtc1f02", voice: 1, voice2: 0, bpm: defaultBpm("wtc1f02"), share: 0, legato: false, easy: "direction" };
+const DEFAULT: Pick = { proto: "ladder", piece: "wtc1f02", voice: 1, voice2: 0, bpm: defaultBpm("wtc1f02"), share: 0, legato: false, easy: "direction", fail: true, follow: false };
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -69,10 +73,10 @@ function sane(p: Pick): Pick {
   const singing = voicesFrom(f, startTick(f, share));
   const voice = singing.includes(p.voice) ? p.voice : singing[Math.min(1, singing.length - 1)];
   const voice2 = singing.includes(p.voice2) && p.voice2 !== voice ? p.voice2 : (singing.find((v) => v !== voice) ?? voice);
-  return { ...DEFAULT, ...p, piece, share, voice, voice2, proto: protoById(p.proto).id, bpm: saneBpm(p.bpm), legato: !!p.legato, easy: EASY_LEVELS.some(([l]) => l === p.easy) ? p.easy : DEFAULT.easy };
+  return { ...DEFAULT, ...p, piece, share, voice, voice2, proto: protoById(p.proto).id, bpm: saneBpm(p.bpm), legato: !!p.legato, easy: EASY_LEVELS.some(([l]) => l === p.easy) ? p.easy : DEFAULT.easy, fail: p.fail !== false, follow: !!p.follow };
 }
 
-type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; seal: { kind: string; earned: boolean; why: string } | null } | { kind: "settings" } | { kind: "help" } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
+type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; seal: { kind: string; earned: boolean; why: string } | null } | { kind: "settings" } | { kind: "help" } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
 
 /** The computer's keys (D182: a computer's prototypes only): PIANO a keyboard's rows (A W S E D F T G Y H U J K O L P ;), Z and X the octave; EASY every row (protos.ts KEY_ROWS) and space, Shift the pedal, the arrows a bend. */
 const PIANO_KEYS = ["KeyA", "KeyW", "KeyS", "KeyE", "KeyD", "KeyF", "KeyT", "KeyG", "KeyY", "KeyH", "KeyU", "KeyJ", "KeyK", "KeyO", "KeyL", "KeyP", "Semicolon"];
@@ -216,7 +220,7 @@ export function BenchApp() {
 
   useEffect(() => {
     if (phase.kind !== "play" || !chip.current) return;
-    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? pick.easy, ...(run ? { until: run.until, wait: run.wait, solo: run.solo } : {}) }, chip.current);
+    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? pick.easy, fail: !run && pick.fail, ...(!run && pick.follow ? { adapt: { from: bpm, to: Math.round(bpm * 1.3) } } : {}), ...(run ? { until: run.until, wait: run.wait, solo: run.solo } : {}) }, chip.current);
     g.octave = octave.current;
     const arrows = proto.id === "arrows" ? g.moves.map(arrowOf) : g.cues;
     game.current = g;
@@ -261,11 +265,11 @@ export function BenchApp() {
           if (ok) passLesson(lesson.n);
           setPhase({ kind: "talk", lines: ok ? l.pass : l.again, next: ok ? "advance" : "again" });
         } else {
-          recordBest(f.id, played, r.grade);
+          if (r.failedBar === null) recordBest(f.id, played, r.grade);
           // D196: the fugue's seal, judged over the whole run.
           const card = cardById(f.id);
           const seal = card
-            ? judgeSeal(card, { f, tracks: g.tracks.map((t) => ({ voice: t.voice, notes: t.notes })), entries: g.entries, beat: b.ticks, grade: r.grade, tuning: tuning.id, duo, whole: from === 0 })
+            ? judgeSeal(card, { f, tracks: g.tracks.map((t) => ({ voice: t.voice, notes: t.notes })), entries: g.entries, beat: b.ticks, grade: r.grade, tuning: tuning.id, duo, whole: from === 0 && r.failedBar === null })
             : null;
           if (seal?.earned) recordSeal(f.id, played);
           setPhase({ kind: "result", ...r, seal: card && seal ? { kind: card.seal.kind, ...seal } : null });
@@ -540,7 +544,12 @@ export function BenchApp() {
         )}
         {phase.kind === "result" && (
           <div className="tg-card tg-card-low tb-result">
-            <h1 className={`tb-grade${phase.grade === "S" || phase.grade === "A" ? " tg-gold" : ""}`}>{phase.grade}</h1>
+            {phase.failedBar !== null ? (
+              <h1 className="tb-grade tb-failed">THE CROWD LEFT</h1>
+            ) : (
+              <h1 className={`tb-grade${phase.grade === "S" || phase.grade === "A" ? " tg-gold" : ""}`}>{phase.grade}</h1>
+            )}
+            {phase.failedBar !== null ? <p className="tg-card-sub">AT BAR {phase.failedBar} · TRY AGAIN</p> : <p className="tb-stars">{"★".repeat(phase.stars) + "☆".repeat(5 - phase.stars)}</p>}
             <p className="tb-score">{phase.score.toLocaleString("en")}</p>
             <p className="tg-card-sub">
               {Math.round((100 * phase.right) / Math.max(1, phase.of))}% · {phase.right} RIGHT · {phase.wrong} WRONG · {phase.missed} MISSED · OF {phase.of}
@@ -580,6 +589,8 @@ export function BenchApp() {
           </div>
           <p className="tg-panel-note">{proto.how}</p>
           <Choice id="platform" label="PLAY ON" options={[["mobile", "MOBILE"], ["computer", "COMPUTER"]]} value={platform ?? "mobile"} set={(pl) => setPlatform(pl)} />
+          <Choice id="follow" label="TRIAL · TEMPO FOLLOWS YOU" options={[["off", "OFF"], ["on", "ON"]]} value={pick.follow ? "on" : "off"} set={(v) => setPick({ follow: v === "on" })} />
+          <Choice id="fail" label="FAIL" options={[["on", "ON"], ["off", "NO FAIL"]]} value={pick.fail ? "on" : "off"} set={(v) => setPick({ fail: v === "on" })} />
           {proto.id === "keys" && <Choice id="easy" label="EASY" options={EASY_LEVELS} value={pick.easy} set={(easy) => setPick({ easy })} />}
           {proto.id === "sideways" && <Choice id="level" label="SIDEWAYS" options={[["easy", "EASY"], ["legato", "LEGATO"]]} value={pick.legato ? "legato" : "easy"} set={(v) => setPick({ legato: v === "legato" })} />}
           <PieceButton id={pick.piece} open={() => setWheel(true)} />

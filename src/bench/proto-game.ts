@@ -14,7 +14,7 @@ import type { Arrow } from "../touch/MusicBox.tsx";
 import type { Burst, Pop } from "../touch/box-fx.ts";
 import { voicing, type Chip, type Play, type Sounding } from "../touch/chip.ts";
 import type { Grade } from "../touch/engine.ts";
-import { beatOf, cadenceName, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
+import { barAt, beatOf, cadenceName, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
 import { chordOf, laneNotes, options, quickRides, strike, sweep, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
 import { follow, phrase, ritard, type Shape } from "../touch/phrasing.ts";
@@ -118,8 +118,8 @@ export class ProtoGame {
   readonly start: number;
   readonly entry: number;
   readonly end: number;
-  readonly tps: number;
-  readonly opt: LaneOptions;
+  tps: number;
+  opt: LaneOptions;
   readonly proto: Proto;
   readonly o: Options;
   /** The sideways PIANO's keyboard. */
@@ -164,7 +164,7 @@ export class ProtoGame {
   /** When a banner was raised (performance.now()), and which. */
   banner: { text: string; at: number } | null = null;
   private chip: Chip;
-  private beat: number;
+  beat: number;
   private perBar: number;
   private anchorAt: number;
   private anchorTick: number;
@@ -237,6 +237,7 @@ export class ProtoGame {
   /** One frame: the beat (or the band) and the others scheduled ahead; the window panned; notes gone by marked missed. True at the end. */
   step(): boolean {
     const ch = this.chip;
+    this.adaptTempo(ch.heard());
     this.now = this.tickAt(ch.heard());
     if (this.o.wait) {
       const nx = this.next();
@@ -312,6 +313,13 @@ export class ProtoGame {
     }
     this.judgeEntries();
     this.judgeCadences();
+    this.sustain();
+    // D198: the crowd lost: the run ends here (not in the lessons, nor with NO FAIL).
+    if (this.o.fail && this.crowd <= 0 && this.failedAt === null) {
+      this.failedAt = this.now;
+      this.stopAll();
+      return true;
+    }
     ch.zone?.(this.zone);
     if (this.now > this.end) {
       this.stopAll();
@@ -646,6 +654,13 @@ export class ProtoGame {
     this.combo++;
     this.streak++;
     this.maxStreak = Math.max(this.maxStreak, this.streak);
+    // D201: the tempo leans forward with a right note.
+    if (this.o.adapt) this.tempoGoal = Math.min(this.o.adapt.to, this.tempoGoal + (this.o.adapt.to - this.o.adapt.from) * 0.012);
+    // D198: the crowd warms; a long run called out, every fifty.
+    this.crowd = Math.min(1, this.crowd + (perfect ? 0.025 : 0.015));
+    this.flames.push({ i, at });
+    if (this.flames.length > 24) this.flames.splice(0, 12);
+    if (this.streak % 50 === 0) this.banner = { text: `${this.streak} NOTE STREAK!`, at };
     if (this.streak % STEP_NOTES === 0 && this.mult < 4) this.mult++;
     if (this.streak === FUOCO_NOTES) this.banner = { text: "CON FUOCO!", at };
     h.pts = (perfect ? 2 : 1) * this.mult * (this.pleno ? 2 : 1);
@@ -713,6 +728,9 @@ export class ProtoGame {
 
   /** A slip: the multiplier a step down, the run (and CON FUOCO) ended. */
   private slip() {
+    this.crowd = Math.max(0, this.crowd - 0.045);
+    // D201: and holds back after a slip.
+    if (this.o.adapt) this.tempoGoal = Math.max(this.o.adapt.from, this.tempoGoal - (this.o.adapt.to - this.o.adapt.from) * 0.06);
     if (this.streak >= FUOCO_NOTES) this.banner = null;
     this.streak = 0;
     this.mult = Math.max(1, this.mult - 1);
@@ -761,6 +779,84 @@ export class ProtoGame {
       this.banner = { text: cadenceName(c), at: performance.now() };
     }
   }
+
+  /**
+   * D198, after Guitar Hero: the crowd (0 to 1, from a half: a right note warms it, a slip cools it;
+   * empty, the run fails); the hits' flames; the sustain (a long note held after it is struck scores
+   * as it sounds, a point a beat at the multiplier); the run's stars.
+   */
+  crowd = 0.6;
+  failedAt: number | null = null;
+  readonly flames: { i: number; at: number }[] = [];
+  private sustainAt = 0;
+  private sustainAcc = 0;
+  private sustain() {
+    const dt = this.now - this.sustainAt;
+    this.sustainAt = this.now;
+    if (dt <= 0 || dt > this.beat) return;
+    for (const h of this.held.values()) {
+      if (h.note < 0 || !h.sounds.length) continue;
+      const n = this.tracks[h.k].notes[h.note];
+      if (n.state !== "hit" || n.dur < this.beat || this.now >= n.on + n.dur || this.now < n.on) continue;
+      n.held = true;
+      this.sustainAcc += (dt / this.beat) * this.mult * (this.pleno ? 2 : 1);
+    }
+    const whole = Math.floor(this.sustainAcc);
+    if (whole > 0) (this.score += whole), (this.sustainAcc -= whole);
+  }
+  /**
+   * D201, the tempo following the playing: from `adapt.from` towards `adapt.to`, a little nearer with
+   * each right note, further back at each slip; the clock eases to it (a quarter of the way a second),
+   * so the change is felt as a gradual accelerando or holding back, never a jump. The windows follow.
+   */
+  private tempoGoal = 0;
+  private tempoAt = -1;
+  get bpm(): number {
+    return (this.tps * 60) / this.f.tpq;
+  }
+  private adaptTempo(t: number) {
+    const a = this.o.adapt;
+    if (!a || this.o.wait) return;
+    if (this.tempoAt < 0 || this.now < this.entry) {
+      this.tempoAt = t;
+      if (!this.tempoGoal) this.tempoGoal = this.bpm;
+      return;
+    }
+    const dt = Math.min(0.25, Math.max(0, t - this.tempoAt));
+    this.tempoAt = t;
+    const bpm = this.bpm + (this.tempoGoal - this.bpm) * Math.min(1, dt * 0.25);
+    if (Math.abs(bpm - this.bpm) < 0.05) return;
+    this.anchorTick = this.tickAt(t);
+    this.anchorAt = t;
+    this.tps = (this.f.tpq * bpm) / 60;
+    this.opt = options(this.f.tpq, bpm, "easy");
+    if (this.proto.id === "duo") this.opt = { ...this.opt, early: this.opt.early * 1.25, late: this.opt.late * 1.25 };
+  }
+
+  /** One to five stars: the score against two points a note (all PERFECT at ×1). */
+  starsOf(score: number, of: number): number {
+    const ratio = score / Math.max(1, 2 * of);
+    return ratio >= 4.5 ? 5 : ratio >= 3 ? 4 : ratio >= 2 ? 3 : ratio >= 1 ? 2 : 1;
+  }
+  /**
+   * EASY's highway (D198): the lane each note comes down, a fingering along the home row's ten keys:
+   * from the middle; up a key for a step or a third, two for a leap, down likewise; the same lane for a
+   * repeat; back to the middle at a free note; held at the edges.
+   */
+  get lanes(): number[] {
+    if (this.lanesMemo) return this.lanesMemo;
+    const notes = this.notes;
+    let lane = 4;
+    this.lanesMemo = notes.map((n, i) => {
+      if (i > 0 && notes[i - 1].on === n.on) return lane;
+      const m = this.moves[i];
+      if (this.isFree(i)) lane = 4;
+      else if (!n.ride && m.dir !== 0 && m.steps !== 0) lane = Math.max(0, Math.min(9, lane + m.dir * (m.size >= 3 ? 2 : 1)));
+      return lane;
+    });
+    return this.lanesMemo;
+  }
+  private lanesMemo?: number[];
 
   /** D186: what the box draws of the player's playing: points, bursts, the zone. */
   readonly pops: Pop[] = [];
@@ -832,18 +928,20 @@ export class ProtoGame {
   /** The notes (a chord once): played right, played wrong, missed; the score, the entries captured. */
   /** Strikes on no note. */
   stray = 0;
-  results(): { right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number } {
+  results(): { right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null } {
     const r = { right: 0, wrong: 0, missed: 0, stray: this.stray, of: 0, score: this.score, grade: "", captured: this.entries.filter((e) => e.state === "captured").length, entries: this.entries.length, maxStreak: this.maxStreak };
     for (const { notes } of this.tracks)
       notes.forEach((n, i) => {
         // D191: the riding notes are not counted.
         if ((i > 0 && notes[i - 1].on === n.on) || n.ride) return;
+        // A failed run: only the notes before the end count.
+        if (this.failedAt !== null && n.on > this.failedAt) return;
         r.of++;
         if (n.state === "hit") r.right++;
         else if (n.wrong) r.wrong++;
         else r.missed++;
       });
     r.grade = this.gradeOf(r);
-    return r;
+    return { ...r, stars: this.failedAt !== null ? 0 : this.starsOf(r.score, r.of), failedBar: this.failedAt !== null ? barAt(this.f, this.failedAt) : null };
   }
 }

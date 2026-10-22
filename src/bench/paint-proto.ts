@@ -16,7 +16,7 @@ import { paintPiano } from "../touch/paint-piano.ts";
 import { stepName } from "../touch/fugue.ts";
 import { columnX, COLUMNS, LINE } from "./placed.ts";
 import { APPROACH_MS, type ProtoGame } from "./proto-game.ts";
-import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
+import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
 import { isBlack, keySpan } from "../touch/piano.ts";
 import { KEYS_SHARE } from "./placed.ts";
 
@@ -45,7 +45,7 @@ export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g:
       pianoLetters(c, w, h, g, t);
       break;
     case "keys":
-      desk(c, w, h, g, t);
+      highway(c, w, h, g, t);
       break;
     case "arrows":
       pads(c, w, h, g, t);
@@ -62,7 +62,7 @@ function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoG
   const x = bars ? (w * BAR) / 2 : desk ? w - 90 : w / 2;
   const y = bars ? h * 0.12 : g.proto.id === "sideways" ? 30 : desk ? 34 : 14;
   label(c, g.score.toLocaleString("en"), x, y, t.fg, 9);
-  if (g.mult > 1) label(c, `×${g.mult}`, x, y + 16, g.mult >= 4 ? t.gold : t.shine, 9);
+  if (g.mult > 1 && !desk) label(c, `×${g.mult}`, x, y + 16, g.mult >= 4 ? t.gold : t.shine, 9);
   if (g.pleno) label(c, "PLENO ×2", bars ? w - (w * BAR) / 2 : x, bars ? h * 0.12 : y + 32, t.gold, 7);
   // CON FUOCO: embers rising along the edges while the run lasts.
   if (g.streak >= 24) {
@@ -156,76 +156,207 @@ function pixels(c: CanvasRenderingContext2D, a: Arrow, x: number, y: number, s: 
   ARROW_PIXELS[a].forEach((row, ry) => [...row].forEach((on, rx) => on === "1" && c.fillRect(Math.round(x + rx * s), Math.round(y + ry * s), s, s)));
 }
 
-/** EASY on a computer: the keyboard's four rows (ff to p), the keys down lit; the next note's time as two bars meeting. */
-function desk(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
-  const ink = inkOf(g.voice, g.f.voices.length);
-  const rowH = Math.min(46, (h - 60) / KEY_ROWS.length);
-  const key = Math.min(46, (w - 90) / 13);
-  const top = 16;
-  const nx = coming(g);
-  // DIRECTION (D187): only the keys that answer the next move light up; the last key struck ringed.
+/**
+ * EASY as a highway (D198, after Guitar Hero): the player's notes come down ten lanes, the home row's
+ * keys (A S D F G H J K L ;), towards the strike line, in perspective. A note's lane is a fingering
+ * of its line (ProtoGame.lanes): the key that answers it is always right; in DIRECTION any key on its
+ * side of the last will do (the lanes that would, tinted). A free note is an open bar across all the
+ * lanes; a note of the subject's entries a gem with a star; a long note a tail, glowing while held.
+ * A struck note flames; a missed one falls through grey. The multiplier's ring on the left, the crowd's
+ * meter on the right.
+ */
+const LANE_KEYS = ["A", "S", "D", "F", "G", "H", "J", "K", "L", ";"];
+const LANE_INK = ["#ff6b5a", "#ff9248", "#ffc145", "#d9e34f", "#7ee36b", "#4fd6b2", "#4cb8ff", "#7d8bff", "#b47dff", "#ff7dd6"];
+const AHEAD_S = 2.1;
+function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
+  const cx = w / 2;
+  const y0 = 18;
+  const y1 = h - 78;
+  const W = Math.min(w * 0.7, 620);
   const lvl = g.o.easy ?? "timing";
+  // Depth (0 at the line, 1 at the horizon) to the screen: y, and the width's scale.
+  const at = (tick: number) => {
+    const d = (tick - g.now) / g.tps / AHEAD_S;
+    const s = 1 / (1 + 3 * Math.max(-0.2, d));
+    const f = (s - 0.25) / 0.75;
+    return { y: y0 + (y1 - y0) * f, k: 0.3 + 0.7 * f, d };
+  };
+  const laneX = (lane: number, k: number) => cx + (-W / 2 + ((lane + 0.5) * W) / 10 - 0) * k;
+  // The road.
+  const top = at(g.now + AHEAD_S * g.tps);
+  c.fillStyle = "#0f0d16";
+  c.beginPath();
+  c.moveTo(cx - (W / 2) * top.k, top.y);
+  c.lineTo(cx + (W / 2) * top.k, top.y);
+  c.lineTo(cx + W / 2 + 10, y1 + 30);
+  c.lineTo(cx - W / 2 - 10, y1 + 30);
+  c.closePath();
+  c.fill();
+  if (g.pleno || g.streak >= 24) {
+    c.fillStyle = g.pleno ? "rgba(255,214,110,0.06)" : "rgba(255,120,60,0.07)";
+    c.fill();
+  }
+  // Lanes, and the beats and bars crossing them.
+  c.strokeStyle = "rgba(255,255,255,0.07)";
+  c.lineWidth = 1;
+  for (let l = 0; l <= 10; l++) {
+    const xb = cx - W / 2 + (l * W) / 10;
+    c.beginPath();
+    c.moveTo(cx + (xb - cx) * top.k, top.y);
+    c.lineTo(xb, y1 + 30);
+    c.stroke();
+  }
+  const beat = g.beat;
+  for (let tk = Math.ceil(g.now / beat) * beat; tk < g.now + AHEAD_S * g.tps; tk += beat) {
+    const p = at(tk);
+    const bar = ((tk - g.f.bars[0].on) % g.f.barTicks + g.f.barTicks) % g.f.barTicks === 0;
+    c.fillStyle = bar ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.06)";
+    c.fillRect(cx - (W / 2) * p.k, Math.round(p.y), W * p.k, bar ? 2 : 1);
+  }
+  // The keys that would answer the next note (DIRECTION).
+  const nx = coming(g);
   const judged = lvl !== "timing" && nx && g.lastKey && !g.isFree(nx.i);
-  const fitsKey = (code: string) => !judged || contourOk(g.moves[nx!.i], g.lastKey!, code, lvl === "leaps");
-  KEY_ROWS.forEach((r, ri) => {
-    const y = top + ri * rowH;
-    const x0 = 60 + ri * key * 0.35;
-    label(c, r.mark, 30, y + rowH / 2, ri === 0 ? t.gold : t.muted, 9);
-    r.codes.forEach((code, ci) => {
-      const x = x0 + ci * key;
-      const down = g.keysDown.has(code);
-      c.fillStyle = down ? t.shine : "#1d1a24";
-      c.fillRect(x, y + 3, key - 4, rowH - 6);
-      c.fillStyle = "rgba(0,0,0,0.4)";
-      c.fillRect(x, y + rowH - 6, key - 4, 3);
-      if (code === g.lastKey && lvl !== "timing") {
-        c.fillStyle = t.gold;
-        c.fillRect(x - 2, y + 1, key, 2);
-        c.fillRect(x - 2, y + rowH - 5, key, 2);
-        c.fillRect(x - 2, y + 1, 2, rowH - 4);
-        c.fillRect(x + key - 4, y + 1, 2, rowH - 4);
-      }
-      if (nx && !down && fitsKey(code)) {
-        c.fillStyle = ink;
-        c.globalAlpha = 0.1 + 0.4 * nx.p * nx.p;
-        c.fillRect(x, y + 3, key - 4, rowH - 6);
-        c.globalAlpha = 1;
-      }
-      const name = code.replace("Key", "").replace("Digit", "").replace("Backquote", "`").replace("Minus", "-").replace("Equal", "=").replace("BracketLeft", "[").replace("BracketRight", "]").replace("Backslash", "\\").replace("Semicolon", ";").replace("Quote", "'").replace("Comma", ",").replace("Period", ".").replace("Slash", "/");
-      label(c, name, x + (key - 4) / 2, y + rowH / 2, down ? "#1a1408" : t.muted, 8);
-    });
-  });
-  // DIRECTION: the space bar, for a repeated note.
-  if (lvl !== "timing") {
-    const y = top + KEY_ROWS.length * rowH;
-    const x = 60 + 3 * key;
-    const down = g.keysDown.has("Space");
-    c.fillStyle = down ? t.shine : "#1d1a24";
-    c.fillRect(x, y + 3, key * 6, rowH * 0.6);
-    if (nx && !down && fitsKey("Space") && judged) {
-      c.fillStyle = ink;
-      c.globalAlpha = 0.1 + 0.4 * nx.p * nx.p;
-      c.fillRect(x, y + 3, key * 6, rowH * 0.6);
-      c.globalAlpha = 1;
+  if (judged)
+    for (let l = 0; l < 10; l++) {
+      if (!contourOk(g.moves[nx!.i], g.lastKey!, KEY_ROWS[2].codes[l] ?? "Quote", lvl === "leaps")) continue;
+      c.fillStyle = "rgba(255,255,255,0.035)";
+      const xb = cx - W / 2 + (l * W) / 10;
+      c.beginPath();
+      c.moveTo(cx + (xb - cx) * top.k, top.y);
+      c.lineTo(cx + (xb + W / 10 - cx) * top.k, top.y);
+      c.lineTo(xb + W / 10, y1);
+      c.lineTo(xb, y1);
+      c.closePath();
+      c.fill();
     }
-    label(c, "SPACE", x + key * 3, y + 3 + rowH * 0.3, down ? "#1a1408" : t.muted, 8);
+  // The notes, far to near.
+  const lanes = g.lanes;
+  const notes = g.notes;
+  const subject = new Set(g.entries.flatMap((e) => e.ons));
+  for (let i = notes.length - 1; i >= 0; i--) {
+    const n = notes[i];
+    if (i > 0 && notes[i - 1].on === n.on) continue;
+    const p = at(n.on);
+    if (p.d > 1 || p.y > y1 + 40) continue;
+    if (n.state === "hit" && !(n.dur >= beat && g.now < n.on + n.dur)) continue;
+    const lane = lanes[i];
+    const ink = LANE_INK[lane];
+    const lw = (W / 10) * p.k;
+    // The tail of a long note.
+    if (n.dur >= beat && n.state !== "miss") {
+      const e = at(Math.min(n.on + n.dur, g.now + AHEAD_S * g.tps));
+      const from = n.state === "hit" ? at(Math.max(n.on, g.now)) : p;
+      c.fillStyle = n.held ? ink : "rgba(255,255,255,0.35)";
+      c.globalAlpha = n.held ? 0.9 : 0.6;
+      const x1 = laneX(lane, from.k);
+      const x2 = laneX(lane, e.k);
+      c.beginPath();
+      c.moveTo(x1 - lw * 0.12, from.y);
+      c.lineTo(x1 + lw * 0.12, from.y);
+      c.lineTo(x2 + (W / 10) * e.k * 0.12, e.y);
+      c.lineTo(x2 - (W / 10) * e.k * 0.12, e.y);
+      c.closePath();
+      c.fill();
+      c.globalAlpha = 1;
+      if (n.state === "hit") continue;
+    }
+    if (n.ride) {
+      c.fillStyle = ink;
+      c.fillRect(laneX(lane, p.k) - 2, p.y - 2, 4, 4);
+      continue;
+    }
+    const gh = Math.max(4, 12 * p.k);
+    if (g.isFree(i) && lvl !== "timing") {
+      // A free note: an open bar across the road.
+      c.fillStyle = n.state === "miss" ? t.miss : "#c78bff";
+      c.fillRect(cx - (W / 2) * p.k + 4, p.y - gh / 3, W * p.k - 8, Math.max(3, gh * 0.6));
+      continue;
+    }
+    const x = laneX(lane, p.k);
+    c.fillStyle = n.state === "miss" ? t.miss : ink;
+    c.fillRect(x - lw * 0.4, p.y - gh / 2, lw * 0.8, gh);
+    c.fillStyle = "rgba(255,255,255,0.35)";
+    c.fillRect(x - lw * 0.4, p.y - gh / 2, lw * 0.8, Math.max(1, gh * 0.25));
+    if (subject.has(n.on) && n.state !== "miss") {
+      c.strokeStyle = t.gold;
+      c.lineWidth = Math.max(1, 2 * p.k);
+      c.strokeRect(x - lw * 0.4, p.y - gh / 2, lw * 0.8, gh);
+      label(c, "★", x, p.y, "#1a1408", Math.max(6, 9 * p.k));
+    }
   }
-  // The beat closing in, under the keys.
-  if (nx) {
-    const y = top + KEY_ROWS.length * rowH + (lvl !== "timing" ? rowH * 0.6 + 8 : 6);
-    const half = (w / 2) * (1 - nx.p);
-    c.fillStyle = t.shine;
-    c.fillRect(0, y, w / 2 - half, 3);
-    c.fillRect(w / 2 + half, y, w / 2 - half, 3);
-    if (g.notes[nx.i].long) label(c, "HOLD", w / 2, y + 14, t.fg, 8);
+  // The strike line: the ten keys, lit when down; the last key ringed.
+  const lastCol = g.lastKey ? keyPlace(g.lastKey)?.col : undefined;
+  for (let l = 0; l < 10; l++) {
+    const x = laneX(l, 1);
+    const down = [...g.keysDown].some((code) => keyPlace(code)?.col === l);
+    c.fillStyle = down ? LANE_INK[l] : "#1d1a24";
+    c.fillRect(x - W / 25, y1 - 9, (W / 25) * 2, 18);
+    c.strokeStyle = LANE_INK[l];
+    c.lineWidth = 2;
+    c.strokeRect(x - W / 25, y1 - 9, (W / 25) * 2, 18);
+    if (lvl !== "timing" && lastCol === l) {
+      c.strokeStyle = t.gold;
+      c.strokeRect(x - W / 25 - 3, y1 - 12, (W / 25) * 2 + 6, 24);
+    }
+    label(c, LANE_KEYS[l], x, y1, down ? "#1a1408" : t.fg, 9);
   }
+  // Space: the same note.
+  const sdown = g.keysDown.has("Space");
+  c.fillStyle = sdown ? t.shine : "#1d1a24";
+  c.fillRect(cx - W * 0.2, y1 + 16, W * 0.4, 10);
+  label(c, "SPACE", cx, y1 + 21, sdown ? "#1a1408" : t.muted, 6);
+  // Flames where notes were struck.
+  const now = performance.now();
+  for (const fl of g.flames) {
+    const age = now - fl.at;
+    if (age > 260 || fl.i >= lanes.length) continue;
+    const x = laneX(lanes[fl.i], 1);
+    for (let k = 0; k < 7; k++) {
+      c.fillStyle = k % 2 ? "#ffd56a" : "#ff7a3d";
+      c.globalAlpha = 1 - age / 260;
+      const fx = x + Math.sin(k * 1.7 + age / 30) * 10;
+      const fy = y1 - 10 - ((age / 260) * 40 + k * 4);
+      c.fillRect(fx - 2, fy, 4, 6);
+    }
+    c.globalAlpha = 1;
+  }
+  // The multiplier's ring (left): eight notes to the next step, its four lamps.
+  const rx = cx - W / 2 - 60;
+  const ry = y1 - 40;
+  c.lineWidth = 6;
+  for (let k = 0; k < 8; k++) {
+    c.strokeStyle = k < g.streak % 8 || g.mult >= 4 ? (g.mult >= 4 ? t.gold : t.shine) : "#2a2533";
+    c.beginPath();
+    c.arc(rx, ry, 26, -Math.PI / 2 + (k * Math.PI) / 4 + 0.06, -Math.PI / 2 + ((k + 1) * Math.PI) / 4 - 0.06);
+    c.stroke();
+  }
+  label(c, `×${g.mult * (g.pleno ? 2 : 1)}`, rx, ry, g.pleno ? t.gold : t.fg, 12);
+  label(c, `${g.streak}`, rx, ry + 44, t.muted, 8);
+  // The crowd's meter (right).
+  const mx = cx + W / 2 + 44;
+  const mh = 120;
+  const my = y1 - mh;
+  const grad = c.createLinearGradient(0, my, 0, my + mh);
+  grad.addColorStop(0, "#5fdc6a");
+  grad.addColorStop(0.55, "#e8c94a");
+  grad.addColorStop(1, "#e2533f");
+  c.fillStyle = grad;
+  c.globalAlpha = 0.85;
+  c.fillRect(mx - 6, my, 12, mh);
+  c.globalAlpha = 1;
+  const ny = my + mh * (1 - g.crowd);
+  c.fillStyle = t.fg;
+  c.fillRect(mx - 12, ny - 2, 24, 4);
+  label(c, "CROWD", mx, my + mh + 12, g.crowd < 0.25 ? t.wrong : t.muted, 6);
+  // How it goes, in a line.
   const how =
     lvl === "timing"
-      ? "SPACE: A NOTE (A SWOOSH WHILE ONE SOUNDS)"
-      : `LINE UP: A KEY FURTHER RIGHT · DOWN: FURTHER LEFT · SAME NOTE: SAME KEY OR SPACE${lvl === "leaps" ? " · A LEAP SKIPS A KEY" : ""} · A BOXED NOTE: ANY KEY`;
-  label(c, how, w / 2, h - 26, t.fg, 7);
-  label(c, `SHIFT: PEDAL${g.pedalOn ? " (DOWN)" : ""} · ↑ ↓: BEND`, w / 2, h - 12, g.pedalOn ? t.gold : t.muted, 7);
+      ? "ANY KEY ON THE BEAT · THE LANES DRAW THE LINE"
+      : `THE NOTE'S KEY, OR ANY KEY ON ITS SIDE OF THE LAST · SAME NOTE: SAME KEY OR SPACE${lvl === "leaps" ? " · A LEAP SKIPS A KEY" : ""} · OPEN BAR: ANY KEY`;
+  label(c, how, w / 2, h - 24, t.fg, 7);
+  label(c, `Q ROW f · A ROW mf · Z ROW p · SHIFT: PEDAL${g.pedalOn ? " (DOWN)" : ""}`, w / 2, h - 10, g.pedalOn ? t.gold : t.muted, 7);
 }
+
 
 /** A voice's next note and how near it is (0 far, 1 on its beat), if it is showing. */
 function coming(g: ProtoGame, k = 0): { i: number; p: number } | null {

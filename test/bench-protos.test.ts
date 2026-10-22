@@ -445,6 +445,36 @@ test("D194: the countersubject drawn beside its entries; inversions named; a cad
   assert.ok([...banners].some((b) => /CADENCE/.test(b)), [...banners].join(" | "));
 });
 
+test("D198/D201: right notes warm the crowd and quicken the tempo; slips cool it, hold it back, and can fail the run", () => {
+  const play = (good: boolean, fail = false) => {
+    const clock = { t: 0 };
+    const g = new ProtoGame(C_MINOR, 1, 0, protoById("keys"), { bpm: 50, legato: false, easy: "timing", adapt: { from: 50, to: 70 }, fail }, fakeChip(clock));
+    let id = 0;
+    let done = false;
+    for (let i = 0; i < 60 && !done; i++) {
+      const n = g.notes[i];
+      if ((i > 0 && g.notes[i - 1].on === n.on) || n.ride) continue;
+      const at = g.timeAt(n.on);
+      while (clock.t < at - 0.05 && !done) (clock.t += 0.05), (done = g.step());
+      clock.t = Math.max(clock.t, at);
+      if (g.step()) break;
+      if (good) {
+        g.keyDown(++id, { velocity: 0.5 }, performance.now());
+        g.keyUp(id, performance.now());
+      }
+    }
+    return g;
+  };
+  const up = play(true);
+  assert.ok(up.bpm > 52 && up.crowd > 0.6, `played well: ${up.bpm.toFixed(1)} bpm, crowd ${up.crowd.toFixed(2)}`);
+  const down = play(false);
+  assert.ok(down.bpm <= 50.01 && down.crowd < 0.2, `missed: ${down.bpm.toFixed(1)} bpm, crowd ${down.crowd.toFixed(2)}`);
+  const failed = play(false, true);
+  assert.ok(failed.failedAt !== null && failed.results().failedBar !== null, "the crowd lost: failed");
+  assert.equal(up.lanes.length, up.notes.length);
+  assert.ok(up.lanes.every((l) => l >= 0 && l <= 9));
+});
+
 test("SIDEWAYS: a column's middle is that column", () => {
   for (const pan of [30, 33.4, 36.8]) for (const s of [28, 31, 35]) assert.equal(columnAt(columnX(s, pan, W), pan, W), s);
 });
