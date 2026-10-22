@@ -49,7 +49,7 @@ test("D200: each voice's instrument suits its register: every note within the in
   }
 });
 
-test("D200: voices told apart: in no fugue do two voices share an instrument, except the fugue that is the bossa itself", () => {
+test("D200: voices told apart: in no fugue do two voices share an instrument", () => {
   for (const s of FUGUE_SOUNDS) assert.equal(new Set(s.voices).size, s.voices.length, s.id);
 });
 
