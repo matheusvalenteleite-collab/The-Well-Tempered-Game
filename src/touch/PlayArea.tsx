@@ -35,7 +35,8 @@ export function PlayArea(p: {
       const c = canvas.current;
       const el = area.current;
       if (c && el) {
-        const dpr = Math.min(3, window.devicePixelRatio || 1);
+        // D184: at most 2 (chunky pixels look the same; a 3x canvas halved the frame rate on phones).
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
         const w = el.clientWidth;
         const h = el.clientHeight;
         if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) {

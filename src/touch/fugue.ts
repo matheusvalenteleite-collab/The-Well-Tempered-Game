@@ -81,6 +81,39 @@ export function keyAt(f: TouchFugue, tick: number): string {
   return f.keys.filter((k) => k.on <= tick).at(-1)?.key ?? f.key;
 }
 
+/**
+ * Where a tick falls in its bar (D184): the ticks since the bar began, by the bars as encoded (an
+ * irregular bar keeps the bars after it right); before bar 1 (an upbeat, the count-in), counted back
+ * from bar 1 in bars of the metre.
+ */
+export function inBar(f: TouchFugue, tick: number): number {
+  const bars = f.bars;
+  if (!bars.length || tick < bars[0].on) {
+    const first = bars[0]?.on ?? 0;
+    return (((tick - first) % f.barTicks) + f.barTicks) % f.barTicks;
+  }
+  let lo = 0;
+  let hi = bars.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (bars[mid].on <= tick) lo = mid;
+    else hi = mid - 1;
+  }
+  return tick - bars[lo].on;
+}
+
+/**
+ * The count-in and the beat's grid (D184): beats laid from bar 1 (so that an upbeat falls between
+ * them, as written), the count-in whole bars of at least four beats before the first beat at or
+ * before `from`.
+ */
+export function countInStart(f: TouchFugue, from: number): number {
+  const { ticks, perBar } = beatOf(f);
+  const first = f.bars[0]?.on ?? 0;
+  const onGrid = first + Math.floor((from - first) / ticks) * ticks;
+  return onGrid - perBar * Math.ceil(4 / perBar) * ticks;
+}
+
 /** The bar a tick falls in. */
 export function barAt(f: TouchFugue, tick: number): number {
   return f.bars.filter((b) => b.on <= tick).at(-1)?.n ?? 1;

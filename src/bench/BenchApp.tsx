@@ -6,11 +6,14 @@
  * an arcade's 1P and 2P) and where to start; ? says how each is played. Each prototype lays the screen
  * out its own way. A computer's keys and a MIDI keyboard play too.
  */
+import { BachTalk } from "./Bach.tsx";
+import { LESSONS, lessonsPassed, passLesson, type Line, type Run } from "./lessons.ts";
+import { defaultBpm } from "../touch/tempi.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { keyTint, ladderGeometry, MusicBox, inkOf, type Frame } from "../touch/MusicBox.tsx";
 import { PlayArea, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
 import { BpmSetting, Choice, LagSetting, loadDrums, Panel, saneBpm, SoundSetting, TuningSetting } from "../touch/Panels.tsx";
-import { Chip } from "../touch/chip.ts";
+import { Chip, voicing } from "../touch/chip.ts";
 import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
 import { setPreset } from "../touch/sound.ts";
@@ -56,7 +59,7 @@ interface Pick {
   /** SIDEWAYS: the hard level, every note joined. */
   legato: boolean;
 }
-const DEFAULT: Pick = { proto: "ladder", piece: "wtc1f02", voice: 1, voice2: 0, bpm: 46, share: 0, legato: false };
+const DEFAULT: Pick = { proto: "ladder", piece: "wtc1f02", voice: 1, voice2: 0, bpm: defaultBpm("wtc1f02"), share: 0, legato: false };
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -84,7 +87,7 @@ function sane(p: Pick): Pick {
   return { ...DEFAULT, ...p, piece, share, voice, voice2, proto: protoById(p.proto).id, bpm: saneBpm(p.bpm), legato: !!p.legato };
 }
 
-type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; right: number; wrong: number; missed: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number } | { kind: "settings" } | { kind: "help" };
+type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number } | { kind: "settings" } | { kind: "help" } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
 
 /** The computer's keys (D182: a computer's prototypes only): PIANO a keyboard's rows (A W S E D F T G Y H U J K O L P ;), Z and X the octave; EASY every row (protos.ts KEY_ROWS) and space, Shift the pedal, the arrows a bend. */
 const PIANO_KEYS = ["KeyA", "KeyW", "KeyS", "KeyE", "KeyD", "KeyF", "KeyT", "KeyG", "KeyY", "KeyH", "KeyU", "KeyJ", "KeyK", "KeyO", "KeyL", "KeyP", "Semicolon"];
@@ -95,7 +98,9 @@ export function BenchApp() {
   const [pick, setPickRaw] = useState<Pick>(() => sane(load(PICK_KEY, DEFAULT)));
   const setPick = (p: Partial<Pick>) =>
     setPickRaw((cur) => {
-      const next = sane({ ...cur, ...p });
+      // A new piece starts at its own tempo (D184; the slider moves it after).
+      const tempo = p.piece && p.piece !== cur.piece && p.bpm === undefined ? { bpm: defaultBpm(p.piece) } : {};
+      const next = sane({ ...cur, ...p, ...tempo });
       save(PICK_KEY, next);
       return next;
     });
@@ -131,17 +136,22 @@ export function BenchApp() {
     if (protoById(pick.proto).platform !== pl) setPick({ proto: PROTOS.find((p) => p.platform === pl)!.id });
   };
   const [note, setNote] = useState("");
-  const f = fugueById(pick.piece);
-  const proto = protoById(pick.proto);
-  const from = startTick(f, pick.share);
+  // D185: a lesson with Herr Bach plays its own passage, on the computer's LADDER.
+  const [lesson, setLesson] = useState<{ n: number; run: Run } | null>(null);
+  const run = lesson?.run;
+  const f = fugueById(run?.piece ?? pick.piece);
+  const proto = protoById(run ? "arrows" : pick.proto);
+  const from = run ? run.from : startTick(f, pick.share);
+  const voice = run ? run.voice : pick.voice;
+  const bpm = run ? run.bpm : pick.bpm;
   const duo = proto.id === "duo";
-  const played = duo ? [pick.voice, pick.voice2] : [pick.voice];
+  const played = duo ? [voice, pick.voice2] : [voice];
   // LADDER: the box fills its height with the voice's range, so its rows are as tall as can be.
   const range = useMemo(() => {
     if (proto.id !== "ladder") return stepRange(f);
-    const steps = f.voices[pick.voice].map((n) => n[3]);
+    const steps = f.voices[voice].map((n) => n[3]);
     return { lo: Math.min(...steps) - 1, hi: Math.max(...steps) + 1 };
-  }, [f, proto.id, pick.voice]);
+  }, [f, proto.id, voice]);
   const marks = useMemo(() => subjectMarks(f), [f]);
   const chip = useRef<Chip | null>(null);
   const game = useRef<ProtoGame | null>(null);
@@ -155,7 +165,7 @@ export function BenchApp() {
     const b = beatOf(f);
     const lane = (v: number) =>
       laneNotes(
-        f.voices[v].filter(([on]) => on >= from),
+        f.voices[v].filter(([on]) => on >= from && (!run || on < run.until)),
         b.ticks,
         v,
       );
@@ -168,10 +178,10 @@ export function BenchApp() {
       count: f.voices.length,
       lo: range.lo,
       hi: range.hi,
-      voice: pick.voice,
-      notes: lane(pick.voice),
+      voice,
+      notes: lane(voice),
       ...(duo ? { voice2: pick.voice2, notes2: lane(pick.voice2) } : {}),
-      others: accompaniment(f, from, pick.voice).filter((n) => !played.includes(n.voice)),
+      others: run?.solo ? [] : accompaniment(f, from, voice).filter((n) => !played.includes(n.voice) && (!run || n.on < run.until)),
       ...marks,
     };
   }
@@ -200,7 +210,7 @@ export function BenchApp() {
 
   useEffect(() => {
     if (phase.kind !== "play" || !chip.current) return;
-    const g = new ProtoGame(f, played, from, proto, { bpm: pick.bpm, legato: pick.legato }, chip.current);
+    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, keys: run.keys } : {}) }, chip.current);
     g.octave = octave.current;
     const arrows = proto.id === "arrows" ? g.moves.map(arrowOf) : undefined;
     game.current = g;
@@ -218,7 +228,7 @@ export function BenchApp() {
         count: f.voices.length,
         lo: range.lo,
         hi: range.hi,
-        voice: pick.voice,
+        voice,
         notes: g.notes,
         ...(duo ? { voice2: g.tracks[1].voice, notes2: g.tracks[1].notes } : {}),
         others: g.others,
@@ -227,14 +237,21 @@ export function BenchApp() {
         entryState: new Map(g.entries.map((e) => [`${e.voice}:${e.on}`, e.state])),
         fingers: proto.id === "fingering" ? g.tracks[0].fingers : undefined,
         arrows,
-        bosses: proto.id === "fingering" ? bossSections(f.entries, pick.voice) : undefined,
+        bosses: proto.id === "fingering" ? bossSections(f.entries, voice) : undefined,
       };
       if (proto.layout === "bars") g.rows = boxRows(f.barTicks, g.now);
       if (count.current) count.current.textContent = g.countIn() ? String(g.countIn()) : g.combo >= 5 ? `×${g.combo}` : "";
       if (done) {
         game.current = null;
         paint.current = null;
-        setPhase({ kind: "result", ...g.results() });
+        const r = g.results();
+        if (lesson) {
+          // A lesson passed (the share right, a stray strike half a note) goes on; else once more.
+          const l = LESSONS[lesson.n];
+          const ok = r.right / Math.max(1, r.of + r.stray / 2) >= l.passAt;
+          if (ok) passLesson(lesson.n);
+          setPhase({ kind: "talk", lines: ok ? l.pass : l.again, next: ok ? "advance" : "again" });
+        } else setPhase({ kind: "result", ...r });
         return;
       }
       raf = requestAnimationFrame(loop);
@@ -277,7 +294,27 @@ export function BenchApp() {
       .then(() => (ch.ctx.state === "running" ? go() : setNote("The sound is still off: tap once more.")))
       .catch(() => setNote("The sound is still off: tap once more."));
   };
-  const quit = () => setPhase({ kind: "title" });
+  const quit = () => (setLesson(null), setPhase({ kind: "title" }));
+  const beginLesson = (n: number) => {
+    const l = LESSONS[n];
+    setLesson({ n, run: l.run() });
+    setPhase({ kind: "talk", lines: l.intro, next: "play" });
+  };
+  const talkDone = (next: "play" | "again" | "advance") => {
+    if (next !== "advance") return start();
+    if (lesson && lesson.n + 1 < LESSONS.length) return beginLesson(lesson.n + 1);
+    quit();
+  };
+  /** The subject, played to be heard (lesson 5): the piece's first entry, at the lesson's tempo. */
+  const demo = (l: Line) => {
+    if (l.demo !== "subject") return;
+    const ch = ensureChip();
+    const e = f.entries[0];
+    if (!e) return;
+    const tps = (f.tpq * bpm) / 60;
+    const t0 = ch.ctx.currentTime + 0.3;
+    for (const [on, dur, midi] of e.notes) ch.note(midi, t0 + (on - e.on) / tps, (dur / tps) * 0.95, voicing(e.voice, f.voices.length, true), { lead: true });
+  };
 
   const events: ThumbEvents = {
     down: (id, side, x, y, w, h, ts) => game.current?.down(id, { side, x, y, w, h }, ts),
@@ -325,6 +362,43 @@ export function BenchApp() {
     return () => access?.inputs.forEach((i) => (i.onmidimessage = null));
   }, [platform]);
 
+  // The phone held the wrong way while playing (the notice up): the game paused with its sound, until
+  // it is turned (D184).
+  useEffect(() => {
+    if (platform !== "mobile") return;
+    const q = window.matchMedia(proto.layout !== "full" ? "(orientation: portrait) and (max-width: 500px)" : "(orientation: landscape) and (max-height: 500px)");
+    const check = () => {
+      const ch = chip.current;
+      if (!ch || phase.kind !== "play") return;
+      if (q.matches) {
+        game.current?.releaseAll(performance.now());
+        void ch.ctx.suspend();
+      } else if (ch.ctx.state === "suspended" && !document.hidden) void ch.resume();
+    };
+    check();
+    q.addEventListener("change", check);
+    return () => q.removeEventListener("change", check);
+  }, [platform, proto.layout, phase.kind]);
+
+  // The window lost: every key let go (a key released elsewhere never sends its keyup); a hidden tab
+  // pauses the game with the sound (the game's clock is the audio clock), and it resumes on return.
+  useEffect(() => {
+    const away = () => game.current?.releaseAll(performance.now());
+    const shown = () => {
+      const ch = chip.current;
+      if (document.hidden) {
+        away();
+        if (ch && phase.kind === "play") void ch.ctx.suspend();
+      } else if (ch && ch.ctx.state === "suspended") void ch.resume();
+    };
+    window.addEventListener("blur", away);
+    document.addEventListener("visibilitychange", shown);
+    return () => {
+      window.removeEventListener("blur", away);
+      document.removeEventListener("visibilitychange", shown);
+    };
+  }, [phase.kind]);
+
   // The computer's keys; Escape quits.
   useEffect(() => {
     const press = (e: KeyboardEvent): KeyPress | null => {
@@ -338,6 +412,8 @@ export function BenchApp() {
       }
       if (proto.id === "arrows") {
         const a = ARROW_KEYS[e.code];
+        // A lesson: only the keys taught so far.
+        if (a && run && !run.keys.includes(a)) return null;
         return a ? { side: e.code.startsWith("Key") ? "left" : "right", move: moveOf(a), velocity: 0.6 } : null;
       }
       if (e.code === "Space") return { velocity: 0.5 };
@@ -346,6 +422,10 @@ export function BenchApp() {
     };
     const down = (e: KeyboardEvent) => {
       if (e.code === "Escape" && phase.kind === "play") return quit();
+      // Keys meant for a control (the FROM slider; space or enter on a button off the game) or the
+      // first screen are theirs (D184).
+      const tgt = e.target instanceof Element ? e.target : null;
+      if (!platform || tgt?.closest("input, select, textarea") || (phase.kind !== "play" && tgt?.closest("button") && (e.code === "Space" || e.code === "Enter"))) return;
       const g = game.current;
       if (proto.id === "piano" && (e.code === "KeyZ" || e.code === "KeyX")) {
         octave.current += e.code === "KeyZ" ? -1 : 1;
@@ -399,9 +479,9 @@ export function BenchApp() {
         frame={frame}
         hud={
           <>
-            <span className="tg-hud-title">BENCH · {proto.name}</span>
+            <span className="tg-hud-title">{lesson ? `LESSON ${lesson.n + 1} · ${LESSONS[lesson.n].english}` : `BENCH · ${proto.name}`}</span>
             <span className="tg-hud-bar">{keyName(frame.current.key)}</span>
-            {playing ? (
+            {playing || lesson ? (
               <button type="button" id="quit" className="tg-x" aria-label="Quit" onClick={quit}>
                 ✕
               </button>
@@ -424,25 +504,29 @@ export function BenchApp() {
         ))}
       >
         <div className="tg-count" ref={count} aria-live="polite" />
-        {phase.kind === "title" && (duo ? <Arcade f={f} pick={pick} setPick={setPick} from={from} note={note} /> : <Title f={f} pick={pick} setPick={setPick} from={from} note={note} />)}
+        {phase.kind === "title" && (duo ? <Arcade f={f} pick={pick} setPick={setPick} from={from} note={note} /> : <Title f={f} pick={pick} setPick={setPick} from={from} note={note} lessons={proto.id === "arrows" ? beginLesson : undefined} />)}
+        {phase.kind === "talk" && lesson && (
+          <BachTalk key={`${lesson.n}-${phase.next}-${phase.lines[0]?.text}`} title={`${LESSONS[lesson.n].title} · ${LESSONS[lesson.n].english}`} lines={phase.lines} onLine={demo} onDone={() => talkDone(phase.next)} />
+        )}
         {phase.kind === "result" && (
           <div className="tg-card tg-card-low tb-result">
             <h1 className={`tb-grade${phase.grade === "S" || phase.grade === "A" ? " tg-gold" : ""}`}>{phase.grade}</h1>
             <p className="tb-score">{phase.score.toLocaleString("en")}</p>
             <p className="tg-card-sub">
               {Math.round((100 * phase.right) / Math.max(1, phase.of))}% · {phase.right} RIGHT · {phase.wrong} WRONG · {phase.missed} MISSED · OF {phase.of}
+              {phase.stray > 0 ? ` · ${phase.stray} STRAY` : ""}
             </p>
             <p className="tg-card-sub">
               ◆ {phase.captured} OF {phase.entries} ENTRIES CAPTURED · BEST RUN {phase.maxStreak}
             </p>
-            <button type="button" id="again" className="tg-link" onClick={quit}>
-              Back
+            <button type="button" id="again" className="tb-menu" onClick={quit}>
+              MENU
             </button>
           </div>
         )}
       </MusicBox>
-      <PlayArea events={events} paint={paint} hint={away ? "TAP HERE TO START" : ""} />
-      {(layout === "full" || layout === "bars") && playing && (
+      <PlayArea events={events} paint={paint} hint={phase.kind === "result" ? "TAP TO PLAY AGAIN" : away ? (platform === "computer" ? "CLICK OR PRESS A KEY TO START" : "TAP HERE TO START") : ""} />
+      {layout === "full" && playing && (
         <button type="button" id="quit-full" className="tg-x tb-quit" aria-label="Quit" onClick={quit}>
           ✕
         </button>
@@ -516,12 +600,14 @@ export function BenchApp() {
   );
 }
 
-function Title({ f, pick, setPick, from, note }: { f: TouchFugue; pick: Pick; setPick: (p: Partial<Pick>) => void; from: number; note: string }) {
+function Title({ f, pick, setPick, from, note, lessons }: { f: TouchFugue; pick: Pick; setPick: (p: Partial<Pick>) => void; from: number; note: string; lessons?: (n: number) => void }) {
   const singing = voicesFrom(f, from);
   const proto = protoById(pick.proto);
   return (
     <div className="tg-card tg-title">
       <h1>{proto.name}</h1>
+      <p className="tb-short">{proto.short}</p>
+      {proto.platform === "mobile" && <p className="tb-hold">{proto.layout === "full" ? "▯ HOLD THE PHONE UPRIGHT" : "▭ HOLD THE PHONE SIDEWAYS"}</p>}
       <p className="tg-card-sub">
         {f.title.toUpperCase()} · ♩ = {pick.bpm}
       </p>
@@ -534,6 +620,11 @@ function Title({ f, pick, setPick, from, note }: { f: TouchFugue; pick: Pick; se
       </div>
       <From f={f} pick={pick} setPick={setPick} from={from} />
       {note && <p className="tg-note">{note}</p>}
+      {lessons && (
+        <button type="button" id="lessons" className="tb-lessons" onClick={() => lessons(Math.min(lessonsPassed(), LESSONS.length - 1))}>
+          LESSONS WITH HERR BACH {lessonsPassed() ? `· ${lessonsPassed()}/${LESSONS.length}` : ""}
+        </button>
+      )}
     </div>
   );
 }

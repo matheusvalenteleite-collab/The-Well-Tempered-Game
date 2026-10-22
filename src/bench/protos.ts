@@ -44,6 +44,11 @@ export interface Move {
 export interface Options {
   /** SIDEWAYS: every note joined to the one before (the hard level). */
   legato: boolean;
+  /** The lessons (D185): the passage ends here (a tick); the music waits for each note; the voice alone; the keys taught so far. */
+  until?: number;
+  wait?: boolean;
+  solo?: boolean;
+  keys?: Arrow[];
 }
 
 export interface Proto {
@@ -51,6 +56,8 @@ export interface Proto {
   name: string;
   /** One line under the name. */
   how: string;
+  /** One line under the name on the title card: how it is played (D184). */
+  short: string;
   /** How the screen is held: the box between two side bars (sideways), the whole screen a field (upright), the box over a keyboard (sideways), the box over the computer's keys. */
   layout: "bars" | "full" | "wide" | "desk";
   /** D182: a phone's (touch) or a computer's (keys, MIDI). */
@@ -60,6 +67,7 @@ export interface Proto {
 export const PROTOS: Proto[] = [
   {
     id: "ladder",
+    short: "TAP A BAR AT THE NOTE'S HEIGHT · HIGHER WHEN THE TUNE RISES",
     name: "LADDER",
     how: "Sideways. Touch either bar near the height your note is drawn in the box (the glow shows it), higher than your last touch when the tune goes up, lower when it goes down: the way matters more than the spot. A run is a slide up or down the bar. Across a bar: the middle mf, out to the phone's edge forte, in towards the box piano; slide across while a note sounds to swell or fade.",
     layout: "bars",
@@ -67,6 +75,7 @@ export const PROTOS: Proto[] = [
   },
   {
     id: "fingering",
+    short: "THE THUMB EACH NOTE SHOWS (L / R) · LEGATO, STACCATO, TENUTO AS MARKED",
     name: "FINGERING",
     how: "Sideways. Each note has its thumb (L or R in the box) and its articulation: LEGATO (strike it while the note before still sounds), STACCATO (let go quickly), TENUTO (hold it). The subject's entries are bosses: a SUB BOSS also wants some notes high or low in the bar; the BOSS also wants forte (out) or piano (in).",
     layout: "bars",
@@ -74,6 +83,7 @@ export const PROTOS: Proto[] = [
   },
   {
     id: "duo",
+    short: "LEFT BAR 1P, RIGHT BAR 2P · ONLY THE TIME COUNTS",
     name: "TWO VOICES",
     how: "Sideways. Choose two voices, 1P and 2P: the left bar plays the first, the right bar the second. Only the time counts. Across a bar: the middle mf, out forte, in piano; slide across while a note sounds to swell or fade; flick up as you let go for a swoosh.",
     layout: "bars",
@@ -81,6 +91,7 @@ export const PROTOS: Proto[] = [
   },
   {
     id: "sideways",
+    short: "TOUCH EACH NOTE IN ITS COLUMN AS IT LANDS · HIGHER IS LOUDER",
     name: "SIDEWAYS",
     how: "Upright, the whole screen. The tune runs across: higher notes to the right. Touch each note in its column as it lands (one off counts), anywhere up or down: higher is louder. Cross your thumbs on a run, or slide across. LEGATO (⚙): every note joined to the one before.",
     layout: "full",
@@ -88,13 +99,15 @@ export const PROTOS: Proto[] = [
   },
   {
     id: "arrows",
+    short: "WASD OR ARROWS: THE KEY DRAWN OVER EACH NOTE",
     name: "LADDER",
-    how: "On a computer. Each note's key is drawn over it in the box. Either hand, WASD or the arrows: → (D) a step up, ← (A) a step down, ↑ (W) a leap up, ↓ (S) a leap down; space the same note again.",
+    how: "On a computer. Each note's key is drawn over it in the box. Either hand, WASD or the arrows: → (D) a step up, ← (A) a step down, ↑ (W) a leap up, ↓ (S) a leap down; a third (↗ ↘) takes either; space the same note again.",
     layout: "desk",
     platform: "computer",
   },
   {
     id: "keys",
+    short: "ANY KEY ON THE BEAT · THE ROW SETS THE DYNAMIC",
     name: "EASY",
     how: "On a computer. Any key on time plays your note: only the time counts. The rows shape the note: Q W E R… forte, A S D F… (and space) mezzo, Z X C V… piano; the numbers trill it. Hold a key to sustain; strike the next while still holding for legato. Space flings the sounding note off (swoosh); hold Shift as a pedal; ↑ ↓ bend a held note.",
     layout: "desk",
@@ -102,6 +115,7 @@ export const PROTOS: Proto[] = [
   },
   {
     id: "piano",
+    short: "THE KEY UNDER EACH FALLING NOTE · Z X OCTAVE",
     name: "PIANO",
     how: "On a computer: a MIDI keyboard, or the computer's keys as a piano (the home row the white keys, the row above the black: A W S E D F T G Y H U J K O L P), Z and X the octave. The notes fall onto their keys; the key exactly; a wrong key is heard.",
     layout: "wide",
@@ -188,14 +202,24 @@ export const ARROW_KEYS: Record<string, Arrow> = {
   ArrowRight: "right",
   Space: "same",
 };
-/** The key a move asks for (none for the first note: any key); a leap is a third or more, as judged. */
+/**
+ * The key a move asks for (none for the first note: any key): a second a step, a fourth or more a
+ * leap; a third (D184) either, drawn as a diagonal (↗ ↘).
+ */
 export function arrowOf(m: Move): Arrow | null {
   if (m.size < 0) return null;
   if (m.dir === 0) return "same";
-  const big = m.size >= 2;
+  if (m.size === 2) return m.dir > 0 ? "rise" : "fall";
+  const big = m.size >= 3;
   return m.dir > 0 ? (big ? "up" : "right") : big ? "down" : "left";
+}
+/** Whether a key answers the arrow asked for (a third: the step or the leap). */
+export function fits(asked: Arrow, key: Arrow): boolean {
+  if (asked === "rise") return key === "up" || key === "right";
+  if (asked === "fall") return key === "down" || key === "left";
+  return asked === key;
 }
 /** And back: the move a key makes. */
 export function moveOf(a: Arrow): { dir: number; big: boolean } {
-  return { dir: a === "up" || a === "right" ? 1 : a === "same" ? 0 : -1, big: a === "up" || a === "down" };
+  return { dir: a === "up" || a === "right" || a === "rise" ? 1 : a === "same" ? 0 : -1, big: a === "up" || a === "down" };
 }
