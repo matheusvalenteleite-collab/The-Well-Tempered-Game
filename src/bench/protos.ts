@@ -169,11 +169,12 @@ export function thumbsVerdict(m: Move, side: Side): { ok: boolean; steps?: numbe
 
 /** Each note's move from the one before (a chord by its top note), and whether the score joins them. */
 export function moves(notes: LaneNote[], beat: number): Move[] {
-  for (const n of notes) n.ride = false;
+  // D191: the notes that ride (lanes.ts quickRides) are passed over: a move is from the note struck before.
   markShapes(notes);
   let prev: LaneNote | null = null;
   return notes.map((n, i) => {
     if (i > 0 && notes[i - 1].on === n.on) return { dir: n.dir ?? 0, size: n.size ?? -1, steps: 0, joined: false };
+    if (n.ride) return { dir: 0, size: -1, steps: 0, joined: false };
     let top = n;
     for (let j = i + 1; j < notes.length && notes[j].on === n.on; j++) if (notes[j].midi > top.midi) top = notes[j];
     const m = { dir: n.dir ?? 0, size: n.size ?? -1, steps: prev ? top.step - prev.step : 0, joined: !!prev && n.on - (prev.on + prev.dur) < beat / 4 };
@@ -190,6 +191,14 @@ export function stepPitch(step: number, near: { step: number; midi: number }): n
 
 /** A pitch's staff step near a note (a MIDI key's step, for the prototypes that judge steps). */
 export const stepNear = (midi: number, near: { step: number; midi: number }) => near.step + Math.round(((midi - near.midi) * 7) / 12);
+
+/**
+ * D191: the ids a game's inputs are held under, apart: a touch by its pointer id (0 and up, growing
+ * without limit on Chrome), a MIDI key and a computer key below zero, each in its own band (they
+ * shared one space: 5000 + note and 7000 + keyCode could meet a touch's id).
+ */
+export const midiId = (note: number) => -1000 - (note & 0x7f);
+export const keyId = (keyCode: number) => -2000 - (keyCode & 0x3ff);
 
 /** D183, LADDER on a computer: the eight keys (WASD the left hand, the arrows the right, the same moves) and space. */
 export const ARROW_KEYS: Record<string, Arrow> = {

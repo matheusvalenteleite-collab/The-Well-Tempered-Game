@@ -24,7 +24,7 @@ export interface LaneNote {
   off?: number;
   /** The voice. */
   voice?: number;
-  /** EASY: a short note that plays by itself after a hit, and does not score (D166). */
+  /** EASY: a short note that plays by itself after a hit, and does not score (D166); the testbench: a note too quick to strike (D191 quickRides). */
   ride?: boolean;
   /** The testbench (D175): played on time but with the wrong gesture. */
   wrong?: boolean;
@@ -65,6 +65,63 @@ export function markRides(notes: LaneNote[], beat: number) {
     for (const n of chord) n.ride = ride;
     if (!ride) last = on;
   }
+}
+
+/** D191: a note closer than this to the note struck before it cannot be struck on its own: it rides. */
+export const RIDE_MS = 120;
+
+/**
+ * The testbench (D191): the notes too quick to strike ride after the note before them, as EASY's did
+ * (markRides), whatever the level: a note whose onset follows the note before by less than `limit`
+ * ms at the tempo played (`ms` measures between two ticks, so a faster tempo, or the final ritard
+ * slowing it, changes which ride), and ornament-like figures (two or more notes of an eighth of a
+ * beat or less, each over within 1.25 × `limit`, starting within half a beat of the end of a struck
+ * note at least four times as long). Of two notes too close, the shorter rides: the quick note
+ * before a longer one rides after its own predecessor and the longer note is struck (the note after
+ * a snap is not given away). The first note is always struck. A chord rides or is struck whole.
+ * Returns how many onsets ride.
+ */
+export function quickRides(notes: LaneNote[], beat: number, ms: (a: number, b: number) => number, limit = RIDE_MS): number {
+  for (const n of notes) n.ride = false;
+  const ons = [...new Set(notes.map((n) => n.on))].sort((a, b) => a - b);
+  if (!ons.length) return 0;
+  const len = new Map<number, number>();
+  for (const n of notes) len.set(n.on, Math.max(len.get(n.on) ?? 0, n.dur));
+  const dur = (on: number) => len.get(on) ?? 0;
+  const ride = new Set<number>();
+  const tiny = (k: number) => k >= 0 && k < ons.length && dur(ons[k]) <= beat / 8 && ms(ons[k], ons[k] + dur(ons[k])) < limit * 1.25;
+  // The last onset struck, and the one struck before it.
+  let last = ons[0];
+  let before: number | null = null;
+  const strikeAt = (on: number) => {
+    before = last;
+    last = on;
+  };
+  for (let k = 1; k < ons.length; k++) {
+    const on = ons[k];
+    const prev = ons[k - 1];
+    const d = dur(on);
+    const ornament = tiny(k) && (tiny(k + 1) || ride.has(prev)) && d * 4 <= dur(last) && on - (last + dur(last)) < beat / 2;
+    if (!ornament) {
+      if (ms(prev, on) >= limit) {
+        // Far enough from the note before (and so from the one struck).
+        strikeAt(on);
+        continue;
+      } else if (!ride.has(prev) && prev !== ons[0] && dur(prev) < d && before !== null && ms(before, on) >= limit) {
+        // A snap: the quick note before rides after its own predecessor; this longer one is struck.
+        ride.add(prev);
+        last = on;
+        continue;
+      } else if (ride.has(prev) && dur(prev) < d && ms(last, on) >= limit) {
+        // Landing after a quick figure.
+        strikeAt(on);
+        continue;
+      }
+    }
+    ride.add(on);
+  }
+  for (const n of notes) n.ride = ride.has(n.on);
+  return ride.size;
 }
 
 /** The notes struck together with note i (D165: the final chords put two notes in one voice). */

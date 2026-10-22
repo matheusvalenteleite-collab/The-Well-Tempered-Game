@@ -415,6 +415,13 @@ function sideways(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGam
     const bh = Math.max(3 * P, yOf(n.on) - y0 - P);
     const bwid = cw - 4 * P;
     const fill = n.state === "miss" ? t.miss : n.state === "hit" ? t.shine : ink;
+    if (n.ride) {
+      // D191: a note that rides (played for the player): a faint narrow strip, no bevel.
+      c.globalAlpha = n.state === "hit" ? 0.9 : 0.5;
+      box(x + bwid * 0.3, y0, bwid * 0.4, bh, fill);
+      c.globalAlpha = 1;
+      continue;
+    }
     box(x + P, y0 + P, bwid, bh, "rgba(0,0,0,0.45)");
     box(x, y0, bwid, bh, fill);
     if (n.state !== "miss") {

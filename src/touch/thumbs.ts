@@ -38,6 +38,9 @@ export function touchMove(s: Touches, id: number, x: number, y: number): Touches
   return next;
 }
 
+/** D191: a lift the system made (pointercancel: a scroll, a system gesture), not the player: no tap. */
+export const cancelled = (type: string) => type === "pointercancel";
+
 export function touchUp(s: Touches, id: number): Touches {
   if (!s.has(id)) return s;
   const next = new Map(s);
