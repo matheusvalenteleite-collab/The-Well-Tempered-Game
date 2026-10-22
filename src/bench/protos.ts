@@ -44,6 +44,10 @@ export interface Move {
 export interface Options {
   /** SIDEWAYS: every note joined to the one before (the hard level). */
   legato: boolean;
+  /** D201: the tempo follows the playing, between these (quarter notes a minute): it starts at `from`. */
+  adapt?: { from: number; to: number };
+  /** D198: a run fails when the crowd is lost (off in the lessons, and with NO FAIL). */
+  fail?: boolean;
   /** EASY (D187): the time only, or the line's direction too, or its leaps as well. */
   easy?: EasyLevel;
   /** The lessons (D185, D188): the passage ends here (a tick); the music waits for each note; the voice alone. */
