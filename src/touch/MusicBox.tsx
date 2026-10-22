@@ -187,6 +187,9 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
     if (x1 > w) break;
     const x2 = xOf(o.on + o.dur);
     if (x2 < 0) continue;
+    g.globalAlpha = 0.3;
+    g.fillStyle = "#000";
+    g.fillRect(x1 + 1, yOf(o.step) + 1, Math.max(1, x2 - x1 - 1), bh - 1);
     g.globalAlpha = 0.5;
     g.fillStyle = inkOf(o.voice, fr.count);
     g.fillRect(x1, yOf(o.step), Math.max(1, x2 - x1 - 1), bh - 1);
@@ -226,10 +229,17 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
         g.globalAlpha = 1;
         continue;
       }
+      // D202: each block extruded a pixel down and right (a voxel), then outlined and filled.
+      g.fillStyle = "rgba(0,0,0,0.55)";
+      g.fillRect(x1 + 1, y + 1, bw + 1, bh);
       g.fillStyle = edge;
       g.fillRect(x1 - 1, y - 1, bw + 2, bh + 1);
       g.fillStyle = ink;
       g.fillRect(x1, y, bw, bh - 1);
+      if (bh > 3) {
+        g.fillStyle = "rgba(255,255,255,0.28)";
+        g.fillRect(x1, y, bw, 1);
+      }
       if (!fr.spans && fr.subject?.has(`${pv}:${n.on}`)) dots(g, x1, x2, y, edge);
       if (n.state === "hit") {
         g.fillStyle = shine;

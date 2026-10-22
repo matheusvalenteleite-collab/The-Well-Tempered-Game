@@ -165,6 +165,14 @@ function pixels(c: CanvasRenderingContext2D, a: Arrow, x: number, y: number, s: 
  * A struck note flames; a missed one falls through grey. The multiplier's ring on the left, the crowd's
  * meter on the right.
  */
+/** A colour darkened (k below 1) for a face in shadow. */
+function shade(hex: string, k: number): string {
+  const v = parseInt(hex.slice(1), 16);
+  const r = Math.round(((v >> 16) & 255) * k);
+  const gg = Math.round(((v >> 8) & 255) * k);
+  const b = Math.round((v & 255) * k);
+  return `rgb(${r},${gg},${b})`;
+}
 const LANE_KEYS = ["A", "S", "D", "F", "G", "H", "J", "K", "L", ";"];
 const LANE_INK = ["#ff6b5a", "#ff9248", "#ffc145", "#d9e34f", "#7ee36b", "#4fd6b2", "#4cb8ff", "#7d8bff", "#b47dff", "#ff7dd6"];
 const AHEAD_S = 2.1;
@@ -184,7 +192,11 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   const laneX = (lane: number, k: number) => cx + (-W / 2 + ((lane + 0.5) * W) / 10 - 0) * k;
   // The road.
   const top = at(g.now + AHEAD_S * g.tps);
-  c.fillStyle = "#0f0d16";
+  // D202: the road lit towards the player, its far end in fog; rails along its edges.
+  const road = c.createLinearGradient(0, top.y, 0, y1 + 30);
+  road.addColorStop(0, "#0b0a11");
+  road.addColorStop(1, "#1b1726");
+  c.fillStyle = road;
   c.beginPath();
   c.moveTo(cx - (W / 2) * top.k, top.y);
   c.lineTo(cx + (W / 2) * top.k, top.y);
@@ -192,6 +204,19 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   c.lineTo(cx - W / 2 - 10, y1 + 30);
   c.closePath();
   c.fill();
+  for (const side of [-1, 1]) {
+    const rail = c.createLinearGradient(0, top.y, 0, y1 + 30);
+    rail.addColorStop(0, "rgba(255,214,110,0)");
+    rail.addColorStop(1, g.pleno ? "rgba(255,214,110,0.9)" : g.streak >= 24 ? "rgba(255,120,60,0.9)" : "rgba(140,170,255,0.6)");
+    c.fillStyle = rail;
+    c.beginPath();
+    c.moveTo(cx + side * (W / 2) * top.k, top.y);
+    c.lineTo(cx + side * ((W / 2) * top.k + 2), top.y);
+    c.lineTo(cx + side * (W / 2 + 16), y1 + 30);
+    c.lineTo(cx + side * (W / 2 + 8), y1 + 30);
+    c.closePath();
+    c.fill();
+  }
   if (g.pleno || g.streak >= 24) {
     c.fillStyle = g.pleno ? "rgba(255,214,110,0.06)" : "rgba(255,120,60,0.07)";
     c.fill();
@@ -273,10 +298,16 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
       continue;
     }
     const x = laneX(lane, p.k);
+    // A gem with depth: its shadow on the road, a darker front face, a lit top.
+    const gw = lw * 0.8;
+    c.fillStyle = "rgba(0,0,0,0.45)";
+    c.fillRect(x - gw / 2 + 2 * p.k, p.y - gh / 2 + gh * 0.9, gw, gh * 0.45);
+    c.fillStyle = n.state === "miss" ? "#3a3644" : shade(ink, 0.55);
+    c.fillRect(x - gw / 2, p.y, gw, gh * 0.55);
     c.fillStyle = n.state === "miss" ? t.miss : ink;
-    c.fillRect(x - lw * 0.4, p.y - gh / 2, lw * 0.8, gh);
-    c.fillStyle = "rgba(255,255,255,0.35)";
-    c.fillRect(x - lw * 0.4, p.y - gh / 2, lw * 0.8, Math.max(1, gh * 0.25));
+    c.fillRect(x - gw / 2, p.y - gh / 2, gw, gh * 0.6);
+    c.fillStyle = "rgba(255,255,255,0.4)";
+    c.fillRect(x - gw / 2, p.y - gh / 2, gw, Math.max(1, gh * 0.16));
     if (subject.has(n.on) && n.state !== "miss") {
       c.strokeStyle = t.gold;
       c.lineWidth = Math.max(1, 2 * p.k);
@@ -284,16 +315,42 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
       label(c, "★", x, p.y, "#1a1408", Math.max(6, 9 * p.k));
     }
   }
+  // Fog over the far end.
+  const fog = c.createLinearGradient(0, top.y, 0, top.y + (y1 - top.y) * 0.35);
+  fog.addColorStop(0, "rgba(10,9,16,1)");
+  fog.addColorStop(1, "rgba(10,9,16,0)");
+  c.save();
+  c.beginPath();
+  c.moveTo(cx - (W / 2) * top.k, top.y);
+  c.lineTo(cx + (W / 2) * top.k, top.y);
+  c.lineTo(cx + W / 2 + 10, y1 + 30);
+  c.lineTo(cx - W / 2 - 10, y1 + 30);
+  c.closePath();
+  c.clip();
+  c.fillStyle = fog;
+  c.fillRect(cx - W / 2 - 20, top.y - 2, W + 40, (y1 - top.y) * 0.35);
+  c.restore();
   // The strike line: the ten keys, lit when down; the last key ringed.
   const lastCol = g.lastKey ? keyPlace(g.lastKey)?.col : undefined;
   for (let l = 0; l < 10; l++) {
     const x = laneX(l, 1);
     const down = [...g.keysDown].some((code) => keyPlace(code)?.col === l);
+    // A raised key, sinking when pressed.
+    const bw = (W / 25) * 2;
+    const sink = down ? 4 : 0;
+    c.fillStyle = shade(LANE_INK[l], 0.35);
+    c.fillRect(x - bw / 2, y1 - 9 + 18, bw, 6 - sink);
     c.fillStyle = down ? LANE_INK[l] : "#1d1a24";
-    c.fillRect(x - W / 25, y1 - 9, (W / 25) * 2, 18);
+    c.fillRect(x - bw / 2, y1 - 9 + sink, bw, 18);
     c.strokeStyle = LANE_INK[l];
     c.lineWidth = 2;
-    c.strokeRect(x - W / 25, y1 - 9, (W / 25) * 2, 18);
+    c.strokeRect(x - bw / 2, y1 - 9 + sink, bw, 18);
+    if (down) {
+      c.fillStyle = LANE_INK[l];
+      c.globalAlpha = 0.25;
+      c.fillRect(x - bw / 2 - 6, y1 - 40, bw + 12, 40);
+      c.globalAlpha = 1;
+    }
     if (lvl !== "timing" && lastCol === l) {
       c.strokeStyle = t.gold;
       c.strokeRect(x - W / 25 - 3, y1 - 12, (W / 25) * 2 + 6, 24);
