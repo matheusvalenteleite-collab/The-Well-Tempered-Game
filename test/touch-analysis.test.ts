@@ -199,6 +199,53 @@ test("Contrapunctus XIV: the three subjects and their entries", () => {
   assert.equal(new Set(late.map((e) => e.voice)).size, 3);
 });
 
+test("the later subjects of the WTC's double and triple fugues, where Ledbetter has them enter (D197)", () => {
+  // Ledbetter, Bach's Well-tempered Clavier (Yale, 2002), Part Two (data/wtc/later-subjects.json,
+  // data/wtc/ledbetter-claims.txt): the bar each later subject first enters; the voice from the notes
+  // (where he names it: Book II no. 4's in the soprano, no. 18's second section opening in the soprano).
+  const firstOf = (id: string, theme: number) => fugueById(id).entries.find((e) => e.theme === theme)!;
+  const at = (id: string, theme: number) => [firstOf(id, theme).bar, firstOf(id, theme).voice];
+  // Book I no. 4: the second subject (running quavers) at b. 35, his bar counting its crotchet
+  // head; the figure the notes give begins on the quaver run, b. 36, in the first soprano.
+  assert.ok([35, 36].includes(firstOf("wtc1f04", 2).bar));
+  assert.equal(firstOf("wtc1f04", 2).voice, 0);
+  assert.deepEqual(at("wtc1f04", 3), [49, 2]); // the third (repeated crotchets), alto
+  assert.deepEqual(at("wtc2f04", 2), [35, 0]); // the chromatic second subject, soprano
+  assert.deepEqual(at("wtc2f14", 2), [20, 2]); // its own exposition, bass first
+  assert.deepEqual(at("wtc2f14", 3), [36, 1]); // its own exposition, alto first
+  assert.deepEqual(at("wtc2f18", 2), [61, 0]);
+  assert.deepEqual(at("wtc2f23", 2), [28, 0]);
+  // Book II no. 9: Ledbetter's "two new subjects" of bb. 16-22 are not carried (a doubtful reading).
+  assert.ok(!fugueById("wtc2f09").entries.some((e) => e.theme));
+  // Every voice has every later subject, so the SUBJECTS seal can be earned in any voice; none is inverted or scaled.
+  for (const [id, themes] of [["wtc1f04", [2, 3]], ["wtc2f04", [2]], ["wtc2f14", [2, 3]], ["wtc2f18", [2]], ["wtc2f23", [2]]] as const) {
+    const f = fugueById(id);
+    for (const t of themes) assert.equal(new Set(f.entries.filter((e) => e.theme === t).map((e) => e.voice)).size, f.voices.length, `${id} ${t}`);
+    assert.ok(f.entries.filter((e) => e.theme).every((e) => !e.inverted && !e.scale), id);
+  }
+  const overlap = (f: TouchFugue, a: TouchFugue["entries"][number]) => f.entries.filter((b) => b !== a && b.voice !== a.voice && b.on < a.end && a.on < b.end);
+  // Book II no. 18: from b. 97 the two subjects together, five times (Ledbetter's first-subject entries at bb. 97, 103, 111, 125, 135).
+  const g = fugueById("wtc2f18");
+  const combined = g.entries.filter((e) => e.theme === 2 && e.bar >= 97);
+  assert.deepEqual(combined.map((e) => e.bar), [97, 103, 111, 125, 135]);
+  for (const e of combined) assert.ok(overlap(g, e).some((x) => !x.theme), `b. ${e.bar}`);
+  assert.ok(g.entries.filter((e) => e.theme === 2 && e.bar < 97).every((e) => overlap(g, e).every((x) => x.theme)), "the second section on the second subject alone");
+  // All three subjects sound together: Book I no. 4 at the third's entry (b. 49), Book II no. 14 at bb. 60-61.
+  for (const [id, bar] of [["wtc1f04", 49], ["wtc2f14", 61]] as const) {
+    const f = fugueById(id);
+    const e = f.entries.find((x) => x.theme === 3 && x.bar === bar)!;
+    assert.deepEqual(new Set([3, ...overlap(f, e).map((x) => x.theme ?? 1)]), new Set([1, 2, 3]), id);
+  }
+  // Book II no. 23: the second subject with the first at Ledbetter's entries of the first, bb. 42, 48, 53.
+  const h = fugueById("wtc2f23");
+  for (const bar of [42, 48, 53]) assert.ok(h.entries.some((e) => !e.theme && e.bar === bar && overlap(h, e).some((x) => x.theme === 2)), `b. ${bar}`);
+  // Book II no. 14's second subject returns in the last section (bb. 56, 61, 68), bent at its end:
+  // found by the subject finder where the recurring-figure search (the whole figure exact) misses it.
+  assert.deepEqual(fugueById("wtc2f14").entries.filter((e) => e.theme === 2 && e.bar > 40).map((e) => e.bar), [56, 61, 68]);
+  // No countersubject is read against a later subject's statements (none of these fugues has a regular one).
+  for (const id of ["wtc1f04", "wtc2f04", "wtc2f14", "wtc2f18", "wtc2f23"]) assert.equal(fugueById(id).countersubject.length, 0, id);
+});
+
 test("countersubjects: where a fugue has a regular one, it is marked against its entries, in another voice", () => {
   // Regular in docs/wtc/countersubject-study.md (the study's own reading): among them Book I nos. 2, 3, 12 and Book II no. 8.
   for (const id of ["wtc1f02", "wtc1f03", "wtc1f12", "wtc2f08"]) assert.ok(fugueById(id).countersubject.length >= 3, id);

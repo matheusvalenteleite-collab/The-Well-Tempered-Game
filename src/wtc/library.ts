@@ -135,8 +135,25 @@ function fugueOf(p: WtcPiece): LibFugue {
   for (const { n, bar } of (laterData as { fugues: Record<string, { n: number; bar: number }[]> }).fugues[p.id] ?? []) {
     const [ls] = laterSubjects(p, subject, answer, [bar]);
     if (!ls) continue;
+    // D197: and its other statements, found as the first subject's are (fugue.ts's finder, by the
+    // figure's intervals by letter and rhythm, its last interval and last two lengths free) where
+    // they keep every counted interval: the recurring-figure search wants the whole figure exact and
+    // so misses a statement bent at its end (Book II no. 14's second subject at bb. 23, 27, 56, 61,
+    // 68; Book II no. 4's in the alto, b. 36). Only from the subject's first entry on, upright, and
+    // none inside an entry of the first subject in the same voice.
+    const lineOf = p.voices.map(line);
+    const s1 = (v: number, on: number, end: number) => entries.some((e) => voiceOf(e) === v && e.at < end / TPQ + pad - 1e-6 && on / TPQ + pad < e.end - 1e-6);
+    const occurrences = [...ls.occurrences];
+    for (const e of findEntriesByHead(p, ls.notes).entries) {
+      if (e.form !== "subject" || e.changed > 0 || e.on < ls.occurrences[0].on) continue;
+      const last = lineOf[e.voice][e.at + e.length - 1];
+      const end = last.on + last.dur;
+      if (occurrences.some((o) => o.voice === e.voice && o.on === e.on) || s1(e.voice, e.on, end)) continue;
+      occurrences.push({ voice: e.voice, on: e.on, end });
+    }
+    occurrences.sort((a, b) => a.on - b.on || a.voice - b.voice);
     let first = -1;
-    for (const o of ls.occurrences) {
+    for (const o of occurrences) {
       const ids = p.voices[o.voice].filter(([on, dur, , sub]) => sub === 0 && dur > 0 && on >= o.on && on < o.end).map(([on, , pitch]) => index.get(`${o.voice}:0:${on}:${pitch}`)!).filter((i) => i !== undefined);
       if (!ids.length) continue;
       if (first < 0) first = piece.notes[ids[0]].midi;

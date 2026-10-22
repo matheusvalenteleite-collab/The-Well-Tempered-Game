@@ -37,5 +37,13 @@ test("seals: a clean whole run earns them; a slip, a part run, the wrong tuning 
   const i2 = cardById("wtc1f02")!;
   assert.equal(judgeSeal(i2, run("wtc1f02", 1)).earned, true, "NO SLIP");
   assert.equal(judgeSeal(i2, run("wtc1f02", 1, { wrong: [3] })).earned, false);
-  assert.equal(judgeSeal(cardById("wtc1f04")!, run("wtc1f04", 0)).earned, false, "not judged yet");
+  // SUBJECTS (D197): Book I no. 4's first soprano has all three subjects; losing its first
+  // statement of the third (b. 52) loses the seal.
+  const i4 = cardById("wtc1f04")!;
+  assert.equal(judgeSeal(i4, run("wtc1f04", 0)).earned, true, "SUBJECTS, all three captured");
+  const f4 = fugueById("wtc1f04");
+  const third = f4.entries.filter((e) => e.voice === 0 && e.theme === 3);
+  assert.equal(third.length, 1);
+  const lost = laneNotes(f4.voices[0], beatOf(f4).ticks, 0).findIndex((n) => n.on === third[0].notes[0][0]);
+  assert.equal(judgeSeal(i4, run("wtc1f04", 0, { wrong: [lost] })).earned, false, "the third subject lost");
 });
