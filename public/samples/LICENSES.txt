@@ -68,3 +68,18 @@ soloSoprano/ soloAlto/ soloTenor/ soloBass/  VocalSet (Julia Wilkins, Prem Seeth
          equal temperament and levelled; sustained by crossfaded repetition into a 2 s loop; the alto's F3-A3, the
          bass's D2-A2 and the tenor's A4 pitch-shifted (formant preserved) from the nearest sung note. Scripts:
          tools/playback/vocalset/.
+
+Harpsichord and pipe organ for the bench's and the touch game's ensembles (D190; loaded from the website by the single-file pages):
+harpsichord/ harpsichordRel/  Versilian Community Sample Library (VCSL), Versilian Studios LLC: "Harpsichord, Unk" (Harpsi4),
+         sustains and key-up releases, every key A1-F6 (VCSL names them an octave lower: C3 = middle C). CC0 1.0
+         (https://creativecommons.org/publicdomain/zero/1.0/); credit encouraged. Source: https://github.com/sgossner/VCSL
+         (Chordophones/Zithers/Harpsichord, Unk). Processing: onset kept 1 ms before the pluck; each note's level brought
+         halfway to a smooth curve across the compass (at most 3 dB); the loudest at -1 dBFS; sustains 6.5 s (bass) to
+         3 s (top) with a 0.6 s fade, stereo 44.1 kHz 128 kbit/s MP3; releases 0.5 s, mono 64 kbit/s.
+pipeOrgan/ pipePedal/  VCSL "Pipe Organ", sampled by Simon Dalzell of Ivy Audio (winter 2015-16), Versilian Studios LLC: the loud
+         manual ("Rode Man3Open", every minor third C1-C6) and the loud pedal (C1-F#3). CC0 1.0; "Bearer is granted right
+         to redistribute this sample set by Versilian Studios LLC. Credit to both original author and Versilian Studios is
+         encouraged." Source: https://github.com/sgossner/VCSL (Aerophones/Edge-blown Aerophones/Pipe Organ).
+         Processing: mixed to mono; onset kept 1 ms before the attack; a loop of 1.6-2.4 s from 1 s in, found by
+         cross-correlation, its crossfade baked in (150 ms; pedal 250 ms); each note's steady level brought three
+         quarters of the way to the manual's median; mono 44.1 kHz 96 kbit/s MP3. Scripts: tools/playback/harpsichord/.

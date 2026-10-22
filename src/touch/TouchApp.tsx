@@ -218,10 +218,23 @@ export function TouchApp() {
     if (!chip.current) {
       chip.current = new Chip();
       chip.current.lag = lag;
+      prepared.current();
     }
     void chip.current.resume();
     return chip.current;
   }
+
+  // D190: a recorded ensemble loads the piece's recordings once there is a sound to decode them into
+  // (a ref, as ensureChip may run from the first render's listener).
+  function prepareSound() {
+    void chip.current?.prepare(
+      f.voices.flat().map((n) => n[2]),
+      (f.voices[voice] ?? []).map((n) => n[2]),
+    );
+  }
+  const prepared = useRef(prepareSound);
+  prepared.current = prepareSound;
+  useEffect(prepareSound, [sound, f, voice]);
 
   /** Begins once the sound is on: the game runs on the sound's clock, which stands still until then. */
   const start = () => {
