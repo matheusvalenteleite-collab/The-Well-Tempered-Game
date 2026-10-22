@@ -8,7 +8,7 @@
  * D174, the subject: its notes, in whatever voice, are dotted along their top; a ◆ stands over the
  * first note of each entry as it comes, in the voice's colour, gold when the voice is the player's.
  */
-import { bossBar, cadenceMarks, ribbons, sparks, zoneGlow, type Burst, type Pop, type Span } from "./box-fx.ts";
+import { bossBar, cadenceMarks, pixText, ribbons, sparks, zoneGlow, type Burst, type Pop, type Span } from "./box-fx.ts";
 import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
 import type { LaneNote } from "./lanes.ts";
 import type { OtherNote } from "./voice-mode.ts";
@@ -113,6 +113,8 @@ export interface Frame {
   pops?: Pop[];
   bursts?: Burst[];
   zone?: "pleno" | "fuoco" | null;
+  /** D205: each ornamented note's sign ("voice:onset" → "TR", "~|"…). */
+  ornaments?: Map<string, string>;
   /** D194: the cadences, named. */
   cadences?: { on: number; text: string }[];
 }
@@ -334,6 +336,20 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
 
   g.fillStyle = tok("--tg-playhead");
   g.fillRect(playX, 0, 1, h);
+  // D205: the ornaments' signs, small, over their notes (gold over the player's, the ink over the others').
+  if (fr.ornaments) {
+    for (const o of fr.others) {
+      const mk = fr.ornaments.get(`${o.voice}:${o.on}`);
+      const x = xOf(o.on);
+      if (mk && x > -8 && x < w) pixText(g, mk, x, yOf(o.step) - 6, inkOf(o.voice, fr.count));
+    }
+    for (const [pv, pnotes] of played)
+      for (const n of pnotes) {
+        const mk = fr.ornaments.get(`${pv}:${n.on}`);
+        const x = xOf(n.on);
+        if (mk && x > -8 && x < w) pixText(g, mk, x, yOf(n.step) - 6, fx.gold);
+      }
+  }
   if (fr.cadences) cadenceMarks(fx, fr.cadences);
   if (fr.spans && fr.bossFight) bossBar(fx, fr.spans.filter((s) => s.form !== "counter"), fr.voice, fr.notes);
   sparks(fx, fr.pops ?? [], fr.bursts ?? []);

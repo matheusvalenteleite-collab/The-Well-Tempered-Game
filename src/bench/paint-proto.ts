@@ -11,6 +11,7 @@
  *   PIANO: paint-piano.ts.
  * The verdict of the last touch flashes over the field.
  */
+import { ornamentMark } from "../touch/ornament-play.ts";
 import { ARROW_PIXELS, inkOf, keyTint, type Arrow } from "../touch/MusicBox.tsx";
 import { paintPiano } from "../touch/paint-piano.ts";
 import { stepName } from "../touch/fugue.ts";
@@ -308,6 +309,9 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.fillRect(x - gw / 2, p.y - gh / 2, gw, gh * 0.6);
     c.fillStyle = "rgba(255,255,255,0.4)";
     c.fillRect(x - gw / 2, p.y - gh / 2, gw, Math.max(1, gh * 0.16));
+    // D205: an ornament's sign over its gem.
+    const orn = g.ornaments.get(`${g.voice}:${n.on}`);
+    if (orn && n.state !== "miss") label(c, ornamentMark(orn), x, p.y - gh - 4 * p.k, t.gold, Math.max(6, Math.round(8 * p.k)));
     if (subject.has(n.on) && n.state !== "miss") {
       c.strokeStyle = t.gold;
       c.lineWidth = Math.max(1, 2 * p.k);
