@@ -110,11 +110,12 @@ export function SettingsPanel(p: { settings: Settings; set: (s: Partial<Settings
 }
 
 /** The ensemble (D177): a family, then one of its presets. */
-/** D181: CHIP's and MOOG's drums, on or off, kept on the device. */
+/** D181, D193: ACOUSTIC's, CHIP's and MOOG's drums, on (the default) or off, kept on the device. */
 const DRUMS_KEY = "tg-drums";
 export function loadDrums() {
   try {
-    setDrumsNow(localStorage.getItem(DRUMS_KEY) === "true");
+    // D193: on unless turned off (the bossa's groove is much of its charm).
+    setDrumsNow(localStorage.getItem(DRUMS_KEY) !== "false");
   } catch {
     /* no storage */
   }

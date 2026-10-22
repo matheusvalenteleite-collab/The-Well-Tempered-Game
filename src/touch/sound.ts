@@ -40,26 +40,26 @@ const P = (p: Patch) => p;
 /** The instruments. */
 export const PATCHES = {
   // Strings and winds (ACOUSTIC).
-  violin: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: 7, gain: 0.5 }], filter: { freq: 7, q: 1, env: 1.5, envDecay: 0.2 }, amp: { a: 0.06, d: 0.2, s: 0.85, r: 0.12 }, vib: { depth: 14, rate: 5.6, delay: 0.25 }, level: 0.42 }),
-  violin2: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: -6, gain: 0.5 }], filter: { freq: 5.5, q: 0.9, env: 1.3, envDecay: 0.2 }, amp: { a: 0.07, d: 0.2, s: 0.85, r: 0.12 }, vib: { depth: 11, rate: 5.2, delay: 0.3 }, level: 0.4 }),
-  viola: P({ osc: [{ wave: "saw" }, { wave: "pulse25", gain: 0.4 }], filter: { freq: 4.5, q: 1, env: 1.3, envDecay: 0.25 }, amp: { a: 0.08, d: 0.2, s: 0.85, r: 0.14 }, vib: { depth: 10, rate: 5, delay: 0.3 }, level: 0.45 }),
-  cello: P({ osc: [{ wave: "saw" }, { wave: "square", octave: -1, gain: 0.25 }], filter: { freq: 4, q: 1.1, env: 1.4, envDecay: 0.25 }, amp: { a: 0.08, d: 0.25, s: 0.85, r: 0.16 }, vib: { depth: 9, rate: 4.8, delay: 0.35 }, level: 0.55 }),
-  oboe: P({ osc: [{ wave: "reed" }], filter: { freq: 6, q: 2, env: 1.2, envDecay: 0.1 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.08 }, vib: { depth: 8, rate: 5.5, delay: 0.3 }, level: 0.4 }),
+  violin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }, { wave: "saw", detune: 7, gain: 0.3 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.06, d: 0.2, s: 0.85, r: 0.14 }, vib: { depth: 10, rate: 5.2, delay: 0.3 }, level: 0.42 }),
+  violin2: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "sine", gain: 0.6 }], filter: { freq: 3.8, q: 0.7, env: 1.6, envDecay: 0.15 }, amp: { a: 0.03, d: 0.55, s: 0.45, r: 0.12 }, vib: { depth: 7, rate: 5, delay: 0.35 }, level: 0.4 }),
+  viola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.03, d: 0.6, s: 0.4, r: 0.14 }, vib: { depth: 6, rate: 4.8, delay: 0.35 }, level: 0.45 }),
+  cello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "sine", gain: 0.7 }, { wave: "square", octave: -1, gain: 0.15 }], filter: { freq: 3, q: 0.8, env: 1.4, envDecay: 0.2 }, amp: { a: 0.05, d: 0.6, s: 0.55, r: 0.16 }, vib: { depth: 7, rate: 4.6, delay: 0.4 }, level: 0.55 }),
+  oboe: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.4 }], filter: { freq: 4.2, q: 1.4, env: 1.2, envDecay: 0.1 }, amp: { a: 0.04, d: 0.1, s: 0.9, r: 0.1 }, vib: { depth: 7, rate: 5, delay: 0.3 }, level: 0.4 }),
   flute: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.15 }], amp: { a: 0.05, d: 0.1, s: 0.9, r: 0.1 }, vib: { depth: 10, rate: 5, delay: 0.2 }, breath: 0.12, level: 0.55 }),
-  clarinet: P({ osc: [{ wave: "square" }], filter: { freq: 4, q: 0.7 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.08 }, vib: { depth: 4, rate: 5, delay: 0.4 }, level: 0.38 }),
-  bassoon: P({ osc: [{ wave: "reed" }, { wave: "saw", gain: 0.3 }], filter: { freq: 3, q: 1.4, env: 1.3, envDecay: 0.1 }, amp: { a: 0.04, d: 0.1, s: 0.9, r: 0.1 }, vib: { depth: 5, rate: 5, delay: 0.4 }, level: 0.5 }),
+  clarinet: P({ osc: [{ wave: "square", gain: 0.7 }, { wave: "sine", gain: 0.5 }], filter: { freq: 3, q: 0.7 }, amp: { a: 0.03, d: 0.5, s: 0.6, r: 0.1 }, vib: { depth: 4, rate: 5, delay: 0.4 }, level: 0.38 }),
+  bassoon: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.6 }], filter: { freq: 2.4, q: 1, env: 1.3, envDecay: 0.1 }, amp: { a: 0.04, d: 0.4, s: 0.6, r: 0.1 }, vib: { depth: 4, rate: 5, delay: 0.4 }, level: 0.52 }),
   recorder: P({ osc: [{ wave: "triangle" }, { wave: "sine", octave: 1, gain: 0.1 }], amp: { a: 0.03, d: 0.1, s: 0.92, r: 0.06 }, vib: { depth: 6, rate: 5.2, delay: 0.35 }, breath: 0.08, level: 0.55 }),
-  viol: P({ osc: [{ wave: "saw" }, { wave: "pulse25", gain: 0.3 }], filter: { freq: 4.5, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.3, s: 0.7, r: 0.1 }, vib: { depth: 4, rate: 5, delay: 0.5 }, level: 0.48 }),
-  harpsichord: P({ osc: [{ wave: "saw" }, { wave: "pulse25", octave: 1, gain: 0.35 }], filter: { freq: 10, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.9, s: 0, r: 0.08 }, level: 0.36 }),
-  harpsiBass: P({ osc: [{ wave: "saw" }, { wave: "pulse25", gain: 0.3 }], filter: { freq: 6, q: 1, env: 2, envDecay: 0.2 }, amp: { a: 0.002, d: 1.2, s: 0, r: 0.08 }, level: 0.45 }),
+  viol: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.4, q: 0.7, env: 1.6, envDecay: 0.15 }, amp: { a: 0.04, d: 0.5, s: 0.45, r: 0.12 }, vib: { depth: 4, rate: 5, delay: 0.5 }, level: 0.48 }),
+  harpsichord: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "triangle", gain: 0.5 }, { wave: "pulse25", octave: 1, gain: 0.2 }], filter: { freq: 6, q: 0.8, env: 2, envDecay: 0.12 }, amp: { a: 0.002, d: 0.9, s: 0, r: 0.08 }, level: 0.38 }),
+  harpsiBass: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 4.2, q: 0.8, env: 2, envDecay: 0.2 }, amp: { a: 0.002, d: 1.2, s: 0, r: 0.08 }, level: 0.48 }),
   lute: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1.2, env: 2, envDecay: 0.1 }, amp: { a: 0.003, d: 0.7, s: 0, r: 0.1 }, level: 0.42 }),
   // Bands.
-  leadGuitar: P({ osc: [{ wave: "saw" }, { wave: "square", detune: 5, gain: 0.5 }], filter: { freq: 2600, hz: true, q: 1.2, env: 1.3, envDecay: 0.2 }, amp: { a: 0.005, d: 0.4, s: 0.75, r: 0.1 }, vib: { depth: 20, rate: 5.5, delay: 0.35 }, drive: 6, level: 0.22 }),
-  rhythmGuitar: P({ osc: [{ wave: "square" }, { wave: "saw", octave: -1, gain: 0.4 }], filter: { freq: 1800, hz: true, q: 1 }, amp: { a: 0.004, d: 0.5, s: 0.6, r: 0.08 }, drive: 3, level: 0.22 }),
+  leadGuitar: P({ osc: [{ wave: "saw" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 2000, hz: true, q: 0.9, env: 1.3, envDecay: 0.2 }, amp: { a: 0.005, d: 0.4, s: 0.75, r: 0.12 }, vib: { depth: 16, rate: 5.2, delay: 0.35 }, drive: 3.5, level: 0.24 }),
+  rhythmGuitar: P({ osc: [{ wave: "square", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 1400, hz: true, q: 0.9, env: 1.8, envDecay: 0.08 }, amp: { a: 0.003, d: 0.45, s: 0.15, r: 0.08 }, drive: 1.8, level: 0.26 }),
   rockOrgan: P({ osc: [{ wave: "organ" }], amp: { a: 0.01, d: 0.1, s: 1, r: 0.06 }, vib: { depth: 8, rate: 6.5, delay: 0 }, trem: { depth: 0.15, rate: 6.5 }, level: 0.32 }),
   bassGuitar: P({ osc: [{ wave: "square" }, { wave: "sine", gain: 0.8 }], filter: { freq: 3, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.004, d: 0.5, s: 0.6, r: 0.08 }, level: 0.5 }),
-  altoSax: P({ osc: [{ wave: "reed" }, { wave: "saw", gain: 0.3 }], filter: { freq: 5, q: 2.5, env: 1.6, envDecay: 0.15 }, amp: { a: 0.04, d: 0.2, s: 0.85, r: 0.1 }, vib: { depth: 18, rate: 5, delay: 0.3 }, drive: 1.5, breath: 0.05, level: 0.36 }),
-  mutedTrumpet: P({ osc: [{ wave: "square" }, { wave: "saw", gain: 0.5 }], filter: { freq: 3, q: 4, env: 2, envDecay: 0.12 }, amp: { a: 0.03, d: 0.2, s: 0.75, r: 0.08 }, vib: { depth: 10, rate: 5.5, delay: 0.35 }, level: 0.32 }),
+  altoSax: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.5 }], filter: { freq: 3.8, q: 1.6, env: 1.5, envDecay: 0.15 }, amp: { a: 0.04, d: 0.2, s: 0.85, r: 0.12 }, vib: { depth: 14, rate: 4.8, delay: 0.3 }, drive: 0.8, breath: 0.08, level: 0.36 }),
+  mutedTrumpet: P({ osc: [{ wave: "square", gain: 0.6 }, { wave: "sine", gain: 0.5 }], filter: { freq: 2.6, q: 2.2, env: 2, envDecay: 0.12 }, amp: { a: 0.03, d: 0.5, s: 0.5, r: 0.1 }, vib: { depth: 8, rate: 5.2, delay: 0.35 }, level: 0.34 }),
   vibraphone: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.25 }], amp: { a: 0.002, d: 1.6, s: 0, r: 0.2 }, trem: { depth: 0.3, rate: 5 }, level: 0.5 }),
   jazzPiano: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.25 }], filter: { freq: 6, q: 0.7, env: 1.5, envDecay: 0.3 }, amp: { a: 0.003, d: 1.2, s: 0, r: 0.1 }, level: 0.36 }),
   uprightBass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.006, d: 0.6, s: 0, r: 0.08 }, level: 0.55 }),
@@ -73,31 +73,31 @@ export const PATCHES = {
   tenDah: P({ osc: [{ wave: "saw" }], vowel: [650, 1080], amp: { a: 0.04, d: 0.2, s: 0.8, r: 0.1 }, vib: { depth: 9, rate: 5, delay: 0.3 }, level: 1.3 }),
   bassDm: P({ osc: [{ wave: "saw" }, { wave: "sine", gain: 1 }], vowel: [400, 800], amp: { a: 0.03, d: 0.3, s: 0.6, r: 0.1 }, level: 1 }),
   // Moog.
-  carlosLead: P({ osc: [{ wave: "square" }], filter: { freq: 3, q: 5, env: 3, envDecay: 0.2 }, amp: { a: 0.01, d: 0.3, s: 0.7, r: 0.08 }, level: 0.4 }),
-  carlosZap: P({ osc: [{ wave: "saw" }], filter: { freq: 2.5, q: 7, env: 4, envDecay: 0.12 }, amp: { a: 0.005, d: 0.25, s: 0.6, r: 0.06 }, level: 0.36 }),
+  carlosLead: P({ osc: [{ wave: "square", gain: 0.7 }, { wave: "sine", gain: 0.5 }], filter: { freq: 2.6, q: 3, env: 2.5, envDecay: 0.2 }, amp: { a: 0.01, d: 0.3, s: 0.7, r: 0.1 }, vib: { depth: 6, rate: 5, delay: 0.4 }, level: 0.4 }),
+  carlosZap: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "triangle", gain: 0.5 }], filter: { freq: 2.2, q: 4, env: 3.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.5, s: 0.15, r: 0.08 }, level: 0.36 }),
   carlosReed: P({ osc: [{ wave: "pulse25" }], filter: { freq: 4, q: 3, env: 2, envDecay: 0.3 }, amp: { a: 0.02, d: 0.2, s: 0.8, r: 0.08 }, level: 0.5 }),
   carlosBass: P({ osc: [{ wave: "saw" }, { wave: "square", octave: -1, gain: 0.6 }], filter: { freq: 400, hz: true, q: 3, env: 2, envDecay: 0.15 }, amp: { a: 0.005, d: 0.3, s: 0.7, r: 0.06 }, level: 0.5 }),
-  minimoog: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: 9 }, { wave: "saw", detune: -9, octave: -1, gain: 0.5 }], filter: { freq: 3, q: 3, env: 2.5, envDecay: 0.25 }, amp: { a: 0.005, d: 0.3, s: 0.8, r: 0.08 }, level: 0.26 }),
-  squareReed: P({ osc: [{ wave: "square" }, { wave: "square", detune: 6, gain: 0.5 }], filter: { freq: 3.5, q: 2 }, amp: { a: 0.02, d: 0.2, s: 0.85, r: 0.08 }, vib: { depth: 6, rate: 5.5, delay: 0.3 }, level: 0.3 }),
+  minimoog: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "saw", detune: 8, gain: 0.4 }, { wave: "sine", octave: -1, gain: 0.5 }], filter: { freq: 2.2, q: 2, env: 2.2, envDecay: 0.25 }, amp: { a: 0.006, d: 0.3, s: 0.8, r: 0.1 }, vib: { depth: 6, rate: 5, delay: 0.4 }, level: 0.28 }),
+  squareReed: P({ osc: [{ wave: "square", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 2.8, q: 1.4 }, amp: { a: 0.02, d: 0.4, s: 0.55, r: 0.1 }, vib: { depth: 6, rate: 5.2, delay: 0.3 }, level: 0.32 }),
   brass: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: 5 }], filter: { freq: 1.6, q: 1.5, env: 4, envDecay: 0.45 }, amp: { a: 0.06, d: 0.3, s: 0.85, r: 0.1 }, level: 0.3 }),
   subBass: P({ osc: [{ wave: "triangle" }, { wave: "sine", octave: -1, gain: 0.8 }], amp: { a: 0.01, d: 0.3, s: 0.9, r: 0.08 }, level: 0.5 }),
   bells: P({ osc: [{ wave: "bell" }, { wave: "sine", octave: 1, gain: 0.3 }], amp: { a: 0.002, d: 1.1, s: 0, r: 0.2 }, level: 0.5 }),
   pad: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: 12 }, { wave: "saw", detune: -12 }], filter: { freq: 2.2, q: 1 }, amp: { a: 0.15, d: 0.4, s: 0.85, r: 0.25 }, vib: { depth: 5, rate: 4, delay: 0.5 }, level: 0.22 }),
-  pwmLead: P({ osc: [{ wave: "pulse25" }, { wave: "pulse12", detune: 8, gain: 0.7 }], filter: { freq: 5, q: 2, env: 1.5, envDecay: 0.2 }, amp: { a: 0.01, d: 0.2, s: 0.85, r: 0.08 }, vib: { depth: 9, rate: 6, delay: 0.25 }, level: 0.3 }),
+  pwmLead: P({ osc: [{ wave: "pulse25", gain: 0.7 }, { wave: "sine", gain: 0.5 }], filter: { freq: 3.4, q: 1.4, env: 1.5, envDecay: 0.2 }, amp: { a: 0.01, d: 0.2, s: 0.85, r: 0.1 }, vib: { depth: 8, rate: 5.4, delay: 0.3 }, level: 0.3 }),
   // Chip sets.
-  nesTop: P({ osc: [{ wave: "pulse12" }], amp: { a: 0.002, d: 0.08, s: 0.75, r: 0.04 }, level: 0.42 }),
-  nesMid: P({ osc: [{ wave: "pulse25" }], amp: { a: 0.002, d: 0.08, s: 0.75, r: 0.04 }, level: 0.42 }),
+  nesTop: P({ osc: [{ wave: "pulse12" }], filter: { freq: 4200, hz: true, q: 0.6 }, amp: { a: 0.002, d: 0.08, s: 0.75, r: 0.05 }, vib: { depth: 6, rate: 5.5, delay: 0.35 }, level: 0.42 }),
+  nesMid: P({ osc: [{ wave: "pulse25" }], filter: { freq: 3600, hz: true, q: 0.6 }, amp: { a: 0.002, d: 0.3, s: 0.4, r: 0.05 }, level: 0.44 }),
   nesTri: P({ osc: [{ wave: "triangle" }], amp: { a: 0.002, d: 0.05, s: 1, r: 0.03 }, level: 0.8 }),
   gbWave: P({ osc: [{ wave: "pulse50" }], filter: { freq: 2800, hz: true }, amp: { a: 0.002, d: 0.25, s: 0.55, r: 0.05 }, level: 0.5 }),
   gbSoft: P({ osc: [{ wave: "triangle" }, { wave: "pulse50", gain: 0.25 }], amp: { a: 0.002, d: 0.4, s: 0.4, r: 0.05 }, level: 0.6 }),
-  sidSaw: P({ osc: [{ wave: "saw" }, { wave: "pulse25", detune: 4, gain: 0.6 }], filter: { freq: 3, q: 6, env: 2, envDecay: 0.2 }, amp: { a: 0.002, d: 0.2, s: 0.7, r: 0.05 }, level: 0.3 }),
-  sidPulse: P({ osc: [{ wave: "pulse25" }, { wave: "pulse12", detune: 10, gain: 0.7 }], amp: { a: 0.002, d: 0.2, s: 0.7, r: 0.05 }, vib: { depth: 15, rate: 7, delay: 0.15 }, level: 0.3 }),
-  atari: P({ osc: [{ wave: "pulse50" }], amp: { a: 0.001, d: 0.1, s: 0.8, r: 0.02 }, drive: 4, level: 0.35 }),
+  sidSaw: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 2.6, q: 3, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.45, s: 0.25, r: 0.06 }, level: 0.32 }),
+  sidPulse: P({ osc: [{ wave: "pulse25" }, { wave: "triangle", gain: 0.5 }], amp: { a: 0.002, d: 0.2, s: 0.7, r: 0.06 }, vib: { depth: 10, rate: 5.5, delay: 0.25 }, level: 0.3 }),
+  atari: P({ osc: [{ wave: "pulse50" }], filter: { freq: 3000, hz: true, q: 0.6 }, amp: { a: 0.001, d: 0.3, s: 0.45, r: 0.04 }, drive: 2, level: 0.36 }),
   arcadeBell: P({ osc: [{ wave: "bell" }], amp: { a: 0.002, d: 0.6, s: 0.3, r: 0.08 }, level: 0.5 }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
-export type Groove = "rock" | "jazz" | "bossa" | "brushes" | "chipMarch" | "chipDrive" | "chipHalf" | "chipArcade" | "cr78" | "funk808" | "analogRock" | "analogSoft";
+export type Groove = "rock" | "jazz" | "bossa" | "brushes" | "chamber" | "chipMarch" | "chipDrive" | "chipHalf" | "chipArcade" | "cr78" | "funk808" | "analogRock" | "analogSoft";
 /** The drums' sound: a band's kit, a console's noise channel, an analog drum machine's circuits. */
 export type Kit = "acoustic" | "chip" | "analog";
 
@@ -108,7 +108,7 @@ export interface Preset {
   slots: [PatchId, PatchId, PatchId, PatchId, PatchId] | null;
   /** A band's rhythm section, always. */
   groove?: Groove;
-  /** D181: CHIP and MOOG: a drum loop, when DRUMS is on; and its kit. */
+  /** D181, D193: ACOUSTIC, CHIP and MOOG: a drum loop, when DRUMS is on; and its kit. */
   drums?: Groove;
   kit?: Kit;
   /** The room's share (0.16 by default; the bands more). */
@@ -119,16 +119,16 @@ export const FAMILIES: { name: string; presets: Preset[] }[] = [
   {
     name: "ACOUSTIC",
     presets: [
-      { id: "strings", name: "STRINGS", slots: ["violin", "violin2", "viola", "viola", "cello"] },
-      { id: "baroque", name: "BAROQUE BAND", slots: ["oboe", "violin", "harpsichord", "harpsichord", "cello"] },
-      { id: "winds", name: "WINDS", slots: ["flute", "oboe", "clarinet", "clarinet", "bassoon"] },
-      { id: "consort", name: "CONSORT", slots: ["recorder", "lute", "viol", "viol", "harpsiBass"] },
+      { id: "strings", name: "STRINGS", slots: ["violin", "violin2", "viola", "viola", "cello"], drums: "chamber", room: 0.3 },
+      { id: "baroque", name: "BAROQUE BAND", slots: ["oboe", "violin", "harpsichord", "harpsichord", "cello"], drums: "chamber", room: 0.28 },
+      { id: "winds", name: "WINDS", slots: ["flute", "oboe", "clarinet", "clarinet", "bassoon"], drums: "chamber", room: 0.3 },
+      { id: "consort", name: "CONSORT", slots: ["recorder", "lute", "viol", "viol", "harpsiBass"], drums: "chamber", room: 0.28 },
     ],
   },
   {
     name: "BANDS",
     presets: [
-      { id: "rock", name: "ROCK BAND", slots: ["leadGuitar", "rockOrgan", "rhythmGuitar", "rhythmGuitar", "bassGuitar"], groove: "rock", room: 0.26 },
+      { id: "rock", name: "ROCK BAND", slots: ["leadGuitar", "rockOrgan", "rhythmGuitar", "rhythmGuitar", "bassGuitar"], groove: "rock", room: 0.28 },
       { id: "jazz", name: "JAZZ BAND", slots: ["altoSax", "mutedTrumpet", "vibraphone", "jazzPiano", "uprightBass"], groove: "jazz", room: 0.3 },
       { id: "bossa", name: "BOSSA NOVA", slots: ["softFlute", "rhodes", "nylonGuitar", "nylonGuitar", "softBass"], groove: "bossa", room: 0.3 },
       { id: "swingle", name: "SWINGLE", slots: ["sopDah", "altoDoo", "tenDah", "tenDah", "uprightBass"], groove: "brushes", room: 0.34 },
@@ -137,21 +137,21 @@ export const FAMILIES: { name: string; presets: Preset[] }[] = [
   {
     name: "CHIP",
     presets: [
-      { id: "chip", name: "CHIP", slots: null, drums: "chipMarch", kit: "chip" },
-      { id: "chip2", name: "CHIP 2 · NES", slots: ["nesTop", "nesMid", "nesMid", "nesTop", "nesTri"], drums: "chipArcade", kit: "chip" },
-      { id: "chip3", name: "CHIP 3 · GAME BOY", slots: ["gbWave", "nesMid", "gbSoft", "gbSoft", "nesTri"], drums: "chipHalf", kit: "chip" },
-      { id: "chip4", name: "CHIP 4 · C64", slots: ["sidPulse", "sidSaw", "sidPulse", "sidSaw", "carlosBass"], drums: "chipDrive", kit: "chip" },
-      { id: "chip5", name: "CHIP 5 · ARCADE", slots: ["arcadeBell", "atari", "nesMid", "atari", "nesTri"], drums: "chipArcade", kit: "chip" },
+      { id: "chip", name: "CHIP", slots: null, drums: "chipMarch", kit: "chip", room: 0.22 },
+      { id: "chip2", name: "CHIP 2 · NES", slots: ["nesTop", "nesMid", "nesMid", "nesTop", "nesTri"], drums: "chipArcade", kit: "chip", room: 0.22 },
+      { id: "chip3", name: "CHIP 3 · GAME BOY", slots: ["gbWave", "nesMid", "gbSoft", "gbSoft", "nesTri"], drums: "chipHalf", kit: "chip", room: 0.22 },
+      { id: "chip4", name: "CHIP 4 · C64", slots: ["sidPulse", "sidSaw", "sidPulse", "sidSaw", "carlosBass"], drums: "chipDrive", kit: "chip", room: 0.22 },
+      { id: "chip5", name: "CHIP 5 · ARCADE", slots: ["arcadeBell", "atari", "nesMid", "atari", "nesTri"], drums: "chipArcade", kit: "chip", room: 0.22 },
     ],
   },
   {
     name: "MOOG",
     presets: [
-      { id: "carlos", name: "WENDY CARLOS", slots: ["carlosLead", "carlosReed", "carlosZap", "carlosReed", "carlosBass"], drums: "cr78", kit: "analog" },
-      { id: "moog1", name: "MOOG 1 · LEADS", slots: ["minimoog", "squareReed", "minimoog", "squareReed", "subBass"], drums: "funk808", kit: "analog" },
-      { id: "moog2", name: "MOOG 2 · REEDS", slots: ["squareReed", "pwmLead", "squareReed", "pwmLead", "carlosBass"], drums: "cr78", kit: "analog" },
-      { id: "moog3", name: "MOOG 3 · BRASS", slots: ["brass", "pwmLead", "brass", "brass", "subBass"], drums: "analogRock", kit: "analog" },
-      { id: "moog4", name: "MOOG 4 · BELLS", slots: ["bells", "carlosLead", "bells", "carlosReed", "subBass"], drums: "analogSoft", kit: "analog" },
+      { id: "carlos", name: "WENDY CARLOS", slots: ["carlosLead", "carlosReed", "carlosZap", "carlosReed", "carlosBass"], drums: "cr78", kit: "analog", room: 0.28 },
+      { id: "moog1", name: "MOOG 1 · LEADS", slots: ["minimoog", "squareReed", "bells", "squareReed", "subBass"], drums: "funk808", kit: "analog", room: 0.26 },
+      { id: "moog2", name: "MOOG 2 · REEDS", slots: ["squareReed", "pwmLead", "squareReed", "pwmLead", "carlosBass"], drums: "cr78", kit: "analog", room: 0.28 },
+      { id: "moog3", name: "MOOG 3 · BRASS", slots: ["brass", "pwmLead", "carlosZap", "brass", "subBass"], drums: "analogRock", kit: "analog", room: 0.26 },
+      { id: "moog4", name: "MOOG 4 · BELLS", slots: ["bells", "carlosLead", "bells", "carlosReed", "subBass"], drums: "analogSoft", kit: "analog", room: 0.3 },
     ],
   },
 ];
@@ -167,7 +167,7 @@ export function slotOf(voice: number, count: number): number {
 
 /** The ensemble playing now (set from the settings), and whether CHIP's and MOOG's drums play. */
 let current: Preset = presetById("bossa");
-let drumsOn = false;
+let drumsOn = true;
 export function setPreset(id: string) {
   current = presetById(id);
 }
@@ -201,11 +201,12 @@ export function grooveHits(g: Groove, b: number, bar: number, per: number, compo
   const back = per % 2 === 0 ? b % 2 === 1 : b > 0;
   const out: { drum: Drum; at: number; vel: number }[] = [];
   switch (g) {
+    // D193: every loop lighter, after the bossa's: the snare under the voices, the hats softer.
     case "rock":
-      if (b === 0 || (per === 4 && b === 2)) out.push({ drum: "kick", at: 0, vel: 1 });
-      if (back) out.push({ drum: "snare", at: 0, vel: 0.9 });
-      for (const s of subs) out.push({ drum: "hat", at: s, vel: s ? 0.5 : 0.8 });
-      if (per === 4 && b === 2) out.push({ drum: "kick", at: subs[subs.length - 1], vel: 0.6 });
+      if (b === 0 || (per === 4 && b === 2)) out.push({ drum: "kick", at: 0, vel: 0.75 });
+      if (back) out.push({ drum: "snare", at: 0, vel: 0.55 });
+      for (const s of subs) out.push({ drum: "hat", at: s, vel: s ? 0.32 : 0.5 });
+      if (per === 4 && b === 2) out.push({ drum: "kick", at: subs[subs.length - 1], vel: 0.45 });
       break;
     case "jazz":
       out.push({ drum: "ride", at: 0, vel: 0.8 });
@@ -221,6 +222,13 @@ export function grooveHits(g: Groove, b: number, bar: number, per: number, compo
       for (const k of pattern) if (Math.floor(k / subs.length) === b) out.push({ drum: "rim", at: subs[k % subs.length], vel: 0.6 });
       break;
     }
+    // D193: the acoustic ensembles' loop: the bossa's shaker and soft kick, a frame-drum rim on the
+    // bar's last beat; no backbeat (the music's own metre leads).
+    case "chamber":
+      for (const s of subs) out.push({ drum: "shaker", at: s, vel: s ? 0.28 : 0.42 });
+      if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.42 });
+      if (b === per - 1) out.push({ drum: "rim", at: subs[subs.length - 1], vel: 0.35 });
+      break;
     case "brushes":
       out.push({ drum: "brush", at: 0, vel: 0.7 });
       if (back) out.push({ drum: "hat", at: 0, vel: 0.4 });
@@ -228,25 +236,25 @@ export function grooveHits(g: Groove, b: number, bar: number, per: number, compo
       break;
     // D181, the consoles' loops (CHIP).
     case "chipMarch":
-      if (b === 0 || (per === 4 && b === 2)) out.push({ drum: "kick", at: 0, vel: 0.9 });
-      if (back) out.push({ drum: "snare", at: 0, vel: 0.8 });
-      for (const s of subs) out.push({ drum: "hat", at: s, vel: 0.35 });
+      if (b === 0 || (per === 4 && b === 2)) out.push({ drum: "kick", at: 0, vel: 0.7 });
+      if (back) out.push({ drum: "snare", at: 0, vel: 0.5 });
+      for (const s of subs) out.push({ drum: "hat", at: s, vel: 0.26 });
       break;
     case "chipDrive":
-      out.push({ drum: "kick", at: 0, vel: 0.9 });
-      if (back) out.push({ drum: "snare", at: 0, vel: 0.85 });
-      out.push({ drum: "hat", at: subs[subs.length - 1], vel: 0.55 });
+      out.push({ drum: "kick", at: 0, vel: b === 0 ? 0.7 : 0.5 });
+      if (back) out.push({ drum: "snare", at: 0, vel: 0.52 });
+      out.push({ drum: "hat", at: subs[subs.length - 1], vel: 0.38 });
       break;
     case "chipHalf":
-      if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.9 });
-      if (b === Math.floor(per / 2) && per > 1) out.push({ drum: "snare", at: 0, vel: 0.85 });
+      if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.7 });
+      if (b === Math.floor(per / 2) && per > 1) out.push({ drum: "snare", at: 0, vel: 0.5 });
       for (const s of subs) out.push({ drum: "hat", at: s, vel: s ? 0.25 : 0.4 });
       break;
     case "chipArcade":
-      if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.9 });
-      if (b === 1) out.push({ drum: "kick", at: subs[subs.length - 1], vel: 0.7 });
-      if (back) out.push({ drum: "snare", at: 0, vel: 0.8 });
-      for (const s of subs) out.push({ drum: "hat", at: s, vel: 0.3 });
+      if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.7 });
+      if (b === 1) out.push({ drum: "kick", at: subs[subs.length - 1], vel: 0.5 });
+      if (back) out.push({ drum: "snare", at: 0, vel: 0.5 });
+      for (const s of subs) out.push({ drum: "hat", at: s, vel: 0.24 });
       break;
     // The analog drum machines' loops (MOOG).
     case "cr78":
@@ -256,15 +264,15 @@ export function grooveHits(g: Groove, b: number, bar: number, per: number, compo
       if (back) out.push({ drum: "rim", at: 0, vel: 0.5 });
       break;
     case "funk808":
-      if (b === 0) out.push({ drum: "kick", at: 0, vel: 1 });
-      if (b === 1) out.push({ drum: "kick", at: subs[subs.length - 1], vel: 0.75 });
-      if (back) out.push({ drum: "snare", at: 0, vel: 0.7 }, { drum: "clap", at: 0, vel: 0.6 });
-      for (const s of subs) out.push({ drum: "hat", at: s, vel: s ? 0.35 : 0.5 });
+      if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.75 });
+      if (b === 1) out.push({ drum: "kick", at: subs[subs.length - 1], vel: 0.55 });
+      if (back) out.push({ drum: "snare", at: 0, vel: 0.45 }, { drum: "clap", at: 0, vel: 0.35 });
+      for (const s of subs) out.push({ drum: "hat", at: s, vel: s ? 0.25 : 0.36 });
       break;
     case "analogRock":
-      if (b === 0 || (per === 4 && b === 2)) out.push({ drum: "kick", at: 0, vel: 1 });
-      if (back) out.push({ drum: "snare", at: 0, vel: 0.9 });
-      for (const s of subs) out.push({ drum: "hat", at: s, vel: 0.45 });
+      if (b === 0 || (per === 4 && b === 2)) out.push({ drum: "kick", at: 0, vel: 0.72 });
+      if (back) out.push({ drum: "snare", at: 0, vel: 0.52 });
+      for (const s of subs) out.push({ drum: "hat", at: s, vel: 0.3 });
       break;
     case "analogSoft":
       if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.6 });
