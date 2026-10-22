@@ -8,6 +8,8 @@
  * (chip.ts leadOf). It can also be played from a computer's keys or a MIDI keyboard. On the audio
  * clock as heard; the others phrased (phrasing.ts); a band's rhythm section keeps the beat.
  */
+import type { Arrow } from "../touch/MusicBox.tsx";
+import type { Burst, Pop } from "../touch/box-fx.ts";
 import { voicing, type Chip, type Play, type Sounding } from "../touch/chip.ts";
 import type { Grade } from "../touch/engine.ts";
 import { beatOf, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
@@ -18,7 +20,7 @@ import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
 import { aim, columnAt, COLUMNS, pianoKey, pianoKeys } from "./placed.ts";
 import { fingering, STACCATO_SHARE, TENUTO_SHARE, type Finger } from "./fingering.ts";
-import { barDynamic, dynamic, LADDER_AREA, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto } from "./protos.ts";
+import { barDynamic, contourCue, contourOk, dynamic, LADDER_AREA, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto } from "./protos.ts";
 
 export const PERFECT_MS = 70;
 /** The multiplier's step (notes right in a row), and CON FUOCO's run. */
@@ -47,6 +49,8 @@ export interface KeyPress {
   side?: Side;
   midi?: number;
   move?: { dir: number; big: boolean };
+  /** EASY's DIRECTION (D187): the key struck. */
+  code?: string;
   /** 0 to 1. */
   velocity?: number;
 }
@@ -254,7 +258,7 @@ export class ProtoGame {
         this.nextBeat += this.beat;
         continue;
       }
-      const band = this.nextBeat >= this.entry && !this.o.solo && ch.groove?.(this.timeAt(this.nextBeat), this.beat / this.tps, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound);
+      const band = this.nextBeat >= this.entry && !this.o.solo && ch.groove?.(this.timeAt(this.nextBeat), this.beat / this.tps, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, this.mult - 1);
       if (!band) ch.tick(this.timeAt(this.nextBeat), accent, this.nextBeat < this.entry ? 0.12 : 0.02);
       this.nextBeat += this.beat;
     }
@@ -285,6 +289,7 @@ export class ProtoGame {
       this.grade = { text: "MISS", at: performance.now() };
     }
     this.judgeEntries();
+    ch.zone?.(this.zone);
     if (this.now > this.end) {
       this.stopAll();
       return true;
@@ -356,8 +361,14 @@ export class ProtoGame {
     const prev = this.before(i, k);
     const m = moves[i];
     const asked = (steps: number) => (prev >= 0 ? stepPitch(notes[prev].step + steps, notes[prev]) : undefined);
-    // TWO VOICES and EASY (computer): the time only.
-    if (this.proto.id === "duo" || this.proto.id === "keys") return { ok: true };
+    // TWO VOICES: the time only. EASY: the time, or (D187) the way along the keys too.
+    if (this.proto.id === "duo") return { ok: true };
+    if (this.proto.id === "keys") {
+      const lvl = this.o.easy ?? "timing";
+      const code = at.key?.code;
+      if (lvl === "timing" || !code || !this.lastKey || this.isFree(i, k)) return { ok: true };
+      return contourOk(m, this.lastKey, code, lvl === "leaps") ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
+    }
     if (at.key?.midi !== undefined) {
       const k = at.key.midi;
       const ok = this.proto.id === "piano" ? chord.some((x) => x.midi === k) : chord.some((x) => Math.abs(stepNear(k, x) - x.step) <= 1);
@@ -437,10 +448,31 @@ export class ProtoGame {
     // The same key again without its release (lost while the window was away): let the first go.
     if (this.held.has(id)) this.up(id, ts);
     const d = k.velocity ?? 0.6;
+    const struck = k.code;
     const h: Held = { side: k.side ?? "left", k: this.trackOf(k.side ?? "left"), x0: 0, ax: 0, ay: 0, note: -1, chord: [], sounds: [], midi: 0, cell: k.midi, d0: d, trail: [] };
     this.held.set(id, h);
     this.strikeWith(id, h, ts, { key: k }, d);
+    // Where the hand is now: the next key is judged from it.
+    if (struck) this.lastKey = struck;
   }
+
+  /** EASY's DIRECTION: the key struck last. */
+  lastKey: string | null = null;
+  /** A note the hand may take anywhere: the first, or after a rest or a long note (D187). */
+  isFree(i: number, k = 0): boolean {
+    const j = this.before(i, k);
+    if (j < 0) return true;
+    const notes = this.tracks[k].notes;
+    const p = notes[j];
+    return p.dur >= this.beat || notes[i].on - (p.on + p.dur) >= this.beat / 4;
+  }
+  /** What the box draws over each note in DIRECTION (none in TIMING). */
+  get cues(): Arrow[] | undefined {
+    const lvl = this.o.easy ?? "timing";
+    if (this.proto.id !== "keys" || lvl === "timing") return undefined;
+    return (this.cuesMemo ??= this.notes.map((_, i) => contourCue(this.moves[i], this.isFree(i), lvl === "leaps")));
+  }
+  private cuesMemo?: Arrow[];
 
   keyUp(id: number, ts: number) {
     this.up(id, ts);
@@ -592,6 +624,9 @@ export class ProtoGame {
     if (this.streak === FUOCO_NOTES) this.banner = { text: "CON FUOCO!", at };
     h.pts = (perfect ? 2 : 1) * this.mult * (this.pleno ? 2 : 1);
     this.score += h.pts;
+    // D186: the points rise from the note.
+    this.pops.push({ tick: n.on, step: Math.max(...chord.map((j) => notes[j].step)), text: `+${h.pts}`, at, gold: perfect });
+    if (this.pops.length > 40) this.pops.splice(0, 20);
     this.grade = perfect ? { text: "PERFECT", at, side: h.side } : { text: "GOOD", lean: offMs < 0 ? -1 : 1, at, side: h.side };
   }
 
@@ -626,6 +661,7 @@ export class ProtoGame {
       const notes = this.tracks[e.k].notes.filter((n) => e.ons.includes(n.on));
       if (notes.some((n) => n.state === "miss")) {
         e.state = "lost";
+        if (this.isBoss(e)) this.banner = { text: "THE BOSS GOT AWAY", at: performance.now() };
         continue;
       }
       // FINGERING: not before the last note's release is judged (a tenuto let go early loses it).
@@ -633,13 +669,28 @@ export class ProtoGame {
       if (notes.length && notes.every((n) => n.state === "hit")) {
         e.state = "captured";
         this.score += 20 * this.mult;
+        // D186: it bursts; the voice's last entry is its BOSS.
+        const boss = this.isBoss(e);
+        this.bursts.push({ at: performance.now(), points: notes.map((n) => ({ tick: n.on, step: n.step })), boss });
+        if (this.bursts.length > 8) this.bursts.shift();
         // ORGANO PLENO until the next entry, in any voice.
         // (the first entry still to come: the next has often begun before this one ends)
         const next = this.f.entries.map((x) => x.on).filter((on) => on > this.now).sort((a, b) => a - b)[0];
         this.plenoUntil = next ?? this.f.length;
-        this.banner = { text: "ORGANO PLENO!", at: performance.now() };
+        this.banner = { text: boss ? "BOSS DEFEATED!" : "ORGANO PLENO!", at: performance.now() };
       }
     }
+  }
+
+  /** D186: what the box draws of the player's playing: points, bursts, the zone. */
+  readonly pops: Pop[] = [];
+  readonly bursts: Burst[] = [];
+  get zone(): "pleno" | "fuoco" | null {
+    return this.streak >= FUOCO_NOTES ? "fuoco" : this.pleno ? "pleno" : null;
+  }
+  /** The voice's last entry. */
+  private isBoss(e: { voice: number; on: number }) {
+    return e.on === Math.max(...this.entries.filter((x) => x.voice === e.voice).map((x) => x.on));
   }
 
   /** The grade, after osu! and the like: S (95% and every entry captured), A, B, C, D. */
@@ -689,6 +740,7 @@ export class ProtoGame {
   private band: { sd: Sounding; until: number }[] = [];
 
   stopAll() {
+    this.chip.zone?.(null);
     for (const b of this.band) b.sd.stop();
     this.band = [];
     for (const sd of this.pedalled) sd.stop();

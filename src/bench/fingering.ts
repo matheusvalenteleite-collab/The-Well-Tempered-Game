@@ -83,9 +83,3 @@ export function fingering(notes: LaneNote[], moves: Move[], entries: TouchEntry[
   });
   return out;
 }
-
-/** The sections the bosses span, for the box: from the entry's start to its end. */
-export function bossSections(entries: TouchEntry[], voice: number): { from: number; to: number; kind: "sub" | "boss" }[] {
-  const mine = entries.filter((e) => e.voice === voice);
-  return mine.map((e, k) => ({ from: e.on, to: e.end, kind: k === mine.length - 1 ? "boss" : "sub" }));
-}

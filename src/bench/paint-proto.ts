@@ -16,7 +16,7 @@ import { paintPiano } from "../touch/paint-piano.ts";
 import { stepName } from "../touch/fugue.ts";
 import { columnX, COLUMNS, LINE } from "./placed.ts";
 import { APPROACH_MS, type ProtoGame } from "./proto-game.ts";
-import { ARROW_KEYS, arrowOf, BAR, fits, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
+import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
 import { isBlack, keySpan } from "../touch/piano.ts";
 import { KEYS_SHARE } from "./placed.ts";
 
@@ -166,6 +166,10 @@ function desk(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
   const key = Math.min(46, (w - 90) / 13);
   const top = 16;
   const nx = coming(g);
+  // DIRECTION (D187): only the keys that answer the next move light up; the last key struck ringed.
+  const lvl = g.o.easy ?? "timing";
+  const judged = lvl !== "timing" && nx && g.lastKey && !g.isFree(nx.i);
+  const fitsKey = (code: string) => !judged || contourOk(g.moves[nx!.i], g.lastKey!, code, lvl === "leaps");
   KEY_ROWS.forEach((r, ri) => {
     const y = top + ri * rowH;
     const x0 = 60 + ri * key * 0.35;
@@ -177,7 +181,14 @@ function desk(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
       c.fillRect(x, y + 3, key - 4, rowH - 6);
       c.fillStyle = "rgba(0,0,0,0.4)";
       c.fillRect(x, y + rowH - 6, key - 4, 3);
-      if (nx && !down) {
+      if (code === g.lastKey && lvl !== "timing") {
+        c.fillStyle = t.gold;
+        c.fillRect(x - 2, y + 1, key, 2);
+        c.fillRect(x - 2, y + rowH - 5, key, 2);
+        c.fillRect(x - 2, y + 1, 2, rowH - 4);
+        c.fillRect(x + key - 4, y + 1, 2, rowH - 4);
+      }
+      if (nx && !down && fitsKey(code)) {
         c.fillStyle = ink;
         c.globalAlpha = 0.1 + 0.4 * nx.p * nx.p;
         c.fillRect(x, y + 3, key - 4, rowH - 6);
@@ -187,16 +198,36 @@ function desk(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
       label(c, name, x + (key - 4) / 2, y + rowH / 2, down ? "#1a1408" : t.muted, 8);
     });
   });
+  // DIRECTION: the space bar, for a repeated note.
+  if (lvl !== "timing") {
+    const y = top + KEY_ROWS.length * rowH;
+    const x = 60 + 3 * key;
+    const down = g.keysDown.has("Space");
+    c.fillStyle = down ? t.shine : "#1d1a24";
+    c.fillRect(x, y + 3, key * 6, rowH * 0.6);
+    if (nx && !down && fitsKey("Space") && judged) {
+      c.fillStyle = ink;
+      c.globalAlpha = 0.1 + 0.4 * nx.p * nx.p;
+      c.fillRect(x, y + 3, key * 6, rowH * 0.6);
+      c.globalAlpha = 1;
+    }
+    label(c, "SPACE", x + key * 3, y + 3 + rowH * 0.3, down ? "#1a1408" : t.muted, 8);
+  }
   // The beat closing in, under the keys.
   if (nx) {
-    const y = top + KEY_ROWS.length * rowH + 6;
+    const y = top + KEY_ROWS.length * rowH + (lvl !== "timing" ? rowH * 0.6 + 8 : 6);
     const half = (w / 2) * (1 - nx.p);
     c.fillStyle = t.shine;
     c.fillRect(0, y, w / 2 - half, 3);
     c.fillRect(w / 2 + half, y, w / 2 - half, 3);
     if (g.notes[nx.i].long) label(c, "HOLD", w / 2, y + 14, t.fg, 8);
   }
-  label(c, `SPACE: A NOTE (A SWOOSH WHILE ONE SOUNDS) · SHIFT: PEDAL${g.pedalOn ? " (DOWN)" : ""} · ↑ ↓: BEND`, w / 2, h - 12, g.pedalOn ? t.gold : t.muted, 7);
+  const how =
+    lvl === "timing"
+      ? "SPACE: A NOTE (A SWOOSH WHILE ONE SOUNDS)"
+      : `LINE UP: A KEY FURTHER RIGHT · DOWN: FURTHER LEFT · SAME NOTE: SAME KEY OR SPACE${lvl === "leaps" ? " · A LEAP SKIPS A KEY" : ""} · A BOXED NOTE: ANY KEY`;
+  label(c, how, w / 2, h - 26, t.fg, 7);
+  label(c, `SHIFT: PEDAL${g.pedalOn ? " (DOWN)" : ""} · ↑ ↓: BEND`, w / 2, h - 12, g.pedalOn ? t.gold : t.muted, 7);
 }
 
 /** A voice's next note and how near it is (0 far, 1 on its beat), if it is showing. */

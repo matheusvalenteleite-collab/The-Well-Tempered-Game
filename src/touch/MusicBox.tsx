@@ -8,6 +8,7 @@
  * D174, the subject: its notes, in whatever voice, are dotted along their top; a ◆ stands over the
  * first note of each entry as it comes, in the voice's colour, gold when the voice is the player's.
  */
+import { bossBar, ribbons, sparks, zoneGlow, type Burst, type Pop, type Span } from "./box-fx.ts";
 import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
 import type { LaneNote } from "./lanes.ts";
 import type { OtherNote } from "./voice-mode.ts";
@@ -47,7 +48,7 @@ export function keyTint(key: string, light = 0): string {
  * the roll's top), and a row's height (D179: the testbench's side bars line up with it).
  */
 /** A key of LADDER on a computer: a step or a leap, up or down, or the same note. */
-export type Arrow = "up" | "down" | "left" | "right" | "rise" | "fall" | "same";
+export type Arrow = "up" | "down" | "left" | "right" | "rise" | "fall" | "same" | "right2" | "left2" | "free";
 /** The keys' arrows, 5 by 5. */
 export const ARROW_PIXELS: Record<Arrow, string[]> = {
   up: ["00100", "01110", "10101", "00100", "00100"],
@@ -57,6 +58,9 @@ export const ARROW_PIXELS: Record<Arrow, string[]> = {
   rise: ["00111", "00011", "00101", "01000", "10000"],
   fall: ["10000", "01000", "00101", "00011", "00111"],
   same: ["00000", "00000", "01100", "01100", "00000"],
+  right2: ["10100", "01010", "00101", "01010", "10100"],
+  left2: ["00101", "01010", "10100", "01010", "00101"],
+  free: ["11111", "10001", "10001", "10001", "11111"],
 };
 
 export function ladderGeometry(lo: number, hi: number, cssH: number): { yOf: (step: number) => number; rowH: number } {
@@ -92,9 +96,8 @@ export interface Frame {
   trace?: { tick: number; step: number; on: boolean }[];
   /** The testbench (D178): each touch, at the step it asked for, right or wrong. */
   marks?: { tick: number; step: number; ok: boolean }[];
-  /** The testbench's FINGERING (D181): each note's thumb and articulation (aligned with `notes`), and the bosses' spans. */
+  /** The testbench's FINGERING (D181): each note's thumb and articulation (aligned with `notes`). */
   fingers?: { hand: "left" | "right"; art: string; boss?: string }[];
-  bosses?: { from: number; to: number; kind: "sub" | "boss" }[];
   /** The testbench's score (D181): each entry ("voice:onset") captured (gold) or lost (grey). */
   entryState?: Map<string, "captured" | "lost" | "open">;
   /** The testbench's TWO VOICES (D180): a second voice played, drawn as the first. */
@@ -103,6 +106,13 @@ export interface Frame {
   /** The testbench's THUMBS ↔ (D178): each note's move (aligned with `notes`), drawn as the thumb it wants. */
   /** LADDER on a computer (D183): the key each note asks for, drawn over it. */
   arrows?: (Arrow | null)[];
+  /** D186: the entries drawn whole (box-fx.ts), the voices' names, the bosses (the player's entries), points and bursts, the zone. */
+  spans?: Span[];
+  names?: string[];
+  bossFight?: boolean;
+  pops?: Pop[];
+  bursts?: Burst[];
+  zone?: "pleno" | "fuoco" | null;
 }
 
 export function MusicBox({ frame, hud, legend, children }: { frame: MutableRefObject<Frame>; hud: ReactNode; legend: ReactNode; children?: ReactNode }) {
@@ -166,16 +176,8 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
     g.fillRect(xOf(t), 0, 1, h);
   }
 
-  // FINGERING's bosses: a tinted band over their spans.
-  for (const b of fr.bosses ?? []) {
-    const x1 = xOf(b.from);
-    const x2 = xOf(b.to);
-    if (x2 < 0 || x1 > w) continue;
-    g.fillStyle = b.kind === "boss" ? "rgba(255,80,70,0.13)" : "rgba(199,139,255,0.1)";
-    g.fillRect(x1, 0, x2 - x1, h);
-    g.fillStyle = b.kind === "boss" ? "#ff5a4f" : "#c78bff";
-    g.fillRect(x1, 0, Math.max(1, x2 - x1), 1);
-  }
+  const fx = { g, w, h, xOf, yOf, bh, now: fr.now, tps: fr.tps, gold: tok("--tg-gold"), miss: tok("--tg-miss"), fg: tok("--tg-fg"), ink: (v: number) => inkOf(v, fr.count) };
+  if (fr.spans) ribbons(fx, fr.spans, fr.notes2 && fr.voice2 !== undefined ? [fr.voice, fr.voice2] : [fr.voice], fr.names, fr.entryState);
 
   // The other voices: their colours, dimmer.
   for (const o of fr.others) {
@@ -186,7 +188,7 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
     g.globalAlpha = 0.5;
     g.fillStyle = inkOf(o.voice, fr.count);
     g.fillRect(x1, yOf(o.step), Math.max(1, x2 - x1 - 1), bh - 1);
-    if (fr.subject?.has(`${o.voice}:${o.on}`)) dots(g, x1, x2, yOf(o.step), tok("--tg-fg"));
+    if (!fr.spans && fr.subject?.has(`${o.voice}:${o.on}`)) dots(g, x1, x2, yOf(o.step), tok("--tg-fg"));
   }
   g.globalAlpha = 1;
 
@@ -217,7 +219,7 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
       g.fillRect(x1 - 1, y - 1, bw + 2, bh + 1);
       g.fillStyle = ink;
       g.fillRect(x1, y, bw, bh - 1);
-      if (fr.subject?.has(`${pv}:${n.on}`)) dots(g, x1, x2, y, edge);
+      if (!fr.spans && fr.subject?.has(`${pv}:${n.on}`)) dots(g, x1, x2, y, edge);
       if (n.state === "hit") {
         g.fillStyle = shine;
         g.fillRect(x1, y, Math.max(1, Math.min(bw, 2)), bh - 1);
@@ -275,8 +277,8 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
     g.fillRect(x - 1, y - 1, 3, 3);
   }
 
-  // The entries coming: a diamond over each entry's first note.
-  for (const e of fr.entries ?? []) {
+  // The entries coming: a diamond over each entry's first note (where they are not drawn whole).
+  for (const e of fr.spans ? [] : (fr.entries ?? [])) {
     const x = xOf(e.on);
     if (x < (fr.entryState?.has(`${e.voice}:${e.on}`) ? 0 : playX - 2) || x > w) continue;
     const y = yOf(e.step) - 6;
@@ -311,6 +313,9 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
 
   g.fillStyle = tok("--tg-playhead");
   g.fillRect(playX, 0, 1, h);
+  if (fr.spans && fr.bossFight) bossBar(fx, fr.spans, fr.voice, fr.notes);
+  sparks(fx, fr.pops ?? [], fr.bursts ?? []);
+  zoneGlow(fx, fr.zone ?? null);
 }
 
 /** The subject's texture: dots along a block's top. */

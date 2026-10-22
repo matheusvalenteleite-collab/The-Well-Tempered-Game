@@ -274,3 +274,23 @@ export function grooveHits(g: Groove, b: number, bar: number, per: number, compo
   }
   return out;
 }
+
+/**
+ * D186: the layers a run of right notes adds over the band (or the click), beat by beat: from ×2 a
+ * shaker on the half beats, from ×3 a clap on the back beats, at ×4 the kick on every beat and a ride
+ * on the bar's first. `level` 0 to 3; `b` the beat in the bar, `per` beats a bar.
+ */
+export function layerHits(level: number, b: number, per: number, compound: boolean): { drum: Drum; at: number; vel: number }[] {
+  const out: { drum: Drum; at: number; vel: number }[] = [];
+  if (level >= 1) {
+    const subs = compound ? 3 : 2;
+    for (let i = 0; i < subs; i++) out.push({ drum: "shaker", at: i / subs, vel: i === 0 ? 0.2 : 0.13 });
+  }
+  const back = per % 2 === 0 ? b % 2 === 1 : per === 3 ? b === 2 : b === per - 1;
+  if (level >= 2 && back) out.push({ drum: "clap", at: 0, vel: 0.32 });
+  if (level >= 3) {
+    out.push({ drum: "kick", at: 0, vel: b === 0 ? 0.6 : 0.42 });
+    if (b === 0) out.push({ drum: "ride", at: 0, vel: 0.35 });
+  }
+  return out;
+}

@@ -18,11 +18,10 @@ import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue } from "../to
 import { laneNotes } from "../touch/lanes.ts";
 import { setPreset } from "../touch/sound.ts";
 import { setTuning } from "../touch/tuning.ts";
-import { accompaniment, startTick, stepRange, subjectMarks, voicesFrom } from "../touch/voice-mode.ts";
+import { accompaniment, startTick, stepRange, subjectMarks, entrySpans, voicesFrom } from "../touch/voice-mode.ts";
 import { paintProto } from "./paint-proto.ts";
-import { bossSections } from "./fingering.ts";
 import { ProtoGame, type KeyPress } from "./proto-game.ts";
-import { ARROW_KEYS, arrowOf, KEY_ROWS, keyRow, moveOf, PROTOS, protoById, type Platform, type ProtoId } from "./protos.ts";
+import { ARROW_KEYS, arrowOf, EASY_LEVELS, KEY_ROWS, type EasyLevel, keyRow, moveOf, PROTOS, protoById, type Platform, type ProtoId } from "./protos.ts";
 
 /**
  * D181, the piece: four choices, each a button that opens its options: the book (I, II, or the Art of
@@ -58,8 +57,10 @@ interface Pick {
   share: number;
   /** SIDEWAYS: the hard level, every note joined. */
   legato: boolean;
+  /** EASY's level (D187). */
+  easy: EasyLevel;
 }
-const DEFAULT: Pick = { proto: "ladder", piece: "wtc1f02", voice: 1, voice2: 0, bpm: defaultBpm("wtc1f02"), share: 0, legato: false };
+const DEFAULT: Pick = { proto: "ladder", piece: "wtc1f02", voice: 1, voice2: 0, bpm: defaultBpm("wtc1f02"), share: 0, legato: false, easy: "direction" };
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -84,7 +85,7 @@ function sane(p: Pick): Pick {
   const singing = voicesFrom(f, startTick(f, share));
   const voice = singing.includes(p.voice) ? p.voice : singing[Math.min(1, singing.length - 1)];
   const voice2 = singing.includes(p.voice2) && p.voice2 !== voice ? p.voice2 : (singing.find((v) => v !== voice) ?? voice);
-  return { ...DEFAULT, ...p, piece, share, voice, voice2, proto: protoById(p.proto).id, bpm: saneBpm(p.bpm), legato: !!p.legato };
+  return { ...DEFAULT, ...p, piece, share, voice, voice2, proto: protoById(p.proto).id, bpm: saneBpm(p.bpm), legato: !!p.legato, easy: EASY_LEVELS.some(([l]) => l === p.easy) ? p.easy : DEFAULT.easy };
 }
 
 type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number } | { kind: "settings" } | { kind: "help" } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
@@ -152,7 +153,7 @@ export function BenchApp() {
     const steps = f.voices[voice].map((n) => n[3]);
     return { lo: Math.min(...steps) - 1, hi: Math.max(...steps) + 1 };
   }, [f, proto.id, voice]);
-  const marks = useMemo(() => subjectMarks(f), [f]);
+  const marks = useMemo(() => ({ ...subjectMarks(f), spans: entrySpans(f), names: f.voiceNames }), [f]);
   const chip = useRef<Chip | null>(null);
   const game = useRef<ProtoGame | null>(null);
   const paint = useRef<Painter | null>(null);
@@ -210,9 +211,9 @@ export function BenchApp() {
 
   useEffect(() => {
     if (phase.kind !== "play" || !chip.current) return;
-    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, keys: run.keys } : {}) }, chip.current);
+    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: pick.easy, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, keys: run.keys } : {}) }, chip.current);
     g.octave = octave.current;
-    const arrows = proto.id === "arrows" ? g.moves.map(arrowOf) : undefined;
+    const arrows = proto.id === "arrows" ? g.moves.map(arrowOf) : g.cues;
     game.current = g;
     paint.current = (ctx, w, h) => paintProto(ctx, w, h, g, marks.subject);
     const b = beatOf(f);
@@ -237,7 +238,10 @@ export function BenchApp() {
         entryState: new Map(g.entries.map((e) => [`${e.voice}:${e.on}`, e.state])),
         fingers: proto.id === "fingering" ? g.tracks[0].fingers : undefined,
         arrows,
-        bosses: proto.id === "fingering" ? bossSections(f.entries, voice) : undefined,
+        bossFight: true,
+        pops: g.pops,
+        bursts: g.bursts,
+        zone: g.zone,
       };
       if (proto.layout === "bars") g.rows = boxRows(f.barTicks, g.now);
       if (count.current) count.current.textContent = g.countIn() ? String(g.countIn()) : g.combo >= 5 ? `×${g.combo}` : "";
@@ -416,9 +420,9 @@ export function BenchApp() {
         if (a && run && !run.keys.includes(a)) return null;
         return a ? { side: e.code.startsWith("Key") ? "left" : "right", move: moveOf(a), velocity: 0.6 } : null;
       }
-      if (e.code === "Space") return { velocity: 0.5 };
+      if (e.code === "Space") return { velocity: 0.5, code: "Space" };
       const r = keyRow(e.code);
-      return r < 0 ? null : { velocity: KEY_ROWS[r].dyn, trill: KEY_ROWS[r].trill };
+      return r < 0 ? null : { velocity: KEY_ROWS[r].dyn, trill: KEY_ROWS[r].trill, code: e.code };
     };
     const down = (e: KeyboardEvent) => {
       if (e.code === "Escape" && phase.kind === "play") return quit();
@@ -435,7 +439,8 @@ export function BenchApp() {
       if (proto.id === "keys" && g) {
         if (e.code === "ShiftLeft" || e.code === "ShiftRight") return g.pedal(true);
         if (e.code === "ArrowUp" || e.code === "ArrowDown") return (e.preventDefault(), g.bendHeld(e.code === "ArrowUp" ? 60 : -60));
-        if (e.code === "Space" && phase.kind === "play" && !e.repeat) {
+        // TIMING: space a note, or the swoosh while one sounds; DIRECTION: space the repeated note.
+        if (e.code === "Space" && phase.kind === "play" && !e.repeat && pick.easy === "timing") {
           e.preventDefault();
           // Space: a note if none sounds, else the swoosh.
           if (g.keysDown.size) return g.swooshNow();
@@ -545,6 +550,7 @@ export function BenchApp() {
           </div>
           <p className="tg-panel-note">{proto.how}</p>
           <Choice id="platform" label="PLAY ON" options={[["mobile", "MOBILE"], ["computer", "COMPUTER"]]} value={platform ?? "mobile"} set={(pl) => setPlatform(pl)} />
+          {proto.id === "keys" && <Choice id="easy" label="EASY" options={EASY_LEVELS} value={pick.easy} set={(easy) => setPick({ easy })} />}
           {proto.id === "sideways" && <Choice id="level" label="SIDEWAYS" options={[["easy", "EASY"], ["legato", "LEGATO"]]} value={pick.legato ? "legato" : "easy"} set={(v) => setPick({ legato: v === "legato" })} />}
           <PieceSetting id={pick.piece} set={(piece) => setPick({ piece, share: 0, voice: -1, voice2: -1 })} />
           <BpmSetting bpm={pick.bpm} set={(bpm) => setPick({ bpm })} />

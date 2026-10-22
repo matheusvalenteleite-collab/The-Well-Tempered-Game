@@ -44,6 +44,8 @@ export interface Move {
 export interface Options {
   /** SIDEWAYS: every note joined to the one before (the hard level). */
   legato: boolean;
+  /** EASY (D187): the time only, or the line's direction too, or its leaps as well. */
+  easy?: EasyLevel;
   /** The lessons (D185): the passage ends here (a tick); the music waits for each note; the voice alone; the keys taught so far. */
   until?: number;
   wait?: boolean;
@@ -107,9 +109,9 @@ export const PROTOS: Proto[] = [
   },
   {
     id: "keys",
-    short: "ANY KEY ON THE BEAT · THE ROW SETS THE DYNAMIC",
+    short: "ANY KEY ON THE BEAT · LINE UP, KEY TO THE RIGHT · THE ROW SETS THE DYNAMIC",
     name: "EASY",
-    how: "On a computer. Any key on time plays your note: only the time counts. The rows shape the note: Q W E R… forte, A S D F… (and space) mezzo, Z X C V… piano; the numbers trill it. Hold a key to sustain; strike the next while still holding for legato. Space flings the sounding note off (swoosh); hold Shift as a pedal; ↑ ↓ bend a held note.",
+    how: "On a computer. Any key on time plays your note. Three levels (⚙): TIMING, only the time counts; DIRECTION, the keys follow the line: a key further right than the last when it rises, further left when it falls, the same key (or space) when it repeats; + LEAPS, and a leap of a fourth or more skips a key. A note after a rest or a long note is free (boxed in the music box): any key. At the end of a row, the edge key again answers a move past it. Best with both hands on the home row, thumbs on space. The rows shape the note: Q W E R… forte, A S D F… mezzo, Z X C V… piano; the numbers trill it. Hold Shift as a pedal; ↑ ↓ bend a held note.",
     layout: "desk",
     platform: "computer",
   },
@@ -222,4 +224,57 @@ export function fits(asked: Arrow, key: Arrow): boolean {
 /** And back: the move a key makes. */
 export function moveOf(a: Arrow): { dir: number; big: boolean } {
   return { dir: a === "up" || a === "right" || a === "rise" ? 1 : a === "same" ? 0 : -1, big: a === "up" || a === "down" };
+}
+
+/**
+ * D187, EASY's levels. TIMING: any key on time. DIRECTION: the key further right than the last when
+ * the line rises, further left when it falls, the same key (or space) on a repeated note. LEAPS: and a
+ * leap (a fourth or more) skips at least one key.
+ */
+export type EasyLevel = "timing" | "direction" | "leaps";
+export const EASY_LEVELS: [EasyLevel, string][] = [
+  ["timing", "TIMING"],
+  ["direction", "DIRECTION"],
+  ["leaps", "+ LEAPS"],
+];
+
+/** Where a key lies (D187): its finger's column (1, Q, A and Z one column) and its place across the board (the rows staggered). */
+export function keyPlace(code: string): { col: number; x: number; row: number; first: boolean; last: boolean } | null {
+  const r = keyRow(code);
+  if (r < 0) return null;
+  const codes = KEY_ROWS[r].codes;
+  const c = codes.indexOf(code);
+  const col = r === 0 ? c - 1 : c;
+  const x = col + [0, 0.5, 0.75, 1.25][r];
+  return { col, x, row: r, first: c === 0, last: c === codes.length - 1 };
+}
+
+/**
+ * Whether a key answers the line's move (D187), from the key struck before. Further right: by
+ * column or by place across the board (either will do: the rows are staggered). At the board's edge,
+ * the edge key again answers a move past it.
+ */
+export function contourOk(m: Move, prev: string, code: string, leaps: boolean): boolean {
+  if (code === "Space") return m.dir === 0 || m.steps === 0;
+  const a = keyPlace(prev);
+  const b = keyPlace(code);
+  // From space (a repeated note), any key: the hand is where it was.
+  if (!a || !b) return true;
+  const same = b.col === a.col;
+  if (m.dir === 0 || m.steps === 0) return same || m.steps === 0;
+  const right = b.col > a.col || b.x > a.x + 0.3;
+  const left = b.col < a.col || b.x < a.x - 0.3;
+  const wall = m.dir > 0 ? a.last && b.col >= a.col : a.first && b.col <= a.col;
+  const way = m.dir > 0 ? right : left;
+  if (!way) return wall;
+  // A leap skips a key, unless the edge comes first.
+  return !leaps || m.size < 3 || Math.abs(b.col - a.col) >= 2 || wall || (m.dir > 0 ? b.last : b.first);
+}
+
+/** What the box draws over a note in EASY's DIRECTION (D187): the way along the keys, or free. */
+export function contourCue(m: Move, free: boolean, leaps: boolean): Arrow {
+  if (free) return "free";
+  if (m.dir === 0 || m.steps === 0) return "same";
+  const big = leaps && m.size >= 3;
+  return m.dir > 0 ? (big ? "right2" : "right") : big ? "left2" : "left";
 }

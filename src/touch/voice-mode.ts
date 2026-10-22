@@ -6,6 +6,7 @@
  */
 import { barAt, barStart, countInStart, beatOf, type TouchFugue } from "./fugue.ts";
 import { laneNotes, type LaneNote } from "./lanes.ts";
+import type { Span } from "./box-fx.ts";
 
 export interface Level {
   voice: number;
@@ -82,4 +83,15 @@ export function subjectMarks(f: TouchFugue): { subject: Set<string>; entries: { 
     if (first) entries.push({ voice: e.voice, on: e.on, step: first[3] });
   }
   return { subject, entries };
+}
+
+/** D186: each entry whole, for the box to draw (its notes as staff steps, the top of a chord). */
+export function entrySpans(f: TouchFugue): Span[] {
+  return f.entries.map((e) => {
+    const steps = new Map<number, number>();
+    for (const [on, , , step] of f.voices[e.voice]) steps.set(on, Math.max(step, steps.get(on) ?? -Infinity));
+    const seen = new Set<number>();
+    const path = e.notes.filter(([on]) => steps.has(on) && !seen.has(on) && (seen.add(on), true)).map(([on, dur]) => ({ on, dur, step: steps.get(on)! }));
+    return { voice: e.voice, on: e.on, end: e.end, form: e.form, key: e.key, path };
+  });
 }
