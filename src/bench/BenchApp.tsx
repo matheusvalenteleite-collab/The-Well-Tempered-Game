@@ -162,8 +162,10 @@ export function BenchApp() {
     setAsking(askFirst(pl));
   };
   const [note, setNote] = useState("");
-  // D192: the fugue wheel, opened from ⚙.
+  // D192: the fugue wheel, opened from ⚙. D226: and on opening the game, once the platform is
+  // chosen (and Herr Bach's question answered): no piece is chosen for the player.
   const [wheel, setWheel] = useState(false);
+  const [choosing, setChoosing] = useState(true);
   // D188: a lesson with Herr Bach plays its own passage, on EASY at the lesson's level.
   // D225: a lesson of a platform's track (TRACKS), in its own mode.
   const [lesson, setLesson] = useState<{ pl: Platform; n: number; run: Run } | null>(null);
@@ -589,7 +591,7 @@ export function BenchApp() {
       // Keys meant for a control (the FROM slider; space or enter on a button off the game) or the
       // first screen are theirs (D184).
       const tgt = e.target instanceof Element ? e.target : null;
-      if (!platform || asking || tgt?.closest("input, select, textarea") || (phase.kind !== "play" && tgt?.closest("button") && (e.code === "Space" || e.code === "Enter"))) return;
+      if (!platform || asking || (choosing && phase.kind === "title") || (wheel && phase.kind === "settings") || tgt?.closest("input, select, textarea") || (phase.kind !== "play" && tgt?.closest("button") && (e.code === "Space" || e.code === "Enter"))) return;
       const g = game.current;
       if (proto.id === "piano" && (e.code === "KeyZ" || e.code === "KeyX")) {
         octave.current += e.code === "KeyZ" ? -1 : 1;
@@ -781,6 +783,15 @@ export function BenchApp() {
             </div>
           )}
         </Panel>
+      )}
+      {choosing && platform && !asking && !lesson && phase.kind === "title" && (
+        <FuguePicker
+          current={pick.piece}
+          pick={(piece) => {
+            setPick({ piece, share: 0, voice: -1 });
+            setChoosing(false);
+          }}
+        />
       )}
       {wheel && phase.kind === "settings" && (
         <FuguePicker

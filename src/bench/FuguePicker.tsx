@@ -64,7 +64,7 @@ export function PieceButton({ id, open }: { id: string; open: () => void }) {
   );
 }
 
-export function FuguePicker({ current, pick, close }: { current: string; pick: (id: string) => void; close: () => void }) {
+export function FuguePicker({ current, pick, close }: { current: string; pick: (id: string) => void; close?: () => void }) {
   const start = cardById(current) ?? bookCards(1)[0];
   const [book, setBook] = useState<Book>(start.book);
   // The wheel's position (rows, fractional while it moves) in the book shown.
@@ -163,7 +163,7 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
         e.stopImmediatePropagation();
         fn();
       };
-      if (k === "Escape") return handled(close);
+      if (k === "Escape") return close ? handled(close) : undefined;
       if (k === "ArrowUp" || k === "KeyW") return handled(() => go(sel - 1));
       if (k === "ArrowDown" || k === "KeyS") return handled(() => go(sel + 1));
       if (k === "PageUp") return handled(() => go(Math.max(0, sel - 4)));
@@ -215,9 +215,9 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
           <h1>DAS WOHLTEMPERIRTE CLAVIER</h1>
           <p>the fugues · ↑↓ choose · ←→ book · ⏎ play</p>
         </div>
-        <button type="button" id="wheel-close" className="tg-x" aria-label="Close" onClick={close}>
+        {close && <button type="button" id="wheel-close" className="tg-x" aria-label="Close" onClick={close}>
           ✕
-        </button>
+        </button>}
       </header>
       <nav className="tg-tabs tb-wheel-tabs" role="tablist">
         {BOOKS.map(([b, label]) => (
