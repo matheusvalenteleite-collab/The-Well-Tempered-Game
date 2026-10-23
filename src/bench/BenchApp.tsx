@@ -201,7 +201,7 @@ export function BenchApp() {
       hi: range.hi,
       ...(proto.id === "ladder" ? { spill: stepRange(f) } : {}),
       voice,
-      notes: line ? line.notes.map(([on, dur, midi, step, v]) => ({ on, dur, midi, step, long: dur >= b.ticks, state: "pending" as const, voice: v })) : lane(voice),
+      notes: line ? [...line.notes, ...line.second].sort((a, c) => a[0] - c[0] || c[2] - a[2]).map(([on, dur, midi, step, v]) => ({ on, dur, midi, step, long: dur >= b.ticks, state: "pending" as const, voice: v })) : lane(voice),
       ...(duo ? { voice2: pick.voice2, notes2: lane(pick.voice2) } : {}),
       others: run?.solo ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi))) : accompaniment(f, from, voice).filter((n) => !played.includes(n.voice) && (!run || n.on < run.until)),
       ...marks,
@@ -311,7 +311,7 @@ export function BenchApp() {
           // D196: the fugue's seal, judged over the whole run.
           const card = cardById(f.id);
           const seal = card
-            ? judgeSeal(card, { f, tracks: subjectMode ? played.map((v) => ({ voice: v, notes: g.notes.filter((n) => n.voice === v) })) : g.tracks.map((t) => ({ voice: t.voice, notes: t.notes })), entries: g.entries, beat: b.ticks, grade: r.grade, tuning: tuning.id, duo, whole: from === 0 && r.failedBar === null })
+            ? judgeSeal(card, { f, tracks: subjectMode ? played.map((v) => ({ voice: v, notes: g.tracks.flatMap((t) => t.notes).filter((n) => n.voice === v).sort((a, c) => a.on - c.on) })) : g.tracks.map((t) => ({ voice: t.voice, notes: t.notes })), entries: g.entries, beat: b.ticks, grade: r.grade, tuning: tuning.id, duo, whole: from === 0 && r.failedBar === null })
             : null;
           if (seal?.earned) recordSeal(f.id, played);
           setPhase({ kind: "result", ...r, her: !!h?.startedAt, seal: card && seal ? { kind: card.seal.kind, ...seal } : null });

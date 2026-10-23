@@ -24,7 +24,7 @@ import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode
 import { SubjectSound } from "../touch/subject-fx.ts";
 import { pianoKey, pianoKeys } from "./placed.ts";
 import type { Clock } from "./her-clock.ts";
-import { lineKey, subjectLine, type LineEntry, type SubjectLine } from "./subject-line.ts";
+import { lineKey, subjectLine, type LineEntry, type Stretto, type SubjectLine } from "./subject-line.ts";
 import { barDynamic, contourCue, contourOk, dynamic, HOME_LANES, keyPlace, LADDER_AREA, planLanes, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk } from "./protos.ts";
 
 export const PERFECT_MS = 70;
@@ -111,7 +111,12 @@ export interface Track {
   voice: number;
   notes: LaneNote[];
   moves: Move[];
+  /** D214, D217: the onsets that start a new contour (an entry's first note; a stretto's first lower-row note): free. */
+  fresh?: Set<number>;
 }
+
+/** D217: the two rows of pads meet this far (px) above the play area's foot (paint-proto.ts padRows: the strike line 196 px up). */
+export const PAD_SPLIT = 135;
 
 export class ProtoGame {
   readonly f: TouchFugue;
@@ -208,7 +213,7 @@ export class ProtoGame {
     // D214, SUBJECT: one line, the subject's notes in every entry, whichever voice (subject-line.ts).
     const line = proto.id === "subject" ? subjectLine(f, from, o.until) : null;
     this.line = line;
-    this.tracks = line ? [this.lineTrack(line, msBetween)] : (Array.isArray(voices) ? voices : [voices]).map((v) => {
+    this.tracks = line ? this.lineTracks(line, msBetween) : (Array.isArray(voices) ? voices : [voices]).map((v) => {
       const notes = laneNotes(
         f.voices[v].filter(([on]) => on >= from && (o.until === undefined || on < o.until)),
         this.beat,
@@ -243,20 +248,55 @@ export class ProtoGame {
 
   /** D214, SUBJECT: the subject line (its entries, their labels), or null. */
   readonly line: SubjectLine | null;
-  /** D214: the line as a track: each note in its own voice; an entry's first note never rides (it is free: any lane). */
-  private lineTrack(line: SubjectLine, msBetween: (a: number, c: number) => number): Track {
-    const notes: LaneNote[] = line.notes.map(([on, dur, midi, step, voice]) => ({ on, dur, midi, step, long: dur >= this.beat, state: "pending", voice }));
+  /**
+   * D214: the line as a track: each note in its own voice; an entry's first note never rides (it is
+   * free: any lane). D217: and the second line (the older entry in a stretto, the lower row) as a
+   * second track, reduced to its "special moves": only its notes on a beat or of half a beat or more
+   * are struck, the quicker ones ride (D191, played for the player); each stretto's first note there
+   * is struck and free.
+   */
+  private lineTracks(line: SubjectLine, msBetween: (a: number, c: number) => number): Track[] {
+    const asNotes = (ns: SubjectLine["notes"]): LaneNote[] => ns.map(([on, dur, midi, step, voice]) => ({ on, dur, midi, step, long: dur >= this.beat, state: "pending", voice }));
+    const notes = asNotes(line.notes);
     quickRides(notes, this.beat, msBetween);
     const heads = new Set(line.entries.map((e) => e.on));
     for (const n of notes) if (heads.has(n.on)) n.ride = false;
-    return { voice: line.entries[0]?.voice ?? 0, notes, moves: moves(notes, this.beat) };
+    const second = asNotes(line.second);
+    quickRides(second, this.beat, msBetween);
+    const fresh2 = new Set(line.secondHeads);
+    for (const n of second) {
+      if (inBar(this.f, n.on) % this.beat !== 0 && n.dur < this.beat / 2) n.ride = true;
+      if (fresh2.has(n.on)) n.ride = false;
+    }
+    return [
+      { voice: line.entries[0]?.voice ?? 0, notes, moves: moves(notes, this.beat), fresh: heads },
+      { voice: line.entries.find((e) => e.on === line.second[0]?.[0])?.voice ?? line.second[0]?.[4] ?? 0, notes: second, moves: moves(second, this.beat), fresh: fresh2 },
+    ];
+  }
+  /** D217, SUBJECT: the stretto sounding now (or about to, within `ahead` ticks), if any. */
+  strettoNow(ahead = 0): Stretto | null {
+    return this.line?.strettos.find((s) => s.on - ahead <= this.now && this.now < s.end) ?? null;
+  }
+  /** D217: the row a touch is in (the pads' split, as painted: 135 px above the screen's foot), and the track it plays. */
+  private rowTrack(c: Contact, ts: number): number {
+    if (!this.line || this.tracks.length < 2 || c.y < c.h - PAD_SPLIT) return 0;
+    // The lower row plays the second line during a stretto; outside one, either row plays the single entry.
+    const t = this.tickOf(ts);
+    return this.inStretto(t) || this.nearestPending(1, t) >= 0 ? 1 : 0;
+  }
+  /** D217: within a stretto (from the newer entry's arrival until the second line's last note ends). */
+  private inStretto(t: number): boolean {
+    return !!this.line?.strettos.some((s) => s.on <= t && t < s.end);
   }
   /** D214: the entry sounding now and the next to come (SUBJECT's banner and count-in). */
   entryNow(): { current: LineEntry | null; next: LineEntry | null } {
     const es = this.line?.entries ?? [];
     const j = es.findIndex((e) => e.on > this.now);
     const current = (j < 0 ? es.at(-1) : es[j - 1]) ?? null;
-    return { current: current && this.now < current.end ? current : null, next: j < 0 ? null : es[j] };
+    // D217: of two entries beginning together, the main line's (listed last).
+    let k = j;
+    while (k >= 0 && k + 1 < es.length && es[k + 1].on === es[j].on) k++;
+    return { current: current && this.now < current.end ? current : null, next: k < 0 ? null : es[k] };
   }
   /** A note's own voice (D214: SUBJECT's line moves between voices; it sounds in each one's voicing). */
   private voiceOf(k: number, i: number): number {
@@ -363,6 +403,7 @@ export class ProtoGame {
       this.grade = { text: "MISS", at: performance.now() };
     }
     this.judgeEntries();
+    this.judgeStrettos();
     this.judgeCadences();
     this.sustain();
     // D198: the crowd lost: the run ends here (not in the lessons, nor with NO FAIL).
@@ -391,6 +432,16 @@ export class ProtoGame {
   next(k = 0): number {
     const notes = this.tracks[k].notes;
     return notes.findIndex((n, i) => n.state === "pending" && !n.ride && n.on >= this.now - this.opt.late && !(i > 0 && notes[i - 1].on === n.on));
+  }
+
+  /** D217: a voice's pending struck note nearest a tick within the window (none: -1), not taken. */
+  private nearestPending(k: number, t: number): number {
+    let best = -1;
+    this.tracks[k].notes.forEach((n, i) => {
+      if (n.state !== "pending" || n.ride || t < n.on - this.opt.early || t > n.on + this.opt.late) return;
+      if (best < 0 || Math.abs(t - n.on) < Math.abs(t - this.tracks[k].notes[best].on)) best = i;
+    });
+    return best;
   }
 
   /** The voice a thumb plays. */
@@ -506,15 +557,19 @@ export class ProtoGame {
         // D207: EASY on a phone: the lane tapped, judged as the keys are (D187), by lanes.
         const lvl = this.o.easy ?? "timing";
         if (lvl === "timing" || this.isFree(i, k)) return { ok: true };
-        if (lvl === "exact") return this.laneOfX(c.x, c.w) === this.lanes[i] ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
-        if (this.lastLane < 0) return { ok: true };
-        return laneOk(m, this.lastLane, this.laneOfX(c.x, c.w), lvl === "leaps", this.laneCount) ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
+        if (lvl === "exact") return this.laneOfX(c.x, c.w) === this.lanesOf(k)[i] ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
+        // D217: each row (SUBJECT's two lines in a stretto) judged from its own last lane.
+        const last = this.line ? this.laneBy[k] : this.lastLane;
+        if (last < 0) return { ok: true };
+        return laneOk(m, last, this.laneOfX(c.x, c.w), lvl === "leaps", this.laneCount) ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
       }
     }
   }
 
   /** D207, HIGHWAY: the lane a tap falls in, and the lane tapped last (-1: none yet). */
   lastLane = -1;
+  /** D217: the lane tapped last in each line (SUBJECT's two rows in a stretto). */
+  private readonly laneBy = [-1, -1];
   laneOfX(x: number, w: number): number {
     return Math.max(0, Math.min(this.laneCount - 1, Math.floor((x / Math.max(1, w)) * this.laneCount)));
   }
@@ -535,11 +590,11 @@ export class ProtoGame {
   down(id: number, c: Contact, ts: number) {
     if (this.held.has(id)) this.up(id, ts);
     const d = this.dynamicAt(c);
-    const h: Held = { side: c.side, k: this.trackOf(c.side), x0: c.x, ax: c.x, ay: c.y, note: -1, chord: [], sounds: [], midi: 0, cell: this.cellAt(c), d0: d, trail: [{ t: ts, y: c.y }] };
+    const h: Held = { side: c.side, k: this.line ? this.rowTrack(c, ts) : this.trackOf(c.side), x0: c.x, ax: c.x, ay: c.y, note: -1, chord: [], sounds: [], midi: 0, cell: this.cellAt(c), d0: d, trail: [{ t: ts, y: c.y }] };
     this.held.set(id, h);
     this.strikeWith(id, h, ts, { c }, d);
     // HIGHWAY: where the hand is now.
-    if (this.road) (this.lastLane = this.laneOfX(c.x, c.w)), (this.touchW = c.w);
+    if (this.road) (this.lastLane = this.laneBy[h.k] = this.laneOfX(c.x, c.w)), (this.touchW = c.w);
   }
 
   /** A computer key or a MIDI key goes down. */
@@ -557,15 +612,40 @@ export class ProtoGame {
 
   /** EASY's DIRECTION: the key struck last. */
   lastKey: string | null = null;
-  /** A note the hand may take anywhere: the first, or after a rest or a long note (D187). */
+  /**
+   * A note the hand may take anywhere (an open bar across the road): D217, only the first, a new
+   * contour's start (SUBJECT: an entry's first note, a stretto's first lower-row note), and a note
+   * after a real rest: a beat at least (half a bar where a beat passes in under half a second). A long
+   * note no longer frees the next (D187 freed it, and after any rest of a quarter beat: crossbars
+   * everywhere); there the lanes recentre silently (`soft`).
+   */
   isFree(i: number, k = 0): boolean {
-    // D214: an entry's first note starts a new contour.
-    if (this.line && this.entries.some((e) => e.on === this.tracks[k].notes[i]?.on)) return true;
-    const j = this.before(i, k);
-    if (j < 0) return true;
+    const t = this.tracks[k];
+    const n = t.notes[i];
+    if (!n || t.fresh?.has(n.on)) return true;
+    return this.restBefore(i, k) >= this.restMin;
+  }
+  /** D217: the rest before note i (from the end of whatever sounded last, the riding notes included), in ticks; Infinity for the first. */
+  private restBefore(i: number, k: number): number {
     const notes = this.tracks[k].notes;
-    const p = notes[j];
-    return p.dur >= this.beat || notes[i].on - (p.on + p.dur) >= this.beat / 4;
+    const j = this.before(i, k);
+    if (j < 0) return Infinity;
+    let end = -Infinity;
+    for (let q = i - 1; q >= 0 && notes[q].on >= notes[j].on; q--) if (notes[q].on < notes[i].on) end = Math.max(end, notes[q].on + notes[q].dur);
+    return notes[i].on - end;
+  }
+  private get restMin(): number {
+    return this.beat / this.tps < 0.5 ? Math.max(this.beat, this.f.barTicks / 2) : this.beat;
+  }
+  /**
+   * D217: a note where the lanes may recentre without an open bar: after a long note (a beat or more)
+   * or a short rest (a quarter beat): the planner may take any lane the right way there (any lane
+   * further right for a rise, further left for a fall), which DIRECTION accepts as it is.
+   */
+  private soft(i: number, k: number): boolean {
+    const j = this.before(i, k);
+    if (j < 0) return false;
+    return this.tracks[k].notes[j].dur >= this.beat || this.restBefore(i, k) >= this.beat / 4;
   }
   /** What the box draws over each note in DIRECTION (none in TIMING). */
   get cues(): Arrow[] | undefined {
@@ -589,6 +669,16 @@ export class ProtoGame {
     const key = at.key?.midi;
     let i = key !== undefined ? strike(notesK, tk, this.opt, (j) => chordOf(notesK, j).some((x) => notesK[x].midi === key)) : -1;
     if (i < 0) i = strike(notesK, tk, this.opt);
+    // D217: in a stretto, a note is right only in its row: the other row's note, struck here, is wrong.
+    if (i < 0 && this.line && this.tracks.length > 1) {
+      const o = 1 - h.k;
+      const j = this.nearestPending(o, tk);
+      if (j >= 0) {
+        h.k = o;
+        this.play(id, h, j, { ok: false, why: "hand" }, false, d);
+        return;
+      }
+    }
     // D191: a strike on a note that rides (the player striking it anyway) is no slip; it is played for them.
     if (i < 0 && notesK.some((n) => n.ride && Math.abs(n.on - tk) <= Math.max(this.opt.early, this.opt.late))) return;
     if (i < 0) {
@@ -643,7 +733,7 @@ export class ProtoGame {
       if (lane === h.cell || Math.abs(c.x - h.ax) < (c.w / this.laneCount) * 0.75) return;
       h.cell = lane;
       h.ax = c.x;
-      if (this.slideTo(id, h, c, t)) this.lastLane = lane;
+      if (this.slideTo(id, h, c, t)) this.lastLane = this.laneBy[h.k] = lane;
     } else if (this.proto.id === "piano") {
       // Only the thumb's own travel counts.
       const unit = c.w / this.kb.whites / 2;
@@ -763,7 +853,7 @@ export class ProtoGame {
     this.maxStreak = Math.max(this.maxStreak, this.streak);
     // D198: the crowd warms; a long run called out, every fifty.
     this.crowd = Math.min(1, this.crowd + (perfect ? 0.025 : 0.015));
-    this.flames.push({ i, at });
+    this.flames.push({ i, at, k: h.k });
     if (this.flames.length > 24) this.flames.splice(0, 12);
     if (this.streak % 50 === 0) this.banner = { text: `${this.streak} NOTE STREAK!`, at };
     if (this.streak % STEP_NOTES === 0 && this.mult < 4) this.mult++;
@@ -832,7 +922,8 @@ export class ProtoGame {
     for (const e of this.entries) {
       if (e.state !== "open") continue;
       // D191: the riding notes are not the player's to capture.
-      const notes = this.tracks[e.k].notes.filter((n) => !n.ride && e.ons.includes(n.on));
+      // D217: SUBJECT's entry over both lines (its older part may go on in the lower row).
+      const notes = (this.line ? this.tracks.flatMap((t) => t.notes.filter((n) => n.voice === e.voice)) : this.tracks[e.k].notes).filter((n) => !n.ride && e.ons.includes(n.on));
       if (notes.some((n) => n.state === "miss")) {
         e.state = "lost";
         if (this.isBoss(e)) this.banner = { text: "THE BOSS GOT AWAY", at: performance.now() };
@@ -852,6 +943,31 @@ export class ProtoGame {
         this.banner = { text: boss ? "BOSS DEFEATED!" : "ORGANO PLENO!", at: performance.now() };
       }
     }
+  }
+
+  /**
+   * D217, SUBJECT: each stretto announced a beat before it begins (STRETTO!, the painter's two-row
+   * cue), and cleared when every struck note of both lines within it is right: a bonus twice an
+   * entry's (STRETTO ×2); its entries are captured as usual.
+   */
+  readonly strettoState: ("coming" | "open" | "cleared" | "lost")[] = [];
+  private judgeStrettos() {
+    const ss = this.line?.strettos ?? [];
+    ss.forEach((s, j) => {
+      const st = this.strettoState[j] ?? "coming";
+      if (st === "coming" && this.now >= s.on - this.beat && this.now < s.end) {
+        this.strettoState[j] = "open";
+        this.banner = { text: "STRETTO!", at: performance.now() };
+      }
+      if (this.strettoState[j] !== "open") return;
+      const notes = this.tracks.flatMap((t) => t.notes.filter((n) => !n.ride && n.on >= s.on && n.on < s.end));
+      if (notes.some((n) => n.state === "miss")) this.strettoState[j] = "lost";
+      else if (notes.length && notes.every((n) => n.state === "hit")) {
+        this.strettoState[j] = "cleared";
+        this.score += 40 * this.mult;
+        this.banner = { text: "STRETTO ×2!", at: performance.now() };
+      }
+    });
   }
 
   /**
@@ -876,7 +992,7 @@ export class ProtoGame {
    */
   crowd = 0.6;
   failedAt: number | null = null;
-  readonly flames: { i: number; at: number }[] = [];
+  readonly flames: { i: number; at: number; k?: number }[] = [];
   private sustainAt = 0;
   private sustainAcc = 0;
   private sustain() {
@@ -908,14 +1024,19 @@ export class ProtoGame {
    * running; on a phone five lanes.
    */
   get lanes(): number[] {
-    if (this.lanesMemo) return this.lanesMemo;
-    const notes = this.notes;
-    const heads = notes.map((n, i) => !n.ride && !(i > 0 && notes[i - 1].on === n.on));
-    const free = notes.map((_, i) => this.isFree(i));
-    this.lanesMemo = planLanes(this.moves, heads, free, this.laneCount, this.proto.id === "keys");
-    return this.lanesMemo;
+    return this.lanesOf(0);
   }
-  private lanesMemo?: number[];
+  /** D217: a track's lanes (SUBJECT's second line has its own). */
+  lanesOf(k: number): number[] {
+    if (this.lanesMemo[k]) return this.lanesMemo[k];
+    const { notes, moves: mv } = this.tracks[k];
+    const heads = notes.map((n, i) => !n.ride && !(i > 0 && notes[i - 1].on === n.on));
+    const free = notes.map((_, i) => this.isFree(i, k));
+    const soft = notes.map((_, i) => this.soft(i, k));
+    this.lanesMemo[k] = planLanes(mv, heads, free, this.laneCount, this.proto.id === "keys", soft);
+    return this.lanesMemo[k];
+  }
+  private lanesMemo: number[][] = [];
 
   /** D213: the subject's sound (the cues, the fugue's effect, the LAB switches as the game began). */
   readonly subj: SubjectSound;

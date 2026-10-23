@@ -261,6 +261,8 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   // D208: the other voices, faint, by pitch across the road (low left, high right), so the fugue's
   // architecture shows behind the lanes: each voice its colour, its subject entries brighter.
   if (phone) ghosts(c, g, at, cx, W, y1);
+  // D217, SUBJECT: a stretto's older entry (the lower row) drawn hollow, behind the main line.
+  if (subj && g.tracks[1]) secondLine(c, g, at, laneX, W, N, y1, beat, t);
   // The notes, far to near.
   const lanes = g.lanes;
   const notes = g.notes;
@@ -348,6 +350,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   // so they can pass each other (a lane is a lane in either row).
   if (phone) {
     padRows(c, g, laneX, W, N, y1, inkOfLane, lvl !== "timing" ? lastCol : undefined, t);
+    if (subj) strettoRows(c, g, laneX, W, N, y1, t);
   }
   // The keys (a computer's).
   const bh = 18;
@@ -388,8 +391,9 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   const now = performance.now();
   for (const fl of g.flames) {
     const age = now - fl.at;
-    if (age > 260 || fl.i >= lanes.length) continue;
-    const x = laneX(lanes[fl.i], 1);
+    const fLanes = g.lanesOf(fl.k ?? 0);
+    if (age > 260 || fl.i >= fLanes.length) continue;
+    const x = laneX(fLanes[fl.i], 1);
     for (let k = 0; k < 7; k++) {
       c.fillStyle = k % 2 ? "#ffd56a" : "#ff7a3d";
       c.globalAlpha = 1 - age / 260;
@@ -434,13 +438,96 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
       : `THE NOTE'S KEY, OR ANY KEY ON ITS SIDE OF THE LAST · SAME NOTE: SAME KEY OR SPACE${lvl === "leaps" ? " · A LEAP SKIPS A KEY" : ""} · OPEN BAR: ANY KEY`;
   if (phone) {
     label(c, lvl === "timing" ? "TAP ANY LANE ON THE BEAT · SLIDE TO JOIN" : "LINE UP: TAP FURTHER RIGHT · DOWN: LEFT", w / 2, h - 30, t.fg, 7);
-    label(c, lvl === "timing" ? "TWO ROWS: CROSS THUMBS · HOLD THE LONG NOTES" : `SAME NOTE: SAME LANE${lvl === "leaps" ? " · LEAP: SKIP A LANE" : ""} · SLIDE TO JOIN · TWO ROWS`, w / 2, h - 16, t.muted, 7);
+    label(c, subj ? "STRETTO: NEW ENTRY UPPER ROW · OLDER LOWER ROW, HOLLOW" : lvl === "timing" ? "TWO ROWS: CROSS THUMBS · HOLD THE LONG NOTES" : `SAME NOTE: SAME LANE${lvl === "leaps" ? " · LEAP: SKIP A LANE" : ""} · SLIDE TO JOIN · TWO ROWS`, w / 2, h - 16, t.muted, 7);
     return;
   }
   label(c, how, w / 2, h - 24, t.fg, 7);
   label(c, `Q ROW f · A ROW mf · Z ROW p · SHIFT: PEDAL${g.pedalOn ? " (DOWN)" : ""}`, w / 2, h - 10, g.pedalOn ? t.gold : t.muted, 7);
 }
 
+
+/**
+ * D217, SUBJECT's second line (a stretto's older entry, played in the lower row): its gems hollow, an
+ * outline in its voice's colour over the dark road; its free note a hollow bar; its riding notes dots;
+ * its long notes' tails as the main line's.
+ */
+function secondLine(c: CanvasRenderingContext2D, g: ProtoGame, at: (tick: number) => { y: number; k: number; d: number }, laneX: (l: number, k: number) => number, W: number, N: number, y1: number, beat: number, t: Tok) {
+  const notes = g.tracks[1].notes;
+  const lanes = g.lanesOf(1);
+  const cx = laneX((N - 1) / 2, 1);
+  const lvl = g.o.easy ?? "timing";
+  for (let i = notes.length - 1; i >= 0; i--) {
+    const n = notes[i];
+    if (i > 0 && notes[i - 1].on === n.on) continue;
+    const p = at(n.on);
+    if (p.d > 1 || p.y > y1 + 40) continue;
+    if (n.state === "hit" && !(n.dur >= beat && g.now < n.on + n.dur)) continue;
+    const ink = inkOf(n.voice ?? g.tracks[1].voice, g.f.voices.length);
+    const lw = (W / N) * p.k;
+    const x = laneX(lanes[i], p.k);
+    if (n.dur >= beat && n.state !== "miss") {
+      const e = at(Math.min(n.on + n.dur, g.now + AHEAD_S * g.tps));
+      const from = n.state === "hit" ? at(Math.max(n.on, g.now)) : p;
+      c.strokeStyle = ink;
+      c.globalAlpha = n.held ? 0.9 : 0.5;
+      c.lineWidth = Math.max(1, 2 * p.k);
+      c.beginPath();
+      c.moveTo(laneX(lanes[i], from.k), from.y);
+      c.lineTo(laneX(lanes[i], e.k), e.y);
+      c.stroke();
+      c.globalAlpha = 1;
+      if (n.state === "hit") continue;
+    }
+    if (n.ride) {
+      c.strokeStyle = ink;
+      c.lineWidth = 1;
+      c.strokeRect(x - 2, p.y - 2, 4, 4);
+      continue;
+    }
+    const gh = Math.max(4, 12 * p.k);
+    c.strokeStyle = n.state === "miss" ? t.miss : ink;
+    c.lineWidth = Math.max(1.5, 3 * p.k);
+    if (g.isFree(i, 1) && lvl !== "timing") {
+      c.strokeRect(cx - (W / 2) * p.k + 6, p.y - gh / 3, W * p.k - 12, Math.max(3, gh * 0.6));
+      continue;
+    }
+    const gw = lw * 0.8;
+    c.fillStyle = "rgba(10,9,16,0.85)";
+    c.fillRect(x - gw / 2, p.y - gh / 2, gw, gh);
+    c.strokeRect(x - gw / 2, p.y - gh / 2, gw, gh);
+    // A notch at its foot: the lower row's.
+    c.fillStyle = n.state === "miss" ? t.miss : ink;
+    c.fillRect(x - gw / 6, p.y + gh / 2 - Math.max(1, 3 * p.k), gw / 3, Math.max(1, 3 * p.k));
+  }
+}
+
+/**
+ * D217, SUBJECT: a stretto's two rows named on the pads as it comes (a beat ahead) and while it lasts:
+ * the upper row the newer entry (its colour, NEW), the lower the older (OLDER, dashed: hollow, as its gems).
+ */
+function strettoRows(c: CanvasRenderingContext2D, g: ProtoGame, laneX: (l: number, k: number) => number, W: number, N: number, y1: number, t: Tok) {
+  const s = g.strettoNow(g.beat);
+  const es = g.line?.entries;
+  if (!s || !es) return;
+  const count = g.f.voices.length;
+  const coming = g.now < s.on;
+  const pulse = coming ? 0.5 + 0.5 * Math.abs(Math.sin((g.now / g.beat) * Math.PI)) : 1;
+  const x0 = laneX(0, 1) - W / N / 2;
+  for (const [row, e, mark] of [[0, es[s.upper], "NEW"], [1, es[s.lower], "OLDER"]] as const) {
+    const y = y1 + TIER.top + row * (TIER.h + TIER.gap);
+    const ink = inkOf(e.voice, count);
+    c.strokeStyle = ink;
+    c.globalAlpha = 0.85 * pulse;
+    c.lineWidth = 3;
+    if (row) c.setLineDash([6, 4]);
+    c.strokeRect(x0 + 1, y - 1, W - 2, TIER.h + 2);
+    c.setLineDash([]);
+    c.globalAlpha = 1;
+    const name = (g.f.voiceNames[e.voice] ?? "").toUpperCase();
+    label(c, `${mark}: ${name}`, x0 + 8, y + TIER.h - 9, ink, 6, "left");
+  }
+  if (coming) label(c, "STRETTO · TWO ROWS", laneX((N - 1) / 2, 1), y1 - 56, t.gold, 8);
+}
 
 /**
  * D214, SUBJECT: whose the subject is. The entry under way named at the top in its voice's colour
@@ -455,7 +542,11 @@ function subjectCues(c: CanvasRenderingContext2D, g: ProtoGame, at: (tick: numbe
     const age = (g.now - current.on) / g.tps;
     const flash = Math.max(0, 1 - age / (2 * beatS));
     c.globalAlpha = 0.75 + 0.25 * flash;
+    // D217: in a stretto, the newer entry (the upper row) over the older one (the lower row).
+    const st = g.strettoNow();
+    const lower = st && g.line ? g.line.entries[st.lower] : null;
     label(c, current.label, cx, 84, inkOf(current.voice, count), Math.round(8 + 4 * flash));
+    if (lower) label(c, `+ ${lower.label} · LOWER ROW`, cx, 102, inkOf(lower.voice, count), 7);
     c.globalAlpha = 1;
   }
   if (!next) return;
@@ -704,6 +795,8 @@ function verdict(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   if (age < 500) {
     c.globalAlpha = 1 - age / 500;
     const why: Record<string, string> = { legato: "✕ LEGATO", gesture: "✕ WRONG", staccato: "✕ STACCATO", tenuto: "✕ TENUTO", hand: "✕ OTHER THUMB", height: "✕ HIGHER/LOWER", dynamic: "✕ FORTE/PIANO" };
+    // D217: SUBJECT's stretto: a note struck in the other row of pads.
+    if (g.proto.id === "subject") why.hand = "✕ OTHER ROW";
     const text = gr.text === "✕" ? (why[gr.why ?? ""] ?? "✕ OFF TIME") : gr.text;
     const bars = g.proto.layout === "bars";
     const desk = g.proto.layout === "desk";

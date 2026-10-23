@@ -56,6 +56,10 @@ function rightTouch(g: ProtoGame, k: number, i: number): Contact {
     }
     case "duo":
       return c(k ? W * 0.9 : W * 0.1, H / 2);
+    case "highway":
+    case "subject":
+      // D217: the note's lane; SUBJECT's second line (a stretto's older entry) in the lower row of pads.
+      return c(((g.lanesOf(k)[i] + 0.5) / g.laneCount) * W, k ? H - 60 : H - 160);
     default: {
       const [a, b] = keySpan(g.kb, n.midi);
       return c(((a + b) / 2) * W, isBlack(n.midi) ? H * (1 - KEYS_SHARE) + 5 : H - 4);
@@ -608,4 +612,38 @@ test("D208, EXACT LANES: the planned lane's key is right, another key is wrong, 
     g.keyUp(id, performance.now());
   }
   for (const i of heads) assert.equal(g.notes[i].state, i === wrongAt ? "miss" : "hit", `note ${i}`);
+});
+
+test("D217: fewer crossbars: a note is free only at the start or after a real rest (a long note frees nothing); the lanes still keep runs off the edges", () => {
+  let heads = 0;
+  let free = 0;
+  let judged = 0;
+  let wall = 0;
+  for (const id of ["wtc1f01", "wtc1f02", "wtc1f04", "wtc1f05", "wtc1f08", "wtc1f10", "wtc1f11", "bwv1080-14"]) {
+    const f = fugueById(id);
+    for (let v = 0; v < f.voices.length; v++) {
+      const g = new ProtoGame(f, v, 0, protoById("highway"), { bpm: 60, legato: false, easy: "exact" }, fakeChip({ t: 0 }));
+      const L = g.lanes;
+      let prev = -1;
+      g.notes.forEach((n, i) => {
+        if (n.ride || (i > 0 && g.notes[i - 1].on === n.on)) return;
+        heads++;
+        const m = g.moves[i];
+        if (g.isFree(i)) {
+          free++;
+          // Free: the first, or a rest of a beat or more since whatever sounded last.
+          const before = g.notes.slice(0, i).filter((x) => x.on < n.on);
+          if (before.length) assert.ok(n.on - Math.max(...before.map((x) => x.on + x.dur)) >= g.beat, `${id} v${v}: note ${i} free without a rest`);
+        } else if (prev >= 0 && m.dir !== 0 && m.steps !== 0) {
+          judged++;
+          if ((L[i] - L[prev]) * m.dir <= 0) wall++;
+        }
+        prev = i;
+      });
+    }
+  }
+  // Before D217 nearly a third of the notes (29.8%) were open bars; now a few in a hundred.
+  assert.ok(free / heads < 0.04, `crossbars ${free} of ${heads}`);
+  // Five lanes cannot hold every scale: a pile at an edge stays about as rare as it was (4.7% before D217).
+  assert.ok(wall / judged < 0.06, `edge piles ${wall} of ${judged}`);
 });
