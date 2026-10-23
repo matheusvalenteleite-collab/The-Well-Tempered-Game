@@ -16,7 +16,25 @@ export function popTitle(id: string): string {
   return c ? formalTitle(c, isPrelude(id) ? "prelude" : "fugue") : fugueById(id).title.toUpperCase();
 }
 
-export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rules, children }: { id: string; voice: number; singing: readonly number[]; setVoice: (v: number) => void; play: () => void; close: () => void; learn?: () => void; rules?: readonly string[]; children?: ReactNode }) {
+/**
+ * D240: the friends' page's sounds, chosen on the pop-up under HOW TO PLAY: the harpsichord and four
+ * ensembles, and six of the console sounds (D209).
+ */
+export const POP_SOUNDS: readonly [id: string, name: string][] = [
+  ["harpsichordSampled", "HARPSICHORD"],
+  ["baroque", "BAROQUE"],
+  ["consort", "CONSORT"],
+  ["bossa", "BOSSA NOVA"],
+  ["carlos", "WENDY CARLOS"],
+  ["chipPocket", "POCKET MONSTERS"],
+  ["chipPlumber", "PLUMBER BROS"],
+  ["chipHyrule", "HYRULE"],
+  ["chipBomber", "BLUE BOMBER"],
+  ["chipVampire", "VAMPIRE KILLER"],
+  ["chipBlur", "BLUE BLUR"],
+];
+
+export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rules, sound, setSound, children }: { id: string; voice: number; singing: readonly number[]; setVoice: (v: number) => void; play: () => void; close: () => void; learn?: () => void; rules?: readonly string[]; sound?: string; setSound?: (id: string) => void; children?: ReactNode }) {
   const f = fugueById(id);
   // D239: ? HOW TO PLAY: the mode's rules, folded under PLAY.
   const [help, setHelp] = useState(false);
@@ -60,6 +78,18 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rule
               <li key={r}>{r}</li>
             ))}
           </ul>
+        )}
+        {sound !== undefined && setSound && (
+          <div className="tb-pop-sounds" role="group" aria-label="Sound">
+            <p className="tb-pop-ask">SOUND</p>
+            <div className="tb-pop-sound-row">
+              {POP_SOUNDS.map(([sid, name]) => (
+                <button key={sid} type="button" id={`pop-sound-${sid}`} className={sid === sound ? "on" : ""} aria-pressed={sid === sound} onClick={() => setSound(sid)}>
+                  {name}
+                </button>
+              ))}
+            </div>
+          </div>
         )}
         {learn && (
           <button type="button" id="learn" className="tb-learn" onClick={learn}>

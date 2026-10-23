@@ -875,7 +875,7 @@ export function BenchApp() {
       {wheel && !APP.lite && (phase.kind === "home" || phase.kind === "title") && <FuguePicker current={pick.piece} close={() => setWheel(false)} pick={open} paused={phase.kind === "title"} />}
       {APP.lite && (phase.kind === "home" || phase.kind === "title") && <LiteGrid beaten={lite.beaten} open={open} settings={() => setPhase({ kind: "settings" })} />}
       {phase.kind === "title" && (
-        <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULES[proto.id]} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
+        <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULES[proto.id]} {...(APP.lite ? { sound, setSound } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
           {herHere && <HerSwitch pick={pick} setPick={setPick} />}
           {kimiko && <p className="tg-card-sub tb-her">{herLine(hm ? herState(hm) : null)}</p>}
           {kimiko && <p className="tg-card-sub tb-her-credit">{HER_CREDIT}</p>}
