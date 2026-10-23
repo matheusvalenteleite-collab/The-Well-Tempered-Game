@@ -29,9 +29,13 @@ export const PITCHES = [440, 415] as const;
 let temperament = TEMPERAMENTS[0];
 let a4 = 440;
 
+/** The tuning now (to restore it after a recording's, D215). */
+export const tuningNow = (): { id: string; a: number } => ({ id: temperament.id, a: a4 });
+
 export function setTuning(id: string, a: number) {
   temperament = TEMPERAMENTS.find((t) => t.id === id) ?? TEMPERAMENTS[0];
-  a4 = PITCHES.includes(a as 440 | 415) ? a : 440;
+  // D215: also a recording's own pitch (Kimiko Ishizaka's A, about 443), when the game plays with it.
+  a4 = PITCHES.includes(a as 440 | 415) || (a >= 400 && a <= 470) ? a : 440;
 }
 
 /** A pitch's frequency in the tuning now (a fractional MIDI number stays in its key's tuning). */
