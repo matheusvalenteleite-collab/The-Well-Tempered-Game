@@ -238,3 +238,45 @@
 .tg-title .tb-dia-pads { padding: 1px 0; }
 .tg-title .tb-dia-ladder { height: 40px; }
 .tg-help .tb-dia-note, .tb-dia p.tb-dia-note { font-family: var(--tg-pixel); font-size: 6px; }
+
+/* D224: ACHIEVEMENTS: the seals, the best grades, the feats; the result's toast. */
+.tb-glyph { width: 14px; height: 14px; flex: none; fill: currentColor; vertical-align: -2px; }
+.tb-ach-btn { display: inline-flex; gap: 8px; align-items: center; color: var(--tg-shine); border-color: var(--tg-shine); }
+.tg-picker.tb-ach { z-index: 30; max-width: 640px; gap: 8px; }
+.tb-ach h1 { display: flex; gap: 8px; align-items: center; }
+.tb-ach-trophy { color: var(--tg-gold); width: 16px; height: 16px; }
+.tb-ach .tg-tabs { position: sticky; top: calc(-10px - env(safe-area-inset-top, 0px)); z-index: 1; background: var(--tg-bg); padding: 4px 0; }
+.tb-ach .tg-tabs button { font-size: 7px; padding: 9px 2px; min-height: 34px; }
+.tb-ach-note { margin: 0; font: italic 12px/1.4 Georgia, "Times New Roman", serif; color: var(--tg-muted); }
+.tb-ach-list { display: grid; gap: 6px; }
+.tb-ach-list section { display: grid; gap: 6px; }
+.tb-ach-list h2 { margin: 8px 0 2px; font-family: var(--tg-pixel); font-size: 8px; font-weight: 400; color: var(--tg-gold); letter-spacing: 0.08em; }
+.tb-ach-row, .tb-ach-feat { display: flex; gap: 10px; align-items: center; padding: 6px 8px; background: var(--tg-box); border: 2px solid var(--tg-barline); }
+.tb-ach-row.earned, .tb-ach-feat.earned { border-color: var(--tg-gold); box-shadow: 3px 3px 0 #b8322a; }
+.tb-ach-seal:not(.earned), .tb-ach-seal-off, .tb-ach-best:not(.earned), .tb-ach-feat:not(.earned) { opacity: 0.6; }
+.tb-ach-seal:not(.earned) .tb-ach-pic { filter: grayscale(1) brightness(0.7); }
+.tb-ach-seal-off { opacity: 0.35; border-style: dashed; }
+.tb-ach-pic { width: 48px; height: 30px; flex: none; image-rendering: pixelated; }
+.tb-ach-text { display: grid; gap: 3px; min-width: 0; flex: 1; }
+.tb-ach-text b { font-family: var(--tg-pixel); font-size: 7px; font-weight: 400; line-height: 1.5; color: var(--tg-shine); text-transform: uppercase; }
+.tb-ach-text small { font-size: 12px; line-height: 1.3; color: var(--tg-fg); }
+.tb-ach-kind, .tb-ach-stars, .tb-ach-day, .tb-ach-voices { font-family: var(--tg-pixel); font-size: 6px; line-height: 1.5; color: var(--tg-muted); }
+.earned .tb-ach-kind, .earned .tb-ach-day { color: var(--tg-gold); }
+.tb-ach-voices { display: flex; gap: 10px; flex-wrap: wrap; }
+.tb-ach-voices .earned { color: var(--tg-gold); }
+.tb-ach-grade { width: 34px; flex: none; text-align: center; font-family: var(--tg-pixel); font-size: 18px; color: var(--tg-muted); }
+.tb-ach-best.earned .tb-ach-grade:not(.tg-gold) { color: var(--tg-fg); }
+.tb-ach-feats { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px; }
+.tb-ach-feat .tb-glyph { width: 28px; height: 28px; color: var(--tg-muted); }
+.tb-ach-feat.earned .tb-glyph { color: var(--tg-gold); }
+.tb-ach-feat.fresh { border-color: var(--tg-shine); }
+.tb-ach-feat.fresh .tb-ach-day { color: var(--tg-shine); animation: tg-blink 1.1s steps(2) infinite; }
+.tb-ach-toast { display: grid; gap: 4px; justify-items: center; padding: 8px 12px; font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-fg); background: rgba(12, 10, 16, 0.94); border: 3px solid var(--tg-gold); box-shadow: 4px 4px 0 #b8322a; cursor: pointer; animation: tb-ach-pop 380ms steps(4) both; }
+.tb-ach-toast-head { font-size: 9px; color: var(--tg-gold); animation: tg-blink 1.1s steps(2) infinite; }
+.tb-ach-toast-feat { display: inline-flex; gap: 6px; align-items: center; color: var(--tg-shine); }
+.tb-ach-toast-feat .tb-glyph { color: var(--tg-gold); }
+@keyframes tb-ach-pop { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.tb-ach-grade.tg-gold { color: var(--tg-gold); }
+.tb-ach-stars .tg-gold { font-family: system-ui, sans-serif; font-size: 11px; letter-spacing: 1px; }
+.tb-ach-voices { font-size: 7px; }
+.tg-picker.tb-ach { box-shadow: 0 0 0 100vmax var(--tg-bg); }
