@@ -140,6 +140,7 @@ test("D237: play.html: built beside bench.html, the grid only: no tutorial, achi
   const main = src("src/bench/lite-main.tsx");
   assert.match(main, /APP\.lite = true;/);
   assert.match(main, /forceUi\("classic"\)/);
+  assert.match(main, /keepUiUnder\("tb-lite-ui-v1"\)/);
   const { createElement } = await import("react");
   const { renderToStaticMarkup } = await import("react-dom/server");
   const { LiteGrid } = await import("../src/bench/LiteGrid.tsx");
