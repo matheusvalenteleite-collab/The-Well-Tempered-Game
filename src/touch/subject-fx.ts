@@ -27,8 +27,10 @@ export interface Lab {
   vibrato: boolean;
   /** The entering voice drawn towards the centre. */
   stereo: boolean;
+  /** D215, E3: Kimiko Ishizaka's recording fading in under a good run, the game on her tempo and pitch. */
+  ishizaka: boolean;
 }
-export const LAB_DEFAULT: Lab = { subject: true, effect: true, vibrato: false, stereo: false };
+export const LAB_DEFAULT: Lab = { subject: true, effect: true, vibrato: false, stereo: false, ishizaka: false };
 let current: Lab = LAB_DEFAULT;
 /** Set from the settings (missing switches take their default). */
 export function setLab(l: Partial<Lab>) {

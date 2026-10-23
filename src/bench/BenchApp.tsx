@@ -25,6 +25,9 @@ import { ProtoGame, type KeyPress } from "./proto-game.ts";
 import { lineKey, subjectLine } from "./subject-line.ts";
 import { FuguePicker, PieceButton } from "./FuguePicker.tsx";
 import { LabSettings } from "./LabSettings.tsx";
+import { lab } from "../touch/subject-fx.ts";
+import { herClock, herMap } from "./her-clock.ts";
+import { Her, herState, loadHer, releaseHer } from "./with-her.ts";
 import { cardById, recordBest } from "./cards.ts";
 import { judgeSeal, recordSeal } from "./seals.ts";
 import { ARROW_KEYS, arrowOf, EASY_LEVELS, KEY_ROWS, type EasyLevel, keyId, keyRow, midiId, moveOf, PROTOS, protoById, type Platform, type ProtoId } from "./protos.ts";
@@ -79,7 +82,7 @@ function sane(p: Pick): Pick {
   return { ...DEFAULT, ...p, piece, share, voice, voice2, proto: protoById(p.proto).id, legato: !!p.legato, easy: EASY_LEVELS.some(([l]) => l === p.easy) ? p.easy : DEFAULT.easy, fail: p.fail !== false };
 }
 
-type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; seal: { kind: string; earned: boolean; why: string } | null } | { kind: "settings" } | { kind: "help" } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
+type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; seal: { kind: string; earned: boolean; why: string } | null } | { kind: "settings" } | { kind: "help" } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
 
 /** The computer's keys (D182: a computer's prototypes only): PIANO a keyboard's rows (A W S E D F T G Y H U J K O L P ;), Z and X the octave; EASY every row (protos.ts KEY_ROWS) and space, Shift the pedal, the arrows a bend. */
 const PIANO_KEYS = ["KeyA", "KeyW", "KeyS", "KeyE", "KeyD", "KeyF", "KeyT", "KeyG", "KeyY", "KeyH", "KeyU", "KeyJ", "KeyK", "KeyO", "KeyL", "KeyP", "Semicolon"];
@@ -134,6 +137,20 @@ export function BenchApp() {
   const from = run ? run.from : startTick(f, pick.share);
   const voice = run ? run.voice : pick.voice;
   const bpm = run ? run.bpm : tempoOf(f.id);
+  // D215, E3 WITH ISHIZAKA (⚙ LAB): her recording under a good run, the game on her time; not in the
+  // lessons (they wait for each note); only where she is timed (the seven Book I fugues of the testbench).
+  const herAsked = lab().ishizaka && !run;
+  const hm = herAsked ? herMap(f.id) : null;
+  const [, herLoaded] = useState(0);
+  const her = useRef<Her | null>(null);
+  /** Her track fetched and decoded (once a sound exists to decode it into); the title card follows. */
+  const wantHer = () => {
+    const ch = chip.current;
+    if (!hm) return releaseHer();
+    if (!ch) return;
+    if (herState(hm) === "none") herLoaded((n) => n + 1);
+    void loadHer(hm, ch.ctx).then(() => herLoaded((n) => n + 1));
+  };
   useEffect(() => {
     setPreset(presetById(sound).id);
   }, [sound]);
@@ -227,9 +244,22 @@ export function BenchApp() {
   prepared.current = prepareSound;
   useEffect(prepareSound, [sound, f, voice, pick.voice2]);
 
+  useEffect(wantHer, [phase.kind, f.id, hm, platform]);
+
   useEffect(() => {
     if (phase.kind !== "play" || !chip.current) return;
-    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? pick.easy, fail: !run && pick.fail, ...(run ? { until: run.until, wait: run.wait, solo: run.solo } : {}) }, chip.current);
+    // D215: on her time and at her pitch (equal temperament, her A), restored after.
+    const ch = chip.current;
+    const withHer = hm && herState(hm) !== "failed" ? hm : null;
+    const clock = withHer ? herClock(withHer, f, from) : undefined;
+    if (withHer) setTuning("equal", withHer.a);
+    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? pick.easy, fail: !run && pick.fail, ...(run ? { until: run.until, wait: run.wait, solo: run.solo } : {}), ...(clock ? { clock } : {}) }, ch);
+    const h = withHer ? new Her(ch, withHer) : null;
+    her.current = h;
+    let herBuf: AudioBuffer | null = null;
+    if (withHer) void loadHer(withHer, ch.ctx).then((b) => (herBuf = b));
+    // For the measurements (the bench's own checks): the game and her playing.
+    (globalThis as { __withHer?: unknown }).__withHer = h ? { g, her: h, ctx: ch.ctx } : undefined;
     g.octave = octave.current;
     const arrows = proto.id === "arrows" ? g.moves.map(arrowOf) : g.cues;
     game.current = g;
@@ -238,6 +268,7 @@ export function BenchApp() {
     let raf = 0;
     const loop = () => {
       const done = g.step();
+      h?.frame(g, herBuf);
       frame.current = {
         now: g.now,
         tps: g.tps,
@@ -283,7 +314,7 @@ export function BenchApp() {
             ? judgeSeal(card, { f, tracks: subjectMode ? played.map((v) => ({ voice: v, notes: g.notes.filter((n) => n.voice === v) })) : g.tracks.map((t) => ({ voice: t.voice, notes: t.notes })), entries: g.entries, beat: b.ticks, grade: r.grade, tuning: tuning.id, duo, whole: from === 0 && r.failedBar === null })
             : null;
           if (seal?.earned) recordSeal(f.id, played);
-          setPhase({ kind: "result", ...r, seal: card && seal ? { kind: card.seal.kind, ...seal } : null });
+          setPhase({ kind: "result", ...r, her: !!h?.startedAt, seal: card && seal ? { kind: card.seal.kind, ...seal } : null });
         }
         return;
       }
@@ -293,6 +324,9 @@ export function BenchApp() {
     return () => {
       cancelAnimationFrame(raf);
       g.stopAll();
+      h?.stop();
+      her.current = null;
+      if (withHer) setTuning(tuning.id, tuning.a);
       game.current = null;
       paint.current = null;
       if (count.current) count.current.textContent = "";
@@ -321,13 +355,15 @@ export function BenchApp() {
   const start = () => {
     if (performance.now() - shownAt.current < 350) return;
     const ch = ensureChip();
+    wantHer();
     const go = () => (setNote(""), setPhase({ kind: "play" }));
     if (ch.ctx.state === "running") return go();
     ch.resume()
       .then(() => (ch.ctx.state === "running" ? go() : setNote("The sound is still off: tap once more.")))
       .catch(() => setNote("The sound is still off: tap once more."));
   };
-  const quit = () => (setLesson(null), setPhase({ kind: "title" }));
+  // D215: her decoded track let go on quitting (kept for a game played again from the result).
+  const quit = () => (phase.kind === "play" && releaseHer(), setLesson(null), setPhase({ kind: "title" }));
   const beginLesson = (n: number) => {
     const l = LESSONS[n];
     setLesson({ n, run: l.run() });
@@ -416,6 +452,7 @@ export function BenchApp() {
       if (!ch || phase.kind !== "play") return;
       if (q.matches) {
         game.current?.releaseAll(performance.now());
+        if (game.current) her.current?.hush(game.current);
         void ch.ctx.suspend();
       } else if (ch.ctx.state !== "running" && ch.ctx.state !== "closed" && !document.hidden) void ch.resume();
     };
@@ -432,6 +469,7 @@ export function BenchApp() {
       const ch = chip.current;
       if (document.hidden) {
         away();
+        if (game.current) her.current?.hush(game.current);
         if (ch && phase.kind === "play") void ch.ctx.suspend();
       } else if (ch && ch.ctx.state !== "closed") void ch.resume(); // D191: also the iPhone's silent <audio>, paused by an interruption
     };
@@ -549,7 +587,7 @@ export function BenchApp() {
         ))}
       >
         <div className="tg-count" ref={count} aria-live="polite" />
-        {phase.kind === "title" && (duo ? <Arcade f={f} pick={pick} setPick={setPick} from={from} note={note} /> : <Title f={f} pick={pick} setPick={setPick} from={from} note={note} lessons={proto.id === "keys" ? beginLesson : undefined} />)}
+        {phase.kind === "title" && (duo ? <Arcade f={f} pick={pick} setPick={setPick} from={from} note={note} her={herAsked ? herLine(hm ? herState(hm) : null) : undefined} /> : <Title f={f} pick={pick} setPick={setPick} from={from} note={note} her={herAsked ? herLine(hm ? herState(hm) : null) : undefined} lessons={proto.id === "keys" ? beginLesson : undefined} />)}
         {phase.kind === "talk" && lesson && (
           <BachTalk key={`${lesson.n}-${phase.next}-${phase.lines[0]?.text}`} title={`${LESSONS[lesson.n].title} · ${LESSONS[lesson.n].english}`} lines={phase.lines} onLine={demo} onDone={() => talkDone(phase.next)} />
         )}
@@ -574,6 +612,7 @@ export function BenchApp() {
                 {phase.seal.earned ? "◆" : "◇"} SEAL · {phase.seal.kind}: {phase.seal.earned ? "EARNED" : phase.seal.why.toUpperCase()}
               </p>
             )}
+            {phase.her && <p className="tg-card-sub tb-her-credit">WITH KIMIKO ISHIZAKA · THE OPEN WELL-TEMPERED CLAVIER (2015) · CC0</p>}
             <button type="button" id="again" className="tb-menu" onClick={quit}>
               MENU
             </button>
@@ -667,7 +706,14 @@ export function BenchApp() {
   );
 }
 
-function Title({ f, pick, setPick, from, note, lessons }: { f: TouchFugue; pick: Pick; setPick: (p: Partial<Pick>) => void; from: number; note: string; lessons?: (n: number) => void }) {
+/** D215: the title card's line for WITH ISHIZAKA (null: no recording of this piece). */
+function herLine(state: "none" | "loading" | "ready" | "failed" | null): string {
+  if (state === null) return "WITH KIMIKO ISHIZAKA · NO RECORDING OF THIS PIECE";
+  if (state === "failed") return "WITH KIMIKO ISHIZAKA · HER RECORDING CANNOT BE REACHED";
+  return `WITH KIMIKO ISHIZAKA · TEMPO HERS${state === "ready" ? "" : " · LOADING…"}`;
+}
+
+function Title({ f, pick, setPick, from, note, her, lessons }: { f: TouchFugue; pick: Pick; setPick: (p: Partial<Pick>) => void; from: number; note: string; her?: string; lessons?: (n: number) => void }) {
   const singing = voicesFrom(f, from);
   const proto = protoById(pick.proto);
   return (
@@ -692,6 +738,7 @@ function Title({ f, pick, setPick, from, note, lessons }: { f: TouchFugue; pick:
       </div>
       )}
       <From f={f} pick={pick} setPick={setPick} from={from} />
+      {her && <p className="tg-card-sub tb-her">{her}</p>}
       {note && <p className="tg-note">{note}</p>}
       {lessons && (
         <button type="button" id="lessons" className="tb-lessons" onClick={() => lessons(Math.min(lessonsPassed(), LESSONS.length - 1))}>
@@ -714,7 +761,7 @@ function From({ f, pick, setPick, from }: { f: TouchFugue; pick: Pick; setPick: 
 }
 
 /** TWO VOICES: choosing the voices as an old arcade chooses its players, 1P and 2P. */
-function Arcade({ f, pick, setPick, from, note }: { f: TouchFugue; pick: Pick; setPick: (p: Partial<Pick>) => void; from: number; note: string }) {
+function Arcade({ f, pick, setPick, from, note, her }: { f: TouchFugue; pick: Pick; setPick: (p: Partial<Pick>) => void; from: number; note: string; her?: string }) {
   const singing = voicesFrom(f, from);
   const row = (who: "1P" | "2P", value: number, set: (v: number) => void, other: number) => (
     <div className={`tb-arcade-row tb-${who.toLowerCase()}`}>
@@ -735,6 +782,7 @@ function Arcade({ f, pick, setPick, from, note }: { f: TouchFugue; pick: Pick; s
       {row("1P", pick.voice, (v) => setPick({ voice: v }), pick.voice2)}
       {row("2P", pick.voice2, (v) => setPick({ voice2: v }), pick.voice)}
       <From f={f} pick={pick} setPick={setPick} from={from} />
+      {her && <p className="tg-card-sub tb-her">{her}</p>}
       <p className="tb-arcade-go">PRESS START</p>
       {note && <p className="tg-note">{note}</p>}
     </div>

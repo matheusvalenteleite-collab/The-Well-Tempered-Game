@@ -17,6 +17,12 @@ The audio itself is not in the repository. The game streams it from the Internet
 published beside the page under `recordings/ishizaka/`, and for local builds copied into
 `public/recordings/ishizaka/` (ignored by git).
 
+`ishizaka-ticks.json` (D215, WITH ISHIZAKA): for the seven Book I fugues of the bench's testbench, tick →
+seconds anchors in the same tracks (every beat, and each note where it departs from the beats by more
+than 6 ms), refined from the bar lines by `tools/align-ishizaka-ticks.py` (a DTW in a ±300 ms band,
+then the onsets snapped where reliable), and her A per piece. Delta-coded: tick = (t0 + Σdt) × unit,
+ms = s0 + Σdms; `q` holds each piece's measured accuracy.
+
 `loesser-book2.json` (D131): Arthur Loesser's Book II (recorded 1964 at the Cleveland Institute of
 Music; Internet Archive item `J.S.BACHTheWell-TemperedClavier-BOOKII-Loesser`, CC BY-NC-ND 3.0:
 non-commercial, streamed unaltered, never copied here). One track holds a prelude and its fugue;

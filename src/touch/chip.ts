@@ -213,6 +213,21 @@ export class Chip {
     this.drive.gain.value = 0;
     this.master.connect(shaper).connect(this.drive).connect(squeeze);
     this.bus = this.master;
+    // D215: the other voices' own level (the player's voice, a lead note, goes straight to the master),
+    // and a recording's way in, past the room and the compressor (it has its own room), into the limiter.
+    this.others = ctx.createGain();
+    this.others.connect(this.master);
+    this.recIn = ctx.createGain();
+    this.recIn.connect(limit);
+  }
+
+  /** D215: the others' level (1: as they are), turned down while a recording plays over them. */
+  readonly others: GainNode;
+  /** D215: where a recording joins the sound (past the room and the compressor). */
+  readonly recIn: GainNode;
+  /** Where a note joins the sound: the player's own (lead) straight to the master, the others through their level. */
+  private busOf(p: Play): AudioNode {
+    return p.lead ? this.bus : this.others;
   }
 
   /** Where a voice of one's own joins the sound (the testbench's instruments, D170). */
@@ -428,8 +443,8 @@ export class Chip {
     }
     if (pan) {
       pan.pan.value = Math.max(-1, Math.min(1, v.pan));
-      src.connect(g).connect(pan).connect(this.bus);
-    } else src.connect(g).connect(this.bus);
+      src.connect(g).connect(pan).connect(this.busOf(p));
+    } else src.connect(g).connect(this.busOf(p));
     this.send(pan ?? g, p.room, bag);
     o.start(t);
     halt(o, end + 0.05);
@@ -567,8 +582,8 @@ export class Chip {
     const pan = ctx.createStereoPanner ? bag.add(ctx.createStereoPanner()) : null;
     if (pan) {
       pan.pan.value = Math.max(-1, Math.min(1, v.pan));
-      src.connect(g).connect(dyn).connect(pan).connect(this.bus);
-    } else src.connect(g).connect(dyn).connect(this.bus);
+      src.connect(g).connect(dyn).connect(pan).connect(this.busOf(p));
+    } else src.connect(g).connect(dyn).connect(this.busOf(p));
     this.send(pan ?? dyn, p.room, bag);
     // D182, a trill: the step above and back, about eight times a second (the rate's square wave).
     const lfos: AudioScheduledSourceNode[] = [];
@@ -866,8 +881,8 @@ export class Chip {
     const dyn = bag.add(ctx.createGain());
     if (pan) {
       pan.pan.value = Math.max(-1, Math.min(1, v.pan));
-      src.connect(g).connect(dyn).connect(pan).connect(this.bus);
-    } else src.connect(g).connect(dyn).connect(this.bus);
+      src.connect(g).connect(dyn).connect(pan).connect(this.busOf(p));
+    } else src.connect(g).connect(dyn).connect(this.busOf(p));
     this.send(pan ?? dyn, p.room, bag);
     // D184: a plucked or struck note is damped at its written end (it rang 6 s whatever its length:
     // fifty voices at once on a phone); a lead note's end is its hold, so it rings as it would.

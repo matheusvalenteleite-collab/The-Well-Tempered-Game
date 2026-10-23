@@ -23,6 +23,7 @@ import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
 import { SubjectSound } from "../touch/subject-fx.ts";
 import { pianoKey, pianoKeys } from "./placed.ts";
+import type { Clock } from "./her-clock.ts";
 import { lineKey, subjectLine, type LineEntry, type SubjectLine } from "./subject-line.ts";
 import { barDynamic, contourCue, contourOk, dynamic, HOME_LANES, keyPlace, LADDER_AREA, planLanes, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk } from "./protos.ts";
 
@@ -176,10 +177,19 @@ export class ProtoGame {
   private readonly shapes: Shape[];
   private held = new Map<number, Held>();
   private readonly rit: ReturnType<typeof ritard> = { warp: (t: number) => t, unwarp: (w: number) => w };
+  /** D215: her clock, when the game follows her (else none). */
+  readonly clock: Clock | null = null;
+  /** D215: the notes played right and the slips, so far (the fade follows them). */
+  hits = 0;
+  slips = 0;
   /** How the player has been playing, 0 (pp) to 1 (ff): the others follow, a little. */
   private feel = 0.55;
 
-  constructor(f: TouchFugue, voices: number | number[], from: number, proto: Proto, o: Options & { bpm: number }, chip: Chip) {
+  /**
+   * D215, WITH ISHIZAKA: `o.clock` puts the game on her time (her-clock.ts), in place of the steady
+   * tempo and the final ritard: the windows (in ticks) at her mean tempo over the passage.
+   */
+  constructor(f: TouchFugue, voices: number | number[], from: number, proto: Proto, o: Options & { bpm: number; clock?: Clock }, chip: Chip) {
     this.f = f;
     this.proto = proto;
     this.ornaments = ornamentsOf(f);
@@ -191,7 +201,8 @@ export class ProtoGame {
     this.perBar = b.perBar;
     // D181: the tempo counts quarter notes, whatever the metre (in 2/2 the beat was a half note: twice as fast).
     this.tps = (f.tpq * o.bpm) / 60;
-    if (o.until === undefined || o.until >= f.length) this.rit = ritard(f.length, f.barTicks);
+    if (o.clock) (this.rit = o.clock), (this.tps = o.clock.tps), (this.clock = o.clock);
+    else if (o.until === undefined || o.until >= f.length) this.rit = ritard(f.length, f.barTicks);
     // D191: how far apart two ticks sound, in ms (at this tempo, the final ritard included).
     const msBetween = (a: number, c: number) => ((this.rit.warp(c) - this.rit.warp(a)) / this.tps) * 1000;
     // D214, SUBJECT: one line, the subject's notes in every entry, whichever voice (subject-line.ts).
@@ -216,7 +227,7 @@ export class ProtoGame {
     this.start = o.wait ? from - this.beat : countInStart(f, from);
     this.entry = from;
     this.end = (o.until ?? f.length) + this.beat;
-    this.opt = options(f.tpq, o.bpm, "easy");
+    this.opt = options(f.tpq, this.bpm, "easy");
     // TWO VOICES: the windows a quarter wider (two lines at once).
     if (proto.id === "duo") this.opt = { ...this.opt, early: this.opt.early * 1.25, late: this.opt.late * 1.25 };
     this.anchorAt = chip.ctx.currentTime + 0.15;
@@ -259,6 +270,10 @@ export class ProtoGame {
   /** The clock, with the last cadence held back (phrasing.ts ritard). */
   private tickAt(t: number) {
     return this.rit.unwarp(this.rit.warp(this.anchorTick) + (t - this.anchorAt) * this.tps);
+  }
+  /** D215: the tick sounding at a time on the audio clock. */
+  tickAtTime(t: number) {
+    return this.tickAt(t);
   }
   /** When a tick sounds, on the audio clock. */
   timeAt(tick: number) {
@@ -743,6 +758,7 @@ export class ProtoGame {
     const offMs = (this.timeAt(n.at ?? n.on) - this.timeAt(n.on)) * 1000;
     const perfect = Math.abs(offMs) <= PERFECT_MS;
     this.combo++;
+    this.hits++;
     this.streak++;
     this.maxStreak = Math.max(this.maxStreak, this.streak);
     // D198: the crowd warms; a long run called out, every fifty.
@@ -804,6 +820,7 @@ export class ProtoGame {
 
   /** A slip: the multiplier a step down, the run (and CON FUOCO) ended. */
   private slip() {
+    this.slips++;
     this.crowd = Math.max(0, this.crowd - 0.045);
     if (this.streak >= FUOCO_NOTES) this.banner = null;
     this.streak = 0;
