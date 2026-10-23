@@ -496,3 +496,35 @@ test("the others are phrased: the subject brought forward, repeated notes detach
   const j = others.findIndex((o) => !subj.has(`${o.voice}:${o.on}`));
   assert.ok(i >= 0 && j >= 0);
 });
+
+test("D208, LADDER legato as the hand plays it: the thumbs overlap briefly and the one letting go drifts as it lifts; every note counts", () => {
+  const clock = { t: 0 };
+  const g = new ProtoGame(C_MINOR, 1, 0, protoById("ladder"), { bpm: 54, legato: true }, fakeChip(clock));
+  g.rows = ROWS;
+  const heads = g.notes.map((n, i) => (n.ride || (i > 0 && g.notes[i - 1].on === n.on) ? -1 : i)).filter((i) => i >= 0).slice(0, 40);
+  const runTo = (t: number) => {
+    while (clock.t < t - 0.02) (clock.t += 0.02), g.step();
+    clock.t = Math.max(clock.t, t);
+    g.step();
+  };
+  let prev: { id: number; side: "left" | "right"; y: number } | null = null;
+  heads.forEach((i, h) => {
+    const n = g.notes[i];
+    const side = h % 2 ? "right" : "left";
+    const y = ROWS.yOf(n.step);
+    runTo(g.timeAt(n.on));
+    g.down(h + 1, { side, x: side === "left" ? 40 : W - 40, y, w: W, h: H }, performance.now());
+    if (prev) {
+      // A brief overlap; the old thumb rolls off the glass (its contact point moves a row or so) and lifts.
+      const p = prev;
+      runTo(clock.t + 0.04);
+      for (const dy of [6, 12, 18, 24]) g.move(p.id, { side: p.side, x: p.side === "left" ? 40 : W - 40, y: p.y + (h % 3 === 0 ? dy : -dy), w: W, h: H }, performance.now());
+      g.up(p.id, performance.now());
+    }
+    prev = { id: h + 1, side, y };
+  });
+  if (prev) g.up((prev as { id: number }).id, performance.now());
+  const done = heads.filter((i) => g.notes[i].state === "hit").length;
+  assert.equal(done, heads.length, `${done}/${heads.length} hit`);
+  assert.equal(g.results().stray ?? 0, 0, "no stray strike: the lifting thumb took no note");
+});

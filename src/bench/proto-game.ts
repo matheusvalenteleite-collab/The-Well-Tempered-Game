@@ -84,6 +84,8 @@ interface Held {
   cell?: number;
   /** The dynamic it struck at (0 pp to 1 ff). */
   d0: number;
+  /** D208: another thumb has struck since on this voice: this one is on its way off and slides no more. */
+  passive?: boolean;
   /** Its last positions, for a flick. */
   trail: { t: number; y: number }[];
   /** The points its note scored (taken back if its articulation fails). */
@@ -420,11 +422,13 @@ export class ProtoGame {
         const same = last.side === c.side;
         const up = last.y - c.y;
         let ok: boolean;
-        // A repeat, or the same staff step altered (E flat to E natural): level.
-        if (m.dir === 0 || m.steps === 0) ok = Math.abs(up) <= (same ? 1.2 : 2.5) * R;
+        // D208, more forgiving still: a repeat (or the same staff step altered, E flat to E natural)
+        // about level; a move, the same thumb not the wrong way (a leap a row at least), the other
+        // thumb anywhere short of clearly the wrong way.
+        if (m.dir === 0 || m.steps === 0) ok = Math.abs(up) <= (same ? 2 : 3.5) * R;
         else {
           const way = up * m.dir;
-          ok = same ? way >= 0.3 * R && (m.size < 3 || way >= 1.6 * R) : way >= -1.5 * R;
+          ok = same ? way >= 0 && (m.size < 3 || way >= R) : way >= -2.5 * R;
         }
         return ok ? { ok } : { ok, wrong: asked, why: "gesture" };
       }
@@ -554,9 +558,12 @@ export class ProtoGame {
     const d = this.dynamicAt(c);
     for (const s of h.sounds) s.dyn?.(levelOf(d) / levelOf(h.d0));
     const t = this.tickOf(ts);
+    if (h.passive) return;
     if (this.proto.id === "ladder" && this.rows) {
-      // A slide plays on once the thumb has moved a little more than half a row from where it last played.
-      if (Math.abs(c.y - h.ay) < this.rows.rowH * 0.6) return;
+      // D208: a slide plays on only after a deliberate travel (a row and a half from where it last
+      // played): a thumb's contact point wanders a row or so as it rolls and lifts, and that wander
+      // took the next note from the other thumb (the overlap legato lost its notes as slips).
+      if (Math.abs(c.y - h.ay) < this.rows.rowH * 1.5) return;
       this.slideTo(id, h, c, t);
     } else if (this.proto.id === "piano") {
       // Only the thumb's own travel counts.
@@ -572,7 +579,11 @@ export class ProtoGame {
 
   /** A held thumb reaches another place: the next note there, if it is there and due. */
   private slideTo(id: number, h: Held, c: Contact, t: number) {
-    const i = strike(this.tracks[h.k].notes, t, this.opt, (j) => !h.chord.includes(j) && this.verdict(j, { c }, h.k).ok);
+    // D208: only onto the next note still to play, and not before its time is near (half the early window).
+    const notes = this.tracks[h.k].notes;
+    const next = notes.findIndex((n) => n.state === "pending" && !n.ride);
+    if (next < 0 || t < notes[next].on - this.opt.early / 2) return;
+    const i = strike(notes, t, this.opt, (j) => chordOf(notes, next).includes(j) && !h.chord.includes(j) && this.verdict(j, { c }, h.k).ok);
     if (i < 0) return;
     h.ay = c.y;
     this.play(id, h, i, { ok: true }, true, this.dynamicAt(c));
@@ -616,7 +627,9 @@ export class ProtoGame {
       // Joined to the note the other thumb still holds: that one gives way.
       let legato = slide;
       for (const [hid, o] of this.held) {
-        if (hid === id || !o.sounds.length || o.k !== h.k) continue;
+        if (hid === id || o.k !== h.k) continue;
+        o.passive = true;
+        if (!o.sounds.length) continue;
         legato = true;
         for (const sd of o.sounds) sd.stop(this.chip.ctx.currentTime + 0.03);
         o.sounds = [];
@@ -830,8 +843,9 @@ export class ProtoGame {
   get zone(): "pleno" | "fuoco" | null {
     return this.streak >= FUOCO_NOTES ? "fuoco" : this.pleno ? "pleno" : null;
   }
-  /** The voice's last entry. */
+  /** The voice's last entry (D208: no bosses in LADDER for now). */
   private isBoss(e: { voice: number; on: number }) {
+    if (this.proto.id === "ladder") return false;
     return e.on === Math.max(...this.entries.filter((x) => x.voice === e.voice).map((x) => x.on));
   }
 

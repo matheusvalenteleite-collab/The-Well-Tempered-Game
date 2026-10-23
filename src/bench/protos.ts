@@ -124,8 +124,8 @@ export const KEY_ROWS: { codes: string[]; dyn: number; mark: string; trill?: boo
 ];
 export const keyRow = (code: string) => KEY_ROWS.findIndex((r) => r.codes.includes(code));
 
-/** LADDER (D181): how many rows either side of where a note is drawn still reach it. */
-export const LADDER_AREA = 3.5;
+/** LADDER (D181; D208 wider): how many rows either side of where a note is drawn still reach it. */
+export const LADDER_AREA = 5;
 
 /** The bars' share of the width (each). */
 export const BAR = 0.2;

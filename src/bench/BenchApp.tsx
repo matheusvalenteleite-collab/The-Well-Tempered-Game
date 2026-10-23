@@ -249,7 +249,8 @@ export function BenchApp() {
         marks: g.marks,
         entryState: new Map(g.entries.map((e) => [`${e.voice}:${e.on}`, e.state])),
         arrows,
-        bossFight: true,
+        // D208: no bosses in LADDER for now.
+        bossFight: proto.id !== "ladder",
         pops: g.pops,
         bursts: g.bursts,
         zone: g.zone,
