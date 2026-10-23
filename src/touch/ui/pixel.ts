@@ -15,7 +15,7 @@
  * colour LCD, the saturated palettes.
  */
 import { pixText, textWidth } from "../box-fx.ts";
-import { entryWord, fullGeo, gridLines, keyLong, pframe, prect, type Ctx, type Template, type UEntry, type UNote } from "./core.ts";
+import { arrowMarks, entryWord, gridLines, keyLong, ladderGeo, pframe, prect, type Ctx, type Template, type UEntry, type UNote } from "./core.ts";
 
 const DMG = ["#0f380f", "#306230", "#8bac0f", "#9bbc0f"];
 
@@ -24,7 +24,8 @@ function ends(c: Ctx, n: { on: number; dur: number }): [number, number] {
   return [a, Math.max(a + 1, Math.round(c.xOf(n.on + n.dur)) - 1)];
 }
 function row(c: Ctx, n: { step: number; voice: number }): [number, number] {
-  const A = c.A(n.voice);
+  // D228: a row's own height (the margins beyond the player's range are squeezed).
+  const A = c.h(n.step, n.voice);
   return [Math.round(c.y(n.step, n.voice) - A / 2), Math.max(1, Math.round(A) - 1)];
 }
 function extent(c: Ctx, e: UEntry): [number, number] {
@@ -67,8 +68,12 @@ function playerShade(c: Ctx, n: UNote, base: string, past: string, flash: string
 
 export const GAMEBOY: Template = {
   name: "GAME BOY",
+  desc: "Four greens. Only your line and the entries now sounding are inked, each in tall brackets.",
+  family: "RETRO",
   pixel: 2,
-  geo: (L) => fullGeo(L, 2),
+  css:
+    ".ui-gameboy .tg-box { background: #306230 !important; } .ui-gameboy .tg-hud { background: #0f380f !important; box-shadow: none !important; padding: 2px 6px; } .ui-gameboy .tg-hud-title, .ui-gameboy .tg-hud-bar, .ui-gameboy .tg-legend span { color: #9bbc0f !important; } .ui-gameboy .tg-roll { box-shadow: inset 0 0 0 2px #0f380f !important; } .ui-gameboy .tg-roll::after { display: none !important; }",
+  geo: (L) => ladderGeo(L),
   paint(c) {
     const { g, W, H } = c;
     const [d0, d1, d2, d3] = DMG;
@@ -98,15 +103,17 @@ export const GAMEBOY: Template = {
       const col = e.live ? d0 : d2;
       const t = top - 3;
       const bt = bot + 2;
-      prect(g, x1, t, 1, bt - t + 1, col);
-      prect(g, x1, t, 3, 1, col);
-      prect(g, x1, bt, 3, 1, col);
-      prect(g, x2, t, 1, bt - t + 1, col);
-      prect(g, x2 - 2, t, 3, 1, col);
-      prect(g, x2 - 2, bt, 3, 1, col);
+      // D228: a live entry's brackets doubled, so where it begins and ends cannot be missed.
+      const th = e.live ? 2 : 1;
+      prect(g, x1, t, th, bt - t + 1, col);
+      prect(g, x1, t, 4, 1, col);
+      prect(g, x1, bt, 4, 1, col);
+      prect(g, x2 - th + 1, t, th, bt - t + 1, col);
+      prect(g, x2 - 3, t, 4, 1, col);
+      prect(g, x2 - 3, bt, 4, 1, col);
       const ly = labels.get(e) ?? 1;
       const text = label(c, e);
-      if (e.stretto && e.live) {
+      if (e.live && (e.stretto || e.mine)) {
         prect(g, x1 - 1, ly - 2, textWidth(text) + 3, 9, d0);
         pixText(g, text, x1 + 1, ly, d3);
       } else {
@@ -121,6 +128,7 @@ export const GAMEBOY: Template = {
       if (x > -60 && x < W) pixText(g, cd.text, Math.min(x + 3, W - textWidth(cd.text) - 2), H - 8, d1);
     }
     for (let y = 0; y < H; y += 3) prect(g, c.playX, y, 1, 2, d0);
+    arrowMarks(c, d0, d3);
   },
 };
 
@@ -151,10 +159,12 @@ function voicePal(v: number, count: number): string[] {
 
 export const GBC: Template = {
   name: "GAME BOY COLOR",
+  desc: "Colour tiles: each entry lights its tiles in its voice's palette; your notes are gold sprites.",
+  family: "RETRO",
   pixel: 2,
   chrome: true,
-  css: ".ui-gbc .tg-box { background: #f8f8f0 !important; }",
-  geo: (L) => fullGeo(L, 1, Infinity, -Infinity, 4, 36),
+  css: ".ui-gbc .tg-box { background: #f8f8f0 !important; } .ui-gbc .tg-hud { background: #182048 !important; box-shadow: none !important; padding: 3px 6px; } .ui-gbc .tg-hud-title { color: #f8f8f8 !important; } .ui-gbc .tg-hud-bar { color: #f8d048 !important; }",
+  geo: (L) => ladderGeo(L, () => 4, () => 36),
   paint(c) {
     const { g, W, H } = c;
     const T = 8;
@@ -233,6 +243,7 @@ export const GBC: Template = {
       prect(g, a, y, b - a, h, fill);
       if (h > 2 && n.state !== "miss") prect(g, a, y, b - a, 1, "#fff8c0");
     }
+    arrowMarks(c, OBJ[3]!, "#f8f8f0");
     // The now: a sprite column (a little arrow at the top, dashes down).
     for (let y = 0; y < fieldH; y += 4) prect(g, c.playX, y, 1, 2, OBJ[3]!);
     prect(g, c.playX - 2, 0, 5, 1, OBJ[3]!);

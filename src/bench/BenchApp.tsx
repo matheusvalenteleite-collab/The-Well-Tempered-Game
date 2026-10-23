@@ -18,7 +18,8 @@ import { presetById, setPreset } from "../touch/sound.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ladderGeometry, MusicBox, inkOf, type Frame } from "../touch/MusicBox.tsx";
 import { AUTO, BOXV, variantRows } from "../touch/box-variants.ts";
-import { UI, uiRows } from "../touch/ui/index.ts";
+import { uiRows } from "../touch/ui/index.ts";
+import { InterfaceFold } from "./InterfaceFold.tsx";
 import { PlayArea, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
 import { Choice, loadDrums, Panel, SoundSetting, Tapper } from "../touch/Panels.tsx";
 import { HeadphonesFold, useHeadphones } from "./Headphones.tsx";
@@ -407,7 +408,7 @@ export function BenchApp() {
     if (!roll || !area) return null;
     const r = roll.getBoundingClientRect();
     const a = area.getBoundingClientRect();
-    const geo = (UI ? uiRows(f.id, voice, range, r.height) : null) ?? (BOXV ? variantRows({ lo: range.lo, hi: range.hi, spill: stepRange(f), ranges: study.ranges, voice }, r.height) : null) ?? ladderGeometry(range.lo, range.hi, r.height);
+    const geo = uiRows(f.id, voice, range, r.height) ?? (BOXV ? variantRows({ lo: range.lo, hi: range.hi, spill: stepRange(f), ranges: study.ranges, voice }, r.height) : null) ?? ladderGeometry(range.lo, range.hi, r.height);
     const top = r.top - a.top;
     const y0 = top + geo.yOf(0);
     const span = 3 * barTicks;
@@ -772,6 +773,7 @@ export function BenchApp() {
           <PieceButton id={pick.piece} open={() => setWheel(true)} />
           <SoundSetting key={kimiko ? "her" : "all"} value={soundNow} set={setSound} />
           {kimiko && <p className="tg-panel-note tb-note">WITH KIMIKO: this sets your voice only (TRAVERSO by default).</p>}
+          <InterfaceFold frame={frame.current} />
           <TuningFold id={tuning.id} a={tuning.a} set={changeTuning} />
           {kimiko && <p className="tg-panel-note tb-note">WITH KIMIKO: equal temperament at her A during the game.</p>}
           <LabSettings />

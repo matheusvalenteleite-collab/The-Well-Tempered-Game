@@ -1,9 +1,10 @@
 /**
- * Design study (not in play): ten interface templates, each a whole other look for the music box, chosen
- * by the page's query (`bench.html?ui=NAME`, with `&auto=1` the voice plays itself). Without the query
- * nothing here runs and the box is drawn as before (MusicBox.paint). Mockups: each draws the same frame
- * the game gives the box (the notes, the player's states, the subject's entries) its own way, and lays
- * the steps out its own way (the side bars line up with the player's voice: uiRows).
+ * Interface templates: each a whole other look for the music box. D228: some are offered in ⚙
+ * INTERFACE (OFFERED, CLASSIC first: the box as it was), the choice kept on the device (`tb-ui-v1`);
+ * the page's query (`bench.html?ui=NAME`, with `&auto=1` the voice plays itself) still overrides it and
+ * reaches the whole design study. Each draws the same frame the game gives the box (the notes, the
+ * player's states, the subject's entries) its own way, and lays the steps out its own way (the side
+ * bars line up with the player's voice: uiRows).
  *
  *   gameboy   the original handheld's four greens; everything quiet, the player and the current entries
  *             in colour, each entry in tall square brackets (NEGATIVE's highlighting)
@@ -50,26 +51,93 @@ export const TEMPLATES: Record<string, Template> = {
   win95: WIN95,
 };
 
-/** The template asked for (`?ui=NAME`), or null. */
-export const UI: string | null = (() => {
-  const q = query("ui");
-  return q && q in TEMPLATES ? q : null;
-})();
+/**
+ * D228: the interfaces offered in ⚙ INTERFACE (the rest of the study stays behind `?ui=`), in order,
+ * after CLASSIC. Each its name, its line and its family from the template.
+ */
+export const OFFERED = ["gameboy", "gbc", "nethack", "win95", "gerubach", "score"];
+export interface UiOption {
+  id: string;
+  name: string;
+  desc: string;
+  family: string;
+}
+const CLASSIC: UiOption = { id: "classic", name: "CLASSIC", desc: "The 8-bit music box: every voice in its colour, the entries drawn whole.", family: "CLASSIC" };
+/** Lines for templates that bring none of their own. */
+const FALLBACK: Record<string, string> = {
+  gerubach: "An engraved grand staff scrolling under a red band.",
+  score: "Modern engraving: one staff per voice, yours full size.",
+};
+export function uiOptions(): UiOption[] {
+  const out = [CLASSIC];
+  for (const id of OFFERED) {
+    const t = TEMPLATES[id];
+    if (t) out.push({ id, name: t.name, desc: t.desc ?? FALLBACK[id] ?? "", family: t.family ?? t.name });
+  }
+  return out;
+}
+export function uiName(id: string): string {
+  return uiOptions().find((o) => o.id === id)?.name ?? TEMPLATES[id]?.name ?? "CLASSIC";
+}
 
-let styled = false;
-function style(t: Template) {
-  if (styled || typeof document === "undefined") return;
-  styled = true;
-  document.documentElement.classList.add(`ui-${UI}`);
-  const css = (t.chrome ? ".tg-hud, .tg-legend { display: none !important; } .tg-box { padding: 0 !important; gap: 0 !important; border: 0 !important; grid-template-rows: 1fr !important; } .tg-roll { box-shadow: none !important; } .tg-roll::after { display: none !important; }" : "") + (t.css ?? "");
-  const el = document.createElement("style");
-  el.textContent = css;
-  document.head.append(el);
+export const UI_KEY = "tb-ui-v1";
+/** The stored choice (an id offered, else CLASSIC). */
+export function storedUi(): string {
+  try {
+    const v = typeof localStorage === "undefined" ? null : localStorage.getItem(UI_KEY);
+    return v && uiOptions().some((o) => o.id === v) ? v : "classic";
+  } catch {
+    return "classic";
+  }
+}
+/** `?ui=NAME` (any template of the study, or classic) overrides the choice, for testing. */
+const ASKED: string | null = (() => {
+  const q = query("ui");
+  return q && (q in TEMPLATES || q === "classic") ? q : null;
+})();
+let current: string = ASKED ?? storedUi();
+/** The interface in force ("classic" or a template's id). */
+export function uiNow(): string {
+  return current;
+}
+/** Chooses an interface: kept on this device (while `?ui=` is in the address, it wins). */
+export function setUi(id: string) {
+  if (id !== "classic" && !(id in TEMPLATES)) return;
+  try {
+    localStorage.setItem(UI_KEY, id);
+  } catch {
+    /* no storage */
+  }
+  if (!ASKED) current = id;
+  restyle();
+}
+/** A template is drawing the box (not CLASSIC). */
+export function uiActive(): boolean {
+  return current !== "classic" && current in TEMPLATES;
+}
+
+let styled: string | null = null;
+let sheet: HTMLStyleElement | null = null;
+/** The page's look for the interface in force: a class on <html> and the template's CSS (rewritten only on a change). */
+function restyle() {
+  if (typeof document === "undefined" || !document.head || styled === current) return;
+  const root = document.documentElement;
+  if (styled) root.classList.remove(`ui-${styled}`);
+  styled = current;
+  const t = uiActive() ? TEMPLATES[current] : null;
+  if (t) root.classList.add(`ui-${current}`);
+  if (!sheet) {
+    sheet = document.createElement("style");
+    document.head.append(sheet);
+  }
+  // D228: a template with its own chrome keeps the box's header (the ✕ and ⚙ live there), restyled by its CSS; the legend goes.
+  const chrome = ".tg-legend { display: none !important; } .tg-box { padding: 0 !important; gap: 0 !important; border: 0 !important; grid-template-rows: auto 1fr !important; } .tg-roll { box-shadow: none !important; } .tg-roll::after { display: none !important; }";
+  sheet.textContent = t ? (t.chrome ? chrome : "") + (t.css ?? "") : "";
 }
 
 const geos = new Map<string, Geo>();
 function geoOf(t: Template, piece: string, voice: number, range: { lo: number; hi: number }, w: number, h: number): Geo {
-  const key = `${piece}:${voice}:${range.lo}:${range.hi}:${Math.round(w)}:${Math.round(h)}`;
+  const key = `${t.name}:${piece}:${voice}:${range.lo}:${range.hi}:${Math.round(w)}:${Math.round(h)}`;
   let g = geos.get(key);
   if (!g) {
     if (geos.size > 20) geos.clear();
@@ -79,11 +147,16 @@ function geoOf(t: Template, piece: string, voice: number, range: { lo: number; h
   return g;
 }
 
-/** Draws the template in place of the box (true if it did). */
+/** Draws the template in force in place of the box (true if it did). */
 export function paintUi(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame): boolean {
-  const t = UI ? TEMPLATES[UI] : null;
-  if (!t) return false;
-  style(t);
+  if (!uiActive()) return false;
+  restyle();
+  paintTemplate(c, TEMPLATES[current], cssW, cssH, fr);
+  return true;
+}
+
+/** Draws a template at a size into a canvas (the box, or a thumbnail in the INTERFACE panel). */
+export function paintTemplate(c: HTMLCanvasElement, t: Template, cssW: number, cssH: number, fr: Frame) {
   const dpr = Math.min(3, typeof devicePixelRatio === "number" ? devicePixelRatio : 1);
   const u = t.pixel || 1;
   const res = t.pixel ? 1 / t.pixel : dpr;
@@ -106,15 +179,33 @@ export function paintUi(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Fr
   t.paint(buildCtx(t, g, W, H, u, fr, geo));
   g.restore();
   g.globalAlpha = 1;
-  return true;
 }
 
-/** The side bars' rows for the template (CSS px): the player's voice's steps, linear. */
+/** The side bars' rows for the template in force (CSS px): the player's voice's steps, linear. */
 export function uiRows(piece: string, voice: number, range: { lo: number; hi: number }, cssH: number): { yOf: (step: number) => number; rowH: number } | null {
-  const t = UI ? TEMPLATES[UI] : null;
-  if (!t) return null;
+  if (!uiActive()) return null;
+  const t = TEMPLATES[current];
   const roll = typeof document !== "undefined" ? document.querySelector(".tg-roll") : null;
   const w = roll?.getBoundingClientRect().width ?? cssH * 2;
   const geo = geoOf(t, piece, voice, range, w, cssH);
-  return { yOf: (s) => geo.yOf(s, voice), rowH: geo.A(voice) };
+  // D228: linear through the player's range (the steps beyond it are squeezed in the box; the bars keep the rows).
+  const mid = Math.round((range.lo + range.hi) / 2);
+  const y = geo.yOf(mid, voice);
+  const A = geo.A(voice);
+  return { yOf: (s) => y - (s - mid) * A, rowH: A };
+}
+
+/** D228: the ⚙ button's words ("INTERFACE · CLASSIC"). */
+export function uiLabel(id: string): string {
+  return `INTERFACE · ${uiName(id)}`;
+}
+
+/**
+ * A frame for a thumbnail: the box's own, moved to a quarter of the way into the player's first entry
+ * (else the first entry), so each picture shows an entry being sung.
+ */
+export function thumbFrame(fr: Frame): Frame {
+  const es = (fr.spans ?? []).filter((s) => s.form !== "counter");
+  const e = es.find((s) => s.voice === fr.voice && s.on >= fr.now) ?? es.find((s) => s.on >= fr.now) ?? es[0];
+  return e ? { ...fr, now: e.on + (e.end - e.on) / 4 } : fr;
 }

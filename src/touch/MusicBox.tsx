@@ -10,7 +10,7 @@
  */
 import { bossBar, cadenceMarks, pixText, ribbons, sparks, strikes, zoneGlow, type Burst, type Pop, type Span } from "./box-fx.ts";
 import { paintVariant } from "./box-variants.ts";
-import { paintUi, UI } from "./ui/index.ts";
+import { paintUi } from "./ui/index.ts";
 import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
 import type { LaneNote } from "./lanes.ts";
 import type { OtherNote } from "./voice-mode.ts";
@@ -157,8 +157,13 @@ export function MusicBox({ frame, hud, legend, children }: { frame: MutableRefOb
 }
 
 function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
-  // The interface templates (ui/index.ts): only with `?ui=NAME` in the page's address.
-  if (UI && paintUi(c, cssW, cssH, fr)) return;
+  // D228: the interface chosen (ui/index.ts: ⚙ INTERFACE, or `?ui=NAME`), unless CLASSIC.
+  if (paintUi(c, cssW, cssH, fr)) return;
+  paintClassic(c, cssW, cssH, fr);
+}
+
+/** The box as it was (CLASSIC); also the INTERFACE panel's thumbnail. */
+export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
   const w = Math.max(1, Math.floor(cssW / PX));
   const h = Math.max(1, Math.floor(cssH / PX));
   if (c.width !== w || c.height !== h) {
@@ -168,6 +173,8 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
     c.style.height = `${h * PX}px`;
   }
   const g = c.getContext("2d")!;
+  // D228: an interface drawn before (a change in ⚙) may have left its scale.
+  g.setTransform(1, 0, 0, 1, 0, 0);
   const css = getComputedStyle(c);
   const tok = (name: string) => css.getPropertyValue(name).trim();
   // The design study (box-variants.ts): only with `?boxv=N` in the page's address.

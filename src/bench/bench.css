@@ -303,3 +303,14 @@
 .tb-map-state { flex: none; font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-gold); }
 .tb-map-row.next .tb-map-state { color: var(--tg-shine); animation: tg-blink 1.1s steps(2) infinite; }
 .tb-map-focus h2 { color: var(--tg-shine); }
+
+/* D228: ⚙ INTERFACE, each choice a picture of the box drawn that way and a line. */
+.tb-ui-panel { gap: 4px; }
+.tb-ui-group { display: grid; gap: 4px; }
+.tb-ui-opt { display: grid; grid-template-columns: 112px 1fr; gap: 10px; align-items: center; width: 100%; padding: 6px; text-align: left; background: var(--tg-box); color: var(--tg-fg); border: 2px solid var(--tg-barline); cursor: pointer; }
+.tb-ui-opt.on { border-color: var(--tg-shine); }
+.tb-ui-opt:focus-visible { outline: 2px solid var(--tg-shine); outline-offset: 2px; }
+.tb-ui-thumb { display: block; width: 112px; height: 50px; image-rendering: pixelated; background: #000; border: 1px solid var(--tg-grid); }
+.tb-ui-text { display: grid; gap: 4px; min-width: 0; }
+.tb-ui-name { font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-shine); }
+.tb-ui-desc { font-size: 11px; line-height: 1.3; color: var(--tg-muted); white-space: normal; }

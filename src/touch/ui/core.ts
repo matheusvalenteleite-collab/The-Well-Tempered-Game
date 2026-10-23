@@ -5,7 +5,7 @@
  * glyphs (glyphs.ts), seeded noise, colour mixing.
  */
 import { barStart, beatOf, fugueById, type TouchFugue } from "../fugue.ts";
-import type { Frame } from "../MusicBox.tsx";
+import { ARROW_PIXELS, type Arrow, type Frame } from "../MusicBox.tsx";
 import type { LaneNote } from "../lanes.ts";
 import { stepRange } from "../voice-mode.ts";
 import type { GlyphName } from "./glyphs.ts";
@@ -16,6 +16,8 @@ export interface Geo {
   yOf: (step: number, voice: number) => number;
   /** CSS px per step in a voice's staff. */
   A: (voice: number) => number;
+  /** D228: a step's own height (CSS px) where it differs from A (the squeezed margins beyond the player's range). */
+  hOf?: (step: number, voice: number) => number;
 }
 export interface GeoIn {
   f: TouchFugue;
@@ -79,6 +81,8 @@ export interface Ctx {
   /** A step's middle and a step's height, in units. */
   y: (step: number, voice: number) => number;
   A: (voice: number) => number;
+  /** D228: a step's height in units (smaller in the margins beyond the player's range). */
+  h: (step: number, voice: number) => number;
   notes: UNote[];
   entries: UEntry[];
   names: string[];
@@ -92,6 +96,10 @@ export interface Ctx {
 
 export interface Template {
   name: string;
+  /** D228: one line for the INTERFACE panel. */
+  desc?: string;
+  /** D228: the family it is listed under in the panel ("RETRO"). */
+  family?: string;
   /** CSS px per drawing unit: 2 or 3 for chunky pixels; 0 for the device's full resolution (units are CSS px). */
   pixel: number;
   /** Bars in view and where the now stands (fraction of the width). */
@@ -112,6 +120,32 @@ export function fullGeo(L: GeoIn, pad = 1, minLo = Infinity, minHi = -Infinity, 
   const hi = Math.max(r.hi, L.range.hi, minHi) + pad;
   const A = (L.h - top - bottom) / (hi - lo + 1);
   return { yOf: (s) => top + (hi - s + 0.5) * A, A: () => A };
+}
+
+/**
+ * D228: the player's range as the ladder (its rows as tall as fit: the side bars' touch rows line up
+ * with them), every step beyond it squeezed into margins above and below at `k` of a row (D211's
+ * spill, for every interface), so all the voices show. `top`/`bottom`: the chrome's bands (CSS px),
+ * given the row height. Where the range is the piece's (the computer's modes) it is one plain ladder.
+ */
+export function ladderGeo(L: GeoIn, top: (A: number) => number = () => 0, bottom: (A: number) => number = () => 0, k = 0.5): Geo {
+  const r = stepRange(L.f);
+  const hi = L.range.hi;
+  const lo = L.range.lo;
+  const up = Math.max(0, r.hi + 1 - hi);
+  const down = Math.max(0, lo - (r.lo - 1));
+  const n = hi - lo + 1;
+  const units = n + k * (up + down) + 1;
+  let A = L.h / units;
+  for (let i = 0; i < 4; i++) A = Math.max(1, (L.h - top(A) - bottom(A)) / units);
+  const ladTop = top(A) + A / 2 + up * k * A;
+  const ladBot = ladTop + n * A;
+  const kA = k * A;
+  return {
+    yOf: (s) => (s > hi ? ladTop - (s - hi - 0.5) * kA : s < lo ? ladBot + (lo - s - 0.5) * kA : ladTop + (hi - s + 0.5) * A),
+    A: () => A,
+    hOf: (s) => (s > hi || s < lo ? kA : A),
+  };
 }
 
 export function buildCtx(t: Template, g: CanvasRenderingContext2D, W: number, H: number, u: number, fr: Frame, geo: Geo): Ctx {
@@ -171,6 +205,7 @@ export function buildCtx(t: Template, g: CanvasRenderingContext2D, W: number, H:
     playX: xOf(fr.now),
     y: (s, v) => geo.yOf(s, v) / u,
     A: (v) => geo.A(v) / u,
+    h: geo.hOf ? (s, v) => geo.hOf!(s, v) / u : (_s, v) => geo.A(v) / u,
     notes,
     entries,
     names: (fr.names ?? f.voiceNames).map((n) => n.toUpperCase()),
@@ -183,6 +218,27 @@ export function buildCtx(t: Template, g: CanvasRenderingContext2D, W: number, H:
 
 // ---------------------------------------------------------------------------------------------------
 // Drawing tools.
+
+/**
+ * D228: LADDER on a computer: the key each coming note of the player's asks for, the box's 5×5 pixel
+ * arrow over the note (`px` units a pixel), in the interface's ink on a backing of its own.
+ */
+export function arrowMarks(c: Ctx, ink: string, back: string, px = 1) {
+  if (!c.fr.arrows) return;
+  const g = c.g;
+  let last = -1;
+  for (const n of c.notes) {
+    if (!n.mine || !n.arrow || n.ride || n.state !== "pending" || n.on === last) continue;
+    last = n.on;
+    const x = Math.round(c.xOf(n.on));
+    if (x < c.playX || x > c.W) continue;
+    const y = Math.round(c.y(n.step, n.voice) - c.h(n.step, n.voice) / 2 - 7 * px);
+    rect(g, x - px, y - px, 7 * px, 7 * px, back);
+    g.fillStyle = ink;
+    const rows = ARROW_PIXELS[n.arrow as Arrow];
+    for (let ry = 0; ry < 5; ry++) for (let rx = 0; rx < 5; rx++) if (rows?.[ry][rx] === "1") g.fillRect(x + rx * px, y + ry * px, px, px);
+  }
+}
 
 const paths = new Map<string, Path2D>();
 /** A SMuFL glyph (VexFlow's outline format) at (x, y), a staff space `sp` units; y is the glyph's baseline (a notehead's middle). */
