@@ -35,34 +35,55 @@ export interface Plan {
   area: [number, number];
 }
 
-/** A staff's room above and below its lines, in steps, from its voices' notes (and room for stems and marks). */
-function reach(f: TouchFugue, s: StaffSpec, up: number, down: number): { above: number; below: number } {
+/** A staff's notes' reach above its top line and below its bottom line, in steps (0 where they stay inside). */
+function reach(f: TouchFugue, s: StaffSpec): { above: number; below: number } {
   let lo = Infinity;
   let hi = -Infinity;
   for (const v of s.voices) for (const n of f.voices[v] ?? []) (lo = Math.min(lo, n[3])), (hi = Math.max(hi, n[3]));
   if (lo === Infinity) (lo = s.lines[0]), (hi = s.lines[4]);
-  return { above: Math.max(0, hi - s.lines[4]) + up, below: Math.max(0, s.lines[0] - lo) + down };
+  return { above: Math.max(0, hi - s.lines[4]), below: Math.max(0, s.lines[0] - lo) };
 }
 
-/** The staves stacked in [top, bottom), each as tall as its notes ask, a staff space at most `max` px. */
-export function planStaves(f: TouchFugue, staves: StaffSpec[], top: number, bottom: number, max: number, up = 5, down = 5): Plan {
-  const r = staves.map((s) => reach(f, s, up, down));
-  const steps = staves.reduce((a, s, i) => a + (r[i].above + 8 + r[i].below) * s.scale, 0);
+/**
+ * D231: a grand staff's gap, in steps from the upper staff's bottom line to the lower's top line: one room
+ * the two staves' inner notes share, as a keyboard score has it (6 to 9 spaces), not each staff's own
+ * room stacked (which left 15 spaces on I/12, its tenor's notes adrift between the staves).
+ */
+export function grandGap(upperBelow: number, lowerAbove: number): number {
+  return Math.max(12, Math.min(18, Math.max(upperBelow, lowerAbove) + 4));
+}
+
+/**
+ * The staves stacked in [top, bottom), each with room for its notes (and `up` / `down` steps more for
+ * stems and marks), a staff space at most `max` px. `grand`: the staves are one keyboard system, the
+ * room between two staves shared (grandGap).
+ */
+export function planStaves(f: TouchFugue, staves: StaffSpec[], top: number, bottom: number, max: number, up = 5, down = 5, grand = false): Plan {
+  const r = staves.map((s) => reach(f, s));
+  const n = staves.length;
+  const above = staves.map((_, i) => (grand && i > 0 ? 0 : r[i].above + up));
+  const below = staves.map((_, i) => (grand && i < n - 1 ? grandGap(r[i].below, r[i + 1].above) : r[i].below + down));
+  const steps = staves.reduce((a, s, i) => a + (above[i] + 8 + below[i]) * s.scale, 0);
   const room = bottom - top;
   const half = Math.min(room / steps, max / 2);
   const sp = 2 * half;
   let y = top + (room - steps * half) / 2;
   const tops = staves.map((s, i) => {
-    y += r[i].above * half * s.scale;
+    y += above[i] * half * s.scale;
     const t = y;
-    y += (8 + r[i].below) * half * s.scale;
+    y += (8 + below[i]) * half * s.scale;
     return t;
   });
   const yOf = (step: number, i: number) => tops[i] + (staves[i].lines[4] - step) * half * staves[i].scale;
-  return { sp, top: tops, y: yOf, y0: tops[0], y1: yOf(staves[staves.length - 1].lines[0], staves.length - 1), area: [top, bottom] };
+  return { sp, top: tops, y: yOf, y0: tops[0], y1: yOf(staves[n - 1].lines[0], n - 1), area: [top, bottom] };
 }
 
-interface Look {
+/** Each staff's five lines' y, top first, on the half pixel: what the plate and the strip both draw (D231). */
+export function staffLineYs(p: Plan, staves: StaffSpec[]): number[][] {
+  return staves.map((s, i) => [...s.lines].reverse().map((l) => Math.round(p.y(l, i) * 2) / 2));
+}
+
+export interface Look {
   paper: string;
   staffInk: string;
   ink: (e: Ev) => string;
@@ -99,15 +120,14 @@ export function paintStrip(g: CanvasRenderingContext2D, f: TouchFugue, s: Strip,
     const i = look.mine;
     rect(g, 0, p.y(st[i].lines[4], i) - 1.6 * sp * st[i].scale, (u1 - u0) * sp, (4 + 3.2) * sp * st[i].scale, "#1d55c4", 0.05);
   }
-  // Staff lines (from just before the time signature on).
-  const from = Math.max(0, X(-4.4));
+  // Staff lines across the tile, the past before the first bar too (D231: unbroken from the plate on).
   g.strokeStyle = look.staffInk;
+  const ys = staffLineYs(p, st);
   st.forEach((sf, i) => {
     g.lineWidth = Math.max(0.6, 0.1 * sp * sf.scale);
     g.beginPath();
-    for (const l of sf.lines) {
-      const y = Math.round(p.y(l, i) * 2) / 2;
-      g.moveTo(from, y);
+    for (const y of ys[i]) {
+      g.moveTo(0, y);
       g.lineTo(X(Math.min(u1, s.end)), y);
     }
     g.stroke();
@@ -340,9 +360,14 @@ function paintEntries(g: CanvasRenderingContext2D, f: TouchFugue, s: Strip, p: P
     const steps = e.notes.map((n) => at.get(`${e.voice}:${n[0]}`) ?? sf.lines[2]);
     const y = above ? Math.min(p.y(sf.lines[4], staff) - 1.4 * s2, ...steps.map((st) => p.y(st, staff) - 4.2 * s2)) : Math.max(p.y(sf.lines[0], staff) + 1.4 * s2, ...steps.map((st) => p.y(st, staff) + 4.2 * s2));
     const pad = look.marks === "numbers" ? Math.max(6, 0.95 * s2) + 1 : 0.9 * s2;
-    const yy = Math.max(p.area[0] + pad, Math.min(p.area[1] - pad, y));
+    // Kept off the neighbouring staff's lines (D231: an inner voice's bracket in a grand staff's gap).
+    let lim: [number, number] = [p.area[0] + pad, p.area[1] - pad];
+    if (above && staff > 0) lim = [Math.max(lim[0], p.y(s.staves[staff - 1].lines[0], staff - 1) + 1.5 * p.sp), lim[1]];
+    if (!above && staff < s.staves.length - 1) lim = [lim[0], Math.min(lim[1], p.y(s.staves[staff + 1].lines[4], staff + 1) - 1.5 * p.sp)];
+    const yy = Math.max(lim[0], Math.min(lim[1], y));
     const tick = (above ? 1 : -1) * 0.7 * s2;
-    const col = e.voice === look.player ? look.mineInk : look.staffInk;
+    // GeruBach's bracket in its number's red (D231: in the staves' black it read as a stray staff line).
+    const col = e.voice === look.player ? look.mineInk : look.marks === "numbers" ? "#e0281b" : look.staffInk;
     const x1 = X(a) - 0.4 * s2;
     const x2 = X(b) - 0.8 * s2;
     g.strokeStyle = col;
@@ -382,7 +407,7 @@ function paintEntries(g: CanvasRenderingContext2D, f: TouchFugue, s: Strip, p: P
 
 const TILE = 512;
 const KEEP = 6;
-interface Scroll {
+export interface Scroll {
   key: string;
   f: TouchFugue;
   strip: Strip;
@@ -501,7 +526,7 @@ function overlay(c: Ctx, sc: Scroll, nowX: number, bandX: number, x0: number) {
 }
 
 /** The fixed plate at the left: the clefs and the key signature (the strip scrolls under it). */
-function plate(c: Ctx, sc: Scroll, w: number, names?: string[]) {
+export function plate(c: Ctx, sc: Scroll, w: number, names?: string[]) {
   const { g } = c;
   const { plan, strip, look } = sc;
   rect(g, 0, 0, w - 10, c.H, look.paper);
@@ -520,14 +545,16 @@ function plate(c: Ctx, sc: Scroll, w: number, names?: string[]) {
     g.strokeStyle = look.staffInk;
     g.lineWidth = Math.max(0.6, 0.1 * s2);
     g.beginPath();
-    for (const l of s.lines) line(g, left, Math.round(plan.y(l, i) * 2) / 2, w);
+    for (const y of staffLineYs(plan, strip.staves)[i]) line(g, left, y, w);
     g.stroke();
-    if (s.clef === "g") glyph(g, BRAVURA, "gClef", x, plan.y(32, i), s2, look.staffInk);
-    else glyph(g, BRAVURA, "fClef", x, plan.y(24, i), s2, look.staffInk);
+    // The G clef curls round its second line, the F clef's dots straddle its fourth (D231: by the staff's lines, so a tenor's G clef an octave down too, its 8 beneath).
+    if (s.clef === "f") glyph(g, BRAVURA, "fClef", x, plan.y(s.lines[3], i), s2, look.staffInk);
+    else glyph(g, BRAVURA, "gClef", x, plan.y(s.lines[1], i), s2, look.staffInk);
+    if (s.clef === "g8") glyph(g, BRAVURA, "timeSig8", x + 0.85 * s2, plan.y(s.lines[0], i) + 2.9 * s2, 0.5 * s2, look.staffInk);
     const vals = [...sig.values()];
     const sharp = vals[0] > 0;
     for (let k = 0; k < vals.length; k++) {
-      let pos = (sharp ? SH : FL)[k] - (s.clef === "f" ? 14 : 0);
+      let pos = (sharp ? SH : FL)[k] - (38 - s.lines[4] + (s.clef === "f" ? 2 : 0));
       while (pos > s.lines[4] + 1) pos -= 7;
       while (pos < s.lines[0] - 1) pos += 7;
       glyph(g, BRAVURA, sharp ? "accidentalSharp" : "accidentalFlat", x + 3.0 * s2 + k * 0.95 * s2, plan.y(pos, i), s2, look.staffInk);
@@ -577,7 +604,7 @@ export const GERUBACH: Template = {
     const sc = scrollFor(`gb:${f.id}:${player}:${Math.round(W)}x${Math.round(H)}:${res}`, () => ({
       f,
       strip,
-      plan: planStaves(f, staves, top + 2, H - foot - 2, 15, 6, 6),
+      plan: planStaves(f, staves, top + 2, H - foot - 2, 15, 6, 6, true),
       look: {
         paper: "#ffffff",
         staffInk: "#1a1a1a",

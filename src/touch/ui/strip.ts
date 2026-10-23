@@ -19,8 +19,9 @@
 import { beatOf, type TouchFugue } from "../fugue.ts";
 import { keySignature, spelled } from "./core.ts";
 
-export type Clef = "g" | "f" | "c1";
-export const LINES: Record<Clef, number[]> = { g: [30, 32, 34, 36, 38], f: [18, 20, 22, 24, 26], c1: [28, 30, 32, 34, 36] };
+/** Treble, bass, soprano clef, and the tenor's treble an octave down (D231). */
+export type Clef = "g" | "f" | "c1" | "g8";
+export const LINES: Record<Clef, number[]> = { g: [30, 32, 34, 36, 38], f: [18, 20, 22, 24, 26], c1: [28, 30, 32, 34, 36], g8: [23, 25, 27, 29, 31] };
 
 export interface StaffSpec {
   voices: number[];
@@ -349,12 +350,30 @@ export function grandStaves(count: number): StaffSpec[] {
   ];
 }
 
-/** One staff per voice, by its middle note's clef; the player's full size, the others cue size. */
+/** The ledger lines a note (step) needs on a staff (its lines' steps, bottom first). */
+export function ledgersOf(step: number, lines: number[]): number {
+  return Math.max(0, Math.floor((step - lines[4]) / 2), Math.floor((lines[0] - step) / 2));
+}
+
+/**
+ * A voice's clef on a staff of its own (D231): the one its notes need the fewest ledger lines on, the
+ * treble or the bass; a tenor also the treble an octave down ("g8", where it saves a third of them:
+ * I/12's tenor, on the bass staff, climbed to A4 over five ledger lines). An alto keeps the treble or bass.
+ */
+export function clefOf(steps: number[], tenor = false): Clef {
+  if (!steps.length) return "g";
+  const cost = (c: Clef) => steps.reduce((a, s) => a + ledgersOf(s, LINES[c]), 0);
+  const plain: Clef = cost("g") <= cost("f") ? "g" : "f";
+  return tenor && cost("g8") < cost(plain) * 0.67 ? "g8" : plain;
+}
+
+/** One staff per voice, in the clef its notes ask (clefOf); the player's full size, the others cue size. */
 export function voiceStaves(f: TouchFugue, player: number, cue = 0.7): StaffSpec[] {
   return f.voices.map((ns, v) => {
-    const steps = ns.map((n) => n[3]).sort((a, b) => a - b);
-    const med = steps[Math.floor(steps.length / 2)] ?? 30;
-    const clef: Clef = med >= 27 ? "g" : "f";
+    const clef = clefOf(
+      ns.map((n) => n[3]),
+      /tenor/i.test(f.voiceNames[v] ?? ""),
+    );
     return { voices: [v], clef, lines: LINES[clef], scale: v === player ? 1 : cue };
   });
 }
