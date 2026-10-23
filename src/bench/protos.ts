@@ -9,8 +9,7 @@
  *     voice's range filling the box), so a note is touched at the height it is drawn, either bar; a
  *     glow runs from the coming note across to the bars. Across a bar: the middle mf, towards the
  *     phone's edge forte, towards the box piano.
- *   TWO VOICES: the same screen; two voices chosen (1P, 2P), one to each bar; the time only.
- *   (FINGERING and SIDEWAYS were withdrawn in D208.)
+ *   (FINGERING and SIDEWAYS were withdrawn in D208; TWO VOICES, mobile HIGHWAY and KIMIKO as a mode in D219.)
  *   PIANO: sideways, the keyboard of D172; the key exactly.
  * Pure: moves and gestures in, verdicts out.
  */
@@ -20,7 +19,7 @@ import { markShapes } from "../touch/shape.ts";
 import type { Side } from "../touch/thumbs.ts";
 import type { Arrow } from "../touch/MusicBox.tsx";
 
-export type ProtoId = "ladder" | "duo" | "highway" | "subject" | "kimiko" | "arrows" | "keys" | "piano";
+export type ProtoId = "ladder" | "highway" | "subject" | "arrows" | "keys" | "piano";
 /** D182: what the prototype is played on. */
 export type Platform = "mobile" | "computer";
 
@@ -39,8 +38,10 @@ export interface Move {
 export interface Options {
   /** Unused since SIDEWAYS was withdrawn (D208): kept for the test harness's legato runs. */
   legato: boolean;
-  /** D198: a run fails when the crowd is lost (off in the lessons, and with NO FAIL). */
+  /** D198: a run fails when the crowd is lost (off in the lessons; D219: always on elsewhere). */
   fail?: boolean;
+  /** D219, WITH KIMIKO ISHIZAKA (LADDER, SUBJECT): her recording the only accompaniment, the game on her clock. */
+  her?: boolean;
   /** EASY (D187): the time only, or the line's direction too, or its leaps as well. */
   easy?: EasyLevel;
   /** The lessons (D185, D188): the passage ends here (a tick); the music waits for each note; the voice alone. */
@@ -52,8 +53,8 @@ export interface Options {
 export interface Proto {
   id: ProtoId;
   name: string;
-  /** One line under the name. */
-  how: string;
+  /** D219: the rules, at most three short lines (the settings and the help screen, beside the mode's picture). */
+  how: string[];
   /** One line under the name on the title card: how it is played (D184). */
   short: string;
   /** How the screen is held: the box between two side bars (sideways), the whole screen a field (upright), the box over a keyboard (sideways), the box over the computer's keys. */
@@ -62,74 +63,67 @@ export interface Proto {
   platform: Platform;
 }
 
+/**
+ * D219: the menus. A phone: LADDER and SUBJECT (mobile HIGHWAY, TWO VOICES and KIMIKO withdrawn as
+ * modes; KIMIKO is now a switch inside LADDER and SUBJECT). A computer: HIGHWAY, LADDER, PIANO.
+ * `short` is the title card's rule (one line); `how` the settings' and help screen's (at most three
+ * short lines; the pictures beside them do the rest: ModeDiagram.tsx).
+ */
 export const PROTOS: Proto[] = [
   {
-    id: "highway",
-    short: "TAP THE LANE AS EACH NOTE LANDS · SLIDE TO JOIN · TWO ROWS TO CROSS THUMBS",
-    name: "HIGHWAY",
-    how: "Upright, the whole screen: EASY on a phone (D207). The notes come down five lanes to the strike line; tap the lane a note is in as it lands. Two rows of pads, the same lanes in each (D208): one thumb in the upper row, the other in the lower, so they can pass each other. Legato: strike the next note before letting go of the last, or slide a held thumb into the next lane. The other voices pass faintly behind, by pitch (their subject entries brighter). Three levels (⚙ EASY): TIMING, any lane on time; DIRECTION, a lane further right than your last tap when the line rises, further left when it falls, the same lane when it repeats; + LEAPS, a leap of a fourth or more skips a lane. An open bar across the road (the first note, or after a rest of a beat or more): any lane. Long notes: hold them while their tail glows.",
-    layout: "full",
+    id: "ladder",
+    short: "TOUCH A BAR AT THE NOTE'S HEIGHT",
+    name: "LADDER",
+    how: ["Touch either bar where the glow is.", "Higher when the tune rises, lower when it falls.", "Slide for a run · toward the edge = louder."],
+    layout: "bars",
     platform: "mobile",
   },
   {
     id: "subject",
-    short: "PLAY ONLY THE SUBJECT · EVERY ENTRY, IN EVERY VOICE · STRETTO: BOTH, ONE PER ROW",
+    short: "PLAY THE SUBJECT, EVERY ENTRY",
     name: "SUBJECT",
-    how: "Upright, as HIGHWAY (D214). You follow the subject, not a voice: every entry of it, in whichever voice it comes (in a double or triple fugue every subject), and you rest while the fugue plays between them. Each entry's notes come down the five lanes in its voice's colour, its name shown as it begins (SUBJECT · ALTO, SUBJECT 2 · TENOR, INVERTED, AUGMENTED); a marker at the road's far end counts in the next entry while you wait. An entry's first note is an open bar: any lane. When entries overlap (stretto, D217) you play both, one per row of pads: the newer entry in the upper row (solid gems), the older one in the lower row (hollow gems), so expect two thumbs down at once. The older entry is reduced to its main moves: its notes on the beat or of half a beat or more; the quicker ones play themselves; its long notes are held. In a stretto a note is right only in its own row; outside one either row plays. Three entries or more at once: the two newest are yours, the others go back to the fugue. A stretto played through without a slip scores STRETTO ×2 and captures both entries. Slides, the levels of ⚙ EASY, long notes held, as on HIGHWAY.",
+    how: ["Tap the lane as the note lands.", "Only the subject, in whichever voice has it.", "Two entries at once: upper row new, lower row old."],
     layout: "full",
     platform: "mobile",
   },
   {
-    id: "kimiko",
-    short: "YOUR VOICE OVER KIMIKO ISHIZAKA'S RECORDING · TAP THE LANE AS EACH NOTE LANDS",
-    name: "KIMIKO",
-    how: "Upright, as HIGHWAY (D216), but the only accompaniment is Kimiko Ishizaka's recording (The Open Well-Tempered Clavier, 2015, CC0), from the first note: no other voices from the game, no band. You play one voice on top of her; the notes land when she plays them, and come down the road spaced by her own time (her rubato, her final ritard). Your notes sound a little under her (⚙ YOUR VOICE: ON, SOFT, or OFF to tap in silence, judged only), tuned to her A. The 24 fugues of Book I (D221). Five lanes, two rows of pads, slides, the levels of ⚙ EASY, long notes held, as on HIGHWAY.",
-    layout: "full",
-    platform: "mobile",
-  },
-  {
-    id: "ladder",
-    short: "TAP A BAR AT THE NOTE'S HEIGHT · HIGHER WHEN THE TUNE RISES",
-    name: "LADDER",
-    how: "Sideways. Touch either bar near the height your note is drawn in the box (the glow shows it), higher than your last touch when the tune goes up, lower when it goes down: the way matters more than the spot. A run is a slide up or down the bar. Across a bar: the middle mf, out to the phone's edge forte, in towards the box piano; slide across while a note sounds to swell or fade.",
-    layout: "bars",
-    platform: "mobile",
-  },
-  {
-    id: "duo",
-    short: "LEFT BAR 1P, RIGHT BAR 2P · ONLY THE TIME COUNTS",
-    name: "TWO VOICES",
-    how: "Sideways. Choose two voices, 1P and 2P: the left bar plays the first, the right bar the second. Only the time counts. Across a bar: the middle mf, out forte, in piano; slide across while a note sounds to swell or fade; flick up as you let go for a swoosh.",
-    layout: "bars",
-    platform: "mobile",
-  },
-  {
-    id: "arrows",
-    short: "WASD OR ARROWS: THE KEY DRAWN OVER EACH NOTE",
-    name: "LADDER",
-    how: "On a computer. Each note's key is drawn over it in the box. Either hand, WASD or the arrows: → (D) a step up, ← (A) a step down, ↑ (W) a leap up, ↓ (S) a leap down; a third (↗ ↘) takes either; space the same note again.",
+    id: "keys",
+    short: "HOME ROW · ONE FINGER PER LANE",
+    name: "HIGHWAY",
+    how: ["Press the lane's key as the note lands.", "G is shared by both index fingers · SPACE repeats a note.", "Hold long notes; let go at the rests."],
     layout: "desk",
     platform: "computer",
   },
   {
-    id: "keys",
-    short: "HANDS ON A S D F · H J K L, THUMBS ON SPACE · THE LANES ARE THE FINGERING",
-    name: "HIGHWAY",
-    how: "On a computer (D208). Both hands on the home row: left little finger on A to left index on F, right index on H to right little finger on L, G for whichever index is free, thumbs on space (the same note again). The notes come down nine lanes, A to L: a fingering of your line, planned so no finger strikes twice running and a run never jams at an edge. Four levels (⚙ EASY): TIMING, any key on time; DIRECTION, a key further right than the last when the line rises, further left when it falls, the same key or space when it repeats; + LEAPS, and a leap of a fourth or more skips a key; EXACT LANES, the lane's own key. A note after a rest of a beat or more is free (an open bar): any key. The rows shape the note: Q W E R… forte, A S D F… mezzo, Z X C V… piano; the numbers trill it. Hold Shift as a pedal; ↑ ↓ bend a held note.",
+    id: "arrows",
+    short: "PRESS THE ARROW SHOWN ON EACH NOTE",
+    name: "LADDER",
+    how: ["Press the key drawn on the note as it arrives.", "→ ← a step · ↑ ↓ a leap · SPACE the same note.", "A third (↗ ↘): either the step or the leap."],
     layout: "desk",
     platform: "computer",
   },
   {
     id: "piano",
-    short: "THE KEY UNDER EACH FALLING NOTE · Z X OCTAVE",
+    short: "THE KEY UNDER EACH FALLING NOTE",
     name: "PIANO",
-    how: "On a computer: a MIDI keyboard, or the computer's keys as a piano (the home row the white keys, the row above the black: A W S E D F T G Y H U J K O L P), Z and X the octave. The notes fall onto their keys; the key exactly; a wrong key is heard.",
+    how: ["Play the key the note falls onto.", "A MIDI keyboard, or the letters as a piano.", "Z / X: an octave down / up · a wrong key is heard."],
     layout: "wide",
     platform: "computer",
   },
 ];
 
-export const protoById = (id: string) => PROTOS.find((p) => p.id === id) ?? PROTOS[0];
+/**
+ * D219: mobile HIGHWAY is out of the menus, but its single-voice road (five lanes, two rows of pads,
+ * EASY's levels) is the machinery SUBJECT runs on: kept as an internal prototype (and the tests' harness).
+ */
+export const HIGHWAY_LANES: Proto = { id: "highway", short: "", name: "HIGHWAY", how: [], layout: "full", platform: "mobile" };
+
+/** D219: a platform's menu, in order. */
+export const menuOf = (pl: Platform) => PROTOS.filter((p) => p.platform === pl);
+
+export const protoById = (id: string) => (id === "highway" ? HIGHWAY_LANES : (PROTOS.find((p) => p.id === id) ?? PROTOS[0]));
+/** D219: whether a mode takes the WITH KIMIKO ISHIZAKA switch (where her recording exists). */
+export const takesHer = (id: ProtoId) => id === "ladder" || id === "subject";
 
 /** D220: the computer's HIGHWAY is played on its road alone: no music box beside it while playing. */
 export const roadAlone = (p: Proto, playing: boolean) => playing && p.id === "keys";

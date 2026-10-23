@@ -11,7 +11,7 @@ import type { Chip } from "../src/touch/chip.ts";
 import { ornamentsOf } from "../src/touch/ornament-play.ts";
 import { TEMPO } from "../src/touch/tempi.ts";
 import { herMap } from "../src/bench/her-clock.ts";
-import { cardById } from "../src/bench/cards.ts";
+import { cardById, NOT_OFFERED } from "../src/bench/cards.ts";
 import { subjectLine } from "../src/bench/subject-line.ts";
 import { ProtoGame } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
@@ -53,10 +53,10 @@ test("D221: every Book I fugue's data: entries (their notes in their voices), ca
   }
 });
 
-test("D221: every Book I card's seal is judged (its data present)", () => {
+test("D221: every Book I card's seal is judged (its data present; D219: DUET not offered)", () => {
   for (const id of BOOK_I) {
     const c = cardById(id)!;
-    assert.ok(c.ready, `${id}: ${c.seal.kind}`);
+    assert.ok(c.ready || NOT_OFFERED.has(c.seal.kind), `${id}: ${c.seal.kind}`);
   }
 });
 

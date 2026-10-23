@@ -272,6 +272,9 @@ export const FAMILIES: { name: string; presets: Preset[] }[] = [
       // D190: recorded, every voice on the one instrument (as Bach played his fugues).
       { id: "harpsichordSampled", name: "HARPSICHORD (SAMPLED)", slots: ["harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiBassSampled"], room: 0.24 },
       { id: "organSampled", name: "ORGAN (SAMPLED)", slots: ["organSampled", "organSampled", "organSampled", "organSampled", "organSampled"], room: 0.24 },
+      // D219: the player's voice over Kimiko Ishizaka's piano (WITH KIMIKO ISHIZAKA's default): a breathy,
+      // sustained baroque flute on top, a soft stopped organ flute below: no hammer, so heard apart from her.
+      { id: "traverso", name: "TRAVERSO", slots: ["traverso", "traverso", "traverso", "organFlute", "organFlute"], room: 0.2 },
     ],
   },
   {

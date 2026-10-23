@@ -6,13 +6,13 @@ import { cardById } from "../src/bench/cards.ts";
 import { judgeSeal, type RunFacts } from "../src/bench/seals.ts";
 
 /** A run of one voice: every note right (or the ones listed wrong), every entry captured (or lost where a note is wrong). */
-function run(id: string, voice: number, o: { wrong?: number[]; grade?: string; tuning?: string; duo?: boolean; whole?: boolean } = {}): RunFacts {
+function run(id: string, voice: number, o: { wrong?: number[]; grade?: string; tuning?: string; whole?: boolean } = {}): RunFacts {
   const f = fugueById(id);
   const beat = beatOf(f).ticks;
   const notes = laneNotes(f.voices[voice], beat, voice).map((n, i) => ({ ...n, state: o.wrong?.includes(i) ? ("miss" as const) : ("hit" as const) }));
   const bad = new Set(notes.filter((n) => n.state === "miss").map((n) => n.on));
   const entries = f.entries.filter((e) => e.voice === voice).map((e) => ({ voice, on: e.on, end: e.end, state: e.notes.some(([on]) => bad.has(on)) ? ("lost" as const) : ("captured" as const) }));
-  return { f, tracks: [{ voice, notes }], entries, beat, grade: o.grade ?? "S", tuning: o.tuning ?? "equal", duo: !!o.duo, whole: o.whole ?? true };
+  return { f, tracks: [{ voice, notes }], entries, beat, grade: o.grade ?? "S", tuning: o.tuning ?? "equal", whole: o.whole ?? true };
 }
 
 test("seals: a clean whole run earns them; a slip, a part run, the wrong tuning do not", () => {
@@ -32,8 +32,9 @@ test("seals: a clean whole run earns them; a slip, a part run, the wrong tuning 
   assert.ok(giants.length);
   assert.equal(judgeSeal(i8, run("wtc1f08", giants[0].voice)).earned, true, "SLOW GIANT");
   const i10 = cardById("wtc1f10")!;
-  assert.equal(judgeSeal(i10, run("wtc1f10", 0)).earned, false, "DUET needs TWO VOICES");
-  assert.equal(judgeSeal(i10, run("wtc1f10", 0, { duo: true })).earned, true);
+  // D219: DUET needed TWO VOICES (withdrawn): not offered, never earned.
+  assert.equal(i10.ready, false);
+  assert.equal(judgeSeal(i10, run("wtc1f10", 0)).earned, false, "DUET not offered");
   const i2 = cardById("wtc1f02")!;
   assert.equal(judgeSeal(i2, run("wtc1f02", 1)).earned, true, "NO SLIP");
   assert.equal(judgeSeal(i2, run("wtc1f02", 1, { wrong: [3] })).earned, false);
