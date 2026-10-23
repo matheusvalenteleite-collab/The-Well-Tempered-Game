@@ -50,6 +50,8 @@ export interface Options {
   solo?: boolean;
   /** D223, BLUETOOTH MODE: the player's notes sounded ahead at their written times (armed), confirmed by the touch. */
   bt?: boolean;
+  /** D230, SCALE KEYS (computer HIGHWAY, an experiment): the home row the home key's scale, the rows above and below its raised and lowered degrees (scale-keys.ts). */
+  scale?: boolean;
 }
 
 export interface Proto {
@@ -105,6 +107,15 @@ export const PROTOS: Proto[] = [
     layout: "wide",
     platform: "computer",
   },
+];
+
+/** D230: HIGHWAY's rules with SCALE KEYS on (in place of `how`). */
+export const SCALE_HOW = ["Home row A–K: do re mi fa sol la ti do of the home key.", "Raised notes the row above (W E T Y U), lowered below (X C B N M).", "SPACE repeats a note · TIMING: any key on time."];
+/** D230: the computer HIGHWAY's keyboard layouts. */
+export type KeysLayout = "home" | "scale";
+export const KEYS_LAYOUTS: [KeysLayout, string][] = [
+  ["home", "HOME ROW"],
+  ["scale", "SCALE (EXPERIMENT)"],
 ];
 
 /**

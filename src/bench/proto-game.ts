@@ -26,6 +26,7 @@ import { pianoKey, pianoKeys } from "./placed.ts";
 import type { Clock } from "./her-clock.ts";
 import type { ArtFlash, ArtStats } from "./articulation.ts";
 import { CLEAN_INK, HELD_INK, holdBonus, LEGATO_GAP_MS, LEGATO_INK, legatoBonus, releaseVerdict, restAfter } from "./articulation.ts";
+import { scaleFits, scaleKeys, keyPitch, SCALE_LANES, type ScaleKey } from "./scale-keys.ts";
 import { lineKey, subjectLine, type LineEntry, type Stretto, type SubjectLine } from "./subject-line.ts";
 import { barDynamic, contourCue, contourOk, dynamic, HOME_LANES, keyPlace, LADDER_AREA, planLanes, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk, isRepeat } from "./protos.ts";
 
@@ -652,6 +653,9 @@ export class ProtoGame {
     if (this.proto.id === "keys") {
       const lvl = this.o.easy ?? "timing";
       const code = at.key?.code;
+      // D230, SCALE KEYS: every note its own key (the level ignored but TIMING: any key on time).
+      const sk = this.scale;
+      if (sk && lvl !== "timing" && code) return this.scaleVerdict(sk, i, code, prev);
       if (lvl === "timing" || !code || this.isFree(i, k)) return { ok: true };
       // D208, EXACT LANES: the planned lane's key (in any row: the rows give the dynamic), or for a repeat the space bar.
       if (lvl === "exact") {
@@ -720,6 +724,29 @@ export class ProtoGame {
     }
   }
 
+  /**
+   * D230, SCALE KEYS: the key of each of the line's notes (scale-keys.ts: the home row the home key's
+   * scale, raised notes the row above, lowered below), or null when the layout is off.
+   */
+  get scale(): ScaleKey[] | null {
+    if (!this.o.scale || this.proto.id !== "keys") return null;
+    return (this.scaleMemo ??= scaleKeys(this.notes, this.f.key));
+  }
+  private scaleMemo?: ScaleKey[];
+  /** D230: right if the key is a chord note's key (the tonic at home: A or K), or SPACE on a repeated pitch; a wrong key sounds its own pitch. */
+  private scaleVerdict(sk: ScaleKey[], i: number, code: string, prev: number): Verdict {
+    const notes = this.notes;
+    const chord = chordOf(notes, i);
+    const n = notes[i];
+    if (code === "Space") {
+      // A pitch of the chord before sounded again (a chord: any of its notes).
+      const before = prev >= 0 ? chordOf(notes, prev).map((j) => notes[j].midi) : [];
+      return chord.some((j) => before.includes(notes[j].midi)) ? { ok: true } : { ok: false, wrong: before[0], why: "gesture" };
+    }
+    if (chord.some((j) => sk[j] && scaleFits(sk[j], code))) return { ok: true };
+    return { ok: false, wrong: keyPitch(code, n.midi, this.f.key), why: "gesture" };
+  }
+
   /** D207, HIGHWAY: the lane a tap falls in, and the lane tapped last (-1: none yet). */
   lastLane = -1;
   /** D217: the lane tapped last in each line (SUBJECT's two rows in a stretto). */
@@ -728,7 +755,7 @@ export class ProtoGame {
     return Math.max(0, Math.min(this.laneCount - 1, Math.floor((x / Math.max(1, w)) * this.laneCount)));
   }
   get laneCount(): number {
-    return this.road ? 5 : HOME_LANES;
+    return this.road ? 5 : this.scale ? SCALE_LANES : HOME_LANES;
   }
   /** The lanes under the fingers now (HIGHWAY), and how far down each finger is (px; for the two rows of pads). */
   get heldLanes(): number[] {
@@ -804,7 +831,7 @@ export class ProtoGame {
   /** What the box draws over each note in DIRECTION (none in TIMING). */
   get cues(): Arrow[] | undefined {
     const lvl = this.o.easy ?? "timing";
-    if (this.proto.id !== "keys" || lvl === "timing") return undefined;
+    if (this.proto.id !== "keys" || lvl === "timing" || this.scale) return undefined;
     return (this.cuesMemo ??= this.notes.map((_, i) => contourCue(this.moves[i], this.isFree(i), lvl === "leaps")));
   }
   private cuesMemo?: Arrow[];
@@ -1341,6 +1368,9 @@ export class ProtoGame {
   /** D217: a track's lanes (SUBJECT's second line has its own). */
   lanesOf(k: number): number[] {
     if (this.lanesMemo[k]) return this.lanesMemo[k];
+    // D230, SCALE KEYS: the lane is the key's place (a raised or lowered note between two home lanes).
+    const sk = k === 0 ? this.scale : null;
+    if (sk) return (this.lanesMemo[k] = sk.map((x) => x.pos));
     const { notes, moves: mv } = this.tracks[k];
     const heads = notes.map((n, i) => !n.ride && !(i > 0 && notes[i - 1].on === n.on));
     // D229: on a computer a repeat goes on in the lane of the note before (a SPACE gem), even after a rest (where any key still answers it).

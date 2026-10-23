@@ -43,7 +43,7 @@ import { judgeSeal, readSeals, recordSeal } from "./seals.ts";
 import { earnFeats, type FeatId } from "./feats.ts";
 import { AchButton, Achievements, FeatToast } from "./Achievements.tsx";
 import { artLine, type ArtStats } from "./articulation.ts";
-import { ARROW_KEYS, arrowOf, EASY_LEVELS, KEY_ROWS, type EasyLevel, keyId, keyRow, menuOf, midiId, moveOf, PROTOS, protoById, roadAlone, takesHer, type Platform, type Proto, type ProtoId } from "./protos.ts";
+import { ARROW_KEYS, arrowOf, EASY_LEVELS, KEY_ROWS, KEYS_LAYOUTS, SCALE_HOW, type KeysLayout, type EasyLevel, keyId, keyRow, menuOf, midiId, moveOf, PROTOS, protoById, roadAlone, takesHer, type Platform, type Proto, type ProtoId } from "./protos.ts";
 
 const PICK_KEY = "tb-pick-v2";
 const LAG_KEY = "tg-lag";
@@ -76,11 +76,13 @@ interface Pick {
   her: boolean;
   /** D216, KIMIKO: the player's own notes over her recording: a little under her, softer, or silent (judged only). */
   mine: Mine;
+  /** D230: the computer HIGHWAY's keys: the home row's lanes, or SCALE KEYS (the experiment). */
+  keys: KeysLayout;
 }
 type Mine = "on" | "soft" | "off";
 /** D216: YOUR VOICE's levels (the player's notes' gain; 1 elsewhere). */
 const MINE: Record<Mine, number> = { on: 0.75, soft: 0.4, off: 0 };
-const DEFAULT: Pick = { proto: "ladder", piece: "wtc1f02", voice: 1, share: 0, legato: false, easy: "direction", her: false, mine: "on" };
+const DEFAULT: Pick = { proto: "ladder", piece: "wtc1f02", voice: 1, share: 0, legato: false, easy: "direction", her: false, mine: "on", keys: "home" };
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -112,7 +114,7 @@ function sane(p: Pick): Pick {
   const was = p.proto as string;
   const proto = PROTOS.some((x) => x.id === was) ? p.proto : DEFAULT.proto;
   const { voice2: _v2, fail: _fail, ...rest } = p as Pick & { voice2?: number; fail?: boolean };
-  return { ...DEFAULT, ...rest, piece, share, voice, proto, legato: !!p.legato, easy: EASY_LEVELS.some(([l]) => l === p.easy) ? p.easy : DEFAULT.easy, her: was === "kimiko" || p.her === true, mine: p.mine in MINE ? p.mine : DEFAULT.mine };
+  return { ...DEFAULT, ...rest, piece, share, voice, proto, legato: !!p.legato, easy: EASY_LEVELS.some(([l]) => l === p.easy) ? p.easy : DEFAULT.easy, her: was === "kimiko" || p.her === true, mine: p.mine in MINE ? p.mine : DEFAULT.mine, keys: p.keys === "scale" ? "scale" : "home" };
 }
 
 type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; stage?: { won: boolean; fugue: string }; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; art?: ArtStats; seal: { kind: string; earned: boolean; why: string } | null; feats?: FeatId[] } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "lessons"; focus?: ProtoId } | { kind: "help" } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
@@ -322,7 +324,7 @@ export function BenchApp() {
     if (hm) setTuning("equal", hm.a);
     ch.mine.gain.value = kimiko ? MINE[pick.mine] : 1;
     // D219: failing always on (D225: in the lessons from the fourth on); WITH KIMIKO, the game sounds only the player's voice.
-    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? pick.easy, fail: run ? run.fail : true, her: kimiko, bt: hp.btFor(lag), ...(run ? { until: run.until, wait: run.wait, solo: run.solo } : {}), ...(clock ? { clock } : {}) }, ch);
+    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? pick.easy, fail: run ? run.fail : true, her: kimiko, bt: hp.btFor(lag), scale: !run && proto.id === "keys" && pick.keys === "scale", ...(run ? { until: run.until, wait: run.wait, solo: run.solo } : {}), ...(clock ? { clock } : {}) }, ch);
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
     // For the measurements (the bench's own checks): the game and her playing.
@@ -598,6 +600,8 @@ export function BenchApp() {
       }
       if (e.code === "Space") return { velocity: 0.5, code: "Space" };
       const r = keyRow(e.code);
+      // D230, SCALE KEYS: the rows are degrees, not dynamics (one level; no trill row).
+      if (r >= 0 && game.current?.scale) return r === 0 ? null : { velocity: 0.6, code: e.code };
       return r < 0 ? null : { velocity: KEY_ROWS[r].dyn, trill: KEY_ROWS[r].trill, code: e.code };
     };
     const down = (e: KeyboardEvent) => {
@@ -651,6 +655,8 @@ export function BenchApp() {
   });
 
   const playing = phase.kind === "play";
+  /** D230: SCALE KEYS chosen for the computer's HIGHWAY. */
+  const scaleOn = proto.id === "keys" && pick.keys === "scale";
   const away = phase.kind === "title" || phase.kind === "result";
   const layout = proto.layout;
   const wide = layout === "wide" || layout === "bars" || layout === "desk";
@@ -782,15 +788,16 @@ export function BenchApp() {
             ))}
           </div>
           <div className="tb-how">
-            <ModeDiagram id={proto.id} />
+            <ModeDiagram id={proto.id} scale={scaleOn} />
             <ol className="tb-rules">
-              {proto.how.map((l) => (
+              {(scaleOn ? SCALE_HOW : proto.how).map((l) => (
                 <li key={l}>{l}</li>
               ))}
             </ol>
           </div>
           <TutorialButton id="settings-tutorial" open={() => setPhase({ kind: "lessons" })} />
           <Choice id="platform" label="PLAY ON" options={[["mobile", "MOBILE"], ["computer", "COMPUTER"]]} value={platform ?? "mobile"} set={(pl) => setPlatform(pl)} />
+          {proto.id === "keys" && <Choice id="keys" label="KEYS" options={KEYS_LAYOUTS} value={pick.keys} set={(keys) => setPick({ keys })} />}
           {(proto.id === "keys" || proto.id === "highway") && <Choice id="easy" label="LEVEL" options={EASY_LEVELS} value={pick.easy} set={(easy) => setPick({ easy })} />}
           {(proto.id === "keys" || proto.id === "highway") && <p className="tg-panel-note tb-note">{EASY_NOTE[pick.easy]}</p>}
           {herHere && <HerSwitch pick={pick} setPick={setPick} />}
@@ -850,9 +857,9 @@ export function BenchApp() {
             {menuOf(platform ?? "mobile").map((p) => (
               <div key={p.id} className="tb-help-mode">
                 <h2>{p.name}</h2>
-                <ModeDiagram id={p.id} />
+                <ModeDiagram id={p.id} scale={p.id === "keys" && scaleOn} />
                 <ol className="tb-rules">
-                  {p.how.map((l) => (
+                  {(p.id === "keys" && scaleOn ? SCALE_HOW : p.how).map((l) => (
                     <li key={l}>{l}</li>
                   ))}
                 </ol>
@@ -956,8 +963,9 @@ function Title({ f, proto, pick, setPick, from, note, herHere, her, learn, achie
     <div className="tg-card tg-title">
       {f.kind === "prelude" && <p className="tb-stage-tag">STAGE 1 · PRELUDE · BEAT IT TO UNLOCK THE FUGUE</p>}
       <h1>{proto.name}</h1>
-      <p className="tb-short">{proto.short}</p>
-      <ModeDiagram id={proto.id} />
+      <p className="tb-short">{proto.id === "keys" && pick.keys === "scale" ? "SCALE KEYS · THE HOME ROW IS THE SCALE" : proto.short}</p>
+      <ModeDiagram id={proto.id} scale={proto.id === "keys" && pick.keys === "scale"} />
+      {proto.id === "keys" && <Choice id="title-keys" label="KEYS" options={KEYS_LAYOUTS} value={pick.keys} set={(keys) => setPick({ keys })} />}
       {proto.platform === "mobile" && <p className="tb-hold">{proto.layout === "full" ? "▯ UPRIGHT" : "▭ SIDEWAYS"}</p>}
       <p className="tg-card-sub">
         {f.title.toUpperCase()} · {tempoLabel(f.id)}
