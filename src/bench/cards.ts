@@ -160,8 +160,19 @@ export function cardById(id: string): FugueCard | undefined {
   return CARDS.find((c) => c.id === id);
 }
 
-/** A book's cards in Bach's order (0: Contrapunctus XIV alone). */
-export function bookCards(book: 0 | 1 | 2): FugueCard[] {
+/**
+ * D212, the testbench: eight fugues as unlike each other as can be, to judge each change against:
+ * I/1 (4 voices, slow, stretto upon stretto), I/2 (3, the steady sixteenths), I/4 (5, slow, three
+ * subjects), I/5 (4, fast, a French overture's dotted runs), I/8 (3, slow and learned: inversion,
+ * augmentation), I/10 (2, fast, a toccata's runs), I/11 (3, a quick dance of leaps), Contrapunctus
+ * XIV (4, the stile antico's chorale-like lines, three subjects). All but XIV have Kimiko
+ * Ishizaka's recording (data/recordings).
+ */
+export const TESTBENCH = ["wtc1f01", "wtc1f02", "wtc1f04", "wtc1f05", "wtc1f08", "wtc1f10", "wtc1f11", "bwv1080-14"];
+
+/** A book's cards in Bach's order (0: Contrapunctus XIV alone; 3: the testbench, D212). */
+export function bookCards(book: 0 | 1 | 2 | 3): FugueCard[] {
+  if (book === 3) return TESTBENCH.map((id) => cardById(id)!);
   return CARDS.filter((c) => c.book === book);
 }
 
