@@ -5,6 +5,8 @@
  */
 import { useEffect, useState, type ReactNode } from "react";
 import { fugueById } from "../touch/fugue.ts";
+import { PIECE_SOUND } from "../touch/piece-sound.ts";
+import { presetById } from "../touch/sound.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
 import { cardById } from "./cards.ts";
 import { formalTitle } from "./FuguePicker.tsx";
@@ -18,7 +20,8 @@ export function popTitle(id: string): string {
 
 /**
  * D240: the friends' page's sounds, chosen on the pop-up under HOW TO PLAY: the harpsichord and four
- * ensembles, and six of the console sounds (D209).
+ * ensembles, and six of the console sounds (D209). D246: and first, starred, the piece's own sound
+ * (piece-sound.ts) where it is not among them; the choice kept for the piece.
  */
 export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["harpsichordSampled", "HARPSICHORD"],
@@ -33,6 +36,15 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["chipVampire", "VAMPIRE KILLER"],
   ["chipBlur", "BLUE BLUR"],
 ];
+
+/** "ORGAN (SAMPLED)" → "ORGAN", "LIGHT WORLD · SNES" → "LIGHT WORLD". */
+const shortSound = (name: string) => name.replace(/ \(SAMPLED\)$/, "").replace(/ · .*$/, "");
+/** D246: the row for a piece: its own sound first where the eleven do not hold it (marked `own`: underlined in gold). */
+export function popSounds(id: string): (readonly [id: string, name: string, own: boolean])[] {
+  const own = PIECE_SOUND[id];
+  const row = POP_SOUNDS.map(([sid, name]) => [sid, name, sid === own] as const);
+  return !own || POP_SOUNDS.some(([sid]) => sid === own) ? row : [[own, shortSound(presetById(own).name), true] as const, ...row];
+}
 
 export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rules, sound, setSound, children }: { id: string; voice: number; singing: readonly number[]; setVoice: (v: number) => void; play: () => void; close: () => void; learn?: () => void; rules?: readonly string[]; sound?: string; setSound?: (id: string) => void; children?: ReactNode }) {
   const f = fugueById(id);
@@ -83,8 +95,8 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rule
           <div className="tb-pop-sounds" role="group" aria-label="Sound">
             <p className="tb-pop-ask">SOUND</p>
             <div className="tb-pop-sound-row">
-              {POP_SOUNDS.map(([sid, name]) => (
-                <button key={sid} type="button" id={`pop-sound-${sid}`} className={sid === sound ? "on" : ""} aria-pressed={sid === sound} onClick={() => setSound(sid)}>
+              {popSounds(id).map(([sid, name, own]) => (
+                <button key={sid} type="button" id={`pop-sound-${sid}`} className={(sid === sound ? "on" : "") + (own ? " own" : "")} title={own ? "This piece's own sound" : undefined} aria-pressed={sid === sound} onClick={() => setSound(sid)}>
                   {name}
                 </button>
               ))}

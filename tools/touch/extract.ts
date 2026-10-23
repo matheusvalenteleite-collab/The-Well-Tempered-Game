@@ -89,6 +89,14 @@ const NOT_ENTRIES: Record<string, [bar: number, voice: number][]> = {
  * the head on the dominant, leading into its full entry at b. 16); no. 8, b. 36, alto (the
  * inversion from G♯, its first leap a fourth) and b. 57, soprano (the whole subject, its first note
  * an E♯ quaver); no. 23, b. 20, alto (the inversion from B, its first leap a third).
+ * D245: and those Ledbetter names (data/wtc/ledbetter-claims.txt) that the notes confirm: no. 4,
+ * b. 107, soprano (C♯ B♯ E…); no. 14, b. 25, soprano (C♯ D♯ E, a turn through F♯ between the first
+ * two); no. 15, b. 79, alto (its first note an octave low); no. 19, b. 16, bass (from A, mid-bar);
+ * and no. 22's heads in stretto (the owner: "lots of subjects not recognised"; Ledbetter: an entry at
+ * b. 46, a stretto at b. 50, soprano and alto): b. 27, second soprano (eight notes, against the
+ * soprano's entry at b. 25), b. 46, alto, b. 48, bass, b. 50, soprano and second soprano (six or seven
+ * notes: the fourth or fifth down, the ninth up, the steps down, then their own way). Not taken: no.
+ * 4, b. 95, alto, and no. 9, b. 28 (no statement found in the notes).
  */
 const MORE_ENTRIES: Record<string, { bar: number; voice: number; midi: number; inverted?: true; notes?: number }[]> = {
   wtc1f01: [{ bar: 15, voice: 0, midi: 67, notes: 7 }],
@@ -97,6 +105,17 @@ const MORE_ENTRIES: Record<string, { bar: number; voice: number; midi: number; i
     { bar: 57, voice: 0, midi: 77 },
   ],
   wtc1f23: [{ bar: 20, voice: 1, midi: 71, inverted: true }],
+  wtc1f04: [{ bar: 107, voice: 0, midi: 73 }],
+  wtc1f14: [{ bar: 25, voice: 0, midi: 73 }],
+  wtc1f15: [{ bar: 79, voice: 1, midi: 55 }],
+  wtc1f19: [{ bar: 16, voice: 2, midi: 57 }],
+  wtc1f22: [
+    { bar: 27, voice: 1, midi: 70, notes: 8 },
+    { bar: 46, voice: 2, midi: 65, notes: 6 },
+    { bar: 48, voice: 4, midi: 53, notes: 6 },
+    { bar: 50, voice: 0, midi: 77, notes: 7 },
+    { bar: 50, voice: 1, midi: 70, notes: 7 },
+  ],
 };
 /**
  * D242: entries the library finds whole of which only the head is the subject, by bar and voice,
