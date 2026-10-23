@@ -82,6 +82,31 @@ const NOT_ENTRIES: Record<string, [bar: number, voice: number][]> = {
 };
 
 /**
+ * D242: entries the library misses, read in the notes by the subject audit of 23 October 2026, by
+ * Bach's bar, voice (0 the highest) and first note (MIDI); `notes`: only the head is quoted, so
+ * the entry is that many notes long. The finder takes no inversion whose opening is bent (a tonal
+ * inversion) and no entry whose first note is changed. Book I no. 1, b. 15, soprano (G A B C D C B:
+ * the head on the dominant, leading into its full entry at b. 16); no. 8, b. 36, alto (the
+ * inversion from G♯, its first leap a fourth) and b. 57, soprano (the whole subject, its first note
+ * an E♯ quaver); no. 23, b. 20, alto (the inversion from B, its first leap a third).
+ */
+const MORE_ENTRIES: Record<string, { bar: number; voice: number; midi: number; inverted?: true; notes?: number }[]> = {
+  wtc1f01: [{ bar: 15, voice: 0, midi: 67, notes: 7 }],
+  wtc1f08: [
+    { bar: 36, voice: 1, midi: 68, inverted: true },
+    { bar: 57, voice: 0, midi: 77 },
+  ],
+  wtc1f23: [{ bar: 20, voice: 1, midi: 71, inverted: true }],
+};
+/**
+ * D242: entries the library finds whole of which only the head is the subject, by bar and voice,
+ * with the notes it keeps: Book I no. 18, b. 24, tenor (B♯ A♯ B♯ C𝄪 D♯, then its own way).
+ */
+const HEAD_ONLY: Record<string, [bar: number, voice: number, notes: number][]> = {
+  wtc1f18: [[24, 2, 5]],
+};
+
+/**
  * D197: the fugues whose later subjects (data/wtc/later-subjects.json, Ledbetter 2002) are carried
  * into the touch entries: Book I no. 4 (second subject b. 35, third b. 49), Book II no. 4 (the
  * chromatic second subject, b. 35), no. 14 (bb. 20 and 36), no. 18 (b. 61) and no. 23 (b. 28).
@@ -142,12 +167,30 @@ const fugues = corpus
         theme: 1,
       }))
       .filter((r) => !(NOT_ENTRIES[p.id] ?? []).some(([bar, voice]) => bar === barAt(r.on) && voice === r.voice));
+    // D242: the heads alone, and the entries the library misses.
+    const lenOf = (voice: number, on: number, count: number) => {
+      const ns = voices[voice].filter((n) => n[0] >= on).slice(0, count + 1);
+      return ns.length > count ? ns[count][0] - on : ns.at(-1)![0] + ns.at(-1)![1] - on;
+    };
+    const firstMidi = voices[raw[0].voice].find((n) => n[0] >= raw[0].on)![2] - raw[0].shift;
+    for (const m of MORE_ENTRIES[p.id] ?? []) {
+      const n = voices[m.voice].find((x) => x[0] >= barOn(m.bar) && x[0] < barOn(m.bar + 1) && x[2] === m.midi);
+      if (!n) throw new Error(`${p.id}: no MIDI ${m.midi} in voice ${m.voice}, b. ${m.bar}`);
+      raw.push({ voice: m.voice, on: n[0], len: m.notes ? lenOf(m.voice, n[0], m.notes) : span, shift: m.midi - firstMidi, inverted: !!m.inverted, scale: 1, theme: 1 });
+    }
     // D197: the later subjects of the double and triple fugues (the library's: where each first
     // enters is Ledbetter's, its statements are found in the notes), as theme 2 and 3.
     if (LATER_SUBJECTS.has(p.id))
       for (const e of lib.later)
         raw.push({ voice: lib.voice[e.notes[0]], on: Math.round((e.at - pad) * TPQ), len: Math.round((e.end - e.at) * TPQ), shift: e.shift, inverted: false, scale: 1, theme: e.subject ?? 2 });
     const entries = buildEntries(piece, raw, speller, hand?.keys);
+    // D242: shortened once keyed (the key read from the whole span, as before).
+    for (const [bar, voice, count] of HEAD_ONLY[p.id] ?? []) {
+      const e = entries.find((x) => x.voice === voice && x.bar === bar);
+      if (!e) throw new Error(`${p.id}: no entry at b. ${bar}, voice ${voice}, to shorten`);
+      e.end = e.on + lenOf(voice, e.on, count);
+      e.notes = e.notes.slice(0, count);
+    }
     // The sections and the countersubject are the first subject's, as before D197.
     const firstTheme = entries.filter((e) => !e.theme);
     const cadences = findCadences(piece, speller);
@@ -223,6 +266,26 @@ const fraction = (s: string) => {
   return a / (b || 1);
 };
 
+/**
+ * D242: a hand plays a key once at a time: where two written parts share a note (the same key struck
+ * by both at once) it is struck once, for the longer value; a key struck again while still held
+ * ends the held note there.
+ */
+function oneKeyAtATime(hand: Note[]): Note[] {
+  const out: Note[] = [];
+  for (const n of hand) {
+    const same = out.filter((x) => x[2] === n[2] && x[0] + x[1] > n[0]);
+    const twin = same.find((x) => x[0] === n[0]);
+    if (twin) {
+      twin[1] = Math.max(twin[1], n[1]);
+      continue;
+    }
+    for (const x of same) x[1] = n[0] - x[0];
+    out.push([...n] as Note);
+  }
+  return out;
+}
+
 const preludes = preludeCorpus
   .sort((a, b) => a.book - b.book || a.number - b.number)
   .map((p) => {
@@ -244,7 +307,7 @@ const preludes = preludeCorpus
         }),
     );
     const mean = (g: Note[]) => g.reduce((t, n) => t + n[2], 0) / g.length;
-    const voices = [...groups.values()].sort((a, b) => mean(b) - mean(a)).map((g) => g.sort((a, b) => a[0] - b[0] || b[2] - a[2]));
+    const voices = [...groups.values()].sort((a, b) => mean(b) - mean(a)).map((g) => oneKeyAtATime(g.sort((a, b) => a[0] - b[0] || b[2] - a[2])));
     const voiceNames = voices.length === 2 ? ["Right hand", "Left hand"] : NAMES_BY_COUNT[voices.length] ?? voices.map((_, i) => `Part ${i + 1}`);
     const barTicks = barQ * TPQ;
     const barOn = (n: number) => p.bars.find((b) => b.n === n)?.on ?? p.length;
