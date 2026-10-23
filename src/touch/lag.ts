@@ -16,10 +16,10 @@ export function lagOf(offsets: number[]): { lag: number; spread: number } | null
   return { lag: Math.max(0, q(0.5)), spread: q(0.75) - q(0.25) };
 }
 
-/** A tap's offset from the click it answers: from 0.15 s early to most of a period late. */
-export function offsetOf(tap: number, t0: number): { click: number; off: number } | null {
+/** A tap's offset from the click it answers: from 0.15 s early to most of a period late (D223: the period and how early, for the quick calibration). */
+export function offsetOf(tap: number, t0: number, period = PERIOD, early = 0.15): { click: number; off: number } | null {
   const k = tap - t0;
-  if (k < -0.15) return null;
-  const off = ((((k + 0.15) % PERIOD) + PERIOD) % PERIOD) - 0.15;
-  return { click: Math.round((k - off) / PERIOD), off };
+  if (k < -early) return null;
+  const off = ((((k + early) % period) + period) % period) - early;
+  return { click: Math.round((k - off) / period), off };
 }

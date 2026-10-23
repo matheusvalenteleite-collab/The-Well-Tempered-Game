@@ -8,7 +8,8 @@ import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from "
 import type { Chip } from "./chip.ts";
 import type { Instrument } from "./engine.ts";
 import type { Level as Difficulty } from "./lanes.ts";
-import { CLICKS, lagOf, offsetOf, PERIOD, SKIP } from "./lag.ts";
+import { offsetOf } from "./lag.ts";
+import { QUICK_CLICKS, QUICK_EARLY, QUICK_PERIOD, QUICK_TAPS, quickLag, SKIP_QUICK, verdictOf } from "./headphones.ts";
 import { drums as drumsNow, FAMILIES, presetById, setDrums as setDrumsNow } from "./sound.ts";
 import { PITCHES, TEMPERAMENTS } from "./tuning.ts";
 
@@ -170,7 +171,7 @@ export function LagSetting({ lag, setLag, chip }: { lag: number | null; setLag: 
     <>
       <div className="tg-set">
         <span>SOUND DELAY</span>
-        <span className="tg-panel-val">{lag === null ? "AS THE PHONE SAYS" : `${Math.round(lag * 1000)} MS`}</span>
+        <span className="tg-panel-val">{lag === null ? "AS THE PHONE SAYS" : `${Math.round(lag * 1000)} MS · ${verdictOf(lag)}`}</span>
       </div>
       {tapping ? (
         <Tapper chip={chip} done={(lag) => (lag !== null && setLag(lag), setTapping(false))} />
@@ -190,40 +191,109 @@ export function LagSetting({ lag, setLag, chip }: { lag: number | null; setLag: 
   );
 }
 
-function Tapper({ chip, done }: { chip: () => Chip; done: (lag: number | null) => void }) {
+/**
+ * D223: the quick calibration (about 5 s): QUICK_CLICKS clicks, the first three to settle in, then
+ * eight taps counted; the median, the taps far from it left out (headphones.ts quickLag); the result
+ * shown in ms with its verdict (WIRED-LIKE, BLUETOOTH) before it is kept.
+ */
+export function Tapper({ chip, done }: { chip: () => Chip; done: (lag: number | null) => void }) {
   const t0 = useRef(0);
   const offs = useRef<number[]>([]);
+  const over = useRef(false);
   const [n, setN] = useState(0);
   const [msg, setMsg] = useState("TAP HERE ON EACH CLICK");
   useEffect(() => {
     const ch = chip();
     let timer = 0;
     void ch.resume().then(() => {
-      t0.current = ch.ctx.currentTime + 0.6;
-      for (let i = 0; i < CLICKS; i++) ch.tick(t0.current + i * PERIOD, i % 4 === 0, 0.35);
-      timer = window.setTimeout(finish, (0.6 + CLICKS * PERIOD + 0.5) * 1000);
+      t0.current = ch.ctx.currentTime + 0.5;
+      for (let i = 0; i < QUICK_CLICKS; i++) ch.tick(t0.current + i * QUICK_PERIOD, i % 4 === 0, 0.35);
+      timer = window.setTimeout(finish, (0.5 + QUICK_CLICKS * QUICK_PERIOD + 0.4) * 1000);
     });
     return () => window.clearTimeout(timer);
   }, []);
   function finish() {
-    const r = lagOf(offs.current);
-    if (!r) return (setMsg("TOO FEW TAPS"), window.setTimeout(() => done(null), 1200));
-    if (r.spread > 0.09) return (setMsg("TOO UNEVEN: TRY AGAIN"), window.setTimeout(() => done(null), 1400));
-    done(r.lag);
+    if (over.current) return;
+    over.current = true;
+    const r = quickLag(offs.current);
+    if (!r) return (setMsg(offs.current.length < 5 ? "TOO FEW TAPS" : "TOO UNEVEN: TRY AGAIN"), window.setTimeout(() => done(null), 1300));
+    setMsg(`${Math.round(r.lag * 1000)} MS · ${verdictOf(r.lag)}`);
+    window.setTimeout(() => done(r.lag), 1100);
   }
   const tap = (e: PointerEvent<HTMLButtonElement>) => {
     e.preventDefault();
+    if (over.current) return;
     const ch = chip();
     const at = ch.ctx.currentTime - (performance.now() - e.timeStamp) / 1000;
-    const o = offsetOf(at, t0.current);
-    if (!o || o.click < SKIP || o.click >= CLICKS) return;
+    const o = offsetOf(at, t0.current, QUICK_PERIOD, QUICK_EARLY);
+    if (!o || o.click < SKIP_QUICK || o.click >= QUICK_CLICKS) return;
     offs.current.push(o.off);
     setN(offs.current.length);
+    if (offs.current.length >= QUICK_TAPS) finish();
   };
   return (
     <button type="button" id="tap-pad" className="tg-tap-pad" onPointerDown={tap}>
       {msg}
-      <small>{n ? `${n} TAPS` : "LISTEN, THEN JOIN IN"}</small>
+      <small>{n ? `${n} / ${QUICK_TAPS} TAPS` : "LISTEN, THEN JOIN IN"}</small>
+    </button>
+  );
+}
+
+/**
+ * D223: the screen's delay, apart from the sound's: a gem falls onto a line, once every QUICK_PERIOD;
+ * the player taps as it crosses (seen, not heard: no click). The median lateness, as quickLag takes it,
+ * is how far ahead the box and the road are drawn.
+ */
+export function VisualTapper({ done }: { done: (visual: number | null) => void }) {
+  const t0 = useRef(performance.now() + 900);
+  const offs = useRef<number[]>([]);
+  const over = useRef(false);
+  const gem = useRef<HTMLSpanElement>(null);
+  const line = useRef<HTMLSpanElement>(null);
+  const [n, setN] = useState(0);
+  const [msg, setMsg] = useState("TAP AS THE GEM CROSSES THE LINE");
+  const P = QUICK_PERIOD * 1000;
+  useEffect(() => {
+    let raf = 0;
+    const draw = () => {
+      const k = (performance.now() - t0.current) / P;
+      // The gem falls over the period before each crossing; the line flashes as it crosses.
+      const ph = ((k % 1) + 1) % 1;
+      if (gem.current) gem.current.style.top = `${ph * 100}%`;
+      if (gem.current) gem.current.style.opacity = k < -1 || k > QUICK_CLICKS - 0.9 ? "0" : "1";
+      if (line.current) line.current.style.opacity = ph > 0.92 || ph < 0.08 ? "1" : "0.35";
+      raf = requestAnimationFrame(draw);
+    };
+    raf = requestAnimationFrame(draw);
+    const timer = window.setTimeout(finish, 900 + QUICK_CLICKS * P + 400);
+    return () => (cancelAnimationFrame(raf), window.clearTimeout(timer));
+  }, []);
+  function finish() {
+    if (over.current) return;
+    over.current = true;
+    const r = quickLag(offs.current);
+    if (!r) return (setMsg(offs.current.length < 5 ? "TOO FEW TAPS" : "TOO UNEVEN: TRY AGAIN"), window.setTimeout(() => done(null), 1300));
+    setMsg(`${Math.round(r.lag * 1000)} MS`);
+    window.setTimeout(() => done(r.lag), 1100);
+  }
+  const tap = (e: PointerEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    if (over.current) return;
+    // The gem crosses the line at the end of each fall: at t0, then every period.
+    const o = offsetOf(e.timeStamp / 1000, t0.current / 1000, QUICK_PERIOD, QUICK_EARLY);
+    if (!o || o.click < SKIP_QUICK || o.click >= QUICK_CLICKS) return;
+    offs.current.push(o.off);
+    setN(offs.current.length);
+    if (offs.current.length >= QUICK_TAPS) finish();
+  };
+  return (
+    <button type="button" id="tap-visual" className="tg-tap-pad tg-tap-visual" onPointerDown={tap}>
+      <span className="tg-tap-lane" aria-hidden="true">
+        <span ref={gem} className="tg-tap-gem" />
+        <span ref={line} className="tg-tap-line" />
+      </span>
+      {msg}
+      <small>{n ? `${n} / ${QUICK_TAPS} TAPS` : "WATCH, THEN JOIN IN"}</small>
     </button>
   );
 }

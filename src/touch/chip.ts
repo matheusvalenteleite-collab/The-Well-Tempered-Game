@@ -125,6 +125,19 @@ export interface Play {
   vib?: number;
   room?: number;
   detune?: number;
+  /** D223: where the note joins the sound in place of its bus (a Gate's node: BLUETOOTH MODE's armed notes). */
+  into?: AudioNode;
+}
+
+/**
+ * D223, BLUETOOTH MODE: a level the player's notes sounded ahead pass through: soft while armed,
+ * raised when a touch confirms them, faded fast when none comes; closed (disconnected) once done.
+ */
+export interface Gate {
+  node: AudioNode;
+  confirm: () => void;
+  fade: () => void;
+  close: () => void;
 }
 
 export interface Sounding {
@@ -158,6 +171,12 @@ export class Chip {
    * does not report). Null: the system's own figure.
    */
   lag: number | null = null;
+  /**
+   * D223: the delay between drawing and what the player sees and does, in seconds, measured by tapping
+   * along to a gem crossing a line (the screen's and the touch's own delay): the box and the road are
+   * drawn this far ahead of the clock as heard. 0: none.
+   */
+  visual = 0;
   /** D210: the notes not yet ended (oldest first), and how many may sound at once. */
   private voices: Live[] = [];
   readonly cap = isPhone() ? VOICE_CAP.phone : VOICE_CAP.computer;
@@ -227,7 +246,29 @@ export class Chip {
   readonly recIn: GainNode;
   /** Where a note joins the sound: the player's own (lead) through their level, the others straight to the master. */
   private busOf(p: Play): AudioNode {
-    return p.lead ? this.mine : this.bus;
+    return p.into ?? (p.lead ? this.mine : this.bus);
+  }
+
+  /** D223: a gate into the player's own level, at `level` (armed) until confirmed or faded (about 40 ms). */
+  gate(level: number): Gate {
+    const g = this.ctx.createGain();
+    g.gain.value = level;
+    g.connect(this.mine);
+    const to = (v: number, tc: number) => {
+      const now = this.ctx.currentTime;
+      g.gain.cancelScheduledValues(now);
+      g.gain.setValueAtTime(g.gain.value, now);
+      g.gain.setTargetAtTime(v, now, tc);
+    };
+    let closed = false;
+    return {
+      node: g,
+      confirm: () => to(1, 0.008),
+      fade: () => to(0, 0.012),
+      close: () => {
+        if (!closed) (closed = true), g.disconnect();
+      },
+    };
   }
 
   /** Where a voice of one's own joins the sound (the testbench's instruments, D170). */

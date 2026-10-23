@@ -48,6 +48,8 @@ export interface Options {
   until?: number;
   wait?: boolean;
   solo?: boolean;
+  /** D223, BLUETOOTH MODE: the player's notes sounded ahead at their written times (armed), confirmed by the touch. */
+  bt?: boolean;
 }
 
 export interface Proto {
@@ -97,7 +99,7 @@ export const PROTOS: Proto[] = [
   {
     id: "arrows",
     short: "PRESS THE ARROW SHOWN ON EACH NOTE",
-    name: "LADDER",
+    name: "SPACE + WASD + ←↑↓→",
     how: ["Press the key drawn on the note as it arrives.", "→ ← a step · ↑ ↓ a leap · SPACE the same note.", "A third (↗ ↘): either the step or the leap."],
     layout: "desk",
     platform: "computer",
