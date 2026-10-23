@@ -83,10 +83,12 @@ export function uiName(id: string): string {
 }
 
 export const UI_KEY = "tb-ui-v1";
+/** D241: where the choice is kept (play.html keeps its own, apart from the bench's). */
+let uiKey = UI_KEY;
 /** The stored choice (an id offered, else CLASSIC). */
 export function storedUi(): string {
   try {
-    const v = typeof localStorage === "undefined" ? null : localStorage.getItem(UI_KEY);
+    const v = typeof localStorage === "undefined" ? null : localStorage.getItem(uiKey);
     return v && uiOptions().some((o) => o.id === v) ? v : "classic";
   } catch {
     return "classic";
@@ -106,7 +108,7 @@ export function uiNow(): string {
 export function setUi(id: string) {
   if (id !== "classic" && !(id in TEMPLATES)) return;
   try {
-    localStorage.setItem(UI_KEY, id);
+    localStorage.setItem(uiKey, id);
   } catch {
     /* no storage */
   }
@@ -117,6 +119,12 @@ export function setUi(id: string) {
 export function forceUi(id: string) {
   if (id !== "classic" && !(id in TEMPLATES)) return;
   current = id;
+  restyle();
+}
+/** D241: keeps the choice under `key` from now on and puts the one stored there in force (`?ui=` still wins). */
+export function keepUiUnder(key: string) {
+  uiKey = key;
+  current = ASKED ?? storedUi();
   restyle();
 }
 /** A template is drawing the box (not CLASSIC). */

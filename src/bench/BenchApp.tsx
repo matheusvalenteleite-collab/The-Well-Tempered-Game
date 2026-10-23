@@ -15,7 +15,7 @@
  * ▶ PLAY straight into the count-in); CONTINUE and ▶ NEXT start at once; the result is the grade, the
  * score, AGAIN, NEXT and ✕. The tutorial's entry points only with `?dev=1`. The minimal page for
  * friends (play.html, `APP.lite`): the card grid (LiteGrid.tsx) instead of HOME, the platform as
- * detected, CLASSIC only, its own progress (lite.ts), ⚙ with only the volume and the sound's delay.
+ * detected, its own progress (lite.ts), ⚙ with the volume, the sound's delay and (phone only) the interface.
  */
 import { ornamentMark, ornamentsOf } from "../touch/ornament-play.ts";
 import { BachTalk } from "./Bach.tsx";
@@ -816,7 +816,7 @@ export function BenchApp() {
         </Panel>
       )}
       {phase.kind === "settings" && APP.lite && (
-        // D237: the minimal page's ⚙: the volume and the sound's delay (headphones); BLUETOOTH MODE on AUTO, unseen.
+        // D237: the minimal page's ⚙: the volume, on a phone the interface (D241), and the sound's delay (headphones); BLUETOOTH MODE on AUTO, unseen.
         <Panel title="SETTINGS" close={back}>
           <label className="tg-from tb-volume">
             <span>VOLUME {Math.round(lite.volume * 100)}%</span>
@@ -834,6 +834,7 @@ export function BenchApp() {
               }}
             />
           </label>
+          {platform === "mobile" && <InterfaceFold frame={frame.current} />}
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
           <p className="tg-panel-note">With headphones on, tap along to the clicks so the music and your taps line up.</p>
         </Panel>
