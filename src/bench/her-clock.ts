@@ -1,6 +1,6 @@
 /**
  * D216, KIMIKO (first made for D215's WITH ISHIZAKA, withdrawn): the game on Kimiko Ishizaka's time.
- * Her recording of the seven Book I fugues of the testbench (CC0) is timed tick by tick
+ * Her recording of the 24 Book I fugues (CC0; D221) is timed tick by tick
  * (data/recordings/ishizaka-ticks.json, tools/align-ishizaka-ticks.py: every beat, and the notes where
  * they depart from it); KIMIKO's clock follows it instead of the steady tempo and the final ritard
  * (her own ritard is in it). Before the passage played (the count-in) the clock runs at her tempo over
@@ -34,7 +34,7 @@ export function herKey(fugueId: string): string | null {
 }
 
 const maps = new Map<string, HerMap | null>();
-/** Her timing of a fugue, if she is timed in it (the seven Book I fugues of the testbench). */
+/** Her timing of a fugue, if she is timed in it (the 24 fugues of Book I, D221). */
 export function herMap(fugueId: string): HerMap | null {
   if (maps.has(fugueId)) return maps.get(fugueId)!;
   const key = herKey(fugueId);

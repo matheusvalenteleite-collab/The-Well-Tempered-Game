@@ -8,9 +8,10 @@
  *
  * And a sound effect on the subject, subtle, tailored to each fugue of the testbench (TAILORED) and to
  * each of its subjects (I/4 and Contrapunctus XIV have three; I/8 marks its inversions and its
- * augmentations): soft layer notes played through chip.note with small patches (their nodes released
- * with the note, D210), the voice's own instrument echoed or doubled, or a send to the room. Every other
- * fugue has a gentle default (GENERIC). The player's voice is treated as the others (the voices are
+ * augmentations), and (D221) to every other fugue of Book I (I/6, I/15 and I/20 their inversions too):
+ * soft layer notes played through chip.note with small patches (their nodes released with the note,
+ * D210), the voice's own instrument echoed or doubled, or a send to the room. Book II's fugues have a
+ * gentle default (GENERIC). The player's voice is treated as the others (the voices are
  * equals, D208).
  */
 import type { Chip, Play, Sounding, Voicing } from "./chip.ts";
@@ -160,7 +161,7 @@ export interface FugueFx {
   augmented?: SubjectFx;
 }
 
-/** D213: the eight fugues of the testbench (cards.ts TESTBENCH), each its own effect. */
+/** D213: the eight fugues of the testbench (cards.ts TESTBENCH), each its own effect; D221: all of Book I. */
 export const TAILORED: Record<string, FugueFx> = {
   wtc1f01: {
     1: {
@@ -246,6 +247,164 @@ export const TAILORED: Record<string, FugueFx> = {
         { kind: "ping", interval: 12, wave: "triangle", level: 0.06, decay: 0.12, on: "leap" },
         { kind: "ping", interval: 12, wave: "triangle", level: 0.06, decay: 0.12, on: "head" },
       ],
+    },
+  },
+  // D221: the other seventeen fugues of Book I, each its own.
+  wtc1f03: {
+    1: {
+      name: "PIZZICATO 4'",
+      why: "Seven sharps of joy, a skipping dance in quavers and semiquavers: a tiny triangle pluck an octave up on the quavers only lightens the skips.",
+      room: 0.1,
+      layers: [{ kind: "ping", interval: 12, wave: "triangle", level: 0.05, decay: 0.09, on: "long" }],
+    },
+  },
+  wtc1f06: {
+    1: {
+      name: "TRAVERSO",
+      why: "A singing scale up to the B flat, then a sigh: a breathy flute an octave up on the longer notes carries the rise without touching the quick turn.",
+      room: 0.35,
+      layers: [{ kind: "shimmer", interval: 12, wave: "triangle", level: 0.035, on: "long" }],
+    },
+    inverted: {
+      name: "TRAVERSO BELOW",
+      why: "Upside down, its flute turned over too: the same breath an octave below, so the mirrored entries are heard as mirrors.",
+      room: 0.35,
+      layers: [{ kind: "shimmer", interval: -12, wave: "triangle", level: 0.04, on: "long" }],
+    },
+  },
+  wtc1f07: {
+    1: {
+      name: "POSTHORN",
+      why: "Bold and light in E flat, the horn's key, ending in a broken chord: a horn blip on the head and a small bell on each leap of the arpeggio.",
+      room: 0.15,
+      layers: [
+        { kind: "brass", level: 0.05, on: "head" },
+        { kind: "ping", interval: 12, wave: "fmBell", level: 0.04, decay: 0.1, on: "leap" },
+      ],
+    },
+  },
+  wtc1f09: {
+    1: {
+      name: "2' FLAUTINO",
+      why: "Two notes and away, bright E major running on: the faintest sine two octaves up on the head and the longer notes, light as the run.",
+      room: 0.25,
+      layers: [{ kind: "shimmer", interval: 24, wave: "sine", level: 0.025, on: "long" }],
+    },
+  },
+  wtc1f12: {
+    1: {
+      name: "REGAL 16'",
+      why: "Ten chromatic steps in slow crotchets, severe: a dark reed an octave below gives each semitone weight, in a large room.",
+      room: 0.55,
+      layers: [{ kind: "shimmer", interval: -12, wave: "reed", level: 0.04 }],
+    },
+  },
+  wtc1f13: {
+    1: {
+      name: "CELESTA",
+      why: "A sweet, robust theme in F sharp major with a turn: a celesta two octaves up on its longer notes, a glint over the warmth.",
+      room: 0.3,
+      layers: [{ kind: "ping", interval: 24, wave: "bell", level: 0.035, decay: 0.4, on: "long" }],
+    },
+  },
+  wtc1f14: {
+    1: {
+      name: "GAMBA",
+      why: "A calm stepwise line in 6/4, long notes and suspensions: the voice doubled a few cents flat, a viol's slow beating, sustains the yearning.",
+      room: 0.45,
+      layers: [{ kind: "halo", cents: -5, level: 0.2 }],
+    },
+  },
+  wtc1f15: {
+    1: {
+      name: "FIFE",
+      why: "A long 6/8 gigue theme with leaps of a seventh: a thin fife ping an octave up on the quavers, the dance's piping.",
+      room: 0.1,
+      layers: [{ kind: "ping", interval: 12, wave: "pulse25", level: 0.035, decay: 0.08, on: "long" }],
+    },
+    inverted: {
+      name: "ANSWERING ECHO",
+      why: "The entries stand on their heads: the inversion answered by a slapback on the other side, a reply rather than a pipe.",
+      room: 0.15,
+      layers: [{ kind: "echo", delay: 0.09, level: 0.18, on: "long" }],
+    },
+  },
+  wtc1f16: {
+    1: {
+      name: "TWELFTH BELL",
+      why: "A short G minor subject that leans on its held F sharp: a soft bell a twelfth up on the longer notes rings the leading note and its resolution.",
+      room: 0.35,
+      layers: [{ kind: "ping", interval: 19, wave: "sine", level: 0.035, decay: 0.5, on: "long" }],
+    },
+  },
+  wtc1f17: {
+    1: {
+      name: "ARPEGGIO CHIME",
+      why: "Seven notes opening on a falling A flat arpeggio: a glassy chime an octave up on each leap rings the chord and leaves the steps plain.",
+      room: 0.25,
+      layers: [{ kind: "ping", interval: 12, wave: "fmBell", level: 0.04, decay: 0.25, on: "leap" }],
+    },
+  },
+  wtc1f18: {
+    1: {
+      name: "VOX HUMANA",
+      why: "A sober, sighing subject in G sharp minor: a quiet reed in unison, the organ's voice stop, sings it.",
+      room: 0.4,
+      layers: [{ kind: "shimmer", interval: 0, wave: "reed", level: 0.03 }],
+    },
+  },
+  wtc1f19: {
+    1: {
+      name: "CUCKOO",
+      why: "A 9/8 illusion of leaps that misleads the ear: each leap answered from the other side by a short echo, so the jumps are heard where they land.",
+      room: 0.15,
+      layers: [{ kind: "echo", delay: 0.16, level: 0.2, on: "leap" }],
+    },
+  },
+  wtc1f20: {
+    1: {
+      name: "4' OCTAVE",
+      why: "A long, assertive learned fugue crowded with strettos: a faint organ octave above on the longer notes, a stop drawn rather than new accents.",
+      room: 0.4,
+      layers: [{ kind: "shimmer", interval: 12, wave: "organ", level: 0.03, on: "long" }],
+    },
+    inverted: {
+      name: "16' BOURDON",
+      why: "Half its entries inverted: the same stop an octave below, so right way up and upside down are told apart in the strettos.",
+      room: 0.4,
+      layers: [{ kind: "shimmer", interval: -12, wave: "organ", level: 0.04, on: "long" }],
+    },
+  },
+  wtc1f21: {
+    1: {
+      name: "MUSIC BOX",
+      why: "Strict but light-hearted in 3/4, the semiquavers running on: a tiny pluck two octaves up on the quavers only, a music box over the run.",
+      room: 0.1,
+      layers: [{ kind: "ping", interval: 24, wave: "triangle", level: 0.035, decay: 0.15, on: "long" }],
+    },
+  },
+  wtc1f22: {
+    1: {
+      name: "CATHEDRAL 16'",
+      why: "Five voices in the old style, a solemn subject in minims closing into stretto: an organ 16' beneath every note, in the largest room.",
+      room: 0.75,
+      layers: [{ kind: "shimmer", interval: -12, wave: "organ", level: 0.045 }],
+    },
+  },
+  wtc1f23: {
+    1: {
+      name: "VOIX CÉLESTE",
+      why: "Serene, the prelude's four notes at half speed: the voice doubled a few cents sharp, the celeste stop's gentle beating.",
+      room: 0.4,
+      layers: [{ kind: "halo", cents: 6, level: 0.2 }],
+    },
+  },
+  wtc1f24: {
+    1: {
+      name: "GLASS HARMONICA",
+      why: "Largo, all twelve tones in sighing pairs: each note rung faintly as glass an octave up, the chromatic ring of the whole subject, in a large room.",
+      room: 0.6,
+      layers: [{ kind: "ping", interval: 12, wave: "bell", level: 0.03, decay: 0.35 }],
     },
   },
   "bwv1080-14": {

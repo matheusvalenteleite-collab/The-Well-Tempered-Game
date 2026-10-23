@@ -2,7 +2,8 @@
  * D216, KIMIKO (D215's WITH ISHIZAKA withdrawn): her timing (tick ↔ seconds, monotone, at the
  * anchors), KIMIKO's clock on it, no accompaniment but her track (started where her map puts the
  * passage), a perfect run all hits, the mono decode, and every other prototype back on the steady
- * tempo and its ritard (a clock offered to them is not taken).
+ * tempo and its ritard (a clock offered to them is not taken). D219: KIMIKO is now WITH KIMIKO
+ * ISHIZAKA (`her`), a switch in LADDER and SUBJECT; the tests run on those (and on HIGHWAY's road).
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -20,11 +21,11 @@ import { LAB_DEFAULT } from "../src/touch/subject-fx.ts";
 import { hz, setTuning, tuningNow } from "../src/touch/tuning.ts";
 
 const ctxOf = installFakeAudio(0, false);
-const BOOK1 = TESTBENCH.filter((id) => id.startsWith("wtc1"));
+/** D221: she is timed in all 24 fugues of Book I. */
+const BOOK1 = Array.from({ length: 24 }, (_, i) => `wtc1f${String(i + 1).padStart(2, "0")}`);
 
-test("D216: her timing for the seven Book I fugues of the testbench: rising, every beat, round trip", () => {
-  assert.deepEqual(BOOK1, TESTBENCH.filter((id) => id !== "bwv1080-14"));
-  assert.equal(BOOK1.length, 7);
+test("D216, D221: her timing for the 24 Book I fugues: rising, every beat, round trip", () => {
+  for (const id of TESTBENCH.filter((id) => id !== "bwv1080-14")) assert.ok(BOOK1.includes(id));
   for (const id of BOOK1) {
     const m = herMap(id);
     assert.ok(m, id);
@@ -47,7 +48,6 @@ test("D216: her timing for the seven Book I fugues of the testbench: rising, eve
     const c = herClock(m, f, 0);
     assert.ok(c.bpm > 30 && c.bpm < 200, `${id} ${c.bpm}`);
   }
-  assert.equal(herMap("wtc1f03"), null);
   assert.equal(herMap("wtc2f01"), null);
   assert.equal(herKey("wtc1f11"), "wtc1-11f");
 });
@@ -72,7 +72,7 @@ test("D216: KIMIKO's clock maps ticks to her seconds, monotone, exactly at her a
     const m = herMap(id)!;
     for (const share of [0, 0.37, 0.8]) {
       const from = startTick(f, share);
-      const g = new ProtoGame(f, [0], from, protoById("kimiko"), { bpm: 80, legato: false, clock: herClock(m, f, from) }, countingChip({ t: 0 }).chip);
+      const g = new ProtoGame(f, [0], from, protoById("ladder"), { bpm: 80, legato: false, her: true, clock: herClock(m, f, from) }, countingChip({ t: 0 }).chip);
       assert.ok(g.clock);
       const t0 = g.timeAt(from);
       const s0 = secAt(m, from);
@@ -95,19 +95,22 @@ test("D216: KIMIKO's clock maps ticks to her seconds, monotone, exactly at her a
   }
 });
 
-test("D216: KIMIKO schedules no accompaniment: no other voices, no band, no click past a quiet count-in", () => {
+test("D216, D219: WITH KIMIKO (LADDER, SUBJECT) the game schedules no accompaniment: no other voices, no band, no subject effects, no click past a quiet count-in", () => {
   const f = fugueById("wtc1f02");
   const m = herMap(f.id)!;
-  const clock = { t: 0 };
-  const { chip, log } = countingChip(clock);
-  const g = new ProtoGame(f, [1], 0, protoById("kimiko"), { bpm: 80, legato: false, clock: herClock(m, f, 0) }, chip);
-  assert.equal(g.others.length, 0);
-  // Untouched to the end: nothing sounds but the count-in.
-  for (; clock.t < g.timeAt(g.end) + 0.5; clock.t += 0.02) g.step();
-  assert.equal(log.notes, 0, "no note scheduled");
-  assert.equal(log.groove, 0, "no band");
-  assert.ok(log.ticks.length > 0 && log.ticks.every((k) => k.at < g.timeAt(g.entry) - 1e-9), "clicks only before the first note");
-  assert.ok(log.ticks.every((k) => k.gain <= 0.05), "a quiet count-in");
+  for (const id of ["ladder", "subject"]) {
+    const clock = { t: 0 };
+    const { chip, log } = countingChip(clock);
+    const g = new ProtoGame(f, [1], 0, protoById(id), { bpm: 80, legato: false, her: true, clock: herClock(m, f, 0) }, chip);
+    assert.ok(g.clock, id);
+    assert.equal(g.others.length, 0, id);
+    // Untouched to the end: nothing sounds but the count-in.
+    for (; clock.t < g.timeAt(g.end) + 0.5; clock.t += 0.02) g.step();
+    assert.equal(log.notes, 0, `${id}: no note scheduled`);
+    assert.equal(log.groove, 0, `${id}: no band`);
+    assert.ok(log.ticks.length > 0 && log.ticks.every((k) => k.at < g.timeAt(g.entry) - 1e-9), "clicks only before the first note");
+    assert.ok(log.ticks.every((k) => k.gain <= 0.05), "a quiet count-in");
+  }
   // HIGHWAY, for comparison: the others are scheduled.
   const c2 = { t: 0 };
   const h = countingChip(c2);
@@ -122,7 +125,7 @@ test("D216: a perfect run in KIMIKO on I/2 (every voice; EXACT LANES): all hits"
   const [W, H] = [400, 800];
   for (let v = 0; v < f.voices.length; v++) {
     const clock = { t: 0 };
-    const g = new ProtoGame(f, [v], 0, protoById("kimiko"), { bpm: 80, legato: false, easy: "exact", fail: true, clock: herClock(m, f, 0) }, countingChip(clock).chip);
+    const g = new ProtoGame(f, [v], 0, protoById("highway"), { bpm: 80, legato: false, easy: "exact", fail: true, her: true, clock: herClock(m, f, 0) }, countingChip(clock).chip);
     const N = g.laneCount;
     assert.equal(N, 5);
     const runTo = (t: number) => {
@@ -147,6 +150,38 @@ test("D216: a perfect run in KIMIKO on I/2 (every voice; EXACT LANES): all hits"
   }
 });
 
+test("D221: a perfect run in KIMIKO on every Book I fugue (one voice each; EXACT LANES): all hits on her time", () => {
+  const [W, H] = [400, 800];
+  BOOK1.forEach((id, n) => {
+    const f = fugueById(id);
+    const m = herMap(id)!;
+    const v = n % f.voices.length;
+    const clock = { t: 0 };
+    const g = new ProtoGame(f, [v], 0, protoById("kimiko"), { bpm: 80, legato: false, easy: "exact", fail: true, clock: herClock(m, f, 0) }, countingChip(clock).chip);
+    const runTo = (t: number) => {
+      while (clock.t < t - 0.02) (clock.t += 0.02), g.step();
+      clock.t = Math.max(clock.t, t);
+      g.step();
+    };
+    let k = 0;
+    g.notes.forEach((x, i) => {
+      if (x.ride || (i > 0 && g.notes[i - 1].on === x.on)) return;
+      runTo(g.timeAt(x.on));
+      k++;
+      g.down(k, { side: k % 2 ? "left" : "right", x: ((g.lanes[i] + 0.5) * W) / g.laneCount, y: H - 100, w: W, h: H }, performance.now());
+      // Let go at its end, or just before the next note where the voice overlaps itself (a held note under moving ones).
+      const next = g.notes.find((y) => y.on > x.on && !y.ride);
+      runTo(Math.max(g.timeAt(x.on) + 0.01, g.timeAt(Math.min(x.on + x.dur, next?.on ?? Infinity)) - 0.01));
+      g.up(k, performance.now());
+    });
+    runTo(g.timeAt(g.end) + 0.1);
+    const r = g.results();
+    assert.equal(r.failedBar, null, id);
+    assert.equal(r.right, r.of, `${id} voice ${v}: ${r.right}/${r.of}`);
+    assert.equal(r.wrong + r.missed, 0, id);
+  });
+});
+
 function fakeBuffer(ctx: FakeAudioContext, seconds: number): AudioBuffer {
   return { duration: seconds, length: seconds * ctx.sampleRate, sampleRate: ctx.sampleRate, numberOfChannels: 1 } as unknown as AudioBuffer;
 }
@@ -158,7 +193,7 @@ test("D216: her track at full level from the count-in, where her map puts the pa
     const from = startTick(f, share);
     const chip = new Chip();
     const ctx = ctxOf();
-    const g = new ProtoGame(f, [1], from, protoById("kimiko"), { bpm: 80, legato: false, clock: herClock(m, f, from) }, chip);
+    const g = new ProtoGame(f, [1], from, protoById("ladder"), { bpm: 80, legato: false, her: true, clock: herClock(m, f, from) }, chip);
     const her = new Her(chip, m);
     her.begin(g, fakeBuffer(ctx, 300));
     const s = her.startedAt!;
@@ -189,13 +224,13 @@ test("D216: her track kept as one channel (the channels' mean)", () => {
   assert.deepEqual([...one.getChannelData(0)], [0.5, 0.5, 0.5, 0]);
 });
 
-test("D216: every other prototype on the steady tempo and its final ritard: a clock offered is not taken; WITH ISHIZAKA gone from ⚙ LAB", () => {
+test("D216, D219: without KIMIKO every prototype on the steady tempo and its final ritard: a clock offered is not taken; WITH ISHIZAKA gone from ⚙ LAB", () => {
   const f = fugueById("wtc1f01");
   const m = herMap(f.id)!;
   const rit = ritard(f.length, f.barTicks);
   const tps = (f.tpq * 80) / 60;
-  for (const p of PROTOS.filter((p) => p.id !== "kimiko")) {
-    const voices = p.id === "duo" ? [0, 1] : [1];
+  for (const p of PROTOS) {
+    const voices = [1];
     const g = new ProtoGame(f, voices, 0, p, { bpm: 80, legato: false, clock: herClock(m, f, 0) }, countingChip({ t: 0 }).chip);
     assert.equal(g.clock, null, p.id);
     assert.equal(g.bpm, 80, p.id);

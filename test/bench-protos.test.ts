@@ -4,7 +4,7 @@ import { beatOf, fugueById, inBar } from "../src/touch/fugue.ts";
 import { laneNotes, type LaneNote } from "../src/touch/lanes.ts";
 import type { Chip } from "../src/touch/chip.ts";
 import { ProtoGame, type Contact, type Rows } from "../src/bench/proto-game.ts";
-import { ARROW_KEYS, arrowOf, barDynamic, contourOk, BAR, KEY_ROWS, keyRow, moveOf, moves, protoById, PROTOS, stepPitch, thumbsVerdict } from "../src/bench/protos.ts";
+import { ARROW_KEYS, arrowOf, barDynamic, contourOk, BAR, HIGHWAY_LANES, KEY_ROWS, keyRow, menuOf, moveOf, moves, protoById, PROTOS, stepPitch, takesHer, thumbsVerdict } from "../src/bench/protos.ts";
 import { KEYS_SHARE } from "../src/bench/placed.ts";
 import { isBlack, keySpan } from "../src/touch/piano.ts";
 import { grooveHits, patchFor, PRESETS, setPreset, slotOf } from "../src/touch/sound.ts";
@@ -54,8 +54,6 @@ function rightTouch(g: ProtoGame, k: number, i: number): Contact {
       const top = Math.max(...g.tracks[k].notes.filter((x) => x.on === n.on).map((x) => x.step));
       return c(W * 0.1, ROWS.yOf(top));
     }
-    case "duo":
-      return c(k ? W * 0.9 : W * 0.1, H / 2);
     case "highway":
     case "subject":
       // D217: the note's lane; SUBJECT's second line (a stretto's older entry) in the lower row of pads.
@@ -124,12 +122,12 @@ function playThrough(id: string, piece: string, voices: number[], legato = false
   return g.results();
 }
 
-test("every prototype can be played right through, on both pieces, every voice (TWO VOICES: pairs; LADDER also LEGATO)", () => {
-  for (const p of PROTOS)
+test("every prototype can be played right through, on both pieces, every voice (LADDER also LEGATO; HIGHWAY's road, SUBJECT's machinery, too)", () => {
+  for (const p of [...PROTOS, HIGHWAY_LANES])
     for (const piece of ["wtc1f02", "bwv1080-14"]) {
       const f = fugueById(piece);
       const vs = voicesFrom(f, 0);
-      const runs = p.id === "duo" ? vs.slice(1).map((v) => [vs[0], v]) : vs.map((v) => [v]);
+      const runs = vs.map((v) => [v]);
       for (const voices of runs)
         for (const legato of p.id === "ladder" ? [false, true] : [false]) {
           const r = playThrough(p.id, piece, voices, legato);
@@ -193,15 +191,17 @@ test("a held note swells as the thumb moves out across its bar; a flick upwards 
   const clock = { t: 0 };
   const log: { midi: number; muffled: boolean; dyn?: number }[] = [];
   const swooshes: number[] = [];
-  const g = new ProtoGame(C_MINOR, [1, 0], 0, protoById("duo"), { bpm: 54, legato: false }, fakeChip(clock, log, swooshes));
+  const g = new ProtoGame(C_MINOR, [1], 0, protoById("ladder"), { bpm: 54, legato: false }, fakeChip(clock, log, swooshes));
+  g.rows = ROWS;
   const n = g.notes[0];
   clock.t = 0.15 + (n.on - g.start) / g.tps;
   g.step();
   const t0 = performance.now();
-  g.down(1, { side: "left", x: W * BAR * 0.9, y: 300, w: W, h: H }, t0);
-  g.move(1, { side: "left", x: 2, y: 300, w: W, h: H }, t0 + 20);
+  const y = ROWS.yOf(n.step);
+  g.down(1, { side: "left", x: W * BAR * 0.9, y, w: W, h: H }, t0);
+  g.move(1, { side: "left", x: 2, y, w: W, h: H }, t0 + 20);
   assert.ok((log.at(-1)!.dyn ?? 1) > 1.3, "out to the edge: louder");
-  g.move(1, { side: "left", x: 2, y: 240, w: W, h: H }, t0 + 60);
+  g.move(1, { side: "left", x: 2, y: y - 60, w: W, h: H }, t0 + 60);
   g.up(1, t0 + 80);
   assert.deepEqual(swooshes, [n.midi]);
 });
@@ -233,7 +233,7 @@ test("keys: a MIDI key plays its pitch (the PIANO exactly); WASD and the arrows 
 });
 
 test("platforms: the phone's prototypes and the computer's apart; EASY rows and keys", () => {
-  assert.deepEqual(PROTOS.filter((p) => p.platform === "computer").map((p) => p.id), ["arrows", "keys", "piano"]);
+  assert.deepEqual(menuOf("computer").map((p) => p.id), ["keys", "arrows", "piano"]);
   assert.ok(PROTOS.filter((p) => p.platform === "mobile").every((p) => p.layout !== "desk"));
   assert.deepEqual(["Digit3", "KeyE", "KeyD", "KeyC", "Space", "Enter"].map(keyRow), [0, 1, 2, 3, -1, -1]);
   assert.ok(KEY_ROWS[1].dyn > KEY_ROWS[2].dyn && KEY_ROWS[2].dyn > KEY_ROWS[3].dyn, "f above mf above p");
@@ -649,4 +649,31 @@ test("D217: fewer crossbars: a note is free only at the start or after a real re
   assert.ok(free / heads < 0.04, `crossbars ${free} of ${heads}`);
   // Five lanes cannot hold every scale: a pile at an edge stays about as rare as it was (4.7% before D217).
   assert.ok(wall / judged < 0.06, `edge piles ${wall} of ${judged}`);
+});
+
+test("D221: every Book I fugue played right through on LADDER, HIGHWAY and the computer's HIGHWAY (one voice each, the voice turning from fugue to fugue)", () => {
+  for (let n = 1; n <= 24; n++) {
+    const piece = `wtc1f${String(n).padStart(2, "0")}`;
+    const f = fugueById(piece);
+    for (const [j, id] of (["ladder", "highway", "keys"] as const).entries()) {
+      const v = (n + j) % f.voices.length;
+      const r = playThrough(id, piece, [v]);
+      assert.ok(r.right === r.of && r.of > 0, `${id} ${piece} v${v}: ${r.right}/${r.of} (wrong ${r.wrong}, missed ${r.missed})`);
+    }
+  }
+});
+
+test("D219: the phone's menu is exactly LADDER and SUBJECT (HIGHWAY, TWO VOICES, KIMIKO gone as modes); KIMIKO a switch in both; every mode's rules in at most three short lines", () => {
+  assert.deepEqual(menuOf("mobile").map((p) => [p.id, p.name]), [["ladder", "LADDER"], ["subject", "SUBJECT"]]);
+  assert.deepEqual(menuOf("computer").map((p) => p.name), ["HIGHWAY", "LADDER", "PIANO"]);
+  for (const gone of ["duo", "kimiko", "highway"]) assert.ok(!PROTOS.some((p) => p.id === gone), gone);
+  // A stored withdrawn mode falls back to the first; HIGHWAY's road stays reachable for SUBJECT's machinery.
+  assert.equal(protoById("duo").id, "ladder");
+  assert.equal(protoById("highway").layout, "full");
+  assert.deepEqual(PROTOS.filter((p) => takesHer(p.id)).map((p) => p.id), ["ladder", "subject"]);
+  for (const p of PROTOS) {
+    assert.ok(p.how.length >= 1 && p.how.length <= 3, p.id);
+    for (const l of p.how) assert.ok(l.length <= 64, `${p.id}: ${l}`);
+    assert.ok(p.short.length <= 40, `${p.id}: ${p.short}`);
+  }
 });

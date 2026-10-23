@@ -3,13 +3,15 @@
  * fugues, five rows seen, the chosen one large in the middle (its emblem, evocative and formal titles,
  * BWV, voices, metre, bars, stars, the seal, each voice's best grade). A touch drags the wheel (native
  * scroll-snap underneath, so a phone's own momentum); ↑/↓ or W/S move, ←/→ or A/D change the book,
- * Enter chooses, Escape closes; the mouse wheel moves a card a notch. Fugues only (D188).
+ * Enter chooses, Escape closes; the mouse wheel moves a card a notch. Fugues only (D188). D219: Book I
+ * first, the TESTBENCH tab dropped from the screen (the list kept in cards.ts), and the card's place in
+ * the list shown ("7/24").
  */
 import { readSeals } from "./seals.ts";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { keyTint } from "../touch/MusicBox.tsx";
 import { fugueById } from "../touch/fugue.ts";
-import { bookCards, cardById, readBest, SEAL_KINDS, TESTBENCH, TIERS, type FugueCard } from "./cards.ts";
+import { bookCards, cardById, NOT_OFFERED, readBest, SEAL_KINDS, TIERS, type FugueCard } from "./cards.ts";
 import { drawEmblem, EMBLEM_H, EMBLEM_W } from "./emblem.ts";
 
 const urls = new Map<string, string>();
@@ -33,9 +35,8 @@ export function Emblem({ id, className }: { id: string; className?: string }) {
 }
 
 const stars = (n: number) => "★".repeat(n) + "☆".repeat(5 - n);
-type Book = 0 | 1 | 2 | 3;
+type Book = 0 | 1 | 2;
 const BOOKS: [Book, string][] = [
-  [3, "TESTBENCH · 8"],
   [1, "BOOK I · 1722"],
   [2, "BOOK II · 1742"],
   [0, "XIV"],
@@ -65,11 +66,9 @@ export function PieceButton({ id, open }: { id: string; open: () => void }) {
 
 export function FuguePicker({ current, pick, close }: { current: string; pick: (id: string) => void; close: () => void }) {
   const start = cardById(current) ?? bookCards(1)[0];
-  // D212: the testbench first, where the piece is one of its eight.
-  const inBench = TESTBENCH.indexOf(start.id);
-  const [book, setBook] = useState<Book>(inBench >= 0 ? 3 : start.book);
+  const [book, setBook] = useState<Book>(start.book);
   // The wheel's position (rows, fractional while it moves) in the book shown.
-  const [pos, setPos] = useState(inBench >= 0 ? inBench : start.book === 0 ? 0 : start.number - 1);
+  const [pos, setPos] = useState(start.book === 0 ? 0 : start.number - 1);
   const lastNumber = useRef(start.book === 0 ? 0 : start.number - 1);
   const [why, setWhy] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
@@ -114,7 +113,7 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
     setWhy(false);
     setBook(b);
     // Switching keeps the wheel's number (II/7 → I/7).
-    setPos(b === 0 ? 0 : b === 3 ? Math.max(0, TESTBENCH.indexOf(current)) : lastNumber.current);
+    setPos(b === 0 ? 0 : lastNumber.current);
   };
   const stepBook = (d: number) => {
     const i = BOOKS.findIndex(([b]) => b === book);
@@ -203,7 +202,7 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
     return (
       <div key={k} className={`tb-wheel-row tb-wheel-d${Math.abs(k)}`} style={{ transform: `translateY(${-frac * rowH}px)` }} aria-hidden="true">
         <span className="tb-wheel-chip" style={{ background: keyTint(fugueById(c.id).key, 10) }} />
-        <span className="tb-wheel-no">{c.book === 0 ? "XIV" : book === 3 ? `${c.book === 1 ? "I" : "II"}/${c.number}` : c.number}</span>
+        <span className="tb-wheel-no">{c.book === 0 ? "XIV" : c.number}</span>
         <span className="tb-wheel-name">{c.formal}</span>
       </div>
     );
@@ -227,7 +226,7 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
           </button>
         ))}
       </nav>
-      <div className="tb-wheel" ref={wheel} onClick={tap} role="listbox" aria-label={book === 3 ? "Testbench" : book === 0 ? "The Art of Fugue" : `Book ${book === 1 ? "I" : "II"}`} aria-activedescendant={`opt-${card.id}`}>
+      <div className="tb-wheel" ref={wheel} onClick={tap} role="listbox" aria-label={book === 0 ? "The Art of Fugue" : `Book ${book === 1 ? "I" : "II"}`} aria-activedescendant={`opt-${card.id}`}>
         <div className="tb-wheel-scroll" ref={scroller} onScroll={onScroll} tabIndex={-1}>
           {cards.map((c) => (
             <div key={c.id} className="tb-wheel-snap" />
@@ -236,6 +235,9 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
         </div>
         <div className="tb-wheel-above">{[-2, -1].map(row)}</div>
         <div key={card.id} id={`opt-${card.id}`} role="option" aria-selected="true" className="tb-fcard" style={{ ["--tint" as string]: keyTint(f.key, 8), ["--tint-hi" as string]: keyTint(f.key, 30) }}>
+          <span className="tb-fcard-pos" aria-label={`${sel + 1} of ${n}`}>
+            {sel + 1}/{n}
+          </span>
           <Emblem id={card.id} className="tb-fcard-pic" />
           <div className="tb-fcard-text">
             <h2 className="tb-fcard-title">{card.title}</h2>
@@ -249,7 +251,7 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
               <span className="tg-gold">{stars(card.stars)}</span> {TIERS[card.stars - 1]}
             </p>
             <p className={`tb-fcard-seal${card.ready ? "" : " tb-seal-soon"}`}>
-              <b>◆ {card.seal.kind}</b> {card.ready ? card.seal.line : "Seal coming: its entries are not mapped yet."}
+              <b>◆ {card.seal.kind}</b> {card.ready ? card.seal.line : NOT_OFFERED.has(card.seal.kind) ? "Not offered." : "Seal coming: its entries are not mapped yet."}
               <button type="button" className="tb-why" aria-expanded={why} aria-label="Why" onClick={(e) => (e.stopPropagation(), setWhy(!why))}>
                 ⓘ
               </button>

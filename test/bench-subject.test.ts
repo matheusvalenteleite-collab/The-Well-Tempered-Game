@@ -229,3 +229,50 @@ test("D214: the entry now and the next (for the banner and the count-in)", () =>
   assert.equal(g.entryNow().current?.on, a.on);
   assert.equal(g.entryNow().next?.on, b.on);
 });
+
+/** D221: every Book I fugue, not only the testbench's. */
+const BOOK_I = Array.from({ length: 24 }, (_, i) => `wtc1f${String(i + 1).padStart(2, "0")}`);
+
+test("D221: every Book I fugue's SUBJECT line is the stretto rule's (from the start and halfway), every head free and struck; a perfect two-row run (EXACT LANES) all hits, every entry and stretto captured", () => {
+  for (const id of BOOK_I) {
+    const f = fugueById(id);
+    for (const share of [0, 0.5]) {
+      const from = startTick(f, share);
+      const { g } = game(f, from);
+      const [main, second] = g.tracks.map((t) => t.notes.map((n) => `${n.voice}:${n.on}:${n.midi}`));
+      assert.deepEqual([[...main].sort(), [...second].sort()], expected(f, from), `${id} from ${share}`);
+      const all = f.voices.reduce((a, v) => a + v.filter(([on]) => on >= from).length, 0);
+      assert.equal(main.length + second.length + g.others.length, all, `${id}: every note sounds once`);
+    }
+    const log: { midi: number; at: number; v: Voicing; lead: boolean }[] = [];
+    const { g, clock } = game(f, 0, "exact", log);
+    for (const e of g.entries) {
+      const k = g.tracks.findIndex((t) => t.notes.some((n) => n.on === e.on && n.voice === e.voice));
+      assert.ok(k >= 0, `${id}: entry at ${e.on} has its head`);
+      const i = g.tracks[k].notes.findIndex((n) => n.on === e.on && n.voice === e.voice);
+      assert.ok(g.isFree(i, k) && !g.tracks[k].notes[i].ride, `${id}: head at ${e.on} free and struck`);
+    }
+    const runTo = (t: number) => {
+      while (clock.t < t - 0.05) (clock.t += 0.05), g.step();
+      clock.t = Math.max(clock.t, t);
+      g.step();
+    };
+    let id2 = 0;
+    for (const { k, i, n } of struckNotes(g)) {
+      runTo(g.timeAt(n.on));
+      const before = log.length;
+      g.down(++id2, touchOf(g, k, i), performance.now());
+      g.up(id2, performance.now());
+      const struck = log.slice(before).find((e) => e.lead && e.midi === n.midi);
+      assert.ok(struck, `${id}: note ${k}/${i} sounded`);
+      assert.deepEqual(struck.v, voicing(n.voice!, f.voices.length, true), `${id}: note ${i} in its voice ${n.voice}`);
+    }
+    runTo(g.timeAt(g.end + 1));
+    const r = g.results();
+    assert.equal(r.right, r.of, `${id}: ${r.right}/${r.of} (wrong ${r.wrong}, missed ${r.missed}, stray ${r.stray})`);
+    assert.equal(r.captured, r.entries, `${id}: ${r.captured}/${r.entries} entries`);
+    assert.equal(r.grade, "S", `${id}: grade ${r.grade}`);
+    assert.ok(g.strettoState.every((x) => x === "cleared"), `${id}: strettos ${g.strettoState.join(",")}`);
+    assert.ok(g.tracks.every((t) => t.notes.every((n) => n.state === "hit")), `${id}: every note sounded`);
+  }
+});

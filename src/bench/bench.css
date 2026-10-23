@@ -22,17 +22,9 @@
 .tb-bars .tg-half, .tb-bars .tg-half-on { background: transparent; border: 0; }
 .tb-quit { position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); right: max(8px, env(safe-area-inset-right, 0px)); z-index: 5; background: var(--tg-veil); }
 .tb-bars .tb-quit { right: calc(20% + 8px); }
-/* D180, TWO VOICES: the voices chosen as an old arcade chooses its players. */
-.tb-arcade h1 { color: var(--tg-shine); letter-spacing: 0.12em; text-shadow: 2px 2px 0 #b8322a; }
-.tb-arcade-row { display: flex; align-items: center; justify-content: center; gap: 10px; }
-.tb-arcade-who { font-family: var(--tg-pixel); font-size: 14px; width: 40px; text-shadow: 2px 2px 0 var(--tg-bg); }
-.tb-1p .tb-arcade-who { color: #ff5a4f; }
-.tb-2p .tb-arcade-who { color: #5cb2ff; }
-.tb-arcade-voices { display: flex; flex-wrap: wrap; gap: 6px; }
-.tb-arcade-voices button { font-family: var(--tg-pixel); font-size: 8px; padding: 6px 8px; background: transparent; border: 2px solid transparent; cursor: pointer; }
-.tb-arcade-voices button.on { border-color: currentColor; animation: tg-blink 0.9s steps(2) infinite; }
-.tb-arcade-voices button:disabled { opacity: 0.25; cursor: default; }
-.tb-arcade-go { font-family: var(--tg-pixel); font-size: 9px; color: var(--tg-shine); animation: tg-blink 1.1s steps(2) infinite; }
+/* D220: the computer's HIGHWAY: the road alone, the whole window, the music box gone while playing. */
+.tg-wide.tb-road { max-width: 1400px; grid-template-rows: 1fr; }
+.tb-road .tg-box { display: none; }
 
 /* D181: the result: a grade, the score. */
 .tb-grade { font-size: 40px !important; text-shadow: 3px 3px 0 #b8322a; }
@@ -168,4 +160,81 @@
 /* D203: the fugue's own sound, first in the sound setting. */
 
 /* D207: HIGHWAY's road runs across the middle: no thumbs' divider. */
-.tb-proto-highway .tg-half-left, .tb-proto-subject .tg-half-left, .tb-proto-kimiko .tg-half-left { border-right: 0; }
+.tb-proto-highway .tg-half-left, .tb-proto-subject .tg-half-left { border-right: 0; }
+
+/* D219: the modes' rules drawn (ModeDiagram.tsx): pixel key-caps, the phone's lanes and bars. */
+.tb-dia { --lh: #5cb2ff; --rh: #ff5a4f; display: grid; justify-items: center; gap: 5px; margin: 2px auto; font-family: var(--tg-pixel); font-size: 6px; color: var(--tg-muted); }
+.tb-cap { display: inline-grid; place-items: center; gap: 2px; min-width: 22px; height: 22px; padding: 0 4px; font: inherit; font-size: 9px; color: var(--tg-fg); background: var(--tg-box); border: 2px solid var(--tg-barline); border-bottom-width: 4px; border-radius: 3px; }
+.tb-cap small { font-size: 5px; color: var(--tg-muted); }
+.tb-cap:has(small) { height: 30px; }
+.tb-cap-left { color: var(--lh); border-color: var(--lh); }
+.tb-cap-right { color: var(--rh); border-color: var(--rh); }
+.tb-cap-both { color: var(--tg-gold); border-color: var(--lh) var(--rh) var(--rh) var(--lh); background: linear-gradient(90deg, rgba(92, 178, 255, 0.18) 50%, rgba(255, 90, 79, 0.18) 50%); }
+.tb-cap-space { width: min(150px, 60%); }
+.tb-dia-row { display: flex; gap: 3px; align-items: center; }
+.tb-dia-hands { display: grid; grid-template-columns: 4fr 1fr 4fr; width: 100%; max-width: 236px; text-align: center; }
+.tb-hand-left { color: var(--lh); }
+.tb-hand-right { color: var(--rh); }
+.tb-hand-both { color: var(--tg-gold); }
+.tb-dia-note { margin: 0; font-size: 6px; color: var(--tg-muted); }
+.tb-dia-cluster { display: grid; grid-template-columns: repeat(3, auto); gap: 3px; }
+.tb-dia-cluster .tb-cap { min-width: 40px; }
+.tb-dia-kb { --wk: 20px; --bk: 13px; position: relative; display: flex; height: 40px; }
+.tb-white { width: var(--wk); height: 40px; display: grid; align-items: end; justify-items: center; padding-bottom: 3px; box-sizing: border-box; font-size: 7px; color: #222; background: #eee8d8; border: 1px solid #06060c; }
+.tb-black { position: absolute; top: 0; width: var(--bk); height: 24px; display: grid; align-items: end; justify-items: center; padding-bottom: 2px; box-sizing: border-box; font-size: 6px; color: #eee; background: #15151c; border: 1px solid #06060c; }
+.tb-dia-ladder { grid-template-columns: 14px 120px 14px; gap: 4px; height: 56px; align-items: stretch; justify-items: stretch; }
+.tb-dia-bar { position: relative; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--tg-barline); }
+.tb-dia-glow { position: absolute; left: -1px; right: -1px; height: 8px; background: var(--tg-shine); box-shadow: 0 0 8px var(--tg-shine); }
+.tb-dia-box { position: relative; background: var(--tg-box); border: 1px solid var(--tg-barline); }
+.tb-dia-note-dot { position: absolute; width: 14px; height: 6px; background: var(--tg-muted); }
+.tb-dia-note-dot.next { background: var(--tg-shine); box-shadow: 0 0 6px var(--tg-shine); }
+.tb-dia-up { position: absolute; top: 3px; right: 4px; font-weight: 400; color: var(--tg-gold); }
+.tb-dia-lanes { width: 130px; gap: 2px; }
+.tb-dia-road { display: grid; grid-template-columns: repeat(5, 1fr); width: 100%; height: 48px; background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.06)); border-bottom: 2px solid var(--tg-shine); }
+.tb-dia-lane { position: relative; border-left: 1px solid var(--tg-barline); }
+.tb-dia-lane:first-child { border-left: 0; }
+.tb-gem { position: absolute; left: 20%; right: 20%; height: 7px; background: var(--rh); }
+.tb-gem-old { background: transparent; border: 2px solid var(--lh); height: 5px; }
+.tb-dia-pads { width: 100%; padding: 3px 0; text-align: center; color: var(--rh); border: 1px solid var(--rh); }
+.tb-dia-pads-old { color: var(--lh); border: 1px dashed var(--lh); }
+
+/* D219: ⚙ settings: the modes, their rules beside their picture, the folded TUNING and LAB. */
+.tb-modes button { font-family: var(--tg-pixel); font-size: 8px; }
+.tb-how { display: grid; gap: 6px; justify-items: center; padding: 8px; background: rgba(0, 0, 0, 0.18); border: 1px solid var(--tg-barline); }
+.tb-rules { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.4; color: var(--tg-fg); justify-self: stretch; }
+.tb-rules li::marker { font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-gold); }
+.tb-note { margin-top: -4px; }
+.tb-fold { display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: 40px; padding: 8px 10px; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-fg); text-align: left; background: var(--tg-box); border: 2px solid var(--tg-barline); cursor: pointer; }
+.tb-fold[aria-expanded="true"] { border-color: var(--tg-shine); }
+.tb-fold:focus-visible, .tb-switch:focus-visible, .tb-fold-done:focus-visible { outline: 2px solid var(--tg-shine); outline-offset: 2px; }
+.tb-fold-panel { display: grid; gap: 6px; padding: 8px; border: 2px solid var(--tg-shine); border-top: 0; margin-top: -8px; background: rgba(0, 0, 0, 0.25); }
+.tb-fold-head { margin: 4px 0 0; font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-muted); }
+.tb-fold-done { justify-self: end; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-fg); background: transparent; border: 2px solid var(--tg-barline); padding: 8px 12px; min-height: 36px; cursor: pointer; }
+.tb-switch { display: grid; grid-template-columns: 16px auto; column-gap: 8px; row-gap: 3px; align-items: center; padding: 8px; text-align: left; color: var(--tg-muted); background: transparent; border: 2px solid var(--tg-barline); cursor: pointer; }
+.tb-switch.on { color: var(--tg-fg); border-color: var(--tg-shine); }
+.tb-switch-pip { grid-row: span 2; font-size: 14px; color: var(--tg-shine); }
+.tb-switch-name { font-family: var(--tg-pixel); font-size: 8px; }
+.tb-switch-what { font-size: 12px; line-height: 1.35; color: var(--tg-muted); }
+
+/* D219: the help screen: what holds everywhere, then each mode's picture and rules. */
+.tb-always { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; font-size: 13px; }
+.tb-always b { display: inline-block; min-width: 9ch; margin-right: 6px; font-family: var(--tg-pixel); font-size: 7px; font-weight: 400; color: var(--tg-gold); }
+.tb-help-mode { display: grid; gap: 6px; padding: 8px 0; border-top: 1px solid var(--tg-barline); }
+
+/* D219: the result's tally, as numbers under labels. */
+.tb-tally { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; font-family: var(--tg-pixel); }
+.tb-tally span { display: grid; justify-items: center; gap: 3px; }
+.tb-tally b { font-size: 10px; font-weight: 400; color: var(--tg-fg); }
+.tb-tally small { font-size: 6px; color: var(--tg-muted); }
+.tb-tally-bad b { color: var(--tg-wrong); }
+
+/* D219: the wheel: the card's place in the book ("7/24"). */
+.tb-fcard-pos { position: absolute; top: 6px; right: 8px; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-fg); background: rgba(0, 0, 0, 0.45); padding: 3px 5px; }
+/* D219: on the title card the pictures and switches keep their size (the card scrolls instead) and sit centred. */
+.tg-card .tb-dia, .tg-title .tg-set, .tg-title .tb-short, .tg-title .tb-hold { flex: none; }
+.tg-title .tg-set { justify-content: center; }
+.tg-title .tb-dia-note { font-size: 6px; }
+.tg-title .tb-dia-road { height: 30px; }
+.tg-title .tb-dia-pads { padding: 1px 0; }
+.tg-title .tb-dia-ladder { height: 40px; }
+.tg-help .tb-dia-note, .tb-dia p.tb-dia-note { font-family: var(--tg-pixel); font-size: 6px; }
