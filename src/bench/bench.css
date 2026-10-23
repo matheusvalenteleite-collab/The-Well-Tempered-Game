@@ -238,3 +238,7 @@
 .tg-title .tb-dia-pads { padding: 1px 0; }
 .tg-title .tb-dia-ladder { height: 40px; }
 .tg-help .tb-dia-note, .tb-dia p.tb-dia-note { font-family: var(--tg-pixel); font-size: 6px; }
+
+/* D223: other headphones noticed: a small banner to recalibrate the sound's delay. */
+.tb-hp-banner { position: fixed; left: 50%; bottom: 16px; z-index: 30; display: flex; align-items: center; gap: 6px; max-width: calc(100% - 32px); transform: translateX(-50%); padding: 4px 4px 4px 10px; background: var(--tg-box); border: 2px solid var(--tg-shine); }
+.tb-hp-banner button:first-child { min-height: 36px; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-shine); background: transparent; border: 0; cursor: pointer; text-align: left; }

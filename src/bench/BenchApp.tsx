@@ -17,7 +17,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ladderGeometry, MusicBox, inkOf, type Frame } from "../touch/MusicBox.tsx";
 import { AUTO, BOXV, variantRows } from "../touch/box-variants.ts";
 import { PlayArea, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
-import { Choice, LagSetting, loadDrums, Panel, SoundSetting } from "../touch/Panels.tsx";
+import { Choice, loadDrums, Panel, SoundSetting, Tapper } from "../touch/Panels.tsx";
+import { HeadphonesFold, useHeadphones } from "./Headphones.tsx";
 import { Chip, voicing } from "../touch/chip.ts";
 import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, cadenceName } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
@@ -119,10 +120,15 @@ export function BenchApp() {
       return next;
     });
   const [lag, setLagRaw] = useState<number | null>(() => load<number | null>(LAG_KEY, null));
-  const setLag = (l: number | null) => {
+  const applyLag = (l: number | null) => {
     setLagRaw(l);
     save(LAG_KEY, l);
     if (chip.current) chip.current.lag = l;
+  };
+  // D223: a delay tapped is kept for the listening setup it was tapped with.
+  const setLag = (l: number | null) => {
+    applyLag(l);
+    hp.record(l);
   };
   const [sound, setSoundRaw] = useState<string>(() => load<string>(SOUND_KEY, DEFAULT_SOUND));
   const [herSound, setHerSoundRaw] = useState<string>(() => load<string>(HER_SOUND_KEY, HER_SOUND));
@@ -206,6 +212,9 @@ export function BenchApp() {
     return { ...subjectMarks(f), spans, names: f.voiceNames, cadences, ornaments };
   }, [f, run]);
   const chip = useRef<Chip | null>(null);
+  // D223: other headphones noticed (a setup seen before gets its delay back), BLUETOOTH MODE, the screen's delay.
+  const hp = useHeadphones(chip, applyLag);
+  const [calib, setCalib] = useState(false);
   const game = useRef<ProtoGame | null>(null);
   const paint = useRef<Painter | null>(null);
   const frame = useRef<Frame>(preview());
@@ -257,6 +266,7 @@ export function BenchApp() {
     if (!chip.current) {
       chip.current = new Chip();
       chip.current.lag = lag;
+      hp.attach(chip.current);
       prepared.current();
     }
     void chip.current.resume();
@@ -289,7 +299,7 @@ export function BenchApp() {
     if (hm) setTuning("equal", hm.a);
     ch.mine.gain.value = kimiko ? MINE[pick.mine] : 1;
     // D219: failing always on (the lessons apart); WITH KIMIKO, the game sounds only the player's voice.
-    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? pick.easy, fail: !run, her: kimiko, ...(run ? { until: run.until, wait: run.wait, solo: run.solo } : {}), ...(clock ? { clock } : {}) }, ch);
+    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? pick.easy, fail: !run, her: kimiko, bt: hp.btFor(lag), ...(run ? { until: run.until, wait: run.wait, solo: run.solo } : {}), ...(clock ? { clock } : {}) }, ch);
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
     // For the measurements (the bench's own checks): the game and her playing.
@@ -299,14 +309,15 @@ export function BenchApp() {
     game.current = g;
     // D220: the game under way, for the bench's own checks (driving the keys in a browser).
     (globalThis as { __bench?: unknown }).__bench = g;
-    paint.current = (ctx, w, h) => paintProto(ctx, w, h, g, marks.subject);
+    // D223: drawn with the screen's delay taken in.
+    paint.current = (ctx, w, h) => g.view(() => paintProto(ctx, w, h, g, marks.subject));
     const b = beatOf(f);
     const auto = { id: 9000, held: null as { id: number; end: number } | null, last: -1 };
     let raf = 0;
     const loop = () => {
       const done = g.step();
       frame.current = {
-        now: g.now,
+        now: g.viewNow,
         tps: g.tps,
         key: g.keyNow(),
         barTicks: f.barTicks,
@@ -696,6 +707,22 @@ export function BenchApp() {
           ✕
         </button>
       )}
+      {hp.changed && !playing && !calib && (
+        <div className="tb-hp-banner" role="status">
+          <button type="button" id="hp-recalibrate" onClick={() => setCalib(true)}>
+            HEADPHONES CHANGED? · RECALIBRATE (5 s)
+          </button>
+          <button type="button" id="hp-dismiss" className="tg-x" aria-label="Dismiss" onClick={hp.dismiss}>
+            ✕
+          </button>
+        </div>
+      )}
+      {calib && (
+        <Panel title="SOUND DELAY" close={() => (setCalib(false), hp.dismiss())}>
+          <p className="tg-panel-note">With the headphones on: tap on each click, eight times.</p>
+          <Tapper chip={ensureChip} done={(l) => (l !== null && setLag(l), setCalib(false), hp.dismiss())} />
+        </Panel>
+      )}
       {phase.kind === "settings" && (
         <Panel title="SETTINGS" close={quit}>
           <div className="tg-grid3 tb-modes" role="group" aria-label="Mode">
@@ -723,7 +750,7 @@ export function BenchApp() {
           <TuningFold id={tuning.id} a={tuning.a} set={changeTuning} />
           {kimiko && <p className="tg-panel-note tb-note">WITH KIMIKO: equal temperament at her A during the game.</p>}
           <LabSettings />
-          <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
+          <HeadphonesFold hp={hp} lag={lag} setLag={setLag} chip={ensureChip} />
           {platform === "computer" && (
             <div className="tg-set">
               <span>MIDI</span>
