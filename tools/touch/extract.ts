@@ -97,6 +97,13 @@ const NOT_ENTRIES: Record<string, [bar: number, voice: number][]> = {
  * soprano's entry at b. 25), b. 46, alto, b. 48, bass, b. 50, soprano and second soprano (six or seven
  * notes: the fourth or fifth down, the ninth up, the steps down, then their own way). Not taken: no.
  * 4, b. 95, alto, and no. 9, b. 28 (no statement found in the notes).
+ * D248: the cross-check carried through both books (every entry and stretto Ledbetter names): Book
+ * I no. 9, b. 28, bass (on B, after all: B C♯ F♯ G♯ A B…); no. 19, b. 25, soprano (its first two notes
+ * one E, against the alto's: his stretto); Book II no. 9, bb. 23 and 25 (his strettos, soprano and
+ * alto, bass and tenor: the long note, then the third filled by step); no. 11, b. 89, bass (his "gap
+ * filled": F E F B♭…); no. 13, b. 20, soprano, and b. 70, alto (the head's tail: D♯ E♯ F♯ C♯ D♯);
+ * no. 24, b. 70, alto (without its first note), and bb. 97–98, alto and bass (heads, four notes).
+ * Not taken: Book I no. 4, b. 95; no. 11, b. 46 (his stretto); Book II no. 11, b. 85 (not in the notes).
  */
 const MORE_ENTRIES: Record<string, { bar: number; voice: number; midi: number; inverted?: true; notes?: number }[]> = {
   wtc1f01: [{ bar: 15, voice: 0, midi: 67, notes: 7 }],
@@ -108,7 +115,27 @@ const MORE_ENTRIES: Record<string, { bar: number; voice: number; midi: number; i
   wtc1f04: [{ bar: 107, voice: 0, midi: 73 }],
   wtc1f14: [{ bar: 25, voice: 0, midi: 73 }],
   wtc1f15: [{ bar: 79, voice: 1, midi: 55 }],
-  wtc1f19: [{ bar: 16, voice: 2, midi: 57 }],
+  wtc1f19: [
+    { bar: 16, voice: 2, midi: 57 },
+    { bar: 25, voice: 0, midi: 64 },
+  ],
+  wtc1f09: [{ bar: 28, voice: 2, midi: 59 }],
+  wtc2f09: [
+    { bar: 23, voice: 0, midi: 66 },
+    { bar: 23, voice: 1, midi: 61 },
+    { bar: 25, voice: 3, midi: 44 },
+    { bar: 25, voice: 2, midi: 51 },
+  ],
+  wtc2f11: [{ bar: 89, voice: 2, midi: 41 }],
+  wtc2f13: [
+    { bar: 20, voice: 0, midi: 77 },
+    { bar: 70, voice: 1, midi: 72 },
+  ],
+  wtc2f24: [
+    { bar: 70, voice: 1, midi: 62 },
+    { bar: 97, voice: 1, midi: 62, notes: 4 },
+    { bar: 98, voice: 2, midi: 50, notes: 4 },
+  ],
   wtc1f22: [
     { bar: 27, voice: 1, midi: 70, notes: 8 },
     { bar: 46, voice: 2, midi: 65, notes: 6 },
