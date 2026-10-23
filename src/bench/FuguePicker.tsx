@@ -10,14 +10,16 @@
  * beaten (stages.ts). P and F (or a tap on the stage) choose the stage. D232: Book I's wheel in tiers
  * (EASY · INTERMEDIATE · HARD · BOSS, tiers.ts), Bach's order within each, a strip of the tiers over
  * the wheel (a tap goes to the tier); a closed tier's cards locked (🔒, "BEAT n MORE EASY FUGUES TO
- * UNLOCK"); the BOSS card (I/24) drawn apart.
+ * UNLOCK"); the BOSS card (I/24) drawn apart. D234: the card a DIPTYCH, the prelude left and the fugue
+ * right (stacked on a phone held upright), each with its own picture (the key and kind in its corner),
+ * its formal title first ("BWV 846/1 · PRELUDE IN C MAJOR"), stars and PLAY; Book II and XIV one panel.
  */
 import { readSeals } from "./seals.ts";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { keyTint } from "../touch/MusicBox.tsx";
 import { fugueById } from "../touch/fugue.ts";
-import { bookCards, cardById, NOT_OFFERED, readBest, SEAL_KINDS, TIERS, type FugueCard } from "./cards.ts";
-import { drawEmblem, EMBLEM_H, EMBLEM_W } from "./emblem.ts";
+import { bookCards, cardById, NOT_OFFERED, pieceBwv, preludeLook, readBest, SEAL_KINDS, TIERS, type FugueCard } from "./cards.ts";
+import { drawEmblem, drawLabel, EMBLEM_H, EMBLEM_W, keyLabel } from "./emblem.ts";
 import { difficultyOf } from "./difficulty.ts";
 import { beatenFugues, fugueOf, isPrelude, locked, preludeOf, readStages, tierLocked, tiersOpen } from "./stages.ts";
 import { tierCards, tierFugues, tierOf, TIER_ORDER, unlockLine, type Tier } from "./tiers.ts";
@@ -25,23 +27,37 @@ import { tierCards, tierFugues, tierOf, TIER_ORDER, unlockLine, type Tier } from
 type Stage = "prelude" | "fugue";
 
 const urls = new Map<string, string>();
-/** The emblem as an image (drawn once a piece, cached). */
-export function emblemUrl(id: string): string {
-  const hit = urls.get(id);
+/** D234: a labelled emblem is drawn at this many canvas pixels a pixel, so its label can be finer. */
+const LABEL_SCALE = 5;
+/** The emblem as an image (drawn once a piece, cached); D234: with the key and kind in its top-right corner when `label` is given. */
+export function emblemUrl(id: string, label?: string): string {
+  const k = label ? `${id}|${label}` : id;
+  const hit = urls.get(k);
   if (hit) return hit;
+  const scale = label ? LABEL_SCALE : 1;
   const c = document.createElement("canvas");
-  c.width = EMBLEM_W;
-  c.height = EMBLEM_H;
+  c.width = EMBLEM_W * scale;
+  c.height = EMBLEM_H * scale;
   const g = c.getContext("2d");
   if (!g) return "";
-  drawEmblem(g, id);
+  drawEmblem(g, id, scale);
+  if (label) drawLabel(g, label, scale);
   const url = c.toDataURL("image/png");
-  urls.set(id, url);
+  urls.set(k, url);
   return url;
 }
 
-export function Emblem({ id, className }: { id: string; className?: string }) {
-  return <img className={`tb-emblem${className ? ` ${className}` : ""}`} src={emblemUrl(id)} width={EMBLEM_W} height={EMBLEM_H} alt="" draggable={false} />;
+export function Emblem({ id, className, label }: { id: string; className?: string; label?: string }) {
+  return <img className={`tb-emblem${className ? ` ${className}` : ""}`} src={emblemUrl(id, label)} width={EMBLEM_W} height={EMBLEM_H} alt={label ?? ""} draggable={false} />;
+}
+
+/** D234: a card's formal title, the most prominent line: "BWV 846/2 · FUGUE IN C MAJOR", "BWV 1080/19 · CONTRAPUNCTUS XIV". */
+export function formalTitle(c: FugueCard, stage: Stage = "fugue"): string {
+  if (c.book === 0) return `${pieceBwv(c)} · ${c.formal.split(" · ")[0].toUpperCase()}`;
+  const key = c.formal.replace(/^Fugue \d+ in /, "");
+  // I/8: the prelude in E♭ minor, the fugue in D♯ minor.
+  const pkey = stage === "prelude" && c.book === 1 ? fugueById(preludeOf(c.id)).title.replace(/^Prelude \d+ in /, "") : key;
+  return `${pieceBwv(c, stage)} · ${stage === "prelude" ? "PRELUDE" : "FUGUE"} IN ${pkey.toUpperCase()}`;
 }
 
 const stars = (n: number) => "★".repeat(n) + "☆".repeat(5 - n);
@@ -234,6 +250,37 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
   const pLast = pf ? (pf.bars[pf.bars.length - 1]?.n ?? pf.bars.length) : 0;
   const pBeat = pf ? stages[pf.id] : undefined;
   const lastBar = f.bars[f.bars.length - 1]?.n ?? f.bars.length;
+  const pLook = pf ? preludeLook(pf.id) : undefined;
+  // The fugue's seal in a line, its why behind ⓘ, each voice's best grade (D192, D196).
+  const sealLine = (
+    <p className={`tb-fcard-seal tb-panel-seal${card.ready ? "" : " tb-seal-soon"}`}>
+      <b>◆ {card.seal.kind}</b> <span className="tb-seal-text">{card.ready ? card.seal.line : NOT_OFFERED.has(card.seal.kind) ? "Not offered." : "Seal coming: its entries are not mapped yet."}</span>
+      <button type="button" className="tb-why" aria-expanded={why} aria-label="Why" onClick={(e) => (e.stopPropagation(), setWhy(!why))}>
+        ⓘ
+      </button>
+    </p>
+  );
+  const whyLine = (
+    <p className="tb-fcard-why">
+      {card.why}
+      {!card.ready && <> The seal will be: {card.seal.line}</>}
+      {card.ready && <> {SEAL_KINDS[card.seal.kind]}</>}
+    </p>
+  );
+  const voicesLine = (
+    <p className="tb-fcard-voices" aria-label="Best grade per voice">
+      {f.voiceNames.map((name, v) => {
+        const g = best[`${card.id}:${v}`];
+        return (
+          <span key={name} title={`${name}: ${g ? `best ${g}` : "not played"}`}>
+            {name[0]}
+            {name.match(/ (I+)$/)?.[1] ?? ""}:<b className={g === "S" || g === "A" ? "tg-gold" : ""}>{g ?? "·"}</b>
+            <span className={`tb-seal-pip${seals[`${card.id}:${v}`] ? " earned" : ""}`}>{seals[`${card.id}:${v}`] ? "◆" : "◇"}</span>
+          </span>
+        );
+      })}
+    </p>
+  );
   const row = (k: number) => {
     const c: FugueCard | undefined = cards[sel + k];
     if (!c) return <div key={k} className="tb-wheel-row tb-wheel-empty" />;
@@ -298,90 +345,81 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
             {sel + 1}/{n}
           </span>
           {tier && <span className={`tb-fcard-tier tb-tier-${tier.toLowerCase()}`}>{boss ? "♛ BOSS" : tier}{shut ? " 🔒" : ""}</span>}
-          <Emblem id={card.id} className="tb-fcard-pic" />
-          <div className="tb-fcard-text">
-            {pairs && (
-              <div className="tb-stages" role="group" aria-label="Stage">
-                <button type="button" id="stage-prelude" className={onPrelude ? "on" : ""} aria-pressed={onPrelude} onClick={(e) => (e.stopPropagation(), setStage("prelude"))}>
-                  1 · PRELUDE{shut ? " 🔒" : pBeat ? " ✓" : ""}
-                </button>
-                <button type="button" id="stage-fugue" className={`${onPrelude ? "" : "on"}${isLocked ? " tb-stage-locked" : ""}`} aria-pressed={!onPrelude} onClick={(e) => (e.stopPropagation(), setStage("fugue"))}>
-                  2 · FUGUE{isLocked ? " 🔒" : ""}
-                </button>
-              </div>
-            )}
-            {onPrelude && pf ? (
-              <>
-                <h2 className="tb-fcard-title">{pf.title}</h2>
-                <p className="tb-fcard-formal">{card.bwv} · STAGE 1</p>
-                <p className="tb-fcard-stats">
-                  {pf.voices.length === 2 ? "2 HANDS" : `${pf.voices.length} PARTS`} · {pf.meter} · {pLast} BARS
-                </p>
-                <p className="tb-fcard-stars" aria-label={`Difficulty ${pStars} of 5`}>
-                  <span className="tg-gold">{stars(pStars)}</span> {TIERS[pStars - 1]}
-                </p>
-                <p className={`tb-fcard-seal${pBeat && !shut ? "" : " tb-seal-soon"}`}>
-                  {shut && tier ? <><b>🔒 {tier}</b> {tier === "BOSS" ? "The last pair: it opens when every other fugue of the book is beaten." : `This tier opens when ${tier === "INTERMEDIATE" ? "five EASY" : "four INTERMEDIATE"} fugues are beaten.`}</> : pBeat ? <><b>✓ BEATEN</b> · BEST {pBeat.best} · THE FUGUE IS OPEN</> : <><b>BEAT IT</b> Play it to the end to unlock the fugue.</>}
-                </p>
-                {shut && tier ? (
-                  <button type="button" id="wheel-play" className="tb-play tb-play-locked" disabled aria-disabled="true">
-                    🔒 {unlockLine(tier, won)}
-                  </button>
-                ) : (
+          {pairs && pf ? (
+            // D234: Book I's pair as a diptych, the prelude on the left, the fugue on the right (stacked on a phone held upright).
+            <div className="tb-diptych">
+              <section className={`tb-panel tb-panel-prelude${onPrelude ? " on" : ""}`} aria-label="Prelude">
+                <Emblem id={pf.id} label={keyLabel(pf.key, "prelude")} className="tb-panel-pic" />
+                <div className="tb-panel-text">
+                  <h2 className="tb-panel-title">{formalTitle(card, "prelude")}</h2>
+                  {pLook && <p className="tb-panel-sub">{pLook.trait}</p>}
+                  <p className="tb-panel-stats">
+                    {pf.voices.length === 2 ? "2 HANDS" : `${pf.voices.length} PARTS`} · {pf.meter} · {pLast} BARS
+                  </p>
+                  <p className="tb-fcard-stars" aria-label={`Difficulty ${pStars} of 5`}>
+                    <span className="tg-gold">{stars(pStars)}</span> {TIERS[pStars - 1]}
+                  </p>
+                  <p className="tb-panel-state">{shut ? "" : pBeat ? <><b>✓ BEATEN</b> · BEST {pBeat.best}</> : isLocked ? <>Play it to the end to open the fugue.</> : ""}</p>
+                  {shut && tier ? (
+                    <button type="button" id="wheel-play-prelude" className="tb-play tb-play-locked" disabled aria-disabled="true">
+                      🔒 {unlockLine(tier, won)}
+                    </button>
+                  ) : (
+                    <button type="button" id="wheel-play-prelude" className="tb-play" onFocus={() => setStage("prelude")} onClick={(e) => (e.stopPropagation(), setStage("prelude"), pick(preludeOf(card.id)))}>
+                      PLAY PRELUDE ▶
+                    </button>
+                  )}
+                </div>
+              </section>
+              <section className={`tb-panel tb-panel-fugue${onPrelude ? "" : " on"}${isLocked ? " tb-panel-locked" : ""}`} aria-label="Fugue">
+                <Emblem id={card.id} label={keyLabel(f.key, "fugue")} className="tb-panel-pic" />
+                <div className="tb-panel-text">
+                  <h2 className="tb-panel-title">{formalTitle(card)}</h2>
+                  <p className="tb-panel-sub">{card.title}</p>
+                  <p className="tb-panel-stats">
+                    {f.voices.length} VOICES · {f.meter} · {lastBar} BARS
+                  </p>
+                  <p className="tb-fcard-stars" aria-label={`Difficulty ${card.stars} of 5`}>
+                    <span className="tg-gold">{stars(card.stars)}</span> {TIERS[card.stars - 1]}
+                  </p>
+                  {sealLine}
+                  {why && whyLine}
+                  {voicesLine}
+                  {isLocked ? (
+                    <button type="button" id="wheel-play-fugue" className="tb-play tb-play-locked" disabled aria-disabled="true">
+                      🔒 {shut && tier ? unlockLine(tier, won) : "BEAT THE PRELUDE"}
+                    </button>
+                  ) : (
+                    <button type="button" id="wheel-play-fugue" className="tb-play" onFocus={() => setStage("fugue")} onClick={(e) => (e.stopPropagation(), setStage("fugue"), pick(card.id))}>
+                      PLAY FUGUE ▶
+                    </button>
+                  )}
+                </div>
+              </section>
+            </div>
+          ) : (
+            <div className="tb-diptych tb-diptych-one">
+              <section className="tb-panel on" aria-label="Fugue">
+                <Emblem id={card.id} label={keyLabel(f.key, "fugue")} className="tb-panel-pic" />
+                <div className="tb-panel-text">
+                  <h2 className="tb-panel-title">{formalTitle(card)}</h2>
+                  <p className="tb-panel-sub">{card.title}</p>
+                  <p className="tb-panel-stats">
+                    {f.voices.length} VOICES · {f.meter} · {lastBar} BARS
+                  </p>
+                  <p className="tb-fcard-stars" aria-label={`Difficulty ${card.stars} of 5`}>
+                    <span className="tg-gold">{stars(card.stars)}</span> {TIERS[card.stars - 1]}
+                  </p>
+                  {sealLine}
+                  {why && whyLine}
+                  {voicesLine}
                   <button type="button" id="wheel-play" className="tb-play" onClick={(e) => (e.stopPropagation(), choose())}>
-                    PLAY PRELUDE ▶
+                    PLAY ▶
                   </button>
-                )}
-              </>
-            ) : (
-              <>
-            <h2 className="tb-fcard-title">{card.title}</h2>
-            <p className="tb-fcard-formal">
-              {card.formal} · {card.bwv}
-            </p>
-            <p className="tb-fcard-stats">
-              {f.voices.length} VOICES · {f.meter} · {lastBar} BARS
-            </p>
-            <p className="tb-fcard-stars" aria-label={`Difficulty ${card.stars} of 5`}>
-              <span className="tg-gold">{stars(card.stars)}</span> {TIERS[card.stars - 1]}
-            </p>
-            <p className={`tb-fcard-seal${card.ready ? "" : " tb-seal-soon"}`}>
-              <b>◆ {card.seal.kind}</b> {card.ready ? card.seal.line : NOT_OFFERED.has(card.seal.kind) ? "Not offered." : "Seal coming: its entries are not mapped yet."}
-              <button type="button" className="tb-why" aria-expanded={why} aria-label="Why" onClick={(e) => (e.stopPropagation(), setWhy(!why))}>
-                ⓘ
-              </button>
-            </p>
-            {why && (
-              <p className="tb-fcard-why">
-                {card.why}
-                {!card.ready && <> The seal will be: {card.seal.line}</>}
-                {card.ready && <> {SEAL_KINDS[card.seal.kind]}</>}
-              </p>
-            )}
-            <p className="tb-fcard-voices" aria-label="Best grade per voice">
-              {f.voiceNames.map((name, v) => {
-                const g = best[`${card.id}:${v}`];
-                return (
-                  <span key={name} title={`${name}: ${g ? `best ${g}` : "not played"}`}>
-                    {name[0]}
-                    {name.match(/ (I+)$/)?.[1] ?? ""}:<b className={g === "S" || g === "A" ? "tg-gold" : ""}>{g ?? "·"}</b>
-                    <span className={`tb-seal-pip${seals[`${card.id}:${v}`] ? " earned" : ""}`}>{seals[`${card.id}:${v}`] ? "◆" : "◇"}</span>
-                  </span>
-                );
-              })}
-            </p>
-            {isLocked ? (
-              <button type="button" id="wheel-play" className="tb-play tb-play-locked" disabled aria-disabled="true">
-                🔒 {shut && tier ? unlockLine(tier, won) : "BEAT THE PRELUDE TO UNLOCK"}
-              </button>
-            ) : (
-              <button type="button" id="wheel-play" className="tb-play" onClick={(e) => (e.stopPropagation(), choose())}>
-                PLAY ▶
-              </button>
-            )}
-              </>
-            )}
-          </div>
+                </div>
+              </section>
+            </div>
+          )}
         </div>
         <div className="tb-wheel-below">{[1, 2].map(row)}</div>
       </div>
