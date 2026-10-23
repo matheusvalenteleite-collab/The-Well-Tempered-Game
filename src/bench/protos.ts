@@ -20,7 +20,7 @@ import { markShapes } from "../touch/shape.ts";
 import type { Side } from "../touch/thumbs.ts";
 import type { Arrow } from "../touch/MusicBox.tsx";
 
-export type ProtoId = "ladder" | "duo" | "highway" | "subject" | "arrows" | "keys" | "piano";
+export type ProtoId = "ladder" | "duo" | "highway" | "subject" | "kimiko" | "arrows" | "keys" | "piano";
 /** D182: what the prototype is played on. */
 export type Platform = "mobile" | "computer";
 
@@ -76,6 +76,14 @@ export const PROTOS: Proto[] = [
     short: "PLAY ONLY THE SUBJECT · EVERY ENTRY, IN EVERY VOICE · REST BETWEEN",
     name: "SUBJECT",
     how: "Upright, as HIGHWAY (D214). You follow the subject, not a voice: every entry of it, in whichever voice it comes (in a double or triple fugue every subject), and you rest while the fugue plays between them. Each entry's notes come down the five lanes in its voice's colour, its name shown as it begins (SUBJECT · ALTO, SUBJECT 2 · TENOR, INVERTED, AUGMENTED); a marker at the road's far end counts in the next entry while you wait. An entry's first note is an open bar: any lane. When entries overlap (stretto) you leave the older one for the newest at its first note. Two rows of pads, slides, the levels of ⚙ EASY, long notes held, as on HIGHWAY.",
+    layout: "full",
+    platform: "mobile",
+  },
+  {
+    id: "kimiko",
+    short: "YOUR VOICE OVER KIMIKO ISHIZAKA'S RECORDING · TAP THE LANE AS EACH NOTE LANDS",
+    name: "KIMIKO",
+    how: "Upright, as HIGHWAY (D216), but the only accompaniment is Kimiko Ishizaka's recording (The Open Well-Tempered Clavier, 2015, CC0), from the first note: no other voices from the game, no band. You play one voice on top of her; the notes land when she plays them, and come down the road spaced by her own time (her rubato, her final ritard). Your notes sound a little under her (⚙ YOUR VOICE: ON, SOFT, or OFF to tap in silence, judged only), tuned to her A. The seven Book I fugues of the testbench (1, 2, 4, 5, 8, 10, 11). Five lanes, two rows of pads, slides, the levels of ⚙ EASY, long notes held, as on HIGHWAY.",
     layout: "full",
     platform: "mobile",
   },

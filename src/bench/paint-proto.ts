@@ -41,6 +41,7 @@ export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g:
     case "keys":
     case "highway":
     case "subject":
+    case "kimiko":
       highway(c, w, h, g, t);
       break;
     case "arrows":
@@ -185,16 +186,20 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   const y1 = phone ? h - 196 : h - 78;
   const W = phone ? w * 0.94 : Math.min(w * 0.7, 620);
   const lvl = g.o.easy ?? "timing";
+  // D216, KIMIKO: the road by her time (the seconds between, not the ticks): it scrolls steadily and
+  // the notes come spaced as she plays them. The far end: the tick she plays AHEAD_S from now.
+  const nowS = g.clock ? g.timeAt(g.now) : 0;
+  const ahead = g.clock ? g.tickAtTime(nowS + AHEAD_S) : g.now + AHEAD_S * g.tps;
   // Depth (0 at the line, 1 at the horizon) to the screen: y, and the width's scale.
   const at = (tick: number) => {
-    const d = (tick - g.now) / g.tps / AHEAD_S;
+    const d = (g.clock ? g.timeAt(tick) - nowS : (tick - g.now) / g.tps) / AHEAD_S;
     const s = 1 / (1 + 3 * Math.max(-0.2, d));
     const f = (s - 0.25) / 0.75;
     return { y: y0 + (y1 - y0) * f, k: 0.3 + 0.7 * f, d };
   };
   const laneX = (lane: number, k: number) => cx + (-W / 2 + ((lane + 0.5) * W) / N) * k;
   // The road.
-  const top = at(g.now + AHEAD_S * g.tps);
+  const top = at(ahead);
   // D202: the road lit towards the player, its far end in fog; rails along its edges.
   const road = c.createLinearGradient(0, top.y, 0, y1 + 30);
   road.addColorStop(0, "#0b0a11");
@@ -235,7 +240,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.stroke();
   }
   const beat = g.beat;
-  for (let tk = Math.ceil(g.now / beat) * beat; tk < g.now + AHEAD_S * g.tps; tk += beat) {
+  for (let tk = Math.ceil(g.now / beat) * beat; tk < ahead; tk += beat) {
     const p = at(tk);
     const bar = ((tk - g.f.bars[0].on) % g.f.barTicks + g.f.barTicks) % g.f.barTicks === 0;
     c.fillStyle = bar ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.06)";
@@ -276,7 +281,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     const lw = (W / N) * p.k;
     // The tail of a long note.
     if (n.dur >= beat && n.state !== "miss") {
-      const e = at(Math.min(n.on + n.dur, g.now + AHEAD_S * g.tps));
+      const e = at(Math.min(n.on + n.dur, ahead));
       const from = n.state === "hit" ? at(Math.max(n.on, g.now)) : p;
       c.fillStyle = n.held ? ink : "rgba(255,255,255,0.35)";
       c.globalAlpha = n.held ? 0.9 : 0.6;

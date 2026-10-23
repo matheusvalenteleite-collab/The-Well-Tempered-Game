@@ -213,21 +213,21 @@ export class Chip {
     this.drive.gain.value = 0;
     this.master.connect(shaper).connect(this.drive).connect(squeeze);
     this.bus = this.master;
-    // D215: the other voices' own level (the player's voice, a lead note, goes straight to the master),
+    // D216: the player's own notes (lead) through their own level (KIMIKO: YOUR VOICE ON / SOFT / OFF),
     // and a recording's way in, past the room and the compressor (it has its own room), into the limiter.
-    this.others = ctx.createGain();
-    this.others.connect(this.master);
+    this.mine = ctx.createGain();
+    this.mine.connect(this.master);
     this.recIn = ctx.createGain();
     this.recIn.connect(limit);
   }
 
-  /** D215: the others' level (1: as they are), turned down while a recording plays over them. */
-  readonly others: GainNode;
+  /** D216: the player's own notes' level (1: as they are). */
+  readonly mine: GainNode;
   /** D215: where a recording joins the sound (past the room and the compressor). */
   readonly recIn: GainNode;
-  /** Where a note joins the sound: the player's own (lead) straight to the master, the others through their level. */
+  /** Where a note joins the sound: the player's own (lead) through their level, the others straight to the master. */
   private busOf(p: Play): AudioNode {
-    return p.lead ? this.bus : this.others;
+    return p.lead ? this.mine : this.bus;
   }
 
   /** Where a voice of one's own joins the sound (the testbench's instruments, D170). */

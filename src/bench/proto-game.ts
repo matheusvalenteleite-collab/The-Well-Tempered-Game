@@ -177,17 +177,18 @@ export class ProtoGame {
   private readonly shapes: Shape[];
   private held = new Map<number, Held>();
   private readonly rit: ReturnType<typeof ritard> = { warp: (t: number) => t, unwarp: (w: number) => w };
-  /** D215: her clock, when the game follows her (else none). */
+  /** D216, KIMIKO: her clock (her-clock.ts), the game on Kimiko Ishizaka's time (no other prototype has one). */
   readonly clock: Clock | null = null;
-  /** D215: the notes played right and the slips, so far (the fade follows them). */
+  /** D215: the notes played right and the slips, so far (counted only; the fade went with D216). */
   hits = 0;
   slips = 0;
   /** How the player has been playing, 0 (pp) to 1 (ff): the others follow, a little. */
   private feel = 0.55;
 
   /**
-   * D215, WITH ISHIZAKA: `o.clock` puts the game on her time (her-clock.ts), in place of the steady
-   * tempo and the final ritard: the windows (in ticks) at her mean tempo over the passage.
+   * D216, KIMIKO: `o.clock` puts the game on her time (her-clock.ts), in place of the steady tempo and
+   * the final ritard: the windows (in ticks) at her mean tempo over the passage. Only KIMIKO takes it
+   * (every other prototype keeps the steady tempo and its ritard); KIMIKO has no other voices, no band.
    */
   constructor(f: TouchFugue, voices: number | number[], from: number, proto: Proto, o: Options & { bpm: number; clock?: Clock }, chip: Chip) {
     this.f = f;
@@ -201,7 +202,7 @@ export class ProtoGame {
     this.perBar = b.perBar;
     // D181: the tempo counts quarter notes, whatever the metre (in 2/2 the beat was a half note: twice as fast).
     this.tps = (f.tpq * o.bpm) / 60;
-    if (o.clock) (this.rit = o.clock), (this.tps = o.clock.tps), (this.clock = o.clock);
+    if (o.clock && proto.id === "kimiko") (this.rit = o.clock), (this.tps = o.clock.tps), (this.clock = o.clock);
     else if (o.until === undefined || o.until >= f.length) this.rit = ritard(f.length, f.barTicks);
     // D191: how far apart two ticks sound, in ms (at this tempo, the final ritard included).
     const msBetween = (a: number, c: number) => ((this.rit.warp(c) - this.rit.warp(a)) / this.tps) * 1000;
@@ -221,7 +222,7 @@ export class ProtoGame {
     });
     [{ voice: this.voice, notes: this.notes, moves: this.moves }] = this.tracks;
     const played = this.tracks.map((t) => t.voice);
-    this.others = o.solo ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until)) : accompaniment(f, from, played[0]).filter((n) => !played.includes(n.voice) && (o.until === undefined || n.on < o.until));
+    this.others = o.solo || proto.id === "kimiko" ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until)) : accompaniment(f, from, played[0]).filter((n) => !played.includes(n.voice) && (o.until === undefined || n.on < o.until));
     this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject);
     // Waiting (the lessons): no count-in, the clock stops at each note until it is struck.
     this.start = o.wait ? from - this.beat : countInStart(f, from);
@@ -264,14 +265,14 @@ export class ProtoGame {
   }
   /** HIGHWAY's road and lanes: HIGHWAY, and SUBJECT on it (D214). */
   get road(): boolean {
-    return this.proto.id === "highway" || this.proto.id === "subject";
+    return this.proto.id === "highway" || this.proto.id === "subject" || this.proto.id === "kimiko";
   }
 
   /** The clock, with the last cadence held back (phrasing.ts ritard). */
   private tickAt(t: number) {
     return this.rit.unwarp(this.rit.warp(this.anchorTick) + (t - this.anchorAt) * this.tps);
   }
-  /** D215: the tick sounding at a time on the audio clock. */
+  /** The tick sounding at a time on the audio clock (D216: KIMIKO paints its road by time). */
   tickAtTime(t: number) {
     return this.tickAt(t);
   }
@@ -318,8 +319,14 @@ export class ProtoGame {
       }
       // The beat's length as it sounds (D191: the final ritard included, the drums' off-beats with it).
       const beatS = this.timeAt(this.nextBeat + this.beat) - this.timeAt(this.nextBeat);
-      const band = this.nextBeat >= this.entry && !this.o.solo && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, this.mult - 1);
-      if (!band) ch.tick(this.timeAt(this.nextBeat), accent, this.nextBeat < this.entry ? 0.12 : 0.02);
+      // D216, KIMIKO: her recording alone keeps the time: no band, no click past a quiet count-in.
+      const kimiko = this.proto.id === "kimiko";
+      if (kimiko && this.nextBeat >= this.entry) {
+        this.nextBeat += this.beat;
+        continue;
+      }
+      const band = this.nextBeat >= this.entry && !this.o.solo && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, this.mult - 1);
+      if (!band) ch.tick(this.timeAt(this.nextBeat), accent, this.nextBeat < this.entry ? (kimiko ? 0.05 : 0.12) : 0.02);
       this.nextBeat += this.beat;
     }
     while (this.nextOther < this.others.length && this.others[this.nextOther].on <= horizon) {
@@ -502,6 +509,7 @@ export class ProtoGame {
         // A click, not a key: the time only.
         return { ok: true };
       case "highway":
+      case "kimiko":
       case "subject": {
         // D207: EASY on a phone: the lane tapped, judged as the keys are (D187), by lanes.
         const lvl = this.o.easy ?? "timing";

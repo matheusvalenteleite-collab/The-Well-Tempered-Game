@@ -17,7 +17,7 @@ The audio itself is not in the repository. The game streams it from the Internet
 published beside the page under `recordings/ishizaka/`, and for local builds copied into
 `public/recordings/ishizaka/` (ignored by git).
 
-`ishizaka-ticks.json` (D215, WITH ISHIZAKA): for the seven Book I fugues of the bench's testbench, tick →
+`ishizaka-ticks.json` (D215; since D216 the bench's KIMIKO mode): for the seven Book I fugues of the bench's testbench, tick →
 seconds anchors in the same tracks (every beat, and each note where it departs from the beats by more
 than 6 ms), refined from the bar lines by `tools/align-ishizaka-ticks.py` (a DTW in a ±300 ms band,
 then the onsets snapped where reliable), and her A per piece. Delta-coded: tick = (t0 + Σdt) × unit,

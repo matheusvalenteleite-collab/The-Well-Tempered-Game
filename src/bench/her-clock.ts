@@ -1,11 +1,10 @@
 /**
- * D215, experiment E3, WITH ISHIZAKA: the game on Kimiko Ishizaka's time. Her recording of the seven
- * Book I fugues of the testbench (CC0) is timed tick by tick (data/recordings/ishizaka-ticks.json,
- * tools/align-ishizaka-ticks.py: every beat, and the notes where they depart from it); the clock
- * follows it instead of the steady tempo and the final ritard (her own ritard is in it). Before the
- * passage played (the count-in) the clock runs at her tempo over its first bar. The fade: she comes
- * in under a good run, louder as it grows, and the game's other voices give way to her; a slip
- * sends her out at once, for two bars at least.
+ * D216, KIMIKO (first made for D215's WITH ISHIZAKA, withdrawn): the game on Kimiko Ishizaka's time.
+ * Her recording of the seven Book I fugues of the testbench (CC0) is timed tick by tick
+ * (data/recordings/ishizaka-ticks.json, tools/align-ishizaka-ticks.py: every beat, and the notes where
+ * they depart from it); KIMIKO's clock follows it instead of the steady tempo and the final ritard
+ * (her own ritard is in it). Before the passage played (the count-in) the clock runs at her tempo over
+ * its first bar. Only KIMIKO uses it.
  */
 import ticks from "../../data/recordings/ishizaka-ticks.json" with { type: "json" };
 import type { TouchFugue } from "../touch/fugue.ts";
@@ -119,63 +118,4 @@ export function herClock(m: HerMap, f: Pick<TouchFugue, "tpq" | "barTicks" | "le
       return s >= s0 ? tickAtSec(m, s) : from - (s0 - s) / lead;
     },
   };
-}
-
-/**
- * The fade (tuned by ear and in the tests): nothing below a run of FROM notes; then up, smoothly
- * (a smoothstep), to PEAK by a run of FULL, scaled by the recent accuracy (an average of hits and
- * slips, each hit 8% of the way to 1, each slip 15% of the way to 0: full at 90% and over, none at
- * 60%). The others give way to her as she rises, down to OTHERS_MIN at her peak (the player's own
- * voice stays as it is). A slip: she is gone within DROP_S and stays out HOLD_BARS bars.
- */
-export const FADE = { from: 8, full: 32, peak: 0.85, othersMin: 0.35, riseTc: 0.7, dropTc: 0.04, holdBars: 2 };
-
-/** Her level (0 to PEAK) at a run of `combo` notes and a recent accuracy `acc` (0 to 1). */
-export function herLevel(combo: number, acc: number): number {
-  const x = Math.max(0, Math.min(1, (combo - FADE.from) / (FADE.full - FADE.from)));
-  const s = x * x * (3 - 2 * x);
-  const a = Math.max(0, Math.min(1, (acc - 0.6) / 0.3));
-  return FADE.peak * s * a;
-}
-
-/** The others' level while she plays at `level`. */
-export function othersLevel(level: number): number {
-  return 1 - (1 - FADE.othersMin) * Math.min(1, level / FADE.peak);
-}
-
-/** What the game shows the fade: its clock (tick), its run, its slips and hits so far. */
-export interface FadeState {
-  now: number;
-  combo: number;
-  slips: number;
-  hits: number;
-  barTicks: number;
-}
-
-export class HerFade {
-  /** Her level now (0 to PEAK), the recent accuracy, and the tick she may come back from after a slip. */
-  level = 0;
-  acc = 1;
-  holdUntil = -Infinity;
-  private slips = 0;
-  private hits = 0;
-
-  /** One frame: her level, and whether a slip has just sent her out. */
-  update(s: FadeState): { level: number; slipped: boolean } {
-    const dh = Math.max(0, s.hits - this.hits);
-    const ds = Math.max(0, s.slips - this.slips);
-    this.hits = s.hits;
-    this.slips = s.slips;
-    for (let i = 0; i < dh; i++) this.acc += (1 - this.acc) * 0.08;
-    for (let i = 0; i < ds; i++) this.acc -= this.acc * 0.15;
-    if (ds > 0) this.holdUntil = s.now + FADE.holdBars * s.barTicks;
-    this.level = s.now < this.holdUntil ? 0 : herLevel(s.combo, this.acc);
-    return { level: this.level, slipped: ds > 0 };
-  }
-
-  /** Out at once, for two bars (the game paused, the tab hidden). */
-  hush(now: number, barTicks: number) {
-    this.level = 0;
-    this.holdUntil = Math.max(this.holdUntil, now + FADE.holdBars * barTicks);
-  }
 }
