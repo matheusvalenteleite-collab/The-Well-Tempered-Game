@@ -161,6 +161,10 @@ export class Chip {
   private waves = new Map<string, PeriodicWave>();
   private keepAlive: HTMLAudioElement | null = null;
   private wet: GainNode;
+  /** D237: the volume (0..1) over the master's own level (0.4, D181). */
+  setVolume(v: number) {
+    this.master.gain.value = 0.4 * Math.max(0, Math.min(1, v));
+  }
   /** D186: the master's brightness and its drive (the zones). */
   private soften: BiquadFilterNode;
   private drive: GainNode;

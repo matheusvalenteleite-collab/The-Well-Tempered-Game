@@ -14,7 +14,8 @@ import { beatenFugues, readStages } from "./stages.ts";
 export interface HomeActions {
   play: (piece: string) => void;
   choose: () => void;
-  tutorial: () => void;
+  /** D237: only with `?dev=1` (the tutorial withdrawn for now). */
+  tutorial?: () => void;
   achievements: () => void;
   settings: () => void;
 }
@@ -40,13 +41,15 @@ export function Home({ current, on }: { current: string; on: HomeActions }) {
         ▶ {target.fresh ? "START" : "CONTINUE"}
         <small>{f.title.toUpperCase()}</small>
       </button>
-      <nav className="tb-home-row" aria-label="Menu">
+      <nav className={`tb-home-row${on.tutorial ? "" : " tb-home-row3"}`} aria-label="Menu">
         <button type="button" id="home-choose" onClick={on.choose}>
           <span aria-hidden="true">♪</span> CHOOSE PIECE
         </button>
-        <button type="button" id="home-tutorial" onClick={on.tutorial}>
-          <Glyph rows={CAP} /> TUTORIAL
-        </button>
+        {on.tutorial && (
+          <button type="button" id="home-tutorial" onClick={on.tutorial}>
+            <Glyph rows={CAP} /> TUTORIAL
+          </button>
+        )}
         <button type="button" id="home-achievements" onClick={on.achievements}>
           <Glyph rows={TROPHY} /> ACHIEVEMENTS
         </button>
