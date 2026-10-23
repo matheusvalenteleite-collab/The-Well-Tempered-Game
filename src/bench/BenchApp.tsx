@@ -18,7 +18,8 @@ import { presetById, setPreset } from "../touch/sound.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ladderGeometry, MusicBox, inkOf, type Frame } from "../touch/MusicBox.tsx";
 import { AUTO, BOXV, variantRows } from "../touch/box-variants.ts";
-import { UI, uiRows } from "../touch/ui/index.ts";
+import { uiRows } from "../touch/ui/index.ts";
+import { InterfaceFold } from "./InterfaceFold.tsx";
 import { PlayArea, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
 import { Choice, loadDrums, Panel, SoundSetting, Tapper } from "../touch/Panels.tsx";
 import { HeadphonesFold, useHeadphones } from "./Headphones.tsx";
@@ -162,8 +163,10 @@ export function BenchApp() {
     setAsking(askFirst(pl));
   };
   const [note, setNote] = useState("");
-  // D192: the fugue wheel, opened from ⚙.
+  // D192: the fugue wheel, opened from ⚙. D226: and on opening the game, once the platform is
+  // chosen (and Herr Bach's question answered): no piece is chosen for the player.
   const [wheel, setWheel] = useState(false);
+  const [choosing, setChoosing] = useState(true);
   // D188: a lesson with Herr Bach plays its own passage, on EASY at the lesson's level.
   // D225: a lesson of a platform's track (TRACKS), in its own mode.
   const [lesson, setLesson] = useState<{ pl: Platform; n: number; run: Run } | null>(null);
@@ -405,7 +408,7 @@ export function BenchApp() {
     if (!roll || !area) return null;
     const r = roll.getBoundingClientRect();
     const a = area.getBoundingClientRect();
-    const geo = (UI ? uiRows(f.id, voice, range, r.height) : null) ?? (BOXV ? variantRows({ lo: range.lo, hi: range.hi, spill: stepRange(f), ranges: study.ranges, voice }, r.height) : null) ?? ladderGeometry(range.lo, range.hi, r.height);
+    const geo = uiRows(f.id, voice, range, r.height) ?? (BOXV ? variantRows({ lo: range.lo, hi: range.hi, spill: stepRange(f), ranges: study.ranges, voice }, r.height) : null) ?? ladderGeometry(range.lo, range.hi, r.height);
     const top = r.top - a.top;
     const y0 = top + geo.yOf(0);
     const span = 3 * barTicks;
@@ -589,7 +592,7 @@ export function BenchApp() {
       // Keys meant for a control (the FROM slider; space or enter on a button off the game) or the
       // first screen are theirs (D184).
       const tgt = e.target instanceof Element ? e.target : null;
-      if (!platform || asking || tgt?.closest("input, select, textarea") || (phase.kind !== "play" && tgt?.closest("button") && (e.code === "Space" || e.code === "Enter"))) return;
+      if (!platform || asking || (choosing && phase.kind === "title") || (wheel && phase.kind === "settings") || tgt?.closest("input, select, textarea") || (phase.kind !== "play" && tgt?.closest("button") && (e.code === "Space" || e.code === "Enter"))) return;
       const g = game.current;
       if (proto.id === "piano" && (e.code === "KeyZ" || e.code === "KeyX")) {
         octave.current += e.code === "KeyZ" ? -1 : 1;
@@ -770,6 +773,7 @@ export function BenchApp() {
           <PieceButton id={pick.piece} open={() => setWheel(true)} />
           <SoundSetting key={kimiko ? "her" : "all"} value={soundNow} set={setSound} />
           {kimiko && <p className="tg-panel-note tb-note">WITH KIMIKO: this sets your voice only (TRAVERSO by default).</p>}
+          <InterfaceFold frame={frame.current} />
           <TuningFold id={tuning.id} a={tuning.a} set={changeTuning} />
           {kimiko && <p className="tg-panel-note tb-note">WITH KIMIKO: equal temperament at her A during the game.</p>}
           <LabSettings />
@@ -781,6 +785,15 @@ export function BenchApp() {
             </div>
           )}
         </Panel>
+      )}
+      {choosing && platform && !asking && !lesson && phase.kind === "title" && (
+        <FuguePicker
+          current={pick.piece}
+          pick={(piece) => {
+            setPick({ piece, share: 0, voice: -1 });
+            setChoosing(false);
+          }}
+        />
       )}
       {wheel && phase.kind === "settings" && (
         <FuguePicker
