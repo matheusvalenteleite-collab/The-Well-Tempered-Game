@@ -131,6 +131,9 @@ export const PROTOS: Proto[] = [
 
 export const protoById = (id: string) => PROTOS.find((p) => p.id === id) ?? PROTOS[0];
 
+/** D220: the computer's HIGHWAY is played on its road alone: no music box beside it while playing. */
+export const roadAlone = (p: Proto, playing: boolean) => playing && p.id === "keys";
+
 /** D182, EASY on a computer: the keyboard's rows: the numbers a trill, the next forte, the home row mezzo, the bottom piano (after Ableton's velocity keys and the research on PC rhythm games). */
 export const KEY_ROWS: { codes: string[]; dyn: number; mark: string; trill?: boolean }[] = [
   { codes: ["Backquote", "Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "Digit0", "Minus", "Equal"], dyn: 0.6, mark: "tr", trill: true },

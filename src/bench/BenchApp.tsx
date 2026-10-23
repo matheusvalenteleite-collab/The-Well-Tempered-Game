@@ -30,7 +30,7 @@ import { Her, HER_FADE, herBuffer, herState, loadHer, releaseHer } from "./with-
 import { cardById, recordBest } from "./cards.ts";
 import { judgeSeal, recordSeal } from "./seals.ts";
 import { artLine, type ArtStats } from "./articulation.ts";
-import { ARROW_KEYS, arrowOf, EASY_LEVELS, KEY_ROWS, type EasyLevel, keyId, keyRow, midiId, moveOf, PROTOS, protoById, type Platform, type ProtoId } from "./protos.ts";
+import { ARROW_KEYS, arrowOf, EASY_LEVELS, KEY_ROWS, type EasyLevel, keyId, keyRow, midiId, moveOf, PROTOS, protoById, roadAlone, type Platform, type ProtoId } from "./protos.ts";
 
 const PICK_KEY = "tb-pick-v2";
 const LAG_KEY = "tg-lag";
@@ -270,6 +270,8 @@ export function BenchApp() {
     g.octave = octave.current;
     const arrows = proto.id === "arrows" ? g.moves.map(arrowOf) : g.cues;
     game.current = g;
+    // D220: the game under way, for the bench's own checks (driving the keys in a browser).
+    (globalThis as { __bench?: unknown }).__bench = g;
     paint.current = (ctx, w, h) => paintProto(ctx, w, h, g, marks.subject);
     const b = beatOf(f);
     let raf = 0;
@@ -578,7 +580,7 @@ export function BenchApp() {
   const away = phase.kind === "title" || phase.kind === "result";
   const layout = proto.layout;
   const wide = layout === "wide" || layout === "bars" || layout === "desk";
-  const own = (playing && (layout === "full" || layout === "bars") ? ` tb-${layout}` : "") + ` tb-proto-${proto.id}`;
+  const own = (playing && (layout === "full" || layout === "bars") ? ` tb-${layout}` : "") + ` tb-proto-${proto.id}` + (roadAlone(proto, playing) ? " tb-road" : "");
 
   return (
     <div className={`tg-app${wide ? " tg-wide" : ""}${own}${playing ? "" : " tg-away"}`}>
@@ -645,7 +647,7 @@ export function BenchApp() {
         )}
       </MusicBox>
       <PlayArea events={events} paint={paint} hint={phase.kind === "result" ? "TAP TO PLAY AGAIN" : away ? (platform === "computer" ? "CLICK OR PRESS A KEY TO START" : "TAP HERE TO START") : ""} />
-      {layout === "full" && playing && (
+      {(layout === "full" || roadAlone(proto, playing)) && playing && (
         <button type="button" id="quit-full" className="tg-x tb-quit" aria-label="Quit" onClick={quit}>
           ✕
         </button>
