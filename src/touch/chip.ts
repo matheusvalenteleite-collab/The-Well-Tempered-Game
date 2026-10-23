@@ -9,7 +9,7 @@
 export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 
 import { hz } from "./tuning.ts";
-import { grooveHits, grooveNow, layerHits, preset, patchFor, sampledNow, type Drum, type Kit, type Patch, type Wave } from "./sound.ts";
+import { grooveHits, grooveNow, harmonicsOf, isShaped, layerHits, preset, patchFor, sampledNow, SHAPES, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setUnreachable, type Loaded, type SampledInstrument } from "./sampled.ts";
 
 /**
@@ -574,8 +574,20 @@ export class Chip {
     if (w === "saw") o.type = "sawtooth";
     else if (w === "square" || w === "triangle" || w === "sine") o.type = w;
     else if (w === "pulse12" || w === "pulse25" || w === "pulse50") o.setPeriodicWave(this.wave(w) as PeriodicWave);
+    else if (isShaped(w)) o.setPeriodicWave(this.shaped(w));
     else o.setPeriodicWave(this.custom(w));
     return o;
+  }
+
+  /** D209: a console's wave shape (the NES triangle's stair, a Game Boy wave sample, the VRC6 saw, FM), built once. */
+  private shaped(w: ShapedWave): PeriodicWave {
+    let pw = this.waves.get(w);
+    if (!pw) {
+      const { real, imag } = harmonicsOf(SHAPES[w]);
+      pw = this.ctx.createPeriodicWave(real, imag);
+      this.waves.set(w, pw);
+    }
+    return pw;
   }
 
   /** The organ (drawbars 8', 4', 2 2/3', 2'), the reed (strong odd and some even partials, nasal), the bell (inharmonic-ish upper partials). */
@@ -629,6 +641,11 @@ export class Chip {
       const n = bag.src(this.osc(o.wave));
       n.frequency.value = f0 * 2 ** (o.octave ?? 0);
       n.detune.value = o.detune ?? 0;
+      if (pt.scoop) {
+        // D209: the pitch comes in from off and settles (no extra nodes: the oscillator's own detune).
+        n.detune.setValueAtTime((o.detune ?? 0) + pt.scoop.cents, t);
+        n.detune.setTargetAtTime(o.detune ?? 0, t, pt.scoop.time);
+      }
       const g = bag.add(ctx.createGain());
       g.gain.value = o.gain ?? 1;
       n.connect(g).connect(mix);
