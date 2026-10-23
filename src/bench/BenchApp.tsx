@@ -50,7 +50,7 @@ import { judgeSeal, readSeals, recordSeal } from "./seals.ts";
 import { earnFeats, type FeatId } from "./feats.ts";
 import { AchButton, Achievements, FeatToast } from "./Achievements.tsx";
 import { artLine, type ArtStats } from "./articulation.ts";
-import { ARROW_KEYS, arrowOf, easyOf, KEY_ROWS, KEYS_LAYOUTS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
+import { ARROW_KEYS, arrowOf, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
 
 const PICK_KEY = "tb-pick-v2";
 /** D233: ⚙ PLAY ON: AUTO (from the pointer) or a platform chosen. */
@@ -332,7 +332,7 @@ export function BenchApp() {
     if (hm) setTuning("equal", hm.a);
     ch.mine.gain.value = kimiko ? MINE[pick.mine] : 1;
     // D219: failing always on (D225: in the lessons from the fourth on); WITH KIMIKO, the game sounds only the player's voice.
-    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: hp.btFor(lag), scale: !run && proto.id === "keys" && pick.keys === "scale", ...(run ? { until: run.until, wait: run.wait, solo: run.solo } : {}), ...(clock ? { clock } : {}) }, ch);
+    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo } : {}), ...(clock ? { clock } : {}) }, ch);
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
     // For the measurements (the bench's own checks): the game and her playing.
@@ -661,7 +661,8 @@ export function BenchApp() {
 
   const playing = phase.kind === "play";
   /** D230: SCALE KEYS chosen for the computer's HIGHWAY. */
-  const scaleOn = proto.id === "keys" && pick.keys === "scale";
+  // D236: SCALE KEYS withdrawn from play (the owner: "a complete failure"); the home row only.
+  const scaleOn = false;
   const away = phase.kind === "title" || phase.kind === "result";
   const layout = proto.layout;
   const wide = layout === "wide" || layout === "bars" || layout === "desk";
@@ -809,7 +810,6 @@ export function BenchApp() {
           )}
           {prelude && <p className="tg-panel-note tb-note">PRELUDE · PLAYED ON HIGHWAY</p>}
           <ModeHow id={proto.id} scale={scaleOn} />
-          {proto.id === "keys" && <Choice id="keys" label="KEYS" options={KEYS_LAYOUTS} value={pick.keys} set={(keys) => setPick({ keys })} />}
           <From f={f} pick={pick} setPick={setPick} from={from} />
           <SoundFold key={kimiko ? "her" : "all"} value={soundNow} set={setSound} />
           {kimiko && <p className="tg-panel-note tb-note">WITH KIMIKO: this sets your voice only; equal temperament at her A.</p>}
