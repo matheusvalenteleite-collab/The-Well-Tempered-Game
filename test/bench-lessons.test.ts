@@ -94,7 +94,6 @@ test("D225: each lesson's passage is pinned (a change to the data or the search 
     "computer/leap": ["keys", "wtc1f04", 0, 339840, 359040, false, true],
     "computer/exam": ["keys", "wtc1f08", 0, 0, 668160, false, true],
     "mobile/ladder": ["ladder", "wtc1f01", 0, 20160, 25920, true, false],
-    "mobile/subject": ["subject", "wtc1f02", 0, 0, 61920, false, false],
   };
   const seen: string[] = [];
   for (const [pl, track] of Object.entries(TRACKS))
@@ -112,9 +111,9 @@ test("D225: each lesson's passage is pinned (a change to the data or the search 
   assert.ok(TESTBENCH.includes(EXAM) && card.book === 1 && card.stars <= 2, `${EXAM}: ${card.stars} stars`);
 });
 
-test("D225: the tracks: the computer's eight HIGHWAY lessons, the phone's LADDER and SUBJECT; ids unique; Bach brief (≤ 2 lines before, 1 after, ≤ 20 words)", () => {
+test("D225: the tracks: the computer's eight HIGHWAY lessons, the phone's LADDER (D229: SUBJECT withdrawn); ids unique; Bach brief (≤ 2 lines before, 1 after, ≤ 20 words)", () => {
   assert.deepEqual(LESSONS.map((l) => l.id), ["beat", "line", "same", "subject", "answer", "exposition", "leap", "exam"]);
-  assert.deepEqual(MOBILE_LESSONS.map((l) => [l.id, l.mode]), [["ladder", "ladder"], ["subject", "subject"]]);
+  assert.deepEqual(MOBILE_LESSONS.map((l) => [l.id, l.mode]), [["ladder", "ladder"]]);
   assert.ok(MOBILE_LESSONS[0].run().wait, "LADDER waits at each note");
   for (const track of Object.values(TRACKS)) {
     assert.equal(new Set(track.map((l) => l.id)).size, track.length);
@@ -141,15 +140,13 @@ test("the computer's lessons: each finds its passage in a fugue, the first ones 
   }
 });
 
-test("D225: the phone's lessons (LADDER, waiting; SUBJECT) can be played right through and passed", () => {
+test("D225: the phone's lesson (LADDER, waiting) can be played right through and passed", () => {
   for (const l of MOBILE_LESSONS) {
     const { g, res } = playTouch(l);
     assert.ok(g.notes.length >= 6, `${l.id}: ${g.notes.length} notes`);
     assert.equal(res.right, res.of, `${l.id}: ${res.right}/${res.of} (wrong ${res.wrong}, missed ${res.missed})`);
     assert.ok(passed(l, res), l.id);
   }
-  const subject = playTouch(MOBILE_LESSONS[1]);
-  assert.ok(subject.g.line!.entries.length >= 3, "three entries");
 });
 
 test("D225: from the fourth lesson on the crowd can leave (a player mashing one key fails, and is not passed); the first three cannot fail", () => {
@@ -269,10 +266,11 @@ test("D225: the LESSON MAP lists each track's lessons, ✓ when passed, the next
     assert.match(html, /id="map-computer-beat"[^>]*>.*?✓.*?92%/);
     assert.match(html, /id="map-computer-line" class="tb-ach-row tb-map-row next"/);
     assert.match(html, /COMPUTER 1\/8/);
-    assert.match(html, /MOBILE 0\/2/);
-    const phone = renderToStaticMarkup(createElement(LessonMap, { platform: "mobile", focus: "subject", play: () => {}, close: () => {} }));
+    assert.match(html, /MOBILE 0\/1/);
+    const phone = renderToStaticMarkup(createElement(LessonMap, { platform: "mobile", focus: "ladder", play: () => {}, close: () => {} }));
     assert.equal(phone.match(/data-lesson=/g)?.length, MOBILE_LESSONS.length);
-    assert.match(phone, /<h2>LADDER<\/h2>.*<h2>SUBJECT<\/h2>/);
+    assert.match(phone, /<h2>LADDER<\/h2>/);
+    assert.doesNotMatch(phone, /SUBJECT/);
     const q = renderToStaticMarkup(createElement(PlayedBefore, { answer: () => {} }));
     assert.match(q, /id="played-yes"[^>]*>YES<small>SKIP/);
     assert.match(q, /id="played-no"[^>]*>NO<small>TEACH ME/);

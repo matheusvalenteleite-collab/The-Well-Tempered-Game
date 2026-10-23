@@ -3,7 +3,7 @@
  * HIGHWAY one step at a time, and what a fugue is on the way: the beat (TIMING); the line (DIRECTION:
  * right for up, left for down, on the home row's nine lanes); the same note and the free note; the
  * subject; the answer and the countersubject; the exposition and the episode; the leap (+ LEAPS); and a
- * whole fugue. The phone's track (phase 1): LADDER (waiting at each note) and SUBJECT. Fugues only.
+ * whole fugue. The phone's track (phase 1): LADDER (waiting at each note; D229: SUBJECT withdrawn). Fugues only.
  * The first lessons' passages are found in the fugues, not chosen by hand: the first stretch of a
  * voice whose moves hold only what has been taught (with what is new in it), no chords, notes between
  * a fifth of a second and a second and a half apart, each lesson its own fugue, searched in a fixed
@@ -241,14 +241,7 @@ export const LESSONS: Lesson[] = [
   },
 ];
 
-/** D225, the phone's SUBJECT lesson: the C minor fugue's first three entries, the episode before the bass a rest. */
-function subjectLesson(): Run {
-  const f = fugueById(C_MINOR);
-  const third = [...f.entries].sort((a, b) => a.on - b.on)[2];
-  return { proto: "subject", fail: false, piece: f.id, voice: 0, from: 0, until: third.end, bpm: tempoOf(f.id), wait: false, solo: false, easy: "timing" };
-}
-
-/** D225: the phone's track (phase 1): LADDER, waiting at each note; SUBJECT. Full mobile lessons come later. */
+/** D225: the phone's track (phase 1): LADDER, waiting at each note (D229: SUBJECT withdrawn). Full mobile lessons come later. */
 export const MOBILE_LESSONS: Lesson[] = [
   {
     id: "ladder",
@@ -260,17 +253,6 @@ export const MOBILE_LESSONS: Lesson[] = [
     again: [{ text: "Higher when it rises, lower when it falls. Again." }],
     run: () => passage({ allow: ["up", "down"], need: ["up", "down"], free: "no", heads: 10 }, "direction", true, [C_MINOR, EXAM], false, "ladder"),
     passAt: 0.9,
-  },
-  {
-    id: "subject",
-    mode: "subject",
-    title: "DAS THEMA",
-    english: "THE SUBJECT",
-    intro: [{ text: "Hold the phone upright. A fugue's voices take turns with one melody: the subject." }, { text: "Tap its lane as each note lands. Between entries, rest; the others play." }],
-    praise: [{ text: "That is the subject, in every voice that says it. Now choose a fugue." }],
-    again: [{ text: "Each entry whole; then rest until the next. Again." }],
-    run: subjectLesson,
-    passAt: 0.85,
   },
 ];
 

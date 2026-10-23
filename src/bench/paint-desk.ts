@@ -142,10 +142,11 @@ export function deskUnder(r: Road) {
   const { c, g, t, at, cx, W, N, top, y1, ahead } = r;
   const fx = fxOf(g);
   const nowMs = performance.now();
-  // The hands: left warm, right cool; G shaded gold.
-  laneBand(r, 0, G_LANE, LEFT_TINT);
-  laneBand(r, G_LANE + 1, N, RIGHT_TINT);
-  laneBand(r, G_LANE, G_LANE + 1, g.pleno ? "rgba(255,214,110,0.13)" : "rgba(255,214,110,0.075)");
+  // The hands: left warm, right cool; G shaded gold (D230: not with SCALE KEYS, whose lanes are degrees).
+  const hands = !g.scale;
+  if (hands) laneBand(r, 0, G_LANE, LEFT_TINT);
+  if (hands) laneBand(r, G_LANE + 1, N, RIGHT_TINT);
+  if (hands) laneBand(r, G_LANE, G_LANE + 1, g.pleno ? "rgba(255,214,110,0.13)" : "rgba(255,214,110,0.075)");
   // ORGANO PLENO: the road gilded towards the player, the pipes risen at the horizon.
   if (g.pleno) {
     const glow = c.createLinearGradient(0, top.y, 0, y1 + 30);
@@ -255,6 +256,7 @@ export function deskUnder(r: Road) {
     }
   }
   // G's seam: a gold line down the middle of its lane, dashed on the beat.
+  if (!hands) return;
   const gx = (k: number) => r.laneX(G_LANE, k);
   c.strokeStyle = SEAM;
   c.globalAlpha = 0.35;

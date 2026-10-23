@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finger Play Mockup</title>
+<style>
+  :root { --bg: #0c0a10; --fg: #ecead9; --muted: #8a8698; --gold: #ffd56a; --left: #ff8c4a; --right: #5cb2ff; --bar: #241f30; --gap: #e2533f; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.4 ui-monospace, Menlo, Consolas, monospace; padding: 16px; }
+  h1 { font-size: 15px; letter-spacing: 0.08em; margin: 0 0 4px; color: var(--gold); }
+  p.lead { margin: 0 0 16px; color: var(--muted); max-width: 720px; }
+  .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .card { background: #15121c; border: 2px solid #2a2533; padding: 12px; }
+  .card h2 { margin: 0 0 2px; font-size: 13px; letter-spacing: 0.06em; }
+  .card .verdict { margin: 6px 0 0; font-size: 12px; }
+  .bad h2 { color: var(--gap); } .good h2 { color: var(--gold); }
+  svg { width: 100%; height: auto; display: block; }
+  .label { fill: var(--muted); font: 10px ui-monospace, monospace; }
+  .note { fill: #3a3446; }
+  .thumb { stroke: #0c0a10; stroke-width: 2; }
+  .tl text { font: 9px ui-monospace, monospace; fill: var(--muted); }
+  /* 4 s loop; four notes, one a second. */
+  @keyframes t1 { 0%,2% { opacity: 0 } 3%,20% { opacity: 1 } 21%,100% { opacity: 0 } }
+  @keyframes t2 { 0%,27% { opacity: 0 } 28%,45% { opacity: 1 } 46%,100% { opacity: 0 } }
+  @keyframes t3 { 0%,52% { opacity: 0 } 53%,70% { opacity: 1 } 71%,100% { opacity: 0 } }
+  @keyframes t4 { 0%,77% { opacity: 0 } 78%,95% { opacity: 1 } 96%,100% { opacity: 0 } }
+  /* Alternating: each thumb lands on its note and stays until a moment after the next has landed. */
+  @keyframes a1 { 0%,2% { opacity: 0 } 3%,29% { opacity: 1 } 30%,100% { opacity: 0 } }
+  @keyframes a2 { 0%,27% { opacity: 0 } 28%,54% { opacity: 1 } 55%,100% { opacity: 0 } }
+  @keyframes a3 { 0%,52% { opacity: 0 } 53%,79% { opacity: 1 } 80%,100% { opacity: 0 } }
+  @keyframes a4 { 0%,77% { opacity: 0 } 78%,98% { opacity: 1 } 99%,100% { opacity: 0 } }
+  @keyframes play { from { transform: translateX(0) } to { transform: translateX(240px) } }
+  @keyframes pop { 0%,30% { opacity: 0 } 31%,40% { opacity: 1 } 41%,55% { opacity: 1 } 56%,100% { opacity: 0 } }
+  .s1 { animation: t1 4s steps(1) infinite } .s2 { animation: t2 4s steps(1) infinite } .s3 { animation: t3 4s steps(1) infinite } .s4 { animation: t4 4s steps(1) infinite }
+  .b1 { animation: a1 4s steps(1) infinite } .b2 { animation: a2 4s steps(1) infinite } .b3 { animation: a3 4s steps(1) infinite } .b4 { animation: a4 4s steps(1) infinite }
+  .head { animation: play 4s linear infinite }
+  .legend { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); }
+  .sw { display: inline-block; width: 22px; height: 8px; vertical-align: middle; margin-right: 6px; }
+</style>
+</head>
+<body>
+  <h1>FINGER PLAY · A RUN OF FOUR NOTES ON THE LADDER</h1>
+  <p class="lead">Above: the phone held sideways, the two side bars; each circle is a thumb on the glass. Below: a timeline of what sounds. The music never stops, so the next note must land <b>before</b> the last is let go.</p>
+  <div class="row">
+    <div class="card bad">
+      <h2>✕ ONE THUMB</h2>
+      <svg viewBox="0 0 300 210" role="img" aria-label="One thumb plays all four notes: it must lift between notes, leaving gaps">
+        <!-- the phone and its bars -->
+        <rect x="20" y="10" width="260" height="120" rx="12" fill="#1b1726" stroke="#3a3446" stroke-width="2"/>
+        <rect x="30" y="20" width="44" height="100" fill="var(--bar)"/><rect x="226" y="20" width="44" height="100" fill="var(--bar)"/>
+        <rect x="80" y="24" width="140" height="92" fill="#0f0d14"/>
+        <text x="150" y="74" text-anchor="middle" class="label">MUSIC BOX</text>
+        <!-- the four notes' heights on the right bar -->
+        <g><circle cx="248" cy="104" r="11" class="thumb s1" fill="var(--right)"/><circle cx="248" cy="82" r="11" class="thumb s2" fill="var(--right)"/><circle cx="248" cy="60" r="11" class="thumb s3" fill="var(--right)"/><circle cx="248" cy="38" r="11" class="thumb s4" fill="var(--right)"/></g>
+        <text x="248" y="142" text-anchor="middle" class="label">R R R R</text>
+        <!-- the timeline -->
+        <g class="tl" transform="translate(30,160)">
+          <rect x="0" y="0" width="240" height="30" fill="#0f0d14"/>
+          <rect x="2" y="4" width="44" height="10" fill="var(--right)"/><rect x="62" y="4" width="44" height="10" fill="var(--right)"/><rect x="122" y="4" width="44" height="10" fill="var(--right)"/><rect x="182" y="4" width="44" height="10" fill="var(--right)"/>
+          <rect x="46" y="4" width="16" height="10" fill="var(--gap)" opacity="0.8"/><rect x="106" y="4" width="16" height="10" fill="var(--gap)" opacity="0.8"/><rect x="166" y="4" width="16" height="10" fill="var(--gap)" opacity="0.8"/>
+          <text x="0" y="26">sound · gaps where the thumb lifts and travels</text>
+          <rect class="head" x="0" y="0" width="2" height="18" fill="var(--fg)"/>
+        </g>
+      </svg>
+      <p class="verdict">The thumb must lift, travel and land: a gap between every note. Detached; no legato bonus; hard to keep up in fast runs.</p>
+    </div>
+    <div class="card good">
+      <h2>✓ TWO THUMBS, ALTERNATING</h2>
+      <svg viewBox="0 0 300 210" role="img" aria-label="Two thumbs alternate: each lands before the other lets go, so the notes overlap">
+        <rect x="20" y="10" width="260" height="120" rx="12" fill="#1b1726" stroke="#3a3446" stroke-width="2"/>
+        <rect x="30" y="20" width="44" height="100" fill="var(--bar)"/><rect x="226" y="20" width="44" height="100" fill="var(--bar)"/>
+        <rect x="80" y="24" width="140" height="92" fill="#0f0d14"/>
+        <text x="150" y="74" text-anchor="middle" class="label">MUSIC BOX</text>
+        <!-- left thumb on the left bar, right thumb on the right bar, climbing in turn -->
+        <circle cx="52" cy="104" r="11" class="thumb b1" fill="var(--left)"/>
+        <circle cx="248" cy="82" r="11" class="thumb b2" fill="var(--right)"/>
+        <circle cx="52" cy="60" r="11" class="thumb b3" fill="var(--left)"/>
+        <circle cx="248" cy="38" r="11" class="thumb b4" fill="var(--right)"/>
+        <text x="52" y="142" text-anchor="middle" class="label">L · L</text><text x="248" y="142" text-anchor="middle" class="label">R · R</text>
+        <g class="tl" transform="translate(30,160)">
+          <rect x="0" y="0" width="240" height="30" fill="#0f0d14"/>
+          <rect x="2" y="2" width="68" height="7" fill="var(--left)"/><rect x="62" y="9" width="68" height="7" fill="var(--right)"/><rect x="122" y="2" width="68" height="7" fill="var(--left)"/><rect x="182" y="9" width="56" height="7" fill="var(--right)"/>
+          <rect x="62" y="2" width="8" height="14" fill="var(--gold)"/><rect x="122" y="2" width="8" height="14" fill="var(--gold)"/><rect x="182" y="2" width="8" height="14" fill="var(--gold)"/>
+          <text x="0" y="26">sound · gold: both thumbs down = LEGATO</text>
+          <rect class="head" x="0" y="0" width="2" height="18" fill="var(--fg)"/>
+        </g>
+      </svg>
+      <p class="verdict">Each thumb lands while the other still holds, then the other lets go. The notes join: <b style="color:var(--gold)">LEGATO ×2, ×3…</b> scores a growing bonus. The idle thumb has a whole note's time to get to its next place.</p>
+    </div>
+  </div>
+  <div class="legend">
+    <span><i class="sw" style="background:var(--left)"></i>left thumb</span>
+    <span><i class="sw" style="background:var(--right)"></i>right thumb</span>
+    <span><i class="sw" style="background:var(--gold)"></i>overlap: legato (a brief moment is enough)</span>
+    <span><i class="sw" style="background:var(--gap)"></i>silence between notes</span>
+  </div>
+</body>
+</html>

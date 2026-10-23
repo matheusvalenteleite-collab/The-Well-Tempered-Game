@@ -4,7 +4,7 @@ import { beatOf, fugueById, inBar } from "../src/touch/fugue.ts";
 import { laneNotes, type LaneNote } from "../src/touch/lanes.ts";
 import type { Chip } from "../src/touch/chip.ts";
 import { ProtoGame, type Contact, type Rows } from "../src/bench/proto-game.ts";
-import { ARROW_KEYS, arrowOf, barDynamic, contourOk, BAR, HIGHWAY_LANES, KEY_ROWS, keyRow, menuOf, moveOf, moves, protoById, PROTOS, stepPitch, takesHer, thumbsVerdict } from "../src/bench/protos.ts";
+import { ARROW_KEYS, arrowOf, barDynamic, contourOk, BAR, HIGHWAY_LANES, SUBJECT_LINE, KEY_ROWS, keyRow, menuOf, moveOf, moves, protoById, PROTOS, stepPitch, takesHer, thumbsVerdict } from "../src/bench/protos.ts";
 import { KEYS_SHARE } from "../src/bench/placed.ts";
 import { isBlack, keySpan } from "../src/touch/piano.ts";
 import { grooveHits, patchFor, PRESETS, setPreset, slotOf } from "../src/touch/sound.ts";
@@ -123,7 +123,7 @@ function playThrough(id: string, piece: string, voices: number[], legato = false
 }
 
 test("every prototype can be played right through, on both pieces, every voice (LADDER also LEGATO; HIGHWAY's road, SUBJECT's machinery, too)", () => {
-  for (const p of [...PROTOS, HIGHWAY_LANES])
+  for (const p of [...PROTOS, HIGHWAY_LANES, SUBJECT_LINE])
     for (const piece of ["wtc1f02", "bwv1080-14"]) {
       const f = fugueById(piece);
       const vs = voicesFrom(f, 0);
@@ -663,14 +663,17 @@ test("D221: every Book I fugue played right through on LADDER, HIGHWAY and the c
   }
 });
 
-test("D219: the phone's menu is exactly LADDER and SUBJECT (HIGHWAY, TWO VOICES, KIMIKO gone as modes); KIMIKO a switch in both; every mode's rules in at most three short lines", () => {
-  assert.deepEqual(menuOf("mobile").map((p) => [p.id, p.name]), [["ladder", "LADDER"], ["subject", "SUBJECT"]]);
+test("D219, D229: the phone's menu is exactly LADDER (HIGHWAY, TWO VOICES, KIMIKO, SUBJECT gone as modes; HIGHWAY plays the preludes); KIMIKO a switch in LADDER; every mode's rules in at most three short lines", () => {
+  assert.deepEqual(menuOf("mobile").map((p) => [p.id, p.name]), [["ladder", "LADDER"]]);
   assert.deepEqual(menuOf("computer").map((p) => p.name), ["HIGHWAY", "SPACE + WASD + ←↑↓→", "PIANO"]);
-  for (const gone of ["duo", "kimiko", "highway"]) assert.ok(!PROTOS.some((p) => p.id === gone), gone);
+  for (const gone of ["duo", "kimiko", "highway", "subject"]) assert.ok(!PROTOS.some((p) => p.id === gone), gone);
   // A stored withdrawn mode falls back to the first; HIGHWAY's road stays reachable for SUBJECT's machinery.
   assert.equal(protoById("duo").id, "ladder");
   assert.equal(protoById("highway").layout, "full");
-  assert.deepEqual(PROTOS.filter((p) => takesHer(p.id)).map((p) => p.id), ["ladder", "subject"]);
+  assert.deepEqual(PROTOS.filter((p) => takesHer(p.id)).map((p) => p.id), ["ladder"]);
+  assert.equal(takesHer("subject"), false);
+  // The machinery stays internal (the tests' harness): a stored SUBJECT pick is not in the menu, so the app falls back to LADDER.
+  assert.equal(protoById("subject"), SUBJECT_LINE);
   for (const p of PROTOS) {
     assert.ok(p.how.length >= 1 && p.how.length <= 3, p.id);
     for (const l of p.how) assert.ok(l.length <= 64, `${p.id}: ${l}`);

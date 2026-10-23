@@ -18,6 +18,7 @@ import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, 
 import { isBlack, keySpan } from "../touch/piano.ts";
 import { KEYS_SHARE } from "./placed.ts";
 import { CLEAN_INK, HELD_INK, LEGATO_INK } from "./articulation.ts";
+import { scaleGem, scaleHow, scaleInk, scaleLetter, scaleStrip } from "./paint-scale.ts";
 import { deskBegin, deskCrowd, deskEnd, deskFlare, deskGeom, deskKeys, deskOver, deskSparks, deskUnder, subjectGem, type Road } from "./paint-desk.ts";
 
 const FONT = '"TG Accidentals", "Press Start 2P", ui-monospace, monospace';
@@ -155,6 +156,34 @@ function pixels(c: CanvasRenderingContext2D, a: Arrow, x: number, y: number, s: 
   ARROW_PIXELS[a].forEach((row, ry) => [...row].forEach((on, rx) => on === "1" && c.fillRect(Math.round(x + rx * s), Math.round(y + ry * s), s, s)));
 }
 
+/** D229: the space bar's glyph (⎵) on a repeated note's gem, and SPACE under it once near enough to read. */
+function spaceMark(c: CanvasRenderingContext2D, x: number, y: number, gw: number, gh: number, k: number, missed: boolean) {
+  const bw = gw * 0.62;
+  const lw = Math.max(1, Math.round(2 * k));
+  const by = y + gh * 0.02;
+  c.fillStyle = missed ? "#6a6474" : "#120f18";
+  c.fillRect(x - bw / 2, by, bw, lw);
+  c.fillRect(x - bw / 2, by - gh * 0.28, lw, gh * 0.28 + lw);
+  c.fillRect(x + bw / 2 - lw, by - gh * 0.28, lw, gh * 0.28 + lw);
+  // A pale bar under the gem: the thumbs' key, as at the foot.
+  c.fillStyle = missed ? "#4a4458" : "#e8f4ff";
+  c.fillRect(x - bw / 2, y + gh * 0.62, bw, Math.max(2, 3 * k));
+  if (k > 0.5 && !missed) label(c, "SPACE", x, y + gh * 0.62 + Math.max(7, 9 * k), "#e8f4ff", Math.max(5, Math.round(6 * k)));
+}
+
+/** D229: how near (0 none, 1 at the line) the next SPACE gem is, within 0.8 s. */
+function spaceNear(g: ProtoGame): number {
+  const notes = g.notes;
+  for (let i = 0; i < notes.length; i++) {
+    const n = notes[i];
+    if (n.state !== "pending" || n.ride || n.on < g.now - g.opt.late) continue;
+    const s = (n.on - g.now) / g.tps;
+    if (s > 0.8) return 0;
+    if (g.spaceGem(i)) return Math.max(0, Math.min(1, 1 - s / 0.8));
+  }
+  return 0;
+}
+
 /**
  * EASY as a highway (D198, after Guitar Hero): the player's notes come down ten lanes, the home row's
  * keys (A S D F G H J K L ;), towards the strike line, in perspective. A note's lane is a fingering
@@ -181,7 +210,9 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   // D214, SUBJECT: the line moves between voices; its gems take each one's colour.
   const subj = g.proto.id === "subject";
   const N = g.laneCount;
-  const inkOfLane = (l: number) => LANE_INK[N === 5 ? l * 2 : l];
+  // D230, SCALE KEYS: the eight home lanes the home key's scale; the altered notes between them (paint-scale.ts).
+  const sc = g.scale;
+  const inkOfLane = (l: number) => (sc ? scaleInk(l) : LANE_INK[N === 5 ? l * 2 : l]);
   const cx = w / 2;
   // D220: the computer's road alone in the window (no music box), larger.
   const dg = deskGeom(w, h);
@@ -256,7 +287,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   }
   // The keys that would answer the next note (DIRECTION).
   const nx = coming(g);
-  const judged = (lvl === "direction" || lvl === "leaps") && nx && (phone ? g.lastLane >= 0 : g.lastKey) && !g.isFree(nx.i);
+  const judged = !sc && (lvl === "direction" || lvl === "leaps") && nx && (phone ? g.lastLane >= 0 : g.lastKey) && !g.isFree(nx.i);
   if (judged)
     for (let l = 0; l < N; l++) {
       const fitsLane = phone ? laneOk(g.moves[nx!.i], g.lastLane, l, lvl === "leaps", N) : contourOk(g.moves[nx!.i], g.lastKey!, KEY_ROWS[2].codes[l] ?? "Quote", lvl === "leaps");
@@ -315,13 +346,24 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     }
     // D220: the computer's gems taller (its road is larger).
     const gh = Math.max(4, (R ? 16 : 12) * p.k);
-    if (g.isFree(i) && lvl !== "timing") {
+    // D229: on a computer a repeat (SPACE) is a gem in the lane of the note before, marked SPACE.
+    const space = !!R && g.spaceGem(i);
+    if (!sc && g.isFree(i) && lvl !== "timing" && !space) {
       // A free note: an open bar across the road.
       c.fillStyle = n.state === "miss" ? t.miss : subj ? ink : "#c78bff";
       c.fillRect(cx - (W / 2) * p.k + 4, p.y - gh / 3, W * p.k - 8, Math.max(3, gh * 0.6));
       continue;
     }
     const x = laneX(lane, p.k);
+    if (sc && sc[i]) {
+      // D230: the note's key, a home gem or a black key's (raised or lowered), labelled.
+      const d = scaleGem(c, x, p.y, lw, gh, p.k, sc[i], n.state === "miss", t);
+      const orn = g.ornaments.get(`${n.voice ?? g.voice}:${n.on}`);
+      if (orn && n.state !== "miss") label(c, ornamentMark(orn), x, d.y - d.gh - 4 * p.k, t.gold, Math.max(6, Math.round(8 * p.k)));
+      if (subject.has(n.on) && n.state !== "miss") subjectGem(c, x, d.y, d.gw, d.gh, p.k, g.entries.some((e) => e.state === "captured" && e.ons.includes(n.on)));
+      scaleLetter(c, x, d.y, d.gh, p.k, sc[i], n.state === "miss", t);
+      continue;
+    }
     // A gem with depth: its shadow on the road, a darker front face, a lit top.
     const gw = lw * 0.8;
     c.fillStyle = "rgba(0,0,0,0.45)";
@@ -332,6 +374,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.fillRect(x - gw / 2, p.y - gh / 2, gw, gh * 0.6);
     c.fillStyle = "rgba(255,255,255,0.4)";
     c.fillRect(x - gw / 2, p.y - gh / 2, gw, Math.max(1, gh * 0.16));
+    if (space) spaceMark(c, x, p.y, gw, gh, p.k, n.state === "miss");
     // D205: an ornament's sign over its gem.
     const orn = g.ornaments.get(`${n.voice ?? g.voice}:${n.on}`);
     if (orn && n.state !== "miss") label(c, ornamentMark(orn), x, p.y - gh - 4 * p.k, t.gold, Math.max(6, Math.round(8 * p.k)));
@@ -373,7 +416,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   }
   // The keys (a computer's).
   const bh = 18;
-  for (let l = 0; l < N && !phone; l++) {
+  for (let l = 0; l < N && !phone && !sc; l++) {
     const x = laneX(l, 1);
     const down = phone ? heldLanes.includes(l) : [...g.keysDown].some((code) => keyPlace(code)?.col === l);
     const ink = inkOfLane(l);
@@ -401,9 +444,16 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   }
   // Space: the same note (a computer's). D220: the thumbs' bar, under both hands, G's marks.
   if (R) {
-    deskKeys(R, bh);
+    const sy = sc ? scaleStrip(R, sc) : (deskKeys(R, bh), y1 + 36);
     const sdown = g.keysDown.has("Space");
-    const sy = y1 + 36;
+    // D229: the bar lights as a SPACE gem nears the line.
+    const near = spaceNear(g);
+    if (near > 0 && !sdown) {
+      c.fillStyle = t.shine;
+      c.globalAlpha = 0.15 + 0.45 * near;
+      c.fillRect(cx - W * 0.25 - 6 * near, sy - 6 * near, W * 0.5 + 12 * near, 14 + 12 * near);
+      c.globalAlpha = 1;
+    }
     c.fillStyle = shade(t.shine, 0.3);
     c.fillRect(cx - W * 0.25, sy + 14, W * 0.5, sdown ? 1 : 4);
     c.fillStyle = sdown ? t.shine : "#1d1a24";
@@ -469,6 +519,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     label(c, subj ? "STRETTO: NEW ENTRY UPPER ROW · OLDER LOWER ROW, HOLLOW" : lvl === "timing" ? "TWO ROWS: CROSS THUMBS · HOLD THE LONG NOTES" : `SAME NOTE: SAME LANE${lvl === "leaps" ? " · LEAP: SKIP A LANE" : ""} · SLIDE TO JOIN · TWO ROWS`, w / 2, h - 16, t.muted, 7);
     return;
   }
+  if (sc && R) return void (scaleHow(R), deskEnd(c));
   label(c, how, w / 2, h - 24, t.fg, 7);
   label(c, `Q ROW f · A ROW mf · Z ROW p · SHIFT: PEDAL${g.pedalOn ? " (DOWN)" : ""}`, w / 2, h - 10, g.pedalOn ? t.gold : t.muted, 7);
   deskEnd(c);

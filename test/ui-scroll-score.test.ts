@@ -120,3 +120,106 @@ test("painting GERUBACH or SCORE every frame does not change the game's judging"
     g.Path2D = had.Path2D;
   }
 });
+
+// ---------------------------------------------------------------------------------------------------
+// D231: the staves where they belong (the owner's I/12, ALTO, on the title screen: the inner voices
+// adrift between staves fifteen spaces apart, no staff lines before the first bar, a black entry
+// bracket read as a stray staff line).
+
+const { planStaves, paintStrip, plate, staffLineYs, grandGap } = await import("../src/touch/ui/scroll-score.ts");
+const { LINES, ledgersOf, clefOf } = await import("../src/touch/ui/strip.ts");
+
+/** A context that records its horizontal strokes (y, from x, to x); everything else taken and dropped. */
+function recorder(): { g: CanvasRenderingContext2D; lines: [number, number, number][] } {
+  const lines: [number, number, number][] = [];
+  let at: [number, number] = [0, 0];
+  const store: Record<string | symbol, unknown> = {
+    moveTo: (x: number, y: number) => (at = [x, y]),
+    lineTo: (x: number, y: number) => {
+      if (y === at[1] && Math.abs(x - at[0]) > 40) lines.push([y, Math.min(x, at[0]), Math.max(x, at[0])]);
+      at = [x, y];
+    },
+    measureText: () => ({ width: 6 }),
+    createLinearGradient: () => ({ addColorStop() {} }),
+  };
+  const g = new Proxy(store, { get: (o, k) => (k in o ? o[k] : () => {}), set: (o, k, v) => ((o[k] = v), true) }) as unknown as CanvasRenderingContext2D;
+  return { g, lines };
+}
+
+function withPath2D<T>(fn: () => T): T {
+  const g = globalThis as Record<string, unknown>;
+  const had = g.Path2D;
+  g.Path2D = class {
+    moveTo() {}
+    lineTo() {}
+    quadraticCurveTo() {}
+    bezierCurveTo() {}
+    closePath() {}
+  };
+  try {
+    return fn();
+  } finally {
+    g.Path2D = had;
+  }
+}
+
+test("I/12 on the grand staff: the alto on the treble, the tenor on the bass, each head at its clef's place, the alto within 4 ledger lines", () => {
+  const f = fugueById("wtc1f12");
+  const staves = grandStaves(f.voices.length);
+  assert.deepEqual(staves.map((s) => [s.clef, s.voices]), [["g", [0, 1]], ["f", [2, 3]]]);
+  const s = layoutStrip(f, staves);
+  // The owner's box on the title screen (1600×1172) and in play.
+  for (const [top, bottom] of [[152, 1018], [80, 414]]) {
+    const p = planStaves(f, staves, top, bottom, 15, 6, 6, true);
+    const half = p.sp / 2;
+    // E4 is the treble's bottom line, G2 the bass's.
+    assert.ok(Math.abs(p.y(30, 0) - (p.top[0] + 8 * half)) < 1e-9);
+    assert.ok(Math.abs(p.y(18, 1) - (p.top[1] + 8 * half)) < 1e-9);
+    // A keyboard system's gap: the staves 6 to 9 spaces apart, not 15.
+    const gap = (p.top[1] - p.y(30, 0)) / p.sp;
+    assert.ok(gap >= 6 - 1e-9 && gap <= 9 + 1e-9, `gap ${gap}`);
+    for (const e of s.evs) {
+      if (e.rest) continue;
+      assert.equal(e.staff, e.voice < 2 ? 0 : 1, `voice ${e.voice} at ${e.on}`);
+      for (const h of e.heads) {
+        const y = p.y(h.step, e.staff);
+        assert.ok(Math.abs(y - (p.top[e.staff] + (staves[e.staff].lines[4] - h.step) * half)) < 1e-9);
+        if (e.voice === 1) assert.ok(ledgersOf(h.step, LINES.g) <= 4, `alto ${h.midi} at ${e.on}: ${ledgersOf(h.step, LINES.g)} ledger lines`);
+      }
+    }
+  }
+  assert.ok(grandGap(0, 0) === 12 && grandGap(30, 2) === 18);
+});
+
+test("the staff lines: the plate's and the strip's at the same y, unbroken through the past before the first bar", () => {
+  for (const id of ["wtc1f12", "wtc1f02", "wtc1f04", "wtc1f10"]) {
+    const f = fugueById(id);
+    for (const [staves, grand] of [[grandStaves(f.voices.length), true], [voiceStaves(f, 1), false]] as const) {
+      const s = layoutStrip(f, staves);
+      const p = planStaves(f, staves, 150, 1000, 15, 6, 6, grand);
+      const look = { paper: "#fff", staffInk: "#111", ink: () => "#000", marks: "numbers" as const, barNumbers: true, mine: null, player: 1, mineInk: "#00f" };
+      const want = staffLineYs(p, staves).flat().sort((a, b) => a - b);
+      const plateRec = recorder();
+      withPath2D(() => plate({ g: plateRec.g, H: 1172, f } as never, { f, strip: s, plan: p, look } as never, 200));
+      const plateYs = [...new Set(plateRec.lines.map((l) => l[0]))].sort((a, b) => a - b);
+      assert.deepEqual(plateYs, want, `${id} plate`);
+      // A tile wholly before the first bar (the past at the start), and one in the music.
+      for (const u0 of [-60, -20, 30]) {
+        const r = recorder();
+        withPath2D(() => paintStrip(r.g, f, s, p, look, u0, u0 + 512 / p.sp, 1172));
+        for (const y of want) assert.ok(r.lines.some((l) => l[0] === y && l[1] <= 0 && l[2] >= 511), `${id} tile at ${u0}: line ${y} across`);
+      }
+    }
+  }
+});
+
+test("SCORE: one staff per voice in its clef (I/12's tenor in the octave treble, an alto never)", () => {
+  const f = fugueById("wtc1f12");
+  assert.deepEqual(voiceStaves(f, 1).map((s) => s.clef), ["g", "g", "g8", "f"]);
+  assert.deepEqual(voiceStaves(fugueById("wtc1f02"), 1).map((s) => s.clef), ["g", "g", "f"]);
+  assert.deepEqual(voiceStaves(fugueById("wtc1f10"), 1).map((s) => s.clef), ["g", "f"]);
+  for (const g of FUGUES) for (const [v, s] of voiceStaves(g, 0).entries()) if (/alto|soprano/i.test(g.voiceNames[v])) assert.notEqual(s.clef, "g8", `${g.id} ${g.voiceNames[v]}`);
+  // The octave treble reads a step 7 higher: C4 (28) in its third space, as C5 (35) on the treble.
+  assert.equal(LINES.g8[2] + 7, LINES.g[2]);
+  assert.equal(clefOf([20, 25, 28, 29, 30], true), "g8");
+});

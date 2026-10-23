@@ -53,7 +53,9 @@ test("every fugue's tempo rests on sourced recordings", () => {
   for (const f of fugues) assert.equal(count[f.id], TEMPO[f.id].n, f.id);
 });
 
-test("preludes keep their default; unknown pieces get 46", () => {
-  assert.equal(tempoOf("wtc1p01"), 44);
+test("D229: Book I's preludes at Ishizaka's median bar; Book II's keep their default; unknown pieces get 46", () => {
+  assert.equal(tempoOf("wtc1p01"), 55);
+  assert.equal(tempoOf("wtc1p02"), 100);
+  assert.equal(tempoOf("wtc2p01"), 42);
   assert.equal(tempoOf("nope"), 46);
 });
