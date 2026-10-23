@@ -361,6 +361,7 @@ export class ProtoGame {
   cellAt(c: Contact): number | undefined {
     if (this.proto.id === "piano") return pianoKey(this.kb, c.x / c.w, c.y / c.h);
     if (this.proto.id === "ladder" && this.rows) return this.rows.stepAt(c.y);
+    if (this.proto.id === "highway") return this.laneOfX(c.x, c.w);
     return undefined;
   }
 
@@ -456,9 +457,12 @@ export class ProtoGame {
   get laneCount(): number {
     return this.proto.id === "highway" ? 5 : 10;
   }
-  /** The lanes under the fingers now (HIGHWAY). */
+  /** The lanes under the fingers now (HIGHWAY), and how far down each finger is (px; for the two rows of pads). */
   get heldLanes(): number[] {
-    return [...this.held.values()].map((h) => this.laneOfX(h.x0, this.touchW));
+    return [...this.held.values()].map((h) => h.cell ?? this.laneOfX(h.x0, this.touchW));
+  }
+  get heldPads(): { lane: number; y: number }[] {
+    return [...this.held.values()].map((h) => ({ lane: h.cell ?? this.laneOfX(h.x0, this.touchW), y: h.trail.at(-1)?.y ?? h.ay }));
   }
   private touchW = 1;
 
@@ -565,6 +569,14 @@ export class ProtoGame {
       // took the next note from the other thumb (the overlap legato lost its notes as slips).
       if (Math.abs(c.y - h.ay) < this.rows.rowH * 1.5) return;
       this.slideTo(id, h, c, t);
+    } else if (this.proto.id === "highway") {
+      // D208: a held thumb slid into another lane plays the next note there, joined (legato): only
+      // once it has crossed most of a lane's width, so a rolling thumb does not slide by itself.
+      const lane = this.laneOfX(c.x, c.w);
+      if (lane === h.cell || Math.abs(c.x - h.ax) < (c.w / this.laneCount) * 0.75) return;
+      h.cell = lane;
+      h.ax = c.x;
+      if (this.slideTo(id, h, c, t)) this.lastLane = lane;
     } else if (this.proto.id === "piano") {
       // Only the thumb's own travel counts.
       const unit = c.w / this.kb.whites / 2;
@@ -578,15 +590,16 @@ export class ProtoGame {
   }
 
   /** A held thumb reaches another place: the next note there, if it is there and due. */
-  private slideTo(id: number, h: Held, c: Contact, t: number) {
+  private slideTo(id: number, h: Held, c: Contact, t: number): boolean {
     // D208: only onto the next note still to play, and not before its time is near (half the early window).
     const notes = this.tracks[h.k].notes;
     const next = notes.findIndex((n) => n.state === "pending" && !n.ride);
-    if (next < 0 || t < notes[next].on - this.opt.early / 2) return;
+    if (next < 0 || t < notes[next].on - this.opt.early / 2) return false;
     const i = strike(notes, t, this.opt, (j) => chordOf(notes, next).includes(j) && !h.chord.includes(j) && this.verdict(j, { c }, h.k).ok);
-    if (i < 0) return;
+    if (i < 0) return false;
     h.ay = c.y;
     this.play(id, h, i, { ok: true }, true, this.dynamicAt(c));
+    return true;
   }
 
   up(id: number, ts: number) {

@@ -528,3 +528,29 @@ test("D208, LADDER legato as the hand plays it: the thumbs overlap briefly and t
   assert.equal(done, heads.length, `${done}/${heads.length} hit`);
   assert.equal(g.results().stray ?? 0, 0, "no stray strike: the lifting thumb took no note");
 });
+
+test("D208, HIGHWAY legato: a held thumb slid into the next note's lane plays it; a thumb rolling a little within its lane does not", () => {
+  const clock = { t: 0 };
+  const g = new ProtoGame(C_MINOR, 1, 0, protoById("highway"), { bpm: 54, legato: false, easy: "timing" }, fakeChip(clock));
+  const heads = g.notes.map((n, i) => (n.ride || (i > 0 && g.notes[i - 1].on === n.on) ? -1 : i)).filter((i) => i >= 0);
+  const laneW = W / g.laneCount;
+  const runTo = (t: number) => {
+    while (clock.t < t - 0.02) (clock.t += 0.02), g.step();
+    clock.t = Math.max(clock.t, t);
+    g.step();
+  };
+  const [a, b, c2] = heads;
+  runTo(g.timeAt(g.notes[a].on));
+  g.down(1, { side: "left", x: laneW * 0.5, y: H - 100, w: W, h: H }, performance.now());
+  // A small roll inside the lane: nothing.
+  runTo(g.timeAt(g.notes[b].on));
+  g.move(1, { side: "left", x: laneW * 0.9, y: H - 100, w: W, h: H }, performance.now());
+  assert.equal(g.notes[b].state, "pending", "a roll within the lane plays nothing");
+  // Across into the next lane: the next note, joined.
+  g.move(1, { side: "left", x: laneW * 1.5, y: H - 100, w: W, h: H }, performance.now());
+  assert.equal(g.notes[b].state, "hit");
+  runTo(g.timeAt(g.notes[c2].on));
+  g.move(1, { side: "left", x: laneW * 2.5, y: H - 100, w: W, h: H }, performance.now());
+  assert.equal(g.notes[c2].state, "hit");
+  assert.equal(g.results().stray ?? 0, 0);
+});

@@ -65,9 +65,9 @@ export interface Proto {
 export const PROTOS: Proto[] = [
   {
     id: "highway",
-    short: "TAP THE LANE AS EACH NOTE LANDS · LINE UP, TAP FURTHER RIGHT",
+    short: "TAP THE LANE AS EACH NOTE LANDS · SLIDE TO JOIN · TWO ROWS TO CROSS THUMBS",
     name: "HIGHWAY",
-    how: "Upright, the whole screen: EASY on a phone (D207). The notes come down five lanes to the strike line; tap the lane a note is in as it lands. Three levels (⚙ EASY): TIMING, any lane on time; DIRECTION, a lane further right than your last tap when the line rises, further left when it falls, the same lane when it repeats; + LEAPS, a leap of a fourth or more skips a lane. An open bar across the road: any lane. At the edge, the edge lane again answers a move past it. Long notes: hold them while their tail glows.",
+    how: "Upright, the whole screen: EASY on a phone (D207). The notes come down five lanes to the strike line; tap the lane a note is in as it lands. Two rows of pads, the same lanes in each (D208): one thumb in the upper row, the other in the lower, so they can pass each other. Legato: strike the next note before letting go of the last, or slide a held thumb into the next lane. The other voices pass faintly behind, by pitch (their subject entries brighter). Three levels (⚙ EASY): TIMING, any lane on time; DIRECTION, a lane further right than your last tap when the line rises, further left when it falls, the same lane when it repeats; + LEAPS, a leap of a fourth or more skips a lane. An open bar across the road: any lane. Long notes: hold them while their tail glows.",
     layout: "full",
     platform: "mobile",
   },

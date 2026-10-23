@@ -178,7 +178,8 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   const inkOfLane = (l: number) => LANE_INK[N === 5 ? l * 2 : l];
   const cx = w / 2;
   const y0 = phone ? 64 : 18;
-  const y1 = phone ? h - 120 : h - 78;
+  // D208: on a phone the strike line sits higher, over two rows of pads (room for the thumbs to cross).
+  const y1 = phone ? h - 196 : h - 78;
   const W = phone ? w * 0.94 : Math.min(w * 0.7, 620);
   const lvl = g.o.easy ?? "timing";
   // Depth (0 at the line, 1 at the horizon) to the screen: y, and the width's scale.
@@ -254,6 +255,9 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
       c.closePath();
       c.fill();
     }
+  // D208: the other voices, faint, by pitch across the road (low left, high right), so the fugue's
+  // architecture shows behind the lanes: each voice its colour, its subject entries brighter.
+  if (phone) ghosts(c, g, at, cx, W, y1);
   // The notes, far to near.
   const lanes = g.lanes;
   const notes = g.notes;
@@ -336,9 +340,14 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   // The strike line: the ten keys, lit when down; the last key ringed.
   const lastCol = phone ? (g.lastLane >= 0 ? g.lastLane : undefined) : g.lastKey ? keyPlace(g.lastKey)?.col : undefined;
   const heldLanes = phone ? g.heldLanes : [];
-  // The keys (on a phone: pads a thumb can hit, the whole lane wide).
-  const bh = phone ? 44 : 18;
-  for (let l = 0; l < N; l++) {
+  // D208: on a phone, two rows of pads, the same lanes in each: one thumb above, the other below,
+  // so they can pass each other (a lane is a lane in either row).
+  if (phone) {
+    padRows(c, g, laneX, W, N, y1, inkOfLane, lvl !== "timing" ? lastCol : undefined, t);
+  }
+  // The keys (a computer's).
+  const bh = 18;
+  for (let l = 0; l < N && !phone; l++) {
     const x = laneX(l, 1);
     const down = phone ? heldLanes.includes(l) : [...g.keysDown].some((code) => keyPlace(code)?.col === l);
     const ink = inkOfLane(l);
@@ -420,14 +429,96 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
       ? "ANY KEY ON THE BEAT · THE LANES DRAW THE LINE"
       : `THE NOTE'S KEY, OR ANY KEY ON ITS SIDE OF THE LAST · SAME NOTE: SAME KEY OR SPACE${lvl === "leaps" ? " · A LEAP SKIPS A KEY" : ""} · OPEN BAR: ANY KEY`;
   if (phone) {
-    label(c, lvl === "timing" ? "TAP ANY LANE ON THE BEAT" : "LINE UP: TAP FURTHER RIGHT · DOWN: LEFT", w / 2, h - 44, t.fg, 7);
-    label(c, lvl === "timing" ? "HOLD THE LONG NOTES" : `SAME NOTE: SAME LANE${lvl === "leaps" ? " · LEAP: SKIP A LANE" : ""} · OPEN BAR: ANY`, w / 2, h - 30, t.muted, 7);
+    label(c, lvl === "timing" ? "TAP ANY LANE ON THE BEAT · SLIDE TO JOIN" : "LINE UP: TAP FURTHER RIGHT · DOWN: LEFT", w / 2, h - 30, t.fg, 7);
+    label(c, lvl === "timing" ? "TWO ROWS: CROSS THUMBS · HOLD THE LONG NOTES" : `SAME NOTE: SAME LANE${lvl === "leaps" ? " · LEAP: SKIP A LANE" : ""} · SLIDE TO JOIN · TWO ROWS`, w / 2, h - 16, t.muted, 7);
     return;
   }
   label(c, how, w / 2, h - 24, t.fg, 7);
   label(c, `Q ROW f · A ROW mf · Z ROW p · SHIFT: PEDAL${g.pedalOn ? " (DOWN)" : ""}`, w / 2, h - 10, g.pedalOn ? t.gold : t.muted, 7);
 }
 
+
+/** HIGHWAY's pads on a phone (D208): an upper and a lower row, the same five lanes; a pad lights where a thumb is. */
+const TIER = { top: -8, h: 64, gap: 10 };
+function padRows(c: CanvasRenderingContext2D, g: ProtoGame, laneX: (l: number, k: number) => number, W: number, N: number, y1: number, inkOfLane: (l: number) => string, lastCol: number | undefined, t: Tok) {
+  const pads = g.heldPads;
+  const split = y1 + TIER.top + TIER.h + TIER.gap / 2;
+  const bw = (W / N) * 0.88;
+  for (let row = 0; row < 2; row++) {
+    const y = y1 + TIER.top + row * (TIER.h + TIER.gap);
+    for (let l = 0; l < N; l++) {
+      const x = laneX(l, 1);
+      const ink = inkOfLane(l);
+      const down = pads.some((p) => p.lane === l && (p.y >= split) === (row === 1));
+      const sink = down ? 4 : 0;
+      c.fillStyle = shade(ink, 0.3);
+      c.fillRect(x - bw / 2, y + TIER.h, bw, 6 - sink);
+      c.fillStyle = down ? ink : row ? "#17141e" : "#1d1a24";
+      c.fillRect(x - bw / 2, y + sink, bw, TIER.h);
+      c.strokeStyle = ink;
+      c.globalAlpha = row ? 0.7 : 1;
+      c.lineWidth = 2;
+      c.strokeRect(x - bw / 2, y + sink, bw, TIER.h);
+      c.globalAlpha = 1;
+      if (down) {
+        c.fillStyle = ink;
+        c.globalAlpha = 0.22;
+        c.fillRect(x - bw / 2 - 4, y1 - 46, bw + 8, 40);
+        c.globalAlpha = 1;
+      }
+    }
+  }
+  // The strike line across the upper row's top, and the last lane ringed (both rows).
+  c.fillStyle = "rgba(255,255,255,0.55)";
+  c.fillRect(laneX(0, 1) - W / N / 2, y1 - 1, W, 2);
+  if (lastCol !== undefined) {
+    const x = laneX(lastCol, 1);
+    c.strokeStyle = t.gold;
+    c.lineWidth = 2;
+    c.strokeRect(x - bw / 2 - 3, y1 + TIER.top - 3, bw + 6, 2 * TIER.h + TIER.gap + 6);
+  }
+}
+
+/** HIGHWAY's other voices (D208): faint marks by pitch across the road, the subject entries brighter. */
+const ghostRange = new WeakMap<ProtoGame, { lo: number; hi: number; subj: (n: { voice: number; on: number }) => boolean; from: number }>();
+function ghosts(c: CanvasRenderingContext2D, g: ProtoGame, at: (tick: number) => { y: number; k: number; d: number }, cx: number, W: number, y1: number) {
+  let r = ghostRange.get(g);
+  if (!r) {
+    const steps = [...g.others.map((n) => n.step), ...g.notes.map((n) => n.step)];
+    const ents = g.f.entries;
+    r = { lo: Math.min(...steps), hi: Math.max(...steps), subj: (n) => ents.some((e) => e.voice === n.voice && n.on >= e.on && n.on < e.end), from: 0 };
+    ghostRange.set(g, r);
+  }
+  const span = Math.max(1, r.hi - r.lo);
+  const horizon = g.now + AHEAD_S * g.tps;
+  const count = g.f.voices.length;
+  // A cursor past the notes long gone (eight beats back), so a frame does not walk the whole piece.
+  while (r.from < g.others.length && g.others[r.from].on < g.now - 8 * g.beat) r.from++;
+  for (let j = r.from; j < g.others.length; j++) {
+    const n = g.others[j];
+    if (n.on > horizon) break;
+    if (n.on + n.dur < g.now - g.tps * 0.2) continue;
+    const a = at(Math.max(n.on, g.now - g.tps * 0.2));
+    const e = at(Math.min(n.on + n.dur, horizon));
+    if (a.y > y1 + 4) continue;
+    const u = (n.step - r.lo) / span;
+    const xa = cx + (-W / 2 + W * (0.06 + 0.88 * u)) * a.k;
+    const xe = cx + (-W / 2 + W * (0.06 + 0.88 * u)) * e.k;
+    const subj = r.subj(n);
+    c.fillStyle = inkOf(n.voice, count);
+    c.globalAlpha = subj ? 0.5 : 0.22;
+    const wa = (subj ? 7 : 4) * a.k;
+    const we = (subj ? 7 : 4) * e.k;
+    c.beginPath();
+    c.moveTo(xa - wa, Math.min(a.y, y1));
+    c.lineTo(xa + wa, Math.min(a.y, y1));
+    c.lineTo(xe + we, e.y);
+    c.lineTo(xe - we, e.y);
+    c.closePath();
+    c.fill();
+  }
+  c.globalAlpha = 1;
+}
 
 /** A voice's next note and how near it is (0 far, 1 on its beat), if it is showing. */
 function coming(g: ProtoGame, k = 0): { i: number; p: number } | null {
