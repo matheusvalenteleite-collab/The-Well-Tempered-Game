@@ -84,6 +84,12 @@ export interface Frame {
   /** The piece's range of staff steps: the ladder. */
   lo: number;
   hi: number;
+  /**
+   * D211: the whole piece's range, where the ladder is only the voice's (LADDER): the other voices'
+   * notes beyond it are drawn squeezed into the box's margins above and below, so all the music shows
+   * and the rows (lined up with the bars) keep their size.
+   */
+  spill?: { lo: number; hi: number };
   /** The voice played, and its notes as the game judges them. */
   voice: number;
   notes: LaneNote[];
@@ -169,8 +175,34 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
   const rows = fr.hi - lo + 2;
   const rowH = Math.max(2, Math.floor(h / rows));
   const top = Math.floor((h - rowH * rows) / 2);
-  const yOf = (step: number) => top + (fr.hi + 1 - step) * rowH;
+  const lin = (step: number) => top + (fr.hi + 1 - step) * rowH;
   const bh = Math.max(2, rowH);
+  // D211: beyond the ladder, the margins: every step above it squeezed into the space over the top
+  // row, every step below into the space under the bottom one.
+  const sp = fr.spill;
+  const upTo = sp ? Math.max(fr.hi, sp.hi) : fr.hi;
+  const downTo = sp ? Math.min(fr.lo, sp.lo) : fr.lo;
+  const capH = lin(fr.hi);
+  const footY = lin(fr.lo) + rowH;
+  const footH = h - footY;
+  const upTh = Math.max(1, Math.floor(capH / Math.max(1, upTo - fr.hi + 1)));
+  const downTh = Math.max(1, Math.floor(footH / Math.max(1, fr.lo - downTo + 1)));
+  const yOf = (step: number) =>
+    !sp || (step <= fr.hi && step >= fr.lo)
+      ? lin(step)
+      : step > fr.hi
+        ? Math.max(0, Math.round(capH - ((step - fr.hi) / (upTo - fr.hi + 1)) * capH) - upTh)
+        : Math.min(h - downTh, Math.round(footY + ((fr.lo - step) / (fr.lo - downTo + 1)) * footH));
+  const hOf = (step: number) => (!sp || (step <= fr.hi && step >= fr.lo) ? bh : step > fr.hi ? upTh : downTh);
+  if (sp && (upTo > fr.hi || downTo < fr.lo)) {
+    // The margins a shade darker, a hairline where the ladder begins and ends.
+    g.fillStyle = "rgba(0,0,0,0.22)";
+    if (upTo > fr.hi) g.fillRect(0, 0, w, capH);
+    if (downTo < fr.lo) g.fillRect(0, footY, w, footH);
+    g.fillStyle = "rgba(255,255,255,0.08)";
+    if (upTo > fr.hi) g.fillRect(0, capH, w, 1);
+    if (downTo < fr.lo) g.fillRect(0, footY - 1, w, 1);
+  }
 
   // Beats faint, bar lines brighter.
   for (let t = Math.floor(t0 / fr.beatTicks) * fr.beatTicks; t < t0 + span; t += fr.beatTicks) {
@@ -178,7 +210,7 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
     g.fillRect(xOf(t), 0, 1, h);
   }
 
-  const fx = { g, w, h, xOf, yOf, bh, now: fr.now, tps: fr.tps, gold: tok("--tg-gold"), miss: tok("--tg-miss"), fg: tok("--tg-fg"), ink: (v: number) => inkOf(v, fr.count) };
+  const fx = { g, w, h, xOf, yOf, hOf, bh, now: fr.now, tps: fr.tps, gold: tok("--tg-gold"), miss: tok("--tg-miss"), fg: tok("--tg-fg"), ink: (v: number) => inkOf(v, fr.count) };
   if (fr.spans) ribbons(fx, fr.spans, fr.notes2 && fr.voice2 !== undefined ? [fr.voice, fr.voice2] : [fr.voice], fr.names, fr.entryState);
 
   // The other voices: their colours, dimmer; (D208) their subject notes full, standing out of the trail.
@@ -188,12 +220,13 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
     if (x1 > w) break;
     const x2 = xOf(o.on + o.dur);
     if (x2 < 0) continue;
+    const oh = hOf(o.step);
     g.globalAlpha = 0.3;
     g.fillStyle = "#000";
-    g.fillRect(x1 + 1, yOf(o.step) + 1, Math.max(1, x2 - x1 - 1), bh - 1);
-    g.globalAlpha = subjNotes.has(`${o.voice}:${o.on}`) ? 1 : 0.5;
+    if (oh === bh) g.fillRect(x1 + 1, yOf(o.step) + 1, Math.max(1, x2 - x1 - 1), bh - 1);
+    g.globalAlpha = subjNotes.has(`${o.voice}:${o.on}`) ? 1 : oh === bh ? 0.5 : 0.75;
     g.fillStyle = inkOf(o.voice, fr.count);
-    g.fillRect(x1, yOf(o.step), Math.max(1, x2 - x1 - 1), bh - 1);
+    g.fillRect(x1, yOf(o.step), Math.max(1, x2 - x1 - 1), oh === bh ? bh - 1 : oh);
     if (!fr.spans && fr.subject?.has(`${o.voice}:${o.on}`)) dots(g, x1, x2, yOf(o.step), tok("--tg-fg"));
   }
   g.globalAlpha = 1;

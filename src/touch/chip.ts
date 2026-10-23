@@ -20,6 +20,19 @@ export function leadOf(pt: Patch): Patch {
   return pt.amp.s === 0 ? pt : { ...pt, amp: { ...pt.amp, r: Math.max(0.12, pt.amp.r) } };
 }
 
+/**
+ * D211: a source stopped at `at`, never throwing. A note cut short after its end was scheduled is
+ * stopped a second time; the spec allows it, but older WebKit (Safari, every browser on an iPhone) threw
+ * InvalidStateError there, and a throw inside the scheduler broke off the notes after it in that frame.
+ */
+function halt(s: AudioScheduledSourceNode, at: number) {
+  try {
+    s.stop(at);
+  } catch {
+    /* already stopped */
+  }
+}
+
 /** D210: a phone or tablet (a touch screen): fewer notes at once (`VOICE_CAP`). */
 export const isPhone = () => typeof navigator !== "undefined" && navigator.maxTouchPoints > 0;
 
@@ -28,7 +41,7 @@ export const isPhone = () => typeof navigator !== "undefined" && navigator.maxTo
  * as the new one starts. A computer's is far above what a fugue asks; a phone's above what a four-voice
  * fugue with its ornaments, the riders and the rings of plucked notes usually reach.
  */
-export const VOICE_CAP = { phone: 24, computer: 64 };
+export const VOICE_CAP = { phone: 32, computer: 64 };
 
 /**
  * D210: one sound's nodes, all disconnected once the last of its sources has ended. Nothing in chip.ts
@@ -69,7 +82,7 @@ export class Bag {
 }
 
 /** D210: a note not yet ended: when it began, whether it is the player's, whether it was let go to make room. */
-type Live = { at: number; lead: boolean; stolen: boolean; sd: Sounding };
+type Live = { at: number; until: number; lead: boolean; stolen: boolean; sd: Sounding };
 
 export interface Voicing {
   timbre: Timbre;
@@ -136,8 +149,9 @@ export class Chip {
   /** D210: the notes not yet ended (oldest first), and how many may sound at once. */
   private voices: Live[] = [];
   readonly cap = isPhone() ? VOICE_CAP.phone : VOICE_CAP.computer;
-  /** D210: how many notes were let go early to keep within the cap (for the measurements). */
+  /** D210: how many notes were let go early to keep within the cap (for the measurements); D211: how many failed to start. */
   stolen = 0;
+  failed = 0;
 
   constructor() {
     // iOS: play through the silent switch (Safari 16.4+), as a game should.
@@ -244,33 +258,55 @@ export class Chip {
     const t = Math.max(at, this.ctx.currentTime);
     this.makeRoom(t);
     const bag = new Bag();
-    const sd = this.voiceNote(midi, at, dur, v, p, bag);
+    let sd: Sounding;
+    try {
+      sd = this.voiceNote(midi, at, dur, v, p, bag);
+    } catch {
+      // D211: one note's failure is never the others' (the scheduler goes on to the next).
+      this.failed++;
+      return { stop: () => {}, bend: () => {} };
+    }
     if (bag.done) return sd;
-    const entry: Live = { at: t, lead: !!p.lead, stolen: false, sd };
+    // D211: a note counts against the cap only until its written end (and a moment of its tail), not
+    // until its nodes report their end: where a browser is slow to report it (or never does), the
+    // count grew past the cap and every new note cut the oldest still sounding: the long notes of
+    // the other voices went silent and the fugue sounded as if on one monophonic instrument.
+    const entry: Live = { at: t, until: Math.max(t, at + dur) + 0.4, lead: !!p.lead, stolen: false, sd };
     this.voices.push(entry);
     bag.onDone = () => {
       const i = this.voices.indexOf(entry);
       if (i >= 0) this.voices.splice(i, 1);
     };
+    const stop = sd.stop;
+    sd.stop = (when?: number) => {
+      entry.until = Math.min(entry.until, (when ?? this.ctx.currentTime) + 0.4);
+      stop(when);
+    };
     return sd;
   }
 
-  /** D210: the notes sounding (not let go to make room). */
-  sounding(): number {
+  /** D210: the notes sounding (not let go to make room, not past their end). */
+  sounding(t = this.ctx.currentTime): number {
     let n = 0;
-    for (const v of this.voices) if (!v.stolen) n++;
+    for (const v of this.voices) if (!v.stolen && v.until > t) n++;
     return n;
   }
 
   /** D210: at the cap, the oldest notes (never the player's own) let go at `t`, quickly. */
   private makeRoom(t: number) {
-    let n = this.sounding();
+    // Entries long past their end (their end never reported) are forgotten.
+    if (this.voices.length > 4 * this.cap) this.voices = this.voices.filter((v) => v.until > t - 2);
+    let n = this.sounding(t);
     while (n >= this.cap) {
       let old: Live | null = null;
-      for (const v of this.voices) if (!v.stolen && !v.lead && (!old || v.at < old.at)) old = v;
+      for (const v of this.voices) if (!v.stolen && !v.lead && v.until > t && (!old || v.at < old.at)) old = v;
       if (!old) return;
       old.stolen = true;
-      old.sd.stop(t);
+      try {
+        old.sd.stop(t);
+      } catch {
+        /* D211: never break off the new note */
+      }
       this.stolen++;
       n--;
     }
@@ -327,7 +363,7 @@ export class Chip {
       depth.gain.linearRampToValueAtTime(9, t + 0.55);
       lfo.connect(depth).connect(o.detune);
       lfo.start(t);
-      lfo.stop(end + 0.05);
+      halt(lfo, end + 0.05);
     }
     let src: AudioNode = o;
     const dull = p.muffleable ? bag.add(ctx.createBiquadFilter()) : null;
@@ -341,7 +377,7 @@ export class Chip {
       src.connect(g).connect(pan).connect(this.bus);
     } else src.connect(g).connect(this.bus);
     o.start(t);
-    o.stop(end + 0.05);
+    halt(o, end + 0.05);
     let stopped = false;
     return {
       stop: (when = ctx.currentTime) => {
@@ -355,7 +391,7 @@ export class Chip {
           g.gain.setValueAtTime(piano ? peak * 0.3 : sustain, s);
         }
         g.gain.linearRampToValueAtTime(0, s + (piano ? 0.07 : p.legato ? 0.02 : 0.04));
-        o.stop(s + 0.1);
+        halt(o, s + 0.1);
       },
       bend: (cents: number) => {
         if (!stopped) o.detune.setTargetAtTime(cents, ctx.currentTime, 0.02);
@@ -507,8 +543,8 @@ export class Chip {
       else (g.gain.cancelScheduledValues(s), g.gain.setValueAtTime(peak, s)); // the envelope is flat after the attack
       const tau = plucked ? 0.012 + 0.02 * Math.max(0, Math.min(1, (72 - midi) / 36)) : 0.03;
       g.gain.setTargetAtTime(0, s, tau);
-      for (const x of srcs) x.src.stop(s + tau * 9 + 0.02);
-      for (const l of lfos) l.stop(s + tau * 9 + 0.05);
+      for (const x of srcs) halt(x.src, s + tau * 9 + 0.02);
+      for (const l of lfos) halt(l, s + tau * 9 + 0.05);
       if (thunk) (thunk.disconnect(), (thunk = null));
       const held = s - t;
       const r = inst.release ? loaded(inst.release, near) : undefined;
@@ -525,8 +561,8 @@ export class Chip {
     };
     // D184: damped at the written end (a lead note's end is its longest hold), unless it has died away first.
     if (plucked && end > t + life) {
-      for (const x of srcs) x.src.stop(t + life + 0.05);
-      for (const l of lfos) l.stop(t + life + 0.1);
+      for (const x of srcs) halt(x.src, t + life + 0.05);
+      for (const l of lfos) halt(l, t + life + 0.1);
     } else letGo(end);
     let stopped = false;
     let cents = 0;
@@ -775,9 +811,9 @@ export class Chip {
     const damp = tail && end + 0.5 < t + 6;
     if (damp) g.gain.setTargetAtTime(0, Math.max(t + a + 0.01, end), 0.08);
     const last = tail ? (damp ? end + 0.5 : t + 6) : end + 0.05;
-    for (const l of lfos) l.stop(last + 0.1);
-    for (const o of oscs) (o.start(t), o.stop(last));
-    if (breath) (breath.start(t), breath.stop(last));
+    for (const l of lfos) halt(l, last + 0.1);
+    for (const o of oscs) (o.start(t), halt(o, last));
+    if (breath) (breath.start(t), halt(breath, last));
     let stopped = false;
     return {
       stop: (when = ctx.currentTime) => {
@@ -787,9 +823,9 @@ export class Chip {
         if (g.gain.cancelAndHoldAtTime) g.gain.cancelAndHoldAtTime(s);
         else (g.gain.cancelScheduledValues(s), g.gain.setValueAtTime(sus || peak * 0.3, s));
         g.gain.linearRampToValueAtTime(0, s + Math.max(0.02, p.legato ? 0.02 : pt.amp.r));
-        for (const o of oscs) o.stop(s + pt.amp.r + 0.1);
-        if (breath) breath.stop(s + pt.amp.r + 0.1);
-        for (const l of lfos) l.stop(s + pt.amp.r + 0.15);
+        for (const o of oscs) halt(o, s + pt.amp.r + 0.1);
+        if (breath) halt(breath, s + pt.amp.r + 0.1);
+        for (const l of lfos) halt(l, s + pt.amp.r + 0.15);
       },
       bend: (cents: number) => {
         if (!stopped) for (const [i, o] of oscs.entries()) o.detune.setTargetAtTime((pt.osc[i].detune ?? 0) + cents, ctx.currentTime, 0.02);
@@ -839,7 +875,7 @@ export class Chip {
     og.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
     o.connect(fl).connect(og).connect(out);
     o.start(t);
-    o.stop(t + 0.26);
+    halt(o, t + 0.26);
     const n = bag.src(this.noise());
     const nf = bag.add(ctx.createBiquadFilter());
     nf.type = "bandpass";
@@ -852,7 +888,7 @@ export class Chip {
     ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
     n.connect(nf).connect(ng).connect(out);
     n.start(t);
-    n.stop(t + 0.26);
+    halt(n, t + 0.26);
     // The bounces: ever shorter gaps, ever softer.
     let at = t + 0.24;
     let gap = 0.11;
@@ -866,7 +902,7 @@ export class Chip {
       bg.gain.exponentialRampToValueAtTime(0.001, at + 0.03);
       b.connect(bg).connect(out);
       b.start(at);
-      b.stop(at + 0.035);
+      halt(b, at + 0.035);
       at += gap;
       gap *= 0.72;
       gain *= 0.7;
@@ -892,7 +928,7 @@ export class Chip {
       ng.gain.exponentialRampToValueAtTime(0.0001, at + len);
       n.connect(fl).connect(ng).connect(g);
       n.start(at, Math.random() * 0.5);
-      n.stop(at + len + 0.02);
+      halt(n, at + len + 0.02);
     };
     const tone = (type: OscillatorType, f0: number, f1: number, len: number, level = lvl) => {
       const o = bag.src(ctx.createOscillator());
@@ -904,7 +940,7 @@ export class Chip {
       og.gain.exponentialRampToValueAtTime(0.0001, at + len);
       o.connect(og).connect(g);
       o.start(at);
-      o.stop(at + len + 0.02);
+      halt(o, at + len + 0.02);
     };
     if (kit === "chip") {
       // A console's noise channel and a pulse dropping in pitch.
@@ -942,7 +978,7 @@ export class Chip {
             ng.gain.exponentialRampToValueAtTime(0.0001, at + k + (k === 0.022 ? 0.14 : 0.012));
             n.connect(fl).connect(ng).connect(g);
             n.start(at + k);
-            n.stop(at + k + 0.16);
+            halt(n, at + k + 0.16);
           }
           return;
         case "hat":
@@ -1019,7 +1055,7 @@ export class Chip {
     g.gain.exponentialRampToValueAtTime(0.0001, at + 0.03);
     o.connect(g).connect(this.master);
     o.start(at);
-    o.stop(at + 0.04);
+    halt(o, at + 0.04);
   }
 }
 

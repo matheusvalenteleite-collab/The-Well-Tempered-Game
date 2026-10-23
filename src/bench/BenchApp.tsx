@@ -81,7 +81,6 @@ type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; right: num
 
 /** The computer's keys (D182: a computer's prototypes only): PIANO a keyboard's rows (A W S E D F T G Y H U J K O L P ;), Z and X the octave; EASY every row (protos.ts KEY_ROWS) and space, Shift the pedal, the arrows a bend. */
 const PIANO_KEYS = ["KeyA", "KeyW", "KeyS", "KeyE", "KeyD", "KeyF", "KeyT", "KeyG", "KeyY", "KeyH", "KeyU", "KeyJ", "KeyK", "KeyO", "KeyL", "KeyP", "Semicolon"];
-const PLATFORM_KEY = "tb-platform";
 
 export function BenchApp() {
   const [phase, setPhase] = useState<Phase>({ kind: "title" });
@@ -116,10 +115,10 @@ export function BenchApp() {
   }, []);
   const [midi, setMidi] = useState("");
   // D182: mobile or computer, chosen on the first screen (and in the settings).
-  const [platform, setPlatformRaw] = useState<Platform | null>(() => load<Platform | null>(PLATFORM_KEY, null));
+  // D211: asked every time the game opens (not remembered): one person plays on both.
+  const [platform, setPlatformRaw] = useState<Platform | null>(null);
   const setPlatform = (pl: Platform) => {
     setPlatformRaw(pl);
-    save(PLATFORM_KEY, pl);
     if (protoById(pick.proto).platform !== pl) setPick({ proto: PROTOS.find((p) => p.platform === pl)!.id });
   };
   const [note, setNote] = useState("");
@@ -177,6 +176,7 @@ export function BenchApp() {
       count: f.voices.length,
       lo: range.lo,
       hi: range.hi,
+      ...(proto.id === "ladder" ? { spill: stepRange(f) } : {}),
       voice,
       notes: lane(voice),
       ...(duo ? { voice2: pick.voice2, notes2: lane(pick.voice2) } : {}),
@@ -241,6 +241,7 @@ export function BenchApp() {
         count: f.voices.length,
         lo: range.lo,
         hi: range.hi,
+        ...(proto.id === "ladder" ? { spill: stepRange(f) } : {}),
         voice,
         notes: g.notes,
         ...(duo ? { voice2: g.tracks[1].voice, notes2: g.tracks[1].notes } : {}),
