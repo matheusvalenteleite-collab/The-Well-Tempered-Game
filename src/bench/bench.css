@@ -540,3 +540,9 @@
 @media (max-width: 500px) {
   .tb-lite-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
 }
+
+/* D240: the friends' page: the sounds on the pop-up, under HOW TO PLAY. */
+.tb-pop-sounds { display: grid; gap: 4px; justify-items: center; margin-top: 6px; }
+.tb-pop-sound-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; max-width: 420px; }
+.tb-pop-sound-row button { font-family: var(--tg-pixel); font-size: 7px; padding: 6px 7px; min-height: 30px; background: transparent; color: var(--tg-muted); border: 2px solid var(--tg-barline); cursor: pointer; }
+.tb-pop-sound-row button.on { color: var(--tg-bg); background: var(--tg-gold); border-color: var(--tg-gold); }
