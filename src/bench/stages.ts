@@ -5,6 +5,10 @@
  * fugues alone, unlocked, for now. Kept on this device (`tb-stages-v1`): per prelude, the date it was
  * first beaten and its best grade.
  *
+ * D232, the progression: the pairs in four tiers by the fugue's stars (tiers.ts): EASY open from the
+ * start, INTERMEDIATE after five EASY fugues beaten, HARD after four INTERMEDIATE, the BOSS (I/24)
+ * after all the other 23. A closed tier locks prelude and fugue; the fugues beaten are kept here too.
+ *
  * The modes: on a phone a prelude is played on HIGHWAY (the five-lane road with two rows of pads,
  * HIGHWAY_LANES: one hand, chosen as a voice is), its fugue on LADDER (SUBJECT withdrawn);
  * on a computer both on the computer's HIGHWAY (keys).
@@ -12,11 +16,13 @@
 import type { TouchFugue } from "../touch/fugue.ts";
 import { betterGrade } from "./cards.ts";
 import { type Platform, type ProtoId } from "./protos.ts";
+import { readFeats } from "./feats.ts";
+import { openTiers, tierOf, TIER_ORDER, type Tier } from "./tiers.ts";
 
 export const STAGES_KEY = "tb-stages-v1";
 
 export interface StageRecord {
-  /** The day it was first beaten (YYYY-MM-DD). */
+  /** The day it was first beaten (YYYY-MM-DD). D232: Book I's fugues kept too, each under its own id. */
   beaten: string;
   /** The best grade a run that beat it earned. */
   best: string;
@@ -44,9 +50,46 @@ export function readStages(): Stages {
 /** Whether a prelude has been beaten. */
 export const beaten = (prelude: string, s: Stages = readStages()) => !!s[prelude]?.beaten;
 
-/** Whether a fugue is locked: a Book I fugue whose prelude is not yet beaten. */
-export function locked(id: string, s: Stages = readStages()): boolean {
-  return paired(id) && /^wtc1f/.test(id) && !beaten(preludeOf(id), s);
+/**
+ * D232, the hidden way to test it all: `?unlock=all` in the address opens every tier and every fugue
+ * for that visit (nothing kept; load the page without it to see the real progress).
+ */
+export function unlockAll(): boolean {
+  try {
+    return typeof location !== "undefined" && new URLSearchParams(location.search).get("unlock") === "all";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * D232: the Book I fugues beaten (played whole, from the first bar to the end, without the crowd
+ * leaving): those kept here, and those the feats remember played whole (`tb-feats-v1`, the same rule,
+ * so a player's past counts).
+ */
+export function beatenFugues(s: Stages = readStages(), done: readonly string[] = readFeats().done): Set<string> {
+  const out = new Set<string>();
+  for (const id of [...Object.keys(s).filter((k) => s[k]?.beaten), ...done]) if (/^wtc1f\d\d$/.test(id)) out.add(id);
+  return out;
+}
+
+/** D232: the tiers open (all of them with `?unlock=all`). */
+export const tiersOpen = (won: ReadonlySet<string> = beatenFugues()): Tier[] => (unlockAll() ? [...TIER_ORDER] : openTiers(won));
+
+/** D232: whether a Book I piece's tier (its fugue's) is still closed: prelude and fugue alike. */
+export function tierLocked(id: string, won: ReadonlySet<string> = beatenFugues()): boolean {
+  const t = tierOf(id);
+  return !!t && !tiersOpen(won).includes(t);
+}
+
+/**
+ * Whether a piece is locked: a Book I piece whose tier is closed (D232), or a Book I fugue whose
+ * prelude is not yet beaten (D229). Book II and XIV never.
+ */
+export function locked(id: string, s: Stages = readStages(), done: readonly string[] = readFeats().done): boolean {
+  if (!paired(id) || unlockAll()) return false;
+  if (tierLocked(id, beatenFugues(s, done))) return true;
+  return /^wtc1f/.test(id) && !beaten(preludeOf(id), s);
 }
 
 /**
@@ -56,10 +99,27 @@ export function locked(id: string, s: Stages = readStages()): boolean {
  */
 export function recordPrelude(prelude: string, grade: string, failed: boolean, today = new Date().toISOString().slice(0, 10)): boolean {
   if (failed || !paired(prelude) || !/^wtc1p/.test(prelude)) return false;
+  return keep(prelude, grade, today);
+}
+
+/**
+ * D232: a Book I fugue's run ended: beaten when played whole (from its first bar) to its end without
+ * the crowd leaving. Kept as a prelude is. Returns the tiers this run opened (for the result's toast).
+ * Called before the feats are earned (they remember the fugues played whole too).
+ */
+export function recordFugue(fugue: string, grade: string, failed: boolean, whole: boolean, today = new Date().toISOString().slice(0, 10)): Tier[] {
+  if (failed || !whole || !/^wtc1f\d\d$/.test(fugue)) return [];
+  const before = openTiers(beatenFugues());
+  keep(fugue, grade, today);
+  return openTiers(beatenFugues()).filter((t) => !before.includes(t));
+}
+
+/** A piece beaten: kept with the first date and the best grade. True (beaten, this run at least). */
+function keep(id: string, grade: string, today: string): boolean {
   try {
     const s = readStages();
-    const was = s[prelude];
-    s[prelude] = { beaten: was?.beaten || today, best: betterGrade(was?.best, grade) };
+    const was = s[id];
+    s[id] = { beaten: was?.beaten || today, best: betterGrade(was?.best, grade) };
     localStorage.setItem(STAGES_KEY, JSON.stringify(s));
   } catch {
     /* no storage: beaten for this run only */

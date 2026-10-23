@@ -7,7 +7,10 @@
  * first, the TESTBENCH tab dropped from the screen (the list kept in cards.ts), and the card's place in
  * the list shown ("7/24"). D229: Book I's cards are pairs, two stages each: the PRELUDE (always
  * playable; its own stars, on the preludes' scale) and the FUGUE, locked (🔒) until the prelude is
- * beaten (stages.ts). P and F (or a tap on the stage) choose the stage.
+ * beaten (stages.ts). P and F (or a tap on the stage) choose the stage. D232: Book I's wheel in tiers
+ * (EASY · INTERMEDIATE · HARD · BOSS, tiers.ts), Bach's order within each, a strip of the tiers over
+ * the wheel (a tap goes to the tier); a closed tier's cards locked (🔒, "BEAT n MORE EASY FUGUES TO
+ * UNLOCK"); the BOSS card (I/24) drawn apart.
  */
 import { readSeals } from "./seals.ts";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -16,7 +19,8 @@ import { fugueById } from "../touch/fugue.ts";
 import { bookCards, cardById, NOT_OFFERED, readBest, SEAL_KINDS, TIERS, type FugueCard } from "./cards.ts";
 import { drawEmblem, EMBLEM_H, EMBLEM_W } from "./emblem.ts";
 import { difficultyOf } from "./difficulty.ts";
-import { fugueOf, isPrelude, locked, preludeOf, readStages } from "./stages.ts";
+import { beatenFugues, fugueOf, isPrelude, locked, preludeOf, readStages, tierLocked, tiersOpen } from "./stages.ts";
+import { tierCards, tierFugues, tierOf, TIER_ORDER, unlockLine, type Tier } from "./tiers.ts";
 
 type Stage = "prelude" | "fugue";
 
@@ -41,6 +45,10 @@ export function Emblem({ id, className }: { id: string; className?: string }) {
 }
 
 const stars = (n: number) => "★".repeat(n) + "☆".repeat(5 - n);
+/** A book's cards as the wheel lists them (D232: Book I by tier). */
+const listOf = (b: 0 | 1 | 2) => (b === 1 ? tierCards() : bookCards(b));
+/** The wheel's row for a number of Bach's in a book. */
+const rowOf = (b: 0 | 1 | 2, number: number) => (b === 0 ? 0 : Math.max(0, listOf(b).findIndex((c) => c.number === number)));
 type Book = 0 | 1 | 2;
 const BOOKS: [Book, string][] = [
   [1, "BOOK I · 1722"],
@@ -77,21 +85,29 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
   const [stage, setStage] = useState<Stage>(isPrelude(current) || locked(fugueOf(current), stages) ? "prelude" : "fugue");
   const [book, setBook] = useState<Book>(start.book);
   // The wheel's position (rows, fractional while it moves) in the book shown.
-  const [pos, setPos] = useState(start.book === 0 ? 0 : start.number - 1);
-  const lastNumber = useRef(start.book === 0 ? 0 : start.number - 1);
+  const [pos, setPos] = useState(rowOf(start.book, start.number));
+  // The number of Bach's last shown in Book I or II (kept across the books: II/7 → I/7).
+  const lastNumber = useRef(start.book === 0 ? 1 : start.number);
+  const won = useMemo(() => beatenFugues(stages), [stages]);
+  const open = useMemo(() => tiersOpen(won), [won]);
   const [why, setWhy] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
   const wheel = useRef<HTMLDivElement>(null);
   const [rowH, setRowH] = useState(34);
-  const cards = bookCards(book);
+  const cards = useMemo(() => listOf(book), [book]);
   const n = cards.length;
   const sel = Math.max(0, Math.min(n - 1, Math.round(pos)));
   const card = cards[sel];
   const best = useMemo(readBest, []);
   const pairs = book === 1;
   const isLocked = pairs && locked(card.id, stages);
+  // D232: the card's tier, and whether it is still closed (prelude and fugue locked).
+  const tier = pairs ? tierOf(card.id) : null;
+  const shut = pairs && tierLocked(card.id, won);
+  const boss = tier === "BOSS";
   const onPrelude = pairs && stage === "prelude";
   const choose = () => {
+    if (shut) return;
     if (onPrelude) return pick(preludeOf(card.id));
     if (!isLocked) pick(card.id);
   };
@@ -117,7 +133,7 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
   const go = (i: number, smooth = true) => {
     const s = scroller.current;
     const to = ((i % n) + n) % n;
-    lastNumber.current = book === 1 || book === 2 ? to : lastNumber.current;
+    lastNumber.current = book === 1 || book === 2 ? cards[to].number : lastNumber.current;
     setWhy(false);
     if (!s) return setPos(to);
     // A wrap (24 → 1) jumps; a step glides.
@@ -129,7 +145,7 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
     setWhy(false);
     setBook(b);
     // Switching keeps the wheel's number (II/7 → I/7).
-    setPos(b === 0 ? 0 : lastNumber.current);
+    setPos(rowOf(b, lastNumber.current));
   };
   const stepBook = (d: number) => {
     const i = BOOKS.findIndex(([b]) => b === book);
@@ -141,7 +157,7 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
     if (!s) return;
     const p = Math.max(0, Math.min(n - 1, s.scrollTop / rowH));
     setPos(p);
-    if (book === 1 || book === 2) lastNumber.current = Math.round(p);
+    if (book === 1 || book === 2) lastNumber.current = cards[Math.round(p)]?.number ?? lastNumber.current;
   };
 
   // The mouse wheel: a card a notch (a trackpad's small deltas added up to a row).
@@ -221,14 +237,18 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
   const row = (k: number) => {
     const c: FugueCard | undefined = cards[sel + k];
     if (!c) return <div key={k} className="tb-wheel-row tb-wheel-empty" />;
+    // D232: a tier's first row names it; a closed tier's rows dimmed.
+    const t = c.book === 1 ? tierOf(c.id) : null;
+    const first = !!t && tierOf(cards[sel + k - 1]?.id ?? "") !== t;
     return (
-      <div key={k} className={`tb-wheel-row tb-wheel-d${Math.abs(k)}`} style={{ transform: `translateY(${-frac * rowH}px)` }} aria-hidden="true">
+      <div key={k} className={`tb-wheel-row tb-wheel-d${Math.abs(k)}${t && !open.includes(t) ? " tb-wheel-shut" : ""}`} style={{ transform: `translateY(${-frac * rowH}px)` }} aria-hidden="true">
         <span className="tb-wheel-chip" style={{ background: keyTint(fugueById(c.id).key, 10) }} />
         <span className="tb-wheel-no">{c.book === 0 ? "XIV" : c.number}</span>
         <span className="tb-wheel-name">
           {c.book === 1 ? c.formal.replace(/^Fugue \d+ in /, "Prelude & Fugue in ") : c.formal}
           {c.book === 1 && <span className="tb-wheel-lock">{locked(c.id, stages) ? " 🔒" : " ✓"}</span>}
         </span>
+        {t && first && <span className={`tb-wheel-tier tb-tier-${t.toLowerCase()}`}>{t}</span>}
       </div>
     );
   };
@@ -251,6 +271,20 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
           </button>
         ))}
       </nav>
+      {pairs && (
+        <nav className="tb-tiers" aria-label="Tiers">
+          {TIER_ORDER.map((t: Tier) => {
+            const ids = tierFugues(t);
+            const shutT = !open.includes(t);
+            return (
+              <button key={t} type="button" id={`tier-${t.toLowerCase()}`} className={`tb-tier tb-tier-${t.toLowerCase()}${t === tier ? " on" : ""}${shutT ? " shut" : ""}`} aria-pressed={t === tier} title={shutT ? unlockLine(t, won) : `${ids.filter((id) => won.has(id)).length} of ${ids.length} fugues beaten`} onClick={() => go(cards.findIndex((c) => tierOf(c.id) === t))}>
+                {t}
+                {shutT ? " 🔒" : ` ${ids.filter((id) => won.has(id)).length}/${ids.length}`}
+              </button>
+            );
+          })}
+        </nav>
+      )}
       <div className="tb-wheel" ref={wheel} onClick={tap} role="listbox" aria-label={book === 0 ? "The Art of Fugue" : `Book ${book === 1 ? "I" : "II"}`} aria-activedescendant={`opt-${card.id}`}>
         <div className="tb-wheel-scroll" ref={scroller} onScroll={onScroll} tabIndex={-1}>
           {cards.map((c) => (
@@ -259,16 +293,17 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
           <div className="tb-wheel-tail" />
         </div>
         <div className="tb-wheel-above">{[-2, -1].map(row)}</div>
-        <div key={card.id} id={`opt-${card.id}`} role="option" aria-selected="true" className="tb-fcard" style={{ ["--tint" as string]: keyTint(f.key, 8), ["--tint-hi" as string]: keyTint(f.key, 30) }}>
+        <div key={card.id} id={`opt-${card.id}`} role="option" aria-selected="true" className={`tb-fcard${boss ? " tb-fcard-boss" : ""}${shut ? " tb-fcard-shut" : ""}`} style={{ ["--tint" as string]: keyTint(f.key, 8), ["--tint-hi" as string]: keyTint(f.key, 30) }}>
           <span className="tb-fcard-pos" aria-label={`${sel + 1} of ${n}`}>
             {sel + 1}/{n}
           </span>
+          {tier && <span className={`tb-fcard-tier tb-tier-${tier.toLowerCase()}`}>{boss ? "♛ BOSS" : tier}{shut ? " 🔒" : ""}</span>}
           <Emblem id={card.id} className="tb-fcard-pic" />
           <div className="tb-fcard-text">
             {pairs && (
               <div className="tb-stages" role="group" aria-label="Stage">
                 <button type="button" id="stage-prelude" className={onPrelude ? "on" : ""} aria-pressed={onPrelude} onClick={(e) => (e.stopPropagation(), setStage("prelude"))}>
-                  1 · PRELUDE{pBeat ? " ✓" : ""}
+                  1 · PRELUDE{shut ? " 🔒" : pBeat ? " ✓" : ""}
                 </button>
                 <button type="button" id="stage-fugue" className={`${onPrelude ? "" : "on"}${isLocked ? " tb-stage-locked" : ""}`} aria-pressed={!onPrelude} onClick={(e) => (e.stopPropagation(), setStage("fugue"))}>
                   2 · FUGUE{isLocked ? " 🔒" : ""}
@@ -285,12 +320,18 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
                 <p className="tb-fcard-stars" aria-label={`Difficulty ${pStars} of 5`}>
                   <span className="tg-gold">{stars(pStars)}</span> {TIERS[pStars - 1]}
                 </p>
-                <p className={`tb-fcard-seal${pBeat ? "" : " tb-seal-soon"}`}>
-                  {pBeat ? <><b>✓ BEATEN</b> · BEST {pBeat.best} · THE FUGUE IS OPEN</> : <><b>BEAT IT</b> Play it to the end to unlock the fugue.</>}
+                <p className={`tb-fcard-seal${pBeat && !shut ? "" : " tb-seal-soon"}`}>
+                  {shut && tier ? <><b>🔒 {tier}</b> {tier === "BOSS" ? "The last pair: it opens when every other fugue of the book is beaten." : `This tier opens when ${tier === "INTERMEDIATE" ? "five EASY" : "four INTERMEDIATE"} fugues are beaten.`}</> : pBeat ? <><b>✓ BEATEN</b> · BEST {pBeat.best} · THE FUGUE IS OPEN</> : <><b>BEAT IT</b> Play it to the end to unlock the fugue.</>}
                 </p>
-                <button type="button" id="wheel-play" className="tb-play" onClick={(e) => (e.stopPropagation(), choose())}>
-                  PLAY PRELUDE ▶
-                </button>
+                {shut && tier ? (
+                  <button type="button" id="wheel-play" className="tb-play tb-play-locked" disabled aria-disabled="true">
+                    🔒 {unlockLine(tier, won)}
+                  </button>
+                ) : (
+                  <button type="button" id="wheel-play" className="tb-play" onClick={(e) => (e.stopPropagation(), choose())}>
+                    PLAY PRELUDE ▶
+                  </button>
+                )}
               </>
             ) : (
               <>
@@ -331,7 +372,7 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
             </p>
             {isLocked ? (
               <button type="button" id="wheel-play" className="tb-play tb-play-locked" disabled aria-disabled="true">
-                🔒 BEAT THE PRELUDE TO UNLOCK
+                🔒 {shut && tier ? unlockLine(tier, won) : "BEAT THE PRELUDE TO UNLOCK"}
               </button>
             ) : (
               <button type="button" id="wheel-play" className="tb-play" onClick={(e) => (e.stopPropagation(), choose())}>

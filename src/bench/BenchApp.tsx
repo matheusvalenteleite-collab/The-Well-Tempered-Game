@@ -38,7 +38,8 @@ import { ModeDiagram } from "./ModeDiagram.tsx";
 import { herClock, herMap } from "./her-clock.ts";
 import { Her, HER_FADE, herBuffer, herState, loadHer, releaseHer } from "./with-her.ts";
 import { cardById, readBest, recordBest } from "./cards.ts";
-import { fugueOf, isPrelude, locked, paired, preludeOf, recordPrelude, stageMode } from "./stages.ts";
+import { fugueOf, isPrelude, locked, paired, preludeOf, recordFugue, recordPrelude, stageMode } from "./stages.ts";
+import type { Tier } from "./tiers.ts";
 import { judgeSeal, readSeals, recordSeal } from "./seals.ts";
 import { earnFeats, type FeatId } from "./feats.ts";
 import { AchButton, Achievements, FeatToast } from "./Achievements.tsx";
@@ -102,7 +103,8 @@ function sane(p: Pick): Pick {
   const known = fugueById(p.piece).id === p.piece ? p.piece : DEFAULT.piece;
   // D229: Book I's preludes are stage 1 (stages.ts); a locked fugue gives its prelude; Book II's preludes still give their fugues.
   const pair = paired(known) && isPrelude(known) ? known : fugueOnly(known);
-  const piece = locked(pair) ? preludeOf(pair) : pair;
+  // D232: a piece whose tier is closed gives I/1's prelude.
+  const piece = locked(pair) ? (locked(preludeOf(pair)) ? "wtc1p01" : preludeOf(pair)) : pair;
   const f = fugueById(piece);
   const share = Math.min(0.99, Math.max(0, p.share || 0));
   const singing = voicesFrom(f, startTick(f, share));
@@ -115,7 +117,7 @@ function sane(p: Pick): Pick {
   return { ...DEFAULT, ...rest, piece, share, voice, proto, legato: !!p.legato, easy: EASY_LEVELS.some(([l]) => l === p.easy) ? p.easy : DEFAULT.easy, her: was === "kimiko" || p.her === true, mine: p.mine in MINE ? p.mine : DEFAULT.mine };
 }
 
-type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; stage?: { won: boolean; fugue: string }; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; art?: ArtStats; seal: { kind: string; earned: boolean; why: string } | null; feats?: FeatId[] } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "lessons"; focus?: ProtoId } | { kind: "help" } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
+type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; stage?: { won: boolean; fugue: string }; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; art?: ArtStats; seal: { kind: string; earned: boolean; why: string } | null; feats?: FeatId[]; opened?: Tier[] } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "lessons"; focus?: ProtoId } | { kind: "help" } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
 
 /** The computer's keys (D182: a computer's prototypes only): PIANO a keyboard's rows (A W S E D F T G Y H U J K O L P ;), Z and X the octave; EASY every row (protos.ts KEY_ROWS) and space, Shift the pedal, the arrows a bend. */
 const PIANO_KEYS = ["KeyA", "KeyW", "KeyS", "KeyE", "KeyD", "KeyF", "KeyT", "KeyG", "KeyY", "KeyH", "KeyU", "KeyJ", "KeyK", "KeyO", "KeyL", "KeyP", "Semicolon"];
@@ -393,9 +395,11 @@ export function BenchApp() {
             ? judgeSeal(card, { f, tracks: subjectMode ? played.map((v) => ({ voice: v, notes: g.tracks.flatMap((t) => t.notes).filter((n) => n.voice === v).sort((a, c) => a.on - c.on) })) : g.tracks.map((t) => ({ voice: t.voice, notes: t.notes })), entries: g.entries, beat: b.ticks, grade: r.grade, tuning: tuning.id, whole: from === 0 && r.failedBar === null })
             : null;
           if (seal?.earned) recordSeal(f.id, played);
+          // D232: a Book I fugue beaten (whole, to its end) is kept; the tiers it opened toasted (before the feats, which remember it too).
+          const opened = recordFugue(f.id, r.grade, r.failedBar !== null, from === 0);
           // D224: the feats, judged over the run and what is kept.
           const feats = earnFeats({ piece: f.id, mode: proto.id, whole: from === 0 && r.failedBar === null, ...r, strettos: g.strettoState.filter((s) => s === "cleared").length, her: !!h, tuning: hm ? "equal" : tuning.id }, readBest(), readSeals());
-          setPhase({ kind: "result", ...r, her: !!h, seal: card && seal ? { kind: card.seal.kind, ...seal } : null, feats });
+          setPhase({ kind: "result", ...r, her: !!h, seal: card && seal ? { kind: card.seal.kind, ...seal } : null, feats, opened });
         }
         return;
       }
@@ -741,6 +745,11 @@ export function BenchApp() {
                 PLAY THE FUGUE ▶
               </button>
             )}
+            {phase.opened?.map((t) => (
+              <p key={t} id={`tier-toast-${t.toLowerCase()}`} className={`tb-tier-toast tb-tier-${t.toLowerCase()}`} role="status">
+                {t} UNLOCKED!
+              </p>
+            ))}
             {phase.feats && <FeatToast fresh={phase.feats} open={() => setPhase({ kind: "achievements", fresh: phase.feats })} />}
             {(phase.feats?.length || phase.seal?.earned) && <AchButton id="result-achievements" open={() => setPhase({ kind: "achievements", fresh: phase.feats })} />}
             <button type="button" id="again" className="tb-menu" onClick={quit}>

@@ -26,6 +26,7 @@ import { pianoKey, pianoKeys } from "./placed.ts";
 import type { Clock } from "./her-clock.ts";
 import type { ArtFlash, ArtStats } from "./articulation.ts";
 import { CLEAN_INK, HELD_INK, holdBonus, LEGATO_GAP_MS, LEGATO_INK, legatoBonus, releaseVerdict, restAfter } from "./articulation.ts";
+import { preludeRideMs } from "./tiers.ts";
 import { lineKey, subjectLine, type LineEntry, type Stretto, type SubjectLine } from "./subject-line.ts";
 import { barDynamic, contourCue, contourOk, dynamic, HOME_LANES, keyPlace, LADDER_AREA, planLanes, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk, isRepeat } from "./protos.ts";
 
@@ -247,8 +248,8 @@ export class ProtoGame {
         this.beat,
         v,
       );
-      // D191: the notes too quick to strike ride after the note before; D229: in a prelude, more of them (the strong notes struck).
-      if (f.kind === "prelude") preludeRides(notes, this.beat, msBetween, (t) => inBar(f, t), this.beat === f.tpq * (4 / Number(f.meter.split("/")[1])) * 3 ? 3 : 2);
+      // D191: the notes too quick to strike ride after the note before; D229: in a prelude, more of them (the strong notes struck; D232: its threshold by its fugue's tier).
+      if (f.kind === "prelude") preludeRides(notes, this.beat, msBetween, (t) => inBar(f, t), this.beat === f.tpq * (4 / Number(f.meter.split("/")[1])) * 3 ? 3 : 2, preludeRideMs(f.id));
       else quickRides(notes, this.beat, msBetween);
       const mv = moves(notes, this.beat);
       return { voice: v, notes, moves: mv };

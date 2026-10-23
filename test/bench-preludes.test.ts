@@ -77,19 +77,19 @@ function play(piece: string, voice: number, proto: string, wrongFrom = Infinity)
 
 test("D229: a beaten prelude unlocks its fugue and stays beaten; a failed run does not; Book II and XIV never locked", () => {
   store.clear();
-  assert.ok(locked("wtc1f05") && !beaten("wtc1p05"));
-  assert.equal(recordPrelude("wtc1p05", "C", true), false, "failed: not beaten");
-  assert.ok(locked("wtc1f05"));
-  assert.equal(recordPrelude("wtc1p05", "C", false, "2026-10-23"), true);
-  assert.ok(!locked("wtc1f05") && beaten("wtc1p05"));
+  assert.ok(locked("wtc1f04") && !beaten("wtc1p04"));
+  assert.equal(recordPrelude("wtc1p04", "C", true), false, "failed: not beaten");
+  assert.ok(locked("wtc1f04"));
+  assert.equal(recordPrelude("wtc1p04", "C", false, "2026-10-23"), true);
+  assert.ok(!locked("wtc1f04") && beaten("wtc1p04"));
   // Kept on the device, under its own key; the best grade raised, the first date kept; a later failure changes nothing.
-  recordPrelude("wtc1p05", "A", false, "2026-10-24");
-  recordPrelude("wtc1p05", "D", false, "2026-10-25");
-  recordPrelude("wtc1p05", "S", true);
-  assert.deepEqual(JSON.parse(store.get(STAGES_KEY)!), { wtc1p05: { beaten: "2026-10-23", best: "A" } });
-  assert.deepEqual(readStages(), { wtc1p05: { beaten: "2026-10-23", best: "A" } });
+  recordPrelude("wtc1p04", "A", false, "2026-10-24");
+  recordPrelude("wtc1p04", "D", false, "2026-10-25");
+  recordPrelude("wtc1p04", "S", true);
+  assert.deepEqual(JSON.parse(store.get(STAGES_KEY)!), { wtc1p04: { beaten: "2026-10-23", best: "A" } });
+  assert.deepEqual(readStages(), { wtc1p04: { beaten: "2026-10-23", best: "A" } });
   assert.ok(locked("wtc1f06"), "another pair stays locked");
-  assert.ok(!locked("wtc2f05") && !locked("bwv1080-14") && !locked("wtc1p05"));
+  assert.ok(!locked("wtc2f05") && !locked("bwv1080-14") && !locked("wtc1p04"));
   assert.equal(preludeOf("wtc1f12"), "wtc1p12");
   assert.equal(fugueOf("wtc1p12"), "wtc1f12");
 });
