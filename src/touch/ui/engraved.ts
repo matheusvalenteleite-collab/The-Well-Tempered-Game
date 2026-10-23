@@ -1,23 +1,18 @@
 /**
- * Design study (`?ui=gerubach`, `?ui=score`, `?ui=manuscript`): the music as notation, drawn here with a
- * small engraver of our own (staff lines, SMuFL noteheads, stems, beams by the beat, flags, dots, ledger
- * lines, accidentals by the bar against the key signature; no rests, ties or slurs) over the game's notes
- * and their times: x is time (proportional spacing, as a scrolling score is), y the staff step, so the
- * side bars still line up with the player's staff.
+ * Design study (`?ui=manuscript`): the music as notation, drawn here with a small engraver of our own
+ * (staff lines, SMuFL noteheads, stems, beams by the beat, flags, dots, ledger lines, accidentals by the
+ * bar against the key signature; no rests, ties or slurs) over the game's notes and their times: x is
+ * time (proportional spacing), y the staff step, so the side bars still line up with the player's staff.
+ * (GERUBACH and SCORE, mockups here first, are real interfaces since D227: scroll-score.ts, strip.ts.)
  *
- * GERUBACH: the "scrolling score" videos' look: an engraved grand staff on white, a translucent red band
- * where the music sounds, a black title bar with the piece's name, a black foot listing the 24 keys of
- * the WTC with the piece's own in red (and the key the music has reached underlined).
- * SCORE: modern sheet music, one staff per voice (as the Open Well-Tempered Clavier's MuseScore edition
- * in Kimiko Ishizaka's videos), the player's staff full size and the others cue size; a playback cursor.
  * MANUSCRIPT: Bach's autograph (P 415): ruled staves on foxed paper, iron-gall ink with its bleed and a
  * hand (Petaluma, a handwritten SMuFL font), the soprano clef as Bach wrote the upper staff, the entries
  * rubricated in red, the player's line in fresh black ink, a manicule for the now.
  */
-import { fugueById, type TouchFugue } from "../fugue.ts";
+import type { TouchFugue } from "../fugue.ts";
 import { stepRange } from "../voice-mode.ts";
-import { firstBarIn, glyph, gridLines, hash, keyShort, keySignature, mix, rect, roman, spelled, WTC_KEYS, type Ctx, type Geo, type GeoIn, type Template, type UEntry, type UNote } from "./core.ts";
-import { BRAVURA, PETALUMA, type GlyphName } from "./glyphs.ts";
+import { firstBarIn, glyph, gridLines, hash, keySignature, mix, rect, spelled, type Ctx, type Geo, type GeoIn, type Template, type UEntry, type UNote } from "./core.ts";
+import { PETALUMA, type GlyphName } from "./glyphs.ts";
 
 type Font = Partial<Record<GlyphName, string>>;
 type Clef = "g" | "f" | "c1";
@@ -384,168 +379,6 @@ function brackets(c: Ctx, es: UEntry[], color: (e: UEntry) => string, font: stri
 }
 
 const voiceWord = (c: Ctx, v: number) => (c.names[v] ?? "").toLowerCase().replace(/^./, (s) => s.toUpperCase());
-
-// ---------------------------------------------------------------------------------------------------
-
-const GB_BARS = 1.5;
-const GB_TOP = 0.13;
-const GB_FOOT = 0.12;
-export const GERUBACH: Template = {
-  name: "GERUBACH",
-  pixel: 0,
-  bars: GB_BARS,
-  playhead: 0.36,
-  chrome: true,
-  css: ".ui-gerubach .tg-box { background: #000 !important; }",
-  geo: (L) => grandGeo(L, GB_BARS, L.h * GB_TOP + 6, L.h * GB_FOOT + 4),
-  paint(c) {
-    const { g, W, H } = c;
-    rect(g, 0, 0, W, H, "#ffffff");
-    const staves = grandStaves(c.count, "g");
-    const ink = (n: UNote) => (n.mine ? (n.state === "miss" ? "#9aa4c8" : "#1d3fbf") : n.entry?.live ? "#000000" : "#8c8c8c");
-    const st: Style = { font: BRAVURA, ink, staffInk: "#1a1a1a", line: 0.09, hand: 0, headW: 1.18 };
-    const plateW = 2 * c.A(0) * (5.2 + keySignature(c.f.key).size * 0.95);
-    engrave(c, staves, st, plateW - 10);
-    const A = c.A(0);
-    brackets(c, c.entries.filter((e) => e.live), (e) => (e.mine ? "#1d3fbf" : "#000"), `italic ${Math.round(Math.max(10, A * 1.7))}px "Liberation Serif", Georgia, serif`, (e) => `${e.form === "answer" ? "Answer" : "Subject"} · ${voiceWord(c, e.voice)}${e.stretto ? " · stretto" : ""}`);
-    plate(c, staves, st, "#ffffff", plateW);
-    // The red band where the music sounds.
-    const bw = Math.max(10, sixteenth(c.f, W, GB_BARS) * 1.7);
-    rect(g, c.playX - bw * 0.35, H * GB_TOP, bw, H * (1 - GB_TOP - GB_FOOT), "#f04a3c", 0.38);
-    // The title bar.
-    const th = H * GB_TOP;
-    rect(g, 0, 0, W, th, "#000");
-    g.fillStyle = "#fff";
-    g.textAlign = "center";
-    g.textBaseline = "middle";
-    g.font = `bold ${Math.round(th * 0.62)}px "Rockwell", "Roboto Slab", "DejaVu Serif", Georgia, serif`;
-    const title = `${c.f.kind === "prelude" ? "PRAELUDIUM" : "FUGA"} ${roman(c.f.number || 14)}.`;
-    spaced(g, title, W / 2, th / 2 + 1, th * 0.06);
-    // The 24 keys, the piece's in red, the key reached underlined; centred on the piece's, clipped as the videos' are.
-    const fh = H * GB_FOOT;
-    rect(g, 0, H - fh, W, fh, "#000");
-    g.font = `bold ${Math.round(fh * 0.66)}px "Liberation Serif", "DejaVu Serif", Georgia, serif`;
-    g.textBaseline = "middle";
-    g.textAlign = "left";
-    const words = WTC_KEYS.map(keyShort);
-    const gapW = fh * 0.32;
-    const widths = words.map((w) => g.measureText(w).width);
-    const home = WTC_KEYS.indexOf(c.f.key);
-    const now = WTC_KEYS.indexOf(c.fr.key);
-    const total = widths.reduce((a, b) => a + b + gapW, 0);
-    let x = total < W ? (W - total) / 2 : W / 2 - (widths.slice(0, home).reduce((a, b) => a + b + gapW, 0) + widths[home] / 2);
-    words.forEach((w, i) => {
-      g.fillStyle = i === home ? "#ff2a1a" : "#6f6f6f";
-      g.fillText(w, x, H - fh / 2 + 1);
-      if (i === now && now !== home) rect(g, x, H - fh * 0.2, widths[i], Math.max(1.5, fh * 0.05), "#ff2a1a", 0.8);
-      x += widths[i] + gapW;
-    });
-  },
-};
-function spaced(g: CanvasRenderingContext2D, text: string, cx: number, y: number, track: number) {
-  const ws = [...text].map((ch) => g.measureText(ch).width);
-  const total = ws.reduce((a, b) => a + b + track, -track);
-  let x = cx - total / 2;
-  g.textAlign = "left";
-  [...text].forEach((ch, i) => {
-    g.fillText(ch, x, y);
-    x += ws[i] + track;
-  });
-}
-
-// ---------------------------------------------------------------------------------------------------
-
-const SC_BARS = 1.5;
-/** One staff per voice; the player's full size, the others cue size (0.7). */
-function scoreStaves(f: TouchFugue): Staff[] {
-  return f.voices.map((ns, v) => {
-    const steps = ns.map((n) => n[3]).sort((a, b) => a - b);
-    const med = steps[Math.floor(steps.length / 2)] ?? 30;
-    const clef: Clef = med >= 27 ? "g" : "f";
-    return { voices: [v], clef, lines: LINES[clef] };
-  });
-}
-function scoreGeo(L: GeoIn): Geo {
-  const st = scoreStaves(L.f);
-  const CUE = 0.7;
-  const bands = st.map((s, v) => {
-    const ns = L.f.voices[v].map((n) => n[3]);
-    return { lo: Math.min(Math.min(...ns) - 1, s.lines[0] - 3), hi: Math.max(Math.max(...ns) + 1, s.lines[4] + 4) };
-  });
-  const top = 8;
-  const room = L.h - top - 6;
-  const rows = bands.reduce((a, b, v) => a + (b.hi - b.lo + 1) * (v === L.voice ? 1 : CUE), 0);
-  const A = Math.min(room / rows, 0.32 * sixteenth(L.f, L.w, SC_BARS));
-  let y = top + (room - rows * A) / 2;
-  const at = bands.map((b, v) => {
-    const a = v === L.voice ? A : A * CUE;
-    const o = { y0: y, hi: b.hi, a };
-    y += (b.hi - b.lo + 1) * a;
-    return o;
-  });
-  return { yOf: (s, v) => at[v].y0 + (at[v].hi - s + 0.5) * at[v].a, A: (v) => at[v].a };
-}
-export const SCORE: Template = {
-  name: "SCORE",
-  pixel: 0,
-  bars: SC_BARS,
-  playhead: 0.3,
-  chrome: true,
-  css: ".ui-score .tg-box { background: #fdfdfb !important; }",
-  geo: scoreGeo,
-  paint(c) {
-    const { g, W, H } = c;
-    rect(g, 0, 0, W, H, "#fdfdfb");
-    const staves = scoreStaves(fugueById(c.f.id));
-    // The bar sounding, tinted; the playback cursor.
-    const bar = c.f.bars.filter((b) => b.on <= c.now).at(-1);
-    if (bar) rect(g, c.xOf(bar.on) - 4, 0, c.xOf(bar.on + c.f.barTicks) - c.xOf(bar.on), H, "#e9f0fb");
-    const ink = (n: UNote) => (n.mine ? (n.state === "miss" ? "#a9b7d6" : "#1d55c4") : n.entry?.live ? "#111" : "#8a8a8a");
-    const st: Style = { font: BRAVURA, ink, staffInk: "#222", line: 0.1, hand: 0, headW: 1.18 };
-    const plateW = 2 * c.A(c.fr.voice) * (5 + keySignature(c.f.key).size * 0.95) + 18;
-    // The player's staff marked: a pale band behind it.
-    const me = staves[c.fr.voice];
-    rect(g, plateW - 14, c.y(me.lines[4], c.fr.voice) - 2 * c.A(c.fr.voice), W, c.y(me.lines[0], c.fr.voice) - c.y(me.lines[4], c.fr.voice) + 4 * c.A(c.fr.voice), "#1d55c4", 0.05);
-    engrave(c, staves, st, plateW - 10);
-    // Bar numbers over the top staff.
-    g.font = `italic 10px "Liberation Serif", Georgia, serif`;
-    g.fillStyle = "#444";
-    g.textAlign = "left";
-    for (const l of gridLines(c)) if (l.bar && c.xOf(l.t) > plateW) g.fillText(String(l.n), c.xOf(l.t) - 6, c.y(staves[0].lines[4], 0) - 2 * c.A(0) * 1.6);
-    // The entries: an analyst's bracket over the staff, "S" or "A" and the key.
-    for (const e of c.entries.filter((e) => e.live)) {
-      const s = staves[e.voice];
-      const a = c.A(e.voice);
-      const y = Math.min(c.y(s.lines[4], e.voice) - 3.2 * a, ...e.path.map((n) => c.y(n.step, e.voice) - 8.4 * a));
-      const x1 = c.xOf(e.on);
-      const x2 = c.xOf(e.end) - 4;
-      const col = e.mine ? "#1d55c4" : "#111";
-      g.strokeStyle = col;
-      g.lineWidth = 1.2;
-      g.beginPath();
-      g.moveTo(x1, y + 5);
-      g.lineTo(x1, y);
-      g.lineTo(x2, y);
-      g.lineTo(x2, y + 5);
-      g.stroke();
-      g.font = `bold ${Math.round(Math.max(10, a * 2.2))}px "Liberation Serif", Georgia, serif`;
-      g.fillStyle = col;
-      const text = `${e.form === "answer" ? "A" : "S"}${e.stretto ? " · stretto" : ""}`;
-      const tw = g.measureText(text).width;
-      rect(g, x1 + 3, y - 6, tw + 4, 12, "#fdfdfb");
-      g.textBaseline = "middle";
-      g.fillText(text, x1 + 5, y);
-      g.textBaseline = "alphabetic";
-    }
-    plate(c, staves, st, "#fdfdfb", plateW, c.names.map((n) => `${n[0]}${n.slice(1).toLowerCase().slice(0, 2)}.`));
-    // The system's bracket.
-    const y1 = c.y(staves[0].lines[4], 0);
-    const y2 = c.y(staves[staves.length - 1].lines[0], staves.length - 1);
-    rect(g, 16, y1 - 4, 3, y2 - y1 + 8, "#222");
-    // The cursor.
-    rect(g, c.playX - 2, y1 - 10, 3, y2 - y1 + 20, "#2f6fdc", 0.65);
-  },
-};
 
 // ---------------------------------------------------------------------------------------------------
 

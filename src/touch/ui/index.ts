@@ -11,8 +11,9 @@
  *   gbc       its colour successor: a 4-colour palette per voice on the background tiles, the player as
  *             sprites with their own palette, a window layer for the text
  *   gerubach  an engraved grand staff scrolling under a red band, a black title bar, the 24 keys below
+ *             (D227: a real interface, scroll-score.ts: the whole piece engraved once, strip.ts)
  *   score     modern engraving, one staff per voice (the player's full size, the others cue size), a
- *             playback cursor over the bar
+ *             playback cursor over the bar (D227: as GERUBACH)
  *   manuscript Bach's autograph: sepia paper, iron-gall ink, a handwritten music font, the soprano clef,
  *             the entries in red ink
  *   ocarina   five-line staff whose notes are the keys to press (the computer's arrows)
@@ -26,7 +27,8 @@ import type { Frame } from "../MusicBox.tsx";
 import { fugueById } from "../fugue.ts";
 import { buildCtx, type Geo, type Template } from "./core.ts";
 import { GAMEBOY, GBC } from "./pixel.ts";
-import { GERUBACH, MANUSCRIPT, SCORE } from "./engraved.ts";
+import { MANUSCRIPT } from "./engraved.ts";
+import { GERUBACH, SCORE } from "./scroll-score.ts";
 import { NETHACK, PIANOLA, WIN95 } from "./retro.ts";
 import { OCARINA, TUNNEL } from "./arcade.ts";
 
@@ -185,6 +187,7 @@ export function paintTemplate(c: HTMLCanvasElement, t: Template, cssW: number, c
 export function uiRows(piece: string, voice: number, range: { lo: number; hi: number }, cssH: number): { yOf: (step: number) => number; rowH: number } | null {
   if (!uiActive()) return null;
   const t = TEMPLATES[current];
+  if (!t || t.rows === false) return null;
   const roll = typeof document !== "undefined" ? document.querySelector(".tg-roll") : null;
   const w = roll?.getBoundingClientRect().width ?? cssH * 2;
   const geo = geoOf(t, piece, voice, range, w, cssH);
