@@ -24,6 +24,7 @@ import { paintProto } from "./paint-proto.ts";
 import { ProtoGame, type KeyPress } from "./proto-game.ts";
 import { lineKey, subjectLine } from "./subject-line.ts";
 import { FuguePicker, PieceButton } from "./FuguePicker.tsx";
+import { LabSettings } from "./LabSettings.tsx";
 import { cardById, recordBest } from "./cards.ts";
 import { judgeSeal, recordSeal } from "./seals.ts";
 import { ARROW_KEYS, arrowOf, EASY_LEVELS, KEY_ROWS, type EasyLevel, keyId, keyRow, midiId, moveOf, PROTOS, protoById, type Platform, type ProtoId } from "./protos.ts";
@@ -605,6 +606,7 @@ export function BenchApp() {
           <SoundSetting value={sound} set={setSound} />
           <TuningSetting id={tuning.id} a={tuning.a} set={changeTuning} />
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
+          <LabSettings />
           <div className="tg-set">
             <span>MIDI</span>
             <span className="tg-panel-val">{midi || "NONE FOUND"}</span>

@@ -21,6 +21,7 @@ import type { Keyboard } from "../touch/piano.ts";
 import { follow, phrase, ritard, type Shape } from "../touch/phrasing.ts";
 import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
+import { SubjectSound } from "../touch/subject-fx.ts";
 import { pianoKey, pianoKeys } from "./placed.ts";
 import { lineKey, subjectLine, type LineEntry, type SubjectLine } from "./subject-line.ts";
 import { barDynamic, contourCue, contourOk, dynamic, HOME_LANES, keyPlace, LADDER_AREA, planLanes, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk } from "./protos.ts";
@@ -91,6 +92,8 @@ interface Held {
   trail: { t: number; y: number }[];
   /** The points its note scored (taken back if its articulation fails). */
   pts?: number;
+  /** D213: the subject's effect layers under its note, stopped with it. */
+  fx?: Sounding[];
 }
 
 /** A touch as the music box shows it: when, at what step (the one asked for), right or wrong. */
@@ -180,6 +183,7 @@ export class ProtoGame {
     this.f = f;
     this.proto = proto;
     this.ornaments = ornamentsOf(f);
+    this.subj = new SubjectSound(f);
     this.o = o;
     this.chip = chip;
     const b = beatOf(f);
@@ -309,7 +313,9 @@ export class ProtoGame {
       const sh = this.shapes[this.nextOther - 1];
       const len = this.timeAt(n.on + n.dur * sh.hold) - this.timeAt(n.on);
       const at = Math.max(ch.ctx.currentTime, this.timeAt(n.on) + sh.nudge);
-      const vv = voicing(n.voice, this.f.voices.length, false);
+      // D213: the subject brighter and crisper, the others duller during an entry; the fugue's effect on the subject.
+      const sv = this.subj.shape(n.voice, n.on, voicing(n.voice, this.f.voices.length, false));
+      const vv = sv.v;
       const prev = this.lastOther.get(n.voice);
       this.lastOther.set(n.voice, n.midi);
       // D205: an ornamented note sounds its ornament (its parts on the audio clock), its main note last.
@@ -318,9 +324,10 @@ export class ProtoGame {
       for (const [pon, pdur, pmidi] of parts) {
         const pat = orn ? Math.max(ch.ctx.currentTime, this.timeAt(pon) + sh.nudge) : at;
         const plen = orn ? this.timeAt(pon + pdur) - this.timeAt(pon) : len;
-        const sd = ch.note(pmidi, pat, plen, vv, { level: follow(sh, this.feel) });
+        const sd = ch.note(pmidi, pat, plen, vv, { ...sv.play, level: follow(sh, this.feel) * (sv.play.level ?? 1) });
         if (sd) this.band.push({ sd, until: pat + plen + 0.6 });
       }
+      for (const sd of this.subj.layers(ch, sv.sn, n.midi, at, len, vv, follow(sh, this.feel))) this.band.push({ sd, until: at + len + 0.8 });
     }
     if (this.band.length > 64) this.band = this.band.filter((b) => b.until > ch.ctx.currentTime);
     this.sounding();
@@ -664,8 +671,8 @@ export class ProtoGame {
         return;
       }
     }
-    if (this.pedalDown) this.pedalled.push(...h.sounds);
-    else for (const sd of h.sounds) sd.stop();
+    if (this.pedalDown) this.pedalled.push(...h.sounds, ...(h.fx ?? []));
+    else for (const sd of [...h.sounds, ...(h.fx ?? [])]) sd.stop();
   }
 
   /** Sounds note i (or what was asked for instead, muffled) and grades it. A slide glides on; the piano strikes again. */
@@ -676,8 +683,15 @@ export class ProtoGame {
     const chord = chordOf(notes, i);
     const fuoco = this.streak >= FUOCO_NOTES;
     const base = dynamic(d);
-    const expr: Play = { ...base, trill: this.trillNext, bright: (base.bright ?? 0) + (fuoco ? 0.35 : 0), muffleable: true, lead: true, pleno: v.ok && this.pleno, envelope: piano ? "piano" : "synth" };
+    let expr: Play = { ...base, trill: this.trillNext, bright: (base.bright ?? 0) + (fuoco ? 0.35 : 0), muffleable: true, lead: true, pleno: v.ok && this.pleno, envelope: piano ? "piano" : "synth" };
+    // D213: the player's voice as the others: its subject brighter (and its effect), duller during another's entry.
+    const sv = v.ok ? this.subj.shape(this.voiceOf(h.k, i), notes[i].on, voiceV) : null;
+    if (sv) expr = { ...expr, ...sv.play, level: (expr.level ?? 1) * (sv.play.level ?? 1) };
     const pitches = v.ok || v.wrong === undefined ? chord.map((j) => notes[j].midi) : [v.wrong];
+    // D213: the subject's effect under the note (the note's own sound below, its last made).
+    for (const sd of h.fx ?? []) sd.stop();
+    const n1 = notes[i];
+    h.fx = sv ? this.subj.layers(this.chip, sv.sn, pitches[0], this.chip.ctx.currentTime, this.timeAt(n1.on + n1.dur) - this.timeAt(n1.on), sv.v, expr.level ?? 1) : [];
     if (slide && !piano && h.sounds.length === 1 && pitches.length === 1) {
       h.sounds[0].glide?.(pitches[0]);
     } else {
@@ -702,9 +716,9 @@ export class ProtoGame {
         h.sounds = parts.map(([pon, pdur, pmidi], k) => {
           const at = t0 + (this.timeAt(pon) - this.timeAt(n0.on));
           const last = k === parts.length - 1;
-          return this.chip.note(pmidi, at, last ? HOLD_MAX : this.timeAt(pon + pdur) - this.timeAt(pon), voiceV, { ...expr, legato: k > 0 || (legato && !piano) });
+          return this.chip.note(pmidi, at, last ? HOLD_MAX : this.timeAt(pon + pdur) - this.timeAt(pon), sv?.v ?? voiceV, { ...expr, legato: k > 0 || (legato && !piano) });
         });
-      } else h.sounds = pitches.map((m) => this.chip.note(m, this.chip.ctx.currentTime, HOLD_MAX, voiceV, { ...expr, legato: legato && !piano }));
+      } else h.sounds = pitches.map((m) => this.chip.note(m, this.chip.ctx.currentTime, HOLD_MAX, sv?.v ?? voiceV, { ...expr, legato: legato && !piano }));
       if (!v.ok && !(piano && v.wrong !== undefined)) for (const sd of h.sounds) sd.muffle?.();
     }
     // A touch on the screen (not a key) is the next note's reference.
@@ -764,8 +778,11 @@ export class ProtoGame {
       const len = Math.max(0.03, this.timeAt(n.on + n.dur) - this.timeAt(n.on));
       if (first) for (const sd of h.sounds) sd.stop(at);
       first = false;
-      const sd = ch.note(n.midi, at, len, voicing(n.voice ?? this.tracks[h.k].voice, this.f.voices.length, true), { lead: true, envelope: this.proto.id === "piano" ? "piano" : "synth" });
+      const nv = n.voice ?? this.tracks[h.k].voice;
+      const sv = this.subj.shape(nv, n.on, voicing(nv, this.f.voices.length, true));
+      const sd = ch.note(n.midi, at, len, sv.v, { ...sv.play, lead: true, envelope: this.proto.id === "piano" ? "piano" : "synth" });
       if (sd) this.band.push({ sd, until: at + len + 0.6 });
+      for (const x of this.subj.layers(ch, sv.sn, n.midi, at, len, sv.v, sv.play.level ?? 1)) this.band.push({ sd: x, until: at + len + 0.8 });
       this.riders.push({ k: h.k, j, at });
     }
   }
@@ -883,6 +900,8 @@ export class ProtoGame {
   }
   private lanesMemo?: number[];
 
+  /** D213: the subject's sound (the cues, the fugue's effect, the LAB switches as the game began). */
+  readonly subj: SubjectSound;
   /** D205: the piece's ornaments ("voice:onset"), and each other voice's last note (for the snapped trill). */
   readonly ornaments: Map<string, Ornament>;
   private lastOther = new Map<number, number>();
@@ -951,7 +970,7 @@ export class ProtoGame {
     this.band = [];
     for (const sd of this.pedalled) sd.stop();
     this.pedalled = [];
-    for (const h of this.held.values()) for (const sd of h.sounds) sd.stop();
+    for (const h of this.held.values()) for (const sd of [...h.sounds, ...(h.fx ?? [])]) sd.stop();
     this.held.clear();
   }
 
