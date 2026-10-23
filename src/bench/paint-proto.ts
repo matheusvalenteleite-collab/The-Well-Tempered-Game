@@ -17,7 +17,8 @@ import { APPROACH_MS, type ProtoGame } from "./proto-game.ts";
 import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
 import { CLEAN_INK, HELD_INK, LEGATO_INK } from "./articulation.ts";
 import { scaleGem, scaleHands, scaleHow, scaleInk, scaleLetter, scaleStrip } from "./paint-scale.ts";
-import { SHOULDER } from "./paint-arch.ts";
+import { buildMap, fugueMap, SHOULDER } from "./paint-arch.ts";
+import { builds, echoShown, hasJourney, paintBackdrop, paintRoadLight, roadFar } from "./journey.ts";
 import { deskBegin, deskCrowd, deskEnd, deskFlare, deskGeom, deskKeys, deskOver, deskSparks, deskUnder, subjectGem, type Road } from "./paint-desk.ts";
 
 const FONT = '"TG Accidentals", "Press Start 2P", ui-monospace, monospace';
@@ -224,10 +225,13 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   const top = at(ahead);
   // D220: the computer's road: its effects (paint-desk.ts), and a light shake on the big moments.
   const R: Road | null = phone ? null : { c, w, h, g, t, at, laneX, cx, W, N, y0, y1, top, ahead };
+  // D244: the journey behind it all (a scripted piece): the key's sky, shadow, climb, summit.
+  const trip = hasJourney(g.f);
+  if (trip) paintBackdrop(c, w, h, top.y, g.f, g.now);
   if (R) deskBegin(c, g), deskCrowd(R);
   // D202: the road lit towards the player, its far end in fog; rails along its edges.
   const road = c.createLinearGradient(0, top.y, 0, y1 + 30);
-  road.addColorStop(0, "#0b0a11");
+  road.addColorStop(0, trip ? roadFar(g.f, g.now) : "#0b0a11");
   road.addColorStop(1, "#1b1726");
   c.fillStyle = road;
   c.beginPath();
@@ -254,6 +258,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.fillStyle = g.pleno ? "rgba(255,214,110,0.06)" : "rgba(255,120,60,0.07)";
     c.fill();
   }
+  if (trip) paintRoadLight(c, w, top.y, y1, g.f, g.now);
   if (R) deskUnder(R);
   if (R && sc) scaleHands(R);
   // Lanes, and the beats and bars crossing them.
@@ -301,6 +306,8 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   const lanes = g.lanes;
   const notes = g.notes;
   const subject = new Set(g.entries.flatMap((e) => e.ons));
+  // D244: the bar's repeated half drawn hollow (a scripted prelude).
+  const echo = echoShown(g.f) ? g.echoOf(0) : null;
   for (let i = notes.length - 1; i >= 0; i--) {
     const n = notes[i];
     if (i > 0 && notes[i - 1].on === n.on) continue;
@@ -353,8 +360,17 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
       scaleLetter(c, x, d.y, d.gh, p.k, sc[i], n.state === "miss", t);
       continue;
     }
-    // A gem with depth: its shadow on the road, a darker front face, a lit top.
     const gw = lw * 0.8;
+    if (echo?.has(i) && n.state !== "miss" && !space) {
+      // D244, THE ECHO: the figure again, hollow: the lane's colour round a dark face.
+      c.fillStyle = "rgba(11,10,17,0.85)";
+      c.fillRect(x - gw / 2, p.y - gh / 2, gw, gh * 1.05);
+      c.strokeStyle = ink;
+      c.lineWidth = Math.max(1.5, 2.5 * p.k);
+      c.strokeRect(x - gw / 2, p.y - gh / 2, gw, gh * 1.05);
+      continue;
+    }
+    // A gem with depth: its shadow on the road, a darker front face, a lit top.
     c.fillStyle = "rgba(0,0,0,0.45)";
     c.fillRect(x - gw / 2 + 2 * p.k, p.y - gh / 2 + gh * 0.9, gw, gh * 0.45);
     c.fillStyle = n.state === "miss" ? "#3a3644" : shade(ink, 0.55);
@@ -737,6 +753,18 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
       const u = (j + 0.5) / MARKS.length;
       label(c, m, n ? s.x + u * bw : bw - u * bw, h - 9, t.muted, 6);
     });
+  }
+  // D244: THE FUGUE'S BUILDING on the phone: the map, small, across the top of the box.
+  if (builds(g.f) && g.f.entries.length) {
+    const m = fugueMap(g.f);
+    const mw = w - 2 * bw - 24;
+    const x0 = bw + 12;
+    const span = Math.max(1, m.end - m.start);
+    const row = 4;
+    const X = (tick: number) => x0 + ((tick - m.start) / span) * mw;
+    buildMap(c, m, g.now, new Set(g.tracks.map((x) => x.voice)), X, (v) => 8 + v * row, g.f.tpq, 2, mw);
+    c.fillStyle = "rgba(255,255,255,0.8)";
+    c.fillRect(Math.round(X(Math.max(m.start, Math.min(m.end, g.now)))), 5, 1, m.rows * row + 6);
   }
   const rows = g.rows;
   if (g.proto.id === "ladder" && rows) {

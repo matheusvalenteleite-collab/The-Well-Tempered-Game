@@ -35,6 +35,7 @@ function recorder(): { c: CanvasRenderingContext2D; marks: Mark[] } {
         else if (k === "fill") marks.push({ op: k, style: s.fillStyle, pts: path });
         else if (k === "stroke") marks.push({ op: k, style: s.strokeStyle, pts: path });
         else if (k === "fillRect") marks.push({ op: k, style: s.fillStyle, pts: [[a[0], a[1]], [a[0] + a[2], a[1] + a[3]]] });
+        else if (k === "strokeRect") marks.push({ op: k, style: s.strokeStyle, pts: [[a[0], a[1]], [a[0] + a[2], a[1] + a[3]]] });
         else if (k === "fillText") marks.push({ op: k, style: s.fillStyle, pts: [[a[1], a[2]]], text: String(a[0]) });
       };
     },
@@ -126,11 +127,27 @@ test("the fugue map: one block per entry, in its voice's colour and row; cadence
     f.entries.forEach((e, i) => assert.deepEqual([m.entries[i].voice, m.entries[i].on, m.entries[i].end], [e.voice, e.on, e.end], f.id));
     assert.equal(m.cadences.length, f.cadences.length, f.id);
   }
+  // D244: Fugue 1's map is built as it is played (below); Fugue 2's drawn whole.
+  const g = at("wtc1f02", 1, 52000);
+  const { c, marks } = recorder();
+  paintProto(c, w, h, g, new Set());
+  const inks = new Set(g.f.voices.map((_, v) => inkOf(v, 3)));
+  const blocks = marks.filter((m) => m.op === "fillRect" && inks.has(m.style as string) && m.pts[1][1] <= mapBottom(3));
+  assert.equal(blocks.length, g.f.entries.length, "a block per entry");
+  assert.ok(marks.some((m) => m.op === "fillText" && /^BAR \d+$/.test(m.text ?? "")), "the bar");
+});
+
+test("D244: Fugue 1's map is built: the entries begun filled, the rest outlined (the plan)", () => {
   const g = at("wtc1f01", 1, 52000);
   const { c, marks } = recorder();
   paintProto(c, w, h, g, new Set());
   const inks = new Set(g.f.voices.map((_, v) => inkOf(v, 4)));
-  const blocks = marks.filter((m) => m.op === "fillRect" && inks.has(m.style as string) && m.pts[1][1] <= mapBottom(4));
-  assert.equal(blocks.length, g.f.entries.length, "a block per entry");
-  assert.ok(marks.some((m) => m.op === "fillText" && /^BAR \d+$/.test(m.text ?? "")), "the bar");
+  const onMap = (m: Mark) => inks.has(m.style as string) && m.pts[1][1] <= mapBottom(4);
+  const begun = g.f.entries.filter((e) => e.on <= g.now).length;
+  const filled = marks.filter((m) => m.op === "fillRect" && onMap(m));
+  const outlined = marks.filter((m) => m.op === "strokeRect" && onMap(m));
+  assert.ok(begun > 0 && begun < g.f.entries.length);
+  assert.equal(filled.length, begun, "a stone (or a stone under way) per entry begun");
+  const under = g.f.entries.filter((e) => e.on <= g.now && e.end > g.now).length;
+  assert.equal(outlined.length, g.f.entries.length - begun + under, "an outline per entry to come (and round each under way)");
 });
