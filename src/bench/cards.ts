@@ -2,7 +2,7 @@
  * The fugue cards (D192): the 48 fugues and Contrapunctus XIV, each a card on the selection wheel. A
  * card has the fugue's BWV, an evocative English title, its SEAL (one of nine reusable seal kinds: a
  * second goal naming what is peculiar about the fugue), the scene its emblem is drawn in (emblem.ts),
- * and its difficulty in stars (the playability report's campaign tier, 1 Apprentice to 5 Thomaskantor).
+ * and its difficulty in stars, 1 Apprentice to 5 Thomaskantor (D222: measured at the standard tempo, difficulty.ts).
  *
  * The facts are those of the design study (fugue-cards.md, approved by the owner) marked verified: the
  * repo's data and notes (src/wtc/notes.ts), All of Bach (Netherlands Bach Society) and Wikipedia. Claims
@@ -146,12 +146,18 @@ function card(book: 0 | 1 | 2, r: Row): FugueCard {
     seal: { kind, line },
     ready: !NEEDS_DATA.has(kind) || hasData(kind, aof ? "bwv1080-14" : `wtc${book}f${String(number).padStart(2, "0")}`),
     why,
-    stars,
+    stars: DIFFICULTY[aof ? "bwv1080-14" : `wtc${book}f${String(number).padStart(2, "0")}`] ?? stars,
     scene,
     figure,
     props,
   };
 }
+
+/**
+ * D222: the stars measured at the standard tempo (difficulty.ts `difficultyOf`, checked by a test),
+ * in place of the playability report's tiers (made at the old easy tempi).
+ */
+const DIFFICULTY: Record<string, number> = { "wtc1f01": 2, "wtc1f02": 3, "wtc1f03": 5, "wtc1f04": 2, "wtc1f05": 3, "wtc1f06": 2, "wtc1f07": 4, "wtc1f08": 1, "wtc1f09": 5, "wtc1f10": 5, "wtc1f11": 3, "wtc1f12": 1, "wtc1f13": 3, "wtc1f14": 1, "wtc1f15": 5, "wtc1f16": 2, "wtc1f17": 3, "wtc1f18": 1, "wtc1f19": 5, "wtc1f20": 3, "wtc1f21": 4, "wtc1f22": 1, "wtc1f23": 2, "wtc1f24": 2, "wtc2f01": 5, "wtc2f02": 2, "wtc2f03": 3, "wtc2f04": 4, "wtc2f05": 2, "wtc2f06": 3, "wtc2f07": 2, "wtc2f08": 1, "wtc2f09": 1, "wtc2f10": 4, "wtc2f11": 4, "wtc2f12": 4, "wtc2f13": 3, "wtc2f14": 3, "wtc2f15": 5, "wtc2f16": 3, "wtc2f17": 3, "wtc2f18": 2, "wtc2f19": 4, "wtc2f20": 4, "wtc2f21": 3, "wtc2f22": 2, "wtc2f23": 2, "wtc2f24": 4, "bwv1080-14": 1 };
 
 /** Book I, Book II, then Contrapunctus XIV: 49 cards. */
 export const CARDS: FugueCard[] = [...BOOK_I.map((r) => card(1, r)), ...BOOK_II.map((r) => card(2, r)), card(0, XIV)];
