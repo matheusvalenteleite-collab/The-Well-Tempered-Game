@@ -15,8 +15,6 @@ import { paintPiano } from "../touch/paint-piano.ts";
 import { stepName } from "../touch/fugue.ts";
 import { APPROACH_MS, type ProtoGame } from "./proto-game.ts";
 import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
-import { isBlack, keySpan } from "../touch/piano.ts";
-import { KEYS_SHARE } from "./placed.ts";
 import { CLEAN_INK, HELD_INK, LEGATO_INK } from "./articulation.ts";
 import { scaleGem, scaleHow, scaleInk, scaleLetter, scaleStrip } from "./paint-scale.ts";
 import { deskBegin, deskCrowd, deskEnd, deskFlare, deskGeom, deskKeys, deskOver, deskSparks, deskUnder, subjectGem, type Road } from "./paint-desk.ts";
@@ -38,7 +36,6 @@ export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g:
       break;
     case "piano":
       paintPiano(c, w, h, { kb: g.kb, now: g.now, tps: g.tps, voice: g.voice, count: g.f.voices.length, notes: g.notes, others: g.others, late: g.opt.late, held: g.heldCells(), grade: g.grade }, subject);
-      pianoLetters(c, w, h, g, t);
       break;
     case "keys":
     case "highway":
@@ -86,19 +83,6 @@ function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoG
       c.globalAlpha = 1;
     }
   }
-}
-
-/** PIANO on a computer: the typing keys' letters on the piano keys they play (the octave as set). */
-function pianoLetters(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
-  const letters = ["A", "W", "S", "E", "D", "F", "T", "G", "Y", "H", "U", "J", "K", "O", "L", "P", ";"];
-  const base = g.kb.lo - (((g.kb.lo % 12) + 12) % 12) + 12 * g.octave;
-  letters.forEach((l, i) => {
-    const m = base + i;
-    if (m < g.kb.lo || m > g.kb.hi) return;
-    const [a, b] = keySpan(g.kb, m);
-    const black = isBlack(m);
-    label(c, l, ((a + b) / 2) * w, black ? h * (1 - KEYS_SHARE) + 20 : h - 22, black ? t.shine : "#2a2216", 7);
-  });
 }
 
 /**

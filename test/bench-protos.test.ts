@@ -233,7 +233,7 @@ test("keys: a MIDI key plays its pitch (the PIANO exactly); WASD and the arrows 
 });
 
 test("platforms: the phone's prototypes and the computer's apart; EASY rows and keys", () => {
-  assert.deepEqual(menuOf("computer").map((p) => p.id), ["keys", "arrows", "piano"]);
+  assert.deepEqual(menuOf("computer", true).map((p) => p.id), ["keys", "arrows", "piano"]);
   assert.ok(PROTOS.filter((p) => p.platform === "mobile").every((p) => p.layout !== "desk"));
   assert.deepEqual(["Digit3", "KeyE", "KeyD", "KeyC", "Space", "Enter"].map(keyRow), [0, 1, 2, 3, -1, -1]);
   assert.ok(KEY_ROWS[1].dyn > KEY_ROWS[2].dyn && KEY_ROWS[2].dyn > KEY_ROWS[3].dyn, "f above mf above p");
@@ -665,12 +665,15 @@ test("D221: every Book I fugue played right through on LADDER, HIGHWAY and the c
 
 test("D219, D229: the phone's menu is exactly LADDER (HIGHWAY, TWO VOICES, KIMIKO, SUBJECT gone as modes; HIGHWAY plays the preludes); KIMIKO a switch in LADDER; every mode's rules in at most three short lines", () => {
   assert.deepEqual(menuOf("mobile").map((p) => [p.id, p.name]), [["ladder", "LADDER"]]);
-  assert.deepEqual(menuOf("computer").map((p) => p.name), ["HIGHWAY", "SPACE + WASD + ←↑↓→", "PIANO"]);
+  // D233: MIDI CONTROLLER (was PIANO) only while a MIDI input is connected.
+  assert.deepEqual(menuOf("computer").map((p) => p.name), ["HIGHWAY", "SPACE + WASD + ←↑↓→"]);
+  assert.deepEqual(menuOf("computer", true).map((p) => p.name), ["HIGHWAY", "SPACE + WASD + ←↑↓→", "MIDI CONTROLLER"]);
   for (const gone of ["duo", "kimiko", "highway", "subject"]) assert.ok(!PROTOS.some((p) => p.id === gone), gone);
   // A stored withdrawn mode falls back to the first; HIGHWAY's road stays reachable for SUBJECT's machinery.
   assert.equal(protoById("duo").id, "ladder");
   assert.equal(protoById("highway").layout, "full");
-  assert.deepEqual(PROTOS.filter((p) => takesHer(p.id)).map((p) => p.id), ["ladder"]);
+  // D233: WITH KIMIKO (once unlocked) on LADDER and the computer's modes.
+  assert.deepEqual(PROTOS.filter((p) => takesHer(p.id)).map((p) => p.id), ["ladder", "keys", "arrows", "piano"]);
   assert.equal(takesHer("subject"), false);
   // The machinery stays internal (the tests' harness): a stored SUBJECT pick is not in the menu, so the app falls back to LADDER.
   assert.equal(protoById("subject"), SUBJECT_LINE);

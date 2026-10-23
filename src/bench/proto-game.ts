@@ -170,8 +170,6 @@ export class ProtoGame {
   grade: Grade | null = null;
   /** EASY (computer): the keys down now (their codes), for the screen. */
   readonly keysDown = new Set<string>();
-  /** PIANO on a computer: the typing keys' octave (Z down, X up). */
-  octave = 0;
   /** EASY (computer): Shift held, the pedal: notes let go ring on until it is lifted. */
   private pedalled: Sounding[] = [];
   private pedalDown = false;
