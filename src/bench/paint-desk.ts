@@ -165,7 +165,7 @@ export function deskUnder(r: Road) {
     const a = at(Math.max(e.on, g.now));
     const b = at(Math.min(e.end, ahead));
     const ink = e.state === "lost" ? "rgba(150,140,170," : "rgba(255,214,110,";
-    c.fillStyle = `${ink}${e.state === "captured" ? 0.14 : 0.08})`;
+    c.fillStyle = `${ink}${e.state === "captured" ? 0.06 : 0.035})`;
     c.beginPath();
     c.moveTo(edgeX(r, -1, a.k), Math.min(a.y, y1 + 30));
     c.lineTo(edgeX(r, 1, a.k), Math.min(a.y, y1 + 30));
@@ -295,19 +295,18 @@ function pipes(r: Road, nowMs: number) {
   }
 }
 
-/** A subject note's gem (the player's own entry): a gold halo, a gold frame, a crown over it. */
+/**
+ * A subject note's gem (the player's own entry): a white frame and a small crown over it. D236: no
+ * halo and no gold: the gem keeps its lane's colour (gold is G's).
+ */
 export function subjectGem(c: CanvasRenderingContext2D, x: number, y: number, gw: number, gh: number, k: number, captured: boolean) {
-  c.fillStyle = SEAM;
-  c.globalAlpha = captured ? 0.35 : 0.22;
-  c.fillRect(x - gw / 2 - 4 * k, y - gh / 2 - 4 * k, gw + 8 * k, gh + 8 * k);
-  c.globalAlpha = 1;
-  c.strokeStyle = SEAM;
-  c.lineWidth = Math.max(1, 2 * k);
-  c.strokeRect(x - gw / 2, y - gh / 2, gw, gh);
-  // The crown: a gold diamond over the gem.
-  const s = Math.max(3, 6 * k);
+  c.strokeStyle = captured ? "#fff6d0" : "rgba(255,246,208,0.8)";
+  c.lineWidth = Math.max(1, 1.5 * k);
+  c.strokeRect(x - gw / 2 - 1, y - gh / 2 - 1, gw + 2, gh + 2);
+  // The crown: a small white diamond over the gem.
+  const s = Math.max(2, 4 * k);
   const cy = y - gh / 2 - s - 2 * k;
-  c.fillStyle = SEAM;
+  c.fillStyle = "#fff6d0";
   c.beginPath();
   c.moveTo(x, cy - s);
   c.lineTo(x + s, cy);
