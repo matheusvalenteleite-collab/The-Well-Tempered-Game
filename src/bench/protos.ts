@@ -67,15 +67,15 @@ export const PROTOS: Proto[] = [
     id: "highway",
     short: "TAP THE LANE AS EACH NOTE LANDS · SLIDE TO JOIN · TWO ROWS TO CROSS THUMBS",
     name: "HIGHWAY",
-    how: "Upright, the whole screen: EASY on a phone (D207). The notes come down five lanes to the strike line; tap the lane a note is in as it lands. Two rows of pads, the same lanes in each (D208): one thumb in the upper row, the other in the lower, so they can pass each other. Legato: strike the next note before letting go of the last, or slide a held thumb into the next lane. The other voices pass faintly behind, by pitch (their subject entries brighter). Three levels (⚙ EASY): TIMING, any lane on time; DIRECTION, a lane further right than your last tap when the line rises, further left when it falls, the same lane when it repeats; + LEAPS, a leap of a fourth or more skips a lane. An open bar across the road: any lane. Long notes: hold them while their tail glows.",
+    how: "Upright, the whole screen: EASY on a phone (D207). The notes come down five lanes to the strike line; tap the lane a note is in as it lands. Two rows of pads, the same lanes in each (D208): one thumb in the upper row, the other in the lower, so they can pass each other. Legato: strike the next note before letting go of the last, or slide a held thumb into the next lane. The other voices pass faintly behind, by pitch (their subject entries brighter). Three levels (⚙ EASY): TIMING, any lane on time; DIRECTION, a lane further right than your last tap when the line rises, further left when it falls, the same lane when it repeats; + LEAPS, a leap of a fourth or more skips a lane. An open bar across the road (the first note, or after a rest of a beat or more): any lane. Long notes: hold them while their tail glows.",
     layout: "full",
     platform: "mobile",
   },
   {
     id: "subject",
-    short: "PLAY ONLY THE SUBJECT · EVERY ENTRY, IN EVERY VOICE · REST BETWEEN",
+    short: "PLAY ONLY THE SUBJECT · EVERY ENTRY, IN EVERY VOICE · STRETTO: BOTH, ONE PER ROW",
     name: "SUBJECT",
-    how: "Upright, as HIGHWAY (D214). You follow the subject, not a voice: every entry of it, in whichever voice it comes (in a double or triple fugue every subject), and you rest while the fugue plays between them. Each entry's notes come down the five lanes in its voice's colour, its name shown as it begins (SUBJECT · ALTO, SUBJECT 2 · TENOR, INVERTED, AUGMENTED); a marker at the road's far end counts in the next entry while you wait. An entry's first note is an open bar: any lane. When entries overlap (stretto) you leave the older one for the newest at its first note. Two rows of pads, slides, the levels of ⚙ EASY, long notes held, as on HIGHWAY.",
+    how: "Upright, as HIGHWAY (D214). You follow the subject, not a voice: every entry of it, in whichever voice it comes (in a double or triple fugue every subject), and you rest while the fugue plays between them. Each entry's notes come down the five lanes in its voice's colour, its name shown as it begins (SUBJECT · ALTO, SUBJECT 2 · TENOR, INVERTED, AUGMENTED); a marker at the road's far end counts in the next entry while you wait. An entry's first note is an open bar: any lane. When entries overlap (stretto, D217) you play both, one per row of pads: the newer entry in the upper row (solid gems), the older one in the lower row (hollow gems), so expect two thumbs down at once. The older entry is reduced to its main moves: its notes on the beat or of half a beat or more; the quicker ones play themselves; its long notes are held. In a stretto a note is right only in its own row; outside one either row plays. Three entries or more at once: the two newest are yours, the others go back to the fugue. A stretto played through without a slip scores STRETTO ×2 and captures both entries. Slides, the levels of ⚙ EASY, long notes held, as on HIGHWAY.",
     layout: "full",
     platform: "mobile",
   },
@@ -115,7 +115,7 @@ export const PROTOS: Proto[] = [
     id: "keys",
     short: "HANDS ON A S D F · H J K L, THUMBS ON SPACE · THE LANES ARE THE FINGERING",
     name: "HIGHWAY",
-    how: "On a computer (D208). Both hands on the home row: left little finger on A to left index on F, right index on H to right little finger on L, G for whichever index is free, thumbs on space (the same note again). The notes come down nine lanes, A to L: a fingering of your line, planned so no finger strikes twice running and a run never jams at an edge. Four levels (⚙ EASY): TIMING, any key on time; DIRECTION, a key further right than the last when the line rises, further left when it falls, the same key or space when it repeats; + LEAPS, and a leap of a fourth or more skips a key; EXACT LANES, the lane's own key. A note after a rest or a long note is free (an open bar): any key. The rows shape the note: Q W E R… forte, A S D F… mezzo, Z X C V… piano; the numbers trill it. Hold Shift as a pedal; ↑ ↓ bend a held note.",
+    how: "On a computer (D208). Both hands on the home row: left little finger on A to left index on F, right index on H to right little finger on L, G for whichever index is free, thumbs on space (the same note again). The notes come down nine lanes, A to L: a fingering of your line, planned so no finger strikes twice running and a run never jams at an edge. Four levels (⚙ EASY): TIMING, any key on time; DIRECTION, a key further right than the last when the line rises, further left when it falls, the same key or space when it repeats; + LEAPS, and a leap of a fourth or more skips a key; EXACT LANES, the lane's own key. A note after a rest of a beat or more is free (an open bar): any key. The rows shape the note: Q W E R… forte, A S D F… mezzo, Z X C V… piano; the numbers trill it. Hold Shift as a pedal; ↑ ↓ bend a held note.",
     layout: "desk",
     platform: "computer",
   },
@@ -265,10 +265,12 @@ const fingersOf = (lane: number): number[] => (lane === 4 ? [3, 5] : [lane]);
  * a rise always to the right, a fall to the left, a repeat in place (or the thumbs' space bar); a
  * step one lane, a leap two or more; never the same finger twice running on different notes (G taken
  * by whichever index finger is free); room kept ahead, so a long run does not pile up at an edge (a
- * free note, after a rest or a long note, starts anew where it suits what follows). `fingers` false
- * (the phone's five lanes, two thumbs): no finger rule.
+ * free note, after a rest of a beat or more, starts anew where it suits what follows). `fingers` false
+ * (the phone's five lanes, two thumbs): no finger rule. D217: a `soft` note (after a long note or a
+ * short rest; no longer free) still goes the line's way, but as far as suits what follows: the lanes
+ * recentre there without an open bar.
  */
-export function planLanes(moves: Move[], heads: boolean[], free: boolean[], count: number, fingers: boolean): number[] {
+export function planLanes(moves: Move[], heads: boolean[], free: boolean[], count: number, fingers: boolean, soft: boolean[] = []): number[] {
   const n = moves.length;
   const S = count * 2; // lane, and (G) which index finger
   const INF = 1e9;
@@ -313,7 +315,8 @@ export function planLanes(moves: Move[], heads: boolean[], free: boolean[], coun
             // Past the edge: the edge again (allowed by the judging, but avoided).
             const edge = m.dir > 0 ? count - 1 : 0;
             c = pl === edge && lane === edge ? 30 : INF;
-          } else if (m.size >= 3) c = d === 1 ? 1.5 : d === 2 ? 0 : 0.4 * (d - 2);
+          } else if (soft[i]) c = m.size >= 3 && d === 1 ? 1.5 : 0.01 * d;
+          else if (m.size >= 3) c = d === 1 ? 1.5 : d === 2 ? 0 : 0.4 * (d - 2);
           else c = d === 1 ? 0 : 0.8 * (d - 1);
           if (c < INF && fingers && fingerOf(st) === fingerOf(ps) && !(pl === lane && d <= 0)) c += 20;
         }

@@ -53,7 +53,7 @@ interface Want {
   allow: Kind[];
   /** Each of these at least once. */
   need: Kind[];
-  /** A free note (after a rest or a long note) inside: needed, allowed, or not. */
+  /** A free note (D217: after a rest of a beat or more) inside: needed, allowed, or not. */
   free: "need" | "allow" | "no";
   heads: number;
 }
@@ -68,7 +68,9 @@ export function findPassage(w: Want, skip: string[] = []): { f: TouchFugue; voic
     for (let v = 0; v < f.voices.length; v++) {
       const notes = laneNotes(f.voices[v], beat, v);
       const ms = moves(notes, beat);
-      const free = (i: number) => notes[i - 1].dur >= beat || notes[i].on - (notes[i - 1].on + notes[i - 1].dur) >= beat / 4;
+      // D217: as ProtoGame.isFree: a rest of a beat (half a bar where a beat passes in under half a second).
+      const restMin = beat / tps < 0.5 ? Math.max(beat, f.barTicks / 2) : beat;
+      const free = (i: number) => notes[i].on - (notes[i - 1].on + notes[i - 1].dur) >= restMin;
       for (let i = 1; i + w.heads <= notes.length; i++) {
         const win = notes.slice(i, i + w.heads);
         if (win.some((n, k) => k > 0 && n.on === win[k - 1].on) || notes[i - 1].on === win[0].on) continue;
@@ -146,7 +148,7 @@ export const LESSONS: Lesson[] = [
     english: "THE SAME NOTE",
     intro: [
       { text: "Two more things. When a note is struck again, strike the same key again, or the space bar with a thumb." },
-      { text: "And after a rest, or a long note, you are free: strike anywhere. The box draws such a note in a little square. Use it to bring your hands back to the middle." },
+      { text: "And after a rest, you are free: strike anywhere. The box draws such a note in a little square. Use it to bring your hands back to the middle." },
       { text: "At the end of a row there is no further to go: strike the last key again. Now I will not wait." },
     ],
     pass: [{ text: "So. Now nothing in a line can surprise you." }],
