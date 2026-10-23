@@ -5,6 +5,7 @@
  */
 import type { ProtoId } from "./protos.ts";
 import { HOME_ROW } from "./settings-logic.ts";
+import { SCALE_DOWN, SCALE_HOME, SCALE_UP } from "./scale-keys.ts";
 
 const Cap = ({ k, sub, cls = "" }: { k: string; sub?: string; cls?: string }) => (
   <kbd className={`tb-cap ${cls}`}>
@@ -13,7 +14,42 @@ const Cap = ({ k, sub, cls = "" }: { k: string; sub?: string; cls?: string }) =>
   </kbd>
 );
 
-export function ModeDiagram({ id }: { id: ProtoId }) {
+/** D230, SCALE KEYS: the three rows as a piano: the home row the scale (1 to 8), the row above raised, below lowered; the rare ones dim. */
+function ScaleDiagram() {
+  const key = (c: string) => c.slice(3);
+  const rare = new Set(["KeyR", "KeyI", "KeyV", "KeyZ"]);
+  return (
+    <div className="tb-dia tb-dia-scale" aria-label="Home row A to K the home key's scale, degrees 1 to 8; raised notes on the row above (W E T Y U), lowered notes on the row below (X C B N M); space repeats a note">
+      <p className="tb-dia-note tb-scale-up-tag">▲ RAISED (♯ SIDE)</p>
+      <div className="tb-scale-grid">
+        {SCALE_UP.map((c, d) => (
+          <kbd key={c} className={`tb-cap tb-cap-up${rare.has(c) ? " rare" : ""}`} style={{ gridRow: 1, gridColumn: `${2 * d + 3} / span 2` }}>
+            {key(c)}
+          </kbd>
+        ))}
+        {SCALE_HOME.map((c, d) => (
+          <kbd key={c} className={`tb-cap tb-cap-home${d === 0 || d === 7 ? " tonic" : ""}`} style={{ gridRow: 2, gridColumn: `${2 * d + 2} / span 2` }}>
+            {key(c)}
+            <small>{d + 1}</small>
+          </kbd>
+        ))}
+        {SCALE_DOWN.map((c, d) => (
+          <kbd key={c} className={`tb-cap tb-cap-down${rare.has(c) ? " rare" : ""}`} style={{ gridRow: 3, gridColumn: `${2 * d + 1} / span 2` }}>
+            {key(c)}
+          </kbd>
+        ))}
+      </div>
+      <p className="tb-dia-note tb-scale-down-tag">▼ LOWERED (♭ SIDE)</p>
+      <p className="tb-dia-note">HOME ROW: DO RE MI FA SOL LA TI DO OF THE PIECE'S KEY</p>
+      <kbd className="tb-cap tb-cap-space">
+        SPACE<small>SAME NOTE</small>
+      </kbd>
+    </div>
+  );
+}
+
+export function ModeDiagram({ id, scale = false }: { id: ProtoId; scale?: boolean }) {
+  if (id === "keys" && scale) return <ScaleDiagram />;
   switch (id) {
     case "keys":
       return (

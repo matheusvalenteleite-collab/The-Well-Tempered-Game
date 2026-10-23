@@ -196,6 +196,16 @@
 .tb-gem { position: absolute; left: 20%; right: 20%; height: 7px; background: var(--rh); }
 .tb-gem-old { background: transparent; border: 2px solid var(--lh); height: 5px; }
 .tb-dia-pads { width: 100%; padding: 3px 0; text-align: center; color: var(--rh); border: 1px solid var(--rh); }
+/* D230: SCALE KEYS' diagram: the three rows as a piano's keys. */
+.tb-scale-grid { display: grid; grid-template-columns: repeat(18, 12px); grid-template-rows: 20px 30px 20px; gap: 2px 0; align-items: center; }
+.tb-scale-grid .tb-cap { min-width: 0; margin: 0 1px; padding: 0; height: 100%; box-sizing: border-box; }
+.tb-cap-home { color: var(--tg-fg); }
+.tb-cap-home.tonic { color: var(--tg-gold); border-color: var(--tg-gold); }
+.tb-cap-up { font-size: 7px; color: #ffcf8a; background: #241a12; border-color: #c98a3a; margin: 0 3px !important; }
+.tb-cap-down { font-size: 7px; color: #a9c8ff; background: #121a2a; border-color: #4f78c0; margin: 0 3px !important; }
+.tb-cap-up.rare, .tb-cap-down.rare { opacity: 0.45; }
+.tb-scale-up-tag { color: #ffcf8a; }
+.tb-scale-down-tag { color: #a9c8ff; }
 .tb-dia-pads-old { color: var(--lh); border: 1px dashed var(--lh); }
 
 /* D219: ⚙ settings: the modes, their rules beside their picture, the folded TUNING and LAB. */
