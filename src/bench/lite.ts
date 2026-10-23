@@ -91,11 +91,35 @@ export function recordLite(piece: string, failed: boolean): Tier[] {
   return liteTiers(new Set(beaten)).filter((t) => !before.includes(t));
 }
 
-/** The one-line instruction shown at the start of the first game in each mode. */
+/** The one-line instruction shown at the start of the first game in each mode (D239: the two grades of a right note). */
 export const LITE_HINT: Record<string, string> = {
   ladder: "touch either bar at the note's height · land the next before you lift the last",
-  highway: "tap the lane as the note lands · right when the tune rises, left when it falls",
-  keys: "press the lane's key as the note lands · SPACE repeats",
+  highway: "tap the note's lane as it lands: full points · another lane the right way (right = up, left = down): half",
+  keys: "press the lane's key as the note lands: full points · another key the right way: half · SPACE repeats",
+};
+
+/**
+ * D239: how each mode is played, behind ? HOW TO PLAY on the pop-up (bench and play.html): a few
+ * short lines, the two grades of a right note on the HIGHWAYs spelled out.
+ */
+export const RULES: Record<string, string[]> = {
+  keys: [
+    "Notes come down the road. Press the key of their lane (A S D F · G · H J K L) as they reach the line.",
+    "THE LANE'S KEY: full points, a bright chime and LANE ✓.",
+    "ANOTHER KEY THE RIGHT WAY (further right as the tune rises, left as it falls): half the points, a duller note and ~. Your streak is kept.",
+    "The wrong way or off the beat: a miss. SPACE plays the same note again. Miss too many and the crowd leaves.",
+  ],
+  highway: [
+    "Notes come down five lanes. Tap the note's lane as it reaches the line.",
+    "THE NOTE'S LANE: full points, a bright chime and LANE ✓.",
+    "ANOTHER LANE THE RIGHT WAY (further right as the tune rises, left as it falls): half the points, a duller note and ~. Your streak is kept.",
+    "The wrong way or off the beat: a miss. Miss too many and the crowd leaves.",
+  ],
+  ladder: [
+    "Hold the phone sideways, a thumb on each bar.",
+    "Touch either bar at the note's height as it reaches the line: higher notes higher up.",
+    "Land the next note before you lift the last: LEGATO scores more. Miss too many and the crowd leaves.",
+  ],
 };
 
 /** The piece every new player starts on: Prelude 1 in C major. */

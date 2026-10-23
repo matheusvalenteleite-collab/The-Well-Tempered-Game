@@ -3,7 +3,7 @@
  * title, the voice (or hand) to play, preselected (flow.ts `defaultVoice`), and a big ▶ PLAY straight
  * into the count-in; ✕ (or Escape) closes it, back to the cards.
  */
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { fugueById } from "../touch/fugue.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
 import { cardById } from "./cards.ts";
@@ -16,8 +16,10 @@ export function popTitle(id: string): string {
   return c ? formalTitle(c, isPrelude(id) ? "prelude" : "fugue") : fugueById(id).title.toUpperCase();
 }
 
-export function PlayPop({ id, voice, singing, setVoice, play, close, learn, children }: { id: string; voice: number; singing: readonly number[]; setVoice: (v: number) => void; play: () => void; close: () => void; learn?: () => void; children?: ReactNode }) {
+export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rules, children }: { id: string; voice: number; singing: readonly number[]; setVoice: (v: number) => void; play: () => void; close: () => void; learn?: () => void; rules?: readonly string[]; children?: ReactNode }) {
   const f = fugueById(id);
+  // D239: ? HOW TO PLAY: the mode's rules, folded under PLAY.
+  const [help, setHelp] = useState(false);
   useEffect(() => {
     const esc = (e: KeyboardEvent) => {
       if (e.code !== "Escape") return;
@@ -47,6 +49,18 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, chil
         <button type="button" id="play" className="tb-play tb-pop-play" autoFocus onClick={play}>
           ▶ PLAY
         </button>
+        {rules && rules.length > 0 && (
+          <button type="button" id="pop-help" className="tb-pop-help" aria-expanded={help} onClick={() => setHelp(!help)}>
+            ? HOW TO PLAY
+          </button>
+        )}
+        {help && rules && (
+          <ul className="tb-pop-rules" id="pop-rules">
+            {rules.map((r) => (
+              <li key={r}>{r}</li>
+            ))}
+          </ul>
+        )}
         {learn && (
           <button type="button" id="learn" className="tb-learn" onClick={learn}>
             LEARN THIS MODE

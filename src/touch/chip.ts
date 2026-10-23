@@ -1180,6 +1180,31 @@ export class Chip {
     o.start(at);
     halt(o, at + 0.04);
   }
+
+  /**
+   * D239: the HIGHWAY's "in the lane" chime: a tiny bell over the note struck in its planned lane,
+   * two octaves up (a sine and a soft inharmonic partial), about 0.18 s, well under the note.
+   */
+  chime(midi: number, at: number, level = 1) {
+    const ctx = this.ctx;
+    const f = hz(Math.min(108, midi + 24));
+    const bag = new Bag();
+    const g = bag.add(ctx.createGain());
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(0.05 * Math.max(0.4, Math.min(1, level)), at + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.18);
+    g.connect(this.bus);
+    for (const [mul, lv] of [[1, 1], [2.76, 0.3]]) {
+      const o = bag.src(ctx.createOscillator());
+      const og = bag.add(ctx.createGain());
+      o.type = "sine";
+      o.frequency.value = f * mul;
+      og.gain.value = lv;
+      o.connect(og).connect(g);
+      o.start(at);
+      halt(o, at + 0.2);
+    }
+  }
 }
 
 /** The voices' timbres and places (D167): the bass a triangle, the top voice the thinnest pulse, the inner ones fuller; spread left (low) to right (high). */

@@ -473,13 +473,15 @@ export function deskSparks(r: Road, inkOfLane: (l: number) => string) {
     if (fl.at <= fx.lastFlame) continue;
     const lanes = g.lanesOf(fl.k ?? 0);
     if (fl.i >= lanes.length) continue;
-    const x = laneX(lanes[fl.i], 1);
-    const ink = inkOfLane(lanes[fl.i]);
-    const n = g.mult >= 4 || g.pleno ? 14 : 9;
+    // D239: from the lane struck; a note right only by its direction a few silver sparks.
+    const x = laneX(fl.lane ?? lanes[fl.i], 1);
+    const rel = fl.grade === "relative";
+    const ink = rel ? "#a9afbd" : inkOfLane(fl.lane ?? lanes[fl.i]);
+    const n = rel ? 4 : g.mult >= 4 || g.pleno ? 14 : 9;
     for (let j = 0; j < n; j++) {
       const a = -Math.PI * (0.1 + (0.8 * j) / (n - 1));
       const v = 0.12 + ((j * 37) % 10) / 80;
-      fx.sparks.push({ x, y: y1 - 6, vx: Math.cos(a) * v, vy: Math.sin(a) * v, at: fl.at, ink: j % 3 ? ink : "#ffffff" });
+      fx.sparks.push({ x, y: y1 - 6, vx: Math.cos(a) * v, vy: Math.sin(a) * v, at: fl.at, ink: j % 3 || rel ? ink : "#ffffff" });
     }
   }
   for (const fl of g.flames) fx.lastFlame = Math.max(fx.lastFlame, fl.at);

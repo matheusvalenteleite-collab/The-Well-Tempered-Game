@@ -57,7 +57,7 @@ function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoG
   const desk = g.proto.layout === "desk";
   const x = bars ? (w * BAR) / 2 : desk ? w - 90 : w / 2;
   const y = bars ? h * 0.12 : desk ? 34 : 14;
-  label(c, g.score.toLocaleString("en"), x, y, t.fg, g.proto.id === "keys" ? 12 : 9);
+  label(c, Math.floor(g.score).toLocaleString("en"), x, y, t.fg, g.proto.id === "keys" ? 12 : 9);
   if (g.mult > 1 && !desk) label(c, `×${g.mult}`, x, y + 16, g.mult >= 4 ? t.gold : t.shine, 9);
   if (g.pleno) label(c, "PLENO ×2", bars ? w - (w * BAR) / 2 : x, bars ? h * 0.12 : y + 32, t.gold, 7);
   // D218: the legato chain under way.
@@ -173,7 +173,7 @@ function spaceNear(g: ProtoGame): number {
  * EASY as a highway (D198, after Guitar Hero): the player's notes come down ten lanes, the home row's
  * keys (A S D F G H J K L ;), towards the strike line, in perspective. A note's lane is a fingering
  * of its line (ProtoGame.lanes): the key that answers it is always right; in DIRECTION any key on its
- * side of the last will do (the lanes that would, tinted). A free note is an open bar across all the
+ * side of the last will do for half the points (D239: the lane's key scores in full). A free note is an open bar across all the
  * lanes; a note of the subject's entries a gem with a star; a long note a tail, glowing while held.
  * A struck note flames; a missed one falls through grey. The multiplier's ring on the left, the crowd's
  * meter on the right.
@@ -458,7 +458,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     const age = now - fl.at;
     const fLanes = g.lanesOf(fl.k ?? 0);
     if (age > 260 || fl.i >= fLanes.length) continue;
-    const x = laneX(fLanes[fl.i], 1);
+    const x = laneX(fl.lane ?? fLanes[fl.i], 1);
     for (let k = 0; k < 7; k++) {
       c.fillStyle = k % 2 ? "#ffd56a" : "#ff7a3d";
       c.globalAlpha = 1 - age / 260;
@@ -468,6 +468,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     }
     c.globalAlpha = 1;
   }
+  laneGrades(c, g, laneX, inkOfLane, W / N, y1);
   if (R) deskSparks(R, inkOfLane);
   // The multiplier's ring (left): eight notes to the next step, its four lamps.
   // D238: on the computer, beyond the voice rails on the shoulders.
@@ -499,19 +500,15 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   c.fillStyle = t.fg;
   c.fillRect(mx - 12, ny - 2, 24, 4);
   label(c, "CROWD", mx, my + mh + 12, g.crowd < 0.25 ? t.wrong : t.muted, 6);
-  // How it goes, in a line.
-  const how =
-    lvl === "timing"
-      ? "ANY KEY ON THE BEAT · THE LANES DRAW THE LINE"
-      : `THE NOTE'S KEY, OR ANY KEY ON ITS SIDE OF THE LAST · SAME NOTE: SAME KEY OR SPACE${lvl === "leaps" ? " · A LEAP SKIPS A KEY" : ""} · OPEN BAR: ANY KEY`;
+  // How it goes, in a line (D239: the two grades of a right note).
+  const how = lvl === "timing" ? "ANY KEY ON THE BEAT · THE LANES DRAW THE LINE" : "THE LANE'S KEY SCORES MOST · THE RIGHT DIRECTION STILL COUNTS · SPACE: SAME NOTE";
   if (phone) {
-    label(c, lvl === "timing" ? "TAP ANY LANE ON THE BEAT · SLIDE TO JOIN" : "LINE UP: TAP FURTHER RIGHT · DOWN: LEFT", w / 2, h - 30, t.fg, 7);
+    label(c, lvl === "timing" ? "TAP ANY LANE ON THE BEAT · SLIDE TO JOIN" : "THE LANE SCORES MOST · THE RIGHT WAY STILL COUNTS", w / 2, h - 30, t.fg, 7);
     label(c, subj ? "STRETTO: NEW ENTRY UPPER ROW · OLDER LOWER ROW, HOLLOW" : lvl === "timing" ? "TWO ROWS: CROSS THUMBS · HOLD THE LONG NOTES" : `SAME NOTE: SAME LANE${lvl === "leaps" ? " · LEAP: SKIP A LANE" : ""} · SLIDE TO JOIN · TWO ROWS`, w / 2, h - 16, t.muted, 7);
     return;
   }
   if (sc && R) return void (scaleHow(R), deskEnd(c));
-  label(c, how, w / 2, h - 24, t.fg, 7);
-  label(c, `Q ROW f · A ROW mf · Z ROW p · SHIFT: PEDAL${g.pedalOn ? " (DOWN)" : ""}`, w / 2, h - 10, g.pedalOn ? t.gold : t.muted, 7);
+  label(c, how, w / 2, h - 14, t.muted, 7);
   deskEnd(c);
 }
 
@@ -827,6 +824,52 @@ function verdict(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.globalAlpha = 1;
   }
   articulation(c, w, h, g, t);
+}
+
+/**
+ * D239: a right note's two grades on the road, where it was struck: in its planned lane a bright
+ * flash of the lane's colour up from the strike line and LANE ✓ rising; right only by its direction
+ * (another lane) a dim silver flash and a ~.
+ */
+export const RELATIVE_INK = "#a9afbd";
+/** A colour mixed towards white (k 0 to 1). */
+function lighten(hex: string, k: number): string {
+  const v = parseInt(hex.slice(1), 16);
+  const m = (x: number) => Math.round(x + (255 - x) * k);
+  return `rgb(${m((v >> 16) & 255)},${m((v >> 8) & 255)},${m(v & 255)})`;
+}
+function laneGrades(c: CanvasRenderingContext2D, g: ProtoGame, laneX: (l: number, k: number) => number, inkOfLane: (l: number) => string, lw: number, y1: number) {
+  const now = performance.now();
+  for (const fl of g.flames) {
+    const age = now - fl.at;
+    if (!fl.grade || fl.lane === undefined || age > 520) continue;
+    const exact = fl.grade === "exact";
+    const x = laneX(fl.lane, 1);
+    const ink = exact ? inkOfLane(fl.lane) : RELATIVE_INK;
+    const glow = exact ? lighten(ink, 0.25) : ink;
+    const fade = Math.max(0, 1 - age / 300);
+    if (fade > 0) {
+      const tall = exact ? 120 : 60;
+      c.fillStyle = glow;
+      c.globalAlpha = (exact ? 0.55 : 0.18) * fade;
+      c.fillRect(Math.round(x - lw / 2 + 2), y1 - tall, Math.round(lw - 4), tall + 8);
+      if (exact) {
+        c.fillStyle = "#ffffff";
+        c.globalAlpha = 0.6 * fade;
+        c.fillRect(Math.round(x - lw / 2 + 2), y1 - 3, Math.round(lw - 4), 4);
+      }
+    }
+    c.globalAlpha = age < 380 ? 1 : 1 - (age - 380) / 140;
+    const py = Math.round(y1 - 28 - age / 18);
+    if (exact) {
+      // The pixel font has no ✓: LANE and a tick drawn in pixels, in the lane's colour lightened.
+      const lit = lighten(ink, 0.45);
+      label(c, "LANE", x - 6, py, lit, 7);
+      c.fillStyle = lit;
+      for (const [dx, dy] of [[0, 0], [2, 2], [4, 4], [6, 2], [8, 0], [10, -2], [12, -4]]) c.fillRect(Math.round(x + 14 + dx), py + dy - 1, 2, 2);
+    } else label(c, "~", x, py, ink, 10);
+    c.globalAlpha = 1;
+  }
 }
 
 /** D218: the articulation's word (LEGATO ×n, HELD, CLEAN, SHORT, REST!), small, under the verdict, rising a little as it fades. */

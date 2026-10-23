@@ -132,7 +132,29 @@ export interface Mark {
   ok: boolean;
 }
 
-type Verdict = { ok: boolean; wrong?: number; why?: "gesture" | "legato" | "hand" | "height" | "dynamic" };
+/**
+ * D239: a right note on a HIGHWAY (the computer's keys, the phone's lanes) in DIRECTION or LEAPS: in
+ * its planned lane ("exact": full points, a chime) or only the right way from the last ("relative":
+ * half the points, the note duller); none where the lane plays no part (TIMING, a free note).
+ */
+export type LaneGrade = "exact" | "relative";
+/** D239: a relative note's share of the points, and its sound's darkening (Play.bright). */
+export const RELATIVE_SHARE = 0.5;
+export const RELATIVE_DULL = 0.4;
+/** D239: points as shown: a relative note's half point as ½ ("1½"). */
+export function ptsText(p: number): string {
+  const w = Math.floor(p);
+  return p - w >= 0.5 ? `${w || ""}½` : String(w);
+}
+/** D239: the results' line: "LANE 72% · DIRECTION 28%" (empty with no lane-graded note). */
+export function laneLine(t: { exact: number; relative: number }): string {
+  const n = t.exact + t.relative;
+  if (!n) return "";
+  const e = Math.round((100 * t.exact) / n);
+  return `LANE ${e}% · DIRECTION ${100 - e}%`;
+}
+
+type Verdict = { ok: boolean; wrong?: number; why?: "gesture" | "legato" | "hand" | "height" | "dynamic"; lane?: LaneGrade; at?: number };
 
 /** A voice the player plays: its notes as judged, and their moves. */
 export interface Track {
@@ -661,8 +683,12 @@ export class ProtoGame {
         if (code === "Space") return m.dir === 0 || m.steps === 0 ? { ok: true } : { ok: false, wrong: asked(0), why: "gesture" };
         return keyPlace(code)?.col === this.lanes[i] ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
       }
-      if (!this.lastKey) return { ok: true };
-      return contourOk(m, this.lastKey, code, lvl === "leaps") ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
+      // D239: right in the planned lane (SPACE on a repeat), or only the right way from the last key.
+      const col = keyPlace(code)?.col;
+      const exact = code === "Space" ? m.dir === 0 || m.steps === 0 : col === this.lanesOf(k)[i];
+      const graded = (): Verdict => ({ ok: true, lane: exact ? "exact" : "relative", at: col ?? this.lanesOf(k)[i] });
+      if (!this.lastKey) return graded();
+      return contourOk(m, this.lastKey, code, lvl === "leaps") ? graded() : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
     }
     if (at.key?.midi !== undefined) {
       const k = at.key.midi;
@@ -717,8 +743,11 @@ export class ProtoGame {
         if (lvl === "exact") return this.laneOfX(c.x, c.w) === this.lanesOf(k)[i] ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
         // D217: each row (SUBJECT's two lines in a stretto) judged from its own last lane.
         const last = this.line ? this.laneBy[k] : this.lastLane;
-        if (last < 0) return { ok: true };
-        return laneOk(m, last, this.laneOfX(c.x, c.w), lvl === "leaps", this.laneCount) ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
+        // D239: the planned lane, or only the right way from the last.
+        const lane = this.laneOfX(c.x, c.w);
+        const graded: Verdict = { ok: true, lane: lane === this.lanesOf(k)[i] ? "exact" : "relative", at: lane };
+        if (last < 0) return graded;
+        return laneOk(m, last, lane, lvl === "leaps", this.laneCount) ? graded : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
       }
     }
   }
@@ -984,7 +1013,9 @@ export class ProtoGame {
     const chord = chordOf(notes, i);
     const fuoco = this.streak >= FUOCO_NOTES;
     const base = dynamic(d);
-    let expr: Play = { ...base, trill: this.trillNext, bright: (base.bright ?? 0) + (fuoco ? 0.35 : 0), muffleable: true, lead: true, pleno: v.ok && this.pleno, envelope: piano ? "piano" : "synth" };
+    // D239: a note right only by its direction (not in its lane) sounds a little duller.
+    const dull = v.ok && v.lane === "relative" ? RELATIVE_DULL : 0;
+    let expr: Play = { ...base, trill: this.trillNext, bright: (base.bright ?? 0) + (fuoco ? 0.35 : 0) - dull, muffleable: true, lead: true, pleno: v.ok && this.pleno, envelope: piano ? "piano" : "synth" };
     // D213: the player's voice as the others: its subject brighter (and its effect), duller during another's entry.
     // D219: WITH KIMIKO ISHIZAKA the player's voice is plain (no subject effects over her piano).
     const sv = v.ok && !this.o.her ? this.subj.shape(this.voiceOf(h.k, i), notes[i].on, voiceV) : null;
@@ -1066,12 +1097,19 @@ export class ProtoGame {
     this.maxStreak = Math.max(this.maxStreak, this.streak);
     // D198: the crowd warms; a long run called out, every fifty.
     this.crowd = Math.min(1, this.crowd + (perfect ? 0.025 : 0.015));
-    this.flames.push({ i, at, k: h.k });
+    this.flames.push({ i, at, k: h.k, lane: v.at, grade: v.lane });
     if (this.flames.length > 24) this.flames.splice(0, 12);
     if (this.streak % 50 === 0) this.banner = { text: `${this.streak} NOTE STREAK!`, at };
     if (this.streak % STEP_NOTES === 0 && this.mult < 4) this.mult++;
     if (this.streak === FUOCO_NOTES) this.banner = { text: "CON FUOCO!", at };
     h.pts = (perfect ? 2 : 1) * this.mult * (this.pleno ? 2 : 1);
+    // D239: the planned lane scores in full, with a small bright chime over Bach's note; the right
+    // direction in another lane half (the streak and the multiplier kept).
+    if (v.lane === "relative") (h.pts *= RELATIVE_SHARE), this.laneTally.relative++;
+    if (v.lane === "exact") {
+      this.laneTally.exact++;
+      this.chip.chime?.(pitches[0], this.chip.ctx.currentTime, levelOf(d));
+    }
     h.open = true;
     // D218: a note joined in the score, struck legato, scores more, and more along an unbroken chain;
     // struck detached it scores as it is (Bach's articulation is open) but the chain is broken.
@@ -1094,7 +1132,7 @@ export class ProtoGame {
     }
     this.score += h.pts;
     // D186: the points rise from the note.
-    this.pops.push({ tick: n.on, step, text: `+${h.pts}`, at, gold: perfect });
+    this.pops.push({ tick: n.on, step, text: `+${ptsText(h.pts)}`, at, gold: perfect });
     if (this.pops.length > 40) this.pops.splice(0, 20);
     this.grade = perfect ? { text: "PERFECT", at, side: h.side } : { text: "GOOD", lean: offMs < 0 ? -1 : 1, at, side: h.side };
     this.ride(h, i, offMs / 1000);
@@ -1232,7 +1270,10 @@ export class ProtoGame {
    */
   crowd = 0.6;
   failedAt: number | null = null;
-  readonly flames: { i: number; at: number; k?: number }[] = [];
+  /** D239: lane: the lane struck (HIGHWAY), grade: its note's lane grade. */
+  readonly flames: { i: number; at: number; k?: number; lane?: number; grade?: LaneGrade }[] = [];
+  /** D239: the notes right in their planned lane, and right only by their direction. */
+  readonly laneTally = { exact: 0, relative: 0 };
   private sustainAt = 0;
   private sustainAcc = 0;
   private sustain() {
@@ -1464,8 +1505,8 @@ export class ProtoGame {
   /** The notes (a chord once): played right, played wrong, missed; the score, the entries captured. */
   /** Strikes on no note. */
   stray = 0;
-  results(): { right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; art: ArtStats } {
-    const r = { right: 0, wrong: 0, missed: 0, stray: this.stray, of: 0, score: this.score, grade: "", captured: this.entries.filter((e) => e.state === "captured").length, entries: this.entries.length, maxStreak: this.maxStreak };
+  results(): { right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; art: ArtStats; lanes: { exact: number; relative: number } } {
+    const r = { right: 0, wrong: 0, missed: 0, stray: this.stray, of: 0, score: Math.floor(this.score), grade: "", captured: this.entries.filter((e) => e.state === "captured").length, entries: this.entries.length, maxStreak: this.maxStreak };
     for (const { notes } of this.tracks)
       notes.forEach((n, i) => {
         // D191: the riding notes are not counted.
@@ -1478,6 +1519,6 @@ export class ProtoGame {
         else r.missed++;
       });
     r.grade = this.gradeOf(r);
-    return { ...r, art: { ...this.art }, stars: this.failedAt !== null ? 0 : this.starsOf(r.score, r.of), failedBar: this.failedAt !== null ? barAt(this.f, this.failedAt) : null };
+    return { ...r, art: { ...this.art }, lanes: { ...this.laneTally }, stars: this.failedAt !== null ? 0 : this.starsOf(r.score, r.of), failedBar: this.failedAt !== null ? barAt(this.f, this.failedAt) : null };
   }
 }
