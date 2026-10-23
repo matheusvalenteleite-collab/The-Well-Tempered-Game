@@ -27,6 +27,9 @@ export interface Pop {
   text: string;
   at: number;
   gold: boolean;
+  /** D218: its colour (a word: LEGATO, HELD, CLEAN); a legato's slur drawn from the note before. */
+  ink?: string;
+  from?: { tick: number; step: number };
 }
 
 export interface Burst {
@@ -197,7 +200,22 @@ export function sparks(c: Ctx, pops: Pop[], bursts: Burst[]) {
     const age = t - p.at;
     if (age > 700) continue;
     g.globalAlpha = 1 - age / 700;
-    pixText(g, p.text, xOf(p.tick) - 2, yOf(p.step) - 8 - age / 40, p.gold ? c.gold : c.fg);
+    if (p.from) {
+      // D218: a slur over the two notes joined, then the word over it.
+      const x1 = xOf(p.from.tick);
+      const x2 = xOf(p.tick);
+      const base = Math.min(yOf(p.from.step), yOf(p.step)) - 4;
+      const lift = Math.max(3, Math.min(8, (x2 - x1) / 4));
+      g.fillStyle = p.ink ?? c.fg;
+      for (let x = Math.round(x1); x <= x2; x++) {
+        const u = (x - x1) / Math.max(1, x2 - x1);
+        const y = yOf(p.from.step) + (yOf(p.step) - yOf(p.from.step)) * u;
+        g.fillRect(x, Math.round(Math.min(y - 4, base) - lift * 4 * u * (1 - u)), 1, 1);
+      }
+      pixText(g, p.text, (x1 + x2) / 2 - (p.text.length * 4) / 2, base - lift - 7 - age / 60, p.ink ?? c.fg);
+      continue;
+    }
+    pixText(g, p.text, xOf(p.tick) - 2, yOf(p.step) - 8 - age / 40, p.ink ?? (p.gold ? c.gold : c.fg));
   }
   for (const b of bursts) {
     const age = (t - b.at) / 1000;
