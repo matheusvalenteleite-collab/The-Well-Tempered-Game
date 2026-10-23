@@ -9,13 +9,8 @@
  *     voice's range filling the box), so a note is touched at the height it is drawn, either bar; a
  *     glow runs from the coming note across to the bars. Across a bar: the middle mf, towards the
  *     phone's edge forte, towards the box piano.
- *   FINGERING (D181): the same screen; each note its thumb and its articulation, the subject's entries
- *     bosses with more to get right (fingering.ts).
  *   TWO VOICES: the same screen; two voices chosen (1P, 2P), one to each bar; the time only.
- *   SIDEWAYS: upright, the whole screen: the tune across the width, higher to the right, in columns
- *     of a window following the passage; a note is touched in its column anywhere up or down the
- *     screen; height is the dynamic. LEGATO (the hard level): every note joined to the one before
- *     (struck while that one is still held, or slid into), the thumbs crossing.
+ *   (FINGERING and SIDEWAYS were withdrawn in D208.)
  *   PIANO: sideways, the keyboard of D172; the key exactly.
  * Pure: moves and gestures in, verdicts out.
  */
@@ -25,7 +20,7 @@ import { markShapes } from "../touch/shape.ts";
 import type { Side } from "../touch/thumbs.ts";
 import type { Arrow } from "../touch/MusicBox.tsx";
 
-export type ProtoId = "ladder" | "fingering" | "duo" | "sideways" | "highway" | "arrows" | "keys" | "piano";
+export type ProtoId = "ladder" | "duo" | "highway" | "arrows" | "keys" | "piano";
 /** D182: what the prototype is played on. */
 export type Platform = "mobile" | "computer";
 
@@ -42,10 +37,8 @@ export interface Move {
 }
 
 export interface Options {
-  /** SIDEWAYS: every note joined to the one before (the hard level). */
+  /** Unused since SIDEWAYS was withdrawn (D208): kept for the test harness's legato runs. */
   legato: boolean;
-  /** D201: the tempo follows the playing, between these (quarter notes a minute): it starts at `from`. */
-  adapt?: { from: number; to: number };
   /** D198: a run fails when the crowd is lost (off in the lessons, and with NO FAIL). */
   fail?: boolean;
   /** EASY (D187): the time only, or the line's direction too, or its leaps as well. */
@@ -72,9 +65,9 @@ export interface Proto {
 export const PROTOS: Proto[] = [
   {
     id: "highway",
-    short: "TAP THE LANE AS EACH NOTE LANDS · LINE UP, TAP FURTHER RIGHT",
+    short: "TAP THE LANE AS EACH NOTE LANDS · SLIDE TO JOIN · TWO ROWS TO CROSS THUMBS",
     name: "HIGHWAY",
-    how: "Upright, the whole screen: EASY on a phone (D207). The notes come down five lanes to the strike line; tap the lane a note is in as it lands. Three levels (⚙ EASY): TIMING, any lane on time; DIRECTION, a lane further right than your last tap when the line rises, further left when it falls, the same lane when it repeats; + LEAPS, a leap of a fourth or more skips a lane. An open bar across the road: any lane. At the edge, the edge lane again answers a move past it. Long notes: hold them while their tail glows.",
+    how: "Upright, the whole screen: EASY on a phone (D207). The notes come down five lanes to the strike line; tap the lane a note is in as it lands. Two rows of pads, the same lanes in each (D208): one thumb in the upper row, the other in the lower, so they can pass each other. Legato: strike the next note before letting go of the last, or slide a held thumb into the next lane. The other voices pass faintly behind, by pitch (their subject entries brighter). Three levels (⚙ EASY): TIMING, any lane on time; DIRECTION, a lane further right than your last tap when the line rises, further left when it falls, the same lane when it repeats; + LEAPS, a leap of a fourth or more skips a lane. An open bar across the road: any lane. Long notes: hold them while their tail glows.",
     layout: "full",
     platform: "mobile",
   },
@@ -87,27 +80,11 @@ export const PROTOS: Proto[] = [
     platform: "mobile",
   },
   {
-    id: "fingering",
-    short: "THE THUMB EACH NOTE SHOWS (L / R) · LEGATO, STACCATO, TENUTO AS MARKED",
-    name: "FINGERING",
-    how: "Sideways. Each note has its thumb (L or R in the box) and its articulation: LEGATO (strike it while the note before still sounds), STACCATO (let go quickly), TENUTO (hold it). The subject's entries are bosses: a SUB BOSS also wants some notes high or low in the bar; the BOSS also wants forte (out) or piano (in).",
-    layout: "bars",
-    platform: "mobile",
-  },
-  {
     id: "duo",
     short: "LEFT BAR 1P, RIGHT BAR 2P · ONLY THE TIME COUNTS",
     name: "TWO VOICES",
     how: "Sideways. Choose two voices, 1P and 2P: the left bar plays the first, the right bar the second. Only the time counts. Across a bar: the middle mf, out forte, in piano; slide across while a note sounds to swell or fade; flick up as you let go for a swoosh.",
     layout: "bars",
-    platform: "mobile",
-  },
-  {
-    id: "sideways",
-    short: "TOUCH EACH NOTE IN ITS COLUMN AS IT LANDS · HIGHER IS LOUDER",
-    name: "SIDEWAYS",
-    how: "Upright, the whole screen. The tune runs across: higher notes to the right. Touch each note in its column as it lands (one off counts), anywhere up or down: higher is louder. Cross your thumbs on a run, or slide across. LEGATO (⚙): every note joined to the one before.",
-    layout: "full",
     platform: "mobile",
   },
   {
@@ -120,9 +97,9 @@ export const PROTOS: Proto[] = [
   },
   {
     id: "keys",
-    short: "ANY KEY ON THE BEAT · LINE UP, KEY TO THE RIGHT · THE ROW SETS THE DYNAMIC",
-    name: "EASY",
-    how: "On a computer. Any key on time plays your note. Three levels (⚙): TIMING, only the time counts; DIRECTION, the keys follow the line: a key further right than the last when it rises, further left when it falls, the same key (or space) when it repeats; + LEAPS, and a leap of a fourth or more skips a key. A note after a rest or a long note is free (boxed in the music box): any key. At the end of a row, the edge key again answers a move past it. Best with both hands on the home row, thumbs on space. The rows shape the note: Q W E R… forte, A S D F… mezzo, Z X C V… piano; the numbers trill it. Hold Shift as a pedal; ↑ ↓ bend a held note.",
+    short: "HANDS ON A S D F · H J K L, THUMBS ON SPACE · THE LANES ARE THE FINGERING",
+    name: "HIGHWAY",
+    how: "On a computer (D208). Both hands on the home row: left little finger on A to left index on F, right index on H to right little finger on L, G for whichever index is free, thumbs on space (the same note again). The notes come down nine lanes, A to L: a fingering of your line, planned so no finger strikes twice running and a run never jams at an edge. Four levels (⚙ EASY): TIMING, any key on time; DIRECTION, a key further right than the last when the line rises, further left when it falls, the same key or space when it repeats; + LEAPS, and a leap of a fourth or more skips a key; EXACT LANES, the lane's own key. A note after a rest or a long note is free (an open bar): any key. The rows shape the note: Q W E R… forte, A S D F… mezzo, Z X C V… piano; the numbers trill it. Hold Shift as a pedal; ↑ ↓ bend a held note.",
     layout: "desk",
     platform: "computer",
   },
@@ -147,8 +124,8 @@ export const KEY_ROWS: { codes: string[]; dyn: number; mark: string; trill?: boo
 ];
 export const keyRow = (code: string) => KEY_ROWS.findIndex((r) => r.codes.includes(code));
 
-/** LADDER (D181): how many rows either side of where a note is drawn still reach it. */
-export const LADDER_AREA = 3.5;
+/** LADDER (D181; D208 wider): how many rows either side of where a note is drawn still reach it. */
+export const LADDER_AREA = 5;
 
 /** The bars' share of the width (each). */
 export const BAR = 0.2;
@@ -251,12 +228,106 @@ export function moveOf(a: Arrow): { dir: number; big: boolean } {
  * the line rises, further left when it falls, the same key (or space) on a repeated note. LEAPS: and a
  * leap (a fourth or more) skips at least one key.
  */
-export type EasyLevel = "timing" | "direction" | "leaps";
+export type EasyLevel = "timing" | "direction" | "leaps" | "exact";
 export const EASY_LEVELS: [EasyLevel, string][] = [
   ["timing", "TIMING"],
   ["direction", "DIRECTION"],
   ["leaps", "+ LEAPS"],
+  ["exact", "EXACT LANES"],
 ];
+
+/**
+ * D208, computer HIGHWAY's nine lanes (A S D F G H J K L): the fingers on the home row, left little
+ * finger to right little finger; G either index finger. Finger ids: 0 to 3 the left hand (little to
+ * index), 5 to 8 the right (index to little); G is 3 or 5.
+ */
+export const HOME_LANES = 9;
+const fingersOf = (lane: number): number[] => (lane === 4 ? [3, 5] : [lane]);
+
+/**
+ * D208: a fingering of the line along the lanes, planned over the whole passage (dynamic programming):
+ * a rise always to the right, a fall to the left, a repeat in place (or the thumbs' space bar); a
+ * step one lane, a leap two or more; never the same finger twice running on different notes (G taken
+ * by whichever index finger is free); room kept ahead, so a long run does not pile up at an edge (a
+ * free note, after a rest or a long note, starts anew where it suits what follows). `fingers` false
+ * (the phone's five lanes, two thumbs): no finger rule.
+ */
+export function planLanes(moves: Move[], heads: boolean[], free: boolean[], count: number, fingers: boolean): number[] {
+  const n = moves.length;
+  const S = count * 2; // lane, and (G) which index finger
+  const INF = 1e9;
+  const fingerOf = (st: number) => {
+    const lane = st >> 1;
+    const f = fingersOf(lane);
+    return f[Math.min(st & 1, f.length - 1)];
+  };
+  const valid = (st: number) => (st & 1) === 0 || (fingers && (st >> 1) === 4);
+  const mid = (count - 1) / 2;
+  const cost: number[][] = [];
+  const back: number[][] = [];
+  let prevI = -1;
+  for (let i = 0; i < n; i++) {
+    cost.push(new Array(S).fill(INF));
+    back.push(new Array(S).fill(-1));
+    if (!heads[i]) continue;
+    for (let st = 0; st < S; st++) {
+      if (!valid(st)) continue;
+      const lane = st >> 1;
+      if (prevI < 0 || free[i]) {
+        // Anywhere; a little nearer the middle by preference.
+        let best = prevI < 0 ? 0 : INF;
+        let arg = -1;
+        if (prevI >= 0)
+          for (let ps = 0; ps < S; ps++)
+            if (cost[prevI][ps] < best) (best = cost[prevI][ps]), (arg = ps);
+        cost[i][st] = best + Math.abs(lane - mid) * 0.05;
+        back[i][st] = arg;
+        continue;
+      }
+      const m = moves[i];
+      for (let ps = 0; ps < S; ps++) {
+        const c0 = cost[prevI][ps];
+        if (c0 >= INF) continue;
+        const pl = ps >> 1;
+        let c: number;
+        if (m.dir === 0 || m.steps === 0) c = lane === pl && ps === st ? 0 : INF;
+        else {
+          const d = (lane - pl) * m.dir;
+          if (d <= 0) {
+            // Past the edge: the edge again (allowed by the judging, but avoided).
+            const edge = m.dir > 0 ? count - 1 : 0;
+            c = pl === edge && lane === edge ? 30 : INF;
+          } else if (m.size >= 3) c = d === 1 ? 1.5 : d === 2 ? 0 : 0.4 * (d - 2);
+          else c = d === 1 ? 0 : 0.8 * (d - 1);
+          if (c < INF && fingers && fingerOf(st) === fingerOf(ps) && !(pl === lane && d <= 0)) c += 20;
+        }
+        if (c0 + c < cost[i][st]) (cost[i][st] = c0 + c), (back[i][st] = ps);
+      }
+    }
+    prevI = i;
+  }
+  // Back from the cheapest end.
+  const lanes = new Array(n).fill(Math.round(mid));
+  if (prevI < 0) return lanes;
+  let st = 0;
+  for (let s = 1; s < S; s++) if (cost[prevI][s] < cost[prevI][st]) st = s;
+  for (let i = prevI; i >= 0; i--) {
+    if (!heads[i]) continue;
+    lanes[i] = st >> 1;
+    st = back[i][st];
+    if (st < 0) {
+      // A free note's start, or the first: carry on from the cheapest before.
+      let j = i - 1;
+      while (j >= 0 && !heads[j]) j--;
+      if (j < 0) break;
+      st = 0;
+      for (let s = 1; s < S; s++) if (cost[j][s] < cost[j][st]) st = s;
+    }
+  }
+  // A chord's other notes, and the riding notes, keep the lane before.
+  for (let i = 1; i < n; i++) if (!heads[i]) lanes[i] = lanes[i - 1];
+  return lanes;
+}
 
 /** Where a key lies (D187): its finger's column (1, Q, A and Z one column) and its place across the board (the rows staggered). */
 export function keyPlace(code: string): { col: number; x: number; row: number; first: boolean; last: boolean } | null {

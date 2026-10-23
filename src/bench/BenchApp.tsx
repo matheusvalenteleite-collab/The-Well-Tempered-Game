@@ -1,7 +1,7 @@
 /**
  * The testbench (D170; D175; D178; D179-D180): prototypes of the instrument tried on the game itself,
  * judged. ⚙ chooses the prototype (protos.ts), the piece (D192: a wheel of the fugues' cards,
- * FuguePicker.tsx), the tempo (20 to 200), SIDEWAYS's level, the ensemble
+ * FuguePicker.tsx), the ensemble
  * (sound.ts), the tuning (tuning.ts) and the sound's delay; the title the voice (TWO VOICES: two, as
  * an arcade's 1P and 2P) and where to start; ? says how each is played. Each prototype lays the screen
  * out its own way. A computer's keys and a MIDI keyboard play too.
@@ -10,6 +10,7 @@ import { ornamentMark, ornamentsOf } from "../touch/ornament-play.ts";
 import { BachTalk } from "./Bach.tsx";
 import { LESSONS, lessonsPassed, passLesson, type Line, type Run } from "./lessons.ts";
 import { TEMPO, tempoOf } from "../touch/tempi.ts";
+import { presetById, setPreset } from "../touch/sound.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ladderGeometry, MusicBox, inkOf, type Frame } from "../touch/MusicBox.tsx";
 import { PlayArea, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
@@ -17,7 +18,6 @@ import { Choice, LagSetting, loadDrums, Panel, SoundSetting, TuningSetting } fro
 import { Chip, voicing } from "../touch/chip.ts";
 import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, cadenceName } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
-import { applyFugueSound, DESIGNATED, fugueSoundInfo } from "../touch/fugue-sound.ts";
 import { setTuning } from "../touch/tuning.ts";
 import { accompaniment, startTick, stepRange, subjectMarks, entrySpans, voicesFrom } from "../touch/voice-mode.ts";
 import { paintProto } from "./paint-proto.ts";
@@ -30,7 +30,9 @@ import { ARROW_KEYS, arrowOf, EASY_LEVELS, KEY_ROWS, type EasyLevel, keyId, keyR
 const PICK_KEY = "tb-pick-v2";
 const LAG_KEY = "tg-lag";
 // D203: a new key, so that every player starts on the fugue's own sound.
-const SOUND_KEY = "tg-sound-v2";
+// D208: a new key, so every player starts on the sampled harpsichord.
+const SOUND_KEY = "tg-sound-v3";
+const DEFAULT_SOUND = "harpsichordSampled";
 const TUNING_KEY = "tg-tuning";
 
 interface Pick {
@@ -39,19 +41,15 @@ interface Pick {
   voice: number;
   /** TWO VOICES: the second (2P). */
   voice2: number;
-  /** D204: each fugue's own tempo, SLOW (the easy version) or NORMAL (the recordings' median; D199). */
-  speed: "slow" | "normal";
   share: number;
-  /** SIDEWAYS: the hard level, every note joined. */
+  /** Unused since D208 (SIDEWAYS withdrawn). */
   legato: boolean;
   /** EASY's level (D187). */
   easy: EasyLevel;
   /** D198: a run fails when the crowd is lost. */
   fail: boolean;
-  /** D201, a trial (off unless chosen): the tempo follows the playing. */
-  follow: boolean;
 }
-const DEFAULT: Pick = { proto: "ladder", piece: "wtc1f02", voice: 1, voice2: 0, speed: "slow", share: 0, legato: false, easy: "direction", fail: true, follow: false };
+const DEFAULT: Pick = { proto: "ladder", piece: "wtc1f02", voice: 1, voice2: 0, share: 0, legato: false, easy: "direction", fail: true };
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -76,7 +74,7 @@ function sane(p: Pick): Pick {
   const singing = voicesFrom(f, startTick(f, share));
   const voice = singing.includes(p.voice) ? p.voice : singing[Math.min(1, singing.length - 1)];
   const voice2 = singing.includes(p.voice2) && p.voice2 !== voice ? p.voice2 : (singing.find((v) => v !== voice) ?? voice);
-  return { ...DEFAULT, ...p, piece, share, voice, voice2, proto: protoById(p.proto).id, speed: p.speed === "normal" ? "normal" : "slow", legato: !!p.legato, easy: EASY_LEVELS.some(([l]) => l === p.easy) ? p.easy : DEFAULT.easy, fail: p.fail !== false, follow: !!p.follow };
+  return { ...DEFAULT, ...p, piece, share, voice, voice2, proto: protoById(p.proto).id, legato: !!p.legato, easy: EASY_LEVELS.some(([l]) => l === p.easy) ? p.easy : DEFAULT.easy, fail: p.fail !== false };
 }
 
 type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; seal: { kind: string; earned: boolean; why: string } | null } | { kind: "settings" } | { kind: "help" } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
@@ -101,7 +99,7 @@ export function BenchApp() {
     save(LAG_KEY, l);
     if (chip.current) chip.current.lag = l;
   };
-  const [sound, setSoundRaw] = useState<string>(() => load<string>(SOUND_KEY, DESIGNATED));
+  const [sound, setSoundRaw] = useState<string>(() => load<string>(SOUND_KEY, DEFAULT_SOUND));
   const setSound = (id: string) => {
     setSoundRaw(id);
     save(SOUND_KEY, id);
@@ -134,11 +132,10 @@ export function BenchApp() {
   const proto = protoById(run ? "keys" : pick.proto);
   const from = run ? run.from : startTick(f, pick.share);
   const voice = run ? run.voice : pick.voice;
-  const bpm = run ? run.bpm : tempoOf(f.id, pick.speed);
-  // D203: each fugue its own designated sound (D200), unless another ensemble is chosen.
+  const bpm = run ? run.bpm : tempoOf(f.id);
   useEffect(() => {
-    applyFugueSound(f.id, sound);
-  }, [f.id, sound]);
+    setPreset(presetById(sound).id);
+  }, [sound]);
 
   const duo = proto.id === "duo";
   const played = duo ? [voice, pick.voice2] : [voice];
@@ -226,7 +223,7 @@ export function BenchApp() {
 
   useEffect(() => {
     if (phase.kind !== "play" || !chip.current) return;
-    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? pick.easy, fail: !run && pick.fail, ...(!run && pick.follow ? { adapt: { from: bpm, to: pick.speed === "slow" ? tempoOf(f.id, "normal") : Math.round(bpm * 1.15) } } : {}), ...(run ? { until: run.until, wait: run.wait, solo: run.solo } : {}) }, chip.current);
+    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? pick.easy, fail: !run && pick.fail, ...(run ? { until: run.until, wait: run.wait, solo: run.solo } : {}) }, chip.current);
     g.octave = octave.current;
     const arrows = proto.id === "arrows" ? g.moves.map(arrowOf) : g.cues;
     game.current = g;
@@ -251,9 +248,9 @@ export function BenchApp() {
         ...marks,
         marks: g.marks,
         entryState: new Map(g.entries.map((e) => [`${e.voice}:${e.on}`, e.state])),
-        fingers: proto.id === "fingering" ? g.tracks[0].fingers : undefined,
         arrows,
-        bossFight: true,
+        // D208: no bosses in LADDER for now.
+        bossFight: proto.id !== "ladder",
         pops: g.pops,
         bursts: g.bursts,
         zone: g.zone,
@@ -595,13 +592,10 @@ export function BenchApp() {
           </div>
           <p className="tg-panel-note">{proto.how}</p>
           <Choice id="platform" label="PLAY ON" options={[["mobile", "MOBILE"], ["computer", "COMPUTER"]]} value={platform ?? "mobile"} set={(pl) => setPlatform(pl)} />
-          <Choice id="follow" label="TRIAL · TEMPO FOLLOWS YOU" options={[["off", "OFF"], ["on", "ON"]]} value={pick.follow ? "on" : "off"} set={(v) => setPick({ follow: v === "on" })} />
           <Choice id="fail" label="FAIL" options={[["on", "ON"], ["off", "NO FAIL"]]} value={pick.fail ? "on" : "off"} set={(v) => setPick({ fail: v === "on" })} />
           {(proto.id === "keys" || proto.id === "highway") && <Choice id="easy" label="EASY" options={EASY_LEVELS} value={pick.easy} set={(easy) => setPick({ easy })} />}
-          {proto.id === "sideways" && <Choice id="level" label="SIDEWAYS" options={[["easy", "EASY"], ["legato", "LEGATO"]]} value={pick.legato ? "legato" : "easy"} set={(v) => setPick({ legato: v === "legato" })} />}
           <PieceButton id={pick.piece} open={() => setWheel(true)} />
-          <Choice id="speed" label="TEMPO" options={[["slow", `SLOW · ${tempoLabel(f.id, "slow")}`], ["normal", `NORMAL · ${tempoLabel(f.id, "normal")}`]]} value={pick.speed} set={(speed) => setPick({ speed })} />
-          <SoundSetting value={sound} set={setSound} designated={fugueSoundInfo(f.id)?.name} />
+          <SoundSetting value={sound} set={setSound} />
           <TuningSetting id={tuning.id} a={tuning.a} set={changeTuning} />
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
           <div className="tg-set">
@@ -673,7 +667,7 @@ function Title({ f, pick, setPick, from, note, lessons }: { f: TouchFugue; pick:
       <p className="tb-short">{proto.short}</p>
       {proto.platform === "mobile" && <p className="tb-hold">{proto.layout === "full" ? "▯ HOLD THE PHONE UPRIGHT" : "▭ HOLD THE PHONE SIDEWAYS"}</p>}
       <p className="tg-card-sub">
-        {f.title.toUpperCase()} · {tempoLabel(f.id, pick.speed)} {pick.speed === "slow" ? "· SLOW" : ""}
+        {f.title.toUpperCase()} · {tempoLabel(f.id)}
       </p>
       <div className="tg-voices" role="group" aria-label="Voice">
         {f.voiceNames.map((name, i) => (
@@ -733,7 +727,7 @@ function Arcade({ f, pick, setPick, from, note }: { f: TouchFugue; pick: Pick; s
 }
 
 /** "♩. = 53": a fugue's tempo in its own beat (D199, D204). */
-function tempoLabel(id: string, speed: "slow" | "normal"): string {
+function tempoLabel(id: string): string {
   const t = TEMPO[id];
-  return t ? `${t.unit} = ${t.unitBpm[speed]}` : `♩ = ${tempoOf(id, speed)}`;
+  return t ? `${t.unit} = ${t.unitBpm.normal}` : `♩ = ${tempoOf(id)}`;
 }

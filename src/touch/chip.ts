@@ -9,24 +9,67 @@
 export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 
 import { hz } from "./tuning.ts";
-import { grooveHits, grooveNow, layerHits, preset, patchFor, PATCHES, sampledNow, type Drum, type Kit, type Patch, type Wave } from "./sound.ts";
+import { grooveHits, grooveNow, harmonicsOf, isShaped, layerHits, preset, patchFor, sampledNow, SHAPES, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setUnreachable, type Loaded, type SampledInstrument } from "./sampled.ts";
 
 /**
- * D179, the player's voice: whatever the ensemble gives it, it holds while the thumb is down (a plucked
- * sound keeps half its strength and fades slowly), a little forward of the others, with a second
- * oscillator a few cents off (chorus) and a vibrato that comes in after a moment.
+ * D208, the player's voice: the same instrument as the others, at the same level (the voices of a
+ * fugue are equals); it only rings while the thumb is down, so a release is never cut short.
  */
 export function leadOf(pt: Patch): Patch {
-  const pluck = pt.amp.s === 0;
-  return {
-    ...pt,
-    osc: [...pt.osc, { ...pt.osc[0], detune: (pt.osc[0].detune ?? 0) + 7, gain: (pt.osc[0].gain ?? 1) * 0.35 }],
-    amp: pluck ? { a: pt.amp.a, d: Math.max(0.6, pt.amp.d), s: 0.55, r: 0.18 } : { ...pt.amp, r: Math.max(0.12, pt.amp.r) },
-    vib: pt.vib ?? { depth: 8, rate: 5.2, delay: 0.35 },
-    level: pt.level * 1.12,
-  };
+  return pt.amp.s === 0 ? pt : { ...pt, amp: { ...pt.amp, r: Math.max(0.12, pt.amp.r) } };
 }
+
+/** D210: a phone or tablet (a touch screen): fewer notes at once (`VOICE_CAP`). */
+export const isPhone = () => typeof navigator !== "undefined" && navigator.maxTouchPoints > 0;
+
+/**
+ * D210: the most notes sounding at once; past it, the oldest (not the player's own) is let go, quickly,
+ * as the new one starts. A computer's is far above what a fugue asks; a phone's above what a four-voice
+ * fugue with its ornaments, the riders and the rings of plucked notes usually reach.
+ */
+export const VOICE_CAP = { phone: 24, computer: 64 };
+
+/**
+ * D210: one sound's nodes, all disconnected once the last of its sources has ended. Nothing in chip.ts
+ * was ever disconnected: Safari keeps a finished note's gains, filters and panner wired to the mix until
+ * its garbage collector happens to run, and its audio thread goes on pulling them all (tens of thousands
+ * over a fugue), until the sound breaks up into hiss and the page is killed.
+ */
+export class Bag {
+  private nodes: AudioNode[] = [];
+  private live = 0;
+  done = false;
+  onDone: (() => void) | null = null;
+  add<T extends AudioNode>(n: T): T {
+    this.nodes.push(n);
+    return n;
+  }
+  /** A source of the sound: register it before starting it. */
+  src<T extends AudioScheduledSourceNode>(s: T): T {
+    this.add(s);
+    this.live++;
+    s.onended = () => {
+      if (--this.live <= 0) this.free();
+    };
+    return s;
+  }
+  private free() {
+    if (this.done) return;
+    this.done = true;
+    for (const n of this.nodes)
+      try {
+        n.disconnect();
+      } catch {
+        /* already */
+      }
+    this.nodes = [];
+    this.onDone?.();
+  }
+}
+
+/** D210: a note not yet ended: when it began, whether it is the player's, whether it was let go to make room. */
+type Live = { at: number; lead: boolean; stolen: boolean; sd: Sounding };
 
 export interface Voicing {
   timbre: Timbre;
@@ -90,6 +133,11 @@ export class Chip {
    * does not report). Null: the system's own figure.
    */
   lag: number | null = null;
+  /** D210: the notes not yet ended (oldest first), and how many may sound at once. */
+  private voices: Live[] = [];
+  readonly cap = isPhone() ? VOICE_CAP.phone : VOICE_CAP.computer;
+  /** D210: how many notes were let go early to keep within the cap (for the measurements). */
+  stolen = 0;
 
   constructor() {
     // iOS: play through the silent switch (Safari 16.4+), as a game should.
@@ -192,27 +240,59 @@ export class Chip {
 
   /** A note from `at` for `dur` seconds; stop() cuts it short (the thumb let go). */
   note(midi: number, at: number, dur: number, v: Voicing, p: Play = {}): Sounding {
+    // D210: within the cap (the oldest let go first), and every node disconnected once the note has ended.
+    const t = Math.max(at, this.ctx.currentTime);
+    this.makeRoom(t);
+    const bag = new Bag();
+    const sd = this.voiceNote(midi, at, dur, v, p, bag);
+    if (bag.done) return sd;
+    const entry: Live = { at: t, lead: !!p.lead, stolen: false, sd };
+    this.voices.push(entry);
+    bag.onDone = () => {
+      const i = this.voices.indexOf(entry);
+      if (i >= 0) this.voices.splice(i, 1);
+    };
+    return sd;
+  }
+
+  /** D210: the notes sounding (not let go to make room). */
+  sounding(): number {
+    let n = 0;
+    for (const v of this.voices) if (!v.stolen) n++;
+    return n;
+  }
+
+  /** D210: at the cap, the oldest notes (never the player's own) let go at `t`, quickly. */
+  private makeRoom(t: number) {
+    let n = this.sounding();
+    while (n >= this.cap) {
+      let old: Live | null = null;
+      for (const v of this.voices) if (!v.stolen && !v.lead && (!old || v.at < old.at)) old = v;
+      if (!old) return;
+      old.stolen = true;
+      old.sd.stop(t);
+      this.stolen++;
+      n--;
+    }
+  }
+
+  private voiceNote(midi: number, at: number, dur: number, v: Voicing, p: Play, bag: Bag): Sounding {
     // D190: a recorded instrument plays its recording once loaded; until then (or where it cannot be
     // had) the patch's synthesized sound stands in, so no note is lost.
     const inst = v.patch?.sample ? SAMPLED[v.patch.sample] : null;
     if (v.patch && inst && !setUnreachable(inst.set)) {
       const near = nearestSample(inst.set, midi);
       const rec = near === null ? undefined : loaded(inst.set, near);
-      if (rec && near !== null) return this.sampledNote(midi, at, dur, v, v.patch, p, inst, near, rec);
+      if (rec && near !== null) return this.sampledNote(midi, at, dur, v, v.patch, p, inst, near, rec, bag);
       if (near !== null) loadOne(this.ctx, inst.set, near);
     }
-    if (p.lead) {
-      const lead = leadOf(v.patch ?? PATCHES.nesMid);
-      const full = p.pleno ? { ...lead, osc: [...lead.osc, { wave: "organ" as const, octave: 1, gain: 0.3 }, { wave: "organ" as const, octave: -1, gain: 0.35 }] } : lead;
-      return this.patchNote(midi, at, dur, v, full, p);
-    }
-    if (v.patch) return this.patchNote(midi, at, dur, v, v.patch, p);
+    if (v.patch) return this.patchNote(midi, at, dur, v, p.lead ? leadOf(v.patch) : v.patch, p, bag);
     const ctx = this.ctx;
     const t = Math.max(at, ctx.currentTime);
     const end = Math.max(t + 0.04, at + dur - 0.01);
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    const o = bag.src(ctx.createOscillator());
+    const g = bag.add(ctx.createGain());
+    const pan = ctx.createStereoPanner ? bag.add(ctx.createStereoPanner()) : null;
     const w = this.wave(v.timbre);
     if (w === "triangle") o.type = "triangle";
     else o.setPeriodicWave(w);
@@ -239,8 +319,8 @@ export class Chip {
     }
     // A gentle vibrato on a long note, after a moment (not on a piano).
     if (!piano && end - t > 0.45) {
-      const lfo = ctx.createOscillator();
-      const depth = ctx.createGain();
+      const lfo = bag.src(ctx.createOscillator());
+      const depth = bag.add(ctx.createGain());
       lfo.frequency.value = 5.4;
       depth.gain.setValueAtTime(0, t);
       depth.gain.setValueAtTime(0, t + 0.28);
@@ -250,7 +330,7 @@ export class Chip {
       lfo.stop(end + 0.05);
     }
     let src: AudioNode = o;
-    const dull = p.muffleable ? ctx.createBiquadFilter() : null;
+    const dull = p.muffleable ? bag.add(ctx.createBiquadFilter()) : null;
     if (dull) {
       dull.type = "lowpass";
       dull.frequency.value = 12000;
@@ -329,17 +409,17 @@ export class Chip {
    * touch: an accent is 1.5 dB and nothing else, and dyn() moves it at most 3 dB either way; the organ's
    * dyn() is a swell box (level and a lowpass from about 2 to 18 kHz).
    */
-  private sampledNote(midi: number, at: number, dur: number, v: Voicing, pt: Patch, p: Play, inst: SampledInstrument, near: number, rec: Loaded): Sounding {
+  private sampledNote(midi: number, at: number, dur: number, v: Voicing, pt: Patch, p: Play, inst: SampledInstrument, near: number, rec: Loaded, bag: Bag): Sounding {
     const ctx = this.ctx;
     const t = Math.max(at, ctx.currentTime);
     const end = Math.max(t + 0.05, at + dur - 0.01);
     const plucked = inst.plucked;
-    const peak = pt.level * v.gain * (p.level ?? 1) * 0.5 * inst.gain * (plucked ? 1 + (p.accent ?? 0) * 0.19 : 1) * (p.lead ? 1.12 : 1);
-    const mix = ctx.createGain();
+    const peak = pt.level * v.gain * (p.level ?? 1) * 0.5 * inst.gain * (plucked ? 1 + (p.accent ?? 0) * 0.19 : 1);
+    const mix = bag.add(ctx.createGain());
     const srcs: { src: AudioBufferSourceNode; set: string; m: number; mult: number }[] = [];
     let baseHz = hz(midi);
     const play = (set: string, m: number, r: Loaded, mult: number, gain: number) => {
-      const src = ctx.createBufferSource();
+      const src = bag.src(ctx.createBufferSource());
       src.buffer = r.buffer;
       src.playbackRate.value = rateFor(set, m, baseHz * mult);
       const loop = noteInfo(set, m)?.loop;
@@ -348,7 +428,7 @@ export class Chip {
         src.loopStart = r.onset + loop[0];
         src.loopEnd = r.onset + loop[1];
       }
-      const g = ctx.createGain();
+      const g = bag.add(ctx.createGain());
       g.gain.value = gain;
       src.connect(g).connect(mix);
       // Joined on the organ (legato): the pipe already speaking, past its attack.
@@ -366,35 +446,35 @@ export class Chip {
     let src: AudioNode = mix;
     const bright = p.bright ?? 0;
     if (bright < 0) {
-      const tone = ctx.createBiquadFilter();
+      const tone = bag.add(ctx.createBiquadFilter());
       tone.type = "lowpass";
       tone.frequency.value = 18000 * 2 ** (bright * 2.8);
       src = src.connect(tone);
     } else if (bright > 0) {
-      const tone = ctx.createBiquadFilter();
+      const tone = bag.add(ctx.createBiquadFilter());
       tone.type = "highshelf";
       tone.frequency.value = 2500;
       tone.gain.value = bright * 5;
       src = src.connect(tone);
     }
-    const dull = p.muffleable ? ctx.createBiquadFilter() : null;
+    const dull = p.muffleable ? bag.add(ctx.createBiquadFilter()) : null;
     if (dull) {
       dull.type = "lowpass";
       dull.frequency.value = 16000;
       src = src.connect(dull);
     }
     const swellAt = (level: number) => Math.min(18000, 2000 * 2 ** ((level - 0.25) * 3.4));
-    const swell = plucked ? null : ctx.createBiquadFilter();
+    const swell = plucked ? null : bag.add(ctx.createBiquadFilter());
     if (swell) {
       swell.type = "lowpass";
       swell.frequency.value = swellAt(1);
       src = src.connect(swell);
     }
-    const g = ctx.createGain();
+    const g = bag.add(ctx.createGain());
     g.gain.setValueAtTime(0, t);
     g.gain.linearRampToValueAtTime(peak, t + (plucked ? 0.002 + (p.soft ?? 0) * 0.01 : p.legato ? 0.015 : 0.01 + (p.soft ?? 0) * 0.08));
-    const dyn = ctx.createGain();
-    const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    const dyn = bag.add(ctx.createGain());
+    const pan = ctx.createStereoPanner ? bag.add(ctx.createStereoPanner()) : null;
     if (pan) {
       pan.pan.value = Math.max(-1, Math.min(1, v.pan));
       src.connect(g).connect(dyn).connect(pan).connect(this.bus);
@@ -402,16 +482,16 @@ export class Chip {
     // D182, a trill: the step above and back, about eight times a second (the rate's square wave).
     const lfos: AudioScheduledSourceNode[] = [];
     if (p.trill && ctx.createConstantSource) {
-      const lfo = ctx.createOscillator();
+      const lfo = bag.src(ctx.createOscillator());
       lfo.type = "square";
       lfo.frequency.value = 7.5;
-      const centre = ctx.createConstantSource();
+      const centre = bag.src(ctx.createConstantSource());
       lfos.push(lfo, centre);
       for (const x of srcs) {
         const half = (x.src.playbackRate.value * (2 ** (200 / 1200) - 1)) / 2;
-        const depth = ctx.createGain();
+        const depth = bag.add(ctx.createGain());
         depth.gain.value = half;
-        const mid = ctx.createGain();
+        const mid = bag.add(ctx.createGain());
         mid.gain.value = half;
         lfo.connect(depth).connect(x.src.playbackRate);
         centre.connect(mid).connect(x.src.playbackRate);
@@ -432,12 +512,13 @@ export class Chip {
       if (thunk) (thunk.disconnect(), (thunk = null));
       const held = s - t;
       const r = inst.release ? loaded(inst.release, near) : undefined;
-      if (!r || held > life - 0.3) return;
+      // (D210: a note already ended and disconnected makes no key-up noise.)
+      if (!r || held > life - 0.3 || bag.done) return;
       // The jacks falling back and the dampers: softer the longer the string has rung.
-      const rs = ctx.createBufferSource();
+      const rs = bag.src(ctx.createBufferSource());
       rs.buffer = r.buffer;
       rs.playbackRate.value = srcs[0].src.playbackRate.value;
-      thunk = ctx.createGain();
+      thunk = bag.add(ctx.createGain());
       thunk.gain.value = peak * 0.9 * Math.max(0.2, Math.exp(-held / Math.max(0.5, life / 3)));
       rs.connect(thunk).connect(dyn);
       rs.start(s, r.onset);
@@ -493,8 +574,20 @@ export class Chip {
     if (w === "saw") o.type = "sawtooth";
     else if (w === "square" || w === "triangle" || w === "sine") o.type = w;
     else if (w === "pulse12" || w === "pulse25" || w === "pulse50") o.setPeriodicWave(this.wave(w) as PeriodicWave);
+    else if (isShaped(w)) o.setPeriodicWave(this.shaped(w));
     else o.setPeriodicWave(this.custom(w));
     return o;
+  }
+
+  /** D209: a console's wave shape (the NES triangle's stair, a Game Boy wave sample, the VRC6 saw, FM), built once. */
+  private shaped(w: ShapedWave): PeriodicWave {
+    let pw = this.waves.get(w);
+    if (!pw) {
+      const { real, imag } = harmonicsOf(SHAPES[w]);
+      pw = this.ctx.createPeriodicWave(real, imag);
+      this.waves.set(w, pw);
+    }
+    return pw;
   }
 
   /** The organ (drawbars 8', 4', 2 2/3', 2'), the reed (strong odd and some even partials, nasal), the bell (inharmonic-ish upper partials). */
@@ -533,7 +626,7 @@ export class Chip {
    * A note on an instrument of the ensemble (D177): its oscillators, breath, drive, filter (or vowel),
    * envelope, vibrato and tremolo; shaped by the touch (brightness, a soft or accented attack, level).
    */
-  private patchNote(midi: number, at: number, dur: number, v: Voicing, pt: Patch, p: Play): Sounding {
+  private patchNote(midi: number, at: number, dur: number, v: Voicing, pt: Patch, p: Play, bag: Bag): Sounding {
     const ctx = this.ctx;
     const t = Math.max(at, ctx.currentTime);
     const pluck = pt.amp.s === 0;
@@ -542,31 +635,36 @@ export class Chip {
     const f0 = hz(midi);
     const bright = 2 ** ((p.bright ?? 0) * 1.3);
     const peak = pt.level * v.gain * (p.level ?? 1) * 0.5;
-    const mix = ctx.createGain();
+    const mix = bag.add(ctx.createGain());
     const oscs: OscillatorNode[] = [];
     for (const o of pt.osc) {
-      const n = this.osc(o.wave);
+      const n = bag.src(this.osc(o.wave));
       n.frequency.value = f0 * 2 ** (o.octave ?? 0);
       n.detune.value = o.detune ?? 0;
-      const g = ctx.createGain();
+      if (pt.scoop) {
+        // D209: the pitch comes in from off and settles (no extra nodes: the oscillator's own detune).
+        n.detune.setValueAtTime((o.detune ?? 0) + pt.scoop.cents, t);
+        n.detune.setTargetAtTime(o.detune ?? 0, t, pt.scoop.time);
+      }
+      const g = bag.add(ctx.createGain());
       g.gain.value = o.gain ?? 1;
       n.connect(g).connect(mix);
       oscs.push(n);
     }
     let breath: AudioBufferSourceNode | null = null;
     if (pt.breath) {
-      breath = this.noise();
-      const bp = ctx.createBiquadFilter();
+      breath = bag.src(this.noise());
+      const bp = bag.add(ctx.createBiquadFilter());
       bp.type = "bandpass";
       bp.frequency.value = Math.min(9000, f0 * 2);
       bp.Q.value = 2;
-      const bg = ctx.createGain();
+      const bg = bag.add(ctx.createGain());
       bg.gain.value = pt.breath * 2;
       breath.connect(bp).connect(bg).connect(mix);
     }
     let src: AudioNode = mix;
     if (pt.drive) {
-      const sh = ctx.createWaveShaper();
+      const sh = bag.add(ctx.createWaveShaper());
       const k = pt.drive * 6;
       const curve = new Float32Array(512);
       for (let i = 0; i < 512; i++) {
@@ -578,19 +676,19 @@ export class Chip {
     }
     if (pt.vowel) {
       // Two formants in parallel: a sung vowel.
-      const out = ctx.createGain();
+      const out = bag.add(ctx.createGain());
       for (const [i, f] of pt.vowel.entries()) {
-        const bp = ctx.createBiquadFilter();
+        const bp = bag.add(ctx.createBiquadFilter());
         bp.type = "bandpass";
         bp.frequency.value = f * (1 + ((p.bright ?? 0) * 0.15));
         bp.Q.value = 6;
-        const g = ctx.createGain();
+        const g = bag.add(ctx.createGain());
         g.gain.value = i ? 0.7 : 1.4;
         src.connect(bp).connect(g).connect(out);
       }
       src = out;
     }
-    const fl = pt.filter ? ctx.createBiquadFilter() : null;
+    const fl = pt.filter ? bag.add(ctx.createBiquadFilter()) : null;
     if (fl && pt.filter) {
       fl.type = pt.filter.type ?? "lowpass";
       fl.Q.value = pt.filter.q ?? 0.7;
@@ -600,18 +698,18 @@ export class Chip {
       fl.frequency.setTargetAtTime(base, t + 0.005, pt.filter.envDecay ?? 0.1);
       src = src.connect(fl);
     } else if (bright !== 1) {
-      const tone = ctx.createBiquadFilter();
+      const tone = bag.add(ctx.createBiquadFilter());
       tone.type = "lowpass";
       tone.frequency.value = Math.min(16000, f0 * 8 * bright);
       src = src.connect(tone);
     }
-    const dull = p.muffleable ? ctx.createBiquadFilter() : null;
+    const dull = p.muffleable ? bag.add(ctx.createBiquadFilter()) : null;
     if (dull) {
       dull.type = "lowpass";
       dull.frequency.value = 16000;
       src = src.connect(dull);
     }
-    const g = ctx.createGain();
+    const g = bag.add(ctx.createGain());
     const a = Math.max(0.002, pt.amp.a * (1 + (p.soft ?? 0) * 4));
     const sus = peak * pt.amp.s;
     g.gain.setValueAtTime(0, t);
@@ -628,10 +726,10 @@ export class Chip {
     // The LFOs, stopped with the note (D184: they ran on 2 s past its end, and past an early stop).
     const lfos: AudioScheduledSourceNode[] = [];
     if (pt.trem) {
-      const lfo = ctx.createOscillator();
+      const lfo = bag.src(ctx.createOscillator());
       lfos.push(lfo);
-      const depth = ctx.createGain();
-      const tg = ctx.createGain();
+      const depth = bag.add(ctx.createGain());
+      const tg = bag.add(ctx.createGain());
       lfo.frequency.value = pt.trem.rate;
       depth.gain.value = pt.trem.depth * 0.5;
       tg.gain.value = 1 - pt.trem.depth * 0.5;
@@ -640,9 +738,9 @@ export class Chip {
       lfo.start(t);
     }
     if (pt.vib && end - t > pt.vib.delay + 0.1) {
-      const lfo = ctx.createOscillator();
+      const lfo = bag.src(ctx.createOscillator());
       lfos.push(lfo);
-      const depth = ctx.createGain();
+      const depth = bag.add(ctx.createGain());
       lfo.frequency.value = pt.vib.rate;
       depth.gain.setValueAtTime(0, t);
       depth.gain.setValueAtTime(0, t + pt.vib.delay);
@@ -653,12 +751,12 @@ export class Chip {
     }
     if (p.trill && ctx.createConstantSource) {
       // A whole tone above and back: a square wave of 0 or 200 cents.
-      const lfo = ctx.createOscillator();
+      const lfo = bag.src(ctx.createOscillator());
       lfo.type = "square";
       lfo.frequency.value = 7.5;
-      const depth = ctx.createGain();
+      const depth = bag.add(ctx.createGain());
       depth.gain.value = 100;
-      const centre = ctx.createConstantSource();
+      const centre = bag.src(ctx.createConstantSource());
       lfos.push(lfo, centre);
       centre.offset.value = 100;
       lfo.connect(depth);
@@ -666,8 +764,8 @@ export class Chip {
       lfo.start(t + 0.06);
       centre.start(t + 0.06);
     }
-    const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
-    const dyn = ctx.createGain();
+    const pan = ctx.createStereoPanner ? bag.add(ctx.createStereoPanner()) : null;
+    const dyn = bag.add(ctx.createGain());
     if (pan) {
       pan.pan.value = Math.max(-1, Math.min(1, v.pan));
       src.connect(g).connect(dyn).connect(pan).connect(this.bus);
@@ -720,34 +818,35 @@ export class Chip {
     const ctx = this.ctx;
     const t = ctx.currentTime;
     const f0 = hz(midi);
-    const out = ctx.createGain();
+    const bag = new Bag();
+    const out = bag.add(ctx.createGain());
     out.gain.value = 0.22 * level;
-    const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    const pan = ctx.createStereoPanner ? bag.add(ctx.createStereoPanner()) : null;
     if (pan) (pan.pan.value = Math.max(-1, Math.min(1, v.pan)), out.connect(pan).connect(this.bus));
     else out.connect(this.bus);
     // The flight: a sawtooth gliding up an octave through an opening filter, and a whoosh of air.
-    const o = ctx.createOscillator();
+    const o = bag.src(ctx.createOscillator());
     o.type = "sawtooth";
     o.frequency.setValueAtTime(f0, t);
     o.frequency.exponentialRampToValueAtTime(f0 * 2, t + 0.18);
-    const fl = ctx.createBiquadFilter();
+    const fl = bag.add(ctx.createBiquadFilter());
     fl.type = "lowpass";
     fl.Q.value = 6;
     fl.frequency.setValueAtTime(400, t);
     fl.frequency.exponentialRampToValueAtTime(7000, t + 0.18);
-    const og = ctx.createGain();
+    const og = bag.add(ctx.createGain());
     og.gain.setValueAtTime(0.9, t);
     og.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
     o.connect(fl).connect(og).connect(out);
     o.start(t);
     o.stop(t + 0.26);
-    const n = this.noise();
-    const nf = ctx.createBiquadFilter();
+    const n = bag.src(this.noise());
+    const nf = bag.add(ctx.createBiquadFilter());
     nf.type = "bandpass";
     nf.Q.value = 3;
     nf.frequency.setValueAtTime(800, t);
     nf.frequency.exponentialRampToValueAtTime(6000, t + 0.2);
-    const ng = ctx.createGain();
+    const ng = bag.add(ctx.createGain());
     ng.gain.setValueAtTime(0.0001, t);
     ng.gain.exponentialRampToValueAtTime(0.5, t + 0.06);
     ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
@@ -759,10 +858,10 @@ export class Chip {
     let gap = 0.11;
     let gain = 0.7;
     for (let k = 0; k < 9; k++) {
-      const b = ctx.createOscillator();
+      const b = bag.src(ctx.createOscillator());
       b.type = "triangle";
       b.frequency.value = f0 * 2 * (1 + k * 0.01);
-      const bg = ctx.createGain();
+      const bg = bag.add(ctx.createGain());
       bg.gain.setValueAtTime(gain, at);
       bg.gain.exponentialRampToValueAtTime(0.001, at + 0.03);
       b.connect(bg).connect(out);
@@ -777,16 +876,17 @@ export class Chip {
   /** The rhythm section (D177; D181): a synthesized kit (a band's, a console's, an analog machine's), quiet under the music. */
   drum(d: Drum, at: number, vel: number, kit: Kit = "acoustic") {
     const ctx = this.ctx;
-    const g = ctx.createGain();
+    const bag = new Bag();
+    const g = bag.add(ctx.createGain());
     g.connect(this.master);
     const lvl = 0.22 * vel;
     const noise = (type: BiquadFilterType, f: number, q: number, len: number, attack = 0.001) => {
-      const n = this.noise();
-      const fl = ctx.createBiquadFilter();
+      const n = bag.src(this.noise());
+      const fl = bag.add(ctx.createBiquadFilter());
       fl.type = type;
       fl.frequency.value = f;
       fl.Q.value = q;
-      const ng = ctx.createGain();
+      const ng = bag.add(ctx.createGain());
       ng.gain.setValueAtTime(0, at);
       ng.gain.linearRampToValueAtTime(lvl, at + attack);
       ng.gain.exponentialRampToValueAtTime(0.0001, at + len);
@@ -795,11 +895,11 @@ export class Chip {
       n.stop(at + len + 0.02);
     };
     const tone = (type: OscillatorType, f0: number, f1: number, len: number, level = lvl) => {
-      const o = ctx.createOscillator();
+      const o = bag.src(ctx.createOscillator());
       o.type = type;
       o.frequency.setValueAtTime(f0, at);
       o.frequency.exponentialRampToValueAtTime(f1, at + len * 0.6);
-      const og = ctx.createGain();
+      const og = bag.add(ctx.createGain());
       og.gain.setValueAtTime(level, at);
       og.gain.exponentialRampToValueAtTime(0.0001, at + len);
       o.connect(og).connect(g);
@@ -833,11 +933,11 @@ export class Chip {
           return tone("triangle", 190, 170, 0.1, lvl * 0.9);
         case "clap":
           for (const k of [0, 0.011, 0.022]) {
-            const n = this.noise();
-            const fl = ctx.createBiquadFilter();
+            const n = bag.src(this.noise());
+            const fl = bag.add(ctx.createBiquadFilter());
             fl.type = "bandpass";
             fl.frequency.value = 1200;
-            const ng = ctx.createGain();
+            const ng = bag.add(ctx.createGain());
             ng.gain.setValueAtTime(lvl, at + k);
             ng.gain.exponentialRampToValueAtTime(0.0001, at + k + (k === 0.022 ? 0.14 : 0.012));
             n.connect(fl).connect(ng).connect(g);
@@ -910,8 +1010,9 @@ export class Chip {
   /** A metronome tick: a short, soft click, brighter on the bar's first beat. */
   tick(at: number, accent: boolean, gain = 0.1) {
     const ctx = this.ctx;
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
+    const bag = new Bag();
+    const o = bag.src(ctx.createOscillator());
+    const g = bag.add(ctx.createGain());
     o.type = "square";
     o.frequency.value = accent ? 2093 : 1568;
     g.gain.setValueAtTime(gain, at);

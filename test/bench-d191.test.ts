@@ -8,8 +8,7 @@ import { beatOf, FUGUES, fugueById } from "../src/touch/fugue.ts";
 import { laneNotes, quickRides, RIDE_MS, type LaneNote } from "../src/touch/lanes.ts";
 import { Chip } from "../src/touch/chip.ts";
 import { ProtoGame, PERFECT_MS } from "../src/bench/proto-game.ts";
-import { keyId, midiId, moves, protoById } from "../src/bench/protos.ts";
-import { fingering, type VoiceNotes } from "../src/bench/fingering.ts";
+import { keyId, midiId, protoById } from "../src/bench/protos.ts";
 import { phrase } from "../src/touch/phrasing.ts";
 import { cancelled } from "../src/touch/thumbs.ts";
 import { startTick } from "../src/touch/voice-mode.ts";
@@ -158,68 +157,6 @@ test("a rider's note missed: the rider stays silent and unjudged; only the note 
   assert.equal(r.right, r.of - 1);
   assert.notEqual(g.notes[first].state, "miss");
   assert.notEqual(g.notes[first].state, "hit");
-});
-
-test("FINGERING thumbs: any joined note quicker than half a beat changes thumb, a broken chord too", () => {
-  // G C E G C E in sixteenths (B/4), rising leaps and a falling one.
-  const ns = lane([[0, 120, 55, 32], [120, 120, 60, 35], [240, 120, 64, 37], [360, 120, 67, 39], [480, 120, 60, 35], [600, 120, 64, 37]]);
-  const f = fingering(ns, moves(ns, B), [], B);
-  for (let i = 1; i < f.length; i++) assert.notEqual(f[i].hand, f[i - 1].hand, `note ${i}`);
-  // Quarters by leaps: the thumb follows the line (right up, left down).
-  const qs = lane([[0, B, 55, 32], [B, B, 60, 35], [2 * B, B, 64, 37], [3 * B, B, 57, 33]]);
-  assert.deepEqual(fingering(qs, moves(qs, B), [], B).slice(1).map((x) => x.hand), ["right", "right", "left"]);
-});
-
-test("FINGERING legato: stepwise runs of short notes only (not thirds, not eighths in a quarter beat); tenuto over legato", () => {
-  const run = (len: number, midis: number[], steps: number[]) => lane(midis.map((m, i) => [i * len, len, m, steps[i]]));
-  const arts = (ns: LaneNote[]) => fingering(ns, moves(ns, B), [], B).map((x) => x.art);
-  // Sixteenths by step: legato after the first.
-  assert.deepEqual(arts(run(120, [60, 62, 64, 65, 67], [35, 36, 37, 38, 39])).slice(1), ["legato", "legato", "legato", "legato"]);
-  // Sixteenths by thirds: not legato.
-  assert.ok(!arts(run(120, [60, 64, 67, 71, 74], [35, 37, 39, 41, 43])).includes("legato"));
-  // Eighths by step (half a beat): a light non-legato.
-  assert.ok(!arts(run(240, [60, 62, 64, 65, 67], [35, 36, 37, 38, 39])).includes("legato"));
-  // A long note in a stepwise line: tenuto.
-  const long = lane([[0, 120, 60, 35], [120, 120, 62, 36], [240, 2 * B, 64, 37]]);
-  assert.equal(arts(long)[2], "tenuto");
-});
-
-test("FINGERING: a suspension resolving down by step is legato; the dotted note of a dotted figure is not staccato", () => {
-  // C5 held a half note against a D4 in the bass that moved under it (a seventh), falling to B4.
-  const sus = lane([[0, 2 * B, 72, 42], [2 * B, B, 71, 41]]);
-  const bass: VoiceNotes = [[0, B, 48, 28], [B, 2 * B, 50, 29]];
-  assert.equal(fingering(sus, moves(sus, B), [], B, [bass])[1].art, "legato");
-  // Against a consonance (E4 under C5), free.
-  const cons: VoiceNotes = [[0, B, 48, 28], [B, 2 * B, 52, 30]];
-  assert.notEqual(fingering(sus, moves(sus, B), [], B, [cons])[1].art, "legato");
-  // B3 dotted eighth, B3 sixteenth (I/5's figure): the dotted note held, not staccato.
-  const dot = lane([[0, 360, 59, 27], [360, 120, 59, 27], [480, B, 62, 29]]);
-  assert.notEqual(fingering(dot, moves(dot, B), [], B)[0].art, "staccato");
-  // A short repeated note still is.
-  const rep = lane([[0, 240, 59, 27], [240, 240, 59, 27], [480, B, 62, 29]]);
-  assert.equal(fingering(rep, moves(rep, B), [], B)[0].art, "staccato");
-});
-
-test("FINGERING across the fugues: legato well under half the notes; no thumb strikes twice in a quick joined pair", () => {
-  const tally = { legato: 0, all: 0, same: 0 };
-  for (const f of FUGUES) {
-    const beat = beatOf(f).ticks;
-    for (const [v, raw] of f.voices.entries()) {
-      const ns = laneNotes(raw, beat, v);
-      const mv = moves(ns, beat);
-      const fi = fingering(ns, mv, f.entries, beat, f.voices.filter((_, j) => j !== v));
-      let prev = -1;
-      ns.forEach((n, i) => {
-        if (i > 0 && ns[i - 1].on === n.on) return;
-        tally.all++;
-        if (fi[i].art === "legato") tally.legato++;
-        if (prev >= 0 && mv[i].joined && n.on - ns[prev].on < beat / 2 && fi[i].hand === fi[prev].hand) tally.same++;
-        prev = i;
-      });
-    }
-  }
-  assert.ok(tally.legato / tally.all < 0.4, `legato ${tally.legato} of ${tally.all}`);
-  assert.equal(tally.same, 0);
 });
 
 test("engine audit: the ritard in the PERFECT check and the drums' beat", () => {

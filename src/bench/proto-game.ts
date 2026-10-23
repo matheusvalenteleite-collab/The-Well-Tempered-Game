@@ -4,8 +4,8 @@
  * window); the place judges it: right, Bach's note sounds; wrong, what was asked for sounds, muffled
  * (the PIANO's wrong key, plain), and it does not count. A held thumb slid onto the next note's place
  * plays it; a thumb moved across the dynamic axis while its note sounds swells or fades it; a thumb
- * flicked upwards as it lets go sends its note off with a swoosh. The player's voice is the lead
- * (chip.ts leadOf). It can also be played from a computer's keys or a MIDI keyboard. On the audio
+ * flicked upwards as it lets go sends its note off with a swoosh. The player's voice sounds as the
+ * others do (D208; chip.ts leadOf). It can also be played from a computer's keys or a MIDI keyboard. On the audio
  * clock as heard; the others phrased (phrasing.ts); a band's rhythm section keeps the beat. A note
  * too quick to strike at the tempo played rides after the note before (D191: lanes.ts quickRides):
  * it sounds by itself once that note is played right, and is neither judged nor counted.
@@ -21,9 +21,8 @@ import type { Keyboard } from "../touch/piano.ts";
 import { follow, phrase, ritard, type Shape } from "../touch/phrasing.ts";
 import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
-import { aim, columnAt, COLUMNS, pianoKey, pianoKeys } from "./placed.ts";
-import { fingering, STACCATO_SHARE, TENUTO_SHARE, type Finger } from "./fingering.ts";
-import { barDynamic, contourCue, contourOk, dynamic, LADDER_AREA, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk } from "./protos.ts";
+import { pianoKey, pianoKeys } from "./placed.ts";
+import { barDynamic, contourCue, contourOk, dynamic, HOME_LANES, keyPlace, LADDER_AREA, planLanes, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk } from "./protos.ts";
 
 export const PERFECT_MS = 70;
 /** The multiplier's step (notes right in a row), and CON FUOCO's run. */
@@ -85,6 +84,8 @@ interface Held {
   cell?: number;
   /** The dynamic it struck at (0 pp to 1 ff). */
   d0: number;
+  /** D208: another thumb has struck since on this voice: this one is on its way off and slides no more. */
+  passive?: boolean;
   /** Its last positions, for a flick. */
   trail: { t: number; y: number }[];
   /** The points its note scored (taken back if its articulation fails). */
@@ -100,12 +101,11 @@ export interface Mark {
 
 type Verdict = { ok: boolean; wrong?: number; why?: "gesture" | "legato" | "hand" | "height" | "dynamic" };
 
-/** A voice the player plays: its notes as judged, their moves, and their fingering (FINGERING). */
+/** A voice the player plays: its notes as judged, and their moves. */
 export interface Track {
   voice: number;
   notes: LaneNote[];
   moves: Move[];
-  fingers: Finger[];
 }
 
 export class ProtoGame {
@@ -139,8 +139,6 @@ export class ProtoGame {
   private pedalDown = false;
   /** LADDER: the touch that played the last note (its thumb, its height). */
   lastTouch: { side: Side; y: number } | null = null;
-  /** SIDEWAYS: the window's middle (a staff step, fractional), following the passage. */
-  pan = 0;
   /** The touches, for the music box. */
   readonly marks: Mark[] = [];
   /**
@@ -173,7 +171,6 @@ export class ProtoGame {
   private nextOther = 0;
   private readonly shapes: Shape[];
   private held = new Map<number, Held>();
-  private stepAt = 0;
   private readonly rit: ReturnType<typeof ritard> = { warp: (t: number) => t, unwarp: (w: number) => w };
   /** How the player has been playing, 0 (pp) to 1 (ff): the others follow, a little. */
   private feel = 0.55;
@@ -201,7 +198,7 @@ export class ProtoGame {
       // D191: the notes too quick to strike ride after the note before.
       quickRides(notes, this.beat, msBetween);
       const mv = moves(notes, this.beat);
-      return { voice: v, notes, moves: mv, fingers: fingering(notes, mv, f.entries, this.beat, f.voices.filter((_, j) => j !== v)) };
+      return { voice: v, notes, moves: mv };
     });
     [{ voice: this.voice, notes: this.notes, moves: this.moves }] = this.tracks;
     const played = this.tracks.map((t) => t.voice);
@@ -221,7 +218,6 @@ export class ProtoGame {
       for (const e of f.entries) if (e.voice === t.voice && e.on >= from) this.entries.push({ voice: e.voice, k, on: e.on, end: e.end, ons: e.notes.map((x) => x[0]), state: "open" });
     });
     this.kb = pianoKeys(this.notes);
-    this.pan = aim(this.notes, from, f.barTicks) ?? this.notes[0].step;
   }
 
   /** The clock, with the last cadence held back (phrasing.ts ritard). */
@@ -239,7 +235,6 @@ export class ProtoGame {
   /** One frame: the beat (or the band) and the others scheduled ahead; the window panned; notes gone by marked missed. True at the end. */
   step(): boolean {
     const ch = this.chip;
-    this.adaptTempo(ch.heard());
     this.now = this.tickAt(ch.heard());
     if (this.o.wait) {
       const nx = this.next();
@@ -295,17 +290,6 @@ export class ProtoGame {
       }
     }
     if (this.band.length > 64) this.band = this.band.filter((b) => b.until > ch.ctx.currentTime);
-    // SIDEWAYS: the window glides towards the passage ahead (on the audio clock), always holding the next note.
-    const clock = ch.ctx.currentTime;
-    const dt = this.stepAt ? Math.max(0, Math.min(0.1, clock - this.stepAt)) : 0;
-    this.stepAt = clock;
-    const target = aim(this.notes, this.now, this.f.barTicks);
-    if (target !== null) this.pan += (target - this.pan) * Math.min(1, dt * 1.5);
-    const nx = this.next();
-    if (nx >= 0) {
-      const room = COLUMNS / 2 - 1;
-      this.pan = Math.max(this.notes[nx].step - room, Math.min(this.notes[nx].step + room, this.pan));
-    }
     this.sounding();
     // Notes gone by unplayed: missed, a frame's grace late (D191: a tap at the window's very end,
     // handled after the frame, was refused); each one missed (a chord once) a slip.
@@ -373,18 +357,17 @@ export class ProtoGame {
     return false;
   }
 
-  /** The place under a touch: LADDER a row and SIDEWAYS a column (staff steps), the PIANO a key. */
+  /** The place under a touch: LADDER a row (a staff step), the PIANO a key. */
   cellAt(c: Contact): number | undefined {
-    if (this.proto.id === "sideways") return columnAt(c.x, this.pan, c.w);
     if (this.proto.id === "piano") return pianoKey(this.kb, c.x / c.w, c.y / c.h);
     if (this.proto.id === "ladder" && this.rows) return this.rows.stepAt(c.y);
+    if (this.proto.id === "highway") return this.laneOfX(c.x, c.w);
     return undefined;
   }
 
   /** The dynamic of a touch, 0 (pp) to 1 (ff). */
   dynamicAt(c: Contact): number {
     if (this.proto.layout === "bars") return barDynamic(c.x, c.w);
-    if (this.proto.id === "sideways") return 1 - c.y / c.h;
     return 0.55;
   }
 
@@ -409,7 +392,13 @@ export class ProtoGame {
     if (this.proto.id === "keys") {
       const lvl = this.o.easy ?? "timing";
       const code = at.key?.code;
-      if (lvl === "timing" || !code || !this.lastKey || this.isFree(i, k)) return { ok: true };
+      if (lvl === "timing" || !code || this.isFree(i, k)) return { ok: true };
+      // D208, EXACT LANES: the planned lane's key (in any row: the rows give the dynamic), or for a repeat the space bar.
+      if (lvl === "exact") {
+        if (code === "Space") return m.dir === 0 || m.steps === 0 ? { ok: true } : { ok: false, wrong: asked(0), why: "gesture" };
+        return keyPlace(code)?.col === this.lanes[i] ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
+      }
+      if (!this.lastKey) return { ok: true };
       return contourOk(m, this.lastKey, code, lvl === "leaps") ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
     }
     if (at.key?.midi !== undefined) {
@@ -440,24 +429,15 @@ export class ProtoGame {
         const same = last.side === c.side;
         const up = last.y - c.y;
         let ok: boolean;
-        // A repeat, or the same staff step altered (E flat to E natural): level.
-        if (m.dir === 0 || m.steps === 0) ok = Math.abs(up) <= (same ? 1.2 : 2.5) * R;
+        // D208, more forgiving still: a repeat (or the same staff step altered, E flat to E natural)
+        // about level; a move, the same thumb not the wrong way (a leap a row at least), the other
+        // thumb anywhere short of clearly the wrong way.
+        if (m.dir === 0 || m.steps === 0) ok = Math.abs(up) <= (same ? 2 : 3.5) * R;
         else {
           const way = up * m.dir;
-          ok = same ? way >= 0.3 * R && (m.size < 3 || way >= 1.6 * R) : way >= -1.5 * R;
+          ok = same ? way >= 0 && (m.size < 3 || way >= R) : way >= -2.5 * R;
         }
         return ok ? { ok } : { ok, wrong: asked, why: "gesture" };
-      }
-      case "fingering": {
-        const fg = this.tracks[k].fingers[i];
-        if (c.side !== fg.hand) return { ok: false, wrong: m.size > 0 ? asked(-m.steps) : undefined, why: "hand" };
-        if (fg.height && (fg.height === "high") !== c.y < c.h / 2) return { ok: false, why: "height" };
-        if (fg.dyn && (fg.dyn === "f") !== barDynamic(c.x, c.w) >= 0.5) return { ok: false, why: "dynamic" };
-        return { ok: true };
-      }
-      case "sideways": {
-        const col = columnAt(c.x, this.pan, c.w);
-        return chord.some((x) => Math.abs(x.step - col) <= 1) ? { ok: true } : { ok: false, wrong: stepPitch(col, n), why: "gesture" };
       }
       case "piano": {
         const key = pianoKey(this.kb, c.x / c.w, c.y / c.h);
@@ -469,7 +449,9 @@ export class ProtoGame {
       case "highway": {
         // D207: EASY on a phone: the lane tapped, judged as the keys are (D187), by lanes.
         const lvl = this.o.easy ?? "timing";
-        if (lvl === "timing" || this.lastLane < 0 || this.isFree(i, k)) return { ok: true };
+        if (lvl === "timing" || this.isFree(i, k)) return { ok: true };
+        if (lvl === "exact") return this.laneOfX(c.x, c.w) === this.lanes[i] ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
+        if (this.lastLane < 0) return { ok: true };
         return laneOk(m, this.lastLane, this.laneOfX(c.x, c.w), lvl === "leaps", this.laneCount) ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
       }
     }
@@ -481,22 +463,18 @@ export class ProtoGame {
     return Math.max(0, Math.min(this.laneCount - 1, Math.floor((x / Math.max(1, w)) * this.laneCount)));
   }
   get laneCount(): number {
-    return this.proto.id === "highway" ? 5 : 10;
+    return this.proto.id === "highway" ? 5 : HOME_LANES;
   }
-  /** The lanes under the fingers now (HIGHWAY). */
+  /** The lanes under the fingers now (HIGHWAY), and how far down each finger is (px; for the two rows of pads). */
   get heldLanes(): number[] {
-    return [...this.held.values()].map((h) => this.laneOfX(h.x0, this.touchW));
+    return [...this.held.values()].map((h) => h.cell ?? this.laneOfX(h.x0, this.touchW));
+  }
+  get heldPads(): { lane: number; y: number }[] {
+    return [...this.held.values()].map((h) => ({ lane: h.cell ?? this.laneOfX(h.x0, this.touchW), y: h.trail.at(-1)?.y ?? h.ay }));
   }
   private touchW = 1;
 
-  /** SIDEWAYS LEGATO: a note joined in the score must be struck while the note before still sounds under another thumb (or key). */
-  private legatoOk(i: number, id: number, k = 0): boolean {
-    const wants = this.proto.id === "fingering" ? this.tracks[k].fingers[i].art === "legato" : this.proto.id === "sideways" && this.o.legato && this.moves[i].joined;
-    if (!wants) return true;
-    const prev = this.before(i, k);
-    for (const [hid, h] of this.held) if (hid !== id && h.k === k && h.sounds.length && h.chord.includes(prev)) return true;
-    return false;
-  }
+
 
   down(id: number, c: Contact, ts: number) {
     if (this.held.has(id)) this.up(id, ts);
@@ -578,7 +556,6 @@ export class ProtoGame {
       return;
     }
     let v = this.verdict(i, at, h.k);
-    if (v.ok && !this.legatoOk(i, id, h.k)) v = { ok: false, why: "legato" };
     this.play(id, h, i, v, false, d);
   }
 
@@ -593,13 +570,24 @@ export class ProtoGame {
     const d = this.dynamicAt(c);
     for (const s of h.sounds) s.dyn?.(levelOf(d) / levelOf(h.d0));
     const t = this.tickOf(ts);
+    if (h.passive) return;
     if (this.proto.id === "ladder" && this.rows) {
-      // A slide plays on once the thumb has moved a little more than half a row from where it last played.
-      if (Math.abs(c.y - h.ay) < this.rows.rowH * 0.6) return;
+      // D208: a slide plays on only after a deliberate travel (a row and a half from where it last
+      // played): a thumb's contact point wanders a row or so as it rolls and lifts, and that wander
+      // took the next note from the other thumb (the overlap legato lost its notes as slips).
+      if (Math.abs(c.y - h.ay) < this.rows.rowH * 1.5) return;
       this.slideTo(id, h, c, t);
-    } else if (this.proto.id === "sideways" || this.proto.id === "piano") {
-      // Only the thumb's own travel counts (the window moving under a still thumb does not).
-      const unit = this.proto.id === "sideways" ? c.w / COLUMNS : c.w / this.kb.whites / 2;
+    } else if (this.proto.id === "highway") {
+      // D208: a held thumb slid into another lane plays the next note there, joined (legato): only
+      // once it has crossed most of a lane's width, so a rolling thumb does not slide by itself.
+      const lane = this.laneOfX(c.x, c.w);
+      if (lane === h.cell || Math.abs(c.x - h.ax) < (c.w / this.laneCount) * 0.75) return;
+      h.cell = lane;
+      h.ax = c.x;
+      if (this.slideTo(id, h, c, t)) this.lastLane = lane;
+    } else if (this.proto.id === "piano") {
+      // Only the thumb's own travel counts.
+      const unit = c.w / this.kb.whites / 2;
       if (Math.abs(c.x - h.ax) < unit * 0.6) return;
       const cell = this.cellAt(c);
       if (cell === h.cell) return;
@@ -610,18 +598,22 @@ export class ProtoGame {
   }
 
   /** A held thumb reaches another place: the next note there, if it is there and due. */
-  private slideTo(id: number, h: Held, c: Contact, t: number) {
-    const i = strike(this.tracks[h.k].notes, t, this.opt, (j) => !h.chord.includes(j) && this.verdict(j, { c }, h.k).ok);
-    if (i < 0) return;
+  private slideTo(id: number, h: Held, c: Contact, t: number): boolean {
+    // D208: only onto the next note still to play, and not before its time is near (half the early window).
+    const notes = this.tracks[h.k].notes;
+    const next = notes.findIndex((n) => n.state === "pending" && !n.ride);
+    if (next < 0 || t < notes[next].on - this.opt.early / 2) return false;
+    const i = strike(notes, t, this.opt, (j) => chordOf(notes, next).includes(j) && !h.chord.includes(j) && this.verdict(j, { c }, h.k).ok);
+    if (i < 0) return false;
     h.ay = c.y;
     this.play(id, h, i, { ok: true }, true, this.dynamicAt(c));
+    return true;
   }
 
   up(id: number, ts: number) {
     const h = this.held.get(id);
     if (!h) return;
     this.held.delete(id);
-    this.judgeRelease(h, ts);
     // Flicked upwards as it let go: the swoosh.
     const tr = h.trail;
     if (h.sounds.length && tr.length >= 2) {
@@ -656,7 +648,9 @@ export class ProtoGame {
       // Joined to the note the other thumb still holds: that one gives way.
       let legato = slide;
       for (const [hid, o] of this.held) {
-        if (hid === id || !o.sounds.length || o.k !== h.k) continue;
+        if (hid === id || o.k !== h.k) continue;
+        o.passive = true;
+        if (!o.sounds.length) continue;
         legato = true;
         for (const sd of o.sounds) sd.stop(this.chip.ctx.currentTime + 0.03);
         o.sounds = [];
@@ -700,8 +694,6 @@ export class ProtoGame {
     this.combo++;
     this.streak++;
     this.maxStreak = Math.max(this.maxStreak, this.streak);
-    // D201: the tempo leans forward with a right note.
-    if (this.o.adapt) this.tempoGoal = Math.min(this.o.adapt.to, this.tempoGoal + (this.o.adapt.to - this.o.adapt.from) * 0.012);
     // D198: the crowd warms; a long run called out, every fifty.
     this.crowd = Math.min(1, this.crowd + (perfect ? 0.025 : 0.015));
     this.flames.push({ i, at });
@@ -755,28 +747,11 @@ export class ProtoGame {
     });
   }
 
-  /** FINGERING: a STACCATO note let go too late, or a TENUTO note too soon, is taken back. */
-  private judgeRelease(h: Held, ts: number) {
-    if (this.proto.id !== "fingering" || h.note < 0) return;
-    const tr = this.tracks[h.k];
-    const n = tr.notes[h.note];
-    const fg = tr.fingers[h.note];
-    if (n.state !== "hit" || (fg.art !== "staccato" && fg.art !== "tenuto")) return;
-    const held = (this.tickOf(ts) - (n.at ?? n.on)) / n.dur;
-    const bad = fg.art === "staccato" ? held > STACCATO_SHARE : held < TENUTO_SHARE;
-    if (!bad) return;
-    for (const j of h.chord) Object.assign(tr.notes[j], { state: "miss", wrong: true });
-    this.score = Math.max(0, this.score - (h.pts ?? 0));
-    this.combo = 0;
-    this.slip();
-    this.grade = { text: "✕", at: performance.now(), side: h.side, why: fg.art };
-  }
+
 
   /** A slip: the multiplier a step down, the run (and CON FUOCO) ended. */
   private slip() {
     this.crowd = Math.max(0, this.crowd - 0.045);
-    // D201: and holds back after a slip.
-    if (this.o.adapt) this.tempoGoal = Math.max(this.o.adapt.from, this.tempoGoal - (this.o.adapt.to - this.o.adapt.from) * 0.06);
     if (this.streak >= FUOCO_NOTES) this.banner = null;
     this.streak = 0;
     this.mult = Math.max(1, this.mult - 1);
@@ -793,8 +768,6 @@ export class ProtoGame {
         if (this.isBoss(e)) this.banner = { text: "THE BOSS GOT AWAY", at: performance.now() };
         continue;
       }
-      // FINGERING: not before the last note's release is judged (a tenuto let go early loses it).
-      if (this.proto.id === "fingering" && notes.some((n) => n.off === undefined && n.on + n.dur > this.now)) continue;
       if (notes.length && notes.every((n) => n.state === "hit")) {
         e.state = "captured";
         this.score += 20 * this.mult;
@@ -850,58 +823,26 @@ export class ProtoGame {
     const whole = Math.floor(this.sustainAcc);
     if (whole > 0) (this.score += whole), (this.sustainAcc -= whole);
   }
-  /**
-   * D201, the tempo following the playing: from `adapt.from` towards `adapt.to`, a little nearer with
-   * each right note, further back at each slip; the clock eases to it (a quarter of the way a second),
-   * so the change is felt as a gradual accelerando or holding back, never a jump. The windows follow.
-   */
-  private tempoGoal = 0;
-  private tempoAt = -1;
+  /** The tempo, quarter notes a minute. */
   get bpm(): number {
     return (this.tps * 60) / this.f.tpq;
   }
-  private adaptTempo(t: number) {
-    const a = this.o.adapt;
-    if (!a || this.o.wait) return;
-    if (this.tempoAt < 0 || this.now < this.entry) {
-      this.tempoAt = t;
-      if (!this.tempoGoal) this.tempoGoal = this.bpm;
-      return;
-    }
-    const dt = Math.min(0.25, Math.max(0, t - this.tempoAt));
-    this.tempoAt = t;
-    const bpm = this.bpm + (this.tempoGoal - this.bpm) * Math.min(1, dt * 0.25);
-    if (Math.abs(bpm - this.bpm) < 0.05) return;
-    this.anchorTick = this.tickAt(t);
-    this.anchorAt = t;
-    this.tps = (this.f.tpq * bpm) / 60;
-    this.opt = options(this.f.tpq, bpm, "easy");
-    if (this.proto.id === "duo") this.opt = { ...this.opt, early: this.opt.early * 1.25, late: this.opt.late * 1.25 };
-  }
-
   /** One to five stars: the score against two points a note (all PERFECT at ×1). */
   starsOf(score: number, of: number): number {
     const ratio = score / Math.max(1, 2 * of);
     return ratio >= 4.5 ? 5 : ratio >= 3 ? 4 : ratio >= 2 ? 3 : ratio >= 1 ? 2 : 1;
   }
   /**
-   * EASY's highway (D198): the lane each note comes down, a fingering along the home row's ten keys:
-   * from the middle; up a key for a step or a third, two for a leap, down likewise; the same lane for a
-   * repeat; back to the middle at a free note; held at the edges.
+   * HIGHWAY's lanes (D198; D208): the lane each note comes down, a fingering of the line planned over
+   * the whole passage (protos.ts planLanes): on a computer the nine home-row keys, no finger twice
+   * running; on a phone five lanes.
    */
   get lanes(): number[] {
     if (this.lanesMemo) return this.lanesMemo;
     const notes = this.notes;
-    const top = this.laneCount - 1;
-    const mid = this.laneCount === 5 ? 2 : 4;
-    let lane = mid;
-    this.lanesMemo = notes.map((n, i) => {
-      if (i > 0 && notes[i - 1].on === n.on) return lane;
-      const m = this.moves[i];
-      if (this.isFree(i)) lane = mid;
-      else if (!n.ride && m.dir !== 0 && m.steps !== 0) lane = Math.max(0, Math.min(top, lane + m.dir * (m.size >= 3 ? 2 : 1)));
-      return lane;
-    });
+    const heads = notes.map((n, i) => !n.ride && !(i > 0 && notes[i - 1].on === n.on));
+    const free = notes.map((_, i) => this.isFree(i));
+    this.lanesMemo = planLanes(this.moves, heads, free, this.laneCount, this.proto.id === "keys");
     return this.lanesMemo;
   }
   private lanesMemo?: number[];
@@ -916,8 +857,9 @@ export class ProtoGame {
   get zone(): "pleno" | "fuoco" | null {
     return this.streak >= FUOCO_NOTES ? "fuoco" : this.pleno ? "pleno" : null;
   }
-  /** The voice's last entry. */
+  /** The voice's last entry (D208: no bosses in LADDER for now). */
   private isBoss(e: { voice: number; on: number }) {
+    if (this.proto.id === "ladder") return false;
     return e.on === Math.max(...this.entries.filter((x) => x.voice === e.voice).map((x) => x.on));
   }
 

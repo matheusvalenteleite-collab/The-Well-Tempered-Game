@@ -8,7 +8,7 @@
  * D174, the subject: its notes, in whatever voice, are dotted along their top; a ◆ stands over the
  * first note of each entry as it comes, in the voice's colour, gold when the voice is the player's.
  */
-import { bossBar, cadenceMarks, pixText, ribbons, sparks, zoneGlow, type Burst, type Pop, type Span } from "./box-fx.ts";
+import { bossBar, cadenceMarks, pixText, ribbons, sparks, strikes, zoneGlow, type Burst, type Pop, type Span } from "./box-fx.ts";
 import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
 import type { LaneNote } from "./lanes.ts";
 import type { OtherNote } from "./voice-mode.ts";
@@ -96,8 +96,6 @@ export interface Frame {
   trace?: { tick: number; step: number; on: boolean }[];
   /** The testbench (D178): each touch, at the step it asked for, right or wrong. */
   marks?: { tick: number; step: number; ok: boolean }[];
-  /** The testbench's FINGERING (D181): each note's thumb and articulation (aligned with `notes`). */
-  fingers?: { hand: "left" | "right"; art: string; boss?: string }[];
   /** The testbench's score (D181): each entry ("voice:onset") captured (gold) or lost (grey). */
   entryState?: Map<string, "captured" | "lost" | "open">;
   /** The testbench's TWO VOICES (D180): a second voice played, drawn as the first. */
@@ -183,7 +181,8 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
   const fx = { g, w, h, xOf, yOf, bh, now: fr.now, tps: fr.tps, gold: tok("--tg-gold"), miss: tok("--tg-miss"), fg: tok("--tg-fg"), ink: (v: number) => inkOf(v, fr.count) };
   if (fr.spans) ribbons(fx, fr.spans, fr.notes2 && fr.voice2 !== undefined ? [fr.voice, fr.voice2] : [fr.voice], fr.names, fr.entryState);
 
-  // The other voices: their colours, dimmer.
+  // The other voices: their colours, dimmer; (D208) their subject notes full, standing out of the trail.
+  const subjNotes = new Set(fr.spans?.filter((sp) => sp.form !== "counter").flatMap((sp) => sp.path.map((n) => `${sp.voice}:${n.on}`)) ?? []);
   for (const o of fr.others) {
     const x1 = xOf(o.on);
     if (x1 > w) break;
@@ -192,7 +191,7 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
     g.globalAlpha = 0.3;
     g.fillStyle = "#000";
     g.fillRect(x1 + 1, yOf(o.step) + 1, Math.max(1, x2 - x1 - 1), bh - 1);
-    g.globalAlpha = 0.5;
+    g.globalAlpha = subjNotes.has(`${o.voice}:${o.on}`) ? 1 : 0.5;
     g.fillStyle = inkOf(o.voice, fr.count);
     g.fillRect(x1, yOf(o.step), Math.max(1, x2 - x1 - 1), bh - 1);
     if (!fr.spans && fr.subject?.has(`${o.voice}:${o.on}`)) dots(g, x1, x2, yOf(o.step), tok("--tg-fg"));
@@ -261,25 +260,6 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
       }
     }
   }
-
-  // FINGERING: L or R over each coming note (pixel letters), its articulation under it.
-  if (fr.fingers)
-    fr.notes.forEach((n, i) => {
-      const fg = fr.fingers![i];
-      const x = xOf(n.on);
-      const x2 = xOf(n.on + n.dur);
-      if (!fg || n.ride || n.state !== "pending" || x < playX || x > w || (i > 0 && fr.notes[i - 1].on === n.on)) return;
-      const y = yOf(n.step);
-      g.fillStyle = fg.hand === "left" ? "#ff8c4a" : "#5cb2ff";
-      // A 3 by 5 pixel letter, above the block.
-      const L = ["100", "100", "100", "100", "111"];
-      const R = ["110", "101", "110", "101", "101"];
-      (fg.hand === "left" ? L : R).forEach((row, ry) => [...row].forEach((on, rx) => on === "1" && g.fillRect(x + rx, y - 7 + ry, 1, 1)));
-      g.fillStyle = edge;
-      if (fg.art === "staccato") g.fillRect(x + 1, y + bh + 1, 1, 1);
-      if (fg.art === "tenuto") g.fillRect(x, y + bh + 1, Math.max(2, x2 - x - 1), 1);
-      if (fg.art === "legato") g.fillRect(x - 3, y + bh + 1, Math.max(3, x2 - x + 2), 1);
-    });
 
   // LADDER on a computer: each coming note's key, a small pixel arrow over it (a dot: the same note).
   if (fr.arrows)
@@ -350,6 +330,7 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
         if (mk && x > -8 && x < w) pixText(g, mk, x, yOf(n.step) - 6, fx.gold);
       }
   }
+  if (fr.spans) strikes(fx, fr.spans);
   if (fr.cadences) cadenceMarks(fx, fr.cadences);
   if (fr.spans && fr.bossFight) bossBar(fx, fr.spans.filter((s) => s.form !== "counter"), fr.voice, fr.notes);
   sparks(fx, fr.pops ?? [], fr.bursts ?? []);
