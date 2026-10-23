@@ -1,8 +1,7 @@
 /**
  * D213, the bench's ⚙ LAB: experiment E1's switches (subject-fx.ts): the subject's sound (brighter and
- * crisper, the others duller during an entry), its per-fugue effect, a vibrato, the stereo move; D215,
- * experiment E3: WITH ISHIZAKA (with-her.ts). Kept
- * on this device; a game takes them as it begins.
+ * crisper, the others duller during an entry), its per-fugue effect, a vibrato, the stereo move (D215's WITH ISHIZAKA withdrawn in D216: its stored switch is
+ * ignored). Kept on this device; a game takes them as it begins.
  */
 import { useState } from "react";
 import { Choice } from "../touch/Panels.tsx";
@@ -13,7 +12,10 @@ const LAB_KEY = "tb-lab-v1";
 function loadLab(): Lab {
   try {
     const v = localStorage.getItem(LAB_KEY);
-    return v === null ? LAB_DEFAULT : { ...LAB_DEFAULT, ...(JSON.parse(v) as Partial<Lab>) };
+    if (v === null) return LAB_DEFAULT;
+    // D216: WITH ISHIZAKA withdrawn: its switch, if stored, left out.
+    const { ishizaka: _gone, ...rest } = JSON.parse(v) as Partial<Lab> & { ishizaka?: boolean };
+    return { ...LAB_DEFAULT, ...rest };
   } catch {
     return LAB_DEFAULT;
   }
@@ -27,8 +29,6 @@ const ROWS: [keyof Lab, string][] = [
   ["effect", "EFFECT"],
   ["vibrato", "VIBRATO"],
   ["stereo", "STEREO"],
-  // D215, E3: only on the seven Book I fugues of the testbench (elsewhere the title card says so).
-  ["ishizaka", "WITH ISHIZAKA"],
 ];
 
 export function LabSettings() {

@@ -101,7 +101,8 @@ function playThrough(id: string, piece: string, voices: number[], legato = false
       const nextOn = h + 1 < heads.length ? at(tr.notes[heads[h + 1]].on) : t0 + 0.2;
       let t1 = t0 + 0.02;
       {
-        if (legato) t1 = Math.max(t0 + 0.02, nextOn + 0.02);
+        // D218: held over into the next note where the score joins them; else let go at the note's end (the rest respected).
+        if (legato) t1 = h + 1 < heads.length && g.joinedAt(heads[h + 1], k) ? Math.max(t0 + 0.02, nextOn + 0.02) : Math.max(t0 + 0.02, at(n.on + n.dur) - 0.02);
       }
       nid++;
       evs.push({ t: t0, down: true, id: nid, k, i }, { t: t1, down: false, id: nid, k, i });
@@ -129,6 +130,8 @@ test("every prototype can be played right through, on both pieces, every voice (
         for (const legato of p.id === "ladder" ? [false, true] : [false]) {
           const r = playThrough(p.id, piece, voices, legato);
           assert.ok(r.right === r.of, `${p.id}${legato ? " legato" : ""} ${piece} v${voices}: ${r.right}/${r.of} (wrong ${r.wrong}, missed ${r.missed})`);
+          // D218: played legato, every joined note is legato and every rest respected.
+          if (legato) assert.ok(r.art.legato === r.art.legatoOf && r.art.clean === r.art.cleanOf, `${p.id} legato ${piece} v${voices}: ${JSON.stringify(r.art)}`);
         }
     }
 });

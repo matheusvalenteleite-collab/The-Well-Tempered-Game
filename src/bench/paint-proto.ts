@@ -17,6 +17,7 @@ import { APPROACH_MS, type ProtoGame } from "./proto-game.ts";
 import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
 import { isBlack, keySpan } from "../touch/piano.ts";
 import { KEYS_SHARE } from "./placed.ts";
+import { CLEAN_INK, HELD_INK, LEGATO_INK } from "./articulation.ts";
 
 const FONT = '"TG Accidentals", "Press Start 2P", ui-monospace, monospace';
 
@@ -41,6 +42,7 @@ export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g:
     case "keys":
     case "highway":
     case "subject":
+    case "kimiko":
       highway(c, w, h, g, t);
       break;
     case "arrows":
@@ -60,6 +62,8 @@ function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoG
   label(c, g.score.toLocaleString("en"), x, y, t.fg, 9);
   if (g.mult > 1 && !desk) label(c, `×${g.mult}`, x, y + 16, g.mult >= 4 ? t.gold : t.shine, 9);
   if (g.pleno) label(c, "PLENO ×2", bars ? w - (w * BAR) / 2 : x, bars ? h * 0.12 : y + 32, t.gold, 7);
+  // D218: the legato chain under way.
+  if (g.chain >= 2) label(c, `LEGATO ×${g.chain}`, x, bars ? h * 0.12 + 30 : desk ? y + 16 : y + (g.pleno ? 46 : 32), LEGATO_INK, 6);
   // CON FUOCO: embers rising along the edges while the run lasts.
   if (g.streak >= 24) {
     const now = performance.now() / 1000;
@@ -185,16 +189,20 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   const y1 = phone ? h - 196 : h - 78;
   const W = phone ? w * 0.94 : Math.min(w * 0.7, 620);
   const lvl = g.o.easy ?? "timing";
+  // D216, KIMIKO: the road by her time (the seconds between, not the ticks): it scrolls steadily and
+  // the notes come spaced as she plays them. The far end: the tick she plays AHEAD_S from now.
+  const nowS = g.clock ? g.timeAt(g.now) : 0;
+  const ahead = g.clock ? g.tickAtTime(nowS + AHEAD_S) : g.now + AHEAD_S * g.tps;
   // Depth (0 at the line, 1 at the horizon) to the screen: y, and the width's scale.
   const at = (tick: number) => {
-    const d = (tick - g.now) / g.tps / AHEAD_S;
+    const d = (g.clock ? g.timeAt(tick) - nowS : (tick - g.now) / g.tps) / AHEAD_S;
     const s = 1 / (1 + 3 * Math.max(-0.2, d));
     const f = (s - 0.25) / 0.75;
     return { y: y0 + (y1 - y0) * f, k: 0.3 + 0.7 * f, d };
   };
   const laneX = (lane: number, k: number) => cx + (-W / 2 + ((lane + 0.5) * W) / N) * k;
   // The road.
-  const top = at(g.now + AHEAD_S * g.tps);
+  const top = at(ahead);
   // D202: the road lit towards the player, its far end in fog; rails along its edges.
   const road = c.createLinearGradient(0, top.y, 0, y1 + 30);
   road.addColorStop(0, "#0b0a11");
@@ -235,7 +243,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.stroke();
   }
   const beat = g.beat;
-  for (let tk = Math.ceil(g.now / beat) * beat; tk < g.now + AHEAD_S * g.tps; tk += beat) {
+  for (let tk = Math.ceil(g.now / beat) * beat; tk < ahead; tk += beat) {
     const p = at(tk);
     const bar = ((tk - g.f.bars[0].on) % g.f.barTicks + g.f.barTicks) % g.f.barTicks === 0;
     c.fillStyle = bar ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.06)";
@@ -276,7 +284,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     const lw = (W / N) * p.k;
     // The tail of a long note.
     if (n.dur >= beat && n.state !== "miss") {
-      const e = at(Math.min(n.on + n.dur, g.now + AHEAD_S * g.tps));
+      const e = at(Math.min(n.on + n.dur, ahead));
       const from = n.state === "hit" ? at(Math.max(n.on, g.now)) : p;
       c.fillStyle = n.held ? ink : "rgba(255,255,255,0.35)";
       c.globalAlpha = n.held ? 0.9 : 0.6;
@@ -340,6 +348,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   c.fillStyle = fog;
   c.fillRect(cx - W / 2 - 20, top.y - 2, W + 40, (y1 - top.y) * 0.35);
   c.restore();
+  slurs(c, g, at, laneX, y1);
   if (subj) subjectCues(c, g, at, cx, top.y, t);
   // The strike line: the ten keys, lit when down; the last key ringed.
   const lastCol = phone ? (g.lastLane >= 0 ? g.lastLane : undefined) : g.lastKey ? keyPlace(g.lastKey)?.col : undefined;
@@ -711,4 +720,73 @@ function verdict(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     label(c, text, x, bars ? h * 0.45 : desk ? 14 : 30, gr.text === "PERFECT" ? t.gold : ok ? t.fg : t.wrong, 8);
     c.globalAlpha = 1;
   }
+  articulation(c, w, h, g, t);
+}
+
+/** D218: the articulation's word (LEGATO ×n, HELD, CLEAN, SHORT, REST!), small, under the verdict, rising a little as it fades. */
+function articulation(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
+  const f = g.flash;
+  if (!f) return;
+  const age = performance.now() - f.at;
+  if (age > 650) return;
+  const bars = g.proto.layout === "bars";
+  const desk = g.proto.layout === "desk";
+  const x = bars ? (g.grade?.side === "right" ? w * (1 - BAR * 0.5) : w * BAR * 0.5) : desk ? w - 90 : w / 2;
+  const y = (bars ? h * 0.45 + 14 : desk ? 26 : 44) - age / 60;
+  const ink = f.kind === "legato" ? LEGATO_INK : f.kind === "held" ? HELD_INK : f.kind === "clean" ? CLEAN_INK : t.wrong;
+  c.globalAlpha = age < 450 ? 1 : 1 - (age - 450) / 200;
+  label(c, f.text, x, y, ink, 7);
+  c.globalAlpha = 1;
+}
+
+/**
+ * D218, the road's slurs: a faint arc over each coming pair of notes the score joins (legato pays
+ * there), and a bright one across the strike line as a legato is played, fading.
+ */
+function slurs(c: CanvasRenderingContext2D, g: ProtoGame, at: (tick: number) => { y: number; k: number; d: number }, laneX: (l: number, k: number) => number, y1: number) {
+  const notes = g.notes;
+  const lanes = g.lanes;
+  c.strokeStyle = LEGATO_INK;
+  c.lineWidth = 1;
+  c.globalAlpha = 0.28;
+  let prev = -1;
+  for (let i = 0; i < notes.length; i++) {
+    const n = notes[i];
+    if (n.ride || (i > 0 && notes[i - 1].on === n.on)) continue;
+    if (n.on + n.dur < g.now - g.beat) {
+      prev = i;
+      continue;
+    }
+    const p = at(n.on);
+    if (p.d > 1) break;
+    if (prev >= 0 && n.state === "pending" && notes[prev].state !== "miss" && g.joinedAt(i)) {
+      const a = at(Math.max(notes[prev].on, g.now));
+      const xa = laneX(lanes[prev], a.k);
+      const xb = laneX(lanes[i], p.k);
+      const lift = 6 + 10 * p.k;
+      c.beginPath();
+      c.moveTo(xa, a.y - 6 * a.k);
+      c.quadraticCurveTo((xa + xb) / 2 + (xa === xb ? 10 * p.k : 0), (a.y + p.y) / 2 - lift, xb, p.y - 6 * p.k);
+      c.stroke();
+    }
+    prev = i;
+  }
+  const now = performance.now();
+  c.lineWidth = 2;
+  for (const tie of g.ties) {
+    const age = now - tie.at;
+    if (age > 500 || tie.k !== 0 || tie.b >= lanes.length) continue;
+    const xa = laneX(lanes[tie.a], 1);
+    const xb = laneX(lanes[tie.b], 1);
+    const span = Math.abs(xb - xa);
+    c.globalAlpha = 1 - age / 500;
+    c.beginPath();
+    if (span < 4) c.arc(xa, y1 - 14, 12, Math.PI * 1.1, Math.PI * 1.9);
+    else {
+      c.moveTo(xa, y1 - 12);
+      c.quadraticCurveTo((xa + xb) / 2, y1 - 30 - span * 0.12 - age / 25, xb, y1 - 12);
+    }
+    c.stroke();
+  }
+  c.globalAlpha = 1;
 }
