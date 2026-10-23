@@ -40,6 +40,7 @@ export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g:
       break;
     case "keys":
     case "highway":
+    case "subject":
       highway(c, w, h, g, t);
       break;
     case "arrows":
@@ -173,7 +174,9 @@ const LANE_INK = ["#ff6b5a", "#ff9248", "#ffc145", "#d9e34f", "#7ee36b", "#4fd6b
 const AHEAD_S = 2.1;
 function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
   // D207: on a phone (HIGHWAY), five lanes across the whole width, the strike line high enough for a thumb.
-  const phone = g.proto.id === "highway";
+  const phone = g.road;
+  // D214, SUBJECT: the line moves between voices; its gems take each one's colour.
+  const subj = g.proto.id === "subject";
   const N = g.laneCount;
   const inkOfLane = (l: number) => LANE_INK[N === 5 ? l * 2 : l];
   const cx = w / 2;
@@ -269,7 +272,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     if (p.d > 1 || p.y > y1 + 40) continue;
     if (n.state === "hit" && !(n.dur >= beat && g.now < n.on + n.dur)) continue;
     const lane = lanes[i];
-    const ink = inkOfLane(lane);
+    const ink = subj ? inkOf(n.voice ?? g.voice, g.f.voices.length) : inkOfLane(lane);
     const lw = (W / N) * p.k;
     // The tail of a long note.
     if (n.dur >= beat && n.state !== "miss") {
@@ -297,7 +300,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     const gh = Math.max(4, 12 * p.k);
     if (g.isFree(i) && lvl !== "timing") {
       // A free note: an open bar across the road.
-      c.fillStyle = n.state === "miss" ? t.miss : "#c78bff";
+      c.fillStyle = n.state === "miss" ? t.miss : subj ? ink : "#c78bff";
       c.fillRect(cx - (W / 2) * p.k + 4, p.y - gh / 3, W * p.k - 8, Math.max(3, gh * 0.6));
       continue;
     }
@@ -313,9 +316,9 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.fillStyle = "rgba(255,255,255,0.4)";
     c.fillRect(x - gw / 2, p.y - gh / 2, gw, Math.max(1, gh * 0.16));
     // D205: an ornament's sign over its gem.
-    const orn = g.ornaments.get(`${g.voice}:${n.on}`);
+    const orn = g.ornaments.get(`${n.voice ?? g.voice}:${n.on}`);
     if (orn && n.state !== "miss") label(c, ornamentMark(orn), x, p.y - gh - 4 * p.k, t.gold, Math.max(6, Math.round(8 * p.k)));
-    if (subject.has(n.on) && n.state !== "miss") {
+    if (subject.has(n.on) && n.state !== "miss" && !subj) {
       c.strokeStyle = t.gold;
       c.lineWidth = Math.max(1, 2 * p.k);
       c.strokeRect(x - lw * 0.4, p.y - gh / 2, lw * 0.8, gh);
@@ -337,6 +340,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   c.fillStyle = fog;
   c.fillRect(cx - W / 2 - 20, top.y - 2, W + 40, (y1 - top.y) * 0.35);
   c.restore();
+  if (subj) subjectCues(c, g, at, cx, top.y, t);
   // The strike line: the ten keys, lit when down; the last key ringed.
   const lastCol = phone ? (g.lastLane >= 0 ? g.lastLane : undefined) : g.lastKey ? keyPlace(g.lastKey)?.col : undefined;
   const heldLanes = phone ? g.heldLanes : [];
@@ -437,6 +441,50 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   label(c, `Q ROW f · A ROW mf · Z ROW p · SHIFT: PEDAL${g.pedalOn ? " (DOWN)" : ""}`, w / 2, h - 10, g.pedalOn ? t.gold : t.muted, 7);
 }
 
+
+/**
+ * D214, SUBJECT: whose the subject is. The entry under way named at the top in its voice's colour
+ * (larger as it begins); the next entry's name riding beside its first note down the road; during a
+ * rest, a marker at the road's far end pulsing on the beat, counting the next entry in.
+ */
+function subjectCues(c: CanvasRenderingContext2D, g: ProtoGame, at: (tick: number) => { y: number; k: number; d: number }, cx: number, topY: number, t: Tok) {
+  const { current, next } = g.entryNow();
+  const count = g.f.voices.length;
+  const beatS = g.beat / g.tps;
+  if (current) {
+    const age = (g.now - current.on) / g.tps;
+    const flash = Math.max(0, 1 - age / (2 * beatS));
+    c.globalAlpha = 0.75 + 0.25 * flash;
+    label(c, current.label, cx, 84, inkOf(current.voice, count), Math.round(8 + 4 * flash));
+    c.globalAlpha = 1;
+  }
+  if (!next) return;
+  const ink = inkOf(next.voice, count);
+  if (next.on <= g.now + AHEAD_S * g.tps) {
+    const p = at(next.on);
+    label(c, next.label, cx, p.y - Math.max(10, 18 * p.k), ink, Math.max(6, Math.round(8 * p.k)));
+    return;
+  }
+  // Waiting: the count-in, from four bars out.
+  const beats = Math.ceil((next.on - g.now) / g.beat);
+  if (current || beats > 4 * Math.max(1, Math.round(g.f.barTicks / g.beat))) return;
+  const ph = ((next.on - g.now) / g.beat) % 1;
+  const pulse = ph > 0.75 ? (ph - 0.75) * 4 : 0;
+  c.globalAlpha = 0.45 + 0.5 * pulse;
+  c.fillStyle = ink;
+  const s = 5 + 3 * pulse;
+  c.beginPath();
+  c.moveTo(cx, topY - s);
+  c.lineTo(cx + s, topY);
+  c.lineTo(cx, topY + s);
+  c.lineTo(cx - s, topY);
+  c.closePath();
+  c.fill();
+  c.globalAlpha = 0.8;
+  label(c, next.label, cx, topY + 18, ink, 7);
+  label(c, `IN ${beats}`, cx, topY + 32, beats <= 4 ? t.fg : t.muted, beats <= 4 ? 10 : 7);
+  c.globalAlpha = 1;
+}
 
 /** HIGHWAY's pads on a phone (D208): an upper and a lower row, the same five lanes; a pad lights where a thumb is. */
 const TIER = { top: -8, h: 64, gap: 10 };

@@ -168,4 +168,4 @@
 /* D203: the fugue's own sound, first in the sound setting. */
 
 /* D207: HIGHWAY's road runs across the middle: no thumbs' divider. */
-.tb-proto-highway .tg-half-left { border-right: 0; }
+.tb-proto-highway .tg-half-left, .tb-proto-subject .tg-half-left { border-right: 0; }

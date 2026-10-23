@@ -20,7 +20,7 @@ import { markShapes } from "../touch/shape.ts";
 import type { Side } from "../touch/thumbs.ts";
 import type { Arrow } from "../touch/MusicBox.tsx";
 
-export type ProtoId = "ladder" | "duo" | "highway" | "arrows" | "keys" | "piano";
+export type ProtoId = "ladder" | "duo" | "highway" | "subject" | "arrows" | "keys" | "piano";
 /** D182: what the prototype is played on. */
 export type Platform = "mobile" | "computer";
 
@@ -68,6 +68,14 @@ export const PROTOS: Proto[] = [
     short: "TAP THE LANE AS EACH NOTE LANDS · SLIDE TO JOIN · TWO ROWS TO CROSS THUMBS",
     name: "HIGHWAY",
     how: "Upright, the whole screen: EASY on a phone (D207). The notes come down five lanes to the strike line; tap the lane a note is in as it lands. Two rows of pads, the same lanes in each (D208): one thumb in the upper row, the other in the lower, so they can pass each other. Legato: strike the next note before letting go of the last, or slide a held thumb into the next lane. The other voices pass faintly behind, by pitch (their subject entries brighter). Three levels (⚙ EASY): TIMING, any lane on time; DIRECTION, a lane further right than your last tap when the line rises, further left when it falls, the same lane when it repeats; + LEAPS, a leap of a fourth or more skips a lane. An open bar across the road: any lane. Long notes: hold them while their tail glows.",
+    layout: "full",
+    platform: "mobile",
+  },
+  {
+    id: "subject",
+    short: "PLAY ONLY THE SUBJECT · EVERY ENTRY, IN EVERY VOICE · REST BETWEEN",
+    name: "SUBJECT",
+    how: "Upright, as HIGHWAY (D214). You follow the subject, not a voice: every entry of it, in whichever voice it comes (in a double or triple fugue every subject), and you rest while the fugue plays between them. Each entry's notes come down the five lanes in its voice's colour, its name shown as it begins (SUBJECT · ALTO, SUBJECT 2 · TENOR, INVERTED, AUGMENTED); a marker at the road's far end counts in the next entry while you wait. An entry's first note is an open bar: any lane. When entries overlap (stretto) you leave the older one for the newest at its first note. Two rows of pads, slides, the levels of ⚙ EASY, long notes held, as on HIGHWAY.",
     layout: "full",
     platform: "mobile",
   },

@@ -238,9 +238,11 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
   const played: [number, LaneNote[]][] = [[fr.voice, fr.notes]];
   if (fr.notes2 && fr.voice2 !== undefined) played.push([fr.voice2, fr.notes2]);
   for (const [pv, pnotes] of played) {
-    const ink = inkOf(pv, fr.count);
+    const inkPv = inkOf(pv, fr.count);
     const sinceMs = (at: number | undefined) => (at === undefined ? Infinity : ((fr.now - at) / fr.tps) * 1000);
     for (const n of pnotes) {
+      // D214: SUBJECT's line passes between voices, each note in its own colour.
+      const ink = n.voice === undefined || n.voice === pv ? inkPv : inkOf(n.voice, fr.count);
       let x1 = xOf(n.on);
       if (x1 > w) break;
       const x2 = xOf(n.on + n.dur);
