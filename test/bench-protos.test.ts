@@ -475,6 +475,36 @@ test("D198/D201: right notes warm the crowd and quicken the tempo; slips cool it
   assert.ok(up.lanes.every((l) => l >= 0 && l <= 9));
 });
 
+test("D207, HIGHWAY: tapping each note's lane is right in DIRECTION; against the line it is wrong", () => {
+  for (const follow of [true, false]) {
+    const clock = { t: 0 };
+    const g = new ProtoGame(C_MINOR, 1, 0, protoById("highway"), { bpm: 54, legato: false, easy: "direction" }, fakeChip(clock));
+    assert.equal(g.laneCount, 5);
+    let id = 0;
+    let wrongAt = -1;
+    for (let i = 0; i < 40; i++) {
+      const n = g.notes[i];
+      if ((i > 0 && g.notes[i - 1].on === n.on) || n.ride) continue;
+      const at = g.timeAt(n.on);
+      while (clock.t < at - 0.05) (clock.t += 0.05), g.step();
+      clock.t = Math.max(clock.t, at);
+      g.step();
+      let lane = g.lanes[i];
+      const m = g.moves[i];
+      if (!follow && wrongAt < 0 && !g.isFree(i) && m.dir !== 0 && m.steps !== 0 && g.lastLane > 0 && g.lastLane < 4) {
+        lane = g.lastLane - m.dir;
+        wrongAt = i;
+      }
+      const x = ((lane + 0.5) / 5) * W;
+      g.down(++id, { side: x < W / 2 ? "left" : "right", x, y: H * 0.8, w: W, h: H }, performance.now());
+      g.up(id, performance.now());
+      if (!follow && wrongAt === i) break;
+    }
+    if (follow) assert.ok(g.notes.slice(0, 40).every((n, i) => n.ride || (i > 0 && g.notes[i - 1].on === n.on) || n.state === "hit"), "followed: all right");
+    else assert.equal(g.notes[wrongAt].state, "miss", "the other way: wrong");
+  }
+});
+
 test("SIDEWAYS: a column's middle is that column", () => {
   for (const pan of [30, 33.4, 36.8]) for (const s of [28, 31, 35]) assert.equal(columnAt(columnX(s, pan, W), pan, W), s);
 });
