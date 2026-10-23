@@ -10,7 +10,9 @@
  */
 import { ornamentMark, ornamentsOf } from "../touch/ornament-play.ts";
 import { BachTalk } from "./Bach.tsx";
-import { LESSONS, lessonsPassed, passLesson, type Line, type Run } from "./lessons.ts";
+import { accuracy, passed, TRACKS, type Line, type Run } from "./lessons.ts";
+import { answer, askFirst, nextLesson, recordLesson } from "./tutorial.ts";
+import { LessonMap, PlayedBefore, TutorialButton } from "./LessonMap.tsx";
 import { TEMPO, tempoOf } from "../touch/tempi.ts";
 import { presetById, setPreset } from "../touch/sound.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -105,7 +107,7 @@ function sane(p: Pick): Pick {
   return { ...DEFAULT, ...rest, piece, share, voice, proto, legato: !!p.legato, easy: EASY_LEVELS.some(([l]) => l === p.easy) ? p.easy : DEFAULT.easy, her: was === "kimiko" || p.her === true, mine: p.mine in MINE ? p.mine : DEFAULT.mine };
 }
 
-type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; art?: ArtStats; seal: { kind: string; earned: boolean; why: string } | null; feats?: FeatId[] } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "help" } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
+type Phase = { kind: "title" } | { kind: "play" } | { kind: "result"; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; art?: ArtStats; seal: { kind: string; earned: boolean; why: string } | null; feats?: FeatId[] } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "lessons"; focus?: ProtoId } | { kind: "help" } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
 
 /** The computer's keys (D182: a computer's prototypes only): PIANO a keyboard's rows (A W S E D F T G Y H U J K O L P ;), Z and X the octave; EASY every row (protos.ts KEY_ROWS) and space, Shift the pedal, the arrows a bend. */
 const PIANO_KEYS = ["KeyA", "KeyW", "KeyS", "KeyE", "KeyD", "KeyF", "KeyT", "KeyG", "KeyY", "KeyH", "KeyU", "KeyJ", "KeyK", "KeyO", "KeyL", "KeyP", "Semicolon"];
@@ -146,14 +148,21 @@ export function BenchApp() {
     setPlatformRaw(pl);
     if (protoById(pick.proto).platform !== pl) setPick({ proto: menuOf(pl)[0].id });
   };
+  // D225: Herr Bach's HAVE YOU PLAYED BEFORE?, right after the platform, until answered on it.
+  const [asking, setAsking] = useState(false);
+  const choosePlatform = (pl: Platform) => {
+    setPlatform(pl);
+    setAsking(askFirst(pl));
+  };
   const [note, setNote] = useState("");
   // D192: the fugue wheel, opened from ⚙.
   const [wheel, setWheel] = useState(false);
   // D188: a lesson with Herr Bach plays its own passage, on EASY at the lesson's level.
-  const [lesson, setLesson] = useState<{ n: number; run: Run } | null>(null);
+  // D225: a lesson of a platform's track (TRACKS), in its own mode.
+  const [lesson, setLesson] = useState<{ pl: Platform; n: number; run: Run } | null>(null);
   const run = lesson?.run;
   const f = fugueById(run?.piece ?? pick.piece);
-  const proto = protoById(run ? "keys" : pick.proto);
+  const proto = protoById(run ? run.proto : pick.proto);
   const from = run ? run.from : startTick(f, pick.share);
   const voice = run ? run.voice : pick.voice;
   const bpm = run ? run.bpm : tempoOf(f.id);
@@ -290,8 +299,8 @@ export function BenchApp() {
     const clock = hm && herBuf ? herClock(hm, f, from) : undefined;
     if (hm) setTuning("equal", hm.a);
     ch.mine.gain.value = kimiko ? MINE[pick.mine] : 1;
-    // D219: failing always on (the lessons apart); WITH KIMIKO, the game sounds only the player's voice.
-    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? pick.easy, fail: !run, her: kimiko, ...(run ? { until: run.until, wait: run.wait, solo: run.solo } : {}), ...(clock ? { clock } : {}) }, ch);
+    // D219: failing always on (D225: in the lessons from the fourth on); WITH KIMIKO, the game sounds only the player's voice.
+    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? pick.easy, fail: run ? run.fail : true, her: kimiko, ...(run ? { until: run.until, wait: run.wait, solo: run.solo } : {}), ...(clock ? { clock } : {}) }, ch);
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
     // For the measurements (the bench's own checks): the game and her playing.
@@ -340,11 +349,11 @@ export function BenchApp() {
         paint.current = null;
         const r = g.results();
         if (lesson) {
-          // A lesson passed (the share right, a stray strike half a note) goes on; else once more.
-          const l = LESSONS[lesson.n];
-          const ok = r.right / Math.max(1, r.of + r.stray / 2) >= l.passAt;
-          if (ok) passLesson(lesson.n);
-          setPhase({ kind: "talk", lines: ok ? l.pass : l.again, next: ok ? "advance" : "again" });
+          // A lesson passed (its rule: by default the share right, a stray strike half a note) goes on; else once more.
+          const l = TRACKS[lesson.pl][lesson.n];
+          const ok = passed(l, r);
+          recordLesson(lesson.pl, l.id, accuracy(r), ok);
+          setPhase({ kind: "talk", lines: ok ? l.praise : l.again, next: ok ? "advance" : "again" });
         } else {
           // D214: SUBJECT's grade is not any one voice's.
           if (r.failedBar === null && !subjectMode) recordBest(f.id, played, r.grade);
@@ -423,14 +432,18 @@ export function BenchApp() {
   const phaseNow = useRef(phase.kind);
   phaseNow.current = phase.kind;
   const quit = () => ((waitingHer.current = null), setLesson(null), setPhase({ kind: "title" }));
-  const beginLesson = (n: number) => {
-    const l = LESSONS[n];
-    setLesson({ n, run: l.run() });
+  const beginLesson = (pl: Platform, n: number) => {
+    const l = TRACKS[pl][n];
+    // D225: the lesson's platform and mode (the title card after it is that mode's).
+    setPlatformRaw(pl);
+    setAsking(false);
+    setPick({ proto: l.mode });
+    setLesson({ pl, n, run: l.run() });
     setPhase({ kind: "talk", lines: l.intro, next: "play" });
   };
   const talkDone = (next: "play" | "again" | "advance") => {
     if (next !== "advance") return start();
-    if (lesson && lesson.n + 1 < LESSONS.length) return beginLesson(lesson.n + 1);
+    if (lesson && lesson.n + 1 < TRACKS[lesson.pl].length) return beginLesson(lesson.pl, lesson.n + 1);
     quit();
   };
   /** The subject, played to be heard (lesson 5): the piece's first entry, at the lesson's tempo. */
@@ -562,7 +575,7 @@ export function BenchApp() {
       // Keys meant for a control (the FROM slider; space or enter on a button off the game) or the
       // first screen are theirs (D184).
       const tgt = e.target instanceof Element ? e.target : null;
-      if (!platform || tgt?.closest("input, select, textarea") || (phase.kind !== "play" && tgt?.closest("button") && (e.code === "Space" || e.code === "Enter"))) return;
+      if (!platform || asking || tgt?.closest("input, select, textarea") || (phase.kind !== "play" && tgt?.closest("button") && (e.code === "Space" || e.code === "Enter"))) return;
       const g = game.current;
       if (proto.id === "piano" && (e.code === "KeyZ" || e.code === "KeyX")) {
         octave.current += e.code === "KeyZ" ? -1 : 1;
@@ -619,7 +632,7 @@ export function BenchApp() {
         frame={frame}
         hud={
           <>
-            <span className="tg-hud-title">{lesson ? `LESSON ${lesson.n + 1} · ${LESSONS[lesson.n].english}` : `BENCH · ${proto.name}`}</span>
+            <span className="tg-hud-title">{lesson ? `LESSON ${lesson.n + 1} · ${TRACKS[lesson.pl][lesson.n].english}` : `BENCH · ${proto.name}`}</span>
             <span className="tg-hud-bar">{keyName(frame.current.key)}</span>
             {playing || lesson ? (
               <button type="button" id="quit" className="tg-x" aria-label="Quit" onClick={quit}>
@@ -644,9 +657,9 @@ export function BenchApp() {
         ))}
       >
         <div className="tg-count" ref={count} aria-live="polite" />
-        {phase.kind === "title" && <Title f={f} pick={pick} setPick={setPick} from={from} note={note} herHere={herHere} her={kimiko ? herLine(hm ? herState(hm) : null) : undefined} lessons={proto.id === "keys" ? beginLesson : undefined} achievements={() => setPhase({ kind: "achievements" })} />}
+        {phase.kind === "title" && <Title f={f} pick={pick} setPick={setPick} from={from} note={note} herHere={herHere} her={kimiko ? herLine(hm ? herState(hm) : null) : undefined} learn={platform && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined} achievements={() => setPhase({ kind: "achievements" })} />}
         {phase.kind === "talk" && lesson && (
-          <BachTalk key={`${lesson.n}-${phase.next}-${phase.lines[0]?.text}`} title={`${LESSONS[lesson.n].title} · ${LESSONS[lesson.n].english}`} lines={phase.lines} onLine={demo} onDone={() => talkDone(phase.next)} />
+          <BachTalk key={`${lesson.n}-${phase.next}-${phase.lines[0]?.text}`} title={`${TRACKS[lesson.pl][lesson.n].title} · ${TRACKS[lesson.pl][lesson.n].english}`} lines={phase.lines} onLine={demo} onDone={() => talkDone(phase.next)} />
         )}
         {phase.kind === "result" && (
           <div className="tg-card tg-card-low tb-result">
@@ -719,6 +732,7 @@ export function BenchApp() {
               ))}
             </ol>
           </div>
+          <TutorialButton id="settings-tutorial" open={() => setPhase({ kind: "lessons" })} />
           <Choice id="platform" label="PLAY ON" options={[["mobile", "MOBILE"], ["computer", "COMPUTER"]]} value={platform ?? "mobile"} set={(pl) => setPlatform(pl)} />
           {(proto.id === "keys" || proto.id === "subject") && <Choice id="easy" label="LEVEL" options={EASY_LEVELS} value={pick.easy} set={(easy) => setPick({ easy })} />}
           {(proto.id === "keys" || proto.id === "subject") && <p className="tg-panel-note tb-note">{EASY_NOTE[pick.easy]}</p>}
@@ -796,22 +810,33 @@ export function BenchApp() {
         </Panel>
       )}
       {phase.kind === "achievements" && <Achievements close={quit} tab={phase.fresh?.length ? "feats" : "seals"} fresh={phase.fresh} />}
-      {!platform && (
+      {phase.kind === "lessons" && <LessonMap platform={platform ?? guessPlatform()} focus={phase.focus} play={beginLesson} close={quit} />}
+      {platform && asking && (
+        <PlayedBefore
+          answer={(yes) => {
+            answer(platform, yes);
+            setAsking(false);
+            if (!yes) beginLesson(platform, nextLesson(platform));
+          }}
+        />
+      )}
+      {!platform && phase.kind !== "lessons" && (
         <div className="tb-platform" role="dialog" aria-label="Play on">
           <h1>THE WELL-TEMPERED BENCH</h1>
           <p className="tb-platform-q">PLAY ON</p>
           <div className="tb-platform-choices">
-            <button type="button" id="platform-mobile" onClick={() => setPlatform("mobile")}>
+            <button type="button" id="platform-mobile" onClick={() => choosePlatform("mobile")}>
               <span className="tb-platform-icon">▯</span>
               MOBILE
               <small>LADDER · SUBJECT</small>
             </button>
-            <button type="button" id="platform-computer" onClick={() => setPlatform("computer")}>
+            <button type="button" id="platform-computer" onClick={() => choosePlatform("computer")}>
               <span className="tb-platform-icon">⌨</span>
               COMPUTER
               <small>HIGHWAY · LADDER · PIANO</small>
             </button>
           </div>
+          <TutorialButton open={() => setPhase({ kind: "lessons" })} />
         </div>
       )}
       <div className="tg-upright" role="alert">
@@ -819,6 +844,15 @@ export function BenchApp() {
       </div>
     </div>
   );
+}
+
+/** D225: the LESSON MAP opened before a platform is chosen: a touch screen's, else a computer's. */
+function guessPlatform(): Platform {
+  try {
+    return window.matchMedia("(pointer: coarse)").matches ? "mobile" : "computer";
+  } catch {
+    return "computer";
+  }
 }
 
 /** D216, KIMIKO: the credit, on the title card and the result. */
@@ -849,7 +883,7 @@ function HerSwitch({ pick, setPick }: { pick: Pick; setPick: (p: Partial<Pick>) 
   );
 }
 
-function Title({ f, pick, setPick, from, note, herHere, her, lessons, achievements }: { f: TouchFugue; pick: Pick; setPick: (p: Partial<Pick>) => void; from: number; note: string; herHere: boolean; her?: string; lessons?: (n: number) => void; achievements: () => void }) {
+function Title({ f, pick, setPick, from, note, herHere, her, learn, achievements }: { f: TouchFugue; pick: Pick; setPick: (p: Partial<Pick>) => void; from: number; note: string; herHere: boolean; her?: string; learn?: () => void; achievements: () => void }) {
   const singing = voicesFrom(f, from);
   const proto = protoById(pick.proto);
   return (
@@ -877,9 +911,9 @@ function Title({ f, pick, setPick, from, note, herHere, her, lessons, achievemen
       {her && <p className="tg-card-sub tb-her">{her}</p>}
       {her && <p className="tg-card-sub tb-her-credit">{HER_CREDIT}</p>}
       {note && <p className="tg-note">{note}</p>}
-      {lessons && (
-        <button type="button" id="lessons" className="tb-lessons" onClick={() => lessons(Math.min(lessonsPassed(), LESSONS.length - 1))}>
-          LESSONS WITH HERR BACH {lessonsPassed() ? `· ${lessonsPassed()}/${LESSONS.length}` : ""}
+      {learn && (
+        <button type="button" id="learn" className="tb-learn" onClick={learn}>
+          LEARN THIS MODE
         </button>
       )}
       <AchButton open={achievements} />
