@@ -22,6 +22,9 @@
 .tb-bars .tg-half, .tb-bars .tg-half-on { background: transparent; border: 0; }
 .tb-quit { position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); right: max(8px, env(safe-area-inset-right, 0px)); z-index: 5; background: var(--tg-veil); }
 .tb-bars .tb-quit { right: calc(20% + 8px); }
+/* D220: the computer's HIGHWAY: the road alone, the whole window, the music box gone while playing. */
+.tg-wide.tb-road { max-width: 1400px; grid-template-rows: 1fr; }
+.tb-road .tg-box { display: none; }
 /* D180, TWO VOICES: the voices chosen as an old arcade chooses its players. */
 .tb-arcade h1 { color: var(--tg-shine); letter-spacing: 0.12em; text-shadow: 2px 2px 0 #b8322a; }
 .tb-arcade-row { display: flex; align-items: center; justify-content: center; gap: 10px; }

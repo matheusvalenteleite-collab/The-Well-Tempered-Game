@@ -18,10 +18,11 @@ import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, 
 import { isBlack, keySpan } from "../touch/piano.ts";
 import { KEYS_SHARE } from "./placed.ts";
 import { CLEAN_INK, HELD_INK, LEGATO_INK } from "./articulation.ts";
+import { deskBegin, deskCrowd, deskEnd, deskFlare, deskGeom, deskKeys, deskOver, deskSparks, deskUnder, subjectGem, type Road } from "./paint-desk.ts";
 
 const FONT = '"TG Accidentals", "Press Start 2P", ui-monospace, monospace';
 
-type Tok = ReturnType<typeof tokens>;
+export type Tok = ReturnType<typeof tokens>;
 function tokens() {
   const css = getComputedStyle(document.documentElement);
   const tok = (name: string) => css.getPropertyValue(name).trim() || "#fff";
@@ -59,7 +60,7 @@ function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoG
   const desk = g.proto.layout === "desk";
   const x = bars ? (w * BAR) / 2 : desk ? w - 90 : w / 2;
   const y = bars ? h * 0.12 : desk ? 34 : 14;
-  label(c, g.score.toLocaleString("en"), x, y, t.fg, 9);
+  label(c, g.score.toLocaleString("en"), x, y, t.fg, g.proto.id === "keys" ? 12 : 9);
   if (g.mult > 1 && !desk) label(c, `×${g.mult}`, x, y + 16, g.mult >= 4 ? t.gold : t.shine, 9);
   if (g.pleno) label(c, "PLENO ×2", bars ? w - (w * BAR) / 2 : x, bars ? h * 0.12 : y + 32, t.gold, 7);
   // D218: the legato chain under way.
@@ -166,7 +167,7 @@ function pixels(c: CanvasRenderingContext2D, a: Arrow, x: number, y: number, s: 
  * meter on the right.
  */
 /** A colour darkened (k below 1) for a face in shadow. */
-function shade(hex: string, k: number): string {
+export function shade(hex: string, k: number): string {
   const v = parseInt(hex.slice(1), 16);
   const r = Math.round(((v >> 16) & 255) * k);
   const gg = Math.round(((v >> 8) & 255) * k);
@@ -184,10 +185,12 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   const N = g.laneCount;
   const inkOfLane = (l: number) => LANE_INK[N === 5 ? l * 2 : l];
   const cx = w / 2;
-  const y0 = phone ? 64 : 18;
+  // D220: the computer's road alone in the window (no music box), larger.
+  const dg = deskGeom(w, h);
+  const y0 = phone ? 64 : dg.y0;
   // D208: on a phone the strike line sits higher, over two rows of pads (room for the thumbs to cross).
-  const y1 = phone ? h - 196 : h - 78;
-  const W = phone ? w * 0.94 : Math.min(w * 0.7, 620);
+  const y1 = phone ? h - 196 : dg.y1;
+  const W = phone ? w * 0.94 : dg.W;
   const lvl = g.o.easy ?? "timing";
   // D216, KIMIKO: the road by her time (the seconds between, not the ticks): it scrolls steadily and
   // the notes come spaced as she plays them. The far end: the tick she plays AHEAD_S from now.
@@ -203,6 +206,9 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   const laneX = (lane: number, k: number) => cx + (-W / 2 + ((lane + 0.5) * W) / N) * k;
   // The road.
   const top = at(ahead);
+  // D220: the computer's road: its effects (paint-desk.ts), and a light shake on the big moments.
+  const R: Road | null = phone ? null : { c, w, h, g, t, at, laneX, cx, W, N, y0, y1, top, ahead };
+  if (R) deskBegin(c, g), deskCrowd(R);
   // D202: the road lit towards the player, its far end in fog; rails along its edges.
   const road = c.createLinearGradient(0, top.y, 0, y1 + 30);
   road.addColorStop(0, "#0b0a11");
@@ -232,6 +238,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.fillStyle = g.pleno ? "rgba(255,214,110,0.06)" : "rgba(255,120,60,0.07)";
     c.fill();
   }
+  if (R) deskUnder(R);
   // Lanes, and the beats and bars crossing them.
   c.strokeStyle = "rgba(255,255,255,0.07)";
   c.lineWidth = 1;
@@ -268,7 +275,8 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     }
   // D208: the other voices, faint, by pitch across the road (low left, high right), so the fugue's
   // architecture shows behind the lanes: each voice its colour, its subject entries brighter.
-  if (phone) ghosts(c, g, at, cx, W, y1);
+  // D220: and on the computer's.
+  ghosts(c, g, at, cx, W, y1);
   // D217, SUBJECT: a stretto's older entry (the lower row) drawn hollow, behind the main line.
   if (subj && g.tracks[1]) secondLine(c, g, at, laneX, W, N, y1, beat, t);
   // The notes, far to near.
@@ -307,7 +315,8 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
       c.fillRect(laneX(lane, p.k) - 2, p.y - 2, 4, 4);
       continue;
     }
-    const gh = Math.max(4, 12 * p.k);
+    // D220: the computer's gems taller (its road is larger).
+    const gh = Math.max(4, (R ? 16 : 12) * p.k);
     if (g.isFree(i) && lvl !== "timing") {
       // A free note: an open bar across the road.
       c.fillStyle = n.state === "miss" ? t.miss : subj ? ink : "#c78bff";
@@ -328,7 +337,9 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     // D205: an ornament's sign over its gem.
     const orn = g.ornaments.get(`${n.voice ?? g.voice}:${n.on}`);
     if (orn && n.state !== "miss") label(c, ornamentMark(orn), x, p.y - gh - 4 * p.k, t.gold, Math.max(6, Math.round(8 * p.k)));
-    if (subject.has(n.on) && n.state !== "miss" && !subj) {
+    // D220: on the computer a subject gem: haloed, framed and crowned in gold.
+    if (R && subject.has(n.on) && n.state !== "miss") subjectGem(c, x, p.y, gw, gh, p.k, g.entries.some((e) => e.state === "captured" && e.ons.includes(n.on)));
+    else if (subject.has(n.on) && n.state !== "miss" && !subj) {
       c.strokeStyle = t.gold;
       c.lineWidth = Math.max(1, 2 * p.k);
       c.strokeRect(x - lw * 0.4, p.y - gh / 2, lw * 0.8, gh);
@@ -352,6 +363,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   c.restore();
   slurs(c, g, at, laneX, y1);
   if (subj) subjectCues(c, g, at, cx, top.y, t);
+  if (R) deskOver(R);
   // The strike line: the ten keys, lit when down; the last key ringed.
   const lastCol = phone ? (g.lastLane >= 0 ? g.lastLane : undefined) : g.lastKey ? keyPlace(g.lastKey)?.col : undefined;
   const heldLanes = phone ? g.heldLanes : [];
@@ -389,12 +401,19 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     }
     if (!phone) label(c, LANE_KEYS[l], x, y1, down ? "#1a1408" : t.fg, 9);
   }
-  // Space: the same note (a computer's).
-  if (!phone) {
+  // Space: the same note (a computer's). D220: the thumbs' bar, under both hands, G's marks.
+  if (R) {
+    deskKeys(R, bh);
     const sdown = g.keysDown.has("Space");
+    const sy = y1 + 36;
+    c.fillStyle = shade(t.shine, 0.3);
+    c.fillRect(cx - W * 0.25, sy + 14, W * 0.5, sdown ? 1 : 4);
     c.fillStyle = sdown ? t.shine : "#1d1a24";
-    c.fillRect(cx - W * 0.2, y1 + 16, W * 0.4, 10);
-    label(c, "SPACE", cx, y1 + 21, sdown ? "#1a1408" : t.muted, 6);
+    c.fillRect(cx - W * 0.25, sy + (sdown ? 3 : 0), W * 0.5, 14);
+    c.strokeStyle = sdown ? t.shine : "#4a4458";
+    c.lineWidth = 2;
+    c.strokeRect(cx - W * 0.25, sy + (sdown ? 3 : 0), W * 0.5, 14);
+    label(c, "SPACE · THUMBS · THE SAME NOTE AGAIN", cx, sy + 7 + (sdown ? 3 : 0), sdown ? "#1a1408" : t.muted, 6);
   }
   // Flames where notes were struck.
   const now = performance.now();
@@ -412,6 +431,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     }
     c.globalAlpha = 1;
   }
+  if (R) deskSparks(R, inkOfLane);
   // The multiplier's ring (left): eight notes to the next step, its four lamps.
   const rx = phone ? 34 : cx - W / 2 - 60;
   const ry = phone ? 34 : y1 - 40;
@@ -424,6 +444,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   }
   label(c, `×${g.mult * (g.pleno ? 2 : 1)}`, rx, ry, g.pleno ? t.gold : t.fg, 12);
   label(c, `${g.streak}`, rx, ry + (phone ? 36 : 44), t.muted, 8);
+  if (R) deskFlare(R, rx, ry);
   // The crowd's meter (right).
   const mx = phone ? w - 18 : cx + W / 2 + 44;
   const mh = phone ? 70 : 120;
@@ -452,6 +473,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   }
   label(c, how, w / 2, h - 24, t.fg, 7);
   label(c, `Q ROW f · A ROW mf · Z ROW p · SHIFT: PEDAL${g.pedalOn ? " (DOWN)" : ""}`, w / 2, h - 10, g.pedalOn ? t.gold : t.muted, 7);
+  deskEnd(c);
 }
 
 
@@ -691,7 +713,7 @@ function light(c: CanvasRenderingContext2D, x: number, y: number, w: number, h: 
   c.globalAlpha = 1;
 }
 
-function label(c: CanvasRenderingContext2D, text: string, x: number, y: number, color: string, size = 7, align: CanvasTextAlign = "center") {
+export function label(c: CanvasRenderingContext2D, text: string, x: number, y: number, color: string, size = 7, align: CanvasTextAlign = "center") {
   c.fillStyle = color;
   c.font = `${size}px ${FONT}`;
   c.textAlign = align;
@@ -810,7 +832,9 @@ function verdict(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     const bars = g.proto.layout === "bars";
     const desk = g.proto.layout === "desk";
     const x = bars ? (gr.side === "left" ? w * BAR * 0.5 : w * (1 - BAR * 0.5)) : desk ? w - 90 : w / 2;
-    label(c, text, x, bars ? h * 0.45 : desk ? 14 : 30, gr.text === "PERFECT" ? t.gold : ok ? t.fg : t.wrong, 8);
+    // D220: the computer's HIGHWAY: the word over the strike line, larger.
+    if (g.proto.id === "keys") label(c, text, w / 2, deskGeom(w, h).y1 - 64, gr.text === "PERFECT" ? t.gold : ok ? t.fg : t.wrong, 10);
+    else label(c, text, x, bars ? h * 0.45 : desk ? 14 : 30, gr.text === "PERFECT" ? t.gold : ok ? t.fg : t.wrong, 8);
     c.globalAlpha = 1;
   }
   articulation(c, w, h, g, t);
@@ -828,7 +852,9 @@ function articulation(c: CanvasRenderingContext2D, w: number, h: number, g: Prot
   const y = (bars ? h * 0.45 + 14 : desk ? 26 : 44) - age / 60;
   const ink = f.kind === "legato" ? LEGATO_INK : f.kind === "held" ? HELD_INK : f.kind === "clean" ? CLEAN_INK : t.wrong;
   c.globalAlpha = age < 450 ? 1 : 1 - (age - 450) / 200;
-  label(c, f.text, x, y, ink, 7);
+  // D220: on the computer's road, under the verdict over the strike line, larger.
+  if (g.proto.id === "keys") label(c, f.text, w / 2, deskGeom(w, h).y1 - 44 - age / 30, ink, 9);
+  else label(c, f.text, x, y, ink, 7);
   c.globalAlpha = 1;
 }
 
