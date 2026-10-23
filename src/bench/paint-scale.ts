@@ -15,8 +15,39 @@ import { homeName, SCALE_DOWN, SCALE_HOME, SCALE_UP, type ScaleKey } from "./sca
 import { label, shade, type Tok } from "./paint-proto.ts";
 import type { Road } from "./paint-desk.ts";
 
-/** Each home degree's colour: the tonic gold (A and K alike), then round the wheel. */
-export const SCALE_INK = ["#ffd66e", "#ff9248", "#ff6b5a", "#ff7dd6", "#b47dff", "#4cb8ff", "#4fd6b2", "#ffd66e"];
+/**
+ * Each home lane's colour by the finger on it (D235): the left hand (A S D F: little finger to index)
+ * warm, the right hand (G H J K: index to little finger) cool, the index fingers brightest beside the
+ * hands' seam. The tonic is marked by a gold rim, not by colour.
+ */
+export const SCALE_INK = ["#b8432f", "#e0603a", "#f58a3c", "#ffb347", "#57c7ff", "#3f9cf5", "#4f74e8", "#6a5ad6"];
+/** The fingers, lane by lane. */
+const FINGER = ["L5", "L4", "L3", "L2", "R2", "R3", "R4", "R5"];
+/** The hands' halves of the road: tinted under the lanes, a seam between F and G. */
+export function scaleHands(r: Road) {
+  const { c, laneX, top, y1, W, N } = r;
+  for (const [from, to, ink] of [[0, 4, "rgba(245,138,60,0.07)"], [4, 8, "rgba(63,156,245,0.07)"]] as const) {
+    const xa = (k: number) => laneX(from - 0.5, k);
+    const xb = (k: number) => laneX(to - 0.5, k);
+    c.fillStyle = ink;
+    c.beginPath();
+    c.moveTo(xa(top.k), top.y);
+    c.lineTo(xb(top.k), top.y);
+    c.lineTo(xb(1), y1 + 30);
+    c.lineTo(xa(1), y1 + 30);
+    c.closePath();
+    c.fill();
+  }
+  // The seam between the hands.
+  c.strokeStyle = "rgba(255,214,110,0.45)";
+  c.lineWidth = 2;
+  c.beginPath();
+  c.moveTo(laneX(3.5, top.k), top.y);
+  c.lineTo(laneX(3.5, 1), y1 + 30);
+  c.stroke();
+  void W;
+  void N;
+}
 /** The row above (raised: the dominant side) and the row below (lowered: the subdominant side). */
 export const UP_INK = "#ffa94d";
 export const DOWN_INK = "#6f9bff";
@@ -42,6 +73,12 @@ export function scaleGem(c: CanvasRenderingContext2D, x: number, y: number, lw: 
     c.fillRect(x - gw / 2, y - gh / 2, gw, gh * 0.6);
     c.fillStyle = "rgba(255,255,255,0.4)";
     c.fillRect(x - gw / 2, y - gh / 2, gw, Math.max(1, gh * 0.16));
+    // The tonic: a gold rim (A and K alike).
+    if (key.tonic && !miss) {
+      c.strokeStyle = t.gold;
+      c.lineWidth = Math.max(1, 2 * k);
+      c.strokeRect(x - gw / 2 - 1, y - gh / 2 - 1, gw + 2, gh + 2);
+    }
     return { y, gw, gh };
   }
   // A black key: narrower, taller, dark; raised above the line, or lowered below it.
@@ -100,6 +137,8 @@ export function scaleStrip(r: Road, sk: ScaleKey[]): number {
     }
     label(c, letter(code), x - 6, y1 + sink, on ? "#1a1408" : t.fg, 9);
     label(c, `${l + 1}`, x + 12, y1 + 1 + sink, on ? "#1a1408" : t.muted, 6);
+    // Which finger: under the key, in its hand's colour.
+    label(c, FINGER[l], x, y1 + bh + 12, ink, 6);
   });
   // The black keys: the row above over the seams (raised d between d and d + 1), the row below under them.
   const rare = new Set(["KeyR", "KeyI", "KeyV", "KeyZ"]);
@@ -122,7 +161,7 @@ export function scaleStrip(r: Road, sk: ScaleKey[]): number {
   SCALE_DOWN.forEach((code, d) => black(code, d - 0.5, false));
   // The home key, and how far away the music is now.
   const lx = cx - W / 2 - 84;
-  label(c, homeName(g.f.key), lx, y1 + 26, SCALE_INK[0], 7);
+  label(c, homeName(g.f.key), lx, y1 + 26, t.gold, 7);
   const away = awayNow(g, sk);
   label(c, "AWAY", lx - 44, y1 + 44, t.muted, 6, "left");
   const mw = 56;

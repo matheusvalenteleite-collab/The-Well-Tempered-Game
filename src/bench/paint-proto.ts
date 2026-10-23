@@ -16,7 +16,7 @@ import { stepName } from "../touch/fugue.ts";
 import { APPROACH_MS, type ProtoGame } from "./proto-game.ts";
 import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
 import { CLEAN_INK, HELD_INK, LEGATO_INK } from "./articulation.ts";
-import { scaleGem, scaleHow, scaleInk, scaleLetter, scaleStrip } from "./paint-scale.ts";
+import { scaleGem, scaleHands, scaleHow, scaleInk, scaleLetter, scaleStrip } from "./paint-scale.ts";
 import { deskBegin, deskCrowd, deskEnd, deskFlare, deskGeom, deskKeys, deskOver, deskSparks, deskUnder, subjectGem, type Road } from "./paint-desk.ts";
 
 const FONT = '"TG Accidentals", "Press Start 2P", ui-monospace, monospace';
@@ -187,6 +187,8 @@ export function shade(hex: string, k: number): string {
 }
 const LANE_KEYS = ["A", "S", "D", "F", "G", "H", "J", "K", "L", ";"];
 const LANE_INK = ["#ff6b5a", "#ff9248", "#ffc145", "#d9e34f", "#7ee36b", "#4fd6b2", "#4cb8ff", "#7d8bff", "#b47dff", "#ff7dd6"];
+/** D235: the computer's nine lanes by hand: the left (A S D F) warm, G (either index) gold, the right (H J K L) cool. */
+const HAND_INK = ["#b8432f", "#e0603a", "#f58a3c", "#ffb347", "#ffd66e", "#57c7ff", "#3f9cf5", "#4f74e8", "#6a5ad6"];
 const AHEAD_S = 2.1;
 function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
   // D207: on a phone (HIGHWAY), five lanes across the whole width, the strike line high enough for a thumb.
@@ -196,7 +198,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   const N = g.laneCount;
   // D230, SCALE KEYS: the eight home lanes the home key's scale; the altered notes between them (paint-scale.ts).
   const sc = g.scale;
-  const inkOfLane = (l: number) => (sc ? scaleInk(l) : LANE_INK[N === 5 ? l * 2 : l]);
+  const inkOfLane = (l: number) => (sc ? scaleInk(l) : N === 5 ? LANE_INK[l * 2] : HAND_INK[l] ?? LANE_INK[l]);
   const cx = w / 2;
   // D220: the computer's road alone in the window (no music box), larger.
   const dg = deskGeom(w, h);
@@ -252,6 +254,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.fill();
   }
   if (R) deskUnder(R);
+  if (R && sc) scaleHands(R);
   // Lanes, and the beats and bars crossing them.
   c.strokeStyle = "rgba(255,255,255,0.07)";
   c.lineWidth = 1;
@@ -288,8 +291,10 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     }
   // D208: the other voices, faint, by pitch across the road (low left, high right), so the fugue's
   // architecture shows behind the lanes: each voice its colour, its subject entries brighter.
-  // D220: and on the computer's.
-  ghosts(c, g, at, cx, W, y1);
+  // D220: and on the computer's. D235: withdrawn: notes off the lanes in other colours read as the
+  // player's own in the wrong lanes (the owner: "so confusing"); the other voices' entries stay as
+  // the road's edge ribbons.
+  void ghosts;
   // D217, SUBJECT: a stretto's older entry (the lower row) drawn hollow, behind the main line.
   if (subj && g.tracks[1]) secondLine(c, g, at, laneX, W, N, y1, beat, t);
   // The notes, far to near.
