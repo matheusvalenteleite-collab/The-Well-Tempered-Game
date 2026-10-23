@@ -13,6 +13,7 @@ import { TEMPO, tempoOf } from "../touch/tempi.ts";
 import { presetById, setPreset } from "../touch/sound.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ladderGeometry, MusicBox, inkOf, type Frame } from "../touch/MusicBox.tsx";
+import { AUTO, BOXV, variantRows } from "../touch/box-variants.ts";
 import { PlayArea, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
 import { Choice, LagSetting, loadDrums, Panel, SoundSetting, TuningSetting } from "../touch/Panels.tsx";
 import { Chip, voicing } from "../touch/chip.ts";
@@ -171,6 +172,8 @@ export function BenchApp() {
     const steps = f.voices[voice].map((n) => n[3]);
     return { lo: Math.min(...steps) - 1, hi: Math.max(...steps) + 1 };
   }, [f, proto.id, voice]);
+  // The design study (box-variants.ts, `?boxv=N`): each voice's range, for the staves.
+  const study = useMemo(() => (BOXV ? { ranges: f.voices.map((ns) => ({ lo: Math.min(...ns.map((n) => n[3])), hi: Math.max(...ns.map((n) => n[3])) })) } : {}), [f]);
   // A lesson's passage: only the entries it holds (alone: only the voice's own).
   const marks = useMemo(() => {
     const spans = entrySpans(f).filter((e) => !run || (e.on < run.until && e.end > run.from && (!run.solo || e.voice === run.voice)));
@@ -205,7 +208,7 @@ export function BenchApp() {
       count: f.voices.length,
       lo: range.lo,
       hi: range.hi,
-      ...(proto.id === "ladder" ? { spill: stepRange(f) } : {}),
+      ...(proto.id === "ladder" ? { spill: stepRange(f), ...study } : {}),
       voice,
       notes: line ? [...line.notes, ...line.second].sort((a, c) => a[0] - c[0] || c[2] - a[2]).map(([on, dur, midi, step, v]) => ({ on, dur, midi, step, long: dur >= b.ticks, state: "pending" as const, voice: v })) : lane(voice),
       ...(duo ? { voice2: pick.voice2, notes2: lane(pick.voice2) } : {}),
@@ -272,6 +275,7 @@ export function BenchApp() {
     game.current = g;
     paint.current = (ctx, w, h) => paintProto(ctx, w, h, g, marks.subject);
     const b = beatOf(f);
+    const auto = { id: 9000, held: null as { id: number; end: number } | null, last: -1 };
     let raf = 0;
     const loop = () => {
       const done = g.step();
@@ -284,7 +288,7 @@ export function BenchApp() {
         count: f.voices.length,
         lo: range.lo,
         hi: range.hi,
-        ...(proto.id === "ladder" ? { spill: stepRange(f) } : {}),
+        ...(proto.id === "ladder" ? { spill: stepRange(f), ...study } : {}),
         voice,
         notes: g.notes,
         ...(duo ? { voice2: g.tracks[1].voice, notes2: g.tracks[1].notes } : {}),
@@ -300,7 +304,8 @@ export function BenchApp() {
         zone: g.zone,
       };
       if (proto.layout === "bars") g.rows = boxRows(f.barTicks, g.now);
-      if (count.current) count.current.textContent = g.countIn() ? String(g.countIn()) : g.combo >= 5 ? `×${g.combo}` : "";
+      if (AUTO) autoplay(g, auto);
+      if (count.current) count.current.textContent = g.countIn() ? String(g.countIn()) : g.combo >= 5 && !AUTO ? `×${g.combo}` : "";
       if (done) {
         // D216: a lost run: she fades out over a second; the end: her last chord rings on.
         h?.stop(g.failedAt !== null ? HER_FADE.fail : HER_FADE.end);
@@ -348,7 +353,7 @@ export function BenchApp() {
     if (!roll || !area) return null;
     const r = roll.getBoundingClientRect();
     const a = area.getBoundingClientRect();
-    const geo = ladderGeometry(range.lo, range.hi, r.height);
+    const geo = (BOXV ? variantRows({ lo: range.lo, hi: range.hi, spill: stepRange(f), ranges: study.ranges, voice }, r.height) : null) ?? ladderGeometry(range.lo, range.hi, r.height);
     const top = r.top - a.top;
     const y0 = top + geo.yOf(0);
     const span = 3 * barTicks;
@@ -822,4 +827,27 @@ function Arcade({ f, pick, setPick, from, note }: { f: TouchFugue; pick: Pick; s
 function tempoLabel(id: string): string {
   const t = TEMPO[id];
   return t ? `${t.unit} = ${t.unitBpm.normal}` : `♩ = ${tempoOf(id)}`;
+}
+
+/**
+ * The design study's `&auto=1` (screenshots only): the voice plays itself on the bars, each note touched
+ * at its row as it comes and let go near its end.
+ */
+function autoplay(g: ProtoGame, st: { id: number; held: { id: number; end: number } | null; last: number }) {
+  const area = document.querySelector(".tg-play")?.getBoundingClientRect();
+  if (!g.rows || !area) return;
+  const ts = performance.now();
+  if (st.held && g.now >= st.held.end) {
+    g.up(st.held.id, ts);
+    st.held = null;
+  }
+  const i = g.next();
+  if (i < 0 || i === st.last) return;
+  const n = g.notes[i];
+  if (g.now < n.on) return;
+  if (st.held) g.up(st.held.id, ts);
+  st.last = i;
+  st.id++;
+  g.down(st.id, { side: st.id % 2 ? "left" : "right", x: st.id % 2 ? 20 : area.width - 20, y: g.rows.yOf(n.step), w: area.width, h: area.height }, ts);
+  st.held = { id: st.id, end: n.on + n.dur * 0.85 };
 }

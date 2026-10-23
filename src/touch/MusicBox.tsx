@@ -9,6 +9,7 @@
  * first note of each entry as it comes, in the voice's colour, gold when the voice is the player's.
  */
 import { bossBar, cadenceMarks, pixText, ribbons, sparks, strikes, zoneGlow, type Burst, type Pop, type Span } from "./box-fx.ts";
+import { paintVariant } from "./box-variants.ts";
 import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
 import type { LaneNote } from "./lanes.ts";
 import type { OtherNote } from "./voice-mode.ts";
@@ -121,6 +122,8 @@ export interface Frame {
   ornaments?: Map<string, string>;
   /** D194: the cadences, named. */
   cadences?: { on: number; text: string }[];
+  /** Each voice's range of steps (the design study's staves, box-variants.ts). */
+  ranges?: { lo: number; hi: number }[];
 }
 
 export function MusicBox({ frame, hud, legend, children }: { frame: MutableRefObject<Frame>; hud: ReactNode; legend: ReactNode; children?: ReactNode }) {
@@ -162,6 +165,8 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
   const g = c.getContext("2d")!;
   const css = getComputedStyle(c);
   const tok = (name: string) => css.getPropertyValue(name).trim();
+  // The design study (box-variants.ts): only with `?boxv=N` in the page's address.
+  if (fr.spill && paintVariant(g, w, h, fr)) return;
 
   g.fillStyle = keyTint(fr.key);
   g.fillRect(0, 0, w, h);
