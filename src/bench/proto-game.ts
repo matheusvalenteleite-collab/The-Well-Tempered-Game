@@ -13,7 +13,7 @@
 import { ornamentsOf, realiseNote, type Ornament } from "../touch/ornament-play.ts";
 import type { Arrow } from "../touch/MusicBox.tsx";
 import type { Burst, Pop } from "../touch/box-fx.ts";
-import { voicing, type Chip, type Play, type Sounding } from "../touch/chip.ts";
+import { isPhone, voicing, type Chip, type Play, type Sounding } from "../touch/chip.ts";
 import type { Grade } from "../touch/engine.ts";
 import { barAt, beatOf, cadenceName, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
 import { chordOf, laneNotes, options, quickRides, strike, sweep, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
@@ -246,7 +246,8 @@ export class ProtoGame {
         this.now = on;
       }
     }
-    const horizon = Math.min(this.tickAt(ch.ctx.currentTime + 0.25), this.end);
+    // D211: a phone schedules further ahead (a frame held up by the screen or the collector must not leave the others late).
+    const horizon = Math.min(this.tickAt(ch.ctx.currentTime + (isPhone() ? 0.5 : 0.25)), this.end);
     while (this.nextBeat <= horizon) {
       // Beats gone by while the clock ran unwatched (a hidden tab): not played late in a burst.
       if (this.timeAt(this.nextBeat) < ch.ctx.currentTime - 0.03) {

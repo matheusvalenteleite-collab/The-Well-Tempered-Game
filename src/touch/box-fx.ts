@@ -73,6 +73,8 @@ interface Ctx {
   h: number;
   xOf: (tick: number) => number;
   yOf: (step: number) => number;
+  /** D211: a step's row height (smaller in the squeezed margins). */
+  hOf?: (step: number) => number;
   bh: number;
   now: number;
   tps: number;
@@ -104,12 +106,14 @@ export function ribbons(c: Ctx, spans: Span[], player: number[], names: string[]
     g.save();
     g.globalAlpha = sounding ? 0.3 : 0.17;
     g.strokeStyle = color;
-    g.lineWidth = bh + 7;
+    // In the squeezed margins (D211) the trail as thin as the notes there.
+    const th = c.hOf ? Math.min(...s.path.map((n) => c.hOf!(n.step))) : bh;
+    g.lineWidth = th < bh ? th + 2 : bh + 7;
     g.lineJoin = "round";
     g.lineCap = "round";
     g.beginPath();
     s.path.forEach((n, k) => {
-      const y = yOf(n.step) + bh / 2;
+      const y = yOf(n.step) + (c.hOf ? c.hOf(n.step) : bh) / 2;
       const a = xOf(n.on);
       const b = xOf(n.on + n.dur);
       if (k === 0) g.moveTo(a, y);
@@ -120,7 +124,7 @@ export function ribbons(c: Ctx, spans: Span[], player: number[], names: string[]
     g.restore();
     // The tag, over its first note.
     const first = s.path[0];
-    const y = yOf(first.step) - 9;
+    const y = Math.max(1, yOf(first.step) - 9);
     const voice = names?.[s.voice]?.toUpperCase() ?? "";
     const stretto = subj.some((o) => o !== s && o.voice !== s.voice && s.on > o.on && s.on < o.end);
     const what = `${s.form === "answer" ? "ANSWER" : "SUBJECT"}${s.theme ? ` ${s.theme}` : ""}`;
@@ -148,12 +152,13 @@ export function strikes(c: Ctx, spans: Span[]) {
       const k = since / 0.32;
       const grow = Math.round(1 + k * 5);
       const y = yOf(n.step);
+      const nh = c.hOf ? c.hOf(n.step) : bh;
       g.globalAlpha = 0.9 * (1 - k);
       g.fillStyle = "#fff6d0";
-      g.fillRect(a, y, b - a, bh);
+      g.fillRect(a, y, b - a, nh);
       g.strokeStyle = c.gold;
       g.lineWidth = 1;
-      g.strokeRect(a - grow + 0.5, y - grow + 0.5, b - a + 2 * grow - 1, bh + 2 * grow - 1);
+      g.strokeRect(a - grow + 0.5, y - grow + 0.5, b - a + 2 * grow - 1, nh + 2 * grow - 1);
     }
   }
   g.globalAlpha = 1;

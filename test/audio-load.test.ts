@@ -93,3 +93,19 @@ test("a phone never sounds more notes than its cap: the oldest are let go, never
   ctx.advance(1.5);
   assert.ok(ctx.sounding() < 6 * (chip.cap + 2), `${ctx.sounding()} sources sounding`);
 });
+
+test("D211: where the browser never reports a note's end, notes past their written end do not fill the cap: no note sounding is cut", () => {
+  const chip = new Chip();
+  const ctx = ctxOf();
+  setPreset("strings");
+  const v = voicing(1, 4);
+  // Silence every source's end report (the failure seen on the phone).
+  const real = ctx.advance.bind(ctx);
+  for (let i = 0; i < 400; i++) {
+    real(i * 0.25);
+    const sd = chip.note(48 + (i % 24), ctx.currentTime, 0.2, v);
+    void sd;
+    for (const n of ctx.nodes) if ("onended" in n) (n as unknown as { onended: unknown }).onended = null;
+  }
+  assert.equal(chip.stolen, 0, `${chip.stolen} notes cut`);
+});
