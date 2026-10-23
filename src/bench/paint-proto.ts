@@ -17,6 +17,7 @@ import { APPROACH_MS, type ProtoGame } from "./proto-game.ts";
 import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
 import { CLEAN_INK, HELD_INK, LEGATO_INK } from "./articulation.ts";
 import { scaleGem, scaleHands, scaleHow, scaleInk, scaleLetter, scaleStrip } from "./paint-scale.ts";
+import { SHOULDER } from "./paint-arch.ts";
 import { deskBegin, deskCrowd, deskEnd, deskFlare, deskGeom, deskKeys, deskOver, deskSparks, deskUnder, subjectGem, type Road } from "./paint-desk.ts";
 
 const FONT = '"TG Accidentals", "Press Start 2P", ui-monospace, monospace';
@@ -292,9 +293,8 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   // D208: the other voices, faint, by pitch across the road (low left, high right), so the fugue's
   // architecture shows behind the lanes: each voice its colour, its subject entries brighter.
   // D220: and on the computer's. D235: withdrawn: notes off the lanes in other colours read as the
-  // player's own in the wrong lanes (the owner: "so confusing"); the other voices' entries stay as
-  // the road's edge ribbons.
-  void ghosts;
+  // player's own in the wrong lanes (the owner: "so confusing"). D238: the road is the player's
+  // alone; the other voices run on rails on its shoulders (paint-arch.ts, from deskUnder).
   // D217, SUBJECT: a stretto's older entry (the lower row) drawn hollow, behind the main line.
   if (subj && g.tracks[1]) secondLine(c, g, at, laneX, W, N, y1, beat, t);
   // The notes, far to near.
@@ -470,7 +470,8 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   }
   if (R) deskSparks(R, inkOfLane);
   // The multiplier's ring (left): eight notes to the next step, its four lamps.
-  const rx = phone ? 34 : cx - W / 2 - 60;
+  // D238: on the computer, beyond the voice rails on the shoulders.
+  const rx = phone ? 34 : cx - W / 2 - SHOULDER;
   const ry = phone ? 34 : y1 - 40;
   c.lineWidth = 6;
   for (let k = 0; k < 8; k++) {
@@ -483,7 +484,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   label(c, `${g.streak}`, rx, ry + (phone ? 36 : 44), t.muted, 8);
   if (R) deskFlare(R, rx, ry);
   // The crowd's meter (right).
-  const mx = phone ? w - 18 : cx + W / 2 + 44;
+  const mx = phone ? w - 18 : cx + W / 2 + SHOULDER;
   const mh = phone ? 70 : 120;
   const my = phone ? 10 : y1 - mh;
   const grad = c.createLinearGradient(0, my, 0, my + mh);
@@ -685,47 +686,6 @@ function padRows(c: CanvasRenderingContext2D, g: ProtoGame, laneX: (l: number, k
     c.lineWidth = 2;
     c.strokeRect(x - bw / 2 - 3, y1 + TIER.top - 3, bw + 6, 2 * TIER.h + TIER.gap + 6);
   }
-}
-
-/** HIGHWAY's other voices (D208): faint marks by pitch across the road, the subject entries brighter. */
-const ghostRange = new WeakMap<ProtoGame, { lo: number; hi: number; subj: (n: { voice: number; on: number }) => boolean; from: number }>();
-function ghosts(c: CanvasRenderingContext2D, g: ProtoGame, at: (tick: number) => { y: number; k: number; d: number }, cx: number, W: number, y1: number) {
-  let r = ghostRange.get(g);
-  if (!r) {
-    const steps = [...g.others.map((n) => n.step), ...g.notes.map((n) => n.step)];
-    const ents = g.f.entries;
-    r = { lo: Math.min(...steps), hi: Math.max(...steps), subj: (n) => ents.some((e) => e.voice === n.voice && n.on >= e.on && n.on < e.end), from: 0 };
-    ghostRange.set(g, r);
-  }
-  const span = Math.max(1, r.hi - r.lo);
-  const horizon = g.now + AHEAD_S * g.tps;
-  const count = g.f.voices.length;
-  // A cursor past the notes long gone (eight beats back), so a frame does not walk the whole piece.
-  while (r.from < g.others.length && g.others[r.from].on < g.now - 8 * g.beat) r.from++;
-  for (let j = r.from; j < g.others.length; j++) {
-    const n = g.others[j];
-    if (n.on > horizon) break;
-    if (n.on + n.dur < g.now - g.tps * 0.2) continue;
-    const a = at(Math.max(n.on, g.now - g.tps * 0.2));
-    const e = at(Math.min(n.on + n.dur, horizon));
-    if (a.y > y1 + 4) continue;
-    const u = (n.step - r.lo) / span;
-    const xa = cx + (-W / 2 + W * (0.06 + 0.88 * u)) * a.k;
-    const xe = cx + (-W / 2 + W * (0.06 + 0.88 * u)) * e.k;
-    const subj = r.subj(n);
-    c.fillStyle = inkOf(n.voice, count);
-    c.globalAlpha = subj ? 0.5 : 0.22;
-    const wa = (subj ? 7 : 4) * a.k;
-    const we = (subj ? 7 : 4) * e.k;
-    c.beginPath();
-    c.moveTo(xa - wa, Math.min(a.y, y1));
-    c.lineTo(xa + wa, Math.min(a.y, y1));
-    c.lineTo(xe + we, e.y);
-    c.lineTo(xe - we, e.y);
-    c.closePath();
-    c.fill();
-  }
-  c.globalAlpha = 1;
 }
 
 /** A voice's next note and how near it is (0 far, 1 on its beat), if it is showing. */
