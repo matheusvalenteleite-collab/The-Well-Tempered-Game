@@ -18,6 +18,7 @@ import { presetById, setPreset } from "../touch/sound.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ladderGeometry, MusicBox, inkOf, type Frame } from "../touch/MusicBox.tsx";
 import { AUTO, BOXV, variantRows } from "../touch/box-variants.ts";
+import { UI, uiRows } from "../touch/ui/index.ts";
 import { PlayArea, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
 import { Choice, loadDrums, Panel, SoundSetting, Tapper } from "../touch/Panels.tsx";
 import { HeadphonesFold, useHeadphones } from "./Headphones.tsx";
@@ -257,6 +258,7 @@ export function BenchApp() {
       notes: line ? [...line.notes, ...line.second].sort((a, c) => a[0] - c[0] || c[2] - a[2]).map(([on, dur, midi, step, v]) => ({ on, dur, midi, step, long: dur >= b.ticks, state: "pending" as const, voice: v })) : lane(voice),
       others: run?.solo || kimiko ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi))) : accompaniment(f, from, voice).filter((n) => !played.includes(n.voice) && (!run || n.on < run.until)),
       ...marks,
+      piece: f.id,
     };
   }
 
@@ -341,6 +343,7 @@ export function BenchApp() {
         notes: g.notes,
         others: g.others,
         ...marks,
+        piece: f.id,
         marks: g.marks,
         entryState: new Map(g.entries.map((e) => [`${e.voice}:${e.on}`, e.state])),
         arrows,
@@ -402,7 +405,7 @@ export function BenchApp() {
     if (!roll || !area) return null;
     const r = roll.getBoundingClientRect();
     const a = area.getBoundingClientRect();
-    const geo = (BOXV ? variantRows({ lo: range.lo, hi: range.hi, spill: stepRange(f), ranges: study.ranges, voice }, r.height) : null) ?? ladderGeometry(range.lo, range.hi, r.height);
+    const geo = (UI ? uiRows(f.id, voice, range, r.height) : null) ?? (BOXV ? variantRows({ lo: range.lo, hi: range.hi, spill: stepRange(f), ranges: study.ranges, voice }, r.height) : null) ?? ladderGeometry(range.lo, range.hi, r.height);
     const top = r.top - a.top;
     const y0 = top + geo.yOf(0);
     const span = 3 * barTicks;

@@ -10,6 +10,7 @@
  */
 import { bossBar, cadenceMarks, pixText, ribbons, sparks, strikes, zoneGlow, type Burst, type Pop, type Span } from "./box-fx.ts";
 import { paintVariant } from "./box-variants.ts";
+import { paintUi, UI } from "./ui/index.ts";
 import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
 import type { LaneNote } from "./lanes.ts";
 import type { OtherNote } from "./voice-mode.ts";
@@ -124,6 +125,8 @@ export interface Frame {
   cadences?: { on: number; text: string }[];
   /** Each voice's range of steps (the design study's staves, box-variants.ts). */
   ranges?: { lo: number; hi: number }[];
+  /** The piece's id (the interface templates, ui/index.ts, `?ui=NAME`). */
+  piece?: string;
 }
 
 export function MusicBox({ frame, hud, legend, children }: { frame: MutableRefObject<Frame>; hud: ReactNode; legend: ReactNode; children?: ReactNode }) {
@@ -154,6 +157,8 @@ export function MusicBox({ frame, hud, legend, children }: { frame: MutableRefOb
 }
 
 function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
+  // The interface templates (ui/index.ts): only with `?ui=NAME` in the page's address.
+  if (UI && paintUi(c, cssW, cssH, fr)) return;
   const w = Math.max(1, Math.floor(cssW / PX));
   const h = Math.max(1, Math.floor(cssH / PX));
   if (c.width !== w || c.height !== h) {
