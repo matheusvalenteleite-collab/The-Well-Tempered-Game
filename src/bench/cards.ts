@@ -24,9 +24,12 @@ export const SEAL_KINDS: Record<SealKind, string> = {
   "PERFECT LINE": "Answer the subject's telling gesture right every time it comes.",
   HOLD: "Hold the long notes to their written end.",
   "NO SLIP": "Keep the run alive through a named passage.",
-  DUET: "Two voices, 1P and 2P, share the seal.",
+  DUET: "Not offered: it needed TWO VOICES, withdrawn (D219).",
   TEMPERAMENT: "Grade A in a historical tuning chosen for the key.",
 };
+
+/** D219: the seal kinds not offered (DUET needed TWO VOICES, withdrawn): their cards are never ready and say so. */
+export const NOT_OFFERED: ReadonlySet<SealKind> = new Set<SealKind>(["DUET"]);
 
 /** The seal kinds that need music data the extraction does not give yet. */
 export const NEEDS_DATA: ReadonlySet<SealKind> = new Set<SealKind>(["MIRROR", "SLOW GIANT", "SUBJECTS"]);
@@ -144,7 +147,7 @@ function card(book: 0 | 1 | 2, r: Row): FugueCard {
     title,
     formal: aof ? "Contrapunctus XIV · Fuga a 3 soggetti" : `Fugue ${number} in ${KEYS[number - 1]}`,
     seal: { kind, line },
-    ready: !NEEDS_DATA.has(kind) || hasData(kind, aof ? "bwv1080-14" : `wtc${book}f${String(number).padStart(2, "0")}`),
+    ready: !NOT_OFFERED.has(kind) && (!NEEDS_DATA.has(kind) || hasData(kind, aof ? "bwv1080-14" : `wtc${book}f${String(number).padStart(2, "0")}`)),
     why,
     stars,
     scene,

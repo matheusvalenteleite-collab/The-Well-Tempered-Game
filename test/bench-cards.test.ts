@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { FUGUES } from "../src/touch/fugue.ts";
-import { betterGrade, bookCards, cardById, CARDS, NEEDS_DATA, SEAL_KINDS, TIERS } from "../src/bench/cards.ts";
+import { betterGrade, bookCards, cardById, CARDS, NEEDS_DATA, NOT_OFFERED, SEAL_KINDS, TIERS } from "../src/bench/cards.ts";
 import { drawEmblem, EMBLEM_H, EMBLEM_W, emblemPixels, keyHue, strettoCount } from "../src/bench/emblem.ts";
 
 test("every fugue (48 and Contrapunctus XIV) has a card, and every card a fugue", () => {
@@ -38,7 +38,7 @@ test("titles, seals and stars are filled; seals needing data are ready once the 
     assert.ok(c.why.trim().length > 10, c.id);
     assert.ok(c.seal.line.trim().length > 5, c.id);
     assert.ok(c.seal.kind in SEAL_KINDS, c.id);
-    if (!NEEDS_DATA.has(c.seal.kind)) assert.equal(c.ready, true, c.id);
+    if (!NEEDS_DATA.has(c.seal.kind)) assert.equal(c.ready, !NOT_OFFERED.has(c.seal.kind), c.id);
     assert.ok(Number.isInteger(c.stars) && c.stars >= 1 && c.stars <= TIERS.length, c.id);
     // Nothing marked uncertain in the study reaches the screen.
     assert.ok(!/[~?]/.test(c.title + c.why + c.seal.line), c.id);
@@ -47,8 +47,9 @@ test("titles, seals and stars are filled; seals needing data are ready once the 
   assert.equal(cardById("wtc1f08")!.ready, true); // SLOW GIANT: I/8's augmentations (D189)
   // SUBJECTS: the later subjects of the double and triple fugues are in the entries (D197).
   for (const id of ["wtc1f04", "wtc2f04", "wtc2f14", "wtc2f18", "wtc2f23", "bwv1080-14"]) assert.equal(cardById(id)!.ready, true, id);
-  // Every card's seal is judged now.
-  assert.deepEqual(CARDS.filter((c) => !c.ready).map((c) => c.id), []);
+  // Every card's seal is judged now, but DUET's (D219: it needed TWO VOICES, withdrawn): not offered.
+  assert.deepEqual(CARDS.filter((c) => !c.ready).map((c) => c.id), CARDS.filter((c) => c.seal.kind === "DUET").map((c) => c.id));
+  assert.ok(CARDS.some((c) => c.seal.kind === "DUET"));
   assert.equal(cardById("wtc1f01")!.ready, true); // STRETTO
 });
 

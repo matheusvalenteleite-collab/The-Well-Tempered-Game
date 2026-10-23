@@ -32,7 +32,6 @@ export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g:
   const t = tokens();
   switch (g.proto.id) {
     case "ladder":
-    case "duo":
       bars(c, w, h, g, t);
       break;
     case "piano":
@@ -42,7 +41,6 @@ export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g:
     case "keys":
     case "highway":
     case "subject":
-    case "kimiko":
       highway(c, w, h, g, t);
       break;
     case "arrows":
@@ -770,15 +768,6 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
       c.globalAlpha = 0.6;
       c.fillRect(s.x + 4, g.lastTouch.y - 1, bw - 8, 2);
       c.globalAlpha = 1;
-    }
-  } else if (g.proto.id === "duo") {
-    for (const [n, s] of sides.entries()) {
-      const tr = g.tracks[s.k];
-      const ink = inkOf(tr.voice, count);
-      const nx = coming(g, s.k);
-      if (nx) light(c, s.x, 0, bw, h - 18, nx.p, ink, t);
-      label(c, n ? "2P" : "1P", s.x + bw / 2, 16, ink, 12);
-      label(c, g.f.voiceNames[tr.voice].toUpperCase(), s.x + bw / 2, 34, ink, 6);
     }
   }
   for (const s of g.heldSides()) {

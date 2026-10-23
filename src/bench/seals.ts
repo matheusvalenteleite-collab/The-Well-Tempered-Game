@@ -10,7 +10,7 @@
  *   PERFECT LINE: every entry of the voice captured.
  *   HOLD: every long note (a beat and a half or more) held to at least seven tenths of its length.
  *   NO SLIP: no note missed or wrong from the voice's first entry to the end of its last.
- *   DUET: TWO VOICES, both graded A or better.
+ *   DUET: not offered (D219: TWO VOICES withdrawn); its cards say so (cards.ts NOT_OFFERED).
  *   TEMPERAMENT: grade A or better in a historical tuning (the one the card names, if it names one).
  */
 import type { TouchFugue } from "../touch/fugue.ts";
@@ -20,13 +20,12 @@ import type { FugueCard } from "./cards.ts";
 
 export interface RunFacts {
   f: TouchFugue;
-  /** The voices played (two in TWO VOICES), with their notes as judged. */
+  /** The voices played, with their notes as judged (SUBJECT: each voice's subject notes). */
   tracks: { voice: number; notes: LaneNote[] }[];
   entries: { voice: number; on: number; end: number; state: "open" | "captured" | "lost" }[];
   beat: number;
   grade: string;
   tuning: string;
-  duo: boolean;
   /** Played from the very beginning. */
   whole: boolean;
 }
@@ -83,8 +82,8 @@ export function judgeSeal(card: FugueCard, r: RunFacts): SealVerdict {
       return slips ? { earned: false, why: `${slips} slips between the first entry and the last.` } : { earned: true, why: "No slip from the first entry to the last." };
     }
     case "DUET":
-      if (!r.duo) return { earned: false, why: "A duet: play it in TWO VOICES." };
-      return good(r.grade) ? { earned: true, why: "Both voices, grade A." } : { earned: false, why: "Both voices must reach grade A." };
+      // D219: TWO VOICES withdrawn: the seal is not offered (its cards are never ready).
+      return { earned: false, why: "This seal is not offered." };
     case "TEMPERAMENT": {
       const named = TEMPERAMENTS.find((t) => t.id !== "equal" && card.seal.line.toUpperCase().includes(t.name.split(" (")[0]));
       if (named ? r.tuning !== named.id : r.tuning === "equal") return { earned: false, why: named ? `Play it in ${named.name} (⚙ TUNING).` : "Play it in a historical tuning (⚙ TUNING)." };

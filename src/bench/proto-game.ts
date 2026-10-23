@@ -186,7 +186,7 @@ export class ProtoGame {
   private readonly shapes: Shape[];
   private held = new Map<number, Held>();
   private readonly rit: ReturnType<typeof ritard> = { warp: (t: number) => t, unwarp: (w: number) => w };
-  /** D216, KIMIKO: her clock (her-clock.ts), the game on Kimiko Ishizaka's time (no other prototype has one). */
+  /** D216, KIMIKO (D219: WITH KIMIKO ISHIZAKA, a switch in LADDER and SUBJECT): her clock (her-clock.ts), the game on Kimiko Ishizaka's time. */
   readonly clock: Clock | null = null;
   /** D215: the notes played right and the slips, so far (counted only; the fade went with D216). */
   hits = 0;
@@ -196,8 +196,9 @@ export class ProtoGame {
 
   /**
    * D216, KIMIKO: `o.clock` puts the game on her time (her-clock.ts), in place of the steady tempo and
-   * the final ritard: the windows (in ticks) at her mean tempo over the passage. Only KIMIKO takes it
-   * (every other prototype keeps the steady tempo and its ritard); KIMIKO has no other voices, no band.
+   * the final ritard: the windows (in ticks) at her mean tempo over the passage. D219: taken only WITH
+   * KIMIKO ISHIZAKA (`o.her`); then the game sounds nothing but the player's voice: no other voices, no
+   * band, no subject effects, no click past a quiet count-in.
    */
   constructor(f: TouchFugue, voices: number | number[], from: number, proto: Proto, o: Options & { bpm: number; clock?: Clock }, chip: Chip) {
     this.f = f;
@@ -211,7 +212,7 @@ export class ProtoGame {
     this.perBar = b.perBar;
     // D181: the tempo counts quarter notes, whatever the metre (in 2/2 the beat was a half note: twice as fast).
     this.tps = (f.tpq * o.bpm) / 60;
-    if (o.clock && proto.id === "kimiko") (this.rit = o.clock), (this.tps = o.clock.tps), (this.clock = o.clock);
+    if (o.clock && o.her) (this.rit = o.clock), (this.tps = o.clock.tps), (this.clock = o.clock);
     else if (o.until === undefined || o.until >= f.length) this.rit = ritard(f.length, f.barTicks);
     // D191: how far apart two ticks sound, in ms (at this tempo, the final ritard included).
     const msBetween = (a: number, c: number) => ((this.rit.warp(c) - this.rit.warp(a)) / this.tps) * 1000;
@@ -231,15 +232,13 @@ export class ProtoGame {
     });
     [{ voice: this.voice, notes: this.notes, moves: this.moves }] = this.tracks;
     const played = this.tracks.map((t) => t.voice);
-    this.others = o.solo || proto.id === "kimiko" ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until)) : accompaniment(f, from, played[0]).filter((n) => !played.includes(n.voice) && (o.until === undefined || n.on < o.until));
+    this.others = o.solo || o.her ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until)) : accompaniment(f, from, played[0]).filter((n) => !played.includes(n.voice) && (o.until === undefined || n.on < o.until));
     this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject);
     // Waiting (the lessons): no count-in, the clock stops at each note until it is struck.
     this.start = o.wait ? from - this.beat : countInStart(f, from);
     this.entry = from;
     this.end = (o.until ?? f.length) + this.beat;
     this.opt = options(f.tpq, this.bpm, "easy");
-    // TWO VOICES: the windows a quarter wider (two lines at once).
-    if (proto.id === "duo") this.opt = { ...this.opt, early: this.opt.early * 1.25, late: this.opt.late * 1.25 };
     this.anchorAt = chip.ctx.currentTime + 0.15;
     this.anchorTick = this.start;
     this.nextBeat = this.start;
@@ -309,7 +308,7 @@ export class ProtoGame {
   }
   /** HIGHWAY's road and lanes: HIGHWAY, and SUBJECT on it (D214). */
   get road(): boolean {
-    return this.proto.id === "highway" || this.proto.id === "subject" || this.proto.id === "kimiko";
+    return this.proto.id === "highway" || this.proto.id === "subject";
   }
 
   /** The clock, with the last cadence held back (phrasing.ts ritard). */
@@ -364,7 +363,7 @@ export class ProtoGame {
       // The beat's length as it sounds (D191: the final ritard included, the drums' off-beats with it).
       const beatS = this.timeAt(this.nextBeat + this.beat) - this.timeAt(this.nextBeat);
       // D216, KIMIKO: her recording alone keeps the time: no band, no click past a quiet count-in.
-      const kimiko = this.proto.id === "kimiko";
+      const kimiko = !!this.o.her;
       if (kimiko && this.nextBeat >= this.entry) {
         this.nextBeat += this.beat;
         continue;
@@ -506,8 +505,7 @@ export class ProtoGame {
     const prev = this.before(i, k);
     const m = moves[i];
     const asked = (steps: number) => (prev >= 0 ? stepPitch(notes[prev].step + steps, notes[prev]) : undefined);
-    // TWO VOICES: the time only. EASY: the time, or (D187) the way along the keys too.
-    if (this.proto.id === "duo") return { ok: true };
+    // EASY: the time, or (D187) the way along the keys too.
     if (this.proto.id === "keys") {
       const lvl = this.o.easy ?? "timing";
       const code = at.key?.code;
@@ -566,7 +564,6 @@ export class ProtoGame {
         // A click, not a key: the time only.
         return { ok: true };
       case "highway":
-      case "kimiko":
       case "subject": {
         // D207: EASY on a phone: the lane tapped, judged as the keys are (D187), by lanes.
         const lvl = this.o.easy ?? "timing";
@@ -820,7 +817,8 @@ export class ProtoGame {
     const base = dynamic(d);
     let expr: Play = { ...base, trill: this.trillNext, bright: (base.bright ?? 0) + (fuoco ? 0.35 : 0), muffleable: true, lead: true, pleno: v.ok && this.pleno, envelope: piano ? "piano" : "synth" };
     // D213: the player's voice as the others: its subject brighter (and its effect), duller during another's entry.
-    const sv = v.ok ? this.subj.shape(this.voiceOf(h.k, i), notes[i].on, voiceV) : null;
+    // D219: WITH KIMIKO ISHIZAKA the player's voice is plain (no subject effects over her piano).
+    const sv = v.ok && !this.o.her ? this.subj.shape(this.voiceOf(h.k, i), notes[i].on, voiceV) : null;
     if (sv) expr = { ...expr, ...sv.play, level: (expr.level ?? 1) * (sv.play.level ?? 1) };
     const pitches = v.ok || v.wrong === undefined ? chord.map((j) => notes[j].midi) : [v.wrong];
     // D213: the subject's effect under the note (the note's own sound below, its last made).
@@ -938,7 +936,7 @@ export class ProtoGame {
       const sv = this.subj.shape(nv, n.on, voicing(nv, this.f.voices.length, true));
       const sd = ch.note(n.midi, at, len, sv.v, { ...sv.play, lead: true, envelope: this.proto.id === "piano" ? "piano" : "synth" });
       if (sd) this.band.push({ sd, until: at + len + 0.6 });
-      for (const x of this.subj.layers(ch, sv.sn, n.midi, at, len, sv.v, sv.play.level ?? 1)) this.band.push({ sd: x, until: at + len + 0.8 });
+      if (!this.o.her) for (const x of this.subj.layers(ch, sv.sn, n.midi, at, len, sv.v, sv.play.level ?? 1)) this.band.push({ sd: x, until: at + len + 0.8 });
       this.riders.push({ k: h.k, j, at });
     }
   }
