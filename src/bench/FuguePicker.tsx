@@ -5,7 +5,9 @@
  * scroll-snap underneath, so a phone's own momentum); ↑/↓ or W/S move, ←/→ or A/D change the book,
  * Enter chooses, Escape closes; the mouse wheel moves a card a notch. Fugues only (D188). D219: Book I
  * first, the TESTBENCH tab dropped from the screen (the list kept in cards.ts), and the card's place in
- * the list shown ("7/24").
+ * the list shown ("7/24"). D229: Book I's cards are pairs, two stages each: the PRELUDE (always
+ * playable; its own stars, on the preludes' scale) and the FUGUE, locked (🔒) until the prelude is
+ * beaten (stages.ts). P and F (or a tap on the stage) choose the stage.
  */
 import { readSeals } from "./seals.ts";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -13,6 +15,10 @@ import { keyTint } from "../touch/MusicBox.tsx";
 import { fugueById } from "../touch/fugue.ts";
 import { bookCards, cardById, NOT_OFFERED, readBest, SEAL_KINDS, TIERS, type FugueCard } from "./cards.ts";
 import { drawEmblem, EMBLEM_H, EMBLEM_W } from "./emblem.ts";
+import { difficultyOf } from "./difficulty.ts";
+import { fugueOf, isPrelude, locked, preludeOf, readStages } from "./stages.ts";
+
+type Stage = "prelude" | "fugue";
 
 const urls = new Map<string, string>();
 /** The emblem as an image (drawn once a piece, cached). */
@@ -65,7 +71,10 @@ export function PieceButton({ id, open }: { id: string; open: () => void }) {
 }
 
 export function FuguePicker({ current, pick, close }: { current: string; pick: (id: string) => void; close?: () => void }) {
-  const start = cardById(current) ?? bookCards(1)[0];
+  const start = cardById(fugueOf(current)) ?? bookCards(1)[0];
+  const stages = useMemo(readStages, []);
+  // D229: the stage shown on Book I's cards: the prelude until its fugue is unlocked (or chosen).
+  const [stage, setStage] = useState<Stage>(isPrelude(current) || locked(fugueOf(current), stages) ? "prelude" : "fugue");
   const [book, setBook] = useState<Book>(start.book);
   // The wheel's position (rows, fractional while it moves) in the book shown.
   const [pos, setPos] = useState(start.book === 0 ? 0 : start.number - 1);
@@ -79,6 +88,13 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
   const sel = Math.max(0, Math.min(n - 1, Math.round(pos)));
   const card = cards[sel];
   const best = useMemo(readBest, []);
+  const pairs = book === 1;
+  const isLocked = pairs && locked(card.id, stages);
+  const onPrelude = pairs && stage === "prelude";
+  const choose = () => {
+    if (onPrelude) return pick(preludeOf(card.id));
+    if (!isLocked) pick(card.id);
+  };
   const seals = useMemo(readSeals, []);
 
   // The row's height from the CSS (shorter on a phone held sideways).
@@ -176,8 +192,10 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
         // A focused tab or ✕ keeps its own Enter.
         const t = e.target instanceof Element ? e.target.closest("button") : null;
         if (t && !t.classList.contains("tb-play")) return;
-        return handled(() => pick(card.id));
+        return handled(choose);
       }
+      if (pairs && k === "KeyP") return handled(() => setStage("prelude"));
+      if (pairs && k === "KeyF") return handled(() => setStage("fugue"));
     };
     window.addEventListener("keydown", down, true);
     return () => window.removeEventListener("keydown", down, true);
@@ -195,6 +213,10 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
 
   const frac = pos - sel;
   const f = fugueById(card.id);
+  const pf = pairs ? fugueById(preludeOf(card.id)) : null;
+  const pStars = pf ? difficultyOf(pf).stars : 0;
+  const pLast = pf ? (pf.bars[pf.bars.length - 1]?.n ?? pf.bars.length) : 0;
+  const pBeat = pf ? stages[pf.id] : undefined;
   const lastBar = f.bars[f.bars.length - 1]?.n ?? f.bars.length;
   const row = (k: number) => {
     const c: FugueCard | undefined = cards[sel + k];
@@ -203,7 +225,10 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
       <div key={k} className={`tb-wheel-row tb-wheel-d${Math.abs(k)}`} style={{ transform: `translateY(${-frac * rowH}px)` }} aria-hidden="true">
         <span className="tb-wheel-chip" style={{ background: keyTint(fugueById(c.id).key, 10) }} />
         <span className="tb-wheel-no">{c.book === 0 ? "XIV" : c.number}</span>
-        <span className="tb-wheel-name">{c.formal}</span>
+        <span className="tb-wheel-name">
+          {c.book === 1 ? c.formal.replace(/^Fugue \d+ in /, "Prelude & Fugue in ") : c.formal}
+          {c.book === 1 && <span className="tb-wheel-lock">{locked(c.id, stages) ? " 🔒" : " ✓"}</span>}
+        </span>
       </div>
     );
   };
@@ -213,7 +238,7 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
       <header>
         <div>
           <h1>DAS WOHLTEMPERIRTE CLAVIER</h1>
-          <p>the fugues · ↑↓ choose · ←→ book · ⏎ play</p>
+          <p>{book === 1 ? "prelude, then fugue · ↑↓ choose · P/F stage · ←→ book · ⏎ play" : "the fugues · ↑↓ choose · ←→ book · ⏎ play"}</p>
         </div>
         {close && <button type="button" id="wheel-close" className="tg-x" aria-label="Close" onClick={close}>
           ✕
@@ -240,6 +265,35 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
           </span>
           <Emblem id={card.id} className="tb-fcard-pic" />
           <div className="tb-fcard-text">
+            {pairs && (
+              <div className="tb-stages" role="group" aria-label="Stage">
+                <button type="button" id="stage-prelude" className={onPrelude ? "on" : ""} aria-pressed={onPrelude} onClick={(e) => (e.stopPropagation(), setStage("prelude"))}>
+                  1 · PRELUDE{pBeat ? " ✓" : ""}
+                </button>
+                <button type="button" id="stage-fugue" className={`${onPrelude ? "" : "on"}${isLocked ? " tb-stage-locked" : ""}`} aria-pressed={!onPrelude} onClick={(e) => (e.stopPropagation(), setStage("fugue"))}>
+                  2 · FUGUE{isLocked ? " 🔒" : ""}
+                </button>
+              </div>
+            )}
+            {onPrelude && pf ? (
+              <>
+                <h2 className="tb-fcard-title">{pf.title}</h2>
+                <p className="tb-fcard-formal">{card.bwv} · STAGE 1</p>
+                <p className="tb-fcard-stats">
+                  {pf.voices.length === 2 ? "2 HANDS" : `${pf.voices.length} PARTS`} · {pf.meter} · {pLast} BARS
+                </p>
+                <p className="tb-fcard-stars" aria-label={`Difficulty ${pStars} of 5`}>
+                  <span className="tg-gold">{stars(pStars)}</span> {TIERS[pStars - 1]}
+                </p>
+                <p className={`tb-fcard-seal${pBeat ? "" : " tb-seal-soon"}`}>
+                  {pBeat ? <><b>✓ BEATEN</b> · BEST {pBeat.best} · THE FUGUE IS OPEN</> : <><b>BEAT IT</b> Play it to the end to unlock the fugue.</>}
+                </p>
+                <button type="button" id="wheel-play" className="tb-play" onClick={(e) => (e.stopPropagation(), choose())}>
+                  PLAY PRELUDE ▶
+                </button>
+              </>
+            ) : (
+              <>
             <h2 className="tb-fcard-title">{card.title}</h2>
             <p className="tb-fcard-formal">
               {card.formal} · {card.bwv}
@@ -275,9 +329,17 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
                 );
               })}
             </p>
-            <button type="button" id="wheel-play" className="tb-play" onClick={(e) => (e.stopPropagation(), pick(card.id))}>
-              PLAY ▶
-            </button>
+            {isLocked ? (
+              <button type="button" id="wheel-play" className="tb-play tb-play-locked" disabled aria-disabled="true">
+                🔒 BEAT THE PRELUDE TO UNLOCK
+              </button>
+            ) : (
+              <button type="button" id="wheel-play" className="tb-play" onClick={(e) => (e.stopPropagation(), choose())}>
+                PLAY ▶
+              </button>
+            )}
+              </>
+            )}
           </div>
         </div>
         <div className="tb-wheel-below">{[1, 2].map(row)}</div>

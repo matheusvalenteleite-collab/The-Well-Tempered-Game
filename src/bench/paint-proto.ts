@@ -155,6 +155,34 @@ function pixels(c: CanvasRenderingContext2D, a: Arrow, x: number, y: number, s: 
   ARROW_PIXELS[a].forEach((row, ry) => [...row].forEach((on, rx) => on === "1" && c.fillRect(Math.round(x + rx * s), Math.round(y + ry * s), s, s)));
 }
 
+/** D229: the space bar's glyph (⎵) on a repeated note's gem, and SPACE under it once near enough to read. */
+function spaceMark(c: CanvasRenderingContext2D, x: number, y: number, gw: number, gh: number, k: number, missed: boolean) {
+  const bw = gw * 0.62;
+  const lw = Math.max(1, Math.round(2 * k));
+  const by = y + gh * 0.02;
+  c.fillStyle = missed ? "#6a6474" : "#120f18";
+  c.fillRect(x - bw / 2, by, bw, lw);
+  c.fillRect(x - bw / 2, by - gh * 0.28, lw, gh * 0.28 + lw);
+  c.fillRect(x + bw / 2 - lw, by - gh * 0.28, lw, gh * 0.28 + lw);
+  // A pale bar under the gem: the thumbs' key, as at the foot.
+  c.fillStyle = missed ? "#4a4458" : "#e8f4ff";
+  c.fillRect(x - bw / 2, y + gh * 0.62, bw, Math.max(2, 3 * k));
+  if (k > 0.5 && !missed) label(c, "SPACE", x, y + gh * 0.62 + Math.max(7, 9 * k), "#e8f4ff", Math.max(5, Math.round(6 * k)));
+}
+
+/** D229: how near (0 none, 1 at the line) the next SPACE gem is, within 0.8 s. */
+function spaceNear(g: ProtoGame): number {
+  const notes = g.notes;
+  for (let i = 0; i < notes.length; i++) {
+    const n = notes[i];
+    if (n.state !== "pending" || n.ride || n.on < g.now - g.opt.late) continue;
+    const s = (n.on - g.now) / g.tps;
+    if (s > 0.8) return 0;
+    if (g.spaceGem(i)) return Math.max(0, Math.min(1, 1 - s / 0.8));
+  }
+  return 0;
+}
+
 /**
  * EASY as a highway (D198, after Guitar Hero): the player's notes come down ten lanes, the home row's
  * keys (A S D F G H J K L ;), towards the strike line, in perspective. A note's lane is a fingering
@@ -315,7 +343,9 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     }
     // D220: the computer's gems taller (its road is larger).
     const gh = Math.max(4, (R ? 16 : 12) * p.k);
-    if (g.isFree(i) && lvl !== "timing") {
+    // D229: on a computer a repeat (SPACE) is a gem in the lane of the note before, marked SPACE.
+    const space = !!R && g.spaceGem(i);
+    if (g.isFree(i) && lvl !== "timing" && !space) {
       // A free note: an open bar across the road.
       c.fillStyle = n.state === "miss" ? t.miss : subj ? ink : "#c78bff";
       c.fillRect(cx - (W / 2) * p.k + 4, p.y - gh / 3, W * p.k - 8, Math.max(3, gh * 0.6));
@@ -332,6 +362,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.fillRect(x - gw / 2, p.y - gh / 2, gw, gh * 0.6);
     c.fillStyle = "rgba(255,255,255,0.4)";
     c.fillRect(x - gw / 2, p.y - gh / 2, gw, Math.max(1, gh * 0.16));
+    if (space) spaceMark(c, x, p.y, gw, gh, p.k, n.state === "miss");
     // D205: an ornament's sign over its gem.
     const orn = g.ornaments.get(`${n.voice ?? g.voice}:${n.on}`);
     if (orn && n.state !== "miss") label(c, ornamentMark(orn), x, p.y - gh - 4 * p.k, t.gold, Math.max(6, Math.round(8 * p.k)));
@@ -404,6 +435,14 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     deskKeys(R, bh);
     const sdown = g.keysDown.has("Space");
     const sy = y1 + 36;
+    // D229: the bar lights as a SPACE gem nears the line.
+    const near = spaceNear(g);
+    if (near > 0 && !sdown) {
+      c.fillStyle = t.shine;
+      c.globalAlpha = 0.15 + 0.45 * near;
+      c.fillRect(cx - W * 0.25 - 6 * near, sy - 6 * near, W * 0.5 + 12 * near, 14 + 12 * near);
+      c.globalAlpha = 1;
+    }
     c.fillStyle = shade(t.shine, 0.3);
     c.fillRect(cx - W * 0.25, sy + 14, W * 0.5, sdown ? 1 : 4);
     c.fillStyle = sdown ? t.shine : "#1d1a24";

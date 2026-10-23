@@ -16,7 +16,7 @@ import type { Burst, Pop } from "../touch/box-fx.ts";
 import { isPhone, voicing, type Chip, type Gate, type Play, type Sounding } from "../touch/chip.ts";
 import type { Grade } from "../touch/engine.ts";
 import { barAt, beatOf, cadenceName, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
-import { chordOf, laneNotes, options, quickRides, release, strike, sweep, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
+import { chordOf, laneNotes, options, preludeRides, quickRides, release, strike, sweep, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
 import { follow, phrase, ritard, type Shape } from "../touch/phrasing.ts";
 import type { Side } from "../touch/thumbs.ts";
@@ -27,7 +27,7 @@ import type { Clock } from "./her-clock.ts";
 import type { ArtFlash, ArtStats } from "./articulation.ts";
 import { CLEAN_INK, HELD_INK, holdBonus, LEGATO_GAP_MS, LEGATO_INK, legatoBonus, releaseVerdict, restAfter } from "./articulation.ts";
 import { lineKey, subjectLine, type LineEntry, type Stretto, type SubjectLine } from "./subject-line.ts";
-import { barDynamic, contourCue, contourOk, dynamic, HOME_LANES, keyPlace, LADDER_AREA, planLanes, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk } from "./protos.ts";
+import { barDynamic, contourCue, contourOk, dynamic, HOME_LANES, keyPlace, LADDER_AREA, planLanes, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk, isRepeat } from "./protos.ts";
 
 export const PERFECT_MS = 70;
 /** The multiplier's step (notes right in a row), and CON FUOCO's run. */
@@ -247,8 +247,9 @@ export class ProtoGame {
         this.beat,
         v,
       );
-      // D191: the notes too quick to strike ride after the note before.
-      quickRides(notes, this.beat, msBetween);
+      // D191: the notes too quick to strike ride after the note before; D229: in a prelude, more of them (the strong notes struck).
+      if (f.kind === "prelude") preludeRides(notes, this.beat, msBetween, (t) => inBar(f, t), this.beat === f.tpq * (4 / Number(f.meter.split("/")[1])) * 3 ? 3 : 2);
+      else quickRides(notes, this.beat, msBetween);
       const mv = moves(notes, this.beat);
       return { voice: v, notes, moves: mv };
     });
@@ -625,6 +626,13 @@ export class ProtoGame {
   }
 
   /** The note struck before note i (the top of its chord; D191: the riding notes passed over), in a voice. */
+  /**
+   * D229, the computer's HIGHWAY: a repeated note (struck with SPACE) is drawn as a gem in the lane of
+   * the note before, so the line goes on, marked SPACE (paint-proto.ts). The judging is as before.
+   */
+  spaceGem(i: number, k = 0): boolean {
+    return this.proto.id === "keys" && this.before(i, k) >= 0 && isRepeat(this.tracks[k].moves[i]);
+  }
   private before(i: number, k = 0): number {
     const notes = this.tracks[k].notes;
     let j = i - 1;
@@ -1335,7 +1343,8 @@ export class ProtoGame {
     if (this.lanesMemo[k]) return this.lanesMemo[k];
     const { notes, moves: mv } = this.tracks[k];
     const heads = notes.map((n, i) => !n.ride && !(i > 0 && notes[i - 1].on === n.on));
-    const free = notes.map((_, i) => this.isFree(i, k));
+    // D229: on a computer a repeat goes on in the lane of the note before (a SPACE gem), even after a rest (where any key still answers it).
+    const free = notes.map((_, i) => this.isFree(i, k) && !this.spaceGem(i, k));
     const soft = notes.map((_, i) => this.soft(i, k));
     this.lanesMemo[k] = planLanes(mv, heads, free, this.laneCount, this.proto.id === "keys", soft);
     return this.lanesMemo[k];

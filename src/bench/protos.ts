@@ -66,8 +66,9 @@ export interface Proto {
 }
 
 /**
- * D219: the menus. A phone: LADDER and SUBJECT (mobile HIGHWAY, TWO VOICES and KIMIKO withdrawn as
- * modes; KIMIKO is now a switch inside LADDER and SUBJECT). A computer: HIGHWAY, LADDER, PIANO.
+ * D219: the menus. A phone: LADDER (mobile HIGHWAY, TWO VOICES and KIMIKO withdrawn as modes; KIMIKO
+ * is now a switch inside LADDER; D229: SUBJECT withdrawn too, the preludes played on HIGHWAY_LANES,
+ * stages.ts). A computer: HIGHWAY, LADDER, PIANO.
  * `short` is the title card's rule (one line); `how` the settings' and help screen's (at most three
  * short lines; the pictures beside them do the rest: ModeDiagram.tsx).
  */
@@ -78,14 +79,6 @@ export const PROTOS: Proto[] = [
     name: "LADDER",
     how: ["Touch either bar where the glow is.", "Higher when the tune rises, lower when it falls.", "Slide for a run · toward the edge = louder."],
     layout: "bars",
-    platform: "mobile",
-  },
-  {
-    id: "subject",
-    short: "PLAY THE SUBJECT, EVERY ENTRY",
-    name: "SUBJECT",
-    how: ["Tap the lane as the note lands.", "Only the subject, in whichever voice has it.", "Two entries at once: upper row new, lower row old."],
-    layout: "full",
     platform: "mobile",
   },
   {
@@ -118,14 +111,29 @@ export const PROTOS: Proto[] = [
  * D219: mobile HIGHWAY is out of the menus, but its single-voice road (five lanes, two rows of pads,
  * EASY's levels) is the machinery SUBJECT runs on: kept as an internal prototype (and the tests' harness).
  */
-export const HIGHWAY_LANES: Proto = { id: "highway", short: "", name: "HIGHWAY", how: [], layout: "full", platform: "mobile" };
+export const HIGHWAY_LANES: Proto = {
+  id: "highway",
+  // D229: and the phone's mode for the preludes (stage 1, stages.ts): one hand on the five lanes.
+  short: "TAP THE LANE AS THE NOTE LANDS",
+  name: "HIGHWAY",
+  how: ["Tap the lane as the note lands.", "Right when the tune rises, left when it falls.", "Quick notes play themselves: strike the strong ones."],
+  layout: "full",
+  platform: "mobile",
+};
+
+/**
+ * D229: SUBJECT left the phone's menu (the owner); its machinery (the subject line across voices, the
+ * stretto's two rows of pads, subject-line.ts) stays as an internal prototype for the tests, as
+ * HIGHWAY_LANES did, and subject-line.ts still names the computer HIGHWAY's entries and strettos.
+ */
+export const SUBJECT_LINE: Proto = { id: "subject", short: "", name: "SUBJECT", how: [], layout: "full", platform: "mobile" };
 
 /** D219: a platform's menu, in order. */
 export const menuOf = (pl: Platform) => PROTOS.filter((p) => p.platform === pl);
 
-export const protoById = (id: string) => (id === "highway" ? HIGHWAY_LANES : (PROTOS.find((p) => p.id === id) ?? PROTOS[0]));
-/** D219: whether a mode takes the WITH KIMIKO ISHIZAKA switch (where her recording exists). */
-export const takesHer = (id: ProtoId) => id === "ladder" || id === "subject";
+export const protoById = (id: string) => (id === "highway" ? HIGHWAY_LANES : id === "subject" ? SUBJECT_LINE : (PROTOS.find((p) => p.id === id) ?? PROTOS[0]));
+/** D219: whether a mode takes the WITH KIMIKO ISHIZAKA switch (where her recording exists); D229: LADDER only. */
+export const takesHer = (id: ProtoId) => id === "ladder";
 
 /** D220: the computer's HIGHWAY is played on its road alone: no music box beside it while playing. */
 export const roadAlone = (p: Proto, playing: boolean) => playing && p.id === "keys";
@@ -186,6 +194,9 @@ export function moves(notes: LaneNote[], beat: number): Move[] {
     return m;
   });
 }
+
+/** D229: a note struck again (the same pitch as the note struck before; on a computer, SPACE). Not the first note. */
+export const isRepeat = (m: Move) => m.size >= 0 && (m.dir === 0 || m.steps === 0);
 
 /** A staff step as a pitch, natural, keeping a reference pitch's inflection (for a wrong note: what was asked for). */
 export function stepPitch(step: number, near: { step: number; midi: number }): number {

@@ -22,6 +22,11 @@ export interface Difficulty {
 }
 
 export const STAR_CUTS = [4.0, 5.0, 6.2, 7.4];
+/**
+ * D229: the preludes on their own scale (stage 1, each beside its fugue): the same score, cut so that
+ * Book I's 24 spread over one to five stars (about five each) at their tempi (Ishizaka's median bar).
+ */
+export const PRELUDE_STAR_CUTS = [4.6, 6.2, 8.2, 9.1];
 
 export function difficultyOf(f: TouchFugue): Difficulty {
   const sPerTick = 60 / (tempoOf(f.id) * f.tpq);
@@ -56,6 +61,6 @@ export function difficultyOf(f: TouchFugue): Difficulty {
   const average = loads.reduce((x, y) => x + y, 0) / Math.max(1, loads.length);
   const leapShare = leaps / Math.max(1, mv);
   const score = busiest * 0.5 + average * 0.5 + 0.15 / quick + leapShare * 6 + (f.voices.length - 3) * 0.3;
-  const stars = 1 + STAR_CUTS.filter((c) => score > c).length;
+  const stars = 1 + (f.kind === "prelude" ? PRELUDE_STAR_CUTS : STAR_CUTS).filter((c) => score > c).length;
   return { busiest, average, quick, leaps: leapShare, score, stars };
 }

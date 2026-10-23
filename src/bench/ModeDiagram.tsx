@@ -89,24 +89,24 @@ export function ModeDiagram({ id }: { id: ProtoId }) {
           </span>
         </div>
       );
-    case "subject":
     case "highway":
+      // D229: the phone's HIGHWAY (the preludes): five lanes, two rows of pads, the same lanes in each (D229: SUBJECT withdrawn).
       return (
-        <div className="tb-dia tb-dia-lanes" aria-label="Five lanes; tap the lane as the note lands; two rows of pads, the upper for the new entry, the lower for the older one">
+        <div className="tb-dia tb-dia-lanes" aria-label="Five lanes; tap the lane as the note lands; either row of pads">
           <div className="tb-dia-road">
             {[0, 1, 2, 3, 4].map((l) => (
               <span key={l} className="tb-dia-lane">
                 {l === 1 && <i className="tb-gem" style={{ top: "62%" }} />}
+                {l === 2 && <i className="tb-gem" style={{ top: "40%" }} />}
                 {l === 3 && <i className="tb-gem" style={{ top: "22%" }} />}
-                {l === 2 && <i className="tb-gem tb-gem-old" style={{ top: "40%" }} />}
               </span>
             ))}
           </div>
           <div className="tb-dia-pads">
-            <span>NEW ENTRY</span>
+            <span>TAP THE LANE</span>
           </div>
-          <div className="tb-dia-pads tb-dia-pads-old">
-            <span>OLDER ENTRY (STRETTO)</span>
+          <div className="tb-dia-pads">
+            <span>EITHER ROW</span>
           </div>
         </div>
       );

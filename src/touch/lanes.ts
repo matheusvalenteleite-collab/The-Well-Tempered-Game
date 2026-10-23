@@ -126,6 +126,50 @@ export function quickRides(notes: LaneNote[], beat: number, ms: (a: number, b: n
   return ride.size;
 }
 
+/** D229: in a prelude (stage 1, a little easier than its fugue) notes closer than this to the note struck before ride (about 6 a second). */
+export const PRELUDE_RIDE_MS = 170;
+
+/**
+ * D229, a prelude's riders, more generous than a fugue's (D191): the player strikes the strong notes
+ * and the quick ones between ride. First the fugues' riders (quickRides: the ornaments, the notes no
+ * thumb can strike), except on the strong places; then a grid of strong places, the finest subdivision of the beat (by `split`
+ * first, 3 in a compound metre, then by halves) whose points sound at least `limit` ms apart at the
+ * tempo played: a note off that grid rides if it comes less than `limit` after the note struck before
+ * it; a note on it is struck. Last, of two struck notes still closer than `limit`, the earlier (off
+ * the grid) rides. The first note is always struck; a chord rides or is struck whole. `pos` is a
+ * tick's place in its bar (fugue.ts inBar). Returns how many onsets ride.
+ */
+export function preludeRides(notes: LaneNote[], beat: number, ms: (a: number, b: number) => number, pos: (tick: number) => number, split: 2 | 3, limit = PRELUDE_RIDE_MS): number {
+  quickRides(notes, beat, ms);
+  const ons = [...new Set(notes.map((n) => n.on))].sort((a, b) => a - b);
+  if (ons.length < 2) return 0;
+  const ride = new Set(notes.filter((n) => n.ride).map((n) => n.on));
+  const grid = (on: number) => {
+    let g = beat;
+    for (;;) {
+      const next = g === beat ? beat / split : g / 2;
+      if (!Number.isInteger(next) || next < 1 || ms(on, on + next) < limit) return g;
+      g = next;
+    }
+  };
+  const strong = (on: number) => pos(on) % grid(on) === 0;
+  let last = ons[0];
+  ride.delete(last);
+  for (let k = 1; k < ons.length; k++) {
+    const on = ons[k];
+    // A strong note is struck (even where a fugue's rule, in an unbroken stream, would let it ride).
+    if (strong(on)) (ride.delete(on), (last = on));
+    else if (ride.has(on)) continue;
+    else if (ms(last, on) < limit) ride.add(on);
+    else last = on;
+  }
+  // Two struck notes still too close (an off-grid note struck just before a strong one): the earlier rides.
+  const struck = ons.filter((on) => !ride.has(on));
+  for (let k = 1; k + 1 < struck.length; k++) if (ms(struck[k], struck[k + 1]) < limit && !strong(struck[k])) ride.add(struck[k]);
+  for (const n of notes) n.ride = ride.has(n.on);
+  return ride.size;
+}
+
 /** The notes struck together with note i (D165: the final chords put two notes in one voice). */
 export function chordOf(notes: readonly LaneNote[], i: number): number[] {
   const out: number[] = [];
