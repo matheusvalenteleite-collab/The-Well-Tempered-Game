@@ -240,7 +240,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   }
   // The keys that would answer the next note (DIRECTION).
   const nx = coming(g);
-  const judged = lvl !== "timing" && nx && (phone ? g.lastLane >= 0 : g.lastKey) && !g.isFree(nx.i);
+  const judged = (lvl === "direction" || lvl === "leaps") && nx && (phone ? g.lastLane >= 0 : g.lastKey) && !g.isFree(nx.i);
   if (judged)
     for (let l = 0; l < N; l++) {
       const fitsLane = phone ? laneOk(g.moves[nx!.i], g.lastLane, l, lvl === "leaps", N) : contourOk(g.moves[nx!.i], g.lastKey!, KEY_ROWS[2].codes[l] ?? "Quote", lvl === "leaps");
@@ -352,7 +352,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     const down = phone ? heldLanes.includes(l) : [...g.keysDown].some((code) => keyPlace(code)?.col === l);
     const ink = inkOfLane(l);
     // A raised key, sinking when pressed.
-    const bw = phone ? (W / N) * 0.86 : (W / 25) * 2;
+    const bw = (W / N) * 0.8;
     const sink = down ? 4 : 0;
     c.fillStyle = shade(ink, 0.35);
     c.fillRect(x - bw / 2, y1 - bh / 2 + bh, bw, 6 - sink);

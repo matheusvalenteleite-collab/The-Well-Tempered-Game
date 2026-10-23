@@ -554,3 +554,58 @@ test("D208, HIGHWAY legato: a held thumb slid into the next note's lane plays it
   assert.equal(g.notes[c2].state, "hit");
   assert.equal(g.results().stray ?? 0, 0);
 });
+
+test("D208, computer HIGHWAY's fingering: nine lanes; across every fugue's voices the line's way is kept, a finger twice running or a pile at an edge only where a scale outruns the row", () => {
+  let moves = 0;
+  let same = 0;
+  let wall = 0;
+  for (const f of [C_MINOR, fugueById("wtc1f05"), fugueById("wtc2f05"), fugueById("bwv1080-14")])
+    for (let v = 0; v < f.voices.length; v++) {
+      const g = new ProtoGame(f, v, 0, protoById("keys"), { bpm: 60, legato: false, easy: "exact" }, fakeChip({ t: 0 }));
+      assert.equal(g.laneCount, 9);
+      const L = g.lanes;
+      // The lanes struck in turn (a repeat is the thumbs' space bar: no finger of the row; a free note,
+      // after a rest or a long note, starts a new run: the hand has had time).
+      const seqs: number[][] = [[]];
+      let prev = -1;
+      g.notes.forEach((n, i) => {
+        if (n.ride || (i > 0 && g.notes[i - 1].on === n.on)) return;
+        assert.ok(L[i] >= 0 && L[i] <= 8);
+        const m = g.moves[i];
+        if (prev >= 0 && !g.isFree(i) && m.dir !== 0 && m.steps !== 0) {
+          moves++;
+          if ((L[i] - L[prev]) * m.dir <= 0) wall++;
+        }
+        if (g.isFree(i)) seqs.push([]);
+        const seq = seqs.at(-1)!;
+        if (!seq.length || seq.at(-1) !== L[i]) seq.push(L[i]);
+        prev = i;
+      });
+      // Each finger has one lane, but G is either index: only F G H (or H G F) forces an index twice.
+      for (const seq of seqs) for (let k = 1; k + 1 < seq.length; k++) if (seq[k] === 4 && seq[k - 1] + seq[k + 1] === 8 && seq[k - 1] !== seq[k + 1]) same++;
+    }
+  // A scale longer than the row (nine keys) must give somewhere: an index twice, or a pile at the edge.
+  assert.ok(same / moves < 0.002, `an index twice running ${same} of ${moves}`);
+  assert.ok(wall / moves < 0.02, `edge piles ${wall} of ${moves}`);
+});
+
+test("D208, EXACT LANES: the planned lane's key is right, another key is wrong, space answers a repeat", () => {
+  const clock = { t: 0 };
+  const g = new ProtoGame(C_MINOR, 1, 0, protoById("keys"), { bpm: 54, legato: false, easy: "exact" }, fakeChip(clock));
+  const row = KEY_ROWS[2].codes;
+  const heads = g.notes.map((n, i) => (n.ride || (i > 0 && g.notes[i - 1].on === n.on) ? -1 : i)).filter((i) => i >= 0).slice(0, 30);
+  let id = 0;
+  let wrongAt = -1;
+  for (const [h, i] of heads.entries()) {
+    clock.t = g.timeAt(g.notes[i].on);
+    g.step();
+    const m = g.moves[i];
+    const lane = g.lanes[i];
+    const free = g.isFree(i);
+    let code = m.dir === 0 && !free ? "Space" : row[lane];
+    if (h > 3 && wrongAt < 0 && !free && m.dir !== 0) (code = row[(lane + 3) % 9]), (wrongAt = i);
+    g.keyDown(++id, { velocity: 0.5, code }, performance.now());
+    g.keyUp(id, performance.now());
+  }
+  for (const i of heads) assert.equal(g.notes[i].state, i === wrongAt ? "miss" : "hit", `note ${i}`);
+});

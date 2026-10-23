@@ -22,7 +22,7 @@ import { follow, phrase, ritard, type Shape } from "../touch/phrasing.ts";
 import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
 import { pianoKey, pianoKeys } from "./placed.ts";
-import { barDynamic, contourCue, contourOk, dynamic, LADDER_AREA, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk } from "./protos.ts";
+import { barDynamic, contourCue, contourOk, dynamic, HOME_LANES, keyPlace, LADDER_AREA, planLanes, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk } from "./protos.ts";
 
 export const PERFECT_MS = 70;
 /** The multiplier's step (notes right in a row), and CON FUOCO's run. */
@@ -392,7 +392,13 @@ export class ProtoGame {
     if (this.proto.id === "keys") {
       const lvl = this.o.easy ?? "timing";
       const code = at.key?.code;
-      if (lvl === "timing" || !code || !this.lastKey || this.isFree(i, k)) return { ok: true };
+      if (lvl === "timing" || !code || this.isFree(i, k)) return { ok: true };
+      // D208, EXACT LANES: the planned lane's key (in any row: the rows give the dynamic), or for a repeat the space bar.
+      if (lvl === "exact") {
+        if (code === "Space") return m.dir === 0 || m.steps === 0 ? { ok: true } : { ok: false, wrong: asked(0), why: "gesture" };
+        return keyPlace(code)?.col === this.lanes[i] ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
+      }
+      if (!this.lastKey) return { ok: true };
       return contourOk(m, this.lastKey, code, lvl === "leaps") ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
     }
     if (at.key?.midi !== undefined) {
@@ -443,7 +449,9 @@ export class ProtoGame {
       case "highway": {
         // D207: EASY on a phone: the lane tapped, judged as the keys are (D187), by lanes.
         const lvl = this.o.easy ?? "timing";
-        if (lvl === "timing" || this.lastLane < 0 || this.isFree(i, k)) return { ok: true };
+        if (lvl === "timing" || this.isFree(i, k)) return { ok: true };
+        if (lvl === "exact") return this.laneOfX(c.x, c.w) === this.lanes[i] ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
+        if (this.lastLane < 0) return { ok: true };
         return laneOk(m, this.lastLane, this.laneOfX(c.x, c.w), lvl === "leaps", this.laneCount) ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
       }
     }
@@ -455,7 +463,7 @@ export class ProtoGame {
     return Math.max(0, Math.min(this.laneCount - 1, Math.floor((x / Math.max(1, w)) * this.laneCount)));
   }
   get laneCount(): number {
-    return this.proto.id === "highway" ? 5 : 10;
+    return this.proto.id === "highway" ? 5 : HOME_LANES;
   }
   /** The lanes under the fingers now (HIGHWAY), and how far down each finger is (px; for the two rows of pads). */
   get heldLanes(): number[] {
@@ -825,23 +833,16 @@ export class ProtoGame {
     return ratio >= 4.5 ? 5 : ratio >= 3 ? 4 : ratio >= 2 ? 3 : ratio >= 1 ? 2 : 1;
   }
   /**
-   * EASY's highway (D198): the lane each note comes down, a fingering along the home row's ten keys:
-   * from the middle; up a key for a step or a third, two for a leap, down likewise; the same lane for a
-   * repeat; back to the middle at a free note; held at the edges.
+   * HIGHWAY's lanes (D198; D208): the lane each note comes down, a fingering of the line planned over
+   * the whole passage (protos.ts planLanes): on a computer the nine home-row keys, no finger twice
+   * running; on a phone five lanes.
    */
   get lanes(): number[] {
     if (this.lanesMemo) return this.lanesMemo;
     const notes = this.notes;
-    const top = this.laneCount - 1;
-    const mid = this.laneCount === 5 ? 2 : 4;
-    let lane = mid;
-    this.lanesMemo = notes.map((n, i) => {
-      if (i > 0 && notes[i - 1].on === n.on) return lane;
-      const m = this.moves[i];
-      if (this.isFree(i)) lane = mid;
-      else if (!n.ride && m.dir !== 0 && m.steps !== 0) lane = Math.max(0, Math.min(top, lane + m.dir * (m.size >= 3 ? 2 : 1)));
-      return lane;
-    });
+    const heads = notes.map((n, i) => !n.ride && !(i > 0 && notes[i - 1].on === n.on));
+    const free = notes.map((_, i) => this.isFree(i));
+    this.lanesMemo = planLanes(this.moves, heads, free, this.laneCount, this.proto.id === "keys");
     return this.lanesMemo;
   }
   private lanesMemo?: number[];
