@@ -1,9 +1,11 @@
 /**
  * D219: each mode's rules as a picture (the owner: "use visual representation, be concise"): pixel
  * key-caps for the computer's modes, lane and bar pictograms for the phone's. Drawn in CSS (bench.css
- * .tb-dia), on the title card, in ⚙ and in the help screen.
+ * .tb-dia), on the title card, in ⚙ and in the help screen. D233: behind ? and in ⚙ only (ModeHow); the
+ * phone's LADDER an animation (LadderPlay.tsx).
  */
-import type { ProtoId } from "./protos.ts";
+import { protoById, SCALE_HOW, type ProtoId } from "./protos.ts";
+import { LadderPlay } from "./LadderPlay.tsx";
 import { HOME_ROW } from "./settings-logic.ts";
 import { SCALE_DOWN, SCALE_HOME, SCALE_UP } from "./scale-keys.ts";
 
@@ -83,28 +85,19 @@ export function ModeDiagram({ id, scale = false }: { id: ProtoId; scale?: boolea
         </div>
       );
     case "piano": {
-      const white = ["A", "S", "D", "F", "G", "H", "J", "K", "L"];
-      // The black keys, each over the gap after a white key (A is C: none after E and B).
-      const black: [string, number][] = [["W", 0], ["E", 1], ["T", 3], ["Y", 4], ["U", 5], ["O", 7]];
+      // D233, MIDI CONTROLLER: a keyboard (the black keys over the gaps after C D F G A of an octave and a half).
+      const black = [0, 1, 3, 4, 5, 7];
       return (
-        <div className="tb-dia tb-dia-piano" aria-label="The letters as a piano: the home row the white keys, the row above the black; Z and X change the octave">
+        <div className="tb-dia tb-dia-piano" aria-label="A MIDI keyboard: play the key each note falls onto">
           <div className="tb-dia-kb">
-            {white.map((k) => (
-              <span key={k} className="tb-white">
-                {k}
-              </span>
+            {Array.from({ length: 9 }, (_, i) => (
+              <span key={i} className="tb-white" />
             ))}
-            {black.map(([k, after]) => (
-              <span key={k} className="tb-black" style={{ left: `calc(${after + 1} * var(--wk) - var(--bk) / 2)` }}>
-                {k}
-              </span>
+            {black.map((after) => (
+              <span key={after} className="tb-black" style={{ left: `calc(${after + 1} * var(--wk) - var(--bk) / 2)` }} />
             ))}
           </div>
-          <div className="tb-dia-row">
-            <Cap k="Z" sub="OCT −" />
-            <Cap k="X" sub="OCT +" />
-            <span className="tb-dia-note">OR A MIDI KEYBOARD</span>
-          </div>
+          <span className="tb-dia-note">YOUR MIDI KEYBOARD</span>
         </div>
       );
     }
@@ -147,4 +140,19 @@ export function ModeDiagram({ id, scale = false }: { id: ProtoId; scale?: boolea
         </div>
       );
   }
+}
+
+/** D233: a mode's rules as shown behind ? and in ⚙: LADDER's animation, else the picture and its lines. */
+export function ModeHow({ id, scale = false }: { id: ProtoId; scale?: boolean }) {
+  if (id === "ladder") return <LadderPlay />;
+  return (
+    <div className="tb-how">
+      <ModeDiagram id={id} scale={scale} />
+      <ol className="tb-rules">
+        {(id === "keys" && scale ? SCALE_HOW : protoById(id).how).map((l) => (
+          <li key={l}>{l}</li>
+        ))}
+      </ol>
+    </div>
+  );
 }

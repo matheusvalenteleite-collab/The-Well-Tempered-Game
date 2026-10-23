@@ -137,3 +137,11 @@ export function stageMode(f: TouchFugue, platform: Platform, chosen: ProtoId): P
   if (platform === "mobile") return "ladder";
   return chosen;
 }
+
+/**
+ * D233: WITH KIMIKO ISHIZAKA, an unlockable: the feat KIMIKO ISHIZAKA earned (all 24 Book I fugues
+ * beaten), or those 24 beaten already (`?unlock=all` too).
+ */
+export function herUnlocked(s: Stages = readStages(), feats: { earned: Partial<Record<string, string>>; done: readonly string[] } = readFeats()): boolean {
+  return unlockAll() || !!feats.earned.ishizaka || beatenFugues(s, feats.done).size >= 24;
+}

@@ -123,6 +123,19 @@ export function loadDrums() {
 }
 
 export function SoundSetting({ value, set }: { value: string; set: (id: string) => void }) {
+  return (
+    <>
+      <div className="tg-set">
+        <span>SOUND</span>
+        <span className="tg-panel-val">{presetById(value).name}</span>
+      </div>
+      <SoundChoices value={value} set={set} />
+    </>
+  );
+}
+
+/** The families' tabs and their presets (and DRUMS where a family has them); D233: also the bench's folded SOUND. */
+export function SoundChoices({ value, set }: { value: string; set: (id: string) => void }) {
   const [drums, setDrumsState] = useState(drumsNow());
   const setDrums = (on: boolean) => {
     setDrumsState(on);
@@ -137,10 +150,6 @@ export function SoundSetting({ value, set }: { value: string; set: (id: string) 
   const fam = FAMILIES[Math.max(0, family)];
   return (
     <>
-      <div className="tg-set">
-        <span>SOUND</span>
-        <span className="tg-panel-val">{presetById(value).name}</span>
-      </div>
       <div className="tg-tabs" role="group" aria-label="Sound family">
         {FAMILIES.map((f, i) => (
           <button key={f.name} type="button" id={`family-${i}`} className={i === family ? "on" : ""} onClick={() => setFamily(i)}>

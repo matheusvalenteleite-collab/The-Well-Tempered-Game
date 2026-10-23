@@ -10,7 +10,7 @@
  *     glow runs from the coming note across to the bars. Across a bar: the middle mf, towards the
  *     phone's edge forte, towards the box piano.
  *   (FINGERING and SIDEWAYS were withdrawn in D208; TWO VOICES, mobile HIGHWAY and KIMIKO as a mode in D219.)
- *   PIANO: sideways, the keyboard of D172; the key exactly.
+ *   MIDI CONTROLLER (D233; was PIANO): a MIDI keyboard, the key exactly; offered only while one is connected.
  * Pure: moves and gestures in, verdicts out.
  */
 import type { LaneNote } from "../touch/lanes.ts";
@@ -102,8 +102,8 @@ export const PROTOS: Proto[] = [
   {
     id: "piano",
     short: "THE KEY UNDER EACH FALLING NOTE",
-    name: "PIANO",
-    how: ["Play the key the note falls onto.", "A MIDI keyboard, or the letters as a piano.", "Z / X: an octave down / up · a wrong key is heard."],
+    name: "MIDI CONTROLLER",
+    how: ["Play the key the note falls onto.", "On your MIDI keyboard · a wrong key is heard."],
     layout: "wide",
     platform: "computer",
   },
@@ -139,12 +139,17 @@ export const HIGHWAY_LANES: Proto = {
  */
 export const SUBJECT_LINE: Proto = { id: "subject", short: "", name: "SUBJECT", how: [], layout: "full", platform: "mobile" };
 
-/** D219: a platform's menu, in order. */
-export const menuOf = (pl: Platform) => PROTOS.filter((p) => p.platform === pl);
+/** D219: a platform's menu, in order. D233: MIDI CONTROLLER only while a MIDI input is connected. */
+export const menuOf = (pl: Platform, midi = false) => PROTOS.filter((p) => p.platform === pl && (p.id !== "piano" || midi));
+/** D233: the mode chosen if the menu offers it, else the menu's first (MIDI CONTROLLER unplugged: HIGHWAY). */
+export const offered = (id: ProtoId, pl: Platform, midi: boolean): ProtoId => {
+  const m = menuOf(pl, midi);
+  return m.some((p) => p.id === id) ? id : m[0].id;
+};
 
 export const protoById = (id: string) => (id === "highway" ? HIGHWAY_LANES : id === "subject" ? SUBJECT_LINE : (PROTOS.find((p) => p.id === id) ?? PROTOS[0]));
-/** D219: whether a mode takes the WITH KIMIKO ISHIZAKA switch (where her recording exists); D229: LADDER only. */
-export const takesHer = (id: ProtoId) => id === "ladder";
+/** D219: whether a mode takes the WITH KIMIKO ISHIZAKA switch (where her recording exists); D233: LADDER and the computer's modes (once unlocked). */
+export const takesHer = (id: ProtoId) => id === "ladder" || id === "keys" || id === "arrows" || id === "piano";
 
 /** D220: the computer's HIGHWAY is played on its road alone: no music box beside it while playing. */
 export const roadAlone = (p: Proto, playing: boolean) => playing && p.id === "keys";
@@ -266,12 +271,11 @@ export function moveOf(a: Arrow): { dir: number; big: boolean } {
  * leap (a fourth or more) skips at least one key.
  */
 export type EasyLevel = "timing" | "direction" | "leaps" | "exact";
-export const EASY_LEVELS: [EasyLevel, string][] = [
-  ["timing", "TIMING"],
-  ["direction", "DIRECTION"],
-  ["leaps", "+ LEAPS"],
-  ["exact", "EXACT LANES"],
-];
+/**
+ * D233: no level to choose: the computer's HIGHWAY always DIRECTION + LEAPS (SCALE KEYS its exact
+ * keys), the phone's HIGHWAY (the preludes) DIRECTION; the lessons set their own.
+ */
+export const easyOf = (id: ProtoId): EasyLevel => (id === "keys" ? "leaps" : "direction");
 
 /**
  * D208, computer HIGHWAY's nine lanes (A S D F G H J K L): the fingers on the home row, left little

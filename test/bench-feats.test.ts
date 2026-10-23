@@ -56,8 +56,8 @@ test("feats: from what is kept (grades, seals, the fugues played whole)", () => 
   const mixed = Array.from({ length: 23 }, (_, i) => `wtc${i % 2 ? 1 : 2}f${String(i + 1).padStart(2, "0")}`);
   const k = evaluateFeats(run({ piece: "wtc2f24" }), hist({ earned: {}, done: mixed }), "d").fresh;
   assert.ok(k.includes("keys") && !k.includes("book-i"));
-  assert.equal(FEATS.length, 20);
-  assert.equal(new Set(FEATS.map((f) => f.id)).size, 20);
+  assert.equal(FEATS.length, 21);
+  assert.equal(new Set(FEATS.map((f) => f.id)).size, 21);
   for (const f of FEATS) assert.ok(f.glyph.length === 7 && f.glyph.every((r) => r.length === 7), f.id);
 });
 
@@ -103,8 +103,8 @@ test("ACHIEVEMENTS: every offered seal listed, the not-offered apart; the feats"
   assert.ok(html.includes(`SEALS 2/${offered}`));
   assert.ok(html.indexOf('data-piece="wtc1f01"') < html.indexOf('data-piece="wtc2f01"') && html.indexOf('data-piece="wtc2f24"') < html.indexOf('data-piece="bwv1080-14"'), "Book I, Book II, XIV");
   const feats = renderToStaticMarkup(createElement(Achievements, { close: () => {}, data, tab: "feats", fresh: ["first-note"] }));
-  assert.equal(feats.match(/data-feat=/g)?.length, 20);
-  assert.ok(feats.includes("NEW!") && feats.includes("FEATS 1/20"));
+  assert.equal(feats.match(/data-feat=/g)?.length, 21);
+  assert.ok(feats.includes("NEW!") && feats.includes("FEATS 1/21"));
   const best = renderToStaticMarkup(createElement(Achievements, { close: () => {}, data, tab: "best" }));
   assert.ok(best.includes("BY THE SOPRANO") && best.includes("BEST 1/49"));
 });

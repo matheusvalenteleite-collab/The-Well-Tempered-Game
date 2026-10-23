@@ -353,3 +353,81 @@
 .tb-fcard-boss .tb-fcard-title { color: #e8c25a; text-shadow: 2px 2px 0 #5a1f78; }
 .tb-fcard-boss .tb-fcard-tier { animation: tg-blink 1.1s steps(2) infinite; }
 .tb-tier-toast { margin: 4px 0; padding: 6px 10px; font-family: var(--tg-pixel); font-size: 9px; color: #1a1620; background: var(--tier, #e8c25a); box-shadow: 4px 4px 0 #b8322a; animation: tb-ach-pop 380ms steps(4) both; }
+
+/* D233, HOME: the title and Herr Bach, a big CONTINUE, a row of four, the progress line (a phone stacks it). */
+.tb-home { position: fixed; inset: 0; z-index: 40; display: grid; place-content: center; justify-items: center; gap: 22px; padding: 24px 16px; overflow-y: auto; background: var(--tg-bg); text-align: center; }
+.tb-home-head { display: flex; gap: 16px; align-items: center; }
+.tb-home-head .tb-bach-face { width: 72px; height: 81px; }
+.tb-home h1 { margin: 0; font-family: var(--tg-pixel); font-size: 16px; font-weight: 400; line-height: 1.6; color: var(--tg-shine); text-align: left; letter-spacing: 0.06em; text-shadow: 0 1px 0 #fff3, 3px 3px 0 #b8322a, 6px 6px 0 rgba(0, 0, 0, 0.5); }
+.tb-home-go { display: grid; gap: 8px; justify-items: center; min-width: 280px; padding: 18px 28px; font-family: var(--tg-pixel); font-size: 18px; color: #2a2216; background: var(--tg-shine); border: 0; box-shadow: 5px 5px 0 #b8322a; cursor: pointer; }
+.tb-home-go small { font-size: 7px; color: #5a4632; }
+.tb-home-go:focus-visible, .tb-home-row button:focus-visible { outline: 2px solid var(--tg-fg); outline-offset: 3px; }
+.tb-home-row { display: grid; grid-template-columns: repeat(4, auto); gap: 10px; }
+.tb-home-row button { display: inline-flex; gap: 8px; align-items: center; justify-content: center; min-height: 44px; padding: 10px 14px; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-fg); background: var(--tg-box); border: 2px solid var(--tg-barline); cursor: pointer; }
+.tb-home-row button:hover { border-color: var(--tg-shine); }
+.tb-home-row .tb-glyph { width: 12px; height: 12px; fill: var(--tg-gold); }
+.tb-home-row span { color: var(--tg-gold); font-size: 12px; }
+.tb-home-progress { margin: 0; font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-muted); letter-spacing: 0.08em; }
+@media (max-width: 640px) {
+  .tb-home { gap: 18px; }
+  .tb-home h1 { font-size: 12px; }
+  .tb-home-go { min-width: 0; width: 100%; max-width: 340px; }
+  .tb-home-row { grid-template-columns: 1fr 1fr; width: 100%; max-width: 340px; }
+}
+
+/* D233: the title card trimmed: icons over it, the piece, the voices, PLAY. */
+.tb-title-icons { display: flex; align-items: center; gap: 6px; align-self: center; width: min(100%, 460px); }
+.tb-title-icons .tb-stage-tag { flex: 1; margin: 0; text-align: center; }
+.tb-title-icons .tg-x { position: relative; flex: none; }
+.tg-title .tb-title-piece { margin: 4px 0 0; font-size: 12px; line-height: 1.5; text-align: center; }
+.tg-title .tb-title-play { flex: none; align-self: center; width: auto; font-size: 12px; padding: 12px 34px; margin-top: 4px; }
+.tb-result-nav { display: flex; gap: 10px; justify-content: center; }
+
+/* D233: LADDER's rules as an animation (LadderPlay.tsx; docs/mockups/finger-play.html): a 4 s loop. */
+.tb-fp { display: grid; gap: 6px; justify-items: center; margin: 0; padding: 8px; background: rgba(0, 0, 0, 0.18); border: 1px solid var(--tg-barline); }
+.tb-fp svg { width: 100%; max-width: 340px; height: auto; display: block; }
+.tb-fp-phone { fill: #1b1726; stroke: #3a3446; stroke-width: 2; }
+.tb-fp-bar { fill: #241f30; }
+.tb-fp-box { fill: #0f0d14; }
+.tb-fp-note { fill: #3a3446; }
+.tb-fp-left { fill: #ff8c4a; }
+.tb-fp-right { fill: #5cb2ff; }
+.tb-fp-gold { fill: var(--tg-gold); }
+.tb-fp-head { fill: var(--tg-fg); animation: tb-fp-play 4s linear infinite; }
+.tb-fp-thumb { stroke: #0c0a10; stroke-width: 2; opacity: 0; }
+.tb-fp-legato { font-family: var(--tg-pixel); font-size: 9px; fill: var(--tg-gold); opacity: 0; }
+.tb-fp-t1, .tb-fp-n1 { animation: tb-fp-1 4s steps(1) infinite; }
+.tb-fp-t2, .tb-fp-n2 { animation: tb-fp-2 4s steps(1) infinite; }
+.tb-fp-t3, .tb-fp-n3 { animation: tb-fp-3 4s steps(1) infinite; }
+.tb-fp-t4, .tb-fp-n4 { animation: tb-fp-4 4s steps(1) infinite; }
+.tb-fp-note { opacity: 0.35; }
+.tb-fp-g1 { animation: tb-fp-from2 4s steps(1) infinite; }
+.tb-fp-g2 { animation: tb-fp-from3 4s steps(1) infinite; }
+.tb-fp-g3 { animation: tb-fp-from4 4s steps(1) infinite; }
+.tb-fp-l1 { animation: tb-fp-x1 4s steps(1) infinite; }
+.tb-fp-l2 { animation: tb-fp-x2 4s steps(1) infinite; }
+.tb-fp-l3 { animation: tb-fp-x3 4s steps(1) infinite; }
+@keyframes tb-fp-play { from { transform: translateX(0); } to { transform: translateX(240px); } }
+@keyframes tb-fp-1 { 0% { opacity: 0.35; } 3% { opacity: 1; } 33% { opacity: 0.35; } }
+@keyframes tb-fp-2 { 0% { opacity: 0.35; } 28% { opacity: 1; } 58% { opacity: 0.35; } }
+@keyframes tb-fp-3 { 0% { opacity: 0.35; } 53% { opacity: 1; } 83% { opacity: 0.35; } }
+@keyframes tb-fp-4 { 0% { opacity: 0.35; } 78% { opacity: 1; } 98% { opacity: 0.35; } }
+.tb-fp-thumb.tb-fp-t1 { animation-name: tb-fp-th1; } .tb-fp-thumb.tb-fp-t2 { animation-name: tb-fp-th2; }
+.tb-fp-thumb.tb-fp-t3 { animation-name: tb-fp-th3; } .tb-fp-thumb.tb-fp-t4 { animation-name: tb-fp-th4; }
+@keyframes tb-fp-th1 { 0% { opacity: 0; } 3% { opacity: 0.85; } 33% { opacity: 0; } }
+@keyframes tb-fp-th2 { 0% { opacity: 0; } 28% { opacity: 0.85; } 58% { opacity: 0; } }
+@keyframes tb-fp-th3 { 0% { opacity: 0; } 53% { opacity: 0.85; } 83% { opacity: 0; } }
+@keyframes tb-fp-th4 { 0% { opacity: 0; } 78% { opacity: 0.85; } 98% { opacity: 0; } }
+@keyframes tb-fp-from2 { 0% { opacity: 0; } 28% { opacity: 1; } }
+@keyframes tb-fp-from3 { 0% { opacity: 0; } 53% { opacity: 1; } }
+@keyframes tb-fp-from4 { 0% { opacity: 0; } 78% { opacity: 1; } }
+@keyframes tb-fp-x1 { 0% { opacity: 0; } 28% { opacity: 1; } 53% { opacity: 0; } }
+@keyframes tb-fp-x2 { 0% { opacity: 0; } 53% { opacity: 1; } 78% { opacity: 0; } }
+@keyframes tb-fp-x3 { 0% { opacity: 0; } 78% { opacity: 1; } }
+.tb-fp figcaption { display: grid; gap: 3px; font-family: var(--tg-pixel); font-size: 7px; line-height: 1.5; color: var(--tg-fg); text-align: center; }
+.tb-fp-gold-text { color: var(--tg-gold); }
+@media (prefers-reduced-motion: reduce) {
+  .tb-fp * { animation: none !important; }
+  .tb-fp-thumb, .tb-fp-gold, .tb-fp-l3 { opacity: 0.85; }
+  .tb-fp-head { display: none; }
+}

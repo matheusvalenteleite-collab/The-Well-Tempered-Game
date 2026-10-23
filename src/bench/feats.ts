@@ -1,5 +1,5 @@
 /**
- * D224, the FEATS: twenty achievements across all play, beside the fugues' seals (seals.ts) and best
+ * D224, the FEATS: twenty achievements (D233: and KIMIKO ISHIZAKA, which unlocks playing along with her) across all play, beside the fugues' seals (seals.ts) and best
  * grades (cards.ts). Each is judged at the end of a run (lessons apart) by a pure function of that
  * run's results and what this device has kept (the feats already earned, the fugues played whole, the
  * best grades and the seals), and kept with the day it was earned (tb-feats-v1). Each has a pixel
@@ -14,7 +14,7 @@ export const FUOCO_RUN = 24;
 
 export type FeatId =
   | "first-note" | "first-fugue" | "clean" | "first-s" | "five-a" | "pleno" | "fuoco" | "legato" | "held" | "entries"
-  | "stretto" | "triple" | "thomaskantor" | "kimiko" | "temperament" | "first-seal" | "ten-seals" | "every-voice" | "book-i" | "keys";
+  | "stretto" | "triple" | "thomaskantor" | "kimiko" | "temperament" | "first-seal" | "ten-seals" | "every-voice" | "book-i" | "keys" | "ishizaka";
 
 export interface Feat {
   id: FeatId;
@@ -59,6 +59,8 @@ export interface History {
   store: FeatStore;
   best: Best;
   seals: Record<string, true>;
+  /** D233: the Book I fugues beaten (stages.ts `beatenFugues`, this run's included). */
+  beaten?: readonly string[];
 }
 
 const TRIPLE = ["wtc1f04", "wtc2f14", "bwv1080-14"];
@@ -83,9 +85,11 @@ export const FEATS: Feat[] = [
   { id: "ten-seals", name: "TEN SEALS", line: "Earn the seals of ten fugues.", glyph: ["#..###.", "#.#...#", "#.#...#", "#.#...#", "#.#...#", "#.#...#", "#..###."] },
   { id: "every-voice", name: "EVERY VOICE", line: "Finish every voice of one fugue.", glyph: ["#######", ".......", "#######", ".......", "#######", ".......", "#######"] },
   { id: "book-i", name: "BOOK I", line: "Play all 24 fugues of Book I, first bar to last.", glyph: ["..#.#..", "#####..", "#...#..", "#.#.#..", "#.#.#..", "#...#..", "#####.."] },
+  { id: "ishizaka", name: "KIMIKO ISHIZAKA", line: "Beat all 24 fugues of Book I: then play along with her recording.", glyph: [".#####.", "#.....#", "#.#.#.#", "#.....#", "#..#..#", "#.....#", ".#####."] },
   { id: "keys", name: "ALL 24 KEYS", line: "A fugue whole in each of the 24 keys (either book).", glyph: ["#######", "#.#.#.#", "#.#.#.#", "#.#.#.#", "#.#.#.#", "#######", "......."] },
 ];
 
+const BOOK_I = Array.from({ length: 24 }, (_, i) => `wtc1f${String(i + 1).padStart(2, "0")}`);
 const good = (g: string | undefined) => g === "S" || g === "A";
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -134,7 +138,11 @@ function holds(id: FeatId, r: RunFeat, h: History): boolean {
         const n = fugueById(c.id).voices.length;
         return n > 0 && Array.from({ length: n }, (_, v) => h.best[`${c.id}:${v}`]).every(Boolean);
       });
-    case "book-i": return Array.from({ length: 24 }, (_, i) => `wtc1f${pad(i + 1)}`).every((p) => done.has(p));
+    case "book-i": return BOOK_I.every((p) => done.has(p));
+    case "ishizaka": {
+      const won = new Set([...(h.beaten ?? []), ...done]);
+      return BOOK_I.every((p) => won.has(p));
+    }
     case "keys": return Array.from({ length: 24 }, (_, i) => pad(i + 1)).every((n) => done.has(`wtc1f${n}`) || done.has(`wtc2f${n}`));
   }
 }
@@ -181,8 +189,8 @@ export function today(d = new Date()): string {
 }
 
 /** At the end of a run (after the best grade and the seal are recorded): the feats judged and kept; the new ones returned. */
-export function earnFeats(r: RunFeat, best: Best, seals: Record<string, true>): FeatId[] {
-  const { store, fresh } = evaluateFeats(r, { store: readFeats(), best, seals }, today());
+export function earnFeats(r: RunFeat, best: Best, seals: Record<string, true>, beaten: readonly string[] = []): FeatId[] {
+  const { store, fresh } = evaluateFeats(r, { store: readFeats(), best, seals, beaten }, today());
   writeFeats(store);
   return fresh;
 }
