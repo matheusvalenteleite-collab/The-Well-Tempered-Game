@@ -24,6 +24,7 @@ import { answer, askFirst, nextLesson, recordLesson } from "./tutorial.ts";
 import { LessonMap, PlayedBefore } from "./LessonMap.tsx";
 import { tempoOf } from "../touch/tempi.ts";
 import { presetById, setPreset } from "../touch/sound.ts";
+import { soundFor } from "../touch/piece-sound.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ladderGeometry, MusicBox, inkOf, type Frame } from "../touch/MusicBox.tsx";
 import { AUTO, BOXV, variantRows } from "../touch/box-variants.ts";
@@ -72,7 +73,8 @@ const PLATFORM_KEY = "tb-platform-v1";
 const LAG_KEY = "tg-lag";
 // D203: a new key, so that every player starts on the fugue's own sound.
 // D208: a new key, so every player starts on the sampled harpsichord.
-const SOUND_KEY = "tg-sound-v3";
+// D246: each piece its own sound (piece-sound.ts), the player's choice kept per piece.
+const SOUND_KEY = "tg-sound-by-piece-v1";
 const DEFAULT_SOUND = "harpsichordSampled";
 const TUNING_KEY = "tg-tuning";
 // D219: WITH KIMIKO ISHIZAKA, the player's voice has its own sound (over her piano), kept apart.
@@ -174,7 +176,7 @@ export function BenchApp() {
     applyLag(l);
     hp.record(l);
   };
-  const [sound, setSoundRaw] = useState<string>(() => load<string>(SOUND_KEY, DEFAULT_SOUND));
+  const [chosen, setChosen] = useState<Record<string, string>>(() => load<Record<string, string>>(SOUND_KEY, {}));
   const [herSound, setHerSoundRaw] = useState<string>(() => load<string>(HER_SOUND_KEY, HER_SOUND));
   const [tuning, setTuningRaw] = useState<{ id: string; a: number }>(() => load(TUNING_KEY, { id: "equal", a: 440 }));
   const changeTuning = (id: string, a: number) => {
@@ -223,14 +225,16 @@ export function BenchApp() {
   const kimiko = herHere && pick.her;
   const hm = kimiko ? herMap(f.id) : null;
   // D219: the sound playing: WITH KIMIKO, the player's voice's own (TRAVERSO unless changed in ⚙ SOUND).
+  const sound = soundFor(f.id, chosen, DEFAULT_SOUND);
   const soundNow = kimiko ? herSound : sound;
   const setSound = (id: string) => {
     if (kimiko) {
       setHerSoundRaw(id);
       save(HER_SOUND_KEY, id);
     } else {
-      setSoundRaw(id);
-      save(SOUND_KEY, id);
+      const next = { ...chosen, [f.id]: id };
+      setChosen(next);
+      save(SOUND_KEY, next);
     }
   };
   const [, herLoaded] = useState(0);
@@ -251,12 +255,13 @@ export function BenchApp() {
   // D214, SUBJECT: every voice has the subject in turn.
   const subjectMode = proto.id === "subject";
   const played = subjectMode ? f.voices.map((_, i) => i) : [voice];
-  // LADDER: the box fills its height with the voice's range, so its rows are as tall as can be.
+  // D247: LADDER: the box holds the whole piece's range at one scale, whatever the voice (the voice's
+  // own range, D211's margins squeezing the rest, lost the fugue's architecture with the soprano or
+  // the bass); the touches judged on rows no smaller than LADDER_ROW_MIN (proto-game.ts).
   const range = useMemo(() => {
-    if (proto.id !== "ladder") return stepRange(f);
-    const steps = f.voices[voice].map((n) => n[3]);
-    return { lo: Math.min(...steps) - 1, hi: Math.max(...steps) + 1 };
-  }, [f, proto.id, voice]);
+    const r = stepRange(f);
+    return proto.id === "ladder" ? { lo: r.lo - 1, hi: r.hi + 1 } : r;
+  }, [f, proto.id]);
   // The design study (box-variants.ts, `?boxv=N`): each voice's range, for the staves.
   const study = useMemo(() => (BOXV ? { ranges: f.voices.map((ns) => ({ lo: Math.min(...ns.map((n) => n[3])), hi: Math.max(...ns.map((n) => n[3])) })) } : {}), [f]);
   // A lesson's passage: only the entries it holds (alone: only the voice's own).

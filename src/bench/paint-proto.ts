@@ -781,7 +781,7 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
       const m = g.moves[nx.i];
       const ink = inkOf(g.voice, count);
       const y = rows.yOf(n.step);
-      const reach = LADDER_AREA * rows.rowH;
+      const reach = LADDER_AREA * g.ladderRow;
       // A soft glow over the note's broad area, brightest at its height, on both bars.
       for (const s of sides) {
         const grad = c.createLinearGradient(0, y - reach, 0, y + reach);

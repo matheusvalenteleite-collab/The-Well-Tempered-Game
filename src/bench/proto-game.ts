@@ -17,6 +17,8 @@ import { isPhone, voicing, type Chip, type Gate, type Play, type Sounding } from
 import type { Grade } from "../touch/engine.ts";
 import { barAt, beatOf, cadenceName, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
 import { echoHalves } from "./echo.ts";
+/** D247: the smallest row (CSS px) LADDER judges a touch by (the voice's range filled rows of about 18 to 24). */
+export const LADDER_ROW_MIN = 18;
 import { chordOf, laneNotes, options, preludeRides, quickRides, release, strike, sweep, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
 import { follow, phrase, ritard, type Shape } from "../touch/phrasing.ts";
@@ -710,7 +712,7 @@ export class ProtoGame {
         // within it, the way the tune goes from the touch before: firm for the same thumb, lenient
         // between the two (two thumbs far apart never land quite level).
         if (!this.rows) return { ok: true };
-        const R = this.rows.rowH;
+        const R = this.ladderRow;
         const asked = stepPitch(this.rows.stepAt(c.y), n);
         const near = Math.min(...chord.map((x) => Math.abs(c.y - this.rows!.yOf(x.step))));
         if (near > LADDER_AREA * R) return { ok: false, wrong: asked, why: "gesture" };
@@ -934,7 +936,7 @@ export class ProtoGame {
       // D208: a slide plays on only after a deliberate travel (a row and a half from where it last
       // played): a thumb's contact point wanders a row or so as it rolls and lifts, and that wander
       // took the next note from the other thumb (the overlap legato lost its notes as slips).
-      if (Math.abs(c.y - h.ay) < this.rows.rowH * 1.5) return;
+      if (Math.abs(c.y - h.ay) < this.ladderRow * 1.5) return;
       this.slideTo(id, h, c, t);
     } else if (this.road) {
       // D208: a held thumb slid into another lane plays the next note there, joined (legato): only
@@ -1425,6 +1427,10 @@ export class ProtoGame {
   }
   private lanesMemo: number[][] = [];
   private echoMemo: Set<number>[] = [];
+  /** D247: LADDER's row for judging a touch: the box's, but no smaller than LADDER_ROW_MIN (the whole piece in the box). */
+  get ladderRow(): number {
+    return Math.max(this.rows?.rowH ?? LADDER_ROW_MIN, LADDER_ROW_MIN);
+  }
   /** D244: the notes of a track that repeat the first half of their bar (their lanes the first half's). */
   echoOf(k = 0): Set<number> {
     this.lanesOf(k);

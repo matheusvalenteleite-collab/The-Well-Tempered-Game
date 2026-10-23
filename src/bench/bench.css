@@ -546,3 +546,5 @@
 .tb-pop-sound-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; max-width: 420px; }
 .tb-pop-sound-row button { font-family: var(--tg-pixel); font-size: 7px; padding: 6px 7px; min-height: 30px; background: transparent; color: var(--tg-muted); border: 2px solid var(--tg-barline); cursor: pointer; }
 .tb-pop-sound-row button.on { color: var(--tg-bg); background: var(--tg-gold); border-color: var(--tg-gold); }
+/* D246: the piece's own sound, underlined in gold. */
+.tb-pop-sound-row button.own { box-shadow: inset 0 -3px 0 #ffd66e; }
