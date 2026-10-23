@@ -115,6 +115,16 @@ export interface Play {
   pleno?: boolean;
   /** D182: a trill: the note alternating with the step above, about eight times a second. */
   trill?: boolean;
+  /**
+   * D213, the subject's colour (subject-fx.ts): a high shelf in dB (+ brighter, - duller; a timbre, not
+   * a level), a crisper attack (0 to 1: a brief extra lift of the shelf, a quicker rise), a vibrato in
+   * cents (a plucked note only a shimmer of 3), more room (a send to the reverb, 0 to 1), a detune in cents.
+   */
+  tone?: number;
+  crisp?: number;
+  vib?: number;
+  room?: number;
+  detune?: number;
 }
 
 export interface Sounding {
@@ -133,6 +143,8 @@ export class Chip {
   readonly ctx: AudioContext;
   private master: GainNode;
   private bus: AudioNode;
+  /** D213: the reverb's input, for a note's own send (Play.room). */
+  private roomIn: AudioNode;
   private waves = new Map<string, PeriodicWave>();
   private keepAlive: HTMLAudioElement | null = null;
   private wet: GainNode;
@@ -191,6 +203,7 @@ export class Chip {
     this.wet = ctx.createGain();
     this.wet.gain.value = 0.16;
     this.master.connect(room).connect(this.wet).connect(squeeze);
+    this.roomIn = room;
     // A warm drive beside the dry sound, silent until CON FUOCO.
     const shaper = ctx.createWaveShaper();
     const curve = new Float32Array(1024);
@@ -292,6 +305,43 @@ export class Chip {
     return n;
   }
 
+  /**
+   * D213: the subject's high shelf (Play.tone, dB) and its crisp attack (Play.crisp: the shelf lifted a
+   * few dB more for the first 50 ms), one filter; none when neither is asked for.
+   */
+  private shelf(src: AudioNode, hzAt: number, t: number, db: number, crisp: number, bag: Bag): AudioNode {
+    if (!db && !crisp) return src;
+    const sh = bag.add(this.ctx.createBiquadFilter());
+    sh.type = "highshelf";
+    sh.frequency.value = hzAt;
+    if (crisp > 0) {
+      sh.gain.setValueAtTime(db + crisp * 6, t);
+      sh.gain.setTargetAtTime(db, t + 0.004, 0.045);
+    } else sh.gain.value = db;
+    return src.connect(sh);
+  }
+  /** D213: a vibrato of `cents` on the pitches given, after a moment (Play.vib); two nodes, stopped with the note. */
+  private vibrato(params: AudioParam[], t: number, end: number, cents: number, bag: Bag, lfos: AudioScheduledSourceNode[]) {
+    if (!cents || !params.length || end - t < 0.3) return;
+    const lfo = bag.src(this.ctx.createOscillator());
+    lfos.push(lfo);
+    lfo.frequency.value = 5.3;
+    const depth = bag.add(this.ctx.createGain());
+    depth.gain.setValueAtTime(0, t);
+    depth.gain.setValueAtTime(0, t + 0.15);
+    depth.gain.linearRampToValueAtTime(cents, t + 0.4);
+    lfo.connect(depth);
+    for (const p of params) depth.connect(p);
+    lfo.start(t);
+  }
+  /** D213: a note's own send to the room (Play.room), one gain. */
+  private send(from: AudioNode, amount: number | undefined, bag: Bag) {
+    if (!amount) return;
+    const g = bag.add(this.ctx.createGain());
+    g.gain.value = amount;
+    from.connect(g).connect(this.roomIn);
+  }
+
   /** D210: at the cap, the oldest notes (never the player's own) let go at `t`, quickly. */
   private makeRoom(t: number) {
     // Entries long past their end (their end never reported) are forgotten.
@@ -333,6 +383,7 @@ export class Chip {
     if (w === "triangle") o.type = "triangle";
     else o.setPeriodicWave(w);
     o.frequency.value = hz(midi);
+    if (p.detune) o.detune.value = p.detune;
     // The triangle is quieter than the pulses at the same amplitude.
     const peak = (v.timbre === "triangle" ? 0.36 : v.timbre === "pulse50" ? 0.15 : 0.19) * v.gain * (p.level ?? 1);
     const sustain = peak * 0.72;
@@ -346,7 +397,7 @@ export class Chip {
       // Joined: no new attack, the level of the note before.
       g.gain.linearRampToValueAtTime(sustain, t + 0.015);
     } else {
-      g.gain.linearRampToValueAtTime(peak, t + 0.006);
+      g.gain.linearRampToValueAtTime(peak, t + (p.crisp ? 0.003 : 0.006));
       g.gain.setTargetAtTime(sustain, t + 0.01, 0.06);
     }
     if (!piano) {
@@ -365,19 +416,24 @@ export class Chip {
       lfo.start(t);
       halt(lfo, end + 0.05);
     }
-    let src: AudioNode = o;
+    // D213: the subject's vibrato (a long note's own vibrato aside).
+    const vibs: AudioScheduledSourceNode[] = [];
+    this.vibrato([o.detune], t, end, p.vib ?? 0, bag, vibs);
+    let src: AudioNode = this.shelf(o, Math.max(1200, Math.min(3500, hz(midi) * 4)), t, p.tone ?? 0, p.crisp ?? 0, bag);
     const dull = p.muffleable ? bag.add(ctx.createBiquadFilter()) : null;
     if (dull) {
       dull.type = "lowpass";
       dull.frequency.value = 12000;
-      src = o.connect(dull);
+      src = src.connect(dull);
     }
     if (pan) {
       pan.pan.value = Math.max(-1, Math.min(1, v.pan));
       src.connect(g).connect(pan).connect(this.bus);
     } else src.connect(g).connect(this.bus);
+    this.send(pan ?? g, p.room, bag);
     o.start(t);
     halt(o, end + 0.05);
+    for (const l of vibs) halt(l, end + 0.05);
     let stopped = false;
     return {
       stop: (when = ctx.currentTime) => {
@@ -392,9 +448,10 @@ export class Chip {
         }
         g.gain.linearRampToValueAtTime(0, s + (piano ? 0.07 : p.legato ? 0.02 : 0.04));
         halt(o, s + 0.1);
+        for (const l of vibs) halt(l, s + 0.1);
       },
       bend: (cents: number) => {
-        if (!stopped) o.detune.setTargetAtTime(cents, ctx.currentTime, 0.02);
+        if (!stopped) o.detune.setTargetAtTime(cents + (p.detune ?? 0), ctx.currentTime, 0.02);
       },
       glide: (to: number) => {
         if (!stopped) o.frequency.setTargetAtTime(hz(to), ctx.currentTime, 0.025);
@@ -457,7 +514,7 @@ export class Chip {
     const play = (set: string, m: number, r: Loaded, mult: number, gain: number) => {
       const src = bag.src(ctx.createBufferSource());
       src.buffer = r.buffer;
-      src.playbackRate.value = rateFor(set, m, baseHz * mult);
+      src.playbackRate.value = rateFor(set, m, baseHz * mult) * 2 ** ((p.detune ?? 0) / 1200);
       const loop = noteInfo(set, m)?.loop;
       if (loop && !plucked) {
         src.loop = true;
@@ -486,13 +543,10 @@ export class Chip {
       tone.type = "lowpass";
       tone.frequency.value = 18000 * 2 ** (bright * 2.8);
       src = src.connect(tone);
-    } else if (bright > 0) {
-      const tone = bag.add(ctx.createBiquadFilter());
-      tone.type = "highshelf";
-      tone.frequency.value = 2500;
-      tone.gain.value = bright * 5;
-      src = src.connect(tone);
     }
+    // The touch's brightness and (D213) the subject's colour share one high shelf.
+    const subj = !!(p.tone || p.crisp);
+    src = this.shelf(src, subj ? Math.max(1200, Math.min(3500, baseHz * 4)) : 2500, t, Math.max(0, bright) * 5 + (p.tone ?? 0), p.crisp ?? 0, bag);
     const dull = p.muffleable ? bag.add(ctx.createBiquadFilter()) : null;
     if (dull) {
       dull.type = "lowpass";
@@ -515,6 +569,7 @@ export class Chip {
       pan.pan.value = Math.max(-1, Math.min(1, v.pan));
       src.connect(g).connect(dyn).connect(pan).connect(this.bus);
     } else src.connect(g).connect(dyn).connect(this.bus);
+    this.send(pan ?? dyn, p.room, bag);
     // D182, a trill: the step above and back, about eight times a second (the rate's square wave).
     const lfos: AudioScheduledSourceNode[] = [];
     if (p.trill && ctx.createConstantSource) {
@@ -535,6 +590,9 @@ export class Chip {
       lfo.start(t + 0.06);
       centre.start(t + 0.06);
     }
+    // D213: the subject's vibrato (a plucked string's only a shimmer); where a recording's detune exists.
+    const det = srcs.map((x) => x.src.detune).filter((d): d is AudioParam => !!d);
+    this.vibrato(det, t, end, plucked ? Math.min(3, p.vib ?? 0) : (p.vib ?? 0), bag, lfos);
     // The recording's own end, in the context's time (a plucked note dies away by then).
     const life = (noteInfo(inst.set, near)?.len ?? 4) / Math.max(0.25, srcs[0].src.playbackRate.value) - rec.onset;
     let thunk: GainNode | null = null;
@@ -568,7 +626,7 @@ export class Chip {
     let cents = 0;
     let muffled = false;
     const retune = (tc: number) => {
-      const off = 2 ** ((cents + (muffled ? -35 : 0)) / 1200);
+      const off = 2 ** ((cents + (p.detune ?? 0) + (muffled ? -35 : 0)) / 1200);
       for (const x of srcs) x.src.playbackRate.setTargetAtTime(rateFor(x.set, x.m, baseHz * x.mult) * off, ctx.currentTime, tc);
     };
     return {
@@ -676,11 +734,12 @@ export class Chip {
     for (const o of pt.osc) {
       const n = bag.src(this.osc(o.wave));
       n.frequency.value = f0 * 2 ** (o.octave ?? 0);
-      n.detune.value = o.detune ?? 0;
+      const det = (o.detune ?? 0) + (p.detune ?? 0);
+      n.detune.value = det;
       if (pt.scoop) {
         // D209: the pitch comes in from off and settles (no extra nodes: the oscillator's own detune).
-        n.detune.setValueAtTime((o.detune ?? 0) + pt.scoop.cents, t);
-        n.detune.setTargetAtTime(o.detune ?? 0, t, pt.scoop.time);
+        n.detune.setValueAtTime(det + pt.scoop.cents, t);
+        n.detune.setTargetAtTime(det, t, pt.scoop.time);
       }
       const g = bag.add(ctx.createGain());
       g.gain.value = o.gain ?? 1;
@@ -729,7 +788,7 @@ export class Chip {
       fl.type = pt.filter.type ?? "lowpass";
       fl.Q.value = pt.filter.q ?? 0.7;
       const base = Math.min(16000, (pt.filter.hz ? pt.filter.freq : f0 * pt.filter.freq) * bright);
-      const top = Math.min(18000, base * (pt.filter.env ?? 1) * (1 + (p.accent ?? 0) * 0.8));
+      const top = Math.min(18000, base * (pt.filter.env ?? 1) * (1 + (p.accent ?? 0) * 0.8) * (1 + (p.crisp ?? 0) * 0.6));
       fl.frequency.setValueAtTime(top, t);
       fl.frequency.setTargetAtTime(base, t + 0.005, pt.filter.envDecay ?? 0.1);
       src = src.connect(fl);
@@ -739,6 +798,7 @@ export class Chip {
       tone.frequency.value = Math.min(16000, f0 * 8 * bright);
       src = src.connect(tone);
     }
+    src = this.shelf(src, Math.max(1200, Math.min(3500, f0 * 4)), t, p.tone ?? 0, p.crisp ?? 0, bag);
     const dull = p.muffleable ? bag.add(ctx.createBiquadFilter()) : null;
     if (dull) {
       dull.type = "lowpass";
@@ -746,7 +806,7 @@ export class Chip {
       src = src.connect(dull);
     }
     const g = bag.add(ctx.createGain());
-    const a = Math.max(0.002, pt.amp.a * (1 + (p.soft ?? 0) * 4));
+    const a = Math.max(0.002, pt.amp.a * (1 + (p.soft ?? 0) * 4) * (1 - (p.crisp ?? 0) * 0.5));
     const sus = peak * pt.amp.s;
     g.gain.setValueAtTime(0, t);
     if (p.legato && !pluck) g.gain.linearRampToValueAtTime(sus || peak * 0.7, t + 0.02);
@@ -785,6 +845,8 @@ export class Chip {
       for (const o of oscs) depth.connect(o.detune);
       lfo.start(t);
     }
+    // D213: the subject's vibrato (a plucked patch only a shimmer).
+    this.vibrato(oscs.map((o) => o.detune), t, end, pluck ? Math.min(3, p.vib ?? 0) : (p.vib ?? 0), bag, lfos);
     if (p.trill && ctx.createConstantSource) {
       // A whole tone above and back: a square wave of 0 or 200 cents.
       const lfo = bag.src(ctx.createOscillator());
@@ -806,6 +868,7 @@ export class Chip {
       pan.pan.value = Math.max(-1, Math.min(1, v.pan));
       src.connect(g).connect(dyn).connect(pan).connect(this.bus);
     } else src.connect(g).connect(dyn).connect(this.bus);
+    this.send(pan ?? dyn, p.room, bag);
     // D184: a plucked or struck note is damped at its written end (it rang 6 s whatever its length:
     // fifty voices at once on a phone); a lead note's end is its hold, so it rings as it would.
     const damp = tail && end + 0.5 < t + 6;
@@ -828,7 +891,7 @@ export class Chip {
         for (const l of lfos) halt(l, s + pt.amp.r + 0.15);
       },
       bend: (cents: number) => {
-        if (!stopped) for (const [i, o] of oscs.entries()) o.detune.setTargetAtTime((pt.osc[i].detune ?? 0) + cents, ctx.currentTime, 0.02);
+        if (!stopped) for (const [i, o] of oscs.entries()) o.detune.setTargetAtTime((pt.osc[i].detune ?? 0) + (p.detune ?? 0) + cents, ctx.currentTime, 0.02);
       },
       glide: (to: number) => {
         if (stopped) return;
