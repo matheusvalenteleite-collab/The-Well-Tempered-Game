@@ -16,6 +16,7 @@ import type { Burst, Pop } from "../touch/box-fx.ts";
 import { isPhone, voicing, type Chip, type Gate, type Play, type Sounding } from "../touch/chip.ts";
 import type { Grade } from "../touch/engine.ts";
 import { barAt, beatOf, cadenceName, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
+import { echoHalves } from "./echo.ts";
 import { chordOf, laneNotes, options, preludeRides, quickRides, release, strike, sweep, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
 import { follow, phrase, ritard, type Shape } from "../touch/phrasing.ts";
@@ -1416,10 +1417,19 @@ export class ProtoGame {
     // D229: on a computer a repeat goes on in the lane of the note before (a SPACE gem), even after a rest (where any key still answers it).
     const free = notes.map((_, i) => this.isFree(i, k) && !this.spaceGem(i, k));
     const soft = notes.map((_, i) => this.soft(i, k));
-    this.lanesMemo[k] = planLanes(mv, heads, free, this.laneCount, this.proto.id === "keys", soft);
-    return this.lanesMemo[k];
+    const lanes = planLanes(mv, heads, free, this.laneCount, this.proto.id === "keys", soft);
+    // D244: a figure stated twice in a prelude's bar keeps its lanes the second time.
+    this.echoMemo[k] = echoHalves(this.f, notes, mv, heads, notes.map((_, i) => heads[i] && !this.isFree(i, k) && !this.spaceGem(i, k)), lanes, this.laneCount);
+    this.lanesMemo[k] = lanes;
+    return lanes;
   }
   private lanesMemo: number[][] = [];
+  private echoMemo: Set<number>[] = [];
+  /** D244: the notes of a track that repeat the first half of their bar (their lanes the first half's). */
+  echoOf(k = 0): Set<number> {
+    this.lanesOf(k);
+    return this.echoMemo[k] ?? new Set();
+  }
 
   /** D213: the subject's sound (the cues, the fugue's effect, the LAB switches as the game began). */
   readonly subj: SubjectSound;

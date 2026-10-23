@@ -18,6 +18,7 @@ import { inkOf } from "../touch/MusicBox.tsx";
 import type { TouchFugue } from "../touch/fugue.ts";
 import type { ProtoGame } from "./proto-game.ts";
 import { subjectLine } from "./subject-line.ts";
+import { builds } from "./journey.ts";
 import { label } from "./paint-proto.ts";
 import type { Road } from "./paint-desk.ts";
 
@@ -273,16 +274,19 @@ export function deskMap(r: Road) {
     c.fillRect(x0, rowY(v) + 1, mw, mine ? 2 : 1);
     label(c, (g.f.voiceNames[v] ?? "?")[0].toUpperCase(), x0 - 8, rowY(v) + 2, mine ? "#fff6d0" : t.muted, 6, "right");
   }
-  // The strettos: a thin orange line over the rows.
-  c.fillStyle = STRETTO_INK;
-  c.globalAlpha = 0.8;
-  for (const s of m.strettos) c.fillRect(Math.round(X(s.on)), MAP_TOP - 3, Math.max(1, Math.round(X(s.end) - X(s.on))), 1);
-  // The entries: blocks in their voices' colours (the player's a little taller), those gone by dimmer.
-  for (const e of m.entries) {
-    const mine = played.has(e.voice);
-    c.fillStyle = e.ink;
-    c.globalAlpha = e.end < g.now ? 0.45 : e.on <= g.now ? 1 : 0.75;
-    c.fillRect(Math.round(X(e.on)), rowY(e.voice) - (mine ? 1 : 0), Math.max(2, Math.round(X(e.end) - X(e.on))), mine ? 6 : 4);
+  if (builds(g.f)) buildMap(c, m, g.now, played, X, rowY, g.f.tpq, 4, mw);
+  else {
+    // The strettos: a thin orange line over the rows.
+    c.fillStyle = STRETTO_INK;
+    c.globalAlpha = 0.8;
+    for (const s of m.strettos) c.fillRect(Math.round(X(s.on)), MAP_TOP - 3, Math.max(1, Math.round(X(s.end) - X(s.on))), 1);
+    // The entries: blocks in their voices' colours (the player's a little taller), those gone by dimmer.
+    for (const e of m.entries) {
+      const mine = played.has(e.voice);
+      c.fillStyle = e.ink;
+      c.globalAlpha = e.end < g.now ? 0.45 : e.on <= g.now ? 1 : 0.75;
+      c.fillRect(Math.round(X(e.on)), rowY(e.voice) - (mine ? 1 : 0), Math.max(2, Math.round(X(e.end) - X(e.on))), mine ? 6 : 4);
+    }
   }
   // The cadences: ticks under the rows.
   c.fillStyle = CADENCE_INK;
@@ -298,4 +302,71 @@ export function deskMap(r: Road) {
   if (a.bar >= bars.length || (a.bar > 0 && bars[a.bar].on > g.now)) a.bar = 0;
   while (a.bar + 1 < bars.length && bars[a.bar + 1].on <= g.now) a.bar++;
   label(c, `BAR ${bars[a.bar]?.n ?? 1}`, x0 + mw + 10, MAP_TOP + (m.rows * ROW) / 2, t.muted, 6, "left");
+}
+
+/**
+ * D244, THE FUGUE'S BUILDING (journey.ts): the map as the plan at first, each entry an outline in its
+ * voice's colour; the entry under way filled as far as it has sounded; each entry done a stone (filled,
+ * a dark joint round it), lit white for a beat as it is laid; the strettos' line drawn as they come;
+ * the last stone laid, a gold frame round the whole (faded in over a beat). `x0`'s map is `mw` wide,
+ * its rows `rowY(v)`, each `tall` high (the player's one more).
+ */
+export function buildMap(
+  c: CanvasRenderingContext2D,
+  m: FugueMap,
+  now: number,
+  played: ReadonlySet<number>,
+  X: (tick: number) => number,
+  rowY: (v: number) => number,
+  beat: number,
+  tall: number,
+  mw: number,
+) {
+  c.fillStyle = STRETTO_INK;
+  c.globalAlpha = 0.8;
+  for (const s of m.strettos) if (s.on < now) c.fillRect(Math.round(X(s.on)), rowY(0) - 3, Math.max(1, Math.round(X(Math.min(s.end, now)) - X(s.on))), 1);
+  for (const e of m.entries) {
+    const mine = played.has(e.voice);
+    const x = Math.round(X(e.on));
+    const y = rowY(e.voice) - (mine ? 1 : 0);
+    const wd = Math.max(2, Math.round(X(e.end) - X(e.on)));
+    const ht = tall + (mine ? 2 : 0);
+    if (e.on > now) {
+      c.globalAlpha = 0.4;
+      c.strokeStyle = e.ink;
+      c.lineWidth = 1;
+      c.strokeRect(x + 0.5, y + 0.5, wd - 1, ht - 1);
+      continue;
+    }
+    const done = e.end <= now;
+    const upTo = done ? wd : Math.max(1, Math.round(X(now) - X(e.on)));
+    c.globalAlpha = 1;
+    c.fillStyle = e.ink;
+    c.fillRect(x, y, upTo, ht);
+    if (!done) {
+      c.globalAlpha = 0.4;
+      c.strokeStyle = e.ink;
+      c.lineWidth = 1;
+      c.strokeRect(x + 0.5, y + 0.5, wd - 1, ht - 1);
+      continue;
+    }
+    c.strokeStyle = "rgba(0,0,0,0.55)";
+    c.lineWidth = 1;
+    c.strokeRect(x + 0.5, y + 0.5, wd - 1, ht - 1);
+    const age = (now - e.end) / beat;
+    if (age < 1) {
+      c.globalAlpha = 0.7 * (1 - age);
+      c.fillStyle = "#ffffff";
+      c.fillRect(x, y, wd, ht);
+    }
+  }
+  const last = Math.max(...m.entries.map((e) => e.end));
+  if (now >= last) {
+    c.globalAlpha = Math.min(1, (now - last) / beat) * 0.9;
+    c.strokeStyle = "#ffd66e";
+    c.lineWidth = 1;
+    const x0 = Math.round(X(m.start));
+    c.strokeRect(x0 - 3.5, rowY(0) - 5.5, mw + 7, rowY(m.rows) - rowY(0) + 9);
+  }
+  c.globalAlpha = 1;
 }
