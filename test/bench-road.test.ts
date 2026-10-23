@@ -88,8 +88,9 @@ test("the computer's road: G its own lane (the seam, the shared key), the hands 
   assert.ok(ops.some((o) => o.op === "fillRect" && o.fill === SEAM && Math.abs((o.args[0] as number) + (o.args[2] as number) / 2 - w / 2) < 3 && (o.args[1] as number) < y1), "the gold seam down G");
   assert.ok(ops.some((o) => o.op === "strokeRect" && o.stroke === SEAM && Math.abs((o.args[0] as number) + (o.args[2] as number) / 2 - w / 2) < 1), "G's key-cap framed in gold");
   for (const word of ["G", "SHARED", "LEFT HAND", "RIGHT HAND", "SPACE · THUMBS · THE SAME NOTE AGAIN"]) assert.ok(tx.includes(word), word);
-  // The soprano's entry under way: a ribbon by the road; the alto's next entry named at its gate, or an end.
-  assert.ok(tx.some((s) => s.startsWith("YOUR ENTRY") || s.includes("SUBJECT")), "an entry named on the road");
+  // The soprano's entry under way: its rail lit; the alto's next entry named at its gate, or an end.
+  // (D238: the others' entries named as their rails name them: SOPRANO · ANSWER.)
+  assert.ok(tx.some((s) => s.startsWith("YOUR ENTRY") || s.includes("SUBJECT") || s.includes("ANSWER")), "an entry named on the road");
 });
 
 test("the computer's road names cadences and strettos (I/5)", () => {

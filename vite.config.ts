@@ -11,9 +11,9 @@ export default defineConfig(({ mode }) => ({
   json: { stringify: true },
   // `vite build --mode artifact`: one script, no chunks loaded on demand, for the single-file page
   // published on claude.ai (tools/build-artifact.mjs), whose file count is limited.
-  // The Pages build also carries the touch game's page (touch.html, D158) and its instrument bench (bench.html, D170).
+  // The Pages build also carries the touch game's page (touch.html, D158) and its instrument bench (bench.html, D170), and the minimal page for friends (play.html, D237).
   build:
     mode === "artifact"
       ? { outDir: "dist-artifact", rollupOptions: { output: { inlineDynamicImports: true } } }
-      : { rollupOptions: { input: { main: fileURLToPath(new URL("./index.html", import.meta.url)), touch: fileURLToPath(new URL("./touch.html", import.meta.url)), bench: fileURLToPath(new URL("./bench.html", import.meta.url)) } } },
+      : { rollupOptions: { input: { main: fileURLToPath(new URL("./index.html", import.meta.url)), touch: fileURLToPath(new URL("./touch.html", import.meta.url)), bench: fileURLToPath(new URL("./bench.html", import.meta.url)), play: fileURLToPath(new URL("./play.html", import.meta.url)) } } },
 }));

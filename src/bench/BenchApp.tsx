@@ -11,13 +11,18 @@
  * it); the title card trimmed (the piece, the stage, the voices, PLAY; ⚙ ? and LEARN as icons); no
  * levels, no LAB; SOUND folded; WITH KIMIKO an unlockable (the feat KIMIKO ISHIZAKA); MIDI CONTROLLER
  * offered while a MIDI input is connected.
+ * D237: streamlined: a piece chosen opens a small pop-up over the cards (its formal title, the voice,
+ * ▶ PLAY straight into the count-in); CONTINUE and ▶ NEXT start at once; the result is the grade, the
+ * score, AGAIN, NEXT and ✕. The tutorial's entry points only with `?dev=1`. The minimal page for
+ * friends (play.html, `APP.lite`): the card grid (LiteGrid.tsx) instead of HOME, the platform as
+ * detected, CLASSIC only, its own progress (lite.ts), ⚙ with only the volume and the sound's delay.
  */
 import { ornamentMark, ornamentsOf } from "../touch/ornament-play.ts";
 import { BachTalk } from "./Bach.tsx";
 import { accuracy, passed, TRACKS, type Line, type Run } from "./lessons.ts";
 import { answer, askFirst, nextLesson, recordLesson } from "./tutorial.ts";
 import { LessonMap, PlayedBefore } from "./LessonMap.tsx";
-import { TEMPO, tempoOf } from "../touch/tempi.ts";
+import { tempoOf } from "../touch/tempi.ts";
 import { presetById, setPreset } from "../touch/sound.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ladderGeometry, MusicBox, inkOf, type Frame } from "../touch/MusicBox.tsx";
@@ -36,7 +41,7 @@ import { laneNotes } from "../touch/lanes.ts";
 import { setTuning } from "../touch/tuning.ts";
 import { accompaniment, startTick, stepRange, subjectMarks, entrySpans, voicesFrom } from "../touch/voice-mode.ts";
 import { paintProto } from "./paint-proto.ts";
-import { ProtoGame, type KeyPress } from "./proto-game.ts";
+import { laneLine, ProtoGame, type KeyPress } from "./proto-game.ts";
 import { lineKey, subjectLine } from "./subject-line.ts";
 import { FuguePicker } from "./FuguePicker.tsx";
 import { TuningFold } from "./TuningFold.tsx";
@@ -48,8 +53,17 @@ import { beatenFugues, fugueOf, herUnlocked, isPrelude, locked, paired, preludeO
 import type { Tier } from "./tiers.ts";
 import { judgeSeal, readSeals, recordSeal } from "./seals.ts";
 import { earnFeats, type FeatId } from "./feats.ts";
-import { AchButton, Achievements, FeatToast } from "./Achievements.tsx";
-import { artLine, type ArtStats } from "./articulation.ts";
+import { Achievements, FeatToast } from "./Achievements.tsx";
+import type { ArtStats } from "./articulation.ts";
+import { APP } from "./config.ts";
+import { defaultVoice, nextIn } from "./flow.ts";
+import { LITE_HINT, liteOrder, readLite, recordLite, RULES, START_HERE, writeLite } from "./lite.ts";
+import { LiteGrid } from "./LiteGrid.tsx";
+import { PlayPop } from "./PlayPop.tsx";
+import { tierCards } from "./tiers.ts";
+import { bookCards } from "./cards.ts";
+import { btOn, latencyOf } from "../touch/headphones.ts";
+import { LagSetting } from "../touch/Panels.tsx";
 import { ARROW_KEYS, arrowOf, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
 
 const PICK_KEY = "tb-pick-v2";
@@ -111,13 +125,13 @@ function sane(p: Pick): Pick {
   const known = fugueById(p.piece).id === p.piece ? p.piece : DEFAULT.piece;
   // D229: Book I's preludes are stage 1 (stages.ts); a locked fugue gives its prelude; Book II's preludes still give their fugues.
   const pair = paired(known) && isPrelude(known) ? known : fugueOnly(known);
-  // D232: a piece whose tier is closed gives I/1's prelude.
-  const piece = locked(pair) ? (locked(preludeOf(pair)) ? "wtc1p01" : preludeOf(pair)) : pair;
+  // D232: a piece whose tier is closed gives I/1's prelude. D237: the minimal page has its own unlocking (lite.ts), Book I only.
+  const piece = APP.lite ? (paired(pair) ? pair : START_HERE) : locked(pair) ? (locked(preludeOf(pair)) ? "wtc1p01" : preludeOf(pair)) : pair;
   const f = fugueById(piece);
   const share = Math.min(0.99, Math.max(0, p.share || 0));
   const singing = voicesFrom(f, startTick(f, share));
-  // A prelude's upper hand by default; a fugue's second voice.
-  const voice = singing.includes(p.voice) ? p.voice : singing[f.kind === "prelude" ? 0 : Math.min(1, singing.length - 1)];
+  // D237: a prelude's upper hand by default; a fugue's voice of the first entry (flow.ts).
+  const voice = singing.includes(p.voice) ? p.voice : defaultVoice(f, singing);
   // D219: a stored mode withdrawn (HIGHWAY, TWO VOICES, KIMIKO on a phone) falls back to LADDER; a stored KIMIKO as LADDER WITH KIMIKO.
   const was = p.proto as string;
   const proto = PROTOS.some((x) => x.id === was) ? p.proto : DEFAULT.proto;
@@ -126,7 +140,8 @@ function sane(p: Pick): Pick {
   return { ...DEFAULT, ...rest, piece, share, voice, proto, legato: !!p.legato, her: was === "kimiko" || p.her === true, mine: p.mine in MINE ? p.mine : DEFAULT.mine, keys: p.keys === "scale" ? "scale" : "home" };
 }
 
-type Phase = { kind: "home" } | { kind: "title" } | { kind: "play" } | { kind: "result"; stage?: { won: boolean; fugue: string }; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; art?: ArtStats; seal: { kind: string; earned: boolean; why: string } | null; feats?: FeatId[]; opened?: Tier[] } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "lessons"; focus?: ProtoId } | { kind: "help" } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
+/** D237: "title" is the pop-up over the cards (HOME, the wheel, the minimal page's grid). */
+type Phase = { kind: "home" } | { kind: "title" } | { kind: "play" } | { kind: "result"; stage?: { won: boolean; fugue: string }; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; art?: ArtStats; lanes?: { exact: number; relative: number }; seal: { kind: string; earned: boolean; why: string } | null; feats?: FeatId[]; opened?: Tier[]; next?: string | null } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "lessons"; focus?: ProtoId } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
 
 export function BenchApp() {
   // D233: the game opens on HOME.
@@ -135,14 +150,19 @@ export function BenchApp() {
   const origin = useRef<"home" | "title">("home");
   if (phase.kind === "home" || phase.kind === "title") origin.current = phase.kind;
   const back = () => setPhase({ kind: origin.current });
-  const [pick, setPickRaw] = useState<Pick>(() => sane(load(PICK_KEY, DEFAULT)));
+  // D237: the minimal page keeps no pick (it opens on its grid; Prelude 1 its first card).
+  const [pick, setPickRaw] = useState<Pick>(() => sane(APP.lite ? { ...DEFAULT, piece: START_HERE, voice: -1 } : load(PICK_KEY, DEFAULT)));
   const setPick = (p: Partial<Pick>) =>
     setPickRaw((cur) => {
       // A new piece starts at its own tempo (D184; the slider moves it after).
-      const next = sane({ ...cur, ...p });
-      save(PICK_KEY, next);
+      const next = sane({ ...cur, ...p, ...(APP.lite ? { share: 0, her: false } : {}) });
+      if (!APP.lite) save(PICK_KEY, next);
       return next;
     });
+  // D237, the minimal page: its own progress, instruction lines seen and volume (lite.ts).
+  const [lite, setLite] = useState(readLite);
+  // D239: the bench shows the first game's one-line rule per mode too (START plays at once: no other place to read it).
+  const [benchSeen, setBenchSeen] = useState<string[]>(() => load<string[]>(HINTS_KEY, []));
   const [lag, setLagRaw] = useState<number | null>(() => load<number | null>(LAG_KEY, null));
   const applyLag = (l: number | null) => {
     setLagRaw(l);
@@ -171,13 +191,14 @@ export function BenchApp() {
   // D182: mobile or computer. D233: guessed from the pointer (a finger and no hover: the phone's), ⚙ PLAY ON overrides it.
   const [detected] = useState(detectedPlatform);
   const [pref, setPrefRaw] = useState<PlatformPref>(() => load<PlatformPref>(PLATFORM_KEY, "auto"));
-  const platform = platformOf(pref === "mobile" || pref === "computer" ? pref : "auto", detected);
+  const platform = platformOf(!APP.lite && (pref === "mobile" || pref === "computer") ? pref : "auto", detected);
   const setPref = (p: PlatformPref) => {
     setPrefRaw(p);
     save(PLATFORM_KEY, p);
   };
   // D225: Herr Bach's HAVE YOU PLAYED BEFORE?, right after opening, until answered on this platform.
-  const [asking, setAsking] = useState(() => askFirst(platform));
+  // D237: only with `?dev=1` (the tutorial withdrawn for now), never on the minimal page.
+  const [asking, setAsking] = useState(() => APP.dev && !APP.lite && askFirst(platform));
   const [note, setNote] = useState("");
   // D192: the fugue wheel. D233: opened from HOME (CHOOSE PIECE); a piece chosen goes to its title card.
   const [wheel, setWheel] = useState(false);
@@ -187,7 +208,8 @@ export function BenchApp() {
   const run = lesson?.run;
   const f = fugueById(run?.piece ?? pick.piece);
   // D229: a prelude on HIGHWAY (a phone's five lanes, a computer's keys), a fugue in the mode chosen.
-  const proto = protoById(run ? run.proto : stageMode(f, platform, offered(pick.proto, platform, midi.length > 0)));
+  // D237: the minimal page: a phone's prelude on HIGHWAY, its fugue on LADDER; a computer's both on HIGHWAY (keys).
+  const proto = protoById(run ? run.proto : stageMode(f, platform, APP.lite ? (platform === "computer" ? "keys" : "ladder") : offered(pick.proto, platform, midi.length > 0)));
   const prelude = !run && f.kind === "prelude";
   const from = run ? run.from : startTick(f, pick.share);
   const voice = run ? run.voice : pick.voice;
@@ -196,7 +218,7 @@ export function BenchApp() {
   // Ishizaka's recording, the game on her time; only where she is timed (whatever pieces
   // data/recordings/ishizaka-ticks.json holds); her track let go when the switch or the piece is left.
   // D233: once unlocked (the feat KIMIKO ISHIZAKA: all 24 Book I fugues beaten).
-  const unlockedHer = useMemo(() => herUnlocked(), [phase.kind]);
+  const unlockedHer = useMemo(() => !APP.lite && herUnlocked(), [phase.kind]);
   const herHere = unlockedHer && takesHer(proto.id) && !run && !!herMap(f.id);
   const kimiko = herHere && pick.her;
   const hm = kimiko ? herMap(f.id) : null;
@@ -300,6 +322,8 @@ export function BenchApp() {
       chip.current = new Chip();
       chip.current.lag = lag;
       hp.attach(chip.current);
+      // D237: the minimal page's volume.
+      if (APP.lite) chip.current.setVolume(readLite().volume);
       prepared.current();
     }
     void chip.current.resume();
@@ -332,7 +356,7 @@ export function BenchApp() {
     if (hm) setTuning("equal", hm.a);
     ch.mine.gain.value = kimiko ? MINE[pick.mine] : 1;
     // D219: failing always on (D225: in the lessons from the fourth on); WITH KIMIKO, the game sounds only the player's voice.
-    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo } : {}), ...(clock ? { clock } : {}) }, ch);
+    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btOn("auto", lag, latencyOf(ch.ctx) ?? 0) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo } : {}), ...(clock ? { clock } : {}) }, ch);
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
     // For the measurements (the bench's own checks): the game and her playing.
@@ -387,13 +411,19 @@ export function BenchApp() {
           const ok = passed(l, r);
           recordLesson(lesson.pl, l.id, accuracy(r), ok);
           setPhase({ kind: "talk", lines: ok ? l.praise : l.again, next: ok ? "advance" : "again" });
+        } else if (APP.lite) {
+          // D237: the minimal page keeps only the pieces finished (its own key), nothing of the bench's.
+          const opened = recordLite(f.id, r.failedBar !== null);
+          const st = readLite();
+          setLite(st);
+          setPhase({ kind: "result", ...r, seal: null, opened, next: nextIn(liteOrder(new Set(st.beaten)), f.id) });
         } else {
           // D214: SUBJECT's grade is not any one voice's.
           if (r.failedBar === null && !subjectMode) recordBest(f.id, played, r.grade);
           // D229: a prelude reached to its end is beaten: its fugue unlocked (no seal, no feats: those are the fugues').
           if (prelude) {
             const won = recordPrelude(f.id, r.grade, r.failedBar !== null);
-            setPhase({ kind: "result", ...r, seal: null, stage: { won, fugue: fugueOf(f.id) } });
+            setPhase({ kind: "result", ...r, seal: null, stage: { won, fugue: fugueOf(f.id) }, next: benchNext(f.id) });
             return;
           }
           // D196: the fugue's seal, judged over the whole run.
@@ -406,7 +436,7 @@ export function BenchApp() {
           const opened = recordFugue(f.id, r.grade, r.failedBar !== null, from === 0);
           // D224: the feats, judged over the run and what is kept.
           const feats = earnFeats({ piece: f.id, mode: proto.id, whole: from === 0 && r.failedBar === null, ...r, strettos: g.strettoState.filter((s) => s === "cleared").length, her: !!h, tuning: hm ? "equal" : tuning.id }, readBest(), readSeals(), [...beatenFugues()]);
-          setPhase({ kind: "result", ...r, her: !!h, seal: card && seal ? { kind: card.seal.kind, ...seal } : null, feats, opened });
+          setPhase({ kind: "result", ...r, her: !!h, seal: card && seal ? { kind: card.seal.kind, ...seal } : null, feats, opened, next: benchNext(f.id) });
         }
         return;
       }
@@ -444,8 +474,9 @@ export function BenchApp() {
     };
   }
 
-  const start = () => {
-    if (performance.now() - shownAt.current < 350) return;
+  /** PLAY (the pop-up, AGAIN); `now`: CONTINUE and NEXT, which start at once (no guard against a double tap). */
+  const start = (now = false) => {
+    if (!now && performance.now() - shownAt.current < 350) return;
     const ch = ensureChip();
     wantHer();
     const go = () => (setNote(""), setPhase({ kind: "play" }));
@@ -472,13 +503,39 @@ export function BenchApp() {
   };
   const phaseNow = useRef(phase.kind);
   phaseNow.current = phase.kind;
-  const quit = () => ((waitingHer.current = null), setLesson(null), setPhase({ kind: "title" }));
+  // D237: ✕ goes back to the cards (HOME, the wheel as it was left, the minimal page's grid).
   const home = () => ((waitingHer.current = null), setLesson(null), setPhase({ kind: "home" }));
-  /** D233: a piece chosen (HOME's CONTINUE, the wheel): its title card (from its start unless it is the piece already chosen). */
+  const quit = home;
+  /** D237: a card chosen (the wheel, the grid): the pop-up over it (from its start unless it is the piece already chosen). */
   const open = (piece: string) => {
     if (piece !== pick.piece) setPick({ piece, share: 0, voice: -1 });
-    setWheel(false);
     setPhase({ kind: "title" });
+  };
+  /** D237: CONTINUE, NEXT: straight into the count-in, no pop-up. */
+  const begin = (piece: string) => {
+    if (piece !== pick.piece) setPick({ piece, share: 0, voice: -1 });
+    start(true);
+  };
+  /** D237: the bench's NEXT: a prelude's fugue, then the next pair (the wheel's order), skipping what is locked; Book II in order. */
+  function benchNext(id: string): string | null {
+    const order = paired(id) ? tierCards().flatMap((c) => [preludeOf(c.id), c.id]) : bookCards(cardById(id)?.book ?? 2).map((c) => c.id);
+    return nextIn(order, id, (x) => !locked(x));
+  }
+  /** D237: the minimal page's one-line instruction, at the start of the first game in each mode (played past: gone). */
+  const hintSeen = APP.lite ? lite.seen : benchSeen;
+  const hintLine = phase.kind === "play" && !lesson && !hintSeen.includes(proto.id) ? (LITE_HINT[proto.id] ?? "") : "";
+  const seen = () => {
+    if (!hintLine) return;
+    if (APP.lite) setLite(writeLite({ seen: [...lite.seen, proto.id] }));
+    else {
+      const next = [...benchSeen, proto.id];
+      setBenchSeen(next);
+      try {
+        localStorage.setItem(HINTS_KEY, JSON.stringify(next));
+      } catch {
+        /* this visit only */
+      }
+    }
   };
   const beginLesson = (pl: Platform, n: number) => {
     const l = TRACKS[pl][n];
@@ -505,13 +562,12 @@ export function BenchApp() {
   };
 
   const events: ThumbEvents = {
-    down: (id, side, x, y, w, h, ts) => game.current?.down(id, { side, x, y, w, h }, ts),
+    down: (id, side, x, y, w, h, ts) => (seen(), game.current?.down(id, { side, x, y, w, h }, ts)),
     move: (id, x, y, w, h, ts) => game.current?.move(id, { side: "left", x, y, w, h }, ts),
     up: (id, ts, cancelled) => {
-      const g = game.current;
-      if (g) return g.up(id, ts);
-      // A touch the system took back (pointercancel) starts nothing (D191: nor sound outside a gesture on iOS).
-      if (!cancelled && (phase.kind === "title" || phase.kind === "result")) start();
+      // D237: a tap off the pop-up or the result starts nothing (their buttons do).
+      void cancelled;
+      game.current?.up(id, ts);
     },
   };
 
@@ -519,13 +575,14 @@ export function BenchApp() {
   const keyDownRef = useRef<(id: number, k: KeyPress, ts: number) => void>(() => {});
   keyDownRef.current = (id, k, ts) => {
     const g = game.current;
-    if (g) g.keyDown(id, k, ts);
+    if (g) (seen(), g.keyDown(id, k, ts));
     else if (phase.kind === "title" || phase.kind === "result") start();
   };
   useEffect(() => {
     const nav = navigator as Navigator & { requestMIDIAccess?: () => Promise<MIDIAccess> };
     // MIDI: a computer's (D182).
-    if (!nav.requestMIDIAccess || platform !== "computer") return setMidi([]);
+    // D237: not on the minimal page (no permission asked of a friend).
+    if (!nav.requestMIDIAccess || platform !== "computer" || APP.lite) return setMidi([]);
     let access: MIDIAccess | null = null;
     // D191: a promise resolving after the effect is gone (StrictMode, a quick switch of platform)
     // attaches nothing, and a device plugged in later re-attaches nothing.
@@ -618,7 +675,7 @@ export function BenchApp() {
       // Keys meant for a control (the FROM slider; space or enter on a button off the game) or the
       // first screen are theirs (D184).
       const tgt = e.target instanceof Element ? e.target : null;
-      if (asking || phase.kind === "home" || wheel || tgt?.closest("input, select, textarea") || (phase.kind !== "play" && tgt?.closest("button") && (e.code === "Space" || e.code === "Enter"))) return;
+      if (asking || (phase.kind !== "play" && (phase.kind === "home" || wheel)) || tgt?.closest("input, select, textarea") || (phase.kind !== "play" && tgt?.closest("button") && (e.code === "Space" || e.code === "Enter"))) return;
       const g = game.current;
       if (proto.id === "keys" && g) {
         if (e.code === "ShiftLeft" || e.code === "ShiftRight") return g.pedal(true);
@@ -634,7 +691,8 @@ export function BenchApp() {
       if (!k) return;
       // A key held repeats: nothing more to play, but a game's keys (space, the arrows) must not scroll the page (D191).
       if (e.repeat) return void (g && e.preventDefault());
-      if (!g && phase.kind !== "title" && phase.kind !== "result") return;
+      // D237: off the game the keys start nothing (the pop-up's PLAY, the result's AGAIN take Enter).
+      if (!g) return;
       e.preventDefault();
       // A phone's prototype: the keys only start it.
       if (proto.platform !== "computer") return void (g ? null : keyDownRef.current(0, k, e.timeStamp));
@@ -663,7 +721,6 @@ export function BenchApp() {
   /** D230: SCALE KEYS chosen for the computer's HIGHWAY. */
   // D236: SCALE KEYS withdrawn from play (the owner: "a complete failure"); the home row only.
   const scaleOn = false;
-  const away = phase.kind === "title" || phase.kind === "result";
   const layout = proto.layout;
   const wide = layout === "wide" || layout === "bars" || layout === "desk";
   const own = (playing && (layout === "full" || layout === "bars") ? ` tb-${layout}` : "") + ` tb-proto-${proto.id}` + (roadAlone(proto, playing) ? " tb-road" : "");
@@ -674,7 +731,7 @@ export function BenchApp() {
         frame={frame}
         hud={
           <>
-            <span className="tg-hud-title">{lesson ? `LESSON ${lesson.n + 1} · ${TRACKS[lesson.pl][lesson.n].english}` : `BENCH · ${proto.name}`}</span>
+            <span className="tg-hud-title">{lesson ? `LESSON ${lesson.n + 1} · ${TRACKS[lesson.pl][lesson.n].english}` : APP.lite ? f.title.toUpperCase() : `BENCH · ${proto.name}`}</span>
             <span className="tg-hud-bar">{keyName(frame.current.key)}</span>
             {(playing || lesson) && (
               <button type="button" id="quit" className="tg-x" aria-label="Quit" onClick={quit}>
@@ -690,91 +747,53 @@ export function BenchApp() {
         ))}
       >
         <div className="tg-count" ref={count} aria-live="polite" />
-        {phase.kind === "title" && (
-          <Title
-            f={f}
-            pick={pick}
-            setPick={setPick}
-            from={from}
-            note={note}
-            herHere={herHere}
-            her={kimiko ? herLine(hm ? herState(hm) : null) : undefined}
-            play={start}
-            to={{ home, settings: () => setPhase({ kind: "settings" }), help: () => setPhase({ kind: "help" }), learn: TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined }}
-          />
-        )}
         {phase.kind === "talk" && lesson && (
           <BachTalk key={`${lesson.n}-${phase.next}-${phase.lines[0]?.text}`} title={`${TRACKS[lesson.pl][lesson.n].title} · ${TRACKS[lesson.pl][lesson.n].english}`} lines={phase.lines} onLine={demo} onDone={() => talkDone(phase.next)} />
         )}
         {phase.kind === "result" && (
-          <div className="tg-card tg-card-low tb-result">
+          // D237: the result, minimal: the grade (or where the crowd left), the score, AGAIN, NEXT, ✕ back to the cards.
+          <div className="tg-card tg-card-low tb-result" role="dialog" aria-label="Result">
+            <button type="button" id="result-close" className="tg-x tb-result-x" aria-label="Back to the cards" onClick={home}>
+              ✕
+            </button>
             {phase.failedBar !== null ? (
               <h1 className="tb-grade tb-failed">THE CROWD LEFT</h1>
             ) : (
               <h1 className={`tb-grade${phase.grade === "S" || phase.grade === "A" ? " tg-gold" : ""}`}>{phase.grade}</h1>
             )}
-            {phase.failedBar !== null ? <p className="tg-card-sub">BAR {phase.failedBar}</p> : <p className="tb-stars">{"★".repeat(phase.stars) + "☆".repeat(5 - phase.stars)}</p>}
+            {phase.failedBar !== null && <p className="tg-card-sub">BAR {phase.failedBar}</p>}
             <p className="tb-score">{phase.score.toLocaleString("en")}</p>
-            <div className="tb-tally" aria-label="Notes">
-              <span>
-                <b>{Math.round((100 * phase.right) / Math.max(1, phase.of))}%</b>
-                <small>
-                  {phase.right}/{phase.of}
-                </small>
-              </span>
-              <span className="tb-tally-bad">
-                <b>✕ {phase.wrong}</b>
-                <small>WRONG</small>
-              </span>
-              <span className="tb-tally-bad">
-                <b>{phase.missed}</b>
-                <small>MISSED</small>
-              </span>
-              {phase.entries > 0 && (
-                <span>
-                  <b>◆ {phase.captured}/{phase.entries}</b>
-                  <small>ENTRIES</small>
-                </span>
-              )}
-              <span>
-                <b>{phase.maxStreak}</b>
-                <small>BEST RUN</small>
-              </span>
-            </div>
-            {phase.art && <p className="tg-card-sub">{artLine(phase.art)}</p>}
-            {phase.seal && (
-              <p className={`tb-result-seal${phase.seal.earned ? " earned" : ""}`}>
-                {phase.seal.earned ? `◆ SEAL EARNED · ${phase.seal.kind}` : `◇ ${phase.seal.kind} · ${phase.seal.why.toUpperCase()}`}
+            {phase.lanes && laneLine(phase.lanes) && (
+              <p className="tb-lane-line" id="lane-line" title="LANE: the note's own lane (full points) · DIRECTION: another lane the right way (half)">
+                {laneLine(phase.lanes)}
               </p>
             )}
-            {phase.her && <p className="tg-card-sub tb-her-credit">{HER_CREDIT}</p>}
-            {phase.stage && (
-              <p className={`tb-result-seal tb-stage-line${phase.stage.won ? " earned" : ""}`}>{phase.stage.won ? "PRELUDE BEATEN · FUGUE UNLOCKED" : "🔒 BEAT THE PRELUDE TO UNLOCK ITS FUGUE"}</p>
-            )}
-            {phase.stage?.won && (
-              <button type="button" id="to-fugue" className="tb-play tb-to-fugue" onClick={() => (setPick({ piece: phase.stage!.fugue, share: 0, voice: -1 }), setPhase({ kind: "title" }))}>
-                PLAY THE FUGUE ▶
-              </button>
-            )}
+            {phase.stage?.won && <p className="tb-result-seal tb-stage-line earned">PRELUDE BEATEN · FUGUE UNLOCKED</p>}
             {phase.opened?.map((t) => (
               <p key={t} id={`tier-toast-${t.toLowerCase()}`} className={`tb-tier-toast tb-tier-${t.toLowerCase()}`} role="status">
                 {t} UNLOCKED!
               </p>
             ))}
-            {phase.feats && <FeatToast fresh={phase.feats} open={() => setPhase({ kind: "achievements", fresh: phase.feats })} />}
-            {(phase.feats?.length || phase.seal?.earned) && <AchButton id="result-achievements" open={() => setPhase({ kind: "achievements", fresh: phase.feats })} />}
+            {!APP.lite && phase.feats && phase.feats.length > 0 && <FeatToast fresh={phase.feats} open={() => setPhase({ kind: "achievements", fresh: phase.feats })} />}
             <div className="tb-result-nav">
-              <button type="button" id="again" className="tb-menu" onClick={quit}>
-                MENU
+              <button type="button" id="again" className="tb-play" autoFocus onClick={() => start()}>
+                ▶ AGAIN
               </button>
-              <button type="button" id="result-home" className="tb-menu" onClick={home}>
-                ⌂ HOME
-              </button>
+              {phase.next && (
+                <button type="button" id="next" className="tb-play" onClick={() => begin(phase.next!)}>
+                  ▶ NEXT
+                </button>
+              )}
             </div>
           </div>
         )}
       </MusicBox>
-      <PlayArea events={events} paint={paint} hint={away ? (proto.platform === "computer" ? "▶ PRESS ANY KEY" : phase.kind === "result" ? "▶ TAP TO PLAY AGAIN" : "▶ TAP TO START") : ""} />
+      <PlayArea events={events} paint={paint} hint="" />
+      {hintLine && (
+        <p className="tb-lite-hint" id="lite-hint" role="status">
+          {hintLine}
+        </p>
+      )}
       {(layout === "full" || roadAlone(proto, playing)) && playing && (
         <button type="button" id="quit-full" className="tg-x tb-quit" aria-label="Quit" onClick={quit}>
           ✕
@@ -796,7 +815,30 @@ export function BenchApp() {
           <Tapper chip={ensureChip} done={(l) => (l !== null && setLag(l), setCalib(false), hp.dismiss())} />
         </Panel>
       )}
-      {phase.kind === "settings" && (
+      {phase.kind === "settings" && APP.lite && (
+        // D237: the minimal page's ⚙: the volume and the sound's delay (headphones); BLUETOOTH MODE on AUTO, unseen.
+        <Panel title="SETTINGS" close={back}>
+          <label className="tg-from tb-volume">
+            <span>VOLUME {Math.round(lite.volume * 100)}%</span>
+            <input
+              type="range"
+              id="volume"
+              min={0}
+              max={100}
+              step={5}
+              value={Math.round(lite.volume * 100)}
+              onChange={(e) => {
+                const v = Number(e.target.value) / 100;
+                setLite(writeLite({ volume: v }));
+                chip.current?.setVolume(v);
+              }}
+            />
+          </label>
+          <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
+          <p className="tg-panel-note">With headphones on, tap along to the clicks so the music and your taps line up.</p>
+        </Panel>
+      )}
+      {phase.kind === "settings" && !APP.lite && (
         <Panel title="SETTINGS" close={back}>
           <Choice id="platform" label="PLAY ON" options={[["auto", `AUTO · ${detected === "mobile" ? "PHONE" : "COMPUTER"}`], ["mobile", "PHONE"], ["computer", "COMPUTER"]]} value={pref} set={setPref} />
           {menuOf(platform, midi.length > 0).length > 1 && !prelude && (
@@ -824,30 +866,21 @@ export function BenchApp() {
           )}
         </Panel>
       )}
-      {phase.kind === "home" && !asking && (
+      {(phase.kind === "home" || phase.kind === "title") && !asking && !APP.lite && !wheel && (
         <Home
           current={pick.piece}
-          on={{ play: open, choose: () => setWheel(true), tutorial: () => setPhase({ kind: "lessons" }), achievements: () => setPhase({ kind: "achievements" }), settings: () => setPhase({ kind: "settings" }) }}
+          on={{ play: begin, choose: () => setWheel(true), tutorial: APP.dev ? () => setPhase({ kind: "lessons" }) : undefined, achievements: () => setPhase({ kind: "achievements" }), settings: () => setPhase({ kind: "settings" }) }}
         />
       )}
-      {wheel && <FuguePicker current={pick.piece} close={() => setWheel(false)} pick={open} />}
-      {phase.kind === "help" && (
-        <Panel title={`HOW TO PLAY · ${proto.name}`} close={back}>
-          <section className="tg-help tb-help">
-            <ModeHow id={proto.id} scale={scaleOn} />
-            <ul className="tb-always">
-              <li>
-                <b>HOLD</b> the note lasts while you hold
-              </li>
-              <li>
-                <b>✕</b> a wrong note sounds muffled
-              </li>
-              <li>
-                <b>CROWD</b> too many slips and it leaves
-              </li>
-            </ul>
-          </section>
-        </Panel>
+      {wheel && !APP.lite && (phase.kind === "home" || phase.kind === "title") && <FuguePicker current={pick.piece} close={() => setWheel(false)} pick={open} paused={phase.kind === "title"} />}
+      {APP.lite && (phase.kind === "home" || phase.kind === "title") && <LiteGrid beaten={lite.beaten} open={open} settings={() => setPhase({ kind: "settings" })} />}
+      {phase.kind === "title" && (
+        <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULES[proto.id]} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
+          {herHere && <HerSwitch pick={pick} setPick={setPick} />}
+          {kimiko && <p className="tg-card-sub tb-her">{herLine(hm ? herState(hm) : null)}</p>}
+          {kimiko && <p className="tg-card-sub tb-her-credit">{HER_CREDIT}</p>}
+          {note && <p className="tg-note">{note}</p>}
+        </PlayPop>
       )}
       {phase.kind === "achievements" && <Achievements close={back} tab={phase.fresh?.length ? "feats" : "seals"} fresh={phase.fresh} />}
       {phase.kind === "lessons" && <LessonMap platform={platform} focus={phase.focus} play={beginLesson} close={back} />}
@@ -861,12 +894,23 @@ export function BenchApp() {
         />
       )}
       <div className="tg-upright" role="alert">
-        {wide ? "Turn the phone sideways" : "Turn the phone upright"}
+        {/* D239: why, and a way back (a newcomer sent to a fugue on LADDER by NEXT, the phone upright). */}
+        <div className="tb-upright-box">
+          <p className="tb-upright-title">{wide ? "TURN THE PHONE SIDEWAYS" : "TURN THE PHONE UPRIGHT"}</p>
+          <p className="tb-upright-why">{wide ? (proto.layout === "bars" ? "This piece is played on two bars, a thumb on each." : "This mode needs the phone held sideways.") : "This mode needs the phone held upright."}</p>
+          {phase.kind !== "home" && (
+            <button type="button" id="upright-back" className="tb-upright-back" onClick={home}>
+              ✕ BACK TO THE CARDS
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
+/** D239: the bench's modes whose first-game rule has been played past. */
+const HINTS_KEY = "tb-hints-v1";
 /** D216, KIMIKO: the credit, on the title card and the result. */
 const HER_CREDIT = "KIMIKO ISHIZAKA, THE OPEN WELL-TEMPERED CLAVIER (2015), CC0";
 /** D216: KIMIKO's title-card line (null: no recording of this piece). */
@@ -887,48 +931,6 @@ function HerSwitch({ pick, setPick }: { pick: Pick; setPick: (p: Partial<Pick>) 
   );
 }
 
-/** D233: the title card, trimmed: the stage, the piece and its tempo, the voices, PLAY; ⌂ ⚙ ? as icons, LEARN THIS MODE where it has lessons; KIMIKO once unlocked. */
-function Title({ f, pick, setPick, from, note, herHere, her, play, to }: { f: TouchFugue; pick: Pick; setPick: (p: Partial<Pick>) => void; from: number; note: string; herHere: boolean; her?: string; play: () => void; to: { home: () => void; settings: () => void; help: () => void; learn?: () => void } }) {
-  const singing = voicesFrom(f, from);
-  return (
-    <div className="tg-card tg-title tb-title">
-      <nav className="tb-title-icons" aria-label="Menu">
-        <button type="button" id="home" className="tg-x" aria-label="Home" onClick={to.home}>
-          ⌂
-        </button>
-        <span className="tb-stage-tag">{f.kind === "prelude" ? "STAGE 1 · PRELUDE" : paired(f.id) ? "STAGE 2 · FUGUE" : "FUGUE"}</span>
-        <button type="button" id="settings" className="tg-x" aria-label="Settings" onClick={to.settings}>
-          ⚙
-        </button>
-        <button type="button" id="help" className="tg-x" aria-label="How to play" onClick={to.help}>
-          ?
-        </button>
-      </nav>
-      <h1 className="tb-title-piece">{f.title.toUpperCase()}</h1>
-      <p className="tg-card-sub">{tempoLabel(f.id)}{pick.share > 0 ? ` · FROM BAR ${barAt(f, from)}` : ""}</p>
-      <div className="tg-voices" role="group" aria-label="Voice">
-        {f.voiceNames.map((name, i) => (
-          <button key={name} type="button" id={`voice-${i}`} className={i === pick.voice ? "on" : ""} style={{ color: inkOf(i, f.voices.length) }} disabled={!singing.includes(i)} onClick={() => setPick({ voice: i })} aria-pressed={i === pick.voice}>
-            {name.toUpperCase()}
-          </button>
-        ))}
-      </div>
-      {herHere && <HerSwitch pick={pick} setPick={setPick} />}
-      {her && <p className="tg-card-sub tb-her">{her}</p>}
-      {her && <p className="tg-card-sub tb-her-credit">{HER_CREDIT}</p>}
-      {note && <p className="tg-note">{note}</p>}
-      <button type="button" id="play" className="tb-play tb-title-play" onClick={play}>
-        ▶ PLAY
-      </button>
-      {to.learn && (
-        <button type="button" id="learn" className="tb-learn" onClick={to.learn}>
-          LEARN THIS MODE
-        </button>
-      )}
-    </div>
-  );
-}
-
 function From({ f, pick, setPick, from }: { f: TouchFugue; pick: Pick; setPick: (p: Partial<Pick>) => void; from: number }) {
   return (
     <label className="tg-from">
@@ -938,12 +940,6 @@ function From({ f, pick, setPick, from }: { f: TouchFugue; pick: Pick; setPick: 
       <input type="range" id="from" min={0} max={99} step={1} value={Math.round(pick.share * 100)} onChange={(e) => setPick({ share: Number(e.target.value) / 100 })} />
     </label>
   );
-}
-
-/** "♩. = 53": a fugue's tempo in its own beat (D199, D204). */
-function tempoLabel(id: string): string {
-  const t = TEMPO[id];
-  return t ? `${t.unit} = ${t.unitBpm.normal}` : `♩ = ${tempoOf(id)}`;
 }
 
 /**

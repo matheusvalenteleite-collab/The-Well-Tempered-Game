@@ -113,6 +113,12 @@ export function setUi(id: string) {
   if (!ASKED) current = id;
   restyle();
 }
+/** D237: an interface in force for this page whatever is stored or asked (the minimal page: CLASSIC), nothing kept. */
+export function forceUi(id: string) {
+  if (id !== "classic" && !(id in TEMPLATES)) return;
+  current = id;
+  restyle();
+}
 /** A template is drawing the box (not CLASSIC). */
 export function uiActive(): boolean {
   return current !== "classic" && current in TEMPLATES;

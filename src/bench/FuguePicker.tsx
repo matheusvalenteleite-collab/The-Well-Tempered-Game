@@ -34,6 +34,8 @@ export function emblemUrl(id: string, label?: string): string {
   const k = label ? `${id}|${label}` : id;
   const hit = urls.get(k);
   if (hit) return hit;
+  // No canvas outside a browser (the tests' static render).
+  if (typeof document === "undefined") return "";
   const scale = label ? LABEL_SCALE : 1;
   const c = document.createElement("canvas");
   c.width = EMBLEM_W * scale;
@@ -94,7 +96,7 @@ export function PieceButton({ id, open }: { id: string; open: () => void }) {
   );
 }
 
-export function FuguePicker({ current, pick, close }: { current: string; pick: (id: string) => void; close?: () => void }) {
+export function FuguePicker({ current, pick, close, paused }: { current: string; pick: (id: string) => void; close?: () => void; paused?: boolean }) {
   const start = cardById(fugueOf(current)) ?? bookCards(1)[0];
   const stages = useMemo(readStages, []);
   // D229: the stage shown on Book I's cards: the prelude until its fugue is unlocked (or chosen).
@@ -204,6 +206,8 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
 
   // The keys, before anything else hears them (the panel's Escape, the game's keys).
   useEffect(() => {
+    // D237: the pop-up over the wheel has the keys.
+    if (paused) return;
     const down = (e: KeyboardEvent) => {
       const k = e.code;
       const handled = (fn: () => void) => {

@@ -5,9 +5,10 @@
  *   takes, a lane of its own (shaded gold, a gold seam down its middle, its key-cap framed and marked
  *   ◂ ▸ as shared); the thumbs' space bar under them;
  *   the fugue's architecture on the road: the player's own entries a gold carpet with a gate where
- *   each begins (its name) and a chequered line where it ends, its gems crowned; every other voice's
- *   entry a ribbon along the road's edge in its colour (above the player's voice on the right, below
- *   on the left), lightning down that edge as it begins and SUBJECT · ALTO called out; a stretto
+ *   each begins (its name) and a chequered line where it ends, its gems crowned; every other voice
+ *   on its own rail on the road's shoulders (D238, paint-arch.ts: higher right, lower left), lit in its
+ *   colour while it states the subject, lightning down it as it begins and ALTO · ANSWER called out;
+ *   the fugue map over the horizon (D238); a stretto
  *   (D217's) braids both edges in the two voices' colours, STRETTO named; cadences a gate across the
  *   road, named, lit as it is passed;
  *   the run's effects, 8-bit and cheap (no blur): sparks per lane at each hit, the multiplier's ×2 ×3
@@ -21,6 +22,7 @@ import { cadenceName } from "../touch/fugue.ts";
 import type { ProtoGame } from "./proto-game.ts";
 import { entryLabel, subjectLine } from "./subject-line.ts";
 import { label, shade, type Tok } from "./paint-proto.ts";
+import { deskMap, deskRails, gameRails, mapBottom, RAIL0, RAIL_GAP, railLabel } from "./paint-arch.ts";
 
 /** G: the middle of the nine lanes, either index's. */
 export const G_LANE = 4;
@@ -32,7 +34,8 @@ const CADENCE_INK = "#9fd3ff";
 
 /** The road's place in the window: the horizon, the strike line, its width at the line. */
 export function deskGeom(w: number, h: number) {
-  const y0 = Math.max(60, Math.round(h * 0.11));
+  // D238: the horizon lower, the fugue map and the callouts over it.
+  const y0 = Math.max(72, Math.round(h * 0.125));
   const y1 = h - 118;
   return { y0, y1, W: Math.min(w * 0.58, (y1 - y0) * 1.3, 900) };
 }
@@ -68,7 +71,7 @@ interface Fx {
   flare: { m: number; at: number } | null;
   shake: { at: number; amp: number } | null;
   callouts: { text: string; ink: string; at: number; size: number }[];
-  bolts: { side: -1 | 1; ink: string; at: number; seed: number }[];
+  bolts: { side: -1 | 1; ink: string; at: number; seed: number; off: number }[];
   seen: Set<string>;
   lastFlame: number;
   sparks: Spark[];
@@ -224,37 +227,8 @@ export function deskUnder(r: Road) {
     label(c, cadenceName(cad), cx, p.y - ph - 2 * pw - Math.max(6, 9 * p.k), ink, Math.max(6, Math.round(9 * p.k)));
     c.globalAlpha = 1;
   }
-  // The other voices' entries: ribbons along the edge (higher voices right, lower left).
-  const count = g.f.voices.length;
-  const mine = g.voice;
-  const played = new Set(g.tracks.map((x) => x.voice));
-  for (const e of g.f.entries) {
-    if (played.has(e.voice) || e.on < g.entry || e.end < g.now || e.on > ahead) continue;
-    const side = e.voice < mine ? 1 : -1;
-    const ink = inkOf(e.voice, count);
-    const a = at(Math.max(e.on, g.now));
-    const b = at(Math.min(e.end, ahead));
-    const live = e.on <= g.now;
-    c.fillStyle = ink;
-    c.globalAlpha = live ? 0.75 : 0.45;
-    const off = 12;
-    c.beginPath();
-    c.moveTo(edgeX(r, side, a.k) + side * off * a.k, a.y);
-    c.lineTo(edgeX(r, side, a.k) + side * (off + 9) * a.k, a.y);
-    c.lineTo(edgeX(r, side, b.k) + side * (off + 9) * b.k, b.y);
-    c.lineTo(edgeX(r, side, b.k) + side * off * b.k, b.y);
-    c.closePath();
-    c.fill();
-    c.globalAlpha = 1;
-    // Under way: the voice named by its ribbon, near the strike line.
-    if (live) label(c, (g.f.voiceNames[e.voice] ?? "").toUpperCase(), edgeX(r, side, 0.8) + side * (off + 14), y1 - (y1 - r.y0) * 0.2 - 20, ink, 7, side > 0 ? "left" : "right");
-    if (!live) {
-      // Its name at its head, as it comes.
-      const i = fx.index.get(`${e.voice}:${e.on}`);
-      const x = edgeX(r, side, a.k) + side * (off + 14) * a.k;
-      label(c, i === undefined ? "SUBJECT" : entryLabel(g.f, i), x, a.y, ink, Math.max(6, Math.round(8 * a.k)), side > 0 ? "left" : "right");
-    }
-  }
+  // D238: the other voices on their rails on the shoulders (paint-arch.ts), never on the road.
+  deskRails(r);
   // G's seam: a gold line down the middle of its lane, dashed on the beat.
   if (!hands) return;
   const gx = (k: number) => r.laneX(G_LANE, k);
@@ -343,9 +317,11 @@ export function deskOver(r: Road) {
       call(fx, `YOUR ENTRY · ${name}`, SEAM, 12);
       shake(fx, 2);
     } else {
-      const side = e.voice < mine ? 1 : -1;
-      call(fx, name, inkOf(e.voice, count), 9);
-      fx.bolts.push({ side, ink: inkOf(e.voice, count), at: nowMs, seed: e.on % 97 });
+      // D238: named as its rail names it; lightning down its rail.
+      const rail = gameRails(g).find((x) => x.voice === e.voice);
+      const side = rail?.side ?? (e.voice < mine ? 1 : -1);
+      call(fx, i === undefined ? name : railLabel(g.f, i), inkOf(e.voice, count), 9);
+      fx.bolts.push({ side, ink: inkOf(e.voice, count), at: nowMs, seed: e.on % 97, off: RAIL0 + RAIL_GAP * (rail?.slot ?? 0) });
     }
   }
   // Strettos: announced a beat before, both edges struck.
@@ -356,7 +332,7 @@ export function deskOver(r: Road) {
     if (g.now > s.end) continue;
     const name = (v: number) => (g.f.voiceNames[v] ?? "").toUpperCase();
     call(fx, `STRETTO! ${name(s.upper)} + ${name(s.lower)}`, "#ff8a3d", 13);
-    fx.bolts.push({ side: -1, ink: inkOf(s.lower, count), at: nowMs, seed: 11 }, { side: 1, ink: inkOf(s.upper, count), at: nowMs, seed: 37 });
+    fx.bolts.push({ side: -1, ink: inkOf(s.lower, count), at: nowMs, seed: 11, off: 14 }, { side: 1, ink: inkOf(s.upper, count), at: nowMs, seed: 37, off: 14 });
     shake(fx, 4);
   }
   // Entries captured: a shake (the game raises ORGANO PLENO's banner).
@@ -383,8 +359,9 @@ export function deskOver(r: Road) {
         const u1 = Math.min(1, u0 + 0.5 / 14);
         const k0 = top.k + (1 - top.k) * u0;
         const k1 = top.k + (1 - top.k) * u1;
-        const ya = top.y + (y1 + 30 - top.y) * u0;
-        const yb = top.y + (y1 + 30 - top.y) * u1;
+        // (on the road's own depth: just outside its edge all the way down)
+        const ya = top.y + (y1 - top.y) * u0;
+        const yb = top.y + (y1 - top.y) * u1;
         c.strokeStyle = inkOf(j % 2 ? st.upper : st.lower, count);
         c.lineWidth = 3;
         c.beginPath();
@@ -410,7 +387,7 @@ export function deskOver(r: Road) {
       const k = top.k + (1 - top.k) * u;
       const y = top.y + (y1 - top.y) * u;
       const jag = ((j * 7 + b.seed) % 5) - 2;
-      const x = edgeX(r, b.side, k) + b.side * (18 + jag * 5) * k;
+      const x = edgeX(r, b.side, k) + b.side * (b.off + jag * 3) * k;
       if (j) c.lineTo(x, y);
       else c.moveTo(x, y);
     }
@@ -434,13 +411,16 @@ export function deskOver(r: Road) {
       }
     c.globalAlpha = 1;
   }
-  // The callouts, under the top, newest largest.
+  // D238: the fugue map over the horizon.
+  deskMap(r);
+  // The callouts, under the map, newest largest.
   fx.callouts = fx.callouts.filter((x) => nowMs - x.at < 2200);
+  const cy0 = g.f.entries.length ? mapBottom(count) + 12 : Math.max(14, y0 - 58);
   fx.callouts.forEach((x, j) => {
     const age = nowMs - x.at;
     c.globalAlpha = age < 1700 ? 1 : 1 - (age - 1700) / 500;
     const pop = Math.max(0, 4 - age / 50);
-    const y = Math.max(14, y0 - 58) + j * 17;
+    const y = cy0 + j * 16;
     label(c, x.text, cx + 2, y + 2, "#000", Math.round(x.size + pop));
     label(c, x.text, cx, y, x.ink, Math.round(x.size + pop));
   });
@@ -493,13 +473,15 @@ export function deskSparks(r: Road, inkOfLane: (l: number) => string) {
     if (fl.at <= fx.lastFlame) continue;
     const lanes = g.lanesOf(fl.k ?? 0);
     if (fl.i >= lanes.length) continue;
-    const x = laneX(lanes[fl.i], 1);
-    const ink = inkOfLane(lanes[fl.i]);
-    const n = g.mult >= 4 || g.pleno ? 14 : 9;
+    // D239: from the lane struck; a note right only by its direction a few silver sparks.
+    const x = laneX(fl.lane ?? lanes[fl.i], 1);
+    const rel = fl.grade === "relative";
+    const ink = rel ? "#a9afbd" : inkOfLane(fl.lane ?? lanes[fl.i]);
+    const n = rel ? 4 : g.mult >= 4 || g.pleno ? 14 : 9;
     for (let j = 0; j < n; j++) {
       const a = -Math.PI * (0.1 + (0.8 * j) / (n - 1));
       const v = 0.12 + ((j * 37) % 10) / 80;
-      fx.sparks.push({ x, y: y1 - 6, vx: Math.cos(a) * v, vy: Math.sin(a) * v, at: fl.at, ink: j % 3 ? ink : "#ffffff" });
+      fx.sparks.push({ x, y: y1 - 6, vx: Math.cos(a) * v, vy: Math.sin(a) * v, at: fl.at, ink: j % 3 || rel ? ink : "#ffffff" });
     }
   }
   for (const fl of g.flames) fx.lastFlame = Math.max(fx.lastFlame, fl.at);

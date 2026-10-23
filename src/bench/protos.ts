@@ -87,7 +87,7 @@ export const PROTOS: Proto[] = [
     id: "keys",
     short: "HOME ROW · ONE FINGER PER LANE",
     name: "HIGHWAY",
-    how: ["Press the lane's key as the note lands.", "G is shared by both index fingers · SPACE repeats a note.", "Hold long notes; let go at the rests."],
+    how: ["Press the lane's key as the note lands: full points.", "Another key the right way: half · G shared · SPACE repeats.", "Hold long notes; let go at the rests."],
     layout: "desk",
     platform: "computer",
   },
@@ -127,7 +127,7 @@ export const HIGHWAY_LANES: Proto = {
   // D229: and the phone's mode for the preludes (stage 1, stages.ts): one hand on the five lanes.
   short: "TAP THE LANE AS THE NOTE LANDS",
   name: "HIGHWAY",
-  how: ["Tap the lane as the note lands.", "Right when the tune rises, left when it falls.", "Quick notes play themselves: strike the strong ones."],
+  how: ["Tap the note's lane as it lands: full points.", "Another lane the right way (up: right, down: left): half.", "Quick notes play themselves: strike the strong ones."],
   layout: "full",
   platform: "mobile",
 };
