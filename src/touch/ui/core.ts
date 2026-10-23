@@ -101,6 +101,8 @@ export interface Template {
   chrome?: boolean;
   /** CSS for the page while the template is on. */
   css?: string;
+  /** false: the side bars keep the game's own ladder (the template's rows are not the player's steps, D227). */
+  rows?: boolean;
   geo: (L: GeoIn) => Geo;
   paint: (c: Ctx) => void;
 }

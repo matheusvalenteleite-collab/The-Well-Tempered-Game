@@ -4,7 +4,7 @@
 import { BravuraFont } from "../../node_modules/vexflow/build/esm/src/fonts/bravura_glyphs.js";
 import { PetalumaFont } from "../../node_modules/vexflow/build/esm/src/fonts/petaluma_glyphs.js";
 
-const NAMES = ["gClef", "cClef", "fClef", "noteheadWhole", "noteheadHalf", "noteheadBlack", "flag8thUp", "flag8thDown", "flag16thUp", "flag16thDown", "accidentalFlat", "accidentalNatural", "accidentalSharp", "restQuarter", "rest8th", "rest16th", "ornamentTrill", "ornamentMordent", "fermataAbove", "brace"];
+const NAMES = ["gClef", "cClef", "fClef", "noteheadWhole", "noteheadHalf", "noteheadBlack", "flag8thUp", "flag8thDown", "flag16thUp", "flag16thDown", "accidentalFlat", "accidentalNatural", "accidentalSharp", "restQuarter", "rest8th", "rest16th", "ornamentTrill", "ornamentMordent", "fermataAbove", "brace", "restWhole", "restHalf", "rest32nd", "flag32ndUp", "flag32ndDown", "augmentationDot", "timeSig0", "timeSig1", "timeSig2", "timeSig3", "timeSig4", "timeSig5", "timeSig6", "timeSig7", "timeSig8", "timeSig9", "timeSigCommon", "timeSigCutCommon"];
 const pick = (font) => Object.fromEntries(NAMES.filter((n) => font.glyphs[n]).map((n) => [n, font.glyphs[n].o]));
 const out = `/**
  * Design study (not in play, \`?ui=\`): a few SMuFL glyph outlines, in VexFlow's outline format (m l q b,
