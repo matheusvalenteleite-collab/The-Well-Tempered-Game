@@ -1,4 +1,4 @@
-"""D215, WITH ISHIZAKA: tick -> seconds anchors for the testbench's Book I fugues in Kimiko Ishizaka's
+"""D215/D221, KIMIKO: tick -> seconds anchors for the 24 Book I fugues in Kimiko Ishizaka's
 recording (data/recordings/ishizaka-book1.json gives the bar lines; this refines them to the beat
 and, where reliable, to the note).
 
@@ -13,9 +13,10 @@ and, where reliable, to the note).
      fails for falls back to the bar-line map (still sampled every beat).
   5. Her pitch: librosa.estimate_tuning on the whole track (A in Hz).
 
-Usage: python tools/align-ishizaka-ticks.py MP3DIR [OUT]
-  MP3DIR holds wtc1-NNf.mp3 (fetched from the Internet Archive if missing).
-  OUT defaults to data/recordings/ishizaka-ticks.json. Needs numpy and librosa.
+Usage: python tools/align-ishizaka-ticks.py MP3DIR [OUT] [N,N,...]
+  MP3DIR holds wtc1-NNf.mp3 (fetched from the Internet Archive if missing; keep them out of the repo).
+  OUT defaults to data/recordings/ishizaka-ticks.json. N,N,...: only these fugues, merged into OUT's
+  others (default: all 24). Four pieces at a time. Needs numpy and librosa.
 """
 import json, os, sys, math, urllib.parse, urllib.request
 import numpy as np, librosa
@@ -23,7 +24,7 @@ import numpy as np, librosa
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MP3 = sys.argv[1]
 OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(ROOT, "data/recordings/ishizaka-ticks.json")
-PIECES = [1, 2, 4, 5, 8, 10, 11]
+PIECES = [int(x) for x in sys.argv[3].split(",")] if len(sys.argv) > 3 else list(range(1, 25))
 P = {p["id"]: p for p in json.load(open(os.path.join(ROOT, "data/touch/pieces.json")))}
 REC = json.load(open(os.path.join(ROOT, "data/recordings/ishizaka-book1.json")))
 SR, HOP, OHOP = 22050, 256, 128
@@ -242,21 +243,32 @@ def piece(n):
     return key, {"a": A, "unit": g, "t0": int(q[0]), "s0": int(out_ms[0]), "dt": np.diff(q).tolist(), "dms": np.diff(out_ms).tolist(), "method": method, "q": rep}
 
 
+def run(n):
+    try:
+        return piece(n)
+    except Exception as ex:
+        print(f"wtc1-{n:02d}f failed:", ex, flush=True)
+        return None
+
+
 def main():
+    from multiprocessing import Pool
+    old = json.load(open(OUT))["pieces"] if len(sys.argv) > 3 and os.path.exists(OUT) else {}
     out = {
-        "about": "D215, WITH ISHIZAKA (tools/align-ishizaka-ticks.py): tick -> seconds anchors in Kimiko Ishizaka's Book I (CC0), every beat and the notes where they depart from it. tick = (t0 + cumsum(dt)) * unit; ms = s0 + cumsum(dms) from the track's start. a: her A (Hz). q: the alignment's quality (onset errors against the recording's detected onsets).",
+        "about": "D215/D221, KIMIKO (tools/align-ishizaka-ticks.py): tick -> seconds anchors in Kimiko Ishizaka's Book I (CC0), every beat and the notes where they depart from it. tick = (t0 + cumsum(dt)) * unit; ms = s0 + cumsum(dms) from the track's start. a: her A (Hz). q: the alignment's quality (onset errors against the recording's detected onsets).",
         "pieces": {},
     }
-    for n in PIECES:
-        try:
-            k, v = piece(n)
-            out["pieces"][k] = v
-        except Exception as ex:
-            print(f"wtc1-{n:02d}f failed:", ex, flush=True)
+    with Pool(4) as pool:
+        got = dict(r for r in pool.map(run, PIECES) if r)
+    for n in range(1, 25):
+        k = f"wtc1-{n:02d}f"
+        if k in got or k in old:
+            out["pieces"][k] = got.get(k, old.get(k))
     with open(OUT, "w") as fh:
         fh.write("{\n" + f' "about": {json.dumps(out["about"])},\n "pieces": {{\n')
         fh.write(",\n".join(f"  {json.dumps(k)}: {json.dumps(v, separators=(',', ':'))}" for k, v in out["pieces"].items()))
         fh.write("\n }\n}\n")
 
 
-main()
+if __name__ == "__main__":
+    main()

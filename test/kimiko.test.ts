@@ -20,11 +20,11 @@ import { LAB_DEFAULT } from "../src/touch/subject-fx.ts";
 import { hz, setTuning, tuningNow } from "../src/touch/tuning.ts";
 
 const ctxOf = installFakeAudio(0, false);
-const BOOK1 = TESTBENCH.filter((id) => id.startsWith("wtc1"));
+/** D221: she is timed in all 24 fugues of Book I. */
+const BOOK1 = Array.from({ length: 24 }, (_, i) => `wtc1f${String(i + 1).padStart(2, "0")}`);
 
-test("D216: her timing for the seven Book I fugues of the testbench: rising, every beat, round trip", () => {
-  assert.deepEqual(BOOK1, TESTBENCH.filter((id) => id !== "bwv1080-14"));
-  assert.equal(BOOK1.length, 7);
+test("D216, D221: her timing for the 24 Book I fugues: rising, every beat, round trip", () => {
+  for (const id of TESTBENCH.filter((id) => id !== "bwv1080-14")) assert.ok(BOOK1.includes(id));
   for (const id of BOOK1) {
     const m = herMap(id);
     assert.ok(m, id);
@@ -47,7 +47,6 @@ test("D216: her timing for the seven Book I fugues of the testbench: rising, eve
     const c = herClock(m, f, 0);
     assert.ok(c.bpm > 30 && c.bpm < 200, `${id} ${c.bpm}`);
   }
-  assert.equal(herMap("wtc1f03"), null);
   assert.equal(herMap("wtc2f01"), null);
   assert.equal(herKey("wtc1f11"), "wtc1-11f");
 });
@@ -145,6 +144,38 @@ test("D216: a perfect run in KIMIKO on I/2 (every voice; EXACT LANES): all hits"
     assert.equal(r.right, r.of, `voice ${v}: ${r.right}/${r.of}`);
     assert.equal(r.wrong + r.missed, 0);
   }
+});
+
+test("D221: a perfect run in KIMIKO on every Book I fugue (one voice each; EXACT LANES): all hits on her time", () => {
+  const [W, H] = [400, 800];
+  BOOK1.forEach((id, n) => {
+    const f = fugueById(id);
+    const m = herMap(id)!;
+    const v = n % f.voices.length;
+    const clock = { t: 0 };
+    const g = new ProtoGame(f, [v], 0, protoById("kimiko"), { bpm: 80, legato: false, easy: "exact", fail: true, clock: herClock(m, f, 0) }, countingChip(clock).chip);
+    const runTo = (t: number) => {
+      while (clock.t < t - 0.02) (clock.t += 0.02), g.step();
+      clock.t = Math.max(clock.t, t);
+      g.step();
+    };
+    let k = 0;
+    g.notes.forEach((x, i) => {
+      if (x.ride || (i > 0 && g.notes[i - 1].on === x.on)) return;
+      runTo(g.timeAt(x.on));
+      k++;
+      g.down(k, { side: k % 2 ? "left" : "right", x: ((g.lanes[i] + 0.5) * W) / g.laneCount, y: H - 100, w: W, h: H }, performance.now());
+      // Let go at its end, or just before the next note where the voice overlaps itself (a held note under moving ones).
+      const next = g.notes.find((y) => y.on > x.on && !y.ride);
+      runTo(Math.max(g.timeAt(x.on) + 0.01, g.timeAt(Math.min(x.on + x.dur, next?.on ?? Infinity)) - 0.01));
+      g.up(k, performance.now());
+    });
+    runTo(g.timeAt(g.end) + 0.1);
+    const r = g.results();
+    assert.equal(r.failedBar, null, id);
+    assert.equal(r.right, r.of, `${id} voice ${v}: ${r.right}/${r.of}`);
+    assert.equal(r.wrong + r.missed, 0, id);
+  });
 });
 
 function fakeBuffer(ctx: FakeAudioContext, seconds: number): AudioBuffer {

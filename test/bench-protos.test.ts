@@ -650,3 +650,15 @@ test("D217: fewer crossbars: a note is free only at the start or after a real re
   // Five lanes cannot hold every scale: a pile at an edge stays about as rare as it was (4.7% before D217).
   assert.ok(wall / judged < 0.06, `edge piles ${wall} of ${judged}`);
 });
+
+test("D221: every Book I fugue played right through on LADDER, HIGHWAY and the computer's HIGHWAY (one voice each, the voice turning from fugue to fugue)", () => {
+  for (let n = 1; n <= 24; n++) {
+    const piece = `wtc1f${String(n).padStart(2, "0")}`;
+    const f = fugueById(piece);
+    for (const [j, id] of (["ladder", "highway", "keys"] as const).entries()) {
+      const v = (n + j) % f.voices.length;
+      const r = playThrough(id, piece, [v]);
+      assert.ok(r.right === r.of && r.of > 0, `${id} ${piece} v${v}: ${r.right}/${r.of} (wrong ${r.wrong}, missed ${r.missed})`);
+    }
+  }
+});

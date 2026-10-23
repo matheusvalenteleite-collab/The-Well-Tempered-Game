@@ -143,7 +143,7 @@ export function BenchApp() {
   const voice = run ? run.voice : pick.voice;
   const bpm = run ? run.bpm : tempoOf(f.id);
   // D216, KIMIKO: one voice over Kimiko Ishizaka's recording, the game on her time; only where she is
-  // timed (the seven Book I fugues of the testbench); her track let go when KIMIKO or the piece is left.
+  // timed (Book I's 24 fugues, D221); her track let go when KIMIKO or the piece is left.
   const kimiko = proto.id === "kimiko" && !run;
   const hm = kimiko ? herMap(f.id) : null;
   const [, herLoaded] = useState(0);
@@ -367,7 +367,7 @@ export function BenchApp() {
     const go = () => (setNote(""), setPhase({ kind: "play" }));
     // D216, KIMIKO: only with her track (loading: the game begins once it is ready; not to be had: tap to try again).
     if (kimiko) {
-      if (!hm) return setNote("NO RECORDING OF THIS PIECE: KIMIKO PLAYS BOOK I'S FUGUES 1, 2, 4, 5, 8, 10, 11");
+      if (!hm) return setNote("NO RECORDING OF THIS PIECE: KIMIKO PLAYS BOOK I'S 24 FUGUES");
       if (herState(hm) === "failed") releaseHer();
       if (herState(hm) !== "ready") {
         waitingHer.current = hm.key;
@@ -736,7 +736,7 @@ export function BenchApp() {
 const HER_CREDIT = "KIMIKO ISHIZAKA, THE OPEN WELL-TEMPERED CLAVIER (2015), CC0";
 /** D216: KIMIKO's title-card line (null: no recording of this piece). */
 function herLine(state: "none" | "loading" | "ready" | "failed" | null): string {
-  if (state === null) return "NO RECORDING OF THIS PIECE · KIMIKO PLAYS BOOK I'S FUGUES 1, 2, 4, 5, 8, 10, 11";
+  if (state === null) return "NO RECORDING OF THIS PIECE · KIMIKO PLAYS BOOK I'S 24 FUGUES";
   if (state === "failed") return "HER RECORDING CANNOT BE REACHED · TAP TO TRY AGAIN";
   if (state === "ready") return "WITH KIMIKO ISHIZAKA · TEMPO HERS";
   return "LOADING ISHIZAKA…";

@@ -83,7 +83,7 @@ export const PROTOS: Proto[] = [
     id: "kimiko",
     short: "YOUR VOICE OVER KIMIKO ISHIZAKA'S RECORDING · TAP THE LANE AS EACH NOTE LANDS",
     name: "KIMIKO",
-    how: "Upright, as HIGHWAY (D216), but the only accompaniment is Kimiko Ishizaka's recording (The Open Well-Tempered Clavier, 2015, CC0), from the first note: no other voices from the game, no band. You play one voice on top of her; the notes land when she plays them, and come down the road spaced by her own time (her rubato, her final ritard). Your notes sound a little under her (⚙ YOUR VOICE: ON, SOFT, or OFF to tap in silence, judged only), tuned to her A. The seven Book I fugues of the testbench (1, 2, 4, 5, 8, 10, 11). Five lanes, two rows of pads, slides, the levels of ⚙ EASY, long notes held, as on HIGHWAY.",
+    how: "Upright, as HIGHWAY (D216), but the only accompaniment is Kimiko Ishizaka's recording (The Open Well-Tempered Clavier, 2015, CC0), from the first note: no other voices from the game, no band. You play one voice on top of her; the notes land when she plays them, and come down the road spaced by her own time (her rubato, her final ritard). Your notes sound a little under her (⚙ YOUR VOICE: ON, SOFT, or OFF to tap in silence, judged only), tuned to her A. The 24 fugues of Book I (D221). Five lanes, two rows of pads, slides, the levels of ⚙ EASY, long notes held, as on HIGHWAY.",
     layout: "full",
     platform: "mobile",
   },

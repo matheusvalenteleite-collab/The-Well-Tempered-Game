@@ -46,14 +46,19 @@ function run(piece: string, preset: string, l: Partial<Lab>, seconds: number, pl
 /** The calls that are the voices' own notes (not the effect's small layer patches). */
 const own = (calls: Call[]) => calls.filter((c) => !c.v.patch || c.v.patch.level >= 0.2);
 
-test("every testbench fugue has its own effect; each subject of I/4 and XIV its own; I/8 marks inversion and augmentation", () => {
+test("every testbench fugue (D221: every Book I fugue) has its own effect; each subject of I/4 and XIV its own; I/8 marks inversion and augmentation", () => {
   const all: string[] = [];
-  for (const id of TESTBENCH) {
-    const t = TAILORED[id];
-    assert.ok(t, `${id} has a tailored effect`);
-    for (const k of [1, 2, 3, "inverted", "augmented"] as const) if (t[k]) all.push(JSON.stringify({ ...t[k], why: "" }));
-  }
+  const names: string[] = [];
+  for (const id of [...TESTBENCH, ...FUGUES.filter((f) => f.book === 1).map((f) => f.id)]) assert.ok(TAILORED[id], `${id} has a tailored effect`);
+  for (const t of Object.values(TAILORED))
+    for (const k of [1, 2, 3, "inverted", "augmented"] as const)
+      if (t[k]) {
+        all.push(JSON.stringify({ ...t[k], why: "", name: "" }));
+        names.push(t[k].name);
+        assert.ok(t[k].why.length > 20 && t[k].layers.length > 0 && t[k].layers.length <= 2, t[k].name);
+      }
   assert.equal(new Set(all).size, all.length, "no two effects alike");
+  assert.equal(new Set(names).size, names.length, "no two names alike");
   for (const id of ["wtc1f04", "bwv1080-14"]) {
     const f = fugueById(id);
     const by = new Set(f.entries.map((e) => fxFor(id, { theme: e.theme ?? 1, inverted: !!e.inverted, scale: e.scale ?? 1 })));
@@ -61,9 +66,10 @@ test("every testbench fugue has its own effect; each subject of I/4 and XIV its 
   }
   assert.notEqual(fxFor("wtc1f08", { theme: 1, inverted: true, scale: 1 }), fxFor("wtc1f08", { theme: 1, inverted: false, scale: 1 }));
   assert.notEqual(fxFor("wtc1f08", { theme: 1, inverted: false, scale: 2 }), fxFor("wtc1f08", { theme: 1, inverted: false, scale: 1 }));
-  // The other fugues: the gentle default.
-  const others = FUGUES.filter((f) => !TESTBENCH.includes(f.id));
-  assert.equal(others.length, 41);
+  // The other fugues (Book II): the gentle default.
+  const others = FUGUES.filter((f) => !TAILORED[f.id]);
+  assert.equal(others.length, 24);
+  assert.ok(others.every((f) => f.book === 2));
   for (const f of others) assert.equal(fxFor(f.id, { theme: 1, inverted: false, scale: 1 }), GENERIC);
   // Subtle: every layer well under the instruments' own level (about 0.4), every echo and double quieter by far.
   for (const t of Object.values(TAILORED))
@@ -128,6 +134,23 @@ test("the effect's layers are cheap: every node released, few more made", () => 
     assert.ok(on.wired < 400, `${piece}: at most ${on.wired} wired at once`);
     assert.ok(on.chip.sounding() === 0);
   }
+});
+
+test("D221: the other seventeen Book I effects cheap too: every node released, few more made", () => {
+  const presets = ["harpsichordSampled", "chip", "strings", "organSampled"];
+  const ratios: string[] = [];
+  FUGUES.filter((f) => f.book === 1 && !TESTBENCH.includes(f.id)).forEach((f, i) => {
+    const preset = presets[i % presets.length];
+    const on = run(f.id, preset, {}, 60);
+    const off = run(f.id, preset, { subject: false, effect: false }, 60);
+    assert.ok(on.calls.length > off.calls.length, `${f.id}: layers played`);
+    assert.equal(on.left, 0, `${f.id} ${preset}: nodes left wired`);
+    const ratio = on.made / off.made;
+    ratios.push(`${f.id} ${ratio.toFixed(2)} (${on.wired})`);
+    assert.ok(ratio < 1.5, `${f.id} ${preset}: ${on.made} nodes against ${off.made} (${ratio.toFixed(2)})`);
+    assert.ok(on.wired < 400, `${f.id}: at most ${on.wired} wired at once`);
+  });
+  if (process.env.D221_TABLE) console.log(ratios.join(" · "));
 });
 
 test("the switches: SUBJECT SOUND and EFFECT off leave the notes as they were; VIBRATO and STEREO on", () => {
