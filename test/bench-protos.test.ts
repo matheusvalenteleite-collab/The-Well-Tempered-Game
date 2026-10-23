@@ -665,7 +665,7 @@ test("D221: every Book I fugue played right through on LADDER, HIGHWAY and the c
 
 test("D219: the phone's menu is exactly LADDER and SUBJECT (HIGHWAY, TWO VOICES, KIMIKO gone as modes); KIMIKO a switch in both; every mode's rules in at most three short lines", () => {
   assert.deepEqual(menuOf("mobile").map((p) => [p.id, p.name]), [["ladder", "LADDER"], ["subject", "SUBJECT"]]);
-  assert.deepEqual(menuOf("computer").map((p) => p.name), ["HIGHWAY", "LADDER", "PIANO"]);
+  assert.deepEqual(menuOf("computer").map((p) => p.name), ["HIGHWAY", "SPACE + WASD + ←↑↓→", "PIANO"]);
   for (const gone of ["duo", "kimiko", "highway"]) assert.ok(!PROTOS.some((p) => p.id === gone), gone);
   // A stored withdrawn mode falls back to the first; HIGHWAY's road stays reachable for SUBJECT's machinery.
   assert.equal(protoById("duo").id, "ladder");

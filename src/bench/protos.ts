@@ -97,7 +97,7 @@ export const PROTOS: Proto[] = [
   {
     id: "arrows",
     short: "PRESS THE ARROW SHOWN ON EACH NOTE",
-    name: "LADDER",
+    name: "SPACE + WASD + ←↑↓→",
     how: ["Press the key drawn on the note as it arrives.", "→ ← a step · ↑ ↓ a leap · SPACE the same note.", "A third (↗ ↘): either the step or the leap."],
     layout: "desk",
     platform: "computer",
