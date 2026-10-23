@@ -9,7 +9,7 @@ import { readSeals } from "./seals.ts";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { keyTint } from "../touch/MusicBox.tsx";
 import { fugueById } from "../touch/fugue.ts";
-import { bookCards, cardById, readBest, SEAL_KINDS, TIERS, type FugueCard } from "./cards.ts";
+import { bookCards, cardById, readBest, SEAL_KINDS, TESTBENCH, TIERS, type FugueCard } from "./cards.ts";
 import { drawEmblem, EMBLEM_H, EMBLEM_W } from "./emblem.ts";
 
 const urls = new Map<string, string>();
@@ -33,8 +33,9 @@ export function Emblem({ id, className }: { id: string; className?: string }) {
 }
 
 const stars = (n: number) => "★".repeat(n) + "☆".repeat(5 - n);
-type Book = 0 | 1 | 2;
+type Book = 0 | 1 | 2 | 3;
 const BOOKS: [Book, string][] = [
+  [3, "TESTBENCH · 8"],
   [1, "BOOK I · 1722"],
   [2, "BOOK II · 1742"],
   [0, "XIV"],
@@ -64,9 +65,11 @@ export function PieceButton({ id, open }: { id: string; open: () => void }) {
 
 export function FuguePicker({ current, pick, close }: { current: string; pick: (id: string) => void; close: () => void }) {
   const start = cardById(current) ?? bookCards(1)[0];
-  const [book, setBook] = useState<Book>(start.book);
+  // D212: the testbench first, where the piece is one of its eight.
+  const inBench = TESTBENCH.indexOf(start.id);
+  const [book, setBook] = useState<Book>(inBench >= 0 ? 3 : start.book);
   // The wheel's position (rows, fractional while it moves) in the book shown.
-  const [pos, setPos] = useState(start.book === 0 ? 0 : start.number - 1);
+  const [pos, setPos] = useState(inBench >= 0 ? inBench : start.book === 0 ? 0 : start.number - 1);
   const lastNumber = useRef(start.book === 0 ? 0 : start.number - 1);
   const [why, setWhy] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
@@ -99,7 +102,7 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
   const go = (i: number, smooth = true) => {
     const s = scroller.current;
     const to = ((i % n) + n) % n;
-    lastNumber.current = book === 0 ? lastNumber.current : to;
+    lastNumber.current = book === 1 || book === 2 ? to : lastNumber.current;
     setWhy(false);
     if (!s) return setPos(to);
     // A wrap (24 → 1) jumps; a step glides.
@@ -111,7 +114,7 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
     setWhy(false);
     setBook(b);
     // Switching keeps the wheel's number (II/7 → I/7).
-    setPos(b === 0 ? 0 : lastNumber.current);
+    setPos(b === 0 ? 0 : b === 3 ? Math.max(0, TESTBENCH.indexOf(current)) : lastNumber.current);
   };
   const stepBook = (d: number) => {
     const i = BOOKS.findIndex(([b]) => b === book);
@@ -123,7 +126,7 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
     if (!s) return;
     const p = Math.max(0, Math.min(n - 1, s.scrollTop / rowH));
     setPos(p);
-    if (book !== 0) lastNumber.current = Math.round(p);
+    if (book === 1 || book === 2) lastNumber.current = Math.round(p);
   };
 
   // The mouse wheel: a card a notch (a trackpad's small deltas added up to a row).
@@ -200,7 +203,7 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
     return (
       <div key={k} className={`tb-wheel-row tb-wheel-d${Math.abs(k)}`} style={{ transform: `translateY(${-frac * rowH}px)` }} aria-hidden="true">
         <span className="tb-wheel-chip" style={{ background: keyTint(fugueById(c.id).key, 10) }} />
-        <span className="tb-wheel-no">{c.book === 0 ? "XIV" : c.number}</span>
+        <span className="tb-wheel-no">{c.book === 0 ? "XIV" : book === 3 ? `${c.book === 1 ? "I" : "II"}/${c.number}` : c.number}</span>
         <span className="tb-wheel-name">{c.formal}</span>
       </div>
     );
@@ -224,7 +227,7 @@ export function FuguePicker({ current, pick, close }: { current: string; pick: (
           </button>
         ))}
       </nav>
-      <div className="tb-wheel" ref={wheel} onClick={tap} role="listbox" aria-label={book === 0 ? "The Art of Fugue" : `Book ${book === 1 ? "I" : "II"}`} aria-activedescendant={`opt-${card.id}`}>
+      <div className="tb-wheel" ref={wheel} onClick={tap} role="listbox" aria-label={book === 3 ? "Testbench" : book === 0 ? "The Art of Fugue" : `Book ${book === 1 ? "I" : "II"}`} aria-activedescendant={`opt-${card.id}`}>
         <div className="tb-wheel-scroll" ref={scroller} onScroll={onScroll} tabIndex={-1}>
           {cards.map((c) => (
             <div key={c.id} className="tb-wheel-snap" />

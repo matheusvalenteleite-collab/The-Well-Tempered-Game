@@ -22,7 +22,9 @@ import { setTuning } from "../touch/tuning.ts";
 import { accompaniment, startTick, stepRange, subjectMarks, entrySpans, voicesFrom } from "../touch/voice-mode.ts";
 import { paintProto } from "./paint-proto.ts";
 import { ProtoGame, type KeyPress } from "./proto-game.ts";
+import { lineKey, subjectLine } from "./subject-line.ts";
 import { FuguePicker, PieceButton } from "./FuguePicker.tsx";
+import { LabSettings } from "./LabSettings.tsx";
 import { cardById, recordBest } from "./cards.ts";
 import { judgeSeal, recordSeal } from "./seals.ts";
 import { ARROW_KEYS, arrowOf, EASY_LEVELS, KEY_ROWS, type EasyLevel, keyId, keyRow, midiId, moveOf, PROTOS, protoById, type Platform, type ProtoId } from "./protos.ts";
@@ -137,7 +139,9 @@ export function BenchApp() {
   }, [sound]);
 
   const duo = proto.id === "duo";
-  const played = duo ? [voice, pick.voice2] : [voice];
+  // D214, SUBJECT: every voice has the subject in turn.
+  const subjectMode = proto.id === "subject";
+  const played = duo ? [voice, pick.voice2] : subjectMode ? f.voices.map((_, i) => i) : [voice];
   // LADDER: the box fills its height with the voice's range, so its rows are as tall as can be.
   const range = useMemo(() => {
     if (proto.id !== "ladder") return stepRange(f);
@@ -161,6 +165,8 @@ export function BenchApp() {
 
   function preview(): Frame {
     const b = beatOf(f);
+    // D214: SUBJECT's line, and the fugue without it.
+    const line = subjectMode ? subjectLine(f, from, run?.until) : null;
     const lane = (v: number) =>
       laneNotes(
         f.voices[v].filter(([on]) => on >= from && (!run || on < run.until)),
@@ -178,9 +184,9 @@ export function BenchApp() {
       hi: range.hi,
       ...(proto.id === "ladder" ? { spill: stepRange(f) } : {}),
       voice,
-      notes: lane(voice),
+      notes: line ? line.notes.map(([on, dur, midi, step, v]) => ({ on, dur, midi, step, long: dur >= b.ticks, state: "pending" as const, voice: v })) : lane(voice),
       ...(duo ? { voice2: pick.voice2, notes2: lane(pick.voice2) } : {}),
-      others: run?.solo ? [] : accompaniment(f, from, voice).filter((n) => !played.includes(n.voice) && (!run || n.on < run.until)),
+      others: run?.solo ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi))) : accompaniment(f, from, voice).filter((n) => !played.includes(n.voice) && (!run || n.on < run.until)),
       ...marks,
     };
   }
@@ -269,11 +275,12 @@ export function BenchApp() {
           if (ok) passLesson(lesson.n);
           setPhase({ kind: "talk", lines: ok ? l.pass : l.again, next: ok ? "advance" : "again" });
         } else {
-          if (r.failedBar === null) recordBest(f.id, played, r.grade);
+          // D214: SUBJECT's grade is not any one voice's.
+          if (r.failedBar === null && !subjectMode) recordBest(f.id, played, r.grade);
           // D196: the fugue's seal, judged over the whole run.
           const card = cardById(f.id);
           const seal = card
-            ? judgeSeal(card, { f, tracks: g.tracks.map((t) => ({ voice: t.voice, notes: t.notes })), entries: g.entries, beat: b.ticks, grade: r.grade, tuning: tuning.id, duo, whole: from === 0 && r.failedBar === null })
+            ? judgeSeal(card, { f, tracks: subjectMode ? played.map((v) => ({ voice: v, notes: g.notes.filter((n) => n.voice === v) })) : g.tracks.map((t) => ({ voice: t.voice, notes: t.notes })), entries: g.entries, beat: b.ticks, grade: r.grade, tuning: tuning.id, duo, whole: from === 0 && r.failedBar === null })
             : null;
           if (seal?.earned) recordSeal(f.id, played);
           setPhase({ kind: "result", ...r, seal: card && seal ? { kind: card.seal.kind, ...seal } : null });
@@ -594,11 +601,12 @@ export function BenchApp() {
           <p className="tg-panel-note">{proto.how}</p>
           <Choice id="platform" label="PLAY ON" options={[["mobile", "MOBILE"], ["computer", "COMPUTER"]]} value={platform ?? "mobile"} set={(pl) => setPlatform(pl)} />
           <Choice id="fail" label="FAIL" options={[["on", "ON"], ["off", "NO FAIL"]]} value={pick.fail ? "on" : "off"} set={(v) => setPick({ fail: v === "on" })} />
-          {(proto.id === "keys" || proto.id === "highway") && <Choice id="easy" label="EASY" options={EASY_LEVELS} value={pick.easy} set={(easy) => setPick({ easy })} />}
+          {(proto.id === "keys" || proto.id === "highway" || proto.id === "subject") && <Choice id="easy" label="EASY" options={EASY_LEVELS} value={pick.easy} set={(easy) => setPick({ easy })} />}
           <PieceButton id={pick.piece} open={() => setWheel(true)} />
           <SoundSetting value={sound} set={setSound} />
           <TuningSetting id={tuning.id} a={tuning.a} set={changeTuning} />
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
+          <LabSettings />
           <div className="tg-set">
             <span>MIDI</span>
             <span className="tg-panel-val">{midi || "NONE FOUND"}</span>
@@ -670,6 +678,11 @@ function Title({ f, pick, setPick, from, note, lessons }: { f: TouchFugue; pick:
       <p className="tg-card-sub">
         {f.title.toUpperCase()} · {tempoLabel(f.id)}
       </p>
+      {proto.id === "subject" ? (
+        <p className="tg-card-sub">
+          EVERY ENTRY OF THE SUBJECT · {subjectLine(f, from).entries.length} FROM HERE
+        </p>
+      ) : (
       <div className="tg-voices" role="group" aria-label="Voice">
         {f.voiceNames.map((name, i) => (
           <button key={name} type="button" id={`voice-${i}`} className={i === pick.voice ? "on" : ""} style={{ color: inkOf(i, f.voices.length) }} disabled={!singing.includes(i)} onClick={() => setPick({ voice: i })} aria-pressed={i === pick.voice}>
@@ -677,6 +690,7 @@ function Title({ f, pick, setPick, from, note, lessons }: { f: TouchFugue; pick:
           </button>
         ))}
       </div>
+      )}
       <From f={f} pick={pick} setPick={setPick} from={from} />
       {note && <p className="tg-note">{note}</p>}
       {lessons && (
