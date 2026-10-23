@@ -23,7 +23,7 @@ import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
 import { aim, columnAt, COLUMNS, pianoKey, pianoKeys } from "./placed.ts";
 import { fingering, STACCATO_SHARE, TENUTO_SHARE, type Finger } from "./fingering.ts";
-import { barDynamic, contourCue, contourOk, dynamic, LADDER_AREA, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto } from "./protos.ts";
+import { barDynamic, contourCue, contourOk, dynamic, LADDER_AREA, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk } from "./protos.ts";
 
 export const PERFECT_MS = 70;
 /** The multiplier's step (notes right in a row), and CON FUOCO's run. */
@@ -466,8 +466,28 @@ export class ProtoGame {
       case "arrows":
         // A click, not a key: the time only.
         return { ok: true };
+      case "highway": {
+        // D207: EASY on a phone: the lane tapped, judged as the keys are (D187), by lanes.
+        const lvl = this.o.easy ?? "timing";
+        if (lvl === "timing" || this.lastLane < 0 || this.isFree(i, k)) return { ok: true };
+        return laneOk(m, this.lastLane, this.laneOfX(c.x, c.w), lvl === "leaps", this.laneCount) ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
+      }
     }
   }
+
+  /** D207, HIGHWAY: the lane a tap falls in, and the lane tapped last (-1: none yet). */
+  lastLane = -1;
+  laneOfX(x: number, w: number): number {
+    return Math.max(0, Math.min(this.laneCount - 1, Math.floor((x / Math.max(1, w)) * this.laneCount)));
+  }
+  get laneCount(): number {
+    return this.proto.id === "highway" ? 5 : 10;
+  }
+  /** The lanes under the fingers now (HIGHWAY). */
+  get heldLanes(): number[] {
+    return [...this.held.values()].map((h) => this.laneOfX(h.x0, this.touchW));
+  }
+  private touchW = 1;
 
   /** SIDEWAYS LEGATO: a note joined in the score must be struck while the note before still sounds under another thumb (or key). */
   private legatoOk(i: number, id: number, k = 0): boolean {
@@ -484,6 +504,8 @@ export class ProtoGame {
     const h: Held = { side: c.side, k: this.trackOf(c.side), x0: c.x, ax: c.x, ay: c.y, note: -1, chord: [], sounds: [], midi: 0, cell: this.cellAt(c), d0: d, trail: [{ t: ts, y: c.y }] };
     this.held.set(id, h);
     this.strikeWith(id, h, ts, { c }, d);
+    // HIGHWAY: where the hand is now.
+    if (this.proto.id === "highway") (this.lastLane = this.laneOfX(c.x, c.w)), (this.touchW = c.w);
   }
 
   /** A computer key or a MIDI key goes down. */
@@ -870,12 +892,14 @@ export class ProtoGame {
   get lanes(): number[] {
     if (this.lanesMemo) return this.lanesMemo;
     const notes = this.notes;
-    let lane = 4;
+    const top = this.laneCount - 1;
+    const mid = this.laneCount === 5 ? 2 : 4;
+    let lane = mid;
     this.lanesMemo = notes.map((n, i) => {
       if (i > 0 && notes[i - 1].on === n.on) return lane;
       const m = this.moves[i];
-      if (this.isFree(i)) lane = 4;
-      else if (!n.ride && m.dir !== 0 && m.steps !== 0) lane = Math.max(0, Math.min(9, lane + m.dir * (m.size >= 3 ? 2 : 1)));
+      if (this.isFree(i)) lane = mid;
+      else if (!n.ride && m.dir !== 0 && m.steps !== 0) lane = Math.max(0, Math.min(top, lane + m.dir * (m.size >= 3 ? 2 : 1)));
       return lane;
     });
     return this.lanesMemo;

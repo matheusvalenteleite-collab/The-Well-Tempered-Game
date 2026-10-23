@@ -511,7 +511,7 @@ export function BenchApp() {
   const away = phase.kind === "title" || phase.kind === "result";
   const layout = proto.layout;
   const wide = layout === "wide" || layout === "bars" || layout === "desk";
-  const own = playing && (layout === "full" || layout === "bars") ? ` tb-${layout}` : "";
+  const own = (playing && (layout === "full" || layout === "bars") ? ` tb-${layout}` : "") + ` tb-proto-${proto.id}`;
 
   return (
     <div className={`tg-app${wide ? " tg-wide" : ""}${own}${playing ? "" : " tg-away"}`}>
@@ -597,7 +597,7 @@ export function BenchApp() {
           <Choice id="platform" label="PLAY ON" options={[["mobile", "MOBILE"], ["computer", "COMPUTER"]]} value={platform ?? "mobile"} set={(pl) => setPlatform(pl)} />
           <Choice id="follow" label="TRIAL · TEMPO FOLLOWS YOU" options={[["off", "OFF"], ["on", "ON"]]} value={pick.follow ? "on" : "off"} set={(v) => setPick({ follow: v === "on" })} />
           <Choice id="fail" label="FAIL" options={[["on", "ON"], ["off", "NO FAIL"]]} value={pick.fail ? "on" : "off"} set={(v) => setPick({ fail: v === "on" })} />
-          {proto.id === "keys" && <Choice id="easy" label="EASY" options={EASY_LEVELS} value={pick.easy} set={(easy) => setPick({ easy })} />}
+          {(proto.id === "keys" || proto.id === "highway") && <Choice id="easy" label="EASY" options={EASY_LEVELS} value={pick.easy} set={(easy) => setPick({ easy })} />}
           {proto.id === "sideways" && <Choice id="level" label="SIDEWAYS" options={[["easy", "EASY"], ["legato", "LEGATO"]]} value={pick.legato ? "legato" : "easy"} set={(v) => setPick({ legato: v === "legato" })} />}
           <PieceButton id={pick.piece} open={() => setWheel(true)} />
           <Choice id="speed" label="TEMPO" options={[["slow", `SLOW · ${tempoLabel(f.id, "slow")}`], ["normal", `NORMAL · ${tempoLabel(f.id, "normal")}`]]} value={pick.speed} set={(speed) => setPick({ speed })} />

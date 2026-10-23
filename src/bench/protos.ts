@@ -25,7 +25,7 @@ import { markShapes } from "../touch/shape.ts";
 import type { Side } from "../touch/thumbs.ts";
 import type { Arrow } from "../touch/MusicBox.tsx";
 
-export type ProtoId = "ladder" | "fingering" | "duo" | "sideways" | "arrows" | "keys" | "piano";
+export type ProtoId = "ladder" | "fingering" | "duo" | "sideways" | "highway" | "arrows" | "keys" | "piano";
 /** D182: what the prototype is played on. */
 export type Platform = "mobile" | "computer";
 
@@ -70,6 +70,14 @@ export interface Proto {
 }
 
 export const PROTOS: Proto[] = [
+  {
+    id: "highway",
+    short: "TAP THE LANE AS EACH NOTE LANDS · LINE UP, TAP FURTHER RIGHT",
+    name: "HIGHWAY",
+    how: "Upright, the whole screen: EASY on a phone (D207). The notes come down five lanes to the strike line; tap the lane a note is in as it lands. Three levels (⚙ EASY): TIMING, any lane on time; DIRECTION, a lane further right than your last tap when the line rises, further left when it falls, the same lane when it repeats; + LEAPS, a leap of a fourth or more skips a lane. An open bar across the road: any lane. At the edge, the edge lane again answers a move past it. Long notes: hold them while their tail glows.",
+    layout: "full",
+    platform: "mobile",
+  },
   {
     id: "ladder",
     short: "TAP A BAR AT THE NOTE'S HEIGHT · HIGHER WHEN THE TUNE RISES",
@@ -289,4 +297,13 @@ export function contourCue(m: Move, free: boolean, leaps: boolean): Arrow {
   if (m.dir === 0 || m.steps === 0) return "same";
   const big = leaps && m.size >= 3;
   return m.dir > 0 ? (big ? "right2" : "right") : big ? "left2" : "left";
+}
+
+/** D207, HIGHWAY: whether a tap's lane answers the line's move from the lane tapped before (as contourOk, by lanes). */
+export function laneOk(m: Move, last: number, lane: number, leaps: boolean, count: number): boolean {
+  if (m.dir === 0 || m.steps === 0) return lane === last || m.steps === 0;
+  const edge = m.dir > 0 ? count - 1 : 0;
+  const way = m.dir > 0 ? lane > last : lane < last;
+  if (!way) return last === edge && lane === edge;
+  return !leaps || m.size < 3 || Math.abs(lane - last) >= 2 || lane === edge;
 }

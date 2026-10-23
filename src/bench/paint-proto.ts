@@ -17,7 +17,7 @@ import { paintPiano } from "../touch/paint-piano.ts";
 import { stepName } from "../touch/fugue.ts";
 import { columnX, COLUMNS, LINE } from "./placed.ts";
 import { APPROACH_MS, type ProtoGame } from "./proto-game.ts";
-import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
+import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
 import { isBlack, keySpan } from "../touch/piano.ts";
 import { KEYS_SHARE } from "./placed.ts";
 
@@ -46,6 +46,7 @@ export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g:
       pianoLetters(c, w, h, g, t);
       break;
     case "keys":
+    case "highway":
       highway(c, w, h, g, t);
       break;
     case "arrows":
@@ -178,10 +179,14 @@ const LANE_KEYS = ["A", "S", "D", "F", "G", "H", "J", "K", "L", ";"];
 const LANE_INK = ["#ff6b5a", "#ff9248", "#ffc145", "#d9e34f", "#7ee36b", "#4fd6b2", "#4cb8ff", "#7d8bff", "#b47dff", "#ff7dd6"];
 const AHEAD_S = 2.1;
 function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
+  // D207: on a phone (HIGHWAY), five lanes across the whole width, the strike line high enough for a thumb.
+  const phone = g.proto.id === "highway";
+  const N = g.laneCount;
+  const inkOfLane = (l: number) => LANE_INK[N === 5 ? l * 2 : l];
   const cx = w / 2;
-  const y0 = 18;
-  const y1 = h - 78;
-  const W = Math.min(w * 0.7, 620);
+  const y0 = phone ? 64 : 18;
+  const y1 = phone ? h - 120 : h - 78;
+  const W = phone ? w * 0.94 : Math.min(w * 0.7, 620);
   const lvl = g.o.easy ?? "timing";
   // Depth (0 at the line, 1 at the horizon) to the screen: y, and the width's scale.
   const at = (tick: number) => {
@@ -190,7 +195,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     const f = (s - 0.25) / 0.75;
     return { y: y0 + (y1 - y0) * f, k: 0.3 + 0.7 * f, d };
   };
-  const laneX = (lane: number, k: number) => cx + (-W / 2 + ((lane + 0.5) * W) / 10 - 0) * k;
+  const laneX = (lane: number, k: number) => cx + (-W / 2 + ((lane + 0.5) * W) / N) * k;
   // The road.
   const top = at(g.now + AHEAD_S * g.tps);
   // D202: the road lit towards the player, its far end in fog; rails along its edges.
@@ -225,8 +230,8 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   // Lanes, and the beats and bars crossing them.
   c.strokeStyle = "rgba(255,255,255,0.07)";
   c.lineWidth = 1;
-  for (let l = 0; l <= 10; l++) {
-    const xb = cx - W / 2 + (l * W) / 10;
+  for (let l = 0; l <= N; l++) {
+    const xb = cx - W / 2 + (l * W) / N;
     c.beginPath();
     c.moveTo(cx + (xb - cx) * top.k, top.y);
     c.lineTo(xb, y1 + 30);
@@ -241,16 +246,17 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   }
   // The keys that would answer the next note (DIRECTION).
   const nx = coming(g);
-  const judged = lvl !== "timing" && nx && g.lastKey && !g.isFree(nx.i);
+  const judged = lvl !== "timing" && nx && (phone ? g.lastLane >= 0 : g.lastKey) && !g.isFree(nx.i);
   if (judged)
-    for (let l = 0; l < 10; l++) {
-      if (!contourOk(g.moves[nx!.i], g.lastKey!, KEY_ROWS[2].codes[l] ?? "Quote", lvl === "leaps")) continue;
-      c.fillStyle = "rgba(255,255,255,0.035)";
-      const xb = cx - W / 2 + (l * W) / 10;
+    for (let l = 0; l < N; l++) {
+      const fitsLane = phone ? laneOk(g.moves[nx!.i], g.lastLane, l, lvl === "leaps", N) : contourOk(g.moves[nx!.i], g.lastKey!, KEY_ROWS[2].codes[l] ?? "Quote", lvl === "leaps");
+      if (!fitsLane) continue;
+      c.fillStyle = phone ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.035)";
+      const xb = cx - W / 2 + (l * W) / N;
       c.beginPath();
       c.moveTo(cx + (xb - cx) * top.k, top.y);
-      c.lineTo(cx + (xb + W / 10 - cx) * top.k, top.y);
-      c.lineTo(xb + W / 10, y1);
+      c.lineTo(cx + (xb + W / N - cx) * top.k, top.y);
+      c.lineTo(xb + W / N, y1);
       c.lineTo(xb, y1);
       c.closePath();
       c.fill();
@@ -266,8 +272,8 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     if (p.d > 1 || p.y > y1 + 40) continue;
     if (n.state === "hit" && !(n.dur >= beat && g.now < n.on + n.dur)) continue;
     const lane = lanes[i];
-    const ink = LANE_INK[lane];
-    const lw = (W / 10) * p.k;
+    const ink = inkOfLane(lane);
+    const lw = (W / N) * p.k;
     // The tail of a long note.
     if (n.dur >= beat && n.state !== "miss") {
       const e = at(Math.min(n.on + n.dur, g.now + AHEAD_S * g.tps));
@@ -279,8 +285,8 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
       c.beginPath();
       c.moveTo(x1 - lw * 0.12, from.y);
       c.lineTo(x1 + lw * 0.12, from.y);
-      c.lineTo(x2 + (W / 10) * e.k * 0.12, e.y);
-      c.lineTo(x2 - (W / 10) * e.k * 0.12, e.y);
+      c.lineTo(x2 + (W / N) * e.k * 0.12, e.y);
+      c.lineTo(x2 - (W / N) * e.k * 0.12, e.y);
       c.closePath();
       c.fill();
       c.globalAlpha = 1;
@@ -335,37 +341,43 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   c.fillRect(cx - W / 2 - 20, top.y - 2, W + 40, (y1 - top.y) * 0.35);
   c.restore();
   // The strike line: the ten keys, lit when down; the last key ringed.
-  const lastCol = g.lastKey ? keyPlace(g.lastKey)?.col : undefined;
-  for (let l = 0; l < 10; l++) {
+  const lastCol = phone ? (g.lastLane >= 0 ? g.lastLane : undefined) : g.lastKey ? keyPlace(g.lastKey)?.col : undefined;
+  const heldLanes = phone ? g.heldLanes : [];
+  // The keys (on a phone: pads a thumb can hit, the whole lane wide).
+  const bh = phone ? 44 : 18;
+  for (let l = 0; l < N; l++) {
     const x = laneX(l, 1);
-    const down = [...g.keysDown].some((code) => keyPlace(code)?.col === l);
+    const down = phone ? heldLanes.includes(l) : [...g.keysDown].some((code) => keyPlace(code)?.col === l);
+    const ink = inkOfLane(l);
     // A raised key, sinking when pressed.
-    const bw = (W / 25) * 2;
+    const bw = phone ? (W / N) * 0.86 : (W / 25) * 2;
     const sink = down ? 4 : 0;
-    c.fillStyle = shade(LANE_INK[l], 0.35);
-    c.fillRect(x - bw / 2, y1 - 9 + 18, bw, 6 - sink);
-    c.fillStyle = down ? LANE_INK[l] : "#1d1a24";
-    c.fillRect(x - bw / 2, y1 - 9 + sink, bw, 18);
-    c.strokeStyle = LANE_INK[l];
+    c.fillStyle = shade(ink, 0.35);
+    c.fillRect(x - bw / 2, y1 - bh / 2 + bh, bw, 6 - sink);
+    c.fillStyle = down ? ink : "#1d1a24";
+    c.fillRect(x - bw / 2, y1 - bh / 2 + sink, bw, bh);
+    c.strokeStyle = ink;
     c.lineWidth = 2;
-    c.strokeRect(x - bw / 2, y1 - 9 + sink, bw, 18);
+    c.strokeRect(x - bw / 2, y1 - bh / 2 + sink, bw, bh);
     if (down) {
-      c.fillStyle = LANE_INK[l];
+      c.fillStyle = ink;
       c.globalAlpha = 0.25;
-      c.fillRect(x - bw / 2 - 6, y1 - 40, bw + 12, 40);
+      c.fillRect(x - bw / 2 - 6, y1 - bh / 2 - 40, bw + 12, 40);
       c.globalAlpha = 1;
     }
     if (lvl !== "timing" && lastCol === l) {
       c.strokeStyle = t.gold;
-      c.strokeRect(x - W / 25 - 3, y1 - 12, (W / 25) * 2 + 6, 24);
+      c.strokeRect(x - bw / 2 - 3, y1 - bh / 2 - 3, bw + 6, bh + 6);
     }
-    label(c, LANE_KEYS[l], x, y1, down ? "#1a1408" : t.fg, 9);
+    if (!phone) label(c, LANE_KEYS[l], x, y1, down ? "#1a1408" : t.fg, 9);
   }
-  // Space: the same note.
-  const sdown = g.keysDown.has("Space");
-  c.fillStyle = sdown ? t.shine : "#1d1a24";
-  c.fillRect(cx - W * 0.2, y1 + 16, W * 0.4, 10);
-  label(c, "SPACE", cx, y1 + 21, sdown ? "#1a1408" : t.muted, 6);
+  // Space: the same note (a computer's).
+  if (!phone) {
+    const sdown = g.keysDown.has("Space");
+    c.fillStyle = sdown ? t.shine : "#1d1a24";
+    c.fillRect(cx - W * 0.2, y1 + 16, W * 0.4, 10);
+    label(c, "SPACE", cx, y1 + 21, sdown ? "#1a1408" : t.muted, 6);
+  }
   // Flames where notes were struck.
   const now = performance.now();
   for (const fl of g.flames) {
@@ -382,8 +394,8 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.globalAlpha = 1;
   }
   // The multiplier's ring (left): eight notes to the next step, its four lamps.
-  const rx = cx - W / 2 - 60;
-  const ry = y1 - 40;
+  const rx = phone ? 34 : cx - W / 2 - 60;
+  const ry = phone ? 34 : y1 - 40;
   c.lineWidth = 6;
   for (let k = 0; k < 8; k++) {
     c.strokeStyle = k < g.streak % 8 || g.mult >= 4 ? (g.mult >= 4 ? t.gold : t.shine) : "#2a2533";
@@ -392,11 +404,11 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.stroke();
   }
   label(c, `×${g.mult * (g.pleno ? 2 : 1)}`, rx, ry, g.pleno ? t.gold : t.fg, 12);
-  label(c, `${g.streak}`, rx, ry + 44, t.muted, 8);
+  label(c, `${g.streak}`, rx, ry + (phone ? 36 : 44), t.muted, 8);
   // The crowd's meter (right).
-  const mx = cx + W / 2 + 44;
-  const mh = 120;
-  const my = y1 - mh;
+  const mx = phone ? w - 18 : cx + W / 2 + 44;
+  const mh = phone ? 70 : 120;
+  const my = phone ? 10 : y1 - mh;
   const grad = c.createLinearGradient(0, my, 0, my + mh);
   grad.addColorStop(0, "#5fdc6a");
   grad.addColorStop(0.55, "#e8c94a");
@@ -414,6 +426,11 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     lvl === "timing"
       ? "ANY KEY ON THE BEAT · THE LANES DRAW THE LINE"
       : `THE NOTE'S KEY, OR ANY KEY ON ITS SIDE OF THE LAST · SAME NOTE: SAME KEY OR SPACE${lvl === "leaps" ? " · A LEAP SKIPS A KEY" : ""} · OPEN BAR: ANY KEY`;
+  if (phone) {
+    label(c, lvl === "timing" ? "TAP ANY LANE ON THE BEAT" : "LINE UP: TAP FURTHER RIGHT · DOWN: LEFT", w / 2, h - 44, t.fg, 7);
+    label(c, lvl === "timing" ? "HOLD THE LONG NOTES" : `SAME NOTE: SAME LANE${lvl === "leaps" ? " · LEAP: SKIP A LANE" : ""} · OPEN BAR: ANY`, w / 2, h - 30, t.muted, 7);
+    return;
+  }
   label(c, how, w / 2, h - 24, t.fg, 7);
   label(c, `Q ROW f · A ROW mf · Z ROW p · SHIFT: PEDAL${g.pedalOn ? " (DOWN)" : ""}`, w / 2, h - 10, g.pedalOn ? t.gold : t.muted, 7);
 }
