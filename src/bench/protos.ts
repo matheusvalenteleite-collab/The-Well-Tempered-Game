@@ -48,6 +48,8 @@ export interface Options {
   until?: number;
   wait?: boolean;
   solo?: boolean;
+  /** D223, BLUETOOTH MODE: the player's notes sounded ahead at their written times (armed), confirmed by the touch. */
+  bt?: boolean;
 }
 
 export interface Proto {
