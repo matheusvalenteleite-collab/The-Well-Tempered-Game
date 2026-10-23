@@ -1,13 +1,11 @@
 /**
- * The music box's events (D186): the subject drawn as the character it is, the bosses, and what the
- * player's playing throws up. Drawn on the box's own pixels (half the screen's), in a 3 by 5 font.
- *   Each entry: a halo under its notes and a line through them (the subject's shape, the same each
- *   time, mirrored when inverted, stretched when augmented), a tag where it begins ("SUBJECT · ALTO ·
- *   G MINOR"), a stop where it ends; while it sounds it shimmers. Gold for the player's voice (and
- *   once captured), the voice's ink for the others, grey once lost. Two entries overlapping: STRETTO,
- *   a brace between them.
- *   The bosses (the player's entries: the last the BOSS, the others SUB BOSSES): while one is near, a
- *   bar of its notes along the top, each struck note knocked out; the box tinted.
+ * The music box's events (D186; D208): the subject drawn as the character it is, the bosses, and what
+ * the player's playing throws up. Drawn on the box's own pixels (half the screen's), in a 3 by 5 font.
+ *   Each subject entry: a translucent trail through its notes, its tag where it begins ("SUBJECT ·
+ *   ALTO · G MINOR"; STRETTO when it begins inside another); each of its notes flashes as it is
+ *   played. Gold for the player's voice (and once captured), the voice's ink for the others, grey once
+ *   lost. The countersubject is not marked.
+ *   The bosses (not in LADDER): while one is near, a bar of its notes along the top.
  *   Points rise from the note struck; a captured entry bursts into pixels.
  */
 
@@ -84,77 +82,81 @@ interface Ctx {
   ink: (voice: number) => string;
 }
 
-/** The entries: halo, line, tag, stop; stretto braces. Drawn under the notes. */
+/**
+ * The entries (D208): the subject only (no countersubject marks). Each entry a translucent trail in its
+ * voice's colour, passing continuously through all its notes (along each note, sloping from one to
+ * the next); brighter while it sounds; its tag over its first note ("SUBJECT · ALTO · G MINOR", and
+ * STRETTO when it begins inside another's). Drawn under the notes; `strikes` (over them) flashes each
+ * of its notes as it is played.
+ */
 export function ribbons(c: Ctx, spans: Span[], player: number[], names: string[] | undefined, state: Map<string, string> | undefined) {
   const { g, w, xOf, yOf, bh, now } = c;
-  const t = performance.now();
-  for (const s of spans) {
+  const subj = spans.filter((s) => s.form !== "counter");
+  for (const s of subj) {
     const x1 = xOf(s.on);
     const x2 = xOf(s.end);
-    if (x2 < 0 || x1 > w) continue;
+    if (x2 < 0 || x1 > w || !s.path.length) continue;
     const st = state?.get(`${s.voice}:${s.on}`);
     const mine = player.includes(s.voice);
-    const counter = s.form === "counter";
-    const color = counter ? "#c9d1dc" : st === "lost" ? c.miss : mine || st === "captured" ? c.gold : c.ink(s.voice);
+    const color = st === "lost" ? c.miss : mine || st === "captured" ? c.gold : c.ink(s.voice);
     const sounding = now >= s.on && now < s.end;
-    // The halo: under each note, a little wider; shimmering while it sounds.
-    g.globalAlpha = counter ? (sounding ? 0.16 : 0.08) : sounding ? 0.28 + 0.12 * Math.sin(t / 90) : 0.16;
-    g.fillStyle = color;
-    for (const n of s.path) {
+    // The trail: one continuous band through the notes' middles.
+    g.save();
+    g.globalAlpha = sounding ? 0.3 : 0.17;
+    g.strokeStyle = color;
+    g.lineWidth = bh + 7;
+    g.lineJoin = "round";
+    g.lineCap = "round";
+    g.beginPath();
+    s.path.forEach((n, k) => {
+      const y = yOf(n.step) + bh / 2;
       const a = xOf(n.on);
       const b = xOf(n.on + n.dur);
-      if (b < 0 || a > w) continue;
-      g.fillRect(a - 2, yOf(n.step) - 2, Math.max(2, b - a + 3), bh + 3);
-    }
-    // The line through it: the subject's shape.
-    g.globalAlpha = 0.9;
-    let prev: { x: number; y: number } | null = null;
-    for (const n of s.path) {
-      const a = xOf(n.on);
-      const y = yOf(n.step) + Math.floor(bh / 2);
-      if (prev) {
-        g.fillRect(Math.min(prev.x, a), y, Math.max(1, Math.abs(a - prev.x)), 1);
-        g.fillRect(a, Math.min(prev.y, y), 1, Math.abs(y - prev.y) + 1);
-      }
-      prev = { x: a, y };
-    }
-    const last = s.path.at(-1);
-    if (last && prev) g.fillRect(prev.x, prev.y, Math.max(1, xOf(last.on + last.dur) - prev.x), 1);
-    // The stop: a short upright where it ends.
-    if (last) g.fillRect(x2, yOf(last.step) - 3, 1, bh + 6);
+      if (k === 0) g.moveTo(a, y);
+      else g.lineTo(a, y);
+      g.lineTo(Math.max(a + 1, b - 1), y);
+    });
+    g.stroke();
+    g.restore();
     // The tag, over its first note.
     const first = s.path[0];
-    if (first) {
-      const y = yOf(first.step) - 9;
-      const voice = names?.[s.voice]?.toUpperCase() ?? "";
-      const what = counter ? "COUNTERSUBJECT" : `${s.form === "answer" ? "ANSWER" : "SUBJECT"}${s.theme ? ` ${s.theme}` : ""}`;
-      const label = counter ? `${what} · ${voice}` : `${what}${s.shape ? ` · ${s.shape}` : ""} · ${voice} · ${keyWords(s.key)}`;
-      g.globalAlpha = 0.8;
-      g.fillStyle = "#0c0a10";
-      g.fillRect(x1 - 1, y - 1, textWidth(label) + 1, 7);
-      g.globalAlpha = 1;
-      pixText(g, label, x1, y, color);
-      // The head: a pennant at the start.
-      g.fillRect(x1, y + 6, 1, yOf(first.step) - y - 6);
-    }
+    const y = yOf(first.step) - 9;
+    const voice = names?.[s.voice]?.toUpperCase() ?? "";
+    const stretto = subj.some((o) => o !== s && o.voice !== s.voice && s.on > o.on && s.on < o.end);
+    const what = `${s.form === "answer" ? "ANSWER" : "SUBJECT"}${s.theme ? ` ${s.theme}` : ""}`;
+    const label = `${what}${s.shape ? ` · ${s.shape}` : ""} · ${voice} · ${keyWords(s.key)}${stretto ? " · STRETTO" : ""}`;
+    g.globalAlpha = 0.7;
+    g.fillStyle = "#0c0a10";
+    g.fillRect(x1 - 1, y - 1, textWidth(label) + 1, 7);
     g.globalAlpha = 1;
+    pixText(g, label, x1, y, color);
   }
-  // Stretto: an entry beginning before another has ended; a brace from one to the other.
-  for (let i = 0; i < spans.length; i++)
-    for (let j = 0; j < spans.length; j++) {
-      const a = spans[i];
-      const b = spans[j];
-      if (!(b.on > a.on && b.on < a.end) || a.voice === b.voice || a.form === "counter" || b.form === "counter") continue;
-      const x = xOf(b.on) - 3;
-      if (x < 0 || x > w) continue;
-      const y1 = Math.min(yOf(a.path[0].step), yOf(b.path[0].step));
-      const y2 = Math.max(yOf(a.path[0].step), yOf(b.path[0].step)) + bh;
-      g.fillStyle = "#ff8c4a";
-      g.fillRect(x, y1, 1, y2 - y1);
-      g.fillRect(x, y1, 2, 1);
-      g.fillRect(x, y2, 2, 1);
-      pixText(g, "STRETTO", x - 30, y2 + 2, "#ff8c4a");
+  g.globalAlpha = 1;
+}
+
+/** D208: each subject note, as it is played (in any voice), strikes: a bright flash swelling out from it. */
+export function strikes(c: Ctx, spans: Span[]) {
+  const { g, w, xOf, yOf, bh, now, tps } = c;
+  for (const s of spans) {
+    if (s.form === "counter" || now < s.on || now > s.end + tps) continue;
+    for (const n of s.path) {
+      const since = (now - n.on) / tps;
+      if (since < 0 || since > 0.32) continue;
+      const a = xOf(n.on);
+      const b = Math.max(a + 2, xOf(n.on + n.dur));
+      if (b < 0 || a > w) continue;
+      const k = since / 0.32;
+      const grow = Math.round(1 + k * 5);
+      const y = yOf(n.step);
+      g.globalAlpha = 0.9 * (1 - k);
+      g.fillStyle = "#fff6d0";
+      g.fillRect(a, y, b - a, bh);
+      g.strokeStyle = c.gold;
+      g.lineWidth = 1;
+      g.strokeRect(a - grow + 0.5, y - grow + 0.5, b - a + 2 * grow - 1, bh + 2 * grow - 1);
     }
+  }
+  g.globalAlpha = 1;
 }
 
 /** The player's bosses: while one is near or sounding, its notes as a bar along the top, the box tinted. */
@@ -227,8 +229,8 @@ export function zoneGlow(c: Ctx, zone: "pleno" | "fuoco" | null) {
 }
 
 /**
- * D194, the cadences: each coming one a dotted gold line, named at the top ("PERFECT CADENCE · G
- * MINOR"); as it is reached, the line flares and the name brightens for a moment.
+ * D194, the cadences (D208: a tick on the timeline): each coming one a short gold tick at the foot of
+ * the box, named beside it ("PERFECT CADENCE · G MINOR"); as it is reached, the tick flares.
  */
 export function cadenceMarks(c: Ctx, cadences: { on: number; text: string }[]) {
   const { g, w, h, xOf, now } = c;
@@ -238,15 +240,16 @@ export function cadenceMarks(c: Ctx, cadences: { on: number; text: string }[]) {
     const since = ((now - cd.on) / c.tps) * 1000;
     if (since > 1400) continue;
     const flare = since >= 0 ? 1 - since / 1400 : 0;
-    g.globalAlpha = 0.35 + 0.65 * flare;
+    g.globalAlpha = since >= 0 ? 0.4 + 0.6 * flare : 0.8;
     g.fillStyle = c.gold;
-    for (let y = 10; y < h; y += 3) g.fillRect(x, y, 1, 1);
+    g.fillRect(x, h - 12, 1, 12);
+    g.fillRect(x - 1, h - 12, 3, 1);
     if (flare > 0) {
-      g.globalAlpha = 0.25 * flare;
-      g.fillRect(x - 3, 0, 7, h);
+      g.globalAlpha = 0.3 * flare;
+      g.fillRect(x - 2, h - 16, 5, 16);
     }
     g.globalAlpha = since >= 0 ? flare : 0.7;
-    pixText(g, cd.text, Math.min(x + 2, w - textWidth(cd.text) - 2), h - 8, c.gold);
+    pixText(g, cd.text, Math.min(x + 3, w - textWidth(cd.text) - 2), h - 8, c.gold);
   }
   g.globalAlpha = 1;
 }

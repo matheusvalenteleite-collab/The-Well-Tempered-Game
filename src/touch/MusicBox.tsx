@@ -8,7 +8,7 @@
  * D174, the subject: its notes, in whatever voice, are dotted along their top; a ◆ stands over the
  * first note of each entry as it comes, in the voice's colour, gold when the voice is the player's.
  */
-import { bossBar, cadenceMarks, pixText, ribbons, sparks, zoneGlow, type Burst, type Pop, type Span } from "./box-fx.ts";
+import { bossBar, cadenceMarks, pixText, ribbons, sparks, strikes, zoneGlow, type Burst, type Pop, type Span } from "./box-fx.ts";
 import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
 import type { LaneNote } from "./lanes.ts";
 import type { OtherNote } from "./voice-mode.ts";
@@ -181,7 +181,8 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
   const fx = { g, w, h, xOf, yOf, bh, now: fr.now, tps: fr.tps, gold: tok("--tg-gold"), miss: tok("--tg-miss"), fg: tok("--tg-fg"), ink: (v: number) => inkOf(v, fr.count) };
   if (fr.spans) ribbons(fx, fr.spans, fr.notes2 && fr.voice2 !== undefined ? [fr.voice, fr.voice2] : [fr.voice], fr.names, fr.entryState);
 
-  // The other voices: their colours, dimmer.
+  // The other voices: their colours, dimmer; (D208) their subject notes full, standing out of the trail.
+  const subjNotes = new Set(fr.spans?.filter((sp) => sp.form !== "counter").flatMap((sp) => sp.path.map((n) => `${sp.voice}:${n.on}`)) ?? []);
   for (const o of fr.others) {
     const x1 = xOf(o.on);
     if (x1 > w) break;
@@ -190,7 +191,7 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
     g.globalAlpha = 0.3;
     g.fillStyle = "#000";
     g.fillRect(x1 + 1, yOf(o.step) + 1, Math.max(1, x2 - x1 - 1), bh - 1);
-    g.globalAlpha = 0.5;
+    g.globalAlpha = subjNotes.has(`${o.voice}:${o.on}`) ? 1 : 0.5;
     g.fillStyle = inkOf(o.voice, fr.count);
     g.fillRect(x1, yOf(o.step), Math.max(1, x2 - x1 - 1), bh - 1);
     if (!fr.spans && fr.subject?.has(`${o.voice}:${o.on}`)) dots(g, x1, x2, yOf(o.step), tok("--tg-fg"));
@@ -329,6 +330,7 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
         if (mk && x > -8 && x < w) pixText(g, mk, x, yOf(n.step) - 6, fx.gold);
       }
   }
+  if (fr.spans) strikes(fx, fr.spans);
   if (fr.cadences) cadenceMarks(fx, fr.cadences);
   if (fr.spans && fr.bossFight) bossBar(fx, fr.spans.filter((s) => s.form !== "counter"), fr.voice, fr.notes);
   sparks(fx, fr.pops ?? [], fr.bursts ?? []);
