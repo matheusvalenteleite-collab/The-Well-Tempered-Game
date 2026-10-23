@@ -12,7 +12,7 @@
  * Deterministic (a seed from the id), cached per id; `drawEmblem` paints it on any context with fillRect.
  */
 import { fugueById, type TouchFugue } from "../touch/fugue.ts";
-import { cardById, type Figure, type FugueCard, type Prop, type Scene } from "./cards.ts";
+import { cardById, preludeLook, type Figure, type Prop, type Scene } from "./cards.ts";
 
 export const EMBLEM_W = 64;
 export const EMBLEM_H = 40;
@@ -143,6 +143,9 @@ const PROPS: Record<Prop, { at: [number, number]; px: string[] }> = {
   anvil: { at: [2, 30], px: ["iiiiiii", ".iiii..", "..ii...", ".iiii.."] },
   balls: { at: [0, 0], px: [] },
   checker: { at: [0, 0], px: [] },
+  // D234, the preludes' props: a harp (I/1's broken chords), a water wheel (perpetual motion).
+  harp: { at: [3, 15], px: ["g......", "gg.....", "gcg....", "gc.g...", "gc.cg..", "gc.c.g.", "gc.c.cg", "gc.c.cg", "gc.c.g.", "gc.cg..", "ggggg..", "i...i.."] },
+  wheel: { at: [50, 18], px: ["..iiiii..", ".i..i..i.", "i.i.i.i.i", "i..ili..i", "iiilgliii", "i..ili..i", "i.i.i.i.i", ".i..i..i.", "..iiiii.."] },
 };
 
 type Pix = string[];
@@ -232,7 +235,10 @@ export function emblemPixels(id: string): Pix {
   const hit = cache.get(id);
   if (hit) return hit;
   const f = fugueById(id);
-  const c: FugueCard = cardById(f.id) ?? { id: f.id, book: 0, number: 0, bwv: "", title: "", formal: "", seal: { kind: "NO SLIP", line: "" }, ready: true, why: "", stars: 1, scene: "night", figure: "pillar", props: [] };
+  // A fugue's look from its card; D234: a Book I prelude's from its own (preludeLook).
+  const card = cardById(f.id);
+  const pl = preludeLook(f.id);
+  const c: { scene: Scene; figure: Figure; props: Prop[]; seal: { kind: string } } = card ?? { scene: pl?.scene ?? "night", figure: pl?.figure ?? "pillar", props: pl?.props ?? [], seal: { kind: "" } };
   const pal = palette(f.key, c.scene);
   const rand = rng(f.id);
   const cv = new Canvas(pal.sky0);
@@ -368,5 +374,69 @@ export function drawEmblem(g: PixelTarget, id: string, scale = 1): void {
       g.fillRect(x * scale, y * scale, (end - x) * scale, scale);
       x = end;
     }
+  }
+}
+
+/**
+ * D234: the discreet label in the picture's top-right corner, the key and the kind ("C · PRAELUDIUM",
+ * "c♯ · FUGA": a major key upper case, a minor lower, the kinds as Bach's title page names them), in a
+ * 3 x 5 pixel font finer than the emblem's own pixels, cream at 0.8 over a faint dark band.
+ */
+const GLYPHS: Record<string, string[]> = {
+  A: [".#.", "#.#", "###", "#.#", "#.#"],
+  B: ["##.", "#.#", "##.", "#.#", "##."],
+  C: [".##", "#..", "#..", "#..", ".##"],
+  D: ["##.", "#.#", "#.#", "#.#", "##."],
+  E: ["###", "#..", "##.", "#..", "###"],
+  F: ["###", "#..", "##.", "#..", "#.."],
+  G: [".##", "#..", "#.#", "#.#", ".##"],
+  I: ["###", ".#.", ".#.", ".#.", "###"],
+  L: ["#..", "#..", "#..", "#..", "###"],
+  M: ["#.#", "###", "###", "#.#", "#.#"],
+  P: ["##.", "#.#", "##.", "#..", "#.."],
+  R: ["##.", "#.#", "##.", "#.#", "#.#"],
+  U: ["#.#", "#.#", "#.#", "#.#", "###"],
+  a: ["...", ".##", "#.#", "#.#", ".##"],
+  b: ["#..", "#..", "##.", "#.#", "##."],
+  c: ["...", ".##", "#..", "#..", ".##"],
+  d: ["..#", "..#", ".##", "#.#", ".##"],
+  e: ["...", ".#.", "###", "#..", ".##"],
+  f: [".##", "#..", "##.", "#..", "#.."],
+  g: ["...", ".##", "#.#", ".##", "##."],
+  "♯": ["#.#", "###", "#.#", "###", "#.#"],
+  "♭": ["#.", "#.", "##", "##", "#."],
+  "·": [".", ".", "#", ".", "."],
+  " ": ["..", "..", "..", "..", ".."],
+};
+
+/** The label's text for a key ("C#", "eb") and a kind: "C♯ · PRAELUDIUM", "e♭ · FUGA". */
+export function keyLabel(key: string, kind: "prelude" | "fugue"): string {
+  const k = key[0] + key.slice(1).replace("#", "♯").replace("b", "♭");
+  return `${k} · ${kind === "prelude" ? "PRAELUDIUM" : "FUGA"}`;
+}
+
+/** The label's width in font pixels (a glyph unknown to the font drawn as a space). */
+export function labelWidth(text: string): number {
+  return [...text].reduce((w, ch) => w + (GLYPHS[ch] ?? GLYPHS[" "])[0].length + 1, -1);
+}
+
+/**
+ * Paints the label at the top right of an emblem drawn at `scale` canvas pixels a pixel, each font
+ * pixel `dot` canvas pixels (finer than the emblem's own).
+ */
+export function drawLabel(g: PixelTarget, text: string, scale: number, dot = Math.max(1, Math.round(scale * 0.4))): void {
+  const w = labelWidth(text) * dot;
+  const x0 = EMBLEM_W * scale - w - 2 * dot - scale;
+  const y0 = scale + dot;
+  g.fillStyle = "rgba(6, 6, 12, 0.35)";
+  g.fillRect(x0 - 2 * dot, y0 - 2 * dot, w + 4 * dot, 9 * dot);
+  g.fillStyle = "rgba(255, 238, 204, 0.8)";
+  let x = x0;
+  for (const ch of text) {
+    const rows = GLYPHS[ch] ?? GLYPHS[" "];
+    rows.forEach((row, y) => {
+      for (let i = 0; i < row.length; i++) if (row[i] === "#") g.fillRect(x + i * dot, y0 + y * dot, dot, dot);
+    });
+    x += (rows[0].length + 1) * dot;
   }
 }

@@ -41,7 +41,9 @@ export type Figure = "tower" | "pillar" | "cypress" | "person" | "lantern" | "tr
 /** The scene's small props (emblem.ts draws each at its own place). */
 export type Prop =
   | "sun" | "suns" | "moon" | "boat" | "ladder" | "lantern" | "crosswin" | "rosewin" | "arch" | "clock" | "wall" | "kite" | "drum" | "mill" | "stair"
-  | "flag" | "tent" | "gem" | "candle" | "bird" | "swan" | "leaves" | "torch" | "rain" | "key" | "anvil" | "balls" | "checker";
+  | "flag" | "tent" | "gem" | "candle" | "bird" | "swan" | "leaves" | "torch" | "rain" | "key" | "anvil" | "balls" | "checker"
+  /** D234, the preludes' own: a harp, a water wheel. */
+  | "harp" | "wheel";
 
 export interface FugueCard {
   /** The piece's id in data/touch/pieces.json. */
@@ -129,6 +131,58 @@ const BOOK_II: Row[] = [
 ];
 
 const XIV: Row = [14, "B-A-C-H, Unfinished", "SUBJECTS", "Play to the last note Bach wrote.", "The fugue on three subjects; the third spells B-A-C-H (B♭, A, C, B♮). It breaks off at bar 239.", 2, "dusk", "pillar", ["wall"]];
+
+/**
+ * D234: each Book I prelude's own picture, drawn like its fugue's (the same key, so the same palette:
+ * visibly a pair) but in another light, with another figure and prop from one well-known trait of the
+ * prelude (kept modest; the metres are the data's).
+ */
+export interface PreludeLook {
+  scene: Scene;
+  figure: Figure;
+  props: Prop[];
+  /** One line of the prelude's character. */
+  trait: string;
+}
+
+const PRELUDE_LOOKS: [Scene, Figure, Prop[], string][] = [
+  ["water", "tree", ["harp"], "Each bar one chord, broken in the same flowing figure."],
+  ["dusk", "house", ["wheel"], "Perpetual motion in both hands, until a Presto and an Adagio break it."],
+  ["dawn", "post", ["bird"], "Quick figures tossed from hand to hand, in 3/8."],
+  ["dusk", "cypress", ["candle"], "A slow, singing piece in 6/4."],
+  ["dawn", "house", ["wheel"], "Running semiquavers over a detached bass."],
+  ["dusk", "tree", ["rain"], "Triplet semiquavers over a walking bass."],
+  ["dusk", "pipe", ["arch"], "A broad prelude that turns into a fugue of its own."],
+  ["night", "cypress", ["candle"], "Slow chords and a grieving melody, in 3/2."],
+  ["field", "tree", ["sun", "bird"], "A pastoral in 12/8."],
+  ["night", "person", ["lantern"], "An ornamented melody over a steady bass, then a Presto."],
+  ["noon", "tree", ["kite"], "A quick two-part piece in 12/8."],
+  ["dusk", "pillar", ["candle"], "A grave piece of sighing figures."],
+  ["water", "tree", ["swan"], "A gentle, flowing two-part piece in 12/16."],
+  ["night", "tree", ["rain"], "Two parts in steady semiquavers."],
+  ["dawn", "person", ["kite"], "Bright running figures in 24/16."],
+  ["dusk", "tree", ["bird"], "Long trills over moving voices."],
+  ["dawn", "house", ["flag", "sun"], "Festive, in the manner of a concerto, in 3/4."],
+  ["dusk", "cypress", ["moon"], "A quiet three-part piece in 6/8."],
+  ["dawn", "tree", ["bird"], "A light three-part invention."],
+  ["field", "person", ["drum"], "A brisk two-part piece in 9/8."],
+  ["dawn", "person", ["balls"], "Flourishes like a toccata's, the hands taking turns."],
+  ["night", "cypress", ["candle"], "A solemn, chordal lament."],
+  ["field", "tree", ["sun"], "A calm three-part piece."],
+  ["dusk", "person", ["lantern"], "Two melodies over a walking bass, in two repeated halves."],
+];
+
+/** D234: a Book I prelude's look ("wtc1p05"), undefined for any other id. */
+export function preludeLook(id: string): PreludeLook | undefined {
+  const m = /^wtc1p(\d\d)$/.exec(id);
+  const r = m ? PRELUDE_LOOKS[Number(m[1]) - 1] : undefined;
+  return r && { scene: r[0], figure: r[1], props: r[2], trait: r[3] };
+}
+
+/** D234: the pair's two pieces numbered under their one BWV: the prelude /1, the fugue /2 ("BWV 846/2"); Contrapunctus XIV as it is. */
+export function pieceBwv(c: FugueCard, stage: "prelude" | "fugue" = "fugue"): string {
+  return c.book === 0 ? c.bwv : `${c.bwv}/${stage === "prelude" ? 1 : 2}`;
+}
 
 /** D196: the entries a seal needs, now in the data (D189): inverted, augmented, later subjects. */
 function hasData(kind: SealKind, id: string): boolean {
