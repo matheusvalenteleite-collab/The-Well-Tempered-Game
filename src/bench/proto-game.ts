@@ -4,8 +4,8 @@
  * window); the place judges it: right, Bach's note sounds; wrong, what was asked for sounds, muffled
  * (the PIANO's wrong key, plain), and it does not count. A held thumb slid onto the next note's place
  * plays it; a thumb moved across the dynamic axis while its note sounds swells or fades it; a thumb
- * flicked upwards as it lets go sends its note off with a swoosh. The player's voice is the lead
- * (chip.ts leadOf). It can also be played from a computer's keys or a MIDI keyboard. On the audio
+ * flicked upwards as it lets go sends its note off with a swoosh. The player's voice sounds as the
+ * others do (D208; chip.ts leadOf). It can also be played from a computer's keys or a MIDI keyboard. On the audio
  * clock as heard; the others phrased (phrasing.ts); a band's rhythm section keeps the beat. A note
  * too quick to strike at the tempo played rides after the note before (D191: lanes.ts quickRides):
  * it sounds by itself once that note is played right, and is neither judged nor counted.
@@ -21,8 +21,7 @@ import type { Keyboard } from "../touch/piano.ts";
 import { follow, phrase, ritard, type Shape } from "../touch/phrasing.ts";
 import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
-import { aim, columnAt, COLUMNS, pianoKey, pianoKeys } from "./placed.ts";
-import { fingering, STACCATO_SHARE, TENUTO_SHARE, type Finger } from "./fingering.ts";
+import { pianoKey, pianoKeys } from "./placed.ts";
 import { barDynamic, contourCue, contourOk, dynamic, LADDER_AREA, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk } from "./protos.ts";
 
 export const PERFECT_MS = 70;
@@ -100,12 +99,11 @@ export interface Mark {
 
 type Verdict = { ok: boolean; wrong?: number; why?: "gesture" | "legato" | "hand" | "height" | "dynamic" };
 
-/** A voice the player plays: its notes as judged, their moves, and their fingering (FINGERING). */
+/** A voice the player plays: its notes as judged, and their moves. */
 export interface Track {
   voice: number;
   notes: LaneNote[];
   moves: Move[];
-  fingers: Finger[];
 }
 
 export class ProtoGame {
@@ -139,8 +137,6 @@ export class ProtoGame {
   private pedalDown = false;
   /** LADDER: the touch that played the last note (its thumb, its height). */
   lastTouch: { side: Side; y: number } | null = null;
-  /** SIDEWAYS: the window's middle (a staff step, fractional), following the passage. */
-  pan = 0;
   /** The touches, for the music box. */
   readonly marks: Mark[] = [];
   /**
@@ -173,7 +169,6 @@ export class ProtoGame {
   private nextOther = 0;
   private readonly shapes: Shape[];
   private held = new Map<number, Held>();
-  private stepAt = 0;
   private readonly rit: ReturnType<typeof ritard> = { warp: (t: number) => t, unwarp: (w: number) => w };
   /** How the player has been playing, 0 (pp) to 1 (ff): the others follow, a little. */
   private feel = 0.55;
@@ -201,7 +196,7 @@ export class ProtoGame {
       // D191: the notes too quick to strike ride after the note before.
       quickRides(notes, this.beat, msBetween);
       const mv = moves(notes, this.beat);
-      return { voice: v, notes, moves: mv, fingers: fingering(notes, mv, f.entries, this.beat, f.voices.filter((_, j) => j !== v)) };
+      return { voice: v, notes, moves: mv };
     });
     [{ voice: this.voice, notes: this.notes, moves: this.moves }] = this.tracks;
     const played = this.tracks.map((t) => t.voice);
@@ -221,7 +216,6 @@ export class ProtoGame {
       for (const e of f.entries) if (e.voice === t.voice && e.on >= from) this.entries.push({ voice: e.voice, k, on: e.on, end: e.end, ons: e.notes.map((x) => x[0]), state: "open" });
     });
     this.kb = pianoKeys(this.notes);
-    this.pan = aim(this.notes, from, f.barTicks) ?? this.notes[0].step;
   }
 
   /** The clock, with the last cadence held back (phrasing.ts ritard). */
@@ -239,7 +233,6 @@ export class ProtoGame {
   /** One frame: the beat (or the band) and the others scheduled ahead; the window panned; notes gone by marked missed. True at the end. */
   step(): boolean {
     const ch = this.chip;
-    this.adaptTempo(ch.heard());
     this.now = this.tickAt(ch.heard());
     if (this.o.wait) {
       const nx = this.next();
@@ -295,17 +288,6 @@ export class ProtoGame {
       }
     }
     if (this.band.length > 64) this.band = this.band.filter((b) => b.until > ch.ctx.currentTime);
-    // SIDEWAYS: the window glides towards the passage ahead (on the audio clock), always holding the next note.
-    const clock = ch.ctx.currentTime;
-    const dt = this.stepAt ? Math.max(0, Math.min(0.1, clock - this.stepAt)) : 0;
-    this.stepAt = clock;
-    const target = aim(this.notes, this.now, this.f.barTicks);
-    if (target !== null) this.pan += (target - this.pan) * Math.min(1, dt * 1.5);
-    const nx = this.next();
-    if (nx >= 0) {
-      const room = COLUMNS / 2 - 1;
-      this.pan = Math.max(this.notes[nx].step - room, Math.min(this.notes[nx].step + room, this.pan));
-    }
     this.sounding();
     // Notes gone by unplayed: missed, a frame's grace late (D191: a tap at the window's very end,
     // handled after the frame, was refused); each one missed (a chord once) a slip.
@@ -373,9 +355,8 @@ export class ProtoGame {
     return false;
   }
 
-  /** The place under a touch: LADDER a row and SIDEWAYS a column (staff steps), the PIANO a key. */
+  /** The place under a touch: LADDER a row (a staff step), the PIANO a key. */
   cellAt(c: Contact): number | undefined {
-    if (this.proto.id === "sideways") return columnAt(c.x, this.pan, c.w);
     if (this.proto.id === "piano") return pianoKey(this.kb, c.x / c.w, c.y / c.h);
     if (this.proto.id === "ladder" && this.rows) return this.rows.stepAt(c.y);
     return undefined;
@@ -384,7 +365,6 @@ export class ProtoGame {
   /** The dynamic of a touch, 0 (pp) to 1 (ff). */
   dynamicAt(c: Contact): number {
     if (this.proto.layout === "bars") return barDynamic(c.x, c.w);
-    if (this.proto.id === "sideways") return 1 - c.y / c.h;
     return 0.55;
   }
 
@@ -448,17 +428,6 @@ export class ProtoGame {
         }
         return ok ? { ok } : { ok, wrong: asked, why: "gesture" };
       }
-      case "fingering": {
-        const fg = this.tracks[k].fingers[i];
-        if (c.side !== fg.hand) return { ok: false, wrong: m.size > 0 ? asked(-m.steps) : undefined, why: "hand" };
-        if (fg.height && (fg.height === "high") !== c.y < c.h / 2) return { ok: false, why: "height" };
-        if (fg.dyn && (fg.dyn === "f") !== barDynamic(c.x, c.w) >= 0.5) return { ok: false, why: "dynamic" };
-        return { ok: true };
-      }
-      case "sideways": {
-        const col = columnAt(c.x, this.pan, c.w);
-        return chord.some((x) => Math.abs(x.step - col) <= 1) ? { ok: true } : { ok: false, wrong: stepPitch(col, n), why: "gesture" };
-      }
       case "piano": {
         const key = pianoKey(this.kb, c.x / c.w, c.y / c.h);
         return chord.some((x) => x.midi === key) ? { ok: true } : { ok: false, wrong: key, why: "gesture" };
@@ -489,14 +458,7 @@ export class ProtoGame {
   }
   private touchW = 1;
 
-  /** SIDEWAYS LEGATO: a note joined in the score must be struck while the note before still sounds under another thumb (or key). */
-  private legatoOk(i: number, id: number, k = 0): boolean {
-    const wants = this.proto.id === "fingering" ? this.tracks[k].fingers[i].art === "legato" : this.proto.id === "sideways" && this.o.legato && this.moves[i].joined;
-    if (!wants) return true;
-    const prev = this.before(i, k);
-    for (const [hid, h] of this.held) if (hid !== id && h.k === k && h.sounds.length && h.chord.includes(prev)) return true;
-    return false;
-  }
+
 
   down(id: number, c: Contact, ts: number) {
     if (this.held.has(id)) this.up(id, ts);
@@ -578,7 +540,6 @@ export class ProtoGame {
       return;
     }
     let v = this.verdict(i, at, h.k);
-    if (v.ok && !this.legatoOk(i, id, h.k)) v = { ok: false, why: "legato" };
     this.play(id, h, i, v, false, d);
   }
 
@@ -597,9 +558,9 @@ export class ProtoGame {
       // A slide plays on once the thumb has moved a little more than half a row from where it last played.
       if (Math.abs(c.y - h.ay) < this.rows.rowH * 0.6) return;
       this.slideTo(id, h, c, t);
-    } else if (this.proto.id === "sideways" || this.proto.id === "piano") {
-      // Only the thumb's own travel counts (the window moving under a still thumb does not).
-      const unit = this.proto.id === "sideways" ? c.w / COLUMNS : c.w / this.kb.whites / 2;
+    } else if (this.proto.id === "piano") {
+      // Only the thumb's own travel counts.
+      const unit = c.w / this.kb.whites / 2;
       if (Math.abs(c.x - h.ax) < unit * 0.6) return;
       const cell = this.cellAt(c);
       if (cell === h.cell) return;
@@ -621,7 +582,6 @@ export class ProtoGame {
     const h = this.held.get(id);
     if (!h) return;
     this.held.delete(id);
-    this.judgeRelease(h, ts);
     // Flicked upwards as it let go: the swoosh.
     const tr = h.trail;
     if (h.sounds.length && tr.length >= 2) {
@@ -700,8 +660,6 @@ export class ProtoGame {
     this.combo++;
     this.streak++;
     this.maxStreak = Math.max(this.maxStreak, this.streak);
-    // D201: the tempo leans forward with a right note.
-    if (this.o.adapt) this.tempoGoal = Math.min(this.o.adapt.to, this.tempoGoal + (this.o.adapt.to - this.o.adapt.from) * 0.012);
     // D198: the crowd warms; a long run called out, every fifty.
     this.crowd = Math.min(1, this.crowd + (perfect ? 0.025 : 0.015));
     this.flames.push({ i, at });
@@ -755,28 +713,11 @@ export class ProtoGame {
     });
   }
 
-  /** FINGERING: a STACCATO note let go too late, or a TENUTO note too soon, is taken back. */
-  private judgeRelease(h: Held, ts: number) {
-    if (this.proto.id !== "fingering" || h.note < 0) return;
-    const tr = this.tracks[h.k];
-    const n = tr.notes[h.note];
-    const fg = tr.fingers[h.note];
-    if (n.state !== "hit" || (fg.art !== "staccato" && fg.art !== "tenuto")) return;
-    const held = (this.tickOf(ts) - (n.at ?? n.on)) / n.dur;
-    const bad = fg.art === "staccato" ? held > STACCATO_SHARE : held < TENUTO_SHARE;
-    if (!bad) return;
-    for (const j of h.chord) Object.assign(tr.notes[j], { state: "miss", wrong: true });
-    this.score = Math.max(0, this.score - (h.pts ?? 0));
-    this.combo = 0;
-    this.slip();
-    this.grade = { text: "✕", at: performance.now(), side: h.side, why: fg.art };
-  }
+
 
   /** A slip: the multiplier a step down, the run (and CON FUOCO) ended. */
   private slip() {
     this.crowd = Math.max(0, this.crowd - 0.045);
-    // D201: and holds back after a slip.
-    if (this.o.adapt) this.tempoGoal = Math.max(this.o.adapt.from, this.tempoGoal - (this.o.adapt.to - this.o.adapt.from) * 0.06);
     if (this.streak >= FUOCO_NOTES) this.banner = null;
     this.streak = 0;
     this.mult = Math.max(1, this.mult - 1);
@@ -793,8 +734,6 @@ export class ProtoGame {
         if (this.isBoss(e)) this.banner = { text: "THE BOSS GOT AWAY", at: performance.now() };
         continue;
       }
-      // FINGERING: not before the last note's release is judged (a tenuto let go early loses it).
-      if (this.proto.id === "fingering" && notes.some((n) => n.off === undefined && n.on + n.dur > this.now)) continue;
       if (notes.length && notes.every((n) => n.state === "hit")) {
         e.state = "captured";
         this.score += 20 * this.mult;
@@ -850,35 +789,10 @@ export class ProtoGame {
     const whole = Math.floor(this.sustainAcc);
     if (whole > 0) (this.score += whole), (this.sustainAcc -= whole);
   }
-  /**
-   * D201, the tempo following the playing: from `adapt.from` towards `adapt.to`, a little nearer with
-   * each right note, further back at each slip; the clock eases to it (a quarter of the way a second),
-   * so the change is felt as a gradual accelerando or holding back, never a jump. The windows follow.
-   */
-  private tempoGoal = 0;
-  private tempoAt = -1;
+  /** The tempo, quarter notes a minute. */
   get bpm(): number {
     return (this.tps * 60) / this.f.tpq;
   }
-  private adaptTempo(t: number) {
-    const a = this.o.adapt;
-    if (!a || this.o.wait) return;
-    if (this.tempoAt < 0 || this.now < this.entry) {
-      this.tempoAt = t;
-      if (!this.tempoGoal) this.tempoGoal = this.bpm;
-      return;
-    }
-    const dt = Math.min(0.25, Math.max(0, t - this.tempoAt));
-    this.tempoAt = t;
-    const bpm = this.bpm + (this.tempoGoal - this.bpm) * Math.min(1, dt * 0.25);
-    if (Math.abs(bpm - this.bpm) < 0.05) return;
-    this.anchorTick = this.tickAt(t);
-    this.anchorAt = t;
-    this.tps = (this.f.tpq * bpm) / 60;
-    this.opt = options(this.f.tpq, bpm, "easy");
-    if (this.proto.id === "duo") this.opt = { ...this.opt, early: this.opt.early * 1.25, late: this.opt.late * 1.25 };
-  }
-
   /** One to five stars: the score against two points a note (all PERFECT at ×1). */
   starsOf(score: number, of: number): number {
     const ratio = score / Math.max(1, 2 * of);

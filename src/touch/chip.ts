@@ -9,23 +9,15 @@
 export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 
 import { hz } from "./tuning.ts";
-import { grooveHits, grooveNow, layerHits, preset, patchFor, PATCHES, sampledNow, type Drum, type Kit, type Patch, type Wave } from "./sound.ts";
+import { grooveHits, grooveNow, layerHits, preset, patchFor, sampledNow, type Drum, type Kit, type Patch, type Wave } from "./sound.ts";
 import { loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setUnreachable, type Loaded, type SampledInstrument } from "./sampled.ts";
 
 /**
- * D179, the player's voice: whatever the ensemble gives it, it holds while the thumb is down (a plucked
- * sound keeps half its strength and fades slowly), a little forward of the others, with a second
- * oscillator a few cents off (chorus) and a vibrato that comes in after a moment.
+ * D208, the player's voice: the same instrument as the others, at the same level (the voices of a
+ * fugue are equals); it only rings while the thumb is down, so a release is never cut short.
  */
 export function leadOf(pt: Patch): Patch {
-  const pluck = pt.amp.s === 0;
-  return {
-    ...pt,
-    osc: [...pt.osc, { ...pt.osc[0], detune: (pt.osc[0].detune ?? 0) + 7, gain: (pt.osc[0].gain ?? 1) * 0.35 }],
-    amp: pluck ? { a: pt.amp.a, d: Math.max(0.6, pt.amp.d), s: 0.55, r: 0.18 } : { ...pt.amp, r: Math.max(0.12, pt.amp.r) },
-    vib: pt.vib ?? { depth: 8, rate: 5.2, delay: 0.35 },
-    level: pt.level * 1.12,
-  };
+  return pt.amp.s === 0 ? pt : { ...pt, amp: { ...pt.amp, r: Math.max(0.12, pt.amp.r) } };
 }
 
 export interface Voicing {
@@ -201,12 +193,7 @@ export class Chip {
       if (rec && near !== null) return this.sampledNote(midi, at, dur, v, v.patch, p, inst, near, rec);
       if (near !== null) loadOne(this.ctx, inst.set, near);
     }
-    if (p.lead) {
-      const lead = leadOf(v.patch ?? PATCHES.nesMid);
-      const full = p.pleno ? { ...lead, osc: [...lead.osc, { wave: "organ" as const, octave: 1, gain: 0.3 }, { wave: "organ" as const, octave: -1, gain: 0.35 }] } : lead;
-      return this.patchNote(midi, at, dur, v, full, p);
-    }
-    if (v.patch) return this.patchNote(midi, at, dur, v, v.patch, p);
+    if (v.patch) return this.patchNote(midi, at, dur, v, p.lead ? leadOf(v.patch) : v.patch, p);
     const ctx = this.ctx;
     const t = Math.max(at, ctx.currentTime);
     const end = Math.max(t + 0.04, at + dur - 0.01);
@@ -334,7 +321,7 @@ export class Chip {
     const t = Math.max(at, ctx.currentTime);
     const end = Math.max(t + 0.05, at + dur - 0.01);
     const plucked = inst.plucked;
-    const peak = pt.level * v.gain * (p.level ?? 1) * 0.5 * inst.gain * (plucked ? 1 + (p.accent ?? 0) * 0.19 : 1) * (p.lead ? 1.12 : 1);
+    const peak = pt.level * v.gain * (p.level ?? 1) * 0.5 * inst.gain * (plucked ? 1 + (p.accent ?? 0) * 0.19 : 1);
     const mix = ctx.createGain();
     const srcs: { src: AudioBufferSourceNode; set: string; m: number; mult: number }[] = [];
     let baseHz = hz(midi);

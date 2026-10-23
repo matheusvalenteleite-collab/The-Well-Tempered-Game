@@ -3,7 +3,7 @@
  * median over many recordings (data/tempi/recordings.csv: every duration turned into an average
  * quarter-note tempo by the piece's length), and SLOW, the easy mode (62% of NORMAL, lowered further
  * so that the busiest voice's sustained load stays at about 3 notes a second, never under 45% of
- * NORMAL or 30). tools/tempi/compute.ts writes data/tempi/tempi.json from the CSV.
+ * NORMAL or 30; D208: no longer played, the game plays NORMAL only). tools/tempi/compute.ts writes data/tempi/tempi.json from the CSV.
  *
  * As everywhere in the game (D181), a tempo is quarter notes a minute; `unit` and `unitBpm` give
  * the same tempo in the meter's conventional beat, for display ("𝅗𝅥 = 40" for an alla breve fugue).
@@ -48,12 +48,7 @@ const PRELUDES: Record<string, number> = {
   wtc2p17: 40, wtc2p18: 48, wtc2p19: 90, wtc2p20: 42, wtc2p21: 44, wtc2p22: 88, wtc2p23: 46, wtc2p24: 74,
 };
 
-/** A piece's tempo in quarter notes a minute (a prelude has one, the same for both). */
-export function tempoOf(id: string, version: TempoVersion): number {
-  return TEMPO[id]?.[version] ?? PRELUDES[id] ?? 46;
-}
-
-/** A piece's default tempo: the SLOW one (46 for a piece not in the tables). */
-export function defaultBpm(id: string): number {
-  return tempoOf(id, "slow");
+/** A piece's tempo in quarter notes a minute: the standard one (D208: the only one played). */
+export function tempoOf(id: string): number {
+  return TEMPO[id]?.normal ?? PRELUDES[id] ?? 46;
 }

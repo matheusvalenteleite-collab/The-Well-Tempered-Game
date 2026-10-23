@@ -121,8 +121,7 @@ export function loadDrums() {
   }
 }
 
-/** `designated`: the fugue's own sound's name (D203), offered first where a fugue has one. */
-export function SoundSetting({ value, set, designated }: { value: string; set: (id: string) => void; designated?: string }) {
+export function SoundSetting({ value, set }: { value: string; set: (id: string) => void }) {
   const [drums, setDrumsState] = useState(drumsNow());
   const setDrums = (on: boolean) => {
     setDrumsState(on);
@@ -139,13 +138,8 @@ export function SoundSetting({ value, set, designated }: { value: string; set: (
     <>
       <div className="tg-set">
         <span>SOUND</span>
-        <span className="tg-panel-val">{value === "designated" && designated ? designated : presetById(value).name}</span>
+        <span className="tg-panel-val">{presetById(value).name}</span>
       </div>
-      {designated && (
-        <button type="button" id="sound-designated" className={`tg-own${value === "designated" ? " on" : ""}`} onClick={() => set("designated")} aria-pressed={value === "designated"}>
-          ◆ THIS FUGUE&apos;S OWN · {designated}
-        </button>
-      )}
       <div className="tg-tabs" role="group" aria-label="Sound family">
         {FAMILIES.map((f, i) => (
           <button key={f.name} type="button" id={`family-${i}`} className={i === family ? "on" : ""} onClick={() => setFamily(i)}>

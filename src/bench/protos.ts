@@ -9,13 +9,8 @@
  *     voice's range filling the box), so a note is touched at the height it is drawn, either bar; a
  *     glow runs from the coming note across to the bars. Across a bar: the middle mf, towards the
  *     phone's edge forte, towards the box piano.
- *   FINGERING (D181): the same screen; each note its thumb and its articulation, the subject's entries
- *     bosses with more to get right (fingering.ts).
  *   TWO VOICES: the same screen; two voices chosen (1P, 2P), one to each bar; the time only.
- *   SIDEWAYS: upright, the whole screen: the tune across the width, higher to the right, in columns
- *     of a window following the passage; a note is touched in its column anywhere up or down the
- *     screen; height is the dynamic. LEGATO (the hard level): every note joined to the one before
- *     (struck while that one is still held, or slid into), the thumbs crossing.
+ *   (FINGERING and SIDEWAYS were withdrawn in D208.)
  *   PIANO: sideways, the keyboard of D172; the key exactly.
  * Pure: moves and gestures in, verdicts out.
  */
@@ -25,7 +20,7 @@ import { markShapes } from "../touch/shape.ts";
 import type { Side } from "../touch/thumbs.ts";
 import type { Arrow } from "../touch/MusicBox.tsx";
 
-export type ProtoId = "ladder" | "fingering" | "duo" | "sideways" | "highway" | "arrows" | "keys" | "piano";
+export type ProtoId = "ladder" | "duo" | "highway" | "arrows" | "keys" | "piano";
 /** D182: what the prototype is played on. */
 export type Platform = "mobile" | "computer";
 
@@ -42,10 +37,8 @@ export interface Move {
 }
 
 export interface Options {
-  /** SIDEWAYS: every note joined to the one before (the hard level). */
+  /** Unused since SIDEWAYS was withdrawn (D208): kept for the test harness's legato runs. */
   legato: boolean;
-  /** D201: the tempo follows the playing, between these (quarter notes a minute): it starts at `from`. */
-  adapt?: { from: number; to: number };
   /** D198: a run fails when the crowd is lost (off in the lessons, and with NO FAIL). */
   fail?: boolean;
   /** EASY (D187): the time only, or the line's direction too, or its leaps as well. */
@@ -87,27 +80,11 @@ export const PROTOS: Proto[] = [
     platform: "mobile",
   },
   {
-    id: "fingering",
-    short: "THE THUMB EACH NOTE SHOWS (L / R) · LEGATO, STACCATO, TENUTO AS MARKED",
-    name: "FINGERING",
-    how: "Sideways. Each note has its thumb (L or R in the box) and its articulation: LEGATO (strike it while the note before still sounds), STACCATO (let go quickly), TENUTO (hold it). The subject's entries are bosses: a SUB BOSS also wants some notes high or low in the bar; the BOSS also wants forte (out) or piano (in).",
-    layout: "bars",
-    platform: "mobile",
-  },
-  {
     id: "duo",
     short: "LEFT BAR 1P, RIGHT BAR 2P · ONLY THE TIME COUNTS",
     name: "TWO VOICES",
     how: "Sideways. Choose two voices, 1P and 2P: the left bar plays the first, the right bar the second. Only the time counts. Across a bar: the middle mf, out forte, in piano; slide across while a note sounds to swell or fade; flick up as you let go for a swoosh.",
     layout: "bars",
-    platform: "mobile",
-  },
-  {
-    id: "sideways",
-    short: "TOUCH EACH NOTE IN ITS COLUMN AS IT LANDS · HIGHER IS LOUDER",
-    name: "SIDEWAYS",
-    how: "Upright, the whole screen. The tune runs across: higher notes to the right. Touch each note in its column as it lands (one off counts), anywhere up or down: higher is louder. Cross your thumbs on a run, or slide across. LEGATO (⚙): every note joined to the one before.",
-    layout: "full",
     platform: "mobile",
   },
   {

@@ -102,7 +102,7 @@ export const PATCHES = {
   sidPulse: P({ osc: [{ wave: "pulse25" }, { wave: "triangle", gain: 0.5 }], amp: { a: 0.002, d: 0.2, s: 0.7, r: 0.06 }, vib: { depth: 10, rate: 5.5, delay: 0.25 }, level: 0.3 }),
   atari: P({ osc: [{ wave: "pulse50" }], filter: { freq: 3000, hz: true, q: 0.6 }, amp: { a: 0.001, d: 0.3, s: 0.45, r: 0.04 }, drive: 2, level: 0.36 }),
   arcadeBell: P({ osc: [{ wave: "bell" }], amp: { a: 0.002, d: 0.6, s: 0.3, r: 0.08 }, level: 0.5 }),
-  // D200: the fugues' own instruments (fugue-sound.ts), made on the bossa's lines (D193): a sine or
+  // D200: instruments once given to single fugues (withdrawn in D208, kept for future ensembles), made on the bossa's lines (D193): a sine or
   // triangle body under any edge, each its own way of speaking, a slow vibrato in the sustained ones.
   /** A sung "oo" over a soft body: the vocal top of a stile antico consort. */
   choirOo: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.35 }, { wave: "sine", gain: 0.5 }], vowel: [480, 950], amp: { a: 0.09, d: 0.3, s: 0.85, r: 0.16 }, vib: { depth: 9, rate: 5, delay: 0.3 }, level: 0.6 }),
@@ -144,7 +144,7 @@ export const PATCHES = {
 
 export type PatchId = keyof typeof PATCHES;
 export type Groove = "rock" | "jazz" | "bossa" | "brushes" | "chamber" | "chipMarch" | "chipDrive" | "chipHalf" | "chipArcade" | "cr78" | "funk808" | "analogRock" | "analogSoft"
-  // D200: the fugues' own loops (fugue-sound.ts).
+  // D200: loops once given to single fugues (withdrawn in D208).
   | "tactus" | "lament" | "toccata" | "gigue" | "passepied" | "minuet" | "sarabande" | "gavotte" | "overture" | "triplet";
 /** The drums' sound: a band's kit, a console's noise channel, an analog drum machine's circuits. */
 export type Kit = "acoustic" | "chip" | "analog";
@@ -179,10 +179,7 @@ export const FAMILIES: { name: string; presets: Preset[] }[] = [
   {
     name: "BANDS",
     presets: [
-      { id: "rock", name: "ROCK BAND", slots: ["leadGuitar", "rockOrgan", "rhythmGuitar", "rhythmGuitar", "bassGuitar"], groove: "rock", room: 0.28 },
-      { id: "jazz", name: "JAZZ BAND", slots: ["altoSax", "mutedTrumpet", "vibraphone", "jazzPiano", "uprightBass"], groove: "jazz", room: 0.3 },
       { id: "bossa", name: "BOSSA NOVA", slots: ["softFlute", "rhodes", "nylonGuitar", "nylonGuitar", "softBass"], groove: "bossa", room: 0.3 },
-      { id: "swingle", name: "SWINGLE", slots: ["sopDah", "altoDoo", "tenDah", "tenDah", "uprightBass"], groove: "brushes", room: 0.34 },
     ],
   },
   {
@@ -199,10 +196,6 @@ export const FAMILIES: { name: string; presets: Preset[] }[] = [
     name: "MOOG",
     presets: [
       { id: "carlos", name: "WENDY CARLOS", slots: ["carlosLead", "carlosReed", "carlosZap", "carlosReed", "carlosBass"], drums: "cr78", kit: "analog", room: 0.28 },
-      { id: "moog1", name: "MOOG 1 · LEADS", slots: ["minimoog", "squareReed", "bells", "squareReed", "subBass"], drums: "funk808", kit: "analog", room: 0.26 },
-      { id: "moog2", name: "MOOG 2 · REEDS", slots: ["squareReed", "pwmLead", "squareReed", "pwmLead", "carlosBass"], drums: "cr78", kit: "analog", room: 0.28 },
-      { id: "moog3", name: "MOOG 3 · BRASS", slots: ["brass", "pwmLead", "carlosZap", "brass", "subBass"], drums: "analogRock", kit: "analog", room: 0.26 },
-      { id: "moog4", name: "MOOG 4 · BELLS", slots: ["bells", "carlosLead", "bells", "carlosReed", "subBass"], drums: "analogSoft", kit: "analog", room: 0.3 },
     ],
   },
 ];
@@ -219,7 +212,7 @@ export function slotOf(voice: number, count: number): number {
 /** The ensemble playing now (set from the settings), and whether CHIP's and MOOG's drums play. */
 let current: Preset = presetById("bossa");
 let drumsOn = true;
-/** By its id; or (D200) a preset itself, such as a fugue's own (fugue-sound.ts `fugueSound`). */
+/** By its id, or a preset itself. */
 export function setPreset(id: string | Preset) {
   current = typeof id === "string" ? presetById(id) : id;
 }
@@ -336,7 +329,7 @@ export function grooveHits(g: Groove, b: number, bar: number, per: number, compo
       for (const s of subs) out.push({ drum: "shaker", at: s, vel: s ? 0.25 : 0.4 });
       if (b === per - 1) out.push({ drum: "rim", at: subs[subs.length - 1], vel: 0.45 });
       break;
-    // D200: the fugues' own loops (fugue-sound.ts), after the bossa's (D193): soft, above the voices;
+    // D200: the loops once given to single fugues, after the bossa's (D193): soft, above the voices;
     // no snare, no clap, nothing after the downbeat louder than it, so the written metre leads.
     case "tactus":
       // The stile antico's beat: a breath of kick on the bar, a soft shaker on each beat.

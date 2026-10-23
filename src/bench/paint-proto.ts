@@ -6,16 +6,13 @@
  *     a mark where you last played; only the Cs named, for bearings.
  *     THUMBS lights the bar wanted; TWO VOICES each bar for its voice (1P, 2P). The dynamics are
  *     marked along the bars' feet, pp by the box to ff by the phone's edge.
- *   SIDEWAYS: the whole screen in chunky pixels, warm: every voice falling in the window's columns,
- *     bevelled blocks, a dotted line to land on, scanlines; ff at the top, pp at the foot.
  *   PIANO: paint-piano.ts.
  * The verdict of the last touch flashes over the field.
  */
 import { ornamentMark } from "../touch/ornament-play.ts";
-import { ARROW_PIXELS, inkOf, keyTint, type Arrow } from "../touch/MusicBox.tsx";
+import { ARROW_PIXELS, inkOf, type Arrow } from "../touch/MusicBox.tsx";
 import { paintPiano } from "../touch/paint-piano.ts";
 import { stepName } from "../touch/fugue.ts";
-import { columnX, COLUMNS, LINE } from "./placed.ts";
 import { APPROACH_MS, type ProtoGame } from "./proto-game.ts";
 import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
 import { isBlack, keySpan } from "../touch/piano.ts";
@@ -34,12 +31,8 @@ export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g:
   const t = tokens();
   switch (g.proto.id) {
     case "ladder":
-    case "fingering":
     case "duo":
       bars(c, w, h, g, t);
-      break;
-    case "sideways":
-      sideways(c, w, h, g, t, subject);
       break;
     case "piano":
       paintPiano(c, w, h, { kb: g.kb, now: g.now, tps: g.tps, voice: g.voice, count: g.f.voices.length, notes: g.notes, others: g.others, late: g.opt.late, held: g.heldCells(), grade: g.grade }, subject);
@@ -62,7 +55,7 @@ function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoG
   const bars = g.proto.layout === "bars";
   const desk = g.proto.layout === "desk";
   const x = bars ? (w * BAR) / 2 : desk ? w - 90 : w / 2;
-  const y = bars ? h * 0.12 : g.proto.id === "sideways" ? 30 : desk ? 34 : 14;
+  const y = bars ? h * 0.12 : desk ? 34 : 14;
   label(c, g.score.toLocaleString("en"), x, y, t.fg, 9);
   if (g.mult > 1 && !desk) label(c, `×${g.mult}`, x, y + 16, g.mult >= 4 ? t.gold : t.shine, 9);
   if (g.pleno) label(c, "PLENO ×2", bars ? w - (w * BAR) / 2 : x, bars ? h * 0.12 : y + 32, t.gold, 7);
@@ -539,26 +532,6 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
       c.fillRect(s.x + 4, g.lastTouch.y - 1, bw - 8, 2);
       c.globalAlpha = 1;
     }
-  } else if (g.proto.id === "fingering") {
-    const nx = coming(g);
-    if (nx) {
-      const fg = g.tracks[0].fingers[nx.i];
-      const ink = fg.boss === "boss" ? "#ff5a4f" : fg.boss === "sub" ? "#c78bff" : inkOf(g.voice, count);
-      const s = sides[fg.hand === "left" ? 0 : 1];
-      // The part of the bar wanted: all of it; a boss's height the upper or lower half; its dynamic the outer or inner half.
-      const top = fg.height === "low" ? (h - 18) / 2 : 0;
-      const tall = fg.height ? (h - 18) / 2 : h - 18;
-      const outer = s.x === 0 ? 0 : s.x + bw / 2;
-      const inner = s.x === 0 ? bw / 2 : s.x;
-      const x = fg.dyn === "f" ? outer : fg.dyn === "p" ? inner : s.x;
-      const wid = fg.dyn ? bw / 2 : bw;
-      light(c, x, top, wid, tall, nx.p, ink, t);
-      const art = { legato: "LEGATO", staccato: "STACC.", tenuto: "TEN.", free: "" }[fg.art];
-      label(c, fg.hand === "left" ? "L" : "R", s.x + bw / 2, top + tall / 2 - 10, t.fg, 14);
-      if (art) label(c, art, s.x + bw / 2, top + tall / 2 + 12, t.fg, 7);
-      if (fg.dyn) label(c, fg.dyn, x + wid / 2, top + tall / 2 + 28, t.gold, 9);
-      if (fg.boss) label(c, fg.boss === "boss" ? "BOSS" : "SUB BOSS", w / 2, h - 30, ink, 8);
-    }
   } else if (g.proto.id === "duo") {
     for (const [n, s] of sides.entries()) {
       const tr = g.tracks[s.k];
@@ -577,82 +550,6 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
   }
 }
 
-/** SIDEWAYS, in chunky pixels: every voice falling in the window's columns onto a line. */
-function sideways(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok, subject: Set<string>) {
-  const P = 3;
-  const snap = (v: number) => Math.round(v / P) * P;
-  const box = (x: number, y: number, bw: number, bh: number, fill: string) => {
-    c.fillStyle = fill;
-    c.fillRect(snap(x), snap(y), Math.max(P, snap(bw)), Math.max(P, snap(bh)));
-  };
-  const cw = w / COLUMNS;
-  const line = h * LINE;
-  const span = 1.5 * g.f.barTicks;
-  const yOf = (tick: number) => line - ((tick - g.now) / span) * line;
-  const count = g.f.voices.length;
-  const ink = inkOf(g.voice, count);
-  // The ground: the key's colour, warmed; the columns in alternate shades, the Cs marked.
-  c.fillStyle = keyTint(g.keyNow(), 3);
-  c.fillRect(0, 0, w, h);
-  // Warmed: an amber wash over the key's colour.
-  c.fillStyle = "rgba(120,60,30,0.28)";
-  c.fillRect(0, 0, w, h);
-  const held = new Set(g.heldCells());
-  for (let s = Math.floor(g.pan - COLUMNS / 2) - 1; s <= g.pan + COLUMNS / 2 + 1; s++) {
-    const x = columnX(s, g.pan, w) - cw / 2;
-    box(x, 0, cw, h, s % 2 ? "rgba(255,200,140,0.035)" : "rgba(0,0,0,0.08)");
-    if (held.has(s)) box(x, 0, cw, h, "rgba(255,226,150,0.16)");
-    if (s % 7 === 0) box(x, 0, P, h, "rgba(255,210,150,0.25)");
-    label(c, stepName(s), x + cw / 2, h - 10, s % 7 === 0 ? "#ffd9a0" : t.muted, 7);
-  }
-  // The others in the window: narrow, dim, in their colours.
-  for (const o of g.others) {
-    if (yOf(o.on) < 0) break;
-    if (yOf(o.on + o.dur) > h) continue;
-    const x = columnX(o.step, g.pan, w);
-    if (x < -cw || x > w + cw) continue;
-    c.globalAlpha = 0.5;
-    box(x - cw * 0.18, yOf(o.on + o.dur), cw * 0.36, yOf(o.on) - yOf(o.on + o.dur) - P, inkOf(o.voice, count));
-    c.globalAlpha = 1;
-  }
-  // The voice played: bevelled blocks, a light edge above and to the left, a shadow below.
-  for (const n of g.notes) {
-    if (yOf(n.on) < 0) break;
-    if (yOf(n.on + n.dur) > h) continue;
-    const x = columnX(n.step, g.pan, w) - cw / 2 + 2 * P;
-    const y0 = yOf(n.on + n.dur);
-    const bh = Math.max(3 * P, yOf(n.on) - y0 - P);
-    const bwid = cw - 4 * P;
-    const fill = n.state === "miss" ? t.miss : n.state === "hit" ? t.shine : ink;
-    if (n.ride) {
-      // D191: a note that rides (played for the player): a faint narrow strip, no bevel.
-      c.globalAlpha = n.state === "hit" ? 0.9 : 0.5;
-      box(x + bwid * 0.3, y0, bwid * 0.4, bh, fill);
-      c.globalAlpha = 1;
-      continue;
-    }
-    box(x + P, y0 + P, bwid, bh, "rgba(0,0,0,0.45)");
-    box(x, y0, bwid, bh, fill);
-    if (n.state !== "miss") {
-      box(x, y0, bwid, P, "rgba(255,255,255,0.45)");
-      box(x, y0, P, bh, "rgba(255,255,255,0.25)");
-      box(x, y0 + bh - P, bwid, P, "rgba(0,0,0,0.3)");
-    }
-    if (subject.has(`${g.voice}:${n.on}`)) for (let k = x + P; k < x + bwid - P; k += 2 * P) box(k, y0 + bh - 2 * P, P, P, "#fff3d6");
-  }
-  // The line: dotted amber.
-  for (let x = 0; x < w; x += 4 * P) box(x, line - P, 2 * P, P, "#ffcf7a");
-  // The dynamics, up the left edge.
-  label(c, "ff", 6, 14, "#ffd9a0", 7, "left");
-  label(c, "mf", 6, h / 2, t.muted, 7, "left");
-  label(c, "pp", 6, h - 28, t.muted, 7, "left");
-  if (g.o.legato) label(c, "LEGATO", w - 6, 56, "#ffd9a0", 7, "right");
-  // Scanlines, for an old screen's warmth.
-  c.fillStyle = "rgba(0,0,0,0.12)";
-  for (let y = 0; y < h; y += 2 * P) c.fillRect(0, y, w, 1);
-  const n = g.countIn();
-  if (n) label(c, String(n), w / 2, h / 2, "#ffe7a8", 48);
-}
 
 function verdict(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
   const gr = g.grade;
@@ -672,7 +569,7 @@ function verdict(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     const bars = g.proto.layout === "bars";
     const desk = g.proto.layout === "desk";
     const x = bars ? (gr.side === "left" ? w * BAR * 0.5 : w * (1 - BAR * 0.5)) : desk ? w - 90 : w / 2;
-    label(c, text, x, g.proto.id === "sideways" ? h * LINE + 24 : bars ? h * 0.45 : desk ? 14 : 30, gr.text === "PERFECT" ? t.gold : ok ? t.fg : t.wrong, 8);
+    label(c, text, x, bars ? h * 0.45 : desk ? 14 : 30, gr.text === "PERFECT" ? t.gold : ok ? t.fg : t.wrong, 8);
     c.globalAlpha = 1;
   }
 }

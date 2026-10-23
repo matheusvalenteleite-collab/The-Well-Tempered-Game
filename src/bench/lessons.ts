@@ -14,7 +14,7 @@
  */
 import { beatOf, FUGUES, fugueById, type TouchFugue } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
-import { defaultBpm } from "../touch/tempi.ts";
+import { tempoOf } from "../touch/tempi.ts";
 import { moves, type EasyLevel, type Move } from "./protos.ts";
 
 export interface Run {
@@ -56,8 +56,6 @@ interface Want {
   /** A free note (after a rest or a long note) inside: needed, allowed, or not. */
   free: "need" | "allow" | "no";
   heads: number;
-  /** The tempo: the fugue's own times this. */
-  pace: number;
 }
 
 /** The first passage in the fugues that teaches what is wanted (Bach's order; each lesson its own fugue). */
@@ -65,7 +63,7 @@ export function findPassage(w: Want, skip: string[] = []): { f: TouchFugue; voic
   for (const f of FUGUES) {
     if (skip.includes(f.id)) continue;
     const beat = beatOf(f).ticks;
-    const bpm = Math.max(30, Math.round(defaultBpm(f.id) * w.pace));
+    const bpm = tempoOf(f.id);
     const tps = (f.tpq * bpm) / 60;
     for (let v = 0; v < f.voices.length; v++) {
       const notes = laneNotes(f.voices[v], beat, v);
@@ -99,7 +97,7 @@ const C_MINOR = "wtc1f02";
 function cMinor(voice: number, upTo: number, solo: boolean): Run {
   const f = fugueById(C_MINOR);
   const until = f.entries.map((e) => e.on).sort((a, b) => a - b)[upTo] ?? f.length;
-  return { piece: f.id, voice, from: 0, until, bpm: defaultBpm(f.id), wait: false, solo, easy: "direction" };
+  return { piece: f.id, voice, from: 0, until, bpm: tempoOf(f.id), wait: false, solo, easy: "direction" };
 }
 /** The C minor fugue's voice that has its first entry (the alto), and its second (the soprano). */
 const entryVoice = (k: number) => [...fugueById(C_MINOR).entries].sort((a, b) => a.on - b.on)[k].voice;
@@ -108,7 +106,7 @@ const entryVoice = (k: number) => [...fugueById(C_MINOR).entries].sort((a, b) =>
 function exam(): Run {
   const f = fugueById("wtc1f22");
   const voice = f.voices.map((v, i) => [v.length, i]).sort((a, b) => a[0] - b[0])[0][1];
-  return { piece: f.id, voice, from: 0, until: f.length, bpm: defaultBpm(f.id), wait: false, solo: false, easy: "direction" };
+  return { piece: f.id, voice, from: 0, until: f.length, bpm: tempoOf(f.id), wait: false, solo: false, easy: "direction" };
 }
 
 /** The fugues the found passages must not take: the C minor (kept for its lessons) and those before. */
@@ -127,7 +125,7 @@ export const LESSONS: Lesson[] = [
     ],
     pass: [{ text: "So. They say I once remarked that there is nothing to it: you strike the right key at the right time, and the instrument plays itself. The time, at least, you have." }],
     again: [{ text: "Early, late. Let the note come to you. Again." }],
-    run: () => passage({ allow: ["up", "down", "same", "leap"], need: [], free: "allow", heads: 8, pace: 0.8 }, "timing", false, before(0)),
+    run: () => passage({ allow: ["up", "down", "same", "leap"], need: [], free: "allow", heads: 8 }, "timing", false, before(0)),
     passAt: 0.85,
   },
   {
@@ -140,7 +138,7 @@ export const LESSONS: Lesson[] = [
     ],
     pass: [{ text: "Recht. You did not play notes; you played a line. That is the whole art." }],
     again: [{ text: "You went left; the voice went up. Look at the arrow, then strike. Again." }],
-    run: () => passage({ allow: ["up", "down", "leap"], need: ["up", "down"], free: "no", heads: 10, pace: 0.8 }, "direction", true, before(1)),
+    run: () => passage({ allow: ["up", "down", "leap"], need: ["up", "down"], free: "no", heads: 10 }, "direction", true, before(1)),
     passAt: 0.9,
   },
   {
@@ -153,7 +151,7 @@ export const LESSONS: Lesson[] = [
     ],
     pass: [{ text: "So. Now nothing in a line can surprise you." }],
     again: [{ text: "The same note wants the same key. Again." }],
-    run: () => passage({ allow: ["up", "down", "same", "leap"], need: ["same", "up", "down"], free: "need", heads: 12, pace: 0.85 }, "direction", false, before(2)),
+    run: () => passage({ allow: ["up", "down", "same", "leap"], need: ["same", "up", "down"], free: "need", heads: 12 }, "direction", false, before(2)),
     passAt: 0.85,
   },
   {
@@ -204,7 +202,7 @@ export const LESSONS: Lesson[] = [
     ],
     pass: [{ text: "Good. Your hands now draw the line as it is drawn on the page." }],
     again: [{ text: "A step is not a leap. Skip a key. Again." }],
-    run: () => ({ ...passage({ allow: ["up", "down", "same", "leap"], need: ["leap", "up", "down"], free: "allow", heads: 12, pace: 0.85 }, "leaps", false, before(6)), easy: "leaps" }),
+    run: () => ({ ...passage({ allow: ["up", "down", "same", "leap"], need: ["leap", "up", "down"], free: "allow", heads: 12 }, "leaps", false, before(6)), easy: "leaps" }),
     passAt: 0.85,
   },
   {

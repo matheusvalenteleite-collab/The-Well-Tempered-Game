@@ -5,7 +5,7 @@ import { laneNotes, type LaneNote } from "../src/touch/lanes.ts";
 import type { Chip } from "../src/touch/chip.ts";
 import { ProtoGame, type Contact, type Rows } from "../src/bench/proto-game.ts";
 import { ARROW_KEYS, arrowOf, barDynamic, contourOk, BAR, KEY_ROWS, keyRow, moveOf, moves, protoById, PROTOS, stepPitch, thumbsVerdict } from "../src/bench/protos.ts";
-import { columnAt, columnX, KEYS_SHARE, LINE } from "../src/bench/placed.ts";
+import { KEYS_SHARE } from "../src/bench/placed.ts";
 import { isBlack, keySpan } from "../src/touch/piano.ts";
 import { grooveHits, patchFor, PRESETS, setPreset, slotOf } from "../src/touch/sound.ts";
 import { hz, setTuning } from "../src/touch/tuning.ts";
@@ -54,18 +54,8 @@ function rightTouch(g: ProtoGame, k: number, i: number): Contact {
       const top = Math.max(...g.tracks[k].notes.filter((x) => x.on === n.on).map((x) => x.step));
       return c(W * 0.1, ROWS.yOf(top));
     }
-    case "fingering": {
-      // The thumb written; a boss's height and dynamic.
-      const fg = g.tracks[k].fingers[i];
-      const left = fg.hand === "left";
-      const y = fg.height === "high" ? H * 0.25 : fg.height === "low" ? H * 0.75 : H / 2;
-      const x = fg.dyn === "f" ? (left ? 4 : W - 4) : fg.dyn === "p" ? (left ? W * BAR - 4 : W - W * BAR + 4) : left ? W * 0.1 : W * 0.9;
-      return c(x, y);
-    }
     case "duo":
       return c(k ? W * 0.9 : W * 0.1, H / 2);
-    case "sideways":
-      return c(columnX(n.step, g.pan, W), H * LINE);
     default: {
       const [a, b] = keySpan(g.kb, n.midi);
       return c(((a + b) / 2) * W, isBlack(n.midi) ? H * (1 - KEYS_SHARE) + 5 : H - 4);
@@ -91,7 +81,6 @@ function fakeChip(clock: { t: number }, log: { midi: number; muffled: boolean; d
 function playThrough(id: string, piece: string, voices: number[], legato = false) {
   const f = fugueById(piece);
   const clock = { t: 0 };
-  const id_proto = id;
   const g = new ProtoGame(f, voices, startTick(f, 0), protoById(id), { bpm: 54, legato }, fakeChip(clock));
   g.rows = ROWS;
   const at = (tick: number) => g.timeAt(tick);
@@ -99,8 +88,7 @@ function playThrough(id: string, piece: string, voices: number[], legato = false
     while (clock.t < t - 0.05) (clock.t += 0.05), g.step();
     clock.t = Math.max(clock.t, t);
   };
-  // Each note down at its time; let go at once, or (LEGATO, FINGERING) as written: overlapping the next for legato,
-  // quickly for staccato, most of the way for tenuto.
+  // Each note down at its time; let go at once, or (LEGATO) overlapping the next.
   type Ev = { t: number; down: boolean; id: number; k: number; i: number };
   const evs: Ev[] = [];
   let nid = 0;
@@ -113,12 +101,7 @@ function playThrough(id: string, piece: string, voices: number[], legato = false
       const nextOn = h + 1 < heads.length ? at(tr.notes[heads[h + 1]].on) : t0 + 0.2;
       let t1 = t0 + 0.02;
       {
-        const art = id_proto === "fingering" ? tr.fingers[i].art : legato ? "legato" : "free";
-        const len = at(n.on + n.dur) - t0;
-        if (art === "staccato") t1 = t0 + len * 0.4;
-        // A tenuto note slurred into the next (D191: a suspension's resolution) is held to it.
-        else if (art === "tenuto") t1 = h + 1 < heads.length && tr.fingers[heads[h + 1]].art === "legato" ? Math.max(t0 + len * 0.9, nextOn + 0.02) : t0 + len * 0.9;
-        else if (art === "legato" || id_proto === "fingering") t1 = Math.max(t0 + 0.02, nextOn + 0.02);
+        if (legato) t1 = Math.max(t0 + 0.02, nextOn + 0.02);
       }
       nid++;
       evs.push({ t: t0, down: true, id: nid, k, i }, { t: t1, down: false, id: nid, k, i });
@@ -136,14 +119,14 @@ function playThrough(id: string, piece: string, voices: number[], legato = false
   return g.results();
 }
 
-test("every prototype can be played right through, on both pieces, every voice (TWO VOICES: pairs; SIDEWAYS also LEGATO)", () => {
+test("every prototype can be played right through, on both pieces, every voice (TWO VOICES: pairs; LADDER also LEGATO)", () => {
   for (const p of PROTOS)
     for (const piece of ["wtc1f02", "bwv1080-14"]) {
       const f = fugueById(piece);
       const vs = voicesFrom(f, 0);
       const runs = p.id === "duo" ? vs.slice(1).map((v) => [vs[0], v]) : vs.map((v) => [v]);
       for (const voices of runs)
-        for (const legato of p.id === "sideways" ? [false, true] : [false]) {
+        for (const legato of p.id === "ladder" ? [false, true] : [false]) {
           const r = playThrough(p.id, piece, voices, legato);
           assert.ok(r.right === r.of, `${p.id}${legato ? " legato" : ""} ${piece} v${voices}: ${r.right}/${r.of} (wrong ${r.wrong}, missed ${r.missed})`);
         }
@@ -169,16 +152,6 @@ test("a wrong place sounds what it asked for, muffled (the PIANO's key plain), a
     assert.equal(n.wrong, true);
     assert.equal(heard.muffled, true);
     assert.ok(heard.midi > n.midi, `six steps up, heard ${heard.midi}`);
-  }
-  {
-    const { n, heard } = touchNote("fingering", 1, () => ({ side: "right", x: W * 0.9, y: 200, w: W, h: H }));
-    assert.equal(n.wrong, true);
-    assert.ok(heard.midi > 72, `a step up from C5, heard ${heard.midi}`);
-  }
-  {
-    const { n, heard } = touchNote("sideways", 3, (g, n) => ({ side: "left", x: columnX(n.step + 3, g.pan, W), y: H * LINE, w: W, h: H }));
-    assert.equal(n.wrong, true);
-    assert.equal(heard.muffled, true);
   }
   {
     const { n, heard } = touchNote("piano", 1, (g, n) => {
@@ -207,21 +180,6 @@ test("LADDER is forgiving: near the note and the right way from the touch before
   assert.equal(tap(1, "right", ROWS.yOf(34) + 10), "hit");
   // C5 again, but the same right thumb lower still: the wrong way.
   assert.equal(tap(2, "right", ROWS.yOf(34) + 30), "miss");
-});
-
-test("SIDEWAYS LEGATO: a joined note struck after the one before was let go does not count", () => {
-  const clock = { t: 0 };
-  const g = new ProtoGame(C_MINOR, 1, 0, protoById("sideways"), { bpm: 54, legato: true }, fakeChip(clock));
-  const play = (i: number, id: number) => {
-    clock.t = 0.15 + (g.notes[i].on - g.start) / g.tps;
-    g.step();
-    g.down(id, { side: "left", x: columnX(g.notes[i].step, g.pan, W), y: 300, w: W, h: H }, performance.now());
-  };
-  play(0, 1);
-  g.up(1, performance.now());
-  play(1, 2);
-  assert.equal(g.notes[1].wrong, true);
-  assert.equal(g.grade?.why, "legato");
 });
 
 test("a held note swells as the thumb moves out across its bar; a flick upwards on letting go: a swoosh", () => {
@@ -445,10 +403,10 @@ test("D194: the countersubject drawn beside its entries; inversions named; a cad
   assert.ok([...banners].some((b) => /CADENCE/.test(b)), [...banners].join(" | "));
 });
 
-test("D198/D201: right notes warm the crowd and quicken the tempo; slips cool it, hold it back, and can fail the run", () => {
+test("D198: right notes warm the crowd; slips cool it and can fail the run", () => {
   const play = (good: boolean, fail = false) => {
     const clock = { t: 0 };
-    const g = new ProtoGame(C_MINOR, 1, 0, protoById("keys"), { bpm: 50, legato: false, easy: "timing", adapt: { from: 50, to: 70 }, fail }, fakeChip(clock));
+    const g = new ProtoGame(C_MINOR, 1, 0, protoById("keys"), { bpm: 50, legato: false, easy: "timing", fail }, fakeChip(clock));
     let id = 0;
     let done = false;
     for (let i = 0; i < 60 && !done; i++) {
@@ -466,7 +424,7 @@ test("D198/D201: right notes warm the crowd and quicken the tempo; slips cool it
     return g;
   };
   const up = play(true);
-  assert.ok(up.bpm > 52 && up.crowd > 0.6, `played well: ${up.bpm.toFixed(1)} bpm, crowd ${up.crowd.toFixed(2)}`);
+  assert.ok(up.bpm === 50 && up.crowd > 0.6, `played well: ${up.bpm.toFixed(1)} bpm, crowd ${up.crowd.toFixed(2)}`);
   const down = play(false);
   assert.ok(down.bpm <= 50.01 && down.crowd < 0.2, `missed: ${down.bpm.toFixed(1)} bpm, crowd ${down.crowd.toFixed(2)}`);
   const failed = play(false, true);
@@ -505,12 +463,9 @@ test("D207, HIGHWAY: tapping each note's lane is right in DIRECTION; against the
   }
 });
 
-test("SIDEWAYS: a column's middle is that column", () => {
-  for (const pan of [30, 33.4, 36.8]) for (const s of [28, 31, 35]) assert.equal(columnAt(columnX(s, pan, W), pan, W), s);
-});
-
-test("the ensembles: every preset gives each voice an instrument; the bands keep a beat; bossa nova by default", () => {
-  assert.ok(PRESETS.length >= 18);
+test("the ensembles (D208: the disliked ones withdrawn); every preset gives each voice an instrument; the bands keep a beat", () => {
+  for (const gone of ["rock", "jazz", "swingle", "moog1", "moog2", "moog3", "moog4"]) assert.ok(!PRESETS.some((p) => p.id === gone), gone);
+  for (const kept of ["harpsichordSampled", "strings", "baroque", "winds", "consort", "bossa", "carlos"]) assert.ok(PRESETS.some((p) => p.id === kept), kept);
   assert.deepEqual([3, 4, 5].map((n) => Array.from({ length: n }, (_, v) => slotOf(v, n))), [[0, 2, 4], [0, 1, 3, 4], [0, 1, 2, 3, 4]]);
   assert.ok(patchFor(0, 3), "bossa nova");
   setPreset("chip");

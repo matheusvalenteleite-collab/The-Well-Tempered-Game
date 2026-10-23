@@ -96,8 +96,6 @@ export interface Frame {
   trace?: { tick: number; step: number; on: boolean }[];
   /** The testbench (D178): each touch, at the step it asked for, right or wrong. */
   marks?: { tick: number; step: number; ok: boolean }[];
-  /** The testbench's FINGERING (D181): each note's thumb and articulation (aligned with `notes`). */
-  fingers?: { hand: "left" | "right"; art: string; boss?: string }[];
   /** The testbench's score (D181): each entry ("voice:onset") captured (gold) or lost (grey). */
   entryState?: Map<string, "captured" | "lost" | "open">;
   /** The testbench's TWO VOICES (D180): a second voice played, drawn as the first. */
@@ -261,25 +259,6 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
       }
     }
   }
-
-  // FINGERING: L or R over each coming note (pixel letters), its articulation under it.
-  if (fr.fingers)
-    fr.notes.forEach((n, i) => {
-      const fg = fr.fingers![i];
-      const x = xOf(n.on);
-      const x2 = xOf(n.on + n.dur);
-      if (!fg || n.ride || n.state !== "pending" || x < playX || x > w || (i > 0 && fr.notes[i - 1].on === n.on)) return;
-      const y = yOf(n.step);
-      g.fillStyle = fg.hand === "left" ? "#ff8c4a" : "#5cb2ff";
-      // A 3 by 5 pixel letter, above the block.
-      const L = ["100", "100", "100", "100", "111"];
-      const R = ["110", "101", "110", "101", "101"];
-      (fg.hand === "left" ? L : R).forEach((row, ry) => [...row].forEach((on, rx) => on === "1" && g.fillRect(x + rx, y - 7 + ry, 1, 1)));
-      g.fillStyle = edge;
-      if (fg.art === "staccato") g.fillRect(x + 1, y + bh + 1, 1, 1);
-      if (fg.art === "tenuto") g.fillRect(x, y + bh + 1, Math.max(2, x2 - x - 1), 1);
-      if (fg.art === "legato") g.fillRect(x - 3, y + bh + 1, Math.max(3, x2 - x + 2), 1);
-    });
 
   // LADDER on a computer: each coming note's key, a small pixel arrow over it (a dot: the same note).
   if (fr.arrows)

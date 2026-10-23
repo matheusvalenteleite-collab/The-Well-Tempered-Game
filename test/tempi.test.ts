@@ -1,9 +1,9 @@
-// D199: each fugue's NORMAL (median of recordings) and SLOW (easy) tempo.
+// D199: each fugue's NORMAL (median of recordings) and SLOW tempo (the data keeps SLOW; D208 plays NORMAL only).
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { FUGUES, PIECES } from "../src/touch/fugue.ts";
-import { TEMPO, defaultBpm, tempoOf } from "../src/touch/tempi.ts";
+import { TEMPO, tempoOf } from "../src/touch/tempi.ts";
 
 const fugues = PIECES.filter((f) => f.kind === "fugue" || f.id.startsWith("bwv1080"));
 
@@ -19,9 +19,7 @@ test("every fugue and Contrapunctus XIV has a normal and a slow tempo", () => {
     assert.ok(t.normal >= 40 && t.normal <= 220, `${f.id}: normal ${t.normal}`);
     assert.ok(t.iqr[0] <= t.normal && t.normal <= t.iqr[1], `${f.id}: median inside its IQR`);
     assert.ok(t.n >= 1 && (t.n >= 5) === !t.flag, `${f.id}: flagged iff fewer than 5`);
-    assert.equal(tempoOf(f.id, "normal"), t.normal);
-    assert.equal(tempoOf(f.id, "slow"), t.slow);
-    assert.equal(defaultBpm(f.id), t.slow);
+    assert.equal(tempoOf(f.id), t.normal);
   }
   assert.equal(Object.keys(TEMPO).length, 49);
 });
@@ -56,6 +54,6 @@ test("every fugue's tempo rests on sourced recordings", () => {
 });
 
 test("preludes keep their default; unknown pieces get 46", () => {
-  assert.equal(tempoOf("wtc1p01", "normal"), tempoOf("wtc1p01", "slow"));
-  assert.equal(defaultBpm("nope"), 46);
+  assert.equal(tempoOf("wtc1p01"), 44);
+  assert.equal(tempoOf("nope"), 46);
 });
