@@ -531,6 +531,7 @@ export class ProtoGame {
     const ch = this.chip;
     this.now = this.tickAt(ch.heard());
     this.pedalStep();
+    this.arcCues();
     // D252, LIFT: the doublings as the music grows (a 4′ from a quarter of the way, a 16′ from two thirds).
     if (this.arc?.lift) {
       const l = liftAt(this.f, this.arc, this.now + this.tps * 0.5);
@@ -1605,6 +1606,29 @@ export class ProtoGame {
     p.from = null;
     return true;
   }
+  /**
+   * D252: each new thing announced as it first comes (one new mechanic at a time, taught where it
+   * begins): the lower row, a beat before its first note; the left hand, a bar before it joins.
+   */
+  private arcCues() {
+    if (!this.arc || this.o.wait) return;
+    const ahead = (on: number, by: number) => on - this.now <= by && on >= this.now;
+    if (!this.cued.has("row") && this.arc.rows && this.road) {
+      const i = this.notes.findIndex((n, j) => !n.ride && this.rowOf(j, 0) === 1);
+      if (i >= 0 && ahead(this.notes[i].on, 2 * this.beat)) {
+        this.cued.add("row");
+        this.banner = { text: "THE FIGURE AGAIN: THE LOWER ROW", at: performance.now() };
+      }
+    }
+    if (!this.cued.has("hands") && this.hands) {
+      const first = this.tracks[1].notes.find((n) => !n.ride);
+      if (first && ahead(first.on, this.f.barTicks)) {
+        this.cued.add("hands");
+        this.banner = { text: this.road ? "LEFT THUMB: THE LEFT HAND" : "LEFT KEYS: THE LEFT HAND", at: performance.now() };
+      }
+    }
+  }
+  private cued = new Set<string>();
   /** D250: the pedal's announcement two bars ahead, its end scored (a bonus by the share held). */
   private pedalStep() {
     const p = this.bassPedal;
