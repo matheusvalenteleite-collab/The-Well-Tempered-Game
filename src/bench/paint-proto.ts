@@ -14,7 +14,7 @@ import { AUTO } from "../touch/box-variants.ts";
 import { ARROW_PIXELS, inkOf, type Arrow } from "../touch/MusicBox.tsx";
 import { paintPiano } from "../touch/paint-piano.ts";
 import { barStart, stepName, type TouchFugue } from "../touch/fugue.ts";
-import { APPROACH_MS, type ProtoGame } from "./proto-game.ts";
+import { APPROACH_MS, PHONE_LINE, type ProtoGame } from "./proto-game.ts";
 import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
 import { CLEAN_INK, HELD_INK, LEGATO_INK } from "./articulation.ts";
 import { scaleGem, scaleHands, scaleHow, scaleInk, scaleLetter, scaleStrip } from "./paint-scale.ts";
@@ -216,8 +216,9 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   const dg = deskGeom(w, h);
   const y0 = phone ? 64 : dg.y0;
   // D208: on a phone the strike line sits higher, over two rows of pads (room for the thumbs to cross).
-  const y1 = phone ? h - 196 : dg.y1;
-  const W = phone ? w * 0.94 : dg.W;
+  // D257: taller pads, the road nearly the screen's width (the owner: "the touch areas might be too small").
+  const y1 = phone ? h - PHONE_LINE : dg.y1;
+  const W = phone ? w * 0.98 : dg.W;
   const lvl = g.o.easy ?? "timing";
   // D216, KIMIKO: the road by her time (the seconds between, not the ticks): it scrolls steadily and
   // the notes come spaced as she plays them. The far end: the tick she plays AHEAD_S from now.
@@ -711,11 +712,11 @@ function subjectCues(c: CanvasRenderingContext2D, g: ProtoGame, at: (tick: numbe
 }
 
 /** HIGHWAY's pads on a phone (D208): an upper and a lower row, the same five lanes; a pad lights where a thumb is. */
-const TIER = { top: -8, h: 64, gap: 10 };
+const TIER = { top: -8, h: 84, gap: 8 };
 function padRows(c: CanvasRenderingContext2D, g: ProtoGame, laneX: (l: number, k: number) => number, W: number, N: number, y1: number, inkOfLane: (l: number) => string, lastCol: number | undefined, t: Tok) {
   const pads = g.heldPads;
   const split = y1 + TIER.top + TIER.h + TIER.gap / 2;
-  const bw = (W / N) * 0.88;
+  const bw = (W / N) * 0.94;
   for (let row = 0; row < 2; row++) {
     const y = y1 + TIER.top + row * (TIER.h + TIER.gap);
     for (let l = 0; l < N; l++) {
@@ -741,7 +742,7 @@ function padRows(c: CanvasRenderingContext2D, g: ProtoGame, laneX: (l: number, k
     }
   }
   // D252: the pad the next note asks for (its lane and row) lit as it comes, a beat ahead; with both
-  // hands the left thumb's lanes and the right's named under the strike line.
+  // hands the left thumb's lanes and the right's named (D257: inside the lower row, clear of the hint below).
   for (let k = 0; k < (g.hands ? 2 : 1); k++) {
     const notes = g.tracks[k].notes;
     const i = notes.findIndex((n) => n.state === "pending" && !n.ride);
@@ -761,8 +762,8 @@ function padRows(c: CanvasRenderingContext2D, g: ProtoGame, laneX: (l: number, k
     const l = g.laneRegion(1);
     const r = g.laneRegion(0);
     const mid = (a: number, b: number) => (laneX(a, 1) + laneX(b, 1)) / 2;
-    label(c, "LEFT HAND", mid(l.from, l.from + l.count - 1), y1 + TIER.top + 2 * (TIER.h + TIER.gap) + 4, inkOfLane(0), 6);
-    label(c, "RIGHT HAND", mid(r.from, r.from + r.count - 1), y1 + TIER.top + 2 * (TIER.h + TIER.gap) + 4, inkOfLane(N - 1), 6);
+    label(c, "LEFT HAND", mid(l.from, l.from + l.count - 1), y1 + TIER.top + 2 * TIER.h + TIER.gap - 10, inkOfLane(0), 6);
+    label(c, "RIGHT HAND", mid(r.from, r.from + r.count - 1), y1 + TIER.top + 2 * TIER.h + TIER.gap - 10, inkOfLane(N - 1), 6);
   }
   // The strike line across the upper row's top, and the last lane ringed (both rows).
   c.fillStyle = "rgba(255,255,255,0.55)";

@@ -179,8 +179,10 @@ export function slipLoss(n: number): number {
   return Math.max(0, n - Math.max(SLIP_LOSS_MIN, Math.ceil(n / 4)));
 }
 
-/** D217: the two rows of pads meet this far (px) above the play area's foot (paint-proto.ts padRows: the strike line 196 px up). */
-export const PAD_SPLIT = 135;
+/** D217: the two rows of pads meet this far (px) above the play area's foot (paint-proto.ts padRows; D257: the strike line 216 px up, pads 84 px tall). */
+export const PAD_SPLIT = 136;
+/** D257: the phone's strike line, this far (px) above the play area's foot (paint-proto.ts: the pads under it). */
+export const PHONE_LINE = 216;
 
 export class ProtoGame {
   readonly f: TouchFugue;
@@ -387,7 +389,7 @@ export class ProtoGame {
   strettoNow(ahead = 0): Stretto | null {
     return this.line?.strettos.find((s) => s.on - ahead <= this.now && this.now < s.end) ?? null;
   }
-  /** D217: the row a touch is in (the pads' split, as painted: 135 px above the screen's foot), and the track it plays. */
+  /** D217: the row a touch is in (the pads' split, as painted: PAD_SPLIT above the screen's foot), and the track it plays. */
   private rowTrack(c: Contact, ts: number): number {
     if (!this.line || this.tracks.length < 2 || c.y < c.h - PAD_SPLIT) return 0;
     // The lower row plays the second line during a stretto; outside one, either row plays the single entry.

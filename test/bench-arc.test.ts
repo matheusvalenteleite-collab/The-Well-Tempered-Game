@@ -113,3 +113,9 @@ test("D254: under the pedal the right thumb a little over the line still plays t
   assert.equal(g.stray, stray0);
   assert.equal(g.pedals[0].id, 1, "the pedal still held");
 });
+
+test("D257: the phone's two rows of pads meet where touches are split between them", async () => {
+  const { PAD_SPLIT, PHONE_LINE } = await import("../src/bench/proto-game.ts");
+  // paint-proto.ts padRows (TIER): the strike line, less the upper row (8 px above it, 84 px tall) and half the 8 px gap.
+  assert.equal(PHONE_LINE + 8 - 84 - 4, PAD_SPLIT);
+});
