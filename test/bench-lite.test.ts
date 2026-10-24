@@ -102,7 +102,49 @@ test("D237: the pop-up: the formal title, the default voice pressed, ▶ PLAY an
   assert.doesNotMatch(html, /LEARN THIS MODE/);
   const pre = renderToStaticMarkup(createElement(PlayPop, { id: "wtc1p01", voice: 0, singing: [0, 1], setVoice: () => {}, play: () => {}, close: () => {} }));
   assert.match(pre, /BWV 846\/1 · PRELUDE IN C MAJOR/);
-  assert.match(pre, /YOUR HAND/);
+  assert.match(pre, /YOU PLAY THE RIGHT HAND/);
+});
+
+test("D251: a prelude's pop-up offers no hand to choose; the game starts on the prelude's own part, whatever was chosen before", async () => {
+  register("./tsx-hooks.mjs", import.meta.url);
+  const { createElement } = await import("react");
+  const { renderToStaticMarkup } = await import("react-dom/server");
+  const { PlayPop } = await import("../src/bench/PlayPop.tsx");
+  const { PRELUDE_PART, preludePart } = await import("../src/bench/stages.ts");
+  const pre = renderToStaticMarkup(createElement(PlayPop, { id: "wtc1p01", voice: 0, singing: [0, 1], setVoice: () => {}, play: () => {}, close: () => {} }));
+  assert.doesNotMatch(pre, /id="voice-\d"/, "no hand buttons");
+  assert.doesNotMatch(pre, /YOUR HAND|LEFT HAND/);
+  assert.match(pre, /id="pop-part"[^>]*>YOU PLAY THE RIGHT HAND</);
+  // A fugue keeps its voices.
+  const fug = renderToStaticMarkup(createElement(PlayPop, { id: "wtc1f01", voice: 1, singing: [0, 1, 2, 3], setVoice: () => {}, play: () => {}, close: () => {} }));
+  assert.match(fug, /YOUR VOICE/);
+  assert.equal(fug.match(/id="voice-\d"/g)?.length, 4);
+  // Every prelude's part is the right hand (voice 0) unless the map names another.
+  assert.deepEqual(PRELUDE_PART, {});
+  for (let n = 1; n <= 24; n++) {
+    const id = `wtc1p${String(n).padStart(2, "0")}`;
+    assert.equal(preludePart(id), 0, id);
+    const p = fugueById(id);
+    assert.equal(defaultVoice(p, voicesFrom(p, 0)), 0, id);
+  }
+  // The pick: a prelude's left hand chosen (or kept) before gives its own part; on the bench and on play.html.
+  const { APP } = await import("../src/bench/config.ts");
+  const { sane } = await import("../src/bench/BenchApp.tsx");
+  const was = { proto: "ladder", piece: "wtc1p01", voice: 1, share: 0, legato: false, her: false, mine: "on", keys: "home" } as Parameters<typeof sane>[0];
+  assert.equal(sane(was).voice, 0);
+  assert.equal(sane({ ...was, voice: -1 }).voice, 0);
+  assert.equal(sane({ ...was, share: 0.5 }).voice, 0, "from a later bar too");
+  APP.lite = true;
+  try {
+    assert.equal(sane(was).voice, 0);
+    assert.equal(sane({ ...was, voice: -1 }).voice, 0);
+  } finally {
+    APP.lite = false;
+  }
+  // A fugue's voice chosen is kept.
+  const f2 = fugueById("wtc2f01");
+  const alt = defaultVoice(f2, voicesFrom(f2, 0)) === 1 ? 0 : 1;
+  assert.equal(sane({ ...was, piece: "wtc2f01", voice: alt }).voice, alt);
 });
 
 test("D237: CONTINUE and NEXT start the game at once; a card opens the pop-up; the tutorial only with ?dev=1", () => {

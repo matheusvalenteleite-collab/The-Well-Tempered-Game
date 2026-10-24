@@ -134,7 +134,7 @@ test("the fugue map: one block per entry, in its voice's colour and row; cadence
   const inks = new Set(g.f.voices.map((_, v) => inkOf(v, 3)));
   const blocks = marks.filter((m) => m.op === "fillRect" && inks.has(m.style as string) && m.pts[1][1] <= mapBottom(3));
   assert.equal(blocks.length, g.f.entries.length, "a block per entry");
-  assert.ok(marks.some((m) => m.op === "fillText" && /^BAR \d+$/.test(m.text ?? "")), "the bar");
+  assert.ok(marks.some((m) => m.op === "fillText" && /^BAR \d+ \/ \d+$/.test(m.text ?? "")), "the bar, of how many (D251)");
 });
 
 test("D244: Fugue 1's map is built: the entries begun filled, the rest outlined (the plan)", () => {

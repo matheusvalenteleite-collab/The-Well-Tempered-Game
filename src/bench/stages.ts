@@ -10,7 +10,7 @@
  * after all the other 23. A closed tier locks prelude and fugue; the fugues beaten are kept here too.
  *
  * The modes: on a phone a prelude is played on HIGHWAY (the five-lane road with two rows of pads,
- * HIGHWAY_LANES: one hand, chosen as a voice is), its fugue on LADDER (SUBJECT withdrawn);
+ * HIGHWAY_LANES: one hand, D251: the prelude's own, not chosen), its fugue on LADDER (SUBJECT withdrawn);
  * on a computer both on the computer's HIGHWAY (keys).
  */
 import type { TouchFugue } from "../touch/fugue.ts";
@@ -145,3 +145,13 @@ export function stageMode(f: TouchFugue, platform: Platform, chosen: ProtoId): P
 export function herUnlocked(s: Stages = readStages(), feats: { earned: Partial<Record<string, string>>; done: readonly string[] } = readFeats()): boolean {
   return unlockAll() || !!feats.earned.ishizaka || beatenFugues(s, feats.done).size >= 24;
 }
+
+/**
+ * D251, no hand chosen for a prelude (the owner: "By default they can only be played with what the
+ * game gives"): the part each prelude gives its player, by id. The right hand (voice 0) for every
+ * prelude unless named here (room to give one its left hand, or another part, later).
+ */
+export const PRELUDE_PART: Readonly<Record<string, number>> = {};
+
+/** D251: the part a prelude gives (the right hand, voice 0, unless `PRELUDE_PART` names another). */
+export const preludePart = (id: string): number => PRELUDE_PART[id] ?? 0;

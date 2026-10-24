@@ -1,7 +1,7 @@
 /**
  * D237, the pop-up that replaced the title card: a small box over the cards with the piece's formal
- * title, the voice (or hand) to play, preselected (flow.ts `defaultVoice`), and a big ▶ PLAY straight
- * into the count-in; ✕ (or Escape) closes it, back to the cards.
+ * title, the voice to play, preselected (flow.ts `defaultVoice`; D251: a prelude's part named, not
+ * chosen), and a big ▶ PLAY straight into the count-in; ✕ (or Escape) closes it, back to the cards.
  */
 import { useEffect, useState, type ReactNode } from "react";
 import { fugueById } from "../touch/fugue.ts";
@@ -67,14 +67,23 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rule
           ✕
         </button>
         <h2 className="tb-pop-title">{popTitle(id)}</h2>
-        <p className="tb-pop-ask">{f.kind === "prelude" ? "YOUR HAND" : "YOUR VOICE"}</p>
-        <div className="tg-voices" role="group" aria-label="Voice">
-          {f.voiceNames.map((name, i) => (
-            <button key={name} type="button" id={`voice-${i}`} className={i === voice ? "on" : ""} style={{ color: inkOf(i, f.voices.length) }} disabled={!singing.includes(i)} onClick={() => setVoice(i)} aria-pressed={i === voice}>
-              {name.toUpperCase()}
-            </button>
-          ))}
-        </div>
+        {f.kind === "prelude" ? (
+          // D251: no hand to choose for a prelude: it is played with the part the game gives (stages.ts `preludePart`), named in one small line.
+          <p className="tb-pop-ask tb-pop-part" id="pop-part">
+            YOU PLAY THE {(f.voiceNames[voice] ?? f.voiceNames[0]).toUpperCase()}
+          </p>
+        ) : (
+          <>
+            <p className="tb-pop-ask">YOUR VOICE</p>
+            <div className="tg-voices" role="group" aria-label="Voice">
+              {f.voiceNames.map((name, i) => (
+                <button key={name} type="button" id={`voice-${i}`} className={i === voice ? "on" : ""} style={{ color: inkOf(i, f.voices.length) }} disabled={!singing.includes(i)} onClick={() => setVoice(i)} aria-pressed={i === voice}>
+                  {name.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
         {children}
         <button type="button" id="play" className="tb-play tb-pop-play" autoFocus onClick={play}>
           ▶ PLAY
