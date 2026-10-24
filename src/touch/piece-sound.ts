@@ -1,9 +1,12 @@
+import { RETIRED } from "./sound.ts";
+
 /**
  * D246: each piece's own sound (the owner: "choose a default preset for every piece, the one which
  * suits it the most"). The player's choice for a piece (the pop-up's SOUND, ⚙ SOUND) is kept for that
  * piece; this is the sound before any choice. Read by character:
  *   ORGAN: the stile antico and the ricercar, five voices, pedal points, the long learned fugues
- *     (I/1, 4, 8, 12, 16, 20, 22, 24; II/2, 5, 7, 9, 14, 22, 23).
+ *     (I/1, 4, 8, 12, 16, 20, 22, 24; II/2, 5, 7, 9, 14, 22, 23). D249: on the HARPSICHORD for now,
+ *     until the new organs exist (ROADMAP Batch 2); the sampled organ is withdrawn.
  *   STRINGS: the arioso, the sarabande, the lament, the sighing lines (I/4, 8, 12, 22 preludes).
  *   BAROQUE BAND: the concerto and the French overture, a tune over a continuo (I/5 fugue, I/10, 17,
  *     24 preludes).
@@ -21,13 +24,13 @@
 export const PIECE_SOUND: Readonly<Record<string, string>> = {
   // Book I
   wtc1p01: "harpsichordSampled",
-  wtc1f01: "organSampled",
+  wtc1f01: "harpsichordSampled",
   wtc1p02: "chipVampire",
   wtc1f02: "harpsichordSampled",
   wtc1p03: "chipPlumber",
   wtc1f03: "baroque",
   wtc1p04: "strings",
-  wtc1f04: "organSampled",
+  wtc1f04: "harpsichordSampled",
   wtc1p05: "chipBomber",
   wtc1f05: "baroque",
   wtc1p06: "chipHyrule",
@@ -35,7 +38,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p07: "carlos",
   wtc1f07: "carlos",
   wtc1p08: "strings",
-  wtc1f08: "organSampled",
+  wtc1f08: "harpsichordSampled",
   wtc1p09: "winds",
   wtc1f09: "chipPocket",
   wtc1p10: "baroque",
@@ -43,7 +46,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p11: "chipDino",
   wtc1f11: "consort",
   wtc1p12: "strings",
-  wtc1f12: "organSampled",
+  wtc1f12: "harpsichordSampled",
   wtc1p13: "bossa",
   wtc1f13: "consort",
   wtc1p14: "harpsichordSampled",
@@ -51,7 +54,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p15: "chipLight",
   wtc1f15: "chipDino",
   wtc1p16: "baroque",
-  wtc1f16: "organSampled",
+  wtc1f16: "harpsichordSampled",
   wtc1p17: "baroque",
   wtc1f17: "winds",
   wtc1p18: "consort",
@@ -59,34 +62,34 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p19: "winds",
   wtc1f19: "chipGold",
   wtc1p20: "harpsichordSampled",
-  wtc1f20: "organSampled",
+  wtc1f20: "harpsichordSampled",
   wtc1p21: "chipBlur",
   wtc1f21: "baroque",
   wtc1p22: "strings",
-  wtc1f22: "organSampled",
+  wtc1f22: "harpsichordSampled",
   wtc1p23: "winds",
   wtc1f23: "consort",
   wtc1p24: "baroque",
-  wtc1f24: "organSampled",
+  wtc1f24: "harpsichordSampled",
   // Book II
-  wtc2p01: "organSampled",
+  wtc2p01: "harpsichordSampled",
   wtc2f01: "chipPlumber",
   wtc2p02: "harpsichordSampled",
-  wtc2f02: "organSampled",
+  wtc2f02: "harpsichordSampled",
   wtc2p03: "harpsichordSampled",
   wtc2f03: "chipPocket",
   wtc2p04: "strings",
   wtc2f04: "chipVampire",
   wtc2p05: "baroque",
-  wtc2f05: "organSampled",
+  wtc2f05: "harpsichordSampled",
   wtc2p06: "chipBomber",
   wtc2f06: "harpsichordSampled",
   wtc2p07: "bossa",
-  wtc2f07: "organSampled",
+  wtc2f07: "harpsichordSampled",
   wtc2p08: "consort",
   wtc2f08: "strings",
   wtc2p09: "strings",
-  wtc2f09: "organSampled",
+  wtc2f09: "harpsichordSampled",
   wtc2p10: "harpsichordSampled",
   wtc2f10: "chipBlur",
   wtc2p11: "bossa",
@@ -96,7 +99,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc2p13: "bossa",
   wtc2f13: "winds",
   wtc2p14: "strings",
-  wtc2f14: "organSampled",
+  wtc2f14: "harpsichordSampled",
   wtc2p15: "chipLight",
   wtc2f15: "chipPocket",
   wtc2p16: "baroque",
@@ -112,16 +115,18 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc2p21: "harpsichordSampled",
   wtc2f21: "chipDino",
   wtc2p22: "strings",
-  wtc2f22: "organSampled",
+  wtc2f22: "harpsichordSampled",
   wtc2p23: "chipHyrule",
-  wtc2f23: "organSampled",
+  wtc2f23: "harpsichordSampled",
   wtc2p24: "consort",
   wtc2f24: "chipHyrule",
   // The Art of Fugue
-  "bwv1080-14": "organSampled",
+  "bwv1080-14": "harpsichordSampled",
 };
 
 /** The sound a piece opens with: the player's choice for it, else its own, else the game's default. */
 export function soundFor(id: string, chosen: Readonly<Record<string, string>>, fallback: string): string {
-  return chosen[id] ?? PIECE_SOUND[id] ?? fallback;
+  const s = chosen[id] ?? PIECE_SOUND[id] ?? fallback;
+  // D249: a choice of a withdrawn preset (the organ, kept from before) opens on its stand-in.
+  return RETIRED[s] ?? s;
 }

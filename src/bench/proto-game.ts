@@ -169,6 +169,15 @@ export interface Track {
   fresh?: Set<number>;
 }
 
+/** D249: a slip costs the streak a quarter, at least this many notes. */
+export const SLIP_LOSS_MIN = 4;
+/** D249: a second slip within this many right notes of the one before costs a multiplier step. */
+export const SLIP_NEAR = 8;
+/** D249: the streak (or combo) after a slip: a quarter lost, at least SLIP_LOSS_MIN, never below 0. */
+export function slipLoss(n: number): number {
+  return Math.max(0, n - Math.max(SLIP_LOSS_MIN, Math.ceil(n / 4)));
+}
+
 /** D217: the two rows of pads meet this far (px) above the play area's foot (paint-proto.ts padRows: the strike line 196 px up). */
 export const PAD_SPLIT = 135;
 
@@ -206,7 +215,8 @@ export class ProtoGame {
   /**
    * D181, the score (after Guitar Hero and Rock Band, Frequency, Hi-Fi Rush): a note right scores 2
    * (PERFECT) or 1 (GOOD) times the multiplier; the multiplier climbs ×1 to ×4, a step for every
-   * STEP_NOTES right in a row, and falls a step (not to ×1) on a slip. An entry of the subject played
+   * STEP_NOTES right in a row, and falls a step (not to ×1) on a slip (D249: on a second slip close to
+   * the one before). An entry of the subject played
    * through without a slip is captured: its ◆ turns gold, it scores a bonus, and ORGANO PLENO follows,
    * every note doubled in points and in sound (an octave above and below) until the next entry. A run
    * of FUOCO_NOTES right ignites CON FUOCO, the notes brighter and glowing, until a slip.
@@ -592,7 +602,6 @@ export class ProtoGame {
       missed += ons.size;
     }
     if (missed) {
-      this.combo = 0;
       for (let s = 0; s < missed; s++) this.slip();
       this.grade = { text: "MISS", at: performance.now() };
     }
@@ -924,7 +933,6 @@ export class ProtoGame {
       this.grade = { text: "✕", at: performance.now(), side: h.side, why: "time" };
       // A strike on no note is a slip, and counts against the accuracy (mashing scores nothing).
       this.stray++;
-      this.combo = 0;
       this.slip();
       // A keyboard: the key struck is heard all the same. Elsewhere (Hi-Fi Rush: every touch makes
       // music) the voice's nearest note sounds, soft and muffled, and is not used up.
@@ -998,11 +1006,20 @@ export class ProtoGame {
     return true;
   }
 
-  up(id: number, ts: number) {
+  /**
+   * A touch or key let go. D249: `cancelled` when the system took the touch back (pointercancel: an
+   * edge gesture, a sixth finger): its sound stops, but it is no release, so its end is not judged.
+   */
+  up(id: number, ts: number, cancelled = false) {
     if (this.pedalLeave(id, ts)) return;
     const h = this.held.get(id);
     if (!h) return;
     this.held.delete(id);
+    if (cancelled) {
+      h.open = false;
+      for (const sd of [...h.sounds, ...(h.fx ?? [])]) sd.stop();
+      return;
+    }
     // D218: the note's end judged as it is let go.
     if (h.open) this.judgeEnd(h, this.tickOf(ts));
     // Flicked upwards as it let go: the swoosh.
@@ -1113,7 +1130,6 @@ export class ProtoGame {
     if (this.marks.length > 400) this.marks.splice(0, 100);
     if (!v.ok) {
       for (const j of chord) Object.assign(notes[j], { state: "miss", wrong: true });
-      this.combo = 0;
       this.slip();
       this.grade = { text: "✕", at, side: h.side, why: v.why ?? "gesture" };
       return;
@@ -1125,6 +1141,7 @@ export class ProtoGame {
     this.combo++;
     this.hits++;
     this.streak++;
+    this.sinceSlip++;
     this.maxStreak = Math.max(this.maxStreak, this.streak);
     // D198: the crowd warms; a long run called out, every fifty.
     this.crowd = Math.min(1, this.crowd + (perfect ? 0.025 : 0.015));
@@ -1216,15 +1233,25 @@ export class ProtoGame {
 
 
 
-  /** A slip: the multiplier a step down, the run (and CON FUOCO) ended. */
+  /**
+   * A slip. D249 (small mistakes don't cost the whole run): the streak and the combo lose a quarter (at
+   * least SLIP_LOSS_MIN), and the multiplier falls a step only on a slip within SLIP_NEAR notes (right
+   * ones) of the slip before. CON FUOCO lasts while the streak holds FUOCO_NOTES. The feats that mean
+   * "no mistakes" count the slips themselves (`slips`, the wrong and missed notes), never the streak.
+   */
   private slip() {
     this.slips++;
     this.chain = 0;
     this.crowd = Math.max(0, this.crowd - 0.045);
-    if (this.streak >= FUOCO_NOTES) this.banner = null;
-    this.streak = 0;
-    this.mult = Math.max(1, this.mult - 1);
+    const fuoco = this.streak >= FUOCO_NOTES;
+    this.streak = slipLoss(this.streak);
+    this.combo = slipLoss(this.combo);
+    if (fuoco && this.streak < FUOCO_NOTES) this.banner = null;
+    if (this.sinceSlip < SLIP_NEAR) this.mult = Math.max(1, this.mult - 1);
+    this.sinceSlip = 0;
   }
+  /** D249: the right notes since the last slip (none yet: Infinity). */
+  private sinceSlip = Infinity;
 
   /** The entries of the subject in the voices played: captured once every note of one is played right; lost at a slip. */
   private judgeEntries() {
@@ -1288,7 +1315,8 @@ export class ProtoGame {
     const cads = this.f.cadences ?? [];
     while (this.cadenceAt < cads.length && cads[this.cadenceAt].on <= this.now) {
       const c = cads[this.cadenceAt++];
-      if (c.on < this.entry || c.on > this.end || this.streak < 4) continue;
+      // D249: the run held, four right notes at least since the last slip (the streak no longer falls to 0).
+      if (c.on < this.entry || c.on > this.end || this.streak < 4 || this.sinceSlip < 4) continue;
       this.score += 10 * this.mult;
       this.banner = { text: cadenceName(c), at: performance.now() };
     }

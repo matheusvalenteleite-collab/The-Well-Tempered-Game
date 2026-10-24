@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { SAMPLE_MANIFEST } from "../src/audio/sample-manifest.ts";
 import { BUDGET, decodedBytes, midiOfName, monoFor, nameOfMidi, nearestSample, noteInfo, notesFor, onsetOf, planFor, rateFor, SAMPLED, sampledMidis, sampleHz } from "../src/touch/sampled.ts";
-import { FAMILIES, PATCHES, presetById, sampledNow, setPreset } from "../src/touch/sound.ts";
+import { FAMILIES, PATCHES, presetById, sampledNow, setPreset, ORGAN_SAMPLED } from "../src/touch/sound.ts";
 import { fugueById } from "../src/touch/fugue.ts";
 import { hz, setTuning } from "../src/touch/tuning.ts";
 
@@ -128,14 +128,20 @@ test("D190: where a decoded recording begins (the decoder's delay measured)", ()
 
 test("D190: the sampled presets play every voice on their instrument", () => {
   const acoustic = FAMILIES.find((f) => f.name === "ACOUSTIC")!.presets;
-  for (const [id, inst] of [["harpsichordSampled", "harpsichord"], ["organSampled", "organ"]] as const) {
-    const p = presetById(id);
-    assert.equal(p.id, id);
+  {
+    const p = presetById("harpsichordSampled");
+    assert.equal(p.id, "harpsichordSampled");
     assert.ok(acoustic.includes(p));
-    for (const s of p.slots!) assert.equal(PATCHES[s].sample, inst);
-    setPreset(id);
-    assert.deepEqual(sampledNow(), [inst]);
+    for (const s of p.slots!) assert.equal(PATCHES[s].sample, "harpsichord");
+    setPreset("harpsichordSampled");
+    assert.deepEqual(sampledNow(), ["harpsichord"]);
   }
+  // D249: the organ withdrawn from the choices (kept as a preset object for the new organs).
+  assert.ok(!FAMILIES.some((f) => f.presets.some((p) => p.id === "organSampled")));
+  assert.equal(presetById("organSampled").id, "harpsichordSampled", "a stored organ opens on the harpsichord");
+  for (const s of ORGAN_SAMPLED.slots!) assert.equal(PATCHES[s].sample, "organ");
+  setPreset(ORGAN_SAMPLED);
+  assert.deepEqual(sampledNow(), ["organ"]);
   setPreset("bossa");
   assert.deepEqual(sampledNow(), []);
 });

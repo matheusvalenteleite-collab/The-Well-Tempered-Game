@@ -271,7 +271,7 @@ export const FAMILIES: { name: string; presets: Preset[] }[] = [
       { id: "consort", name: "CONSORT", slots: ["recorder", "lute", "viol", "viol", "harpsiBass"], drums: "chamber", room: 0.28 },
       // D190: recorded, every voice on the one instrument (as Bach played his fugues).
       { id: "harpsichordSampled", name: "HARPSICHORD (SAMPLED)", slots: ["harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiBassSampled"], room: 0.24 },
-      { id: "organSampled", name: "ORGAN (SAMPLED)", slots: ["organSampled", "organSampled", "organSampled", "organSampled", "organSampled"], room: 0.24 },
+      // D249: the sampled organ withdrawn until the new organs (ORGAN_SAMPLED, below, kept for them).
       // D219: the player's voice over Kimiko Ishizaka's piano (WITH KIMIKO ISHIZAKA's default): a breathy,
       // sustained baroque flute on top, a soft stopped organ flute below: no hammer, so heard apart from her.
       { id: "traverso", name: "TRAVERSO", slots: ["traverso", "traverso", "traverso", "organFlute", "organFlute"], room: 0.2 },
@@ -310,8 +310,17 @@ export const FAMILIES: { name: string; presets: Preset[] }[] = [
   },
 ];
 
+/**
+ * D249: the sampled organ, out of the players' choices (FAMILIES, PRESETS) until the new organs come
+ * (ROADMAP Batch 2); set only as a preset object (setPreset(ORGAN_SAMPLED)), by the tests.
+ */
+export const ORGAN_SAMPLED: Preset = { id: "organSampled", name: "ORGAN (SAMPLED)", slots: ["organSampled", "organSampled", "organSampled", "organSampled", "organSampled"], room: 0.24 };
+
 export const PRESETS = FAMILIES.flatMap((f) => f.presets);
-export const presetById = (id: string) => PRESETS.find((p) => p.id === id) ?? PRESETS.find((p) => p.id === "chip")!;
+/** D249: presets withdrawn, and what a stored choice of one opens as instead. */
+export const RETIRED: Readonly<Record<string, string>> = { organSampled: "harpsichordSampled" };
+/** A preset by its id (a withdrawn one's stand-in, D249; else CLASSIC CHIP). */
+export const presetById = (id: string) => PRESETS.find((p) => p.id === (RETIRED[id] ?? id)) ?? PRESETS.find((p) => p.id === "chip")!;
 
 /** Which of the five slots each of n voices takes (from the top down). */
 export function slotOf(voice: number, count: number): number {

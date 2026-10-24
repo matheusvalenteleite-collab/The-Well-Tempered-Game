@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import { installFakeAudio } from "./fake-audio.ts";
 import { Chip, type Play, type Voicing } from "../src/touch/chip.ts";
 import { FUGUES, fugueById } from "../src/touch/fugue.ts";
-import { patchFor, setPreset } from "../src/touch/sound.ts";
+import { ORGAN_SAMPLED, patchFor, setPreset, type Preset } from "../src/touch/sound.ts";
 import { startTick } from "../src/touch/voice-mode.ts";
 import { protoById } from "../src/bench/protos.ts";
 import { ProtoGame } from "../src/bench/proto-game.ts";
@@ -21,7 +21,7 @@ const ctxOf = installFakeAudio(5, true);
 type Call = { midi: number; at: number; v: Voicing; p: Play };
 
 /** A fugue played by the bench (voice `played` left to the player, who plays nothing), every chip.note logged. */
-function run(piece: string, preset: string, l: Partial<Lab>, seconds: number, played = 0) {
+function run(piece: string, preset: string | Preset, l: Partial<Lab>, seconds: number, played = 0) {
   setPreset(preset);
   setLab(l);
   const chip = new Chip();
@@ -137,17 +137,19 @@ test("the effect's layers are cheap: every node released, few more made", () => 
 });
 
 test("D221: the other seventeen Book I effects cheap too: every node released, few more made", () => {
-  const presets = ["harpsichordSampled", "chip", "strings", "organSampled"];
+  // D249: the organ, withdrawn from the choices, still played as a preset object.
+  const presets = ["harpsichordSampled", "chip", "strings", ORGAN_SAMPLED];
   const ratios: string[] = [];
   FUGUES.filter((f) => f.book === 1 && !TESTBENCH.includes(f.id)).forEach((f, i) => {
     const preset = presets[i % presets.length];
+    const pid = typeof preset === "string" ? preset : preset.id;
     const on = run(f.id, preset, {}, 60);
     const off = run(f.id, preset, { subject: false, effect: false }, 60);
     assert.ok(on.calls.length > off.calls.length, `${f.id}: layers played`);
-    assert.equal(on.left, 0, `${f.id} ${preset}: nodes left wired`);
+    assert.equal(on.left, 0, `${f.id} ${pid}: nodes left wired`);
     const ratio = on.made / off.made;
     ratios.push(`${f.id} ${ratio.toFixed(2)} (${on.wired})`);
-    assert.ok(ratio < 1.5, `${f.id} ${preset}: ${on.made} nodes against ${off.made} (${ratio.toFixed(2)})`);
+    assert.ok(ratio < 1.5, `${f.id} ${pid}: ${on.made} nodes against ${off.made} (${ratio.toFixed(2)})`);
     assert.ok(on.wired < 400, `${f.id}: at most ${on.wired} wired at once`);
   });
   if (process.env.D221_TABLE) console.log(ratios.join(" · "));
@@ -198,8 +200,9 @@ test("the player's own voice: its subject note sounds with the same emphasis and
 });
 
 test("the recorded harpsichord and organ take the colour too: one shelf, a send, a shimmer of vibrato; all released", async () => {
-  for (const preset of ["harpsichordSampled", "organSampled"]) {
-    setPreset(preset);
+  for (const p of ["harpsichordSampled", ORGAN_SAMPLED]) {
+    setPreset(p);
+    const preset = typeof p === "string" ? p : p.id;
     const chip = new Chip();
     const ctx = ctxOf();
     await chip.prepare([60]);
