@@ -137,9 +137,11 @@ export const PRELUDE_RIDE_MS = 170;
  * tempo played: a note off that grid rides if it comes less than `limit` after the note struck before
  * it; a note on it is struck. Last, of two struck notes still closer than `limit`, the earlier (off
  * the grid) rides. The first note is always struck; a chord rides or is struck whole. `pos` is a
- * tick's place in its bar (fugue.ts inBar). Returns how many onsets ride.
+ * tick's place in its bar (fugue.ts inBar). Returns how many onsets ride. D250: `limit` may vary through
+ * the piece (a prelude's arc: arc.ts), a function of the tick.
  */
-export function preludeRides(notes: LaneNote[], beat: number, ms: (a: number, b: number) => number, pos: (tick: number) => number, split: 2 | 3, limit = PRELUDE_RIDE_MS): number {
+export function preludeRides(notes: LaneNote[], beat: number, ms: (a: number, b: number) => number, pos: (tick: number) => number, split: 2 | 3, limitAt: number | ((tick: number) => number) = PRELUDE_RIDE_MS): number {
+  const lim = (on: number) => (typeof limitAt === "number" ? limitAt : limitAt(on));
   quickRides(notes, beat, ms);
   const ons = [...new Set(notes.map((n) => n.on))].sort((a, b) => a - b);
   if (ons.length < 2) return 0;
@@ -148,7 +150,7 @@ export function preludeRides(notes: LaneNote[], beat: number, ms: (a: number, b:
     let g = beat;
     for (;;) {
       const next = g === beat ? beat / split : g / 2;
-      if (!Number.isInteger(next) || next < 1 || ms(on, on + next) < limit) return g;
+      if (!Number.isInteger(next) || next < 1 || ms(on, on + next) < lim(on)) return g;
       g = next;
     }
   };
@@ -160,12 +162,12 @@ export function preludeRides(notes: LaneNote[], beat: number, ms: (a: number, b:
     // A strong note is struck (even where a fugue's rule, in an unbroken stream, would let it ride).
     if (strong(on)) (ride.delete(on), (last = on));
     else if (ride.has(on)) continue;
-    else if (ms(last, on) < limit) ride.add(on);
+    else if (ms(last, on) < lim(on)) ride.add(on);
     else last = on;
   }
   // Two struck notes still too close (an off-grid note struck just before a strong one): the earlier rides.
   const struck = ons.filter((on) => !ride.has(on));
-  for (let k = 1; k + 1 < struck.length; k++) if (ms(struck[k], struck[k + 1]) < limit && !strong(struck[k])) ride.add(struck[k]);
+  for (let k = 1; k + 1 < struck.length; k++) if (ms(struck[k], struck[k + 1]) < lim(struck[k + 1]) && !strong(struck[k])) ride.add(struck[k]);
   for (const n of notes) n.ride = ride.has(n.on);
   return ride.size;
 }

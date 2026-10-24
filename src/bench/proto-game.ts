@@ -21,7 +21,8 @@ import { echoHalves } from "./echo.ts";
 export const LADDER_ROW_MIN = 18;
 import { chordOf, laneNotes, options, preludeRides, quickRides, release, strike, sweep, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
-import { follow, phrase, ritard, type Shape } from "../touch/phrasing.ts";
+import { follow, phrase, ritard, withSpeed, type Shape } from "../touch/phrasing.ts";
+import { arcOf, lineAt, pedalSpan, stepAt, type Arc } from "./arc.ts";
 import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
 import { SubjectSound } from "../touch/subject-fx.ts";
@@ -261,6 +262,10 @@ export class ProtoGame {
     this.tps = (f.tpq * o.bpm) / 60;
     if (o.clock && o.her) (this.rit = o.clock), (this.tps = o.clock.tps), (this.clock = o.clock);
     else if (o.until === undefined || o.until >= f.length) this.rit = ritard(f.length, f.barTicks);
+    // D250: a prelude's arc (arc.ts): its tempo rising subtly, its notes passing to the player by section.
+    const arc = o.her || proto.id === "subject" ? undefined : arcOf(f);
+    this.arc = arc;
+    if (arc && !(o.clock && o.her)) this.rit = withSpeed(this.rit, (t) => lineAt(f, arc.tempo, t), f.length, f.tpq / 4);
     // D191: how far apart two ticks sound, in ms (at this tempo, the final ritard included).
     const msBetween = (a: number, c: number) => ((this.rit.warp(c) - this.rit.warp(a)) / this.tps) * 1000;
     // D214, SUBJECT: one line, the subject's notes in every entry, whichever voice (subject-line.ts).
@@ -273,7 +278,8 @@ export class ProtoGame {
         v,
       );
       // D191: the notes too quick to strike ride after the note before; D229: in a prelude, more of them (the strong notes struck; D232: its threshold by its fugue's tier).
-      if (f.kind === "prelude") preludeRides(notes, this.beat, msBetween, (t) => inBar(f, t), this.beat === f.tpq * (4 / Number(f.meter.split("/")[1])) * 3 ? 3 : 2, preludeRideMs(f.id));
+      const rideMs = preludeRideMs(f.id);
+      if (f.kind === "prelude") preludeRides(notes, this.beat, msBetween, (t) => inBar(f, t), this.beat === f.tpq * (4 / Number(f.meter.split("/")[1])) * 3 ? 3 : 2, arc ? (t: number) => rideMs * stepAt(f, arc.rides, t) : rideMs);
       else quickRides(notes, this.beat, msBetween);
       const mv = moves(notes, this.beat);
       return { voice: v, notes, moves: mv };
@@ -293,6 +299,19 @@ export class ProtoGame {
     this.anchorAt = chip.ctx.currentTime + 0.15;
     this.anchorTick = this.start;
     this.nextBeat = this.start;
+    // D250: THE PEDAL (the right hand's game only): its own lane, the figure around it, free at both ends.
+    const ps = pedalSpan(f, arc);
+    if (ps && this.tracks.length === 1 && this.tracks[0].voice === 0 && !line) {
+      this.bassPedal = { ...ps, lane: 0, id: null, from: null, held: 0, announced: false, done: false, share: 0 };
+      const t0 = this.tracks[0];
+      const fresh = new Set(t0.fresh ?? []);
+      const first = t0.notes.find((n) => n.on >= ps.on);
+      const after = t0.notes.find((n) => n.on >= ps.end);
+      if (first) fresh.add(first.on);
+      if (after) fresh.add(after.on);
+      t0.fresh = fresh;
+    }
+    if (arc?.finalChord) this.finalOn = this.tracks[0]?.notes.at(-1)?.on;
     if (line) for (const e of line.entries) this.entries.push({ voice: e.voice, k: 0, on: e.on, end: e.end, ons: e.ons, state: "open" });
     else
       this.tracks.forEach((t, k) => {
@@ -486,6 +505,7 @@ export class ProtoGame {
   step(): boolean {
     const ch = this.chip;
     this.now = this.tickAt(ch.heard());
+    this.pedalStep();
     if (this.o.wait) {
       const nx = this.next();
       const on = nx >= 0 ? this.notes[nx].on : null;
@@ -532,6 +552,9 @@ export class ProtoGame {
     while (this.nextOther < this.others.length && this.others[this.nextOther].on <= horizon) {
       const n = this.others[this.nextOther++];
       if (n.on < this.now - this.beat) continue;
+      // D250: the bass's pedal sounds only while the player holds it.
+      const bp = this.bassPedal;
+      if (bp && n.midi === bp.midi && n.on >= bp.on && n.on < bp.end && bp.id === null) continue;
       const sh = this.shapes[this.nextOther - 1];
       const len = this.timeAt(n.on + n.dur * sh.hold) - this.timeAt(n.on);
       const at = Math.max(ch.ctx.currentTime, this.timeAt(n.on) + sh.nudge);
@@ -801,6 +824,8 @@ export class ProtoGame {
 
   down(id: number, c: Contact, ts: number) {
     if (this.held.has(id)) this.up(id, ts);
+    if (this.road && this.pedalTake(id, this.laneOfX(c.x, c.w))) return;
+    this.finalStrike(id, ts);
     const d = this.dynamicAt(c);
     const h: Held = { side: c.side, k: this.line ? this.rowTrack(c, ts) : this.trackOf(c.side), x0: c.x, ax: c.x, ay: c.y, note: -1, chord: [], sounds: [], midi: 0, cell: this.cellAt(c), d0: d, trail: [{ t: ts, y: c.y }] };
     this.held.set(id, h);
@@ -813,6 +838,8 @@ export class ProtoGame {
   keyDown(id: number, k: KeyPress, ts: number) {
     // The same key again without its release (lost while the window was away): let the first go.
     if (this.held.has(id)) this.up(id, ts);
+    if (this.pedalTake(id, k.code === "KeyA" ? 0 : -1)) return;
+    this.finalStrike(id, ts);
     const d = k.velocity ?? 0.6;
     const struck = k.code;
     const h: Held = { side: k.side ?? "left", k: this.trackOf(k.side ?? "left"), x0: 0, ax: 0, ay: 0, note: -1, chord: [], sounds: [], midi: 0, cell: k.midi, d0: d, trail: [] };
@@ -972,6 +999,7 @@ export class ProtoGame {
   }
 
   up(id: number, ts: number) {
+    if (this.pedalLeave(id, ts)) return;
     const h = this.held.get(id);
     if (!h) return;
     this.held.delete(id);
@@ -1421,12 +1449,88 @@ export class ProtoGame {
     const soft = notes.map((_, i) => this.soft(i, k));
     const lanes = planLanes(mv, heads, free, this.laneCount, this.proto.id === "keys", soft);
     // D244: a figure stated twice in a prelude's bar keeps its lanes the second time.
-    this.echoMemo[k] = echoHalves(this.f, notes, mv, heads, notes.map((_, i) => heads[i] && !this.isFree(i, k) && !this.spaceGem(i, k)), lanes, this.laneCount);
+    const plain = notes.map((_, i) => heads[i] && !this.isFree(i, k) && !this.spaceGem(i, k));
+    this.echoMemo[k] = echoHalves(this.f, notes, mv, heads, plain, lanes, this.laneCount);
+    // D250: while the pedal is held in the first lane, the figure is laid in the others.
+    const bp = k === 0 ? this.bassPedal : null;
+    if (bp) {
+      const sub = planLanes(mv, heads, free, this.laneCount - 1, this.proto.id === "keys", soft);
+      const echoSub = echoHalves(this.f, notes, mv, heads, plain, sub, this.laneCount - 1);
+      const inSpan = (i: number) => notes[i].on >= bp.on && notes[i].on < bp.end;
+      notes.forEach((_, i) => {
+        if (inSpan(i)) lanes[i] = sub[i] + 1;
+      });
+      this.echoMemo[k] = new Set([...this.echoMemo[k]].filter((i) => !inSpan(i)).concat([...echoSub].filter(inSpan)));
+    }
     this.lanesMemo[k] = lanes;
     return lanes;
   }
   private lanesMemo: number[][] = [];
   private echoMemo: Set<number>[] = [];
+  /** D250: the prelude's arc (arc.ts), if it has one. */
+  readonly arc: Arc | undefined;
+  /**
+   * D250, THE PEDAL: the bass's long note held by the player in its own lane (the touch or key holding
+   * it, from when, how long held so far, the share held at its end).
+   */
+  bassPedal: { on: number; end: number; midi: number; name: string; lane: number; id: number | null; from: number | null; held: number; announced: boolean; done: boolean; share: number } | null = null;
+  /** D250: the final chord's onset (both thumbs together: a bonus), and the touches on it. */
+  private finalOn: number | undefined;
+  private finalTouches: { id: number; ts: number }[] = [];
+  /** D250: the final chord's onset while its bonus is still to win (the painter's cue). */
+  get finalCue(): number | undefined {
+    return this.finalDone ? undefined : this.finalOn;
+  }
+  private finalDone = false;
+  /** D250: a touch (key) on the pedal's lane takes the pedal: true if it did. */
+  private pedalTake(id: number, lane: number) {
+    const p = this.bassPedal;
+    if (!p || p.done || p.id !== null || lane !== p.lane || this.now < p.on - this.beat) return false;
+    // Not while a note of the figure is due in that lane (the last before the pedal).
+    const lanes = this.lanesOf(0);
+    const due = this.notes.some((n, i) => n.state === "pending" && !n.ride && lanes[i] === lane && n.on <= this.now + this.opt.early && n.on >= this.now - this.opt.late);
+    if (due) return false;
+    p.id = id;
+    p.from = Math.max(this.now, p.on);
+    return true;
+  }
+  /** D250: the pedal let go: true if this touch (key) held it. */
+  private pedalLeave(id: number, ts: number) {
+    const p = this.bassPedal;
+    if (!p || p.id !== id) return false;
+    if (p.from !== null && !p.done) p.held += Math.max(0, Math.min(this.tickOf(ts), p.end) - p.from);
+    p.id = null;
+    p.from = null;
+    return true;
+  }
+  /** D250: the pedal's announcement two bars ahead, its end scored (a bonus by the share held). */
+  private pedalStep() {
+    const p = this.bassPedal;
+    if (!p || p.done) return;
+    if (!p.announced && this.now >= p.on - 2 * this.f.barTicks) {
+      p.announced = true;
+      this.banner = { text: this.road ? `HOLD THE ${p.name} PEDAL · FIRST LANE` : `HOLD A: THE ${p.name} PEDAL`, at: performance.now() };
+    }
+    if (this.now < p.end) return;
+    if (p.from !== null) p.held += Math.max(0, p.end - p.from);
+    p.from = p.id !== null ? p.end : null;
+    p.done = true;
+    p.share = Math.min(1, p.held / Math.max(1, p.end - p.on));
+    const bonus = Math.round(40 * p.share) * this.mult;
+    this.score += bonus;
+    this.pops.push({ tick: p.end, step: 0, text: `PEDAL ${Math.round(p.share * 100)}%${bonus ? ` +${bonus}` : ""}`, at: performance.now(), gold: p.share >= 0.9 });
+  }
+  /** D250: a strike near the final chord: two touches (keys) together score its bonus. */
+  private finalStrike(id: number, ts: number) {
+    if (this.finalOn === undefined || this.finalDone || Math.abs(this.now - this.finalOn) > this.beat) return;
+    this.finalTouches = this.finalTouches.filter((x) => ts - x.ts < 150 && x.id !== id);
+    this.finalTouches.push({ id, ts });
+    if (this.finalTouches.length < 2) return;
+    this.finalDone = true;
+    const bonus = 20 * this.mult;
+    this.score += bonus;
+    this.pops.push({ tick: this.finalOn, step: 0, text: `BOTH HANDS +${bonus}`, at: performance.now(), gold: true });
+  }
   /** D247: LADDER's row for judging a touch: the box's, but no smaller than LADDER_ROW_MIN (the whole piece in the box). */
   get ladderRow(): number {
     return Math.max(this.rows?.rowH ?? LADDER_ROW_MIN, LADDER_ROW_MIN);

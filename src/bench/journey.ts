@@ -42,7 +42,7 @@ interface Script {
  */
 const SCRIPTS: Record<string, Script> = {
   wtc1p01: {
-    echo: true,
+    // D250: no hollow echo (the owner: no memory puzzles; the repeat keeps its lanes, echo.ts).
     frames: [
       [1, 0, 0, 0],
       [12, 0, 0, 0],

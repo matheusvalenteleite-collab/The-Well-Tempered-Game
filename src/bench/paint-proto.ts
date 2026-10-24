@@ -302,6 +302,32 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   // alone; the other voices run on rails on its shoulders (paint-arch.ts, from deskUnder).
   // D217, SUBJECT: a stretto's older entry (the lower row) drawn hollow, behind the main line.
   if (subj && g.tracks[1]) secondLine(c, g, at, laneX, W, N, y1, beat, t);
+  // D250, THE PEDAL: its lane lit from where it begins to where it ends, bright while held; named at its head.
+  const bp = g.bassPedal;
+  if (bp && !bp.done && bp.on - g.now < 2 * g.f.barTicks + AHEAD_S * g.tps) {
+    const near = at(Math.max(bp.on, g.now));
+    const far = at(Math.min(bp.end, ahead));
+    if (near.d <= 1 && far.d >= near.d) {
+      const ink = inkOfLane(bp.lane);
+      const held = bp.id !== null;
+      const lw0 = (W / N) * 0.36;
+      c.fillStyle = ink;
+      c.globalAlpha = held ? 0.75 : 0.32;
+      c.beginPath();
+      c.moveTo(laneX(bp.lane, near.k) - lw0 * near.k, near.y);
+      c.lineTo(laneX(bp.lane, near.k) + lw0 * near.k, near.y);
+      c.lineTo(laneX(bp.lane, far.k) + lw0 * far.k, far.y);
+      c.lineTo(laneX(bp.lane, far.k) - lw0 * far.k, far.y);
+      c.closePath();
+      c.fill();
+      c.globalAlpha = 1;
+      if (g.now < bp.on) label(c, `HOLD ${bp.name}`, laneX(bp.lane, near.k), near.y - 10, ink, Math.max(6, Math.round(9 * near.k)));
+      else label(c, held ? "PEDAL" : `HOLD ${bp.name}`, laneX(bp.lane, near.k), y1 - 14, held ? "#fff6d0" : ink, 7);
+    }
+  }
+  // D250: the final chord's cue: both thumbs (keys) together.
+  const fc = g.finalCue;
+  if (fc !== undefined && fc - g.now < 3 * g.beat && fc - g.now > -g.beat / 2) label(c, R ? "TWO KEYS TOGETHER" : "BOTH THUMBS TOGETHER", cx, y1 - 30, t.gold, 8);
   // The notes, far to near.
   const lanes = g.lanes;
   const notes = g.notes;

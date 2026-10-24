@@ -15,7 +15,7 @@ const P1 = fugueById("wtc1p01");
 const at = (bar: number) => journeyAt(P1, barStart(P1, Math.floor(bar)) + (bar % 1) * P1.barTicks);
 
 test("Prelude 1's course: shadow at the diminished sevenths, the climb on the G pedal, the summit on the C pedal", () => {
-  assert.ok(hasJourney(P1) && echoShown(P1) && builds(fugueById("wtc1f01")));
+  assert.ok(hasJourney(P1) && !echoShown(P1) && builds(fugueById("wtc1f01")), "D250: no hollow echo");
   assert.deepEqual(at(3), { shadow: 0, climb: 0, summit: 0 });
   for (const b of [12.5, 14.5, 22.5, 23.5]) assert.equal(at(b).shadow, 1, `b. ${b}`);
   assert.equal(at(19).shadow, 0);
@@ -30,7 +30,7 @@ test("the echo: a figure stated twice in a bar keeps its lanes (Prelude 1, both 
     const g = new ProtoGame(P1, 0, 0, protoById(mode), { bpm: 66, legato: false, easy: "leaps" }, chip);
     const lanes = g.lanesOf(0);
     const echo = g.echoOf(0);
-    assert.ok(echo.size >= 90, `${mode}: ${echo.size}`);
+    assert.ok(echo.size >= 70, `${mode}: ${echo.size}`); // D250: fewer struck in the opening section
     const notes = g.tracks[0].notes;
     for (const i of echo) {
       const n = notes[i];
