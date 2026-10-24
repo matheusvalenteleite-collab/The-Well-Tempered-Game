@@ -85,3 +85,31 @@ test("D250: held, the pedal sounds and scores; let go, the bass falls silent", (
     }
   }
 });
+
+test("D254: under the pedal the right thumb a little over the line still plays the right hand (no stray ✕)", () => {
+  const { g, clock } = game("highway");
+  const W = 390, H = 844;
+  const runTo = (t: number) => { while (clock.t < t - 0.02) (clock.t += 0.02), g.step(); };
+  const p = g.pedals[0];
+  runTo(g.timeAt(p.on) - 0.2);
+  g.down(1, { side: "left", x: 1.5 * W / 5, y: H - 160, w: W, h: H }, performance.now());
+  assert.equal(g.pedals[0].id, 1, "the pedal taken");
+  const t = g.tracks[0];
+  const heads = t.notes.map((n, i) => ({ n, i })).filter(({ n, i }) => !n.ride && !(i > 0 && t.notes[i - 1].on === n.on) && n.on >= p.on && n.on < p.on + 2 * P1.barTicks);
+  const stray0 = g.stray;
+  let id = 10, over = 0;
+  for (const { n, i } of heads) {
+    runTo(g.timeAt(n.on));
+    const lane = g.lanesOf(0)[i];
+    // lane 2's notes struck just left of the line, in the left hand's lane 1.
+    const x = lane === 2 ? (2 * W) / 5 - 6 : ((lane + 0.5) / 5) * W;
+    if (lane === 2) over++;
+    g.down(++id, { side: "right", x, y: g.rowOf(i, 0) ? H - 60 : H - 160, w: W, h: H }, performance.now());
+    g.step();
+    assert.notEqual(g.grade?.text, "✕", `bar note at ${n.on}`);
+    g.up(id, performance.now());
+  }
+  assert.ok(over > 0);
+  assert.equal(g.stray, stray0);
+  assert.equal(g.pedals[0].id, 1, "the pedal still held");
+});
