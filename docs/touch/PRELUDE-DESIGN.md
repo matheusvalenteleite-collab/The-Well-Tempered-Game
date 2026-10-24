@@ -147,3 +147,27 @@ each, with one tailored challenge per prelude on top (as Prelude 1's pedal).
    strong beats), or always one hand as now?
 8. **Learning load.** At most one new mechanic per prelude, taught in its first bars, or are you happy
    with more?
+
+## The owner's answers (24 October 2026)
+
+1. The ranking of experiences depends on each prelude, on what it consists in: "imagine how Bach himself
+   would decide this".
+2. Preludes upright (portrait), because the fugues are sideways: the distinction is wanted.
+3. No pitch-as-height ladder for preludes: LADDER is the fugues' alone, and the fugues will not change.
+4. Torn between one system with tailored challenges and a handful of layouts: first get the most out of
+   the highway with its two rows of five pads (ornaments on the two rows; two-thumb mechanics: the left
+   thumb the left hand, the right thumb the right hand, e.g. in Prelude 1 the bass clef and the treble);
+   if it proves interesting enough, it becomes the shared system.
+5. Not a game about harmony in a technical sense; fun first, the experience of playing the music (the
+   philosophy, ROADMAP.md).
+6. No waiting at cadenzas.
+7. Both hands where the piece invites it (not in a prelude that is all about its soprano melody, e.g.
+   10 in E minor); no choice of hand for preludes: each is played as the game gives it.
+8. One new mechanic per prelude, taught in its first bars: "EXACTLY".
+
+**On the new Prelude 1:** interesting ideas, but the music should grow more intense towards the climax
+(effects, instrument doublings at key places); the pedal was anticlimactic (a big pedal should begin to
+sound on the touch, not the same left hand as before); the visual changes too subtle (more intense, near
+psychedelic at the climax); the patterns not creative enough: track the music, change nothing where the
+music only repeats (the upper and lower rows for variety there); the player's notes should sound subtly
+distinct from the game's, so the player feels he makes the difference; a marker of how far into the piece.
