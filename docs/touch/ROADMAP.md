@@ -39,8 +39,8 @@ the sections below (instrument libraries; iPhone multi-touch; the clipping audit
 - **Tempo**: the owner suggests a subtly rising tempo. Proposal: +2% a section to +6%, held steady through
   the pedal, a ritardando into the last bar (phrasing.ts already ritards the last cadence).
 - **The close**: the final chord struck with both thumbs (keys) together.
-- **Sound**: the percussion layer of the agreed design (harpsichord: a soft tuned pulse and timpani only;
-  rising with the climb; one roll on the arrival), the player's line kept on top (EQ notch, ducking).
+- **No percussion** (the owner: none in a piece like Prelude 1; percussion only where the piece calls for it).
+- Built: D250.
 - No echo (rejected: no memory puzzles); no precision-only rule (too complex for the flow).
 
 ## Batch 2: sounds I (new instruments; the subject's colour)
@@ -191,9 +191,24 @@ repeated notes detached; dynamics by the thumb's place across the bar (phone, ex
 (computer): the subject brought out over its accompaniment, a dissonance louder than its resolution, the
 sequence's echo softer, the phrase arched to its cadence; a breath before an entry; rests clean.
 
+## Batch 8: interpretations as unlocks (tempo and more)
+
+The owner: default tempos follow Kimiko Ishizaka's; unlocks let a piece be played "through someone else's
+interpretation" (its tempo and its other constraints). Research: docs/touch/INTERPRETATIONS.md. First: the
+fugues' default tempo from Ishizaka's recording (now the median of the recordings); then per-piece factors
+from the recordings' durations (data/tempi/recordings.csv), and the rules each style imposes (Gould's
+detached touch, Tureck's strict time, Richter's legato, Landowska's registrations, Czerny's marks, Busoni's
+octaves, Mozart's string quartet).
+
+## The score scale (to assess)
+
+The owner has no settled view; after testing the new Prelude 1 he will report on difficulty. Then: what a
+grade means, how unlocks (sounds, voices, tempos) follow from it.
+
 ## Later
 
-- The Norrfjärden organ stop by stop (CC BY-SA 4.0: our derived samples released under it, credited).
+- The Norrfjärden organ stop by stop (CC BY-SA 4.0: our derived samples released under it, credited; the
+  owner agreed, 24 October 2026).
 - Book II: defaults, voices and arcs read the same way.
 - The KIMIKO track decoded without the stereo peak.
 - Three-finger play: only with the phone flat (optional, never required).
