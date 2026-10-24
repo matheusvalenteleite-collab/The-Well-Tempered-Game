@@ -2,15 +2,17 @@
  * D237, the streamlined flow (pure): the voice a pop-up offers first, and the piece ▶ NEXT plays.
  */
 import type { TouchFugue } from "../touch/fugue.ts";
+import { preludePart } from "./stages.ts";
 
 /**
- * The voice preselected: a prelude's upper hand (its first part); a fugue's voice of the first entry
+ * The voice preselected: a prelude's own part (D251: never chosen); a fugue's voice of the first entry
  * (the subject alone at the start: the clearest line to learn the piece by). Among the voices still
  * singing from the start chosen.
  */
 export function defaultVoice(f: TouchFugue, singing: readonly number[]): number {
   if (!singing.length) return 0;
-  if (f.kind === "prelude") return singing[0];
+  // D251: a prelude's own part (stages.ts `preludePart`: the right hand unless named), never chosen.
+  if (f.kind === "prelude") return singing.includes(preludePart(f.id)) ? preludePart(f.id) : singing[0];
   const first = [...f.entries].sort((a, b) => a.on - b.on).find((e) => singing.includes(e.voice));
   return first ? first.voice : singing[Math.min(1, singing.length - 1)];
 }

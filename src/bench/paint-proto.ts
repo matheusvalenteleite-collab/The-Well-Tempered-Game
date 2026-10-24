@@ -13,12 +13,13 @@ import { ornamentMark } from "../touch/ornament-play.ts";
 import { AUTO } from "../touch/box-variants.ts";
 import { ARROW_PIXELS, inkOf, type Arrow } from "../touch/MusicBox.tsx";
 import { paintPiano } from "../touch/paint-piano.ts";
-import { stepName } from "../touch/fugue.ts";
+import { barStart, stepName, type TouchFugue } from "../touch/fugue.ts";
 import { APPROACH_MS, type ProtoGame } from "./proto-game.ts";
 import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
 import { CLEAN_INK, HELD_INK, LEGATO_INK } from "./articulation.ts";
 import { scaleGem, scaleHands, scaleHow, scaleInk, scaleLetter, scaleStrip } from "./paint-scale.ts";
 import { buildMap, fugueMap, SHOULDER } from "./paint-arch.ts";
+import { arcOf, pedalSpan } from "./arc.ts";
 import { builds, echoShown, hasJourney, paintBackdrop, paintRoadLight, roadFar } from "./journey.ts";
 import { deskBegin, deskCrowd, deskEnd, deskFlare, deskGeom, deskKeys, deskOver, deskSparks, deskUnder, subjectGem, type Road } from "./paint-desk.ts";
 
@@ -51,6 +52,8 @@ export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g:
   }
   verdict(c, w, h, g, t);
   scoreboard(c, w, h, g, t);
+  // D251: how far into the piece, along the top edge.
+  progress(c, w, g, t);
 }
 
 /** D181: the score and the multiplier, the banners (ORGANO PLENO, CON FUOCO), and CON FUOCO's embers. */
@@ -1039,4 +1042,60 @@ function slurs(c: CanvasRenderingContext2D, g: ProtoGame, at: (tick: number) => 
     c.stroke();
   }
   c.globalAlpha = 1;
+}
+
+/** D251: the progress line's thickness (px). */
+export const PROGRESS_H = 3;
+
+/**
+ * D251, HOW FAR INTO THE PIECE (the owner: "the player should be able to know how far he is from the
+ * end"): a thin line along the canvas's very top edge, in every layout, the whole piece from its start
+ * to its end, filled as far as it has sounded (a practice from a later bar fills from there on); a
+ * prelude with an arc (arc.ts) has its sections as faint ticks and its pedal as a faint gold span.
+ * "BAR n / N" small under its right end (left of ✕), except over the computer's fugue map (it shows BAR n already).
+ */
+function progress(c: CanvasRenderingContext2D, w: number, g: ProtoGame, t: Tok) {
+  const f = g.f;
+  const end = Math.max(1, f.length);
+  const X = (tick: number) => Math.round((Math.max(0, Math.min(end, tick)) / end) * w);
+  const H = PROGRESS_H;
+  c.fillStyle = "rgba(255,255,255,0.10)";
+  c.fillRect(0, 0, w, H);
+  const arc = arcOf(f);
+  const ped = pedalSpan(f, arc);
+  if (ped) {
+    c.fillStyle = t.gold;
+    c.globalAlpha = 0.35;
+    c.fillRect(X(ped.on), 0, Math.max(1, X(ped.end) - X(ped.on)), H);
+  }
+  c.fillStyle = t.shine;
+  c.globalAlpha = 0.7;
+  c.fillRect(0, 0, X(g.now), H);
+  if (arc) {
+    c.fillStyle = t.fg;
+    c.globalAlpha = 0.45;
+    for (const [bar] of arc.rides) if (bar > 1) c.fillRect(X(barStart(f, bar)), 0, 1, H + 2);
+  }
+  c.globalAlpha = 1;
+  // The head: where the music is.
+  c.fillStyle = "#ffffff";
+  c.fillRect(Math.min(w - 2, X(g.now)), 0, 2, H + 1);
+  if ((g.proto.layout === "desk" && f.entries.length > 0) || !f.bars.length) return;
+  // Left of the game's ✕ (the DOM button in the top right corner).
+  label(c, `BAR ${barNumberAt(f, g.now)} / ${f.bars[f.bars.length - 1].n}`, w - 56, H + 8, t.muted, 6, "right");
+}
+
+/** D251: the number of the bar a tick falls in (the first before bar 1, the last after the end). */
+export function barNumberAt(f: Pick<TouchFugue, "bars">, tick: number): number {
+  const bars = f.bars;
+  if (!bars.length) return 1;
+  if (tick < bars[0].on) return bars[0].n;
+  let lo = 0;
+  let hi = bars.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (bars[mid].on <= tick) lo = mid;
+    else hi = mid - 1;
+  }
+  return bars[lo].n;
 }
