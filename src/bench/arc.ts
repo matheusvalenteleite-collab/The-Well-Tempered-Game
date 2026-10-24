@@ -55,7 +55,7 @@ export interface Arc {
  * Prelude 1: learn the figure (bb. 1–4, the right hand's strong notes alone), take more of it (bb. 5–11,
  * three a half bar, and the left thumb takes the bass: D252), all of it (bb. 12–23, through the
  * diminished sevenths), then the dominant pedal (bb. 24–31, G: the left thumb holds it, a big pedal
- * sounding under the figure), the tonic pedal (bb. 32–34, C: the thumb moves down to it) and the final
+ * sounding under the figure), the tonic pedal (bb. 32–34, C: D255, the same lane, the thumb held on) and the final
  * chord with both thumbs. The repeated half of every bar on the lower row (the figure stated twice).
  * The tempo rises 2% by b. 5, 4% by b. 12, 6% by b. 20, and holds through the pedal; the doublings grow
  * from b. 12 to the pedals (D252: the owner missed "the music getting more intense as it progressed to
@@ -77,7 +77,9 @@ const ARCS: Record<string, Arc> = {
       [20, 1.06],
     ],
     pedals: [
-      { from: 24, to: 32, midi: 43, name: "G", lane: 1 },
+      // D255: both in the leftmost lane: a lane between the thumbs (the second lane, beside the right
+      // hand's first, crowded the right thumb: the owner's errors there); G carries into C unmoved (D253).
+      { from: 24, to: 32, midi: 43, name: "G", lane: 0 },
       { from: 32, to: 35, midi: 36, name: "C", lane: 0 },
     ],
     finalChord: true,
