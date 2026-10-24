@@ -185,7 +185,7 @@ From Ledbetter's notes, checked against the score: pedals (2 b. 21, 3 bb. 63–9
 then dominant, 12 to b. 20, 9 in each ritornello); tempo changes honoured (2: Presto, Adagio in free
 time; 10: the Presto; 21's "adagio" is a manner, not a tempo); fermatas from the score; the climaxes he
 names (4 bb. 30–1, 8 bb. 28–35, 15 bb. 13–18, 18 b. 25, 21 bb. 11–14, 23 the last four bars); one
-challenge per prelude.
+challenge per prelude. Built: Prelude 4 (D258: the sweep; the bass's descent taken over).
 
 ## Batch 6: what the music adds when the player plays well
 

@@ -430,6 +430,14 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
       c.fillRect(x - gw * 0.35, p.y + gh * 0.75, gw * 0.7, Math.max(2, gh * 0.22));
       c.globalAlpha = 1;
     }
+    // D258, SWEEP: a spread chord: a stair of its notes rising across the gem (a slide across sounds them).
+    if (g.tracks[k].sweeps?.has(n.on) && n.state !== "miss") {
+      let size = 1;
+      while (notes[i + size]?.on === n.on) size++;
+      const sq = Math.max(3, 5.5 * p.k);
+      c.fillStyle = "#fff6d0";
+      for (let q = 0; q < size; q++) c.fillRect(x - gw * 0.4 + (q * gw * 0.8) / size, p.y - gh / 2 - sq * (1.5 + 1.2 * q), sq * 1.6, sq);
+    }
     // D205: an ornament's sign over its gem.
     const orn = g.ornaments.get(`${n.voice ?? g.voice}:${n.on}`);
     if (orn && n.state !== "miss") label(c, ornamentMark(orn), x, p.y - gh - 4 * p.k, t.gold, Math.max(6, Math.round(8 * p.k)));
