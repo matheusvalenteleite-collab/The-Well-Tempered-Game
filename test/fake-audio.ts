@@ -42,13 +42,23 @@ export class FakeNode {
     ctx.made.set(kind, (ctx.made.get(kind) ?? 0) + 1);
     ctx.nodes.add(this);
   }
+  /** D249: where it is wired to (connect, minus a disconnect from one node). */
+  targets: unknown[] = [];
   connect<T>(to: T): T {
     this.outs++;
     this.disconnected = false;
+    this.targets.push(to);
     return to;
   }
-  disconnect() {
+  disconnect(from?: unknown) {
+    // D249: from one node only (the drive unwired outside CON FUOCO): the rest stays wired.
+    if (from !== undefined) {
+      const i = this.targets.indexOf(from);
+      if (i >= 0) (this.targets.splice(i, 1), this.outs--);
+      return;
+    }
     this.outs = 0;
+    this.targets = [];
     this.disconnected = true;
     this.ctx.nodes.delete(this);
   }

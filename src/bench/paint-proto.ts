@@ -10,6 +10,7 @@
  * The verdict of the last touch flashes over the field.
  */
 import { ornamentMark } from "../touch/ornament-play.ts";
+import { AUTO } from "../touch/box-variants.ts";
 import { ARROW_PIXELS, inkOf, type Arrow } from "../touch/MusicBox.tsx";
 import { paintPiano } from "../touch/paint-piano.ts";
 import { stepName } from "../touch/fugue.ts";
@@ -60,9 +61,15 @@ function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoG
   const y = bars ? h * 0.12 : desk ? 34 : 14;
   label(c, Math.floor(g.score).toLocaleString("en"), x, y, t.fg, g.proto.id === "keys" ? 12 : 9);
   if (g.mult > 1 && !desk) label(c, `×${g.mult}`, x, y + 16, g.mult >= 4 ? t.gold : t.shine, 9);
-  if (g.pleno) label(c, "PLENO ×2", bars ? w - (w * BAR) / 2 : x, bars ? h * 0.12 : y + 32, t.gold, 7);
+  // D249: the combo (the right notes running), small and muted under the score, off the middle of the
+  // music (it shared the count-in's centre). Named, so it is not read as the multiplier.
+  const combo = g.combo >= 5 && !AUTO;
+  const cy = desk ? y + 16 : y + 28;
+  if (combo) label(c, `COMBO ${g.combo}`, x, cy, t.muted, 6);
+  const below = combo ? 12 : 0;
+  if (g.pleno) label(c, "PLENO ×2", bars ? w - (w * BAR) / 2 : x, bars ? h * 0.12 : y + 32 + below, t.gold, 7);
   // D218: the legato chain under way.
-  if (g.chain >= 2) label(c, `LEGATO ×${g.chain}`, x, bars ? h * 0.12 + 30 : desk ? y + 16 : y + (g.pleno ? 46 : 32), LEGATO_INK, 6);
+  if (g.chain >= 2) label(c, `LEGATO ×${g.chain}`, x, bars ? h * 0.12 + 30 + below : desk ? y + 16 + below : y + (g.pleno ? 46 : 32) + below, LEGATO_INK, 6);
   // CON FUOCO: embers rising along the edges while the run lasts.
   if (g.streak >= 24) {
     const now = performance.now() / 1000;
@@ -498,7 +505,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.stroke();
   }
   label(c, `×${g.mult * (g.pleno ? 2 : 1)}`, rx, ry, g.pleno ? t.gold : t.fg, 12);
-  label(c, `${g.streak}`, rx, ry + (phone ? 36 : 44), t.muted, 8);
+  // D249: the run's count is shown once, as the combo by the score (it was also here, under the ring).
   if (R) deskFlare(R, rx, ry);
   // The crowd's meter (right).
   const mx = phone ? w - 18 : cx + W / 2 + SHOULDER;
