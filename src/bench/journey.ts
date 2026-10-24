@@ -64,6 +64,24 @@ const SCRIPTS: Record<string, Script> = {
       [99, 0, 0, 0.7],
     ],
   },
+  // D258, Prelude 4 (Ledbetter: the dominant at b. 14; the build-up from b. 19, the Neapolitan at b. 24,
+  // the top at b. 25; the climax bb. 29–31, the bass down to its lowest note; home from b. 32).
+  wtc1p04: {
+    frames: [
+      [1, 0, 0, 0],
+      [18.9, 0, 0, 0],
+      [19, 0, 0.05, 0],
+      [24, 0, 0.5, 0],
+      [24.1, 0.7, 0.5, 0],
+      [24.9, 0.7, 0.55, 0],
+      [25, 0, 0.7, 0],
+      [28.9, 0, 0.8, 0],
+      [31.9, 0, 1, 0],
+      [32.25, 0, 0, 1],
+      [34, 0, 0, 0.6],
+      [99, 0, 0, 0.6],
+    ],
+  },
 };
 /** Fugues whose map is built stone by stone. */
 const BUILDS = new Set(["wtc1f01"]);

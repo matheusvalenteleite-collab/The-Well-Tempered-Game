@@ -49,6 +49,15 @@ export interface Arc {
    * two thirds.
    */
   lift?: [bar: number, level: number][];
+  /**
+   * D258, SWEEP: the right hand's chords spread upward (Ledbetter: spread "rhythmically and
+   * expressively"): where the line begins a note of a beat or more with the inner voice under it, the
+   * chord is one gem; a tap spreads it, the thumb sliding across the lanes spreads it (upward) at its
+   * own pace (a bonus).
+   */
+  sweeps?: true;
+  /** D258: the player's line handed to another voice for these bars (from, to exclusive), announced a bar ahead. */
+  takeover?: { from: number; to: number; voice: number; cue: string };
 }
 
 /**
@@ -98,6 +107,46 @@ const ARCS: Record<string, Arc> = {
       [34, 0.7],
     ],
   },
+};
+
+/**
+ * Prelude 4 (D258), a siciliano (Ledbetter: cantabile, sonata shape): the sung line, its long notes
+ * held; THE SWEEP (one new mechanic, from b. 1): the chords under the line spread upward by the thumb;
+ * more of the line as it goes (the dominant b. 14; the build-up from b. 19 to the top at b. 25); THE
+ * CLIMAX (bb. 29–31): the bass takes the siciliano down to its lowest note, and the player goes with
+ * it, then gives it back; the tempo leaning a little into the build-up and easing at the close; the
+ * doublings from b. 19 to the climax; the last chord with both thumbs.
+ */
+ARCS.wtc1p04 = {
+  rides: [
+    [1, 1.6],
+    [5, 1.3],
+    [14, 1.15],
+    [19, 1],
+    [29, 1.5],
+    [32, 1],
+    [33, 1.3],
+  ],
+  tempo: [
+    [1, 1],
+    [19, 1],
+    [25, 1.03],
+    [29, 1.03],
+    [33, 1],
+  ],
+  finalChord: true,
+  sweeps: true,
+  takeover: { from: 29, to: 32, voice: 3, cue: "THE BASS TAKES THE TUNE: GO DOWN WITH IT" },
+  lift: [
+    [1, 0],
+    [18, 0],
+    [21, 0.25],
+    [25, 0.6],
+    [29, 0.8],
+    [31, 1],
+    [33, 0.35],
+    [39, 0.3],
+  ],
 };
 
 export const arcOf = (f: TouchFugue): Arc | undefined => ARCS[f.id];

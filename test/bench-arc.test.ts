@@ -119,3 +119,60 @@ test("D257: the phone's two rows of pads meet where touches are split between th
   // paint-proto.ts padRows (TIER): the strike line, less the upper row (8 px above it, 84 px tall) and half the 8 px gap.
   assert.equal(PHONE_LINE + 8 - 84 - 4, PAD_SPLIT);
 });
+
+const P4 = fugueById("wtc1p04");
+function game4() {
+  const clock = { t: 0 };
+  const chip = {
+    ctx: { get currentTime() { return clock.t; } },
+    heard: () => clock.t,
+    note: () => ({ stop() {}, bend() {}, glide() {}, muffle() {}, dyn() {} }),
+    swoosh() {}, tick() {}, groove: () => false, chime() {},
+  } as unknown as Chip;
+  return { g: new ProtoGame(P4, 0, 0, protoById("highway"), { bpm: 88, legato: false, easy: "leaps" }, chip), clock };
+}
+
+test("D258: Prelude 4's chords under the line spread (SWEEP), from bar 1; their inner notes no longer the others'", () => {
+  const { g } = game4();
+  const sw = g.tracks[0].sweeps!;
+  assert.ok(sw.has(barStart(P4, 1) + 3 * P4.tpq), "bar 1, beat 4: C♯5 over G♯4 and E4");
+  assert.ok(sw.size >= 10);
+  for (const on of sw) {
+    const chord = g.tracks[0].notes.filter((n) => n.on === on);
+    assert.ok(chord.length >= 2 && chord[0].voice === 0 && chord.slice(1).every((n) => n.voice === 1 && n.midi < chord[0].midi));
+    for (const n of chord.slice(1)) assert.ok(!g.others.some((o) => o.voice === 1 && o.on === on && o.midi === n.midi), "not doubled");
+  }
+});
+
+test("D258: a sweep slid across the lanes sounds the chord upward and scores SWEEP; a tap spreads it by itself", () => {
+  for (const slide of [true, false]) {
+    const { g, clock } = game4();
+    const played: number[] = [];
+    (g as unknown as { chip: { note: (m: number) => unknown } }).chip.note = (m: number) => (played.push(m), { stop() {}, bend() {}, glide() {}, muffle() {}, dyn() {} });
+    const on = barStart(P4, 1) + 3 * P4.tpq;
+    const i = g.tracks[0].notes.findIndex((n) => n.on === on);
+    while (clock.t < g.timeAt(on)) (clock.t += 0.01), g.step();
+    played.length = 0;
+    const W = 390, x = ((g.lanesOf(0)[i] + 0.5) / 5) * W;
+    g.down(7, { side: "right", x, y: 700, w: W, h: 844 }, performance.now());
+    if (slide) for (let s = 1; s <= 3; s++) g.move(7, { side: "right", x: x + (s * 0.45 * W) / 5 * (x > W / 2 ? -1 : 1), y: 700, w: W, h: 844 }, performance.now());
+    else for (let s = 0; s < 30; s++) (clock.t += 0.01), g.step();
+    const chord = g.tracks[0].notes.filter((n) => n.on === on).map((n) => n.midi).sort((a, b) => a - b);
+    assert.deepEqual(played.filter((m) => chord.includes(m)).slice(0, chord.length), chord, "lowest first, upward");
+    assert.equal(g.flash?.text === "SWEEP", slide);
+  }
+});
+
+test("D258: at the climax (bb. 29–31) the right hand plays the bass's line, laid from the top lane to the bottom", () => {
+  const { g } = game4();
+  const take = g.take!;
+  assert.equal(take.on, barStart(P4, 29));
+  const t = g.tracks[0];
+  const span = t.notes.map((n, i) => ({ n, i })).filter(({ n }) => n.on >= take.on && n.on < take.end && !n.ride);
+  assert.ok(span.length > 6 && span.every(({ n }) => n.voice === 3));
+  const lanes = span.map(({ i }) => g.lanesOf(0)[i]);
+  assert.equal(lanes[0], 4);
+  assert.equal(Math.min(...lanes), 0);
+  assert.ok(!g.others.some((o) => o.voice === 3 && o.on >= take.on && o.on < take.end), "the bass not doubled");
+  assert.ok(g.others.some((o) => o.voice === 0 && o.on >= take.on && o.on < take.end), "the melody plays itself meanwhile");
+});
