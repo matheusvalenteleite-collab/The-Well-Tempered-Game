@@ -810,17 +810,18 @@ export class ProtoGame {
         // D207: EASY on a phone: the lane tapped, judged as the keys are (D187), by lanes.
         const lvl = this.o.easy ?? "timing";
         if (lvl === "timing" || this.isFree(i, k)) return { ok: true };
-        if (lvl === "exact") return this.laneOfX(c.x, c.w) === this.lanesOf(k)[i] ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
+        // D254: with both hands a touch over the line counts as its hand's nearest lane.
+        const r = this.hands ? this.laneRegion(k) : { from: 0, count: this.laneCount };
+        const lane = this.handLane(k, this.laneOfX(c.x, c.w));
+        if (lvl === "exact") return lane === this.lanesOf(k)[i] ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
         // D217: each row (SUBJECT's two lines in a stretto) judged from its own last lane.
         const last = this.line || this.hands ? this.laneBy[k] : this.lastLane;
         // D239: the planned lane, or only the right way from the last. D252: the row too, where the
         // arc asks for rows (the repeat on the lower row): the wrong row is only the right way.
-        const lane = this.laneOfX(c.x, c.w);
         const rowRight = !this.arc?.rows || (c.y >= c.h - PAD_SPLIT ? 1 : 0) === this.rowOf(i, k);
         const graded: Verdict = { ok: true, lane: lane === this.lanesOf(k)[i] && rowRight ? "exact" : "relative", at: lane };
         // D252: the planned lane is always right (a hand's few lanes cannot always skip one for a leap).
         if (last < 0 || lane === this.lanesOf(k)[i]) return graded;
-        const r = this.hands ? this.laneRegion(k) : { from: 0, count: this.laneCount };
         return laneOk(m, last - r.from, lane - r.from, lvl === "leaps", r.count) ? graded : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
       }
     }
@@ -875,11 +876,11 @@ export class ProtoGame {
     if (this.road && this.pedalTake(id, this.laneOfX(c.x, c.w))) return;
     this.finalStrike(id, ts);
     const d = this.dynamicAt(c);
-    const h: Held = { side: c.side, k: this.line ? this.rowTrack(c, ts) : this.hands && this.road ? this.laneTrack(this.laneOfX(c.x, c.w)) : this.trackOf(c.side), x0: c.x, ax: c.x, ay: c.y, note: -1, chord: [], sounds: [], midi: 0, cell: this.cellAt(c), d0: d, trail: [{ t: ts, y: c.y }] };
+    const h: Held = { side: c.side, k: this.line ? this.rowTrack(c, ts) : this.hands && this.road ? this.touchTrack(this.laneOfX(c.x, c.w), ts) : this.trackOf(c.side), x0: c.x, ax: c.x, ay: c.y, note: -1, chord: [], sounds: [], midi: 0, cell: this.cellAt(c), d0: d, trail: [{ t: ts, y: c.y }] };
     this.held.set(id, h);
     this.strikeWith(id, h, ts, { c }, d);
     // HIGHWAY: where the hand is now.
-    if (this.road) (this.lastLane = this.laneBy[h.k] = this.laneOfX(c.x, c.w)), (this.touchW = c.w);
+    if (this.road) (this.lastLane = this.laneBy[h.k] = this.handLane(h.k, this.laneOfX(c.x, c.w))), (this.touchW = c.w);
   }
 
   /** A computer key or a MIDI key goes down. */
@@ -1562,6 +1563,29 @@ export class ProtoGame {
   private laneTrack(lane: number): number {
     return this.hands && lane < this.laneRegion(0).from ? 1 : 0;
   }
+  /**
+   * D254: the hand a touch plays (both hands, a phone): its lane's hand, but a touch in either lane by
+   * the line between the hands goes to the other hand where only that one has a note due (the right
+   * thumb beside the held pedal, a thumb a little over the line: a stray ✕ before, the owner's "errors"
+   * tapping "at the right place").
+   */
+  private touchTrack(lane: number, ts: number): number {
+    const k = this.laneTrack(lane);
+    const split = this.laneRegion(0).from;
+    if (lane !== split - 1 && lane !== split) return k;
+    return !this.dueAt(k, ts) && this.dueAt(1 - k, ts) ? 1 - k : k;
+  }
+  /** D254: a lane as a hand plays it (both hands: its own nearest lane). */
+  private handLane(k: number, lane: number): number {
+    if (!this.hands) return lane;
+    const r = this.laneRegion(k);
+    return Math.min(r.from + r.count - 1, Math.max(r.from, lane));
+  }
+  /** D254: a hand has a note to strike within the window about now. */
+  private dueAt(k: number, ts: number): boolean {
+    const tk = this.tickOf(ts);
+    return !!this.tracks[k]?.notes.some((n) => n.state === "pending" && !n.ride && tk >= n.on - this.opt.early && tk <= n.on + this.opt.late);
+  }
   /** D252: the row a note asks for (rows: the repeat of a figure within its bar on the lower row, 1), else 0. */
   rowOf(i: number, k = 0): 0 | 1 {
     if (!this.arc?.rows || !this.road || !this.tracks[k]) return 0;
@@ -1595,12 +1619,19 @@ export class ProtoGame {
   private pedalTake(id: number, lane: number) {
     const p = this.bassPedal;
     // D253: with both hands any of the left hand's lanes takes the pedal (its own lane is only shown).
-    const onIt = this.hands ? lane >= 0 && this.laneTrack(lane) === 1 : lane === p?.lane;
+    // D254: or the right hand's first lane, by the line, while no right-hand note is due.
+    const onIt = this.hands ? lane >= 0 && lane <= this.laneRegion(0).from : lane === p?.lane;
+    // D254: a second touch on the left hand's lanes while the pedal is held takes it over (the thumb moved
+    // down to C): in the far lane, or by the line where the right hand has nothing due (else it is the right thumb's).
+    if (p && this.hands && p.id !== null && lane >= 0 && this.laneTrack(lane) === 1 && (lane < this.laneRegion(0).from - 1 || !this.dueAt(0, performance.now()))) {
+      p.id = id;
+      return true;
+    }
     if (!p || p.done || p.id !== null || !onIt || this.now < p.on - this.beat) return false;
-    // Not while a note is due in that lane (the last before the pedal).
+    // Not while a note is due in that lane (the last before the pedal; D254: the right hand's, in any lane).
     const k = this.laneTrack(lane);
     const lanes = this.lanesOf(k);
-    const due = this.tracks[k].notes.some((n, i) => n.state === "pending" && !n.ride && lanes[i] === lane && n.on <= this.now + this.opt.early && n.on >= this.now - this.opt.late);
+    const due = this.tracks[k].notes.some((n, i) => n.state === "pending" && !n.ride && (k === 0 && this.hands ? true : lanes[i] === lane) && n.on <= this.now + this.opt.early && n.on >= this.now - this.opt.late);
     if (due) return false;
     this.startPedal(p, id);
     return true;
