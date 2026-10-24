@@ -1,5 +1,19 @@
 # The touch game: what comes next, in batches (24 October 2026)
 
+## The philosophy (the owner, 24 October 2026)
+
+"The philosophy behind this game is to allow anyone to rejoice in the indescribable experience of
+playing Bach's polyphonic music." Not a game about harmony in a technical sense: it ought to be fun, and
+to give the experience of playing the music: "one ought to feel those special things one feels when
+practicing a Bach piece. One will live those special episodes of figuring out something in a piece after
+playing for some time. One will rejoice in the beauty of some intervals and dissonances. One will feel the
+shapes and contours of pieces. One will see how the material often derives from a common source being
+developed and transformed. One will feel musical upon playing, given that one's moves reflect the music,
+and ought to be done with musicality (legato in the right places, articulation, shaping the voice,
+voicing, dynamics…)." What a prelude asks of the player is decided piece by piece, as Bach would: by
+what the prelude consists in. Preludes are played upright (portrait), fugues sideways: the difference is
+wanted. The fugues' LADDER stays theirs alone; the fugues are not to change.
+
 The owner's requests of 24 October 2026, sorted into batches. Nothing here is built until a batch is
 started; each batch ends with tests, a decision row (DECISIONS.md) and a deploy. Research behind it:
 docs/touch/LEDBETTER-PRELUDES.md (Ledbetter on each Book I piece), and the three reports summarised in
@@ -197,8 +211,10 @@ The owner: default tempos follow Kimiko Ishizaka's; unlocks let a piece be playe
 interpretation" (its tempo and its other constraints). Research: docs/touch/INTERPRETATIONS.md. First: the
 fugues' default tempo from Ishizaka's recording (now the median of the recordings); then per-piece factors
 from the recordings' durations (data/tempi/recordings.csv), and the rules each style imposes (Gould's
-detached touch, Tureck's strict time, Richter's legato, Landowska's registrations, Czerny's marks, Busoni's
-octaves, Mozart's string quartet).
+detached touch, Tureck's strict time, Richter's legato, Landowska's registrations, Busoni's octaves,
+Mozart's string quartet). The owner (24 October 2026): no Czerny; performers named, with their photos and
+a short biography (photos from free sources only, e.g. Wikimedia Commons with their licences credited).
+Later: the basics first.
 
 ## The score scale (to assess)
 

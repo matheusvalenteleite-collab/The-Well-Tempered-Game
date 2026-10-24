@@ -123,7 +123,7 @@ function save(key: string, value: unknown) {
   }
 }
 
-function sane(p: Pick): Pick {
+export function sane(p: Pick): Pick {
   const known = fugueById(p.piece).id === p.piece ? p.piece : DEFAULT.piece;
   // D229: Book I's preludes are stage 1 (stages.ts); a locked fugue gives its prelude; Book II's preludes still give their fugues.
   const pair = paired(known) && isPrelude(known) ? known : fugueOnly(known);
@@ -132,8 +132,9 @@ function sane(p: Pick): Pick {
   const f = fugueById(piece);
   const share = Math.min(0.99, Math.max(0, p.share || 0));
   const singing = voicesFrom(f, startTick(f, share));
-  // D237: a prelude's upper hand by default; a fugue's voice of the first entry (flow.ts).
-  const voice = singing.includes(p.voice) ? p.voice : defaultVoice(f, singing);
+  // D237: a fugue's voice of the first entry by default (flow.ts). D251: a prelude always its own part
+  // (stages.ts `preludePart`), whatever was chosen or kept before.
+  const voice = f.kind !== "prelude" && singing.includes(p.voice) ? p.voice : defaultVoice(f, singing);
   // D219: a stored mode withdrawn (HIGHWAY, TWO VOICES, KIMIKO on a phone) falls back to LADDER; a stored KIMIKO as LADDER WITH KIMIKO.
   const was = p.proto as string;
   const proto = PROTOS.some((x) => x.id === was) ? p.proto : DEFAULT.proto;

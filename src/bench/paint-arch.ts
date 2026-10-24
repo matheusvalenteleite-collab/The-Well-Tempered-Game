@@ -301,7 +301,8 @@ export function deskMap(r: Road) {
   const bars = g.f.bars;
   if (a.bar >= bars.length || (a.bar > 0 && bars[a.bar].on > g.now)) a.bar = 0;
   while (a.bar + 1 < bars.length && bars[a.bar + 1].on <= g.now) a.bar++;
-  label(c, `BAR ${bars[a.bar]?.n ?? 1}`, x0 + mw + 10, MAP_TOP + (m.rows * ROW) / 2, t.muted, 6, "left");
+  // D251: and of how many (the progress line along the top edge leaves the bar to this map here).
+  label(c, `BAR ${bars[a.bar]?.n ?? 1} / ${bars[bars.length - 1]?.n ?? 1}`, x0 + mw + 10, MAP_TOP + (m.rows * ROW) / 2, t.muted, 6, "left");
 }
 
 /**

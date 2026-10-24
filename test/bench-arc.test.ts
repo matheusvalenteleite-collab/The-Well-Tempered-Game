@@ -40,16 +40,28 @@ test("D250: the tempo rises 6% by b. 20 and holds through the pedal", () => {
   assert.ok(ratio > 1.04 && ratio < 1.07, String(ratio));
 });
 
-test("D250: the pedal has its own lane; the figure keeps to the others", () => {
+test("D252: both hands: the left thumb's lanes and pedals, the right thumb's figure in its own lanes", () => {
   for (const mode of ["highway", "keys"] as const) {
     const { g } = game(mode);
-    assert.ok(g.bassPedal && g.bassPedal.lane === 0);
-    const lanes = g.lanesOf(0);
-    g.notes.forEach((n, i) => {
-      if (!n.ride && n.on >= g.bassPedal!.on && n.on < g.bassPedal!.end) assert.notEqual(lanes[i], 0, `${mode} note at ${n.on}`);
-    });
+    assert.ok(g.hands && g.tracks.length === 2 && g.tracks[1].voice === 1);
+    const left = g.laneRegion(1);
+    const right = g.laneRegion(0);
+    assert.deepEqual(g.pedals.map((p) => p.name), ["G", "C"]);
+    for (const p of g.pedals) assert.ok(p.lane >= left.from && p.lane < left.from + left.count, `${mode}: pedal ${p.name} in the left hand's lanes`);
+    g.lanesOf(0).forEach((l, i) => assert.ok(g.notes[i].ride || (l >= right.from && l < right.from + right.count), `${mode}: right hand note ${i} in lane ${l}`));
+    g.lanesOf(1).forEach((l, i) => assert.ok(g.tracks[1].notes[i].ride || (l >= left.from && l < left.from + left.count), `${mode}: left hand note ${i} in lane ${l}`));
+    for (const n of g.tracks[1].notes) for (const p of g.pedals) assert.ok(n.on < p.on || n.on >= p.end, "under a pedal the left hand plays itself");
+    assert.ok(!g.tracks[1].notes.some((n) => n.on < barStart(P1, 5)), "the left hand joins at b. 5");
   }
-  assert.equal(game("highway", 1).g.bassPedal, null, "the left hand plays its own pedal: no challenge");
+  assert.equal(game("highway", 1).g.bassPedal, null, "the left hand's game: no pedal challenge");
+});
+
+test("D252: the figure repeated within its bar asks for the lower row", () => {
+  const { g } = game("highway");
+  const b = barStart(P1, 15);
+  const heads = g.notes.map((n, i) => i).filter((i) => !g.notes[i].ride && g.notes[i].on >= b && g.notes[i].on < b + P1.barTicks);
+  const rows = heads.map((i) => g.rowOf(i, 0));
+  assert.deepEqual(rows, [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1]);
 });
 
 test("D250: held, the pedal sounds and scores; let go, the bass falls silent", () => {
@@ -58,7 +70,7 @@ test("D250: held, the pedal sounds and scores; let go, the bass falls silent", (
     const p = g.bassPedal!;
     let n = 0;
     while (g.now < p.on - g.beat / 4 && n++ < 100000) (clock.t += 0.02), g.step();
-    if (hold) g.keyDown(77, { code: "KeyA", side: "left" } as never, clock.t);
+    if (hold) g.keyDown(77, { code: "KeyS", side: "left" } as never, clock.t);
     const before = g.score;
     while (g.now < p.end + g.beat && n++ < 200000) (clock.t += 0.02), g.step();
     const tm = (x: number) => (g as unknown as { timeAt: (t: number) => number }).timeAt(x);

@@ -140,8 +140,48 @@ export function paintBackdrop(c: CanvasRenderingContext2D, w: number, h: number,
     c.fillStyle = g;
     c.fillRect(0, horizon - band, w, band * 1.5);
   }
+  // D252, near psychedelic at the climax (the owner: "the visual changes are too subtle... more intense,
+  // to the point of nearing psychedelic at climactic points"): rays from the horizon's middle, turning,
+  // each its own hue cycling round the wheel; a pulse on every beat; at the summit, gold rings spreading.
+  const beat = f.tpq;
+  const phase = ((tick % beat) + beat) % beat / beat;
+  const pulse = (1 - phase) ** 2;
+  const fire = Math.max(j.climb, j.summit);
+  if (fire > 0.02) {
+    const cx = w / 2;
+    const turn = (tick / (beat * 8)) * Math.PI * (0.5 + j.climb);
+    const rays = 18;
+    const reach = Math.hypot(w, h);
+    const hue0 = (tick / beat) * 12;
+    for (let r = 0; r < rays; r++) {
+      const a0 = turn + (r / rays) * Math.PI * 2;
+      const a1 = a0 + (Math.PI / rays) * (0.5 + 0.4 * fire);
+      c.fillStyle = `hsla(${((hue0 + r * (360 / rays)) % 360).toFixed(0)} 90% ${(55 + 15 * j.summit).toFixed(0)}% / ${(0.05 + 0.2 * fire + 0.12 * pulse * fire).toFixed(3)})`;
+      c.beginPath();
+      c.moveTo(cx, horizon);
+      c.lineTo(cx + Math.cos(a0) * reach, horizon + Math.sin(a0) * reach);
+      c.lineTo(cx + Math.cos(a1) * reach, horizon + Math.sin(a1) * reach);
+      c.closePath();
+      c.fill();
+    }
+    // The beat's pulse: the whole sky flashing gently brighter on each beat as it grows.
+    c.fillStyle = `rgba(255,236,190,${(0.12 * pulse * fire).toFixed(3)})`;
+    c.fillRect(0, 0, w, h);
+  }
+  if (j.summit > 0.02) {
+    const cx = w / 2;
+    for (let ring = 0; ring < 4; ring++) {
+      const age = (phase + ring) / 4;
+      const rad = 20 + age * Math.hypot(w, h) * 0.6;
+      c.strokeStyle = `rgba(255,214,110,${(0.5 * (1 - age) * j.summit).toFixed(3)})`;
+      c.lineWidth = 6 * (1 - age) + 1;
+      c.beginPath();
+      c.arc(cx, horizon, rad, 0, Math.PI * 2);
+      c.stroke();
+    }
+  }
   if (j.shadow > 0.01) {
-    c.fillStyle = `rgba(24,10,44,${(0.55 * j.shadow).toFixed(3)})`;
+    c.fillStyle = `rgba(24,10,44,${(0.7 * j.shadow).toFixed(3)})`;
     c.fillRect(0, 0, w, h);
   }
 }
@@ -153,7 +193,21 @@ export function paintBackdrop(c: CanvasRenderingContext2D, w: number, h: number,
 export function paintRoadLight(c: CanvasRenderingContext2D, w: number, horizon: number, near: number, f: TouchFugue, tick: number) {
   const j = journeyAt(f, tick);
   const mid = horizon + (near - horizon) * 0.55;
-  const glow = j.climb * 0.22 + j.summit * 0.3;
+  const glow = j.climb * 0.3 + j.summit * 0.35;
+  // D252: bands of colour running down the road with the beat as the climb grows (under the notes).
+  const fire = Math.max(j.climb, j.summit);
+  if (fire > 0.02) {
+    const beat = f.tpq;
+    const phase = ((tick % beat) + beat) % beat / beat;
+    const bands = 6;
+    for (let b = 0; b < bands; b++) {
+      const u = ((b + phase) / bands) ** 1.6;
+      const y = horizon + (near - horizon) * u;
+      const hue = ((tick / beat) * 20 + b * 60) % 360;
+      c.fillStyle = `hsla(${hue.toFixed(0)} 85% 60% / ${(0.04 + 0.14 * fire * (1 - u * 0.5)).toFixed(3)})`;
+      c.fillRect(0, y, w, Math.max(2, (near - horizon) * 0.05 * (0.3 + u)));
+    }
+  }
   if (glow > 0.01) {
     const g = c.createLinearGradient(0, horizon, 0, mid);
     g.addColorStop(0, `rgba(255,200,120,${glow.toFixed(3)})`);

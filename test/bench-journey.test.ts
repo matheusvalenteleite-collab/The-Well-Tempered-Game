@@ -41,7 +41,8 @@ test("the echo: a figure stated twice in a bar keeps its lanes (Prelude 1, both 
 });
 
 test("the echo's lanes are checked: every prelude's echoes keep the moves' directions", () => {
-  for (const f of PRELUDES.slice(0, 6)) {
+  // D252: Prelude 1 now plays both hands, each in its own lanes (bench-arc.test.ts checks those).
+  for (const f of PRELUDES.slice(1, 6)) {
     const g = new ProtoGame(f, 0, 0, protoById("highway"), { bpm: 66, legato: false, easy: "leaps" }, chip);
     const lanes = g.lanesOf(0);
     const mv = g.tracks[0].moves;

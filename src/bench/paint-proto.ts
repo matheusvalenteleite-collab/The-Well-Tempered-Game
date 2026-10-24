@@ -13,12 +13,13 @@ import { ornamentMark } from "../touch/ornament-play.ts";
 import { AUTO } from "../touch/box-variants.ts";
 import { ARROW_PIXELS, inkOf, type Arrow } from "../touch/MusicBox.tsx";
 import { paintPiano } from "../touch/paint-piano.ts";
-import { stepName } from "../touch/fugue.ts";
+import { barStart, stepName, type TouchFugue } from "../touch/fugue.ts";
 import { APPROACH_MS, type ProtoGame } from "./proto-game.ts";
 import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
 import { CLEAN_INK, HELD_INK, LEGATO_INK } from "./articulation.ts";
 import { scaleGem, scaleHands, scaleHow, scaleInk, scaleLetter, scaleStrip } from "./paint-scale.ts";
 import { buildMap, fugueMap, SHOULDER } from "./paint-arch.ts";
+import { arcOf, pedalSpan } from "./arc.ts";
 import { builds, echoShown, hasJourney, paintBackdrop, paintRoadLight, roadFar } from "./journey.ts";
 import { deskBegin, deskCrowd, deskEnd, deskFlare, deskGeom, deskKeys, deskOver, deskSparks, deskUnder, subjectGem, type Road } from "./paint-desk.ts";
 
@@ -51,6 +52,8 @@ export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g:
   }
   verdict(c, w, h, g, t);
   scoreboard(c, w, h, g, t);
+  // D251: how far into the piece, along the top edge.
+  progress(c, w, g, t);
 }
 
 /** D181: the score and the multiplier, the banners (ORGANO PLENO, CON FUOCO), and CON FUOCO's embers. */
@@ -310,8 +313,9 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   // D217, SUBJECT: a stretto's older entry (the lower row) drawn hollow, behind the main line.
   if (subj && g.tracks[1]) secondLine(c, g, at, laneX, W, N, y1, beat, t);
   // D250, THE PEDAL: its lane lit from where it begins to where it ends, bright while held; named at its head.
-  const bp = g.bassPedal;
-  if (bp && !bp.done && bp.on - g.now < 2 * g.f.barTicks + AHEAD_S * g.tps) {
+  // D252: every pedal to come (G, then C), each in its own lane.
+  for (const bp of g.pedals) {
+  if (!bp.done && bp.on - g.now < 2 * g.f.barTicks + AHEAD_S * g.tps) {
     const near = at(Math.max(bp.on, g.now));
     const far = at(Math.min(bp.end, ahead));
     if (near.d <= 1 && far.d >= near.d) {
@@ -332,15 +336,18 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
       else label(c, held ? "PEDAL" : `HOLD ${bp.name}`, laneX(bp.lane, near.k), y1 - 14, held ? "#fff6d0" : ink, 7);
     }
   }
+  }
   // D250: the final chord's cue: both thumbs (keys) together.
   const fc = g.finalCue;
   if (fc !== undefined && fc - g.now < 3 * g.beat && fc - g.now > -g.beat / 2) label(c, R ? "TWO KEYS TOGETHER" : "BOTH THUMBS TOGETHER", cx, y1 - 30, t.gold, 8);
-  // The notes, far to near.
-  const lanes = g.lanes;
-  const notes = g.notes;
-  const subject = new Set(g.entries.flatMap((e) => e.ons));
+  // The notes, far to near. D252: both hands' tracks, each in its own lanes.
+  for (let k = 0; k < (g.hands ? 2 : 1); k++) {
+  const lanes = g.lanesOf(k);
+  const notes = g.tracks[k].notes;
+  const subject = new Set(g.entries.filter((e) => e.k === k).flatMap((e) => e.ons));
   // D244: the bar's repeated half drawn hollow (a scripted prelude).
-  const echo = echoShown(g.f) ? g.echoOf(0) : null;
+  const echo = echoShown(g.f) && k === 0 ? g.echoOf(0) : null;
+  const region = g.hands ? g.laneRegion(k) : { from: 0, count: N };
   for (let i = notes.length - 1; i >= 0; i--) {
     const n = notes[i];
     if (i > 0 && notes[i - 1].on === n.on) continue;
@@ -376,11 +383,13 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     // D220: the computer's gems taller (its road is larger).
     const gh = Math.max(4, (R ? 16 : 12) * p.k);
     // D229: on a computer a repeat (SPACE) is a gem in the lane of the note before, marked SPACE.
-    const space = !!R && g.spaceGem(i);
-    if (!sc && g.isFree(i) && lvl !== "timing" && !space) {
-      // A free note: an open bar across the road.
+    const space = !!R && g.spaceGem(i, k);
+    if (!sc && g.isFree(i, k) && lvl !== "timing" && !space) {
+      // A free note: an open bar across the road (D252: across its hand's lanes).
       c.fillStyle = n.state === "miss" ? t.miss : subj ? ink : "#c78bff";
-      c.fillRect(cx - (W / 2) * p.k + 4, p.y - gh / 3, W * p.k - 8, Math.max(3, gh * 0.6));
+      const xa = laneX(region.from, p.k) - (W / N / 2) * p.k + 4;
+      const xb = laneX(region.from + region.count - 1, p.k) + (W / N / 2) * p.k - 4;
+      c.fillRect(xa, p.y - gh / 3, xb - xa, Math.max(3, gh * 0.6));
       continue;
     }
     const x = laneX(lane, p.k);
@@ -413,6 +422,13 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.fillStyle = "rgba(255,255,255,0.4)";
     c.fillRect(x - gw / 2, p.y - gh / 2, gw, Math.max(1, gh * 0.16));
     if (space) spaceMark(c, x, p.y, gw, gh, p.k, n.state === "miss");
+    // D252: a note for the lower row of pads (the figure repeated): a bar under the gem, the lower pad's sign.
+    if (g.rowOf(i, k) === 1 && n.state !== "miss") {
+      c.fillStyle = "#fff6d0";
+      c.globalAlpha = 0.85;
+      c.fillRect(x - gw * 0.35, p.y + gh * 0.75, gw * 0.7, Math.max(2, gh * 0.22));
+      c.globalAlpha = 1;
+    }
     // D205: an ornament's sign over its gem.
     const orn = g.ornaments.get(`${n.voice ?? g.voice}:${n.on}`);
     if (orn && n.state !== "miss") label(c, ornamentMark(orn), x, p.y - gh - 4 * p.k, t.gold, Math.max(6, Math.round(8 * p.k)));
@@ -424,6 +440,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
       c.strokeRect(x - lw * 0.4, p.y - gh / 2, lw * 0.8, gh);
       label(c, "★", x, p.y, "#1a1408", Math.max(6, 9 * p.k));
     }
+  }
   }
   // Fog over the far end.
   const fog = c.createLinearGradient(0, top.y, 0, top.y + (y1 - top.y) * 0.35);
@@ -723,6 +740,30 @@ function padRows(c: CanvasRenderingContext2D, g: ProtoGame, laneX: (l: number, k
       }
     }
   }
+  // D252: the pad the next note asks for (its lane and row) lit as it comes, a beat ahead; with both
+  // hands the left thumb's lanes and the right's named under the strike line.
+  for (let k = 0; k < (g.hands ? 2 : 1); k++) {
+    const notes = g.tracks[k].notes;
+    const i = notes.findIndex((n) => n.state === "pending" && !n.ride);
+    if (i < 0) continue;
+    const ahead = notes[i].on - g.now;
+    if (ahead > g.beat || ahead < -g.beat / 2) continue;
+    const lane = g.lanesOf(k)[i];
+    const row = g.rowOf(i, k);
+    const y = y1 + TIER.top + row * (TIER.h + TIER.gap);
+    c.strokeStyle = "#fff6d0";
+    c.globalAlpha = Math.max(0.15, 1 - Math.max(0, ahead) / g.beat);
+    c.lineWidth = 3;
+    c.strokeRect(laneX(lane, 1) - bw / 2 - 2, y - 2, bw + 4, TIER.h + 4);
+    c.globalAlpha = 1;
+  }
+  if (g.hands) {
+    const l = g.laneRegion(1);
+    const r = g.laneRegion(0);
+    const mid = (a: number, b: number) => (laneX(a, 1) + laneX(b, 1)) / 2;
+    label(c, "LEFT HAND", mid(l.from, l.from + l.count - 1), y1 + TIER.top + 2 * (TIER.h + TIER.gap) + 4, inkOfLane(0), 6);
+    label(c, "RIGHT HAND", mid(r.from, r.from + r.count - 1), y1 + TIER.top + 2 * (TIER.h + TIER.gap) + 4, inkOfLane(N - 1), 6);
+  }
   // The strike line across the upper row's top, and the last lane ringed (both rows).
   c.fillStyle = "rgba(255,255,255,0.55)";
   c.fillRect(laneX(0, 1) - W / N / 2, y1 - 1, W, 2);
@@ -1001,4 +1042,60 @@ function slurs(c: CanvasRenderingContext2D, g: ProtoGame, at: (tick: number) => 
     c.stroke();
   }
   c.globalAlpha = 1;
+}
+
+/** D251: the progress line's thickness (px). */
+export const PROGRESS_H = 3;
+
+/**
+ * D251, HOW FAR INTO THE PIECE (the owner: "the player should be able to know how far he is from the
+ * end"): a thin line along the canvas's very top edge, in every layout, the whole piece from its start
+ * to its end, filled as far as it has sounded (a practice from a later bar fills from there on); a
+ * prelude with an arc (arc.ts) has its sections as faint ticks and its pedal as a faint gold span.
+ * "BAR n / N" small under its right end (left of ✕), except over the computer's fugue map (it shows BAR n already).
+ */
+function progress(c: CanvasRenderingContext2D, w: number, g: ProtoGame, t: Tok) {
+  const f = g.f;
+  const end = Math.max(1, f.length);
+  const X = (tick: number) => Math.round((Math.max(0, Math.min(end, tick)) / end) * w);
+  const H = PROGRESS_H;
+  c.fillStyle = "rgba(255,255,255,0.10)";
+  c.fillRect(0, 0, w, H);
+  const arc = arcOf(f);
+  const ped = pedalSpan(f, arc);
+  if (ped) {
+    c.fillStyle = t.gold;
+    c.globalAlpha = 0.35;
+    c.fillRect(X(ped.on), 0, Math.max(1, X(ped.end) - X(ped.on)), H);
+  }
+  c.fillStyle = t.shine;
+  c.globalAlpha = 0.7;
+  c.fillRect(0, 0, X(g.now), H);
+  if (arc) {
+    c.fillStyle = t.fg;
+    c.globalAlpha = 0.45;
+    for (const [bar] of arc.rides) if (bar > 1) c.fillRect(X(barStart(f, bar)), 0, 1, H + 2);
+  }
+  c.globalAlpha = 1;
+  // The head: where the music is.
+  c.fillStyle = "#ffffff";
+  c.fillRect(Math.min(w - 2, X(g.now)), 0, 2, H + 1);
+  if ((g.proto.layout === "desk" && f.entries.length > 0) || !f.bars.length) return;
+  // Left of the game's ✕ (the DOM button in the top right corner).
+  label(c, `BAR ${barNumberAt(f, g.now)} / ${f.bars[f.bars.length - 1].n}`, w - 56, H + 8, t.muted, 6, "right");
+}
+
+/** D251: the number of the bar a tick falls in (the first before bar 1, the last after the end). */
+export function barNumberAt(f: Pick<TouchFugue, "bars">, tick: number): number {
+  const bars = f.bars;
+  if (!bars.length) return 1;
+  if (tick < bars[0].on) return bars[0].n;
+  let lo = 0;
+  let hi = bars.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (bars[mid].on <= tick) lo = mid;
+    else hi = mid - 1;
+  }
+  return bars[lo].n;
 }
