@@ -197,8 +197,10 @@ The owner: default tempos follow Kimiko Ishizaka's; unlocks let a piece be playe
 interpretation" (its tempo and its other constraints). Research: docs/touch/INTERPRETATIONS.md. First: the
 fugues' default tempo from Ishizaka's recording (now the median of the recordings); then per-piece factors
 from the recordings' durations (data/tempi/recordings.csv), and the rules each style imposes (Gould's
-detached touch, Tureck's strict time, Richter's legato, Landowska's registrations, Czerny's marks, Busoni's
-octaves, Mozart's string quartet).
+detached touch, Tureck's strict time, Richter's legato, Landowska's registrations, Busoni's octaves,
+Mozart's string quartet). The owner (24 October 2026): no Czerny; performers named, with their photos and
+a short biography (photos from free sources only, e.g. Wikimedia Commons with their licences credited).
+Later: the basics first.
 
 ## The score scale (to assess)
 
