@@ -15,23 +15,51 @@
  */
 import { barStart, type TouchFugue } from "../touch/fugue.ts";
 
+/** A pedal the player holds: from bar, to bar (exclusive), its pitch, its name, its lane (0 the leftmost). */
+export interface ArcPedal {
+  from: number;
+  to: number;
+  midi: number;
+  name: string;
+  lane?: number;
+}
+
 export interface Arc {
-  /** [bar, factor on the riding threshold] from that bar on. */
+  /** [bar, factor on the riding threshold] from that bar on (the right hand's, or the only hand's). */
   rides: [bar: number, factor: number][];
   /** [bar, factor on the tempo]: straight lines between, the last held. */
   tempo: [bar: number, speed: number][];
-  /** The bass's pedal the player holds: from bar, to bar (exclusive), its pitch and name. */
-  pedal?: { from: number; to: number; midi: number; name: string };
+  /** The bass's pedal the player holds (D250); D252: or several, one after the other. */
+  pedal?: ArcPedal;
+  pedals?: ArcPedal[];
   /** The last chord struck with two thumbs (keys) together. */
   finalChord?: true;
+  /**
+   * D252, BOTH HANDS (on a phone, two thumbs): the left hand the left thumb's, in the two leftmost lanes,
+   * the right hand the right thumb's, in the other three; [bar, factor on the left hand's riding
+   * threshold, or null: the left hand plays itself] from that bar on. Under a pedal the left hand's
+   * notes play themselves (the pedal is the left thumb's).
+   */
+  hands?: [bar: number, factor: number | null][];
+  /** D252: a figure repeated within its bar comes the second time on the lower row of pads. */
+  rows?: true;
+  /**
+   * D252, LIFT: the music growing towards its climax: [bar, 0 to 1] (straight lines between): the upper
+   * voices doubled an octave above (a 4′ coupled in) from a quarter, the bass an octave below (16′) from
+   * two thirds.
+   */
+  lift?: [bar: number, level: number][];
 }
 
 /**
- * Prelude 1: learn the figure (bb. 1–4, only its strong notes), take more of it (bb. 5–11, three a
- * half bar), all of it (bb. 12–23, through the diminished sevenths), then the dominant pedal (bb. 24–31,
- * G: one thumb holds it, the other plays three notes a half bar), the release on the tonic pedal
- * (bb. 32–35) and the final chord with both thumbs. The tempo rises 2% by b. 5, 4% by b. 12, 6% by
- * b. 20, and holds through the pedal.
+ * Prelude 1: learn the figure (bb. 1–4, the right hand's strong notes alone), take more of it (bb. 5–11,
+ * three a half bar, and the left thumb takes the bass: D252), all of it (bb. 12–23, through the
+ * diminished sevenths), then the dominant pedal (bb. 24–31, G: the left thumb holds it, a big pedal
+ * sounding under the figure), the tonic pedal (bb. 32–34, C: the thumb moves down to it) and the final
+ * chord with both thumbs. The repeated half of every bar on the lower row (the figure stated twice).
+ * The tempo rises 2% by b. 5, 4% by b. 12, 6% by b. 20, and holds through the pedal; the doublings grow
+ * from b. 12 to the pedals (D252: the owner missed "the music getting more intense as it progressed to
+ * climax").
  */
 const ARCS: Record<string, Arc> = {
   wtc1p01: {
@@ -48,8 +76,25 @@ const ARCS: Record<string, Arc> = {
       [12, 1.04],
       [20, 1.06],
     ],
-    pedal: { from: 24, to: 32, midi: 43, name: "G" },
+    pedals: [
+      { from: 24, to: 32, midi: 43, name: "G", lane: 1 },
+      { from: 32, to: 35, midi: 36, name: "C", lane: 0 },
+    ],
     finalChord: true,
+    hands: [
+      [1, null],
+      [5, 3],
+    ],
+    rows: true,
+    lift: [
+      [1, 0],
+      [12, 0],
+      [16, 0.3],
+      [20, 0.5],
+      [24, 0.8],
+      [32, 1],
+      [34, 0.7],
+    ],
   },
 };
 
@@ -78,8 +123,24 @@ export function lineAt(f: TouchFugue, pts: readonly [number, number][], tick: nu
   return prev[1];
 }
 
-/** The pedal's span in ticks, or null. */
+/** The pedal's span in ticks, or null (the first, where there are several). */
 export function pedalSpan(f: TouchFugue, arc: Arc | undefined): { on: number; end: number; midi: number; name: string } | null {
-  if (!arc?.pedal) return null;
-  return { on: barStart(f, arc.pedal.from), end: barStart(f, arc.pedal.to), midi: arc.pedal.midi, name: arc.pedal.name };
+  return pedalSpans(f, arc)[0] ?? null;
 }
+
+/** D252: every pedal's span in ticks, in order, with its lane. */
+export function pedalSpans(f: TouchFugue, arc: Arc | undefined): { on: number; end: number; midi: number; name: string; lane: number }[] {
+  const list = arc?.pedals ?? (arc?.pedal ? [arc.pedal] : []);
+  return list.map((p) => ({ on: barStart(f, p.from), end: barStart(f, p.to), midi: p.midi, name: p.name, lane: p.lane ?? 0 }));
+}
+
+/** D252: the left hand's riding factor at a tick, or null (it plays itself), where the arc has both hands. */
+export function handsAt(f: TouchFugue, arc: Arc | undefined, tick: number): number | null {
+  if (!arc?.hands) return null;
+  let v: number | null = null;
+  for (const [bar, x] of arc.hands) if (tickOfBar(f, bar) <= tick) v = x;
+  return v;
+}
+
+/** D252: the lift at a tick (0 where the arc has none). */
+export const liftAt = (f: TouchFugue, arc: Arc | undefined, tick: number): number => (arc?.lift ? lineAt(f, arc.lift, tick) : 0);

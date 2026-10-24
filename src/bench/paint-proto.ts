@@ -310,8 +310,9 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   // D217, SUBJECT: a stretto's older entry (the lower row) drawn hollow, behind the main line.
   if (subj && g.tracks[1]) secondLine(c, g, at, laneX, W, N, y1, beat, t);
   // D250, THE PEDAL: its lane lit from where it begins to where it ends, bright while held; named at its head.
-  const bp = g.bassPedal;
-  if (bp && !bp.done && bp.on - g.now < 2 * g.f.barTicks + AHEAD_S * g.tps) {
+  // D252: every pedal to come (G, then C), each in its own lane.
+  for (const bp of g.pedals) {
+  if (!bp.done && bp.on - g.now < 2 * g.f.barTicks + AHEAD_S * g.tps) {
     const near = at(Math.max(bp.on, g.now));
     const far = at(Math.min(bp.end, ahead));
     if (near.d <= 1 && far.d >= near.d) {
@@ -332,15 +333,18 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
       else label(c, held ? "PEDAL" : `HOLD ${bp.name}`, laneX(bp.lane, near.k), y1 - 14, held ? "#fff6d0" : ink, 7);
     }
   }
+  }
   // D250: the final chord's cue: both thumbs (keys) together.
   const fc = g.finalCue;
   if (fc !== undefined && fc - g.now < 3 * g.beat && fc - g.now > -g.beat / 2) label(c, R ? "TWO KEYS TOGETHER" : "BOTH THUMBS TOGETHER", cx, y1 - 30, t.gold, 8);
-  // The notes, far to near.
-  const lanes = g.lanes;
-  const notes = g.notes;
-  const subject = new Set(g.entries.flatMap((e) => e.ons));
+  // The notes, far to near. D252: both hands' tracks, each in its own lanes.
+  for (let k = 0; k < (g.hands ? 2 : 1); k++) {
+  const lanes = g.lanesOf(k);
+  const notes = g.tracks[k].notes;
+  const subject = new Set(g.entries.filter((e) => e.k === k).flatMap((e) => e.ons));
   // D244: the bar's repeated half drawn hollow (a scripted prelude).
-  const echo = echoShown(g.f) ? g.echoOf(0) : null;
+  const echo = echoShown(g.f) && k === 0 ? g.echoOf(0) : null;
+  const region = g.hands ? g.laneRegion(k) : { from: 0, count: N };
   for (let i = notes.length - 1; i >= 0; i--) {
     const n = notes[i];
     if (i > 0 && notes[i - 1].on === n.on) continue;
@@ -376,11 +380,13 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     // D220: the computer's gems taller (its road is larger).
     const gh = Math.max(4, (R ? 16 : 12) * p.k);
     // D229: on a computer a repeat (SPACE) is a gem in the lane of the note before, marked SPACE.
-    const space = !!R && g.spaceGem(i);
-    if (!sc && g.isFree(i) && lvl !== "timing" && !space) {
-      // A free note: an open bar across the road.
+    const space = !!R && g.spaceGem(i, k);
+    if (!sc && g.isFree(i, k) && lvl !== "timing" && !space) {
+      // A free note: an open bar across the road (D252: across its hand's lanes).
       c.fillStyle = n.state === "miss" ? t.miss : subj ? ink : "#c78bff";
-      c.fillRect(cx - (W / 2) * p.k + 4, p.y - gh / 3, W * p.k - 8, Math.max(3, gh * 0.6));
+      const xa = laneX(region.from, p.k) - (W / N / 2) * p.k + 4;
+      const xb = laneX(region.from + region.count - 1, p.k) + (W / N / 2) * p.k - 4;
+      c.fillRect(xa, p.y - gh / 3, xb - xa, Math.max(3, gh * 0.6));
       continue;
     }
     const x = laneX(lane, p.k);
@@ -413,6 +419,13 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.fillStyle = "rgba(255,255,255,0.4)";
     c.fillRect(x - gw / 2, p.y - gh / 2, gw, Math.max(1, gh * 0.16));
     if (space) spaceMark(c, x, p.y, gw, gh, p.k, n.state === "miss");
+    // D252: a note for the lower row of pads (the figure repeated): a bar under the gem, the lower pad's sign.
+    if (g.rowOf(i, k) === 1 && n.state !== "miss") {
+      c.fillStyle = "#fff6d0";
+      c.globalAlpha = 0.85;
+      c.fillRect(x - gw * 0.35, p.y + gh * 0.75, gw * 0.7, Math.max(2, gh * 0.22));
+      c.globalAlpha = 1;
+    }
     // D205: an ornament's sign over its gem.
     const orn = g.ornaments.get(`${n.voice ?? g.voice}:${n.on}`);
     if (orn && n.state !== "miss") label(c, ornamentMark(orn), x, p.y - gh - 4 * p.k, t.gold, Math.max(6, Math.round(8 * p.k)));
@@ -424,6 +437,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
       c.strokeRect(x - lw * 0.4, p.y - gh / 2, lw * 0.8, gh);
       label(c, "★", x, p.y, "#1a1408", Math.max(6, 9 * p.k));
     }
+  }
   }
   // Fog over the far end.
   const fog = c.createLinearGradient(0, top.y, 0, top.y + (y1 - top.y) * 0.35);
@@ -722,6 +736,30 @@ function padRows(c: CanvasRenderingContext2D, g: ProtoGame, laneX: (l: number, k
         c.globalAlpha = 1;
       }
     }
+  }
+  // D252: the pad the next note asks for (its lane and row) lit as it comes, a beat ahead; with both
+  // hands the left thumb's lanes and the right's named under the strike line.
+  for (let k = 0; k < (g.hands ? 2 : 1); k++) {
+    const notes = g.tracks[k].notes;
+    const i = notes.findIndex((n) => n.state === "pending" && !n.ride);
+    if (i < 0) continue;
+    const ahead = notes[i].on - g.now;
+    if (ahead > g.beat || ahead < -g.beat / 2) continue;
+    const lane = g.lanesOf(k)[i];
+    const row = g.rowOf(i, k);
+    const y = y1 + TIER.top + row * (TIER.h + TIER.gap);
+    c.strokeStyle = "#fff6d0";
+    c.globalAlpha = Math.max(0.15, 1 - Math.max(0, ahead) / g.beat);
+    c.lineWidth = 3;
+    c.strokeRect(laneX(lane, 1) - bw / 2 - 2, y - 2, bw + 4, TIER.h + 4);
+    c.globalAlpha = 1;
+  }
+  if (g.hands) {
+    const l = g.laneRegion(1);
+    const r = g.laneRegion(0);
+    const mid = (a: number, b: number) => (laneX(a, 1) + laneX(b, 1)) / 2;
+    label(c, "LEFT HAND", mid(l.from, l.from + l.count - 1), y1 + TIER.top + 2 * (TIER.h + TIER.gap) + 4, inkOfLane(0), 6);
+    label(c, "RIGHT HAND", mid(r.from, r.from + r.count - 1), y1 + TIER.top + 2 * (TIER.h + TIER.gap) + 4, inkOfLane(N - 1), 6);
   }
   // The strike line across the upper row's top, and the last lane ringed (both rows).
   c.fillStyle = "rgba(255,255,255,0.55)";

@@ -152,7 +152,13 @@ export interface Play {
   detune?: number;
   /** D223: where the note joins the sound in place of its bus (a Gate's node: BLUETOOTH MODE's armed notes). */
   into?: AudioNode;
+  /** D252: false: not doubled by the coupling (the coupling's own notes). */
+  couple?: boolean;
 }
+
+/** D252: the player's own notes a little brighter (a high shelf, dB) and a little louder: the player hears himself. */
+export const MINE_TONE = 2.5;
+export const MINE_LEVEL = 1.12;
 
 /**
  * D223, BLUETOOTH MODE: a level the player's notes sounded ahead pass through: soft while armed,
@@ -374,7 +380,33 @@ export class Chip {
   }
 
   /** A note from `at` for `dur` seconds; stop() cuts it short (the thumb let go). */
+  /**
+   * D252, the coupling (a prelude's LIFT, arc.ts): notes from `split` up doubled an octave above at `up`
+   * (a 4′), notes below it an octave below at `down` (a 16′); 0 off. Set by the game as the music grows.
+   */
+  coupling = { up: 0, down: 0, split: 48 };
+
   note(midi: number, at: number, dur: number, v: Voicing, p: Play = {}): Sounding {
+    // D252: the player's own a touch brighter and louder.
+    if (p.lead && p.couple !== false) p = { ...p, tone: (p.tone ?? 0) + MINE_TONE, level: (p.level ?? 1) * MINE_LEVEL };
+    const c = this.coupling;
+    const g = p.couple === false ? 0 : midi >= c.split ? c.up : c.down;
+    if (g > 0.01) {
+      const main = this.single(midi, at, dur, v, p);
+      const twin = this.single(midi >= c.split ? midi + 12 : midi - 12, at, dur, v, { ...p, couple: false, level: (p.level ?? 1) * g });
+      const both = [main, twin];
+      return {
+        stop: (t) => both.forEach((x) => x.stop(t)),
+        bend: (cents) => both.forEach((x) => x.bend(cents)),
+        glide: (m) => (main.glide?.(m), twin.glide?.(m + (midi >= c.split ? 12 : -12))),
+        muffle: () => both.forEach((x) => x.muffle?.()),
+        dyn: (l) => both.forEach((x) => x.dyn?.(l)),
+      };
+    }
+    return this.single(midi, at, dur, v, p);
+  }
+
+  private single(midi: number, at: number, dur: number, v: Voicing, p: Play): Sounding {
     // D210: within the cap (the oldest let go first), and every node disconnected once the note has ended.
     const t = Math.max(at, this.ctx.currentTime);
     this.makeRoom(t);

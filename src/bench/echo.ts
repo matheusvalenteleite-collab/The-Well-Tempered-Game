@@ -59,3 +59,21 @@ export function echoHalves(f: TouchFugue, notes: LaneNote[], moves: Move[], head
   }
   return echo;
 }
+
+/**
+ * D252: the notes of every half bar whose struck notes repeat the first half's (the same pitches at the
+ * same places), whatever their lanes: a prelude's rows (arc.ts `rows`: the repeat on the lower row).
+ */
+export function repeatHalves(f: TouchFugue, notes: LaneNote[], heads: boolean[]): Set<number> {
+  const out = new Set<number>();
+  if (f.kind !== "prelude") return out;
+  const half = f.barTicks / 2;
+  const struck = (from: number, to: number) => notes.map((_, i) => i).filter((i) => heads[i] && notes[i].on >= from && notes[i].on < to);
+  for (const b of f.bars) {
+    const one = struck(b.on, b.on + half);
+    const two = struck(b.on + half, b.on + 2 * half);
+    if (!one.length || one.length !== two.length) continue;
+    if (one.every((i, k) => notes[i].midi === notes[two[k]].midi && notes[i].on - b.on === notes[two[k]].on - b.on - half)) for (const i of two) out.add(i);
+  }
+  return out;
+}

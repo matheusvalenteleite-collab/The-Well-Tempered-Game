@@ -16,13 +16,14 @@ import type { Burst, Pop } from "../touch/box-fx.ts";
 import { isPhone, voicing, type Chip, type Gate, type Play, type Sounding } from "../touch/chip.ts";
 import type { Grade } from "../touch/engine.ts";
 import { barAt, beatOf, cadenceName, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
-import { echoHalves } from "./echo.ts";
+import { echoHalves, repeatHalves } from "./echo.ts";
 /** D247: the smallest row (CSS px) LADDER judges a touch by (the voice's range filled rows of about 18 to 24). */
 export const LADDER_ROW_MIN = 18;
 import { chordOf, laneNotes, options, preludeRides, quickRides, release, strike, sweep, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
 import { follow, phrase, ritard, withSpeed, type Shape } from "../touch/phrasing.ts";
-import { arcOf, lineAt, pedalSpan, stepAt, type Arc } from "./arc.ts";
+import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
+import { PATCHES } from "../touch/sound.ts";
 import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
 import { SubjectSound } from "../touch/subject-fx.ts";
@@ -265,6 +266,7 @@ export class ProtoGame {
     this.subj = new SubjectSound(f);
     this.o = o;
     this.chip = chip;
+    if (chip.coupling) chip.coupling = { up: 0, down: 0, split: 48 };
     const b = beatOf(f);
     this.beat = b.ticks;
     this.perBar = b.perBar;
@@ -281,22 +283,32 @@ export class ProtoGame {
     // D214, SUBJECT: one line, the subject's notes in every entry, whichever voice (subject-line.ts).
     const line = proto.id === "subject" ? subjectLine(f, from, o.until) : null;
     this.line = line;
-    this.tracks = line ? this.lineTracks(line, msBetween) : (Array.isArray(voices) ? voices : [voices]).map((v) => {
+    // D252, BOTH HANDS: where the arc gives the left hand to the left thumb (the right hand's game on a
+    // phone's road or the computer's keys), it is a second track, its notes those of the sections it
+    // plays (outside the pedals, which are the left thumb's).
+    const spans = pedalSpans(f, arc);
+    const inPedal = (on: number) => spans.some((p) => on >= p.on && on < p.end);
+    const handsOn = !!arc?.hands && !line && (proto.id === "highway" || proto.id === "keys") && (Array.isArray(voices) ? voices : [voices]).join() === "0" && f.voices.length > 1;
+    this.hands = handsOn;
+    const lhMine = (on: number) => handsOn && handsAt(f, arc, on) !== null && !inPedal(on);
+    const voiceList = handsOn ? [0, 1] : Array.isArray(voices) ? voices : [voices];
+    this.tracks = line ? this.lineTracks(line, msBetween) : voiceList.map((v) => {
       const notes = laneNotes(
-        f.voices[v].filter(([on]) => on >= from && (o.until === undefined || on < o.until)),
+        f.voices[v].filter(([on]) => on >= from && (o.until === undefined || on < o.until) && (!handsOn || v !== 1 || lhMine(on))),
         this.beat,
         v,
       );
       // D191: the notes too quick to strike ride after the note before; D229: in a prelude, more of them (the strong notes struck; D232: its threshold by its fugue's tier).
       const rideMs = preludeRideMs(f.id);
-      if (f.kind === "prelude") preludeRides(notes, this.beat, msBetween, (t) => inBar(f, t), this.beat === f.tpq * (4 / Number(f.meter.split("/")[1])) * 3 ? 3 : 2, arc ? (t: number) => rideMs * stepAt(f, arc.rides, t) : rideMs);
+      const lhFactor = (t: number) => handsAt(f, arc, t) ?? 1;
+      if (f.kind === "prelude") preludeRides(notes, this.beat, msBetween, (t) => inBar(f, t), this.beat === f.tpq * (4 / Number(f.meter.split("/")[1])) * 3 ? 3 : 2, arc ? (t: number) => rideMs * (handsOn && v === 1 ? lhFactor(t) : stepAt(f, arc.rides, t)) : rideMs);
       else quickRides(notes, this.beat, msBetween);
       const mv = moves(notes, this.beat);
       return { voice: v, notes, moves: mv };
     });
     [{ voice: this.voice, notes: this.notes, moves: this.moves }] = this.tracks;
     const played = this.tracks.map((t) => t.voice);
-    this.others = o.solo || o.her ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until)) : accompaniment(f, from, played[0]).filter((n) => !played.includes(n.voice) && (o.until === undefined || n.on < o.until));
+    this.others = o.solo || o.her ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until)) : handsOn ? accompaniment(f, from, 0).filter((n) => !(n.voice === 1 && lhMine(n.on)) && (o.until === undefined || n.on < o.until)) : accompaniment(f, from, played[0]).filter((n) => !played.includes(n.voice) && (o.until === undefined || n.on < o.until));
     this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject);
     // Waiting (the lessons): no count-in, the clock stops at each note until it is struck.
     this.start = o.wait ? from - this.beat : countInStart(f, from);
@@ -310,16 +322,19 @@ export class ProtoGame {
     this.anchorTick = this.start;
     this.nextBeat = this.start;
     // D250: THE PEDAL (the right hand's game only): its own lane, the figure around it, free at both ends.
-    const ps = pedalSpan(f, arc);
-    if (ps && this.tracks.length === 1 && this.tracks[0].voice === 0 && !line) {
-      this.bassPedal = { ...ps, lane: 0, id: null, from: null, held: 0, announced: false, done: false, share: 0 };
-      const t0 = this.tracks[0];
-      const fresh = new Set(t0.fresh ?? []);
-      const first = t0.notes.find((n) => n.on >= ps.on);
-      const after = t0.notes.find((n) => n.on >= ps.end);
-      if (first) fresh.add(first.on);
-      if (after) fresh.add(after.on);
-      t0.fresh = fresh;
+    // D252: several, one after another; with both hands each in its own lane of the left thumb's.
+    if (spans.length && this.tracks[0]?.voice === 0 && !line && (handsOn || this.tracks.length === 1)) {
+      this.pedalList = spans.map((ps) => ({ ...ps, lane: handsOn ? ps.lane : 0, id: null, from: null, held: 0, announced: false, done: false, share: 0, sounds: [] }));
+      for (const t of this.tracks) {
+        const fresh = new Set(t.fresh ?? []);
+        for (const ps of spans) {
+          const first = t.notes.find((n) => n.on >= ps.on);
+          const after = t.notes.find((n) => n.on >= ps.end);
+          if (first) fresh.add(first.on);
+          if (after) fresh.add(after.on);
+        }
+        t.fresh = fresh;
+      }
     }
     if (arc?.finalChord) this.finalOn = this.tracks[0]?.notes.at(-1)?.on;
     if (line) for (const e of line.entries) this.entries.push({ voice: e.voice, k: 0, on: e.on, end: e.end, ons: e.ons, state: "open" });
@@ -516,6 +531,11 @@ export class ProtoGame {
     const ch = this.chip;
     this.now = this.tickAt(ch.heard());
     this.pedalStep();
+    // D252, LIFT: the doublings as the music grows (a 4′ from a quarter of the way, a 16′ from two thirds).
+    if (this.arc?.lift) {
+      const l = liftAt(this.f, this.arc, this.now + this.tps * 0.5);
+      ch.coupling = { up: l > 0.25 ? 0.18 + 0.27 * Math.min(1, (l - 0.25) / 0.75) : 0, down: l > 0.66 ? 0.4 * Math.min(1, (l - 0.66) / 0.34) : 0, split: 48 };
+    }
     if (this.o.wait) {
       const nx = this.next();
       const on = nx >= 0 ? this.notes[nx].on : null;
@@ -651,6 +671,7 @@ export class ProtoGame {
 
   /** The voice a thumb plays. */
   private trackOf(side: Side): number {
+    if (this.hands) return 0;
     return this.tracks.length > 1 && side === "right" ? 1 : 0;
   }
 
@@ -722,8 +743,10 @@ export class ProtoGame {
       const col = keyPlace(code)?.col;
       const exact = code === "Space" ? m.dir === 0 || m.steps === 0 : col === this.lanesOf(k)[i];
       const graded = (): Verdict => ({ ok: true, lane: exact ? "exact" : "relative", at: col ?? this.lanesOf(k)[i] });
-      if (!this.lastKey) return graded();
-      return contourOk(m, this.lastKey, code, lvl === "leaps") ? graded() : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
+      // D252: with both hands each judged from its own last key.
+      const prevKey = this.hands ? this.keyBy[k] : this.lastKey;
+      if (!prevKey || exact) return graded();
+      return contourOk(m, prevKey, code, lvl === "leaps") ? graded() : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
     }
     if (at.key?.midi !== undefined) {
       const k = at.key.midi;
@@ -777,12 +800,16 @@ export class ProtoGame {
         if (lvl === "timing" || this.isFree(i, k)) return { ok: true };
         if (lvl === "exact") return this.laneOfX(c.x, c.w) === this.lanesOf(k)[i] ? { ok: true } : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
         // D217: each row (SUBJECT's two lines in a stretto) judged from its own last lane.
-        const last = this.line ? this.laneBy[k] : this.lastLane;
-        // D239: the planned lane, or only the right way from the last.
+        const last = this.line || this.hands ? this.laneBy[k] : this.lastLane;
+        // D239: the planned lane, or only the right way from the last. D252: the row too, where the
+        // arc asks for rows (the repeat on the lower row): the wrong row is only the right way.
         const lane = this.laneOfX(c.x, c.w);
-        const graded: Verdict = { ok: true, lane: lane === this.lanesOf(k)[i] ? "exact" : "relative", at: lane };
-        if (last < 0) return graded;
-        return laneOk(m, last, lane, lvl === "leaps", this.laneCount) ? graded : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
+        const rowRight = !this.arc?.rows || (c.y >= c.h - PAD_SPLIT ? 1 : 0) === this.rowOf(i, k);
+        const graded: Verdict = { ok: true, lane: lane === this.lanesOf(k)[i] && rowRight ? "exact" : "relative", at: lane };
+        // D252: the planned lane is always right (a hand's few lanes cannot always skip one for a leap).
+        if (last < 0 || lane === this.lanesOf(k)[i]) return graded;
+        const r = this.hands ? this.laneRegion(k) : { from: 0, count: this.laneCount };
+        return laneOk(m, last - r.from, lane - r.from, lvl === "leaps", r.count) ? graded : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
       }
     }
   }
@@ -836,7 +863,7 @@ export class ProtoGame {
     if (this.road && this.pedalTake(id, this.laneOfX(c.x, c.w))) return;
     this.finalStrike(id, ts);
     const d = this.dynamicAt(c);
-    const h: Held = { side: c.side, k: this.line ? this.rowTrack(c, ts) : this.trackOf(c.side), x0: c.x, ax: c.x, ay: c.y, note: -1, chord: [], sounds: [], midi: 0, cell: this.cellAt(c), d0: d, trail: [{ t: ts, y: c.y }] };
+    const h: Held = { side: c.side, k: this.line ? this.rowTrack(c, ts) : this.hands && this.road ? this.laneTrack(this.laneOfX(c.x, c.w)) : this.trackOf(c.side), x0: c.x, ax: c.x, ay: c.y, note: -1, chord: [], sounds: [], midi: 0, cell: this.cellAt(c), d0: d, trail: [{ t: ts, y: c.y }] };
     this.held.set(id, h);
     this.strikeWith(id, h, ts, { c }, d);
     // HIGHWAY: where the hand is now.
@@ -847,19 +874,21 @@ export class ProtoGame {
   keyDown(id: number, k: KeyPress, ts: number) {
     // The same key again without its release (lost while the window was away): let the first go.
     if (this.held.has(id)) this.up(id, ts);
-    if (this.pedalTake(id, k.code === "KeyA" ? 0 : -1)) return;
+    if (this.pedalTake(id, keyPlace(k.code ?? "")?.col ?? -1)) return;
     this.finalStrike(id, ts);
     const d = k.velocity ?? 0.6;
     const struck = k.code;
-    const h: Held = { side: k.side ?? "left", k: this.trackOf(k.side ?? "left"), x0: 0, ax: 0, ay: 0, note: -1, chord: [], sounds: [], midi: 0, cell: k.midi, d0: d, trail: [] };
+    const h: Held = { side: k.side ?? "left", k: this.hands ? this.laneTrack(keyPlace(k.code ?? "")?.col ?? 8) : this.trackOf(k.side ?? "left"), x0: 0, ax: 0, ay: 0, note: -1, chord: [], sounds: [], midi: 0, cell: k.midi, d0: d, trail: [] };
     this.held.set(id, h);
     this.strikeWith(id, h, ts, { key: k }, d);
     // Where the hand is now: the next key is judged from it.
-    if (struck) this.lastKey = struck;
+    if (struck) (this.lastKey = struck), (this.keyBy[h.k] = struck);
   }
 
   /** EASY's DIRECTION: the key struck last. */
   lastKey: string | null = null;
+  /** D252: each hand's last key (both hands). */
+  private readonly keyBy: (string | null)[] = [null, null];
   /**
    * A note the hand may take anywhere (an open bar across the road): D217, only the first, a new
    * contour's start (SUBJECT: an entry's first note, a stretto's first lower-row note), and a note
@@ -1472,6 +1501,16 @@ export class ProtoGame {
     if (sk) return (this.lanesMemo[k] = sk.map((x) => x.pos));
     const { notes, moves: mv } = this.tracks[k];
     const heads = notes.map((n, i) => !n.ride && !(i > 0 && notes[i - 1].on === n.on));
+    // D252, BOTH HANDS: each hand planned in its own lanes (laneRegion), then placed there.
+    if (this.hands) {
+      const r = this.laneRegion(k);
+      const freeH = notes.map((_, i) => this.isFree(i, k) && !this.spaceGem(i, k));
+      const softH = notes.map((_, i) => this.soft(i, k));
+      const local = planLanes(mv, heads, freeH, r.count, this.proto.id === "keys", softH);
+      const plainH = notes.map((_, i) => heads[i] && !this.isFree(i, k) && !this.spaceGem(i, k));
+      this.echoMemo[k] = echoHalves(this.f, notes, mv, heads, plainH, local, r.count);
+      return (this.lanesMemo[k] = local.map((l) => l + r.from));
+    }
     // D229: on a computer a repeat goes on in the lane of the note before (a SPACE gem), even after a rest (where any key still answers it).
     const free = notes.map((_, i) => this.isFree(i, k) && !this.spaceGem(i, k));
     const soft = notes.map((_, i) => this.soft(i, k));
@@ -1480,11 +1519,11 @@ export class ProtoGame {
     const plain = notes.map((_, i) => heads[i] && !this.isFree(i, k) && !this.spaceGem(i, k));
     this.echoMemo[k] = echoHalves(this.f, notes, mv, heads, plain, lanes, this.laneCount);
     // D250: while the pedal is held in the first lane, the figure is laid in the others.
-    const bp = k === 0 ? this.bassPedal : null;
-    if (bp) {
+    const pl = k === 0 ? this.pedalList : [];
+    if (pl.length) {
       const sub = planLanes(mv, heads, free, this.laneCount - 1, this.proto.id === "keys", soft);
       const echoSub = echoHalves(this.f, notes, mv, heads, plain, sub, this.laneCount - 1);
-      const inSpan = (i: number) => notes[i].on >= bp.on && notes[i].on < bp.end;
+      const inSpan = (i: number) => pl.some((bp) => notes[i].on >= bp.on && notes[i].on < bp.end);
       notes.forEach((_, i) => {
         if (inSpan(i)) lanes[i] = sub[i] + 1;
       });
@@ -1497,11 +1536,38 @@ export class ProtoGame {
   private echoMemo: Set<number>[] = [];
   /** D250: the prelude's arc (arc.ts), if it has one. */
   readonly arc: Arc | undefined;
+  /** D252: both hands played (the right hand track 0, the left track 1), each in its own lanes. */
+  readonly hands: boolean = false;
+  /** D252: a hand's lanes: the left hand the leftmost (two on a phone, four on the computer's keys), the right the rest. */
+  laneRegion(k: number): { from: number; count: number } {
+    const split = this.road ? 2 : 4;
+    return k === 1 ? { from: 0, count: split } : { from: split, count: this.laneCount - split };
+  }
+  /** D252: the hand a lane belongs to (both hands), else the first track. */
+  private laneTrack(lane: number): number {
+    return this.hands && lane < this.laneRegion(0).from ? 1 : 0;
+  }
+  /** D252: the row a note asks for (rows: the repeat of a figure within its bar on the lower row, 1), else 0. */
+  rowOf(i: number, k = 0): 0 | 1 {
+    if (!this.arc?.rows || !this.road || !this.tracks[k]) return 0;
+    const t = this.tracks[k];
+    this.repeatMemo[k] ??= repeatHalves(this.f, t.notes, t.notes.map((n, j) => !n.ride && !(j > 0 && t.notes[j - 1].on === n.on)));
+    return this.repeatMemo[k].has(i) ? 1 : 0;
+  }
+  private repeatMemo: Set<number>[] = [];
   /**
    * D250, THE PEDAL: the bass's long note held by the player in its own lane (the touch or key holding
    * it, from when, how long held so far, the share held at its end).
    */
-  bassPedal: { on: number; end: number; midi: number; name: string; lane: number; id: number | null; from: number | null; held: number; announced: boolean; done: boolean; share: number } | null = null;
+  private pedalList: { on: number; end: number; midi: number; name: string; lane: number; id: number | null; from: number | null; held: number; announced: boolean; done: boolean; share: number; sounds: Sounding[] }[] = [];
+  /** The pedal now or next (D252: the first not yet over), or null. */
+  get bassPedal() {
+    return this.pedalList.find((p) => !p.done) ?? null;
+  }
+  /** D252: every pedal (the painter's and the tests'). */
+  get pedals() {
+    return this.pedalList;
+  }
   /** D250: the final chord's onset (both thumbs together: a bonus), and the touches on it. */
   private finalOn: number | undefined;
   private finalTouches: { id: number; ts: number }[] = [];
@@ -1514,18 +1580,26 @@ export class ProtoGame {
   private pedalTake(id: number, lane: number) {
     const p = this.bassPedal;
     if (!p || p.done || p.id !== null || lane !== p.lane || this.now < p.on - this.beat) return false;
-    // Not while a note of the figure is due in that lane (the last before the pedal).
-    const lanes = this.lanesOf(0);
-    const due = this.notes.some((n, i) => n.state === "pending" && !n.ride && lanes[i] === lane && n.on <= this.now + this.opt.early && n.on >= this.now - this.opt.late);
+    // Not while a note is due in that lane (the last before the pedal).
+    const k = this.laneTrack(lane);
+    const lanes = this.lanesOf(k);
+    const due = this.tracks[k].notes.some((n, i) => n.state === "pending" && !n.ride && lanes[i] === lane && n.on <= this.now + this.opt.early && n.on >= this.now - this.opt.late);
     if (due) return false;
     p.id = id;
     p.from = Math.max(this.now, p.on);
+    // D252: the big pedal begins to sound on the touch: a 16′ and 8′ bourdon under the bass, to the pedal's end.
+    const at = Math.max(this.chip.ctx.currentTime, this.timeAt(p.from));
+    const until = this.timeAt(p.end);
+    const v = { timbre: "triangle" as const, pan: 0, gain: 1, patch: PATCHES.pedalBourdon };
+    if (until > at) p.sounds = [this.chip.note(p.midi, at, until - at, v, { level: 1.2, lead: true }), this.chip.note(p.midi - 12, at, until - at, v, { level: 0.9, lead: true })];
     return true;
   }
   /** D250: the pedal let go: true if this touch (key) held it. */
   private pedalLeave(id: number, ts: number) {
-    const p = this.bassPedal;
-    if (!p || p.id !== id) return false;
+    const p = this.pedalList.find((x) => x.id === id);
+    if (!p) return false;
+    for (const sd of p.sounds) sd.stop();
+    p.sounds = [];
     if (p.from !== null && !p.done) p.held += Math.max(0, Math.min(this.tickOf(ts), p.end) - p.from);
     p.id = null;
     p.from = null;
@@ -1537,7 +1611,8 @@ export class ProtoGame {
     if (!p || p.done) return;
     if (!p.announced && this.now >= p.on - 2 * this.f.barTicks) {
       p.announced = true;
-      this.banner = { text: this.road ? `HOLD THE ${p.name} PEDAL · FIRST LANE` : `HOLD A: THE ${p.name} PEDAL`, at: performance.now() };
+      const key = "ASDF"[p.lane] ?? "A";
+      this.banner = { text: this.road ? `LEFT THUMB: HOLD THE ${p.name} PEDAL` : `HOLD ${key}: THE ${p.name} PEDAL`, at: performance.now() };
     }
     if (this.now < p.end) return;
     if (p.from !== null) p.held += Math.max(0, p.end - p.from);
@@ -1635,6 +1710,9 @@ export class ProtoGame {
 
   stopAll() {
     this.chip.zone?.(null);
+    // D252: no coupling left on for the next game; the pedals' bourdons stopped.
+    if (this.chip.coupling) this.chip.coupling = { up: 0, down: 0, split: 48 };
+    for (const p of this.pedalList) for (const sd of p.sounds) sd.stop();
     for (const b of this.band) b.sd.stop();
     this.band = [];
     for (const sd of this.pedalled) sd.stop();

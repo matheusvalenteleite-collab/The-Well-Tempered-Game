@@ -35,10 +35,11 @@ function fakeChip(clock: { t: number }) {
   } as unknown as Chip;
 }
 
-function rightTouch(g: ProtoGame, i: number): Contact {
-  const n = g.notes[i];
+function rightTouch(g: ProtoGame, i: number, k = 0): Contact {
+  const n = g.tracks[k].notes[i];
   const c = (x: number, y: number): Contact => ({ side: x < W / 2 ? "left" : "right", x, y, w: W, h: H });
-  if (g.road) return c(((g.lanes[i] + 0.5) / g.laneCount) * W, H - 160);
+  // D252: the planned lane, on the row the note asks for (the lower row: below the pads' split).
+  if (g.road) return c(((g.lanesOf(k)[i] + 0.5) / g.laneCount) * W, g.rowOf(i, k) ? H - 60 : H - 160);
   if (g.proto.id === "ladder") return c(W * 0.1, 900 - Math.max(...g.notes.filter((x) => x.on === n.on).map((x) => x.step)) * 16);
   const [a, b] = keySpan(g.kb, n.midi);
   return c(((a + b) / 2) * W, isBlack(n.midi) ? H * (1 - KEYS_SHARE) + 5 : H - 4);
@@ -54,19 +55,24 @@ function play(piece: string, voice: number, proto: string, wrongFrom = Infinity)
     while (clock.t < t - 0.05) (clock.t += 0.05), g.step();
     clock.t = Math.max(clock.t, t);
   };
-  const heads = g.notes.map((n, i) => (n.ride || (i > 0 && g.notes[i - 1].on === n.on) ? -1 : i)).filter((i) => i >= 0);
+  // D252: both hands' struck notes (the left hand's track where the arc gives it), in time order.
+  const heads = g.tracks
+    .flatMap((t, k) => t.notes.map((n, i) => (n.ride || (i > 0 && t.notes[i - 1].on === n.on) ? null : { k, i, on: n.on })))
+    .filter((x): x is { k: number; i: number; on: number } => !!x)
+    .sort((a, b) => a.on - b.on || a.k - b.k);
+  const KEYS = ["KeyA", "KeyS", "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ", "KeyK", "KeyL"];
   let id = 0;
-  for (const [h, i] of heads.entries()) {
-    runTo(g.timeAt(g.notes[i].on));
+  for (const [h, { k, i }] of heads.entries()) {
+    runTo(g.timeAt(g.tracks[k].notes[i].on));
     g.step();
     if (h >= wrongFrom) continue;
     id++;
     if (proto === "keys") {
-      const code = isRepeat(g.moves[i]) && !g.isFree(i) ? "Space" : ["KeyA", "KeyS", "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ", "KeyK", "KeyL"][g.lanes[i]];
+      const code = isRepeat(g.tracks[k].moves[i]) && !g.isFree(i, k) ? "Space" : KEYS[g.lanesOf(k)[i]];
       g.keyDown(id, { velocity: 0.5, code }, performance.now());
       g.keyUp(id, performance.now());
     } else {
-      g.down(id, rightTouch(g, i), performance.now());
+      g.down(id, rightTouch(g, i, k), performance.now());
       g.up(id, performance.now());
     }
   }
