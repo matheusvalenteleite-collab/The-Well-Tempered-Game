@@ -303,6 +303,17 @@ export class ProtoGame {
       const lhFactor = (t: number) => handsAt(f, arc, t) ?? 1;
       if (f.kind === "prelude") preludeRides(notes, this.beat, msBetween, (t) => inBar(f, t), this.beat === f.tpq * (4 / Number(f.meter.split("/")[1])) * 3 ? 3 : 2, arc ? (t: number) => rideMs * (handsOn && v === 1 ? lhFactor(t) : stepAt(f, arc.rides, t)) : rideMs);
       else quickRides(notes, this.beat, msBetween);
+      // D253: the left hand strikes only where its bass changes: the same bass again within the bar
+      // (Prelude 1's second half) plays itself, so a thumb held on it is right (the owner: errors while
+      // "playing correctly", the left thumb held).
+      if (handsOn && v === 1) {
+        let last: LaneNote | null = null;
+        for (const n of notes) {
+          if (n.ride) continue;
+          if (last && n.midi === last.midi && barAt(f, n.on) === barAt(f, last.on)) n.ride = true;
+          else last = n;
+        }
+      }
       const mv = moves(notes, this.beat);
       return { voice: v, notes, moves: mv };
     });
@@ -1008,6 +1019,9 @@ export class ProtoGame {
       // once it has crossed most of a lane's width, so a rolling thumb does not slide by itself.
       const lane = this.laneOfX(c.x, c.w);
       if (lane === h.cell || Math.abs(c.x - h.ax) < (c.w / this.laneCount) * 0.75) return;
+      // D253: with both hands the lanes are narrow and a held thumb holds: a slide stays in its own hand's
+      // lanes and needs a whole lane's travel (a held left thumb drifting took the next bass note early).
+      if (this.hands && (this.laneTrack(lane) !== h.k || Math.abs(c.x - h.ax) < c.w / this.laneCount)) return;
       h.cell = lane;
       h.ax = c.x;
       if (this.slideTo(id, h, c, t)) this.lastLane = this.laneBy[h.k] = lane;
@@ -1580,20 +1594,25 @@ export class ProtoGame {
   /** D250: a touch (key) on the pedal's lane takes the pedal: true if it did. */
   private pedalTake(id: number, lane: number) {
     const p = this.bassPedal;
-    if (!p || p.done || p.id !== null || lane !== p.lane || this.now < p.on - this.beat) return false;
+    // D253: with both hands any of the left hand's lanes takes the pedal (its own lane is only shown).
+    const onIt = this.hands ? lane >= 0 && this.laneTrack(lane) === 1 : lane === p?.lane;
+    if (!p || p.done || p.id !== null || !onIt || this.now < p.on - this.beat) return false;
     // Not while a note is due in that lane (the last before the pedal).
     const k = this.laneTrack(lane);
     const lanes = this.lanesOf(k);
     const due = this.tracks[k].notes.some((n, i) => n.state === "pending" && !n.ride && lanes[i] === lane && n.on <= this.now + this.opt.early && n.on >= this.now - this.opt.late);
     if (due) return false;
+    this.startPedal(p, id);
+    return true;
+  }
+  /** D252: the pedal taken by a touch (key): the big pedal begins to sound, a 16′ and 8′ bourdon under the bass, to its end. */
+  private startPedal(p: NonNullable<ProtoGame["bassPedal"]>, id: number) {
     p.id = id;
     p.from = Math.max(this.now, p.on);
-    // D252: the big pedal begins to sound on the touch: a 16′ and 8′ bourdon under the bass, to the pedal's end.
     const at = Math.max(this.chip.ctx.currentTime, this.timeAt(p.from));
     const until = this.timeAt(p.end);
     const v = { timbre: "triangle" as const, pan: 0, gain: 1, patch: PATCHES.pedalBourdon };
     if (until > at) p.sounds = [this.chip.note(p.midi, at, until - at, v, { level: 1.2, lead: true }), this.chip.note(p.midi - 12, at, until - at, v, { level: 0.9, lead: true })];
-    return true;
   }
   /** D250: the pedal let go: true if this touch (key) held it. */
   private pedalLeave(id: number, ts: number) {
@@ -1638,10 +1657,28 @@ export class ProtoGame {
       const key = "ASDF"[p.lane] ?? "A";
       this.banner = { text: this.road ? `LEFT THUMB: HOLD THE ${p.name} PEDAL` : `HOLD ${key}: THE ${p.name} PEDAL`, at: performance.now() };
     }
+    // D253: a left thumb already down when the pedal begins (held from the bar before) becomes the pedal.
+    if (this.hands && p.id === null && this.now >= p.on) {
+      const lh = [...this.held.entries()].find(([, h]) => h.k === 1);
+      if (lh) {
+        const [hid, h] = lh;
+        this.held.delete(hid);
+        for (const sd of [...h.sounds, ...(h.fx ?? [])]) sd.stop();
+        this.startPedal(p, hid);
+      }
+    }
     if (this.now < p.end) return;
     if (p.from !== null) p.held += Math.max(0, p.end - p.from);
+    const carry = p.id;
     p.from = p.id !== null ? p.end : null;
     p.done = true;
+    // D253: a pedal held to its end goes on into the next if it follows at once (G into C), the thumb unmoved.
+    const nx = this.bassPedal;
+    if (carry !== null && nx && nx.on === p.end && nx.id === null) {
+      p.id = null;
+      p.sounds = [];
+      this.startPedal(nx, carry);
+    }
     p.share = Math.min(1, p.held / Math.max(1, p.end - p.on));
     const bonus = Math.round(40 * p.share) * this.mult;
     this.score += bonus;
