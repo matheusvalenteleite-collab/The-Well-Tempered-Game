@@ -101,6 +101,32 @@ each, with one tailored challenge per prelude on top (as Prelude 1's pedal).
 - A short questionnaire after each test (fun, clarity, insight, comfort), so the comparison is not only
   impressions.
 
+## What prior art teaches (research, 24 October 2026)
+
+- **Fit the mechanic to the music, keep the inputs simple.** Rhythm Heaven was pitched because button
+  timing in rhythm games "had nothing to do with music"; its maker sometimes wrote the song first and
+  built the game round it (Tsunku♂: Nintendo Life 2009; Iwata Asks, *Megamix*). Rhythm Doctor uses one
+  button to "do away with arbitrary beatmaps" (Hafiz Azman, Game Developer, 2014). Sayonara Wild Hearts
+  changes the mechanics every level but keeps the inputs, and so never needs a tutorial (Simogo, Game
+  Developer, 2019).
+- **Anchor changes to the music.** VOEZ's lanes multiply, move and merge with the song, on beats without
+  notes (TouchArcade 2016; Nintendo Life): structure shown without new inputs.
+- **The player must choose something real.** Magic Piano's player "drives the performance" (tempo follows
+  them; US patent 9,082,380), but a review called it "by no means any way to learn the piano" (AOL 2010):
+  supply too much and play is hollow. Let the player own the voice, the harmony, the contour or the time.
+- **Chord strips** exist and work (GarageBand Smart Guitar/Strings: strum a strip, tap a string, Autoplay;
+  on Strings, swipe speed is loudness, lifting plays pizzicato). **Tracing** works (Groove Coaster: "the
+  musicality that is being tested… not a mastery over tricky controls"; Arcaea's arcs). **Wait mode**
+  works (flowkey). **Fugue Machine** (a sequencer, 2016) shows fugue-like playheads; no Bach rhythm game found.
+- **Ergonomics.** People touch the centre more, faster and more accurately (about 7 mm there, 12 mm in
+  the corners); key actions belong in the middle half to two-thirds of the screen; grips change every few
+  seconds (Hoober, UXmatters 2013, 2017). Touch timing is noisier than keys' (Lee and Oulasvirta, CHI
+  2016): generous windows, or holds and slides where timing matters less.
+- **Consequences for us.** Our two rows of pads sit at the bottom edge, the least accurate zone and the
+  home indicator's; vertical ladders suit a two-thumb cradle and show pitch as height, but if pitch is
+  vertical, time cannot also fall vertically: the notes must come sideways (the music box's scrolling,
+  centre outward as in Lanota) or the timing come from a sweep line or the sound.
+
 ## Questions for the owner
 
 1. **The core experience.** On a phone, what should a prelude make the player feel they are doing: playing
