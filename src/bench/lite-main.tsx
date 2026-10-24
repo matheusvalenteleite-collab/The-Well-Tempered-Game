@@ -9,6 +9,7 @@ import { APP } from "./config.ts";
 import { forceUi, keepUiUnder } from "../touch/ui/index.ts";
 import { detectedPlatform } from "./home.ts";
 import { BenchApp } from "./BenchApp.tsx";
+import { markVersion } from "./version.ts";
 import "./fonts/press-start-2p.css";
 import "../touch/touch.css";
 import "./bench.css";
@@ -18,6 +19,7 @@ APP.dev = false;
 if (detectedPlatform() === "mobile") keepUiUnder("tb-lite-ui-v1");
 else forceUi("classic");
 
+markVersion();
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BenchApp />
