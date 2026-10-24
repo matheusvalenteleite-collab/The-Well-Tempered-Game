@@ -403,7 +403,8 @@ export function BenchApp() {
       };
       if (proto.layout === "bars") g.rows = boxRows(f.barTicks, g.now);
       if (AUTO) autoplay(g, auto);
-      if (count.current) count.current.textContent = g.countIn() ? String(g.countIn()) : g.combo >= 5 && !AUTO ? `×${g.combo}` : "";
+      // D249: the centre holds the count-in only; the combo is by the score (paint-proto.ts scoreboard).
+      if (count.current) count.current.textContent = g.countIn() ? String(g.countIn()) : "";
       if (done) {
         // D216: a lost run: she fades out over a second; the end: her last chord rings on.
         h?.stop(g.failedAt !== null ? HER_FADE.fail : HER_FADE.end);
@@ -569,11 +570,8 @@ export function BenchApp() {
   const events: ThumbEvents = {
     down: (id, side, x, y, w, h, ts) => (seen(), game.current?.down(id, { side, x, y, w, h }, ts)),
     move: (id, x, y, w, h, ts) => game.current?.move(id, { side: "left", x, y, w, h }, ts),
-    up: (id, ts, cancelled) => {
-      // D237: a tap off the pop-up or the result starts nothing (their buttons do).
-      void cancelled;
-      game.current?.up(id, ts);
-    },
+    // D249: a touch the system took back (pointercancel) stops its note unjudged: no early let-go.
+    up: (id, ts, cancelled) => game.current?.up(id, ts, cancelled),
   };
 
   // A MIDI keyboard (where the browser has Web MIDI: Chrome, Edge, Firefox; not Safari).

@@ -10,6 +10,7 @@
  * The verdict of the last touch flashes over the field.
  */
 import { ornamentMark } from "../touch/ornament-play.ts";
+import { AUTO } from "../touch/box-variants.ts";
 import { ARROW_PIXELS, inkOf, type Arrow } from "../touch/MusicBox.tsx";
 import { paintPiano } from "../touch/paint-piano.ts";
 import { stepName } from "../touch/fugue.ts";
@@ -60,9 +61,15 @@ function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoG
   const y = bars ? h * 0.12 : desk ? 34 : 14;
   label(c, Math.floor(g.score).toLocaleString("en"), x, y, t.fg, g.proto.id === "keys" ? 12 : 9);
   if (g.mult > 1 && !desk) label(c, `×${g.mult}`, x, y + 16, g.mult >= 4 ? t.gold : t.shine, 9);
-  if (g.pleno) label(c, "PLENO ×2", bars ? w - (w * BAR) / 2 : x, bars ? h * 0.12 : y + 32, t.gold, 7);
+  // D249: the combo (the right notes running), small and muted under the score, off the middle of the
+  // music (it shared the count-in's centre). Named, so it is not read as the multiplier.
+  const combo = g.combo >= 5 && !AUTO;
+  const cy = desk ? y + 16 : y + 28;
+  if (combo) label(c, `COMBO ${g.combo}`, x, cy, t.muted, 6);
+  const below = combo ? 12 : 0;
+  if (g.pleno) label(c, "PLENO ×2", bars ? w - (w * BAR) / 2 : x, bars ? h * 0.12 : y + 32 + below, t.gold, 7);
   // D218: the legato chain under way.
-  if (g.chain >= 2) label(c, `LEGATO ×${g.chain}`, x, bars ? h * 0.12 + 30 : desk ? y + 16 : y + (g.pleno ? 46 : 32), LEGATO_INK, 6);
+  if (g.chain >= 2) label(c, `LEGATO ×${g.chain}`, x, bars ? h * 0.12 + 30 + below : desk ? y + 16 + below : y + (g.pleno ? 46 : 32) + below, LEGATO_INK, 6);
   // CON FUOCO: embers rising along the edges while the run lasts.
   if (g.streak >= 24) {
     const now = performance.now() / 1000;
@@ -302,6 +309,32 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   // alone; the other voices run on rails on its shoulders (paint-arch.ts, from deskUnder).
   // D217, SUBJECT: a stretto's older entry (the lower row) drawn hollow, behind the main line.
   if (subj && g.tracks[1]) secondLine(c, g, at, laneX, W, N, y1, beat, t);
+  // D250, THE PEDAL: its lane lit from where it begins to where it ends, bright while held; named at its head.
+  const bp = g.bassPedal;
+  if (bp && !bp.done && bp.on - g.now < 2 * g.f.barTicks + AHEAD_S * g.tps) {
+    const near = at(Math.max(bp.on, g.now));
+    const far = at(Math.min(bp.end, ahead));
+    if (near.d <= 1 && far.d >= near.d) {
+      const ink = inkOfLane(bp.lane);
+      const held = bp.id !== null;
+      const lw0 = (W / N) * 0.36;
+      c.fillStyle = ink;
+      c.globalAlpha = held ? 0.75 : 0.32;
+      c.beginPath();
+      c.moveTo(laneX(bp.lane, near.k) - lw0 * near.k, near.y);
+      c.lineTo(laneX(bp.lane, near.k) + lw0 * near.k, near.y);
+      c.lineTo(laneX(bp.lane, far.k) + lw0 * far.k, far.y);
+      c.lineTo(laneX(bp.lane, far.k) - lw0 * far.k, far.y);
+      c.closePath();
+      c.fill();
+      c.globalAlpha = 1;
+      if (g.now < bp.on) label(c, `HOLD ${bp.name}`, laneX(bp.lane, near.k), near.y - 10, ink, Math.max(6, Math.round(9 * near.k)));
+      else label(c, held ? "PEDAL" : `HOLD ${bp.name}`, laneX(bp.lane, near.k), y1 - 14, held ? "#fff6d0" : ink, 7);
+    }
+  }
+  // D250: the final chord's cue: both thumbs (keys) together.
+  const fc = g.finalCue;
+  if (fc !== undefined && fc - g.now < 3 * g.beat && fc - g.now > -g.beat / 2) label(c, R ? "TWO KEYS TOGETHER" : "BOTH THUMBS TOGETHER", cx, y1 - 30, t.gold, 8);
   // The notes, far to near.
   const lanes = g.lanes;
   const notes = g.notes;
@@ -498,7 +531,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.stroke();
   }
   label(c, `×${g.mult * (g.pleno ? 2 : 1)}`, rx, ry, g.pleno ? t.gold : t.fg, 12);
-  label(c, `${g.streak}`, rx, ry + (phone ? 36 : 44), t.muted, 8);
+  // D249: the run's count is shown once, as the combo by the score (it was also here, under the ring).
   if (R) deskFlare(R, rx, ry);
   // The crowd's meter (right).
   const mx = phone ? w - 18 : cx + W / 2 + SHOULDER;

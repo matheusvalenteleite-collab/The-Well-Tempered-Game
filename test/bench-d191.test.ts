@@ -181,7 +181,7 @@ test("engine audit: the ritard in the PERFECT check and the drums' beat", () => 
   assert.ok(beats.length > 2 && Math.max(...beats) > steady * 1.1, `beats ${beats.map((b) => b.toFixed(3))}`);
 });
 
-test("engine audit: several notes missed in one frame each cost a step; a tap at the window's very end still counts", () => {
+test("engine audit: several notes missed in one frame (D249: the second and third within 8 notes of the first) each cost a step; a tap at the window's very end still counts", () => {
   {
     const { g, clock } = aGame(54);
     const hs = headsOf(g.notes).filter((i) => !g.notes[i].ride);
@@ -191,8 +191,10 @@ test("engine audit: several notes missed in one frame each cost a step; a tap at
     // Three notes go by in one frame.
     clock.t = g.timeAt(g.notes[hs[2]].on) + 0.4;
     g.step();
-    assert.equal(g.notes.filter((n) => n.state === "miss").length >= 3, true);
-    assert.equal(g.mult, 1);
+    const missed = g.notes.filter((n) => n.state === "miss").length;
+    assert.equal(missed >= 3, true);
+    // D249: the first slip keeps the multiplier; each one after it, so close, costs a step.
+    assert.equal(g.mult, Math.max(1, 4 - (missed - 1)));
   }
   {
     const { g, clock } = aGame(54);

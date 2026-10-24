@@ -41,7 +41,30 @@ export const isPhone = () => typeof navigator !== "undefined" && navigator.maxTo
  * as the new one starts. A computer's is far above what a fugue asks; a phone's above what a four-voice
  * fugue with its ornaments, the riders and the rings of plucked notes usually reach.
  */
-export const VOICE_CAP = { phone: 32, computer: 64 };
+export const VOICE_CAP = { phone: 32, computer: 64, phoneSustained: 18 };
+/**
+ * D249: on a phone, a sustained recorded sound (the organ: 10-16 nodes a note, every note held on its
+ * loop) has the lower cap, and ORGANO PLENO's extra pipes count against it, one each.
+ */
+export const sustainedSampled = () => sampledNow().some((id) => !SAMPLED[id].plucked);
+
+/** D249: the sampled organ's swell (dyn): bounded as the harpsichord's is, at most 1.4. */
+export const organSwell = (level: number) => Math.max(0.05, Math.min(1.4, level));
+/** D249: ORGANO PLENO's stack (the note, the 4' at 0.45, the pedal at 0.5) brought back to about one note's level. */
+export const PLENO_SCALE = 1 / 1.4;
+/** D249: the output's true ceiling: a tanh soft clip (oversampled 4x) the master chain ends in. */
+export const CEILING = 0.95;
+/**
+ * D249: the ceiling's curve, over an input pre-scaled by a half: y = CEILING · tanh(2u / CEILING), so
+ * unity gain near silence, full scale (u = 0.5) softened to about 0.74, and nothing past about 0.92.
+ */
+export function softClipCurve(n = 2048): Float32Array<ArrayBuffer> {
+  const c = new Float32Array(n);
+  for (let i = 0; i < n; i++) c[i] = CEILING * Math.tanh((2 * ((i / (n - 1)) * 2 - 1)) / CEILING);
+  return c;
+}
+/** D249: the room's impulse, shorter on a phone (its convolver the costliest node there). */
+export const ROOM_S = { phone: 0.8, computer: 1.3 };
 
 /**
  * D210: one sound's nodes, all disconnected once the last of its sources has ended. Nothing in chip.ts
@@ -79,10 +102,12 @@ export class Bag {
     this.nodes = [];
     this.onDone?.();
   }
+  /** D249: how many notes it counts as against a phone's cap (ORGANO PLENO's extra pipes, one each). */
+  weight = 1;
 }
 
 /** D210: a note not yet ended: when it began, whether it is the player's, whether it was let go to make room. */
-type Live = { at: number; until: number; lead: boolean; stolen: boolean; sd: Sounding };
+type Live = { at: number; until: number; lead: boolean; stolen: boolean; sd: Sounding; w: number };
 
 export interface Voicing {
   timbre: Timbre;
@@ -163,8 +188,20 @@ export class Chip {
   private wet: GainNode;
   /** D237: the volume (0..1) over the master's own level (0.4, D181). */
   setVolume(v: number) {
-    this.master.gain.value = 0.4 * Math.max(0, Math.min(1, v));
+    const k = Math.max(0, Math.min(1, v));
+    this.master.gain.value = 0.4 * k;
+    // D249: the notes' own sends to the room follow the volume too (they bypassed it).
+    this.sends.gain.value = k;
   }
+  /** D249: the notes' own room sends (Play.room), through the volume, into the room. */
+  private sends: GainNode;
+  /** D249: the drive's shaper, wired to the master only while CON FUOCO lasts. */
+  private shaper: WaveShaperNode;
+  private driveOn = false;
+  private driveOff: ReturnType<typeof setTimeout> | null = null;
+  /** D249: the true ceiling at the end of the chain (a tanh soft clip, 4x oversampled). */
+  readonly ceiling: WaveShaperNode;
+  private readonly phone = isPhone();
   /** D186: the master's brightness and its drive (the zones). */
   private soften: BiquadFilterNode;
   private drive: GainNode;
@@ -183,7 +220,9 @@ export class Chip {
   visual = 0;
   /** D210: the notes not yet ended (oldest first), and how many may sound at once. */
   private voices: Live[] = [];
-  readonly cap = isPhone() ? VOICE_CAP.phone : VOICE_CAP.computer;
+  get cap(): number {
+    return this.phone ? (sustainedSampled() ? VOICE_CAP.phoneSustained : VOICE_CAP.phone) : VOICE_CAP.computer;
+  }
   /** D210: how many notes were let go early to keep within the cap (for the measurements); D211: how many failed to start. */
   stolen = 0;
   failed = 0;
@@ -211,30 +250,39 @@ export class Chip {
     squeeze.ratio.value = 4;
     squeeze.attack.value = 0.005;
     squeeze.release.value = 0.2;
+    // D249: the limiter lower and slower to let go (it clipped on an iPhone: the compressors' makeup
+    // gain and no true ceiling), the trim lower, and a soft clip at the very end as the ceiling.
     const limit = ctx.createDynamicsCompressor();
-    limit.threshold.value = -4;
+    limit.threshold.value = -10;
     limit.knee.value = 0;
     limit.ratio.value = 20;
-    limit.attack.value = 0.001;
-    limit.release.value = 0.08;
+    limit.attack.value = 0.003;
+    limit.release.value = 0.25;
     const trim = ctx.createGain();
-    trim.gain.value = 0.85;
-    this.master.connect(soften).connect(squeeze).connect(limit).connect(trim).connect(ctx.destination);
+    trim.gain.value = 0.7;
+    const ceilIn = ctx.createGain();
+    ceilIn.gain.value = 0.5;
+    const ceiling = (this.ceiling = ctx.createWaveShaper());
+    ceiling.curve = softClipCurve();
+    ceiling.oversample = "4x";
+    this.master.connect(soften).connect(squeeze).connect(limit).connect(trim).connect(ceilIn).connect(ceiling).connect(ctx.destination);
     // The room: a second of decaying noise, a little of it under everything (more for the bands).
     const room = ctx.createConvolver();
-    room.buffer = impulse(ctx, 1.3);
+    room.buffer = impulse(ctx, this.phone ? ROOM_S.phone : ROOM_S.computer);
     this.wet = ctx.createGain();
     this.wet.gain.value = 0.16;
     this.master.connect(room).connect(this.wet).connect(squeeze);
-    this.roomIn = room;
-    // A warm drive beside the dry sound, silent until CON FUOCO.
-    const shaper = ctx.createWaveShaper();
+    this.sends = ctx.createGain();
+    this.sends.connect(room);
+    this.roomIn = this.sends;
+    // A warm drive beside the dry sound, silent until CON FUOCO (D249: and unwired outside it).
+    const shaper = (this.shaper = ctx.createWaveShaper());
     const curve = new Float32Array(1024);
     for (let i = 0; i < 1024; i++) curve[i] = Math.tanh(((i / 1023) * 2 - 1) * 3);
     shaper.curve = curve;
     this.drive = ctx.createGain();
     this.drive.gain.value = 0;
-    this.master.connect(shaper).connect(this.drive).connect(squeeze);
+    shaper.connect(this.drive).connect(squeeze);
     this.bus = this.master;
     // D216: the player's own notes (lead) through their own level (KIMIKO: YOUR VOICE ON / SOFT / OFF),
     // and a recording's way in, past the room and the compressor (it has its own room), into the limiter.
@@ -344,7 +392,7 @@ export class Chip {
     // until its nodes report their end: where a browser is slow to report it (or never does), the
     // count grew past the cap and every new note cut the oldest still sounding: the long notes of
     // the other voices went silent and the fugue sounded as if on one monophonic instrument.
-    const entry: Live = { at: t, until: Math.max(t, at + dur) + 0.4, lead: !!p.lead, stolen: false, sd };
+    const entry: Live = { at: t, until: Math.max(t, at + dur) + 0.4, lead: !!p.lead, stolen: false, sd, w: bag.weight };
     this.voices.push(entry);
     bag.onDone = () => {
       const i = this.voices.indexOf(entry);
@@ -361,7 +409,7 @@ export class Chip {
   /** D210: the notes sounding (not let go to make room, not past their end). */
   sounding(t = this.ctx.currentTime): number {
     let n = 0;
-    for (const v of this.voices) if (!v.stolen && v.until > t) n++;
+    for (const v of this.voices) if (!v.stolen && v.until > t) n += v.w;
     return n;
   }
 
@@ -418,7 +466,7 @@ export class Chip {
         /* D211: never break off the new note */
       }
       this.stolen++;
-      n--;
+      n -= old.w;
     }
   }
 
@@ -569,6 +617,8 @@ export class Chip {
     const plucked = inst.plucked;
     const peak = pt.level * v.gain * (p.level ?? 1) * 0.5 * inst.gain * (plucked ? 1 + (p.accent ?? 0) * 0.19 : 1);
     const mix = bag.add(ctx.createGain());
+    // D249: ORGANO PLENO's three sources brought back to about one note's level.
+    if (p.pleno) mix.gain.value = PLENO_SCALE;
     const srcs: { src: AudioBufferSourceNode; set: string; m: number; mult: number }[] = [];
     let baseHz = hz(midi);
     const play = (set: string, m: number, r: Loaded, mult: number, gain: number) => {
@@ -595,6 +645,8 @@ export class Chip {
       if (up) play(up.set, up.m, up.rec, 2, 0.45);
       const down = (inst.low ? this.nearestLoaded(inst.low, midi - 12) : null) ?? this.nearestLoaded(inst.set, midi - 12);
       if (down) play(down.set, down.m, down.rec, 0.5, 0.5);
+      // D249: on a phone a sustained note's extra pipes count against the cap.
+      if (this.phone && !plucked) bag.weight = srcs.length;
     }
     let src: AudioNode = mix;
     const bright = p.bright ?? 0;
@@ -715,8 +767,9 @@ export class Chip {
         if (stopped) return;
         const now = ctx.currentTime;
         if (swell) {
-          dyn.gain.setTargetAtTime(Math.max(0.05, level), now, 0.08);
-          swell.frequency.setTargetAtTime(swellAt(level), now, 0.08);
+          // D249: the swell bounded (unbounded, a crescendo pushed the organ past full scale).
+          dyn.gain.setTargetAtTime(organSwell(level), now, 0.08);
+          swell.frequency.setTargetAtTime(swellAt(organSwell(level)), now, 0.08);
         } else dyn.gain.setTargetAtTime(Math.max(0.7, Math.min(1.4, level)), now, 0.06);
       },
     };
@@ -1158,7 +1211,29 @@ export class Chip {
     const t = this.ctx.currentTime;
     this.soften.frequency.setTargetAtTime(z === "fuoco" ? 11000 : z === "pleno" ? 9000 : 6500, t, z ? 0.4 : 0.8);
     this.drive.gain.setTargetAtTime(z === "fuoco" ? 0.18 : 0, t, 0.5);
+    this.wireDrive(z === "fuoco");
     this.roomTo();
+  }
+  /** D249: the drive's shaper wired in for CON FUOCO, and unwired once its fade-out (about 3 s) is done. */
+  private wireDrive(on: boolean) {
+    if (this.driveOff) (clearTimeout(this.driveOff), (this.driveOff = null));
+    if (on && !this.driveOn) {
+      this.master.connect(this.shaper);
+      this.driveOn = true;
+    } else if (!on && this.driveOn) {
+      const tm = setTimeout(() => {
+        this.driveOff = null;
+        if (this.zoneNow === "fuoco" || !this.driveOn) return;
+        this.master.disconnect(this.shaper);
+        this.driveOn = false;
+      }, 3000);
+      (tm as { unref?: () => void }).unref?.();
+      this.driveOff = tm;
+    }
+  }
+  /** D249: whether the drive is wired in now (for the tests). */
+  get driving(): boolean {
+    return this.driveOn;
   }
   private roomTo() {
     const base = preset().room ?? 0.16;
