@@ -196,3 +196,76 @@ test("D258: at the climax (bb. 29–31) the right hand plays the bass's line, la
   assert.ok(!g.others.some((o) => o.voice === 3 && o.on >= take.on && o.on < take.end), "the bass not doubled");
   assert.ok(g.others.some((o) => o.voice === 0 && o.on >= take.on && o.on < take.end), "the melody plays itself meanwhile");
 });
+
+const W1 = 390, H1 = 844;
+const touch = (g: ProtoGame, id: number, lane: number, row: 0 | 1, side: "left" | "right" = "right") => g.down(id, { side, x: ((lane + 0.5) / 5) * W1, y: row ? H1 - 60 : H1 - 180, w: W1, h: H1 }, performance.now());
+
+test("D262: the echo (the top note again in its bar) asks for the lower row; played there it sounds on the quieter keyboard and scores ECHO", () => {
+  const { g, clock, played } = game("highway");
+  const notes = g.tracks[0].notes;
+  const echoes = notes.map((_, i) => i).filter((i) => g.rowOf(i, 0) === 1);
+  assert.ok(echoes.length >= 30);
+  for (const i of echoes) assert.equal(notes[i].midi, notes[i - 1].midi);
+  const i = echoes[0];
+  const levels: number[] = [];
+  (g as unknown as { chip: { note: (m: number, at: number, d: number, v: unknown, p: { level?: number }) => unknown } }).chip.note = (_m, _a, _d, _v, p) => (levels.push(p?.level ?? 1), { stop() {}, bend() {}, glide() {}, muffle() {}, dyn() {} });
+  while (clock.t < g.timeAt(notes[i - 1].on)) (clock.t += 0.01), g.step();
+  levels.length = 0;
+  touch(g, 1, g.lanesOf(0)[i - 1], 0);
+  const call = levels[0];
+  g.up(1, performance.now());
+  while (clock.t < g.timeAt(notes[i].on)) (clock.t += 0.01), g.step();
+  levels.length = 0;
+  const before = g.score;
+  touch(g, 2, g.lanesOf(0)[i], 1);
+  assert.ok(levels[0] < call * 0.7, `the echo softer: ${levels[0]} < ${call}`);
+  assert.equal(g.flash?.text, "ECHO");
+  assert.ok(g.score > before);
+  void played;
+});
+
+test("D262: the pedal's charge rises while it is held and stands still while let go; the C pressed is the arrival (HOME)", () => {
+  const { g, clock } = game("highway");
+  const [G, C] = g.pedals;
+  const run = (tick: number) => { while (g.now < tick) (clock.t += 0.01), g.step(); };
+  run(G.on - g.beat / 2);
+  touch(g, 1, 0, 0, "left");
+  run(G.on + 2 * P1.barTicks);
+  const c1 = g.charge;
+  assert.ok(Math.abs(c1 - 0.25) < 0.03, String(c1));
+  g.up(1, performance.now());
+  run(G.on + 4 * P1.barTicks);
+  assert.ok(Math.abs(g.charge - c1) < 0.01, "let go: it stands still");
+  touch(g, 2, 0, 0, "left");
+  run(G.end - g.beat / 4);
+  assert.ok(g.charge > 0.7 && g.charge < 0.8, String(g.charge));
+  g.up(2, performance.now());
+  run(C.on + g.beat / 8);
+  assert.equal(g.arrivedAt, null, "not carried on: the C must be pressed");
+  touch(g, 3, 0, 0, "left");
+  assert.ok(g.arrivedAt !== null);
+  assert.ok(g.pops.some((p) => p.text.startsWith("HOME")));
+  assert.equal(g.pedals[1].id, 3);
+});
+
+test("D262: the free line (bb. 33–34): each half bar's first note struck, its other notes sounded by the slide (LINE), or by themselves on time", () => {
+  for (const slide of [true, false]) {
+    const { g, clock } = game("highway");
+    const tr = g.tracks[0].traces!;
+    assert.equal(tr.size, 4);
+    const [on, q] = [...tr.entries()][0];
+    const i = g.tracks[0].notes.findIndex((n) => n.on === on);
+    const heard: number[] = [];
+    (g as unknown as { chip: { note: (m: number) => unknown } }).chip.note = (m: number) => (heard.push(m), { stop() {}, bend() {}, glide() {}, muffle() {}, dyn() {} });
+    while (g.now < on) (clock.t += 0.005), g.step();
+    touch(g, 1, g.lanesOf(0)[i], 0);
+    let x = ((g.lanesOf(0)[i] + 0.5) / 5) * W1;
+    for (const n of q) {
+      while (g.now < n.on - P1.tpq / 16) (clock.t += 0.005), g.step();
+      if (slide) (x += ((x > W1 / 2 ? -1 : 1) * 0.5 * W1) / 5), g.move(1, { side: "right", x, y: H1 - 180, w: W1, h: H1 }, performance.now());
+    }
+    while (g.now < q[q.length - 1].on + P1.tpq / 4) (clock.t += 0.005), g.step();
+    for (const n of q) assert.ok(heard.includes(n.midi), `${slide}: ${n.midi} heard`);
+    assert.equal(g.flash?.text === "LINE", slide);
+  }
+});

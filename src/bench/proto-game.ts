@@ -134,6 +134,20 @@ interface Held {
    * slide has sounded.
    */
   sweep?: { queue: number[]; next: number; x: number; slid: number; voice: ReturnType<typeof voicing>; play: Play };
+  /** D262: the row of pads it touched (0 the upper, 1 the lower: the second keyboard). */
+  row?: 0 | 1;
+  /** D262, THE LINE: the half bar's notes still to sound, each by the thumb sliding on (or by itself on time). */
+  trace?: Trace;
+}
+
+/** D262: a traced line's notes still to sound, where the thumb was, how many it slid, how they sound. */
+interface Trace {
+  queue: { on: number; dur: number; midi: number }[];
+  x: number;
+  slid: number;
+  count: number;
+  voice: ReturnType<typeof voicing>;
+  play: Play;
 }
 
 /** A touch as the music box shows it: when, at what step (the one asked for), right or wrong. */
@@ -176,6 +190,8 @@ export interface Track {
   fresh?: Set<number>;
   /** D258: the onsets of its chords spread upward (SWEEP). */
   sweeps?: Set<number>;
+  /** D262, THE LINE: each traced half bar's first note's onset, and the notes the slide sounds after it. */
+  traces?: Map<number, { on: number; dur: number; midi: number }[]>;
 }
 
 /** D198: a slip cools the crowd by this much (of 1); D259: in a prelude by less. */
@@ -192,6 +208,11 @@ export function slipLoss(n: number): number {
 
 /** D217: the two rows of pads meet this far (px) above the play area's foot (paint-proto.ts padRows; D257: the strike line 216 px up, pads 84 px tall). */
 export const PAD_SPLIT = 136;
+/** D262, THE LINE: a line mostly slid: its bonus (times the multiplier). */
+export const TRACE_POINTS = 2;
+/** D262: the second keyboard (the lower row): its level and its darkening against the first. */
+export const ECHO_LEVEL = 0.55;
+export const ECHO_DARK = 0.6;
 /** D261: in a prelude a note shorter than this is a tap (no tail, its release not judged); longer, a hold with a tail its length. */
 export const PRELUDE_TAP_MS = 400;
 /** D258, SWEEP: a spread chord's notes this far apart when they sound by themselves (s). */
@@ -337,6 +358,7 @@ export class ProtoGame {
       if (take && v === 0) for (const n of notes) if (inTake(n.on)) n.voice = take.voice;
       // D261: each thumb only its notes: the top of each half bar (right), the bass at its start (left).
       const pick = f.kind === "prelude" && !line ? (v === 0 ? arc?.strike?.rh : handsOn && v === 1 ? arc?.strike?.lh : undefined) : undefined;
+      const traces = new Map<number, { on: number; dur: number; midi: number }[]>();
       if (pick) {
         const groups = new Map<number, LaneNote[]>();
         for (const n of notes) {
@@ -345,7 +367,18 @@ export class ProtoGame {
           groups.set(key, [...(groups.get(key) ?? []), n]);
         }
         const keep = new Set<LaneNote>();
+        const tr = v === 0 && arc?.trace ? arc.trace : null;
+        const traced = new Set<LaneNote>();
         for (const g of groups.values()) {
+          // D262, THE LINE: a traced half bar: its first note struck, the others the slide's.
+          if (tr && barAt(f, g[0].on) >= tr[0] && barAt(f, g[0].on) < tr[1]) {
+            const first = g.reduce((a, n) => (n.on < a.on ? n : a));
+            keep.add(first);
+            const rest = g.filter((n) => n !== first).sort((a, b) => a.on - b.on);
+            traces.set(first.on, rest.map((n) => ({ on: n.on, dur: n.dur, midi: n.midi })));
+            for (const n of rest) traced.add(n);
+            continue;
+          }
           if (pick === "tops") keep.add(g.reduce((a, n) => (n.midi > a.midi ? n : a)));
           else {
             const first = Math.min(...g.map((n) => n.on));
@@ -354,6 +387,7 @@ export class ProtoGame {
         }
         for (let i = notes.length - 1; i >= 0; i--) {
           if (keep.has(notes[i])) notes[i].ride = false;
+          else if (traced.has(notes[i])) notes.splice(i, 1);
           else movedOut.add(lineKey(notes[i].voice ?? v, notes[i].on, notes[i].midi)), notes.splice(i, 1);
         }
       }
@@ -393,7 +427,7 @@ export class ProtoGame {
       // D258: the line handed over and back: each a new contour (free).
       const fresh = take && v === 0 ? new Set([notes.find((n) => n.on >= take.on)?.on, notes.find((n) => n.on >= take.end)?.on].filter((x): x is number => x !== undefined)) : undefined;
       const mv = moves(notes, this.beat);
-      return { voice: v, notes, moves: mv, fresh, sweeps };
+      return { voice: v, notes, moves: mv, fresh, sweeps, traces: traces.size ? traces : undefined };
     });
     [{ voice: this.voice, notes: this.notes, moves: this.moves }] = this.tracks;
     const played = this.tracks.map((t) => t.voice);
@@ -625,9 +659,10 @@ export class ProtoGame {
     this.arcCues();
     this.arcCues2();
     this.sweepStep();
+    this.traceStep();
     // D252, LIFT: the doublings as the music grows (a 4′ from a quarter of the way, a 16′ from two thirds).
     if (this.arc?.lift) {
-      const l = liftAt(this.f, this.arc, this.now + this.tps * 0.5);
+      const l = this.liftNow(this.now + this.tps * 0.5);
       ch.coupling = { up: l > 0.25 ? 0.18 + 0.27 * Math.min(1, (l - 0.25) / 0.75) : 0, down: l > 0.66 ? 0.4 * Math.min(1, (l - 0.66) / 0.34) : 0, split: 48 };
     }
     if (this.o.wait) {
@@ -714,6 +749,11 @@ export class ProtoGame {
       for (const n of t.notes) if (n.state === "pending" && !n.ride && this.now - grace > n.on + this.opt.late) ons.add(n.on);
       if (!ons.size) continue;
       for (const on of ons) this.diagNote("MISS", this.tracks.indexOf(t), on, undefined, t.notes.findIndex((n) => n.on === on));
+      // D262: a traced line's first note missed: the line plays itself.
+      for (const on of ons) {
+        const q = t.traces?.get(on);
+        if (q) this.loose.push({ queue: q.map((x) => ({ ...x })), x: 0, slid: 0, count: 0, voice: voicing(t.voice, this.f.voices.length, true), play: { ...dynamic(0.5), lead: true } });
+      }
       sweep(t.notes, this.now - grace, this.opt);
       missed += ons.size;
     }
@@ -963,7 +1003,7 @@ export class ProtoGame {
     if (this.road && this.pedalTake(id, this.laneOfX(c.x, c.w))) return;
     this.finalStrike(id, ts);
     const d = this.dynamicAt(c);
-    const h: Held = { side: c.side, k: this.line ? this.rowTrack(c, ts) : this.hands && this.road ? this.touchTrack(this.laneOfX(c.x, c.w), ts) : this.trackOf(c.side), x0: c.x, ax: c.x, ay: c.y, note: -1, chord: [], sounds: [], midi: 0, cell: this.cellAt(c), d0: d, trail: [{ t: ts, y: c.y }] };
+    const h: Held = { side: c.side, k: this.line ? this.rowTrack(c, ts) : this.hands && this.road ? this.touchTrack(this.laneOfX(c.x, c.w), ts) : this.trackOf(c.side), x0: c.x, ax: c.x, ay: c.y, note: -1, chord: [], sounds: [], midi: 0, cell: this.cellAt(c), d0: d, trail: [{ t: ts, y: c.y }], row: c.y >= c.h - PAD_SPLIT ? 1 : 0 };
     this.held.set(id, h);
     this.strikeWith(id, h, ts, { c }, d);
     // HIGHWAY: where the hand is now.
@@ -999,7 +1039,7 @@ export class ProtoGame {
   isFree(i: number, k = 0): boolean {
     const t = this.tracks[k];
     const n = t.notes[i];
-    if (!n || t.fresh?.has(n.on)) return true;
+    if (!n || t.fresh?.has(n.on) || t.traces?.has(n.on)) return true;
     // D261: where each thumb plays only its own notes (Prelude 1's tops and bass), the gaps between
     // them are not rests: only a line's first note is free; the rest follow its contour lane by lane.
     if (this.arc?.strike && this.f.kind === "prelude") return t.notes.findIndex((x) => !x.ride) === i;
@@ -1110,6 +1150,15 @@ export class ProtoGame {
       // took the next note from the other thumb (the overlap legato lost its notes as slips).
       if (Math.abs(c.y - h.ay) < this.ladderRow * 1.5) return;
       this.slideTo(id, h, c, t);
+    } else if (this.road && h.trace?.queue.length) {
+      // D262: tracing: each part of a lane travelled sounds the line's next note, when it is near (no earlier
+      // than half a sixteenth before it is written); no slides meanwhile.
+      if (Math.abs(c.x - h.trace.x) < (c.w / this.laneCount) * SWEEP_STEP) return;
+      const nx = h.trace.queue[0];
+      if (this.now < nx.on - this.f.tpq / 8) return;
+      h.trace.x = c.x;
+      h.trace.slid++;
+      this.traceNext(h.trace);
     } else if (this.road && h.sweep?.queue.length) {
       // D258: sweeping: each part of a lane travelled (either way: a chord in an edge lane has room only
       // one way) sounds the chord's next note, still upward; no slides meanwhile.
@@ -1167,6 +1216,8 @@ export class ProtoGame {
     const h = this.held.get(id);
     if (!h) return;
     this.held.delete(id);
+    // D262: a line not finished goes on by itself.
+    if (h.trace?.queue.length) this.loose.push(h.trace);
     if (cancelled) {
       h.open = false;
       for (const sd of [...h.sounds, ...(h.fx ?? [])]) sd.stop();
@@ -1220,6 +1271,16 @@ export class ProtoGame {
     // D219: WITH KIMIKO ISHIZAKA the player's voice is plain (no subject effects over her piano).
     const sv = v.ok && !this.o.her ? this.subj.shape(this.voiceOf(h.k, i), notes[i].on, voiceV) : null;
     if (sv) expr = { ...expr, ...sv.play, level: (expr.level ?? 1) * (sv.play.level ?? 1) };
+    // D262, THE TWO KEYBOARDS: the lower row sounds on the quieter one (the row touched, on a phone; the
+    // note's own on a computer); the echo played there, a small bonus.
+    if (this.arc?.echo && h.k === 0) {
+      const row = this.road ? (h.row ?? 0) : this.rowOf(i, 0);
+      if (row === 1) expr = { ...expr, level: (expr.level ?? 1) * ECHO_LEVEL, bright: (expr.bright ?? 0) - ECHO_DARK };
+      if (v.ok && this.road && row === 1 && this.rowOf(i, 0) === 1) {
+        this.score += this.mult;
+        this.flash = { text: "ECHO", at: performance.now(), good: true, kind: "legato" };
+      }
+    }
     const pitches = v.ok || v.wrong === undefined ? chord.map((j) => notes[j].midi) : [v.wrong];
     // D213: the subject's effect under the note (the note's own sound below, its last made).
     for (const sd of h.fx ?? []) sd.stop();
@@ -1275,6 +1336,11 @@ export class ProtoGame {
         const play = { ...expr, legato: false };
         h.sounds = [this.chip.note(up[0], this.chip.ctx.currentTime, HOLD_MAX, sv?.v ?? voiceV, play)];
         h.sweep = { queue: up.slice(1), next: this.chip.ctx.currentTime + SWEEP_GAP_S, x: h.ax, slid: 0, voice: sv?.v ?? voiceV, play };
+      } else if (v.ok && this.tracks[h.k].traces?.has(n0.on)) {
+        // D262, THE LINE: the first note now; the rest as the thumb slides on along the path (or on time by themselves).
+        const q = this.tracks[h.k].traces!.get(n0.on)!;
+        h.sounds = pitches.map((m) => this.chip.note(m, this.chip.ctx.currentTime, HOLD_MAX, sv?.v ?? voiceV, { ...expr, legato: false }));
+        h.trace = { queue: q.map((x) => ({ ...x })), x: h.ax, slid: 0, count: q.length, voice: sv?.v ?? voiceV, play: { ...expr, legato: false } };
       } else h.sounds = pitches.map((m) => this.chip.note(m, this.chip.ctx.currentTime, HOLD_MAX, sv?.v ?? voiceV, { ...expr, legato: legato && !piano }));
       if (!v.ok && !(piano && v.wrong !== undefined)) for (const sd of h.sounds) sd.muffle?.();
     }
@@ -1680,9 +1746,27 @@ export class ProtoGame {
       // A chord keeps its head's lane.
       for (const i of span) if (i > 0 && notes[i - 1].on === notes[i].on) lanes[i] = lanes[i - 1];
     }
+    // D262, THE LINE: its first notes in the lanes of their pitch (the path drawn through its notes the same way).
+    const tr = this.tracks[k].traces;
+    if (tr) notes.forEach((n, i) => {
+      if (tr.has(n.on)) lanes[i] = this.traceLane(n.midi, k);
+    });
     this.lanesMemo[k] = lanes;
     return lanes;
   }
+  /** D262: a traced line's note's lane: its pitch across the hand's lanes (the line's lowest the first, its highest the last). */
+  traceLane(midi: number, k = 0): number {
+    const tr = this.tracks[k]?.traces;
+    if (!tr) return 0;
+    if (!this.traceSpan[k]) {
+      const ms = [...tr.entries()].flatMap(([on, q]) => [this.tracks[k].notes.find((n) => n.on === on)?.midi ?? q[0]?.midi ?? 60, ...q.map((x) => x.midi)]);
+      this.traceSpan[k] = { lo: Math.min(...ms), hi: Math.max(...ms) };
+    }
+    const { lo, hi } = this.traceSpan[k];
+    const r = this.hands ? this.laneRegion(k) : { from: 0, count: this.laneCount };
+    return r.from + (hi > lo ? Math.round(((midi - lo) / (hi - lo)) * (r.count - 1)) : Math.floor(r.count / 2));
+  }
+  private traceSpan: { lo: number; hi: number }[] = [];
   private lanesMemo: number[][] = [];
   private echoMemo: Set<number>[] = [];
   /** D250: the prelude's arc (arc.ts), if it has one. */
@@ -1723,6 +1807,14 @@ export class ProtoGame {
   }
   /** D252: the row a note asks for (rows: the repeat of a figure within its bar on the lower row, 1), else 0. */
   rowOf(i: number, k = 0): 0 | 1 {
+    // D262: the echo: the right hand's note again in the same bar, on the lower row (the second keyboard).
+    if (this.arc?.echo) {
+      const notes = this.tracks[k]?.notes;
+      const n = notes?.[i];
+      const p = notes?.[i - 1];
+      if (k !== 0 || !this.road || !n || !p || n.ride) return 0;
+      return p.midi === n.midi && barAt(this.f, p.on) === barAt(this.f, n.on) ? 1 : 0;
+    }
     if (!this.arc?.rows || !this.road || !this.tracks[k]) return 0;
     const t = this.tracks[k];
     this.repeatMemo[k] ??= repeatHalves(this.f, t.notes, t.notes.map((n, j) => !n.ride && !(j > 0 && t.notes[j - 1].on === n.on)));
@@ -1752,6 +1844,14 @@ export class ProtoGame {
   private finalDone = false;
   /** D250: a touch (key) on the pedal's lane takes the pedal: true if it did. */
   private pedalTake(id: number, lane: number) {
+    // D262, THE ARRIVAL: near the first pedal's end a left touch takes the pedal that follows (not the one ending).
+    const cur = this.bassPedal;
+    const nx = cur ? this.pedalList.find((q) => !q.done && q !== cur) : undefined;
+    if (this.arc?.charge && cur && nx && nx.on === cur.end && nx.id === null && this.now >= cur.end - this.beat && lane >= 0 && (this.hands ? this.laneTrack(lane) === 1 : lane === nx.lane)) {
+      this.startPedal(nx, id);
+      this.arrive();
+      return true;
+    }
     const p = this.bassPedal;
     // D253: with both hands any of the left hand's lanes takes the pedal (its own lane is only shown).
     // D254: or the right hand's first lane, by the line, while no right-hand note is due.
@@ -1769,7 +1869,16 @@ export class ProtoGame {
     const due = this.tracks[k].notes.some((n, i) => n.state === "pending" && !n.ride && (k === 0 && this.hands ? true : lanes[i] === lane) && n.on <= this.now + this.opt.early && n.on >= this.now - this.opt.late);
     if (due) return false;
     this.startPedal(p, id);
+    if (this.arc?.charge && p !== this.pedalList[0]) this.arrive();
     return true;
+  }
+  /** D262: the arrival: the charge released (a bonus by it), the light's bloom from here. */
+  private arrive() {
+    if (this.arrivedAt !== null) return;
+    this.arrivedAt = this.now;
+    const bonus = Math.round(40 * this.charge) * this.mult;
+    this.score += bonus;
+    this.pops.push({ tick: this.now, step: 0, text: `HOME${bonus ? ` +${bonus}` : ""}`, at: performance.now(), gold: true });
   }
   /** D252: the pedal taken by a touch (key): the big pedal begins to sound, a 16′ and 8′ bourdon under the bass, to its end. */
   private startPedal(p: NonNullable<ProtoGame["bassPedal"]>, id: number) {
@@ -1825,7 +1934,7 @@ export class ProtoGame {
       const first = this.tracks[0]?.notes.find((n) => !n.ride);
       if (first && ahead(first.on, 2 * this.beat)) {
         this.cued.add("tops");
-        this.banner = { text: this.road ? "RIGHT THUMB: TAP THE TOP NOTE OF EACH FIGURE" : "TAP THE TOP NOTE OF EACH FIGURE", at: performance.now() };
+        this.banner = { text: this.road ? (this.arc.echo ? "RIGHT THUMB: THE TOP NOTE · ITS ECHO ON THE LOWER ROW" : "RIGHT THUMB: TAP THE TOP NOTE OF EACH FIGURE") : "TAP THE TOP NOTE OF EACH FIGURE", at: performance.now() };
       }
     }
     const sw = this.tracks[0]?.sweeps;
@@ -1835,6 +1944,11 @@ export class ProtoGame {
         this.cued.add("sweep");
         this.banner = { text: this.road ? "A CHORD: SLIDE YOUR THUMB ACROSS IT" : "A CHORD: IT SPREADS UPWARD", at: performance.now() };
       }
+    }
+    const trc = this.arc.trace;
+    if (trc && !this.cued.has("trace") && ahead(barStart(this.f, trc[0]), this.f.barTicks)) {
+      this.cued.add("trace");
+      this.banner = { text: this.road ? "THE FREE LINE: STRIKE ITS FIRST NOTE, THEN SLIDE ALONG IT" : "THE FREE LINE: IT PLAYS ON FROM ITS FIRST NOTE", at: performance.now() };
     }
     const tk = this.arc.takeover;
     if (tk && this.take && !this.cued.has("take") && ahead(this.take.on, this.f.barTicks)) {
@@ -1860,6 +1974,64 @@ export class ProtoGame {
       h.note = j;
       h.open = true;
     }
+  }
+  /**
+   * D262, THE CHARGE: the share of the first pedal held so far (0 to 1): it rises while the pedal is held
+   * and stands still while it is let go.
+   */
+  get charge(): number {
+    const p = this.arc?.charge ? this.pedalList[0] : undefined;
+    if (!p) return 0;
+    const now = p.from !== null && !p.done ? Math.max(0, Math.min(this.now, p.end) - p.from) : 0;
+    return Math.min(1, (p.held + now) / Math.max(1, p.end - p.on));
+  }
+  /** D262: the tick the second pedal was pressed (the arrival), or null. */
+  arrivedAt: number | null = null;
+  /**
+   * D262: the doublings now: the arc's lift, but from the first pedal to the arrival the charge drives
+   * them (from the lift where the pedal begins up to the full), and after the arrival they bloom.
+   */
+  private liftNow(tick: number): number {
+    const base = liftAt(this.f, this.arc, tick);
+    const p = this.arc?.charge ? this.pedalList[0] : undefined;
+    if (!p || tick < p.on) return base;
+    if (this.arrivedAt === null) {
+      const from = liftAt(this.f, this.arc, p.on);
+      return from + (1 - from) * this.charge;
+    }
+    return Math.max(base, 1 - 0.3 * Math.min(1, (tick - this.arrivedAt) / this.f.barTicks));
+  }
+  /** D262: the journey as the player drives it (the climb by the charge, the summit from the arrival), or nothing to change. */
+  get journeyLive(): { climb?: number; summit?: number } | undefined {
+    const p = this.arc?.charge ? this.pedalList[0] : undefined;
+    if (!p || this.now < p.on) return undefined;
+    if (this.arrivedAt === null) return { climb: this.charge, summit: 0 };
+    const u = Math.min(1, (this.now - this.arrivedAt) / this.f.barTicks);
+    return { climb: 0, summit: 1 - 0.3 * u };
+  }
+  /** D262: lines still sounding after the thumb let go (or their first note missed): they go on by themselves. */
+  private loose: Trace[] = [];
+  /** D262: the line's next note sounds (for its written length); the last of a line mostly slid scores LINE. */
+  private traceNext(tr: Trace) {
+    const q = tr.queue.shift();
+    if (!q) return;
+    const len = Math.max(0.12, this.timeAt(q.on + q.dur) - this.timeAt(q.on));
+    const sd = this.chip.note(q.midi, this.chip.ctx.currentTime, len, tr.voice, tr.play);
+    if (sd) this.band.push({ sd, until: this.chip.ctx.currentTime + len + 0.6 });
+    if (tr.queue.length || tr.count === 0) return;
+    if (tr.slid >= Math.ceil(tr.count * 0.75)) {
+      this.score += TRACE_POINTS * this.mult;
+      this.flash = { text: "LINE", at: performance.now(), good: true, kind: "legato" };
+    }
+  }
+  /** D262: a line's notes not slid sound by themselves, half a sixteenth after they are written at the latest. */
+  private traceStep() {
+    const due = (tr: Trace) => {
+      while (tr.queue.length && this.now >= tr.queue[0].on + this.f.tpq / 8) this.traceNext(tr);
+    };
+    for (const h of this.held.values()) if (h.trace?.queue.length) due(h.trace);
+    for (const tr of this.loose) due(tr);
+    this.loose = this.loose.filter((tr) => tr.queue.length);
   }
   /** D258: the chord's next note sounds (a slide's, or by itself); the last of a chord all slid scores SWEEP. */
   private sweepNext(h: Held) {
@@ -1892,10 +2064,16 @@ export class ProtoGame {
     if (!p.announced && this.now >= p.on - 2 * this.f.barTicks) {
       p.announced = true;
       const key = "ASDF"[p.lane] ?? "A";
-      this.banner = { text: this.road ? `LEFT THUMB: HOLD THE ${p.name} PEDAL` : `HOLD ${key}: THE ${p.name} PEDAL`, at: performance.now() };
+      this.banner = { text: this.road ? (this.arc?.charge && p === this.pedalList[0] ? `LEFT THUMB: HOLD THE ${p.name} PEDAL · HOLDING BUILDS THE MUSIC` : `LEFT THUMB: HOLD THE ${p.name} PEDAL`) : `HOLD ${key}: THE ${p.name} PEDAL`, at: performance.now() };
+    }
+    // D262: the arrival announced a bar ahead (lift, and press the next).
+    const after = this.arc?.charge ? this.pedalList.find((q) => !q.done && q !== p) : undefined;
+    if (after && !after.announced && after.on === p.end && this.now >= after.on - this.f.barTicks) {
+      after.announced = true;
+      this.banner = { text: this.road ? `HOME: LIFT, THEN PRESS ${after.name}` : `HOME: LET GO, THEN PRESS ${after.name}`, at: performance.now() };
     }
     // D253: a left thumb already down when the pedal begins (held from the bar before) becomes the pedal.
-    if (this.hands && p.id === null && this.now >= p.on) {
+    if (this.hands && p.id === null && this.now >= p.on && !(this.arc?.charge && p !== this.pedalList[0])) {
       const lh = [...this.held.entries()].find(([, h]) => h.k === 1);
       if (lh) {
         const [hid, h] = lh;
@@ -1910,8 +2088,9 @@ export class ProtoGame {
     p.from = p.id !== null ? p.end : null;
     p.done = true;
     // D253: a pedal held to its end goes on into the next if it follows at once (G into C), the thumb unmoved.
+    // D262: not where the next is the arrival (pressed anew).
     const nx = this.bassPedal;
-    if (carry !== null && nx && nx.on === p.end && nx.id === null) {
+    if (carry !== null && nx && nx.on === p.end && nx.id === null && !this.arc?.charge) {
       p.id = null;
       p.sounds = [];
       this.startPedal(nx, carry);
@@ -2008,6 +2187,8 @@ export class ProtoGame {
 
   stopAll() {
     this.chip.zone?.(null);
+    // D262: no line left to play on.
+    this.loose = [];
     // D252: no coupling left on for the next game; the pedals' bourdons stopped.
     if (this.chip.coupling) this.chip.coupling = { up: 0, down: 0, split: 48 };
     for (const p of this.pedalList) for (const sd of p.sounds) sd.stop();

@@ -11,6 +11,8 @@
  *   THE FUGUE'S BUILDING (paint-arch.ts): the fugue map is the plan at first, each entry an outline,
  *   laid as a stone when it is played, the stretto's line drawn as it comes; the last stone laid,
  *   the whole wall lit.
+ * D262: where the player drives it (Prelude 1's pedal charge and arrival) the game's live values replace the
+ * script's climb and summit.
  * Each script is read by hand from the harmonic map (data/wtc/harmonic-maps.json) and the score:
  * the automatic map marks a pedal under nearly every bar of Prelude 1 (the figure holds its bass),
  * so a journey is not drawn from it unchecked.
@@ -138,8 +140,8 @@ export function keyColour(f: TouchFugue, tick: number, light = 0, alpha = 1): st
  * ground beside the road, in the key's colour, darkened by SHADOW, warmed at the horizon by the CLIMB
  * and the SUMMIT. Drawn first; the road and the notes go over it.
  */
-export function paintBackdrop(c: CanvasRenderingContext2D, w: number, h: number, horizon: number, f: TouchFugue, tick: number) {
-  const j = journeyAt(f, tick);
+export function paintBackdrop(c: CanvasRenderingContext2D, w: number, h: number, horizon: number, f: TouchFugue, tick: number, live?: Partial<Journey>) {
+  const j = { ...journeyAt(f, tick), ...live };
   const sky = c.createLinearGradient(0, 0, 0, horizon);
   sky.addColorStop(0, keyColour(f, tick, -6 + 10 * j.summit));
   sky.addColorStop(1, keyColour(f, tick, 2 + 6 * j.climb + 14 * j.summit));
@@ -208,8 +210,8 @@ export function paintBackdrop(c: CanvasRenderingContext2D, w: number, h: number,
  * Over the road's far half (drawn after the road, before the lanes and the notes): the horizon's light
  * carried down it (on a phone the sky is a strip; the road is the backdrop) and the SHADOW's dimming.
  */
-export function paintRoadLight(c: CanvasRenderingContext2D, w: number, horizon: number, near: number, f: TouchFugue, tick: number) {
-  const j = journeyAt(f, tick);
+export function paintRoadLight(c: CanvasRenderingContext2D, w: number, horizon: number, near: number, f: TouchFugue, tick: number, live?: Partial<Journey>) {
+  const j = { ...journeyAt(f, tick), ...live };
   const mid = horizon + (near - horizon) * 0.55;
   const glow = j.climb * 0.3 + j.summit * 0.35;
   // D252: bands of colour running down the road with the beat as the climb grows (under the notes).
@@ -243,8 +245,8 @@ export function paintRoadLight(c: CanvasRenderingContext2D, w: number, horizon: 
 }
 
 /** The road's far colour (its gradient's first stop): the key's, darkened in SHADOW, warmed at the SUMMIT. */
-export function roadFar(f: TouchFugue, tick: number): string {
-  const j = journeyAt(f, tick);
+export function roadFar(f: TouchFugue, tick: number, live?: Partial<Journey>): string {
+  const j = { ...journeyAt(f, tick), ...live };
   return keyColour(f, tick, 2 - 4 * j.shadow + 8 * j.summit + 4 * j.climb);
 }
 
