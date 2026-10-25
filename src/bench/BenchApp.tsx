@@ -123,6 +123,24 @@ function save(key: string, value: unknown) {
     /* no storage */
   }
 }
+/** D260: the minimal page's headphones' delay, for this visit only (sessionStorage). */
+function sessionLag(): number | null {
+  try {
+    localStorage.removeItem(LAG_KEY);
+    const v = sessionStorage.getItem(LAG_KEY);
+    return v === null ? null : (JSON.parse(v) as number | null);
+  } catch {
+    return null;
+  }
+}
+function saveSessionLag(l: number | null) {
+  try {
+    if (l === null) sessionStorage.removeItem(LAG_KEY);
+    else sessionStorage.setItem(LAG_KEY, JSON.stringify(l));
+  } catch {
+    /* this page only */
+  }
+}
 
 export function sane(p: Pick): Pick {
   const known = fugueById(p.piece).id === p.piece ? p.piece : DEFAULT.piece;
@@ -167,16 +185,20 @@ export function BenchApp() {
   const [lite, setLite] = useState(readLite);
   // D239: the bench shows the first game's one-line rule per mode too (START plays at once: no other place to read it).
   const [benchSeen, setBenchSeen] = useState<string[]>(() => load<string[]>(HINTS_KEY, []));
-  const [lag, setLagRaw] = useState<number | null>(() => load<number | null>(LAG_KEY, null));
+  // D260: on the minimal page the headphones' delay lasts for the visit only (a phone does not tell the
+  // speaker from headphones: a delay tapped once stayed on without them, and every note was judged late:
+  // the owner: "headphone delay was on even though I have no headphones on, that's maybe why I was failing").
+  const [lag, setLagRaw] = useState<number | null>(() => (APP.lite ? sessionLag() : load<number | null>(LAG_KEY, null)));
   const applyLag = (l: number | null) => {
     setLagRaw(l);
-    save(LAG_KEY, l);
+    if (APP.lite) saveSessionLag(l);
+    else save(LAG_KEY, l);
     if (chip.current) chip.current.lag = l;
   };
-  // D223: a delay tapped is kept for the listening setup it was tapped with.
+  // D223: a delay tapped is kept for the listening setup it was tapped with (not on the minimal page).
   const setLag = (l: number | null) => {
     applyLag(l);
-    hp.record(l);
+    if (!APP.lite) hp.record(l);
   };
   const [chosen, setChosen] = useState<Record<string, string>>(() => load<Record<string, string>>(SOUND_KEY, {}));
   const [herSound, setHerSoundRaw] = useState<string>(() => load<string>(HER_SOUND_KEY, HER_SOUND));
@@ -275,7 +297,7 @@ export function BenchApp() {
   }, [f, run]);
   const chip = useRef<Chip | null>(null);
   // D223: other headphones noticed (a setup seen before gets its delay back), BLUETOOTH MODE, the screen's delay.
-  const hp = useHeadphones(chip, applyLag);
+  const hp = useHeadphones(chip, APP.lite ? () => {} : applyLag);
   const [calib, setCalib] = useState(false);
   const game = useRef<ProtoGame | null>(null);
   const paint = useRef<Painter | null>(null);
@@ -904,6 +926,15 @@ export function BenchApp() {
           {kimiko && <p className="tg-card-sub tb-her">{herLine(hm ? herState(hm) : null)}</p>}
           {kimiko && <p className="tg-card-sub tb-her-credit">{HER_CREDIT}</p>}
           {note && <p className="tg-note">{note}</p>}
+          {lag !== null && lag > 0.02 && (
+            // D260: a delay in force is never hidden: shown where the game is started, with a way out.
+            <p className="tg-note tb-lag-note" id="lag-note">
+              HEADPHONE DELAY {Math.round(lag * 1000)} MS IS ON ·{" "}
+              <button type="button" id="lag-off" className="tg-link" onClick={() => setLag(null)}>
+                TURN OFF
+              </button>
+            </p>
+          )}
         </PlayPop>
       )}
       {phase.kind === "achievements" && <Achievements close={back} tab={phase.fresh?.length ? "feats" : "seals"} fresh={phase.fresh} />}

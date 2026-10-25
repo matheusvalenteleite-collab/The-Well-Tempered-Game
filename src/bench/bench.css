@@ -552,3 +552,6 @@
 #wtc-version { position: fixed; top: calc(1px + env(safe-area-inset-top, 0px)); left: max(6px, env(safe-area-inset-left, 0px)); z-index: 100; font-family: var(--tg-pixel); font-size: 5px; line-height: 5px; letter-spacing: 0.5px; color: var(--tg-fg); opacity: 0.5; pointer-events: none; user-select: none; }
 /* D259: the report's button on the result, small and quiet. */
 .tb-report { margin: 2px auto 6px; padding: 4px 8px; font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-muted); background: transparent; border: 1px solid var(--tg-muted); cursor: pointer; }
+/* D260: a headphones' delay in force, shown on the pop-up. */
+.tb-lag-note { font-family: var(--tg-pixel); font-size: 8px; line-height: 1.8; color: var(--tg-shine); }
+.tb-lag-note .tg-link { font-family: var(--tg-pixel); font-size: 8px; }

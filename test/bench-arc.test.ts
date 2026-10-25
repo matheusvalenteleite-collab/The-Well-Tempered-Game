@@ -5,7 +5,7 @@ import { barStart, fugueById } from "../src/touch/fugue.ts";
 import type { Chip } from "../src/touch/chip.ts";
 import { ProtoGame } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
-import { arcOf, lineAt, stepAt } from "../src/bench/arc.ts";
+import { arcOf, stepAt } from "../src/bench/arc.ts";
 
 const P1 = fugueById("wtc1p01");
 function game(mode: "highway" | "keys", voice = 0) {
@@ -32,14 +32,14 @@ test("D250, D259: the figure passes to the player section by section (sparse, th
   assert.equal(stepAt(P1, arcOf(P1)!.rides, barStart(P1, 30)), 1.4);
 });
 
-test("D250: the tempo rises 6% by b. 20 and holds through the pedal", () => {
-  const arc = arcOf(P1)!;
-  assert.equal(lineAt(P1, arc.tempo, barStart(P1, 1)), 1);
-  assert.ok(Math.abs(lineAt(P1, arc.tempo, barStart(P1, 26)) - 1.06) < 1e-9);
-  const { g } = game("highway");
-  const t = (b: number) => (g as unknown as { timeAt: (x: number) => number }).timeAt(barStart(P1, b));
-  const ratio = (t(3) - t(2)) / (t(27) - t(26));
-  assert.ok(ratio > 1.04 && ratio < 1.07, String(ratio));
+test("D260: a stable tempo: no arc changes it (bar 2 lasts as long as bar 26, in Prelude 1 and Prelude 4)", () => {
+  for (const id of ["wtc1p01", "wtc1p04"]) {
+    const f = fugueById(id);
+    assert.equal(arcOf(f)!.tempo, undefined);
+    const { g } = id === "wtc1p01" ? game("highway") : game4();
+    const t = (b: number) => (g as unknown as { timeAt: (x: number) => number }).timeAt(barStart(f, b));
+    assert.ok(Math.abs((t(3) - t(2)) / (t(27) - t(26)) - 1) < 1e-6, id);
+  }
 });
 
 test("D252: both hands: the left thumb's lanes and pedals, the right thumb's figure in its own lanes", () => {
