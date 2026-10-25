@@ -47,6 +47,8 @@ export interface LiteState {
   volume: number;
   /** D265: the best grade each piece was finished with. */
   best: Record<string, string>;
+  /** D268: the best final score each piece was finished with. */
+  scores: Record<string, number>;
 }
 
 /** D265: a piece's sound can be changed once it is finished with a high grade (A or S); before, its own. */
@@ -63,9 +65,10 @@ export function readLite(): LiteState {
       seen: Array.isArray(o.seen) ? o.seen.filter((x) => typeof x === "string") : [],
       volume: typeof o.volume === "number" && o.volume >= 0 && o.volume <= 1 ? o.volume : 1,
       best: o.best && typeof o.best === "object" ? Object.fromEntries(Object.entries(o.best).filter(([, g]) => typeof g === "string")) : {},
+      scores: o.scores && typeof o.scores === "object" ? Object.fromEntries(Object.entries(o.scores).filter(([, n]) => typeof n === "number" && Number.isFinite(n))) : {},
     };
   } catch {
-    return { beaten: [], seen: [], volume: 1, best: {} };
+    return { beaten: [], seen: [], volume: 1, best: {}, scores: {} };
   }
 }
 export function writeLite(patch: Partial<LiteState>): LiteState {
@@ -141,6 +144,15 @@ export function recordLite(piece: string, failed: boolean, fuguesOnly = false, g
   const beaten = [...st.beaten, piece];
   writeLite({ beaten });
   return liteTiers(new Set(beaten), fuguesOnly).filter((t) => !before.includes(t));
+}
+
+/** D268: a finished run's final score against the piece's best: the best before it, and whether it is a new one (kept). */
+export function recordLiteBest(piece: string, final: number): { before: number | null; fresh: boolean } {
+  const st = readLite();
+  const before = st.scores[piece] ?? null;
+  const fresh = before === null || final > before;
+  if (fresh) writeLite({ scores: { ...st.scores, [piece]: final } });
+  return { before, fresh };
 }
 
 /** The one-line instruction shown at the start of the first game in each mode (D239: the two grades of a right note). */
