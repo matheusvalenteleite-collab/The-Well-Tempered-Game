@@ -217,3 +217,15 @@ test("D237: bench.css's braces balance (an unclosed @media once swallowed every 
   assert.equal(depth, 0);
   assert.match(css, /\n\.tb-pop-veil \{ position: fixed;/, "the pop-up's rule at the top level");
 });
+
+test("D263: on a phone the minimal page has the fugues only: its cards, its start (Fugue 1) and its unlocking count fugues", async () => {
+  const { litePieces, liteTiers, liteLine, startHere } = await import("../src/bench/lite.ts");
+  const easy = litePieces("EASY", true);
+  assert.ok(easy.length === 10 && easy.every((id) => /^wtc1f/.test(id)));
+  assert.equal(startHere(true), "wtc1f01");
+  assert.equal(startHere(false), "wtc1p01");
+  assert.deepEqual(liteTiers(new Set(), true), ["EASY"]);
+  assert.equal(liteLine(new Set(), true), "5 MORE TO UNLOCK INTERMEDIATE");
+  assert.deepEqual(liteTiers(new Set(easy.slice(0, 5)), true), ["EASY", "INTERMEDIATE"]);
+  assert.deepEqual(liteTiers(new Set(easy.slice(0, 4)), true), ["EASY"]);
+});

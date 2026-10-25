@@ -7,6 +7,34 @@
  * finished, the modes whose one-line instruction has been seen, and the volume.
  */
 import { tierFugues, TIER_ORDER, type Tier } from "./tiers.ts";
+import { detectedPlatform, platformOf, type PlatformPref } from "./home.ts";
+import type { Platform } from "./protos.ts";
+
+/**
+ * D263: the minimal page's platform: as detected, or as chosen in its ⚙ (MOBILE · COMPUTER, kept on the
+ * device); on a phone only the fugues (the owner: "eliminate all preludes from mobile mode ... the fugues
+ * are much more interesting. We should focus on LADDER mobile").
+ */
+export const LITE_PLATFORM_KEY = "tb-lite-platform";
+export function litePlatformPref(): PlatformPref {
+  try {
+    const v = localStorage.getItem(LITE_PLATFORM_KEY);
+    return v === "mobile" || v === "computer" ? v : "auto";
+  } catch {
+    return "auto";
+  }
+}
+export function saveLitePlatform(p: PlatformPref) {
+  try {
+    if (p === "auto") localStorage.removeItem(LITE_PLATFORM_KEY);
+    else localStorage.setItem(LITE_PLATFORM_KEY, p);
+  } catch {
+    /* this visit only */
+  }
+}
+export const litePlatform = (): Platform => platformOf(litePlatformPref(), detectedPlatform());
+/** D263: where a new player starts: Prelude 1 on a computer, Fugue 1 on a phone (no preludes there). */
+export const startHere = (fuguesOnly: boolean): string => (fuguesOnly ? "wtc1f01" : START_HERE);
 
 export const LITE_KEY = "tb-lite-v1";
 
@@ -43,52 +71,52 @@ export function writeLite(patch: Partial<LiteState>): LiteState {
 }
 
 /** A tier's cards, in Bach's order, each pair's prelude then its fugue. */
-export const litePieces = (t: Tier): string[] => tierFugues(t).flatMap((f) => [f.replace(/^wtc1f/, "wtc1p"), f]);
+export const litePieces = (t: Tier, fuguesOnly = false): string[] => tierFugues(t).flatMap((f) => (fuguesOnly ? [f] : [f.replace(/^wtc1f/, "wtc1p"), f]));
 
 /** Pieces finished in a tier that show the next one (the BOSS: every other piece). */
 export const LITE_STEP = 5;
 
 /** How many more pieces must be finished to show a tier (0: its condition met). */
-export function liteToGo(t: Tier, beaten: ReadonlySet<string>): number {
+export function liteToGo(t: Tier, beaten: ReadonlySet<string>, fuguesOnly = false): number {
   const i = TIER_ORDER.indexOf(t);
   if (i <= 0) return 0;
   const left = (ids: string[]) => ids.filter((id) => !beaten.has(id)).length;
-  if (t === "BOSS") return left(TIER_ORDER.filter((x) => x !== "BOSS").flatMap(litePieces));
-  const before = litePieces(TIER_ORDER[i - 1]);
+  if (t === "BOSS") return left(TIER_ORDER.filter((x) => x !== "BOSS").flatMap((x) => litePieces(x, fuguesOnly)));
+  const before = litePieces(TIER_ORDER[i - 1], fuguesOnly);
   return Math.max(0, LITE_STEP - (before.length - left(before)));
 }
 
 /** The tiers shown, in order (each needs the one before it shown). */
-export function liteTiers(beaten: ReadonlySet<string>): Tier[] {
+export function liteTiers(beaten: ReadonlySet<string>, fuguesOnly = false): Tier[] {
   const out: Tier[] = [];
   for (const t of TIER_ORDER) {
-    if (liteToGo(t, beaten) > 0) break;
+    if (liteToGo(t, beaten, fuguesOnly) > 0) break;
     out.push(t);
   }
   return out;
 }
 
 /** The cards shown, in the grid's order. */
-export const liteOrder = (beaten: ReadonlySet<string>): string[] => liteTiers(beaten).flatMap(litePieces);
+export const liteOrder = (beaten: ReadonlySet<string>, fuguesOnly = false): string[] => liteTiers(beaten, fuguesOnly).flatMap((t) => litePieces(t, fuguesOnly));
 
 /** "5 MORE TO UNLOCK INTERMEDIATE"; empty once every tier is shown. */
-export function liteLine(beaten: ReadonlySet<string>): string {
-  const shown = liteTiers(beaten);
+export function liteLine(beaten: ReadonlySet<string>, fuguesOnly = false): string {
+  const shown = liteTiers(beaten, fuguesOnly);
   const t = TIER_ORDER.find((x) => !shown.includes(x));
-  return t ? `${liteToGo(t, beaten)} MORE TO UNLOCK ${t}` : "";
+  return t ? `${liteToGo(t, beaten, fuguesOnly)} MORE TO UNLOCK ${t}` : "";
 }
 
 /**
  * A run ended: a piece finished (to its end, `failed` false) is kept. Returns the tiers this run
  * showed (for the result's line).
  */
-export function recordLite(piece: string, failed: boolean): Tier[] {
+export function recordLite(piece: string, failed: boolean, fuguesOnly = false): Tier[] {
   const st = readLite();
   if (failed || st.beaten.includes(piece) || !/^wtc1[pf]\d\d$/.test(piece)) return [];
-  const before = liteTiers(new Set(st.beaten));
+  const before = liteTiers(new Set(st.beaten), fuguesOnly);
   const beaten = [...st.beaten, piece];
   writeLite({ beaten });
-  return liteTiers(new Set(beaten)).filter((t) => !before.includes(t));
+  return liteTiers(new Set(beaten), fuguesOnly).filter((t) => !before.includes(t));
 }
 
 /** The one-line instruction shown at the start of the first game in each mode (D239: the two grades of a right note). */

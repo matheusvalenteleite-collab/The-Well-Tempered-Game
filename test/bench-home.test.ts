@@ -24,6 +24,15 @@ test("D233: the platform from the pointer: a finger with no hover a phone, else 
   assert.equal(detectPlatform({ coarse: false, hover: true }), "computer");
   assert.equal(detectPlatform({ coarse: true, hover: true }), "computer", "a touch laptop with a mouse");
   assert.equal(detectPlatform({ coarse: false, hover: false }), "computer");
+  // D263: phones that report hover (Samsung's), tablets, an iPad passing as a Mac.
+  const s22 = "Mozilla/5.0 (Linux; Android 14; SM-S901B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36";
+  assert.equal(detectPlatform({ coarse: true, hover: true, ua: s22 }), "mobile", "Galaxy S22, Chrome");
+  assert.equal(detectPlatform({ coarse: true, hover: true, ua: "Mozilla/5.0 (Linux; Android 14; SAMSUNG SM-S901B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/25.0 Chrome/121.0.0.0 Mobile Safari/537.36" }), "mobile", "Samsung Internet");
+  assert.equal(detectPlatform({ coarse: true, hover: true, uaMobile: true }), "mobile", "userAgentData says mobile");
+  assert.equal(detectPlatform({ coarse: true, hover: false, ua: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/129 Mobile/15E148 Safari/604.1" }), "mobile", "iPhone");
+  assert.equal(detectPlatform({ coarse: true, hover: true, ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15", touchPoints: 5 }), "mobile", "iPad as a Mac");
+  assert.equal(detectPlatform({ coarse: false, hover: true, ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15", touchPoints: 0 }), "computer", "a Mac");
+  assert.equal(detectPlatform({ coarse: false, hover: true, ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36" }), "computer", "Windows");
   assert.equal(platformOf("auto", "mobile"), "mobile");
   assert.equal(platformOf("computer", "mobile"), "computer");
   assert.equal(platformOf("mobile", "computer"), "mobile");

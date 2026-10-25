@@ -7,7 +7,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { APP } from "./config.ts";
 import { forceUi, keepUiUnder } from "../touch/ui/index.ts";
-import { detectedPlatform } from "./home.ts";
+import { litePlatform } from "./lite.ts";
 import { BenchApp } from "./BenchApp.tsx";
 import { markVersion } from "./version.ts";
 import "./fonts/press-start-2p.css";
@@ -16,7 +16,8 @@ import "./bench.css";
 
 APP.lite = true;
 APP.dev = false;
-if (detectedPlatform() === "mobile") keepUiUnder("tb-lite-ui-v1");
+// D263: the platform as detected or chosen in ⚙ (lite.ts).
+if (litePlatform() === "mobile") keepUiUnder("tb-lite-ui-v1");
 else forceUi("classic");
 
 markVersion();
