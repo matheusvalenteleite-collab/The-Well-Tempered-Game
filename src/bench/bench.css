@@ -610,3 +610,4 @@
   .tb-result:has(.tb-sheet) .tb-report { margin: 0 auto; }
   .tb-result:has(.tb-sheet) .tb-result-nav .tb-play { font-size: 10px; padding: 8px 18px; min-height: 0; }
 }
+.tb-lite-tutorial-pic { display: grid !important; place-items: center; font-size: 34px; color: #7fd6e8; background: radial-gradient(circle, #16303a, #000) !important; }

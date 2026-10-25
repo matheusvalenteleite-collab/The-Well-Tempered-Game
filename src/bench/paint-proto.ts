@@ -978,6 +978,9 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
         const way = !g.lastTouch || m.size < 0 ? "" : m.dir === 0 || m.steps === 0 ? "=" : m.dir > 0 ? "▲" : "▼";
         label(c, `${way}${n.long ? " HOLD" : ""}`, s.x + bw / 2, y, t.fg, 9);
       }
+      // D271, THE TUTORIAL's coaching.
+      if (g.o.coach === "thumbs") thumbCoach(c, w, bw, y, g.thumbNext() ?? "right", t);
+      if (g.o.coach === "dynamics") dynamicsCoach(c, w, h, bw, n.on < g.f.barTicks, t);
       // A soft trail from the note in the box out to the bars.
       const xn = Math.max(bw, Math.min(w - bw, rows.xOf(n.on)));
       c.fillStyle = ink;
@@ -1003,6 +1006,43 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
   }
 }
 
+/** D271: a thumb on the bar whose turn it is, at the next note's height, nudging in (the other bar's glow stays: either may play). */
+function thumbCoach(c: CanvasRenderingContext2D, w: number, bw: number, y: number, side: "left" | "right", t: Tok) {
+  const bob = Math.sin(performance.now() / 160) * 4;
+  const tw = Math.max(16, Math.min(28, bw * 0.28));
+  const th = tw * 1.5;
+  const x = side === "left" ? bw * 0.62 + bob : w - bw * 0.62 - tw - bob;
+  c.globalAlpha = 0.95;
+  c.fillStyle = "#f2c9a0";
+  c.fillRect(Math.round(x), Math.round(y - th / 2), Math.round(tw), Math.round(th));
+  c.fillStyle = "#c8946a";
+  c.fillRect(Math.round(x), Math.round(y + th / 2 - 3), Math.round(tw), 3);
+  // The nail, at the end facing the box.
+  c.fillStyle = "#fff1e2";
+  const nx = side === "left" ? x + tw * 0.4 : x;
+  c.fillRect(Math.round(nx), Math.round(y - th / 2 + 3), Math.round(tw * 0.6), Math.round(th * 0.45));
+  c.globalAlpha = 1;
+  label(c, side === "left" ? "LEFT THUMB" : "RIGHT THUMB", side === "left" ? bw / 2 : w - bw / 2, y + th / 2 + 12, t.shine, 6);
+}
+
+/** D271: the part of both bars asked for: soft by the box in the first bar, loud by the edge in the second. */
+function dynamicsCoach(c: CanvasRenderingContext2D, w: number, h: number, bw: number, soft: boolean, t: Tok) {
+  const zw = bw * 0.45;
+  c.fillStyle = soft ? "#7fd6e8" : "#ff8a3d";
+  c.globalAlpha = 0.16 + 0.06 * Math.sin(performance.now() / 200);
+  if (soft) {
+    c.fillRect(bw - zw, 0, zw, h);
+    c.fillRect(w - bw, 0, zw, h);
+  } else {
+    c.fillRect(0, 0, zw, h);
+    c.fillRect(w - zw, 0, zw, h);
+  }
+  c.globalAlpha = 1;
+  const word = soft ? "SOFT" : "LOUD";
+  label(c, word, soft ? bw - zw / 2 : zw / 2, h * 0.5, soft ? "#7fd6e8" : "#ff8a3d", 8);
+  label(c, word, soft ? w - bw + zw / 2 : w - zw / 2, h * 0.5, soft ? "#7fd6e8" : "#ff8a3d", 8);
+  void t;
+}
 
 function verdict(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
   const gr = g.grade;

@@ -4,8 +4,8 @@ import { register } from "node:module";
 import { fugueById } from "../src/touch/fugue.ts";
 import type { Chip } from "../src/touch/chip.ts";
 import { ProtoGame, type Rows } from "../src/bench/proto-game.ts";
-import { KEY_ROWS, protoById } from "../src/bench/protos.ts";
-import { CANDIDATES, EXAM, LESSONS, MOBILE_LESSONS, passed, TRACKS, type Lesson } from "../src/bench/lessons.ts";
+import { BAR, KEY_ROWS, protoById } from "../src/bench/protos.ts";
+import { CANDIDATES, EXAM, LESSONS, MOBILE_LESSONS, passed, TRACKS, TUTORIAL_LESSONS, type Lesson } from "../src/bench/lessons.ts";
 import { answer, askFirst, nextLesson, OLD_LESSONS_KEY, readTutorial, recordLesson, trackState, TUTORIAL_KEY } from "../src/bench/tutorial.ts";
 import { CARDS, TESTBENCH } from "../src/bench/cards.ts";
 
@@ -93,7 +93,15 @@ test("D225: each lesson's passage is pinned (a change to the data or the search 
     "computer/exposition": ["keys", "wtc1f02", 1, 0, 77760, false, true],
     "computer/leap": ["keys", "wtc1f04", 0, 339840, 359040, false, true],
     "computer/exam": ["keys", "wtc1f08", 0, 0, 668160, false, true],
-    "mobile/ladder": ["ladder", "wtc1f01", 0, 20160, 25920, true, false],
+    // D270: THE TUTORIAL, on Invention No. 1 (bars of 7680 ticks).
+    "mobile/t-ladder": ["ladder", "inv01", 0, 0, 15360, true, false],
+    "mobile/t-beat": ["ladder", "inv01", 0, 0, 15360, false, false],
+    "mobile/t-thumbs": ["ladder", "inv01", 0, 0, 15360, false, false],
+    "mobile/t-legato": ["ladder", "inv01", 0, 0, 15360, false, false],
+    "mobile/t-dynamics": ["ladder", "inv01", 0, 0, 15360, false, false],
+    "mobile/t-slide": ["ladder", "inv01", 0, 0, 15360, false, false],
+    "mobile/t-subject": ["ladder", "inv01", 1, 0, 30720, false, false],
+    "mobile/t-whole": ["ladder", "inv01", 0, 0, 168960, false, true],
   };
   const seen: string[] = [];
   for (const [pl, track] of Object.entries(TRACKS))
@@ -113,8 +121,11 @@ test("D225: each lesson's passage is pinned (a change to the data or the search 
 
 test("D225: the tracks: the computer's eight HIGHWAY lessons, the phone's LADDER (D229: SUBJECT withdrawn); ids unique; Bach brief (≤ 2 lines before, 1 after, ≤ 20 words)", () => {
   assert.deepEqual(LESSONS.map((l) => l.id), ["beat", "line", "same", "subject", "answer", "exposition", "leap", "exam"]);
+  // D270: the phone's track is THE TUTORIAL (the old one-lesson track kept, unused).
   assert.deepEqual(MOBILE_LESSONS.map((l) => [l.id, l.mode]), [["ladder", "ladder"]]);
-  assert.ok(MOBILE_LESSONS[0].run().wait, "LADDER waits at each note");
+  assert.deepEqual(TUTORIAL_LESSONS.map((l) => l.id), ["t-ladder", "t-beat", "t-thumbs", "t-legato", "t-dynamics", "t-slide", "t-subject", "t-whole"]);
+  assert.equal(TRACKS.mobile, TUTORIAL_LESSONS);
+  assert.ok(TUTORIAL_LESSONS[0].run().wait, "LADDER waits at each note");
   for (const track of Object.values(TRACKS)) {
     assert.equal(new Set(track.map((l) => l.id)).size, track.length);
     for (const l of track) {
@@ -147,6 +158,96 @@ test("D225: the phone's lesson (LADDER, waiting) can be played right through and
     assert.equal(res.right, res.of, `${l.id}: ${res.right}/${res.of} (wrong ${res.wrong}, missed ${res.missed})`);
     assert.ok(passed(l, res), l.id);
   }
+});
+
+/**
+ * D270: THE TUTORIAL played as taught: LADDER at each note's height, the thumbs taking turns, each
+ * next note touched before the last is let go (legato), soft by the box in bar 1 and loud by the edge
+ * in bar 2, and (the slide's lesson) a rising step slid by the thumb still down, never back.
+ */
+function playTutorial(l: Lesson, o: { oneThumb?: boolean; detached?: boolean; flat?: boolean; noSlide?: boolean } = {}) {
+  const clock = { t: 0 };
+  const { g } = gameOf(l, clock);
+  g.rows = ROWS;
+  const runTo = (t: number) => {
+    while (clock.t < t - 0.02) (clock.t += 0.02), g.step();
+    clock.t = Math.max(clock.t, t);
+    g.step();
+  };
+  const notes = g.notes;
+  const bw = W * BAR;
+  let id = 0;
+  let held: { id: number; side: "left" | "right"; step: number; y: number } | null = null;
+  let side: "left" | "right" = "right";
+  const slide = l.id === "t-slide" && !o.noSlide;
+  for (let i = 0; i < notes.length; i++) {
+    const n = notes[i];
+    if (n.ride || (i > 0 && notes[i - 1].on === n.on)) continue;
+    runTo(g.timeAt(n.on));
+    const loud = !o.flat && n.on >= g.f.barTicks;
+    const xOn = (sd: "left" | "right") => (sd === "left" ? (loud ? 0.1 : 0.8) * bw : W - bw + (loud ? 0.9 : 0.2) * bw);
+    if (slide && held && n.step > held.step) {
+      // A slide plays on after a row and a half of travel (D208): a step slid is a deliberate move.
+      held.y -= 28 * (n.step - held.step);
+      g.move(held.id, { side: held.side, x: xOn(held.side), y: held.y, w: W, h: H }, performance.now());
+      held.step = n.step;
+      continue;
+    }
+    if (!o.oneThumb) side = side === "left" ? "right" : "left";
+    // Two touches with one thumb cannot overlap: the last let go first.
+    if (held && (o.detached || held.side === side)) (g.up(held.id, performance.now()), (held = null));
+    const nid = ++id;
+    g.down(nid, { side, x: xOn(side), y: ROWS.yOf(n.step), w: W, h: H }, performance.now());
+    if (held) g.up(held.id, performance.now() + 1);
+    held = { id: nid, side, step: n.step, y: ROWS.yOf(n.step) };
+    if (o.detached) {
+      runTo(g.timeAt(n.on + n.dur * 0.4));
+      g.up(nid, performance.now());
+      held = null;
+    }
+  }
+  if (held) g.up(held.id, performance.now());
+  runTo(g.timeAt(g.end + 1));
+  return g.results();
+}
+
+test("D270: THE TUTORIAL: every step played as taught is passed (the whole invention too); played carelessly (one thumb, detached, flat, no slide), its own step is not", () => {
+  for (const l of TUTORIAL_LESSONS) {
+    const res = playTutorial(l);
+    assert.ok(res.of >= 10, `${l.id}: ${res.of} notes`);
+    assert.ok(passed(l, res), `${l.id}: ${res.right}/${res.of}, thumbs ${res.thumbs.alt}/${res.thumbs.of}, legato ${res.art.legato}/${res.art.legatoOf}, slides ${res.slides}, captured ${res.captured}`);
+  }
+  const by = (id: string) => TUTORIAL_LESSONS.find((l) => l.id === id)!;
+  assert.ok(!passed(by("t-thumbs"), playTutorial(by("t-thumbs"), { oneThumb: true })), "one thumb");
+  assert.ok(!passed(by("t-legato"), playTutorial(by("t-legato"), { detached: true })), "detached");
+  assert.ok(!passed(by("t-dynamics"), playTutorial(by("t-dynamics"), { flat: true })), "all at one level");
+  assert.ok(!passed(by("t-slide"), playTutorial(by("t-slide"), { noSlide: true })), "no slide");
+});
+
+test("D271: a held thumb slides one way only: back the other way it plays nothing", () => {
+  const l = TUTORIAL_LESSONS.find((x) => x.id === "t-slide")!;
+  const clock = { t: 0 };
+  const { g } = gameOf(l, clock);
+  g.rows = ROWS;
+  const runTo = (t: number) => {
+    while (clock.t < t - 0.02) (clock.t += 0.02), g.step();
+    clock.t = Math.max(clock.t, t);
+    g.step();
+  };
+  // Invention 1's right hand: C D E F, then D (down). Struck C, slid up through D E F; D, back down, is refused.
+  const ns = g.notes;
+  const c = (y: number) => ({ side: "left" as const, x: 40, y, w: W, h: H });
+  let y = ROWS.yOf(ns[0].step);
+  runTo(g.timeAt(ns[0].on));
+  g.down(1, c(y), performance.now());
+  // Each step slid a row and a half's travel (D208).
+  for (let i = 1; i <= 3; i++) (runTo(g.timeAt(ns[i].on)), g.move(1, c((y -= 28)), performance.now()));
+  assert.deepEqual(ns.slice(0, 4).map((n) => n.state), ["hit", "hit", "hit", "hit"]);
+  assert.ok(ns[4].step < ns[3].step, "the fifth note goes down");
+  runTo(g.timeAt(ns[4].on));
+  g.move(1, c((y += 56)), performance.now());
+  assert.equal(ns[4].state, "pending", "not played by sliding back");
+  assert.equal(g.slides, 3);
 });
 
 test("D225: from the fourth lesson on the crowd can leave (a player mashing one key fails, and is not passed); the first three cannot fail", () => {
@@ -266,11 +367,10 @@ test("D225: the LESSON MAP lists each track's lessons, ✓ when passed, the next
     assert.match(html, /id="map-computer-beat"[^>]*>.*?✓.*?92%/);
     assert.match(html, /id="map-computer-line" class="tb-ach-row tb-map-row next"/);
     assert.match(html, /COMPUTER 1\/8/);
-    assert.match(html, /MOBILE 0\/1/);
+    assert.match(html, /MOBILE 0\/8/);
     const phone = renderToStaticMarkup(createElement(LessonMap, { platform: "mobile", focus: "ladder", play: () => {}, close: () => {} }));
-    assert.equal(phone.match(/data-lesson=/g)?.length, MOBILE_LESSONS.length);
+    assert.equal(phone.match(/data-lesson=/g)?.length, TUTORIAL_LESSONS.length);
     assert.match(phone, /<h2>LADDER<\/h2>/);
-    assert.doesNotMatch(phone, /SUBJECT/);
     const q = renderToStaticMarkup(createElement(PlayedBefore, { answer: () => {} }));
     assert.match(q, /id="played-yes"[^>]*>YES<small>SKIP/);
     assert.match(q, /id="played-no"[^>]*>NO<small>TEACH ME/);

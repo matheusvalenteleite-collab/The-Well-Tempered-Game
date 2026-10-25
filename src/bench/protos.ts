@@ -52,6 +52,8 @@ export interface Options {
   bt?: boolean;
   /** D230, SCALE KEYS (computer HIGHWAY, an experiment): the home row the home key's scale, the rows above and below its raised and lowered degrees (scale-keys.ts). */
   scale?: boolean;
+  /** D271, THE TUTORIAL's coaching drawn over LADDER: which thumb the next note wants; where soft and loud are asked. */
+  coach?: "thumbs" | "dynamics";
 }
 
 export interface Proto {

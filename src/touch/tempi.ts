@@ -51,6 +51,8 @@ const PRELUDES: Record<string, number> = {
 };
 
 /** A piece's tempo in quarter notes a minute: the standard one (D208: the only one played). */
+/** D270: the TUTORIAL's invention, a little under the recordings' usual pace (about 66 to 80 a quarter), for learning. */
+const TUTORIAL_TEMPO: Record<string, number> = { inv01: 60 };
 export function tempoOf(id: string): number {
-  return TEMPO[id]?.normal ?? PRELUDES[id] ?? 46;
+  return TEMPO[id]?.normal ?? PRELUDES[id] ?? TUTORIAL_TEMPO[id] ?? 46;
 }

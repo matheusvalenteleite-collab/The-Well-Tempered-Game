@@ -9,6 +9,7 @@
  * countersubject against each entry (tools/touch/analysis.ts).
  */
 import data from "../../data/touch/pieces.json" with { type: "json" };
+import tutorialData from "../../data/touch/tutorial.json" with { type: "json" };
 
 export type TouchNote = [on: number, dur: number, midi: number, step: number];
 
@@ -98,8 +99,11 @@ export const PIECES = data as unknown as TouchFugue[];
 export const FUGUES = PIECES.filter((p) => p.kind === "fugue");
 export const PRELUDES = PIECES.filter((p) => p.kind === "prelude");
 
+/** D270: the pieces the TUTORIAL teaches with (Invention No. 1, tools/touch/tutorial.ts): found by id, in no list. */
+export const TUTORIAL_PIECES = tutorialData as unknown as TouchFugue[];
+
 export function fugueById(id: string): TouchFugue {
-  return PIECES.find((f) => f.id === id) ?? PIECES[0];
+  return PIECES.find((f) => f.id === id) ?? TUTORIAL_PIECES.find((f) => f.id === id) ?? PIECES[0];
 }
 
 /** "I·2 P", "I·2 F"; the Art of Fugue's "AoF·XIV". */
