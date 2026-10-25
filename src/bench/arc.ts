@@ -27,8 +27,11 @@ export interface ArcPedal {
 export interface Arc {
   /** [bar, factor on the riding threshold] from that bar on (the right hand's, or the only hand's). */
   rides: [bar: number, factor: number][];
-  /** [bar, factor on the tempo]: straight lines between, the last held. */
-  tempo: [bar: number, speed: number][];
+  /**
+   * [bar, factor on the tempo]: straight lines between, the last held. D260: none in any arc (the owner:
+   * "Eliminate the increasing tempo. This doesn't [work] for Bach at all ... Stable tempo").
+   */
+  tempo?: [bar: number, speed: number][];
   /** The bass's pedal the player holds (D250); D252: or several, one after the other. */
   pedal?: ArcPedal;
   pedals?: ArcPedal[];
@@ -79,12 +82,6 @@ const ARCS: Record<string, Arc> = {
       [5, 1.4],
       [32, 2.4],
     ],
-    tempo: [
-      [1, 1],
-      [5, 1.02],
-      [12, 1.04],
-      [20, 1.06],
-    ],
     pedals: [
       // D255: both in the leftmost lane: a lane between the thumbs (the second lane, beside the right
       // hand's first, crowded the right thumb: the owner's errors there); G carries into C unmoved (D253).
@@ -124,13 +121,6 @@ ARCS.wtc1p04 = {
     [1, 1.6],
     [19, 1.15],
     [26, 1.6],
-  ],
-  tempo: [
-    [1, 1],
-    [19, 1],
-    [25, 1.03],
-    [29, 1.03],
-    [33, 1],
   ],
   finalChord: true,
   sweeps: true,

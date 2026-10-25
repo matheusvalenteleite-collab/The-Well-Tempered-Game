@@ -298,7 +298,10 @@ export class ProtoGame {
     // D250: a prelude's arc (arc.ts): its tempo rising subtly, its notes passing to the player by section.
     const arc = o.her || proto.id === "subject" ? undefined : arcOf(f);
     this.arc = arc;
-    if (arc && !(o.clock && o.her)) this.rit = withSpeed(this.rit, (t) => lineAt(f, arc.tempo, t), f.length, f.tpq / 4);
+    if (arc?.tempo && !(o.clock && o.her)) {
+      const tempo = arc.tempo;
+      this.rit = withSpeed(this.rit, (t) => lineAt(f, tempo, t), f.length, f.tpq / 4);
+    }
     // D191: how far apart two ticks sound, in ms (at this tempo, the final ritard included).
     const msBetween = (a: number, c: number) => ((this.rit.warp(c) - this.rit.warp(a)) / this.tps) * 1000;
     // D214, SUBJECT: one line, the subject's notes in every entry, whichever voice (subject-line.ts).
@@ -874,6 +877,9 @@ export class ProtoGame {
         const graded: Verdict = { ok: true, lane: lane === this.lanesOf(k)[i] && rowRight ? "exact" : "relative", at: lane };
         // D252: the planned lane is always right (a hand's few lanes cannot always skip one for a leap).
         if (last < 0 || lane === this.lanesOf(k)[i]) return graded;
+        // D260: a hand of three lanes or fewer (both hands on a phone): any of its lanes is right (only
+        // the planned one fully); a neighbouring lane was a WRONG and a slip, too harsh for so few lanes.
+        if (this.hands && r.count <= 3) return graded;
         return laneOk(m, last - r.from, lane - r.from, lvl === "leaps", r.count) ? graded : { ok: false, wrong: asked(m.dir === 0 ? 0 : -m.steps), why: "gesture" };
       }
     }
@@ -2004,7 +2010,7 @@ export class ProtoGame {
   private report(r: { right: number; of: number; score: number }): string {
     const counts = Object.entries(this.diagCounts).map(([k, v]) => `${k} ${v}`).join(", ") || "none";
     const head = [
-      `${this.f.id} ${this.proto.id} ${this.o.easy ?? "timing"} ${Math.round(this.bpm)} bpm${this.hands ? " both hands" : ""}`,
+      `${this.f.id} ${this.proto.id} ${this.o.easy ?? "timing"} ${Math.round(this.bpm)} bpm${this.hands ? " both hands" : ""} · sound delay ${this.chip.lag == null ? "as reported" : `${Math.round(this.chip.lag * 1000)} ms`}${this.bt ? " · BLUETOOTH MODE" : ""}`,
       `right ${r.right}/${r.of} score ${r.score}${this.failedAt !== null ? ` crowd left at bar ${barAt(this.f, this.failedAt)}` : ""} · slips ${this.slips} · screen ${Math.round(this.touchW)} px`,
       this.pedalList.length ? `pedals held ${this.pedalList.map((p) => `${p.name} ${Math.round(p.share * 100)}%`).join(", ")}` : "",
       `not exact: ${counts}`,
