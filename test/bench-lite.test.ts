@@ -187,9 +187,14 @@ test("D237: play.html: built beside bench.html, the grid only: no tutorial, achi
   const { renderToStaticMarkup } = await import("react-dom/server");
   const { LiteGrid } = await import("../src/bench/LiteGrid.tsx");
   const html = renderToStaticMarkup(createElement(LiteGrid, { beaten: [], open: () => {}, settings: () => {} }));
-  assert.equal(html.match(/class="tb-lite-card/g)?.length, 20);
+  // D264: all open from the start (48 cards on a computer, 24 fugues on a phone), each with its difficulty.
+  assert.equal(html.match(/class="tb-lite-card/g)?.length, 48);
   assert.match(html, /id="card-wtc1p01"[^>]*>.*?START HERE/);
-  assert.match(html, /5 MORE TO UNLOCK INTERMEDIATE/);
+  assert.doesNotMatch(html, /MORE TO UNLOCK/);
+  assert.match(html, /id="card-wtc1f02".*?NORMAL/);
+  const phone = renderToStaticMarkup(createElement(LiteGrid, { beaten: [], open: () => {}, settings: () => {}, fuguesOnly: true }));
+  assert.equal(phone.match(/class="tb-lite-card/g)?.length, 24);
+  assert.match(phone, /id="card-wtc1f01"[^>]*>.*?START HERE/);
   assert.match(html, /id="lite-settings"/);
   for (const word of ["TUTORIAL", "ACHIEVEMENT", "INTERFACE", "KIMIKO", "SEAL", "BOOK II", "LESSON"]) assert.doesNotMatch(html, new RegExp(word, "i"), word);
   // The whole app on the minimal page, as it first renders: the grid, nothing of the bench's.
@@ -228,4 +233,16 @@ test("D263: on a phone the minimal page has the fugues only: its cards, its star
   assert.equal(liteLine(new Set(), true), "5 MORE TO UNLOCK INTERMEDIATE");
   assert.deepEqual(liteTiers(new Set(easy.slice(0, 5)), true), ["EASY", "INTERMEDIATE"]);
   assert.deepEqual(liteTiers(new Set(easy.slice(0, 4)), true), ["EASY"]);
+});
+
+test("D264: every piece open from the start, in Bach's order; each card's difficulty EASY (green), NORMAL (yellow) or HARD (red)", async () => {
+  const { liteAll, liteLevel } = await import("../src/bench/lite.ts");
+  assert.equal(liteAll(true).length, 24);
+  assert.deepEqual(liteAll(true).slice(0, 3), ["wtc1f01", "wtc1f02", "wtc1f03"]);
+  assert.deepEqual(liteAll(false).slice(0, 4), ["wtc1p01", "wtc1f01", "wtc1p02", "wtc1f02"]);
+  assert.equal(liteLevel("wtc1f01").label, "EASY");
+  assert.equal(liteLevel("wtc1f02").label, "NORMAL");
+  assert.equal(liteLevel("wtc1f03").label, "HARD");
+  assert.equal(liteLevel("wtc1f24").label, "HARD", "the BOSS among the hard");
+  assert.equal(liteLevel("wtc1p02").label, "NORMAL", "a prelude its fugue's");
 });

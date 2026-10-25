@@ -59,7 +59,7 @@ import type { ArtStats } from "./articulation.ts";
 import { VERSION } from "./version.ts";
 import { APP } from "./config.ts";
 import { defaultVoice, nextIn } from "./flow.ts";
-import { LITE_HINT, liteOrder, litePlatform, litePlatformPref, readLite, recordLite, RULES, saveLitePlatform, startHere, writeLite } from "./lite.ts";
+import { LITE_HINT, liteAll, litePlatform, litePlatformPref, readLite, recordLite, RULES, saveLitePlatform, startHere, writeLite } from "./lite.ts";
 import { LiteGrid } from "./LiteGrid.tsx";
 import { PlayPop } from "./PlayPop.tsx";
 import { tierCards } from "./tiers.ts";
@@ -446,10 +446,12 @@ export function BenchApp() {
           setPhase({ kind: "talk", lines: ok ? l.praise : l.again, next: ok ? "advance" : "again" });
         } else if (APP.lite) {
           // D237: the minimal page keeps only the pieces finished (its own key), nothing of the bench's.
-          const opened = recordLite(f.id, r.failedBar !== null, platform === "mobile");
+          // D264: nothing to unlock (all open): the piece kept as finished, no toast.
+          recordLite(f.id, r.failedBar !== null, platform === "mobile");
+          const opened: Tier[] = [];
           const st = readLite();
           setLite(st);
-          setPhase({ kind: "result", ...r, seal: null, opened, next: nextIn(liteOrder(new Set(st.beaten), platform === "mobile"), f.id) });
+          setPhase({ kind: "result", ...r, seal: null, opened, next: nextIn(liteAll(platform === "mobile"), f.id) });
         } else {
           // D214: SUBJECT's grade is not any one voice's.
           if (r.failedBar === null && !subjectMode) recordBest(f.id, played, r.grade);

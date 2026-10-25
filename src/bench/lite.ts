@@ -6,7 +6,7 @@
  * Kept on the device under its own key (`tb-lite-v1`), apart from the bench's progress: the pieces
  * finished, the modes whose one-line instruction has been seen, and the volume.
  */
-import { tierFugues, TIER_ORDER, type Tier } from "./tiers.ts";
+import { tierFugues, tierOf, TIER_ORDER, type Tier } from "./tiers.ts";
 import { detectedPlatform, platformOf, type PlatformPref } from "./home.ts";
 import type { Platform } from "./protos.ts";
 
@@ -68,6 +68,20 @@ export function writeLite(patch: Partial<LiteState>): LiteState {
     /* no storage: this visit only */
   }
   return next;
+}
+
+/**
+ * D264: every piece open from the start (the owner: "All fugues unlocked from the start, but each card
+ * has the color of its difficulty, and also says EASY in green, or NORMAL yellow, HARD in red"): Book I
+ * in Bach's order, each pair's prelude then its fugue (on a phone the fugues only).
+ */
+export const liteAll = (fuguesOnly = false): string[] =>
+  Array.from({ length: 24 }, (_, i) => String(i + 1).padStart(2, "0")).flatMap((n) => (fuguesOnly ? [`wtc1f${n}`] : [`wtc1p${n}`, `wtc1f${n}`]));
+/** D264: a piece's difficulty as its card shows it (its fugue's tier): EASY green, NORMAL yellow, HARD red (the BOSS among the hard). */
+export const LITE_LEVELS = { EASY: { label: "EASY", ink: "#5fdc6a" }, NORMAL: { label: "NORMAL", ink: "#e8c94a" }, HARD: { label: "HARD", ink: "#ec5a4a" } } as const;
+export function liteLevel(id: string): { label: string; ink: string } {
+  const t = tierOf(id);
+  return t === "EASY" ? LITE_LEVELS.EASY : t === "INTERMEDIATE" ? LITE_LEVELS.NORMAL : LITE_LEVELS.HARD;
 }
 
 /** A tier's cards, in Bach's order, each pair's prelude then its fugue. */
