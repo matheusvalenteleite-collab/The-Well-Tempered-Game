@@ -5,7 +5,7 @@ import { barStart, fugueById } from "../src/touch/fugue.ts";
 import type { Chip } from "../src/touch/chip.ts";
 import { ProtoGame } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
-import { arcOf, stepAt } from "../src/bench/arc.ts";
+import { arcOf } from "../src/bench/arc.ts";
 
 const P1 = fugueById("wtc1p01");
 function game(mode: "highway" | "keys", voice = 0) {
@@ -20,16 +20,27 @@ function game(mode: "highway" | "keys", voice = 0) {
   const g = new ProtoGame(P1, voice, 0, protoById(mode), { bpm: 55, legato: false, easy: "leaps" }, chip);
   return { g, clock, played };
 }
-const struckIn = (g: ProtoGame, b: number) => g.notes.filter((n) => !n.ride && n.on >= barStart(P1, b) && n.on < barStart(P1, b + 1)).length;
 
-test("D250, D259: the figure passes to the player section by section (sparse, then every other note, never all)", () => {
+test("D261: Prelude 1: the right thumb taps the top of each figure (beats 2 and 4), the left holds the bass (beats 1 and 3); the rest is heard, not played", () => {
   const { g } = game("highway");
-  const [a, b, c, d] = [2, 7, 15, 26].map((x) => struckIn(g, x));
-  assert.ok(a < b && b === c && d <= c, `${a} ${b} ${c} ${d}`);
-  // never the whole figure: no two struck notes of the right hand a sixteenth apart.
-  const t = g.tracks[0].notes.filter((n, i, ns) => !n.ride && !(i > 0 && ns[i - 1].on === n.on));
-  for (let i = 1; i < t.length; i++) assert.ok(t[i].on - t[i - 1].on > P1.tpq / 4, `bar ${Math.floor(t[i].on / P1.barTicks) + 1}`);
-  assert.equal(stepAt(P1, arcOf(P1)!.rides, barStart(P1, 30)), 1.4);
+  const [rh, lh] = g.tracks;
+  const half = P1.barTicks / 2;
+  assert.ok(rh.notes.every((n) => !n.ride) && lh.notes.every((n) => !n.ride), "no riding notes (no dots)");
+  for (const n of rh.notes.filter((n) => n.on < barStart(P1, 33))) {
+    assert.equal((n.on - barStart(P1, Math.floor(n.on / P1.barTicks) + 1)) % half, P1.tpq, "beat 2 or 4");
+    const same = P1.voices[0].filter(([on]) => Math.floor(on / half) === Math.floor(n.on / half));
+    assert.equal(n.midi, Math.max(...same.map((x) => x[2])), "the half bar's top note");
+    assert.ok(!g.tailed(n), "a sixteenth: a tap, no tail");
+  }
+  assert.equal(rh.notes.filter((n) => n.on >= barStart(P1, 5) && n.on < barStart(P1, 6)).length, 2);
+  for (const n of lh.notes) {
+    assert.equal(n.on % half, 0, "beat 1 or 3");
+    assert.ok(g.tailed(n), "the bass held: a tail");
+  }
+  assert.equal(lh.notes.filter((n) => n.on >= barStart(P1, 7) && n.on < barStart(P1, 8)).length, 2);
+  assert.ok(g.others.some((o) => o.voice === 0 && o.on === barStart(P1, 5) + P1.tpq / 2), "the figure's other notes are the others'");
+  assert.ok(g.others.some((o) => o.voice === 1 && o.on === barStart(P1, 5) + P1.tpq / 4), "the tenor too");
+  assert.equal(arcOf(P1)!.rows, undefined, "no rows");
 });
 
 test("D260: a stable tempo: no arc changes it (bar 2 lasts as long as bar 26, in Prelude 1 and Prelude 4)", () => {
@@ -58,12 +69,19 @@ test("D252: both hands: the left thumb's lanes and pedals, the right thumb's fig
   assert.equal(game("highway", 1).g.bassPedal, null, "the left hand's game: no pedal challenge");
 });
 
-test("D252: the figure repeated within its bar asks for the lower row", () => {
-  const { g } = game("highway");
-  const b = barStart(P1, 15);
-  const heads = g.notes.map((n, i) => i).filter((i) => !g.notes[i].ride && g.notes[i].on >= b && g.notes[i].on < b + P1.barTicks);
-  const rows = heads.map((i) => g.rowOf(i, 0));
-  assert.deepEqual(rows, [0, 0, 0, 1, 1, 1]);
+test("D261: a held thumb still on the bass when it comes again has played it (tied), no miss", () => {
+  const { g, clock } = game("highway");
+  const lh = g.tracks[1].notes;
+  const W = 390;
+  const i = lh.findIndex((n) => n.on >= barStart(P1, 7));
+  while (clock.t < g.timeAt(lh[i].on)) (clock.t += 0.01), g.step();
+  g.down(5, { side: "left", x: ((g.lanesOf(1)[i] + 0.5) / 5) * W, y: 700, w: W, h: 844 }, performance.now());
+  g.step();
+  while (clock.t < g.timeAt(lh[i + 1].on + P1.tpq)) (clock.t += 0.01), g.step();
+  assert.equal(lh[i].midi, lh[i + 1].midi);
+  assert.equal(lh[i + 1].state, "hit");
+  assert.equal(g.results().missed, g.results().missed - 0);
+  assert.ok(!lh.slice(i, i + 2).some((n) => n.state === "miss"));
 });
 
 test("D250: held, the pedal sounds and scores; let go, the bass falls silent", () => {

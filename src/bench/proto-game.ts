@@ -192,6 +192,8 @@ export function slipLoss(n: number): number {
 
 /** D217: the two rows of pads meet this far (px) above the play area's foot (paint-proto.ts padRows; D257: the strike line 216 px up, pads 84 px tall). */
 export const PAD_SPLIT = 136;
+/** D261: in a prelude a note shorter than this is a tap (no tail, its release not judged); longer, a hold with a tail its length. */
+export const PRELUDE_TAP_MS = 400;
 /** D258, SWEEP: a spread chord's notes this far apart when they sound by themselves (s). */
 export const SWEEP_GAP_S = 0.06;
 /** D258: a slide begun and stalled: the next note sounds by itself after this long (s). */
@@ -323,6 +325,8 @@ export class ProtoGame {
     const inTake = (on: number) => !!take && on >= take.on && on < take.end;
     // D258: the inner voice's notes taken into the right hand's spread chords (no longer the others').
     const sweepKeys = new Set<string>();
+    // D261: the player's own voice's notes given to the others (each thumb only its top or bass notes).
+    const movedOut = new Set<string>();
     this.tracks = line ? this.lineTracks(line, msBetween) : voiceList.map((v) => {
       const src = take && v === 0 ? [...f.voices[0].filter(([on]) => !inTake(on)), ...f.voices[take.voice].filter(([on]) => inTake(on))].sort((a, b) => a[0] - b[0] || b[2] - a[2]) : f.voices[v];
       const notes = laneNotes(
@@ -331,15 +335,39 @@ export class ProtoGame {
         v,
       );
       if (take && v === 0) for (const n of notes) if (inTake(n.on)) n.voice = take.voice;
+      // D261: each thumb only its notes: the top of each half bar (right), the bass at its start (left).
+      const pick = f.kind === "prelude" && !line ? (v === 0 ? arc?.strike?.rh : handsOn && v === 1 ? arc?.strike?.lh : undefined) : undefined;
+      if (pick) {
+        const groups = new Map<number, LaneNote[]>();
+        for (const n of notes) {
+          const b = barAt(f, n.on);
+          const key = b * 2 + Math.floor((n.on - barStart(f, b)) / (f.barTicks / 2));
+          groups.set(key, [...(groups.get(key) ?? []), n]);
+        }
+        const keep = new Set<LaneNote>();
+        for (const g of groups.values()) {
+          if (pick === "tops") keep.add(g.reduce((a, n) => (n.midi > a.midi ? n : a)));
+          else {
+            const first = Math.min(...g.map((n) => n.on));
+            keep.add(g.filter((n) => n.on === first).reduce((a, n) => (n.midi < a.midi ? n : a)));
+          }
+        }
+        for (let i = notes.length - 1; i >= 0; i--) {
+          if (keep.has(notes[i])) notes[i].ride = false;
+          else movedOut.add(lineKey(notes[i].voice ?? v, notes[i].on, notes[i].midi)), notes.splice(i, 1);
+        }
+      }
       // D191: the notes too quick to strike ride after the note before; D229: in a prelude, more of them (the strong notes struck; D232: its threshold by its fugue's tier).
       const rideMs = preludeRideMs(f.id);
       const lhFactor = (t: number) => handsAt(f, arc, t) ?? 1;
-      if (f.kind === "prelude") preludeRides(notes, this.beat, msBetween, (t) => inBar(f, t), this.beat === f.tpq * (4 / Number(f.meter.split("/")[1])) * 3 ? 3 : 2, arc ? (t: number) => rideMs * (handsOn && v === 1 ? lhFactor(t) : stepAt(f, arc.rides, t)) : rideMs);
+      if (pick) {
+        /* D261: every note left is struck */
+      } else if (f.kind === "prelude") preludeRides(notes, this.beat, msBetween, (t) => inBar(f, t), this.beat === f.tpq * (4 / Number(f.meter.split("/")[1])) * 3 ? 3 : 2, arc ? (t: number) => rideMs * (handsOn && v === 1 ? lhFactor(t) : stepAt(f, arc.rides, t)) : rideMs);
       else quickRides(notes, this.beat, msBetween);
       // D253: the left hand strikes only where its bass changes: the same bass again within the bar
       // (Prelude 1's second half) plays itself, so a thumb held on it is right (the owner: errors while
       // "playing correctly", the left thumb held).
-      if (handsOn && v === 1) {
+      if (handsOn && v === 1 && !pick) {
         let last: LaneNote | null = null;
         for (const n of notes) {
           if (n.ride) continue;
@@ -369,7 +397,7 @@ export class ProtoGame {
     });
     [{ voice: this.voice, notes: this.notes, moves: this.moves }] = this.tracks;
     const played = this.tracks.map((t) => t.voice);
-    this.others = o.solo || o.her ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until)) : handsOn ? accompaniment(f, from, 0).filter((n) => !(n.voice === 1 && lhMine(n.on)) && (o.until === undefined || n.on < o.until)) : accompaniment(f, from, take ? -1 : played[0]).filter((n) => (take && inTake(n.on) ? n.voice !== take.voice : !played.includes(n.voice)) && !sweepKeys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until));
+    this.others = o.solo || o.her ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until)) : handsOn ? accompaniment(f, from, -1).filter((n) => (movedOut.has(lineKey(n.voice, n.on, n.midi)) || (n.voice !== 0 && !(n.voice === 1 && lhMine(n.on)))) && (o.until === undefined || n.on < o.until)) : accompaniment(f, from, take || movedOut.size ? -1 : played[0]).filter((n) => (take && inTake(n.on) ? n.voice !== take.voice : !played.includes(n.voice) || movedOut.has(lineKey(n.voice, n.on, n.midi))) && !sweepKeys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until));
     this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject);
     // Waiting (the lessons): no count-in, the clock stops at each note until it is struck.
     this.start = o.wait ? from - this.beat : countInStart(f, from);
@@ -676,6 +704,7 @@ export class ProtoGame {
     }
     if (this.band.length > 64) this.band = this.band.filter((b) => b.until > ch.ctx.currentTime);
     this.sounding();
+    this.tieStep();
     // Notes gone by unplayed: missed, a frame's grace late (D191: a tap at the window's very end,
     // handled after the frame, was refused); each one missed (a chord once) a slip.
     const grace = SWEEP_GRACE_S * this.tps;
@@ -971,6 +1000,9 @@ export class ProtoGame {
     const t = this.tracks[k];
     const n = t.notes[i];
     if (!n || t.fresh?.has(n.on)) return true;
+    // D261: where each thumb plays only its own notes (Prelude 1's tops and bass), the gaps between
+    // them are not rests: only a line's first note is free; the rest follow its contour lane by lane.
+    if (this.arc?.strike && this.f.kind === "prelude") return t.notes.findIndex((x) => !x.ride) === i;
     return this.restBefore(i, k) >= this.restMin;
   }
   /** D217: the rest before note i (from the end of whatever sounded last, the riding notes included), in ticks; Infinity for the first. */
@@ -993,6 +1025,8 @@ export class ProtoGame {
   private soft(i: number, k: number): boolean {
     const j = this.before(i, k);
     if (j < 0) return false;
+    // D261: no rests between a thumb's own notes there (see isFree): no recentring either.
+    if (this.arc?.strike && this.f.kind === "prelude") return false;
     return this.tracks[k].notes[j].dur >= this.beat || this.restBefore(i, k) >= this.beat / 4;
   }
   /** What the box draws over each note in DIRECTION (none in TIMING). */
@@ -1491,6 +1525,10 @@ export class ProtoGame {
   /** The last note let go (its track, index and tick): a strike just after it is still legato. */
   private lastOff: { k: number; i: number; tick: number } | null = null;
   /** Milliseconds between two ticks, as heard. */
+  /** D261: a note drawn with a tail and held (a prelude's: PRELUDE_TAP_MS or more; elsewhere a beat or more). */
+  tailed(n: { on: number; dur: number }): boolean {
+    return this.f.kind === "prelude" ? this.msOf(n.on, n.on + n.dur) >= PRELUDE_TAP_MS : n.dur >= this.beat;
+  }
   private msOf(a: number, b: number) {
     return (this.timeAt(b) - this.timeAt(a)) * 1000;
   }
@@ -1537,6 +1575,8 @@ export class ProtoGame {
     const { riders, rest } = this.after(i, h.k);
     if (riders) return;
     const len = this.msOf(n.on, n.on + n.dur);
+    // D261: a prelude's tap (no tail) is not judged for its release.
+    if (this.f.kind === "prelude" && len < PRELUDE_TAP_MS) return;
     const restMs = rest >= this.beat / 4 ? this.msOf(n.on + n.dur, n.on + n.dur + rest) : 0;
     const r = releaseVerdict(len, this.msOf(n.on, off), restMs);
     const at = performance.now();
@@ -1769,7 +1809,9 @@ export class ProtoGame {
       const first = this.tracks[1].notes.find((n) => !n.ride);
       if (first && ahead(first.on, this.f.barTicks)) {
         this.cued.add("hands");
-        this.banner = { text: this.road ? "LEFT THUMB: THE LEFT HAND" : "LEFT KEYS: THE LEFT HAND", at: performance.now() };
+        // D261: where the left thumb holds the bass, the banner says so (a tail: hold until it ends).
+        const holds = this.arc.strike?.lh === "bass";
+        this.banner = { text: holds ? (this.road ? "LEFT THUMB: HOLD EACH BASS AS LONG AS ITS TAIL" : "LEFT KEYS: HOLD EACH BASS AS LONG AS ITS TAIL") : this.road ? "LEFT THUMB: THE LEFT HAND" : "LEFT KEYS: THE LEFT HAND", at: performance.now() };
       }
     }
   }
@@ -1778,6 +1820,14 @@ export class ProtoGame {
   private arcCues2() {
     if (!this.arc || this.o.wait) return;
     const ahead = (on: number, by: number) => on - this.now <= by && on >= this.now;
+    // D261: the right thumb's taps named as they begin.
+    if (this.arc.strike?.rh === "tops" && !this.cued.has("tops")) {
+      const first = this.tracks[0]?.notes.find((n) => !n.ride);
+      if (first && ahead(first.on, 2 * this.beat)) {
+        this.cued.add("tops");
+        this.banner = { text: this.road ? "RIGHT THUMB: TAP THE TOP NOTE OF EACH FIGURE" : "TAP THE TOP NOTE OF EACH FIGURE", at: performance.now() };
+      }
+    }
     const sw = this.tracks[0]?.sweeps;
     if (sw?.size && !this.cued.has("sweep")) {
       const first = Math.min(...sw);
@@ -1790,6 +1840,25 @@ export class ProtoGame {
     if (tk && this.take && !this.cued.has("take") && ahead(this.take.on, this.f.barTicks)) {
       this.cued.add("take");
       this.banner = { text: tk.cue, at: performance.now() };
+    }
+  }
+  /**
+   * D261: a held thumb still on the same note when that note comes again (Prelude 1's bass, struck
+   * again each half bar) has played it, tied: the first judged held, the second its own.
+   */
+  private tieStep() {
+    if (!this.arc?.strike) return;
+    for (const h of this.held.values()) {
+      if (h.passive || h.note < 0) continue;
+      const notes = this.tracks[h.k].notes;
+      const j = notes.findIndex((n, q) => q > h.note && n.state === "pending" && !n.ride);
+      const n = notes[j];
+      // Only when the window to strike it again has gone by (a thumb lifting late and striking it again is not tied).
+      if (!n || n.midi !== notes[h.note].midi || this.now < n.on + this.opt.late) continue;
+      if (h.open) this.judgeEnd(h, n.on);
+      Object.assign(n, { state: "hit", at: n.on });
+      h.note = j;
+      h.open = true;
     }
   }
   /** D258: the chord's next note sounds (a slide's, or by itself); the last of a chord all slid scores SWEEP. */

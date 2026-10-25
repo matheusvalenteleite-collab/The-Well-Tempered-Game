@@ -25,18 +25,19 @@ test("Prelude 1's course: shadow at the diminished sevenths, the climb on the G 
   assert.deepEqual(journeyAt(fugueById("wtc1p02"), 0), { shadow: 0, climb: 0, summit: 0 }, "no script, no journey");
 });
 
-test("the echo: a figure stated twice in a bar keeps its lanes (Prelude 1, both hands, phone and computer)", () => {
+test("D261: Prelude 1's top note again in the bar's second half keeps its lane (phone and computer)", () => {
   for (const mode of ["highway", "keys"]) {
     const g = new ProtoGame(P1, 0, 0, protoById(mode), { bpm: 66, legato: false, easy: "leaps" }, chip);
     const lanes = g.lanesOf(0);
-    const echo = g.echoOf(0);
-    assert.ok(echo.size >= 70, `${mode}: ${echo.size}`); // D250: fewer struck in the opening section
     const notes = g.tracks[0].notes;
-    for (const i of echo) {
-      const n = notes[i];
-      const first = notes.findIndex((x, j) => !x.ride && x.midi === n.midi && x.on === n.on - P1.barTicks / 2 && j < i);
-      assert.ok(first >= 0 && lanes[first] === lanes[i], `${mode}: the note at ${n.on} in its first statement's lane`);
-    }
+    let pairs = 0;
+    notes.forEach((n, i) => {
+      // the same bar's second half (across a bar line a 3-lane hand may shift to keep room for the line ahead).
+      if (i === 0 || notes[i - 1].midi !== n.midi || n.on - notes[i - 1].on !== P1.barTicks / 2 || Math.floor(n.on / P1.barTicks) !== Math.floor(notes[i - 1].on / P1.barTicks)) return;
+      pairs++;
+      assert.equal(lanes[i], lanes[i - 1], `${mode}: the note at ${n.on}`);
+    });
+    assert.ok(pairs >= 30, `${mode}: ${pairs}`);
   }
 });
 

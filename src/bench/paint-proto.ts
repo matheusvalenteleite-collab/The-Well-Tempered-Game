@@ -353,29 +353,45 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     const n = notes[i];
     if (i > 0 && notes[i - 1].on === n.on) continue;
     const p = at(n.on);
-    if (p.d > 1 || p.y > y1 + 40) continue;
-    if (n.state === "hit" && !(n.dur >= beat && g.now < n.on + n.dur)) continue;
+    // D261: a note with a tail (held) stays drawn while it lasts, its head gone by; a tap goes when struck.
+    const tailed = g.tailed(n);
+    const sounding = tailed && n.state === "hit" && g.now < n.on + n.dur;
+    if (p.d > 1 || (p.y > y1 + 40 && !sounding)) continue;
+    if (n.state === "hit" && !(tailed && g.now < n.on + n.dur)) continue;
     const lane = lanes[i];
     const ink = subj ? inkOf(n.voice ?? g.voice, g.f.voices.length) : inkOfLane(lane);
     const lw = (W / N) * p.k;
-    // The tail of a long note.
-    if (n.dur >= beat && n.state !== "miss") {
-      const e = at(Math.min(n.on + n.dur, ahead));
+    // The tail of a long note: as long as the note lasts (D261: in a prelude every note held, and only
+    // those: wider, in the lane's colour, a bar across its end where the thumb lets go).
+    if (tailed && n.state !== "miss") {
+      const end = n.on + n.dur;
+      const e = at(Math.min(end, ahead));
       const from = n.state === "hit" ? at(Math.max(n.on, g.now)) : p;
-      c.fillStyle = n.held ? ink : "rgba(255,255,255,0.35)";
-      c.globalAlpha = n.held ? 0.9 : 0.6;
+      const pre = g.f.kind === "prelude";
+      const half = pre ? 0.3 : 0.12;
+      c.fillStyle = n.held || pre ? ink : "rgba(255,255,255,0.35)";
+      c.globalAlpha = n.held ? 0.9 : pre ? 0.5 : 0.6;
       const x1 = laneX(lane, from.k);
       const x2 = laneX(lane, e.k);
+      // The near end as wide as the road is there (its head may have gone by the line).
+      const w1 = (W / N) * from.k;
       c.beginPath();
-      c.moveTo(x1 - lw * 0.12, from.y);
-      c.lineTo(x1 + lw * 0.12, from.y);
-      c.lineTo(x2 + (W / N) * e.k * 0.12, e.y);
-      c.lineTo(x2 - (W / N) * e.k * 0.12, e.y);
+      c.moveTo(x1 - w1 * half, from.y);
+      c.lineTo(x1 + w1 * half, from.y);
+      c.lineTo(x2 + (W / N) * e.k * half, e.y);
+      c.lineTo(x2 - (W / N) * e.k * half, e.y);
       c.closePath();
       c.fill();
       c.globalAlpha = 1;
+      if (pre && end <= ahead) {
+        // Where to let go.
+        c.fillStyle = "#fff6d0";
+        c.fillRect(x2 - (W / N) * e.k * 0.4, e.y - Math.max(1.5, 3 * e.k), (W / N) * e.k * 0.8, Math.max(2, 4 * e.k));
+      }
       if (n.state === "hit") continue;
     }
+    // D261: in a prelude what the game plays is heard, not drawn (no dots).
+    if (n.ride && g.f.kind === "prelude") continue;
     if (n.ride) {
       c.fillStyle = ink;
       c.fillRect(laneX(lane, p.k) - 2, p.y - 2, 4, 4);
@@ -579,7 +595,9 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   const how = lvl === "timing" ? "ANY KEY ON THE BEAT · THE LANES DRAW THE LINE" : "THE LANE'S KEY SCORES MOST · THE RIGHT DIRECTION STILL COUNTS · SPACE: SAME NOTE";
   if (phone) {
     label(c, lvl === "timing" ? "TAP ANY LANE ON THE BEAT · SLIDE TO JOIN" : "THE LANE SCORES MOST · THE RIGHT WAY STILL COUNTS", w / 2, h - 30, t.fg, 7);
-    label(c, subj ? "STRETTO: NEW ENTRY UPPER ROW · OLDER LOWER ROW, HOLLOW" : lvl === "timing" ? "TWO ROWS: CROSS THUMBS · HOLD THE LONG NOTES" : `SAME NOTE: SAME LANE${lvl === "leaps" ? " · LEAP: SKIP A LANE" : ""} · SLIDE TO JOIN · TWO ROWS`, w / 2, h - 16, t.muted, 7);
+    // D261: a prelude's line says what the drawing means: a gem alone is a tap, a tail is held to its end.
+    if (g.f.kind === "prelude") label(c, "NO TAIL: TAP · A TAIL: HOLD TO ITS END", w / 2, h - 16, t.muted, 7);
+    else label(c, subj ? "STRETTO: NEW ENTRY UPPER ROW · OLDER LOWER ROW, HOLLOW" : lvl === "timing" ? "TWO ROWS: CROSS THUMBS · HOLD THE LONG NOTES" : `SAME NOTE: SAME LANE${lvl === "leaps" ? " · LEAP: SKIP A LANE" : ""} · SLIDE TO JOIN · TWO ROWS`, w / 2, h - 16, t.muted, 7);
     return;
   }
   if (sc && R) return void (scaleHow(R), deskEnd(c));
