@@ -24,7 +24,10 @@ export function TutorialSteps({ play, close }: { play: (n: number) => void; clos
               <li key={l.id}>
                 <button type="button" id={`step-${l.id}`} className={`tb-step${done ? " done" : ""}${n === next && !done ? " next" : ""}`} disabled={!open} onClick={() => play(n)}>
                   <span className="tb-step-n">{n + 1}</span>
-                  <span className="tb-step-name">{l.english}</span>
+                  <span className="tb-step-name">
+                    {l.english}
+                    {l.goal && <small>{l.goal}</small>}
+                  </span>
                   <span className="tb-step-mark">{done ? "✓" : open ? "▶" : "🔒"}</span>
                 </button>
               </li>

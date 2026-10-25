@@ -643,3 +643,4 @@
 .tb-step.next { border-color: var(--tg-shine); box-shadow: 3px 3px 0 #b8322a; }
 .tb-step:disabled { opacity: 0.4; cursor: not-allowed; }
 .tb-step-n { color: var(--tg-muted); }
+.tb-step-name small { display: block; margin-top: 4px; font-size: 6px; line-height: 1.5; color: var(--tg-muted); }

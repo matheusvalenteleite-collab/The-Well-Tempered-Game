@@ -62,7 +62,7 @@ import { defaultVoice, nextIn } from "./flow.ts";
 import { SheetCard } from "./SheetCard.tsx";
 import type { Sheet } from "./score-sheet.ts";
 import { HearSubject, type Performed } from "./HearSubject.tsx";
-import { chosenReading, type Reading } from "../touch/readings.ts";
+import { chosenReading, readingsOf, type Reading } from "../touch/readings.ts";
 import { TutorialSteps } from "./TutorialSteps.tsx";
 import { LITE_HINT, liteAll, litePlatform, soundUnlocked, litePlatformPref, readLite, recordLite, recordLiteBest, RULES, saveLitePlatform, startHere, writeLite } from "./lite.ts";
 import { LiteGrid } from "./LiteGrid.tsx";
@@ -254,7 +254,8 @@ export function BenchApp() {
   const voice = run ? run.voice : pick.voice;
   // D272: on play.html a fugue is played by its chosen reading (D274: at the recordings' tempo, never the
   // book's: the owner, "fugues should not be too fast").
-  const reading = APP.lite && !run && f.kind === "fugue" ? chosenReading(f.id, lite.beaten.includes(f.id)) : null;
+  // D282: a tutorial step may name its reading.
+  const reading = run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? chosenReading(f.id, lite.beaten.includes(f.id)) : null;
   const bpm = run ? run.bpm : tempoOf(f.id);
   // D216, KIMIKO (D219: WITH KIMIKO ISHIZAKA, a switch in LADDER and SUBJECT): the player over Kimiko
   // Ishizaka's recording, the game on her time; only where she is timed (whatever pieces
@@ -465,7 +466,8 @@ export function BenchApp() {
           const l = TRACKS[lesson.pl][lesson.n];
           const ok = passed(l, r);
           recordLesson(lesson.pl, l.id, accuracy(r), ok);
-          setPhase({ kind: "talk", lines: ok ? l.praise : l.again, next: ok ? "advance" : "again" });
+          // D282: a step not passed says what fell short, in numbers.
+          setPhase({ kind: "talk", lines: ok ? l.praise : [...l.again, ...(l.short ? [{ text: l.short(r) }] : [])], next: ok ? "advance" : "again" });
         } else if (APP.lite) {
           // D237: the minimal page keeps only the pieces finished (its own key), nothing of the bench's.
           // D264: nothing to unlock (all open): the piece kept as finished, no toast.
@@ -582,7 +584,8 @@ export function BenchApp() {
   }
   /** D237: the minimal page's one-line instruction, at the start of the first game in each mode (played past: gone). */
   const hintSeen = APP.lite ? lite.seen : benchSeen;
-  const hintLine = phase.kind === "play" && !lesson && !hintSeen.includes(proto.id) ? (LITE_HINT[proto.id] ?? "") : "";
+  // D282: in a tutorial step, its goal (the demonstration: WATCH).
+  const hintLine = phase.kind === "play" && lesson ? (watching ? "WATCH THE THUMBS" : (TRACKS[lesson.pl][lesson.n].goal ?? "")) : phase.kind === "play" && !hintSeen.includes(proto.id) ? (LITE_HINT[proto.id] ?? "") : "";
   const seen = () => {
     if (!hintLine) return;
     if (APP.lite) setLite(writeLite({ seen: [...lite.seen, proto.id] }));

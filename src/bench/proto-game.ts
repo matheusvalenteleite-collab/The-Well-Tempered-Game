@@ -875,10 +875,15 @@ export class ProtoGame {
     const notes = this.tracks[0].notes;
     const heads = notes.map((n, i) => ({ n, i })).filter(({ n, i }) => !n.ride && !(i > 0 && notes[i - 1].on === n.on));
     const loud = (on: number) => (this.o.coach === "dynamics" ? (on < this.f.barTicks ? 0.2 : 0.85) : 0.5);
+    // D282: with a reading, its articulation, accents and level on the subject's notes.
+    const rd = this.o.reading;
     const touches = planTouches(
       heads.map(({ n, i }) => {
         const o = this.ornaments.get(`${this.voiceOf(0, i)}:${n.on}`);
-        return { at: n.on, dur: n.dur, step: n.step, d: loud(n.on), shake: o ? shakeOf(o) : null };
+        const place = rd ? this.readingIndex().get(`0:${n.on}`) : undefined;
+        const rn = rd && place !== undefined ? rd.notes[place] : undefined;
+        const d = rn?.accent ? 0.78 : rd?.level && place !== undefined ? LEVEL_D[rd.level] : loud(n.on);
+        return { at: n.on, dur: n.dur, step: n.step, d, join: rn?.join ?? null, short: rn?.short ?? null, shake: o ? shakeOf(o) : null };
       }),
       { overlap: this.f.tpq / 16, slides: this.o.coach === "slide" },
     );

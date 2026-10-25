@@ -1034,9 +1034,18 @@ function thumbsShown(c: CanvasRenderingContext2D, w: number, h: number, g: Proto
     const x = Math.max(size * 0.6, Math.min(w - size * 0.6, d.fx * w));
     drawThumb(c, x, d.y + wob, size, d.side, "down");
   }
-  if (!g.o.guide) return;
   const plan = g.plan;
   const notes = g.tracks[0].notes;
+  // D282: over each thumb down: HOLD while its note lasts (a long one), LIFT once it is over.
+  const struck = plan.filter((p) => !p.slid && p.on <= g.now && notes[p.i].state === "hit");
+  for (const d of g.thumbsDown()) {
+    const tc = struck.filter((p) => p.side === d.side).at(-1);
+    if (!tc) continue;
+    const x = d.side === "left" ? bw / 2 : w - bw / 2;
+    if (g.now < tc.off && tc.off - tc.on > g.tps * 0.35) label(c, "HOLD", x, d.y - size * 0.9, t.gold, 7);
+    else if (g.now > tc.off + g.tps * 0.05) label(c, "LIFT", x, d.y - size * 0.9, t.wrong, 7);
+  }
+  if (!g.o.guide) return;
   const next = plan.find((p) => notes[p.i].state === "pending");
   if (!next) return;
   const ahead = ((notes[next.i].on - g.now) / g.tps) * 1000;
@@ -1054,9 +1063,6 @@ function thumbsShown(c: CanvasRenderingContext2D, w: number, h: number, g: Proto
     drawThumb(c, x, y, size, side, "hover", fade);
     label(c, `${last ? (side === "left" ? "LEFT THUMB" : "RIGHT THUMB") : "EITHER THUMB"}${next.shake ? " · THEN SHAKE" : ""}`, side === "left" ? bw / 2 : w - bw / 2, y + size * 0.9, t.shine, 6);
   }
-  // A thumb still down whose note is over: lift it (a detached note, a rest).
-  const prev = plan.filter((p) => notes[p.i].state === "hit" && !p.slid).at(-1);
-  if (prev && g.now > prev.off && g.thumbsDown().length) for (const d of g.thumbsDown()) label(c, "LIFT", d.side === "left" ? bw / 2 : w - bw / 2, d.y - size * 0.9, t.wrong, 7);
 }
 
 /** D271: a thumb on the bar whose turn it is, at the next note's height, nudging in (the other bar's glow stays: either may play). */
