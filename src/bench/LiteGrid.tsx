@@ -3,6 +3,7 @@
  * side by side (each pair's prelude, then its fugue, both open), Prelude 1 in C major first and marked
  * START HERE; a ✓ on each piece finished; one line saying how many more open the next tier; a small ⚙.
  */
+import { lang, pieceName, tr } from "../i18n/index.ts";
 import { useMemo, useState } from "react";
 import { fugueById } from "../touch/fugue.ts";
 import { PIECE_SOUND } from "../touch/piece-sound.ts";
@@ -46,7 +47,7 @@ export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial,
   return (
     <div className="tb-lite" role="main" aria-label="Pieces">
       <header className="tb-lite-head">
-        <h1>THE WELL-TEMPERED GAME</h1>
+        <h1>{tr("THE WELL-TEMPERED GAME")}</h1>
         <button type="button" id="lite-settings" className="tg-x" aria-label="Settings" onClick={settings}>
           ⚙
         </button>
@@ -54,7 +55,7 @@ export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial,
       <div className="tb-lite-tabs" role="tablist" aria-label="Books">
         {(["I", "II"] as const).map((t) => (
           <button key={t} type="button" role="tab" id={`tab-book-${t}`} aria-selected={tab === t} className={`tb-lite-tab${tab === t ? " on" : ""}`} onClick={() => pick(t)}>
-            BOOK {t}
+            {tr("BOOK")} {t}
           </button>
         ))}
       </div>
@@ -69,13 +70,13 @@ export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial,
                 {!learning && <span className="tb-lite-done">✓</span>}
               </span>
               <span className="tb-lite-info">
-                {learning && <span className="tb-lite-start">START HERE</span>}
-                <span className="tb-lite-title">TUTORIAL</span>
-                <span className="tb-lite-meta">INVENTION 1 · BWV 772 · 2 VOICES</span>
+                {learning && <span className="tb-lite-start">{tr("START HERE")}</span>}
+                <span className="tb-lite-title">{tr("TUTORIAL")}</span>
+                <span className="tb-lite-meta">{tr("INVENTION 1 · BWV 772 · 2 VOICES")}</span>
                 <span className="tb-lite-level" style={{ color: "#7fd6e8" }}>
-                  {tutorial.done ? `${tutorial.done} OF ${tutorial.of} STEPS` : `${tutorial.of} STEPS`}
+                  {tutorial.done ? tr("{n} OF {m} STEPS", { n: tutorial.done, m: tutorial.of }) : tr("{m} STEPS", { m: tutorial.of })}
                 </span>
-                <span className="tb-lite-meta">WITH HERR BACH</span>
+                <span className="tb-lite-meta">{tr("WITH HERR BACH")}</span>
               </span>
             </button>
           </li>
@@ -89,7 +90,9 @@ export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial,
           const lv = liteLevel(id);
           const n = Number(id.slice(-2));
           const title = popTitle(id);
-          const [bwv, name] = title.includes(" · ") ? title.split(" · ") : ["", title];
+          const [bwv, en] = title.includes(" · ") ? title.split(" · ") : ["", title];
+          // D283: the piece named in the language chosen.
+          const name = lang() === "en" ? en : pieceName(f.kind, f.key);
           return (
             <li key={id}>
               <button type="button" id={`card-${id}`} className={`tb-lite-card${here ? " tb-lite-here" : ""}${done ? " done" : ""}`} style={{ ["--tint" as string]: lv.ink }} onClick={() => open(id)}>
@@ -99,23 +102,23 @@ export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial,
                   {done && <span className="tb-lite-done">✓</span>}
                 </span>
                 <span className="tb-lite-info">
-                  {here && <span className="tb-lite-start">START HERE</span>}
+                  {here && <span className="tb-lite-start">{tr("START HERE")}</span>}
                   <span className="tb-lite-title">{name}</span>
                   <span className="tb-lite-meta">
                     {bwv}
                     {bwv ? " · " : ""}
-                    {f.voices.length} VOICES
+                    {tr("{n} VOICES", { n: f.voices.length })}
                   </span>
                   <span className="tb-lite-level" style={{ color: lv.ink }}>
-                    {lv.label}
+                    {tr(lv.label)}
                   </span>
-                  <span className="tb-lite-meta">SOUND: {soundName(PIECE_SOUND[id] ?? "harpsichordSampled")}</span>
+                  <span className="tb-lite-meta">{tr("SOUND")}: {tr(soundName(PIECE_SOUND[id] ?? "harpsichordSampled"))}</span>
                 </span>
               </button>
               {hear && f.kind === "fugue" && (
                 // D272: the subject as the chosen reading plays it.
                 <button type="button" id={`hear-${id}`} className="tb-hear-btn" onClick={() => hear(id)}>
-                  ♪ HEAR THE SUBJECT
+                  ♪ {tr("HEAR THE SUBJECT")}
                 </button>
               )}
             </li>

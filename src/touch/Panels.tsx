@@ -4,6 +4,7 @@
  * of a second or more, which the phone often does not report); and ?, how to play and how to put the
  * game on the Home Screen.
  */
+import { tr, trCanvas } from "../i18n/index.ts";
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import type { Chip } from "./chip.ts";
 import type { Instrument } from "./engine.ts";
@@ -69,7 +70,7 @@ export function Panel({ title, close, children }: { title: string; close: () => 
   return (
     <div className="tg-picker tg-panel" role="dialog" aria-label={title}>
       <header>
-        <h1>{title}</h1>
+        <h1>{tr(title)}</h1>
         <button type="button" id="close" className="tg-x" aria-label="Close" onClick={close}>
           ✕
         </button>
@@ -82,11 +83,11 @@ export function Panel({ title, close, children }: { title: string; close: () => 
 export function Choice<T extends string>({ id, label, options, value, set }: { id: string; label: string; options: [T, string][]; value: T; set: (v: T) => void }) {
   return (
     <div className="tg-set">
-      <span>{label}</span>
+      <span>{tr(label)}</span>
       <div className="tg-seg" role="group" aria-label={label}>
         {options.map(([v, text]) => (
           <button key={v} type="button" id={`${id}-${v}`} className={v === value ? "on" : ""} onClick={() => set(v)} aria-pressed={v === value}>
-            {text}
+            {trCanvas(text)}
           </button>
         ))}
       </div>
@@ -179,19 +180,19 @@ export function LagSetting({ lag, setLag, chip }: { lag: number | null; setLag: 
   return (
     <>
       <div className="tg-set">
-        <span>SOUND DELAY</span>
-        <span className="tg-panel-val">{lag === null ? "AS THE PHONE SAYS" : `${Math.round(lag * 1000)} MS · ${verdictOf(lag)}`}</span>
+        <span>{tr("SOUND DELAY")}</span>
+        <span className="tg-panel-val">{lag === null ? tr("AS THE PHONE SAYS") : `${Math.round(lag * 1000)} MS · ${trCanvas(verdictOf(lag))}`}</span>
       </div>
       {tapping ? (
         <Tapper chip={chip} done={(lag) => (lag !== null && setLag(lag), setTapping(false))} />
       ) : (
         <div className="tg-row">
           <button type="button" id="tap-lag" className="tg-piece" onClick={() => setTapping(true)}>
-            SET BY TAPPING
+            {tr("SET BY TAPPING")}
           </button>
           {lag !== null && (
             <button type="button" id="reset-lag" className="tg-link" onClick={() => setLag(null)}>
-              Reset
+              {tr("Reset")}
             </button>
           )}
         </div>
@@ -210,7 +211,7 @@ export function Tapper({ chip, done }: { chip: () => Chip; done: (lag: number | 
   const offs = useRef<number[]>([]);
   const over = useRef(false);
   const [n, setN] = useState(0);
-  const [msg, setMsg] = useState("TAP HERE ON EACH CLICK");
+  const [msg, setMsg] = useState(tr("TAP HERE ON EACH CLICK"));
   useEffect(() => {
     const ch = chip();
     let timer = 0;
@@ -225,7 +226,7 @@ export function Tapper({ chip, done }: { chip: () => Chip; done: (lag: number | 
     if (over.current) return;
     over.current = true;
     const r = quickLag(offs.current);
-    if (!r) return (setMsg(offs.current.length < 5 ? "TOO FEW TAPS" : "TOO UNEVEN: TRY AGAIN"), window.setTimeout(() => done(null), 1300));
+    if (!r) return (setMsg(offs.current.length < 5 ? tr("TOO FEW TAPS") : tr("TOO UNEVEN: TRY AGAIN")), window.setTimeout(() => done(null), 1300));
     setMsg(`${Math.round(r.lag * 1000)} MS · ${verdictOf(r.lag)}`);
     window.setTimeout(() => done(r.lag), 1100);
   }
@@ -281,7 +282,7 @@ export function VisualTapper({ done }: { done: (visual: number | null) => void }
     if (over.current) return;
     over.current = true;
     const r = quickLag(offs.current);
-    if (!r) return (setMsg(offs.current.length < 5 ? "TOO FEW TAPS" : "TOO UNEVEN: TRY AGAIN"), window.setTimeout(() => done(null), 1300));
+    if (!r) return (setMsg(offs.current.length < 5 ? tr("TOO FEW TAPS") : tr("TOO UNEVEN: TRY AGAIN")), window.setTimeout(() => done(null), 1300));
     setMsg(`${Math.round(r.lag * 1000)} MS`);
     window.setTimeout(() => done(r.lag), 1100);
   }

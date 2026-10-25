@@ -5,6 +5,7 @@
  * The readings (at most three) as buttons, the first open, the others once the fugue is finished; the
  * author's words and pages below.
  */
+import { lang, pieceName, tr } from "../i18n/index.ts";
 import { useEffect, useRef, useState } from "react";
 import { fugueById } from "../touch/fugue.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
@@ -72,7 +73,7 @@ export function HearSubject({ id, open, play, close }: { id: string; open: boole
         <button type="button" className="tg-x tb-hear-x" aria-label="Close" onClick={close}>
           ✕
         </button>
-        <h2 className="tb-hear-title">THE SUBJECT · {f.title.toUpperCase()}</h2>
+        <h2 className="tb-hear-title">{tr("THE SUBJECT")} · {lang() === "en" ? f.title.toUpperCase() : pieceName(f.kind, f.key)}</h2>
         {readings.length > 0 && (
           <div className="tb-hear-readings" role="radiogroup" aria-label="Readings">
             {readings.map((r, k) => {
@@ -86,11 +87,11 @@ export function HearSubject({ id, open, play, close }: { id: string; open: boole
             })}
           </div>
         )}
-        {readings.length > 1 && !open && <p className="tb-hear-lock">FINISH THE FUGUE TO OPEN THE OTHER READINGS</p>}
+        {readings.length > 1 && !open && <p className="tb-hear-lock">{tr("FINISH THE FUGUE TO OPEN THE OTHER READINGS")}</p>}
         <canvas ref={canvas} className="tb-hear-canvas" />
-        <p className="tb-hear-key tb-hear-thumbs">THE THUMBS: EACH NOTE THE OTHER THUMB · LAND THE NEXT BEFORE LIFTING (JOINED) · LIFT EARLY (DETACHED) · SOFT BY THE BOX, LOUD BY THE EDGE · SHAKE ON AN ORNAMENT</p>
+        <p className="tb-hear-key tb-hear-thumbs">{tr("THE THUMBS: EACH NOTE THE OTHER THUMB · LAND THE NEXT BEFORE LIFTING (JOINED) · LIFT EARLY (DETACHED) · SOFT BY THE BOX, LOUD BY THE EDGE · SHAKE ON AN ORNAMENT")}</p>
         <p className="tb-hear-key">
-          <span>⌒ JOINED</span> <span>| DETACHED</span> <span>· SHORT</span> <span>&gt; ACCENT</span>
+          <span>⌒ {tr("JOINED")}</span> <span>| {tr("DETACHED")}</span> <span>· {tr("SHORT")}</span> <span>&gt; {tr("ACCENT")}</span>
           <span> · ♩ = {tempoOf(id)}</span>
           {reading?.level ? <span> · {reading.level.toUpperCase()}</span> : null}
         </p>
@@ -99,14 +100,14 @@ export function HearSubject({ id, open, play, close }: { id: string; open: boole
             “{reading.quote}”
             <cite>
               {reading.author.charAt(0) + reading.author.slice(1).toLowerCase()}, {reading.work.includes(String(reading.year)) ? reading.work : `${reading.work} (${reading.year})`}{reading.pages ? `, ${reading.pages}` : ""}
-              {reading.basis === "rule" ? " · his rule, applied to the notes" : ""}
-              {reading.tempoText ? ` · his tempo: ${reading.tempoText} (the game keeps the recordings' ♩ = ${tempoOf(id)})` : ""}
+              {reading.basis === "rule" ? ` · ${tr("his rule, applied to the notes")}` : ""}
+              {reading.tempoText ? ` · ${tr("his tempo: {t} (the game keeps the recordings' ♩ = {q})", { t: reading.tempoText, q: tempoOf(id) })}` : ""}
             </cite>
           </blockquote>
         )}
-        {!reading && <p className="tb-hear-lock">NO READING FOUND FOR THIS FUGUE: PLAYED AS WRITTEN</p>}
+        {!reading && <p className="tb-hear-lock">{tr("NO READING FOUND FOR THIS FUGUE: PLAYED AS WRITTEN")}</p>}
         <button type="button" id="hear-again" className="tb-play tb-hear-play" onClick={hear}>
-          ▶ HEAR IT AGAIN
+          ▶ {tr("HEAR IT AGAIN")}
         </button>
       </div>
     </div>

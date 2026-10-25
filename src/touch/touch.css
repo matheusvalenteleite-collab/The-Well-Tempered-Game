@@ -82,6 +82,8 @@ body {
 }
 
 .tg-hud-title { color: var(--tg-fg); overflow: hidden; text-overflow: ellipsis; }
+/* D283: room above for the accents over capitals (INVENCIÓN), which the clipping would cut. */
+.tg-hud-title, .tg-legend { padding-top: 0.5em; margin-top: -0.5em; }
 .tg-hud-bar { color: var(--tg-shine); }
 .tg-legend { justify-content: flex-start; gap: 14px; }
 

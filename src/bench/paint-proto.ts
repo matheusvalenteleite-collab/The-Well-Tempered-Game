@@ -15,6 +15,7 @@ import { ARROW_PIXELS, inkOf, type Arrow } from "../touch/MusicBox.tsx";
 import { paintPiano } from "../touch/paint-piano.ts";
 import { barStart, stepName, type TouchFugue } from "../touch/fugue.ts";
 import { APPROACH_MS, PHONE_LINE, type ProtoGame } from "./proto-game.ts";
+import { trCanvas } from "../i18n/index.ts";
 import { acrossBar, drawThumb } from "./fingering.ts";
 import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
 import { CLEAN_INK, HELD_INK, LEGATO_INK } from "./articulation.ts";
@@ -908,7 +909,8 @@ export function label(c: CanvasRenderingContext2D, text: string, x: number, y: n
   c.font = `${size}px ${FONT}`;
   c.textAlign = align;
   c.textBaseline = "middle";
-  c.fillText(text, x, y);
+  // D283: the game's words in the language chosen.
+  c.fillText(trCanvas(text), x, y);
 }
 
 function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {

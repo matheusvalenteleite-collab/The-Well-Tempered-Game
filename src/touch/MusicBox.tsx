@@ -8,6 +8,7 @@
  * D174, the subject: its notes, in whatever voice, are dotted along their top; a ◆ stands over the
  * first note of each entry as it comes, in the voice's colour, gold when the voice is the player's.
  */
+import { tr } from "../i18n/index.ts";
 import { bossBar, cadenceMarks, pixText, ribbons, sparks, strikes, zoneGlow, type Burst, type Pop, type Span } from "./box-fx.ts";
 import { paintVariant } from "./box-variants.ts";
 import { paintUi } from "./ui/index.ts";
@@ -402,7 +403,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
     const n = fr.notes.find((m) => m.on + m.dur >= fr.now && !m.ride);
     if (n) {
       const x = Math.max(playX + 2, xOf(n.on));
-      if (x < w - 12) pixText(g, "YOU", x, Math.min(h - 6, yOf(n.step) + bh + 2), edge);
+      if (x < w - 12) pixText(g, tr("YOU"), x, Math.min(h - 6, yOf(n.step) + bh + 2), edge);
     }
   }
   g.fillStyle = tok("--tg-playhead");

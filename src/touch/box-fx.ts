@@ -8,6 +8,7 @@
  *   The bosses (not in LADDER): while one is near, a bar of its notes along the top.
  *   Points rise from the note struck; a captured entry bursts into pixels.
  */
+import { keyWordsIn, tr, trCanvas, voiceName } from "../i18n/index.ts";
 
 export interface Span {
   voice: number;
@@ -54,7 +55,9 @@ const GLYPHS: Record<string, string> = {
 export function pixText(g: CanvasRenderingContext2D, text: string, x: number, y: number, color: string, scale = 1): number {
   g.fillStyle = color;
   let cx = Math.round(x);
-  for (const ch of text.toUpperCase()) {
+  // D283: the 3 by 5 font has no accents: Á É Ç Ñ drawn as A E C N.
+  // D283: every word drawn in the box in the language chosen (the cadences, the points' words).
+  for (const ch of trCanvas(text.toUpperCase()).normalize("NFD").replace(/[\u0300-\u036f]/g, "")) {
     const glyph = GLYPHS[ch] ?? GLYPHS[" "];
     for (let i = 0; i < 15; i++) if (glyph[i] === "1") g.fillRect(cx + (i % 3) * scale, Math.round(y) + Math.floor(i / 3) * scale, scale, scale);
     cx += 4 * scale;
@@ -128,11 +131,12 @@ export function ribbons(c: Ctx, spans: Span[], player: number[], names: string[]
     // The tag, over its first note.
     const first = s.path[0];
     const y = Math.max(1, yOf(first.step) - 9);
-    const voice = names?.[s.voice]?.toUpperCase() ?? "";
+    const voice = names?.[s.voice] ? voiceName(names[s.voice]) : "";
     const stretto = subj.some((o) => o !== s && o.voice !== s.voice && s.on > o.on && s.on < o.end);
     // D265: every entry a SUBJECT (the owner: "stop calling the subject answers \"answers\"").
-    const what = `SUBJECT${s.theme ? ` ${s.theme}` : ""}`;
-    const label = `${what}${s.shape ? ` · ${s.shape}` : ""} · ${voice} · ${keyWords(s.key)}${stretto ? " · STRETTO" : ""}`;
+    // D283: in the language chosen.
+    const what = `${tr("SUBJECT")}${s.theme ? ` ${s.theme}` : ""}`;
+    const label = `${what}${s.shape ? ` · ${trCanvas(s.shape)}` : ""} · ${voice} · ${keyWordsIn(s.key)}${stretto ? " · STRETTO" : ""}`;
     g.globalAlpha = 0.7;
     g.fillStyle = "#0c0a10";
     g.fillRect(x1 - 1, y - 1, textWidth(label) + 1, 7);

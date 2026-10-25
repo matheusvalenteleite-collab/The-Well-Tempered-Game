@@ -3,6 +3,7 @@
  * title, the voice to play, preselected (flow.ts `defaultVoice`; D251: a prelude's part named, not
  * chosen), and a big ▶ PLAY straight into the count-in; ✕ (or Escape) closes it, back to the cards.
  */
+import { lang, pieceName, tr, voiceName } from "../i18n/index.ts";
 import { useEffect, useState, type ReactNode } from "react";
 import { fugueById } from "../touch/fugue.ts";
 import { PIECE_SOUND } from "../touch/piece-sound.ts";
@@ -66,19 +67,19 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rule
         <button type="button" id="pop-close" className="tg-x tb-pop-x" aria-label="Close" onClick={close}>
           ✕
         </button>
-        <h2 className="tb-pop-title">{popTitle(id)}</h2>
+        <h2 className="tb-pop-title">{lang() === "en" ? popTitle(id) : `${popTitle(id).split(" · ")[0]} · ${pieceName(f.kind, f.key)}`}</h2>
         {f.kind === "prelude" ? (
           // D251: no hand to choose for a prelude: it is played with the part the game gives (stages.ts `preludePart`), named in one small line.
           <p className="tb-pop-ask tb-pop-part" id="pop-part">
-            YOU PLAY THE {(f.voiceNames[voice] ?? f.voiceNames[0]).toUpperCase()}
+            {tr("YOU PLAY THE {voice}", { voice: voiceName(f.voiceNames[voice] ?? f.voiceNames[0]) })}
           </p>
         ) : (
           <>
-            <p className="tb-pop-ask">YOUR VOICE</p>
+            <p className="tb-pop-ask">{tr("YOUR VOICE")}</p>
             <div className="tg-voices" role="group" aria-label="Voice">
               {f.voiceNames.map((name, i) => (
                 <button key={name} type="button" id={`voice-${i}`} className={i === voice ? "on" : ""} style={{ color: inkOf(i, f.voices.length) }} disabled={!singing.includes(i)} onClick={() => setVoice(i)} aria-pressed={i === voice}>
-                  {name.toUpperCase()}
+                  {voiceName(name)}
                 </button>
               ))}
             </div>
@@ -86,34 +87,34 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rule
         )}
         {children}
         <button type="button" id="play" className="tb-play tb-pop-play" autoFocus onClick={play}>
-          ▶ PLAY
+          ▶ {tr("PLAY")}
         </button>
         {rules && rules.length > 0 && (
           <button type="button" id="pop-help" className="tb-pop-help" aria-expanded={help} onClick={() => setHelp(!help)}>
-            ? HOW TO PLAY
+            ? {tr("HOW TO PLAY")}
           </button>
         )}
         {help && rules && (
           <ul className="tb-pop-rules" id="pop-rules">
             {rules.map((r) => (
-              <li key={r}>{r}</li>
+              <li key={r}>{tr(r)}</li>
             ))}
           </ul>
         )}
         {sound !== undefined && soundLocked && (
           // D265: the piece's own sound until it is finished with an A or S.
           <div className="tb-pop-sounds" id="pop-sound-locked">
-            <p className="tb-pop-ask">SOUND: {shortSound(presetById(sound).name)}</p>
-            <p className="tb-pop-lock">FINISH IT WITH AN A OR S TO CHOOSE ANOTHER SOUND</p>
+            <p className="tb-pop-ask">{tr("SOUND")}: {tr(shortSound(presetById(sound).name))}</p>
+            <p className="tb-pop-lock">{tr("FINISH IT WITH AN A OR S TO CHOOSE ANOTHER SOUND")}</p>
           </div>
         )}
         {sound !== undefined && setSound && !soundLocked && (
           <div className="tb-pop-sounds" role="group" aria-label="Sound">
-            <p className="tb-pop-ask">SOUND</p>
+            <p className="tb-pop-ask">{tr("SOUND")}</p>
             <div className="tb-pop-sound-row">
               {popSounds(id).map(([sid, name, own]) => (
                 <button key={sid} type="button" id={`pop-sound-${sid}`} className={(sid === sound ? "on" : "") + (own ? " own" : "")} title={own ? "This piece's own sound" : undefined} aria-pressed={sid === sound} onClick={() => setSound(sid)}>
-                  {name}
+                  {tr(name)}
                 </button>
               ))}
             </div>

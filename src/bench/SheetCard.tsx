@@ -3,6 +3,7 @@
  * the best before it), the four qualities each with its bar, the points by source; on a failed run how
  * far it went and what cost it most.
  */
+import { tr, trCanvas } from "../i18n/index.ts";
 import type { ReactNode } from "react";
 import type { Sheet } from "./score-sheet.ts";
 
@@ -19,7 +20,7 @@ export function SheetCard(p: { sheet: Sheet; score: number; failed: boolean; fai
         {p.failed ? (
           <>
             <p className="tb-sheet-progress-line" id="sheet-progress">
-              BAR {p.failedBar} OF {p.lastBar} · {pc(p.progress)} OF THE PIECE
+              {tr("BAR {n} OF {m} · {pc} OF THE PIECE", { n: p.failedBar ?? 0, m: p.lastBar, pc: pc(p.progress) })}
             </p>
             <div className="tb-sheet-progress" aria-hidden="true">
               <i style={{ width: pc(p.progress) }} />
@@ -29,38 +30,38 @@ export function SheetCard(p: { sheet: Sheet; score: number; failed: boolean; fai
             </p>
             {sheet.advice && (
               <p className="tb-sheet-advice" id="sheet-advice">
-                {sheet.advice}
+                {trCanvas(sheet.advice)}
               </p>
             )}
           </>
         ) : (
           <>
             <p className="tb-sheet-sum" id="sheet-sum">
-              {n(p.score)} POINTS + {n(sheet.bonus)} PERFORMANCE BONUS
+              {tr("{a} POINTS + {b} PERFORMANCE BONUS", { a: n(p.score), b: n(sheet.bonus) })}
             </p>
             <p className="tb-score tb-sheet-final" id="sheet-final">
               {n(sheet.final)}
             </p>
             {p.best && (
               <p className={`tb-sheet-best${p.best.fresh ? " fresh" : ""}`} id="sheet-best">
-                {p.best.fresh ? (p.best.before === null ? "FIRST SCORE" : `NEW BEST · WAS ${n(p.best.before)}`) : `BEST ${n(p.best.before ?? 0)}`}
+                {p.best.fresh ? (p.best.before === null ? tr("FIRST SCORE") : tr("NEW BEST · WAS {n}", { n: n(p.best.before) })) : tr("BEST {n}", { n: n(p.best.before ?? 0) })}
               </p>
             )}
           </>
         )}
         <p className="tb-sheet-perf" id="sheet-performance">
-          PERFORMANCE <b style={{ color: ink(sheet.performance / 100) }}>{sheet.performance}</b>/100 · MAX COMBO {p.maxStreak}
+          {tr("PERFORMANCE")} <b style={{ color: ink(sheet.performance / 100) }}>{sheet.performance}</b>/100 · {tr("MAX COMBO")} {p.maxStreak}
         </p>
       </div>
       <ul className="tb-sheet-qualities">
         {sheet.qualities.map((q) => (
           <li key={q.key} id={`sheet-${q.key}`} className={q.share === null ? "none" : ""} title={q.detail}>
-            <span className="tb-sheet-label">{q.label}</span>
+            <span className="tb-sheet-label">{tr(q.label)}</span>
             <span className="tb-sheet-bar" aria-hidden="true">
               {q.share !== null && <i style={{ width: pc(q.share), background: ink(q.share) }} />}
             </span>
             <span className="tb-sheet-pc">{q.share === null ? "—" : pc(q.share)}</span>
-            <small>{q.detail}</small>
+            <small>{trCanvas(q.detail)}</small>
           </li>
         ))}
       </ul>
@@ -68,7 +69,7 @@ export function SheetCard(p: { sheet: Sheet; score: number; failed: boolean; fai
         <ul className="tb-sheet-points" id="sheet-points">
           {sheet.points.map((x) => (
             <li key={x.source}>
-              <span>{x.label}</span>
+              <span>{tr(x.label)}</span>
               <b>{n(x.pts)}</b>
             </li>
           ))}
