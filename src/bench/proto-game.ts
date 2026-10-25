@@ -16,6 +16,7 @@ import type { Burst, Pop } from "../touch/box-fx.ts";
 import { isPhone, voicing, type Chip, type Gate, type Play, type Sounding } from "../touch/chip.ts";
 import type { Grade } from "../touch/engine.ts";
 import { scoreSheet, type Sheet } from "./score-sheet.ts";
+import { LEVEL_D, planLevel } from "../touch/readings.ts";
 import { barAt, barStart, beatOf, cadenceName, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
 import { echoHalves, repeatHalves } from "./echo.ts";
 /** D247: the smallest row (CSS px) LADDER judges a touch by (the voice's range filled rows of about 18 to 24). */
@@ -121,6 +122,8 @@ interface Held {
   d0: number;
   /** D208: another thumb has struck since on this voice: this one is on its way off and slides no more. */
   passive?: boolean;
+  /** D272: its note is one the reading wants short (staccato): judged so at its end. */
+  wantShort?: boolean;
   /** D271: the way its slides have gone (1 up or right, -1 down or left): a held thumb slides one way only. */
   slideDir?: 1 | -1;
   /** Its last positions, for a flick. */
@@ -227,7 +230,7 @@ export interface RunResults {
   report: string;
 }
 /** D268: where a score's points came from. */
-export type ScoreSource = "notes" | "legato" | "held" | "subjects" | "cadences" | "bonus";
+export type ScoreSource = "notes" | "legato" | "held" | "subjects" | "cadences" | "bonus" | "reading";
 /** D249: a slip costs the streak a quarter, at least this many notes. */
 export const SLIP_LOSS_MIN = 4;
 /** D249: a second slip within this many right notes of the one before costs a multiplier step. */
@@ -1428,7 +1431,12 @@ export class ProtoGame {
     // struck detached it scores as it is (Bach's articulation is open) but the chain is broken.
     const step = Math.max(...chord.map((j) => notes[j].step));
     let legatoAdd = 0;
-    if (this.joinedAt(i, h.k)) {
+    // D272: the reading: what it asks of this subject note (its place in the subject), and of the join into it.
+    const rd = v.ok && !slide ? this.o.reading : null;
+    const place = rd ? this.readingIndex().get(`${h.k}:${n.on}`) : undefined;
+    const ask = rd && place !== undefined ? rd.notes[place] : undefined;
+    const askJoin = rd && place !== undefined && place > 0 ? rd.notes[place - 1]?.join : null;
+    if (this.joinedAt(i, h.k) && askJoin !== false) {
       this.art.legatoOf++;
       const p = this.before(i, h.k);
       if (!slide && over && p >= 0 && notes[p].state === "hit") {
@@ -1451,6 +1459,20 @@ export class ProtoGame {
     if (perfect) this.perfects++;
     else this.goods++;
     if (!slide) this.thumbNote(h.side, n.on, d);
+    if (rd) {
+      if (place !== undefined) {
+        // Joined or detached into it as the reading says; its accent; the subject's level.
+        if (askJoin === true) this.styled(legatoAdd > 0, at);
+        if (askJoin === false) this.styled(!over, at, "DETACHED ✓");
+        if (ask?.accent) this.styled(d >= 0.6, at, "ACCENT ✓");
+        if (rd.level) this.styled(Math.abs(d - LEVEL_D[rd.level]) <= 0.2, at);
+        if (ask?.short) h.wantShort = true;
+      } else {
+        // The rest at the reading's dynamics, where it names them.
+        const lv = planLevel(rd, barAt(this.f, n.on));
+        if (lv) this.styled(Math.abs(d - LEVEL_D[lv]) <= 0.22, at);
+      }
+    }
     // D186: the points rise from the note.
     this.pops.push({ tick: n.on, step, text: `+${ptsText(h.pts)}`, at, gold: perfect });
     if (this.pops.length > 40) this.pops.splice(0, 20);
@@ -1692,6 +1714,13 @@ export class ProtoGame {
     const restMs = rest >= this.beat / 4 ? this.msOf(n.on + n.dur, n.on + n.dur + rest) : 0;
     const r = releaseVerdict(len, this.msOf(n.on, off), restMs);
     const at = performance.now();
+    // D272: a note the reading wants short: let go early it is right (no SHORT), held it is not.
+    if (h.wantShort) {
+      h.wantShort = false;
+      const short = this.msOf(n.on, off) < len * 0.6;
+      this.styled(short, at, "STACCATO ✓");
+      if (short) return;
+    }
     const step = Math.max(...chordOf(notes, i).map((j) => notes[j].step));
     if (r.rest === "over") {
       // Held through the rest: the crowd cools, the chain is broken (no slip: the note was right).
@@ -2273,7 +2302,7 @@ export class ProtoGame {
     const failed = this.failedAt !== null;
     const art = { ...this.art };
     const progress = failed ? this.progressAt(this.failedAt as number) : 1;
-    const sheet = scoreSheet({ ...r, art, earned: { ...this.earned }, perfects: this.perfects, goods: this.goods, failed, progress });
+    const sheet = scoreSheet({ ...r, art, earned: { ...this.earned }, perfects: this.perfects, goods: this.goods, failed, progress, style: { ...this.style } });
     return { ...r, art, lanes: { ...this.laneTally }, stars: failed ? 0 : this.starsOf(r.score, r.of), failedBar: failed ? barAt(this.f, this.failedAt as number) : null, lastBar: barAt(this.f, this.span().end - 1), progress, sheet, thumbs: { ...this.thumbs }, levels: [...this.levels], slides: this.slides, report: this.report(r) };
   }
   /** D268: the played notes' first onset and last end (ticks). */
@@ -2307,7 +2336,25 @@ export class ProtoGame {
   }
 
   /** D268: the points by where they came from (the score sheet), and the right notes' timing. */
-  readonly earned: Record<ScoreSource, number> = { notes: 0, legato: 0, held: 0, subjects: 0, cadences: 0, bonus: 0 };
+  readonly earned: Record<ScoreSource, number> = { notes: 0, legato: 0, held: 0, subjects: 0, cadences: 0, bonus: 0, reading: 0 };
+  /** D272: the reading's asks met, of those judged (the score sheet's READING). */
+  readonly style = { hit: 0, of: 0 };
+  private readingMemo: Map<string, number> | null = null;
+  /** D272: each of the player's subject notes (track:onset) to its place in the subject (the reading's note). */
+  private readingIndex(): Map<string, number> {
+    if (this.readingMemo) return this.readingMemo;
+    const m = new Map<string, number>();
+    if (this.o.reading) for (const e of this.entries) e.ons.forEach((on, j) => m.set(`${e.k}:${on}`, j));
+    return (this.readingMemo = m);
+  }
+  /** D272: one of the reading's asks judged (met or not). */
+  private styled(met: boolean, at: number, word?: string) {
+    this.style.of++;
+    if (!met) return;
+    this.style.hit++;
+    this.earn("reading", this.mult);
+    if (word) this.flash = { text: word, at, good: true, kind: "legato" };
+  }
   perfects = 0;
   goods = 0;
   /**

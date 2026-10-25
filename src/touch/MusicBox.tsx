@@ -121,6 +121,8 @@ export interface Frame {
   zone?: "pleno" | "fuoco" | null;
   /** D205: each ornamented note's sign ("voice:onset" → "TR", "~|"…). */
   ornaments?: Map<string, string>;
+  /** D272: the reading's marks on the subject's notes ("voice:onset"): joined to the next, detached, short, accented. */
+  readingMarks?: Map<string, { join: boolean | null; short: boolean | null; accent: boolean | null }>;
   /** D194: the cadences, named. */
   cadences?: { on: number; text: string }[];
   /** Each voice's range of steps (the design study's staves, box-variants.ts). */
@@ -411,6 +413,34 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
         if (mk && x > -8 && x < w) pixText(g, mk, x, yOf(n.step) - 6, fx.gold);
       }
   }
+  // D272: the reading's marks over the player's subject notes: a slur to the next where joined, a red
+  // stroke in the gap where detached, a dot where short, an accent.
+  if (fr.readingMarks)
+    for (const [pv, pnotes] of played)
+      pnotes.forEach((n, j) => {
+        const mk = fr.readingMarks!.get(`${pv}:${n.on}`);
+        const x = xOf(n.on);
+        if (!mk || x < -40 || x > w) return;
+        const y = yOf(n.step);
+        const nx = pnotes.slice(j + 1).find((m) => m.on > n.on);
+        if (mk.join && nx) {
+          const x2 = xOf(nx.on);
+          const top = Math.min(y, yOf(nx.step)) - 3;
+          g.fillStyle = fx.gold;
+          g.fillRect(x + 1, top, Math.max(1, x2 - x - 1), 1);
+          g.fillRect(x, top + 1, 1, 1);
+          g.fillRect(x2, top + 1, 1, 1);
+        }
+        if (mk.join === false && nx) {
+          g.fillStyle = "#ec5a4a";
+          g.fillRect(Math.round((xOf(n.on + n.dur) + xOf(nx.on)) / 2) - 1, y - 2, 1, bh + 3);
+        }
+        if (mk.short) {
+          g.fillStyle = edge;
+          g.fillRect(Math.round((x + xOf(n.on + n.dur)) / 2), y - 3, 1, 1);
+        }
+        if (mk.accent) pixText(g, ">", x, y - 6, "#ff8a3d");
+      });
   if (fr.spans) strikes(fx, fr.spans);
   if (fr.cadences) cadenceMarks(fx, fr.cadences);
   if (fr.spans && fr.bossFight) bossBar(fx, fr.spans.filter((s) => s.form !== "counter"), fr.voice, fr.notes);

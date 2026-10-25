@@ -14,7 +14,7 @@ const base: SheetInput = {
   entries: 4,
   maxStreak: 40,
   art: { legato: 8, legatoOf: 10, chain: 4, held: 6, heldOf: 10, clean: 0, cleanOf: 0 },
-  earned: { notes: 700, legato: 100, held: 60, subjects: 120, cadences: 20, bonus: 0 },
+  earned: { notes: 700, legato: 100, held: 60, subjects: 120, cadences: 20, bonus: 0, reading: 0 },
   perfects: 60,
   goods: 30,
   failed: false,
