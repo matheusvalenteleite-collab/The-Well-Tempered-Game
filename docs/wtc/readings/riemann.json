@@ -1,0 +1,3344 @@
+[
+ {
+  "id": "wtc1f01",
+  "pages": "3-7",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": "provided its tempo be not mistaken (example marked (4 crotchets) per bar; no tempo word or metronome)"
+  },
+  "character": "Not dry: self-sufficient, contemplative; continuous, not split into sharp members.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "the inner necessity of continuity is thus felt, and consequently a splitting up into too sharply defined members prevented.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 8,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": "arch",
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Marks read from the music example (PDF p.32): staccato dots on C-D-E (i0-2), slur F-G-F-E (i3-6), accent > on A (i7), tenuto+dot (portato) on D (i8, set short), slur under G-A-G-F (i9-12, end point uncertain). Hairpins: < under C-D-E, > bar 2 start, < then > to bar 4 (two swells; 'arch' is a simplification). Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f02",
+  "pages": "11-14",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": "Allegro quasi Allegretto (without any haste)"
+  },
+  "character": "Sober-minded perseverance, quiet diligence; earnest but graceful.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "The articulation, of itself presenting an alternation between the legato of the melodic intervals and the staccato of the harmonic breaks, increases this impression of perseverance, of quiet diligence",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": "arch",
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": "Countersubject never abandons the theme; no articulation given for it.",
+   "dynamics_plan": [],
+   "dynamics_quote": "That the sequence breaks through rhythmical order, and will well bear a stringendo is indeed recognized."
+  },
+  "caveats": "Example (PDF p.39) shows small slurs over C-B-C (i0-2, i5-7, i10-12), slur under A-flat-G-F-E-flat (i16-19), dots on D (i8, i13) and G (i15), portato on A-flat (i4) and G (i9), tenuto on F (i14). Leap detaches (C-G, A-flat-C, D-G, G-C, D-F) are the text's rule (legato melodic steps, staccato harmonic breaks) applied by me; i3 (G to A-flat, a step onto a portato note) set detach is uncertain. Hairpins: <, >, < with 'cresc.', > to bar 4. The stringendo remark concerns the 3/2 episodes. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f03",
+  "pages": "18-22",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": "Andantino piacevole appears to me to give the right idea of the tempo (rejects Czerny's Allegro crotchet = 104)"
+  },
+  "character": "Peace and cheerful delight, enchanting, deeply felt; first half expressive, second parlando.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "in the first half it is full of expression and submission, and has a feminine ending, but in the second it changes, so to speak, to a parlando style",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": "arch",
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": "The close of the second section is marked by a shake, and the crowded harmony, suggests indeed an allargando."
+  },
+  "caveats": "Example (PDF p.47): portato on first G-sharp (i0) and E-sharp (i12); agogic ^ on the appoggiatura A-sharp (i1) and on G-sharp at bar 2 (i7); staccato dots on D-sharp5, C-sharp5, D-sharp4, B-sharp4 (i11, i13-15); hairpins < (bar 1) > (bar 2), then 'dim.' in the parlando half. Only high phrase arcs, no legato slurs. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f04",
+  "pages": "25-31",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": "Sostenuto ma non troppo, in minim (half-note) beats; Czerny's crotchet = 112 'utterly mistaken'"
+  },
+  "character": "Majestic cathedral, colossal dignity; semibreve theme under powerful restraint.",
+  "subject": {
+   "basis": "explicit",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": "arch",
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": "the III. concluding section can open effectively, but quietly (not, as Czerny will have it, ff as the culminating point of the whole, but mf) with the entry of the Dux in the lowest position"
+  },
+  "caveats": "Example (PDF p.54): slur C-sharp to B-sharp (i0), staccato dot on B-sharp (i1), dot on E with a slur E-D-sharp (portato; i2 set short, connection to D-sharp left null), hairpins < then >. Text also: coda on dominant pedal where 'assuredly a diminuendo was intended'. No bar numbers given for the mf entry. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f05",
+  "pages": "35-38",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": "Allegro patetico (4 crotchets per bar)"
+  },
+  "character": "Powerful, proud, resolute; energetic demisemiquaver run and persistent dotting.",
+  "subject": {
+   "basis": "explicit",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 9,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": "arch",
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Example (PDF p.64): slur under the demisemiquaver run to the B (i0-8); sf on the dotted B (i8, encoded as accent); dot on the semiquaver B (i9), tenuto+dot on A (i10), dot on G (i11), tenuto on F-sharp (i12). Hairpin < to the sf, > after. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f06",
+  "pages": "40-44",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": "Andante"
+  },
+  "character": "Ingenious; first half advances quietly by steps, second somewhat passionate.",
+  "subject": {
+   "basis": "explicit",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": "p",
+   "shape": "arch",
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": "It is one of the finest results of phrase indications that such old established ugly effects disappear, leaving no trace, and are replaced by others of pathetic character.",
+   "articulation_summary": "Proper phrasing of a countersubject passage removes ugly effects.",
+   "dynamics_plan": [],
+   "dynamics_quote": "is increased in intensity (in measures 5-6 Comes on g', i.e. the key of the under-dominant once again) by means of a triplet of measures before the close ... and would well bear stringendo."
+  },
+  "caveats": "Example (PDF p.68) marked p: dots on D, F, G, E (i0, i2-4), tenuto+dot on E (i1) and on B-flat (i9), tenuto on F (i5), trill on G (i10); hairpin < under C-sharp-D, > under B-flat-G. Example ends at bar 3 (i12-18 not shown). The passage the phrase remark refers to is in a lost music example. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f07",
+  "pages": "51-53",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": "must not be taken in hurried tempo"
+  },
+  "character": "Harmless merry postlude to the prelude; simple and natural.",
+  "subject": {
+   "basis": "explicit",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": "Anyone who overlooks the connection between the semiquaver following the rest in the upper voice, and the preceding motive, will not give a very smooth rendering",
+   "articulation_summary": "A semiquaver after a rest in an episode belongs to the preceding motive.",
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Example (PDF p.80): slurs over B-flat-G-F-G(-E-flat) and A-flat-G-A-flat(-C), read as legato groups (slur ends uncertain); tenuto+dot on C5 (i8) and E-flat5 (i12), dots on B-flat4 (i9) and D5 (i13), trill on C5 (i14); crossing arcs over the rest of bar 2 are phrase arcs. No hairpins shown. The 'great fugue' Riemann also discusses is the fugal part of the E-flat prelude. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f08",
+  "pages": "56-59",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": null
+  },
+  "character": "Earnest but milder, softer; noble, deeply pensive, quiet crotchet-quaver movement.",
+  "subject": {
+   "basis": "explicit",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": "arch",
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": "Counterpoint and episodes in quiet quaver steps; no articulation given.",
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Example (PDF p.84): portato (tenuto+dot) on D-sharp (i0), G-sharp (i6), A-sharp (i7), D-sharp (i8); slurs over A-sharp-B-A-sharp-G-sharp (i1-4) and G-sharp-F-sharp-E-sharp (i9-11) read as legato; hairpins < > < >. Riemann's barring of the example differs (1, 4, 4a, 4b). Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f09",
+  "pages": "61-63",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": null
+  },
+  "character": "Joy of a wandering life; resolution, active energy.",
+  "subject": {
+   "basis": "explicit",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": "crescendo",
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Example (PDF p.89) shows only the head of the theme (to the E at bar 2, i0-5): accent > and slur on E-F-sharp, slur under B-C-sharp-D-sharp-E, crescendo hairpins over both. Notes i6-18 are not in the example. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f10",
+  "pages": "66-68",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": null
+  },
+  "character": "Somewhat mournful yet contemplative, like nature in autumn.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "The actual motive (see the notes marked with upward stems), clearly perceptible through the continued semiquaver movement, actually makes the fugue more or less in 3, instead of 2 voices (which must of course be attended to in performance).",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 4,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 24,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 25,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 26,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 27,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 28,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 29,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 30,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 31,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 32,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 33,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 34,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 35,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 36,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 37,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 38,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 39,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 40,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Example (PDF pp.94-95): slur under E-G-B (i0-2), accent > on E5 (i3), staccato dots on the upward-stemmed D-sharp, D, C-sharp, C (i4, 6, 8, 10), agogic ^ on B4 (i12), small slurs G-F-sharp (i18-19) and F-sharp-E (i22-23), dots on G (i20) and D4 (i24). Example ends at the D4 (i24); i25-40 not shown. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f11",
+  "pages": "71-75",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": "Andantino piacevole (beat: quaver up-beat to crotchet)"
+  },
+  "character": "Simple, unpretentious, pleasant; theme like a fish resting on a smooth wave.",
+  "subject": {
+   "basis": "explicit",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Example (PDF p.100): slur C-D (i0), tenuto+dot on D, C, C (i1, 2, 4), dot on B-flat (i3), tenuto on C (i10), agogic ^ on A (i14); long phrase arc over the semiquavers. No dynamics. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f12",
+  "pages": "78-81",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": "Adagio pensieroso (allabreve character; crotchets slow)"
+  },
+  "character": "Deep musing, pensive; measured allabreve movement.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "where a feminine ending would cause the bending of a line, the \"ligature\" (syncopation) is replaced by a rest, and the end note becomes the starting note of a new motive.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": "arch",
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": "it is impossible to lose sight of the already emphasized Allabreve-character of the theme and to bring out the same in performance, without allowing the small details of a highly expressive figuration to obscure it",
+   "articulation_summary": "Keep the allabreve pulse; the countersubject figuration must not obscure it.",
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "OCR reads 'replaced by arrest'; the page has 'a [quaver] rest'. Example (PDF p.107): tenuto on C, D-flat, C, E, F; a phrase-division sign (vertical dots) between E and F (i4 detach); short slur A-flat-G (i8); hairpins < > < >. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f13",
+  "pages": "83-85",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": "Andantino quasi Allegretto"
+  },
+  "character": "Pleasing, graceful; an inward down-sinking.",
+  "subject": {
+   "basis": "explicit",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": "arch",
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": "Countersubject clings closely to the theme; second countersubject light, rising.",
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Example (PDF p.112) has only high phrase arcs, a trill on C-sharp (i6), agogic ^ on A-sharp (i15), hairpins < < < >. No legato or staccato marks. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f14",
+  "pages": "91-94",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": "Lento e mesto (minim beat); 'such super-abundance of harmony requires slow tempo'"
+  },
+  "character": "Pain and torture, struggling upward through chromatic harmonies.",
+  "subject": {
+   "basis": "explicit",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": "arch",
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Example (PDF p.119): tenuto+dot on F-sharp and G-sharp (i0, i1); agogic ^ marks fall on the tied-over continuations of A (i2) and B (i5), mid-note in our data, so not encoded; 'pf' on C-sharp4 (i10); trill on G-sharp (i16); hairpins < > < > < > then 'dim.'. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f15",
+  "pages": "96-99",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": "Con moto giojoso (quaver beat); tempo 'somewhat rapid'"
+  },
+  "character": "Truly jesting game; untroubled joy, brisk as bees.",
+  "subject": {
+   "basis": "explicit",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 24,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 25,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 26,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 27,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 28,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 29,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 30,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": "crescendo",
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Example (PDF p.124): tenuto on G (i0), B (i10, i15), D5 (i20); slurs under A-G-F-sharp-G (i1-4) and B-A-G-A-B (i6-10); A-G pairs with dots under small slurs (portato) (i11-12, i16-17); wedges on D4 and F-sharp4 (i13, i18). Long crescendo over bar 1, then < > < > in bars 2-3. Example ends at D5 (i20); i21-30 not shown. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f16",
+  "pages": "102-105",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": null
+  },
+  "character": "Pensive earnestness; feminine ending and accented rest are essential.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "the absence of the feminine ending in the first half, and of the (accented) rest at the beginning of the second, are heavy losses.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": "If we articulate Bach's countersubject more precisely, we find first a syncopated motive (the g before the rest produces an effect quite similar to a note held over, only more striking, more sobbing)",
+   "articulation_summary": "Countersubject: syncopated, 'sobbing' opening motive; ascending motive clarifies the accented rest.",
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Example (PDF p.130, 'our Dux'): slurs D-E-flat (i0-1), F-sharp-G (i3-4, with agogic ^ on F-sharp), A-B-flat-C-B-flat-A to B-flat (i5-10); tenuto on D, E-flat, C. No dynamics. Quote compares Bach's theme with Friedemann Bach's. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f17",
+  "pages": "107-110",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": "Andantino"
+  },
+  "character": "Thoughtful, tender; joyful repose; the sensitive dreamer.",
+  "subject": {
+   "basis": "explicit",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "join",
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": "arch",
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": "wonderfully does Bach make varied use of the motives here marked off by slurs",
+   "articulation_summary": "Riemann's slurs mark off motives; counterpoint in smooth semiquaver scale movement.",
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Example (PDF p.135): slur under A-flat-E-flat-C-A-flat (i0-3), agogic ^ on C (i2), slur under F-D-flat-E-flat (i4-6), hairpins < >. Riemann says these slurs mark off motives, so the joins are my reading. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f18",
+  "pages": "114-119",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": "Andantino un poco larghetto"
+  },
+  "character": "One of the most expressive; subjective feeling, natural, a noble humour.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "at the end, conforms to the staccato-character of the theme.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": "arch",
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": "Its smooth crotchets introduce more repose into the piece, and the syncopation at the end gives opportunity for syncopation on an extended scale in several of the episodes.",
+   "articulation_summary": "Second countersubject in smooth crotchets; first countersubject ends staccato like the theme.",
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "The quote is about the countersubject ending 'conforming to the staccato-character of the theme'. Example (PDF pp.142-143): slurs G-sharp-F-double-sharp, G-sharp-A-sharp-B, A-sharp-G-sharp, C-double-sharp-D-sharp, F-sharp-G-sharp; dots on the repeated G-sharp, G-sharp, A-sharp, A-sharp (i10-13) under a phrase arc; hairpins < > < >. The first slur is partly cut by the page edge. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f19",
+  "pages": "123-128",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": "Poco lento, con molto espressivo; coda 'should be taken in quiet tempo'"
+  },
+  "character": "Heartfelt feeling, touching naivete; very quiet and expressive rendering.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "if only the rhythmical nature of the theme and the feminine endings of its several motives be properly recognized and understood",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": true
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": "the rendering of the fugue must necessarily be a very quiet and expressive one"
+  },
+  "caveats": "Example (PDF p.152, written 6/8 then 3/8): slur G-sharp-C-sharp (i1-2), agogic ^ on E5 (i6) and C-sharp5 (i12), an unclear mark over A5 (i10) not encoded; other arcs are phrase arcs. No hairpins. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f20",
+  "pages": "129-132",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": "Allegro moderato"
+  },
+  "character": "Somewhat colourless, light see-saw; little rhythmic energy.",
+  "subject": {
+   "basis": "explicit",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 3,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 8,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 14,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 16,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 24,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 25,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 26,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 27,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 28,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 29,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 30,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": "arch",
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Example (PDF p.158): marks under the notes: a v sign (read as accent, the ^ inverted) on A3, C4, E4, G-sharp3 (i2, 7, 13, 15); dots on B3, D4, F4, E3, C4, B3 (i3, 8, 14, 16, 27, 28); tenuto+dot on C4 (i4) and E4 (i29); tenuto on E4 (i9), B3 (i18), D4 (i26); < to bar 4, < at bar 6, then 'dim.' to bar 8. Only phrase arcs, no legato slurs. Reading v as an accent is my interpretation. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f21",
+  "pages": "135-138",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": "Andantino un poco Allegretto (crotchet beat)"
+  },
+  "character": "Pleasing, unpretending, harmonious; a true garland of flowers.",
+  "subject": {
+   "basis": "explicit",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "join",
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 9,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "join",
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 24,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 25,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 26,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 27,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 28,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 29,
+     "to_next": "join",
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 30,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 31,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 32,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 33,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 34,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 35,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 36,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 37,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 38,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 39,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 40,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": "hardnesses requiring special phrasing to make them sound euphonious do not occur.",
+   "articulation_summary": "Easy, euphonious; episodes spin out the climbing figuration of the theme.",
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Example (PDF p.164) has two levels of slur: high phrase arcs and close slurs under F-G-F, A-G-B-flat-A-G-F, and each semiquaver group of bars 3-4, read here as legato. Dots on B-flat4 (i3) and C5 (i12); agogic ^ on G4, B-flat4, A4, A4 (i1, 8, 17, 29). Slur end points in bar 4 are approximate. No dynamics. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f22",
+  "pages": "141-146",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": "Andante sostenuto (minim beat; 4/2)"
+  },
+  "character": "Same holy earnestness; solemn descent, very free metre.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "this is especially true in the fugue under notice, of the first minim of the theme, which, without doubt, bears the stronger accent",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Example (PDF p.169): slur B-flat-F with > (diminuendo) on the opening minims, < to bar 3, phrase-division dots after E-flat (i8 detach), other arcs are phrase arcs. Accent on i0 comes from the text. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f23",
+  "pages": "151-154",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": "Non Allegro"
+  },
+  "character": "Simple, easily understood, somewhat conventional; plagal around the tonic.",
+  "subject": {
+   "basis": "explicit",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": "Countersubject's characteristic feature is a trailing scale passage.",
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Example (PDF p.179): short slurs A-sharp-B (i1-2) and G-sharp-A-sharp (i5-6); tenuto on C-sharp (i3) and on C-sharp, D-sharp, E, D-sharp in bar 2 (i8-11); trill on the C-sharp (i12); long phrase arc over bar 2. No dynamics. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ },
+ {
+  "id": "wtc1f24",
+  "pages": "161-168",
+  "tempo": {
+   "quarter_bpm": null,
+   "as_written": "Largo (Bach's own marking)"
+  },
+  "character": "Faust-like search after truth, a soul-struggle; earnest, not mere misery.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "the major thirds which, in place of the expected minor harmonies appearing as resolutions of appoggiaturas ... should be somewhat emphasized, as they are not plain end notes, but rather substitutes for end notes",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "join",
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": "mf",
+   "shape": "arch",
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Example (PDF p.190): mf; slurs F-sharp-D (i0), B-A-sharp (i5), F-sharp-E-sharp (i11), D-C-sharp (i13), G-sharp-F-sharp (i19); dot on B3 (i2); phrase-division dots after A-sharp (i6); agogic ^ on E4 (i7) and C5 (i15); tenuto on C5 (i9, detach); dots on B4 (i10), A4, F-sharp4 (i17-18); f> on D5 (i13); trill on G-sharp (i19); 'cresc.' in bar 2, 'pf' on C5, then '<' '>' and 'dim.' to bar 4. Which notes are the 'major thirds' to emphasise depends on harmonies not mapped here. Riemann's preface: slurs are used 'to show more closely the construction of the periods' (phrase delimitation), 'small guide' marks show small articulation divisions, and the ^ over a note is an agogic accent (stressed note of a feminine ending). Long/high phrase arcs are therefore NOT reported as join; only short close slurs over a few notes (articulation level, usually under a larger phrase arc or beside staccato dots) are reported as join. Staccato dots = short+detach; tenuto-plus-dot (portato) = detach with short null; plain tenuto dashes are not encoded."
+ }
+]
