@@ -200,6 +200,9 @@ export function shade(hex: string, k: number): string {
 const LANE_KEYS = ["A", "S", "D", "F", "G", "H", "J", "K", "L", ";"];
 const LANE_INK = ["#ff6b5a", "#ff9248", "#ffc145", "#d9e34f", "#7ee36b", "#4fd6b2", "#4cb8ff", "#7d8bff", "#b47dff", "#ff7dd6"];
 /** D235: the computer's nine lanes by hand: the left (A S D F) warm, G (either index) gold, the right (H J K L) cool. */
+/** D262: both hands: the left hand's lanes warm (its last the nearest the split), the right's cool. */
+const LEFT_INK = ["#c2452f", "#e0603a", "#f58a3c", "#ffb347"];
+const RIGHT_INK = ["#4fd6e6", "#4cb8ff", "#5f86ff", "#8a74ff", "#b47dff"];
 const HAND_INK = ["#b8432f", "#e0603a", "#f58a3c", "#ffb347", "#ffd66e", "#57c7ff", "#3f9cf5", "#4f74e8", "#6a5ad6"];
 const AHEAD_S = 2.1;
 function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
@@ -210,7 +213,9 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   const N = g.laneCount;
   // D230, SCALE KEYS: the eight home lanes the home key's scale; the altered notes between them (paint-scale.ts).
   const sc = g.scale;
-  const inkOfLane = (l: number) => (sc ? scaleInk(l) : N === 5 ? LANE_INK[l * 2] : HAND_INK[l] ?? LANE_INK[l]);
+  // D262: with both hands each hand its own colours, warm the left, cool the right.
+  const split = g.hands ? g.laneRegion(0).from : -1;
+  const inkOfLane = (l: number) => (sc ? scaleInk(l) : g.hands ? (l < split ? LEFT_INK[l + LEFT_INK.length - split] : RIGHT_INK[l - split]) : N === 5 ? LANE_INK[l * 2] : HAND_INK[l] ?? LANE_INK[l]);
   const cx = w / 2;
   // D220: the computer's road alone in the window (no music box), larger.
   const dg = deskGeom(w, h);
@@ -238,11 +243,11 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   const R: Road | null = phone ? null : { c, w, h, g, t, at, laneX, cx, W, N, y0, y1, top, ahead };
   // D244: the journey behind it all (a scripted piece): the key's sky, shadow, climb, summit.
   const trip = hasJourney(g.f);
-  if (trip) paintBackdrop(c, w, h, top.y, g.f, g.now);
+  if (trip) paintBackdrop(c, w, h, top.y, g.f, g.now, g.journeyLive);
   if (R) deskBegin(c, g), deskCrowd(R);
   // D202: the road lit towards the player, its far end in fog; rails along its edges.
   const road = c.createLinearGradient(0, top.y, 0, y1 + 30);
-  road.addColorStop(0, trip ? roadFar(g.f, g.now) : "#0b0a11");
+  road.addColorStop(0, trip ? roadFar(g.f, g.now, g.journeyLive) : "#0b0a11");
   road.addColorStop(1, "#1b1726");
   c.fillStyle = road;
   c.beginPath();
@@ -269,7 +274,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.fillStyle = g.pleno ? "rgba(255,214,110,0.06)" : "rgba(255,120,60,0.07)";
     c.fill();
   }
-  if (trip) paintRoadLight(c, w, top.y, y1, g.f, g.now);
+  if (trip) paintRoadLight(c, w, top.y, y1, g.f, g.now, g.journeyLive);
   if (R) deskUnder(R);
   if (R && sc) scaleHands(R);
   // Lanes, and the beats and bars crossing them.
@@ -281,6 +286,18 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.moveTo(cx + (xb - cx) * top.k, top.y);
     c.lineTo(xb, y1 + 30);
     c.stroke();
+  }
+  // D262: the hands apart: a bright line up the road between them (and a gutter through the pads).
+  if (g.hands) {
+    const xb = cx - W / 2 + (split * W) / N;
+    c.save();
+    c.strokeStyle = "rgba(255,246,208,0.55)";
+    c.lineWidth = 3;
+    c.beginPath();
+    c.moveTo(cx + (xb - cx) * top.k, top.y);
+    c.lineTo(xb, y1 + 30);
+    c.stroke();
+    c.restore();
   }
   const beat = g.beat;
   for (let tk = Math.ceil(g.now / beat) * beat; tk < ahead; tk += beat) {
@@ -348,6 +365,9 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   const subject = new Set(g.entries.filter((e) => e.k === k).flatMap((e) => e.ons));
   // D244: the bar's repeated half drawn hollow (a scripted prelude).
   const echo = echoShown(g.f) && k === 0 ? g.echoOf(0) : null;
+  // D262: the echo (the second keyboard's note) drawn hollow.
+  const echoRow = !!g.arc?.echo && k === 0 && phone;
+  const traces = g.tracks[k].traces;
   const region = g.hands ? g.laneRegion(k) : { from: 0, count: N };
   for (let i = notes.length - 1; i >= 0; i--) {
     const n = notes[i];
@@ -356,6 +376,24 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     // D261: a note with a tail (held) stays drawn while it lasts, its head gone by; a tap goes when struck.
     const tailed = g.tailed(n);
     const sounding = tailed && n.state === "hit" && g.now < n.on + n.dur;
+    // D262, THE LINE: its path through the notes the slide will sound, from the first to the last, while any is to come.
+    const tq = traces?.get(n.on);
+    if (tq?.length && g.now < tq[tq.length - 1].on + g.f.tpq / 4 && p.d <= 1) {
+      const pts = [{ on: n.on, midi: n.midi }, ...tq].filter((q) => q.on >= g.now - g.f.tpq / 4 && q.on <= ahead).map((q) => ({ x: laneX(g.traceLane(q.midi, k), at(q.on).k), y: at(q.on).y, k: at(q.on).k }));
+      if (pts.length) {
+        const ink = inkOfLane(g.traceLane(n.midi, k));
+        c.strokeStyle = ink;
+        c.globalAlpha = 0.8;
+        c.lineWidth = Math.max(2, 6 * pts[0].k);
+        c.lineJoin = "round";
+        c.beginPath();
+        pts.forEach((q, j) => (j ? c.lineTo(q.x, q.y) : c.moveTo(q.x, q.y)));
+        c.stroke();
+        c.fillStyle = "#fff6d0";
+        for (const q of pts) c.fillRect(q.x - 3 * q.k, q.y - 3 * q.k, 6 * q.k, 6 * q.k);
+        c.globalAlpha = 1;
+      }
+    }
     if (p.d > 1 || (p.y > y1 + 40 && !sounding)) continue;
     if (n.state === "hit" && !(tailed && g.now < n.on + n.dur)) continue;
     const lane = lanes[i];
@@ -401,7 +439,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     const gh = Math.max(4, (R ? 16 : 12) * p.k);
     // D229: on a computer a repeat (SPACE) is a gem in the lane of the note before, marked SPACE.
     const space = !!R && g.spaceGem(i, k);
-    if (!sc && g.isFree(i, k) && lvl !== "timing" && !space) {
+    if (!sc && g.isFree(i, k) && lvl !== "timing" && !space && !tq) {
       // A free note: an open bar across the road (D252: across its hand's lanes).
       c.fillStyle = n.state === "miss" ? t.miss : subj ? ink : "#c78bff";
       const xa = laneX(region.from, p.k) - (W / N / 2) * p.k + 4;
@@ -420,7 +458,7 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
       continue;
     }
     const gw = lw * 0.8;
-    if (echo?.has(i) && n.state !== "miss" && !space) {
+    if ((echo?.has(i) || (echoRow && g.rowOf(i, k) === 1)) && n.state !== "miss" && !space) {
       // D244, THE ECHO: the figure again, hollow: the lane's colour round a dark face.
       c.fillStyle = "rgba(11,10,17,0.85)";
       c.fillRect(x - gw / 2, p.y - gh / 2, gw, gh * 1.05);
@@ -766,6 +804,14 @@ function padRows(c: CanvasRenderingContext2D, g: ProtoGame, laneX: (l: number, k
         c.globalAlpha = 1;
       }
     }
+  }
+  // D262: the hands apart: a gutter through both rows between the left hand's pads and the right's.
+  if (g.hands) {
+    const xs = (laneX(g.laneRegion(0).from, 1) + laneX(g.laneRegion(0).from - 1, 1)) / 2;
+    c.fillStyle = "#0b0a11";
+    c.fillRect(xs - 6, y1 + TIER.top - 4, 12, 2 * TIER.h + TIER.gap + 14);
+    c.fillStyle = "rgba(255,246,208,0.55)";
+    c.fillRect(xs - 1, y1 + TIER.top - 4, 2, 2 * TIER.h + TIER.gap + 14);
   }
   // D252: the pad the next note asks for (its lane and row) lit as it comes, a beat ahead; with both
   // hands the left thumb's lanes and the right's named (D257: inside the lower row, clear of the hint below).

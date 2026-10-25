@@ -65,6 +65,24 @@ export interface Arc {
    * the rest of the figure is the others' (heard, not drawn: no dots).
    */
   strike?: { rh?: "tops"; lh?: "bass" };
+  /**
+   * D262, THE TWO KEYBOARDS: the rows are the harpsichord's two manuals; the right hand's note heard
+   * again in the same bar (the figure's second statement) is its echo, on the lower row, sounding on
+   * the quieter keyboard (whichever row is touched decides the sound); the right row a small bonus.
+   */
+  echo?: true;
+  /**
+   * D262, THE CHARGE: while the first pedal is held the music builds (the doublings, the light), and
+   * stands still while it is let go; the next pedal is not carried on: pressed, it is the ARRIVAL (the
+   * charge released, a bonus by it).
+   */
+  charge?: true;
+  /**
+   * D262, THE LINE: in these bars (from, to exclusive) the right hand's free line is traced: each half
+   * bar's first note struck, its other notes sounded by the thumb sliding on along the drawn path (or,
+   * not slid, by themselves on time).
+   */
+  trace?: [from: number, to: number];
   /** D258: the player's line handed to another voice for these bars (from, to exclusive), announced a bar ahead. */
   takeover?: { from: number; to: number; voice: number; cue: string };
 }
@@ -102,6 +120,10 @@ const ARCS: Record<string, Arc> = {
     // tempo/rhythm felt off ... Tap or hold?"): the right thumb taps the top of each figure (the hidden
     // melody, beats 2 and 4), the left holds the bass from beats 1 and 3; no rows.
     strike: { rh: "tops", lh: "bass" },
+    // D262: the echo on the lower row (the second keyboard), the pedal's charge and the arrival, the free line traced.
+    echo: true,
+    charge: true,
+    trace: [33, 35],
     lift: [
       [1, 0],
       [12, 0],
