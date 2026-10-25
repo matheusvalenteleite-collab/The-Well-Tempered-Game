@@ -10,6 +10,10 @@ textual descriptions only: nothing here was taken from recordings.
 | bodky.json | Erwin Bodky, *The Interpretation of Bach's Keyboard Works* (Harvard, 1960), Appendix A and chapters on the instrument, tempo and articulation | subject articulation for all 24 (21 explicit, 3 by rule), metronome bands (24), forte/piano plans (13, mostly from his harpsichord registrations) |
 | riemann.json | Hugo Riemann, *Katechismus der Fugen-Komposition* (1890–91), Eng. trans. J. S. Shedlock, *Analysis of J. S. Bach's Wohltemperirtes Clavier* (1893; public domain) | marks read from his music examples (24): staccato, accents, short slurs; no metronome marks; hairpins as the subject's shape |
 
+Book II (D275): `keller2.json`, `bodky2.json`, `riemann2.json`, by the same rules (Keller marks the
+subject in 10 Book II fugues; Bodky all 24, dynamics for 13 from registrations, his 8' alone taken
+as pp; Riemann 20 from his examples, rebarred subjects matched by order and outline).
+
 Each object: the fugue, the pages, the tempo (shown only: D274, the game keeps the recordings'),
 the subject's marks note by note against our first entry (`to_next` join/detach, `short`,
 `accent`), its level and shape, the dynamic plan by bar, short verbatim quotations (≤ 40 words) and
