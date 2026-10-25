@@ -1,0 +1,3751 @@
+[
+ {
+  "id": "wtc2f01",
+  "pages": "137-138",
+  "tempo": {
+   "quarter_bpm": 112,
+   "as_written": "Quarter note equals 108 to 116"
+  },
+  "character": "Masculine humor, not too light or dance-like; high spirits intensifying toward the close.",
+  "subject": {
+   "basis": "none",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 24,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 25,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": "the chief sections and the episodes should be clearly set off one against the other.",
+   "articulation_summary": "Clearly separate the main sections from the episodes; no closing ritardando (via Landowska).",
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "No subject articulation given. Keller describes the written-out mordent as \"sharply accenting the top of the melody in bar 2\" (A4, note 4), but as a description of the composition, not a performance instruction, so accent left null. Tempo is twice the prelude."
+ },
+ {
+  "id": "wtc2f02",
+  "pages": "139-140",
+  "tempo": {
+   "quarter_bpm": 60.5,
+   "as_written": "Quarter note equals 58 to 63"
+  },
+  "character": "Severe, reflective; straightforward, unpretentious subject with inner strength.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "Performance: legato (no caesura in the subject), severe, reflective.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Legato applied to every note of the subject; the last note of our entry (9) is left null because Keller does not say where the subject ends."
+ },
+ {
+  "id": "wtc2f03",
+  "pages": "142-143",
+  "tempo": {
+   "quarter_bpm": 66,
+   "as_written": "Quarter note equals 63 to 69"
+  },
+  "character": "Bathed in euphony like the prelude; neither pompous nor scherzo.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "The eighth notes followed by rests in the subject are really detached quarter notes, and they ought to be held somewhat longer than written.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "The music example on p.142 (PDF image) shows that G#3 (3) and F#3 (4) are the eighths followed by rests: coded detach, but short=false since they should be held longer than written. Notes 0-2 (beamed eighths) have no stated marks. Keller himself would end the subject at the 8th note (C#); our entry has only 5 notes."
+ },
+ {
+  "id": "wtc2f04",
+  "pages": "144-146",
+  "tempo": {
+   "quarter_bpm": 87,
+   "as_written": "Dotted eighth note equals 116"
+  },
+  "character": null,
+  "subject": {
+   "basis": "none",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Dotted eighth (0.75 quarter) x 116 = 87 quarters per minute. No performance advice beyond the tempo; Keller notes the fugue sounds better in its original C minor."
+ },
+ {
+  "id": "wtc2f05",
+  "pages": "147-149",
+  "tempo": {
+   "quarter_bpm": 83,
+   "as_written": "Quarter note equals 83 (like the prelude)"
+  },
+  "character": "Serious, vocal (choral) fugue; avoid an excessively flowing tempo; think of 4/2.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "the player can make no greater error than to split the subject through phrasing into (a) and (b).",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": "in the many (indeed too many) stretti of (b) the longer lines should not be dismembered.",
+   "articulation_summary": "Keep long lines unbroken through the stretti of motive (b).",
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "The example on p.147 (PDF image) brackets (a) over D-D-D-G-B (notes 0-4, B tied over the bar) and (b) over E-A-G-F# (5-8); so the a/b junction B to E (4 to 5) is coded join. No other notes are marked."
+ },
+ {
+  "id": "wtc2f06",
+  "pages": "151-152",
+  "tempo": {
+   "quarter_bpm": 74.5,
+   "as_written": "Quarter note equals 69 to 80"
+  },
+  "character": "Controlled energy, elastically resilient; short work of great forcefulness and terseness.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "Performance: with controlled energy, elastically resilient, with a clear caesura in the subject after the fifth eighth note.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Applied literally: the opening 12 notes are sixteenth triplets, so the fifth eighth note is B4 (16) and the caesura falls between B4 and Bb4. Uncertain: if Keller counted the triplet groups as eighth-note beats, the caesura would fall after A4 (12), before the leap to D5. The example shows no caesura mark."
+ },
+ {
+  "id": "wtc2f07",
+  "pages": "153-154",
+  "tempo": {
+   "quarter_bpm": 152,
+   "as_written": "Half note equals 76 (like the prelude)"
+  },
+  "character": "Saturated with euphony like a choral fugue; not rigid or military.",
+  "subject": {
+   "basis": "none",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": "In performance one should beware of too rigid and military a conception, which the subject too readily suggests.",
+   "articulation_summary": "Avoid a rigid, military manner; a cappella, choral sound.",
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Half note 76 converted to quarter 152. The cut-time sign is said to mark a cappella style, not a fast tempo."
+ },
+ {
+  "id": "wtc2f08",
+  "pages": "155-156",
+  "tempo": {
+   "quarter_bpm": 58,
+   "as_written": "Quarter note equals 56 to 60"
+  },
+  "character": "Heavy melancholy and great seriousness; compact, without relaxation.",
+  "subject": {
+   "basis": "none",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "No performance advice beyond tempo."
+ },
+ {
+  "id": "wtc2f09",
+  "pages": "158-159",
+  "tempo": {
+   "quarter_bpm": 120,
+   "as_written": "Half note equals 60 (like the prelude)"
+  },
+  "character": "Pure, transfigured vocal beauty in the style of Palestrina.",
+  "subject": {
+   "basis": "none",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Half note 60 converted to quarter 120. No articulation or dynamics given."
+ },
+ {
+  "id": "wtc2f10",
+  "pages": "161-162",
+  "tempo": {
+   "quarter_bpm": 138,
+   "as_written": "Half note equals 69"
+  },
+  "character": "Powerfully controlled allegro; energetic, impatient subject pressing forward.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "The staccato signs in the subject are dots in the autograph, wedges with Kirnberger.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 24,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 25,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 26,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 27,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 28,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 29,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 30,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 31,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 32,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 33,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 34,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 35,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 36,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 37,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 38,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 39,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 40,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 41,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 42,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 43,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 44,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 45,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 46,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 47,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": "Beneath the fermata on d sharp\" there is an adagio in Kirnberger's copy; this means that it should be prepared through a ritardando.",
+   "articulation_summary": "Ritardando before the fermata in bar 83 (Kirnberger's adagio); dotted eighths played as triplets.",
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Keller reports Bach's staccato signs rather than prescribing them; their positions were read from the p.161 example (PDF image, poor quality): wedges on B4, G4, E4 of bar 2 (12-14) and on E5 in bars 3 and 4 (18, 22). A mark on the first G4 (2) could not be told apart from its stem; left null. Half note 69 converted to quarter 138."
+ },
+ {
+  "id": "wtc2f11",
+  "pages": "163-165",
+  "tempo": {
+   "quarter_bpm": 72,
+   "as_written": "Dotted eighth note equals 96"
+  },
+  "character": "Delicate charm; per Kirnberger fleeting and light, though not wholly carefree.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "The eighth notes in the subject have staccato indications in both Altnikol and Kirnberger.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": "Kirnberger remarked that one should play it 'in a fleeting movement, lightly, without the least pressure.'",
+   "articulation_summary": "Light, fleeting touch without pressure (Kirnberger, quoted by Keller).",
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "The two eighth notes C5 (3) and D5 (7) carry wedges in the p.163 example (PDF image), matching the text. Keller reports manuscript marks and quotes Kirnberger rather than giving his own instruction. Dotted eighth (0.75 quarter) x 96 = 72."
+ },
+ {
+  "id": "wtc2f12",
+  "pages": "167-168",
+  "tempo": {
+   "quarter_bpm": 76,
+   "as_written": "Quarter note equals 76"
+  },
+  "character": "With caprice and a certain humor, softening to ease in the episodes.",
+  "subject": {
+   "basis": "none",
+   "quote": "In any case the mordent which is in several manuscripts shows that Bach's students conceived the subject with a certain sharpness.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 24,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 25,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 26,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 27,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 28,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 29,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 30,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 31,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 32,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 33,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 34,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 35,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": "Performance: with caprice and a certain humor which softens, in the episodes, to ease.",
+   "articulation_summary": "Capricious, humorous; more relaxed in the episodes (bars 17-24, 33-40, 66-71, 78-85).",
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "No note-level articulation; Keller only notes a mordent (shown in parentheses in the example) implying sharpness."
+ },
+ {
+  "id": "wtc2f13",
+  "pages": "169-171",
+  "tempo": {
+   "quarter_bpm": 160,
+   "as_written": "half note equals 76 to 84"
+  },
+  "character": "High spirits, grace and playful lightness; gavotte-like episodes.",
+  "subject": {
+   "basis": "none",
+   "quote": "This example demonstrates, first, that generally trills which enter freely begin with the chief note",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": "Gavotte episodes (bars 23-32, 56-64) alternate two bars forte, two bars piano.",
+   "dynamics_plan": [],
+   "dynamics_quote": "The gavotte episodes are commonly played two bars forte, two bars piano: this while not specifically marked is entirely in the style of Bach's time."
+  },
+  "caveats": "Tempo is double the prelude: half 76-84, i.e. quarter 152-168, middle 160. The trill on the subject's first note begins on the main note (ornament, not articulation). The forte/piano alternation is not tied to specific bar numbers beyond the episode ranges, so dynamics_plan is empty."
+ },
+ {
+  "id": "wtc2f14",
+  "pages": "172-174",
+  "tempo": {
+   "quarter_bpm": 84,
+   "as_written": "Quarter note equals 84"
+  },
+  "character": "Chief subject thoughtful and capricious; second terse, energetic; third gently flowing.",
+  "subject": {
+   "basis": "none",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "No articulation or dynamics given."
+ },
+ {
+  "id": "wtc2f15",
+  "pages": "175-176",
+  "tempo": {
+   "quarter_bpm": 72,
+   "as_written": "Dotted quarter note equals 48"
+  },
+  "character": "Delicately moving, neither hurried nor hasty.",
+  "subject": {
+   "basis": "none",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 24,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 25,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 26,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 27,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 28,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 29,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 30,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 31,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 32,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 33,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 34,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 35,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 36,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 37,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 38,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 39,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 40,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 41,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 42,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 43,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 44,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 45,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Dotted quarter 48 converted to quarter 72. Keller adds only that the suspension on the final note is an eighth note."
+ },
+ {
+  "id": "wtc2f16",
+  "pages": "177-178",
+  "tempo": {
+   "quarter_bpm": 72,
+   "as_written": "Quarter note equals 72"
+  },
+  "character": "Declamation with raised voice, a hurled protest; cumulative rhetoric.",
+  "subject": {
+   "basis": "none",
+   "quote": "the square brackets in the opening example clarify that the subject does not consist of isolated outcries but represents a coherent speech; the first note is a beginning ex abrupto",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": "It is difficult to maintain the tension from beginning to end, and the player is in danger of wearing himself out too soon.",
+   "articulation_summary": "Pace the intensity across the whole fugue.",
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "The example on p.177 (PDF image) shows only phrase brackets (over notes 0-3 and from 4 on), no slurs or staccato marks. The repeated eighths are compared to a fist beating on a table (description). No dynamic levels given."
+ },
+ {
+  "id": "wtc2f17",
+  "pages": "180-181",
+  "tempo": {
+   "quarter_bpm": 61.5,
+   "as_written": "Quarter note equals 60 to 63"
+  },
+  "character": "Grace, equipoise and solemnity; growing seriousness in the second half.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "Performance: strictly legato, without caesuras in the subject; in the second half, intensifying; in the tempo of the prelude.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": "Strict legato throughout; intensify through the second half (from bar 24).",
+   "dynamics_plan": [
+    {
+     "bar": 24,
+     "level": "cresc"
+    }
+   ],
+   "dynamics_quote": "in the second half, intensifying"
+  },
+  "caveats": "Legato applied to all notes; last note of our entry (23) null. Keller places the join between the two halves between bars 23 and 24, so \"intensifying\" is coded as cresc at bar 24; \"intensifying\" may mean expression rather than strictly loudness."
+ },
+ {
+  "id": "wtc2f18",
+  "pages": "182-184",
+  "tempo": {
+   "quarter_bpm": 144,
+   "as_written": "Dotted quarter note equals 96 or more"
+  },
+  "character": "Gently flowing, nimble, galant; no rhythmic contrast or intensification.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "Performance: this fugue is effective only with a nimble, fluent tempo; everything is legato, the dynamics do not exceed mf.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 24,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 25,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 26,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": "the dynamics do not exceed mf."
+  },
+  "rest": {
+   "articulation_quote": "everything is legato",
+   "articulation_summary": "Whole fugue legato; dynamics stay at or below mf.",
+   "dynamics_plan": [],
+   "dynamics_quote": "the dynamics do not exceed mf."
+  },
+  "caveats": "Legato applied to all notes; last note (26) null. mf is given as a ceiling, not the subject's level, so subject.dynamic left null. Dotted quarter 96 converted to quarter 144 (a minimum: \"or more\")."
+ },
+ {
+  "id": "wtc2f19",
+  "pages": "185",
+  "tempo": {
+   "quarter_bpm": 72,
+   "as_written": "Quarter note equals 72"
+  },
+  "character": "Simple, unpretentious; a quiet walk.",
+  "subject": {
+   "basis": "none",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Subject described as ascending in three steps \"with a pause on each\" (a description of the rhythm, not advice). No articulation or dynamics."
+ },
+ {
+  "id": "wtc2f20",
+  "pages": "187-188",
+  "tempo": {
+   "quarter_bpm": 64.5,
+   "as_written": "Quarter note equals 63 to 66"
+  },
+  "character": "Extraordinary outburst of temper; heavy and powerful, not too fast.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "The quarter notes must be heavily set apart, the eighth notes more sharply marked.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "detach",
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 1,
+     "to_next": "detach",
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 2,
+     "to_next": "detach",
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 3,
+     "to_next": "detach",
+     "short": null,
+     "accent": true
+    },
+    {
+     "i": 4,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    }
+   ],
+   "dynamic": "f",
+   "shape": null,
+   "dynamics_quote": "Performance: heavy and powerful, therefore not too fast."
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Quarter notes 0-3 coded detach + accent (\"heavily set apart\"); eighths 4-10 coded short + detach (\"more sharply marked\"; the p.187 example shows wedges on all seven eighths, but Keller notes these are in Kirnberger's and Schwencke's copies, not the autograph). \"Heavy and powerful\" mapped by me to f."
+ },
+ {
+  "id": "wtc2f21",
+  "pages": "190-191",
+  "tempo": {
+   "quarter_bpm": 120,
+   "as_written": "Quarter note equals 120 (1 1/2 times the tempo of the prelude)"
+  },
+  "character": "Lightly animated, with grace and some humor; serene unconcern.",
+  "subject": {
+   "basis": "none",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "The p.190 example shows only motive brackets (a a b b), no articulation marks."
+ },
+ {
+  "id": "wtc2f22",
+  "pages": "192-195",
+  "tempo": {
+   "quarter_bpm": 144,
+   "as_written": "perhaps half note equals 72"
+  },
+  "character": "Most powerful fugue; heavy, troubled, sorrowful gestures, objectified.",
+  "subject": {
+   "basis": "none",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 24,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 25,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 26,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Half note 72 converted to quarter 144; \"the tempo ought not be too slow\". Keller describes the rests between the three attacks of the subject as pauses for breath, but gives no articulation instruction."
+ },
+ {
+  "id": "wtc2f23",
+  "pages": "197-198",
+  "tempo": {
+   "quarter_bpm": 126,
+   "as_written": "Half note equals 63"
+  },
+  "character": "Quietly flowing, singing; gentle euphony.",
+  "subject": {
+   "basis": "none",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Half note 63 converted to quarter 126. No articulation or dynamics."
+ },
+ {
+  "id": "wtc2f24",
+  "pages": "200-201",
+  "tempo": {
+   "quarter_bpm": 87,
+   "as_written": "Dotted quarter note equals 56 to 60"
+  },
+  "character": "Comfortable grace; playful passepied-like dance.",
+  "subject": {
+   "basis": "none",
+   "quote": null,
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 24,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 25,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 26,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Dotted quarter 58 (middle) converted to quarter 87. No articulation or dynamics."
+ }
+]

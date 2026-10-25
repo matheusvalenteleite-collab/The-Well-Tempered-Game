@@ -53,7 +53,7 @@ export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial,
             </button>
           </li>
         )}
-        {liteAll(fuguesOnly).map((id) => {
+        {liteAll(fuguesOnly).map((id, at) => {
           const f = fugueById(id);
           const done = won.has(id);
           const here = id === start && !done;
@@ -61,7 +61,15 @@ export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial,
           const n = Number(id.slice(-2));
           const title = popTitle(id);
           const [bwv, name] = title.includes(" · ") ? title.split(" · ") : ["", title];
-          return (
+          // D275: each book headed (Book II's fugues after Book I's).
+          const book = id.startsWith("wtc2") ? "II" : "I";
+          const head = at === 0 || id === "wtc2f01";
+          return [
+            head && (
+              <li key={`book-${book}`} className="tb-lite-book" id={`book-${book}`}>
+                BOOK {book}
+              </li>
+            ),
             <li key={id}>
               <button type="button" id={`card-${id}`} className={`tb-lite-card${here ? " tb-lite-here" : ""}${done ? " done" : ""}`} style={{ ["--tint" as string]: lv.ink }} onClick={() => open(id)}>
                 <span className="tb-lite-pic-wrap">
@@ -89,8 +97,8 @@ export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial,
                   ♪ HEAR THE SUBJECT
                 </button>
               )}
-            </li>
-          );
+            </li>,
+          ];
         })}
       </ol>
     </div>

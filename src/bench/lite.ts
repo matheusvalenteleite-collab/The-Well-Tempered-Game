@@ -87,7 +87,11 @@ export function writeLite(patch: Partial<LiteState>): LiteState {
  * in Bach's order, each pair's prelude then its fugue (on a phone the fugues only).
  */
 export const liteAll = (fuguesOnly = false): string[] =>
-  Array.from({ length: 24 }, (_, i) => String(i + 1).padStart(2, "0")).flatMap((n) => (fuguesOnly ? [`wtc1f${n}`] : [`wtc1p${n}`, `wtc1f${n}`]));
+  [
+    ...Array.from({ length: 24 }, (_, i) => String(i + 1).padStart(2, "0")).flatMap((n) => (fuguesOnly ? [`wtc1f${n}`] : [`wtc1p${n}`, `wtc1f${n}`])),
+    // D275: then Book II's fugues.
+    ...Array.from({ length: 24 }, (_, i) => `wtc2f${String(i + 1).padStart(2, "0")}`),
+  ];
 /** D264: a piece's difficulty as its card shows it (its fugue's tier): EASY green, NORMAL yellow, HARD red (the BOSS among the hard). */
 export const LITE_LEVELS = { EASY: { label: "EASY", ink: "#5fdc6a" }, NORMAL: { label: "NORMAL", ink: "#e8c94a" }, HARD: { label: "HARD", ink: "#ec5a4a" } } as const;
 export function liteLevel(id: string): { label: string; ink: string } {
@@ -139,7 +143,7 @@ export function recordLite(piece: string, failed: boolean, fuguesOnly = false, g
   const st = readLite();
   // D265: the best grade kept (a finished run's).
   if (!failed && grade && RANK.indexOf(grade) > RANK.indexOf(st.best[piece] ?? "")) writeLite({ best: { ...st.best, [piece]: grade } });
-  if (failed || st.beaten.includes(piece) || !/^wtc1[pf]\d\d$/.test(piece)) return [];
+  if (failed || st.beaten.includes(piece) || !/^wtc1[pf]\d\d$|^wtc2f\d\d$/.test(piece)) return [];
   const before = liteTiers(new Set(st.beaten), fuguesOnly);
   const beaten = [...st.beaten, piece];
   writeLite({ beaten });

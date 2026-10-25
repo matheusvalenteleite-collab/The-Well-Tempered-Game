@@ -34,6 +34,18 @@ import { RETIRED } from "./sound.ts";
  *   FLUTE, CLARINET & BASSOON: 7 (light, "gently burbling"); FLUTE, VIOLA & CELLO: 21 (galant);
  *   WIND QUARTET: 23 ("wears its learning lightly").
  */
+/**
+ * D275: Book II's fugues likewise (now on play.html), each part within its instrument's compass:
+ *   STRINGS: 5, 7, 8, 9 (four of the five Mozart arranged for string quartet, K.405, 1782; the fifth, 2,
+ *     has a tenor below the viola's compass and stays on the harpsichord), 4 (a gigue, concerted),
+ *     10, 14, 18 (the long and the double subjects, sustained lines), 16, 22 (the stile antico, as
+ *     Book I's 1 and 22), 24 (a passepied in three parts);
+ *   HARPSICHORD: 1, 2, 6, 15, 20 (keyboard figuration: the toccata-like and the virtuoso);
+ *   BAROQUE BAND: 17 (a festive concerto subject);
+ *   OBOE, VIOLA & BASSOON: 3, 19 (light three-part dances);
+ *   FLUTE, VIOLA & CELLO: 11, 12, 21 (the galant ones); FLUTE, CLARINET & BASSOON: 13 (a gavotte);
+ *   WIND QUARTET: 23 (four voices in long notes, as Book I's 23).
+ */
 export const PIECE_SOUND: Readonly<Record<string, string>> = {
   // Book I
   wtc1p01: "harpsichordSampled",
@@ -86,53 +98,53 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1f24: "stringsReal",
   // Book II
   wtc2p01: "harpsichordSampled",
-  wtc2f01: "chipPlumber",
+  wtc2f01: "harpsichordSampled",
   wtc2p02: "harpsichordSampled",
   wtc2f02: "harpsichordSampled",
   wtc2p03: "harpsichordSampled",
-  wtc2f03: "chipPocket",
+  wtc2f03: "reedTrio",
   wtc2p04: "strings",
-  wtc2f04: "chipVampire",
+  wtc2f04: "stringsReal",
   wtc2p05: "baroque",
-  wtc2f05: "harpsichordSampled",
+  wtc2f05: "stringsReal",
   wtc2p06: "chipBomber",
   wtc2f06: "harpsichordSampled",
   wtc2p07: "bossa",
-  wtc2f07: "harpsichordSampled",
+  wtc2f07: "stringsReal",
   wtc2p08: "consort",
-  wtc2f08: "strings",
+  wtc2f08: "stringsReal",
   wtc2p09: "strings",
-  wtc2f09: "harpsichordSampled",
+  wtc2f09: "stringsReal",
   wtc2p10: "harpsichordSampled",
-  wtc2f10: "chipBlur",
+  wtc2f10: "stringsReal",
   wtc2p11: "bossa",
-  wtc2f11: "chipDino",
+  wtc2f11: "galantTrio",
   wtc2p12: "consort",
-  wtc2f12: "harpsichordSampled",
+  wtc2f12: "galantTrio",
   wtc2p13: "bossa",
-  wtc2f13: "winds",
+  wtc2f13: "clarinetTrio",
   wtc2p14: "strings",
-  wtc2f14: "harpsichordSampled",
+  wtc2f14: "stringsReal",
   wtc2p15: "chipLight",
-  wtc2f15: "chipPocket",
+  wtc2f15: "harpsichordSampled",
   wtc2p16: "baroque",
-  wtc2f16: "harpsichordSampled",
+  wtc2f16: "stringsReal",
   wtc2p17: "baroque",
-  wtc2f17: "winds",
+  wtc2f17: "baroqueBand",
   wtc2p18: "harpsichordSampled",
-  wtc2f18: "strings",
+  wtc2f18: "stringsReal",
   wtc2p19: "consort",
-  wtc2f19: "chipGold",
+  wtc2f19: "reedTrio",
   wtc2p20: "strings",
-  wtc2f20: "chipVampire",
+  wtc2f20: "harpsichordSampled",
   wtc2p21: "harpsichordSampled",
-  wtc2f21: "chipDino",
+  wtc2f21: "galantTrio",
   wtc2p22: "strings",
-  wtc2f22: "harpsichordSampled",
+  wtc2f22: "stringsReal",
   wtc2p23: "chipHyrule",
-  wtc2f23: "harpsichordSampled",
+  wtc2f23: "windsReal",
   wtc2p24: "consort",
-  wtc2f24: "chipHyrule",
+  wtc2f24: "stringsReal",
   // The Art of Fugue
   "bwv1080-14": "harpsichordSampled",
 };

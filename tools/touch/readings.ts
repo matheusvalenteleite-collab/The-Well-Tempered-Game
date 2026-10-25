@@ -32,9 +32,8 @@ const SOURCES = [
 const LEVELS = ["pp", "p", "mp", "mf", "f", "ff"];
 const out: Record<string, unknown[]> = {};
 for (const src of SOURCES) {
-  const path = `docs/wtc/readings/${src.id}.json`;
-  if (!existsSync(path)) continue;
-  const rows: Extracted[] = JSON.parse(readFileSync(path, "utf8"));
+  // Book I (<id>.json) and, D275, Book II (<id>2.json).
+  const rows: Extracted[] = [`docs/wtc/readings/${src.id}.json`, `docs/wtc/readings/${src.id}2.json`].filter((p) => existsSync(p)).flatMap((p) => JSON.parse(readFileSync(p, "utf8")));
   for (const x of rows) {
     const notes = x.subject.notes.map((n) => ({ join: n.to_next === "join" ? true : n.to_next === "detach" ? false : null, short: n.short ?? null, accent: n.accent ?? null }));
     const marked = notes.some((n) => n.join !== null || n.short || n.accent);

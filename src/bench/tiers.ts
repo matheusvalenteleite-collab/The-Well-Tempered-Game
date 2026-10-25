@@ -27,7 +27,8 @@ const fugueId = (id: string) => id.replace(/^wtc1p/, "wtc1f");
 /** A Book I piece's tier (a prelude's is its fugue's), from the fugue's stars; null outside Book I. */
 export function tierOf(id: string): Tier | null {
   const f = fugueId(id);
-  if (!/^wtc1f\d\d$/.test(f)) return null;
+  // D275: Book II's fugues too (play.html's list), by their stars; the BOSS is Book I's.
+  if (!/^wtc[12]f\d\d$/.test(f)) return null;
   if (f === BOSS) return "BOSS";
   const s = cardById(f)?.stars ?? 1;
   return s <= 2 ? "EASY" : s === 3 ? "INTERMEDIATE" : "HARD";

@@ -138,6 +138,8 @@ test("D251: a prelude's pop-up offers no hand to choose; the game starts on the 
   try {
     assert.equal(sane(was).voice, 0);
     assert.equal(sane({ ...was, voice: -1 }).voice, 0);
+    // D275: a Book II fugue is kept on play.html (it fell back to Book I's first).
+    assert.equal(sane({ ...was, piece: "wtc2f07", voice: -1 }).piece, "wtc2f07");
   } finally {
     APP.lite = false;
   }
@@ -188,15 +190,17 @@ test("D237: play.html: built beside bench.html, the grid only: no tutorial, achi
   const { LiteGrid } = await import("../src/bench/LiteGrid.tsx");
   const html = renderToStaticMarkup(createElement(LiteGrid, { beaten: [], open: () => {}, settings: () => {} }));
   // D264: all open from the start (48 cards on a computer, 24 fugues on a phone), each with its difficulty.
-  assert.equal(html.match(/class="tb-lite-card/g)?.length, 48);
+  assert.equal(html.match(/class="tb-lite-card/g)?.length, 72, "D275: and Book II's 24 fugues");
   assert.match(html, /id="card-wtc1p01"[^>]*>.*?START HERE/);
   assert.doesNotMatch(html, /MORE TO UNLOCK/);
   assert.match(html, /id="card-wtc1f02".*?NORMAL/);
   const phone = renderToStaticMarkup(createElement(LiteGrid, { beaten: [], open: () => {}, settings: () => {}, fuguesOnly: true }));
-  assert.equal(phone.match(/class="tb-lite-card/g)?.length, 24);
+  assert.equal(phone.match(/class="tb-lite-card/g)?.length, 48);
   assert.match(phone, /id="card-wtc1f01"[^>]*>.*?START HERE/);
   assert.match(html, /id="lite-settings"/);
-  for (const word of ["TUTORIAL", "ACHIEVEMENT", "INTERFACE", "KIMIKO", "SEAL", "BOOK II", "LESSON"]) assert.doesNotMatch(html, new RegExp(word, "i"), word);
+  // D275: BOOK II now a heading of the list.
+  assert.match(html, /id="book-II"/);
+  for (const word of ["TUTORIAL", "ACHIEVEMENT", "INTERFACE", "KIMIKO", "SEAL", "LESSON"]) assert.doesNotMatch(html, new RegExp(word, "i"), word);
   // The whole app on the minimal page, as it first renders: the grid, nothing of the bench's.
   const { APP } = await import("../src/bench/config.ts");
   APP.lite = true;
@@ -237,7 +241,8 @@ test("D263: on a phone the minimal page has the fugues only: its cards, its star
 
 test("D264: every piece open from the start, in Bach's order; each card's difficulty EASY (green), NORMAL (yellow) or HARD (red)", async () => {
   const { liteAll, liteLevel } = await import("../src/bench/lite.ts");
-  assert.equal(liteAll(true).length, 24);
+  assert.equal(liteAll(true).length, 48, "D275: Book I's fugues, then Book II's");
+  assert.deepEqual([liteAll(true)[23], liteAll(true)[24], liteAll(true)[47]], ["wtc1f24", "wtc2f01", "wtc2f24"]);
   assert.deepEqual(liteAll(true).slice(0, 3), ["wtc1f01", "wtc1f02", "wtc1f03"]);
   assert.deepEqual(liteAll(false).slice(0, 4), ["wtc1p01", "wtc1f01", "wtc1p02", "wtc1f02"]);
   assert.equal(liteLevel("wtc1f01").label, "EASY");
