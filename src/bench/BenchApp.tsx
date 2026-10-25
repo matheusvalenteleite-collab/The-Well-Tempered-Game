@@ -56,6 +56,7 @@ import { judgeSeal, readSeals, recordSeal } from "./seals.ts";
 import { earnFeats, type FeatId } from "./feats.ts";
 import { Achievements, FeatToast } from "./Achievements.tsx";
 import type { ArtStats } from "./articulation.ts";
+import { VERSION } from "./version.ts";
 import { APP } from "./config.ts";
 import { defaultVoice, nextIn } from "./flow.ts";
 import { LITE_HINT, liteOrder, readLite, recordLite, RULES, START_HERE, writeLite } from "./lite.ts";
@@ -144,7 +145,7 @@ export function sane(p: Pick): Pick {
 }
 
 /** D237: "title" is the pop-up over the cards (HOME, the wheel, the minimal page's grid). */
-type Phase = { kind: "home" } | { kind: "title" } | { kind: "play" } | { kind: "result"; stage?: { won: boolean; fugue: string }; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; art?: ArtStats; lanes?: { exact: number; relative: number }; seal: { kind: string; earned: boolean; why: string } | null; feats?: FeatId[]; opened?: Tier[]; next?: string | null } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "lessons"; focus?: ProtoId } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
+type Phase = { kind: "home" } | { kind: "title" } | { kind: "play" } | { kind: "result"; stage?: { won: boolean; fugue: string }; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; art?: ArtStats; lanes?: { exact: number; relative: number }; report?: string; seal: { kind: string; earned: boolean; why: string } | null; feats?: FeatId[]; opened?: Tier[]; next?: string | null } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "lessons"; focus?: ProtoId } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
 
 export function BenchApp() {
   // D233: the game opens on HOME.
@@ -779,6 +780,24 @@ export function BenchApp() {
               </p>
             ))}
             {!APP.lite && phase.feats && phase.feats.length > 0 && <FeatToast fresh={phase.feats} open={() => setPhase({ kind: "achievements", fresh: phase.feats })} />}
+            {phase.report && (
+              // D259: what went wrong, to copy and send (the owner's reports from the phone).
+              <button
+                type="button"
+                id="copy-report"
+                className="tb-report"
+                onClick={(e) => {
+                  const btn = e.currentTarget;
+                  const text = `${VERSION} · ${navigator.userAgent}\n${phase.report}`;
+                  navigator.clipboard?.writeText(text).then(
+                    () => (btn.textContent = "REPORT COPIED"),
+                    () => window.prompt("Copy the report:", text),
+                  ) ?? window.prompt("Copy the report:", text);
+                }}
+              >
+                COPY REPORT
+              </button>
+            )}
             <div className="tb-result-nav">
               <button type="button" id="again" className="tb-play" autoFocus onClick={() => start()}>
                 ▶ AGAIN

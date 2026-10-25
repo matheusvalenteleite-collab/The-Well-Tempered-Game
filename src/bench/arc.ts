@@ -61,9 +61,8 @@ export interface Arc {
 }
 
 /**
- * Prelude 1: learn the figure (bb. 1–4, the right hand's strong notes alone), take more of it (bb. 5–11,
- * three a half bar, and the left thumb takes the bass: D252), all of it (bb. 12–23, through the
- * diminished sevenths), then the dominant pedal (bb. 24–31, G: the left thumb holds it, a big pedal
+ * Prelude 1: learn the figure (bb. 1–4, the right hand's strong notes alone), take more of it (bb. 5–23,
+ * three a half bar, and the left thumb takes the bass: D252; D259: never all of it), then the dominant pedal (bb. 24–31, G: the left thumb holds it, a big pedal
  * sounding under the figure), the tonic pedal (bb. 32–34, C: D255, the same lane, the thumb held on) and the final
  * chord with both thumbs. The repeated half of every bar on the lower row (the figure stated twice).
  * The tempo rises 2% by b. 5, 4% by b. 12, 6% by b. 20, and holds through the pedal; the doublings grow
@@ -72,11 +71,12 @@ export interface Arc {
  */
 const ARCS: Record<string, Arc> = {
   wtc1p01: {
+    // D259: never the whole figure (bb. 12–23 asked for all twelve notes a bar, one every 260 ms for
+    // fifty seconds: the owner: "Prelude 1 is unbeatable ... The six notes arpeggios with one finger are
+    // horrible to do"); every other note from b. 5 to the pedals, the growth in the sound and the light.
     rides: [
       [1, 2.4],
       [5, 1.4],
-      [12, 1],
-      [24, 1.4],
       [32, 2.4],
     ],
     tempo: [
@@ -118,14 +118,12 @@ const ARCS: Record<string, Arc> = {
  * doublings from b. 19 to the climax; the last chord with both thumbs.
  */
 ARCS.wtc1p04 = {
+  // D259: at most every other quaver until the build-up (a long run of quavers a third of a second
+  // apart was too much for a first piece), all of the line only from b. 19 to the top at b. 25.
   rides: [
     [1, 1.6],
-    [5, 1.3],
-    [14, 1.15],
-    [19, 1],
-    [29, 1.5],
-    [32, 1],
-    [33, 1.3],
+    [19, 1.15],
+    [26, 1.6],
   ],
   tempo: [
     [1, 1],

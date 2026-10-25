@@ -22,11 +22,13 @@ function game(mode: "highway" | "keys", voice = 0) {
 }
 const struckIn = (g: ProtoGame, b: number) => g.notes.filter((n) => !n.ride && n.on >= barStart(P1, b) && n.on < barStart(P1, b + 1)).length;
 
-test("D250: the figure passes to the player section by section (sparse, more, all; fewer under the pedal)", () => {
+test("D250, D259: the figure passes to the player section by section (sparse, then every other note, never all)", () => {
   const { g } = game("highway");
   const [a, b, c, d] = [2, 7, 15, 26].map((x) => struckIn(g, x));
-  assert.ok(a < b && b < c, `${a} ${b} ${c}`);
-  assert.ok(d < c, "under the pedal one thumb plays fewer notes");
+  assert.ok(a < b && b === c && d <= c, `${a} ${b} ${c} ${d}`);
+  // never the whole figure: no two struck notes of the right hand a sixteenth apart.
+  const t = g.tracks[0].notes.filter((n, i, ns) => !n.ride && !(i > 0 && ns[i - 1].on === n.on));
+  for (let i = 1; i < t.length; i++) assert.ok(t[i].on - t[i - 1].on > P1.tpq / 4, `bar ${Math.floor(t[i].on / P1.barTicks) + 1}`);
   assert.equal(stepAt(P1, arcOf(P1)!.rides, barStart(P1, 30)), 1.4);
 });
 
@@ -61,7 +63,7 @@ test("D252: the figure repeated within its bar asks for the lower row", () => {
   const b = barStart(P1, 15);
   const heads = g.notes.map((n, i) => i).filter((i) => !g.notes[i].ride && g.notes[i].on >= b && g.notes[i].on < b + P1.barTicks);
   const rows = heads.map((i) => g.rowOf(i, 0));
-  assert.deepEqual(rows, [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1]);
+  assert.deepEqual(rows, [0, 0, 0, 1, 1, 1]);
 });
 
 test("D250: held, the pedal sounds and scores; let go, the bass falls silent", () => {
