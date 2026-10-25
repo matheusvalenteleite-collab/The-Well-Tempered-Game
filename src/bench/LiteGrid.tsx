@@ -8,13 +8,15 @@ import { fugueById } from "../touch/fugue.ts";
 import { keyTint } from "../touch/MusicBox.tsx";
 import { Emblem } from "./FuguePicker.tsx";
 import { keyLabel } from "./emblem.ts";
-import { liteLine, litePieces, liteTiers, START_HERE } from "./lite.ts";
+import { liteLine, litePieces, liteTiers, startHere } from "./lite.ts";
 import { popTitle } from "./PlayPop.tsx";
 
-export function LiteGrid({ beaten, open, settings }: { beaten: readonly string[]; open: (id: string) => void; settings: () => void }) {
+export function LiteGrid({ beaten, open, settings, fuguesOnly = false }: { beaten: readonly string[]; open: (id: string) => void; settings: () => void; fuguesOnly?: boolean }) {
   const won = useMemo(() => new Set(beaten), [beaten]);
-  const tiers = liteTiers(won);
-  const line = liteLine(won);
+  // D263: on a phone the fugues only.
+  const tiers = liteTiers(won, fuguesOnly);
+  const line = liteLine(won, fuguesOnly);
+  const start = startHere(fuguesOnly);
   return (
     <div className="tb-lite" role="main" aria-label="Pieces">
       <header className="tb-lite-head">
@@ -27,10 +29,10 @@ export function LiteGrid({ beaten, open, settings }: { beaten: readonly string[]
         <section key={t} className="tb-lite-tier" aria-label={t}>
           <h2 className={`tb-lite-tier-name tb-tier-${t.toLowerCase()}`}>{t}</h2>
           <div className="tb-lite-grid">
-            {litePieces(t).map((id) => {
+            {litePieces(t, fuguesOnly).map((id) => {
               const f = fugueById(id);
               const done = won.has(id);
-              const here = id === START_HERE && !done;
+              const here = id === start && !done;
               return (
                 <button key={id} type="button" id={`card-${id}`} className={`tb-lite-card${here ? " tb-lite-here" : ""}${done ? " done" : ""}`} style={{ ["--tint" as string]: keyTint(f.key, 30) }} onClick={() => open(id)}>
                   {here && <span className="tb-lite-start">START HERE</span>}

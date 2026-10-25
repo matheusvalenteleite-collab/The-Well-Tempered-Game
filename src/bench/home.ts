@@ -6,8 +6,20 @@ import type { Platform } from "./protos.ts";
 import { fugueOf, isPrelude, paired, preludeOf, type Stages } from "./stages.ts";
 import { openTiers, tierCards, tierFugues, TIER_ORDER, type Tier } from "./tiers.ts";
 
-/** A coarse pointer with no hover (a finger on glass): the phone's modes; anything else a computer's. */
-export const detectPlatform = (m: { coarse: boolean; hover: boolean }): Platform => (m.coarse && !m.hover ? "mobile" : "computer");
+/**
+ * The phone's modes or the computer's. D263: a phone or tablet says so first (the browser's own
+ * `userAgentData.mobile`, else its user agent: Android, iPhone, iPad, iPod, a "Mobile" browser, an iPad
+ * passing as a Mac with a touch screen), since Samsung's phones (the owner's friend's Galaxy S22) report
+ * hover (the S Pen's Air View), and the pointer alone sent them to the computer's modes; otherwise a
+ * coarse pointer with no hover (a finger on glass) is a phone, anything else a computer.
+ */
+export const detectPlatform = (m: { coarse: boolean; hover: boolean; ua?: string; uaMobile?: boolean; touchPoints?: number }): Platform => {
+  if (m.uaMobile) return "mobile";
+  const ua = m.ua ?? "";
+  if (/Android|iPhone|iPad|iPod|Mobile|Silk|Kindle|BlackBerry|Opera Mini|IEMobile|Windows Phone/i.test(ua)) return "mobile";
+  if (/Macintosh/.test(ua) && (m.touchPoints ?? 0) > 1) return "mobile";
+  return m.coarse && !m.hover ? "mobile" : "computer";
+};
 
 /** The ⚙ override: AUTO (detected), or a platform chosen. */
 export type PlatformPref = "auto" | Platform;
@@ -16,7 +28,8 @@ export const platformOf = (pref: PlatformPref, detected: Platform): Platform => 
 /** The browser's answer (in try/catch: no matchMedia, a computer). */
 export function detectedPlatform(): Platform {
   try {
-    return detectPlatform({ coarse: matchMedia("(pointer: coarse)").matches, hover: matchMedia("(hover: hover)").matches });
+    const nav = navigator as Navigator & { userAgentData?: { mobile?: boolean } };
+    return detectPlatform({ coarse: matchMedia("(pointer: coarse)").matches, hover: matchMedia("(hover: hover)").matches, ua: nav.userAgent, uaMobile: nav.userAgentData?.mobile, touchPoints: nav.maxTouchPoints });
   } catch {
     return "computer";
   }

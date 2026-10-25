@@ -59,7 +59,7 @@ import type { ArtStats } from "./articulation.ts";
 import { VERSION } from "./version.ts";
 import { APP } from "./config.ts";
 import { defaultVoice, nextIn } from "./flow.ts";
-import { LITE_HINT, liteOrder, readLite, recordLite, RULES, START_HERE, writeLite } from "./lite.ts";
+import { LITE_HINT, liteOrder, litePlatform, litePlatformPref, readLite, recordLite, RULES, saveLitePlatform, startHere, writeLite } from "./lite.ts";
 import { LiteGrid } from "./LiteGrid.tsx";
 import { PlayPop } from "./PlayPop.tsx";
 import { tierCards } from "./tiers.ts";
@@ -147,7 +147,9 @@ export function sane(p: Pick): Pick {
   // D229: Book I's preludes are stage 1 (stages.ts); a locked fugue gives its prelude; Book II's preludes still give their fugues.
   const pair = paired(known) && isPrelude(known) ? known : fugueOnly(known);
   // D232: a piece whose tier is closed gives I/1's prelude. D237: the minimal page has its own unlocking (lite.ts), Book I only.
-  const piece = APP.lite ? (paired(pair) ? pair : START_HERE) : locked(pair) ? (locked(preludeOf(pair)) ? "wtc1p01" : preludeOf(pair)) : pair;
+  // D263: on a phone the minimal page has no preludes: a prelude gives its fugue.
+  const mob = APP.lite && litePlatform() === "mobile";
+  const piece = APP.lite ? (paired(pair) ? (mob && isPrelude(pair) ? fugueOf(pair) : pair) : startHere(mob)) : locked(pair) ? (locked(preludeOf(pair)) ? "wtc1p01" : preludeOf(pair)) : pair;
   const f = fugueById(piece);
   const share = Math.min(0.99, Math.max(0, p.share || 0));
   const singing = voicesFrom(f, startTick(f, share));
@@ -173,7 +175,7 @@ export function BenchApp() {
   if (phase.kind === "home" || phase.kind === "title") origin.current = phase.kind;
   const back = () => setPhase({ kind: origin.current });
   // D237: the minimal page keeps no pick (it opens on its grid; Prelude 1 its first card).
-  const [pick, setPickRaw] = useState<Pick>(() => sane(APP.lite ? { ...DEFAULT, piece: START_HERE, voice: -1 } : load(PICK_KEY, DEFAULT)));
+  const [pick, setPickRaw] = useState<Pick>(() => sane(APP.lite ? { ...DEFAULT, piece: startHere(litePlatform() === "mobile"), voice: -1 } : load(PICK_KEY, DEFAULT)));
   const setPick = (p: Partial<Pick>) =>
     setPickRaw((cur) => {
       // A new piece starts at its own tempo (D184; the slider moves it after).
@@ -217,7 +219,8 @@ export function BenchApp() {
   // D182: mobile or computer. D233: guessed from the pointer (a finger and no hover: the phone's), ⚙ PLAY ON overrides it.
   const [detected] = useState(detectedPlatform);
   const [pref, setPrefRaw] = useState<PlatformPref>(() => load<PlatformPref>(PLATFORM_KEY, "auto"));
-  const platform = platformOf(!APP.lite && (pref === "mobile" || pref === "computer") ? pref : "auto", detected);
+  // D263: the minimal page its own (⚙ PLAY ON, kept apart from the bench's).
+  const platform = APP.lite ? platformOf(litePlatformPref(), detected) : platformOf(pref === "mobile" || pref === "computer" ? pref : "auto", detected);
   const setPref = (p: PlatformPref) => {
     setPrefRaw(p);
     save(PLATFORM_KEY, p);
@@ -443,10 +446,10 @@ export function BenchApp() {
           setPhase({ kind: "talk", lines: ok ? l.praise : l.again, next: ok ? "advance" : "again" });
         } else if (APP.lite) {
           // D237: the minimal page keeps only the pieces finished (its own key), nothing of the bench's.
-          const opened = recordLite(f.id, r.failedBar !== null);
+          const opened = recordLite(f.id, r.failedBar !== null, platform === "mobile");
           const st = readLite();
           setLite(st);
-          setPhase({ kind: "result", ...r, seal: null, opened, next: nextIn(liteOrder(new Set(st.beaten)), f.id) });
+          setPhase({ kind: "result", ...r, seal: null, opened, next: nextIn(liteOrder(new Set(st.beaten), platform === "mobile"), f.id) });
         } else {
           // D214: SUBJECT's grade is not any one voice's.
           if (r.failedBar === null && !subjectMode) recordBest(f.id, played, r.grade);
@@ -879,6 +882,17 @@ export function BenchApp() {
               }}
             />
           </label>
+          {/* D263: the platform, should the guess be wrong (the page reloads in the other's modes). */}
+          <Choice
+            id="lite-platform"
+            label="PLAY ON"
+            options={[["auto", `AUTO · ${detected === "mobile" ? "MOBILE" : "COMPUTER"}`], ["mobile", "MOBILE"], ["computer", "COMPUTER"]]}
+            value={litePlatformPref()}
+            set={(p: PlatformPref) => {
+              saveLitePlatform(p);
+              window.location.reload();
+            }}
+          />
           {platform === "mobile" && <InterfaceFold frame={frame.current} />}
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
           <p className="tg-panel-note">With headphones on, tap along to the clicks so the music and your taps line up.</p>
@@ -919,7 +933,7 @@ export function BenchApp() {
         />
       )}
       {wheel && !APP.lite && (phase.kind === "home" || phase.kind === "title") && <FuguePicker current={pick.piece} close={() => setWheel(false)} pick={open} paused={phase.kind === "title"} />}
-      {APP.lite && (phase.kind === "home" || phase.kind === "title") && <LiteGrid beaten={lite.beaten} open={open} settings={() => setPhase({ kind: "settings" })} />}
+      {APP.lite && (phase.kind === "home" || phase.kind === "title") && <LiteGrid beaten={lite.beaten} open={open} settings={() => setPhase({ kind: "settings" })} fuguesOnly={platform === "mobile"} />}
       {phase.kind === "title" && (
         <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULES[proto.id]} {...(APP.lite ? { sound, setSound } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
           {herHere && <HerSwitch pick={pick} setPick={setPick} />}
