@@ -59,18 +59,23 @@ export interface Arc {
    * own pace (a bonus).
    */
   sweeps?: true;
+  /**
+   * D261, WHAT EACH THUMB PLAYS (instead of riding): the right hand only the top note of each half bar
+   * ("tops": the melody hidden in the figure), the left only the bass at each half bar's start ("bass");
+   * the rest of the figure is the others' (heard, not drawn: no dots).
+   */
+  strike?: { rh?: "tops"; lh?: "bass" };
   /** D258: the player's line handed to another voice for these bars (from, to exclusive), announced a bar ahead. */
   takeover?: { from: number; to: number; voice: number; cue: string };
 }
 
 /**
- * Prelude 1: learn the figure (bb. 1–4, the right hand's strong notes alone), take more of it (bb. 5–23,
- * three a half bar, and the left thumb takes the bass: D252; D259: never all of it), then the dominant pedal (bb. 24–31, G: the left thumb holds it, a big pedal
- * sounding under the figure), the tonic pedal (bb. 32–34, C: D255, the same lane, the thumb held on) and the final
- * chord with both thumbs. The repeated half of every bar on the lower row (the figure stated twice).
- * The tempo rises 2% by b. 5, 4% by b. 12, 6% by b. 20, and holds through the pedal; the doublings grow
- * from b. 12 to the pedals (D252: the owner missed "the music getting more intense as it progressed to
- * climax").
+ * Prelude 1 (D261, rebuilt after the owner played it: "not fun ... finger acrobatics"): the right thumb
+ * taps the top note of each figure (beats 2 and 4: the melody hidden in the figure, lane by lane), from
+ * b. 5 the left thumb holds the bass from beats 1 and 3 (a tail its length); the rest of the figure is
+ * heard. Then the dominant pedal (bb. 24–31, G: the left thumb holds it, a big pedal sounding under the
+ * figure), the tonic pedal (bb. 32–34, C, the thumb held on) and the final chord with both thumbs. A
+ * stable tempo (D260); the doublings grow from b. 12 to the pedals.
  */
 const ARCS: Record<string, Arc> = {
   wtc1p01: {
@@ -93,7 +98,10 @@ const ARCS: Record<string, Arc> = {
       [1, null],
       [5, 3],
     ],
-    rows: true,
+    // D261: the owner, after playing it ("not fun ... finger acrobatics more than music playing ... the
+    // tempo/rhythm felt off ... Tap or hold?"): the right thumb taps the top of each figure (the hidden
+    // melody, beats 2 and 4), the left holds the bass from beats 1 and 3; no rows.
+    strike: { rh: "tops", lh: "bass" },
     lift: [
       [1, 0],
       [12, 0],
