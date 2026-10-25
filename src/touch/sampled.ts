@@ -16,9 +16,13 @@
  */
 import { SAMPLE_MANIFEST } from "../audio/sample-manifest.ts";
 import { SITE } from "../audio/site.ts";
-import { SAMPLED_NOTES } from "./sampled-data.ts";
+import { SAMPLED_NOTES as HARPSI_ORGAN } from "./sampled-data.ts";
+import { ENSEMBLE_NOTES } from "./sampled-ensemble.ts";
 
-export type SampledId = "harpsichord" | "organ";
+/** Every recorded note's measured tuning, length and loop (the harpsichord and organ's, D190; the ensembles', D266). */
+const SAMPLED_NOTES = { ...HARPSI_ORGAN, ...ENSEMBLE_NOTES };
+
+export type SampledId = "harpsichord" | "organ" | "violin" | "viola" | "cello" | "flute" | "oboe" | "clarinet" | "bassoon";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -36,6 +40,14 @@ export interface SampledInstrument {
 export const SAMPLED: Record<SampledId, SampledInstrument> = {
   harpsichord: { set: "harpsichord", release: "harpsichordRel", plucked: true, gain: 1.7 },
   organ: { set: "pipeOrgan", low: "pipePedal", plucked: false, gain: 5 },
+  // D266: the ensembles' instruments (tools/playback/ensemble/build.py): looped, levelled to the organ's.
+  violin: { set: "lpViolin", plucked: false, gain: 5 },
+  viola: { set: "lpViola", plucked: false, gain: 5 },
+  cello: { set: "lpCello", plucked: false, gain: 5 },
+  flute: { set: "lpFlute", plucked: false, gain: 5 },
+  oboe: { set: "lpOboe", plucked: false, gain: 5 },
+  clarinet: { set: "lpClarinet", plucked: false, gain: 5 },
+  bassoon: { set: "lpBassoon", plucked: false, gain: 5 },
 };
 
 /** Sets recorded in stereo (the struck string's image); the rest are mono. */
