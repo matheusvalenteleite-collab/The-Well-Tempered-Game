@@ -94,13 +94,13 @@ test("D225: each lesson's passage is pinned (a change to the data or the search 
     "computer/leap": ["keys", "wtc1f04", 0, 339840, 359040, false, true],
     "computer/exam": ["keys", "wtc1f08", 0, 0, 668160, false, true],
     // D270: THE TUTORIAL, on Invention No. 1 (bars of 7680 ticks).
-    "mobile/t-ladder": ["ladder", "inv01", 0, 0, 15360, true, false],
-    "mobile/t-beat": ["ladder", "inv01", 0, 0, 15360, false, false],
-    "mobile/t-thumbs": ["ladder", "inv01", 0, 0, 15360, false, false],
-    "mobile/t-legato": ["ladder", "inv01", 0, 0, 15360, false, false],
-    "mobile/t-dynamics": ["ladder", "inv01", 0, 0, 15360, false, false],
-    "mobile/t-slide": ["ladder", "inv01", 0, 0, 15360, false, false],
-    "mobile/t-subject": ["ladder", "inv01", 1, 0, 30720, false, false],
+    "mobile/t-ladder": ["ladder", "inv01", 0, 0, 7680, true, false],
+    "mobile/t-second": ["ladder", "inv01", 1, 0, 15360, false, false],
+    "mobile/t-thumbs": ["ladder", "inv01", 1, 0, 15360, false, false],
+    "mobile/t-legato": ["ladder", "inv01", 1, 0, 15360, false, false],
+    "mobile/t-dynamics": ["ladder", "inv01", 1, 0, 15360, false, false],
+    "mobile/t-slide": ["ladder", "inv01", 1, 0, 15360, false, false],
+    "mobile/t-subject": ["ladder", "inv01", 0, 0, 38400, false, false],
     "mobile/t-whole": ["ladder", "inv01", 0, 0, 168960, false, true],
   };
   const seen: string[] = [];
@@ -123,7 +123,7 @@ test("D225: the tracks: the computer's eight HIGHWAY lessons, the phone's LADDER
   assert.deepEqual(LESSONS.map((l) => l.id), ["beat", "line", "same", "subject", "answer", "exposition", "leap", "exam"]);
   // D270: the phone's track is THE TUTORIAL (the old one-lesson track kept, unused).
   assert.deepEqual(MOBILE_LESSONS.map((l) => [l.id, l.mode]), [["ladder", "ladder"]]);
-  assert.deepEqual(TUTORIAL_LESSONS.map((l) => l.id), ["t-ladder", "t-beat", "t-thumbs", "t-legato", "t-dynamics", "t-slide", "t-subject", "t-whole"]);
+  assert.deepEqual(TUTORIAL_LESSONS.map((l) => l.id), ["t-ladder", "t-second", "t-thumbs", "t-legato", "t-dynamics", "t-slide", "t-subject", "t-whole"]);
   assert.equal(TRACKS.mobile, TUTORIAL_LESSONS);
   assert.ok(TUTORIAL_LESSONS[0].run().wait, "LADDER waits at each note");
   for (const track of Object.values(TRACKS)) {
@@ -165,7 +165,7 @@ test("D225: the phone's lesson (LADDER, waiting) can be played right through and
  * next note touched before the last is let go (legato), soft by the box in bar 1 and loud by the edge
  * in bar 2, and (the slide's lesson) a rising step slid by the thumb still down, never back.
  */
-function playTutorial(l: Lesson, o: { oneThumb?: boolean; detached?: boolean; flat?: boolean; noSlide?: boolean } = {}) {
+function playTutorial(l: Lesson, o: { oneThumb?: boolean; detached?: boolean; flat?: boolean; noSlide?: boolean; first?: "left" | "right" } = {}) {
   const clock = { t: 0 };
   const { g } = gameOf(l, clock);
   g.rows = ROWS;
@@ -178,7 +178,7 @@ function playTutorial(l: Lesson, o: { oneThumb?: boolean; detached?: boolean; fl
   const bw = W * BAR;
   let id = 0;
   let held: { id: number; side: "left" | "right"; step: number; y: number } | null = null;
-  let side: "left" | "right" = "right";
+  let side: "left" | "right" = o.first === "right" ? "left" : "right";
   const slide = l.id === "t-slide" && !o.noSlide;
   for (let i = 0; i < notes.length; i++) {
     const n = notes[i];
@@ -219,6 +219,9 @@ test("D270: THE TUTORIAL: every step played as taught is passed (the whole inven
   }
   const by = (id: string) => TUTORIAL_LESSONS.find((l) => l.id === id)!;
   assert.ok(!passed(by("t-thumbs"), playTutorial(by("t-thumbs"), { oneThumb: true })), "one thumb");
+  // D273: taking turns is the point, not which thumb starts.
+  assert.ok(passed(by("t-thumbs"), playTutorial(by("t-thumbs"), { first: "right" })), "the right thumb first");
+  assert.ok(passed(by("t-thumbs"), playTutorial(by("t-thumbs"), { first: "left" })), "the left thumb first");
   assert.ok(!passed(by("t-legato"), playTutorial(by("t-legato"), { detached: true })), "detached");
   assert.ok(!passed(by("t-dynamics"), playTutorial(by("t-dynamics"), { flat: true })), "all at one level");
   assert.ok(!passed(by("t-slide"), playTutorial(by("t-slide"), { noSlide: true })), "no slide");

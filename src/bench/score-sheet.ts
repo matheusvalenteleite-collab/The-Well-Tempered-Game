@@ -26,10 +26,12 @@ export interface SheetInput {
   failed: boolean;
   /** How far through the piece the run went, 0..1. */
   progress: number;
+  /** D272: the reading's asks met, of those judged (absent: no reading). */
+  style?: { hit: number; of: number };
 }
 
 export interface Quality {
-  key: "accuracy" | "timing" | "articulation" | "subjects";
+  key: "accuracy" | "timing" | "articulation" | "subjects" | "reading";
   label: string;
   /** 0..1, or null when there was nothing to judge (left out of the weighing). */
   share: number | null;
@@ -58,6 +60,7 @@ export const SOURCE_LABEL: Record<ScoreSource, string> = {
   subjects: "SUBJECTS",
   cadences: "CADENCES",
   bonus: "BONUSES",
+  reading: "THE READING",
 };
 
 const share = (x: number, of: number): number | null => (of > 0 ? Math.max(0, Math.min(1, x / of)) : null);
@@ -78,6 +81,8 @@ export function scoreSheet(r: SheetInput): Sheet {
     { key: "articulation", label: "ARTICULATION", share: artParts.length ? artParts.reduce((a, b) => a + b, 0) / artParts.length : null, detail: artDetail || "NOTHING TO JUDGE", weight: 20 },
     { key: "subjects", label: "SUBJECTS", share: share(r.captured, r.entries), detail: `${r.captured} OF ${r.entries} CAPTURED`, weight: 20 },
   ];
+  // D272: with a reading, how much of what it asks was met (its articulation, accents, levels).
+  if (r.style?.of) qualities.push({ key: "reading", label: "THE READING", share: share(r.style.hit, r.style.of), detail: `${r.style.hit} OF ${r.style.of} AS THE READING ASKS`, weight: 15 });
   const judged = qualities.filter((q) => q.share !== null);
   const wsum = judged.reduce((a, q) => a + q.weight, 0);
   let performance = wsum ? Math.round((100 * judged.reduce((a, q) => a + q.weight * (q.share as number), 0)) / wsum) : 0;

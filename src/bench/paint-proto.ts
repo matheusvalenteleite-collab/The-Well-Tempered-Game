@@ -979,7 +979,12 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
         label(c, `${way}${n.long ? " HOLD" : ""}`, s.x + bw / 2, y, t.fg, 9);
       }
       // D271, THE TUTORIAL's coaching.
-      if (g.o.coach === "thumbs") thumbCoach(c, w, bw, y, g.thumbNext() ?? "right", t);
+      // D273: before the first strike either thumb (the point is taking turns, not which starts).
+      if (g.o.coach === "thumbs") {
+        const next = g.thumbNext();
+        if (next) thumbCoach(c, w, bw, y, next, t);
+        else (thumbCoach(c, w, bw, y, "left", t, "EITHER THUMB"), thumbCoach(c, w, bw, y, "right", t, "EITHER THUMB"));
+      }
       if (g.o.coach === "dynamics") dynamicsCoach(c, w, h, bw, n.on < g.f.barTicks, t);
       // A soft trail from the note in the box out to the bars.
       const xn = Math.max(bw, Math.min(w - bw, rows.xOf(n.on)));
@@ -1007,7 +1012,7 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
 }
 
 /** D271: a thumb on the bar whose turn it is, at the next note's height, nudging in (the other bar's glow stays: either may play). */
-function thumbCoach(c: CanvasRenderingContext2D, w: number, bw: number, y: number, side: "left" | "right", t: Tok) {
+function thumbCoach(c: CanvasRenderingContext2D, w: number, bw: number, y: number, side: "left" | "right", t: Tok, word?: string) {
   const bob = Math.sin(performance.now() / 160) * 4;
   const tw = Math.max(16, Math.min(28, bw * 0.28));
   const th = tw * 1.5;
@@ -1022,7 +1027,7 @@ function thumbCoach(c: CanvasRenderingContext2D, w: number, bw: number, y: numbe
   const nx = side === "left" ? x + tw * 0.4 : x;
   c.fillRect(Math.round(nx), Math.round(y - th / 2 + 3), Math.round(tw * 0.6), Math.round(th * 0.45));
   c.globalAlpha = 1;
-  label(c, side === "left" ? "LEFT THUMB" : "RIGHT THUMB", side === "left" ? bw / 2 : w - bw / 2, y + th / 2 + 12, t.shine, 6);
+  label(c, word ?? (side === "left" ? "LEFT THUMB" : "RIGHT THUMB"), side === "left" ? bw / 2 : w - bw / 2, y + th / 2 + 12, t.shine, 6);
 }
 
 /** D271: the part of both bars asked for: soft by the box in the first bar, loud by the edge in the second. */

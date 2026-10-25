@@ -15,7 +15,7 @@ import { popTitle } from "./PlayPop.tsx";
 /** D265: a sound's name as the list shows it. */
 export const soundName = (id: string): string => presetById(id).name.replace(/ \(SAMPLED\)$/, "");
 
-export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial }: { beaten: readonly string[]; open: (id: string) => void; settings: () => void; fuguesOnly?: boolean; tutorial?: { done: number; of: number; start: () => void } }) {
+export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial, hear }: { beaten: readonly string[]; open: (id: string) => void; hear?: (id: string) => void; settings: () => void; fuguesOnly?: boolean; tutorial?: { done: number; of: number; start: () => void } }) {
   const won = useMemo(() => new Set(beaten), [beaten]);
   // D263: on a phone the fugues only. D264: all open, each in its difficulty's colour. D265: a list from
   // the first to the last, numbered, the card on the left and what the piece is on the right (its voices,
@@ -83,6 +83,12 @@ export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial 
                   <span className="tb-lite-meta">SOUND: {soundName(PIECE_SOUND[id] ?? "harpsichordSampled")}</span>
                 </span>
               </button>
+              {hear && f.kind === "fugue" && (
+                // D272: the subject as the chosen reading plays it.
+                <button type="button" id={`hear-${id}`} className="tb-hear-btn" onClick={() => hear(id)}>
+                  ♪ HEAR THE SUBJECT
+                </button>
+              )}
             </li>
           );
         })}

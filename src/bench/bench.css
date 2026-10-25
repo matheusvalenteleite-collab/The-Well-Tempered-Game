@@ -611,3 +611,22 @@
   .tb-result:has(.tb-sheet) .tb-result-nav .tb-play { font-size: 10px; padding: 8px 18px; min-height: 0; }
 }
 .tb-lite-tutorial-pic { display: grid !important; place-items: center; font-size: 34px; color: #7fd6e8; background: radial-gradient(circle, #16303a, #000) !important; }
+/* D272: HEAR THE SUBJECT: the button on each card, the panel. */
+.tb-lite-list > li { position: relative; }
+.tb-hear-btn { position: absolute; right: 8px; bottom: 8px; z-index: 2; padding: 6px 9px; font-family: var(--tg-pixel); font-size: 6px; color: var(--tg-fg); background: #1a1f33; border: 1px solid var(--tg-gold); box-shadow: 2px 2px 0 #b8322a; cursor: pointer; }
+.tb-hear-btn:focus-visible { outline: 2px solid var(--tg-shine); }
+.tb-hear-wrap { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 12px; background: rgba(4, 5, 10, 0.72); }
+.tb-hear { position: relative; display: grid; gap: 8px; width: min(640px, 100%); max-height: calc(100vh - 24px); overflow: auto; padding: 14px; background: var(--tg-box); }
+.tb-hear-x { position: absolute; top: 6px; right: 6px; }
+.tb-hear-title { margin: 0 36px 0 0; font-family: var(--tg-pixel); font-size: 9px; font-weight: 400; color: var(--tg-shine); }
+.tb-hear-readings { display: flex; gap: 6px; flex-wrap: wrap; }
+.tb-hear-reading { padding: 6px 9px; font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-fg); background: transparent; border: 1px solid var(--tg-barline); cursor: pointer; }
+.tb-hear-reading.on { color: #1a1408; background: var(--tg-gold); border-color: var(--tg-gold); }
+.tb-hear-reading.locked { opacity: 0.5; cursor: not-allowed; }
+.tb-hear-lock { margin: 0; font-family: var(--tg-pixel); font-size: 6px; color: var(--tg-muted); }
+.tb-hear-canvas { width: 100%; height: 150px; image-rendering: auto; border: 1px solid var(--tg-barline); }
+.tb-hear-key { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; font-family: var(--tg-pixel); font-size: 6px; color: var(--tg-muted); }
+.tb-hear-quote { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 13px; line-height: 1.45; color: var(--tg-fg); }
+.tb-hear-quote cite { display: block; margin-top: 4px; font-style: normal; font-size: 11px; color: var(--tg-muted); }
+.tb-hear-play { justify-self: center; font-size: 10px; padding: 9px 18px; }
+@media (max-height: 520px) { .tb-hear-canvas { height: 110px; } .tb-hear { gap: 5px; padding: 10px; } }

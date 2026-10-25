@@ -35,6 +35,8 @@ export interface Move {
   joined: boolean;
 }
 
+import type { Reading } from "../touch/readings.ts";
+
 export interface Options {
   /** Unused since SIDEWAYS was withdrawn (D208): kept for the test harness's legato runs. */
   legato: boolean;
@@ -54,6 +56,8 @@ export interface Options {
   scale?: boolean;
   /** D271, THE TUTORIAL's coaching drawn over LADDER: which thumb the next note wants; where soft and loud are asked. */
   coach?: "thumbs" | "dynamics";
+  /** D272: the reading the fugue is played by (its subject's articulation and level, its dynamic plan). */
+  reading?: Reading | null;
 }
 
 export interface Proto {

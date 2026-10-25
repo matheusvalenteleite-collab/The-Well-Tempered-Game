@@ -61,6 +61,8 @@ import { APP } from "./config.ts";
 import { defaultVoice, nextIn } from "./flow.ts";
 import { SheetCard } from "./SheetCard.tsx";
 import type { Sheet } from "./score-sheet.ts";
+import { HearSubject, type Performed } from "./HearSubject.tsx";
+import { chosenReading, type Reading } from "../touch/readings.ts";
 import { LITE_HINT, liteAll, litePlatform, soundUnlocked, litePlatformPref, readLite, recordLite, recordLiteBest, RULES, saveLitePlatform, startHere, writeLite } from "./lite.ts";
 import { LiteGrid } from "./LiteGrid.tsx";
 import { PlayPop } from "./PlayPop.tsx";
@@ -68,7 +70,7 @@ import { tierCards } from "./tiers.ts";
 import { bookCards } from "./cards.ts";
 import { btOn, latencyOf } from "../touch/headphones.ts";
 import { LagSetting } from "../touch/Panels.tsx";
-import { ARROW_KEYS, arrowOf, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
+import { ARROW_KEYS, arrowOf, dynamic, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
 
 const PICK_KEY = "tb-pick-v2";
 /** D233: ⚙ PLAY ON: AUTO (from the pointer) or a platform chosen. */
@@ -244,6 +246,9 @@ export function BenchApp() {
   const prelude = !run && f.kind === "prelude";
   const from = run ? run.from : startTick(f, pick.share);
   const voice = run ? run.voice : pick.voice;
+  // D272: on play.html a fugue is played by its chosen reading (D274: at the recordings' tempo, never the
+  // book's: the owner, "fugues should not be too fast").
+  const reading = APP.lite && !run && f.kind === "fugue" ? chosenReading(f.id, lite.beaten.includes(f.id)) : null;
   const bpm = run ? run.bpm : tempoOf(f.id);
   // D216, KIMIKO (D219: WITH KIMIKO ISHIZAKA, a switch in LADDER and SUBJECT): the player over Kimiko
   // Ishizaka's recording, the game on her time; only where she is timed (whatever pieces
@@ -300,8 +305,11 @@ export function BenchApp() {
     const spans = entrySpans(f).filter((e) => !run || (e.on < run.until && e.end > run.from && (!run.solo || e.voice === run.voice)));
     const cadences = (f.cadences ?? []).filter((c) => !run || (c.on >= run.from && c.on <= run.until)).map((c) => ({ on: c.on, text: cadenceName(c) }));
     const ornaments = new Map([...ornamentsOf(f)].map(([k, o]) => [k, ornamentMark(o)]));
-    return { ...subjectMarks(f), spans, names: f.voiceNames, cadences, ornaments };
-  }, [f, run]);
+    // D272: the reading's marks on every entry of the subject in the voice played (each note by its place in the subject).
+    const readingMarks = new Map<string, Reading["notes"][number]>();
+    if (reading) for (const e of f.entries) if (!e.theme && played.includes(e.voice)) e.notes.forEach(([on], j) => reading.notes[j] && readingMarks.set(`${e.voice}:${on}`, reading.notes[j]));
+    return { ...subjectMarks(f), spans, names: f.voiceNames, cadences, ornaments, readingMarks };
+  }, [f, run, reading?.id, voice]);
   const chip = useRef<Chip | null>(null);
   // D223: other headphones noticed (a setup seen before gets its delay back), BLUETOOTH MODE, the screen's delay.
   const hp = useHeadphones(chip, APP.lite ? () => {} : applyLag);
@@ -392,7 +400,7 @@ export function BenchApp() {
     if (hm) setTuning("equal", hm.a);
     ch.mine.gain.value = kimiko ? MINE[pick.mine] : 1;
     // D219: failing always on (D225: in the lessons from the fourth on); WITH KIMIKO, the game sounds only the player's voice.
-    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btOn("auto", lag, latencyOf(ch.ctx) ?? 0) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach } : {}), ...(clock ? { clock } : {}) }, ch);
+    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btOn("auto", lag, latencyOf(ch.ctx) ?? 0) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach } : {}), reading, ...(clock ? { clock } : {}) }, ch);
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
     // For the measurements (the bench's own checks): the game and her playing.
@@ -611,6 +619,15 @@ export function BenchApp() {
     const t0 = ch.ctx.currentTime + 0.3;
     const ns = f.voices[run.voice].filter(([on]) => on >= run.from && on < Math.min(run.until, run.from + 2 * f.barTicks));
     for (const [on, dur, midi] of ns) ch.note(midi, t0 + (on - run.from) / tps, (dur / tps) * (how === "legato" ? 1.08 : 0.35), voicing(run.voice, f.voices.length, true), { lead: true });
+  };
+  /** D272, HEAR THE SUBJECT: the subject played as performed (its samples loaded first); returns when it starts, on the page's clock (s). */
+  const [hearing, setHearing] = useState<string | null>(null);
+  const playSubject = async (notes: Performed, v: number): Promise<number> => {
+    const ch = ensureChip();
+    await ch.prepare(notes.map((n) => n.midi), notes.map((n) => n.midi));
+    const t0 = ch.ctx.currentTime + 0.15;
+    for (const n of notes) ch.note(n.midi, t0 + n.at, n.len, voicing(v, f.voices.length, true), { ...dynamic(n.d), lead: true });
+    return performance.now() / 1000 + 0.15 + (ch.lag ?? 0);
   };
   const events: ThumbEvents = {
     down: (id, side, x, y, w, h, ts) => (seen(), game.current?.down(id, { side, x, y, w, h }, ts)),
@@ -963,7 +980,8 @@ export function BenchApp() {
         />
       )}
       {wheel && !APP.lite && (phase.kind === "home" || phase.kind === "title") && <FuguePicker current={pick.piece} close={() => setWheel(false)} pick={open} paused={phase.kind === "title"} />}
-      {APP.lite && (phase.kind === "home" || phase.kind === "title") && <LiteGrid beaten={lite.beaten} open={open} settings={() => setPhase({ kind: "settings" })} fuguesOnly={platform === "mobile"} tutorial={platform === "mobile" ? { done: TRACKS.mobile.filter((l) => trackState("mobile").passed[l.id]).length, of: TRACKS.mobile.length, start: () => beginLesson("mobile", nextLesson("mobile")) } : undefined} />}
+      {APP.lite && (phase.kind === "home" || phase.kind === "title") && <LiteGrid beaten={lite.beaten} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} fuguesOnly={platform === "mobile"} tutorial={platform === "mobile" ? { done: TRACKS.mobile.filter((l) => trackState("mobile").passed[l.id]).length, of: TRACKS.mobile.length, start: () => beginLesson("mobile", nextLesson("mobile")) } : undefined} />}
+      {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} open={lite.beaten.includes(hearing)} play={playSubject} close={() => setHearing(null)} />}
       {phase.kind === "title" && (
         <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULES[proto.id]} {...(APP.lite ? { sound, setSound, soundLocked: !soundOpen } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
           {herHere && <HerSwitch pick={pick} setPick={setPick} />}
