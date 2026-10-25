@@ -46,7 +46,7 @@ export function popSounds(id: string): (readonly [id: string, name: string, own:
   return !own || POP_SOUNDS.some(([sid]) => sid === own) ? row : [[own, shortSound(presetById(own).name), true] as const, ...row];
 }
 
-export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rules, sound, setSound, children }: { id: string; voice: number; singing: readonly number[]; setVoice: (v: number) => void; play: () => void; close: () => void; learn?: () => void; rules?: readonly string[]; sound?: string; setSound?: (id: string) => void; children?: ReactNode }) {
+export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rules, sound, setSound, soundLocked, children }: { id: string; voice: number; singing: readonly number[]; setVoice: (v: number) => void; play: () => void; close: () => void; learn?: () => void; rules?: readonly string[]; sound?: string; setSound?: (id: string) => void; soundLocked?: boolean; children?: ReactNode }) {
   const f = fugueById(id);
   // D239: ? HOW TO PLAY: the mode's rules, folded under PLAY.
   const [help, setHelp] = useState(false);
@@ -100,7 +100,14 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rule
             ))}
           </ul>
         )}
-        {sound !== undefined && setSound && (
+        {sound !== undefined && soundLocked && (
+          // D265: the piece's own sound until it is finished with an A or S.
+          <div className="tb-pop-sounds" id="pop-sound-locked">
+            <p className="tb-pop-ask">SOUND: {shortSound(presetById(sound).name)}</p>
+            <p className="tb-pop-lock">FINISH IT WITH AN A OR S TO CHOOSE ANOTHER SOUND</p>
+          </div>
+        )}
+        {sound !== undefined && setSound && !soundLocked && (
           <div className="tb-pop-sounds" role="group" aria-label="Sound">
             <p className="tb-pop-ask">SOUND</p>
             <div className="tb-pop-sound-row">

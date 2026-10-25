@@ -182,7 +182,7 @@ test("D237: play.html: built beside bench.html, the grid only: no tutorial, achi
   const main = src("src/bench/lite-main.tsx");
   assert.match(main, /APP\.lite = true;/);
   assert.match(main, /forceUi\("classic"\)/);
-  assert.match(main, /keepUiUnder\("tb-lite-ui-v1"\)/);
+  assert.doesNotMatch(main, /keepUiUnder/, "D265: one look");
   const { createElement } = await import("react");
   const { renderToStaticMarkup } = await import("react-dom/server");
   const { LiteGrid } = await import("../src/bench/LiteGrid.tsx");
@@ -245,4 +245,18 @@ test("D264: every piece open from the start, in Bach's order; each card's diffic
   assert.equal(liteLevel("wtc1f03").label, "HARD");
   assert.equal(liteLevel("wtc1f24").label, "HARD", "the BOSS among the hard");
   assert.equal(liteLevel("wtc1p02").label, "NORMAL", "a prelude its fugue's");
+});
+
+test("D265: a piece's sound opens only once it is finished with an A or S (the best grade kept)", async () => {
+  store.clear();
+  const { recordLite, soundUnlocked, readLite } = await import("../src/bench/lite.ts");
+  assert.equal(soundUnlocked("wtc1f01"), false);
+  recordLite("wtc1f01", false, true, "B");
+  assert.equal(soundUnlocked("wtc1f01"), false);
+  recordLite("wtc1f01", true, true, "S");
+  assert.equal(soundUnlocked("wtc1f01"), false, "a failed run counts for nothing");
+  recordLite("wtc1f01", false, true, "A");
+  assert.equal(soundUnlocked("wtc1f01"), true);
+  recordLite("wtc1f01", false, true, "C");
+  assert.equal(readLite().best.wtc1f01, "A", "the best kept");
 });

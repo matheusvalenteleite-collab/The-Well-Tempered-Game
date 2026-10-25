@@ -81,7 +81,7 @@ test("the rails: higher voices right, lower left, the nearest in register next t
       last = (railX(road, r, k) - road.cx) / k;
     }
   }
-  assert.equal(railLabel(f, 1), "SOPRANO · ANSWER");
+  assert.equal(railLabel(f, 1), "SOPRANO · SUBJECT", "D265: every entry a subject");
 });
 
 test("the road draws no other voice's notes: their colours and the rails' dashes stay on the shoulders", () => {

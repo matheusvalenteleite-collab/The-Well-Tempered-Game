@@ -229,7 +229,7 @@ export const GBC: Template = {
       prect(g, x2 - 1, y1, 2, y2 - y1 + 1, p[3]);
       prect(g, x2 - 4, y1, 5, 2, p[3]);
       prect(g, x2 - 4, y2 - 1, 5, 2, p[3]);
-      const text = `${e.form === "answer" ? "ANSWER" : "SUBJECT"} ${c.names[e.voice]}`;
+      const text = `SUBJECT ${c.names[e.voice]}`; // D265
       prect(g, x1 + 3, y1 + 3, textWidth(text) + 3, 8, p[3]);
       pixText(g, text, x1 + 5, y1 + 4, p[0]);
     }

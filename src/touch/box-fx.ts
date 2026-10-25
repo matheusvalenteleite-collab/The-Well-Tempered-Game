@@ -130,7 +130,8 @@ export function ribbons(c: Ctx, spans: Span[], player: number[], names: string[]
     const y = Math.max(1, yOf(first.step) - 9);
     const voice = names?.[s.voice]?.toUpperCase() ?? "";
     const stretto = subj.some((o) => o !== s && o.voice !== s.voice && s.on > o.on && s.on < o.end);
-    const what = `${s.form === "answer" ? "ANSWER" : "SUBJECT"}${s.theme ? ` ${s.theme}` : ""}`;
+    // D265: every entry a SUBJECT (the owner: "stop calling the subject answers \"answers\"").
+    const what = `SUBJECT${s.theme ? ` ${s.theme}` : ""}`;
     const label = `${what}${s.shape ? ` · ${s.shape}` : ""} · ${voice} · ${keyWords(s.key)}${stretto ? " · STRETTO" : ""}`;
     g.globalAlpha = 0.7;
     g.fillStyle = "#0c0a10";

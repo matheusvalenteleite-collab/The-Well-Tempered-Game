@@ -258,7 +258,8 @@ export function paintVariant(g: CanvasRenderingContext2D, w: number, h: number, 
     const mine = s.voice === fr.voice;
     const color = st === "lost" ? css.getPropertyValue("--tg-miss").trim() || "#6a5f6a" : mine || st === "captured" ? gold : ink(s.voice);
     const stretto = subj.some((o) => o !== s && o.voice !== s.voice && s.on > o.on && s.on < o.end);
-    const what = `${s.form === "answer" ? "ANSWER" : "SUBJECT"}${s.theme ? ` ${s.theme}` : ""}`;
+    // D265: every entry a SUBJECT.
+    const what = `SUBJECT${s.theme ? ` ${s.theme}` : ""}`;
     entries.push({
       s,
       x1,
@@ -1143,7 +1144,7 @@ const VARIANTS: Record<number, Variant> = {
         }
       }
       for (const e of v.entries) {
-        const L = e.s.form === "answer" ? "A" : "S";
+        const L = "S"; // D265: every entry a subject
         const x = e.x1 - 15;
         const y = Math.max(0, e.top - 4);
         rect(g, x, y, 13, 14, "#d8a520");

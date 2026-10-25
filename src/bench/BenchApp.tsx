@@ -59,7 +59,7 @@ import type { ArtStats } from "./articulation.ts";
 import { VERSION } from "./version.ts";
 import { APP } from "./config.ts";
 import { defaultVoice, nextIn } from "./flow.ts";
-import { LITE_HINT, liteAll, litePlatform, litePlatformPref, readLite, recordLite, RULES, saveLitePlatform, startHere, writeLite } from "./lite.ts";
+import { LITE_HINT, liteAll, litePlatform, soundUnlocked, litePlatformPref, readLite, recordLite, RULES, saveLitePlatform, startHere, writeLite } from "./lite.ts";
 import { LiteGrid } from "./LiteGrid.tsx";
 import { PlayPop } from "./PlayPop.tsx";
 import { tierCards } from "./tiers.ts";
@@ -252,7 +252,9 @@ export function BenchApp() {
   const kimiko = herHere && pick.her;
   const hm = kimiko ? herMap(f.id) : null;
   // D219: the sound playing: WITH KIMIKO, the player's voice's own (TRAVERSO unless changed in ⚙ SOUND).
-  const sound = soundFor(f.id, chosen, DEFAULT_SOUND);
+  // D265: on play.html a piece plays its own sound until it is finished with a high grade (A or S).
+  const soundOpen = !APP.lite || soundUnlocked(f.id, lite);
+  const sound = soundOpen ? soundFor(f.id, chosen, DEFAULT_SOUND) : soundFor(f.id, {}, DEFAULT_SOUND);
   const soundNow = kimiko ? herSound : sound;
   const setSound = (id: string) => {
     if (kimiko) {
@@ -447,7 +449,7 @@ export function BenchApp() {
         } else if (APP.lite) {
           // D237: the minimal page keeps only the pieces finished (its own key), nothing of the bench's.
           // D264: nothing to unlock (all open): the piece kept as finished, no toast.
-          recordLite(f.id, r.failedBar !== null, platform === "mobile");
+          recordLite(f.id, r.failedBar !== null, platform === "mobile", r.grade);
           const opened: Tier[] = [];
           const st = readLite();
           setLite(st);
@@ -895,7 +897,7 @@ export function BenchApp() {
               window.location.reload();
             }}
           />
-          {platform === "mobile" && <InterfaceFold frame={frame.current} />}
+          {/* D265: one look (CLASSIC): the other interfaces withdrawn on play.html. */}
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
           <p className="tg-panel-note">With headphones on, tap along to the clicks so the music and your taps line up.</p>
         </Panel>
@@ -937,7 +939,7 @@ export function BenchApp() {
       {wheel && !APP.lite && (phase.kind === "home" || phase.kind === "title") && <FuguePicker current={pick.piece} close={() => setWheel(false)} pick={open} paused={phase.kind === "title"} />}
       {APP.lite && (phase.kind === "home" || phase.kind === "title") && <LiteGrid beaten={lite.beaten} open={open} settings={() => setPhase({ kind: "settings" })} fuguesOnly={platform === "mobile"} />}
       {phase.kind === "title" && (
-        <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULES[proto.id]} {...(APP.lite ? { sound, setSound } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
+        <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULES[proto.id]} {...(APP.lite ? { sound, setSound, soundLocked: !soundOpen } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
           {herHere && <HerSwitch pick={pick} setPick={setPick} />}
           {kimiko && <p className="tg-card-sub tb-her">{herLine(hm ? herState(hm) : null)}</p>}
           {kimiko && <p className="tg-card-sub tb-her-credit">{HER_CREDIT}</p>}
