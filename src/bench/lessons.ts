@@ -268,6 +268,7 @@ export const MOBILE_LESSONS: Lesson[] = [
  * other voice: the right hand plays itself (drawn in the box) and the player enters with the left
  * hand's answer on the beat; the left hand again for the two thumbs (taking turns, either first),
  * legato (heard detached, then joined, then played), loud and soft, the slide (one way only: D271);
+ * D278: the ornament (the right hand's two mordents in bars 1-2, played by shaking the thumb);
  * the right hand against the left for the subject; the whole invention. Every two-voice texture a fugue
  * has is here: the subject in both hands, inverted, in new keys.
  */
@@ -361,6 +362,18 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     run: () => invention({ voice: 1, toBar: 3, solo: false }),
     passAt: 0.8,
     pass: (r) => accuracy(r) >= 0.8 && r.slides >= 2,
+  },
+  {
+    id: "t-ornament",
+    mode: "ladder",
+    title: "DIE MANIER",
+    english: "THE ORNAMENT",
+    intro: [{ text: "A sign over a note is an ornament. You play it: touch the note, then shake your thumb." }, { text: "This one is a mordent: down and back. A trill starts upward and shakes longer." }],
+    praise: [{ text: "So. The notes are mine; the graces are yours to give." }],
+    again: [{ text: "Touch the note, then shake: down, and back up. Again." }],
+    run: () => invention({ voice: 0, toBar: 3, solo: false }),
+    passAt: 0.75,
+    pass: (r) => accuracy(r) >= 0.75 && r.shakes.of > 0 && r.shakes.hit >= Math.min(2, r.shakes.of),
   },
   {
     id: "t-subject",

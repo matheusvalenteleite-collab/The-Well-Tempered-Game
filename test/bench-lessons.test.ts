@@ -100,6 +100,7 @@ test("D225: each lesson's passage is pinned (a change to the data or the search 
     "mobile/t-legato": ["ladder", "inv01", 1, 0, 15360, false, false],
     "mobile/t-dynamics": ["ladder", "inv01", 1, 0, 15360, false, false],
     "mobile/t-slide": ["ladder", "inv01", 1, 0, 15360, false, false],
+    "mobile/t-ornament": ["ladder", "inv01", 0, 0, 15360, false, false],
     "mobile/t-subject": ["ladder", "inv01", 0, 0, 38400, false, false],
     "mobile/t-whole": ["ladder", "inv01", 0, 0, 168960, false, true],
   };
@@ -123,7 +124,7 @@ test("D225: the tracks: the computer's eight HIGHWAY lessons, the phone's LADDER
   assert.deepEqual(LESSONS.map((l) => l.id), ["beat", "line", "same", "subject", "answer", "exposition", "leap", "exam"]);
   // D270: the phone's track is THE TUTORIAL (the old one-lesson track kept, unused).
   assert.deepEqual(MOBILE_LESSONS.map((l) => [l.id, l.mode]), [["ladder", "ladder"]]);
-  assert.deepEqual(TUTORIAL_LESSONS.map((l) => l.id), ["t-ladder", "t-second", "t-thumbs", "t-legato", "t-dynamics", "t-slide", "t-subject", "t-whole"]);
+  assert.deepEqual(TUTORIAL_LESSONS.map((l) => l.id), ["t-ladder", "t-second", "t-thumbs", "t-legato", "t-dynamics", "t-slide", "t-ornament", "t-subject", "t-whole"]);
   assert.equal(TRACKS.mobile, TUTORIAL_LESSONS);
   assert.ok(TUTORIAL_LESSONS[0].run().wait, "LADDER waits at each note");
   for (const track of Object.values(TRACKS)) {
@@ -165,7 +166,7 @@ test("D225: the phone's lesson (LADDER, waiting) can be played right through and
  * next note touched before the last is let go (legato), soft by the box in bar 1 and loud by the edge
  * in bar 2, and (the slide's lesson) a rising step slid by the thumb still down, never back.
  */
-function playTutorial(l: Lesson, o: { oneThumb?: boolean; detached?: boolean; flat?: boolean; noSlide?: boolean; first?: "left" | "right" } = {}) {
+function playTutorial(l: Lesson, o: { oneThumb?: boolean; detached?: boolean; flat?: boolean; noSlide?: boolean; first?: "left" | "right"; noShake?: boolean } = {}) {
   const clock = { t: 0 };
   const { g } = gameOf(l, clock);
   g.rows = ROWS;
@@ -200,6 +201,13 @@ function playTutorial(l: Lesson, o: { oneThumb?: boolean; detached?: boolean; fl
     g.down(nid, { side, x: xOn(side), y: ROWS.yOf(n.step), w: W, h: H }, performance.now());
     if (held) g.up(held.id, performance.now() + 1);
     held = { id: nid, side, step: n.step, y: ROWS.yOf(n.step) };
+    // D278: an ornament: the thumb shaken on it (its first move the sign's way: a mordent down), back each time.
+    const orn = g.ornamentAt(0, i);
+    if (orn && !o.noShake) {
+      const first = orn === "~|" ? 1 : -1;
+      const yy = ROWS.yOf(n.step);
+      for (let m = 0; m < 4; m++) g.move(nid, { side, x: xOn(side), y: m % 2 ? yy : yy + first * 14, w: W, h: H }, performance.now());
+    }
     if (o.detached) {
       runTo(g.timeAt(n.on + n.dur * 0.4));
       g.up(nid, performance.now());
@@ -225,6 +233,7 @@ test("D270: THE TUTORIAL: every step played as taught is passed (the whole inven
   assert.ok(!passed(by("t-legato"), playTutorial(by("t-legato"), { detached: true })), "detached");
   assert.ok(!passed(by("t-dynamics"), playTutorial(by("t-dynamics"), { flat: true })), "all at one level");
   assert.ok(!passed(by("t-slide"), playTutorial(by("t-slide"), { noSlide: true })), "no slide");
+  assert.ok(!passed(by("t-ornament"), playTutorial(by("t-ornament"), { noShake: true })), "D278: the mordents not shaken");
 });
 
 test("D271: a held thumb slides one way only: back the other way it plays nothing", () => {
@@ -370,7 +379,7 @@ test("D225: the LESSON MAP lists each track's lessons, ✓ when passed, the next
     assert.match(html, /id="map-computer-beat"[^>]*>.*?✓.*?92%/);
     assert.match(html, /id="map-computer-line" class="tb-ach-row tb-map-row next"/);
     assert.match(html, /COMPUTER 1\/8/);
-    assert.match(html, /MOBILE 0\/8/);
+    assert.match(html, /MOBILE 0\/9/);
     const phone = renderToStaticMarkup(createElement(LessonMap, { platform: "mobile", focus: "ladder", play: () => {}, close: () => {} }));
     assert.equal(phone.match(/data-lesson=/g)?.length, TUTORIAL_LESSONS.length);
     assert.match(phone, /<h2>LADDER<\/h2>/);

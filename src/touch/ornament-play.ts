@@ -2,9 +2,9 @@
  * The ornaments played in the game (D205): the encodings' signs (data/wtc/ornaments.json: voice,
  * onset, pitch, kern signs, grace notes; 148 in the fugues) realised as the WTC study plays them
  * (src/music/ornaments.ts: Bach's Explication by default; P8, P23), at the tempo being played: the
- * other voices' trills and mordents sound as written; the player's ornamented note, once struck,
- * plays its ornament and holds its main note. The player strikes the main note only (the ornament's
- * notes are not judged: they ride, as the quick notes of D191).
+ * other voices' trills and mordents sound as written. D278: on a phone (LADDER, the road) the player
+ * plays the ornament: the main note struck, the thumb shaken on it (proto-game.ts, ornamentShake); on a
+ * computer's keys the ornamented note, once struck, plays its ornament and holds its main note.
  */
 import ornamentsData from "../../data/wtc/ornaments.json" with { type: "json" };
 import { keySteps, ornamentUnit, realise } from "../music/ornaments.ts";
@@ -33,17 +33,67 @@ function signature(key: string): Record<string, number> {
   return sig;
 }
 
+/**
+ * D277: ornaments of the subject the books name and the encoding lacks on its first entry, by the note's
+ * place in the subject (our first entry's index) and kern sign: I/12 the trill on the next-to-last note,
+ * G (Bodky; half step above in F minor); I/14 the trill on the next-to-last note, G sharp, "always"
+ * (Bodky; Riemann marks it); II/12 the mordent on the first F, E natural below (Keller: in several
+ * manuscripts; Bodky advises it; Riemann marks an ornament there).
+ */
+export const SUBJECT_ORNAMENTS: Record<string, { at: number; signs: string }[]> = {
+  wtc1f12: [{ at: 9, signs: "t" }],
+  wtc1f14: [{ at: 16, signs: "t" }],
+  wtc2f12: [{ at: 1, signs: "m" }],
+};
+
+const ALIAS: Record<string, string> = { inv01: "inven01" };
 const cache = new Map<string, Map<string, Ornament>>();
-/** A piece's ornaments by "voice:onset". */
+/**
+ * A piece's ornaments by "voice:onset". D277: a fugue's subject keeps its ornaments in every entry (the
+ * owner: "trills on subjects ... absent"; the books: Bodky, I/14 "always", I/23 "goes on every entry";
+ * Keller, I/23 and I/24 kept "throughout"): an ornament written on a note of the subject's first entry,
+ * or on the same note of two entries or more, or named by the books (SUBJECT_ORNAMENTS), is carried to
+ * that note of every entry of the subject (inverted and transposed entries alike; not the augmented or
+ * diminished, nor a later subject), where the note is there, a quaver or longer, and has none of its own.
+ */
 export function ornamentsOf(f: TouchFugue): Map<string, Ornament> {
   let m = cache.get(f.id);
   if (!m) {
     m = new Map();
-    for (const [v, on, , signs, graces] of ROWS[f.id] ?? [])
+    // D278: the tutorial's invention under its corpus name.
+    for (const [v, on, , signs, graces] of ROWS[f.id] ?? ROWS[ALIAS[f.id] ?? ""] ?? [])
       m.set(`${v}:${on}`, { signs, graces: (graces ?? []).map((g) => ({ kind: g[0] as "q" | "Q", midi: parsePitch(g.slice(1)).midi })) });
+    if (f.kind === "fugue") carrySubjectOrnaments(f, m);
     cache.set(f.id, m);
   }
   return m;
+}
+
+/** D277: the subject's ornaments into every entry (see ornamentsOf). */
+function carrySubjectOrnaments(f: TouchFugue, m: Map<string, Ornament>) {
+  const entries = f.entries.filter((e) => !e.theme && !e.scale).sort((a, b) => a.on - b.on || a.voice - b.voice);
+  if (!entries.length) return;
+  const at = (e: (typeof entries)[number], j: number) => (e.notes[j] ? `${e.voice}:${e.notes[j][0]}` : null);
+  const carried = new Map<number, string>();
+  for (const { at: j, signs } of SUBJECT_ORNAMENTS[f.id] ?? []) carried.set(j, signs);
+  const count = new Map<number, { n: number; signs: string }>();
+  entries.forEach((e, k) =>
+    e.notes.forEach((_, j) => {
+      const o = m.get(at(e, j) ?? "");
+      if (!o || !o.signs) return;
+      if (k === 0 && !carried.has(j)) carried.set(j, o.signs);
+      const c = count.get(j) ?? { n: 0, signs: o.signs };
+      count.set(j, { n: c.n + 1, signs: c.signs });
+    }),
+  );
+  for (const [j, c] of count) if (c.n >= 2 && !carried.has(j)) carried.set(j, c.signs);
+  for (const e of entries)
+    for (const [j, signs] of carried) {
+      const key = at(e, j);
+      const n = e.notes[j];
+      if (!key || !n || m.has(key) || n[1] < f.tpq / 2) continue;
+      m.set(key, { signs, graces: [] });
+    }
 }
 
 /** The sign drawn over an ornamented note: "TR" a trill, "~" the short wavy sign, "~|" a mordent, "S" a turn. */
@@ -65,4 +115,24 @@ export function realiseNote(f: TouchFugue, o: Ornament, on: number, dur: number,
   const steps = keySteps(signature(f.key));
   const parts = realise({ midi, at: on / q, dur: dur / q }, o.signs, o.graces, { unit: ornamentUnit(bpm / 2), prevMidi, ...steps });
   return parts.map((p) => [Math.round(p.at * q), Math.max(1, Math.round(p.dur * q)), p.midi]);
+}
+
+/**
+ * D278: how an ornament is played on a phone: the thumb shaken on the struck note, its first move up
+ * (an upper note: the trill, the short trill, the turn) or down (the mordent), so many moves to finish
+ * it; null for grace notes alone (they play themselves).
+ */
+export interface Shake {
+  kind: "trill" | "short" | "mordent" | "turn";
+  word: string;
+  first: 1 | -1;
+  need: number;
+}
+export function shakeOf(o: Ornament): Shake | null {
+  const s = o.signs;
+  if (/[TtO]/.test(s)) return { kind: "trill", word: "TRILL", first: 1, need: 4 };
+  if (/[Mm]/.test(s)) return { kind: "mordent", word: "MORDENT", first: -1, need: 2 };
+  if (/[Ww]/.test(s)) return { kind: "short", word: "TRILL", first: 1, need: 2 };
+  if (/[S$]/.test(s)) return { kind: "turn", word: "TURN", first: 1, need: 4 };
+  return null;
 }

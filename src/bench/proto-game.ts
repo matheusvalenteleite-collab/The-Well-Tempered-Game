@@ -10,7 +10,7 @@
  * too quick to strike at the tempo played rides after the note before (D191: lanes.ts quickRides):
  * it sounds by itself once that note is played right, and is neither judged nor counted.
  */
-import { ornamentsOf, realiseNote, type Ornament } from "../touch/ornament-play.ts";
+import { ornamentMark, ornamentsOf, realiseNote, shakeOf, type Ornament, type Shake } from "../touch/ornament-play.ts";
 import type { Arrow } from "../touch/MusicBox.tsx";
 import type { Burst, Pop } from "../touch/box-fx.ts";
 import { isPhone, voicing, type Chip, type Gate, type Play, type Sounding } from "../touch/chip.ts";
@@ -122,6 +122,12 @@ interface Held {
   d0: number;
   /** D208: another thumb has struck since on this voice: this one is on its way off and slides no more. */
   passive?: boolean;
+  /**
+   * D278: its note's ornament, played by shaking the thumb: the pitches (main, the one above, the one
+   * below), the moves made (each past the shake's reach, the other way from the last), where the last
+   * began, the voicing and play its notes sound with, the tick it must be done by, and whether it is.
+   */
+  orn?: Shake & { main: number; upper: number; lower: number; moves: number; dir: 0 | 1 | -1; from: number; firstDir: 0 | 1 | -1; v: ReturnType<typeof voicing>; play: Play; by: number; done: boolean };
   /** D272: its note is one the reading wants short (staccato): judged so at its end. */
   wantShort?: boolean;
   /** D271: the way its slides have gone (1 up or right, -1 down or left): a held thumb slides one way only. */
@@ -225,6 +231,8 @@ export interface RunResults {
   thumbs: { alt: number; of: number };
   levels: { on: number; d: number }[];
   slides: number;
+  /** D278: the ornaments played by shaking, of those given. */
+  shakes: { hit: number; of: number };
   art: ArtStats;
   lanes: { exact: number; relative: number };
   report: string;
@@ -1178,6 +1186,8 @@ export class ProtoGame {
     for (const s of h.sounds) s.dyn?.(levelOf(d) / levelOf(h.d0));
     const t = this.tickOf(ts);
     if (h.passive) return;
+    // D278: a note with an ornament to play: the thumb's moves are its notes, not a slide.
+    if (h.orn && !h.orn.done && h.open) return this.ornamentShake(h, c, t);
     if (this.proto.id === "ladder" && this.rows) {
       // D208: a slide plays on only after a deliberate travel (a row and a half from where it last
       // played): a thumb's contact point wanders a row or so as it rolls and lifts, and that wander
@@ -1233,6 +1243,46 @@ export class ProtoGame {
       h.ax = c.x;
       this.slideTo(id, h, c, t);
     }
+  }
+
+  /**
+   * D278: a thumb shaken on an ornamented note: each move past the reach (three fifths of a row: more
+   * than a rolling thumb's wander), the other way from the last, sounds the ornament's next note (a
+   * trill: the upper and the main in turn; a mordent: the lower, then the main; a turn: upper, main,
+   * lower, main); done, with its first move the right way, before the note's end: TRILL ✓ (or MORDENT,
+   * TURN), points as a legato's. Not done: the plain note, nothing lost.
+   */
+  private ornamentShake(h: Held, c: Contact, t: number) {
+    const o = h.orn!;
+    if (t > o.by) return void (o.done = true);
+    const reach = Math.max(8, this.ladderRow * 0.6);
+    const dy = o.from - c.y;
+    if (Math.abs(dy) < reach) return;
+    const d: 1 | -1 = dy > 0 ? 1 : -1;
+    if (d === o.dir) return void (o.from = c.y);
+    o.dir = d;
+    o.from = c.y;
+    if (!o.moves) o.firstDir = d;
+    o.moves++;
+    const seq = o.kind === "mordent" ? [o.lower, o.main] : o.kind === "turn" ? [o.upper, o.main, o.lower, o.main] : [o.upper, o.main];
+    const midi = seq[(o.moves - 1) % seq.length];
+    const now = this.chip.ctx.currentTime;
+    for (const sd of h.sounds) sd.stop(now + 0.02);
+    h.sounds = [this.chip.note(midi, now, HOLD_MAX, o.v, { ...o.play, legato: true })];
+    if (o.moves >= o.need && o.firstDir === o.first && midi === o.main) {
+      o.done = true;
+      this.shakes.hit++;
+      this.earn("bonus", 2 * this.mult);
+      this.flash = { text: `${o.word} ✓`, at: performance.now(), good: true, kind: "legato" };
+    }
+  }
+  /** D278: the ornaments a phone's player was given to play, and those played. */
+  readonly shakes = { hit: 0, of: 0 };
+  /** D278: the word for the ornament on track k's note i ("TR", "~|"…), or "". */
+  ornamentAt(k: number, i: number): string {
+    const n = this.tracks[k]?.notes[i];
+    const o = n ? this.ornaments.get(`${this.voiceOf(k, i)}:${n.on}`) : undefined;
+    return o && shakeOf(o) ? ornamentMark(o) : "";
   }
 
   /** A held thumb reaches another place: the next note there, if it is there and due. */
@@ -1363,7 +1413,19 @@ export class ProtoGame {
       // D205: an ornamented note, struck right, plays its ornament from the moment it is struck, then holds its main note.
       const n0 = notes[i];
       const orn = v.ok && pitches.length === 1 ? this.ornaments.get(`${this.voiceOf(h.k, i)}:${n0.on}`) : undefined;
-      if (orn) {
+      const shake = orn && this.proto.platform === "mobile" ? shakeOf(orn) : null;
+      if (orn && shake) {
+        // D278: on a phone the ornament is the player's: the main note now, its other notes as the thumb shakes.
+        const prev = this.before(i, h.k);
+        const parts = realiseNote(this.f, orn, n0.on, n0.dur, n0.midi, prev >= 0 ? notes[prev].midi : undefined, this.bpm);
+        const upper = parts.find((p) => p[2] > n0.midi)?.[2] ?? n0.midi + 2;
+        const lower = parts.find((p) => p[2] < n0.midi)?.[2] ?? n0.midi - 2;
+        const v = sv?.v ?? voiceV;
+        const play = { ...expr, legato: legato && !piano };
+        h.sounds = [this.chip.note(n0.midi, this.chip.ctx.currentTime, HOLD_MAX, v, play)];
+        h.orn = { ...shake, main: n0.midi, upper, lower, moves: 0, dir: 0, from: h.ay, firstDir: 0, v, play, by: n0.on + n0.dur, done: false };
+        this.shakes.of++;
+      } else if (orn) {
         const t0 = this.chip.ctx.currentTime;
         const prev = this.before(i, h.k);
         const parts = realiseNote(this.f, orn, n0.on, n0.dur, n0.midi, prev >= 0 ? notes[prev].midi : undefined, this.bpm);
@@ -2303,7 +2365,7 @@ export class ProtoGame {
     const art = { ...this.art };
     const progress = failed ? this.progressAt(this.failedAt as number) : 1;
     const sheet = scoreSheet({ ...r, art, earned: { ...this.earned }, perfects: this.perfects, goods: this.goods, failed, progress, style: { ...this.style } });
-    return { ...r, art, lanes: { ...this.laneTally }, stars: failed ? 0 : this.starsOf(r.score, r.of), failedBar: failed ? barAt(this.f, this.failedAt as number) : null, lastBar: barAt(this.f, this.span().end - 1), progress, sheet, thumbs: { ...this.thumbs }, levels: [...this.levels], slides: this.slides, report: this.report(r) };
+    return { ...r, art, lanes: { ...this.laneTally }, stars: failed ? 0 : this.starsOf(r.score, r.of), failedBar: failed ? barAt(this.f, this.failedAt as number) : null, lastBar: barAt(this.f, this.span().end - 1), progress, sheet, thumbs: { ...this.thumbs }, levels: [...this.levels], slides: this.slides, shakes: { ...this.shakes }, report: this.report(r) };
   }
   /** D268: the played notes' first onset and last end (ticks). */
   private span(): { start: number; end: number } {
