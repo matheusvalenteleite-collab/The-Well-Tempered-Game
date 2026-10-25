@@ -3,6 +3,7 @@
  * the white cravat) and a line at a time, typed out; a key or a tap finishes the line, the next goes
  * on. The lessons' words are in lessons.ts.
  */
+import { tr } from "../i18n/index.ts";
 import { useEffect, useRef, useState } from "react";
 import type { Line } from "./lessons.ts";
 
@@ -54,7 +55,9 @@ export function BachTalk({ title, lines, onLine, onDone }: { title: string; line
   const [i, setI] = useState(0);
   const [shown, setShown] = useState(0);
   const line = lines[i];
-  const full = line ? line.text.length : 0;
+  // D283: his lines in the language chosen.
+  const said = line ? tr(line.text) : "";
+  const full = said.length;
   const state = useRef({ i, shown, full });
   state.current = { i, shown, full };
 
@@ -88,10 +91,10 @@ export function BachTalk({ title, lines, onLine, onDone }: { title: string; line
       <div className="tb-bach-box">
         <p className="tb-bach-title">{title}</p>
         <p className="tb-bach-line" aria-live="polite">
-          {line?.text.slice(0, shown)}
-          <span className="tb-bach-rest">{line?.text.slice(shown)}</span>
+          {said.slice(0, shown)}
+          <span className="tb-bach-rest">{said.slice(shown)}</span>
         </p>
-        <p className="tb-bach-more">{shown < full ? "" : i + 1 < lines.length ? "▼" : "PRESS A KEY"}</p>
+        <p className="tb-bach-more">{shown < full ? "" : i + 1 < lines.length ? "▼" : tr("PRESS A KEY")}</p>
       </div>
     </div>
   );

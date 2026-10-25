@@ -14,6 +14,7 @@
  * His quotations are his title pages (the Well-Tempered Clavier, 1722; the Inventions and Sinfonias,
  * 1723), in translation; "the instrument plays itself" is told as hearsay, as it comes down to us.
  */
+import { tr } from "../i18n/index.ts";
 import { beatOf, fugueById, type TouchFugue } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
 import { tempoOf } from "../touch/tempi.ts";
@@ -292,10 +293,10 @@ const meanIn = (r: Results, bar: number) => {
   const ds = r.levels.filter((l) => l.on >= (bar - 1) * BAR && l.on < bar * BAR).map((l) => l.d);
   return ds.length ? ds.reduce((a, b) => a + b, 0) / ds.length : null;
 };
-/** D282: a share as "n of m". */
-const of = (n: number, m: number) => `${n} of ${m}`;
-const right = (r: Results) => `You played ${of(r.right, r.of)} notes right`;
+/** D282: what fell short, in numbers (D283: in the language chosen). */
 const need = (share: number, m: number) => Math.ceil(share * m);
+const rightShort = (r: Results, share: number) => tr("You played {n} of {m} notes right; aim for {k}.", { n: r.right, m: r.of, k: need(share, r.of) });
+const crowdShort = (r: Results, share: number) => (r.failedBar !== null ? tr("The crowd left at bar {n}.", { n: r.failedBar }) : rightShort(r, share));
 
 /**
  * D282, THE TUTORIAL in baby steps (the owner: "all the basic skills needed to enjoy the game to the
@@ -319,7 +320,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     intro: [{ text: "Hold the phone sideways. The notes come from the right; touch either side bar at the note's height." }, { text: "Higher on the bar for a higher note, lower for a lower. I will wait for you." }],
     praise: [{ text: "Recht. Your thumb drew the line." }],
     again: [{ text: "Higher when it rises, lower when it falls. Again." }],
-    short: (r) => `${right(r)}; aim for ${need(0.85, r.of)}.`,
+    short: (r) => rightShort(r, 0.85),
     run: () => invention({ toBar: 2, wait: true }),
     passAt: 0.85,
   },
@@ -332,7 +333,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     intro: [{ text: "Now I will not wait. Touch each note as it reaches the yellow line." }, { text: "Exactly on it: PERFECT. A little early or late: GOOD. Too far off: a slip." }],
     praise: [{ text: "Good. The line and the time: that is playing." }],
     again: [{ text: "Let the note come to the line, then touch. Again." }],
-    short: (r) => `${right(r)} on time; aim for ${need(0.8, r.of)}.`,
+    short: (r) => tr("You played {n} of {m} notes right on time; aim for {k}.", { n: r.right, m: r.of, k: need(0.8, r.of) }),
     run: () => invention({ toBar: 2 }),
     passAt: 0.8,
   },
@@ -345,7 +346,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     intro: [{ text: "A long block is a long note: keep your thumb down until its end." }, { text: "Lift too soon and it is SHORT. Where the music rests, lift: hold on and it is REST!" }],
     praise: [{ text: "So. A note lives as long as you hold it." }],
     again: [{ text: "Hold each note to its end, and lift when the music rests. Again." }],
-    short: (r) => `You held ${of(r.art.held, r.art.heldOf)} notes their length; aim for ${need(0.6, r.art.heldOf)}.`,
+    short: (r) => tr("You held {n} of {m} notes their length; aim for {k}.", { n: r.art.held, m: r.art.heldOf, k: need(0.6, r.art.heldOf) }),
     run: () => invention({ fromBar: 10, toBar: 13 }),
     passAt: 0.75,
     pass: (r) => accuracy(r) >= 0.75 && r.art.heldOf > 0 && r.art.held / r.art.heldOf >= 0.6,
@@ -359,7 +360,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     intro: [{ text: "Now the right hand plays by itself, drawn thin. Yours is outlined white and marked YOU." }, { text: "Watch its subject go by; then you enter, in the left hand, with the same subject." }],
     praise: [{ text: "Two voices, one conversation. That is counterpoint." }],
     again: [{ text: "Wait for your entry, then come in on the beat. Again." }],
-    short: (r) => `${right(r)}; aim for ${need(0.8, r.of)}.`,
+    short: (r) => rightShort(r, 0.8),
     run: () => invention({ voice: 1, toBar: 3, solo: false }),
     passAt: 0.8,
   },
@@ -372,7 +373,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     intro: [{ text: "Quick notes want both thumbs, one after the other, as a keyboard player uses his fingers." }, { text: "Start with either; then take turns. The thumb on the bars shows whose turn it is." }],
     praise: [{ text: "So. Two thumbs walk where one would stumble." }],
     again: [{ text: "One thumb did all the work. Take turns. Again." }],
-    short: (r) => `You took turns on ${of(r.thumbs.alt, r.thumbs.of)} quick notes; aim for ${need(0.7, r.thumbs.of)}.`,
+    short: (r) => tr("You took turns on {n} of {m} quick notes; aim for {k}.", { n: r.thumbs.alt, m: r.thumbs.of, k: need(0.7, r.thumbs.of) }),
     run: () => invention({ voice: 1, toBar: 3, solo: false, coach: "thumbs" }),
     passAt: 0.8,
     pass: (r) => accuracy(r) >= 0.8 && r.thumbs.of > 0 && r.thumbs.alt / r.thumbs.of >= 0.7,
@@ -389,7 +390,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     ],
     praise: [{ text: "As I wrote on my Inventions: a cantabile manner of playing. That is it." }],
     again: [{ text: "The notes fell apart. Touch the next before you let go. Again." }],
-    short: (r) => `You joined ${of(r.art.legato, r.art.legatoOf)} notes; aim for ${need(0.6, r.art.legatoOf)}.`,
+    short: (r) => tr("You joined {n} of {m} notes; aim for {k}.", { n: r.art.legato, m: r.art.legatoOf, k: need(0.6, r.art.legatoOf) }),
     run: () => invention({ voice: 1, toBar: 3, solo: false }),
     passAt: 0.8,
     pass: (r) => accuracy(r) >= 0.8 && r.art.legatoOf > 0 && r.art.legato / r.art.legatoOf >= 0.6,
@@ -403,7 +404,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     intro: [{ text: "Here the line leaps. Do not drag one thumb across: let the other thumb wait at the far note." }, { text: "Watch where the next note is before it comes, and be there." }],
     praise: [{ text: "Good. Your thumbs now draw the line as it is drawn on the page." }],
     again: [{ text: "Be at the far note before it arrives, with the other thumb. Again." }],
-    short: (r) => `${right(r)}; aim for ${need(0.75, r.of)}.`,
+    short: (r) => rightShort(r, 0.75),
     run: () => invention({ voice: 1, fromBar: 14, toBar: 16, solo: false }),
     passAt: 0.75,
   },
@@ -419,7 +420,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     short: (r) => {
       const a = meanIn(r, 1);
       const b = meanIn(r, 2);
-      return `Bar 1 at ${Math.round(100 * (a ?? 0))}% loud (aim under 45%), bar 2 at ${Math.round(100 * (b ?? 0))}% (aim over 55%).`;
+      return tr("Bar 1 at {a}% loud (aim under 45%), bar 2 at {b}% (aim over 55%).", { a: Math.round(100 * (a ?? 0)), b: Math.round(100 * (b ?? 0)) });
     },
     run: () => invention({ voice: 1, toBar: 3, solo: false, coach: "dynamics" }),
     passAt: 0.75,
@@ -438,7 +439,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     intro: [{ text: "Keep a thumb down and slide it up the bar: the rising notes sound joined, one after another." }, { text: "But one way only. To turn back, lift and touch again." }],
     praise: [{ text: "Good. A slide is a convenience; the thumbs are the art." }],
     again: [{ text: "Hold the thumb down and slide up with the tune. Again." }],
-    short: (r) => `You slid ${r.slides} notes; aim for at least 2.`,
+    short: (r) => tr("You slid {n} notes; aim for at least 2.", { n: r.slides }),
     run: () => invention({ voice: 1, toBar: 3, solo: false, coach: "slide" }),
     passAt: 0.8,
     pass: (r) => accuracy(r) >= 0.8 && r.slides >= 2,
@@ -452,7 +453,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     intro: [{ text: "A sign over a note is an ornament. You play it: touch the note, then shake your thumb." }, { text: "This one is a mordent: down and back. A trill starts upward and shakes longer." }],
     praise: [{ text: "So. The notes are mine; the graces are yours to give." }],
     again: [{ text: "Touch the note, then shake: down, and back up. Again." }],
-    short: (r) => `You shook ${of(r.shakes.hit, r.shakes.of)} ornaments; aim for ${Math.min(2, r.shakes.of)}.`,
+    short: (r) => tr("You shook {n} of {m} ornaments; aim for {k}.", { n: r.shakes.hit, m: r.shakes.of, k: Math.min(2, r.shakes.of) }),
     run: () => invention({ voice: 0, toBar: 3, solo: false }),
     passAt: 0.75,
     pass: (r) => accuracy(r) >= 0.75 && r.shakes.of > 0 && r.shakes.hit >= Math.min(2, r.shakes.of),
@@ -469,7 +470,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     ],
     praise: [{ text: "That is a fugue in small: one subject, passed from voice to voice." }],
     again: [{ text: "The subject must be said whole, or it is not the subject. Again." }],
-    short: (r) => `You caught ${of(r.captured, r.entries)} subjects; aim for 2.`,
+    short: (r) => tr("You caught {n} of {m} subjects; aim for 2.", { n: r.captured, m: r.entries }),
     run: () => invention({ voice: 0, toBar: 6, solo: false }),
     passAt: 0.8,
     pass: (r) => accuracy(r) >= 0.8 && r.captured >= 2,
@@ -485,7 +486,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     again: [{ text: "Joined where it is joined; lift where it is apart. Again." }],
     short: (r) => {
       const q = r.sheet.qualities.find((x) => x.key === "reading");
-      return `You followed ${q?.detail.toLowerCase() ?? "few of the marks"}; aim for 60%.`;
+      return tr("You followed {p}% of the marks; aim for 60%.", { p: Math.round(100 * (q?.share ?? 0)) });
     },
     run: () => ({ proto: "ladder", fail: false, piece: "wtc1f02", voice: 1, from: 0, until: 2 * 7680, bpm: 60, wait: false, solo: true, easy: "direction", reading: "keller" }),
     passAt: 0.75,
@@ -500,7 +501,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     intro: [{ text: "Now a crowd listens; its meter is on the right bar. Each slip cools it; empty, it leaves." }, { text: "Right notes in a run raise your multiplier, ×2, ×3, ×4: every point counts more." }],
     praise: [{ text: "They stayed. They will come back for more." }],
     again: [{ text: "They left. Fewer slips: watch the next note, not the last. Again." }],
-    short: (r) => (r.failedBar !== null ? `The crowd left at bar ${r.failedBar}.` : `${right(r)}; aim for ${need(0.8, r.of)}.`),
+    short: (r) => crowdShort(r, 0.8),
     run: () => invention({ voice: 0, toBar: 7, solo: false, fail: true }),
     passAt: 0.8,
   },
@@ -513,7 +514,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     intro: [{ text: "Now the whole Invention, the right hand, with the left beside you. The subject comes upside down too." }, { text: "Everything you learned, at once. I will say nothing until the end." }],
     praise: [{ text: "Now go and play my fugues. Every one is open to you." }],
     again: [{ text: "Again. Hear it in your head first; then play." }],
-    short: (r) => (r.failedBar !== null ? `The crowd left at bar ${r.failedBar}.` : `${right(r)}; aim for ${need(0.8, r.of)}.`),
+    short: (r) => crowdShort(r, 0.8),
     run: () => invention({ solo: false, fail: true, bpm: 60 }),
     passAt: 0.8,
   },

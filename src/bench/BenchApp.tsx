@@ -17,6 +17,7 @@
  * friends (play.html, `APP.lite`): the card grid (LiteGrid.tsx) instead of HOME, the platform as
  * detected, its own progress (lite.ts), ⚙ with the volume, the sound's delay and (phone only) the interface.
  */
+import { keyWordsIn, lang, LANGS, pieceName, setLang, tr, voiceName, type Lang } from "../i18n/index.ts";
 import { ornamentMark, ornamentsOf } from "../touch/ornament-play.ts";
 import { BachTalk } from "./Bach.tsx";
 import { accuracy, passed, TRACKS, type Line, type Run } from "./lessons.ts";
@@ -310,7 +311,7 @@ export function BenchApp() {
   // A lesson's passage: only the entries it holds (alone: only the voice's own).
   const marks = useMemo(() => {
     const spans = entrySpans(f).filter((e) => !run || (e.on < run.until && e.end > run.from && (!run.solo || e.voice === run.voice)));
-    const cadences = (f.cadences ?? []).filter((c) => !run || (c.on >= run.from && c.on <= run.until)).map((c) => ({ on: c.on, text: cadenceName(c) }));
+    const cadences = (f.cadences ?? []).filter((c) => !run || (c.on >= run.from && c.on <= run.until)).map((c) => ({ on: c.on, text: lang() === "en" ? cadenceName(c) : `${tr(cadenceName(c).split(" · ")[0])} · ${keyWordsIn(c.key)}` }));
     const ornaments = new Map([...ornamentsOf(f)].map(([k, o]) => [k, ornamentMark(o)]));
     // D272: the reading's marks on every entry of the subject in the voice played (each note by its place in the subject).
     const readingMarks = new Map<string, Reading["notes"][number]>();
@@ -585,7 +586,7 @@ export function BenchApp() {
   /** D237: the minimal page's one-line instruction, at the start of the first game in each mode (played past: gone). */
   const hintSeen = APP.lite ? lite.seen : benchSeen;
   // D282: in a tutorial step, its goal (the demonstration: WATCH).
-  const hintLine = phase.kind === "play" && lesson ? (watching ? "WATCH THE THUMBS" : (TRACKS[lesson.pl][lesson.n].goal ?? "")) : phase.kind === "play" && !hintSeen.includes(proto.id) ? (LITE_HINT[proto.id] ?? "") : "";
+  const hintLine = tr(phase.kind === "play" && lesson ? (watching ? "WATCH THE THUMBS" : (TRACKS[lesson.pl][lesson.n].goal ?? "")) : phase.kind === "play" && !hintSeen.includes(proto.id) ? (LITE_HINT[proto.id] ?? "") : "");
   const seen = () => {
     if (!hintLine) return;
     if (APP.lite) setLite(writeLite({ seen: [...lite.seen, proto.id] }));
@@ -814,8 +815,8 @@ export function BenchApp() {
         frame={frame}
         hud={
           <>
-            <span className="tg-hud-title">{lesson ? `LESSON ${lesson.n + 1} · ${TRACKS[lesson.pl][lesson.n].english}` : APP.lite ? f.title.toUpperCase() : `BENCH · ${proto.name}`}</span>
-            <span className="tg-hud-bar">{keyName(frame.current.key)}</span>
+            <span className="tg-hud-title">{lesson ? `${tr("LESSON")} ${lesson.n + 1} · ${tr(TRACKS[lesson.pl][lesson.n].english)}` : APP.lite ? (lang() === "en" ? f.title.toUpperCase() : pieceName(f.kind, f.key, f.number)) : `BENCH · ${proto.name}`}</span>
+            <span className="tg-hud-bar">{APP.lite && lang() !== "en" ? keyWordsIn(frame.current.key) : keyName(frame.current.key)}</span>
             {(playing || lesson) && (
               <button type="button" id="quit" className="tg-x" aria-label="Quit" onClick={quit}>
                 ✕
@@ -825,14 +826,14 @@ export function BenchApp() {
         }
         legend={f.voiceNames.map((name, i) => (
           <span key={name} style={{ color: inkOf(i, f.voices.length), opacity: played.includes(i) ? 1 : 0.55 }}>
-            ■ {name.toUpperCase()}
-            {played.includes(i) && <b className="tb-you"> · YOU</b>}
+            ■ {voiceName(name)}
+            {played.includes(i) && <b className="tb-you"> · {tr("YOU")}</b>}
           </span>
         ))}
       >
         <div className="tg-count" ref={count} aria-live="polite" />
         {phase.kind === "talk" && lesson && (
-          <BachTalk key={`${lesson.n}-${phase.next}-${phase.lines[0]?.text}`} title={`${TRACKS[lesson.pl][lesson.n].title} · ${TRACKS[lesson.pl][lesson.n].english}`} lines={phase.lines} onLine={demo} onDone={() => talkDone(phase.next)} />
+          <BachTalk key={`${lesson.n}-${phase.next}-${phase.lines[0]?.text}`} title={`${TRACKS[lesson.pl][lesson.n].title} · ${tr(TRACKS[lesson.pl][lesson.n].english)}`} lines={phase.lines} onLine={demo} onDone={() => talkDone(phase.next)} />
         )}
         {phase.kind === "result" && (
           // D237: the result, minimal: the grade (or where the crowd left), the score, AGAIN, NEXT, ✕ back to the cards.
@@ -842,7 +843,7 @@ export function BenchApp() {
             </button>
             {phase.sheet ? (
               <SheetCard
-                head={phase.failedBar !== null ? <h1 className="tb-grade tb-failed">THE CROWD LEFT</h1> : <h1 className={`tb-grade${phase.grade === "S" || phase.grade === "A" ? " tg-gold" : ""}`}>{phase.grade}</h1>}
+                head={phase.failedBar !== null ? <h1 className="tb-grade tb-failed">{tr("THE CROWD LEFT")}</h1> : <h1 className={`tb-grade${phase.grade === "S" || phase.grade === "A" ? " tg-gold" : ""}`}>{phase.grade}</h1>}
                 sheet={phase.sheet}
                 score={phase.score}
                 failed={phase.failedBar !== null}
@@ -854,7 +855,7 @@ export function BenchApp() {
               />
             ) : (
               <>
-                {phase.failedBar !== null ? <h1 className="tb-grade tb-failed">THE CROWD LEFT</h1> : <h1 className={`tb-grade${phase.grade === "S" || phase.grade === "A" ? " tg-gold" : ""}`}>{phase.grade}</h1>}
+                {phase.failedBar !== null ? <h1 className="tb-grade tb-failed">{tr("THE CROWD LEFT")}</h1> : <h1 className={`tb-grade${phase.grade === "S" || phase.grade === "A" ? " tg-gold" : ""}`}>{phase.grade}</h1>}
                 {phase.failedBar !== null && <p className="tg-card-sub">BAR {phase.failedBar}</p>}
                 <p className="tb-score">{phase.score.toLocaleString("en")}</p>
               </>
@@ -881,21 +882,21 @@ export function BenchApp() {
                   const btn = e.currentTarget;
                   const text = `${VERSION} · ${navigator.userAgent}\n${phase.report}`;
                   navigator.clipboard?.writeText(text).then(
-                    () => (btn.textContent = "REPORT COPIED"),
+                    () => (btn.textContent = tr("REPORT COPIED")),
                     () => window.prompt("Copy the report:", text),
                   ) ?? window.prompt("Copy the report:", text);
                 }}
               >
-                COPY REPORT
+                {tr("COPY REPORT")}
               </button>
             )}
             <div className="tb-result-nav">
               <button type="button" id="again" className="tb-play" autoFocus onClick={() => start()}>
-                ▶ AGAIN
+                ▶ {tr("AGAIN")}
               </button>
               {phase.next && (
                 <button type="button" id="next" className="tb-play" onClick={() => begin(phase.next!)}>
-                  ▶ NEXT
+                  ▶ {tr("NEXT")}
                 </button>
               )}
             </div>
@@ -933,7 +934,7 @@ export function BenchApp() {
         // D237: the minimal page's ⚙: the volume, on a phone the interface (D241), and the sound's delay (headphones); BLUETOOTH MODE on AUTO, unseen.
         <Panel title="SETTINGS" close={back}>
           <label className="tg-from tb-volume">
-            <span>VOLUME {Math.round(lite.volume * 100)}%</span>
+            <span>{tr("VOLUME")} {Math.round(lite.volume * 100)}%</span>
             <input
               type="range"
               id="volume"
@@ -948,6 +949,8 @@ export function BenchApp() {
               }}
             />
           </label>
+          {/* D283: the language (the page re-renders in it). */}
+          <Choice id="lang" label="LANGUAGE" options={LANGS} value={lang()} set={(l: Lang) => (setLang(l), setLite(readLite()))} />
           {/* D263: the platform, should the guess be wrong (the page reloads in the other's modes). */}
           <Choice
             id="lite-platform"
@@ -961,7 +964,7 @@ export function BenchApp() {
           />
           {/* D265: one look (CLASSIC): the other interfaces withdrawn on play.html. */}
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
-          <p className="tg-panel-note">With headphones on, tap along to the clicks so the music and your taps line up.</p>
+          <p className="tg-panel-note">{tr("With headphones on, tap along to the clicks so the music and your taps line up.")}</p>
         </Panel>
       )}
       {phase.kind === "settings" && !APP.lite && (

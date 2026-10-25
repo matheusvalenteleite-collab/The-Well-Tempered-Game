@@ -2,6 +2,7 @@
  * D280: the TUTORIAL's steps (play.html, a phone): each step by name, ✓ once passed; the first always
  * open, then those passed and the next one (the owner: "only completed steps available ... except 1").
  */
+import { tr } from "../i18n/index.ts";
 import { TRACKS } from "./lessons.ts";
 import { nextLesson, trackState } from "./tutorial.ts";
 
@@ -15,7 +16,7 @@ export function TutorialSteps({ play, close }: { play: (n: number) => void; clos
         <button type="button" className="tg-x tb-hear-x" aria-label="Close" onClick={close}>
           ✕
         </button>
-        <h2 className="tb-hear-title">TUTORIAL · INVENTION 1 WITH HERR BACH</h2>
+        <h2 className="tb-hear-title">{tr("TUTORIAL · INVENTION 1 WITH HERR BACH")}</h2>
         <ol className="tb-steps-list">
           {track.map((l, n) => {
             const done = !!st.passed[l.id];
@@ -25,8 +26,8 @@ export function TutorialSteps({ play, close }: { play: (n: number) => void; clos
                 <button type="button" id={`step-${l.id}`} className={`tb-step${done ? " done" : ""}${n === next && !done ? " next" : ""}`} disabled={!open} onClick={() => play(n)}>
                   <span className="tb-step-n">{n + 1}</span>
                   <span className="tb-step-name">
-                    {l.english}
-                    {l.goal && <small>{l.goal}</small>}
+                    {tr(l.english)}
+                    {l.goal && <small>{tr(l.goal)}</small>}
                   </span>
                   <span className="tb-step-mark">{done ? "✓" : open ? "▶" : "🔒"}</span>
                 </button>
