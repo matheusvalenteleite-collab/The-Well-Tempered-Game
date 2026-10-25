@@ -388,3 +388,20 @@ test("D225: the LESSON MAP lists each track's lessons, ✓ when passed, the next
     assert.match(q, /id="played-no"[^>]*>NO<small>TEACH ME/);
     assert.match(q, /tb-bach-face/, "Herr Bach's portrait");
   }));
+
+test("D280: each tutorial step's demonstration plays itself right (the thumbs taking turns, joined; the slide slid; the mordents shaken)", () => {
+  for (const l of TUTORIAL_LESSONS.filter((x) => x.id !== "t-whole")) {
+    const clock = { t: 0 };
+    const r = l.run();
+    const g = new ProtoGame(fugueById(r.piece), r.voice, r.from, protoById(r.proto), { bpm: r.bpm, legato: false, until: r.until, wait: false, solo: r.solo, easy: r.easy, fail: false, coach: r.coach, demo: true }, fakeChip(clock));
+    g.rows = ROWS;
+    let done = false;
+    while (!done && clock.t < 600) (clock.t += 0.01), (done = g.step());
+    const res = g.results();
+    assert.ok(res.right >= res.of - 1, `${l.id}: ${res.right}/${res.of}`);
+    assert.ok(res.thumbs.of === 0 || res.thumbs.alt / res.thumbs.of > 0.9, `${l.id}: thumbs ${res.thumbs.alt}/${res.thumbs.of}`);
+    if (l.id === "t-slide") assert.ok(res.slides >= 2, `slides ${res.slides}`);
+    if (l.id === "t-ornament") assert.ok(res.shakes.hit >= 2, `shakes ${res.shakes.hit}/${res.shakes.of}`);
+    if (l.id === "t-legato") assert.ok(res.art.legato / Math.max(1, res.art.legatoOf) > 0.8, `legato ${res.art.legato}/${res.art.legatoOf}`);
+  }
+});

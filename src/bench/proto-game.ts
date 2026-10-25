@@ -16,6 +16,7 @@ import type { Burst, Pop } from "../touch/box-fx.ts";
 import { isPhone, voicing, type Chip, type Gate, type Play, type Sounding } from "../touch/chip.ts";
 import type { Grade } from "../touch/engine.ts";
 import { scoreSheet, type Sheet } from "./score-sheet.ts";
+import { acrossBar, planTouches, type Touch } from "./fingering.ts";
 import { LEVEL_D, planLevel } from "../touch/readings.ts";
 import { barAt, barStart, beatOf, cadenceName, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
 import { echoHalves, repeatHalves } from "./echo.ts";
@@ -36,7 +37,7 @@ import { CLEAN_INK, HELD_INK, holdBonus, LEGATO_GAP_MS, LEGATO_INK, legatoBonus,
 import { scaleFits, scaleKeys, keyPitch, SCALE_LANES, type ScaleKey } from "./scale-keys.ts";
 import { preludeRideMs } from "./tiers.ts";
 import { lineKey, subjectLine, type LineEntry, type Stretto, type SubjectLine } from "./subject-line.ts";
-import { barDynamic, contourCue, contourOk, dynamic, HOME_LANES, keyPlace, LADDER_AREA, planLanes, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk, isRepeat } from "./protos.ts";
+import { BAR, barDynamic, contourCue, contourOk, dynamic, HOME_LANES, keyPlace, LADDER_AREA, planLanes, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk, isRepeat } from "./protos.ts";
 
 export const PERFECT_MS = 70;
 /** The multiplier's step (notes right in a row), and CON FUOCO's run. */
@@ -130,6 +131,8 @@ interface Held {
   orn?: Shake & { main: number; upper: number; lower: number; moves: number; dir: 0 | 1 | -1; from: number; firstDir: 0 | 1 | -1; v: ReturnType<typeof voicing>; play: Play; by: number; done: boolean };
   /** D272: its note is one the reading wants short (staccato): judged so at its end. */
   wantShort?: boolean;
+  /** D280: where across its bar it touches (0..1 of the touch area's width), for the thumbs drawn. */
+  across?: number;
   /** D271: the way its slides have gone (1 up or right, -1 down or left): a held thumb slides one way only. */
   slideDir?: 1 | -1;
   /** Its last positions, for a flick. */
@@ -702,6 +705,7 @@ export class ProtoGame {
     this.arcCues2();
     this.sweepStep();
     this.traceStep();
+    if (this.o.demo) this.demoRun();
     // D252, LIFT: the doublings as the music grows (a 4′ from a quarter of the way, a 16′ from two thirds).
     if (this.arc?.lift) {
       const l = this.liftNow(this.now + this.tps * 0.5);
@@ -855,6 +859,76 @@ export class ProtoGame {
 
   heldSides(): { side: Side; y: number }[] {
     return [...this.held.values()].map((h) => ({ side: h.side, y: h.ay }));
+  }
+  /** D280: the thumbs down now: side, height, where across (0..1 of the width), shaking. */
+  thumbsDown(): { side: Side; y: number; fx: number; shaking: boolean }[] {
+    return [...this.held.values()].filter((h) => !h.passive).map((h) => ({ side: h.side, y: h.trail.at(-1)?.y ?? h.ay, fx: h.across ?? 0.1, shaking: !!h.orn && !h.orn.done }));
+  }
+
+  /**
+   * D280: the plan of the thumbs for the voice played (fingering.ts): each note's touch, alternating, the
+   * ornaments shaken, the loudness the dynamics lesson asks (soft bar 1, loud bar 2), rising steps slid
+   * where sliding is taught.
+   */
+  get plan(): Touch[] {
+    if (this.planMemo) return this.planMemo;
+    const notes = this.tracks[0].notes;
+    const heads = notes.map((n, i) => ({ n, i })).filter(({ n, i }) => !n.ride && !(i > 0 && notes[i - 1].on === n.on));
+    const loud = (on: number) => (this.o.coach === "dynamics" ? (on < this.f.barTicks ? 0.2 : 0.85) : 0.5);
+    const touches = planTouches(
+      heads.map(({ n, i }) => {
+        const o = this.ornaments.get(`${this.voiceOf(0, i)}:${n.on}`);
+        return { at: n.on, dur: n.dur, step: n.step, d: loud(n.on), shake: o ? shakeOf(o) : null };
+      }),
+      { overlap: this.f.tpq / 16, slides: this.o.coach === "slide" },
+    );
+    return (this.planMemo = touches.map((t) => ({ ...t, i: heads[t.i].i })));
+  }
+  private planMemo: Touch[] | null = null;
+  /** D280: the demonstration's actions still to come (tick, what), in time. */
+  private demoQueue: { tick: number; act: () => void }[] | null = null;
+  private demoRun() {
+    if (!this.rows) return;
+    if (!this.demoQueue) {
+      const rows = this.rows;
+      const W = 1000;
+      const H = 400;
+      const bw = W * BAR;
+      const xOf = (side: Side, d: number) => (side === "left" ? bw * (1 - acrossBar(d)) : W - bw + bw * acrossBar(d));
+      const q: { tick: number; act: () => void }[] = [];
+      let parent = -1;
+      let y = 0;
+      this.plan.forEach((t, p) => {
+        const id = 90000 + p;
+        if (t.slid && parent >= 0) {
+          const pid = 90000 + parent;
+          const side = this.plan[parent].side;
+          q.push({
+            tick: t.on,
+            act: () => {
+              // A slide moves a row and a half at least (D208), always the way the line goes (D271: one way).
+              const want = rows.yOf(t.step);
+              const dir = t.step > this.plan[p - 1].step ? -1 : 1;
+              y += dir * Math.max(this.ladderRow * 1.6, dir * (want - y));
+              this.move(pid, { side, x: xOf(side, t.d), y, w: W, h: H }, performance.now());
+            },
+          });
+          return;
+        }
+        parent = p;
+        q.push({ tick: t.on, act: () => ((y = rows.yOf(t.step)), this.down(id, { side: t.side, x: xOf(t.side, t.d), y, w: W, h: H }, performance.now())) });
+        if (t.shake) {
+          const sh = t.shake;
+          const span = Math.max(this.f.tpq / 8, (t.off - t.on) * 0.6);
+          for (let m = 1; m <= sh.need; m++)
+            q.push({ tick: t.on + (span * m) / (sh.need + 1), act: () => this.move(id, { side: t.side, x: xOf(t.side, t.d), y: rows.yOf(t.step) - (m % 2 ? sh.first : 0) * this.ladderRow, w: W, h: H }, performance.now()) });
+        }
+        const offTick = Math.max(...this.plan.filter((x, j) => j >= p && (j === p || (x.slid && x.side === t.side && this.plan.slice(p + 1, j + 1).every((z) => z.slid)))).map((x) => x.off));
+        q.push({ tick: offTick, act: () => this.up(id, performance.now()) });
+      });
+      this.demoQueue = q.sort((a, b) => a.tick - b.tick);
+    }
+    while (this.demoQueue.length && this.demoQueue[0].tick <= this.now) this.demoQueue.shift()!.act();
   }
 
   /** The places held now (columns, keys, rows). */
@@ -1045,7 +1119,7 @@ export class ProtoGame {
     if (this.road && this.pedalTake(id, this.laneOfX(c.x, c.w))) return;
     this.finalStrike(id, ts);
     const d = this.dynamicAt(c);
-    const h: Held = { side: c.side, k: this.line ? this.rowTrack(c, ts) : this.hands && this.road ? this.touchTrack(this.laneOfX(c.x, c.w), ts) : this.trackOf(c.side), x0: c.x, ax: c.x, ay: c.y, note: -1, chord: [], sounds: [], midi: 0, cell: this.cellAt(c), d0: d, trail: [{ t: ts, y: c.y }], row: c.y >= c.h - PAD_SPLIT ? 1 : 0 };
+    const h: Held = { across: c.x / Math.max(1, c.w), side: c.side, k: this.line ? this.rowTrack(c, ts) : this.hands && this.road ? this.touchTrack(this.laneOfX(c.x, c.w), ts) : this.trackOf(c.side), x0: c.x, ax: c.x, ay: c.y, note: -1, chord: [], sounds: [], midi: 0, cell: this.cellAt(c), d0: d, trail: [{ t: ts, y: c.y }], row: c.y >= c.h - PAD_SPLIT ? 1 : 0 };
     this.held.set(id, h);
     this.strikeWith(id, h, ts, { c }, d);
     // HIGHWAY: where the hand is now.
@@ -1179,6 +1253,7 @@ export class ProtoGame {
     if (!h) return;
     // The thumb is the one that went down (D184: slides were all judged as the left's).
     c = { ...c, side: h.side };
+    h.across = c.x / Math.max(1, c.w);
     h.trail.push({ t: ts, y: c.y });
     while (h.trail.length > 2 && ts - h.trail[0].t > 120) h.trail.shift();
     // Across the dynamic axis while it sounds: a swell or a diminuendo.

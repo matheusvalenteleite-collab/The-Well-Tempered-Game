@@ -15,6 +15,7 @@ import { ARROW_PIXELS, inkOf, type Arrow } from "../touch/MusicBox.tsx";
 import { paintPiano } from "../touch/paint-piano.ts";
 import { barStart, stepName, type TouchFugue } from "../touch/fugue.ts";
 import { APPROACH_MS, PHONE_LINE, type ProtoGame } from "./proto-game.ts";
+import { acrossBar, drawThumb } from "./fingering.ts";
 import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
 import { CLEAN_INK, HELD_INK, LEGATO_INK } from "./articulation.ts";
 import { scaleGem, scaleHands, scaleHow, scaleInk, scaleLetter, scaleStrip } from "./paint-scale.ts";
@@ -983,7 +984,8 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
       }
       // D271, THE TUTORIAL's coaching.
       // D273: before the first strike either thumb (the point is taking turns, not which starts).
-      if (g.o.coach === "thumbs") {
+      // D280: with the guide, the thumbs below take its place.
+      if (g.o.coach === "thumbs" && !g.o.guide && !g.o.demo) {
         const next = g.thumbNext();
         if (next) thumbCoach(c, w, bw, y, next, t);
         else (thumbCoach(c, w, bw, y, "left", t, "EITHER THUMB"), thumbCoach(c, w, bw, y, "right", t, "EITHER THUMB"));
@@ -1012,6 +1014,49 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
     c.fillRect(s.side === "left" ? 0 : w - bw, s.y - 14, bw, 28);
     c.globalAlpha = 1;
   }
+  if (g.proto.id === "ladder" && (g.o.demo || g.o.guide)) thumbsShown(c, w, h, g, t);
+}
+
+/**
+ * D280: the thumbs on the bars: in the demonstration the game's own touches (landing, holding, shaking,
+ * lifting); in the guide, the thumb the next note wants hovering where it should land (the other thumb
+ * from the last; across the bar as loud as asked), THEN SHAKE for an ornament, SLIDE for a slid step,
+ * and LIFT over a thumb whose note is done.
+ */
+function thumbsShown(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
+  const bw = w * BAR;
+  const size = Math.max(16, Math.min(30, bw * 0.3));
+  const rows = g.rows;
+  if (!rows) return;
+  const now = performance.now();
+  for (const d of g.thumbsDown()) {
+    const wob = d.shaking ? Math.sin(now / 45) * g.ladderRow * 0.5 : 0;
+    const x = Math.max(size * 0.6, Math.min(w - size * 0.6, d.fx * w));
+    drawThumb(c, x, d.y + wob, size, d.side, "down");
+  }
+  if (!g.o.guide) return;
+  const plan = g.plan;
+  const notes = g.tracks[0].notes;
+  const next = plan.find((p) => notes[p.i].state === "pending");
+  if (!next) return;
+  const ahead = ((notes[next.i].on - g.now) / g.tps) * 1000;
+  if (ahead > APPROACH_MS * 1.6) return;
+  const fade = Math.max(0.25, Math.min(1, 1 - ahead / (APPROACH_MS * 1.6)));
+  const y = rows.yOf(next.step);
+  if (next.slid) {
+    label(c, "SLIDE ▲", g.thumbsDown()[0]?.side === "right" ? w - bw / 2 : bw / 2, y - size, t.gold, 8);
+    return;
+  }
+  // The other thumb from the last; before the first note, either (taking turns is the point, not which starts: D273).
+  const last = g.thumbNext();
+  for (const side of last ? [last] : (["left", "right"] as const)) {
+    const x = side === "left" ? bw * (1 - acrossBar(next.d)) : w - bw + bw * acrossBar(next.d);
+    drawThumb(c, x, y, size, side, "hover", fade);
+    label(c, `${last ? (side === "left" ? "LEFT THUMB" : "RIGHT THUMB") : "EITHER THUMB"}${next.shake ? " · THEN SHAKE" : ""}`, side === "left" ? bw / 2 : w - bw / 2, y + size * 0.9, t.shine, 6);
+  }
+  // A thumb still down whose note is over: lift it (a detached note, a rest).
+  const prev = plan.filter((p) => notes[p.i].state === "hit" && !p.slid).at(-1);
+  if (prev && g.now > prev.off && g.thumbsDown().length) for (const d of g.thumbsDown()) label(c, "LIFT", d.side === "left" ? bw / 2 : w - bw / 2, d.y - size * 0.9, t.wrong, 7);
 }
 
 /** D271: a thumb on the bar whose turn it is, at the next note's height, nudging in (the other bar's glow stays: either may play). */

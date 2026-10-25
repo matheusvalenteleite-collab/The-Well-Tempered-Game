@@ -256,16 +256,10 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       g.fillRect(x1 - 1, yOf(o.step) - 1, bw + 2, bh + 1);
     }
     if (isSubj && full) {
-      // Gold dashes above and below the thin bar: two pixels on, two off.
+      // D279: the subject's gold stripe over the note, dashed (two pixels on, two off): the player's is solid.
       g.globalAlpha = sounding ? 1 : 0.85;
       g.fillStyle = fx.gold;
-      for (let x = x1 - 1; x < x1 + bw + 1; x += 4) {
-        const dw = Math.min(2, x1 + bw + 1 - x);
-        g.fillRect(x, y - 1, dw, 1);
-        g.fillRect(x, y + th, dw, 1);
-      }
-      g.fillRect(x1 - 1, y - 1, 1, th + 2);
-      g.fillRect(x1 + bw, y - 1, 1, th + 2);
+      for (let x = x1; x < x1 + bw; x += 4) g.fillRect(x, y - 2, Math.min(2, x1 + bw - x), 1);
     }
     g.globalAlpha = sounding ? 1 : isSubj ? 0.8 : full ? 0.45 : 0.7;
     g.fillStyle = ink;
@@ -315,9 +309,14 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       // D202: each block extruded a pixel down and right (a voxel), then outlined and filled.
       g.fillStyle = "rgba(0,0,0,0.55)";
       g.fillRect(x1 + 1, y + 1, bw + 1, bh);
-      // D267: the player's subject notes outlined in gold, the rest in the usual edge.
-      g.fillStyle = subjNotes.has(`${n.voice ?? pv}:${n.on}`) ? fx.gold : edge;
+      // D279: the player's notes always outlined white (the owner took the gold frame for "yours"); a
+      // subject note marked by a gold stripe over it (the others' subject notes: dashed).
+      g.fillStyle = edge;
       g.fillRect(x1 - 1, y - 1, bw + 2, bh + 1);
+      if (subjNotes.has(`${n.voice ?? pv}:${n.on}`)) {
+        g.fillStyle = fx.gold;
+        g.fillRect(x1 - 1, y - 3, bw + 2, 2);
+      }
       g.fillStyle = ink;
       g.fillRect(x1, y, bw, bh - 1);
       if (bh > 3) {
@@ -397,6 +396,15 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
     }
   }
 
+  // D279: YOU over the player's next note (the voice played, whatever its colour), so which line is
+  // yours is never a guess.
+  {
+    const n = fr.notes.find((m) => m.on + m.dur >= fr.now && !m.ride);
+    if (n) {
+      const x = Math.max(playX + 2, xOf(n.on));
+      if (x < w - 12) pixText(g, "YOU", x, Math.min(h - 6, yOf(n.step) + bh + 2), edge);
+    }
+  }
   g.fillStyle = tok("--tg-playhead");
   g.fillRect(playX, 0, 1, h);
   // D205: the ornaments' signs, small, over their notes (gold over the player's, the ink over the others').
