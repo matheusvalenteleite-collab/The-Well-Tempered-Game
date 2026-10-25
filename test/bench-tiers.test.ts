@@ -28,7 +28,9 @@ test("D232: the tiers, from the fugues' stars (I/24 the boss)", () => {
   assert.deepEqual(tierFugues("BOSS"), [BOSS]);
   assert.equal(tierOf("wtc1p24"), "BOSS");
   assert.equal(tierOf("wtc1p02"), "INTERMEDIATE", "a prelude's tier is its fugue's");
-  assert.equal(tierOf("wtc2f01"), null);
+  // D275: Book II's fugues by their stars too (play.html's colours), never the boss.
+  assert.equal(tierOf("wtc2f01"), "HARD");
+  assert.equal(tierOf("wtc2f08"), "EASY");
   assert.equal(tierOf("bwv1080-14"), null);
   // The wheel: by tier, Bach's order within.
   assert.deepEqual(tierCards().map((c) => c.number), [...EASY, ...INTERMEDIATE, ...HARD, 24]);

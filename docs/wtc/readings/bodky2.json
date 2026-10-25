@@ -1,0 +1,4016 @@
+[
+ {
+  "id": "wtc2f01",
+  "pages": "87, 285",
+  "tempo": {
+   "quarter_bpm": 100,
+   "as_written": "♩ = ± 100 (see Tempo Table IIIa, 1)"
+  },
+  "character": "Theme uses organ-fugue figures, rare in his manualiter works; for clavichord.",
+  "subject": {
+   "basis": "rule",
+   "quote": "The interval of the fifth portato, the rest quasi legato",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 24,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 25,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Rule applied by me: only G4-C4 (i2-i3, falling fifth) detached; C4-A4 is a sixth and stays joined. Clavichord piece: no dynamic plan. Where the theme ends is not stated; all our notes get the rule."
+ },
+ {
+  "id": "wtc2f02",
+  "pages": "286",
+  "tempo": {
+   "quarter_bpm": 60,
+   "as_written": "♩ = ± 60 (see Tempo Table Ib, 16)"
+  },
+  "character": null,
+  "subject": {
+   "basis": "explicit",
+   "quote": "Legato",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": "f",
+   "shape": null,
+   "dynamics_quote": "Left hand Bar 1-16 1/16 8\", 4\""
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": "Legato throughout.",
+   "dynamics_plan": [
+    {
+     "bar": 1,
+     "level": "f"
+    },
+    {
+     "bar": 14,
+     "level": "p"
+    },
+    {
+     "bar": 21,
+     "level": "f"
+    },
+    {
+     "bar": 23,
+     "level": "ff"
+    },
+    {
+     "bar": 27,
+     "level": "ff"
+    }
+   ],
+   "dynamics_quote": "The keyboards can be coupled by a slight interruption after 23 5/8; the 16' register can be drawn at 27 3/4."
+  },
+  "caveats": "Levels from Bodky's registration key (Chart 3: f = 8\" and 4\" (upper manual), p = 8' (lower); coupled 8',8\",4\" or full work = ff); plan follows the right hand (from 2 1/8: 8\",4\" to 14 1/2; 8' to 21 1/4; 8\",4\" to 23 5/8; coupled 8',8\",4\" to 27 3/4; +16' to 28). Left hand: f 1-16, p 16-19 3/4, f 19-24, ff from 24 5/8. Alto entry of bar 1 taken as left hand (f). Bodky adds that clavichord (pedal clavichord) or even organ might serve as well or better."
+ },
+ {
+  "id": "wtc2f03",
+  "pages": "286-287",
+  "tempo": {
+   "quarter_bpm": 60,
+   "as_written": "♩ = ± 60 (see Tempo Table Ib, 17)"
+  },
+  "character": "Very complicated texture; clavichord preferred to bring out every detail.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "Portato for the eighths in the theme, nonlegato for diminution, molto tenuto for augmentation of the theme, the rest more leggiero than quasi legato.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": "f",
+   "shape": null,
+   "dynamics_quote": "Left hand Bar 1 2/8-6 6/8 8\", 4\""
+  },
+  "rest": {
+   "articulation_quote": "nonlegato for diminution, molto tenuto for augmentation of the theme, the rest more leggiero than quasi legato.",
+   "articulation_summary": "Diminutions nonlegato, augmentations molto tenuto, other material light, more leggiero than quasi legato.",
+   "dynamics_plan": [
+    {
+     "bar": 1,
+     "level": "f"
+    },
+    {
+     "bar": 7,
+     "level": "p"
+    },
+    {
+     "bar": 11,
+     "level": "f"
+    },
+    {
+     "bar": 14,
+     "level": "p"
+    },
+    {
+     "bar": 25,
+     "level": "f"
+    }
+   ],
+   "dynamics_quote": "For a performance on the harpsichord, the following registration may be justified"
+  },
+  "caveats": "Portato encoded as detach (short not marked); our 5-note entry may be shorter than his 'theme', last link null. Dynamics come from his harpsichord alternative only (clavichord preferred). Levels from Bodky's registration key (Chart 3: f = 8\" and 4\" (upper manual), p = 8' (lower); coupled 8',8\",4\" or full work = ff); right-hand changes at 7 5/8, 11 5/8, 14 5/8, 25 5/8; left hand nearly the same (6 6/8, 11 3/8, 14 5/8, 25 3/16)."
+ },
+ {
+  "id": "wtc2f04",
+  "pages": "287",
+  "tempo": {
+   "quarter_bpm": 90,
+   "as_written": "dotted quarter = ± 60 (see Tempo Table IXc, 2)"
+  },
+  "character": null,
+  "subject": {
+   "basis": "rule",
+   "quote": "Quasi legato; larger intervals leggiero if sixteenths, portato if eighths.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Rule applied by me, taking 'larger intervals' as a fourth or more (as in the Book I entries): D#3-G#2 (i5-6, fifth) and D#3-G#3 (i15-16, fourth) detached; seconds and thirds joined. Tempo dotted quarter converted to quarter = 90. Clavichord: no dynamic plan."
+ },
+ {
+  "id": "wtc2f05",
+  "pages": "127, 288",
+  "tempo": {
+   "quarter_bpm": 80,
+   "as_written": "♩ = ± 80 (see Tempo Table IId, 1 and remarks on p. 127)"
+  },
+  "character": "Dry, 'catholic' (Busoni), vocal theme; Bodky prefers this to Keller's 'rebellious humor'.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "The quarters tenuto, the eighths quasi legato",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": false,
+     "accent": null
+    }
+   ],
+   "dynamic": "p",
+   "shape": null,
+   "dynamics_quote": "Left hand Bar 1-20 3/4 8'"
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [
+    {
+     "bar": 2,
+     "level": "p"
+    },
+    {
+     "bar": 10,
+     "level": "f"
+    },
+    {
+     "bar": 16,
+     "level": "p"
+    },
+    {
+     "bar": 22,
+     "level": "f"
+    },
+    {
+     "bar": 27,
+     "level": "ff"
+    },
+    {
+     "bar": 33,
+     "level": "f"
+    },
+    {
+     "bar": 44,
+     "level": "ff"
+    }
+   ],
+   "dynamics_quote": "The coupler can be applied with a brief interruption at 27 5/8. The 16' register can be drawn during the rest of two eighths in bar 33."
+  },
+  "caveats": "Printed alla breve, but Bodky (p. 127) makes the quarter the beat: quarter = 80. Tenuto quarters (and the dotted quarter B3) short=false, link not stated; eighth-to-quarter links null. Levels from Bodky's registration key (Chart 3: f = 8\" and 4\" (upper manual), p = 8' (lower); coupled 8',8\",4\" or full work = ff); plan is right hand (8' 2-10, 8\",4\" 10-16, 8' 16-22, 8\",4\" 22-27, coupled 27-33, 8\",4\" 33-44, full 44-50); left hand (tenor entry): p 1-20, f 20-27, ff 27-33, f 33-40, ff 40-50. Harpsichord, also organ."
+ },
+ {
+  "id": "wtc2f06",
+  "pages": "288",
+  "tempo": {
+   "quarter_bpm": 80,
+   "as_written": "♩ = ± 80 (see Tempo Table Ia, 27)"
+  },
+  "character": "'With heavy emotion' (his Mendelssohn-title analogy for this Prelude and Fugue).",
+  "subject": {
+   "basis": "explicit",
+   "quote": "Triplets and sixteenths quasi legato, a \"comma\" after the fifth eighth, then legato for the descending line.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": "ff",
+   "shape": null,
+   "dynamics_quote": "The entire piece \"full work.\""
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [
+    {
+     "bar": 1,
+     "level": "ff"
+    }
+   ],
+   "dynamics_quote": "The entire piece \"full work.\" In bar 20, the second and third quarter can and may be played on the upper keyboard (8\", 4\")."
+  },
+  "caveats": "Fifth eighth counted from the bar start: the triplet run fills eighths 1-4, so the comma falls after A4 (i12). I joined the last triplet to A4 (part of the opening run, my reading). Descending line D5...E4 joined; E4-A4 (i21) null. Full work = ff by Bodky's key; optional 8\",4\" (f) for bar 20, beats 2-3, left out of the plan."
+ },
+ {
+  "id": "wtc2f07",
+  "pages": "87, 289",
+  "tempo": {
+   "quarter_bpm": 160,
+   "as_written": "half note = ± 80 (see Tempo Table IIa, 2)"
+  },
+  "character": "Religious; frequent fourths ('key of Trinity'); best on the (home) organ.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "Tenuto e portato, the eighths legato",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": null,
+     "short": false,
+     "accent": null
+    }
+   ],
+   "dynamic": "ff",
+   "shape": null,
+   "dynamics_quote": "Left hand Bar 1-30 3/4 8', 16', 8\", 4\""
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [
+    {
+     "bar": 7,
+     "level": "ff"
+    },
+    {
+     "bar": 30,
+     "level": "f"
+    },
+    {
+     "bar": 55,
+     "level": "ff"
+    }
+   ],
+   "dynamics_quote": "This registration is perhaps somewhat pompous and could be made milder if 8\", 4\" is substituted for every \"full work\" and 8' for every 8\", 4\"."
+  },
+  "caveats": "Tempo is a half-note sign (alla breve), converted to quarter = 160. Quarters and longer notes tenuto e portato: detach, short=false. Eighth pairs joined; eighth into the next quarter null. Levels from Bodky's registration key (Chart 3: f = 8\" and 4\" (upper manual), p = 8' (lower); coupled 8',8\",4\" or full work = ff); right hand full 7-30 1/4, 8\",4\" 30 3/4-55 1/4, full 55 3/4-70; left hand full 1-30 3/4, 8\",4\" to 53 3/4, full to 70. Milder option (f/p) also offered. Organ preferred."
+ },
+ {
+  "id": "wtc2f08",
+  "pages": "290",
+  "tempo": {
+   "quarter_bpm": 60,
+   "as_written": "♩ = ± 60 (see Tempo Table Ib, 18)"
+  },
+  "character": "A 'gem for connoisseurs', of less immediate appeal than Book I's.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "See Example A6",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Marks read from Ex. A6: dot-and-dash (portato) under D#-D#-D# (i0-2), D#4 i6, the slurred A#-G# pair (i10-11) and the final F#4 (i12); slurs C##-D# (i3-4), F#-E# (i8-9), A#-G# (i10-11, portato slur, joined); dash (tenuto) on G#4 i7. E#4 (i5) is written as a tie across the bar with no mark, so E#4-D#4 is null. The example stops at F#4 (i12), so i12-14 are null. Clavichord: no dynamic plan."
+ },
+ {
+  "id": "wtc2f09",
+  "pages": "87, 290",
+  "tempo": {
+   "quarter_bpm": 160,
+   "as_written": "half note = ± 80 (see Tempo Table IIa, 3)"
+  },
+  "character": "Vocal; 'flights of angels'; an instrumental 'Et in terra pax', a Christmas piece.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "Molto legato.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": "Molto legato. Basically vocal in conception",
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Tempo is a half-note sign, converted to quarter = 160. Appendix gives clavichord; on p. 87 he also names this fugue for the home organ. No dynamic plan."
+ },
+ {
+  "id": "wtc2f10",
+  "pages": "291",
+  "tempo": {
+   "quarter_bpm": 160,
+   "as_written": "half note = ± 80 (see Tempo Table IIa, 4)"
+  },
+  "character": null,
+  "subject": {
+   "basis": "explicit",
+   "quote": "Nonlegato, the prominent quarters in the theme molto portato",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 24,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 25,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 26,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 27,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 28,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 29,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 30,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 31,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 32,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 33,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 34,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 35,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 36,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 37,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 38,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 39,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 40,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 41,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 42,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 43,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 44,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 45,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 46,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 47,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": "f",
+   "shape": null,
+   "dynamics_quote": "Right hand Bar 1-23 10/12 8\", 4\""
+  },
+  "rest": {
+   "articulation_quote": "Let us merely mention that the sixteenths after a dotted note have to be played together with the last note of the triplets.",
+   "articulation_summary": "General nonlegato; dotted figures fitted to the triplets.",
+   "dynamics_plan": [
+    {
+     "bar": 1,
+     "level": "f"
+    },
+    {
+     "bar": 23,
+     "level": "p"
+    },
+    {
+     "bar": 49,
+     "level": "f"
+    },
+    {
+     "bar": 71,
+     "level": "ff"
+    },
+    {
+     "bar": 83,
+     "level": "ff"
+    }
+   ],
+   "dynamics_quote": "Registration: (for reasons of simplification we count 12 eighths)"
+  },
+  "caveats": "Tempo is a half-note sign, converted to quarter = 160. All notes detached ('Nonlegato'); quarters (molto portato) short=false. Where the theme ends is not stated, so our whole entry (to i47) gets the rule. Levels from Bodky's registration key (Chart 3: f = 8\" and 4\" (upper manual), p = 8' (lower); coupled 8',8\",4\" or full work = ff); right hand 8\",4\" 1-23 10/12, 8' to 49 10/12, 8\",4\" to 70 3/4, coupled 8',8\",4\" from 71 3/8, +16' from 83 3/8; left hand f 6-23, p 24-41, f 41-70, ff 70-86."
+ },
+ {
+  "id": "wtc2f11",
+  "pages": "249ff, 291",
+  "tempo": {
+   "quarter_bpm": 90,
+   "as_written": "dotted eighth = ± 120 (see Tempo Table IXa, 1)"
+  },
+  "character": "Light and airy; wing-line theme, perhaps a 'flight of angels'.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "Leggiero",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Tempo is a dotted eighth (one per 6/16 bar), converted to quarter = 90. Leggiero encoded as detach, short not marked. Clavichord: no dynamic plan."
+ },
+ {
+  "id": "wtc2f12",
+  "pages": "291-292",
+  "tempo": {
+   "quarter_bpm": 100,
+   "as_written": "♩ = ± 100 (see Tempo Table IIIa, 2)"
+  },
+  "character": null,
+  "subject": {
+   "basis": "explicit",
+   "quote": "Leggiero, no slurring of the upbeat; the two last sixteenths of the first bar could be lightly slurred.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 24,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 25,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 26,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 27,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 28,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 29,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 30,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 31,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 32,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 33,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 34,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 35,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Upbeat C5 detached; Db5-Bb4 (i4-5) joined (an option: 'could be'). Leggiero = detach, short not marked. Mordent on the first F of the theme advised (ornament, not encoded). Clavichord: no dynamic plan."
+ },
+ {
+  "id": "wtc2f13",
+  "pages": "125, 158, 292",
+  "tempo": {
+   "quarter_bpm": 160,
+   "as_written": "half note = ± 80 (see Tempo Table IIa, 5)"
+  },
+  "character": "Bright; makes ample use of the sigh motive in doubled values.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "Quarters nonlegato, eighths legato, the falling second of bar 4 and all corresponding places slurred.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Tempo is a half-note sign, converted to quarter = 160. Quarters F#-C#-D# and G#-B-B detached; eighth-to-eighth links joined; links into/out of the dotted quarters and sixteenths, and eighth-to-quarter, null. The slurred 'falling second of bar 4' could be B3-A#3 (i19-20) or G#3-F#3 (i21-22); not resolved, both null. Opening trill starts on the main note (ornament, not encoded). Clavichord: no dynamic plan."
+ },
+ {
+  "id": "wtc2f14",
+  "pages": "125, 134, 293",
+  "tempo": {
+   "quarter_bpm": 80,
+   "as_written": "♩ = ± 80 (see Tempo Table Ia, 29)"
+  },
+  "character": "Three-subject fugue: 'too old to be merely playful, too young to be without desire'.",
+  "subject": {
+   "basis": "rule",
+   "quote": "Theme I: all seconds legato, all other intervals portato.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": "p",
+   "shape": null,
+   "dynamics_quote": "Left hand Bar 1-20 5/8 8'"
+  },
+  "rest": {
+   "articulation_quote": "Theme II: quasi legato, the interval of the fourth portato. Theme III: all sixteenths quasi legato, the eighths portato.",
+   "articulation_summary": "Theme II quasi legato with fourths portato; theme III sixteenths quasi legato, eighths portato.",
+   "dynamics_plan": [
+    {
+     "bar": 4,
+     "level": "p"
+    },
+    {
+     "bar": 21,
+     "level": "f"
+    },
+    {
+     "bar": 37,
+     "level": "p"
+    },
+    {
+     "bar": 51,
+     "level": "f"
+    }
+   ],
+   "dynamics_quote": "Right hand Bar 4 5/8-20 3/4 8' ... 21-37 1/4 8\", 4\""
+  },
+  "caveats": "Rule applied by me: seconds joined; thirds C#-A-F#, sixth F#-D, fourth C#-F#, fifth F#-B, third A-F# detached (portato). Levels from Bodky's registration key (Chart 3: f = 8\" and 4\" (upper manual), p = 8' (lower); coupled 8',8\",4\" or full work = ff); plan is right hand; left hand: p 1-20, f 20-38, p 38-53, f 53-57, p 57-60, f 60-63, p 63-66, f 66-70. Alto entry of bar 1 taken as left hand (p)."
+ },
+ {
+  "id": "wtc2f15",
+  "pages": "134-135, 293",
+  "tempo": {
+   "quarter_bpm": 90,
+   "as_written": "dotted quarter = ± 60 (see Tempo Table Va, 7)"
+  },
+  "character": "Corrente-like 3/8 piece counted in whole bars.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "Leggiero for sixteenths",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 24,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 25,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 26,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 27,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 28,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 29,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 30,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 31,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 32,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 33,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 34,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 35,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 36,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 37,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 38,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 39,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 40,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 41,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 42,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 43,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 44,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 45,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": "concerning the eighths, only intervals of a second legato, the others nonlegato.",
+   "articulation_summary": "Eighths: seconds legato, other intervals nonlegato.",
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "The subject is all sixteenths, so only 'leggiero' applies (detach, short not marked). Tempo dotted quarter (whole 3/8 bar) converted to quarter = 90. Clavichord: no dynamic plan."
+ },
+ {
+  "id": "wtc2f16",
+  "pages": "134, 252, 294",
+  "tempo": {
+   "quarter_bpm": 80,
+   "as_written": "♩ = ± 80 (see Tempo Table IVb, 6)"
+  },
+  "character": "Molto feroce; parlando theme, a chorus of Roman soldiers in a 'Calvary' scene.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "Molto tenuto e portato, the sixteenths nonlegato",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": "f",
+   "shape": null,
+   "dynamics_quote": "Left hand Bar 1-17 5/16 8\", 4\""
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [
+    {
+     "bar": 5,
+     "level": "f"
+    },
+    {
+     "bar": 17,
+     "level": "p"
+    },
+    {
+     "bar": 20,
+     "level": "f"
+    },
+    {
+     "bar": 24,
+     "level": "p"
+    },
+    {
+     "bar": 28,
+     "level": "f"
+    },
+    {
+     "bar": 40,
+     "level": "p"
+    },
+    {
+     "bar": 45,
+     "level": "f"
+    },
+    {
+     "bar": 59,
+     "level": "p"
+    },
+    {
+     "bar": 63,
+     "level": "f"
+    },
+    {
+     "bar": 67,
+     "level": "ff"
+    },
+    {
+     "bar": 73,
+     "level": "ff"
+    }
+   ],
+   "dynamics_quote": "General character: Molto feroce"
+  },
+  "caveats": "Levels from Bodky's registration key (Chart 3: f = 8\" and 4\" (upper manual), p = 8' (lower); coupled 8',8\",4\" or full work = ff); tenor entry of bar 1 = left hand (f). Plan is right hand; left hand: f 1-17, p 17-20, f 20-24, p 24-28, f 28-32, p 32-36, f 36-40, p 40-45, f 45-67, ff 67-84 (coupled, +16' at 73). Quarters and eighths detached with short=false (tenuto e portato); sixteenths detached."
+ },
+ {
+  "id": "wtc2f17",
+  "pages": "251, 295",
+  "tempo": {
+   "quarter_bpm": 60,
+   "as_written": "♩ = ± 60 (see Tempo Table Ib, 19)"
+  },
+  "character": "Deep religious feeling (Sanctus symbol); better on the clavichord.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "Molto legato",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": "f",
+   "shape": null,
+   "dynamics_quote": "Right hand Bar 1-10 1/8 8\", 4\""
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [
+    {
+     "bar": 1,
+     "level": "f"
+    },
+    {
+     "bar": 10,
+     "level": "p"
+    },
+    {
+     "bar": 16,
+     "level": "f"
+    },
+    {
+     "bar": 27,
+     "level": "p"
+    },
+    {
+     "bar": 35,
+     "level": "f"
+    },
+    {
+     "bar": 46,
+     "level": "ff"
+    }
+   ],
+   "dynamics_quote": "Right hand Bar 46 14/16-50 8', 16', 8\", 4\""
+  },
+  "caveats": "Bodky gives a harpsichord registration but says the clavichord would intensify the religious background. Levels from Bodky's registration key (Chart 3: f = 8\" and 4\" (upper manual), p = 8' (lower); coupled 8',8\",4\" or full work = ff); plan is right hand; left hand: f 6-10, p 10-13, f 13-16, p 16-18, f 18-27, p 27-32, f 32-40, 8',16' 41-46, full from 46."
+ },
+ {
+  "id": "wtc2f18",
+  "pages": "114, 296",
+  "tempo": {
+   "quarter_bpm": 120,
+   "as_written": "dotted quarter = ± 80 (see Tempo Table VIb, 1)"
+  },
+  "character": "Magnificent double fugue: first theme, second theme, both themes.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "Molto legato; the interval of the fourth as in bar 24 and all larger intervals in interludes nonlegato.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 24,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 25,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 26,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": "pp",
+   "shape": null,
+   "dynamics_quote": "Right hand Bar 1-61 5/8 8\""
+  },
+  "rest": {
+   "articulation_quote": "the interval of the fourth as in bar 24 and all larger intervals in interludes nonlegato.",
+   "articulation_summary": "Theme molto legato; fourths and larger leaps in interludes nonlegato.",
+   "dynamics_plan": [
+    {
+     "bar": 1,
+     "level": "pp"
+    },
+    {
+     "bar": 61,
+     "level": "p"
+    },
+    {
+     "bar": 97,
+     "level": "f"
+    }
+   ],
+   "dynamics_quote": "This registration corresponds exactly with the organization of this magnificent double fugue: fugue on the first theme, fugue on the second theme, fugue on both themes."
+  },
+  "caveats": "Tempo dotted quarter converted to quarter = 120. Keller's slight slur on the first three eighths of bars 1 and 3 lies inside the general legato, so no break is encoded. Levels: 8\" alone = pp (Bodky calls 8\" 'the softest register', p. 289), 8' = p and 8\",4\" = f by Chart 3. Left hand: 8\" 5-61, 8' 61-96, 8\",4\" 97-143."
+ },
+ {
+  "id": "wtc2f19",
+  "pages": "296",
+  "tempo": {
+   "quarter_bpm": 80,
+   "as_written": "♩ = ± 80 (see Tempo Table Ia, 31)"
+  },
+  "character": "Mild, certainly not energico.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "Quasi legato; the notes d' and e' nonlegato, almost staccato",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "d' and e' taken by me as the sixteenths D4 (i7) and E4 (i9) before the dotted notes; later D4/E4 left legato. Short, detached after; links into them kept joined. Clavichord: no dynamic plan."
+ },
+ {
+  "id": "wtc2f20",
+  "pages": "297",
+  "tempo": {
+   "quarter_bpm": 80,
+   "as_written": "♩ = ± 80 (see Tempo Table Ia, 32)"
+  },
+  "character": "One of the most 'explosive' pieces Bach wrote.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "Molto marcato e tenuto; all runs quasi legato",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": null,
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": null,
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": null,
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": null,
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": null,
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": null,
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": null,
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": null,
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": null,
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": null,
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": null,
+     "short": false,
+     "accent": null
+    }
+   ],
+   "dynamic": "ff",
+   "shape": null,
+   "dynamics_quote": "Registration: \"Full work\" throughout"
+  },
+  "rest": {
+   "articulation_quote": "all runs quasi legato",
+   "articulation_summary": "Runs quasi legato.",
+   "dynamics_plan": [
+    {
+     "bar": 1,
+     "level": "ff"
+    }
+   ],
+   "dynamics_quote": "Registration: \"Full work\" throughout"
+  },
+  "caveats": "Molto tenuto: short=false, links not stated. 'Marcato' not turned into per-note accents. Full work = ff by Bodky's key."
+ },
+ {
+  "id": "wtc2f21",
+  "pages": "297-298",
+  "tempo": {
+   "quarter_bpm": 100,
+   "as_written": "♩ = ± 100 (see Tempo Table IVa, 5)"
+  },
+  "character": "'Cradle' peace on earth ('Et in terra pax'); a Christmas scene.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "Legato throughout; the falling seconds in bars 3 and 4 are slurred in pairs in all reliable copies",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": "pp",
+   "shape": null,
+   "dynamics_quote": "Left hand Bar 1-32 1/4 8\""
+  },
+  "rest": {
+   "articulation_quote": "The subdivision of the first twelve notes of the theme into two groups of six notes, as recommended by Keller, seems to us too restless",
+   "articulation_summary": "Legato throughout, falling-second pairs slurred everywhere.",
+   "dynamics_plan": [
+    {
+     "bar": 5,
+     "level": "pp"
+    },
+    {
+     "bar": 32,
+     "level": "p"
+    },
+    {
+     "bar": 78,
+     "level": "f"
+    }
+   ],
+   "dynamics_quote": "The 4\" register is drawn by the left hand in bar 32."
+  },
+  "caveats": "Pairs slurred: Eb-D, D-C (bar 3), F-Eb, Eb-D (bar 4); I detached each repeated note before a pair (i12, i14, i16, i18, i20, i22). Levels: 8\" alone = pp (his 'softest register'), 8' = p, 8\",4\" = f. Left hand: pp 1-32, p 33-69, f 69-93."
+ },
+ {
+  "id": "wtc2f22",
+  "pages": "87, 298-299",
+  "tempo": {
+   "quarter_bpm": 160,
+   "as_written": "half note = ± 80 (see Tempo Table Xa, 3)"
+  },
+  "character": "The most majestic fugue of volume II; the organ is more fitting.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "See Example A7. Only the slurs are quasi legato",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": "detach",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 24,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 25,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 26,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": "ff",
+   "shape": null,
+   "dynamics_quote": "Right hand Bar 1-27 3/4 8', 16', 8\", 4\""
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [
+    {
+     "bar": 1,
+     "level": "ff"
+    },
+    {
+     "bar": 27,
+     "level": "f"
+    },
+    {
+     "bar": 42,
+     "level": "ff"
+    },
+    {
+     "bar": 67,
+     "level": "f"
+    },
+    {
+     "bar": 80,
+     "level": "ff"
+    }
+   ],
+   "dynamics_quote": "the Prelude and Fugue in B flat minor, W.K. II, which seems to be too powerful for any harpsichord"
+  },
+  "caveats": "Marks read from Ex. A7: dashes (tenuto) on Bb, C, Eb, A, Bb and F4 (i21); dot-and-dash (portato) on C4 (i6) and Gb4 (i22); a small mark on Db4 (i2), unclear. Slurs over each group of four eighths in bar 3 (i7-10, 11-14, 15-18), over Gb-Eb (i19-20), and over the closing C-Db-Eb (i23-25; C looks beamed with the eighths, unclear). Unslurred notes detached ('only the slurs are quasi legato'). The example ends at Eb4 (i25), so i25-26 are null. Half-note tempo converted to quarter = 160. Levels from Bodky's registration key (Chart 3: f = 8\" and 4\" (upper manual), p = 8' (lower); coupled 8',8\",4\" or full work = ff); left hand: ff 5-26, f 27-41, ff 42-66, f 67-80, ff 80-101."
+ },
+ {
+  "id": "wtc2f23",
+  "pages": "299",
+  "tempo": {
+   "quarter_bpm": 160,
+   "as_written": "half note = ± 80 (see Tempo Table IIa, 6)"
+  },
+  "character": "Of lesser 'height' than the B flat minor fugue, so less sound.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "Tenuto e quasi legato",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "join",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "join",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "join",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "join",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "join",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "join",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "join",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "join",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "join",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "join",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "join",
+     "short": false,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": null,
+     "short": false,
+     "accent": null
+    }
+   ],
+   "dynamic": "ff",
+   "shape": null,
+   "dynamics_quote": "Left hand Bar 1-27 1/2 8\", 4\", 16'"
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [
+    {
+     "bar": 5,
+     "level": "ff"
+    },
+    {
+     "bar": 28,
+     "level": "f"
+    },
+    {
+     "bar": 49,
+     "level": "ff"
+    },
+    {
+     "bar": 60,
+     "level": "f"
+    },
+    {
+     "bar": 86,
+     "level": "ff"
+    }
+   ],
+   "dynamics_quote": "we suggest deducting the 8' register from the \"full work.\""
+  },
+  "caveats": "Half-note tempo converted to quarter = 160. Tenuto e quasi legato encoded as join with short=false. Levels: 8\",4\",16' coupled (full work minus 8') = ff, 8\",4\" = f (Bodky's key). Left hand: ff 1-27, f 27-47, ff 48-60, f 60-74, ff 75-104."
+ },
+ {
+  "id": "wtc2f24",
+  "pages": "113, 219, 239, 300",
+  "tempo": {
+   "quarter_bpm": 90,
+   "as_written": "dotted quarter = ± 60 (see Tempo Table Va, 8)"
+  },
+  "character": "Passepied; an unassuming 'Ausklang' (final sound) for the whole collection.",
+  "subject": {
+   "basis": "explicit",
+   "quote": "The upbeat eighth staccato; in the first bar, the first two notes slurred, the last eighth staccato; staccato, too, throughout bars 3 and 4 and first eighth of bar 5; all the rest legato.",
+   "notes": [
+    {
+     "i": 0,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 1,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 2,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 3,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 4,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 5,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 6,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 7,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 8,
+     "to_next": "detach",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 9,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 10,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 11,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 12,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 13,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 14,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 15,
+     "to_next": "detach",
+     "short": true,
+     "accent": null
+    },
+    {
+     "i": 16,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 17,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 18,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 19,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 20,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 21,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 22,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 23,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 24,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 25,
+     "to_next": "join",
+     "short": null,
+     "accent": null
+    },
+    {
+     "i": 26,
+     "to_next": null,
+     "short": null,
+     "accent": null
+    }
+   ],
+   "dynamic": null,
+   "shape": null,
+   "dynamics_quote": null
+  },
+  "rest": {
+   "articulation_quote": null,
+   "articulation_summary": null,
+   "dynamics_plan": [],
+   "dynamics_quote": null
+  },
+  "caveats": "Bar 1 = D4 B3 A#3 after the upbeat F#4. Bar 2 and bar 5 from i16 are legato; F#4-G4 (i8-9) detached because G4 is staccato. Bodky rejects Keller's legato upbeat (p. 219: a one-note upbeat is never slurred). Tempo dotted quarter (whole 3/8 bar) converted to quarter = 90. Clavichord: no dynamic plan."
+ }
+]

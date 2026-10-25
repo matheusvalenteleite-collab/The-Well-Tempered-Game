@@ -78,7 +78,8 @@ export const tiersOpen = (won: ReadonlySet<string> = beatenFugues()): Tier[] => 
 
 /** D232: whether a Book I piece's tier (its fugue's) is still closed: prelude and fugue alike. */
 export function tierLocked(id: string, won: ReadonlySet<string> = beatenFugues()): boolean {
-  const t = tierOf(id);
+  // D275: Book II has difficulty tiers now (play.html's colours) but is never locked.
+  const t = /^wtc1/.test(id) ? tierOf(id) : null;
   return !!t && !tiersOpen(won).includes(t);
 }
 

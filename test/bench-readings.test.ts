@@ -13,7 +13,7 @@ test("D272: every reading belongs to a Book I fugue, at most three a fugue, one 
   const ids = Object.keys(READINGS);
   assert.ok(ids.length >= 10, `${ids.length} fugues with a reading`);
   for (const id of ids) {
-    assert.match(id, /^wtc1f\d\d$/);
+    assert.match(id, /^wtc[12]f\d\d$/);
     const rs = readingsOf(id);
     assert.ok(rs.length >= 1 && rs.length <= 3, id);
     assert.equal(new Set(rs.map((r) => r.id)).size, rs.length, `${id}: one reading an author`);

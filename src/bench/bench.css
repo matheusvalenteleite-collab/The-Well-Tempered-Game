@@ -630,3 +630,4 @@
 .tb-hear-quote cite { display: block; margin-top: 4px; font-style: normal; font-size: 11px; color: var(--tg-muted); }
 .tb-hear-play { justify-self: center; font-size: 10px; padding: 9px 18px; }
 @media (max-height: 520px) { .tb-hear-canvas { height: 110px; } .tb-hear { gap: 5px; padding: 10px; } }
+.tb-lite-book { margin: 10px 0 0; font-family: var(--tg-pixel); font-size: 10px; color: var(--tg-shine); letter-spacing: 0.08em; text-shadow: 2px 2px 0 #b8322a; }
