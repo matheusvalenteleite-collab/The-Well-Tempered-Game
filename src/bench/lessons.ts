@@ -264,9 +264,11 @@ export const MOBILE_LESSONS: Lesson[] = [
 /**
  * D270, THE TUTORIAL (the phone's track, the first item of play.html's list): Bach's Invention No. 1 in
  * C major, BWV 772 (data/touch/tutorial.json), on LADDER, step by step, each passed before the next:
- * the ladder (waiting at each note), the beat, the two thumbs, legato (heard detached, then joined, then
- * played), loud and soft, the slide (one way only: D271), the subject, the whole invention. The right
- * hand throughout (the upper voice), the left for the subject's lesson. Every two-voice texture a fugue
+ * the ladder (the right hand's opening entry alone, waiting at each note); D273: then at once with the
+ * other voice: the right hand plays itself (drawn in the box) and the player enters with the left
+ * hand's answer on the beat; the left hand again for the two thumbs (taking turns, either first),
+ * legato (heard detached, then joined, then played), loud and soft, the slide (one way only: D271);
+ * the right hand against the left for the subject; the whole invention. Every two-voice texture a fugue
  * has is here: the subject in both hands, inverted, in new keys.
  */
 export const INVENTION = "inv01";
@@ -288,21 +290,21 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     mode: "ladder",
     title: "DIE LEITER",
     english: "THE LADDER",
-    intro: [{ text: "Hold the phone sideways. Touch either bar at the note's height: higher as the tune rises, lower as it falls." }, { text: "This is my first Invention. Follow the glow; I will wait at every note." }],
+    intro: [{ text: "Hold the phone sideways. Touch either bar at the note's height: higher as the tune rises, lower as it falls." }, { text: "This is how my first Invention begins. Play its opening alone; I will wait at every note." }],
     praise: [{ text: "Recht. Your thumb drew the line." }],
     again: [{ text: "Higher when it rises, lower when it falls. Again." }],
-    run: () => invention({ toBar: 3, wait: true }),
+    run: () => invention({ toBar: 2, wait: true }),
     passAt: 0.85,
   },
   {
-    id: "t-beat",
+    id: "t-second",
     mode: "ladder",
-    title: "DER TAKT",
-    english: "THE BEAT",
-    intro: [{ text: "Now I will not wait. Touch each note as it reaches the line, not before, not after." }],
-    praise: [{ text: "Good. The line and the time: that is playing." }],
-    again: [{ text: "Let the note come to you. Again." }],
-    run: () => invention({ toBar: 3 }),
+    title: "DIE ZWEITE STIMME",
+    english: "THE SECOND VOICE",
+    intro: [{ text: "Now the right hand plays by itself: watch its subject go by, drawn thin in the box." }, { text: "Then you enter, in the left hand, with the same subject. I will not wait: on the beat." }],
+    praise: [{ text: "Two voices, one conversation. That is counterpoint." }],
+    again: [{ text: "Wait for your entry, then come in on the beat. Again." }],
+    run: () => invention({ voice: 1, toBar: 3, solo: false }),
     passAt: 0.8,
   },
   {
@@ -310,10 +312,10 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     mode: "ladder",
     title: "ZWEI DAUMEN",
     english: "TWO THUMBS",
-    intro: [{ text: "Quick notes want both thumbs, one after the other, as a keyboard player uses his fingers." }, { text: "The hand on the bars shows whose turn it is. Left, right, left: never one thumb twice." }],
+    intro: [{ text: "Quick notes want both thumbs, one after the other, as a keyboard player uses his fingers." }, { text: "Start with either; then take turns. The hand on the bars shows whose turn it is." }],
     praise: [{ text: "So. Two thumbs walk where one would stumble." }],
     again: [{ text: "One thumb did all the work. Take turns. Again." }],
-    run: () => invention({ toBar: 3, coach: "thumbs" }),
+    run: () => invention({ voice: 1, toBar: 3, solo: false, coach: "thumbs" }),
     passAt: 0.8,
     pass: (r) => accuracy(r) >= 0.8 && r.thumbs.of > 0 && r.thumbs.alt / r.thumbs.of >= 0.7,
   },
@@ -328,7 +330,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     ],
     praise: [{ text: "As I wrote on my Inventions: a cantabile manner of playing. That is it." }],
     again: [{ text: "The notes fell apart. Touch the next before you let go. Again." }],
-    run: () => invention({ toBar: 3 }),
+    run: () => invention({ voice: 1, toBar: 3, solo: false }),
     passAt: 0.8,
     pass: (r) => accuracy(r) >= 0.8 && r.art.legatoOf > 0 && r.art.legato / r.art.legatoOf >= 0.6,
   },
@@ -337,10 +339,10 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     mode: "ladder",
     title: "LAUT UND LEISE",
     english: "LOUD AND SOFT",
-    intro: [{ text: "Where you touch the bar is how loud: soft by the box, loud by the edge." }, { text: "Say the first bar softly, the second loudly, as an echo turned round." }],
+    intro: [{ text: "Where you touch the bar is how loud: soft by the box, loud by the edge." }, { text: "Answer softly in the first bar, loudly in the second, as an echo turned round." }],
     praise: [{ text: "A harpsichord has two keyboards for this. You have two thumbs." }],
     again: [{ text: "Soft near the box, loud near the edge. Again." }],
-    run: () => invention({ toBar: 3, coach: "dynamics" }),
+    run: () => invention({ voice: 1, toBar: 3, solo: false, coach: "dynamics" }),
     passAt: 0.75,
     pass: (r) => {
       const a = meanIn(r, 1);
@@ -356,7 +358,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     intro: [{ text: "Keep a thumb down and slide it up the bar: the rising notes sound joined, one after another." }, { text: "But one way only. To turn back, lift and touch again. Slide the rising notes." }],
     praise: [{ text: "Good. A slide is a convenience; the thumbs are the art." }],
     again: [{ text: "Hold the thumb down and slide up with the tune. Again." }],
-    run: () => invention({ toBar: 3 }),
+    run: () => invention({ voice: 1, toBar: 3, solo: false }),
     passAt: 0.8,
     pass: (r) => accuracy(r) >= 0.8 && r.slides >= 2,
   },
@@ -367,11 +369,11 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     english: "THE SUBJECT",
     intro: [
       { text: "This little figure is the subject; the whole piece is made of it. Listen.", demo: "subject" },
-      { text: "Gold frames it wherever it goes. Take the left hand: catch the subject each time it comes to you." },
+      { text: "Gold frames it wherever it goes. Now the right hand, the left by itself: catch each subject of yours." },
     ],
     praise: [{ text: "That is a fugue in small: one subject, passed from voice to voice." }],
     again: [{ text: "The subject must be said whole, or it is not the subject. Again." }],
-    run: () => invention({ voice: 1, toBar: 5, solo: false }),
+    run: () => invention({ voice: 0, toBar: 6, solo: false }),
     passAt: 0.8,
     pass: (r) => accuracy(r) >= 0.8 && r.captured >= 2,
   },
