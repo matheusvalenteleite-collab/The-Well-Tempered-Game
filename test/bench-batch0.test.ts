@@ -154,9 +154,11 @@ test("D249: the organ's swell bounded, ORGANO PLENO scaled, and on a phone the l
 
 test("D249: the organ out: no piece opens on it, the players cannot choose it, a stored choice opens on the harpsichord", () => {
   assert.ok(!Object.values(PIECE_SOUND).includes("organSampled"));
-  for (const id of ["wtc1f01", "wtc1f22", "wtc2f22", "bwv1080-14"]) assert.equal(PIECE_SOUND[id], "harpsichordSampled", id);
+  for (const id of ["wtc2f22", "bwv1080-14"]) assert.equal(PIECE_SOUND[id], "harpsichordSampled", id);
+  // D266: Book I's stile antico fugues now on strings (recorded).
+  for (const id of ["wtc1f01", "wtc1f22"]) assert.equal(PIECE_SOUND[id], "stringsReal", id);
   assert.ok(!PRESETS.some((p) => p.id === "organSampled"));
   assert.ok(!FAMILIES.some((f) => f.presets.some((p) => p.id === "organSampled")));
   assert.equal(presetById("organSampled").id, "harpsichordSampled");
-  assert.equal(soundFor("wtc1f22", { wtc1f22: "organSampled" }, "bossa"), "harpsichordSampled");
+  assert.equal(soundFor("wtc2f22", { wtc2f22: "organSampled" }, "bossa"), "harpsichordSampled");
 });

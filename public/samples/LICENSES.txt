@@ -83,3 +83,8 @@ pipeOrgan/ pipePedal/  VCSL "Pipe Organ", sampled by Simon Dalzell of Ivy Audio 
          Processing: mixed to mono; onset kept 1 ms before the attack; a loop of 1.6-2.4 s from 1 s in, found by
          cross-correlation, its crossfade baked in (150 ms; pedal 250 ms); each note's steady level brought three
          quarters of the way to the manual's median; mono 44.1 kHz 96 kbit/s MP3. Scripts: tools/playback/harpsichord/.
+
+D266, the ensembles' looped instruments (tools/playback/ensemble/build.py: trimmed, tuned by measurement, a loop with a baked crossfade, levelled; mono 96 kbit/s MP3):
+lpViolin/ lpViola/ lpCello/ lpClarinet/   Made from violin/, violaSus/, cello/ and clarinet/ above (their sources and licences).
+lpFlute/ lpOboe/ lpBassoon/   VS Chamber Orchestra 2: Community Edition, Versilian Studios (Woodwinds: Flute susNV, Oboe Sus, Bassoon sus). CC0 1.0.
+         Source: https://github.com/sgossner/VSCO-2-CE
