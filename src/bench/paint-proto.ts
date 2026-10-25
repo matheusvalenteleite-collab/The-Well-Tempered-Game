@@ -70,7 +70,9 @@ function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoG
   const cy = desk ? y + 16 : y + 28;
   if (combo) label(c, `COMBO ${g.combo}`, x, cy, t.muted, 6);
   const below = combo ? 12 : 0;
-  if (g.pleno) label(c, "PLENO ×2", bars ? w - (w * BAR) / 2 : x, bars ? h * 0.12 : y + 32 + below, t.gold, 7);
+  // D268: the right bar's live sheet: the share of right notes so far, the subject's entries captured, the crowd.
+  if (bars) liveSheet(c, w, h, g, t);
+  if (g.pleno) label(c, "PLENO ×2", bars ? w - (w * BAR) / 2 : x, bars ? h * 0.12 + 74 : y + 32 + below, t.gold, 7);
   // D218: the legato chain under way.
   if (g.chain >= 2) label(c, `LEGATO ×${g.chain}`, x, bars ? h * 0.12 + 30 + below : desk ? y + 16 + below : y + (g.pleno ? 46 : 32) + below, LEGATO_INK, 6);
   // CON FUOCO: embers rising along the edges while the run lasts.
@@ -94,6 +96,35 @@ function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoG
       label(c, b.text, w / 2, h * 0.3, b.text.startsWith("ORGANO") ? t.gold : "#ff8a3d", size);
       c.globalAlpha = 1;
     }
+  }
+}
+
+/** D268: the right bar's top: ACCURACY so far, SUBJECTS captured of those come, the crowd's meter. */
+function liveSheet(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
+  const bw = w * BAR;
+  const x = w - bw / 2;
+  let y = h * 0.12;
+  const acc = g.liveAccuracy();
+  label(c, acc === null ? "—" : `${Math.floor(acc * 100)}%`, x, y, acc === null || acc >= 0.9 ? t.fg : acc >= 0.8 ? t.shine : t.wrong, 9);
+  label(c, "ACCURACY", x, y + 12, t.muted, 5);
+  y += 28;
+  const come = g.entries.filter((e) => e.state !== "open").length;
+  if (g.entries.length) {
+    label(c, `${g.entries.filter((e) => e.state === "captured").length}/${come}`, x, y, t.gold, 8);
+    label(c, "SUBJECTS", x, y + 11, t.muted, 5);
+    y += 26;
+  }
+  if (g.o.fail) {
+    const mw = Math.max(24, bw * 0.6);
+    const grad = c.createLinearGradient(x - mw / 2, 0, x + mw / 2, 0);
+    grad.addColorStop(0, "#e2533f");
+    grad.addColorStop(0.45, "#e8c94a");
+    grad.addColorStop(1, "#5fdc6a");
+    c.fillStyle = "#1d1a24";
+    c.fillRect(Math.round(x - mw / 2), Math.round(y), Math.round(mw), 5);
+    c.fillStyle = grad;
+    c.fillRect(Math.round(x - mw / 2), Math.round(y), Math.round(mw * g.crowd), 5);
+    label(c, "CROWD", x, y + 13, g.crowd < 0.25 ? t.wrong : t.muted, 5);
   }
 }
 

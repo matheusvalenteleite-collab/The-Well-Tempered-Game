@@ -228,3 +228,6 @@ grade means, how unlocks (sounds, voices, tempos) follow from it.
 - Book II: defaults, voices and arcs read the same way.
 - The KIMIKO track decoded without the stereo peak.
 - Three-finger play: only with the phone flat (optional, never required).
+- The list's cards (play.html, D265): the text on the right is to show each piece's BONUS CHALLENGE as well
+  (the owner, 25 October 2026); the challenges themselves to be revised first (cards.ts seals), and improved
+  over time. Not shown yet.

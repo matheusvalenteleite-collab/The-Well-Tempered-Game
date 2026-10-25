@@ -59,7 +59,9 @@ import type { ArtStats } from "./articulation.ts";
 import { VERSION } from "./version.ts";
 import { APP } from "./config.ts";
 import { defaultVoice, nextIn } from "./flow.ts";
-import { LITE_HINT, liteAll, litePlatform, soundUnlocked, litePlatformPref, readLite, recordLite, RULES, saveLitePlatform, startHere, writeLite } from "./lite.ts";
+import { SheetCard } from "./SheetCard.tsx";
+import type { Sheet } from "./score-sheet.ts";
+import { LITE_HINT, liteAll, litePlatform, soundUnlocked, litePlatformPref, readLite, recordLite, recordLiteBest, RULES, saveLitePlatform, startHere, writeLite } from "./lite.ts";
 import { LiteGrid } from "./LiteGrid.tsx";
 import { PlayPop } from "./PlayPop.tsx";
 import { tierCards } from "./tiers.ts";
@@ -165,7 +167,7 @@ export function sane(p: Pick): Pick {
 }
 
 /** D237: "title" is the pop-up over the cards (HOME, the wheel, the minimal page's grid). */
-type Phase = { kind: "home" } | { kind: "title" } | { kind: "play" } | { kind: "result"; stage?: { won: boolean; fugue: string }; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; art?: ArtStats; lanes?: { exact: number; relative: number }; report?: string; seal: { kind: string; earned: boolean; why: string } | null; feats?: FeatId[]; opened?: Tier[]; next?: string | null } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "lessons"; focus?: ProtoId } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
+type Phase = { kind: "home" } | { kind: "title" } | { kind: "play" } | { kind: "result"; stage?: { won: boolean; fugue: string }; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; lastBar?: number; progress?: number; sheet?: Sheet; best?: { before: number | null; fresh: boolean } | null; art?: ArtStats; lanes?: { exact: number; relative: number }; report?: string; seal: { kind: string; earned: boolean; why: string } | null; feats?: FeatId[]; opened?: Tier[]; next?: string | null } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "lessons"; focus?: ProtoId } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
 
 export function BenchApp() {
   // D233: the game opens on HOME.
@@ -453,7 +455,9 @@ export function BenchApp() {
           const opened: Tier[] = [];
           const st = readLite();
           setLite(st);
-          setPhase({ kind: "result", ...r, seal: null, opened, next: nextIn(liteAll(platform === "mobile"), f.id) });
+          // D268: a whole piece finished: its final score against the best.
+          const best = r.failedBar === null && from === 0 ? recordLiteBest(f.id, r.sheet.final) : null;
+          setPhase({ kind: "result", ...r, best, seal: null, opened, next: nextIn(liteAll(platform === "mobile"), f.id) });
         } else {
           // D214: SUBJECT's grade is not any one voice's.
           if (r.failedBar === null && !subjectMode) recordBest(f.id, played, r.grade);
@@ -790,13 +794,25 @@ export function BenchApp() {
             <button type="button" id="result-close" className="tg-x tb-result-x" aria-label="Back to the cards" onClick={home}>
               ✕
             </button>
-            {phase.failedBar !== null ? (
-              <h1 className="tb-grade tb-failed">THE CROWD LEFT</h1>
+            {phase.sheet ? (
+              <SheetCard
+                head={phase.failedBar !== null ? <h1 className="tb-grade tb-failed">THE CROWD LEFT</h1> : <h1 className={`tb-grade${phase.grade === "S" || phase.grade === "A" ? " tg-gold" : ""}`}>{phase.grade}</h1>}
+                sheet={phase.sheet}
+                score={phase.score}
+                failed={phase.failedBar !== null}
+                failedBar={phase.failedBar}
+                lastBar={phase.lastBar ?? 0}
+                progress={phase.progress ?? 1}
+                maxStreak={phase.maxStreak}
+                best={phase.best}
+              />
             ) : (
-              <h1 className={`tb-grade${phase.grade === "S" || phase.grade === "A" ? " tg-gold" : ""}`}>{phase.grade}</h1>
+              <>
+                {phase.failedBar !== null ? <h1 className="tb-grade tb-failed">THE CROWD LEFT</h1> : <h1 className={`tb-grade${phase.grade === "S" || phase.grade === "A" ? " tg-gold" : ""}`}>{phase.grade}</h1>}
+                {phase.failedBar !== null && <p className="tg-card-sub">BAR {phase.failedBar}</p>}
+                <p className="tb-score">{phase.score.toLocaleString("en")}</p>
+              </>
             )}
-            {phase.failedBar !== null && <p className="tg-card-sub">BAR {phase.failedBar}</p>}
-            <p className="tb-score">{phase.score.toLocaleString("en")}</p>
             {phase.lanes && laneLine(phase.lanes) && (
               <p className="tb-lane-line" id="lane-line" title="LANE: the note's own lane (full points) · DIRECTION: another lane the right way (half)">
                 {laneLine(phase.lanes)}

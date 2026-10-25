@@ -241,7 +241,14 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
     g.globalAlpha = 0.3;
     g.fillStyle = "#000";
     if (oh === bh) g.fillRect(x1 + 1, yOf(o.step) + 1, Math.max(1, x2 - x1 - 1), bh - 1);
-    g.globalAlpha = subjNotes.has(`${o.voice}:${o.on}`) ? 1 : oh === bh ? 0.5 : 0.75;
+    const isSubj = subjNotes.has(`${o.voice}:${o.on}`);
+    // D267: a subject note framed in gold (the player's own too, below): the subject recognised wherever it is.
+    if (isSubj && oh === bh) {
+      g.globalAlpha = 1;
+      g.fillStyle = fx.gold;
+      g.fillRect(x1 - 1, yOf(o.step) - 1, Math.max(1, x2 - x1 - 1) + 2, bh + 1);
+    }
+    g.globalAlpha = isSubj ? 1 : oh === bh ? 0.5 : 0.75;
     g.fillStyle = inkOf(o.voice, fr.count);
     g.fillRect(x1, yOf(o.step), Math.max(1, x2 - x1 - 1), oh === bh ? bh - 1 : oh);
     if (!fr.spans && fr.subject?.has(`${o.voice}:${o.on}`)) dots(g, x1, x2, yOf(o.step), tok("--tg-fg"));
@@ -285,7 +292,8 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       // D202: each block extruded a pixel down and right (a voxel), then outlined and filled.
       g.fillStyle = "rgba(0,0,0,0.55)";
       g.fillRect(x1 + 1, y + 1, bw + 1, bh);
-      g.fillStyle = edge;
+      // D267: the player's subject notes outlined in gold, the rest in the usual edge.
+      g.fillStyle = subjNotes.has(`${n.voice ?? pv}:${n.on}`) ? fx.gold : edge;
       g.fillRect(x1 - 1, y - 1, bw + 2, bh + 1);
       g.fillStyle = ink;
       g.fillRect(x1, y, bw, bh - 1);
