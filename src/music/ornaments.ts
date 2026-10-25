@@ -41,6 +41,13 @@ export interface OrnamentContext {
    * Nachschlag, the step below and the note, §13).
    */
   style?: OrnamentStyle;
+  /**
+   * D281: the neighbours from the music, not from the sign's case: the step above and below as given
+   * (the next letter, with the accidental in force), for every sign. The encodings' case (T a whole
+   * step, t a half) proved unreliable (II/13: a whole-step T on B sharp, a W on A sharp in F sharp
+   * major: trills on D and C naturals).
+   */
+  diatonic?: boolean;
 }
 
 export const ORNAMENT_STYLES = ["explication", "cpe"] as const;
@@ -75,7 +82,7 @@ export function realise(n: Sounding, signs: string, graces: { kind: "q" | "Q"; m
       out.push({ midi, at: s, dur: k === pitches.length - 1 ? n.at + n.dur - s : u });
     });
   const has = (c: string) => signs.includes(c);
-  const trillUp = has("T") ? 2 : has("t") ? 1 : ctx.stepAbove(N);
+  const trillUp = ctx.diatonic ? ctx.stepAbove(N) : has("T") ? 2 : has("t") ? 1 : ctx.stepAbove(N);
   if (has("T") || has("t") || has("O")) {
     const U = N + trillUp;
     // Alternate for most of the note (the Explication's Trillo: five notes then the main note held on
@@ -94,9 +101,9 @@ export function realise(n: Sounding, signs: string, graces: { kind: "q" | "Q"; m
     if (closing) notes.push(N - ctx.stepBelow(N));
     seq([...notes, N]);
   } else if (has("M") || has("m")) {
-    seq([N, N - (has("M") ? 2 : 1), N]);
+    seq([N, N - (ctx.diatonic ? ctx.stepBelow(N) : has("M") ? 2 : 1), N]);
   } else if (has("W") || has("w")) {
-    const up = has("W") ? 2 : 1;
+    const up = ctx.diatonic ? ctx.stepAbove(N) : has("W") ? 2 : 1;
     const fromAbove = ctx.prevMidi !== undefined && ctx.prevMidi - N > 0 && ctx.prevMidi - N <= 2;
     seq(fromAbove ? [N, N + up, N] : [N + up, N, N + up, N]);
   } else if (has("S")) {

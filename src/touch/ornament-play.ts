@@ -112,8 +112,8 @@ export function ornamentMark(o: Ornament): string {
  */
 export function realiseNote(f: TouchFugue, o: Ornament, on: number, dur: number, midi: number, prevMidi: number | undefined, bpm: number): [number, number, number][] {
   const q = f.tpq;
-  const steps = keySteps(signature(f.key));
-  const parts = realise({ midi, at: on / q, dur: dur / q }, o.signs, o.graces, { unit: ornamentUnit(bpm / 2), prevMidi, ...steps });
+  const steps = contextSteps(f, on, midi, o.signs);
+  const parts = realise({ midi, at: on / q, dur: dur / q }, o.signs, o.graces, { unit: ornamentUnit(bpm / 2), prevMidi, ...steps, diatonic: true });
   return parts.map((p) => [Math.round(p.at * q), Math.max(1, Math.round(p.dur * q)), p.midi]);
 }
 
@@ -135,4 +135,35 @@ export function shakeOf(o: Ornament): Shake | null {
   if (/[Ww]/.test(s)) return { kind: "short", word: "TRILL", first: 1, need: 2 };
   if (/[S$]/.test(s)) return { kind: "turn", word: "TURN", first: 1, need: 4 };
   return null;
+}
+
+const LETTER_PC = [0, 2, 4, 5, 7, 9, 11];
+/**
+ * D281: an ornamented note's neighbours as a player reads them, the next letter up (down) with its
+ * accidental: (1) as the bar shows it: the last note of that letter in any voice since the bar began
+ * (up to the note itself); else (2) as the sign says where it says a half step (t, w, m: kern's
+ * lower case, written deliberately: II/12's mordents on the tonic with the leading note below); else
+ * (3) the key signature's. The encodings' upper case (T, W, M: a whole step) is not trusted: it is
+ * their plain default (II/13: a whole-step trill on B sharp and on A sharp in F sharp major).
+ */
+export function contextSteps(f: TouchFugue, on: number, midi: number, signs = ""): { stepAbove(m: number): number; stepBelow(m: number): number } {
+  const sig = keySteps(signature(f.key));
+  let step: number | null = null;
+  for (const v of f.voices) for (const n of v) if (n[0] === on && n[2] === midi) step = n[3];
+  if (step === null) return sig;
+  const barOn = [...f.bars].reverse().find((b) => b.on <= on)?.on ?? 0;
+  const alter = signature(f.key);
+  const pcOf = (m: number) => ((m % 12) + 12) % 12;
+  const neighbour = (dir: 1 | -1): number | null => {
+    const letter = ((((step as number) + dir) % 7) + 7) % 7;
+    const dist = (pc: number) => (dir > 0 ? (pc - pcOf(midi) + 12) % 12 : (pcOf(midi) - pc + 12) % 12);
+    let best: [number, number] | null = null;
+    for (const v of f.voices) for (const n of v) if (n[0] >= barOn && n[0] <= on && (((n[3] % 7) + 7) % 7) === letter && !(n[0] === on && n[2] === midi) && (!best || n[0] >= best[0])) best = [n[0], pcOf(n[2])];
+    if (best && (dist(best[1]) === 1 || dist(best[1]) === 2)) return dist(best[1]);
+    if (dir > 0 ? /[tw]/.test(signs) : /m/.test(signs)) return 1;
+    const fromSig = pcOf(LETTER_PC[letter] + (alter["CDEFGAB"[letter]] ?? 0));
+    return dist(fromSig) === 1 || dist(fromSig) === 2 ? dist(fromSig) : null;
+  };
+  // Nothing fits (a letter the signature puts an augmented second away): a whole step.
+  return { stepAbove: () => neighbour(1) ?? 2, stepBelow: () => neighbour(-1) ?? 2 };
 }

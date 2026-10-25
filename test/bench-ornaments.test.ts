@@ -33,3 +33,29 @@ test("D278: how each ornament is shaken: a trill up four moves, a mordent down t
   assert.equal(shakeOf({ signs: "S", graces: [] })?.kind, "turn");
   assert.equal(shakeOf({ signs: "", graces: [{ kind: "q", midi: 60 }] }), null);
 });
+
+test("D281: an ornament's neighbour is the next letter with the accidental in force, not the sign's case: II/13's trills on B sharp to C sharp, on A sharp to B; II/12's mordent on F to E natural; never beyond a whole step", async () => {
+  const { realiseNote } = await import("../src/touch/ornament-play.ts");
+  const f = fugueById("wtc2f13");
+  const o = ornamentsOf(f);
+  const at = (on: number, v = 0) => f.voices[v].find((n) => n[0] === on)!;
+  const parts = (on: number, v = 0) => {
+    const n = at(on, v);
+    return realiseNote(f, o.get(`${v}:${on}`)!, n[0], n[1], n[2], undefined, 132).map((p) => p[2]);
+  };
+  assert.ok(parts(30720).includes(73) && !parts(30720).includes(74), "B#4 trill with C#5");
+  assert.ok(parts(188160).includes(71) && !parts(188160).includes(72), "A#4 short trill with B4");
+  const g = fugueById("wtc2f12");
+  const e = g.entries.filter((x) => !x.theme).sort((a, b) => a.on - b.on)[0];
+  const [on, dur, midi] = e.notes[1];
+  assert.deepEqual(realiseNote(g, ornamentsOf(g).get(`${e.voice}:${on}`)!, on, dur, midi, undefined, 84).map((p) => p[2]).slice(0, 3), [midi, midi - 1, midi], "F, E natural, F");
+  for (const id of Array.from({ length: 48 }, (_, i) => `wtc${i < 24 ? 1 : 2}f${String((i % 24) + 1).padStart(2, "0")}`)) {
+    const h = fugueById(id);
+    for (const [k, orn] of ornamentsOf(h)) {
+      const [v, t] = k.split(":").map(Number);
+      const n = h.voices[v].find((x) => x[0] === t);
+      if (!n) continue;
+      for (const m of realiseNote(h, orn, n[0], n[1], n[2], undefined, 80).map((p) => p[2])) assert.ok(Math.abs(m - n[2]) <= 2, `${id} ${k}: ${m} against ${n[2]}`);
+    }
+  }
+});
