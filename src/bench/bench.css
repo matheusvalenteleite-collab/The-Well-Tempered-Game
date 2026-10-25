@@ -558,3 +558,15 @@
 .tb-lag-note { font-family: var(--tg-pixel); font-size: 8px; line-height: 1.8; color: var(--tg-shine); }
 .tb-lag-note .tg-link { font-family: var(--tg-pixel); font-size: 8px; }
 .tb-lite > .tb-lite-grid { max-width: 1100px; margin: 0 auto 16px; }
+/* D265: the pieces as a list, first to last: the card's picture (numbered) on the left, what the piece is on the right. */
+.tb-lite-list { list-style: none; max-width: 760px; margin: 0 auto 16px; padding: 0; display: grid; gap: 10px; }
+.tb-lite-list .tb-lite-card { grid-template-columns: minmax(120px, 42%) 1fr; align-items: center; gap: 12px; width: 100%; padding: 6px; }
+.tb-lite-pic-wrap { position: relative; display: block; }
+.tb-lite-pic-wrap .tb-lite-pic { display: block; width: 100%; height: auto; aspect-ratio: 64 / 40; image-rendering: pixelated; background: #000; }
+.tb-lite-num { position: absolute; left: 4px; bottom: 4px; min-width: 18px; padding: 3px 4px; font-family: var(--tg-pixel); font-size: 10px; line-height: 1; text-align: center; color: #1a1620; background: var(--tint, var(--tg-shine)); box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5); }
+.tb-lite-info { position: relative; display: grid; gap: 6px; align-content: center; min-width: 0; }
+.tb-lite-list .tb-lite-title { font-size: 8px; }
+.tb-lite-meta { font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-muted); }
+.tb-lite-list .tb-lite-start { position: static; justify-self: start; }
+.tb-lite-list .tb-lite-done { top: 4px; left: auto; right: 4px; }
+.tb-pop-lock { margin: 4px 0 0; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-muted); }

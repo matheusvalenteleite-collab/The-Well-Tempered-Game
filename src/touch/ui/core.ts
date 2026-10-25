@@ -316,9 +316,10 @@ export function pframe(g: CanvasRenderingContext2D, x: number, y: number, w: num
   prect(g, x + w - 1, y, 1, h, c, a);
 }
 
-/** "SUBJECT", "ANSWER", "SUBJECT 2", with the entry's shape ("INVERSION"). */
+/** "SUBJECT", "SUBJECT 2", with the entry's shape ("INVERSION"). */
 export function entryWord(e: UEntry): string {
-  return `${e.form === "answer" ? "ANSWER" : "SUBJECT"}${e.theme ? ` ${e.theme}` : ""}${e.shape ? ` · ${e.shape}` : ""}`;
+  // D265: every entry a SUBJECT.
+  return `SUBJECT${e.theme ? ` ${e.theme}` : ""}${e.shape ? ` · ${e.shape}` : ""}`;
 }
 /** "C MINOR", "E♭ MAJOR". */
 export function keyLong(key: string): string {

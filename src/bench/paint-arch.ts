@@ -73,7 +73,8 @@ export function railX(r: Pick<Road, "cx" | "W">, rail: Rail, k: number, midi?: n
 export function railLabel(f: TouchFugue, i: number): string {
   const e = f.entries[i];
   const name = (f.voiceNames[e.voice] ?? `VOICE ${e.voice + 1}`).toUpperCase();
-  const what = (e.theme ?? 1) > 1 ? `SUBJECT ${e.theme}` : e.form === "answer" ? "ANSWER" : "SUBJECT";
+  // D265: every entry a SUBJECT (numbered where a fugue has several).
+  const what = (e.theme ?? 1) > 1 ? `SUBJECT ${e.theme}` : "SUBJECT";
   const how = [e.inverted ? "INVERTED" : "", e.scale === 2 ? "AUGMENTED" : e.scale === 0.5 ? "DIMINISHED" : ""].filter(Boolean);
   return [name, what, ...how].join(" · ");
 }

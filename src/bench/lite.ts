@@ -45,7 +45,14 @@ export interface LiteState {
   seen: string[];
   /** The sound's volume, 0..1. */
   volume: number;
+  /** D265: the best grade each piece was finished with. */
+  best: Record<string, string>;
 }
+
+/** D265: a piece's sound can be changed once it is finished with a high grade (A or S); before, its own. */
+export const SOUND_UNLOCK_GRADES = ["S", "A"];
+export const soundUnlocked = (id: string, st: LiteState = readLite()): boolean => SOUND_UNLOCK_GRADES.includes(st.best[id] ?? "");
+const RANK = ["D", "C", "B", "A", "S"];
 
 export function readLite(): LiteState {
   try {
@@ -55,9 +62,10 @@ export function readLite(): LiteState {
       beaten: Array.isArray(o.beaten) ? o.beaten.filter((x) => typeof x === "string") : [],
       seen: Array.isArray(o.seen) ? o.seen.filter((x) => typeof x === "string") : [],
       volume: typeof o.volume === "number" && o.volume >= 0 && o.volume <= 1 ? o.volume : 1,
+      best: o.best && typeof o.best === "object" ? Object.fromEntries(Object.entries(o.best).filter(([, g]) => typeof g === "string")) : {},
     };
   } catch {
-    return { beaten: [], seen: [], volume: 1 };
+    return { beaten: [], seen: [], volume: 1, best: {} };
   }
 }
 export function writeLite(patch: Partial<LiteState>): LiteState {
@@ -124,8 +132,10 @@ export function liteLine(beaten: ReadonlySet<string>, fuguesOnly = false): strin
  * A run ended: a piece finished (to its end, `failed` false) is kept. Returns the tiers this run
  * showed (for the result's line).
  */
-export function recordLite(piece: string, failed: boolean, fuguesOnly = false): Tier[] {
+export function recordLite(piece: string, failed: boolean, fuguesOnly = false, grade?: string): Tier[] {
   const st = readLite();
+  // D265: the best grade kept (a finished run's).
+  if (!failed && grade && RANK.indexOf(grade) > RANK.indexOf(st.best[piece] ?? "")) writeLite({ best: { ...st.best, [piece]: grade } });
   if (failed || st.beaten.includes(piece) || !/^wtc1[pf]\d\d$/.test(piece)) return [];
   const before = liteTiers(new Set(st.beaten), fuguesOnly);
   const beaten = [...st.beaten, piece];
