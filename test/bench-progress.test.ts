@@ -75,8 +75,8 @@ test("D251: the phone's HIGHWAY (a prelude): the line filled as far as the music
   assert.ok(fill, "the line's filled part");
   assert.ok(Math.abs((fill.args[2] as number) - (g.now / f.length) * w) <= 1);
   assert.ok(texts(ops).includes(`BAR ${barNumberAt(f, g.now)} / 35`), texts(ops).join(","));
-  // The sections' ticks (bars 5, 12, 24, 32) and the pedal's span (bars 24 to 32).
-  for (const bar of [5, 12, 24, 32]) {
+  // The sections' ticks (D259: bars 5 and 32, where the riding changes) and the pedal's span (bars 24 to 32).
+  for (const bar of [5, 32]) {
     const x = Math.round((barStart(f, bar) / f.length) * w);
     assert.ok(ops.some((o) => o.op === "fillRect" && o.args[0] === x && o.args[1] === 0 && o.args[2] === 1), `tick at bar ${bar}`);
   }

@@ -178,6 +178,9 @@ export interface Track {
   sweeps?: Set<number>;
 }
 
+/** D198: a slip cools the crowd by this much (of 1); D259: in a prelude by less. */
+export const SLIP_CROWD = 0.045;
+export const SLIP_CROWD_PRELUDE = 0.03;
 /** D249: a slip costs the streak a quarter, at least this many notes. */
 export const SLIP_LOSS_MIN = 4;
 /** D249: a second slip within this many right notes of the one before costs a multiplier step. */
@@ -678,6 +681,7 @@ export class ProtoGame {
       const ons = new Set<number>();
       for (const n of t.notes) if (n.state === "pending" && !n.ride && this.now - grace > n.on + this.opt.late) ons.add(n.on);
       if (!ons.size) continue;
+      for (const on of ons) this.diagNote("MISS", this.tracks.indexOf(t), on, undefined, t.notes.findIndex((n) => n.on === on));
       sweep(t.notes, this.now - grace, this.opt);
       missed += ons.size;
     }
@@ -1020,6 +1024,7 @@ export class ProtoGame {
     // D191: a strike on a note that rides (the player striking it anyway) is no slip; it is played for them.
     if (i < 0 && notesK.some((n) => n.ride && Math.abs(n.on - tk) <= Math.max(this.opt.early, this.opt.late))) return;
     if (i < 0) {
+      this.diagNote("STRAY", h.k, tk, at.c, -1);
       this.grade = { text: "✕", at: performance.now(), side: h.side, why: "time" };
       // A strike on no note is a slip, and counts against the accuracy (mashing scores nothing).
       this.stray++;
@@ -1042,6 +1047,8 @@ export class ProtoGame {
       return;
     }
     let v = this.verdict(i, at, h.k);
+    if (!v.ok) this.diagNote(`WRONG(${v.why ?? "?"})`, h.k, tk, at.c, i);
+    else if (v.lane === "relative") this.diagNote("DIRECTION", h.k, tk, at.c, i);
     this.play(id, h, i, v, false, d);
   }
 
@@ -1355,7 +1362,8 @@ export class ProtoGame {
   private slip() {
     this.slips++;
     this.chain = 0;
-    this.crowd = Math.max(0, this.crowd - 0.045);
+    // D259: a prelude's crowd more patient (it is there to be enjoyed: a slip costs two thirds as much).
+    this.crowd = Math.max(0, this.crowd - (this.f.kind === "prelude" ? SLIP_CROWD_PRELUDE : SLIP_CROWD));
     const fuoco = this.streak >= FUOCO_NOTES;
     this.streak = slipLoss(this.streak);
     this.combo = slipLoss(this.combo);
@@ -1946,7 +1954,7 @@ export class ProtoGame {
   /** The notes (a chord once): played right, played wrong, missed; the score, the entries captured. */
   /** Strikes on no note. */
   stray = 0;
-  results(): { right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; art: ArtStats; lanes: { exact: number; relative: number } } {
+  results(): { right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; art: ArtStats; lanes: { exact: number; relative: number }; report: string } {
     const r = { right: 0, wrong: 0, missed: 0, stray: this.stray, of: 0, score: Math.floor(this.score), grade: "", captured: this.entries.filter((e) => e.state === "captured").length, entries: this.entries.length, maxStreak: this.maxStreak };
     for (const { notes } of this.tracks)
       notes.forEach((n, i) => {
@@ -1960,6 +1968,47 @@ export class ProtoGame {
         else r.missed++;
       });
     r.grade = this.gradeOf(r);
-    return { ...r, art: { ...this.art }, lanes: { ...this.laneTally }, stars: this.failedAt !== null ? 0 : this.starsOf(r.score, r.of), failedBar: this.failedAt !== null ? barAt(this.f, this.failedAt) : null };
+    return { ...r, art: { ...this.art }, lanes: { ...this.laneTally }, stars: this.failedAt !== null ? 0 : this.starsOf(r.score, r.of), failedBar: this.failedAt !== null ? barAt(this.f, this.failedAt) : null, report: this.report(r) };
+  }
+
+  /**
+   * D259, THE REPORT: every note not played exactly (a tap on no note, a wrong one, one only the right
+   * way, a miss) where it came, which hand, the lane (and row) touched and asked, how early or late;
+   * copied from the result for the owner to send ("I keep failing. Something is not working").
+   */
+  private diag: string[] = [];
+  private diagCounts: Record<string, number> = {};
+  private diagNote(kind: string, k: number, tick: number, c: Contact | undefined, i: number) {
+    this.diagCounts[kind] = (this.diagCounts[kind] ?? 0) + 1;
+    if (this.diag.length >= 400) return;
+    const f = this.f;
+    const bar = barAt(f, tick);
+    const beat = (tick - barStart(f, bar)) / this.beat + 1;
+    const notes = this.tracks[k]?.notes ?? [];
+    let j = i;
+    if (j < 0) {
+      // A tap on no note: the nearest note to strike, how far off.
+      let best = Infinity;
+      notes.forEach((n, q) => {
+        if (n.ride || (q > 0 && notes[q - 1].on === n.on)) return;
+        if (Math.abs(n.on - tick) < best) (best = Math.abs(n.on - tick)), (j = q);
+      });
+    }
+    const n = notes[j];
+    const off = n ? Math.round(this.msOf(n.on, tick) * (tick < n.on ? -1 : 1)) : 0;
+    const touched = c && this.road ? `L${this.laneOfX(c.x, c.w)}${this.arc?.rows ? (c.y >= c.h - PAD_SPLIT ? "lo" : "up") : ""}` : "";
+    const asked = n && j >= 0 ? `L${this.lanesOf(k)[j]}${this.arc?.rows ? (this.rowOf(j, k) ? "lo" : "up") : ""}` : "";
+    const hand = this.hands ? (k ? " LH" : " RH") : "";
+    this.diag.push(`${bar}.${beat.toFixed(1)}${hand} ${kind}${touched ? ` touched ${touched}` : ""}${asked ? ` asked ${asked}` : ""}${n ? ` ${off >= 0 ? "+" : ""}${off}ms` : ""}`);
+  }
+  private report(r: { right: number; of: number; score: number }): string {
+    const counts = Object.entries(this.diagCounts).map(([k, v]) => `${k} ${v}`).join(", ") || "none";
+    const head = [
+      `${this.f.id} ${this.proto.id} ${this.o.easy ?? "timing"} ${Math.round(this.bpm)} bpm${this.hands ? " both hands" : ""}`,
+      `right ${r.right}/${r.of} score ${r.score}${this.failedAt !== null ? ` crowd left at bar ${barAt(this.f, this.failedAt)}` : ""} · slips ${this.slips} · screen ${Math.round(this.touchW)} px`,
+      this.pedalList.length ? `pedals held ${this.pedalList.map((p) => `${p.name} ${Math.round(p.share * 100)}%`).join(", ")}` : "",
+      `not exact: ${counts}`,
+    ].filter(Boolean);
+    return [...head, ...this.diag].join("\n");
   }
 }
