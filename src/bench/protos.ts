@@ -55,7 +55,10 @@ export interface Options {
   /** D230, SCALE KEYS (computer HIGHWAY, an experiment): the home row the home key's scale, the rows above and below its raised and lowered degrees (scale-keys.ts). */
   scale?: boolean;
   /** D271, THE TUTORIAL's coaching drawn over LADDER: which thumb the next note wants; where soft and loud are asked. */
-  coach?: "thumbs" | "dynamics";
+  coach?: "thumbs" | "dynamics" | "slide";
+  /** D280: the passage played by the game, the thumbs shown (the tutorial's demonstration); or, playing, a guide thumb for each next note. */
+  demo?: boolean;
+  guide?: boolean;
   /** D272: the reading the fugue is played by (its subject's articulation and level, its dynamic plan). */
   reading?: Reading | null;
 }

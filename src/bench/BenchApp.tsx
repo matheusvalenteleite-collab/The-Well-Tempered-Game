@@ -63,6 +63,7 @@ import { SheetCard } from "./SheetCard.tsx";
 import type { Sheet } from "./score-sheet.ts";
 import { HearSubject, type Performed } from "./HearSubject.tsx";
 import { chosenReading, type Reading } from "../touch/readings.ts";
+import { TutorialSteps } from "./TutorialSteps.tsx";
 import { LITE_HINT, liteAll, litePlatform, soundUnlocked, litePlatformPref, readLite, recordLite, recordLiteBest, RULES, saveLitePlatform, startHere, writeLite } from "./lite.ts";
 import { LiteGrid } from "./LiteGrid.tsx";
 import { PlayPop } from "./PlayPop.tsx";
@@ -170,7 +171,7 @@ export function sane(p: Pick): Pick {
 }
 
 /** D237: "title" is the pop-up over the cards (HOME, the wheel, the minimal page's grid). */
-type Phase = { kind: "home" } | { kind: "title" } | { kind: "play" } | { kind: "result"; stage?: { won: boolean; fugue: string }; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; lastBar?: number; progress?: number; sheet?: Sheet; best?: { before: number | null; fresh: boolean } | null; art?: ArtStats; lanes?: { exact: number; relative: number }; report?: string; seal: { kind: string; earned: boolean; why: string } | null; feats?: FeatId[]; opened?: Tier[]; next?: string | null } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "lessons"; focus?: ProtoId } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" };
+type Phase = { kind: "home" } | { kind: "title" } | { kind: "play" } | { kind: "result"; stage?: { won: boolean; fugue: string }; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; lastBar?: number; progress?: number; sheet?: Sheet; best?: { before: number | null; fresh: boolean } | null; art?: ArtStats; lanes?: { exact: number; relative: number }; report?: string; seal: { kind: string; earned: boolean; why: string } | null; feats?: FeatId[]; opened?: Tier[]; next?: string | null } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "lessons"; focus?: ProtoId } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" | "watch" };
 
 export function BenchApp() {
   // D233: the game opens on HOME.
@@ -239,6 +240,10 @@ export function BenchApp() {
   // D188: a lesson with Herr Bach plays its own passage, on EASY at the lesson's level.
   // D225: a lesson of a platform's track (TRACKS), in its own mode.
   const [lesson, setLesson] = useState<{ pl: Platform; n: number; run: Run } | null>(null);
+  // D280: the tutorial's demonstration under way (the game plays the step, the thumbs shown).
+  const [watching, setWatching] = useState(false);
+  // D280: the tutorial's steps to choose from (play.html).
+  const [steps, setSteps] = useState(false);
   const run = lesson?.run;
   const f = fugueById(run?.piece ?? pick.piece);
   // D229: a prelude on HIGHWAY (a phone's five lanes, a computer's keys), a fugue in the mode chosen.
@@ -401,7 +406,7 @@ export function BenchApp() {
     if (hm) setTuning("equal", hm.a);
     ch.mine.gain.value = kimiko ? MINE[pick.mine] : 1;
     // D219: failing always on (D225: in the lessons from the fourth on); WITH KIMIKO, the game sounds only the player's voice.
-    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btOn("auto", lag, latencyOf(ch.ctx) ?? 0) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach } : {}), reading, ...(clock ? { clock } : {}) }, ch);
+    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btOn("auto", lag, latencyOf(ch.ctx) ?? 0) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && lesson?.pl === "mobile" } : {}), reading, ...(clock ? { clock } : {}) }, ch);
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
     // For the measurements (the bench's own checks): the game and her playing.
@@ -451,7 +456,11 @@ export function BenchApp() {
         game.current = null;
         paint.current = null;
         const r = g.results();
-        if (lesson) {
+        if (lesson && watching) {
+          // D280: the demonstration over: now the player, guided.
+          setWatching(false);
+          setPhase({ kind: "talk", lines: [{ text: "Now you. A thumb on the bars shows where each note lands, and which thumb." }], next: "play" });
+        } else if (lesson) {
           // A lesson passed (its rule: by default the share right, a stray strike half a note) goes on; else once more.
           const l = TRACKS[lesson.pl][lesson.n];
           const ok = passed(l, r);
@@ -593,10 +602,14 @@ export function BenchApp() {
     setAsking(false);
     if (pl === platform) setPick({ proto: l.mode });
     setLesson({ pl, n, run: l.run() });
-    setPhase({ kind: "talk", lines: l.intro, next: "play" });
+    setSteps(false);
+    setWatching(false);
+    // D280: the phone's tutorial shows each step first.
+    setPhase({ kind: "talk", lines: l.intro, next: pl === "mobile" && l.id !== "t-whole" ? "watch" : "play" });
   };
-  const talkDone = (next: "play" | "again" | "advance") => {
-    if (next !== "advance") return start();
+  const talkDone = (next: "play" | "again" | "advance" | "watch") => {
+    if (next === "watch") return setWatching(true), start(true);
+    if (next !== "advance") return setWatching(false), start();
     if (lesson && lesson.n + 1 < TRACKS[lesson.pl].length) return beginLesson(lesson.pl, lesson.n + 1);
     quit();
   };
@@ -631,7 +644,8 @@ export function BenchApp() {
     return performance.now() / 1000 + 0.15 + (ch.lag ?? 0);
   };
   const events: ThumbEvents = {
-    down: (id, side, x, y, w, h, ts) => (seen(), game.current?.down(id, { side, x, y, w, h }, ts)),
+    // D280: during the demonstration the game's thumbs play; the player's touches wait.
+    down: (id, side, x, y, w, h, ts) => (watching ? undefined : (seen(), game.current?.down(id, { side, x, y, w, h }, ts))),
     move: (id, x, y, w, h, ts) => game.current?.move(id, { side: "left", x, y, w, h }, ts),
     // D249: a touch the system took back (pointercancel) stops its note unjudged: no early let-go.
     up: (id, ts, cancelled) => game.current?.up(id, ts, cancelled),
@@ -809,6 +823,7 @@ export function BenchApp() {
         legend={f.voiceNames.map((name, i) => (
           <span key={name} style={{ color: inkOf(i, f.voices.length), opacity: played.includes(i) ? 1 : 0.55 }}>
             ■ {name.toUpperCase()}
+            {played.includes(i) && <b className="tb-you"> · YOU</b>}
           </span>
         ))}
       >
@@ -981,7 +996,8 @@ export function BenchApp() {
         />
       )}
       {wheel && !APP.lite && (phase.kind === "home" || phase.kind === "title") && <FuguePicker current={pick.piece} close={() => setWheel(false)} pick={open} paused={phase.kind === "title"} />}
-      {APP.lite && (phase.kind === "home" || phase.kind === "title") && <LiteGrid beaten={lite.beaten} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} fuguesOnly={platform === "mobile"} tutorial={platform === "mobile" ? { done: TRACKS.mobile.filter((l) => trackState("mobile").passed[l.id]).length, of: TRACKS.mobile.length, start: () => beginLesson("mobile", nextLesson("mobile")) } : undefined} />}
+      {APP.lite && (phase.kind === "home" || phase.kind === "title") && <LiteGrid beaten={lite.beaten} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} fuguesOnly={platform === "mobile"} tutorial={platform === "mobile" ? { done: TRACKS.mobile.filter((l) => trackState("mobile").passed[l.id]).length, of: TRACKS.mobile.length, start: () => setSteps(true) } : undefined} />}
+      {APP.lite && steps && phase.kind === "home" && <TutorialSteps play={(n) => beginLesson("mobile", n)} close={() => setSteps(false)} />}
       {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} open={lite.beaten.includes(hearing)} play={playSubject} close={() => setHearing(null)} />}
       {phase.kind === "title" && (
         <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULES[proto.id]} {...(APP.lite ? { sound, setSound, soundLocked: !soundOpen } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>

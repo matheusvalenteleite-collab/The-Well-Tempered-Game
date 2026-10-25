@@ -37,7 +37,7 @@ export interface Run {
   solo: boolean;
   easy: EasyLevel;
   /** D271: the tutorial's coaching over the play (Options.coach). */
-  coach?: "thumbs" | "dynamics";
+  coach?: "thumbs" | "dynamics" | "slide";
 }
 
 /**
@@ -275,6 +275,7 @@ export const MOBILE_LESSONS: Lesson[] = [
 export const INVENTION = "inv01";
 const BAR = 7680;
 function invention(o: { voice?: number; fromBar?: number; toBar?: number; wait?: boolean; solo?: boolean; fail?: boolean; bpm?: number; coach?: Run["coach"] }): Run {
+  // D280: every step of the tutorial is shown first (the game plays it, the thumbs drawn) and guided after.
   const f = fugueById(INVENTION);
   const from = ((o.fromBar ?? 1) - 1) * BAR;
   const until = o.toBar ? (o.toBar - 1) * BAR : f.length;
@@ -359,7 +360,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     intro: [{ text: "Keep a thumb down and slide it up the bar: the rising notes sound joined, one after another." }, { text: "But one way only. To turn back, lift and touch again. Slide the rising notes." }],
     praise: [{ text: "Good. A slide is a convenience; the thumbs are the art." }],
     again: [{ text: "Hold the thumb down and slide up with the tune. Again." }],
-    run: () => invention({ voice: 1, toBar: 3, solo: false }),
+    run: () => invention({ voice: 1, toBar: 3, solo: false, coach: "slide" }),
     passAt: 0.8,
     pass: (r) => accuracy(r) >= 0.8 && r.slides >= 2,
   },

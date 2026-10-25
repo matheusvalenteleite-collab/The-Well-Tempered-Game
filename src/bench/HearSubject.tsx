@@ -8,7 +8,9 @@
 import { useEffect, useRef, useState } from "react";
 import { fugueById } from "../touch/fugue.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
+import { ornamentsOf, shakeOf } from "../touch/ornament-play.ts";
 import { chooseReading, chosenReading, performSubject, readingsOf, type Reading } from "../touch/readings.ts";
+import { acrossBar, drawThumb, planTouches, type Touch } from "./fingering.ts";
 import { tempoOf } from "../touch/tempi.ts";
 
 export type Performed = ReturnType<typeof performSubject>;
@@ -27,6 +29,18 @@ export function HearSubject({ id, open, play, close }: { id: string; open: boole
   const canvas = useRef<HTMLCanvasElement>(null);
   const started = useRef<{ at: number; total: number } | null>(null);
   const perf = e ? performSubject(reading, e.notes, f.tpq, tempoOf(id)) : [];
+  // D280: the thumbs that play it: taking turns, landing and lifting as the reading asks, loud or soft
+  // across the bar, the ornaments shaken.
+  const orns = ornamentsOf(f);
+  const touches = e
+    ? planTouches(
+        perf.map((p, i) => {
+          const o = orns.get(`${e.voice}:${e.notes[i][0]}`);
+          return { at: p.at, dur: p.len, step: p.midi, join: reading?.notes[i]?.join ?? null, short: reading?.notes[i]?.short ?? null, d: p.d, shake: o ? shakeOf(o) : null };
+        }),
+        { overlap: 0.04 },
+      )
+    : [];
   const hear = () => {
     if (!e) return;
     const last = perf.at(-1);
@@ -40,7 +54,7 @@ export function HearSubject({ id, open, play, close }: { id: string; open: boole
     let raf = 0;
     const draw = () => {
       const c = canvas.current;
-      if (c && e) paintSubject(c, perf, e.notes.map((n) => n[2]), inkOf(e.voice, f.voices.length), reading, started.current);
+      if (c && e) paintSubject(c, perf, e.notes.map((n) => n[2]), inkOf(e.voice, f.voices.length), reading, started.current, touches);
       raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
@@ -74,6 +88,7 @@ export function HearSubject({ id, open, play, close }: { id: string; open: boole
         )}
         {readings.length > 1 && !open && <p className="tb-hear-lock">FINISH THE FUGUE TO OPEN THE OTHER READINGS</p>}
         <canvas ref={canvas} className="tb-hear-canvas" />
+        <p className="tb-hear-key tb-hear-thumbs">THE THUMBS: EACH NOTE THE OTHER THUMB · LAND THE NEXT BEFORE LIFTING (JOINED) · LIFT EARLY (DETACHED) · SOFT BY THE BOX, LOUD BY THE EDGE · SHAKE ON AN ORNAMENT</p>
         <p className="tb-hear-key">
           <span>⌒ JOINED</span> <span>| DETACHED</span> <span>· SHORT</span> <span>&gt; ACCENT</span>
           <span> · ♩ = {tempoOf(id)}</span>
@@ -99,7 +114,7 @@ export function HearSubject({ id, open, play, close }: { id: string; open: boole
 }
 
 /** The subject drawn: blocks by pitch and time, the reading's marks, the light where it sounds. */
-function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], ink: string, r: Reading | null, started: { at: number; total: number } | null) {
+function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], ink: string, r: Reading | null, started: { at: number; total: number } | null, touches: Touch[] = []) {
   const cssW = c.clientWidth || 300;
   const cssH = c.clientHeight || 140;
   const dpr = Math.min(3, devicePixelRatio || 1);
@@ -112,7 +127,9 @@ function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], in
   const lo = Math.min(...midis) - 1;
   const hi = Math.max(...midis) + 1;
   const end = Math.max(...perf.map((p, i) => (i + 1 < perf.length ? perf[i + 1].at : p.at + p.len)));
-  const pad = 14;
+  // D280: a side bar either side (the thumbs' bars, as in the game), the notes between.
+  const bar = Math.max(44, cssW * 0.15);
+  const pad = bar + 12;
   const X = (s: number) => pad + (s / end) * (cssW - 2 * pad);
   const rowH = Math.max(3, Math.min(10, (cssH - 44) / (hi - lo + 1)));
   const Y = (m: number) => 26 + (hi - m) * rowH;
@@ -154,6 +171,36 @@ function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], in
       g.fillText(">", x1 + w / 2, y - 7);
     }
   });
+  // The bars: warm, soft by the box (pp) to loud at the edge (ff).
+  for (const side of ["left", "right"] as const) {
+    const x0 = side === "left" ? 0 : cssW - bar;
+    const grad = g.createLinearGradient(side === "left" ? bar : cssW - bar, 0, side === "left" ? 0 : cssW, 0);
+    grad.addColorStop(0, "#1a1216");
+    grad.addColorStop(1, "#3a2420");
+    g.fillStyle = grad;
+    g.fillRect(x0, 0, bar, cssH);
+    g.fillStyle = "#8a7f9a";
+    g.font = "8px monospace";
+    g.textAlign = "center";
+    g.fillText("pp", side === "left" ? bar - 10 : cssW - bar + 10, cssH - 4);
+    g.fillText("ff", side === "left" ? 10 : cssW - 10, cssH - 4);
+  }
+  const playing = !!started && now >= -0.3 && now <= started.total + 0.4;
+  const t = playing ? now : -1;
+  const size = Math.max(12, Math.min(22, bar * 0.36));
+  for (const tc of touches) {
+    if (tc.slid) continue;
+    const off = touches.filter((x) => x.slid && x.side === tc.side && x.on > tc.on).reduce((m, x) => Math.max(m, x.off), tc.off);
+    const across = acrossBar(tc.d) * (bar - size);
+    const x = tc.side === "left" ? bar - size * 0.2 - across : cssW - bar + size * 0.2 + across;
+    // While it slides, it follows the notes it plays.
+    const slidTo = touches.filter((x) => x.slid && x.side === tc.side && x.on > tc.on && x.on <= t && x.on < off).at(-1);
+    const yc = Y(perf[slidTo ? slidTo.i : tc.i].midi) + rowH / 2;
+    const wob = tc.shake && t >= tc.on && t < tc.on + (perf[tc.i].len || 0) * 0.8 ? Math.sin(t * 48) * rowH * 1.2 : 0;
+    if (t >= tc.on && t < off) drawThumb(g, x, yc + wob, size, tc.side, "down");
+    else if (t >= tc.on - 0.35 && t < tc.on) drawThumb(g, x, yc, size, tc.side, "hover", 1 - (tc.on - t) / 0.35);
+    else if (!playing && tc.i < 2) drawThumb(g, x, yc, size, tc.side, "hover", 0.8);
+  }
   if (started && now >= 0 && now <= started.total) {
     g.fillStyle = "rgba(255,255,255,0.6)";
     g.fillRect(X(now), 18, 1, cssH - 26);
