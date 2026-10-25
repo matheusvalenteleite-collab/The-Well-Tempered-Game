@@ -38,6 +38,8 @@ export interface Run {
   easy: EasyLevel;
   /** D271: the tutorial's coaching over the play (Options.coach). */
   coach?: "thumbs" | "dynamics" | "slide";
+  /** D282: a reading the step is played by (readings.ts id: the subject's articulation asked). */
+  reading?: string;
 }
 
 /**
@@ -66,6 +68,10 @@ export interface Lesson {
   passAt: number;
   /** D225: passed or not, when the share right is not enough (the articulation, say). */
   pass?: (r: Results) => boolean;
+  /** D282: the step's goal, one line, shown while it is played (and in the list of steps). */
+  goal?: string;
+  /** D282: on a step not passed, what fell short, in numbers ("You took turns on 4 of 10; aim for 7."). */
+  short?: (r: Results) => string;
 }
 
 /** The share right: of the notes, a stray strike half a note. */
@@ -286,26 +292,74 @@ const meanIn = (r: Results, bar: number) => {
   const ds = r.levels.filter((l) => l.on >= (bar - 1) * BAR && l.on < bar * BAR).map((l) => l.d);
   return ds.length ? ds.reduce((a, b) => a + b, 0) / ds.length : null;
 };
+/** D282: a share as "n of m". */
+const of = (n: number, m: number) => `${n} of ${m}`;
+const right = (r: Results) => `You played ${of(r.right, r.of)} notes right`;
+const need = (share: number, m: number) => Math.ceil(share * m);
+
+/**
+ * D282, THE TUTORIAL in baby steps (the owner: "all the basic skills needed to enjoy the game to the
+ * fullest, in baby steps from the beginning"), one new skill a step, each shown first by the game (D280)
+ * then guided, its goal on the screen, a step not passed told what fell short:
+ *   1 the ladder (height; the music waits) · 2 the beat (on time; PERFECT and GOOD) · 3 hold and let go
+ *   (a note held its length, lifted at a rest) · 4 the second voice (the right hand plays itself; the
+ *   left enters) · 5 two thumbs (taking turns) · 6 legato (the next before the last lifts) · 7 leaps (the
+ *   other thumb takes the far note) · 8 loud and soft · 9 the slide (one way) · 10 the ornament (shaken)
+ *   · 11 the subject (caught when it comes) · 12 the reading (a book's articulation: Book I's C minor
+ *   subject as Keller marks it) · 13 the crowd (slips cost it; the multiplier and the run) · 14 the
+ *   whole invention.
+ */
 export const TUTORIAL_LESSONS: Lesson[] = [
   {
     id: "t-ladder",
     mode: "ladder",
     title: "DIE LEITER",
     english: "THE LADDER",
-    intro: [{ text: "Hold the phone sideways. Touch either bar at the note's height: higher as the tune rises, lower as it falls." }, { text: "This is how my first Invention begins. Play its opening alone; I will wait at every note." }],
+    goal: "TOUCH A BAR AT EACH NOTE'S HEIGHT · THE MUSIC WAITS",
+    intro: [{ text: "Hold the phone sideways. The notes come from the right; touch either side bar at the note's height." }, { text: "Higher on the bar for a higher note, lower for a lower. I will wait for you." }],
     praise: [{ text: "Recht. Your thumb drew the line." }],
     again: [{ text: "Higher when it rises, lower when it falls. Again." }],
+    short: (r) => `${right(r)}; aim for ${need(0.85, r.of)}.`,
     run: () => invention({ toBar: 2, wait: true }),
     passAt: 0.85,
+  },
+  {
+    id: "t-beat",
+    mode: "ladder",
+    title: "DER TAKT",
+    english: "THE BEAT",
+    goal: "TOUCH AS EACH NOTE REACHES THE LINE · PERFECT IS EXACT",
+    intro: [{ text: "Now I will not wait. Touch each note as it reaches the yellow line." }, { text: "Exactly on it: PERFECT. A little early or late: GOOD. Too far off: a slip." }],
+    praise: [{ text: "Good. The line and the time: that is playing." }],
+    again: [{ text: "Let the note come to the line, then touch. Again." }],
+    short: (r) => `${right(r)} on time; aim for ${need(0.8, r.of)}.`,
+    run: () => invention({ toBar: 2 }),
+    passAt: 0.8,
+  },
+  {
+    id: "t-hold",
+    mode: "ladder",
+    title: "HALTEN",
+    english: "HOLD AND LET GO",
+    goal: "KEEP THE THUMB DOWN FOR THE WHOLE NOTE · LIFT AT A REST",
+    intro: [{ text: "A long block is a long note: keep your thumb down until its end." }, { text: "Lift too soon and it is SHORT. Where the music rests, lift: hold on and it is REST!" }],
+    praise: [{ text: "So. A note lives as long as you hold it." }],
+    again: [{ text: "Hold each note to its end, and lift when the music rests. Again." }],
+    short: (r) => `You held ${of(r.art.held, r.art.heldOf)} notes their length; aim for ${need(0.6, r.art.heldOf)}.`,
+    run: () => invention({ fromBar: 10, toBar: 13 }),
+    passAt: 0.75,
+    pass: (r) => accuracy(r) >= 0.75 && r.art.heldOf > 0 && r.art.held / r.art.heldOf >= 0.6,
   },
   {
     id: "t-second",
     mode: "ladder",
     title: "DIE ZWEITE STIMME",
     english: "THE SECOND VOICE",
-    intro: [{ text: "Now the right hand plays by itself: watch its subject go by, drawn thin in the box." }, { text: "Then you enter, in the left hand, with the same subject. I will not wait: on the beat." }],
+    goal: "WAIT FOR YOUR ENTRY · THEN PLAY THE LEFT HAND (YOU)",
+    intro: [{ text: "Now the right hand plays by itself, drawn thin. Yours is outlined white and marked YOU." }, { text: "Watch its subject go by; then you enter, in the left hand, with the same subject." }],
     praise: [{ text: "Two voices, one conversation. That is counterpoint." }],
     again: [{ text: "Wait for your entry, then come in on the beat. Again." }],
+    short: (r) => `${right(r)}; aim for ${need(0.8, r.of)}.`,
     run: () => invention({ voice: 1, toBar: 3, solo: false }),
     passAt: 0.8,
   },
@@ -314,9 +368,11 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     mode: "ladder",
     title: "ZWEI DAUMEN",
     english: "TWO THUMBS",
-    intro: [{ text: "Quick notes want both thumbs, one after the other, as a keyboard player uses his fingers." }, { text: "Start with either; then take turns. The hand on the bars shows whose turn it is." }],
+    goal: "QUICK NOTES: ONE THUMB, THEN THE OTHER · EITHER STARTS",
+    intro: [{ text: "Quick notes want both thumbs, one after the other, as a keyboard player uses his fingers." }, { text: "Start with either; then take turns. The thumb on the bars shows whose turn it is." }],
     praise: [{ text: "So. Two thumbs walk where one would stumble." }],
     again: [{ text: "One thumb did all the work. Take turns. Again." }],
+    short: (r) => `You took turns on ${of(r.thumbs.alt, r.thumbs.of)} quick notes; aim for ${need(0.7, r.thumbs.of)}.`,
     run: () => invention({ voice: 1, toBar: 3, solo: false, coach: "thumbs" }),
     passAt: 0.8,
     pass: (r) => accuracy(r) >= 0.8 && r.thumbs.of > 0 && r.thumbs.alt / r.thumbs.of >= 0.7,
@@ -326,24 +382,45 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     mode: "ladder",
     title: "LEGATO",
     english: "JOINED",
+    goal: "LAND THE NEXT THUMB BEFORE YOU LIFT THE LAST",
     intro: [
       { text: "Listen. First each note apart, detached.", demo: "detached" },
       { text: "Now joined, singing: legato. Land the next thumb before you lift the last.", demo: "legato" },
     ],
     praise: [{ text: "As I wrote on my Inventions: a cantabile manner of playing. That is it." }],
     again: [{ text: "The notes fell apart. Touch the next before you let go. Again." }],
+    short: (r) => `You joined ${of(r.art.legato, r.art.legatoOf)} notes; aim for ${need(0.6, r.art.legatoOf)}.`,
     run: () => invention({ voice: 1, toBar: 3, solo: false }),
     passAt: 0.8,
     pass: (r) => accuracy(r) >= 0.8 && r.art.legatoOf > 0 && r.art.legato / r.art.legatoOf >= 0.6,
+  },
+  {
+    id: "t-leaps",
+    mode: "ladder",
+    title: "DER SPRUNG",
+    english: "LEAPS",
+    goal: "A FAR NOTE: THE OTHER THUMB, ALREADY THERE",
+    intro: [{ text: "Here the line leaps. Do not drag one thumb across: let the other thumb wait at the far note." }, { text: "Watch where the next note is before it comes, and be there." }],
+    praise: [{ text: "Good. Your thumbs now draw the line as it is drawn on the page." }],
+    again: [{ text: "Be at the far note before it arrives, with the other thumb. Again." }],
+    short: (r) => `${right(r)}; aim for ${need(0.75, r.of)}.`,
+    run: () => invention({ voice: 1, fromBar: 14, toBar: 16, solo: false }),
+    passAt: 0.75,
   },
   {
     id: "t-dynamics",
     mode: "ladder",
     title: "LAUT UND LEISE",
     english: "LOUD AND SOFT",
+    goal: "SOFT: TOUCH NEAR THE BOX · LOUD: NEAR THE EDGE",
     intro: [{ text: "Where you touch the bar is how loud: soft by the box, loud by the edge." }, { text: "Answer softly in the first bar, loudly in the second, as an echo turned round." }],
     praise: [{ text: "A harpsichord has two keyboards for this. You have two thumbs." }],
     again: [{ text: "Soft near the box, loud near the edge. Again." }],
+    short: (r) => {
+      const a = meanIn(r, 1);
+      const b = meanIn(r, 2);
+      return `Bar 1 at ${Math.round(100 * (a ?? 0))}% loud (aim under 45%), bar 2 at ${Math.round(100 * (b ?? 0))}% (aim over 55%).`;
+    },
     run: () => invention({ voice: 1, toBar: 3, solo: false, coach: "dynamics" }),
     passAt: 0.75,
     pass: (r) => {
@@ -357,9 +434,11 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     mode: "ladder",
     title: "DAS GLEITEN",
     english: "THE SLIDE",
-    intro: [{ text: "Keep a thumb down and slide it up the bar: the rising notes sound joined, one after another." }, { text: "But one way only. To turn back, lift and touch again. Slide the rising notes." }],
+    goal: "KEEP A THUMB DOWN AND SLIDE IT UP THE RISING NOTES",
+    intro: [{ text: "Keep a thumb down and slide it up the bar: the rising notes sound joined, one after another." }, { text: "But one way only. To turn back, lift and touch again." }],
     praise: [{ text: "Good. A slide is a convenience; the thumbs are the art." }],
     again: [{ text: "Hold the thumb down and slide up with the tune. Again." }],
+    short: (r) => `You slid ${r.slides} notes; aim for at least 2.`,
     run: () => invention({ voice: 1, toBar: 3, solo: false, coach: "slide" }),
     passAt: 0.8,
     pass: (r) => accuracy(r) >= 0.8 && r.slides >= 2,
@@ -369,9 +448,11 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     mode: "ladder",
     title: "DIE MANIER",
     english: "THE ORNAMENT",
+    goal: "A SIGN OVER A NOTE: TOUCH IT, THEN SHAKE YOUR THUMB",
     intro: [{ text: "A sign over a note is an ornament. You play it: touch the note, then shake your thumb." }, { text: "This one is a mordent: down and back. A trill starts upward and shakes longer." }],
     praise: [{ text: "So. The notes are mine; the graces are yours to give." }],
     again: [{ text: "Touch the note, then shake: down, and back up. Again." }],
+    short: (r) => `You shook ${of(r.shakes.hit, r.shakes.of)} ornaments; aim for ${Math.min(2, r.shakes.of)}.`,
     run: () => invention({ voice: 0, toBar: 3, solo: false }),
     passAt: 0.75,
     pass: (r) => accuracy(r) >= 0.75 && r.shakes.of > 0 && r.shakes.hit >= Math.min(2, r.shakes.of),
@@ -381,24 +462,58 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     mode: "ladder",
     title: "DAS THEMA",
     english: "THE SUBJECT",
+    goal: "PLAY EACH SUBJECT OF YOURS WHOLE · GOLD MARKS THE SUBJECT",
     intro: [
       { text: "This little figure is the subject; the whole piece is made of it. Listen.", demo: "subject" },
-      { text: "Gold frames it wherever it goes. Now the right hand, the left by itself: catch each subject of yours." },
+      { text: "Gold marks it wherever it goes. Now the right hand: play each of your subjects whole." },
     ],
     praise: [{ text: "That is a fugue in small: one subject, passed from voice to voice." }],
     again: [{ text: "The subject must be said whole, or it is not the subject. Again." }],
+    short: (r) => `You caught ${of(r.captured, r.entries)} subjects; aim for 2.`,
     run: () => invention({ voice: 0, toBar: 6, solo: false }),
     passAt: 0.8,
     pass: (r) => accuracy(r) >= 0.8 && r.captured >= 2,
+  },
+  {
+    id: "t-reading",
+    mode: "ladder",
+    title: "DIE LESART",
+    english: "THE READING",
+    goal: "PLAY THE SUBJECT AS THE MARKS SAY: ⌒ JOINED · | APART · > STRONG",
+    intro: [{ text: "Now one of my fugues. Players have written how its subject should go: some notes joined, some apart." }, { text: "The marks show it; HEAR THE SUBJECT on every fugue plays it so. Follow the marks." }],
+    praise: [{ text: "So. You played my subject as a thinking musician would." }],
+    again: [{ text: "Joined where it is joined; lift where it is apart. Again." }],
+    short: (r) => {
+      const q = r.sheet.qualities.find((x) => x.key === "reading");
+      return `You followed ${q?.detail.toLowerCase() ?? "few of the marks"}; aim for 60%.`;
+    },
+    run: () => ({ proto: "ladder", fail: false, piece: "wtc1f02", voice: 1, from: 0, until: 2 * 7680, bpm: 60, wait: false, solo: true, easy: "direction", reading: "keller" }),
+    passAt: 0.75,
+    pass: (r) => accuracy(r) >= 0.75 && (r.sheet.qualities.find((x) => x.key === "reading")?.share ?? 0) >= 0.6,
+  },
+  {
+    id: "t-crowd",
+    mode: "ladder",
+    title: "DAS PUBLIKUM",
+    english: "THE CROWD",
+    goal: "KEEP THE CROWD (RIGHT BAR) · A RUN OF RIGHT NOTES RAISES THE ×",
+    intro: [{ text: "Now a crowd listens; its meter is on the right bar. Each slip cools it; empty, it leaves." }, { text: "Right notes in a run raise your multiplier, ×2, ×3, ×4: every point counts more." }],
+    praise: [{ text: "They stayed. They will come back for more." }],
+    again: [{ text: "They left. Fewer slips: watch the next note, not the last. Again." }],
+    short: (r) => (r.failedBar !== null ? `The crowd left at bar ${r.failedBar}.` : `${right(r)}; aim for ${need(0.8, r.of)}.`),
+    run: () => invention({ voice: 0, toBar: 7, solo: false, fail: true }),
+    passAt: 0.8,
   },
   {
     id: "t-whole",
     mode: "ladder",
     title: "DIE INVENTION",
     english: "THE INVENTION",
-    intro: [{ text: "Now the whole Invention, the right hand, with the left beside you. The subject comes upside down too." }, { text: "From now on, the crowd can leave. I will say nothing until the end." }],
+    goal: "THE WHOLE INVENTION, RIGHT HAND · EVERYTHING YOU LEARNED",
+    intro: [{ text: "Now the whole Invention, the right hand, with the left beside you. The subject comes upside down too." }, { text: "Everything you learned, at once. I will say nothing until the end." }],
     praise: [{ text: "Now go and play my fugues. Every one is open to you." }],
     again: [{ text: "Again. Hear it in your head first; then play." }],
+    short: (r) => (r.failedBar !== null ? `The crowd left at bar ${r.failedBar}.` : `${right(r)}; aim for ${need(0.8, r.of)}.`),
     run: () => invention({ solo: false, fail: true, bpm: 60 }),
     passAt: 0.8,
   },

@@ -5,6 +5,7 @@ import { fugueById } from "../src/touch/fugue.ts";
 import type { Chip } from "../src/touch/chip.ts";
 import { ProtoGame, type Rows } from "../src/bench/proto-game.ts";
 import { BAR, KEY_ROWS, protoById } from "../src/bench/protos.ts";
+import { readingsOf } from "../src/touch/readings.ts";
 import { CANDIDATES, EXAM, LESSONS, MOBILE_LESSONS, passed, TRACKS, TUTORIAL_LESSONS, type Lesson } from "../src/bench/lessons.ts";
 import { answer, askFirst, nextLesson, OLD_LESSONS_KEY, readTutorial, recordLesson, trackState, TUTORIAL_KEY } from "../src/bench/tutorial.ts";
 import { CARDS, TESTBENCH } from "../src/bench/cards.ts";
@@ -95,13 +96,18 @@ test("D225: each lesson's passage is pinned (a change to the data or the search 
     "computer/exam": ["keys", "wtc1f08", 0, 0, 668160, false, true],
     // D270: THE TUTORIAL, on Invention No. 1 (bars of 7680 ticks).
     "mobile/t-ladder": ["ladder", "inv01", 0, 0, 7680, true, false],
+    "mobile/t-beat": ["ladder", "inv01", 0, 0, 7680, false, false],
+    "mobile/t-hold": ["ladder", "inv01", 0, 69120, 92160, false, false],
     "mobile/t-second": ["ladder", "inv01", 1, 0, 15360, false, false],
     "mobile/t-thumbs": ["ladder", "inv01", 1, 0, 15360, false, false],
     "mobile/t-legato": ["ladder", "inv01", 1, 0, 15360, false, false],
+    "mobile/t-leaps": ["ladder", "inv01", 1, 99840, 115200, false, false],
     "mobile/t-dynamics": ["ladder", "inv01", 1, 0, 15360, false, false],
     "mobile/t-slide": ["ladder", "inv01", 1, 0, 15360, false, false],
     "mobile/t-ornament": ["ladder", "inv01", 0, 0, 15360, false, false],
     "mobile/t-subject": ["ladder", "inv01", 0, 0, 38400, false, false],
+    "mobile/t-reading": ["ladder", "wtc1f02", 1, 0, 15360, false, false],
+    "mobile/t-crowd": ["ladder", "inv01", 0, 0, 46080, false, true],
     "mobile/t-whole": ["ladder", "inv01", 0, 0, 168960, false, true],
   };
   const seen: string[] = [];
@@ -124,7 +130,9 @@ test("D225: the tracks: the computer's eight HIGHWAY lessons, the phone's LADDER
   assert.deepEqual(LESSONS.map((l) => l.id), ["beat", "line", "same", "subject", "answer", "exposition", "leap", "exam"]);
   // D270: the phone's track is THE TUTORIAL (the old one-lesson track kept, unused).
   assert.deepEqual(MOBILE_LESSONS.map((l) => [l.id, l.mode]), [["ladder", "ladder"]]);
-  assert.deepEqual(TUTORIAL_LESSONS.map((l) => l.id), ["t-ladder", "t-second", "t-thumbs", "t-legato", "t-dynamics", "t-slide", "t-ornament", "t-subject", "t-whole"]);
+  // D282: in baby steps, one new skill each.
+  assert.deepEqual(TUTORIAL_LESSONS.map((l) => l.id), ["t-ladder", "t-beat", "t-hold", "t-second", "t-thumbs", "t-legato", "t-leaps", "t-dynamics", "t-slide", "t-ornament", "t-subject", "t-reading", "t-crowd", "t-whole"]);
+  for (const l of TUTORIAL_LESSONS) assert.ok(l.goal && l.short, `${l.id}: a goal and its feedback`);
   assert.equal(TRACKS.mobile, TUTORIAL_LESSONS);
   assert.ok(TUTORIAL_LESSONS[0].run().wait, "LADDER waits at each note");
   for (const track of Object.values(TRACKS)) {
@@ -220,7 +228,7 @@ function playTutorial(l: Lesson, o: { oneThumb?: boolean; detached?: boolean; fl
 }
 
 test("D270: THE TUTORIAL: every step played as taught is passed (the whole invention too); played carelessly (one thumb, detached, flat, no slide), its own step is not", () => {
-  for (const l of TUTORIAL_LESSONS) {
+  for (const l of TUTORIAL_LESSONS.filter((x) => x.id !== "t-reading")) {
     const res = playTutorial(l);
     assert.ok(res.of >= 10, `${l.id}: ${res.of} notes`);
     assert.ok(passed(l, res), `${l.id}: ${res.right}/${res.of}, thumbs ${res.thumbs.alt}/${res.thumbs.of}, legato ${res.art.legato}/${res.art.legatoOf}, slides ${res.slides}, captured ${res.captured}`);
@@ -379,7 +387,7 @@ test("D225: the LESSON MAP lists each track's lessons, ✓ when passed, the next
     assert.match(html, /id="map-computer-beat"[^>]*>.*?✓.*?92%/);
     assert.match(html, /id="map-computer-line" class="tb-ach-row tb-map-row next"/);
     assert.match(html, /COMPUTER 1\/8/);
-    assert.match(html, /MOBILE 0\/9/);
+    assert.match(html, /MOBILE 0\/14/);
     const phone = renderToStaticMarkup(createElement(LessonMap, { platform: "mobile", focus: "ladder", play: () => {}, close: () => {} }));
     assert.equal(phone.match(/data-lesson=/g)?.length, TUTORIAL_LESSONS.length);
     assert.match(phone, /<h2>LADDER<\/h2>/);
@@ -393,7 +401,8 @@ test("D280: each tutorial step's demonstration plays itself right (the thumbs ta
   for (const l of TUTORIAL_LESSONS.filter((x) => x.id !== "t-whole")) {
     const clock = { t: 0 };
     const r = l.run();
-    const g = new ProtoGame(fugueById(r.piece), r.voice, r.from, protoById(r.proto), { bpm: r.bpm, legato: false, until: r.until, wait: false, solo: r.solo, easy: r.easy, fail: false, coach: r.coach, demo: true }, fakeChip(clock));
+    const reading = r.reading ? readingsOf(r.piece).find((x) => x.id === r.reading) : undefined;
+    const g = new ProtoGame(fugueById(r.piece), r.voice, r.from, protoById(r.proto), { bpm: r.bpm, legato: false, until: r.until, wait: false, solo: r.solo, easy: r.easy, fail: r.fail, coach: r.coach, demo: true, reading }, fakeChip(clock));
     g.rows = ROWS;
     let done = false;
     while (!done && clock.t < 600) (clock.t += 0.01), (done = g.step());
@@ -403,5 +412,7 @@ test("D280: each tutorial step's demonstration plays itself right (the thumbs ta
     if (l.id === "t-slide") assert.ok(res.slides >= 2, `slides ${res.slides}`);
     if (l.id === "t-ornament") assert.ok(res.shakes.hit >= 2, `shakes ${res.shakes.hit}/${res.shakes.of}`);
     if (l.id === "t-legato") assert.ok(res.art.legato / Math.max(1, res.art.legatoOf) > 0.8, `legato ${res.art.legato}/${res.art.legatoOf}`);
+    // D282: following the demonstration passes the step (its goal can be met as shown).
+    assert.ok(passed(l, res), `${l.id}: the demonstration passes (${l.short?.(res)})`);
   }
 });
