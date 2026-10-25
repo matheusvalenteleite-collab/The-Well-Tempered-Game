@@ -190,16 +190,22 @@ test("D237: play.html: built beside bench.html, the grid only: no tutorial, achi
   const { LiteGrid } = await import("../src/bench/LiteGrid.tsx");
   const html = renderToStaticMarkup(createElement(LiteGrid, { beaten: [], open: () => {}, settings: () => {} }));
   // D264: all open from the start (48 cards on a computer, 24 fugues on a phone), each with its difficulty.
-  assert.equal(html.match(/class="tb-lite-card/g)?.length, 72, "D275: and Book II's 24 fugues");
+  // D276: Book I's tab first (Book II's fugues behind the other tab).
+  assert.equal(html.match(/class="tb-lite-card/g)?.length, 48);
+  assert.match(html, /id="tab-book-I"[^>]*aria-selected="true"/);
+  const two = renderToStaticMarkup(createElement(LiteGrid, { beaten: [], open: () => {}, settings: () => {}, fuguesOnly: true, book: "II" }));
+  assert.equal(two.match(/class="tb-lite-card/g)?.length, 24, "D275: Book II's 24 fugues");
+  assert.match(two, /id="card-wtc2f01"/);
+  assert.doesNotMatch(two, /id="card-wtc1f01"/);
   assert.match(html, /id="card-wtc1p01"[^>]*>.*?START HERE/);
   assert.doesNotMatch(html, /MORE TO UNLOCK/);
   assert.match(html, /id="card-wtc1f02".*?NORMAL/);
   const phone = renderToStaticMarkup(createElement(LiteGrid, { beaten: [], open: () => {}, settings: () => {}, fuguesOnly: true }));
-  assert.equal(phone.match(/class="tb-lite-card/g)?.length, 48);
+  assert.equal(phone.match(/class="tb-lite-card/g)?.length, 24);
   assert.match(phone, /id="card-wtc1f01"[^>]*>.*?START HERE/);
   assert.match(html, /id="lite-settings"/);
-  // D275: BOOK II now a heading of the list.
-  assert.match(html, /id="book-II"/);
+  // D276: BOOK II now a tab.
+  assert.match(html, /id="tab-book-II"/);
   for (const word of ["TUTORIAL", "ACHIEVEMENT", "INTERFACE", "KIMIKO", "SEAL", "LESSON"]) assert.doesNotMatch(html, new RegExp(word, "i"), word);
   // The whole app on the minimal page, as it first renders: the grid, nothing of the bench's.
   const { APP } = await import("../src/bench/config.ts");

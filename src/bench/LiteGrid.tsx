@@ -3,7 +3,7 @@
  * side by side (each pair's prelude, then its fugue, both open), Prelude 1 in C major first and marked
  * START HERE; a ✓ on each piece finished; one line saying how many more open the next tier; a small ⚙.
  */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { fugueById } from "../touch/fugue.ts";
 import { PIECE_SOUND } from "../touch/piece-sound.ts";
 import { presetById } from "../touch/sound.ts";
@@ -15,13 +15,33 @@ import { popTitle } from "./PlayPop.tsx";
 /** D265: a sound's name as the list shows it. */
 export const soundName = (id: string): string => presetById(id).name.replace(/ \(SAMPLED\)$/, "");
 
-export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial, hear }: { beaten: readonly string[]; open: (id: string) => void; hear?: (id: string) => void; settings: () => void; fuguesOnly?: boolean; tutorial?: { done: number; of: number; start: () => void } }) {
+/** D276: the book tab shown, kept on the device. */
+const TAB_KEY = "tb-lite-book-v1";
+function storedTab(): "I" | "II" {
+  try {
+    return localStorage.getItem(TAB_KEY) === "II" ? "II" : "I";
+  } catch {
+    return "I";
+  }
+}
+
+export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial, hear, book: asked }: { beaten: readonly string[]; open: (id: string) => void; hear?: (id: string) => void; book?: "I" | "II"; settings: () => void; fuguesOnly?: boolean; tutorial?: { done: number; of: number; start: () => void } }) {
   const won = useMemo(() => new Set(beaten), [beaten]);
   // D263: on a phone the fugues only. D264: all open, each in its difficulty's colour. D265: a list from
   // the first to the last, numbered, the card on the left and what the piece is on the right (its voices,
   // its difficulty, its sound).
   // D270: THE TUTORIAL first (a phone's), START HERE until it is passed.
   const learning = !!tutorial && tutorial.done < tutorial.of;
+  // D276: Book I and Book II in two tabs at the top (the tutorial on Book I's).
+  const [tab, setTab] = useState<"I" | "II">(() => asked ?? storedTab());
+  const pick = (t: "I" | "II") => {
+    setTab(t);
+    try {
+      localStorage.setItem(TAB_KEY, t);
+    } catch {
+      /* this visit only */
+    }
+  };
   const start = learning ? null : startHere(fuguesOnly);
   return (
     <div className="tb-lite" role="main" aria-label="Pieces">
@@ -31,8 +51,15 @@ export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial,
           ⚙
         </button>
       </header>
+      <div className="tb-lite-tabs" role="tablist" aria-label="Books">
+        {(["I", "II"] as const).map((t) => (
+          <button key={t} type="button" role="tab" id={`tab-book-${t}`} aria-selected={tab === t} className={`tb-lite-tab${tab === t ? " on" : ""}`} onClick={() => pick(t)}>
+            BOOK {t}
+          </button>
+        ))}
+      </div>
       <ol className="tb-lite-list">
-        {tutorial && (
+        {tutorial && tab === "I" && (
           <li key="tutorial">
             <button type="button" id="card-tutorial" className={`tb-lite-card tb-lite-tutorial${learning ? " tb-lite-here" : " done"}`} style={{ ["--tint" as string]: "#7fd6e8" }} onClick={tutorial.start}>
               <span className="tb-lite-pic-wrap">
@@ -53,7 +80,9 @@ export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial,
             </button>
           </li>
         )}
-        {liteAll(fuguesOnly).map((id, at) => {
+        {liteAll(fuguesOnly)
+          .filter((id) => (id.startsWith("wtc2") ? "II" : "I") === tab)
+          .map((id) => {
           const f = fugueById(id);
           const done = won.has(id);
           const here = id === start && !done;
@@ -61,15 +90,7 @@ export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial,
           const n = Number(id.slice(-2));
           const title = popTitle(id);
           const [bwv, name] = title.includes(" · ") ? title.split(" · ") : ["", title];
-          // D275: each book headed (Book II's fugues after Book I's).
-          const book = id.startsWith("wtc2") ? "II" : "I";
-          const head = at === 0 || id === "wtc2f01";
-          return [
-            head && (
-              <li key={`book-${book}`} className="tb-lite-book" id={`book-${book}`}>
-                BOOK {book}
-              </li>
-            ),
+          return (
             <li key={id}>
               <button type="button" id={`card-${id}`} className={`tb-lite-card${here ? " tb-lite-here" : ""}${done ? " done" : ""}`} style={{ ["--tint" as string]: lv.ink }} onClick={() => open(id)}>
                 <span className="tb-lite-pic-wrap">
@@ -97,8 +118,8 @@ export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial,
                   ♪ HEAR THE SUBJECT
                 </button>
               )}
-            </li>,
-          ];
+            </li>
+          );
         })}
       </ol>
     </div>

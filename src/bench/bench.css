@@ -631,3 +631,7 @@
 .tb-hear-play { justify-self: center; font-size: 10px; padding: 9px 18px; }
 @media (max-height: 520px) { .tb-hear-canvas { height: 110px; } .tb-hear { gap: 5px; padding: 10px; } }
 .tb-lite-book { margin: 10px 0 0; font-family: var(--tg-pixel); font-size: 10px; color: var(--tg-shine); letter-spacing: 0.08em; text-shadow: 2px 2px 0 #b8322a; }
+/* D276: Book I and Book II as two tabs at the top of the list. */
+.tb-lite-tabs { display: flex; gap: 8px; max-width: 760px; margin: 0 auto 12px; position: sticky; top: calc(-12px - env(safe-area-inset-top, 0px)); z-index: 3; padding: 6px 0; background: var(--tg-bg); }
+.tb-lite-tab { flex: 1; padding: 10px 0; font-family: var(--tg-pixel); font-size: 10px; color: var(--tg-muted); background: var(--tg-box); border: 2px solid var(--tg-barline); cursor: pointer; }
+.tb-lite-tab.on { color: #1a1408; background: var(--tg-shine); border-color: var(--tg-shine); box-shadow: 3px 3px 0 #b8322a; }
