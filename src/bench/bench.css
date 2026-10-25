@@ -526,7 +526,9 @@
 .tb-lite-tier { max-width: 1100px; margin: 0 auto 16px; }
 .tb-lite-tier-name { margin: 0 0 8px; font-family: var(--tg-pixel); font-size: 8px; font-weight: 400; color: var(--tier); letter-spacing: 0.1em; }
 .tb-lite-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-.tb-lite-card { position: relative; display: grid; gap: 8px; align-content: start; padding: 6px 6px 10px; text-align: left; color: var(--tg-fg); background: var(--tg-box); border: 2px solid var(--tg-barline); cursor: pointer; }
+.tb-lite-card { position: relative; display: grid; gap: 8px; align-content: start; padding: 6px 6px 10px; text-align: left; color: var(--tg-fg); background: color-mix(in srgb, var(--tint, var(--tg-box)) 14%, var(--tg-box)); border: 2px solid color-mix(in srgb, var(--tint, var(--tg-barline)) 70%, var(--tg-barline)); cursor: pointer; }
+/* D264: the difficulty, in its colour. */
+.tb-lite-level { font-family: var(--tg-pixel); font-size: 7px; letter-spacing: 0.08em; }
 .tb-lite-card:hover, .tb-lite-card:focus-visible { border-color: var(--tint, var(--tg-shine)); outline: none; }
 .tb-lite-card .tb-lite-pic { width: 100%; height: auto; aspect-ratio: 64 / 40; image-rendering: pixelated; background: #000; }
 .tb-lite-title { font-family: var(--tg-pixel); font-size: 7px; line-height: 1.6; color: var(--tg-shine); }
@@ -555,3 +557,4 @@
 /* D260: a headphones' delay in force, shown on the pop-up. */
 .tb-lag-note { font-family: var(--tg-pixel); font-size: 8px; line-height: 1.8; color: var(--tg-shine); }
 .tb-lag-note .tg-link { font-family: var(--tg-pixel); font-size: 8px; }
+.tb-lite > .tb-lite-grid { max-width: 1100px; margin: 0 auto 16px; }
