@@ -977,6 +977,9 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
         c.fillRect(s.x + bw / 2 + half, h - 22, bw / 2 - half, 3);
         const way = !g.lastTouch || m.size < 0 ? "" : m.dir === 0 || m.steps === 0 ? "=" : m.dir > 0 ? "▲" : "▼";
         label(c, `${way}${n.long ? " HOLD" : ""}`, s.x + bw / 2, y, t.fg, 9);
+        // D278: an ornament to play: its sign and SHAKE under the arrow, gold, the hand wobbling.
+        const orn = g.ornamentAt(0, nx.i);
+        if (orn) label(c, `${orn} SHAKE`, s.x + bw / 2 + Math.sin(performance.now() / 70) * 3, y + 16, t.gold, 7);
       }
       // D271, THE TUTORIAL's coaching.
       // D273: before the first strike either thumb (the point is taking turns, not which starts).
