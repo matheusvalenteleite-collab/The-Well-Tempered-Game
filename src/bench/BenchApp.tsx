@@ -20,7 +20,7 @@
 import { ornamentMark, ornamentsOf } from "../touch/ornament-play.ts";
 import { BachTalk } from "./Bach.tsx";
 import { accuracy, passed, TRACKS, type Line, type Run } from "./lessons.ts";
-import { answer, askFirst, nextLesson, recordLesson } from "./tutorial.ts";
+import { answer, askFirst, nextLesson, recordLesson, trackState } from "./tutorial.ts";
 import { LessonMap, PlayedBefore } from "./LessonMap.tsx";
 import { tempoOf } from "../touch/tempi.ts";
 import { presetById, setPreset } from "../touch/sound.ts";
@@ -392,7 +392,7 @@ export function BenchApp() {
     if (hm) setTuning("equal", hm.a);
     ch.mine.gain.value = kimiko ? MINE[pick.mine] : 1;
     // D219: failing always on (D225: in the lessons from the fourth on); WITH KIMIKO, the game sounds only the player's voice.
-    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btOn("auto", lag, latencyOf(ch.ctx) ?? 0) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo } : {}), ...(clock ? { clock } : {}) }, ch);
+    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btOn("auto", lag, latencyOf(ch.ctx) ?? 0) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach } : {}), ...(clock ? { clock } : {}) }, ch);
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
     // For the measurements (the bench's own checks): the game and her playing.
@@ -593,6 +593,7 @@ export function BenchApp() {
   };
   /** The subject, played to be heard (lesson 5): the piece's first entry, at the lesson's tempo. */
   const demo = (l: Line) => {
+    if (l.demo === "detached" || l.demo === "legato") return demoLine(l.demo);
     if (l.demo !== "subject") return;
     const ch = ensureChip();
     const e = f.entries[0];
@@ -602,6 +603,15 @@ export function BenchApp() {
     for (const [on, dur, midi] of e.notes) ch.note(midi, t0 + (on - e.on) / tps, (dur / tps) * 0.95, voicing(e.voice, f.voices.length, true), { lead: true });
   };
 
+  /** D271: the lesson's first notes (two bars at most), each detached (a third of its length) or joined (a touch over it). */
+  const demoLine = (how: "detached" | "legato") => {
+    if (!run) return;
+    const ch = ensureChip();
+    const tps = (f.tpq * bpm) / 60;
+    const t0 = ch.ctx.currentTime + 0.3;
+    const ns = f.voices[run.voice].filter(([on]) => on >= run.from && on < Math.min(run.until, run.from + 2 * f.barTicks));
+    for (const [on, dur, midi] of ns) ch.note(midi, t0 + (on - run.from) / tps, (dur / tps) * (how === "legato" ? 1.08 : 0.35), voicing(run.voice, f.voices.length, true), { lead: true });
+  };
   const events: ThumbEvents = {
     down: (id, side, x, y, w, h, ts) => (seen(), game.current?.down(id, { side, x, y, w, h }, ts)),
     move: (id, x, y, w, h, ts) => game.current?.move(id, { side: "left", x, y, w, h }, ts),
@@ -953,7 +963,7 @@ export function BenchApp() {
         />
       )}
       {wheel && !APP.lite && (phase.kind === "home" || phase.kind === "title") && <FuguePicker current={pick.piece} close={() => setWheel(false)} pick={open} paused={phase.kind === "title"} />}
-      {APP.lite && (phase.kind === "home" || phase.kind === "title") && <LiteGrid beaten={lite.beaten} open={open} settings={() => setPhase({ kind: "settings" })} fuguesOnly={platform === "mobile"} />}
+      {APP.lite && (phase.kind === "home" || phase.kind === "title") && <LiteGrid beaten={lite.beaten} open={open} settings={() => setPhase({ kind: "settings" })} fuguesOnly={platform === "mobile"} tutorial={platform === "mobile" ? { done: TRACKS.mobile.filter((l) => trackState("mobile").passed[l.id]).length, of: TRACKS.mobile.length, start: () => beginLesson("mobile", nextLesson("mobile")) } : undefined} />}
       {phase.kind === "title" && (
         <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULES[proto.id]} {...(APP.lite ? { sound, setSound, soundLocked: !soundOpen } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
           {herHere && <HerSwitch pick={pick} setPick={setPick} />}

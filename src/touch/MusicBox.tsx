@@ -231,6 +231,9 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   if (fr.spans) ribbons(fx, fr.spans, fr.notes2 && fr.voice2 !== undefined ? [fr.voice, fr.voice2] : [fr.voice], fr.names, fr.entryState);
 
   // The other voices: their colours, dimmer; (D208) their subject notes full, standing out of the trail.
+  // D269: never mistaken for the player's: thinner (half a row, centred), flat (no shadow, no solid
+  // outline); a subject note framed in gold dashes (the player's own are framed solid); a note glows
+  // while it sounds (brighter, a faint halo in its colour), never in the player's hit colour.
   const subjNotes = new Set(fr.spans?.filter((sp) => sp.form !== "counter").flatMap((sp) => sp.path.map((n) => `${sp.voice}:${n.on}`)) ?? []);
   for (const o of fr.others) {
     const x1 = xOf(o.on);
@@ -238,19 +241,37 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
     const x2 = xOf(o.on + o.dur);
     if (x2 < 0) continue;
     const oh = hOf(o.step);
-    g.globalAlpha = 0.3;
-    g.fillStyle = "#000";
-    if (oh === bh) g.fillRect(x1 + 1, yOf(o.step) + 1, Math.max(1, x2 - x1 - 1), bh - 1);
+    const full = oh === bh;
     const isSubj = subjNotes.has(`${o.voice}:${o.on}`);
-    // D267: a subject note framed in gold (the player's own too, below): the subject recognised wherever it is.
-    if (isSubj && oh === bh) {
-      g.globalAlpha = 1;
-      g.fillStyle = fx.gold;
-      g.fillRect(x1 - 1, yOf(o.step) - 1, Math.max(1, x2 - x1 - 1) + 2, bh + 1);
+    const sounding = fr.now >= o.on && fr.now < o.on + o.dur;
+    const ink = inkOf(o.voice, fr.count);
+    const bw = Math.max(1, x2 - x1 - 1);
+    const th = full ? Math.max(1, Math.round(bh * 0.5)) : oh;
+    const y = yOf(o.step) + (full ? Math.floor((bh - 1 - th) / 2) : 0);
+    if (sounding && full) {
+      g.globalAlpha = 0.22;
+      g.fillStyle = ink;
+      g.fillRect(x1 - 1, yOf(o.step) - 1, bw + 2, bh + 1);
     }
-    g.globalAlpha = isSubj ? 1 : oh === bh ? 0.5 : 0.75;
-    g.fillStyle = inkOf(o.voice, fr.count);
-    g.fillRect(x1, yOf(o.step), Math.max(1, x2 - x1 - 1), oh === bh ? bh - 1 : oh);
+    if (isSubj && full) {
+      // Gold dashes above and below the thin bar: two pixels on, two off.
+      g.globalAlpha = sounding ? 1 : 0.85;
+      g.fillStyle = fx.gold;
+      for (let x = x1 - 1; x < x1 + bw + 1; x += 4) {
+        const dw = Math.min(2, x1 + bw + 1 - x);
+        g.fillRect(x, y - 1, dw, 1);
+        g.fillRect(x, y + th, dw, 1);
+      }
+      g.fillRect(x1 - 1, y - 1, 1, th + 2);
+      g.fillRect(x1 + bw, y - 1, 1, th + 2);
+    }
+    g.globalAlpha = sounding ? 1 : isSubj ? 0.8 : full ? 0.45 : 0.7;
+    g.fillStyle = ink;
+    g.fillRect(x1, y, bw, th);
+    if (sounding && th > 1) {
+      g.fillStyle = "rgba(255,255,255,0.35)";
+      g.fillRect(x1, y, bw, 1);
+    }
     if (!fr.spans && fr.subject?.has(`${o.voice}:${o.on}`)) dots(g, x1, x2, yOf(o.step), tok("--tg-fg"));
   }
   g.globalAlpha = 1;

@@ -121,6 +121,8 @@ interface Held {
   d0: number;
   /** D208: another thumb has struck since on this voice: this one is on its way off and slides no more. */
   passive?: boolean;
+  /** D271: the way its slides have gone (1 up or right, -1 down or left): a held thumb slides one way only. */
+  slideDir?: 1 | -1;
   /** Its last positions, for a flick. */
   trail: { t: number; y: number }[];
   /** The points its note scored (taken back if its articulation fails). */
@@ -216,6 +218,10 @@ export interface RunResults {
   lastBar: number;
   progress: number;
   sheet: Sheet;
+  /** D271: the tutorial's measures (ProtoGame.thumbs, levels, slides). */
+  thumbs: { alt: number; of: number };
+  levels: { on: number; d: number }[];
+  slides: number;
   art: ArtStats;
   lanes: { exact: number; relative: number };
   report: string;
@@ -1174,7 +1180,11 @@ export class ProtoGame {
       // played): a thumb's contact point wanders a row or so as it rolls and lifts, and that wander
       // took the next note from the other thumb (the overlap legato lost its notes as slips).
       if (Math.abs(c.y - h.ay) < this.ladderRow * 1.5) return;
-      this.slideTo(id, h, c, t);
+      // D271: one way only (the owner: "to avoid players being able to complete levels by dragging"):
+      // a slide back the other way plays nothing; the thumb lifts and strikes again.
+      const dir = c.y < h.ay ? 1 : -1;
+      if (h.slideDir && dir !== h.slideDir) return;
+      if (this.slideTo(id, h, c, t)) h.slideDir = dir;
     } else if (this.road && h.trace?.queue.length) {
       // D262: tracing: each part of a lane travelled sounds the line's next note, when it is near (no earlier
       // than half a sixteenth before it is written); no slides meanwhile.
@@ -1204,9 +1214,12 @@ export class ProtoGame {
       // D253: with both hands the lanes are narrow and a held thumb holds: a slide stays in its own hand's
       // lanes and needs a whole lane's travel (a held left thumb drifting took the next bass note early).
       if (this.hands && (this.laneTrack(lane) !== h.k || Math.abs(c.x - h.ax) < c.w / this.laneCount)) return;
+      // D271: one way only, as LADDER's.
+      const dir = c.x > h.ax ? 1 : -1;
+      if (h.slideDir && dir !== h.slideDir) return;
       h.cell = lane;
       h.ax = c.x;
-      if (this.slideTo(id, h, c, t)) this.lastLane = this.laneBy[h.k] = lane;
+      if (this.slideTo(id, h, c, t)) (this.lastLane = this.laneBy[h.k] = lane), (h.slideDir = dir);
     } else if (this.proto.id === "piano") {
       // Only the thumb's own travel counts.
       const unit = c.w / this.kb.whites / 2;
@@ -1229,6 +1242,7 @@ export class ProtoGame {
     if (i < 0) return false;
     h.ay = c.y;
     this.play(id, h, i, { ok: true }, true, this.dynamicAt(c));
+    this.slides++;
     return true;
   }
 
@@ -1436,6 +1450,7 @@ export class ProtoGame {
     this.earn("legato", legatoAdd);
     if (perfect) this.perfects++;
     else this.goods++;
+    if (!slide) this.thumbNote(h.side, n.on, d);
     // D186: the points rise from the note.
     this.pops.push({ tick: n.on, step, text: `+${ptsText(h.pts)}`, at, gold: perfect });
     if (this.pops.length > 40) this.pops.splice(0, 20);
@@ -2259,7 +2274,7 @@ export class ProtoGame {
     const art = { ...this.art };
     const progress = failed ? this.progressAt(this.failedAt as number) : 1;
     const sheet = scoreSheet({ ...r, art, earned: { ...this.earned }, perfects: this.perfects, goods: this.goods, failed, progress });
-    return { ...r, art, lanes: { ...this.laneTally }, stars: failed ? 0 : this.starsOf(r.score, r.of), failedBar: failed ? barAt(this.f, this.failedAt as number) : null, lastBar: barAt(this.f, this.span().end - 1), progress, sheet, report: this.report(r) };
+    return { ...r, art, lanes: { ...this.laneTally }, stars: failed ? 0 : this.starsOf(r.score, r.of), failedBar: failed ? barAt(this.f, this.failedAt as number) : null, lastBar: barAt(this.f, this.span().end - 1), progress, sheet, thumbs: { ...this.thumbs }, levels: [...this.levels], slides: this.slides, report: this.report(r) };
   }
   /** D268: the played notes' first onset and last end (ticks). */
   private span(): { start: number; end: number } {
@@ -2295,6 +2310,28 @@ export class ProtoGame {
   readonly earned: Record<ScoreSource, number> = { notes: 0, legato: 0, held: 0, subjects: 0, cadences: 0, bonus: 0 };
   perfects = 0;
   goods = 0;
+  /**
+   * D271, THE TUTORIAL's measures: the thumbs (a quick note, an eighth or shorter after the one before,
+   * struck by the other thumb than that one's: alternated) and each right strike's dynamic (0 pp to 1 ff).
+   */
+  readonly thumbs = { alt: 0, of: 0 };
+  /** D271: notes played by a held thumb sliding on. */
+  slides = 0;
+  readonly levels: { on: number; d: number }[] = [];
+  private lastStrike: { side: Side; on: number } | null = null;
+  private thumbNote(side: Side, on: number, d: number) {
+    const last = this.lastStrike;
+    if (last && on > last.on && on - last.on <= this.f.tpq / 2) {
+      this.thumbs.of++;
+      if (side !== last.side) this.thumbs.alt++;
+    }
+    this.lastStrike = { side, on };
+    this.levels.push({ on, d });
+  }
+  /** D271: the side the next quick note asks for (the other thumb than the last strike's), or null. */
+  thumbNext(): Side | null {
+    return this.lastStrike ? (this.lastStrike.side === "left" ? "right" : "left") : null;
+  }
   private earn(src: ScoreSource, pts: number) {
     if (!pts) return;
     this.score += pts;

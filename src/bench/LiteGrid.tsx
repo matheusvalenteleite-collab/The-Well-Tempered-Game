@@ -15,12 +15,14 @@ import { popTitle } from "./PlayPop.tsx";
 /** D265: a sound's name as the list shows it. */
 export const soundName = (id: string): string => presetById(id).name.replace(/ \(SAMPLED\)$/, "");
 
-export function LiteGrid({ beaten, open, settings, fuguesOnly = false }: { beaten: readonly string[]; open: (id: string) => void; settings: () => void; fuguesOnly?: boolean }) {
+export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial }: { beaten: readonly string[]; open: (id: string) => void; settings: () => void; fuguesOnly?: boolean; tutorial?: { done: number; of: number; start: () => void } }) {
   const won = useMemo(() => new Set(beaten), [beaten]);
   // D263: on a phone the fugues only. D264: all open, each in its difficulty's colour. D265: a list from
   // the first to the last, numbered, the card on the left and what the piece is on the right (its voices,
   // its difficulty, its sound).
-  const start = startHere(fuguesOnly);
+  // D270: THE TUTORIAL first (a phone's), START HERE until it is passed.
+  const learning = !!tutorial && tutorial.done < tutorial.of;
+  const start = learning ? null : startHere(fuguesOnly);
   return (
     <div className="tb-lite" role="main" aria-label="Pieces">
       <header className="tb-lite-head">
@@ -30,6 +32,27 @@ export function LiteGrid({ beaten, open, settings, fuguesOnly = false }: { beate
         </button>
       </header>
       <ol className="tb-lite-list">
+        {tutorial && (
+          <li key="tutorial">
+            <button type="button" id="card-tutorial" className={`tb-lite-card tb-lite-tutorial${learning ? " tb-lite-here" : " done"}`} style={{ ["--tint" as string]: "#7fd6e8" }} onClick={tutorial.start}>
+              <span className="tb-lite-pic-wrap">
+                <span className="tb-lite-pic tb-lite-tutorial-pic" aria-hidden="true">
+                  ♪
+                </span>
+                {!learning && <span className="tb-lite-done">✓</span>}
+              </span>
+              <span className="tb-lite-info">
+                {learning && <span className="tb-lite-start">START HERE</span>}
+                <span className="tb-lite-title">TUTORIAL</span>
+                <span className="tb-lite-meta">INVENTION 1 · BWV 772 · 2 VOICES</span>
+                <span className="tb-lite-level" style={{ color: "#7fd6e8" }}>
+                  {tutorial.done ? `${tutorial.done} OF ${tutorial.of} STEPS` : `${tutorial.of} STEPS`}
+                </span>
+                <span className="tb-lite-meta">WITH HERR BACH</span>
+              </span>
+            </button>
+          </li>
+        )}
         {liteAll(fuguesOnly).map((id) => {
           const f = fugueById(id);
           const done = won.has(id);
