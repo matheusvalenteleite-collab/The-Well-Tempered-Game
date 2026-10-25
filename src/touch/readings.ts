@@ -5,7 +5,7 @@
  * Taken from their words only (the owner: textual descriptions, no listening to recordings), by
  * tools/touch/readings.ts from the extractions (docs/wtc/readings/), into data/touch/readings.json.
  * Up to three a fugue, the first its default; the others open once the fugue is finished. The game
- * plays a fugue at its reading's tempo, rewards the subject played as the reading says and the rest at
+ * (D274: at the recordings' tempo; the book's mark only shown) rewards the subject played as the reading says and the rest at
  * its dynamics, and HEAR THE SUBJECT plays and draws the subject so.
  */
 import data from "../../data/touch/readings.json" with { type: "json" };
@@ -85,7 +85,8 @@ export function planLevel(r: Reading, bar: number): Level | null {
  * its dynamic (0..1), from the entry's notes [onset, duration, MIDI] in ticks.
  */
 export function performSubject(r: Reading | null, notes: [number, number, number, ...unknown[]][], tpq: number, bpm: number): { at: number; len: number; midi: number; d: number }[] {
-  const tps = (tpq * (r?.tempo ?? bpm)) / 60;
+  // D274: at the game's tempo (the recordings'), not the book's.
+  const tps = (tpq * bpm) / 60;
   const on0 = notes[0]?.[0] ?? 0;
   const base = r?.level ? LEVEL_D[r.level] : 0.55;
   return notes.map(([on, dur, midi], i) => {

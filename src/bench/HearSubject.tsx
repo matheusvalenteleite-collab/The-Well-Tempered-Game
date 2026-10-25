@@ -76,7 +76,7 @@ export function HearSubject({ id, open, play, close }: { id: string; open: boole
         <canvas ref={canvas} className="tb-hear-canvas" />
         <p className="tb-hear-key">
           <span>⌒ JOINED</span> <span>| DETACHED</span> <span>· SHORT</span> <span>&gt; ACCENT</span>
-          {reading?.tempo ? <span> · ♩ = {reading.tempo}</span> : null}
+          <span> · ♩ = {tempoOf(id)}</span>
           {reading?.level ? <span> · {reading.level.toUpperCase()}</span> : null}
         </p>
         {reading?.quote && (
@@ -85,6 +85,7 @@ export function HearSubject({ id, open, play, close }: { id: string; open: boole
             <cite>
               {reading.author.charAt(0) + reading.author.slice(1).toLowerCase()}, {reading.work.includes(String(reading.year)) ? reading.work : `${reading.work} (${reading.year})`}{reading.pages ? `, ${reading.pages}` : ""}
               {reading.basis === "rule" ? " · his rule, applied to the notes" : ""}
+              {reading.tempoText ? ` · his tempo: ${reading.tempoText} (the game keeps the recordings' ♩ = ${tempoOf(id)})` : ""}
             </cite>
           </blockquote>
         )}

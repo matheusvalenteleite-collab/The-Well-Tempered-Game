@@ -246,9 +246,10 @@ export function BenchApp() {
   const prelude = !run && f.kind === "prelude";
   const from = run ? run.from : startTick(f, pick.share);
   const voice = run ? run.voice : pick.voice;
-  // D272: on play.html a fugue is played by its chosen reading (its tempo among what it gives).
+  // D272: on play.html a fugue is played by its chosen reading (D274: at the recordings' tempo, never the
+  // book's: the owner, "fugues should not be too fast").
   const reading = APP.lite && !run && f.kind === "fugue" ? chosenReading(f.id, lite.beaten.includes(f.id)) : null;
-  const bpm = run ? run.bpm : (reading?.tempo ?? tempoOf(f.id));
+  const bpm = run ? run.bpm : tempoOf(f.id);
   // D216, KIMIKO (D219: WITH KIMIKO ISHIZAKA, a switch in LADDER and SUBJECT): the player over Kimiko
   // Ishizaka's recording, the game on her time; only where she is timed (whatever pieces
   // data/recordings/ishizaka-ticks.json holds); her track let go when the switch or the piece is left.

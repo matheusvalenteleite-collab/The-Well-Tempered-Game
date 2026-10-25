@@ -27,7 +27,7 @@ test("D272: every reading belongs to a Book I fugue, at most three a fugue, one 
   }
 });
 
-test("D272: HEAR THE SUBJECT: joined notes reach the next, detached ones stop short, staccato shorter, an accent louder; at the reading's tempo", () => {
+test("D272: HEAR THE SUBJECT: joined notes reach the next, detached ones stop short, staccato shorter, an accent louder; at the game's tempo", () => {
   const notes: [number, number, number][] = [
     [0, 480, 60],
     [480, 480, 62],
@@ -35,10 +35,11 @@ test("D272: HEAR THE SUBJECT: joined notes reach the next, detached ones stop sh
     [1440, 480, 65],
   ];
   const r = { tempo: 60, level: "mf", shape: null, notes: [{ join: true, short: null, accent: null }, { join: false, short: null, accent: true }, { join: null, short: true, accent: null }, { join: null, short: null, accent: null }] } as unknown as Reading;
+  // D274: at the tempo given (the recordings'), not the reading's.
   const p = performSubject(r, notes, 1920, 120);
-  assert.equal(p[1].at, 0.25, "♩ = 60: a sixteenth a quarter second");
-  assert.ok(p[0].len >= 0.25, "joined: to the next");
-  assert.ok(p[1].len < 0.25 * 0.7, "detached");
+  assert.equal(p[1].at, 0.125, "♩ = 120: a sixteenth an eighth of a second");
+  assert.ok(p[0].len >= 0.125, "joined: to the next");
+  assert.ok(p[1].len < 0.125 * 0.7, "detached");
   assert.ok(p[2].len < p[1].len, "staccato shorter");
   assert.ok(p[1].d > p[0].d, "the accent louder");
 });
