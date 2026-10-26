@@ -50,7 +50,7 @@ export interface Options {
   until?: number;
   wait?: boolean;
   solo?: boolean;
-  /** D223, BLUETOOTH MODE: the player's notes sounded ahead at their written times (armed), confirmed by the touch. */
+  /** D223, D299: BLUETOOTH MODE: the whole piece, the player's notes too, on the schedule at the written times; the touches score, silently. */
   bt?: boolean;
   /** D230, SCALE KEYS (computer HIGHWAY, an experiment): the home row the home key's scale, the rows above and below its raised and lowered degrees (scale-keys.ts). */
   scale?: boolean;

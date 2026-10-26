@@ -11,6 +11,7 @@ export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 import { hz } from "./tuning.ts";
 import { grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, type Loaded, type SampledInstrument } from "./sampled.ts";
+import { SmoothClock } from "./headphones.ts";
 
 /**
  * D208, the player's voice: the same instrument as the others, at the same level (the voices of a
@@ -201,7 +202,7 @@ export interface Play {
   vib?: number;
   room?: number;
   detune?: number;
-  /** D223: where the note joins the sound in place of its bus (a Gate's node: BLUETOOTH MODE's armed notes). */
+  /** D223: where the note joins the sound in place of its bus (D299: no longer used by BLUETOOTH MODE). */
   into?: AudioNode;
   /** D252: false: not doubled by the coupling (the coupling's own notes). */
   couple?: boolean;
@@ -210,17 +211,6 @@ export interface Play {
 /** D252: the player's own notes a little brighter (a high shelf, dB) and a little louder: the player hears himself. */
 export const MINE_TONE = 2.5;
 export const MINE_LEVEL = 1.12;
-
-/**
- * D223, BLUETOOTH MODE: a level the player's notes sounded ahead pass through: soft while armed,
- * raised when a touch confirms them, faded fast when none comes; closed (disconnected) once done.
- */
-export interface Gate {
-  node: AudioNode;
-  confirm: () => void;
-  fade: () => void;
-  close: () => void;
-}
 
 export interface Sounding {
   stop: (at?: number) => void;
@@ -360,28 +350,6 @@ export class Chip {
     return p.into ?? (p.lead ? this.mine : this.bus);
   }
 
-  /** D223: a gate into the player's own level, at `level` (armed) until confirmed or faded (about 40 ms). */
-  gate(level: number): Gate {
-    const g = this.ctx.createGain();
-    g.gain.value = level;
-    g.connect(this.mine);
-    const to = (v: number, tc: number) => {
-      const now = this.ctx.currentTime;
-      g.gain.cancelScheduledValues(now);
-      g.gain.setValueAtTime(g.gain.value, now);
-      g.gain.setTargetAtTime(v, now, tc);
-    };
-    let closed = false;
-    return {
-      node: g,
-      confirm: () => to(1, 0.008),
-      fade: () => to(0, 0.012),
-      close: () => {
-        if (!closed) (closed = true), g.disconnect();
-      },
-    };
-  }
-
   /** Where a voice of one's own joins the sound (the testbench's instruments, D170). */
   get input(): AudioNode {
     return this.bus;
@@ -429,7 +397,19 @@ export class Chip {
 
   /** The audio clock as the ear hears it (the output's latency taken off), for drawing in sync. */
   heard(): number {
-    return this.ctx.currentTime - (this.lag ?? (this.ctx.outputLatency || this.ctx.baseLatency || 0));
+    return (this.smooth ? this.clock() : this.ctx.currentTime) - (this.lag ?? (this.ctx.outputLatency || this.ctx.baseLatency || 0));
+  }
+
+  /**
+   * D299: `heard()` on the smoothed clock (BLUETOOTH MODE sets it for its game). `currentTime` moves in
+   * steps, one per block the system takes (larger and less regular on a Bluetooth route), so a picture
+   * drawn from it each frame judders and a touch's time is off by up to a block.
+   */
+  smooth = false;
+  private readonly smoothed = new SmoothClock();
+  /** D299: the audio clock read smoothly (headphones.ts SmoothClock), for drawing and for timing touches. */
+  clock(nowMs = performance.now()): number {
+    return this.smoothed.read(this.ctx.currentTime, nowMs, this.ctx.state === "running");
   }
 
   /** A note from `at` for `dur` seconds; stop() cuts it short (the thumb let go). */

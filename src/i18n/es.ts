@@ -123,6 +123,13 @@ export const ES: Record<string, string> = {
   Reset: "Restablecer",
   "TAP HERE ON EACH CLICK": "TOCA AQUÍ EN CADA CLIC",
   "TOO FEW TAPS": "DEMASIADO POCOS TOQUES",
+  // D299: BLUETOOTH MODE.
+  "BLUETOOTH MODE is on: the whole piece plays on time through the delay; your touches score but make no sound.": "El MODO BLUETOOTH está activado: toda la pieza suena a tiempo pese al retraso; tus toques puntúan, pero no suenan.",
+  "Clearest sounds for Bluetooth:": "Sonidos más nítidos para Bluetooth:",
+  "USE MY LAST BLUETOOTH DELAY ({ms} MS)": "USAR MI ÚLTIMO RETRASO BLUETOOTH ({ms} MS)",
+  "CHECK THE DELAY": "COMPROBAR EL RETRASO",
+  "DOES EACH CLICK COME WITH THE LIGHT?": "¿CADA CLIC LLEGA CON LA LUZ?",
+  "SOUND DELAY {from} → {to} MS (TUNED TO YOUR PLAYING)": "RETRASO DEL SONIDO {from} → {to} MS (AJUSTADO A TU FORMA DE TOCAR)",
   "TOO UNEVEN: TRY AGAIN": "DEMASIADO IRREGULAR: INTÉNTALO OTRA VEZ",
   // The tutorial
   LESSON: "LECCIÓN",

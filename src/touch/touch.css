@@ -521,6 +521,9 @@ body {
   cursor: pointer;
 }
 .tg-tap-pad small { font-size: 7px; color: var(--tg-muted); }
+/* D299: CHECK THE DELAY: a light that flashes as each click is heard (by the delay in force). */
+.tb-sync { min-height: 120px; }
+.tb-sync-dot { display: block; width: 44px; height: 44px; border-radius: 50%; background: var(--tg-shine); opacity: 0.12; }
 .tg-help h2 { margin: 14px 0 6px; font-family: var(--tg-pixel); font-size: 8px; font-weight: 400; color: var(--tg-shine); }
 .tg-help p { margin: 0 0 8px; font-size: 13px; line-height: 1.5; }
 .tg-title-help { font-size: 12px; color: var(--tg-muted); }

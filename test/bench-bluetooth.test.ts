@@ -1,14 +1,15 @@
 /**
- * D223: headphones. BLUETOOTH MODE sounds the player's notes ahead at their written times (armed,
- * soft, through a gate), confirms them by a right touch in the window, fades them when no touch comes
- * and when a touch is wrong; the late side 20 ms wider. The delay kept per listening setup; AUTO's
- * threshold; the quick calibration; the screen's delay drawn ahead; the default path untouched.
+ * D223, D299: headphones. BLUETOOTH MODE (D299) puts the player's notes on the schedule at their written
+ * times and lengths, at their usual level, touched or not; a touch scores and makes no sound; nothing
+ * is armed, confirmed or faded; the window 20 ms wider early and 25 ms late. The delay kept per
+ * listening setup; AUTO's threshold; the quick calibration; the screen's delay drawn ahead; the default
+ * path untouched.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { fugueById } from "../src/touch/fugue.ts";
 import type { Chip, Play } from "../src/touch/chip.ts";
-import { ARM_LEVEL, ARM_WAIT_MS, BT_LATE_MS, ProtoGame } from "../src/bench/proto-game.ts";
+import { BT_EARLY_MS, BT_LATE_MS, ProtoGame } from "../src/bench/proto-game.ts";
 import { protoById, type ProtoId } from "../src/bench/protos.ts";
 import { BT_AUTO_S, btOn, lagFor, OutputWatch, quickLag, setupKey, verdictOf, withLag } from "../src/touch/headphones.ts";
 
@@ -20,45 +21,32 @@ interface NoteRec {
   dur: number;
   p: Play;
   stopAt?: number;
-}
-interface GateRec {
-  level: number;
-  node: object;
-  state: "armed" | "confirmed" | "faded";
-  closed: boolean;
+  /** When (audio clock) the note was asked for. */
+  asked: number;
 }
 
-/** A chip that records its notes and gates; the clock as heard `lag` behind the audio clock. */
-function fakeChip(clock: { t: number }, lag: number, gates = true) {
+/** A chip that records its notes; the clock as heard `lag` behind the audio clock. No gates: none may be asked for. */
+function fakeChip(clock: { t: number }, lag: number) {
   const notes: NoteRec[] = [];
-  const gs: GateRec[] = [];
   const chip = {
     ctx: { get currentTime() { return clock.t; } },
     heard: () => clock.t - lag,
     visual: 0,
+    smooth: false,
     note: (midi: number, at: number, dur: number, _v: unknown, p: Play = {}) => {
-      const rec: NoteRec = { midi, at, dur, p };
+      const rec: NoteRec = { midi, at, dur, p, asked: clock.t };
       notes.push(rec);
       return { stop: (w?: number) => void (rec.stopAt ??= w ?? clock.t), bend: () => {}, glide: () => {}, muffle: () => {}, dyn: () => {} };
     },
     swoosh: () => {},
     tick: () => {},
-    ...(gates
-      ? {
-          gate: (level: number) => {
-            const g: GateRec = { level, node: {}, state: "armed", closed: false };
-            gs.push(g);
-            return { node: g.node, confirm: () => void (g.state = "confirmed"), fade: () => void (g.state = "faded"), close: () => void (g.closed = true) };
-          },
-        }
-      : {}),
   };
-  return { chip: chip as unknown as Chip, notes, gates: gs };
+  return { chip: chip as unknown as Chip, notes };
 }
 
 function game(lag: number, bt: boolean, proto: ProtoId = "keys") {
   const clock = { t: 0 };
-  const fc = fakeChip(clock, lag, bt);
+  const fc = fakeChip(clock, lag);
   const g = new ProtoGame(C_MINOR, 1, 0, protoById(proto), { bpm: 54, legato: false, easy: "timing", bt }, fc.chip);
   /** Runs the frames up to time t (s, audio clock). */
   const until = (t: number) => {
@@ -70,15 +58,13 @@ function game(lag: number, bt: boolean, proto: ProtoId = "keys") {
 }
 /** The first struck note (not riding, the head of its chord). */
 const firstHead = (g: ProtoGame) => g.notes.findIndex((n, i) => !n.ride && !(i > 0 && g.notes[i - 1].on === n.on));
-/** The note sounded ahead for note i: through a gate, at its written time. */
-function armedFor(r: ReturnType<typeof game>, i: number) {
+/** The player's note scheduled for note i: at its written time on the audio clock. */
+function scheduled(r: ReturnType<typeof game>, i: number) {
   const n = r.g.notes[i];
-  const rec = r.notes.find((x) => x.p.into && x.midi === n.midi && Math.abs(x.at - r.g.timeAt(n.on)) < 1e-9);
-  const gate = rec && r.gates.find((x) => x.node === rec.p.into);
-  return { rec, gate };
+  return r.notes.find((x) => x.p.lead && x.midi === n.midi && Math.abs(x.at - r.g.timeAt(n.on)) < 1e-9);
 }
 
-test("D223: armed notes are sounded at their written times (soft, through a gate) and fade when untouched", () => {
+test("D299: the player's notes are scheduled ahead at their written times and lengths, at full level, and sound out untouched", () => {
   const lag = 0.16;
   const r = game(lag, true);
   const i = firstHead(r.g);
@@ -86,25 +72,21 @@ test("D223: armed notes are sounded at their written times (soft, through a gate
   const at = r.g.timeAt(n.on);
   // Scheduled ahead, as the band is: well before the note's time on the audio clock.
   r.until(at - 0.2);
-  const { rec, gate } = armedFor(r, i);
-  assert.ok(rec, "the note is sounded ahead");
+  const rec = scheduled(r, i);
+  assert.ok(rec, "the note is on the schedule");
+  assert.ok(rec.asked < at, "asked for ahead of its time");
   assert.equal(rec.at, at, "at its written time on the audio clock (heard on time through the delay)");
   assert.ok(rec.p.lead, "as the player's own");
-  assert.equal(gate?.level, ARM_LEVEL);
-  assert.equal(gate?.state, "armed");
-  // No touch: still armed through the wait (as heard), faded just after it.
-  r.until(at + lag + (ARM_WAIT_MS - 20) / 1000);
-  assert.equal(gate?.state, "armed");
-  r.until(at + lag + (ARM_WAIT_MS + 20) / 1000);
-  assert.equal(gate?.state, "faded");
-  assert.ok(rec.stopAt !== undefined && rec.stopAt <= r.clock.t + 0.07, "stopped fast");
-  // The window closes: a miss, as without the mode; the gate closed once its sound is done.
+  assert.equal(rec.p.into, undefined, "no gate");
+  assert.ok(Math.abs(rec.dur - (r.g.timeAt(n.on + n.dur) - at)) < 1e-6 || rec.dur < r.g.timeAt(n.on + n.dur) - at, "its written length (or up to its first rider)");
+  assert.equal(r.g.armedAt(0, n.on)?.state, "sounding");
+  // No touch: nothing fades or stops it; the window closes: a miss, as without the mode.
   r.until(at + lag + 0.8);
+  assert.equal(rec.stopAt, undefined, "never cut");
   assert.equal(n.state, "miss");
-  assert.ok(gate?.closed);
 });
 
-test("D223: a touch in the window confirms the armed note (no second note), held while the touch lasts", () => {
+test("D299: a touch in the window scores the note and sounds nothing; letting go does not cut it", () => {
   const lag = 0.16;
   const r = game(lag, true);
   const i = firstHead(r.g);
@@ -113,52 +95,73 @@ test("D223: a touch in the window confirms the armed note (no second note), held
   // The touch heard on time: lag after the note's audio time; 40 ms late of that, to be sure.
   r.until(at + lag + 0.04);
   const before = r.notes.length;
-  r.g.keyDown(1, { velocity: 0.5 }, performance.now());
-  const { rec, gate } = armedFor(r, i);
-  assert.equal(gate?.state, "confirmed", "raised by the touch");
+  r.g.keyDown(1, { velocity: 0.9 }, performance.now());
   assert.equal(n.state, "hit");
-  assert.equal(r.notes.slice(before).filter((x) => x.midi === n.midi && !x.p.into).length, 0, "not struck again late");
-  const len = r.g.timeAt(n.on + n.dur) - at;
-  assert.ok(len > 0.15, "a note long enough to hold");
-  r.until(at + lag + Math.min(0.3, 0.8 * len));
-  assert.equal(gate?.state, "confirmed", "not faded once confirmed");
-  assert.equal(rec?.stopAt, undefined, "sounding while held");
+  assert.equal(r.g.armedAt(0, n.on)?.state, "hit");
+  assert.equal(r.notes.length, before, "no sound made by the touch");
+  r.until(at + lag + 0.1);
   r.g.keyUp(1, performance.now());
-  assert.equal(rec?.stopAt, r.clock.t, "let go: stopped");
+  const rec = scheduled(r, i)!;
+  assert.equal(rec.stopAt, undefined, "let go: the note sounds on to its written end");
   // D218: the release judged from the touch (as heard), not from the sound.
-  assert.ok(n.off !== undefined && Math.abs(r.g.timeAt(n.off) - (r.clock.t - lag)) < 1e-3, `off ${n.off}`);
+  assert.ok(n.off !== undefined && Math.abs(r.g.timeAt(n.off) - (r.clock.t - lag)) < 0.01, `off ${n.off}`);
+  // D299: how late it was, as heard, kept for the retune.
+  assert.equal(r.g.btOffsets.length, 1);
+  // The touch time is read from the real clock (performance.now), so a busy test machine adds a few ms.
+  assert.ok(Math.abs(r.g.btOffsets[0] - 40) < 10, `${r.g.btOffsets[0]}`);
 });
 
-test("D223: a wrong key never confirms the armed note: it fades, the wrong one sounds", () => {
+test("D299: a wrong key sounds nothing and stops nothing: the note scheduled sounds as written", () => {
   const lag = 0.16;
   const r = game(lag, true, "piano");
   const i = firstHead(r.g);
   const n = r.g.notes[i];
   const at = r.g.timeAt(n.on);
   r.until(at + lag);
+  const before = r.notes.length;
   r.g.keyDown(1, { midi: n.midi + 1, velocity: 0.5 }, performance.now());
-  const { gate } = armedFor(r, i);
-  assert.equal(gate?.state, "faded");
   assert.equal(n.state, "miss");
-  assert.ok(r.notes.some((x) => x.midi === n.midi + 1 && !x.p.into && x.at === r.clock.t), "the wrong key heard");
+  assert.equal(r.notes.length, before, "the wrong key not heard (it would be a delay late)");
+  assert.equal(scheduled(r, i)?.stopAt, undefined);
+  assert.equal(r.g.armedAt(0, n.on)?.state, "sounding");
 });
 
-test("D223: BLUETOOTH MODE's window is 20 ms wider on its late side; off, nothing is armed (the default path)", () => {
+test("D299: the level never follows the touch; every scheduled note at the same expression", () => {
+  const r = game(0.2, true);
+  r.until(r.g.timeAt(r.g.notes[firstHead(r.g)].on) + 0.25);
+  r.g.keyDown(1, { velocity: 0.1 }, performance.now());
+  r.until(r.g.timeAt(r.g.end) + 1);
+  const mine = r.notes.filter((x) => x.p.lead && x.p.level !== undefined);
+  assert.ok(mine.length > 10);
+  const lv = new Set(mine.map((x) => x.p.level!.toFixed(4)));
+  // The subject's shape may differ by note; the touches never: soft and missed notes alike.
+  const missed = r.g.notes.filter((n) => n.state === "miss").length;
+  assert.ok(missed > 5, "most notes missed");
+  assert.ok(lv.size <= 3, `levels ${[...lv]}`);
+});
+
+test("D299: BLUETOOTH MODE's window 20 ms wider early, 25 ms late; off, nothing is scheduled (the default path)", () => {
   const on = game(0.16, true).g;
   const off = game(0, false).g;
   assert.ok(Math.abs(on.opt.late - off.opt.late - (BT_LATE_MS / 1000) * off.tps) < 1e-9);
-  assert.equal(on.opt.early, off.opt.early);
-  // Off (no gate on this chip: calling one would throw): the touch strikes its note at once.
+  assert.ok(Math.abs(on.opt.early - off.opt.early - (BT_EARLY_MS / 1000) * off.tps) < 1e-9);
+  // Off: the touch strikes its note at once, and nothing is put on the schedule for the player.
   const r = game(0, false);
   const i = firstHead(r.g);
   const at = r.g.timeAt(r.g.notes[i].on);
+  r.until(at - 0.1);
+  assert.equal(r.notes.filter((x) => x.p.lead).length, 0, "the player's notes wait for the touch");
+  assert.equal(r.g.armedAt(0, r.g.notes[i].on), undefined);
   r.until(at);
   r.g.keyDown(1, { velocity: 0.5 }, performance.now());
   assert.equal(r.g.notes[i].state, "hit");
-  assert.ok(r.notes.some((x) => x.midi === r.g.notes[i].midi && x.at === r.clock.t && !x.p.into));
+  assert.ok(r.notes.some((x) => x.midi === r.g.notes[i].midi && x.at === r.clock.t && x.asked === r.clock.t), "struck at the touch");
+  r.g.keyUp(1, performance.now());
+  assert.ok(r.notes.some((x) => x.midi === r.g.notes[i].midi && x.stopAt === r.clock.t), "and let go with it");
   assert.equal(r.g.viewNow, r.g.now, "no screen delay: drawn as heard");
+  assert.equal((r.chip as unknown as { smooth: boolean }).smooth, false, "the clock as it was");
+  assert.equal(r.g.btOffsets.length, 0);
 });
-
 test("D223: the screen's delay draws ahead of the clock as heard", () => {
   const r = game(0.1, false);
   (r.chip as unknown as { visual: number }).visual = 0.05;
