@@ -39,7 +39,7 @@ import { Choice, loadDrums, Panel, Tapper } from "../touch/Panels.tsx";
 import { SoundFold } from "./SoundFold.tsx";
 import { Home } from "./Home.tsx";
 import { detectedPlatform, midiInputNames, platformOf, type PlatformPref } from "./home.ts";
-import { HeadphonesFold, useHeadphones } from "./Headphones.tsx";
+import { BtLite, HeadphonesFold, keepBtLag, useHeadphones } from "./Headphones.tsx";
 import { Chip, voicing } from "../touch/chip.ts";
 import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, cadenceName } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
@@ -74,7 +74,7 @@ import { LiteGrid } from "./LiteGrid.tsx";
 import { PlayPop } from "./PlayPop.tsx";
 import { tierCards } from "./tiers.ts";
 import { bookCards } from "./cards.ts";
-import { btOn, latencyOf } from "../touch/headphones.ts";
+import { btOn, driftOf, latencyOf } from "../touch/headphones.ts";
 import { LagSetting } from "../touch/Panels.tsx";
 import { ARROW_KEYS, arrowOf, dynamic, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
 
@@ -212,7 +212,11 @@ export function BenchApp() {
   const setLag = (l: number | null) => {
     applyLag(l);
     if (!APP.lite) hp.record(l);
+    // D299: a Bluetooth delay kept on the device, to be offered again (never applied by itself).
+    keepBtLag(l);
   };
+  // D299: the sound's delay retuned after a run in BLUETOOTH MODE (from, to: s), shown on the result.
+  const [retuned, setRetuned] = useState<{ from: number; to: number } | null>(null);
   const [chosen, setChosen] = useState<Record<string, string>>(() => load<Record<string, string>>(SOUND_KEY, {}));
   const [herSound, setHerSoundRaw] = useState<string>(() => load<string>(HER_SOUND_KEY, HER_SOUND));
   const [tuning, setTuningRaw] = useState<{ id: string; a: number }>(() => load(TUNING_KEY, { id: "equal", a: 440 }));
@@ -496,6 +500,14 @@ export function BenchApp() {
         game.current = null;
         paint.current = null;
         const r = g.results();
+        // D299: every run in BLUETOOTH MODE retunes a tapped delay a little by how late or early its notes were.
+        const was = ch.lag;
+        const drift = g.bt && was !== null && !lesson ? driftOf(g.btOffsets) : 0;
+        if (drift && was !== null) {
+          const to = Math.round((was + drift) * 1000) / 1000;
+          setLag(to);
+          setRetuned({ from: was, to });
+        } else setRetuned(null);
         if (lesson && watching) {
           // D280: the demonstration over: now the player, guided.
           setWatching(false);
@@ -921,6 +933,11 @@ export function BenchApp() {
                 {laneLine(phase.lanes)}
               </p>
             )}
+            {retuned && (
+              <p className="tb-lane-line" id="bt-retune">
+                {tr("SOUND DELAY {from} → {to} MS (TUNED TO YOUR PLAYING)", { from: Math.round(retuned.from * 1000), to: Math.round(retuned.to * 1000) })}
+              </p>
+            )}
             {phase.stage?.won && <p className="tb-result-seal tb-stage-line earned">PRELUDE BEATEN · FUGUE UNLOCKED</p>}
             {phase.opened?.map((t) => (
               <p key={t} id={`tier-toast-${t.toLowerCase()}`} className={`tb-tier-toast tb-tier-${t.toLowerCase()}`} role="status">
@@ -1023,6 +1040,8 @@ export function BenchApp() {
           {/* D265: one look (CLASSIC): the other interfaces withdrawn on play.html. */}
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
           <p className="tg-panel-note">{tr("With headphones on, tap along to the clicks so the music and your taps line up.")}</p>
+          {/* D299: BLUETOOTH MODE explained when on, the clearest sounds, the check, the last Bluetooth delay. */}
+          <BtLite lag={lag} setLag={setLag} chip={ensureChip} on={btOn("auto", lag, chip.current ? (latencyOf(chip.current.ctx) ?? 0) : 0)} />
         </Panel>
       )}
       {phase.kind === "settings" && !APP.lite && (
@@ -1073,7 +1092,7 @@ export function BenchApp() {
           {lag !== null && lag > 0.02 && (
             // D260: a delay in force is never hidden: shown where the game is started, with a way out.
             <p className="tg-note tb-lag-note" id="lag-note">
-              HEADPHONE DELAY {Math.round(lag * 1000)} MS IS ON ·{" "}
+              HEADPHONE DELAY {Math.round(lag * 1000)} MS IS ON{(APP.lite ? btOn("auto", lag) : hp.btFor(lag)) ? " · BLUETOOTH MODE" : ""} ·{" "}
               <button type="button" id="lag-off" className="tg-link" onClick={() => setLag(null)}>
                 TURN OFF
               </button>

@@ -227,7 +227,8 @@ export function Tapper({ chip, done }: { chip: () => Chip; done: (lag: number | 
     e.preventDefault();
     if (over.current) return;
     const ch = chip();
-    const at = ch.ctx.currentTime - (performance.now() - e.timeStamp) / 1000;
+    // D299: on the smoothed audio clock (currentTime moves in blocks: up to a block off a tap).
+    const at = ch.clock() - (performance.now() - e.timeStamp) / 1000;
     const o = offsetOf(at, t0.current, QUICK_PERIOD, QUICK_EARLY);
     if (!o || o.click < SKIP_QUICK || o.click >= QUICK_CLICKS) return;
     offs.current.push(o.off);
