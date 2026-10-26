@@ -602,11 +602,20 @@ export const PATCHES = {
   // its filter blipping shut), the harpsichord-like resonant pluck (the filter snapping shut, the
   // amplitude dying), a nasal narrow-pulse reed with a slow vibrato, the snapping bass (its filter never
   // under 1.4 kHz, D291). Portamento left out (on every note of a fugue it blurs the pitch, D294).
-  solLead: P({ osc: [{ wave: "saw", gain: 0.8 }, { wave: "square", gain: 0.35 }], filter: { freq: 2.2, q: 4.5, env: 4, envDecay: 0.09, poles: 4 }, amp: { a: 0.006, d: 0.35, s: 0.78, r: 0.05 }, vib: { depth: 5, rate: 5.2, delay: 0.45 }, drift: { cents: 3, rate: 0.11 }, level: 0.23 }),
-  solWood: P({ osc: [{ wave: "square" }, { wave: "triangle", gain: 0.4 }], filter: { freq: 2.6, q: 1.5, env: 2.5, envDecay: 0.04, poles: 4 }, amp: { a: 0.004, d: 0.18, s: 0.55, r: 0.03 }, drift: { cents: 3, rate: 0.17 }, level: 0.25 }),
-  solPluck: P({ osc: [{ wave: "saw", gain: 0.8 }, { wave: "pulse25", gain: 0.5 }], filter: { freq: 1.3, q: 6, env: 9, envDecay: 0.11, poles: 4 }, amp: { a: 0.002, d: 0.55, s: 0, r: 0.05 }, drift: { cents: 3, rate: 0.07 }, level: 0.44 }),
-  solReed: P({ osc: [{ wave: "pulse12" }, { wave: "triangle", gain: 0.4 }], filter: { freq: 3.4, q: 3.5, env: 2.2, envDecay: 0.07, poles: 4 }, amp: { a: 0.012, d: 0.2, s: 0.85, r: 0.05 }, vib: { depth: 4, rate: 4.5, delay: 0.5 }, drift: { cents: 3, rate: 0.13 }, level: 0.42 }),
-  solBass: P({ osc: [{ wave: "saw" }, { wave: "pulse50", gain: 0.5 }, { wave: "square", octave: -1, gain: 0.25 }], filter: { freq: 1400, hz: true, q: 2.8, env: 3, envDecay: 0.1, poles: 4 }, amp: { a: 0.003, d: 0.22, s: 0.62, r: 0.04 }, drift: { cents: 2, rate: 0.05 }, level: 0.36 }),
+  // D304 (the owner: "way too muddled instead of crunchy and bright and bleepy bloopy like Carlos sound
+  // is … This needs be one of the best analog presets"): remade nearly dry (the room 0.05, was 0.24),
+  // every filter open well above the note (it closed to 1.3-3.4 times the note: muffled), each attack a
+  // quick bright blip of the ladder, a little drive into it (the Moog's crunch). Top down: a bright
+  // sawtooth lead through a moderately resonant ladder (4.5 times the note, a 3.5-fold blip over 60 ms);
+  // a hollow square (second of five: woody, its blip short); a nasal narrow pulse (12%: the reedy
+  // Carlos "oboe", the filter wide open); the "bloop": a square and a sawtooth through a ladder near
+  // self-oscillation (Q 9), its envelope sweeping six-fold down in 70 ms (the tenor of four); the punchy
+  // bass, a sawtooth over a square an octave down, the filter snapping shut to 1.6 kHz (D291), driven.
+  solLead: P({ osc: [{ wave: "saw" }], filter: { freq: 4.5, q: 3, env: 3.5, envDecay: 0.06, poles: 4 }, drive: 0.6, amp: { a: 0.003, d: 0.3, s: 0.82, r: 0.04 }, vib: { depth: 6, rate: 5.4, delay: 0.5 }, drift: { cents: 3, rate: 0.11 }, level: 0.2 }),
+  solSquare: P({ osc: [{ wave: "square" }, { wave: "triangle", octave: 1, gain: 0.25 }], filter: { freq: 3.6, q: 1.6, env: 2.6, envDecay: 0.035, poles: 4 }, amp: { a: 0.003, d: 0.15, s: 0.65, r: 0.03 }, drift: { cents: 3, rate: 0.17 }, level: 0.24 }),
+  solNasal: P({ osc: [{ wave: "pulse12" }], filter: { freq: 7, q: 2, env: 1.8, envDecay: 0.04, poles: 4 }, amp: { a: 0.004, d: 0.2, s: 0.85, r: 0.04 }, vib: { depth: 5, rate: 4.6, delay: 0.5 }, drift: { cents: 3, rate: 0.13 }, level: 0.5 }),
+  solBloop: P({ osc: [{ wave: "square" }, { wave: "saw", gain: 0.5 }], filter: { freq: 6, q: 7, env: 4, envDecay: 0.07, poles: 4 }, amp: { a: 0.002, d: 0.3, s: 0.6, r: 0.04 }, drift: { cents: 3, rate: 0.07 }, level: 0.2 }),
+  solBass: P({ osc: [{ wave: "saw" }, { wave: "square", octave: -1, gain: 0.45 }], filter: { freq: 1600, hz: true, q: 2.5, env: 4, envDecay: 0.055, poles: 4 }, drive: 1.2, hp: 45, amp: { a: 0.002, d: 0.2, s: 0.65, r: 0.035 }, drift: { cents: 2, rate: 0.05 }, level: 0.3 }),
   // MODULAR (D297, a niche pick: the fatter 1970s modular and Minimoog sound): two sawtooths a few cents
   // apart in the sustained voices (a thickness that blurs the lines a little: allowed in a niche pick),
   // deeper resonance sweeps, a bouncy filter-envelope bass. Top down: a fat resonant lead, a narrow
@@ -762,13 +771,14 @@ export const PRESETS: Preset[] = [
   {
     id: "analog",
     name: "SWITCHED-ON",
-    slots: ["solLead", "solWood", "solPluck", "solReed", "solBass"],
-    room: 0.24,
+    slots: ["solLead", "solSquare", "solNasal", "solBloop", "solBass"],
+    // D304: nearly dry (Carlos's records are close and dry; 0.24 fogged the lines).
+    room: 0.05,
     by: {
       2: [["solLead", 0.25], ["solBass", -0.1]],
-      3: [["solLead", 0.3], ["solPluck", -0.3], ["solBass", 0]],
-      4: [["solLead", 0.3], ["solWood", -0.25], ["solReed", 0.15], ["solBass", 0]],
-      5: [["solLead", 0.3], ["solWood", -0.3, 0.84], ["solPluck", 0.1], ["solReed", -0.1, 0.94], ["solBass", 0]],
+      3: [["solLead", 0.3], ["solBloop", -0.3], ["solBass", 0]],
+      4: [["solLead", 0.3], ["solNasal", -0.25], ["solBloop", 0.15], ["solBass", 0]],
+      5: [["solLead", 0.3], ["solSquare", -0.3, 0.84], ["solNasal", 0.1], ["solBloop", -0.1, 0.94], ["solBass", 0]],
     },
   },
   // D297: three period presets after the research report (§6.1-6.3), after the five, for the owner to
