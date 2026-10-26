@@ -61,14 +61,14 @@ export interface Settings {
   bpm: number;
 }
 
-export function Panel({ title, close, children }: { title: string; close: () => void; children: ReactNode }) {
+export function Panel({ title, close, children, className }: { title: string; close: () => void; children: ReactNode; className?: string }) {
   useEffect(() => {
     const esc = (e: KeyboardEvent) => e.code === "Escape" && close();
     window.addEventListener("keydown", esc);
     return () => window.removeEventListener("keydown", esc);
   }, [close]);
   return (
-    <div className="tg-picker tg-panel" role="dialog" aria-label={title}>
+    <div className={`tg-picker tg-panel${className ? ` ${className}` : ""}`} role="dialog" aria-label={title}>
       <header>
         <h1>{tr(title)}</h1>
         <button type="button" id="close" className="tg-x" aria-label="Close" onClick={close}>

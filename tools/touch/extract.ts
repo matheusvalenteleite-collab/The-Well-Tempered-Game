@@ -104,6 +104,11 @@ const NOT_ENTRIES: Record<string, [bar: number, voice: number][]> = {
  * filled": F E F B♭…); no. 13, b. 20, soprano, and b. 70, alto (the head's tail: D♯ E♯ F♯ C♯ D♯);
  * no. 24, b. 70, alto (without its first note), and bb. 97–98, alto and bass (heads, four notes).
  * Not taken: Book I no. 4, b. 95; no. 11, b. 46 (his stretto); Book II no. 11, b. 85 (not in the notes).
+ * D306: I/22, b. 61, second soprano (the owner: "at least one missing subject entrance"): B♭ A, then
+ * the subject's G♭ F E♭ D♭ C at its own pitch (the first soprano's of b. 1) and B♭, over the bass's
+ * dominant pedal (bb. 62-64): its fifth down bent to a step and the ninth to a sixth, so no finder
+ * takes it. Not taken: the tenor's B♭ A♭ G♭ F E♭ D♭ of bb. 38-39 (the same bent head, but then its own
+ * way at once, inside the second soprano's entry of b. 37).
  */
 const MORE_ENTRIES: Record<string, { bar: number; voice: number; midi: number; inverted?: true; notes?: number }[]> = {
   wtc1f01: [{ bar: 15, voice: 0, midi: 67, notes: 7 }],
@@ -142,8 +147,56 @@ const MORE_ENTRIES: Record<string, { bar: number; voice: number; midi: number; i
     { bar: 48, voice: 4, midi: 53, notes: 6 },
     { bar: 50, voice: 0, midi: 77, notes: 7 },
     { bar: 50, voice: 1, midi: 70, notes: 7 },
+    { bar: 61, voice: 1, midi: 70, notes: 8 },
   ],
 };
+/**
+ * D306: the subject's head stated where the library's finder does not look: it matches eight notes or
+ * more of the subject, its first note too, so a statement of the head alone (Bach going his own way
+ * after six or seven notes) or one whose first note is bent (a tonal answer's, a stretto's held note
+ * changed) is missed: the owner on I/22, "at least one missing subject entrance not highlighted". Every
+ * fugue is searched (shortHeads) for the subject's second to seventh notes at its intervals and
+ * rhythm, the first note only the way it goes (up or down), where the head holds a leap of a fourth or
+ * more (a head of steps alone, I/5's or II/6's, is a commonplace scale) and no entry is there already.
+ * Read in the notes, the finds are entries (I/13 b. 11, I/24 b. 74, II/1 bb. 68 and 72, II/4 b. 51,
+ * II/16 b. 67) save these, by bar and voice: II/15 b. 58, soprano (G major's broken chord, in the
+ * coda's figuration).
+ */
+const NOT_HEADS: Record<string, [bar: number, voice: number][]> = {
+  wtc2f15: [[58, 0]],
+};
+
+/** D306: see NOT_HEADS. The subject: the first plain statement's notes (one a time, the highest). */
+function shortHeads(voices: Note[][], raw: RawEntry[], not: [number, number][], barAt: (tick: number) => number): RawEntry[] {
+  const H = 7;
+  const lineOf = (v: Note[]) => v.filter((n, i) => !(i > 0 && v[i - 1][0] === n[0]));
+  const r0 = raw.find((r) => r.theme === 1 && r.scale === 1 && !r.inverted);
+  if (!r0) return [];
+  const s = lineOf(voices[r0.voice]).filter((n) => n[0] >= r0.on && n[0] < r0.on + r0.len);
+  if (s.length < H) return [];
+  const iv = s.slice(1).map((n, i) => n[2] - s[i][2]);
+  if (!iv.slice(0, H - 1).some((d) => Math.abs(d) >= 5)) return [];
+  const out: RawEntry[] = [];
+  voices.forEach((v0, voice) => {
+    const v = lineOf(v0);
+    for (let i = 0; i + H <= v.length; i++) {
+      if (Math.sign(v[i + 1][2] - v[i][2]) !== Math.sign(iv[0])) continue;
+      let ok = true;
+      for (let k = 1; k < H - 1 && ok; k++) ok = v[i + k + 1][2] - v[i + k][2] === iv[k] && v[i + k][1] === s[k][1];
+      if (!ok) continue;
+      // As long as the subject goes on.
+      let n = H;
+      while (n < s.length && i + n < v.length && v[i + n][2] - v[i + n - 1][2] === iv[n - 1] && v[i + n - 1][1] === s[n - 1][1]) n++;
+      const on = v[i][0];
+      const end = i + n < v.length ? v[i + n][0] : v[i + n - 1][0] + v[i + n - 1][1];
+      const taken = [...raw, ...out].some((r) => r.voice === voice && r.on < end && on < r.on + r.len);
+      if (taken || not.some(([bar, vc]) => vc === voice && bar === barAt(on))) continue;
+      out.push({ voice, on, len: end - on, shift: v[i + 1][2] - s[1][2], inverted: false, scale: 1, theme: 1 });
+    }
+  });
+  return out;
+}
+
 /**
  * D242: entries the library finds whole of which only the head is the subject, by bar and voice,
  * with the notes it keeps: Book I no. 18, b. 24, tenor (B♯ A♯ B♯ C𝄪 D♯, then its own way).
@@ -224,6 +277,8 @@ const fugues = corpus
       if (!n) throw new Error(`${p.id}: no MIDI ${m.midi} in voice ${m.voice}, b. ${m.bar}`);
       raw.push({ voice: m.voice, on: n[0], len: m.notes ? lenOf(m.voice, n[0], m.notes) : span, shift: m.midi - firstMidi, inverted: !!m.inverted, scale: 1, theme: 1 });
     }
+    // D306: the heads the library's finder misses (it wants eight notes or more, the first one too).
+    for (const h of shortHeads(voices, raw, NOT_HEADS[p.id] ?? [], barAt)) raw.push(h);
     // D197: the later subjects of the double and triple fugues (the library's: where each first
     // enters is Ledbetter's, its statements are found in the notes), as theme 2 and 3.
     if (LATER_SUBJECTS.has(p.id))

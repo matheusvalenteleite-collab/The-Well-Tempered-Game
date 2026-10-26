@@ -1507,8 +1507,11 @@ export class ProtoGame {
       // but for the join the note ended here, so the next note can still be legato.
       // D293: iOS takes a touch back most often when the other thumb lands on it (thumbs overlapping): the
       // note rings on to its written end (or the next note's strike), and the join is judged from there.
+      // D306: only while another thumb is down (the overlap that made iOS take it back); a touch taken back
+      // alone is let go there, as a lift (it rang on to its written end: a staccato lost).
       const n = this.tracks[h.k].notes[h.note];
-      if (h.open && n?.state === "hit") {
+      const overlap = this.held.size > 0;
+      if (h.open && n?.state === "hit" && overlap) {
         const end = Math.max(this.tickOf(ts), n.on + n.dur);
         this.lastOff = { k: h.k, i: h.note, tick: end };
         const until = this.timeAt(end);

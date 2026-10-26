@@ -74,7 +74,7 @@ import { LiteGrid } from "./LiteGrid.tsx";
 import { PlayPop } from "./PlayPop.tsx";
 import { tierCards } from "./tiers.ts";
 import { bookCards } from "./cards.ts";
-import { btOn, driftOf, latencyOf } from "../touch/headphones.ts";
+import { btAuto, driftOf, latencyOf, setupKey } from "../touch/headphones.ts";
 import { LagSetting } from "../touch/Panels.tsx";
 import { ARROW_KEYS, arrowOf, dynamic, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
 
@@ -82,6 +82,7 @@ const PICK_KEY = "tb-pick-v2";
 /** D233: ⚙ PLAY ON: AUTO (from the pointer) or a platform chosen. */
 const PLATFORM_KEY = "tb-platform-v1";
 const LAG_KEY = "tg-lag";
+const LAG_SETUP_KEY = "tg-lag-setup";
 // D203: a new key, so that every player starts on the fugue's own sound.
 // D208: a new key, so every player starts on the sampled harpsichord.
 // D246: each piece its own sound (piece-sound.ts), the player's choice kept per piece.
@@ -143,12 +144,22 @@ function sessionLag(): number | null {
     return null;
   }
 }
-function saveSessionLag(l: number | null) {
+function saveSessionLag(l: number | null, setup?: string) {
   try {
     if (l === null) sessionStorage.removeItem(LAG_KEY);
     else sessionStorage.setItem(LAG_KEY, JSON.stringify(l));
+    // D306: the output it was tapped with (BLUETOOTH MODE's AUTO counts it only there: headphones.ts btAuto).
+    if (l === null || setup === undefined) sessionStorage.removeItem(LAG_SETUP_KEY);
+    else sessionStorage.setItem(LAG_SETUP_KEY, setup);
   } catch {
     /* this page only */
+  }
+}
+function sessionLagSetup(): string | undefined {
+  try {
+    return sessionStorage.getItem(LAG_SETUP_KEY) ?? undefined;
+  } catch {
+    return undefined;
   }
 }
 
@@ -202,9 +213,14 @@ export function BenchApp() {
   // speaker from headphones: a delay tapped once stayed on without them, and every note was judged late:
   // the owner: "headphone delay was on even though I have no headphones on, that's maybe why I was failing").
   const [lag, setLagRaw] = useState<number | null>(() => (APP.lite ? sessionLag() : load<number | null>(LAG_KEY, null)));
+  /** D306: a delay tapped since the page loaded (one restored from the visit is not, for BLUETOOTH MODE's AUTO). */
+  const lagFresh = useRef(false);
   const applyLag = (l: number | null) => {
     setLagRaw(l);
-    if (APP.lite) saveSessionLag(l);
+    if (APP.lite) {
+      lagFresh.current = l !== null;
+      saveSessionLag(l, setupKey(chip.current ? latencyOf(chip.current.ctx) : undefined));
+    }
     else save(LAG_KEY, l);
     if (chip.current) chip.current.lag = l;
   };
@@ -361,6 +377,8 @@ export function BenchApp() {
     return { ...subjectMarks(f), spans, names: f.voiceNames, cadences, ornaments, readingMarks };
   }, [f, run, reading?.id, voice]);
   const chip = useRef<Chip | null>(null);
+  /** D306: BLUETOOTH MODE on AUTO (the minimal page): the reported latency, or the delay tapped for this output (btAuto). */
+  const btLite = (ctx = chip.current?.ctx) => btAuto(lag, ctx ? latencyOf(ctx) : undefined, { setup: sessionLagSetup(), fresh: lagFresh.current });
   // D223: other headphones noticed (a setup seen before gets its delay back), BLUETOOTH MODE, the screen's delay.
   const hp = useHeadphones(chip, APP.lite ? () => {} : applyLag);
   const [calib, setCalib] = useState(false);
@@ -450,7 +468,7 @@ export function BenchApp() {
     if (hm) setTuning("equal", hm.a);
     ch.mine.gain.value = kimiko ? MINE[pick.mine] : 1;
     // D219: failing always on (D225: in the lessons from the fourth on); WITH KIMIKO, the game sounds only the player's voice.
-    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btOn("auto", lag, latencyOf(ch.ctx) ?? 0) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && lesson?.pl === "mobile" } : {}), reading, ...(clock ? { clock } : {}) }, ch);
+    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && lesson?.pl === "mobile" } : {}), reading, ...(clock ? { clock } : {}) }, ch);
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
     // For the measurements (the bench's own checks): the game and her playing.
@@ -1025,7 +1043,7 @@ export function BenchApp() {
       )}
       {phase.kind === "settings" && APP.lite && (
         // D237: the minimal page's ⚙: the volume, on a phone the interface (D241), and the sound's delay (headphones); BLUETOOTH MODE on AUTO, unseen.
-        <Panel title="SETTINGS" close={back}>
+        <Panel title="SETTINGS" close={back} className="tb-lite-settings">
           <label className="tg-from tb-volume">
             <span>{tr("VOLUME")} {Math.round(lite.volume * 100)}%</span>
             <input
@@ -1061,7 +1079,7 @@ export function BenchApp() {
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
           <p className="tg-panel-note">{tr("With headphones on, tap along to the clicks so the music and your taps line up.")}</p>
           {/* D299: BLUETOOTH MODE explained when on, the clearest sounds, the check, the last Bluetooth delay. */}
-          <BtLite lag={lag} setLag={setLag} chip={ensureChip} on={btOn("auto", lag, chip.current ? (latencyOf(chip.current.ctx) ?? 0) : 0)} />
+          <BtLite lag={lag} setLag={setLag} chip={ensureChip} on={btLite()} />
         </Panel>
       )}
       {phase.kind === "settings" && !APP.lite && (
@@ -1100,7 +1118,8 @@ export function BenchApp() {
         />
       )}
       {wheel && !APP.lite && (phase.kind === "home" || phase.kind === "title") && <FuguePicker current={pick.piece} close={() => setWheel(false)} pick={open} paused={phase.kind === "title"} />}
-      {APP.lite && (phase.kind === "home" || phase.kind === "title") && <LiteGrid beaten={lite.beaten} current={opened && pick.piece} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} fuguesOnly={platform === "mobile"} tutorial={platform === "mobile" ? { done: TRACKS.mobile.filter((l) => trackState("mobile").passed[l.id]).length, of: TRACKS.mobile.length, start: () => setSteps(true) } : undefined} />}
+      {/* D306: ⚙ opens over the cards, which stay behind it (not the music box). */}
+      {APP.lite && (phase.kind === "home" || phase.kind === "title" || phase.kind === "settings") && <LiteGrid beaten={lite.beaten} current={opened && pick.piece} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} fuguesOnly={platform === "mobile"} tutorial={platform === "mobile" ? { done: TRACKS.mobile.filter((l) => trackState("mobile").passed[l.id]).length, of: TRACKS.mobile.length, start: () => setSteps(true) } : undefined} />}
       {APP.lite && steps && phase.kind === "home" && <TutorialSteps play={(n) => beginLesson("mobile", n)} close={() => setSteps(false)} />}
       {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} open={lite.beaten.includes(hearing)} play={playSubject} close={() => setHearing(null)} />}
       {phase.kind === "title" && (
@@ -1112,7 +1131,7 @@ export function BenchApp() {
           {lag !== null && lag > 0.02 && (
             // D260: a delay in force is never hidden: shown where the game is started, with a way out.
             <p className="tg-note tb-lag-note" id="lag-note">
-              HEADPHONE DELAY {Math.round(lag * 1000)} MS IS ON{(APP.lite ? btOn("auto", lag) : hp.btFor(lag)) ? " · BLUETOOTH MODE" : ""} ·{" "}
+              HEADPHONE DELAY {Math.round(lag * 1000)} MS IS ON{(APP.lite ? btLite() : hp.btFor(lag)) ? " · BLUETOOTH MODE" : ""} ·{" "}
               <button type="button" id="lag-off" className="tg-link" onClick={() => setLag(null)}>
                 TURN OFF
               </button>

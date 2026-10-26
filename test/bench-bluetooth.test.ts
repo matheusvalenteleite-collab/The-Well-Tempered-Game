@@ -86,7 +86,7 @@ test("D299: the player's notes are scheduled ahead at their written times and le
   assert.equal(n.state, "miss");
 });
 
-test("D299: a touch in the window scores the note and sounds nothing; letting go does not cut it", () => {
+test("D299, D306: a touch in the window scores the note and sounds nothing; letting go cuts it there (a staccato heard, a headphones' delay late)", () => {
   const lag = 0.16;
   const r = game(lag, true);
   const i = firstHead(r.g);
@@ -102,7 +102,8 @@ test("D299: a touch in the window scores the note and sounds nothing; letting go
   r.until(at + lag + 0.1);
   r.g.keyUp(1, performance.now());
   const rec = scheduled(r, i)!;
-  assert.equal(rec.stopAt, undefined, "let go: the note sounds on to its written end");
+  // D306 (was D299's "sounds on to its written end"): cut as the touch lets go, never before it has sounded 50 ms.
+  assert.ok(rec.stopAt !== undefined && Math.abs(rec.stopAt - Math.max(r.clock.t, at + 0.05)) < 1e-6, `let go: cut at ${rec.stopAt}`);
   // D218: the release judged from the touch (as heard), not from the sound.
   assert.ok(n.off !== undefined && Math.abs(r.g.timeAt(n.off) - (r.clock.t - lag)) < 0.01, `off ${n.off}`);
   // D299: how late it was, as heard, kept for the retune.
