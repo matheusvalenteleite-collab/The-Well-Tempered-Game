@@ -16,7 +16,9 @@ const shapes = (style: "plain" | "harpsichord" | "piano") => phrase(notes, beat,
 test("D294: the playing style follows the sound chosen, never the touch; the synthesized sounds phrased as before", () => {
   assert.equal(styleOf("harpsichordSampled"), "harpsichord");
   assert.equal(styleOf("pianoSampled"), "piano");
-  for (const id of ["chip", "gameboy", "analog"]) assert.equal(styleOf(id), "plain");
+  for (const id of ["chip", "gameboy"]) assert.equal(styleOf(id), "plain");
+  // D305: SWITCHED-ON its own bass articulation.
+  assert.equal(styleOf("analog"), "switched");
   // The default comes from the sound now.
   setPreset("chip");
   assert.deepEqual(phrase(notes, beat, (t) => inBar(f, t), marks), shapes("plain"));
