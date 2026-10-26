@@ -154,10 +154,13 @@ test("D249: the organ's swell bounded, ORGANO PLENO scaled, and on a phone the l
 
 test("D249: the organ out: no piece opens on it, the players cannot choose it, a stored choice opens on the harpsichord", () => {
   assert.ok(!Object.values(PIECE_SOUND).includes("organSampled"));
-  // D275: Book II's 22 now on strings; its 2 on the harpsichord.
-  for (const id of ["wtc2f02", "bwv1080-14"]) assert.equal(PIECE_SOUND[id], "harpsichordSampled", id);
-  // D266: Book I's stile antico fugues now on strings (recorded).
-  for (const id of ["wtc1f01", "wtc1f22"]) assert.equal(PIECE_SOUND[id], "stringsReal", id);
+  assert.equal(PIECE_SOUND["bwv1080-14"], "harpsichordSampled");
+  // D288: every fugue on classic chip; the recorded ensembles (D266, D275) withdrawn, a stored choice of one plays chip.
+  for (const id of ["wtc1f01", "wtc1f22", "wtc2f02", "wtc2f13"]) assert.equal(PIECE_SOUND[id], "chip", id);
+  for (const id of ["stringsReal", "baroqueBand", "reedTrio", "windTrio", "clarinetTrio", "windsReal", "galantTrio"]) {
+    assert.ok(!PRESETS.some((p) => p.id === id), id);
+    assert.equal(presetById(id).id, "chip", id);
+  }
   assert.ok(!PRESETS.some((p) => p.id === "organSampled"));
   assert.ok(!FAMILIES.some((f) => f.presets.some((p) => p.id === "organSampled")));
   assert.equal(presetById("organSampled").id, "harpsichordSampled");

@@ -463,10 +463,10 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     mode: "ladder",
     title: "DAS THEMA",
     english: "THE SUBJECT",
-    goal: "PLAY EACH SUBJECT OF YOURS WHOLE · GOLD MARKS THE SUBJECT",
+    goal: "PLAY EACH SUBJECT OF YOURS WHOLE · A TAG NAMES THE SUBJECT",
     intro: [
       { text: "This little figure is the subject; the whole piece is made of it. Listen.", demo: "subject" },
-      { text: "Gold marks it wherever it goes. Now the right hand: play each of your subjects whole." },
+      { text: "A tag names it wherever it goes. Now the right hand: play each of your subjects whole." },
     ],
     praise: [{ text: "That is a fugue in small: one subject, passed from voice to voice." }],
     again: [{ text: "The subject must be said whole, or it is not the subject. Again." }],
