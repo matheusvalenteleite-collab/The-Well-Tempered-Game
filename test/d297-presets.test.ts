@@ -234,13 +234,14 @@ test("D297: SID 64: each voice its own waveform and motion; vibrato on the top o
   assert.ok(bass.filter!.hz && bass.filter!.freq >= 1200 && bass.filter!.q! >= 2, "a resonant filter, its body kept for phones");
 });
 
-test("D302: PIPE ORGAN: the recorded plenum and pedal, synthesized flutes and reeds between, ranks beating, a chiff, no tremulant, a large church", () => {
+test("D302, D304: PIPE ORGAN: a sweet flute, a Principal, the Trompete over the recorded pedal, ranks beating, a chiff, no tremulant, a church", () => {
   const pr = presetById("chamberOrgan");
   assert.equal(pr.name, "PIPE ORGAN");
-  assert.deepEqual(pr.slots, ["orgPleno", "orgKrumm", "orgFlutes", "orgTrompete", "orgPedal"]);
-  assert.equal(PATCHES.orgPleno.sample, "organPleno");
+  assert.deepEqual(pr.slots, ["orgFlute", "orgKrumm", "orgPrincipal", "orgTrompete", "orgPedal"]);
   assert.equal(PATCHES.orgPedal.sample, "organPedal");
-  assert.equal(SAMPLED.organPleno.set, "manualOrg");
+  // The flute nearly a sine (its octave and twelfth soft); the trumpet a solo reed, bright, quick.
+  assert.ok(PATCHES.orgFlute.osc.slice(1).every((o) => (o.gain ?? 1) <= 0.12) && PATCHES.orgFlute.chiff!.level <= 0.35);
+  assert.ok(PATCHES.orgTrompete.osc.every((o) => o.wave === "stopTrompete") && PATCHES.orgTrompete.filter!.freq >= 4500 && PATCHES.orgTrompete.amp.a <= 0.012);
   assert.equal(SAMPLED.organPedal.set, "pedalOrg");
   assert.equal(folderOf("manualOrg"), "pipeOrgan");
   assert.equal(folderOf("pedalOrg"), "pipePedal");
@@ -252,18 +253,19 @@ test("D302: PIPE ORGAN: the recorded plenum and pedal, synthesized flutes and re
     const pt = PATCHES[s];
     assert.equal(pt.vib, undefined, `${s}: no tremulant`);
     assert.ok(pt.amp.s === 1, s);
-    assert.ok(pt.send! >= 0.1 && pt.send! <= 0.3, s);
+    assert.ok(pt.send! >= 0.1 && pt.send! <= 0.15, s);
     if (pt.sample) continue;
     // The synthesized registrations: a chiff, and ranks a cent or two apart (their beating).
     assert.ok(pt.chiff && pt.chiff.time >= 0.012 && pt.chiff.time <= 0.04, s);
     assert.ok(pt.osc.length >= 2 && pt.osc.some((o) => Math.abs(o.detune ?? 0) >= 1 && Math.abs(o.detune ?? 0) <= 3), s);
     assert.ok(pt.drift && pt.drift.cents <= 1.5, s);
   }
-  // The flutes the most in the room, the pedal the least.
-  assert.ok(PATCHES.orgFlutes.send! > PATCHES.orgPedal.send!);
+  // The flute the most in the room, the pedal the least.
+  assert.ok(PATCHES.orgFlute.send! > PATCHES.orgPedal.send!);
   assert.equal(pr.fx, "cathedral");
   const c = REVERBS.cathedral;
-  assert.ok(c.predelay >= 0.04 && c.rt60 >= 2.5 && c.lp <= 5000 && c.phoneSeconds < c.seconds);
+  // D304: a smaller church (the inner lines were muddled in a 2.8 s one).
+  assert.ok(c.predelay >= 0.04 && c.rt60 >= 2 && c.rt60 <= 2.4 && c.lp <= 6000 && c.phoneSeconds < c.seconds);
   assert.ok(c.rt60 > REVERBS.hall.rt60);
 });
 

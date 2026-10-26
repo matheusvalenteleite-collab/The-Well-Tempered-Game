@@ -579,11 +579,20 @@ export const PATCHES = {
   // are five voices). Each voice's pipes a cent or so off the others' (`drift`:
   // the beating of ranks not quite in tune). The room a large church (Preset.fx "cathedral": 45 ms
   // pre-delay, RT60 about 2.8 s, the highs damped), sent most from the flutes, least from the pedal.
-  orgPleno: P({ osc: [{ wave: "stopPrincipal" }, { wave: "stopPrincipal", octave: 1, detune: 2, gain: 0.45 }, { wave: "stopPrincipal", octave: 2, detune: -1.5, gain: 0.25 }], chiff: { level: 0.25, time: 0.02, at: 6 }, amp: { a: 0.02, d: 0.05, s: 1, r: 0.09 }, send: 0.2, level: 0.22, sample: "organPleno" }),
-  orgFlutes: P({ osc: [{ wave: "stopGedackt" }, { wave: "stopFlute4", octave: 1, detune: 1.8, gain: 0.75 }, { wave: "sine", octave: Math.log2(3), detune: -1.4, gain: 0.5 }, { wave: "stopFlute4", octave: 2, detune: 2.6, gain: 0.35 }, { wave: "sine", octave: Math.log2(5), detune: -2.2, gain: 0.18 }], chiff: { level: 0.8, time: 0.04, at: 3 }, breath: 0.02, amp: { a: 0.035, d: 0.05, s: 1, r: 0.1 }, drift: { cents: 1.2, rate: 0.031 }, send: 0.28, level: 0.148 }),
-  orgTrompete: P({ osc: [{ wave: "stopTrompete" }, { wave: "stopPrincipal", octave: 1, detune: 1.6, gain: 0.3 }], filter: { freq: 3400, hz: true, q: 0.8, env: 1.8, envDecay: 0.035 }, chiff: { level: 0.15, time: 0.012, at: 9 }, amp: { a: 0.012, d: 0.05, s: 1, r: 0.07 }, drift: { cents: 1, rate: 0.047 }, send: 0.22, level: 0.4 }),
-  orgKrumm: P({ osc: [{ wave: "stopKrummhorn" }, { wave: "stopGedackt", detune: -1.8, gain: 0.5 }], chiff: { level: 0.25, time: 0.018, at: 5 }, breath: 0.01, amp: { a: 0.016, d: 0.05, s: 1, r: 0.08 }, drift: { cents: 1, rate: 0.023 }, send: 0.24, level: 0.26 }),
-  orgPedal: P({ osc: [{ wave: "stopPosaune" }, { wave: "stopGedackt", octave: -1, gain: 0.5 }], amp: { a: 0.03, d: 0.05, s: 1, r: 0.12 }, send: 0.14, level: 0.245, sample: "organPedal" }),
+  // D304 (the owner: "Organ's bass sounds cool but other voices sound muddled and weird … Where's the
+  // beautiful trumpet? The sweet flute? They need all be audible and balanced"): registered as a trio
+  // over the pedal, each line one clear colour. The top a sweet flute (Flöte 8': nearly a sine, a soft
+  // octave and twelfth a cent or so apart, a gentle chiff: the Gedackt's hollow twelfth and the
+  // Sesquialtera's Nasard and Terz were the "weird"); the alto a Principal 8' with a quiet Octave 4'
+  // (the recorded plenum, Principal to a mixture under a 2.8 s church, was the mud: withdrawn); the
+  // tenor the Trompete, a solo reed (every harmonic, the 2nd to 5th strongest, bright to 5 kHz, a quick
+  // brassy blip, no Principal under it); the Krummhorn the second of five; the recorded pedal kept. The
+  // church smaller (RT60 2.2 s) and sent less (0.1-0.14, was 0.14-0.28): the lines apart.
+  orgFlute: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 1, detune: 1.2, gain: 0.1 }, { wave: "sine", octave: Math.log2(3), detune: -1, gain: 0.05 }], chiff: { level: 0.3, time: 0.03, at: 2 }, breath: 0.012, amp: { a: 0.035, d: 0.05, s: 1, r: 0.1 }, drift: { cents: 0.8, rate: 0.031 }, send: 0.14, level: 0.28 }),
+  orgPrincipal: P({ osc: [{ wave: "stopPrincipal" }, { wave: "sine", octave: 1, detune: 1.5, gain: 0.2 }], chiff: { level: 0.22, time: 0.02, at: 6 }, amp: { a: 0.022, d: 0.05, s: 1, r: 0.09 }, drift: { cents: 1, rate: 0.041 }, send: 0.12, level: 0.34 }),
+  orgTrompete: P({ osc: [{ wave: "stopTrompete" }, { wave: "stopTrompete", detune: 1.4, gain: 0.25 }], filter: { freq: 5000, hz: true, q: 0.9, env: 1.6, envDecay: 0.03 }, chiff: { level: 0.12, time: 0.012, at: 9 }, amp: { a: 0.01, d: 0.05, s: 1, r: 0.07 }, drift: { cents: 1, rate: 0.047 }, send: 0.12, hp: 110, level: 0.39 }),
+  orgKrumm: P({ osc: [{ wave: "stopKrummhorn" }, { wave: "stopGedackt", detune: -1.8, gain: 0.5 }], chiff: { level: 0.25, time: 0.018, at: 5 }, breath: 0.01, amp: { a: 0.016, d: 0.05, s: 1, r: 0.08 }, drift: { cents: 1, rate: 0.023 }, send: 0.12, level: 0.26 }),
+  orgPedal: P({ osc: [{ wave: "stopPosaune" }, { wave: "stopGedackt", octave: -1, gain: 0.5 }], amp: { a: 0.03, d: 0.05, s: 1, r: 0.12 }, send: 0.1, level: 0.195, sample: "organPedal" }),
   // SWITCHED-ON (D297: ANALOG SYNTH remade; the owner: "lackluster compared to Carlos' memorable
   // sounds"), after Switched-On Bach's timbres: a modular's sawtooths and squares through the 24 dB
   // ladder with a strong, quick filter envelope (the bright "spit" at each attack and the resonant
@@ -834,19 +843,19 @@ export const PRESETS: Preset[] = [
       5: [["trkViolin", -0.35], ["trkFlute", 0.35, 0.84], ["trkHarpsi", -0.35], ["trkChoir", 0.35, 0.94], ["trkBass", 0]],
     },
   },
-  // D302: PIPE ORGAN (CHAMBER ORGAN remade, its id kept so a stored choice keeps it): the recorded plenum
-  // on top, the flutes, a reed (Trompete; Krummhorn the second of five), the recorded pedal; a large church.
+  // D302: PIPE ORGAN (CHAMBER ORGAN remade, its id kept so a stored choice keeps it). D304: a sweet flute
+  // on top, a Principal, the Trompete (the top of two), the Krummhorn the second of five, the recorded pedal.
   {
     id: "chamberOrgan",
     name: "PIPE ORGAN",
-    slots: ["orgPleno", "orgKrumm", "orgFlutes", "orgTrompete", "orgPedal"],
+    slots: ["orgFlute", "orgKrumm", "orgPrincipal", "orgTrompete", "orgPedal"],
     room: 0,
     fx: "cathedral",
     by: {
-      2: [["orgPleno", 0.2], ["orgPedal", -0.1]],
-      3: [["orgPleno", 0.25], ["orgFlutes", -0.25], ["orgPedal", 0]],
-      4: [["orgPleno", 0.25], ["orgFlutes", -0.25], ["orgTrompete", 0.12], ["orgPedal", 0]],
-      5: [["orgPleno", 0.25], ["orgKrumm", -0.3, 0.84], ["orgFlutes", 0.12], ["orgTrompete", -0.12, 0.94], ["orgPedal", 0]],
+      2: [["orgTrompete", 0.2], ["orgPedal", -0.1]],
+      3: [["orgFlute", 0.25], ["orgTrompete", -0.25], ["orgPedal", 0]],
+      4: [["orgFlute", 0.25], ["orgPrincipal", -0.25], ["orgTrompete", 0.12], ["orgPedal", 0]],
+      5: [["orgFlute", 0.25], ["orgKrumm", -0.3, 0.84], ["orgPrincipal", 0.12], ["orgTrompete", -0.12, 0.94], ["orgPedal", 0]],
     },
   },
   // D297, the owner's favourite console (the owner: "Think: Bomberman 64. Also: Goldeneye 64. And why

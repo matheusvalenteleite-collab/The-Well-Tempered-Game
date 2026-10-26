@@ -105,7 +105,8 @@ export const REVERBS: Record<Exclude<FxKind, "spc" | "echo">, Reverb> = {
   hall: { predelay: 0.025, hp: 350, lp: 5500, seconds: 1.9, phoneSeconds: 1.2, rt60: 1.9, brightness: 0.3 },
   // D302, PIPE ORGAN's large church: a later first reflection (45 ms), a long and darkening tail (RT60
   // 2.8 s; on a phone 1.8 s of impulse), the highs damped (4.8 kHz): the organ's lines carried, not drowned.
-  cathedral: { predelay: 0.045, hp: 220, lp: 4800, seconds: 2.8, phoneSeconds: 1.8, rt60: 2.8, brightness: 0.25 },
+  // D304: smaller (RT60 2.2 s) and a little brighter (5.5 kHz): the inner lines were muddled in it.
+  cathedral: { predelay: 0.045, hp: 250, lp: 5500, seconds: 2.2, phoneSeconds: 1.5, rt60: 2.2, brightness: 0.3 },
   // D302, FOREST 64's grove: a wide, airy space (RT60 1.8 s) kept bright enough to stay lively.
   grove: { predelay: 0.025, hp: 260, lp: 7000, seconds: 1.8, phoneSeconds: 1.3, rt60: 1.8, brightness: 0.45 },
   // D302, PARTY 64's room: short and bright (RT60 1.0 s): the bounce kept dry.

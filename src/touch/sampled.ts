@@ -175,7 +175,7 @@ const LAYER_SET: Record<string, { folder: string; layer: number }> = { grandSoft
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's). */
 export const folderOf = (set: string) => LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set;
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "violin32" | "oboe32" | "harpsi32" | "viola32" | "organ32" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "nylon26" | "strings26" | "bassoon26" | "trumpet26" | "guitar26" | "sax26" | "ebass26" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPleno" | "organPedal";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "violin32" | "oboe32" | "harpsi32" | "viola32" | "organ32" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "nylon26" | "strings26" | "bassoon26" | "trumpet26" | "guitar26" | "sax26" | "ebass26" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -248,7 +248,6 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   voiceB: { set: "voiceB", plucked: false, gain: 2.2 },
   choirAah: { set: "choirAah", plucked: false, gain: 2.2 },
   // D302, PIPE ORGAN's recorded plenum and pedal (the pedal retuned up to B3, past its compass; the plenum above, as an organist takes a high bass on a manual).
-  organPleno: { set: "manualOrg", plucked: false, gain: 5 },
   organPedal: { set: "pedalOrg", above: { set: "manualOrg", from: 60 }, plucked: false, gain: 5 },
 };
 

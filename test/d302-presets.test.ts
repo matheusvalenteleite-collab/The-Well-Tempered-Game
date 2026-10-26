@@ -101,8 +101,8 @@ test("D302: what a note costs a phone: VOCAL SYNTH about 23 nodes (two sources a
   await new Chip().prepare(fugueById("wtc1f02").voices.flat().map((n) => n[2]));
   const counts = [0, 1, 2, 3].map((v) => noteNodes("chamberOrgan", v, 4).made.length);
   for (const c of counts) assert.ok(c <= 22, `${counts}`);
-  // The recorded plenum (the top of four) far cheaper than a synthesized registration.
-  assert.ok(counts[0] < counts[1], `${counts}`);
+  // The recorded pedal (D304: the only recording left) far cheaper than a synthesized registration.
+  assert.ok(counts[3] < Math.min(counts[0], counts[1], counts[2]), `${counts}`);
   void FakeNode;
 });
 
