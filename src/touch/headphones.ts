@@ -113,3 +113,70 @@ export function quickLag(offsets: number[]): { lag: number; spread: number; kept
   if (spread > 0.08) return null;
   return { lag: Math.max(0, med(kept)), spread, kept: kept.length };
 }
+
+/** D299: the smoothed clock follows the audio clock with this time constant (s)… */
+export const CLOCK_TAU_S = 0.5;
+/** …and snaps to it where the two part by more than this (s): a stall, a resume, a seek. */
+export const CLOCK_SNAP_S = 0.05;
+
+/**
+ * D299: the audio clock read smoothly. `AudioContext.currentTime` advances a block at a time (on a
+ * Bluetooth route the blocks can be large and uneven), so read each frame it stands still, then jumps:
+ * a picture drawn from it judders and a touch's time is off by up to a block. Here: the page's clock
+ * (performance.now()) plus an offset that follows the audio clock with a time constant of CLOCK_TAU_S
+ * (snapped to it past CLOCK_SNAP_S), never going back. It is the audio clock (it cannot drift from it),
+ * only without the steps.
+ */
+export class SmoothClock {
+  private off: number | null = null;
+  private at = 0;
+  private last = -Infinity;
+  /** The smoothed audio time (s) for an audio clock reading (s) taken at a page time (ms). */
+  read(audio: number, nowMs: number, running = true): number {
+    const p = nowMs / 1000;
+    const raw = audio - p;
+    const dt = Math.max(0, p - this.at);
+    this.at = p;
+    if (this.off === null || !running || Math.abs(raw - this.off) > CLOCK_SNAP_S) this.off = raw;
+    else this.off += (raw - this.off) * (1 - Math.exp(-dt / CLOCK_TAU_S));
+    const t = Math.max(this.last, p + this.off);
+    this.last = t;
+    return t;
+  }
+}
+
+/** D299: the least notes struck right, and the most spread (ms, middle half), for a run to retune the delay. */
+export const DRIFT_MIN_NOTES = 16;
+export const DRIFT_MAX_SPREAD_MS = 120;
+/** D299: a steady lateness under this (ms) is left alone; the retune takes this share of it, at most DRIFT_STEP_MS. */
+export const DRIFT_DEAD_MS = 15;
+export const DRIFT_SHARE = 0.5;
+export const DRIFT_STEP_MS = 30;
+
+/**
+ * D299: after a run in BLUETOOTH MODE, the change to the sound's delay (s) its touches suggest: the
+ * median of how late (+) or early (-) the notes struck right were, as heard; nothing (0) under
+ * DRIFT_MIN_NOTES notes, a middle half wider than DRIFT_MAX_SPREAD_MS, or a median within DRIFT_DEAD_MS;
+ * else half of it, at most DRIFT_STEP_MS either way. A Bluetooth route's delay moves as it settles (by
+ * 60 ms over the first half hour, an AirPods measurement), and every run is a calibration of its own.
+ */
+export function driftOf(offsetsMs: number[]): number {
+  if (offsetsMs.length < DRIFT_MIN_NOTES) return 0;
+  const s = [...offsetsMs].sort((a, b) => a - b);
+  const q = (f: number) => s[Math.min(s.length - 1, Math.floor(f * s.length))];
+  if (q(0.75) - q(0.25) > DRIFT_MAX_SPREAD_MS) return 0;
+  const m = s.length % 2 ? s[s.length >> 1] : (s[(s.length >> 1) - 1] + s[s.length >> 1]) / 2;
+  if (Math.abs(m) < DRIFT_DEAD_MS) return 0;
+  return Math.max(-DRIFT_STEP_MS, Math.min(DRIFT_STEP_MS, m * DRIFT_SHARE)) / 1000;
+}
+
+/**
+ * D299: the sounds to suggest with Bluetooth on (never chosen for the player): every voice a quick attack
+ * (5 ms or less) and no echo or long reverb of their own, so each note's start is a clear mark to play
+ * to. No sound makes the headphones' delay shorter (BLUETOOTH MODE takes it out); a slow attack or a
+ * long echo only blurs where the beat is. Checked against the patches in test/bt-mode.test.ts.
+ */
+export const BT_SOUNDS = ["chip", "gameboy", "harpsichordSampled", "sid64", "tracker"] as const;
+
+/** D299: the last Bluetooth delay tapped (s), kept on the device to offer again (never applied by itself). */
+export const BT_LAG_KEY = "tb-bt-lag-v1";

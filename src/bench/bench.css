@@ -665,12 +665,15 @@ html.tb-paper, html.tb-paper body, html.tb-paper .tb-bars .tg-play { background:
 /* The page over the box's canvas: a strip of tiles and marks moved by a transform only; the playhead and the clefs' column fixed. */
 .tb-sheet-page { position: absolute; inset: 0; overflow: hidden; background: #fff; pointer-events: none; }
 .tb-sheet-strip { position: absolute; left: 0; top: 0; height: 100%; will-change: transform; }
-.tg-roll .tb-sheet-strip canvas { position: absolute; top: 0; image-rendering: auto; }
+.tg-roll .tb-sheet-strip canvas, .tg-roll .tb-sheet-strip img { position: absolute; top: 0; image-rendering: auto; }
 .tb-sheet-marks { position: absolute; left: 0; top: 0; overflow: visible; }
 .tb-sheet-word { font-family: Georgia, "Times New Roman", serif; font-style: italic; stroke: #fff; stroke-width: 3px; paint-order: stroke; stroke-linejoin: round; }
 .tb-sheet-miss { fill: none; stroke: #b3261e; stroke-width: 1.4px; stroke-linecap: round; }
 .tb-sheet-head { position: absolute; left: 0; top: 0; height: 100%; background: #fff; }
-.tb-sheet-head::after { content: ""; position: absolute; top: 0; bottom: 0; left: 100%; width: 18px; background: linear-gradient(to right, #fff, rgba(255, 255, 255, 0)); }
+.tb-sheet-head::after { content: ""; position: absolute; top: 0; bottom: 0; left: 100%; width: 6px; background: linear-gradient(to right, #fff, rgba(255, 255, 255, 0)); }
+/* D300: the music played stays in sight, a shade lighter; the open score's mark of the player's staff. */
+.tb-sheet-past { position: absolute; left: 0; top: 0; height: 100%; background: rgba(255, 255, 255, 0.2); }
+.tb-sheet-mine { position: absolute; left: 0; width: 3px; display: none; }
 .tg-roll .tb-sheet-head canvas { display: block; image-rendering: auto; }
 .tb-sheet-playhead { position: absolute; width: 1.2px; margin-left: -0.6px; opacity: 0.55; }
 .tb-display .tg-seg { flex-wrap: wrap; }

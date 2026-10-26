@@ -1,8 +1,9 @@
 /**
  * D298: engraves the fugues for the SHEET mode, at build time, with Verovio (6.3.0, the Humdrum build):
  * each fugue's **kern (data/sources/bach-wtc/kern) laid out as the two staves of an Urtext ("grand")
- * and as one staff per voice ("open") (kern-layout.ts), on one long system (no breaks), Henle-like
- * settings (the round-three prototype's), the music font SHEET_FONT. Verovio's SVG is read into a
+ * and as one staff per voice ("open") (kern-layout.ts), on one long system (no breaks), in the style
+ * SHEET_STYLE (D300: "henle", Leland with fine lines; SHEET_STYLES has the candidates the owner was
+ * shown, and D298's). Verovio's SVG is read into a
  * compact drawing (sheet-format.ts): the glyphs by name (one shared table of the font's outlines,
  * public/sheet/glyphs-<font>.json), the lines, beams and ties as numbers, every mark of a note (head,
  * stem, flag, beam, accidental, dot, tie, rest, ornament) under its voice so that the page colours it
@@ -10,13 +11,14 @@
  * (each onset's tick and x) the playhead follows; the bars' places.
  * Run: node tools/sheet/engrave.ts [id…]   (Verovio: `npm i --no-save verovio@6.3.0`, or VEROVIO_DIR=…/verovio)
  * Writes public/sheet/<id>.grand.json, <id>.open.json and glyphs-<font>.json.
+ * For a comparison: --style=<name> (one of SHEET_STYLES) --out=<dir>.
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { kernPitch } from "../../src/wtc/kern.ts";
 import { parsePitch } from "../../src/music/pitch.ts";
 import { layoutKern, type SheetLayout } from "./kern-layout.ts";
-import { GLYPH_SCALE, SHEET_FONT, SHEET_UNIT, timeMap, type SheetData, type SheetNote } from "../../src/bench/sheet-format.ts";
+import { GLYPH_SCALE, SHEET_UNIT, timeMap, type SheetData, type SheetNote } from "../../src/bench/sheet-format.ts";
 
 const root = (p: string) => fileURLToPath(new URL(`../../${p}`, import.meta.url));
 const pieces: { id: string; kind: string; tpq: number; voices: [number, number, number, number][][] }[] = JSON.parse(readFileSync(root("data/touch/pieces.json"), "utf8"));
@@ -28,8 +30,37 @@ async function verovio() {
   return new esm.VerovioToolkit(await mod.default());
 }
 
-/** The prototype's engraving (round three): Henle-like proportions on one endless system. */
-export function options(layout: SheetLayout) {
+/**
+ * The engraving styles (D300): the plate's font and proportions (widths in staff spaces). `d298` the
+ * round-three prototype's; the others the candidates for a plate nearer Henle's (D300's comparison, engraved
+ * with --style and --out); SHEET_STYLE the one engraved for the game (public/sheet).
+ */
+export interface SheetStyle {
+  font: string;
+  staffLineWidth: number;
+  stemWidth: number;
+  barLineWidth: number;
+  ledgerLineThickness: number;
+  beamMaxSlope: number;
+  spacingLinear: number;
+  spacingNonLinear: number;
+  /** SMuFL engraving defaults over the font's own (beamThickness, tie and slur thicknesses…). */
+  engravingDefaults?: Record<string, number>;
+}
+/** Thinner lines than Verovio's (an Urtext plate's hairline staves, slender stems), gentler beams, a little more room. */
+const FINE = { staffLineWidth: 0.1, stemWidth: 0.12, barLineWidth: 0.16, ledgerLineThickness: 0.16, beamMaxSlope: 4, spacingLinear: 0.34, spacingNonLinear: 0.62 };
+export const SHEET_STYLES: Record<string, SheetStyle> = {
+  d298: { font: "Leipzig", staffLineWidth: 0.13, stemWidth: 0.18, barLineWidth: 0.25, ledgerLineThickness: 0.25, beamMaxSlope: 6, spacingLinear: 0.3, spacingNonLinear: 0.6 },
+  leipzigFine: { font: "Leipzig", ...FINE },
+  bravuraFine: { font: "Bravura", ...FINE },
+  gootville: { font: "Gootville", ...FINE },
+  leland: { font: "Leland", ...FINE },
+  henle: { font: "Leland", staffLineWidth: 0.1, stemWidth: 0.12, barLineWidth: 0.16, ledgerLineThickness: 0.16, beamMaxSlope: 4, spacingLinear: 0.31, spacingNonLinear: 0.62 },
+};
+export const SHEET_STYLE = "henle";
+
+/** One endless system in a style. */
+export function options(layout: SheetLayout, style: SheetStyle = SHEET_STYLES[SHEET_STYLE]) {
   return {
     inputFrom: "humdrum",
     breaks: "none",
@@ -43,14 +74,16 @@ export function options(layout: SheetLayout) {
     header: "none",
     footer: "none",
     svgViewBox: true,
-    spacingLinear: 0.3,
-    spacingNonLinear: 0.6,
-    staffLineWidth: 0.13,
-    stemWidth: 0.18,
-    barLineWidth: 0.25,
-    beamMaxSlope: 6,
+    spacingLinear: style.spacingLinear,
+    spacingNonLinear: style.spacingNonLinear,
+    staffLineWidth: style.staffLineWidth,
+    stemWidth: style.stemWidth,
+    barLineWidth: style.barLineWidth,
+    ledgerLineThickness: style.ledgerLineThickness,
+    beamMaxSlope: style.beamMaxSlope,
+    ...(style.engravingDefaults ? { engravingDefaults: style.engravingDefaults } : {}),
     mnumInterval: 0,
-    font: SHEET_FONT,
+    font: style.font,
     pageMarginLeft: 0,
     pageMarginRight: 0,
     pageMarginTop: 0,
@@ -218,7 +251,7 @@ interface Onset {
   q: number;
 }
 
-export async function engrave(tk: { setOptions(o: object): void; loadData(s: string): boolean; renderToSVG(p: number): string; renderToTimemap(o?: object): { qstamp: number; on?: string[] }[]; getLog(): string }, id: string, layout: SheetLayout, glyphs: Map<string, { d: string; box: [number, number, number, number] }>): Promise<SheetData> {
+export async function engrave(tk: { setOptions(o: object): void; loadData(s: string): boolean; renderToSVG(p: number): string; renderToTimemap(o?: object): { qstamp: number; on?: string[] }[]; getLog(): string }, id: string, layout: SheetLayout, glyphs: Map<string, { d: string; box: [number, number, number, number] }>, style: SheetStyle = SHEET_STYLES[SHEET_STYLE]): Promise<SheetData> {
   const piece = pieces.find((p) => p.id === id);
   if (!piece) throw new Error(`no piece ${id}`);
   const src = readFileSync(root(`data/sources/bach-wtc/kern/${id}.krn`), "utf8");
@@ -227,7 +260,7 @@ export async function engrave(tk: { setOptions(o: object): void; loadData(s: str
     return s[Math.floor(s.length / 2)] ?? 60;
   });
   const L = layoutKern(src, layout, medians);
-  tk.setOptions(options(layout));
+  tk.setOptions(options(layout, style));
   if (!tk.loadData(L.kern)) throw new Error(`${id} ${layout}: Verovio refused the kern`);
   const svg = tk.renderToSVG(1);
   const r = readSvg(svg, L.voiceAt, glyphs);
@@ -283,7 +316,7 @@ export async function engrave(tk: { setOptions(o: object): void; loadData(s: str
     v: 2,
     id,
     layout,
-    font: SHEET_FONT,
+    font: style.font,
     w: r.W,
     h: r.H,
     staves: L.staves.map((voices, k) => ({ top: tops[k] ?? 0, voices })),
@@ -341,15 +374,20 @@ function packInk(list: number[], codes: number[]): number[] {
 }
 
 async function main() {
-  const ids = process.argv.slice(2).length ? process.argv.slice(2) : pieces.filter((p) => p.kind === "fugue" && /^wtc[12]f\d\d$/.test(p.id)).map((p) => p.id);
+  // --style=<name> (SHEET_STYLES; default SHEET_STYLE), --out=<dir> (default public/sheet): for comparisons.
+  const flags = new Map(process.argv.slice(2).filter((a) => a.startsWith("--")).map((a) => a.slice(2).split("=") as [string, string]));
+  const args = process.argv.slice(2).filter((a) => !a.startsWith("--"));
+  const style = SHEET_STYLES[flags.get("style") ?? SHEET_STYLE];
+  if (!style) throw new Error(`no style ${flags.get("style")}`);
+  const ids = args.length ? args : pieces.filter((p) => p.kind === "fugue" && /^wtc[12]f\d\d$/.test(p.id)).map((p) => p.id);
   const tk = await verovio();
   const glyphs = new Map<string, { d: string; box: [number, number, number, number] }>();
-  const dir = root("public/sheet");
+  const dir = flags.get("out") ?? root("public/sheet");
   mkdirSync(dir, { recursive: true });
   for (const id of ids) {
     for (const layout of ["grand", "open"] as const) {
       const t = performance.now();
-      const data = await engrave(tk, id, layout, glyphs);
+      const data = await engrave(tk, id, layout, glyphs, style);
       const json = JSON.stringify(data);
       writeFileSync(`${dir}/${id}.${layout}.json`, json);
       const log = tk.getLog().trim();
@@ -357,7 +395,7 @@ async function main() {
     }
   }
   // Every glyph met so far (the table is shared: merge with what is there).
-  const file = `${dir}/glyphs-${SHEET_FONT}.json`;
+  const file = `${dir}/glyphs-${style.font}.json`;
   let table: Record<string, [string, number[]]> = {};
   try {
     table = JSON.parse(readFileSync(file, "utf8"));

@@ -14,7 +14,7 @@
 import { ornamentMark, ornamentsOf, realiseNote, shakeOf, type Ornament, type Shake } from "../touch/ornament-play.ts";
 import type { Arrow } from "../touch/MusicBox.tsx";
 import type { Burst, Pop } from "../touch/box-fx.ts";
-import { isPhone, voicing, type Chip, type Gate, type Play, type Sounding } from "../touch/chip.ts";
+import { isPhone, voicing, type Chip, type Play, type Sounding } from "../touch/chip.ts";
 import type { Grade } from "../touch/engine.ts";
 import { scoreSheet, type Sheet } from "./score-sheet.ts";
 import { acrossBar, planTouches, type Touch } from "./fingering.ts";
@@ -61,27 +61,27 @@ export const FUOCO_NOTES = 24;
 export const APPROACH_MS = 1100;
 const HOLD_MAX = 8;
 /**
- * D223, BLUETOOTH MODE: the player's notes are sounded ahead, on the band's schedule, so that they are
- * heard at their written times: armed at this level, raised to full by a touch in the window, faded
- * fast if none has come this long (ms, as heard) after the written time; the window's late side this
- * much wider (the headphones' jitter).
+ * D299, BLUETOOTH MODE (replacing D223's armed notes): the whole piece is on the audio clock's
+ * schedule, the player's own notes too, at their written times and lengths and at their usual level
+ * (D293: loudness never follows the player's input), so that through the headphones' delay everything
+ * is heard in time; a touch makes no sound (it would be heard a delay late): it scores, judged against
+ * the music as heard and drawn. A note missed sounds all the same (provisional: the owner's Decision 8).
+ * The window a little wider on both sides (the headphones' jitter).
  */
-export const ARM_LEVEL = 0.3;
-export const ARM_WAIT_MS = 90;
-export const BT_LATE_MS = 20;
-
-/** D223: a note of the player's sounded ahead (its chord, its ornament, the notes riding after it). */
+export const BT_EARLY_MS = 20;
+export const BT_LATE_MS = 25;
+/** D299: the player's own note in BLUETOOTH MODE, scheduled ahead ("track:onset"). */
 interface Armed {
   k: number;
   i: number;
-  gate: Gate;
   sounds: Sounding[];
-  riders: Sounding[];
-  state: "armed" | "confirmed" | "faded";
-  /** When (audio clock) its gate may be closed; the riders' end. */
-  closeAt: number;
-  ridersEnd: number;
+  /** "sounding": on the schedule; "hit": a right touch has scored it (its riders shown as they sound). */
+  state: "sounding" | "hit";
+  /** When (audio clock) the record may be dropped. */
+  until: number;
 }
+/** D299: what a touch "sounds" in BLUETOOTH MODE: nothing (the note is already on the schedule). */
+const SILENT = (): Sounding => ({ stop() {}, bend() {}, glide() {}, muffle() {}, dyn() {} });
 /** D191: notes gone by are swept as missed this long (s) after their window closes: a frame's grace. */
 export const SWEEP_GRACE_S = 0.035;
 /** A thumb let go moving upwards at least this fast (px per ms), over this far (px): a swoosh. */
@@ -514,9 +514,12 @@ export class ProtoGame {
     this.opt = options(f.tpq, this.bpm, "easy");
     // D290: on the phone's ladder each note's window stops halfway to its neighbours (60 ms at least).
     if (proto.id === "ladder") this.opt = { ...this.opt, split: true, floor: (SPLIT_FLOOR_MS / 60000) * f.tpq * this.bpm };
-    // D223: BLUETOOTH MODE (not while the music waits for each note): the late side a little wider.
+    // D223, D299: BLUETOOTH MODE (not while the music waits for each note): the window a little wider
+    // both sides (the headphones' jitter; D290's halfway split and its floor kept, so close notes never
+    // share a window); the clock as heard smoothed (chip.ts `smooth`).
     this.bt = !!o.bt && !o.wait;
-    if (this.bt) this.opt = { ...this.opt, late: this.opt.late + (BT_LATE_MS / 1000) * this.tps };
+    if (this.bt) this.opt = { ...this.opt, early: this.opt.early + (BT_EARLY_MS / 1000) * this.tps, late: this.opt.late + (BT_LATE_MS / 1000) * this.tps };
+    chip.smooth = this.bt;
     this.anchorAt = chip.ctx.currentTime + 0.15;
     this.anchorTick = this.start;
     this.nextBeat = this.start;
@@ -637,21 +640,29 @@ export class ProtoGame {
     }
   }
 
-  /** D223, BLUETOOTH MODE: on for this game. */
+  /** D223, D299: BLUETOOTH MODE on for this game. */
   readonly bt: boolean;
-  /** D223: the player's notes sounded ahead ("track:onset"), and where each track's arming has reached. */
+  /** D299: each note struck right, how early (-) or late (+) it was as heard (ms), in BLUETOOTH MODE. */
+  readonly btOffsets: number[] = [];
+  /** D299: the player's notes put on the schedule ("track:onset"), and where each track's scheduling has reached. */
   private armed = new Map<string, Armed>();
   private armNext: number[] = [];
+  /** D299: the pedals (D250) put on the schedule. */
+  private armedPedals = new Set<number>();
   /**
-   * D223: each of the player's notes coming within the horizon sounded ahead at its written time (the
-   * band's schedule: heard on time through the headphones' delay), soft, through its own gate; its
-   * chord, its ornament and the notes riding after it with it.
+   * D299, BLUETOOTH MODE: each of the player's notes coming within the horizon put on the schedule, as
+   * the band's are: at its written time and for its written length (heard on time through the
+   * headphones' delay), at the level a right touch on time would give it (never louder or softer for how
+   * it is played: D293), whether or not it is then touched. With it its chord (a swept chord's notes a
+   * moment apart, D258), its ornament realised (D205), the notes riding after it (D191), a traced line's
+   * notes (D262), the row's echo (D262), the subject's layers (D213).
    */
   private arm(horizon: number) {
     const ch = this.chip;
     const piano = this.proto.id === "piano";
     const count = this.f.voices.length;
     const envelope = piano ? "piano" : "synth";
+    const len = (on: number, dur: number) => Math.max(0.03, this.timeAt(on + dur) - this.timeAt(on));
     this.tracks.forEach((t, k) => {
       const notes = t.notes;
       let i = this.armNext[k] ?? 0;
@@ -663,70 +674,74 @@ export class ProtoGame {
         const voice = this.voiceOf(k, i);
         const voiceV = voicing(voice, count, true);
         const sv = this.o.her ? null : this.subj.shape(voice, n.on, voiceV);
-        const gate = ch.gate(ARM_LEVEL);
-        let expr: Play = { ...dynamic(this.feel), muffleable: true, lead: true, envelope, legato: !piano && this.joinedAt(i, k) };
+        let expr: Play = { ...dynamic(NEUTRAL_D), lead: true, envelope, legato: !piano && this.joinedAt(i, k) };
         if (sv) expr = { ...expr, ...sv.play, level: (expr.level ?? 1) * (sv.play.level ?? 1) };
-        expr.into = gate.node;
+        if (this.arc?.echo && k === 0 && this.rowOf(i, 0) === 1) expr = { ...expr, level: (expr.level ?? 1) * ECHO_LEVEL, bright: (expr.bright ?? 0) - ECHO_DARK };
+        const v = sv?.v ?? voiceV;
+        const sounds: Sounding[] = [];
+        let end = at;
+        const put = (midi: number, from: number, secs: number, p: Play, rv = v) => {
+          sounds.push(ch.note(midi, from, secs, rv, p));
+          end = Math.max(end, from + secs);
+        };
         // The notes riding after it (D191), at their times; the note gives way to the first.
         let j = i + 1;
         while (j < notes.length && notes[j].on === n.on) j++;
-        const riders: Sounding[] = [];
         let first = Infinity;
-        let ridersEnd = 0;
         for (; j < notes.length && notes[j].ride; j++) {
           const r = notes[j];
           if (r.state !== "pending") continue;
-          const rat = this.timeAt(r.on);
-          const len = Math.max(0.03, this.timeAt(r.on + r.dur) - rat);
-          first = Math.min(first, rat);
+          first = Math.min(first, this.timeAt(r.on));
           const rv = r.voice ?? t.voice;
           const rs = this.subj.shape(rv, r.on, voicing(rv, count, true));
           // D284: a riding note's ornament sounds too.
-          for (const [pon, pdur, pm] of this.rideParts(rv, notes, j)) riders.push(ch.note(pm, this.timeAt(pon), Math.max(0.03, this.timeAt(pon + pdur) - this.timeAt(pon)), rs.v, { ...rs.play, lead: true, envelope, into: gate.node }));
-          ridersEnd = Math.max(ridersEnd, rat + len + 0.6);
+          for (const [pon, pdur, pm] of this.rideParts(rv, notes, j)) put(pm, this.timeAt(pon), len(pon, pdur), { ...rs.play, lead: true, envelope }, rs.v);
         }
-        const hold = Number.isFinite(first) ? Math.max(0.03, first - at) : HOLD_MAX;
         const chord = chordOf(notes, i);
+        const cut = (secs: number) => (Number.isFinite(first) ? Math.max(0.03, Math.min(secs, first - at)) : secs);
         const orn = chord.length === 1 ? this.ornaments.get(`${voice}:${n.on}`) : undefined;
-        let sounds: Sounding[];
         if (orn) {
           const prev = this.before(i, k);
           const parts = realiseNote(this.f, orn, n.on, n.dur, n.midi, prev >= 0 ? notes[prev].midi : undefined, this.bpm);
-          sounds = parts.map(([pon, pdur, pmidi], q) => {
+          parts.forEach(([pon, pdur, pmidi], q) => {
             const pat = Math.max(at, this.timeAt(pon));
-            const last = q === parts.length - 1;
-            return ch.note(pmidi, pat, last ? Math.max(0.03, hold - (pat - at)) : this.timeAt(pon + pdur) - this.timeAt(pon), sv?.v ?? voiceV, { ...expr, legato: q > 0 || expr.legato });
+            put(pmidi, pat, q === parts.length - 1 ? cut(Math.max(0.03, this.timeAt(n.on + n.dur) - pat)) : len(pon, pdur), { ...expr, legato: q > 0 || expr.legato });
           });
-        } else sounds = chord.map((c) => ch.note(notes[c].midi, at, hold, sv?.v ?? voiceV, expr));
-        this.armed.set(`${k}:${n.on}`, { k, i, gate, sounds, riders, state: "armed", closeAt: at + HOLD_MAX + 1, ridersEnd });
+        } else if (chord.length > 1 && t.sweeps?.has(n.on)) {
+          // D258: the swept chord upward, a note every SWEEP_GAP_S, as it sounds by itself.
+          const up = chord.map((c) => notes[c]).sort((a, b) => a.midi - b.midi);
+          up.forEach((c, q) => put(c.midi, at + q * SWEEP_GAP_S, cut(len(c.on, c.dur)), { ...expr, legato: false }));
+        } else for (const c of chord) put(notes[c].midi, at, cut(len(notes[c].on, notes[c].dur)), expr);
+        // D262: a traced line's other notes, at their written times.
+        for (const q of t.traces?.get(n.on) ?? []) put(q.midi, this.timeAt(q.on), Math.max(0.12, len(q.on, q.dur)), { ...expr, legato: false });
+        if (sv && !this.o.her) for (const x of this.subj.layers(ch, sv.sn, n.midi, at, len(n.on, n.dur), v, expr.level ?? 1)) sounds.push(x);
+        this.armed.set(`${k}:${n.on}`, { k, i, sounds, state: "sounding", until: end + 1 });
       }
       this.armNext[k] = i;
     });
+    // D250: the pedal's bourdon from its start to its end, held or not (holding it still scores and builds).
+    this.pedalList.forEach((p, q) => {
+      if (this.armedPedals.has(q) || p.on > horizon) return;
+      this.armedPedals.add(q);
+      const at = Math.max(ch.ctx.currentTime, this.timeAt(p.on));
+      const until = this.timeAt(p.end);
+      const v = { timbre: "triangle" as const, pan: 0, gain: 1, patch: PATCHES.pedalBourdon };
+      if (until > at) for (const [m, level] of [[p.midi, 1.2], [p.midi - 12, 0.9]] as const) this.band.push({ sd: ch.note(m, at, until - at, v, { level, lead: true }), until: until + 0.6 });
+    });
   }
-  /** D223: the armed note at a track's onset, if any. */
-  armedAt(k: number, on: number): { state: Armed["state"] } | undefined {
-    return this.armed.get(`${k}:${on}`);
+  /** D223, D299: the player's note scheduled at a track's onset, if any. */
+  armedAt(k: number, on: number): { state: Armed["state"]; sounds: number } | undefined {
+    const a = this.armed.get(`${k}:${on}`);
+    return a && { state: a.state, sounds: a.sounds.length };
   }
-  /** D223: an armed note no touch has confirmed: faded out fast (heard briefly, through the headphones' delay). */
-  private fadeArmed(a: Armed) {
-    const t = this.chip.ctx.currentTime;
-    a.state = "faded";
-    a.gate.fade();
-    for (const sd of [...a.sounds, ...a.riders]) sd.stop(t + 0.06);
-    a.closeAt = t + 0.3;
-  }
-  /** D223: armed notes past their wait (or played wrong) faded; gates closed once their notes are done. */
+  /** D299: records of notes done sounding dropped (nothing is faded: a note scheduled sounds out). */
   private watchArmed() {
     const t = this.chip.ctx.currentTime;
-    for (const [key, a] of this.armed) {
-      const n = this.tracks[a.k].notes[a.i];
-      if (a.state === "armed" && (n.state !== "pending" || this.msOf(n.on, this.now) > ARM_WAIT_MS)) this.fadeArmed(a);
-      else if (a.state === "confirmed" && ![...this.held.values()].some((h) => h.sounds === a.sounds) && !this.pedalled.some((sd) => a.sounds.includes(sd))) a.closeAt = Math.min(a.closeAt, Math.max(t + 1, a.ridersEnd));
-      if (t > a.closeAt) {
-        a.gate.close();
-        this.armed.delete(key);
-      }
-    }
+    for (const [key, a] of this.armed) if (t > a.until) this.armed.delete(key);
+  }
+  /** D299: a touch's sound: nothing in BLUETOOTH MODE (its note is already on the schedule). */
+  private touchNote(...args: Parameters<Chip["note"]>): Sounding {
+    return this.bt ? SILENT() : this.chip.note(...args);
   }
 
   /** One frame: the beat (or the band) and the others scheduled ahead; the window panned; notes gone by marked missed. True at the end. */
@@ -792,7 +807,7 @@ export class ProtoGame {
       if (n.on < this.now - this.beat) continue;
       // D250: the bass's pedal sounds only while the player holds it.
       const bp = this.bassPedal;
-      if (bp && n.midi === bp.midi && n.on >= bp.on && n.on < bp.end && bp.id === null) continue;
+      if (bp && n.midi === bp.midi && n.on >= bp.on && n.on < bp.end && bp.id === null && !this.bt) continue;
       const sh = this.shapes[this.nextOther - 1];
       const len = this.timeAt(n.on + n.dur * sh.hold) - this.timeAt(n.on);
       const at = Math.max(ch.ctx.currentTime, this.timeAt(n.on) + sh.nudge);
@@ -1310,7 +1325,7 @@ export class ProtoGame {
       const key = at.key?.midi ?? (this.proto.id === "piano" ? h.cell : undefined);
       if (key !== undefined) {
         h.midi = key;
-        h.sounds = [this.chip.note(key, this.chip.ctx.currentTime, HOLD_MAX, voicing(this.tracks[h.k].voice, this.f.voices.length, true), { ...dynamic(this.heard(d)), lead: true, envelope: this.proto.id === "piano" ? "piano" : "synth" })];
+        h.sounds = [this.touchNote(key, this.chip.ctx.currentTime, HOLD_MAX, voicing(this.tracks[h.k].voice, this.f.voices.length, true), { ...dynamic(this.heard(d)), lead: true, envelope: this.proto.id === "piano" ? "piano" : "synth" })];
       }
       return;
     }
@@ -1426,7 +1441,7 @@ export class ProtoGame {
     const midi = seq[(o.moves - 1) % seq.length];
     const now = this.chip.ctx.currentTime;
     for (const sd of h.sounds) sd.stop(now + 0.02);
-    h.sounds = [this.chip.note(midi, now, HOLD_MAX, o.v, { ...o.play, legato: true })];
+    h.sounds = [this.touchNote(midi, now, HOLD_MAX, o.v, { ...o.play, legato: true })];
     if (o.moves >= o.need && midi === o.main) {
       o.done = true;
       this.shakes.hit++;
@@ -1498,7 +1513,7 @@ export class ProtoGame {
       const dt = Math.max(1, b.t - a.t);
       if (-dy >= SWOOSH_PX && -dy / dt >= SWOOSH_V) {
         for (const sd of h.sounds) sd.stop(this.chip.ctx.currentTime + 0.02);
-        this.chip.swoosh(h.midi, voicing(h.note >= 0 ? this.voiceOf(h.k, h.note) : this.tracks[h.k].voice, this.f.voices.length, true), levelOf(this.heard(h.d0)));
+        if (!this.bt) this.chip.swoosh(h.midi, voicing(h.note >= 0 ? this.voiceOf(h.k, h.note) : this.tracks[h.k].voice, this.f.voices.length, true), levelOf(this.heard(h.d0)));
         return;
       }
     }
@@ -1551,25 +1566,12 @@ export class ProtoGame {
     // D213: the subject's effect under the note (the note's own sound below, its last made).
     for (const sd of h.fx ?? []) sd.stop();
     const n1 = notes[i];
-    h.fx = sv ? this.subj.layers(this.chip, sv.sn, pitches[0], this.chip.ctx.currentTime, this.timeAt(n1.on + n1.dur) - this.timeAt(n1.on), sv.v, expr.level ?? 1) : [];
-    // D223, BLUETOOTH MODE: the note already sounding ahead (armed) is confirmed by a right touch (raised,
-    // then held while the touch lasts); a wrong touch never confirms it: it fades, and the wrong note
-    // sounds as it always has.
-    const armed = this.bt ? this.armed.get(`${h.k}:${notes[i].on}`) : undefined;
-    if (armed?.state === "armed" && !v.ok) this.fadeArmed(armed);
-    if (armed?.state === "armed" && v.ok) {
-      for (const sd of h.sounds) sd.stop();
-      for (const [hid, o] of this.held) {
-        if (hid === id || o.k !== h.k) continue;
-        o.passive = true;
-        o.sweep = undefined;
-        for (const sd of o.sounds) sd.stop(this.chip.ctx.currentTime + 0.03);
-        o.sounds = [];
-      }
-      armed.state = "confirmed";
-      armed.gate.confirm();
-      h.sounds = armed.sounds;
-    } else if (slide && !piano && h.sounds.length === 1 && pitches.length === 1) {
+    h.fx = sv && !this.bt ? this.subj.layers(this.chip, sv.sn, pitches[0], this.chip.ctx.currentTime, this.timeAt(n1.on + n1.dur) - this.timeAt(n1.on), sv.v, expr.level ?? 1) : [];
+    // D299, BLUETOOTH MODE: the note is already on the schedule (arm); a right touch only scores it (its
+    // riders then shown as they sound). Below, every sound a touch would make is silent (touchNote).
+    const armed = this.bt && v.ok ? this.armed.get(`${h.k}:${notes[i].on}`) : undefined;
+    if (armed) armed.state = "hit";
+    if (slide && !piano && h.sounds.length === 1 && pitches.length === 1) {
       h.sounds[0].glide?.(pitches[0]);
     } else {
       for (const sd of h.sounds) sd.stop();
@@ -1596,7 +1598,7 @@ export class ProtoGame {
         const lower = parts.find((p) => p[2] < n0.midi)?.[2] ?? n0.midi - 2;
         const v = sv?.v ?? voiceV;
         const play = { ...expr, legato: legato && !piano };
-        h.sounds = [this.chip.note(n0.midi, this.chip.ctx.currentTime, HOLD_MAX, v, play)];
+        h.sounds = [this.touchNote(n0.midi, this.chip.ctx.currentTime, HOLD_MAX, v, play)];
         h.orn = { ...shake, main: n0.midi, upper, lower, moves: 0, dir: 0, from: h.ay, firstDir: 0, v, play, by: n0.on + n0.dur, done: false };
         this.shakes.of++;
       } else if (orn) {
@@ -1606,20 +1608,20 @@ export class ProtoGame {
         h.sounds = parts.map(([pon, pdur, pmidi], k) => {
           const at = t0 + (this.timeAt(pon) - this.timeAt(n0.on));
           const last = k === parts.length - 1;
-          return this.chip.note(pmidi, at, last ? HOLD_MAX : this.timeAt(pon + pdur) - this.timeAt(pon), sv?.v ?? voiceV, { ...expr, legato: k > 0 || (legato && !piano) });
+          return this.touchNote(pmidi, at, last ? HOLD_MAX : this.timeAt(pon + pdur) - this.timeAt(pon), sv?.v ?? voiceV, { ...expr, legato: k > 0 || (legato && !piano) });
         });
       } else if (v.ok && pitches.length > 1 && this.tracks[h.k].sweeps?.has(n0.on)) {
         // D258, SWEEP: the lowest now, the rest as the thumb slides up, or by themselves a moment apart.
         const up = [...pitches].sort((a, b) => a - b);
         const play = { ...expr, legato: false };
-        h.sounds = [this.chip.note(up[0], this.chip.ctx.currentTime, HOLD_MAX, sv?.v ?? voiceV, play)];
+        h.sounds = [this.touchNote(up[0], this.chip.ctx.currentTime, HOLD_MAX, sv?.v ?? voiceV, play)];
         h.sweep = { queue: up.slice(1), next: this.chip.ctx.currentTime + SWEEP_GAP_S, x: h.ax, slid: 0, voice: sv?.v ?? voiceV, play };
       } else if (v.ok && this.tracks[h.k].traces?.has(n0.on)) {
         // D262, THE LINE: the first note now; the rest as the thumb slides on along the path (or on time by themselves).
         const q = this.tracks[h.k].traces!.get(n0.on)!;
-        h.sounds = pitches.map((m) => this.chip.note(m, this.chip.ctx.currentTime, HOLD_MAX, sv?.v ?? voiceV, { ...expr, legato: false }));
+        h.sounds = pitches.map((m) => this.touchNote(m, this.chip.ctx.currentTime, HOLD_MAX, sv?.v ?? voiceV, { ...expr, legato: false }));
         h.trace = { queue: q.map((x) => ({ ...x })), x: h.ax, slid: 0, count: q.length, voice: sv?.v ?? voiceV, play: { ...expr, legato: false } };
-      } else h.sounds = pitches.map((m) => this.chip.note(m, this.chip.ctx.currentTime, HOLD_MAX, sv?.v ?? voiceV, { ...expr, legato: legato && !piano }));
+      } else h.sounds = pitches.map((m) => this.touchNote(m, this.chip.ctx.currentTime, HOLD_MAX, sv?.v ?? voiceV, { ...expr, legato: legato && !piano }));
       // D293: a note judged wrong sounds as written, at its level: the verdict is seen (it was muffled:
       // darkened to 600 Hz and flattened, which on a phone's speaker all but silenced it).
     }
@@ -1643,6 +1645,8 @@ export class ProtoGame {
     if (this.touchDynamics) this.feel += (d - this.feel) * 0.25;
     // As heard (D191: the final ritard included; the steady tempo made PERFECT up to 22% wider there).
     const offMs = (this.timeAt(n.at ?? n.on) - this.timeAt(n.on)) * 1000;
+    // D299: how early or late each struck note was, as heard (BLUETOOTH MODE's delay retuned after the run: headphones.ts driftOf).
+    if (this.bt && !slide) this.btOffsets.push(offMs);
     const perfect = Math.abs(offMs) <= PERFECT_MS;
     this.combo++;
     this.hits++;
@@ -1662,7 +1666,7 @@ export class ProtoGame {
     if (v.lane === "relative") (h.pts *= RELATIVE_SHARE), this.laneTally.relative++;
     if (v.lane === "exact") {
       this.laneTally.exact++;
-      this.chip.chime?.(pitches[0], this.chip.ctx.currentTime, levelOf(d));
+      if (!this.bt) this.chip.chime?.(pitches[0], this.chip.ctx.currentTime, levelOf(d));
     }
     h.open = true;
     // D218: a note joined in the score, struck legato, scores more, and more along an unbroken chain;
@@ -1728,8 +1732,8 @@ export class ProtoGame {
     while (j < notes.length && notes[j].on === notes[i].on) j++;
     const ch = this.chip;
     let first = true;
-    // D223: sounded ahead with the note confirmed (BLUETOOTH MODE): only shown as they sound.
-    const pre = this.bt && this.armed.get(`${h.k}:${notes[i].on}`)?.state === "confirmed";
+    // D299: in BLUETOOTH MODE on the schedule with their note (arm): only shown as they sound.
+    const pre = this.bt;
     for (; j < notes.length && notes[j].ride; j++) {
       const n = notes[j];
       if (n.state !== "pending") continue;
@@ -2210,7 +2214,7 @@ export class ProtoGame {
     const at = Math.max(this.chip.ctx.currentTime, this.timeAt(p.from));
     const until = this.timeAt(p.end);
     const v = { timbre: "triangle" as const, pan: 0, gain: 1, patch: PATCHES.pedalBourdon };
-    if (until > at) p.sounds = [this.chip.note(p.midi, at, until - at, v, { level: 1.2, lead: true }), this.chip.note(p.midi - 12, at, until - at, v, { level: 0.9, lead: true })];
+    if (until > at) p.sounds = [this.touchNote(p.midi, at, until - at, v, { level: 1.2, lead: true }), this.touchNote(p.midi - 12, at, until - at, v, { level: 0.9, lead: true })];
   }
   /** D250: the pedal let go: true if this touch (key) held it. */
   private pedalLeave(id: number, ts: number) {
@@ -2339,7 +2343,7 @@ export class ProtoGame {
     const q = tr.queue.shift();
     if (!q) return;
     const len = Math.max(0.12, this.timeAt(q.on + q.dur) - this.timeAt(q.on));
-    const sd = this.chip.note(q.midi, this.chip.ctx.currentTime, len, tr.voice, tr.play);
+    const sd = this.touchNote(q.midi, this.chip.ctx.currentTime, len, tr.voice, tr.play);
     if (sd) this.band.push({ sd, until: this.chip.ctx.currentTime + len + 0.6 });
     if (tr.queue.length || tr.count === 0) return;
     if (tr.slid >= Math.ceil(tr.count * 0.75)) {
@@ -2362,7 +2366,7 @@ export class ProtoGame {
     const m = sw?.queue.shift();
     if (!sw || m === undefined) return;
     const t = this.chip.ctx.currentTime;
-    h.sounds.push(this.chip.note(m, t, HOLD_MAX, sw.voice, sw.play));
+    h.sounds.push(this.touchNote(m, t, HOLD_MAX, sw.voice, sw.play));
     sw.next = t + SWEEP_GAP_S;
     if (sw.queue.length) return;
     if (sw.slid >= h.sounds.length - 1) {
@@ -2488,7 +2492,7 @@ export class ProtoGame {
       if (!h.sounds.length) continue;
       for (const sd of h.sounds) sd.stop(this.chip.ctx.currentTime + 0.02);
       h.sounds = [];
-      this.chip.swoosh(h.midi, voicing(this.tracks[h.k].voice, this.f.voices.length, true), levelOf(this.heard(h.d0)));
+      if (!this.bt) this.chip.swoosh(h.midi, voicing(this.tracks[h.k].voice, this.f.voices.length, true), levelOf(this.heard(h.d0)));
       return;
     }
   }
@@ -2521,12 +2525,8 @@ export class ProtoGame {
     this.pedalled = [];
     for (const h of this.held.values()) for (const sd of [...h.sounds, ...(h.fx ?? [])]) sd.stop();
     this.held.clear();
-    // D223: the notes sounded ahead.
-    for (const a of this.armed.values()) {
-      for (const sd of [...a.sounds, ...a.riders]) sd.stop();
-      // Closed once the notes' release has passed (closed at once, it would click).
-      setTimeout(a.gate.close, 300);
-    }
+    // D299: the player's notes on the schedule (BLUETOOTH MODE).
+    for (const a of this.armed.values()) for (const sd of a.sounds) sd.stop();
     this.armed.clear();
   }
 
