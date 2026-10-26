@@ -55,16 +55,40 @@ const GLYPHS: Record<string, string> = {
 export function pixText(g: CanvasRenderingContext2D, text: string, x: number, y: number, color: string, scale = 1): number {
   g.fillStyle = color;
   let cx = Math.round(x);
-  // D283: the 3 by 5 font has no accents: Á É Ç Ñ drawn as A E C N.
   // D283: every word drawn in the box in the language chosen (the cadences, the points' words).
-  for (const ch of trCanvas(text.toUpperCase()).normalize("NFD").replace(/[\u0300-\u036f]/g, "")) {
-    const glyph = GLYPHS[ch] ?? GLYPHS[" "];
+  // D301: the accents drawn too (the owner: "why are there no accents … like VOCÊ"): the letter, then its
+  // marks in two rows above it (the cedilla below), as the 3 by 5 font's own pixels.
+  for (const [base, marks] of letters(trCanvas(text.toUpperCase()))) {
+    const glyph = GLYPHS[base] ?? GLYPHS[" "];
     for (let i = 0; i < 15; i++) if (glyph[i] === "1") g.fillRect(cx + (i % 3) * scale, Math.round(y) + Math.floor(i / 3) * scale, scale, scale);
+    for (const m of marks) {
+      const mk = MARKS[m];
+      if (!mk) continue;
+      for (let i = 0; i < 6; i++) if (mk.px[i] === "1") g.fillRect(cx + (i % 3) * scale, Math.round(y) + (mk.row + Math.floor(i / 3)) * scale, scale, scale);
+    }
     cx += 4 * scale;
   }
   return cx - x;
 }
-export const textWidth = (text: string, scale = 1) => text.length * 4 * scale;
+/** D301: the diacritics as 3 by 2 pixels: rows above the letter (row -2), the cedilla below (row 5). */
+const MARKS: Record<string, { px: string; row: number }> = {
+  "\u0301": { px: "001010", row: -2 }, // acute
+  "\u0300": { px: "100010", row: -2 }, // grave
+  "\u0302": { px: "010101", row: -2 }, // circumflex
+  "\u0303": { px: "011110", row: -2 }, // tilde
+  "\u0308": { px: "101000", row: -2 }, // diaeresis
+  "\u0327": { px: "010100", row: 5 }, // cedilla
+};
+/** D301: the text as letters, each with its combining marks. */
+function letters(text: string): [string, string[]][] {
+  const out: [string, string[]][] = [];
+  for (const ch of text.normalize("NFD")) {
+    if (/[\u0300-\u036f]/.test(ch)) out.at(-1)?.[1].push(ch);
+    else out.push([ch, []]);
+  }
+  return out;
+}
+export const textWidth = (text: string, scale = 1) => letters(text).length * 4 * scale;
 
 /** "c" → "C MINOR", "Eb" → "E♭ MAJOR". */
 export function keyWords(key: string): string {
