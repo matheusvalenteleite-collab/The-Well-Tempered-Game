@@ -326,7 +326,7 @@ export class SheetView {
       const past = document.createElement("div");
       past.className = "tb-sheet-past";
       const head = document.createElement("div");
-      head.className = "tb-sheet-head";
+      head.className = "tb-sheet-headpaper";
       const headCanvas = document.createElement("canvas");
       head.append(headCanvas);
       // D300: the open score: the player's staff marked at the clefs (a rule in the player's colour).

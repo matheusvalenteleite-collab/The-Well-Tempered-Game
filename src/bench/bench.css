@@ -675,11 +675,47 @@ html.tb-paper, html.tb-paper body, html.tb-paper .tb-bars .tg-play { background:
 .tb-sheet-marks { position: absolute; left: 0; top: 0; overflow: visible; }
 .tb-sheet-word { font-family: Georgia, "Times New Roman", serif; font-style: italic; stroke: #fff; stroke-width: 3px; paint-order: stroke; stroke-linejoin: round; }
 .tb-sheet-miss { fill: none; stroke: #b3261e; stroke-width: 1.4px; stroke-linecap: round; }
-.tb-sheet-head { position: absolute; left: 0; top: 0; height: 100%; background: #fff; }
-.tb-sheet-head::after { content: ""; position: absolute; top: 0; bottom: 0; left: 100%; width: 6px; background: linear-gradient(to right, #fff, rgba(255, 255, 255, 0)); }
+.tb-sheet-headpaper { position: absolute; left: 0; top: 0; height: 100%; background: #fff; }
+.tb-sheet-headpaper::after { content: ""; position: absolute; top: 0; bottom: 0; left: 100%; width: 6px; background: linear-gradient(to right, #fff, rgba(255, 255, 255, 0)); }
 /* D300: the music played stays in sight, a shade lighter; the open score's mark of the player's staff. */
 .tb-sheet-past { position: absolute; left: 0; top: 0; height: 100%; background: rgba(255, 255, 255, 0.2); }
 .tb-sheet-mine { position: absolute; left: 0; width: 3px; display: none; }
-.tg-roll .tb-sheet-head canvas { display: block; image-rendering: auto; }
+.tg-roll .tb-sheet-headpaper canvas { display: block; image-rendering: auto; }
 .tb-sheet-playhead { position: absolute; width: 1.2px; margin-left: -0.6px; opacity: 0.55; }
 .tb-display .tg-seg { flex-wrap: wrap; }
+/*
+ * D308: the result over the whole screen, not in the music box (it sat in the box's upper part, the play
+ * area under it empty, the sheet clipped): centred in the safe area, scrolling only if it must.
+ */
+.tg-card.tb-result {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  box-sizing: border-box;
+  justify-content: safe center;
+  align-items: center;
+  gap: 10px;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) max(52px, calc(8px + env(safe-area-inset-right, 0px))) calc(14px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  overflow-y: auto;
+  background: rgba(9, 11, 20, 0.95);
+}
+.tg-card.tb-result:has(.tb-sheet) { justify-content: safe center; }
+.tb-result > * { flex: none; max-width: 100%; }
+.tb-result-x { top: calc(8px + env(safe-area-inset-top, 0px)); right: max(8px, env(safe-area-inset-right, 0px)); }
+.tb-result .tb-sheet { width: min(760px, 100%); }
+.tb-sheet-head { min-width: 0; }
+.tb-sheet-qualities li { grid-template-columns: minmax(6em, 12em) minmax(40px, 1fr) 3.2em; }
+.tb-sheet-label { overflow-wrap: anywhere; }
+.tb-result-nav { flex-wrap: wrap; }
+@media (max-height: 520px) {
+  .tg-card.tb-result:has(.tb-sheet) { gap: 6px; padding-top: calc(8px + env(safe-area-inset-top, 0px)); padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)); }
+}
+/* D308: on a tablet or a computer the sheet in proportion to the screen (its 7 px pixel type was lost in the middle of a 1440 px window). */
+@media (min-width: 900px) and (min-height: 640px) {
+  .tb-result > :not(.tb-result-x) { zoom: 1.35; }
+  .tb-result .tb-sheet { width: min(760px, calc((100vw - 120px) / 1.35)); }
+}
+@media (min-width: 1300px) and (min-height: 820px) {
+  .tb-result > :not(.tb-result-x) { zoom: 1.6; }
+  .tb-result .tb-sheet { width: min(760px, calc((100vw - 120px) / 1.6)); }
+}
