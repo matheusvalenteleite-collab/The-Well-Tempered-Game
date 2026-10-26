@@ -542,10 +542,10 @@ export function BenchApp() {
           // D264: nothing to unlock (all open): the piece kept as finished, no toast.
           recordLite(f.id, r.failedBar !== null, platform === "mobile", r.grade);
           const opened: Tier[] = [];
-          const st = readLite();
-          setLite(st);
           // D268: a whole piece finished: its final score against the best.
           const best = r.failedBar === null && from === 0 ? recordLiteBest(f.id, r.sheet.final) : null;
+          // D308: read after the best score is kept (the cards show it; it was read before, so they did not until a reload).
+          setLite(readLite());
           setPhase({ kind: "result", ...r, best, seal: null, opened, next: nextIn(liteAll(platform === "mobile"), f.id) });
         } else {
           // D214: SUBJECT's grade is not any one voice's.
@@ -1119,7 +1119,7 @@ export function BenchApp() {
       )}
       {wheel && !APP.lite && (phase.kind === "home" || phase.kind === "title") && <FuguePicker current={pick.piece} close={() => setWheel(false)} pick={open} paused={phase.kind === "title"} />}
       {/* D306: ⚙ opens over the cards, which stay behind it (not the music box). */}
-      {APP.lite && (phase.kind === "home" || phase.kind === "title" || phase.kind === "settings") && <LiteGrid beaten={lite.beaten} current={opened && pick.piece} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} fuguesOnly={platform === "mobile"} tutorial={platform === "mobile" ? { done: TRACKS.mobile.filter((l) => trackState("mobile").passed[l.id]).length, of: TRACKS.mobile.length, start: () => setSteps(true) } : undefined} />}
+      {APP.lite && (phase.kind === "home" || phase.kind === "title" || phase.kind === "settings") && <LiteGrid beaten={lite.beaten} best={lite.best} scores={lite.scores} current={opened && pick.piece} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} fuguesOnly={platform === "mobile"} tutorial={platform === "mobile" ? { done: TRACKS.mobile.filter((l) => trackState("mobile").passed[l.id]).length, of: TRACKS.mobile.length, start: () => setSteps(true) } : undefined} />}
       {APP.lite && steps && phase.kind === "home" && <TutorialSteps play={(n) => beginLesson("mobile", n)} close={() => setSteps(false)} />}
       {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} open={lite.beaten.includes(hearing)} play={playSubject} close={() => setHearing(null)} />}
       {phase.kind === "title" && (

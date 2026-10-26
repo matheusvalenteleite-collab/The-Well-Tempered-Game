@@ -981,13 +981,15 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
         const sy = own && g.now - own.tick <= OWN_FRESH_S * g.tps ? own.y : y;
         c.fillStyle = ink;
         c.globalAlpha = paper ? 0.04 + 0.14 * nx.p * nx.p : 0.1 + 0.3 * nx.p * nx.p;
-        c.fillRect(s.x, 0, bw, h - 24);
+        // D308: lit to the screen's foot (a dark strip of 24 px was left under it, the owner: "a useless border").
+        c.fillRect(s.x, 0, bw, h);
         c.globalAlpha = 1;
-        // The beat closing in: two bars meeting at the bar's foot.
+        // The beat closing in: two bars meeting at the bar's foot (over the bar, above the dynamics' marks).
         const half = (bw / 2) * (1 - nx.p);
+        const fy = h - (g.touchDynamics ? 22 : 6);
         c.fillStyle = t.shine;
-        c.fillRect(s.x, h - 22, bw / 2 - half, 3);
-        c.fillRect(s.x + bw / 2 + half, h - 22, bw / 2 - half, 3);
+        c.fillRect(s.x, fy, bw / 2 - half, 3);
+        c.fillRect(s.x + bw / 2 + half, fy, bw / 2 - half, 3);
         // The way from that thumb's own last note (D296: how it is judged), else from the note before.
         const d = sy !== y && own ? Math.sign(n.step - own.step) : m.size < 0 || m.steps === 0 ? 0 : m.dir;
         const way = !g.lastTouch || m.size < 0 ? "" : d === 0 ? "=" : d > 0 ? "▲" : "▼";

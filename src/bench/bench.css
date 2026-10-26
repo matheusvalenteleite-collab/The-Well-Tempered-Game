@@ -18,6 +18,9 @@
 .tb-full .tg-box { display: none; }
 .tb-bars, .tg-wide.tb-bars { grid-template-rows: 1fr; position: relative; }
 .tb-bars .tg-box { margin: 0 20%; }
+/* D308: the box loses its side frame (8 px each side), so the bars (BAR, 20% each) meet its drawn content; its words keep their inset. */
+.tb-bars .tg-box { padding-left: 0; padding-right: 0; }
+.tb-bars .tg-hud, .tb-bars .tg-legend { padding-left: 8px; padding-right: 8px; }
 .tb-bars .tg-play { position: absolute; inset: 0; }
 .tb-bars .tg-half, .tb-bars .tg-half-on { background: transparent; border: 0; }
 .tb-quit { position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); right: max(8px, env(safe-area-inset-right, 0px)); z-index: 5; background: var(--tg-veil); }
@@ -580,6 +583,11 @@
 .tb-lite-meta { font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-muted); }
 .tb-lite-list .tb-lite-start { position: static; justify-self: start; }
 .tb-lite-list .tb-lite-done { top: 4px; left: auto; right: 4px; }
+/* D308: the best grade, a stamp in the picture's lower corner (the key's label keeps the upper); the best score under the sound. */
+.tb-lite-grade { position: absolute; bottom: 4px; right: 4px; min-width: 22px; padding: 4px 5px 3px; font-family: var(--tg-pixel); font-size: 14px; line-height: 1; text-align: center; color: var(--grade, var(--tg-shine)); background: rgba(10, 8, 16, 0.86); border: 2px solid var(--grade, var(--tg-shine)); box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.6); text-shadow: 1px 1px 0 #000; }
+.tb-lite-best { font-family: var(--tg-pixel); font-size: 7px; line-height: 1.6; color: var(--tg-gold); }
+/* D308: room under the words for HEAR THE SUBJECT (on a narrow card it covered the last line). */
+.tb-lite-list li:has(.tb-hear-btn) .tb-lite-info { padding-bottom: 30px; }
 .tb-pop-lock { margin: 4px 0 0; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-muted); }
 /* D268: the score sheet on the result (two columns where there is room: a phone held sideways is short). */
 .tb-result:has(.tb-sheet) { justify-content: flex-start; padding-top: 14px; }

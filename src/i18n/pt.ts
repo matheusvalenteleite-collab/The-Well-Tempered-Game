@@ -81,6 +81,7 @@ export const PT: Record<string, string> = {
   "{a} POINTS + {b} PERFORMANCE BONUS": "{a} PONTOS + {b} DE BÔNUS DE INTERPRETAÇÃO",
   "FIRST SCORE": "PRIMEIRA PONTUAÇÃO",
   "NEW BEST · WAS {n}": "NOVO RECORDE · ERA {n}",
+  "BEST GRADE {g}": "MELHOR NOTA {g}",
   "BEST {n}": "RECORDE {n}",
   PERFORMANCE: "INTERPRETAÇÃO",
   "MAX COMBO": "COMBO MÁXIMO",
