@@ -95,19 +95,20 @@ test("D225: each lesson's passage is pinned (a change to the data or the search 
     "computer/leap": ["keys", "wtc1f04", 0, 339840, 359040, false, true],
     "computer/exam": ["keys", "wtc1f08", 0, 0, 668160, false, true],
     // D270: THE TUTORIAL, on Invention No. 1 (bars of 7680 ticks).
-    "mobile/t-ladder": ["ladder", "inv01", 0, 0, 7680, true, false],
-    "mobile/t-beat": ["ladder", "inv01", 0, 0, 7680, false, false],
-    "mobile/t-hold": ["ladder", "inv01", 0, 69120, 92160, false, false],
-    "mobile/t-second": ["ladder", "inv01", 1, 0, 15360, false, false],
-    "mobile/t-thumbs": ["ladder", "inv01", 1, 0, 15360, false, false],
-    "mobile/t-legato": ["ladder", "inv01", 1, 0, 15360, false, false],
-    "mobile/t-leaps": ["ladder", "inv01", 1, 99840, 115200, false, false],
-    "mobile/t-dynamics": ["ladder", "inv01", 1, 0, 15360, false, false],
-    "mobile/t-slide": ["ladder", "inv01", 1, 0, 15360, false, false],
-    "mobile/t-ornament": ["ladder", "inv01", 0, 0, 15360, false, false],
-    "mobile/t-subject": ["ladder", "inv01", 0, 0, 38400, false, false],
+    // D289: each passage ends on the note it leads to (until = that note's onset + 1).
+    "mobile/t-ladder": ["ladder", "inv01", 0, 0, 7681, true, false],
+    "mobile/t-beat": ["ladder", "inv01", 0, 0, 7681, false, false],
+    "mobile/t-hold": ["ladder", "inv01", 0, 69120, 92641, false, false],
+    "mobile/t-second": ["ladder", "inv01", 1, 0, 15361, false, false],
+    "mobile/t-thumbs": ["ladder", "inv01", 1, 0, 15361, false, false],
+    "mobile/t-legato": ["ladder", "inv01", 1, 0, 15361, false, false],
+    "mobile/t-leaps": ["ladder", "inv01", 1, 99840, 115201, false, false],
+    "mobile/t-dynamics": ["ladder", "inv01", 1, 0, 15361, false, false],
+    "mobile/t-slide": ["ladder", "inv01", 1, 0, 15361, false, false],
+    "mobile/t-ornament": ["ladder", "inv01", 0, 0, 15361, false, false],
+    "mobile/t-subject": ["ladder", "inv01", 0, 0, 38401, false, false],
     "mobile/t-reading": ["ladder", "wtc1f02", 1, 0, 15360, false, false],
-    "mobile/t-crowd": ["ladder", "inv01", 0, 0, 46080, false, true],
+    "mobile/t-crowd": ["ladder", "inv01", 0, 0, 46081, false, true],
     "mobile/t-whole": ["ladder", "inv01", 0, 0, 168960, false, true],
   };
   const seen: string[] = [];
@@ -196,8 +197,8 @@ function playTutorial(l: Lesson, o: { oneThumb?: boolean; detached?: boolean; fl
     const loud = !o.flat && n.on >= g.f.barTicks;
     const xOn = (sd: "left" | "right") => (sd === "left" ? (loud ? 0.1 : 0.8) * bw : W - bw + (loud ? 0.9 : 0.2) * bw);
     if (slide && held && n.step > held.step) {
-      // A slide plays on after a row and a half of travel (D208): a step slid is a deliberate move.
-      held.y -= 28 * (n.step - held.step);
+      // D289: a slide follows the notes: the thumb moved to the next note's height.
+      held.y = ROWS.yOf(n.step);
       g.move(held.id, { side: held.side, x: xOn(held.side), y: held.y, w: W, h: H }, performance.now());
       held.step = n.step;
       continue;
@@ -260,8 +261,8 @@ test("D271: a held thumb slides one way only: back the other way it plays nothin
   let y = ROWS.yOf(ns[0].step);
   runTo(g.timeAt(ns[0].on));
   g.down(1, c(y), performance.now());
-  // Each step slid a row and a half's travel (D208).
-  for (let i = 1; i <= 3; i++) (runTo(g.timeAt(ns[i].on)), g.move(1, c((y -= 28)), performance.now()));
+  // D289: each step slid to the note's own height (the notes' travel, not a fixed row and a half).
+  for (let i = 1; i <= 3; i++) (runTo(g.timeAt(ns[i].on)), g.move(1, c((y = ROWS.yOf(ns[i].step))), performance.now()));
   assert.deepEqual(ns.slice(0, 4).map((n) => n.state), ["hit", "hit", "hit", "hit"]);
   assert.ok(ns[4].step < ns[3].step, "the fifth note goes down");
   runTo(g.timeAt(ns[4].on));

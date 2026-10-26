@@ -21,7 +21,7 @@ import { keyWordsIn, lang, LANGS, pieceName, setLang, tr, voiceName, type Lang }
 import { ornamentMark, ornamentsOf } from "../touch/ornament-play.ts";
 import { BachTalk } from "./Bach.tsx";
 import { accuracy, passed, TRACKS, type Line, type Run } from "./lessons.ts";
-import { answer, askFirst, nextLesson, recordLesson, trackState } from "./tutorial.ts";
+import { answer, askFirst, nextLesson, recordLesson, skipLesson, trackState, triesAt } from "./tutorial.ts";
 import { LessonMap, PlayedBefore } from "./LessonMap.tsx";
 import { tempoOf } from "../touch/tempi.ts";
 import { presetById, setPreset } from "../touch/sound.ts";
@@ -618,6 +618,19 @@ export function BenchApp() {
     if (lesson && lesson.n + 1 < TRACKS[lesson.pl].length) return beginLesson(lesson.pl, lesson.n + 1);
     quit();
   };
+  /**
+   * D289: a step not passed: TRY AGAIN, WATCH AGAIN (the demonstration, on a phone), and after three tries
+   * SKIP FOR NOW (the step set aside, open to come back to; the next one opens).
+   */
+  const againChoices = () => {
+    if (!lesson) return undefined;
+    const l = TRACKS[lesson.pl][lesson.n];
+    const out = [{ label: "TRY AGAIN", act: () => talkDone("again") }];
+    if (lesson.pl === "mobile" && l.id !== "t-whole") out.push({ label: "WATCH AGAIN", act: () => talkDone("watch") });
+    if (triesAt(lesson.pl, l.id) >= 3)
+      out.push({ label: "SKIP FOR NOW", act: () => (skipLesson(lesson.pl, l.id), lesson.n + 1 < TRACKS[lesson.pl].length ? beginLesson(lesson.pl, lesson.n + 1) : quit()) });
+    return out;
+  };
   /** The subject, played to be heard (lesson 5): the piece's first entry, at the lesson's tempo. */
   const demo = (l: Line) => {
     if (l.demo === "detached" || l.demo === "legato") return demoLine(l.demo);
@@ -835,7 +848,7 @@ export function BenchApp() {
       >
         <div className="tg-count" ref={count} aria-live="polite" />
         {phase.kind === "talk" && lesson && (
-          <BachTalk key={`${lesson.n}-${phase.next}-${phase.lines[0]?.text}`} title={`${TRACKS[lesson.pl][lesson.n].title} · ${tr(TRACKS[lesson.pl][lesson.n].english)}`} lines={phase.lines} onLine={demo} onDone={() => talkDone(phase.next)} />
+          <BachTalk key={`${lesson.n}-${phase.next}-${phase.lines[0]?.text}`} title={`${TRACKS[lesson.pl][lesson.n].title} · ${tr(TRACKS[lesson.pl][lesson.n].english)}`} lines={phase.lines} onLine={demo} onDone={() => talkDone(phase.next)} choices={phase.next === "again" ? againChoices() : undefined} />
         )}
         {phase.kind === "result" && (
           // D237: the result, minimal: the grade (or where the crowd left), the score, AGAIN, NEXT, ✕ back to the cards.

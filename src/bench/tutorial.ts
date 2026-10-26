@@ -25,6 +25,8 @@ export interface TrackState {
   passed: Record<string, LessonRecord>;
   /** Attempts at a lesson not yet passed. */
   tries?: Record<string, number>;
+  /** D289: steps set aside after three tries ("skip for now"): open, not passed, come back any time. */
+  later?: Record<string, true>;
 }
 export type TutorialStore = Partial<Record<Platform, TrackState>>;
 
@@ -108,6 +110,17 @@ export const isPassed = (pl: Platform, l: Lesson) => !!trackState(pl).passed[l.i
 /** The lesson suggested next: the first not passed (all passed: the last). */
 export function nextLesson(pl: Platform): number {
   const t = trackState(pl);
-  const i = TRACKS[pl].findIndex((l) => !t.passed[l.id]);
+  const i = TRACKS[pl].findIndex((l) => !t.passed[l.id] && !t.later?.[l.id]);
   return i < 0 ? TRACKS[pl].length - 1 : i;
 }
+
+/** D289: a step set aside after three tries: the next one opens; this one stays open to come back to. */
+export function skipLesson(pl: Platform, id: string) {
+  const store = readTutorial();
+  const t = trackState(pl);
+  store[pl] = { ...t, later: { ...t.later, [id]: true } };
+  write(store);
+}
+
+/** D289: the tries at a step not yet passed. */
+export const triesAt = (pl: Platform, id: string) => trackState(pl).tries?.[id] ?? 0;

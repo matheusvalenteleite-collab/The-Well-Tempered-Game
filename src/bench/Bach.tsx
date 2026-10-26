@@ -5,6 +5,9 @@
  */
 import { tr } from "../i18n/index.ts";
 import { useEffect, useRef, useState } from "react";
+
+/** D289: a phone (touch first): "TAP", not "PRESS A KEY". */
+const touchFirst = () => typeof window !== "undefined" && !!window.matchMedia?.("(pointer: coarse)").matches;
 import type { Line } from "./lessons.ts";
 
 const FACE = [
@@ -51,33 +54,35 @@ export function Portrait({ talking }: { talking: boolean }) {
 }
 
 /** The lines, one at a time; `onLine` as each begins (a demonstration to play); `onDone` after the last. */
-export function BachTalk({ title, lines, onLine, onDone }: { title: string; lines: Line[]; onLine?: (l: Line) => void; onDone: () => void }) {
+export function BachTalk({ title, lines, onLine, onDone, choices }: { title: string; lines: Line[]; onLine?: (l: Line) => void; onDone: () => void; choices?: { label: string; act: () => void }[] }) {
   const [i, setI] = useState(0);
   const [shown, setShown] = useState(0);
   const line = lines[i];
   // D283: his lines in the language chosen.
   const said = line ? tr(line.text) : "";
   const full = said.length;
-  const state = useRef({ i, shown, full });
-  state.current = { i, shown, full };
+  const state = useRef({ i, shown, full, choices });
+  state.current = { i, shown, full, choices };
 
   useEffect(() => {
     if (line) onLine?.(line);
-    setShown(0);
-    const t = window.setInterval(() => setShown((s) => (s >= full ? (window.clearInterval(t), s) : s + 1)), 22);
-    return () => window.clearInterval(t);
+    // D289: the line at once (it typed out at 22 ms a letter: the owner's "instant text").
+    setShown(full);
   }, [i]);
 
   const advance = () => {
     const { i: at, shown: s, full: n } = state.current;
     if (s < n) return setShown(n);
     if (at + 1 < lines.length) setI(at + 1);
-    else onDone();
+    else if (!choices?.length) onDone();
   };
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (e.repeat || e.metaKey || e.ctrlKey || e.altKey || e.code === "Escape" || e.code.startsWith("Shift")) return;
       e.preventDefault();
+      // D289: past the last line a key takes the first choice (TRY AGAIN).
+      const { i: at, choices: cs } = state.current;
+      if (cs?.length && at + 1 >= lines.length) return cs[0].act();
       advance();
     };
     // After a moment (the key that brought him must not also pass his first line).
@@ -94,7 +99,17 @@ export function BachTalk({ title, lines, onLine, onDone }: { title: string; line
           {said.slice(0, shown)}
           <span className="tb-bach-rest">{said.slice(shown)}</span>
         </p>
-        <p className="tb-bach-more">{shown < full ? "" : i + 1 < lines.length ? "▼" : tr("PRESS A KEY")}</p>
+        {choices?.length && i + 1 >= lines.length ? (
+          <div className="tb-bach-choices">
+            {choices.map((c, k) => (
+              <button key={c.label} type="button" id={`bach-choice-${k}`} className={`tb-bach-choice${k === 0 ? " main" : ""}`} onClick={(e) => (e.stopPropagation(), c.act())}>
+                {tr(c.label)}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="tb-bach-more">{shown < full ? "" : i + 1 < lines.length ? "▼" : tr(touchFirst() ? "TAP TO GO ON" : "PRESS A KEY")}</p>
+        )}
       </div>
     </div>
   );

@@ -20,7 +20,8 @@ export function TutorialSteps({ play, close }: { play: (n: number) => void; clos
         <ol className="tb-steps-list">
           {track.map((l, n) => {
             const done = !!st.passed[l.id];
-            const open = n === 0 || done || n === next;
+            const later = !done && !!st.later?.[l.id];
+            const open = n === 0 || done || later || n === next;
             return (
               <li key={l.id}>
                 <button type="button" id={`step-${l.id}`} className={`tb-step${done ? " done" : ""}${n === next && !done ? " next" : ""}`} disabled={!open} onClick={() => play(n)}>
@@ -29,7 +30,7 @@ export function TutorialSteps({ play, close }: { play: (n: number) => void; clos
                     {tr(l.english)}
                     {l.goal && <small>{tr(l.goal)}</small>}
                   </span>
-                  <span className="tb-step-mark">{done ? "✓" : open ? "▶" : "🔒"}</span>
+                  <span className="tb-step-mark">{done ? "✓" : later ? "↷" : open ? "▶" : "🔒"}</span>
                 </button>
               </li>
             );

@@ -42,8 +42,8 @@ export const ES: Record<string, string> = {
   "FINISH IT WITH AN A OR S TO CHOOSE ANOTHER SOUND": "TERMÍNALA CON A O S PARA ELEGIR OTRO SONIDO",
   "Hold the phone sideways, a thumb on each bar.": "Pon el móvil en horizontal, un pulgar en cada barra.",
   "Touch either bar at the note's height as it reaches the line: higher notes higher up.": "Toca cualquier barra a la altura de la nota cuando llegue a la línea: las notas agudas, más arriba.",
-  "Land the next note before you lift the last: LEGATO scores more. Miss too many and the crowd leaves.": "Toca la siguiente nota antes de soltar la anterior: el LEGATO puntúa más. Si fallas demasiado, el público se va.",
-  "touch either bar at the note's height · land the next before you lift the last": "toca cualquier barra a la altura de la nota · toca la siguiente antes de soltar la anterior",
+  "Hand each note to the other thumb with no gap: LEGATO scores more. Miss too many and the crowd leaves.": "Pasa cada nota al otro pulgar sin hueco: el LEGATO puntúa más. Si fallas demasiado, el público se va.",
+  "touch either bar at the note's height · hand over from thumb to thumb with no gap": "toca cualquier barra a la altura de la nota · pasa de un pulgar al otro sin hueco",
   // The result
   "THE CROWD LEFT": "EL PÚBLICO SE FUE",
   "COPY REPORT": "COPIAR INFORME",
@@ -79,8 +79,7 @@ export const ES: Record<string, string> = {
   // HEAR THE SUBJECT
   "THE SUBJECT": "EL SUJETO",
   "FINISH THE FUGUE TO OPEN THE OTHER READINGS": "TERMINA LA FUGA PARA ABRIR LAS OTRAS LECTURAS",
-  "THE THUMBS: EACH NOTE THE OTHER THUMB · LAND THE NEXT BEFORE LIFTING (JOINED) · LIFT EARLY (DETACHED) · SOFT BY THE BOX, LOUD BY THE EDGE · SHAKE ON AN ORNAMENT":
-    "LOS PULGARES: CADA NOTA CON EL OTRO PULGAR · TOCA LA SIGUIENTE ANTES DE SOLTAR (LIGADO) · SUELTA ANTES (PICADO) · SUAVE JUNTO A LA CAJA, FUERTE EN EL BORDE · AGITA EN UN ORNAMENTO",
+  "THE THUMBS: EACH NOTE THE OTHER THUMB · HAND OVER WITH NO GAP (JOINED) · LIFT EARLY (DETACHED) · SOFT BY THE BOX, LOUD BY THE EDGE · SHAKE ON AN ORNAMENT": "LOS PULGARES: CADA NOTA CON EL OTRO PULGAR · PASA LA NOTA SIN HUECO (LIGADO) · SUELTA ANTES (PICADO) · SUAVE JUNTO A LA CAJA, FUERTE EN EL BORDE · AGITA EN UN ORNAMENTO",
   JOINED: "LIGADO",
   DETACHED: "PICADO",
   SHORT: "CORTA",
@@ -108,6 +107,11 @@ export const ES: Record<string, string> = {
   "TOO UNEVEN: TRY AGAIN": "DEMASIADO IRREGULAR: INTÉNTALO OTRA VEZ",
   // The tutorial
   LESSON: "LECCIÓN",
+  // D289: the tutorial's choices after a step not passed.
+  "TRY AGAIN": "INTENTAR DE NUEVO",
+  "WATCH AGAIN": "VER DE NUEVO",
+  "SKIP FOR NOW": "SALTAR POR AHORA",
+  "TAP TO GO ON": "TOCA PARA SEGUIR",
   "PRESS A KEY": "TOCA PARA SEGUIR",
   "TUTORIAL · INVENTION 1 WITH HERR BACH": "TUTORIAL · INVENCIÓN 1 CON HERR BACH",
   "WATCH THE THUMBS": "OBSERVA LOS PULGARES",
@@ -142,11 +146,11 @@ export const ES: Record<string, string> = {
   "Start with either; then take turns. The thumb on the bars shows whose turn it is.": "Empieza con cualquiera; luego alterna. El pulgar de las barras indica a quién le toca.",
   "So. Two thumbs walk where one would stumble.": "So. Dos pulgares caminan donde uno tropezaría.",
   "One thumb did all the work. Take turns. Again.": "Un pulgar hizo todo el trabajo. Alterna. Otra vez.",
-  "LAND THE NEXT THUMB BEFORE YOU LIFT THE LAST": "APOYA EL SIGUIENTE PULGAR ANTES DE SOLTAR EL ANTERIOR",
+  "FROM THUMB TO THUMB WITH NO GAP": "DE UN PULGAR AL OTRO SIN HUECO",
   "Listen. First each note apart, detached.": "Escucha. Primero cada nota separada, picada.",
-  "Now joined, singing: legato. Land the next thumb before you lift the last.": "Ahora ligadas, cantando: legato. Apoya el siguiente pulgar antes de soltar el anterior.",
+  "Now joined, singing: legato. One thumb takes over as the other lifts, with no gap.": "Ahora ligadas, cantando: legato. Un pulgar toma el relevo mientras el otro sube, sin hueco.",
   "As I wrote on my Inventions: a cantabile manner of playing. That is it.": "Como escribí en mis Invenciones: una manera cantabile de tocar. Eso es.",
-  "The notes fell apart. Touch the next before you let go. Again.": "Las notas se han separado. Toca la siguiente antes de soltar. Otra vez.",
+  "The notes fell apart. Let one thumb take over as the other lifts. Again.": "Las notas se han separado. Que un pulgar tome el relevo mientras el otro sube. Otra vez.",
   LEAPS: "SALTOS",
   "A FAR NOTE: THE OTHER THUMB, ALREADY THERE": "UNA NOTA LEJANA: EL OTRO PULGAR, YA ALLÍ",
   "Here the line leaps. Do not drag one thumb across: let the other thumb wait at the far note.": "Aquí la línea salta. No arrastres un pulgar: deja que el otro espere en la nota lejana.",

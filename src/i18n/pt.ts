@@ -42,8 +42,8 @@ export const PT: Record<string, string> = {
   "FINISH IT WITH AN A OR S TO CHOOSE ANOTHER SOUND": "TERMINE COM A OU S PARA ESCOLHER OUTRO SOM",
   "Hold the phone sideways, a thumb on each bar.": "Segure o celular deitado, um polegar em cada barra.",
   "Touch either bar at the note's height as it reaches the line: higher notes higher up.": "Toque qualquer barra na altura da nota quando ela chega à linha: notas agudas mais acima.",
-  "Land the next note before you lift the last: LEGATO scores more. Miss too many and the crowd leaves.": "Toque a próxima nota antes de soltar a anterior: LEGATO vale mais. Erre demais e a plateia vai embora.",
-  "touch either bar at the note's height · land the next before you lift the last": "toque qualquer barra na altura da nota · toque a próxima antes de soltar a anterior",
+  "Hand each note to the other thumb with no gap: LEGATO scores more. Miss too many and the crowd leaves.": "Passe cada nota ao outro polegar sem pausa: LEGATO vale mais. Erre demais e a plateia vai embora.",
+  "touch either bar at the note's height · hand over from thumb to thumb with no gap": "toque qualquer barra na altura da nota · passe de um polegar ao outro sem pausa",
   // The result
   "THE CROWD LEFT": "A PLATEIA FOI EMBORA",
   "COPY REPORT": "COPIAR RELATÓRIO",
@@ -79,8 +79,7 @@ export const PT: Record<string, string> = {
   // HEAR THE SUBJECT
   "THE SUBJECT": "O SUJEITO",
   "FINISH THE FUGUE TO OPEN THE OTHER READINGS": "TERMINE A FUGA PARA ABRIR AS OUTRAS LEITURAS",
-  "THE THUMBS: EACH NOTE THE OTHER THUMB · LAND THE NEXT BEFORE LIFTING (JOINED) · LIFT EARLY (DETACHED) · SOFT BY THE BOX, LOUD BY THE EDGE · SHAKE ON AN ORNAMENT":
-    "OS POLEGARES: CADA NOTA COM O OUTRO POLEGAR · TOQUE A PRÓXIMA ANTES DE SOLTAR (LIGADO) · SOLTE ANTES (DESTACADO) · SUAVE PERTO DA CAIXA, FORTE NA BORDA · SACUDA NUM ORNAMENTO",
+  "THE THUMBS: EACH NOTE THE OTHER THUMB · HAND OVER WITH NO GAP (JOINED) · LIFT EARLY (DETACHED) · SOFT BY THE BOX, LOUD BY THE EDGE · SHAKE ON AN ORNAMENT": "OS POLEGARES: CADA NOTA COM O OUTRO POLEGAR · PASSE A NOTA SEM PAUSA (LIGADO) · SOLTE ANTES (DESTACADO) · SUAVE PERTO DA CAIXA, FORTE NA BORDA · SACUDA NUM ORNAMENTO",
   JOINED: "LIGADO",
   DETACHED: "DESTACADO",
   SHORT: "CURTA",
@@ -108,6 +107,11 @@ export const PT: Record<string, string> = {
   "TOO UNEVEN: TRY AGAIN": "IRREGULAR DEMAIS: TENTE DE NOVO",
   // The tutorial
   LESSON: "LIÇÃO",
+  // D289: the tutorial's choices after a step not passed.
+  "TRY AGAIN": "TENTAR DE NOVO",
+  "WATCH AGAIN": "VER DE NOVO",
+  "SKIP FOR NOW": "PULAR POR ORA",
+  "TAP TO GO ON": "TOQUE PARA SEGUIR",
   "PRESS A KEY": "TOQUE PARA SEGUIR",
   "TUTORIAL · INVENTION 1 WITH HERR BACH": "TUTORIAL · INVENÇÃO 1 COM HERR BACH",
   "WATCH THE THUMBS": "OBSERVE OS POLEGARES",
@@ -142,11 +146,11 @@ export const PT: Record<string, string> = {
   "Start with either; then take turns. The thumb on the bars shows whose turn it is.": "Comece com qualquer um; depois alterne. O polegar nas barras mostra de quem é a vez.",
   "So. Two thumbs walk where one would stumble.": "So. Dois polegares andam onde um tropeçaria.",
   "One thumb did all the work. Take turns. Again.": "Um polegar fez todo o trabalho. Alterne. De novo.",
-  "LAND THE NEXT THUMB BEFORE YOU LIFT THE LAST": "TOQUE COM O PRÓXIMO POLEGAR ANTES DE SOLTAR O ANTERIOR",
+  "FROM THUMB TO THUMB WITH NO GAP": "DE UM POLEGAR AO OUTRO SEM PAUSA",
   "Listen. First each note apart, detached.": "Ouça. Primeiro cada nota separada, destacada.",
-  "Now joined, singing: legato. Land the next thumb before you lift the last.": "Agora ligadas, cantando: legato. Toque com o próximo polegar antes de soltar o anterior.",
+  "Now joined, singing: legato. One thumb takes over as the other lifts, with no gap.": "Agora ligadas, cantando: legato. Um polegar assume enquanto o outro sobe, sem pausa.",
   "As I wrote on my Inventions: a cantabile manner of playing. That is it.": "Como escrevi nas minhas Invenções: uma maneira cantabile de tocar. É isso.",
-  "The notes fell apart. Touch the next before you let go. Again.": "As notas se separaram. Toque a próxima antes de soltar. De novo.",
+  "The notes fell apart. Let one thumb take over as the other lifts. Again.": "As notas se separaram. Deixe um polegar assumir enquanto o outro sobe. De novo.",
   LEAPS: "SALTOS",
   "A FAR NOTE: THE OTHER THUMB, ALREADY THERE": "UMA NOTA DISTANTE: O OUTRO POLEGAR, JÁ LÁ",
   "Here the line leaps. Do not drag one thumb across: let the other thumb wait at the far note.": "Aqui a linha salta. Não arraste um polegar: deixe o outro esperando na nota distante.",
