@@ -137,6 +137,24 @@ export function SoundSetting({ value, set }: { value: string; set: (id: string) 
 
 /** The sounds (D292: the five) and DRUMS where the sound has them; D233: also the bench's folded SOUND. */
 export function SoundChoices({ value, set }: { value: string; set: (id: string) => void }) {
+  // D292: five sounds, no family tabs; DRUMS (CLASSIC CHIP's loop) where the sound chosen has drums.
+  return (
+    <>
+      <div className="tg-grid3" role="group" aria-label="Sound">
+        {PRESETS.map((p) => (
+          <button key={p.id} type="button" id={`sound-${p.id}`} className={p.id === value ? "on" : ""} onClick={() => set(p.id)} aria-pressed={p.id === value}>
+            {p.name}
+          </button>
+        ))}
+        <DrumsToggle sound={value} />
+      </div>
+      {creditFor(value) && <p className="tg-credit">{creditFor(value)}</p>}
+    </>
+  );
+}
+
+/** DRUMS ON/OFF, where the sound has drums (D303: also beside the bench's dropdown). */
+export function DrumsToggle({ sound }: { sound: string }) {
   const [drums, setDrumsState] = useState(drumsNow());
   const setDrums = (on: boolean) => {
     setDrumsState(on);
@@ -147,23 +165,11 @@ export function SoundChoices({ value, set }: { value: string; set: (id: string) 
       /* no storage */
     }
   };
-  // D292: five sounds, no family tabs; DRUMS (CLASSIC CHIP's loop) where the sound chosen has drums.
+  if (!presetById(sound).drums) return null;
   return (
-    <>
-      <div className="tg-grid3" role="group" aria-label="Sound">
-        {PRESETS.map((p) => (
-          <button key={p.id} type="button" id={`sound-${p.id}`} className={p.id === value ? "on" : ""} onClick={() => set(p.id)} aria-pressed={p.id === value}>
-            {p.name}
-          </button>
-        ))}
-        {presetById(value).drums && (
-          <button type="button" id="drums" className={`tg-toggle${drums ? " on" : ""}`} onClick={() => setDrums(!drums)} aria-pressed={drums}>
-            DRUMS {drums ? "ON" : "OFF"}
-          </button>
-        )}
-      </div>
-      {creditFor(value) && <p className="tg-credit">{creditFor(value)}</p>}
-    </>
+    <button type="button" id="drums" className={`tg-toggle${drums ? " on" : ""}`} onClick={() => setDrums(!drums)} aria-pressed={drums}>
+      DRUMS {drums ? "ON" : "OFF"}
+    </button>
   );
 }
 

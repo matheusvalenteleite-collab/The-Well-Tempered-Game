@@ -62,6 +62,13 @@ export const PT: Record<string, string> = {
   PLAY: "TOCAR",
   "HOW TO PLAY": "COMO JOGAR",
   "FINISH IT WITH AN A OR S TO CHOOSE ANOTHER SOUND": "TERMINE COM A OU S PARA ESCOLHER OUTRO SOM",
+  // D303: the sound dropdown's groups.
+  "THIS PIECE": "ESTA PEÇA",
+  "INSTRUMENTS": "INSTRUMENTOS",
+  "GAME CONSOLES": "CONSOLES DE VIDEOGAME",
+  "SYNTHESIZERS": "SINTETIZADORES",
+  "VOICES": "VOZES",
+  "MORE": "MAIS",
   "Hold the phone sideways, a thumb on each bar.": "Segure o celular deitado, um polegar em cada barra.",
   "Touch either bar at the note's height as it reaches the line: higher notes higher up.": "Toque qualquer barra na altura da nota quando ela chega à linha: notas agudas mais acima.",
   "Hand each note to the other thumb with no gap: LEGATO scores more. Miss too many and the crowd leaves.": "Passe cada nota ao outro polegar sem pausa: LEGATO vale mais. Erre demais e a plateia vai embora.",
