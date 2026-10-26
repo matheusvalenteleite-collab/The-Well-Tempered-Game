@@ -6,7 +6,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
-import { DISPLAY_KEY, SHEET_UNIT, displayOf, drawnAs, engraved, layoutOf, readDisplay, saveDisplay, sheetNotes, tickAtX, timeMap, xAtTick, type SheetData, type SheetNote } from "../src/bench/sheet-format.ts";
+import { DISPLAY_KEY, SHEET_FONT, SHEET_INK, SHEET_PLAYHEAD, SHEET_UNIT, displayOf, drawnAs, engraved, entryBand, layoutOf, markInk, paperInk, playheadX, readDisplay, saveDisplay, sheetNotes, tickAtX, timeMap, xAtTick, type SheetData, type SheetNote } from "../src/bench/sheet-format.ts";
+import { entrySpans } from "../src/touch/voice-mode.ts";
 import { FUGUES, fugueById } from "../src/touch/fugue.ts";
 import { ProtoGame } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
@@ -156,4 +157,86 @@ test("D298: the playhead on the sounding note over whole fugues, the final ritar
       assert.ok(s.headP99 < 5, `${id} ${layout} ${voice}: 99% within ${s.headP99.toFixed(2)} ms`);
     }
   }
+});
+
+/** The box on an iPhone 13 held sideways (CSS px) and the staff space the view draws there (sheet-view.ts). */
+const IPHONE = { w: 434, h: 272 };
+const kOf = (d: SheetData) => Math.min(IPHONE.h / (d.h + 6.2 * SHEET_UNIT), 12 / SHEET_UNIT);
+
+test("D300: the playhead toward the middle: the music played stays in sight right of the clefs", () => {
+  assert.equal(SHEET_PLAYHEAD, 0.35);
+  assert.equal(playheadX(400, 100), 205);
+  assert.equal(playheadX(400, 0), 140);
+  for (const id of ["wtc1f02", "wtc2f22", "wtc1f04", "wtc2f18"])
+    for (const layout of ["grand", "open"] as const) {
+      const d = sheet(id, layout);
+      const column = d.lead * kOf(d);
+      const x = playheadX(IPHONE.w, column);
+      // 40–55% from the box's left edge (D298: 30%), whatever the key signature's width.
+      assert.ok(x / IPHONE.w >= 0.4 && x / IPHONE.w <= 0.55, `${id} ${layout}: ${(x / IPHONE.w).toFixed(2)}`);
+      // What was played: at least a fifth of the box in sight, about half as much as what is coming.
+      const past = x - column;
+      const coming = IPHONE.w - x;
+      assert.ok(past / IPHONE.w >= 0.2, `${id} ${layout}: ${past.toFixed(0)} px played in sight`);
+      assert.ok(Math.abs(past / coming - 0.35 / 0.65) < 0.02);
+      assert.ok(column / IPHONE.w < 0.3, `${id} ${layout}: the clefs' column ${column.toFixed(0)} px`);
+    }
+});
+
+test("D300: each entry's band spans its first note to its last, on its voice's notes (two staves) or its staff (open score)", () => {
+  for (const id of ["wtc1f02", "wtc2f22"]) {
+    const f = fugueById(id);
+    const spans = entrySpans(f).filter((s) => s.form !== "counter");
+    assert.ok(spans.length >= 4, `${id}: ${spans.length} entries`);
+    for (const layout of ["grand", "open"] as const) {
+      const d = sheet(id, layout);
+      const notes = sheetNotes(d);
+      let banded = 0;
+      for (const s of spans) {
+        // The heads the view finds (sheet-view.ts headsAt: the top head of the voice at each onset).
+        const heads = s.path
+          .map((n) => notes.filter((e) => e[0] === s.voice && e[1] === n.on).sort((a, b) => a[4] - b[4])[0])
+          .filter((e) => !!e)
+          .map((e) => ({ x: e[3], y: e[4] }));
+        const b = entryBand(d, s.voice, heads);
+        if (!heads.length) {
+          assert.equal(b, null);
+          continue;
+        }
+        assert.ok(b);
+        banded++;
+        // From the first head to the last, 0.9 space beyond each.
+        assert.equal(b.x0, heads[0].x - 0.9 * SHEET_UNIT);
+        assert.equal(b.x1, heads[heads.length - 1].x + 0.9 * SHEET_UNIT);
+        for (const h of heads) assert.ok(h.y > b.y0 && h.y < b.y1 && h.x > b.x0 && h.x < b.x1, `${id} ${layout}: a head outside its band`);
+        const st = d.staves.findIndex((x) => x.voices.includes(s.voice));
+        const staff = d.staves[st];
+        if (layout === "open") {
+          // Its staff's five lines inside; the neighbours' middle lines outside.
+          assert.ok(b.y0 < staff.top && b.y1 > staff.top + 4 * SHEET_UNIT);
+          if (d.staves[st + 1]) assert.ok(b.y1 < d.staves[st + 1].top + 2 * SHEET_UNIT, `${id}: the band into the staff below`);
+          if (d.staves[st - 1]) assert.ok(b.y0 > d.staves[st - 1].top + 2 * SHEET_UNIT, `${id}: the band into the staff above`);
+        } else {
+          // Hugging its voice's heads (0.9 space beyond), never on the other staff's lines.
+          const ys = heads.map((h) => h.y);
+          assert.ok(Math.abs(b.y1 - b.y0 - (Math.max(...ys) - Math.min(...ys) + 1.8 * SHEET_UNIT)) < 1e-6);
+          const other = d.staves[1 - st];
+          assert.ok(b.y1 < other.top || b.y0 > other.top + 4 * SHEET_UNIT, `${id} grand: the band on the other staff`);
+        }
+      }
+      assert.ok(banded / spans.length > 0.95, `${id} ${layout}: ${banded} of ${spans.length} banded`);
+    }
+  }
+});
+
+test("D300: one staff per voice in black ink, the two staves in the voices' colours; the plate in Leland", () => {
+  for (let v = 0; v < 4; v++) {
+    assert.equal(markInk("open", v + 1, 4), SHEET_INK, "the open score: every voice black");
+    assert.equal(markInk("grand", v + 1, 4), paperInk(v, 4), "the two staves: each voice its colour");
+  }
+  assert.equal(markInk("grand", 0, 4), SHEET_INK);
+  assert.equal(new Set([0, 1, 2, 3].map((v) => paperInk(v, 4))).size, 4);
+  assert.equal(SHEET_FONT, "Leland");
+  for (const id of ["wtc1f02", "wtc2f22"]) for (const layout of ["grand", "open"] as const) assert.equal(sheet(id, layout).font, SHEET_FONT);
+  assert.ok(existsSync(new URL(`../public/sheet/glyphs-${SHEET_FONT}.json`, import.meta.url)));
 });

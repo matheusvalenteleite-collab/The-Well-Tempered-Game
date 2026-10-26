@@ -12,26 +12,26 @@
  * draws the few marks of the game: the next note ringed, a miss crossed in red under its head, the
  * entries' brackets (Subject, Answer; dashed, with a dot a beat, while ahead), small bar numbers. The
  * opening's clefs and key signatures stay at the left (a column the music passes under).
+ * D300: the playhead 35% into the score right of that column (about the box's middle), the music played
+ * in sight until it leaves at the left, a shade lighter; each entry on a faint band from its first note
+ * to its last (its voice's colour hugging its heads on two staves; a warm neutral over its staff in the
+ * open score; fainter while announced); the open score in black, the player's staff marked at the
+ * clefs; the tiles at the screen's own resolution (up to 3), each made a still image once painted.
  */
 import type { Frame } from "../touch/MusicBox.tsx";
 import { SITE } from "../audio/site.ts";
 import { tr } from "../i18n/index.ts";
-import { eachMark, noteIndex, sheetNotes, SHEET_UNIT, timeMap, xAtTick, type SheetData, type SheetLayoutId, type SheetNote } from "./sheet-format.ts";
+import { eachMark, entryBand, markInk, noteIndex, paperInk, playheadX, sheetNotes, SHEET_UNIT, timeMap, xAtTick, type SheetData, type SheetLayoutId, type SheetNote } from "./sheet-format.ts";
 
-/** The voices' colours on paper (top voice first): the game's hues (MusicBox INKS), dark enough for white. */
-const PAPER_INKS: Record<number, string[]> = {
-  2: ["#24589A", "#23744C"],
-  3: ["#24589A", "#B24A17", "#23744C"],
-  4: ["#24589A", "#B24A17", "#6E3FA0", "#23744C"],
-  5: ["#24589A", "#17767A", "#B24A17", "#6E3FA0", "#23744C"],
-};
-export function paperInk(voice: number, count: number): string {
-  return (PAPER_INKS[count] ?? PAPER_INKS[4])[voice] ?? "#111111";
-}
+export { paperInk };
 export const PAPER = "#ffffff";
-const INK = "#141414";
-/** The playhead's place across the box, and the page's room above and below the staves (staff spaces). */
-export const SHEET_PLAYHEAD = 0.3;
+/** D300: the open score's brackets and words (black like its notes), and its subject band (a warm neutral). */
+const OPEN_MARK = "#3a3631";
+const OPEN_BAND = "#b4914f";
+/** The bands' opacity: an entry sounding or past, one announced (ahead). */
+const BAND_ALPHA = { grand: 0.12, open: 0.14 };
+const BAND_AHEAD = 0.45;
+/** The page's room above and below the staves (staff spaces). */
 const ROOM_ABOVE = 3.4;
 const ROOM_BELOW = 2.8;
 /** The largest staff space drawn (CSS px): a tablet's box does not make the music huge. */
@@ -238,6 +238,7 @@ interface Bracket {
   up: boolean;
   g: SVGGElement;
   line: SVGPathElement;
+  band: SVGRectElement | null;
   dots: SVGGElement;
   text: SVGTextElement;
   /** The word's width (about), the dots' height; where the word stands now. */
@@ -259,23 +260,27 @@ interface Bracket {
 export class SheetView {
   readonly e: Engraving;
   private geo: Geometry | null = null;
-  private tiles = new Map<number, HTMLCanvasElement>();
+  private tiles = new Map<number, HTMLCanvasElement | HTMLImageElement>();
   private brackets = new Map<string, Bracket | null>();
   private crosses = new Set<string>();
   private ringAt = "";
+  /** What the fixed elements (playhead, veil, the player's staff's mark) were last set for. */
+  private fixedAt = "";
   /** Tiles painted (for the measurements). */
   painted = 0;
   private readonly glyphPaths: Map<number, Path2D>;
-  private dom: { root: HTMLDivElement; strip: HTMLDivElement; svg: SVGSVGElement; marks: SVGGElement; ring: SVGEllipseElement; head: HTMLDivElement; headCanvas: HTMLCanvasElement; playhead: HTMLDivElement } | null = null;
+  private dom: { root: HTMLDivElement; strip: HTMLDivElement; svg: SVGSVGElement; marks: SVGGElement; ring: SVGEllipseElement; head: HTMLDivElement; headCanvas: HTMLCanvasElement; playhead: HTMLDivElement; bands: SVGGElement; past: HTMLDivElement; mine: HTMLDivElement } | null = null;
   constructor(d: SheetData, glyphPaths: Map<number, Path2D>) {
     this.e = new Engraving(d);
     this.glyphPaths = glyphPaths;
   }
 
-  private inkOf = (k: number) => (k === 0 ? INK : paperInk(k - 1, this.e.d.voices));
+  private inkOf = (k: number) => markInk(this.e.d.layout, k, this.e.d.voices);
 
   private layout(w: number, h: number): Geometry {
-    const dpr = Math.min(2, typeof devicePixelRatio === "number" ? devicePixelRatio : 1);
+    // D300: the tiles at the screen's own resolution (an iPhone's 3): at 2, scaled up, the heads and
+    // the hairlines went soft and round.
+    const dpr = Math.min(3, typeof devicePixelRatio === "number" ? devicePixelRatio : 1);
     const g = this.geo;
     if (g && g.w === w && g.h === h && g.dpr === dpr) return g;
     const d = this.e.d;
@@ -284,11 +289,12 @@ export class SheetView {
     const oy = (h - d.h * k) / 2 + ((ROOM_ABOVE - ROOM_BELOW) / 2) * SHEET_UNIT * k;
     this.geo = { w, h, dpr, k, oy };
     // A new size: everything drawn anew.
-    for (const t of this.tiles.values()) t.remove();
-    this.tiles.clear();
+    for (const [i, t] of [...this.tiles]) this.drop(i, t);
     if (this.dom) {
       this.dom.marks.replaceChildren(this.dom.ring);
+      this.dom.bands.replaceChildren();
       this.dom.head.style.display = "none";
+      this.fixedAt = "";
       this.dom.headCanvas.width = 0;
     }
     this.brackets.clear();
@@ -312,16 +318,24 @@ export class SheetView {
       ring.setAttribute("stroke-width", "1.5");
       ring.style.display = "none";
       marks.append(ring);
-      svg.append(marks);
+      // D300: the entries' bands, under the brackets and the ring.
+      const bands = document.createElementNS(SVG, "g");
+      svg.append(bands, marks);
       strip.append(svg);
+      // D300: what was played stays in sight, a shade lighter (a veil from the box's left to the playhead).
+      const past = document.createElement("div");
+      past.className = "tb-sheet-past";
       const head = document.createElement("div");
       head.className = "tb-sheet-head";
       const headCanvas = document.createElement("canvas");
       head.append(headCanvas);
+      // D300: the open score: the player's staff marked at the clefs (a rule in the player's colour).
+      const mine = document.createElement("div");
+      mine.className = "tb-sheet-mine";
       const playhead = document.createElement("div");
       playhead.className = "tb-sheet-playhead";
-      root.append(strip, head, playhead);
-      this.dom = { root, strip, svg, marks, ring, head, headCanvas, playhead };
+      root.append(strip, past, head, mine, playhead);
+      this.dom = { root, strip, svg, marks, ring, head, headCanvas, playhead, bands, past, mine };
     }
     // Over the box's canvas, under what the box holds after it (the count-in, the cards).
     if (this.dom.root.parentElement !== roll) roll.insertBefore(this.dom.root, roll.querySelector("canvas")?.nextSibling ?? null);
@@ -334,7 +348,7 @@ export class SheetView {
   }
 
   /** A tile's canvas in the strip, painted now if it is not yet. */
-  private tile(i: number, geo: Geometry, strip: HTMLDivElement): HTMLCanvasElement {
+  private tile(i: number, geo: Geometry, strip: HTMLDivElement): HTMLCanvasElement | HTMLImageElement {
     let t = this.tiles.get(i);
     if (t) return t;
     const { k, dpr, h, oy } = geo;
@@ -370,7 +384,40 @@ export class SheetView {
     strip.insertBefore(t, strip.firstChild);
     this.tiles.set(i, t);
     this.painted++;
+    this.freeze(i, t);
     return t;
+  }
+
+  /**
+   * D300: a painted tile made a still picture (an image of its pixels, encoded off the frame): a canvas's
+   * bitmap is handed to the compositor again at every frame's commit, so at the screen's full resolution
+   * the canvases cost a third of the frame on a slow phone; an image is uploaded once.
+   */
+  private freeze(i: number, c: HTMLCanvasElement) {
+    if (typeof c.toBlob !== "function" || typeof URL.createObjectURL !== "function") return;
+    c.toBlob((blob) => {
+      if (!blob || this.tiles.get(i) !== c) return;
+      const img = new Image();
+      img.src = URL.createObjectURL(blob);
+      img.style.cssText = c.style.cssText;
+      img.decode().then(
+        () => {
+          if (this.tiles.get(i) !== c) return URL.revokeObjectURL(img.src);
+          c.replaceWith(img);
+          this.tiles.set(i, img);
+          c.width = 0;
+          c.height = 0;
+        },
+        () => URL.revokeObjectURL(img.src),
+      );
+    });
+  }
+
+  /** A tile let go (a still one's picture freed). */
+  private drop(i: number, t: HTMLCanvasElement | HTMLImageElement) {
+    t.remove();
+    if (t instanceof HTMLImageElement) URL.revokeObjectURL(t.src);
+    this.tiles.delete(i);
   }
 
   /** The opening's clefs and key signatures, for the column at the left. */
@@ -392,7 +439,7 @@ export class SheetView {
   }
 
   /** An entry's bracket: over its first to its last note, above its staff (the lower staff's voices below). */
-  private bracket(s: NonNullable<Frame["spans"]>[number], geo: Geometry, marks: SVGGElement): Bracket | null {
+  private bracket(s: NonNullable<Frame["spans"]>[number], geo: Geometry, marks: SVGGElement, bands: SVGGElement): Bracket | null {
     const key = `${s.voice}:${s.on}:${s.end}`;
     if (this.brackets.has(key)) return this.brackets.get(key)!;
     const d = this.e.d;
@@ -406,8 +453,9 @@ export class SheetView {
     const st = d.staves.findIndex((x) => x.voices.includes(s.voice));
     const staff = d.staves[Math.max(0, st)];
     const up = d.layout === "open" || st === 0 || d.staves.length === 1;
-    const ua = heads[0].x - 0.9 * SHEET_UNIT;
-    const uz = heads[heads.length - 1].x + 0.9 * SHEET_UNIT;
+    const zone = entryBand(d, s.voice, heads)!;
+    const ua = zone.x0;
+    const uz = zone.x1;
     const near = this.e.notes.filter((n) => staff.voices.includes(n[0]) && n[3] > ua - SHEET_UNIT && n[3] < uz + SHEET_UNIT).map((n) => n[4]);
     const top = staff.top;
     const bottom = top + 4 * SHEET_UNIT;
@@ -416,7 +464,18 @@ export class SheetView {
     const y = Math.min(h - 1.6 * sp, Math.max(1.8 * sp, uy * k + oy));
     const xa = ua * k;
     const xz = uz * k;
-    const ink = paperInk(s.voice, d.voices);
+    const open = d.layout === "open";
+    const ink = open ? OPEN_MARK : paperInk(s.voice, d.voices);
+    // D300: the band behind the entry's notes (its voice's colour, faint; the open score's a warm neutral).
+    const band = document.createElementNS(SVG, "rect");
+    band.setAttribute("x", xa.toFixed(1));
+    band.setAttribute("width", (xz - xa).toFixed(1));
+    band.setAttribute("y", (zone.y0 * k + oy).toFixed(1));
+    band.setAttribute("height", ((zone.y1 - zone.y0) * k).toFixed(1));
+    band.setAttribute("rx", (0.6 * sp).toFixed(1));
+    band.setAttribute("fill", open ? OPEN_BAND : ink);
+    band.setAttribute("fill-opacity", String(BAND_ALPHA[d.layout]));
+    bands.append(band);
     const g = document.createElementNS(SVG, "g");
     g.setAttribute("fill", ink);
     g.setAttribute("stroke", ink);
@@ -438,7 +497,7 @@ export class SheetView {
     dots.setAttribute("transform", `translate(${(xa + 1 + size * 0.45 * text.textContent.length + 6).toFixed(1)} ${(ty - 0.4 * sp).toFixed(1)})`);
     g.append(line, text, dots);
     marks.append(g);
-    const b: Bracket = { xa, xz, y, up, g, line, dots, text, ww: size * 0.45 * text.textContent.length, dy: ty - 0.4 * sp, lx: xa + 1, ahead: null, beats: -1 };
+    const b: Bracket = { xa, xz, y, up, g, line, band, dots, text, ww: size * 0.45 * text.textContent.length, dy: ty - 0.4 * sp, lx: xa + 1, ahead: null, beats: -1 };
     this.brackets.set(key, b);
     return b;
   }
@@ -463,7 +522,8 @@ export class SheetView {
     const dom = this.mount(roll);
     const { k, dpr } = geo;
     const d = this.e.d;
-    const playX = Math.round(w * SHEET_PLAYHEAD);
+    // D300: the playhead 35% into the score right of the clefs' column (sheet-format.ts playheadX).
+    const playX = playheadX(w, d.lead * k);
     // The page's place: the playhead on the engraving's x for the tick sounding (to the device pixel).
     const xNow = this.e.xAt(fr.now, fr.voice);
     this.last = { now: fr.now, x: xNow };
@@ -479,8 +539,7 @@ export class SheetView {
     if (this.tiles.size > KEEP)
       for (const [i, t] of [...this.tiles])
         if (i < first - 1 || i > ahead + 2) {
-          t.remove();
-          this.tiles.delete(i);
+          this.drop(i, t);
         }
     const sp = SHEET_UNIT * k;
     const top = d.staves[0].top * k + geo.oy;
@@ -490,14 +549,26 @@ export class SheetView {
       this.head(geo, dom);
       dom.head.style.display = "";
     } else dom.head.style.display = "none";
-    // The playhead: a thin line in the player's colour.
-    const ph = dom.playhead.style;
+    // The playhead: a thin line in the player's colour; the veil over what was played; (the open score)
+    // the player's staff marked at the clefs. Set when they change.
     const mine = paperInk(fr.voice, d.voices);
-    if (ph.left !== `${playX}px` || ph.background !== mine) {
+    const fixed = `${playX}:${fr.voice}:${top}`;
+    if (this.fixedAt !== fixed) {
+      this.fixedAt = fixed;
+      const ph = dom.playhead.style;
       ph.left = `${playX}px`;
       ph.top = `${(top - 2.2 * sp).toFixed(1)}px`;
       ph.height = `${(bottom - top + 4.4 * sp).toFixed(1)}px`;
       ph.background = mine;
+      dom.past.style.width = `${playX}px`;
+      const st = d.layout === "open" ? d.staves.find((x) => x.voices.includes(fr.voice)) : undefined;
+      const m = dom.mine.style;
+      if (st) {
+        m.display = "block";
+        m.top = `${((st.top - 0.5 * SHEET_UNIT) * k + geo.oy).toFixed(1)}px`;
+        m.height = `${(5 * SHEET_UNIT * k).toFixed(1)}px`;
+        m.background = mine;
+      } else m.display = "none";
     }
     if (dom.svg.getAttribute("width") !== String(Math.ceil(full + w))) {
       dom.svg.setAttribute("width", String(Math.ceil(full + w)));
@@ -508,13 +579,15 @@ export class SheetView {
     const right = w - ox;
     // The entries: a bracket from the first note to the last, dashed (a dot a beat to go) while ahead.
     for (const s of fr.spans ?? []) {
-      const b = this.bracket(s, geo, dom.marks);
+      const b = this.bracket(s, geo, dom.marks, dom.bands);
       if (!b || b.xz < left - 40 || b.xa > right + 40) continue;
       const isAhead = s.on > fr.now;
       if (b.ahead !== isAhead) {
         b.ahead = isAhead;
         if (isAhead) b.line.setAttribute("stroke-dasharray", "3 2.5");
         else b.line.removeAttribute("stroke-dasharray");
+        // Announced: the band fainter.
+        b.band?.setAttribute("fill-opacity", String(BAND_ALPHA[d.layout] * (isAhead ? BAND_AHEAD : 1)));
       }
       const beats = isAhead && fr.beatTicks > 0 ? Math.min(16, Math.ceil((s.on - fr.now) / fr.beatTicks - 1e-6)) : 0;
       // The word stays in sight while its bracket runs on past the clefs' column.
