@@ -507,7 +507,7 @@ export class ProtoGame {
     const played = this.tracks.map((t) => t.voice);
     this.others = o.solo || o.her ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until)) : handsOn ? accompaniment(f, from, -1).filter((n) => (movedOut.has(lineKey(n.voice, n.on, n.midi)) || (n.voice !== 0 && !(n.voice === 1 && lhMine(n.on)))) && (o.until === undefined || n.on < o.until)) : accompaniment(f, from, take || movedOut.size ? -1 : played[0]).filter((n) => (take && inTake(n.on) ? n.voice !== take.voice : !played.includes(n.voice) || movedOut.has(lineKey(n.voice, n.on, n.midi))) && !sweepKeys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until));
     // D302: the others joined and detached, the reading's marks on every entry of the subject.
-    this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject, undefined, { marks: readingMarks(f.entries, o.reading ?? null), bass: f.voices.length - 1 });
+    this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject, undefined, { marks: readingMarks(f.entries, o.reading ?? null) });
     // Waiting (the lessons): no count-in, the clock stops at each note until it is struck.
     this.start = o.wait ? from - this.beat : countInStart(f, from);
     this.entry = from;
@@ -827,7 +827,7 @@ export class ProtoGame {
         const last = q === parts.length - 1;
         const plen = orn ? this.timeAt(pon + pdur) - this.timeAt(pon) + (last ? sh.over : 0) : len;
         // D302: an ornament's first note joined from the note before as the note was; its last joined to the next.
-        const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}) };
+        const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}), ...(last && jn.apart ? { apart: true } : {}) };
         const sd = ch.note(pmidi, pat, plen, vv, { ...sv.play, ...art, level: follow(sh, this.feel) * (sv.play.level ?? 1) });
         if (sd) this.band.push({ sd, until: pat + plen + 0.6 });
       }

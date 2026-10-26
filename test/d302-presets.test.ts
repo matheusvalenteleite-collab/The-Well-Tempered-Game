@@ -16,12 +16,19 @@ test("D302: VOCAL SYNTH: five singers, each its own voice type, vowel and conson
   const pr = presetById("vocalSynth");
   const sings = pr.slots!.map((s) => PATCHES[s].sing!);
   assert.equal(new Set(sings.map((s) => `${s.type}/${s.vowel}/${s.cons}/${s.size}`)).size, 5);
-  assert.equal(new Set(sings.map((s) => s.cons)).size, 5, "five syllables: la, mi, ro, ne, da");
-  assert.deepEqual(sings.map((s) => s.cons + s.vowel), ["la", "mi", "ro", "ne", "da"]);
+  assert.equal(new Set(sings.map((s) => s.cons)).size, 5, "five syllables: la, mi, ra, na, da");
+  // D304: the mezzo and the tenor on "a" ("o" was tried: 9-12 dB weaker through a phone's speaker than on a full-range one).
+  assert.deepEqual(sings.map((s) => s.cons + s.vowel), ["la", "mi", "ra", "na", "da"]);
   for (const s of sings) {
     for (const [f, db, bw] of VOWELS[s.type][s.vowel]) assert.ok(f >= 250 && f <= 5000 && db <= 0 && bw >= 40 && bw <= 200);
-    assert.ok(s.scoop >= 30 && s.scoop <= 100 && s.over > 0 && s.over <= 20 && s.fall >= 40, `${s.cons}${s.vowel}`);
+    assert.ok(s.scoop >= 15 && s.scoop <= 100 && s.over > 0 && s.over <= 20 && s.fall >= 40, `${s.cons}${s.vowel}`);
+    // D304: nothing glitters above the formants.
+    assert.ok(s.top && s.top <= 7000, `${s.cons}${s.vowel}: a lowpass over the voice`);
   }
+  // D304: the low voices less trumpet-like: a softer glottis, smaller scoops, wider formants, a quieter singer's formant.
+  const waves = pr.slots!.map((s) => PATCHES[s].osc[0].wave);
+  assert.deepEqual(waves, ["glottal", "glottalWarm", "glottalWarm", "glottalLow", "glottalLow"]);
+  for (const s of sings.slice(3)) assert.ok(s.scoop <= 25 && (s.bw ?? 1) > 1 && (s.upper ?? 0) < 0 && s.breath >= 0.2 && s.ring === 0);
   assert.equal(PATCHES.vocDa.vib, undefined);
   assert.equal(sings[4].type, "bass");
   assert.equal(sings[0].type, "soprano");
@@ -76,13 +83,13 @@ test("D302: SOLO VOICES: the four singers recorded, a syllable at each new note 
   assert.equal(creditFor("chamberOrgan"), null);
 });
 
-test("D302: SOLO VOICES from the recordings: a new syllable opens from a lowpass (and a plosive's burst); joined, none", async () => {
+test("D302: SOLO VOICES from the recordings: a new syllable opens from a lowpass (D304: no synthesized burst, the clicks); joined, none", async () => {
   setPreset("soloVoices");
   await new Chip().prepare(fugueById("wtc1f02").voices.flat().map((n) => n[2]));
   const fresh = noteNodes("soloVoices", 3, 4).made; // the bass of four: "da"
   const lp = fresh.find((n) => n.kind === "filter" && (n.type as string) === "lowpass" && (n.frequency as FakeParam).events.length);
   assert.ok(lp && (lp.frequency as FakeParam).valueAt(1) === CONSONANTS.d.open, "the d's opening");
-  assert.ok(fresh.some((n) => n.kind === "filter" && (n.type as string) === "bandpass"), "its burst");
+  assert.ok(!fresh.some((n) => n.kind === "filter" && (n.type as string) === "bandpass"), "no burst of noise (D304: it clicked)");
   const joined = noteNodes("soloVoices", 3, 4, { legato: true, from: 62 }).made;
   assert.ok(!joined.some((n) => n.kind === "filter" && (n.type as string) === "lowpass" && (n.frequency as FakeParam).events.length), "no consonant when joined");
 });
@@ -94,7 +101,23 @@ test("D302: what a note costs a phone: VOCAL SYNTH about 23 nodes (two sources a
   await new Chip().prepare(fugueById("wtc1f02").voices.flat().map((n) => n[2]));
   const counts = [0, 1, 2, 3].map((v) => noteNodes("chamberOrgan", v, 4).made.length);
   for (const c of counts) assert.ok(c <= 22, `${counts}`);
-  // The recorded plenum (the top of four) far cheaper than a synthesized registration.
-  assert.ok(counts[0] < counts[1], `${counts}`);
+  // The recorded pedal (D304: the only recording left) far cheaper than a synthesized registration.
+  assert.ok(counts[3] < Math.min(counts[0], counts[1], counts[2]), `${counts}`);
   void FakeNode;
+});
+
+test("D304: a singer's subject not belled (the tinkling): I/2's glass spark on the harpsichord, not on VOCAL SYNTH or SOLO VOICES", async () => {
+  const { playFx, TAILORED } = await import("../src/touch/subject-fx.ts");
+  const fx = TAILORED.wtc1f02[1];
+  const sn = { voice: 0, on: 0, dur: 480, midi: 72, theme: 1, inverted: false, scale: 1, head: true, leap: true, long: true, cue: 1 } as unknown as Parameters<typeof playFx>[2];
+  const count = (id: string) => {
+    setPreset(id);
+    let notes = 0;
+    const chip = { note: () => (notes++, { stop() {}, bend() {} }) } as unknown as Chip;
+    playFx(chip, fx, sn, 72, 0, 0.5, voicing(0, 3));
+    return notes;
+  };
+  assert.ok(count("harpsichordSampled") > 0);
+  assert.equal(count("vocalSynth"), 0);
+  assert.equal(count("soloVoices"), 0);
 });

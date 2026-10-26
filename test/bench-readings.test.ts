@@ -39,7 +39,7 @@ test("D272: HEAR THE SUBJECT: joined notes reach the next, detached ones stop sh
   const p = performSubject(r, notes, 1920, 120);
   assert.equal(p[1].at, 0.125, "♩ = 120: a sixteenth an eighth of a second");
   assert.ok(p[0].len >= 0.125, "joined: to the next");
-  assert.ok(p[1].len < 0.125 * 0.7, "detached");
+  assert.ok(p[1].len < 0.125 * 0.8, "detached (D304: three quarters)");
   assert.ok(p[2].len < p[1].len, "staccato shorter");
   assert.ok(p[1].d > p[0].d, "the accent louder");
 });

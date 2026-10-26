@@ -230,14 +230,13 @@ test("engine audit: phrasing takes the next onset as the note after (a chord's p
     { on: 0, dur: B, midi: 67, step: 39, voice: 0 },
     { on: B, dur: B, midi: 62, step: 36, voice: 0 },
   ];
-  // (An upper voice: D302's bass is apart.)
-  const sh = phrase(notes, B, (t) => t % (4 * B), new Set(), "plain", { bass: 3 });
+  const sh = phrase(notes, B, (t) => t % (4 * B), new Set(), "plain");
   // C to D (a step) after a quarter: joined (D302), not shortened as before a leap to its partner G.
   assert.equal(sh[0].art, "join");
   assert.equal(sh[0].hold, 1);
-  // G to D, a fourth down: apart (D302: nonlegato).
+  // G to D, a fourth down: a little apart (D302: nonlegato; D304: 0.88, as before D302).
   assert.equal(sh[1].art, "nonlegato");
-  assert.equal(sh[1].hold, ART_HOLD.nonlegato);
+  assert.equal(sh[1].hold, ART_HOLD.leap);
   const many = Array.from({ length: 40000 }, (_, i) => ({ on: i * 120, dur: 120, midi: 60 + (i % 5), step: 35 + (i % 5), voice: i % 4 }));
   const t0 = performance.now();
   phrase(many, B, (t) => t % (4 * B), new Set());

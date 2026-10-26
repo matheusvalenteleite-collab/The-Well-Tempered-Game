@@ -105,13 +105,11 @@ export const REVERBS: Record<Exclude<FxKind, "spc" | "echo">, Reverb> = {
   hall: { predelay: 0.025, hp: 350, lp: 5500, seconds: 1.9, phoneSeconds: 1.2, rt60: 1.9, brightness: 0.3 },
   // D302, PIPE ORGAN's large church: a later first reflection (45 ms), a long and darkening tail (RT60
   // 2.8 s; on a phone 1.8 s of impulse), the highs damped (4.8 kHz): the organ's lines carried, not drowned.
-  cathedral: { predelay: 0.045, hp: 220, lp: 4800, seconds: 2.8, phoneSeconds: 1.8, rt60: 2.8, brightness: 0.25 },
-  // D302, FOREST 64's grove: a wide, airy space (RT60 1.8 s) kept bright enough to stay lively.
-  grove: { predelay: 0.025, hp: 260, lp: 7000, seconds: 1.8, phoneSeconds: 1.3, rt60: 1.8, brightness: 0.45 },
-  // D302, PARTY 64's room: short and bright (RT60 1.0 s): the bounce kept dry.
-  room64: { predelay: 0.015, hp: 300, lp: 8000, seconds: 1.0, phoneSeconds: 0.8, rt60: 1.0, brightness: 0.55 },
-  // D302, VOCAL SYNTH's plate: bright and short (RT60 1.5 s), the singers' consonants kept clear.
-  plate: { predelay: 0.03, hp: 300, lp: 8500, seconds: 1.5, phoneSeconds: 1.1, rt60: 1.5, brightness: 0.6 },
+  // D304: smaller (RT60 2.2 s) and a little brighter (5.5 kHz): the inner lines were muddled in it.
+  cathedral: { predelay: 0.045, hp: 250, lp: 5500, seconds: 2.2, phoneSeconds: 1.5, rt60: 2.2, brightness: 0.3 },
+  // D302, VOCAL SYNTH's plate: bright and short (RT60 1.5 s), the singers' consonants kept clear (D304: its highs
+  // 6.5 kHz, was 8.5: no glitter in the tail).
+  plate: { predelay: 0.03, hp: 300, lp: 6500, seconds: 1.5, phoneSeconds: 1.1, rt60: 1.5, brightness: 0.45 },
   // TOMITA's space: a long reverb and a tape echo (a third of a second, darkening) beside it.
   space: { predelay: 0.03, hp: 250, lp: 6500, seconds: 2.8, phoneSeconds: 1.6, rt60: 2.8, brightness: 0.45, echo: { delay: 0.33, feedback: 0.32, lp: 3000, level: 0.5 } },
 };
@@ -203,6 +201,12 @@ export interface Play {
   from?: number;
   /** D302: the last note before a rest (a phrase's end): a singing voice falls off it (VOCAL SYNTH). */
   final?: boolean;
+  /**
+   * D304: detached or staccato by a reading's mark: its gap heard on every sound (a plucked synthesized
+   * note damped in 30 ms, a held recording's release done by its written end). Without it a note ends
+   * as before D302 (the damper 80 ms, the release from the written end): the default playing.
+   */
+  apart?: boolean;
   /** A level for this note alone (1: as the voice). */
   level?: number;
   /** The note can be muffled after it starts (the testbench, D175: a gesture judged wrong). */
@@ -234,7 +238,7 @@ export interface Play {
 }
 
 /** D302: VOCAL SYNTH's level against the other patches (its source normalised to its peak: measured, II/22 rendered offline). */
-export const SING_GAIN = 4.5;
+export const SING_GAIN = 3.4;
 
 /** D252: the player's own notes a little brighter (a high shelf, dB) and a little louder: the player hears himself. */
 export const MINE_TONE = 2.5;
@@ -925,7 +929,8 @@ export class Chip {
       lp.type = "lowpass";
       lp.Q.value = 0.8;
       lp.frequency.setValueAtTime(syl.open, t);
-      lp.frequency.setTargetAtTime(16000, t + syl.time * 0.4, syl.time / 2);
+      // (D304: opening over about 50 ms, no longer a tick of highs at each onset.)
+      lp.frequency.setTargetAtTime(16000, t + syl.time * 0.4, Math.max(0.018, syl.time / 2));
       const sg = bag.add(ctx.createGain());
       sg.gain.setValueAtTime(Math.max(0.3, syl.voiced), t);
       sg.gain.setTargetAtTime(1, t + syl.time * 0.4, syl.time / 3);
@@ -1024,21 +1029,9 @@ export class Chip {
           d.linearRampToValueAtTime(-sy.fall, end);
         }
       }
-      if (syl?.burst) {
-        // A plosive's burst: a few milliseconds of noise high up, as the voice comes in.
-        const nz = bag.src(this.noise());
-        const bp = bag.add(ctx.createBiquadFilter());
-        bp.type = "bandpass";
-        bp.frequency.value = 3500;
-        bp.Q.value = 1.2;
-        const ng = bag.add(ctx.createGain());
-        ng.gain.setValueAtTime(0, t);
-        ng.gain.linearRampToValueAtTime(peak * syl.burst * 0.8, t + 0.002);
-        ng.gain.setTargetAtTime(0, t + 0.004, 0.006);
-        nz.connect(bp).connect(ng).connect(dyn);
-        nz.start(t);
-        halt(nz, t + 0.06);
-      }
+      // D304: no synthesized burst on a recorded voice (the d's, 2 ms of noise at 3.5 kHz on every new
+      // note of the bass, out of a silent gap, were the "clickers" the owner heard): the consonant is
+      // the voice opening from the lowpass, and its level coming in (CONSONANTS.open, voiced).
     }
     // D297: the patch's own vibrato on a held recording (its rate, depth and delay: each voice's its own, R4).
     if (pt.vib && !plucked && det.length && end - t > pt.vib.delay + 0.1) {
@@ -1056,11 +1049,13 @@ export class Chip {
     // The recording's own end, in the context's time (a plucked note dies away by then).
     const life = (noteInfo(set, near)?.len ?? 4) / Math.max(0.25, srcs[0].src.playbackRate.value) - rec.onset;
     let thunk: GainNode | null = null;
+    /** The note's own release (time constant, s): the recording's, a damper's (the bass slower), else 30 ms. */
+    const ownTau = re ? Math.max(0.005, re.r / 3) : plucked ? 0.012 + 0.02 * Math.max(0, Math.min(1, (72 - midi) / 36)) : 0.03;
     const letGo = (s: number, tie = 0) => {
       if (g.gain.cancelAndHoldAtTime) g.gain.cancelAndHoldAtTime(s);
       else (g.gain.cancelScheduledValues(s), g.gain.setValueAtTime(levelAt(s), s)); // flat after the attack, unless Patch.rec shapes it
       // D302: a held note joined to the next goes over the crossfade (`tie`), not its own release.
-      const tau = tie && !plucked ? Math.max(0.004, tie / 6) : re ? Math.max(0.005, re.r / 3) : plucked ? 0.012 + 0.02 * Math.max(0, Math.min(1, (72 - midi) / 36)) : 0.03;
+      const tau = tie && !plucked ? Math.max(0.004, tie / 6) : ownTau;
       g.gain.setTargetAtTime(0, s, tau);
       for (const x of srcs) halt(x.src, s + tau * 9 + 0.02);
       for (const l of lfos) halt(l, s + tau * 9 + 0.05);
@@ -1084,8 +1079,10 @@ export class Chip {
       for (const l of lfos) halt(l, t + life + 0.1);
     } else if (p.tie && !plucked) letGo(Math.max(t + 0.02, end - p.tie / 2), p.tie);
     // D302: a held note's release done by its written end, as a synthesized note's is (it began there,
-    // and rang on a fifth of a second past it: a detached note's gap filled).
-    else if (!plucked && !p.lead) letGo(Math.max(t + atk + 0.02, end - 2.5 * (re ? Math.max(0.005, re.r / 3) : 0.03)));
+    // and rang on a fifth of a second past it: a detached note's gap filled). D304: only a detached
+    // note's (Play.apart: a reading's mark), plucked or held, its release -30 dB by its end, so
+    // the gap the reading asks for is heard; every other note let go at its end, as before D302.
+    else if (!p.lead && p.apart) letGo(Math.max(t + atk + 0.02, end - 3.5 * ownTau));
     else letGo(end);
     let stopped = false;
     let cents = 0;
@@ -1501,8 +1498,9 @@ export class Chip {
     // D184: a plucked or struck note is damped at its written end (it rang 6 s whatever its length:
     // fifty voices at once on a phone); a lead note's end is its hold, so it rings as it would.
     const damp = tail && end + 0.5 < t + 6;
-    // D302: the damper quicker (80 ms let a detached pluck ring into the next: no gap heard).
-    if (damp) g.gain.setTargetAtTime(0, Math.max(t + a + 0.01, end), 0.03);
+    // D302: the damper quicker for a detached note (80 ms let a detached pluck ring into the next: no gap
+    // heard); D304: only a detached note's, the rest ring as they did.
+    if (damp) g.gain.setTargetAtTime(0, Math.max(t + a + 0.01, end), p.apart ? 0.03 : 0.08);
     const last = tail ? (damp ? end + 0.5 : t + 6) : end + 0.05;
     for (const l of lfos) halt(l, last + 0.1);
     for (const o of tuned) (o.start(t), halt(o, last));
@@ -1559,7 +1557,8 @@ export class Chip {
     const peak = pt.level * v.gain * (p.level ?? 1) * 0.5 * SING_GAIN;
     const joined = !!p.legato;
     const det0 = p.detune ?? 0;
-    const o = bag.src(this.osc("glottal"));
+    // D304: each voice its own glottis (Patch.osc's first wave: glottal, glottalWarm, glottalLow).
+    const o = bag.src(this.osc(pt.osc[0]?.wave ?? "glottal"));
     // The pitch: joined, from the note before (a glide of about 70 ms); else scooped up from below.
     if (joined && p.from !== undefined) {
       o.frequency.setValueAtTime(hz(p.from), t);
@@ -1592,10 +1591,11 @@ export class Chip {
       voiced.gain.setTargetAtTime(1, t + ct * 0.4, ct / 3);
     }
     const breath = sg.breath * 0.35;
-    air.gain.setValueAtTime(joined ? breath : breath + cons.burst, t);
+    air.gain.setValueAtTime(breath, t);
     if (!joined && cons.burst) {
-      air.gain.setValueAtTime(cons.burst, t + ct * 0.35);
-      air.gain.setTargetAtTime(breath, t + ct * 0.35 + 0.004, 0.006);
+      // D304: the burst comes in over a few ms (a step was a click on every new note).
+      air.gain.linearRampToValueAtTime(cons.burst, t + ct * 0.35);
+      air.gain.setTargetAtTime(breath, t + ct * 0.35 + 0.004, 0.008);
     } else if (!joined) air.gain.setTargetAtTime(breath, t, 0.02);
     // The formants, the singer's size on them; from the consonant's into the vowel's.
     const out = bag.add(ctx.createGain());
@@ -1604,16 +1604,24 @@ export class Chip {
       const bp = bag.add(ctx.createBiquadFilter());
       bp.type = "bandpass";
       const fv = Math.min(ctx.sampleRate * 0.45, f * sg.size);
-      bp.Q.value = fv / (bw * sg.size);
+      bp.Q.value = fv / (bw * sg.size * (sg.bw ?? 1));
       if (!joined && i < 3) {
         bp.frequency.setValueAtTime(cons.f[i] * scale, t);
         bp.frequency.setTargetAtTime(fv, t + ct * 0.5, ct / 2.5);
       } else bp.frequency.value = fv;
       const g = bag.add(ctx.createGain());
-      g.gain.value = 10 ** (db / 20);
+      g.gain.value = 10 ** ((db + (i >= 2 ? (sg.upper ?? 0) : 0)) / 20);
       src.connect(bp).connect(g).connect(out);
     }
     let tail: AudioNode = out;
+    // D304: nothing above the singer's formants (the harmonics leaking through their skirts glittered).
+    if (sg.top) {
+      const lp = bag.add(ctx.createBiquadFilter());
+      lp.type = "lowpass";
+      lp.frequency.value = Math.min(ctx.sampleRate * 0.45, sg.top * sg.size);
+      lp.Q.value = 0.6;
+      tail = tail.connect(lp);
+    }
     if (sg.ring) {
       const sh = bag.add(ctx.createBiquadFilter());
       sh.type = "peaking";
