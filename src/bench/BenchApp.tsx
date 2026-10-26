@@ -912,7 +912,7 @@ export function BenchApp() {
           </>
         }
         legend={f.voiceNames.map((name, i) => (
-          <span key={name} style={{ color: sheetOn ? paperInk(i, f.voices.length) : inkOf(i, f.voices.length), opacity: played.includes(i) ? 1 : sheetOn ? 0.75 : 0.55 }}>
+          <span key={name} style={{ color: sheetOn ? (sheetLayout === "open" && !played.includes(i) ? "#4a4540" : paperInk(i, f.voices.length)) : inkOf(i, f.voices.length), opacity: played.includes(i) ? 1 : sheetOn ? 0.75 : 0.55 }}>
             ■ {voiceName(name)}
             {played.includes(i) && <b className="tb-you"> · {tr("YOU")}</b>}
           </span>

@@ -19,8 +19,8 @@
  * note by note and the clock (the engine's ticks, the final ritard in them) moves the page.
  */
 
-/** The music font (the owner has not chosen: Leipzig, Verovio's default and closest to Henle's). */
-export const SHEET_FONT = "Leipzig";
+/** The music font (D300: Leland, its oval, tilted heads nearer a Henle plate than Leipzig's; tools/sheet/engrave.ts SHEET_STYLE). */
+export const SHEET_FONT = "Leland";
 /** Verovio's units to a staff space. */
 export const SHEET_UNIT = 180;
 /** A full-size glyph's scale (×100): the font's 1000 units to Verovio's 720 an em. */
@@ -168,6 +168,72 @@ export function noteIndex(notes: SheetNote[]): Map<string, { x: number; y: numbe
     if (!m.has(k)) m.set(k, { x, y });
   }
   return m;
+}
+
+// ---------------------------------------------------------------- D300: the page's rules (pure, tested in node)
+
+/** The voices' colours on paper (top voice first): the game's hues (MusicBox INKS), dark enough for white. */
+const PAPER_INKS: Record<number, string[]> = {
+  2: ["#24589A", "#23744C"],
+  3: ["#24589A", "#B24A17", "#23744C"],
+  4: ["#24589A", "#B24A17", "#6E3FA0", "#23744C"],
+  5: ["#24589A", "#17767A", "#B24A17", "#6E3FA0", "#23744C"],
+};
+export function paperInk(voice: number, count: number): string {
+  return (PAPER_INKS[count] ?? PAPER_INKS[4])[voice] ?? SHEET_INK;
+}
+/** The page's black. */
+export const SHEET_INK = "#141414";
+
+/**
+ * A mark's ink (k: its ink list, 0 the black marks, v + 1 voice v's). TWO STAVES: every voice in its colour
+ * (on two staves the colour is what tells four voices apart); ONE STAFF PER VOICE: all black, as printed
+ * (the staves tell the voices apart; the player's staff is marked at the clefs, the ring and the playhead
+ * in the player's colour).
+ */
+export function markInk(layout: SheetLayoutId, k: number, voices: number): string {
+  return k === 0 || layout === "open" ? SHEET_INK : paperInk(k - 1, voices);
+}
+
+/**
+ * The playhead's place across the box: 35% into the score (the box right of the clefs' column), so about
+ * a third of the music in sight is what was played and two thirds what is coming (the player reads
+ * ahead); on an iPhone sideways about 45% from the box's left edge.
+ */
+export const SHEET_PLAYHEAD = 0.35;
+export function playheadX(w: number, column: number): number {
+  return Math.round(column + SHEET_PLAYHEAD * Math.max(0, w - column));
+}
+
+/** An entry's band behind its notes (units). */
+export interface Band {
+  x0: number;
+  x1: number;
+  y0: number;
+  y1: number;
+}
+
+/**
+ * An entry's band: from its first head to its last (0.9 space beyond each); in the two staves hugging the
+ * voice's own heads (0.9 space above the highest and below the lowest: the other voice on the staff
+ * mostly outside it), in the open score its staff (a space above and below, heads on ledger lines in it).
+ * `heads`: the entry's heads (centres), in order. Null where there is none.
+ */
+export function entryBand(d: Pick<SheetData, "layout" | "staves">, voice: number, heads: { x: number; y: number }[]): Band | null {
+  if (!heads.length) return null;
+  const x0 = heads[0].x - 0.9 * SHEET_UNIT;
+  const x1 = heads[heads.length - 1].x + 0.9 * SHEET_UNIT;
+  const ys = heads.map((h) => h.y);
+  let y0 = Math.min(...ys) - 0.9 * SHEET_UNIT;
+  let y1 = Math.max(...ys) + 0.9 * SHEET_UNIT;
+  if (d.layout === "open") {
+    const staff = d.staves.find((s) => s.voices.includes(voice));
+    if (staff) {
+      y0 = Math.min(y0, staff.top - SHEET_UNIT);
+      y1 = Math.max(y1, staff.top + 5 * SHEET_UNIT);
+    }
+  }
+  return { x0, x1, y0, y1 };
 }
 
 /** The display modes (⚙ on play.html): today's box, CANTUS (to come), the two sheets. */
