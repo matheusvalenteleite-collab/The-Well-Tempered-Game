@@ -3,11 +3,11 @@ import assert from "node:assert/strict";
 import { grooveHits, harmonicsOf, PATCHES, patchFor, playerSound, presetById, PRESETS, RETIRED, setPreset, SHAPES, slotOf, TRAVERSO } from "../src/touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../src/touch/piece-sound.ts";
 
-test("D292, D294: the players' sounds are exactly five, in order; every piece opens on one of them", () => {
-  assert.deepEqual(PRESETS.map((p) => p.id), ["chip", "gameboy", "harpsichordSampled", "pianoSampled", "analog"]);
-  assert.deepEqual(PRESETS.map((p) => p.name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD (SAMPLED)", "PIANO (SAMPLED)", "ANALOG SYNTH"]);
+test("D292, D294, D297: the players' sounds are the five (ANALOG SYNTH now SWITCHED-ON), then the ten new presets, in order; every piece opens on one of the five", () => {
+  assert.deepEqual(PRESETS.map((p) => p.id), ["chip", "gameboy", "harpsichordSampled", "pianoSampled", "analog", "super16", "nocturne32", "megaFm", "sid64", "tracker", "chamberOrgan", "temple64", "agent64", "modular", "tomita"]);
+  assert.deepEqual(PRESETS.map((p) => p.name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD (SAMPLED)", "PIANO (SAMPLED)", "SWITCHED-ON", "SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "CHAMBER ORGAN", "TEMPLE 64", "AGENT 64", "MODULAR", "TOMITA"]);
   const ids = PRESETS.map((p) => p.id);
-  for (const [piece, id] of Object.entries(PIECE_SOUND)) assert.ok(ids.includes(id), `${piece}: ${id}`);
+  for (const [piece, id] of Object.entries(PIECE_SOUND)) assert.ok(ids.slice(0, 5).includes(id), `${piece}: ${id} (D297: never a period preset)`);
   // D294: the two sounds replaced (and the withdrawn ones they grew from) open on their successors.
   for (const [old, now] of [["chipRound", "gameboy"], ["chipPocket", "gameboy"], ["chipGold", "gameboy"], ["pianoFm", "analog"], ["carlos", "analog"]]) {
     assert.equal(presetById(old).id, now, old);
@@ -71,7 +71,7 @@ test("D294: GAME BOY: the DMG's kinds of sound, every voice its own wave, the pu
   assert.ok(a(2) / a(1) > 0.4 && a(3) / a(1) > 0.25 && a(4) / a(1) > 0.18);
 });
 
-test("D294: ANALOG SYNTH: every line its own patch through a 24 dB lowpass, no detuned unisons, a bass a phone can hear", () => {
+test("D294, D297: ANALOG SYNTH (SWITCHED-ON): every line its own patch through a 24 dB lowpass, no detuned unisons, a bass a phone can hear", () => {
   const slots = presetById("analog").slots!;
   assert.equal(new Set(slots).size, 5, "five patches");
   for (const s of slots) {

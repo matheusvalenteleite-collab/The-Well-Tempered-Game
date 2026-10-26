@@ -170,6 +170,10 @@ export class FakeAudioContext {
   createConvolver() {
     return this.node("convolver", {});
   }
+  /** D297: the period presets' echo and pre-delay. */
+  createDelay() {
+    return this.node("delay", { delayTime: 0 });
+  }
   createDynamicsCompressor() {
     return this.node("compressor", { threshold: 0, knee: 0, ratio: 1, attack: 0, release: 0 });
   }

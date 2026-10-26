@@ -9,8 +9,8 @@
 export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 
 import { hz } from "./tuning.ts";
-import { grooveHits, grooveNow, harmonicsOf, isShaped, layerHits, preset, patchFor, sampledNow, SHAPES, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
-import { loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setUnreachable, type Loaded, type SampledInstrument } from "./sampled.ts";
+import { grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
+import { loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, type Loaded, type SampledInstrument } from "./sampled.ts";
 
 /**
  * D208, the player's voice: the same instrument as the others, at the same level (the voices of a
@@ -67,6 +67,44 @@ export function softClipCurve(n = 2048): Float32Array<ArrayBuffer> {
 export const ROOM_S = { phone: 0.8, computer: 1.3 };
 /** D291: the phone bass a little louder still: a pulse low down is softer to the ear than one higher. */
 export const PHONE_BASS_GAIN = 1.3;
+
+/**
+ * D297, SUPER 16-BIT's echo (the report §6.1, after the S-DSP's: EDL 5 = 80 ms, a positive EFB of 0.35,
+ * the 8-tap FIR's usual lowpass stood in for by a 2.8 kHz lowpass and a 300 Hz high-pass in the loop).
+ * Its return is 1: a voice's `send` is its echo's level (0.10-0.22: the first repeat 13-20 dB under it).
+ * Not modelled: the right channel 8 ms later (a stereo nicety, R7), the 64 ms of fast fugues.
+ */
+export const SPC_ECHO = { delay: 0.08, feedback: 0.35, lp: 2800, hp: 300 };
+/**
+ * D297, the presets' own reverbs (Preset.fx): the sends pre-delayed (`predelay` s, onsets stay clean)
+ * and high-passed (`hp` Hz: no bass in the tail), a generated impulse (`darkHall`: decaying to -60 dB
+ * in `rt60` s, `seconds` long, shorter on a phone where the convolver costs most, darker as it decays
+ * by `brightness`), the return lowpassed (`lp` Hz). `echo`: a tape echo beside it (a delay fed back
+ * through a lowpass), at `level` of the send.
+ */
+export interface Reverb {
+  predelay: number;
+  hp: number;
+  lp: number;
+  seconds: number;
+  phoneSeconds: number;
+  rt60: number;
+  brightness: number;
+  echo?: { delay: number; feedback: number; lp: number; level: number };
+}
+export const REVERBS: Record<Exclude<FxKind, "spc">, Reverb> = {
+  // NOCTURNE 32-BIT's hall (§6.2: the PlayStation's half-rate reverb: dark, 5.5 kHz at most).
+  hall: { predelay: 0.025, hp: 350, lp: 5500, seconds: 1.9, phoneSeconds: 1.2, rt60: 1.9, brightness: 0.3 },
+  // CHAMBER ORGAN's small church: shorter and brighter than the hall (sends 0.08-0.14: wet within 0.15).
+  church: { predelay: 0.02, hp: 250, lp: 7000, seconds: 1.4, phoneSeconds: 1.0, rt60: 1.4, brightness: 0.5 },
+  // TEMPLE 64's stone temple (the N64's software reverb, generous in Ocarina of Time's temples and caves).
+  cave: { predelay: 0.03, hp: 300, lp: 5000, seconds: 2.6, phoneSeconds: 1.5, rt60: 2.6, brightness: 0.3 },
+  // AGENT 64's moodier, shorter room (GoldenEye's levels).
+  studio: { predelay: 0.02, hp: 300, lp: 6000, seconds: 1.5, phoneSeconds: 1.1, rt60: 1.5, brightness: 0.4 },
+  // TOMITA's space: a long reverb and a tape echo (a third of a second, darkening) beside it.
+  space: { predelay: 0.03, hp: 250, lp: 6500, seconds: 2.8, phoneSeconds: 1.6, rt60: 2.8, brightness: 0.45, echo: { delay: 0.33, feedback: 0.32, lp: 3000, level: 0.5 } },
+};
+export const HALL = REVERBS.hall;
 
 /**
  * D294, CLASSIC CHIP less harsh (the owner: "perhaps too harsh. Maybe it's the fact that all voices have
@@ -205,6 +243,8 @@ export class Chip {
   private waves = new Map<string, PeriodicWave>();
   private keepAlive: HTMLAudioElement | null = null;
   private wet: GainNode;
+  /** D297: the shared room (unwired from the master while a preset with `room: 0` plays). */
+  private room: ConvolverNode;
   /** D237: the volume (0..1) over the master's own level (0.4, D181). */
   setVolume(v: number) {
     const k = Math.max(0, Math.min(1, v));
@@ -286,7 +326,7 @@ export class Chip {
     ceiling.oversample = "4x";
     this.master.connect(soften).connect(squeeze).connect(limit).connect(trim).connect(ceilIn).connect(ceiling).connect(ctx.destination);
     // The room: a second of decaying noise, a little of it under everything (more for the bands).
-    const room = ctx.createConvolver();
+    const room = (this.room = ctx.createConvolver());
     room.buffer = impulse(ctx, this.phone ? ROOM_S.phone : ROOM_S.computer);
     this.wet = ctx.createGain();
     this.wet.gain.value = 0.16;
@@ -426,6 +466,7 @@ export class Chip {
     const bag = new Bag();
     let sd: Sounding;
     try {
+      this.period();
       sd = this.voiceNote(midi, at, dur, v, p, bag);
     } catch {
       // D211: one note's failure is never the others' (the scheduler goes on to the next).
@@ -495,6 +536,120 @@ export class Chip {
     from.connect(g).connect(this.roomIn);
   }
 
+  /** D297: a note's send to its preset's own effect (Patch.send), one gain; nothing where the preset has none. */
+  private fxSend(from: AudioNode, amount: number | undefined, bag: Bag) {
+    if (!amount) return;
+    const into = this.fxInput();
+    if (!into) return;
+    const g = bag.add(this.ctx.createGain());
+    g.gain.value = amount;
+    from.connect(g).connect(into);
+  }
+
+  /** D297: the period presets' effect now (Preset.fx), built at its first note, its nodes (the input first, the return last). */
+  private fx: { kind: FxKind; nodes: AudioNode[] } | null = null;
+  /** D297: whether the shared room is off (a preset with `room: 0`). */
+  private dry = false;
+  /**
+   * D297, at every note: the period presets' state set from the preset now. A preset with `room: 0`
+   * plays without the shared room (its input unwired: the convolver idles); the effect of another
+   * preset is taken down (its nodes disconnected) once a note of a preset without it is played.
+   */
+  private period() {
+    const pr = preset();
+    const dry = pr.room === 0;
+    if (dry !== this.dry) {
+      this.dry = dry;
+      const t = this.ctx.currentTime;
+      this.wet.gain.cancelScheduledValues(t);
+      this.wet.gain.setValueAtTime(dry ? 0 : 0.16, t);
+      if (dry) this.master.disconnect(this.room);
+      else this.master.connect(this.room);
+    }
+    if (this.fx && this.fx.kind !== pr.fx) {
+      for (const n of this.fx.nodes)
+        try {
+          n.disconnect();
+        } catch {
+          /* already */
+        }
+      this.fx = null;
+    }
+  }
+
+  /** D297: the input of the preset's own effect (built once, kept while the preset plays), or null. */
+  private fxInput(): AudioNode | null {
+    const kind = preset().fx;
+    if (!kind) return null;
+    if (this.fx?.kind === kind) return this.fx.nodes[0];
+    const ctx = this.ctx;
+    const node = <T extends AudioNode>(n: T, nodes: AudioNode[]) => (nodes.push(n), n);
+    const filter = (type: BiquadFilterType, f: number, q: number, nodes: AudioNode[]) => {
+      const b = node(ctx.createBiquadFilter(), nodes);
+      b.type = type;
+      b.frequency.value = f;
+      b.Q.value = q;
+      return b;
+    };
+    const nodes: AudioNode[] = [];
+    const input = node(ctx.createGain(), nodes);
+    const ret = ctx.createGain();
+    if (kind === "spc") {
+      // The SNES's echo (§6.1): an 80 ms delay (EDL 5, 16 ms steps) whose output, through the FIR's
+      // stand-in (a gentle 2.8 kHz lowpass and a 300 Hz high-pass), is both the echo heard and, at
+      // 0.35 (EFB, positive), fed back into the delay: each repeat darker and 9 dB softer.
+      const sum = node(ctx.createGain(), nodes);
+      const delay = node(ctx.createDelay(0.25), nodes);
+      delay.delayTime.value = SPC_ECHO.delay;
+      const lp = filter("lowpass", SPC_ECHO.lp, 0.5, nodes);
+      const hp = filter("highpass", SPC_ECHO.hp, 0.5, nodes);
+      const fb = node(ctx.createGain(), nodes);
+      fb.gain.value = SPC_ECHO.feedback;
+      input.connect(sum).connect(delay).connect(lp).connect(hp);
+      hp.connect(fb).connect(sum);
+      hp.connect(ret);
+    } else {
+      // A reverb (REVERBS): e.g. the PlayStation's hall (§6.2): the sends pre-delayed 25 ms and
+      // high-passed at 350 Hz (the organ's pedal does not flood the tail), a dark generated impulse,
+      // the return lowpassed at 5.5 kHz (its half-rate core).
+      const r = REVERBS[kind];
+      if (r.echo) {
+        const e = r.echo;
+        const sum = node(ctx.createGain(), nodes);
+        const delay = node(ctx.createDelay(1), nodes);
+        delay.delayTime.value = e.delay;
+        const lp = filter("lowpass", e.lp, 0.5, nodes);
+        const fb = node(ctx.createGain(), nodes);
+        fb.gain.value = e.feedback;
+        const lvl = node(ctx.createGain(), nodes);
+        lvl.gain.value = e.level;
+        input.connect(sum).connect(delay).connect(lp);
+        lp.connect(fb).connect(sum);
+        lp.connect(lvl).connect(ret);
+      }
+      const pre = node(ctx.createDelay(0.1), nodes);
+      pre.delayTime.value = r.predelay;
+      const hp = filter("highpass", r.hp, 0.7071, nodes);
+      const conv = node(ctx.createConvolver(), nodes);
+      conv.buffer = darkHall(ctx, this.phone ? r.phoneSeconds : r.seconds, r.rt60, r.brightness);
+      const lp = filter("lowpass", r.lp, 0.7071, nodes);
+      input.connect(pre).connect(hp).connect(conv).connect(lp).connect(ret);
+    }
+    // The return through the master (the volume, the limiter), not into the shared room.
+    ret.connect(this.master);
+    nodes.push(ret);
+    this.fx = { kind, nodes };
+    return input;
+  }
+
+  /** D297: a staircase of 2^bits levels over -1..1 for a WaveShaper (Patch.bits), built once per depth. */
+  private stairCurves = new Map<number, Float32Array<ArrayBuffer>>();
+  private stairs(bits: number): Float32Array<ArrayBuffer> {
+    let c = this.stairCurves.get(bits);
+    if (!c) this.stairCurves.set(bits, (c = stairCurve(bits)));
+    return c;
+  }
+
   /** D210: at the cap, the oldest notes (never the player's own) let go at `t`, quickly. */
   private makeRoom(t: number) {
     // Entries long past their end (their end never reported) are forgotten.
@@ -519,12 +674,14 @@ export class Chip {
     // D190: a recorded instrument plays its recording once loaded; until then (or where it cannot be
     // had) the patch's synthesized sound stands in, so no note is lost.
     const inst = v.patch?.sample ? SAMPLED[v.patch.sample] : null;
-    if (v.patch && inst && !setUnreachable(inst.set)) {
-      const near = nearestSample(inst.set, midi);
+    // D297: an organ's manual above its pedal's compass (sampled.ts setFor).
+    const main = inst ? setFor(inst, midi) : "";
+    if (v.patch && inst && !setUnreachable(main)) {
+      const near = nearestSample(main, midi);
       // D294: a lighter note (the phrasing's level under `below`) on the softer layer, where the
       // instrument has one; either layer stands in for the other until it has loaded.
       const soft = inst.soft && (p.level ?? 1) < inst.soft.below ? inst.soft.set : null;
-      let set = soft ?? inst.set;
+      let set = soft ?? main;
       let rec = near === null ? undefined : loaded(set, near);
       if (!rec && near !== null && inst.soft) {
         loadOne(this.ctx, set, near);
@@ -532,7 +689,7 @@ export class Chip {
         rec = loaded(set, near);
       }
       if (rec && near !== null) return this.sampledNote(midi, at, dur, v, v.patch, p, inst, set, near, rec, bag);
-      if (near !== null) loadOne(this.ctx, inst.set, near);
+      if (near !== null) loadOne(this.ctx, main, near);
     }
     if (v.patch) return this.patchNote(midi, at, dur, v, p.lead ? leadOf(v.patch) : v.patch, p, bag);
     const ctx = this.ctx;
@@ -660,7 +817,7 @@ export class Chip {
     // An instrument the ensemble no longer plays lets all its recordings go.
     const plans = (Object.keys(SAMPLED) as (keyof typeof SAMPLED)[]).map((id) => {
       const inst = SAMPLED[id];
-      return now.includes(id) ? planFor(inst, pitches, lead) : [inst.set, inst.soft?.set, inst.release, inst.low].filter((s): s is string => !!s).map((set) => ({ set, notes: [] }));
+      return now.includes(id) ? planFor(inst, pitches, lead) : [inst.set, inst.soft?.set, inst.release, inst.low, inst.above?.set].filter((s): s is string => !!s).map((set) => ({ set, notes: [] }));
     });
     return Promise.all(plans.map((plan) => loadPlan(this.ctx, plan, phone))).then(() => {});
   }
@@ -752,7 +909,21 @@ export class Chip {
     }
     const g = bag.add(ctx.createGain());
     g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(peak, t + (plucked ? 0.002 + (p.soft ?? 0) * 0.01 : p.legato ? 0.015 : 0.01 + (p.soft ?? 0) * 0.08));
+    // D297: a period preset's envelope on the recording (Patch.rec): its attack, a fall to its sustain,
+    // then, held, an exponential fall toward silence (the SNES's sustain that is not one); a joined
+    // (legato) note comes in at the sustain. Without `rec`, the recording's own envelope, as before.
+    const re = pt.rec;
+    const atk = re && !(p.legato && !plucked) ? re.a + (p.soft ?? 0) * (plucked ? 0.01 : 0.08) : plucked ? 0.002 + (p.soft ?? 0) * 0.01 : p.legato ? 0.015 : 0.01 + (p.soft ?? 0) * 0.08;
+    const top = re && p.legato && !plucked ? peak * re.s : peak;
+    g.gain.linearRampToValueAtTime(top, t + Math.max(0.001, atk));
+    /** Where the envelope is at `x` (after the attack): for a browser without cancelAndHoldAtTime. */
+    let levelAt = (_x: number) => peak;
+    if (re && !plucked) {
+      const a = t + Math.max(0.001, atk);
+      if (re.s < 1 && top > peak * re.s) g.gain.setTargetAtTime(peak * re.s, a, Math.max(0.01, re.d / 3));
+      if (re.fade) g.gain.setTargetAtTime(0, a + re.d, re.fade);
+      levelAt = (x) => peak * re.s * (re.fade && x > a + re.d ? Math.exp(-(x - a - re.d) / re.fade) : 1);
+    }
     const dyn = bag.add(ctx.createGain());
     const pan = ctx.createStereoPanner ? bag.add(ctx.createStereoPanner()) : null;
     if (pan) {
@@ -760,6 +931,8 @@ export class Chip {
       src.connect(g).connect(dyn).connect(pan).connect(this.busOf(p));
     } else src.connect(g).connect(dyn).connect(this.busOf(p));
     this.send(pan ?? dyn, p.room, bag);
+    // D297: the preset's own effect (the echo, the hall), from this voice's patch.
+    this.fxSend(pan ?? dyn, pt.send, bag);
     // D182, a trill: the step above and back, about eight times a second (the rate's square wave).
     const lfos: AudioScheduledSourceNode[] = [];
     if (p.trill && ctx.createConstantSource) {
@@ -783,13 +956,26 @@ export class Chip {
     // D213: the subject's vibrato (a plucked string's only a shimmer); where a recording's detune exists.
     const det = srcs.map((x) => x.src.detune).filter((d): d is AudioParam => !!d);
     this.vibrato(det, t, end, plucked ? Math.min(3, p.vib ?? 0) : (p.vib ?? 0), bag, lfos);
+    // D297: the patch's own vibrato on a held recording (its rate, depth and delay: each voice's its own, R4).
+    if (pt.vib && !plucked && det.length && end - t > pt.vib.delay + 0.1) {
+      const lfo = bag.src(ctx.createOscillator());
+      lfos.push(lfo);
+      lfo.frequency.value = pt.vib.rate;
+      const depth = bag.add(ctx.createGain());
+      depth.gain.setValueAtTime(0, t);
+      depth.gain.setValueAtTime(0, t + pt.vib.delay);
+      depth.gain.linearRampToValueAtTime(pt.vib.depth, t + pt.vib.delay + 0.25);
+      lfo.connect(depth);
+      for (const d of det) depth.connect(d);
+      lfo.start(t);
+    }
     // The recording's own end, in the context's time (a plucked note dies away by then).
     const life = (noteInfo(set, near)?.len ?? 4) / Math.max(0.25, srcs[0].src.playbackRate.value) - rec.onset;
     let thunk: GainNode | null = null;
     const letGo = (s: number) => {
       if (g.gain.cancelAndHoldAtTime) g.gain.cancelAndHoldAtTime(s);
-      else (g.gain.cancelScheduledValues(s), g.gain.setValueAtTime(peak, s)); // the envelope is flat after the attack
-      const tau = plucked ? 0.012 + 0.02 * Math.max(0, Math.min(1, (72 - midi) / 36)) : 0.03;
+      else (g.gain.cancelScheduledValues(s), g.gain.setValueAtTime(levelAt(s), s)); // flat after the attack, unless Patch.rec shapes it
+      const tau = re ? Math.max(0.005, re.r / 3) : plucked ? 0.012 + 0.02 * Math.max(0, Math.min(1, (72 - midi) / 36)) : 0.03;
       g.gain.setTargetAtTime(0, s, tau);
       for (const x of srcs) halt(x.src, s + tau * 9 + 0.02);
       for (const l of lfos) halt(l, s + tau * 9 + 0.05);
@@ -803,7 +989,7 @@ export class Chip {
       rs.buffer = r.buffer;
       rs.playbackRate.value = srcs[0].src.playbackRate.value;
       thunk = bag.add(ctx.createGain());
-      thunk.gain.value = peak * 0.9 * Math.max(0.2, Math.exp(-held / Math.max(0.5, life / 3)));
+      thunk.gain.value = peak * (inst.relGain ?? 0.9) * Math.max(0.2, Math.exp(-held / Math.max(0.5, life / 3)));
       rs.connect(thunk).connect(dyn);
       rs.start(s, r.onset);
     };
@@ -914,6 +1100,8 @@ export class Chip {
   private patchNote(midi: number, at: number, dur: number, v: Voicing, pt: Patch, p: Play, bag: Bag): Sounding {
     const ctx = this.ctx;
     const t = Math.max(at, ctx.currentTime);
+    // D297, the analog drift (Patch.drift): the note's tuning off by a slow sine of the clock (no nodes).
+    if (pt.drift) p = { ...p, detune: (p.detune ?? 0) + pt.drift.cents * Math.sin(2 * Math.PI * pt.drift.rate * t + pt.drift.rate * 40) };
     const pluck = pt.amp.s === 0;
     const tail = pluck || p.envelope === "piano" || p.envelope === "dulcimer";
     const end = Math.max(t + 0.05, at + dur - 0.01);
@@ -922,6 +1110,8 @@ export class Chip {
     const peak = pt.level * v.gain * (p.level ?? 1) * 0.5;
     const mix = bag.add(ctx.createGain());
     const oscs: OscillatorNode[] = [];
+    /** D297: the pulse-width sweeps (SID 64), stopped with the note. */
+    const pwmLfos: OscillatorNode[] = [];
     for (const o of pt.osc) {
       const n = bag.src(this.osc(o.wave));
       n.frequency.value = f0 * 2 ** (o.octave ?? 0);
@@ -934,9 +1124,62 @@ export class Chip {
       }
       const g = bag.add(ctx.createGain());
       g.gain.value = o.gain ?? 1;
-      n.connect(g).connect(mix);
+      if (pt.pwm && o.wave === "saw") {
+        // D297, SID 64's pulse-width modulation: the sawtooth less itself `width` of a period later is a
+        // pulse of that width (halved: within ±1); the delay swung by an LFO moves the width.
+        const pw = pt.pwm;
+        const f = f0 * 2 ** (o.octave ?? 0);
+        const half = bag.add(ctx.createGain());
+        half.gain.value = 0.5;
+        const late = bag.add(ctx.createDelay(0.05));
+        late.delayTime.value = pw.width / f;
+        const neg = bag.add(ctx.createGain());
+        neg.gain.value = -0.5;
+        n.connect(half).connect(g);
+        n.connect(late).connect(neg).connect(g);
+        if (pw.depth && pw.rate) {
+          const lfo = bag.src(ctx.createOscillator());
+          lfo.frequency.value = pw.rate;
+          const sweep = bag.add(ctx.createGain());
+          sweep.gain.value = pw.depth / f;
+          lfo.connect(sweep).connect(late.delayTime);
+          lfo.start(t);
+          pwmLfos.push(lfo);
+        }
+        g.connect(mix);
+      } else n.connect(g).connect(mix);
       oscs.push(n);
     }
+    // D297, two-operator FM (Patch.fm): a sine modulator at `ratio` times the note into every
+    // oscillator's frequency, its depth (index x the modulator's frequency, Hz) from `index` to `to`
+    // over `time` (a time constant of a third of it), through `rise` first where given; a second
+    // modulator at a fixed index. The modulators follow the vibrato and the bends (ratios kept).
+    const mods: { o: OscillatorNode; ratio: number }[] = [];
+    if (pt.fm) {
+      const fm = pt.fm;
+      const mod = (ratio: number) => {
+        const o = bag.src(ctx.createOscillator());
+        o.frequency.value = f0 * ratio;
+        o.detune.value = p.detune ?? 0;
+        const depth = bag.add(ctx.createGain());
+        o.connect(depth);
+        for (const n of oscs) depth.connect(n.frequency);
+        mods.push({ o, ratio });
+        return depth.gain;
+      };
+      const hz1 = f0 * fm.ratio;
+      const d = mod(fm.ratio);
+      d.setValueAtTime(fm.index * hz1, t);
+      let from = t;
+      if (fm.rise) {
+        d.linearRampToValueAtTime(fm.rise.to * hz1, t + fm.rise.time);
+        from = t + fm.rise.time;
+      }
+      d.setTargetAtTime(fm.to * hz1, from, fm.time / 3);
+      if (fm.mod2) mod(fm.mod2.ratio).value = fm.mod2.index * f0 * fm.mod2.ratio;
+    }
+    /** Every oscillator whose pitch moves with the note (the carriers and, D297, the modulators). */
+    const tuned = [...oscs, ...mods.map((m) => m.o)];
     let breath: AudioBufferSourceNode | null = null;
     if (pt.breath) {
       breath = bag.src(this.noise());
@@ -949,6 +1192,12 @@ export class Chip {
       breath.connect(bp).connect(bg).connect(mix);
     }
     let src: AudioNode = mix;
+    if (pt.bits) {
+      // D297: the DAC's grain: the oscillators' sum (within ±1) on 2^bits levels, before the envelope.
+      const sh = bag.add(ctx.createWaveShaper());
+      sh.curve = this.stairs(pt.bits);
+      src = src.connect(sh);
+    }
     if (pt.drive) {
       const sh = bag.add(ctx.createWaveShaper());
       const k = pt.drive * 6;
@@ -998,6 +1247,14 @@ export class Chip {
       tone.frequency.value = Math.min(16000, f0 * 8 * bright);
       src = src.connect(tone);
     }
+    if (pt.hp) {
+      // D297: the 120 Hz floor (12 dB an octave): the bass's pitch from its harmonics, no boom.
+      const hp = bag.add(ctx.createBiquadFilter());
+      hp.type = "highpass";
+      hp.frequency.value = pt.hp;
+      hp.Q.value = 0.7071;
+      src = src.connect(hp);
+    }
     src = this.shelf(src, Math.max(1200, Math.min(3500, f0 * 4)), t, p.tone ?? 0, p.crisp ?? 0, bag);
     const dull = p.muffleable ? bag.add(ctx.createBiquadFilter()) : null;
     if (dull) {
@@ -1030,7 +1287,7 @@ export class Chip {
       g.gain.linearRampToValueAtTime(0, end);
     }
     // The LFOs, stopped with the note (D184: they ran on 2 s past its end, and past an early stop).
-    const lfos: AudioScheduledSourceNode[] = [];
+    const lfos: AudioScheduledSourceNode[] = [...pwmLfos];
     if (pt.trem) {
       const lfo = bag.src(ctx.createOscillator());
       lfos.push(lfo);
@@ -1052,11 +1309,11 @@ export class Chip {
       depth.gain.setValueAtTime(0, t + pt.vib.delay);
       depth.gain.linearRampToValueAtTime(pt.vib.depth, t + pt.vib.delay + 0.25);
       lfo.connect(depth);
-      for (const o of oscs) depth.connect(o.detune);
+      for (const o of tuned) depth.connect(o.detune);
       lfo.start(t);
     }
     // D213: the subject's vibrato (a plucked patch only a shimmer).
-    this.vibrato(oscs.map((o) => o.detune), t, end, pluck ? Math.min(3, p.vib ?? 0) : (p.vib ?? 0), bag, lfos);
+    this.vibrato(tuned.map((o) => o.detune), t, end, pluck ? Math.min(3, p.vib ?? 0) : (p.vib ?? 0), bag, lfos);
     if (p.trill && ctx.createConstantSource) {
       // A whole tone above and back: a square wave of 0 or 200 cents.
       const lfo = bag.src(ctx.createOscillator());
@@ -1068,7 +1325,7 @@ export class Chip {
       lfos.push(lfo, centre);
       centre.offset.value = 100;
       lfo.connect(depth);
-      for (const o of oscs) (depth.connect(o.detune), centre.connect(o.detune));
+      for (const o of tuned) (depth.connect(o.detune), centre.connect(o.detune));
       lfo.start(t + 0.06);
       centre.start(t + 0.06);
     }
@@ -1079,13 +1336,32 @@ export class Chip {
       src.connect(g).connect(dyn).connect(pan).connect(this.busOf(p));
     } else src.connect(g).connect(dyn).connect(this.busOf(p));
     this.send(pan ?? dyn, p.room, bag);
+    // D297: the preset's own effect (the echo, the hall), from this voice's patch.
+    this.fxSend(pan ?? dyn, pt.send, bag);
+    if (pt.chiff && !p.legato) {
+      // D297, CHAMBER ORGAN: the pipe's chiff: band-passed noise about the `at`th harmonic, past the
+      // envelope (the pipe's slower speech), up in 3 ms and gone within `time`.
+      const ch = pt.chiff;
+      const nz = bag.src(this.noise());
+      const bp = bag.add(ctx.createBiquadFilter());
+      bp.type = "bandpass";
+      bp.frequency.value = Math.min(9000, f0 * ch.at);
+      bp.Q.value = 2;
+      const cg = bag.add(ctx.createGain());
+      cg.gain.setValueAtTime(0, t);
+      cg.gain.linearRampToValueAtTime(peak * ch.level * 2, t + 0.003);
+      cg.gain.setTargetAtTime(0, t + 0.003, ch.time / 3);
+      nz.connect(bp).connect(cg).connect(dyn);
+      nz.start(t);
+      halt(nz, t + ch.time * 2 + 0.03);
+    }
     // D184: a plucked or struck note is damped at its written end (it rang 6 s whatever its length:
     // fifty voices at once on a phone); a lead note's end is its hold, so it rings as it would.
     const damp = tail && end + 0.5 < t + 6;
     if (damp) g.gain.setTargetAtTime(0, Math.max(t + a + 0.01, end), 0.08);
     const last = tail ? (damp ? end + 0.5 : t + 6) : end + 0.05;
     for (const l of lfos) halt(l, last + 0.1);
-    for (const o of oscs) (o.start(t), halt(o, last));
+    for (const o of tuned) (o.start(t), halt(o, last));
     if (breath) (breath.start(t), halt(breath, last));
     let stopped = false;
     return {
@@ -1096,17 +1372,20 @@ export class Chip {
         if (g.gain.cancelAndHoldAtTime) g.gain.cancelAndHoldAtTime(s);
         else (g.gain.cancelScheduledValues(s), g.gain.setValueAtTime(sus || peak * 0.3, s));
         g.gain.linearRampToValueAtTime(0, s + Math.max(0.02, p.legato ? 0.02 : pt.amp.r));
-        for (const o of oscs) halt(o, s + pt.amp.r + 0.1);
+        for (const o of tuned) halt(o, s + pt.amp.r + 0.1);
         if (breath) halt(breath, s + pt.amp.r + 0.1);
         for (const l of lfos) halt(l, s + pt.amp.r + 0.15);
       },
       bend: (cents: number) => {
-        if (!stopped) for (const [i, o] of oscs.entries()) o.detune.setTargetAtTime((pt.osc[i].detune ?? 0) + (p.detune ?? 0) + cents, ctx.currentTime, 0.02);
+        if (stopped) return;
+        for (const [i, o] of oscs.entries()) o.detune.setTargetAtTime((pt.osc[i].detune ?? 0) + (p.detune ?? 0) + cents, ctx.currentTime, 0.02);
+        for (const m of mods) m.o.detune.setTargetAtTime((p.detune ?? 0) + cents, ctx.currentTime, 0.02);
       },
       glide: (to: number) => {
         if (stopped) return;
         const f = hz(to);
         for (const [i, o] of oscs.entries()) o.frequency.setTargetAtTime(f * 2 ** (pt.osc[i].octave ?? 0), ctx.currentTime, 0.025);
+        for (const m of mods) m.o.frequency.setTargetAtTime(f * m.ratio, ctx.currentTime, 0.025);
       },
       muffle: () => {
         if (stopped || !dull) return;
@@ -1387,9 +1666,11 @@ export function voicing(voice: number, count: number, _played = true): Voicing {
   // sound: there the bass is a pulse (its overtones carry the pitch), the one no voice near it uses.
   const phoneBass = bass && isPhone();
   const timbre: Timbre = phoneBass ? (count > 3 ? "pulse25" : "pulse50") : bass || count === 1 ? "triangle" : fromTop === 0 ? "pulse12" : fromTop === 1 && count > 3 ? "pulse25" : count > 3 ? "pulse50" : "pulse25";
-  const pan = count > 1 ? (0.5 - fromTop / (count - 1)) * 0.9 : 0;
+  // D297: a period preset places its voices itself (within ±0.35) and may set an inner voice a shade lighter.
+  const place = placeFor(voice, count);
+  const pan = place ? place.pan : count > 1 ? (0.5 - fromTop / (count - 1)) * 0.9 : 0;
   // D169: the voice played is no louder than the others; it stands out by its colour in the box.
-  return { timbre, pan, gain: phoneBass ? PHONE_BASS_GAIN : 1, patch: patchFor(voice, count) };
+  return { timbre, pan, gain: (phoneBass ? PHONE_BASS_GAIN : 1) * (place?.level ?? 1), patch: patchFor(voice, count) };
 }
 
 /** A decaying stereo noise, for the room. */
@@ -1405,6 +1686,45 @@ function impulse(ctx: AudioContext, seconds: number): AudioBuffer {
     }
   }
   return b;
+}
+
+/**
+ * D297, NOCTURNE 32-BIT's hall (and CHAMBER ORGAN's church): stereo noise decaying to -60 dB in `rt60` s, thin for its first
+ * 12 ms (the early reflections) and darkening as it decays (a one-pole lowpass closing, as effects.ts's
+ * hall with its brightness, 0.3 for the hall); `seconds` long. Seeded: the same hall every time.
+ */
+export function darkHall(ctx: BaseAudioContext, seconds: number, rt60 = HALL.rt60, brightness = HALL.brightness): AudioBuffer {
+  const sr = ctx.sampleRate;
+  const len = Math.floor(sr * seconds);
+  const b = ctx.createBuffer(2, len, sr);
+  const tau = rt60 / Math.log(1000);
+  for (let c = 0; c < 2; c++) {
+    const d = b.getChannelData(c);
+    let seed = 4321 + c * 97;
+    let lp = 0;
+    for (let i = 0; i < len; i++) {
+      seed = (seed * 16807) % 2147483647;
+      const t = i / sr;
+      const k = Math.min(0.98, (1 - brightness) * 0.6 + (t / seconds) * 0.35);
+      lp = lp * k + ((seed / 2147483647) * 2 - 1) * (1 - k);
+      // Sparse before 12 ms: one sample in eight.
+      const early = t < 0.012 ? (i % 8 === 0 ? 2.5 : 0) : 1;
+      d[i] = lp * early * Math.exp(-t / tau) * Math.min(1, (len - i) / (0.05 * sr));
+    }
+  }
+  return b;
+}
+
+/** D297: a WaveShaper curve quantising -1..1 to 2^bits levels (a staircase, 8 points a step). */
+export function stairCurve(bits: number): Float32Array<ArrayBuffer> {
+  const levels = 2 ** bits;
+  const n = Math.min(65536, levels * 8);
+  const c = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const x = (i / (n - 1)) * 2 - 1;
+    c[i] = Math.max(-1, Math.min(1, Math.round((x * levels) / 2) / (levels / 2)));
+  }
+  return c;
 }
 
 /** A tenth of a second of silence as a WAV (16-bit mono, 8 kHz), as a blob URL. */

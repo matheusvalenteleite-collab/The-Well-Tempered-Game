@@ -4,7 +4,8 @@
  * loud manual every minor third C1-C6 and its loud pedal C1-F#3, looped); D292, a grand piano
  * (Salamander Grand Piano V3, Alexander Holm, CC BY 3.0: every minor third A1-C7). chip.ts plays them
  * (`sampledNote`); this module says which recordings a piece needs, fetches and decodes only those, and
- * how to retune them.
+ * how to retune them. D297: and the period presets' sets (`PERIOD`): the bench's VSCO recordings and
+ * these made over once decoded as a console held them (`bake`).
  *
  * Why only some notes: a decoded second of stereo at 48 kHz is 384 KB, and Safari on an iPhone drops a
  * page that holds too much (research: about 150 MB of audio at most); the whole harpsichord would be
@@ -27,18 +28,124 @@ import { SAMPLED_NOTES as HARPSI_ORGAN } from "./sampled-data.ts";
 const GRAND_SHORT: Record<string, number> = { A6: 6.766, C6: 6.296, C7: 4.519, Ds6: 6.87, Fs6: 6.165 };
 const GRAND_NOTES = Object.fromEntries((SAMPLE_MANIFEST.grand?.notes ?? []).map((n) => [n, { cents: 0, len: GRAND_SHORT[n] ?? 7.027 }]));
 
-/** Every recorded note's measured tuning, length and loop (the harpsichord and organ's, D190; D288: the ensembles' withdrawn; D292: the grand piano's). */
-const SAMPLED_NOTES: Record<string, Record<string, { cents: number; len: number; loop?: [number, number] }>> = { ...HARPSI_ORGAN, grand: GRAND_NOTES, grandSoft: GRAND_NOTES };
+/**
+ * D297, the period presets' recordings (sound.ts SUPER 16-BIT, NOCTURNE 32-BIT): a set of its own per
+ * voice, the files of `folder` made over once decoded (`bake`) as a console's sound memory held them:
+ * mono; band-limited and resampled to `rate` (a 4-pole lowpass at 0.45 of it, then read back by linear
+ * interpolation); a 2-pole lowpass (Q 0.5) at `lp` Hz standing in for the 4-point Gaussian
+ * interpolation of the SNES and the PlayStation (it softens the top of each sample's band, and moves
+ * with the playback rate as on the hardware); a 2-pole high-pass at 120 Hz (the report's floor for every
+ * voice, R2); quantised to `bits` against the note's peak (11: BRR's grain; 13: the PlayStation's ADPCM,
+ * barely there). `loop`: the recording has none (VSCO's winds and strings, 4.5 s each): one is made
+ * over its steady stretch (`WIND_LOOP`, from the onset), a 0.25 s crossfade baked in, so a held note
+ * lasts as it is written (SNES samples were short loops). Each its own bank and plan; on a phone they
+ * cost what a mono set does (STEREO excludes them), the plan's notes only.
+ */
+export interface Bake {
+  folder: string;
+  rate: number;
+  lp: number;
+  bits: number;
+  /** A loop made (the recording has none): `true`, WIND_LOOP; or its own (s from the onset). */
+  loop?: boolean | [number, number];
+  /**
+   * TRACKER (D297): read back with no interpolation (each sample held until the next, as the Amiga's
+   * Paula played them: the aliasing grit kept) and no Gaussian softening (`lp` then unused).
+   */
+  hold?: boolean;
+}
+/** D297: TRACKER's short loops (s from the onset): half a second, as a MOD's samples looped a short stretch. */
+export const TRACKER_LOOP: [number, number] = [1.0, 1.5];
+export const PERIOD: Record<string, Bake> = {
+  // SUPER 16-BIT (§6.1: oboe 16 kHz LP 5.8 kHz, harpsichord 16 kHz 6 kHz, clarinet 14 kHz 5 kHz, violin 16 kHz 6 kHz, bassoon 12 kHz 4.3 kHz; 11 bits).
+  oboe16: { folder: "oboe", rate: 16000, lp: 5800, bits: 11, loop: true },
+  harpsi16: { folder: "harpsichord", rate: 16000, lp: 6000, bits: 11 },
+  clarinet16: { folder: "clarinet", rate: 14000, lp: 5000, bits: 11, loop: true },
+  violin16: { folder: "violin", rate: 16000, lp: 6000, bits: 11, loop: true },
+  bassoon16: { folder: "bassoon", rate: 12000, lp: 4300, bits: 11, loop: true },
+  // NOCTURNE 32-BIT (§6.2: 22.05 kHz; violin and oboe LP 8 kHz, harpsichord 8.8 kHz, viola 7 kHz, organ 6 kHz; 13 bits).
+  violin32: { folder: "violin", rate: 22050, lp: 8000, bits: 13, loop: true },
+  oboe32: { folder: "oboe", rate: 22050, lp: 8000, bits: 13, loop: true },
+  harpsi32: { folder: "harpsichord", rate: 22050, lp: 8800, bits: 13 },
+  harpsiRel32: { folder: "harpsichordRel", rate: 22050, lp: 8800, bits: 13 },
+  viola32: { folder: "violaSus", rate: 22050, lp: 7000, bits: 13, loop: true },
+  pedal32: { folder: "pipePedal", rate: 22050, lp: 6000, bits: 13 },
+  manual32: { folder: "pipeOrgan", rate: 22050, lp: 6000, bits: 13 },
+  // TRACKER (the Amiga's 8-bit samples at 8-16 kHz, held, no smoothing; short loops of 0.5 s).
+  violinMod: { folder: "violin", rate: 12000, lp: 0, bits: 8, loop: TRACKER_LOOP, hold: true },
+  fluteMod: { folder: "flute", rate: 10000, lp: 0, bits: 8, loop: TRACKER_LOOP, hold: true },
+  harpsiMod: { folder: "harpsichord", rate: 16000, lp: 0, bits: 8, hold: true },
+  clarinetMod: { folder: "clarinet", rate: 11000, lp: 0, bits: 8, loop: TRACKER_LOOP, hold: true },
+  bassoonMod: { folder: "bassoon", rate: 8000, lp: 0, bits: 8, loop: TRACKER_LOOP, hold: true },
+  // TEMPLE 64 and AGENT 64 (the N64: small VADPCM samples, about 4.5 bits a sample, mixed at 22-32 kHz
+  // in software: soft and a little muffled; 10 bits stand in for the ADPCM's grain).
+  flute64: { folder: "flute", rate: 22050, lp: 6000, bits: 10, loop: true },
+  harp64: { folder: "harp", rate: 22050, lp: 6000, bits: 10 },
+  viola64: { folder: "violaSus", rate: 22050, lp: 5500, bits: 10, loop: true },
+  horn64: { folder: "horn", rate: 22050, lp: 5000, bits: 10, loop: true },
+  pedal64: { folder: "pipePedal", rate: 22050, lp: 5500, bits: 10 },
+  manual64: { folder: "pipeOrgan", rate: 22050, lp: 5500, bits: 10 },
+  xylo64: { folder: "xylophone", rate: 22050, lp: 7000, bits: 10 },
+  trumpet64: { folder: "trumpet", rate: 22050, lp: 4500, bits: 10, loop: true },
+  strings64: { folder: "violaSus", rate: 16000, lp: 3500, bits: 10, loop: true },
+  hornAgent64: { folder: "horn", rate: 22050, lp: 5000, bits: 10, loop: true },
+  bass64: { folder: "ebass", rate: 22050, lp: 6000, bits: 10 },
+};
+/**
+ * D297: a period set's notes are kept at this share of the decoded rate (22.05 or 24 kHz, a rate every
+ * browser's createBuffer takes): what the bake leaves is all under 10 kHz.
+ */
+export const BAKE_RATE = 0.5;
+/** D297: the made loop of the loopless recordings (s from the onset): within the steady stretch (all hold 1-4 s, measured). */
+export const WIND_LOOP: [number, number] = [1.4, 3.6];
+/**
+ * D297: the VSCO and other recordings' tuning (cents, measured: autocorrelation over 1-3 s of each file,
+ * the plucked ones over 0.2-1 s); every note 4.545 s (the plucked ones as SHORT says).
+ */
+const VSCO_CENTS: Record<string, Record<string, number>> = {
+  oboe: { As3: 1.9, As4: -0.6, As5: 3, D4: 0.5, D5: 3.6, D6: -0.1, F4: 1, F5: 0.8, F6: 0 },
+  clarinet: { As3: 1.2, As4: 0.6, As5: 0.4, D3: 0.2, D4: -0.8, D5: 0.6, D6: 3, F3: -0.1, F4: 2.4, F5: 1, F6: -0.4 },
+  bassoon: { C3: -0.8, C4: -0.2, C5: 1.2, E4: 0.8, G2: -0.5, G3: -0.1, G4: -0.7 },
+  violin: { C4: 4.8, C5: 4.1, C6: -9.9, C7: -0.9, E4: 0.8, E5: 15.4, E6: 12, G3: -1, G4: 1.2, G5: 5.7, G6: 10.9 },
+  flute: { A4: -1.4, A5: 0.6, A6: -1.2, C4: 0, C5: 1.8, C6: -3.1, C7: 1.7, E4: 0.4, E5: 1, E6: 0.5 },
+  violaSus: { A4: 1.6, B3: 0, B5: -0.8, C3: 0.2, C5: -0.5, D3: -0.2, D4: -0.5, D6: 0, E3: 0.4, E5: -0.3, F4: 0.3, G3: -0.5, G5: 1.6 },
+  harp: { A2: -3.7, A4: -9.6, A6: -18.7, B1: -14.5, B3: -12, B5: -8.3, C3: -2.7, C5: -10.4, D2: -4.8, D4: -12.4, D6: -7.7, D7: -8, E1: -16.5, E3: -4.4, E5: -11.5, F2: -7.2, F4: -0.7, F6: -5.8, F7: 0, G1: -21.4, G3: -8, G5: -6.7 },
+  horn: { A1: -0.2, A3: 0.1, C2: 0, C4: -0.2, D3: 0.6, D5: 0.2, Ds2: 0, F3: 0.1, F5: 0.1, G2: 0.3 },
+  trumpet: { A3: 0.7, A5: 0.8, As4: 1, C4: -2.3, C6: 0.6, D5: 1.3, Ds4: -2.8, F3: -12.1, F5: 1.6, G4: -1.7 },
+  xylophone: { C5: 9.7, C6: 15.4, C7: 16.2, C8: 21.1, G4: 2.7, G5: 15.4, G6: 3.9, G7: 17.9 },
+  ebass: { As1: -0.4, As2: -0.7, As3: 0.2, As4: 3.5, Cs1: 7.8, Cs2: 0.1, Cs3: 0, Cs4: -1.3, Cs5: 0.7, E1: 6.1, E2: -1, E3: -1.7, E4: -1.6, G1: -3.4, G2: -1.9, G3: -0.3, G4: 0.3 },
+};
+/** D297: the recordings shorter than 4.545 s (s, measured). */
+const SHORT: Record<string, Record<string, number>> = {
+  harp: { A2: 4.5, A4: 4.5, A6: 3.58, B1: 4.5, B3: 4.5, B5: 4.394, C3: 4.5, C5: 4.5, D2: 4.5, D4: 4.5, D6: 3.878, D7: 2.19, E1: 4.5, E3: 4.5, E5: 4.5, F2: 4.5, F4: 4.5, F6: 2.332, F7: 1.848, G1: 4.5, G3: 4.5, G5: 4.5 },
+  xylophone: { C5: 3.369, C6: 1.884, C7: 1.467, C8: 1.138, G4: 3.619, G5: 2.507, G6: 1.614, G7: 1.383 },
+  horn: {},
+  trumpet: { F3: 4.292 },
+  ebass: {},
+};
+/** D297: a period set's made loop (s from the onset). */
+const loopOf = (b: Bake): [number, number] => (b.loop === true ? WIND_LOOP : b.loop || WIND_LOOP);
+const PERIOD_NOTES = Object.fromEntries(
+  Object.entries(PERIOD).map(([set, b]) => [
+    set,
+    HARPSI_ORGAN[b.folder] ??
+      // (The key-up noises have no entries, as the harpsichord's own: short, and not retuned.)
+      Object.fromEntries(VSCO_CENTS[b.folder] ? (SAMPLE_MANIFEST[b.folder]?.notes ?? []).map((n) => [n, { cents: VSCO_CENTS[b.folder][n] ?? 0, len: SHORT[b.folder]?.[n] ?? 4.545, ...(b.loop ? { loop: loopOf(b) } : {}) }]) : []),
+  ]),
+);
+
+/** Every recorded note's measured tuning, length and loop (the harpsichord and organ's, D190; D288: the ensembles' withdrawn; D292: the grand piano's; D297: the period sets'). */
+const SAMPLED_NOTES: Record<string, Record<string, { cents: number; len: number; loop?: [number, number] }>> = { ...HARPSI_ORGAN, grand: GRAND_NOTES, grandSoft: GRAND_NOTES, ...PERIOD_NOTES };
 
 /**
  * D294: a set that is another folder's velocity layer (its files "C4-v7.mp3" beside the layer played):
  * the grand's softer layer 7 as "grandSoft". Its own bank, plan and mono fold; the folder's manifest.
  */
 const LAYER_SET: Record<string, { folder: string; layer: number }> = { grandSoft: { folder: "grand", layer: 7 } };
-/** The folder of public/samples a set's files are in. */
-export const folderOf = (set: string) => LAYER_SET[set]?.folder ?? set;
+/** The folder of public/samples a set's files are in (D297: a period set's, its folder's). */
+export const folderOf = (set: string) => LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set;
 
-export type SampledId = "harpsichord" | "organ" | "piano";
+export type SampledId = "harpsichord" | "organ" | "piano" | "oboe16" | "harpsi16" | "clarinet16" | "violin16" | "bassoon16" | "violin32" | "oboe32" | "harpsi32" | "viola32" | "organ32" | "violinMod" | "fluteMod" | "harpsiMod" | "clarinetMod" | "bassoonMod" | "flute64" | "harp64" | "viola64" | "horn64" | "organ64" | "xylo64" | "trumpet64" | "strings64" | "hornAgent64" | "bass64";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -59,6 +166,10 @@ export interface SampledInstrument {
    * colour than in loudness: layer 7 is about 5 dB under layer 12 as recorded).
    */
   soft?: { set: string; below: number; gain: number };
+  /** D297: the key-up noise's level against the note (0.9 if not given). */
+  relGain?: number;
+  /** D297: the pitches from `from` up played from `set` (an organ's manual above its pedal's compass). */
+  above?: { set: string; from: number };
 }
 
 export const SAMPLED: Record<SampledId, SampledInstrument> = {
@@ -71,7 +182,42 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   // D294: and layer 7 for the lighter notes (a Tureck-like clarity: the strong beats and the tops of
   // phrases struck firmer, the notes between lighter, as a pianist's touch varies), 2 dB under layer 12.
   piano: { set: "grand", plucked: true, gain: 3.8, layer: 12, soft: { set: "grandSoft", below: 1, gain: 1.41 } },
+  // D297: the period presets' instruments (PERIOD's sets); the winds and strings held on their made
+  // loops, the harpsichords plucked. Gains set by measurement (II/22 and I/2 rendered offline through
+  // chip.ts, each voice alone): the voices of a preset within about 1.5 dB of each other (R8).
+  oboe16: { set: "oboe16", plucked: false, gain: 2.2 },
+  harpsi16: { set: "harpsi16", plucked: true, gain: 1.8 },
+  clarinet16: { set: "clarinet16", plucked: false, gain: 2.2 },
+  violin16: { set: "violin16", plucked: false, gain: 2.2 },
+  bassoon16: { set: "bassoon16", plucked: false, gain: 2.2 },
+  violin32: { set: "violin32", plucked: false, gain: 2.2 },
+  oboe32: { set: "oboe32", plucked: false, gain: 2.2 },
+  // The key-up noise 12 dB under the note (§6.2).
+  harpsi32: { set: "harpsi32", release: "harpsiRel32", relGain: 0.23, plucked: true, gain: 1.8 },
+  viola32: { set: "viola32", plucked: false, gain: 2.2 },
+  // The organ's pedal up to F#3 (its compass), the manual above (§6.2).
+  organ32: { set: "pedal32", above: { set: "manual32", from: 55 }, plucked: false, gain: 2.5 },
+  // TRACKER's.
+  violinMod: { set: "violinMod", plucked: false, gain: 2.2 },
+  fluteMod: { set: "fluteMod", plucked: false, gain: 2.2 },
+  harpsiMod: { set: "harpsiMod", plucked: true, gain: 1.8 },
+  clarinetMod: { set: "clarinetMod", plucked: false, gain: 2.2 },
+  bassoonMod: { set: "bassoonMod", plucked: false, gain: 2.2 },
+  // TEMPLE 64's and AGENT 64's.
+  flute64: { set: "flute64", plucked: false, gain: 2.2 },
+  harp64: { set: "harp64", plucked: true, gain: 2.2 },
+  viola64: { set: "viola64", plucked: false, gain: 2.2 },
+  horn64: { set: "horn64", plucked: false, gain: 2.2 },
+  organ64: { set: "pedal64", above: { set: "manual64", from: 55 }, plucked: false, gain: 2.5 },
+  xylo64: { set: "xylo64", plucked: true, gain: 2.2 },
+  trumpet64: { set: "trumpet64", plucked: false, gain: 2.2 },
+  strings64: { set: "strings64", plucked: false, gain: 2.2 },
+  hornAgent64: { set: "hornAgent64", plucked: false, gain: 2.2 },
+  bass64: { set: "bass64", plucked: true, gain: 2.2 },
 };
+
+/** D297: the set a pitch of an instrument is played from (an organ's manual above its pedal). */
+export const setFor = (inst: SampledInstrument, midi: number) => (inst.above && midi >= inst.above.from ? inst.above.set : inst.set);
 
 /** D292: the layer each layered set plays (its files' suffix); D294: and the layer sets'. */
 const LAYER = new Map([...Object.values(SAMPLED).filter((i) => i.layer).map((i) => [i.set, i.layer!] as const), ...Object.entries(LAYER_SET).map(([s, l]) => [s, l.layer] as const)]);
@@ -148,8 +294,12 @@ export type Plan = { set: string; notes: number[] }[];
 export function planFor(inst: SampledInstrument, pitches: Iterable<number>, lead: Iterable<number> = []): Plan {
   const all = [...pitches];
   const own = [...lead];
-  const notes = notesFor(inst.set, [...all, ...own.flatMap((m) => [m - 12, m + 12])]);
+  const wanted = [...all, ...own.flatMap((m) => [m - 12, m + 12])];
+  // D297: an organ's manual for the pitches above its pedal's compass.
+  const above = inst.above;
+  const notes = notesFor(inst.set, above ? wanted.filter((m) => m < above.from) : wanted);
   const plan: Plan = [{ set: inst.set, notes }];
+  if (above) plan.push({ set: above.set, notes: notesFor(above.set, wanted.filter((m) => m >= above.from)) });
   if (inst.soft) plan.push({ set: inst.soft.set, notes });
   if (inst.release) plan.push({ set: inst.release, notes: notes.filter((m) => sampledMidis(inst.release!).includes(m)) });
   if (inst.low) {
@@ -165,7 +315,9 @@ export function decodedBytes(plan: Plan, sampleRate = 48000, mono = false): numb
   let total = 0;
   for (const { set, notes } of plan) {
     const ch = STEREO.has(set) && !mono ? 2 : 1;
-    for (const m of notes) total += Math.ceil((noteInfo(set, m)?.len ?? 0) * sampleRate) * ch * 4;
+    // D297: a period set's notes kept at half the rate.
+    const rate = PERIOD[set] ? sampleRate * BAKE_RATE : sampleRate;
+    for (const m of notes) total += Math.ceil((noteInfo(set, m)?.len ?? 0) * rate) * ch * 4;
   }
   return total;
 }
@@ -188,6 +340,89 @@ export function onsetOf(data: Float32Array, sampleRate: number): number {
   const at = peak * 0.01;
   for (let i = 0; i < n; i++) if (Math.abs(data[i]) > at) return Math.max(0, i / sampleRate - 0.001);
   return 0;
+}
+
+/** D297: a biquad (RBJ's cookbook: "lowpass" or "highpass" at f Hz, quality q) run over x in place. */
+function biquad(x: Float32Array, type: "lowpass" | "highpass", f: number, q: number, sr: number) {
+  const w = (2 * Math.PI * Math.min(f, sr * 0.49)) / sr;
+  const cos = Math.cos(w);
+  const alpha = Math.sin(w) / (2 * q);
+  const a0 = 1 + alpha;
+  const b1 = (type === "lowpass" ? 1 - cos : -(1 + cos)) / a0;
+  const b0 = Math.abs(b1) / 2;
+  const a1 = (-2 * cos) / a0;
+  const a2 = (1 - alpha) / a0;
+  let x1 = 0;
+  let x2 = 0;
+  let y1 = 0;
+  let y2 = 0;
+  for (let i = 0; i < x.length; i++) {
+    const x0 = x[i];
+    const y0 = b0 * x0 + b1 * x1 + b0 * x2 - a1 * y1 - a2 * y2;
+    x2 = x1;
+    x1 = x0;
+    y2 = y1;
+    y1 = y0;
+    x[i] = y0;
+  }
+}
+/** x read at a fractional index (linear interpolation, clamped at the ends). */
+const lerpAt = (x: Float32Array, p: number) => {
+  const i = Math.min(x.length - 1, Math.max(0, Math.floor(p)));
+  const j = Math.min(x.length - 1, i + 1);
+  return x[i] + (x[j] - x[i]) * (p - i);
+};
+
+/**
+ * D297: a decoded recording made over as a console held it (PERIOD, which says how): its channels
+ * folded to one, band-limited and resampled to `rate` and back, softened (the Gaussian's stand-in),
+ * high-passed at 120 Hz, quantised to `bits` against its peak, and (`loop`) the end of its made loop
+ * crossfaded into the stretch before the loop's start, so the loop joins without a click.
+ */
+export function bake(chans: Float32Array[], sr0: number, b: Bake): Float32Array {
+  const n0 = chans[0]?.length ?? 0;
+  const x0 = new Float32Array(n0);
+  for (const c of chans) for (let i = 0; i < n0; i++) x0[i] += c[i] / chans.length;
+  // Band-limited for the lower rate (a 4-pole Butterworth lowpass at 0.45 of it), then resampled to
+  // it and read back by linear interpolation (the images softened, not removed) at half the decoded
+  // rate (BAKE_RATE: nothing is left above a quarter of it, and the note takes half the memory).
+  biquad(x0, "lowpass", 0.45 * b.rate, 0.5412, sr0);
+  biquad(x0, "lowpass", 0.45 * b.rate, 1.3066, sr0);
+  const step = sr0 / b.rate;
+  const low = new Float32Array(Math.max(1, Math.floor((n0 - 1) / step) + 1));
+  for (let j = 0; j < low.length; j++) low[j] = lerpAt(x0, j * step);
+  const sr = sr0 * BAKE_RATE;
+  const n = Math.max(1, Math.ceil(n0 * BAKE_RATE));
+  const x = new Float32Array(n);
+  if (b.hold) for (let i = 0; i < n; i++) x[i] = low[Math.min(low.length - 1, Math.floor((i * b.rate) / sr))];
+  else for (let i = 0; i < n; i++) x[i] = lerpAt(low, (i * b.rate) / sr);
+  // The Gaussian interpolation's dulling (2 poles, Q 0.5; not on a tracker's held samples), and the 120 Hz floor.
+  if (!b.hold) biquad(x, "lowpass", b.lp, 0.5, sr);
+  biquad(x, "highpass", 120, 0.7071, sr);
+  // The grain: so many bits against the note's peak (no dither, as the hardware).
+  let peak = 0;
+  for (let i = 0; i < n; i++) peak = Math.max(peak, Math.abs(x[i]));
+  if (peak > 0) {
+    const q = peak / 2 ** (b.bits - 1);
+    for (let i = 0; i < n; i++) x[i] = Math.round(x[i] / q) * q;
+  }
+  if (b.loop) {
+    // The made loop (WIND_LOOP or its own, from the onset): its last 0.25 s (a third of a short loop) faded into the same before its start
+    // (equal power), so that playing on from its start sounds what the end had become.
+    const on = onsetOf(x, sr);
+    const [a, z] = loopOf(b);
+    const l0 = Math.round((on + a) * sr);
+    const l1 = Math.round((on + z) * sr);
+    // (A third of a short loop at most.)
+    const xf = Math.round(Math.min(0.25, (z - a) / 3) * sr);
+    if (l0 - xf >= 0 && l1 <= n) {
+      for (let k = 0; k < xf; k++) {
+        const w = (k / xf) * (Math.PI / 2);
+        x[l1 - xf + k] = x[l1 - xf + k] * Math.cos(w) + x[l0 - xf + k] * Math.sin(w);
+      }
+    }
+  }
+  return x;
 }
 
 // ---- Loading (the browser only).
@@ -274,6 +509,15 @@ function toMono(ctx: BaseAudioContext, b: AudioBuffer): AudioBuffer {
   return out;
 }
 
+/** D297: a decoded recording made over for a period set (`bake`), one channel at half its rate; the decoded one let go. */
+function baked(ctx: BaseAudioContext, b: AudioBuffer, spec: Bake): AudioBuffer {
+  const chans = Array.from({ length: b.numberOfChannels }, (_, c) => b.getChannelData(c));
+  const data = bake(chans, b.sampleRate, spec);
+  const out = ctx.createBuffer(1, data.length, b.sampleRate * BAKE_RATE);
+  out.getChannelData(0).set(data);
+  return out;
+}
+
 function loadNote(ctx: BaseAudioContext, set: string, m: number): Promise<void> {
   const key = `${set}:${m}`;
   const busy = inFlight.get(key);
@@ -290,7 +534,8 @@ function loadNote(ctx: BaseAudioContext, set: string, m: number): Promise<void> 
       return;
     }
     const decoded = await slot(() => ctx.decodeAudioData(bytes));
-    const buffer = monoSets.has(set) ? toMono(ctx, decoded) : decoded;
+    const period = PERIOD[set];
+    const buffer = period ? baked(ctx, decoded, period) : monoSets.has(set) ? toMono(ctx, decoded) : decoded;
     let bank = banks.get(set);
     if (!bank) banks.set(set, (bank = new Map()));
     bank.set(m, { buffer, onset: onsetOf(buffer.getChannelData(0), buffer.sampleRate) });
