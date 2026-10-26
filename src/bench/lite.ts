@@ -161,7 +161,7 @@ export function recordLiteBest(piece: string, final: number): { before: number |
 
 /** The one-line instruction shown at the start of the first game in each mode (D239: the two grades of a right note). */
 export const LITE_HINT: Record<string, string> = {
-  ladder: "touch either bar at the note's height · land the next before you lift the last",
+  ladder: "touch either bar at the note's height · hand over from thumb to thumb with no gap",
   highway: "tap the note's lane as it lands: full points · another lane the right way (right = up, left = down): half",
   keys: "press the lane's key as the note lands: full points · another key the right way: half · SPACE repeats",
 };
@@ -186,7 +186,7 @@ export const RULES: Record<string, string[]> = {
   ladder: [
     "Hold the phone sideways, a thumb on each bar.",
     "Touch either bar at the note's height as it reaches the line: higher notes higher up.",
-    "Land the next note before you lift the last: LEGATO scores more. Miss too many and the crowd leaves.",
+    "Hand each note to the other thumb with no gap: LEGATO scores more. Miss too many and the crowd leaves.",
   ],
 };
 

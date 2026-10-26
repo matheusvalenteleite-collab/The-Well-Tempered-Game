@@ -49,6 +49,9 @@ const MODELS: Record<string, Model> = {
 test("D286: the ladder judges each thumb's moves, not the two thumbs' level", () => {
   for (const [id, v] of [["wtc1f02", 0], ["wtc2f13", 1], ["wtc1f07", 0], ["inv01", 0]] as const) {
     for (const k of ["exact", "thumbs 60px apart", "thumbs 90px apart", "scale ×0.4", "60px apart + jitter"]) assert.ok(play(id, v, MODELS[k]) >= 98, `${id}/${v} ${k}: ${play(id, v, MODELS[k])}%`);
-    for (const k of ["INVERTED contour", "INVERTED, thumbs 60px apart", "RANDOM in box", "SAME spot"]) assert.ok(play(id, v, MODELS[k]) <= 20, `${id}/${v} ${k}: ${play(id, v, MODELS[k])}%`);
+    // D289: a row's leeway for a step (the owner's choice): a step's direction is no longer judged at a
+    // drawn row of 8-9 px (finer than a thumb lands), only leaps; an inverted contour keeps up to about 3/4.
+    for (const k of ["INVERTED contour", "INVERTED, thumbs 60px apart"]) assert.ok(play(id, v, MODELS[k]) <= 75, `${id}/${v} ${k}: ${play(id, v, MODELS[k])}%`);
+    for (const k of ["RANDOM in box", "SAME spot"]) assert.ok(play(id, v, MODELS[k]) <= 20, `${id}/${v} ${k}: ${play(id, v, MODELS[k])}%`);
   }
 });

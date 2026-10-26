@@ -285,7 +285,11 @@ function invention(o: { voice?: number; fromBar?: number; toBar?: number; wait?:
   // D280: every step of the tutorial is shown first (the game plays it, the thumbs drawn) and guided after.
   const f = fugueById(INVENTION);
   const from = ((o.fromBar ?? 1) - 1) * BAR;
-  const until = o.toBar ? (o.toBar - 1) * BAR : f.length;
+  // D289: a passage ends on the note it leads to (the owner: "ought to end in the concluding note for
+  // resolution"): the played voice's first note at or after the closing bar line is in.
+  const cut = o.toBar ? (o.toBar - 1) * BAR : f.length;
+  const arrival = o.toBar ? f.voices[o.voice ?? 0].find((n) => n[0] >= cut) : undefined;
+  const until = arrival ? arrival[0] + 1 : cut;
   return { proto: "ladder", fail: o.fail ?? false, piece: INVENTION, voice: o.voice ?? 0, from, until, bpm: o.bpm ?? 48, wait: o.wait ?? false, solo: o.solo ?? true, easy: "direction", coach: o.coach };
 }
 /** The mean dynamic of the right strikes in a bar (null with none). */
@@ -296,6 +300,8 @@ const meanIn = (r: Results, bar: number) => {
 /** D282: what fell short, in numbers (D283: in the language chosen). */
 const need = (share: number, m: number) => Math.ceil(share * m);
 const rightShort = (r: Results, share: number) => tr("You played {n} of {m} notes right; aim for {k}.", { n: r.right, m: r.of, k: need(share, r.of) });
+/** D289: a skill's line when it has something to count; else what the notes came to (never "0 of 0"). */
+const skillShort = (r: Results, m: number, line: () => string) => (m > 0 ? line() : rightShort(r, 0.8));
 const crowdShort = (r: Results, share: number) => (r.failedBar !== null ? tr("The crowd left at bar {n}.", { n: r.failedBar }) : rightShort(r, share));
 
 /**
@@ -346,7 +352,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     intro: [{ text: "A long block is a long note: keep your thumb down until its end." }, { text: "Lift too soon and it is SHORT. Where the music rests, lift: hold on and it is REST!" }],
     praise: [{ text: "So. A note lives as long as you hold it." }],
     again: [{ text: "Hold each note to its end, and lift when the music rests. Again." }],
-    short: (r) => tr("You held {n} of {m} notes their length; aim for {k}.", { n: r.art.held, m: r.art.heldOf, k: need(0.6, r.art.heldOf) }),
+    short: (r) => skillShort(r, r.art.heldOf, () => tr("You held {n} of {m} notes their length; aim for {k}.", { n: r.art.held, m: r.art.heldOf, k: need(0.6, r.art.heldOf) })),
     run: () => invention({ fromBar: 10, toBar: 13 }),
     passAt: 0.75,
     pass: (r) => accuracy(r) >= 0.75 && r.art.heldOf > 0 && r.art.held / r.art.heldOf >= 0.6,
@@ -373,7 +379,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     intro: [{ text: "Quick notes want both thumbs, one after the other, as a keyboard player uses his fingers." }, { text: "Start with either; then take turns. The thumb on the bars shows whose turn it is." }],
     praise: [{ text: "So. Two thumbs walk where one would stumble." }],
     again: [{ text: "One thumb did all the work. Take turns. Again." }],
-    short: (r) => tr("You took turns on {n} of {m} quick notes; aim for {k}.", { n: r.thumbs.alt, m: r.thumbs.of, k: need(0.7, r.thumbs.of) }),
+    short: (r) => skillShort(r, r.thumbs.of, () => tr("You took turns on {n} of {m} quick notes; aim for {k}.", { n: r.thumbs.alt, m: r.thumbs.of, k: need(0.7, r.thumbs.of) })),
     run: () => invention({ voice: 1, toBar: 3, solo: false, coach: "thumbs" }),
     passAt: 0.8,
     pass: (r) => accuracy(r) >= 0.8 && r.thumbs.of > 0 && r.thumbs.alt / r.thumbs.of >= 0.7,
@@ -383,14 +389,14 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     mode: "ladder",
     title: "LEGATO",
     english: "JOINED",
-    goal: "LAND THE NEXT THUMB BEFORE YOU LIFT THE LAST",
+    goal: "FROM THUMB TO THUMB WITH NO GAP",
     intro: [
       { text: "Listen. First each note apart, detached.", demo: "detached" },
-      { text: "Now joined, singing: legato. Land the next thumb before you lift the last.", demo: "legato" },
+      { text: "Now joined, singing: legato. One thumb takes over as the other lifts, with no gap.", demo: "legato" },
     ],
     praise: [{ text: "As I wrote on my Inventions: a cantabile manner of playing. That is it." }],
-    again: [{ text: "The notes fell apart. Touch the next before you let go. Again." }],
-    short: (r) => tr("You joined {n} of {m} notes; aim for {k}.", { n: r.art.legato, m: r.art.legatoOf, k: need(0.6, r.art.legatoOf) }),
+    again: [{ text: "The notes fell apart. Let one thumb take over as the other lifts. Again." }],
+    short: (r) => skillShort(r, r.art.legatoOf, () => tr("You joined {n} of {m} notes; aim for {k}.", { n: r.art.legato, m: r.art.legatoOf, k: need(0.6, r.art.legatoOf) })),
     run: () => invention({ voice: 1, toBar: 3, solo: false }),
     passAt: 0.8,
     pass: (r) => accuracy(r) >= 0.8 && r.art.legatoOf > 0 && r.art.legato / r.art.legatoOf >= 0.6,
@@ -420,7 +426,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     short: (r) => {
       const a = meanIn(r, 1);
       const b = meanIn(r, 2);
-      return tr("Bar 1 at {a}% loud (aim under 45%), bar 2 at {b}% (aim over 55%).", { a: Math.round(100 * (a ?? 0)), b: Math.round(100 * (b ?? 0)) });
+      return a === null || b === null ? rightShort(r, 0.75) : tr("Bar 1 at {a}% loud (aim under 45%), bar 2 at {b}% (aim over 55%).", { a: Math.round(100 * a), b: Math.round(100 * b) });
     },
     run: () => invention({ voice: 1, toBar: 3, solo: false, coach: "dynamics" }),
     passAt: 0.75,
@@ -453,7 +459,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     intro: [{ text: "A sign over a note is an ornament. You play it: touch the note, then shake your thumb." }, { text: "This one is a mordent: down and back. A trill starts upward and shakes longer." }],
     praise: [{ text: "So. The notes are mine; the graces are yours to give." }],
     again: [{ text: "Touch the note, then shake: down, and back up. Again." }],
-    short: (r) => tr("You shook {n} of {m} ornaments; aim for {k}.", { n: r.shakes.hit, m: r.shakes.of, k: Math.min(2, r.shakes.of) }),
+    short: (r) => skillShort(r, r.shakes.of, () => tr("You shook {n} of {m} ornaments; aim for {k}.", { n: r.shakes.hit, m: r.shakes.of, k: Math.min(2, r.shakes.of) })),
     run: () => invention({ voice: 0, toBar: 3, solo: false }),
     passAt: 0.75,
     pass: (r) => accuracy(r) >= 0.75 && r.shakes.of > 0 && r.shakes.hit >= Math.min(2, r.shakes.of),
@@ -470,7 +476,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     ],
     praise: [{ text: "That is a fugue in small: one subject, passed from voice to voice." }],
     again: [{ text: "The subject must be said whole, or it is not the subject. Again." }],
-    short: (r) => tr("You caught {n} of {m} subjects; aim for 2.", { n: r.captured, m: r.entries }),
+    short: (r) => skillShort(r, r.entries, () => tr("You caught {n} of {m} subjects; aim for 2.", { n: r.captured, m: r.entries })),
     run: () => invention({ voice: 0, toBar: 6, solo: false }),
     passAt: 0.8,
     pass: (r) => accuracy(r) >= 0.8 && r.captured >= 2,

@@ -22,6 +22,8 @@ import { barAt, barStart, beatOf, cadenceName, countInStart, inBar, keyAt, type 
 import { echoHalves, repeatHalves } from "./echo.ts";
 /** D247: the smallest row (CSS px) LADDER judges a touch by (the voice's range filled rows of about 18 to 24). */
 export const LADDER_ROW_MIN = 18;
+/** D289: the least travel of a held thumb that slides on to the next note (px). */
+export const SLIDE_MIN_PX = 10;
 /** D286: how long a thumb's last touch stays its reference for its next note (seconds). */
 export const OWN_FRESH_S = 3;
 import { chordOf, laneNotes, options, preludeRides, quickRides, release, strike, sweep, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
@@ -35,7 +37,7 @@ import { SubjectSound } from "../touch/subject-fx.ts";
 import { pianoKey, pianoKeys } from "./placed.ts";
 import type { Clock } from "./her-clock.ts";
 import type { ArtFlash, ArtStats } from "./articulation.ts";
-import { CLEAN_INK, HELD_INK, holdBonus, LEGATO_GAP_MS, LEGATO_INK, legatoBonus, releaseVerdict, restAfter } from "./articulation.ts";
+import { CLEAN_INK, HELD_INK, holdBonus, LEGATO_INK, legatoBonus, legatoGapMs, releaseVerdict, restAfter } from "./articulation.ts";
 import { scaleFits, scaleKeys, keyPitch, SCALE_LANES, type ScaleKey } from "./scale-keys.ts";
 import { preludeRideMs } from "./tiers.ts";
 import { lineKey, subjectLine, type LineEntry, type Stretto, type SubjectLine } from "./subject-line.ts";
@@ -512,7 +514,8 @@ export class ProtoGame {
     if (line) for (const e of line.entries) this.entries.push({ voice: e.voice, k: 0, on: e.on, end: e.end, ons: e.ons, state: "open" });
     else
       this.tracks.forEach((t, k) => {
-        for (const e of f.entries) if (e.voice === t.voice && e.on >= from) this.entries.push({ voice: e.voice, k, on: e.on, end: e.end, ons: e.notes.map((x) => x[0]), state: "open" });
+        // D289: only the entries that begin in the passage (the tutorial's "0 of 20" counted the whole invention's).
+        for (const e of f.entries) if (e.voice === t.voice && e.on >= from && (o.until === undefined || e.on < o.until)) this.entries.push({ voice: e.voice, k, on: e.on, end: e.end, ons: e.notes.map((x) => x[0]), state: "open" });
       });
     this.kb = pianoKeys(this.notes);
   }
@@ -916,10 +919,10 @@ export class ProtoGame {
           q.push({
             tick: t.on,
             act: () => {
-              // A slide moves a row and a half at least (D208), always the way the line goes (D271: one way).
+              // D289: a slide goes to the note's own height (at least SLIDE_MIN_PX), always the way the line goes (D271: one way).
               const want = rows.yOf(t.step);
               const dir = t.step > this.plan[p - 1].step ? -1 : 1;
-              y += dir * Math.max(this.ladderRow * 1.6, dir * (want - y));
+              y += dir * Math.max(SLIDE_MIN_PX, dir * (want - y));
               this.move(pid, { side, x: xOf(side, t.d), y, w: W, h: H }, performance.now());
             },
           });
@@ -1054,7 +1057,9 @@ export class ProtoGame {
         if (own && !own.moved && this.now - own.tick <= OWN_FRESH_S * this.tps) {
           const steps = n.step - own.step;
           const rise = own.y - c.y;
-          ok = steps === 0 ? Math.abs(rise) <= 2.5 * R : rise * Math.sign(steps) >= -0.25 * R && (Math.abs(steps) < 3 || rise * Math.sign(steps) >= 0.5 * R);
+          // D289: a row's leeway the wrong way for a step (a landing scatters 1.5 to 2.5 mm; a quarter row,
+          // 0.75 mm, made most of the tutorial's slips); a third or more still a clear move the right way.
+          ok = steps === 0 ? Math.abs(rise) <= 2.5 * R : rise * Math.sign(steps) >= -R && (Math.abs(steps) < 3 || rise * Math.sign(steps) >= 0.5 * R);
         }
         return ok ? { ok } : { ok, wrong: asked, why: "gesture" };
       }
@@ -1287,10 +1292,17 @@ export class ProtoGame {
     // D278: a note with an ornament to play: the thumb's moves are its notes, not a slide.
     if (h.orn && !h.orn.done && h.open) return this.ornamentShake(h, c, t);
     if (this.proto.id === "ladder" && this.rows) {
-      // D208: a slide plays on only after a deliberate travel (a row and a half from where it last
-      // played): a thumb's contact point wanders a row or so as it rolls and lifts, and that wander
-      // took the next note from the other thumb (the overlap legato lost its notes as slips).
-      if (Math.abs(c.y - h.ay) < this.ladderRow * 1.5) return;
+      // D208: a slide plays on only after a deliberate travel: a thumb's contact point wanders as it rolls
+      // and lifts, and that wander took the next note from the other thumb. D289: the travel is the
+      // notes' own, not a fixed row and a half (27 px, where a step is drawn 8 px apart: no slide could
+      // follow the notes): at least SLIDE_MIN_PX, and the thumb at the next note's drawn height (within
+      // half a judging row), on the way to it.
+      if (Math.abs(c.y - h.ay) < SLIDE_MIN_PX) return;
+      const nextN = this.tracks[h.k].notes.find((n) => n.state === "pending" && !n.ride);
+      if (!nextN) return;
+      const target = this.rows.yOf(nextN.step);
+      const want = target < h.ay ? 1 : -1;
+      if ((c.y < h.ay ? 1 : -1) !== want || want * (c.y - target) > 0.5 * this.ladderRow) return;
       // D271: one way only (the owner: "to avoid players being able to complete levels by dragging"):
       // a slide back the other way plays nothing; the thumb lifts and strikes again.
       const dir = c.y < h.ay ? 1 : -1;
@@ -1353,7 +1365,8 @@ export class ProtoGame {
   private ornamentShake(h: Held, c: Contact, t: number) {
     const o = h.orn!;
     if (t > o.by) return void (o.done = true);
-    const reach = Math.max(8, this.ladderRow * 0.6);
+    // D289: a smaller rock counts (0.4 of a row, about 7 px: was 0.6, 10.8 px), and either way first.
+    const reach = Math.max(6, this.ladderRow * 0.4);
     const dy = o.from - c.y;
     if (Math.abs(dy) < reach) return;
     const d: 1 | -1 = dy > 0 ? 1 : -1;
@@ -1367,7 +1380,7 @@ export class ProtoGame {
     const now = this.chip.ctx.currentTime;
     for (const sd of h.sounds) sd.stop(now + 0.02);
     h.sounds = [this.chip.note(midi, now, HOLD_MAX, o.v, { ...o.play, legato: true })];
-    if (o.moves >= o.need && o.firstDir === o.first && midi === o.main) {
+    if (o.moves >= o.need && midi === o.main) {
       o.done = true;
       this.shakes.hit++;
       this.earn("bonus", 2 * this.mult);
@@ -1411,6 +1424,10 @@ export class ProtoGame {
     // D262: a line not finished goes on by itself.
     if (h.trace?.queue.length) this.loose.push(h.trace);
     if (cancelled) {
+      // D289: the system took the touch back (iOS may, when the other thumb lands): no release judged,
+      // but for the join the note ended here, so the next note can still be legato.
+      const n = this.tracks[h.k].notes[h.note];
+      if (h.open && n?.state === "hit") this.lastOff = { k: h.k, i: h.note, tick: this.tickOf(ts) };
       h.open = false;
       for (const sd of [...h.sounds, ...(h.fx ?? [])]) sd.stop();
       return;
@@ -1438,7 +1455,7 @@ export class ProtoGame {
   private play(id: number, h: Held, i: number, v: Verdict, slide: boolean, d: number) {
     const notes = this.tracks[h.k].notes;
     // D218: struck by a new touch or key while the note before still sounds (held by another thumb or
-    // key, or let go no more than LEGATO_GAP_MS, and a tenth of its length, before): legato. A slide is
+    // key, or let go no more than legatoGapMs before: D289, a smooth handover, not a simultaneity): legato. A slide is
     // not (the owner: "slide is cheap"): it sounds joined but earns nothing and breaks the chain. The
     // notes giving way end here (judged).
     const tk = notes[i].at ?? this.now;
@@ -1447,7 +1464,7 @@ export class ProtoGame {
     const lo = this.lastOff;
     if (lo && lo.k === h.k && lo.i === this.before(i, h.k)) {
       const p = notes[lo.i];
-      if (this.msOf(lo.tick, tk) <= Math.min(LEGATO_GAP_MS, 0.1 * this.msOf(p.on, p.on + p.dur))) over = true;
+      if (this.msOf(lo.tick, tk) <= legatoGapMs(this.msOf(p.on, p.on + p.dur))) over = true;
     }
     if (h.open) this.judgeEnd(h, tk);
     for (const [hid, o] of this.held) if (hid !== id && o.k === h.k && o.open) this.judgeEnd(o, tk);

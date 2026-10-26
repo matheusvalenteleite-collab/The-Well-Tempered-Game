@@ -49,7 +49,7 @@ function phrase(g0: ProtoGame, idx: number[], legato: boolean): Ev[] {
     const n = g0.notes[i];
     const t0 = g0.timeAt(n.on);
     const next = idx[k + 1];
-    const t1 = legato && next !== undefined ? g0.timeAt(g0.notes[next].on) + 0.03 : t0 + (g0.timeAt(n.on + n.dur) - t0) * 0.78;
+    const t1 = legato && next !== undefined ? g0.timeAt(g0.notes[next].on) + 0.03 : t0 + (g0.timeAt(n.on + n.dur) - t0) * 0.55; // D289: detached, a gap of 45% (beyond the 35% a smooth handover may leave)
     evs.push({ t: t0, down: true, id: 100 + k }, { t: t1, down: false, id: 100 + k });
   });
   return evs;
@@ -95,7 +95,9 @@ test("D218: an overlapped legato run scores more than the same run played detach
   const evs = phrase(g0, idx, true);
   // The fourth note's strike comes after the third is let go (detached).
   const third = evs.find((e) => !e.down && e.id === 102)!;
-  third.t = g0.timeAt(g0.notes[idx[3]].on) - 0.12;
+  // D289: a gap of 60% of the third's length (a smooth handover may leave up to 35%).
+  const n3 = g0.notes[idx[2]];
+  third.t = g0.timeAt(g0.notes[idx[3]].on) - 0.6 * (g0.timeAt(n3.on + n3.dur) - g0.timeAt(n3.on));
   const chains: number[] = [];
   const broken = run(evs, 54, (g, e) => e.down && chains.push(g.chain));
   assert.deepEqual(chains, [0, 1, 2, 0, 1, 2]);

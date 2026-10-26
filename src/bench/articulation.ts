@@ -3,7 +3,7 @@
  * is the player's, and is judged.
  *   LEGATO: a note joined in the score to the one before (no rest between), struck while that one
  *     still sounds, by a new touch or key (another thumb or key holding it, or let go no more than
- *     LEGATO_GAP_MS, and a tenth of its length, before), scores half its points again, and more along an unbroken chain
+ *     legatoGapMs before: D289, the larger of LEGATO_GAP_MS and LEGATO_GAP_SHARE of its length), scores half its points again, and more along an unbroken chain
  *     (×1.5, ×2, ×2.5, at most ×3). Struck detached it scores as it is (the articulation is open),
  *     and the chain is broken; so is it by a slide (it sounds joined, but a slide is cheap: no
  *     bonus), a slip or a rest held through.
@@ -18,8 +18,15 @@
  */
 import type { LaneNote } from "../touch/lanes.ts";
 
-/** A strike this soon after the note before was let go (and within a tenth of that note's length) is still legato. */
-export const LEGATO_GAP_MS = 60;
+/**
+ * D289: a strike this soon after the note before was let go is still legato: the larger of LEGATO_GAP_MS
+ * and LEGATO_GAP_SHARE of that note's length (D218 had the smaller of 60 ms and a tenth: 31 ms for a
+ * semiquaver, finer than a human lift). The owner: "Legato is about smoothness of movement, not
+ * simultaneity … the player ought not to be required to have two thumbs simultaneously down."
+ */
+export const LEGATO_GAP_MS = 90;
+export const LEGATO_GAP_SHARE = 0.35;
+export const legatoGapMs = (noteMs: number) => Math.max(LEGATO_GAP_MS, LEGATO_GAP_SHARE * noteMs);
 /** The shortest note judged for its length (about an eighth at a moderate tempo). */
 export const HELD_MIN_MS = 250;
 /** The words' colours: legato violet, held and clean greens. */

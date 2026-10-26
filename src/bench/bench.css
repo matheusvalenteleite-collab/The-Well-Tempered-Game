@@ -126,6 +126,11 @@
 .tb-bach-title { margin: 0; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-gold); letter-spacing: 0.08em; }
 .tb-bach-line { margin: 0; font-size: 15px; line-height: 1.45; color: var(--tg-fg); font-family: Georgia, "Times New Roman", serif; }
 .tb-bach-rest { visibility: hidden; }
+/* D289: Herr Bach in the band below the music box (he covered the notes while the band lay empty). */
+.tb-bach { position: fixed; inset: auto max(8px, env(safe-area-inset-right, 0px)) max(8px, env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); max-height: 46vh; overflow: auto; }
+.tb-bach-choices { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.tb-bach-choice { font-family: var(--tg-pixel); font-size: 9px; padding: 8px 10px; background: transparent; color: var(--tg-fg); border: 2px solid var(--tg-muted); cursor: pointer; }
+.tb-bach-choice.main { background: var(--tg-gold); color: #12101a; border-color: var(--tg-gold); }
 .tb-bach-more { margin: 0; min-height: 10px; font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-muted); text-align: right; animation: tg-blink 1.1s steps(2) infinite; }
 .tb-fcard-voices b { font-weight: 400; color: var(--tg-fg); margin-left: 3px; }
 .tb-fcard-voices b.tg-gold { color: var(--tg-gold); }
