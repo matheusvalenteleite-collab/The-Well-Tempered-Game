@@ -470,8 +470,13 @@ function patchOf(l: Layer): Patch {
  */
 export function playFx(chip: Chip, fx: SubjectFx, sn: SubjectNote, midi: number, at: number, len: number, v: Voicing, level = 1): Sounding[] {
   const out: Sounding[] = [];
+  // D304: singers' subjects not belled (VOCAL SYNTH, SOLO VOICES): a bell's ping or a brass blip an
+  // octave over voices was the "tinkling sound in the background" (I/2's glass spark: in SOLO VOICES
+  // -12 dB of everything above 2.5 kHz, measured; a harpsichord's own highs hide it at -22); the room stays.
+  const sung = !!(v.patch?.sing || v.patch?.syllable);
   for (const l of fx.layers) {
     if (!fires(l.on, sn)) continue;
+    if (sung && (l.kind === "ping" || l.kind === "brass")) continue;
     if (l.kind === "echo") {
       out.push(chip.note(midi, at + l.delay, len * 0.9, { ...v, pan: v.pan ? -v.pan * 0.8 : 0.4 }, { level: level * l.level, tone: -4, room: fx.room }));
     } else if (l.kind === "halo") {

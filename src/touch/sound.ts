@@ -86,6 +86,18 @@ export const SHAPES = {
    * as formant synthesis wants, so that each formant sounds at its tabled level (VOWELS) whatever the pitch.
    */
   glottal: (x: number) => partials(x, Array.from({ length: 64 }, (_, k) => 1 / (k + 1) ** 0.4)),
+  /**
+   * D304: a softer glottis (a more open phase: a mezzo's, a second soprano's): the harmonics falling
+   * about 5 dB an octave (n^-0.8), so the high ones no longer buzz through the formants' skirts.
+   */
+  glottalWarm: (x: number) => partials(x, Array.from({ length: 64 }, (_, k) => 1 / (k + 1) ** 0.8)),
+  /**
+   * D304: a man's voice sung gently: about 7 dB an octave (n^-1.2). The flat source made the tenor and
+   * the bass a buzzing, trumpet-like pulse train (each glottal pulse a click above 5 kHz: 1,700 in the
+   * bass's 20 s alone, measured); steeper (12 dB an octave was tried) left them 15 dB softer through a
+   * phone's speaker than on a full-range one (D291).
+   */
+  glottalLow: (x: number) => partials(x, Array.from({ length: 64 }, (_, k) => 1 / (k + 1) ** 1.2)),
   /** D302: a 4' flute (Rohrflöte): the fundamental, a little of the 2nd and 3rd (the chimney's). */
   stopFlute4: (x: number) => partials(x, [1, 0.1, 0.2, 0.04]),
 } satisfies Record<string, (x: number) => number>;
@@ -230,6 +242,12 @@ export interface Sing {
   fall: number;
   breath: number;
   ring: number;
+  /** D304: a lowpass (Hz, 12 dB an octave) over the voice: nothing glitters above the singer's formants. */
+  top?: number;
+  /** D304: the formants' bandwidths times this (over 1: lower Qs, a softer, less "ringing" vowel). */
+  bw?: number;
+  /** D304: dB on F3-F5 (the singer's formant: under 0 less brassy). */
+  upper?: number;
 }
 export type Vowel = "a" | "e" | "i" | "o" | "u";
 export type VoiceType = "soprano" | "alto" | "tenor" | "bass";
@@ -275,9 +293,10 @@ export const VOWELS: Record<VoiceType, Record<Vowel, [number, number, number][]>
  */
 export const CONSONANTS: Record<Sing["cons"], { f: [number, number, number]; time: number; voiced: number; burst: number; open: number }> = {
   l: { f: [360, 1000, 2600], time: 0.05, voiced: 0.4, burst: 0, open: 900 },
-  d: { f: [300, 1700, 2600], time: 0.035, voiced: 0, burst: 0.5, open: 1800 },
+  // (D304: the d's and the r's bursts softer: 0.5 and 0.12 rang on every note as clicks.)
+  d: { f: [300, 1700, 2600], time: 0.035, voiced: 0, burst: 0.16, open: 900 },
   n: { f: [260, 1250, 2500], time: 0.055, voiced: 0.35, burst: 0, open: 500 },
-  r: { f: [350, 1500, 2300], time: 0.025, voiced: 0.25, burst: 0.12, open: 1200 },
+  r: { f: [350, 1500, 2300], time: 0.025, voiced: 0.25, burst: 0.05, open: 1200 },
   m: { f: [260, 900, 2300], time: 0.055, voiced: 0.3, burst: 0, open: 450 },
 };
 
@@ -638,21 +657,31 @@ export const PATCHES = {
   // of five), "ro" (a mezzo's dark "o", the tap of a Japanese r), "ne" (a tenor), "da" (a bass, no
   // vibrato, its formants about 0.6-2.8 kHz: a phone hears it though its pitch lies under 150 Hz).
   // Joined notes sung on one vowel, the pitch gliding; detached, a new syllable; a phrase's end falls.
-  vocLa: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "soprano", size: 1.04, cons: "l", scoop: 80, over: 18, fall: 120, breath: 0.12, ring: 5 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, vib: { depth: 32, rate: 6.0, delay: 0.3 }, send: 0.16, level: 1.25 }),
-  vocMi: P({ osc: [{ wave: "glottal" }], sing: { vowel: "i", type: "soprano", size: 1.08, cons: "m", scoop: 60, over: 12, fall: 80, breath: 0.2, ring: 4 }, amp: { a: 0.035, d: 0.1, s: 1, r: 0.09 }, vib: { depth: 26, rate: 6.6, delay: 0.32 }, send: 0.16, level: 1.4 }),
-  vocRo: P({ osc: [{ wave: "glottal" }], sing: { vowel: "o", type: "alto", size: 1, cons: "r", scoop: 60, over: 12, fall: 90, breath: 0.15, ring: 3 }, amp: { a: 0.035, d: 0.1, s: 1, r: 0.09 }, vib: { depth: 22, rate: 5.4, delay: 0.34 }, send: 0.16, level: 1.18 }),
-  vocNe: P({ osc: [{ wave: "glottal" }], sing: { vowel: "e", type: "tenor", size: 1, cons: "n", scoop: 50, over: 10, fall: 80, breath: 0.1, ring: 3 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, vib: { depth: 18, rate: 4.8, delay: 0.36 }, send: 0.14, level: 1.18 }),
-  vocDa: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "bass", size: 0.97, cons: "d", scoop: 40, over: 8, fall: 60, breath: 0.08, ring: 2 }, amp: { a: 0.025, d: 0.1, s: 1, r: 0.09 }, send: 0.1, level: 0.8 }),
+  // D304 (the owner: "Why there's a tinkling sound in the background … Any way to make the lower Asian
+  // voices less trumpet-y and more human?"): the source no longer flat for all: the top's bright glottis
+  // kept (the "idol"), the second's and the mezzo's softer (glottalWarm, -5 dB an octave), the tenor's
+  // and the bass's softer still (glottalLow, -7 dB an octave: their flat pulse train buzzed like a trumpet); a
+  // lowpass over each (`top`: 7 kHz on the top down to 3.5 kHz on the bass: the harmonics leaking
+  // through the formants' skirts up to 10 kHz, wobbling with the vibrato and the scoops, were the
+  // glitter); the low voices' formants wider (`bw`), their F3-F5 lower (`upper`), more breath, sung on
+  // "o" ("no", "do"), smaller scoops; the d's and r's bursts softer (CONSONANTS).
+  vocLa: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "soprano", size: 1.04, cons: "l", scoop: 70, over: 15, fall: 120, breath: 0.12, ring: 5, top: 7000 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, vib: { depth: 30, rate: 6.0, delay: 0.3 }, send: 0.16, level: 1.25 }),
+  vocMi: P({ osc: [{ wave: "glottalWarm" }], sing: { vowel: "i", type: "soprano", size: 1.08, cons: "m", scoop: 50, over: 10, fall: 80, breath: 0.2, ring: 4, top: 6000 }, amp: { a: 0.035, d: 0.1, s: 1, r: 0.09 }, vib: { depth: 24, rate: 6.6, delay: 0.32 }, send: 0.16, level: 0.8 }),
+  vocRo: P({ osc: [{ wave: "glottalWarm" }], sing: { vowel: "a", type: "alto", size: 1, cons: "r", scoop: 40, over: 8, fall: 80, breath: 0.2, ring: 2, top: 5000, bw: 1.15, upper: -3 }, amp: { a: 0.035, d: 0.1, s: 1, r: 0.09 }, vib: { depth: 20, rate: 5.4, delay: 0.34 }, send: 0.16, level: 0.59 }),
+  vocNe: P({ osc: [{ wave: "glottalLow" }], sing: { vowel: "a", type: "tenor", size: 1, cons: "n", scoop: 25, over: 5, fall: 60, breath: 0.24, ring: 0, top: 4000, bw: 1.3, upper: -4 }, amp: { a: 0.04, d: 0.1, s: 1, r: 0.1 }, vib: { depth: 14, rate: 4.8, delay: 0.38 }, send: 0.14, level: 0.37 }),
+  vocDa: P({ osc: [{ wave: "glottalLow" }], sing: { vowel: "a", type: "bass", size: 0.97, cons: "d", scoop: 20, over: 4, fall: 40, breath: 0.22, ring: 0, top: 3500, bw: 1.3, upper: -3 }, amp: { a: 0.035, d: 0.1, s: 1, r: 0.1 }, send: 0.1, level: 0.5 }),
   // D302, SOLO VOICES (the second vocal preset): recorded singers (VocalSet: a soprano, a mezzo, a
   // tenor and a bass, each singing "a"; FluidR3's choir "aah" for the second of five), each line its own
   // singer and consonant ("la", "na", "ra", "da", "ma": the voice opening from a lowpass, a burst for
   // the plosive), the pitch scooped into each new syllable and gliding into a joined note; their own
   // vibrato as recorded (no more added).
-  singS: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "soprano", size: 1, cons: "l", scoop: 60, over: 12, fall: 80, breath: 0.1, ring: 3 }, syllable: { cons: "l", scoop: 60, over: 12, fall: 80 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.08 }, send: 0.16, level: 0.6, sample: "voiceS" }),
-  singChoir: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "alto", size: 1, cons: "m", scoop: 40, over: 8, fall: 60, breath: 0.15, ring: 2 }, syllable: { cons: "m", scoop: 40, over: 8, fall: 60 }, amp: { a: 0.05, d: 0.1, s: 1, r: 0.12 }, rec: { a: 0.05, d: 0, s: 1, r: 0.1 }, send: 0.2, level: 1.68, sample: "choirAah" }),
-  singA: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "alto", size: 1, cons: "n", scoop: 50, over: 10, fall: 70, breath: 0.12, ring: 2 }, syllable: { cons: "n", scoop: 50, over: 10, fall: 70 }, amp: { a: 0.035, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.035, d: 0, s: 1, r: 0.08 }, send: 0.16, level: 0.6, sample: "voiceA" }),
-  singT: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "tenor", size: 1, cons: "r", scoop: 50, over: 10, fall: 70, breath: 0.1, ring: 2 }, syllable: { cons: "r", scoop: 50, over: 10, fall: 70 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.08 }, send: 0.14, level: 0.6, sample: "voiceT" }),
-  singB: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "bass", size: 1, cons: "d", scoop: 40, over: 8, fall: 50, breath: 0.08, ring: 2 }, syllable: { cons: "d", scoop: 40, over: 8, fall: 50 }, amp: { a: 0.025, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.025, d: 0, s: 1, r: 0.08 }, send: 0.1, level: 0.6, sample: "voiceB" }),
+  // D304: smaller scoops (the recordings' rate moves their formants too: each scoop a chirp of the
+  // highs), no synthesized burst (chip.ts), the d opening from 900 Hz.
+  singS: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "soprano", size: 1, cons: "l", scoop: 60, over: 12, fall: 80, breath: 0.1, ring: 3 }, syllable: { cons: "l", scoop: 35, over: 8, fall: 70 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.08 }, send: 0.16, level: 0.6, sample: "voiceS" }),
+  singChoir: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "alto", size: 1, cons: "m", scoop: 40, over: 8, fall: 60, breath: 0.15, ring: 2 }, syllable: { cons: "m", scoop: 25, over: 5, fall: 50 }, amp: { a: 0.05, d: 0.1, s: 1, r: 0.12 }, rec: { a: 0.05, d: 0, s: 1, r: 0.1 }, send: 0.2, level: 1.68, sample: "choirAah" }),
+  singA: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "alto", size: 1, cons: "n", scoop: 50, over: 10, fall: 70, breath: 0.12, ring: 2 }, syllable: { cons: "n", scoop: 30, over: 6, fall: 60 }, amp: { a: 0.035, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.035, d: 0, s: 1, r: 0.08 }, send: 0.16, level: 0.6, sample: "voiceA" }),
+  singT: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "tenor", size: 1, cons: "r", scoop: 50, over: 10, fall: 70, breath: 0.1, ring: 2 }, syllable: { cons: "r", scoop: 25, over: 5, fall: 50 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.08 }, send: 0.14, level: 0.6, sample: "voiceT" }),
+  singB: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "bass", size: 1, cons: "d", scoop: 40, over: 8, fall: 50, breath: 0.08, ring: 2 }, syllable: { cons: "d", scoop: 15, over: 3, fall: 40 }, amp: { a: 0.025, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.025, d: 0, s: 1, r: 0.08 }, send: 0.1, level: 0.6, sample: "voiceB" }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
