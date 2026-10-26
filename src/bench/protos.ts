@@ -86,9 +86,9 @@ export interface Proto {
 export const PROTOS: Proto[] = [
   {
     id: "ladder",
-    short: "TOUCH A BAR AT THE NOTE'S HEIGHT",
+    short: "TOUCH A BAR, UP AS THE TUNE RISES",
     name: "LADDER",
-    how: ["Touch either bar where the glow is.", "Higher when the tune rises, lower when it falls.", "Slide for a run."],
+    how: ["Touch either bar, anywhere along it.", "Higher when the tune rises, lower when it falls.", "Slide for a run."],
     layout: "bars",
     platform: "mobile",
   },

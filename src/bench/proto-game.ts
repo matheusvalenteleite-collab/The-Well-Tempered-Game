@@ -31,6 +31,11 @@ export const DOUBLE_MS = 120;
 export const SLIDE_MIN_PX = 10;
 /** D286: how long a thumb's last touch stays its reference for its next note (seconds). */
 export const OWN_FRESH_S = 3;
+/** D296: the share of a bar's height at each end where a thumb that can go no further may stay. */
+export const EDGE_SHARE = 0.12;
+/** D296: the move (in rows) the line's travel over a fourth or more asks of a thumb, the right way. */
+export let TRAVEL_MIN = 0.25;
+export const setTravelMin = (v: number) => (TRAVEL_MIN = v);
 import { chordOf, laneNotes, options, preludeRides, quickRides, release, strike, sweep, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
 import { follow, phrase, ritard, withSpeed, type Shape } from "../touch/phrasing.ts";
@@ -46,7 +51,7 @@ import { CLEAN_INK, HELD_INK, holdBonus, LEGATO_INK, legatoBonus, legatoGapMs, r
 import { scaleFits, scaleKeys, keyPitch, SCALE_LANES, type ScaleKey } from "./scale-keys.ts";
 import { preludeRideMs } from "./tiers.ts";
 import { lineKey, subjectLine, type LineEntry, type Stretto, type SubjectLine } from "./subject-line.ts";
-import { BAR, barDynamic, contourCue, contourOk, dynamic, HOME_LANES, keyPlace, LADDER_AREA, planLanes, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk, isRepeat } from "./protos.ts";
+import { BAR, barDynamic, contourCue, contourOk, dynamic, HOME_LANES, keyPlace, planLanes, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk, isRepeat } from "./protos.ts";
 
 export const PERFECT_MS = 70;
 /** The multiplier's step (notes right in a row), and CON FUOCO's run. */
@@ -315,6 +320,15 @@ export class ProtoGame {
   lastTouch: { side: Side; y: number } | null = null;
   /** D286: each thumb's own last touch and the staff step of the note it played. */
   lastBySide: Partial<Record<Side, { y: number; step: number; tick: number; moved?: boolean }>> = {};
+  /** D296: each thumb's recent touches (the last first pushed last), for the line's travel. */
+  trailBySide: Partial<Record<Side, { y: number; step: number; tick: number; moved?: boolean }[]>> = {};
+  /** D296: a thumb's touch remembered (its last, and its recent ones). */
+  private remember(side: Side, t: { y: number; step: number; tick: number }) {
+    this.lastBySide[side] = t;
+    const tr = (this.trailBySide[side] ??= []);
+    tr.push(t);
+    if (tr.length > 8) tr.shift();
+  }
   /** The touches, for the music box. */
   readonly marks: Mark[] = [];
   /**
@@ -1050,38 +1064,44 @@ export class ProtoGame {
     const c = at.c!;
     switch (this.proto.id) {
       case "ladder": {
-        // D181: forgiving. A broad area round where the note is drawn (LADDER_AREA rows either side);
-        // within it, the way the tune goes from the touch before: firm for the same thumb, lenient
-        // between the two (two thumbs far apart never land quite level).
+        // D296: relative only (the owner: "the player is not expected to meet the narrow absolute coordinates
+        // of the note … we need to allow the whole of the buttons to have more relevance"). Where a note is
+        // drawn no longer bounds the touch (D181 had a window of five rows, at least 90 px, round it: under
+        // half the bar, following the drawn tune). Each thumb is judged by its own moves:
+        //  · from its last touch: a repeat about level; a step not clearly the wrong way (D289's row of
+        //    leeway: a landing scatters as far as a step is drawn); a third or more a clear move the right way;
+        //  · and the line's travel: from its latest touch a fourth or more away in the tune (within
+        //    OWN_FRESH_S), a clear move the right way, so a run of steps must climb or fall with the hand;
+        //  · against the bar's end (EDGE_SHARE of its height), a thumb that travelled there and can go no
+        //    further may stay there.
+        // A thumb's first touch, or its first after a pause or a slide, is free: it sets where it is.
         if (!this.rows) return { ok: true };
         const R = this.ladderRow;
         const asked = stepPitch(this.rows.stepAt(c.y), n);
-        const near = Math.min(...chord.map((x) => Math.abs(c.y - this.rows!.yOf(x.step))));
-        if (near > LADDER_AREA * R) return { ok: false, wrong: asked, why: "gesture" };
-        const last = this.lastTouch;
-        if (!last || m.size < 0) return { ok: true };
-        const same = last.side === c.side;
-        const up = last.y - c.y;
-        let ok: boolean;
-        // D208, more forgiving still: a repeat (or the same staff step altered, E flat to E natural)
-        // about level; a move, the same thumb not the wrong way (a leap a row at least), the other
-        // thumb anywhere short of clearly the wrong way.
-        if (m.dir === 0 || m.steps === 0) ok = Math.abs(up) <= (same ? 2 : 3.5) * R;
-        else {
-          const way = up * m.dir;
-          ok = same ? way >= 0 && (m.size < 3 || way >= R) : way >= -2.5 * R;
-        }
-        // D286: on a change of thumb, judged from that thumb's own last touch (if recent): the way from
-        // the note it played to this one (the owner: "Relative moves are way more important than absolute
-        // location"). Two thumbs on two bars are rarely level, so the other thumb's height is no reference;
-        // each thumb keeps its own sense of up and down. A thumb's first touch keeps the rule above.
-        const own = same ? undefined : this.lastBySide[c.side];
-        if (own && !own.moved && this.now - own.tick <= OWN_FRESH_S * this.tps) {
-          const steps = n.step - own.step;
-          const rise = own.y - c.y;
-          // D289: a row's leeway the wrong way for a step (a landing scatters 1.5 to 2.5 mm; a quarter row,
-          // 0.75 mm, made most of the tutorial's slips); a third or more still a clear move the right way.
-          ok = steps === 0 ? Math.abs(rise) <= 2.5 * R : rise * Math.sign(steps) >= -R && (Math.abs(steps) < 3 || rise * Math.sign(steps) >= 0.5 * R);
+        const fresh = (t?: { tick: number; moved?: boolean }) => !!t && !t.moved && this.now - t.tick <= OWN_FRESH_S * this.tps;
+        const own = this.lastBySide[c.side];
+        if (m.size < 0 || !own || !fresh(own)) return { ok: true };
+        const edge = EDGE_SHARE * c.h;
+        const back = (this.trailBySide[c.side] ?? []).filter((t) => fresh(t) && t !== own);
+        // At the end it climbed (or fell) to: a thumb that travelled there may stay (one that started there has no further to come from).
+        const arrived = (dir: number) => back.some((t) => (dir > 0 ? t.y > edge + 2 * R : t.y < c.h - edge - 2 * R));
+        const pinned = (from: number, dir: number) => arrived(dir) && (dir > 0 ? from <= edge && c.y <= edge : from >= c.h - edge && c.y >= c.h - edge);
+        const clear = (from: { y: number; step: number }, travel = false) => {
+          const steps = n.step - from.step;
+          const way = (from.y - c.y) * Math.sign(steps);
+          if (steps === 0) return Math.abs(from.y - c.y) <= 2.5 * R;
+          if (pinned(from.y, Math.sign(steps))) return true;
+          // From the last touch a fourth or more, a clear move (half a row); the line's travel over a fourth
+          // or more, a move the right way (a quarter row: drawn steps are 8 px apart and a landing scatters
+          // about as much, so a third's travel cannot be told from the scatter).
+          if (Math.abs(steps) < 3) return way >= -R;
+          return way >= (travel ? TRAVEL_MIN : 0.5) * R;
+        };
+        let ok = clear(own);
+        if (ok) {
+          // The line's travel: from this thumb's latest touch a fourth or more away in the tune.
+          const far = [...back].reverse().find((t) => Math.abs(n.step - t.step) >= 3);
+          if (far) ok = clear(far, true);
         }
         return ok ? { ok } : { ok, wrong: asked, why: "gesture" };
       }
@@ -1431,7 +1451,7 @@ export class ProtoGame {
     this.play(id, h, i, { ok: true }, true, this.dynamicAt(c));
     this.slides++;
     // D286: the thumb is where it slid to, on the note it slid onto.
-    this.lastBySide[h.side] = { y: c.y, step: notes[i].step, tick: this.now };
+    this.remember(h.side, { y: c.y, step: notes[i].step, tick: this.now });
     return true;
   }
 
@@ -1599,7 +1619,7 @@ export class ProtoGame {
       // darkened to 600 Hz and flattened, which on a phone's speaker all but silenced it).
     }
     // A touch on the screen (not a key) is the next note's reference.
-    if (h.trail.length) (this.lastTouch = { side: h.side, y: h.ay }), (this.lastBySide[h.side] = { y: h.ay, step: this.tracks[h.k].notes[i].step, tick: this.now });
+    if (h.trail.length) (this.lastTouch = { side: h.side, y: h.ay }), this.remember(h.side, { y: h.ay, step: this.tracks[h.k].notes[i].step, tick: this.now });
     h.midi = pitches[0];
     h.note = i;
     h.chord = chord;

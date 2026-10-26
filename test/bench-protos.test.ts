@@ -153,10 +153,24 @@ function touchNote(id: string, i: number, place: (g: ProtoGame, n: LaneNote) => 
 
 test("a wrong place sounds what it asked for, not muffled (D293; the PIANO's key), and does not count", () => {
   {
-    const { n, heard } = touchNote("ladder", 1, (_, n) => ({ side: "left", x: W * 0.1, y: ROWS.yOf(n.step + 6), w: W, h: H }));
+    // D296: judged by the thumb's own move: the first note where it is drawn, the second six rows the wrong way.
+    const clock = { t: 0 };
+    const log: { midi: number; muffled: boolean; dyn?: number }[] = [];
+    const g = new ProtoGame(C_MINOR, 1, 0, protoById("ladder"), { bpm: 54, legato: false }, fakeChip(clock, log));
+    g.rows = ROWS;
+    const [n0, n] = [g.notes[0], g.notes[1]];
+    const d = Math.sign(n.step - n0.step) || 1;
+    clock.t = 0.15 + (n0.on - g.start) / g.tps;
+    g.step();
+    g.down(1, { side: "left", x: W * 0.1, y: ROWS.yOf(n0.step), w: W, h: H }, performance.now());
+    g.up(1, performance.now());
+    clock.t = 0.15 + (n.on - g.start) / g.tps;
+    g.step();
+    g.down(2, { side: "left", x: W * 0.1, y: ROWS.yOf(n0.step - 6 * d), w: W, h: H }, performance.now());
+    const heard = log.at(-1)!;
     assert.equal(n.wrong, true);
     assert.equal(heard.muffled, false);
-    assert.ok(heard.midi > n.midi, `six steps up, heard ${heard.midi}`);
+    assert.ok((heard.midi - n.midi) * d < 0, `six rows the wrong way, heard ${heard.midi} for ${n.midi}`);
   }
   {
     const { n, heard } = touchNote("piano", 1, (g, n) => {
