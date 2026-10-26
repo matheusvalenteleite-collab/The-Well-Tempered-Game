@@ -80,7 +80,7 @@ export function btOn(mode: BtMode, lag: number | null, reported = 0): boolean {
 }
 
 /**
- * D306: where a stored delay was tapped: the output setup then (setupKey of the latency the browser
+ * D308: where a stored delay was tapped: the output setup then (setupKey of the latency the browser
  * reported, if it reported one) and whether it was tapped since the page loaded.
  */
 export interface LagOrigin {
@@ -89,7 +89,7 @@ export interface LagOrigin {
 }
 
 /**
- * D306: BLUETOOTH MODE's AUTO on the minimal page. A delay tapped once for earbuds stayed in force on the
+ * D308: BLUETOOTH MODE's AUTO on the minimal page. A delay tapped once for earbuds stayed in force on the
  * phone's speaker (the owner: "the notes keep ringing in the player's voice even when they let it go"):
  * on when the latency the browser reports is over BT_AUTO_S; a stored delay over it counts only for the
  * output it was tapped with: where the browser reports a latency, the same setup (its 50 ms bucket or

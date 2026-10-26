@@ -1,5 +1,5 @@
 /**
- * D306: a touched note let go is silent at once, on the speaker as in BLUETOOTH MODE (the owner: "the notes
+ * D308: a touched note let go is silent at once, on the speaker as in BLUETOOTH MODE (the owner: "the notes
  * keep ringing in the player's voice even when they let it go. staccato has become impossible"). On the
  * fake audio graph (fake-audio.ts FakeParam.valueAt), every sound (PRESETS), every way the player's note
  * is struck (plain, joined, tied, the piano's envelope, the subject's layers) is down 40 dB within 120 ms
@@ -75,7 +75,7 @@ const WAYS: [string, Play][] = [
 ];
 
 for (const p of PRESETS)
-  test(`D306: ${p.name}: a touch let go after 0.1 s is 40 dB down within 120 ms, however struck`, async () => {
+  test(`D308: ${p.name}: a touch let go after 0.1 s is 40 dB down within 120 ms, however struck`, async () => {
     for (const [way, play] of WAYS) {
       const r = await touch(p.id, play);
       assert.ok(r.peak > 0, `${way}: it sounded`);
@@ -83,7 +83,7 @@ for (const p of PRESETS)
     }
   });
 
-test("D306: the subject's layers (h.fx) on a touched note stop with it", async () => {
+test("D308: the subject's layers (h.fx) on a touched note stop with it", async () => {
   const f = fugueById("wtc1f22");
   const cues = new SubjectCues(f);
   const e = f.entries[0];
@@ -142,7 +142,7 @@ function fakeChip(clock: { t: number }) {
   return { chip: chip as unknown as Chip, notes };
 }
 
-test("D306: a whole run on the speaker (I/22 and I/2, ornaments and the subject's layers): every sound a touch made stops as it lets go, 0.1 s after the touch", () => {
+test("D308: a whole run on the speaker (I/22 and I/2, ornaments and the subject's layers): every sound a touch made stops as it lets go, 0.1 s after the touch", () => {
   for (const id of ["wtc1f22", "wtc1f02"]) {
     const clock = { t: 0 };
     const fc = fakeChip(clock);
@@ -181,7 +181,7 @@ test("D306: a whole run on the speaker (I/22 and I/2, ornaments and the subject'
   }
 });
 
-test("D306: a touch the system takes back (pointercancel) with no other thumb down is let go there; with another down it rings on (D293)", () => {
+test("D308: a touch the system takes back (pointercancel) with no other thumb down is let go there; with another down it rings on (D293)", () => {
   const clock = { t: 0 };
   const fc = fakeChip(clock);
   const g = new ProtoGame(fugueById("wtc1f02"), 0, 0, protoById("keys"), { bpm: 60, legato: false, easy: "timing", bt: false }, fc.chip);

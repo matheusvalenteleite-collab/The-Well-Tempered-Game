@@ -1,5 +1,5 @@
 /**
- * D306: BLUETOOTH MODE's AUTO not kept on the speaker by a delay tapped for earbuds; the subject's heads
+ * D308: BLUETOOTH MODE's AUTO not kept on the speaker by a delay tapped for earbuds; the subject's heads
  * the library's finder missed (I/22 b. 61; short heads in I/13, I/24, II/1, II/4, II/16).
  */
 import { test } from "node:test";
@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import { btAuto, BT_AUTO_S, setupKey } from "../src/touch/headphones.ts";
 import { fugueById } from "../src/touch/fugue.ts";
 
-test("D306: AUTO: on by the reported latency; a stored delay only for the output it was tapped with, or (no latency reported) only in the page load it was tapped in", () => {
+test("D308: AUTO: on by the reported latency; a stored delay only for the output it was tapped with, or (no latency reported) only in the page load it was tapped in", () => {
   // The browser reports a Bluetooth latency: on, whatever is stored.
   assert.equal(btAuto(null, 0.2, { fresh: false }), true);
   // Nothing stored, a speaker's latency: off.
@@ -23,7 +23,7 @@ test("D306: AUTO: on by the reported latency; a stored delay only for the output
   assert.equal(btAuto(BT_AUTO_S - 0.01, undefined, { fresh: true }), false);
 });
 
-test("D306: I/22's second soprano at b. 61 (its head bent: B♭ A, then G♭ F E♭ D♭ C B♭) is an entry, highlighted", () => {
+test("D308: I/22's second soprano at b. 61 (its head bent: B♭ A, then G♭ F E♭ D♭ C B♭) is an entry, highlighted", () => {
   const f = fugueById("wtc1f22");
   const e = f.entries.find((x) => x.bar === 61 && x.voice === 1);
   assert.ok(e, "b. 61, second soprano");
@@ -38,7 +38,7 @@ test("D306: I/22's second soprano at b. 61 (its head bent: B♭ A, then G♭ F E
   );
 });
 
-test("D306: the subject's head stated alone (six or seven notes, then Bach's own way) is an entry in every fugue where the notes have it", () => {
+test("D308: the subject's head stated alone (six or seven notes, then Bach's own way) is an entry in every fugue where the notes have it", () => {
   const at = (id: string, bar: number, voice: number) => fugueById(id).entries.some((e) => e.bar === bar && e.voice === voice);
   assert.ok(at("wtc1f13", 11, 0), "I/13 b. 11, soprano");
   assert.ok(at("wtc1f24", 74, 1), "I/24 b. 74, alto");

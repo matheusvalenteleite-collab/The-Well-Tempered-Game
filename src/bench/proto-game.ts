@@ -781,6 +781,8 @@ export class ProtoGame {
   /** One frame: the beat (or the band) and the others scheduled ahead; the window panned; notes gone by marked missed. True at the end. */
   step(): boolean {
     const ch = this.chip;
+    // D308: paused: the clock held where it stopped, nothing scheduled, nothing judged.
+    if (this.pausedAt !== null) return false;
     this.now = this.tickAt(ch.heard());
     this.pedalStep();
     this.arcCues();
@@ -832,8 +834,10 @@ export class ProtoGame {
         this.nextBeat += this.beat;
         continue;
       }
-      const band = this.nextBeat >= this.entry && !this.o.solo && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, 0);
-      if (!band) ch.tick(this.timeAt(this.nextBeat), accent, this.nextBeat < this.entry ? (kimiko ? 0.05 : 0.12) : 0.02);
+      // D308: the bar of count-in after a pause clicks as the first count-in does (no band).
+      const counting = this.nextBeat < this.entry || (this.resumeAt !== null && this.nextBeat < this.resumeAt);
+      const band = !counting && !this.o.solo && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, 0);
+      if (!band) ch.tick(this.timeAt(this.nextBeat), accent, counting ? (kimiko ? 0.05 : 0.12) : 0.02);
       this.nextBeat += this.beat;
     }
     while (this.nextOther < this.others.length && this.others[this.nextOther].on <= horizon) {
@@ -916,6 +920,7 @@ export class ProtoGame {
   }
 
   countIn(): number {
+    if (this.resumeAt !== null && this.now < this.resumeAt) return Math.ceil((this.resumeAt - this.now) / this.beat);
     return this.now < this.entry ? Math.ceil((this.entry - this.now) / this.beat) : 0;
   }
 
@@ -1242,6 +1247,7 @@ export class ProtoGame {
 
 
   down(id: number, c: Contact, ts: number) {
+    if (this.pausedAt !== null) return;
     if (this.held.has(id)) this.up(id, ts);
     // D290: the play area's width, for the report (was set only on the road: "screen 1 px").
     this.touchW = c.w;
@@ -1257,6 +1263,7 @@ export class ProtoGame {
 
   /** A computer key or a MIDI key goes down. */
   keyDown(id: number, k: KeyPress, ts: number) {
+    if (this.pausedAt !== null) return;
     // The same key again without its release (lost while the window was away): let the first go.
     if (this.held.has(id)) this.up(id, ts);
     if (this.pedalTake(id, keyPlace(k.code ?? "")?.col ?? -1)) return;
@@ -1532,7 +1539,7 @@ export class ProtoGame {
       // but for the join the note ended here, so the next note can still be legato.
       // D293: iOS takes a touch back most often when the other thumb lands on it (thumbs overlapping): the
       // note rings on to its written end (or the next note's strike), and the join is judged from there.
-      // D306: only while another thumb is down (the overlap that made iOS take it back); a touch taken back
+      // D308: only while another thumb is down (the overlap that made iOS take it back); a touch taken back
       // alone is let go there, as a lift (it rang on to its written end: a staccato lost).
       const n = this.tracks[h.k].notes[h.note];
       const overlap = this.held.size > 0;
@@ -2558,6 +2565,57 @@ export class ProtoGame {
   }
 
   /** The window lost (blur, a hidden tab): every key and the pedal let go, as if released now. */
+  /** D308: the tick where the game was paused (null: not paused). */
+  private pausedAt: number | null = null;
+  /** D308: where the music takes up again after a pause, a bar of count-in before it. */
+  private resumeAt: number | null = null;
+  get paused(): boolean {
+    return this.pausedAt !== null;
+  }
+  /** D308: the bar's beats (the count-in after a pause is one bar). */
+  get beatsPerBar(): number {
+    return this.perBar;
+  }
+  get pausedTick(): number | null {
+    return this.pausedAt;
+  }
+  /**
+   * D308, PAUSE (the owner: "add pause button to rounds"; and the page hidden): the clock held where it
+   * is; every touch let go unjudged, every sound stopped, nothing left on the schedule (the band's notes
+   * ahead, BLUETOOTH MODE's), so nothing sounds or drifts while paused; no note goes by missed.
+   */
+  pause() {
+    if (this.pausedAt !== null || this.failedAt !== null || this.now > this.end) return;
+    this.now = this.tickAt(this.chip.heard());
+    this.pausedAt = Math.max(this.now, this.start);
+    for (const p of this.pedalList) ((p.id = null), (p.from = null));
+    this.pedalDown = false;
+    this.keysDown.clear();
+    this.stopAll();
+  }
+  /**
+   * D308: on again from the beat the pause fell in (or on), after a bar of count-in clicked as at the
+   * start: the band and the player's notes from there scheduled afresh.
+   */
+  resume() {
+    const at = this.pausedAt;
+    if (at === null) return;
+    this.pausedAt = null;
+    const grid = this.start + Math.floor((at - this.start) / this.beat) * this.beat;
+    const from = grid - this.perBar * this.beat;
+    this.resumeAt = Math.max(grid, this.entry);
+    this.anchorTick = from;
+    this.anchorAt = this.chip.ctx.currentTime + 0.15;
+    this.nextBeat = from;
+    this.now = this.tickAt(this.chip.heard());
+    const firstAt = <T extends { on: number }>(xs: T[]) => {
+      const i = xs.findIndex((n) => n.on >= grid);
+      return i < 0 ? xs.length : i;
+    };
+    this.nextOther = firstAt(this.others);
+    this.armNext = this.tracks.map((t) => firstAt(t.notes));
+  }
+
   releaseAll(ts: number) {
     for (const id of [...this.held.keys()]) this.up(id, ts);
     this.pedal(false);

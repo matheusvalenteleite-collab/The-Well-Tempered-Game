@@ -237,7 +237,7 @@ export interface Play {
   couple?: boolean;
 }
 
-/** D306: the longest time constant of a player's note let go (s): -40 dB in 4.6 of them, 115 ms. */
+/** D308: the longest time constant of a player's note let go (s): -40 dB in 4.6 of them, 115 ms. */
 export const LIFT_TAU = 0.025;
 
 /** D302: VOCAL SYNTH's level against the other patches (its source normalised to its peak: measured, II/22 rendered offline). */
@@ -1058,7 +1058,7 @@ export class Chip {
       if (g.gain.cancelAndHoldAtTime) g.gain.cancelAndHoldAtTime(s);
       else (g.gain.cancelScheduledValues(s), g.gain.setValueAtTime(levelAt(s), s)); // flat after the attack, unless Patch.rec shapes it
       // D302: a held note joined to the next goes over the crossfade (`tie`), not its own release.
-      // D306: the player's note let go (a thumb lifted): -40 dB within 120 ms, whatever the recording's
+      // D308: the player's note let go (a thumb lifted): -40 dB within 120 ms, whatever the recording's
       // own release (NOCTURNE 32-BIT's violin, 53 ms a time constant, was -20 dB then: no staccato).
       const tau = tie && !plucked ? Math.max(0.004, tie / 6) : lift ? Math.min(ownTau, LIFT_TAU) : ownTau;
       g.gain.setTargetAtTime(0, s, tau);

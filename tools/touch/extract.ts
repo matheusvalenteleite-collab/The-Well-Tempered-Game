@@ -104,7 +104,7 @@ const NOT_ENTRIES: Record<string, [bar: number, voice: number][]> = {
  * filled": F E F B♭…); no. 13, b. 20, soprano, and b. 70, alto (the head's tail: D♯ E♯ F♯ C♯ D♯);
  * no. 24, b. 70, alto (without its first note), and bb. 97–98, alto and bass (heads, four notes).
  * Not taken: Book I no. 4, b. 95; no. 11, b. 46 (his stretto); Book II no. 11, b. 85 (not in the notes).
- * D306: I/22, b. 61, second soprano (the owner: "at least one missing subject entrance"): B♭ A, then
+ * D308: I/22, b. 61, second soprano (the owner: "at least one missing subject entrance"): B♭ A, then
  * the subject's G♭ F E♭ D♭ C at its own pitch (the first soprano's of b. 1) and B♭, over the bass's
  * dominant pedal (bb. 62-64): its fifth down bent to a step and the ninth to a sixth, so no finder
  * takes it. Not taken: the tenor's B♭ A♭ G♭ F E♭ D♭ of bb. 38-39 (the same bent head, but then its own
@@ -151,7 +151,7 @@ const MORE_ENTRIES: Record<string, { bar: number; voice: number; midi: number; i
   ],
 };
 /**
- * D306: the subject's head stated where the library's finder does not look: it matches eight notes or
+ * D308: the subject's head stated where the library's finder does not look: it matches eight notes or
  * more of the subject, its first note too, so a statement of the head alone (Bach going his own way
  * after six or seven notes) or one whose first note is bent (a tonal answer's, a stretto's held note
  * changed) is missed: the owner on I/22, "at least one missing subject entrance not highlighted". Every
@@ -166,7 +166,7 @@ const NOT_HEADS: Record<string, [bar: number, voice: number][]> = {
   wtc2f15: [[58, 0]],
 };
 
-/** D306: see NOT_HEADS. The subject: the first plain statement's notes (one a time, the highest). */
+/** D308: see NOT_HEADS. The subject: the first plain statement's notes (one a time, the highest). */
 function shortHeads(voices: Note[][], raw: RawEntry[], not: [number, number][], barAt: (tick: number) => number): RawEntry[] {
   const H = 7;
   const lineOf = (v: Note[]) => v.filter((n, i) => !(i > 0 && v[i - 1][0] === n[0]));
@@ -277,7 +277,7 @@ const fugues = corpus
       if (!n) throw new Error(`${p.id}: no MIDI ${m.midi} in voice ${m.voice}, b. ${m.bar}`);
       raw.push({ voice: m.voice, on: n[0], len: m.notes ? lenOf(m.voice, n[0], m.notes) : span, shift: m.midi - firstMidi, inverted: !!m.inverted, scale: 1, theme: 1 });
     }
-    // D306: the heads the library's finder misses (it wants eight notes or more, the first one too).
+    // D308: the heads the library's finder misses (it wants eight notes or more, the first one too).
     for (const h of shortHeads(voices, raw, NOT_HEADS[p.id] ?? [], barAt)) raw.push(h);
     // D197: the later subjects of the double and triple fugues (the library's: where each first
     // enters is Ledbetter's, its statements are found in the notes), as theme 2 and 3.

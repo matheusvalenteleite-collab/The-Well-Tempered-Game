@@ -148,7 +148,7 @@ function saveSessionLag(l: number | null, setup?: string) {
   try {
     if (l === null) sessionStorage.removeItem(LAG_KEY);
     else sessionStorage.setItem(LAG_KEY, JSON.stringify(l));
-    // D306: the output it was tapped with (BLUETOOTH MODE's AUTO counts it only there: headphones.ts btAuto).
+    // D308: the output it was tapped with (BLUETOOTH MODE's AUTO counts it only there: headphones.ts btAuto).
     if (l === null || setup === undefined) sessionStorage.removeItem(LAG_SETUP_KEY);
     else sessionStorage.setItem(LAG_SETUP_KEY, setup);
   } catch {
@@ -213,7 +213,7 @@ export function BenchApp() {
   // speaker from headphones: a delay tapped once stayed on without them, and every note was judged late:
   // the owner: "headphone delay was on even though I have no headphones on, that's maybe why I was failing").
   const [lag, setLagRaw] = useState<number | null>(() => (APP.lite ? sessionLag() : load<number | null>(LAG_KEY, null)));
-  /** D306: a delay tapped since the page loaded (one restored from the visit is not, for BLUETOOTH MODE's AUTO). */
+  /** D308: a delay tapped since the page loaded (one restored from the visit is not, for BLUETOOTH MODE's AUTO). */
   const lagFresh = useRef(false);
   const applyLag = (l: number | null) => {
     setLagRaw(l);
@@ -377,7 +377,7 @@ export function BenchApp() {
     return { ...subjectMarks(f), spans, names: f.voiceNames, cadences, ornaments, readingMarks };
   }, [f, run, reading?.id, voice]);
   const chip = useRef<Chip | null>(null);
-  /** D306: BLUETOOTH MODE on AUTO (the minimal page): the reported latency, or the delay tapped for this output (btAuto). */
+  /** D308: BLUETOOTH MODE on AUTO (the minimal page): the reported latency, or the delay tapped for this output (btAuto). */
   const btLite = (ctx = chip.current?.ctx) => btAuto(lag, ctx ? latencyOf(ctx) : undefined, { setup: sessionLagSetup(), fresh: lagFresh.current });
   // D223: other headphones noticed (a setup seen before gets its delay back), BLUETOOTH MODE, the screen's delay.
   const hp = useHeadphones(chip, APP.lite ? () => {} : applyLag);
@@ -468,6 +468,7 @@ export function BenchApp() {
     if (hm) setTuning("equal", hm.a);
     ch.mine.gain.value = kimiko ? MINE[pick.mine] : 1;
     // D219: failing always on (D225: in the lessons from the fourth on); WITH KIMIKO, the game sounds only the player's voice.
+    setPaused(false);
     const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && lesson?.pl === "mobile" } : {}), reading, ...(clock ? { clock } : {}) }, ch);
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
@@ -636,7 +637,22 @@ export function BenchApp() {
   phaseNow.current = phase.kind;
   // D237: ✕ goes back to the cards (HOME, the wheel as it was left, the minimal page's grid).
   const home = () => ((waitingHer.current = null), setLesson(null), setPhase({ kind: "home" }));
-  const quit = home;
+  const quit = () => (setPaused(false), home());
+  /** D308: PAUSE (not with KIMIKO: her recording keeps the time; not in a lesson's step, which waits anyway). */
+  const [paused, setPaused] = useState(false);
+  const canPause = !kimiko && !lesson;
+  const pauseNow = () => {
+    const g = game.current;
+    if (!g || g.paused || !canPause) return;
+    g.pause();
+    setPaused(true);
+  };
+  const resumeNow = () => {
+    const ch = chip.current;
+    if (ch && ch.ctx.state !== "running" && ch.ctx.state !== "closed") void ch.resume();
+    game.current?.resume();
+    setPaused(false);
+  };
   /** D237: a card chosen (the wheel, the grid): the pop-up over it (from its start unless it is the piece already chosen). */
   // D295: the piece last opened this visit, for the list to come back to.
   const [opened, setOpened] = useState<string | undefined>(undefined);
@@ -832,6 +848,8 @@ export function BenchApp() {
     const shown = () => {
       const ch = chip.current;
       if (document.hidden) {
+        // D308: a round paused (RESUME, a bar of count-in, on return), not taken up again mid-bar.
+        if (phase.kind === "play") pauseNow();
         away();
         if (ch && phase.kind === "play") void ch.ctx.suspend();
       } else if (ch && ch.ctx.state !== "closed") void ch.resume(); // D191: also the iPhone's silent <audio>, paused by an interruption
@@ -861,6 +879,13 @@ export function BenchApp() {
       return r < 0 ? null : { velocity: KEY_ROWS[r].dyn, trill: KEY_ROWS[r].trill, code: e.code };
     };
     const down = (e: KeyboardEvent) => {
+      // D308: paused, the keys are the overlay's (Escape quits, Enter or Space resumes); playing, Enter or Pause pauses.
+      if (phase.kind === "play" && paused) {
+        if (e.code === "Escape") return quit();
+        if (e.code === "Enter" || e.code === "Space" || e.code === "Pause") return (e.preventDefault(), resumeNow());
+        return;
+      }
+      if (phase.kind === "play" && (e.code === "Enter" || e.code === "Pause") && canPause && !e.repeat) return (e.preventDefault(), pauseNow());
       if (e.code === "Escape" && phase.kind === "play") return quit();
       // Keys meant for a control (the FROM slider; space or enter on a button off the game) or the
       // first screen are theirs (D184).
@@ -923,6 +948,12 @@ export function BenchApp() {
           <>
             <span className="tg-hud-title">{lesson ? `${tr("LESSON")} ${lesson.n + 1} · ${tr(TRACKS[lesson.pl][lesson.n].english)}` : APP.lite ? (lang() === "en" ? f.title.toUpperCase() : pieceName(f.kind, f.key, f.number)) : `BENCH · ${proto.name}`}</span>
             <span className="tg-hud-bar">{APP.lite && lang() !== "en" ? keyWordsIn(frame.current.key) : keyName(frame.current.key)}</span>
+            {playing && canPause && (
+              // D308: PAUSE, beside ✕.
+              <button type="button" id="pause" className="tg-x tb-pause" aria-label={tr("Pause")} onClick={pauseNow}>
+                ❚❚
+              </button>
+            )}
             {(playing || lesson) && (
               <button type="button" id="quit" className="tg-x" aria-label="Quit" onClick={quit}>
                 ✕
@@ -1025,6 +1056,25 @@ export function BenchApp() {
           ✕
         </button>
       )}
+      {(layout === "full" || roadAlone(proto, playing)) && playing && canPause && (
+        <button type="button" id="pause-full" className="tg-x tb-quit tb-pause-full" aria-label={tr("Pause")} onClick={pauseNow}>
+          ❚❚
+        </button>
+      )}
+      {playing && paused && (
+        // D308: the round paused: RESUME (a bar of count-in, then on from the beat it stopped in) or QUIT.
+        <div className="tb-pop-veil tb-pause-veil" role="dialog" aria-label={tr("PAUSED")}>
+          <div className="tb-pop tb-pause-box">
+            <h1 className="tb-pause-title">{tr("PAUSED")}</h1>
+            <button type="button" id="resume" className="tb-play" autoFocus onClick={resumeNow}>
+              ▶ {tr("RESUME")}
+            </button>
+            <button type="button" id="pause-quit" className="tb-pause-quit" onClick={quit}>
+              ✕ {tr("QUIT")}
+            </button>
+          </div>
+        </div>
+      )}
       {hp.changed && !playing && !calib && (
         <div className="tb-hp-banner" role="status">
           <button type="button" id="hp-recalibrate" onClick={() => setCalib(true)}>
@@ -1118,7 +1168,7 @@ export function BenchApp() {
         />
       )}
       {wheel && !APP.lite && (phase.kind === "home" || phase.kind === "title") && <FuguePicker current={pick.piece} close={() => setWheel(false)} pick={open} paused={phase.kind === "title"} />}
-      {/* D306: ⚙ opens over the cards, which stay behind it (not the music box). */}
+      {/* D308: ⚙ opens over the cards, which stay behind it (not the music box). */}
       {APP.lite && (phase.kind === "home" || phase.kind === "title" || phase.kind === "settings") && <LiteGrid beaten={lite.beaten} best={lite.best} scores={lite.scores} current={opened && pick.piece} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} fuguesOnly={platform === "mobile"} tutorial={platform === "mobile" ? { done: TRACKS.mobile.filter((l) => trackState("mobile").passed[l.id]).length, of: TRACKS.mobile.length, start: () => setSteps(true) } : undefined} />}
       {APP.lite && steps && phase.kind === "home" && <TutorialSteps play={(n) => beginLesson("mobile", n)} close={() => setSteps(false)} />}
       {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} open={lite.beaten.includes(hearing)} play={playSubject} close={() => setHearing(null)} />}
