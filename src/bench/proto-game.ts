@@ -22,6 +22,8 @@ import { barAt, barStart, beatOf, cadenceName, countInStart, inBar, keyAt, type 
 import { echoHalves, repeatHalves } from "./echo.ts";
 /** D247: the smallest row (CSS px) LADDER judges a touch by (the voice's range filled rows of about 18 to 24). */
 export const LADDER_ROW_MIN = 18;
+/** D286: how long a thumb's last touch stays its reference for its next note (seconds). */
+export const OWN_FRESH_S = 3;
 import { chordOf, laneNotes, options, preludeRides, quickRides, release, strike, sweep, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
 import { follow, phrase, ritard, withSpeed, type Shape } from "../touch/phrasing.ts";
@@ -300,6 +302,8 @@ export class ProtoGame {
   private pedalDown = false;
   /** LADDER: the touch that played the last note (its thumb, its height). */
   lastTouch: { side: Side; y: number } | null = null;
+  /** D286: each thumb's own last touch and the staff step of the note it played. */
+  lastBySide: Partial<Record<Side, { y: number; step: number; tick: number; moved?: boolean }>> = {};
   /** The touches, for the music box. */
   readonly marks: Mark[] = [];
   /**
@@ -1042,6 +1046,16 @@ export class ProtoGame {
           const way = up * m.dir;
           ok = same ? way >= 0 && (m.size < 3 || way >= R) : way >= -2.5 * R;
         }
+        // D286: on a change of thumb, judged from that thumb's own last touch (if recent): the way from
+        // the note it played to this one (the owner: "Relative moves are way more important than absolute
+        // location"). Two thumbs on two bars are rarely level, so the other thumb's height is no reference;
+        // each thumb keeps its own sense of up and down. A thumb's first touch keeps the rule above.
+        const own = same ? undefined : this.lastBySide[c.side];
+        if (own && !own.moved && this.now - own.tick <= OWN_FRESH_S * this.tps) {
+          const steps = n.step - own.step;
+          const rise = own.y - c.y;
+          ok = steps === 0 ? Math.abs(rise) <= 2.5 * R : rise * Math.sign(steps) >= -0.25 * R && (Math.abs(steps) < 3 || rise * Math.sign(steps) >= 0.5 * R);
+        }
         return ok ? { ok } : { ok, wrong: asked, why: "gesture" };
       }
       case "piano": {
@@ -1262,6 +1276,9 @@ export class ProtoGame {
     h.across = c.x / Math.max(1, c.w);
     h.trail.push({ t: ts, y: c.y });
     while (h.trail.length > 2 && ts - h.trail[0].t > 120) h.trail.shift();
+    // D286: a thumb that travelled while down (a slide, a line, a big shake) is no longer where it struck.
+    const own = this.lastBySide[h.side];
+    if (own && Math.abs(c.y - own.y) > 1.5 * this.ladderRow) own.moved = true;
     // Across the dynamic axis while it sounds: a swell or a diminuendo.
     const d = this.dynamicAt(c);
     for (const s of h.sounds) s.dyn?.(levelOf(d) / levelOf(h.d0));
@@ -1377,6 +1394,8 @@ export class ProtoGame {
     h.ay = c.y;
     this.play(id, h, i, { ok: true }, true, this.dynamicAt(c));
     this.slides++;
+    // D286: the thumb is where it slid to, on the note it slid onto.
+    this.lastBySide[h.side] = { y: c.y, step: notes[i].step, tick: this.now };
     return true;
   }
 
@@ -1530,7 +1549,7 @@ export class ProtoGame {
       if (!v.ok && !(piano && v.wrong !== undefined)) for (const sd of h.sounds) sd.muffle?.();
     }
     // A touch on the screen (not a key) is the next note's reference.
-    if (h.trail.length) this.lastTouch = { side: h.side, y: h.ay };
+    if (h.trail.length) (this.lastTouch = { side: h.side, y: h.ay }), (this.lastBySide[h.side] = { y: h.ay, step: this.tracks[h.k].notes[i].step, tick: this.now });
     h.midi = pitches[0];
     h.note = i;
     h.chord = chord;

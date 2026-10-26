@@ -240,13 +240,6 @@ export const PATCHES = {
   pedalBourdon: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: -1, gain: 0.45 }, { wave: "organ", gain: 0.25 }], amp: { a: 0.03, d: 0.1, s: 1, r: 0.08 }, level: 0.4 }),
   // D266: the ensembles' recorded instruments (sampled.ts SAMPLED: looped, held while the thumb holds);
   // the synthesized sound stands in until a recording has loaded.
-  sViolin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.06, d: 0.2, s: 0.85, r: 0.14 }, vib: { depth: 8, rate: 5.2, delay: 0.3 }, level: 0.3, sample: "violin" }),
-  sViola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.3, s: 0.8, r: 0.14 }, vib: { depth: 6, rate: 4.8, delay: 0.35 }, level: 0.3, sample: "viola" }),
-  sCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "sine", gain: 0.7 }], filter: { freq: 3, q: 0.8, env: 1.4, envDecay: 0.2 }, amp: { a: 0.05, d: 0.3, s: 0.8, r: 0.16 }, vib: { depth: 6, rate: 4.6, delay: 0.4 }, level: 0.3, sample: "cello" }),
-  sFlute: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.15 }], amp: { a: 0.05, d: 0.1, s: 0.9, r: 0.1 }, breath: 0.1, level: 0.3, sample: "flute" }),
-  sOboe: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.4 }], filter: { freq: 4.2, q: 1.4, env: 1.2, envDecay: 0.1 }, amp: { a: 0.04, d: 0.1, s: 0.9, r: 0.1 }, level: 0.3, sample: "oboe" }),
-  sClarinet: P({ osc: [{ wave: "square", gain: 0.5 }, { wave: "sine", gain: 0.6 }], filter: { freq: 3, q: 0.9, env: 1.1, envDecay: 0.1 }, amp: { a: 0.04, d: 0.1, s: 0.9, r: 0.1 }, level: 0.3, sample: "clarinet" }),
-  sBassoon: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.6 }], filter: { freq: 2.4, q: 1, env: 1.3, envDecay: 0.1 }, amp: { a: 0.04, d: 0.3, s: 0.8, r: 0.1 }, level: 0.3, sample: "bassoon" }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
@@ -275,15 +268,6 @@ export const FAMILIES: { name: string; presets: Preset[] }[] = [
     name: "ACOUSTIC",
     presets: [
       { id: "strings", name: "STRINGS", slots: ["violin", "violin2", "viola", "viola", "cello"], drums: "chamber", room: 0.3 },
-      // D266: each fugue's own, recorded (sampled.ts): the string trio, quartet and quintet (a voice
-      // to a slot: three take violin, viola, cello; four two violins, viola, cello; five two violas).
-      { id: "stringsReal", name: "STRINGS", slots: ["sViolin", "sViolin", "sViola", "sViola", "sCello"], room: 0.3 },
-      { id: "baroqueBand", name: "BAROQUE BAND", slots: ["sOboe", "sViolin", "sViola", "sViola", "sBassoon"], room: 0.3 },
-      { id: "reedTrio", name: "OBOE, VIOLA & BASSOON", slots: ["sOboe", "sViola", "sViola", "sViola", "sBassoon"], room: 0.28 },
-      { id: "windTrio", name: "WIND TRIO", slots: ["sFlute", "sOboe", "sOboe", "sOboe", "sBassoon"], room: 0.28 },
-      { id: "clarinetTrio", name: "FLUTE, CLARINET & BASSOON", slots: ["sFlute", "sClarinet", "sClarinet", "sClarinet", "sBassoon"], room: 0.28 },
-      { id: "windsReal", name: "WIND QUARTET", slots: ["sFlute", "sOboe", "sClarinet", "sClarinet", "sBassoon"], room: 0.3 },
-      { id: "galantTrio", name: "FLUTE, VIOLA & CELLO", slots: ["sFlute", "sViola", "sViola", "sViola", "sCello"], room: 0.28 },
       { id: "baroque", name: "BAROQUE BAND · SYNTH", slots: ["oboe", "violin", "harpsichord", "harpsichord", "cello"], drums: "chamber", room: 0.28 },
       { id: "winds", name: "WINDS", slots: ["flute", "oboe", "clarinet", "clarinet", "bassoon"], drums: "chamber", room: 0.3 },
       { id: "consort", name: "CONSORT", slots: ["recorder", "lute", "viol", "viol", "harpsiBass"], drums: "chamber", room: 0.28 },
@@ -336,7 +320,8 @@ export const ORGAN_SAMPLED: Preset = { id: "organSampled", name: "ORGAN (SAMPLED
 
 export const PRESETS = FAMILIES.flatMap((f) => f.presets);
 /** D249: presets withdrawn, and what a stored choice of one opens as instead. */
-export const RETIRED: Readonly<Record<string, string>> = { organSampled: "harpsichordSampled" };
+/** D288: the sampled ensembles withdrawn (muddled on a phone speaker): a choice of one plays classic chip. */
+export const RETIRED: Readonly<Record<string, string>> = { organSampled: "harpsichordSampled", stringsReal: "chip", baroqueBand: "chip", reedTrio: "chip", windTrio: "chip", clarinetTrio: "chip", windsReal: "chip", galantTrio: "chip" };
 /** A preset by its id (a withdrawn one's stand-in, D249; else CLASSIC CHIP). */
 export const presetById = (id: string) => PRESETS.find((p) => p.id === (RETIRED[id] ?? id)) ?? PRESETS.find((p) => p.id === "chip")!;
 
