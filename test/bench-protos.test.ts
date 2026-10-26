@@ -151,11 +151,11 @@ function touchNote(id: string, i: number, place: (g: ProtoGame, n: LaneNote) => 
   return { g, n, heard: log.at(-1)!, log };
 }
 
-test("a wrong place sounds what it asked for, muffled (the PIANO's key plain), and does not count", () => {
+test("a wrong place sounds what it asked for, not muffled (D293; the PIANO's key), and does not count", () => {
   {
     const { n, heard } = touchNote("ladder", 1, (_, n) => ({ side: "left", x: W * 0.1, y: ROWS.yOf(n.step + 6), w: W, h: H }));
     assert.equal(n.wrong, true);
-    assert.equal(heard.muffled, true);
+    assert.equal(heard.muffled, false);
     assert.ok(heard.midi > n.midi, `six steps up, heard ${heard.midi}`);
   }
   {
@@ -187,23 +187,26 @@ test("LADDER is forgiving: near the note and the right way from the touch before
   assert.equal(tap(2, "right", ROWS.yOf(34) + 30), "miss");
 });
 
-test("a held note swells as the thumb moves out across its bar; a flick upwards on letting go: a swoosh", () => {
-  const clock = { t: 0 };
-  const log: { midi: number; muffled: boolean; dyn?: number }[] = [];
-  const swooshes: number[] = [];
-  const g = new ProtoGame(C_MINOR, [1], 0, protoById("ladder"), { bpm: 54, legato: false }, fakeChip(clock, log, swooshes));
-  g.rows = ROWS;
-  const n = g.notes[0];
-  clock.t = 0.15 + (n.on - g.start) / g.tps;
-  g.step();
-  const t0 = performance.now();
-  const y = ROWS.yOf(n.step);
-  g.down(1, { side: "left", x: W * BAR * 0.9, y, w: W, h: H }, t0);
-  g.move(1, { side: "left", x: 2, y, w: W, h: H }, t0 + 20);
-  assert.ok((log.at(-1)!.dyn ?? 1) > 1.3, "out to the edge: louder");
-  g.move(1, { side: "left", x: 2, y: y - 60, w: W, h: H }, t0 + 60);
-  g.up(1, t0 + 80);
-  assert.deepEqual(swooshes, [n.midi]);
+test("a held note swells as the thumb moves out across its bar (D293: only where dynamics are asked); a flick upwards on letting go: a swoosh", () => {
+  for (const coach of ["dynamics", undefined] as const) {
+    const clock = { t: 0 };
+    const log: { midi: number; muffled: boolean; dyn?: number }[] = [];
+    const swooshes: number[] = [];
+    const g = new ProtoGame(C_MINOR, [1], 0, protoById("ladder"), { bpm: 54, legato: false, coach }, fakeChip(clock, log, swooshes));
+    g.rows = ROWS;
+    const n = g.notes[0];
+    clock.t = 0.15 + (n.on - g.start) / g.tps;
+    g.step();
+    const t0 = performance.now();
+    const y = ROWS.yOf(n.step);
+    g.down(1, { side: "left", x: W * BAR * 0.9, y, w: W, h: H }, t0);
+    g.move(1, { side: "left", x: 2, y, w: W, h: H }, t0 + 20);
+    if (coach) assert.ok((log.at(-1)!.dyn ?? 1) > 1.3, "out to the edge: louder");
+    else assert.equal(log.at(-1)!.dyn, undefined, "no swell where dynamics are not asked");
+    g.move(1, { side: "left", x: 2, y: y - 60, w: W, h: H }, t0 + 60);
+    g.up(1, t0 + 80);
+    assert.deepEqual(swooshes, [n.midi]);
+  }
 });
 
 test("keys: a MIDI key plays its pitch (the PIANO exactly); WASD and the arrows on the computer's LADDER", () => {

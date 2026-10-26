@@ -6,7 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { fugueById } from "../src/touch/fugue.ts";
 import type { Chip, Play } from "../src/touch/chip.ts";
-import { laneLine, ProtoGame, ptsText, RELATIVE_DULL } from "../src/bench/proto-game.ts";
+import { laneLine, ProtoGame, ptsText } from "../src/bench/proto-game.ts";
 import { KEY_ROWS, protoById } from "../src/bench/protos.ts";
 
 const C_MINOR = fugueById("wtc1f02");
@@ -72,7 +72,7 @@ function sideNote(count: number) {
 const beside = (g: ProtoGame, i: number) => g.lanes[i] + g.moves[i].dir;
 
 for (const [proto, count] of [["keys", 9], ["highway", 5]] as const) {
-  test(`D239, ${proto}: the planned lane scores in full with a chime; the right way in another lane half, duller, no chime`, () => {
+  test(`D239, ${proto}: the planned lane scores in full with a chime; the right way in another lane half, no chime (D293: not duller)`, () => {
     const exact = play(proto, sideNote(count), (g, i) => g.lanes[i]);
     const rel = play(proto, sideNote(count), beside);
     const i = sideNote(count)(exact.g);
@@ -82,7 +82,7 @@ for (const [proto, count] of [["keys", 9], ["highway", 5]] as const) {
     assert.equal(rel.at.chimes, 0, "no chime on the relative");
     assert.ok(exact.at.pts > 0);
     assert.equal(rel.at.pts, exact.at.pts / 2, "half the points");
-    assert.ok(Math.abs(exact.at.bright - rel.at.bright - RELATIVE_DULL) < 1e-9, "duller");
+    assert.equal(exact.at.bright, rel.at.bright, "D293: sounds alike");
     assert.equal(rel.g.streak, exact.g.streak, "the streak kept");
     assert.equal(rel.g.mult, exact.g.mult, "the multiplier kept");
     const flame = rel.g.flames.at(-1)!;

@@ -29,7 +29,11 @@ export interface Lab {
   /** The entering voice drawn towards the centre. */
   stereo: boolean;
 }
-export const LAB_DEFAULT: Lab = { subject: true, effect: true, vibrato: false, stereo: false };
+/**
+ * D293: the subject's brightness and the others' dulling off by default (the owner: highlight the subject,
+ * if at all, "by adding background layers … not by making it louder"); its effect's layers stay.
+ */
+export const LAB_DEFAULT: Lab = { subject: false, effect: true, vibrato: false, stereo: false };
 let current: Lab = LAB_DEFAULT;
 /** Set from the settings (missing switches take their default). */
 export function setLab(l: Partial<Lab>) {
