@@ -27,7 +27,7 @@ export function subjectSounds(f: TouchFugue, e: ReturnType<typeof firstEntry>, p
       const at = p.at + (pon - on) / tps;
       const len = q === parts.length - 1 ? Math.max(0.03, p.at + p.len - at) : pdur / tps;
       // D302: the ornament's first note joined from the note before as the note was, its last joined to the next.
-      return { at, len, midi: pm, d: p.d, ...(q === 0 && p.legato ? { legato: true } : {}), ...(q === parts.length - 1 && p.tie ? { tie: p.tie } : {}) };
+      return { at, len, midi: pm, d: p.d, ...(q === 0 && p.legato ? { legato: true, from: p.from } : {}), ...(q === parts.length - 1 && p.tie ? { tie: p.tie } : {}), ...(q === parts.length - 1 && p.final ? { final: true } : {}) };
     });
   });
 }

@@ -58,11 +58,14 @@ export interface Bake {
 export const TRACKER_LOOP: [number, number] = [1.0, 1.5];
 export const PERIOD: Record<string, Bake> = {
   // SUPER 16-BIT (§6.1: oboe 16 kHz LP 5.8 kHz, harpsichord 16 kHz 6 kHz, clarinet 14 kHz 5 kHz, violin 16 kHz 6 kHz, bassoon 12 kHz 4.3 kHz; 11 bits).
-  oboe16: { folder: "oboe", rate: 16000, lp: 5800, bits: 11, loop: true },
-  harpsi16: { folder: "harpsichord", rate: 16000, lp: 6000, bits: 11 },
-  clarinet16: { folder: "clarinet", rate: 14000, lp: 5000, bits: 11, loop: true },
-  violin16: { folder: "violin", rate: 16000, lp: 6000, bits: 11, loop: true },
-  bassoon16: { folder: "bassoon", rate: 12000, lp: 4300, bits: 11, loop: true },
+  // D302: brighter (22 kHz, 6-7.5 kHz: they were muffled), the oboe and clarinet replaced by a flute and
+  // the viola section's strings (a pizzicato was tried for the plucked voice: 7-8 dB weaker than the
+  // harpsichord through a phone's speaker, measured; the harpsichord kept).
+  violin16: { folder: "violin", rate: 22050, lp: 7000, bits: 11, loop: true },
+  flute16: { folder: "flute", rate: 22050, lp: 6500, bits: 11, loop: true },
+  harpsi16: { folder: "harpsichord", rate: 22050, lp: 7500, bits: 11 },
+  strings16: { folder: "violaSus", rate: 22050, lp: 6000, bits: 11, loop: true },
+  bassoon16: { folder: "bassoon", rate: 16000, lp: 5000, bits: 11, loop: true },
   // NOCTURNE 32-BIT (§6.2: 22.05 kHz; violin and oboe LP 8 kHz, harpsichord 8.8 kHz, viola 7 kHz, organ 6 kHz; 13 bits).
   violin32: { folder: "violin", rate: 22050, lp: 8000, bits: 13, loop: true },
   oboe32: { folder: "oboe", rate: 22050, lp: 8000, bits: 13, loop: true },
@@ -75,21 +78,30 @@ export const PERIOD: Record<string, Bake> = {
   violinMod: { folder: "violin", rate: 12000, lp: 0, bits: 8, loop: TRACKER_LOOP, hold: true },
   fluteMod: { folder: "flute", rate: 10000, lp: 0, bits: 8, loop: TRACKER_LOOP, hold: true },
   harpsiMod: { folder: "harpsichord", rate: 16000, lp: 0, bits: 8, hold: true },
-  clarinetMod: { folder: "clarinet", rate: 11000, lp: 0, bits: 8, loop: TRACKER_LOOP, hold: true },
-  bassoonMod: { folder: "bassoon", rate: 8000, lp: 0, bits: 8, loop: TRACKER_LOOP, hold: true },
-  // TEMPLE 64 and AGENT 64 (the N64: small VADPCM samples, about 4.5 bits a sample, mixed at 22-32 kHz
-  // in software: soft and a little muffled; 10 bits stand in for the ADPCM's grain).
-  flute64: { folder: "flute", rate: 22050, lp: 6000, bits: 10, loop: true },
-  harp64: { folder: "harp", rate: 22050, lp: 6000, bits: 10 },
-  viola64: { folder: "violaSus", rate: 22050, lp: 5500, bits: 10, loop: true },
-  horn64: { folder: "horn", rate: 22050, lp: 5000, bits: 10, loop: true },
-  pedal64: { folder: "pipePedal", rate: 22050, lp: 5500, bits: 10 },
-  manual64: { folder: "pipeOrgan", rate: 22050, lp: 5500, bits: 10 },
-  xylo64: { folder: "xylophone", rate: 22050, lp: 7000, bits: 10 },
-  trumpet64: { folder: "trumpet", rate: 22050, lp: 4500, bits: 10, loop: true },
-  strings64: { folder: "violaSus", rate: 16000, lp: 3500, bits: 10, loop: true },
-  hornAgent64: { folder: "horn", rate: 22050, lp: 5000, bits: 10, loop: true },
-  bass64: { folder: "ebass", rate: 22050, lp: 6000, bits: 10 },
+  // D302: the choir "aah" (its loop as the chorales' take it) and the slapped electric bass, in place of the clarinet and the bassoon.
+  choirMod: { folder: "choirAahs", rate: 11000, lp: 0, bits: 8, loop: [0.9, 2.5], hold: true },
+  bassMod: { folder: "ebass", rate: 11000, lp: 0, bits: 8, hold: true },
+  // D302, PIPE ORGAN: the VCSL organ's plenum and pedal as recorded (their own loops), kept at 22 kHz
+  // (half the memory; nothing of an organ's lost under 10 kHz) with the 120 Hz floor (no boom for a
+  // phone's limiter), 16 bits: no grain.
+  manualOrg: { folder: "pipeOrgan", rate: 22050, lp: 9500, bits: 16 },
+  pedalOrg: { folder: "pipePedal", rate: 22050, lp: 9000, bits: 16 },
+  // D302, FOREST 64 and PARTY 64 (the N64: small samples mixed in software, warm but not muffled: 26
+  // kHz, the interpolation's softening at 8.5-9.5 kHz, 12 bits).
+  nylon26: { folder: "guitar", rate: 26000, lp: 9500, bits: 12 },
+  strings26: { folder: "violaSus", rate: 26000, lp: 8500, bits: 12, loop: true },
+  bassoon26: { folder: "bassoon", rate: 26000, lp: 8500, bits: 12, loop: true },
+  trumpet26: { folder: "trumpet", rate: 26000, lp: 8500, bits: 12, loop: true },
+  guitar26: { folder: "cleanGuitar", rate: 26000, lp: 9500, bits: 12 },
+  sax26: { folder: "sax", rate: 26000, lp: 8500, bits: 12, loop: true },
+  ebass26: { folder: "ebass", rate: 26000, lp: 9000, bits: 12 },
+  // D302, SOLO VOICES: VocalSet's four singers (their own 1-3 s loops) and FluidR3's choir "aah" (its
+  // loop 0.9-2.5 s, as the chorales play it), kept at 24 kHz: nothing of a voice lost under 11 kHz.
+  voiceS: { folder: "soloSoprano", rate: 32000, lp: 11000, bits: 16, loop: [1.0, 3.0] },
+  voiceA: { folder: "soloAlto", rate: 32000, lp: 11000, bits: 16, loop: [1.0, 3.0] },
+  voiceT: { folder: "soloTenor", rate: 32000, lp: 11000, bits: 16, loop: [1.0, 3.0] },
+  voiceB: { folder: "soloBass", rate: 32000, lp: 11000, bits: 16, loop: [1.0, 3.0] },
+  choirAah: { folder: "choirAahs", rate: 32000, lp: 11000, bits: 16, loop: [0.9, 2.5] },
 };
 /**
  * D297: a period set's notes are kept at this share of the decoded rate (22.05 or 24 kHz, a rate every
@@ -114,6 +126,16 @@ const VSCO_CENTS: Record<string, Record<string, number>> = {
   trumpet: { A3: 0.7, A5: 0.8, As4: 1, C4: -2.3, C6: 0.6, D5: 1.3, Ds4: -2.8, F3: -12.1, F5: 1.6, G4: -1.7 },
   xylophone: { C5: 9.7, C6: 15.4, C7: 16.2, C8: 21.1, G4: 2.7, G5: 15.4, G6: 3.9, G7: 17.9 },
   ebass: { As1: -0.4, As2: -0.7, As3: 0.2, As4: 3.5, Cs1: 7.8, Cs2: 0.1, Cs3: 0, Cs4: -1.3, Cs5: 0.7, E1: 6.1, E2: -1, E3: -1.7, E4: -1.6, G1: -3.4, G2: -1.9, G3: -0.3, G4: 0.3 },
+  // D302 (measured likewise: YIN over 0.05-0.6 s of each plucked file, 0.5-1.5 s of the sax's; the plucked ones over 0.1-0.6 s).
+  guitar: { A2: 0.8, A4: -0.8, As5: -10.4, B1: -2.2, B3: 0.2, Cs3: 0.6, Cs5: 11.5, D2: -3.4, Ds4: 0.2, E3: 0.9, E5: -2.6, Fs2: 1.4, Fs4: 1.6, G3: 0.9, G5: -3.7 },
+  cleanGuitar: { As2: 15.5, As3: 12.1, As4: 2.7, As5: -10.9, Cs3: 8.1, Cs4: 8.7, Cs5: -3.5, D6: -14.7, E2: 12.5, E3: 10.4, E4: 4.5, E5: -6.7, G2: 15.4, G3: 11, G4: 5.9, G5: -9.5 },
+  sax: { As3: 0, As4: -0.5, Cs3: 0.1, Cs4: 0, Cs5: -0.4, E3: 0.1, E4: 0, E5: 0.1, G3: -0.1, G4: -0.5, G5: 0.1 },
+  // (The singers' over their loops, 1-3 s: the median of 60 ms frames, through their vibrato.)
+  soloSoprano: { A4: -24.4, As4: -2.2, B4: -8.9, C4: -1.7, C5: -1.1, Cs4: -5.9, Cs5: 34.4, D5: 22.5, Ds4: -8.6, Ds5: -11.4, E4: -1.6, F4: -2.6, F5: -3, Fs4: -1.7, Fs5: 5.6, G4: -4.3, Gs4: -2.9, Gs5: -2.3 },
+  soloAlto: { A3: 0.1, A4: -3.1, As4: -1.6, B4: -4.1, C4: 0, C5: -1.4, D4: 5.3, D5: -0.3, E4: -3.3, F3: -1.4, F4: 13, Fs3: 0.2, G3: -0.2, G4: -4.3, Gs3: -0.7 },
+  soloTenor: { A4: -2.1, As3: 0, C3: 15.4, C4: 0.2, Cs3: -2.3, D4: 0.8, E3: 2.1, F3: 0.8, F4: 12.2, Fs3: 1.1, Fs4: -0.5, G3: 5.7, Gs3: 3.4 },
+  soloBass: { A2: -0.4, B3: -4.1, C3: 1.2, C4: -1.9, Cs3: -3, D2: 1.2, D3: 2.2, D4: 1, Ds2: 1, E2: 1.4, E3: 4.5, F2: 0.8, F3: 1.9, F4: -0.9, Fs2: 0.7, Fs3: 3.2, G2: 0.7, G3: -10.6, Gs2: -0.3 },
+  choirAahs: { B3: -12.4, B4: -0.3, D4: -20.2, D5: -25.3, F3: -25.7, F4: -11.9, F5: -4.4, Gs3: -32.1, Gs4: 6.8 },
 };
 /** D297: the recordings shorter than 4.545 s (s, measured). */
 const SHORT: Record<string, Record<string, number>> = {
@@ -122,6 +144,14 @@ const SHORT: Record<string, Record<string, number>> = {
   horn: {},
   trumpet: { F3: 4.292 },
   ebass: {},
+  guitar: { A2: 4.5, A4: 3.125, As5: 1.562, B1: 4.5, B3: 3.125, Cs3: 4.5, Cs5: 1.562, D2: 4.5, Ds4: 3.125, E3: 4.166, E5: 1.438, Fs2: 4.167, Fs4: 3.125, G3: 3.124, G5: 1.562 },
+  cleanGuitar: { As2: 4, As3: 4, As4: 4, As5: 3.251, Cs3: 4, Cs4: 4, Cs5: 4, D6: 2.537, E2: 4, E3: 4, E4: 4, E5: 4, G2: 4, G3: 4, G4: 4, G5: 3.303 },
+  sax: { As3: 4.5, As4: 4.5, Cs3: 4.5, Cs4: 4.5, Cs5: 4.5, E3: 4.5, E4: 4.5, E5: 4.5, G3: 4.469, G4: 4.5, G5: 4.5 },
+  soloSoprano: Object.fromEntries((SAMPLE_MANIFEST.soloSoprano?.notes ?? []).map((n) => [n, 3.25])),
+  soloAlto: Object.fromEntries((SAMPLE_MANIFEST.soloAlto?.notes ?? []).map((n) => [n, 3.25])),
+  soloTenor: Object.fromEntries((SAMPLE_MANIFEST.soloTenor?.notes ?? []).map((n) => [n, 3.25])),
+  soloBass: Object.fromEntries((SAMPLE_MANIFEST.soloBass?.notes ?? []).map((n) => [n, 3.25])),
+  choirAahs: Object.fromEntries((SAMPLE_MANIFEST.choirAahs?.notes ?? []).map((n) => [n, 3.08])),
 };
 /** D297: a period set's made loop (s from the onset). */
 const loopOf = (b: Bake): [number, number] => (b.loop === true ? WIND_LOOP : b.loop || WIND_LOOP);
@@ -145,7 +175,7 @@ const LAYER_SET: Record<string, { folder: string; layer: number }> = { grandSoft
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's). */
 export const folderOf = (set: string) => LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set;
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "oboe16" | "harpsi16" | "clarinet16" | "violin16" | "bassoon16" | "violin32" | "oboe32" | "harpsi32" | "viola32" | "organ32" | "violinMod" | "fluteMod" | "harpsiMod" | "clarinetMod" | "bassoonMod" | "flute64" | "harp64" | "viola64" | "horn64" | "organ64" | "xylo64" | "trumpet64" | "strings64" | "hornAgent64" | "bass64";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "violin32" | "oboe32" | "harpsi32" | "viola32" | "organ32" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "nylon26" | "strings26" | "bassoon26" | "trumpet26" | "guitar26" | "sax26" | "ebass26" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPleno" | "organPedal";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -185,10 +215,10 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   // D297: the period presets' instruments (PERIOD's sets); the winds and strings held on their made
   // loops, the harpsichords plucked. Gains set by measurement (II/22 and I/2 rendered offline through
   // chip.ts, each voice alone): the voices of a preset within about 1.5 dB of each other (R8).
-  oboe16: { set: "oboe16", plucked: false, gain: 2.2 },
-  harpsi16: { set: "harpsi16", plucked: true, gain: 1.8 },
-  clarinet16: { set: "clarinet16", plucked: false, gain: 2.2 },
   violin16: { set: "violin16", plucked: false, gain: 2.2 },
+  flute16: { set: "flute16", plucked: false, gain: 2.2 },
+  harpsi16: { set: "harpsi16", plucked: true, gain: 1.8 },
+  strings16: { set: "strings16", plucked: false, gain: 2.2 },
   bassoon16: { set: "bassoon16", plucked: false, gain: 2.2 },
   violin32: { set: "violin32", plucked: false, gain: 2.2 },
   oboe32: { set: "oboe32", plucked: false, gain: 2.2 },
@@ -201,19 +231,25 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   violinMod: { set: "violinMod", plucked: false, gain: 2.2 },
   fluteMod: { set: "fluteMod", plucked: false, gain: 2.2 },
   harpsiMod: { set: "harpsiMod", plucked: true, gain: 1.8 },
-  clarinetMod: { set: "clarinetMod", plucked: false, gain: 2.2 },
-  bassoonMod: { set: "bassoonMod", plucked: false, gain: 2.2 },
-  // TEMPLE 64's and AGENT 64's.
-  flute64: { set: "flute64", plucked: false, gain: 2.2 },
-  harp64: { set: "harp64", plucked: true, gain: 2.2 },
-  viola64: { set: "viola64", plucked: false, gain: 2.2 },
-  horn64: { set: "horn64", plucked: false, gain: 2.2 },
-  organ64: { set: "pedal64", above: { set: "manual64", from: 55 }, plucked: false, gain: 2.5 },
-  xylo64: { set: "xylo64", plucked: true, gain: 2.2 },
-  trumpet64: { set: "trumpet64", plucked: false, gain: 2.2 },
-  strings64: { set: "strings64", plucked: false, gain: 2.2 },
-  hornAgent64: { set: "hornAgent64", plucked: false, gain: 2.2 },
-  bass64: { set: "bass64", plucked: true, gain: 2.2 },
+  choirMod: { set: "choirMod", plucked: false, gain: 2.2 },
+  bassMod: { set: "bassMod", plucked: true, gain: 2.2 },
+  // D302, FOREST 64's and PARTY 64's.
+  nylon26: { set: "nylon26", plucked: true, gain: 2.2 },
+  strings26: { set: "strings26", plucked: false, gain: 2.2 },
+  bassoon26: { set: "bassoon26", plucked: false, gain: 2.2 },
+  trumpet26: { set: "trumpet26", plucked: false, gain: 2.2 },
+  guitar26: { set: "guitar26", plucked: true, gain: 2.2 },
+  sax26: { set: "sax26", plucked: false, gain: 2.2 },
+  ebass26: { set: "ebass26", plucked: true, gain: 2.2 },
+  // D302, SOLO VOICES's singers.
+  voiceS: { set: "voiceS", plucked: false, gain: 2.2 },
+  voiceA: { set: "voiceA", plucked: false, gain: 2.2 },
+  voiceT: { set: "voiceT", plucked: false, gain: 2.2 },
+  voiceB: { set: "voiceB", plucked: false, gain: 2.2 },
+  choirAah: { set: "choirAah", plucked: false, gain: 2.2 },
+  // D302, PIPE ORGAN's recorded plenum and pedal (the pedal retuned up to B3, past its compass; the plenum above, as an organist takes a high bass on a manual).
+  organPleno: { set: "manualOrg", plucked: false, gain: 5 },
+  organPedal: { set: "pedalOrg", above: { set: "manualOrg", from: 60 }, plucked: false, gain: 5 },
 };
 
 /** D297: the set a pitch of an instrument is played from (an organ's manual above its pedal). */

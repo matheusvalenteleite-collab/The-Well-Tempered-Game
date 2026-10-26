@@ -250,7 +250,7 @@ export class Game {
       const jn = block === null ? joins(sh) : {};
       parts.forEach(([pon, pdur, pmidi], q) => {
         const last = q === parts.length - 1;
-        const art = { ...(q === 0 && jn.legato ? { legato: true } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}) };
+        const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}) };
         ch.note(pmidi, Math.max(ch.ctx.currentTime, this.timeAt(pon) + sh.nudge), this.timeAt(pon + pdur) - this.timeAt(pon) + (last && jn.tie ? sh.over : 0), vv, { level: sh.level, ...art });
       });
     }

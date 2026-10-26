@@ -104,10 +104,10 @@ export const JOIN_OVER_S = 0.03;
  * The subject as the reading plays it (HEAR THE SUBJECT): each note's start and length in seconds and
  * its dynamic (0..1), from the entry's notes [onset, duration, MIDI] in ticks. D302: `tie`, joined to
  * the next (held to its onset and JOIN_OVER_S over, then crossfaded: no gap); `legato`, joined from the
- * one before (no fresh attack). A joined note was held 4% over its written length and still let go
+ * one before (no fresh attack; `from` its pitch, a singing voice's glide); `final`, the last. A joined note was held 4% over its written length and still let go
  * before the next (a 120 ms release) and the next attacked anew: no join was heard.
  */
-export function performSubject(r: Reading | null, notes: [number, number, number, ...unknown[]][], tpq: number, bpm: number): { at: number; len: number; midi: number; d: number; legato?: boolean; tie?: number }[] {
+export function performSubject(r: Reading | null, notes: [number, number, number, ...unknown[]][], tpq: number, bpm: number): { at: number; len: number; midi: number; d: number; legato?: boolean; from?: number; tie?: number; final?: boolean }[] {
   // D274: at the game's tempo (D285: on the slow side of the recordings), not the book's.
   const tps = (tpq * bpm) / 60;
   const on0 = notes[0]?.[0] ?? 0;
@@ -121,6 +121,6 @@ export function performSubject(r: Reading | null, notes: [number, number, number
     const u = notes.length > 1 ? i / (notes.length - 1) : 0;
     const shaped = r?.shape === "crescendo" ? base - 0.12 + 0.24 * u : r?.shape === "diminuendo" ? base + 0.12 - 0.24 * u : r?.shape === "arch" ? base - 0.1 + 0.2 * Math.sin(Math.PI * u) : base;
     const d = Math.max(0.05, Math.min(1, shaped + (n?.accent ? 0.15 : 0)));
-    return { at: (on - on0) / tps, len, midi, d, ...(i > 0 && joined(i - 1) ? { legato: true } : {}), ...(joined(i) ? { tie: JOIN_OVER_S } : {}) };
+    return { at: (on - on0) / tps, len, midi, d, ...(i > 0 && joined(i - 1) ? { legato: true, from: notes[i - 1][2] } : {}), ...(joined(i) ? { tie: JOIN_OVER_S } : {}), ...(i === notes.length - 1 ? { final: true } : {}) };
   });
 }

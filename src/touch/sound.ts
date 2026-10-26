@@ -79,6 +79,15 @@ export const SHAPES = {
   stopSpitz: (x: number) => partials(x, [1, 0.6, 0.45, 0.3, 0.2, 0.12, 0.08]),
   /** The pedal's Posaune 8' (a trombone reed): every harmonic, slowly falling, so it carries on a phone (D291). */
   stopPosaune: (x: number) => partials(x, [0.8, 1, 0.85, 0.75, 0.62, 0.55, 0.45, 0.4, 0.32, 0.28, 0.22, 0.18, 0.14, 0.12, 0.1, 0.08]),
+  /** D302, PIPE ORGAN: Trompete 8' (a conical reed, its brass): every harmonic, the 2nd to 5th strongest, bright far up. */
+  stopTrompete: (x: number) => partials(x, [0.55, 0.85, 1, 0.95, 0.85, 0.74, 0.62, 0.52, 0.44, 0.36, 0.3, 0.25, 0.2, 0.17, 0.14, 0.12, 0.1, 0.08, 0.07, 0.06, 0.05, 0.045, 0.04, 0.035, 0.03, 0.026, 0.022, 0.019, 0.016, 0.014]),
+  /**
+   * D302, VOCAL SYNTH: the source under the formants: a pulse train nearly flat in its harmonics (n^-0.4),
+   * as formant synthesis wants, so that each formant sounds at its tabled level (VOWELS) whatever the pitch.
+   */
+  glottal: (x: number) => partials(x, Array.from({ length: 64 }, (_, k) => 1 / (k + 1) ** 0.4)),
+  /** D302: a 4' flute (Rohrflöte): the fundamental, a little of the 2nd and 3rd (the chimney's). */
+  stopFlute4: (x: number) => partials(x, [1, 0.1, 0.2, 0.04]),
 } satisfies Record<string, (x: number) => number>;
 export type ShapedWave = keyof typeof SHAPES;
 /** D297: a periodic wave from its partials' amplitudes (sines in phase), over their sum (within -1..1; the PeriodicWave normalises it anyway). */
@@ -115,8 +124,8 @@ export interface Osc {
 
 export interface Patch {
   osc: Osc[];
-  /** A lowpass (or bandpass) at `freq` times the note's frequency (or Hz when `hz`), opened `env` times at the attack, closing over `envDecay` s; D294: `poles` 4, two in a row (24 dB an octave, a Moog ladder's slope, the resonance on the first). */
-  filter?: { freq: number; hz?: boolean; q?: number; env?: number; envDecay?: number; type?: BiquadFilterType; poles?: 2 | 4 };
+  /** A lowpass (or bandpass) at `freq` times the note's frequency (or Hz when `hz`), opened `env` times at the attack, closing over `envDecay` s; D294: `poles` 4, two in a row (24 dB an octave, a Moog ladder's slope, the resonance on the first); D302: `sweep`, the cutoff moving slowly with the clock by `octaves` either way at `rate` Hz (TOMITA). */
+  filter?: { freq: number; hz?: boolean; q?: number; env?: number; envDecay?: number; type?: BiquadFilterType; poles?: 2 | 4; sweep?: { rate: number; octaves: number } };
   /**
    * D294: a Game Boy volume envelope (the pulse channels' NRx2): the note starts at `from` (of 15) and
    * falls one step every `period` 64ths of a second, abruptly as the hardware does, down to `to`, where
@@ -152,9 +161,12 @@ export interface Patch {
    * every oscillator's frequency, its index (the peak deviation over the modulator's frequency) from
    * `index` falling to `to` over `time` s (bright onset, mellower body); `rise`: first rising to
    * `rise.to` within `rise.time` s (a brass's blare); `mod2`: a second modulator, a fixed index (the
-   * operator feedback's extra harmonics, which Web Audio cannot loop sample by sample).
+   * operator feedback's extra harmonics, which Web Audio cannot loop sample by sample). D302: `mod2.to`
+   * and `time`, its index falling too (an e-piano's tine, a slap's click); `fb`, the modulator fed back
+   * on itself (chip.ts feedback: its wave brighter, toward a sawtooth); `detune`, the modulator so many
+   * cents off its ratio (the chip's DT1: the timbre beating slowly, not a unison's chorus).
    */
-  fm?: { ratio: number; index: number; to: number; time: number; rise?: { to: number; time: number }; mod2?: { ratio: number; index: number } };
+  fm?: { ratio: number; index: number; to: number; time: number; rise?: { to: number; time: number }; mod2?: { ratio: number; index: number; to?: number; time?: number }; fb?: number; detune?: number };
   /** D297: the oscillators' sum quantised to so many bits before the envelope (the YM2612's 9-bit DAC grain). */
   bits?: number;
   /** D297: a high-pass (Hz, 12 dB an octave) under the note (the presets' 120 Hz floor: no boom for a phone's limiter). */
@@ -178,7 +190,96 @@ export interface Patch {
    * together and each voice, its own rate, apart from the others).
    */
   drift?: { cents: number; rate: number };
+  /** D302: a portamento (s) into a joined note, from the note before's pitch (Play.from): TOMITA's whistle, TRACKER's tone portamento. */
+  slide?: number;
+  /** D302, TOMITA's phased strings: two allpass stages swept with the clock between `lo` and `hi` Hz at `rate`, beside the dry sound. */
+  phaser?: { rate: number; lo: number; hi: number };
+  /** D302, TOMITA's theatrical stereo: the voice's place wandering by `depth` at `rate` Hz with the clock (within ±0.35). */
+  autopan?: { rate: number; depth: number };
+  /** D302, VOCAL SYNTH: a sung voice (chip.ts singNote, Sing). */
+  sing?: Sing;
+  /**
+   * D302, SOLO VOICES: a sung recording's syllable (chip.ts sampledNote): a new syllable begun with its
+   * consonant (`cons`, CONSONANTS: the voice opening from a lowpass, a plosive's burst), the pitch
+   * scooped from `scoop` cents below to `over` above; joined, the vowel goes on, the pitch gliding from
+   * the note before (Play.from); a phrase's end falls `fall` cents.
+   */
+  syllable?: { cons: Sing["cons"]; scoop: number; over: number; fall: number };
 }
+
+/**
+ * D302, VOCAL SYNTH: a singing voice by formant synthesis (chip.ts singNote), after the character
+ * singing synthesizers' manner: a glottal source (SHAPES.glottal) and breath noise through five
+ * formants in parallel (VOWELS: the vowel `vowel` of the voice type `type`, scaled by `size`: under 1
+ * a larger vocal tract, over 1 a smaller, younger one); each new syllable begun with its consonant
+ * (`cons`: "l", "d", "n", "r" or "m": the formants coming from the consonant's into the vowel's, a
+ * plosive's burst, a nasal's murmur, a tap's dip), the pitch scooped up from `scoop` cents below to
+ * `over` cents above and settling (the onset's "shakuri"), the vibrato late (Patch.vib); a joined note
+ * no new syllable: the vowel goes on, the pitch glides from the note before (Play.from) with the same
+ * small overshoot; at a phrase's end (Play.final) the pitch falls `fall` cents as the voice lets go;
+ * `breath` the breathiness (0-1); `ring` a lift (dB) about 3 kHz, the bright, forward "idol" timbre
+ * (and the band a phone's speaker gives best).
+ */
+export interface Sing {
+  vowel: Vowel;
+  type: VoiceType;
+  size: number;
+  cons: "l" | "d" | "n" | "r" | "m";
+  scoop: number;
+  over: number;
+  fall: number;
+  breath: number;
+  ring: number;
+}
+export type Vowel = "a" | "e" | "i" | "o" | "u";
+export type VoiceType = "soprano" | "alto" | "tenor" | "bass";
+/**
+ * D302: five formants (Hz, dB, bandwidth Hz) of each vowel sung by each voice type: the classic
+ * singing-voice formant table of formant synthesis (as tabulated in the Csound manual's appendix of
+ * formant values), rounded.
+ */
+export const VOWELS: Record<VoiceType, Record<Vowel, [number, number, number][]>> = {
+  soprano: {
+    a: [[800, 0, 80], [1150, -6, 90], [2900, -32, 120], [3900, -20, 130], [4950, -50, 140]],
+    e: [[350, 0, 60], [2000, -20, 100], [2800, -15, 120], [3600, -40, 150], [4950, -56, 200]],
+    i: [[270, 0, 60], [2140, -12, 90], [2950, -26, 100], [3900, -26, 120], [4950, -44, 120]],
+    o: [[450, 0, 70], [800, -11, 80], [2830, -22, 100], [3800, -22, 130], [4950, -50, 135]],
+    u: [[325, 0, 50], [700, -16, 60], [2700, -35, 170], [3800, -40, 180], [4950, -60, 200]],
+  },
+  alto: {
+    a: [[800, 0, 80], [1150, -4, 90], [2800, -20, 120], [3500, -36, 130], [4950, -60, 140]],
+    e: [[400, 0, 60], [1600, -24, 80], [2700, -30, 120], [3300, -35, 150], [4950, -60, 200]],
+    i: [[350, 0, 50], [1700, -20, 100], [2700, -30, 120], [3700, -36, 150], [4950, -60, 200]],
+    o: [[450, 0, 70], [800, -9, 80], [2830, -16, 100], [3500, -28, 130], [4950, -55, 135]],
+    u: [[325, 0, 50], [700, -12, 60], [2530, -30, 170], [3500, -40, 180], [4950, -64, 200]],
+  },
+  tenor: {
+    a: [[650, 0, 80], [1080, -6, 90], [2650, -7, 120], [2900, -8, 130], [3250, -22, 140]],
+    e: [[400, 0, 70], [1700, -14, 80], [2600, -12, 100], [3200, -14, 120], [3580, -20, 120]],
+    i: [[290, 0, 40], [1870, -15, 90], [2800, -18, 100], [3250, -20, 120], [3540, -30, 120]],
+    o: [[400, 0, 40], [800, -10, 80], [2600, -12, 100], [2800, -12, 120], [3000, -26, 120]],
+    u: [[350, 0, 40], [600, -20, 60], [2700, -17, 100], [2900, -14, 120], [3300, -26, 120]],
+  },
+  bass: {
+    a: [[600, 0, 60], [1040, -7, 70], [2250, -9, 110], [2450, -9, 120], [2750, -20, 130]],
+    e: [[400, 0, 40], [1620, -12, 80], [2400, -9, 100], [2800, -12, 120], [3100, -18, 120]],
+    i: [[250, 0, 60], [1750, -30, 90], [2600, -16, 100], [3050, -22, 120], [3340, -28, 120]],
+    o: [[400, 0, 40], [750, -11, 80], [2400, -21, 100], [2600, -20, 120], [2900, -40, 120]],
+    u: [[350, 0, 40], [600, -20, 80], [2400, -32, 100], [2675, -28, 120], [2950, -36, 120]],
+  },
+};
+/**
+ * D302: where each consonant's formants start (F1, F2, F3 in Hz for a man's voice, scaled with the
+ * singer; F4, F5 the vowel's), how long it takes (s), how much of the voice sounds through it, its
+ * burst (a plosive's or a tap's noise), and (SOLO VOICES) the lowpass (Hz) a recorded voice opens from.
+ */
+export const CONSONANTS: Record<Sing["cons"], { f: [number, number, number]; time: number; voiced: number; burst: number; open: number }> = {
+  l: { f: [360, 1000, 2600], time: 0.05, voiced: 0.4, burst: 0, open: 900 },
+  d: { f: [300, 1700, 2600], time: 0.035, voiced: 0, burst: 0.5, open: 1800 },
+  n: { f: [260, 1250, 2500], time: 0.055, voiced: 0.35, burst: 0, open: 500 },
+  r: { f: [350, 1500, 2300], time: 0.025, voiced: 0.25, burst: 0.12, open: 1200 },
+  m: { f: [260, 900, 2300], time: 0.055, voiced: 0.3, burst: 0, open: 450 },
+};
 
 const P = (p: Patch) => p;
 
@@ -383,11 +484,17 @@ export const PATCHES = {
   // bassoon; the recordings made over as the console held them (sampled.ts PERIOD: rate reduced, a
   // 2-pole lowpass at about 0.36 of that rate, 11 bits, mono, a loop). Echo sends (Preset.fx "spc")
   // from the sustained voices only.
-  s16Oboe: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.4 }], filter: { freq: 4.2, q: 1.4, env: 1.2, envDecay: 0.1 }, amp: { a: 0.008, d: 0.3, s: 0.7, r: 0.09 }, rec: { a: 0.008, d: 0.3, s: 0.7, fade: 2.5, r: 0.09 }, vib: { depth: 14, rate: 5.6, delay: 0.28 }, send: 0.22, level: 0.29, sample: "oboe16" }),
-  s16Harpsi: P({ osc: [{ wave: "saw" }, { wave: "pulse25", octave: 1, gain: 0.35 }], filter: { freq: 10, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.9, s: 0, r: 0.06 }, rec: { a: 0.001, d: 0, s: 1, r: 0.06 }, hp: 120, level: 0.75, sample: "harpsi16" }),
-  s16Clarinet: P({ osc: [{ wave: "square", gain: 0.7 }, { wave: "sine", gain: 0.5 }], filter: { freq: 3, q: 0.7 }, amp: { a: 0.015, d: 0.3, s: 0.72, r: 0.09 }, rec: { a: 0.015, d: 0.3, s: 0.72, fade: 2.5, r: 0.09 }, vib: { depth: 10, rate: 4.9, delay: 0.35 }, send: 0.18, level: 0.62, sample: "clarinet16" }),
-  s16Violin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.025, d: 0.3, s: 0.8, r: 0.1 }, rec: { a: 0.025, d: 0.3, s: 0.8, fade: 2.5, r: 0.1 }, vib: { depth: 12, rate: 6.2, delay: 0.3 }, send: 0.18, level: 0.56, sample: "violin16" }),
-  s16Bassoon: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.6 }], filter: { freq: 2.4, q: 1, env: 1.3, envDecay: 0.1 }, amp: { a: 0.012, d: 0.25, s: 0.75, r: 0.08 }, rec: { a: 0.012, d: 0.25, s: 0.75, fade: 3, r: 0.08 }, send: 0.1, hp: 120, level: 0.64, sample: "bassoon16" }),
+  // D302, remade lusher (the owner rated it 4: "boring, dull, flat"): the SNES ensembles' sound: a solo
+  // violin with the samples' vibrato on top, a flute (second of five), the harpsichord (in the echo now),
+  // the viola section's strings, the bassoon; the recordings at 22
+  // kHz (lowpass 6-7 kHz, the Gaussian's softening; they were muffled at 16 kHz, 4.3-6 kHz), their
+  // sustain falling more slowly (4 s); the echo longer and in stereo (chip.ts SPC_ECHO), sent most from
+  // the strings and the flute.
+  s16Violin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.02, d: 0.3, s: 0.82, r: 0.1 }, rec: { a: 0.02, d: 0.3, s: 0.82, fade: 4, r: 0.1 }, vib: { depth: 16, rate: 6.0, delay: 0.26 }, send: 0.22, level: 0.56, sample: "violin16" }),
+  s16Flute: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.15 }], amp: { a: 0.02, d: 0.2, s: 0.85, r: 0.1 }, rec: { a: 0.02, d: 0.2, s: 0.85, fade: 4, r: 0.1 }, vib: { depth: 12, rate: 5.2, delay: 0.3 }, send: 0.26, level: 0.56, sample: "flute16" }),
+  s16Harpsi: P({ osc: [{ wave: "saw" }, { wave: "pulse25", octave: 1, gain: 0.35 }], filter: { freq: 10, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.9, s: 0, r: 0.06 }, rec: { a: 0.001, d: 0, s: 1, r: 0.06 }, send: 0.12, hp: 120, level: 0.75, sample: "harpsi16" }),
+  s16Strings: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.3, s: 0.85, r: 0.12 }, rec: { a: 0.05, d: 0.3, s: 0.85, fade: 4, r: 0.12 }, vib: { depth: 10, rate: 4.6, delay: 0.34 }, send: 0.3, level: 0.6, sample: "strings16" }),
+  s16Bassoon: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.6 }], filter: { freq: 2.4, q: 1, env: 1.3, envDecay: 0.1 }, amp: { a: 0.012, d: 0.25, s: 0.78, r: 0.08 }, rec: { a: 0.012, d: 0.25, s: 0.78, fade: 4, r: 0.08 }, send: 0.12, hp: 120, level: 0.64, sample: "bassoon16" }),
   // NOCTURNE 32-BIT (the PlayStation's SPU, after the Baroque-Gothic palette of 1997: violin,
   // harpsichord, strings and organ through a dark half-rate hall): violin on top, oboe (five voices),
   // harpsichord with its key-up noise, a sustained viola, the pipe organ's pedal (its manual above F#3)
@@ -399,15 +506,19 @@ export const PATCHES = {
   n32Viola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.02, d: 0.25, s: 0.8, r: 0.14 }, rec: { a: 0.02, d: 0.25, s: 0.8, r: 0.14 }, vib: { depth: 10, rate: 4.8, delay: 0.38 }, send: 0.16, level: 0.56, sample: "viola32" }),
   n32Organ: P({ osc: [{ wave: "organ" }, { wave: "organ", octave: 1, gain: 0.3 }], amp: { a: 0.025, d: 0.1, s: 1, r: 0.14 }, rec: { a: 0.025, d: 0, s: 1, r: 0.14 }, send: 0.12, hp: 120, level: 0.4, sample: "organ32" }),
   // MEGA FM (the Mega Drive's YM2612: every channel its own two-operator instrument, the modulation
-  // index decaying on every note, no reverb; a 9-bit grain and a 7 kHz lowpass at the output): an FM
-  // reed (1:1, a second modulator at 3), FM brass (five voices: the index rising first), an FM
-  // harpsichord (1:3, the index snapping shut), a hollow FM organ-flute (1:2), the FM bass (1:1, a
-  // second modulator at 2). The carrier a sine; `fm` the modulators (chip.ts patchNote).
-  fmReed: P({ osc: [{ wave: "sine" }], fm: { ratio: 1, index: 2.6, to: 1.6, time: 0.25, mod2: { ratio: 3, index: 0.4 } }, bits: 9, filter: { freq: 7000, hz: true, q: 0.5 }, amp: { a: 0.006, d: 0.18, s: 0.8, r: 0.07 }, vib: { depth: 12, rate: 5.8, delay: 0.3 }, level: 0.27 }),
-  fmBrass: P({ osc: [{ wave: "sine" }], fm: { ratio: 1, index: 1.2, to: 1.8, time: 0.2, rise: { to: 2.4, time: 0.06 } }, bits: 9, filter: { freq: 7000, hz: true, q: 0.5 }, amp: { a: 0.03, d: 0.2, s: 0.85, r: 0.08 }, vib: { depth: 10, rate: 6.5, delay: 0.28 }, level: 0.3 }),
-  fmHarpsi: P({ osc: [{ wave: "sine" }], fm: { ratio: 3, index: 4.5, to: 0.3, time: 0.14 }, bits: 9, filter: { freq: 7000, hz: true, q: 0.5 }, amp: { a: 0.001, d: 0.9, s: 0, r: 0.06 }, level: 0.27 }),
-  fmFlute: P({ osc: [{ wave: "sine" }], fm: { ratio: 2, index: 1.4, to: 1.1, time: 0.3 }, bits: 9, filter: { freq: 7000, hz: true, q: 0.5 }, amp: { a: 0.02, d: 0.1, s: 1, r: 0.09 }, vib: { depth: 8, rate: 4.9, delay: 0.4 }, level: 0.31 }),
-  fmBass: P({ osc: [{ wave: "sine" }], fm: { ratio: 1, index: 5, to: 3, time: 0.11, mod2: { ratio: 2, index: 1.4 } }, bits: 9, filter: { freq: 7000, hz: true, q: 0.5 }, hp: 120, amp: { a: 0.002, d: 0.35, s: 0.65, r: 0.06 }, level: 0.34 }),
+  // index decaying on every note, no reverb; a 9-bit grain and a 7 kHz lowpass at the output).
+  // D302, remade (the owner rated it 3: "boring, dull, flat"): the chip's punch: the modulator fed back
+  // on itself (`fm.fb`: operator 1's feedback, the bright, saw-like edge of its leads and basses), a few
+  // cents off its ratio (`fm.detune`, DT1: the timbre beating slowly), fast bright attacks with the index
+  // falling, a second modulator's own fall for an e-piano's tine and a slap's click; the grain kept, the
+  // lowpass opened to 10 kHz, a short dark stereo echo (Preset.fx "echo"). Top down: a fed-back lead, a
+  // brass with its index rising first (second of five), a crisp e-piano (1:1 with a 1:14 tine), a clav
+  // (1:3, fed back, short), the slap bass (1:1 fed back, a 1:3 click, a 30-cent snap from above).
+  fmLead: P({ osc: [{ wave: "sine" }], fm: { ratio: 1, index: 3.2, to: 1.7, time: 0.15, fb: 0.9, detune: 4 }, bits: 9, filter: { freq: 10000, hz: true, q: 0.5 }, drive: 0.4, amp: { a: 0.004, d: 0.25, s: 0.78, r: 0.06 }, vib: { depth: 14, rate: 6.4, delay: 0.26 }, send: 0.1, level: 0.23 }),
+  fmBrass: P({ osc: [{ wave: "sine" }], fm: { ratio: 1, index: 1.2, to: 2, time: 0.25, rise: { to: 3, time: 0.05 }, fb: 0.6, detune: -5 }, bits: 9, filter: { freq: 10000, hz: true, q: 0.5 }, amp: { a: 0.025, d: 0.2, s: 0.85, r: 0.07 }, vib: { depth: 10, rate: 5.6, delay: 0.3 }, send: 0.1, level: 0.238 }),
+  fmPiano: P({ osc: [{ wave: "sine" }], fm: { ratio: 1, index: 1.8, to: 0.8, time: 0.7, mod2: { ratio: 14, index: 0.9, to: 0, time: 0.08 }, detune: 3 }, bits: 9, filter: { freq: 10000, hz: true, q: 0.5 }, amp: { a: 0.002, d: 1.2, s: 0.3, r: 0.09 }, send: 0.12, level: 0.425 }),
+  fmClav: P({ osc: [{ wave: "sine" }], fm: { ratio: 3, index: 5, to: 2, time: 0.09, fb: 0.8, detune: 6 }, bits: 9, filter: { freq: 10000, hz: true, q: 0.5 }, amp: { a: 0.001, d: 0.45, s: 0.35, r: 0.04 }, send: 0.08, level: 0.451 }),
+  fmBass: P({ osc: [{ wave: "sine" }], fm: { ratio: 1, index: 7, to: 3.4, time: 0.07, fb: 0.9, mod2: { ratio: 3, index: 2.5, to: 0.5, time: 0.03 } }, scoop: { cents: 30, time: 0.012 }, drive: 0.5, bits: 9, filter: { freq: 10000, hz: true, q: 0.5 }, hp: 70, amp: { a: 0.001, d: 0.35, s: 0.62, r: 0.05 }, send: 0.04, level: 0.289 }),
   // SID 64 (the Commodore 64's SID, after how Hubbard, Galway and Daglish made three channels into
   // three characters: a waveform and a motion of its own per voice): a pulse lead whose width sweeps
   // slowly (0.25-0.45 at 0.7 Hz) with a late vibrato (the only one), a sawtooth, a triangle with a thin
@@ -425,23 +536,35 @@ export const PATCHES = {
   // kHz with no smoothing (sampled.ts PERIOD `hold`: the aliasing grit kept), 8 bits, short loops (0.5
   // s); the tracker's own vibrato (its effect 4xy) late on the held voices, each its own rate; the
   // voices alternating left and right (within ±0.35 for a phone); no reverb, no room.
-  trkViolin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.004, d: 0.1, s: 1, r: 0.04 }, rec: { a: 0.004, d: 0, s: 1, r: 0.04 }, vib: { depth: 15, rate: 5.6, delay: 0.3 }, level: 0.4, sample: "violinMod" }),
-  trkFlute: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.15 }], amp: { a: 0.004, d: 0.1, s: 1, r: 0.04 }, rec: { a: 0.004, d: 0, s: 1, r: 0.04 }, vib: { depth: 12, rate: 6.4, delay: 0.3 }, level: 0.38, sample: "fluteMod" }),
+  // D302, punchier (the owner rated it 5): each sample with a tracker's volume slide (a quick fall from
+  // its attack to 0.75-0.85: a shape, not a flat hold), the tracker's tone portamento into a joined
+  // note (3xx: Patch.slide, 40 ms), the late vibrato (4xy); the clarinet and the bassoon replaced by
+  // two of the MOD era's favourite samples: the 8-bit choir "aah" (the fourth voice) and a slapped
+  // electric bass (8 kHz-ish, plucked: punchy, and its harmonics carry on a phone); the channels hard
+  // left and right as Paula's, at ±0.35 (a phone's mix).
+  trkViolin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.004, d: 0.25, s: 0.8, r: 0.04 }, rec: { a: 0.004, d: 0.25, s: 0.8, r: 0.04 }, slide: 0.04, vib: { depth: 15, rate: 5.6, delay: 0.3 }, level: 0.4, sample: "violinMod" }),
+  trkFlute: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.15 }], amp: { a: 0.004, d: 0.2, s: 0.85, r: 0.04 }, rec: { a: 0.004, d: 0.2, s: 0.85, r: 0.04 }, slide: 0.04, vib: { depth: 12, rate: 6.4, delay: 0.3 }, level: 0.38, sample: "fluteMod" }),
   trkHarpsi: P({ osc: [{ wave: "saw" }, { wave: "pulse25", octave: 1, gain: 0.35 }], filter: { freq: 10, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.9, s: 0, r: 0.04 }, rec: { a: 0.001, d: 0, s: 1, r: 0.04 }, level: 0.76, sample: "harpsiMod" }),
-  trkClarinet: P({ osc: [{ wave: "square", gain: 0.7 }, { wave: "sine", gain: 0.5 }], filter: { freq: 3, q: 0.7 }, amp: { a: 0.004, d: 0.1, s: 1, r: 0.04 }, rec: { a: 0.004, d: 0, s: 1, r: 0.04 }, vib: { depth: 10, rate: 4.8, delay: 0.35 }, level: 0.48, sample: "clarinetMod" }),
-  trkBassoon: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.6 }], filter: { freq: 2.4, q: 1, env: 1.3, envDecay: 0.1 }, hp: 120, amp: { a: 0.004, d: 0.1, s: 1, r: 0.04 }, rec: { a: 0.004, d: 0, s: 1, r: 0.04 }, level: 0.34, sample: "bassoonMod" }),
-  // CHAMBER ORGAN (a positive organ, synthesized: Bach's own medium): each voice its own stop, drawn
-  // from its partials (SHAPES stop*): a Principal 8' with the Octave 4' on top (bright), a Gedackt 8'
-  // (hollow), a Krummhorn 8' (nasal, buzzy; the tenor of four), a Spitzflöte 8' (the fourth of five),
-  // the pedal's Posaune 8' (a reed: its harmonics carry on a phone, never a 16' flute alone); each pipe
-  // speaks with a chiff (a breath of band-passed noise, 15-30 ms, strongest on the flutes), holds while
-  // held, stops in 60-90 ms; no tremulant (no vibrato); a small church (Preset.fx "church": 20 ms
-  // pre-delay, about 1.4 s), sent least from the pedal.
-  orgPrincipal: P({ osc: [{ wave: "stopPrincipal" }], chiff: { level: 0.3, time: 0.025, at: 4 }, amp: { a: 0.025, d: 0.05, s: 1, r: 0.07 }, send: 0.14, level: 0.26 }),
-  orgGedackt: P({ osc: [{ wave: "stopGedackt" }], chiff: { level: 0.5, time: 0.03, at: 3 }, amp: { a: 0.03, d: 0.05, s: 1, r: 0.08 }, send: 0.12, level: 0.24 }),
-  orgKrummhorn: P({ osc: [{ wave: "stopKrummhorn" }], chiff: { level: 0.15, time: 0.015, at: 6 }, amp: { a: 0.015, d: 0.05, s: 1, r: 0.06 }, send: 0.12, level: 0.34 }),
-  orgSpitz: P({ osc: [{ wave: "stopSpitz" }], chiff: { level: 0.4, time: 0.025, at: 4 }, amp: { a: 0.028, d: 0.05, s: 1, r: 0.08 }, send: 0.12, level: 0.28 }),
-  orgPosaune: P({ osc: [{ wave: "stopPosaune" }], chiff: { level: 0.15, time: 0.02, at: 5 }, hp: 120, amp: { a: 0.02, d: 0.05, s: 1, r: 0.09 }, send: 0.08, level: 0.45 }),
+  trkChoir: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: 7, gain: 0.7 }], vowel: [700, 1150], amp: { a: 0.005, d: 0.3, s: 0.8, r: 0.06 }, rec: { a: 0.005, d: 0.3, s: 0.8, r: 0.06 }, slide: 0.04, vib: { depth: 10, rate: 4.8, delay: 0.35 }, level: 2.9, sample: "choirMod" }),
+  trkBass: P({ osc: [{ wave: "square" }, { wave: "sine", gain: 0.8 }], filter: { freq: 3, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.5, s: 0, r: 0.04 }, rec: { a: 0.001, d: 0, s: 1, r: 0.04 }, hp: 70, level: 0.6, sample: "bassMod" }),
+  // PIPE ORGAN (D302: CHAMBER ORGAN remade; the owner: "real bad too, flat and dull. Why would anyone
+  // choose it?!"): an organ registered as an organist registers a trio or a fugue's lines apart, each
+  // voice its own registration, in a church. The plenum (Principal 8', Octave 4', Superoctave 2' and a
+  // mixture) and the pedal (its reeds and principals at 16' and 8') are the VCSL recordings of a real
+  // organ (sampled.ts manualOrg, pedalOrg; mono, 22 kHz, the recordings' own loops); between them two
+  // synthesized registrations the recordings do not have: the flutes (Gedackt 8', Rohrflöte 4' a
+  // little sharp against it, Nasard 2 2/3' a little flat, Blockflöte 2', a soft Terz 1 3/5': the
+  // Sesquialtera's colour, whose upper ranks a phone's speaker hears; their beating, a soft wind
+  // noise, a strong chiff; the alto of four, where they carry) and a reed (Trompete 8' with a
+  // Principal 4', its brassy speech: the tenor of four; Krummhorn 8' with the Gedackt where there
+  // are five voices). Each voice's pipes a cent or so off the others' (`drift`:
+  // the beating of ranks not quite in tune). The room a large church (Preset.fx "cathedral": 45 ms
+  // pre-delay, RT60 about 2.8 s, the highs damped), sent most from the flutes, least from the pedal.
+  orgPleno: P({ osc: [{ wave: "stopPrincipal" }, { wave: "stopPrincipal", octave: 1, detune: 2, gain: 0.45 }, { wave: "stopPrincipal", octave: 2, detune: -1.5, gain: 0.25 }], chiff: { level: 0.25, time: 0.02, at: 6 }, amp: { a: 0.02, d: 0.05, s: 1, r: 0.09 }, send: 0.2, level: 0.22, sample: "organPleno" }),
+  orgFlutes: P({ osc: [{ wave: "stopGedackt" }, { wave: "stopFlute4", octave: 1, detune: 1.8, gain: 0.75 }, { wave: "sine", octave: Math.log2(3), detune: -1.4, gain: 0.5 }, { wave: "stopFlute4", octave: 2, detune: 2.6, gain: 0.35 }, { wave: "sine", octave: Math.log2(5), detune: -2.2, gain: 0.18 }], chiff: { level: 0.8, time: 0.04, at: 3 }, breath: 0.02, amp: { a: 0.035, d: 0.05, s: 1, r: 0.1 }, drift: { cents: 1.2, rate: 0.031 }, send: 0.28, level: 0.148 }),
+  orgTrompete: P({ osc: [{ wave: "stopTrompete" }, { wave: "stopPrincipal", octave: 1, detune: 1.6, gain: 0.3 }], filter: { freq: 3400, hz: true, q: 0.8, env: 1.8, envDecay: 0.035 }, chiff: { level: 0.15, time: 0.012, at: 9 }, amp: { a: 0.012, d: 0.05, s: 1, r: 0.07 }, drift: { cents: 1, rate: 0.047 }, send: 0.22, level: 0.4 }),
+  orgKrumm: P({ osc: [{ wave: "stopKrummhorn" }, { wave: "stopGedackt", detune: -1.8, gain: 0.5 }], chiff: { level: 0.25, time: 0.018, at: 5 }, breath: 0.01, amp: { a: 0.016, d: 0.05, s: 1, r: 0.08 }, drift: { cents: 1, rate: 0.023 }, send: 0.24, level: 0.26 }),
+  orgPedal: P({ osc: [{ wave: "stopPosaune" }, { wave: "stopGedackt", octave: -1, gain: 0.5 }], amp: { a: 0.03, d: 0.05, s: 1, r: 0.12 }, send: 0.14, level: 0.245, sample: "organPedal" }),
   // SWITCHED-ON (D297: ANALOG SYNTH remade; the owner: "lackluster compared to Carlos' memorable
   // sounds"), after Switched-On Bach's timbres: a modular's sawtooths and squares through the 24 dB
   // ladder with a strong, quick filter envelope (the bright "spit" at each attack and the resonant
@@ -473,30 +596,63 @@ export const PATCHES = {
   // chorus), a breathy filtered flute, a slow string ensemble of three sawtooths, a plain filtered bass;
   // the wash (the space echo and long reverb, Preset.fx "space") sent from the inner voices (0.25-0.3),
   // the top and the bass kept nearly dry so the outer lines stay followable.
-  tomWhistle: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.12 }], scoop: { cents: -45, time: 0.035 }, breath: 0.04, amp: { a: 0.03, d: 0.2, s: 0.9, r: 0.12 }, vib: { depth: 22, rate: 5.2, delay: 0.22 }, send: 0.12, level: 0.25 }),
-  tomChoir: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: 9, gain: 0.8 }, { wave: "saw", detune: -9, gain: 0.8 }], vowel: [700, 1150], amp: { a: 0.12, d: 0.3, s: 0.9, r: 0.25 }, vib: { depth: 6, rate: 4.4, delay: 0.4 }, send: 0.3, level: 1.0 }),
-  tomFlute: P({ osc: [{ wave: "triangle" }, { wave: "sine", octave: 1, gain: 0.15 }], breath: 0.18, filter: { freq: 3, q: 1.5, env: 1.5, envDecay: 0.2 }, amp: { a: 0.05, d: 0.2, s: 0.85, r: 0.15 }, vib: { depth: 8, rate: 6, delay: 0.3 }, send: 0.25, level: 0.34 }),
-  tomStrings: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: 10, gain: 0.8 }, { wave: "saw", detune: -10, gain: 0.8 }], filter: { freq: 2.4, q: 0.8, env: 1.3, envDecay: 0.3, poles: 4 }, amp: { a: 0.1, d: 0.3, s: 0.9, r: 0.25 }, send: 0.28, level: 0.26 }),
-  tomBass: P({ osc: [{ wave: "saw" }, { wave: "pulse50", gain: 0.6 }], filter: { freq: 1400, hz: true, q: 2, env: 2, envDecay: 0.15, poles: 4 }, hp: 60, amp: { a: 0.005, d: 0.3, s: 0.75, r: 0.08 }, send: 0.05, level: 0.3 }),
-  // TEMPLE 64 (D297, after the N64's temples in Ocarina of Time: sampled instruments, small and soft
-  // (sampled.ts PERIOD at 22 kHz, muffled, 10 bits), in a generous software reverb, Preset.fx "cave"):
-  // an ocarina-like flute on top, a harp, a viola (the tenor of four), a horn (second of five), the pipe
-  // organ's pedal (its manual above F#3) in the bass, as in the Temple of Time.
-  t64Flute: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.15 }], amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, vib: { depth: 14, rate: 5.4, delay: 0.3 }, send: 0.2, level: 0.27, sample: "flute64" }),
-  t64Harp: P({ osc: [{ wave: "triangle" }, { wave: "sine", octave: 1, gain: 0.15 }], filter: { freq: 5, q: 0.8, env: 1.5, envDecay: 0.1 }, amp: { a: 0.003, d: 1.1, s: 0, r: 0.15 }, rec: { a: 0.001, d: 0, s: 1, r: 0.15 }, send: 0.22, level: 0.36, sample: "harp64" }),
-  t64Viola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.06, d: 0.2, s: 0.9, r: 0.2 }, rec: { a: 0.06, d: 0.2, s: 0.9, r: 0.2 }, vib: { depth: 8, rate: 4.7, delay: 0.38 }, send: 0.25, level: 0.55, sample: "viola64" }),
-  t64Horn: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.25 }, { wave: "sine", gain: 0.4 }], filter: { freq: 2.2, q: 0.8, env: 2, envDecay: 0.3 }, amp: { a: 0.04, d: 0.2, s: 0.9, r: 0.15 }, rec: { a: 0.04, d: 0.2, s: 0.9, r: 0.15 }, send: 0.2, level: 0.3, sample: "horn64" }),
-  t64Organ: P({ osc: [{ wave: "organ" }, { wave: "organ", octave: 1, gain: 0.3 }], amp: { a: 0.03, d: 0.1, s: 1, r: 0.18 }, rec: { a: 0.03, d: 0, s: 1, r: 0.18 }, send: 0.15, hp: 120, level: 0.42, sample: "organ64" }),
-  // AGENT 64 (D297, after the N64's GoldenEye 007 and Bomberman 64: a bright mallet, muted brass, soft
-  // synth-like strings and an electric bass, in a moodier, shorter room, Preset.fx "studio"): a
-  // xylophone on top (struck: its onsets carry), a muted trumpet (alto of four), the strings darkened to
-  // a synth pad's softness (the middle of three, tenor of four; a slow attack), a horn (fourth of five),
-  // an electric bass (plucked, every harmonic: a phone hears it).
-  a64Xylo: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.1 }, { wave: "triangle", gain: 0.2 }], amp: { a: 0.002, d: 0.4, s: 0, r: 0.08 }, rec: { a: 0.001, d: 0, s: 1, r: 0.08 }, send: 0.18, level: 0.63, sample: "xylo64" }),
-  a64Trumpet: P({ osc: [{ wave: "square", gain: 0.6 }, { wave: "sine", gain: 0.5 }], filter: { freq: 2.6, q: 2.2, env: 2, envDecay: 0.12 }, amp: { a: 0.02, d: 0.2, s: 0.75, r: 0.08 }, rec: { a: 0.02, d: 0.2, s: 0.75, r: 0.08 }, vib: { depth: 10, rate: 5.8, delay: 0.3 }, send: 0.15, level: 0.48, sample: "trumpet64" }),
-  a64Strings: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: -8, gain: 0.7 }], filter: { freq: 2, q: 0.8 }, amp: { a: 0.12, d: 0.2, s: 0.9, r: 0.3 }, rec: { a: 0.12, d: 0.2, s: 0.9, r: 0.3 }, vib: { depth: 6, rate: 4.6, delay: 0.4 }, send: 0.25, level: 0.57, sample: "strings64" }),
-  a64Horn: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.25 }, { wave: "sine", gain: 0.4 }], filter: { freq: 2.2, q: 0.8, env: 2, envDecay: 0.3 }, amp: { a: 0.04, d: 0.2, s: 0.9, r: 0.15 }, rec: { a: 0.04, d: 0.2, s: 0.9, r: 0.15 }, send: 0.2, level: 0.4, sample: "hornAgent64" }),
-  a64Bass: P({ osc: [{ wave: "square" }, { wave: "sine", gain: 0.8 }], filter: { freq: 3, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.004, d: 0.5, s: 0, r: 0.08 }, rec: { a: 0.002, d: 0, s: 1, r: 0.06 }, send: 0.05, hp: 120, level: 0.45, sample: "bass64" }),
+  // D302, more colour (the owner rated it 5: "boring, dull, flat"): the whistle glides into each joined
+  // note (a portamento, Patch.slide: the "Paul Bunyan" whistle) and wanders a little about its place;
+  // the strings and the choir phased (two allpass stages swept slowly: moving notches, Patch.phaser);
+  // the strings' and the flute's filters sweeping slowly with the clock (Patch.filter.sweep), the
+  // strings' resonance higher; the flute drifting across the stereo field (Patch.autopan, within
+  // ±0.35); the bass's filter breathing. The sweeps follow the clock, so they go on from note to note.
+  tomWhistle: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.12 }], scoop: { cents: -45, time: 0.035 }, slide: 0.08, breath: 0.04, amp: { a: 0.03, d: 0.2, s: 0.9, r: 0.12 }, vib: { depth: 22, rate: 5.2, delay: 0.22 }, autopan: { rate: 0.07, depth: 0.08 }, send: 0.12, level: 0.25 }),
+  tomChoir: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: 9, gain: 0.8 }, { wave: "saw", detune: -9, gain: 0.8 }], vowel: [700, 1150], phaser: { rate: 0.13, lo: 400, hi: 3200 }, amp: { a: 0.12, d: 0.3, s: 0.9, r: 0.25 }, vib: { depth: 6, rate: 4.4, delay: 0.4 }, send: 0.3, level: 1.0 }),
+  tomFlute: P({ osc: [{ wave: "triangle" }, { wave: "sine", octave: 1, gain: 0.15 }], breath: 0.18, filter: { freq: 4.5, q: 2.5, env: 1.5, envDecay: 0.2, sweep: { rate: 0.09, octaves: 0.7 } }, amp: { a: 0.05, d: 0.2, s: 0.85, r: 0.15 }, vib: { depth: 8, rate: 6, delay: 0.3 }, autopan: { rate: 0.11, depth: 0.15 }, send: 0.25, level: 0.34 }),
+  tomStrings: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: 10, gain: 0.8 }, { wave: "saw", detune: -10, gain: 0.8 }], filter: { freq: 3.2, q: 2.5, env: 1.3, envDecay: 0.3, poles: 4, sweep: { rate: 0.05, octaves: 0.6 } }, phaser: { rate: 0.18, lo: 300, hi: 2600 }, amp: { a: 0.1, d: 0.3, s: 0.9, r: 0.25 }, send: 0.28, level: 0.26 }),
+  tomBass: P({ osc: [{ wave: "saw" }, { wave: "pulse50", gain: 0.6 }], filter: { freq: 1400, hz: true, q: 2, env: 2, envDecay: 0.15, poles: 4, sweep: { rate: 0.06, octaves: 0.3 } }, hp: 60, amp: { a: 0.005, d: 0.3, s: 0.75, r: 0.08 }, send: 0.05, level: 0.3 }),
+  // D302, the N64 remade (the owner: TEMPLE 64 and AGENT 64 "bad", "try something different"; they were
+  // muffled: 22 kHz, lowpassed at 4.5-6 kHz, 10 bits, slow pads, a washy cave). What made the console's
+  // soundtracks loved: small sampled instruments, warm but punchy (sampled.ts PERIOD at 26 kHz, the
+  // interpolation's softening at 8.5-9.5 kHz, 12 bits), each line a character, a stereo reverb used for
+  // space, not fog. FOREST 64 (after the forest and village music of the console's adventure games: an
+  // ocarina, a marimba, a plucked guitar, strings with vibrato, a woodwind bass): the ocarina a breathy
+  // sine with a tongued onset and a late vibrato; the marimba a struck FM bar (1:4, the index gone in
+  // 60 ms), its fourth partial kept faintly (the second of five); the classical guitar's pluck, the
+  // viola section (a sustained line among the plucked ones), a bassoon (a harp and a pizzicato bass
+  // were tried: through a phone's speaker 11-17 dB under the top, measured). PARTY 64 (after its bright
+  // party and platform games: a bouncy synth lead, a muted trumpet, a clean guitar's twang, a honking
+  // sax, a picked electric bass): the lead a pulse and a sawtooth through a resonant filter that pops
+  // open at each note, a tiny pitch blip from above (12 ms, none when joined), a quick vibrato.
+  f64Ocarina: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.18 }, { wave: "sine", octave: Math.log2(3), gain: 0.06 }], chiff: { level: 0.45, time: 0.035, at: 2 }, breath: 0.05, scoop: { cents: -25, time: 0.02 }, bits: 12, amp: { a: 0.018, d: 0.15, s: 0.85, r: 0.07 }, vib: { depth: 16, rate: 5.7, delay: 0.26 }, send: 0.2, level: 0.24 }),
+  f64Marimba: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.12 }], fm: { ratio: 4, index: 1.6, to: 0.05, time: 0.06 }, bits: 12, amp: { a: 0.002, d: 0.55, s: 0, r: 0.05 }, send: 0.16, level: 0.62 }),
+  f64Guitar: P({ osc: [{ wave: "triangle" }, { wave: "square", gain: 0.15 }], filter: { freq: 3.5, q: 1, env: 2, envDecay: 0.08 }, amp: { a: 0.003, d: 0.65, s: 0, r: 0.1 }, rec: { a: 0.001, d: 0, s: 1, r: 0.08 }, send: 0.16, level: 0.53, sample: "nylon26" }),
+  f64Strings: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.04, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.035, d: 0.2, s: 0.9, r: 0.1 }, vib: { depth: 12, rate: 5.1, delay: 0.3 }, send: 0.22, level: 0.63, sample: "strings26" }),
+  f64Bassoon: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.6 }], filter: { freq: 2.4, q: 1, env: 1.3, envDecay: 0.1 }, amp: { a: 0.02, d: 0.2, s: 0.85, r: 0.08 }, rec: { a: 0.015, d: 0.2, s: 0.85, r: 0.07 }, send: 0.1, hp: 80, level: 0.44, sample: "bassoon26" }),
+  p64Lead: P({ osc: [{ wave: "pulse25", gain: 0.8 }, { wave: "saw", detune: 7, gain: 0.45 }], filter: { freq: 3.2, q: 3, env: 3, envDecay: 0.08 }, scoop: { cents: 35, time: 0.012 }, bits: 12, amp: { a: 0.004, d: 0.25, s: 0.72, r: 0.05 }, vib: { depth: 12, rate: 6.1, delay: 0.25 }, send: 0.1, level: 0.53 }),
+  p64Trumpet: P({ osc: [{ wave: "square", gain: 0.6 }, { wave: "sine", gain: 0.5 }], filter: { freq: 2.6, q: 2.2, env: 2, envDecay: 0.12 }, amp: { a: 0.015, d: 0.2, s: 0.8, r: 0.07 }, rec: { a: 0.012, d: 0.2, s: 0.85, r: 0.07 }, vib: { depth: 10, rate: 5.4, delay: 0.3 }, send: 0.12, level: 0.45, sample: "trumpet26" }),
+  p64Guitar: P({ osc: [{ wave: "triangle" }, { wave: "square", gain: 0.15 }], filter: { freq: 3.5, q: 1, env: 2, envDecay: 0.08 }, amp: { a: 0.003, d: 0.65, s: 0, r: 0.1 }, rec: { a: 0.001, d: 0, s: 1, r: 0.06 }, send: 0.1, level: 0.89, sample: "guitar26" }),
+  p64Sax: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.5 }], filter: { freq: 3.8, q: 1.6, env: 1.5, envDecay: 0.15 }, amp: { a: 0.02, d: 0.2, s: 0.85, r: 0.08 }, rec: { a: 0.015, d: 0.2, s: 0.85, r: 0.07 }, vib: { depth: 12, rate: 4.8, delay: 0.32 }, send: 0.12, level: 0.45, sample: "sax26" }),
+  p64Bass: P({ osc: [{ wave: "square" }, { wave: "sine", gain: 0.8 }], filter: { freq: 3, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.004, d: 0.5, s: 0, r: 0.08 }, rec: { a: 0.001, d: 0, s: 1, r: 0.05 }, send: 0.05, hp: 80, level: 0.58, sample: "ebass26" }),
+  // D302, VOCAL SYNTH (the owner: "a vocal based preset … inspired by this Asian vocal synths which
+  // emulate the singing voice of a character with utmost detail"): five singers by formant synthesis
+  // (Patch.sing), each its own voice type, size, vowel and consonant, so the lines are told apart as
+  // singers are: top down "la" (a bright young soprano, the "idol" timbre: a lift at 3 kHz, a wide late
+  // vibrato, a scoop of 80 cents into each new syllable), "mi" (a smaller, breathier soprano: the second
+  // of five), "ro" (a mezzo's dark "o", the tap of a Japanese r), "ne" (a tenor), "da" (a bass, no
+  // vibrato, its formants about 0.6-2.8 kHz: a phone hears it though its pitch lies under 150 Hz).
+  // Joined notes sung on one vowel, the pitch gliding; detached, a new syllable; a phrase's end falls.
+  vocLa: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "soprano", size: 1.04, cons: "l", scoop: 80, over: 18, fall: 120, breath: 0.12, ring: 5 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, vib: { depth: 32, rate: 6.0, delay: 0.3 }, send: 0.16, level: 1.25 }),
+  vocMi: P({ osc: [{ wave: "glottal" }], sing: { vowel: "i", type: "soprano", size: 1.08, cons: "m", scoop: 60, over: 12, fall: 80, breath: 0.2, ring: 4 }, amp: { a: 0.035, d: 0.1, s: 1, r: 0.09 }, vib: { depth: 26, rate: 6.6, delay: 0.32 }, send: 0.16, level: 1.4 }),
+  vocRo: P({ osc: [{ wave: "glottal" }], sing: { vowel: "o", type: "alto", size: 1, cons: "r", scoop: 60, over: 12, fall: 90, breath: 0.15, ring: 3 }, amp: { a: 0.035, d: 0.1, s: 1, r: 0.09 }, vib: { depth: 22, rate: 5.4, delay: 0.34 }, send: 0.16, level: 1.18 }),
+  vocNe: P({ osc: [{ wave: "glottal" }], sing: { vowel: "e", type: "tenor", size: 1, cons: "n", scoop: 50, over: 10, fall: 80, breath: 0.1, ring: 3 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, vib: { depth: 18, rate: 4.8, delay: 0.36 }, send: 0.14, level: 1.18 }),
+  vocDa: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "bass", size: 0.97, cons: "d", scoop: 40, over: 8, fall: 60, breath: 0.08, ring: 2 }, amp: { a: 0.025, d: 0.1, s: 1, r: 0.09 }, send: 0.1, level: 0.8 }),
+  // D302, SOLO VOICES (the second vocal preset): recorded singers (VocalSet: a soprano, a mezzo, a
+  // tenor and a bass, each singing "a"; FluidR3's choir "aah" for the second of five), each line its own
+  // singer and consonant ("la", "na", "ra", "da", "ma": the voice opening from a lowpass, a burst for
+  // the plosive), the pitch scooped into each new syllable and gliding into a joined note; their own
+  // vibrato as recorded (no more added).
+  singS: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "soprano", size: 1, cons: "l", scoop: 60, over: 12, fall: 80, breath: 0.1, ring: 3 }, syllable: { cons: "l", scoop: 60, over: 12, fall: 80 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.08 }, send: 0.16, level: 0.6, sample: "voiceS" }),
+  singChoir: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "alto", size: 1, cons: "m", scoop: 40, over: 8, fall: 60, breath: 0.15, ring: 2 }, syllable: { cons: "m", scoop: 40, over: 8, fall: 60 }, amp: { a: 0.05, d: 0.1, s: 1, r: 0.12 }, rec: { a: 0.05, d: 0, s: 1, r: 0.1 }, send: 0.2, level: 1.68, sample: "choirAah" }),
+  singA: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "alto", size: 1, cons: "n", scoop: 50, over: 10, fall: 70, breath: 0.12, ring: 2 }, syllable: { cons: "n", scoop: 50, over: 10, fall: 70 }, amp: { a: 0.035, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.035, d: 0, s: 1, r: 0.08 }, send: 0.16, level: 0.6, sample: "voiceA" }),
+  singT: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "tenor", size: 1, cons: "r", scoop: 50, over: 10, fall: 70, breath: 0.1, ring: 2 }, syllable: { cons: "r", scoop: 50, over: 10, fall: 70 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.08 }, send: 0.14, level: 0.6, sample: "voiceT" }),
+  singB: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "bass", size: 1, cons: "d", scoop: 40, over: 8, fall: 50, breath: 0.08, ring: 2 }, syllable: { cons: "d", scoop: 40, over: 8, fall: 50 }, amp: { a: 0.025, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.025, d: 0, s: 1, r: 0.08 }, send: 0.1, level: 0.6, sample: "voiceB" }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
@@ -507,7 +663,7 @@ export type Groove = "rock" | "jazz" | "bossa" | "brushes" | "chamber" | "chipMa
 export type Kit = "acoustic" | "chip" | "analog";
 
 /** D297: the presets' own effects (chip.ts: the SNES's echo, and the reverbs of REVERBS). */
-export type FxKind = "spc" | "hall" | "church" | "cave" | "studio" | "space";
+export type FxKind = "spc" | "echo" | "hall" | "cathedral" | "grove" | "room64" | "plate" | "space";
 
 export interface Preset {
   id: string;
@@ -525,8 +681,10 @@ export interface Preset {
    * D297: the preset's own effect, fed by its patches' `send` (chip.ts `fxInput`): "spc", the SNES's
    * echo (80 ms, feedback 0.35 through a 2.8 kHz lowpass and a 300 Hz high-pass); "hall", the
    * PlayStation's dark half-rate reverb (25 ms pre-delay, the send high-passed at 350 Hz, RT60 about
-   * 1.9 s, the return lowpassed at 5.5 kHz); "church", a small church for the chamber organ (20 ms
-   * pre-delay, about 1.4 s, brighter than the hall); "cave" and "studio", the N64's software reverbs;
+   * 1.9 s, the return lowpassed at 5.5 kHz); D302: "cathedral", PIPE ORGAN's large church (45 ms
+   * pre-delay, about 2.8 s, its highs damped; D297's small "church" retired with CHAMBER ORGAN); "grove"
+   * and "room64", the N64 presets' software reverbs (D297's "cave" and "studio" retired with them);
+   * "plate", VOCAL SYNTH's bright, short plate; "echo", MEGA FM's short dark echo (chip.ts FM_ECHO);
    * "space", TOMITA's tape echo and long reverb (chip.ts REVERBS). None: no effect of its own.
    */
   fx?: FxKind;
@@ -577,18 +735,18 @@ export const PRESETS: Preset[] = [
   },
   // D297: three period presets after the research report (§6.1-6.3), after the five, for the owner to
   // judge: no piece opens on them. Named for what they are, not after the consoles (trademarks).
-  // SUPER 16-BIT: oboe, harpsichord (dry), clarinet (four voices), violin (five), bassoon; the SPC echo.
+  // SUPER 16-BIT (D302 remade): violin, flute (five voices), harpsichord, the strings (four), bassoon; the SPC echo, longer, in stereo.
   {
     id: "super16",
     name: "SUPER 16-BIT",
-    slots: ["s16Oboe", "s16Violin", "s16Clarinet", "s16Harpsi", "s16Bassoon"],
+    slots: ["s16Violin", "s16Flute", "s16Harpsi", "s16Strings", "s16Bassoon"],
     room: 0,
     fx: "spc",
     by: {
-      2: [["s16Oboe", 0.25], ["s16Bassoon", -0.1]],
-      3: [["s16Oboe", 0.25], ["s16Harpsi", -0.25], ["s16Bassoon", 0]],
-      4: [["s16Oboe", 0.25], ["s16Clarinet", -0.2], ["s16Harpsi", 0.1], ["s16Bassoon", 0]],
-      5: [["s16Oboe", 0.25], ["s16Violin", -0.3, 0.84], ["s16Clarinet", 0.15, 0.94], ["s16Harpsi", -0.1], ["s16Bassoon", 0]],
+      2: [["s16Violin", 0.25], ["s16Bassoon", -0.1]],
+      3: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["s16Bassoon", 0]],
+      4: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["s16Strings", 0.12], ["s16Bassoon", 0]],
+      5: [["s16Violin", 0.25], ["s16Flute", -0.3, 0.84], ["s16Harpsi", 0.1], ["s16Strings", -0.12, 0.94], ["s16Bassoon", 0]],
     },
   },
   // NOCTURNE 32-BIT: violin, harpsichord, viola, the organ's pedal; oboe as the fifth voice; the dark hall.
@@ -605,17 +763,18 @@ export const PRESETS: Preset[] = [
       5: [["n32Violin", 0.25], ["n32Oboe", -0.3, 0.84], ["n32Harpsi", 0.1], ["n32Viola", -0.1, 0.94], ["n32Organ", 0]],
     },
   },
-  // MEGA FM: FM reed, FM harpsichord, FM organ-flute (four voices), FM brass (five), FM bass; no reverb.
+  // MEGA FM (D302 remade): a fed-back lead, brass (five voices), an e-piano (four), a clav (three to five), the slap bass; a short dark echo.
   {
     id: "megaFm",
     name: "MEGA FM",
-    slots: ["fmReed", "fmBrass", "fmHarpsi", "fmFlute", "fmBass"],
+    slots: ["fmLead", "fmBrass", "fmPiano", "fmClav", "fmBass"],
     room: 0,
+    fx: "echo",
     by: {
-      2: [["fmReed", 0.3], ["fmBass", 0]],
-      3: [["fmReed", 0.3], ["fmHarpsi", -0.3], ["fmBass", 0]],
-      4: [["fmReed", 0.3], ["fmHarpsi", -0.3], ["fmFlute", 0.1], ["fmBass", 0]],
-      5: [["fmReed", 0.3], ["fmBrass", -0.25, 0.84], ["fmHarpsi", 0.1], ["fmFlute", -0.1, 0.94], ["fmBass", 0]],
+      2: [["fmLead", 0.3], ["fmBass", 0]],
+      3: [["fmLead", 0.3], ["fmClav", -0.3], ["fmBass", 0]],
+      4: [["fmLead", 0.3], ["fmPiano", -0.3], ["fmClav", 0.12], ["fmBass", 0]],
+      5: [["fmLead", 0.3], ["fmBrass", -0.25, 0.84], ["fmPiano", 0.1], ["fmClav", -0.1, 0.94], ["fmBass", 0]],
     },
   },
   // D297, after the owner asked for "a few more presets … covering different synth aesthetics": SID 64,
@@ -633,61 +792,88 @@ export const PRESETS: Preset[] = [
       5: [["sidLead", 0.3], ["sidThin", -0.3, 0.84], ["sidSaw", 0.1], ["sidTri", -0.1, 0.94], ["sidBass", 0]],
     },
   },
-  // TRACKER: violin, flute, harpsichord, clarinet, bassoon at 8 bits, alternating left and right as Paula's channels.
+  // TRACKER (D302 punchier): violin, flute (five voices), harpsichord, the 8-bit choir (four and five), a slapped bass; hard left and right (±0.35).
   {
     id: "tracker",
     name: "TRACKER",
-    slots: ["trkViolin", "trkFlute", "trkHarpsi", "trkClarinet", "trkBassoon"],
+    slots: ["trkViolin", "trkFlute", "trkHarpsi", "trkChoir", "trkBass"],
     room: 0,
     by: {
-      2: [["trkViolin", -0.3], ["trkBassoon", 0.3]],
-      3: [["trkViolin", -0.3], ["trkHarpsi", 0.3], ["trkBassoon", -0.15]],
-      4: [["trkViolin", -0.3], ["trkFlute", 0.3], ["trkHarpsi", -0.3], ["trkBassoon", 0.3]],
-      5: [["trkViolin", -0.3], ["trkFlute", 0.3, 0.84], ["trkHarpsi", -0.3], ["trkClarinet", 0.3, 0.94], ["trkBassoon", 0]],
+      2: [["trkViolin", -0.35], ["trkBass", 0.35]],
+      3: [["trkViolin", -0.35], ["trkHarpsi", 0.35], ["trkBass", -0.15]],
+      4: [["trkViolin", -0.35], ["trkHarpsi", 0.35], ["trkChoir", -0.35], ["trkBass", 0.35]],
+      5: [["trkViolin", -0.35], ["trkFlute", 0.35, 0.84], ["trkHarpsi", -0.35], ["trkChoir", 0.35, 0.94], ["trkBass", 0]],
     },
   },
-  // CHAMBER ORGAN: Principal 8'+4', Gedackt 8', Krummhorn 8', Spitzflöte 8', the pedal's Posaune 8'; a small church.
+  // D302: PIPE ORGAN (CHAMBER ORGAN remade, its id kept so a stored choice keeps it): the recorded plenum
+  // on top, the flutes, a reed (Trompete; Krummhorn the second of five), the recorded pedal; a large church.
   {
     id: "chamberOrgan",
-    name: "CHAMBER ORGAN",
-    slots: ["orgPrincipal", "orgGedackt", "orgKrummhorn", "orgSpitz", "orgPosaune"],
+    name: "PIPE ORGAN",
+    slots: ["orgPleno", "orgKrumm", "orgFlutes", "orgTrompete", "orgPedal"],
     room: 0,
-    fx: "church",
+    fx: "cathedral",
     by: {
-      2: [["orgPrincipal", 0.2], ["orgPosaune", -0.1]],
-      3: [["orgPrincipal", 0.25], ["orgGedackt", -0.25], ["orgPosaune", 0]],
-      4: [["orgPrincipal", 0.25], ["orgGedackt", -0.2], ["orgKrummhorn", 0.1], ["orgPosaune", 0]],
-      5: [["orgPrincipal", 0.25], ["orgGedackt", -0.3, 0.84], ["orgKrummhorn", 0.1], ["orgSpitz", -0.1, 0.94], ["orgPosaune", 0]],
+      2: [["orgPleno", 0.2], ["orgPedal", -0.1]],
+      3: [["orgPleno", 0.25], ["orgFlutes", -0.25], ["orgPedal", 0]],
+      4: [["orgPleno", 0.25], ["orgFlutes", -0.25], ["orgTrompete", 0.12], ["orgPedal", 0]],
+      5: [["orgPleno", 0.25], ["orgKrumm", -0.3, 0.84], ["orgFlutes", 0.12], ["orgTrompete", -0.12, 0.94], ["orgPedal", 0]],
     },
   },
   // D297, the owner's favourite console (the owner: "Think: Bomberman 64. Also: Goldeneye 64. And why
-  // not: Zelda OCT."): two N64 presets, for the two sides of its sound: TEMPLE 64 (Ocarina of Time's
-  // temples: flute, harp, strings, organ in a generous reverb; an atmospheric pick) and AGENT 64
-  // (GoldenEye's and Bomberman 64's mallets, muted brass, soft strings and electric bass, a moodier room).
+  // not: Zelda OCT."). D302: remade as FOREST 64 and PARTY 64 (TEMPLE 64 and AGENT 64 retired: RETIRED).
   {
-    id: "temple64",
-    name: "TEMPLE 64",
-    slots: ["t64Flute", "t64Horn", "t64Harp", "t64Viola", "t64Organ"],
+    id: "forest64",
+    name: "FOREST 64",
+    slots: ["f64Ocarina", "f64Marimba", "f64Guitar", "f64Strings", "f64Bassoon"],
     room: 0,
-    fx: "cave",
+    fx: "grove",
     by: {
-      2: [["t64Flute", 0.25], ["t64Organ", 0]],
-      3: [["t64Flute", 0.25], ["t64Harp", -0.25], ["t64Organ", 0]],
-      4: [["t64Flute", 0.25], ["t64Harp", -0.25], ["t64Viola", 0.1], ["t64Organ", 0]],
-      5: [["t64Flute", 0.25], ["t64Horn", -0.3, 0.84], ["t64Harp", 0.1], ["t64Viola", -0.1, 0.94], ["t64Organ", 0]],
+      2: [["f64Ocarina", 0.25], ["f64Bassoon", -0.05]],
+      3: [["f64Ocarina", 0.25], ["f64Guitar", -0.25], ["f64Bassoon", 0]],
+      4: [["f64Ocarina", 0.25], ["f64Guitar", -0.25], ["f64Strings", 0.12], ["f64Bassoon", 0]],
+      5: [["f64Ocarina", 0.25], ["f64Marimba", -0.3, 0.84], ["f64Guitar", 0.1], ["f64Strings", -0.12, 0.94], ["f64Bassoon", 0]],
     },
   },
   {
-    id: "agent64",
-    name: "AGENT 64",
-    slots: ["a64Xylo", "a64Trumpet", "a64Strings", "a64Horn", "a64Bass"],
+    id: "party64",
+    name: "PARTY 64",
+    slots: ["p64Lead", "p64Trumpet", "p64Guitar", "p64Sax", "p64Bass"],
     room: 0,
-    fx: "studio",
+    fx: "room64",
     by: {
-      2: [["a64Xylo", 0.25], ["a64Bass", 0]],
-      3: [["a64Xylo", 0.25], ["a64Strings", -0.25], ["a64Bass", 0]],
-      4: [["a64Xylo", 0.25], ["a64Trumpet", -0.25], ["a64Strings", 0.1], ["a64Bass", 0]],
-      5: [["a64Xylo", 0.25], ["a64Trumpet", -0.3, 0.84], ["a64Strings", 0.1], ["a64Horn", -0.1, 0.94], ["a64Bass", 0]],
+      2: [["p64Lead", 0.25], ["p64Bass", -0.05]],
+      3: [["p64Lead", 0.25], ["p64Guitar", -0.25], ["p64Bass", 0]],
+      4: [["p64Lead", 0.25], ["p64Guitar", -0.25], ["p64Sax", 0.12], ["p64Bass", 0]],
+      5: [["p64Lead", 0.25], ["p64Trumpet", -0.3, 0.84], ["p64Guitar", 0.1], ["p64Sax", -0.12, 0.94], ["p64Bass", 0]],
+    },
+  },
+  // D302: VOCAL SYNTH: five synthesized singers (la, mi, ro, ne, da) in a bright plate.
+  {
+    id: "vocalSynth",
+    name: "VOCAL SYNTH",
+    slots: ["vocLa", "vocMi", "vocRo", "vocNe", "vocDa"],
+    room: 0,
+    fx: "plate",
+    by: {
+      2: [["vocLa", 0.25], ["vocDa", -0.1]],
+      3: [["vocLa", 0.25], ["vocRo", -0.25], ["vocDa", 0]],
+      4: [["vocLa", 0.25], ["vocRo", -0.25], ["vocNe", 0.12], ["vocDa", 0]],
+      5: [["vocLa", 0.25], ["vocMi", -0.3, 0.84], ["vocRo", 0.1], ["vocNe", -0.12, 0.94], ["vocDa", 0]],
+    },
+  },
+  // D302: SOLO VOICES: four recorded singers and a choir, each line its own syllable, in the plate.
+  {
+    id: "soloVoices",
+    name: "SOLO VOICES",
+    slots: ["singS", "singChoir", "singA", "singT", "singB"],
+    room: 0,
+    fx: "plate",
+    by: {
+      2: [["singS", 0.25], ["singB", -0.1]],
+      3: [["singS", 0.25], ["singA", -0.25], ["singB", 0]],
+      4: [["singS", 0.25], ["singA", -0.25], ["singT", 0.12], ["singB", 0]],
+      5: [["singS", 0.25], ["singChoir", -0.3, 0.84], ["singA", 0.1], ["singT", -0.12, 0.94], ["singB", 0]],
     },
   },
   // D297, MODULAR (a niche pick): the fatter 1970s modular and Minimoog sound beside SWITCHED-ON's leaner one.
@@ -765,11 +951,18 @@ export const RETIRED: Readonly<Record<string, string>> = {
   chipDino: "chip",
   chipLight: "chip",
   chipBlur: "chip",
+  // D302: the N64 presets remade.
+  temple64: "forest64",
+  agent64: "party64",
 };
 /** D292: the recorded piano's credit (CC BY 3.0 asks for it), shown wherever the sound is chosen. */
 export const PIANO_CREDIT = "PIANO: SALAMANDER GRAND PIANO V3 · ALEXANDER HOLM · CC BY 3.0";
 /** The credit a sound owes, if any. */
-export const creditFor = (id: string): string | null => (presetById(id).id === "pianoSampled" ? PIANO_CREDIT : null);
+/** D302: SOLO VOICES' singers (VocalSet, CC BY 4.0) and the choir "aah" it and TRACKER sing with (FluidR3's, as rendered for midi-js-soundfonts, CC BY 3.0). */
+export const VOICES_CREDIT = "VOICES: VOCALSET · J. WILKINS, P. SEETHARAMAN, A. WAHL, B. PARDO · CC BY 4.0";
+export const CHOIR_CREDIT = "CHOIR: FLUIDR3_GM · FRANK WEN · MIDI-JS-SOUNDFONTS · CC BY 3.0";
+const CREDITS: Record<string, string> = { pianoSampled: PIANO_CREDIT, soloVoices: `${VOICES_CREDIT} · ${CHOIR_CREDIT}`, tracker: CHOIR_CREDIT };
+export const creditFor = (id: string): string | null => CREDITS[presetById(id).id] ?? null;
 /** A sound the players may choose (D292: one of the five). */
 export const offered = (id: string) => PRESETS.some((p) => p.id === id);
 /** D292: a stored choice as one of the five: a withdrawn one's stand-in (RETIRED), anything else not offered (TRAVERSO, an unknown id) CLASSIC CHIP. */

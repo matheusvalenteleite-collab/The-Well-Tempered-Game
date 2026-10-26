@@ -827,7 +827,7 @@ export class ProtoGame {
         const last = q === parts.length - 1;
         const plen = orn ? this.timeAt(pon + pdur) - this.timeAt(pon) + (last ? sh.over : 0) : len;
         // D302: an ornament's first note joined from the note before as the note was; its last joined to the next.
-        const art = { ...(q === 0 && jn.legato ? { legato: true } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}) };
+        const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}) };
         const sd = ch.note(pmidi, pat, plen, vv, { ...sv.play, ...art, level: follow(sh, this.feel) * (sv.play.level ?? 1) });
         if (sd) this.band.push({ sd, until: pat + plen + 0.6 });
       }

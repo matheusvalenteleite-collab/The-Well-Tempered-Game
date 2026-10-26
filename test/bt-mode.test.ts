@@ -167,7 +167,7 @@ test("D299: the sounds suggested with Bluetooth: quick attacks (5 ms or less) an
       assert.ok(!q.send, `${id} ${s}: no send of its own`);
     }
   }
-  // And the slowest (for the report): TOMITA's choir and AGENT 64's strings, 120 ms.
+  // And the slowest (for the report): TOMITA's choir, 120 ms (D302: AGENT 64 retired).
   const slow = PRESETS.filter((p) => (p.slots ?? []).some((s) => (P[s].rec?.a ?? P[s].amp?.a ?? 0) >= 0.1)).map((p) => p.id);
-  assert.deepEqual(slow.sort(), ["agent64", "tomita"]);
+  assert.deepEqual(slow.sort(), ["tomita"]);
 });

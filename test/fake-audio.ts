@@ -230,6 +230,10 @@ export class FakeAudioContext {
   createDelay() {
     return this.node("delay", { delayTime: 0 });
   }
+  /** D302: the echoes' two sides. */
+  createChannelMerger() {
+    return this.node("merger", {});
+  }
   createDynamicsCompressor() {
     return this.node("compressor", { threshold: 0, knee: 0, ratio: 1, attack: 0, release: 0 });
   }

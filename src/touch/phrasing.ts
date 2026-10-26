@@ -54,6 +54,10 @@ export interface Shape {
   legato: boolean;
   /** D302: joined to the next: held this many seconds past `hold` (the overlap, the nudges allowed for): chip.ts Play.tie. */
   over: number;
+  /** D302: joined from this pitch (the note before's MIDI): chip.ts Play.from. */
+  from?: number;
+  /** D302: the last before a rest, or the last of all (a phrase's end): chip.ts Play.final. */
+  final: boolean;
 }
 
 /**
@@ -141,13 +145,15 @@ export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: 
     else if (a === "short") hold = ART_HOLD.short;
     else if (a === "nonlegato") hold = apart(T ? (after?.midi === n.midi ? T.repeat : T.leap) : ART_HOLD.nonlegato);
     else if (n.dur >= beat) hold = T ? T.long : 0.95;
-    return { level, hold, nudge, subject: sh.subject, art: a, legato: false, over: 0 };
+    const final = !after || after.on > n.on + n.dur;
+    return { level, hold, nudge, subject: sh.subject, art: a, legato: false, over: 0, final };
   });
   // Joined: the next note not attacked anew, this one held past its onset (the two nudges allowed for).
   shapes.forEach((sh, i) => {
     const j = nexts.get(i);
     if (sh.art !== "join" || j === undefined) return;
     shapes[j].legato = true;
+    shapes[j].from = notes[i].midi;
     sh.over = Math.max(0.01, OVERLAP_S + shapes[j].nudge - sh.nudge);
   });
   return shapes;
@@ -196,8 +202,8 @@ function nextIndex(notes: readonly OtherNote[]): Map<number, number | undefined>
  * D302: how a note of the others is sounded, from its shape: joined from the one before (no new
  * attack: Play.legato), joined to the next (held over it, crossfaded out over `tie` s: Play.tie).
  */
-export function joins(sh: Shape): { legato?: boolean; tie?: number } {
-  return { ...(sh.legato ? { legato: true } : {}), ...(sh.over > 0 ? { tie: sh.over } : {}) };
+export function joins(sh: Shape): { legato?: boolean; tie?: number; from?: number; final?: boolean } {
+  return { ...(sh.legato ? { legato: true, ...(sh.from !== undefined ? { from: sh.from } : {}) } : {}), ...(sh.over > 0 ? { tie: sh.over } : {}), ...(sh.final ? { final: true } : {}) };
 }
 
 /** D179: the synthesized sounds' phrasing (and the base of the others'): each note's level and its fixed unevenness (D302: the holds are ARTICULATION's). */
