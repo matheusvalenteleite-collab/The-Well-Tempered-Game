@@ -15,7 +15,7 @@ import { paintPiano, pianoView } from "./paint-piano.ts";
 import { paintSynth } from "./paint-synth.ts";
 import { HelpPanel, loadDrums, saneBpm, SettingsPanel } from "./Panels.tsx";
 import { setTuning } from "./tuning.ts";
-import { setPreset } from "./sound.ts";
+import { playerSound, setPreset } from "./sound.ts";
 import { barAt, beatOf, fugueById, keyAt, keyName, shortName, type TouchFugue, fugueOnly } from "./fugue.ts";
 import { LEVELS, type Level as Difficulty } from "./lanes.ts";
 import { accompaniment, level, startTick, stepRange, subjectMarks, voicesFrom } from "./voice-mode.ts";
@@ -97,7 +97,7 @@ export function TouchApp() {
   };
   const marks = useMemo(() => subjectMarks(f), [f]);
   // D177: the ensemble, shared with the testbench.
-  const [sound, setSoundRaw] = useState<string>(() => load<string>(SOUND_KEY, "bossa"));
+  const [sound, setSoundRaw] = useState<string>(() => playerSound(load<string>(SOUND_KEY, "chip")));
   const setSound = (id: string) => {
     setSoundRaw(id);
     save(SOUND_KEY, id);

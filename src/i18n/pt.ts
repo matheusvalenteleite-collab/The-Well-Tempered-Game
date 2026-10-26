@@ -34,6 +34,12 @@ export const PT: Record<string, string> = {
   "WIND TRIO": "TRIO DE SOPROS",
   "WIND QUARTET": "QUARTETO DE SOPROS",
   WINDS: "SOPROS",
+  // D292: the five sounds.
+  "CLASSIC CHIP": "CHIP CLÁSSICO",
+  "ROUND CHIP": "CHIP SUAVE",
+  PIANO: "PIANO",
+  "FM PIANO": "PIANO FM",
+  "PIANO (FM)": "PIANO (FM)",
   // The pop-up
   "YOU PLAY THE {voice}": "VOCÊ TOCA: {voice}",
   "YOUR VOICE": "SUA VOZ",

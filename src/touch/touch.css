@@ -505,6 +505,7 @@ body {
 .tg-panel { gap: 14px; }
 .tg-set { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-muted); }
 .tg-panel-val { color: var(--tg-shine); }
+.tg-credit { margin: 6px 0 0; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-muted); }
 .tg-panel-note { margin: 0; font-size: 12px; line-height: 1.45; color: var(--tg-muted); }
 .tg-tap-pad {
   display: grid;

@@ -122,7 +122,7 @@ test("the effect's layers are cheap: every node released, few more made", () => 
   for (const [piece, preset] of [
     ["wtc1f04", "harpsichordSampled"],
     ["bwv1080-14", "chip"],
-    ["wtc1f05", "chipBlur"],
+    ["wtc1f05", "pianoFm"],
     ["wtc1f10", "harpsichordSampled"],
   ] as const) {
     const on = run(piece, preset, {}, 90);
@@ -138,7 +138,7 @@ test("the effect's layers are cheap: every node released, few more made", () => 
 
 test("D221: the other seventeen Book I effects cheap too: every node released, few more made", () => {
   // D249: the organ, withdrawn from the choices, still played as a preset object.
-  const presets = ["harpsichordSampled", "chip", "strings", ORGAN_SAMPLED];
+  const presets = ["harpsichordSampled", "chip", "chipRound", ORGAN_SAMPLED];
   const ratios: string[] = [];
   FUGUES.filter((f) => f.book === 1 && !TESTBENCH.includes(f.id)).forEach((f, i) => {
     const preset = presets[i % presets.length];
@@ -156,13 +156,13 @@ test("D221: the other seventeen Book I effects cheap too: every node released, f
 });
 
 test("the switches: SUBJECT SOUND and EFFECT off leave the notes as they were; VIBRATO and STEREO on", () => {
-  const off = run("wtc1f01", "strings", { subject: false, effect: false }, 30, 0);
+  const off = run("wtc1f01", "chipRound", { subject: false, effect: false }, 30, 0);
   assert.ok(off.calls.every((c) => c.p.tone === undefined && c.p.crisp === undefined && c.p.room === undefined));
-  const plain = run("wtc1f01", "strings", { subject: true, effect: false }, 30, 0);
+  const plain = run("wtc1f01", "chipRound", { subject: true, effect: false }, 30, 0);
   assert.ok(plain.calls.some((c) => (c.p.tone ?? 0) > 0));
   assert.equal(plain.calls.length, off.calls.length, "no layers without the effect");
   assert.ok(plain.calls.every((c) => !c.p.vib));
-  const vib = run("wtc1f01", "strings", { subject: true, vibrato: true, stereo: true }, 30, 0);
+  const vib = run("wtc1f01", "chipRound", { subject: true, vibrato: true, stereo: true }, 30, 0);
   const emph = vib.calls.filter((c) => (c.p.crisp ?? 0) > 0);
   assert.ok(emph.length > 5 && emph.every((c) => (c.p.vib ?? 0) > 0));
   // The entering voice nearer the centre than its own place.

@@ -39,7 +39,7 @@ function playFugue(piece: string, preset: string, chip: Chip, ctx: FakeAudioCont
 }
 
 test("every note's nodes are disconnected once it has ended: a whole fugue leaves nothing wired", () => {
-  for (const preset of ["strings", "bossa", "chip", "carlos"]) {
+  for (const preset of ["chipRound", "pianoFm", "chip", "pianoSampled"]) {
     const chip = new Chip();
     const ctx = ctxOf();
     const r = playFugue("wtc1f02", preset, chip, ctx);
@@ -65,7 +65,7 @@ test("the recorded harpsichord too: the key-up noises included", async () => {
 
 test("the game's lists stay short over the longest fugue (Contrapunctus XIV, 12 minutes)", () => {
   const chip = new Chip();
-  const r = playFugue("bwv1080-14", "baroque", chip, ctxOf());
+  const r = playFugue("bwv1080-14", "chipRound", chip, ctxOf());
   assert.ok(r.peak.band <= 64 + 40, `band ${r.peak.band}`);
   assert.ok(r.peak.marks <= 400 && r.peak.pops <= 40 && r.peak.flames <= 24);
   assert.ok(r.peak.notes <= chip.cap, `${r.peak.notes} notes at once`);
@@ -75,7 +75,7 @@ test("a phone never sounds more notes than its cap: the oldest are let go, never
   const chip = new Chip();
   const ctx = ctxOf();
   assert.equal(chip.cap, VOICE_CAP.phone);
-  setPreset("strings");
+  setPreset("chipRound");
   const v = voicing(1, 4);
   const lead = chip.note(60, 0, 8, v, { lead: true });
   let stopped = false;
@@ -97,7 +97,7 @@ test("a phone never sounds more notes than its cap: the oldest are let go, never
 test("D211: where the browser never reports a note's end, notes past their written end do not fill the cap: no note sounding is cut", () => {
   const chip = new Chip();
   const ctx = ctxOf();
-  setPreset("strings");
+  setPreset("chipRound");
   const v = voicing(1, 4);
   // Silence every source's end report (the failure seen on the phone).
   const real = ctx.advance.bind(ctx);

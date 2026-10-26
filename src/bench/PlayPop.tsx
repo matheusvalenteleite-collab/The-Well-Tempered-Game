@@ -7,7 +7,7 @@ import { lang, pieceName, tr, voiceName } from "../i18n/index.ts";
 import { useEffect, useState, type ReactNode } from "react";
 import { fugueById } from "../touch/fugue.ts";
 import { PIECE_SOUND } from "../touch/piece-sound.ts";
-import { presetById } from "../touch/sound.ts";
+import { creditFor, presetById } from "../touch/sound.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
 import { cardById } from "./cards.ts";
 import { formalTitle } from "./FuguePicker.tsx";
@@ -24,23 +24,18 @@ export function popTitle(id: string): string {
  * ensembles, and six of the console sounds (D209). D246: and first, starred, the piece's own sound
  * (piece-sound.ts) where it is not among them; the choice kept for the piece.
  */
+/** D292: now the five sounds the players have (sound.ts PRESETS), in their order. */
 export const POP_SOUNDS: readonly [id: string, name: string][] = [
+  ["chip", "CLASSIC CHIP"],
+  ["chipRound", "ROUND CHIP"],
   ["harpsichordSampled", "HARPSICHORD"],
-  ["baroque", "BAROQUE"],
-  ["consort", "CONSORT"],
-  ["bossa", "BOSSA NOVA"],
-  ["carlos", "WENDY CARLOS"],
-  ["chipPocket", "POCKET MONSTERS"],
-  ["chipPlumber", "PLUMBER BROS"],
-  ["chipHyrule", "HYRULE"],
-  ["chipBomber", "BLUE BOMBER"],
-  ["chipVampire", "VAMPIRE KILLER"],
-  ["chipBlur", "BLUE BLUR"],
+  ["pianoSampled", "PIANO"],
+  ["pianoFm", "FM PIANO"],
 ];
 
 /** "ORGAN (SAMPLED)" → "ORGAN", "LIGHT WORLD · SNES" → "LIGHT WORLD". */
 const shortSound = (name: string) => name.replace(/ \(SAMPLED\)$/, "").replace(/ · .*$/, "");
-/** D246: the row for a piece: its own sound first where the eleven do not hold it (marked `own`: underlined in gold). */
+/** D246: the row for a piece: its own sound first where the row does not hold it (marked `own`: underlined in gold). */
 export function popSounds(id: string): (readonly [id: string, name: string, own: boolean])[] {
   const own = PIECE_SOUND[id];
   const row = POP_SOUNDS.map(([sid, name]) => [sid, name, sid === own] as const);
@@ -118,6 +113,8 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rule
                 </button>
               ))}
             </div>
+            {/* D292: the recorded piano's credit (CC BY 3.0) while it is the sound. */}
+            {creditFor(sound) && <p className="tb-pop-lock" id="pop-credit">{creditFor(sound)}</p>}
           </div>
         )}
         {learn && (

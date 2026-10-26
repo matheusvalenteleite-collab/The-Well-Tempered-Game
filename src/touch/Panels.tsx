@@ -11,7 +11,7 @@ import type { Instrument } from "./engine.ts";
 import type { Level as Difficulty } from "./lanes.ts";
 import { offsetOf } from "./lag.ts";
 import { QUICK_CLICKS, QUICK_EARLY, QUICK_PERIOD, QUICK_TAPS, quickLag, SKIP_QUICK, verdictOf } from "./headphones.ts";
-import { drums as drumsNow, FAMILIES, presetById, setDrums as setDrumsNow } from "./sound.ts";
+import { creditFor, drums as drumsNow, PRESETS, presetById, setDrums as setDrumsNow } from "./sound.ts";
 import { PITCHES, TEMPERAMENTS } from "./tuning.ts";
 
 /** D180: the tempo, 20 to 200 quarter notes a minute (D181). */
@@ -135,7 +135,7 @@ export function SoundSetting({ value, set }: { value: string; set: (id: string) 
   );
 }
 
-/** The families' tabs and their presets (and DRUMS where a family has them); D233: also the bench's folded SOUND. */
+/** The sounds (D292: the five) and DRUMS where the sound has them; D233: also the bench's folded SOUND. */
 export function SoundChoices({ value, set }: { value: string; set: (id: string) => void }) {
   const [drums, setDrumsState] = useState(drumsNow());
   const setDrums = (on: boolean) => {
@@ -147,29 +147,22 @@ export function SoundChoices({ value, set }: { value: string; set: (id: string) 
       /* no storage */
     }
   };
-  const [family, setFamily] = useState(() => FAMILIES.findIndex((f) => f.presets.some((p) => p.id === value)));
-  const fam = FAMILIES[Math.max(0, family)];
+  // D292: five sounds, no family tabs; DRUMS (CLASSIC CHIP's loop) where the sound chosen has drums.
   return (
     <>
-      <div className="tg-tabs" role="group" aria-label="Sound family">
-        {FAMILIES.map((f, i) => (
-          <button key={f.name} type="button" id={`family-${i}`} className={i === family ? "on" : ""} onClick={() => setFamily(i)}>
-            {f.name}
-          </button>
-        ))}
-      </div>
       <div className="tg-grid3" role="group" aria-label="Sound">
-        {fam.presets.map((p) => (
+        {PRESETS.map((p) => (
           <button key={p.id} type="button" id={`sound-${p.id}`} className={p.id === value ? "on" : ""} onClick={() => set(p.id)} aria-pressed={p.id === value}>
             {p.name}
           </button>
         ))}
-        {fam.presets.some((p) => p.drums) && (
+        {presetById(value).drums && (
           <button type="button" id="drums" className={`tg-toggle${drums ? " on" : ""}`} onClick={() => setDrums(!drums)} aria-pressed={drums}>
             DRUMS {drums ? "ON" : "OFF"}
           </button>
         )}
       </div>
+      {creditFor(value) && <p className="tg-credit">{creditFor(value)}</p>}
     </>
   );
 }
