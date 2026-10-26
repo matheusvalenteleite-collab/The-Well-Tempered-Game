@@ -177,7 +177,7 @@ export class Game {
     });
     // D169: the other voices always play, from where the player starts.
     this.others = accompaniment(f, sorted[0].from, sorted[0].voice);
-    this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject, undefined, { bass: f.voices.length - 1 });
+    this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject, undefined, {});
     if (!o.wait) this.rit = ritard(f.length, f.barTicks);
     this.anchorAt = chip.ctx.currentTime + 0.15;
     this.anchorTick = this.start;
@@ -250,7 +250,7 @@ export class Game {
       const jn = block === null ? joins(sh) : {};
       parts.forEach(([pon, pdur, pmidi], q) => {
         const last = q === parts.length - 1;
-        const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}) };
+        const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}), ...(last && jn.apart ? { apart: true } : {}) };
         ch.note(pmidi, Math.max(ch.ctx.currentTime, this.timeAt(pon) + sh.nudge), this.timeAt(pon + pdur) - this.timeAt(pon) + (last && jn.tie ? sh.over : 0), vv, { level: sh.level, ...art });
       });
     }

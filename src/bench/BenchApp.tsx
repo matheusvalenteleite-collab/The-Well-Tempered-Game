@@ -728,7 +728,7 @@ export function BenchApp() {
     if (gen !== hearGen.current) return performance.now() / 1000;
     const t0 = ch.ctx.currentTime + 0.15;
     // D302: joined notes joined (no gap, no new attack), as the reading asks.
-    for (const n of notes) hearSounds.current.push(ch.note(n.midi, t0 + n.at, n.len, voicing(v, f.voices.length, true), { ...dynamic(n.d), lead: true, ...(n.legato ? { legato: true, from: n.from } : {}), ...(n.tie ? { tie: n.tie } : {}), ...(n.final ? { final: true } : {}) }));
+    for (const n of notes) hearSounds.current.push(ch.note(n.midi, t0 + n.at, n.len, voicing(v, f.voices.length, true), { ...dynamic(n.d), lead: true, ...(n.legato ? { legato: true, from: n.from } : {}), ...(n.tie ? { tie: n.tie } : {}), ...(n.final ? { final: true } : {}), ...(n.apart ? { apart: true } : {}) }));
     return performance.now() / 1000 + 0.15 + (ch.lag ?? 0);
   };
   useEffect(() => {

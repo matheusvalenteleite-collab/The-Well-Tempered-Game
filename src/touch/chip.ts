@@ -203,6 +203,12 @@ export interface Play {
   from?: number;
   /** D302: the last note before a rest (a phrase's end): a singing voice falls off it (VOCAL SYNTH). */
   final?: boolean;
+  /**
+   * D304: detached or staccato by a reading's mark: its gap heard on every sound (a plucked synthesized
+   * note damped in 30 ms, a held recording's release done by its written end). Without it a note ends
+   * as before D302 (the damper 80 ms, the release from the written end): the default playing.
+   */
+  apart?: boolean;
   /** A level for this note alone (1: as the voice). */
   level?: number;
   /** The note can be muffled after it starts (the testbench, D175: a gesture judged wrong). */
@@ -1056,11 +1062,13 @@ export class Chip {
     // The recording's own end, in the context's time (a plucked note dies away by then).
     const life = (noteInfo(set, near)?.len ?? 4) / Math.max(0.25, srcs[0].src.playbackRate.value) - rec.onset;
     let thunk: GainNode | null = null;
+    /** The note's own release (time constant, s): the recording's, a damper's (the bass slower), else 30 ms. */
+    const ownTau = re ? Math.max(0.005, re.r / 3) : plucked ? 0.012 + 0.02 * Math.max(0, Math.min(1, (72 - midi) / 36)) : 0.03;
     const letGo = (s: number, tie = 0) => {
       if (g.gain.cancelAndHoldAtTime) g.gain.cancelAndHoldAtTime(s);
       else (g.gain.cancelScheduledValues(s), g.gain.setValueAtTime(levelAt(s), s)); // flat after the attack, unless Patch.rec shapes it
       // D302: a held note joined to the next goes over the crossfade (`tie`), not its own release.
-      const tau = tie && !plucked ? Math.max(0.004, tie / 6) : re ? Math.max(0.005, re.r / 3) : plucked ? 0.012 + 0.02 * Math.max(0, Math.min(1, (72 - midi) / 36)) : 0.03;
+      const tau = tie && !plucked ? Math.max(0.004, tie / 6) : ownTau;
       g.gain.setTargetAtTime(0, s, tau);
       for (const x of srcs) halt(x.src, s + tau * 9 + 0.02);
       for (const l of lfos) halt(l, s + tau * 9 + 0.05);
@@ -1084,8 +1092,10 @@ export class Chip {
       for (const l of lfos) halt(l, t + life + 0.1);
     } else if (p.tie && !plucked) letGo(Math.max(t + 0.02, end - p.tie / 2), p.tie);
     // D302: a held note's release done by its written end, as a synthesized note's is (it began there,
-    // and rang on a fifth of a second past it: a detached note's gap filled).
-    else if (!plucked && !p.lead) letGo(Math.max(t + atk + 0.02, end - 2.5 * (re ? Math.max(0.005, re.r / 3) : 0.03)));
+    // and rang on a fifth of a second past it: a detached note's gap filled). D304: only a detached
+    // note's (Play.apart: a reading's mark), plucked or held, its release about -26 dB by its end, so
+    // the gap the reading asks for is heard; every other note let go at its end, as before D302.
+    else if (!p.lead && p.apart) letGo(Math.max(t + atk + 0.02, end - 6 * ownTau));
     else letGo(end);
     let stopped = false;
     let cents = 0;
@@ -1501,8 +1511,9 @@ export class Chip {
     // D184: a plucked or struck note is damped at its written end (it rang 6 s whatever its length:
     // fifty voices at once on a phone); a lead note's end is its hold, so it rings as it would.
     const damp = tail && end + 0.5 < t + 6;
-    // D302: the damper quicker (80 ms let a detached pluck ring into the next: no gap heard).
-    if (damp) g.gain.setTargetAtTime(0, Math.max(t + a + 0.01, end), 0.03);
+    // D302: the damper quicker for a detached note (80 ms let a detached pluck ring into the next: no gap
+    // heard); D304: only a detached note's, the rest ring as they did.
+    if (damp) g.gain.setTargetAtTime(0, Math.max(t + a + 0.01, end), p.apart ? 0.03 : 0.08);
     const last = tail ? (damp ? end + 0.5 : t + 6) : end + 0.05;
     for (const l of lfos) halt(l, last + 0.1);
     for (const o of tuned) (o.start(t), halt(o, last));
